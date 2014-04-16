@@ -1,125 +1,59 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:27 +0000
-Subject: [PATCH 15/24] sparc32: fix sparse warnings in auxio_32.c
-Message-Id: <1398100356-19794-15-git-send-email-sam@ravnborg.org>
+From: Luis Henriques <luis.henriques@canonical.com>
+Date: Wed, 16 Apr 2014 10:31:56 +0000
+Subject: [PATCH 3.11 40/46] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <1397644322-13905-41-git-send-email-luis.henriques@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
+In-Reply-To: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Luis Henriques <luis.henriques@canonical.com>
 
-Fix following warnings:
-auxio_32.c:23:14: warning: symbol 'auxio_register' was not declared. Should it be static?
-auxio_32.c:26:13: warning: symbol 'auxio_probe' was not declared. Should it be static?
-auxio_32.c:108:13: warning: symbol 'auxio_power_probe' was not declared. Should it be static?
+3.11.10.8 -stable review patch.  If anyone has any objections, please let me know.
 
-Add proper decalarations for the above.
+------------------
 
-The leaves one sparse warning:
-auxio_32.c:130:33: warning: cast removes address space of expression
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-This is here:
-    auxio_power_register = (unsigned char *) of_ioremap()
+commit 16932237f2978a2265662f8de4af743b1f55a209 upstream.
 
-This is __iomem that is removed from return value of of_ioremap()
-The pointer is later used without any helpers in process_32.c:
-    *auxio_power_register |= AUXIO_POWER_OFF;
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
 
-It would be simple to introduce a few sbus() helpers.
-But as I was not sure this was correct the warning are left as-is.
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- arch/sparc/include/asm/auxio.h    | 7 +++++++
- arch/sparc/include/asm/auxio_64.h | 2 --
- arch/sparc/kernel/auxio_32.c      | 3 +++
- arch/sparc/kernel/devices.c       | 8 ++------
- arch/sparc/kernel/kernel.h        | 4 ++++
- 5 files changed, 16 insertions(+), 8 deletions(-)
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/auxio.h b/arch/sparc/include/asm/auxio.h
-index 13dc67f..3e09a07 100644
---- a/arch/sparc/include/asm/auxio.h
-+++ b/arch/sparc/include/asm/auxio.h
-@@ -1,5 +1,12 @@
- #ifndef ___ASM_SPARC_AUXIO_H
- #define ___ASM_SPARC_AUXIO_H
-+
-+#ifndef __ASSEMBLY__
-+
-+extern void __iomem *auxio_register;
-+
-+#endif /* ifndef __ASSEMBLY__ */
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/auxio_64.h>
- #else
-diff --git a/arch/sparc/include/asm/auxio_64.h b/arch/sparc/include/asm/auxio_64.h
-index f61cd1e..7af9766 100644
---- a/arch/sparc/include/asm/auxio_64.h
-+++ b/arch/sparc/include/asm/auxio_64.h
-@@ -75,8 +75,6 @@
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index e562d3c..ad7e178 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
+ extern __must_check long strlen_user(const char __user *str);
+ extern __must_check long strnlen_user(const char __user *str, long n);
  
- #ifndef __ASSEMBLY__
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
  
--extern void __iomem *auxio_register;
--
- #define AUXIO_LTE_ON	1
- #define AUXIO_LTE_OFF	0
- 
-diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
-index e20cc55..c6fc1d4 100644
---- a/arch/sparc/kernel/auxio_32.c
-+++ b/arch/sparc/kernel/auxio_32.c
-@@ -9,12 +9,15 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/export.h>
-+
- #include <asm/oplib.h>
- #include <asm/io.h>
- #include <asm/auxio.h>
- #include <asm/string.h>		/* memset(), Linux has no bzero() */
- #include <asm/cpu_type.h>
- 
-+#include "kernel.h"
-+
- /* Probe and map in the Auxiliary I/O register */
- 
- /* auxio_register is not static because it is referenced 
-diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
-index 086faf6..6f39916 100644
---- a/arch/sparc/kernel/devices.c
-+++ b/arch/sparc/kernel/devices.c
-@@ -132,11 +132,7 @@ void __init device_scan(void)
- 	}
- #endif /* !CONFIG_SMP */
- 
--	{
--		extern void auxio_probe(void);
--		extern void auxio_power_probe(void);
--		auxio_probe();
--		auxio_power_probe();
--	}
-+	auxio_probe();
-+	auxio_power_probe();
- 	clock_stop_probe();
- }
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 343fd8e..c4fb8f4 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -116,6 +116,10 @@ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
- /* tadpole.c */
- extern void __init clock_stop_probe(void);
- 
-+/* auxio_32.c */
-+extern void __init auxio_probe(void);
-+extern void __init auxio_power_probe(void);
-+
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
+ struct pt_regs;
+ extern unsigned long compute_effective_address(struct pt_regs *,
 -- 
-1.8.3.1
+1.9.1
 
