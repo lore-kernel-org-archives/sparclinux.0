@@ -1,53 +1,37 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Wed, 23 Apr 2014 20:40:03 +0000
-Subject: [PATCH 0/2 V4] Print traces on softlockup
-Message-Id: <1398285605-147082-1-git-send-email-dzickus@redhat.com>
+From: COMMISSION FEDERALE BOURSES SUISSES <sidinha@lenep.uenf.br>
+Date: Fri, 18 Apr 2014 11:51:28 +0000
+Subject: UN APPEL A LA CANDIDATURE POUR 500 BOURSES D'ETUDES / A CALL TO THE BID FOR 500 SCHOLARSHIPS
+Message-Id: <1979070422.130668.1397821888514.JavaMail.root@lenep.uenf.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Don Zickus <dzickus@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-Added more patches to handle the 'uniprocessor' panic case by sending NMIs
-to every cpu but self.  Only affects x86, sparc.
 
-V4: roll x86 and sparc patches into patch1
-    add CONFIG_SMP in various places based on Andrew's suggestion
-V3: wrap x86 code with get/put_cpu based on Oleg's suggestions
-V2: expand from one patch to 4
-
-Aaron Tomlin (4):
-  nmi: Provide the option to issue an NMI back trace to every cpu but
-    current
-  x86, nmi: Add more flexible NMI back trace support
-  sparc64, nmi: Add more flexible NMI back trace support
-  watchdog: Printing traces for all cpus on lockup detection
-
- Documentation/kernel-parameters.txt |    5 +++++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
- arch/sparc/include/asm/irq_64.h     |    2 +-
- arch/sparc/kernel/process_64.c      |   14 +++++++++-----
- arch/x86/include/asm/irq.h          |    2 +-
- arch/x86/kernel/apic/hw_nmi.c       |   17 +++++++++++++----
- include/linux/nmi.h                 |   12 +++++++++++-
- kernel/sysctl.c                     |    9 +++++++++
- kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
- 9 files changed, 98 insertions(+), 12 deletions(-)
-
-Aaron Tomlin (2):
-  nmi: Provide the option to issue an NMI back trace to every cpu but
-    current
-  watchdog: Printing traces for all cpus on lockup detection
-
- Documentation/kernel-parameters.txt |    5 +++++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
- arch/sparc/include/asm/irq_64.h     |    2 +-
- arch/sparc/kernel/process_64.c      |   14 +++++++++-----
- arch/x86/include/asm/irq.h          |    2 +-
- arch/x86/kernel/apic/hw_nmi.c       |   17 +++++++++++++----
- include/linux/nmi.h                 |   14 +++++++++++++-
- kernel/sysctl.c                     |   11 +++++++++++
- kernel/watchdog.c                   |   34 ++++++++++++++++++++++++++++++++++
- 9 files changed, 104 insertions(+), 12 deletions(-)
-
+                                                                 
+PAR L’INTERMÉDIAIRE DE LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES (CFBE-SUISSE) , LE SECRÉTARIAT D’ÉTAT A L’ÉTUDE ET A LA RECHERCHE DE LA CONFÉDÉRATION LANCE UN APPEL A LA CANDIDATURE POUR 500 BOURSES D’ÉTUDES  SUISSES AU TITRE DE L’ANNÉE ACADÉMIQUE 2014-2015.  
+  PROCÉDURE DE SÉLECTION
+ - RETIRER AUPRÈS  DE LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES Surisses(CFBES)LE FORMULAIRE DE DEMANDE DE BOURSE VIA 
+A LEUR ADRESSE ÉMAIL: universitebourseetude@laposte.net
+A LEUR ADRESSE EMAIL: sboursesdetudes@yahoo.fr
+ - REMPLIR ET ENVOYER PAR PIÈCE JOINTE LE FORMULAIRE.
+  - LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES FERA ÉTUDIER VOTRE DOSSIER PAR LA REPRÉSENTATION SUISSE DÉLÉGUÉE DE VOTRE ZONE .
+- LES CANDIDATS RETENUS RECEVRONT UNE ATTESTATION DU SECRÉTARIAT D’ÉTAT A L’ÉTUDE ET A LA RECHERCHE POUR NOTIFICATION DE LA BOURSE. LES CANDIDATS DÉSIREUX DE PARTICIPER AUX BOURSES D’ÉTUDES 2014 - 2015 DOIVENT RETIRER LEUR FORMULAIRE A REMPLIR AUPRÈS DE LA CFBES EN PLUS DE CELA TOUTES CANDIDATS RETENU RETROUVERA LA RÉPONSE DE NOTRE COOPÉRATION AFRICAINE ET AUSSI AVOIR LEUR DEMANDE DE VISA SUISSES QU'IL DOIT REMPLIR ET LEUR ENVOYER CELA.
+ A LEUR ADRESSE ÉMAIL: universitebourseetude@laposte.net
+LA DATE LIMITE DE DEPÖT DES DOSSIERS EST PREVUE POUR LE 28 MAI 2014.
+LE PRÉSIDENT DE LA COMMISSION FÉDÉRALE
+DES BOURSES ÉTRANGÈRES SUISSES
+....................................
+THROUGH FEDERAL GRANTS FOREIGN (GFEC-SWITZERLAND) COMMISSION, THE SECRETARY OF STATE THE STUDY AND RESEARCH OF CONFEDERATION LAUNCHES A CALL TO CANDIDACY FOR 500 SCHOLARSHIPS FOR THE ACADEMIC YEAR 2014-2015 SWISS. 
+  SELECTION PROCEDURE
+ -REMOVE the Federal grants foreign Commission Surisses (CFBES) scholarship application form VIA
+At their EMAIL address: universitebourseetude@laposte.net
+At their EMAIL address: sboursesdetudes@yahoo.fr
+ -COMPLETE AND SEND THE FORM BY ATTACHMENT.
+  -THE FEDERAL FOREIGN SCHOLARSHIPS COMMISSION WILL BE STUDYING YOUR FILE BY REPRESENTATION SWITZERLAND REPRESENTATIVE FOR YOUR AREA.
+-SUCCESSFUL APPLICANTS WILL RECEIVE A CERTIFICATE FROM THE STATE SECRETARIAT FOR THE STUDY AND RESEARCH FOR NOTIFICATION OF THE STOCK EXCHANGE. CANDIDATES TO PARTICIPATE IN THE 2014-2015 SCHOLARSHIPS MUST REMOVE THEIR FORM IS TO BE COMPLETED WITH THE CFBES IN ADDITION TO THIS ALL RETAINED CANDIDATES WILL BE THE RESPONSE OF OUR AFRICAN COOPERATION AND ALSO HAVE THEIR SWISS VISA APPLICATION THAT HE MUST COMPLETE AND SEND THEM THIS.
+ At their EMAIL address: universitebourseetude@laposte.net
+THE DATE OF RECORDS DEADLINE IS SCHEDULED FOR MAY 28, 2014.
+THE CHAIRMAN OF THE FEDERAL COMMISSION
+FOREIGN SWISS SCHOLARSHIPS
