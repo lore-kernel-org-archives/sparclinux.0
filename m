@@ -1,40 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:54:20 +0000
-Subject: [PATCH 0/10] Sparc64 MM bug fixes
-Message-Id: <20140430.175420.1944889075484067093.davem@davemloft.net>
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Sat, 19 Apr 2014 16:55:24 +0000
+Subject: Fwd: Time to let sun4m + sun4d RIP?
+Message-Id: <CALMQjD96AqwOpiSifwBCG_S_kU_yANh1Ja2W2XAG2d6jW6dgBA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On 19 April 2014 16:55, Alan Perry <alanp@snowmoose.com> wrote:
+>
+>
+>
+> > So the question to you guys...
+> > Shall we keep support for sun4d and sun4m?
+> > If yes then why?
+>
+> I collect Sun lunchbox systems and also have an Axil SS20 clone.  I start up the lunchbox systems once a year to make sure they haven't died and regularly run the Axil. One of the lunchbox systems is running some Linux distro that I don't recall (it could be something old on a sun4c).
+>
+> Number one problem keeping them running long term is the NVRAM battery (I have added external batteries to the chips in almost all of them). Replacement SCSI HDDs are now a problem to source locally; I couldn't get any from the computer recycler last year. I can still get them on eBay.
+>
+> alan
+>
 
-This is the current state of my audit of the sparc64 mm code.
+Hi,
 
-Some of these changes have to do with THP, but some do not.
+I do not see why support for sun4m and sun4d should actively be
+dropped. I have contributed to
+the sparc32/sun4d port because I still have such a system that is in
+working order.
+(Along with several other sparc32/sparc64-variants)
 
-I've started to add some better checking of page table sanity,
-in the hopes that it will potentially help further diagnosis
-of any problems that still can be triggered.
+I have struggled with running Linux on architectures that are not
+supported by the mainline
+Linux kernel any more. And backporting features/bugfixes from never
+kernels becomes quite hard
+after a while.
 
-In particular, pmd_bad() and pud_bad() now actually do something :)
+Is there currently some technical difficulties that prevents us for
+keeping the status quo? Or
+is this just a suggestion for the sake of suggestions ?
 
-If those exit_mmap() WARN_ON()'s still trigger, I'll have to code up a
-more sophisticated debugging patch I guess.  My current idea is to
-have a debugging function which walks the page tables counting PTE
-tables (under suitable locks), and validates that mm->nr_ptes matches
-this count.  Then we can sprinkle calls to this debugging function at
-various critical spots, such as fault entry and exit, and around major
-MM operations that potentially adjust page tables.
-
-Actually, if I implement that facility, the first iteration I'd have
-simply check only at free_pgtables() entry.  That way we can learn
-quickly if we enter free_pgtables() with the counter already
-corrupted, or if it gets corrupted by the unmaps done by
-free_pgtables() itself.
-
-Anyways, please let me know how well these patches work and if they
-make any difference for your problems at all.  THP enabled and THP
-disabled results are both extremely useful.
-
-Thanks!
+Regards,
+Kjetil Oftedal
+(Resend to the mailinglist: html was inserted into the email by the webmail)
