@@ -1,80 +1,135 @@
-From: Luis Henriques <luis.henriques@canonical.com>
-Date: Wed, 16 Apr 2014 10:13:58 +0000
-Subject: [3.11.y.z extended stable] Patch "sparc64: don't treat 64-bit syscall return codes as 32-bit" has be
-Message-Id: <1397643238-13108-1-git-send-email-luis.henriques@canonical.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:56:11 +0000
+Subject: [PATCH 4/5] sparc32: fix sparse warnings in srmmu.c
+Message-Id: <20140420195610.GD17743@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a note to let you know that I have just added a patch titled
+From 6117ffdcf39eaf9c6ff877476df542cccdca7d44 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 21:11:30 +0200
+Subject: [PATCH 4/5] sparc32: fix sparse warnings in srmmu.c
 
-    sparc64: don't treat 64-bit syscall return codes as 32-bit
+Fix following warnings:
+srmmu.c:78:5: warning: symbol 'flush_page_for_dma_global' was not declared. Should it be static?
+srmmu.c:85:5: warning: symbol 'viking_mxcc_present' was not declared. Should it be static?
+srmmu.c:103:6: warning: symbol 'srmmu_nocache_bitmap' was not declared. Should it be static?
+srmmu.c:176:24: warning: Using plain integer as NULL pointer
+srmmu.c:731:46: warning: Using plain integer as NULL pointer
+srmmu.c:731:46: warning: Using plain integer as NULL pointer
+srmmu.c:731:46: warning: Using plain integer as NULL pointer
+srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
 
-to the linux-3.11.y-queue branch of the 3.11.y.z extended stable tree 
-which can be found at:
+Add proper prototypes in mm_32.h and drop local prototype in init_32.c
+Replace 0 with NULL
 
- http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.11.y-queue
-
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
-
-For more information about the 3.11.y.z tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
-
-Thanks.
--Luis
-
-------
-
-From 27dcca946c1777ed96f639ea4b2e96342d50e6ba Mon Sep 17 00:00:00 2001
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Fri, 14 Mar 2014 10:42:01 -0500
-Subject: sparc64: don't treat 64-bit syscall return codes as 32-bit
-
-commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 upstream.
-
-When checking a system call return code for an error,
-linux_sparc_syscall was sign-extending the lower 32-bit value and
-comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
-codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
-Use the whole 64-bit value to check for errors. Only the 32-bit path
-should sign extend the lower 32-bit value.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Acked-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Allen Pais <allen.pais@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/syscalls.S | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/mm/init_32.c | 3 ++-
+ arch/sparc/mm/iommu.c   | 5 ++---
+ arch/sparc/mm/mm_32.h   | 4 ++++
+ arch/sparc/mm/srmmu.c   | 6 +++---
+ 4 files changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index 73ec8a7..c79c687 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -189,7 +189,8 @@ linux_sparc_syscall32:
- 	 mov	%i0, %l5				! IEU1
- 5:	call	%l7					! CTI	Group brk forced
- 	 srl	%i5, 0, %o5				! IEU1
--	ba,a,pt	%xcc, 3f
-+	ba,pt	%xcc, 3f
-+	 sra	%o0, 0, %o0
-
- 	/* Linux native system calls enter here... */
- 	.align	32
-@@ -217,7 +218,6 @@ linux_sparc_syscall:
- 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
- ret_sys_call:
- 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
--	sra	%o0, 0, %o0
- 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
- 	sllx	%g2, 32, %g2
-
---
-1.9.1
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index db69870..cf09e6e 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -35,6 +35,8 @@
+ #include <asm/prom.h>
+ #include <asm/leon.h>
+ 
++#include "mm_32.h"
++
+ unsigned long *sparc_valid_addr_bitmap;
+ EXPORT_SYMBOL(sparc_valid_addr_bitmap);
+ 
+@@ -246,7 +248,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+  * init routine based upon the Sun model type on the Sparc.
+  *
+  */
+-extern void srmmu_paging_init(void);
+ extern void device_scan(void);
+ 
+ void __init paging_init(void)
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 28f96f2..35384cb 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -27,6 +27,8 @@
+ #include <asm/iommu.h>
+ #include <asm/dma.h>
+ 
++#include "mm_32.h"
++
+ /*
+  * This can be sized dynamically, but we will do this
+  * only when we have a guidance about actual I/O pressures.
+@@ -37,9 +39,6 @@
+ #define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
+ #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
+ 
+-/* srmmu.c */
+-extern int viking_mxcc_present;
+-extern int flush_page_for_dma_global;
+ static int viking_flush;
+ /* viking.S */
+ extern void viking_flush_page(unsigned long page);
+diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
+index e6af5ae..bf4c56f 100644
+--- a/arch/sparc/mm/mm_32.h
++++ b/arch/sparc/mm/mm_32.h
+@@ -10,5 +10,9 @@ extern void window_ret_fault(struct pt_regs *regs);
+ 
+ /* srmmu.c */
+ extern char *srmmu_name;
++extern int viking_mxcc_present;
++extern int flush_page_for_dma_global;
+ 
+ extern void (*poke_srmmu)(void);
++
++extern void __init srmmu_paging_init(void);
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 54e834c..4639d8e 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -100,7 +100,6 @@ static unsigned long srmmu_nocache_end;
+ #define SRMMU_NOCACHE_ALIGN_MAX (sizeof(ctxd_t)*SRMMU_MAX_CONTEXTS)
+ 
+ void *srmmu_nocache_pool;
+-void *srmmu_nocache_bitmap;
+ static struct bit_map srmmu_nocache_map;
+ 
+ static inline int srmmu_pmd_none(pmd_t pmd)
+@@ -173,7 +172,7 @@ static void *__srmmu_get_nocache(int size, int align)
+ 		printk(KERN_ERR "srmmu: out of nocache %d: %d/%d\n",
+ 		       size, (int) srmmu_nocache_size,
+ 		       srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
+-		return 0;
++		return NULL;
+ 	}
+ 
+ 	addr = SRMMU_NOCACHE_VADDR + (offset << SRMMU_NOCACHE_BITMAP_SHIFT);
+@@ -269,6 +268,7 @@ static void __init srmmu_nocache_calcsize(void)
+ 
+ static void __init srmmu_nocache_init(void)
+ {
++	void *srmmu_nocache_bitmap;
+ 	unsigned int bitmap_bits;
+ 	pgd_t *pgd;
+ 	pmd_t *pmd;
+@@ -728,7 +728,7 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
+ 				     "=r" (retval) :
+ 				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
+ 	} else {
+-		retval = leon_swprobe(vaddr, 0);
++		retval = leon_swprobe(vaddr, NULL);
+ 	}
+ 	return retval;
+ }
+-- 
+1.8.3.1
 
