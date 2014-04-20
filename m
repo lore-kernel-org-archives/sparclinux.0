@@ -1,85 +1,55 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:20 +0000
-Subject: [PATCH 08/24] sparc32: fix sparse warnings in setup_32.c
-Message-Id: <1398100356-19794-8-git-send-email-sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:55:45 +0000
+Subject: [PATCH 3/5] sparc32: fix sparse warning in init_32.c
+Message-Id: <20140420195545.GC17743@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-setup_32.c:106:15: warning: symbol 'cmdline_memory_size' was not declared. Should it be static?
-setup_32.c:270:16: warning: symbol 'fake_swapper_regs' was not declared. Should it be static?
-setup_32.c:368:55: warning: Using plain integer as NULL pointer
+From beb894608d1b7edb5973e73b0c853228cb48b680 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:59:43 +0200
+Subject: [PATCH 3/5] sparc32: fix sparse warning in init_32.c
 
-Add missing declaration of cmdline_memory_size and remove the local one in init_32.c
-fake_swapper_regs was only used locally - so defined static.
-When replacing 0 with NULL also add a few spaces around operators
+Fix following warning:
+init_32.c:112:22: warning: symbol 'bootmem_init' was not declared. Should it be static?
+
+Fix by adding a proper prototype in pgtable_32.h and drop
+the local prototype in srmmu.c
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/setup.h | 3 +++
- arch/sparc/kernel/setup_32.c   | 4 ++--
- arch/sparc/mm/init_32.c        | 2 +-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h | 1 +
+ arch/sparc/mm/srmmu.c               | 2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index 4b7465a..c7cd435 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -36,6 +36,9 @@ extern unsigned long pdma_areasize;
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 502f632..7b0c686 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -27,6 +27,7 @@ struct page;
  
- int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
+ extern void load_mmu(void);
+ extern unsigned long calc_highpages(void);
++extern unsigned long __init bootmem_init(unsigned long *pages_avail);
  
-+/* setup_32.c */
-+extern unsigned long cmdline_memory_size;
-+
- #endif
+ #define pte_ERROR(e)   __builtin_trap()
+ #define pmd_ERROR(e)   __builtin_trap()
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index ed0b0b6a..54e834c 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -865,8 +865,6 @@ static void __init map_kernel(void)
  
- extern void sun_do_break(void);
-diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-index 1434526..baef495 100644
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -267,7 +267,7 @@ static __init void leon_patch(void)
- }
+ void (*poke_srmmu)(void) = NULL;
  
- struct tt_entry *sparc_ttable;
--struct pt_regs fake_swapper_regs;
-+static struct pt_regs fake_swapper_regs;
- 
- /* Called from head_32.S - before we have setup anything
-  * in the kernel. Be very careful with what you do here.
-@@ -365,7 +365,7 @@ void __init setup_arch(char **cmdline_p)
- 
- 	prom_setsync(prom_sync_me);
- 
--	if((boot_flags&BOOTME_DEBUG) && (linux_dbvec!=0) && 
-+	if((boot_flags & BOOTME_DEBUG) && (linux_dbvec != NULL) &&
- 	   ((*(short *)linux_dbvec) != -1)) {
- 		printk("Booted under KADB. Syncing trap table.\n");
- 		(*(linux_dbvec->teach_debugger))();
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index cf09e6e..d0c7327 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -31,6 +31,7 @@
- #include <asm/pgtable.h>
- #include <asm/vaddrs.h>
- #include <asm/pgalloc.h>	/* bug in asm-generic/tlb.h: check_pgt_cache */
-+#include <asm/setup.h>
- #include <asm/tlb.h>
- #include <asm/prom.h>
- #include <asm/leon.h>
-@@ -65,7 +66,6 @@ void show_mem(unsigned int filter)
- }
- 
- 
--extern unsigned long cmdline_memory_size;
- unsigned long last_valid_pfn;
- 
- unsigned long calc_highpages(void)
+-extern unsigned long bootmem_init(unsigned long *pages_avail);
+-
+ void __init srmmu_paging_init(void)
+ {
+ 	int i;
 -- 
 1.8.3.1
 
