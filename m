@@ -1,102 +1,64 @@
-From: "Dr.=?ISO-8859-2?Q?_Nagy_Elem=E9r_K=E1rol?= y" <eknagy@omikk.bme.hu>
-Date: Sun, 13 Apr 2014 18:33:02 +0000
-Subject: Sun V210 Cheetah error trap (kernel problem?)
-Message-Id: <20140413182920.M36664@omikk.bme.hu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=OPENWEBMAIL_ATT_0.247048611188429"
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:55:21 +0000
+Subject: [PATCH 2/5] sparc32: fix sparse warning in fault_32.c
+Message-Id: <20140420195520.GB17743@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a multi-part message in MIME format.
+From ade61f6c32462ce4f8c27a6e9edf40d53d39f7f1 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:56:50 +0200
+Subject: [PATCH 2/5] sparc32: fix sparse warning in fault_32.c
 
-------=OPENWEBMAIL_ATT_0.247048611188429
-Content-Type: text/plain;
-	charset=iso-8859-2
+Fix following warning:
+fault_32.c:38:24: error: symbol 'unhandled_fault' redeclared with different type - different modifiers
 
-Dear SPARC Kernel Gurus!
+When this warning was fixed several new warnings popped up - fix them too.
 
-I am SysAdming a Sun V210 iptables firewall and I have a kernel problem (?) on it.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/mm/fault_32.c |  5 ++---
+ arch/sparc/mm/mm_32.h    | 10 ++++++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-Sometimes the console (both virtual via SSH and serial console via ILOM) dies, syslog to disk is stopping, but iptables
-keeps filtering the packages. There is a "Cheetah error trap" on the console and in the attached syslog snippet.
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 59dbd46..7751810 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -30,10 +30,9 @@
+ #include <asm/traps.h>
+ #include <asm/uaccess.h>
+ 
+-int show_unhandled_signals = 1;
++#include "mm_32.h"
+ 
+-static void unhandled_fault(unsigned long, struct task_struct *,
+-		struct pt_regs *) __attribute__ ((noreturn));
++int show_unhandled_signals = 1;
+ 
+ static void __noreturn unhandled_fault(unsigned long address,
+ 				       struct task_struct *tsk,
+diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
+index 5703274..e6af5ae 100644
+--- a/arch/sparc/mm/mm_32.h
++++ b/arch/sparc/mm/mm_32.h
+@@ -1,3 +1,13 @@
++/* fault_32.c - visible as they are called from assembler */
++extern asmlinkage int lookup_fault(unsigned long pc, unsigned long ret_pc,
++                                   unsigned long address);
++extern asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
++                                      unsigned long address);
++
++extern void window_overflow_fault(void);
++extern void window_underflow_fault(unsigned long sp);
++extern void window_ret_fault(struct pt_regs *regs);
++
+ /* srmmu.c */
+ extern char *srmmu_name;
+ 
+-- 
+1.8.3.1
 
-Kernel version is 3.2.0-4-sparc64-smp (Debian 3.2.54-2 sparc64) (previous Debian 7 kernel versions behaved similarly).
-
-The error happens sporadically, sometimes once in three months, sometimes once a week. There is no obvious way to
-trigger it, IRQ seems to be the best suspect at the moment (iptraf and apt-get upgrade seems to trigger it more often than
-idling).
-
-I can apply patches, recompile kernel and do such stuff but I have no idea how to decode this error.
-
-I can experiment with different patches and settings on the weekends as long as they do not endanger the 12 hour
-mission-critical weekday filtering.
-
-If I can not resolve this issue the machine will be replaced with an inferior performance X86 machine, so I hope you can
-help me - I already tried the Debian Sparc, so you are my last hope.
-
-Thank you:
-Elmar K. Nagy
-
-
-------=OPENWEBMAIL_ATT_0.247048611188429
-Content-Type: application/octet-stream;
-	name="syslog"
-Content-Disposition: attachment; filename="syslog"
-Content-Transfer-Encoding: base64
-
-LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwt
-LS0tLS0lPC0tLS0tLSU8LS0tLS0tCkFwciAxMSAyMzoxNzowMSBzdW4xIC9VU1IvU0JJTi9DUk9O
-Wzg0MzVdOiAocm9vdCkgQ01EICggICBjZCAvICYmIHJ1bi1wYXJ0cyAtLXJlcG9ydCAvZXRjL2Ny
-b24uaG91cmx5KQpBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuMTk5MDEzXSBF
-UlJPUigxKTogQ2hlZXRhaCBlcnJvciB0cmFwIHRha2VuIGFmc3JbMDAxMDEwMDAwMDAwMDAwMF0g
-YWZhclswMDAwMDAwMDQwMDAwMDAwXSBUTDEoMCkKQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVs
-OiBbMjY1MTEzLjMxOTE5OF0gRVJST1IoMSk6IFRQQ1s0MDdiYjBdIFROUENbNDA3YmI0XSBPN1s0
-NDhmZGNdIFRTVEFURVs0ODBlMDE2MDZdCkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2
-NTExMy40MTE4MjNdIEVSUk9SKDEpOiBUUEM8Y29weV90c2IrMHgzMC8weDgwPgpBcHIgMTIgMDA6
-MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuNDcwMTUzXSBFUlJPUigxKTogTV9TWU5EKDApLCAg
-RV9TWU5EKDApLCBQcml2aWxlZ2VkCkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2NTEx
-My41Mzk5MjZdIEVSUk9SKDEpOiBIaWdoZXN0IHByaW9yaXR5IGVycm9yICgwMDAwMTAwMDAwMDAw
-MDAwKSAiVW5tYXBwZWQgZXJyb3IgZnJvbSBzeXN0ZW0gYnVzIgpBcHIgMTIgMDA6MTU6MDMgc3Vu
-MSBrZXJuZWw6IFsyNjUxMTMuNjU2NjAxXSBFUlJPUigxKTogRC1jYWNoZSBpZHhbMF0gdGFnWzAw
-MDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAwMDAwMDAwMF0gc3RhZ1swMDAwMDAwMDAwMDAw
-MDAwXQpBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuNzgyNDE0XSBFUlJPUigx
-KTogRC1jYWNoZSBkYXRhMFswMDAwMDAwMDAwMDAwMDAwXSBkYXRhMVswMDAwMDAwMDAwMDAwMDAw
-XSBkYXRhMlswMDAwMDAwMDAwMDAwMDAwXSBkYXRhM1swMDAwMDAwMDAwMDAwMDAwXQpBcHIgMTIg
-MDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTMuOTMyMjQ5XSBFUlJPUigxKTogSS1jYWNoZSBp
-ZHhbMF0gdGFnWzAwMDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAwMDAwMDAwMF0gc3RhZ1sw
-MDAwMDAwMDAwMDAwMDAwXSB1WzAwMDAwMDAwMDAwMDAwMDBdIGxbMDAwMDAwMDAwMDAwMDAwMF0K
-QXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjEwMzgxMl0gRVJST1IoMSk6IEkt
-Y2FjaGUgSU5TTjBbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjFbMDAwMDAwMDAwMDAwMDAwMF0gSU5T
-TjJbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjNbMDAwMDAwMDAwMDAwMDAwMF0KQXByIDEyIDAwOjE1
-OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjI1MzY0M10gRVJST1IoMSk6IEktY2FjaGUgSU5TTjRb
-MDAwMDAwMDAwMDAwMDAwMF0gSU5TTjVbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjZbMDAwMDAwMDAw
-MDAwMDAwMF0gSU5TTjdbMDAwMDAwMDAwMDAwMDAwMF0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2Vy
-bmVsOiBbMjY1MTE0LjQwMzQ3Ml0gRVJST1IoMSk6IEUtY2FjaGUgaWR4WzQwMDAwMDAwXSB0YWdb
-MDAwMDAwMDAxYTAwMGZlZV0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjQ4
-NDY3Ml0gRVJST1IoMSk6IEUtY2FjaGUgZGF0YTBbODA0NjAwMDAzZmE5MDAxMl0gZGF0YTFbODA0
-MDgwMDAzZmE5MDAxMF0gZGF0YTJbODAwMDAwMTAzZGQxYzAxMl0gZGF0YTNbODAwMDAwMTAzZGQw
-NjAxMl0KQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjYzNDUxM10gS2VybmVs
-IHBhbmljIC0gbm90IHN5bmNpbmc6IElycmVjb3ZlcmFibGUgZGVmZXJyZWQgZXJyb3IgdHJhcC4K
-QXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjYzNDUxOF0gCkFwciAxMiAwMDox
-NTowMyBzdW4xIGtlcm5lbDogWzI2NTExNC43NDY1ODVdIENhbGwgVHJhY2U6CkFwciAxMiAwMDox
-NTowMyBzdW4xIGtlcm5lbDogWzI2NTExNC43Nzk3NjJdICBbMDAwMDAwMDAwMDQyOGUyOF0gY2hl
-ZXRhaF9kZWZlcnJlZF9oYW5kbGVyKzB4MzJjLzB4MzY0CkFwciAxMiAwMDoxNTowMyBzdW4xIGtl
-cm5lbDogWzI2NTExNC44NjQ0MDRdICBbMDAwMDAwMDAwMDQwNWU1MF0gY19kZWZlcnJlZCsweDE4
-LzB4MjQKQXByIDEyIDAwOjE1OjAzIHN1bjEga2VybmVsOiBbMjY1MTE0LjkzMDczNV0gIFswMDAw
-MDAwMDAwNDA3YmIwXSBjb3B5X3RzYisweDMwLzB4ODAKQXByIDEyIDAwOjE1OjAzIHN1bjEga2Vy
-bmVsOiBbMjY1MTE0Ljk5NDc5MF0gIFswMDAwMDAwMDAwNzgzNTA0XSBkb19zcGFyYzY0X2ZhdWx0
-KzB4NWI0LzB4N2E0CkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5lbDogWzI2NTExNS4wNzAyNzVd
-ICBbMDAwMDAwMDAwMDQwNzlhOF0gc3BhcmM2NF9yZWFsZmF1bHRfY29tbW9uKzB4MTAvMHgyMApB
-cHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTUuMTUyNjMxXSAgWzAwMDAwMDAwMDA0
-NWQxZjBdIHNjaGVkdWxlX3RhaWwrMHg3OC8weDg4CkFwciAxMiAwMDoxNTowMyBzdW4xIGtlcm5l
-bDogWzI2NTExNS4yMjIzOTVdICBbMDAwMDAwMDAwMDQwNjA1MF0gcmV0X2Zyb21fc3lzY2FsbCsw
-eDgvMHgxOApBcHIgMTIgMDA6MTU6MDMgc3VuMSBrZXJuZWw6IFsyNjUxMTUuMjk0NDU3XSBQcmVz
-cyBTdG9wLUEgKEwxLUEpIHRvIHJldHVybiB0byB0aGUgYm9vdCBwcm9tCkFwciAxMiAwMDoxNzow
-MSBzdW4xIC9VU1IvU0JJTi9DUk9OWzg2MDVdOiAocm9vdCkgQ01EICggICBjZCAvICYmIHJ1bi1w
-YXJ0cyAtLXJlcG9ydCAvZXRjL2Nyb24uaG91cmx5KQpBcHIgMTMgMTE6NDA6MTIgc3VuMSBrZXJu
-ZWw6IGlta2xvZyA1LjguMTEsIGxvZyBzb3VyY2UgPSAvcHJvYy9rbXNnIHN0YXJ0ZWQuCi0tLS0t
-LSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0tJTwtLS0tLS0lPC0tLS0tLSU8LS0tLS0t
-JTwtLS0tLS0lPC0tLS0tLQo=
-
-
-------=OPENWEBMAIL_ATT_0.247048611188429--
