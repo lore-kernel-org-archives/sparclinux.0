@@ -1,79 +1,73 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Fri, 04 Apr 2014 20:47:08 +0000
-Subject: [PATCH 2/4 v2] x86, nmi: Add more flexible NMI back trace support
-Message-Id: <1396644430-70649-3-git-send-email-dzickus@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 19:56:44 +0000
+Subject: [PATCH 5/5] sparc32: fix sparse "Should it be static?" in mm/
+Message-Id: <20140420195644.GE17743@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
+From 76f498f0378514d5456231b9abb5183efa4afff2 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Apr 2014 20:32:29 +0200
+Subject: [PATCH 5/5] sparc32: fix sparse "Should it be static?" in mm/
 
-This patch introduces the x86 specific implementation
-changes to the arch_trigger_all_cpu_backtrace() routine.
-Now users have the ability to choose whether or not to
-issue an NMI back trace which includes current.
+Fix following warnings:
+srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
+iommu.c:430:13: warning: symbol 'ld_mmu_iommu' was not declared. Should it be static?
+leon_mm.c:21:5: warning: symbol 'srmmu_swprobe_trace' was not declared. Should it be static?
 
-[Don't print message in single processor case - dcz]
+Add proper prototypes or define static to fix them.
 
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/x86/include/asm/irq.h    |    2 +-
- arch/x86/kernel/apic/hw_nmi.c |   16 +++++++++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ arch/sparc/mm/leon_mm.c | 2 +-
+ arch/sparc/mm/mm_32.h   | 6 ++++++
+ arch/sparc/mm/srmmu.c   | 3 ---
+ 3 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
-index cb6cfcd..a80cbb8 100644
---- a/arch/x86/include/asm/irq.h
-+++ b/arch/x86/include/asm/irq.h
-@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
- extern void init_ISA_irqs(void);
+diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
+index 649cad6..3b17b6f 100644
+--- a/arch/sparc/mm/leon_mm.c
++++ b/arch/sparc/mm/leon_mm.c
+@@ -18,7 +18,7 @@
+ #include "mm_32.h"
  
- #ifdef CONFIG_X86_LOCAL_APIC
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
- #endif
+ int leon_flush_during_switch = 1;
+-int srmmu_swprobe_trace;
++static int srmmu_swprobe_trace;
  
-diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
-index a698d71..3614e34 100644
---- a/arch/x86/kernel/apic/hw_nmi.c
-+++ b/arch/x86/kernel/apic/hw_nmi.c
-@@ -33,7 +33,7 @@ static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
- /* "in progress" flag of arch_trigger_all_cpu_backtrace */
- static unsigned long backtrace_flag;
- 
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
+ static inline unsigned long leon_get_ctable_ptr(void)
  {
- 	int i;
+diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
+index bf4c56f..e567175 100644
+--- a/arch/sparc/mm/mm_32.h
++++ b/arch/sparc/mm/mm_32.h
+@@ -16,3 +16,9 @@ extern int flush_page_for_dma_global;
+ extern void (*poke_srmmu)(void);
  
-@@ -46,8 +46,18 @@ void arch_trigger_all_cpu_backtrace(void)
- 
- 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
- 
--	printk(KERN_INFO "sending NMI to all CPUs:\n");
--	apic->send_IPI_all(NMI_VECTOR);
-+	if (include_self) {
-+		printk(KERN_INFO "sending NMI to all CPUs:\n");
-+		apic->send_IPI_all(NMI_VECTOR);
-+	} else {
-+		cpumask_clear_cpu(smp_processor_id(),
-+			to_cpumask(backtrace_mask));
+ extern void __init srmmu_paging_init(void);
 +
-+		if (!cpumask_empty(to_cpumask(backtrace_mask))) {
-+			printk(KERN_INFO "sending NMI to other CPUs:\n");
-+			apic->send_IPI_allbutself(NMI_VECTOR);
-+		}
-+	}
++/* iommu.c */
++extern void ld_mmu_iommu(void);
++
++/* io-unit.c */
++extern void ld_mmu_iounit(void);
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 4639d8e..be65f03 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1769,9 +1769,6 @@ static struct sparc32_cachetlb_ops smp_cachetlb_ops = {
+ /* Load up routines and constants for sun4m and sun4d mmu */
+ void __init load_mmu(void)
+ {
+-	extern void ld_mmu_iommu(void);
+-	extern void ld_mmu_iounit(void);
+-
+ 	/* Functions */
+ 	get_srmmu_type();
  
- 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
- 	for (i = 0; i < 10 * 1000; i++) {
 -- 
-1.7.1
+1.8.3.1
 
