@@ -1,56 +1,93 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Mon, 28 Apr 2014 01:11:21 +0000
-Subject: [PATCH 3.2 17/94] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <lsq.1398647481.595997505@decadent.org.uk>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:22 +0000
+Subject: [PATCH 07/29] sparc32: fix sparse warnings in sun4m_irq.c and sun4d_irq.c
+Message-Id: <1398109184-3283-7-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <lsq.1398647481.453080089@decadent.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: akpm@linux-foundation.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-3.2.58-rc1 review patch.  If anyone has any objections, please let me know.
+Fix following warnings:
 
-------------------
+sun4m_irq.c:308:6: warning: symbol 'sun4m_nmi' was not declared. Should it be static?
+sun4m_irq.c:396:28: warning: incorrect type in assignment (different address spaces)
+sun4m_irq.c:396:28:    expected unsigned int volatile *extern [addressable] [toplevel] master_l10_counter
+sun4d_irq.c:469:28: warning: incorrect type in assignment (different address spaces)
+sun4d_irq.c:469:28:    expected unsigned int volatile *extern [addressable] [toplevel] master_l10_counter
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
+master_l10_counter is a pointer to __iomem - add annotations.
 
-[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
-
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
-
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
-
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/timer_32.h | 2 +-
+ arch/sparc/kernel/irq.h           | 3 +++
+ arch/sparc/kernel/leon_kernel.c   | 5 +++--
+ arch/sparc/kernel/time_32.c       | 2 +-
+ 4 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index 3e1449f..6d6c731 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -267,8 +267,8 @@ extern long __strnlen_user(const char __user *, long len);
+diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
+index 72f40a5..93476f8 100644
+--- a/arch/sparc/include/asm/timer_32.h
++++ b/arch/sparc/include/asm/timer_32.h
+@@ -32,7 +32,7 @@ static inline unsigned int timer_value(unsigned int value)
+ 	return (value + 1) << TIMER_VALUE_SHIFT;
+ }
  
- #define strlen_user __strlen_user
- #define strnlen_user __strnlen_user
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
+-extern __volatile__ unsigned int *master_l10_counter;
++extern volatile unsigned int __iomem *master_l10_counter;
  
- #endif  /* __ASSEMBLY__ */
+ extern irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
  
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index b66b6aa..97c07de 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -82,6 +82,9 @@ void handler_irq(unsigned int pil, struct pt_regs *regs);
+ 
+ unsigned long leon_get_irqmask(unsigned int irq);
+ 
++/* sun4m_irq.c */
++void sun4m_nmi(struct pt_regs *regs);
++
+ #ifdef CONFIG_SMP
+ 
+ /* All SUN4D IPIs are sent on this IRQ, may be shared with hard IRQs */
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index b7c6897..b9a2599 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -32,7 +32,7 @@ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base addr
+ 
+ int leondebug_irq_disable;
+ int leon_debug_irqout;
+-static int dummy_master_l10_counter;
++static volatile unsigned int dummy_master_l10_counter;
+ unsigned long amba_system_id;
+ static DEFINE_SPINLOCK(leon_irq_lock);
+ 
+@@ -313,7 +313,8 @@ void __init leon_init_timers(void)
+ 
+ 	leondebug_irq_disable = 0;
+ 	leon_debug_irqout = 0;
+-	master_l10_counter = (unsigned int *)&dummy_master_l10_counter;
++	master_l10_counter +		(unsigned int __iomem *)&dummy_master_l10_counter;
+ 	dummy_master_l10_counter = 0;
+ 
+ 	rootnp = of_find_node_by_path("/ambapp0");
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index c4c27b0..772b379 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -83,7 +83,7 @@ unsigned long profile_pc(struct pt_regs *regs)
+ 
+ EXPORT_SYMBOL(profile_pc);
+ 
+-__volatile__ unsigned int *master_l10_counter;
++volatile unsigned int __iomem *master_l10_counter;
+ 
+ int update_persistent_clock(struct timespec now)
+ {
+-- 
+1.8.3.1
 
