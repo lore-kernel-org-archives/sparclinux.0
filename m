@@ -1,210 +1,81 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 15:17:28 +0000
-Subject: [PATCH 4/4 v3] watchdog: Printing traces for all cpus on lockup detection
-Message-Id: <1398179848-197479-5-git-send-email-dzickus@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:33 +0000
+Subject: [PATCH 18/29] sparc32: fix sparse warnings in leon_pci_grpci1.c
+Message-Id: <1398109184-3283-18-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
+Fix following warnings:
+leon_pci_grpci1.c:104:5: warning: symbol 'grpci1_map_irq' was not declared. Should it be static?
+leon_pci_grpci1.c:420:6: warning: symbol 'grpci1_hw_init' was not declared. Should it be static?
++ a lot of these:
+leon_pci_grpci1.c:693:18: warning: incorrect type in argument 1 (different address spaces)
 
-A 'softlockup' is defined as a bug that causes the kernel to
-loop in kernel mode for more than a predefined period to
-time, without giving other tasks a chance to run.
+Added missing static to definitions.
+Added __iomem annotations
 
-Currently, upon detection of this condition by the per-cpu
-watchdog task, debug information (including a stack trace)
-is sent to the system log.
-
-On some occasions, we have observed that the "victim" rather
-than the actual "culprit" (i.e. the owner/holder of the
-contended resource) is reported to the user.
-Often this information has proven to be insufficient to
-assist debugging efforts.
-
-To avoid loss of useful debug information, for architectures
-which support NMI, this patch makes it possible to improve
-soft lockup reporting. This is accomplished by issuing an
-NMI to each cpu to obtain a stack trace.
-
-If NMI is not supported we just revert back to the old method.
-A sysctl and boot-time parameter is available to toggle this
-feature.
-
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- Documentation/kernel-parameters.txt |    5 +++++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
- include/linux/nmi.h                 |    1 +
- kernel/sysctl.c                     |    9 +++++++++
- kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
- 5 files changed, 64 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/leon_pci_grpci1.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 7116fda..80f2a21 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -3047,6 +3047,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			[KNL] Should the soft-lockup detector generate panics.
- 			Format: <integer>
+diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
+index 6df26e3..97cba4d 100644
+--- a/arch/sparc/kernel/leon_pci_grpci1.c
++++ b/arch/sparc/kernel/leon_pci_grpci1.c
+@@ -80,7 +80,7 @@ struct grpci1_regs {
  
-+	softlockup_all_cpu_backtrace+			[KNL] Should the soft-lockup detector generate
-+			backtraces on all cpus.
-+			Format: <integer>
-+
- 	sonypi.*=	[HW] Sony Programmable I/O Control Device driver
- 			See Documentation/laptops/sonypi.txt
+ struct grpci1_priv {
+ 	struct leon_pci_info	info; /* must be on top of this structure */
+-	struct grpci1_regs	*regs;		/* GRPCI register map */
++	struct grpci1_regs __iomem *regs;		/* GRPCI register map */
+ 	struct device		*dev;
+ 	int			pci_err_mask;	/* STATUS register error mask */
+ 	int			irq;		/* LEON irqctrl GRPCI IRQ */
+@@ -101,7 +101,7 @@ static struct grpci1_priv *grpci1priv;
+ static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
+ 				unsigned int devfn, int where, u32 val);
  
-diff --git a/Documentation/sysctl/kernel.txt b/Documentation/sysctl/kernel.txt
-index e55124e..b6873b2 100644
---- a/Documentation/sysctl/kernel.txt
-+++ b/Documentation/sysctl/kernel.txt
-@@ -75,6 +75,7 @@ show up in /proc/sys/kernel:
- - shmall
- - shmmax                      [ sysv ipc ]
- - shmmni
-+- softlockup_all_cpu_backtrace
- - stop-a                      [ SPARC only ]
- - sysrq                       => Documentation/sysrq.txt
- - tainted
-@@ -768,6 +769,22 @@ without users and with a dead originative process will be destroyed.
+-int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
++static int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
+ {
+ 	struct grpci1_priv *priv = dev->bus->sysdata;
+ 	int irq_group;
+@@ -417,10 +417,10 @@ out:
+  *  BAR1: peripheral DMA to host's memory (size at least 256MByte)
+  *  BAR2..BAR5: not implemented in hardware
+  */
+-void grpci1_hw_init(struct grpci1_priv *priv)
++static void grpci1_hw_init(struct grpci1_priv *priv)
+ {
+ 	u32 ahbadr, bar_sz, data, pciadr;
+-	struct grpci1_regs *regs = priv->regs;
++	struct grpci1_regs __iomem *regs = priv->regs;
  
- ===============================
+ 	/* set 1:1 mapping between AHB -> PCI memory space */
+ 	REGSTORE(regs->cfg_stat, priv->pci_area & 0xf0000000);
+@@ -509,7 +509,7 @@ static irqreturn_t grpci1_err_interrupt(int irq, void *arg)
  
-+softlockup_all_cpu_backtrace:
-+
-+This value controls the soft lockup detector thread's behavior
-+when a soft lockup condition is detected as to whether or not
-+to gather further debug information. If enabled, each cpu will
-+be issued an NMI and instructed to capture stack trace.
-+
-+This feature is only applicable for architectures which support
-+NMI.
-+
-+0: do nothing. This is the default behavior.
-+
-+1: on detection capture more debug information.
-+
-+===============================
-+
- tainted:
- 
- Non-zero if the kernel has been tainted.  Numeric values, which
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index a17ab63..447775e 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -57,6 +57,7 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *);
- u64 hw_nmi_get_sample_period(int watchdog_thresh);
- extern int watchdog_user_enabled;
- extern int watchdog_thresh;
-+extern int sysctl_softlockup_all_cpu_backtrace;
- struct ctl_table;
- extern int proc_dowatchdog(struct ctl_table *, int ,
- 			   void __user *, size_t *, loff_t *);
-diff --git a/kernel/sysctl.c b/kernel/sysctl.c
-index 49e13e1..e3e84f1 100644
---- a/kernel/sysctl.c
-+++ b/kernel/sysctl.c
-@@ -855,6 +855,15 @@ static struct ctl_table kern_table[] = {
- 		.extra2		= &one,
- 	},
- 	{
-+		.procname	= "softlockup_all_cpu_backtrace",
-+		.data		= &sysctl_softlockup_all_cpu_backtrace,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
-+	{
- 		.procname       = "nmi_watchdog",
- 		.data           = &watchdog_user_enabled,
- 		.maxlen         = sizeof (int),
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 4431610..9e661de 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -31,6 +31,7 @@
- 
- int watchdog_user_enabled = 1;
- int __read_mostly watchdog_thresh = 10;
-+int __read_mostly sysctl_softlockup_all_cpu_backtrace;
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
- 
-@@ -47,6 +48,7 @@ static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
- static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
- #endif
-+static unsigned long soft_lockup_nmi_warn;
- 
- /* boot commands */
- /*
-@@ -95,6 +97,13 @@ static int __init nosoftlockup_setup(char *str)
+ static int grpci1_of_probe(struct platform_device *ofdev)
+ {
+-	struct grpci1_regs *regs;
++	struct grpci1_regs __iomem *regs;
+ 	struct grpci1_priv *priv;
+ 	int err, len;
+ 	const int *tmp;
+@@ -690,7 +690,7 @@ err3:
+ err2:
+ 	release_resource(&priv->info.mem_space);
+ err1:
+-	iounmap((void *)priv->pci_io_va);
++	iounmap((void __iomem *)priv->pci_io_va);
+ 	grpci1priv = NULL;
+ 	return err;
  }
- __setup("nosoftlockup", nosoftlockup_setup);
- /*  */
-+static int __init softlockup_all_cpu_backtrace_setup(char *str)
-+{
-+	sysctl_softlockup_all_cpu_backtrace +		!!simple_strtol(str, NULL, 0);
-+	return 1;
-+}
-+__setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
- 
- /*
-  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
-@@ -267,6 +276,7 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- 	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
- 	struct pt_regs *regs = get_irq_regs();
- 	int duration;
-+	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
- 
- 	/* kick the hardlockup detector */
- 	watchdog_interrupt_count();
-@@ -313,6 +323,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- 		if (__this_cpu_read(soft_watchdog_warn) = true)
- 			return HRTIMER_RESTART;
- 
-+		if (softlockup_all_cpu_backtrace) {
-+			/* Prevent multiple soft-lockup reports if one cpu is already
-+			 * engaged in dumping cpu back traces
-+			 */
-+			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
-+				/* Someone else will report us. Let's give up */
-+				__this_cpu_write(soft_watchdog_warn, true);
-+				return HRTIMER_RESTART;
-+			}
-+		}
-+
- 		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
- 			smp_processor_id(), duration,
- 			current->comm, task_pid_nr(current));
-@@ -323,6 +344,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- 		else
- 			dump_stack();
- 
-+		if (softlockup_all_cpu_backtrace) {
-+			/* Avoid generating two back traces for current
-+			 * given that one is already made above
-+			 */
-+			trigger_allbutself_cpu_backtrace();
-+
-+			clear_bit(0, &soft_lockup_nmi_warn);
-+			/* Barrier to sync with other cpus */
-+			smp_mb__after_clear_bit();
-+		}
-+
- 		if (softlockup_panic)
- 			panic("softlockup: hung tasks");
- 		__this_cpu_write(soft_watchdog_warn, true);
 -- 
-1.7.1
+1.8.3.1
 
