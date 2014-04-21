@@ -1,73 +1,72 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 19:56:44 +0000
-Subject: [PATCH 5/5] sparc32: fix sparse "Should it be static?" in mm/
-Message-Id: <20140420195644.GE17743@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:43 +0000
+Subject: [PATCH 28/29] sparc32: fix sparse warnings in sun4d_smp.c
+Message-Id: <1398109184-3283-28-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From 76f498f0378514d5456231b9abb5183efa4afff2 Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 20:32:29 +0200
-Subject: [PATCH 5/5] sparc32: fix sparse "Should it be static?" in mm/
-
 Fix following warnings:
-srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
-iommu.c:430:13: warning: symbol 'ld_mmu_iommu' was not declared. Should it be static?
-leon_mm.c:21:5: warning: symbol 'srmmu_swprobe_trace' was not declared. Should it be static?
+sun4d_smp.c:113:13: warning: symbol 'smp4d_boot_cpus' was not declared. Should it be static?
+sun4d_smp.c:121:5: warning: symbol 'smp4d_boot_one_cpu' was not declared. Should it be static?
+sun4d_smp.c:162:13: warning: symbol 'smp4d_smp_done' was not declared. Should it be static?
+sun4d_smp.c:353:6: warning: symbol 'smp4d_cross_call_irq' was not declared. Should it be static?
+sun4d_smp.c:363:6: warning: symbol 'smp4d_percpu_timer_interrupt' was not declared. Should it be static?
 
-Add proper prototypes or define static to fix them.
+Add proper declarations
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/leon_mm.c | 2 +-
- arch/sparc/mm/mm_32.h   | 6 ++++++
- arch/sparc/mm/srmmu.c   | 3 ---
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/kernel.h | 5 +++++
+ arch/sparc/kernel/smp_32.c | 3 ---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
-index 649cad6..3b17b6f 100644
---- a/arch/sparc/mm/leon_mm.c
-+++ b/arch/sparc/mm/leon_mm.c
-@@ -18,7 +18,7 @@
- #include "mm_32.h"
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 75d4171..71d56ae 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -72,6 +72,11 @@ extern void sun4d_free_irq(unsigned int irq, void *dev_id);
+ /* sun4d_smp.c */
+ void sun4d_cpu_pre_starting(void *arg);
+ void sun4d_cpu_pre_online(void *arg);
++void __init smp4d_boot_cpus(void);
++int smp4d_boot_one_cpu(int i, struct task_struct *idle);
++void __init smp4d_smp_done(void);
++void smp4d_cross_call_irq(void);
++void smp4d_percpu_timer_interrupt(struct pt_regs *regs);
  
- int leon_flush_during_switch = 1;
--int srmmu_swprobe_trace;
-+static int srmmu_swprobe_trace;
+ /* leon_smp.c */
+ void leon_cpu_pre_starting(void *arg);
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index ab86c5e..9d3297d 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -75,7 +75,6 @@ void smp_store_cpu_info(int id)
  
- static inline unsigned long leon_get_ctable_ptr(void)
+ void __init smp_cpus_done(unsigned int max_cpus)
  {
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index bf4c56f..e567175 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -16,3 +16,9 @@ extern int flush_page_for_dma_global;
- extern void (*poke_srmmu)(void);
+-	extern void smp4d_smp_done(void);
+ 	unsigned long bogosum = 0;
+ 	int cpu, num = 0;
  
- extern void __init srmmu_paging_init(void);
-+
-+/* iommu.c */
-+extern void ld_mmu_iommu(void);
-+
-+/* io-unit.c */
-+extern void ld_mmu_iounit(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 4639d8e..be65f03 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -1769,9 +1769,6 @@ static struct sparc32_cachetlb_ops smp_cachetlb_ops = {
- /* Load up routines and constants for sun4m and sun4d mmu */
- void __init load_mmu(void)
+@@ -182,7 +181,6 @@ int setup_profiling_timer(unsigned int multiplier)
+ 
+ void __init smp_prepare_cpus(unsigned int max_cpus)
  {
--	extern void ld_mmu_iommu(void);
--	extern void ld_mmu_iounit(void);
--
- 	/* Functions */
- 	get_srmmu_type();
+-	extern void __init smp4d_boot_cpus(void);
+ 	int i, cpuid, extra;
  
+ 	printk("Entering SMP Mode...\n");
+@@ -259,7 +257,6 @@ void __init smp_prepare_boot_cpu(void)
+ 
+ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
+ {
+-	extern int smp4d_boot_one_cpu(int, struct task_struct *);
+ 	int ret=0;
+ 
+ 	switch(sparc_cpu_model) {
 -- 
 1.8.3.1
 
