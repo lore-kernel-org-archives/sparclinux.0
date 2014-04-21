@@ -1,67 +1,77 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 15:17:25 +0000
-Subject: [PATCH 1/4 v3] nmi: Provide the option to issue an NMI back trace to every cpu but current
-Message-Id: <1398179848-197479-2-git-send-email-dzickus@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:24 +0000
+Subject: [PATCH 12/24] sparc32: fix sparse warnings in tadpole.c
+Message-Id: <1398100356-19794-12-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
+Fix following warnings:
+tadpole.c:21:6: warning: symbol 'cpu_pwr_save' was not declared. Should it be static?
+tadpole.c:101:13: warning: symbol 'clock_stop_probe' was not declared. Should it be static?
 
-Some times it is preferred not to use the
-trigger_all_cpu_backtrace() routine when one wants
-to avoid capturing a back trace for current.
-For instance if one was previously captured
-recently.
+This actually revealed that cpu_pwr_save is only assinged.
+It was left static with a TODO comment for now - this should be cleaned up later.
 
-This patch provides a new routine namely
-trigger_allbutself_cpu_backtrace() which offers
-the flexibility to issue an NMI to every cpu but
-current and capture a back trace accordingly.
-
-[Added stub in #else clause - dcz]
-
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/linux/nmi.h |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+ arch/sparc/kernel/devices.c | 2 +-
+ arch/sparc/kernel/kernel.h  | 3 +++
+ arch/sparc/kernel/tadpole.c | 6 +++++-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 6a45fb5..a17ab63 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(void)
- #ifdef arch_trigger_all_cpu_backtrace
- static inline bool trigger_all_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index b9e9d8c..086faf6 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -21,7 +21,7 @@
+ #include <asm/cpu_type.h>
+ #include <asm/setup.h>
  
- 	return true;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	arch_trigger_all_cpu_backtrace(false);
-+	return true;
-+}
- #else
- static inline bool trigger_all_cpu_backtrace(void)
- {
- 	return false;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	return false;
-+}
- #endif
+-extern void clock_stop_probe(void); /* tadpole.c */
++#include "kernel.h"
  
- #ifdef CONFIG_LOCKUP_DETECTOR
+ static char *cpu_mid_prop(void)
+ {
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 7f05d3f..343fd8e 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -113,6 +113,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ 
++/* tadpole.c */
++extern void __init clock_stop_probe(void);
++
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
+diff --git a/arch/sparc/kernel/tadpole.c b/arch/sparc/kernel/tadpole.c
+index 9aba8bd..4bbfe4e 100644
+--- a/arch/sparc/kernel/tadpole.c
++++ b/arch/sparc/kernel/tadpole.c
+@@ -12,13 +12,17 @@
+ #include <asm/oplib.h>
+ #include <asm/io.h>
+ 
++#include "kernel.h"
++
+ #define MACIO_SCSI_CSR_ADDR	0x78400000
+ #define MACIO_EN_DMA		0x00000200
+ #define CLOCK_INIT_DONE		1
+ 
+ static int clk_state;
+ static volatile unsigned char *clk_ctrl;
+-void (*cpu_pwr_save)(void);
++
++/* TODO - cpu_pwr_save is only assigned - cleanup potential. */
++static void (*cpu_pwr_save)(void);
+ 
+ static inline unsigned int ldphys(unsigned int addr)
+ {
 -- 
-1.7.1
+1.8.3.1
 
