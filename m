@@ -1,43 +1,56 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 25 Apr 2014 09:18:24 +0000
-Subject: [PATCH 02/13] PCI: Introduce new pci_is_bridge() helper function
-Message-Id: <1398417515-8740-3-git-send-email-wangyijing@huawei.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:29 +0000
+Subject: [PATCH 14/29] sparc32: fix sparse warnings in windows.c
+Message-Id: <1398109184-3283-14-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-PCIe Spec define the PCI bridge is the PCI device
-which header type(bit 0 through 6) is 0x1(PCI bridge)
-or 0x2(CardBus bridge).
+Fix following warnings:
+windows.c:16:6: warning: symbol 'flush_user_windows' was not declared. Should it be static?
+windows.c:109:6: warning: symbol 'try_to_clear_window_buffer' was not declared. Should it be static?
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Add missing include of cacheflush.h + add declaration of try_to_clear_window_buffer in kernel.h
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- include/linux/pci.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/kernel.h  | 4 ++++
+ arch/sparc/kernel/windows.c | 3 +++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index aab57b4..827077a 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -477,6 +477,12 @@ static inline bool pci_is_root_bus(struct pci_bus *pbus)
- 	return !(pbus->parent);
- }
- 
-+static inline bool pci_is_bridge(struct pci_dev *dev)
-+{
-+	return dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
-+		dev->hdr_type = PCI_HEADER_TYPE_CARDBUS;
-+}
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index b293265..7f05d3f 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -109,6 +109,10 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
+ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
+                                struct sigstack __user *ossptr,
+                                unsigned long sp);
 +
- static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
++/* windows.c */
++void try_to_clear_window_buffer(struct pt_regs *regs, int who);
++
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
+diff --git a/arch/sparc/kernel/windows.c b/arch/sparc/kernel/windows.c
+index 3107381..87bab0a 100644
+--- a/arch/sparc/kernel/windows.c
++++ b/arch/sparc/kernel/windows.c
+@@ -10,8 +10,11 @@
+ #include <linux/mm.h>
+ #include <linux/smp.h>
+ 
++#include <asm/cacheflush.h>
+ #include <asm/uaccess.h>
+ 
++#include "kernel.h"
++
+ /* Do save's until all user register windows are out of the cpu. */
+ void flush_user_windows(void)
  {
- 	dev = pci_physfn(dev);
 -- 
-1.7.1
-
+1.8.3.1
 
