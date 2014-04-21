@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:25 +0000
-Subject: [PATCH 13/24] sparc32: fix sparse warnings in leon_pci_grpci1.c
-Message-Id: <1398100356-19794-13-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:16 +0000
+Subject: [PATCH 04/24] sparc32: fix sparse warnings in irq_32.c
+Message-Id: <1398100356-19794-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,73 +9,128 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warnings:
-leon_pci_grpci1.c:104:5: warning: symbol 'grpci1_map_irq' was not declared. Should it be static?
-leon_pci_grpci1.c:420:6: warning: symbol 'grpci1_hw_init' was not declared. Should it be static?
-+ a lot of these:
-leon_pci_grpci1.c:693:18: warning: incorrect type in argument 1 (different address spaces)
+irq_32.c:239:5: warning: symbol 'sparc_floppy_request_irq' was not declared. Should it be static?
+irq_32.c:294:24: warning: symbol 'fdc_status' was not declared. Should it be static?
+irq_32.c:297:6: warning: symbol 'pdma_vaddr' was not declared. Should it be static?
+irq_32.c:300:15: warning: symbol 'pdma_size' was not declared. Should it be static?
+irq_32.c:303:14: warning: symbol 'doing_pdma' was not declared. Should it be static?
+irq_32.c:306:6: warning: symbol 'pdma_base' was not declared. Should it be static?
+irq_32.c:309:15: warning: symbol 'pdma_areasize' was not declared. Should it be static?
+irq_32.c:317:6: warning: symbol 'sparc_floppy_irq' was not declared. Should it be static?
 
-Added missing static to definitions.
-Added __iomem annotations
+The floppy parts were all added to setup.h - no other header files looked obvious.
+floppy_32.h was not an option as this file can only be included once from the
+floppy driver.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/kernel/leon_pci_grpci1.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/sparc/include/asm/floppy_32.h | 11 ++---------
+ arch/sparc/include/asm/setup.h     | 16 +++++++++++++++-
+ arch/sparc/kernel/irq.h            |  3 +++
+ arch/sparc/kernel/irq_32.c         |  1 +
+ 4 files changed, 21 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
-index 6df26e3..97cba4d 100644
---- a/arch/sparc/kernel/leon_pci_grpci1.c
-+++ b/arch/sparc/kernel/leon_pci_grpci1.c
-@@ -80,7 +80,7 @@ struct grpci1_regs {
+diff --git a/arch/sparc/include/asm/floppy_32.h b/arch/sparc/include/asm/floppy_32.h
+index fb3f169..a8af6f0 100644
+--- a/arch/sparc/include/asm/floppy_32.h
++++ b/arch/sparc/include/asm/floppy_32.h
+@@ -9,11 +9,12 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
  
- struct grpci1_priv {
- 	struct leon_pci_info	info; /* must be on top of this structure */
--	struct grpci1_regs	*regs;		/* GRPCI register map */
-+	struct grpci1_regs __iomem *regs;		/* GRPCI register map */
- 	struct device		*dev;
- 	int			pci_err_mask;	/* STATUS register error mask */
- 	int			irq;		/* LEON irqctrl GRPCI IRQ */
-@@ -101,7 +101,7 @@ static struct grpci1_priv *grpci1priv;
- static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
- 				unsigned int devfn, int where, u32 val);
+-#include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include <asm/idprom.h>
+ #include <asm/oplib.h>
+ #include <asm/auxio.h>
++#include <asm/setup.h>
++#include <asm/page.h>
+ #include <asm/irq.h>
  
--int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
-+static int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
- {
- 	struct grpci1_priv *priv = dev->bus->sysdata;
- 	int irq_group;
-@@ -417,10 +417,10 @@ out:
-  *  BAR1: peripheral DMA to host's memory (size at least 256MByte)
-  *  BAR2..BAR5: not implemented in hardware
+ /* We don't need no stinkin' I/O port allocation crap. */
+@@ -49,7 +50,6 @@ struct sun_flpy_controller {
+ 
+ /* You'll only ever find one controller on a SparcStation anyways. */
+ static struct sun_flpy_controller *sun_fdc = NULL;
+-extern volatile unsigned char *fdc_status;
+ 
+ struct sun_floppy_ops {
+ 	unsigned char (*fd_inb)(int port);
+@@ -212,13 +212,6 @@ static void sun_82077_fd_outb(unsigned char value, int port)
+  * underruns.  If non-zero, doing_pdma encodes the direction of
+  * the transfer for debugging.  1=read 2=write
   */
--void grpci1_hw_init(struct grpci1_priv *priv)
-+static void grpci1_hw_init(struct grpci1_priv *priv)
- {
- 	u32 ahbadr, bar_sz, data, pciadr;
--	struct grpci1_regs *regs = priv->regs;
-+	struct grpci1_regs __iomem *regs = priv->regs;
+-extern char *pdma_vaddr;
+-extern unsigned long pdma_size;
+-extern volatile int doing_pdma;
+-
+-/* This is software state */
+-extern char *pdma_base;
+-extern unsigned long pdma_areasize;
  
- 	/* set 1:1 mapping between AHB -> PCI memory space */
- 	REGSTORE(regs->cfg_stat, priv->pci_area & 0xf0000000);
-@@ -509,7 +509,7 @@ static irqreturn_t grpci1_err_interrupt(int irq, void *arg)
+ /* Common routines to all controller types on the Sparc. */
+ static inline void virtual_dma_init(void)
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 5e35e05..4b7465a 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -4,8 +4,9 @@
+ #ifndef _SPARC_SETUP_H
+ #define _SPARC_SETUP_H
  
- static int grpci1_of_probe(struct platform_device *ofdev)
+-#include <uapi/asm/setup.h>
++#include <linux/interrupt.h>
+ 
++#include <uapi/asm/setup.h>
+ 
+ extern char reboot_command[];
+ 
+@@ -22,6 +23,19 @@ static inline int con_is_present(void)
  {
--	struct grpci1_regs *regs;
-+	struct grpci1_regs __iomem *regs;
- 	struct grpci1_priv *priv;
- 	int err, len;
- 	const int *tmp;
-@@ -690,7 +690,7 @@ err3:
- err2:
- 	release_resource(&priv->info.mem_space);
- err1:
--	iounmap((void *)priv->pci_io_va);
-+	iounmap((void __iomem *)priv->pci_io_va);
- 	grpci1priv = NULL;
- 	return err;
+ 	return serial_console ? 0 : 1;
  }
++
++/* from irq_32.c */
++extern volatile unsigned char *fdc_status;
++extern char *pdma_vaddr;
++extern unsigned long pdma_size;
++extern volatile int doing_pdma;
++
++/* This is software state */
++extern char *pdma_base;
++extern unsigned long pdma_areasize;
++
++int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
++
+ #endif
+ 
+ extern void sun_do_break(void);
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index 35b7c92..ca471f6 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -82,6 +82,9 @@ void handler_irq(unsigned int pil, struct pt_regs *regs);
+ 
+ unsigned long leon_get_irqmask(unsigned int irq);
+ 
++/* irq_32.c */
++void sparc_floppy_irq(int irq, void *dev_id, struct pt_regs *regs);
++
+ /* sun4m_irq.c */
+ extern void sun4m_nmi(struct pt_regs *regs);
+ 
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index c145f6f..a979e99 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -17,6 +17,7 @@
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/cpudata.h>
++#include <asm/setup.h>
+ #include <asm/pcic.h>
+ #include <asm/leon.h>
+ 
 -- 
 1.8.3.1
 
