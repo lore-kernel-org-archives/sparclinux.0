@@ -1,64 +1,62 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Tue, 22 Apr 2014 20:12:45 +0000
-Subject: [PATCH 3.8 027/133] sparc64: don't treat 64-bit syscall return codes as 32-bit
-Message-Id: <1398197671-12786-28-git-send-email-kamal@canonical.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:23 +0000
+Subject: [PATCH 11/24] sparc32: fix sparse warning in devices.c
+Message-Id: <1398100356-19794-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398197671-12786-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1398197671-12786-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Kamal Mostafa <kamal@canonical.com>
+To: sparclinux@vger.kernel.org
 
-3.8.13.22 -stable review patch.  If anyone has any objections, please let me know.
+Fix following warning:
+devices.c:114:13: warning: symbol 'device_scan' was not declared. Should it be static?
 
-------------------
-
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-
-[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
-
-When checking a system call return code for an error,
-linux_sparc_syscall was sign-extending the lower 32-bit value and
-comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
-codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
-Use the whole 64-bit value to check for errors. Only the 32-bit path
-should sign extend the lower 32-bit value.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Acked-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Allen Pais <allen.pais@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/syscalls.S | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/setup.h | 3 +++
+ arch/sparc/kernel/devices.c    | 1 +
+ arch/sparc/mm/init_32.c        | 2 --
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index dc7b524..d654e9f 100644
---- a/arch/sparc/kernel/syscalls.S
-+++ b/arch/sparc/kernel/syscalls.S
-@@ -195,7 +195,8 @@ linux_sparc_syscall32:
- 	 mov	%i0, %l5				! IEU1
- 5:	call	%l7					! CTI	Group brk forced
- 	 srl	%i5, 0, %o5				! IEU1
--	ba,a,pt	%xcc, 3f
-+	ba,pt	%xcc, 3f
-+	 sra	%o0, 0, %o0
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index c7cd435..622145b 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -39,6 +39,9 @@ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
+ /* setup_32.c */
+ extern unsigned long cmdline_memory_size;
  
- 	/* Linux native system calls enter here... */
- 	.align	32
-@@ -223,7 +224,6 @@ linux_sparc_syscall:
- 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
- ret_sys_call:
- 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
--	sra	%o0, 0, %o0
- 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
- 	sllx	%g2, 32, %g2
++/* devices.c */
++void __init device_scan(void);
++
+ #endif
  
+ extern void sun_do_break(void);
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index 3d465e8..b9e9d8c 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -19,6 +19,7 @@
+ #include <asm/smp.h>
+ #include <asm/cpudata.h>
+ #include <asm/cpu_type.h>
++#include <asm/setup.h>
+ 
+ extern void clock_stop_probe(void); /* tadpole.c */
+ 
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index d0c7327..eb82871 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -248,8 +248,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+  * init routine based upon the Sun model type on the Sparc.
+  *
+  */
+-extern void device_scan(void);
+-
+ void __init paging_init(void)
+ {
+ 	srmmu_paging_init();
 -- 
-1.9.1
+1.8.3.1
 
