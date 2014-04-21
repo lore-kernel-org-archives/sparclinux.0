@@ -1,108 +1,125 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:54:47 +0000
-Subject: [PATCH 02/10] sparc64: Fix huge PMD invalidation.
-Message-Id: <20140430.175447.2152319967554072316.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:35 +0000
+Subject: [PATCH 20/29] sparc32: fix sparse warnings in auxio_32.c
+Message-Id: <1398109184-3283-20-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Fix following warnings:
+auxio_32.c:23:14: warning: symbol 'auxio_register' was not declared. Should it be static?
+auxio_32.c:26:13: warning: symbol 'auxio_probe' was not declared. Should it be static?
+auxio_32.c:108:13: warning: symbol 'auxio_power_probe' was not declared. Should it be static?
 
-On sparc64 "present" and "valid" are seperate PTE bits, this allows us to
-naturally distinguish between the user explicitly asking for PROT_NONE
-with mprotect() and other situations.
+Add proper decalarations for the above.
 
-However we weren't handling this properly in the huge PMD paths.
+The leaves one sparse warning:
+auxio_32.c:130:33: warning: cast removes address space of expression
 
-First of all, the page table walker in the TSB miss path only checks
-for _PAGE_PMD_HUGE.  So the generic pmdp_invalidate() would clear
-_PAGE_PRESENT but the TLB miss paths would still load it into the TLB
-as a valid huge PMD.
+This is here:
+    auxio_power_register = (unsigned char *) of_ioremap()
 
-Fix this by clearing the valid bit in pmdp_invalidate(), and also
-checking the valid bit in USER_PGTABLE_CHECK_PMD_HUGE using "brgez"
-since _PAGE_VALID is bit 63 in both the sun4u and sun4v pte layouts.
+This is __iomem that is removed from return value of of_ioremap()
+The pointer is later used without any helpers in process_32.c:
+    *auxio_power_register |= AUXIO_POWER_OFF;
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+It would be simple to introduce a few sbus() helpers.
+But as I was not sure this was correct the warning are left as-is.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/pgtable_64.h | 18 ++++--------------
- arch/sparc/include/asm/tsb.h        |  3 ++-
- arch/sparc/mm/tlb.c                 | 11 +++++++++++
- 3 files changed, 17 insertions(+), 15 deletions(-)
+ arch/sparc/include/asm/auxio.h    | 7 +++++++
+ arch/sparc/include/asm/auxio_64.h | 2 --
+ arch/sparc/kernel/auxio_32.c      | 3 +++
+ arch/sparc/kernel/devices.c       | 8 ++------
+ arch/sparc/kernel/kernel.h        | 4 ++++
+ 5 files changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 0f9e945..e3db4b8 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -719,20 +719,6 @@ static inline pmd_t pmd_mkwrite(pmd_t pmd)
- 	return __pmd(pte_val(pte));
- }
- 
--static inline pmd_t pmd_mknotpresent(pmd_t pmd)
--{
--	unsigned long mask;
--
--	if (tlb_type = hypervisor)
--		mask = _PAGE_PRESENT_4V;
--	else
--		mask = _PAGE_PRESENT_4U;
--
--	pmd_val(pmd) &= ~mask;
--
--	return pmd;
--}
--
- static inline pmd_t pmd_mksplitting(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -893,6 +879,10 @@ extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
- extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
- 				 pmd_t *pmd);
- 
-+#define __HAVE_ARCH_PMDP_INVALIDATE
-+extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+			    pmd_t *pmdp);
+diff --git a/arch/sparc/include/asm/auxio.h b/arch/sparc/include/asm/auxio.h
+index 13dc67f..3e09a07 100644
+--- a/arch/sparc/include/asm/auxio.h
++++ b/arch/sparc/include/asm/auxio.h
+@@ -1,5 +1,12 @@
+ #ifndef ___ASM_SPARC_AUXIO_H
+ #define ___ASM_SPARC_AUXIO_H
 +
- #define __HAVE_ARCH_PGTABLE_DEPOSIT
- extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
- 				       pgtable_t pgtable);
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index 2230f80..90916f9 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -171,7 +171,8 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	andcc		REG1, REG2, %g0;		\
- 	be,pt		%xcc, 700f;			\
- 	 sethi		%hi(4 * 1024 * 1024), REG2;	\
--	andn		REG1, REG2, REG1;		\
-+	brgez,pn	REG1, FAIL_LABEL;		\
-+	 andn		REG1, REG2, REG1;		\
- 	and		VADDR, REG2, REG2;		\
- 	brlz,pt		REG1, PTE_LABEL;		\
- 	 or		REG1, REG2, REG1;		\
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index c07667f..b89aba2 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -193,6 +193,17 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
++#ifndef __ASSEMBLY__
++
++extern void __iomem *auxio_register;
++
++#endif /* ifndef __ASSEMBLY__ */
++
+ #if defined(__sparc__) && defined(__arch64__)
+ #include <asm/auxio_64.h>
+ #else
+diff --git a/arch/sparc/include/asm/auxio_64.h b/arch/sparc/include/asm/auxio_64.h
+index f61cd1e..7af9766 100644
+--- a/arch/sparc/include/asm/auxio_64.h
++++ b/arch/sparc/include/asm/auxio_64.h
+@@ -75,8 +75,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-extern void __iomem *auxio_register;
+-
+ #define AUXIO_LTE_ON	1
+ #define AUXIO_LTE_OFF	0
+ 
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index e20cc55..c6fc1d4 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -9,12 +9,15 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/export.h>
++
+ #include <asm/oplib.h>
+ #include <asm/io.h>
+ #include <asm/auxio.h>
+ #include <asm/string.h>		/* memset(), Linux has no bzero() */
+ #include <asm/cpu_type.h>
+ 
++#include "kernel.h"
++
+ /* Probe and map in the Auxiliary I/O register */
+ 
+ /* auxio_register is not static because it is referenced 
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index 086faf6..6f39916 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -132,11 +132,7 @@ void __init device_scan(void)
  	}
- }
+ #endif /* !CONFIG_SMP */
  
-+void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-+		     pmd_t *pmdp)
-+{
-+	pmd_t entry = *pmdp;
+-	{
+-		extern void auxio_probe(void);
+-		extern void auxio_power_probe(void);
+-		auxio_probe();
+-		auxio_power_probe();
+-	}
++	auxio_probe();
++	auxio_power_probe();
+ 	clock_stop_probe();
+ }
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 4877626..716158a 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -116,6 +116,10 @@ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ /* tadpole.c */
+ void __init clock_stop_probe(void);
+ 
++/* auxio_32.c */
++void __init auxio_probe(void);
++void __init auxio_power_probe(void);
 +
-+	pmd_val(entry) &= ~_PAGE_VALID;
-+
-+	set_pmd_at(vma->vm_mm, address, pmdp, entry);
-+	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
-+}
-+
- void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
- 				pgtable_t pgtable)
- {
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
 -- 
-1.8.1.2
+1.8.3.1
 
