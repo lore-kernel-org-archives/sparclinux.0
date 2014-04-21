@@ -1,81 +1,85 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 26 Apr 2014 07:57:35 +0000
-Subject: [PATCH 2/4] sparc32: replace flip_dword() with swab32()
-Message-Id: <1398499057-21497-2-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:28 +0000
+Subject: [PATCH 13/29] sparc32: fix sparse warnings in setup_32.c
+Message-Id: <1398109184-3283-13-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The latter is a generic implmentation.
-flip_{,d}word() is sparc32 specific and will be dropped.
+Fix following warnings:
+setup_32.c:106:15: warning: symbol 'cmdline_memory_size' was not declared. Should it be static?
+setup_32.c:270:16: warning: symbol 'fake_swapper_regs' was not declared. Should it be static?
+setup_32.c:368:55: warning: Using plain integer as NULL pointer
+
+Add missing declaration of cmdline_memory_size and remove the local one in init_32.c
+fake_swapper_regs was only used locally - so defined static.
+When replacing 0 with NULL also add a few spaces around operators
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/kernel/leon_pci_grpci1.c | 4 ++--
- arch/sparc/kernel/leon_pci_grpci2.c | 4 ++--
- arch/sparc/kernel/pcic.c            | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ arch/sparc/include/asm/setup.h | 3 +++
+ arch/sparc/kernel/setup_32.c   | 4 ++--
+ arch/sparc/mm/init_32.c        | 2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
-index 97cba4d..c8bf26e 100644
---- a/arch/sparc/kernel/leon_pci_grpci1.c
-+++ b/arch/sparc/kernel/leon_pci_grpci1.c
-@@ -144,7 +144,7 @@ static int grpci1_cfg_r32(struct grpci1_priv *priv, unsigned int bus,
- 		grpci1_cfg_w32(priv, TGT, 0, PCI_COMMAND, tmp);
- 	} else {
- 		/* Bus always little endian (unaffected by byte-swapping) */
--		*val = flip_dword(tmp);
-+		*val = swab32(tmp);
- 	}
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 4b7465a..c7cd435 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -36,6 +36,9 @@ extern unsigned long pdma_areasize;
  
- 	return 0;
-@@ -197,7 +197,7 @@ static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
+ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
  
- 	pci_conf = (unsigned int *) (priv->pci_conf |
- 						(devfn << 8) | (where & 0xfc));
--	LEON3_BYPASS_STORE_PA(pci_conf, flip_dword(val));
-+	LEON3_BYPASS_STORE_PA(pci_conf, swab32(val));
++/* setup_32.c */
++extern unsigned long cmdline_memory_size;
++
+ #endif
  
- 	return 0;
+ extern void sun_do_break(void);
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 1434526..baef495 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -267,7 +267,7 @@ static __init void leon_patch(void)
  }
-diff --git a/arch/sparc/kernel/leon_pci_grpci2.c b/arch/sparc/kernel/leon_pci_grpci2.c
-index 7ef0247..e433a4d 100644
---- a/arch/sparc/kernel/leon_pci_grpci2.c
-+++ b/arch/sparc/kernel/leon_pci_grpci2.c
-@@ -270,7 +270,7 @@ static int grpci2_cfg_r32(struct grpci2_priv *priv, unsigned int bus,
- 		*val = 0xffffffff;
- 	} else {
- 		/* Bus always little endian (unaffected by byte-swapping) */
--		*val = flip_dword(tmp);
-+		*val = swab32(tmp);
- 	}
  
- 	return 0;
-@@ -328,7 +328,7 @@ static int grpci2_cfg_w32(struct grpci2_priv *priv, unsigned int bus,
+ struct tt_entry *sparc_ttable;
+-struct pt_regs fake_swapper_regs;
++static struct pt_regs fake_swapper_regs;
  
- 	pci_conf = (unsigned int *) (priv->pci_conf |
- 						(devfn << 8) | (where & 0xfc));
--	LEON3_BYPASS_STORE_PA(pci_conf, flip_dword(val));
-+	LEON3_BYPASS_STORE_PA(pci_conf, swab32(val));
+ /* Called from head_32.S - before we have setup anything
+  * in the kernel. Be very careful with what you do here.
+@@ -365,7 +365,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	/* Wait until GRPCI2 signals that CFG access is done, it should be
- 	 * done instantaneously unless a DMA operation is ongoing...
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 09f4fdd..6996f32 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -783,7 +783,7 @@ int pcibios_enable_device(struct pci_dev *pdev, int mask)
- void pcic_nmi(unsigned int pend, struct pt_regs *regs)
- {
+ 	prom_setsync(prom_sync_me);
  
--	pend = flip_dword(pend);
-+	pend = swab32(pend);
+-	if((boot_flags&BOOTME_DEBUG) && (linux_dbvec!=0) && 
++	if((boot_flags & BOOTME_DEBUG) && (linux_dbvec != NULL) &&
+ 	   ((*(short *)linux_dbvec) != -1)) {
+ 		printk("Booted under KADB. Syncing trap table.\n");
+ 		(*(linux_dbvec->teach_debugger))();
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index cf09e6e..d0c7327 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -31,6 +31,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/vaddrs.h>
+ #include <asm/pgalloc.h>	/* bug in asm-generic/tlb.h: check_pgt_cache */
++#include <asm/setup.h>
+ #include <asm/tlb.h>
+ #include <asm/prom.h>
+ #include <asm/leon.h>
+@@ -65,7 +66,6 @@ void show_mem(unsigned int filter)
+ }
  
- 	if (!pcic_speculative || (pend & PCI_SYS_INT_PENDING_PIO) = 0) {
- 		/*
+ 
+-extern unsigned long cmdline_memory_size;
+ unsigned long last_valid_pfn;
+ 
+ unsigned long calc_highpages(void)
 -- 
-1.9.0
+1.8.3.1
 
