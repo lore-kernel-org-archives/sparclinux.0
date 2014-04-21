@@ -1,58 +1,68 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:17 +0000
-Subject: [PATCH 02/29] sparc32: fix sparse warning in fault_32.c
-Message-Id: <1398109184-3283-2-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:20 +0000
+Subject: [PATCH 05/29] sparc32: fix sparse "Should it be static?" in mm/
+Message-Id: <1398109184-3283-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-fault_32.c:38:24: error: symbol 'unhandled_fault' redeclared with different type - different modifiers
+Fix following warnings:
+srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
+iommu.c:430:13: warning: symbol 'ld_mmu_iommu' was not declared. Should it be static?
+leon_mm.c:21:5: warning: symbol 'srmmu_swprobe_trace' was not declared. Should it be static?
 
-When this warning was fixed several new warnings popped up - fix them too.
+Add proper prototypes or define static to fix them.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/fault_32.c |  5 ++---
- arch/sparc/mm/mm_32.h    | 10 ++++++++++
- 2 files changed, 12 insertions(+), 3 deletions(-)
+ arch/sparc/mm/leon_mm.c | 2 +-
+ arch/sparc/mm/mm_32.h   | 7 +++++++
+ arch/sparc/mm/srmmu.c   | 3 ---
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
-index 59dbd46..7751810 100644
---- a/arch/sparc/mm/fault_32.c
-+++ b/arch/sparc/mm/fault_32.c
-@@ -30,10 +30,9 @@
- #include <asm/traps.h>
- #include <asm/uaccess.h>
+diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
+index 649cad6..3b17b6f 100644
+--- a/arch/sparc/mm/leon_mm.c
++++ b/arch/sparc/mm/leon_mm.c
+@@ -18,7 +18,7 @@
+ #include "mm_32.h"
  
--int show_unhandled_signals = 1;
-+#include "mm_32.h"
+ int leon_flush_during_switch = 1;
+-int srmmu_swprobe_trace;
++static int srmmu_swprobe_trace;
  
--static void unhandled_fault(unsigned long, struct task_struct *,
--		struct pt_regs *) __attribute__ ((noreturn));
-+int show_unhandled_signals = 1;
- 
- static void __noreturn unhandled_fault(unsigned long address,
- 				       struct task_struct *tsk,
+ static inline unsigned long leon_get_ctable_ptr(void)
+ {
 diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index 5703274..ee773e4 100644
+index 443e62e..bac570f 100644
 --- a/arch/sparc/mm/mm_32.h
 +++ b/arch/sparc/mm/mm_32.h
-@@ -1,3 +1,13 @@
-+/* fault_32.c - visible as they are called from assembler */
-+asmlinkage int lookup_fault(unsigned long pc, unsigned long ret_pc,
-+                            unsigned long address);
-+asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
-+                               unsigned long address);
+@@ -16,3 +16,10 @@ extern int flush_page_for_dma_global;
+ extern void (*poke_srmmu)(void);
+ 
+ void __init srmmu_paging_init(void);
 +
-+void window_overflow_fault(void);
-+void window_underflow_fault(unsigned long sp);
-+void window_ret_fault(struct pt_regs *regs);
++/* iommu.c */
++void ld_mmu_iommu(void);
 +
- /* srmmu.c */
- extern char *srmmu_name;
++/* io-unit.c */
++void ld_mmu_iounit(void);
++
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 4639d8e..be65f03 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1769,9 +1769,6 @@ static struct sparc32_cachetlb_ops smp_cachetlb_ops = {
+ /* Load up routines and constants for sun4m and sun4d mmu */
+ void __init load_mmu(void)
+ {
+-	extern void ld_mmu_iommu(void);
+-	extern void ld_mmu_iounit(void);
+-
+ 	/* Functions */
+ 	get_srmmu_type();
  
 -- 
 1.8.3.1
