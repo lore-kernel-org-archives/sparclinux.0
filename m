@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:35 +0000
-Subject: [PATCH 20/29] sparc32: fix sparse warnings in auxio_32.c
-Message-Id: <1398109184-3283-20-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:27 +0000
+Subject: [PATCH 15/24] sparc32: fix sparse warnings in auxio_32.c
+Message-Id: <1398100356-19794-15-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -106,16 +106,16 @@ index 086faf6..6f39916 100644
  	clock_stop_probe();
  }
 diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 4877626..716158a 100644
+index 343fd8e..c4fb8f4 100644
 --- a/arch/sparc/kernel/kernel.h
 +++ b/arch/sparc/kernel/kernel.h
 @@ -116,6 +116,10 @@ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
  /* tadpole.c */
- void __init clock_stop_probe(void);
+ extern void __init clock_stop_probe(void);
  
 +/* auxio_32.c */
-+void __init auxio_probe(void);
-+void __init auxio_power_probe(void);
++extern void __init auxio_probe(void);
++extern void __init auxio_power_probe(void);
 +
  #else /* CONFIG_SPARC32 */
  #endif /* CONFIG_SPARC32 */
