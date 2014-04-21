@@ -1,61 +1,50 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:36 +0000
-Subject: [PATCH 21/29] sparc32: fix sparse warnings in smp_32.c
-Message-Id: <1398109184-3283-21-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:18 +0000
+Subject: [PATCH 03/29] sparc32: fix sparse warning in init_32.c
+Message-Id: <1398109184-3283-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-smp_32.c:300:6: warning: symbol 'arch_cpu_pre_starting' was not declared. Should it be static?
-smp_32.c:320:6: warning: symbol 'arch_cpu_pre_online' was not declared. Should it be static?
-smp_32.c:347:6: warning: symbol 'sparc_start_secondary' was not declared. Should it be static?
+Fix following warning:
+init_32.c:112:22: warning: symbol 'bootmem_init' was not declared. Should it be static?
 
-Add missing static definition.
-
-This left one warning:
-   warning: symbol 'setup_profiling_timer' was not declared.
-
-This is a global symbol that has no declaration in any global header.
+Fix by adding a proper prototype in pgtable_32.h and drop
+the local prototype in srmmu.c
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/smp_32.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_32.h | 1 +
+ arch/sparc/mm/srmmu.c               | 2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-index a102bfb..632bf7c 100644
---- a/arch/sparc/kernel/smp_32.c
-+++ b/arch/sparc/kernel/smp_32.c
-@@ -297,7 +297,7 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
- 	return ret;
- }
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 502f632..16629e7 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -27,6 +27,7 @@ struct page;
  
--void arch_cpu_pre_starting(void *arg)
-+static void arch_cpu_pre_starting(void *arg)
+ extern void load_mmu(void);
+ extern unsigned long calc_highpages(void);
++unsigned long __init bootmem_init(unsigned long *pages_avail);
+ 
+ #define pte_ERROR(e)   __builtin_trap()
+ #define pmd_ERROR(e)   __builtin_trap()
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index ed0b0b6a..54e834c 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -865,8 +865,6 @@ static void __init map_kernel(void)
+ 
+ void (*poke_srmmu)(void) = NULL;
+ 
+-extern unsigned long bootmem_init(unsigned long *pages_avail);
+-
+ void __init srmmu_paging_init(void)
  {
- 	local_ops->cache_all();
- 	local_ops->tlb_all();
-@@ -317,7 +317,7 @@ void arch_cpu_pre_starting(void *arg)
- 	}
- }
- 
--void arch_cpu_pre_online(void *arg)
-+static void arch_cpu_pre_online(void *arg)
- {
- 	unsigned int cpuid = hard_smp_processor_id();
- 
-@@ -344,7 +344,7 @@ void arch_cpu_pre_online(void *arg)
- 	}
- }
- 
--void sparc_start_secondary(void *arg)
-+static void sparc_start_secondary(void *arg)
- {
- 	unsigned int cpu;
- 
+ 	int i;
 -- 
 1.8.3.1
 
