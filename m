@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:30 +0000
-Subject: [PATCH 18/24] sparc32: fix sparse warnings in unaligned_32.c
-Message-Id: <1398100356-19794-18-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:15 +0000
+Subject: [PATCH 03/24] sparc32: fix sparse warnings in sun4d_irq.c
+Message-Id: <1398100356-19794-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,89 +9,104 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warnings:
-unaligned_32.c:146:15: warning: symbol 'safe_compute_effective_address' was not declared. Should it be static?
-unaligned_32.c:235:17: warning: symbol 'kernel_unaligned_trap' was not declared. Should it be static?
-unaligned_32.c:319:17: warning: symbol 'user_unaligned_trap' was not declared. Should it be static?
+sun4d_irq.c:146:6: warning: symbol 'sun4d_handler_irq' was not declared. Should it be static?
+sun4d_irq.c:239:17: warning: symbol 'sun4d_irq' was not declared. Should it be static?
+sun4d_irq.c:288:14: warning: symbol '_sun4d_build_device_irq' was not declared. Should it be static?
+sun4d_irq.c:323:14: warning: symbol 'sun4d_build_device_irq' was not declared. Should it be static?
+sun4d_irq.c:386:14: warning: symbol 'sun4d_build_timer_irq' was not declared. Should it be static?
+sun4d_irq.c:482:13: warning: symbol 'sun4d_init_sbi_irq' was not declared. Should it be static?
 
-Add proper declarations in kernel.h + setup.h
+Apply static when applicable, otherwise add extern definition
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/setup.h   | 4 ++++
- arch/sparc/kernel/kernel.h       | 6 ++++++
- arch/sparc/kernel/unaligned_32.c | 4 ++++
- arch/sparc/mm/fault_32.c         | 4 +---
- 4 files changed, 15 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/irq_32.h |  1 +
+ arch/sparc/kernel/irq.h         |  3 +++
+ arch/sparc/kernel/sun4d_irq.c   | 17 +++++++++--------
+ 3 files changed, 13 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index 622145b..acf1cbc 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -42,6 +42,10 @@ extern unsigned long cmdline_memory_size;
- /* devices.c */
- void __init device_scan(void);
+diff --git a/arch/sparc/include/asm/irq_32.h b/arch/sparc/include/asm/irq_32.h
+index 2ae3aca..b3cef1d 100644
+--- a/arch/sparc/include/asm/irq_32.h
++++ b/arch/sparc/include/asm/irq_32.h
+@@ -17,6 +17,7 @@
+ #define irq_canonicalize(irq)	(irq)
  
-+/* unaligned_32.c */
-+extern unsigned long safe_compute_effective_address(struct pt_regs *,
-+                                                    unsigned int);
+ extern void __init init_IRQ(void);
++extern void __init sun4d_init_sbi_irq(void);
+ 
+ #define NO_IRQ		0xffffffff
+ 
+diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
+index c17bf8c..35b7c92 100644
+--- a/arch/sparc/kernel/irq.h
++++ b/arch/sparc/kernel/irq.h
+@@ -85,6 +85,9 @@ unsigned long leon_get_irqmask(unsigned int irq);
+ /* sun4m_irq.c */
+ extern void sun4m_nmi(struct pt_regs *regs);
+ 
++/* sun4d_irq.c */
++void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs);
 +
- #endif
+ #ifdef CONFIG_SMP
  
- extern void sun_do_break(void);
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 7287190..d074dfa 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -113,6 +113,12 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
- /* ptrace_32.c */
- extern asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
- 
-+/* unaligned_32.c */
-+extern asmlinkage void kernel_unaligned_trap(struct pt_regs *regs,
-+                                             unsigned int insn);
-+extern asmlinkage void user_unaligned_trap(struct pt_regs *regs,
-+                                           unsigned int insn);
-+
- /* windows.c */
- void try_to_clear_window_buffer(struct pt_regs *regs, int who);
- 
-diff --git a/arch/sparc/kernel/unaligned_32.c b/arch/sparc/kernel/unaligned_32.c
-index c0ec897..c5c61b3 100644
---- a/arch/sparc/kernel/unaligned_32.c
-+++ b/arch/sparc/kernel/unaligned_32.c
-@@ -16,6 +16,10 @@
- #include <linux/smp.h>
- #include <linux/perf_event.h>
- 
-+#include <asm/setup.h>
-+
-+#include "kernel.h"
-+
- enum direction {
- 	load,    /* ld, ldd, ldh, ldsh */
- 	store,   /* st, std, sth, stsh */
-diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
-index 7751810..908e8c1 100644
---- a/arch/sparc/mm/fault_32.c
-+++ b/arch/sparc/mm/fault_32.c
-@@ -26,6 +26,7 @@
- #include <asm/pgtable.h>
- #include <asm/openprom.h>
- #include <asm/oplib.h>
-+#include <asm/setup.h>
- #include <asm/smp.h>
- #include <asm/traps.h>
- #include <asm/uaccess.h>
-@@ -140,9 +141,6 @@ static void __do_fault_siginfo(int code, int sig, struct pt_regs *regs,
- 	force_sig_info (sig, &info, current);
+ /* All SUN4D IPIs are sent on this IRQ, may be shared with hard IRQs */
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index f8933be..a1bb267 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -143,7 +143,7 @@ static void sun4d_sbus_handler_irq(int sbusl)
+ 	}
  }
  
--extern unsigned long safe_compute_effective_address(struct pt_regs *,
--						    unsigned int);
--
- static unsigned long compute_si_addr(struct pt_regs *regs, int text_fault)
+-void sun4d_handler_irq(int pil, struct pt_regs *regs)
++void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
  {
- 	unsigned int insn;
+ 	struct pt_regs *old_regs;
+ 	/* SBUS IRQ level (1 - 7) */
+@@ -236,7 +236,7 @@ static void sun4d_shutdown_irq(struct irq_data *data)
+ 	irq_unlink(data->irq);
+ }
+ 
+-struct irq_chip sun4d_irq = {
++static struct irq_chip sun4d_irq = {
+ 	.name		= "sun4d",
+ 	.irq_startup	= sun4d_startup_irq,
+ 	.irq_shutdown	= sun4d_shutdown_irq,
+@@ -285,9 +285,9 @@ static void __init sun4d_load_profile_irqs(void)
+ 	}
+ }
+ 
+-unsigned int _sun4d_build_device_irq(unsigned int real_irq,
+-                                     unsigned int pil,
+-                                     unsigned int board)
++static unsigned int _sun4d_build_device_irq(unsigned int real_irq,
++                                            unsigned int pil,
++                                            unsigned int board)
+ {
+ 	struct sun4d_handler_data *handler_data;
+ 	unsigned int irq;
+@@ -320,8 +320,8 @@ err_out:
+ 
+ 
+ 
+-unsigned int sun4d_build_device_irq(struct platform_device *op,
+-                                    unsigned int real_irq)
++static unsigned int sun4d_build_device_irq(struct platform_device *op,
++                                           unsigned int real_irq)
+ {
+ 	struct device_node *dp = op->dev.of_node;
+ 	struct device_node *board_parent, *bus = dp->parent;
+@@ -383,7 +383,8 @@ err_out:
+ 	return irq;
+ }
+ 
+-unsigned int sun4d_build_timer_irq(unsigned int board, unsigned int real_irq)
++static unsigned int sun4d_build_timer_irq(unsigned int board,
++                                          unsigned int real_irq)
+ {
+ 	return _sun4d_build_device_irq(real_irq, real_irq, board);
+ }
 -- 
 1.8.3.1
 
