@@ -1,59 +1,72 @@
-From: Luis Henriques <luis.henriques@canonical.com>
-Date: Wed, 16 Apr 2014 10:31:56 +0000
-Subject: [PATCH 3.11 40/46] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <1397644322-13905-41-git-send-email-luis.henriques@canonical.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:27 +0000
+Subject: [PATCH 12/29] sparc32: fix sparse warnings in ioport.c
+Message-Id: <1398109184-3283-12-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
-In-Reply-To: <1397644322-13905-1-git-send-email-luis.henriques@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Luis Henriques <luis.henriques@canonical.com>
+To: sparclinux@vger.kernel.org
 
-3.11.10.8 -stable review patch.  If anyone has any objections, please let me know.
+Fix following warnings:
+ioport.c:189:38: warning: Using plain integer as NULL pointer
+ioport.c:78:25: warning: symbol 'sparc_iomap' was not declared. Should it be static?
+ioport.c:403:20: warning: symbol 'sbus_dma_ops' was not declared. Should it be static?
+ioport.c:684:39: warning: Using plain integer as NULL pointer
 
-------------------
+Add one missing prototype, and use NULL.
+sbus_dma_ops declared static.
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-
-commit 16932237f2978a2265662f8de4af743b1f55a209 upstream.
-
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
-
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
-
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/pgalloc_32.h | 2 ++
+ arch/sparc/kernel/ioport.c          | 6 +++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index e562d3c..ad7e178 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
- extern __must_check long strlen_user(const char __user *str);
- extern __must_check long strnlen_user(const char __user *str, long n);
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index 9b1c36d..a3890da 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -14,6 +14,8 @@ struct page;
+ void *srmmu_get_nocache(int size, int align);
+ void srmmu_free_nocache(void *addr, int size);
  
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
++extern struct resource sparc_iomap;
++
+ #define check_pgt_cache()	do { } while (0)
  
- struct pt_regs;
- extern unsigned long compute_effective_address(struct pt_regs *,
+ pgd_t *get_pgd_fast(void);
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index e7e215d..7f08ec8 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -186,7 +186,7 @@ static void __iomem *_sparc_alloc_io(unsigned int busno, unsigned long phys,
+ 
+ 	if (name = NULL) name = "???";
+ 
+-	if ((xres = xres_alloc()) != 0) {
++	if ((xres = xres_alloc()) != NULL) {
+ 		tack = xres->xname;
+ 		res = &xres->xres;
+ 	} else {
+@@ -400,7 +400,7 @@ static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ 	BUG();
+ }
+ 
+-struct dma_map_ops sbus_dma_ops = {
++static struct dma_map_ops sbus_dma_ops = {
+ 	.alloc			= sbus_alloc_coherent,
+ 	.free			= sbus_free_coherent,
+ 	.map_page		= sbus_map_page,
+@@ -681,7 +681,7 @@ static int sparc_io_proc_show(struct seq_file *m, void *v)
+ 	const char *nm;
+ 
+ 	for (r = root->child; r != NULL; r = r->sibling) {
+-		if ((nm = r->name) = 0) nm = "???";
++		if ((nm = r->name) = NULL) nm = "???";
+ 		seq_printf(m, "%016llx-%016llx: %s\n",
+ 				(unsigned long long)r->start,
+ 				(unsigned long long)r->end, nm);
 -- 
-1.9.1
+1.8.3.1
 
