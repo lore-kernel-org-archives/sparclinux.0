@@ -1,95 +1,97 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 15:17:26 +0000
-Subject: [PATCH 2/4 v3] x86, nmi: Add more flexible NMI back trace support
-Message-Id: <1398179848-197479-3-git-send-email-dzickus@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:30 +0000
+Subject: [PATCH 18/24] sparc32: fix sparse warnings in unaligned_32.c
+Message-Id: <1398100356-19794-18-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
+Fix following warnings:
+unaligned_32.c:146:15: warning: symbol 'safe_compute_effective_address' was not declared. Should it be static?
+unaligned_32.c:235:17: warning: symbol 'kernel_unaligned_trap' was not declared. Should it be static?
+unaligned_32.c:319:17: warning: symbol 'user_unaligned_trap' was not declared. Should it be static?
 
-This patch introduces the x86 specific implementation
-changes to the arch_trigger_all_cpu_backtrace() routine.
-Now users have the ability to choose whether or not to
-issue an NMI back trace which includes current.
+Add proper declarations in kernel.h + setup.h
 
-[Don't print message in single processor case,
- wrap with get/put_cpu based on Oleg's suggestion -dcz]
-
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/x86/include/asm/irq.h    |    2 +-
- arch/x86/kernel/apic/hw_nmi.c |   17 +++++++++++++----
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ arch/sparc/include/asm/setup.h   | 4 ++++
+ arch/sparc/kernel/kernel.h       | 6 ++++++
+ arch/sparc/kernel/unaligned_32.c | 4 ++++
+ arch/sparc/mm/fault_32.c         | 4 +---
+ 4 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
-index cb6cfcd..a80cbb8 100644
---- a/arch/x86/include/asm/irq.h
-+++ b/arch/x86/include/asm/irq.h
-@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
- extern void init_ISA_irqs(void);
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 622145b..acf1cbc 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -42,6 +42,10 @@ extern unsigned long cmdline_memory_size;
+ /* devices.c */
+ void __init device_scan(void);
  
- #ifdef CONFIG_X86_LOCAL_APIC
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
++/* unaligned_32.c */
++extern unsigned long safe_compute_effective_address(struct pt_regs *,
++                                                    unsigned int);
++
  #endif
  
-diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
-index a698d71..1400d72 100644
---- a/arch/x86/kernel/apic/hw_nmi.c
-+++ b/arch/x86/kernel/apic/hw_nmi.c
-@@ -33,31 +33,40 @@ static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
- /* "in progress" flag of arch_trigger_all_cpu_backtrace */
- static unsigned long backtrace_flag;
+ extern void sun_do_break(void);
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 7287190..d074dfa 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -113,6 +113,12 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
+ /* ptrace_32.c */
+ extern asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
  
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
- {
- 	int i;
-+	int cpu = get_cpu();
++/* unaligned_32.c */
++extern asmlinkage void kernel_unaligned_trap(struct pt_regs *regs,
++                                             unsigned int insn);
++extern asmlinkage void user_unaligned_trap(struct pt_regs *regs,
++                                           unsigned int insn);
++
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
  
--	if (test_and_set_bit(0, &backtrace_flag))
-+	if (test_and_set_bit(0, &backtrace_flag)) {
- 		/*
- 		 * If there is already a trigger_all_cpu_backtrace() in progress
- 		 * (backtrace_flag = 1), don't output double cpu dump infos.
- 		 */
-+		put_cpu();
- 		return;
-+	}
+diff --git a/arch/sparc/kernel/unaligned_32.c b/arch/sparc/kernel/unaligned_32.c
+index c0ec897..c5c61b3 100644
+--- a/arch/sparc/kernel/unaligned_32.c
++++ b/arch/sparc/kernel/unaligned_32.c
+@@ -16,6 +16,10 @@
+ #include <linux/smp.h>
+ #include <linux/perf_event.h>
  
- 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
-+	if (!include_self)
-+		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
- 
--	printk(KERN_INFO "sending NMI to all CPUs:\n");
--	apic->send_IPI_all(NMI_VECTOR);
-+	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
-+		pr_info("sending NMI to %s CPUs:\n", (include_self ? "all" : "other"));
-+		apic->send_IPI_mask(to_cpumask(backtrace_mask), NMI_VECTOR);
-+	}
- 
- 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
- 	for (i = 0; i < 10 * 1000; i++) {
- 		if (cpumask_empty(to_cpumask(backtrace_mask)))
- 			break;
- 		mdelay(1);
-+		touch_softlockup_watchdog();
- 	}
- 
- 	clear_bit(0, &backtrace_flag);
- 	smp_mb__after_clear_bit();
-+	put_cpu();
++#include <asm/setup.h>
++
++#include "kernel.h"
++
+ enum direction {
+ 	load,    /* ld, ldd, ldh, ldsh */
+ 	store,   /* st, std, sth, stsh */
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 7751810..908e8c1 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -26,6 +26,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/openprom.h>
+ #include <asm/oplib.h>
++#include <asm/setup.h>
+ #include <asm/smp.h>
+ #include <asm/traps.h>
+ #include <asm/uaccess.h>
+@@ -140,9 +141,6 @@ static void __do_fault_siginfo(int code, int sig, struct pt_regs *regs,
+ 	force_sig_info (sig, &info, current);
  }
  
- static int __kprobes
+-extern unsigned long safe_compute_effective_address(struct pt_regs *,
+-						    unsigned int);
+-
+ static unsigned long compute_si_addr(struct pt_regs *regs, int text_fault)
+ {
+ 	unsigned int insn;
 -- 
-1.7.1
+1.8.3.1
 
