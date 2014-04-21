@@ -1,51 +1,58 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:29 +0000
-Subject: [PATCH 17/24] sparc32: fix sparse warning in ptrace_32.c
-Message-Id: <1398100356-19794-17-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:32 +0000
+Subject: [PATCH 20/24] sparc32: fix sparse warnings in leon_kernel.c
+Message-Id: <1398100356-19794-20-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-ptrace_32.c:444:16: warning: symbol 'syscall_trace' was not declared. Should it be static?
+Fix following warnings:
+leon_kernel.c:40:15: warning: symbol 'leon3_gptimer_idx' was not declared. Should it be static?
+leon_kernel.c:68:6: warning: symbol 'leon_eirq_setup' was not declared. Should it be static?
+leon_kernel.c:273:13: warning: symbol 'leon_percpu_timer_ce_interrupt' was not declared. Should it be static?
 
-Add declaration in kernel.h
+Define symbols as static.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/kernel/kernel.h    | 3 +++
- arch/sparc/kernel/ptrace_32.c | 2 ++
- 2 files changed, 5 insertions(+)
+ arch/sparc/kernel/leon_kernel.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index c4fb8f4..7287190 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -110,6 +110,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-                                struct sigstack __user *ossptr,
-                                unsigned long sp);
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index b9a2599..d939708 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -36,8 +36,8 @@ static volatile unsigned int dummy_master_l10_counter;
+ unsigned long amba_system_id;
+ static DEFINE_SPINLOCK(leon_irq_lock);
  
-+/* ptrace_32.c */
-+extern asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
-+
- /* windows.c */
- void try_to_clear_window_buffer(struct pt_regs *regs, int who);
++static unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
+ unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
+-unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
+ unsigned int sparc_leon_eirq;
+ #define LEON_IMASK(cpu) (&leon3_irqctrl_regs->mask[cpu])
+ #define LEON_IACK (&leon3_irqctrl_regs->iclear)
+@@ -65,7 +65,7 @@ static void leon_handle_ext_irq(unsigned int irq, struct irq_desc *desc)
+ }
  
-diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
-index 896ba7c..a331fdc 100644
---- a/arch/sparc/kernel/ptrace_32.c
-+++ b/arch/sparc/kernel/ptrace_32.c
-@@ -26,6 +26,8 @@
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
+ /* The extended IRQ controller has been found, this function registers it */
+-void leon_eirq_setup(unsigned int eirq)
++static void leon_eirq_setup(unsigned int eirq)
+ {
+ 	unsigned long mask, oldmask;
+ 	unsigned int veirq;
+@@ -270,7 +270,7 @@ static u32 leon_cycles_offset(void)
+ #ifdef CONFIG_SMP
  
-+#include "kernel.h"
-+
- /* #define ALLOW_INIT_TRACING */
- 
- /*
+ /* smp clockevent irq */
+-irqreturn_t leon_percpu_timer_ce_interrupt(int irq, void *unused)
++static irqreturn_t leon_percpu_timer_ce_interrupt(int irq, void *unused)
+ {
+ 	struct clock_event_device *ce;
+ 	int cpu = smp_processor_id();
 -- 
 1.8.3.1
 
