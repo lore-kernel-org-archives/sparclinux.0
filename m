@@ -1,27 +1,51 @@
-From: "Administrador do Sistema" <zunaidali90@gmail.com>
-Date: Wed, 23 Apr 2014 15:42:07 +0000
-Subject: *sua caixa de correio*
-Message-Id: <20140423152419.504EC356DB3@sspslssdmail-31.ssp.ma.gov.br>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:37 +0000
+Subject: [PATCH 22/29] sparc32: fix sparse warning in ptrace_32.c
+Message-Id: <1398109184-3283-22-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Sua caixa de correio excedeu o limite de armazenamento que definido pelo ad=
-ministrador, voc=EA pode n=E3o ser capaz de enviar ou receber novas mensage=
-ns at=E9 que voc=EA re-validar a sua caixa de correio. Para voltar a valida=
-r a sua caixa de correio, por favor envie os seguintes dados abaixo:
+Fix following warning:
+ptrace_32.c:444:16: warning: symbol 'syscall_trace' was not declared. Should it be static?
 
-Nome:
-Nome de usu=E1rio:
-Senha:
-Confirme a Senha:
-Endere=E7o de E-mail:
-N=FAmero de telefone:
+Add declaration in kernel.h
 
-Se voc=EA n=E3o conseguir revalidar sua caixa de correio, a caixa de correi=
-o ser=E1 desativado!
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/kernel.h    | 3 +++
+ arch/sparc/kernel/ptrace_32.c | 2 ++
+ 2 files changed, 5 insertions(+)
 
-obrigado
-Administrador do Sistema
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 716158a..2c312a2 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -110,6 +110,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
+                                struct sigstack __user *ossptr,
+                                unsigned long sp);
+ 
++/* ptrace_32.c */
++asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
++
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ 
+diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
+index 896ba7c..a331fdc 100644
+--- a/arch/sparc/kernel/ptrace_32.c
++++ b/arch/sparc/kernel/ptrace_32.c
+@@ -26,6 +26,8 @@
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+ 
++#include "kernel.h"
++
+ /* #define ALLOW_INIT_TRACING */
+ 
+ /*
+-- 
+1.8.3.1
+
