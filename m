@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:44 +0000
-Subject: [PATCH 29/29] sparc32: fix sparse warnings in leon_smp.c
-Message-Id: <1398109184-3283-29-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:35 +0000
+Subject: [PATCH 23/24] sparc32: fix sparse warnings in sun4d_smp.c
+Message-Id: <1398100356-19794-23-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,71 +9,68 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warnings:
-leon_smp.c:133:6: warning: symbol 'leon_smp_setbroadcast' was not declared. Should it be static?
-leon_smp.c:151:14: warning: symbol 'leon_smp_getbroadcast' was not declared. Should it be static?
-leon_smp.c:269:6: warning: symbol 'leon_irq_rotate' was not declared. Should it be static?
-leon_smp.c:355:6: warning: symbol 'leonsmp_ipi_interrupt' was not declared. Should it be static?
-leon_smp.c:457:6: warning: symbol 'leon_cross_call_irq' was not declared. Should it be static?
+sun4d_smp.c:113:13: warning: symbol 'smp4d_boot_cpus' was not declared. Should it be static?
+sun4d_smp.c:121:5: warning: symbol 'smp4d_boot_one_cpu' was not declared. Should it be static?
+sun4d_smp.c:162:13: warning: symbol 'smp4d_smp_done' was not declared. Should it be static?
+sun4d_smp.c:353:6: warning: symbol 'smp4d_cross_call_irq' was not declared. Should it be static?
+sun4d_smp.c:363:6: warning: symbol 'smp4d_percpu_timer_interrupt' was not declared. Should it be static?
 
-Add static.
-Remove unused functions.
+Add proper declarations
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/kernel/kernel.h   |  2 ++
- arch/sparc/kernel/leon_smp.c | 13 +------------
- 2 files changed, 3 insertions(+), 12 deletions(-)
+ arch/sparc/kernel/kernel.h | 9 +++++++--
+ arch/sparc/kernel/smp_32.c | 3 ---
+ 2 files changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 71d56ae..de9ac1a 100644
+index fd36dc1..7678e9a 100644
 --- a/arch/sparc/kernel/kernel.h
 +++ b/arch/sparc/kernel/kernel.h
-@@ -81,6 +81,8 @@ void smp4d_percpu_timer_interrupt(struct pt_regs *regs);
+@@ -70,8 +70,13 @@ extern void sun4d_distribute_irqs(void);
+ extern void sun4d_free_irq(unsigned int irq, void *dev_id);
+ 
+ /* sun4d_smp.c */
+-void sun4d_cpu_pre_starting(void *arg);
+-void sun4d_cpu_pre_online(void *arg);
++extern void sun4d_cpu_pre_starting(void *arg);
++extern void sun4d_cpu_pre_online(void *arg);
++extern void __init smp4d_boot_cpus(void);
++extern int smp4d_boot_one_cpu(int i, struct task_struct *idle);
++extern void __init smp4d_smp_done(void);
++extern void smp4d_cross_call_irq(void);
++extern void smp4d_percpu_timer_interrupt(struct pt_regs *regs);
+ 
  /* leon_smp.c */
  void leon_cpu_pre_starting(void *arg);
- void leon_cpu_pre_online(void *arg);
-+void leonsmp_ipi_interrupt(void);
-+void leon_cross_call_irq(void);
+diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+index ab86c5e..9d3297d 100644
+--- a/arch/sparc/kernel/smp_32.c
++++ b/arch/sparc/kernel/smp_32.c
+@@ -75,7 +75,6 @@ void smp_store_cpu_info(int id)
  
- /* head_32.S */
- extern unsigned int t_nmi[];
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 6edf955..018ef11 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -130,7 +130,7 @@ void leon_configure_cache_smp(void)
- 	local_ops->tlb_all();
- }
- 
--void leon_smp_setbroadcast(unsigned int mask)
-+static void leon_smp_setbroadcast(unsigned int mask)
+ void __init smp_cpus_done(unsigned int max_cpus)
  {
- 	int broadcast  	    ((LEON3_BYPASS_LOAD_PA(&(leon3_irqctrl_regs->mpstatus)) >>
-@@ -148,13 +148,6 @@ void leon_smp_setbroadcast(unsigned int mask)
- 	LEON_BYPASS_STORE_PA(&(leon3_irqctrl_regs->mpbroadcast), mask);
- }
+-	extern void smp4d_smp_done(void);
+ 	unsigned long bogosum = 0;
+ 	int cpu, num = 0;
  
--unsigned int leon_smp_getbroadcast(void)
--{
--	unsigned int mask;
--	mask = LEON_BYPASS_LOAD_PA(&(leon3_irqctrl_regs->mpbroadcast));
--	return mask;
--}
--
- int leon_smp_nrcpus(void)
+@@ -182,7 +181,6 @@ int setup_profiling_timer(unsigned int multiplier)
+ 
+ void __init smp_prepare_cpus(unsigned int max_cpus)
  {
- 	int nrcpu @@ -266,10 +259,6 @@ void __init leon_smp_done(void)
+-	extern void __init smp4d_boot_cpus(void);
+ 	int i, cpuid, extra;
  
- }
+ 	printk("Entering SMP Mode...\n");
+@@ -259,7 +257,6 @@ void __init smp_prepare_boot_cpu(void)
  
--void leon_irq_rotate(int cpu)
--{
--}
--
- struct leon_ipi_work {
- 	int single;
- 	int msk;
+ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
+ {
+-	extern int smp4d_boot_one_cpu(int, struct task_struct *);
+ 	int ret=0;
+ 
+ 	switch(sparc_cpu_model) {
 -- 
 1.8.3.1
 
