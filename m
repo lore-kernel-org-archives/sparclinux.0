@@ -1,39 +1,66 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 25 Apr 2014 09:18:35 +0000
-Subject: [PATCH 13/13] PCI, pciehp: Use new pci_is_bridge() to simplify code
-Message-Id: <1398417515-8740-14-git-send-email-wangyijing@huawei.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:41 +0000
+Subject: [PATCH 26/29] sparc32: fix sparse warnings in leon_pmc.c
+Message-Id: <1398109184-3283-26-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
+Fix following warnings:
+leon_pmc.c:15:14: warning: symbol 'pmc_leon_fixup_ids' was not declared. Should it be static?
+leon_pmc.c:22:5: warning: symbol 'pmc_leon_need_fixup' was not declared. Should it be static?
+leon_pmc.c:41:6: warning: symbol 'pmc_leon_idle_fixup' was not declared. Should it be static?
+leon_pmc.c:65:6: warning: symbol 'pmc_leon_idle' was not declared. Should it be static?
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Add static to definitions.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- drivers/pci/hotplug/pciehp_pci.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/leon_pmc.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
-index 1b53306..b6cb1df 100644
---- a/drivers/pci/hotplug/pciehp_pci.c
-+++ b/drivers/pci/hotplug/pciehp_pci.c
-@@ -62,8 +62,7 @@ int pciehp_configure_device(struct slot *p_slot)
- 	}
+diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
+index b0b3967..ddcf950 100644
+--- a/arch/sparc/kernel/leon_pmc.c
++++ b/arch/sparc/kernel/leon_pmc.c
+@@ -12,14 +12,14 @@
+ #include <asm/processor.h>
  
- 	list_for_each_entry(dev, &parent->devices, bus_list)
--		if ((dev->hdr_type = PCI_HEADER_TYPE_BRIDGE) ||
--				(dev->hdr_type = PCI_HEADER_TYPE_CARDBUS))
-+		if (pci_is_bridge(dev))
- 			pci_hp_add_bridge(dev);
+ /* List of Systems that need fixup instructions around power-down instruction */
+-unsigned int pmc_leon_fixup_ids[] = {
++static unsigned int pmc_leon_fixup_ids[] = {
+ 	AEROFLEX_UT699,
+ 	GAISLER_GR712RC,
+ 	LEON4_NEXTREME1,
+ 	0
+ };
  
- 	pci_assign_unassigned_bridge_resources(bridge);
+-int pmc_leon_need_fixup(void)
++static int pmc_leon_need_fixup(void)
+ {
+ 	unsigned int systemid = amba_system_id >> 16;
+ 	unsigned int *id;
+@@ -38,7 +38,7 @@ int pmc_leon_need_fixup(void)
+  * CPU idle callback function for systems that need some extra handling
+  * See .../arch/sparc/kernel/process.c
+  */
+-void pmc_leon_idle_fixup(void)
++static void pmc_leon_idle_fixup(void)
+ {
+ 	/* Prepare an address to a non-cachable region. APB is always
+ 	 * none-cachable. One instruction is executed after the Sleep
+@@ -62,7 +62,7 @@ void pmc_leon_idle_fixup(void)
+  * CPU idle callback function
+  * See .../arch/sparc/kernel/process.c
+  */
+-void pmc_leon_idle(void)
++static void pmc_leon_idle(void)
+ {
+ 	/* Interrupts need to be enabled to not hang the CPU */
+ 	local_irq_enable();
 -- 
-1.7.1
-
+1.8.3.1
 
