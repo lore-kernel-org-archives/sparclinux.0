@@ -1,76 +1,85 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 19:54:52 +0000
-Subject: [PATCH 1/5] sparc32: rename mm/srmmu.h to mm/mm_32.h
-Message-Id: <20140420195452.GA17743@ravnborg.org>
+Date: Mon, 21 Apr 2014 17:12:20 +0000
+Subject: [PATCH 08/24] sparc32: fix sparse warnings in setup_32.c
+Message-Id: <1398100356-19794-8-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From fddc02b1fd5f43e8f16922621ad476e4e7cdf32d Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 19:44:10 +0200
-Subject: [PATCH 1/5] sparc32: rename mm/srmmu.h to mm/mm_32.h
+Fix following warnings:
+setup_32.c:106:15: warning: symbol 'cmdline_memory_size' was not declared. Should it be static?
+setup_32.c:270:16: warning: symbol 'fake_swapper_regs' was not declared. Should it be static?
+setup_32.c:368:55: warning: Using plain integer as NULL pointer
 
-This file will be used for more than just srmmu stuff, so the old name was misleading.
+Add missing declaration of cmdline_memory_size and remove the local one in init_32.c
+fake_swapper_regs was only used locally - so defined static.
+When replacing 0 with NULL also add a few spaces around operators
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/leon_mm.c | 2 +-
- arch/sparc/mm/mm_32.h   | 4 ++++
- arch/sparc/mm/srmmu.c   | 2 +-
- arch/sparc/mm/srmmu.h   | 4 ----
- 4 files changed, 6 insertions(+), 6 deletions(-)
- create mode 100644 arch/sparc/mm/mm_32.h
- delete mode 100644 arch/sparc/mm/srmmu.h
+ arch/sparc/include/asm/setup.h | 3 +++
+ arch/sparc/kernel/setup_32.c   | 4 ++--
+ arch/sparc/mm/init_32.c        | 2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/mm/leon_mm.c b/arch/sparc/mm/leon_mm.c
-index 5bed085..649cad6 100644
---- a/arch/sparc/mm/leon_mm.c
-+++ b/arch/sparc/mm/leon_mm.c
-@@ -15,7 +15,7 @@
- #include <asm/leon.h>
- #include <asm/tlbflush.h>
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 4b7465a..c7cd435 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -36,6 +36,9 @@ extern unsigned long pdma_areasize;
  
--#include "srmmu.h"
-+#include "mm_32.h"
+ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
  
- int leon_flush_during_switch = 1;
- int srmmu_swprobe_trace;
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-new file mode 100644
-index 0000000..5703274
---- /dev/null
-+++ b/arch/sparc/mm/mm_32.h
-@@ -0,0 +1,4 @@
-+/* srmmu.c */
-+extern char *srmmu_name;
++/* setup_32.c */
++extern unsigned long cmdline_memory_size;
 +
-+extern void (*poke_srmmu)(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index cfbe53c..ed0b0b6a 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -49,7 +49,7 @@
- #include <asm/mxcc.h>
- #include <asm/ross.h>
+ #endif
  
--#include "srmmu.h"
-+#include "mm_32.h"
+ extern void sun_do_break(void);
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 1434526..baef495 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -267,7 +267,7 @@ static __init void leon_patch(void)
+ }
  
- enum mbus_module srmmu_modtype;
- static unsigned int hwbug_bitmask;
-diff --git a/arch/sparc/mm/srmmu.h b/arch/sparc/mm/srmmu.h
-deleted file mode 100644
-index 5703274..0000000
---- a/arch/sparc/mm/srmmu.h
-+++ /dev/null
-@@ -1,4 +0,0 @@
--/* srmmu.c */
--extern char *srmmu_name;
--
--extern void (*poke_srmmu)(void);
+ struct tt_entry *sparc_ttable;
+-struct pt_regs fake_swapper_regs;
++static struct pt_regs fake_swapper_regs;
+ 
+ /* Called from head_32.S - before we have setup anything
+  * in the kernel. Be very careful with what you do here.
+@@ -365,7 +365,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	prom_setsync(prom_sync_me);
+ 
+-	if((boot_flags&BOOTME_DEBUG) && (linux_dbvec!=0) && 
++	if((boot_flags & BOOTME_DEBUG) && (linux_dbvec != NULL) &&
+ 	   ((*(short *)linux_dbvec) != -1)) {
+ 		printk("Booted under KADB. Syncing trap table.\n");
+ 		(*(linux_dbvec->teach_debugger))();
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index cf09e6e..d0c7327 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -31,6 +31,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/vaddrs.h>
+ #include <asm/pgalloc.h>	/* bug in asm-generic/tlb.h: check_pgt_cache */
++#include <asm/setup.h>
+ #include <asm/tlb.h>
+ #include <asm/prom.h>
+ #include <asm/leon.h>
+@@ -65,7 +66,6 @@ void show_mem(unsigned int filter)
+ }
+ 
+ 
+-extern unsigned long cmdline_memory_size;
+ unsigned long last_valid_pfn;
+ 
+ unsigned long calc_highpages(void)
 -- 
 1.8.3.1
 
