@@ -1,93 +1,61 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:22 +0000
-Subject: [PATCH 07/29] sparc32: fix sparse warnings in sun4m_irq.c and sun4d_irq.c
-Message-Id: <1398109184-3283-7-git-send-email-sam@ravnborg.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 21 Apr 2014 02:13:46 +0000
+Subject: [PATCH 3.13 29/32] sparc64: dont treat 64-bit syscall return codes as 32-bit
+Message-Id: <20140421021137.828450987@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140421021133.865086647@linuxfoundation.org>
+In-Reply-To: <20140421021133.865086647@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Bob Picco <bob.picco@oracle.com>, Allen Pais <allen.pais@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Fix following warnings:
+3.13-stable review patch.  If anyone has any objections, please let me know.
 
-sun4m_irq.c:308:6: warning: symbol 'sun4m_nmi' was not declared. Should it be static?
-sun4m_irq.c:396:28: warning: incorrect type in assignment (different address spaces)
-sun4m_irq.c:396:28:    expected unsigned int volatile *extern [addressable] [toplevel] master_l10_counter
-sun4d_irq.c:469:28: warning: incorrect type in assignment (different address spaces)
-sun4d_irq.c:469:28:    expected unsigned int volatile *extern [addressable] [toplevel] master_l10_counter
+------------------
 
-master_l10_counter is a pointer to __iomem - add annotations.
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
+
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/include/asm/timer_32.h | 2 +-
- arch/sparc/kernel/irq.h           | 3 +++
- arch/sparc/kernel/leon_kernel.c   | 5 +++--
- arch/sparc/kernel/time_32.c       | 2 +-
- 4 files changed, 8 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/syscalls.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
-index 72f40a5..93476f8 100644
---- a/arch/sparc/include/asm/timer_32.h
-+++ b/arch/sparc/include/asm/timer_32.h
-@@ -32,7 +32,7 @@ static inline unsigned int timer_value(unsigned int value)
- 	return (value + 1) << TIMER_VALUE_SHIFT;
- }
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -189,7 +189,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
  
--extern __volatile__ unsigned int *master_l10_counter;
-+extern volatile unsigned int __iomem *master_l10_counter;
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -217,7 +218,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
  
- extern irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
- 
-diff --git a/arch/sparc/kernel/irq.h b/arch/sparc/kernel/irq.h
-index b66b6aa..97c07de 100644
---- a/arch/sparc/kernel/irq.h
-+++ b/arch/sparc/kernel/irq.h
-@@ -82,6 +82,9 @@ void handler_irq(unsigned int pil, struct pt_regs *regs);
- 
- unsigned long leon_get_irqmask(unsigned int irq);
- 
-+/* sun4m_irq.c */
-+void sun4m_nmi(struct pt_regs *regs);
-+
- #ifdef CONFIG_SMP
- 
- /* All SUN4D IPIs are sent on this IRQ, may be shared with hard IRQs */
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index b7c6897..b9a2599 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -32,7 +32,7 @@ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base addr
- 
- int leondebug_irq_disable;
- int leon_debug_irqout;
--static int dummy_master_l10_counter;
-+static volatile unsigned int dummy_master_l10_counter;
- unsigned long amba_system_id;
- static DEFINE_SPINLOCK(leon_irq_lock);
- 
-@@ -313,7 +313,8 @@ void __init leon_init_timers(void)
- 
- 	leondebug_irq_disable = 0;
- 	leon_debug_irqout = 0;
--	master_l10_counter = (unsigned int *)&dummy_master_l10_counter;
-+	master_l10_counter +		(unsigned int __iomem *)&dummy_master_l10_counter;
- 	dummy_master_l10_counter = 0;
- 
- 	rootnp = of_find_node_by_path("/ambapp0");
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index c4c27b0..772b379 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -83,7 +83,7 @@ unsigned long profile_pc(struct pt_regs *regs)
- 
- EXPORT_SYMBOL(profile_pc);
- 
--__volatile__ unsigned int *master_l10_counter;
-+volatile unsigned int __iomem *master_l10_counter;
- 
- int update_persistent_clock(struct timespec now)
- {
--- 
-1.8.3.1
+
 
