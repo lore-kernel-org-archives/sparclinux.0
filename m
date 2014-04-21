@@ -1,34 +1,77 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Fri, 04 Apr 2014 20:47:06 +0000
-Subject: [PATCH 0/4 V2] Print traces on softlockups
-Message-Id: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:32 +0000
+Subject: [PATCH 17/29] sparc32: fix sparse warnings in tadpole.c
+Message-Id: <1398109184-3283-17-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-Version 2 of this patchset.
+Fix following warnings:
+tadpole.c:21:6: warning: symbol 'cpu_pwr_save' was not declared. Should it be static?
+tadpole.c:101:13: warning: symbol 'clock_stop_probe' was not declared. Should it be static?
 
-Added more patches to handle the 'uniprocessor' panic case by sending NMIs
-to every cpu but self.  Only affects x86, sparc.
+This actually revealed that cpu_pwr_save is only assigned.
+It was left static with a TODO comment for now - this should be cleaned up later.
 
-Aaron Tomlin (4):
-  nmi: Provide the option to issue an NMI back trace to every cpu but
-    current
-  x86, nmi: Add more flexible NMI back trace support
-  sparc64, nmi: Add more flexible NMI back trace support
-  watchdog: Printing traces for all cpus on lockup detection
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/devices.c | 2 +-
+ arch/sparc/kernel/kernel.h  | 3 +++
+ arch/sparc/kernel/tadpole.c | 6 +++++-
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
- Documentation/kernel-parameters.txt |    5 +++++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
- arch/sparc/include/asm/irq_64.h     |    2 +-
- arch/sparc/kernel/process_64.c      |   14 +++++++++-----
- arch/x86/include/asm/irq.h          |    2 +-
- arch/x86/kernel/apic/hw_nmi.c       |   16 +++++++++++++---
- include/linux/nmi.h                 |   12 +++++++++++-
- kernel/sysctl.c                     |    9 +++++++++
- kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
- 9 files changed, 98 insertions(+), 11 deletions(-)
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index b9e9d8c..086faf6 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -21,7 +21,7 @@
+ #include <asm/cpu_type.h>
+ #include <asm/setup.h>
+ 
+-extern void clock_stop_probe(void); /* tadpole.c */
++#include "kernel.h"
+ 
+ static char *cpu_mid_prop(void)
+ {
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 7f05d3f..4877626 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -113,6 +113,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ 
++/* tadpole.c */
++void __init clock_stop_probe(void);
++
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
+diff --git a/arch/sparc/kernel/tadpole.c b/arch/sparc/kernel/tadpole.c
+index 9aba8bd..4bbfe4e 100644
+--- a/arch/sparc/kernel/tadpole.c
++++ b/arch/sparc/kernel/tadpole.c
+@@ -12,13 +12,17 @@
+ #include <asm/oplib.h>
+ #include <asm/io.h>
+ 
++#include "kernel.h"
++
+ #define MACIO_SCSI_CSR_ADDR	0x78400000
+ #define MACIO_EN_DMA		0x00000200
+ #define CLOCK_INIT_DONE		1
+ 
+ static int clk_state;
+ static volatile unsigned char *clk_ctrl;
+-void (*cpu_pwr_save)(void);
++
++/* TODO - cpu_pwr_save is only assigned - cleanup potential. */
++static void (*cpu_pwr_save)(void);
+ 
+ static inline unsigned int ldphys(unsigned int addr)
+ {
+-- 
+1.8.3.1
 
