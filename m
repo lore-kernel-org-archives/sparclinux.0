@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:37 +0000
-Subject: [PATCH 22/29] sparc32: fix sparse warning in ptrace_32.c
-Message-Id: <1398109184-3283-22-git-send-email-sam@ravnborg.org>
+Date: Mon, 21 Apr 2014 19:39:21 +0000
+Subject: [PATCH 06/29] sparc32: fix sparse warning in traps_32.c
+Message-Id: <1398109184-3283-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,43 +9,41 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warning:
-ptrace_32.c:444:16: warning: symbol 'syscall_trace' was not declared. Should it be static?
+traps_32.c:47:6: error: symbol 'die_if_kernel' redeclared with different type - different modifiers
 
-Add declaration in kernel.h
+Add __noreturn to both definition and declaration
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/kernel.h    | 3 +++
- arch/sparc/kernel/ptrace_32.c | 2 ++
- 2 files changed, 5 insertions(+)
+ arch/sparc/include/asm/bug.h | 2 +-
+ arch/sparc/kernel/traps_32.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 716158a..2c312a2 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -110,6 +110,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-                                struct sigstack __user *ossptr,
-                                unsigned long sp);
+diff --git a/arch/sparc/include/asm/bug.h b/arch/sparc/include/asm/bug.h
+index 6bd9f43..a24cbb1 100644
+--- a/arch/sparc/include/asm/bug.h
++++ b/arch/sparc/include/asm/bug.h
+@@ -20,6 +20,6 @@ extern void do_BUG(const char *file, int line);
+ #include <asm-generic/bug.h>
  
-+/* ptrace_32.c */
-+asmlinkage int syscall_trace(struct pt_regs *regs, int syscall_exit_p);
-+
- /* windows.c */
- void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ struct pt_regs;
+-extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
++void __noreturn die_if_kernel(char *str, struct pt_regs *regs);
  
-diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
-index 896ba7c..a331fdc 100644
---- a/arch/sparc/kernel/ptrace_32.c
-+++ b/arch/sparc/kernel/ptrace_32.c
-@@ -26,6 +26,8 @@
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
+ #endif
+diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
+index 6629829..a655e5b 100644
+--- a/arch/sparc/kernel/traps_32.c
++++ b/arch/sparc/kernel/traps_32.c
+@@ -44,7 +44,7 @@ static void instruction_dump(unsigned long *pc)
+ #define __SAVE __asm__ __volatile__("save %sp, -0x40, %sp\n\t")
+ #define __RESTORE __asm__ __volatile__("restore %g0, %g0, %g0\n\t")
  
-+#include "kernel.h"
-+
- /* #define ALLOW_INIT_TRACING */
- 
- /*
+-void die_if_kernel(char *str, struct pt_regs *regs)
++void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
+ {
+ 	static int die_counter;
+ 	int count = 0;
 -- 
 1.8.3.1
 
