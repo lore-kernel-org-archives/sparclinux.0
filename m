@@ -1,101 +1,210 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:18 +0000
-Subject: [PATCH 06/24] sparc32: fix sparse warnings in signal_32.c
-Message-Id: <1398100356-19794-6-git-send-email-sam@ravnborg.org>
+From: Don Zickus <dzickus@redhat.com>
+Date: Tue, 22 Apr 2014 15:17:28 +0000
+Subject: [PATCH 4/4 v3] watchdog: Printing traces for all cpus on lockup detection
+Message-Id: <1398179848-197479-5-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-Fix following warnings:
-signal_32.c:62:17: warning: symbol 'do_sigreturn' was not declared. Should it be static?
-signal_32.c:126:17: warning: symbol 'do_rt_sigreturn' was not declared. Should it be static?
-signal_32.c:344:39: warning: incorrect type in initializer (different address spaces)
-signal_32.c:344:39:    expected struct __siginfo_fpu_t [usertype] *fp
-signal_32.c:344:39:    got void [noderef] <asn:1>*[assigned] tail
-signal_32.c:346:45: warning: incorrect type in argument 2 (different address spaces)
-signal_32.c:346:45:    expected struct __siginfo_fpu_t [noderef] [usertype] <asn:1>*fpu
-signal_32.c:346:45:    got struct __siginfo_fpu_t [usertype] *fp
-signal_32.c:352:41: warning: incorrect type in initializer (different address spaces)
-signal_32.c:352:41:    expected struct __siginfo_rwin_t [usertype] *rwp
-signal_32.c:352:41:    got void [noderef] <asn:1>*[assigned] tail
-signal_32.c:354:48: warning: incorrect type in argument 2 (different address spaces)
-signal_32.c:354:48:    expected struct __siginfo_rwin_t [noderef] [usertype] <asn:1>*rwin
-signal_32.c:354:48:    got struct __siginfo_rwin_t [usertype] *rwp
-signal_32.c:509:6: warning: symbol 'do_notify_resume' was not declared. Should it be static?
-signal_32.c:520:16: warning: symbol 'do_sys_sigstack' was not declared. Should it be static?
+From: Aaron Tomlin <atomlin@redhat.com>
 
-Add missing prototypes and annotate two variables with __user.
+A 'softlockup' is defined as a bug that causes the kernel to
+loop in kernel mode for more than a predefined period to
+time, without giving other tasks a chance to run.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Currently, upon detection of this condition by the per-cpu
+watchdog task, debug information (including a stack trace)
+is sent to the system log.
+
+On some occasions, we have observed that the "victim" rather
+than the actual "culprit" (i.e. the owner/holder of the
+contended resource) is reported to the user.
+Often this information has proven to be insufficient to
+assist debugging efforts.
+
+To avoid loss of useful debug information, for architectures
+which support NMI, this patch makes it possible to improve
+soft lockup reporting. This is accomplished by issuing an
+NMI to each cpu to obtain a stack trace.
+
+If NMI is not supported we just revert back to the old method.
+A sysctl and boot-time parameter is available to toggle this
+feature.
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/kernel/kernel.h    |  8 ++++++++
- arch/sparc/kernel/signal_32.c | 11 ++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |    5 +++++
+ Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
+ include/linux/nmi.h                 |    1 +
+ kernel/sysctl.c                     |    9 +++++++++
+ kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
+ 5 files changed, 64 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index a922753..b293265 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -101,6 +101,14 @@ asmlinkage int sparc_do_fork(unsigned long clone_flags,
-                              struct pt_regs *regs,
-                              unsigned long stack_size);
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 7116fda..80f2a21 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -3047,6 +3047,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			[KNL] Should the soft-lockup detector generate panics.
+ 			Format: <integer>
  
-+/* signal_32.c */
-+asmlinkage void do_sigreturn(struct pt_regs *regs);
-+asmlinkage void do_rt_sigreturn(struct pt_regs *regs);
-+void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
-+                      unsigned long thread_info_flags);
-+asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-+                               struct sigstack __user *ossptr,
-+                               unsigned long sp);
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
-index 7d5d8e1..9ee72fc 100644
---- a/arch/sparc/kernel/signal_32.c
-+++ b/arch/sparc/kernel/signal_32.c
-@@ -28,6 +28,7 @@
- #include <asm/switch_to.h>
++	softlockup_all_cpu_backtrace+			[KNL] Should the soft-lockup detector generate
++			backtraces on all cpus.
++			Format: <integer>
++
+ 	sonypi.*=	[HW] Sony Programmable I/O Control Device driver
+ 			See Documentation/laptops/sonypi.txt
  
- #include "sigutil.h"
-+#include "kernel.h"
+diff --git a/Documentation/sysctl/kernel.txt b/Documentation/sysctl/kernel.txt
+index e55124e..b6873b2 100644
+--- a/Documentation/sysctl/kernel.txt
++++ b/Documentation/sysctl/kernel.txt
+@@ -75,6 +75,7 @@ show up in /proc/sys/kernel:
+ - shmall
+ - shmmax                      [ sysv ipc ]
+ - shmmni
++- softlockup_all_cpu_backtrace
+ - stop-a                      [ SPARC only ]
+ - sysrq                       => Documentation/sysrq.txt
+ - tainted
+@@ -768,6 +769,22 @@ without users and with a dead originative process will be destroyed.
  
- extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
- 		   void *fpqueue, unsigned long *fpqdepth);
-@@ -341,7 +342,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
- 	err |= __put_user(0, &sf->extra_size);
+ ===============================
  
- 	if (psr & PSR_EF) {
--		__siginfo_fpu_t *fp = tail;
-+		__siginfo_fpu_t __user *fp = tail;
- 		tail += sizeof(*fp);
- 		err |= save_fpu_state(regs, fp);
- 		err |= __put_user(fp, &sf->fpu_save);
-@@ -349,7 +350,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
- 		err |= __put_user(0, &sf->fpu_save);
- 	}
- 	if (wsaved) {
--		__siginfo_rwin_t *rwp = tail;
-+		__siginfo_rwin_t __user *rwp = tail;
- 		tail += sizeof(*rwp);
- 		err |= save_rwin_state(wsaved, rwp);
- 		err |= __put_user(rwp, &sf->rwin_save);
-@@ -517,9 +518,9 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
- 	}
++softlockup_all_cpu_backtrace:
++
++This value controls the soft lockup detector thread's behavior
++when a soft lockup condition is detected as to whether or not
++to gather further debug information. If enabled, each cpu will
++be issued an NMI and instructed to capture stack trace.
++
++This feature is only applicable for architectures which support
++NMI.
++
++0: do nothing. This is the default behavior.
++
++1: on detection capture more debug information.
++
++===============================
++
+ tainted:
+ 
+ Non-zero if the kernel has been tainted.  Numeric values, which
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index a17ab63..447775e 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -57,6 +57,7 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *);
+ u64 hw_nmi_get_sample_period(int watchdog_thresh);
+ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
++extern int sysctl_softlockup_all_cpu_backtrace;
+ struct ctl_table;
+ extern int proc_dowatchdog(struct ctl_table *, int ,
+ 			   void __user *, size_t *, loff_t *);
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index 49e13e1..e3e84f1 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -855,6 +855,15 @@ static struct ctl_table kern_table[] = {
+ 		.extra2		= &one,
+ 	},
+ 	{
++		.procname	= "softlockup_all_cpu_backtrace",
++		.data		= &sysctl_softlockup_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++	{
+ 		.procname       = "nmi_watchdog",
+ 		.data           = &watchdog_user_enabled,
+ 		.maxlen         = sizeof (int),
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 4431610..9e661de 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -31,6 +31,7 @@
+ 
+ int watchdog_user_enabled = 1;
+ int __read_mostly watchdog_thresh = 10;
++int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ static int __read_mostly watchdog_running;
+ static u64 __read_mostly sample_period;
+ 
+@@ -47,6 +48,7 @@ static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
+ static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+ #endif
++static unsigned long soft_lockup_nmi_warn;
+ 
+ /* boot commands */
+ /*
+@@ -95,6 +97,13 @@ static int __init nosoftlockup_setup(char *str)
  }
+ __setup("nosoftlockup", nosoftlockup_setup);
+ /*  */
++static int __init softlockup_all_cpu_backtrace_setup(char *str)
++{
++	sysctl_softlockup_all_cpu_backtrace +		!!simple_strtol(str, NULL, 0);
++	return 1;
++}
++__setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
  
--asmlinkage int
--do_sys_sigstack(struct sigstack __user *ssptr, struct sigstack __user *ossptr,
--		unsigned long sp)
-+asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-+                               struct sigstack __user *ossptr,
-+                               unsigned long sp)
- {
- 	int ret = -EFAULT;
+ /*
+  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
+@@ -267,6 +276,7 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
+ 	struct pt_regs *regs = get_irq_regs();
+ 	int duration;
++	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
  
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
+@@ -313,6 +323,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 		if (__this_cpu_read(soft_watchdog_warn) = true)
+ 			return HRTIMER_RESTART;
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Prevent multiple soft-lockup reports if one cpu is already
++			 * engaged in dumping cpu back traces
++			 */
++			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
++				/* Someone else will report us. Let's give up */
++				__this_cpu_write(soft_watchdog_warn, true);
++				return HRTIMER_RESTART;
++			}
++		}
++
+ 		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
+@@ -323,6 +344,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 		else
+ 			dump_stack();
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Avoid generating two back traces for current
++			 * given that one is already made above
++			 */
++			trigger_allbutself_cpu_backtrace();
++
++			clear_bit(0, &soft_lockup_nmi_warn);
++			/* Barrier to sync with other cpus */
++			smp_mb__after_clear_bit();
++		}
++
+ 		if (softlockup_panic)
+ 			panic("softlockup: hung tasks");
+ 		__this_cpu_write(soft_watchdog_warn, true);
 -- 
-1.8.3.1
+1.7.1
 
