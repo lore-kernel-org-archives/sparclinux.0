@@ -1,117 +1,95 @@
-From: Eric Paris <eparis@redhat.com>
-Date: Tue, 22 Apr 2014 16:32:40 +0000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Date: Tue, 22 Apr 2014 21:27:18 +0000
 Subject: Re: linux-next: build failure after merge of the audit tree
-Message-Id: <1398184360.2596.7.camel@flatline.rdu.redhat.com>
+Message-Id: <20140423072718.56b31d2afcd65c7b210a1d77@canb.auug.org.au>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140422162207.55e3d9f09244de281b9798cc@canb.auug.org.au>
-In-Reply-To: <20140422162207.55e3d9f09244de281b9798cc@canb.auug.org.au>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Stephen Rothwell <sfr@canb.auug.org.au>
+	<1398184360.2596.7.camel@flatline.rdu.redhat.com>
+In-Reply-To: <1398184360.2596.7.camel@flatline.rdu.redhat.com>
+To: Eric Paris <eparis@redhat.com>
 Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Richard Briggs <rgb@redhat.com>, sparclinux@vger.kernel.org
 
-On Tue, 2014-04-22 at 16:22 +1000, Stephen Rothwell wrote:
-> Hi Eric,
-> 
-> After merging the audit tree, today's linux-next build (sparc defconfig)
-> failed like this:
-> 
-> In file included from include/linux/audit.h:29:0,
->                  from mm/mmap.c:33:
-> arch/sparc/include/asm/syscall.h: In function 'syscall_get_arch':
-> arch/sparc/include/asm/syscall.h:131:9: error: 'TIF_32BIT' undeclared (first use in this function)
-> arch/sparc/include/asm/syscall.h:131:9: note: each undeclared identifier is reported only once for each function it appears in
-> 
-> And many more ...
-> 
-> Caused by commit 374c0c054122 ("ARCH: AUDIT: implement syscall_get_arch
-> for all arches").
-> 
-> I applied this patch for today:
-> 
-> From: Stephen Rothwell <sfr@canb.auug.org.au>
-> Date: Tue, 22 Apr 2014 16:18:53 +1000
-> Subject: [PATCH] fix ARCH: AUDIT: implement syscall_get_arch for all arches
-> 
-> Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> ---
->  arch/sparc/include/asm/syscall.h | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
-> index fed3d511b108..a5a8153766b3 100644
+--Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Eric,
+
+On Tue, 22 Apr 2014 12:32:40 -0400 Eric Paris <eparis@redhat.com> wrote:
+>
+> I swear I saw this and I fixed it.  Drat.  Do we want to do it this way?
+> Above in syscall_get_arguments() they use
+>=20
+> #ifdef CONFIG_SPARC64
+>         if (test_tsk_thread_flag(task, TIF_32BIT))
+>                 zero_extend =3D 1;
+> #endif
+>=20
+> Is CONFIG_SPARC64 a better choice than:
+>    defined(__sparc__) && defined(__arch64__)
+
+I have no idea, I just copied the test from thread_info.h.
+
+> Maybe even better would be to copy what you suggested in powerpc:
+
+That would be better, except ...
+
+> diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/sy=
+scall.h
+> index fed3d51..49f71fd 100644
 > --- a/arch/sparc/include/asm/syscall.h
 > +++ b/arch/sparc/include/asm/syscall.h
-> @@ -128,8 +128,12 @@ static inline void syscall_set_arguments(struct task_struct *task,
->  
+> @@ -128,8 +128,7 @@ static inline void syscall_set_arguments(struct task_=
+struct *task,
+> =20
 >  static inline int syscall_get_arch(void)
 >  {
-> +#if defined(__sparc__) && defined(__arch64__)
->  	return test_thread_flag(TIF_32BIT) ? AUDIT_ARCH_SPARC
->  					   : AUDIT_ARCH_SPARC64;
-> +#else
-> +	return AUDIT_ARCH_SPARC;
-> +#endif
+> -	return test_thread_flag(TIF_32BIT) ? AUDIT_ARCH_SPARC
+> -					   : AUDIT_ARCH_SPARC64;
+> +	return is_32bit_task() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
 >  }
->  
+> =20
 >  #endif /* __ASM_SPARC_SYSCALL_H */
-> -- 
+> diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include=
+/asm/thread_info_32.h
+> index 96efa7a..acd2be0 100644
+> --- a/arch/sparc/include/asm/thread_info_32.h
+> +++ b/arch/sparc/include/asm/thread_info_32.h
+> @@ -130,6 +130,8 @@ register struct thread_info *current_thread_info_reg =
+asm("g6");
+>  #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+>  					 _TIF_SIGPENDING)
+> =20
+> +#define is_32bit_task()	(0)
 
-I swear I saw this and I fixed it.  Drat.  Do we want to do it this way?
-Above in syscall_get_arguments() they use
+Shouldn't that be (1) ?
 
-#ifdef CONFIG_SPARC64
-        if (test_tsk_thread_flag(task, TIF_32BIT))
-                zero_extend = 1;
-#endif
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-Is CONFIG_SPARC64 a better choice than:
-   defined(__sparc__) && defined(__arch64__)
+--Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp
+Content-Type: application/pgp-signature
 
-Maybe even better would be to copy what you suggested in powerpc:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
----
+iQIcBAEBCAAGBQJTVt7BAAoJEMDTa8Ir7ZwVU8YP/Aipzyc/qfUxbaEepyLrH76s
+tM7OQUif2CHZI5TMqJb/9W1d0aJajhrZ9ywBWOBkU0j1liJNSijsi3SUH+OvXijo
+KpKx7MIsnviBwFm/SWRSs+C5aWtRY6D2R4F1k19IG1IWQQEoQS+n/rEK/wRRrcEU
+GJCYvHDrAmrDq02ubY0to7M2rwwgWM4StPxez6fUEiepQvcIQWQQ5bytPoFNMDTF
+mEY9XbjdEOPWYs3WKJam1IQVsbH6h1iatooBe4xtn3va6NCx1yvfo1LWhjY2496/
+mOAEBgG5Q7X6+mWIlX9Hq1J97+W4LsjAkQyHAHPPb29rD1CZpEJdDrZWEH2PK2be
+dBLKtEtPuU6VuH1+fDpUwKY+5U8lGkNWOnvZAil1mnIChZYtvc2IQzZ2wBvGuIIf
+fq2e8y3vuD772EBqRrRvXk7uPALcJpuT2B9UiNBeNGaY4FcV/OT8FCjQ1fllq3xt
+hxEBWbTX5Gsa4XMjMTyAmGgk2DFi1zeQ3/GiAGk9Tvh8IDh0JkaA1sjPXyDF0Fy5
+gNBPHF26QckRLaHNx/ADJcYkKnVict2rCWjq4pmHrnaAOXA+tYZb1QZ44f+ERuny
+2zqg2e4JBzxIvAYsduXq9DcH9w66hqykxvDirjorad/96jezNvzkz/x95kIuGWuH
+3N0AWbZiD6MwE8lwx1C4
+=aVmu
+-----END PGP SIGNATURE-----
 
-diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
-index fed3d51..49f71fd 100644
---- a/arch/sparc/include/asm/syscall.h
-+++ b/arch/sparc/include/asm/syscall.h
-@@ -128,8 +128,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 
- static inline int syscall_get_arch(void)
- {
--	return test_thread_flag(TIF_32BIT) ? AUDIT_ARCH_SPARC
--					   : AUDIT_ARCH_SPARC64;
-+	return is_32bit_task() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
- }
- 
- #endif /* __ASM_SPARC_SYSCALL_H */
-diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
-index 96efa7a..acd2be0 100644
---- a/arch/sparc/include/asm/thread_info_32.h
-+++ b/arch/sparc/include/asm/thread_info_32.h
-@@ -130,6 +130,8 @@ register struct thread_info *current_thread_info_reg asm("g6");
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
- 					 _TIF_SIGPENDING)
- 
-+#define is_32bit_task()	(0)
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_THREAD_INFO_H */
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index a5f01ac..5a4f660 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -219,6 +219,8 @@ register struct thread_info *current_thread_info_reg asm("g6");
- 				 _TIF_NEED_RESCHED)
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | _TIF_SIGPENDING)
- 
-+#define is_32bit_task()	(test_thread_flag(TIF_32BIT))
-+
- /*
-  * Thread-synchronous status.
-  *
-
-
+--Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp--
