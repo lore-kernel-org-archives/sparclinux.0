@@ -1,81 +1,64 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:33 +0000
-Subject: [PATCH 18/29] sparc32: fix sparse warnings in leon_pci_grpci1.c
-Message-Id: <1398109184-3283-18-git-send-email-sam@ravnborg.org>
+From: Kamal Mostafa <kamal@canonical.com>
+Date: Tue, 22 Apr 2014 20:12:45 +0000
+Subject: [PATCH 3.8 027/133] sparc64: don't treat 64-bit syscall return codes as 32-bit
+Message-Id: <1398197671-12786-28-git-send-email-kamal@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398197671-12786-1-git-send-email-kamal@canonical.com>
+In-Reply-To: <1398197671-12786-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Kamal Mostafa <kamal@canonical.com>
 
-Fix following warnings:
-leon_pci_grpci1.c:104:5: warning: symbol 'grpci1_map_irq' was not declared. Should it be static?
-leon_pci_grpci1.c:420:6: warning: symbol 'grpci1_hw_init' was not declared. Should it be static?
-+ a lot of these:
-leon_pci_grpci1.c:693:18: warning: incorrect type in argument 1 (different address spaces)
+3.8.13.22 -stable review patch.  If anyone has any objections, please let me know.
 
-Added missing static to definitions.
-Added __iomem annotations
+------------------
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
+
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/sparc/kernel/leon_pci_grpci1.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/syscalls.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
-index 6df26e3..97cba4d 100644
---- a/arch/sparc/kernel/leon_pci_grpci1.c
-+++ b/arch/sparc/kernel/leon_pci_grpci1.c
-@@ -80,7 +80,7 @@ struct grpci1_regs {
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index dc7b524..d654e9f 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -195,7 +195,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
  
- struct grpci1_priv {
- 	struct leon_pci_info	info; /* must be on top of this structure */
--	struct grpci1_regs	*regs;		/* GRPCI register map */
-+	struct grpci1_regs __iomem *regs;		/* GRPCI register map */
- 	struct device		*dev;
- 	int			pci_err_mask;	/* STATUS register error mask */
- 	int			irq;		/* LEON irqctrl GRPCI IRQ */
-@@ -101,7 +101,7 @@ static struct grpci1_priv *grpci1priv;
- static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
- 				unsigned int devfn, int where, u32 val);
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -223,7 +224,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
  
--int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
-+static int grpci1_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
- {
- 	struct grpci1_priv *priv = dev->bus->sysdata;
- 	int irq_group;
-@@ -417,10 +417,10 @@ out:
-  *  BAR1: peripheral DMA to host's memory (size at least 256MByte)
-  *  BAR2..BAR5: not implemented in hardware
-  */
--void grpci1_hw_init(struct grpci1_priv *priv)
-+static void grpci1_hw_init(struct grpci1_priv *priv)
- {
- 	u32 ahbadr, bar_sz, data, pciadr;
--	struct grpci1_regs *regs = priv->regs;
-+	struct grpci1_regs __iomem *regs = priv->regs;
- 
- 	/* set 1:1 mapping between AHB -> PCI memory space */
- 	REGSTORE(regs->cfg_stat, priv->pci_area & 0xf0000000);
-@@ -509,7 +509,7 @@ static irqreturn_t grpci1_err_interrupt(int irq, void *arg)
- 
- static int grpci1_of_probe(struct platform_device *ofdev)
- {
--	struct grpci1_regs *regs;
-+	struct grpci1_regs __iomem *regs;
- 	struct grpci1_priv *priv;
- 	int err, len;
- 	const int *tmp;
-@@ -690,7 +690,7 @@ err3:
- err2:
- 	release_resource(&priv->info.mem_space);
- err1:
--	iounmap((void *)priv->pci_io_va);
-+	iounmap((void __iomem *)priv->pci_io_va);
- 	grpci1priv = NULL;
- 	return err;
- }
 -- 
-1.8.3.1
+1.9.1
 
