@@ -1,77 +1,95 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 17:12:24 +0000
-Subject: [PATCH 12/24] sparc32: fix sparse warnings in tadpole.c
-Message-Id: <1398100356-19794-12-git-send-email-sam@ravnborg.org>
+From: Don Zickus <dzickus@redhat.com>
+Date: Tue, 22 Apr 2014 15:17:26 +0000
+Subject: [PATCH 2/4 v3] x86, nmi: Add more flexible NMI back trace support
+Message-Id: <1398179848-197479-3-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-Fix following warnings:
-tadpole.c:21:6: warning: symbol 'cpu_pwr_save' was not declared. Should it be static?
-tadpole.c:101:13: warning: symbol 'clock_stop_probe' was not declared. Should it be static?
+From: Aaron Tomlin <atomlin@redhat.com>
 
-This actually revealed that cpu_pwr_save is only assinged.
-It was left static with a TODO comment for now - this should be cleaned up later.
+This patch introduces the x86 specific implementation
+changes to the arch_trigger_all_cpu_backtrace() routine.
+Now users have the ability to choose whether or not to
+issue an NMI back trace which includes current.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+[Don't print message in single processor case,
+ wrap with get/put_cpu based on Oleg's suggestion -dcz]
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/kernel/devices.c | 2 +-
- arch/sparc/kernel/kernel.h  | 3 +++
- arch/sparc/kernel/tadpole.c | 6 +++++-
- 3 files changed, 9 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/irq.h    |    2 +-
+ arch/x86/kernel/apic/hw_nmi.c |   17 +++++++++++++----
+ 2 files changed, 14 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
-index b9e9d8c..086faf6 100644
---- a/arch/sparc/kernel/devices.c
-+++ b/arch/sparc/kernel/devices.c
-@@ -21,7 +21,7 @@
- #include <asm/cpu_type.h>
- #include <asm/setup.h>
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index cb6cfcd..a80cbb8 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -43,7 +43,7 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
+ extern void init_ISA_irqs(void);
  
--extern void clock_stop_probe(void); /* tadpole.c */
-+#include "kernel.h"
+ #ifdef CONFIG_X86_LOCAL_APIC
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+ #endif
  
- static char *cpu_mid_prop(void)
+diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
+index a698d71..1400d72 100644
+--- a/arch/x86/kernel/apic/hw_nmi.c
++++ b/arch/x86/kernel/apic/hw_nmi.c
+@@ -33,31 +33,40 @@ static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
+ /* "in progress" flag of arch_trigger_all_cpu_backtrace */
+ static unsigned long backtrace_flag;
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
  {
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 7f05d3f..343fd8e 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -113,6 +113,9 @@ asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
- /* windows.c */
- void try_to_clear_window_buffer(struct pt_regs *regs, int who);
+ 	int i;
++	int cpu = get_cpu();
  
-+/* tadpole.c */
-+extern void __init clock_stop_probe(void);
-+
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/tadpole.c b/arch/sparc/kernel/tadpole.c
-index 9aba8bd..4bbfe4e 100644
---- a/arch/sparc/kernel/tadpole.c
-+++ b/arch/sparc/kernel/tadpole.c
-@@ -12,13 +12,17 @@
- #include <asm/oplib.h>
- #include <asm/io.h>
+-	if (test_and_set_bit(0, &backtrace_flag))
++	if (test_and_set_bit(0, &backtrace_flag)) {
+ 		/*
+ 		 * If there is already a trigger_all_cpu_backtrace() in progress
+ 		 * (backtrace_flag = 1), don't output double cpu dump infos.
+ 		 */
++		put_cpu();
+ 		return;
++	}
  
-+#include "kernel.h"
-+
- #define MACIO_SCSI_CSR_ADDR	0x78400000
- #define MACIO_EN_DMA		0x00000200
- #define CLOCK_INIT_DONE		1
+ 	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
++	if (!include_self)
++		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
  
- static int clk_state;
- static volatile unsigned char *clk_ctrl;
--void (*cpu_pwr_save)(void);
-+
-+/* TODO - cpu_pwr_save is only assigned - cleanup potential. */
-+static void (*cpu_pwr_save)(void);
+-	printk(KERN_INFO "sending NMI to all CPUs:\n");
+-	apic->send_IPI_all(NMI_VECTOR);
++	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
++		pr_info("sending NMI to %s CPUs:\n", (include_self ? "all" : "other"));
++		apic->send_IPI_mask(to_cpumask(backtrace_mask), NMI_VECTOR);
++	}
  
- static inline unsigned int ldphys(unsigned int addr)
- {
+ 	/* Wait for up to 10 seconds for all CPUs to do the backtrace */
+ 	for (i = 0; i < 10 * 1000; i++) {
+ 		if (cpumask_empty(to_cpumask(backtrace_mask)))
+ 			break;
+ 		mdelay(1);
++		touch_softlockup_watchdog();
+ 	}
+ 
+ 	clear_bit(0, &backtrace_flag);
+ 	smp_mb__after_clear_bit();
++	put_cpu();
+ }
+ 
+ static int __kprobes
 -- 
-1.8.3.1
+1.7.1
 
