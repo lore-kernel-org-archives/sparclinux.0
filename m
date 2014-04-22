@@ -1,72 +1,59 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:43 +0000
-Subject: [PATCH 28/29] sparc32: fix sparse warnings in sun4d_smp.c
-Message-Id: <1398109184-3283-28-git-send-email-sam@ravnborg.org>
+From: Kamal Mostafa <kamal@canonical.com>
+Date: Tue, 22 Apr 2014 20:12:43 +0000
+Subject: [PATCH 3.8 025/133] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <1398197671-12786-26-git-send-email-kamal@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398197671-12786-1-git-send-email-kamal@canonical.com>
+In-Reply-To: <1398197671-12786-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Kamal Mostafa <kamal@canonical.com>
 
-Fix following warnings:
-sun4d_smp.c:113:13: warning: symbol 'smp4d_boot_cpus' was not declared. Should it be static?
-sun4d_smp.c:121:5: warning: symbol 'smp4d_boot_one_cpu' was not declared. Should it be static?
-sun4d_smp.c:162:13: warning: symbol 'smp4d_smp_done' was not declared. Should it be static?
-sun4d_smp.c:353:6: warning: symbol 'smp4d_cross_call_irq' was not declared. Should it be static?
-sun4d_smp.c:363:6: warning: symbol 'smp4d_percpu_timer_interrupt' was not declared. Should it be static?
+3.8.13.22 -stable review patch.  If anyone has any objections, please let me know.
 
-Add proper declarations
+------------------
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
+
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
+
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/sparc/kernel/kernel.h | 5 +++++
- arch/sparc/kernel/smp_32.c | 3 ---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 75d4171..71d56ae 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -72,6 +72,11 @@ extern void sun4d_free_irq(unsigned int irq, void *dev_id);
- /* sun4d_smp.c */
- void sun4d_cpu_pre_starting(void *arg);
- void sun4d_cpu_pre_online(void *arg);
-+void __init smp4d_boot_cpus(void);
-+int smp4d_boot_one_cpu(int i, struct task_struct *idle);
-+void __init smp4d_smp_done(void);
-+void smp4d_cross_call_irq(void);
-+void smp4d_percpu_timer_interrupt(struct pt_regs *regs);
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index e562d3c..ad7e178 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
+ extern __must_check long strlen_user(const char __user *str);
+ extern __must_check long strnlen_user(const char __user *str, long n);
  
- /* leon_smp.c */
- void leon_cpu_pre_starting(void *arg);
-diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-index ab86c5e..9d3297d 100644
---- a/arch/sparc/kernel/smp_32.c
-+++ b/arch/sparc/kernel/smp_32.c
-@@ -75,7 +75,6 @@ void smp_store_cpu_info(int id)
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
  
- void __init smp_cpus_done(unsigned int max_cpus)
- {
--	extern void smp4d_smp_done(void);
- 	unsigned long bogosum = 0;
- 	int cpu, num = 0;
- 
-@@ -182,7 +181,6 @@ int setup_profiling_timer(unsigned int multiplier)
- 
- void __init smp_prepare_cpus(unsigned int max_cpus)
- {
--	extern void __init smp4d_boot_cpus(void);
- 	int i, cpuid, extra;
- 
- 	printk("Entering SMP Mode...\n");
-@@ -259,7 +257,6 @@ void __init smp_prepare_boot_cpu(void)
- 
- int __cpu_up(unsigned int cpu, struct task_struct *tidle)
- {
--	extern int smp4d_boot_one_cpu(int, struct task_struct *);
- 	int ret=0;
- 
- 	switch(sparc_cpu_model) {
+ struct pt_regs;
+ extern unsigned long compute_effective_address(struct pt_regs *,
 -- 
-1.8.3.1
+1.9.1
 
