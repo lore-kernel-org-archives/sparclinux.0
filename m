@@ -1,50 +1,67 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:18 +0000
-Subject: [PATCH 03/29] sparc32: fix sparse warning in init_32.c
-Message-Id: <1398109184-3283-3-git-send-email-sam@ravnborg.org>
+From: Don Zickus <dzickus@redhat.com>
+Date: Tue, 22 Apr 2014 15:17:25 +0000
+Subject: [PATCH 1/4 v3] nmi: Provide the option to issue an NMI back trace to every cpu but current
+Message-Id: <1398179848-197479-2-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-Fix following warning:
-init_32.c:112:22: warning: symbol 'bootmem_init' was not declared. Should it be static?
+From: Aaron Tomlin <atomlin@redhat.com>
 
-Fix by adding a proper prototype in pgtable_32.h and drop
-the local prototype in srmmu.c
+Some times it is preferred not to use the
+trigger_all_cpu_backtrace() routine when one wants
+to avoid capturing a back trace for current.
+For instance if one was previously captured
+recently.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+This patch provides a new routine namely
+trigger_allbutself_cpu_backtrace() which offers
+the flexibility to issue an NMI to every cpu but
+current and capture a back trace accordingly.
+
+[Added stub in #else clause - dcz]
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/include/asm/pgtable_32.h | 1 +
- arch/sparc/mm/srmmu.c               | 2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/linux/nmi.h |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 502f632..16629e7 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -27,6 +27,7 @@ struct page;
- 
- extern void load_mmu(void);
- extern unsigned long calc_highpages(void);
-+unsigned long __init bootmem_init(unsigned long *pages_avail);
- 
- #define pte_ERROR(e)   __builtin_trap()
- #define pmd_ERROR(e)   __builtin_trap()
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index ed0b0b6a..54e834c 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -865,8 +865,6 @@ static void __init map_kernel(void)
- 
- void (*poke_srmmu)(void) = NULL;
- 
--extern unsigned long bootmem_init(unsigned long *pages_avail);
--
- void __init srmmu_paging_init(void)
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 6a45fb5..a17ab63 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(void)
+ #ifdef arch_trigger_all_cpu_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
  {
- 	int i;
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ 
+ 	return true;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	arch_trigger_all_cpu_backtrace(false);
++	return true;
++}
+ #else
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+ 	return false;
+ }
++static inline bool trigger_allbutself_cpu_backtrace(void)
++{
++	return false;
++}
+ #endif
+ 
+ #ifdef CONFIG_LOCKUP_DETECTOR
 -- 
-1.8.3.1
+1.7.1
 
