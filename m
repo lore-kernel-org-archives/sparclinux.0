@@ -1,35 +1,28 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 15:17:24 +0000
-Subject: [PATCH 0/4 V3] Print traces on softlockup
-Message-Id: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 22 Apr 2014 18:28:28 +0000
+Subject: Re: [PATCH 0/4 V3] Print traces on softlockup
+Message-Id: <20140422112828.ea511cefa17affb99d9aa97f@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Don Zickus <dzickus@redhat.com>
+To: Don Zickus <dzickus@redhat.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com
 
-Added more patches to handle the 'uniprocessor' panic case by sending NMIs
-to every cpu but self.  Only affects x86, sparc.
+On Tue, 22 Apr 2014 11:17:24 -0400 Don Zickus <dzickus@redhat.com> wrote:
 
-V3: wrap x86 code with get/put_cpu based on Oleg's suggestions
-V2: expand from one patch to 4
+> Added more patches to handle the 'uniprocessor' panic case by sending NMIs
+> to every cpu but self.  Only affects x86, sparc.
+> 
 
-Aaron Tomlin (4):
-  nmi: Provide the option to issue an NMI back trace to every cpu but
-    current
-  x86, nmi: Add more flexible NMI back trace support
-  sparc64, nmi: Add more flexible NMI back trace support
-  watchdog: Printing traces for all cpus on lockup detection
+Looks OK to me.  A couple of things:
 
- Documentation/kernel-parameters.txt |    5 +++++
- Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
- arch/sparc/include/asm/irq_64.h     |    2 +-
- arch/sparc/kernel/process_64.c      |   14 +++++++++-----
- arch/x86/include/asm/irq.h          |    2 +-
- arch/x86/kernel/apic/hw_nmi.c       |   17 +++++++++++++----
- include/linux/nmi.h                 |   12 +++++++++++-
- kernel/sysctl.c                     |    9 +++++++++
- kernel/watchdog.c                   |   32 ++++++++++++++++++++++++++++++++
- 9 files changed, 98 insertions(+), 12 deletions(-)
+- Patches 1-3 should be combined so we don't create bisection holes
+  due to x86 and sparc build errors.
+
+- Patch 4 adds stuff which is unusable on uniprocessor, especially
+  the presence of /proc/sys/kernel/softlockup_all_cpu_backtrace.  We
+  already have #ifdef CONFIG_SMP in kern_table, so do more of that?
 
