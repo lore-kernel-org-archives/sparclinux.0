@@ -1,66 +1,93 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:41 +0000
-Subject: [PATCH 26/29] sparc32: fix sparse warnings in leon_pmc.c
-Message-Id: <1398109184-3283-26-git-send-email-sam@ravnborg.org>
+From: Don Zickus <dzickus@redhat.com>
+Date: Tue, 22 Apr 2014 15:17:27 +0000
+Subject: [PATCH 3/4 v3] sparc64, nmi: Add more flexible NMI back trace support
+Message-Id: <1398179848-197479-4-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
-Fix following warnings:
-leon_pmc.c:15:14: warning: symbol 'pmc_leon_fixup_ids' was not declared. Should it be static?
-leon_pmc.c:22:5: warning: symbol 'pmc_leon_need_fixup' was not declared. Should it be static?
-leon_pmc.c:41:6: warning: symbol 'pmc_leon_idle_fixup' was not declared. Should it be static?
-leon_pmc.c:65:6: warning: symbol 'pmc_leon_idle' was not declared. Should it be static?
+From: Aaron Tomlin <atomlin@redhat.com>
 
-Add static to definitions.
+This patch introduces the sparc specific implementation
+changes to the arch_trigger_all_cpu_backtrace() routine.
+Now users have the ability to choose whether or not to
+issue an NMI back trace which includes current.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
+Update sysrq_handle_globreg() to use the new interface
+
+[squash two sparc patches, update changelog - dcz]
+
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/kernel/leon_pmc.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/irq_64.h |    2 +-
+ arch/sparc/kernel/process_64.c  |   14 +++++++++-----
+ 2 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
-index b0b3967..ddcf950 100644
---- a/arch/sparc/kernel/leon_pmc.c
-+++ b/arch/sparc/kernel/leon_pmc.c
-@@ -12,14 +12,14 @@
- #include <asm/processor.h>
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index abf6afe..4f072b9 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -89,7 +89,7 @@ static inline unsigned long get_softint(void)
+ 	return retval;
+ }
  
- /* List of Systems that need fixup instructions around power-down instruction */
--unsigned int pmc_leon_fixup_ids[] = {
-+static unsigned int pmc_leon_fixup_ids[] = {
- 	AEROFLEX_UT699,
- 	GAISLER_GR712RC,
- 	LEON4_NEXTREME1,
- 	0
- };
+-void arch_trigger_all_cpu_backtrace(void);
++void arch_trigger_all_cpu_backtrace(bool);
+ #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
  
--int pmc_leon_need_fixup(void)
-+static int pmc_leon_need_fixup(void)
+ extern void *hardirq_stack[NR_CPUS];
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 32a280e..3d61b98 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -237,7 +237,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
+ 	}
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(void)
++void arch_trigger_all_cpu_backtrace(bool include_self)
  {
- 	unsigned int systemid = amba_system_id >> 16;
- 	unsigned int *id;
-@@ -38,7 +38,7 @@ int pmc_leon_need_fixup(void)
-  * CPU idle callback function for systems that need some extra handling
-  * See .../arch/sparc/kernel/process.c
-  */
--void pmc_leon_idle_fixup(void)
-+static void pmc_leon_idle_fixup(void)
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -249,15 +249,19 @@ void arch_trigger_all_cpu_backtrace(void)
+ 
+ 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
+ 
+-	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+-
+ 	this_cpu = raw_smp_processor_id();
+ 
+-	__global_reg_self(tp, regs, this_cpu);
++	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
++
++	if (include_self)
++		__global_reg_self(tp, regs, this_cpu);
+ 
+ 	smp_fetch_global_regs();
+ 
+ 	for_each_online_cpu(cpu) {
++		if (!include_self && cpu = this_cpu)
++			continue;
++
+ 		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
+ 
+ 		__global_reg_poll(gp);
+@@ -290,7 +294,7 @@ void arch_trigger_all_cpu_backtrace(void)
+ 
+ static void sysrq_handle_globreg(int key)
  {
- 	/* Prepare an address to a non-cachable region. APB is always
- 	 * none-cachable. One instruction is executed after the Sleep
-@@ -62,7 +62,7 @@ void pmc_leon_idle_fixup(void)
-  * CPU idle callback function
-  * See .../arch/sparc/kernel/process.c
-  */
--void pmc_leon_idle(void)
-+static void pmc_leon_idle(void)
- {
- 	/* Interrupts need to be enabled to not hang the CPU */
- 	local_irq_enable();
+-	arch_trigger_all_cpu_backtrace();
++	arch_trigger_all_cpu_backtrace(true);
+ }
+ 
+ static struct sysrq_key_op sparc_globalreg_op = {
 -- 
-1.8.3.1
+1.7.1
 
