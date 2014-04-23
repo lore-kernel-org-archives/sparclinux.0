@@ -1,7 +1,7 @@
 From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 19:09:35 +0000
+Date: Wed, 23 Apr 2014 19:22:28 +0000
 Subject: Re: [PATCH 0/4 V3] Print traces on softlockup
-Message-Id: <20140422190935.GL8488@redhat.com>
+Message-Id: <20140423192228.GY8488@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
  <20140422112828.ea511cefa17affb99d9aa97f@linux-foundation.org>
@@ -23,17 +23,14 @@ On Tue, Apr 22, 2014 at 11:28:28AM -0700, Andrew Morton wrote:
 > 
 > - Patches 1-3 should be combined so we don't create bisection holes
 >   due to x86 and sparc build errors.
-
-ok.
-
 > 
 > - Patch 4 adds stuff which is unusable on uniprocessor, especially
 >   the presence of /proc/sys/kernel/softlockup_all_cpu_backtrace.  We
 >   already have #ifdef CONFIG_SMP in kern_table, so do more of that?
 
-I can resubmit that patch with CONFIG_SMP around each piece of that patch.
-
-Thanks for the review.
+Are you suggesting just add CONFIG_SMP to kern_table entry or all the
+pieces in kernel/watchdog.c too?  I wasn't sure how messy I should make
+this patch.
 
 Cheers,
 Don
