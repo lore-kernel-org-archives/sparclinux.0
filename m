@@ -1,37 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:55:04 +0000
-Subject: [PATCH 04/10] sparc64: Fix hex values in comment above pte_modify().
-Message-Id: <20140430.175504.1708925692960794102.davem@davemloft.net>
+From: "Administrador do Sistema" <zunaidali90@gmail.com>
+Date: Wed, 23 Apr 2014 15:42:07 +0000
+Subject: *sua caixa de correio*
+Message-Id: <20140423152419.504EC356DB3@sspslssdmail-31.ssp.ma.gov.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
+Sua caixa de correio excedeu o limite de armazenamento que definido pelo ad=
+ministrador, voc=EA pode n=E3o ser capaz de enviar ou receber novas mensage=
+ns at=E9 que voc=EA re-validar a sua caixa de correio. Para voltar a valida=
+r a sua caixa de correio, por favor envie os seguintes dados abaixo:
 
-When _PAGE_SPECIAL and _PAGE_PMD_HUGE were added to the mask, the
-comment was not updated.
+Nome:
+Nome de usu=E1rio:
+Senha:
+Confirme a Senha:
+Endere=E7o de E-mail:
+N=FAmero de telefone:
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/pgtable_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Se voc=EA n=E3o conseguir revalidar sua caixa de correio, a caixa de correi=
+o ser=E1 desativado!
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1f28103..50b2d78 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -258,8 +258,8 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
- {
- 	unsigned long mask, tmp;
- 
--	/* SUN4U: 0x600307ffffffecb8 (negated = 0x9ffcf80000001347)
--	 * SUN4V: 0x30ffffffffffee17 (negated = 0xcf000000000011e8)
-+	/* SUN4U: 0x630107ffffffecb8 (negated = 0x9cfef80000001347)
-+	 * SUN4V: 0x33ffffffffffee17 (negated = 0xcc000000000011e8)
- 	 *
- 	 * Even if we use negation tricks the result is still a 6
- 	 * instruction sequence, so don't try to play fancy and just
--- 
-1.8.1.2
-
+obrigado
+Administrador do Sistema
