@@ -1,110 +1,217 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:55:56 +0000
-Subject: [PATCH 09/10] sparc64: Add basic validations to {pud,pmd}_bad().
-Message-Id: <20140430.175556.65359624693463383.davem@davemloft.net>
+From: Don Zickus <dzickus@redhat.com>
+Date: Wed, 23 Apr 2014 20:40:05 +0000
+Subject: [PATCH 2/2 v4] watchdog: Printing traces for all cpus on lockup detection
+Message-Id: <1398285605-147082-3-git-send-email-dzickus@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398285605-147082-1-git-send-email-dzickus@redhat.com>
+In-Reply-To: <1398285605-147082-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
 
+From: Aaron Tomlin <atomlin@redhat.com>
 
-Instead of returning false we should at least check the most basic
-things, otherwise page table corruptions will be very difficult to
-debug.
+A 'softlockup' is defined as a bug that causes the kernel to
+loop in kernel mode for more than a predefined period to
+time, without giving other tasks a chance to run.
 
-PMD and PTE tables are of size PAGE_SIZE, so none of the sub-PAGE_SIZE
-bits should be set.
+Currently, upon detection of this condition by the per-cpu
+watchdog task, debug information (including a stack trace)
+is sent to the system log.
 
-We also complement this with a check that the physical address the
-pud/pmd points to is valid memory.
+On some occasions, we have observed that the "victim" rather
+than the actual "culprit" (i.e. the owner/holder of the
+contended resource) is reported to the user.
+Often this information has proven to be insufficient to
+assist debugging efforts.
 
-PowerPC was used as a guide while implementating this.
+To avoid loss of useful debug information, for architectures
+which support NMI, this patch makes it possible to improve
+soft lockup reporting. This is accomplished by issuing an
+NMI to each cpu to obtain a stack trace.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+If NMI is not supported we just revert back to the old method.
+A sysctl and boot-time parameter is available to toggle this
+feature.
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+[added CONFIG_SMP in certain areas]
+Signed-off-by: Don Zickus <dzickus@redhat.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 46 +++++++++++++++++++++++++------------
- 1 file changed, 31 insertions(+), 15 deletions(-)
+ Documentation/kernel-parameters.txt |    5 +++++
+ Documentation/sysctl/kernel.txt     |   17 +++++++++++++++++
+ include/linux/nmi.h                 |    3 +++
+ kernel/sysctl.c                     |   11 +++++++++++
+ kernel/watchdog.c                   |   34 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 70 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index ff97960..fd4dbdd 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -71,6 +71,23 @@
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 7116fda..80f2a21 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -3047,6 +3047,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			[KNL] Should the soft-lockup detector generate panics.
+ 			Format: <integer>
  
- #include <linux/sched.h>
- 
-+extern unsigned long sparc64_valid_addr_bitmap[];
++	softlockup_all_cpu_backtrace+			[KNL] Should the soft-lockup detector generate
++			backtraces on all cpus.
++			Format: <integer>
 +
-+/* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
-+static inline bool __kern_addr_valid(unsigned long paddr)
+ 	sonypi.*=	[HW] Sony Programmable I/O Control Device driver
+ 			See Documentation/laptops/sonypi.txt
+ 
+diff --git a/Documentation/sysctl/kernel.txt b/Documentation/sysctl/kernel.txt
+index e55124e..b6873b2 100644
+--- a/Documentation/sysctl/kernel.txt
++++ b/Documentation/sysctl/kernel.txt
+@@ -75,6 +75,7 @@ show up in /proc/sys/kernel:
+ - shmall
+ - shmmax                      [ sysv ipc ]
+ - shmmni
++- softlockup_all_cpu_backtrace
+ - stop-a                      [ SPARC only ]
+ - sysrq                       => Documentation/sysrq.txt
+ - tainted
+@@ -768,6 +769,22 @@ without users and with a dead originative process will be destroyed.
+ 
+ ===============================
+ 
++softlockup_all_cpu_backtrace:
++
++This value controls the soft lockup detector thread's behavior
++when a soft lockup condition is detected as to whether or not
++to gather further debug information. If enabled, each cpu will
++be issued an NMI and instructed to capture stack trace.
++
++This feature is only applicable for architectures which support
++NMI.
++
++0: do nothing. This is the default behavior.
++
++1: on detection capture more debug information.
++
++===============================
++
+ tainted:
+ 
+ Non-zero if the kernel has been tainted.  Numeric values, which
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index a17ab63..961b177 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -57,6 +57,9 @@ int hw_nmi_is_cpu_stuck(struct pt_regs *);
+ u64 hw_nmi_get_sample_period(int watchdog_thresh);
+ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
++#ifdef CONFIG_SMP
++extern int sysctl_softlockup_all_cpu_backtrace;
++#endif
+ struct ctl_table;
+ extern int proc_dowatchdog(struct ctl_table *, int ,
+ 			   void __user *, size_t *, loff_t *);
+diff --git a/kernel/sysctl.c b/kernel/sysctl.c
+index 49e13e1..caae52b 100644
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -854,6 +854,17 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++#ifdef CONFIG_SMP
++	{
++		.procname	= "softlockup_all_cpu_backtrace",
++		.data		= &sysctl_softlockup_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
++#endif /* CONFIG_SMP */
+ 	{
+ 		.procname       = "nmi_watchdog",
+ 		.data           = &watchdog_user_enabled,
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 4431610..d9ad681 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -31,6 +31,7 @@
+ 
+ int watchdog_user_enabled = 1;
+ int __read_mostly watchdog_thresh = 10;
++int __read_mostly sysctl_softlockup_all_cpu_backtrace;
+ static int __read_mostly watchdog_running;
+ static u64 __read_mostly sample_period;
+ 
+@@ -47,6 +48,7 @@ static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
+ static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
+ static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+ #endif
++static unsigned long soft_lockup_nmi_warn;
+ 
+ /* boot commands */
+ /*
+@@ -95,6 +97,15 @@ static int __init nosoftlockup_setup(char *str)
+ }
+ __setup("nosoftlockup", nosoftlockup_setup);
+ /*  */
++#ifdef CONFIG_SMP
++static int __init softlockup_all_cpu_backtrace_setup(char *str)
 +{
-+	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
-+		return false;
-+	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
++	sysctl_softlockup_all_cpu_backtrace +		!!simple_strtol(str, NULL, 0);
++	return 1;
 +}
-+
-+static inline bool kern_addr_valid(unsigned long addr)
-+{
-+	unsigned long paddr = __pa(addr);
-+
-+	return __kern_addr_valid(paddr);
-+}
-+
- /* Entries per page directory level. */
- #define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-3))
- #define PTRS_PER_PMD	(1UL << PMD_BITS)
-@@ -743,6 +760,20 @@ static inline int pmd_present(pmd_t pmd)
- 
- #define pmd_none(pmd)			(!pmd_val(pmd))
- 
-+/* pmd_bad() is only called on non-trans-huge PMDs.  Our encoding is
-+ * very simple, it's just the physical address.  PTE tables are of
-+ * size PAGE_SIZE so make sure the sub-PAGE_SIZE bits are clear and
-+ * the top bits outside of the range of any physical address size we
-+ * support are clear as well.  We also validate the physical itself.
-+ */
-+#define pmd_bad(pmd)			((pmd_val(pmd) & ~PAGE_MASK) || \
-+					 !__kern_addr_valid(pmd_val(pmd)))
-+
-+#define pud_none(pud)			(!pud_val(pud))
-+
-+#define pud_bad(pud)			((pud_val(pud) & ~PAGE_MASK) || \
-+					 !__kern_addr_valid(pud_val(pud)))
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 		       pmd_t *pmdp, pmd_t pmd);
-@@ -776,10 +807,7 @@ static inline unsigned long __pmd_page(pmd_t pmd)
- #define pud_page_vaddr(pud)		\
- 	((unsigned long) __va(pud_val(pud)))
- #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
--#define pmd_bad(pmd)			(0)
- #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
--#define pud_none(pud)			(!pud_val(pud))
--#define pud_bad(pud)			(0)
- #define pud_present(pud)		(pud_val(pud) != 0U)
- #define pud_clear(pudp)			(pud_val(*(pudp)) = 0UL)
- 
-@@ -909,18 +937,6 @@ extern unsigned long pte_file(pte_t);
- extern pte_t pgoff_to_pte(unsigned long);
- #define PTE_FILE_MAX_BITS	(64UL - PAGE_SHIFT - 1UL)
- 
--extern unsigned long sparc64_valid_addr_bitmap[];
--
--/* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
--static inline bool kern_addr_valid(unsigned long addr)
--{
--	unsigned long paddr = __pa(addr);
--
--	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
--		return false;
--	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
--}
--
- extern int page_in_phys_avail(unsigned long paddr);
++__setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
++#endif
  
  /*
+  * Hard-lockup warnings should be triggered after just a few seconds. Soft-
+@@ -267,6 +278,7 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 	unsigned long touch_ts = __this_cpu_read(watchdog_touch_ts);
+ 	struct pt_regs *regs = get_irq_regs();
+ 	int duration;
++	int softlockup_all_cpu_backtrace = sysctl_softlockup_all_cpu_backtrace;
+ 
+ 	/* kick the hardlockup detector */
+ 	watchdog_interrupt_count();
+@@ -313,6 +325,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 		if (__this_cpu_read(soft_watchdog_warn) = true)
+ 			return HRTIMER_RESTART;
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Prevent multiple soft-lockup reports if one cpu is already
++			 * engaged in dumping cpu back traces
++			 */
++			if (test_and_set_bit(0, &soft_lockup_nmi_warn)) {
++				/* Someone else will report us. Let's give up */
++				__this_cpu_write(soft_watchdog_warn, true);
++				return HRTIMER_RESTART;
++			}
++		}
++
+ 		printk(KERN_EMERG "BUG: soft lockup - CPU#%d stuck for %us! [%s:%d]\n",
+ 			smp_processor_id(), duration,
+ 			current->comm, task_pid_nr(current));
+@@ -323,6 +346,17 @@ static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
+ 		else
+ 			dump_stack();
+ 
++		if (softlockup_all_cpu_backtrace) {
++			/* Avoid generating two back traces for current
++			 * given that one is already made above
++			 */
++			trigger_allbutself_cpu_backtrace();
++
++			clear_bit(0, &soft_lockup_nmi_warn);
++			/* Barrier to sync with other cpus */
++			smp_mb__after_clear_bit();
++		}
++
+ 		if (softlockup_panic)
+ 			panic("softlockup: hung tasks");
+ 		__this_cpu_write(soft_watchdog_warn, true);
 -- 
-1.8.1.2
+1.7.1
 
