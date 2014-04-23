@@ -1,25 +1,20 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Apr 2014 21:50:03 +0000
-Subject: Re: [PATCH] sparc: implement is_32bit_task
-Message-Id: <20140422.175003.2300632264161817071.davem@davemloft.net>
+From: Chan Kim <ckim@etri.re.kr>
+Date: Wed, 23 Apr 2014 09:42:25 +0000
+Subject: what is srmmu_inherit_prom_mappings for?
+Message-Id: <1A0A429E720CFD4A9673A435389F16362B9DEAA2@SMTP4.etri.info>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398202804-30164-1-git-send-email-eparis@redhat.com>
-In-Reply-To: <1398202804-30164-1-git-send-email-eparis@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Eric Paris <eparis@redhat.com>
-Date: Tue, 22 Apr 2014 17:40:04 -0400
-
-> We are currently embedding the same check from thread_info.h into
-> syscall.h thanks to the way syscall_get_arch() was implemented in the
-> audit tree.  Instead create a new function, is_32bit_task() which is
-> similar to that found on the powerpc arch.  This simplifies the
-> syscall.h code and makes the build/Kconfig requirements much easier
-> to understand.
-> 
-> Signed-off-by: Eric Paris <eparis@redhat.com
-
-Acked-by: David S. Miller <davem@davemloft.net>
+CkhpLApJIHdhcyBmb2xsb3dpbmcgdGhlIHNybW11X3BhZ2luZ19pbml0IGNvZGUuIChsaW51eCAz
+LjMpIHdoaWxlIHR5cmluZyB0byBzb2x2ZSB0aGUgcHJvYmxlbSBvZiBub3QgYmVpbmcgYWJsZSB0
+byBoYW5kbGUgdGhlIHBhZ2UgZmF1bHQgd2hlbiBhY2Nlc3NpbmcgdGhlIGZyYW1lIGJ1ZmZlciBv
+biB1c2VyIHByb2dyYW0oYnVzeWJveCkuIEkga25vdyB0aGVyZSBjb21lcyBhbm90aGVyIHZlcnNp
+b24gb2YgcGFnZSB0YWJsZSBzZXR1cCBhZnRlciB0aGlzIHN0YWdlLgpBbnl3YXkuLiBhZnRlciBi
+b290bWVtX2luaXQgYW5kIHNybW11X25vY2FjaGVfY2FsY3NpemUgYW5kIHNybW11X25vY2FjaGVf
+aW5pdCBjYWxscywKSSBzZWUKc3JtbXVfaW5oZXJpdF9wcm9tX21hcHBpbmdzKDB4ZmU0MDAwMDAs
+KExJTlVYX09QUFJPTV9FTkRWTS1QQUdFX1NJWkUpKTsKSSBkb24ndCBrbm93IHdoYXQgdGhpcyBp
+cyBkb2luZy4uCkNvdWxkIHNvbWVvbmUga2luZGx5IGV4cGxhaW4gaXQgdG8gbWU/ClRoYW5rcywK
+Q2hhbiBLaW0
