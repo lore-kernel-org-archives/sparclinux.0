@@ -1,16 +1,17 @@
-From: Ben Hutchings <ben@decadent.org.uk>
-Date: Mon, 28 Apr 2014 01:11:21 +0000
-Subject: [PATCH 3.2 19/94] sparc64: don't treat 64-bit syscall return codes as  32-bit
-Message-Id: <lsq.1398647481.803107968@decadent.org.uk>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Thu, 24 Apr 2014 21:48:50 +0000
+Subject: [PATCH 3.10 20/23] sparc64: dont treat 64-bit syscall return codes as 32-bit
+Message-Id: <20140424214828.492412388@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <lsq.1398647481.453080089@decadent.org.uk>
+References: <20140424214825.933835556@linuxfoundation.org>
+In-Reply-To: <20140424214825.933835556@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, Allen Pais <allen.pais@oracle.com>, Bob Picco <bob.picco@oracle.com>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Bob Picco <bob.picco@oracle.com>, Allen Pais <allen.pais@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-3.2.58-rc1 review patch.  If anyone has any objections, please let me know.
+3.10-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -31,16 +32,14 @@ Acked-by: Allen Pais <allen.pais@oracle.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/kernel/syscalls.S | 4 ++--
+ arch/sparc/kernel/syscalls.S |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
-index 817187d..557212c 100644
 --- a/arch/sparc/kernel/syscalls.S
 +++ b/arch/sparc/kernel/syscalls.S
-@@ -184,7 +184,8 @@ linux_sparc_syscall32:
+@@ -189,7 +189,8 @@ linux_sparc_syscall32:
  	 mov	%i0, %l5				! IEU1
  5:	call	%l7					! CTI	Group brk forced
  	 srl	%i5, 0, %o5				! IEU1
@@ -50,7 +49,7 @@ index 817187d..557212c 100644
  
  	/* Linux native system calls enter here... */
  	.align	32
-@@ -212,7 +213,6 @@ linux_sparc_syscall:
+@@ -217,7 +218,6 @@ linux_sparc_syscall:
  3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
  ret_sys_call:
  	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
@@ -58,4 +57,5 @@ index 817187d..557212c 100644
  	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
  	sllx	%g2, 32, %g2
  
+
 
