@@ -1,13 +1,56 @@
-From: Royal Assured Loan <info@londonloan.com>
-Date: Wed, 16 Apr 2014 23:07:33 +0000
-Subject: Darlehen Angebot !
-Message-Id: <20140417090733.84590snef6x944kg@webmail.lakeboondooma.com.au>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Thu, 24 Apr 2014 21:55:52 +0000
+Subject: [PATCH 3.4 18/27] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <20140424215552.516725450@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140424215551.942390050@linuxfoundation.org>
+In-Reply-To: <20140424215551.942390050@linuxfoundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Wir bieten privaten und gewerblichen Darlehen ohne Sicherheiten (nur =20
-Identifikation) bei 3% Zinssatz, ab ? 10.000 bis ? 90.000.000 in 1 =20
-Jahr bis 20 Jahren Laufzeit =FCberall in der Welt..
+3.4-stable review patch.  If anyone has any objections, please let me know.
+
+------------------
+
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
+
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
+
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/include/asm/uaccess_64.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -266,8 +266,8 @@ extern long __strnlen_user(const char __
+ 
+ #define strlen_user __strlen_user
+ #define strnlen_user __strnlen_user
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
+ 
+ #endif  /* __ASSEMBLY__ */
+ 
+
+
