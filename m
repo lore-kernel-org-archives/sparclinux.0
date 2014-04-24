@@ -1,7 +1,7 @@
-From: Chan Kim <ckim@etri.re.kr>
-Date: Thu, 24 Apr 2014 04:15:59 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 24 Apr 2014 18:13:13 +0000
 Subject: Re: what is srmmu_inherit_prom_mappings for?
-Message-Id: <1A0A429E720CFD4A9673A435389F16362B9DEDBD@SMTP4.etri.info>
+Message-Id: <20140424181313.GA11126@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1A0A429E720CFD4A9673A435389F16362B9DEAA2@SMTP4.etri.info>
 In-Reply-To: <1A0A429E720CFD4A9673A435389F16362B9DEAA2@SMTP4.etri.info>
@@ -10,51 +10,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ck9oIEkgZm91bmQgb3V0IHdoYXQgdGhpcyBpcy4gSXQgd2FzIGNoZWNraW5nIGlmIHRoZSAnc3Rh
-cnQnIGFkZHJlc3MgaXMgaW4gYSBiaWcgY2h1bmsuIApmcm9tIFNSTU1VX1JFQUxfUE1EX1NJWkUg
-KDJeMTgpIHRvIFNSTU1VX1BHRElSX1NJWkUoMl4yNCkuClRoZSBjb21wYXJpc29uIHJlc3VsdCBp
-biBlcXVhbCBvbmx5IGZvciB0aGUgZmlyc3QgcGFnZSBvZiBhIGJpZyBjaHVuay4KcmVnYXJkcywK
-Q2hhbgoKCgq6uLO9ILvntvcgOiAisejC+SIgPGNraW1AZXRyaS5yZS5rcj4KurizvSCzr8KlIDog
-MjAxNC0wNC0yMyAyMjowNTo0OCAoICswOTowMCApCrnetMIgu+e29yA6IHNwYXJjbGludXhAdmdl
-ci5rZXJuZWwub3JnIDxzcGFyY2xpbnV4QHZnZXIua2VybmVsLm9yZz4KwvzBtiA6IArBprjxIDog
-UmU6IHdoYXQgaXMgc3JtbXVfaW5oZXJpdF9wcm9tX21hcHBpbmdzIGZvcj8KCkhpLApJIGd1ZXNz
-IG15IHF1ZXN0aW9uIHNob3VsZCBiZSBhIGJhc2ljIG9uZSBmb3IgdGhpcyBncm91cCwgc28gSSBo
-b3BlIHNvbWVib3kgY291bGQgY2xlYXIgdGhpbmdzIHVwIGZvciBtZS4KSSBjb3VsZCByZWFkIGRv
-d24gYW5kIHVuZGVyc3RhbmQgdGhlIHNybW11X3N3cHJvYmUgY29kZSBzbyBJIHRoaW5rIEkgdW5k
-ZXJzdGFuZCBiYXNpYyBwYWdlIHRhYmxlIHN0cnVjdHVyZSh0aG91Z2ggbm90IHRob3JvdWdobHkg
-dW5kZXJzdG9vZCkuCkJ1dCBpbiB0aGUgc3JtbXVfaW5oZXJpdF9wcm9tX21hcHBpbmdzIGZ1bmN0
-aW9uLCBpbnNpZGUgdGhlIHdoaWxlIGxvb3AgKGNvcHlpbmcgZnJvbSBzdGFydCB0byBlbmQpLCB0
-aGVyZSBhcmUgc29tZSBjb2RlcyBiZWxvdyB0aGF0IEkgY2FuJ3QgdW5kZXJzdGFuZC4KCndoaWxl
-ICguLikgewouLi4KaWYoIShwcm9tcHRlID0gc3JtbXVfaHdwcm9iZShzdGFydCkpKSB7CnN0YXJ0
-ICs9IFBBR0VfU0laRTsKY29udGludWU7Cn0KLS0+IEkgY2FuIHVuZGVyc3RhbmQuIHJlYWQgdGhl
-IHB0ZSBhbmQgaWYgaXQncyBlbXB0eSwgcHJvY2VzcyBuZXh0IHBhZ2UuLlRoZSByZWFkIHZhbHVl
-IGlzIGtlcHQgaW4gcHJvbXB0ZS4KLyogQSByZWQgc25hcHBlciwgc2VlIHdoYXQgaXQgcmVhbGx5
-IGlzLiAqLwp3aGF0ID0gMDsKaWYoIShzdGFydCAmIH4oU1JNTVVfUkVBTF9QTURfTUFTSykpKSB7
-CmlmKHNybW11X2h3cHJvYmUoKHN0YXJ0LVBBR0VfU0laRSkgKyBTUk1NVV9SRUFMX1BNRF9TSVpF
-KSA9PSBwcm9tcHRlKQp3aGF0ID0gMTsKfQotLT4gU1JNTVVfUkVBTF9QTURfTUFTSyBpcyBhbGwg
-JzEnIGV4Y2VwdCBsb3dlciAxOCBiaXRzLiBub256ZXJvIGFib3ZlIGJpdCAxOSBtZWFucyB0aGUg
-aW5kZXggdG8gUE1EIHRhYmxlIGlzIG5vbnplcm8uIApCdXQsIHdoYXQgaXMgdGhpcyAoc3JtbXVf
-aHdwcm9iZSgoc3RhcnQtUEFHRV9TSVpFKSArIFNSTU1VX1JFQUxfUE1EX1NJWkUpID09IHByb21w
-dGUpIGNvbmRpdGlvbj8KV2UgaGF2ZW4ndCBpbmNyZWFzZWQgdGhlIHN0YXJ0IGJ1dCB3aHkgZG8g
-d2Ugc3VidHJhY3QgUEFHRV9TSVpFIGFuZCBhZGQgd2hvbGUgUE1EIHNpemUgKDJeMTgpIGFuZCBy
-ZWFkIHB0ZSBmcm9tIHRoZXJlPyBhbmQgY29tcGFyZSB3aXRoIHRoYXQgcmVhZCBmcm9tIHRoZSAn
-c3RhcnQnIGxvY2F0aW9uPyAKCmlmKCEoc3RhcnQgJiB+KFNSTU1VX1BHRElSX01BU0spKSkgewpp
-Zihzcm1tdV9od3Byb2JlKChzdGFydC1QQUdFX1NJWkUpICsgU1JNTVVfUEdESVJfU0laRSkgPT0g
-cHJvbXB0ZSkKd2hhdCA9IDI7Cn0KLS0+IHRoaXMgaXMgYWxtb3N0IHRoZSBzYW1lIGFzIGFib3Zl
-LiBzYW1lIHF1ZXN0aW9uLgouLi4KfQpJJ2xsIGJlIGdyYXRlZnVsIGlmIHNvbWVib2R5IGtpbmRs
-eSBleHBsYWluIGl0IG9yIGdpdmUgYW55IGhpbnQgdG8gbWUuClRoYW5rcyEKQ2hhbgpwLnMuIC0g
-SSBkaWRuJ3QgcmVjZWl2ZSBteSBwcmV2aW91cyBlbWFpbCBjb21pbmcgZnJvbSB0aGlzIG1haWxp
-bmcgbGlzdC4gSSBoYXZlIHNvbWUgbWFpbCBzZXJ2ZXIgcHJvYmxlbSByZWNlbnRseSBzbyBJIGNh
-bm5vdCBzZW5kIGVtYWlsIHdpdGggZW10cHkgc3ViamVjdCBsaW5lIGZvciBub3cuIEknbSBhZnJh
-aWQgdGhpcyBjYXVzZWQgdGhlIGxpc3Qgc2VydmVyIHRvIGtlZXAgbWUgZnJvbSByZWNlaXZpbmcg
-dGhlIGVtYWlsLiBJIGNvdWxkIHNlZSBteSBlbWFpbCBpcyBpbiB0aGUgYXJjaGl2ZS4KLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tCkhpLApJIHdhcyBmb2xsb3dpbmcgdGhlIHNybW11X3BhZ2luZ19pbml0
-IGNvZGUuIChsaW51eCAzLjMpIHdoaWxlIHR5cmluZyB0byBzb2x2ZSB0aGUgcHJvYmxlbSBvZiBu
-b3QgYmVpbmcgYWJsZSB0byBoYW5kbGUgdGhlIHBhZ2UgZmF1bHQgd2hlbiBhY2Nlc3NpbmcgdGhl
-IGZyYW1lIGJ1ZmZlciBvbiB1c2VyIHByb2dyYW0oYnVzeWJveCkuIEkga25vdyB0aGVyZSBjb21l
-cyBhbm90aGVyIHZlcnNpb24gb2YgcGFnZSB0YWJsZSBzZXR1cCBhZnRlciB0aGlzIHN0YWdlLgpB
-bnl3YXkuLiBhZnRlciBib290bWVtX2luaXQgYW5kIHNybW11X25vY2FjaGVfY2FsY3NpemUgYW5k
-IHNybW11X25vY2FjaGVfaW5pdCBjYWxscywKSSBzZWUKc3JtbXVfaW5oZXJpdF9wcm9tX21hcHBp
-bmdzKDB4ZmU0MDAwMDAsKExJTlVYX09QUFJPTV9FTkRWTS1QQUdFX1NJWkUpKTsKSSBkb24ndCBr
-bm93IHdoYXQgdGhpcyBpcyBkb2luZy4uCkNvdWxkIHNvbWVvbmUga2luZGx5IGV4cGxhaW4gaXQg
-dG8gbWU/ClRoYW5rcywKQ2hhbiBLaW0g
+Hi Chan.
+> 
+> Oh I found out what this is. It was checking if the 'start' address is in a big chunk. 
+> from SRMMU_REAL_PMD_SIZE (2^18) to SRMMU_PGDIR_SIZE(2^24).
+> The comparison result in equal only for the first page of a big chunk.
+
+Inspired by your question I took a closer look at this method.
+I ended up adding the following comments.
+Does they match your understanding?
+
+Note - this is on top of latest mainline.
+I assume you are looking at some older code-base judging from the snippets
+you provided earlier.
+
+	Sam
+
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index cfbe53c..a0e3c74 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -716,7 +716,11 @@ static void __init srmmu_allocate_ptable_skeleton(unsigned long start,
+ 	}
+ }
+ 
+-/* These flush types are not available on all chips... */
++/* Probe the MMU for an entry in one of the page tables.
++ * If the virtual address does not result in a match then return 0.
++ * 
++ * These flush types are not available on all chips...
++ */
+ static inline unsigned long srmmu_probe(unsigned long vaddr)
+ {
+ 	unsigned long retval;
+@@ -764,6 +768,11 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 		what = 0;
+ 		addr = start - PAGE_SIZE;
+ 
++		/* Find out which level this entry belongs to.
++		 * If the probe of the last page return the same entry
++		 * as the first page - then we know the type.
++		 * Try PGDIR last as this is the largest entries.
++		 */
+ 		if (!(start & ~(SRMMU_REAL_PMD_MASK))) {
+ 			if (srmmu_probe(addr + SRMMU_REAL_PMD_SIZE) = probed)
+ 				what = 1;
