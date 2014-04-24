@@ -1,67 +1,61 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Fri, 04 Apr 2014 20:47:07 +0000
-Subject: [PATCH 1/4 v2] nmi: Provide the option to issue an NMI back trace to every cpu but current
-Message-Id: <1396644430-70649-2-git-send-email-dzickus@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Thu, 24 Apr 2014 21:55:54 +0000
+Subject: [PATCH 3.4 20/27] sparc64: dont treat 64-bit syscall return codes as 32-bit
+Message-Id: <20140424215552.582457774@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1396644430-70649-1-git-send-email-dzickus@redhat.com>
+References: <20140424215551.942390050@linuxfoundation.org>
+In-Reply-To: <20140424215551.942390050@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Bob Picco <bob.picco@oracle.com>, Allen Pais <allen.pais@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
+3.4-stable review patch.  If anyone has any objections, please let me know.
 
-Some times it is preferred not to use the
-trigger_all_cpu_backtrace() routine when one wants
-to avoid capturing a back trace for current.
-For instance if one was previously captured
-recently.
+------------------
 
-This patch provides a new routine namely
-trigger_allbutself_cpu_backtrace() which offers
-the flexibility to issue an NMI to every cpu but
-current and capture a back trace accordingly.
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-[Added stub in #else clause - dcz]
+[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
 
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- include/linux/nmi.h |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+ arch/sparc/kernel/syscalls.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 6a45fb5..a17ab63 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -32,15 +32,24 @@ static inline void touch_nmi_watchdog(void)
- #ifdef arch_trigger_all_cpu_backtrace
- static inline bool trigger_all_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -184,7 +184,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
  
- 	return true;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	arch_trigger_all_cpu_backtrace(false);
-+	return true;
-+}
- #else
- static inline bool trigger_all_cpu_backtrace(void)
- {
- 	return false;
- }
-+static inline bool trigger_allbutself_cpu_backtrace(void)
-+{
-+	return false;
-+}
- #endif
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -212,7 +213,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
  
- #ifdef CONFIG_LOCKUP_DETECTOR
--- 
-1.7.1
+
 
