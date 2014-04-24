@@ -1,54 +1,56 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 25 Apr 2014 09:18:28 +0000
-Subject: [PATCH 06/13] powerpc/PCI: Use new pci_is_bridge() to simplify code
-Message-Id: <1398417515-8740-7-git-send-email-wangyijing@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Thu, 24 Apr 2014 21:48:48 +0000
+Subject: [PATCH 3.10 18/23] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <20140424214828.245822971@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
+References: <20140424214825.933835556@linuxfoundation.org>
+In-Reply-To: <20140424214825.933835556@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
+3.10-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+------------------
+
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
+
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
+
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/powerpc/kernel/pci-hotplug.c |    3 +--
- arch/powerpc/kernel/pci_of_scan.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/uaccess_64.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/powerpc/kernel/pci-hotplug.c b/arch/powerpc/kernel/pci-hotplug.c
-index c1e17ae..5b78917 100644
---- a/arch/powerpc/kernel/pci-hotplug.c
-+++ b/arch/powerpc/kernel/pci-hotplug.c
-@@ -98,8 +98,7 @@ void pcibios_add_pci_devices(struct pci_bus * bus)
- 		max = bus->busn_res.start;
- 		for (pass = 0; pass < 2; pass++) {
- 			list_for_each_entry(dev, &bus->devices, bus_list) {
--				if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--				    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
-+				if (pci_is_bridge(dev))
- 					max = pci_scan_bridge(bus, dev,
- 							      max, pass);
- 			}
-diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
-index 83c26d8..059e244 100644
---- a/arch/powerpc/kernel/pci_of_scan.c
-+++ b/arch/powerpc/kernel/pci_of_scan.c
-@@ -362,8 +362,7 @@ static void __of_scan_bus(struct device_node *node, struct pci_bus *bus,
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -262,8 +262,8 @@ extern unsigned long __must_check __clea
+ extern __must_check long strlen_user(const char __user *str);
+ extern __must_check long strnlen_user(const char __user *str, long n);
  
- 	/* Now scan child busses */
- 	list_for_each_entry(dev, &bus->devices, bus_list) {
--		if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--		    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS) {
-+		if (pci_is_bridge(dev)) {
- 			of_scan_pci_bridge(dev);
- 		}
- 	}
--- 
-1.7.1
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
+ 
+ struct pt_regs;
+ extern unsigned long compute_effective_address(struct pt_regs *,
 
 
