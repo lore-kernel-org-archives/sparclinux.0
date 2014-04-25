@@ -1,71 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:54:38 +0000
-Subject: [PATCH 01/10] sparc64: Fix executable bit testing in set_pmd_at() paths.
-Message-Id: <20140430.175438.516938848524931003.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:34 +0000
+Subject: [PATCH 12/13] PCI, pcmcia: Use new pci_is_bridge() to simplify code
+Message-Id: <1398417515-8740-13-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-This code was mistakenly using the exec bit from the PMD in all
-cases, even when the PMD isn't a huge PMD.
-
-If it's not a huge PMD, test the exec bit in the individual ptes down
-in tlb_batch_pmd_scan().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/mm/tlb.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ drivers/pcmcia/cardbus.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index b12cb5e..c07667f 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -134,7 +134,7 @@ no_cache_flush:
+diff --git a/drivers/pcmcia/cardbus.c b/drivers/pcmcia/cardbus.c
+index 8bde619..4fe4cc4 100644
+--- a/drivers/pcmcia/cardbus.c
++++ b/drivers/pcmcia/cardbus.c
+@@ -78,8 +78,7 @@ int __ref cb_alloc(struct pcmcia_socket *s)
+ 	max = bus->busn_res.start;
+ 	for (pass = 0; pass < 2; pass++)
+ 		list_for_each_entry(dev, &bus->devices, bus_list)
+-			if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-			    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
++			if (pci_is_bridge(dev))
+ 				max = pci_scan_bridge(bus, dev, max, pass);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void tlb_batch_pmd_scan(struct mm_struct *mm, unsigned long vaddr,
--			       pmd_t pmd, bool exec)
-+			       pmd_t pmd)
- {
- 	unsigned long end;
- 	pte_t *pte;
-@@ -142,8 +142,11 @@ static void tlb_batch_pmd_scan(struct mm_struct *mm, unsigned long vaddr,
- 	pte = pte_offset_map(&pmd, vaddr);
- 	end = vaddr + HPAGE_SIZE;
- 	while (vaddr < end) {
--		if (pte_val(*pte) & _PAGE_VALID)
-+		if (pte_val(*pte) & _PAGE_VALID) {
-+			bool exec = pte_exec(*pte);
-+
- 			tlb_batch_add_one(mm, vaddr, exec);
-+		}
- 		pte++;
- 		vaddr += PAGE_SIZE;
- 	}
-@@ -177,15 +180,15 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 	}
- 
- 	if (!pmd_none(orig)) {
--		pte_t orig_pte = __pte(pmd_val(orig));
--		bool exec = pte_exec(orig_pte);
--
- 		addr &= HPAGE_MASK;
- 		if (pmd_trans_huge(orig)) {
-+			pte_t orig_pte = __pte(pmd_val(orig));
-+			bool exec = pte_exec(orig_pte);
-+
- 			tlb_batch_add_one(mm, addr, exec);
- 			tlb_batch_add_one(mm, addr + REAL_HPAGE_SIZE, exec);
- 		} else {
--			tlb_batch_pmd_scan(mm, addr, orig, exec);
-+			tlb_batch_pmd_scan(mm, addr, orig);
- 		}
- 	}
- }
+ 	/*
 -- 
-1.8.1.2
+1.7.1
+
 
