@@ -1,49 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:21 +0000
-Subject: [PATCH 06/29] sparc32: fix sparse warning in traps_32.c
-Message-Id: <1398109184-3283-6-git-send-email-sam@ravnborg.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:26 +0000
+Subject: [PATCH 04/13] x86/PCI: Use new pci_is_bridge() to simplify code
+Message-Id: <1398417515-8740-5-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-Fix following warning:
-traps_32.c:47:6: error: symbol 'die_if_kernel' redeclared with different type - different modifiers
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-Add __noreturn to both definition and declaration
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/bug.h | 2 +-
- arch/sparc/kernel/traps_32.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/pci/fixup.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/bug.h b/arch/sparc/include/asm/bug.h
-index 6bd9f43..a24cbb1 100644
---- a/arch/sparc/include/asm/bug.h
-+++ b/arch/sparc/include/asm/bug.h
-@@ -20,6 +20,6 @@ extern void do_BUG(const char *file, int line);
- #include <asm-generic/bug.h>
- 
- struct pt_regs;
--extern void die_if_kernel(char *str, struct pt_regs *regs) __attribute__ ((noreturn));
-+void __noreturn die_if_kernel(char *str, struct pt_regs *regs);
- 
- #endif
-diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-index 6629829..a655e5b 100644
---- a/arch/sparc/kernel/traps_32.c
-+++ b/arch/sparc/kernel/traps_32.c
-@@ -44,7 +44,7 @@ static void instruction_dump(unsigned long *pc)
- #define __SAVE __asm__ __volatile__("save %sp, -0x40, %sp\n\t")
- #define __RESTORE __asm__ __volatile__("restore %g0, %g0, %g0\n\t")
- 
--void die_if_kernel(char *str, struct pt_regs *regs)
-+void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
- {
- 	static int die_counter;
- 	int count = 0;
+diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
+index 94ae9ae..e5f000c 100644
+--- a/arch/x86/pci/fixup.c
++++ b/arch/x86/pci/fixup.c
+@@ -337,9 +337,7 @@ static void pci_fixup_video(struct pci_dev *pdev)
+ 		 * type BRIDGE, or CARDBUS. Host to PCI controllers use
+ 		 * PCI header type NORMAL.
+ 		 */
+-		if (bridge
+-		    && ((bridge->hdr_type = PCI_HEADER_TYPE_BRIDGE)
+-		       || (bridge->hdr_type = PCI_HEADER_TYPE_CARDBUS))) {
++		if (bridge && (pci_is_bridge(bridge))) {
+ 			pci_read_config_word(bridge, PCI_BRIDGE_CONTROL,
+ 						&config);
+ 			if (!(config & PCI_BRIDGE_CTL_VGA))
 -- 
-1.8.3.1
+1.7.1
+
 
