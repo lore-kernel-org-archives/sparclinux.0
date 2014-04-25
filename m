@@ -1,23 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 25 Apr 2014 16:49:03 +0000
-Subject: Re: [PATCH 07/13] sparc/PCI: Use new pci_is_bridge() to simplify code
-Message-Id: <20140425.124903.145066741692796378.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:32 +0000
+Subject: [PATCH 10/13] PCI, cpcihp: Use new pci_is_bridge() to simplify code
+Message-Id: <1398417515-8740-11-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
- <1398417515-8740-8-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-8-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wangyijing@huawei.com
-Cc: tony.luck@intel.com, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, bhelgaas@google.com, tglx@linutronix.de, linuxppc-dev@lists.ozlabs.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 25 Apr 2014 17:18:29 +0800
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-> Now we can use new pci_is_bridge() helper function
-> to simplify code.
-> 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
+index 8c14648..9843371 100644
+--- a/drivers/pci/hotplug/cpci_hotplug_pci.c
++++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
+@@ -289,8 +289,7 @@ int __ref cpci_configure_slot(struct slot *slot)
+ 	list_for_each_entry(dev, &parent->devices, bus_list)
+ 		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
+ 			continue;
+-		if ((dev->hdr_type = PCI_HEADER_TYPE_BRIDGE) ||
+-		    (dev->hdr_type = PCI_HEADER_TYPE_CARDBUS))
++		if (pci_is_bridge(dev))
+ 			pci_hp_add_bridge(dev);
+ 
+ 
+-- 
+1.7.1
+
+
