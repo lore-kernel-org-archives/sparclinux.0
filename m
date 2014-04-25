@@ -1,23 +1,51 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 19 Apr 2014 18:20:32 +0000
-Subject: Re: Fwd: Time to let sun4m + sun4d RIP?
-Message-Id: <20140419182032.GA21009@ravnborg.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:22 +0000
+Subject: [PATCH 00/13] Refactor pci_is_brdige() to simplify code
+Message-Id: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CALMQjD96AqwOpiSifwBCG_S_kU_yANh1Ja2W2XAG2d6jW6dgBA@mail.gmail.com>
-In-Reply-To: <CALMQjD96AqwOpiSifwBCG_S_kU_yANh1Ja2W2XAG2d6jW6dgBA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-Hi Kjetill.
- 
-> I have contributed to
-> the sparc32/sun4d port because I still have such a system that is in
-> working order.
-And your effort is highly apprecated!
-I am especially glad that you repaired sun4d after I introduced
-genirq support - but all the other patches and your testing has also
-been very welcome.
+This patchset rename the current pci_is_bridge() to pci_has_subordinate(), 
+and introduce a new pci_is_bridge() which determine pci bridge by check
+dev->hdr_type. The new one is more accurate. PCIe Spec define the pci
+device is a bridge by the dev->hdr_type = 0x01 || 0x02.
 
-	Sam
+Yijing Wang (13):
+  PCI: rename pci_is_bridge() to pci_has_subordinate()
+  PCI: Introduce new pci_is_bridge() helper function
+  PCI: Use new pci_is_bridge() to simplify code
+  x86/PCI: Use new pci_is_bridge() to simplify code
+  IA64/PCI: Use new pci_is_bridge() to simplify code
+  powerpc/PCI: Use new pci_is_bridge() to simplify code
+  sparc/PCI: Use new pci_is_bridge() to simplify code
+  PCI, rpaphp: Use new pci_is_bridge() to simplify code
+  PCI, shpchp: Use new pci_is_bridge() to simplify code
+  PCI, cpcihp: Use new pci_is_bridge() to simplify code
+  PCI, acpiphp: Use new pci_is_bridge() to simplify code
+  PCI, pcmcia: Use new pci_is_bridge() to simplify code
+  PCI, pciehp: Use new pci_is_bridge() to simplify code
+
+ arch/ia64/pci/fixup.c                  |    4 +---
+ arch/powerpc/kernel/pci-hotplug.c      |    3 +--
+ arch/powerpc/kernel/pci_of_scan.c      |    3 +--
+ arch/sparc/kernel/pci.c                |    3 +--
+ arch/x86/pci/fixup.c                   |    4 +---
+ drivers/pci/hotplug/acpiphp_glue.c     |    3 +--
+ drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
+ drivers/pci/hotplug/pciehp_pci.c       |    3 +--
+ drivers/pci/hotplug/rpadlpar_core.c    |    3 +--
+ drivers/pci/hotplug/shpchp_pci.c       |    3 +--
+ drivers/pci/pci-acpi.c                 |    8 +-------
+ drivers/pci/pci-driver.c               |    8 ++++----
+ drivers/pci/pci.h                      |    2 +-
+ drivers/pci/probe.c                    |    3 +--
+ drivers/pci/setup-bus.c                |    4 +---
+ drivers/pcmcia/cardbus.c               |    3 +--
+ include/linux/pci.h                    |    6 ++++++
+ 17 files changed, 25 insertions(+), 41 deletions(-)
+
+
