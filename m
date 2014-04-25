@@ -1,135 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 19:56:11 +0000
-Subject: [PATCH 4/5] sparc32: fix sparse warnings in srmmu.c
-Message-Id: <20140420195610.GD17743@ravnborg.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:27 +0000
+Subject: [PATCH 05/13] IA64/PCI: Use new pci_is_bridge() to simplify code
+Message-Id: <1398417515-8740-6-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-From 6117ffdcf39eaf9c6ff877476df542cccdca7d44 Mon Sep 17 00:00:00 2001
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 20 Apr 2014 21:11:30 +0200
-Subject: [PATCH 4/5] sparc32: fix sparse warnings in srmmu.c
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-Fix following warnings:
-srmmu.c:78:5: warning: symbol 'flush_page_for_dma_global' was not declared. Should it be static?
-srmmu.c:85:5: warning: symbol 'viking_mxcc_present' was not declared. Should it be static?
-srmmu.c:103:6: warning: symbol 'srmmu_nocache_bitmap' was not declared. Should it be static?
-srmmu.c:176:24: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:731:46: warning: Using plain integer as NULL pointer
-srmmu.c:870:13: warning: symbol 'srmmu_paging_init' was not declared. Should it be static?
-
-Add proper prototypes in mm_32.h and drop local prototype in init_32.c
-Replace 0 with NULL
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/mm/init_32.c | 3 ++-
- arch/sparc/mm/iommu.c   | 5 ++---
- arch/sparc/mm/mm_32.h   | 4 ++++
- arch/sparc/mm/srmmu.c   | 6 +++---
- 4 files changed, 11 insertions(+), 7 deletions(-)
+ arch/ia64/pci/fixup.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index db69870..cf09e6e 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -35,6 +35,8 @@
- #include <asm/prom.h>
- #include <asm/leon.h>
- 
-+#include "mm_32.h"
-+
- unsigned long *sparc_valid_addr_bitmap;
- EXPORT_SYMBOL(sparc_valid_addr_bitmap);
- 
-@@ -246,7 +248,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
-  * init routine based upon the Sun model type on the Sparc.
-  *
-  */
--extern void srmmu_paging_init(void);
- extern void device_scan(void);
- 
- void __init paging_init(void)
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 28f96f2..35384cb 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -27,6 +27,8 @@
- #include <asm/iommu.h>
- #include <asm/dma.h>
- 
-+#include "mm_32.h"
-+
- /*
-  * This can be sized dynamically, but we will do this
-  * only when we have a guidance about actual I/O pressures.
-@@ -37,9 +39,6 @@
- #define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
- #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
- 
--/* srmmu.c */
--extern int viking_mxcc_present;
--extern int flush_page_for_dma_global;
- static int viking_flush;
- /* viking.S */
- extern void viking_flush_page(unsigned long page);
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index e6af5ae..bf4c56f 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -10,5 +10,9 @@ extern void window_ret_fault(struct pt_regs *regs);
- 
- /* srmmu.c */
- extern char *srmmu_name;
-+extern int viking_mxcc_present;
-+extern int flush_page_for_dma_global;
- 
- extern void (*poke_srmmu)(void);
-+
-+extern void __init srmmu_paging_init(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 54e834c..4639d8e 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -100,7 +100,6 @@ static unsigned long srmmu_nocache_end;
- #define SRMMU_NOCACHE_ALIGN_MAX (sizeof(ctxd_t)*SRMMU_MAX_CONTEXTS)
- 
- void *srmmu_nocache_pool;
--void *srmmu_nocache_bitmap;
- static struct bit_map srmmu_nocache_map;
- 
- static inline int srmmu_pmd_none(pmd_t pmd)
-@@ -173,7 +172,7 @@ static void *__srmmu_get_nocache(int size, int align)
- 		printk(KERN_ERR "srmmu: out of nocache %d: %d/%d\n",
- 		       size, (int) srmmu_nocache_size,
- 		       srmmu_nocache_map.used << SRMMU_NOCACHE_BITMAP_SHIFT);
--		return 0;
-+		return NULL;
- 	}
- 
- 	addr = SRMMU_NOCACHE_VADDR + (offset << SRMMU_NOCACHE_BITMAP_SHIFT);
-@@ -269,6 +268,7 @@ static void __init srmmu_nocache_calcsize(void)
- 
- static void __init srmmu_nocache_init(void)
- {
-+	void *srmmu_nocache_bitmap;
- 	unsigned int bitmap_bits;
- 	pgd_t *pgd;
- 	pmd_t *pmd;
-@@ -728,7 +728,7 @@ static inline unsigned long srmmu_probe(unsigned long vaddr)
- 				     "=r" (retval) :
- 				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
- 	} else {
--		retval = leon_swprobe(vaddr, 0);
-+		retval = leon_swprobe(vaddr, NULL);
- 	}
- 	return retval;
- }
+diff --git a/arch/ia64/pci/fixup.c b/arch/ia64/pci/fixup.c
+index eee069a..1fe9aa5 100644
+--- a/arch/ia64/pci/fixup.c
++++ b/arch/ia64/pci/fixup.c
+@@ -49,9 +49,7 @@ static void pci_fixup_video(struct pci_dev *pdev)
+ 		 * type BRIDGE, or CARDBUS. Host to PCI controllers use
+ 		 * PCI header type NORMAL.
+ 		 */
+-		if (bridge
+-		    &&((bridge->hdr_type = PCI_HEADER_TYPE_BRIDGE)
+-		       ||(bridge->hdr_type = PCI_HEADER_TYPE_CARDBUS))) {
++		if (bridge && (pci_is_bridge(bridge))) {
+ 			pci_read_config_word(bridge, PCI_BRIDGE_CONTROL,
+ 						&config);
+ 			if (!(config & PCI_BRIDGE_CTL_VGA))
 -- 
-1.8.3.1
+1.7.1
+
 
