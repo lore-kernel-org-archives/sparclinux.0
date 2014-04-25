@@ -1,54 +1,23 @@
-From: Michal Simek <monstr@monstr.eu>
-Date: Mon, 28 Apr 2014 09:09:50 +0000
-Subject: Re: [PATCH 0/4] sparc32: introduce asm-generic
-Message-Id: <535E1ADE.7010404@monstr.eu>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="LqaML4QdPj92KijIeUrbnlt7WxMe8kV3j"
+From: David Miller <davem@davemloft.net>
+Date: Fri, 25 Apr 2014 19:43:37 +0000
+Subject: [PATCH 0/3] Fix several sparc64 THP bugs.
+Message-Id: <20140425.154337.1159533755150765063.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140426075426.GA21467@ravnborg.org>
-In-Reply-To: <20140426075426.GA21467@ravnborg.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
-
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LqaML4QdPj92KijIeUrbnlt7WxMe8kV3j
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi Sam,
-
-On 04/26/2014 10:35 AM, Sam Ravnborg wrote:
-> Hi Michal,
->=20
->     missed you on cc: on the initial mail.
-
-not a problem. I briefly looked at your patches
-and it is great that you could use asm-generic implementation
-as I could for microblaze.
-
-Thanks,
-Michal
-
---=20
-Michal Simek, Ing. (M.Eng), OpenPGP -> KeyID: FE3D1F91
-w: www.monstr.eu p: +42-0-721842854
-Maintainer of Linux kernel - Microblaze cpu - http://www.monstr.eu/fdt/
-Maintainer of Linux kernel - Xilinx Zynq ARM architecture
-Microblaze U-BOOT custodian and responsible for u-boot arm zynq platform
+Cc: mroos@linux.ee, aaro.koskinen@iki.fi, hughd@google.com, linux-kernel@vger.kernel.org
 
 
+Meelis and Aaro, I've found and fixed several THP bugs for sparc64
+over the last week or so.
 
---LqaML4QdPj92KijIeUrbnlt7WxMe8kV3j
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I cannot %100 account for the exit_mmap() WARN_ON that you two have
+been able to trigger, however I'd like you both to test the changes
+nonetheless.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+They are against 3.15 but they should apply cleanly all the way back
+to 3.13
 
-iEYEARECAAYFAlNeGt4ACgkQykllyylKDCHwEACgiANuiz7UoHqVnmM/eGuZFhhG
-8BcAnRGFX9jG/l1GHFvf0rj5+6ETkUsu
-=fIlO
------END PGP SIGNATURE-----
-
---LqaML4QdPj92KijIeUrbnlt7WxMe8kV3j--
+Thanks in advance for testing.
