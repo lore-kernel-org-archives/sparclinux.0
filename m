@@ -1,37 +1,75 @@
-From: COMMISSION FEDERALE BOURSES SUISSES <sidinha@lenep.uenf.br>
-Date: Fri, 18 Apr 2014 11:51:28 +0000
-Subject: UN APPEL A LA CANDIDATURE POUR 500 BOURSES D'ETUDES / A CALL TO THE BID FOR 500 SCHOLARSHIPS
-Message-Id: <1979070422.130668.1397821888514.JavaMail.root@lenep.uenf.br>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 25 Apr 2014 09:18:25 +0000
+Subject: [PATCH 03/13] PCI: Use new pci_is_bridge() to simplify code
+Message-Id: <1398417515-8740-4-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+
+Now we can use new pci_is_bridge() helper function
+to simplify code.
+
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/pci/pci-acpi.c  |    8 +-------
+ drivers/pci/probe.c     |    3 +--
+ drivers/pci/setup-bus.c |    4 +---
+ 3 files changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index f49abef..ca4927b 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -309,13 +309,7 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
+ 	bool check_children;
+ 	u64 addr;
+ 
+-	/*
+-	 * pci_is_bridge() is not suitable here, because pci_dev->subordinate
+-	 * is set only after acpi_pci_find_device() has been called for the
+-	 * given device.
+-	 */
+-	check_children = pci_dev->hdr_type = PCI_HEADER_TYPE_BRIDGE
+-			|| pci_dev->hdr_type = PCI_HEADER_TYPE_CARDBUS;
++	check_children = pci_is_bridge(pci_dev);
+ 	/* Please ref to ACPI spec for the syntax of _ADR */
+ 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
+ 	return acpi_find_child_device(ACPI_COMPANION(dev->parent), addr,
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index ef09f5f..f831dd8 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1670,8 +1670,7 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
+ 
+ 	for (pass=0; pass < 2; pass++)
+ 		list_for_each_entry(dev, &bus->devices, bus_list) {
+-			if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-			    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
++			if (pci_is_bridge(dev))
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+ 		}
+ 
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 138bdd6..e399d00 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1629,9 +1629,7 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 
+ 	down_read(&pci_bus_sem);
+ 	list_for_each_entry(dev, &bus->devices, bus_list)
+-		if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-		    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
+-			if (dev->subordinate)
++		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
+ 				__pci_bus_size_bridges(dev->subordinate,
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+-- 
+1.7.1
 
 
-                                                                 
-PAR L’INTERMÉDIAIRE DE LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES (CFBE-SUISSE) , LE SECRÉTARIAT D’ÉTAT A L’ÉTUDE ET A LA RECHERCHE DE LA CONFÉDÉRATION LANCE UN APPEL A LA CANDIDATURE POUR 500 BOURSES D’ÉTUDES  SUISSES AU TITRE DE L’ANNÉE ACADÉMIQUE 2014-2015.  
-  PROCÉDURE DE SÉLECTION
- - RETIRER AUPRÈS  DE LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES Surisses(CFBES)LE FORMULAIRE DE DEMANDE DE BOURSE VIA 
-A LEUR ADRESSE ÉMAIL: universitebourseetude@laposte.net
-A LEUR ADRESSE EMAIL: sboursesdetudes@yahoo.fr
- - REMPLIR ET ENVOYER PAR PIÈCE JOINTE LE FORMULAIRE.
-  - LA COMMISSION FÉDÉRALE DES BOURSES ÉTRANGÈRES FERA ÉTUDIER VOTRE DOSSIER PAR LA REPRÉSENTATION SUISSE DÉLÉGUÉE DE VOTRE ZONE .
-- LES CANDIDATS RETENUS RECEVRONT UNE ATTESTATION DU SECRÉTARIAT D’ÉTAT A L’ÉTUDE ET A LA RECHERCHE POUR NOTIFICATION DE LA BOURSE. LES CANDIDATS DÉSIREUX DE PARTICIPER AUX BOURSES D’ÉTUDES 2014 - 2015 DOIVENT RETIRER LEUR FORMULAIRE A REMPLIR AUPRÈS DE LA CFBES EN PLUS DE CELA TOUTES CANDIDATS RETENU RETROUVERA LA RÉPONSE DE NOTRE COOPÉRATION AFRICAINE ET AUSSI AVOIR LEUR DEMANDE DE VISA SUISSES QU'IL DOIT REMPLIR ET LEUR ENVOYER CELA.
- A LEUR ADRESSE ÉMAIL: universitebourseetude@laposte.net
-LA DATE LIMITE DE DEPÖT DES DOSSIERS EST PREVUE POUR LE 28 MAI 2014.
-LE PRÉSIDENT DE LA COMMISSION FÉDÉRALE
-DES BOURSES ÉTRANGÈRES SUISSES
-....................................
-THROUGH FEDERAL GRANTS FOREIGN (GFEC-SWITZERLAND) COMMISSION, THE SECRETARY OF STATE THE STUDY AND RESEARCH OF CONFEDERATION LAUNCHES A CALL TO CANDIDACY FOR 500 SCHOLARSHIPS FOR THE ACADEMIC YEAR 2014-2015 SWISS. 
-  SELECTION PROCEDURE
- -REMOVE the Federal grants foreign Commission Surisses (CFBES) scholarship application form VIA
-At their EMAIL address: universitebourseetude@laposte.net
-At their EMAIL address: sboursesdetudes@yahoo.fr
- -COMPLETE AND SEND THE FORM BY ATTACHMENT.
-  -THE FEDERAL FOREIGN SCHOLARSHIPS COMMISSION WILL BE STUDYING YOUR FILE BY REPRESENTATION SWITZERLAND REPRESENTATIVE FOR YOUR AREA.
--SUCCESSFUL APPLICANTS WILL RECEIVE A CERTIFICATE FROM THE STATE SECRETARIAT FOR THE STUDY AND RESEARCH FOR NOTIFICATION OF THE STOCK EXCHANGE. CANDIDATES TO PARTICIPATE IN THE 2014-2015 SCHOLARSHIPS MUST REMOVE THEIR FORM IS TO BE COMPLETED WITH THE CFBES IN ADDITION TO THIS ALL RETAINED CANDIDATES WILL BE THE RESPONSE OF OUR AFRICAN COOPERATION AND ALSO HAVE THEIR SWISS VISA APPLICATION THAT HE MUST COMPLETE AND SEND THEM THIS.
- At their EMAIL address: universitebourseetude@laposte.net
-THE DATE OF RECORDS DEADLINE IS SCHEDULED FOR MAY 28, 2014.
-THE CHAIRMAN OF THE FEDERAL COMMISSION
-FOREIGN SWISS SCHOLARSHIPS
