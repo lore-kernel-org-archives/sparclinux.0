@@ -1,37 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 16 Apr 2014 22:49:22 +0000
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Fri, 25 Apr 2014 20:09:08 +0000
 Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20140416.184922.850531879281945129.davem@davemloft.net>
+Message-Id: <20140425200908.GG575@drone.musicnaut.iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140414184353.GA5630@drone.musicnaut.iki.fi>
-	<20140416.145822.1317931249717152474.davem@davemloft.net>
-	<alpine.SOC.1.00.1404170119550.20193@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1404170119550.20193@math.ut.ee>
+References: <20131022174612.GC24448@blackmetal.musicnaut.iki.fi>
+ <20131022.135442.1072093301788210177.davem@davemloft.net>
+ <20140414184353.GA5630@drone.musicnaut.iki.fi>
+ <20140416.145822.1317931249717152474.davem@davemloft.net>
+In-Reply-To: <20140416.145822.1317931249717152474.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com
+To: David Miller <davem@davemloft.net>
+Cc: mroos@linux.ee, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com
 
-From: mroos@linux.ee
-Date: Thu, 17 Apr 2014 01:22:17 +0300 (EEST)
+Hi,
 
->> > Just for the archives, I got one of these again with 3.14:
->> 
->> Meelis and Aaro, thanks again for all of your reports.
->> 
->> After pouring over a lot of the data and auditing some code I'm
->> suspecting it's a problem with transparent huge pages.
->> 
->> One thing you two can do to help me further confirm this is to run
->> with THP disabled for a while and see if you still get the log
->> messages.
+On Wed, Apr 16, 2014 at 02:58:22PM -0400, David Miller wrote:
+> One thing you two can do to help me further confirm this is to run
+> with THP disabled for a while and see if you still get the log
+> messages.
 > 
-> I have snice turned off CONFIG_TRANSPARENT_HUGEPAGE on 3 of 4 servers 
-> that had this problem (actually most of my sparc64 machines) and the 4th 
-> has
- ...
-> and also has not had this problem since then. All 4 machines have been 
-> running through most -rc's of every kernel.
+> Simply, as root:
+> 
+> bash# echo "never" >/sys/kernel/mm/transparent_hugepage/enabled
+> 
+> And then do your gcc bootstraps or whatever else seems to usually
+> run when you trigger this problem.
 
-Thanks this is a very useful datapoint.
+I'm running my Ultras with "# CONFIG_TRANSPARENT_HUGEPAGE is not set"
+and I still see the issue.
+
+I tried reproducing the bug with function tracer running. It works
+but reproducing the bug takes several days... This time it was "expect"
+segfault during GCC testsuite that triggered the bug.
+
+For the test I added tracing_off() after the "Bad rss-counter
+state" printout. Now I see it should be done maybe earlier as warning/bug
+printouts are polluting the trace.
+
+Anyway, the results are here:
+
+	http://www.iki.fi/aaro/junk/linux-3.14-sparc-mm-bug-trace.txt
+	http://www.iki.fi/aaro/junk/linux-3.14-sparc-mm-bug-trace-dmesg.txt
+
+A.
