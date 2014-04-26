@@ -1,85 +1,81 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:30 +0000
-Subject: [PATCH 15/29] sparc: fix sparse warnings in cpu.c
-Message-Id: <1398109184-3283-15-git-send-email-sam@ravnborg.org>
+Date: Sat, 26 Apr 2014 07:57:35 +0000
+Subject: [PATCH 2/4] sparc32: replace flip_dword() with swab32()
+Message-Id: <1398499057-21497-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following sparc32 warning:
-cpu.c:430:29: warning: symbol 'cpuinfo_op' was not declared. Should it be static?
-
-Fix following sparc64 warnings:
-cpu.c:364:14: warning: symbol 'dcache_parity_tl1_occurred' was not declared. Should it be static?
-cpu.c:365:14: warning: symbol 'icache_parity_tl1_occurred' was not declared. Should it be static?
-
-Rearrange asm/cpu.h to share more stuff between sparc32 and sparc64.
-Added missing include to cpu.c of kernel.h
+The latter is a generic implmentation.
+flip_{,d}word() is sparc32 specific and will be dropped.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/include/asm/cpudata.h    | 10 ++++++++++
- arch/sparc/include/asm/cpudata_64.h |  5 -----
- arch/sparc/kernel/cpu.c             |  1 +
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/leon_pci_grpci1.c | 4 ++--
+ arch/sparc/kernel/leon_pci_grpci2.c | 4 ++--
+ arch/sparc/kernel/pcic.c            | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cpudata.h b/arch/sparc/include/asm/cpudata.h
-index b5976de..128b56b 100644
---- a/arch/sparc/include/asm/cpudata.h
-+++ b/arch/sparc/include/asm/cpudata.h
-@@ -1,5 +1,15 @@
- #ifndef ___ASM_SPARC_CPUDATA_H
- #define ___ASM_SPARC_CPUDATA_H
-+
-+#ifndef __ASSEMBLY__
-+
-+#include <linux/threads.h>
-+#include <linux/percpu.h>
-+
-+extern const struct seq_operations cpuinfo_op;
-+
-+#endif /* !(__ASSEMBLY__) */
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/cpudata_64.h>
- #else
-diff --git a/arch/sparc/include/asm/cpudata_64.h b/arch/sparc/include/asm/cpudata_64.h
-index 050ef35..0e59407 100644
---- a/arch/sparc/include/asm/cpudata_64.h
-+++ b/arch/sparc/include/asm/cpudata_64.h
-@@ -8,9 +8,6 @@
+diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
+index 97cba4d..c8bf26e 100644
+--- a/arch/sparc/kernel/leon_pci_grpci1.c
++++ b/arch/sparc/kernel/leon_pci_grpci1.c
+@@ -144,7 +144,7 @@ static int grpci1_cfg_r32(struct grpci1_priv *priv, unsigned int bus,
+ 		grpci1_cfg_w32(priv, TGT, 0, PCI_COMMAND, tmp);
+ 	} else {
+ 		/* Bus always little endian (unaffected by byte-swapping) */
+-		*val = flip_dword(tmp);
++		*val = swab32(tmp);
+ 	}
  
- #ifndef __ASSEMBLY__
+ 	return 0;
+@@ -197,7 +197,7 @@ static int grpci1_cfg_w32(struct grpci1_priv *priv, unsigned int bus,
  
--#include <linux/percpu.h>
--#include <linux/threads.h>
--
- typedef struct {
- 	/* Dcache line 1 */
- 	unsigned int	__softirq_pending; /* must be 1st, see rtrap.S */
-@@ -35,8 +32,6 @@ DECLARE_PER_CPU(cpuinfo_sparc, __cpu_data);
- #define cpu_data(__cpu)		per_cpu(__cpu_data, (__cpu))
- #define local_cpu_data()	__get_cpu_var(__cpu_data)
+ 	pci_conf = (unsigned int *) (priv->pci_conf |
+ 						(devfn << 8) | (where & 0xfc));
+-	LEON3_BYPASS_STORE_PA(pci_conf, flip_dword(val));
++	LEON3_BYPASS_STORE_PA(pci_conf, swab32(val));
  
--extern const struct seq_operations cpuinfo_op;
--
- #endif /* !(__ASSEMBLY__) */
+ 	return 0;
+ }
+diff --git a/arch/sparc/kernel/leon_pci_grpci2.c b/arch/sparc/kernel/leon_pci_grpci2.c
+index 7ef0247..e433a4d 100644
+--- a/arch/sparc/kernel/leon_pci_grpci2.c
++++ b/arch/sparc/kernel/leon_pci_grpci2.c
+@@ -270,7 +270,7 @@ static int grpci2_cfg_r32(struct grpci2_priv *priv, unsigned int bus,
+ 		*val = 0xffffffff;
+ 	} else {
+ 		/* Bus always little endian (unaffected by byte-swapping) */
+-		*val = flip_dword(tmp);
++		*val = swab32(tmp);
+ 	}
  
- #include <asm/trap_block.h>
-diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
-index 5c51258..82a3a71 100644
---- a/arch/sparc/kernel/cpu.c
-+++ b/arch/sparc/kernel/cpu.c
-@@ -22,6 +22,7 @@
- #include <asm/cpudata.h>
+ 	return 0;
+@@ -328,7 +328,7 @@ static int grpci2_cfg_w32(struct grpci2_priv *priv, unsigned int bus,
  
- #include "kernel.h"
-+#include "entry.h"
+ 	pci_conf = (unsigned int *) (priv->pci_conf |
+ 						(devfn << 8) | (where & 0xfc));
+-	LEON3_BYPASS_STORE_PA(pci_conf, flip_dword(val));
++	LEON3_BYPASS_STORE_PA(pci_conf, swab32(val));
  
- DEFINE_PER_CPU(cpuinfo_sparc, __cpu_data) = { 0 };
- EXPORT_PER_CPU_SYMBOL(__cpu_data);
+ 	/* Wait until GRPCI2 signals that CFG access is done, it should be
+ 	 * done instantaneously unless a DMA operation is ongoing...
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index 09f4fdd..6996f32 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -783,7 +783,7 @@ int pcibios_enable_device(struct pci_dev *pdev, int mask)
+ void pcic_nmi(unsigned int pend, struct pt_regs *regs)
+ {
+ 
+-	pend = flip_dword(pend);
++	pend = swab32(pend);
+ 
+ 	if (!pcic_speculative || (pend & PCI_SYS_INT_PENDING_PIO) = 0) {
+ 		/*
 -- 
-1.8.3.1
+1.9.0
 
