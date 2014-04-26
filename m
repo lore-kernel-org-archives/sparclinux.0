@@ -1,42 +1,60 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Mon, 28 Apr 2014 00:43:21 +0000
-Subject: Re: [PATCH 08/13] PCI, rpaphp: Use new pci_is_bridge() to simplify code
-Message-Id: <1398645801.8437.84.camel@pasglop>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 26 Apr 2014 07:54:26 +0000
+Subject: [PATCH 0/4] sparc32: introduce asm-generic
+Message-Id: <20140426075426.GA21467@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
- <1398417515-8740-9-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-9-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yijing Wang <wangyijing@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Fri, 2014-04-25 at 17:18 +0800, Yijing Wang wrote:
-> Now we can use new pci_is_bridge() helper function
-> to simplify code.
-> 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Inspired by Michal Simek <monstr@monstr.eu> this patch-set
+introduces asm-generic/io.h for sparc32.
 
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+As the diff-stat tells this was a nice code-reduction.
 
-> ---
->  drivers/pci/hotplug/rpadlpar_core.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/rpadlpar_core.c b/drivers/pci/hotplug/rpadlpar_core.c
-> index 4fcdeed..7660232 100644
-> --- a/drivers/pci/hotplug/rpadlpar_core.c
-> +++ b/drivers/pci/hotplug/rpadlpar_core.c
-> @@ -157,8 +157,7 @@ static void dlpar_pci_add_bus(struct device_node *dn)
->  	}
->  
->  	/* Scan below the new bridge */
-> -	if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
-> -	    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
-> +	if (pci_is_bridge(dev))
->  		of_scan_pci_bridge(dev);
->  
->  	/* Map IO space for child bus, which may or may not succeed */
+The changes are done on top of the previous sent sparse warning cleanup.
+But I do not expect any difficult conflicts if applied alone.
 
+leon_pci + pcic are touched because they had local
+and identical implementations of functiones that are
+static inline in asm-generic/io.h
 
+leon_pci_grpci1 + leon_pci_grpci2 are touched becuse they
+used a sparc spacific implmentation of swab32.
+They have just been changed to use the global variant.
+
+I also looked at sparc64 - but there were to many
+sparc64 assembler implementations of the io
+functons - and the generic io.h did not support this mix.
+
+The last patch kills a few defines in io.h for sbus.
+I assume they were introduced before the functions
+were all shifted over to __iomem style pointers.
+The same could be done for sparc64 - but then
+there were even more of the same so I left
+this for another time.
+
+The patch-set has been build tested only.
+My attempts to test this using qemu have failed as
+the qemu version I have errors out.
+And my fedora box are mssing some libs to build
+qemu from source :-(
+
+	Sam
+
+Sam Ravnborg (4):
+      sparc: move page_to_phys to page.h
+      sparc32: replace flip_dword() with swab32()
+      sparc32: introduce asm-generic/io.h
+      sparc32: clean up io_32.h
+
+ arch/sparc/include/asm/io_32.h      | 287 ++++++------------------------------
+ arch/sparc/include/asm/io_64.h      |   1 -
+ arch/sparc/include/asm/page.h       |   3 +
+ arch/sparc/kernel/leon_pci.c        |  79 ----------
+ arch/sparc/kernel/leon_pci_grpci1.c |   4 +-
+ arch/sparc/kernel/leon_pci_grpci2.c |   4 +-
+ arch/sparc/kernel/pcic.c            |  80 +---------
+ arch/sparc/lib/Makefile             |   2 +-
+ 8 files changed, 57 insertions(+), 403 deletions(-)
