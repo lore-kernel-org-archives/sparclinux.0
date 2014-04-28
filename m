@@ -1,45 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 21 Apr 2014 18:27:35 +0000
-Subject: Re: [PATCH 24/24] sparc32: fix sparse warnings in leon_smp.c
-Message-Id: <20140421.142735.54191236397615349.davem@davemloft.net>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Mon, 28 Apr 2014 07:47:30 +0000
+Subject: [patch added to the 3.12 stable tree] sparc64: don't treat 64-bit syscall return codes as 32-bit
+Message-Id: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398100356-19794-24-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1398100356-19794-24-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:56:10 +0200
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-> On Mon, Apr 21, 2014 at 01:32:06PM -0400, David Miller wrote:
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Mon, 21 Apr 2014 19:12:36 +0200
->> 
->> > -void leon_cpu_pre_starting(void *arg);
->> > -void leon_cpu_pre_online(void *arg);
->> > +extern void leon_cpu_pre_starting(void *arg);
->> > +extern void leon_cpu_pre_online(void *arg);
->> > +extern void leonsmp_ipi_interrupt(void);
->> > +extern void leon_cross_call_irq(void);
->> 
->> For header files, we are moving away from specifying extern for external
->> function declarations.
->> 
->> In the networking, we've made this transformation in all of our headers
->> already, for example.
-> I have missed that.
-> 
->> 
->> So if anything, you should be changing things to other way around.
-> I prefer to send follow-up patches that fixes this for all of sparc,
-> but I can also redo the serie if you prefer.
-> You will still have follow-up patches to fix the existing
-> extern-for-prototypes users.
+This patch has been added to the 3.12 stable tree. If you have any
+objections, please let us know.
 
-I would be fine if you just removed the extern adding parts in this patch
-series and resubmitted.
+=======
+[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
 
-Doing the arch/sparc wide extern removal could certainly be a future
-set of changes, and don't have to be done now.
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ arch/sparc/kernel/syscalls.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index d950197a17e1..6dee79575791 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -189,7 +189,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
+ 
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -217,7 +218,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
+ 
+-- 
+1.9.2
+
