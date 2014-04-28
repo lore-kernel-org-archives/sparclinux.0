@@ -1,58 +1,56 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:40 +0000
-Subject: [PATCH 25/29] sparc32: fix sparse warnings in leon_kernel.c
-Message-Id: <1398109184-3283-25-git-send-email-sam@ravnborg.org>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Mon, 28 Apr 2014 01:11:21 +0000
+Subject: [PATCH 3.2 17/94] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
+Message-Id: <lsq.1398647481.595997505@decadent.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <lsq.1398647481.453080089@decadent.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Fix following warnings:
-leon_kernel.c:40:15: warning: symbol 'leon3_gptimer_idx' was not declared. Should it be static?
-leon_kernel.c:68:6: warning: symbol 'leon_eirq_setup' was not declared. Should it be static?
-leon_kernel.c:273:13: warning: symbol 'leon_percpu_timer_ce_interrupt' was not declared. Should it be static?
+3.2.58-rc1 review patch.  If anyone has any objections, please let me know.
 
-Define symbols as static.
+------------------
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Daniel Hellstrom <daniel@gaisler.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
+
+This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+
+This commit broke the behavior of __copy_from_user_inatomic when
+it is only partially successful. Instead of returning the number
+of bytes not copied, it now returns 1. This translates to the
+wrong value being returned by iov_iter_copy_from_user_atomic.
+
+xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
+because of this.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/sparc/kernel/leon_kernel.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index b9a2599..d939708 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -36,8 +36,8 @@ static volatile unsigned int dummy_master_l10_counter;
- unsigned long amba_system_id;
- static DEFINE_SPINLOCK(leon_irq_lock);
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index 3e1449f..6d6c731 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -267,8 +267,8 @@ extern long __strnlen_user(const char __user *, long len);
  
-+static unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
- unsigned long leon3_gptimer_irq; /* interrupt controller irq number */
--unsigned long leon3_gptimer_idx; /* Timer Index (0..6) within Timer Core */
- unsigned int sparc_leon_eirq;
- #define LEON_IMASK(cpu) (&leon3_irqctrl_regs->mask[cpu])
- #define LEON_IACK (&leon3_irqctrl_regs->iclear)
-@@ -65,7 +65,7 @@ static void leon_handle_ext_irq(unsigned int irq, struct irq_desc *desc)
- }
+ #define strlen_user __strlen_user
+ #define strnlen_user __strnlen_user
+-#define __copy_to_user_inatomic ___copy_to_user
+-#define __copy_from_user_inatomic ___copy_from_user
++#define __copy_to_user_inatomic __copy_to_user
++#define __copy_from_user_inatomic __copy_from_user
  
- /* The extended IRQ controller has been found, this function registers it */
--void leon_eirq_setup(unsigned int eirq)
-+static void leon_eirq_setup(unsigned int eirq)
- {
- 	unsigned long mask, oldmask;
- 	unsigned int veirq;
-@@ -270,7 +270,7 @@ static u32 leon_cycles_offset(void)
- #ifdef CONFIG_SMP
+ #endif  /* __ASSEMBLY__ */
  
- /* smp clockevent irq */
--irqreturn_t leon_percpu_timer_ce_interrupt(int irq, void *unused)
-+static irqreturn_t leon_percpu_timer_ce_interrupt(int irq, void *unused)
- {
- 	struct clock_event_device *ce;
- 	int cpu = smp_processor_id();
--- 
-1.8.3.1
 
