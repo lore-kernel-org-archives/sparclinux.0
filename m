@@ -1,101 +1,61 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:26 +0000
-Subject: [PATCH 11/29] sparc32: fix sparse warnings in signal_32.c
-Message-Id: <1398109184-3283-11-git-send-email-sam@ravnborg.org>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Mon, 28 Apr 2014 01:11:21 +0000
+Subject: [PATCH 3.2 19/94] sparc64: don't treat 64-bit syscall return codes as  32-bit
+Message-Id: <lsq.1398647481.803107968@decadent.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <lsq.1398647481.453080089@decadent.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, "David S. Miller" <davem@davemloft.net>, Allen Pais <allen.pais@oracle.com>, Bob Picco <bob.picco@oracle.com>
 
-Fix following warnings:
-signal_32.c:62:17: warning: symbol 'do_sigreturn' was not declared. Should it be static?
-signal_32.c:126:17: warning: symbol 'do_rt_sigreturn' was not declared. Should it be static?
-signal_32.c:344:39: warning: incorrect type in initializer (different address spaces)
-signal_32.c:344:39:    expected struct __siginfo_fpu_t [usertype] *fp
-signal_32.c:344:39:    got void [noderef] <asn:1>*[assigned] tail
-signal_32.c:346:45: warning: incorrect type in argument 2 (different address spaces)
-signal_32.c:346:45:    expected struct __siginfo_fpu_t [noderef] [usertype] <asn:1>*fpu
-signal_32.c:346:45:    got struct __siginfo_fpu_t [usertype] *fp
-signal_32.c:352:41: warning: incorrect type in initializer (different address spaces)
-signal_32.c:352:41:    expected struct __siginfo_rwin_t [usertype] *rwp
-signal_32.c:352:41:    got void [noderef] <asn:1>*[assigned] tail
-signal_32.c:354:48: warning: incorrect type in argument 2 (different address spaces)
-signal_32.c:354:48:    expected struct __siginfo_rwin_t [noderef] [usertype] <asn:1>*rwin
-signal_32.c:354:48:    got struct __siginfo_rwin_t [usertype] *rwp
-signal_32.c:509:6: warning: symbol 'do_notify_resume' was not declared. Should it be static?
-signal_32.c:520:16: warning: symbol 'do_sys_sigstack' was not declared. Should it be static?
+3.2.58-rc1 review patch.  If anyone has any objections, please let me know.
 
-Add missing prototypes and annotate two variables with __user.
+------------------
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 1535bd8adbdedd60a0ee62e28fd5225d66434371 ]
+
+When checking a system call return code for an error,
+linux_sparc_syscall was sign-extending the lower 32-bit value and
+comparing it to -ERESTART_RESTARTBLOCK. lseek can return valid return
+codes whose lower 32-bits alone would indicate a failure (such as 4G-1).
+Use the whole 64-bit value to check for errors. Only the 32-bit path
+should sign extend the lower 32-bit value.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Allen Pais <allen.pais@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/sparc/kernel/kernel.h    |  8 ++++++++
- arch/sparc/kernel/signal_32.c | 11 ++++++-----
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/syscalls.S | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index a922753..b293265 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -101,6 +101,14 @@ asmlinkage int sparc_do_fork(unsigned long clone_flags,
-                              struct pt_regs *regs,
-                              unsigned long stack_size);
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index 817187d..557212c 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -184,7 +184,8 @@ linux_sparc_syscall32:
+ 	 mov	%i0, %l5				! IEU1
+ 5:	call	%l7					! CTI	Group brk forced
+ 	 srl	%i5, 0, %o5				! IEU1
+-	ba,a,pt	%xcc, 3f
++	ba,pt	%xcc, 3f
++	 sra	%o0, 0, %o0
  
-+/* signal_32.c */
-+asmlinkage void do_sigreturn(struct pt_regs *regs);
-+asmlinkage void do_rt_sigreturn(struct pt_regs *regs);
-+void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
-+                      unsigned long thread_info_flags);
-+asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-+                               struct sigstack __user *ossptr,
-+                               unsigned long sp);
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
-index 7d5d8e1..9ee72fc 100644
---- a/arch/sparc/kernel/signal_32.c
-+++ b/arch/sparc/kernel/signal_32.c
-@@ -28,6 +28,7 @@
- #include <asm/switch_to.h>
+ 	/* Linux native system calls enter here... */
+ 	.align	32
+@@ -212,7 +213,6 @@ linux_sparc_syscall:
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+-	sra	%o0, 0, %o0
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
  
- #include "sigutil.h"
-+#include "kernel.h"
- 
- extern void fpsave(unsigned long *fpregs, unsigned long *fsr,
- 		   void *fpqueue, unsigned long *fpqdepth);
-@@ -341,7 +342,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
- 	err |= __put_user(0, &sf->extra_size);
- 
- 	if (psr & PSR_EF) {
--		__siginfo_fpu_t *fp = tail;
-+		__siginfo_fpu_t __user *fp = tail;
- 		tail += sizeof(*fp);
- 		err |= save_fpu_state(regs, fp);
- 		err |= __put_user(fp, &sf->fpu_save);
-@@ -349,7 +350,7 @@ static int setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs,
- 		err |= __put_user(0, &sf->fpu_save);
- 	}
- 	if (wsaved) {
--		__siginfo_rwin_t *rwp = tail;
-+		__siginfo_rwin_t __user *rwp = tail;
- 		tail += sizeof(*rwp);
- 		err |= save_rwin_state(wsaved, rwp);
- 		err |= __put_user(rwp, &sf->rwin_save);
-@@ -517,9 +518,9 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
- 	}
- }
- 
--asmlinkage int
--do_sys_sigstack(struct sigstack __user *ssptr, struct sigstack __user *ossptr,
--		unsigned long sp)
-+asmlinkage int do_sys_sigstack(struct sigstack __user *ssptr,
-+                               struct sigstack __user *ossptr,
-+                               unsigned long sp)
- {
- 	int ret = -EFAULT;
- 
--- 
-1.8.3.1
 
