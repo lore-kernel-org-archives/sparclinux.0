@@ -1,8 +1,10 @@
 From: Jiri Slaby <jslaby@suse.cz>
-Date: Mon, 28 Apr 2014 07:47:30 +0000
+Date: Mon, 28 Apr 2014 07:47:37 +0000
 Subject: [patch added to the 3.12 stable tree] sparc64: don't treat 64-bit syscall return codes as 32-bit
-Message-Id: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
+Message-Id: <1398671260-9435-57-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
