@@ -1,93 +1,108 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 22 Apr 2014 15:17:27 +0000
-Subject: [PATCH 3/4 v3] sparc64, nmi: Add more flexible NMI back trace support
-Message-Id: <1398179848-197479-4-git-send-email-dzickus@redhat.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 30 Apr 2014 21:54:47 +0000
+Subject: [PATCH 02/10] sparc64: Fix huge PMD invalidation.
+Message-Id: <20140430.175447.2152319967554072316.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
-In-Reply-To: <1398179848-197479-1-git-send-email-dzickus@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: akpm@linux-foundation.org, x86@kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, mguzik@redhat.com, Aaron Tomlin <atomlin@redhat.com>, Don Zickus <dzickus@redhat.com>
+To: sparclinux@vger.kernel.org
 
-From: Aaron Tomlin <atomlin@redhat.com>
 
-This patch introduces the sparc specific implementation
-changes to the arch_trigger_all_cpu_backtrace() routine.
-Now users have the ability to choose whether or not to
-issue an NMI back trace which includes current.
+On sparc64 "present" and "valid" are seperate PTE bits, this allows us to
+naturally distinguish between the user explicitly asking for PROT_NONE
+with mprotect() and other situations.
 
-Update sysrq_handle_globreg() to use the new interface
+However we weren't handling this properly in the huge PMD paths.
 
-[squash two sparc patches, update changelog - dcz]
+First of all, the page table walker in the TSB miss path only checks
+for _PAGE_PMD_HUGE.  So the generic pmdp_invalidate() would clear
+_PAGE_PRESENT but the TLB miss paths would still load it into the TLB
+as a valid huge PMD.
 
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
+Fix this by clearing the valid bit in pmdp_invalidate(), and also
+checking the valid bit in USER_PGTABLE_CHECK_PMD_HUGE using "brgez"
+since _PAGE_VALID is bit 63 in both the sun4u and sun4v pte layouts.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/irq_64.h |    2 +-
- arch/sparc/kernel/process_64.c  |   14 +++++++++-----
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 18 ++++--------------
+ arch/sparc/include/asm/tsb.h        |  3 ++-
+ arch/sparc/mm/tlb.c                 | 11 +++++++++++
+ 3 files changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
-index abf6afe..4f072b9 100644
---- a/arch/sparc/include/asm/irq_64.h
-+++ b/arch/sparc/include/asm/irq_64.h
-@@ -89,7 +89,7 @@ static inline unsigned long get_softint(void)
- 	return retval;
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 0f9e945..e3db4b8 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -719,20 +719,6 @@ static inline pmd_t pmd_mkwrite(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
  }
  
--void arch_trigger_all_cpu_backtrace(void);
-+void arch_trigger_all_cpu_backtrace(bool);
- #define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
+-static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+-{
+-	unsigned long mask;
+-
+-	if (tlb_type = hypervisor)
+-		mask = _PAGE_PRESENT_4V;
+-	else
+-		mask = _PAGE_PRESENT_4U;
+-
+-	pmd_val(pmd) &= ~mask;
+-
+-	return pmd;
+-}
+-
+ static inline pmd_t pmd_mksplitting(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -893,6 +879,10 @@ extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
+ extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 				 pmd_t *pmd);
  
- extern void *hardirq_stack[NR_CPUS];
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 32a280e..3d61b98 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -237,7 +237,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
++#define __HAVE_ARCH_PMDP_INVALIDATE
++extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++			    pmd_t *pmdp);
++
+ #define __HAVE_ARCH_PGTABLE_DEPOSIT
+ extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				       pgtable_t pgtable);
+diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
+index 2230f80..90916f9 100644
+--- a/arch/sparc/include/asm/tsb.h
++++ b/arch/sparc/include/asm/tsb.h
+@@ -171,7 +171,8 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	andcc		REG1, REG2, %g0;		\
+ 	be,pt		%xcc, 700f;			\
+ 	 sethi		%hi(4 * 1024 * 1024), REG2;	\
+-	andn		REG1, REG2, REG1;		\
++	brgez,pn	REG1, FAIL_LABEL;		\
++	 andn		REG1, REG2, REG1;		\
+ 	and		VADDR, REG2, REG2;		\
+ 	brlz,pt		REG1, PTE_LABEL;		\
+ 	 or		REG1, REG2, REG1;		\
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index c07667f..b89aba2 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -193,6 +193,17 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
  	}
  }
  
--void arch_trigger_all_cpu_backtrace(void)
-+void arch_trigger_all_cpu_backtrace(bool include_self)
- {
- 	struct thread_info *tp = current_thread_info();
- 	struct pt_regs *regs = get_irq_regs();
-@@ -249,15 +249,19 @@ void arch_trigger_all_cpu_backtrace(void)
- 
- 	spin_lock_irqsave(&global_cpu_snapshot_lock, flags);
- 
--	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
--
- 	this_cpu = raw_smp_processor_id();
- 
--	__global_reg_self(tp, regs, this_cpu);
-+	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
++void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++		     pmd_t *pmdp)
++{
++	pmd_t entry = *pmdp;
 +
-+	if (include_self)
-+		__global_reg_self(tp, regs, this_cpu);
- 
- 	smp_fetch_global_regs();
- 
- 	for_each_online_cpu(cpu) {
-+		if (!include_self && cpu = this_cpu)
-+			continue;
++	pmd_val(entry) &= ~_PAGE_VALID;
 +
- 		struct global_reg_snapshot *gp = &global_cpu_snapshot[cpu].reg;
- 
- 		__global_reg_poll(gp);
-@@ -290,7 +294,7 @@ void arch_trigger_all_cpu_backtrace(void)
- 
- static void sysrq_handle_globreg(int key)
++	set_pmd_at(vma->vm_mm, address, pmdp, entry);
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++}
++
+ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ 				pgtable_t pgtable)
  {
--	arch_trigger_all_cpu_backtrace();
-+	arch_trigger_all_cpu_backtrace(true);
- }
- 
- static struct sysrq_key_op sparc_globalreg_op = {
 -- 
-1.7.1
+1.8.1.2
 
