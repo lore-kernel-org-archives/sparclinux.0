@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Apr 2014 21:54:55 +0000
-Subject: [PATCH 03/10] sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
-Message-Id: <20140430.175455.1304476354319716462.davem@davemloft.net>
+Date: Wed, 30 Apr 2014 21:55:21 +0000
+Subject: [PATCH 06/10] sparc64: Handle 32-bit tasks properly in compute_effective_address().
+Message-Id: <20140430.175521.2009812810930274468.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,46 +9,45 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-The large PMD path needs to check _PAGE_VALID not _PAGE_PRESENT, to
-decide if it needs to bail and return 0.
-
-pmd_large() should therefore just check _PAGE_PMD_HUGE.
-
-Calls to gup_huge_pmd() are guarded with a check of pmd_large(), so we
-just need to add a valid bit check.
+If we have a 32-bit task we must chop off the top 32-bits of the
+64-bit value just as the cpu would.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/pgtable_64.h | 2 +-
- arch/sparc/mm/gup.c                 | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/unaligned_64.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index e3db4b8..1f28103 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -633,7 +633,7 @@ static inline unsigned long pmd_large(pmd_t pmd)
+diff --git a/arch/sparc/kernel/unaligned_64.c b/arch/sparc/kernel/unaligned_64.c
+index 3c1a7cb..35ab8b6 100644
+--- a/arch/sparc/kernel/unaligned_64.c
++++ b/arch/sparc/kernel/unaligned_64.c
+@@ -166,17 +166,23 @@ static unsigned long *fetch_reg_addr(unsigned int reg, struct pt_regs *regs)
+ unsigned long compute_effective_address(struct pt_regs *regs,
+ 					unsigned int insn, unsigned int rd)
  {
- 	pte_t pte = __pte(pmd_val(pmd));
++	int from_kernel = (regs->tstate & TSTATE_PRIV) != 0;
+ 	unsigned int rs1 = (insn >> 14) & 0x1f;
+ 	unsigned int rs2 = insn & 0x1f;
+-	int from_kernel = (regs->tstate & TSTATE_PRIV) != 0;
++	unsigned long addr;
  
--	return (pte_val(pte) & _PAGE_PMD_HUGE) && pte_present(pte);
-+	return pte_val(pte) & _PAGE_PMD_HUGE;
+ 	if (insn & 0x2000) {
+ 		maybe_flush_windows(rs1, 0, rd, from_kernel);
+-		return (fetch_reg(rs1, regs) + sign_extend_imm13(insn));
++		addr = (fetch_reg(rs1, regs) + sign_extend_imm13(insn));
+ 	} else {
+ 		maybe_flush_windows(rs1, rs2, rd, from_kernel);
+-		return (fetch_reg(rs1, regs) + fetch_reg(rs2, regs));
++		addr = (fetch_reg(rs1, regs) + fetch_reg(rs2, regs));
+ 	}
++
++	if (!from_kernel && test_thread_flag(TIF_32BIT))
++		addr &= 0xffffffff;
++
++	return addr;
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index c4d3da6..1aed043 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -73,7 +73,7 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
- 	struct page *head, *page, *tail;
- 	int refs;
- 
--	if (!pmd_large(pmd))
-+	if (!(pmd_val(pmd) & _PAGE_VALID))
- 		return 0;
- 
- 	if (write && !pmd_write(pmd))
+ /* This is just to make gcc think die_if_kernel does return... */
 -- 
 1.8.1.2
 
