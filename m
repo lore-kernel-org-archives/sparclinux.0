@@ -1,71 +1,151 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Wed, 30 Apr 2014 16:29:52 +0000
-Subject: Re: [PATCH 00/13] Refactor pci_is_brdige() to simplify code
-Message-Id: <CAErSpo4fa=fmajhxGA7PRm42S1fS2wV_7w+EWaVh_qiawRAQxA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 30 Apr 2014 21:55:38 +0000
+Subject: [PATCH 07/10] sparc64: Fix top-level fault handling bugs.
+Message-Id: <20140430.175538.1736831666738622015.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yijing Wang <wangyijing@huawei.com>
-Cc: Tony Luck <tony.luck@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Fri, Apr 25, 2014 at 3:18 AM, Yijing Wang <wangyijing@huawei.com> wrote:
-> This patchset rename the current pci_is_bridge() to pci_has_subordinate(),
-> and introduce a new pci_is_bridge() which determine pci bridge by check
-> dev->hdr_type. The new one is more accurate. PCIe Spec define the pci
-> device is a bridge by the dev->hdr_type = 0x01 || 0x02.
 
-This needs to be posted to the linux-pci list.  The fact that it
-wasn't means it's not in patchwork, so it's not on my to-do list.
+Make get_user_insn() able to cope with huge PMDs.
 
-Currently we have one interface: pci_is_bridge().
+Next, make do_fault_siginfo() more robust when get_user_insn() can't
+actually fetch the instruction.  In particular, use the MMU announced
+fault address when that happens, instead of calling
+compute_effective_address() and computing garbage.
 
-After your series, we would have two interfaces: pci_is_bridge() and
-pci_has_subordinate().  Presumably, both are used, and you should
-explain how you decided which to use at each place.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/fault_64.c | 75 ++++++++++++++++++++++++++++++------------------
+ 1 file changed, 47 insertions(+), 28 deletions(-)
 
-I assume the difference is that the old pci_is_bridge() is true for a
-bridge that has a subordinate bus.  The new pci_is_bridge() is true
-for any bridge, even if there is no subordinate bus.  When do we even
-have a bridge with no subordinate bus?  This is the sort of stuff you
-need to explain so we know why we should apply these patches.
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 69bb818..cf0d05d 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -96,38 +96,48 @@ static unsigned int get_user_insn(unsigned long tpc)
+ 	pte_t *ptep, pte;
+ 	unsigned long pa;
+ 	u32 insn = 0;
+-	unsigned long pstate;
+ 
+ 	if (pgd_none(*pgdp))
+-		goto outret;
++		goto out;
+ 	pudp = pud_offset(pgdp, tpc);
+ 	if (pud_none(*pudp))
+-		goto outret;
+-	pmdp = pmd_offset(pudp, tpc);
+-	if (pmd_none(*pmdp))
+-		goto outret;
++		goto out;
+ 
+ 	/* This disables preemption for us as well. */
+-	__asm__ __volatile__("rdpr %%pstate, %0" : "=r" (pstate));
+-	__asm__ __volatile__("wrpr %0, %1, %%pstate"
+-				: : "r" (pstate), "i" (PSTATE_IE));
+-	ptep = pte_offset_map(pmdp, tpc);
+-	pte = *ptep;
+-	if (!pte_present(pte))
+-		goto out;
++	local_irq_disable();
++
++	pmdp = pmd_offset(pudp, tpc);
++	if (pmd_none(*pmdp))
++		goto out_irq_enable;
+ 
+-	pa  = (pte_pfn(pte) << PAGE_SHIFT);
+-	pa += (tpc & ~PAGE_MASK);
++	if (pmd_trans_huge(*pmdp)) {
++		if (pmd_trans_splitting(*pmdp))
++			goto out_irq_enable;
+ 
+-	/* Use phys bypass so we don't pollute dtlb/dcache. */
+-	__asm__ __volatile__("lduwa [%1] %2, %0"
+-			     : "=r" (insn)
+-			     : "r" (pa), "i" (ASI_PHYS_USE_EC));
++		pa  = pmd_pfn(*pmdp) << PAGE_SHIFT;
++		pa += tpc & ~HPAGE_MASK;
+ 
++		/* Use phys bypass so we don't pollute dtlb/dcache. */
++		__asm__ __volatile__("lduwa [%1] %2, %0"
++				     : "=r" (insn)
++				     : "r" (pa), "i" (ASI_PHYS_USE_EC));
++	} else {
++		ptep = pte_offset_map(pmdp, tpc);
++		pte = *ptep;
++		if (pte_present(pte)) {
++			pa  = (pte_pfn(pte) << PAGE_SHIFT);
++			pa += (tpc & ~PAGE_MASK);
++
++			/* Use phys bypass so we don't pollute dtlb/dcache. */
++			__asm__ __volatile__("lduwa [%1] %2, %0"
++					     : "=r" (insn)
++					     : "r" (pa), "i" (ASI_PHYS_USE_EC));
++		}
++		pte_unmap(ptep);
++	}
++out_irq_enable:
++	local_irq_enable();
+ out:
+-	pte_unmap(ptep);
+-	__asm__ __volatile__("wrpr %0, 0x0, %%pstate" : : "r" (pstate));
+-outret:
+ 	return insn;
+ }
+ 
+@@ -153,7 +163,8 @@ show_signal_msg(struct pt_regs *regs, int sig, int code,
+ }
+ 
+ static void do_fault_siginfo(int code, int sig, struct pt_regs *regs,
+-			     unsigned int insn, int fault_code)
++			     unsigned long fault_addr, unsigned int insn,
++			     int fault_code)
+ {
+ 	unsigned long addr;
+ 	siginfo_t info;
+@@ -161,10 +172,18 @@ static void do_fault_siginfo(int code, int sig, struct pt_regs *regs,
+ 	info.si_code = code;
+ 	info.si_signo = sig;
+ 	info.si_errno = 0;
+-	if (fault_code & FAULT_CODE_ITLB)
++	if (fault_code & FAULT_CODE_ITLB) {
+ 		addr = regs->tpc;
+-	else
+-		addr = compute_effective_address(regs, insn, 0);
++	} else {
++		/* If we were able to probe the faulting instruction, use it
++		 * to compute a precise fault address.  Otherwise use the fault
++		 * time provided address which may only have page granularity.
++		 */
++		if (insn)
++			addr = compute_effective_address(regs, insn, 0);
++		else
++			addr = fault_addr;
++	}
+ 	info.si_addr = (void __user *) addr;
+ 	info.si_trapno = 0;
+ 
+@@ -239,7 +258,7 @@ static void __kprobes do_kernel_fault(struct pt_regs *regs, int si_code,
+ 		/* The si_code was set to make clear whether
+ 		 * this was a SEGV_MAPERR or SEGV_ACCERR fault.
+ 		 */
+-		do_fault_siginfo(si_code, SIGSEGV, regs, insn, fault_code);
++		do_fault_siginfo(si_code, SIGSEGV, regs, address, insn, fault_code);
+ 		return;
+ 	}
+ 
+@@ -525,7 +544,7 @@ do_sigbus:
+ 	 * Send a sigbus, regardless of whether we were in kernel
+ 	 * or user mode.
+ 	 */
+-	do_fault_siginfo(BUS_ADRERR, SIGBUS, regs, insn, fault_code);
++	do_fault_siginfo(BUS_ADRERR, SIGBUS, regs, address, insn, fault_code);
+ 
+ 	/* Kernel mode? Handle exceptions or die */
+ 	if (regs->tstate & TSTATE_PRIV)
+-- 
+1.8.1.2
 
-Bjorn
-
-> Yijing Wang (13):
->   PCI: rename pci_is_bridge() to pci_has_subordinate()
->   PCI: Introduce new pci_is_bridge() helper function
->   PCI: Use new pci_is_bridge() to simplify code
->   x86/PCI: Use new pci_is_bridge() to simplify code
->   IA64/PCI: Use new pci_is_bridge() to simplify code
->   powerpc/PCI: Use new pci_is_bridge() to simplify code
->   sparc/PCI: Use new pci_is_bridge() to simplify code
->   PCI, rpaphp: Use new pci_is_bridge() to simplify code
->   PCI, shpchp: Use new pci_is_bridge() to simplify code
->   PCI, cpcihp: Use new pci_is_bridge() to simplify code
->   PCI, acpiphp: Use new pci_is_bridge() to simplify code
->   PCI, pcmcia: Use new pci_is_bridge() to simplify code
->   PCI, pciehp: Use new pci_is_bridge() to simplify code
->
->  arch/ia64/pci/fixup.c                  |    4 +---
->  arch/powerpc/kernel/pci-hotplug.c      |    3 +--
->  arch/powerpc/kernel/pci_of_scan.c      |    3 +--
->  arch/sparc/kernel/pci.c                |    3 +--
->  arch/x86/pci/fixup.c                   |    4 +---
->  drivers/pci/hotplug/acpiphp_glue.c     |    3 +--
->  drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
->  drivers/pci/hotplug/pciehp_pci.c       |    3 +--
->  drivers/pci/hotplug/rpadlpar_core.c    |    3 +--
->  drivers/pci/hotplug/shpchp_pci.c       |    3 +--
->  drivers/pci/pci-acpi.c                 |    8 +-------
->  drivers/pci/pci-driver.c               |    8 ++++----
->  drivers/pci/pci.h                      |    2 +-
->  drivers/pci/probe.c                    |    3 +--
->  drivers/pci/setup-bus.c                |    4 +---
->  drivers/pcmcia/cardbus.c               |    3 +--
->  include/linux/pci.h                    |    6 ++++++
->  17 files changed, 25 insertions(+), 41 deletions(-)
->
->
