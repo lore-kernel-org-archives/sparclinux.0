@@ -1,56 +1,48 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Thu, 24 Apr 2014 21:55:52 +0000
-Subject: [PATCH 3.4 18/27] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <20140424215552.516725450@linuxfoundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 30 Apr 2014 21:56:05 +0000
+Subject: [PATCH 10/10] sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR().
+Message-Id: <20140430.175605.387378887277685875.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140424215551.942390050@linuxfoundation.org>
-In-Reply-To: <20140424215551.942390050@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Hugh Dickins <hughd@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-3.4-stable review patch.  If anyone has any objections, please let me know.
 
-------------------
+pte_ERROR() is not used anywhere, delete it.
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
+For pgd_ERROR() and pmd_ERROR(), output something similar to x86, giving the address
+of the pgd/pmd as well as it's value.
 
-[ Upstream commit 16932237f2978a2265662f8de4af743b1f55a209 ]
+Also provide the caller, since these macros are invoked from pgd_clear_bad() and
+pmd_clear_bad() which provides little context as to what high level operation was
+occuring when the BAD state was detected.
 
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
-
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
-
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/include/asm/uaccess_64.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -266,8 +266,8 @@ extern long __strnlen_user(const char __
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index fd4dbdd..aafa0f0 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -96,9 +96,12 @@ static inline bool kern_addr_valid(unsigned long addr)
+ /* Kernel has a separate 44bit address space. */
+ #define FIRST_USER_ADDRESS	0
  
- #define strlen_user __strlen_user
- #define strnlen_user __strnlen_user
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
+-#define pte_ERROR(e)	__builtin_trap()
+-#define pmd_ERROR(e)	__builtin_trap()
+-#define pgd_ERROR(e)	__builtin_trap()
++#define pmd_ERROR(e)							\
++	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
++	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
++#define pgd_ERROR(e)							\
++	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
++	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
  
- #endif  /* __ASSEMBLY__ */
+ #endif /* !(__ASSEMBLY__) */
  
-
+-- 
+1.8.1.2
 
