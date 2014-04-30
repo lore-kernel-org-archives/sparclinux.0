@@ -1,95 +1,110 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 22 Apr 2014 21:27:18 +0000
-Subject: Re: linux-next: build failure after merge of the audit tree
-Message-Id: <20140423072718.56b31d2afcd65c7b210a1d77@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp"
+From: David Miller <davem@davemloft.net>
+Date: Wed, 30 Apr 2014 21:55:56 +0000
+Subject: [PATCH 09/10] sparc64: Add basic validations to {pud,pmd}_bad().
+Message-Id: <20140430.175556.65359624693463383.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140422162207.55e3d9f09244de281b9798cc@canb.auug.org.au>
-	<1398184360.2596.7.camel@flatline.rdu.redhat.com>
-In-Reply-To: <1398184360.2596.7.camel@flatline.rdu.redhat.com>
-To: Eric Paris <eparis@redhat.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Richard Briggs <rgb@redhat.com>, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
---Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Eric,
+Instead of returning false we should at least check the most basic
+things, otherwise page table corruptions will be very difficult to
+debug.
 
-On Tue, 22 Apr 2014 12:32:40 -0400 Eric Paris <eparis@redhat.com> wrote:
->
-> I swear I saw this and I fixed it.  Drat.  Do we want to do it this way?
-> Above in syscall_get_arguments() they use
->=20
-> #ifdef CONFIG_SPARC64
->         if (test_tsk_thread_flag(task, TIF_32BIT))
->                 zero_extend =3D 1;
-> #endif
->=20
-> Is CONFIG_SPARC64 a better choice than:
->    defined(__sparc__) && defined(__arch64__)
+PMD and PTE tables are of size PAGE_SIZE, so none of the sub-PAGE_SIZE
+bits should be set.
 
-I have no idea, I just copied the test from thread_info.h.
+We also complement this with a check that the physical address the
+pud/pmd points to is valid memory.
 
-> Maybe even better would be to copy what you suggested in powerpc:
+PowerPC was used as a guide while implementating this.
 
-That would be better, except ...
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/pgtable_64.h | 46 +++++++++++++++++++++++++------------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-> diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/sy=
-scall.h
-> index fed3d51..49f71fd 100644
-> --- a/arch/sparc/include/asm/syscall.h
-> +++ b/arch/sparc/include/asm/syscall.h
-> @@ -128,8 +128,7 @@ static inline void syscall_set_arguments(struct task_=
-struct *task,
-> =20
->  static inline int syscall_get_arch(void)
->  {
-> -	return test_thread_flag(TIF_32BIT) ? AUDIT_ARCH_SPARC
-> -					   : AUDIT_ARCH_SPARC64;
-> +	return is_32bit_task() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
->  }
-> =20
->  #endif /* __ASM_SPARC_SYSCALL_H */
-> diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include=
-/asm/thread_info_32.h
-> index 96efa7a..acd2be0 100644
-> --- a/arch/sparc/include/asm/thread_info_32.h
-> +++ b/arch/sparc/include/asm/thread_info_32.h
-> @@ -130,6 +130,8 @@ register struct thread_info *current_thread_info_reg =
-asm("g6");
->  #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
->  					 _TIF_SIGPENDING)
-> =20
-> +#define is_32bit_task()	(0)
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index ff97960..fd4dbdd 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -71,6 +71,23 @@
+ 
+ #include <linux/sched.h>
+ 
++extern unsigned long sparc64_valid_addr_bitmap[];
++
++/* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
++static inline bool __kern_addr_valid(unsigned long paddr)
++{
++	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
++		return false;
++	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
++}
++
++static inline bool kern_addr_valid(unsigned long addr)
++{
++	unsigned long paddr = __pa(addr);
++
++	return __kern_addr_valid(paddr);
++}
++
+ /* Entries per page directory level. */
+ #define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-3))
+ #define PTRS_PER_PMD	(1UL << PMD_BITS)
+@@ -743,6 +760,20 @@ static inline int pmd_present(pmd_t pmd)
+ 
+ #define pmd_none(pmd)			(!pmd_val(pmd))
+ 
++/* pmd_bad() is only called on non-trans-huge PMDs.  Our encoding is
++ * very simple, it's just the physical address.  PTE tables are of
++ * size PAGE_SIZE so make sure the sub-PAGE_SIZE bits are clear and
++ * the top bits outside of the range of any physical address size we
++ * support are clear as well.  We also validate the physical itself.
++ */
++#define pmd_bad(pmd)			((pmd_val(pmd) & ~PAGE_MASK) || \
++					 !__kern_addr_valid(pmd_val(pmd)))
++
++#define pud_none(pud)			(!pud_val(pud))
++
++#define pud_bad(pud)			((pud_val(pud) & ~PAGE_MASK) || \
++					 !__kern_addr_valid(pud_val(pud)))
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		       pmd_t *pmdp, pmd_t pmd);
+@@ -776,10 +807,7 @@ static inline unsigned long __pmd_page(pmd_t pmd)
+ #define pud_page_vaddr(pud)		\
+ 	((unsigned long) __va(pud_val(pud)))
+ #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+-#define pmd_bad(pmd)			(0)
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+-#define pud_none(pud)			(!pud_val(pud))
+-#define pud_bad(pud)			(0)
+ #define pud_present(pud)		(pud_val(pud) != 0U)
+ #define pud_clear(pudp)			(pud_val(*(pudp)) = 0UL)
+ 
+@@ -909,18 +937,6 @@ extern unsigned long pte_file(pte_t);
+ extern pte_t pgoff_to_pte(unsigned long);
+ #define PTE_FILE_MAX_BITS	(64UL - PAGE_SHIFT - 1UL)
+ 
+-extern unsigned long sparc64_valid_addr_bitmap[];
+-
+-/* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
+-static inline bool kern_addr_valid(unsigned long addr)
+-{
+-	unsigned long paddr = __pa(addr);
+-
+-	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
+-		return false;
+-	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
+-}
+-
+ extern int page_in_phys_avail(unsigned long paddr);
+ 
+ /*
+-- 
+1.8.1.2
 
-Shouldn't that be (1) ?
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
---Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.22 (GNU/Linux)
-
-iQIcBAEBCAAGBQJTVt7BAAoJEMDTa8Ir7ZwVU8YP/Aipzyc/qfUxbaEepyLrH76s
-tM7OQUif2CHZI5TMqJb/9W1d0aJajhrZ9ywBWOBkU0j1liJNSijsi3SUH+OvXijo
-KpKx7MIsnviBwFm/SWRSs+C5aWtRY6D2R4F1k19IG1IWQQEoQS+n/rEK/wRRrcEU
-GJCYvHDrAmrDq02ubY0to7M2rwwgWM4StPxez6fUEiepQvcIQWQQ5bytPoFNMDTF
-mEY9XbjdEOPWYs3WKJam1IQVsbH6h1iatooBe4xtn3va6NCx1yvfo1LWhjY2496/
-mOAEBgG5Q7X6+mWIlX9Hq1J97+W4LsjAkQyHAHPPb29rD1CZpEJdDrZWEH2PK2be
-dBLKtEtPuU6VuH1+fDpUwKY+5U8lGkNWOnvZAil1mnIChZYtvc2IQzZ2wBvGuIIf
-fq2e8y3vuD772EBqRrRvXk7uPALcJpuT2B9UiNBeNGaY4FcV/OT8FCjQ1fllq3xt
-hxEBWbTX5Gsa4XMjMTyAmGgk2DFi1zeQ3/GiAGk9Tvh8IDh0JkaA1sjPXyDF0Fy5
-gNBPHF26QckRLaHNx/ADJcYkKnVict2rCWjq4pmHrnaAOXA+tYZb1QZ44f+ERuny
-2zqg2e4JBzxIvAYsduXq9DcH9w66hqykxvDirjorad/96jezNvzkz/x95kIuGWuH
-3N0AWbZiD6MwE8lwx1C4
-=aVmu
------END PGP SIGNATURE-----
-
---Signature=_Wed__23_Apr_2014_07_27_18_+1000_kcDcY2x9hfJ80tOp--
