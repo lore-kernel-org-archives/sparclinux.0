@@ -1,159 +1,81 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:12 +0000
-Subject: [PATCH 07/34] sparc32: remove cast from output constraints in math asm statements
-Message-Id: <1399157559-19901-7-git-send-email-sam@ravnborg.org>
+Date: Fri, 02 May 2014 15:03:30 +0000
+Subject: [PATCH 04/12] sparc32: fix sparse warning in auxio_32.c
+Message-Id: <1399043018-16975-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The following asm statements generated a sparse warning:
+Fix following warning:
+auxio_32.c:133:33: warning: cast removes address space of expression
 
-        asm("addcc \n\t" : "=r" (((USItype)(r2)))
-
-warning: asm output is not an lvalue
-
-When asking on the sparse mailing list Linus replyed:
-
-"
-Those casts to (USItype) are all pointless to begin with (since the
-values are of that type already!) and they mean that the expression
-isn't something you can assign to (lvalue).
-"
-
-In the math emulation code drop all casts in the output
-parts of the asm statements.
-
-This fixes a lot of "warning: asm output is not an lvalue" sparse
-warnings in math_32.c.
+To fix this auxio_power_register had to be defined as u8 _iomem.
+Use proper sbus operations on the pointer.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/sfp-machine_32.h | 28 ++++++++++++++--------------
- arch/sparc/math-emu/sfp-util_32.h       | 20 ++++++++++----------
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ arch/sparc/include/asm/auxio_32.h | 2 +-
+ arch/sparc/kernel/auxio_32.c      | 6 +++---
+ arch/sparc/kernel/process_32.c    | 8 ++++++--
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/include/asm/sfp-machine_32.h b/arch/sparc/include/asm/sfp-machine_32.h
-index 01d9c3b..838c9d5 100644
---- a/arch/sparc/include/asm/sfp-machine_32.h
-+++ b/arch/sparc/include/asm/sfp-machine_32.h
-@@ -79,9 +79,9 @@
-   __asm__ ("addcc %r7,%8,%2\n\t"					\
- 	   "addxcc %r5,%6,%1\n\t"					\
- 	   "addx %r3,%4,%0\n"						\
--	   : "=r" ((USItype)(r2)),					\
--	     "=&r" ((USItype)(r1)),					\
--	     "=&r" ((USItype)(r0))					\
-+	   : "=r" (r2),							\
-+	     "=&r" (r1),						\
-+	     "=&r" (r0)							\
- 	   : "%rJ" ((USItype)(x2)),					\
- 	     "rI" ((USItype)(y2)),					\
- 	     "%rJ" ((USItype)(x1)),					\
-@@ -94,9 +94,9 @@
-   __asm__ ("subcc %r7,%8,%2\n\t"					\
- 	    "subxcc %r5,%6,%1\n\t"					\
- 	    "subx %r3,%4,%0\n"						\
--	   : "=r" ((USItype)(r2)),					\
--	     "=&r" ((USItype)(r1)),					\
--	     "=&r" ((USItype)(r0))					\
-+	   : "=r" (r2),							\
-+	     "=&r" (r1),						\
-+	     "=&r" (r0)							\
- 	   : "%rJ" ((USItype)(x2)),					\
- 	     "rI" ((USItype)(y2)),					\
- 	     "%rJ" ((USItype)(x1)),					\
-@@ -115,8 +115,8 @@
- 	    "addxcc %r6,%7,%0\n\t"					\
- 	    "addxcc %r4,%5,%%g2\n\t"					\
- 	    "addx %r2,%3,%%g1\n\t"					\
--	   : "=&r" ((USItype)(r1)),					\
--	     "=&r" ((USItype)(r0))					\
-+	   : "=&r" (r1),						\
-+	     "=&r" (r0)							\
- 	   : "%rJ" ((USItype)(x3)),					\
- 	     "rI" ((USItype)(y3)),					\
- 	     "%rJ" ((USItype)(x2)),					\
-@@ -140,8 +140,8 @@
- 	    "subxcc %r6,%7,%0\n\t"					\
- 	    "subxcc %r4,%5,%%g2\n\t"					\
- 	    "subx %r2,%3,%%g1\n\t"					\
--	   : "=&r" ((USItype)(r1)),					\
--	     "=&r" ((USItype)(r0))					\
-+	   : "=&r" (r1),						\
-+	     "=&r" (r0)							\
- 	   : "%rJ" ((USItype)(x3)),					\
- 	     "rI" ((USItype)(y3)),					\
- 	     "%rJ" ((USItype)(x2)),					\
-@@ -164,10 +164,10 @@
- 	   "addxcc %2,%%g0,%2\n\t"					\
- 	   "addxcc %1,%%g0,%1\n\t"					\
- 	   "addx %0,%%g0,%0\n\t"					\
--	   : "=&r" ((USItype)(x3)),					\
--	     "=&r" ((USItype)(x2)),					\
--	     "=&r" ((USItype)(x1)),					\
--	     "=&r" ((USItype)(x0))					\
-+	   : "=&r" (x3),						\
-+	     "=&r" (x2),						\
-+	     "=&r" (x1),						\
-+	     "=&r" (x0)							\
- 	   : "rI" ((USItype)(i)),					\
- 	     "0" ((USItype)(x3)),					\
- 	     "1" ((USItype)(x2)),					\
-diff --git a/arch/sparc/math-emu/sfp-util_32.h b/arch/sparc/math-emu/sfp-util_32.h
-index d1b2aff..bb587d5 100644
---- a/arch/sparc/math-emu/sfp-util_32.h
-+++ b/arch/sparc/math-emu/sfp-util_32.h
-@@ -4,20 +4,20 @@
- #include <asm/byteorder.h>
+diff --git a/arch/sparc/include/asm/auxio_32.h b/arch/sparc/include/asm/auxio_32.h
+index 3a31977..b816660 100644
+--- a/arch/sparc/include/asm/auxio_32.h
++++ b/arch/sparc/include/asm/auxio_32.h
+@@ -78,7 +78,7 @@ do { \
  
- #define add_ssaaaa(sh, sl, ah, al, bh, bl) 				\
--  __asm__ ("addcc %r4,%5,%1\n\t"						\
-+  __asm__ ("addcc %r4,%5,%1\n\t"					\
- 	   "addx %r2,%3,%0\n"						\
--	   : "=r" ((USItype)(sh)),					\
--	     "=&r" ((USItype)(sl))					\
-+	   : "=r" (sh),							\
-+	     "=&r" (sl)							\
- 	   : "%rJ" ((USItype)(ah)),					\
- 	     "rI" ((USItype)(bh)),					\
- 	     "%rJ" ((USItype)(al)),					\
- 	     "rI" ((USItype)(bl))					\
- 	   : "cc")
- #define sub_ddmmss(sh, sl, ah, al, bh, bl) 				\
--  __asm__ ("subcc %r4,%5,%1\n\t"						\
-+  __asm__ ("subcc %r4,%5,%1\n\t"					\
- 	   "subx %r2,%3,%0\n"						\
--	   : "=r" ((USItype)(sh)),					\
--	     "=&r" ((USItype)(sl))					\
-+	   : "=r" (sh),							\
-+	     "=&r" (sl)							\
- 	   : "rJ" ((USItype)(ah)),					\
- 	     "rI" ((USItype)(bh)),					\
- 	     "rJ" ((USItype)(al)),					\
-@@ -65,8 +65,8 @@
- 	"mulscc	%%g1,0,%%g1\n\t" 					\
- 	"add	%%g1,%%g2,%0\n\t" 					\
- 	"rd	%%y,%1\n"						\
--	   : "=r" ((USItype)(w1)),					\
--	     "=r" ((USItype)(w0))					\
-+	   : "=r" (w1),							\
-+	     "=r" (w0)							\
- 	   : "%rI" ((USItype)(u)),					\
- 	     "r" ((USItype)(v))						\
- 	   : "%g1", "%g2", "cc")
-@@ -98,8 +98,8 @@
- 	   "sub	%1,%2,%1\n\t"						\
- 	   "3:	xnor	%0,0,%0\n\t"					\
- 	   "! End of inline udiv_qrnnd\n"				\
--	   : "=&r" ((USItype)(q)),					\
--	     "=&r" ((USItype)(r))					\
-+	   : "=&r" (q),							\
-+	     "=&r" (r)							\
- 	   : "r" ((USItype)(d)),					\
- 	     "1" ((USItype)(n1)),					\
- 	     "0" ((USItype)(n0)) : "%g1", "cc")
+ 
+ /* AUXIO2 (Power Off Control) */
+-extern __volatile__ unsigned char * auxio_power_register;
++extern volatile u8 __iomem *auxio_power_register;
+ 
+ #define	AUXIO_POWER_DETECT_FAILURE	32
+ #define	AUXIO_POWER_CLEAR_FAILURE	2
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index c6fc1d4..ae88c22 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -106,7 +106,7 @@ EXPORT_SYMBOL(set_auxio);
+ 
+ /* sun4m power control register (AUXIO2) */
+ 
+-volatile unsigned char * auxio_power_register = NULL;
++volatile u8 __iomem *auxio_power_register = NULL;
+ 
+ void __init auxio_power_probe(void)
+ {
+@@ -130,8 +130,8 @@ void __init auxio_power_probe(void)
+ 	r.flags = regs.which_io & 0xF;
+ 	r.start = regs.phys_addr;
+ 	r.end = regs.phys_addr + regs.reg_size - 1;
+-	auxio_power_register = (unsigned char *) of_ioremap(&r, 0,
+-	    regs.reg_size, "auxpower");
++	auxio_power_register +		(u8 __iomem *)of_ioremap(&r, 0, regs.reg_size, "auxpower");
+ 
+ 	/* Display a quick message on the console. */
+ 	if (auxio_power_register)
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 61f810b..50e7b62 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -106,8 +106,12 @@ void machine_restart(char * cmd)
+ void machine_power_off(void)
+ {
+ 	if (auxio_power_register &&
+-	    (strcmp(of_console_device->type, "serial") || scons_pwroff))
+-		*auxio_power_register |= AUXIO_POWER_OFF;
++	    (strcmp(of_console_device->type, "serial") || scons_pwroff)) {
++		u8 power_register = sbus_readb(auxio_power_register);
++		power_register |= AUXIO_POWER_OFF;
++		sbus_writeb(power_register, auxio_power_register);
++	}
++
+ 	machine_halt();
+ }
+ 
 -- 
 1.9.0
 
