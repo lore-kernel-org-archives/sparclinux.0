@@ -1,78 +1,67 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:16:06 +0000
-Subject: Re: [PATCH 00/13] Refactor pci_is_brdige() to simplify code
-Message-Id: <5365BF06.7050108@huawei.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:36 +0000
+Subject: [PATCH 31/34] sparc64: fix sparse warning in kgdb_64.c
+Message-Id: <1399157559-19901-31-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1398417515-8740-1-git-send-email-wangyijing@huawei.com>
- <CAErSpo4fa=fmajhxGA7PRm42S1fS2wV_7w+EWaVh_qiawRAQxA@mail.gmail.com>
-In-Reply-To: <CAErSpo4fa=fmajhxGA7PRm42S1fS2wV_7w+EWaVh_qiawRAQxA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Tony Luck <tony.luck@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-> This needs to be posted to the linux-pci list.  The fact that it
-> wasn't means it's not in patchwork, so it's not on my to-do list.
-> 
-> Currently we have one interface: pci_is_bridge().
-> 
-> After your series, we would have two interfaces: pci_is_bridge() and
-> pci_has_subordinate().  Presumably, both are used, and you should
-> explain how you decided which to use at each place.
-> 
-> I assume the difference is that the old pci_is_bridge() is true for a
-> bridge that has a subordinate bus.  The new pci_is_bridge() is true
-> for any bridge, even if there is no subordinate bus.  When do we even
-> have a bridge with no subordinate bus?  This is the sort of stuff you
-> need to explain so we know why we should apply these patches.
-> 
+Fix following warnings:
+kgdb_64.c:114:18: warning: symbol 'smp_kgdb_capture_client' was not declared. Should it be static?
+kgdb_64.c:161:17: warning: symbol 'kgdb_trap' was not declared. Should it be static?
 
-Hi Bjorn, sorry forgot to cc pci list, will resend the v2 patchset with
-some new description for new pci_is_bridge().
+Add proper prototypes
 
-> 
->> Yijing Wang (13):
->>   PCI: rename pci_is_bridge() to pci_has_subordinate()
->>   PCI: Introduce new pci_is_bridge() helper function
->>   PCI: Use new pci_is_bridge() to simplify code
->>   x86/PCI: Use new pci_is_bridge() to simplify code
->>   IA64/PCI: Use new pci_is_bridge() to simplify code
->>   powerpc/PCI: Use new pci_is_bridge() to simplify code
->>   sparc/PCI: Use new pci_is_bridge() to simplify code
->>   PCI, rpaphp: Use new pci_is_bridge() to simplify code
->>   PCI, shpchp: Use new pci_is_bridge() to simplify code
->>   PCI, cpcihp: Use new pci_is_bridge() to simplify code
->>   PCI, acpiphp: Use new pci_is_bridge() to simplify code
->>   PCI, pcmcia: Use new pci_is_bridge() to simplify code
->>   PCI, pciehp: Use new pci_is_bridge() to simplify code
->>
->>  arch/ia64/pci/fixup.c                  |    4 +---
->>  arch/powerpc/kernel/pci-hotplug.c      |    3 +--
->>  arch/powerpc/kernel/pci_of_scan.c      |    3 +--
->>  arch/sparc/kernel/pci.c                |    3 +--
->>  arch/x86/pci/fixup.c                   |    4 +---
->>  drivers/pci/hotplug/acpiphp_glue.c     |    3 +--
->>  drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
->>  drivers/pci/hotplug/pciehp_pci.c       |    3 +--
->>  drivers/pci/hotplug/rpadlpar_core.c    |    3 +--
->>  drivers/pci/hotplug/shpchp_pci.c       |    3 +--
->>  drivers/pci/pci-acpi.c                 |    8 +-------
->>  drivers/pci/pci-driver.c               |    8 ++++----
->>  drivers/pci/pci.h                      |    2 +-
->>  drivers/pci/probe.c                    |    3 +--
->>  drivers/pci/setup-bus.c                |    4 +---
->>  drivers/pcmcia/cardbus.c               |    3 +--
->>  include/linux/pci.h                    |    6 ++++++
->>  17 files changed, 25 insertions(+), 41 deletions(-)
->>
->>
-> 
-> .
-> 
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/kgdb.h | 3 +++
+ arch/sparc/kernel/kernel.h    | 3 +++
+ arch/sparc/kernel/kgdb_64.c   | 2 ++
+ 3 files changed, 8 insertions(+)
 
-
+diff --git a/arch/sparc/include/asm/kgdb.h b/arch/sparc/include/asm/kgdb.h
+index 5a8ee15..47366af 100644
+--- a/arch/sparc/include/asm/kgdb.h
++++ b/arch/sparc/include/asm/kgdb.h
+@@ -28,6 +28,9 @@ enum regnames {
+ #define NUMREGBYTES		((GDB_CSR + 1) * 4)
+ #else
+ #define NUMREGBYTES		((GDB_Y + 1) * 8)
++
++struct pt_regs;
++asmlinkage void kgdb_trap(unsigned long trap_level, struct pt_regs *regs);
+ #endif
+ 
+ void arch_kgdb_breakpoint(void);
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 8021372..e7f652b 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -41,6 +41,9 @@ void __irq_entry smp_new_mmu_context_version_client(int irq, struct pt_regs *reg
+ void __irq_entry smp_penguin_jailcell(int irq, struct pt_regs *regs);
+ void __irq_entry smp_receive_signal_client(int irq, struct pt_regs *regs);
+ 
++/* kgdb_64.c */
++void __irq_entry smp_kgdb_capture_client(int irq, struct pt_regs *regs);
++
+ /* pci.c */
+ int pci64_dma_supported(struct pci_dev *pdev, u64 device_mask);
+ 
+diff --git a/arch/sparc/kernel/kgdb_64.c b/arch/sparc/kernel/kgdb_64.c
+index b45fe3f..cbf21d0 100644
+--- a/arch/sparc/kernel/kgdb_64.c
++++ b/arch/sparc/kernel/kgdb_64.c
+@@ -13,6 +13,8 @@
+ #include <asm/ptrace.h>
+ #include <asm/irq.h>
+ 
++#include "kernel.h"
++
+ void pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *regs)
+ {
+ 	struct reg_window *win;
 -- 
-Thanks!
-Yijing
+1.9.0
 
