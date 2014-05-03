@@ -1,64 +1,108 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 21 Apr 2014 19:39:31 +0000
-Subject: [PATCH 16/29] sparc32: fix sparse warning in devices.c
-Message-Id: <1398109184-3283-16-git-send-email-sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:31 +0000
+Subject: [PATCH 26/34] sparc64: fix sparse warnings in perf_event.c
+Message-Id: <1399157559-19901-26-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-devices.c:114:13: warning: symbol 'device_scan' was not declared. Should it be static?
+Fix following sparse warnings:
+kernel/perf_event.c:113:1: warning: symbol 'cpu_hw_events' was not declared. Should it be static?
+kernel/perf_event.c:1156:6: warning: symbol 'perf_event_grab_pmc' was not declared. Should it be static?
+kernel/perf_event.c:1172:6: warning: symbol 'perf_event_release_pmc' was not declared. Should it be static?
+kernel/perf_event.c:1672:12: warning: symbol 'init_hw_perf_events' was not declared. Should it be static?
+kernel/perf_event.c:1749:52: warning: incorrect type in argument 2 (different address spaces)
+kernel/perf_event.c:1772:60: warning: incorrect type in argument 2 (different address spaces)
+kernel/perf_event.c:1779:60: warning: incorrect type in argument 2 (different address spaces)
 
-Add prototype to asm/setup.h
+Define the functions static as they are not used outside this file.
+Fix it so copy_from_user are supplied with pointers annotated _user
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/setup.h | 3 +++
- arch/sparc/kernel/devices.c    | 1 +
- arch/sparc/mm/init_32.c        | 2 --
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/perf_event.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index c7cd435..622145b 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -39,6 +39,9 @@ int sparc_floppy_request_irq(unsigned int irq, irq_handler_t irq_handler);
- /* setup_32.c */
- extern unsigned long cmdline_memory_size;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index b5c38fa..9cd0b44 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -110,7 +110,7 @@ struct cpu_hw_events {
  
-+/* devices.c */
-+void __init device_scan(void);
-+
- #endif
+ 	unsigned int		group_flag;
+ };
+-DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
++static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
  
- extern void sun_do_break(void);
-diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
-index 3d465e8..b9e9d8c 100644
---- a/arch/sparc/kernel/devices.c
-+++ b/arch/sparc/kernel/devices.c
-@@ -19,6 +19,7 @@
- #include <asm/smp.h>
- #include <asm/cpudata.h>
- #include <asm/cpu_type.h>
-+#include <asm/setup.h>
+ /* An event map describes the characteristics of a performance
+  * counter event.  In particular it gives the encoding as well as
+@@ -1153,7 +1153,7 @@ static void perf_stop_nmi_watchdog(void *unused)
+ 		cpuc->pcr[i] = pcr_ops->read_pcr(i);
+ }
  
- extern void clock_stop_probe(void); /* tadpole.c */
- 
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index d0c7327..eb82871 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -248,8 +248,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
-  * init routine based upon the Sun model type on the Sparc.
-  *
-  */
--extern void device_scan(void);
--
- void __init paging_init(void)
+-void perf_event_grab_pmc(void)
++static void perf_event_grab_pmc(void)
  {
- 	srmmu_paging_init();
+ 	if (atomic_inc_not_zero(&active_events))
+ 		return;
+@@ -1169,7 +1169,7 @@ void perf_event_grab_pmc(void)
+ 	mutex_unlock(&pmc_grab_mutex);
+ }
+ 
+-void perf_event_release_pmc(void)
++static void perf_event_release_pmc(void)
+ {
+ 	if (atomic_dec_and_mutex_lock(&active_events, &pmc_grab_mutex)) {
+ 		if (atomic_read(&nmi_active) = 0)
+@@ -1669,7 +1669,7 @@ static bool __init supported_pmu(void)
+ 	return false;
+ }
+ 
+-int __init init_hw_perf_events(void)
++static int __init init_hw_perf_events(void)
+ {
+ 	pr_info("Performance events: ");
+ 
+@@ -1742,10 +1742,11 @@ static void perf_callchain_user_64(struct perf_callchain_entry *entry,
+ 
+ 	ufp = regs->u_regs[UREG_I6] + STACK_BIAS;
+ 	do {
+-		struct sparc_stackf *usf, sf;
++		struct sparc_stackf __user *usf;
++		struct sparc_stackf sf;
+ 		unsigned long pc;
+ 
+-		usf = (struct sparc_stackf *) ufp;
++		usf = (struct sparc_stackf __user *) ufp;
+ 		if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
+ 			break;
+ 
+@@ -1765,17 +1766,19 @@ static void perf_callchain_user_32(struct perf_callchain_entry *entry,
+ 		unsigned long pc;
+ 
+ 		if (thread32_stack_is_64bit(ufp)) {
+-			struct sparc_stackf *usf, sf;
++			struct sparc_stackf __user *usf;
++			struct sparc_stackf sf;
+ 
+ 			ufp += STACK_BIAS;
+-			usf = (struct sparc_stackf *) ufp;
++			usf = (struct sparc_stackf __user *) ufp;
+ 			if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
+ 				break;
+ 			pc = sf.callers_pc & 0xffffffff;
+ 			ufp = ((unsigned long) sf.fp) & 0xffffffff;
+ 		} else {
+-			struct sparc_stackf32 *usf, sf;
+-			usf = (struct sparc_stackf32 *) ufp;
++			struct sparc_stackf32 __user *usf;
++			struct sparc_stackf32 sf;
++			usf = (struct sparc_stackf32 __user *) ufp;
+ 			if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
+ 				break;
+ 			pc = sf.callers_pc;
 -- 
-1.8.3.1
+1.9.0
 
