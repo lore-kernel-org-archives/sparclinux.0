@@ -1,42 +1,81 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 25 May 2014 20:44:34 +0000
-Subject: Re: [PATCH v2 00/34] sparc sparse fixes + diverse cleanup
-Message-Id: <20140525204434.GA27452@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:09 +0000
+Subject: [PATCH 04/34] sparc32: fix sparse warning in auxio_32.c
+Message-Id: <1399157559-19901-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140516212259.GA17389@ravnborg.org>
-In-Reply-To: <20140516212259.GA17389@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Sat, May 24, 2014 at 11:41:50PM -0400, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Mon, 19 May 2014 18:55:33 +0200
-> 
-> > On Sun, May 18, 2014 at 10:06:49PM -0400, David Miller wrote:
-> >> 
-> >> Ok I reviewed all of this, it all looks good.
-> >> 
-> >> Thanks a lot for doing this, all applied to sparc-next.
-> > Good. And I am glad you spotted the bug in the first
-> > version so we did not have that applied.
-> > 
-> > If you find time and have any hints how to fix
-> > the remaining sparse warnings in arch/sparc/
-> > please let me know.
-> 
-> Sorry Sam I've lost context.
-> 
-> Is there a specific list you posted or should I run an sparse build
-> of my own and check it out?
-I posted a list of remaining sparse issues in the original cover mail.
-But I think we should let them wait and maybe address then in next
-round. arch/sparc already have lots of stuff pending for next
-merge window.
-On top of this I have a few other things that has higher priority.
+Fix following warning:
+auxio_32.c:133:33: warning: cast removes address space of expression
 
-I will re-post a list of open issues when I plan to look at them again.
+To fix this auxio_power_register had to be defined as u8 _iomem.
+Use proper sbus operations on the pointer.
 
-	Sam
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/auxio_32.h | 2 +-
+ arch/sparc/kernel/auxio_32.c      | 6 +++---
+ arch/sparc/kernel/process_32.c    | 8 ++++++--
+ 3 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/arch/sparc/include/asm/auxio_32.h b/arch/sparc/include/asm/auxio_32.h
+index 3a31977..b816660 100644
+--- a/arch/sparc/include/asm/auxio_32.h
++++ b/arch/sparc/include/asm/auxio_32.h
+@@ -78,7 +78,7 @@ do { \
+ 
+ 
+ /* AUXIO2 (Power Off Control) */
+-extern __volatile__ unsigned char * auxio_power_register;
++extern volatile u8 __iomem *auxio_power_register;
+ 
+ #define	AUXIO_POWER_DETECT_FAILURE	32
+ #define	AUXIO_POWER_CLEAR_FAILURE	2
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index c6fc1d4..ae88c22 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -106,7 +106,7 @@ EXPORT_SYMBOL(set_auxio);
+ 
+ /* sun4m power control register (AUXIO2) */
+ 
+-volatile unsigned char * auxio_power_register = NULL;
++volatile u8 __iomem *auxio_power_register = NULL;
+ 
+ void __init auxio_power_probe(void)
+ {
+@@ -130,8 +130,8 @@ void __init auxio_power_probe(void)
+ 	r.flags = regs.which_io & 0xF;
+ 	r.start = regs.phys_addr;
+ 	r.end = regs.phys_addr + regs.reg_size - 1;
+-	auxio_power_register = (unsigned char *) of_ioremap(&r, 0,
+-	    regs.reg_size, "auxpower");
++	auxio_power_register +		(u8 __iomem *)of_ioremap(&r, 0, regs.reg_size, "auxpower");
+ 
+ 	/* Display a quick message on the console. */
+ 	if (auxio_power_register)
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 61f810b..50e7b62 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -106,8 +106,12 @@ void machine_restart(char * cmd)
+ void machine_power_off(void)
+ {
+ 	if (auxio_power_register &&
+-	    (strcmp(of_console_device->type, "serial") || scons_pwroff))
+-		*auxio_power_register |= AUXIO_POWER_OFF;
++	    (strcmp(of_console_device->type, "serial") || scons_pwroff)) {
++		u8 power_register = sbus_readb(auxio_power_register);
++		power_register |= AUXIO_POWER_OFF;
++		sbus_writeb(power_register, auxio_power_register);
++	}
++
+ 	machine_halt();
+ }
+ 
+-- 
+1.9.0
 
