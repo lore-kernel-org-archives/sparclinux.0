@@ -1,31 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 02 May 2014 03:13:07 +0000
-Subject: Re: [PATCH 08/10] sparc64: Fix range check in kern_addr_valid().
-Message-Id: <20140501.231307.58290953599109676.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:37 +0000
+Subject: [PATCH 32/34] sparc64: fix sparse warning in kprobes.c
+Message-Id: <1399157559-19901-32-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140430.175548.327746802251623616.davem@davemloft.net>
-In-Reply-To: <20140430.175548.327746802251623616.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Josip Rodin <joy@entuzijast.net>
-Date: Fri, 2 May 2014 00:42:25 +0200
+Fix following warning:
+kprobes.c:419:27: warning: symbol 'kprobe_trap' was not declared. Should it be static?
 
-> On Wed, Apr 30, 2014 at 05:55:48PM -0400, David Miller wrote:
->> --- a/arch/sparc/include/asm/pgtable_64.h
->> +++ b/arch/sparc/include/asm/pgtable_64.h
->> @@ -916,7 +916,7 @@ static inline bool kern_addr_valid(unsigned long addr)
->>  {
->>  	unsigned long paddr = __pa(addr);
->>  
->> -	if ((paddr >> 41UL) != 0UL)
->> +	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
->>  		return false;
->>  	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
-> 
-> BTW, maybe this other magic constant - 22 - could be replaced as well?
-> Is that ILOG2_4MB?
+Add proper prototype
 
-Yep, it is.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/kprobes.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/sparc/include/asm/kprobes.h b/arch/sparc/include/asm/kprobes.h
+index b2613c28..a145d79 100644
+--- a/arch/sparc/include/asm/kprobes.h
++++ b/arch/sparc/include/asm/kprobes.h
+@@ -46,4 +46,6 @@ struct kprobe_ctlblk {
+ int kprobe_exceptions_notify(struct notifier_block *self,
+ 			     unsigned long val, void *data);
+ int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
++asmlinkage void __kprobes kprobe_trap(unsigned long trap_level,
++				      struct pt_regs *regs);
+ #endif /* _SPARC64_KPROBES_H */
+-- 
+1.9.0
+
