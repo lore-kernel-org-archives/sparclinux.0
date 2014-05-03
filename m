@@ -1,59 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 22 May 2014 21:53:56 +0000
-Subject: [GIT] Sparc
-Message-Id: <20140522.175356.544649352706511585.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:23 +0000
+Subject: [PATCH 18/34] sparc64: fix sparse warning in prom_64.c
+Message-Id: <1399157559-19901-18-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
+Fix following warning:
+prom_64.c:376:6: warning: symbol 'arch_find_n_match_cpu_physical_id' was not declared. Should it be static?
 
-A small bunch of bug fixes, in particular:
+Add missing include to pick up prototype.
+Rearrange includes to use the inverse christmas tree structure.
 
-1) On older cpus we need a different chunk of virtual address
-   space to map the huge page TSB.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/prom_64.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-2) Missing memory barrier in Niagara2 memcpy.
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 9a690d3..20cc5d8 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -15,11 +15,12 @@
+  *      2 of the License, or (at your option) any later version.
+  */
+ 
++#include <linux/memblock.h>
+ #include <linux/kernel.h>
+-#include <linux/types.h>
+ #include <linux/string.h>
++#include <linux/types.h>
++#include <linux/cpu.h>
+ #include <linux/mm.h>
+-#include <linux/memblock.h>
+ #include <linux/of.h>
+ 
+ #include <asm/prom.h>
+-- 
+1.9.0
 
-3) trinity showed some places where fault validation was unnecessarily
-   loud on sparc64
-
-4) Some sysfs printf's need a type adjustment, from Toralf F=F6rster
-
-Please pull, thanks a lot.
-
-The following changes since commit 256cf4c438e60116785a83b060614c63c7477e84:
-
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git=
-/mszeredi/fuse (2014-05-06 09:09:35 -0700)
-
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc master
-
-for you to fetch changes up to 8ecc1bad4c9b485ceb47182d282980d0b0fe20ac:
-
-  sparc64: fix format string mismatch in arch/sparc/kernel/sysfs.c (2014-05=
--21 12:54:42 -0700)
-
-----------------------------------------------------------------
-David S. Miller (3):
-      sparc64: Don't bark so loudly about 32-bit tasks generating 64-bit fa=
-ult addresses.
-      sparc64: Fix huge TSB mapping on pre-UltraSPARC-III cpus.
-      sparc64: Add membar to Niagara2 memcpy code.
-
-Toralf F=F6rster (1):
-      sparc64: fix format string mismatch in arch/sparc/kernel/sysfs.c
-
- arch/sparc/include/asm/pgtable_64.h |  6 ++++--
- arch/sparc/kernel/sysfs.c           |  2 +-
- arch/sparc/lib/NG2memcpy.S          |  1 +
- arch/sparc/mm/fault_64.c            | 16 +---------------
- arch/sparc/mm/tsb.c                 | 14 +++++++++++++-
- 5 files changed, 20 insertions(+), 19 deletions(-)
