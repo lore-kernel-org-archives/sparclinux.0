@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 01 May 2014 16:19:03 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Sat, 03 May 2014 04:45:33 +0000
 Subject: Re: [PATCH 0/10] Sparc64 MM bug fixes
-Message-Id: <20140501161903.GB17134@ravnborg.org>
+Message-Id: <alpine.SOC.1.00.1405030742300.5960@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140430.175420.1944889075484067093.davem@davemloft.net>
 In-Reply-To: <20140430.175420.1944889075484067093.davem@davemloft.net>
@@ -10,19 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Apr 30, 2014 at 05:54:20PM -0400, David Miller wrote:
-> 
-> This is the current state of my audit of the sparc64 mm code.
-> 
-> Some of these changes have to do with THP, but some do not.
-> 
-> I've started to add some better checking of page table sanity,
-> in the hopes that it will potentially help further diagnosis
-> of any problems that still can be triggered.
-Impressive serie - it must have cost a few cups of espresso or the like.
-Only one small nit - which is another way to say that I could not follow
-all the changes.
+> Anyways, please let me know how well these patches work and if they
+> make any difference for your problems at all.  THP enabled and THP
+> disabled results are both extremely useful.
 
-See separate mail.
+Preliminary results from 4 computers are positive.
 
-	Sam
+Ultra 2 (2x300), Netra X1, V100 and V480 (4 CPU) have survived night 
+(two of them actually day+night) of
+while true; do apt-get update; done
+that killed the machine with 1-2 tries before. Nothing bad in dmesg. THP 
+on+always on all the them for now.
+
+-- 
+Meelis Roos (mroos@linux.ee)
