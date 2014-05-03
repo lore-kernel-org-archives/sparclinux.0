@@ -1,139 +1,138 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 May 2014 21:25:44 +0000
-Subject: [PATCH 06/34] sparc32: fix sparse warnings in time_32.c
-Message-Id: <1400275572-17424-6-git-send-email-sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:08 +0000
+Subject: [PATCH 03/34] sparc32: fix sparse warnings in pcic.c
+Message-Id: <1399157559-19901-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399157559-19901-6-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1399157559-19901-6-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warnings:
-time_32.c:63:1: warning: symbol 'rtc_lock' was not declared. Should it be static?
-time_32.c:357:13: warning: symbol 'time_init' was not declared. Should it be static?
-time_32.c:148:16: warning: dereference of noderef expression
+pcic.c:164:14: warning: symbol 'pcic_regs' was not declared. Should it be static?
+pcic.c:165:14: warning: symbol 'pcic_speculative' was not declared. Should it be static?
+pcic.c:166:14: warning: symbol 'pcic_trapped' was not declared. Should it be static?
+pcic.c:332:66: warning: Using plain integer as NULL pointer
+pcic.c:344:66: warning: Using plain integer as NULL pointer
+pcic.c:539:38: warning: Using plain integer as NULL pointer
+pcic.c:677:1: warning: symbol 'pcic_pin_to_irq' was not declared. Should it be static?
+pcic.c:783:6: warning: symbol 'pcic_nmi' was not declared. Should it be static?
 
-Add extern definition of rtc_lock in mc146818rtc.h.
-time_init() is called from init/main.c - add prototype to kernel.h.
-Use proper u32 __iomem * for master_l10_counter.
-Fix all users.
+Add extern for pcic_regs.
+Define a few variables static.
+Replace 0 with NULL.
+Delete unused funtion pcic_pin_to_irq().
+Include kernel.h so we could drop declaration of
+t_nmi and add prototype for pcic_nmi.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/mc146818rtc.h | 5 +++++
- arch/sparc/include/asm/timer_32.h    | 2 +-
- arch/sparc/kernel/kernel.h           | 3 +++
- arch/sparc/kernel/leon_kernel.c      | 5 ++---
- arch/sparc/kernel/time_32.c          | 8 +++++---
- 5 files changed, 16 insertions(+), 7 deletions(-)
+ arch/sparc/kernel/kernel.h |  4 ++++
+ arch/sparc/kernel/pcic.c   | 36 ++++++------------------------------
+ 2 files changed, 10 insertions(+), 30 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mc146818rtc.h b/arch/sparc/include/asm/mc146818rtc.h
-index 67ed9e3..d8e72f3 100644
---- a/arch/sparc/include/asm/mc146818rtc.h
-+++ b/arch/sparc/include/asm/mc146818rtc.h
-@@ -1,5 +1,10 @@
- #ifndef ___ASM_SPARC_MC146818RTC_H
- #define ___ASM_SPARC_MC146818RTC_H
-+
-+#include <linux/spinlock.h>
-+
-+extern spinlock_t rtc_lock;
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/mc146818rtc_64.h>
- #else
-diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
-index 93476f8..13d0035 100644
---- a/arch/sparc/include/asm/timer_32.h
-+++ b/arch/sparc/include/asm/timer_32.h
-@@ -32,7 +32,7 @@ static inline unsigned int timer_value(unsigned int value)
- 	return (value + 1) << TIMER_VALUE_SHIFT;
- }
- 
--extern volatile unsigned int __iomem *master_l10_counter;
-+extern volatile u32 __iomem *master_l10_counter;
- 
- extern irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
- 
 diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 5254241..4a8d0db 100644
+index 8bc2c81..5254241 100644
 --- a/arch/sparc/kernel/kernel.h
 +++ b/arch/sparc/kernel/kernel.h
-@@ -144,6 +144,9 @@ void __init auxio_power_probe(void);
- extern void __iomem *pcic_regs;
- void pcic_nmi(unsigned int pend, struct pt_regs *regs);
+@@ -140,6 +140,10 @@ void __init clock_stop_probe(void);
+ void __init auxio_probe(void);
+ void __init auxio_power_probe(void);
  
-+/* time_32.c */
-+void __init time_init(void);
++/* pcic.c */
++extern void __iomem *pcic_regs;
++void pcic_nmi(unsigned int pend, struct pt_regs *regs);
 +
  #else /* CONFIG_SPARC32 */
  #endif /* CONFIG_SPARC32 */
  #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index d939708..683c4af 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -32,7 +32,7 @@ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base addr
- 
- int leondebug_irq_disable;
- int leon_debug_irqout;
--static volatile unsigned int dummy_master_l10_counter;
-+static volatile u32 dummy_master_l10_counter;
- unsigned long amba_system_id;
- static DEFINE_SPINLOCK(leon_irq_lock);
- 
-@@ -313,8 +313,7 @@ void __init leon_init_timers(void)
- 
- 	leondebug_irq_disable = 0;
- 	leon_debug_irqout = 0;
--	master_l10_counter -		(unsigned int __iomem *)&dummy_master_l10_counter;
-+	master_l10_counter = (u32 __iomem *)&dummy_master_l10_counter;
- 	dummy_master_l10_counter = 0;
- 
- 	rootnp = of_find_node_by_path("/ambapp0");
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 772b379..5923d1e 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index aabfcab..6cc78c2 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
 @@ -36,6 +36,7 @@
- #include <linux/of_device.h>
- #include <linux/platform_device.h>
- 
-+#include <asm/mc146818rtc.h>
- #include <asm/oplib.h>
- #include <asm/timex.h>
- #include <asm/timer.h>
-@@ -47,6 +48,7 @@
+ #include <asm/uaccess.h>
  #include <asm/irq_regs.h>
- #include <asm/setup.h>
  
 +#include "kernel.h"
  #include "irq.h"
  
- static __cacheline_aligned_in_smp DEFINE_SEQLOCK(timer_cs_lock);
-@@ -83,7 +85,7 @@ unsigned long profile_pc(struct pt_regs *regs)
+ /*
+@@ -162,8 +163,8 @@ static int pcic0_up;
+ static struct linux_pcic pcic0;
  
- EXPORT_SYMBOL(profile_pc);
+ void __iomem *pcic_regs;
+-volatile int pcic_speculative;
+-volatile int pcic_trapped;
++static volatile int pcic_speculative;
++static volatile int pcic_trapped;
  
--volatile unsigned int __iomem *master_l10_counter;
-+volatile u32 __iomem *master_l10_counter;
+ /* forward */
+ unsigned int pcic_build_device_irq(struct platform_device *op,
+@@ -329,7 +330,7 @@ int __init pcic_probe(void)
  
- int update_persistent_clock(struct timespec now)
- {
-@@ -143,9 +145,9 @@ static __init void setup_timer_ce(void)
+ 	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
+ 	if ((pcic->pcic_config_space_addr -	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = 0) {
++	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = NULL) {
+ 		prom_printf("PCIC: Error, cannot map "
+ 			    "PCI Configuration Space Address.\n");
+ 		prom_halt();
+@@ -341,7 +342,7 @@ int __init pcic_probe(void)
+ 	 */
+ 	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
+ 	if ((pcic->pcic_config_space_data -	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = 0) {
++	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = NULL) {
+ 		prom_printf("PCIC: Error, cannot map "
+ 			    "PCI Configuration Space Data.\n");
+ 		prom_halt();
+@@ -353,7 +354,6 @@ int __init pcic_probe(void)
+ 	strcpy(pbm->prom_name, namebuf);
  
- static unsigned int sbus_cycles_offset(void)
- {
--	unsigned int val, offset;
-+	u32 val, offset;
+ 	{
+-		extern volatile int t_nmi[4];
+ 		extern int pcic_nmi_trap_patch[4];
  
--	val = *master_l10_counter;
-+	val = sbus_readl(master_l10_counter);
- 	offset = (val >> TIMER_VALUE_SHIFT) & TIMER_VALUE_MASK;
+ 		t_nmi[0] = pcic_nmi_trap_patch[0];
+@@ -536,7 +536,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
+ 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
+ 	}
  
- 	/* Limit hit? */
+-	if ((p = pcic->pcic_imap) = 0) {
++	if ((p = pcic->pcic_imap) = NULL) {
+ 		dev->irq = 0;
+ 		return;
+ 	}
+@@ -670,30 +670,6 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+ 	}
+ }
+ 
+-/*
+- * pcic_pin_to_irq() is exported to bus probing code
+- */
+-unsigned int
+-pcic_pin_to_irq(unsigned int pin, const char *name)
+-{
+-	struct linux_pcic *pcic = &pcic0;
+-	unsigned int irq;
+-	unsigned int ivec;
+-
+-	if (pin < 4) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
+-		irq = ivec >> (pin << 2) & 0xF;
+-	} else if (pin < 8) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
+-		irq = ivec >> ((pin-4) << 2) & 0xF;
+-	} else {					/* Corrupted map */
+-		printk("PCIC: BAD PIN %d FOR %s\n", pin, name);
+-		for (;;) {}	/* XXX Cannot panic properly in case of PROLL */
+-	}
+-/* P3 */ /* printk("PCIC: dev %s pin %d ivec 0x%x irq %x\n", name, pin, ivec, irq); */
+-	return irq;
+-}
+-
+ /* Makes compiler happy */
+ static volatile int pcic_timer_dummy;
+ 
 -- 
 1.9.0
 
