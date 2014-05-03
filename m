@@ -1,28 +1,92 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 26 May 2014 21:26:34 +0000
-Subject: Re: [PATCH v2] sbus: Introduce the use of the managed version of kzalloc
-Message-Id: <20140526212633.GA30752@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:35 +0000
+Subject: [PATCH 30/34] sparc64: fix sparse warnings in compat_audit.c
+Message-Id: <1399157559-19901-30-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140525105825.GA3437@himangi-Dell>
-In-Reply-To: <20140525105825.GA3437@himangi-Dell>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Himangi Saraogi <himangi774@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+To: sparclinux@vger.kernel.org
 
-Hi Himangi.
+Fix following warnings:
+compat_audit.c:4:10: warning: symbol 'sparc32_dir_class' was not declared. Should it be static?
+compat_audit.c:9:10: warning: symbol 'sparc32_chattr_class' was not declared. Should it be static?
+compat_audit.c:14:10: warning: symbol 'sparc32_write_class' was not declared. Should it be static?
+compat_audit.c:19:10: warning: symbol 'sparc32_read_class' was not declared. Should it be static?
+compat_audit.c:24:10: warning: symbol 'sparc32_signal_class' was not declared. Should it be static?
+compat_audit.c:29:5: warning: symbol 'sparc32_classify_syscall' was not declared. Should it be static?
 
-On Sun, May 25, 2014 at 04:28:25PM +0530, Himangi Saraogi wrote:
-> This patch moves data allocated using kzalloc to managed data allocated
-> using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-> functions. The header file is added to make the devm function explicitly
-> available.
-This version looks much better.
-If you in the subject replaces sbus: with display7seg: then you can add my:
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Add declarations to kernel.h
 
-"sbus:" is very generic, but this patch touches only
-this single driver.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/audit.c        | 8 ++------
+ arch/sparc/kernel/compat_audit.c | 1 +
+ arch/sparc/kernel/kernel.h       | 7 +++++++
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-	Sam
+diff --git a/arch/sparc/kernel/audit.c b/arch/sparc/kernel/audit.c
+index 8fff0ac..24361b4 100644
+--- a/arch/sparc/kernel/audit.c
++++ b/arch/sparc/kernel/audit.c
+@@ -3,6 +3,8 @@
+ #include <linux/audit.h>
+ #include <asm/unistd.h>
+ 
++#include "kernel.h"
++
+ static unsigned dir_class[] = {
+ #include <asm-generic/audit_dir_write.h>
+ ~0U
+@@ -40,7 +42,6 @@ int audit_classify_arch(int arch)
+ int audit_classify_syscall(int abi, unsigned syscall)
+ {
+ #ifdef CONFIG_COMPAT
+-	extern int sparc32_classify_syscall(unsigned);
+ 	if (abi = AUDIT_ARCH_SPARC)
+ 		return sparc32_classify_syscall(syscall);
+ #endif
+@@ -61,11 +62,6 @@ int audit_classify_syscall(int abi, unsigned syscall)
+ static int __init audit_classes_init(void)
+ {
+ #ifdef CONFIG_COMPAT
+-	extern __u32 sparc32_dir_class[];
+-	extern __u32 sparc32_write_class[];
+-	extern __u32 sparc32_read_class[];
+-	extern __u32 sparc32_chattr_class[];
+-	extern __u32 sparc32_signal_class[];
+ 	audit_register_class(AUDIT_CLASS_WRITE_32, sparc32_write_class);
+ 	audit_register_class(AUDIT_CLASS_READ_32, sparc32_read_class);
+ 	audit_register_class(AUDIT_CLASS_DIR_WRITE_32, sparc32_dir_class);
+diff --git a/arch/sparc/kernel/compat_audit.c b/arch/sparc/kernel/compat_audit.c
+index d865575..7062263 100644
+--- a/arch/sparc/kernel/compat_audit.c
++++ b/arch/sparc/kernel/compat_audit.c
+@@ -1,5 +1,6 @@
+ #define __32bit_syscall_numbers__
+ #include <asm/unistd.h>
++#include "kernel.h"
+ 
+ unsigned sparc32_dir_class[] = {
+ #include <asm-generic/audit_dir_write.h>
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 980e21d..8021372 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -50,6 +50,13 @@ asmlinkage void do_rt_sigreturn32(struct pt_regs *regs);
+ void do_signal32(struct pt_regs * regs);
+ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
+ 
++/* compat_audit.c */
++extern unsigned sparc32_dir_class[];
++extern unsigned sparc32_chattr_class[];
++extern unsigned sparc32_write_class[];
++extern unsigned sparc32_read_class[];
++extern unsigned sparc32_signal_class[];
++int sparc32_classify_syscall(unsigned syscall);
+ #endif
+ 
+ #ifdef CONFIG_SPARC32
+-- 
+1.9.0
+
