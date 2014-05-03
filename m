@@ -1,38 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 04:08:48 +0000
-Subject: [PATCH 08/11] sparc64: Fix range check in kern_addr_valid().
-Message-Id: <20140506.000848.1166368038011047019.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:13 +0000
+Subject: [PATCH 08/34] sparc64: remove cast from output constraints in math asm statements
+Message-Id: <1399157559-19901-8-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+The following asm statements generated a sparse warning:
 
-In commit b2d438348024b75a1ee8b66b85d77f569a5dfed8 ("sparc64: Make
-PAGE_OFFSET variable."), the MAX_PHYS_ADDRESS_BITS value was increased
-(to 47).
+        asm("addcc \n\t" : "=r" (((USItype)(r2)))
 
-This constant reference to '41UL' was missed.
+warning: asm output is not an lvalue
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+When asking on the sparse mailing list Linus replyed:
+
+"
+Those casts to (USItype) are all pointless to begin with (since the
+values are of that type already!) and they mean that the expression
+isn't something you can assign to (lvalue).
+"
+
+In the math emulation code drop all casts in the output
+parts of the asm statements.
+
+This fixes a lot of "warning: asm output is not an lvalue" sparse
+warnings in math_64.c.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/pgtable_64.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/math-emu/sfp-util_64.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index ac5f708..ff97960 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -916,7 +916,7 @@ static inline bool kern_addr_valid(unsigned long addr)
- {
- 	unsigned long paddr = __pa(addr);
- 
--	if ((paddr >> 41UL) != 0UL)
-+	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
- 		return false;
- 	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
- }
+diff --git a/arch/sparc/math-emu/sfp-util_64.h b/arch/sparc/math-emu/sfp-util_64.h
+index 425d3cf..51320a8 100644
+--- a/arch/sparc/math-emu/sfp-util_64.h
++++ b/arch/sparc/math-emu/sfp-util_64.h
+@@ -17,8 +17,8 @@
+   	   "bcs,a,pn %%xcc, 1f\n\t"		\
+   	   "add %0, 1, %0\n"			\
+   	   "1:"					\
+-	   : "=r" ((UDItype)(sh)),		\
+-	     "=&r" ((UDItype)(sl))		\
++	   : "=r" (sh),				\
++	     "=&r" (sl)				\
+ 	   : "r" ((UDItype)(ah)),		\
+ 	     "r" ((UDItype)(bh)),		\
+ 	     "r" ((UDItype)(al)),		\
+@@ -31,8 +31,8 @@
+   	   "bcs,a,pn %%xcc, 1f\n\t"		\
+   	   "sub %0, 1, %0\n"			\
+   	   "1:"					\
+-	   : "=r" ((UDItype)(sh)),		\
+-	     "=&r" ((UDItype)(sl))		\
++	   : "=r" (sh),				\
++	     "=&r" (sl)				\
+ 	   : "r" ((UDItype)(ah)),		\
+ 	     "r" ((UDItype)(bh)),		\
+ 	     "r" ((UDItype)(al)),		\
+@@ -64,8 +64,8 @@
+ 		   "sllx %3,32,%3\n\t"			\
+ 		   "add %1,%3,%1\n\t"			\
+ 		   "add %5,%2,%0"			\
+-	   : "=r" ((UDItype)(wh)),			\
+-	     "=&r" ((UDItype)(wl)),			\
++	   : "=r" (wh),					\
++	     "=&r" (wl),				\
+ 	     "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4) \
+ 	   : "r" ((UDItype)(u)),			\
+ 	     "r" ((UDItype)(v))				\
 -- 
-1.8.1.2
+1.9.0
 
