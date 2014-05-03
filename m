@@ -1,25 +1,119 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 24 May 2014 21:08:34 +0000
-Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20140524.170834.1561021346958622230.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 03 May 2014 22:52:26 +0000
+Subject: [PATCH 21/34] sparc64: fix sparse warnings in sys_sparc32.c
+Message-Id: <1399157559-19901-21-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140425200908.GG575@drone.musicnaut.iki.fi>
-	<20140425.161753.153968588224593753.davem@davemloft.net>
-	<alpine.SOC.1.00.1405242301090.18040@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1405242301090.18040@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com
+To: sparclinux@vger.kernel.org
 
-From: mroos@linux.ee
-Date: Sat, 24 May 2014 23:02:28 +0300 (EEST)
+Fix following warnings:
+sys_sparc32.c:52:17: warning: symbol 'sys32_truncate64' was not declared. Should it be static?
+sys_sparc32.c:60:17: warning: symbol 'sys32_ftruncate64' was not declared. Should it be static?
+sys_sparc32.c:98:17: warning: symbol 'compat_sys_stat64' was not declared. Should it be static?
+sys_sparc32.c:109:17: warning: symbol 'compat_sys_lstat64' was not declared. Should it be static?
+sys_sparc32.c:120:17: warning: symbol 'compat_sys_fstat64' was not declared. Should it be static?
+sys_sparc32.c:131:17: warning: symbol 'compat_sys_fstatat64' was not declared. Should it be static?
+sys_sparc32.c:196:27: warning: symbol 'sys32_pread64' was not declared. Should it be static?
+sys_sparc32.c:205:27: warning: symbol 'sys32_pwrite64' was not declared. Should it be static?
+sys_sparc32.c:214:17: warning: symbol 'compat_sys_readahead' was not declared. Should it be static?
+sys_sparc32.c:222:6: warning: symbol 'compat_sys_fadvise64' was not declared. Should it be static?
+sys_sparc32.c:230:6: warning: symbol 'compat_sys_fadvise64_64' was not declared. Should it be static?
+sys_sparc32.c:241:6: warning: symbol 'sys32_sync_file_range' was not declared. Should it be static?
+sys_sparc32.c:249:17: warning: symbol 'compat_sys_fallocate' was not declared. Should it be static?
 
-> This is todays fresh git with 3.15.0-rc6-00190-g1ee1cea on V210, THP 
-> enabled & always on. Got this and a segfault on apt-spawned xz.
+Add proper prototypes in systbls.h
 
-Thanks a lot for the report.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/kernel/sys_sparc32.c |  2 ++
+ arch/sparc/kernel/systbls.h     | 53 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-I've been bogged down with other things but I will come back to
-this stuff soon.
+diff --git a/arch/sparc/kernel/sys_sparc32.c b/arch/sparc/kernel/sys_sparc32.c
+index 7136885..022c30c 100644
+--- a/arch/sparc/kernel/sys_sparc32.c
++++ b/arch/sparc/kernel/sys_sparc32.c
+@@ -49,6 +49,8 @@
+ #include <asm/mmu_context.h>
+ #include <asm/compat_signal.h>
+ 
++#include "systbls.h"
++
+ asmlinkage long sys32_truncate64(const char __user * path, unsigned long high, unsigned long low)
+ {
+ 	if ((int)high < 0)
+diff --git a/arch/sparc/kernel/systbls.h b/arch/sparc/kernel/systbls.h
+index a3ed7ae..04b7da0 100644
+--- a/arch/sparc/kernel/systbls.h
++++ b/arch/sparc/kernel/systbls.h
+@@ -27,6 +27,8 @@ long sparc_remap_file_pages(unsigned long start, unsigned long size,
+ #endif /* CONFIG_SPARC32 */
+ 
+ #ifdef CONFIG_SPARC64
++#include <asm/compat.h>
++
+ asmlinkage long sys_sparc_ipc(unsigned int call, int first,
+ 			      unsigned long second,
+ 			      unsigned long third,
+@@ -47,6 +49,55 @@ asmlinkage long sparc_memory_ordering(unsigned long model,
+ 				      struct pt_regs *regs);
+ asmlinkage void sparc64_set_context(struct pt_regs *regs);
+ asmlinkage void sparc64_get_context(struct pt_regs *regs);
+-
++asmlinkage long sys32_truncate64(const char __user * path,
++				 unsigned long high,
++				 unsigned long low);
++asmlinkage long sys32_ftruncate64(unsigned int fd,
++				  unsigned long high,
++				  unsigned long low);
++struct compat_stat64;
++asmlinkage long compat_sys_stat64(const char __user * filename,
++				  struct compat_stat64 __user *statbuf);
++asmlinkage long compat_sys_lstat64(const char __user * filename,
++				   struct compat_stat64 __user *statbuf);
++asmlinkage long compat_sys_fstat64(unsigned int fd,
++				   struct compat_stat64 __user * statbuf);
++asmlinkage long compat_sys_fstatat64(unsigned int dfd,
++				     const char __user *filename,
++				     struct compat_stat64 __user * statbuf, int flag);
++asmlinkage compat_ssize_t sys32_pread64(unsigned int fd,
++					char __user *ubuf,
++					compat_size_t count,
++					unsigned long poshi,
++					unsigned long poslo);
++asmlinkage compat_ssize_t sys32_pwrite64(unsigned int fd,
++					 char __user *ubuf,
++					 compat_size_t count,
++					 unsigned long poshi,
++					 unsigned long poslo);
++asmlinkage long compat_sys_readahead(int fd,
++				     unsigned long offhi,
++				     unsigned long offlo,
++				     compat_size_t count);
++long compat_sys_fadvise64(int fd,
++			  unsigned long offhi,
++			  unsigned long offlo,
++			  compat_size_t len, int advice);
++long compat_sys_fadvise64_64(int fd,
++			     unsigned long offhi, unsigned long offlo,
++			     unsigned long lenhi, unsigned long lenlo,
++			     int advice);
++long sys32_sync_file_range(unsigned int fd,
++			   unsigned long off_high, unsigned long off_low,
++			   unsigned long nb_high, unsigned long nb_low,
++			   unsigned int flags);
++asmlinkage long compat_sys_fallocate(int fd, int mode, u32 offhi, u32 offlo,
++				     u32 lenhi, u32 lenlo);
++asmlinkage long compat_sys_fstat64(unsigned int fd,
++				   struct compat_stat64 __user * statbuf);
++asmlinkage long compat_sys_fstatat64(unsigned int dfd,
++				     const char __user *filename,
++				     struct compat_stat64 __user * statbuf,
++				     int flag);
+ #endif /* CONFIG_SPARC64 */
+ #endif /* _SYSTBLS_H */
+-- 
+1.9.0
+
