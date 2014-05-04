@@ -1,46 +1,40 @@
-From: HUSAM AL SAYED <husamal60@gmail.com>
-Date: Tue, 27 May 2014 09:43:45 +0000
-Subject: Your Urgent reply.
-Message-Id: <CAP1pScjDUh7OBaBfrKmfaofEWVMLCghe=akwj5CGhPwpLHLKww@mail.gmail.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:43 +0000
+Subject: [PATCH v2 08/13] PCI, rpaphp: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-9-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
 
-Dear Friend,
+Now we can use new pci_is_bridge() helper function
+to simplify code.
+
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/pci/hotplug/rpadlpar_core.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pci/hotplug/rpadlpar_core.c b/drivers/pci/hotplug/rpadlpar_core.c
+index 4fcdeed..7660232 100644
+--- a/drivers/pci/hotplug/rpadlpar_core.c
++++ b/drivers/pci/hotplug/rpadlpar_core.c
+@@ -157,8 +157,7 @@ static void dlpar_pci_add_bus(struct device_node *dn)
+ 	}
+ 
+ 	/* Scan below the new bridge */
+-	if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-	    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
++	if (pci_is_bridge(dev))
+ 		of_scan_pci_bridge(dev);
+ 
+ 	/* Map IO space for child bus, which may or may not succeed */
+-- 
+1.7.1
 
 
-
-Compliments of the day.This mail May be a surprise to you Because you
-did not give me the permission to do so and Neither do you know me but
-before I tell you about myself I want you to please forgive me for
-sending this mail without your permission I have been in search of
-someone with this last name so when I saw you online, I was pushed to
-contact you and see how best we can assist each other. I am Mr. Husam
-Al Sayed, a Bank Officer here in U.A.E. I believe it is the wish of
-God for me to come across you now. I am having an important business
-discussion I wish to share with you which I  believe will interest
-you, because it is in connection with your last name and you are going
-to benefit from it.
-
-One Late peter who was among the death victims in the May 27 2006
-Earthquake disaster in Java, Indonesia that killed over 5,000 people.
-He was in Indonesia on a business trip and that was how he met his
-end. My bank management is yet to know about his death, I knew about
-it because he was my friend and I am his account officer.he did not
-mention any Next of Kin/ Heir when the account was opened, and he was
-not married and no children. Last week my Bank Management requested
-that he should give instructions on what to do about his funds,I know
-this will happen and that is why I have been looking for a means to
-handle the situation,
-
-If you are interested send me your private Email Address so that i can
-send you more details of the transaction,
-Thanks for your understanding
-
-I am waiting for your reply.
-
-Best regards,
-
-Mr. Husam Al Sayed
