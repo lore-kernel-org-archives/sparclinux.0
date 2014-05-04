@@ -1,53 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 04:08:39 +0000
-Subject: [PATCH 06/11] sparc64: Handle 32-bit tasks properly in compute_effective_address().
-Message-Id: <20140506.000839.37527239541679997.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:46 +0000
+Subject: [PATCH v2 11/13] PCI, acpiphp: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-12-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
 
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-If we have a 32-bit task we must chop off the top 32-bits of the
-64-bit value just as the cpu would.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/kernel/unaligned_64.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/unaligned_64.c b/arch/sparc/kernel/unaligned_64.c
-index 3c1a7cb..35ab8b6 100644
---- a/arch/sparc/kernel/unaligned_64.c
-+++ b/arch/sparc/kernel/unaligned_64.c
-@@ -166,17 +166,23 @@ static unsigned long *fetch_reg_addr(unsigned int reg, struct pt_regs *regs)
- unsigned long compute_effective_address(struct pt_regs *regs,
- 					unsigned int insn, unsigned int rd)
- {
-+	int from_kernel = (regs->tstate & TSTATE_PRIV) != 0;
- 	unsigned int rs1 = (insn >> 14) & 0x1f;
- 	unsigned int rs2 = insn & 0x1f;
--	int from_kernel = (regs->tstate & TSTATE_PRIV) != 0;
-+	unsigned long addr;
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index bccc27e..f1f9bd1 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -516,8 +516,7 @@ static void __ref enable_slot(struct acpiphp_slot *slot)
+ 			if (PCI_SLOT(dev->devfn) != slot->device)
+ 				continue;
  
- 	if (insn & 0x2000) {
- 		maybe_flush_windows(rs1, 0, rd, from_kernel);
--		return (fetch_reg(rs1, regs) + sign_extend_imm13(insn));
-+		addr = (fetch_reg(rs1, regs) + sign_extend_imm13(insn));
- 	} else {
- 		maybe_flush_windows(rs1, rs2, rd, from_kernel);
--		return (fetch_reg(rs1, regs) + fetch_reg(rs2, regs));
-+		addr = (fetch_reg(rs1, regs) + fetch_reg(rs2, regs));
- 	}
-+
-+	if (!from_kernel && test_thread_flag(TIF_32BIT))
-+		addr &= 0xffffffff;
-+
-+	return addr;
- }
- 
- /* This is just to make gcc think die_if_kernel does return... */
+-			if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-			    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS) {
++			if (pci_is_bridge(dev)) {
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+ 				if (pass && dev->subordinate) {
+ 					check_hotplug_bridge(slot, dev);
 -- 
-1.8.1.2
+1.7.1
+
 
