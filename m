@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:39 +0000
-Subject: [PATCH v2 04/13] x86/PCI: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-5-git-send-email-wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:41 +0000
+Subject: [PATCH v2 06/13] powerpc/PCI: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-7-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
@@ -16,24 +16,38 @@ to simplify code.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/x86/pci/fixup.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ arch/powerpc/kernel/pci-hotplug.c |    3 +--
+ arch/powerpc/kernel/pci_of_scan.c |    3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
-index 94ae9ae..e5f000c 100644
---- a/arch/x86/pci/fixup.c
-+++ b/arch/x86/pci/fixup.c
-@@ -337,9 +337,7 @@ static void pci_fixup_video(struct pci_dev *pdev)
- 		 * type BRIDGE, or CARDBUS. Host to PCI controllers use
- 		 * PCI header type NORMAL.
- 		 */
--		if (bridge
--		    && ((bridge->hdr_type = PCI_HEADER_TYPE_BRIDGE)
--		       || (bridge->hdr_type = PCI_HEADER_TYPE_CARDBUS))) {
-+		if (bridge && (pci_is_bridge(bridge))) {
- 			pci_read_config_word(bridge, PCI_BRIDGE_CONTROL,
- 						&config);
- 			if (!(config & PCI_BRIDGE_CTL_VGA))
+diff --git a/arch/powerpc/kernel/pci-hotplug.c b/arch/powerpc/kernel/pci-hotplug.c
+index c1e17ae..5b78917 100644
+--- a/arch/powerpc/kernel/pci-hotplug.c
++++ b/arch/powerpc/kernel/pci-hotplug.c
+@@ -98,8 +98,7 @@ void pcibios_add_pci_devices(struct pci_bus * bus)
+ 		max = bus->busn_res.start;
+ 		for (pass = 0; pass < 2; pass++) {
+ 			list_for_each_entry(dev, &bus->devices, bus_list) {
+-				if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-				    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
++				if (pci_is_bridge(dev))
+ 					max = pci_scan_bridge(bus, dev,
+ 							      max, pass);
+ 			}
+diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
+index 83c26d8..059e244 100644
+--- a/arch/powerpc/kernel/pci_of_scan.c
++++ b/arch/powerpc/kernel/pci_of_scan.c
+@@ -362,8 +362,7 @@ static void __of_scan_bus(struct device_node *node, struct pci_bus *bus,
+ 
+ 	/* Now scan child busses */
+ 	list_for_each_entry(dev, &bus->devices, bus_list) {
+-		if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-		    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS) {
++		if (pci_is_bridge(dev)) {
+ 			of_scan_pci_bridge(dev);
+ 		}
+ 	}
 -- 
 1.7.1
 
