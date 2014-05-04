@@ -1,74 +1,74 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 04 May 2014 05:27:10 +0000
-Subject: [PATCH] sparc64: Normalize NMI watchdog logging and behavior.
-Message-Id: <20140504.012710.2211195166500423039.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 04 May 2014 07:04:37 +0000
+Subject: Re: [PATCH] sparc64: Normalize NMI watchdog logging and behavior.
+Message-Id: <20140504070437.GA28025@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140504.012710.2211195166500423039.davem@davemloft.net>
+In-Reply-To: <20140504.012710.2211195166500423039.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+On Sun, May 04, 2014 at 01:27:10AM -0400, David Miller wrote:
+> 
+> Bring this code in line with the perf based generic NMI watchdog
+> in kernel/watchdog.c (which we should convert over to at some
+> point).
+> 
+> In particular, don't do anything super fancy when the watchdog
+> triggers, and specifically don't do a do_exit() which only makes
+> things worse.
 
-Bring this code in line with the perf based generic NMI watchdog
-in kernel/watchdog.c (which we should convert over to at some
-point).
+It is always good when we can use more of the generic functionality.
+Should we do something remotely similar for sparc32?
 
-In particular, don't do anything super fancy when the watchdog
-triggers, and specifically don't do a do_exit() which only makes
-things worse.
+It looks like the sun4m_nmi() function is also used for sun4d + leon,
+but I need to look again to make sure.
 
-Either panic(), or WARN().  The latter of which will do all of
-the actions such as give us a stack backtrace.
+	Sam
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
+Something like this:
 
-I noticed this while trying to debug various kinds of hangs I can
-trigger in 3.15, hopefully these adjustments make debugging easier
-for other people as well.
-
-Committed to 'sparc' GIT.
-
- arch/sparc/kernel/nmi.c | 21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
-
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 6479256..3370945 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -68,27 +68,16 @@ EXPORT_SYMBOL(touch_nmi_watchdog);
- 
- static void die_nmi(const char *str, struct pt_regs *regs, int do_panic)
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 8bb3b3f..7c8ad6f 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -308,28 +308,28 @@ static void sun4m_clear_clock_irq(void)
+ void sun4m_nmi(struct pt_regs *regs)
  {
-+	int this_cpu = smp_processor_id();
-+
- 	if (notify_die(DIE_NMIWATCHDOG, str, regs, 0,
- 		       pt_regs_trap_type(regs), SIGINT) = NOTIFY_STOP)
- 		return;
+ 	unsigned long afsr, afar, si;
++	char *reason = "unknown";
  
--	console_verbose();
--	bust_spinlocks(1);
--
--	printk(KERN_EMERG "%s", str);
--	printk(" on CPU%d, ip %08lx, registers:\n",
--	       smp_processor_id(), regs->tpc);
+-	printk(KERN_ERR "Aieee: sun4m NMI received!\n");
+ 	/* XXX HyperSparc hack XXX */
+ 	__asm__ __volatile__("mov 0x500, %%g1\n\t"
+ 			     "lda [%%g1] 0x4, %0\n\t"
+ 			     "mov 0x600, %%g1\n\t"
+ 			     "lda [%%g1] 0x4, %1\n\t" :
+ 			     "=r" (afsr), "=r" (afar));
+-	printk(KERN_ERR "afsr=%08lx afar=%08lx\n", afsr, afar);
++
+ 	si = sbus_readl(&sun4m_irq_global->pending);
+ 	printk(KERN_ERR "si=%08lx\n", si);
+ 	if (si & SUN4M_INT_MODULE_ERR)
+-		printk(KERN_ERR "Module async error\n");
++		reason = "Module async error";
+ 	if (si & SUN4M_INT_M2S_WRITE_ERR)
+-		printk(KERN_ERR "MBus/SBus async error\n");
++		reason = "MBus/SBus async error";
+ 	if (si & SUN4M_INT_ECC_ERR)
+-		printk(KERN_ERR "ECC memory error\n");
++		reason = "ECC memory error";
+ 	if (si & SUN4M_INT_VME_ERR)
+-		printk(KERN_ERR "VME async error\n");
+-	printk(KERN_ERR "you lose buddy boy...\n");
 -	show_regs(regs);
--	dump_stack();
--
--	bust_spinlocks(0);
--
- 	if (do_panic || panic_on_oops)
--		panic("Non maskable interrupt");
--
--	nmi_exit();
--	local_irq_enable();
--	do_exit(SIGBUS);
-+		panic("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
-+	else
-+		WARN(1, "Watchdog detected hard LOCKUP on cpu %d", this_cpu);
+-	prom_halt();
++		reason = "VME async error";
++
++	panic("sun4m NMI received (%s), afsr=%08lx afar=%08lx\n",
++	      reason, afsr, afar);
  }
  
- notrace __kprobes void perfctr_irq(int irq, struct pt_regs *regs)
--- 
-1.8.1.2
-
+ void sun4m_unmask_profile_irq(void)
