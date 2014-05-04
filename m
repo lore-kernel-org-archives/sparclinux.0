@@ -1,29 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 02 May 2014 05:03:41 +0000
-Subject: Re: [PATCH 07/10] sparc64: Fix top-level fault handling bugs.
-Message-Id: <20140502.010341.1958758638867837173.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:47 +0000
+Subject: [PATCH v2 12/13] PCI, pcmcia: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-13-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140430.175538.1736831666738622015.davem@davemloft.net>
-In-Reply-To: <20140430.175538.1736831666738622015.davem@davemloft.net>
+References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
 
-RnJvbTogTWVlbGlzIFJvb3MgPG1yb29zQHV0LmVlPg0KRGF0ZTogRnJpLCAyIE1heSAyMDE0IDA3
-OjUxOjEzICswMzAwIChFRVNUKQ0KDQo+PiBNYWtlIGdldF91c2VyX2luc24oKSBhYmxlIHRvIGNv
-cGUgd2l0aCBodWdlIFBNRHMuDQo+PiANCj4+IE5leHQsIG1ha2UgZG9fZmF1bHRfc2lnaW5mbygp
-IG1vcmUgcm9idXN0IHdoZW4gZ2V0X3VzZXJfaW5zbigpIGNhbid0DQo+PiBhY3R1YWxseSBmZXRj
-aCB0aGUgaW5zdHJ1Y3Rpb24uICBJbiBwYXJ0aWN1bGFyLCB1c2UgdGhlIE1NVSBhbm5vdW5jZWQN
-Cj4+IGZhdWx0IGFkZHJlc3Mgd2hlbiB0aGF0IGhhcHBlbnMsIGluc3RlYWQgb2YgY2FsbGluZw0K
-Pj4gY29tcHV0ZV9lZmZlY3RpdmVfYWRkcmVzcygpIGFuZCBjb21wdXRpbmcgZ2FyYmFnZS4NCj4+
-IA0KPj4gU2lnbmVkLW9mZi1ieTogRGF2aWQgUy4gTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0
-Pg0KPiANCj4gVGhpcyBwYXRjaCBoYXBwZW5zIHRvIGludHJvZHVjZSBhIGNvbXBpbGUgZmFpbHVy
-ZSBvbiBhIGNvbXB1dGVyIHRoYXQgaGFzIA0KPiBUSFAgZGlhYmxlZDoNCj4gDQo+ICAgQ0MgICAg
-ICBhcmNoL3NwYXJjL21tL2ZhdWx0XzY0Lm8NCj4gYXJjaC9zcGFyYy9tbS9mYXVsdF82NC5jOiBJ
-biBmdW5jdGlvbiChZ2V0X3VzZXJfaW5zbqI6DQo+IGFyY2gvc3BhcmMvbW0vZmF1bHRfNjQuYzox
-MTc6MzogZXJyb3I6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIKFwbWRfcGZuoiBb
-LVdlcnJvcj1pbXBsaWNpdC1mdW5jdGlvbi1kZWNsYXJhdGlvbl0NCj4gDQo+IGFyY2gvc3BhcmMv
-aW5jbHVkZS9hc20vcGd0YWJsZV82NC5oIGhhcyBwbWRfcGZuIGRlY2xhcmVkIG9ubHkgZm9yIFRI
-UC4NCg0KVGhhbmtzIGEgbG90LCBJJ2xsIGZpeCB0aGlzIGJ5IGFkZGluZyB0aGUgYXBwcm9wcmlh
-dGUgaWZkZWYgYXJvdW5kDQp0aGF0IGNvZGUuDQo
+Now we can use new pci_is_bridge() helper function
+to simplify code.
+
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ drivers/pcmcia/cardbus.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/pcmcia/cardbus.c b/drivers/pcmcia/cardbus.c
+index 8bde619..4fe4cc4 100644
+--- a/drivers/pcmcia/cardbus.c
++++ b/drivers/pcmcia/cardbus.c
+@@ -78,8 +78,7 @@ int __ref cb_alloc(struct pcmcia_socket *s)
+ 	max = bus->busn_res.start;
+ 	for (pass = 0; pass < 2; pass++)
+ 		list_for_each_entry(dev, &bus->devices, bus_list)
+-			if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
+-			    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
++			if (pci_is_bridge(dev))
+ 				max = pci_scan_bridge(bus, dev, max, pass);
+ 
+ 	/*
+-- 
+1.7.1
+
+
