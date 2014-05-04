@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:43 +0000
-Subject: [PATCH v2 08/13] PCI, rpaphp: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-9-git-send-email-wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:39 +0000
+Subject: [PATCH v2 04/13] x86/PCI: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-5-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
@@ -14,26 +14,26 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs
 Now we can use new pci_is_bridge() helper function
 to simplify code.
 
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- drivers/pci/hotplug/rpadlpar_core.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/x86/pci/fixup.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pci/hotplug/rpadlpar_core.c b/drivers/pci/hotplug/rpadlpar_core.c
-index 4fcdeed..7660232 100644
---- a/drivers/pci/hotplug/rpadlpar_core.c
-+++ b/drivers/pci/hotplug/rpadlpar_core.c
-@@ -157,8 +157,7 @@ static void dlpar_pci_add_bus(struct device_node *dn)
- 	}
- 
- 	/* Scan below the new bridge */
--	if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--	    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
-+	if (pci_is_bridge(dev))
- 		of_scan_pci_bridge(dev);
- 
- 	/* Map IO space for child bus, which may or may not succeed */
+diff --git a/arch/x86/pci/fixup.c b/arch/x86/pci/fixup.c
+index 94ae9ae..e5f000c 100644
+--- a/arch/x86/pci/fixup.c
++++ b/arch/x86/pci/fixup.c
+@@ -337,9 +337,7 @@ static void pci_fixup_video(struct pci_dev *pdev)
+ 		 * type BRIDGE, or CARDBUS. Host to PCI controllers use
+ 		 * PCI header type NORMAL.
+ 		 */
+-		if (bridge
+-		    && ((bridge->hdr_type = PCI_HEADER_TYPE_BRIDGE)
+-		       || (bridge->hdr_type = PCI_HEADER_TYPE_CARDBUS))) {
++		if (bridge && (pci_is_bridge(bridge))) {
+ 			pci_read_config_word(bridge, PCI_BRIDGE_CONTROL,
+ 						&config);
+ 			if (!(config & PCI_BRIDGE_CTL_VGA))
 -- 
 1.7.1
 
