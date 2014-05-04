@@ -1,54 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 04:08:22 +0000
-Subject: [PATCH 03/11] sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
-Message-Id: <20140506.000822.13293049007698418.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Sun, 04 May 2014 04:23:45 +0000
+Subject: [PATCH v2 10/13] PCI, cpcihp: Use new pci_is_bridge() to simplify code
+Message-Id: <1399177428-3784-11-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
 
+Now we can use new pci_is_bridge() helper function
+to simplify code.
 
-The large PMD path needs to check _PAGE_VALID not _PAGE_PRESENT, to
-decide if it needs to bail and return 0.
-
-pmd_large() should therefore just check _PAGE_PMD_HUGE.
-
-Calls to gup_huge_pmd() are guarded with a check of pmd_large(), so we
-just need to add a valid bit check.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 2 +-
- arch/sparc/mm/gup.c                 | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index e3db4b8..1f28103 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -633,7 +633,7 @@ static inline unsigned long pmd_large(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
+diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
+index 8c14648..9843371 100644
+--- a/drivers/pci/hotplug/cpci_hotplug_pci.c
++++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
+@@ -289,8 +289,7 @@ int __ref cpci_configure_slot(struct slot *slot)
+ 	list_for_each_entry(dev, &parent->devices, bus_list)
+ 		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
+ 			continue;
+-		if ((dev->hdr_type = PCI_HEADER_TYPE_BRIDGE) ||
+-		    (dev->hdr_type = PCI_HEADER_TYPE_CARDBUS))
++		if (pci_is_bridge(dev))
+ 			pci_hp_add_bridge(dev);
  
--	return (pte_val(pte) & _PAGE_PMD_HUGE) && pte_present(pte);
-+	return pte_val(pte) & _PAGE_PMD_HUGE;
- }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index c4d3da6..1aed043 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -73,7 +73,7 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
- 	struct page *head, *page, *tail;
- 	int refs;
- 
--	if (!pmd_large(pmd))
-+	if (!(pmd_val(pmd) & _PAGE_VALID))
- 		return 0;
- 
- 	if (write && !pmd_write(pmd))
 -- 
-1.8.1.2
+1.7.1
+
 
