@@ -1,36 +1,54 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:18 +0000
-Subject: [PATCH 13/34] sparc64: fix sparse warning in traps_64.c
-Message-Id: <1399157559-19901-13-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2014 04:08:22 +0000
+Subject: [PATCH 03/11] sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
+Message-Id: <20140506.000822.13293049007698418.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-traps_64.c:2384:6: error: symbol 'die_if_kernel' redeclared with different type (originally declared at include/asm/bug.h:23) - different modifiers
 
-Add proper __noreturn to the implementation to fix this
+The large PMD path needs to check _PAGE_VALID not _PAGE_PRESENT, to
+decide if it needs to bail and return 0.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+pmd_large() should therefore just check _PAGE_PMD_HUGE.
+
+Calls to gup_huge_pmd() are guarded with a check of pmd_large(), so we
+just need to add a valid bit check.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/traps_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/include/asm/pgtable_64.h | 2 +-
+ arch/sparc/mm/gup.c                 | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 4d7e12d..86484704 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2381,7 +2381,7 @@ static inline struct reg_window *kernel_stack_up(struct reg_window *rw)
- 	return (struct reg_window *) (fp + STACK_BIAS);
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index e3db4b8..1f28103 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -633,7 +633,7 @@ static inline unsigned long pmd_large(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+ 
+-	return (pte_val(pte) & _PAGE_PMD_HUGE) && pte_present(pte);
++	return pte_val(pte) & _PAGE_PMD_HUGE;
  }
  
--void die_if_kernel(char *str, struct pt_regs *regs)
-+void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
- {
- 	static int die_counter;
- 	int count = 0;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index c4d3da6..1aed043 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -73,7 +73,7 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 	struct page *head, *page, *tail;
+ 	int refs;
+ 
+-	if (!pmd_large(pmd))
++	if (!(pmd_val(pmd) & _PAGE_VALID))
+ 		return 0;
+ 
+ 	if (write && !pmd_write(pmd))
 -- 
-1.9.0
+1.8.1.2
 
