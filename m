@@ -1,175 +1,121 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 02 May 2014 15:03:32 +0000
-Subject: [PATCH 06/12] sparc32: fix sparse warnings in sys_sparc_32.c
-Message-Id: <1399043018-16975-6-git-send-email-sam@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2014 04:08:56 +0000
+Subject: [PATCH 09/11] sparc64: Use 'ILOG2_4MB' instead of constant '22'.
+Message-Id: <20140506.000856.1820974026807701268.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-sys_sparc_32.c:32:26: warning: symbol 'sys_getpagesize' was not declared. Should it be static?
-sys_sparc_32.c:71:16: warning: symbol 'sparc_pipe' was not declared. Should it be static?
-sys_sparc_32.c:96:26: warning: symbol 'sys_mmap2' was not declared. Should it be static?
-sys_sparc_32.c:106:26: warning: symbol 'sys_mmap' was not declared. Should it be static?
-sys_sparc_32.c:114:6: warning: symbol 'sparc_remap_file_pages' was not declared. Should it be static?
-sys_sparc_32.c:127:1: warning: symbol 'c_sys_nis_syscall' was not declared. Should it be static?
-sys_sparc_32.c:144:1: warning: symbol 'sparc_breakpoint' was not declared. Should it be static?
-sys_sparc_32.c:200:16: warning: symbol 'sys_getdomainname' was not declared. Should it be static?
 
-Adapt systbls.h for use by both sparc32 + sparc64.
-In the process modify the return type of a few functions:
-
-From unsigned long to long:
-sys_mmap2()
-sys_mmap()
-
-From int to long:
-sparc_pipe()
-sys_getdomainname()
-
-The changed return type was done to align with sparc64,
-and to actually match the type that was returned.
-As we cross a syscall boundary the user will not see this change.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/sys_sparc_32.c | 10 +++---
- arch/sparc/kernel/systbls.h      | 71 +++++++++++++++++++++++-----------------
- 2 files changed, 47 insertions(+), 34 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |  2 +-
+ arch/sparc/kernel/head_64.S         |  4 ++--
+ arch/sparc/kernel/ktlb.S            |  2 +-
+ arch/sparc/mm/init_64.c             | 12 ++++++------
+ 4 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/kernel/sys_sparc_32.c b/arch/sparc/kernel/sys_sparc_32.c
-index 3a8d184..646988d 100644
---- a/arch/sparc/kernel/sys_sparc_32.c
-+++ b/arch/sparc/kernel/sys_sparc_32.c
-@@ -24,6 +24,8 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index ff97960..0ad0a12 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -918,7 +918,7 @@ static inline bool kern_addr_valid(unsigned long addr)
  
-+#include "systbls.h"
-+
- /* #define DEBUG_UNIMP_SYSCALL */
- 
- /* XXX Make this per-binary type, this way we can detect the type of
-@@ -68,7 +70,7 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
-  * sys_pipe() is the normal C calling standard for creating
-  * a pipe. It's not the way unix traditionally does this, though.
-  */
--asmlinkage int sparc_pipe(struct pt_regs *regs)
-+asmlinkage long sparc_pipe(struct pt_regs *regs)
- {
- 	int fd[2];
- 	int error;
-@@ -93,7 +95,7 @@ int sparc_mmap_check(unsigned long addr, unsigned long len)
- 
- /* Linux version of mmap */
- 
--asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long pgoff)
- {
-@@ -103,7 +105,7 @@ asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
- 			      pgoff >> (PAGE_SHIFT - 12));
+ 	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
+ 		return false;
+-	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
++	return test_bit(paddr >> ILOG2_4MB, sparc64_valid_addr_bitmap);
  }
  
--asmlinkage unsigned long sys_mmap(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long off)
- {
-@@ -197,7 +199,7 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig,
- 	return ret;
- }
+ extern int page_in_phys_avail(unsigned long paddr);
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 26b706a..452f04f 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -282,8 +282,8 @@ sun4v_chip_type:
+ 	stx	%l2, [%l4 + 0x0]
+ 	ldx	[%sp + 2047 + 128 + 0x50], %l3	! physaddr low
+ 	/* 4MB align */
+-	srlx	%l3, 22, %l3
+-	sllx	%l3, 22, %l3
++	srlx	%l3, ILOG2_4MB, %l3
++	sllx	%l3, ILOG2_4MB, %l3
+ 	stx	%l3, [%l4 + 0x8]
  
--asmlinkage int sys_getdomainname(char __user *name, int len)
-+asmlinkage long sys_getdomainname(char __user *name, int len)
- {
-  	int nlen, err;
-  	
-diff --git a/arch/sparc/kernel/systbls.h b/arch/sparc/kernel/systbls.h
-index 26e6dd7..a3ed7ae 100644
---- a/arch/sparc/kernel/systbls.h
-+++ b/arch/sparc/kernel/systbls.h
-@@ -6,36 +6,47 @@
- #include <linux/signal.h>
- #include <asm/utrap.h>
+ 	/* Leave service as-is, "call-method" */
+diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
+index 542e96a..605d492 100644
+--- a/arch/sparc/kernel/ktlb.S
++++ b/arch/sparc/kernel/ktlb.S
+@@ -277,7 +277,7 @@ kvmap_dtlb_load:
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ kvmap_vmemmap:
+ 	sub		%g4, %g5, %g5
+-	srlx		%g5, 22, %g5
++	srlx		%g5, ILOG2_4MB, %g5
+ 	sethi		%hi(vmemmap_table), %g1
+ 	sllx		%g5, 3, %g5
+ 	or		%g1, %lo(vmemmap_table), %g1
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index eafbc65..ed3c969 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -588,7 +588,7 @@ static void __init remap_kernel(void)
+ 	int i, tlb_ent = sparc64_highest_locked_tlbent();
  
--extern asmlinkage unsigned long sys_getpagesize(void);
--extern asmlinkage long sparc_pipe(struct pt_regs *regs);
--extern asmlinkage long sys_sparc_ipc(unsigned int call, int first,
--			       unsigned long second,
--			       unsigned long third,
--			       void __user *ptr, long fifth);
--extern asmlinkage long sparc64_personality(unsigned long personality);
--extern asmlinkage long sys64_munmap(unsigned long addr, size_t len);
--extern asmlinkage unsigned long sys64_mremap(unsigned long addr,
--					     unsigned long old_len,
--					     unsigned long new_len,
--					     unsigned long flags,
--					     unsigned long new_addr);
--extern asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
--extern asmlinkage long sys_getdomainname(char __user *name, int len);
--extern asmlinkage long sys_utrap_install(utrap_entry_t type,
--					 utrap_handler_t new_p,
--					 utrap_handler_t new_d,
--					 utrap_handler_t __user *old_p,
--					 utrap_handler_t __user *old_d);
--extern asmlinkage long sparc_memory_ordering(unsigned long model,
--					     struct pt_regs *regs);
--extern asmlinkage long sys_rt_sigaction(int sig,
--					const struct sigaction __user *act,
--					struct sigaction __user *oact,
--					void __user *restorer,
--					size_t sigsetsize);
-+asmlinkage unsigned long sys_getpagesize(void);
-+asmlinkage long sparc_pipe(struct pt_regs *regs);
-+asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
-+asmlinkage long sys_getdomainname(char __user *name, int len);
-+void do_rt_sigreturn(struct pt_regs *regs);
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
-+			 unsigned long prot, unsigned long flags,
-+			 unsigned long fd, unsigned long off);
-+asmlinkage void sparc_breakpoint(struct pt_regs *regs);
+ 	tte_vaddr = (unsigned long) KERNBASE;
+-	phys_page = (prom_boot_mapping_phys_low >> 22UL) << 22UL;
++	phys_page = (prom_boot_mapping_phys_low >> ILOG2_4MB) << ILOG2_4MB;
+ 	tte_data = kern_large_tte(phys_page);
  
--extern asmlinkage void sparc64_set_context(struct pt_regs *regs);
--extern asmlinkage void sparc64_get_context(struct pt_regs *regs);
--extern void do_rt_sigreturn(struct pt_regs *regs);
-+#ifdef CONFIG_SPARC32
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
-+			  unsigned long prot, unsigned long flags,
-+			  unsigned long fd, unsigned long pgoff);
-+long sparc_remap_file_pages(unsigned long start, unsigned long size,
-+			    unsigned long prot, unsigned long pgoff,
-+			    unsigned long flags);
+ 	kern_locked_tte_data = tte_data;
+@@ -1881,7 +1881,7 @@ void __init paging_init(void)
  
-+#endif /* CONFIG_SPARC32 */
-+
-+#ifdef CONFIG_SPARC64
-+asmlinkage long sys_sparc_ipc(unsigned int call, int first,
-+			      unsigned long second,
-+			      unsigned long third,
-+			      void __user *ptr, long fifth);
-+asmlinkage long sparc64_personality(unsigned long personality);
-+asmlinkage long sys64_munmap(unsigned long addr, size_t len);
-+asmlinkage unsigned long sys64_mremap(unsigned long addr,
-+				      unsigned long old_len,
-+				      unsigned long new_len,
-+				      unsigned long flags,
-+				      unsigned long new_addr);
-+asmlinkage long sys_utrap_install(utrap_entry_t type,
-+				  utrap_handler_t new_p,
-+				  utrap_handler_t new_d,
-+				  utrap_handler_t __user *old_p,
-+				  utrap_handler_t __user *old_d);
-+asmlinkage long sparc_memory_ordering(unsigned long model,
-+				      struct pt_regs *regs);
-+asmlinkage void sparc64_set_context(struct pt_regs *regs);
-+asmlinkage void sparc64_get_context(struct pt_regs *regs);
-+
-+#endif /* CONFIG_SPARC64 */
- #endif /* _SYSTBLS_H */
+ 	BUILD_BUG_ON(NR_CPUS > 4096);
+ 
+-	kern_base = (prom_boot_mapping_phys_low >> 22UL) << 22UL;
++	kern_base = (prom_boot_mapping_phys_low >> ILOG2_4MB) << ILOG2_4MB;
+ 	kern_size = (unsigned long)&_end - (unsigned long)KERNBASE;
+ 
+ 	/* Invalidate both kernel TSBs.  */
+@@ -1937,7 +1937,7 @@ void __init paging_init(void)
+ 	shift = kern_base + PAGE_OFFSET - ((unsigned long)KERNBASE);
+ 
+ 	real_end = (unsigned long)_end;
+-	num_kernel_image_mappings = DIV_ROUND_UP(real_end - KERNBASE, 1 << 22);
++	num_kernel_image_mappings = DIV_ROUND_UP(real_end - KERNBASE, 1 << ILOG2_4MB);
+ 	printk("Kernel: Using %d locked TLB entries for main kernel image.\n",
+ 	       num_kernel_image_mappings);
+ 
+@@ -2094,7 +2094,7 @@ static void __init setup_valid_addr_bitmap_from_pavail(unsigned long *bitmap)
+ 
+ 				if (new_start <= old_start &&
+ 				    new_end >= (old_start + PAGE_SIZE)) {
+-					set_bit(old_start >> 22, bitmap);
++					set_bit(old_start >> ILOG2_4MB, bitmap);
+ 					goto do_next_page;
+ 				}
+ 			}
+@@ -2143,7 +2143,7 @@ void __init mem_init(void)
+ 	addr = PAGE_OFFSET + kern_base;
+ 	last = PAGE_ALIGN(kern_size) + addr;
+ 	while (addr < last) {
+-		set_bit(__pa(addr) >> 22, sparc64_valid_addr_bitmap);
++		set_bit(__pa(addr) >> ILOG2_4MB, sparc64_valid_addr_bitmap);
+ 		addr += PAGE_SIZE;
+ 	}
+ 
+@@ -2267,7 +2267,7 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 		void *block;
+ 
+ 		if (!(*vmem_pp & _PAGE_VALID)) {
+-			block = vmemmap_alloc_block(1UL << 22, node);
++			block = vmemmap_alloc_block(1UL << ILOG2_4MB, node);
+ 			if (!block)
+ 				return -ENOMEM;
+ 
 -- 
-1.9.0
+1.8.1.2
 
