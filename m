@@ -1,99 +1,47 @@
-From: Himangi Saraogi <himangi774@gmail.com>
-Date: Mon, 26 May 2014 21:44:07 +0000
-Subject: [PATCH] display7seg: Introduce the use of the managed version of kzalloc
-Message-Id: <20140526213207.GA1815@himangi-Dell>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2014 04:08:33 +0000
+Subject: [PATCH 05/11] sparc64: Don't use _PAGE_PRESENT in pte_modify() mask.
+Message-Id: <20140506.000833.2113522430971267173.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr, Sam Ravnborg <sam@ravnborg.org>
+To: sparclinux@vger.kernel.org
 
-This patch moves data allocated using kzalloc to managed data allocated
-using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-functions. The header file is added to make the devm function explicitly
-available.
 
-The following Coccinelle semantic patch was used for making a part of
-the change:
-
-@platform@
-identifier p, probefn, removefn;
-@@
-struct platform_driver p = {
-  .probe = probefn,
-  .remove = removefn,
-};
-
-@prb@
-identifier platform.probefn, pdev;
-expression e, e1, e2;
-@@
-probefn(struct platform_device *pdev, ...) {
-  <+...
-- e = kzalloc(e1, e2)
-+ e = devm_kzalloc(&pdev->dev, e1, e2)
-  ...
-?-kfree(e);
-  ...+>
-}
-
-@rem depends on prb@
-identifier platform.removefn;
-expression e;
-@@
-removefn(...) {
-  <...
-- kfree(e);
-  ...>
-}
-
-Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
-Not compile tested due to incompatible architecture.
+ arch/sparc/include/asm/pgtable_64.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
- drivers/sbus/char/display7seg.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 7c71e7b..b48899c 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -4,6 +4,7 @@
-  * Copyright (c) 2000 Eric Brower (ebrower@usa.net)
-  */
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 50b2d78..ac5f708 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -258,8 +258,8 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
+ {
+ 	unsigned long mask, tmp;
  
-+#include <linux/device.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/fs.h>
-@@ -180,7 +181,7 @@ static int d7s_probe(struct platform_device *op)
- 	if (d7s_device)
- 		goto out;
+-	/* SUN4U: 0x630107ffffffecb8 (negated = 0x9cfef80000001347)
+-	 * SUN4V: 0x33ffffffffffee17 (negated = 0xcc000000000011e8)
++	/* SUN4U: 0x630107ffffffec38 (negated = 0x9cfef800000013c7)
++	 * SUN4V: 0x33ffffffffffee07 (negated = 0xcc000000000011f8)
+ 	 *
+ 	 * Even if we use negation tricks the result is still a 6
+ 	 * instruction sequence, so don't try to play fancy and just
+@@ -289,10 +289,10 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t prot)
+ 	"	.previous\n"
+ 	: "=r" (mask), "=r" (tmp)
+ 	: "i" (_PAGE_PADDR_4U | _PAGE_MODIFIED_4U | _PAGE_ACCESSED_4U |
+-	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U | _PAGE_PRESENT_4U |
++	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U |
+ 	       _PAGE_SPECIAL | _PAGE_PMD_HUGE | _PAGE_SZALL_4U),
+ 	  "i" (_PAGE_PADDR_4V | _PAGE_MODIFIED_4V | _PAGE_ACCESSED_4V |
+-	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V | _PAGE_PRESENT_4V |
++	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V |
+ 	       _PAGE_SPECIAL | _PAGE_PMD_HUGE | _PAGE_SZALL_4V));
  
--	p = kzalloc(sizeof(*p), GFP_KERNEL);
-+	p = devm_kzalloc(&op->dev, sizeof(*p), GFP_KERNEL);
- 	err = -ENOMEM;
- 	if (!p)
- 		goto out;
-@@ -231,7 +232,6 @@ out_iounmap:
- 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
- 
- out_free:
--	kfree(p);
- 	goto out;
- }
- 
-@@ -251,7 +251,6 @@ static int d7s_remove(struct platform_device *op)
- 
- 	misc_deregister(&d7s_miscdev);
- 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
--	kfree(p);
- 
- 	return 0;
- }
+ 	return __pte((pte_val(pte) & mask) | (pgprot_val(prot) & ~mask));
 -- 
-1.9.1
+1.8.1.2
 
