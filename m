@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 04:09:07 +0000
-Subject: [PATCH 11/11] sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR().
-Message-Id: <20140506.000907.337962323763335942.davem@davemloft.net>
+Date: Tue, 06 May 2014 04:08:48 +0000
+Subject: [PATCH 08/11] sparc64: Fix range check in kern_addr_valid().
+Message-Id: <20140506.000848.1166368038011047019.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,40 +9,30 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-pte_ERROR() is not used anywhere, delete it.
+In commit b2d438348024b75a1ee8b66b85d77f569a5dfed8 ("sparc64: Make
+PAGE_OFFSET variable."), the MAX_PHYS_ADDRESS_BITS value was increased
+(to 47).
 
-For pgd_ERROR() and pmd_ERROR(), output something similar to x86, giving the address
-of the pgd/pmd as well as it's value.
-
-Also provide the caller, since these macros are invoked from pgd_clear_bad() and
-pmd_clear_bad() which provides little context as to what high level operation was
-occuring when the BAD state was detected.
+This constant reference to '41UL' was missed.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/pgtable_64.h | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index baccf35..fde5aba 100644
+index ac5f708..ff97960 100644
 --- a/arch/sparc/include/asm/pgtable_64.h
 +++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -96,9 +96,12 @@ static inline bool kern_addr_valid(unsigned long addr)
- /* Kernel has a separate 44bit address space. */
- #define FIRST_USER_ADDRESS	0
+@@ -916,7 +916,7 @@ static inline bool kern_addr_valid(unsigned long addr)
+ {
+ 	unsigned long paddr = __pa(addr);
  
--#define pte_ERROR(e)	__builtin_trap()
--#define pmd_ERROR(e)	__builtin_trap()
--#define pgd_ERROR(e)	__builtin_trap()
-+#define pmd_ERROR(e)							\
-+	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
-+	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
-+#define pgd_ERROR(e)							\
-+	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
-+	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
- 
- #endif /* !(__ASSEMBLY__) */
- 
+-	if ((paddr >> 41UL) != 0UL)
++	if ((paddr >> MAX_PHYS_ADDRESS_BITS) != 0UL)
+ 		return false;
+ 	return test_bit(paddr >> 22, sparc64_valid_addr_bitmap);
+ }
 -- 
 1.8.1.2
 
