@@ -1,50 +1,48 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:37 +0000
-Subject: [PATCH v2 02/13] PCI: Introduce new pci_is_bridge() helper function
-Message-Id: <1399177428-3784-3-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2014 04:09:07 +0000
+Subject: [PATCH 11/11] sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR().
+Message-Id: <20140506.000907.337962323763335942.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
+To: sparclinux@vger.kernel.org
 
-PCIe Spec define the PCI bridge is the PCI device
-which header type(bit 0 through 6) is 0x1(PCI bridge)
-or 0x2(CardBus bridge).
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+pte_ERROR() is not used anywhere, delete it.
+
+For pgd_ERROR() and pmd_ERROR(), output something similar to x86, giving the address
+of the pgd/pmd as well as it's value.
+
+Also provide the caller, since these macros are invoked from pgd_clear_bad() and
+pmd_clear_bad() which provides little context as to what high level operation was
+occuring when the BAD state was detected.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- include/linux/pci.h |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index aab57b4..9f5f89e 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -477,6 +477,19 @@ static inline bool pci_is_root_bus(struct pci_bus *pbus)
- 	return !(pbus->parent);
- }
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index baccf35..fde5aba 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -96,9 +96,12 @@ static inline bool kern_addr_valid(unsigned long addr)
+ /* Kernel has a separate 44bit address space. */
+ #define FIRST_USER_ADDRESS	0
  
-+/**
-+ * pci_is_bridge - check if the PCI device is a bridge
-+ * @dev: PCI device
-+ *
-+ * Return true if the PCI device is bridge whether it has subordinate
-+ * or not.
-+ */
-+static inline bool pci_is_bridge(struct pci_dev *dev)
-+{
-+	return dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
-+		dev->hdr_type = PCI_HEADER_TYPE_CARDBUS;
-+}
-+
- static inline struct pci_dev *pci_upstream_bridge(struct pci_dev *dev)
- {
- 	dev = pci_physfn(dev);
+-#define pte_ERROR(e)	__builtin_trap()
+-#define pmd_ERROR(e)	__builtin_trap()
+-#define pgd_ERROR(e)	__builtin_trap()
++#define pmd_ERROR(e)							\
++	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
++	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
++#define pgd_ERROR(e)							\
++	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
++	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
+ 
+ #endif /* !(__ASSEMBLY__) */
+ 
 -- 
-1.7.1
-
+1.8.1.2
 
