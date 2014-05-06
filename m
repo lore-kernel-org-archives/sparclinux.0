@@ -1,108 +1,66 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Date: Sat, 24 May 2014 07:55:03 +0000
-Subject: Re: [PATCH] sbus: Introduce the use of the managed version of kzalloc
-Message-Id: <alpine.DEB.2.02.1405240954240.2012@localhost6.localdomain6>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 May 2014 15:30:31 +0000
+Subject: [GIT] Sparc
+Message-Id: <20140506.113031.1577209312429629073.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140522203536.GA16457@himangi-Dell> <20140523201703.GA17295@ravnborg.org>
-In-Reply-To: <20140523201703.GA17295@ravnborg.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Himangi Saraogi <himangi774@gmail.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, 23 May 2014, Sam Ravnborg wrote:
 
-> Hi Himangi.
-> 
-> On Fri, May 23, 2014 at 02:05:36AM +0530, Himangi Saraogi wrote:
-> > This patch moves data allocated using kzalloc to managed data allocated
-> > using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-> > functions. The header file is added to make the devm function explicitly
-> > available. Also, unnecessary assignment statements and labels are
-> > removed.
-> > 
-> > ---
-> > Not compile tested due to incompatible architecture.
-> I can confirm that i builds.
-> 
-> 
-> > 
-> > To send to: "David S. Miller" <davem@davemloft.net>,sparclinux@vger.kernel.org,linux-kernel@vger.kernel.org
-> > 
-> >  drivers/sbus/char/display7seg.c | 23 ++++++++---------------
-> >  1 file changed, 8 insertions(+), 15 deletions(-)
-> > 
-> > diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-> > index 7c71e7b..367b64d 100644
-> > --- a/drivers/sbus/char/display7seg.c
-> > +++ b/drivers/sbus/char/display7seg.c
-> > @@ -20,6 +20,7 @@
-> >  #include <asm/io.h>
-> >  
-> >  #include <asm/display7seg.h>
-> > +#include <linux/device.h>
-> >  
-> >  #define D7S_MINOR	193
-> >  #define DRIVER_NAME	"d7s"
-> > @@ -173,22 +174,21 @@ static struct miscdevice d7s_miscdev = {
-> >  static int d7s_probe(struct platform_device *op)
-> >  {
-> >  	struct device_node *opts;
-> > -	int err = -EINVAL;
-> > +	int err;
-> >  	struct d7s *p;
-> >  	u8 regs;
-> >  
-> >  	if (d7s_device)
-> > -		goto out;
-> > +		return -EINVAL;
-> >  
-> > -	p = kzalloc(sizeof(*p), GFP_KERNEL);
-> > -	err = -ENOMEM;
-> > +	p = devm_kzalloc(&op->dev, sizeof(*p), GFP_KERNEL);
-> >  	if (!p)
-> > -		goto out;
-> > +		return -ENOMEM;
-> >  
-> >  	p->regs = of_ioremap(&op->resource[0], 0, sizeof(u8), "d7s");
-> >  	if (!p->regs) {
-> >  		printk(KERN_ERR PFX "Cannot map chip registers\n");
-> > -		goto out_free;
-> > +		return -ENOMEM;
-> 
-> Can you please explain how it can be correct to return "-ENOMEM",
-> when we fail to map the chip registers.
-> Before your patch this resulted in "-EINVAL" - so this is a change in behaviour.
+I've been auditing the THP support on sparc64 and found several bugs,
+hopefully most of which are fixed completely here.
 
-I don't see it.  It looks to me that it returned ENOMEM, due to the 
-assignment after the kzalloc.
+Also an RT kernel locking fix from Kirill Tkhai.
 
-julia
+Please pull, thanks a lot!
 
-> >  	}
-> >  
-> >  	err = misc_register(&d7s_miscdev);
-> > @@ -222,17 +222,11 @@ static int d7s_probe(struct platform_device *op)
-> >  
-> >  	dev_set_drvdata(&op->dev, p);
-> >  	d7s_device = p;
-> > -	err = 0;
-> > -
-> > -out:
-> > -	return err;
-> > +	return 0;
-> >  
-> >  out_iounmap:
-> >  	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
-> > -
-> > -out_free:
-> > -	kfree(p);
-> > -	goto out;
-> > +	return err;
-> >  }
-> It is not am improvement IMO that you replace the nice goto
-> based error handling with random return points in the code.
-> 
-> 	Sam
-> 
+The following changes since commit b7270cce7db770602510043b212992d839fd25a6:
+
+  Merge tag 'rdma-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband (2014-05-01 17:52:42 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to fe866433f843b080246ce729b5e6b27b5f5d9a58:
+
+  sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR(). (2014-05-03 22:56:25 -0700)
+
+----------------------------------------------------------------
+David S. Miller (13):
+      sparc64: Fix argument sign extension for compat_sys_futex().
+      sparc64: Normalize NMI watchdog logging and behavior.
+      sparc64: Fix executable bit testing in set_pmd_at() paths.
+      sparc64: Fix huge PMD invalidation.
+      sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
+      sparc64: Fix hex values in comment above pte_modify().
+      sparc64: Don't use _PAGE_PRESENT in pte_modify() mask.
+      sparc64: Handle 32-bit tasks properly in compute_effective_address().
+      sparc64: Fix top-level fault handling bugs.
+      sparc64: Fix range check in kern_addr_valid().
+      sparc64: Use 'ILOG2_4MB' instead of constant '22'.
+      sparc64: Add basic validations to {pud,pmd}_bad().
+      sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR().
+
+Kirill Tkhai (1):
+      sparc64: Make itc_sync_lock raw
+
+ arch/sparc/include/asm/pgtable_64.h | 83 ++++++++++++++++++++++++++++++++++++++------------------------------
+ arch/sparc/include/asm/tsb.h        |  3 ++-
+ arch/sparc/kernel/head_64.S         |  4 ++--
+ arch/sparc/kernel/ktlb.S            |  2 +-
+ arch/sparc/kernel/nmi.c             | 21 +++++------------
+ arch/sparc/kernel/smp_64.c          |  6 ++---
+ arch/sparc/kernel/sys32.S           |  2 +-
+ arch/sparc/kernel/unaligned_64.c    | 12 +++++++---
+ arch/sparc/mm/fault_64.c            | 82 ++++++++++++++++++++++++++++++++++++++++++-------------------------
+ arch/sparc/mm/gup.c                 |  2 +-
+ arch/sparc/mm/init_64.c             | 12 +++++-----
+ arch/sparc/mm/tlb.c                 | 26 ++++++++++++++++-----
+ 12 files changed, 148 insertions(+), 107 deletions(-)
