@@ -1,66 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 15:30:31 +0000
-Subject: [GIT] Sparc
-Message-Id: <20140506.113031.1577209312429629073.davem@davemloft.net>
+From: Dave Jones <davej@redhat.com>
+Date: Tue, 06 May 2014 16:29:46 +0000
+Subject: Re: [GIT] Sparc
+Message-Id: <20140506162946.GA28261@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20140506.113031.1577209312429629073.davem@davemloft.net>
+In-Reply-To: <20140506.113031.1577209312429629073.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Tue, May 06, 2014 at 11:30:31AM -0400, David Miller wrote:
+ > 
+ > I've been auditing the THP support on sparc64 and found several bugs,
+ > hopefully most of which are fixed completely here.
+ 
+Hi Dave,
 
-I've been auditing the THP support on sparc64 and found several bugs,
-hopefully most of which are fixed completely here.
+It seems like forever you go you sent me patches to trinity to make it
+work on sparc. I'm curious if you've tried running it again more
+recently ?   Given the work I've done it to do more creative things with
+VM related syscalls, I wouldn't be surprised if it also found some sparc
+specific bugs in thp.
 
-Also an RT kernel locking fix from Kirill Tkhai.
+It should now also scale up to run a lot more child processes than the older
+version, with the -c option, which could be interesting on some of the
+bigger sparc machines.
 
-Please pull, thanks a lot!
+(It's entirely possible I've broken the compile on non-x86 in
+ current git, but it shouldn't be much work to fix up).
 
-The following changes since commit b7270cce7db770602510043b212992d839fd25a6:
+git://github.com/kernelslacker/trinity is where it lives now.
 
-  Merge tag 'rdma-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband (2014-05-01 17:52:42 -0700)
+	Dave
 
-are available in the git repository at:
-
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to fe866433f843b080246ce729b5e6b27b5f5d9a58:
-
-  sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR(). (2014-05-03 22:56:25 -0700)
-
-----------------------------------------------------------------
-David S. Miller (13):
-      sparc64: Fix argument sign extension for compat_sys_futex().
-      sparc64: Normalize NMI watchdog logging and behavior.
-      sparc64: Fix executable bit testing in set_pmd_at() paths.
-      sparc64: Fix huge PMD invalidation.
-      sparc64: Fix bugs in get_user_pages_fast() wrt. THP.
-      sparc64: Fix hex values in comment above pte_modify().
-      sparc64: Don't use _PAGE_PRESENT in pte_modify() mask.
-      sparc64: Handle 32-bit tasks properly in compute_effective_address().
-      sparc64: Fix top-level fault handling bugs.
-      sparc64: Fix range check in kern_addr_valid().
-      sparc64: Use 'ILOG2_4MB' instead of constant '22'.
-      sparc64: Add basic validations to {pud,pmd}_bad().
-      sparc64: Give more detailed information in {pgd,pmd}_ERROR() and kill pte_ERROR().
-
-Kirill Tkhai (1):
-      sparc64: Make itc_sync_lock raw
-
- arch/sparc/include/asm/pgtable_64.h | 83 ++++++++++++++++++++++++++++++++++++++------------------------------
- arch/sparc/include/asm/tsb.h        |  3 ++-
- arch/sparc/kernel/head_64.S         |  4 ++--
- arch/sparc/kernel/ktlb.S            |  2 +-
- arch/sparc/kernel/nmi.c             | 21 +++++------------
- arch/sparc/kernel/smp_64.c          |  6 ++---
- arch/sparc/kernel/sys32.S           |  2 +-
- arch/sparc/kernel/unaligned_64.c    | 12 +++++++---
- arch/sparc/mm/fault_64.c            | 82 ++++++++++++++++++++++++++++++++++++++++++-------------------------
- arch/sparc/mm/gup.c                 |  2 +-
- arch/sparc/mm/init_64.c             | 12 +++++-----
- arch/sparc/mm/tlb.c                 | 26 ++++++++++++++++-----
- 12 files changed, 148 insertions(+), 107 deletions(-)
