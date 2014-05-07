@@ -1,32 +1,28 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 07 May 2014 20:11:43 +0000
+From: David Miller <davem@redhat.com>
+Date: Wed, 07 May 2014 20:23:58 +0000
 Subject: Re: [PATCH V2 0/11] sparc64 MM fixes
-Message-Id: <alpine.SOC.1.00.1405072304340.15220@math.ut.ee>
+Message-Id: <20140507.162358.870082498986168693.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140506.000802.1283819541274253321.davem@davemloft.net>
 In-Reply-To: <20140506.000802.1283819541274253321.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> I think I found the bug and it's been there forever, please try this patc=
-h:
-
-  CC      arch/sparc/mm/tsb.o
-arch/sparc/mm/tsb.c: In function =A1setup_tsb_params=A2:
-arch/sparc/mm/tsb.c:140:7: error: =A1MM_TSB_HUGE=A2 undeclared (first use i=
-n this function)
-arch/sparc/mm/tsb.c:140:7: note: each undeclared identifier is reported onl=
-y once for each function it appears in
-make[2]: *** [arch/sparc/mm/tsb.o] Error 1
-
-#include <asm/mmu_64.h> defines it only for CONFIG_HUGETLB_PAGE or=20
-CONFIG_TRANSPARENT_HUGEPAGE case so it does not compile on my !THP=20
-machines.
-
-However, this invalidates my V440 and U5 tests. For now I set these to=20
-THP and try again.
-
---=20
-Meelis Roos (mroos@linux.ee)
+RnJvbTogTWVlbGlzIFJvb3MgPG1yb29zQGxpbnV4LmVlPg0KRGF0ZTogV2VkLCA3IE1heSAyMDE0
+IDIzOjExOjQzICswMzAwIChFRVNUKQ0KDQo+PiBJIHRoaW5rIEkgZm91bmQgdGhlIGJ1ZyBhbmQg
+aXQncyBiZWVuIHRoZXJlIGZvcmV2ZXIsIHBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCj4gDQo+ICAg
+Q0MgICAgICBhcmNoL3NwYXJjL21tL3RzYi5vDQo+IGFyY2gvc3BhcmMvbW0vdHNiLmM6IEluIGZ1
+bmN0aW9uIKFzZXR1cF90c2JfcGFyYW1zojoNCj4gYXJjaC9zcGFyYy9tbS90c2IuYzoxNDA6Nzog
+ZXJyb3I6IKFNTV9UU0JfSFVHRaIgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGluIHRoaXMgZnVuY3Rp
+b24pDQo+IGFyY2gvc3BhcmMvbW0vdHNiLmM6MTQwOjc6IG5vdGU6IGVhY2ggdW5kZWNsYXJlZCBp
+ZGVudGlmaWVyIGlzIHJlcG9ydGVkIG9ubHkgb25jZSBmb3IgZWFjaCBmdW5jdGlvbiBpdCBhcHBl
+YXJzIGluDQo+IG1ha2VbMl06ICoqKiBbYXJjaC9zcGFyYy9tbS90c2Iub10gRXJyb3IgMQ0KPiAN
+Cj4gI2luY2x1ZGUgPGFzbS9tbXVfNjQuaD4gZGVmaW5lcyBpdCBvbmx5IGZvciBDT05GSUdfSFVH
+RVRMQl9QQUdFIG9yIA0KPiBDT05GSUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UgY2FzZSBzbyBpdCBk
+b2VzIG5vdCBjb21waWxlIG9uIG15ICFUSFAgDQo+IG1hY2hpbmVzLg0KPiANCj4gSG93ZXZlciwg
+dGhpcyBpbnZhbGlkYXRlcyBteSBWNDQwIGFuZCBVNSB0ZXN0cy4gRm9yIG5vdyBJIHNldCB0aGVz
+ZSB0byANCj4gVEhQIGFuZCB0cnkgYWdhaW4uDQoNClRoYW5rcyBJJ2xsIGZpeCBteSBwYXRjaCB1
+cCB0byBidWlsZCBwcm9wZXJseSB3aXRoIFRIUCBvZmYsIHBsZWFzZQ0KdGVzdCB3aXRoIFRIUCBl
+bmFibGVkIG1lYW53aGlsZS4NCg0KVGhhbmtzIGFnYWluLg0K
