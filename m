@@ -1,36 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 07 May 2014 18:21:16 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 07 May 2014 20:11:43 +0000
 Subject: Re: [PATCH V2 0/11] sparc64 MM fixes
-Message-Id: <20140507.142116.2023428171433533073.davem@davemloft.net>
+Message-Id: <alpine.SOC.1.00.1405072304340.15220@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140506.000802.1283819541274253321.davem@davemloft.net>
 In-Reply-To: <20140506.000802.1283819541274253321.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 7 May 2014 21:19:03 +0300 (EEST)
+> I think I found the bug and it's been there forever, please try this patc=
+h:
 
->> > How should I continue debugging it - find the conf differences with 
->> > Debian kernel?
->> > 
->> > Or do you want my .config for U2, X1, V100?
->> 
->> I think the pattern is that the UltraSPARC-III based machines have
->> no problems, whereas the UltraSPARC-I and UltraSPARC-II based ones
->> tend to crash and hang.
-> 
-> With THP on, V440 survived, U5 did not survive - that matches.
-> 
-> E220R survived for many hours with THP off and died on first try with 
-> THP on - this also matches.
+  CC      arch/sparc/mm/tsb.o
+arch/sparc/mm/tsb.c: In function =A1setup_tsb_params=A2:
+arch/sparc/mm/tsb.c:140:7: error: =A1MM_TSB_HUGE=A2 undeclared (first use i=
+n this function)
+arch/sparc/mm/tsb.c:140:7: note: each undeclared identifier is reported onl=
+y once for each function it appears in
+make[2]: *** [arch/sparc/mm/tsb.o] Error 1
 
-Great datapoints, the bug I found is really bad as it maps both TSB
-hash tables to the same exact virtual address and TLB behavior is
-undefined in such situations.
+#include <asm/mmu_64.h> defines it only for CONFIG_HUGETLB_PAGE or=20
+CONFIG_TRANSPARENT_HUGEPAGE case so it does not compile on my !THP=20
+machines.
 
-> Just got the new patch, will try soon.
+However, this invalidates my V440 and U5 tests. For now I set these to=20
+THP and try again.
 
-Thanks in advance.
+--=20
+Meelis Roos (mroos@linux.ee)
