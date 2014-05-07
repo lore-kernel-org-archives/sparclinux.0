@@ -1,75 +1,80 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:38 +0000
-Subject: [PATCH v2 03/13] PCI: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-4-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 07 May 2014 04:28:27 +0000
+Subject: [PATCH] sparc64: Don't bark so loudly about 32-bit tasks generating 64-bit fault addresses.
+Message-Id: <20140507.002827.797116082220962664.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
+To: sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+This was found using Dave Jone's trinity tool.
+
+When a user process which is 32-bit performs a load or a store, the
+cpu chops off the top 32-bits of the effective address before
+translating it.
+
+This is because we run 32-bit tasks with the PSTATE_AM (address
+masking) bit set.
+
+We can't run the kernel with that bit set, so when the kernel accesses
+userspace no address masking occurs.
+
+Since a 32-bit process will have no mappings in that region we will
+properly fault, so we don't try to handle this using access_ok(),
+which can safely just be a NOP on sparc64.
+
+Real faults from 32-bit processes should never generate such addresses
+so a bug check was added long ago, and it barks in the logs if this
+happens.
+
+But it also barks when a kernel user access causes this condition, and
+that _can_ happen.  For example, if a pointer passed into a system call
+is "0xfffffffc" and the kernel access 4 bytes offset from that pointer.
+
+Just handle such faults normally via the exception entries.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/pci/pci-acpi.c  |    8 +-------
- drivers/pci/probe.c     |    3 +--
- drivers/pci/setup-bus.c |    4 +---
- 3 files changed, 3 insertions(+), 12 deletions(-)
+ arch/sparc/mm/fault_64.c | 16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index f49abef..ca4927b 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -309,13 +309,7 @@ static struct acpi_device *acpi_pci_find_companion(struct device *dev)
- 	bool check_children;
- 	u64 addr;
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index a8ff0d1..4ced3fc 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -281,18 +281,6 @@ static void noinline __kprobes bogus_32bit_fault_tpc(struct pt_regs *regs)
+ 	show_regs(regs);
+ }
  
--	/*
--	 * pci_is_bridge() is not suitable here, because pci_dev->subordinate
--	 * is set only after acpi_pci_find_device() has been called for the
--	 * given device.
--	 */
--	check_children = pci_dev->hdr_type = PCI_HEADER_TYPE_BRIDGE
--			|| pci_dev->hdr_type = PCI_HEADER_TYPE_CARDBUS;
-+	check_children = pci_is_bridge(pci_dev);
- 	/* Please ref to ACPI spec for the syntax of _ADR */
- 	addr = (PCI_SLOT(pci_dev->devfn) << 16) | PCI_FUNC(pci_dev->devfn);
- 	return acpi_find_child_device(ACPI_COMPANION(dev->parent), addr,
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ef09f5f..f831dd8 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1670,8 +1670,7 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
- 
- 	for (pass=0; pass < 2; pass++)
- 		list_for_each_entry(dev, &bus->devices, bus_list) {
--			if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--			    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
-+			if (pci_is_bridge(dev))
- 				max = pci_scan_bridge(bus, dev, max, pass);
+-static void noinline __kprobes bogus_32bit_fault_address(struct pt_regs *regs,
+-							 unsigned long addr)
+-{
+-	static int times;
+-
+-	if (times++ < 10)
+-		printk(KERN_ERR "FAULT[%s:%d]: 32-bit process "
+-		       "reports 64-bit fault address [%lx]\n",
+-		       current->comm, current->pid, addr);
+-	show_regs(regs);
+-}
+-
+ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ {
+ 	enum ctx_state prev_state = exception_enter();
+@@ -322,10 +310,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 				goto intr_or_no_mm;
+ 			}
  		}
+-		if (unlikely((address >> 32) != 0)) {
+-			bogus_32bit_fault_address(regs, address);
++		if (unlikely((address >> 32) != 0))
+ 			goto intr_or_no_mm;
+-		}
+ 	}
  
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 138bdd6..e399d00 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1629,9 +1629,7 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 
- 	down_read(&pci_bus_sem);
- 	list_for_each_entry(dev, &bus->devices, bus_list)
--		if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--		    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
--			if (dev->subordinate)
-+		if (pci_is_bridge(dev) && pci_has_subordinate(dev))
- 				__pci_bus_size_bridges(dev->subordinate,
- 							 &add_list);
- 	up_read(&pci_bus_sem);
+ 	if (regs->tstate & TSTATE_PRIV) {
 -- 
-1.7.1
-
+1.8.1.2
 
