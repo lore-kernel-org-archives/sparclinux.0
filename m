@@ -1,7 +1,7 @@
-From: David Miller <davem@redhat.com>
-Date: Wed, 07 May 2014 20:23:58 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 08 May 2014 04:30:57 +0000
 Subject: Re: [PATCH V2 0/11] sparc64 MM fixes
-Message-Id: <20140507.162358.870082498986168693.davem@redhat.com>
+Message-Id: <alpine.SOC.1.00.1405080720120.15220@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140506.000802.1283819541274253321.davem@davemloft.net>
 In-Reply-To: <20140506.000802.1283819541274253321.davem@davemloft.net>
@@ -10,19 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogTWVlbGlzIFJvb3MgPG1yb29zQGxpbnV4LmVlPg0KRGF0ZTogV2VkLCA3IE1heSAyMDE0
-IDIzOjExOjQzICswMzAwIChFRVNUKQ0KDQo+PiBJIHRoaW5rIEkgZm91bmQgdGhlIGJ1ZyBhbmQg
-aXQncyBiZWVuIHRoZXJlIGZvcmV2ZXIsIHBsZWFzZSB0cnkgdGhpcyBwYXRjaDoNCj4gDQo+ICAg
-Q0MgICAgICBhcmNoL3NwYXJjL21tL3RzYi5vDQo+IGFyY2gvc3BhcmMvbW0vdHNiLmM6IEluIGZ1
-bmN0aW9uIKFzZXR1cF90c2JfcGFyYW1zojoNCj4gYXJjaC9zcGFyYy9tbS90c2IuYzoxNDA6Nzog
-ZXJyb3I6IKFNTV9UU0JfSFVHRaIgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGluIHRoaXMgZnVuY3Rp
-b24pDQo+IGFyY2gvc3BhcmMvbW0vdHNiLmM6MTQwOjc6IG5vdGU6IGVhY2ggdW5kZWNsYXJlZCBp
-ZGVudGlmaWVyIGlzIHJlcG9ydGVkIG9ubHkgb25jZSBmb3IgZWFjaCBmdW5jdGlvbiBpdCBhcHBl
-YXJzIGluDQo+IG1ha2VbMl06ICoqKiBbYXJjaC9zcGFyYy9tbS90c2Iub10gRXJyb3IgMQ0KPiAN
-Cj4gI2luY2x1ZGUgPGFzbS9tbXVfNjQuaD4gZGVmaW5lcyBpdCBvbmx5IGZvciBDT05GSUdfSFVH
-RVRMQl9QQUdFIG9yIA0KPiBDT05GSUdfVFJBTlNQQVJFTlRfSFVHRVBBR0UgY2FzZSBzbyBpdCBk
-b2VzIG5vdCBjb21waWxlIG9uIG15ICFUSFAgDQo+IG1hY2hpbmVzLg0KPiANCj4gSG93ZXZlciwg
-dGhpcyBpbnZhbGlkYXRlcyBteSBWNDQwIGFuZCBVNSB0ZXN0cy4gRm9yIG5vdyBJIHNldCB0aGVz
-ZSB0byANCj4gVEhQIGFuZCB0cnkgYWdhaW4uDQoNClRoYW5rcyBJJ2xsIGZpeCBteSBwYXRjaCB1
-cCB0byBidWlsZCBwcm9wZXJseSB3aXRoIFRIUCBvZmYsIHBsZWFzZQ0KdGVzdCB3aXRoIFRIUCBl
-bmFibGVkIG1lYW53aGlsZS4NCg0KVGhhbmtzIGFnYWluLg0K
+> Thanks I'll fix my patch up to build properly with THP off, please
+> test with THP enabled meanwhile.
+
+All machines are now with THP on and latest git + yesterdays patch:
+
+V440 still works.
+
+V100, Netra X1 and Ultra 5 still hang on first/second git clone :(
+
+So it seems the patch did not fix it yet.
+
+-- 
+Meelis Roos (mroos@linux.ee)
