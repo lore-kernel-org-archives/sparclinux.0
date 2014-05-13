@@ -1,138 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 02 May 2014 15:03:29 +0000
-Subject: [PATCH 03/12] sparc32: fix sparse warnings in pcic.c
-Message-Id: <1399043018-16975-3-git-send-email-sam@ravnborg.org>
+From: Ley Foon Tan <lftan@altera.com>
+Date: Tue, 13 May 2014 09:06:37 +0000
+Subject: [PATCH 22/25] sparc: Add 32 bit time_t and clock_t
+Message-Id: <1399971997-4781-1-git-send-email-lftan@altera.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399971456-3941-1-git-send-email-lftan@altera.com>
+In-Reply-To: <1399971456-3941-1-git-send-email-lftan@altera.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ley Foon Tan <lftan@altera.com>, lftan.linux@gmail.com, cltang@codesourcery.com, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Fix following warnings:
-pcic.c:164:14: warning: symbol 'pcic_regs' was not declared. Should it be static?
-pcic.c:165:14: warning: symbol 'pcic_speculative' was not declared. Should it be static?
-pcic.c:166:14: warning: symbol 'pcic_trapped' was not declared. Should it be static?
-pcic.c:332:66: warning: Using plain integer as NULL pointer
-pcic.c:344:66: warning: Using plain integer as NULL pointer
-pcic.c:539:38: warning: Using plain integer as NULL pointer
-pcic.c:677:1: warning: symbol 'pcic_pin_to_irq' was not declared. Should it be static?
-pcic.c:783:6: warning: symbol 'pcic_nmi' was not declared. Should it be static?
+Override time_t and clock_t in include/uapi/asm-generic.
 
-Add extern for pcic_regs.
-Define a few variables static.
-Replace 0 with NULL.
-Delete unused funtion pcic_pin_to_irq().
-Include kernel.h so we could drop declaration of
-t_nmi and add prototype for pcic_nmi.
-
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Ley Foon Tan <lftan@altera.com>
 ---
- arch/sparc/kernel/kernel.h |  4 ++++
- arch/sparc/kernel/pcic.c   | 36 ++++++------------------------------
- 2 files changed, 10 insertions(+), 30 deletions(-)
+ arch/sparc/include/uapi/asm/posix_types.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index de9ac1a..0a8a870 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -139,6 +139,10 @@ void __init clock_stop_probe(void);
- void __init auxio_probe(void);
- void __init auxio_power_probe(void);
+diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
+index 156220e..c5eaaef 100644
+--- a/arch/sparc/include/uapi/asm/posix_types.h
++++ b/arch/sparc/include/uapi/asm/posix_types.h
+@@ -42,6 +42,12 @@ typedef long                   __kernel_daddr_t;
+ typedef unsigned short	       __kernel_old_dev_t;
+ #define __kernel_old_dev_t __kernel_old_dev_t
  
-+/* pcic.c */
-+extern void __iomem *pcic_regs;
-+void pcic_nmi(unsigned int pend, struct pt_regs *regs);
++typedef long	__kernel_time_t;
++#define __kernel_time_t __kernel_time_t
 +
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index aabfcab..6cc78c2 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -36,6 +36,7 @@
- #include <asm/uaccess.h>
- #include <asm/irq_regs.h>
++typedef long	__kernel_clock_t;
++#define __kernel_clock_t __kernel_clock_t
++
+ #endif /* defined(__sparc__) && defined(__arch64__) */
  
-+#include "kernel.h"
- #include "irq.h"
- 
- /*
-@@ -162,8 +163,8 @@ static int pcic0_up;
- static struct linux_pcic pcic0;
- 
- void __iomem *pcic_regs;
--volatile int pcic_speculative;
--volatile int pcic_trapped;
-+static volatile int pcic_speculative;
-+static volatile int pcic_trapped;
- 
- /* forward */
- unsigned int pcic_build_device_irq(struct platform_device *op,
-@@ -329,7 +330,7 @@ int __init pcic_probe(void)
- 
- 	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
- 	if ((pcic->pcic_config_space_addr -	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = 0) {
-+	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = NULL) {
- 		prom_printf("PCIC: Error, cannot map "
- 			    "PCI Configuration Space Address.\n");
- 		prom_halt();
-@@ -341,7 +342,7 @@ int __init pcic_probe(void)
- 	 */
- 	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
- 	if ((pcic->pcic_config_space_data -	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = 0) {
-+	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = NULL) {
- 		prom_printf("PCIC: Error, cannot map "
- 			    "PCI Configuration Space Data.\n");
- 		prom_halt();
-@@ -353,7 +354,6 @@ int __init pcic_probe(void)
- 	strcpy(pbm->prom_name, namebuf);
- 
- 	{
--		extern volatile int t_nmi[4];
- 		extern int pcic_nmi_trap_patch[4];
- 
- 		t_nmi[0] = pcic_nmi_trap_patch[0];
-@@ -536,7 +536,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
- 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
- 	}
- 
--	if ((p = pcic->pcic_imap) = 0) {
-+	if ((p = pcic->pcic_imap) = NULL) {
- 		dev->irq = 0;
- 		return;
- 	}
-@@ -670,30 +670,6 @@ void pcibios_fixup_bus(struct pci_bus *bus)
- 	}
- }
- 
--/*
-- * pcic_pin_to_irq() is exported to bus probing code
-- */
--unsigned int
--pcic_pin_to_irq(unsigned int pin, const char *name)
--{
--	struct linux_pcic *pcic = &pcic0;
--	unsigned int irq;
--	unsigned int ivec;
--
--	if (pin < 4) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
--		irq = ivec >> (pin << 2) & 0xF;
--	} else if (pin < 8) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
--		irq = ivec >> ((pin-4) << 2) & 0xF;
--	} else {					/* Corrupted map */
--		printk("PCIC: BAD PIN %d FOR %s\n", pin, name);
--		for (;;) {}	/* XXX Cannot panic properly in case of PROLL */
--	}
--/* P3 */ /* printk("PCIC: dev %s pin %d ivec 0x%x irq %x\n", name, pin, ivec, irq); */
--	return irq;
--}
--
- /* Makes compiler happy */
- static volatile int pcic_timer_dummy;
- 
+ #include <asm-generic/posix_types.h>
 -- 
-1.9.0
+1.8.2.1
 
