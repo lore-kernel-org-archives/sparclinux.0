@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:34 +0000
+Date: Fri, 16 May 2014 21:26:07 +0000
 Subject: [PATCH 29/34] sparc64: fix sparse warnings in init_64.c
-Message-Id: <1399157559-19901-29-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-29-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-29-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-29-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
