@@ -1,71 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 04:08:08 +0000
-Subject: [PATCH 01/11] sparc64: Fix executable bit testing in set_pmd_at() paths.
-Message-Id: <20140506.000808.2290837093769188578.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:47 +0000
+Subject: [PATCH 09/34] sparc64: remove cast from output constraints in math asm statements
+Message-Id: <1400275572-17424-9-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+The following asm statements generated a sparse warning:
 
-This code was mistakenly using the exec bit from the PMD in all
-cases, even when the PMD isn't a huge PMD.
+        asm("addcc \n\t" : "=r" (((USItype)(r2)))
 
-If it's not a huge PMD, test the exec bit in the individual ptes down
-in tlb_batch_pmd_scan().
+warning: asm output is not an lvalue
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+When asking on the sparse mailing list Linus replyed:
+
+"
+Those casts to (USItype) are all pointless to begin with (since the
+values are of that type already!) and they mean that the expression
+isn't something you can assign to (lvalue).
+"
+
+In the math emulation code drop all casts in the output
+parts of the asm statements.
+
+This fixes a lot of "warning: asm output is not an lvalue" sparse
+warnings in math_64.c.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/mm/tlb.c | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/sparc/math-emu/sfp-util_64.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index b12cb5e..c07667f 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -134,7 +134,7 @@ no_cache_flush:
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static void tlb_batch_pmd_scan(struct mm_struct *mm, unsigned long vaddr,
--			       pmd_t pmd, bool exec)
-+			       pmd_t pmd)
- {
- 	unsigned long end;
- 	pte_t *pte;
-@@ -142,8 +142,11 @@ static void tlb_batch_pmd_scan(struct mm_struct *mm, unsigned long vaddr,
- 	pte = pte_offset_map(&pmd, vaddr);
- 	end = vaddr + HPAGE_SIZE;
- 	while (vaddr < end) {
--		if (pte_val(*pte) & _PAGE_VALID)
-+		if (pte_val(*pte) & _PAGE_VALID) {
-+			bool exec = pte_exec(*pte);
-+
- 			tlb_batch_add_one(mm, vaddr, exec);
-+		}
- 		pte++;
- 		vaddr += PAGE_SIZE;
- 	}
-@@ -177,15 +180,15 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 	}
- 
- 	if (!pmd_none(orig)) {
--		pte_t orig_pte = __pte(pmd_val(orig));
--		bool exec = pte_exec(orig_pte);
--
- 		addr &= HPAGE_MASK;
- 		if (pmd_trans_huge(orig)) {
-+			pte_t orig_pte = __pte(pmd_val(orig));
-+			bool exec = pte_exec(orig_pte);
-+
- 			tlb_batch_add_one(mm, addr, exec);
- 			tlb_batch_add_one(mm, addr + REAL_HPAGE_SIZE, exec);
- 		} else {
--			tlb_batch_pmd_scan(mm, addr, orig, exec);
-+			tlb_batch_pmd_scan(mm, addr, orig);
- 		}
- 	}
- }
+diff --git a/arch/sparc/math-emu/sfp-util_64.h b/arch/sparc/math-emu/sfp-util_64.h
+index 425d3cf..51320a8 100644
+--- a/arch/sparc/math-emu/sfp-util_64.h
++++ b/arch/sparc/math-emu/sfp-util_64.h
+@@ -17,8 +17,8 @@
+   	   "bcs,a,pn %%xcc, 1f\n\t"		\
+   	   "add %0, 1, %0\n"			\
+   	   "1:"					\
+-	   : "=r" ((UDItype)(sh)),		\
+-	     "=&r" ((UDItype)(sl))		\
++	   : "=r" (sh),				\
++	     "=&r" (sl)				\
+ 	   : "r" ((UDItype)(ah)),		\
+ 	     "r" ((UDItype)(bh)),		\
+ 	     "r" ((UDItype)(al)),		\
+@@ -31,8 +31,8 @@
+   	   "bcs,a,pn %%xcc, 1f\n\t"		\
+   	   "sub %0, 1, %0\n"			\
+   	   "1:"					\
+-	   : "=r" ((UDItype)(sh)),		\
+-	     "=&r" ((UDItype)(sl))		\
++	   : "=r" (sh),				\
++	     "=&r" (sl)				\
+ 	   : "r" ((UDItype)(ah)),		\
+ 	     "r" ((UDItype)(bh)),		\
+ 	     "r" ((UDItype)(al)),		\
+@@ -64,8 +64,8 @@
+ 		   "sllx %3,32,%3\n\t"			\
+ 		   "add %1,%3,%1\n\t"			\
+ 		   "add %5,%2,%0"			\
+-	   : "=r" ((UDItype)(wh)),			\
+-	     "=&r" ((UDItype)(wl)),			\
++	   : "=r" (wh),					\
++	     "=&r" (wl),				\
+ 	     "=&r" (tmp1), "=&r" (tmp2), "=&r" (tmp3), "=&r" (tmp4) \
+ 	   : "r" ((UDItype)(u)),			\
+ 	     "r" ((UDItype)(v))				\
 -- 
-1.8.1.2
+1.9.0
 
