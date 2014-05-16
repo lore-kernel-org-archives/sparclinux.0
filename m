@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:37 +0000
+Date: Fri, 16 May 2014 21:26:10 +0000
 Subject: [PATCH 32/34] sparc64: fix sparse warning in kprobes.c
-Message-Id: <1399157559-19901-32-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-32-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-32-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-32-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
