@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:26 +0000
+Date: Fri, 16 May 2014 21:25:59 +0000
 Subject: [PATCH 21/34] sparc64: fix sparse warnings in sys_sparc32.c
-Message-Id: <1399157559-19901-21-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-21-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-21-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-21-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -24,12 +26,14 @@ sys_sparc32.c:241:6: warning: symbol 'sys32_sync_file_range' was not declared. S
 sys_sparc32.c:249:17: warning: symbol 'compat_sys_fallocate' was not declared. Should it be static?
 
 Add proper prototypes in systbls.h
+Include linux/compat.h to get access to necessary types
+Use inverse christmas tree order in includes
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
  arch/sparc/kernel/sys_sparc32.c |  2 ++
- arch/sparc/kernel/systbls.h     | 53 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 54 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/systbls.h     | 55 +++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 55 insertions(+), 2 deletions(-)
 
 diff --git a/arch/sparc/kernel/sys_sparc32.c b/arch/sparc/kernel/sys_sparc32.c
 index 7136885..022c30c 100644
@@ -45,18 +49,22 @@ index 7136885..022c30c 100644
  {
  	if ((int)high < 0)
 diff --git a/arch/sparc/kernel/systbls.h b/arch/sparc/kernel/systbls.h
-index a3ed7ae..04b7da0 100644
+index a3ed7ae..2dab823 100644
 --- a/arch/sparc/kernel/systbls.h
 +++ b/arch/sparc/kernel/systbls.h
-@@ -27,6 +27,8 @@ long sparc_remap_file_pages(unsigned long start, unsigned long size,
- #endif /* CONFIG_SPARC32 */
+@@ -1,9 +1,11 @@
+ #ifndef _SYSTBLS_H
+ #define _SYSTBLS_H
  
- #ifdef CONFIG_SPARC64
-+#include <asm/compat.h>
++#include <linux/signal.h>
+ #include <linux/kernel.h>
++#include <linux/compat.h>
+ #include <linux/types.h>
+-#include <linux/signal.h>
 +
- asmlinkage long sys_sparc_ipc(unsigned int call, int first,
- 			      unsigned long second,
- 			      unsigned long third,
+ #include <asm/utrap.h>
+ 
+ asmlinkage unsigned long sys_getpagesize(void);
 @@ -47,6 +49,55 @@ asmlinkage long sparc_memory_ordering(unsigned long model,
  				      struct pt_regs *regs);
  asmlinkage void sparc64_set_context(struct pt_regs *regs);
