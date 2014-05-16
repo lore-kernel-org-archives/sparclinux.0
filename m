@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:23 +0000
+Date: Fri, 16 May 2014 21:25:56 +0000
 Subject: [PATCH 18/34] sparc64: fix sparse warning in prom_64.c
-Message-Id: <1399157559-19901-18-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-18-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-18-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-18-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
