@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:21 +0000
+Date: Fri, 16 May 2014 21:25:54 +0000
 Subject: [PATCH 16/34] sparc64: fix sparse warnings in sys_sparc_64.c + unaligned_64.c
-Message-Id: <1399157559-19901-16-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-16-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-16-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-16-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
