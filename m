@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:30 +0000
+Date: Fri, 16 May 2014 21:26:03 +0000
 Subject: [PATCH 25/34] sparc64: fix sparse warnings in kprobes.c
-Message-Id: <1399157559-19901-25-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-25-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-25-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-25-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,7 +15,8 @@ kprobes.c:515:15: warning: symbol 'trampoline_probe_handler' was not declared. S
 kprobes.c:579:6: warning: symbol 'kretprobe_trampoline_holder' was not declared. Should it be static?
 
 Declare the functions static.
-One is magically used without any real reference so mark is __used, like other arch do too.
+kretprobe_trampoline_holder is magically used without any real
+reference so mark is __used, like other arch's do too.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
