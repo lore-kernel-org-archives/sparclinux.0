@@ -1,80 +1,139 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:09 +0000
-Subject: [PATCH 04/34] sparc32: fix sparse warning in auxio_32.c
-Message-Id: <1399157559-19901-4-git-send-email-sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:42 +0000
+Subject: [PATCH 04/34] sparc32: fix sparse warnings in pcic.c
+Message-Id: <1400275572-17424-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-4-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-4-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warning:
-auxio_32.c:133:33: warning: cast removes address space of expression
+Fix following warnings:
+pcic.c:164:14: warning: symbol 'pcic_regs' was not declared. Should it be static?
+pcic.c:165:14: warning: symbol 'pcic_speculative' was not declared. Should it be static?
+pcic.c:166:14: warning: symbol 'pcic_trapped' was not declared. Should it be static?
+pcic.c:332:66: warning: Using plain integer as NULL pointer
+pcic.c:344:66: warning: Using plain integer as NULL pointer
+pcic.c:539:38: warning: Using plain integer as NULL pointer
+pcic.c:677:1: warning: symbol 'pcic_pin_to_irq' was not declared. Should it be static?
+pcic.c:783:6: warning: symbol 'pcic_nmi' was not declared. Should it be static?
 
-To fix this auxio_power_register had to be defined as u8 _iomem.
-Use proper sbus operations on the pointer.
+Add extern for pcic_regs.
+Define a few variables static.
+Replace 0 with NULL.
+Delete unused funtion pcic_pin_to_irq().
+Include kernel.h so we could drop declaration of
+t_nmi and add prototype for pcic_nmi.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/auxio_32.h | 2 +-
- arch/sparc/kernel/auxio_32.c      | 6 +++---
- arch/sparc/kernel/process_32.c    | 8 ++++++--
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/kernel.h |  4 ++++
+ arch/sparc/kernel/pcic.c   | 36 ++++++------------------------------
+ 2 files changed, 10 insertions(+), 30 deletions(-)
 
-diff --git a/arch/sparc/include/asm/auxio_32.h b/arch/sparc/include/asm/auxio_32.h
-index 3a31977..b816660 100644
---- a/arch/sparc/include/asm/auxio_32.h
-+++ b/arch/sparc/include/asm/auxio_32.h
-@@ -78,7 +78,7 @@ do { \
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 8bc2c81..5254241 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -140,6 +140,10 @@ void __init clock_stop_probe(void);
+ void __init auxio_probe(void);
+ void __init auxio_power_probe(void);
  
- 
- /* AUXIO2 (Power Off Control) */
--extern __volatile__ unsigned char * auxio_power_register;
-+extern volatile u8 __iomem *auxio_power_register;
- 
- #define	AUXIO_POWER_DETECT_FAILURE	32
- #define	AUXIO_POWER_CLEAR_FAILURE	2
-diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
-index c6fc1d4..ae88c22 100644
---- a/arch/sparc/kernel/auxio_32.c
-+++ b/arch/sparc/kernel/auxio_32.c
-@@ -106,7 +106,7 @@ EXPORT_SYMBOL(set_auxio);
- 
- /* sun4m power control register (AUXIO2) */
- 
--volatile unsigned char * auxio_power_register = NULL;
-+volatile u8 __iomem *auxio_power_register = NULL;
- 
- void __init auxio_power_probe(void)
- {
-@@ -130,8 +130,8 @@ void __init auxio_power_probe(void)
- 	r.flags = regs.which_io & 0xF;
- 	r.start = regs.phys_addr;
- 	r.end = regs.phys_addr + regs.reg_size - 1;
--	auxio_power_register = (unsigned char *) of_ioremap(&r, 0,
--	    regs.reg_size, "auxpower");
-+	auxio_power_register +		(u8 __iomem *)of_ioremap(&r, 0, regs.reg_size, "auxpower");
- 
- 	/* Display a quick message on the console. */
- 	if (auxio_power_register)
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 61f810b..50e7b62 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -106,8 +106,12 @@ void machine_restart(char * cmd)
- void machine_power_off(void)
- {
- 	if (auxio_power_register &&
--	    (strcmp(of_console_device->type, "serial") || scons_pwroff))
--		*auxio_power_register |= AUXIO_POWER_OFF;
-+	    (strcmp(of_console_device->type, "serial") || scons_pwroff)) {
-+		u8 power_register = sbus_readb(auxio_power_register);
-+		power_register |= AUXIO_POWER_OFF;
-+		sbus_writeb(power_register, auxio_power_register);
-+	}
++/* pcic.c */
++extern void __iomem *pcic_regs;
++void pcic_nmi(unsigned int pend, struct pt_regs *regs);
 +
- 	machine_halt();
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index aabfcab..6cc78c2 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -36,6 +36,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/irq_regs.h>
+ 
++#include "kernel.h"
+ #include "irq.h"
+ 
+ /*
+@@ -162,8 +163,8 @@ static int pcic0_up;
+ static struct linux_pcic pcic0;
+ 
+ void __iomem *pcic_regs;
+-volatile int pcic_speculative;
+-volatile int pcic_trapped;
++static volatile int pcic_speculative;
++static volatile int pcic_trapped;
+ 
+ /* forward */
+ unsigned int pcic_build_device_irq(struct platform_device *op,
+@@ -329,7 +330,7 @@ int __init pcic_probe(void)
+ 
+ 	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
+ 	if ((pcic->pcic_config_space_addr -	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = 0) {
++	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = NULL) {
+ 		prom_printf("PCIC: Error, cannot map "
+ 			    "PCI Configuration Space Address.\n");
+ 		prom_halt();
+@@ -341,7 +342,7 @@ int __init pcic_probe(void)
+ 	 */
+ 	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
+ 	if ((pcic->pcic_config_space_data -	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = 0) {
++	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = NULL) {
+ 		prom_printf("PCIC: Error, cannot map "
+ 			    "PCI Configuration Space Data.\n");
+ 		prom_halt();
+@@ -353,7 +354,6 @@ int __init pcic_probe(void)
+ 	strcpy(pbm->prom_name, namebuf);
+ 
+ 	{
+-		extern volatile int t_nmi[4];
+ 		extern int pcic_nmi_trap_patch[4];
+ 
+ 		t_nmi[0] = pcic_nmi_trap_patch[0];
+@@ -536,7 +536,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
+ 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
+ 	}
+ 
+-	if ((p = pcic->pcic_imap) = 0) {
++	if ((p = pcic->pcic_imap) = NULL) {
+ 		dev->irq = 0;
+ 		return;
+ 	}
+@@ -670,30 +670,6 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+ 	}
  }
+ 
+-/*
+- * pcic_pin_to_irq() is exported to bus probing code
+- */
+-unsigned int
+-pcic_pin_to_irq(unsigned int pin, const char *name)
+-{
+-	struct linux_pcic *pcic = &pcic0;
+-	unsigned int irq;
+-	unsigned int ivec;
+-
+-	if (pin < 4) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
+-		irq = ivec >> (pin << 2) & 0xF;
+-	} else if (pin < 8) {
+-		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
+-		irq = ivec >> ((pin-4) << 2) & 0xF;
+-	} else {					/* Corrupted map */
+-		printk("PCIC: BAD PIN %d FOR %s\n", pin, name);
+-		for (;;) {}	/* XXX Cannot panic properly in case of PROLL */
+-	}
+-/* P3 */ /* printk("PCIC: dev %s pin %d ivec 0x%x irq %x\n", name, pin, ivec, irq); */
+-	return irq;
+-}
+-
+ /* Makes compiler happy */
+ static volatile int pcic_timer_dummy;
  
 -- 
 1.9.0
