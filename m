@@ -1,137 +1,83 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:10 +0000
-Subject: [PATCH 05/34] sparc32: fix sparse warnings in time_32.c
-Message-Id: <1399157559-19901-5-git-send-email-sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:43 +0000
+Subject: [PATCH 05/34] sparc32: fix sparse warning in auxio_32.c
+Message-Id: <1400275572-17424-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-5-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-5-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-time_32.c:63:1: warning: symbol 'rtc_lock' was not declared. Should it be static?
-time_32.c:357:13: warning: symbol 'time_init' was not declared. Should it be static?
-time_32.c:148:16: warning: dereference of noderef expression
+Fix following warning:
+auxio_32.c:133:33: warning: cast removes address space of expression
 
-Add extern definition of rtc_lock in mc146818rtc.h.
-time_init() is called from init/main.c - add prototype to kernel.h.
-Use proper u32 __iomem * for master_l10_counter.
-Fix all users.
+To fix this auxio_power_register had to be defined as u8 _iomem.
+Use proper sbus operations on the pointer.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/mc146818rtc.h | 5 +++++
- arch/sparc/include/asm/timer_32.h    | 2 +-
- arch/sparc/kernel/kernel.h           | 3 +++
- arch/sparc/kernel/leon_kernel.c      | 5 ++---
- arch/sparc/kernel/time_32.c          | 8 +++++---
- 5 files changed, 16 insertions(+), 7 deletions(-)
+ arch/sparc/include/asm/auxio_32.h | 2 +-
+ arch/sparc/kernel/auxio_32.c      | 6 +++---
+ arch/sparc/kernel/process_32.c    | 8 ++++++--
+ 3 files changed, 10 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mc146818rtc.h b/arch/sparc/include/asm/mc146818rtc.h
-index 67ed9e3..d8e72f3 100644
---- a/arch/sparc/include/asm/mc146818rtc.h
-+++ b/arch/sparc/include/asm/mc146818rtc.h
-@@ -1,5 +1,10 @@
- #ifndef ___ASM_SPARC_MC146818RTC_H
- #define ___ASM_SPARC_MC146818RTC_H
+diff --git a/arch/sparc/include/asm/auxio_32.h b/arch/sparc/include/asm/auxio_32.h
+index 3a31977..b816660 100644
+--- a/arch/sparc/include/asm/auxio_32.h
++++ b/arch/sparc/include/asm/auxio_32.h
+@@ -78,7 +78,7 @@ do { \
+ 
+ 
+ /* AUXIO2 (Power Off Control) */
+-extern __volatile__ unsigned char * auxio_power_register;
++extern volatile u8 __iomem *auxio_power_register;
+ 
+ #define	AUXIO_POWER_DETECT_FAILURE	32
+ #define	AUXIO_POWER_CLEAR_FAILURE	2
+diff --git a/arch/sparc/kernel/auxio_32.c b/arch/sparc/kernel/auxio_32.c
+index c6fc1d4..ae88c22 100644
+--- a/arch/sparc/kernel/auxio_32.c
++++ b/arch/sparc/kernel/auxio_32.c
+@@ -106,7 +106,7 @@ EXPORT_SYMBOL(set_auxio);
+ 
+ /* sun4m power control register (AUXIO2) */
+ 
+-volatile unsigned char * auxio_power_register = NULL;
++volatile u8 __iomem *auxio_power_register = NULL;
+ 
+ void __init auxio_power_probe(void)
+ {
+@@ -130,8 +130,8 @@ void __init auxio_power_probe(void)
+ 	r.flags = regs.which_io & 0xF;
+ 	r.start = regs.phys_addr;
+ 	r.end = regs.phys_addr + regs.reg_size - 1;
+-	auxio_power_register = (unsigned char *) of_ioremap(&r, 0,
+-	    regs.reg_size, "auxpower");
++	auxio_power_register +		(u8 __iomem *)of_ioremap(&r, 0, regs.reg_size, "auxpower");
+ 
+ 	/* Display a quick message on the console. */
+ 	if (auxio_power_register)
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 61f810b..50e7b62 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -106,8 +106,12 @@ void machine_restart(char * cmd)
+ void machine_power_off(void)
+ {
+ 	if (auxio_power_register &&
+-	    (strcmp(of_console_device->type, "serial") || scons_pwroff))
+-		*auxio_power_register |= AUXIO_POWER_OFF;
++	    (strcmp(of_console_device->type, "serial") || scons_pwroff)) {
++		u8 power_register = sbus_readb(auxio_power_register);
++		power_register |= AUXIO_POWER_OFF;
++		sbus_writeb(power_register, auxio_power_register);
++	}
 +
-+#include <linux/spinlock.h>
-+
-+extern spinlock_t rtc_lock;
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/mc146818rtc_64.h>
- #else
-diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
-index 93476f8..13d0035 100644
---- a/arch/sparc/include/asm/timer_32.h
-+++ b/arch/sparc/include/asm/timer_32.h
-@@ -32,7 +32,7 @@ static inline unsigned int timer_value(unsigned int value)
- 	return (value + 1) << TIMER_VALUE_SHIFT;
+ 	machine_halt();
  }
  
--extern volatile unsigned int __iomem *master_l10_counter;
-+extern volatile u32 __iomem *master_l10_counter;
- 
- extern irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
- 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 5254241..4a8d0db 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -144,6 +144,9 @@ void __init auxio_power_probe(void);
- extern void __iomem *pcic_regs;
- void pcic_nmi(unsigned int pend, struct pt_regs *regs);
- 
-+/* time_32.c */
-+void __init time_init(void);
-+
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
-index d939708..683c4af 100644
---- a/arch/sparc/kernel/leon_kernel.c
-+++ b/arch/sparc/kernel/leon_kernel.c
-@@ -32,7 +32,7 @@ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base addr
- 
- int leondebug_irq_disable;
- int leon_debug_irqout;
--static volatile unsigned int dummy_master_l10_counter;
-+static volatile u32 dummy_master_l10_counter;
- unsigned long amba_system_id;
- static DEFINE_SPINLOCK(leon_irq_lock);
- 
-@@ -313,8 +313,7 @@ void __init leon_init_timers(void)
- 
- 	leondebug_irq_disable = 0;
- 	leon_debug_irqout = 0;
--	master_l10_counter -		(unsigned int __iomem *)&dummy_master_l10_counter;
-+	master_l10_counter = (u32 __iomem *)&dummy_master_l10_counter;
- 	dummy_master_l10_counter = 0;
- 
- 	rootnp = of_find_node_by_path("/ambapp0");
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 772b379..b2c7ab0 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -36,6 +36,7 @@
- #include <linux/of_device.h>
- #include <linux/platform_device.h>
- 
-+#include <asm/mc146818rtc.h>
- #include <asm/oplib.h>
- #include <asm/timex.h>
- #include <asm/timer.h>
-@@ -47,6 +48,7 @@
- #include <asm/irq_regs.h>
- #include <asm/setup.h>
- 
-+#include "kernel.h"
- #include "irq.h"
- 
- static __cacheline_aligned_in_smp DEFINE_SEQLOCK(timer_cs_lock);
-@@ -83,7 +85,7 @@ unsigned long profile_pc(struct pt_regs *regs)
- 
- EXPORT_SYMBOL(profile_pc);
- 
--volatile unsigned int __iomem *master_l10_counter;
-+volatile u32 __iomem *master_l10_counter;
- 
- int update_persistent_clock(struct timespec now)
- {
-@@ -143,9 +145,9 @@ static __init void setup_timer_ce(void)
- 
- static unsigned int sbus_cycles_offset(void)
- {
--	unsigned int val, offset;
-+	u32 val, offset;
- 
--	val = *master_l10_counter;
-+	val = sbus_readw(master_l10_counter);
- 	offset = (val >> TIMER_VALUE_SHIFT) & TIMER_VALUE_MASK;
- 
- 	/* Limit hit? */
 -- 
 1.9.0
 
