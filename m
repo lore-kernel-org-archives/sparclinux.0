@@ -1,173 +1,139 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:11 +0000
-Subject: [PATCH 06/34] sparc32: fix sparse warnings in sys_sparc_32.c
-Message-Id: <1399157559-19901-6-git-send-email-sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:44 +0000
+Subject: [PATCH 06/34] sparc32: fix sparse warnings in time_32.c
+Message-Id: <1400275572-17424-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-6-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-6-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 Fix following warnings:
-sys_sparc_32.c:32:26: warning: symbol 'sys_getpagesize' was not declared. Should it be static?
-sys_sparc_32.c:71:16: warning: symbol 'sparc_pipe' was not declared. Should it be static?
-sys_sparc_32.c:96:26: warning: symbol 'sys_mmap2' was not declared. Should it be static?
-sys_sparc_32.c:106:26: warning: symbol 'sys_mmap' was not declared. Should it be static?
-sys_sparc_32.c:114:6: warning: symbol 'sparc_remap_file_pages' was not declared. Should it be static?
-sys_sparc_32.c:127:1: warning: symbol 'c_sys_nis_syscall' was not declared. Should it be static?
-sys_sparc_32.c:144:1: warning: symbol 'sparc_breakpoint' was not declared. Should it be static?
-sys_sparc_32.c:200:16: warning: symbol 'sys_getdomainname' was not declared. Should it be static?
+time_32.c:63:1: warning: symbol 'rtc_lock' was not declared. Should it be static?
+time_32.c:357:13: warning: symbol 'time_init' was not declared. Should it be static?
+time_32.c:148:16: warning: dereference of noderef expression
 
-Adapt systbls.h for use by both sparc32 + sparc64.
-In the process modify the return type of a few functions:
-
-Change return type from unsigned long to long:
-sys_mmap2()
-sys_mmap()
-
-Change return type from int to long:
-sparc_pipe()
-sys_getdomainname()
-
-The changed return type was done to align with sparc64.
+Add extern definition of rtc_lock in mc146818rtc.h.
+time_init() is called from init/main.c - add prototype to kernel.h.
+Use proper u32 __iomem * for master_l10_counter.
+Fix all users.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/sys_sparc_32.c | 10 +++---
- arch/sparc/kernel/systbls.h      | 71 +++++++++++++++++++++++-----------------
- 2 files changed, 47 insertions(+), 34 deletions(-)
+ arch/sparc/include/asm/mc146818rtc.h | 5 +++++
+ arch/sparc/include/asm/timer_32.h    | 2 +-
+ arch/sparc/kernel/kernel.h           | 3 +++
+ arch/sparc/kernel/leon_kernel.c      | 5 ++---
+ arch/sparc/kernel/time_32.c          | 8 +++++---
+ 5 files changed, 16 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/kernel/sys_sparc_32.c b/arch/sparc/kernel/sys_sparc_32.c
-index 3a8d184..646988d 100644
---- a/arch/sparc/kernel/sys_sparc_32.c
-+++ b/arch/sparc/kernel/sys_sparc_32.c
-@@ -24,6 +24,8 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- 
-+#include "systbls.h"
+diff --git a/arch/sparc/include/asm/mc146818rtc.h b/arch/sparc/include/asm/mc146818rtc.h
+index 67ed9e3..d8e72f3 100644
+--- a/arch/sparc/include/asm/mc146818rtc.h
++++ b/arch/sparc/include/asm/mc146818rtc.h
+@@ -1,5 +1,10 @@
+ #ifndef ___ASM_SPARC_MC146818RTC_H
+ #define ___ASM_SPARC_MC146818RTC_H
 +
- /* #define DEBUG_UNIMP_SYSCALL */
- 
- /* XXX Make this per-binary type, this way we can detect the type of
-@@ -68,7 +70,7 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
-  * sys_pipe() is the normal C calling standard for creating
-  * a pipe. It's not the way unix traditionally does this, though.
-  */
--asmlinkage int sparc_pipe(struct pt_regs *regs)
-+asmlinkage long sparc_pipe(struct pt_regs *regs)
- {
- 	int fd[2];
- 	int error;
-@@ -93,7 +95,7 @@ int sparc_mmap_check(unsigned long addr, unsigned long len)
- 
- /* Linux version of mmap */
- 
--asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long pgoff)
- {
-@@ -103,7 +105,7 @@ asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
- 			      pgoff >> (PAGE_SHIFT - 12));
++#include <linux/spinlock.h>
++
++extern spinlock_t rtc_lock;
++
+ #if defined(__sparc__) && defined(__arch64__)
+ #include <asm/mc146818rtc_64.h>
+ #else
+diff --git a/arch/sparc/include/asm/timer_32.h b/arch/sparc/include/asm/timer_32.h
+index 93476f8..13d0035 100644
+--- a/arch/sparc/include/asm/timer_32.h
++++ b/arch/sparc/include/asm/timer_32.h
+@@ -32,7 +32,7 @@ static inline unsigned int timer_value(unsigned int value)
+ 	return (value + 1) << TIMER_VALUE_SHIFT;
  }
  
--asmlinkage unsigned long sys_mmap(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long off)
- {
-@@ -197,7 +199,7 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig,
- 	return ret;
- }
+-extern volatile unsigned int __iomem *master_l10_counter;
++extern volatile u32 __iomem *master_l10_counter;
  
--asmlinkage int sys_getdomainname(char __user *name, int len)
-+asmlinkage long sys_getdomainname(char __user *name, int len)
- {
-  	int nlen, err;
-  	
-diff --git a/arch/sparc/kernel/systbls.h b/arch/sparc/kernel/systbls.h
-index 26e6dd7..a3ed7ae 100644
---- a/arch/sparc/kernel/systbls.h
-+++ b/arch/sparc/kernel/systbls.h
-@@ -6,36 +6,47 @@
- #include <linux/signal.h>
- #include <asm/utrap.h>
+ extern irqreturn_t notrace timer_interrupt(int dummy, void *dev_id);
  
--extern asmlinkage unsigned long sys_getpagesize(void);
--extern asmlinkage long sparc_pipe(struct pt_regs *regs);
--extern asmlinkage long sys_sparc_ipc(unsigned int call, int first,
--			       unsigned long second,
--			       unsigned long third,
--			       void __user *ptr, long fifth);
--extern asmlinkage long sparc64_personality(unsigned long personality);
--extern asmlinkage long sys64_munmap(unsigned long addr, size_t len);
--extern asmlinkage unsigned long sys64_mremap(unsigned long addr,
--					     unsigned long old_len,
--					     unsigned long new_len,
--					     unsigned long flags,
--					     unsigned long new_addr);
--extern asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
--extern asmlinkage long sys_getdomainname(char __user *name, int len);
--extern asmlinkage long sys_utrap_install(utrap_entry_t type,
--					 utrap_handler_t new_p,
--					 utrap_handler_t new_d,
--					 utrap_handler_t __user *old_p,
--					 utrap_handler_t __user *old_d);
--extern asmlinkage long sparc_memory_ordering(unsigned long model,
--					     struct pt_regs *regs);
--extern asmlinkage long sys_rt_sigaction(int sig,
--					const struct sigaction __user *act,
--					struct sigaction __user *oact,
--					void __user *restorer,
--					size_t sigsetsize);
-+asmlinkage unsigned long sys_getpagesize(void);
-+asmlinkage long sparc_pipe(struct pt_regs *regs);
-+asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
-+asmlinkage long sys_getdomainname(char __user *name, int len);
-+void do_rt_sigreturn(struct pt_regs *regs);
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
-+			 unsigned long prot, unsigned long flags,
-+			 unsigned long fd, unsigned long off);
-+asmlinkage void sparc_breakpoint(struct pt_regs *regs);
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 5254241..4a8d0db 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -144,6 +144,9 @@ void __init auxio_power_probe(void);
+ extern void __iomem *pcic_regs;
+ void pcic_nmi(unsigned int pend, struct pt_regs *regs);
  
--extern asmlinkage void sparc64_set_context(struct pt_regs *regs);
--extern asmlinkage void sparc64_get_context(struct pt_regs *regs);
--extern void do_rt_sigreturn(struct pt_regs *regs);
-+#ifdef CONFIG_SPARC32
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
-+			  unsigned long prot, unsigned long flags,
-+			  unsigned long fd, unsigned long pgoff);
-+long sparc_remap_file_pages(unsigned long start, unsigned long size,
-+			    unsigned long prot, unsigned long pgoff,
-+			    unsigned long flags);
- 
-+#endif /* CONFIG_SPARC32 */
++/* time_32.c */
++void __init time_init(void);
 +
-+#ifdef CONFIG_SPARC64
-+asmlinkage long sys_sparc_ipc(unsigned int call, int first,
-+			      unsigned long second,
-+			      unsigned long third,
-+			      void __user *ptr, long fifth);
-+asmlinkage long sparc64_personality(unsigned long personality);
-+asmlinkage long sys64_munmap(unsigned long addr, size_t len);
-+asmlinkage unsigned long sys64_mremap(unsigned long addr,
-+				      unsigned long old_len,
-+				      unsigned long new_len,
-+				      unsigned long flags,
-+				      unsigned long new_addr);
-+asmlinkage long sys_utrap_install(utrap_entry_t type,
-+				  utrap_handler_t new_p,
-+				  utrap_handler_t new_d,
-+				  utrap_handler_t __user *old_p,
-+				  utrap_handler_t __user *old_d);
-+asmlinkage long sparc_memory_ordering(unsigned long model,
-+				      struct pt_regs *regs);
-+asmlinkage void sparc64_set_context(struct pt_regs *regs);
-+asmlinkage void sparc64_get_context(struct pt_regs *regs);
-+
-+#endif /* CONFIG_SPARC64 */
- #endif /* _SYSTBLS_H */
+ #else /* CONFIG_SPARC32 */
+ #endif /* CONFIG_SPARC32 */
+ #endif /* !(__SPARC_KERNEL_H) */
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index d939708..683c4af 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -32,7 +32,7 @@ struct leon3_gptimer_regs_map *leon3_gptimer_regs; /* timer controller base addr
+ 
+ int leondebug_irq_disable;
+ int leon_debug_irqout;
+-static volatile unsigned int dummy_master_l10_counter;
++static volatile u32 dummy_master_l10_counter;
+ unsigned long amba_system_id;
+ static DEFINE_SPINLOCK(leon_irq_lock);
+ 
+@@ -313,8 +313,7 @@ void __init leon_init_timers(void)
+ 
+ 	leondebug_irq_disable = 0;
+ 	leon_debug_irqout = 0;
+-	master_l10_counter -		(unsigned int __iomem *)&dummy_master_l10_counter;
++	master_l10_counter = (u32 __iomem *)&dummy_master_l10_counter;
+ 	dummy_master_l10_counter = 0;
+ 
+ 	rootnp = of_find_node_by_path("/ambapp0");
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 772b379..5923d1e 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -36,6 +36,7 @@
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ 
++#include <asm/mc146818rtc.h>
+ #include <asm/oplib.h>
+ #include <asm/timex.h>
+ #include <asm/timer.h>
+@@ -47,6 +48,7 @@
+ #include <asm/irq_regs.h>
+ #include <asm/setup.h>
+ 
++#include "kernel.h"
+ #include "irq.h"
+ 
+ static __cacheline_aligned_in_smp DEFINE_SEQLOCK(timer_cs_lock);
+@@ -83,7 +85,7 @@ unsigned long profile_pc(struct pt_regs *regs)
+ 
+ EXPORT_SYMBOL(profile_pc);
+ 
+-volatile unsigned int __iomem *master_l10_counter;
++volatile u32 __iomem *master_l10_counter;
+ 
+ int update_persistent_clock(struct timespec now)
+ {
+@@ -143,9 +145,9 @@ static __init void setup_timer_ce(void)
+ 
+ static unsigned int sbus_cycles_offset(void)
+ {
+-	unsigned int val, offset;
++	u32 val, offset;
+ 
+-	val = *master_l10_counter;
++	val = sbus_readl(master_l10_counter);
+ 	offset = (val >> TIMER_VALUE_SHIFT) & TIMER_VALUE_MASK;
+ 
+ 	/* Limit hit? */
 -- 
 1.9.0
 
