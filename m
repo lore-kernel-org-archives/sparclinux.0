@@ -1,173 +1,202 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 May 2014 21:25:45 +0000
-Subject: [PATCH 07/34] sparc32: fix sparse warnings in sys_sparc_32.c
-Message-Id: <1400275572-17424-7-git-send-email-sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:49 +0000
+Subject: [PATCH 11/34] sparc32: drop tadpole specific code
+Message-Id: <1400275572-17424-11-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-sys_sparc_32.c:32:26: warning: symbol 'sys_getpagesize' was not declared. Should it be static?
-sys_sparc_32.c:71:16: warning: symbol 'sparc_pipe' was not declared. Should it be static?
-sys_sparc_32.c:96:26: warning: symbol 'sys_mmap2' was not declared. Should it be static?
-sys_sparc_32.c:106:26: warning: symbol 'sys_mmap' was not declared. Should it be static?
-sys_sparc_32.c:114:6: warning: symbol 'sparc_remap_file_pages' was not declared. Should it be static?
-sys_sparc_32.c:127:1: warning: symbol 'c_sys_nis_syscall' was not declared. Should it be static?
-sys_sparc_32.c:144:1: warning: symbol 'sparc_breakpoint' was not declared. Should it be static?
-sys_sparc_32.c:200:16: warning: symbol 'sys_getdomainname' was not declared. Should it be static?
+tadpole.c assigned cpu_pwr_save based on the current configuration.
+The rest of the tadpole.c file was only used if cpu_pwr_save was
+dereferenced.
+But this variable was never dereferenced - and I went back to a 2.6.12
+kernel to check (from June 2005) - and not even then was it used.
 
-Adapt systbls.h for use by both sparc32 + sparc64.
-In the process modify the return type of a few functions.
-
-Change return type from unsigned long to long:
-sys_mmap2()
-sys_mmap()
-
-Change return type from int to long:
-sparc_pipe()
-sys_getdomainname()
-
-The changed return type was done to align with sparc64.
+Drop this code as it has not been in use for ~10 years.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/sys_sparc_32.c | 10 +++---
- arch/sparc/kernel/systbls.h      | 71 +++++++++++++++++++++++-----------------
- 2 files changed, 47 insertions(+), 34 deletions(-)
+ arch/sparc/kernel/Makefile  |   1 -
+ arch/sparc/kernel/devices.c |   1 -
+ arch/sparc/kernel/kernel.h  |   3 -
+ arch/sparc/kernel/tadpole.c | 130 --------------------------------------------
+ 4 files changed, 135 deletions(-)
+ delete mode 100644 arch/sparc/kernel/tadpole.c
 
-diff --git a/arch/sparc/kernel/sys_sparc_32.c b/arch/sparc/kernel/sys_sparc_32.c
-index 3a8d184..646988d 100644
---- a/arch/sparc/kernel/sys_sparc_32.c
-+++ b/arch/sparc/kernel/sys_sparc_32.c
-@@ -24,6 +24,8 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index d15cc17..7cf9c6e 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -42,7 +42,6 @@ obj-y                   += time_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += windows.o
+ obj-y                   += cpu.o
+ obj-$(CONFIG_SPARC32)   += devices.o
+-obj-$(CONFIG_SPARC32)   += tadpole.o
+ obj-y                   += ptrace_$(BITS).o
+ obj-y                   += unaligned_$(BITS).o
+ obj-y                   += una_asm_$(BITS).o
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index 6f39916..8d5d09f 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -134,5 +134,4 @@ void __init device_scan(void)
  
-+#include "systbls.h"
-+
- /* #define DEBUG_UNIMP_SYSCALL */
- 
- /* XXX Make this per-binary type, this way we can detect the type of
-@@ -68,7 +70,7 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsi
-  * sys_pipe() is the normal C calling standard for creating
-  * a pipe. It's not the way unix traditionally does this, though.
-  */
--asmlinkage int sparc_pipe(struct pt_regs *regs)
-+asmlinkage long sparc_pipe(struct pt_regs *regs)
- {
- 	int fd[2];
- 	int error;
-@@ -93,7 +95,7 @@ int sparc_mmap_check(unsigned long addr, unsigned long len)
- 
- /* Linux version of mmap */
- 
--asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long pgoff)
- {
-@@ -103,7 +105,7 @@ asmlinkage unsigned long sys_mmap2(unsigned long addr, unsigned long len,
- 			      pgoff >> (PAGE_SHIFT - 12));
+ 	auxio_probe();
+ 	auxio_power_probe();
+-	clock_stop_probe();
  }
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index 4a8d0db..beaba3a 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -133,9 +133,6 @@ asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn);
+ /* windows.c */
+ void try_to_clear_window_buffer(struct pt_regs *regs, int who);
  
--asmlinkage unsigned long sys_mmap(unsigned long addr, unsigned long len,
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
- 	unsigned long prot, unsigned long flags, unsigned long fd,
- 	unsigned long off)
- {
-@@ -197,7 +199,7 @@ SYSCALL_DEFINE5(rt_sigaction, int, sig,
- 	return ret;
- }
- 
--asmlinkage int sys_getdomainname(char __user *name, int len)
-+asmlinkage long sys_getdomainname(char __user *name, int len)
- {
-  	int nlen, err;
-  	
-diff --git a/arch/sparc/kernel/systbls.h b/arch/sparc/kernel/systbls.h
-index 26e6dd7..a3ed7ae 100644
---- a/arch/sparc/kernel/systbls.h
-+++ b/arch/sparc/kernel/systbls.h
-@@ -6,36 +6,47 @@
- #include <linux/signal.h>
- #include <asm/utrap.h>
- 
--extern asmlinkage unsigned long sys_getpagesize(void);
--extern asmlinkage long sparc_pipe(struct pt_regs *regs);
--extern asmlinkage long sys_sparc_ipc(unsigned int call, int first,
--			       unsigned long second,
--			       unsigned long third,
--			       void __user *ptr, long fifth);
--extern asmlinkage long sparc64_personality(unsigned long personality);
--extern asmlinkage long sys64_munmap(unsigned long addr, size_t len);
--extern asmlinkage unsigned long sys64_mremap(unsigned long addr,
--					     unsigned long old_len,
--					     unsigned long new_len,
--					     unsigned long flags,
--					     unsigned long new_addr);
--extern asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
--extern asmlinkage long sys_getdomainname(char __user *name, int len);
--extern asmlinkage long sys_utrap_install(utrap_entry_t type,
--					 utrap_handler_t new_p,
--					 utrap_handler_t new_d,
--					 utrap_handler_t __user *old_p,
--					 utrap_handler_t __user *old_d);
--extern asmlinkage long sparc_memory_ordering(unsigned long model,
--					     struct pt_regs *regs);
--extern asmlinkage long sys_rt_sigaction(int sig,
--					const struct sigaction __user *act,
--					struct sigaction __user *oact,
--					void __user *restorer,
--					size_t sigsetsize);
-+asmlinkage unsigned long sys_getpagesize(void);
-+asmlinkage long sparc_pipe(struct pt_regs *regs);
-+asmlinkage unsigned long c_sys_nis_syscall(struct pt_regs *regs);
-+asmlinkage long sys_getdomainname(char __user *name, int len);
-+void do_rt_sigreturn(struct pt_regs *regs);
-+asmlinkage long sys_mmap(unsigned long addr, unsigned long len,
-+			 unsigned long prot, unsigned long flags,
-+			 unsigned long fd, unsigned long off);
-+asmlinkage void sparc_breakpoint(struct pt_regs *regs);
- 
--extern asmlinkage void sparc64_set_context(struct pt_regs *regs);
--extern asmlinkage void sparc64_get_context(struct pt_regs *regs);
--extern void do_rt_sigreturn(struct pt_regs *regs);
-+#ifdef CONFIG_SPARC32
-+asmlinkage long sys_mmap2(unsigned long addr, unsigned long len,
-+			  unsigned long prot, unsigned long flags,
-+			  unsigned long fd, unsigned long pgoff);
-+long sparc_remap_file_pages(unsigned long start, unsigned long size,
-+			    unsigned long prot, unsigned long pgoff,
-+			    unsigned long flags);
- 
-+#endif /* CONFIG_SPARC32 */
-+
-+#ifdef CONFIG_SPARC64
-+asmlinkage long sys_sparc_ipc(unsigned int call, int first,
-+			      unsigned long second,
-+			      unsigned long third,
-+			      void __user *ptr, long fifth);
-+asmlinkage long sparc64_personality(unsigned long personality);
-+asmlinkage long sys64_munmap(unsigned long addr, size_t len);
-+asmlinkage unsigned long sys64_mremap(unsigned long addr,
-+				      unsigned long old_len,
-+				      unsigned long new_len,
-+				      unsigned long flags,
-+				      unsigned long new_addr);
-+asmlinkage long sys_utrap_install(utrap_entry_t type,
-+				  utrap_handler_t new_p,
-+				  utrap_handler_t new_d,
-+				  utrap_handler_t __user *old_p,
-+				  utrap_handler_t __user *old_d);
-+asmlinkage long sparc_memory_ordering(unsigned long model,
-+				      struct pt_regs *regs);
-+asmlinkage void sparc64_set_context(struct pt_regs *regs);
-+asmlinkage void sparc64_get_context(struct pt_regs *regs);
-+
-+#endif /* CONFIG_SPARC64 */
- #endif /* _SYSTBLS_H */
+-/* tadpole.c */
+-void __init clock_stop_probe(void);
+-
+ /* auxio_32.c */
+ void __init auxio_probe(void);
+ void __init auxio_power_probe(void);
+diff --git a/arch/sparc/kernel/tadpole.c b/arch/sparc/kernel/tadpole.c
+deleted file mode 100644
+index 4bbfe4e..0000000
+--- a/arch/sparc/kernel/tadpole.c
++++ /dev/null
+@@ -1,130 +0,0 @@
+-/* tadpole.c: Probing for the tadpole clock stopping h/w at boot time.
+- *
+- * Copyright (C) 1996 David Redman (djhr@tadpole.co.uk)
+- */
+-
+-#include <linux/string.h>
+-#include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/init.h>
+-
+-#include <asm/asi.h>
+-#include <asm/oplib.h>
+-#include <asm/io.h>
+-
+-#include "kernel.h"
+-
+-#define MACIO_SCSI_CSR_ADDR	0x78400000
+-#define MACIO_EN_DMA		0x00000200
+-#define CLOCK_INIT_DONE		1
+-
+-static int clk_state;
+-static volatile unsigned char *clk_ctrl;
+-
+-/* TODO - cpu_pwr_save is only assigned - cleanup potential. */
+-static void (*cpu_pwr_save)(void);
+-
+-static inline unsigned int ldphys(unsigned int addr)
+-{
+-	unsigned long data;
+-    
+-	__asm__ __volatile__("\n\tlda [%1] %2, %0\n\t" : 
+-			     "=r" (data) :
+-			     "r" (addr), "i" (ASI_M_BYPASS));
+-	return data;
+-}
+-
+-static void clk_init(void)
+-{
+-	__asm__ __volatile__("mov 0x6c, %%g1\n\t"
+-			     "mov 0x4c, %%g2\n\t"
+-			     "mov 0xdf, %%g3\n\t"
+-			     "stb %%g1, [%0+3]\n\t"
+-			     "stb %%g2, [%0+3]\n\t"
+-			     "stb %%g3, [%0+3]\n\t" : :
+-			     "r" (clk_ctrl) :
+-			     "g1", "g2", "g3");
+-}
+-
+-static void clk_slow(void)
+-{
+-	__asm__ __volatile__("mov 0xcc, %%g2\n\t"
+-			     "mov 0x4c, %%g3\n\t"
+-			     "mov 0xcf, %%g4\n\t"
+-			     "mov 0xdf, %%g5\n\t"
+-			     "stb %%g2, [%0+3]\n\t"
+-			     "stb %%g3, [%0+3]\n\t"
+-			     "stb %%g4, [%0+3]\n\t"
+-			     "stb %%g5, [%0+3]\n\t" : :
+-			     "r" (clk_ctrl) :
+-			     "g2", "g3", "g4", "g5");
+-}
+-
+-/*
+- * Tadpole is guaranteed to be UP, using local_irq_save.
+- */
+-static void tsu_clockstop(void)
+-{
+-	unsigned int mcsr;
+-	unsigned long flags;
+-
+-	if (!clk_ctrl)
+-		return;
+-	if (!(clk_state & CLOCK_INIT_DONE)) {
+-		local_irq_save(flags);
+-		clk_init();
+-		clk_state |= CLOCK_INIT_DONE;       /* all done */
+-		local_irq_restore(flags);
+-		return;
+-	}
+-	if (!(clk_ctrl[2] & 1))
+-		return;               /* no speed up yet */
+-
+-	local_irq_save(flags);
+-
+-	/* if SCSI DMA in progress, don't slow clock */
+-	mcsr = ldphys(MACIO_SCSI_CSR_ADDR);
+-	if ((mcsr&MACIO_EN_DMA) != 0) {
+-		local_irq_restore(flags);
+-		return;
+-	}
+-	/* TODO... the minimum clock setting ought to increase the
+-	 * memory refresh interval..
+-	 */
+-	clk_slow();
+-	local_irq_restore(flags);
+-}
+-
+-static void swift_clockstop(void)
+-{
+-	if (!clk_ctrl)
+-		return;
+-	clk_ctrl[0] = 0;
+-}
+-
+-void __init clock_stop_probe(void)
+-{
+-	phandle node, clk_nd;
+-	char name[20];
+-    
+-	prom_getstring(prom_root_node, "name", name, sizeof(name));
+-	if (strncmp(name, "Tadpole", 7))
+-		return;
+-	node = prom_getchild(prom_root_node);
+-	node = prom_searchsiblings(node, "obio");
+-	node = prom_getchild(node);
+-	clk_nd = prom_searchsiblings(node, "clk-ctrl");
+-	if (!clk_nd)
+-		return;
+-	printk("Clock Stopping h/w detected... ");
+-	clk_ctrl = (char *) prom_getint(clk_nd, "address");
+-	clk_state = 0;
+-	if (name[10] = '\0') {
+-		cpu_pwr_save = tsu_clockstop;
+-		printk("enabled (S3)\n");
+-	} else if ((name[10] = 'X') || (name[10] = 'G')) {
+-		cpu_pwr_save = swift_clockstop;
+-		printk("enabled (%s)\n",name+7);
+-	} else
+-		printk("disabled %s\n",name+7);
+-}
 -- 
 1.9.0
 
