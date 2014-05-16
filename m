@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:31 +0000
+Date: Fri, 16 May 2014 21:26:04 +0000
 Subject: [PATCH 26/34] sparc64: fix sparse warnings in perf_event.c
-Message-Id: <1399157559-19901-26-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-26-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-26-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-26-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -26,7 +28,7 @@ Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
  1 file changed, 13 insertions(+), 10 deletions(-)
 
 diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index b5c38fa..9cd0b44 100644
+index b5c38fa..8efd337 100644
 --- a/arch/sparc/kernel/perf_event.c
 +++ b/arch/sparc/kernel/perf_event.c
 @@ -110,7 +110,7 @@ struct cpu_hw_events {
@@ -75,7 +77,7 @@ index b5c38fa..9cd0b44 100644
  		unsigned long pc;
  
 -		usf = (struct sparc_stackf *) ufp;
-+		usf = (struct sparc_stackf __user *) ufp;
++		usf = (struct sparc_stackf __user *)ufp;
  		if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
  			break;
  
@@ -89,7 +91,7 @@ index b5c38fa..9cd0b44 100644
  
  			ufp += STACK_BIAS;
 -			usf = (struct sparc_stackf *) ufp;
-+			usf = (struct sparc_stackf __user *) ufp;
++			usf = (struct sparc_stackf __user *)ufp;
  			if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
  				break;
  			pc = sf.callers_pc & 0xffffffff;
@@ -99,7 +101,7 @@ index b5c38fa..9cd0b44 100644
 -			usf = (struct sparc_stackf32 *) ufp;
 +			struct sparc_stackf32 __user *usf;
 +			struct sparc_stackf32 sf;
-+			usf = (struct sparc_stackf32 __user *) ufp;
++			usf = (struct sparc_stackf32 __user *)ufp;
  			if (__copy_from_user_inatomic(&sf, usf, sizeof(sf)))
  				break;
  			pc = sf.callers_pc;
