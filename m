@@ -1,8 +1,10 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:27 +0000
+Date: Fri, 16 May 2014 21:26:00 +0000
 Subject: [PATCH 22/34] sparc64: fix sparse "Should it be static?" warnings in signal32.c
-Message-Id: <1399157559-19901-22-git-send-email-sam@ravnborg.org>
+Message-Id: <1400275572-17424-22-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-22-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-22-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -53,7 +55,7 @@ index ee789d2..ab33c99 100644
  /* This magic should be in g_upper[0] for all upper parts
   * to be valid.
 diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index 015ac1d..aef7cac 100644
+index cd91d01..1a69998 100644
 --- a/arch/sparc/kernel/signal_64.c
 +++ b/arch/sparc/kernel/signal_64.c
 @@ -35,9 +35,10 @@
