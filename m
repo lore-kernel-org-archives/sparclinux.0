@@ -1,138 +1,108 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 03 May 2014 22:52:08 +0000
-Subject: [PATCH 03/34] sparc32: fix sparse warnings in pcic.c
-Message-Id: <1399157559-19901-3-git-send-email-sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:41 +0000
+Subject: [PATCH 03/34] sparc32: fix sparse warning in io-unit.c
+Message-Id: <1400275572-17424-3-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1399157559-19901-3-git-send-email-sam@ravnborg.org>
+In-Reply-To: <1399157559-19901-3-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fix following warnings:
-pcic.c:164:14: warning: symbol 'pcic_regs' was not declared. Should it be static?
-pcic.c:165:14: warning: symbol 'pcic_speculative' was not declared. Should it be static?
-pcic.c:166:14: warning: symbol 'pcic_trapped' was not declared. Should it be static?
-pcic.c:332:66: warning: Using plain integer as NULL pointer
-pcic.c:344:66: warning: Using plain integer as NULL pointer
-pcic.c:539:38: warning: Using plain integer as NULL pointer
-pcic.c:677:1: warning: symbol 'pcic_pin_to_irq' was not declared. Should it be static?
-pcic.c:783:6: warning: symbol 'pcic_nmi' was not declared. Should it be static?
+Fix following warning:
+io-unit.c:56:13: warning: incorrect type in assignment (different address spaces)
 
-Add extern for pcic_regs.
-Define a few variables static.
-Replace 0 with NULL.
-Delete unused funtion pcic_pin_to_irq().
-Include kernel.h so we could drop declaration of
-t_nmi and add prototype for pcic_nmi.
+The page table for the io unit resides in __iomem.
+Fix up all users of the io unit page table.
+Introduce sbus helers for all read/write operations.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/kernel/kernel.h |  4 ++++
- arch/sparc/kernel/pcic.c   | 36 ++++++------------------------------
- 2 files changed, 10 insertions(+), 30 deletions(-)
+ arch/sparc/include/asm/io-unit.h |  2 +-
+ arch/sparc/mm/io-unit.c          | 21 ++++++++++++---------
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index 8bc2c81..5254241 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -140,6 +140,10 @@ void __init clock_stop_probe(void);
- void __init auxio_probe(void);
- void __init auxio_power_probe(void);
+diff --git a/arch/sparc/include/asm/io-unit.h b/arch/sparc/include/asm/io-unit.h
+index 01ab2f6..04a9701 100644
+--- a/arch/sparc/include/asm/io-unit.h
++++ b/arch/sparc/include/asm/io-unit.h
+@@ -43,7 +43,7 @@
+ struct iounit_struct {
+ 	unsigned long		bmap[(IOUNIT_DMA_SIZE >> (PAGE_SHIFT + 3)) / sizeof(unsigned long)];
+ 	spinlock_t		lock;
+-	iopte_t			*page_table;
++	iopte_t __iomem		*page_table;
+ 	unsigned long		rotor[3];
+ 	unsigned long		limit[4];
+ };
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index eb99862..f311bf2 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -25,6 +25,8 @@
+ #include <asm/dma.h>
+ #include <asm/oplib.h>
  
-+/* pcic.c */
-+extern void __iomem *pcic_regs;
-+void pcic_nmi(unsigned int pend, struct pt_regs *regs);
++#include "mm_32.h"
 +
- #else /* CONFIG_SPARC32 */
- #endif /* CONFIG_SPARC32 */
- #endif /* !(__SPARC_KERNEL_H) */
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index aabfcab..6cc78c2 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -36,6 +36,7 @@
- #include <asm/uaccess.h>
- #include <asm/irq_regs.h>
+ /* #define IOUNIT_DEBUG */
+ #ifdef IOUNIT_DEBUG
+ #define IOD(x) printk(x)
+@@ -38,7 +40,8 @@
+ static void __init iounit_iommu_init(struct platform_device *op)
+ {
+ 	struct iounit_struct *iounit;
+-	iopte_t *xpt, *xptend;
++	iopte_t __iomem *xpt;
++	iopte_t __iomem *xptend;
  
-+#include "kernel.h"
- #include "irq.h"
- 
- /*
-@@ -162,8 +163,8 @@ static int pcic0_up;
- static struct linux_pcic pcic0;
- 
- void __iomem *pcic_regs;
--volatile int pcic_speculative;
--volatile int pcic_trapped;
-+static volatile int pcic_speculative;
-+static volatile int pcic_trapped;
- 
- /* forward */
- unsigned int pcic_build_device_irq(struct platform_device *op,
-@@ -329,7 +330,7 @@ int __init pcic_probe(void)
- 
- 	pcic->pcic_res_cfg_addr.name = "pcic_cfg_addr";
- 	if ((pcic->pcic_config_space_addr -	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = 0) {
-+	    ioremap(regs[2].phys_addr, regs[2].reg_size * 2)) = NULL) {
- 		prom_printf("PCIC: Error, cannot map "
- 			    "PCI Configuration Space Address.\n");
- 		prom_halt();
-@@ -341,7 +342,7 @@ int __init pcic_probe(void)
- 	 */
- 	pcic->pcic_res_cfg_data.name = "pcic_cfg_data";
- 	if ((pcic->pcic_config_space_data -	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = 0) {
-+	    ioremap(regs[3].phys_addr, regs[3].reg_size * 2)) = NULL) {
- 		prom_printf("PCIC: Error, cannot map "
- 			    "PCI Configuration Space Data.\n");
- 		prom_halt();
-@@ -353,7 +354,6 @@ int __init pcic_probe(void)
- 	strcpy(pbm->prom_name, namebuf);
- 
- 	{
--		extern volatile int t_nmi[4];
- 		extern int pcic_nmi_trap_patch[4];
- 
- 		t_nmi[0] = pcic_nmi_trap_patch[0];
-@@ -536,7 +536,7 @@ pcic_fill_irq(struct linux_pcic *pcic, struct pci_dev *dev, int node)
- 		prom_getstring(node, "name", namebuf, sizeof(namebuf));
- 	}
- 
--	if ((p = pcic->pcic_imap) = 0) {
-+	if ((p = pcic->pcic_imap) = NULL) {
- 		dev->irq = 0;
- 		return;
- 	}
-@@ -670,30 +670,6 @@ void pcibios_fixup_bus(struct pci_bus *bus)
- 	}
+ 	iounit = kzalloc(sizeof(struct iounit_struct), GFP_ATOMIC);
+ 	if (!iounit) {
+@@ -62,10 +65,10 @@ static void __init iounit_iommu_init(struct platform_device *op)
+ 	op->dev.archdata.iommu = iounit;
+ 	iounit->page_table = xpt;
+ 	spin_lock_init(&iounit->lock);
+-	
+-	for (xptend = iounit->page_table + (16 * PAGE_SIZE) / sizeof(iopte_t);
+-	     xpt < xptend;)
+-	     	iopte_val(*xpt++) = 0;
++
++	xptend = iounit->page_table + (16 * PAGE_SIZE) / sizeof(iopte_t);
++	for (; xpt < xptend; xpt++)
++		sbus_writel(0, xpt);
  }
  
--/*
-- * pcic_pin_to_irq() is exported to bus probing code
-- */
--unsigned int
--pcic_pin_to_irq(unsigned int pin, const char *name)
--{
--	struct linux_pcic *pcic = &pcic0;
--	unsigned int irq;
--	unsigned int ivec;
--
--	if (pin < 4) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_LO);
--		irq = ivec >> (pin << 2) & 0xF;
--	} else if (pin < 8) {
--		ivec = readw(pcic->pcic_regs+PCI_INT_SELECT_HI);
--		irq = ivec >> ((pin-4) << 2) & 0xF;
--	} else {					/* Corrupted map */
--		printk("PCIC: BAD PIN %d FOR %s\n", pin, name);
--		for (;;) {}	/* XXX Cannot panic properly in case of PROLL */
--	}
--/* P3 */ /* printk("PCIC: dev %s pin %d ivec 0x%x irq %x\n", name, pin, ivec, irq); */
--	return irq;
--}
--
- /* Makes compiler happy */
- static volatile int pcic_timer_dummy;
+ static int __init iounit_init(void)
+@@ -130,7 +133,7 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
+ 	vaddr = IOUNIT_DMA_BASE + (scan << PAGE_SHIFT) + (vaddr & ~PAGE_MASK);
+ 	for (k = 0; k < npages; k++, iopte = __iopte(iopte_val(iopte) + 0x100), scan++) {
+ 		set_bit(scan, iounit->bmap);
+-		iounit->page_table[scan] = iopte;
++		sbus_writel(iopte, &iounit->page_table[scan]);
+ 	}
+ 	IOD(("%08lx\n", vaddr));
+ 	return vaddr;
+@@ -202,7 +205,7 @@ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned lon
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+ 	unsigned long page, end;
+ 	pgprot_t dvma_prot;
+-	iopte_t *iopte;
++	iopte_t __iomem *iopte;
  
+ 	*pba = addr;
+ 
+@@ -224,8 +227,8 @@ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned lon
+ 			
+ 			i = ((addr - IOUNIT_DMA_BASE) >> PAGE_SHIFT);
+ 
+-			iopte = (iopte_t *)(iounit->page_table + i);
+-			*iopte = MKIOPTE(__pa(page));
++			iopte = iounit->page_table + i;
++			sbus_writel(MKIOPTE(__pa(page)), iopte);
+ 		}
+ 		addr += PAGE_SIZE;
+ 		va += PAGE_SIZE;
 -- 
 1.9.0
 
