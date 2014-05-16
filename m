@@ -1,39 +1,159 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:45 +0000
-Subject: [PATCH v2 10/13] PCI, cpcihp: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-11-git-send-email-wangyijing@huawei.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 16 May 2014 21:25:46 +0000
+Subject: [PATCH 08/34] sparc32: remove cast from output constraints in math asm statements
+Message-Id: <1400275572-17424-8-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
+To: sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
+The following asm statements generated a sparse warning:
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+        asm("addcc \n\t" : "=r" (((USItype)(r2)))
+
+warning: asm output is not an lvalue
+
+When asking on the sparse mailing list Linus replyed:
+
+"
+Those casts to (USItype) are all pointless to begin with (since the
+values are of that type already!) and they mean that the expression
+isn't something you can assign to (lvalue).
+"
+
+In the math emulation code drop all casts in the output
+parts of the asm statements.
+
+This fixes a lot of "warning: asm output is not an lvalue" sparse
+warnings in math_32.c.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- drivers/pci/hotplug/cpci_hotplug_pci.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/sfp-machine_32.h | 28 ++++++++++++++--------------
+ arch/sparc/math-emu/sfp-util_32.h       | 20 ++++++++++----------
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/pci/hotplug/cpci_hotplug_pci.c b/drivers/pci/hotplug/cpci_hotplug_pci.c
-index 8c14648..9843371 100644
---- a/drivers/pci/hotplug/cpci_hotplug_pci.c
-+++ b/drivers/pci/hotplug/cpci_hotplug_pci.c
-@@ -289,8 +289,7 @@ int __ref cpci_configure_slot(struct slot *slot)
- 	list_for_each_entry(dev, &parent->devices, bus_list)
- 		if (PCI_SLOT(dev->devfn) != PCI_SLOT(slot->devfn))
- 			continue;
--		if ((dev->hdr_type = PCI_HEADER_TYPE_BRIDGE) ||
--		    (dev->hdr_type = PCI_HEADER_TYPE_CARDBUS))
-+		if (pci_is_bridge(dev))
- 			pci_hp_add_bridge(dev);
+diff --git a/arch/sparc/include/asm/sfp-machine_32.h b/arch/sparc/include/asm/sfp-machine_32.h
+index 01d9c3b..838c9d5 100644
+--- a/arch/sparc/include/asm/sfp-machine_32.h
++++ b/arch/sparc/include/asm/sfp-machine_32.h
+@@ -79,9 +79,9 @@
+   __asm__ ("addcc %r7,%8,%2\n\t"					\
+ 	   "addxcc %r5,%6,%1\n\t"					\
+ 	   "addx %r3,%4,%0\n"						\
+-	   : "=r" ((USItype)(r2)),					\
+-	     "=&r" ((USItype)(r1)),					\
+-	     "=&r" ((USItype)(r0))					\
++	   : "=r" (r2),							\
++	     "=&r" (r1),						\
++	     "=&r" (r0)							\
+ 	   : "%rJ" ((USItype)(x2)),					\
+ 	     "rI" ((USItype)(y2)),					\
+ 	     "%rJ" ((USItype)(x1)),					\
+@@ -94,9 +94,9 @@
+   __asm__ ("subcc %r7,%8,%2\n\t"					\
+ 	    "subxcc %r5,%6,%1\n\t"					\
+ 	    "subx %r3,%4,%0\n"						\
+-	   : "=r" ((USItype)(r2)),					\
+-	     "=&r" ((USItype)(r1)),					\
+-	     "=&r" ((USItype)(r0))					\
++	   : "=r" (r2),							\
++	     "=&r" (r1),						\
++	     "=&r" (r0)							\
+ 	   : "%rJ" ((USItype)(x2)),					\
+ 	     "rI" ((USItype)(y2)),					\
+ 	     "%rJ" ((USItype)(x1)),					\
+@@ -115,8 +115,8 @@
+ 	    "addxcc %r6,%7,%0\n\t"					\
+ 	    "addxcc %r4,%5,%%g2\n\t"					\
+ 	    "addx %r2,%3,%%g1\n\t"					\
+-	   : "=&r" ((USItype)(r1)),					\
+-	     "=&r" ((USItype)(r0))					\
++	   : "=&r" (r1),						\
++	     "=&r" (r0)							\
+ 	   : "%rJ" ((USItype)(x3)),					\
+ 	     "rI" ((USItype)(y3)),					\
+ 	     "%rJ" ((USItype)(x2)),					\
+@@ -140,8 +140,8 @@
+ 	    "subxcc %r6,%7,%0\n\t"					\
+ 	    "subxcc %r4,%5,%%g2\n\t"					\
+ 	    "subx %r2,%3,%%g1\n\t"					\
+-	   : "=&r" ((USItype)(r1)),					\
+-	     "=&r" ((USItype)(r0))					\
++	   : "=&r" (r1),						\
++	     "=&r" (r0)							\
+ 	   : "%rJ" ((USItype)(x3)),					\
+ 	     "rI" ((USItype)(y3)),					\
+ 	     "%rJ" ((USItype)(x2)),					\
+@@ -164,10 +164,10 @@
+ 	   "addxcc %2,%%g0,%2\n\t"					\
+ 	   "addxcc %1,%%g0,%1\n\t"					\
+ 	   "addx %0,%%g0,%0\n\t"					\
+-	   : "=&r" ((USItype)(x3)),					\
+-	     "=&r" ((USItype)(x2)),					\
+-	     "=&r" ((USItype)(x1)),					\
+-	     "=&r" ((USItype)(x0))					\
++	   : "=&r" (x3),						\
++	     "=&r" (x2),						\
++	     "=&r" (x1),						\
++	     "=&r" (x0)							\
+ 	   : "rI" ((USItype)(i)),					\
+ 	     "0" ((USItype)(x3)),					\
+ 	     "1" ((USItype)(x2)),					\
+diff --git a/arch/sparc/math-emu/sfp-util_32.h b/arch/sparc/math-emu/sfp-util_32.h
+index d1b2aff..bb587d5 100644
+--- a/arch/sparc/math-emu/sfp-util_32.h
++++ b/arch/sparc/math-emu/sfp-util_32.h
+@@ -4,20 +4,20 @@
+ #include <asm/byteorder.h>
  
- 
+ #define add_ssaaaa(sh, sl, ah, al, bh, bl) 				\
+-  __asm__ ("addcc %r4,%5,%1\n\t"						\
++  __asm__ ("addcc %r4,%5,%1\n\t"					\
+ 	   "addx %r2,%3,%0\n"						\
+-	   : "=r" ((USItype)(sh)),					\
+-	     "=&r" ((USItype)(sl))					\
++	   : "=r" (sh),							\
++	     "=&r" (sl)							\
+ 	   : "%rJ" ((USItype)(ah)),					\
+ 	     "rI" ((USItype)(bh)),					\
+ 	     "%rJ" ((USItype)(al)),					\
+ 	     "rI" ((USItype)(bl))					\
+ 	   : "cc")
+ #define sub_ddmmss(sh, sl, ah, al, bh, bl) 				\
+-  __asm__ ("subcc %r4,%5,%1\n\t"						\
++  __asm__ ("subcc %r4,%5,%1\n\t"					\
+ 	   "subx %r2,%3,%0\n"						\
+-	   : "=r" ((USItype)(sh)),					\
+-	     "=&r" ((USItype)(sl))					\
++	   : "=r" (sh),							\
++	     "=&r" (sl)							\
+ 	   : "rJ" ((USItype)(ah)),					\
+ 	     "rI" ((USItype)(bh)),					\
+ 	     "rJ" ((USItype)(al)),					\
+@@ -65,8 +65,8 @@
+ 	"mulscc	%%g1,0,%%g1\n\t" 					\
+ 	"add	%%g1,%%g2,%0\n\t" 					\
+ 	"rd	%%y,%1\n"						\
+-	   : "=r" ((USItype)(w1)),					\
+-	     "=r" ((USItype)(w0))					\
++	   : "=r" (w1),							\
++	     "=r" (w0)							\
+ 	   : "%rI" ((USItype)(u)),					\
+ 	     "r" ((USItype)(v))						\
+ 	   : "%g1", "%g2", "cc")
+@@ -98,8 +98,8 @@
+ 	   "sub	%1,%2,%1\n\t"						\
+ 	   "3:	xnor	%0,0,%0\n\t"					\
+ 	   "! End of inline udiv_qrnnd\n"				\
+-	   : "=&r" ((USItype)(q)),					\
+-	     "=&r" ((USItype)(r))					\
++	   : "=&r" (q),							\
++	     "=&r" (r)							\
+ 	   : "r" ((USItype)(d)),					\
+ 	     "1" ((USItype)(n1)),					\
+ 	     "0" ((USItype)(n0)) : "%g1", "cc")
 -- 
-1.7.1
-
+1.9.0
 
