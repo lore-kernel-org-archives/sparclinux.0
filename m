@@ -1,54 +1,36 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:41 +0000
-Subject: [PATCH v2 06/13] powerpc/PCI: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-7-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 17 May 2014 18:29:43 +0000
+Subject: [PATCH] sparc64: Add membar to Niagara2 memcpy code.
+Message-Id: <20140517.142943.1796322674669418101.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
+To: sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+This is the prevent previous stores from overlapping the block stores
+done by the memcpy loop.
+
+Based upon a glibc patch by Jose E. Marchesi
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/powerpc/kernel/pci-hotplug.c |    3 +--
- arch/powerpc/kernel/pci_of_scan.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/sparc/lib/NG2memcpy.S | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/powerpc/kernel/pci-hotplug.c b/arch/powerpc/kernel/pci-hotplug.c
-index c1e17ae..5b78917 100644
---- a/arch/powerpc/kernel/pci-hotplug.c
-+++ b/arch/powerpc/kernel/pci-hotplug.c
-@@ -98,8 +98,7 @@ void pcibios_add_pci_devices(struct pci_bus * bus)
- 		max = bus->busn_res.start;
- 		for (pass = 0; pass < 2; pass++) {
- 			list_for_each_entry(dev, &bus->devices, bus_list) {
--				if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--				    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS)
-+				if (pci_is_bridge(dev))
- 					max = pci_scan_bridge(bus, dev,
- 							      max, pass);
- 			}
-diff --git a/arch/powerpc/kernel/pci_of_scan.c b/arch/powerpc/kernel/pci_of_scan.c
-index 83c26d8..059e244 100644
---- a/arch/powerpc/kernel/pci_of_scan.c
-+++ b/arch/powerpc/kernel/pci_of_scan.c
-@@ -362,8 +362,7 @@ static void __of_scan_bus(struct device_node *node, struct pci_bus *bus,
+diff --git a/arch/sparc/lib/NG2memcpy.S b/arch/sparc/lib/NG2memcpy.S
+index 2c20ad6..30eee6e 100644
+--- a/arch/sparc/lib/NG2memcpy.S
++++ b/arch/sparc/lib/NG2memcpy.S
+@@ -236,6 +236,7 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 */
+ 	VISEntryHalf
  
- 	/* Now scan child busses */
- 	list_for_each_entry(dev, &bus->devices, bus_list) {
--		if (dev->hdr_type = PCI_HEADER_TYPE_BRIDGE ||
--		    dev->hdr_type = PCI_HEADER_TYPE_CARDBUS) {
-+		if (pci_is_bridge(dev)) {
- 			of_scan_pci_bridge(dev);
- 		}
- 	}
++	membar		#Sync
+ 	alignaddr	%o1, %g0, %g0
+ 
+ 	add		%o1, (64 - 1), %o4
 -- 
-1.7.1
-
+1.8.1.2
 
