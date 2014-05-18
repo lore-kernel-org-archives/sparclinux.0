@@ -1,37 +1,40 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 07 May 2014 05:20:44 +0000
-Subject: Re: [PATCH 02/34] sparc32: fix remaining sparse warnings in iommu.c + io-unit.c
-Message-Id: <20140507052044.GA17994@ravnborg.org>
+Date: Sun, 18 May 2014 18:52:57 +0000
+Subject: Re: [PATCH] fix format string mismatch in arch/sparc/kernel/sysfs.c
+Message-Id: <20140518185256.GB6194@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399157559-19901-2-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1399157559-19901-2-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On Wed, May 07, 2014 at 12:42:20AM -0400, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Sun,  4 May 2014 00:52:07 +0200
-> 
-> > +	control = sbus_readl(&iommu->regs->control);
-> > +	impl = (control & IOMMU_CTRL_IMPL) >> 28;
-> > +	vers = (control & IOMMU_CTRL_VERS) >> 24;
-> > +	control &= ~(IOMMU_CTRL_RNGE);
-> > +	control |= (IOMMU_RNGE_256MB | IOMMU_CTRL_ENAB);
-> > +	sbus_writel(control, iommu->regs);
-> 
-> The register address in the sbus_writel() is wrong, it should
-> be "&iommu->regs->control" not "iommu->regs".
-Very good spot.
-This I should have found myself :-(
+On Sun, May 18, 2014 at 07:51:00PM +0200, Toralf F=F6rster wrote:
+> found by cppcheck
+>=20
+> Signed-off-by: Toralf F=F6rster <toralf.foerster@gmx.de>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 
-> 
-> Please audit your entire patch set of bugs of this nature, going from
-> raw pointer derefs to I/O accessors is an extremely error prone
-> transformation unless done with something automated like a semantic
-> patching tool.
-I will do so.
 
-	Sam
+[Toralf - fist mail was accidently only sent to
+ you - something looks fishy in the To: line of your mail]
 
+> ---
+>  arch/sparc/kernel/sysfs.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/arch/sparc/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
+> index a364000..7f41d40 100644
+> --- a/arch/sparc/kernel/sysfs.c
+> +++ b/arch/sparc/kernel/sysfs.c
+> @@ -151,7 +151,7 @@ static ssize_t store_mmustat_enable(struct device *s,
+>  			size_t count)
+>  {
+>  	unsigned long val, err;
+> -	int ret =3D sscanf(buf, "%ld", &val);
+> +	int ret =3D sscanf(buf, "%lu", &val);
+> =20
+>  	if (ret !=3D 1)
+>  		return -EINVAL;
+> --=20
+> 1.9.3
+>=20
