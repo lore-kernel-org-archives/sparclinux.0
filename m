@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 07 May 2014 04:28:27 +0000
-Subject: [PATCH] sparc64: Don't bark so loudly about 32-bit tasks generating 64-bit fault addresses.
-Message-Id: <20140507.002827.797116082220962664.davem@davemloft.net>
+From: Mrs Micky watts <contact@thepunjabkesari.com>
+Date: Wed, 21 May 2014 00:10:09 +0000
+Subject: GOOD NEWS
+Message-Id: <ec9c39a8-f269-4a0e-9224-53ddfa1d99a1@zimbra111.megavelocity.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,72 +9,30 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-This was found using Dave Jone's trinity tool.
 
-When a user process which is 32-bit performs a load or a store, the
-cpu chops off the top 32-bits of the effective address before
-translating it.
 
-This is because we run 32-bit tasks with the PSTATE_AM (address
-masking) bit set.
 
-We can't run the kernel with that bit set, so when the kernel accesses
-userspace no address masking occurs.
+Attention: My Dear,
 
-Since a 32-bit process will have no mappings in that region we will
-properly fault, so we don't try to handle this using access_ok(),
-which can safely just be a NOP on sparc64.
 
-Real faults from 32-bit processes should never generate such addresses
-so a bug check was added long ago, and it barks in the logs if this
-happens.
+I have received the cheque from bank three days a go and kept the cheque with Mr Michael Samuel as we discussed.Please mail him immediately to send the cheque to you. I am in Coloumbia now. I kept USD850.000.00 cashier cheque and will send you the rest of money after my business trip here. I send you so many mails but all bounced back.So mail Mr Michael Samuel with below email for him to send the cheque to you:(michaelsamuel33@aol.com )Thanks and do let me know when you receive it.
 
-But it also barks when a kernel user access causes this condition, and
-that _can_ happen.  For example, if a pointer passed into a system call
-is "0xfffffffc" and the kernel access 4 bytes offset from that pointer.
+Contact : Mr Michael Samuel
+Conatct Email :michaelsamuel33@aol.com
+Tel Number  :+23481-3808-3314
 
-Just handle such faults normally via the exception entries.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/mm/fault_64.c | 16 +---------------
- 1 file changed, 1 insertion(+), 15 deletions(-)
+1. Full Name:
+2. Full Address:
+3. Marital Statue:
+4. Occupation:
+5. Age:
+6. Sex:
+7. Nationality:
+8. Tel.Number:
 
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index a8ff0d1..4ced3fc 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -281,18 +281,6 @@ static void noinline __kprobes bogus_32bit_fault_tpc(struct pt_regs *regs)
- 	show_regs(regs);
- }
- 
--static void noinline __kprobes bogus_32bit_fault_address(struct pt_regs *regs,
--							 unsigned long addr)
--{
--	static int times;
--
--	if (times++ < 10)
--		printk(KERN_ERR "FAULT[%s:%d]: 32-bit process "
--		       "reports 64-bit fault address [%lx]\n",
--		       current->comm, current->pid, addr);
--	show_regs(regs);
--}
--
- asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
- {
- 	enum ctx_state prev_state = exception_enter();
-@@ -322,10 +310,8 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
- 				goto intr_or_no_mm;
- 			}
- 		}
--		if (unlikely((address >> 32) != 0)) {
--			bogus_32bit_fault_address(regs, address);
-+		if (unlikely((address >> 32) != 0))
- 			goto intr_or_no_mm;
--		}
- 	}
- 
- 	if (regs->tstate & TSTATE_PRIV) {
--- 
-1.8.1.2
+
+Hoping to hear from you.
+Thanks and God bless you and your family.
+Mrs Micky watts
 
