@@ -1,33 +1,59 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 06 May 2014 17:13:54 +0000
-Subject: Re: [GIT] Sparc
-Message-Id: <20140506.131354.1811745259385565455.davem@davemloft.net>
+Date: Thu, 22 May 2014 21:53:56 +0000
+Subject: [GIT] Sparc
+Message-Id: <20140522.175356.544649352706511585.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140506.113031.1577209312429629073.davem@davemloft.net>
-	<20140506162946.GA28261@redhat.com>
-In-Reply-To: <20140506162946.GA28261@redhat.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davej@redhat.com
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Dave Jones <davej@redhat.com>
-Date: Tue, 6 May 2014 12:29:46 -0400
 
-> It seems like forever you go you sent me patches to trinity to make it
-> work on sparc. I'm curious if you've tried running it again more
-> recently ?   Given the work I've done it to do more creative things with
-> VM related syscalls, I wouldn't be surprised if it also found some sparc
-> specific bugs in thp.
-> 
-> It should now also scale up to run a lot more child processes than the older
-> version, with the -c option, which could be interesting on some of the
-> bigger sparc machines.
-> 
-> (It's entirely possible I've broken the compile on non-x86 in
->  current git, but it shouldn't be much work to fix up).
-> 
-> git://github.com/kernelslacker/trinity is where it lives now.
+A small bunch of bug fixes, in particular:
 
-Thanks Dave, I'll take a look and get back to you.
+1) On older cpus we need a different chunk of virtual address
+   space to map the huge page TSB.
+
+2) Missing memory barrier in Niagara2 memcpy.
+
+3) trinity showed some places where fault validation was unnecessarily
+   loud on sparc64
+
+4) Some sysfs printf's need a type adjustment, from Toralf F=F6rster
+
+Please pull, thanks a lot.
+
+The following changes since commit 256cf4c438e60116785a83b060614c63c7477e84:
+
+  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git=
+/mszeredi/fuse (2014-05-06 09:09:35 -0700)
+
+are available in the git repository at:
+
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc master
+
+for you to fetch changes up to 8ecc1bad4c9b485ceb47182d282980d0b0fe20ac:
+
+  sparc64: fix format string mismatch in arch/sparc/kernel/sysfs.c (2014-05=
+-21 12:54:42 -0700)
+
+----------------------------------------------------------------
+David S. Miller (3):
+      sparc64: Don't bark so loudly about 32-bit tasks generating 64-bit fa=
+ult addresses.
+      sparc64: Fix huge TSB mapping on pre-UltraSPARC-III cpus.
+      sparc64: Add membar to Niagara2 memcpy code.
+
+Toralf F=F6rster (1):
+      sparc64: fix format string mismatch in arch/sparc/kernel/sysfs.c
+
+ arch/sparc/include/asm/pgtable_64.h |  6 ++++--
+ arch/sparc/kernel/sysfs.c           |  2 +-
+ arch/sparc/lib/NG2memcpy.S          |  1 +
+ arch/sparc/mm/fault_64.c            | 16 +---------------
+ arch/sparc/mm/tsb.c                 | 14 +++++++++++++-
+ 5 files changed, 20 insertions(+), 19 deletions(-)
