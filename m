@@ -1,33 +1,131 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Sat, 03 May 2014 06:16:16 +0000
-Subject: Re: [PATCH 0/10] Sparc64 MM bug fixes
-Message-Id: <alpine.SOC.1.00.1405030912160.5960@math.ut.ee>
+From: Himangi Saraogi <himangi774@gmail.com>
+Date: Thu, 22 May 2014 20:47:36 +0000
+Subject: [PATCH] sbus: Introduce the use of the managed version of kzalloc
+Message-Id: <20140522203536.GA16457@himangi-Dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140430.175420.1944889075484067093.davem@davemloft.net>
-In-Reply-To: <20140430.175420.1944889075484067093.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
 
-> > Anyways, please let me know how well these patches work and if they
-> > make any difference for your problems at all.  THP enabled and THP
-> > disabled results are both extremely useful.
-> 
-> Preliminary results from 4 computers are positive.
+This patch moves data allocated using kzalloc to managed data allocated
+using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
+functions. The header file is added to make the devm function explicitly
+available. Also, unnecessary assignment statements and labels are
+removed.
 
-Of there 4, 3 performed debian update with aptitude successfully. V100 
-hung after
-Preconfiguring packages ...
+The following Coccinelle semantic patch was used for making a part of
+the change:
 
-nothing on console either.
+@platform@
+identifier p, probefn, removefn;
+@@
+struct platform_driver p = {
+  .probe = probefn,
+  .remove = removefn,
+};
 
-This may or may not be related to the THP problem - V100 and X1 have 
-sometimes occassionally rebooted by themselves, I think even with THP 
-off. I have not had time to narrow it down to something specific - my 
-last suspicion was tulip driver (lots of local IDE activity did not 
-trigger it, lots of network activity seemed to have some probability of 
-triggering it).
+@prb@
+identifier platform.probefn, pdev;
+expression e, e1, e2;
+@@
+probefn(struct platform_device *pdev, ...) {
+  <+...
+- e = kzalloc(e1, e2)
++ e = devm_kzalloc(&pdev->dev, e1, e2)
+  ...
+?-kfree(e);
+  ...+>
+}
 
+@rem depends on prb@
+identifier platform.removefn;
+expression e;
+@@
+removefn(...) {
+  <...
+- kfree(e);
+  ...>
+}
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+---
+Not compile tested due to incompatible architecture.
+
+To send to: "David S. Miller" <davem@davemloft.net>,sparclinux@vger.kernel.org,linux-kernel@vger.kernel.org
+
+ drivers/sbus/char/display7seg.c | 23 ++++++++---------------
+ 1 file changed, 8 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 7c71e7b..367b64d 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -20,6 +20,7 @@
+ #include <asm/io.h>
+ 
+ #include <asm/display7seg.h>
++#include <linux/device.h>
+ 
+ #define D7S_MINOR	193
+ #define DRIVER_NAME	"d7s"
+@@ -173,22 +174,21 @@ static struct miscdevice d7s_miscdev = {
+ static int d7s_probe(struct platform_device *op)
+ {
+ 	struct device_node *opts;
+-	int err = -EINVAL;
++	int err;
+ 	struct d7s *p;
+ 	u8 regs;
+ 
+ 	if (d7s_device)
+-		goto out;
++		return -EINVAL;
+ 
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	err = -ENOMEM;
++	p = devm_kzalloc(&op->dev, sizeof(*p), GFP_KERNEL);
+ 	if (!p)
+-		goto out;
++		return -ENOMEM;
+ 
+ 	p->regs = of_ioremap(&op->resource[0], 0, sizeof(u8), "d7s");
+ 	if (!p->regs) {
+ 		printk(KERN_ERR PFX "Cannot map chip registers\n");
+-		goto out_free;
++		return -ENOMEM;
+ 	}
+ 
+ 	err = misc_register(&d7s_miscdev);
+@@ -222,17 +222,11 @@ static int d7s_probe(struct platform_device *op)
+ 
+ 	dev_set_drvdata(&op->dev, p);
+ 	d7s_device = p;
+-	err = 0;
+-
+-out:
+-	return err;
++	return 0;
+ 
+ out_iounmap:
+ 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
+-
+-out_free:
+-	kfree(p);
+-	goto out;
++	return err;
+ }
+ 
+ static int d7s_remove(struct platform_device *op)
+@@ -251,7 +245,6 @@ static int d7s_remove(struct platform_device *op)
+ 
+ 	misc_deregister(&d7s_miscdev);
+ 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
+-	kfree(p);
+ 
+ 	return 0;
+ }
 -- 
-Meelis Roos (mroos@linux.ee)
+1.9.1
+
