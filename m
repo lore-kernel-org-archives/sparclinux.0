@@ -1,39 +1,26 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Sun, 04 May 2014 04:23:48 +0000
-Subject: [PATCH v2 13/13] PCI, pciehp: Use new pci_is_bridge() to simplify code
-Message-Id: <1399177428-3784-14-git-send-email-wangyijing@huawei.com>
+From: Chan Kim <flyxtop@gmail.com>
+Date: Sat, 24 May 2014 11:38:29 +0000
+Subject: how to allocate dma memory in sparc?
+Message-Id: <CANFSLnxVst8+YJ+VbxL+pT6vm6guGoed3M3WqPvPKqcQMCz-jA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1399177428-3784-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-pci@vger.kernel.org, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Yijing Wang <wangyijing@huawei.com>
+To: sparclinux@vger.kernel.org
 
-Now we can use new pci_is_bridge() helper function
-to simplify code.
+Hi, folks,
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
----
- drivers/pci/hotplug/pciehp_pci.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+I was trying to use dma_alloc_writecombine function from arm for our sparc
+processor.
+The dma_alloc_writecombine uses consistent memory near 0xffe00000 but I'm
+allocating consistent memory around 0x69000000.
+(we have physical memory at 0x60.. )
+I need dma memory for frame buffer and SD card driver. (0x1000 and 0x1d5000
+each)
+Is my approach a good one? What is the proper way to allocate DMA address
+for sparc?
+(dma_aloc_coherent seems to be for smaller size buffer)
+Thanks in advance.
 
-diff --git a/drivers/pci/hotplug/pciehp_pci.c b/drivers/pci/hotplug/pciehp_pci.c
-index 1b53306..b6cb1df 100644
---- a/drivers/pci/hotplug/pciehp_pci.c
-+++ b/drivers/pci/hotplug/pciehp_pci.c
-@@ -62,8 +62,7 @@ int pciehp_configure_device(struct slot *p_slot)
- 	}
- 
- 	list_for_each_entry(dev, &parent->devices, bus_list)
--		if ((dev->hdr_type = PCI_HEADER_TYPE_BRIDGE) ||
--				(dev->hdr_type = PCI_HEADER_TYPE_CARDBUS))
-+		if (pci_is_bridge(dev))
- 			pci_hp_add_bridge(dev);
- 
- 	pci_assign_unassigned_bridge_resources(bridge);
--- 
-1.7.1
-
-
+regards,
+Chan
