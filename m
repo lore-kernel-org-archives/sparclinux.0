@@ -1,79 +1,100 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 16 May 2014 21:26:07 +0000
-Subject: [PATCH 29/34] sparc64: fix sparse warnings in init_64.c
-Message-Id: <1400275572-17424-29-git-send-email-sam@ravnborg.org>
+From: Himangi Saraogi <himangi774@gmail.com>
+Date: Sun, 25 May 2014 10:58:34 +0000
+Subject: [PATCH v2] sbus: Introduce the use of the managed version of kzalloc
+Message-Id: <20140525105825.GA3437@himangi-Dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1399157559-19901-29-git-send-email-sam@ravnborg.org>
-In-Reply-To: <1399157559-19901-29-git-send-email-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr, Sam Ravnborg <sam@ravnborg.org>
 
-Fix following warnings:
-init_64.c:191:10: warning: symbol 'dcpage_flushes' was not declared. Should it be static?
-init_64.c:193:10: warning: symbol 'dcpage_flushes_xcall' was not declared. Should it be static?
+This patch moves data allocated using kzalloc to managed data allocated
+using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
+functions. The header file is added to make the devm function explicitly
+available.
 
-Add extern declaration to asm/setup.h and drop local declaration in smp_64.h
+The following Coccinelle semantic patch was used for making a part of
+the change:
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+@platform@
+identifier p, probefn, removefn;
+@@
+struct platform_driver p = {
+  .probe = probefn,
+  .remove = removefn,
+};
+
+@prb@
+identifier platform.probefn, pdev;
+expression e, e1, e2;
+@@
+probefn(struct platform_device *pdev, ...) {
+  <+...
+- e = kzalloc(e1, e2)
++ e = devm_kzalloc(&pdev->dev, e1, e2)
+  ...
+?-kfree(e);
+  ...+>
+}
+
+@rem depends on prb@
+identifier platform.removefn;
+expression e;
+@@
+removefn(...) {
+  <...
+- kfree(e);
+  ...>
+}
+
+Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
+Acked-by: Julia Lawall <julia.lawall@lip6.fr>
 ---
- arch/sparc/include/asm/setup.h | 4 ++++
- arch/sparc/kernel/smp_64.c     | 6 +-----
- arch/sparc/mm/init_64.c        | 1 +
- 3 files changed, 6 insertions(+), 5 deletions(-)
+v2: remove random return points introduces by me in v1
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index 0c4f695..f5fffd8 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -52,6 +52,10 @@ unsigned long safe_compute_effective_address(struct pt_regs *, unsigned int);
- int handle_ldf_stq(u32 insn, struct pt_regs *regs);
- void handle_ld_nf(u32 insn, struct pt_regs *regs);
+Not compile tested due to incompatible architecture.
+
+ drivers/sbus/char/display7seg.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 7c71e7b..b48899c 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -4,6 +4,7 @@
+  * Copyright (c) 2000 Eric Brower (ebrower@usa.net)
+  */
  
-+/* init_64.c */
-+extern atomic_t dcpage_flushes;
-+extern atomic_t dcpage_flushes_xcall;
-+
- extern int sysctl_tsb_ratio;
- #endif
++#include <linux/device.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
+@@ -180,7 +181,7 @@ static int d7s_probe(struct platform_device *op)
+ 	if (d7s_device)
+ 		goto out;
  
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index afc71bf..61605b3 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -36,6 +36,7 @@
- #include <asm/hvtramp.h>
- #include <asm/io.h>
- #include <asm/timer.h>
-+#include <asm/setup.h>
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
++	p = devm_kzalloc(&op->dev, sizeof(*p), GFP_KERNEL);
+ 	err = -ENOMEM;
+ 	if (!p)
+ 		goto out;
+@@ -231,7 +232,6 @@ out_iounmap:
+ 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
  
- #include <asm/irq.h>
- #include <asm/irq_regs.h>
-@@ -861,11 +862,6 @@ extern unsigned long xcall_flush_dcache_page_cheetah;
- #endif
- extern unsigned long xcall_flush_dcache_page_spitfire;
+ out_free:
+-	kfree(p);
+ 	goto out;
+ }
  
--#ifdef CONFIG_DEBUG_DCFLUSH
--extern atomic_t dcpage_flushes;
--extern atomic_t dcpage_flushes_xcall;
--#endif
--
- static inline void __local_flush_dcache_page(struct page *page)
- {
- #ifdef DCACHE_ALIASING_POSSIBLE
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index eafbc65..0ebe2fd 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -47,6 +47,7 @@
- #include <asm/prom.h>
- #include <asm/mdesc.h>
- #include <asm/cpudata.h>
-+#include <asm/setup.h>
- #include <asm/irq.h>
+@@ -251,7 +251,6 @@ static int d7s_remove(struct platform_device *op)
  
- #include "init_64.h"
+ 	misc_deregister(&d7s_miscdev);
+ 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
+-	kfree(p);
+ 
+ 	return 0;
+ }
 -- 
-1.9.0
+1.9.1
 
