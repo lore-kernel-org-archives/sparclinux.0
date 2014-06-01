@@ -1,22 +1,35 @@
-From: Mr Ali Khalam <alikhalam@terra.com>
-Date: Tue, 10 Jun 2014 07:30:08 +0000
-Subject: Personal Message to you.
-Message-Id: <CAMc_Gg3SRaJ5kO9uz1qWCWq_hRATZ4iWvqRFbKzVYJaNBDwd4A@mail.gmail.com>
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Date: Sun, 01 Jun 2014 21:48:18 +0000
+Subject: [PATCH] arch: sparc: kernel: smp_64.c:  Optimization of the Code
+Message-Id: <1401659298-18067-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Kirill Tkhai <tkhai@yandex.ru>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Zijlstra <peterz@infradead.org>, Bjorn Helgaas <bhelgaas@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+From what I know, AND is faster then modulo.
+Not sure if this is worth changing though.
+
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+---
+ arch/sparc/kernel/smp_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index 745a363..921d924 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -179,7 +179,7 @@ static inline long get_delta (long *rt, long *master)
+ 
+ 	/* average best_t0 and best_t1 without overflow: */
+ 	tcenter = (best_t0/2 + best_t1/2);
+-	if (best_t0 % 2 + best_t1 % 2 = 2)
++	if ((best_t0 & 1) + (best_t1 & 1) = 2)
+ 		tcenter++;
+ 	return tcenter - best_tm;
+ }
 -- 
-Hello,
+1.7.10.4
 
-I never want to disturb you at all but will like you give me your
-attention. I need a matured and capable hand in a business deal of
-$8.5 million US dollars.I belief you are suitable to handle such
-project perfectly .
-
-Pls answer me.For more details,contact me through my id: (mralikhalam@terra.com)
-
-Thanks and best regards,
-Mr.Ali Khalam
