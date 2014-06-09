@@ -1,45 +1,37 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 30 Jun 2014 05:23:41 +0000
-Subject: Re: problem booting kernel compiled with gcc-4.9
-Message-Id: <20140630052341.GA20371@ravnborg.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 09 Jun 2014 06:36:33 +0000
+Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
+Message-Id: <alpine.SOC.1.00.1406090931470.5548@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1406261446590.16879@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1406261446590.16879@math.ut.ee>
+References: <20140425200908.GG575@drone.musicnaut.iki.fi> <20140425.161753.153968588224593753.davem@davemloft.net> <alpine.SOC.1.00.1405242301090.18040@math.ut.ee> <20140524.170834.1561021346958622230.davem@davemloft.net>
+In-Reply-To: <20140524.170834.1561021346958622230.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com
 
-> [   53.693569]  sda: sda1 sda2 sda3 sda4
-> [   53.699149] sd 0:0:0:0: [sda] Attached SCSI disk
-> [   53.910103] EXT4-fs (sda2): couldn't mount as ext3 due to feature incompatibilities
-> [   54.011911] EXT4-fs (sda2): couldn't mount as ext2 due to feature incompatibilities
-> [   54.136507] EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)
-> [   54.237263] VFS: Mounted root (ext4 filesystem) readonly on device 8:2.
-
-Do you see the above when the kernel boots properly with the older gcc?
-
-If not then I suggest to forward the bug report to the ext4 mailing list
-(which I cannot remeber the address of - maybe fsdevel)
-
-	Sam
-
-> [   54.340199] devtmpfs: mounted
-> [   54.451346] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
-> [   54.451346] 
-> [   54.571516] CPU: 1 PID: 1 Comm: init Not tainted 3.16.0-rc2-00211-gd7933ab #96
-> [   54.666431] Call Trace:
-> [   54.698453]  [0000000000762f8c] panic+0xb0/0x224
-> [   54.759071]  [000000000045cf68] do_exit+0x948/0x960
-> [   54.823123]  [000000000042cbc0] fault_in_user_windows+0xe0/0x100
-> [   54.902036]  [0000000000404ad0] __handle_user_windows+0x0/0x10
-> [   54.978662] Press Stop-A (L1-A) to return to the boot prom
-> [   55.050713] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
+> > This is todays fresh git with 3.15.0-rc6-00190-g1ee1cea on V210, THP 
+> > enabled & always on. Got this and a segfault on apt-spawned xz.
 > 
+> Thanks a lot for the report.
 > 
-> -- 
-> Meelis Roos (mroos@linux.ee)
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I've been bogged down with other things but I will come back to
+> this stuff soon.
+
+Just to document a strangeness that does not seem to fit the pattern of 
+UltraSparc III era split: 
+
+V210 with USIII family CPUs is still problematic (can not survive 
+repetituos local git clone, hangs (watchdog detects hang) with 
+filesystem corruption. This still holds for 3.15 release.
+
+On the other hand, E420R with 4 USII CPUs does not hang and works 100% 
+stable with git clones etc. Very similar E220R with different config 
+hangs on that load.
+
+Maybe related to some other options in kernel configs - each config is 
+unique and they vary intentionally.
+
+-- 
+Meelis Roos (mroos@linux.ee)
