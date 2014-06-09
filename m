@@ -1,113 +1,62 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Fri, 06 Jun 2014 17:18:58 +0000
-Subject: [PATCH v8 17/22] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <8798e406453ac369607924e5b57ad9a41e40e15e.1402075141.git.jan.kiszka@siemens.com>
+From: Peter Hurley <peter@hurleysoftware.com>
+Date: Mon, 09 Jun 2014 23:43:37 +0000
+Subject: On 06/09/2014 04:59 PM, Aaro Koskinen wrote:> Hi,
+Message-Id: <1402357417-20746-1-git-send-email-peter@hurleysoftware.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1402075136.git.jan.kiszka@siemens.com>
-In-Reply-To: <cover.1402075136.git.jan.kiszka@siemens.com>
+References: <20140609205917.GA913@drone.musicnaut.iki.fi>
+In-Reply-To: <20140609205917.GA913@drone.musicnaut.iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
-Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, Borislav Petkov <bp@suse.de>, Tatiana Al-Chueyr Martins <tatiana.alchueyr@gmail.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Seth Bollinger <sethb@digi.com>, Peter Hurley <peter@hurleysoftware.com>
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
+Thanks for the report Aaro.
 
-Note: sparc64 version is untested.
+Looks like Seth's fix exposes some broken assumptions in the Sun
+serial drivers.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Can you test the patch below?
+
+Regards,
+Peter Hurley
+
+PS - Do you have a way to test also your setup using hardware flow
+control, ie. CRTSCTS?  I ask because I would expect that to be broken
+even before Seth's patch.
+
+--- %< ---
+From: Peter Hurley <peter@hurleysoftware.com>
+Date: Mon, 9 Jun 2014 19:21:43 -0400
+Subject: [PATCH] serial: sunsab: Test for no tx data on tx restart
+
+Commit 717f3bbab3c7628736ef738fdbf3d9a28578c26c,
+'serial_core: Fix conditional start_tx on ring buffer not empty'
+exposes an incorrect assumption in sunsab's start_tx method; the
+tx ring buffer can, in fact, be empty when restarting tx when
+performing flow control.
+
+Test for empty tx ring buffer when in sunsab's start_tx method.
+
+Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
 ---
- scripts/gdb/linux/cpus.py  | 68 ++++++++++++++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |  1 +
- 2 files changed, 69 insertions(+)
- create mode 100644 scripts/gdb/linux/cpus.py
+ drivers/tty/serial/sunsab.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/scripts/gdb/linux/cpus.py b/scripts/gdb/linux/cpus.py
-new file mode 100644
-index 0000000..18337e0
---- /dev/null
-+++ b/scripts/gdb/linux/cpus.py
-@@ -0,0 +1,68 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) Siemens AG, 2011-2013
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
+diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
+index 5faa8e9..b99a4ea 100644
+--- a/drivers/tty/serial/sunsab.c
++++ b/drivers/tty/serial/sunsab.c
+@@ -427,6 +427,9 @@ static void sunsab_start_tx(struct uart_port *port)
+ 	struct circ_buf *xmit = &up->port.state->xmit;
+ 	int i;
+ 
++	if (uart_circ_empty(xmit))
++		return;
 +
-+import gdb
-+
-+from linux import tasks, utils
-+
-+
-+MAX_CPUS = 4096
-+
-+
-+def get_current_cpu():
-+    if utils.get_gdbserver_type() = utils.GDBSERVER_QEMU:
-+        return gdb.selected_thread().num - 1
-+    elif utils.get_gdbserver_type() = utils.GDBSERVER_KGDB:
-+        tid = gdb.selected_thread().ptid[2]
-+        if tid > (0x100000000 - MAX_CPUS - 2):
-+            return 0x100000000 - tid - 2
-+        else:
-+            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
-+    else:
-+        raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
-+                           "supported with this gdb server.")
-+
-+
-+def per_cpu(var_ptr, cpu):
-+    if cpu = -1:
-+        cpu = get_current_cpu()
-+    if utils.is_target_arch("sparc:v9"):
-+        offset = gdb.parse_and_eval(
-+            "trap_block[{0}].__per_cpu_base".format(str(cpu)))
-+    else:
-+        try:
-+            offset = gdb.parse_and_eval(
-+                "__per_cpu_offset[{0}]".format(str(cpu)))
-+        except gdb.error:
-+            # !CONFIG_SMP case
-+            offset = 0
-+    pointer = var_ptr.cast(utils.get_long_type()) + offset
-+    return pointer.cast(var_ptr.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+    """Return per-cpu variable.
-+
-+$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
-+given CPU number. If CPU is omitted, the CPU of the current context is used.
-+Note that VAR has to be quoted as string."""
-+
-+    def __init__(self):
-+        super(PerCpu, self).__init__("lx_per_cpu")
-+
-+    def invoke(self, var_name, cpu=-1):
-+        var_ptr = gdb.parse_and_eval("&" + var_name.string())
-+        return per_cpu(var_ptr, cpu)
-+
-+
-+PerCpu()
-diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
-index 4d7eb2c..4848928 100644
---- a/scripts/gdb/vmlinux-gdb.py
-+++ b/scripts/gdb/vmlinux-gdb.py
-@@ -27,3 +27,4 @@ else:
-     import linux.modules
-     import linux.dmesg
-     import linux.tasks
-+    import linux.cpus
+ 	up->interrupt_mask1 &= ~(SAB82532_IMR1_ALLS|SAB82532_IMR1_XPR);
+ 	writeb(up->interrupt_mask1, &up->regs->w.imr1);
+ 	
 -- 
-1.8.1.1.298.ge7eed54
+2.0.0
 
