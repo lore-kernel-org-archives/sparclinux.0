@@ -1,38 +1,18 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Date: Thu, 19 Jun 2014 12:31:52 +0000
-Subject: [PATCH] drivers/sbus/char: Micro-optimization in display7seg.c
-Message-Id: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
+From: Birgit Kruse <bojono@arcor.de>
+Date: Tue, 10 Jun 2014 11:35:41 +0000
+Subject: P/s Get back to me on this email: mrs.florenceevans3@gmail.com
+Message-Id: <1615568503.175805.1402400141126.JavaMail.ngmail@webmail15.arcor-online.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: sparclinux@vger.kernel.org
 
-Flipping a bit doesn't need four lines of code; and gcc seems to
-actually generate two branches.
+Hello my beloved in the Lord.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- drivers/sbus/char/display7seg.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+I am MRS. FLORENCE EVANS, from republic of Ireland, I am legally married to MR. JOHN EVANS, a South Africa citizen born brought up in Switzerland, I live in Switzerland with my husband for 32 years before we move down to south Africa in 1985 after my husband retirement in 1974, I am 71 years old by the grace of god, I am a new Christian convert, suffering from long time cancer of the breast. All indication from my doctor that my condition is really deteriorating and it is quite obvious that i wouldn't live more than two months. My dear husband was involved with the January 2000 Kenya airways plane crashed as you can see on the news line web site.
+http://news.bbc.co.uk/2/hi/africa/6627485.stm
+I have confident in you because i have prayed. I am willing to donate the sum of $20.5m U.S dollars, to the less privileged. May the grace of our lord be with you, P/s Get back to me on this email: mrs.florenceevans3@gmail.com
 
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 7c71e7b..3221dff 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -143,10 +143,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 
- 	case D7SIOCTM:
- 		/* toggle device mode-- flip display orientation */
--		if (regs & D7S_FLIP)
--			regs &= ~D7S_FLIP;
--		else
--			regs |= D7S_FLIP;
-+		regs ^= D7S_FLIP;
- 		writeb(regs, p->regs);
- 		break;
- 	}
--- 
-1.9.2
-
+Remain blessed,
+MRS. FLORENCE EVANS
