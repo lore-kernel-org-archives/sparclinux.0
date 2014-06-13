@@ -1,87 +1,221 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Fri, 13 Jun 2014 20:18:31 +0000
-Subject: Re: Linux 3.15: serial console regression
-Message-Id: <20140613201831.GA2360@drone.musicnaut.iki.fi>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Date: Fri, 13 Jun 2014 12:48:16 +0000
+Subject: [3.15.0] Sun V240: soft lockup - CPU stuck
+Message-Id: <3056970.qkBZsAdxy5@devpool02>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140609205917.GA913@drone.musicnaut.iki.fi>
- <1402357697-20976-1-git-send-email-peter@hurleysoftware.com>
-In-Reply-To: <1402357697-20976-1-git-send-email-peter@hurleysoftware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Hurley <peter@hurleysoftware.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Seth Bollinger <sethb@digi.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
+I got this tonight while running a CMake dashboard build (that is where the
+git command was invoked from). The machine has been running for weeks on
+3.14 and I never saw this there. In case you need more information just ask.
 
-On Mon, Jun 09, 2014 at 07:48:17PM -0400, Peter Hurley wrote:
-> On 06/09/2014 04:59 PM, Aaro Koskinen wrote:> Hi,
-> > While testing the final 3.15, I noticed the serial console (sunsab)
-> > does not work anymore on Sun Ultra.
-> > 
-> > It will tx fine the console output during the boot. But then I try
-> > to type something e.g. at the login: prompt, it behaves oddly:
-> > it re-transmits some old output, and then stalls for a few secs, usually
-> > for each character. Typed characters are however received correctly.
-> > But the console is impossible to use...
-> > 
-> > I bisected this to:
-> > 
-> > 717f3bbab3c7628736ef738fdbf3d9a28578c26c is the first bad commit
-> > commit 717f3bbab3c7628736ef738fdbf3d9a28578c26c
-> > Author: Seth Bollinger <sethb@digi.com>
-> > Date:   Tue Mar 25 12:55:37 2014 -0500
-> > 
-> >      serial_core: Fix conditional start_tx on ring buffer not empty
-> 
-> [Let's try that again. This time without the mess]
-> 
-> Thanks for the report Aaro.
-> 
-> Looks like Seth's fix exposes some broken assumptions in the Sun
-> serial drivers.
+Greetings,
 
-The same problem is present also on PowerPC G5 Xserve (pmac_zilog driver),
-and the below type of fix works there too.
+Eike
 
-A.
-
-> --- %< ---
-> From: Peter Hurley <peter@hurleysoftware.com>
-> Date: Mon, 9 Jun 2014 19:21:43 -0400
-> Subject: [PATCH] serial: sunsab: Test for no tx data on tx restart
-> 
-> Commit 717f3bbab3c7628736ef738fdbf3d9a28578c26c,
-> 'serial_core: Fix conditional start_tx on ring buffer not empty'
-> exposes an incorrect assumption in sunsab's start_tx method; the
-> tx ring buffer can, in fact, be empty when restarting tx when
-> performing flow control.
-> 
-> Test for empty tx ring buffer when in sunsab's start_tx method.
-> 
-> Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
-> ---
->  drivers/tty/serial/sunsab.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-> index 5faa8e9..b99a4ea 100644
-> --- a/drivers/tty/serial/sunsab.c
-> +++ b/drivers/tty/serial/sunsab.c
-> @@ -427,6 +427,9 @@ static void sunsab_start_tx(struct uart_port *port)
->  	struct circ_buf *xmit = &up->port.state->xmit;
->  	int i;
->  
-> +	if (uart_circ_empty(xmit))
-> +		return;
-> +
->  	up->interrupt_mask1 &= ~(SAB82532_IMR1_ALLS|SAB82532_IMR1_XPR);
->  	writeb(up->interrupt_mask1, &up->regs->w.imr1);
->  	
-> -- 
-> 2.0.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[    0.000000] Linux version 3.15.0 (root@alrakis) (gcc version 4.7.3 (Gent=
+oo 4.7.3 p1.3) ) #1 SMP Tue Jun 10 11:26:55 CEST 2014
+[=E2=80=A6]
+[242339.538940] git[1513]: segfault at f77d9b70 ip 00000000f78f6838 (rpc 00=
+000000f7a3e0ac) sp 00000000f77d93e0 error 30001 in libc-2.17.so[f7800000+16=
+a000]
+[242360.548826] INFO: rcu_sched self-detected stall on CPU { 1}  (t!01 jiff=
+ies g$35314 c$35313 q"49)
+[242360.548847]   CPU[  0]: TSTATE[00000000f0000a03] TPC[00000000f7b4b0b4] =
+TNPC[00000000f7b4b0b8] TASK[openssl:26204]
+[242360.548856]              TPC[f7b4b0b4] O7[0] I7[f7b49d44] RPC[f7b49d44]
+[242360.548862] * CPU[  1]: TSTATE[0000000011001600] TPC[00000000004fb7c4] =
+TNPC[00000000004fb7c8] TASK[git:1513]
+[242360.548896]              TPC[put_compound_page+0x4/0x260] O7[get_user_p=
+ages_fast+0x2fc/0x360] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[242361.678822] BUG: soft lockup - CPU#1 stuck for 22s! [git:1513]
+[242361.756631] Modules linked in: ipv6 openpromfs libcrc32c multipath line=
+ar raid456 async_pq async_xor xor async_memcpy async_raid6_recov async_tx r=
+aid6_pq dm_snapshot dm_bufio dm_crypt dm_mirror dm_region_hash dm_log usb_s=
+torage sg
+[242361.756678] CPU: 1 PID: 1513 Comm: git Not tainted 3.15.0 #1
+[242361.756685] task: fffffc033a65cf00 ti: fffffc033c51c000 task.ti: fffffc=
+033c51c000
+[242361.756691] TSTATE: 0000004411001600 TPC: 00000000004fb9a8 TNPC: 000000=
+00004fb9ac Y: 00000000    Not tainted
+[242361.756699] TPC: <put_compound_page+0x1e8/0x260>
+[242361.756704] g0: 0000000000000001 g1: 0000000000000000 g2: 0000000000000=
+016 g3: 0000000000000000
+[242361.756709] g4: fffffc033a65cf00 g5: fffffc133c572000 g6: fffffc033c51c=
+000 g7: 0000000000484048
+[242361.756715] o0: 0000000000000016 o1: 0000010002750000 o2: 0000000000400=
+000 o3: 0000000000000001
+[242361.756720] o4: 0000010002750000 o5: 0000000000a8e080 sp: fffffc033c51e=
+be1 ret_pc: 00000000004fb95c
+[242361.756727] RPC: <put_compound_page+0x19c/0x260>
+[242361.756732] l0: ffffffffff800000 l1: 0100000000000000 l2: fffffc033c360=
+140 l3: fffffc033c4c6008
+[242361.756738] l4: 00000000f77da000 l5: fffffc033a0cef78 l6: 00000000f77da=
+000 l7: 0300000000000000
+[242361.756743] i0: 0000010002750000 i1: 00000000f77d9fff i2: 0000000000000=
+001 i3: 000001000275001c
+[242361.756749] i4: 0000000000000000 i5: 000001000275fb00 i6: fffffc033c51e=
+c91 i7: 00000000004b519c
+[242361.756755] I7: <get_futex_key+0x1bc/0x2a0>
+[242361.756759] Call Trace:
+[242361.756765]  [00000000004b519c] get_futex_key+0x1bc/0x2a0
+[242361.756771]  [00000000004b5f64] futex_wake+0x24/0x140
+[242361.756777]  [00000000004b7460] do_futex+0x100/0x9a0
+[242361.756783]  [00000000004b7d98] SyS_futex+0x98/0x1c0
+[242361.756791]  [000000000045ee14] mm_release+0x74/0x100
+[242361.756798]  [0000000000462b78] do_exit+0xf8/0x920
+[242361.756805]  [00000000004634c8] do_group_exit+0x28/0xc0
+[242361.756812]  [0000000000471348] get_signal_to_deliver+0x128/0x520
+[242361.756822]  [0000000000448d94] do_signal32+0x14/0xae0
+[242361.756832]  [000000000042ce3c] do_signal+0xdc/0x540
+[242361.756838]  [000000000042daa0] do_notify_resume+0x40/0x60
+[242361.756846]  [0000000000404b04] __handle_signal+0xc/0x2c
+[242423.588580] INFO: rcu_sched self-detected stall on CPU { 1}  (t=8405 ji=
+ffies g$35314 c$35313 qs40)
+[242423.588597]   CPU[  0]: TSTATE[0000000011001606] TPC[0000000000493780] =
+TNPC[0000000000493784] TASK[eselect:1590]
+[242423.588628]              TPC[task_tick_fair+0xc0/0x300] O7[task_tick_fa=
+ir+0x38/0x300] I7[scheduler_tick+0x4c/0xc0] RPC[update_process_times+0x48/0=
+x60]
+[242423.588635] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004539e8] =
+TNPC[00000000004539ec] TASK[git:1513]
+[242423.588648]              TPC[get_user_pages_fast+0x1a8/0x360] O7[get_us=
+er_pages_fast+0x2fc/0x360] I7[get_futex_key+0x44/0x2a0] RPC[futex_wake+0x24=
+/0x140]
+[242486.628334] INFO: rcu_sched self-detected stall on CPU { 1}  (t=14709 j=
+iffies g$35314 c$35313 q=100069)
+[242486.628350]   CPU[  0]: TSTATE[00000044f0000a02] TPC[00000000f79e2de0] =
+TNPC[00000000f79e2de4] TASK[ctest:2998]
+[242486.628356]              TPC[f79e2de0] O7[f7caba24] I7[47ad64] RPC[4787=
+24]
+[242486.628362] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004539e8] =
+TNPC[00000000004539ec] TASK[git:1513]
+[242486.628377]              TPC[get_user_pages_fast+0x1a8/0x360] O7[get_us=
+er_pages_fast+0x2fc/0x360] I7[get_futex_key+0x44/0x2a0] RPC[futex_wake+0x24=
+/0x140]
+[242519.442106] Crash[4150]: segfault at 0 ip 0000000000010650 (rpc        =
+   (null)) sp 00000000fffb7a60 error 30001 in Crash[10000+2000]
+[242549.668087] INFO: rcu_sched self-detected stall on CPU { 1}  (t!013 jif=
+fies g$35314 c$35313 q=172509)
+[242549.668103]   CPU[  0]: TSTATE[0000000080001600] TPC[0000000000659e90] =
+TNPC[0000000000659e94] TASK[rcu_sched:9]
+[242549.668122]              TPC[cpumask_next_and+0x10/0x80] O7[find_busies=
+t_group+0x49c/0x8e0] I7[load_balance+0x220/0x8a0] RPC[pick_next_task_fair+0=
+x1b0/0x380]
+[242549.668129] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004fb9a8] =
+TNPC[00000000004fb9ac] TASK[git:1513]
+[242549.668145]              TPC[put_compound_page+0x1e8/0x260] O7[put_comp=
+ound_page+0x19c/0x260] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[242612.707841] INFO: rcu_sched self-detected stall on CPU { 1}  (t'317 jif=
+fies g$35314 c$35313 q 2207)
+[242612.707857]   CPU[  0]: TSTATE[0000004480001607] TPC[0000000000495a48] =
+TNPC[0000000000495a4c] TASK[rcu_sched:9]
+[242612.707876]              TPC[load_balance+0x388/0x8a0] O7[load_balance+=
+0x3dc/0x8a0] I7[pick_next_task_fair+0x1b0/0x380] RPC[__schedule+0x104/0x3bc]
+[242612.707882] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004fb9a8] =
+TNPC[00000000004fb9ac] TASK[git:1513]
+[242612.707898]              TPC[put_compound_page+0x1e8/0x260] O7[put_comp=
+ound_page+0x19c/0x260] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[242675.747595] INFO: rcu_sched self-detected stall on CPU { 1}  (t3621 jif=
+fies g$35314 c$35313 q#0705)
+[242675.747611]   CPU[  0]: TSTATE[0000004480001605] TPC[00000000004964e4] =
+TNPC[000000000088b5cc] TASK[rcu_sched:9]
+[242675.747630]              TPC[pick_next_task_fair+0x1e4/0x380] O7[__sche=
+dule+0x104/0x3bc] I7[schedule_timeout+0x100/0x1a0] RPC[rcu_gp_kthread+0x244=
+/0x5a0]
+[242675.747636] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004fb9a8] =
+TNPC[00000000004fb9ac] TASK[git:1513]
+[242675.747651]              TPC[put_compound_page+0x1e8/0x260] O7[put_comp=
+ound_page+0x19c/0x260] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[242738.787348] INFO: rcu_sched self-detected stall on CPU { 1}  (t9925 jif=
+fies g$35314 c$35313 q)6081)
+[242738.787366]   CPU[  0]: TSTATE[0000000011001600] TPC[00000000004922e0] =
+TNPC[00000000004922e4] TASK[cmake:7510]
+[242738.787382]              TPC[select_task_rq_fair+0xc0/0x860] O7[       =
+   (null)] I7[try_to_wake_up+0x178/0x340] RPC[call_timer_fn+0x10/0x100]
+[242738.787389] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004fb9a8] =
+TNPC[00000000004fb9ac] TASK[git:1513]
+[242738.787404]              TPC[put_compound_page+0x1e8/0x260] O7[put_comp=
+ound_page+0x19c/0x260] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[242793.001079] kwsysTestProces[8460]: segfault at 4 ip 0000000000011b9c (r=
+pc 0000000000011b90) sp 00000000ffa61868 error 30001 in kwsysTestProcess[10=
+000+c000]
+[242801.827102] INFO: rcu_sched self-detected stall on CPU { 1}  (tF229 jif=
+fies g$35314 c$35313 q49454)
+[242801.827119]   CPU[  0]: TSTATE[00000000f0001a02] TPC[0000000000014bac] =
+TNPC[0000000000014bb0] TASK[kwsysTestProces:8461]
+[242801.827124]              TPC[14bac] O7[14c64] I7[1497c] RPC[124bc]
+[242801.827131] * CPU[  1]: TSTATE[0000004411001600] TPC[00000000004539e8] =
+TNPC[00000000004539ec] TASK[git:1513]
+[242801.827145]              TPC[get_user_pages_fast+0x1a8/0x360] O7[get_us=
+er_pages_fast+0x2fc/0x360] I7[get_futex_key+0x44/0x2a0] RPC[futex_wake+0x24=
+/0x140]
+[242813.153027] kwsysTestProces[8488]: segfault at 4 ip 0000000000011b9c (r=
+pc 0000000000011b90) sp 00000000fff4f868 error 30001 in kwsysTestProcess[10=
+000+c000]
+[242864.866856] INFO: rcu_sched self-detected stall on CPU { 1}  (tR533 jif=
+fies g$35314 c$35313 q78515)
+[242864.866872]   CPU[  0]: TSTATE[0000004480001605] TPC[000000000088bb34] =
+TNPC[000000000088bb38] TASK[rcu_sched:9]
+[242864.866888]              TPC[switch_to_pc+0x2b8/0x444] O7[switch_to_pc+=
+0x2c8/0x444] I7[schedule_timeout+0x100/0x1a0] RPC[rcu_gp_kthread+0x244/0x5a=
+0]
+[242864.866895] * CPU[  1]: TSTATE[0000000011001600] TPC[00000000004fb900] =
+TNPC[00000000004fb904] TASK[git:1513]
+[242864.866910]              TPC[put_compound_page+0x140/0x260] O7[put_comp=
+ound_page+0x10c/0x260] I7[get_futex_key+0x1bc/0x2a0] RPC[futex_wake+0x24/0x=
+140]
+[=E2=80=A6] and so on and so on
+[247362.259334] INFO: task jbd2/dm-3-8:3233 blocked for more than 120 secon=
+ds.
+[247362.259348]       Not tainted 3.15.0 #1
+[247362.259353] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables=
+ this message.
+[247362.259359] jbd2/dm-3-8     D 00000000005715e4     0  3233      2 0x010=
+00000
+[247362.259370] Call Trace:
+[247362.259390]  [000000000088be00] io_schedule+0x40/0x60
+[247362.259405]  [00000000005715e4] sleep_on_buffer+0x4/0x20
+[247362.259412]  [000000000088c404] __wait_on_bit+0x84/0x100
+[247362.259419]  [000000000088c4c4] out_of_line_wait_on_bit+0x44/0x60
+[247362.259437]  [0000000000606298] jbd2_journal_commit_transaction+0x9f8/0=
+x1860
+[247362.259447]  [000000000060b71c] kjournald2+0x9c/0x1c0
+[247362.259460]  [0000000000480608] kthread+0xa8/0xe0
+[247362.259472]  [0000000000406084] ret_from_fork+0x1c/0x2c
+[247362.259477]  [0000000000000000]           (null)
+[247362.259498] INFO: task kworker/u5:1:30366 blocked for more than 120 sec=
+onds.
+[247362.259503]       Not tainted 3.15.0 #1
+[247362.259507] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables=
+ this message.
+[247362.259511] kworker/u5:1    D 00000000006028e4     0 30366      2 0x070=
+00000
+[247362.259523] Workqueue: writeback bdi_writeback_workfn (flush-253:3)
+[247362.259529] Call Trace:
+[247362.259535]  [000000000088be00] io_schedule+0x40/0x60
+[247362.259542]  [00000000006028e4] sleep_on_shadow_bh+0x4/0x20
+[247362.259547]  [000000000088c404] __wait_on_bit+0x84/0x100
+[247362.259554]  [000000000088c4c4] out_of_line_wait_on_bit+0x44/0x60
+[247362.259561]  [0000000000604bdc] do_get_write_access+0x29c/0x520
+[247362.259568]  [0000000000604fb8] jbd2_journal_get_write_access+0x18/0x40
+[247362.259575]  [00000000005e8794] __ext4_journal_get_write_access+0x14/0x=
+60
+[247362.259582]  [00000000005eff70] ext4_mb_mark_diskspace_used+0x50/0x4c0
+[247362.259588]  [00000000005f17e4] ext4_mb_new_blocks+0x284/0x560
+[247362.259603]  [00000000005e53b4] ext4_ext_map_blocks+0x874/0x1d20
+[247362.259611]  [00000000005b6388] ext4_map_blocks+0x168/0x500
+[247362.259618]  [00000000005bbde0] ext4_writepages+0x600/0xbc0
+[247362.259634]  [00000000004f9f84] do_writepages+0x24/0x60
+[247362.259649]  [000000000056a224] __writeback_single_inode+0x24/0x260
+[247362.259654]  [000000000056b480] writeback_sb_inodes+0x1e0/0x3a0
+[247362.259660]  [000000000056b6b0] __writeback_inodes_wb+0x70/0xc0
+[=E2=80=A6] and then more of both
