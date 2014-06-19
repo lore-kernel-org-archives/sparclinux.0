@@ -1,35 +1,38 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Date: Sun, 01 Jun 2014 21:48:18 +0000
-Subject: [PATCH] arch: sparc: kernel: smp_64.c:  Optimization of the Code
-Message-Id: <1401659298-18067-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Date: Thu, 19 Jun 2014 12:31:52 +0000
+Subject: [PATCH] drivers/sbus/char: Micro-optimization in display7seg.c
+Message-Id: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, Kirill Tkhai <tkhai@yandex.ru>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, Paul Gortmaker <paul.gortmaker@windriver.com>, Peter Zijlstra <peterz@infradead.org>, Bjorn Helgaas <bhelgaas@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-From what I know, AND is faster then modulo.
-Not sure if this is worth changing though.
+Flipping a bit doesn't need four lines of code; and gcc seems to
+actually generate two branches.
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- arch/sparc/kernel/smp_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/sbus/char/display7seg.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 745a363..921d924 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -179,7 +179,7 @@ static inline long get_delta (long *rt, long *master)
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 7c71e7b..3221dff 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -143,10 +143,7 @@ static long d7s_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  
- 	/* average best_t0 and best_t1 without overflow: */
- 	tcenter = (best_t0/2 + best_t1/2);
--	if (best_t0 % 2 + best_t1 % 2 = 2)
-+	if ((best_t0 & 1) + (best_t1 & 1) = 2)
- 		tcenter++;
- 	return tcenter - best_tm;
- }
+ 	case D7SIOCTM:
+ 		/* toggle device mode-- flip display orientation */
+-		if (regs & D7S_FLIP)
+-			regs &= ~D7S_FLIP;
+-		else
+-			regs |= D7S_FLIP;
++		regs ^= D7S_FLIP;
+ 		writeb(regs, p->regs);
+ 		break;
+ 	}
 -- 
-1.7.10.4
+1.9.2
 
