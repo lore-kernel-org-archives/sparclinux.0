@@ -1,14 +1,22 @@
-From: yorkshire@iprimus.com.au
-Date: Mon, 23 Jun 2014 09:47:17 +0000
-Subject: My Last Wish
-Message-Id: <5378E399000418BB@cpms01.int.iprimus.net.au>
+From: "KONG HUI" <konghui10@126.com>
+Date: Sat, 28 Jun 2014 02:01:38 +0000
+Subject: GOOD DAY,
+Message-Id: <8c5162d76a9e50ece31753a4215454de.squirrel@192.237.168.48>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I am Aisha EI Umar, It's time for me to discuss my last wish before I depart
-to join my creator and I need to know I can trust you with this, please reply
-immediately.
+
+
+
+My name is Kong Hui from Hong Kong, I want you to be my partner in a
+business project.
+
+If Interested Contact me back via my email address.
+
+
+Thank you,
+Mr. Kong Hui.
 
