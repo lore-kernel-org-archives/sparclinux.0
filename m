@@ -1,28 +1,39 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 18 Jun 2014 04:41:02 +0000
-Subject: Re: Build regressions/improvements in v3.16-rc1
-Message-Id: <53A1185E.6080707@roeck-us.net>
+From: Kees Cook <keescook@chromium.org>
+Date: Mon, 30 Jun 2014 20:37:59 +0000
+Subject: [RESEND][PATCH] sparc: use %s for unaligned panic
+Message-Id: <20140630203759.GA4764@www.outflux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1403018163-25307-1-git-send-email-geert@linux-m68k.org> <CAMuHMdU2DTt0va67uSKqhhqbVORuY+xEs3uGZ21sKjahE_MSXg@mail.gmail.com>
-In-Reply-To: <CAMuHMdU2DTt0va67uSKqhhqbVORuY+xEs3uGZ21sKjahE_MSXg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: Linux MIPS Mailing List <linux-mips@linux-mips.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, Linux-sh list <linux-sh@vger.kernel.org>, Michal Simek <monstr@monstr.eu>, sparclinux <sparclinux@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
 
-On 06/17/2014 08:23 AM, Geert Uytterhoeven wrote:
-> On Tue, Jun 17, 2014 at 5:16 PM, Geert Uytterhoeven
-> <geert@linux-m68k.org> wrote:
-[...]
->
->>    + /scratch/kisskb/src/sound/soc/fsl/fsl_dma.c: error: invalid use of undefined type 'struct ccsr_ssi':  => 926:34, 927:34
->
-> powerpc/mpc85xx_defconfig
->
+Since unaligned_panic() takes a literal string, make sure it can never
+accidentally be used as a format string.
 
-Being fixed:
-	http://patchwork.ozlabs.org/patch/358500/
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ arch/sparc/kernel/unaligned_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Guenter
+diff --git a/arch/sparc/kernel/unaligned_32.c b/arch/sparc/kernel/unaligned_32.c
+index c5c61b3c6b56..32b61d1b6379 100644
+--- a/arch/sparc/kernel/unaligned_32.c
++++ b/arch/sparc/kernel/unaligned_32.c
+@@ -166,7 +166,7 @@ unsigned long safe_compute_effective_address(struct pt_regs *regs,
+ /* This is just to make gcc think panic does return... */
+ static void unaligned_panic(char *str)
+ {
+-	panic(str);
++	panic("%s", str);
+ }
+ 
+ /* una_asm.S */
+-- 
+1.7.9.5
 
+
+-- 
+Kees Cook
+Chrome OS Security
