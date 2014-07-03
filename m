@@ -1,56 +1,90 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 28 Jul 2014 22:49:43 +0000
-Subject: Re: [PATCH] Fix BBC I2C envctrl on SunBlade 2000
-Message-Id: <20140728.154943.884725723310916037.davem@davemloft.net>
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Thu, 03 Jul 2014 16:41:46 +0000
+Subject: Re: [RFA][PATCH 18/27] sparc64,ftrace: Remove check of obsolete variable function_trace_stop
+Message-Id: <20140703124146.3a93668f@gandalf.local.home>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201407271504.05258.cat.schulze@alice-dsl.net>
-In-Reply-To: <201407271504.05258.cat.schulze@alice-dsl.net>
+References: <20140626165221.736847419@goodmis.org>
+	<20140626165852.160038235@goodmis.org>
+In-Reply-To: <20140626165852.160038235@goodmis.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-arch@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiri Kosina <jkosina@suse.cz>, Josh Poimboeuf <notifications@github.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
-Date: Sun, 27 Jul 2014 15:04:04 +0200
 
-Thanks for all of your patches today.
+David,
 
-Firstly, please format your Subject line correctly, it should
-be of the form:
+Do you have any problem with this patch going through my tree? It
+compiles, but I do not have any hardware to test it. If you can verify
+that this patch works and ack it, it would be much appreciated.
 
-	[PATCH] ${subsystem}: Description.
+This code is at:
 
-Here subsystem could be "bbc-i2c: ".
+ git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace.git
 
-> +       /* Need to initialize some fields of bbc_cpu_temperature */
-> +       INIT_LIST_HEAD(&(tp->bp_list));
-> +       INIT_LIST_HEAD(&(tp->glob_list));
-> +
+branch: rfc/remove-function-trace-stop
 
-The innermost parenthesis are unnecessary, please remove them.
+Thanks!
 
-> +       /* Need to initialize some fields of bbc_fan_control */
-> +       INIT_LIST_HEAD(&(fp->bp_list));
-> +       INIT_LIST_HEAD(&(fp->glob_list));
-> +
+-- Steve
 
-Likewise, and for the rest of your list initialization additions.
+On Thu, 26 Jun 2014 12:52:39 -0400
+Steven Rostedt <rostedt@goodmis.org> wrote:
 
-> -       bp->i2c_bussel_reg = of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2c_bussel");
-> -       if (!bp->i2c_bussel_reg)
-> -               goto fail;
-> +       if(op->num_resources = 2) {
+> From: "Steven Rostedt (Red Hat)" <rostedt@goodmis.org>
+> 
+> Nothing sets function_trace_stop to disable function tracing anymore.
+> Remove the check for it in the arch code.
+> 
+> [ Please test this on your arch ]
+> 
+> Cc: David S. Miller <davem@davemloft.net>
+> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+> ---
+>  arch/sparc/Kconfig      |  1 -
+>  arch/sparc/lib/mcount.S | 10 ++--------
+>  2 files changed, 2 insertions(+), 9 deletions(-)
+> 
+> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+> index 29f2e988c56a..abd7d5575a7d 100644
+> --- a/arch/sparc/Kconfig
+> +++ b/arch/sparc/Kconfig
+> @@ -55,7 +55,6 @@ config SPARC64
+>  	select HAVE_FUNCTION_TRACER
+>  	select HAVE_FUNCTION_GRAPH_TRACER
+>  	select HAVE_FUNCTION_GRAPH_FP_TEST
+> -	select HAVE_FUNCTION_TRACE_MCOUNT_TEST
+>  	select HAVE_KRETPROBES
+>  	select HAVE_KPROBES
+>  	select HAVE_RCU_TABLE_FREE if SMP
+> diff --git a/arch/sparc/lib/mcount.S b/arch/sparc/lib/mcount.S
+> index 3ad6cbdc2163..0b0ed4d34219 100644
+> --- a/arch/sparc/lib/mcount.S
+> +++ b/arch/sparc/lib/mcount.S
+> @@ -24,10 +24,7 @@ mcount:
+>  #ifdef CONFIG_DYNAMIC_FTRACE
+>  	/* Do nothing, the retl/nop below is all we need.  */
+>  #else
+> -	sethi		%hi(function_trace_stop), %g1
+> -	lduw		[%g1 + %lo(function_trace_stop)], %g2
+> -	brnz,pn		%g2, 2f
+> -	 sethi		%hi(ftrace_trace_function), %g1
+> +	sethi		%hi(ftrace_trace_function), %g1
+>  	sethi		%hi(ftrace_stub), %g2
+>  	ldx		[%g1 + %lo(ftrace_trace_function)], %g1
+>  	or		%g2, %lo(ftrace_stub), %g2
+> @@ -80,11 +77,8 @@ ftrace_stub:
+>  	.globl		ftrace_caller
+>  	.type		ftrace_caller,#function
+>  ftrace_caller:
+> -	sethi		%hi(function_trace_stop), %g1
+>  	mov		%i7, %g2
+> -	lduw		[%g1 + %lo(function_trace_stop)], %g1
+> -	brnz,pn		%g1, ftrace_stub
+> -	 mov		%fp, %g3
+> +	mov		%fp, %g3
+>  	save		%sp, -176, %sp
+>  	mov		%g2, %o1
+>  	mov		%g2, %l0
 
-Please put a space between "if" and the openning parenthesis of the
-condition being tested.
-
-> +       if(op->num_resources = 2) {
-
-Likewise.
-
-> +               bp->i2c_bussel_reg = of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2c_bussel");
-> +               if (!bp->i2c_bussel_reg) {
-> +                       goto fail;
-> +               }
-
-Please do not use curly braces around single line basic blocks.
