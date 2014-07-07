@@ -1,22 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Jul 2014 04:38:18 +0000
-Subject: Re: [PATCH] drivers/sbus/char: Micro-optimization in display7seg.c
-Message-Id: <20140721.213818.1578856121778935701.davem@davemloft.net>
+From: Minchan Kim <minchan@kernel.org>
+Date: Mon, 07 Jul 2014 00:53:54 +0000
+Subject: [PATCH v10 3/7] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1404694438-10272-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
-In-Reply-To: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
+References: <1404694438-10272-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1404694438-10272-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@rasmusvillemoes.dk
-Cc: paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, Linux API <linux-api@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Date: Thu, 19 Jun 2014 14:31:52 +0200
+MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
+overwrite of the contents since MADV_FREE syscall is called for
+THP page.
 
-> Flipping a bit doesn't need four lines of code; and gcc seems to
-> actually generate two branches.
-> 
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
+support.
 
-Applied to sparc-next
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+---
+ arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5c6e1b..0a3e5fdfead2 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
+ 	return pte_young(pte);
+ }
+ 
++static inline int pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	return pte_dirty(pte);
++}
++
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
+ }
+ 
++static inline pmd_mkclean(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	pte = pte_mkclean(pte);
++
++	return __pmd(pte_val(pte));
++}
++
+ static inline pmd_t pmd_mkyoung(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+-- 
+2.0.0
+
