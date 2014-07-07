@@ -1,111 +1,23 @@
-From: David L Stevens <david.stevens@oracle.com>
-Date: Fri, 25 Jul 2014 17:41:51 +0000
-Subject: [PATCH] sparc: Add "install" target
-Message-Id: <1406310111.20183.2.camel@phoenix>
+From: officecontact@voila.fr
+Date: Mon, 07 Jul 2014 14:49:00 +0000
+Subject: Mr. Ali Babekir Gebril
+Message-Id: <53bab37c.a895b40a.18b1.fffffd26@mx.google.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Good Day,  
+I crave your indulgence to forgive me as I send you this mail without due consultation. I have a very credible financial business proposition to make to you that will attract an appreciable business gain.
 
+Is about one Mr Ahmed Syed, who was an investor with our bank but died in a plane crash years back has just come to the limelight in our bank because since 2004 that he died his portfolio and investment worth (4.5 Million Pounds) has not been touched because no named next-of-kin was found in his bio-data form.
 
-This patches adds an "install" target to install kernel builds for SPARC,
-modeled after the i386 script.
+Interestingly, this investment has generated an accrued interest to the amount of (600 Thousand British Pounds) because he was operating a domiciliary fixed deposit pounds account. The bank management has therefore authorised me as the director of investment banking of our Bank to locate any living relative of this investor so that the funds can be paid to the family of the late investor who was from Middle East in line with the banking ethics & policies as stipulated banking and finance laws otherwise the funds will be send to treasury as unclaimed.
 
-Signed-off-by: David L Stevens <david.stevens@oracle.com>
----
- arch/sparc/Makefile        |    3 ++
- arch/sparc/boot/Makefile   |    4 +++
- arch/sparc/boot/install.sh |   51 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+), 0 deletions(-)
- create mode 100644 arch/sparc/boot/install.sh
+I will simply nominate & empowered you with all the relevant information(s) and documentations to enable you claim the money officially, legally and legitimately. Honestly, if I don't do this and inform the bank I cannot locate any relative of the investor the funds will be revert/re-circle into the bank treasury as unclaimed monies and people that know nothing about the source of the funds will spend it that is the irony of the banking industry which is purely aberrational.
 
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index 9ff4236..eaee146 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -68,6 +68,9 @@ all: zImage
- image zImage uImage tftpboot.img vmlinux.aout: vmlinux
- 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
- 
-+install:
-+	$(Q)$(MAKE) $(build)=$(boot) $@
-+
- archclean:
- 	$(Q)$(MAKE) $(clean)=$(boot)
- 
-diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-index 6e63afb..6a4ceae 100644
---- a/arch/sparc/boot/Makefile
-+++ b/arch/sparc/boot/Makefile
-@@ -69,3 +69,7 @@ $(obj)/image: vmlinux FORCE
- $(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback System.map $(ROOT_IMG) FORCE
- 	$(call if_changed,elftoaout)
- 	$(call if_changed,piggy)
-+
-+install:
-+	sh $(srctree)/$(src)/install.sh $(KERNELRELEASE) $(obj)/zImage \
-+		System.map "$(INSTALL_PATH)"
-diff --git a/arch/sparc/boot/install.sh b/arch/sparc/boot/install.sh
-new file mode 100644
-index 0000000..098d518
---- /dev/null
-+++ b/arch/sparc/boot/install.sh
-@@ -0,0 +1,51 @@
-+#!/bin/sh
-+#
-+# This file is subject to the terms and conditions of the GNU General Public
-+# License.  See the file "COPYING" in the main directory of this archive
-+# for more details.
-+#
-+# Copyright (C) 1995 by Linus Torvalds
-+#
-+# Adapted from code in arch/i386/boot/Makefile by H. Peter Anvin
-+#
-+# "make install" script for SPARC architecture
-+#
-+# Arguments:
-+#   $1 - kernel version
-+#   $2 - kernel image file
-+#   $3 - kernel map file
-+#   $4 - default install path (blank if root directory)
-+#
-+
-+verify () {
-+	if [ ! -f "$1" ]; then
-+		echo ""                                                   1>&2
-+		echo " *** Missing file: $1"                              1>&2
-+		echo ' *** You need to run "make" before "make install".' 1>&2
-+		echo ""                                                   1>&2
-+		exit 1
-+ 	fi
-+}
-+
-+# Make sure the files actually exist
-+verify "$2"
-+verify "$3"
-+
-+# User may have a custom install script
-+
-+if [ -x ~/bin/${INSTALLKERNEL} ]; then exec ~/bin/${INSTALLKERNEL} "$@"; fi
-+if [ -x /sbin/${INSTALLKERNEL} ]; then exec /sbin/${INSTALLKERNEL} "$@"; fi
-+
-+# Default install - same as make zlilo
-+
-+if [ -f $4/vmlinuz ]; then
-+	mv $4/vmlinuz $4/vmlinuz.old
-+fi
-+
-+if [ -f $4/System.map ]; then
-+	mv $4/System.map $4/System.old
-+fi
-+
-+cat $2 > $4/vmlinuz
-+cp $3 $4/System.map
-+
--- 
-1.7.1
+Contact me immediately you received this email with your most direct telephone line so that I can call and/or furnish you with all the details. Remember however that we are sharing the money equally as I will make the atmosphere suitable and conducive for you to successful claim the money risk-free as beneficiary.
 
-
-
+Warm regards
+Mr. Ali Babekir Gebril
