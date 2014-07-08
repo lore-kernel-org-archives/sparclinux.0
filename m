@@ -1,39 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Jul 2014 05:38:16 +0000
-Subject: [GIT] Sparc
-Message-Id: <20140721.223816.1457327353814495306.davem@davemloft.net>
+From: Minchan Kim <minchan@kernel.org>
+Date: Tue, 08 Jul 2014 06:03:40 +0000
+Subject: [PATCH v11 3/7] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1404799424-1120-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1404799424-1120-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1404799424-1120-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, Linux API <linux-api@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
+overwrite of the contents since MADV_FREE syscall is called for
+THP page.
 
-Need to hook up the new renameat2 system call.
+This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
+support.
 
-Please pull, thanks!
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+---
+ arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-The following changes since commit 9a3c4145af32125c5ee39c0272662b47307a8323:
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5c6e1b..0a3e5fdfead2 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
+ 	return pte_young(pte);
+ }
+ 
++static inline int pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	return pte_dirty(pte);
++}
++
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
+ }
+ 
++static inline pmd_mkclean(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	pte = pte_mkclean(pte);
++
++	return __pmd(pte_val(pte));
++}
++
+ static inline pmd_t pmd_mkyoung(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+-- 
+2.0.0
 
-  Linux 3.16-rc6 (2014-07-20 21:04:16 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to 26053926feb1c16ade9c30bc7443bf28d829d08e:
-
-  sparc: Hook up renameat2 syscall. (2014-07-21 22:27:56 -0700)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc: Hook up renameat2 syscall.
-
- arch/sparc/include/uapi/asm/unistd.h | 3 ++-
- arch/sparc/kernel/sys32.S            | 1 +
- arch/sparc/kernel/systbls_32.S       | 1 +
- arch/sparc/kernel/systbls_64.S       | 2 ++
- 4 files changed, 6 insertions(+), 1 deletion(-)
