@@ -1,10 +1,10 @@
 From: Minchan Kim <minchan@kernel.org>
-Date: Fri, 18 Jul 2014 06:53:01 +0000
-Subject: [PATCH v13 3/8] sparc: add pmd_[dirty|mkclean] for THP
-Message-Id: <1405666386-15095-4-git-send-email-minchan@kernel.org>
+Date: Wed, 09 Jul 2014 06:22:24 +0000
+Subject: [PATCH v12 3/8] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1404886949-17695-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1405666386-15095-1-git-send-email-minchan@kernel.org>
-In-Reply-To: <1405666386-15095-1-git-send-email-minchan@kernel.org>
+References: <1404886949-17695-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1404886949-17695-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
