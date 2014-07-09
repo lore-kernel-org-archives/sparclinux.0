@@ -1,62 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Jul 2014 22:07:22 +0000
-Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20140730.150722.861254999466992321.davem@davemloft.net>
+From: chase rayfield <cusbrar1@gmail.com>
+Date: Wed, 09 Jul 2014 02:51:44 +0000
+Subject: SILO on Qemu Sparc v8 unable to boot stripped kernel
+Message-Id: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1404170119550.20193@math.ut.ee>
-	<20140729.162635.638786990787878495.davem@davemloft.net>
-	<alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
+To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 31 Jul 2014 01:02:53 +0300 (EEST)
+I emailed davem, last week and he told me the appropriate course of action
+would be to message the list so here goes.
 
->> Here is something I'd like you guys to test.
-> 
-> Very interesting.
-> 
-> [...]
->> Could you guys please try this patch below?  Thanks.
-> 
->   CC      arch/sparc/mm/init_64.o
-> arch/sparc/mm/init_64.c: In function 'update_mmu_cache_pmd':
-> arch/sparc/mm/init_64.c:2625:6: error: 'pte' may be used uninitialized in this function [-Werror=uninitialized]
-> 
-> gcc 4.6.4.
+This is the error SILO in Qemu is printing out:
+"ext2 superblock magic is wrong" ... then
+"Cannot find a loadable segment in your ELF image."
 
-I'm very disappointed that gcc-4.6.3 didn't say anything to me about
-this :-)
+ I stripped the kernel with  "strip -R .comment -R .note" also tried a myriad of
+other options to the same effect. My build of Qemu can boot an older Gentoo
+livecd that I have that is also 2.6.32 but I don't have a dot config
+and it was built with
+a different toolchain. Here are links to most of the relevant stuff if
+you want my
+catalyst spec files or for me to tar up my silo build etc... just ask.
+I have real hardware I can test on but I'd rather not make coasters
+especially since I know Qemu *can*
+boot a sparc livecd no problem the same kernel version even.
 
-Here is a fixed patch, thanks.
+Is is possible I have the kenrel arguments wrong or something of that nature?
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 16b58ff..db5ddde 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -351,6 +351,10 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
- 
- 	mm = vma->vm_mm;
- 
-+	/* Don't insert a non-valid PTE into the TSB, we'll deadlock.  */
-+	if (!pte_accessible(mm, pte))
-+		return;
-+
- 	spin_lock_irqsave(&mm->context.lock, flags);
- 
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-@@ -2619,6 +2623,10 @@ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
- 
- 	pte = pmd_val(entry);
- 
-+	/* Don't insert a non-valid PMD into the TSB, we'll deadlock.  */
-+	if (!(pte & _PAGE_VALID))
-+		return;
-+
- 	/* We are fabricating 8MB pages using 4MB real hw pages.  */
- 	pte |= (addr & (1UL << REAL_HPAGE_SHIFT));
- 
+The gentoo stage3 it is built from is here...
+http://gh0stwriter.net/archive/20140708/stage3-sparc-20140628.tar.bz2
+And portage snapshot:
+http://gh0stwriter.net/archive/20140708/portage-20140628.tar.bz2
+Known good iso:
+http://www.gh0stwriter.net/archive/linux-sparc32-install-20111216.iso
+
+You can grab a copy of the WIP iso here:
+http://gh0stwriter.net/archive/20140708/install-sparc-minimal-20140620.iso
+(includes the stripped kernel that fails to boot)
+
+Unstripped kernel from the above iso
+http://www.gh0stwriter.net/archive/20140708/gentoo.gz
+
+My .config
+http://gh0stwriter.net/archive/20140708/config-2.6.32-r41-20140708.config
+
+Screenshot of silo failure:
+http://gh0stwriter.net/archive/20140708/qemu-silo-fail.png
