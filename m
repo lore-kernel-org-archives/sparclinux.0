@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 09 Jul 2014 20:43:54 +0000
+From: chase rayfield <cusbrar1@gmail.com>
+Date: Thu, 10 Jul 2014 01:50:49 +0000
 Subject: Re: SILO on Qemu Sparc v8 unable to boot stripped kernel
-Message-Id: <20140709204353.GA32303@ravnborg.org>
+Message-Id: <CACwypyOoP6B7zkka7tHoA8eiZLcmWf-z5ZCsDUXJizw=QzT8Qw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
 In-Reply-To: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
@@ -10,53 +10,54 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Tue, Jul 08, 2014 at 10:51:44PM -0400, chase rayfield wrote:
-> I emailed davem, last week and he told me the appropriate course of action
-> would be to message the list so here goes.
-> 
-> This is the error SILO in Qemu is printing out:
-> "ext2 superblock magic is wrong" ... then
-> "Cannot find a loadable segment in your ELF image."
-> 
->  I stripped the kernel with  "strip -R .comment -R .note" also tried a myriad of
-> other options to the same effect. My build of Qemu can boot an older Gentoo
-> livecd that I have that is also 2.6.32 but I don't have a dot config
-> and it was built with
-> a different toolchain. Here are links to most of the relevant stuff if
-> you want my
-> catalyst spec files or for me to tar up my silo build etc... just ask.
-> I have real hardware I can test on but I'd rather not make coasters
-> especially since I know Qemu *can*
-> boot a sparc livecd no problem the same kernel version even.
-> 
-> Is is possible I have the kenrel arguments wrong or something of that nature?
-> 
-> The gentoo stage3 it is built from is here...
-> http://gh0stwriter.net/archive/20140708/stage3-sparc-20140628.tar.bz2
-> And portage snapshot:
-> http://gh0stwriter.net/archive/20140708/portage-20140628.tar.bz2
-> Known good iso:
-> http://www.gh0stwriter.net/archive/linux-sparc32-install-20111216.iso
-> 
-> You can grab a copy of the WIP iso here:
-> http://gh0stwriter.net/archive/20140708/install-sparc-minimal-20140620.iso
-> (includes the stripped kernel that fails to boot)
-> 
-> Unstripped kernel from the above iso
-> http://www.gh0stwriter.net/archive/20140708/gentoo.gz
-> 
-> My .config
-> http://gh0stwriter.net/archive/20140708/config-2.6.32-r41-20140708.config
-> 
-> Screenshot of silo failure:
-> http://gh0stwriter.net/archive/20140708/qemu-silo-fail.png
+Sam, Sparc64 is merely what the default catalyst silo.conf happens to
+have in it it is in
+fact a 32bit silo running in qemu-system-sparc
 
-I am confused to see that the screenshot mentions sparc64, but
-you refer to sparc v8 which is only sparc32.
+I built silo with the patch from LFS... I was unable to build SILO
+directly from davem's git.
+Since I built the iso itself manually (I had to strip the kernel
+manually) I also changed the
+volume to indicate that it is a sparc32 ISO.
 
-The silo version also looks quite dated.
-I know some extfs related fixes went in some years ago,
-but have not looked up when.
-Could you compare the two versions of silo used to see if this give any clue.
+http://cross-lfs.org/view/git/sparc/final-system/silo.html
 
-	Sam
+The following is with gcc 4.5.4 and binutils 2.21.1 I just doubled checked
+the following results and that the LFS silo produces the same results
+as in the screenshot.
+
+Also if I just untar, patch with silo-1.4.14-fixes-3.patch and make it
+fails with
+o malloc.o
+mallocl.o: In function `calloc':
+malloc.c:(.text+0x48): undefined reference to `.umul'
+make[1]: *** [b2.out] Error 1
+make[1]: *** Waiting for unfinished jobs....
+malloc.o: In function `calloc':
+malloc.c:(.text+0x48): undefined reference to `.umul'
+
+So I changed CC=gcc -m32 to CC=gcc -m32 -mcpu=v8. And it builds...
+and will boot the older kernel I have but not the one I build/stripped myself.
+
+
+If I attempt to build silo from git
+ld -m elf32_sparc -N -Ttext 0x280000 -Bstatic -o silotftp crt0.o
+decompnet.o ../common/console.o ../common/printf.o malloc.o
+../common/jmp.o ../common/prom.o ../common/tree.o ../common/urem.o
+../common/udiv.o ../common/stringops1.o ../common/ffs.o
+../common/divdi3.o ../common/udivdi3.o bmark.o mainnet.o cmdline.o
+disk.o file.o misc.o cfg.o strtol.o ranges.o timer.o memory.o
+fs/libfs.a mul.o ../common/rem.o ../common/sdiv.o umul.o
+../common/stringops2.o ls.o muldi3.o mark.o `gcc -m32
+-print-libgcc-file-name`
+decompnet.o: In function `error':
+decomp.c:(.text+0x4f8): undefined reference to `__longjmp_chk'
+file.o: In function `unget_gzip_input':
+file.c:(.text+0x40): undefined reference to `__longjmp_chk'
+file.o: In function `get_gzip_input':
+file.c:(.text+0x180): undefined reference to `__longjmp_chk'
+cfg.o: In function `cfg_error':
+cfg.c:(.text+0x190): undefined reference to `__longjmp_chk'
+make[1]: *** [silotftp] Error 1
+
+Chase Rayfield
