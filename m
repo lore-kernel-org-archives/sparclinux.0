@@ -1,7 +1,7 @@
 From: chase rayfield <cusbrar1@gmail.com>
-Date: Sat, 12 Jul 2014 04:08:33 +0000
+Date: Mon, 14 Jul 2014 01:08:47 +0000
 Subject: Re: SILO on Qemu Sparc v8 unable to boot stripped kernel
-Message-Id: <CACwypyMd8DT+EXj7qOzFn-FAinXTO+BJ_a1R7c+CMjOyb+qh_Q@mail.gmail.com>
+Message-Id: <CACwypyPLE9Dw2SZzM-i_4qde+pA-8sP=JaJo4uBEDT7NtB8gaQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
 In-Reply-To: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
@@ -10,11 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I made some progress on this.
+I sorted out the remaining issues and you can now download the first
+working version I have produced links below. Only tested in QEMU so
+far due to lack of time since I started my new job.
 
-The problem is silo is failing to load the compressed image. I copied
-an uncompressed kernel onto the ISO and it booted correctly.
+This is using Glibc 2.17, GCC 4.5.4, Binutils 2.21.1 and Linux
+2.6.32-r41 (Gentoo revision 41) all the packages are at the latest
+stable revision otherwise. I may add a version that includes more
+things to demo and such to make testing sparc32 convenient in QEMU or
+real hardware.
 
-I expect silo should be able to load a zImage though...
+http://www.gh0stwriter.net/gentoo/
 
-Chase
+http://www.gh0stwriter.net/archive/install-sparc-minimal-20140620.iso
+
+
+Chase Rayfield
