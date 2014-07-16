@@ -1,124 +1,129 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 16 Jul 2014 14:02:03 +0000
-Subject: [PATCH] sparc: Add support for seek and shorter read to /dev/mdesc
-Message-Id: <1405519323-3092-1-git-send-email-khalid.aziz@oracle.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 16 Jul 2014 19:04:14 +0000
+Subject: Re: [PATCH] sparc: Add support for seek and shorter read to /dev/mdesc
+Message-Id: <20140716190414.GA6028@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1405519323-3092-1-git-send-email-khalid.aziz@oracle.com>
+In-Reply-To: <1405519323-3092-1-git-send-email-khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-/dev/mdesc on Linux does not support reading arbitrary number
-of bytes and seeking while /dev/mdesc on Solaris does. This
-causes tools that work on Solaris to break on Linux. This patch
-adds these two capabilities to /dev/mdesc.
+Hi Kahlid.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
----
- arch/sparc/kernel/mdesc.c | 77 ++++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 66 insertions(+), 11 deletions(-)
+On Wed, Jul 16, 2014 at 08:02:03AM -0600, Khalid Aziz wrote:
+> /dev/mdesc on Linux does not support reading arbitrary number
+> of bytes and seeking while /dev/mdesc on Solaris does. This
+> causes tools that work on Solaris to break on Linux. This patch
+> adds these two capabilities to /dev/mdesc.
+> 
+> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+> ---
+>  arch/sparc/kernel/mdesc.c | 77 ++++++++++++++++++++++++++++++++++++++++-------
+>  1 file changed, 66 insertions(+), 11 deletions(-)
+> 
+> +/* mdesc_open() - Grab a reference to mdesc_handle when /dev/mdesc is
+> + *	opened. Hold this reference until /dev/mdesc is closed to ensure
+> + *	mdesc data structure is not released underneath us. Store the
+> + *	pointer to mdesc structure in private_data for read and seek to use
+> + */
+> +static int mdesc_open(struct inode *inode, struct file *file)
+>  {
+>  	struct mdesc_handle *hp = mdesc_grab();
+>  
+>  	if (!hp)
+>  		return -ENODEV;
+>  
+> +	file->private_data = hp;
+> +	return 0;
+> +}
 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index a1a4400..69df017 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -906,29 +906,84 @@ void mdesc_fill_in_cpu_data(cpumask_t *mask)
- 	smp_fill_in_sib_core_maps();
- }
- 
--static ssize_t mdesc_read(struct file *file, char __user *buf,
--			  size_t len, loff_t *offp)
-+/* mdesc_open() - Grab a reference to mdesc_handle when /dev/mdesc is
-+ *	opened. Hold this reference until /dev/mdesc is closed to ensure
-+ *	mdesc data structure is not released underneath us. Store the
-+ *	pointer to mdesc structure in private_data for read and seek to use
-+ */
-+static int mdesc_open(struct inode *inode, struct file *file)
- {
- 	struct mdesc_handle *hp = mdesc_grab();
--	int err;
- 
- 	if (!hp)
- 		return -ENODEV;
- 
--	err = hp->handle_size;
--	if (len < hp->handle_size)
--		err = -EMSGSIZE;
--	else if (copy_to_user(buf, &hp->mdesc, hp->handle_size))
-+	file->private_data = hp;
-+	return 0;
-+}
-+
-+static ssize_t mdesc_read(struct file *file, char __user *buf,
-+			  size_t len, loff_t *offp)
-+{
-+	struct mdesc_handle *hp = file->private_data;
-+	unsigned char *mdesc;
-+	int err, bytes_left;
-+
-+	if (*offp >= hp->handle_size)
-+		return 0;
-+	err = len;
-+	bytes_left = hp->handle_size - *offp;
-+	if (len > bytes_left)
-+		err = bytes_left;
-+	mdesc = (unsigned char *)&hp->mdesc;
-+	mdesc += *offp;
-+	if (copy_to_user(buf, mdesc, err))
- 		err = -EFAULT;
--	mdesc_release(hp);
-+	else
-+		*offp += err;
-+
-+	return err;
-+}
- 
-+static loff_t mdesc_llseek(struct file *file, loff_t offset, int whence)
-+{
-+	struct mdesc_handle *hp;
-+	int err;
-+
-+	switch (whence) {
-+	case SEEK_CUR:
-+		offset += file->f_pos;
-+		break;
-+	case SEEK_SET:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	err = offset;
-+	hp = file->private_data;
-+	if (offset > hp->handle_size)
-+		err = -EINVAL;
-+	else
-+		file->f_pos = offset;
- 	return err;
- }
- 
-+/* mdesc_close() - /dev/mdesc is being closed, release the reference to
-+ *	mdesc structure.
-+ */
-+static int mdesc_close(struct inode *inode, struct file *file)
-+{
-+	mdesc_release(file->private_data);
-+	return 0;
-+}
-+
- static const struct file_operations mdesc_fops = {
--	.read	= mdesc_read,
--	.owner	= THIS_MODULE,
--	.llseek = noop_llseek,
-+	.open    = mdesc_open,
-+	.read	 = mdesc_read,
-+	.llseek  = mdesc_llseek,
-+	.release = mdesc_close,
-+	.owner	 = THIS_MODULE,
- };
- 
- static struct miscdevice mdesc_misc = {
--- 
-1.9.1
+Do we know the open/close always come in pairs?
+I assume so - but there is no check fo this (at least on this level).
 
+> +
+> +static ssize_t mdesc_read(struct file *file, char __user *buf,
+> +			  size_t len, loff_t *offp)
+> +{
+> +	struct mdesc_handle *hp = file->private_data;
+> +	unsigned char *mdesc;
+> +	int err, bytes_left;
+> +
+> +	if (*offp >= hp->handle_size)
+> +		return 0;
+> +	err = len;
+> +	bytes_left = hp->handle_size - *offp;
+> +	if (len > bytes_left)
+> +		err = bytes_left;
+> +	mdesc = (unsigned char *)&hp->mdesc;
+> +	mdesc += *offp;
+> +	if (copy_to_user(buf, mdesc, err))
+>  		err = -EFAULT;
+> -	mdesc_release(hp);
+> +	else
+> +		*offp += err;
+> +
+> +	return err;
+> +}
+
+When reading your code it is confusing to read that err is set to len,
+and then maybe later set to an error value or a new len.
+
+See the following refactoring of mdesc_read() that avoids the err local
+variable resulting in more readable code.
+
+static ssize_t mdesc_read(struct file *file, char __user *buf,
+                       size_t len, loff_t *offp)
+{
+     struct mdesc_handle *hp = file->private_data;
+     unsigned char *mdesc;
+     int bytes_left;
+
+     if (*offp >= hp->handle_size)
+             return 0;
+
+     bytes_left = hp->handle_size - *offp;
+     if (len > bytes_left)
+             len = bytes_left;
+
+     mdesc = (unsigned char *)&hp->mdesc;
+     mdesc += *offp;
+     if (!copy_to_user(buf, mdesc, len)) {
+             *offp += len;
+	     return len;
+     } else {
+             return -EFAULT;
+     }
+}
+
+The above is IMO more readable.
+>  
+> +static loff_t mdesc_llseek(struct file *file, loff_t offset, int whence)
+> +{
+> +	struct mdesc_handle *hp;
+> +	int err;
+> +
+> +	switch (whence) {
+> +	case SEEK_CUR:
+> +		offset += file->f_pos;
+> +		break;
+> +	case SEEK_SET:
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	err = offset;
+> +	hp = file->private_data;
+> +	if (offset > hp->handle_size)
+> +		err = -EINVAL;
+> +	else
+> +		file->f_pos = offset;
+>  	return err;
+>  }
+Same story here with err.
+
+
+	Sam
