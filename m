@@ -1,37 +1,129 @@
-From: Nick Krause <xerofoify@gmail.com>
-Date: Fri, 18 Jul 2014 17:20:40 +0000
-Subject: Re: Sparc Allmodconfig Fails
-Message-Id: <CAPDOMVhq969+pCRZckat9RW3m44RMG0mHzyUuPJzvGBHhW-1Qw@mail.gmail.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 17 Jul 2014 17:41:50 +0000
+Subject: [PATCH v2] sparc: Add support for seek and shorter read to /dev/mdesc
+Message-Id: <1405618910-17667-1-git-send-email-khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAPDOMViDWF93xDQ=OYWFEu=9ih6cwcEKv4P+nOihcnRrDXiAww@mail.gmail.com>
-	<20140718074143.GB20028@ravnborg.org>
-In-Reply-To: <20140718074143.GB20028@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: davem@davemloft.net
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jul 18, 2014 at 3:41 AM, Sam Ravnborg <sam@ravnborg.org> wrote:
-> On Fri, Jul 18, 2014 at 12:21:04AM -0400, Nick Krause wrote:
->> The build for sparc allmodconfig is still failing for the main branch
->> of the linux kernel.
->> I would recommend fixing these issues. I am attaching my build
->> warnings and errors
->> logs for the failing build test I did today.
->
-> Did you actually look into the log yourself?
->
-> This should give you a hint:
->
-> make[1]: *** No rule to make target `/media/nick/Nick's', needed by
-> +`kernel/x509_certificate_list'.  Stop.
->
->
-> All the rest are random warnings that may or may not be specific for sparc64.
->
->         Sam
+/dev/mdesc on Linux does not support reading arbitrary number
+of bytes and seeking while /dev/mdesc on Solaris does. This
+causes tools that work on Solaris to break on Linux. This patch
+adds these two capabilities to /dev/mdesc.
 
-I did , needs this issue is on my computer. I thought that this was a common
-error. Therefore it seems it builds correctly now if we exclude my build error.
-Cheers Nick
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+---
+v2:
+	- Cleaned up code in mdesc_read() and mdesc_llseek() to be
+	  more readable
+
+ arch/sparc/kernel/mdesc.c | 80 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 67 insertions(+), 13 deletions(-)
+
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index a1a4400..be7d245 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -906,29 +906,83 @@ void mdesc_fill_in_cpu_data(cpumask_t *mask)
+ 	smp_fill_in_sib_core_maps();
+ }
+ 
+-static ssize_t mdesc_read(struct file *file, char __user *buf,
+-			  size_t len, loff_t *offp)
++/* mdesc_open() - Grab a reference to mdesc_handle when /dev/mdesc is
++ *	opened. Hold this reference until /dev/mdesc is closed to ensure
++ *	mdesc data structure is not released underneath us. Store the
++ *	pointer to mdesc structure in private_data for read and seek to use
++ */
++static int mdesc_open(struct inode *inode, struct file *file)
+ {
+ 	struct mdesc_handle *hp = mdesc_grab();
+-	int err;
+ 
+ 	if (!hp)
+ 		return -ENODEV;
+ 
+-	err = hp->handle_size;
+-	if (len < hp->handle_size)
+-		err = -EMSGSIZE;
+-	else if (copy_to_user(buf, &hp->mdesc, hp->handle_size))
+-		err = -EFAULT;
+-	mdesc_release(hp);
++	file->private_data = hp;
++	return 0;
++}
+ 
+-	return err;
++static ssize_t mdesc_read(struct file *file, char __user *buf,
++			  size_t len, loff_t *offp)
++{
++	struct mdesc_handle *hp = file->private_data;
++	unsigned char *mdesc;
++	int bytes_left, count = len;
++
++	if (*offp >= hp->handle_size)
++		return 0;
++
++	bytes_left = hp->handle_size - *offp;
++	if (count > bytes_left)
++		count = bytes_left;
++
++	mdesc = (unsigned char *)&hp->mdesc;
++	mdesc += *offp;
++	if (!copy_to_user(buf, mdesc, count)) {
++		*offp += count;
++		return count;
++	} else {
++		return -EFAULT;
++	}
++}
++
++static loff_t mdesc_llseek(struct file *file, loff_t offset, int whence)
++{
++	struct mdesc_handle *hp;
++
++	switch (whence) {
++	case SEEK_CUR:
++		offset += file->f_pos;
++		break;
++	case SEEK_SET:
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	hp = file->private_data;
++	if (offset > hp->handle_size)
++		return -EINVAL;
++	else
++		file->f_pos = offset;
++	return offset;
++}
++
++/* mdesc_close() - /dev/mdesc is being closed, release the reference to
++ *	mdesc structure.
++ */
++static int mdesc_close(struct inode *inode, struct file *file)
++{
++	mdesc_release(file->private_data);
++	return 0;
+ }
+ 
+ static const struct file_operations mdesc_fops = {
+-	.read	= mdesc_read,
+-	.owner	= THIS_MODULE,
+-	.llseek = noop_llseek,
++	.open    = mdesc_open,
++	.read	 = mdesc_read,
++	.llseek  = mdesc_llseek,
++	.release = mdesc_close,
++	.owner	 = THIS_MODULE,
+ };
+ 
+ static struct miscdevice mdesc_misc = {
+-- 
+1.9.1
+
