@@ -1,22 +1,134 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Jul 2014 04:38:36 +0000
-Subject: Re: [RESEND][PATCH] sparc: use %s for unaligned panic
-Message-Id: <20140721.213836.2235386730808030831.davem@davemloft.net>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 18 Jul 2014 15:15:40 +0000
+Subject: [PATCH v3] sparc: Add support for seek and shorter read to /dev/mdesc
+Message-Id: <1405696541-25189-1-git-send-email-khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140630203759.GA4764@www.outflux.net>
-In-Reply-To: <20140630203759.GA4764@www.outflux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: keescook@chromium.org
-Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, sparclinux@vger.kernel.org
+To: davem@davemloft.net, sam@ravnborg.org
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
-Date: Mon, 30 Jun 2014 13:37:59 -0700
+/dev/mdesc on Linux does not support reading arbitrary number
+of bytes and seeking while /dev/mdesc on Solaris does. This
+causes tools that work on Solaris to break on Linux. This patch
+adds these two capabilities to /dev/mdesc.
 
-> Since unaligned_panic() takes a literal string, make sure it can never
-> accidentally be used as a format string.
-> 
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+---
+v3:
+	- Whitespace cleanup
 
-Unnecessary, but harmless, so applied to sparc-next, thanks.
+v2:
+	- Cleaned up code in mdesc_read() and mdesc_llseek() to be
+	  more readable
+
+ arch/sparc/kernel/mdesc.c | 82 +++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 69 insertions(+), 13 deletions(-)
+
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index a1a4400..99632a8 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -906,29 +906,85 @@ void mdesc_fill_in_cpu_data(cpumask_t *mask)
+ 	smp_fill_in_sib_core_maps();
+ }
+ 
+-static ssize_t mdesc_read(struct file *file, char __user *buf,
+-			  size_t len, loff_t *offp)
++/* mdesc_open() - Grab a reference to mdesc_handle when /dev/mdesc is
++ * opened. Hold this reference until /dev/mdesc is closed to ensure
++ * mdesc data structure is not released underneath us. Store the
++ * pointer to mdesc structure in private_data for read and seek to use
++ */
++static int mdesc_open(struct inode *inode, struct file *file)
+ {
+ 	struct mdesc_handle *hp = mdesc_grab();
+-	int err;
+ 
+ 	if (!hp)
+ 		return -ENODEV;
+ 
+-	err = hp->handle_size;
+-	if (len < hp->handle_size)
+-		err = -EMSGSIZE;
+-	else if (copy_to_user(buf, &hp->mdesc, hp->handle_size))
+-		err = -EFAULT;
+-	mdesc_release(hp);
++	file->private_data = hp;
++
++	return 0;
++}
++
++static ssize_t mdesc_read(struct file *file, char __user *buf,
++			  size_t len, loff_t *offp)
++{
++	struct mdesc_handle *hp = file->private_data;
++	unsigned char *mdesc;
++	int bytes_left, count = len;
++
++	if (*offp >= hp->handle_size)
++		return 0;
++
++	bytes_left = hp->handle_size - *offp;
++	if (count > bytes_left)
++		count = bytes_left;
++
++	mdesc = (unsigned char *)&hp->mdesc;
++	mdesc += *offp;
++	if (!copy_to_user(buf, mdesc, count)) {
++		*offp += count;
++		return count;
++	} else {
++		return -EFAULT;
++	}
++}
+ 
+-	return err;
++static loff_t mdesc_llseek(struct file *file, loff_t offset, int whence)
++{
++	struct mdesc_handle *hp;
++
++	switch (whence) {
++	case SEEK_CUR:
++		offset += file->f_pos;
++		break;
++	case SEEK_SET:
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	hp = file->private_data;
++	if (offset > hp->handle_size)
++		return -EINVAL;
++	else
++		file->f_pos = offset;
++
++	return offset;
++}
++
++/* mdesc_close() - /dev/mdesc is being closed, release the reference to
++ * mdesc structure.
++ */
++static int mdesc_close(struct inode *inode, struct file *file)
++{
++	mdesc_release(file->private_data);
++	return 0;
+ }
+ 
+ static const struct file_operations mdesc_fops = {
+-	.read	= mdesc_read,
+-	.owner	= THIS_MODULE,
+-	.llseek = noop_llseek,
++	.open    = mdesc_open,
++	.read	 = mdesc_read,
++	.llseek  = mdesc_llseek,
++	.release = mdesc_close,
++	.owner	 = THIS_MODULE,
+ };
+ 
+ static struct miscdevice mdesc_misc = {
+-- 
+1.9.1
+
