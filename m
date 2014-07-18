@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 18 Jul 2014 07:37:59 +0000
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Fri, 18 Jul 2014 14:08:12 +0000
 Subject: Re: Sparc: Fix Mes in highmem.c
-Message-Id: <20140718073758.GA20028@ravnborg.org>
+Message-Id: <20140718140812.GB23985@home.goodmis.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CAPDOMVjTxTNTfgPJMz6eNfabXuvtJ43YMpEeDEQ236EtF168Cg@mail.gmail.com>
  <20140717075204.GA15569@ravnborg.org>
@@ -12,7 +12,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Nick Krause <xerofoify@gmail.com>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 On Thu, Jul 17, 2014 at 11:05:12PM -0400, Nick Krause wrote:
 > On Thu, Jul 17, 2014 at 1:38 PM, Nick Krause <xerofoify@gmail.com> wrote:
@@ -30,8 +30,13 @@ On Thu, Jul 17, 2014 at 11:05:12PM -0400, Nick Krause wrote:
 > > overhaul the highmem  for
 > > sparc32.
 > > Cheers Nick
-> If you want I can fix the sparc32 highmem area with your help.
+> If you want I can fix the sparc32 highmem area with your help. I am new
+> to the kernel so a little help if needed would be great when doing this work
+> for you:).
 
-This is not just something that one can jump on fixing.
+It will take a bit more than a "little help" to do such a task. Among other
+things, owning a sparc32 box is one of them. Do you happen to have one?
+Or do you have access to one?
 
-	Sam
+-- Steve
+
