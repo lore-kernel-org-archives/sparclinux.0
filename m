@@ -1,129 +1,384 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Sat, 26 Jul 2014 19:03:02 +0000
-Subject: [PATCH 3.15 100/109] locking/mutex: Disable optimistic spinning on some architectures
-Message-Id: <20140726190226.856788942@linuxfoundation.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Jul 2014 11:39:02 +0000
+Subject: [PATCH 5/6] sparc64: reorder functions in io_64.h
+Message-Id: <1405856343-3762-5-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140726190223.834037485@linuxfoundation.org>
-In-Reply-To: <20140726190223.834037485@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-3.15-stable review patch.  If anyone has any objections, please let me know.
+Reorder functions so __raw_{read,write}* functions comes first,
+followed by {read,write}*
 
-------------------
+Update comments for the two blocks of functions.
 
-From: Peter Zijlstra <peterz@infradead.org>
-
-commit 4badad352a6bb202ec68afa7a574c0bb961e5ebc upstream.
-
-The optimistic spin code assumes regular stores and cmpxchg() play nice;
-this is found to not be true for at least: parisc, sparc32, tile32,
-metag-lock1, arc-!llsc and hexagon.
-
-There is further wreckage, but this in particular seemed easy to
-trigger, so blacklist this.
-
-Opt in for known good archs.
-
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
-Reported-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Jason Low <jason.low2@hp.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
-Cc: John David Anglin <dave.anglin@bell.net>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Link: http://lkml.kernel.org/r/20140606175316.GV13930@laptop.programming.kicks-ass.net
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/arm/Kconfig     |    1 +
- arch/arm64/Kconfig   |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/sparc/Kconfig   |    1 +
- arch/x86/Kconfig     |    1 +
- kernel/Kconfig.locks |    5 ++++-
- 6 files changed, 9 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/io_64.h | 338 +++++++++++++++++++++--------------------
+ 1 file changed, 172 insertions(+), 166 deletions(-)
 
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -6,6 +6,7 @@ config ARM
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_WANT_IPC_PARSE_VERSION
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -145,6 +145,7 @@ config PPC
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
- 	select ARCH_USE_CMPXCHG_LOCKREF if PPC64
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select ARCH_SUPPORTS_ATOMIC_RMW
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 6df9743..6c55c53 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -12,6 +12,178 @@
+ /* BIO layer definitions. */
+ extern unsigned long kern_base, kern_size;
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -78,6 +78,7 @@ config SPARC64
- 	select HAVE_C_RECORDMCOUNT
- 	select NO_BOOTMEM
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 
- config ARCH_DEFCONFIG
- 	string
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -130,6 +130,7 @@ config X86
- 	select HAVE_CC_STACKPROTECTOR
- 	select GENERIC_CPU_AUTOPROBE
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 
- config INSTRUCTION_DECODER
- 	def_bool y
---- a/kernel/Kconfig.locks
-+++ b/kernel/Kconfig.locks
-@@ -220,6 +220,9 @@ config INLINE_WRITE_UNLOCK_IRQRESTORE
- 
- endif
- 
-+config ARCH_SUPPORTS_ATOMIC_RMW
-+	bool
++/* __raw_{read,write}{b,w,l,q} uses direct access.
++ * Access the memory as big endian bypassing the cache
++ * by using ASI_PHYS_BYPASS_EC_E
++ */
++#define __raw_readb __raw_readb
++static inline u8 __raw_readb(const volatile void __iomem *addr)
++{
++	u8 ret;
 +
- config MUTEX_SPIN_ON_OWNER
- 	def_bool y
--	depends on SMP && !DEBUG_MUTEXES
-+	depends on SMP && !DEBUG_MUTEXES && ARCH_SUPPORTS_ATOMIC_RMW
-
++	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_raw_readb */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++
++	return ret;
++}
++
++#define __raw_readw __raw_readw
++static inline u16 __raw_readw(const volatile void __iomem *addr)
++{
++	u16 ret;
++
++	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_raw_readw */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++
++	return ret;
++}
++
++#define __raw_readl __raw_readl
++static inline u32 __raw_readl(const volatile void __iomem *addr)
++{
++	u32 ret;
++
++	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_raw_readl */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++
++	return ret;
++}
++
++#define __raw_readq __raw_readq
++static inline u64 __raw_readq(const volatile void __iomem *addr)
++{
++	u64 ret;
++
++	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_raw_readq */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++
++	return ret;
++}
++
++#define __raw_writeb __raw_writeb
++static inline void __raw_writeb(u8 b, const volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_raw_writeb */"
++			     : /* no outputs */
++			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++}
++
++#define __raw_writew __raw_writew
++static inline void __raw_writew(u16 w, const volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_raw_writew */"
++			     : /* no outputs */
++			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++}
++
++#define __raw_writel __raw_writel
++static inline void __raw_writel(u32 l, const volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_raw_writel */"
++			     : /* no outputs */
++			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++}
++
++#define __raw_writeq __raw_writeq
++static inline void __raw_writeq(u64 q, const volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_raw_writeq */"
++			     : /* no outputs */
++			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
++}
++
++/* Memory functions, same as I/O accesses on Ultra.
++ * Access memory as little endian bypassing
++ * the cache by using ASI_PHYS_BYPASS_EC_E_L
++ */
++#define readb readb
++static inline u8 readb(const volatile void __iomem *addr)
++{	u8 ret;
++
++	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_readb */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++	return ret;
++}
++
++#define readw readw
++static inline u16 readw(const volatile void __iomem *addr)
++{	u16 ret;
++
++	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_readw */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++
++	return ret;
++}
++
++#define readl readl
++static inline u32 readl(const volatile void __iomem *addr)
++{	u32 ret;
++
++	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_readl */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++
++	return ret;
++}
++
++#define readq readq
++static inline u64 readq(const volatile void __iomem *addr)
++{	u64 ret;
++
++	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_readq */"
++			     : "=r" (ret)
++			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++
++	return ret;
++}
++
++#define writeb writeb
++static inline void writeb(u8 b, volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_writeb */"
++			     : /* no outputs */
++			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++}
++
++#define writew writew
++static inline void writew(u16 w, volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_writew */"
++			     : /* no outputs */
++			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++}
++
++#define writel writel
++static inline void writel(u32 l, volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_writel */"
++			     : /* no outputs */
++			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++}
++
++#define writeq writeq
++static inline void writeq(u64 q, volatile void __iomem *addr)
++{
++	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_writeq */"
++			     : /* no outputs */
++			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
++			     : "memory");
++}
++
++
+ #define inb inb
+ static inline u8 inb(unsigned long addr)
+ {
+@@ -122,177 +294,11 @@ static inline void iowrite32_rep(void __iomem *port, const void *buf, unsigned l
+ 	outsl((unsigned long __force)port, buf, count);
+ }
+ 
+-/* Memory functions, same as I/O accesses on Ultra. */
+-#define readb readb
+-static inline u8 readb(const volatile void __iomem *addr)
+-{	u8 ret;
+-
+-	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_readb */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-	return ret;
+-}
+-
+-#define readw readw
+-static inline u16 readw(const volatile void __iomem *addr)
+-{	u16 ret;
+-
+-	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_readw */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
+-}
+-
+-#define readl readl
+-static inline u32 readl(const volatile void __iomem *addr)
+-{	u32 ret;
+-
+-	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_readl */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
+-}
+-
+-#define readq readq
+-static inline u64 readq(const volatile void __iomem *addr)
+-{	u64 ret;
+-
+-	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_readq */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
+-}
+-
+-#define writeb writeb
+-static inline void writeb(u8 b, volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_writeb */"
+-			     : /* no outputs */
+-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-}
+-
+-#define writew writew
+-static inline void writew(u16 w, volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_writew */"
+-			     : /* no outputs */
+-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-}
+-
+-#define writel writel
+-static inline void writel(u32 l, volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_writel */"
+-			     : /* no outputs */
+-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-}
+-
+-#define writeq writeq
+-static inline void writeq(u64 q, volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_writeq */"
+-			     : /* no outputs */
+-			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-}
+-
+ #define readb_relaxed(__addr)	readb(__addr)
+ #define readw_relaxed(__addr)	readw(__addr)
+ #define readl_relaxed(__addr)	readl(__addr)
+ #define readq_relaxed(__addr)	readq(__addr)
+ 
+-/* Now versions without byte-swapping. */
+-#define __raw_readb __raw_readb
+-static inline u8 __raw_readb(const volatile void __iomem *addr)
+-{
+-	u8 ret;
+-
+-	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_raw_readb */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-
+-	return ret;
+-}
+-
+-#define __raw_readw __raw_readw
+-static inline u16 __raw_readw(const volatile void __iomem *addr)
+-{
+-	u16 ret;
+-
+-	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_raw_readw */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-
+-	return ret;
+-}
+-
+-#define __raw_readl __raw_readl
+-static inline u32 __raw_readl(const volatile void __iomem *addr)
+-{
+-	u32 ret;
+-
+-	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_raw_readl */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-
+-	return ret;
+-}
+-
+-#define __raw_readq __raw_readq
+-static inline u64 __raw_readq(const volatile void __iomem *addr)
+-{
+-	u64 ret;
+-
+-	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* pci_raw_readq */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-
+-	return ret;
+-}
+-
+-#define __raw_writeb __raw_writeb
+-static inline void __raw_writeb(u8 b, const volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_raw_writeb */"
+-			     : /* no outputs */
+-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-}
+-
+-#define __raw_writew __raw_writew
+-static inline void __raw_writew(u16 w, const volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_raw_writew */"
+-			     : /* no outputs */
+-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-}
+-
+-#define __raw_writel __raw_writel
+-static inline void __raw_writel(u32 l, const volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_raw_writel */"
+-			     : /* no outputs */
+-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-}
+-
+-#define __raw_writeq __raw_writeq
+-static inline void __raw_writeq(u64 q, const volatile void __iomem *addr)
+-{
+-	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* pci_raw_writeq */"
+-			     : /* no outputs */
+-			     : "Jr" (q), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E));
+-}
+-
+-
+ /* Valid I/O Space regions are anywhere, because each PCI bus supported
+  * can live in an arbitrary area of the physical address range.
+  */
+-- 
+1.9.3
 
