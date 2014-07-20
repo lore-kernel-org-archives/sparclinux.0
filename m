@@ -1,91 +1,200 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 29 Jul 2014 23:26:35 +0000
-Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20140729.162635.638786990787878495.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 20 Jul 2014 11:39:03 +0000
+Subject: [PATCH 6/6] sparc64: avoid code duplication in io_64.h
+Message-Id: <1405856343-3762-6-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140414184353.GA5630@drone.musicnaut.iki.fi>
-	<20140416.145822.1317931249717152474.davem@davemloft.net>
-	<alpine.SOC.1.00.1404170119550.20193@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1404170119550.20193@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
+To: sparclinux@vger.kernel.org
 
-From: mroos@linux.ee
-Date: Thu, 17 Apr 2014 01:22:17 +0300 (EEST)
+Several of the small IO functions ended up having the same implementation.
+Use __raw_{read,write}* + {read,write}* as base for the others.
 
->> > Just for the archives, I got one of these again with 3.14:
->> 
->> Meelis and Aaro, thanks again for all of your reports.
->> 
->> After pouring over a lot of the data and auditing some code I'm
->> suspecting it's a problem with transparent huge pages.
->> 
->> One thing you two can do to help me further confirm this is to run
->> with THP disabled for a while and see if you still get the log
->> messages.
-> 
-> I have snice turned off CONFIG_TRANSPARENT_HUGEPAGE on 3 of 4 servers 
-> that had this problem (actually most of my sparc64 machines) and the 4th 
-> has
-> 
-> CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE=y
-> CONFIG_TRANSPARENT_HUGEPAGE=y
-> # CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS is not set
-> CONFIG_TRANSPARENT_HUGEPAGE_MADVISE=y
-> # CONFIG_HUGETLBFS is not set
-> # CONFIG_HUGETLB_PAGE is not se
-> 
-> and also has not had this problem since then. All 4 machines have been 
-> running through most -rc's of every kernel.
+Continue to use static inline functions to get full type check.
+The size of vmlinux for a defconfig build was the same when
+using static inline and macros for the functions - so there
+was no size win when using macros.
 
-Here is something I'd like you guys to test.
+This was tested with gcc 4.8.2 + binutils 2.24.
+For such simple constructs I assume older gcc's will
+do the same job.
 
-Yesterday, Christopher (CC:'d), posted some fixes yesterday and one of
-them is very interesting.
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/io_64.h | 100 +++++++----------------------------------
+ 1 file changed, 15 insertions(+), 85 deletions(-)
 
-Basically the update_mmu_cache() methods on sparc64 can insert an
-invalid PTE into the TSB hash tables, causing livelocks and other
-annoying issues.
-
-The path where this can happen is via remove_migration_pte().
-
-I had a discussion with Johannes Weiner about this and we determined
-that it would make sense to mis-diagnose THP as being the root cause
-in the RSS counter et al. problems if this bug here is the real
-reason those things are happening.
-
-That's because if you're not using THP there is less compaction going
-on.  Less compaction means less migration, and therefore a lower
-likelyhood of this code path triggering like this.
-
-Could you guys please try this patch below?  Thanks.
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 16b58ff..8e894e0 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -351,6 +351,10 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 6c55c53..80b54b3 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -187,67 +187,37 @@ static inline void writeq(u64 q, volatile void __iomem *addr)
+ #define inb inb
+ static inline u8 inb(unsigned long addr)
+ {
+-	u8 ret;
+-
+-	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* pci_inb */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
++	return readb((volatile void __iomem *)addr);
+ }
  
- 	mm = vma->vm_mm;
+ #define inw inw
+ static inline u16 inw(unsigned long addr)
+ {
+-	u16 ret;
+-
+-	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* pci_inw */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
++	return readw((volatile void __iomem *)addr);
+ }
  
-+	/* Don't insert a non-valid PTE into the TSB, we'll deadlock.  */
-+	if (!pte_accessible(mm, pte))
-+		return;
-+
- 	spin_lock_irqsave(&mm->context.lock, flags);
+ #define inl inl
+ static inline u32 inl(unsigned long addr)
+ {
+-	u32 ret;
+-
+-	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* pci_inl */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
+-
+-	return ret;
++	return readl((volatile void __iomem *)addr);
+ }
  
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-@@ -2617,6 +2621,10 @@ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
- 	if (!pmd_large(entry) || !pmd_young(entry))
- 		return;
+ #define outb outb
+ static inline void outb(u8 b, unsigned long addr)
+ {
+-	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* pci_outb */"
+-			     : /* no outputs */
+-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
++	writeb(b, (volatile void __iomem *)addr);
+ }
  
-+	/* Don't insert a non-valid PMD into the TSB, we'll deadlock.  */
-+	if (!(pte & _PAGE_VALID))
-+		return;
-+
- 	pte = pmd_val(entry);
+ #define outw outw
+ static inline void outw(u16 w, unsigned long addr)
+ {
+-	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* pci_outw */"
+-			     : /* no outputs */
+-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
++	writew(w, (volatile void __iomem *)addr);
+ }
  
- 	/* We are fabricating 8MB pages using 4MB real hw pages.  */
+ #define outl outl
+ static inline void outl(u32 l, unsigned long addr)
+ {
+-	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* pci_outl */"
+-			     : /* no outputs */
+-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E_L)
+-			     : "memory");
++	writel(l, (volatile void __iomem *)addr);
+ }
+ 
+ 
+@@ -309,82 +279,42 @@ static inline void iowrite32_rep(void __iomem *port, const void *buf, unsigned l
+  */
+ static inline u8 sbus_readb(const volatile void __iomem *addr)
+ {
+-	u8 ret;
+-
+-	__asm__ __volatile__("lduba\t[%1] %2, %0\t/* sbus_readb */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
+-
+-	return ret;
++	return __raw_readb(addr);
+ }
+ 
+ static inline u16 sbus_readw(const volatile void __iomem *addr)
+ {
+-	u16 ret;
+-
+-	__asm__ __volatile__("lduha\t[%1] %2, %0\t/* sbus_readw */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
+-
+-	return ret;
++	return __raw_readw(addr);
+ }
+ 
+ static inline u32 sbus_readl(const volatile void __iomem *addr)
+ {
+-	u32 ret;
+-
+-	__asm__ __volatile__("lduwa\t[%1] %2, %0\t/* sbus_readl */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
+-
+-	return ret;
++	return __raw_readl(addr);
+ }
+ 
+ static inline u64 sbus_readq(const volatile void __iomem *addr)
+ {
+-	u64 ret;
+-
+-	__asm__ __volatile__("ldxa\t[%1] %2, %0\t/* sbus_readq */"
+-			     : "=r" (ret)
+-			     : "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
+-
+-	return ret;
++	return __raw_readq(addr);
+ }
+ 
+ static inline void sbus_writeb(u8 b, volatile void __iomem *addr)
+ {
+-	__asm__ __volatile__("stba\t%r0, [%1] %2\t/* sbus_writeb */"
+-			     : /* no outputs */
+-			     : "Jr" (b), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
++	__raw_writeb(b, addr);
+ }
+ 
+ static inline void sbus_writew(u16 w, volatile void __iomem *addr)
+ {
+-	__asm__ __volatile__("stha\t%r0, [%1] %2\t/* sbus_writew */"
+-			     : /* no outputs */
+-			     : "Jr" (w), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
++	__raw_writew(w, addr);
+ }
+ 
+ static inline void sbus_writel(u32 l, volatile void __iomem *addr)
+ {
+-	__asm__ __volatile__("stwa\t%r0, [%1] %2\t/* sbus_writel */"
+-			     : /* no outputs */
+-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
++	__raw_writel(l, addr);
+ }
+ 
+-static inline void sbus_writeq(u64 l, volatile void __iomem *addr)
++static inline void sbus_writeq(u64 q, volatile void __iomem *addr)
+ {
+-	__asm__ __volatile__("stxa\t%r0, [%1] %2\t/* sbus_writeq */"
+-			     : /* no outputs */
+-			     : "Jr" (l), "r" (addr), "i" (ASI_PHYS_BYPASS_EC_E)
+-			     : "memory");
++	__raw_writeq(q, addr);
+ }
+ 
+ static inline void sbus_memset_io(volatile void __iomem *dst, int c, __kernel_size_t n)
+-- 
+1.9.3
+
