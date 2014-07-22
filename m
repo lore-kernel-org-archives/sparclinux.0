@@ -1,29 +1,22 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Jul 2014 04:37:57 +0000
-Subject: Re: [PATCH] display7seg: Introduce the use of the managed version of kzalloc
-Message-Id: <20140721.213757.334607182319263871.davem@davemloft.net>
+Date: Tue, 22 Jul 2014 04:38:18 +0000
+Subject: Re: [PATCH] drivers/sbus/char: Micro-optimization in display7seg.c
+Message-Id: <20140721.213818.1578856121778935701.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140526213207.GA1815@himangi-Dell>
-In-Reply-To: <20140526213207.GA1815@himangi-Dell>
+References: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
+In-Reply-To: <1403181112-12018-1-git-send-email-linux@rasmusvillemoes.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: himangi774@gmail.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, julia.lawall@lip6.fr, sam@ravnborg.org
+To: linux@rasmusvillemoes.dk
+Cc: paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Himangi Saraogi <himangi774@gmail.com>
-Date: Tue, 27 May 2014 03:02:07 +0530
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Date: Thu, 19 Jun 2014 14:31:52 +0200
 
-> This patch moves data allocated using kzalloc to managed data allocated
-> using devm_kzalloc and cleans now unnecessary kfrees in probe and remove
-> functions. The header file is added to make the devm function explicitly
-> available.
+> Flipping a bit doesn't need four lines of code; and gcc seems to
+> actually generate two branches.
 > 
-> The following Coccinelle semantic patch was used for making a part of
-> the change:
- ...
-> Signed-off-by: Himangi Saraogi <himangi774@gmail.com>
-> Acked-by: Julia Lawall <julia.lawall@lip6.fr>
-> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-Applied to sparc-next.
+Applied to sparc-next
