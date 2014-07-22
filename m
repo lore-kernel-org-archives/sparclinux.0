@@ -1,32 +1,39 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 14 Jul 2014 06:11:33 +0000
-Subject: Re: SILO on Qemu Sparc v8 unable to boot stripped kernel
-Message-Id: <20140714061133.GA29068@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 22 Jul 2014 05:38:16 +0000
+Subject: [GIT] Sparc
+Message-Id: <20140721.223816.1457327353814495306.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
-In-Reply-To: <CACwypyMhN9fj34VmgiXEFNmH28up5if3wW_xajYOLy0kR2An5Q@mail.gmail.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Jul 13, 2014 at 09:08:47PM -0400, chase rayfield wrote:
-> I sorted out the remaining issues and you can now download the first
-> working version I have produced links below. Only tested in QEMU so
-> far due to lack of time since I started my new job.
-> 
-> This is using Glibc 2.17, GCC 4.5.4, Binutils 2.21.1 and Linux
-> 2.6.32-r41 (Gentoo revision 41) all the packages are at the latest
-> stable revision otherwise. I may add a version that includes more
-> things to demo and such to make testing sparc32 convenient in QEMU or
-> real hardware.
-> 
-> http://www.gh0stwriter.net/gentoo/
-> 
-> http://www.gh0stwriter.net/archive/install-sparc-minimal-20140620.iso
 
-Thanks for providing these.
-Can you find time to tell what the issues was - so others can avoid the same.
-Even if it was some stupid thing others could fail into the same.
+Need to hook up the new renameat2 system call.
 
-	Sam
+Please pull, thanks!
+
+The following changes since commit 9a3c4145af32125c5ee39c0272662b47307a8323:
+
+  Linux 3.16-rc6 (2014-07-20 21:04:16 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+
+for you to fetch changes up to 26053926feb1c16ade9c30bc7443bf28d829d08e:
+
+  sparc: Hook up renameat2 syscall. (2014-07-21 22:27:56 -0700)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      sparc: Hook up renameat2 syscall.
+
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/sys32.S            | 1 +
+ arch/sparc/kernel/systbls_32.S       | 1 +
+ arch/sparc/kernel/systbls_64.S       | 2 ++
+ 4 files changed, 6 insertions(+), 1 deletion(-)
