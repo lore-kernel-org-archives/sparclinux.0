@@ -1,64 +1,129 @@
-From: Minchan Kim <minchan@kernel.org>
-Date: Wed, 09 Jul 2014 06:22:24 +0000
-Subject: [PATCH v12 3/8] sparc: add pmd_[dirty|mkclean] for THP
-Message-Id: <1404886949-17695-4-git-send-email-minchan@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Sat, 26 Jul 2014 19:03:02 +0000
+Subject: [PATCH 3.15 100/109] locking/mutex: Disable optimistic spinning on some architectures
+Message-Id: <20140726190226.856788942@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1404886949-17695-1-git-send-email-minchan@kernel.org>
-In-Reply-To: <1404886949-17695-1-git-send-email-minchan@kernel.org>
+References: <20140726190223.834037485@linuxfoundation.org>
+In-Reply-To: <20140726190223.834037485@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, Linux API <linux-api@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
-overwrite of the contents since MADV_FREE syscall is called for
-THP page.
+3.15-stable review patch.  If anyone has any objections, please let me know.
 
-This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
-support.
+------------------
 
-Cc: "David S. Miller" <davem@davemloft.net>
+From: Peter Zijlstra <peterz@infradead.org>
+
+commit 4badad352a6bb202ec68afa7a574c0bb961e5ebc upstream.
+
+The optimistic spin code assumes regular stores and cmpxchg() play nice;
+this is found to not be true for at least: parisc, sparc32, tile32,
+metag-lock1, arc-!llsc and hexagon.
+
+There is further wreckage, but this in particular seemed easy to
+trigger, so blacklist this.
+
+Opt in for known good archs.
+
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Reported-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Waiman Long <waiman.long@hp.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
 Cc: sparclinux@vger.kernel.org
-Signed-off-by: Minchan Kim <minchan@kernel.org>
----
- arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+Link: http://lkml.kernel.org/r/20140606175316.GV13930@laptop.programming.kicks-ass.net
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 3770bf5c6e1b..b80a309d7e00 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
- 	return pte_young(pte);
- }
+---
+ arch/arm/Kconfig     |    1 +
+ arch/arm64/Kconfig   |    1 +
+ arch/powerpc/Kconfig |    1 +
+ arch/sparc/Kconfig   |    1 +
+ arch/x86/Kconfig     |    1 +
+ kernel/Kconfig.locks |    5 ++++-
+ 6 files changed, 9 insertions(+), 1 deletion(-)
+
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -6,6 +6,7 @@ config ARM
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_USE_CMPXCHG_LOCKREF
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -145,6 +145,7 @@ config PPC
+ 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
+ 	select ARCH_USE_CMPXCHG_LOCKREF if PPC64
+ 	select HAVE_ARCH_AUDITSYSCALL
++	select ARCH_SUPPORTS_ATOMIC_RMW
  
-+static inline int pmd_dirty(pmd_t pmd)
-+{
-+	pte_t pte = __pte(pmd_val(pmd));
-+
-+	return pte_dirty(pte);
-+}
-+
- static inline unsigned long pmd_write(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
- 	return __pmd(pte_val(pte));
- }
+ config GENERIC_CSUM
+ 	def_bool CPU_LITTLE_ENDIAN
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -78,6 +78,7 @@ config SPARC64
+ 	select HAVE_C_RECORDMCOUNT
+ 	select NO_BOOTMEM
+ 	select HAVE_ARCH_AUDITSYSCALL
++	select ARCH_SUPPORTS_ATOMIC_RMW
  
-+static inline pmd_t pmd_mkclean(pmd_t pmd)
-+{
-+	pte_t pte = __pte(pmd_val(pmd));
+ config ARCH_DEFCONFIG
+ 	string
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -130,6 +130,7 @@ config X86
+ 	select HAVE_CC_STACKPROTECTOR
+ 	select GENERIC_CPU_AUTOPROBE
+ 	select HAVE_ARCH_AUDITSYSCALL
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool y
+--- a/kernel/Kconfig.locks
++++ b/kernel/Kconfig.locks
+@@ -220,6 +220,9 @@ config INLINE_WRITE_UNLOCK_IRQRESTORE
+ 
+ endif
+ 
++config ARCH_SUPPORTS_ATOMIC_RMW
++	bool
 +
-+	pte = pte_mkclean(pte);
-+
-+	return __pmd(pte_val(pte));
-+}
-+
- static inline pmd_t pmd_mkyoung(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
--- 
-2.0.0
+ config MUTEX_SPIN_ON_OWNER
+ 	def_bool y
+-	depends on SMP && !DEBUG_MUTEXES
++	depends on SMP && !DEBUG_MUTEXES && ARCH_SUPPORTS_ATOMIC_RMW
+
 
