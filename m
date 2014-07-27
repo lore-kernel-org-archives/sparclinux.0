@@ -1,122 +1,82 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 16 Jul 2014 21:00:20 +0000
-Subject: Re: [PATCH] sparc: Add support for seek and shorter read to /dev/mdesc
-Message-Id: <20140716210019.GA6587@ravnborg.org>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+Date: Sun, 27 Jul 2014 15:31:00 +0000
+Subject: Segmentation faults and RSS counter errors: Possible hints for cause?
+Message-Id: <201407271731.00668.cat.schulze@alice-dsl.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1405519323-3092-1-git-send-email-khalid.aziz@oracle.com>
- <20140716190414.GA6028@ravnborg.org>
- <53C6E214.3030902@oracle.com>
-In-Reply-To: <53C6E214.3030902@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Wed, Jul 16, 2014 at 02:35:32PM -0600, Khalid Aziz wrote:
-> Hi Sam,
-> 
-> Thanks for the feedback.
-> 
-> On 07/16/2014 01:04 PM, Sam Ravnborg wrote:
-> >Hi Kahlid.
-> >
-> >On Wed, Jul 16, 2014 at 08:02:03AM -0600, Khalid Aziz wrote:
-> >>/dev/mdesc on Linux does not support reading arbitrary number
-> >>of bytes and seeking while /dev/mdesc on Solaris does. This
-> >>causes tools that work on Solaris to break on Linux. This patch
-> >>adds these two capabilities to /dev/mdesc.
-> >>
-> >>Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-> >>---
-> >>  arch/sparc/kernel/mdesc.c | 77 ++++++++++++++++++++++++++++++++++++++++-------
-> >>  1 file changed, 66 insertions(+), 11 deletions(-)
-> >>
-> >>+/* mdesc_open() - Grab a reference to mdesc_handle when /dev/mdesc is
-> >>+ *	opened. Hold this reference until /dev/mdesc is closed to ensure
-> >>+ *	mdesc data structure is not released underneath us. Store the
-> >>+ *	pointer to mdesc structure in private_data for read and seek to use
-> >>+ */
-> >>+static int mdesc_open(struct inode *inode, struct file *file)
-> >>  {
-> >>  	struct mdesc_handle *hp = mdesc_grab();
-> >>
-> >>  	if (!hp)
-> >>  		return -ENODEV;
-> >>
-> >>+	file->private_data = hp;
-> >>+	return 0;
-> >>+}
-> >
-> >Do we know the open/close always come in pairs?
-> >I assume so - but there is no check fo this (at least on this level).
-> 
-> Most likely yes, but I wouldn't assume that to be guaranteed. Is that a
-> concern? Isn't "struct file" unique for each instance of open?
-I did not know. But I have checked a few other users
-of file_operations and they do not provide any protections.
-So you implementation is OK.
+On the SunBlade 2000 system which was affected by the lockup bug as
+discussed in my previous mail
 
+	[PATCH] Installing invalid entries in TSB causes hard lockup on UltraSPARC III
 
-> >>+
-> >>+static ssize_t mdesc_read(struct file *file, char __user *buf,
-> >>+			  size_t len, loff_t *offp)
-> >>+{
-> >>+	struct mdesc_handle *hp = file->private_data;
-> >>+	unsigned char *mdesc;
-> >>+	int err, bytes_left;
-> >>+
-> >>+	if (*offp >= hp->handle_size)
-> >>+		return 0;
-> >>+	err = len;
-> >>+	bytes_left = hp->handle_size - *offp;
-> >>+	if (len > bytes_left)
-> >>+		err = bytes_left;
-> >>+	mdesc = (unsigned char *)&hp->mdesc;
-> >>+	mdesc += *offp;
-> >>+	if (copy_to_user(buf, mdesc, err))
-> >>  		err = -EFAULT;
-> >>-	mdesc_release(hp);
-> >>+	else
-> >>+		*offp += err;
-> >>+
-> >>+	return err;
-> >>+}
-> >
-> >When reading your code it is confusing to read that err is set to len,
-> >and then maybe later set to an error value or a new len.
-> >
-> >See the following refactoring of mdesc_read() that avoids the err local
-> >variable resulting in more readable code.
-> >
-> >static ssize_t mdesc_read(struct file *file, char __user *buf,
-> >                        size_t len, loff_t *offp)
-> >{
-> >      struct mdesc_handle *hp = file->private_data;
-> >      unsigned char *mdesc;
-> >      int bytes_left;
-> >
-> >      if (*offp >= hp->handle_size)
-> >              return 0;
-> >
-> >      bytes_left = hp->handle_size - *offp;
-> >      if (len > bytes_left)
-> >              len = bytes_left;
-> >
-> >      mdesc = (unsigned char *)&hp->mdesc;
-> >      mdesc += *offp;
-> >      if (!copy_to_user(buf, mdesc, len)) {
-> >              *offp += len;
-> >	     return len;
-> >      } else {
-> >              return -EFAULT;
-> >      }
-> >}
-> >
-> >The above is IMO more readable.
-> 
-> I was simply following how err was used in the original code, but I agree
-> this is more readable. I can redo the patch.
-Please do so.
+we also experienced random segmentation faults in combination with
+RSS counter warnings, which would show under similar circumstances
+where the lockup bug hit (heavy disk I/O).
 
-	Sam
+During testing the patch as described in my previous mail, I added
+additional instrumentation to tsb_insert() to trigger in cases where
+a TSB entry with PTE.VALID = 0 was to be installed. This instrumentation
+dumped the TAG and PTE to the syslog, together with a stacktrace to show
+the call chain, and was not included in the patch as presented in my previous
+mail.
+
+While the patch as presented in my previous mail works flawlessly (no more
+lockups, no more segmentation faults and/or RSS counter errors, even under
+heavy stress testing), we noticed that the instrumentation patch did not
+prevent the segmentation fault and RSS counter error problems:
+
+Jul 21 10:43:31 troi kernel: [  986.918478] sshd[4408]: segfault at 15fc ip 00000000f7453f7c (rpc 00000000f7453f18) sp 00000000fffc6760 error 30001 in libc-2.13.so[f7394000+172000]
+Jul 21 10:43:31 troi kernel: [  987.291121] ------------[ cut here ]------------
+Jul 21 10:43:31 troi kernel: [  987.352984] WARNING: CPU: 0 PID: 4408 at mm/mmap.c:2736 exit_mmap+0x138/0x160()
+Jul 21 10:43:31 troi kernel: [  987.455605] Modules linked in: nfsd auth_rpcgss oid_registry nfs_acl nfs lockd fscache sunrpc loop snd_sun_cs4231 snd_pcm snd_page_alloc snd_timer snd soundcore ext4 crc16 mbcache 
+Jul 21 10:43:31 troi kernel: [  987.977807] CPU: 0 PID: 4408 Comm: sshd Not tainted 3.13.10 #3
+Jul 21 10:43:31 troi kernel: [  988.055697] Call Trace:
+Jul 21 10:43:31 troi kernel: [  988.092701]  [0000000000521e58] exit_mmap+0x138/0x160
+Jul 21 10:43:31 troi kernel: [  988.160972]  [000000000045be9c] mmput+0x5c/0x100
+Jul 21 10:43:31 troi kernel: [  988.223853]  [000000000045fdbc] do_exit+0x21c/0x9a0
+Jul 21 10:43:31 troi kernel: [  988.289832]  [00000000004605a4] do_group_exit+0x24/0xc0
+Jul 21 10:43:31 troi kernel: [  988.359881]  [000000000046dc80] get_signal_to_deliver+0x220/0x560
+Jul 21 10:43:31 troi kernel: [  988.440467]  [00000000004457f8] do_signal32+0x18/0xac0
+Jul 21 10:43:31 troi kernel: [  988.509488]  [000000000042cc20] do_signal+0x2c0/0x520
+Jul 21 10:43:31 troi kernel: [  988.577441]  [000000000042d680] do_notify_resume+0x40/0x60
+Jul 21 10:43:31 troi kernel: [  988.650551]  [0000000000404ac4] __handle_signal+0xc/0x2c
+Jul 21 10:43:31 troi kernel: [  988.721638] ---[ end trace 06eabdd105f65186 ]---
+Jul 21 10:43:31 troi kernel: [  988.784414] BUG: Bad rss-counter state mm:fffffc003deae4a0 idx:1 val:3
+
+The segmentation fault seems to occur in __fork() in GLIBC, shortly after the
+fork syscall returned, and the value of 0x15fc seems to indicate that some registers
+were corrupted (%g2 is set to the constant 0x15f8 in the two instructions preceding
+the memory access that segfaults, and the code tries to fetch a value from
+[%l7 + %g2], where %l7 was initialized before the fork syscall was performed). The
+value of %rpc is also quite suspicious: It seems to be an address in __fork() itself,
+where __fork() calls _IO_list_lock() (shortly before the fork syscall), so %rpc
+seems to belong to the register window of _IO_list_lock() and not to the window that
+_fork() should use.
+
+The fact that this segmentation fault seems to be related to forking, that
+installing TSB entries with VALID set to 0 was attempted in a code path
+that involved forking, and the RSS count warning for the process where the
+segfault occured makes me wonder whether this could be related to a
+register window spill onto the userspace stack, perhaps causing a fault-in
+of the stack page at a phase during forking where this might not be expected.
+
+Note that dumping a stack trace also involves flushing all register windows
+out to the stack, so the fact that we observed the segfault and RSS problem
+only in combination with the instrumentation patch (but not with the patch
+that just prevents invalid entries to be inserted into the TSB, with no further
+actions) could also point in this direction.
+
+Unfortunately, due to lack of direct access to an affected machine, I will not
+be able to investigate any further. However, I hope that these observations might
+help others to find and eliminate the cause of these segfaults and RSS counter
+bugs, so that the affected UltraSPARC III system is usable again with newer
+kernels. (Until then, my former colleague will be forced to run another SunBlade
+under 2.6.24, which has been performing absolutely flawlessly, without any
+such problems and with uptimes of > 1 year.)
+
+Regards,
+Alexander Schulze
