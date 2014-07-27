@@ -1,58 +1,184 @@
-From: Olivier Danet <odanet@caramail.com>
-Date: Thu, 31 Jul 2014 22:53:00 +0000
-Subject: Re: Consolidating Documentation for older hardware
-Message-Id: <53DAC8CC.6080605@caramail.com>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+Date: Sun, 27 Jul 2014 13:04:04 +0000
+Subject: [PATCH] Fix BBC I2C envctrl on SunBlade 2000
+Message-Id: <201407271504.05258.cat.schulze@alice-dsl.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CACwypyOiQP4VrN2mfoUsxJ34eL3mRxnkvGNX9eycEcNwMsqB2Q@mail.gmail.com>
-In-Reply-To: <CACwypyOiQP4VrN2mfoUsxJ34eL3mRxnkvGNX9eycEcNwMsqB2Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-On 31/07/2014 06:01, chase rayfield wrote:
-> As you may no many of the documents hosted on Oracle/Sun's network and
-> Tadpole have gone offline and are not hosted anywhere online.
-> 
-> I am archiving them locally so I can host them. If anyone sees a doc I
-> don't have yet or would like to share docs they are unable to host so
-> I can host them please email me the document or a link.
-> 
-> I'm mostly looking for 32bit sun hardware docs... but I'll archive
-> anything Sparc related!
-> 
-> I'm currently stashing everything at http://gh0stwriter.net/archive/ I
-> may sort things later on though. I just finished archiving
-> http://www.oracle.com/technetwork/documentation/legacy-solaris-192993.html
-> tonight so... anything that can be found there I'll archive myself no
-> need to mention those docs. I'd also appreciate if you only download
-> docs you can't otherwise find as the box this is hosted on has limited
-> bandwidth.
-> 
-> @Sam Ravenborg I believe you have a copy of "Sun-4M System
-> Architecture (revision 2.0) by Chuck Narad " would you mind sending me
-> that?
-> 
-> Thanks,
-> Chase Rayfield
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Hello Chase
+Boot bus I2C based temperature and fan control does not currently work=20
+on (at least) SunBlade 2000 systems. This is caused by the resource bbc_i2c=
+_bussel
+missing on the second BBC I2C bus the temp and fan sensors are attached to,=
+ only
+bbc_i2c_regs is present. While older drivers (2.6.24 era) could cope well w=
+ith that
+situation, the present drivers refuse to attach. This seems to be a regress=
+ion
+caused by the conversion to pure OF drivers on 2008-08-30:
 
-I have collected many documents about SparcStations and 32bits Sparcs.
-Some came from the late Sun "FOSS Open Hardware Documentation" webpage, 
-some from datasheet search engines, from sparc.org ...
-I do not remember the origin of each document, but I am 100% sure that they were
-all once freely downloadable.
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/driv=
+ers/sbus/char/bbc_i2c.c?id=E21e245bcd9d5244735799387d14421789b20557
 
-Copied there, need to be better organised :
-temlib.org/pub/SparcStation
+(look for the check "if (edev->num_addrs =3D 2)")
 
-(I may have a few more files of lesser interest around...)
+This patch restores the old behavior by checking num_resources before tryin=
+g to
+remap the bbc_i2c_bussel resource. If num_resources !=3D 2, only the bbc_i2=
+c_regs=20
+resource will be mapped. (The env & temp driver in bbc_envctrl still works =
+well
+with i2c_bussel_reg set to NULL as it did before in older kernels.)
 
-Regards
-Olivier
+In addition, INIT_LIST_HEAD invocations are needed to set up bbc_cpu_temper=
+ature and
+bbc_fan_control. The fact that these were missing was hidden by the fact th=
+at the
+bbc_envctrl driver obviously did not load at all anymore on the systems whe=
+re this
+hardware exists due to the bbc_i2c_bussel problem as discussed above.
 
+With these patches, the SunBlade 2000 seems to work fine.
+
+The patch was originally developed against a 3.13 backport kernel from Debi=
+an.
+Both the patch against 3.13 and a recent 3.16-rc6 are included below. Pleas=
+e note
+that I could only test the 3.13 version as I do not have access to the affe=
+cted
+machine anymore.
+
+PATCH 1 - KERNEL VERSION 3.13 #############################################=
+########
+
+diff -Naupr linux-source-3.13-orig/drivers/sbus/char/bbc_envctrl.c linux-so=
+urce-3.13-patched/drivers/sbus/char/bbc_envctrl.c
+--- linux-source-3.13-orig/drivers/sbus/char/bbc_envctrl.c      2014-04-14 =
+15:48:24.000000000 +0200
++++ linux-source-3.13-patched/drivers/sbus/char/bbc_envctrl.c   2014-07-27 =
+14:29:58.000000000 +0200
+@@ -452,6 +452,10 @@ static void attach_one_temp(struct bbc_i
+        if (!tp)
+                return;
+=20
++       /* Need to initialize some fields of bbc_cpu_temperature */
++       INIT_LIST_HEAD(&(tp->bp_list));
++       INIT_LIST_HEAD(&(tp->glob_list));
++
+        tp->client =3D bbc_i2c_attach(bp, op);
+        if (!tp->client) {
+                kfree(tp);
+@@ -497,6 +501,10 @@ static void attach_one_fan(struct bbc_i2
+        if (!fp)
+                return;
+=20
++       /* Need to initialize some fields of bbc_fan_control */
++       INIT_LIST_HEAD(&(fp->bp_list));
++       INIT_LIST_HEAD(&(fp->glob_list));
++
+        fp->client =3D bbc_i2c_attach(bp, op);
+        if (!fp->client) {
+                kfree(fp);
+diff -Naupr linux-source-3.13-orig/drivers/sbus/char/bbc_i2c.c linux-source=
+-3.13-patched/drivers/sbus/char/bbc_i2c.c
+--- linux-source-3.13-orig/drivers/sbus/char/bbc_i2c.c  2014-04-14 15:48:24=
+.000000000 +0200
++++ linux-source-3.13-patched/drivers/sbus/char/bbc_i2c.c       2014-07-27 =
+14:29:58.000000000 +0200
+@@ -301,13 +301,20 @@ static struct bbc_i2c_bus * attach_one_i
+        if (!bp)
+                return NULL;
+=20
++       /* Need to initialize some fields of bbc_i2c_bus */
++       INIT_LIST_HEAD(&(bp->temps));
++       INIT_LIST_HEAD(&(bp->fans));
++
+        bp->i2c_control_regs =3D of_ioremap(&op->resource[0], 0, 0x2, "bbc_=
+i2c_regs");
+        if (!bp->i2c_control_regs)
+                goto fail;
+=20
+-       bp->i2c_bussel_reg =3D of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2=
+c_bussel");
+-       if (!bp->i2c_bussel_reg)
+-               goto fail;
++       if(op->num_resources =3D 2) {
++               bp->i2c_bussel_reg =3D of_ioremap(&op->resource[1], 0, 0x1,=
+ "bbc_i2c_bussel");
++               if (!bp->i2c_bussel_reg) {
++                       goto fail;
++               }
++       }
+=20
+        bp->waiting =3D 0;
+        init_waitqueue_head(&bp->wq);
+
+PATCH 2 - KERNEL VERSION 3.16 #############################################=
+########
+
+diff -Naupr linux-3.16-rc6-orig/drivers/sbus/char/bbc_envctrl.c linux-3.16-=
+rc6-patched/drivers/sbus/char/bbc_envctrl.c
+--- linux-3.16-rc6-orig/drivers/sbus/char/bbc_envctrl.c 2014-07-27 11:49:21=
+.000000000 +0200
++++ linux-3.16-rc6-patched/drivers/sbus/char/bbc_envctrl.c      2014-07-27 =
+14:28:12.000000000 +0200
+@@ -452,6 +452,10 @@ static void attach_one_temp(struct bbc_i
+        if (!tp)
+                return;
+=20
++       /* Need to initialize some fields of bbc_cpu_temperature */
++       INIT_LIST_HEAD(&(tp->bp_list));
++       INIT_LIST_HEAD(&(tp->glob_list));
++
+        tp->client =3D bbc_i2c_attach(bp, op);
+        if (!tp->client) {
+                kfree(tp);
+@@ -497,6 +501,10 @@ static void attach_one_fan(struct bbc_i2
+        if (!fp)
+                return;
+=20
++       /* Need to initialize some fields of bbc_fan_control */
++       INIT_LIST_HEAD(&(fp->bp_list));
++       INIT_LIST_HEAD(&(fp->glob_list));
++
+        fp->client =3D bbc_i2c_attach(bp, op);
+        if (!fp->client) {
+                kfree(fp);
+diff -Naupr linux-3.16-rc6-orig/drivers/sbus/char/bbc_i2c.c linux-3.16-rc6-=
+patched/drivers/sbus/char/bbc_i2c.c
+--- linux-3.16-rc6-orig/drivers/sbus/char/bbc_i2c.c     2014-07-27 11:49:45=
+.000000000 +0200
++++ linux-3.16-rc6-patched/drivers/sbus/char/bbc_i2c.c  2014-07-27 14:28:12=
+.000000000 +0200
+@@ -300,13 +300,20 @@ static struct bbc_i2c_bus * attach_one_i
+        if (!bp)
+                return NULL;
+=20
++       /* Need to initialize some fields of bbc_i2c_bus */
++       INIT_LIST_HEAD(&(bp->temps));
++       INIT_LIST_HEAD(&(bp->fans));
++
+        bp->i2c_control_regs =3D of_ioremap(&op->resource[0], 0, 0x2, "bbc_=
+i2c_regs");
+        if (!bp->i2c_control_regs)
+                goto fail;
+=20
+-       bp->i2c_bussel_reg =3D of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2=
+c_bussel");
+-       if (!bp->i2c_bussel_reg)
+-               goto fail;
++       if(op->num_resources =3D 2) {
++               bp->i2c_bussel_reg =3D of_ioremap(&op->resource[1], 0, 0x1,=
+ "bbc_i2c_bussel");
++               if (!bp->i2c_bussel_reg) {
++                       goto fail;
++               }
++       }
+=20
+        bp->waiting =3D 0;
+        init_waitqueue_head(&bp->wq);
+
+Regards,
+Alexander Schulze
