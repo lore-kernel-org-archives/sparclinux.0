@@ -1,42 +1,28 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 01 Jul 2014 05:41:38 +0000
-Subject: Re: problem booting kernel compiled with gcc-4.9
-Message-Id: <alpine.SOC.1.00.1406301534210.15422@math.ut.ee>
+Date: Wed, 30 Jul 2014 22:02:53 +0000
+Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
+Message-Id: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1406261446590.16879@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1406261446590.16879@math.ut.ee>
+References: <20140414184353.GA5630@drone.musicnaut.iki.fi> <20140416.145822.1317931249717152474.davem@davemloft.net> <alpine.SOC.1.00.1404170119550.20193@math.ut.ee> <20140729.162635.638786990787878495.davem@davemloft.net>
+In-Reply-To: <20140729.162635.638786990787878495.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
 
-> > [   53.693569]  sda: sda1 sda2 sda3 sda4
-> > [   53.699149] sd 0:0:0:0: [sda] Attached SCSI disk
-> > [   53.910103] EXT4-fs (sda2): couldn't mount as ext3 due to feature incompatibilities
-> > [   54.011911] EXT4-fs (sda2): couldn't mount as ext2 due to feature incompatibilities
-> > [   54.136507] EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)
-> > [   54.237263] VFS: Mounted root (ext4 filesystem) readonly on device 8:2.
-> 
-> Do you see the above when the kernel boots properly with the older gcc?
+> Here is something I'd like you guys to test.
 
-Yes, these lines are normal on most of my machines (compiling only ext4 
-and using it for ext2 and ext3 too if encountered).
+Very interesting.
 
-In my reading of the dmesg and code, a fault in fault_in_user_windows is 
-causing the trouble when copy_to_user into init process fails.
+[...]
+> Could you guys please try this patch below?  Thanks.
 
-> > [   54.340199] devtmpfs: mounted
-> > [   54.451346] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
-> > [   54.451346] 
-> > [   54.571516] CPU: 1 PID: 1 Comm: init Not tainted 3.16.0-rc2-00211-gd7933ab #96
-> > [   54.666431] Call Trace:
-> > [   54.698453]  [0000000000762f8c] panic+0xb0/0x224
-> > [   54.759071]  [000000000045cf68] do_exit+0x948/0x960
-> > [   54.823123]  [000000000042cbc0] fault_in_user_windows+0xe0/0x100
-> > [   54.902036]  [0000000000404ad0] __handle_user_windows+0x0/0x10
-> > [   54.978662] Press Stop-A (L1-A) to return to the boot prom
-> > [   55.050713] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
+  CC      arch/sparc/mm/init_64.o
+arch/sparc/mm/init_64.c: In function 'update_mmu_cache_pmd':
+arch/sparc/mm/init_64.c:2625:6: error: 'pte' may be used uninitialized in this function [-Werror=uninitialized]
 
+gcc 4.6.4.
 
 -- 
 Meelis Roos (mroos@linux.ee)
