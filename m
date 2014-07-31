@@ -1,7 +1,7 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Thu, 31 Jul 2014 04:17:47 +0000
+From: Olivier Danet <odanet@caramail.com>
+Date: Thu, 31 Jul 2014 22:53:00 +0000
 Subject: Re: Consolidating Documentation for older hardware
-Message-Id: <CAGRGNgWu9vfVckKBeiDgUuzNSdTJL9PwAxBUjfyCvaL3qUZ2Wg@mail.gmail.com>
+Message-Id: <53DAC8CC.6080605@caramail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CACwypyOiQP4VrN2mfoUsxJ34eL3mRxnkvGNX9eycEcNwMsqB2Q@mail.gmail.com>
 In-Reply-To: <CACwypyOiQP4VrN2mfoUsxJ34eL3mRxnkvGNX9eycEcNwMsqB2Q@mail.gmail.com>
@@ -10,36 +10,49 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
-
-On Thu, Jul 31, 2014 at 2:01 PM, chase rayfield <cusbrar1@gmail.com> wrote:
+On 31/07/2014 06:01, chase rayfield wrote:
 > As you may no many of the documents hosted on Oracle/Sun's network and
 > Tadpole have gone offline and are not hosted anywhere online.
->
+> 
 > I am archiving them locally so I can host them. If anyone sees a doc I
 > don't have yet or would like to share docs they are unable to host so
 > I can host them please email me the document or a link.
->
+> 
 > I'm mostly looking for 32bit sun hardware docs... but I'll archive
 > anything Sparc related!
+> 
+> I'm currently stashing everything at http://gh0stwriter.net/archive/ I
+> may sort things later on though. I just finished archiving
+> http://www.oracle.com/technetwork/documentation/legacy-solaris-192993.html
+> tonight so... anything that can be found there I'll archive myself no
+> need to mention those docs. I'd also appreciate if you only download
+> docs you can't otherwise find as the box this is hosted on has limited
+> bandwidth.
+> 
+> @Sam Ravenborg I believe you have a copy of "Sun-4M System
+> Architecture (revision 2.0) by Chuck Narad " would you mind sending me
+> that?
+> 
+> Thanks,
+> Chase Rayfield
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+Hello Chase
 
-I've got service manuals for the following machines:
- - SparcStation 10
- - SparcStation LX
- - Ultra 1
- - Ultra 5
-and almost all the Ultra 1 and Ultra 5 related documents I could grab
-before it all went down.
+I have collected many documents about SparcStations and 32bits Sparcs.
+Some came from the late Sun "FOSS Open Hardware Documentation" webpage, 
+some from datasheet search engines, from sparc.org ...
+I do not remember the origin of each document, but I am 100% sure that they were
+all once freely downloadable.
 
-I can't really host this myself (no hosting out in the real world and
-my home internet connection is slow) but if any of it's useful to you,
-I'll stick it on Mega or DropBox or something.
+Copied there, need to be better organised :
+temlib.org/pub/SparcStation
 
-Thanks,
+(I may have a few more files of lesser interest around...)
 
--- 
-Julian Calaby
+Regards
+Olivier
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
-.Plan: http://sites.google.com/site/juliancalaby/
