@@ -1,65 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 Aug 2014 23:35:42 +0000
-Subject: Re: overzealous TLB flushing by lazy VMAP flushing
-Message-Id: <20140804.163542.2163737198733907800.davem@davemloft.net>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+Date: Sun, 03 Aug 2014 12:25:35 +0000
+Subject: Re: [PATCH] Fix BREAK handling in sunsab serial driver
+Message-Id: <201408031425.35800.cat.schulze@alice-dsl.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140804.162314.315898378388489145.davem@davemloft.net>
-In-Reply-To: <20140804.162314.315898378388489145.davem@davemloft.net>
+References: <201407271519.22272.cat.schulze@alice-dsl.net>
+In-Reply-To: <201407271519.22272.cat.schulze@alice-dsl.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: npiggin@kernel.dk
-Cc: cat.schulze@alice-dsl.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 04 Aug 2014 16:23:14 -0700 (PDT)
+On Tuesday 29 July 2014 00:54, David Miller wrote:
+> From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+> Date: Sun, 27 Jul 2014 15:19:21 +0200
+> 
+> > However, there seems to be another problem that causes an Oops when
+> > a register dump is requested by SysRq. This is caused when
+> > perf_event_print_debug() is called from sysrq_handle_showregs() in
+> > drivers/tty/sysrq.c.
+> 
+> Did you save the OOPS?  It should be trivial to debug with that
+> information.
 
-Sorry, I screwed up the lkml CC:, fixing that here.
+We had a serial console attached to the SunBlade during debugging and
+development of the patches, and serial output was logged to a file. I
+think we should therefore have captured the OOPS.
 
-> Hey Nick,
+Norman Beck (in CC) should be able to extract the OOPS from this log
+and send it to you. (I do not have access to this SunBlade anymore
+since July.)
+
+> perf_event_print_debug() doesn't do anything fancy, it disables CPU
+> interrupts and reads the PCR and PIC registers.
 > 
-> The lazy VMAP flushing in mm/vmalloc.c seems to make various
-> assumptions about vmalloc area layout.
+> UltraSPARC-III should be using direct_pcr_ops for this, therefore:
 > 
-> In particular it assumes that if there are pending VMAP flushes
-> in multiple regions managed by vmap/vunmap, it's safe to queue
-> up a range flush from the lowest such address to the highest
-> such address.
+> 	__asm__ __volatile__("rd %%pcr, %0" : "=r" (val));
 > 
-> This is problematic and causes problems on sparc64 as diagnosed by
-> Christopher (CC:'d).
+> and
 > 
-> On sparc64 we have the following regions:
+> 	__asm__ __volatile__("rd %%pic, %0" : "=r" (val));
 > 
-> modules		0x010000000 --> 0x0f0000000
-> openfirmware	0x0f0000000 --> 0x100000000
-> vmalloc		0x100000000 --> 0x10000000000
-> 
-> So if a module is unloaded as well as some vfree()'s occur, the next
-> lazy VMAP flush will flush a range that covers all of openfirmware.
-> 
-> This will flush the firmware's locked TLB entries, which in turn cause
-> all sorts of problems.
-> 
-> It is not possible to adjust where these ranges are in order to make
-> the vmalloc and module ranges be right next to eachother.  The
-> firmware area is fixed, first of all.  Second of all the module area
-> has to be in the low 4GB because of the code model we compile the
-> kernel with (all symbols are 32-bit), and we want to use as little of
-> the sub-4GB area as possible because it has to fit the main kernel
-> image, modules, and the firmware region.
-> 
-> We could add all sorts of range logic to the flush_tlb_range()
-> implementation on sparc64, but I really think that the kernel should
-> not trigger a TLB flush across a range for which it never managed any
-> mappings.
-> 
-> I also think that the lazy VMAP flusher should be mindful of this for
-> another reason.  Specifically, issuing such an enormous flush range is
-> going to be expensive, more expensive that whatever we were gaining by
-> batching these flushes.
-> 
-> Unlike for userspace mappings, for kernel mappings we can't have a
-> cutoff for page-by-page flushes and just do a context based TLB flush.
-> We always have to do page-by-page flushes.  So these huge ranges
-> really do hurt.
+> are the two operations it will perform.
+
+IIRC it was a null pointer dereference in perf_event_print_debug(),
+but I am not quite sure, as we quickly disabled this call to continue
+working (getting BREAK on the serial console to work was top priority
+then). We will have to wait for Norman to retrieve this information -
+he is currently on vacation, however, so it will take another week.
+
+Regards,
+Alexander Schulze
