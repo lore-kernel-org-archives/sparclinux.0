@@ -1,43 +1,82 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 13 Aug 2014 10:28:51 +0000
-Subject: [PATCH v4 1/8] ARC: Remove redundant PCI_IOBASE declaration
-Message-Id: <1407925738-26170-2-git-send-email-thierry.reding@gmail.com>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+Date: Sun, 03 Aug 2014 14:31:56 +0000
+Subject: [PATCH] tlbflush: Prevent flushing locked OBP LITLB entry
+Message-Id: <201408031631.57053.cat.schulze@alice-dsl.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
-In-Reply-To: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-From: Thierry Reding <treding@nvidia.com>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
 
-ARC's asm/io.h includes the asm-generic/io.h which already defines the
-PCI_IOBASE variable in exactly the same way, so it can be dropped from
-the architecture specific header.
+Prevent flush_tlb_kernel_range() from flushing the locked PROM LITLB entry.
+When both a region below LOW_OBP_ADDRESS and a region above HI_OBP_ADDRESS
+are to be flushed, __purge_vmap_area_lazy() might decide to combine both
+flushes into one call to flush_tlb_kernel_range(), without checking whether
+this combined flush will also affect the locked OBP LITLB entry. Removing
+this entry will cause a RED state exception on the next reboot, with observed
+effects from hang on reboot to corrupted PCI resource information passed to
+Linux after the reboot.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+This patch tries to prevent this flush by adding a check to
+flush_tlb_kernel_range(). This will catch all attempts to flush the OBP LITLB
+entry from all possible callers. Fixing the algorithm used in
+__purge_vmap_area_lazy() (which is located in the architecture independent
+part of the kernel) is also recommended, but not part of this patch.
+
+Patch applies to 3.16-rc6.
+
+Signed-off-by: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+
 ---
-Changes in v4:
-- new patch
 
- arch/arc/include/asm/io.h | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
-index 334ce7017a18..cabd518cb253 100644
---- a/arch/arc/include/asm/io.h
-+++ b/arch/arc/include/asm/io.h
-@@ -13,8 +13,6 @@
- #include <asm/byteorder.h>
- #include <asm/page.h>
+diff -Naupr linux-3.16-rc6-orig/arch/sparc/include/asm/tlbflush_64.h linux-3.16-rc6-patched/arch/sparc/include/asm/tlbflush_64.h
+--- linux-3.16-rc6-orig/arch/sparc/include/asm/tlbflush_64.h	2014-07-27 11:46:05.000000000 +0200
++++ linux-3.16-rc6-patched/arch/sparc/include/asm/tlbflush_64.h	2014-08-03 16:12:13.000000000 +0200
+@@ -49,8 +49,20 @@ void __flush_tlb_kernel_range(unsigned l
+ #ifndef CONFIG_SMP
  
--#define PCI_IOBASE ((void __iomem *)0)
--
- extern void __iomem *ioremap(unsigned long physaddr, unsigned long size);
- extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
- 				  unsigned long flags);
--- 
-2.0.4
-
+ #define flush_tlb_kernel_range(start,end) \
+-do {	flush_tsb_kernel_range(start,end); \
+-	__flush_tlb_kernel_range(start,end); \
++do { \
++	if ((start < HI_OBP_ADDRESS) && (end > LOW_OBP_ADDRESS)) { \
++		if (start < LOW_OBP_ADDRESS) { \
++			flush_tsb_kernel_range(start, LOW_OBP_ADDRESS); \
++			__flush_tlb_kernel_range(start, LOW_OBP_ADDRESS); \
++		} \
++		if (end > HI_OBP_ADDRESS) { \
++			flush_tsb_kernel_range(HI_OBP_ADDRESS, end); \
++			__flush_tlb_kernel_range(HI_OBP_ADDRESS, end); \
++		} \
++	} else { \
++		flush_tsb_kernel_range(start, end); \
++		__flush_tlb_kernel_range(start, end); \
++	} \
+ } while (0)
+ 
+ static inline void global_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
+@@ -64,8 +76,20 @@ void smp_flush_tlb_kernel_range(unsigned
+ void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr);
+ 
+ #define flush_tlb_kernel_range(start, end) \
+-do {	flush_tsb_kernel_range(start,end); \
+-	smp_flush_tlb_kernel_range(start, end); \
++do { \
++	if ((start < HI_OBP_ADDRESS) && (end > LOW_OBP_ADDRESS)) { \
++		if (start < LOW_OBP_ADDRESS) { \
++			flush_tsb_kernel_range(start, LOW_OBP_ADDRESS); \
++			smp_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS); \
++		} \
++		if (end > HI_OBP_ADDRESS) { \
++			flush_tsb_kernel_range(HI_OBP_ADDRESS, end); \
++			smp_flush_tlb_kernel_range(HI_OBP_ADDRESS, end); \
++		} \
++	} else { \
++		flush_tsb_kernel_range(start, end); \
++		smp_flush_tlb_kernel_range(start, end); \
++	} \
+ } while (0)
+ 
+ #define global_flush_tlb_page(mm, vaddr) \
