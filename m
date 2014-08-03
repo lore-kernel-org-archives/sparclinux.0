@@ -1,39 +1,72 @@
-From: Tejun Heo <tj@kernel.org>
-Date: Tue, 26 Aug 2014 18:16:20 +0000
-Subject: Re: [PATCH 31/35] [PATCH 31/36] sparc: Replace __get_cpu_var uses
-Message-Id: <20140826181620.GN31659@mtj.dyndns.org>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
+Date: Sun, 03 Aug 2014 13:44:52 +0000
+Subject: [PATCH] bbc-i2c: Fix BBC I2C envctrl on SunBlade 2000
+Message-Id: <201408031544.52481.cat.schulze@alice-dsl.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140817173023.439660246@linux.com>
- <20140817173037.730576191@linux.com>
-In-Reply-To: <20140817173037.730576191@linux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Lameter <cl@linux.com>
-Cc: akpm@linuxfoundation.org, rostedt@goodmis.org, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Sun, Aug 17, 2014 at 12:30:54PM -0500, Christoph Lameter wrote:
-> __get_cpu_var() is used for multiple purposes in the kernel source. One of
-> them is address calculation via the form &__get_cpu_var(x).  This calculates
-> the address for the instance of the percpu variable of the current processor
-> based on an offset.
-> 
-> Other use cases are for storing and retrieving data from the current
-> processors percpu area.  __get_cpu_var() can be used as an lvalue when
-> writing data or on the right side of an assignment.
-...
-> Cc: sparclinux@vger.kernel.org
-> Acked-by: David S. Miller <davem@davemloft.net>
-> Signed-off-by: Christoph Lameter <cl@linux.com>
+From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
 
-(Please disregard the ones I posted for v1 of the patch series)
+Fix regression in bbc i2c temperature and fan control on some Sun systems
+that causes the driver to refuse to load due to the bbc_i2c_bussel resource not
+being present on the (second) i2c bus where the temperature sensors and fan
+control are located. (The check for the number of resources was removed when
+the driver was ported to a pure OF driver in mid 2008.)
 
-Applied to percpu/for-3.18-consistent-ops.  Please let me know if this
-patch should be routed differently.  Note that this patch was to be
-applied to percpu/for-3.17 but delayed due to build issues caused by
-cpumask_var_t.
+Patch applies to 3.16-rc6.
 
-Thanks.
+Signed-off-by: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
 
--- 
-tejun
+---
+
+diff -Naupr linux-3.16-rc6-orig/drivers/sbus/char/bbc_envctrl.c linux-3.16-rc6-patched/drivers/sbus/char/bbc_envctrl.c
+--- linux-3.16-rc6-orig/drivers/sbus/char/bbc_envctrl.c	2014-07-27 11:49:21.000000000 +0200
++++ linux-3.16-rc6-patched/drivers/sbus/char/bbc_envctrl.c	2014-08-03 15:21:17.000000000 +0200
+@@ -452,6 +452,9 @@ static void attach_one_temp(struct bbc_i
+ 	if (!tp)
+ 		return;
+ 
++	INIT_LIST_HEAD(&tp->bp_list);
++	INIT_LIST_HEAD(&tp->glob_list);
++
+ 	tp->client = bbc_i2c_attach(bp, op);
+ 	if (!tp->client) {
+ 		kfree(tp);
+@@ -497,6 +500,9 @@ static void attach_one_fan(struct bbc_i2
+ 	if (!fp)
+ 		return;
+ 
++	INIT_LIST_HEAD(&fp->bp_list);
++	INIT_LIST_HEAD(&fp->glob_list);
++
+ 	fp->client = bbc_i2c_attach(bp, op);
+ 	if (!fp->client) {
+ 		kfree(fp);
+diff -Naupr linux-3.16-rc6-orig/drivers/sbus/char/bbc_i2c.c linux-3.16-rc6-patched/drivers/sbus/char/bbc_i2c.c
+--- linux-3.16-rc6-orig/drivers/sbus/char/bbc_i2c.c	2014-07-27 11:49:45.000000000 +0200
++++ linux-3.16-rc6-patched/drivers/sbus/char/bbc_i2c.c	2014-08-03 15:21:08.000000000 +0200
+@@ -300,13 +300,18 @@ static struct bbc_i2c_bus * attach_one_i
+ 	if (!bp)
+ 		return NULL;
+ 
++	INIT_LIST_HEAD(&bp->temps);
++	INIT_LIST_HEAD(&bp->fans);
++
+ 	bp->i2c_control_regs = of_ioremap(&op->resource[0], 0, 0x2, "bbc_i2c_regs");
+ 	if (!bp->i2c_control_regs)
+ 		goto fail;
+ 
+-	bp->i2c_bussel_reg = of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2c_bussel");
+-	if (!bp->i2c_bussel_reg)
+-		goto fail;
++	if (op->num_resources = 2) {
++		bp->i2c_bussel_reg = of_ioremap(&op->resource[1], 0, 0x1, "bbc_i2c_bussel");
++		if (!bp->i2c_bussel_reg)
++			goto fail;
++	}
+ 
+ 	bp->waiting = 0;
+ 	init_waitqueue_head(&bp->wq);
