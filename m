@@ -1,43 +1,35 @@
-From: Mao Zhou <maozhou@kylinos.com.cn>
-Date: Wed, 20 Aug 2014 02:35:20 +0000
-Subject: Re: New build failures in sparc.
-Message-Id: <loom.20140820T042607-801@post.gmane.org>
+From: Andrey Utkin <andrey.krieger.utkin@gmail.com>
+Date: Mon, 04 Aug 2014 20:47:41 +0000
+Subject: [PATCH] arch/sparc/math-emu/math_32.c: drop stray break operator
+Message-Id: <1407185261-1799-1-git-send-email-andrey.krieger.utkin@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAP=VYLpfM0AFWQp7Q=xYHnCd_6vEXKKL1EL5daGcO9gsJZH=7Q@mail.gmail.com>
-In-Reply-To: <CAP=VYLpfM0AFWQp7Q=xYHnCd_6vEXKKL1EL5daGcO9gsJZH=7Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Andrey Utkin <andrey.krieger.utkin@gmail.com>
 
-Stephen Rothwell <sfr <at> canb.auug.org.au> writes:
-
-> 
-> Hi Dave,
-> 
-> On Tue, 13 Mar 2012 15:48:48 -0700 (PDT) David Miller <davem <at> 
-davemloft.net> wrote:
-> >
-> > From: Paul Gortmaker <paul.gortmaker <at> windriver.com>
-> > Date: Tue, 13 Mar 2012 18:28:18 -0400
-> > 
-> > > Just a heads up that these turned up today in linux-next:
-> > 
-> > You must have updated your sparc binutils recently, which is now more
-> > strict about making sure the proper options are passed to enable v8
-> > instructions.
-> > 
-> > See also:
-> > 
-> > http://gcc.gnu.org/bugzilla/show_bug.cgi?idP979
-> 
-> Yeah, we updated our sparc64 toolchain yesterday ... Tony says he will 
-try
-> applying the patch(es) from the bugzilla.
-> 
-
-Hi Stephen,
-
-  can you send the sparc64 toolchain patch to my mailbox? I'm eager to 
-your help.
-
+VGhpcyBjb21taXQgaXMgYSBndWVzc3dvcmssIGJ1dCBpdCBzZWVtcyB0byBtYWtlIHNlbnNlIHRv
+IGRyb3AgdGhpcwpicmVhaywgYXMgb3RoZXJ3aXNlIHRoZSBmb2xsb3dpbmcgbGluZSBpcyBuZXZl
+ciBleGVjdXRlZCBhbmQgYmVjb21lcwpkZWFkIGNvZGUuIEFuZCB0aGF0IGZvbGxvd2luZyBsaW5l
+IGFjdHVhbGx5IHNhdmVzIHRoZSByZXN1bHQgb2YKbG9jYWwgY2FsY3VsYXRpb24gYnkgdGhlIHBv
+aW50ZXIgZ2l2ZW4gaW4gZnVuY3Rpb24gYXJndW1lbnQuIFNvIHRoZQpwcm9wb3NlZCBjaGFuZ2Ug
+bWFrZXMgc2Vuc2UgaWYgdGhpcyBjb2RlIGluIHRoZSB3aG9sZSBtYWtlcyBzZW5zZSAoYnV0IEkK
+YW0gdW5hYmxlIHRvIGFuYWx5emUgaXQgaW4gdGhlIHdob2xlKS4KCkJ1Z3ppbGxhOiBodHRwczov
+L2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkgTY0MQpSZXBvcnRlZC1ieTogRGF2
+aWQgQmluZGVybWFuIDxkY2IzMTRAaG90bWFpbC5jb20+ClNpZ25lZC1vZmYtYnk6IEFuZHJleSBV
+dGtpbiA8YW5kcmV5LmtyaWVnZXIudXRraW5AZ21haWwuY29tPgotLS0KIGFyY2gvc3BhcmMvbWF0
+aC1lbXUvbWF0aF8zMi5jIHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAx
+IGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9zcGFyYy9tYXRoLWVtdS9tYXRoXzMyLmMg
+Yi9hcmNoL3NwYXJjL21hdGgtZW11L21hdGhfMzIuYwppbmRleCBhYTRkNTViLi41Y2U4ZjJmIDEw
+MDY0NAotLS0gYS9hcmNoL3NwYXJjL21hdGgtZW11L21hdGhfMzIuYworKysgYi9hcmNoL3NwYXJj
+L21hdGgtZW11L21hdGhfMzIuYwpAQCAtNDk5LDcgKzQ5OSw3IEBAIHN0YXRpYyBpbnQgZG9fb25l
+X21hdGhlbXUodTMyIGluc24sIHVuc2lnbmVkIGxvbmcgKnBmc3IsIHVuc2lnbmVkIGxvbmcgKmZy
+ZWdzKQogCQljYXNlIDA6IGZzciA9ICpwZnNyOwogCQkJaWYgKElSID0gLTEpIElSID0gMjsKIAkJ
+CS8qIGZjYyBpcyBhbHdheXMgZmNjMCAqLwotCQkJZnNyICY9IH4weGMwMDsgZnNyIHw9IChJUiA8
+PCAxMCk7IGJyZWFrOworCQkJZnNyICY9IH4weGMwMDsgZnNyIHw9IChJUiA8PCAxMCk7CiAJCQkq
+cGZzciA9IGZzcjsKIAkJCWJyZWFrOwogCQljYXNlIDE6IHJkLT5zID0gSVI7IGJyZWFrOwotLSAK
+MS44LjUuNQoKLS0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
+InVuc3Vic2NyaWJlIHNwYXJjbGludXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpv
+cmRvbW9Admdlci5rZXJuZWwub3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
+Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA==
