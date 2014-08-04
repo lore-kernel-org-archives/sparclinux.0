@@ -1,169 +1,111 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 13 Aug 2014 10:28:55 +0000
-Subject: [PATCH v4 5/8] /dev/mem: Use more consistent data types
-Message-Id: <1407925738-26170-6-git-send-email-thierry.reding@gmail.com>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Mon, 04 Aug 2014 16:48:32 +0000
+Subject: [PATCH 3.2 51/94] locking/mutex: Disable optimistic spinning on some architectures
+Message-Id: <lsq.1407170912.728427849@decadent.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
-In-Reply-To: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
+In-Reply-To: <lsq.1407170911.107020799@decadent.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Stephen Boyd <sboyd@codeaurora.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-serial@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Thierry Reding <treding@nvidia.com>
+3.2.62-rc1 review patch.  If anyone has any objections, please let me know.
 
-The xlate_dev_{kmem,mem}_ptr() functions take either a physical address
-or a kernel virtual address, so data types should be phys_addr_t and
-void *. They both return a kernel virtual address which is only ever
-used in calls to copy_{from,to}_user(), so make variables that store it
-void * rather than char * for consistency.
+------------------
 
-Also only define a weak unxlate_dev_mem_ptr() function if architectures
-haven't overridden them in the asm/io.h header file.
+From: Peter Zijlstra <peterz@infradead.org>
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+commit 4badad352a6bb202ec68afa7a574c0bb961e5ebc upstream.
+
+The optimistic spin code assumes regular stores and cmpxchg() play nice;
+this is found to not be true for at least: parisc, sparc32, tile32,
+metag-lock1, arc-!llsc and hexagon.
+
+There is further wreckage, but this in particular seemed easy to
+trigger, so blacklist this.
+
+Opt in for known good archs.
+
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Reported-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Waiman Long <waiman.long@hp.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Link: http://lkml.kernel.org/r/20140606175316.GV13930@laptop.programming.kicks-ass.net
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+[bwh: Backported to 3.2:
+ - Adjust context
+ - Drop arm64 change]
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
-Changes in v4:
-- new patch
-
- arch/s390/include/asm/io.h |  5 +++--
- arch/s390/mm/maccess.c     |  4 ++--
- arch/x86/include/asm/io.h  |  4 ++--
- arch/x86/mm/ioremap.c      |  4 ++--
- drivers/char/mem.c         | 13 ++++++++-----
- 5 files changed, 17 insertions(+), 13 deletions(-)
-
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index cd6b9ee7b69c..d22c2eeae78f 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -13,9 +13,10 @@
- #include <asm/page.h>
- #include <asm/pci_io.h>
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1,6 +1,7 @@
+ config ARM
+ 	bool
+ 	default y
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select HAVE_DMA_API_DEBUG
+ 	select HAVE_IDE if PCI || ISA || PCMCIA
+ 	select HAVE_MEMBLOCK
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -137,6 +137,7 @@ config PPC
+ 	select HAVE_BPF_JIT if (PPC64 && NET)
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select ARCH_SUPPORTS_ATOMIC_RMW
  
--void *xlate_dev_mem_ptr(unsigned long phys);
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
--void unxlate_dev_mem_ptr(unsigned long phys, void *addr);
-+void *xlate_dev_mem_ptr(phys_addr_t phys);
-+#define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
-+void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ config EARLY_PRINTK
+ 	bool
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -57,6 +57,7 @@ config SPARC64
+ 	select IRQ_PREFLOW_FASTEOI
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_C_RECORDMCOUNT
++	select ARCH_SUPPORTS_ATOMIC_RMW
  
- /*
-  * Convert a virtual cached pointer to an uncached pointer
-diff --git a/arch/s390/mm/maccess.c b/arch/s390/mm/maccess.c
-index 2a2e35416d2f..2eb34bdfc613 100644
---- a/arch/s390/mm/maccess.c
-+++ b/arch/s390/mm/maccess.c
-@@ -176,7 +176,7 @@ static int is_swapped(unsigned long addr)
-  * For swapped prefix pages a new buffer is returned that contains a copy of
-  * the absolute memory. The buffer size is maximum one page large.
-  */
--void *xlate_dev_mem_ptr(unsigned long addr)
-+void *xlate_dev_mem_ptr(phys_addr_t addr)
- {
- 	void *bounce = (void *) addr;
- 	unsigned long size;
-@@ -197,7 +197,7 @@ void *xlate_dev_mem_ptr(unsigned long addr)
- /*
-  * Free converted buffer for /dev/mem access (if necessary)
-  */
--void unxlate_dev_mem_ptr(unsigned long addr, void *buf)
-+void unxlate_dev_mem_ptr(phys_addr_t addr, void *buf)
- {
- 	if ((void *) addr != buf)
- 		free_page((unsigned long) buf);
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index b8237d8a1e0c..ae2b593e7c6e 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -310,8 +310,8 @@ BUILDIO(b, b, char)
- BUILDIO(w, w, short)
- BUILDIO(l, , int)
+ config ARCH_DEFCONFIG
+ 	string
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -75,6 +75,7 @@ config X86
+ 	select HAVE_BPF_JIT if (X86_64 && NET)
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select ARCH_SUPPORTS_ATOMIC_RMW
  
--extern void *xlate_dev_mem_ptr(unsigned long phys);
--extern void unxlate_dev_mem_ptr(unsigned long phys, void *addr);
-+extern void *xlate_dev_mem_ptr(phys_addr_t phys);
-+extern void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ config INSTRUCTION_DECODER
+ 	def_bool (KPROBES || PERF_EVENTS)
+--- a/kernel/Kconfig.locks
++++ b/kernel/Kconfig.locks
+@@ -198,5 +198,9 @@ config INLINE_WRITE_UNLOCK_IRQ
+ config INLINE_WRITE_UNLOCK_IRQRESTORE
+ 	def_bool !DEBUG_SPINLOCK && ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
  
- extern int ioremap_change_attr(unsigned long vaddr, unsigned long size,
- 				unsigned long prot_val);
-diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
-index baff1da354e0..6d9cc45123e5 100644
---- a/arch/x86/mm/ioremap.c
-+++ b/arch/x86/mm/ioremap.c
-@@ -315,7 +315,7 @@ EXPORT_SYMBOL(iounmap);
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
-  */
--void *xlate_dev_mem_ptr(unsigned long phys)
-+void *xlate_dev_mem_ptr(phys_addr_t phys)
- {
- 	void *addr;
- 	unsigned long start = phys & PAGE_MASK;
-@@ -331,7 +331,7 @@ void *xlate_dev_mem_ptr(unsigned long phys)
- 	return addr;
- }
- 
--void unxlate_dev_mem_ptr(unsigned long phys, void *addr)
-+void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
- {
- 	if (page_is_ram(phys >> PAGE_SHIFT))
- 		return;
-diff --git a/drivers/char/mem.c b/drivers/char/mem.c
-index 917403fe10da..a304e8a6ebf2 100644
---- a/drivers/char/mem.c
-+++ b/drivers/char/mem.c
-@@ -84,9 +84,12 @@ static inline int range_is_allowed(unsigned long pfn, unsigned long size)
- }
- #endif
- 
--void __weak unxlate_dev_mem_ptr(unsigned long phys, void *addr)
-+#ifndef unxlate_dev_mem_ptr
-+#define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
-+void __weak unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
- {
- }
-+#endif
- 
- /*
-  * This funcion reads the *physical* memory. The f_pos points directly to the
-@@ -97,7 +100,7 @@ static ssize_t read_mem(struct file *file, char __user *buf,
- {
- 	phys_addr_t p = *ppos;
- 	ssize_t read, sz;
--	char *ptr;
-+	void *ptr;
- 
- 	if (p != *ppos)
- 		return 0;
-@@ -400,7 +403,7 @@ static ssize_t read_kmem(struct file *file, char __user *buf,
- 			 * uncached, then it must also be accessed uncached
- 			 * by the kernel or data corruption may occur
- 			 */
--			kbuf = xlate_dev_kmem_ptr((char *)p);
-+			kbuf = xlate_dev_kmem_ptr((void *)p);
- 
- 			if (copy_to_user(buf, kbuf, sz))
- 				return -EFAULT;
-@@ -461,7 +464,7 @@ static ssize_t do_write_kmem(unsigned long p, const char __user *buf,
- #endif
- 
- 	while (count > 0) {
--		char *ptr;
-+		void *ptr;
- 
- 		sz = size_inside_page(p, count);
- 
-@@ -470,7 +473,7 @@ static ssize_t do_write_kmem(unsigned long p, const char __user *buf,
- 		 * it must also be accessed uncached by the kernel or data
- 		 * corruption may occur.
- 		 */
--		ptr = xlate_dev_kmem_ptr((char *)p);
-+		ptr = xlate_dev_kmem_ptr((void *)p);
- 
- 		copied = copy_from_user(ptr, buf, sz);
- 		if (copied) {
--- 
-2.0.4
++config ARCH_SUPPORTS_ATOMIC_RMW
++	bool
++
+ config MUTEX_SPIN_ON_OWNER
+-	def_bool SMP && !DEBUG_MUTEXES
++	def_bool y
++	depends on SMP && !DEBUG_MUTEXES && ARCH_SUPPORTS_ATOMIC_RMW
 
