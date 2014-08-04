@@ -1,82 +1,64 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:12 +0000
-Subject: [RFC PATCH 19/20] tile/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <1407828373-24322-20-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 04 Aug 2014 23:35:11 +0000
+Subject: [PATCH] sparc64: Do not insert non-valid PTEs into the TSB hash table.
+Message-Id: <20140804.163511.1994683572417020890.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Introduce a new struct msi_chip tile_msi_chip instead of weak arch
-functions to configure MSI/MSI-X.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+The assumption was that update_mmu_cache() (and the equivalent for PMDs) would
+only be called when the PTE being installed will be accessible by the user.
+
+This is not true for code paths originating from remove_migration_pte().
+
+There are dire consequences for placing a non-valid PTE into the TSB.  The TLB
+miss frramework assumes thatwhen a TSB entry matches we can just load it into
+the TLB and return from the TLB miss trap.
+
+So if a non-valid PTE is in there, we will deadlock taking the TLB miss over
+and over, never satisfying the miss.
+
+Just exit early from update_mmu_cache() and friends in this situation.
+
+Based upon a report and patch from Christopher Alexander Tobias Schulze.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/tile/kernel/pci_gx.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
-index e39f9c5..d1f308c 100644
---- a/arch/tile/kernel/pci_gx.c
-+++ b/arch/tile/kernel/pci_gx.c
-@@ -1485,7 +1485,7 @@ static struct irq_chip tilegx_msi_chip = {
- 	/* TBD: support set_affinity. */
- };
+I committed this to the sparc GIT tree and will queue this up for -stable.
+
+ arch/sparc/mm/init_64.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 16b58ff..db5ddde 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -351,6 +351,10 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
  
--int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
-+int tile_setup_msi_irq(struct device *dev, struct msi_desc *desc)
- {
- 	struct pci_controller *controller;
- 	gxio_trio_context_t *trio_context;
-@@ -1510,7 +1510,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- 	 * Most PCIe endpoint devices do support 64-bit message addressing.
- 	 */
- 	if (desc->msi_attrib.is_64 = 0) {
--		dev_printk(KERN_INFO, &pdev->dev,
-+		dev_printk(KERN_INFO, dev,
- 			"64-bit MSI message address not supported, "
- 			"falling back to legacy interrupts.\n");
+ 	mm = vma->vm_mm;
  
-@@ -1549,7 +1549,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- 		/* SQ regions are out, allocate from map mem regions. */
- 		mem_map = gxio_trio_alloc_memory_maps(trio_context, 1, 0, 0);
- 		if (mem_map < 0) {
--			dev_printk(KERN_INFO, &pdev->dev,
-+			dev_printk(KERN_INFO, dev,
- 				"%s Mem-Map alloc failure. "
- 				"Failed to initialize MSI interrupts. "
- 				"Falling back to legacy interrupts.\n",
-@@ -1580,7 +1580,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- 					mem_map, mem_map_base, mem_map_limit,
- 					trio_context->asid);
- 	if (ret < 0) {
--		dev_printk(KERN_INFO, &pdev->dev, "HV MSI config failed.\n");
-+		dev_printk(KERN_INFO, dev, "HV MSI config failed.\n");
- 
- 		goto hv_msi_config_failure;
- 	}
-@@ -1604,7 +1604,17 @@ is_64_failure:
- 	return ret;
- }
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+void tile_teardown_msi_irq(unsigned int irq)
- {
- 	irq_free_hwirq(irq);
- }
++	/* Don't insert a non-valid PTE into the TSB, we'll deadlock.  */
++	if (!pte_accessible(mm, pte))
++		return;
 +
-+struct msi_chip tile_msi_chip = {
-+	.setup_irq = tile_setup_msi_irq,
-+	.teardown_irq = tile_teardown_msi_irq,
-+};
+ 	spin_lock_irqsave(&mm->context.lock, flags);
+ 
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+@@ -2619,6 +2623,10 @@ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 
+ 	pte = pmd_val(entry);
+ 
++	/* Don't insert a non-valid PMD into the TSB, we'll deadlock.  */
++	if (!(pte & _PAGE_VALID))
++		return;
 +
-+struct msi_chip *arch_get_match_msi_chip(struct device *dev)
-+{
-+	return &tile_msi_chip;
-+}
+ 	/* We are fabricating 8MB pages using 4MB real hw pages.  */
+ 	pte |= (addr & (1UL << REAL_HPAGE_SHIFT));
+ 
 -- 
-1.7.1
+1.8.1.2
 
