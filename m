@@ -1,48 +1,129 @@
-From: walter harms <wharms@bfs.de>
-Date: Wed, 06 Aug 2014 07:09:11 +0000
-Subject: Re: [PATCH] arch/sparc/math-emu/math_32.c: drop stray break operator
-Message-Id: <53E1D497.3080309@bfs.de>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 05 Aug 2014 03:17:10 +0000
+Subject: [PATCH] sparc64: Guard against flushing openfirmware mappings.
+Message-Id: <20140804.201710.101327918842040424.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407185261-1799-1-git-send-email-andrey.krieger.utkin@gmail.com>	<53E083B8.4090008@bfs.de> <20140805.124939.1701979639778778101.davem@davemloft.net>
-In-Reply-To: <20140805.124939.1701979639778778101.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: David Miller <davem@davemloft.net>
-Cc: andrey.krieger.utkin@gmail.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-CgpBbSAwNS4wOC4yMDE0IDIxOjQ5LCBzY2hyaWViIERhdmlkIE1pbGxlcjoKPiBGcm9tOiB3YWx0
-ZXIgaGFybXMgPHdoYXJtc0BiZnMuZGU+Cj4gRGF0ZTogVHVlLCAwNSBBdWcgMjAxNCAwOToxMTo1
-MiArMDIwMAo+IAo+Pgo+Pgo+PiBBbSAwNC4wOC4yMDE0IDIyOjQ3LCBzY2hyaWViIEFuZHJleSBV
-dGtpbjoKPj4+IFRoaXMgY29tbWl0IGlzIGEgZ3Vlc3N3b3JrLCBidXQgaXQgc2VlbXMgdG8gbWFr
-ZSBzZW5zZSB0byBkcm9wIHRoaXMKPj4+IGJyZWFrLCBhcyBvdGhlcndpc2UgdGhlIGZvbGxvd2lu
-ZyBsaW5lIGlzIG5ldmVyIGV4ZWN1dGVkIGFuZCBiZWNvbWVzCj4+PiBkZWFkIGNvZGUuIEFuZCB0
-aGF0IGZvbGxvd2luZyBsaW5lIGFjdHVhbGx5IHNhdmVzIHRoZSByZXN1bHQgb2YKPj4+IGxvY2Fs
-IGNhbGN1bGF0aW9uIGJ5IHRoZSBwb2ludGVyIGdpdmVuIGluIGZ1bmN0aW9uIGFyZ3VtZW50LiBT
-byB0aGUKPj4+IHByb3Bvc2VkIGNoYW5nZSBtYWtlcyBzZW5zZSBpZiB0aGlzIGNvZGUgaW4gdGhl
-IHdob2xlIG1ha2VzIHNlbnNlIChidXQgSQo+Pj4gYW0gdW5hYmxlIHRvIGFuYWx5emUgaXQgaW4g
-dGhlIHdob2xlKS4KPj4+Cj4+PiBCdWd6aWxsYTogaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3Jn
-L3Nob3dfYnVnLmNnaT9pZIE2NDEKPj4+IFJlcG9ydGVkLWJ5OiBEYXZpZCBCaW5kZXJtYW4gPGRj
-YjMxNEBob3RtYWlsLmNvbT4KPj4+IFNpZ25lZC1vZmYtYnk6IEFuZHJleSBVdGtpbiA8YW5kcmV5
-LmtyaWVnZXIudXRraW5AZ21haWwuY29tPgo+Pj4gLS0tCj4+PiAgYXJjaC9zcGFyYy9tYXRoLWVt
-dS9tYXRoXzMyLmMgfCAyICstCj4+PiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAx
-IGRlbGV0aW9uKC0pCj4+Pgo+Pj4gZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMvbWF0aC1lbXUvbWF0
-aF8zMi5jIGIvYXJjaC9zcGFyYy9tYXRoLWVtdS9tYXRoXzMyLmMKPj4+IGluZGV4IGFhNGQ1NWIu
-LjVjZThmMmYgMTAwNjQ0Cj4+PiAtLS0gYS9hcmNoL3NwYXJjL21hdGgtZW11L21hdGhfMzIuYwo+
-Pj4gKysrIGIvYXJjaC9zcGFyYy9tYXRoLWVtdS9tYXRoXzMyLmMKPj4+IEBAIC00OTksNyArNDk5
-LDcgQEAgc3RhdGljIGludCBkb19vbmVfbWF0aGVtdSh1MzIgaW5zbiwgdW5zaWduZWQgbG9uZyAq
-cGZzciwgdW5zaWduZWQgbG9uZyAqZnJlZ3MpCj4+PiAgCQljYXNlIDA6IGZzciA9ICpwZnNyOwo+
-Pj4gIAkJCWlmIChJUiA9IC0xKSBJUiA9IDI7Cj4+PiAgCQkJLyogZmNjIGlzIGFsd2F5cyBmY2Mw
-ICovCj4+Cj4+IFRoZSBwYXRjaCBsb29rcyBvaywgYnV0IGNhbiBzb21lYm9keSBjb21tZW50IG9u
-IHRoaXMgY29tbWVudCA/Cj4+IHdoYXQgImZjYyIgPyBzaG91bGQgaXQgYmUgYSBmc3IgPwo+IAo+
-IEl0J3MgdGhlIGNvbmRpdGlvbiBjb2RlIGZpZWxkIGluc2lkZSBvZiB0aGUgJWZzciByZWdpc3Rl
-ci4KPiAKPiBJbiAzMi1iaXQgY2hpcHMgdGhlcmUgaXMgb25seSBvbmUgc2V0IG9mIGNvbmRpdGlv
-biBjb2Rlcywgd2hlcmVhcwo+IG9uIDY0LWJpdCBjaGlwcyB0aGVyZSBhcmUgNCBzZXRzIHJlZmVy
-cmVkIHRvIGFzIGZjYzAsIGZjYzEsIGZjYzIsCj4gYW5kIGZjYzMuCj4gCj4gVGhhdCdzIHdoYXQg
-dGhpcyBjb21tZW50IGlzIHRhbGtpbmcgYWJvdXQuCj4gCnRoeCBmb3IgaW5mbywKCndvdWxkIHlv
-dSBtaW5kIHRvIGFkZCB5b3VyIGV4cGxhbmF0aW9uID8KSXQgaXMgbXVjaCBtb3IgaGVscGZ1bCB0
-aGF0IHRoZSBjb21tZW50IHJpZ2h0IG5vdy4KCnJlLAogd2gKCi0tClRvIHVuc3Vic2NyaWJlIGZy
-b20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBzcGFyY2xpbnV4IiBpbgp0
-aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwpNb3JlIG1h
-am9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0
-bWw=
+
+Based almost entirely upon a patch by Christopher Alexander Tobias
+Schulze.
+
+In commit db64fe02258f1507e13fe5212a989922323685ce ("mm: rewrite vmap
+layer") lazy VMAP tlb flushing was added to the vmalloc layer.  This
+causes problems on sparc64.
+
+Sparc64 has two VMAP mapped regions and they are not contiguous with
+eachother.  First we have the malloc mapping area, then another
+unrelated region, then the vmalloc region.
+
+This "another unrelated region" is where the firmware is mapped.
+
+If the lazy TLB flushing logic in the vmalloc code triggers after
+we've had both a module unload and a vfree or similar, it will pass an
+address range that goes from somewhere inside the malloc region to
+somewhere inside the vmalloc region, and thus covering the
+openfirmware area entirely.
+
+The sparc64 kernel learns about openfirmware's dynamic mappings in
+this region early in the boot, and then services TLB misses in this
+area.  But openfirmware has some locked TLB entries which are not
+mentioned in those dynamic mappings and we should thus not disturb
+them.
+
+These huge lazy TLB flush ranges causes those openfirmware locked TLB
+entries to be removed, resulting in all kinds of problems including
+hard hangs and crashes during reboot/reset.
+
+Besides causing problems like this, such huge TLB flush ranges are
+also incredibly inefficient.  A plea has been made with the author of
+the VMAP lazy TLB flushing code, but for now we'll put a safety guard
+into our flush_tlb_kernel_range() implementation.
+
+Since the implementation has become non-trivial, stop defining it as a
+macro and instead make it a function in a C source file.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+
+Christopher, I adjusted your patch so that this interface is no longer
+implemented as a macro.  It's too large to keep inlining at this point.
+
+ arch/sparc/include/asm/tlbflush_64.h | 12 ++----------
+ arch/sparc/mm/init_64.c              | 23 +++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 10 deletions(-)
+
+diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
+index 816d820..dea1cfa 100644
+--- a/arch/sparc/include/asm/tlbflush_64.h
++++ b/arch/sparc/include/asm/tlbflush_64.h
+@@ -34,6 +34,8 @@ static inline void flush_tlb_range(struct vm_area_struct *vma,
+ {
+ }
+ 
++void flush_tlb_kernel_range(unsigned long start, unsigned long end);
++
+ #define __HAVE_ARCH_ENTER_LAZY_MMU_MODE
+ 
+ void flush_tlb_pending(void);
+@@ -48,11 +50,6 @@ void __flush_tlb_kernel_range(unsigned long start, unsigned long end);
+ 
+ #ifndef CONFIG_SMP
+ 
+-#define flush_tlb_kernel_range(start,end) \
+-do {	flush_tsb_kernel_range(start,end); \
+-	__flush_tlb_kernel_range(start,end); \
+-} while (0)
+-
+ static inline void global_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
+ {
+ 	__flush_tlb_page(CTX_HWBITS(mm->context), vaddr);
+@@ -63,11 +60,6 @@ static inline void global_flush_tlb_page(struct mm_struct *mm, unsigned long vad
+ void smp_flush_tlb_kernel_range(unsigned long start, unsigned long end);
+ void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr);
+ 
+-#define flush_tlb_kernel_range(start, end) \
+-do {	flush_tsb_kernel_range(start,end); \
+-	smp_flush_tlb_kernel_range(start, end); \
+-} while (0)
+-
+ #define global_flush_tlb_page(mm, vaddr) \
+ 	smp_flush_tlb_page(mm, vaddr)
+ 
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index db5ddde..2cfb0f2 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2707,3 +2707,26 @@ void hugetlb_setup(struct pt_regs *regs)
+ 	}
+ }
+ #endif
++
++#ifdef CONFIG_SMP
++#define do_flush_tlb_kernel_range	smp_flush_tlb_kernel_range
++#else
++#define do_flush_tlb_kernel_range	__flush_tlb_kernel_range
++#endif
++
++void flush_tlb_kernel_range(unsigned long start, unsigned long end)
++{
++	if (start < HI_OBP_ADDRESS && end > LOW_OBP_ADDRESS) {
++		if (start < LOW_OBP_ADDRESS) {
++			flush_tsb_kernel_range(start, LOW_OBP_ADDRESS);
++			do_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS);
++		}
++		if (end > HI_OBP_ADDRESS) {
++			flush_tsb_kernel_range(end, HI_OBP_ADDRESS);
++			do_flush_tlb_kernel_range(end, HI_OBP_ADDRESS);
++		}
++	} else {
++		flush_tsb_kernel_range(start, end);
++		do_flush_tlb_kernel_range(start, end);
++	}
++}
+-- 
+1.8.1.2
+
