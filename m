@@ -1,82 +1,66 @@
-From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
-Date: Sun, 03 Aug 2014 14:31:56 +0000
-Subject: [PATCH] tlbflush: Prevent flushing locked OBP LITLB entry
-Message-Id: <201408031631.57053.cat.schulze@alice-dsl.net>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 06 Aug 2014 21:51:27 +0000
+Subject: [PATCH] sparc: Hook up seccomp and getrandom system calls.
+Message-Id: <20140806.145127.623900217712118849.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
 
-Prevent flush_tlb_kernel_range() from flushing the locked PROM LITLB entry.
-When both a region below LOW_OBP_ADDRESS and a region above HI_OBP_ADDRESS
-are to be flushed, __purge_vmap_area_lazy() might decide to combine both
-flushes into one call to flush_tlb_kernel_range(), without checking whether
-this combined flush will also affect the locked OBP LITLB entry. Removing
-this entry will cause a RED state exception on the next reboot, with observed
-effects from hang on reboot to corrupted PCI resource information passed to
-Linux after the reboot.
-
-This patch tries to prevent this flush by adding a check to
-flush_tlb_kernel_range(). This will catch all attempts to flush the OBP LITLB
-entry from all possible callers. Fixing the algorithm used in
-__purge_vmap_area_lazy() (which is located in the architecture independent
-part of the kernel) is also recommended, but not part of this patch.
-
-Patch applies to 3.16-rc6.
-
-Signed-off-by: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
-
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
+ arch/sparc/include/uapi/asm/unistd.h | 4 +++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -Naupr linux-3.16-rc6-orig/arch/sparc/include/asm/tlbflush_64.h linux-3.16-rc6-patched/arch/sparc/include/asm/tlbflush_64.h
---- linux-3.16-rc6-orig/arch/sparc/include/asm/tlbflush_64.h	2014-07-27 11:46:05.000000000 +0200
-+++ linux-3.16-rc6-patched/arch/sparc/include/asm/tlbflush_64.h	2014-08-03 16:12:13.000000000 +0200
-@@ -49,8 +49,20 @@ void __flush_tlb_kernel_range(unsigned l
- #ifndef CONFIG_SMP
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 42f2bca..886cab4 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -411,8 +411,10 @@
+ #define __NR_sched_setattr	343
+ #define __NR_sched_getattr	344
+ #define __NR_renameat2		345
++#define __NR_seccomp		346
++#define __NR_getrandom		347
  
- #define flush_tlb_kernel_range(start,end) \
--do {	flush_tsb_kernel_range(start,end); \
--	__flush_tlb_kernel_range(start,end); \
-+do { \
-+	if ((start < HI_OBP_ADDRESS) && (end > LOW_OBP_ADDRESS)) { \
-+		if (start < LOW_OBP_ADDRESS) { \
-+			flush_tsb_kernel_range(start, LOW_OBP_ADDRESS); \
-+			__flush_tlb_kernel_range(start, LOW_OBP_ADDRESS); \
-+		} \
-+		if (end > HI_OBP_ADDRESS) { \
-+			flush_tsb_kernel_range(HI_OBP_ADDRESS, end); \
-+			__flush_tlb_kernel_range(HI_OBP_ADDRESS, end); \
-+		} \
-+	} else { \
-+		flush_tsb_kernel_range(start, end); \
-+		__flush_tlb_kernel_range(start, end); \
-+	} \
- } while (0)
+-#define NR_syscalls		346
++#define NR_syscalls		348
  
- static inline void global_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
-@@ -64,8 +76,20 @@ void smp_flush_tlb_kernel_range(unsigned
- void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr);
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index 85fe9b1..217893e 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -86,4 +86,4 @@ sys_call_table:
+ /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-/*345*/	.long sys_renameat2
++/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 33ecba2..d93b49d 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -87,7 +87,7 @@ sys_call_table32:
+ /*330*/	.word compat_sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-	.word sys32_renameat2
++	.word sys32_renameat2, sys_seccomp, sys_getrandom
  
- #define flush_tlb_kernel_range(start, end) \
--do {	flush_tsb_kernel_range(start,end); \
--	smp_flush_tlb_kernel_range(start, end); \
-+do { \
-+	if ((start < HI_OBP_ADDRESS) && (end > LOW_OBP_ADDRESS)) { \
-+		if (start < LOW_OBP_ADDRESS) { \
-+			flush_tsb_kernel_range(start, LOW_OBP_ADDRESS); \
-+			smp_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS); \
-+		} \
-+		if (end > HI_OBP_ADDRESS) { \
-+			flush_tsb_kernel_range(HI_OBP_ADDRESS, end); \
-+			smp_flush_tlb_kernel_range(HI_OBP_ADDRESS, end); \
-+		} \
-+	} else { \
-+		flush_tsb_kernel_range(start, end); \
-+		smp_flush_tlb_kernel_range(start, end); \
-+	} \
- } while (0)
+ #endif /* CONFIG_COMPAT */
  
- #define global_flush_tlb_page(mm, vaddr) \
+@@ -166,4 +166,4 @@ sys_call_table:
+ /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-	.word sys_renameat2
++	.word sys_renameat2, sys_seccomp, sys_getrandom
+-- 
+1.8.1.2
+
