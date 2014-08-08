@@ -1,49 +1,141 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 18 Aug 2014 11:37:50 +0000
-Subject: 3.16.0-11383-gc9...: WARNING at exit_mmap
-Message-Id: <alpine.SOC.1.00.1408181406520.2922@math.ut.ee>
+From: Kamal Mostafa <kamal@canonical.com>
+Date: Fri, 08 Aug 2014 20:39:28 +0000
+Subject: [PATCH 3.13 145/259] locking/mutex: Disable optimistic spinning on some architectures
+Message-Id: <1407530482-4483-146-git-send-email-kamal@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1407530482-4483-1-git-send-email-kamal@canonical.com>
+In-Reply-To: <1407530482-4483-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Sun Ultra 2, I got this on reboot from 3.16.0-11383-gc9 (to boot into 
-3.17-rc1 for test). I _think_ it was with hugetlb off (now I turned it 
-on).
+3.13.11.6 -stable review patch.  If anyone has any objections, please let me know.
 
-Was 3.16.0-11383 supposed to have the fix already or not?
+------------------
 
+From: Peter Zijlstra <peterz@infradead.org>
 
-I[info] Using makefile-style concurrent boot in runlevel 6.
-[185605.115774] sed[18479]: segfault at 612e706c ip 0000000000019f94 
-(rpc 00000000f7e39cc8) sp 00000000ffb13ac0 error 30001 in sed[10000+]
-[185605.269032] ------------[ cut here ]------------
-[185605.328134] WARNING: CPU: 1 PID: 18479 at mm/mmap.c:2766 
-exit_mmap+0x140/0x160()
-[.[185605.420630] Modules linked in: ipv6 flash sunhme loop sg sr_mod 
-evdev cdrom
-.[185605.509508] CPU: 1 PID: 18479 Comm: sed Not tainted 
-3.16.0-11383-gc9d2642 #92
-..[185605.599777] Call Trace:
-][185605.634611]  [000000000045170c] warn_slowpath_common+0x4c/0x80
- [185605.709085]  [00000000004e3560] exit_mmap+0x140/0x160
-St[185605.774257]  [000000000044fc0c] mmput.part.56+0xc/0xc0
-o[185605.841453]  [000000000045251c] exit_mm+0x11c/0x180
-p[185605.904353]  [0000000000453dfc] do_exit+0x23c/0x340
-p[185605.967357]  [0000000000454028] do_group_exit+0x28/0xc0
-in[185606.034398]  [000000000045da30] get_signal+0x1d0/0x3c0
-g[185606.101342]  [0000000000440e84] do_signal32+0x4/0x200
- [185606.166230]  [000000000042d078] do_signal+0x338/0x520
-de[185606.231292]  [000000000042da60] do_notify_resume+0x40/0x60
-f[185606.302340]  [0000000000404b04] __handle_signal+0xc/0x2c
-er[185606.370227] ---[ end trace 556ca9d82a279e2f ]---
-red ex[185606.435617] BUG: Bad rss-counter state mm:ffffff006ca18e80 idx:1 val:1
+commit 4badad352a6bb202ec68afa7a574c0bb961e5ebc upstream.
 
+The optimistic spin code assumes regular stores and cmpxchg() play nice;
+this is found to not be true for at least: parisc, sparc32, tile32,
+metag-lock1, arc-!llsc and hexagon.
 
-3.17-rc1 seems stable so far with debian upgrade and looping git clone, 
-with THP on and gcc 4.6.4. But that warning is never easily 
-reproducible.
+There is further wreckage, but this in particular seemed easy to
+trigger, so blacklist this.
 
+Opt in for known good archs.
+
+Signed-off-by: Peter Zijlstra <peterz@infradead.org>
+Reported-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Jason Low <jason.low2@hp.com>
+Cc: Waiman Long <waiman.long@hp.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Link: http://lkml.kernel.org/r/20140606175316.GV13930@laptop.programming.kicks-ass.net
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+---
+ arch/arm/Kconfig     | 1 +
+ arch/arm64/Kconfig   | 1 +
+ arch/powerpc/Kconfig | 1 +
+ arch/sparc/Kconfig   | 1 +
+ arch/x86/Kconfig     | 1 +
+ kernel/Kconfig.locks | 5 ++++-
+ 6 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 31e1f44..b3d400d 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -6,6 +6,7 @@ config ARM
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select BUILDTIME_EXTABLE_SORT if MMU
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 6d4dd22..bf0ed5d 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_USE_CMPXCHG_LOCKREF
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_FRAME_POINTERS
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index b44b52c..ab43fa3 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -139,6 +139,7 @@ config PPC
+ 	select OLD_SIGACTION if PPC32
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 
+ config GENERIC_CSUM
+ 	def_bool CPU_LITTLE_ENDIAN
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 6c95f4d..94cd9c1 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -76,6 +76,7 @@ config SPARC64
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_C_RECORDMCOUNT
+ 	select NO_BOOTMEM
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 
+ config ARCH_DEFCONFIG
+ 	string
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 9e31880..9562fc3 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -125,6 +125,7 @@ config X86
+ 	select RTC_LIB
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select HAVE_IRQ_EXIT_ON_IRQ_STACK if X86_64
++	select ARCH_SUPPORTS_ATOMIC_RMW
+ 
+ config INSTRUCTION_DECODER
+ 	def_bool y
+diff --git a/kernel/Kconfig.locks b/kernel/Kconfig.locks
+index d2b32ac..ecee67a 100644
+--- a/kernel/Kconfig.locks
++++ b/kernel/Kconfig.locks
+@@ -220,6 +220,9 @@ config INLINE_WRITE_UNLOCK_IRQRESTORE
+ 
+ endif
+ 
++config ARCH_SUPPORTS_ATOMIC_RMW
++	bool
++
+ config MUTEX_SPIN_ON_OWNER
+ 	def_bool y
+-	depends on SMP && !DEBUG_MUTEXES
++	depends on SMP && !DEBUG_MUTEXES && ARCH_SUPPORTS_ATOMIC_RMW
 -- 
-Meelis Roos (mroos@linux.ee)
+1.9.1
+
