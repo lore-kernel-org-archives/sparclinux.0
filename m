@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:13 +0000
-Subject: [RFC PATCH 20/20] PCI/MSI: Clean up unused MSI arch functions
-Message-Id: <1407828373-24322-21-git-send-email-wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:26:05 +0000
+Subject: [RFC PATCH 12/20] MIPS/Xlp/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+Message-Id: <1407828373-24322-13-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
@@ -10,198 +10,58 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Now we use struct msi_chip in all platforms to configure
-MSI/MSI-X. We can clean up the unused arch functions.
+Introduce a new struct msi_chip xlp_chip instead of weak arch
+functions to configure MSI/MSI-X.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- drivers/pci/msi.c |   82 ++++++++++++++++++++--------------------------------
- 1 files changed, 32 insertions(+), 50 deletions(-)
+ arch/mips/pci/msi-xlp.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index feba5dd..2d2d4cd 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -41,33 +41,7 @@ struct msi_chip * __weak arch_get_match_msi_chip(struct device *dev)
- 	return NULL;
+diff --git a/arch/mips/pci/msi-xlp.c b/arch/mips/pci/msi-xlp.c
+index fa374fe..6c27346 100644
+--- a/arch/mips/pci/msi-xlp.c
++++ b/arch/mips/pci/msi-xlp.c
+@@ -245,7 +245,7 @@ static struct irq_chip xlp_msix_chip = {
+ 	.irq_unmask	= unmask_msi_irq,
+ };
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++void xlp_teardown_msi_irq(unsigned int irq)
+ {
  }
  
--int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc) 
--{
--	int err;
--	struct msi_chip *chip = arch_get_match_msi_chip(&dev->dev);
--
--	if (!chip || !chip->setup_irq)
--		return -EINVAL;
--
--	err = chip->setup_irq(&dev->dev, desc);
--	if (err < 0)
--		return err;
--
--	return 0;
--}
--
--void __weak arch_teardown_msi_irq(unsigned int irq)
--{
--	struct msi_desc *entry = irq_get_msi_desc(irq);
--	struct msi_chip *chip = arch_get_match_msi_chip(&entry->dev->dev);
--
--	if (!chip || !chip->teardown_irq)
--		return;
--
--	chip->teardown_irq(irq);
--}
--
--int __weak arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
-+static int msi_check_device(struct pci_dev *dev, int nvec, int type)
- {
- 	struct msi_chip *chip = arch_get_match_msi_chip(&dev->dev);
- 
-@@ -77,25 +51,31 @@ int __weak arch_msi_check_device(struct pci_dev *dev, int nvec, int type)
- 	return chip->check_device(&dev->dev, nvec, type);
- }
- 
--int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- {
- 	struct msi_desc *entry;
- 	int ret;
- 	struct msi_chip *chip;
- 
- 	chip = arch_get_match_msi_chip(&dev->dev);
--	if (chip && chip->setup_irqs)
-+	if (!chip)
-+		return -EINVAL;
-+
-+	if (chip->setup_irqs)
- 		return chip->setup_irqs(&dev->dev, nvec, type);
- 	
- 	/*
- 	 * If an architecture wants to support multiple MSI, it needs to
--	 * override arch_setup_msi_irqs()
-+	 * provide chip->setup_irqs()
- 	 */
- 	if (type = PCI_CAP_ID_MSI && nvec > 1)
- 		return 1;
- 
-+	if (!chip->setup_irq)
-+		return -EINVAL;
-+
- 	list_for_each_entry(entry, &dev->msi_list, list) {
--		ret = arch_setup_msi_irq(dev, entry);
-+		ret = chip->setup_irq(&dev->dev, entry);
- 		if (ret < 0)
- 			return ret;
- 		if (ret > 0)
-@@ -105,13 +85,20 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+@@ -452,11 +452,12 @@ static int xlp_setup_msix(uint64_t lnkbase, int node, int link,
  	return 0;
  }
  
--/*
-- * We have a default implementation available as a separate non-weak
-- * function, as it is used by the Xen x86 PCI code
-- */
--void default_teardown_msi_irqs(struct pci_dev *dev)
-+static void teardown_msi_irqs(struct pci_dev *dev)
+-int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
++int xlp_setup_msi_irq(struct device *d, struct msi_desc *desc)
  {
- 	struct msi_desc *entry;
-+	struct msi_chip *chip;
-+
-+	chip = arch_get_match_msi_chip(&dev->dev);
-+	if (!chip)
-+		return;
-+
-+	if (chip->teardown_irqs)
-+		return chip->teardown_irqs(&dev->dev);
-+
-+	if (!chip->teardown_irq)
-+		return;
+ 	struct pci_dev *lnkdev;
+ 	uint64_t lnkbase;
+ 	int node, link, slot;
++	struct pci_dev *dev = to_pci_dev(d);
  
- 	list_for_each_entry(entry, &dev->msi_list, list) {
- 		int i, nvec;
-@@ -122,15 +109,10 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
- 		else
- 			nvec = 1 << entry->msi_attrib.multiple;
- 		for (i = 0; i < nvec; i++)
--			arch_teardown_msi_irq(entry->irq + i);
-+			chip->teardown_irq(entry->irq + i);
- 	}
+ 	lnkdev = xlp_get_pcie_link(dev);
+ 	if (lnkdev = NULL) {
+@@ -474,6 +475,16 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
+ 		return xlp_setup_msi(lnkbase, node, link, desc);
  }
  
--void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
--{
--	return default_teardown_msi_irqs(dev);
--}
--
- static void default_restore_msi_irq(struct pci_dev *dev, int irq)
++struct msi_chip xlp_chip = {
++	.setup_irq = xlp_setup_msi_irq,
++	.teardown_irq = xlp_teardown_msi_irq,
++};
++
++struct msi_chip *arch_get_match_msi_chip(struct device *dev)
++{
++	return &xlp_chip;
++}
++
+ void __init xlp_init_node_msi_irqs(int node, int link)
  {
- 	struct msi_desc *entry;
-@@ -149,9 +131,9 @@ static void default_restore_msi_irq(struct pci_dev *dev, int irq)
- 		write_msi_msg(irq, &entry->msg);
- }
- 
--void __weak arch_restore_msi_irqs(struct pci_dev *dev)
-+static void restore_msi_irqs(struct pci_dev *dev)
- {
--	struct msi_chip *chip = arch_get_msi_chip(&dev->dev);
-+	struct msi_chip *chip = arch_get_match_msi_chip(&dev->dev);
- 	if (chip && chip->restore_irqs)
- 		return chip->restore_irqs(&dev->dev);
- 
-@@ -386,7 +368,7 @@ static void free_msi_irqs(struct pci_dev *dev)
- 			BUG_ON(irq_has_action(entry->irq + i));
- 	}
- 
--	arch_teardown_msi_irqs(dev);
-+	teardown_msi_irqs(dev);
- 
- 	list_for_each_entry_safe(entry, tmp, &dev->msi_list, list) {
- 		if (entry->msi_attrib.is_msix) {
-@@ -456,7 +438,7 @@ static void __pci_restore_msi_state(struct pci_dev *dev)
- 
- 	pci_intx_for_msi(dev, 0);
- 	msi_set_enable(dev, 0);
--	arch_restore_msi_irqs(dev);
-+	restore_msi_irqs(dev);
- 
- 	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &control);
- 	msi_mask_irq(entry, msi_mask(entry->msi_attrib.multi_cap),
-@@ -479,7 +461,7 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
- 	msix_clear_and_set_ctrl(dev, 0,
- 				PCI_MSIX_FLAGS_ENABLE | PCI_MSIX_FLAGS_MASKALL);
- 
--	arch_restore_msi_irqs(dev);
-+	restore_msi_irqs(dev);
- 	list_for_each_entry(entry, &dev->msi_list, list) {
- 		msix_mask_irq(entry, entry->masked);
- 	}
-@@ -650,7 +632,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
- 	list_add_tail(&entry->list, &dev->msi_list);
- 
- 	/* Configure MSI capability structure */
--	ret = arch_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSI);
-+	ret = setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSI);
- 	if (ret) {
- 		msi_mask_irq(entry, mask, ~mask);
- 		free_msi_irqs(dev);
-@@ -766,7 +748,7 @@ static int msix_capability_init(struct pci_dev *dev,
- 	if (ret)
- 		return ret;
- 
--	ret = arch_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
-+	ret = setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
- 	if (ret)
- 		goto out_avail;
- 
-@@ -853,7 +835,7 @@ static int pci_msi_check_device(struct pci_dev *dev, int nvec, int type)
- 		if (bus->bus_flags & PCI_BUS_FLAGS_NO_MSI)
- 			return -EINVAL;
- 
--	ret = arch_msi_check_device(dev, nvec, type);
-+	ret = msi_check_device(dev, nvec, type);
- 	if (ret)
- 		return ret;
- 
+ 	struct nlm_soc_info *nodep;
 -- 
 1.7.1
 
