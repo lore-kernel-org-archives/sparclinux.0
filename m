@@ -1,66 +1,70 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 06 Aug 2014 21:51:27 +0000
-Subject: [PATCH] sparc: Hook up seccomp and getrandom system calls.
-Message-Id: <20140806.145127.623900217712118849.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:25:53 +0000
+Subject: [RFC PATCH 00/20] Use msi_chip to configure MSI/MSI-X in all platforms
+Message-Id: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+This series is mainly to use msi_chip instead of currently weak arch functions
+across all platforms. Also clean up current MSI code and make drivers support
+MSI easier.  
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/uapi/asm/unistd.h | 4 +++-
- arch/sparc/kernel/systbls_32.S       | 2 +-
- arch/sparc/kernel/systbls_64.S       | 4 ++--
- 3 files changed, 6 insertions(+), 4 deletions(-)
+Yijing Wang (20):
+  x86/xen/MSI: Eliminate arch_msix_mask_irq() and arch_msi_mask_irq()
+  MSI: Clean up struct msi_chip argument
+  PCI/MSI: Remove useless bus->msi assignment
+  MSI: Remove the redundant irq_set_chip_data()
+  MSI: Refactor struct msi_chip to become more common
+  PCI/MSI: Introduce arch_get_match_msi_chip() to find the match
+    msi_chip
+  x86/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  x86/xen/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  irq_remapping/MSI: Use msi_chip instead of arch func to configure
+    MSI/MSI-X
+  x86/MSI: Remove unused MSI weak arch functions
+  MIPS/Octeon/MSI: Use msi_chip instead of arch func to configure
+    MSI/MSI-X
+  MIPS/Xlp/MSI: Use msi_chip instead of arch func to configure
+    MSI/MSI-X
+  MIPS/xlr/MSI: Use msi_chip instead of arch func to configure
+    MSI/MSI-X
+  Powerpc/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  s390/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  arm/iop13xx/MSI: Use msi_chip instead of arch func to configure
+    MSI/MSI-X
+  IA64/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  Sparc/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  tile/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+  PCI/MSI: Clean up unused MSI arch functions
 
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index 42f2bca..886cab4 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -411,8 +411,10 @@
- #define __NR_sched_setattr	343
- #define __NR_sched_getattr	344
- #define __NR_renameat2		345
-+#define __NR_seccomp		346
-+#define __NR_getrandom		347
- 
--#define NR_syscalls		346
-+#define NR_syscalls		348
- 
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index 85fe9b1..217893e 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -86,4 +86,4 @@ sys_call_table:
- /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--/*345*/	.long sys_renameat2
-+/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index 33ecba2..d93b49d 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -87,7 +87,7 @@ sys_call_table32:
- /*330*/	.word compat_sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--	.word sys32_renameat2
-+	.word sys32_renameat2, sys_seccomp, sys_getrandom
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -166,4 +166,4 @@ sys_call_table:
- /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--	.word sys_renameat2
-+	.word sys_renameat2, sys_seccomp, sys_getrandom
--- 
-1.8.1.2
+ arch/arm/mach-iop13xx/include/mach/pci.h |    2 +
+ arch/arm/mach-iop13xx/iq81340mc.c        |    1 +
+ arch/arm/mach-iop13xx/iq81340sc.c        |    1 +
+ arch/arm/mach-iop13xx/msi.c              |   14 +++-
+ arch/arm/mach-iop13xx/pci.c              |    6 ++
+ arch/ia64/kernel/msi_ia64.c              |   18 +++-
+ arch/mips/pci/msi-octeon.c               |   45 ++++------
+ arch/mips/pci/msi-xlp.c                  |   15 +++-
+ arch/mips/pci/pci-xlr.c                  |   19 +++-
+ arch/powerpc/kernel/msi.c                |   23 ++++--
+ arch/s390/pci/pci.c                      |   16 +++-
+ arch/sparc/kernel/pci.c                  |   18 +++-
+ arch/tile/kernel/pci_gx.c                |   20 +++-
+ arch/x86/include/asm/pci.h               |    4 +-
+ arch/x86/include/asm/x86_init.h          |    3 -
+ arch/x86/kernel/apic/io_apic.c           |   35 +++++++-
+ arch/x86/kernel/x86_init.c               |   34 -------
+ arch/x86/pci/xen.c                       |  139 ++++++++++++++++--------------
+ drivers/iommu/irq_remapping.c            |   13 ++-
+ drivers/irqchip/irq-armada-370-xp.c      |   12 +--
+ drivers/pci/host/pci-tegra.c             |    9 ++-
+ drivers/pci/host/pcie-designware.c       |    6 +-
+ drivers/pci/host/pcie-rcar.c             |    9 ++-
+ drivers/pci/msi.c                        |  118 ++++++++++++--------------
+ drivers/pci/probe.c                      |    1 -
+ include/linux/msi.h                      |   13 ++--
+ 26 files changed, 338 insertions(+), 256 deletions(-)
 
