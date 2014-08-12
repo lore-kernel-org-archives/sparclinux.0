@@ -1,38 +1,64 @@
-From: "GVA Abogados." <o.nyvlt@post.cz>
-Date: Fri, 15 Aug 2014 12:52:45 +0000
-Subject: Transaction XLK-14-TTF/ESP.
-Message-Id: <5b1e4dd9152c5feef466188fde74728d@i-net.ro>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:26:10 +0000
+Subject: [RFC PATCH 17/20] IA64/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+Message-Id: <1407828373-24322-18-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Dear Friend,
+Introduce a new struct msi_chip ia64_msi_chip instead of weak arch
+functions to configure MSI/MSI-X.
 
-                  Please acknowledge and accept my proposal.
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ arch/ia64/kernel/msi_ia64.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-My name is Barrister Miguel Martinez Moreno, an Attorney at Law, in 
-Alicante-Spain.
+diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
+index c430f91..6e527c4 100644
+--- a/arch/ia64/kernel/msi_ia64.c
++++ b/arch/ia64/kernel/msi_ia64.c
+@@ -112,15 +112,15 @@ static struct irq_chip ia64_msi_chip = {
+ };
+ 
+ 
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++static int arch_ia64_setup_msi_irq(struct device *dev, struct msi_desc *desc)
+ {
+ 	if (platform_setup_msi_irq)
+-		return platform_setup_msi_irq(pdev, desc);
++		return platform_setup_msi_irq(to_pci_dev(dev), desc);
+ 
+-	return ia64_setup_msi_irq(pdev, desc);
++	return ia64_setup_msi_irq(to_pci_dev(dev), desc);
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++static void arch_ia64_teardown_msi_irq(unsigned int irq)
+ {
+ 	if (platform_teardown_msi_irq)
+ 		return platform_teardown_msi_irq(irq);
+@@ -128,6 +128,16 @@ void arch_teardown_msi_irq(unsigned int irq)
+ 	return ia64_teardown_msi_irq(irq);
+ }
+ 
++static struct msi_chip chip = {
++	.setup_irq = arch_ia64_setup_msi_irq,
++	.teardown_irq = arch_ia64_teardown_msi_irq,
++};
++
++struct msi_chip *arch_get_match_msi_chip(struct device *dev)
++{
++	return &chip;
++}
++
+ #ifdef CONFIG_INTEL_IOMMU
+ #ifdef CONFIG_SMP
+ static int dmar_msi_set_affinity(struct irq_data *data,
+-- 
+1.7.1
 
-I am writing to notify you of the unclaimed inheritance deposit of our 
-late client, who passed on to Great beyond on August 21st, 2010 in a 
-motor accident in auto pista de Alcala Del Henares, Madrid-Spain.
-
-I got your name and email address through a web search engine in my 
-quest to get a reliable individual who shall work with me in claiming 
-this inheritance deposit since all my efforts to get the biological 
-relative has proved abortive.
-
-Conclusively, I await your urgent response to include the following :( 
-1).Your full Names & Address. (2).Your Telephone and Fax numbers. 
-(3).Your business name if any: for more information on how to release 
-the inheritance deposit, amount, procedure and legality of this claim 
-send me an email via: gva_abogados@aim.com
-
-Have a very nice day my friend!
-
-Regards,
-Miguel Martinez Moreno (Esq)
-Attorney At Law.
-gvaintencia@aim.com
