@@ -1,127 +1,35 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 13 Aug 2014 01:16:46 +0000
-Subject: Re: [RFC PATCH 07/20] x86/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <53EABC7E.6080103@huawei.com>
+From: David Vrabel <david.vrabel@citrix.com>
+Date: Tue, 12 Aug 2014 09:09:49 +0000
+Subject: Re: [Xen-devel] [RFC PATCH 01/20] x86/xen/MSI: Eliminate arch_msix_mask_irq() and arch_msi_mask_irq(
+Message-Id: <53E9D9DD.3060901@citrix.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
- <1407828373-24322-8-git-send-email-wangyijing@huawei.com>
- <20140812190947.GD13996@laptop.dumpdata.com>
-In-Reply-To: <20140812190947.GD13996@laptop.dumpdata.com>
+ <1407828373-24322-2-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1407828373-24322-2-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On 2014/8/13 3:09, Konrad Rzeszutek Wilk wrote:
-> On Tue, Aug 12, 2014 at 03:26:00PM +0800, Yijing Wang wrote:
->> Introduce a new struct msi_chip apic_msi_chip instead of weak arch
->> functions to configure MSI/MSI-X in x86.
-> 
-> Why not 'x86_msi_ops' (see  arch/x86/kernel/x86_init.c)
+On 12/08/14 08:25, Yijing Wang wrote:
+> Commit 0e4ccb150 added two __weak arch functions arch_msix_mask_irq()
+> and arch_msi_mask_irq() to fix a bug found when running xen in x86.
+> Introduced these two funcntions make MSI code complex. This patch
+> reverted commit 0e4ccb150 and add #ifdef for x86 msi_chip to fix this
+> bug for simplicity. Also this is preparation for using struct
+> msi_chip instead of weak arch MSI functions in all platforms.
+[...]
+>  static struct irq_chip msi_chip = {
+>  	.name			= "PCI-MSI",
+> +#ifdef CONFIG_XEN
+> +	.irq_unmask		= nop_unmask_msi_irq,
+> +	.irq_mask		= nop_mask_msi_irq,
+> +#else
+>  	.irq_unmask		= unmask_msi_irq,
+>  	.irq_mask		= mask_msi_irq,
+> +#endif
 
-Hi Konrad, I think currently lots of weak arch functions make MSI code
-complex, we have following weak arch functions
+No.  CONFIG_XEN kernels can run on Xen and bare metal so this must be a
+runtime option.
 
-arch_setup_msi_irqs
-arch_setup_msi_irq
-arch_msi_check_device
-arch_teardown_msi_irqs
-arch_teardown_msi_irq
-arch_restore_msi_irqs
-arch_msi_mask_irq
-arch_msix_mask_irq
-
-And Thierry Reding and Thomas Petazzoni introduce a new MSI chip infrastructure which
-is used in arm platform now. Use msi_chip let us focus on implementing msi_chip ops functions(no need to implement all),
-but now, we should know much of MSI enable flow, then override the weak functions.
-I think use the unified MSI framework in all platforms is better.
-Also this series is preparation to support Non-PCI MSI device use common MSI framework in linux. Non-PCI MSI devices
-include hpet, dmar and the coming consolidator(introduced in ARM GICv3 spec, which is similar to MSI relay device).
-
-
-Thanks!
-Yijing.
-
->>
->> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->> ---
->>  arch/x86/include/asm/pci.h     |    1 +
->>  arch/x86/kernel/apic/io_apic.c |   20 ++++++++++++++++----
->>  2 files changed, 17 insertions(+), 4 deletions(-)
->>
->> diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
->> index 0892ea0..878a06d 100644
->> --- a/arch/x86/include/asm/pci.h
->> +++ b/arch/x86/include/asm/pci.h
->> @@ -101,6 +101,7 @@ void native_teardown_msi_irq(unsigned int irq);
->>  void native_restore_msi_irqs(struct pci_dev *dev);
->>  int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
->>  		  unsigned int irq_base, unsigned int irq_offset);
->> +extern struct msi_chip *x86_msi_chip;
->>  #else
->>  #define native_setup_msi_irqs		NULL
->>  #define native_teardown_msi_irq		NULL
->> diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
->> index 2609dcd..eb8ab7c 100644
->> --- a/arch/x86/kernel/apic/io_apic.c
->> +++ b/arch/x86/kernel/apic/io_apic.c
->> @@ -3077,24 +3077,25 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
->>  	return 0;
->>  }
->>  
->> -int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->> +int native_setup_msi_irqs(struct device *dev, int nvec, int type)
->>  {
->>  	struct msi_desc *msidesc;
->>  	unsigned int irq;
->>  	int node, ret;
->> +	struct pci_dev *pdev = to_pci_dev(dev);
->>  
->>  	/* Multiple MSI vectors only supported with interrupt remapping */
->>  	if (type = PCI_CAP_ID_MSI && nvec > 1)
->>  		return 1;
->>  
->> -	node = dev_to_node(&dev->dev);
->> +	node = dev_to_node(dev);
->>  
->> -	list_for_each_entry(msidesc, &dev->msi_list, list) {
->> +	list_for_each_entry(msidesc, &pdev->msi_list, list) {
->>  		irq = irq_alloc_hwirq(node);
->>  		if (!irq)
->>  			return -ENOSPC;
->>  
->> -		ret = setup_msi_irq(dev, msidesc, irq, 0);
->> +		ret = setup_msi_irq(pdev, msidesc, irq, 0);
->>  		if (ret < 0) {
->>  			irq_free_hwirq(irq);
->>  			return ret;
->> @@ -3214,6 +3215,17 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
->>  }
->>  #endif
->>  
->> +struct msi_chip apic_msi_chip = {
->> +	.setup_irqs = native_setup_msi_irqs,
->> +	.teardown_irq = native_teardown_msi_irq,
->> +};
->> +
->> +struct msi_chip *arch_get_match_msi_chip(struct device *dev)
->> +{
->> +	return x86_msi_chip;
->> +}
->> +
->> +struct msi_chip *x86_msi_chip = &apic_msi_chip;
->>  #endif /* CONFIG_PCI_MSI */
->>  /*
->>   * Hypertransport interrupt support
->> -- 
->> 1.7.1
->>
-> 
-> .
-> 
-
-
--- 
-Thanks!
-Yijing
-
+David
