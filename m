@@ -1,80 +1,71 @@
-From: Andreas Larsson <andreas@gaisler.com>
-Date: Fri, 29 Aug 2014 15:08:21 +0000
-Subject: [PATCH] sparc: Let memset return the address argument
-Message-Id: <1409324901-19291-1-git-send-email-andreas@gaisler.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:26:07 +0000
+Subject: [RFC PATCH 14/20] Powerpc/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+Message-Id: <1407828373-24322-15-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, sam@ravnborg.org, linux-kernel@vger.kernel.org, software@gaisler.com
+To: linux-arm-kernel@lists.infradead.org
 
-This makes memset follow the standard (instead of returning 0 on success). This
-is needed when certain versions of gcc optimizes around memset calls and assume
-that the address argument is preserved in %o0.
+Introduce a new struct msi_chip ppc_msi_chip instead of weak arch
+functions to configure MSI/MSI-X.
 
-Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/lib/memset.S |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ arch/powerpc/kernel/msi.c |   23 +++++++++++++++++------
+ 1 files changed, 17 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/lib/memset.S b/arch/sparc/lib/memset.S
-index 99c017b..f75e690 100644
---- a/arch/sparc/lib/memset.S
-+++ b/arch/sparc/lib/memset.S
-@@ -3,8 +3,9 @@
-  * Copyright (C) 1996,1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
-  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-  *
-- * Returns 0, if ok, and number of bytes not yet set if exception
-- * occurs and we were called as clear_user.
-+ * Calls to memset returns initial %o0. Calls to bzero returns 0, if ok, and
-+ * number of bytes not yet set if exception occurs and we were called as
-+ * clear_user.
-  */
+diff --git a/arch/powerpc/kernel/msi.c b/arch/powerpc/kernel/msi.c
+index 8bbc12d..170b02c 100644
+--- a/arch/powerpc/kernel/msi.c
++++ b/arch/powerpc/kernel/msi.c
+@@ -13,7 +13,7 @@
  
- #include <asm/ptrace.h>
-@@ -65,6 +66,8 @@ __bzero_begin:
- 	.globl	__memset_start, __memset_end
- __memset_start:
- memset:
-+	mov	%o0, %g1
-+	mov	1, %g4
- 	and	%o1, 0xff, %g3
- 	sll	%g3, 8, %g2
- 	or	%g3, %g2, %g3
-@@ -89,6 +92,7 @@ memset:
- 	 sub	%o0, %o2, %o0
+ #include <asm/machdep.h>
  
- __bzero:
-+	clr	%g4
- 	mov	%g0, %g3
- 1:
- 	cmp	%o1, 7
-@@ -151,8 +155,8 @@ __bzero:
- 	bne,a	8f
- 	 EX(stb	%g3, [%o0], and %o1, 1)
- 8:
--	retl
--	 clr	%o0
-+	b	0f
-+	 nop
- 7:
- 	be	13b
- 	 orcc	%o1, 0, %g0
-@@ -164,6 +168,12 @@ __bzero:
- 	bne	8b
- 	 EX(stb	%g3, [%o0 - 1], add %o1, 1)
- 0:
-+	andcc	%g4, 1, %g0
-+	be	5f
-+	 nop
-+	retl
-+	 mov	%g1, %o0
-+5:
- 	retl
- 	 clr	%o0
- __memset_end:
+-int arch_msi_check_device(struct pci_dev* dev, int nvec, int type)
++int ppc_msi_check_device(struct device *dev, int nvec, int type)
+ {
+ 	if (!ppc_md.setup_msi_irqs || !ppc_md.teardown_msi_irqs) {
+ 		pr_debug("msi: Platform doesn't provide MSI callbacks.\n");
+@@ -26,18 +26,29 @@ int arch_msi_check_device(struct pci_dev* dev, int nvec, int type)
+ 
+ 	if (ppc_md.msi_check_device) {
+ 		pr_debug("msi: Using platform check routine.\n");
+-		return ppc_md.msi_check_device(dev, nvec, type);
++		return ppc_md.msi_check_device(to_pci_dev(dev), nvec, type);
+ 	}
+ 
+         return 0;
+ }
+ 
+-int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++int ppc_setup_msi_irqs(struct device *dev, int nvec, int type)
+ {
+-	return ppc_md.setup_msi_irqs(dev, nvec, type);
++	return ppc_md.setup_msi_irqs(to_pci_dev(dev), nvec, type);
+ }
+ 
+-void arch_teardown_msi_irqs(struct pci_dev *dev)
++void ppc_teardown_msi_irqs(struct device *dev)
+ {
+-	ppc_md.teardown_msi_irqs(dev);
++	ppc_md.teardown_msi_irqs(to_pci_dev(dev));
++}
++
++struct msi_chip ppc_msi_chip = {
++	.setup_irqs = ppc_setup_msi_irqs,
++	.teardown_irqs = ppc_teardown_msi_irqs,
++	.check_device = ppc_msi_check_device,
++};
++
++struct msi_chip *arch_get_match_msi_chip(struct device *dev)
++{
++	return &ppc_msi_chip;
+ }
 -- 
-1.7.10.4
+1.7.1
 
