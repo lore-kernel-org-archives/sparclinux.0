@@ -1,48 +1,82 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2014 06:34:11 +0000
-Subject: [PATCH 2/3] sparc64: Skip bogus PCI bridge ranges.
-Message-Id: <20140812.233411.1651009555108248978.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:26:12 +0000
+Subject: [RFC PATCH 19/20] tile/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+Message-Id: <1407828373-24322-20-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Introduce a new struct msi_chip tile_msi_chip instead of weak arch
+functions to configure MSI/MSI-X.
 
-It seems that when a PCI Express bridge is not in use and has no devices
-behind it, the ranges property is bogus.  Specifically the size property
-is of the form [0xffffffff:...], and if you add this size to the resource
-start address the 64-bit calculation will overflow.
-
-Just check specifically for this size value signature and skip them.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/kernel/pci.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/tile/kernel/pci_gx.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index da24fb6..cc4c31e 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -489,6 +489,17 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
- 		size = GET_64BIT(ranges, 6);
- 		if (flags = 0 || size = 0)
- 			continue;
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index e39f9c5..d1f308c 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1485,7 +1485,7 @@ static struct irq_chip tilegx_msi_chip = {
+ 	/* TBD: support set_affinity. */
+ };
+ 
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++int tile_setup_msi_irq(struct device *dev, struct msi_desc *desc)
+ {
+ 	struct pci_controller *controller;
+ 	gxio_trio_context_t *trio_context;
+@@ -1510,7 +1510,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ 	 * Most PCIe endpoint devices do support 64-bit message addressing.
+ 	 */
+ 	if (desc->msi_attrib.is_64 = 0) {
+-		dev_printk(KERN_INFO, &pdev->dev,
++		dev_printk(KERN_INFO, dev,
+ 			"64-bit MSI message address not supported, "
+ 			"falling back to legacy interrupts.\n");
+ 
+@@ -1549,7 +1549,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ 		/* SQ regions are out, allocate from map mem regions. */
+ 		mem_map = gxio_trio_alloc_memory_maps(trio_context, 1, 0, 0);
+ 		if (mem_map < 0) {
+-			dev_printk(KERN_INFO, &pdev->dev,
++			dev_printk(KERN_INFO, dev,
+ 				"%s Mem-Map alloc failure. "
+ 				"Failed to initialize MSI interrupts. "
+ 				"Falling back to legacy interrupts.\n",
+@@ -1580,7 +1580,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ 					mem_map, mem_map_base, mem_map_limit,
+ 					trio_context->asid);
+ 	if (ret < 0) {
+-		dev_printk(KERN_INFO, &pdev->dev, "HV MSI config failed.\n");
++		dev_printk(KERN_INFO, dev, "HV MSI config failed.\n");
+ 
+ 		goto hv_msi_config_failure;
+ 	}
+@@ -1604,7 +1604,17 @@ is_64_failure:
+ 	return ret;
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++void tile_teardown_msi_irq(unsigned int irq)
+ {
+ 	irq_free_hwirq(irq);
+ }
 +
-+		/* On PCI-Express systems, PCI bridges that have no devices downstream
-+		 * have a bogus size value where the first 32-bit cell is 0xffffffff.
-+		 * This results in a bogus range where start + size overflows.
-+		 *
-+		 * Just skip these otherwise the kernel will complain when the resource
-+		 * tries to be claimed.
-+		 */
-+		if (size >> 32 = 0xffffffff)
-+			continue;
++struct msi_chip tile_msi_chip = {
++	.setup_irq = tile_setup_msi_irq,
++	.teardown_irq = tile_teardown_msi_irq,
++};
 +
- 		if (flags & IORESOURCE_IO) {
- 			res = bus->resource[0];
- 			if (res->flags) {
++struct msi_chip *arch_get_match_msi_chip(struct device *dev)
++{
++	return &tile_msi_chip;
++}
 -- 
-1.8.1.2
+1.7.1
 
