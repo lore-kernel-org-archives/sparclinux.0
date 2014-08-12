@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2014 06:34:14 +0000
-Subject: [PATCH 3/3] sparc64: Properly claim resources as each PCI bus is probed.
-Message-Id: <20140812.233414.1214313377685177502.davem@davemloft.net>
+Date: Tue, 12 Aug 2014 03:46:30 +0000
+Subject: [PATCH] sparc64: Do not disable interrupts in nmi_cpu_busy()
+Message-Id: <20140811.204630.506728512299279797.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,66 +9,40 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-Perform a pci_claim_resource() on all valid resources discovered
-during the OF device tree scan.
+nmi_cpu_busy() is a SMP function call that just makes sure that all of the
+cpus are spinning using cpu cycles while the NMI test runs.
 
-Based almost entirely upon the PCI OF bus probing code which does
-the same thing there.
+It does not need to disable IRQs because we just care about NMIs executing
+which will even with 'normal' IRQs disabled.
+
+It is not legal to enable hard IRQs in a SMP cross call, in fact this bug
+triggers the BUG check in irq_work_run_list():
+
+	BUG_ON(!irqs_disabled());
+
+Because now irq_work_run() is invoked from the tail of
+generic_smp_call_function_single_interrupt().
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/pci.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index cc4c31e..2e8609e 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -617,6 +617,35 @@ static void pci_bus_register_of_sysfs(struct pci_bus *bus)
- 		pci_bus_register_of_sysfs(child_bus);
- }
+This should fix bootup failures with Linus's current tree.
+
+ arch/sparc/kernel/nmi.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 3370945..5b1151d 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -130,7 +130,6 @@ static inline unsigned int get_nmi_count(int cpu)
  
-+static void pci_claim_bus_resources(struct pci_bus *bus)
-+{
-+	struct pci_bus *child_bus;
-+	struct pci_dev *dev;
-+
-+	list_for_each_entry(dev, &bus->devices, bus_list) {
-+		int i;
-+
-+		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
-+			struct resource *r = &dev->resource[i];
-+
-+			if (r->parent || !r->start || !r->flags)
-+				continue;
-+
-+			pr_info("PCI: Claiming %s: "
-+				 "Resource %d: %016llx..%016llx [%x]\n",
-+				 pci_name(dev), i,
-+				 (unsigned long long)r->start,
-+				 (unsigned long long)r->end,
-+				 (unsigned int)r->flags);
-+
-+			pci_claim_resource(dev, i);
-+		}
-+	}
-+
-+	list_for_each_entry(child_bus, &bus->children, node)
-+		pci_claim_bus_resources(child_bus);
-+}
-+
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent)
+ static __init void nmi_cpu_busy(void *data)
  {
-@@ -647,6 +676,8 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pci_bus_add_devices(bus);
- 	pci_bus_register_of_sysfs(bus);
- 
-+	pci_claim_bus_resources(bus);
-+
- 	return bus;
+-	local_irq_enable_in_hardirq();
+ 	while (endflag = 0)
+ 		mb();
  }
- 
 -- 
 1.8.1.2
 
