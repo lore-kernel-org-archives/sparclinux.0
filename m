@@ -1,98 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 12 Aug 2014 03:59:21 +0000
-Subject: [PATCH] sparc64: Fix pcr_ops initialization and usage bugs.
-Message-Id: <20140811.205921.1409252119164411393.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Tue, 12 Aug 2014 07:26:08 +0000
+Subject: [RFC PATCH 15/20] s390/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
+Message-Id: <1407828373-24322-16-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Introduce a new struct msi_chip zpci_msi_chip instead of weak arch
+functions to configure MSI/MSI-X.
 
-Christopher reports that perf_event_print_debug() can crash in uniprocessor
-builds.  The crash is due to pcr_ops being NULL.
-
-This happens because pcr_arch_init() is only invoked by smp_cpus_done() which
-only executes in SMP builds.
-
-init_hw_perf_events() is closely intertwined with pcr_ops being setup properly,
-therefore:
-
-1) Call pcr_arch_init() early on from init_hw_perf_events(), instead of
-   from smp_cpus_done().
-
-2) Do not hook up a PMU type if pcr_ops is NULL after pcr_arch_init().
-
-3) Move init_hw_perf_events to a later initcall so that it we will be
-   sure to invoke pcr_arch_init() after all cpus are brought up.
-
-Finally, guard the one naked sequence of pcr_ops dereferences in
-__global_pmu_self() with an appropriate NULL check.
-
-Reported-by: Christopher Alexander Tobias Schulze <cat.schulze@alice-dsl.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
+ arch/s390/pci/pci.c |   16 ++++++++++++++--
+ 1 files changed, 14 insertions(+), 2 deletions(-)
 
-This is the final version I committed to the sparc GIT tree.
-
- arch/sparc/kernel/perf_event.c | 7 +++++--
- arch/sparc/kernel/process_64.c | 3 +++
- arch/sparc/kernel/smp_64.c     | 1 -
- 3 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 8efd337..d35c490 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1671,9 +1671,12 @@ static bool __init supported_pmu(void)
- 
- static int __init init_hw_perf_events(void)
- {
-+	int err;
-+
- 	pr_info("Performance events: ");
- 
--	if (!supported_pmu()) {
-+	err = pcr_arch_init();
-+	if (err || !supported_pmu()) {
- 		pr_cont("No support for PMU type '%s'\n", sparc_pmu_type);
- 		return 0;
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 9ddc51e..ee7b05c 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -398,8 +398,9 @@ static void zpci_irq_handler(struct airq_struct *airq)
  	}
-@@ -1685,7 +1688,7 @@ static int __init init_hw_perf_events(void)
- 
- 	return 0;
  }
--early_initcall(init_hw_perf_events);
-+pure_initcall(init_hw_perf_events);
  
- void perf_callchain_kernel(struct perf_callchain_entry *entry,
- 			   struct pt_regs *regs)
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 027e099..0be7bf9 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -312,6 +312,9 @@ static void __global_pmu_self(int this_cpu)
- 	struct global_pmu_snapshot *pp;
- 	int i, num;
- 
-+	if (!pcr_ops)
-+		return;
-+
- 	pp = &global_cpu_snapshot[this_cpu].pmu;
- 
- 	num = 1;
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 41aa247..f7ba875 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1383,7 +1383,6 @@ void __cpu_die(unsigned int cpu)
- 
- void __init smp_cpus_done(unsigned int max_cpus)
+-int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
++int zpci_setup_msi_irqs(struct device *dev, int nvec, int type)
  {
--	pcr_arch_init();
++	struct pci_dev *pdev = to_pci_dev(dev);
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	unsigned int hwirq, msi_vecs;
+ 	unsigned long aisb;
+@@ -474,8 +475,9 @@ out:
+ 	return rc;
  }
  
- void smp_send_reschedule(int cpu)
+-void arch_teardown_msi_irqs(struct pci_dev *pdev)
++void zpci_teardown_msi_irqs(struct device *dev)
+ {
++	struct pci_dev *pdev = to_pci_dev(dev);
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	struct msi_desc *msi;
+ 	int rc;
+@@ -501,6 +503,16 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
+ 	airq_iv_free_bit(zpci_aisb_iv, zdev->aisb);
+ }
+ 
++struct msi_chip zpci_msi_chip = {
++	.setup_irqs = zpci_setup_msi_irqs,
++	.teardown_irqs = zpci_teardown_msi_irqs,
++};
++
++struct msi_chip *arch_get_match_msi_chip(struct device *dev)
++{
++	return &zpci_msi_chip;
++}
++
+ static void zpci_map_resources(struct zpci_dev *zdev)
+ {
+ 	struct pci_dev *pdev = zdev->pdev;
 -- 
-1.8.1.2
+1.7.1
 
