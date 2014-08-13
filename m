@@ -1,141 +1,43 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Fri, 08 Aug 2014 20:39:28 +0000
-Subject: [PATCH 3.13 145/259] locking/mutex: Disable optimistic spinning on some architectures
-Message-Id: <1407530482-4483-146-git-send-email-kamal@canonical.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Wed, 13 Aug 2014 10:28:51 +0000
+Subject: [PATCH v4 1/8] ARC: Remove redundant PCI_IOBASE declaration
+Message-Id: <1407925738-26170-2-git-send-email-thierry.reding@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407530482-4483-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1407530482-4483-1-git-send-email-kamal@canonical.com>
+References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
+In-Reply-To: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org
 
-3.13.11.6 -stable review patch.  If anyone has any objections, please let me know.
+From: Thierry Reding <treding@nvidia.com>
 
-------------------
+ARC's asm/io.h includes the asm-generic/io.h which already defines the
+PCI_IOBASE variable in exactly the same way, so it can be dropped from
+the architecture specific header.
 
-From: Peter Zijlstra <peterz@infradead.org>
-
-commit 4badad352a6bb202ec68afa7a574c0bb961e5ebc upstream.
-
-The optimistic spin code assumes regular stores and cmpxchg() play nice;
-this is found to not be true for at least: parisc, sparc32, tile32,
-metag-lock1, arc-!llsc and hexagon.
-
-There is further wreckage, but this in particular seemed easy to
-trigger, so blacklist this.
-
-Opt in for known good archs.
-
-Signed-off-by: Peter Zijlstra <peterz@infradead.org>
-Reported-by: Mikulas Patocka <mpatocka@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Jason Low <jason.low2@hp.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Paul McKenney <paulmck@linux.vnet.ibm.com>
-Cc: John David Anglin <dave.anglin@bell.net>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Davidlohr Bueso <davidlohr@hp.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Link: http://lkml.kernel.org/r/20140606175316.GV13930@laptop.programming.kicks-ass.net
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- arch/arm/Kconfig     | 1 +
- arch/arm64/Kconfig   | 1 +
- arch/powerpc/Kconfig | 1 +
- arch/sparc/Kconfig   | 1 +
- arch/x86/Kconfig     | 1 +
- kernel/Kconfig.locks | 5 ++++-
- 6 files changed, 9 insertions(+), 1 deletion(-)
+Changes in v4:
+- new patch
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 31e1f44..b3d400d 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -6,6 +6,7 @@ config ARM
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select BUILDTIME_EXTABLE_SORT if MMU
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 6d4dd22..bf0ed5d 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_USE_CMPXCHG_LOCKREF
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	select ARCH_WANT_FRAME_POINTERS
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index b44b52c..ab43fa3 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -139,6 +139,7 @@ config PPC
- 	select OLD_SIGACTION if PPC32
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
-+	select ARCH_SUPPORTS_ATOMIC_RMW
+ arch/arc/include/asm/io.h | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
+index 334ce7017a18..cabd518cb253 100644
+--- a/arch/arc/include/asm/io.h
++++ b/arch/arc/include/asm/io.h
+@@ -13,8 +13,6 @@
+ #include <asm/byteorder.h>
+ #include <asm/page.h>
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 6c95f4d..94cd9c1 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -76,6 +76,7 @@ config SPARC64
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_C_RECORDMCOUNT
- 	select NO_BOOTMEM
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 
- config ARCH_DEFCONFIG
- 	string
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 9e31880..9562fc3 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -125,6 +125,7 @@ config X86
- 	select RTC_LIB
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK if X86_64
-+	select ARCH_SUPPORTS_ATOMIC_RMW
- 
- config INSTRUCTION_DECODER
- 	def_bool y
-diff --git a/kernel/Kconfig.locks b/kernel/Kconfig.locks
-index d2b32ac..ecee67a 100644
---- a/kernel/Kconfig.locks
-+++ b/kernel/Kconfig.locks
-@@ -220,6 +220,9 @@ config INLINE_WRITE_UNLOCK_IRQRESTORE
- 
- endif
- 
-+config ARCH_SUPPORTS_ATOMIC_RMW
-+	bool
-+
- config MUTEX_SPIN_ON_OWNER
- 	def_bool y
--	depends on SMP && !DEBUG_MUTEXES
-+	depends on SMP && !DEBUG_MUTEXES && ARCH_SUPPORTS_ATOMIC_RMW
+-#define PCI_IOBASE ((void __iomem *)0)
+-
+ extern void __iomem *ioremap(unsigned long physaddr, unsigned long size);
+ extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
+ 				  unsigned long flags);
 -- 
-1.9.1
+2.0.4
 
