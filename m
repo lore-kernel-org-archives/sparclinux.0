@@ -1,77 +1,82 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Wed, 13 Aug 2014 10:28:53 +0000
-Subject: [PATCH v4 3/8] sparc: Remove unnecessary volatile usage
-Message-Id: <1407925738-26170-4-git-send-email-thierry.reding@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 Aug 2014 06:34:05 +0000
+Subject: [PATCH 1/3] sparc64: Expand PCI bridge probing debug logging.
+Message-Id: <20140812.233405.1754149695816034237.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
-In-Reply-To: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-From: Thierry Reding <treding@nvidia.com>
 
-The volatile keyword is only necessary in accessors that immediately
-perform memory accesses. Wrappers around such accessors, such as the
-_memset_io() and _memcpy_{to,from}io() functions don't need them.
+Dump the various aspects of the PCI bridge probed at boot time, most
+importantly the bridge number ranges, and the ranges property.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+This helps diagnose PCI resource issues and other problems by giving
+ofpci_debug=1 on the boot command line.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
-Changes in v4:
-- new patch
+ arch/sparc/kernel/pci.c | 24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
- arch/sparc/include/asm/io_32.h | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
-
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 9f532902627c..49267f2575d7 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -16,18 +16,15 @@
- 
- #include <asm-generic/io.h>
- 
--static inline void _memset_io(volatile void __iomem *dst,
--                              int c, __kernel_size_t n)
-+static inline void _memset_io(void __iomem *dst, int c, __kernel_size_t n)
- {
--	volatile void __iomem *d = dst;
--
- 	while (n--) {
--		writeb(c, d);
--		d++;
-+		writeb(c, dst);
-+		dst++;
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 539babf..da24fb6 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -432,6 +432,11 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 		       node->full_name);
+ 		return;
  	}
- }
++
++	if (ofpci_verbose)
++		printk("    Bridge bus range [%u --> %u]\n",
++		       busrange[0], busrange[1]);
++
+ 	ranges = of_get_property(node, "ranges", &len);
+ 	simba = 0;
+ 	if (ranges = NULL) {
+@@ -451,6 +456,10 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 	pci_bus_insert_busn_res(bus, busrange[0], busrange[1]);
+ 	bus->bridge_ctl = 0;
  
--static inline void _memcpy_fromio(void *dst, const volatile void __iomem *src,
-+static inline void _memcpy_fromio(void *dst, const void __iomem *src,
-                                   __kernel_size_t n)
- {
- 	char *d = dst;
-@@ -39,16 +36,15 @@ static inline void _memcpy_fromio(void *dst, const volatile void __iomem *src,
++	if (ofpci_verbose)
++		printk("    Bridge ranges[%p] simba[%d]\n",
++		       ranges, simba);
++
+ 	/* parse ranges property, or cook one up by hand for Simba */
+ 	/* PCI #address-cells = 3 and #size-cells = 2 always */
+ 	res = &dev->resource[PCI_BRIDGE_RESOURCES];
+@@ -468,6 +477,14 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
  	}
- }
+ 	i = 1;
+ 	for (; len >= 32; len -= 32, ranges += 8) {
++		u64 start;
++
++		if (ofpci_verbose)
++			printk("    RAW Range[%08x:%08x:%08x:%08x:%08x:%08x:"
++			       "%08x:%08x]\n",
++			       ranges[0], ranges[1], ranges[2], ranges[3],
++			       ranges[4], ranges[5], ranges[6], ranges[7]);
++
+ 		flags = pci_parse_of_flags(ranges[0]);
+ 		size = GET_64BIT(ranges, 6);
+ 		if (flags = 0 || size = 0)
+@@ -490,8 +507,13 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 		}
  
--static inline void _memcpy_toio(volatile void __iomem *dst, const void *src,
-+static inline void _memcpy_toio(void __iomem *dst, const void *src,
-                                 __kernel_size_t n)
- {
- 	const char *s = src;
--	volatile void __iomem *d = dst;
- 
- 	while (n--) {
- 		char tmp = *s++;
--		writeb(tmp, d);
--		d++;
-+		writeb(tmp, dst);
-+		dst++;
+ 		res->flags = flags;
+-		region.start = GET_64BIT(ranges, 1);
++		region.start = start = GET_64BIT(ranges, 1);
+ 		region.end = region.start + size - 1;
++
++		if (ofpci_verbose)
++			printk("      Using flags[%08x] start[%016llx] size[%016llx]\n",
++			       flags, start, size);
++
+ 		pcibios_bus_to_resource(dev->bus, res, &region);
  	}
- }
- 
+ after_ranges:
 -- 
-2.0.4
+1.8.1.2
 
