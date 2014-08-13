@@ -1,46 +1,60 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 13 Aug 2014 11:44:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 Aug 2014 19:46:11 +0000
 Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
+Message-Id: <20140813.124611.767426770013677.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1404170119550.20193@math.ut.ee> <20140729.162635.638786990787878495.davem@davemloft.net> <alpine.SOC.1.00.1407310101550.2065@math.ut.ee> <20140730.150722.861254999466992321.davem@davemloft.net>
-In-Reply-To: <20140730.150722.861254999466992321.davem@davemloft.net>
+References: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
+	<20140730.150722.861254999466992321.davem@davemloft.net>
+	<alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
+In-Reply-To: <alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: mroos@linux.ee
 Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
 
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 13 Aug 2014 14:44:42 +0300 (EEST)
 
-I tested the merged sparc64 fixes in current git.
+> Did not test current git more.
 
-V100: with hugetlb, looping git clone still hangs the machine. RED 
-state on reboot has changed - before it gave the trace on reboot and 
-continued, now it contonues looping with the trace indefinitely, gcc 
-4.6.4
+Current git fails to boot without this fix which I posted the other
+day:
 
-Netra X1: works fine with HugeTLB (but no hugetlbfs) and looping git 
-clone, gcc 4.6.4.
+==========
+[PATCH 1/2] sparc64: Do not disable interrupts in nmi_cpu_busy()
 
-V440: fails to boot with 3.16 and gcc 4.9.1 (same message as before, in 
-fault_in_user_windows+0xe0/0x100). Tried latest git with gcc 4.9.1 but 
-it stops after before getting to the previous failure point:
-[   77.871887] console [tty0] enabled
-[   77.912630] bootconsole [earlyprom0] disabled
+nmi_cpu_busy() is a SMP function call that just makes sure that all of the
+cpus are spinning using cpu cycles while the NMI test runs.
 
-T2000: works fine with gcc 4.9.1 and hugetlb, 3.16. Hangs at boot at the 
-same point.
+It does not need to disable IRQs because we just care about NMIs executing
+which will even with 'normal' IRQs disabled.
 
-U2: looping git clone fails with 3.16, no hugetlb(!!!), gcc 4.6.4;
+It is not legal to enable hard IRQs in a SMP cross call, in fact this bug
+triggers the BUG check in irq_work_run_list():
 
-E420R: works fine with gcc 4.6.4. 3.16, hugetlb, looping git clone; 
-fails to boot with current git
+	BUG_ON(!irqs_disabled());
 
-E220R: works with gcc 4.6.4, no hugetlb, 3.16. Hangs on boot with 
-current git + hugetlb.
+Because now irq_work_run() is invoked from the tail of
+generic_smp_call_function_single_interrupt().
 
-Did not test current git more. Will test the patches on top of 3.16 
-separately to see if/which one of these is the culprit.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/kernel/nmi.c | 1 -
+ 1 file changed, 1 deletion(-)
 
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 3370945..5b1151d 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -130,7 +130,6 @@ static inline unsigned int get_nmi_count(int cpu)
+ 
+ static __init void nmi_cpu_busy(void *data)
+ {
+-	local_irq_enable_in_hardirq();
+ 	while (endflag = 0)
+ 		mb();
+ }
 -- 
-Meelis Roos (mroos@linux.ee)
+1.7.11.7
+
