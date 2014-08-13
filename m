@@ -1,62 +1,48 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:02 +0000
-Subject: [RFC PATCH 09/20] irq_remapping/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <1407828373-24322-10-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 Aug 2014 06:34:11 +0000
+Subject: [PATCH 2/3] sparc64: Skip bogus PCI bridge ranges.
+Message-Id: <20140812.233411.1651009555108248978.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Introduce a new struct msi_chip remap_msi_chip instead of weak arch
-functions to configure irq remapping MSI/MSI-X in x86.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+It seems that when a PCI Express bridge is not in use and has no devices
+behind it, the ranges property is bogus.  Specifically the size property
+is of the form [0xffffffff:...], and if you add this size to the resource
+start address the 64-bit calculation will overflow.
+
+Just check specifically for this size value signature and skip them.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/iommu/irq_remapping.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/pci.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index 33c4395..f494b51 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -139,15 +139,20 @@ error:
- 	return ret;
- }
- 
--static int irq_remapping_setup_msi_irqs(struct pci_dev *dev,
-+static int irq_remapping_setup_msi_irqs(struct device *dev,
- 					int nvec, int type)
- {
- 	if (type = PCI_CAP_ID_MSI)
--		return do_setup_msi_irqs(dev, nvec);
-+		return do_setup_msi_irqs(to_pci_dev(dev), nvec);
- 	else
--		return do_setup_msix_irqs(dev, nvec);
-+		return do_setup_msix_irqs(to_pci_dev(dev), nvec);
- }
- 
-+struct msi_chip remap_msi_chip = {
-+	.setup_irqs = irq_remapping_setup_msi_irqs,
-+	.teardown_irq = native_teardown_msi_irq,
-+};
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index da24fb6..cc4c31e 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -489,6 +489,17 @@ static void of_scan_pci_bridge(struct pci_pbm_info *pbm,
+ 		size = GET_64BIT(ranges, 6);
+ 		if (flags = 0 || size = 0)
+ 			continue;
 +
- static void eoi_ioapic_pin_remapped(int apic, int pin, int vector)
- {
- 	/*
-@@ -165,9 +170,9 @@ static void __init irq_remapping_modify_x86_ops(void)
- 	x86_io_apic_ops.set_affinity	= set_remapped_irq_affinity;
- 	x86_io_apic_ops.setup_entry	= setup_ioapic_remapped_entry;
- 	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
--	x86_msi.setup_msi_irqs		= irq_remapping_setup_msi_irqs;
- 	x86_msi.setup_hpet_msi		= setup_hpet_msi_remapped;
- 	x86_msi.compose_msi_msg		= compose_remapped_msi_msg;
-+	x86_msi_chip = &remap_msi_chip;
- }
- 
- static __init int setup_nointremap(char *str)
++		/* On PCI-Express systems, PCI bridges that have no devices downstream
++		 * have a bogus size value where the first 32-bit cell is 0xffffffff.
++		 * This results in a bogus range where start + size overflows.
++		 *
++		 * Just skip these otherwise the kernel will complain when the resource
++		 * tries to be claimed.
++		 */
++		if (size >> 32 = 0xffffffff)
++			continue;
++
+ 		if (flags & IORESOURCE_IO) {
+ 			res = bus->resource[0];
+ 			if (res->flags) {
 -- 
-1.7.1
+1.8.1.2
 
