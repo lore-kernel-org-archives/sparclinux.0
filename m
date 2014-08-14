@@ -1,98 +1,64 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 11:11:53 +0000
-Subject: Re: [Xen-devel] [RFC PATCH 01/20] x86/xen/MSI: Eliminate arch_msix_mask_irq() and arch_msi_mask_irq(
-Message-Id: <53E9F679.8060302@huawei.com>
+From: Minchan Kim <minchan@kernel.org>
+Date: Thu, 14 Aug 2014 01:53:27 +0000
+Subject: [PATCH v14 3/8] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1407981212-17818-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
- <1407828373-24322-2-git-send-email-wangyijing@huawei.com>
- <53E9D9DD.3060901@citrix.com>
-In-Reply-To: <53E9D9DD.3060901@citrix.com>
+References: <1407981212-17818-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1407981212-17818-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Michael Kerrisk <mtk.manpages@gmail.com>, Linux API <linux-api@vger.kernel.org>, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, Zhang Yanfei <zhangyanfei@cn.fujitsu.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On 2014/8/12 17:09, David Vrabel wrote:
-> On 12/08/14 08:25, Yijing Wang wrote:
->> Commit 0e4ccb150 added two __weak arch functions arch_msix_mask_irq()
->> and arch_msi_mask_irq() to fix a bug found when running xen in x86.
->> Introduced these two funcntions make MSI code complex. This patch
->> reverted commit 0e4ccb150 and add #ifdef for x86 msi_chip to fix this
->> bug for simplicity. Also this is preparation for using struct
->> msi_chip instead of weak arch MSI functions in all platforms.
-> [...]
->>  static struct irq_chip msi_chip = {
->>  	.name			= "PCI-MSI",
->> +#ifdef CONFIG_XEN
->> +	.irq_unmask		= nop_unmask_msi_irq,
->> +	.irq_mask		= nop_mask_msi_irq,
->> +#else
->>  	.irq_unmask		= unmask_msi_irq,
->>  	.irq_mask		= mask_msi_irq,
->> +#endif
-> 
-> No.  CONFIG_XEN kernels can run on Xen and bare metal so this must be a
-> runtime option.
+MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
+overwrite of the contents since MADV_FREE syscall is called for
+THP page.
 
-Hi David, that's my mistake, what about export struct irq_chip msi_chip, then
-change the msi_chip->irq_mask/irq_unmask() in xen init functions.
+This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
+support.
 
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+---
+ arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Eg.
-
-diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
-index 19b0eba..bb6af00 100644
---- a/arch/x86/include/asm/apic.h
-+++ b/arch/x86/include/asm/apic.h
-@@ -43,6 +43,10 @@ static inline void generic_apic_probe(void)
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5c6e1b..b80a309d7e00 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
+ 	return pte_young(pte);
  }
- #endif
-
-+#ifdef CONFIG_PCI_MSI
-+extern struct irq_chip msi_chip;
-+#endif
+ 
++static inline int pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
 +
- #ifdef CONFIG_X86_LOCAL_APIC
-[...]
++	return pte_dirty(pte);
++}
 +
-+#ifdef CONFIG_PCI_MSI
-+void xen_nop_msi_mask(struct irq_data *data)
+ static inline unsigned long pmd_write(pmd_t pmd)
  {
--       return 0;
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
  }
- #endif
-
-@@ -424,8 +423,8 @@ int __init pci_xen_init(void)
-        x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
-        x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-        x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
--       x86_msi.msi_mask_irq = xen_nop_msi_mask_irq;
--       x86_msi.msix_mask_irq = xen_nop_msix_mask_irq;
-+       msi_chip.irq_mask = xen_nop_msi_mask;
-+       msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
-        return 0;
- }
-@@ -505,8 +504,8 @@ int __init pci_xen_initial_domain(void)
-        x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
-        x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-        x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
--       x86_msi.msi_mask_irq = xen_nop_msi_mask_irq;
--       x86_msi.msix_mask_irq = xen_nop_msix_mask_irq;
-+       msi_chip.irq_mask = xen_nop_msi_mask;
-+       msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
-        xen_setup_acpi_sci();
-
-
-> 
-> David
-> 
-> .
-> 
-
-
+ 
++static inline pmd_t pmd_mkclean(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	pte = pte_mkclean(pte);
++
++	return __pmd(pte_val(pte));
++}
++
+ static inline pmd_t pmd_mkyoung(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
 -- 
-Thanks!
-Yijing
+2.0.0
 
