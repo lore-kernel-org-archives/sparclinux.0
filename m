@@ -1,60 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 13 Aug 2014 19:46:11 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 14 Aug 2014 12:20:38 +0000
 Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <20140813.124611.767426770013677.davem@davemloft.net>
+Message-Id: <alpine.SOC.1.00.1408141519440.24828@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
-	<20140730.150722.861254999466992321.davem@davemloft.net>
-	<alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
-In-Reply-To: <alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
+References: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee> <20140730.150722.861254999466992321.davem@davemloft.net> <alpine.SOC.1.00.1408131327250.18696@math.ut.ee> <20140813.124611.767426770013677.davem@davemloft.net>
+In-Reply-To: <20140813.124611.767426770013677.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
+To: David Miller <davem@davemloft.net>
 Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 13 Aug 2014 14:44:42 +0300 (EEST)
+> > Did not test current git more.
+> 
+> Current git fails to boot without this fix which I posted the other
+> day:
+> 
+> ==========
+> [PATCH 1/2] sparc64: Do not disable interrupts in nmi_cpu_busy()
 
-> Did not test current git more.
+Thanks, I noticed it on sparclinux@ but did not add one and one 
+together. Now it seems to work with at least T2000. Will test other 
+machines as I get some time.
 
-Current git fails to boot without this fix which I posted the other
-day:
-
-==========
-[PATCH 1/2] sparc64: Do not disable interrupts in nmi_cpu_busy()
-
-nmi_cpu_busy() is a SMP function call that just makes sure that all of the
-cpus are spinning using cpu cycles while the NMI test runs.
-
-It does not need to disable IRQs because we just care about NMIs executing
-which will even with 'normal' IRQs disabled.
-
-It is not legal to enable hard IRQs in a SMP cross call, in fact this bug
-triggers the BUG check in irq_work_run_list():
-
-	BUG_ON(!irqs_disabled());
-
-Because now irq_work_run() is invoked from the tail of
-generic_smp_call_function_single_interrupt().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/nmi.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 3370945..5b1151d 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -130,7 +130,6 @@ static inline unsigned int get_nmi_count(int cpu)
- 
- static __init void nmi_cpu_busy(void *data)
- {
--	local_irq_enable_in_hardirq();
- 	while (endflag = 0)
- 		mb();
- }
 -- 
-1.7.11.7
-
+Meelis Roos (mroos@linux.ee)
