@@ -1,67 +1,38 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:05 +0000
-Subject: [RFC PATCH 12/20] MIPS/Xlp/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <1407828373-24322-13-git-send-email-wangyijing@huawei.com>
+From: "GVA Abogados." <o.nyvlt@post.cz>
+Date: Fri, 15 Aug 2014 12:52:45 +0000
+Subject: Transaction XLK-14-TTF/ESP.
+Message-Id: <5b1e4dd9152c5feef466188fde74728d@i-net.ro>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Introduce a new struct msi_chip xlp_chip instead of weak arch
-functions to configure MSI/MSI-X.
+Dear Friend,
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
----
- arch/mips/pci/msi-xlp.c |   15 +++++++++++++--
- 1 files changed, 13 insertions(+), 2 deletions(-)
+                  Please acknowledge and accept my proposal.
 
-diff --git a/arch/mips/pci/msi-xlp.c b/arch/mips/pci/msi-xlp.c
-index fa374fe..6c27346 100644
---- a/arch/mips/pci/msi-xlp.c
-+++ b/arch/mips/pci/msi-xlp.c
-@@ -245,7 +245,7 @@ static struct irq_chip xlp_msix_chip = {
- 	.irq_unmask	= unmask_msi_irq,
- };
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+void xlp_teardown_msi_irq(unsigned int irq)
- {
- }
- 
-@@ -452,11 +452,12 @@ static int xlp_setup_msix(uint64_t lnkbase, int node, int link,
- 	return 0;
- }
- 
--int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-+int xlp_setup_msi_irq(struct device *d, struct msi_desc *desc)
- {
- 	struct pci_dev *lnkdev;
- 	uint64_t lnkbase;
- 	int node, link, slot;
-+	struct pci_dev *dev = to_pci_dev(d);
- 
- 	lnkdev = xlp_get_pcie_link(dev);
- 	if (lnkdev = NULL) {
-@@ -474,6 +475,16 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 		return xlp_setup_msi(lnkbase, node, link, desc);
- }
- 
-+struct msi_chip xlp_chip = {
-+	.setup_irq = xlp_setup_msi_irq,
-+	.teardown_irq = xlp_teardown_msi_irq,
-+};
-+
-+struct msi_chip *arch_get_match_msi_chip(struct device *dev)
-+{
-+	return &xlp_chip;
-+}
-+
- void __init xlp_init_node_msi_irqs(int node, int link)
- {
- 	struct nlm_soc_info *nodep;
--- 
-1.7.1
+My name is Barrister Miguel Martinez Moreno, an Attorney at Law, in 
+Alicante-Spain.
 
+I am writing to notify you of the unclaimed inheritance deposit of our 
+late client, who passed on to Great beyond on August 21st, 2010 in a 
+motor accident in auto pista de Alcala Del Henares, Madrid-Spain.
+
+I got your name and email address through a web search engine in my 
+quest to get a reliable individual who shall work with me in claiming 
+this inheritance deposit since all my efforts to get the biological 
+relative has proved abortive.
+
+Conclusively, I await your urgent response to include the following :( 
+1).Your full Names & Address. (2).Your Telephone and Fax numbers. 
+(3).Your business name if any: for more information on how to release 
+the inheritance deposit, amount, procedure and legality of this claim 
+send me an email via: gva_abogados@aim.com
+
+Have a very nice day my friend!
+
+Regards,
+Miguel Martinez Moreno (Esq)
+Attorney At Law.
+gvaintencia@aim.com
