@@ -1,38 +1,64 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:25:57 +0000
-Subject: [RFC PATCH 04/20] MSI: Remove the redundant irq_set_chip_data()
-Message-Id: <1407828373-24322-5-git-send-email-wangyijing@huawei.com>
+From: Minchan Kim <minchan@kernel.org>
+Date: Mon, 18 Aug 2014 00:17:52 +0000
+Subject: [PATCH v15 3/7] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1408321076-2231-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+References: <1408321076-2231-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1408321076-2231-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, linux-api@vger.kernel.org, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, zhangyanfei@cn.fujitsu.com, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Currently, pcie-designware, pcie-rcar, pci-tegra drivers
-use irq chip_data to the msi_chip pointer. They already call
-irq_set_chip_data() in their own MSI irq map functions.
-So irq_set_chip_data() in arch_setup_msi_irq() is useless.
+MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
+overwrite of the contents since MADV_FREE syscall is called for
+THP page.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
+support.
+
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 ---
- drivers/pci/msi.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 782b242..242d775 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -41,8 +41,6 @@ int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 	if (err < 0)
- 		return err;
- 
--	irq_set_chip_data(desc->irq, chip);
--
- 	return 0;
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5c6e1b..b80a309d7e00 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
+ 	return pte_young(pte);
  }
  
++static inline int pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	return pte_dirty(pte);
++}
++
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
+ }
+ 
++static inline pmd_t pmd_mkclean(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	pte = pte_mkclean(pte);
++
++	return __pmd(pte_val(pte));
++}
++
+ static inline pmd_t pmd_mkyoung(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
 -- 
-1.7.1
+2.0.0
 
