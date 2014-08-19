@@ -1,64 +1,54 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:10 +0000
-Subject: [RFC PATCH 17/20] IA64/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <1407828373-24322-18-git-send-email-wangyijing@huawei.com>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Tue, 19 Aug 2014 05:12:08 +0000
+Subject: [PATCH 3/3] sparc64: cpu hwarware caps support for sparc M7
+Message-Id: <1408424408-20449-2-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Introduce a new struct msi_chip ia64_msi_chip instead of weak arch
-functions to configure MSI/MSI-X.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
 ---
- arch/ia64/kernel/msi_ia64.c |   18 ++++++++++++++----
- 1 files changed, 14 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/setup_64.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
-index c430f91..6e527c4 100644
---- a/arch/ia64/kernel/msi_ia64.c
-+++ b/arch/ia64/kernel/msi_ia64.c
-@@ -112,15 +112,15 @@ static struct irq_chip ia64_msi_chip = {
- };
- 
- 
--int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
-+static int arch_ia64_setup_msi_irq(struct device *dev, struct msi_desc *desc)
- {
- 	if (platform_setup_msi_irq)
--		return platform_setup_msi_irq(pdev, desc);
-+		return platform_setup_msi_irq(to_pci_dev(dev), desc);
- 
--	return ia64_setup_msi_irq(pdev, desc);
-+	return ia64_setup_msi_irq(to_pci_dev(dev), desc);
- }
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+static void arch_ia64_teardown_msi_irq(unsigned int irq)
- {
- 	if (platform_teardown_msi_irq)
- 		return platform_teardown_msi_irq(irq);
-@@ -128,6 +128,16 @@ void arch_teardown_msi_irq(unsigned int irq)
- 	return ia64_teardown_msi_irq(irq);
- }
- 
-+static struct msi_chip chip = {
-+	.setup_irq = arch_ia64_setup_msi_irq,
-+	.teardown_irq = arch_ia64_teardown_msi_irq,
-+};
-+
-+struct msi_chip *arch_get_match_msi_chip(struct device *dev)
-+{
-+	return &chip;
-+}
-+
- #ifdef CONFIG_INTEL_IOMMU
- #ifdef CONFIG_SMP
- static int dmar_msi_set_affinity(struct irq_data *data,
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 3fdb455..6738f1b 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -500,12 +500,14 @@ static void __init init_sparc64_elf_hwcap(void)
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++		    sun4v_chip_type = SUN4V_CHIP_SPARC_M7 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 			cap |= HWCAP_SPARC_BLKINIT;
+ 		if (sun4v_chip_type = SUN4V_CHIP_NIAGARA2 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++		    sun4v_chip_type = SUN4V_CHIP_SPARC_M7 ||
+ 		    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 			cap |= HWCAP_SPARC_N2;
+ 	}
+@@ -533,6 +535,7 @@ static void __init init_sparc64_elf_hwcap(void)
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++			    sun4v_chip_type = SUN4V_CHIP_SPARC_M7 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 				cap |= (AV_SPARC_VIS | AV_SPARC_VIS2 |
+ 					AV_SPARC_ASI_BLK_INIT |
+@@ -540,6 +543,7 @@ static void __init init_sparc64_elf_hwcap(void)
+ 			if (sun4v_chip_type = SUN4V_CHIP_NIAGARA3 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA4 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_NIAGARA5 ||
++			    sun4v_chip_type = SUN4V_CHIP_SPARC_M7 ||
+ 			    sun4v_chip_type = SUN4V_CHIP_SPARC64X)
+ 				cap |= (AV_SPARC_VIS3 | AV_SPARC_HPC |
+ 					AV_SPARC_FMAF);
 -- 
 1.7.1
 
