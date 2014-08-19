@@ -1,34 +1,30 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 19 Aug 2014 08:22:16 +0000
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Tue, 19 Aug 2014 21:29:21 +0000
 Subject: Re: sparc64 WARNING: at mm/mmap.c:2757 exit_mmap+0x13c/0x160()
-Message-Id: <alpine.SOC.1.00.1408191120390.27327@math.ut.ee>
+Message-Id: <20140819212921.GE4885@drone.musicnaut.iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140414184353.GA5630@drone.musicnaut.iki.fi> <20140416.145822.1317931249717152474.davem@davemloft.net> <alpine.SOC.1.00.1404170119550.20193@math.ut.ee> <20140729.162635.638786990787878495.davem@davemloft.net>
-In-Reply-To: <20140729.162635.638786990787878495.davem@davemloft.net>
+References: <alpine.SOC.1.00.1407310101550.2065@math.ut.ee>
+ <20140730.150722.861254999466992321.davem@davemloft.net>
+ <alpine.SOC.1.00.1408131327250.18696@math.ut.ee>
+ <20140813.124611.767426770013677.davem@davemloft.net>
+ <alpine.SOC.1.00.1408151534480.27263@math.ut.ee>
+ <alpine.SOC.1.00.1408181528270.2922@math.ut.ee>
+ <20140818173552.GA2126@drone.musicnaut.iki.fi>
+ <CAGRGNgUq0-1rDtRJfFQ1ARvPXk6aT+f99-EGCN1vBpd35q2qyg@mail.gmail.com>
+In-Reply-To: <CAGRGNgUq0-1rDtRJfFQ1ARvPXk6aT+f99-EGCN1vBpd35q2qyg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: aaro.koskinen@iki.fi, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, hughd@google.com, cat.schulze@alice-dsl.net
+To: Julian Calaby <julian.calaby@gmail.com>
+Cc: Meelis Roos <mroos@linux.ee>, David Miller <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, hughd@google.com, cat.schulze@alice-dsl.net
 
+Hi,
 
-Meanwhile, a Ultra 1 with overnight looping git clone got exit_mmap 
-warning again with 3.17.0-rc1. Otherwise it is working good.
+On Tue, Aug 19, 2014 at 09:45:03AM +1000, Julian Calaby wrote:
+> Stupid question: aren't the Ultra 5 and Ultra 10 essentially
+> the same hardware?
 
-[11052.686935] ------------[ cut here ]------------
-[11052.740486] WARNING: CPU: 0 PID: 2541 at mm/mmap.c:2766 exit_mmap+0x138/0x160()
-[11052.827934] Modules linked in: osst snd_sun_cs4231 snd_pcm snd_timer snd soundcore parport_sunbpp parport st ch qlogicpti sunhme ipv6 sr_mod cdrom sg evdev
-[11052.994500] CPU: 0 PID: 2541 Comm: git Not tainted 3.17.0-rc1 #49
-[11053.067464] Call Trace:
-[11053.096647]  [00000000004d1758] exit_mmap+0x138/0x160
-[11053.157091]  [000000000044c1ec] mmput+0x2c/0xc0
-[11053.211256]  [000000000044e168] exit_mm+0x108/0x180
-[11053.269597]  [000000000044f908] do_exit+0x228/0x320
-[11053.327935]  [000000000044fae4] do_group_exit+0x24/0xc0
-[11053.390440]  [000000000044fb94] SyS_exit_group+0x14/0x20
-[11053.454004]  [0000000000406074] linux_sparc_syscall32+0x34/0x60
-[11053.524809] ---[ end trace 7b6188ceaeca01dd ]---
-[11053.580132] BUG: Bad rss-counter state mm:ffffff0032c778c0 idx:0 val:7
+Basically yes, but often configurations are different (CPU speed,
+memory capacity, peripherals, PROM versions).
 
--- 
-Meelis Roos (mroos@linux.ee)
+A.
