@@ -1,70 +1,24 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:25:53 +0000
-Subject: [RFC PATCH 00/20] Use msi_chip to configure MSI/MSI-X in all platforms
-Message-Id: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+From: Abdul Nasser Sokariah <abdulsokariah10@gmail.com>
+Date: Sat, 23 Aug 2014 14:08:47 +0000
+Subject: Urgent Assistance from Syria
+Message-Id: <CAOCHuvxQ9wFBiw8LuhuLFYNbSFdtWYrEu-iSQA5MWQdCoA=_vQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
 
-This series is mainly to use msi_chip instead of currently weak arch functions
-across all platforms. Also clean up current MSI code and make drivers support
-MSI easier.  
+-- 
+Good Day From Syria,
 
-Yijing Wang (20):
-  x86/xen/MSI: Eliminate arch_msix_mask_irq() and arch_msi_mask_irq()
-  MSI: Clean up struct msi_chip argument
-  PCI/MSI: Remove useless bus->msi assignment
-  MSI: Remove the redundant irq_set_chip_data()
-  MSI: Refactor struct msi_chip to become more common
-  PCI/MSI: Introduce arch_get_match_msi_chip() to find the match
-    msi_chip
-  x86/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  x86/xen/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  irq_remapping/MSI: Use msi_chip instead of arch func to configure
-    MSI/MSI-X
-  x86/MSI: Remove unused MSI weak arch functions
-  MIPS/Octeon/MSI: Use msi_chip instead of arch func to configure
-    MSI/MSI-X
-  MIPS/Xlp/MSI: Use msi_chip instead of arch func to configure
-    MSI/MSI-X
-  MIPS/xlr/MSI: Use msi_chip instead of arch func to configure
-    MSI/MSI-X
-  Powerpc/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  s390/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  arm/iop13xx/MSI: Use msi_chip instead of arch func to configure
-    MSI/MSI-X
-  IA64/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  Sparc/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  tile/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-  PCI/MSI: Clean up unused MSI arch functions
+My name is Abdul Nasser Sokariah and I am writing you from Syria, I
+choose to contact you directly as I need a reliable person to trust
+who can help me make claims to my huge deposit with a vault company in
+AFRICA, and based on my present situation in Syria, I need you
+urgently to take  possession of everything and further
+modalities/directives will follow.
 
- arch/arm/mach-iop13xx/include/mach/pci.h |    2 +
- arch/arm/mach-iop13xx/iq81340mc.c        |    1 +
- arch/arm/mach-iop13xx/iq81340sc.c        |    1 +
- arch/arm/mach-iop13xx/msi.c              |   14 +++-
- arch/arm/mach-iop13xx/pci.c              |    6 ++
- arch/ia64/kernel/msi_ia64.c              |   18 +++-
- arch/mips/pci/msi-octeon.c               |   45 ++++------
- arch/mips/pci/msi-xlp.c                  |   15 +++-
- arch/mips/pci/pci-xlr.c                  |   19 +++-
- arch/powerpc/kernel/msi.c                |   23 ++++--
- arch/s390/pci/pci.c                      |   16 +++-
- arch/sparc/kernel/pci.c                  |   18 +++-
- arch/tile/kernel/pci_gx.c                |   20 +++-
- arch/x86/include/asm/pci.h               |    4 +-
- arch/x86/include/asm/x86_init.h          |    3 -
- arch/x86/kernel/apic/io_apic.c           |   35 +++++++-
- arch/x86/kernel/x86_init.c               |   34 -------
- arch/x86/pci/xen.c                       |  139 ++++++++++++++++--------------
- drivers/iommu/irq_remapping.c            |   13 ++-
- drivers/irqchip/irq-armada-370-xp.c      |   12 +--
- drivers/pci/host/pci-tegra.c             |    9 ++-
- drivers/pci/host/pcie-designware.c       |    6 +-
- drivers/pci/host/pcie-rcar.c             |    9 ++-
- drivers/pci/msi.c                        |  118 ++++++++++++--------------
- drivers/pci/probe.c                      |    1 -
- include/linux/msi.h                      |   13 ++--
- 26 files changed, 338 insertions(+), 256 deletions(-)
+Contact me  only on my private Email:nabdul247@gmail.com for
+clarifications,I await your response.
 
+Yours truly, Abdul Nasser Sokariah
+Contact Email:nabdul247@gmail.com
