@@ -1,21 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 05 Aug 2014 05:40:56 +0000
-Subject: Re: [PATCH] sparc64: Guard against flushing openfirmware mappings.
-Message-Id: <20140804.224056.1561995911715380938.davem@davemloft.net>
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Date: Sun, 24 Aug 2014 08:38:39 +0000
+Subject: Re: [PATCH v3] arch: Kconfig: Let all architectures set endian explicitly
+Message-Id: <53F9A48F.3020803@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140804.201710.101327918842040424.davem@davemloft.net>
-In-Reply-To: <20140804.201710.101327918842040424.davem@davemloft.net>
+References: <53ECE9DD.80004@gmail.com> <20140814180418.GA20777@linux-mips.org> <53ED34CE.3040001@gmail.com> <53EDCC60.5040608@gmail.com>
+In-Reply-To: <53EDCC60.5040608@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, akpm@linux-foundation.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@synopsys.com, Geert Uytterhoeven <geert@linux-m68k.org>, Jean Delvare <jdelvare@suse.de>, linux@arm.linux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, msalter@redhat.com, a-jacquiot@ti.com, starvik@axis.com, jesper.nilsson@axis.com, dhowells@redhat.com, rkuo@codeaurora.org, tony.luck@intel.com, fenghua.yu@intel.com, takata@linux-m32r.org, james.hogan@imgtec.com, Michal Simek <monstr@monstr.eu>, yasutake.koichi@jp.panasonic.com, jonas@southpole.se, jejb@parisc-linux.org, deller@gmx.de, Benjamin Herrenschmidt <benh@kernel.crashing.org>, paulus@samba.org, mpe@ellerman.id.au, Martin Schwidefsky <schwidefsky@de.ibm.com>, heiko.carstens@de.ibm.com, Liqin Chen <liqin.linux@gmail>
 
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Tue, 5 Aug 2014 13:51:37 +1000
+Hello Maintainers:
 
-> Stupid question (because I know it'll never happen) but wouldn't it be
-> better to make this even more explicit and handle cases where the
-> range starts or ends within the OpenFirmware range too?
+Is this patch OK? If it pass basic checking, please let me know, and I
+shall try to make another related patch for KBuild (I can do nothing
+related with Kbuild, before get confirmation for this patch).
 
-I guess we could make it more strict, but the checks we've used cover
-any case that the problematic vmalloc code can generate.
+Thanks.
+
+On 8/15/14 17:01, Chen Gang wrote:
+> 
+> 
+> On 8/15/14 6:14, Chen Gang wrote:
+>> On 08/15/2014 02:04 AM, Ralf Baechle wrote:
+>>>
+>>
+>> OK, thanks, I assumes when support both endian, the default choice is
+>> CPU_BIG_ENDIAN, although no default value for choice (originally, I did
+>> worry about it).
+>>
+>>> So I think you can just drop the MIPS segment from your patch.
+>>>
+>>
+>> If what I assumes is correct, what you said sounds reasonable to me.
+>>
+>>
+> 
+> So for me, it is harmless to add CPU_*_ENDIAN explicitly, and can let
+> other members don't need think of.
+> 
+> By the way, for sh, it is almost the same case, except it contents the
+> default value, for me, it is clear enough, so I skip sh architecture in
+> this patch.
+> 
+> 
+> Thanks
+> 
+
+-- 
+Chen Gang
+
+Open, share, and attitude like air, water, and life which God blessed
