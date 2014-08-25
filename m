@@ -1,54 +1,48 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 19 Aug 2014 14:23:39 +0000
-Subject: 3.17-rc1: FATAL RESET from  DAR/DCS/CDX
-Message-Id: <alpine.SOC.1.00.1408191719280.7767@math.ut.ee>
+Date: Mon, 25 Aug 2014 12:38:25 +0000
+Subject: suspicions RCU usage in 3.17.0-rc1-00231-g7be141d on sparc64
+Message-Id: <alpine.LRH.2.11.1408251536430.27437@siim2.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On up to 3.16, my V480 with old revision mainboard sometimes boots up 
-and works (onboard cassini not in use because of mainboard bug), 
-sometimes it hits schizo PCI error on boot and retry works.
+This is 3.17.0-rc1-00231-g7be141d on sparc64 (4-CPU E420R with US-II 
+CPUs). It works fine but gave this during reboot:
 
-However, with 3.17-rc1, it fails differently and consistently after FC 
-scsi, cassini and i2c detection:
-
-[   96.352052] cassini: cassini.c:v1.6 (21 May 2008)
-[   96.417822] cassini 0002:00:02.0 eth4: Sun Cassini+ (64bit/33MHz PCI/Cu) Ethernet[28] 00:03:ba:29:66:f2
-[   96.546451] cassini 0003:00:01.0 eth5: Sun Cassini+ (64bit/66MHz PCI/Cu) Ethernet[34] 00:03:ba:29:66:f1
-[   96.553061] scsi 2:0:0:0: Direct-Access     HITACHI  DK32EJ72FSUN72G  2Q0J PQ: 0 ANSI: 3
-[   96.776844] i2c-0: Regs at 000007fc7e00002e, 8 devices, own a0, clock 10.
-[   96.866112] i2c-0: Regs at 000007fc7e000030, 8 devices, own a0, clock 10.
-
-RSC Alert: Host System has Reset
-
-ERROR: System Hardware FATAL RESET from  DAR/DCS/CDX
-
-
-System State (CPU3 reporting)
-
-  BBC Devices: 0000.0000.0000.000a
-  BBC Arb:     0000.0000.0000.000f
-  BBC Quiesce: 0000.0000.0000.0003
-  BBC WDogAct: 0000.0000.0000.0000
-  BBC POR Gen: 0000.0000.0000.0000
-  BBC XIR Gen: 0000.0000.0000.0000
-  BBC POR Src: 0000.0000.0000.4000
-  BBC XIR Src: 0000.0000.0000.0000
-  BBC EBus TC: 014f.99fd.a7e6.3f29
-
-WARNING: CPU0 not in ROM 'IDLE' loop, attempting mailbox command...
-
-Then CPU1 dump, CPU2 not in idle loop, CPU3 dump and
-
-A recursive System/CPU trap or fault has occurred.
-No further registers can be meaningfully printed.
-Proceeding to attempt system recovery.
-3:0>POST is doing a System JTAG SCAN Dump for OBP 
-
-
+[info] Will now restart.
+[ 4499.742521]
+[ 4499.759281] ===============[ 4499.809274] [ INFO: suspicious RCU usage. ]
+[ 4499.859270] 3.17.0-rc1-00231-g7be141d #47 Not tainted
+[ 4499.919673] -------------------------------
+[ 4499.969661] include/linux/rcupdate.h:844 rcu_read_lock() used illegally while idle!
+[ 4500.061328]
+[ 4500.061328] other info that might help us debug this:
+[ 4500.061328]
+[ 4500.157159]
+[ 4500.157159] RCU used illegally from idle CPU!
+[ 4500.157159] rcu_scheduler_active = 1, debug_locks = 0
+[ 4500.287348] RCU used illegally from extended quiescent state!
+[ 4500.356038] 1 lock held by swapper/0/0:
+[ 4500.401850]  #0:  (rcu_read_lock){......}, at: [<00000000004ee944>] __perf_event_exit_context+0x24/0x2c0
+[ 4500.515385]
+[ 4500.515385] stack backtrace:
+[ 4500.567462] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.17.0-rc1-00231-g7be141d #47
+[ 4500.659116] Call Trace:
+[ 4500.688253]  [000000000049fecc] lockdep_rcu_suspicious+0xcc/0x120
+[ 4500.761168]  [00000000004eeba0] __perf_event_exit_context+0x280/0x2c0
+[ 4500.838235]  [00000000004d6d24] flush_smp_call_function_queue+0x84/0x1a0
+[ 4500.918424]  [00000000004d74a4] generic_smp_call_function_single_interrupt+0x4/0x20
+[ 4501.010104]  [000000000043f6d4] smp_call_function_single_client+0x14/0x40
+[ 4501.091304]  [0000000000426b74] valid_addr_bitmap_patch+0x8c/0x258
+[ 4501.165248]  [000000000042cecc] arch_cpu_idle+0x2c/0xa0
+[ 4501.227733]  [000000000049c53c] cpu_startup_entry+0x15c/0x200
+[ 4501.296462]  [0000000000829b98] rest_init+0x178/0x1a0
+[ 4501.356868]  [00000000009dc9dc] start_kernel+0x3e4/0x3f4
+[ 4501.420390]  [0000000000829a0c] tlb_fixup_done+0xa0/0xb4
+[ 4501.483910]  [0000000000000000]           (null)
+[ 4501.539919] reboot: Restarting system
 
 
 -- 
