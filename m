@@ -1,239 +1,113 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:25:54 +0000
-Subject: [RFC PATCH 01/20] x86/xen/MSI: Eliminate arch_msix_mask_irq() and arch_msi_mask_irq()
-Message-Id: <1407828373-24322-2-git-send-email-wangyijing@huawei.com>
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Date: Wed, 27 Aug 2014 15:21:32 +0000
+Subject: [PATCH v9 17/23] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
+Message-Id: <e9da1aec72a8d874f7190d8faf491ec095980bd0.1409152897.git.jan.kiszka@siemens.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
+References: <cover.1409152897.git.jan.kiszka@siemens.com>
+In-Reply-To: <cover.1409152897.git.jan.kiszka@siemens.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Thomas Gleixner <tglx@linutronix.de>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org
+Cc: Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, Borislav Petkov <bp@suse.de>, Tatiana Al-Chueyr Martins <tatiana.alchueyr@gmail.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Commit 0e4ccb150 added two __weak arch functions arch_msix_mask_irq()
-and arch_msi_mask_irq() to fix a bug found when running xen in x86.
-Introduced these two funcntions make MSI code complex. This patch
-reverted commit 0e4ccb150 and add #ifdef for x86 msi_chip to fix this
-bug for simplicity. Also this is preparation for using struct
-msi_chip instead of weak arch MSI functions in all platforms.
+This function allows to obtain a per-cpu variable, either of the current
+or an explicitly specified CPU.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Note: sparc64 version is untested.
+
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 ---
- arch/x86/include/asm/x86_init.h |    3 ---
- arch/x86/kernel/apic/io_apic.c  |   15 +++++++++++++++
- arch/x86/kernel/x86_init.c      |   10 ----------
- arch/x86/pci/xen.c              |   13 +------------
- drivers/pci/msi.c               |   22 ++++++----------------
- include/linux/msi.h             |    2 --
- 6 files changed, 22 insertions(+), 43 deletions(-)
+ scripts/gdb/linux/cpus.py  | 68 ++++++++++++++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |  1 +
+ 2 files changed, 69 insertions(+)
+ create mode 100644 scripts/gdb/linux/cpus.py
 
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index e45e4da..f58a9c7 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -172,7 +172,6 @@ struct x86_platform_ops {
- 
- struct pci_dev;
- struct msi_msg;
--struct msi_desc;
- 
- struct x86_msi_ops {
- 	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
-@@ -183,8 +182,6 @@ struct x86_msi_ops {
- 	void (*teardown_msi_irqs)(struct pci_dev *dev);
- 	void (*restore_msi_irqs)(struct pci_dev *dev);
- 	int  (*setup_hpet_msi)(unsigned int irq, unsigned int id);
--	u32 (*msi_mask_irq)(struct msi_desc *desc, u32 mask, u32 flag);
--	u32 (*msix_mask_irq)(struct msi_desc *desc, u32 flag);
- };
- 
- struct IO_APIC_route_entry;
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 81e08ef..2609dcd 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3019,14 +3019,29 @@ msi_set_affinity(struct irq_data *data, const struct cpumask *mask, bool force)
- 	return IRQ_SET_MASK_OK_NOCOPY;
- }
- 
-+#ifdef CONFIG_XEN
-+static void nop_unmask_msi_irq(struct irq_data *data)
-+{
-+}
+diff --git a/scripts/gdb/linux/cpus.py b/scripts/gdb/linux/cpus.py
+new file mode 100644
+index 0000000..18337e0
+--- /dev/null
++++ b/scripts/gdb/linux/cpus.py
+@@ -0,0 +1,68 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  per-cpu tools
++#
++# Copyright (c) Siemens AG, 2011-2013
++#
++# Authors:
++#  Jan Kiszka <jan.kiszka@siemens.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
 +
-+static void nop_mask_msi_irq(struct irq_data *data)
-+{
-+}
-+#endif
++import gdb
 +
- /*
-  * IRQ Chip for MSI PCI/PCI-X/PCI-Express Devices,
-  * which implement the MSI or MSI-X Capability Structure.
-  */
- static struct irq_chip msi_chip = {
- 	.name			= "PCI-MSI",
-+#ifdef CONFIG_XEN
-+	.irq_unmask		= nop_unmask_msi_irq,
-+	.irq_mask		= nop_mask_msi_irq,
-+#else
- 	.irq_unmask		= unmask_msi_irq,
- 	.irq_mask		= mask_msi_irq,
-+#endif
- 	.irq_ack		= ack_apic_edge,
- 	.irq_set_affinity	= msi_set_affinity,
- 	.irq_retrigger		= ioapic_retrigger_irq,
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index e48b674..234b072 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -116,8 +116,6 @@ struct x86_msi_ops x86_msi = {
- 	.teardown_msi_irqs	= default_teardown_msi_irqs,
- 	.restore_msi_irqs	= default_restore_msi_irqs,
- 	.setup_hpet_msi		= default_setup_hpet_msi,
--	.msi_mask_irq		= default_msi_mask_irq,
--	.msix_mask_irq		= default_msix_mask_irq,
- };
- 
- /* MSI arch specific hooks */
-@@ -140,14 +138,6 @@ void arch_restore_msi_irqs(struct pci_dev *dev)
- {
- 	x86_msi.restore_msi_irqs(dev);
- }
--u32 arch_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
--{
--	return x86_msi.msi_mask_irq(desc, mask, flag);
--}
--u32 arch_msix_mask_irq(struct msi_desc *desc, u32 flag)
--{
--	return x86_msi.msix_mask_irq(desc, flag);
--}
- #endif
- 
- struct x86_io_apic_ops x86_io_apic_ops = {
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index 905956f..55c7858 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -393,14 +393,7 @@ static void xen_teardown_msi_irq(unsigned int irq)
- {
- 	xen_destroy_irq(irq);
- }
--static u32 xen_nop_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
--{
--	return 0;
--}
--static u32 xen_nop_msix_mask_irq(struct msi_desc *desc, u32 flag)
--{
--	return 0;
--}
++from linux import tasks, utils
 +
- #endif
- 
- int __init pci_xen_init(void)
-@@ -424,8 +417,6 @@ int __init pci_xen_init(void)
- 	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
- 	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
- 	x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
--	x86_msi.msi_mask_irq = xen_nop_msi_mask_irq;
--	x86_msi.msix_mask_irq = xen_nop_msix_mask_irq;
- #endif
- 	return 0;
- }
-@@ -505,8 +496,6 @@ int __init pci_xen_initial_domain(void)
- 	x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
- 	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
- 	x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
--	x86_msi.msi_mask_irq = xen_nop_msi_mask_irq;
--	x86_msi.msix_mask_irq = xen_nop_msix_mask_irq;
- #endif
- 	xen_setup_acpi_sci();
- 	__acpi_register_gsi = acpi_register_gsi_xen;
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 5a40516..bff25df 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -173,7 +173,7 @@ static inline __attribute_const__ u32 msi_mask(unsigned x)
-  * reliably as devices without an INTx disable bit will then generate a
-  * level IRQ which will never be cleared.
-  */
--u32 default_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
-+static u32 __msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
- {
- 	u32 mask_bits = desc->masked;
- 
-@@ -187,14 +187,9 @@ u32 default_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
- 	return mask_bits;
- }
- 
--__weak u32 arch_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
--{
--	return default_msi_mask_irq(desc, mask, flag);
--}
--
- static void msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
- {
--	desc->masked = arch_msi_mask_irq(desc, mask, flag);
-+	desc->masked = __msi_mask_irq(desc, mask, flag);
- }
- 
- /*
-@@ -204,7 +199,7 @@ static void msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag)
-  * file.  This saves a few milliseconds when initialising devices with lots
-  * of MSI-X interrupts.
-  */
--u32 default_msix_mask_irq(struct msi_desc *desc, u32 flag)
-+static u32 __msix_mask_irq(struct msi_desc *desc, u32 flag)
- {
- 	u32 mask_bits = desc->masked;
- 	unsigned offset = desc->msi_attrib.entry_nr * PCI_MSIX_ENTRY_SIZE +
-@@ -217,14 +212,9 @@ u32 default_msix_mask_irq(struct msi_desc *desc, u32 flag)
- 	return mask_bits;
- }
- 
--__weak u32 arch_msix_mask_irq(struct msi_desc *desc, u32 flag)
--{
--	return default_msix_mask_irq(desc, flag);
--}
--
- static void msix_mask_irq(struct msi_desc *desc, u32 flag)
- {
--	desc->masked = arch_msix_mask_irq(desc, flag);
-+	desc->masked = __msix_mask_irq(desc, flag);
- }
- 
- static void msi_set_mask_bit(struct irq_data *data, u32 flag)
-@@ -893,7 +883,7 @@ void pci_msi_shutdown(struct pci_dev *dev)
- 	/* Return the device with MSI unmasked as initial states */
- 	mask = msi_mask(desc->msi_attrib.multi_cap);
- 	/* Keep cached state to be restored */
--	arch_msi_mask_irq(desc, mask, ~mask);
-+	__msi_mask_irq(desc, mask, ~mask);
- 
- 	/* Restore dev->irq to its default pin-assertion irq */
- 	dev->irq = desc->msi_attrib.default_irq;
-@@ -993,7 +983,7 @@ void pci_msix_shutdown(struct pci_dev *dev)
- 	/* Return the device with MSI-X masked as initial states */
- 	list_for_each_entry(entry, &dev->msi_list, list) {
- 		/* Keep cached states to be restored */
--		arch_msix_mask_irq(entry, 1);
-+		__msix_mask_irq(entry, 1);
- 	}
- 
- 	msix_clear_and_set_ctrl(dev, PCI_MSIX_FLAGS_ENABLE, 0);
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 8103f32..78e6b6e 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -65,8 +65,6 @@ void arch_restore_msi_irqs(struct pci_dev *dev);
- 
- void default_teardown_msi_irqs(struct pci_dev *dev);
- void default_restore_msi_irqs(struct pci_dev *dev);
--u32 default_msi_mask_irq(struct msi_desc *desc, u32 mask, u32 flag);
--u32 default_msix_mask_irq(struct msi_desc *desc, u32 flag);
- 
- struct msi_chip {
- 	struct module *owner;
++
++MAX_CPUS = 4096
++
++
++def get_current_cpu():
++    if utils.get_gdbserver_type() = utils.GDBSERVER_QEMU:
++        return gdb.selected_thread().num - 1
++    elif utils.get_gdbserver_type() = utils.GDBSERVER_KGDB:
++        tid = gdb.selected_thread().ptid[2]
++        if tid > (0x100000000 - MAX_CPUS - 2):
++            return 0x100000000 - tid - 2
++        else:
++            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
++    else:
++        raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
++                           "supported with this gdb server.")
++
++
++def per_cpu(var_ptr, cpu):
++    if cpu = -1:
++        cpu = get_current_cpu()
++    if utils.is_target_arch("sparc:v9"):
++        offset = gdb.parse_and_eval(
++            "trap_block[{0}].__per_cpu_base".format(str(cpu)))
++    else:
++        try:
++            offset = gdb.parse_and_eval(
++                "__per_cpu_offset[{0}]".format(str(cpu)))
++        except gdb.error:
++            # !CONFIG_SMP case
++            offset = 0
++    pointer = var_ptr.cast(utils.get_long_type()) + offset
++    return pointer.cast(var_ptr.type).dereference()
++
++
++class PerCpu(gdb.Function):
++    """Return per-cpu variable.
++
++$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
++given CPU number. If CPU is omitted, the CPU of the current context is used.
++Note that VAR has to be quoted as string."""
++
++    def __init__(self):
++        super(PerCpu, self).__init__("lx_per_cpu")
++
++    def invoke(self, var_name, cpu=-1):
++        var_ptr = gdb.parse_and_eval("&" + var_name.string())
++        return per_cpu(var_ptr, cpu)
++
++
++PerCpu()
+diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
+index 4d7eb2c..4848928 100644
+--- a/scripts/gdb/vmlinux-gdb.py
++++ b/scripts/gdb/vmlinux-gdb.py
+@@ -27,3 +27,4 @@ else:
+     import linux.modules
+     import linux.dmesg
+     import linux.tasks
++    import linux.cpus
 -- 
-1.7.1
+1.8.1.1.298.ge7eed54
 
