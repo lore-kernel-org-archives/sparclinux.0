@@ -1,77 +1,11 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 12 Aug 2014 07:26:06 +0000
-Subject: [RFC PATCH 13/20] MIPS/xlr/MSI: Use msi_chip instead of arch func to configure MSI/MSI-X
-Message-Id: <1407828373-24322-14-git-send-email-wangyijing@huawei.com>
+From: Cj@gettheedgetx.com
+Date: Thu, 28 Aug 2014 19:44:36 +0000
+Subject: HI THERE
+Message-Id: <20140828194516.639CE8077848@vopfsc0605smtp2.vodamail.co.za>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1407828373-24322-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Introduce a new struct msi_chip xlr_msi_chip instead of weak arch
-functions to configure MSI/MSI-X.
-
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
----
- arch/mips/pci/pci-xlr.c |   19 +++++++++++++++----
- 1 files changed, 15 insertions(+), 4 deletions(-)
-
-diff --git a/arch/mips/pci/pci-xlr.c b/arch/mips/pci/pci-xlr.c
-index 0dde803..6eef164 100644
---- a/arch/mips/pci/pci-xlr.c
-+++ b/arch/mips/pci/pci-xlr.c
-@@ -214,11 +214,11 @@ static int get_irq_vector(const struct pci_dev *dev)
- }
- 
- #ifdef CONFIG_PCI_MSI
--void arch_teardown_msi_irq(unsigned int irq)
-+void xlr_teardown_msi_irq(unsigned int irq)
- {
- }
- 
--int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-+int xlr_setup_msi_irq(struct device *dev, struct msi_desc *desc)
- {
- 	struct msi_msg msg;
- 	struct pci_dev *lnk;
-@@ -233,7 +233,7 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 	 * Enable MSI on the XLS PCIe controller bridge which was disabled
- 	 * at enumeration, the bridge MSI capability is at 0x50
- 	 */
--	lnk = xls_get_pcie_link(dev);
-+	lnk = xls_get_pcie_link(to_pci_dev(dev));
- 	if (lnk = NULL)
- 		return 1;
- 
-@@ -243,7 +243,7 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 		pci_write_config_word(lnk, 0x50 + PCI_MSI_FLAGS, val);
- 	}
- 
--	irq = get_irq_vector(dev);
-+	irq = get_irq_vector(to_pci_dev(dev));
- 	if (irq <= 0)
- 		return 1;
- 
-@@ -263,6 +263,17 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 	write_msi_msg(irq, &msg);
- 	return 0;
- }
-+
-+struct msi_chip xlr_msi_chip = {
-+	.setup_irq = xlr_setup_msi_irq,
-+	.teardown_irq = xlr_teardown_msi_irq,
-+};
-+
-+struct msi_chip *arch_get_match_msi_chip(struct device *dev)
-+{
-+	return &xlr_msi_chip;
-+}
-+
- #endif
- 
- /* Extra ACK needed for XLR on chip PCI controller */
--- 
-1.7.1
-
+HERE IS YOUR OPPORTUNITY TO EARN $450 WEEKLY TO ADVERTISE ON YOUR CAR, REPLY FOR MORE DETAILS
