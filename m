@@ -1,48 +1,80 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 12 Aug 2014 03:46:30 +0000
-Subject: [PATCH] sparc64: Do not disable interrupts in nmi_cpu_busy()
-Message-Id: <20140811.204630.506728512299279797.davem@davemloft.net>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Fri, 29 Aug 2014 15:08:21 +0000
+Subject: [PATCH] sparc: Let memset return the address argument
+Message-Id: <1409324901-19291-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, sam@ravnborg.org, linux-kernel@vger.kernel.org, software@gaisler.com
 
+This makes memset follow the standard (instead of returning 0 on success). This
+is needed when certain versions of gcc optimizes around memset calls and assume
+that the address argument is preserved in %o0.
 
-nmi_cpu_busy() is a SMP function call that just makes sure that all of the
-cpus are spinning using cpu cycles while the NMI test runs.
-
-It does not need to disable IRQs because we just care about NMIs executing
-which will even with 'normal' IRQs disabled.
-
-It is not legal to enable hard IRQs in a SMP cross call, in fact this bug
-triggers the BUG check in irq_work_run_list():
-
-	BUG_ON(!irqs_disabled());
-
-Because now irq_work_run() is invoked from the tail of
-generic_smp_call_function_single_interrupt().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
+ arch/sparc/lib/memset.S |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-This should fix bootup failures with Linus's current tree.
-
- arch/sparc/kernel/nmi.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 3370945..5b1151d 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -130,7 +130,6 @@ static inline unsigned int get_nmi_count(int cpu)
+diff --git a/arch/sparc/lib/memset.S b/arch/sparc/lib/memset.S
+index 99c017b..f75e690 100644
+--- a/arch/sparc/lib/memset.S
++++ b/arch/sparc/lib/memset.S
+@@ -3,8 +3,9 @@
+  * Copyright (C) 1996,1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
+  *
+- * Returns 0, if ok, and number of bytes not yet set if exception
+- * occurs and we were called as clear_user.
++ * Calls to memset returns initial %o0. Calls to bzero returns 0, if ok, and
++ * number of bytes not yet set if exception occurs and we were called as
++ * clear_user.
+  */
  
- static __init void nmi_cpu_busy(void *data)
- {
--	local_irq_enable_in_hardirq();
- 	while (endflag = 0)
- 		mb();
- }
+ #include <asm/ptrace.h>
+@@ -65,6 +66,8 @@ __bzero_begin:
+ 	.globl	__memset_start, __memset_end
+ __memset_start:
+ memset:
++	mov	%o0, %g1
++	mov	1, %g4
+ 	and	%o1, 0xff, %g3
+ 	sll	%g3, 8, %g2
+ 	or	%g3, %g2, %g3
+@@ -89,6 +92,7 @@ memset:
+ 	 sub	%o0, %o2, %o0
+ 
+ __bzero:
++	clr	%g4
+ 	mov	%g0, %g3
+ 1:
+ 	cmp	%o1, 7
+@@ -151,8 +155,8 @@ __bzero:
+ 	bne,a	8f
+ 	 EX(stb	%g3, [%o0], and %o1, 1)
+ 8:
+-	retl
+-	 clr	%o0
++	b	0f
++	 nop
+ 7:
+ 	be	13b
+ 	 orcc	%o1, 0, %g0
+@@ -164,6 +168,12 @@ __bzero:
+ 	bne	8b
+ 	 EX(stb	%g3, [%o0 - 1], add %o1, 1)
+ 0:
++	andcc	%g4, 1, %g0
++	be	5f
++	 nop
++	retl
++	 mov	%g1, %o0
++5:
+ 	retl
+ 	 clr	%o0
+ __memset_end:
 -- 
-1.8.1.2
+1.7.10.4
 
