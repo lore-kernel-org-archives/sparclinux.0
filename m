@@ -1,14 +1,64 @@
-From: "KIM YUNG" <biz@worldbiz.com>
-Date: Tue, 30 Sep 2014 01:10:21 +0000
-Subject: Business Project
-Message-Id: <540D87F00530C60F@smtp206.alice.it (added by postmaster@alice.it)>
+From: Minchan Kim <minchan@kernel.org>
+Date: Mon, 01 Sep 2014 07:20:44 +0000
+Subject: [PATCH v16 3/7] sparc: add pmd_[dirty|mkclean] for THP
+Message-Id: <1409556048-5045-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1409556048-5045-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1409556048-5045-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, linux-api@vger.kernel.org, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Mel Gorman <mgorman@suse.de>, Jason Evans <je@fb.com>, zhangyanfei@cn.fujitsu.com, "Kirill A. Shutemov" <kirill@shutemov.name>, Minchan Kim <minchan@kernel.org>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-I have a very lucrative business project to discuss with you.
-The Project is about the exportation of 100,000 barrels of Light Crude Oil
-daily out from Saudi Arabia to Turkey through my client's company in Saudi
-Arabia at the rate of $103.00 a barrel.
+MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent
+overwrite of the contents since MADV_FREE syscall is called for
+THP page.
+
+This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
+support.
+
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+---
+ arch/sparc/include/asm/pgtable_64.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5c6e1b..b80a309d7e00 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -666,6 +666,13 @@ static inline unsigned long pmd_young(pmd_t pmd)
+ 	return pte_young(pte);
+ }
+ 
++static inline int pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	return pte_dirty(pte);
++}
++
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -723,6 +730,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pmd)
+ 	return __pmd(pte_val(pte));
+ }
+ 
++static inline pmd_t pmd_mkclean(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	pte = pte_mkclean(pte);
++
++	return __pmd(pte_val(pte));
++}
++
+ static inline pmd_t pmd_mkyoung(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+-- 
+2.0.0
+
