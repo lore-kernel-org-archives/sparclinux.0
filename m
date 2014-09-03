@@ -1,63 +1,33 @@
-From: <gregkh@linuxfoundation.org>
-Date: Mon, 08 Sep 2014 23:22:56 +0000
-Subject: patch "serial: sunsab: Don't enable tx if tx stopped" added to tty tree
-Message-Id: <14102185761755@kroah.com>
+From: Husam Al Sayed <oscar55@post.sk>
+Date: Wed, 03 Sep 2014 18:49:11 +0000
+Subject: FROM: Husam Al Sayed.
+Message-Id: <856611993.347238.1409770151620.JavaMail.root@mbox05>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Cc: penberg@kernel.org, mpm@selenic.com, laijs@cn.fujitsu.com, paulmck@linux.vnet.ibm.com, casey@schaufler-ca.com, linux-security-module@vger.kernel.org, khilman@kernel.org, nm@ti.com, nico@fluxnic.net, sakari.ailus@iki.fi, hdegoede@redhat.com, bootc@bootc.net, neilb@suse.de, linux-raid@vger.kernel.org, tsbogend@alpha.franken.de, m@bues.ch, malattia@linux.it, maximlevitsky@gmail.com, perex@perex.cz, tiwai@suse.de, vinod.koul@intel.com, lars@metafoo.de, davem@davemloft.net, sparclinux@vger.kernel.org, sparse@chrisli.org, linux-sparse@vger.kernel.org, shiraz.hashim@st.com, viresh.linux@gmail.com, spear-devel@list.st.com, linux-arm-kernel@lists.infradead.org
 
+FROM: Husam Al Sayed.
 
-This is a note to let you know that I've just added the patch titled
-
-    serial: sunsab: Don't enable tx if tx stopped
-
-to my tty git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-in the tty-next branch.
-
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
-
-The patch will also be merged in the next major kernel release
-during the merge window.
-
-If you have any questions about this process, please let me know.
-
-
-From 98f8b83d6a504615f52a095acf92a2bdad985ae0 Mon Sep 17 00:00:00 2001
-From: Peter Hurley <peter@hurleysoftware.com>
-Date: Tue, 2 Sep 2014 17:39:17 -0400
-Subject: serial: sunsab: Don't enable tx if tx stopped
-
-The serial core may call the UART driver's start_tx() even if
-tx is stopped; the UART driver must verify tx should be enabled
-before transmitting.
-
-Reported-by: Sam Ravnborg <sam@ravnborg.org>
-cc: David S. Miller <davem@davemloft.net>
-cc: <sparclinux@vger.kernel.org>
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/tty/serial/sunsab.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index 0af75f8b98a4..b339fe4811cd 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -436,7 +436,7 @@ static void sunsab_start_tx(struct uart_port *port)
- 	struct circ_buf *xmit = &up->port.state->xmit;
- 	int i;
+EMAIL:alsayedhusa@hotmail.com
  
--	if (uart_circ_empty(xmit))
-+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
- 		return;
+Hello,
  
- 	up->interrupt_mask1 &= ~(SAB82532_IMR1_ALLS|SAB82532_IMR1_XPR);
--- 
-2.1.0
+I decided to write you this proposal in good faith, believing that you will
+not betray me. I am Mr. Husam Al Sayed, a Bank officer here in U.A.E.
+ 
+One Mr. Peter Adams, a citizen of your country and Crude Oil dealer made a fixed deposit with my bank in 2005 for 108 calendar months, valued at US$30,000,000.00 (Thirty Million United State Dollars) the due date for this deposit contract was last 22nd of January 2014. Sadly Peter was among the death victims in the May 27 2006 Earthquake disaster in Java, Indonesia that killed over 5,000 people. He was in Indonesia on a business trip and that was how he met his untimely end. My bank management is yet to know about his death, I knew about it because he was my friend and I am his Account Officer. Peter did not mention any Next of Kin/ Heir when the account was opened, he was not married and no children. Last week my Bank Management requested that Peter should give instructions on what to do about his funds, if to renew the contract.
+ 
+I know this will happen and that is why I have been looking for a means to handle the situation, because if my Bank Directors happens to know that Peter is dead and do not have any Heir, they will take the funds for their personal use, so I don't want such to happen. That is why I am seeking your co-operation to present you as the Next of Kin/ Heir to the account, since you are a foreigner and my bank head quarters will release the account to you. There is no risk involved; the transaction will be executed under a legitimate arrangement that will protect us from any breach of law. It is better that we claim the money, than allowing the Bank Directors to take it, they are rich already. I am not a greedy person, so I am suggesting we share the funds in this ratio, 50/50%, equal sharing. Let me know your mind on this and please do treat this information highly confidential. We shall go over the details once I receive your urgent response. Please Urgently get back to me through this email address as soon as possible:
+ 
+ 
+ 
+Have a nice day and God bless. Anticipating your communication.
+ 
+Regards,
+FROM: Husam Al Sayed.
+EMAIL: alsayedhusa@hotmail.com
+_____________________________________________________________________
 
-
+http://ad.sme.sk/ Reklama na Sme.sk vam prinasa viac.
