@@ -1,88 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 27 Sep 2014 18:28:52 +0000
-Subject: [PATCH 6/8] sparc64: Increase MAX_PHYS_ADDRESS_BITS to 53.
-Message-Id: <20140927.142852.1583970678243070733.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 05 Sep 2014 09:46:37 +0000
+Subject: [PATCH v1 20/21] tile/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1409911806-10519-21-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
 
+Use MSI chip framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Make sure, at compile time, that the kernel can properly support
-whatever MAX_PHYS_ADDRESS_BITS is defined to.
-
-On M7 chips, use a max_phys_bits value of 49.
-
-Based upon a patch by Bob Picco.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/page_64.h    | 8 ++++----
- arch/sparc/include/asm/pgtable_64.h | 4 ++++
- arch/sparc/mm/init_64.c             | 9 ++++++++-
- 3 files changed, 16 insertions(+), 5 deletions(-)
+ arch/tile/kernel/pci_gx.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 732ba17..6784a33 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -122,11 +122,11 @@ extern unsigned long PAGE_OFFSET;
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index e39f9c5..4912b75 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1485,7 +1485,7 @@ static struct irq_chip tilegx_msi_chip = {
+ 	/* TBD: support set_affinity. */
+ };
  
- #endif /* !(__ASSEMBLY__) */
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++static int tile_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	struct pci_controller *controller;
+ 	gxio_trio_context_t *trio_context;
+@@ -1604,7 +1604,17 @@ is_64_failure:
+ 	return ret;
+ }
  
--/* The maximum number of physical memory address bits we support, this
-- * is used to size various tables used to manage kernel TLB misses and
-- * also the sparsemem code.
-+/* The maximum number of physical memory address bits we support.  The
-+ * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
-+ * evaluates to.
-  */
--#define MAX_PHYS_ADDRESS_BITS	47
-+#define MAX_PHYS_ADDRESS_BITS	53
- 
- #define ILOG2_4MB		22
- #define ILOG2_256MB		28
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index a305b22..0552957 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -67,6 +67,10 @@
- #define PGDIR_MASK	(~(PGDIR_SIZE-1))
- #define PGDIR_BITS	(PAGE_SHIFT - 3)
- 
-+#if (MAX_PHYS_ADDRESS_BITS > PGDIR_SHIFT + PGDIR_BITS)
-+#error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can support
-+#endif
+-void arch_teardown_msi_irq(unsigned int irq)
++void tile_teardown_msi_irq(unsigned int irq)
+ {
+ 	irq_free_hwirq(irq);
+ }
 +
- #if (PGDIR_SHIFT + PGDIR_BITS) != 53
- #error Page table parameters do not cover virtual address space properly.
- #endif
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index bbfc6f2..7f34a47 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1690,12 +1690,19 @@ static void __init setup_page_offset(void)
- 		case SUN4V_CHIP_NIAGARA4:
- 		case SUN4V_CHIP_NIAGARA5:
- 		case SUN4V_CHIP_SPARC64X:
--		default:
-+		case SUN4V_CHIP_SPARC_M6:
- 			/* T4 and later support 52-bit virtual addresses.  */
- 			sparc64_va_hole_top =    0xfff8000000000000UL;
- 			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 47;
- 			break;
-+		case SUN4V_CHIP_SPARC_M7:
-+		default:
-+			/* M7 and later support 52-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xfff8000000000000UL;
-+			sparc64_va_hole_bottom = 0x0008000000000000UL;
-+			max_phys_bits = 49;
-+			break;
- 		}
- 	}
- 
++static struct msi_chip tile_msi_chip = {
++	.setup_irq = tile_setup_msi_irq,
++	.teardown_irq = tile_teardown_msi_irq,
++};
++
++struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
++{
++	return &tile_msi_chip;
++}
 -- 
-1.8.1.2
+1.7.1
 
