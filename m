@@ -1,106 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 27 Sep 2014 18:28:26 +0000
-Subject: [PATCH 2/8] sparc64: Define VA hole at run time, rather than at compile time.
-Message-Id: <20140927.142826.232156879611209365.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 05 Sep 2014 09:46:38 +0000
+Subject: [PATCH v1 12/21] MIPS/Xlp: Remove the dead function destroy_irq() to fix build error
+Message-Id: <1409911806-10519-13-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
 
+Commit 465665f78a7 ("mips: Kill pointless destroy_irq()") removed
+the destroy_irq(). So remove the leftover one in xlp_setup_msix()
+to fix build error.
 
-Now that we use 4-level page tables, we can provide up to 53-bits of
-virtual address space to the user.
+arch/mips/pci/msi-xlp.c: In function 'xlp_setup_msix':
+arch/mips/pci/msi-xlp.c:447:3: error: implicit declaration of function 'destroy_irq'..
+cc1: some warnings being treated as errors
+make[1]: *** [arch/mips/pci/msi-xlp.o] Error 1
+make: *** [arch/mips/pci/] Error 2
 
-Adjust the VA hole based upon the capabilities of the cpu type probed.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyiijng@huawei.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 ---
- arch/sparc/include/asm/page_64.h | 15 ++++-----------
- arch/sparc/mm/init_64.c          | 21 +++++++++++++++++++++
- 2 files changed, 25 insertions(+), 11 deletions(-)
+ arch/mips/pci/msi-xlp.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 09ceb68..2211a80 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -102,21 +102,14 @@ typedef unsigned long pgprot_t;
+diff --git a/arch/mips/pci/msi-xlp.c b/arch/mips/pci/msi-xlp.c
+index fa374fe..e469dc7 100644
+--- a/arch/mips/pci/msi-xlp.c
++++ b/arch/mips/pci/msi-xlp.c
+@@ -443,10 +443,8 @@ static int xlp_setup_msix(uint64_t lnkbase, int node, int link,
+ 	msg.data = 0xc00 | msixvec;
  
- typedef pte_t *pgtable_t;
+ 	ret = irq_set_msi_desc(xirq, desc);
+-	if (ret < 0) {
+-		destroy_irq(xirq);
++	if (ret < 0)
+ 		return ret;
+-	}
  
--/* These two values define the virtual address space range in which we
-- * must forbid 64-bit user processes from making mappings.  It used to
-- * represent precisely the virtual address space hole present in most
-- * early sparc64 chips including UltraSPARC-I.  But now it also is
-- * further constrained by the limits of our page tables, which is
-- * 43-bits of virtual address.
-- */
--#define SPARC64_VA_HOLE_TOP	_AC(0xfffffc0000000000,UL)
--#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000040000000000,UL)
-+extern unsigned long sparc64_va_hole_top;
-+extern unsigned long sparc64_va_hole_bottom;
- 
- /* The next two defines specify the actual exclusion region we
-  * enforce, wherein we use a 4GB red zone on each side of the VA hole.
-  */
--#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
--#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
-+#define VA_EXCLUDE_START (sparc64_va_hole_bottom - (1UL << 32UL))
-+#define VA_EXCLUDE_END   (sparc64_va_hole_top + (1UL << 32UL))
- 
- #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
- 				 _AC(0x0000000070000000,UL) : \
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index a6c0a30..082fde1 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1630,25 +1630,46 @@ static void __init page_offset_shift_patch(unsigned long phys_bits)
- 	}
- }
- 
-+unsigned long sparc64_va_hole_top =    0xfffff80000000000UL;
-+unsigned long sparc64_va_hole_bottom = 0x0000080000000000UL;
-+
- static void __init setup_page_offset(void)
- {
- 	unsigned long max_phys_bits = 40;
- 
- 	if (tlb_type = cheetah || tlb_type = cheetah_plus) {
-+		/* Cheetah/Panther support a full 64-bit virtual
-+		 * address, so we can use all that our page tables
-+		 * support.
-+		 */
-+		sparc64_va_hole_top =    0xfff0000000000000UL;
-+		sparc64_va_hole_bottom = 0x0010000000000000UL;
-+
- 		max_phys_bits = 42;
- 	} else if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
- 		case SUN4V_CHIP_NIAGARA2:
-+			/* T1 and T2 support 48-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xffff800000000000UL;
-+			sparc64_va_hole_bottom = 0x0000800000000000UL;
-+
- 			max_phys_bits = 39;
- 			break;
- 		case SUN4V_CHIP_NIAGARA3:
-+			/* T3 supports 48-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xffff800000000000UL;
-+			sparc64_va_hole_bottom = 0x0000800000000000UL;
-+
- 			max_phys_bits = 43;
- 			break;
- 		case SUN4V_CHIP_NIAGARA4:
- 		case SUN4V_CHIP_NIAGARA5:
- 		case SUN4V_CHIP_SPARC64X:
- 		default:
-+			/* T4 and later support 52-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xfff8000000000000UL;
-+			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 47;
- 			break;
- 		}
+ 	write_msi_msg(xirq, &msg);
+ 	return 0;
 -- 
-1.8.1.2
+1.7.1
 
