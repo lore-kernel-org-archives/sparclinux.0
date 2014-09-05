@@ -1,35 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Sep 2014 16:00:19 +0000
-Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140917.120019.2168872785436918657.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Fri, 05 Sep 2014 09:27:48 +0000
+Subject: [PATCH v2] sparc32: dma_alloc_coherent must honour GFP_ZERO
+Message-Id: <1409909268-7622-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
-In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 17 Sep 2014 08:24:23 -0400
+dma_zalloc_coherent() calls dma_alloc_coherent(__GFP_ZERO)
+but the sparc32 implementations sbus_alloc_coherent() and
+pci32_alloc_coherent() doesn't take the gfp flags into
+account.
 
-> David Miller wrote:	[Tue Sep 16 2014, 08:35:15PM EDT]
->> From: David Miller <davem@davemloft.net>
->> Date: Tue, 16 Sep 2014 20:16:51 -0400 (EDT)
->> 
->> commit 18f38132528c3e603c66ea464727b29e9bbcb91b
->> Author: David S. Miller <davem@davemloft.net>
->> Date:   Mon Aug 4 16:34:01 2014 -0700
->> 
->>     sparc64: Do not insert non-valid PTEs into the TSB hash table.
->> 
->> Do you know if the kernels that triggered those ITLB BADRA errors had
->> that fix or not?
-> I doubt it. I just checked my log for T4-2 and none of the kernels appears
-> close to this:
-> [bpicco@zareason linus.git]$ git describe --contains 18f38132528c3e603c66ea464727b29e9bbcb91b
-> v3.17-rc1~105^2~1^2~6
-> when the issue was revealed.
+Tested on the SPARC32/LEON GRETH Ethernet driver which fails
+due to dma_alloc_coherent(__GFP_ZERO) returns non zeroed
+pages.
 
-So I believe this bug should be fixed by the above commit, let me know
-if you see this ever again.
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
+---
+ arch/sparc/kernel/ioport.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 7f08ec8..8d2f82e 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -278,7 +278,9 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 	}
+ 
+ 	order = get_order(len_total);
+-	if ((va = __get_free_pages(GFP_KERNEL|__GFP_COMP, order)) = 0)
++	va = __get_free_pages(GFP_KERNEL | __GFP_COMP | (gfp & __GFP_ZERO),
++			      order);
++	if (va = 0)
+ 		goto err_nopages;
+ 
+ 	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL)
+@@ -443,7 +445,7 @@ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 	}
+ 
+ 	order = get_order(len_total);
+-	va = (void *) __get_free_pages(GFP_KERNEL, order);
++	va = (void *) __get_free_pages(GFP_KERNEL | (gfp & __GFP_ZERO), order);
+ 	if (va = NULL) {
+ 		printk("pci_alloc_consistent: no %ld pages\n", len_total>>PAGE_SHIFT);
+ 		goto err_nopages;
+-- 
+1.7.0.4
+
