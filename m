@@ -1,27 +1,26 @@
-From: Bob Picco <bob.picco@oracle.com>
-Date: Tue, 09 Sep 2014 21:15:04 +0000
-Subject: Re: [PATCH] sparc64: mem boot option correction
-Message-Id: <20140909211504.GP24131@zareason>
+From: David L Stevens <david.stevens@oracle.com>
+Date: Fri, 05 Sep 2014 15:12:03 +0000
+Subject: commit 8c86e70acead629aacb4afcd818add66bf6844d9 hangs SPARC64 LDOMs
+Message-Id: <5409D2C3.6010806@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410105147-23085-1-git-send-email-bpicco@meloft.net>
-In-Reply-To: <1410105147-23085-1-git-send-email-bpicco@meloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Tue Sep 09 2014, 03:24:03PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Sun,  7 Sep 2014 11:52:27 -0400
-> 
-> > +	for_each_free_mem_range(i, any_nid, &pa_start, &pa_end, &nid) {
-> > +		available = available + (pa_end  - pa_start);
-> > +	}
-> 
-> Single statement basic blocks should not be enclosed with curly
-> braces, thanks.
-I'll fix it up.
 
-you're welcome and thanx for the review,
+I was trying to rebase some patches to the latest net-next and I found that the LDOMs
+(Solaris virtual machines) hang on boot.
 
-bob
+git bisect narrowed to commit 8c86e70acead629aacb4afcd818add66bf6844d9 and reverting
+that makes it work again.
+
+commit 8c86e70acead629aacb4afcd818add66bf6844d9
+Author: Vivek Goyal <vgoyal@redhat.com>
+Date:   Fri Aug 8 14:25:50 2014 -0700
+
+    resource: provide new functions to walk through resources
+
+    I have added two more functions to walk through resources.
+
+						+-DLS
