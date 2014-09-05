@@ -1,37 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 25 Sep 2014 19:41:11 +0000
-Subject: [PATCH 3/6] sparc64: Fix hibernation code refrence to PAGE_OFFSET.
-Message-Id: <20140925.154111.539959250566101066.davem@davemloft.net>
+From: Daniel Hellstrom <daniel@gaisler.com>
+Date: Fri, 05 Sep 2014 08:31:53 +0000
+Subject: [PATCH] sparc32: dma_alloc_coherent must honour GFP_ZERO
+Message-Id: <1409905913-18078-1-git-send-email-daniel@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+dma_zalloc_coherent() calls dma_alloc_coherent(__GFP_ZERO)
+but the sparc32 implementations sbus_alloc_coherent() and
+pci32_alloc_coherent() doesn't take the gfp flags into
+account.
 
-We changed PAGE_OFFSET to be a variable rather than a constant,
-but this reference here in the hibernate assembler got missed.
+Tested on the SPARC32/LEON GRETH Ethernet driver which fails
+due to dma_alloc_coherent(__GFP_ZERO) returns non zeroed
+pages.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Daniel Hellstrom <daniel@gaisler.com>
 ---
- arch/sparc/power/hibernate_asm.S | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/ioport.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/power/hibernate_asm.S b/arch/sparc/power/hibernate_asm.S
-index 7994216..d7d9017 100644
---- a/arch/sparc/power/hibernate_asm.S
-+++ b/arch/sparc/power/hibernate_asm.S
-@@ -54,8 +54,8 @@ ENTRY(swsusp_arch_resume)
- 	 nop
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 7f08ec8..dfb8019 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -278,7 +278,9 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 	}
  
- 	/* Write PAGE_OFFSET to %g7 */
--	sethi	%uhi(PAGE_OFFSET), %g7
--	sllx	%g7, 32, %g7
-+	sethi	%hi(PAGE_OFFSET), %g7
-+	ldx	[%g7 + %lo(PAGE_OFFSET)], %g7
+ 	order = get_order(len_total);
+-	if ((va = __get_free_pages(GFP_KERNEL|__GFP_COMP, order)) = 0)
++	va = __get_free_pages(GFP_KERNEL | __GFP_COMP | (gfp & __GFP_ZERO),
++			      order);
++	if (va = NULL)
+ 		goto err_nopages;
  
- 	setuw	(PAGE_SIZE-8), %g3
+ 	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL)
+@@ -443,7 +445,7 @@ static void *pci32_alloc_coherent(struct device *dev, size_t len,
+ 	}
  
+ 	order = get_order(len_total);
+-	va = (void *) __get_free_pages(GFP_KERNEL, order);
++	va = (void *) __get_free_pages(GFP_KERNEL | (gfp & __GFP_ZERO), order);
+ 	if (va = NULL) {
+ 		printk("pci_alloc_consistent: no %ld pages\n", len_total>>PAGE_SHIFT);
+ 		goto err_nopages;
 -- 
-1.8.1.2
+1.7.0.4
 
