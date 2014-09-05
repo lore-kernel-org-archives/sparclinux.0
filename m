@@ -1,41 +1,60 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Date: Tue, 02 Sep 2014 21:39:17 +0000
-Subject: [PATCH 08/26] serial: sunsab: Don't enable tx if tx stopped
-Message-Id: <1409693975-1028-9-git-send-email-peter@hurleysoftware.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 05 Sep 2014 09:46:11 +0000
+Subject: [PATCH v1 07/21] x86/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1409911806-10519-8-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409693975-1028-1-git-send-email-peter@hurleysoftware.com>
-In-Reply-To: <1409693975-1028-1-git-send-email-peter@hurleysoftware.com>
+References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Hurley <peter@hurleysoftware.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
 
-The serial core may call the UART driver's start_tx() even if
-tx is stopped; the UART driver must verify tx should be enabled
-before transmitting.
+Use MSI chip framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Reported-by: Sam Ravnborg <sam@ravnborg.org>
-cc: David S. Miller <davem@davemloft.net>
-cc: <sparclinux@vger.kernel.org>
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- drivers/tty/serial/sunsab.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/pci.h     |    1 +
+ arch/x86/kernel/apic/io_apic.c |   12 ++++++++++++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index c83b1c6..448a93b 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -427,7 +427,7 @@ static void sunsab_start_tx(struct uart_port *port)
- 	struct circ_buf *xmit = &up->port.state->xmit;
- 	int i;
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index 0892ea0..878a06d 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -101,6 +101,7 @@ void native_teardown_msi_irq(unsigned int irq);
+ void native_restore_msi_irqs(struct pci_dev *dev);
+ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+ 		  unsigned int irq_base, unsigned int irq_offset);
++extern struct msi_chip *x86_msi_chip;
+ #else
+ #define native_setup_msi_irqs		NULL
+ #define native_teardown_msi_irq		NULL
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 2a2ec28..882b95e 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3337,6 +3337,18 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
+ }
+ #endif
  
--	if (uart_circ_empty(xmit))
-+	if (uart_circ_empty(xmit) || uart_tx_stopped(port))
- 		return;
- 
- 	up->interrupt_mask1 &= ~(SAB82532_IMR1_ALLS|SAB82532_IMR1_XPR);
++struct msi_chip apic_msi_chip = {
++	.setup_irqs = native_setup_msi_irqs,
++	.teardown_irq = native_teardown_msi_irq,
++};
++
++struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
++{
++	return x86_msi_chip;
++}
++
++struct msi_chip *x86_msi_chip = &apic_msi_chip;
++
+ #endif /* CONFIG_PCI_MSI */
+ /*
+  * Hypertransport interrupt support
 -- 
-2.1.0
+1.7.1
 
