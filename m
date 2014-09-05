@@ -1,21 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Sep 2014 22:35:09 +0000
-Subject: Re: [PATCH v2 1/3] sparc64: correctly recognise M6 and M7 cpu type
-Message-Id: <20140909.153509.1916758449779530713.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 05 Sep 2014 09:46:57 +0000
+Subject: [PATCH v1 16/21] s390/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1409911806-10519-17-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410157135-20393-1-git-send-email-allen.pais@oracle.com>
-In-Reply-To: <1410157135-20393-1-git-send-email-allen.pais@oracle.com>
+References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
 
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon,  8 Sep 2014 11:48:53 +0530
+Use MSI chip framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-> The following patch adds support for correctly
-> recognising M6 and M7 cpu type.
-> 
-> Signed-off-by: Allen Pais <allen.pais@oracle.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ arch/s390/pci/pci.c |   18 ++++++++++++++----
+ 1 files changed, 14 insertions(+), 4 deletions(-)
 
-Applied.
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 2fa7b14..da5316e 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -358,7 +358,7 @@ static void zpci_irq_handler(struct airq_struct *airq)
+ 	}
+ }
+ 
+-int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
++int zpci_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
+ {
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	unsigned int hwirq, msi_vecs;
+@@ -434,7 +434,7 @@ out:
+ 	return rc;
+ }
+ 
+-void arch_teardown_msi_irqs(struct pci_dev *pdev)
++static void zpci_teardown_msi_irqs(struct pci_dev *pdev)
+ {
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	struct msi_desc *msi;
+@@ -448,9 +448,9 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
+ 	/* Release MSI interrupts */
+ 	list_for_each_entry(msi, &pdev->msi_list, list) {
+ 		if (msi->msi_attrib.is_msix)
+-			default_msix_mask_irq(msi, 1);
++			__msix_mask_irq(msi, 1);
+ 		else
+-			default_msi_mask_irq(msi, 1, 1);
++			__msi_mask_irq(msi, 1, 1);
+ 		irq_set_msi_desc(msi->irq, NULL);
+ 		irq_free_desc(msi->irq);
+ 		msi->msg.address_lo = 0;
+@@ -464,6 +464,16 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
+ 	airq_iv_free_bit(zpci_aisb_iv, zdev->aisb);
+ }
+ 
++static struct msi_chip zpci_msi_chip = {
++	.setup_irqs = zpci_setup_msi_irqs,
++	.teardown_irqs = zpci_teardown_msi_irqs,
++};
++
++struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
++{
++	return &zpci_msi_chip;
++}
++
+ static void zpci_map_resources(struct zpci_dev *zdev)
+ {
+ 	struct pci_dev *pdev = zdev->pdev;
+-- 
+1.7.1
+
