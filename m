@@ -1,33 +1,113 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Sep 2014 18:39:59 +0000
-Subject: Re: [PATCH] sparc64: sun4v TLB error power off events
-Message-Id: <20140910.113959.1019322934399267183.davem@davemloft.net>
+From: Bob Picco <bpicco@meloft.net>
+Date: Sun, 07 Sep 2014 15:51:06 +0000
+Subject: [PATCH] sparc64: find_node adjustment
+Message-Id: <1410105066-22822-1-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410104858-22046-1-git-send-email-bpicco@meloft.net>
-In-Reply-To: <1410104858-22046-1-git-send-email-bpicco@meloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 10 Sep 2014 10:18:22 -0400
+From: bob picco <bpicco@meloft.net>
 
-> David Miller wrote:	[Tue Sep 09 2014, 05:52:46PM EDT]
->> From: Bob Picco <bob.picco@oracle.com>
->> Date: Tue, 9 Sep 2014 17:12:27 -0400
->> 
->> > I just ran a quick experiment on my T5-2 which is supported hardware. The
->> > kernel is 3.17-rc3 without any modification from me - well ixgbe. As root mmap
->> > of /dev/mem at address 0UL. It powered off:
->> 
->> Just out of curiosity what ixgbe patches do you need that aren't
->> upstream already?
-> It is really Martin's (mkp) from last year. I ported it over to mainline.
-> Basically the mac is acquired with:
->  addr = of_get_property(dp, "local-mac-address", &len);
-> . I'll append at the end of this email what my local T5-2 is using. 
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
 
-This really needs to: 1) get fixed to depend upon CONFIG_OF rather than
-a specific architecture like SPARC and 2) get submitted and accepted
-by the Intel ethernet driver maintainers.
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
+
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
+
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
+
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
+
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
+
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
+
+Hopefully this isn't too confusing. I'll add the reference below for those
+with a need for further details:
+http://psarc.us.oracle.com/FWARC/2007/260/materials/lgroups_onepager.txt
+.
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index da1f051..0e25cb7 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -867,7 +867,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
+ 	}
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
+ }
+ 
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+-- 
+1.7.1
+
