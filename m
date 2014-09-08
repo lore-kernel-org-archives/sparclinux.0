@@ -1,109 +1,98 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 05 Sep 2014 09:46:50 +0000
-Subject: [PATCH v1 17/21] arm/iop13xx/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1409911806-10519-18-git-send-email-wangyijing@huawei.com>
+From: <gregkh@linuxfoundation.org>
+Date: Mon, 08 Sep 2014 23:22:56 +0000
+Subject: patch "serial: Fix send_xchar() handlers" added to tty tree
+Message-Id: <1410218576740@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
+To: sparclinux@vger.kernel.org
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+This is a note to let you know that I've just added the patch titled
+
+    serial: Fix send_xchar() handlers
+
+to my tty git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
+in the tty-next branch.
+
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
+
+The patch will also be merged in the next major kernel release
+during the merge window.
+
+If you have any questions about this process, please let me know.
+
+
+From db106df32d679db151b48a09543b03ee41cb2580 Mon Sep 17 00:00:00 2001
+From: Peter Hurley <peter@hurleysoftware.com>
+Date: Tue, 2 Sep 2014 17:39:15 -0400
+Subject: serial: Fix send_xchar() handlers
+
+START_CHAR() & STOP_CHAR() can be disabled if set to '\0'
+(__DISABLED_CHAR).  UART drivers which define a send_xchar()
+handler must not transmit __DISABLED_CHAR.
+
+Document requirement.
+
+Affected drivers:
+sunsab
+sunhv
+
+cc: David S. Miller <davem@davemloft.net>
+cc: <sparclinux@vger.kernel.org>
+Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/mach-iop13xx/include/mach/pci.h |    2 ++
- arch/arm/mach-iop13xx/iq81340mc.c        |    1 +
- arch/arm/mach-iop13xx/iq81340sc.c        |    1 +
- arch/arm/mach-iop13xx/msi.c              |    9 +++++++--
- arch/arm/mach-iop13xx/pci.c              |    6 ++++++
- 5 files changed, 17 insertions(+), 2 deletions(-)
+ Documentation/serial/driver | 2 ++
+ drivers/tty/serial/sunhv.c  | 3 +++
+ drivers/tty/serial/sunsab.c | 3 +++
+ 3 files changed, 8 insertions(+)
 
-diff --git a/arch/arm/mach-iop13xx/include/mach/pci.h b/arch/arm/mach-iop13xx/include/mach/pci.h
-index 59f42b5..7a073cb 100644
---- a/arch/arm/mach-iop13xx/include/mach/pci.h
-+++ b/arch/arm/mach-iop13xx/include/mach/pci.h
-@@ -10,6 +10,8 @@ struct pci_bus *iop13xx_scan_bus(int nr, struct pci_sys_data *);
- void iop13xx_atu_select(struct hw_pci *plat_pci);
- void iop13xx_pci_init(void);
- void iop13xx_map_pci_memory(void);
-+void iop13xx_add_bus(struct pci_bus *bus);
-+extern struct msi_chip iop13xx_msi_chip;
+diff --git a/Documentation/serial/driver b/Documentation/serial/driver
+index 3bba1aeb799c..ba64e4b892e9 100644
+--- a/Documentation/serial/driver
++++ b/Documentation/serial/driver
+@@ -140,6 +140,8 @@ hardware.
+ 	will append the character to the circular buffer and then call
+ 	start_tx() / stop_tx() to flush the data out.
  
- #define IOP_PCI_STATUS_ERROR (PCI_STATUS_PARITY |	     \
- 			       PCI_STATUS_SIG_TARGET_ABORT | \
-diff --git a/arch/arm/mach-iop13xx/iq81340mc.c b/arch/arm/mach-iop13xx/iq81340mc.c
-index 9cd07d3..19d47cb 100644
---- a/arch/arm/mach-iop13xx/iq81340mc.c
-+++ b/arch/arm/mach-iop13xx/iq81340mc.c
-@@ -59,6 +59,7 @@ static struct hw_pci iq81340mc_pci __initdata = {
- 	.map_irq	= iq81340mc_pcix_map_irq,
- 	.scan		= iop13xx_scan_bus,
- 	.preinit	= iop13xx_pci_init,
-+	.add_bus	= iop13xx_add_bus;
- };
- 
- static int __init iq81340mc_pci_init(void)
-diff --git a/arch/arm/mach-iop13xx/iq81340sc.c b/arch/arm/mach-iop13xx/iq81340sc.c
-index b3ec11c..4d56993 100644
---- a/arch/arm/mach-iop13xx/iq81340sc.c
-+++ b/arch/arm/mach-iop13xx/iq81340sc.c
-@@ -61,6 +61,7 @@ static struct hw_pci iq81340sc_pci __initdata = {
- 	.scan		= iop13xx_scan_bus,
- 	.map_irq	= iq81340sc_atux_map_irq,
- 	.preinit	= iop13xx_pci_init
-+	.add_bus	= iop13xx_add_bus;
- };
- 
- static int __init iq81340sc_pci_init(void)
-diff --git a/arch/arm/mach-iop13xx/msi.c b/arch/arm/mach-iop13xx/msi.c
-index e7730cf..1a8cb2f 100644
---- a/arch/arm/mach-iop13xx/msi.c
-+++ b/arch/arm/mach-iop13xx/msi.c
-@@ -132,7 +132,7 @@ static struct irq_chip iop13xx_msi_chip = {
- 	.irq_unmask = unmask_msi_irq,
- };
- 
--int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
-+static int iop13xx_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- {
- 	int id, irq = irq_alloc_desc_from(IRQ_IOP13XX_MSI_0, -1);
- 	struct msi_msg msg;
-@@ -159,7 +159,12 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- 	return 0;
- }
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+static void iop13xx_teardown_msi_irq(unsigned int irq)
- {
- 	irq_free_desc(irq);
- }
++	Do not transmit if ch = '\0' (__DISABLED_CHAR).
 +
-+struct msi_chip iop13xx_chip = {
-+	.setup_irq = iop13xx_setup_msi_irq,
-+	.teardown_irq = iop13xx_teardown_msi_irq,
-+};
-diff --git a/arch/arm/mach-iop13xx/pci.c b/arch/arm/mach-iop13xx/pci.c
-index 9082b84..f498800 100644
---- a/arch/arm/mach-iop13xx/pci.c
-+++ b/arch/arm/mach-iop13xx/pci.c
-@@ -962,6 +962,12 @@ void __init iop13xx_atu_select(struct hw_pci *plat_pci)
- 	}
- }
+ 	Locking: none.
+ 	Interrupts: caller dependent.
  
-+void iop13xx_add_bus(struct pci_bus *bus)
-+{
-+	if (IS_ENABLED(CONFIG_PCI_MSI))
-+		bus->msi = &iop13xx_msi_chip;
-+}
+diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+index 20521db2189f..25d43ce8b318 100644
+--- a/drivers/tty/serial/sunhv.c
++++ b/drivers/tty/serial/sunhv.c
+@@ -268,6 +268,9 @@ static void sunhv_send_xchar(struct uart_port *port, char ch)
+ 	unsigned long flags;
+ 	int limit = 10000;
+ 
++	if (ch = __DISABLED_CHAR)
++		return;
 +
- void __init iop13xx_pci_init(void)
- {
- 	/* clear pre-existing south bridge errors */
+ 	spin_lock_irqsave(&port->lock, flags);
+ 
+ 	while (limit-- > 0) {
+diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
+index b9598b227a45..0af75f8b98a4 100644
+--- a/drivers/tty/serial/sunsab.c
++++ b/drivers/tty/serial/sunsab.c
+@@ -468,6 +468,9 @@ static void sunsab_send_xchar(struct uart_port *port, char ch)
+ 	struct uart_sunsab_port *up = (struct uart_sunsab_port *) port;
+ 	unsigned long flags;
+ 
++	if (ch = __DISABLED_CHAR)
++		return;
++
+ 	spin_lock_irqsave(&up->port.lock, flags);
+ 
+ 	sunsab_tec_wait(up);
 -- 
-1.7.1
+2.1.0
+
 
