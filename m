@@ -1,25 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 25 Sep 2014 14:56:53 +0000
-Subject: Re: [PATCH v4 0/8] asm-generic/io.h overhaul
-Message-Id: <3399763.VZ83zCGta1@wuerfel>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Mon, 08 Sep 2014 07:48:52 +0000
+Subject: [PATCH v2] sparc32, leon: Make leon_dma_ops avaiable when !CONFIG_PCI
+Message-Id: <1410162532-25159-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com> <20140825112630.GA4163@ulmo.nvidia.com> <20140924060419.GA20253@ulmo>
-In-Reply-To: <20140924060419.GA20253@ulmo>
+References: <1409657655-17846-1-git-send-email-andreas@gaisler.com>
+In-Reply-To: <1409657655-17846-1-git-send-email-andreas@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
-Cc: Thierry Reding <thierry.reding@gmail.com>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, sam@ravnborg.org, linux-kernel@vger.kernel.org, software@gaisler.com
 
-On Wednesday 24 September 2014 08:04:21 Thierry Reding wrote:
-> > 
-> > Arnd, do you think this looks good to take for test-driving in
-> > linux-next?
-> 
-> Ping?
-> 
+The leon_dma_ops struct is needed for leon regardless of PCI configuration.
 
-I've put it all into the asm-generic tree, and Will's patches on top.
-Unless I get complaints, I plan to submit them all for 3.18.
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+---
+Changes from v1: Fixed typo in commit message
 
-	Arnd
+ arch/sparc/include/asm/dma-mapping.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
+index 1ee0271..5b1b52a 100644
+--- a/arch/sparc/include/asm/dma-mapping.h
++++ b/arch/sparc/include/asm/dma-mapping.h
+@@ -20,10 +20,12 @@ extern struct bus_type pci_bus_type;
+ 
+ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+ {
+-#if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
++#ifdef CONFIG_SPARC_LEON
+ 	if (sparc_cpu_model = sparc_leon)
+ 		return leon_dma_ops;
+-	else if (dev->bus = &pci_bus_type)
++#endif
++#if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
++	if (dev->bus = &pci_bus_type)
+ 		return &pci32_dma_ops;
+ #endif
+ 	return dma_ops;
+-- 
+1.7.10.4
+
