@@ -1,52 +1,89 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 25 Sep 2014 17:43:09 +0000
-Subject: Re: [PATCH] sparc64: swapper_tsb and swapper_4m_tsb phys correction
-Message-Id: <20140925174309.GE4211@zareason>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 08 Sep 2014 06:30:53 +0000
+Subject: [PATCH v2 1/3] sparc64: correctly recognise M6 and M7 cpu type
+Message-Id: <1410157135-20393-1-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
-In-Reply-To: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Wed Sep 24 2014, 06:26:51PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Mon, 22 Sep 2014 14:56:31 -0400
-> 
-> > I'll review more.
-> > 
-> > Oh and boot with DEBUG_PAGEALLOC at some point.
-> > Alright, need to chase a DEBUG_PAGEALLOC issue with prom_halt() blink:
-> > [bpicco@zareason ~]$ cat /tmp/t5-blink.txt
-> > [23233.728105] IPv6: ADDRCONF(NETDEV_CHANGE): eth1: link becomes ready
-> > [23233.753380] SUN4V-DTLB: Error at TPC[446930], tl 1
-> > [23233.762729] SUN4V-DTLB: TPC<dma_4v_map_page+0x10/0x220>
-> > [23233.773124] SUN4V-DTLB: O7[55206c]
-> > [23233.779910] SUN4V-DTLB: O7<cache_grow+0x12c/0x200>
-> > [23233.789455] SUN4V-DTLB: vaddr[1103f23e000] ctx[0] pte[0] error[2]
-> > . We were nearly at the console login prompt. Hm, maybe turn off LDOMS
-> > config :)
-> > 
-> > thanx and nice!
-> 
-> Bob, here is what I have now, can you please help me test it?
-> 
-> It should restore 256MB/2GB/16GB page size usage.
-> 
-> The biggest bug was that I wasn't flushing the kernel TSB(s)
-> after building the kernel page tables and NOP'ing out that
-> instruction in kernel_physical_mapping_init().
-> 
-> Once I fixed that everything runs smoothly so far :-)
-> 
-> I haven't gotten to testing DEBUG_PAGEALLOC yet, but I suspect it
-> probably works now.
-> 
-> Thanks!
-Boots up !DEBUG_PAGEALLOC on T5-2. Review is in progress and looks good so
-far. This is important to have correct as we both know. I will attempt
-DEBUG_PAGEALLOC, hopefully later today, locally.
+The following patch adds support for correctly
+recognising M6 and M7 cpu type.
 
-We should give it a spin on M7. Though it is scheduled for a core upgrade
-today and one never knows :)
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
+---
+ arch/sparc/include/asm/spitfire.h |  2 ++
+ arch/sparc/kernel/cpu.c           | 12 ++++++++++++
+ arch/sparc/kernel/head_64.S       | 12 ++++++++++++
+ 3 files changed, 26 insertions(+)
+
+diff --git a/arch/sparc/include/asm/spitfire.h b/arch/sparc/include/asm/spitfire.h
+index 3fc58691..56f9338 100644
+--- a/arch/sparc/include/asm/spitfire.h
++++ b/arch/sparc/include/asm/spitfire.h
+@@ -45,6 +45,8 @@
+ #define SUN4V_CHIP_NIAGARA3	0x03
+ #define SUN4V_CHIP_NIAGARA4	0x04
+ #define SUN4V_CHIP_NIAGARA5	0x05
++#define SUN4V_CHIP_SPARC_M6	0x06
++#define SUN4V_CHIP_SPARC_M7	0x07
+ #define SUN4V_CHIP_SPARC64X	0x8a
+ #define SUN4V_CHIP_UNKNOWN	0xff
+ 
+diff --git a/arch/sparc/kernel/cpu.c b/arch/sparc/kernel/cpu.c
+index 82a3a71..dfad8b1 100644
+--- a/arch/sparc/kernel/cpu.c
++++ b/arch/sparc/kernel/cpu.c
+@@ -494,6 +494,18 @@ static void __init sun4v_cpu_probe(void)
+ 		sparc_pmu_type = "niagara5";
+ 		break;
+ 
++	case SUN4V_CHIP_SPARC_M6:
++		sparc_cpu_type = "SPARC-M6";
++		sparc_fpu_type = "SPARC-M6 integrated FPU";
++		sparc_pmu_type = "sparc-m6";
++		break;
++
++	case SUN4V_CHIP_SPARC_M7:
++		sparc_cpu_type = "SPARC-M7";
++		sparc_fpu_type = "SPARC-M7 integrated FPU";
++		sparc_pmu_type = "sparc-m7";
++		break;
++
+ 	case SUN4V_CHIP_SPARC64X:
+ 		sparc_cpu_type = "SPARC64-X";
+ 		sparc_fpu_type = "SPARC64-X integrated FPU";
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 452f04f..4fdeb80 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -427,6 +427,12 @@ sun4v_chip_type:
+ 	cmp	%g2, '5'
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA5, %g4
++	cmp	%g2, '6'
++	be,pt	%xcc, 5f
++	 mov	SUN4V_CHIP_SPARC_M6, %g4
++	cmp	%g2, '7'
++	be,pt	%xcc, 5f
++	 mov	SUN4V_CHIP_SPARC_M7, %g4
+ 	ba,pt	%xcc, 49f
+ 	 nop
+ 
+@@ -585,6 +591,12 @@ niagara_tlb_fixup:
+ 	cmp	%g1, SUN4V_CHIP_NIAGARA5
+ 	be,pt	%xcc, niagara4_patch
+ 	 nop
++	cmp	%g1, SUN4V_CHIP_SPARC_M6
++	be,pt	%xcc, niagara4_patch
++	 nop
++	cmp	%g1, SUN4V_CHIP_SPARC_M7
++	be,pt	%xcc, niagara4_patch
++	 nop
+ 
+ 	call	generic_patch_copyops
+ 	 nop
+-- 
+1.8.4.2
+
