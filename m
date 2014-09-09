@@ -1,28 +1,44 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Thu, 11 Sep 2014 19:51:05 +0000
-Subject: Re: [PATCH v3] sparc32: dma_alloc_coherent must honour gfp flags
-Message-Id: <5411FD29.5050005@gaisler.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 09 Sep 2014 18:37:59 +0000
+Subject: [PATCH 3/3 v2] sparc/uapi: Add definition of TIOC[SG]RS485
+Message-Id: <1410287879-2368-1-git-send-email-ricardo.ribalda@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410351472-10501-1-git-send-email-daniel@gaisler.com>
-In-Reply-To: <1410351472-10501-1-git-send-email-daniel@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-On 09/10/2014 11:03 PM, David Miller wrote:
-> From: Daniel Hellstrom<daniel@gaisler.com>
-> Date: Wed, 10 Sep 2014 14:17:52 +0200
->
->> dma_zalloc_coherent() calls dma_alloc_coherent(__GFP_ZERO)
->> but the sparc32 implementations sbus_alloc_coherent() and
->> pci32_alloc_coherent() doesn't take the gfp flags into
->> account.
->>
->> Tested on the SPARC32/LEON GRETH Ethernet driver which fails
->> due to dma_alloc_coherent(__GFP_ZERO) returns non zeroed
->> pages.
->>
->> Signed-off-by: Daniel Hellstrom<daniel@gaisler.com>
-> Applied, thanks Daniel.
-Thanks! I think this is subject for the stable branches.
+Commit: e676253b19b2d269cccf67fdb1592120a0cd0676 (serial/8250: Add
+support for RS485 IOCTLs), adds support for RS485 ioctls for 825_core on
+all the archs. Unfortunaltely the definition of TIOCSRS485 and
+TIOCGRS485 was missing on the ioctls.h file
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+Changelog:
+
+v2: By David Miller:
+
+Follow the ioctl numbering scheme used by the particular
+ architecture UAPI file you are editing.
+
+ arch/sparc/include/uapi/asm/ioctls.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
+index 897d172..06b3f6c 100644
+--- a/arch/sparc/include/uapi/asm/ioctls.h
++++ b/arch/sparc/include/uapi/asm/ioctls.h
+@@ -24,6 +24,8 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGRS485	_IOR('T', 0x41, struct serial_rs485)
++#define TIOCSRS485	_IOWR('T', 0x42, struct serial_rs485)
+ 
+ /* Note that all the ioctls that are not available in Linux have a 
+  * double underscore on the front to: a) avoid some programs to
+-- 
+2.1.0
+
