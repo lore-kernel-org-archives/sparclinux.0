@@ -1,37 +1,33 @@
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 09 Sep 2014 18:08:30 +0000
-Subject: [PATCH 3/3] sparc/uapi: Add definition of TIOC[SG]RS485
-Message-Id: <1410286110-24956-1-git-send-email-ricardo.ribalda@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 09 Sep 2014 18:26:40 +0000
+Subject: Re: [PATCH 3/3] sparc/uapi: Add definition of TIOC[SG]RS485
+Message-Id: <20140909.112640.131028033967197328.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1410286110-24956-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1410286110-24956-1-git-send-email-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: ricardo.ribalda@gmail.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 
-Commit: e676253b19b2d269cccf67fdb1592120a0cd0676 (serial/8250: Add
-support for RS485 IOCTLs), adds support for RS485 ioctls for 825_core on
-all the archs. Unfortunaltely the definition of TIOCSRS485 and
-TIOCGRS485 was missing on the ioctls.h file
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue,  9 Sep 2014 20:08:30 +0200
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- arch/sparc/include/uapi/asm/ioctls.h | 2 ++
- 1 file changed, 2 insertions(+)
+> diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
+> index 897d172..4e1c5da 100644
+> --- a/arch/sparc/include/uapi/asm/ioctls.h
+> +++ b/arch/sparc/include/uapi/asm/ioctls.h
+> @@ -24,6 +24,8 @@
+>  #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+>  #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+>  #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
+> +#define TIOCGRS485	0x542E
+> +#define TIOCSRS485	0x542F
 
-diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
-index 897d172..4e1c5da 100644
---- a/arch/sparc/include/uapi/asm/ioctls.h
-+++ b/arch/sparc/include/uapi/asm/ioctls.h
-@@ -24,6 +24,8 @@
- #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
- #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
- #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
-+#define TIOCGRS485	0x542E
-+#define TIOCSRS485	0x542F
- 
- /* Note that all the ioctls that are not available in Linux have a 
-  * double underscore on the front to: a) avoid some programs to
--- 
-2.1.0
+Please follow the ioctl numbering scheme used by the particular
+architecture UAPI file you are editing.
 
+Since Sparc here is using incrementing _IO*() values, including the type
+for the object passed in/out of the ioctl, you should do similarly for
+TIOC{G,S}RS485.
