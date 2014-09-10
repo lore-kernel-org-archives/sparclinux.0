@@ -1,65 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Sep 2014 23:57:04 +0000
-Subject: Re: [PATCH 0/6] sparc64: MM/IRQ patch queue.
-Message-Id: <20140926.195704.838536202519408251.davem@davemloft.net>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 10 Sep 2014 18:49:26 +0000
+Subject: q about ldc_bind after irq save
+Message-Id: <20140910184926.GC14466@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140925.154047.2222645314356554322.davem@davemloft.net>
-In-Reply-To: <20140925.154047.2222645314356554322.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Sep 2014 19:18:03 -0400 (EDT)
+This one (below) was flagged by lockdep. While it is a corner-case,
+it does create lockdep noise, so I'm trying to figure out
+the smallest fix for it:
 
-> From: David Miller <davem@davemloft.net>
-> Date: Fri, 26 Sep 2014 16:41:37 -0400 (EDT)
-> 
->> From: Bob Picco <bpicco@meloft.net>
->> Date: Fri, 26 Sep 2014 16:04:18 -0400
->> 
->>> This should provide you sufficient data to arrive at an initial vmalloc size
->>> for percpu. I'll eventually examine my T5-8 information too. Hm, just did
->>> quickly:
->>> PERCPU: max_distance=0x380001c10000 too large for vmalloc space 0xff00000000
->>> . Note I haven't considered impact of this in quite a bit.
->> 
->> Thanks, several things certainly are not happy.
->> 
->> I'll take a look, thanks Bob.
-> 
-> Bob can I see the 'memory' OF node on the machine where this happens?
+ irq event stamp: 0
+ hardirqs last  enabled at (0): [<          (null)>]           (null)
+ hardirqs last disabled at (0): [<0000000000466c7c>] copy_process+0x33c/0xcc0
+ softirqs last  enabled at (0): [<0000000000466c7c>] copy_process+0x33c/0xcc0
+ softirqs last disabled at (0): [<          (null)>]           (null)
+ Call Trace:
+ [00000000004a0738] __might_sleep+0xf8/0x120
+ [000000000058bea4] kmem_cache_alloc_trace+0x184/0x2c0
+ [00000000004faf80] request_threaded_irq+0x80/0x160
+ [000000000044f71c] ldc_bind+0x7c/0x220
+ [0000000000452454] vio_port_up+0x54/0xe0
+ [00000000101f6778] probe_disk+0x38/0x220 [sunvdc]
+ [00000000101f6b8c] vdc_port_probe+0x22c/0x300 [sunvdc]
+ [0000000000451a88] vio_device_probe+0x48/0x60
+ [000000000074c56c] really_probe+0x6c/0x300
+ [000000000074c83c] driver_probe_device+0x3c/0xa0
+ [000000000074c92c] __driver_attach+0x8c/0xa0
+ [000000000074a6ec] bus_for_each_dev+0x6c/0xa0
+ [000000000074c1dc] driver_attach+0x1c/0x40
+ [000000000074b0fc] bus_add_driver+0xbc/0x280
 
-Nevermind, I have it in my 'prtconfs' GIT repo.
+I think vio_port_up needs to do the irqsave before the ldc_bind
+so that it can examine ldc_state() safely.
 
-The embedded percpu allocator always failed on this machine, it should
-always have gone to the the page based percpu allocator fallback.
+But is there a reason we can't move the request_irq from ldc_bind
+and into ldc_alloc itself?  Or is there a simpler fix?
 
-You can verify this with past boot logs.
-
-It shouldn't crash later though, that's troubling :-)
-
-As to why the embedded handler can't cope with this config, it's because
-of how far apart the various NUMA memory nodes are, physical address wise.
-
-What happens is the per-cpu allocator allocates per-cpu memory, enough on
-each NUMA node for the cpus on that NUMA node.  Then it walks all of these
-pointers and computes the largest distance, in bytes, between any two of
-them.   Basically the lowest pointer value, subtracted from the highest
-pointer value.
-
-This is the "max distance" thing.  And it cannot be larger than 3/4's the
-size of the vmalloc area.
-
-The distance between numa node physical areas seems to be something like
-0x80000000000 on the T5 machine.
-
-Anyways, we don't have enough virtual address space with 3-level
-kernel page tables to accomodate what the embedded percpu allocator
-wants.
-
-Sound like a familiar problem? :-/
-
-So we might have to backtrack and really move to 4-level page tables.
-
+--Sowmini
