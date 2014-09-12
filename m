@@ -1,42 +1,20 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 10 Sep 2014 18:49:26 +0000
-Subject: q about ldc_bind after irq save
-Message-Id: <20140910184926.GC14466@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 12 Sep 2014 20:36:53 +0000
+Subject: Re: q about ldc_bind after irq save
+Message-Id: <20140912.163653.766678500534620420.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20140910184926.GC14466@oracle.com>
+In-Reply-To: <20140910184926.GC14466@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This one (below) was flagged by lockdep. While it is a corner-case,
-it does create lockdep noise, so I'm trying to figure out
-the smallest fix for it:
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 10 Sep 2014 14:49:26 -0400
 
- irq event stamp: 0
- hardirqs last  enabled at (0): [<          (null)>]           (null)
- hardirqs last disabled at (0): [<0000000000466c7c>] copy_process+0x33c/0xcc0
- softirqs last  enabled at (0): [<0000000000466c7c>] copy_process+0x33c/0xcc0
- softirqs last disabled at (0): [<          (null)>]           (null)
- Call Trace:
- [00000000004a0738] __might_sleep+0xf8/0x120
- [000000000058bea4] kmem_cache_alloc_trace+0x184/0x2c0
- [00000000004faf80] request_threaded_irq+0x80/0x160
- [000000000044f71c] ldc_bind+0x7c/0x220
- [0000000000452454] vio_port_up+0x54/0xe0
- [00000000101f6778] probe_disk+0x38/0x220 [sunvdc]
- [00000000101f6b8c] vdc_port_probe+0x22c/0x300 [sunvdc]
- [0000000000451a88] vio_device_probe+0x48/0x60
- [000000000074c56c] really_probe+0x6c/0x300
- [000000000074c83c] driver_probe_device+0x3c/0xa0
- [000000000074c92c] __driver_attach+0x8c/0xa0
- [000000000074a6ec] bus_for_each_dev+0x6c/0xa0
- [000000000074c1dc] driver_attach+0x1c/0x40
- [000000000074b0fc] bus_add_driver+0xbc/0x280
+> But is there a reason we can't move the request_irq from ldc_bind
+> and into ldc_alloc itself?  Or is there a simpler fix?
 
-I think vio_port_up needs to do the irqsave before the ldc_bind
-so that it can examine ldc_state() safely.
-
-But is there a reason we can't move the request_irq from ldc_bind
-and into ldc_alloc itself?  Or is there a simpler fix?
-
---Sowmini
+Because we don't have the string name for the IRQ until we get it
+from the ldc_bind() call, for one.
