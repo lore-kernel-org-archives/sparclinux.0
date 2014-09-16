@@ -1,271 +1,110 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 16 Sep 2014 02:09:39 +0000
-Subject: Re: [PATCH v1 21/21] PCI/MSI: Clean up unused MSI arch functions
-Message-Id: <54179BE3.5030303@huawei.com>
+From: Bob Picco <bpicco@meloft.net>
+Date: Tue, 16 Sep 2014 13:28:15 +0000
+Subject: [PATCH V2] sparc64: find_node adjustment
+Message-Id: <1410874095-11814-1-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>	 <1409911806-10519-22-git-send-email-wangyijing@huawei.com> <1410792430.3314.10.camel@pengutronix.de>
-In-Reply-To: <1410792430.3314.10.camel@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetca>
+To: sparclinux@vger.kernel.org
 
-On 2014/9/15 22:47, Lucas Stach wrote:
-> Am Freitag, den 05.09.2014, 18:10 +0800 schrieb Yijing Wang:
->> Now we use struct msi_chip in all platforms to configure
->> MSI/MSI-X. We can clean up the unused arch functions.
->>
->> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-> 
-> Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+From: bob picco <bpicco@meloft.net>
 
-Thanks!
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
 
-> 
->> ---
->>  drivers/iommu/irq_remapping.c |    2 +-
->>  drivers/pci/msi.c             |   99 ++++++++++++++++-------------------------
->>  include/linux/msi.h           |   14 ------
->>  3 files changed, 39 insertions(+), 76 deletions(-)
->>
->> diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
->> index 99b1c0f..6e645f0 100644
->> --- a/drivers/iommu/irq_remapping.c
->> +++ b/drivers/iommu/irq_remapping.c
->> @@ -92,7 +92,7 @@ error:
->>  
->>  	/*
->>  	 * Restore altered MSI descriptor fields and prevent just destroyed
->> -	 * IRQs from tearing down again in default_teardown_msi_irqs()
->> +	 * IRQs from tearing down again in teardown_msi_irqs()
->>  	 */
->>  	msidesc->irq = 0;
->>  	msidesc->nvec_used = 0;
->> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
->> index d78d637..e3e7f4f 100644
->> --- a/drivers/pci/msi.c
->> +++ b/drivers/pci/msi.c
->> @@ -34,50 +34,31 @@ struct msi_chip * __weak arch_find_msi_chip(struct pci_dev *dev)
->>  	return dev->bus->msi;
->>  }
->>  
->> -int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
->> -{
->> -	struct msi_chip *chip = arch_find_msi_chip(dev);
->> -	int err;
->> -
->> -	if (!chip || !chip->setup_irq)
->> -		return -EINVAL;
->> -
->> -	err = chip->setup_irq(dev, desc);
->> -	if (err < 0)
->> -		return err;
->> -
->> -	return 0;
->> -}
->> -
->> -void __weak arch_teardown_msi_irq(unsigned int irq)
->> -{
->> -	struct msi_chip *chip = irq_get_chip_data(irq);
->> -
->> -	if (!chip || !chip->teardown_irq)
->> -		return;
->> -
->> -	chip->teardown_irq(irq);
->> -}
->> -
->> -int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->> +int setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->>  {
->>  	struct msi_desc *entry;
->>  	int ret;
->>  	struct msi_chip *chip;
->>  
->>  	chip = arch_find_msi_chip(dev);
->> -	if (chip && chip->setup_irqs)
->> +	if (!chip)
->> +		return -EINVAL;
->> +
->> +	if (chip->setup_irqs)
->>  		return chip->setup_irqs(dev, nvec, type);
->>  
->>  	/*
->>  	 * If an architecture wants to support multiple MSI, it needs to
->> -	 * override arch_setup_msi_irqs()
->> +	 * implement chip->setup_irqs().
->>  	 */
->>  	if (type = PCI_CAP_ID_MSI && nvec > 1)
->>  		return 1;
->>  
->> +	if (!chip->setup_irq)
->> +		return -EINVAL;
->> +
->>  	list_for_each_entry(entry, &dev->msi_list, list) {
->> -		ret = arch_setup_msi_irq(dev, entry);
->> +		ret = chip->setup_irq(dev, entry);
->>  		if (ret < 0)
->>  			return ret;
->>  		if (ret > 0)
->> @@ -87,13 +68,20 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->>  	return 0;
->>  }
->>  
->> -/*
->> - * We have a default implementation available as a separate non-weak
->> - * function, as it is used by the Xen x86 PCI code
->> - */
->> -void default_teardown_msi_irqs(struct pci_dev *dev)
->> +static void teardown_msi_irqs(struct pci_dev *dev)
->>  {
->>  	struct msi_desc *entry;
->> +	struct msi_chip *chip;
->> +
->> +	chip = arch_find_msi_chip(dev);
->> +	if (!chip)
->> +		return;
->> +
->> +	if (chip->teardown_irqs)
->> +		return chip->teardown_irqs(dev);
->> +
->> +	if (!chip->teardown_irq)
->> +		return;
->>  
->>  	list_for_each_entry(entry, &dev->msi_list, list) {
->>  		int i, nvec;
->> @@ -104,20 +92,10 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
->>  		else
->>  			nvec = 1 << entry->msi_attrib.multiple;
->>  		for (i = 0; i < nvec; i++)
->> -			arch_teardown_msi_irq(entry->irq + i);
->> +			chip->teardown_irq(entry->irq + i);
->>  	}
->>  }
->>  
->> -void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
->> -{
->> -	struct msi_chip *chip = arch_find_msi_chip(dev);
->> -
->> -	if (chip && chip->teardown_irqs)
->> -		return chip->teardown_irqs(dev);
->> -
->> -	return default_teardown_msi_irqs(dev);
->> -}
->> -
->>  static void default_restore_msi_irq(struct pci_dev *dev, int irq)
->>  {
->>  	struct msi_desc *entry;
->> @@ -136,10 +114,18 @@ static void default_restore_msi_irq(struct pci_dev *dev, int irq)
->>  		write_msi_msg(irq, &entry->msg);
->>  }
->>  
->> -void __weak arch_restore_msi_irqs(struct pci_dev *dev)
->> +static void default_restore_msi_irqs(struct pci_dev *dev)
->>  {
->> -	struct msi_chip *chip = arch_find_msi_chip(dev);
->> +	struct msi_desc *entry = NULL;
->> +
->> +	list_for_each_entry(entry, &dev->msi_list, list) {
->> +		default_restore_msi_irq(dev, entry->irq);
->> +	}
->> +}
->>  
->> +static void restore_msi_irqs(struct pci_dev *dev)
->> +{
->> +	struct msi_chip *chip = arch_find_msi_chip(dev);
->>  	if (chip && chip->restore_irqs)
->>  		return chip->restore_irqs(dev);
->>  
->> @@ -248,15 +234,6 @@ void unmask_msi_irq(struct irq_data *data)
->>  	msi_set_mask_bit(data, 0);
->>  }
->>  
->> -void default_restore_msi_irqs(struct pci_dev *dev)
->> -{
->> -	struct msi_desc *entry;
->> -
->> -	list_for_each_entry(entry, &dev->msi_list, list) {
->> -		default_restore_msi_irq(dev, entry->irq);
->> -	}
->> -}
->> -
->>  void read_msi_msg(struct msi_desc *entry, struct msi_msg *msg)
->>  {
->>  	BUG_ON(entry->dev->current_state != PCI_D0);
->> @@ -360,7 +337,7 @@ static void free_msi_irqs(struct pci_dev *dev)
->>  			BUG_ON(irq_has_action(entry->irq + i));
->>  	}
->>  
->> -	arch_teardown_msi_irqs(dev);
->> +	teardown_msi_irqs(dev);
->>  
->>  	list_for_each_entry_safe(entry, tmp, &dev->msi_list, list) {
->>  		if (entry->msi_attrib.is_msix) {
->> @@ -430,7 +407,7 @@ static void __pci_restore_msi_state(struct pci_dev *dev)
->>  
->>  	pci_intx_for_msi(dev, 0);
->>  	msi_set_enable(dev, 0);
->> -	arch_restore_msi_irqs(dev);
->> +	restore_msi_irqs(dev);
->>  
->>  	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &control);
->>  	msi_mask_irq(entry, msi_mask(entry->msi_attrib.multi_cap),
->> @@ -453,7 +430,7 @@ static void __pci_restore_msix_state(struct pci_dev *dev)
->>  	msix_clear_and_set_ctrl(dev, 0,
->>  				PCI_MSIX_FLAGS_ENABLE | PCI_MSIX_FLAGS_MASKALL);
->>  
->> -	arch_restore_msi_irqs(dev);
->> +	restore_msi_irqs(dev);
->>  	list_for_each_entry(entry, &dev->msi_list, list) {
->>  		msix_mask_irq(entry, entry->masked);
->>  	}
->> @@ -624,7 +601,7 @@ static int msi_capability_init(struct pci_dev *dev, int nvec)
->>  	list_add_tail(&entry->list, &dev->msi_list);
->>  
->>  	/* Configure MSI capability structure */
->> -	ret = arch_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSI);
->> +	ret = setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSI);
->>  	if (ret) {
->>  		msi_mask_irq(entry, mask, ~mask);
->>  		free_msi_irqs(dev);
->> @@ -740,7 +717,7 @@ static int msix_capability_init(struct pci_dev *dev,
->>  	if (ret)
->>  		return ret;
->>  
->> -	ret = arch_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
->> +	ret = setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
->>  	if (ret)
->>  		goto out_avail;
->>  
->> diff --git a/include/linux/msi.h b/include/linux/msi.h
->> index 92a51e7..d6e1f7c 100644
->> --- a/include/linux/msi.h
->> +++ b/include/linux/msi.h
->> @@ -51,20 +51,6 @@ struct msi_desc {
->>  	struct kobject kobj;
->>  };
->>  
->> -/*
->> - * The arch hooks to setup up msi irqs. Those functions are
->> - * implemented as weak symbols so that they /can/ be overriden by
->> - * architecture specific code if needed.
->> - */
->> -int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc);
->> -void arch_teardown_msi_irq(unsigned int irq);
->> -int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
->> -void arch_teardown_msi_irqs(struct pci_dev *dev);
->> -void arch_restore_msi_irqs(struct pci_dev *dev);
->> -
->> -void default_teardown_msi_irqs(struct pci_dev *dev);
->> -void default_restore_msi_irqs(struct pci_dev *dev);
->> -
->>  struct msi_chip {
->>  	struct module *owner;
->>  	struct device *dev;
-> 
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
 
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
 
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
+
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
+
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
+
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+---
+V2: remove Oracle only accessible URL.
+
+ arch/sparc/mm/init_64.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index eaf7cf5..87047fb 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -840,7 +840,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
+ 	}
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
+ }
+ 
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
 -- 
-Thanks!
-Yijing
+1.7.1
 
