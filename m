@@ -1,49 +1,196 @@
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 09 Sep 2014 18:39:34 +0000
-Subject: Re: [PATCH 3/3] sparc/uapi: Add definition of TIOC[SG]RS485
-Message-Id: <CAPybu_0CLYp25+UXUSbQJck7ChAzBTTpQpZOhB8pK2B4pBP6sA@mail.gmail.com>
+From: Bob Picco <bpicco@meloft.net>
+Date: Tue, 16 Sep 2014 14:09:06 +0000
+Subject: [PATCH V2] sparc64: T5 PMU
+Message-Id: <1410876546-19180-1-git-send-email-bpicco@meloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410286110-24956-1-git-send-email-ricardo.ribalda@gmail.com> <20140909.112640.131028033967197328.davem@davemloft.net>
-In-Reply-To: <20140909.112640.131028033967197328.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Hello David
+From: bob picco <bpicco@meloft.net>
 
-Thanks for you comments, I thought it was a good idea that the same
-ioctl had the same value on all the arch, sorry to make a mess on your
-file :)
+The T5 (niagara5) has different PCR related HV fast trap values and a new
+HV API Group. This patch utilizes these and shares when possible with niagara4.
 
-I have just resend a v2 of the patch.
+We use the same sparc_pmu niagara4_pmu. Should there be new effort to
+obtain the MCU perf statistics then this would have to be changed.
 
-Regards!
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+---
+V2: Hopefully have the programming style correct.
 
-On Tue, Sep 9, 2014 at 8:26 PM, David Miller <davem@davemloft.net> wrote:
-> From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> Date: Tue,  9 Sep 2014 20:08:30 +0200
->
->> diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
->> index 897d172..4e1c5da 100644
->> --- a/arch/sparc/include/uapi/asm/ioctls.h
->> +++ b/arch/sparc/include/uapi/asm/ioctls.h
->> @@ -24,6 +24,8 @@
->>  #define TIOCGPKT     _IOR('T', 0x38, int) /* Get packet mode state */
->>  #define TIOCGPTLCK   _IOR('T', 0x39, int) /* Get Pty lock state */
->>  #define TIOCGEXCL    _IOR('T', 0x40, int) /* Get exclusive mode state */
->> +#define TIOCGRS485   0x542E
->> +#define TIOCSRS485   0x542F
->
-> Please follow the ioctl numbering scheme used by the particular
-> architecture UAPI file you are editing.
->
-> Since Sparc here is using incrementing _IO*() values, including the type
-> for the object passed in/out of the ioctl, you should do similarly for
-> TIOC{G,S}RS485.
+ arch/sparc/include/asm/hypervisor.h |   11 ++++++++
+ arch/sparc/kernel/hvapi.c           |    1 +
+ arch/sparc/kernel/hvcalls.S         |   16 ++++++++++++
+ arch/sparc/kernel/pcr.c             |   46 +++++++++++++++++++++++++++++++---
+ arch/sparc/kernel/perf_event.c      |    3 +-
+ 5 files changed, 72 insertions(+), 5 deletions(-)
 
-
-
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index 94b39ca..4f6725f 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -2947,6 +2947,16 @@ unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
+ 				   unsigned long reg_val);
+ #endif
+ 
++#define	HV_FAST_T5_GET_PERFREG		0x1a8
++#define	HV_FAST_T5_SET_PERFREG		0x1a9
++
++#ifndef	__ASSEMBLY__
++unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
++				   unsigned long *reg_val);
++unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
++				   unsigned long reg_val);
++#endif
++
+ /* Function numbers for HV_CORE_TRAP.  */
+ #define HV_CORE_SET_VER			0x00
+ #define HV_CORE_PUTCHAR			0x01
+@@ -2978,6 +2988,7 @@ unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
+ #define HV_GRP_VF_CPU			0x0205
+ #define HV_GRP_KT_CPU			0x0209
+ #define HV_GRP_VT_CPU			0x020c
++#define HV_GRP_T5_CPU			0x0211
+ #define HV_GRP_DIAG			0x0300
+ 
+ #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
+index c0a2de0..5c55145 100644
+--- a/arch/sparc/kernel/hvapi.c
++++ b/arch/sparc/kernel/hvapi.c
+@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
+ 	{ .group = HV_GRP_VF_CPU,				},
+ 	{ .group = HV_GRP_KT_CPU,				},
+ 	{ .group = HV_GRP_VT_CPU,				},
++	{ .group = HV_GRP_T5_CPU,				},
+ 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
+ };
+ 
+diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
+index f3ab509..caedf83 100644
+--- a/arch/sparc/kernel/hvcalls.S
++++ b/arch/sparc/kernel/hvcalls.S
+@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
+ 	retl
+ 	 nop
+ ENDPROC(sun4v_vt_set_perfreg)
++
++ENTRY(sun4v_t5_get_perfreg)
++	mov	%o1, %o4
++	mov	HV_FAST_T5_GET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	stx	%o1, [%o4]
++	retl
++	 nop
++ENDPROC(sun4v_t5_get_perfreg)
++
++ENTRY(sun4v_t5_set_perfreg)
++	mov	HV_FAST_T5_SET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_t5_set_perfreg)
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index 269af58..1b9ef24 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops = {
+ 	.pcr_nmi_disable	= PCR_N4_PICNPT,
+ };
+ 
++static u64 n5_pcr_read(unsigned long reg_num)
++{
++	unsigned long val;
++
++	(void) sun4v_t5_get_perfreg(reg_num, &val);
++
++	return val;
++}
++
++static void n5_pcr_write(unsigned long reg_num, u64 val)
++{
++	(void) sun4v_t5_set_perfreg(reg_num, val);
++}
++
++static const struct pcr_ops n5_pcr_ops = {
++	.read_pcr		= n5_pcr_read,
++	.write_pcr		= n5_pcr_write,
++	.read_pic		= n4_pic_read,
++	.write_pic		= n4_pic_write,
++	.nmi_picl_value		= n4_picl_value,
++	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
++				   PCR_N4_UTRACE | PCR_N4_TOE |
++				   (26 << PCR_N4_SL_SHIFT)),
++	.pcr_nmi_disable	= PCR_N4_PICNPT,
++};
++
++
+ static unsigned long perf_hsvc_group;
+ static unsigned long perf_hsvc_major;
+ static unsigned long perf_hsvc_minor;
+ 
+ static int __init register_perf_hsvc(void)
+ {
++	unsigned long hverror;
++
+ 	if (tlb_type = hypervisor) {
+ 		switch (sun4v_chip_type) {
+ 		case SUN4V_CHIP_NIAGARA1:
+@@ -215,6 +244,9 @@ static int __init register_perf_hsvc(void)
+ 			perf_hsvc_group = HV_GRP_VT_CPU;
+ 			break;
+ 
++		case SUN4V_CHIP_NIAGARA5:
++			perf_hsvc_group = HV_GRP_T5_CPU;
++			break;
+ 		default:
+ 			return -ENODEV;
+ 		}
+@@ -222,10 +254,12 @@ static int __init register_perf_hsvc(void)
+ 
+ 		perf_hsvc_major = 1;
+ 		perf_hsvc_minor = 0;
+-		if (sun4v_hvapi_register(perf_hsvc_group,
+-					 perf_hsvc_major,
+-					 &perf_hsvc_minor)) {
+-			printk("perfmon: Could not register hvapi.\n");
++		hverror = sun4v_hvapi_register(perf_hsvc_group,
++					       perf_hsvc_major,
++					       &perf_hsvc_minor);
++		if (hverror) {
++			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
++			       hverror);
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -254,6 +288,10 @@ static int __init setup_sun4v_pcr_ops(void)
+ 		pcr_ops = &n4_pcr_ops;
+ 		break;
+ 
++	case SUN4V_CHIP_NIAGARA5:
++		pcr_ops = &n5_pcr_ops;
++		break;
++
+ 	default:
+ 		ret = -ENODEV;
+ 		break;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index d35c490..c9759ad 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
+ 		sparc_pmu = &niagara2_pmu;
+ 		return true;
+ 	}
+-	if (!strcmp(sparc_pmu_type, "niagara4")) {
++	if (!strcmp(sparc_pmu_type, "niagara4") ||
++	    !strcmp(sparc_pmu_type, "niagara5")) {
+ 		sparc_pmu = &niagara4_pmu;
+ 		return true;
+ 	}
 -- 
-Ricardo Ribalda
+1.7.1
+
