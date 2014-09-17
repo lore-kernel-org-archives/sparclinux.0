@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Sep 2014 00:49:43 +0000
+From: Bob Picco <bpicco@meloft.net>
+Date: Wed, 17 Sep 2014 12:19:38 +0000
 Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140916.204943.1394160383600191742.davem@davemloft.net>
+Message-Id: <20140917121938.GJ17331@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
@@ -10,28 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Tue, 16 Sep 2014 09:26:47 -0400
-
-> Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
-> prom_halt() and drop us to OF command prompt "ok". This isn't the case for
-> LDOMs and the machine powers off.
+David Miller wrote:	[Tue Sep 16 2014, 05:47:25PM EDT]
+> From: Bob Picco <bpicco@meloft.net>
+> Date: Tue, 16 Sep 2014 09:26:47 -0400
 > 
-> For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
-> a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
-> of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
-> one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
+> I just looked into this a bit while reviewing this patch.
+Okay.
+> 
+> > A more recent one is an ITLB issue with a bad pagesize which could
+> > be a hardware bug.
+> 
+> The error is signalled solely by the hypervisor.  Let's look at the
+> PTE it doesn't like.
+I agree and forgot about this in the context of bus error.
 
-This patch is great, applied, thanks Bob.
-
-I think I'd like to request a follow-on patch to this if you don't
-mind.
-
-If %tl > 1, the only situation we can possibly be in is to be taking a
-TLB miss during a window spill/fill trap, in which case we should
-up-trap back up through the spill/fill handler and into the long path
-fault code via winfix_trampoline.
-
-Then you can kill all of the {i,d}tlb error code paths.
-
-Thanks!
+Note, I've seen this issue once or twice. Perhaps only on my ~P0 T4-2.
+I couldn't find the issue in my T5-2 log.
+> 
+> > This is recent mainline for ITLB:
+> > [ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
+> > [ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
+> > [ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
+> > [ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
+> 
+> Indeed bad pagesize is signalled.  The page size bits are in the low
+> 3 bits of the PTE, which here is 0x3 which should encode a 4MB page.
+Yes.
+> 
+> However I notice that 0x8 is set, which is a reserved bit.  That
+> shouldn't happen, and could be what the hypervisor really doesn't
+> like.
+Also _PAGE_VALID isn't set.
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
