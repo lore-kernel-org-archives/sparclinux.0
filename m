@@ -1,7 +1,7 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 17 Sep 2014 12:40:29 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 17 Sep 2014 16:00:19 +0000
 Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140917124029.GL17331@zareason>
+Message-Id: <20140917.120019.2168872785436918657.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
@@ -10,33 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Tue Sep 16 2014, 08:49:43PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Tue, 16 Sep 2014 09:26:47 -0400
-> 
-> > Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
-> > prom_halt() and drop us to OF command prompt "ok". This isn't the case for
-> > LDOMs and the machine powers off.
-> > 
-> > For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
-> > a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
-> > of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
-> > one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
-> 
-> This patch is great, applied, thanks Bob.
-> 
-> I think I'd like to request a follow-on patch to this if you don't
-> mind.
-Fine by me.
-> 
-> If %tl > 1, the only situation we can possibly be in is to be taking a
-> TLB miss during a window spill/fill trap, in which case we should
-> up-trap back up through the spill/fill handler and into the long path
-> fault code via winfix_trampoline.
-Yes I agree.
-> 
-> Then you can kill all of the {i,d}tlb error code paths.
-Let me look at this.
-> 
-> Thanks!
-you're welcome and thanx!
+From: Bob Picco <bpicco@meloft.net>
+Date: Wed, 17 Sep 2014 08:24:23 -0400
+
+> David Miller wrote:	[Tue Sep 16 2014, 08:35:15PM EDT]
+>> From: David Miller <davem@davemloft.net>
+>> Date: Tue, 16 Sep 2014 20:16:51 -0400 (EDT)
+>> 
+>> commit 18f38132528c3e603c66ea464727b29e9bbcb91b
+>> Author: David S. Miller <davem@davemloft.net>
+>> Date:   Mon Aug 4 16:34:01 2014 -0700
+>> 
+>>     sparc64: Do not insert non-valid PTEs into the TSB hash table.
+>> 
+>> Do you know if the kernels that triggered those ITLB BADRA errors had
+>> that fix or not?
+> I doubt it. I just checked my log for T4-2 and none of the kernels appears
+> close to this:
+> [bpicco@zareason linus.git]$ git describe --contains 18f38132528c3e603c66ea464727b29e9bbcb91b
+> v3.17-rc1~105^2~1^2~6
+> when the issue was revealed.
+
+So I believe this bug should be fixed by the above commit, let me know
+if you see this ever again.
