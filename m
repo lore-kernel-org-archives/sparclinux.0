@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 16 Sep 2014 21:47:25 +0000
+Date: Wed, 17 Sep 2014 00:16:51 +0000
 Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140916.174725.1474708710587791214.davem@davemloft.net>
+Message-Id: <20140916.201651.256110320447871912.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
@@ -10,26 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Tue, 16 Sep 2014 09:26:47 -0400
+From: David Miller <davem@davemloft.net>
+Date: Tue, 16 Sep 2014 17:47:25 -0400 (EDT)
 
-I just looked into this a bit while reviewing this patch.
+> However I notice that 0x8 is set, which is a reserved bit.  That
+> shouldn't happen, and could be what the hypervisor really doesn't
+> like.
 
-> A more recent one is an ITLB issue with a bad pagesize which could
-> be a hardware bug.
+I just confirmed that this is why the hypervisor throws an error.  It
+actually inspects all of 0xf in the PTE as a size field (rather than
+just 0x7) via the TTE_SIZE() macro (in include/sun4v/mmu.h), which
+uses TTE_SZ_MASK (also in include/sun4v/mmu.h), which is defined as
+0xf.
 
-The error is signalled solely by the hypervisor.  Let's look at the
-PTE it doesn't like.
+It then makes sure that only CPU supported sizes are set in the PTE by
+using the TTE_VALIDSIZEARRAY (f.e. in greatlakes/ontario/include/mmu.h
+or greatlakes/huron/include/mmu.h) bitmask, which is different for
+each platform hypervisor build.
 
-> This is recent mainline for ITLB:
-> [ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
-> [ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
-> [ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
-> [ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
-
-Indeed bad pagesize is signalled.  The page size bits are in the low
-3 bits of the PTE, which here is 0x3 which should encode a 4MB page.
-
-However I notice that 0x8 is set, which is a reserved bit.  That
-shouldn't happen, and could be what the hypervisor really doesn't
-like.
+Anyways, we have to figure out why 0x8 is set in the PTE that we try
+to load into ITLB.  I haven't found any smoking guns yet.
