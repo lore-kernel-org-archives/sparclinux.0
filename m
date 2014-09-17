@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 17 Sep 2014 12:19:38 +0000
+Date: Wed, 17 Sep 2014 12:24:23 +0000
 Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140917121938.GJ17331@zareason>
+Message-Id: <20140917122423.GK17331@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
@@ -10,38 +10,33 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Tue Sep 16 2014, 05:47:25PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Tue, 16 Sep 2014 09:26:47 -0400
+David Miller wrote:	[Tue Sep 16 2014, 08:35:15PM EDT]
+> From: David Miller <davem@davemloft.net>
+> Date: Tue, 16 Sep 2014 20:16:51 -0400 (EDT)
 > 
-> I just looked into this a bit while reviewing this patch.
-Okay.
+> > Anyways, we have to figure out why 0x8 is set in the PTE that we try
+> > to load into ITLB.  I haven't found any smoking guns yet.
 > 
-> > A more recent one is an ITLB issue with a bad pagesize which could
-> > be a hardware bug.
-> 
-> The error is signalled solely by the hypervisor.  Let's look at the
-> PTE it doesn't like.
-I agree and forgot about this in the context of bus error.
-
-Note, I've seen this issue once or twice. Perhaps only on my ~P0 T4-2.
-I couldn't find the issue in my T5-2 log.
-> 
-> > This is recent mainline for ITLB:
-> > [ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
-> > [ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
-> > [ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
-> > [ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
-> 
-> Indeed bad pagesize is signalled.  The page size bits are in the low
-> 3 bits of the PTE, which here is 0x3 which should encode a 4MB page.
+> Looking more closely, the PTE 0x2900000dcc800eeb doesn't even have
+> the valid bit set.
 Yes.
 > 
-> However I notice that 0x8 is set, which is a reserved bit.  That
-> shouldn't happen, and could be what the hypervisor really doesn't
-> like.
-Also _PAGE_VALID isn't set.
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Non-valid PTEs should not even get into the TSB, and non-valid PTEs
+> found via page table lookup should vector us to the full fault path.
+> 
+> There used to be a bug where we'd put non-valid TTEs into the TSB
+> but that was fixed by commit:
+> 
+> commit 18f38132528c3e603c66ea464727b29e9bbcb91b
+> Author: David S. Miller <davem@davemloft.net>
+> Date:   Mon Aug 4 16:34:01 2014 -0700
+> 
+>     sparc64: Do not insert non-valid PTEs into the TSB hash table.
+> 
+> Do you know if the kernels that triggered those ITLB BADRA errors had
+> that fix or not?
+I doubt it. I just checked my log for T4-2 and none of the kernels appears
+close to this:
+[bpicco@zareason linus.git]$ git describe --contains 18f38132528c3e603c66ea464727b29e9bbcb91b
+v3.17-rc1~105^2~1^2~6
+when the issue was revealed.
