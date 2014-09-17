@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Sep 2014 01:48:03 +0000
+From: Bob Picco <bpicco@meloft.net>
+Date: Wed, 17 Sep 2014 12:42:53 +0000
 Subject: Re: [PATCH] sparc64: swapper_tsb and swapper_4m_tsb phys correction
-Message-Id: <20140916.214803.131137278335382373.davem@davemloft.net>
+Message-Id: <20140917124253.GM17331@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
@@ -10,34 +10,38 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Tue, 16 Sep 2014 12:50:39 -0400
-
-> From: bob picco <bpicco@meloft.net>
+David Miller wrote:	[Tue Sep 16 2014, 09:48:03PM EDT]
+> From: Bob Picco <bpicco@meloft.net>
+> Date: Tue, 16 Sep 2014 12:50:39 -0400
 > 
-> For physical address larger than 47 bits the computed physical address
-> was insufficient within KERN_TSB_LOOKUP_TL1. This resulted in a vmlinux
-> loaded above 47 bits of physical address unable to boot in spectacular
-> ways.
+> > From: bob picco <bpicco@meloft.net>
+> > 
+> > For physical address larger than 47 bits the computed physical address
+> > was insufficient within KERN_TSB_LOOKUP_TL1. This resulted in a vmlinux
+> > loaded above 47 bits of physical address unable to boot in spectacular
+> > ways.
+> > 
+> > For now we've expanded the physical address range to 52 bits at the cost of
+> > two instructions. Older sparc64 incur two nop-s.
+> > 
+> > The two new instructions from this patch and the former KTSB_PHYS_SHIFT can
+> > potentially be eliminated using memblock aligning large and constraining
+> > the physical limit. Essentially use the "sethi" for a physical manipulated
+> > address and replacing the "or" at patch time with a "sllx". This would leave
+> > the tsb within head_64.S unused and possibly not a good solution for Cheetah+.
+> > We'll comtemplate this more in another round.
+> > 
+> > Cc: sparclinux@vger.kernel.org
+> > Signed-off-by: Bob Picco <bob.picco@oracle.com>
 > 
-> For now we've expanded the physical address range to 52 bits at the cost of
-> two instructions. Older sparc64 incur two nop-s.
+> Bob, thanks for doing this work to support up to 49-bits of physical
+> addressing.
+You are very welcome.
 > 
-> The two new instructions from this patch and the former KTSB_PHYS_SHIFT can
-> potentially be eliminated using memblock aligning large and constraining
-> the physical limit. Essentially use the "sethi" for a physical manipulated
-> address and replacing the "or" at patch time with a "sllx". This would leave
-> the tsb within head_64.S unused and possibly not a good solution for Cheetah+.
-> We'll comtemplate this more in another round.
+> There are a lot of tradeoffs and thorny issues involved here, so I'm
+> going to take some time reviewing this set of patches.
+Indeed many tricky issues. I took a first stab at it.
 > 
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Bob Picco <bob.picco@oracle.com>
-
-Bob, thanks for doing this work to support up to 49-bits of physical
-addressing.
-
-There are a lot of tradeoffs and thorny issues involved here, so I'm
-going to take some time reviewing this set of patches.
-
-I'll try to get back to you on these changes in a reasonable amount of
-time, thanks for your patience.
+> I'll try to get back to you on these changes in a reasonable amount of
+> time, thanks for your patience.
+No hurry and thanx.
