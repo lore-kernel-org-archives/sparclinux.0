@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Sep 2014 00:16:51 +0000
+Date: Wed, 17 Sep 2014 00:35:15 +0000
 Subject: Re: [PATCH V2] sparc64: sun4v TLB error power off events
-Message-Id: <20140916.201651.256110320447871912.davem@davemloft.net>
+Message-Id: <20140916.203515.859680411188242096.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410874007-11501-1-git-send-email-bpicco@meloft.net>
@@ -11,22 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: David Miller <davem@davemloft.net>
-Date: Tue, 16 Sep 2014 17:47:25 -0400 (EDT)
+Date: Tue, 16 Sep 2014 20:16:51 -0400 (EDT)
 
-> However I notice that 0x8 is set, which is a reserved bit.  That
-> shouldn't happen, and could be what the hypervisor really doesn't
-> like.
+> Anyways, we have to figure out why 0x8 is set in the PTE that we try
+> to load into ITLB.  I haven't found any smoking guns yet.
 
-I just confirmed that this is why the hypervisor throws an error.  It
-actually inspects all of 0xf in the PTE as a size field (rather than
-just 0x7) via the TTE_SIZE() macro (in include/sun4v/mmu.h), which
-uses TTE_SZ_MASK (also in include/sun4v/mmu.h), which is defined as
-0xf.
+Looking more closely, the PTE 0x2900000dcc800eeb doesn't even have
+the valid bit set.
 
-It then makes sure that only CPU supported sizes are set in the PTE by
-using the TTE_VALIDSIZEARRAY (f.e. in greatlakes/ontario/include/mmu.h
-or greatlakes/huron/include/mmu.h) bitmask, which is different for
-each platform hypervisor build.
+Non-valid PTEs should not even get into the TSB, and non-valid PTEs
+found via page table lookup should vector us to the full fault path.
 
-Anyways, we have to figure out why 0x8 is set in the PTE that we try
-to load into ITLB.  I haven't found any smoking guns yet.
+There used to be a bug where we'd put non-valid TTEs into the TSB
+but that was fixed by commit:
+
+commit 18f38132528c3e603c66ea464727b29e9bbcb91b
+Author: David S. Miller <davem@davemloft.net>
+Date:   Mon Aug 4 16:34:01 2014 -0700
+
+    sparc64: Do not insert non-valid PTEs into the TSB hash table.
+
+Do you know if the kernels that triggered those ITLB BADRA errors had
+that fix or not?
