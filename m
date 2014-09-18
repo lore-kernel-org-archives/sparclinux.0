@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 18 Sep 2014 17:08:08 +0000
+Date: Thu, 18 Sep 2014 19:43:12 +0000
 Subject: Re: [PATCH] sparc64: swapper_tsb and swapper_4m_tsb phys correction
-Message-Id: <20140918.130808.70522200224958778.davem@davemloft.net>
+Message-Id: <20140918.154312.1505148212511781262.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
@@ -10,16 +10,145 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 18 Sep 2014 06:09:12 -0400
+From: David Miller <davem@davemloft.net>
+Date: Wed, 17 Sep 2014 13:16:22 -0400 (EDT)
 
-> The machine hung after remapping. It could have been my mistake. Please
-> let me investigate.
+> [PATCH] sparc64: Adjust KTSB assembler to support larger physical addresses.
 
-I was hoping this would have been the simplest of the patches :-)
+Bob, just a quick update.
 
-If you get stuck just print some debugging information with
-prom_printf() (the physical address of the KTSB, and the final
-instruction values after patching) then prom_halt() so it doesn't hang
-and you can reset more quickly.
+I've adjusted this patch of mine to support arbitrary physical addresses,
+not just up to 54-bits.
+
+With the other related changes being discussed, we will have no
+limitations to deal with wrt. physical addressing ever again and
+honestly I don't want to have to play with this area any more :)
+
+--------------------
+[PATCH] sparc64: Adjust KTSB assembler to support larger physical addresses.
+
+As currently coded the KTSB accesses in the kernel only support up to
+47 bits of physical addressing.
+
+Adjust the instruction and patching sequence in order to support
+arbitrary 64 bits addresses.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/tsb.h | 30 ++++++++++++------------------
+ arch/sparc/mm/init_64.c      | 28 +++++++++++++++++++++++++---
+ 2 files changed, 37 insertions(+), 21 deletions(-)
+
+diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
+index 90916f9..11c5047 100644
+--- a/arch/sparc/include/asm/tsb.h
++++ b/arch/sparc/include/asm/tsb.h
+@@ -246,8 +246,6 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	(KERNEL_TSB_SIZE_BYTES / 16)
+ #define KERNEL_TSB4M_NENTRIES	4096
+ 
+-#define KTSB_PHYS_SHIFT		15
+-
+ 	/* Do a kernel TSB lookup at tl>0 on VADDR+TAG, branch to OK_LABEL
+ 	 * on TSB hit.  REG1, REG2, REG3, and REG4 are used as temporaries
+ 	 * and the found TTE will be left in REG1.  REG3 and REG4 must
+@@ -256,17 +254,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	 * VADDR and TAG will be preserved and not clobbered by this macro.
+ 	 */
+ #define KERN_TSB_LOOKUP_TL1(VADDR, TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
+-661:	sethi		%hi(swapper_tsb), REG1;			\
+-	or		REG1, %lo(swapper_tsb), REG1; \
++661:	sethi		%uhi(swapper_tsb), REG1; \
++	sethi		%hi(swapper_tsb), REG2; \
++	or		REG1, %ulo(swapper_tsb), REG1; \
++	or		REG2, %lo(swapper_tsb), REG2; \
+ 	.section	.swapper_tsb_phys_patch, "ax"; \
+ 	.word		661b; \
+ 	.previous; \
+-661:	nop; \
+-	.section	.tsb_ldquad_phys_patch, "ax"; \
+-	.word		661b; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	.previous; \
++	sllx		REG1, 32, REG1; \
++	or		REG1, REG2, REG1; \
+ 	srlx		VADDR, PAGE_SHIFT, REG2; \
+ 	and		REG2, (KERNEL_TSB_NENTRIES - 1), REG2; \
+ 	sllx		REG2, 4, REG2; \
+@@ -281,17 +277,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	 * we can make use of that for the index computation.
+ 	 */
+ #define KERN_TSB4M_LOOKUP_TL1(TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
+-661:	sethi		%hi(swapper_4m_tsb), REG1;	     \
+-	or		REG1, %lo(swapper_4m_tsb), REG1; \
++661:	sethi		%uhi(swapper_4m_tsb), REG1; \
++	sethi		%hi(swapper_4m_tsb), REG2; \
++	or		REG1, %ulo(swapper_4m_tsb), REG1; \
++	or		REG2, %lo(swapper_4m_tsb), REG2; \
+ 	.section	.swapper_4m_tsb_phys_patch, "ax"; \
+ 	.word		661b; \
+ 	.previous; \
+-661:	nop; \
+-	.section	.tsb_ldquad_phys_patch, "ax"; \
+-	.word		661b; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	.previous; \
++	sllx		REG1, 32, REG1; \
++	or		REG1, REG2, REG1; \
+ 	and		TAG, (KERNEL_TSB4M_NENTRIES - 1), REG2; \
+ 	sllx		REG2, 4, REG2; \
+ 	add		REG1, REG2, REG2; \
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index c8bccaf..971ac36 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1705,19 +1705,41 @@ static void __init tsb_phys_patch(void)
+ static struct hv_tsb_descr ktsb_descr[NUM_KTSB_DESCR];
+ extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
+ 
++/* The swapper TSBs are loaded with a base sequence of:
++ *
++ *	sethi	%uhi(SYMBOL), REG1
++ *	sethi	%hi(SYMBOL), REG2
++ *	or	REG1, %ulo(SYMBOL), REG1
++ *	or	REG2, %lo(SYMBOL), REG2
++ *	sllx	REG1, 32, REG1
++ *	or	REG1, REG2, REG1
++ *
++ * When we use physical addressing for the TSB accesses, we patch the
++ * first four instructions in the above sequence.
++ */
++
+ static void patch_one_ktsb_phys(unsigned int *start, unsigned int *end, unsigned long pa)
+ {
+-	pa >>= KTSB_PHYS_SHIFT;
++	unsigned long high_bits, low_bits;
++
++	high_bits = (pa >> 32) & 0xffffffff;
++	low_bits = (pa >> 0) & 0xffffffff;
+ 
+ 	while (start < end) {
+ 		unsigned int *ia = (unsigned int *)(unsigned long)*start;
+ 
+-		ia[0] = (ia[0] & ~0x3fffff) | (pa >> 10);
++		ia[0] = (ia[0] & ~0x3fffff) | (high_bits >> 10);
+ 		__asm__ __volatile__("flush	%0" : : "r" (ia));
+ 
+-		ia[1] = (ia[1] & ~0x3ff) | (pa & 0x3ff);
++		ia[1] = (ia[1] & ~0x3fffff) | (low_bits >> 10);
+ 		__asm__ __volatile__("flush	%0" : : "r" (ia + 1));
+ 
++		ia[2] = (ia[2] & ~0x1fff) | (high_bits & 0x3ff);
++		__asm__ __volatile__("flush	%0" : : "r" (ia + 2));
++
++		ia[3] = (ia[3] & ~0x1fff) | (low_bits & 0x3ff);
++		__asm__ __volatile__("flush	%0" : : "r" (ia + 3));
++
+ 		start++;
+ 	}
+ }
+-- 
+1.8.1.2
 
