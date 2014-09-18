@@ -1,7 +1,7 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 18 Sep 2014 10:16:06 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 18 Sep 2014 17:05:34 +0000
 Subject: Re: [PATCH] sparc64: valid physical address bitmap
-Message-Id: <20140918101606.GQ17331@zareason>
+Message-Id: <20140918.130534.533150835721495140.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410886337-16116-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410886337-16116-1-git-send-email-bpicco@meloft.net>
@@ -10,49 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Wed Sep 17 2014, 05:00:48PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Tue, 16 Sep 2014 12:52:17 -0400
-> 
-> > From: bob picco <bpicco@meloft.net>
-> > 
-> > We need to constrain the size of sparc64_valid_addr_bitmap. Historically
-> > it has been sized according to maximum physical address and 4Mb DIMM size.
-> > This was sufficient with older sparc64 before larger physical address bits.
-> > 
-> > This patch limits the bitmap to 64Kb by a smaller value for a physical
-> > address bits which cover the vast majority of sparc64.
-> > 
-> > The last_valid_pfn is used to limit the physical address limit within
-> > the ktlb miss for identity address checking and increase the megabyte shift
-> > granularity of the check for a valid pfn.
-> > 
-> > An LDOM guest might have an issue with this depending on how the PA to
-> > RA ranges were assigned by the control domain. Though this issue already
-> > seems to exist for a granularity less than 4Mb which is the current
-> > bitmap shift and test.
-> > 
-> > Cc: sparclinux@vger.kernel.org
-> > Signed-off-by: Bob Picco <bob.picco@oracle.com>
-> 
-> Let's stop fighting this thing.
-Oh do I understand :)
-> 
-> Instead, let's just kill the bitmap off completely and scan the 'reg'
-> property of the 'memory' OF node.  It's well formed and very small,
-> and now it doesn't matter what granularity works or not for LDOM
-> guests as well.
-I like the idea.
+From: Bob Picco <bpicco@meloft.net>
+Date: Thu, 18 Sep 2014 06:16:06 -0400
 
-There might be one issue: 
-The machine has more reg property entries than this kernel can support (32). 
-Program terminated 
-. It is a T4-4 LDOM guest configured with an absurd number of PA <-> RA
-mappings. I haven't examined the issue further than this.
+> David Miller wrote:	[Wed Sep 17 2014, 05:00:48PM EDT]
+>> Instead, let's just kill the bitmap off completely and scan the 'reg'
+>> property of the 'memory' OF node.  It's well formed and very small,
+>> and now it doesn't matter what granularity works or not for LDOM
+>> guests as well.
+> I like the idea.
+> 
+> There might be one issue: 
+> The machine has more reg property entries than this kernel can support (32). 
+> Program terminated 
+> . It is a T4-4 LDOM guest configured with an absurd number of PA <-> RA
+> mappings. I haven't examined the issue further than this.
 
-I've invested infinite zero time reviewing your code.
-> 
-> Bonus is that the BSS section shrinks by 4MB after this change.
-> 
-> This is a really delicate change, the more testing the better.  I've
-> only done basic sanity tests on T4-2 so far.
+Ok.  Given some of the other work I did last night, and after some more
+consideration, I think I have a better idea of how to handle this.
+
+Let's just use kernel page tables for everything.
+
+We'll put huge PMDs into the kernel page tables for the linear mappings
+and this will serve two purposes:
+
+1) Physical address validation
+
+2) Huge page size selection
+
+And the kernel page tables deal naturally with sparseness.
+
+We just have to set it up after we take over the trap table from OF.
+(otherwise we can't actually access any early memory we allocate via
+memblock or similar)  And we have the infrastructure to do that, with
+instruction patching.
+
+We simply accept all TLB misses to the linear area, strictly use only
+4MB TTEs, before we setup the kernel page tables.
+
+I'll see if I can throw something together today.
