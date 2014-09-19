@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 18 Sep 2014 23:16:37 +0000
+Date: Fri, 19 Sep 2014 19:28:46 +0000
 Subject: Re: [PATCH] sparc64: swapper_tsb and swapper_4m_tsb phys correction
-Message-Id: <20140918.191637.1855961580737877614.davem@davemloft.net>
+Message-Id: <20140919.152846.1124222533433622697.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
@@ -10,33 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 18 Sep 2014 18:15:30 -0400
+From: David Miller <davem@davemloft.net>
+Date: Thu, 18 Sep 2014 19:16:37 -0400 (EDT)
 
-> David Miller wrote:	[Thu Sep 18 2014, 03:43:12PM EDT]
->> From: David Miller <davem@davemloft.net>
->> Date: Wed, 17 Sep 2014 13:16:22 -0400 (EDT)
->> 
->> > [PATCH] sparc64: Adjust KTSB assembler to support larger physical addresses.
->> 
->> Bob, just a quick update.
->> 
->> I've adjusted this patch of mine to support arbitrary physical addresses,
->> not just up to 54-bits.
->> 
->> With the other related changes being discussed, we will have no
->> limitations to deal with wrt. physical addressing ever again and
->> honestly I don't want to have to play with this area any more :)
-> Honestly, me too :) It boots fine on T5-2. I'll hopefully take it for
-> a test drive on M7-4 tomorrow.
+> I'm half-way done with the "use kernel page tables for everything"
+> patch, and will post once I have something that at least work for
+> me.
 
-Thanks for all of your help and testing so far.
+Bob, I ran into a major roadblock which is going to delay this work
+a little bit.
 
-So I'll consider this patch good to go.
+In fact it pointed out a bug we introduced when increasing max phys
+bits to 47.  We broke DEBUG_PAGEALLOC completely.  The issue is that
+the page table layout only supports up to 43-bits.
 
-I'm half-way done with the "use kernel page tables for everything"
-patch, and will post once I have something that at least work for
-me.
-
-BTW, with all of the static table removals, my images currently fit in
-just 2 locked TLB entries :-)
+I'll brain storm about this over the weekend.
