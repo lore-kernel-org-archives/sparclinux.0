@@ -1,40 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 15 Sep 2014 21:11:55 +0000
-Subject: Re: q about ldc_bind after irq save
-Message-Id: <20140915.171155.921512519519447870.davem@davemloft.net>
+From: Dwight Engen <dwight.engen@oracle.com>
+Date: Fri, 19 Sep 2014 13:42:53 +0000
+Subject: [PATCH] sunvdc: limit each sg segment to a page
+Message-Id: <1411134173-26665-1-git-send-email-dwight.engen@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20140910184926.GC14466@oracle.com>
-In-Reply-To: <20140910184926.GC14466@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Mon, 15 Sep 2014 09:12:46 -0400
+ldc_map_sg() could fail its check that the number of pages referred to
+by the sg scatterlist was <= the number of cookies.
 
-> On (09/12/14 16:36), David Miller wrote:
->> 
->> > But is there a reason we can't move the request_irq from ldc_bind
->> > and into ldc_alloc itself?  Or is there a simpler fix?
->> 
->> Because we don't have the string name for the IRQ until we get it
->> from the ldc_bind() call, for one.
-> 
-> but that's not insurmountable. The name used by vnet/vdc is vio->name
-> (initialized in vio_driver_init(), before ldc_alloc() is called),
-> and ds uses a const string. So, by passing an extra const char *name
-> argument to ldc_alloc(), the request_irq()s  can be moved out of ldc_bind(),
-> avoiding the lockdep warning?
-> 
-> I'll submit a patch for this later today/tomorrow, unless there's
-> something else I'm missing.
+This fixes the issue by doing a similar thing to the xen-blkfront driver,
+ensuring that the scatterlist will only ever contain a segment count <port->ring_cookies, and each segment will be page aligned, and <= page
+size. This ensures that the scatterlist is always mappable.
 
-I guess what's most important is that we don't service any LDC interrupts
-for that channel until it's state is fully brought up.
+Orabug: 19347817
+OraBZ: 15945
 
-And that should be ensured by the ldc_bind() sequence wherein we enable
-the IRQs and fully configure the channel all under the cpu-irq-disabling
-lp->lock.
+Signed-off-by: Dwight Engen <dwight.engen@oracle.com>
+---
+ drivers/block/sunvdc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-So it should be fine, but please test thoroughly :-)
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 1616ad0..1a9360d 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -747,6 +747,10 @@ static int probe_disk(struct vdc_port *port)
+ 
+ 	port->disk = g;
+ 
++	/* Each segment in a request is up to an aligned page in size. */
++	blk_queue_segment_boundary(q, PAGE_SIZE - 1);
++	blk_queue_max_segment_size(q, PAGE_SIZE);
++
+ 	blk_queue_max_segments(q, port->ring_cookies);
+ 	blk_queue_max_hw_sectors(q, port->max_xfer_size);
+ 	g->major = vdc_major;
+-- 
+1.7.1
+
