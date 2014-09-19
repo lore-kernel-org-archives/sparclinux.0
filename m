@@ -1,46 +1,153 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 17 Sep 2014 00:55:46 +0000
-Subject: Re: [PATCH V2] sparc64: find_node adjustment
-Message-Id: <20140916.205546.1331887791745762310.davem@davemloft.net>
+From: Dwight Engen <dwight.engen@oracle.com>
+Date: Fri, 19 Sep 2014 13:43:02 +0000
+Subject: [PATCH] vio: fix reuse of vio_dring slot
+Message-Id: <1411134182-26705-1-git-send-email-dwight.engen@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1410874095-11814-1-git-send-email-bpicco@meloft.net>
-In-Reply-To: <1410874095-11814-1-git-send-email-bpicco@meloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Tue, 16 Sep 2014 09:28:15 -0400
+vio_dring_avail() will allow use of every dring entry, but when the last
+entry is allocated then dr->prod = dr->cons which is indistinguishable from
+the ring empty condition. This causes the next allocation to reuse an entry.
+When this happens in sunvdc, the server side vds driver begins nack'ing the
+messages and ends up resetting the ldc channel. This problem does not effect
+sunvnet since it checks for < 2.
 
-> From: bob picco <bpicco@meloft.net>
-> 
-> We have seen an issue with guest boot into LDOM that causes early boot failures
-> because of no matching rules for node identitity of the memory. I analyzed this
-> on my T4 and concluded there might not be a solution. I saw the issue in
-> mainline too when booting into the control/primary domain - with guests
-> configured.  Note, this could be a firmware bug on some older machines.
-> 
-> I'll provide a full explanation of the issues below. Should we not find a
-> matching BEST latency group for a real address (RA) then we will assume node 0.
-> On the T4-2 here with the information provided I can't see an alternative.
-> 
-> Technically the LDOM shown below should match the MBLOCK to the
-> favorable latency group. However other factors must be considered too. Were
-> the memory controllers configured "fine" grained interleave or "coarse"
-> grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
-> node?
-> 
-> There has to be at least one Machine Description (MD) "group" and hence one
-> NUMA node. The group can have one or more latency groups (lg) - more than one
-> memory controller. The current code chooses the smallest latency as the most
-> favorable per group. The latency and lg information is in MLGROUP below.
-> MBLOCK is the base and size of the RAs for the machine as fetched from OBP
-> /memory "available" property. My machine has one MBLOCK but more would be
-> possible - with holes?
- ...
-> Signed-off-by: Bob Picco <bob.picco@oracle.com>
-> ---
-> V2: remove Oracle only accessible URL.
+The fix here is to just never allocate the very last dring slot so that full
+and empty are not the same condition. The request start path was changed to
+check for the ring being full a bit earlier, and to stop the blk_queue if
+there is no space left. The blk_queue will be restarted once the ring is
+only half full again. The number of ring entries was increased to 512 which
+matches the sunvnet and Solaris vdc drivers, and greatly reduces the
+frequency of hitting the ring full condition and the associated blk_queue
+stop/starting. The checks in sunvent were adjusted to account for
+vio_dring_avail() returning 1 less.
 
-Applied.
+Orabug: 19441666
+OraBZ: 14983
+
+Signed-off-by: Dwight Engen <dwight.engen@oracle.com>
+---
+ arch/sparc/include/asm/vio.h       |    2 +-
+ drivers/block/sunvdc.c             |   39 +++++++++++++++++++++--------------
+ drivers/net/ethernet/sun/sunvnet.c |    4 +-
+ 3 files changed, 26 insertions(+), 19 deletions(-)
+
+diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
+index 76290c8..2986120 100644
+--- a/arch/sparc/include/asm/vio.h
++++ b/arch/sparc/include/asm/vio.h
+@@ -265,7 +265,7 @@ static inline u32 vio_dring_avail(struct vio_dring_state *dr,
+ 				  unsigned int ring_size)
+ {
+ 	return (dr->pending -
+-		((dr->prod - dr->cons) & (ring_size - 1)));
++		((dr->prod - dr->cons) & (ring_size - 1)) - 1);
+ }
+ 
+ #define VIO_MAX_TYPE_LEN	32
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 1a9360d..756b8ec 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -33,7 +33,7 @@ MODULE_DESCRIPTION("Sun LDOM virtual disk client driver");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_MODULE_VERSION);
+ 
+-#define VDC_TX_RING_SIZE	256
++#define VDC_TX_RING_SIZE	512
+ 
+ #define WAITING_FOR_LINK_UP	0x01
+ #define WAITING_FOR_TX_SPACE	0x02
+@@ -283,7 +283,9 @@ static void vdc_end_one(struct vdc_port *port, struct vio_dring_state *dr,
+ 
+ 	__blk_end_request(req, (desc->status ? -EIO : 0), desc->size);
+ 
+-	if (blk_queue_stopped(port->disk->queue))
++	/* restart blk queue when ring is half emptied */
++	if (blk_queue_stopped(port->disk->queue) &&
++	    vdc_tx_dring_avail(dr) * 100 / VDC_TX_RING_SIZE >= 50)
+ 		blk_start_queue(port->disk->queue);
+ }
+ 
+@@ -435,12 +437,6 @@ static int __send_request(struct request *req)
+ 	for (i = 0; i < nsg; i++)
+ 		len += sg[i].length;
+ 
+-	if (unlikely(vdc_tx_dring_avail(dr) < 1)) {
+-		blk_stop_queue(port->disk->queue);
+-		err = -ENOMEM;
+-		goto out;
+-	}
+-
+ 	desc = vio_dring_cur(dr);
+ 
+ 	err = ldc_map_sg(port->vio.lp, sg, nsg,
+@@ -480,21 +476,32 @@ static int __send_request(struct request *req)
+ 		port->req_id++;
+ 		dr->prod = (dr->prod + 1) & (VDC_TX_RING_SIZE - 1);
+ 	}
+-out:
+ 
+ 	return err;
+ }
+ 
+-static void do_vdc_request(struct request_queue *q)
++static void do_vdc_request(struct request_queue *rq)
+ {
+-	while (1) {
+-		struct request *req = blk_fetch_request(q);
++	struct request *req;
+ 
+-		if (!req)
+-			break;
++	while ((req = blk_peek_request(rq)) != NULL) {
++		struct vdc_port *port;
++		struct vio_dring_state *dr;
+ 
+-		if (__send_request(req) < 0)
+-			__blk_end_request_all(req, -EIO);
++		port = req->rq_disk->private_data;
++		dr = &port->vio.drings[VIO_DRIVER_TX_RING];
++		if (unlikely(vdc_tx_dring_avail(dr) < 1))
++			goto wait;
++
++		blk_start_request(req);
++
++		if (__send_request(req) < 0) {
++			blk_requeue_request(rq, req);
++wait:
++			/* Avoid pointless unplugs. */
++			blk_stop_queue(rq);
++			break;
++		}
+ 	}
+ }
+ 
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 23c89ab..b7cca71 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -690,7 +690,7 @@ static int vnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	spin_lock_irqsave(&port->vio.lock, flags);
+ 
+ 	dr = &port->vio.drings[VIO_DRIVER_TX_RING];
+-	if (unlikely(vnet_tx_dring_avail(dr) < 2)) {
++	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+ 		if (!netif_queue_stopped(dev)) {
+ 			netif_stop_queue(dev);
+ 
+@@ -746,7 +746,7 @@ static int vnet_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	dev->stats.tx_bytes += skb->len;
+ 
+ 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
+-	if (unlikely(vnet_tx_dring_avail(dr) < 2)) {
++	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+ 		netif_stop_queue(dev);
+ 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
+ 			netif_wake_queue(dev);
+-- 
+1.7.1
+
