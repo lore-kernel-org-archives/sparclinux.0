@@ -1,42 +1,134 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 26 Sep 2014 02:13:42 +0000
-Subject: Re: [PATCH v2 15/22] MIPS/Xlr/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <5424CBD6.1010807@huawei.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Wed, 24 Sep 2014 06:04:21 +0000
+Subject: Re: [PATCH v4 0/8] asm-generic/io.h overhaul
+Message-Id: <20140924060419.GA20253@ulmo>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="45Z9DzgjV8m4Oswq"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com> <1411614872-4009-16-git-send-email-wangyijing@huawei.com> <20140925073700.GL12423@ulmo>
-In-Reply-To: <20140925073700.GL12423@ulmo>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.ke
-
-On 2014/9/25 15:37, Thierry Reding wrote:
-> On Thu, Sep 25, 2014 at 11:14:25AM +0800, Yijing Wang wrote:
-> [...]
->> diff --git a/arch/mips/pci/pci-xlr.c b/arch/mips/pci/pci-xlr.c
-> [...]
->> @@ -214,11 +214,11 @@ static int get_irq_vector(const struct pci_dev *dev)
->>  }
->>  
->>  #ifdef CONFIG_PCI_MSI
->> -void arch_teardown_msi_irq(unsigned int irq)
->> +void xlr_teardown_msi_irq(unsigned int irq)
->>  {
->>  }
->>  
->> -int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
->> +int xlr_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-> 
-> Can both of these now be static?
-Yes, Will update.
-
-> 
-> Thierry
-> 
+References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
+ <20140825112630.GA4163@ulmo.nvidia.com>
+In-Reply-To: <20140825112630.GA4163@ulmo.nvidia.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Russell King <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Stephen Boyd <sboyd@codeaurora.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-serial@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
--- 
-Thanks!
-Yijing
+--45Z9DzgjV8m4Oswq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, Aug 25, 2014 at 01:26:33PM +0200, Thierry Reding wrote:
+> On Wed, Aug 13, 2014 at 12:28:50PM +0200, Thierry Reding wrote:
+> > From: Thierry Reding <treding@nvidia.com>
+> >=20
+> > Hi,
+> >=20
+> > Here is the fourth version of a series that started out as an attempt to
+> > provide string versions of the read*() and write*() accessors to more
+> > architectures so that drivers can use them portably. The series has
+> > since evolved into a more general cleanup of asm-generic/io.h and the
+> > functions defined therein.
+> >=20
+> > Patch 1 is trivial and removes a redundant redefinition of PCI_IOBASE
+> > from the asm/io.h header on ARC. Patches 2 and 3 remove unnecessary
+> > volatile keywoards from some functions, which is a prerequisite to clean
+> > up some of the functions in subsequent patches.
+> >=20
+> > The xlate_dev_{kmem,mem}_ptr() functions are used to map memory when the
+> > /dev/mem device is accessed. Patches 4 and 5 use more consistent data
+> > types for these functions, which will get a "standard" prototype in the
+> > asm-generic/io.h header in a subsequent patch.
+> >=20
+> > Patch 6 is the bulk of this series. It implements the string variants of
+> > the read*() and write*() accessors and cleans up various other parts of
+> > the asm-generic/io.h header file. Macros are converted to static inline
+> > functions for better type checking. Overriding generic implementations
+> > in architectures is handled more consistently.
+> >=20
+> > Patches 7 and 8, finally, make use of the asm-generic/io.h header on the
+> > 32-bit and 64-bit ARM architectures.
+> >=20
+> > This is compile- and runtime-tested on 32-bit and 64-bit ARM and compile
+> > tested on IA64, Microblaze, s390, SPARC, x86 and Xtensa. For ARC,
+> > Blackfin, Metag, OpenRISC, Score and Unicore32 which also use
+> > asm-generic/io.h I couldn't find or build a cross-compiler that would
+> > run on my system. But by code inspection they shouldn't break with this
+> > patch.
+> >=20
+> > To ensure bisectability I built multi_v7_defconfig on 32-bit ARM and the
+> > defconfig for 64-bit ARM, IA64, Microblaze, s390, SPARC, x86 and Xtensa
+> > after each commit and verified that the series does not introduce any
+> > build errors or warnings.
+> >=20
+> > Provided there are no objections to the patches there's still the matter
+> > of how to merge them. Patch 6 depends on patches 1-5 to avoid warnings
+> > and/or errors during the build. Patches 7 and 8 depend on patch 6. In my
+> > opinion it doesn't make much sense to split them up, so I guess we'll
+> > need a volunteer to take them all into one tree. Ideally that tree would
+> > feed into linux-next so that we can get as much build and test-coverage
+> > as possible during the 3.17 release cycle so that these patches can go
+> > into 3.18.
+> >=20
+> > Arnd, I'm opportunistically sending this To: you in the hopes that you
+> > can take it into your asm-generic tree which seems like the best fit for
+> > this.
+> >=20
+> > Thierry
+> >=20
+> > Thierry Reding (8):
+> >   ARC: Remove redundant PCI_IOBASE declaration
+> >   serial: sunzilog: Remove unnecessary volatile keyword
+> >   sparc: Remove unnecessary volatile usage
+> >   [IA64] Change xlate_dev_{kmem,mem}_ptr() prototypes
+> >   /dev/mem: Use more consistent data types
+> >   asm-generic/io.h: Implement generic {read,write}s*()
+> >   ARM: Use include/asm-generic/io.h
+> >   arm64: Use include/asm-generic/io.h
+> >=20
+> >  arch/arc/include/asm/io.h       |   2 -
+> >  arch/arm/include/asm/io.h       |  75 ++---
+> >  arch/arm/include/asm/memory.h   |   2 +
+> >  arch/arm64/Kconfig              |   1 -
+> >  arch/arm64/include/asm/io.h     | 122 ++-----
+> >  arch/arm64/include/asm/memory.h |   2 +
+> >  arch/ia64/include/asm/uaccess.h |  16 +-
+> >  arch/s390/include/asm/io.h      |   5 +-
+> >  arch/s390/mm/maccess.c          |   4 +-
+> >  arch/sparc/include/asm/io_32.h  |  18 +-
+> >  arch/x86/include/asm/io.h       |   4 +-
+> >  arch/x86/mm/ioremap.c           |   4 +-
+> >  drivers/char/mem.c              |  13 +-
+> >  drivers/tty/serial/sunzilog.h   |   8 +-
+> >  include/asm-generic/io.h        | 683 ++++++++++++++++++++++++++++++++=
+--------
+> >  15 files changed, 647 insertions(+), 312 deletions(-)
+>=20
+> Arnd, do you think this looks good to take for test-driving in
+> linux-next?
+
+Ping?
+
+Thierry
+
+--45Z9DzgjV8m4Oswq
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBAgAGBQJUIl7iAAoJEN0jrNd/PrOhrxAQAKx0EPDfgRHq8Lleee0g5lIG
+nw+n52JiE4fCeYHsLZqsUfovuKzA6PH4mKJvUFxN6sigqp16OsMUiM8XAFOfCyt2
+exZ95MY80Cd2ZTNOsidnroiylSRFfU9ehrsX/A4IiL2C01TTGxfok4ryPUpTR6Gh
+TohwoaPY0u66Q/tHG0JX5OfEfj9RYe2twuXQzuut+TdUUKe8FSMNIS13hlmtyNIZ
+vlG/sx95u6ACtYd+xhYvVIY9u7YdLmZbFu6Kr7i2TqpfZgFWAeiqkXTrxBfMBael
+n2TVZD7SmbKiOlEYURbdpM+F9AZ4UInCseaZR7Nq2mjRGCNa4gbDmDxAtMfIK+rT
+thQUKAz4H9i0bRtfQkb1VWld5pLF8iC80eoaSGkvxmz4svj9uJtwefMhJfIUkkgo
+FnwZMCOeEvDBzpJ7EaIxWNP0C2n/uuilmgK+Vvex9nTlKt2QxGHhRrNzntXLS4Kz
+93J0ivAO2/4We3nNlXC2zJcwH2bKSuoNtzCZKM1lSBO8GWt8+UK0YRib2XDbOlwI
+i9G85rfCGLAe4N2Yn3r1+fKqfR5rA3sdfmHcDVL72jskc9WtZ8jcjn7GQs7pTJME
+TXtr7dh9kuJsjnQ5HOhpukwvkk/now89aAQJyhECF/2rGjeqJ6eFN/i61XdCFb1f
+IVxKZToPU0TrJvmeWZXR
+=dAfx
+-----END PGP SIGNATURE-----
+
+--45Z9DzgjV8m4Oswq--
