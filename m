@@ -1,136 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 27 Sep 2014 18:28:34 +0000
-Subject: [PATCH 3/8] sparc64: Adjust KTSB assembler to support larger physical addresses.
-Message-Id: <20140927.142834.1307158150221608882.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Thu, 25 Sep 2014 02:50:59 +0000
+Subject: [PATCH v2 05/22] s390/MSI: Use __msi_mask_irq() instead of default_msi_mask_irq()
+Message-Id: <1411614872-4009-6-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
+Now only s390/MSI use default_msi_mask_irq() and
+default_msix_mask_irq(), replace them with the common
+msi mask irq functions __msi_mask_irq() and __msix_mask_irq().
+Remove default_msi_mask_irq() and default_msix_mask_irq().
 
-As currently coded the KTSB accesses in the kernel only support up to
-47 bits of physical addressing.
-
-Adjust the instruction and patching sequence in order to support
-arbitrary 64 bits addresses.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/tsb.h | 30 ++++++++++++------------------
- arch/sparc/mm/init_64.c      | 28 +++++++++++++++++++++++++---
- 2 files changed, 37 insertions(+), 21 deletions(-)
+ arch/s390/pci/pci.c |    4 ++--
+ include/linux/msi.h |    2 --
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index 2e268b6..a2f5419 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -256,8 +256,6 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	(KERNEL_TSB_SIZE_BYTES / 16)
- #define KERNEL_TSB4M_NENTRIES	4096
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 2fa7b14..552b990 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -448,9 +448,9 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
+ 	/* Release MSI interrupts */
+ 	list_for_each_entry(msi, &pdev->msi_list, list) {
+ 		if (msi->msi_attrib.is_msix)
+-			default_msix_mask_irq(msi, 1);
++			__msix_mask_irq(msi, 1);
+ 		else
+-			default_msi_mask_irq(msi, 1, 1);
++			__msi_mask_irq(msi, 1, 1);
+ 		irq_set_msi_desc(msi->irq, NULL);
+ 		irq_free_desc(msi->irq);
+ 		msi->msg.address_lo = 0;
+diff --git a/include/linux/msi.h b/include/linux/msi.h
+index cc46a62..6fdc5c6 100644
+--- a/include/linux/msi.h
++++ b/include/linux/msi.h
+@@ -61,8 +61,6 @@ void arch_restore_msi_irqs(struct pci_dev *dev);
  
--#define KTSB_PHYS_SHIFT		15
--
- 	/* Do a kernel TSB lookup at tl>0 on VADDR+TAG, branch to OK_LABEL
- 	 * on TSB hit.  REG1, REG2, REG3, and REG4 are used as temporaries
- 	 * and the found TTE will be left in REG1.  REG3 and REG4 must
-@@ -266,17 +264,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	 * VADDR and TAG will be preserved and not clobbered by this macro.
- 	 */
- #define KERN_TSB_LOOKUP_TL1(VADDR, TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
--661:	sethi		%hi(swapper_tsb), REG1;			\
--	or		REG1, %lo(swapper_tsb), REG1; \
-+661:	sethi		%uhi(swapper_tsb), REG1; \
-+	sethi		%hi(swapper_tsb), REG2; \
-+	or		REG1, %ulo(swapper_tsb), REG1; \
-+	or		REG2, %lo(swapper_tsb), REG2; \
- 	.section	.swapper_tsb_phys_patch, "ax"; \
- 	.word		661b; \
- 	.previous; \
--661:	nop; \
--	.section	.tsb_ldquad_phys_patch, "ax"; \
--	.word		661b; \
--	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
--	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
--	.previous; \
-+	sllx		REG1, 32, REG1; \
-+	or		REG1, REG2, REG1; \
- 	srlx		VADDR, PAGE_SHIFT, REG2; \
- 	and		REG2, (KERNEL_TSB_NENTRIES - 1), REG2; \
- 	sllx		REG2, 4, REG2; \
-@@ -291,17 +287,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	 * we can make use of that for the index computation.
- 	 */
- #define KERN_TSB4M_LOOKUP_TL1(TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
--661:	sethi		%hi(swapper_4m_tsb), REG1;	     \
--	or		REG1, %lo(swapper_4m_tsb), REG1; \
-+661:	sethi		%uhi(swapper_4m_tsb), REG1; \
-+	sethi		%hi(swapper_4m_tsb), REG2; \
-+	or		REG1, %ulo(swapper_4m_tsb), REG1; \
-+	or		REG2, %lo(swapper_4m_tsb), REG2; \
- 	.section	.swapper_4m_tsb_phys_patch, "ax"; \
- 	.word		661b; \
- 	.previous; \
--661:	nop; \
--	.section	.tsb_ldquad_phys_patch, "ax"; \
--	.word		661b; \
--	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
--	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
--	.previous; \
-+	sllx		REG1, 32, REG1; \
-+	or		REG1, REG2, REG1; \
- 	and		TAG, (KERNEL_TSB4M_NENTRIES - 1), REG2; \
- 	sllx		REG2, 4, REG2; \
- 	add		REG1, REG2, REG2; \
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 082fde1..bce3c3f 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1733,19 +1733,41 @@ static void __init tsb_phys_patch(void)
- static struct hv_tsb_descr ktsb_descr[NUM_KTSB_DESCR];
- extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
+ void default_teardown_msi_irqs(struct pci_dev *dev);
+ void default_restore_msi_irqs(struct pci_dev *dev);
+-#define default_msi_mask_irq	__msi_mask_irq
+-#define default_msix_mask_irq	__msix_mask_irq
  
-+/* The swapper TSBs are loaded with a base sequence of:
-+ *
-+ *	sethi	%uhi(SYMBOL), REG1
-+ *	sethi	%hi(SYMBOL), REG2
-+ *	or	REG1, %ulo(SYMBOL), REG1
-+ *	or	REG2, %lo(SYMBOL), REG2
-+ *	sllx	REG1, 32, REG1
-+ *	or	REG1, REG2, REG1
-+ *
-+ * When we use physical addressing for the TSB accesses, we patch the
-+ * first four instructions in the above sequence.
-+ */
-+
- static void patch_one_ktsb_phys(unsigned int *start, unsigned int *end, unsigned long pa)
- {
--	pa >>= KTSB_PHYS_SHIFT;
-+	unsigned long high_bits, low_bits;
-+
-+	high_bits = (pa >> 32) & 0xffffffff;
-+	low_bits = (pa >> 0) & 0xffffffff;
- 
- 	while (start < end) {
- 		unsigned int *ia = (unsigned int *)(unsigned long)*start;
- 
--		ia[0] = (ia[0] & ~0x3fffff) | (pa >> 10);
-+		ia[0] = (ia[0] & ~0x3fffff) | (high_bits >> 10);
- 		__asm__ __volatile__("flush	%0" : : "r" (ia));
- 
--		ia[1] = (ia[1] & ~0x3ff) | (pa & 0x3ff);
-+		ia[1] = (ia[1] & ~0x3fffff) | (low_bits >> 10);
- 		__asm__ __volatile__("flush	%0" : : "r" (ia + 1));
- 
-+		ia[2] = (ia[2] & ~0x1fff) | (high_bits & 0x3ff);
-+		__asm__ __volatile__("flush	%0" : : "r" (ia + 2));
-+
-+		ia[3] = (ia[3] & ~0x1fff) | (low_bits & 0x3ff);
-+		__asm__ __volatile__("flush	%0" : : "r" (ia + 3));
-+
- 		start++;
- 	}
- }
+ struct msi_chip {
+ 	struct module *owner;
 -- 
-1.8.1.2
+1.7.1
 
