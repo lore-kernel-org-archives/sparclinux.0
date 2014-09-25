@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 25 Sep 2014 17:14:18 +0000
+Date: Thu, 25 Sep 2014 17:15:08 +0000
 Subject: Re: [PATCH V3] sparc64: sparse irq
-Message-Id: <20140925171418.GC4211@zareason>
+Message-Id: <20140925171508.GD4211@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
@@ -10,38 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Thu Sep 25 2014, 12:35:20PM EDT]
+David Miller wrote:	[Thu Sep 25 2014, 12:42:54PM EDT]
 > From: Bob Picco <bpicco@meloft.net>
-> Date: Wed, 17 Sep 2014 15:31:28 -0400
+> Date: Thu, 25 Sep 2014 12:20:05 -0400
 > 
-> > SPARC Virtual Machine Specification. HV_GRP_INTR is what controls the
-> > cookie/sysino firmware versioning. The history appears to be something like
-> > this:
-> > 	major version 2 was dropped.
-> > 	major version 3 is where a cookie only VIRQ
-> > 	is possible. Using version 3 means ivector_table isn't required.
+> > Yes this issue actually came up indirectly yesterday. Some T4-X will have
+> > legacy sysino and some cookie. Though I've never seen a T4-X with cookie.
+> > For example an older T4 with older HV firmware has this:
 > 
-> Can I get some clarification on this?
-I'll attempt to but will have to make an inquiry. For me this came during
-debug of painful P0 hardware.
+> Ok.  Presumably, these systems support major=2 HV_GRP_IRQ.  Even back
+> to Huron and Ontario hypervisors I see major=2 support present.
 > 
-> Major version 2 of HV_GRP_INTR was meant to behave the way that
-> you say major version 3 does.
-This is what I recall but could be incorrect.
+> > [root@ca-qasparc14 bugdb-19677751.d]# dmesg | grep hv_error
+> > [    0.000000] irq_group_hv.129 hv_error = -22 major = 3
+> > on an older kernel. I totally forgot about this issue.
+> > 
+> > You might have additional feedback. So please let me know whether you'd like
+> > another version of the patch.
 > 
-> My understanding is that due to Solaris erratum 6496266, the
-> hypervisor has to provide the VIRQ cookie interfaces even if the guest
-> only negotiates major version 1.
-Possibly for newer firmware but uncertain.
-> 
-> So supposedly, major version 3 was provided to untangle this mess.
-This is what I observed but obviously could have been incorrect.
-> 
-> Can you clear this up for me?
-I'll attempt to but consider this example. M7 was dead in the water, except
-for my M7, because of an HV change which impacted sysino and cookies. So it
-is possibe the firmware I observed this issue was never released?
-> 
-> Thanks.
-> 
-you're welcome.
+> If we agree about the log message, I can just kill it off myself when
+> applying your patch.
+We agree.
