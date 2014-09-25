@@ -1,7 +1,7 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 25 Sep 2014 18:54:38 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 25 Sep 2014 18:56:40 +0000
 Subject: Re: [PATCH V3] sparc64: sparse irq
-Message-Id: <20140925185438.GF4211@zareason>
+Message-Id: <20140925.145640.561025215100707097.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
@@ -10,19 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller wrote:	[Thu Sep 25 2014, 01:34:20PM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Thu, 25 Sep 2014 13:14:18 -0400
-> 
-> > David Miller wrote:	[Thu Sep 25 2014, 12:35:20PM EDT]
-> >> From: Bob Picco <bpicco@meloft.net>
-> >> Date: Wed, 17 Sep 2014 15:31:28 -0400
-> >> 
-> >> Major version 2 of HV_GRP_INTR was meant to behave the way that
-> >> you say major version 3 does.
-> > This is what I recall but could be incorrect.
-> 
-> I an attempt to test this, I'm using your patch but I modified it
+From: David Miller <davem@davemloft.net>
+Date: Thu, 25 Sep 2014 13:34:20 -0400 (EDT)
+
+> In an attempt to test this, I'm using your patch but I modified it
 > to negotiate HV_GRP_INTR major=2 and then use the cookie only
 > routines if that succeeded.
 > 
@@ -32,10 +23,8 @@ David Miller wrote:	[Thu Sep 25 2014, 01:34:20PM EDT]
 > Trying to investigate further, because making this work with major=2
 > would be great because we could avoid the ivector table allocation
 > on even more machines.
-Now that I understand your motivation.
-Okay. I just looked quickly at the current specification for UltraSPARC
-Virtualization which possibly isn't publicly available.
-For Group HV_GRP_INTR 1.X and 3.X are supported. 2.X was declared broken.
-This I didn't have accessible to me at the time of debug. Also one needs to
-read with extreme caution.
 
+Ok the problem is that with pre-major=3 supporting hypervisors, it
+looks like VIRQs are only supported for LDC interrupts.
+
+So we really do need major>=3 for cookie-only system wide.
