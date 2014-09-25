@@ -1,115 +1,57 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 05 Sep 2014 09:46:16 +0000
-Subject: [PATCH v1 08/21] x86/xen/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1409911806-10519-9-git-send-email-wangyijing@huawei.com>
+Date: Thu, 25 Sep 2014 02:53:39 +0000
+Subject: [PATCH v2 16/22] Powerpc/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1411614872-4009-17-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
+References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
 Use MSI chip framework instead of arch MSI functions to configure
 MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 ---
- arch/x86/pci/xen.c |   46 ++++++++++++++++++++++++++++++----------------
- 1 files changed, 30 insertions(+), 16 deletions(-)
+ arch/powerpc/kernel/msi.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index 84c2fce..e669ee4 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -376,6 +376,11 @@ static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
- }
- #endif
+diff --git a/arch/powerpc/kernel/msi.c b/arch/powerpc/kernel/msi.c
+index 71bd161..01781a4 100644
+--- a/arch/powerpc/kernel/msi.c
++++ b/arch/powerpc/kernel/msi.c
+@@ -13,7 +13,7 @@
  
-+static void xen_teardown_msi_irq(unsigned int irq)
+ #include <asm/machdep.h>
+ 
+-int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++static int ppc_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ {
+ 	if (!ppc_md.setup_msi_irqs || !ppc_md.teardown_msi_irqs) {
+ 		pr_debug("msi: Platform doesn't provide MSI callbacks.\n");
+@@ -27,7 +27,17 @@ int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 	return ppc_md.setup_msi_irqs(dev, nvec, type);
+ }
+ 
+-void arch_teardown_msi_irqs(struct pci_dev *dev)
++static void ppc_teardown_msi_irqs(struct pci_dev *dev)
+ {
+ 	ppc_md.teardown_msi_irqs(dev);
+ }
++
++static struct msi_chip ppc_msi_chip = {
++	.setup_irqs = ppc_setup_msi_irqs,
++	.teardown_irqs = ppc_teardown_msi_irqs,
++};
++
++struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
 +{
-+	xen_destroy_irq(irq);
++	return &ppc_msi_chip;
 +}
-+
- static void xen_teardown_msi_irqs(struct pci_dev *dev)
- {
- 	struct msi_desc *msidesc;
-@@ -385,19 +390,26 @@ static void xen_teardown_msi_irqs(struct pci_dev *dev)
- 		xen_pci_frontend_disable_msix(dev);
- 	else
- 		xen_pci_frontend_disable_msi(dev);
--
--	/* Free the IRQ's and the msidesc using the generic code. */
--	default_teardown_msi_irqs(dev);
--}
--
--static void xen_teardown_msi_irq(unsigned int irq)
--{
--	xen_destroy_irq(irq);
-+
-+	list_for_each_entry(msidesc, &dev->msi_list, list) {
-+		int i, nvec;
-+		if (msidesc->irq = 0)
-+			continue;
-+		if (msidesc->nvec_used)
-+			nvec = msidesc->nvec_used;
-+		else
-+			nvec = 1 << msidesc->msi_attrib.multiple;
-+		for (i = 0; i < nvec; i++)
-+			xen_teardown_msi_irq(msidesc->irq + i);
-+	}
- }
- 
- void xen_nop_msi_mask(struct irq_data *data)
- {
- }
-+
-+struct msi_chip xen_msi_chip;
-+
- #endif
- 
- int __init pci_xen_init(void)
-@@ -418,9 +430,9 @@ int __init pci_xen_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_setup_msi_irqs;
-+	xen_msi_chip.teardown_irqs = xen_teardown_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	msi_chip.irq_mask = xen_nop_msi_mask;
- 	msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
-@@ -441,8 +453,9 @@ int __init pci_xen_hvm_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_hvm_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.setup_irqs = xen_hvm_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	x86_msi_chip = &xen_msi_chip;
- #endif
- 	return 0;
- }
-@@ -499,9 +512,10 @@ int __init pci_xen_initial_domain(void)
- 	int irq;
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_initdom_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.restore_irqs = xen_initdom_restore_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	msi_chip.irq_mask = xen_nop_msi_mask;
- 	msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
 -- 
 1.7.1
 
