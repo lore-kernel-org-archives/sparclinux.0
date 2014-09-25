@@ -1,7 +1,7 @@
-From: Bob Picco <bpicco@meloft.net>
-Date: Thu, 25 Sep 2014 16:20:05 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 25 Sep 2014 16:35:20 +0000
 Subject: Re: [PATCH V3] sparc64: sparse irq
-Message-Id: <20140925162005.GB4211@zareason>
+Message-Id: <20140925.123520.1028773663678139196.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
@@ -10,27 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
-David Miller wrote:	[Thu Sep 25 2014, 11:53:21AM EDT]
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Wed, 17 Sep 2014 15:31:28 -0400
-> 
-> > I've tested with SPARSE_IRQ on T5-8, M7-4 and T4-X and Jalap?no.
-> 
-> I'm currently reviewing this, and I have to ask if any of your Niagara
-> test scenerios had a hypervisor with HV_GRP_INTR major < 3?
-> 
-> I have a sense that the legacy hypervisor case wasn't covered, and
-> it seems that this patch will emit an ugly log message when that
-> situation is triggered which probably isn't appropriate as the
-> event isn't an error.  It's just an older hypervisor that lacks
-> cookie only VIRQ support.
-Yes this issue actually came up indirectly yesterday. Some T4-X will have
-legacy sysino and some cookie. Though I've never seen a T4-X with cookie.
-For example an older T4 with older HV firmware has this:
-[root@ca-qasparc14 bugdb-19677751.d]# dmesg | grep hv_error
-[    0.000000] irq_group_hv.129 hv_error = -22 major = 3
-on an older kernel. I totally forgot about this issue.
+From: Bob Picco <bpicco@meloft.net>
+Date: Wed, 17 Sep 2014 15:31:28 -0400
 
-You might have additional feedback. So please let me know whether you'd like
-another version of the patch.
+> SPARC Virtual Machine Specification. HV_GRP_INTR is what controls the
+> cookie/sysino firmware versioning. The history appears to be something like
+> this:
+> 	major version 2 was dropped.
+> 	major version 3 is where a cookie only VIRQ
+> 	is possible. Using version 3 means ivector_table isn't required.
+
+Can I get some clarification on this?
+
+Major version 2 of HV_GRP_INTR was meant to behave the way that
+you say major version 3 does.
+
+My understanding is that due to Solaris erratum 6496266, the
+hypervisor has to provide the VIRQ cookie interfaces even if the guest
+only negotiates major version 1.
+
+So supposedly, major version 3 was provided to untangle this mess.
+
+Can you clear this up for me?
+
+Thanks.
+
