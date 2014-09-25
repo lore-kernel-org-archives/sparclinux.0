@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 25 Sep 2014 16:35:20 +0000
+Date: Thu, 25 Sep 2014 16:42:54 +0000
 Subject: Re: [PATCH V3] sparc64: sparse irq
-Message-Id: <20140925.123520.1028773663678139196.davem@davemloft.net>
+Message-Id: <20140925.124254.1617890769020408968.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410982288-10549-1-git-send-email-bpicco@meloft.net>
@@ -11,27 +11,21 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 17 Sep 2014 15:31:28 -0400
+Date: Thu, 25 Sep 2014 12:20:05 -0400
 
-> SPARC Virtual Machine Specification. HV_GRP_INTR is what controls the
-> cookie/sysino firmware versioning. The history appears to be something like
-> this:
-> 	major version 2 was dropped.
-> 	major version 3 is where a cookie only VIRQ
-> 	is possible. Using version 3 means ivector_table isn't required.
+> Yes this issue actually came up indirectly yesterday. Some T4-X will have
+> legacy sysino and some cookie. Though I've never seen a T4-X with cookie.
+> For example an older T4 with older HV firmware has this:
 
-Can I get some clarification on this?
+Ok.  Presumably, these systems support major=2 HV_GRP_IRQ.  Even back
+to Huron and Ontario hypervisors I see major=2 support present.
 
-Major version 2 of HV_GRP_INTR was meant to behave the way that
-you say major version 3 does.
+> [root@ca-qasparc14 bugdb-19677751.d]# dmesg | grep hv_error
+> [    0.000000] irq_group_hv.129 hv_error = -22 major = 3
+> on an older kernel. I totally forgot about this issue.
+> 
+> You might have additional feedback. So please let me know whether you'd like
+> another version of the patch.
 
-My understanding is that due to Solaris erratum 6496266, the
-hypervisor has to provide the VIRQ cookie interfaces even if the guest
-only negotiates major version 1.
-
-So supposedly, major version 3 was provided to untangle this mess.
-
-Can you clear this up for me?
-
-Thanks.
-
+If we agree about the log message, I can just kill it off myself when
+applying your patch.
