@@ -1,7 +1,7 @@
 From: Bob Picco <bpicco@meloft.net>
-Date: Wed, 24 Sep 2014 23:12:02 +0000
+Date: Thu, 25 Sep 2014 17:43:09 +0000
 Subject: Re: [PATCH] sparc64: swapper_tsb and swapper_4m_tsb phys correction
-Message-Id: <20140924231202.GA4211@zareason>
+Message-Id: <20140925174309.GE4211@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
 In-Reply-To: <1410886239-15774-1-git-send-email-bpicco@meloft.net>
@@ -10,7 +10,6 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
 David Miller wrote:	[Wed Sep 24 2014, 06:26:51PM EDT]
 > From: Bob Picco <bpicco@meloft.net>
 > Date: Mon, 22 Sep 2014 14:56:31 -0400
@@ -32,23 +31,22 @@ David Miller wrote:	[Wed Sep 24 2014, 06:26:51PM EDT]
 > > thanx and nice!
 > 
 > Bob, here is what I have now, can you please help me test it?
-Absolutely. I'm slightly exhausted at the moment and productivity would
-be uncertain.
 > 
 > It should restore 256MB/2GB/16GB page size usage.
 > 
 > The biggest bug was that I wasn't flushing the kernel TSB(s)
 > after building the kernel page tables and NOP'ing out that
 > instruction in kernel_physical_mapping_init().
-Okay.
 > 
 > Once I fixed that everything runs smoothly so far :-)
-Good.
 > 
 > I haven't gotten to testing DEBUG_PAGEALLOC yet, but I suspect it
 > probably works now.
-Ah, I didn't return to this. In fact I've been busy with other things.
-I will help.
 > 
 > Thanks!
-you're welcome!
+Boots up !DEBUG_PAGEALLOC on T5-2. Review is in progress and looks good so
+far. This is important to have correct as we both know. I will attempt
+DEBUG_PAGEALLOC, hopefully later today, locally.
+
+We should give it a spin on M7. Though it is scheduled for a core upgrade
+today and one never knows :)
