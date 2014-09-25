@@ -1,97 +1,40 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 16 Sep 2014 02:09:21 +0000
-Subject: Re: [PATCH v1 06/21] PCI/MSI: Refactor struct msi_chip to make it become more common
-Message-Id: <54179BD1.3050608@huawei.com>
+Date: Thu, 25 Sep 2014 02:57:32 +0000
+Subject: [PATCH v2 02/22] PCI/MSI: Remove useless bus->msi assignment
+Message-Id: <1411614872-4009-3-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>	 <1409911806-10519-7-git-send-email-wangyijing@huawei.com> <1410792261.3314.9.camel@pengutronix.de>
-In-Reply-To: <1410792261.3314.9.camel@pengutronix.de>
+References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lucas Stach <l.stach@pengutronix.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetca>
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, arnab.basu-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Chris Metcalf <cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Xinwei Hu <huxinwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, David
 
-On 2014/9/15 22:44, Lucas Stach wrote:
-> Am Freitag, den 05.09.2014, 18:09 +0800 schrieb Yijing Wang:
->> Now there are a lot of __weak arch functions in MSI code.
->> These functions make MSI driver complex. Thierry Reding Introduced
->> a new MSI chip framework to configure MSI/MSI-X irq in ARM. Use
->> the new MSI chip framework to refactor all other platform MSI
->> arch code to eliminate weak arch MSI functions. This patch add
->> .restore_irq() and .setup_irqs() to make it become more common.
->>
->> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-> 
-> This change looks good to me:
-> Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+Currently, PCI drivers will initialize bus->msi in
+pcibios_add_bus(). pcibios_add_bus() will be called
+in every pci bus initialization. So the bus->msi
+assignment in pci_alloc_child_bus() is useless.
 
-Thanks!
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+CC: Thierry Reding <thierry.reding@gmail.com>
+CC: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ drivers/pci/probe.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-> 
->> ---
->>  drivers/pci/msi.c   |   15 +++++++++++++++
->>  include/linux/msi.h |    3 +++
->>  2 files changed, 18 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
->> index 539c11d..d78d637 100644
->> --- a/drivers/pci/msi.c
->> +++ b/drivers/pci/msi.c
->> @@ -63,6 +63,11 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->>  {
->>  	struct msi_desc *entry;
->>  	int ret;
->> +	struct msi_chip *chip;
->> +
->> +	chip = arch_find_msi_chip(dev);
->> +	if (chip && chip->setup_irqs)
->> +		return chip->setup_irqs(dev, nvec, type);
->>  
->>  	/*
->>  	 * If an architecture wants to support multiple MSI, it needs to
->> @@ -105,6 +110,11 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
->>  
->>  void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
->>  {
->> +	struct msi_chip *chip = arch_find_msi_chip(dev);
->> +
->> +	if (chip && chip->teardown_irqs)
->> +		return chip->teardown_irqs(dev);
->> +
->>  	return default_teardown_msi_irqs(dev);
->>  }
->>  
->> @@ -128,6 +138,11 @@ static void default_restore_msi_irq(struct pci_dev *dev, int irq)
->>  
->>  void __weak arch_restore_msi_irqs(struct pci_dev *dev)
->>  {
->> +	struct msi_chip *chip = arch_find_msi_chip(dev);
->> +
->> +	if (chip && chip->restore_irqs)
->> +		return chip->restore_irqs(dev);
->> +
->>  	return default_restore_msi_irqs(dev);
->>  }
->>  
->> diff --git a/include/linux/msi.h b/include/linux/msi.h
->> index 5650848..92a51e7 100644
->> --- a/include/linux/msi.h
->> +++ b/include/linux/msi.h
->> @@ -72,7 +72,10 @@ struct msi_chip {
->>  	struct list_head list;
->>  
->>  	int (*setup_irq)(struct pci_dev *dev, struct msi_desc *desc);
->> +	int (*setup_irqs)(struct pci_dev *dev, int nvec, int type);
->>  	void (*teardown_irq)(unsigned int irq);
->> +	void (*teardown_irqs)(struct pci_dev *dev);
->> +	void (*restore_irqs)(struct pci_dev *dev);
->>  };
->>  
->>  #endif /* LINUX_MSI_H */
-> 
-
-
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index e3cf8a2..8296576 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -677,7 +677,6 @@ static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
+ 
+ 	child->parent = parent;
+ 	child->ops = parent->ops;
+-	child->msi = parent->msi;
+ 	child->sysdata = parent->sysdata;
+ 	child->bus_flags = parent->bus_flags;
+ 
 -- 
-Thanks!
-Yijing
+1.7.1
 
