@@ -1,118 +1,82 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Thu, 25 Sep 2014 02:58:39 +0000
-Subject: [PATCH v2 09/22] x86/xen/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1411614872-4009-10-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 25 Sep 2014 19:41:22 +0000
+Subject: [PATCH 5/6] sparc64: Increase MAX_PHYS_ADDRESS_BITS to 53.
+Message-Id: <20140925.154122.2066750597741587610.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Tested-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Make sure, at compile time, that the kernel can properly support
+whatever MAX_PHYS_ADDRESS_BITS is defined to.
+
+On M7 chips, use a max_phys_bits value of 49.
+
+Based upon a patch by Bob Picco.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/pci/xen.c |   46 ++++++++++++++++++++++++++++++----------------
- 1 files changed, 30 insertions(+), 16 deletions(-)
+ arch/sparc/include/asm/page_64.h    | 8 ++++----
+ arch/sparc/include/asm/pgtable_64.h | 4 ++++
+ arch/sparc/mm/init_64.c             | 6 +++++-
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index 84c2fce..e669ee4 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -376,6 +376,11 @@ static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
- }
- #endif
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 4af4e69..a261144 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -123,11 +123,11 @@ extern unsigned long PAGE_OFFSET;
  
-+static void xen_teardown_msi_irq(unsigned int irq)
-+{
-+	xen_destroy_irq(irq);
-+}
+ #endif /* !(__ASSEMBLY__) */
+ 
+-/* The maximum number of physical memory address bits we support, this
+- * is used to size various tables used to manage kernel TLB misses and
+- * also the sparsemem code.
++/* The maximum number of physical memory address bits we support.  The
++ * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
++ * evaluates to.
+  */
+-#define MAX_PHYS_ADDRESS_BITS	47
++#define MAX_PHYS_ADDRESS_BITS	53
+ 
+ #define ILOG2_4MB		22
+ #define ILOG2_256MB		28
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index a8042fb..f50a600 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -66,6 +66,10 @@
+ #define KPGD_MASK	(~(KPGD_SIZE-1))
+ #define KPGD_BITS	(PAGE_SHIFT - 3)
+ 
++#if (MAX_PHYS_ADDRESS_BITS > KPGD_SHIFT + KPGD_BITS)
++#error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can support
++#endif
 +
- static void xen_teardown_msi_irqs(struct pci_dev *dev)
- {
- 	struct msi_desc *msidesc;
-@@ -385,19 +390,26 @@ static void xen_teardown_msi_irqs(struct pci_dev *dev)
- 		xen_pci_frontend_disable_msix(dev);
- 	else
- 		xen_pci_frontend_disable_msi(dev);
--
--	/* Free the IRQ's and the msidesc using the generic code. */
--	default_teardown_msi_irqs(dev);
--}
--
--static void xen_teardown_msi_irq(unsigned int irq)
--{
--	xen_destroy_irq(irq);
-+	
-+	list_for_each_entry(msidesc, &dev->msi_list, list) {
-+		int i, nvec;
-+		if (msidesc->irq = 0)
-+			continue;
-+		if (msidesc->nvec_used)
-+			nvec = msidesc->nvec_used;
-+		else
-+			nvec = 1 << msidesc->msi_attrib.multiple;
-+		for (i = 0; i < nvec; i++)
-+			xen_teardown_msi_irq(msidesc->irq + i);
-+	}
- }
+ #if (PGDIR_SHIFT + PGDIR_BITS) != 43
+ #error Page table parameters do not cover virtual address space properly.
+ #endif
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index f11a7fc..2be4675 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1732,9 +1732,13 @@ static void __init setup_page_offset(void)
+ 		case SUN4V_CHIP_NIAGARA4:
+ 		case SUN4V_CHIP_NIAGARA5:
+ 		case SUN4V_CHIP_SPARC64X:
+-		default:
++		case SUN4V_CHIP_SPARC_M6:
+ 			max_phys_bits = 47;
+ 			break;
++		case SUN4V_CHIP_SPARC_M7:
++		default:
++			max_phys_bits = 49;
++			break;
+ 		}
+ 	}
  
- void xen_nop_msi_mask(struct irq_data *data)
- {
- }
-+
-+struct msi_chip xen_msi_chip;
-+
- #endif
- 
- int __init pci_xen_init(void)
-@@ -418,9 +430,9 @@ int __init pci_xen_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_setup_msi_irqs;
-+	xen_msi_chip.teardown_irqs = xen_teardown_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	msi_chip.irq_mask = xen_nop_msi_mask;
- 	msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
-@@ -441,8 +453,9 @@ int __init pci_xen_hvm_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_hvm_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.setup_irqs = xen_hvm_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	x86_msi_chip = &xen_msi_chip;
- #endif
- 	return 0;
- }
-@@ -499,9 +512,10 @@ int __init pci_xen_initial_domain(void)
- 	int irq;
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_initdom_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.restore_irqs = xen_initdom_restore_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	msi_chip.irq_mask = xen_nop_msi_mask;
- 	msi_chip.irq_unmask = xen_nop_msi_mask;
- #endif
 -- 
-1.7.1
+1.8.1.2
 
