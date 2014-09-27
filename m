@@ -1,60 +1,106 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 05 Sep 2014 09:46:11 +0000
-Subject: [PATCH v1 07/21] x86/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1409911806-10519-8-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 27 Sep 2014 18:28:26 +0000
+Subject: [PATCH 2/8] sparc64: Define VA hole at run time, rather than at compile time.
+Message-Id: <20140927.142826.232156879611209365.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1409911806-10519-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@tilera.com>
+To: sparclinux@vger.kernel.org
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Now that we use 4-level page tables, we can provide up to 53-bits of
+virtual address space to the user.
+
+Adjust the VA hole based upon the capabilities of the cpu type probed.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/include/asm/pci.h     |    1 +
- arch/x86/kernel/apic/io_apic.c |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/page_64.h | 15 ++++-----------
+ arch/sparc/mm/init_64.c          | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index 0892ea0..878a06d 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -101,6 +101,7 @@ void native_teardown_msi_irq(unsigned int irq);
- void native_restore_msi_irqs(struct pci_dev *dev);
- int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 		  unsigned int irq_base, unsigned int irq_offset);
-+extern struct msi_chip *x86_msi_chip;
- #else
- #define native_setup_msi_irqs		NULL
- #define native_teardown_msi_irq		NULL
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 2a2ec28..882b95e 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3337,6 +3337,18 @@ int default_setup_hpet_msi(unsigned int irq, unsigned int id)
- }
- #endif
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 09ceb68..2211a80 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -102,21 +102,14 @@ typedef unsigned long pgprot_t;
  
-+struct msi_chip apic_msi_chip = {
-+	.setup_irqs = native_setup_msi_irqs,
-+	.teardown_irq = native_teardown_msi_irq,
-+};
+ typedef pte_t *pgtable_t;
+ 
+-/* These two values define the virtual address space range in which we
+- * must forbid 64-bit user processes from making mappings.  It used to
+- * represent precisely the virtual address space hole present in most
+- * early sparc64 chips including UltraSPARC-I.  But now it also is
+- * further constrained by the limits of our page tables, which is
+- * 43-bits of virtual address.
+- */
+-#define SPARC64_VA_HOLE_TOP	_AC(0xfffffc0000000000,UL)
+-#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000040000000000,UL)
++extern unsigned long sparc64_va_hole_top;
++extern unsigned long sparc64_va_hole_bottom;
+ 
+ /* The next two defines specify the actual exclusion region we
+  * enforce, wherein we use a 4GB red zone on each side of the VA hole.
+  */
+-#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
+-#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
++#define VA_EXCLUDE_START (sparc64_va_hole_bottom - (1UL << 32UL))
++#define VA_EXCLUDE_END   (sparc64_va_hole_top + (1UL << 32UL))
+ 
+ #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
+ 				 _AC(0x0000000070000000,UL) : \
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index a6c0a30..082fde1 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1630,25 +1630,46 @@ static void __init page_offset_shift_patch(unsigned long phys_bits)
+ 	}
+ }
+ 
++unsigned long sparc64_va_hole_top =    0xfffff80000000000UL;
++unsigned long sparc64_va_hole_bottom = 0x0000080000000000UL;
 +
-+struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
-+{
-+	return x86_msi_chip;
-+}
+ static void __init setup_page_offset(void)
+ {
+ 	unsigned long max_phys_bits = 40;
+ 
+ 	if (tlb_type = cheetah || tlb_type = cheetah_plus) {
++		/* Cheetah/Panther support a full 64-bit virtual
++		 * address, so we can use all that our page tables
++		 * support.
++		 */
++		sparc64_va_hole_top =    0xfff0000000000000UL;
++		sparc64_va_hole_bottom = 0x0010000000000000UL;
 +
-+struct msi_chip *x86_msi_chip = &apic_msi_chip;
+ 		max_phys_bits = 42;
+ 	} else if (tlb_type = hypervisor) {
+ 		switch (sun4v_chip_type) {
+ 		case SUN4V_CHIP_NIAGARA1:
+ 		case SUN4V_CHIP_NIAGARA2:
++			/* T1 and T2 support 48-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xffff800000000000UL;
++			sparc64_va_hole_bottom = 0x0000800000000000UL;
 +
- #endif /* CONFIG_PCI_MSI */
- /*
-  * Hypertransport interrupt support
+ 			max_phys_bits = 39;
+ 			break;
+ 		case SUN4V_CHIP_NIAGARA3:
++			/* T3 supports 48-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xffff800000000000UL;
++			sparc64_va_hole_bottom = 0x0000800000000000UL;
++
+ 			max_phys_bits = 43;
+ 			break;
+ 		case SUN4V_CHIP_NIAGARA4:
+ 		case SUN4V_CHIP_NIAGARA5:
+ 		case SUN4V_CHIP_SPARC64X:
+ 		default:
++			/* T4 and later support 52-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xfff8000000000000UL;
++			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 47;
+ 			break;
+ 		}
 -- 
-1.7.1
+1.8.1.2
 
