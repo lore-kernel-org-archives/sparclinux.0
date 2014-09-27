@@ -1,76 +1,88 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Date: Tue, 02 Sep 2014 21:39:15 +0000
-Subject: [PATCH 06/26] serial: Fix send_xchar() handlers
-Message-Id: <1409693975-1028-7-git-send-email-peter@hurleysoftware.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 27 Sep 2014 18:28:52 +0000
+Subject: [PATCH 6/8] sparc64: Increase MAX_PHYS_ADDRESS_BITS to 53.
+Message-Id: <20140927.142852.1583970678243070733.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1409693975-1028-1-git-send-email-peter@hurleysoftware.com>
-In-Reply-To: <1409693975-1028-1-git-send-email-peter@hurleysoftware.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>, One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Hurley <peter@hurleysoftware.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-START_CHAR() & STOP_CHAR() can be disabled if set to '\0'
-(__DISABLED_CHAR).  UART drivers which define a send_xchar()
-handler must not transmit __DISABLED_CHAR.
 
-Document requirement.
+Make sure, at compile time, that the kernel can properly support
+whatever MAX_PHYS_ADDRESS_BITS is defined to.
 
-Affected drivers:
-sunsab
-sunhv
+On M7 chips, use a max_phys_bits value of 49.
 
-cc: David S. Miller <davem@davemloft.net>
-cc: <sparclinux@vger.kernel.org>
-Signed-off-by: Peter Hurley <peter@hurleysoftware.com>
+Based upon a patch by Bob Picco.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- Documentation/serial/driver | 2 ++
- drivers/tty/serial/sunhv.c  | 3 +++
- drivers/tty/serial/sunsab.c | 3 +++
- 3 files changed, 8 insertions(+)
+ arch/sparc/include/asm/page_64.h    | 8 ++++----
+ arch/sparc/include/asm/pgtable_64.h | 4 ++++
+ arch/sparc/mm/init_64.c             | 9 ++++++++-
+ 3 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/serial/driver b/Documentation/serial/driver
-index 3bba1ae..ba64e4b 100644
---- a/Documentation/serial/driver
-+++ b/Documentation/serial/driver
-@@ -140,6 +140,8 @@ hardware.
- 	will append the character to the circular buffer and then call
- 	start_tx() / stop_tx() to flush the data out.
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 732ba17..6784a33 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -122,11 +122,11 @@ extern unsigned long PAGE_OFFSET;
  
-+	Do not transmit if ch = '\0' (__DISABLED_CHAR).
+ #endif /* !(__ASSEMBLY__) */
+ 
+-/* The maximum number of physical memory address bits we support, this
+- * is used to size various tables used to manage kernel TLB misses and
+- * also the sparsemem code.
++/* The maximum number of physical memory address bits we support.  The
++ * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
++ * evaluates to.
+  */
+-#define MAX_PHYS_ADDRESS_BITS	47
++#define MAX_PHYS_ADDRESS_BITS	53
+ 
+ #define ILOG2_4MB		22
+ #define ILOG2_256MB		28
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index a305b22..0552957 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -67,6 +67,10 @@
+ #define PGDIR_MASK	(~(PGDIR_SIZE-1))
+ #define PGDIR_BITS	(PAGE_SHIFT - 3)
+ 
++#if (MAX_PHYS_ADDRESS_BITS > PGDIR_SHIFT + PGDIR_BITS)
++#error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can support
++#endif
 +
- 	Locking: none.
- 	Interrupts: caller dependent.
+ #if (PGDIR_SHIFT + PGDIR_BITS) != 53
+ #error Page table parameters do not cover virtual address space properly.
+ #endif
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index bbfc6f2..7f34a47 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1690,12 +1690,19 @@ static void __init setup_page_offset(void)
+ 		case SUN4V_CHIP_NIAGARA4:
+ 		case SUN4V_CHIP_NIAGARA5:
+ 		case SUN4V_CHIP_SPARC64X:
+-		default:
++		case SUN4V_CHIP_SPARC_M6:
+ 			/* T4 and later support 52-bit virtual addresses.  */
+ 			sparc64_va_hole_top =    0xfff8000000000000UL;
+ 			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 47;
+ 			break;
++		case SUN4V_CHIP_SPARC_M7:
++		default:
++			/* M7 and later support 52-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xfff8000000000000UL;
++			sparc64_va_hole_bottom = 0x0008000000000000UL;
++			max_phys_bits = 49;
++			break;
+ 		}
+ 	}
  
-diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
-index 20521db..25d43ce 100644
---- a/drivers/tty/serial/sunhv.c
-+++ b/drivers/tty/serial/sunhv.c
-@@ -268,6 +268,9 @@ static void sunhv_send_xchar(struct uart_port *port, char ch)
- 	unsigned long flags;
- 	int limit = 10000;
- 
-+	if (ch = __DISABLED_CHAR)
-+		return;
-+
- 	spin_lock_irqsave(&port->lock, flags);
- 
- 	while (limit-- > 0) {
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index bb09920..c83b1c6 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -459,6 +459,9 @@ static void sunsab_send_xchar(struct uart_port *port, char ch)
- 	struct uart_sunsab_port *up = (struct uart_sunsab_port *) port;
- 	unsigned long flags;
- 
-+	if (ch = __DISABLED_CHAR)
-+		return;
-+
- 	spin_lock_irqsave(&up->port.lock, flags);
- 
- 	sunsab_tec_wait(up);
 -- 
-2.1.0
+1.8.1.2
 
