@@ -1,128 +1,323 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Thu, 25 Sep 2014 02:56:13 +0000
-Subject: [PATCH v2 11/22] x86/MSI: Remove unused MSI weak arch functions
-Message-Id: <1411614872-4009-12-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 27 Sep 2014 18:28:20 +0000
+Subject: [PATCH 1/8] sparc64: Switch to 4-level page tables.
+Message-Id: <20140927.142820.1332441901850290071.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, arnab.basu-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Chris Metcalf <cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Xinwei Hu <huxinwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, David
+To: sparclinux@vger.kernel.org
 
-Now we can clean up MSI weak arch functions in x86.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+This has become necessary with chips that support more than 43-bits
+of physical addressing.
+
+Based almost entirely upon a patch by Bob Picco.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/include/asm/pci.h      |    3 ---
- arch/x86/include/asm/x86_init.h |    4 ----
- arch/x86/kernel/apic/io_apic.c  |    2 +-
- arch/x86/kernel/x86_init.c      |   24 ------------------------
- drivers/iommu/irq_remapping.c   |    1 -
- 5 files changed, 1 insertions(+), 33 deletions(-)
+ arch/sparc/include/asm/page_64.h    |  6 ++++++
+ arch/sparc/include/asm/pgalloc_64.h | 16 ++++++++++++++++
+ arch/sparc/include/asm/pgtable_64.h | 37 ++++++++++++++++++++++++++++++++-----
+ arch/sparc/include/asm/tsb.h        | 10 ++++++++++
+ arch/sparc/kernel/smp_64.c          |  7 +++++++
+ arch/sparc/mm/init_64.c             | 31 +++++++++++++++++++++++++++----
+ 6 files changed, 98 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index 878a06d..34f9676 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -96,14 +96,11 @@ extern void pci_iommu_alloc(void);
- #ifdef CONFIG_PCI_MSI
- /* implemented in arch/x86/kernel/apic/io_apic. */
- struct msi_desc;
--int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
- void native_teardown_msi_irq(unsigned int irq);
--void native_restore_msi_irqs(struct pci_dev *dev);
- int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 		  unsigned int irq_base, unsigned int irq_offset);
- extern struct msi_chip *x86_msi_chip;
- #else
--#define native_setup_msi_irqs		NULL
- #define native_teardown_msi_irq		NULL
- #endif
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index bf10998..09ceb68 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -57,18 +57,21 @@ void copy_user_page(void *to, void *from, unsigned long vaddr, struct page *topa
+ typedef struct { unsigned long pte; } pte_t;
+ typedef struct { unsigned long iopte; } iopte_t;
+ typedef struct { unsigned long pmd; } pmd_t;
++typedef struct { unsigned long pud; } pud_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
  
-diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
-index f58a9c7..2514f67 100644
---- a/arch/x86/include/asm/x86_init.h
-+++ b/arch/x86/include/asm/x86_init.h
-@@ -174,13 +174,9 @@ struct pci_dev;
- struct msi_msg;
+ #define pte_val(x)	((x).pte)
+ #define iopte_val(x)	((x).iopte)
+ #define pmd_val(x)      ((x).pmd)
++#define pud_val(x)      ((x).pud)
+ #define pgd_val(x)	((x).pgd)
+ #define pgprot_val(x)	((x).pgprot)
  
- struct x86_msi_ops {
--	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
- 	void (*compose_msi_msg)(struct pci_dev *dev, unsigned int irq,
- 				unsigned int dest, struct msi_msg *msg,
- 			       u8 hpet_id);
--	void (*teardown_msi_irq)(unsigned int irq);
--	void (*teardown_msi_irqs)(struct pci_dev *dev);
--	void (*restore_msi_irqs)(struct pci_dev *dev);
- 	int  (*setup_hpet_msi)(unsigned int irq, unsigned int id);
- };
+ #define __pte(x)	((pte_t) { (x) } )
+ #define __iopte(x)	((iopte_t) { (x) } )
+ #define __pmd(x)        ((pmd_t) { (x) } )
++#define __pud(x)        ((pud_t) { (x) } )
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
  
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 882b95e..f998192 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3200,7 +3200,7 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 	return 0;
- }
+@@ -77,18 +80,21 @@ typedef struct { unsigned long pgprot; } pgprot_t;
+ typedef unsigned long pte_t;
+ typedef unsigned long iopte_t;
+ typedef unsigned long pmd_t;
++typedef unsigned long pud_t;
+ typedef unsigned long pgd_t;
+ typedef unsigned long pgprot_t;
  
--int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ #define pte_val(x)	(x)
+ #define iopte_val(x)	(x)
+ #define pmd_val(x)      (x)
++#define pud_val(x)      (x)
+ #define pgd_val(x)	(x)
+ #define pgprot_val(x)	(x)
+ 
+ #define __pte(x)	(x)
+ #define __iopte(x)	(x)
+ #define __pmd(x)        (x)
++#define __pud(x)        (x)
+ #define __pgd(x)	(x)
+ #define __pgprot(x)	(x)
+ 
+diff --git a/arch/sparc/include/asm/pgalloc_64.h b/arch/sparc/include/asm/pgalloc_64.h
+index 39a7ac4..e0bc674 100644
+--- a/arch/sparc/include/asm/pgalloc_64.h
++++ b/arch/sparc/include/asm/pgalloc_64.h
+@@ -15,6 +15,8 @@
+ 
+ extern struct kmem_cache *pgtable_cache;
+ 
++#define pgd_populate(MM, PGD, PUD)	pgd_set(PGD, PUD)
++
+ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
  {
- 	struct msi_desc *msidesc;
- 	unsigned int irq;
-diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
-index 234b072..cc32568 100644
---- a/arch/x86/kernel/x86_init.c
-+++ b/arch/x86/kernel/x86_init.c
-@@ -110,34 +110,10 @@ EXPORT_SYMBOL_GPL(x86_platform);
+ 	return kmem_cache_alloc(pgtable_cache, GFP_KERNEL);
+@@ -27,6 +29,17 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
  
- #if defined(CONFIG_PCI_MSI)
- struct x86_msi_ops x86_msi = {
--	.setup_msi_irqs		= native_setup_msi_irqs,
- 	.compose_msi_msg	= native_compose_msi_msg,
--	.teardown_msi_irq	= native_teardown_msi_irq,
--	.teardown_msi_irqs	= default_teardown_msi_irqs,
--	.restore_msi_irqs	= default_restore_msi_irqs,
- 	.setup_hpet_msi		= default_setup_hpet_msi,
- };
+ #define pud_populate(MM, PUD, PMD)	pud_set(PUD, PMD)
  
--/* MSI arch specific hooks */
--int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	return x86_msi.setup_msi_irqs(dev, nvec, type);
--}
++static inline pud_t *pud_alloc_one(struct mm_struct *mm, unsigned long addr)
++{
++	return kmem_cache_alloc(pgtable_cache,
++				GFP_KERNEL|__GFP_REPEAT);
++}
++
++static inline void pud_free(struct mm_struct *mm, pud_t *pud)
++{
++	kmem_cache_free(pgtable_cache, pud);
++}
++
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long addr)
+ {
+ 	return kmem_cache_alloc(pgtable_cache,
+@@ -91,4 +104,7 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
+ #define __pmd_free_tlb(tlb, pmd, addr)		      \
+ 	pgtable_free_tlb(tlb, pmd, false)
+ 
++#define __pud_free_tlb(tlb, pud, addr)		      \
++	pgtable_free_tlb(tlb, pud, false)
++
+ #endif /* _SPARC64_PGALLOC_H */
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3770bf5..31ac919 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -20,8 +20,6 @@
+ #include <asm/page.h>
+ #include <asm/processor.h>
+ 
+-#include <asm-generic/pgtable-nopud.h>
 -
--void arch_teardown_msi_irqs(struct pci_dev *dev)
--{
--	x86_msi.teardown_msi_irqs(dev);
--}
--
--void arch_teardown_msi_irq(unsigned int irq)
--{
--	x86_msi.teardown_msi_irq(irq);
--}
--
--void arch_restore_msi_irqs(struct pci_dev *dev)
--{
--	x86_msi.restore_msi_irqs(dev);
--}
+ /* The kernel image occupies 0x4000000 to 0x6000000 (4MB --> 96MB).
+  * The page copy blockops can use 0x6000000 to 0x8000000.
+  * The 8K TSB is mapped in the 0x8000000 to 0x8400000 range.
+@@ -55,13 +53,21 @@
+ #define PMD_MASK	(~(PMD_SIZE-1))
+ #define PMD_BITS	(PAGE_SHIFT - 3)
+ 
+-/* PGDIR_SHIFT determines what a third-level page table entry can map */
+-#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3) + PMD_BITS)
++/* PUD_SHIFT determines the size of the area a third-level page
++ * table can map
++ */
++#define PUD_SHIFT	(PMD_SHIFT + PMD_BITS)
++#define PUD_SIZE	(_AC(1,UL) << PUD_SHIFT)
++#define PUD_MASK	(~(PUD_SIZE-1))
++#define PUD_BITS	(PAGE_SHIFT - 3)
++
++/* PGDIR_SHIFT determines what a fourth-level page table entry can map */
++#define PGDIR_SHIFT	(PUD_SHIFT + PUD_BITS)
+ #define PGDIR_SIZE	(_AC(1,UL) << PGDIR_SHIFT)
+ #define PGDIR_MASK	(~(PGDIR_SIZE-1))
+ #define PGDIR_BITS	(PAGE_SHIFT - 3)
+ 
+-#if (PGDIR_SHIFT + PGDIR_BITS) != 43
++#if (PGDIR_SHIFT + PGDIR_BITS) != 53
+ #error Page table parameters do not cover virtual address space properly.
  #endif
  
- struct x86_io_apic_ops x86_io_apic_ops = {
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index 7929590..99b1c0f 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -170,7 +170,6 @@ static void __init irq_remapping_modify_x86_ops(void)
- 	x86_io_apic_ops.set_affinity	= set_remapped_irq_affinity;
- 	x86_io_apic_ops.setup_entry	= setup_ioapic_remapped_entry;
- 	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
--	x86_msi.setup_msi_irqs		= irq_remapping_setup_msi_irqs;
- 	x86_msi.setup_hpet_msi		= setup_hpet_msi_remapped;
- 	x86_msi.compose_msi_msg		= compose_remapped_msi_msg;
- 	x86_msi_chip = &remap_msi_chip;
+@@ -93,6 +99,7 @@ static inline bool kern_addr_valid(unsigned long addr)
+ /* Entries per page directory level. */
+ #define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-3))
+ #define PTRS_PER_PMD	(1UL << PMD_BITS)
++#define PTRS_PER_PUD	(1UL << PUD_BITS)
+ #define PTRS_PER_PGD	(1UL << PGDIR_BITS)
+ 
+ /* Kernel has a separate 44bit address space. */
+@@ -101,6 +108,9 @@ static inline bool kern_addr_valid(unsigned long addr)
+ #define pmd_ERROR(e)							\
+ 	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
+ 	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
++#define pud_ERROR(e)							\
++	pr_err("%s:%d: bad pud %p(%016lx) seen at (%pS)\n",		\
++	       __FILE__, __LINE__, &(e), pud_val(e), __builtin_return_address(0))
+ #define pgd_ERROR(e)							\
+ 	pr_err("%s:%d: bad pgd %p(%016lx) seen at (%pS)\n",		\
+ 	       __FILE__, __LINE__, &(e), pgd_val(e), __builtin_return_address(0))
+@@ -779,6 +789,11 @@ static inline int pmd_present(pmd_t pmd)
+ #define pud_bad(pud)			((pud_val(pud) & ~PAGE_MASK) || \
+ 					 !__kern_addr_valid(pud_val(pud)))
+ 
++#define pgd_none(pgd)			(!pgd_val(pgd))
++
++#define pgd_bad(pgd)			((pgd_val(pgd) & ~PAGE_MASK) || \
++					 !__kern_addr_valid(pgd_val(pgd)))
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		pmd_t *pmdp, pmd_t pmd);
+@@ -815,10 +830,17 @@ static inline unsigned long __pmd_page(pmd_t pmd)
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pud_present(pud)		(pud_val(pud) != 0U)
+ #define pud_clear(pudp)			(pud_val(*(pudp)) = 0UL)
++#define pgd_page_vaddr(pgd)		\
++	((unsigned long) __va(pgd_val(pgd)))
++#define pgd_present(pgd)		(pgd_val(pgd) != 0U)
++#define pgd_clear(pgdp)			(pgd_val(*(pgd)) = 0UL)
+ 
+ /* Same in both SUN4V and SUN4U.  */
+ #define pte_none(pte) 			(!pte_val(pte))
+ 
++#define pgd_set(pgdp, pudp)	\
++	(pgd_val(*(pgdp)) = (__pa((unsigned long) (pudp))))
++
+ /* to find an entry in a page-table-directory. */
+ #define pgd_index(address)	(((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD - 1))
+ #define pgd_offset(mm, address)	((mm)->pgd + pgd_index(address))
+@@ -826,6 +848,11 @@ static inline unsigned long __pmd_page(pmd_t pmd)
+ /* to find an entry in a kernel page-table-directory */
+ #define pgd_offset_k(address) pgd_offset(&init_mm, address)
+ 
++/* Find an entry in the third-level page table.. */
++#define pud_index(address)	(((address) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
++#define pud_offset(pgdp, address)	\
++	((pud_t *) pgd_page_vaddr(*(pgdp)) + pud_index(address))
++
+ /* Find an entry in the second-level page table.. */
+ #define pmd_offset(pudp, address)	\
+ 	((pmd_t *) pud_page_vaddr(*(pudp)) + \
+diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
+index 90916f9..2e268b6 100644
+--- a/arch/sparc/include/asm/tsb.h
++++ b/arch/sparc/include/asm/tsb.h
+@@ -145,6 +145,11 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	andn		REG2, 0x7, REG2; \
+ 	ldx		[REG1 + REG2], REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
++	 sllx		VADDR, 64 - (PUD_SHIFT + PUD_BITS), REG2; \
++	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
++	andn		REG2, 0x7, REG2; \
++	ldxa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
++	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - (PMD_SHIFT + PMD_BITS), REG2; \
+ 	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
+ 	andn		REG2, 0x7, REG2; \
+@@ -198,6 +203,11 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	andn		REG2, 0x7, REG2; \
+ 	ldxa		[PHYS_PGD + REG2] ASI_PHYS_USE_EC, REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
++	 sllx		VADDR, 64 - (PUD_SHIFT + PUD_BITS), REG2; \
++	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
++	andn		REG2, 0x7, REG2; \
++	ldxa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
++	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - (PMD_SHIFT + PMD_BITS), REG2; \
+ 	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
+ 	andn		REG2, 0x7, REG2; \
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index f7ba875..c9300bf 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1467,6 +1467,13 @@ static void __init pcpu_populate_pte(unsigned long addr)
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 
++	if (pgd_none(*pgd)) {
++		pud_t *new;
++
++		new = __alloc_bootmem(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
++		pgd_populate(&init_mm, pgd, new);
++	}
++
+ 	pud = pud_offset(pgd, addr);
+ 	if (pud_none(*pud)) {
+ 		pmd_t *new;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index c8bccaf..a6c0a30 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1390,6 +1390,13 @@ static unsigned long __ref kernel_map_range(unsigned long pstart,
+ 		pmd_t *pmd;
+ 		pte_t *pte;
+ 
++		if (pgd_none(*pgd)) {
++			pud_t *new;
++
++			new = __alloc_bootmem(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
++			alloc_bytes += PAGE_SIZE;
++			pgd_populate(&init_mm, pgd, new);
++		}
+ 		pud = pud_offset(pgd, vstart);
+ 		if (pud_none(*pud)) {
+ 			pmd_t *new;
+@@ -1856,7 +1863,12 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+ /* paging_init() sets up the page tables */
+ 
+ static unsigned long last_valid_pfn;
+-pgd_t swapper_pg_dir[PTRS_PER_PGD];
++
++/* These must be page aligned in order to not trigger the
++ * alignment tests of pgd_bad() and pud_bad().
++ */
++pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__ ((aligned (PAGE_SIZE)));
++static pud_t swapper_pud_dir[PTRS_PER_PUD] __attribute__ ((aligned (PAGE_SIZE)));
+ 
+ static void sun4u_pgprot_init(void);
+ static void sun4v_pgprot_init(void);
+@@ -1911,6 +1923,8 @@ void __init paging_init(void)
+ {
+ 	unsigned long end_pfn, shift, phys_base;
+ 	unsigned long real_end, i;
++	pud_t *pud;
++	pmd_t *pmd;
+ 	int node;
+ 
+ 	setup_page_offset();
+@@ -2008,9 +2022,18 @@ void __init paging_init(void)
+ 	
+ 	memset(swapper_low_pmd_dir, 0, sizeof(swapper_low_pmd_dir));
+ 
+-	/* Now can init the kernel/bad page tables. */
+-	pud_set(pud_offset(&swapper_pg_dir[0], 0),
+-		swapper_low_pmd_dir + (shift / sizeof(pgd_t)));
++	/* The kernel page tables we publish into what the rest of the
++	 * world sees must be adjusted so that they see the PAGE_OFFSET
++	 * address of these in-kerenel data structures.  However right
++	 * here we must access them from the kernel image side, because
++	 * the trap tables haven't been taken over and therefore we cannot
++	 * take TLB misses in the PAGE_OFFSET linear mappings yet.
++	 */
++	pud = swapper_pud_dir + (shift / sizeof(pud_t));
++	pgd_set(&swapper_pg_dir[0], pud);
++
++	pmd = swapper_low_pmd_dir + (shift / sizeof(pmd_t));
++	pud_set(&swapper_pud_dir[0], pmd);
+ 	
+ 	inherit_prom_mappings();
+ 	
 -- 
-1.7.1
+1.8.1.2
 
