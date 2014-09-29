@@ -1,63 +1,46 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Thu, 25 Sep 2014 02:51:56 +0000
-Subject: [PATCH v2 20/22] Sparc/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1411614872-4009-21-git-send-email-wangyijing@huawei.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 29 Sep 2014 08:54:34 +0000
+Subject: Re: [PATCH v4 6/8] asm-generic/io.h: Implement generic {read,write}s*()
+Message-Id: <CAMuHMdW4emoma3nRUGna985tE17yPh5pNjMb-jxe5yc5UVr=cw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1411614872-4009-1-git-send-email-wangyijing@huawei.com>
+References: <1407925738-26170-1-git-send-email-thierry.reding@gmail.com>
+	<1407925738-26170-7-git-send-email-thierry.reding@gmail.com>
+In-Reply-To: <1407925738-26170-7-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
+To: Thierry Reding <thierry.reding@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Linux-Arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, the arch/x86 maintainers <x86@kernel.org>, Stephen Boyd <sboyd@codeaurora.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
+On Wed, Aug 13, 2014 at 12:28 PM, Thierry Reding
+<thierry.reding@gmail.com> wrote:
+> #ifndef memset_io
+> -#define memset_io(a, b, c)     memset(__io_virt(a), (b), (c))
+> +#define memset_io memset_io
+> +static inline void memset_io(void __iomem *addr, int value, size_t size)
+> +{
+> +       memset(__io_virt(addr), value, size);
+> +}
+>  #endif
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
----
- arch/sparc/kernel/pci.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+xtensa/allmodconfig:
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index b36365f..2a89ee2 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -905,7 +905,7 @@ int pci_domain_nr(struct pci_bus *pbus)
- EXPORT_SYMBOL(pci_domain_nr);
- 
- #ifdef CONFIG_PCI_MSI
--int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
-+int sparc_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- {
- 	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
- 	unsigned int irq;
-@@ -916,7 +916,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
- 	return pbm->setup_msi_irq(&irq, pdev, desc);
- }
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+void sparc_teardown_msi_irq(unsigned int irq)
- {
- 	struct msi_desc *entry = irq_get_msi_desc(irq);
- 	struct pci_dev *pdev = entry->dev;
-@@ -925,6 +925,16 @@ void arch_teardown_msi_irq(unsigned int irq)
- 	if (pbm->teardown_msi_irq)
- 		pbm->teardown_msi_irq(irq, pdev);
- }
-+
-+static struct msi_chip sparc_msi_chip = {
-+	.setup_irq = sparc_setup_msi_irq,
-+	.teardown_irq = sparc_teardown_msi_irq,
-+};
-+
-+struct msi_chip *arch_find_msi_chip(struct pci_dev *dev)
-+{
-+	return &sparc_msi_chip;
-+}
- #endif /* !(CONFIG_PCI_MSI) */
- 
- static void ali_sound_dma_hack(struct pci_dev *pdev, int set_bit)
--- 
-1.7.1
+include/asm-generic/io.h:820:2: error: implicit declaration of
+function 'memset' [-Werror=implicit-function-declaration]
+include/asm-generic/io.h:829:2: error: implicit declaration of
+function 'memcpy' [-Werror=implicit-function-declaration]
+arch/xtensa/include/asm/string.h:110:14: error: conflicting types for 'memset'
+arch/xtensa/include/asm/string.h:113:14: error: conflicting types for 'memcpy'
 
+http://kisskb.ellerman.id.au/kisskb/buildresult/12028900/
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
