@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 27 Sep 2014 22:59:46 +0000
+Date: Tue, 30 Sep 2014 21:41:07 +0000
 Subject: Re: [PATCH] sparc64: Add vio_set_intr() to enable/disable Rx interrupts
-Message-Id: <20140927.185946.890655974914947571.davem@davemloft.net>
+Message-Id: <20140930.174107.374924487328791862.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140923153744.GB11042@oracle.com>
 In-Reply-To: <20140923153744.GB11042@oracle.com>
@@ -11,11 +11,12 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Sat, 27 Sep 2014 17:19:58 -0400
+Date: Tue, 23 Sep 2014 11:37:44 -0400
 
-> what was the feedback on this patch?  
+> The vio_set_intr() API should be used by VIO consumers to enable/disable
+> Rx interrupts to facilitate deferred processing in softirq/bottom-half
+> context.
+> 
+> Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 
-I'm busy working on Bob Picco's MM changes and have had zero
-time to look at this series.
-
-Please be patient.
+Applied, thanks.
