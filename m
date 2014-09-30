@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 30 Sep 2014 02:16:37 +0000
+From: Bob Picco <bpicco@meloft.net>
+Date: Tue, 30 Sep 2014 10:36:32 +0000
 Subject: Re: [PATCH v2 0/8] sparc64: MM/IRQ patch queue.
-Message-Id: <20140929.221637.1538910423145382649.davem@davemloft.net>
+Message-Id: <20140930103632.GA24640@zareason>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20140927.142812.2031647355756795530.davem@davemloft.net>
 In-Reply-To: <20140927.142812.2031647355756795530.davem@davemloft.net>
@@ -10,92 +10,22 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 29 Sep 2014 21:57:35 -0400 (EDT)
-
-> From: Bob Picco <bpicco@meloft.net>
-> Date: Mon, 29 Sep 2014 18:35:22 -0400
+David Miller wrote:	[Mon Sep 29 2014, 09:56:10PM EDT]
+> From: David Miller <davem@davemloft.net>
+> Date: Mon, 29 Sep 2014 21:52:54 -0400 (EDT)
 > 
->> This is M7-4:
->> MM: PAGE_OFFSET is 0xfffe000000000000 (max_phys_bits = 49)^M
->> MM: VMALLOC [0x0000000100000000 --> 0x0001000000000000]^M
->> MM: VMEMMAP [0x0001000000000000 --> 0x0002000000000000]^M
->> Kernel: Using 3 locked TLB entries for main kernel image.^M
->> Remapping the kernel... done.^M
->> ..
->> Early memory node ranges^M
->>   node   0: [mem 0x50400000-0x3fbf6bdfff]^M
->>   node   0: [mem 0x3fbf6c4000-0x3fbf6c5fff]^M
->>   node   1: [mem 0x400000000000-0x403bffffffff]^M
->>   node   2: [mem 0x800000000000-0x803fffffffff]^M
->>   node   3: [mem 0xc00000000000-0xc03fffd5dfff]^M
->>   node   3: [mem 0xc03fffd90000-0xc03fffdaffff]^M
->>   node   3: [mem 0xc03fffdc0000-0xc03fffdc3fff]^M
->> Booting Linux...^M
->> CPU CAPS: [flush,stbar,swap,muldiv,v9,mul32,div32,v8plus]^M
->> CPU CAPS: [popc,vis,vis2,ASIBlkInit,fmaf,vis3,hpc,ima]^M
->> CPU CAPS: [pause,cbcond,aes,des,camellia,md5,sha1,sha256]^M
->> CPU CAPS: [sha512,mpmul,montmul,montsqr,crc32c]^M
->> PERCPU: max_distance=0xc000c2410000 too large for vmalloc space 0xffff00000000^M
->> PERCPU: auto allocator failed (-22), falling back to page size^M
->> PERCPU: 6 8K pages/cpu @0000000100000000 s23552 r8192 d17408^M
+> > From: Bob Picco <bpicco@meloft.net>
+> > Date: Mon, 29 Sep 2014 18:35:22 -0400
+> > 
+> >> PERCPU: max_distance=0x380001c10000 too large for vmalloc space 0xff00000000
+> >> . So just subtract 0xffff800000000000UL from "ptr".
+> > 
+> > Bob you're not running my current patches.
+> > 
+> > The vmalloc space is enlarged by the current patch set and should
+> > no longer run into this issue, and it's specifically what I was
+> > interested in seeing work or not.
 > 
-> Ok, it looks like we need to expand the vmalloc area a bit or two
-> more, which is easy to do.  I'll cook up a patch for that.
-
-Ok, this should do it, it's on top of my patch series:
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index b9a14a0..e2af052 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1369,25 +1369,24 @@ static unsigned long max_phys_bits = 40;
- 
- bool kern_addr_valid(unsigned long addr)
- {
--	unsigned long above = ((long)addr) >> max_phys_bits;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 
--	if (above != 0 && above != -1UL)
--		return false;
--
--	if (addr >= (unsigned long) KERNBASE &&
--	    addr < (unsigned long)&_end)
--		return true;
--
--	if (addr >= PAGE_OFFSET) {
-+	if ((long)addr < 0L) {
- 		unsigned long pa = __pa(addr);
- 
-+		if ((addr >> max_phys_bits) != 0UL)
-+			return false;
-+
- 		return pfn_valid(pa >> PAGE_SHIFT);
- 	}
- 
-+	if (addr >= (unsigned long) KERNBASE &&
-+	    addr < (unsigned long)&_end)
-+		return true;
-+
- 	pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd))
- 		return 0;
-@@ -1715,12 +1714,9 @@ static void __init setup_page_offset(void)
- 		prom_halt();
- 	}
- 
--	/* PAGE_OFFSET must be calculated this way in order for the
--	 * 'above' checks in kern_addr_valid to work properly.
--	 */
--	PAGE_OFFSET = (-(1UL << max_phys_bits));
--
--	VMALLOC_END = (~PAGE_OFFSET + 1) >> 1;
-+	PAGE_OFFSET = sparc64_va_hole_top;
-+	VMALLOC_END = ((sparc64_va_hole_bottom >> 1) +
-+		       (sparc64_va_hole_bottom >> 2));
- 
- 	pr_info("MM: PAGE_OFFSET is 0x%016lx (max_phys_bits = %lu)\n",
- 		PAGE_OFFSET, max_phys_bits);
+> Ignore me, I see you were just trying to explain how memory is layed
+> out on this T5 machines and why (which I understood already :-)
+Ah no problem, I feared being called away and the potential remains today.
