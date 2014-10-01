@@ -1,35 +1,89 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 01:06:22 +0000
-Subject: Re: [PATCH v3 16/27] Mips/MSI: Save msi chip in pci sysdata
-Message-Id: <544D9A8E.6030607@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 01 Oct 2014 02:29:00 +0000
+Subject: Re: [PATCH v2 0/8] sparc64: MM/IRQ patch queue.
+Message-Id: <20140930.222900.1514307861753222790.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com> <1413342435-7876-17-git-send-email-wangyijing@huawei.com> <20141025130428.GD16738@linux-mips.org>
-In-Reply-To: <20141025130428.GD16738@linux-mips.org>
+References: <20140927.142812.2031647355756795530.davem@davemloft.net>
+In-Reply-To: <20140927.142812.2031647355756795530.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ralf Baechle <ralf@linux-mips.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.ke
+To: sparclinux@vger.kernel.org
 
-On 2014/10/25 21:04, Ralf Baechle wrote:
-> On Wed, Oct 15, 2014 at 11:07:04AM +0800, Yijing Wang wrote:
-> 
->> +static inline struct msi_chip *pci_msi_chip(struct pci_bus *bus)
->> +{
->> +	struct pci_controller *control = (struct pci_controller *)bus->sysdata;
-> 
-> bus->sysdata is void * so this cast is unnecessary.
+From: Bob Picco <bpicco@meloft.net>
+Date: Tue, 30 Sep 2014 18:28:41 -0400
 
-Yes, will update it, thanks!
+> Okay, I lied partially. Let me examine this in the morning. You can
+> go first :)
 
-> 
->   Ralf
-> 
-> .
-> 
+Thanks :)  The boot mostly looks successful no?
 
+There are a couple blips, let's take a look:
 
--- 
+> Performance events: No support for PMU type 'niagara5'
+
+Hmmm, this was patched into an older tree I guess, as supported_pmu()
+accepts 'niagara5' as far as I can tell.  Oh I see, you patched
+against vanilla 3.17-rc7 instead of my 'sparc' GIT tree.
+
+> SELinux:  Registering netfilter hooks
+> Kernel unaligned access at TPC[675f74] sha256_transform+0x14/0x2840
+> Kernel unaligned access at TPC[675f88] sha256_transform+0x28/0x2840
+> Kernel unaligned access at TPC[675f88] sha256_transform+0x28/0x2840
+> Kernel unaligned access at TPC[675f88] sha256_transform+0x28/0x2840
+> Kernel unaligned access at TPC[675f88] sha256_transform+0x28/0x2840
+> alg: No test for stdrng (krng)
+
+Interesting.  sha256_transform() depends upon the input data being
+at least 32-bit aligned.  Let's get a stack backtrace to see how
+this happens:
+
+==========
+diff --git a/arch/sparc/kernel/unaligned_64.c b/arch/sparc/kernel/unaligned_64.c
+index 62098a8..59ea98a 100644
+--- a/arch/sparc/kernel/unaligned_64.c
++++ b/arch/sparc/kernel/unaligned_64.c
+@@ -299,6 +299,7 @@ static void log_unaligned(struct pt_regs *regs)
+ 	if (__ratelimit(&ratelimit)) {
+ 		printk("Kernel unaligned access at TPC[%lx] %pS\n",
+ 		       regs->tpc, (void *) regs->tpc);
++		dump_stack();
+ 	}
+ }
+ 
+==========
+
+> f0290d30: ttyS0 at I/O 0x0 (irq = 1, base_baud = 115200) is a SUN4V HCONS
+> NMI watchdog: BUG: soft lockup - CPU#527 stuck for 22s! [swapper/0:1]
+> Modules linked in:
+
+I think this is triggered because in console_unlock() all buffered console
+output is emitted all at once.  And with all of those vmemmap log messages
+it gets huge.
+
+I guess this is another reason to trim down those messages, so I'll work
+on that now. :)
+
+> aes_sparc64: Using sparc64 aes opcodes optimized AES implementation
+> alg: skcipher-ddst: Test 5 failed on encryption for ctr-aes-sparc64
+> 00000000: da 4e 3f bc e8 b6 3a a2 d5 4d 84 4a a9 0c e1 a5
+
+Hmmm, interesting.  I just noticed that I haven't enabled the
+sparc64 crypto drivers in my current test .config, but I
+turned them on and I don't get this test failure.
+
+I'll try to reproduce with the 'tcrypt' module or similar.
+
+> sd 5:0:2:0: attempting task abort! scmd(fff8183f401d97a0)
+> sd 5:0:2:0: [sde] CDB: 
+> Read(10): 28 20 0a 20 2b 23 00 00 08 00
+> scsi target5:0:2: handle(0x000b), sas_address(0x5000cca016322f71), phy(2)
+> scsi target5:0:2: enclosure_logical_id(0x508002000159c0d1), slot(2)
+> sd 5:0:2:0: task abort: SUCCESS scmd(fff8183f401d97a0)
+
+I get these every once in a while, the block I/O always recovers.
+
+I assume this booted all the way to a login prompt or similar?
+
 Thanks!
-Yijing
 
