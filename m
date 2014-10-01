@@ -1,35 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 25 Oct 2014 18:28:22 +0000
-Subject: Re: [PATCHv5 3/4] sparc64: Avoid irqsave/restore on vio.lock if in_softirq()
-Message-Id: <20141025.142822.141874034124023889.davem@davemloft.net>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 01 Oct 2014 16:23:54 +0000
+Subject: Re: [PATCH] sparc64: Add vio_set_intr() to enable/disable Rx interrupts
+Message-Id: <20141001162354.GF17706@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141022221245.GE17252@oracle.com>
-In-Reply-To: <20141022221245.GE17252@oracle.com>
+References: <20140923153744.GB11042@oracle.com>
+In-Reply-To: <20140923153744.GB11042@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sowmini.varadhan@oracle.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 22 Oct 2014 18:12:45 -0400
-
+On (09/30/14 17:41), David Miller wrote:
 > 
-> For NAPIfied drivers , there is no need to
-> synchronize by doing irqsave/restore on vio.lock in the I/O
-> path.
+> > The vio_set_intr() API should be used by VIO consumers to enable/disable
+> > Rx interrupts to facilitate deferred processing in softirq/bottom-half
+> > context.
+> > 
+> > Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 > 
-> Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+> Applied, thanks.
 
-Conditional locking is broken locking, and the bug you introduce
-here is a good example of why that is.
+I'm just getting ready to submit some sunvnet changes to net-next that use
+the above functions. Do I need to resend this patch to net-next at that time
+(I noticed that the Jumbo-mtu patch did that)?
 
-If the vio->timer has to be triggered when vio_port_up() is
-invoked, it will next run fron in_softirq() context regardless
-of whether the user is sunvnet or sunvdc.  So it will elide
-the locking regardless of who is using this vio context.
+I do plan to call out the dependancy in the cover-letter for the sunvnet
+series, of course. 
 
-Never, ever, use conditional locking.
+--Sowmini
 
-This locking is harmless overhead in a slow path, just leave
-it alone for now.
