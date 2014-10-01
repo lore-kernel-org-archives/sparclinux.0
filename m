@@ -1,34 +1,17 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 22 Oct 2014 00:16:12 +0000
-Subject: Re: [PATCHv4 3/4] sparc64: Avoid irqsave/restore on vio.lock if in_softirq()
-Message-Id: <20141022001612.GB26724@oracle.com>
+From: Researching Firm <info@torostrade.net>
+Date: Wed, 01 Oct 2014 08:18:48 +0000
+Subject: Inquiry
+Message-Id: <8458eca861a4f66e1a3a7e7bd3797fa0@torostrade.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141021141647.GF15405@oracle.com>
- <CAGRGNgXvKJBhOE1z3=_gZkE=X94HnoAvTN6Zv5G1h8JuFfS8Ng@mail.gmail.com>
- <5446F291.1030400@oracle.com>
-In-Reply-To: <5446F291.1030400@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Julian Calaby <julian.calaby@gmail.com>, "David S. Miller" <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On (10/21/14 18:56), Dave Kleikamp wrote:
-> > 
-> > Is gcc not smart enough to know that this variable isn't used before
-> > it's set? (I assume it isn't used elsewhere in this function)
-> 
-> It probably assumes in_softirq() might evaluate differently in the each
-> case.
-
-yes, that's what I suspected too. I suppose it is possible
-from the compiler's point of view that something in between 
-might change the result of in_softirq() so that we may be 
-using an uninit variable in the second call.
-
-anyway, the warning was annoying, and would only numb the
-user into ignoring other real issues, so I figured I might
-as well silence the warning.
-
---Sowmini
-
+Hello,
+We are conducting a standard process investigation involving a client 
+who
+shares the same name with you and also the circumstances surrounding
+investments made by this client.
+Are you aware of any relative/relation having the same surname?
+This is a confidential message from Researching Firm.
