@@ -1,8 +1,10 @@
 From: "Mr. James" <hbllnp@barid.com>
-Date: Thu, 02 Oct 2014 08:55:59 +0000
+Date: Thu, 02 Oct 2014 20:56:09 +0000
 Subject: <Reply ASAP>
-Message-Id: <20141002083409.F34C35C0E7CD@mail.okinawabb.com>
+Message-Id: <20141002203422.181BA5C2B97C@mail.okinawabb.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141002083409.F34C35C0E7CD@mail.okinawabb.com>
+In-Reply-To: <20141002083409.F34C35C0E7CD@mail.okinawabb.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
