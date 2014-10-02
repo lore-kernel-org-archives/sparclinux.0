@@ -1,29 +1,15 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Oct 2014 23:54:23 +0000
-Subject: Re: [PATCH v3 0/9] sparc64: MM/IRQ patch queue.
-Message-Id: <20141005.195423.404867166207762669.davem@davemloft.net>
+From: "Mr. James" <hbllnp@barid.com>
+Date: Thu, 02 Oct 2014 08:55:59 +0000
+Subject: <Reply ASAP>
+Message-Id: <20141002083409.F34C35C0E7CD@mail.okinawabb.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141004.192630.315529201590329439.davem@davemloft.net>
-In-Reply-To: <20141004.192630.315529201590329439.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Sun, 5 Oct 2014 14:49:43 -0400
+Sequel to your non-response to my previous email, I am re-sending this to you again thus; A deceased client of mine who died of a heart-related ailment about 3 years ago left behind some funds which I want you to  assist in retriving and distributing. Reply so I can give you details on what is needed to be done.
 
-> Remote M7-4 up with spec-jbb and hugepages. Local T4-2 up with DEBUG_PAGEALLOC.
-> Remote T5-8 being severely thrashed with several different loads concurrently.
-> Local T5-2 was under severe load with THP "always" until my "QuietComfort 3"
-> headphones declared magnificent/enough :)
-> 
-> Seriously, I believe we are in good condition. There will be issues but
-> this is always the challenge.
-> 
-> Should you desire a boot log, please feel free to request. I've consumed 
-> nearly all boot logs with scrutiny.
-> 
-> Acked-by: Bob Picco <bob.picco@oracle.com>
+Regards,
 
-Thanks a lot for testing, I'll push all of this work out.
+James.
