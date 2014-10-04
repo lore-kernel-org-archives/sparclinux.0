@@ -1,57 +1,41 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 31 Oct 2014 20:44:20 +0000
-Subject: [GIT] Sparc
-Message-Id: <20141031.164420.347853554417112227.davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:26:30 +0000
+Subject: [PATCH v3 0/9] sparc64: MM/IRQ patch queue.
+Message-Id: <20141004.192630.315529201590329439.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-Two changes:
+Third time is the charm, right? :-)  Let's hope so...
 
-1) It makes no sense to execute a VTOC partition table request
-   in the Sun virtual block device driver and fail to load if it
-   doesn't succeed because a) we don't use the result at all and
-   b) it won't succeed if there is an EFI partition on the disk,
-   for example.
+Changes since v2:
 
-   We read the partition table via the normal means in the block
-   layer anyways, so this is really completely useless, so just
-   remove it.
+1) Get rid of verbose kernel log messages during vmemmap construction.
 
-   From Dwight Engen.
+2) Add patch #9 to get rid of superfluous page table blocks in the
+   kernel image which can be allocated dynamically, and at the same
+   time increase MAX_BANKS to hopefully accomodate guests with very
+   fragmented real memory layouts.
 
-2) Hook up new bpf system call.
+3) Fix bug in KERN_PGTABLE_WALK that would corrupt the huge page TTEs
+   of vmemmap mappings.
 
-Please pull, thanks a lot!
+4) Do some type checking of the page table pointer objects passed into
+   pgd_populate() and pud_populate() by creating inline function
+   helpers.  The reason we can't make pgd_populate() and
+   pud_populate() inline is that "struct mm_struct" is sometimes not
+   fully defined yet in contexts where this header is included.
 
-The following changes since commit f7e87a44ef60ad379e39b45437604141453bf0ec:
+   Anyways, this found a bug (albeit in the end harmless) in the new
+   implementation of vmemmap_populate() in that we were passing a
+   "pgd_t *" instead of a "pud_t *" into the third argument of
+   pgd_populate.
 
-  Merge tag 'media/v3.18-rc2' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2014-10-27 15:05:40 -0700)
+As usual, let me know how it goes.
 
-are available in the git repository at:
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to 85b0c6e62c48bb9179fd5b3e954f362fb346cbd5:
-
-  sunvdc: don't call VD_OP_GET_VTOC (2014-10-31 15:49:45 -0400)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc: Hook up bpf system call.
-
-Dwight Engen (1):
-      sunvdc: don't call VD_OP_GET_VTOC
-
- arch/sparc/include/uapi/asm/unistd.h | 3 ++-
- arch/sparc/kernel/systbls_32.S       | 2 +-
- arch/sparc/kernel/systbls_64.S       | 4 ++--
- drivers/block/sunvdc.c               | 9 ---------
- 4 files changed, 5 insertions(+), 13 deletions(-)
+   
