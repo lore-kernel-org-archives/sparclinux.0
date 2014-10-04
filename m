@@ -1,153 +1,174 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 02:34:32 +0000
-Subject: [PATCH v3 13/27] x86/xen/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1413342435-7876-14-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:27:07 +0000
+Subject: [PATCH 5/9] sparc64: Use kernel page tables for vmemmap.
+Message-Id: <20141004.192707.378876209162336297.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+For sparse memory configurations, the vmemmap array behaves terribly
+and it takes up an inordinate amount of space in the BSS section of
+the kernel image unconditionally.
+
+Just build huge PMDs and look them up just like we do for TLB misses
+in the vmalloc area.
+
+Kernel BSS shrinks by about 2MB.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/pci/xen.c |   58 +++++++++++++++++++++++++++++++++++-----------------
- 1 files changed, 39 insertions(+), 19 deletions(-)
+ arch/sparc/kernel/ktlb.S |  9 ++----
+ arch/sparc/mm/init_64.c  | 72 +++++++++++++++++++++++-------------------------
+ arch/sparc/mm/init_64.h  | 11 --------
+ 3 files changed, 36 insertions(+), 56 deletions(-)
 
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index e5b8b78..75067ca 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -157,7 +157,8 @@ static int acpi_register_gsi_xen(struct device *dev, u32 gsi,
- struct xen_pci_frontend_ops *xen_pci_frontend;
- EXPORT_SYMBOL_GPL(xen_pci_frontend);
+diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
+index 94a1e66..2627a7f 100644
+--- a/arch/sparc/kernel/ktlb.S
++++ b/arch/sparc/kernel/ktlb.S
+@@ -186,13 +186,8 @@ kvmap_dtlb_load:
  
--static int xen_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_setup_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int irq, ret, i;
- 	struct msi_desc *msidesc;
-@@ -219,7 +220,8 @@ static void xen_msi_compose_msg(struct pci_dev *pdev, unsigned int pirq,
- 	msg->data = XEN_PIRQ_MSI_DATA;
- }
- 
--static int xen_hvm_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_hvm_setup_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int irq, pirq;
- 	struct msi_desc *msidesc;
-@@ -267,7 +269,8 @@ error:
- #ifdef CONFIG_XEN_DOM0
- static bool __read_mostly pci_seg_supported = true;
- 
--static int xen_initdom_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_initdom_setup_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int ret = 0;
- 	struct msi_desc *msidesc;
-@@ -349,7 +352,8 @@ out:
- 	return ret;
- }
- 
--static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
-+static void xen_initdom_restore_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev)
- {
- 	int ret = 0;
- 
-@@ -376,7 +380,13 @@ static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
- }
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ kvmap_vmemmap:
+-	sub		%g4, %g5, %g5
+-	srlx		%g5, ILOG2_4MB, %g5
+-	sethi		%hi(vmemmap_table), %g1
+-	sllx		%g5, 3, %g5
+-	or		%g1, %lo(vmemmap_table), %g1
+-	ba,pt		%xcc, kvmap_dtlb_load
+-	 ldx		[%g1 + %g5], %g5
++	KERN_PGTABLE_WALK(%g4, %g5, %g2, kvmap_dtlb_longpath)
++	ba,a,pt		%xcc, kvmap_dtlb_load
  #endif
  
--static void xen_teardown_msi_irqs(struct pci_dev *dev)
-+static void xen_teardown_msi_irq(struct msi_chip *chip, unsigned int irq)
-+{
-+	xen_destroy_irq(irq);
-+}
-+
-+static void xen_teardown_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev)
+ kvmap_dtlb_nonlinear:
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index d43b03b..08ab4f4 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2308,18 +2308,9 @@ unsigned long _PAGE_CACHE __read_mostly;
+ EXPORT_SYMBOL(_PAGE_CACHE);
+ 
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+-unsigned long vmemmap_table[VMEMMAP_SIZE];
+-
+-static long __meminitdata addr_start, addr_end;
+-static int __meminitdata node_start;
+-
+ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 			       int node)
  {
- 	struct msi_desc *msidesc;
+-	unsigned long phys_start = (vstart - VMEMMAP_BASE);
+-	unsigned long phys_end = (vend - VMEMMAP_BASE);
+-	unsigned long addr = phys_start & VMEMMAP_CHUNK_MASK;
+-	unsigned long end = VMEMMAP_ALIGN(phys_end);
+ 	unsigned long pte_base;
  
-@@ -386,14 +396,22 @@ static void xen_teardown_msi_irqs(struct pci_dev *dev)
- 	else
- 		xen_pci_frontend_disable_msi(dev);
+ 	pte_base = (_PAGE_VALID | _PAGE_SZ4MB_4U |
+@@ -2330,47 +2321,52 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 			    _PAGE_CP_4V | _PAGE_CV_4V |
+ 			    _PAGE_P_4V | _PAGE_W_4V);
  
--	/* Free the IRQ's and the msidesc using the generic code. */
--	default_teardown_msi_irqs(dev);
+-	for (; addr < end; addr += VMEMMAP_CHUNK) {
+-		unsigned long *vmem_pp -			vmemmap_table + (addr >> VMEMMAP_CHUNK_SHIFT);
+-		void *block;
++	pte_base |= _PAGE_PMD_HUGE;
+ 
+-		if (!(*vmem_pp & _PAGE_VALID)) {
+-			block = vmemmap_alloc_block(1UL << ILOG2_4MB, node);
+-			if (!block)
++	vstart = vstart & PMD_MASK;
++	vend = ALIGN(vend, PMD_SIZE);
++	for (; vstart < vend; vstart += PMD_SIZE) {
++		pgd_t *pgd = pgd_offset_k(vstart);
++		unsigned long pte;
++		pud_t *pud;
++		pmd_t *pmd;
++
++		if (pgd_none(*pgd)) {
++			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
++
++			if (!new)
+ 				return -ENOMEM;
++			pgd_populate(&init_mm, pgd, new);
++		}
+ 
+-			*vmem_pp = pte_base | __pa(block);
++		pud = pud_offset(pgd, vstart);
++		if (pud_none(*pud)) {
++			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
+ 
+-			/* check to see if we have contiguous blocks */
+-			if (addr_end != addr || node_start != node) {
+-				if (addr_start)
+-					printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
+-					       addr_start, addr_end-1, node_start);
+-				addr_start = addr;
+-				node_start = node;
+-			}
+-			addr_end = addr + VMEMMAP_CHUNK;
++			if (!new)
++				return -ENOMEM;
++			pud_populate(&init_mm, pud, new);
+ 		}
+-	}
+-	return 0;
 -}
-+	list_for_each_entry(msidesc, &dev->msi_list, list) {
-+		int i, nvec;
-+		if (msidesc->irq = 0)
-+			continue;
-+		if (msidesc->nvec_used)
-+			nvec = msidesc->nvec_used;
-+		else
-+			nvec = 1 << msidesc->msi_attrib.multiple;
-+		for (i = 0; i < nvec; i++)
-+			xen_teardown_msi_irq(chip, msidesc->irq + i);
-+	}
  
--static void xen_teardown_msi_irq(unsigned int irq)
+-void __meminit vmemmap_populate_print_last(void)
 -{
--	xen_destroy_irq(irq);
- }
+-	if (addr_start) {
+-		printk(KERN_DEBUG " [%lx-%lx] on node %d\n",
+-		       addr_start, addr_end-1, node_start);
+-		addr_start = 0;
+-		addr_end = 0;
+-		node_start = 0;
++		pmd = pmd_offset(pud, vstart);
 +
-+struct msi_chip xen_msi_chip;
++		pte = pmd_val(*pmd);
++		if (!(pte & _PAGE_VALID)) {
++			void *block = vmemmap_alloc_block(PMD_SIZE, node);
 +
- #endif
- 
- int __init pci_xen_init(void)
-@@ -414,9 +432,9 @@ int __init pci_xen_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_setup_msi_irqs;
-+	xen_msi_chip.teardown_irqs = xen_teardown_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	pci_msi_ignore_mask = 1;
- #endif
- 	return 0;
-@@ -436,8 +454,9 @@ int __init pci_xen_hvm_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_hvm_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.setup_irqs = xen_hvm_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	x86_msi_chip = &xen_msi_chip;
- #endif
- 	return 0;
++			if (!block)
++				return -ENOMEM;
++
++			pmd_val(*pmd) = pte_base | __pa(block);
++		}
+ 	}
++
++	return 0;
  }
-@@ -494,9 +513,10 @@ int __init pci_xen_initial_domain(void)
- 	int irq;
  
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
-+	xen_msi_chip.setup_irqs = xen_initdom_setup_msi_irqs;
-+	xen_msi_chip.teardown_irq = xen_teardown_msi_irq;
-+	xen_msi_chip.restore_irqs = xen_initdom_restore_msi_irqs;
-+	x86_msi_chip = &xen_msi_chip;
- 	pci_msi_ignore_mask = 1;
- #endif
- 	xen_setup_acpi_sci();
+ void vmemmap_free(unsigned long start, unsigned long end)
+ {
+ }
+-
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
+ static void prot_init_common(unsigned long page_none,
+diff --git a/arch/sparc/mm/init_64.h b/arch/sparc/mm/init_64.h
+index 29ff73f..a4c0960 100644
+--- a/arch/sparc/mm/init_64.h
++++ b/arch/sparc/mm/init_64.h
+@@ -31,15 +31,4 @@ extern unsigned long kern_locked_tte_data;
+ 
+ void prom_world(int enter);
+ 
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-#define VMEMMAP_CHUNK_SHIFT	22
+-#define VMEMMAP_CHUNK		(1UL << VMEMMAP_CHUNK_SHIFT)
+-#define VMEMMAP_CHUNK_MASK	~(VMEMMAP_CHUNK - 1UL)
+-#define VMEMMAP_ALIGN(x)	(((x)+VMEMMAP_CHUNK-1UL)&VMEMMAP_CHUNK_MASK)
+-
+-#define VMEMMAP_SIZE	((((1UL << MAX_PHYSADDR_BITS) >> PAGE_SHIFT) * \
+-			  sizeof(struct page)) >> VMEMMAP_CHUNK_SHIFT)
+-extern unsigned long vmemmap_table[VMEMMAP_SIZE];
+-#endif
+-
+ #endif /* _SPARC64_MM_INIT_H */
 -- 
-1.7.1
+1.8.1.2
 
