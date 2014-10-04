@@ -1,199 +1,88 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Fri, 31 Oct 2014 13:13:12 +0000
-Subject: [PATCH 3.12 070/144] sparc64: T5 PMU
-Message-Id: <4440c6f4f1bef106bcd4d75295cc16a16ab94a9c.1414759455.git.jslaby@suse.cz>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:27:12 +0000
+Subject: [PATCH 6/9] sparc64: Increase MAX_PHYS_ADDRESS_BITS to 53.
+Message-Id: <20141004.192712.702248323942947271.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: bob picco <bpicco@meloft.net>
 
-3.12-stable review patch.  If anyone has any objections, please let me know.
+Make sure, at compile time, that the kernel can properly support
+whatever MAX_PHYS_ADDRESS_BITS is defined to.
 
-=======
-The T5 (niagara5) has different PCR related HV fast trap values and a new
-HV API Group. This patch utilizes these and shares when possible with niagara4.
+On M7 chips, use a max_phys_bits value of 49.
 
-We use the same sparc_pmu niagara4_pmu. Should there be new effort to
-obtain the MCU perf statistics then this would have to be changed.
+Based upon a patch by Bob Picco.
 
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/hypervisor.h | 11 +++++++++
- arch/sparc/kernel/hvapi.c           |  1 +
- arch/sparc/kernel/hvcalls.S         | 16 +++++++++++++
- arch/sparc/kernel/pcr.c             | 47 +++++++++++++++++++++++++++++++++----
- arch/sparc/kernel/perf_event.c      |  3 ++-
- 5 files changed, 73 insertions(+), 5 deletions(-)
+ arch/sparc/include/asm/page_64.h    | 8 ++++----
+ arch/sparc/include/asm/pgtable_64.h | 4 ++++
+ arch/sparc/mm/init_64.c             | 9 ++++++++-
+ 3 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index ca121f0fa3ec..17be9d618335 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2944,6 +2944,16 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
- 					  unsigned long reg_val);
- #endif
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 732ba17..6784a33 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -122,11 +122,11 @@ extern unsigned long PAGE_OFFSET;
  
-+#define	HV_FAST_T5_GET_PERFREG		0x1a8
-+#define	HV_FAST_T5_SET_PERFREG		0x1a9
-+
-+#ifndef	__ASSEMBLY__
-+unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-+				   unsigned long *reg_val);
-+unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-+				   unsigned long reg_val);
+ #endif /* !(__ASSEMBLY__) */
+ 
+-/* The maximum number of physical memory address bits we support, this
+- * is used to size various tables used to manage kernel TLB misses and
+- * also the sparsemem code.
++/* The maximum number of physical memory address bits we support.  The
++ * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
++ * evaluates to.
+  */
+-#define MAX_PHYS_ADDRESS_BITS	47
++#define MAX_PHYS_ADDRESS_BITS	53
+ 
+ #define ILOG2_4MB		22
+ #define ILOG2_256MB		28
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index a305b22..0552957 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -67,6 +67,10 @@
+ #define PGDIR_MASK	(~(PGDIR_SIZE-1))
+ #define PGDIR_BITS	(PAGE_SHIFT - 3)
+ 
++#if (MAX_PHYS_ADDRESS_BITS > PGDIR_SHIFT + PGDIR_BITS)
++#error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can support
 +#endif
 +
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-@@ -2975,6 +2985,7 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
- #define HV_GRP_VF_CPU			0x0205
- #define HV_GRP_KT_CPU			0x0209
- #define HV_GRP_VT_CPU			0x020c
-+#define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
- 
- #ifndef __ASSEMBLY__
-diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
-index c0a2de0fd624..5c55145bfbf0 100644
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_VF_CPU,				},
- 	{ .group = HV_GRP_KT_CPU,				},
- 	{ .group = HV_GRP_VT_CPU,				},
-+	{ .group = HV_GRP_T5_CPU,				},
- 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
- };
- 
-diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
-index f3ab509b76a8..caedf8320416 100644
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
- 	retl
- 	 nop
- ENDPROC(sun4v_vt_set_perfreg)
-+
-+ENTRY(sun4v_t5_get_perfreg)
-+	mov	%o1, %o4
-+	mov	HV_FAST_T5_GET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_get_perfreg)
-+
-+ENTRY(sun4v_t5_set_perfreg)
-+	mov	HV_FAST_T5_SET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_set_perfreg)
-diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
-index 269af58497aa..7e967c8018c8 100644
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops = {
- 	.pcr_nmi_disable	= PCR_N4_PICNPT,
- };
- 
-+static u64 n5_pcr_read(unsigned long reg_num)
-+{
-+	unsigned long val;
-+
-+	(void) sun4v_t5_get_perfreg(reg_num, &val);
-+
-+	return val;
-+}
-+
-+static void n5_pcr_write(unsigned long reg_num, u64 val)
-+{
-+	(void) sun4v_t5_set_perfreg(reg_num, val);
-+}
-+
-+static const struct pcr_ops n5_pcr_ops = {
-+	.read_pcr		= n5_pcr_read,
-+	.write_pcr		= n5_pcr_write,
-+	.read_pic		= n4_pic_read,
-+	.write_pic		= n4_pic_write,
-+	.nmi_picl_value		= n4_picl_value,
-+	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
-+				   PCR_N4_UTRACE | PCR_N4_TOE |
-+				   (26 << PCR_N4_SL_SHIFT)),
-+	.pcr_nmi_disable	= PCR_N4_PICNPT,
-+};
-+
-+
- static unsigned long perf_hsvc_group;
- static unsigned long perf_hsvc_major;
- static unsigned long perf_hsvc_minor;
- 
- static int __init register_perf_hsvc(void)
- {
-+	unsigned long hverror;
-+
- 	if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
-@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(void)
- 			perf_hsvc_group = HV_GRP_VT_CPU;
+ #if (PGDIR_SHIFT + PGDIR_BITS) != 53
+ #error Page table parameters do not cover virtual address space properly.
+ #endif
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 08ab4f4..a8e3395 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1690,12 +1690,19 @@ static void __init setup_page_offset(void)
+ 		case SUN4V_CHIP_NIAGARA4:
+ 		case SUN4V_CHIP_NIAGARA5:
+ 		case SUN4V_CHIP_SPARC64X:
+-		default:
++		case SUN4V_CHIP_SPARC_M6:
+ 			/* T4 and later support 52-bit virtual addresses.  */
+ 			sparc64_va_hole_top =    0xfff8000000000000UL;
+ 			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 47;
  			break;
- 
-+		case SUN4V_CHIP_NIAGARA5:
-+			perf_hsvc_group = HV_GRP_T5_CPU;
++		case SUN4V_CHIP_SPARC_M7:
++		default:
++			/* M7 and later support 52-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xfff8000000000000UL;
++			sparc64_va_hole_bottom = 0x0008000000000000UL;
++			max_phys_bits = 49;
 +			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(void)
- 
- 		perf_hsvc_major = 1;
- 		perf_hsvc_minor = 0;
--		if (sun4v_hvapi_register(perf_hsvc_group,
--					 perf_hsvc_major,
--					 &perf_hsvc_minor)) {
--			printk("perfmon: Could not register hvapi.\n");
-+		hverror = sun4v_hvapi_register(perf_hsvc_group,
-+					       perf_hsvc_major,
-+					       &perf_hsvc_minor);
-+		if (hverror) {
-+			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
-+			       hverror);
- 			return -ENODEV;
  		}
  	}
-@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(void)
- 		pcr_ops = &n4_pcr_ops;
- 		break;
  
-+	case SUN4V_CHIP_NIAGARA5:
-+		pcr_ops = &n5_pcr_ops;
-+		break;
-+
- 	default:
- 		ret = -ENODEV;
- 		break;
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 857bacaefb68..617b9fe33771 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+	if (!strcmp(sparc_pmu_type, "niagara4") ||
-+	    !strcmp(sparc_pmu_type, "niagara5")) {
- 		sparc_pmu = &niagara4_pmu;
- 		return true;
- 	}
 -- 
-2.1.2
+1.8.1.2
 
