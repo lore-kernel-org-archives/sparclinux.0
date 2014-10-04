@@ -1,143 +1,122 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 19 Oct 2014 00:00:52 +0000
-Subject: [PATCH 4/5] silo: ext2fs: delete forward declarations of inline functions
-Message-Id: <1413676853-23942-5-git-send-email-aaro.koskinen@iki.fi>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:27:31 +0000
+Subject: [PATCH 9/9] sparc64: Kill unnecessary tables and increase MAX_BANKS.
+Message-Id: <20141004.192731.1830862699502005193.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Delete forward declarations of inline functions.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+swapper_low_pmd_dir and swapper_pud_dir are actually completely
+useless and unnecessary.
+
+We just need swapper_pg_dir[].  Naturally the other page table chunks
+will be allocated on an as-needed basis.  Since the kernel actually
+accesses these tables in the PAGE_OFFSET view, there is not even a TLB
+locality advantage of placing them in the kernel image.
+
+Use the hard coded vmlinux.ld.S slot for swapper_pg_dir which is
+naturally page aligned.
+
+Increase MAX_BANKS to 1024 in order to handle heavily fragmented
+virtual guests.
+
+Even with this MAX_BANKS increase, the kernel is 20K+ smaller.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- include/ext2fs/bitops.h | 67 -------------------------------------------------
- include/ext2fs/ext2fs.h | 22 ----------------
- 2 files changed, 89 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |  1 -
+ arch/sparc/kernel/vmlinux.lds.S     |  5 +++--
+ arch/sparc/mm/init_64.c             | 25 ++-----------------------
+ 3 files changed, 5 insertions(+), 26 deletions(-)
 
-diff --git a/include/ext2fs/bitops.h b/include/ext2fs/bitops.h
-index d7d0ce0..2c9acae 100644
---- a/include/ext2fs/bitops.h
-+++ b/include/ext2fs/bitops.h
-@@ -13,70 +13,10 @@
-  * Linus Torvalds.
-  */
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index c093922..bfeb626 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -927,7 +927,6 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+ #endif
  
--
--extern int ext2fs_set_bit(int nr,void * addr);
--extern int ext2fs_clear_bit(int nr, void * addr);
--extern int ext2fs_test_bit(int nr, const void * addr);
--extern __u16 ext2fs_swab16(__u16 val);
--extern __u32 ext2fs_swab32(__u32 val);
--
- /*
-  * EXT2FS bitmap manipulation routines.
-  */
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+-extern pmd_t swapper_low_pmd_dir[PTRS_PER_PMD];
  
--/* Support for sending warning messages from the inline subroutines */
--extern const char *ext2fs_block_string;
--extern const char *ext2fs_inode_string;
--extern const char *ext2fs_mark_string;
--extern const char *ext2fs_unmark_string;
--extern const char *ext2fs_test_string;
--extern void ext2fs_warn_bitmap(errcode_t errcode, unsigned long arg,
--			       const char *description);
--extern void ext2fs_warn_bitmap2(ext2fs_generic_bitmap bitmap,
--				int code, unsigned long arg);
--
--extern int ext2fs_mark_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
--extern int ext2fs_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--				       blk_t block);
--extern int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
--
--extern int ext2fs_mark_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
--extern int ext2fs_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--				       ino_t inode);
--extern int ext2fs_test_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
--
--extern void ext2fs_fast_mark_block_bitmap(ext2fs_block_bitmap bitmap,
--					  blk_t block);
--extern void ext2fs_fast_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--					    blk_t block);
--extern int ext2fs_fast_test_block_bitmap(ext2fs_block_bitmap bitmap,
--					 blk_t block);
--
--extern void ext2fs_fast_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					  ino_t inode);
--extern void ext2fs_fast_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					    ino_t inode);
--extern int ext2fs_fast_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					 ino_t inode);
--extern blk_t ext2fs_get_block_bitmap_start(ext2fs_block_bitmap bitmap);
--extern ino_t ext2fs_get_inode_bitmap_start(ext2fs_inode_bitmap bitmap);
--extern blk_t ext2fs_get_block_bitmap_end(ext2fs_block_bitmap bitmap);
--extern ino_t ext2fs_get_inode_bitmap_end(ext2fs_inode_bitmap bitmap);
--
--extern void ext2fs_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					   blk_t block, int num);
--extern void ext2fs_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					     blk_t block, int num);
--extern int ext2fs_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					  blk_t block, int num);
--extern void ext2fs_fast_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						blk_t block, int num);
--extern void ext2fs_fast_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						  blk_t block, int num);
--extern int ext2fs_fast_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					       blk_t block, int num);
--extern void ext2fs_set_bitmap_padding(ext2fs_generic_bitmap map);
--
- #ifdef __GNUC__
- #define _INLINE_ extern __inline__
- #else				/* For Watcom C */
-@@ -214,13 +154,6 @@ _INLINE_ __u32 ext2fs_swab32(__u32 val)
- #endif /* !_EXT2_HAVE_ASM_SWAB */
+ void paging_init(void);
+ unsigned long find_ecache_flush_span(unsigned long size);
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index 0bacceb..0924305 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -35,8 +35,9 @@ jiffies = jiffies_64;
  
- _INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					 __u32 bitno);
--_INLINE_ int ext2fs_unmark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					   blk_t bitno);
--_INLINE_ int ext2fs_test_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					blk_t bitno);
--
--_INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
- 					 __u32 bitno)
+ SECTIONS
  {
- 	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
-diff --git a/include/ext2fs/ext2fs.h b/include/ext2fs/ext2fs.h
-index 359838f..91603b7 100644
---- a/include/ext2fs/ext2fs.h
-+++ b/include/ext2fs/ext2fs.h
-@@ -842,28 +842,6 @@ extern int ext2fs_parse_version_string(const char *ver_string);
- extern int ext2fs_get_library_version(const char **ver_string,
- 				      const char **date_string);
+-	/* swapper_low_pmd_dir is sparc64 only */
+-	swapper_low_pmd_dir = 0x0000000000402000;
++#ifdef CONFIG_SPARC64
++	swapper_pg_dir = 0x0000000000402000;
++#endif
+ 	. = INITIAL_ADDRESS;
+ 	.text TEXTSTART :
+ 	{
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 72547c0..cb99b46 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -87,7 +87,7 @@ extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
  
--/* inline functions */
--extern errcode_t ext2fs_get_mem(unsigned long size, void **ptr);
--extern errcode_t ext2fs_free_mem(void **ptr);
--#if 0
--extern errcode_t ext2fs_resize_mem(unsigned long old_size,
--				   unsigned long size, void **ptr);
--#endif
--extern void ext2fs_mark_super_dirty(ext2_filsys fs);
--extern void ext2fs_mark_changed(ext2_filsys fs);
--extern int ext2fs_test_changed(ext2_filsys fs);
--extern void ext2fs_mark_valid(ext2_filsys fs);
--extern void ext2fs_unmark_valid(ext2_filsys fs);
--extern int ext2fs_test_valid(ext2_filsys fs);
--extern void ext2fs_mark_ib_dirty(ext2_filsys fs);
--extern void ext2fs_mark_bb_dirty(ext2_filsys fs);
--extern int ext2fs_test_ib_dirty(ext2_filsys fs);
--extern int ext2fs_test_bb_dirty(ext2_filsys fs);
--extern int ext2fs_group_of_blk(ext2_filsys fs, blk_t blk);
--extern int ext2fs_group_of_ino(ext2_filsys fs, ino_t ino);
--extern blk_t ext2fs_inode_data_blocks(ext2_filsys fs,
--				     struct ext2_inode *inode);
+ static unsigned long cpu_pgsz_mask;
+ 
+-#define MAX_BANKS	32
++#define MAX_BANKS	1024
+ 
+ static struct linux_prom64_registers pavail[MAX_BANKS];
+ static int pavail_ents;
+@@ -1943,12 +1943,6 @@ static void __init sun4v_linear_pte_xor_finalize(void)
+ 
+ static unsigned long last_valid_pfn;
+ 
+-/* These must be page aligned in order to not trigger the
+- * alignment tests of pgd_bad() and pud_bad().
+- */
+-pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__ ((aligned (PAGE_SIZE)));
+-static pud_t swapper_pud_dir[PTRS_PER_PUD] __attribute__ ((aligned (PAGE_SIZE)));
 -
- #ifdef __GNUC__
- #define _INLINE_ extern __inline__
- #else				/* For Watcom C */
+ static void sun4u_pgprot_init(void);
+ static void sun4v_pgprot_init(void);
+ 
+@@ -2002,8 +1996,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long end_pfn, shift, phys_base;
+ 	unsigned long real_end, i;
+-	pud_t *pud;
+-	pmd_t *pmd;
+ 	int node;
+ 
+ 	setup_page_offset();
+@@ -2099,20 +2091,7 @@ void __init paging_init(void)
+ 	 */
+ 	init_mm.pgd += ((shift) / (sizeof(pgd_t)));
+ 	
+-	memset(swapper_low_pmd_dir, 0, sizeof(swapper_low_pmd_dir));
+-
+-	/* The kernel page tables we publish into what the rest of the
+-	 * world sees must be adjusted so that they see the PAGE_OFFSET
+-	 * address of these in-kerenel data structures.  However right
+-	 * here we must access them from the kernel image side, because
+-	 * the trap tables haven't been taken over and therefore we cannot
+-	 * take TLB misses in the PAGE_OFFSET linear mappings yet.
+-	 */
+-	pud = swapper_pud_dir + (shift / sizeof(pud_t));
+-	pgd_set(&swapper_pg_dir[0], pud);
+-
+-	pmd = swapper_low_pmd_dir + (shift / sizeof(pmd_t));
+-	pud_set(&swapper_pud_dir[0], pmd);
++	memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
+ 
+ 	inherit_prom_mappings();
+ 	
 -- 
-2.1.2
+1.8.1.2
 
