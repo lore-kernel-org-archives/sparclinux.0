@@ -1,116 +1,106 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue, 28 Oct 2014 03:34:25 +0000
-Subject: [PATCH 3.17 123/146] sparc64: find_node adjustment
-Message-Id: <20141028033348.780273911@linuxfoundation.org>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:26:46 +0000
+Subject: [PATCH 2/9] sparc64: Define VA hole at run time, rather than at compile time.
+Message-Id: <20141004.192646.1822710057249508337.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141028033343.441992423@linuxfoundation.org>
-In-Reply-To: <20141028033343.441992423@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-3.17-stable review patch.  If anyone has any objections, please let me know.
 
-------------------
+Now that we use 4-level page tables, we can provide up to 53-bits of
+virtual address space to the user.
 
-From: bob picco <bpicco@meloft.net>
+Adjust the VA hole based upon the capabilities of the cpu type probed.
 
-[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
-
-We have seen an issue with guest boot into LDOM that causes early boot failures
-because of no matching rules for node identitity of the memory. I analyzed this
-on my T4 and concluded there might not be a solution. I saw the issue in
-mainline too when booting into the control/primary domain - with guests
-configured.  Note, this could be a firmware bug on some older machines.
-
-I'll provide a full explanation of the issues below. Should we not find a
-matching BEST latency group for a real address (RA) then we will assume node 0.
-On the T4-2 here with the information provided I can't see an alternative.
-
-Technically the LDOM shown below should match the MBLOCK to the
-favorable latency group. However other factors must be considered too. Were
-the memory controllers configured "fine" grained interleave or "coarse"
-grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
-node?
-
-There has to be at least one Machine Description (MD) "group" and hence one
-NUMA node. The group can have one or more latency groups (lg) - more than one
-memory controller. The current code chooses the smallest latency as the most
-favorable per group. The latency and lg information is in MLGROUP below.
-MBLOCK is the base and size of the RAs for the machine as fetched from OBP
-/memory "available" property. My machine has one MBLOCK but more would be
-possible - with holes?
-
-For a T4-2 the following information has been gathered:
-with LDOM guest
-MEMBLOCK configuration:
- memory size = 0x27f870000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
- memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
- memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
-MBLOCK[0]: base[20000000] size[280000000] offset[0]
-(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
-(note: (RA + offset) & mask = val is the formula to detect a match for the
-memory controller. should there be no match for find_node node, a return
-value of -1 resulted for the node - BAD)
-
-There is one group. It has these forward links
-MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
-MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
-NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
-(note: "val" is the best lg's (smallest latency) "match")
-
-no LDOM guest - bare metal
-MEMBLOCK configuration:
- memory size = 0xfdf2d0000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
- memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
- memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
-MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
-
-there are two groups
-group node[16d5]
-MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
-MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
-NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
-group node[171d]
-MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
-MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
-NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
-(note: for this two "group" bare metal machine, 1/2 memory is in group one's
-lg and 1/2 memory is in group two's lg).
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/mm/init_64.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/page_64.h | 15 ++++-----------
+ arch/sparc/mm/init_64.c          | 21 +++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 11 deletions(-)
 
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 09ceb68..2211a80 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -102,21 +102,14 @@ typedef unsigned long pgprot_t;
+ 
+ typedef pte_t *pgtable_t;
+ 
+-/* These two values define the virtual address space range in which we
+- * must forbid 64-bit user processes from making mappings.  It used to
+- * represent precisely the virtual address space hole present in most
+- * early sparc64 chips including UltraSPARC-I.  But now it also is
+- * further constrained by the limits of our page tables, which is
+- * 43-bits of virtual address.
+- */
+-#define SPARC64_VA_HOLE_TOP	_AC(0xfffffc0000000000,UL)
+-#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000040000000000,UL)
++extern unsigned long sparc64_va_hole_top;
++extern unsigned long sparc64_va_hole_bottom;
+ 
+ /* The next two defines specify the actual exclusion region we
+  * enforce, wherein we use a 4GB red zone on each side of the VA hole.
+  */
+-#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
+-#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
++#define VA_EXCLUDE_START (sparc64_va_hole_bottom - (1UL << 32UL))
++#define VA_EXCLUDE_END   (sparc64_va_hole_top + (1UL << 32UL))
+ 
+ #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
+ 				 _AC(0x0000000070000000,UL) : \
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index a6c0a30..082fde1 100644
 --- a/arch/sparc/mm/init_64.c
 +++ b/arch/sparc/mm/init_64.c
-@@ -840,7 +840,10 @@ static int find_node(unsigned long addr)
- 		if ((addr & p->mask) = p->val)
- 			return i;
+@@ -1630,25 +1630,46 @@ static void __init page_offset_shift_patch(unsigned long phys_bits)
  	}
--	return -1;
-+	/* The following condition has been observed on LDOM guests.*/
-+	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
-+		" rule. Some physical memory will be owned by node 0.");
-+	return 0;
  }
  
- static u64 memblock_nid_range(u64 start, u64 end, int *nid)
-
++unsigned long sparc64_va_hole_top =    0xfffff80000000000UL;
++unsigned long sparc64_va_hole_bottom = 0x0000080000000000UL;
++
+ static void __init setup_page_offset(void)
+ {
+ 	unsigned long max_phys_bits = 40;
+ 
+ 	if (tlb_type = cheetah || tlb_type = cheetah_plus) {
++		/* Cheetah/Panther support a full 64-bit virtual
++		 * address, so we can use all that our page tables
++		 * support.
++		 */
++		sparc64_va_hole_top =    0xfff0000000000000UL;
++		sparc64_va_hole_bottom = 0x0010000000000000UL;
++
+ 		max_phys_bits = 42;
+ 	} else if (tlb_type = hypervisor) {
+ 		switch (sun4v_chip_type) {
+ 		case SUN4V_CHIP_NIAGARA1:
+ 		case SUN4V_CHIP_NIAGARA2:
++			/* T1 and T2 support 48-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xffff800000000000UL;
++			sparc64_va_hole_bottom = 0x0000800000000000UL;
++
+ 			max_phys_bits = 39;
+ 			break;
+ 		case SUN4V_CHIP_NIAGARA3:
++			/* T3 supports 48-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xffff800000000000UL;
++			sparc64_va_hole_bottom = 0x0000800000000000UL;
++
+ 			max_phys_bits = 43;
+ 			break;
+ 		case SUN4V_CHIP_NIAGARA4:
+ 		case SUN4V_CHIP_NIAGARA5:
+ 		case SUN4V_CHIP_SPARC64X:
+ 		default:
++			/* T4 and later support 52-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xfff8000000000000UL;
++			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 47;
+ 			break;
+ 		}
+-- 
+1.8.1.2
 
