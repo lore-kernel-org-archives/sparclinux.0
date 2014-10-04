@@ -1,44 +1,136 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 15 Oct 2014 18:00:34 +0000
-Subject: [PATCHv4 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
-Message-Id: <20141015180034.GG11840@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 23:26:53 +0000
+Subject: [PATCH 3/9] sparc64: Adjust KTSB assembler to support larger physical addresses.
+Message-Id: <20141004.192653.1212109702789055410.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, david.stevens@oracle.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-This patchset converts the sunvnet driver to use the NAPI framework.
+As currently coded the KTSB accesses in the kernel only support up to
+47 bits of physical addressing.
 
-Patch 1 in the series addresses the packet-receive path- all
-the vnet_event() processing is moved into NAPI context.
-This patch is dependant on the sparc-next commit:
-  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
-(Please cherry-pick sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
+Adjust the instruction and patching sequence in order to support
+arbitrary 64 bits addresses.
 
-Patch 2 uses RCU to fix race conditions between vnet_port_remove and
-paths that access/modify port-related state, such as vnet_start_xmit.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/tsb.h | 30 ++++++++++++------------------
+ arch/sparc/mm/init_64.c      | 28 +++++++++++++++++++++++++---
+ 2 files changed, 37 insertions(+), 21 deletions(-)
 
-Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
-dropping superfluous usage of the irqsave/irqrestores on the vio.lock
-where possible.
-
-Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
-net-next.
-
-Sowmini Varadhan (4):
-  NAPIfy sunvnet
-  Use RCU to synchronize port usage with vnet_port_remove()
-  Avoid irqsave/restore on vio.lock if in_softirq()
-  Remove irqsave/irqrestore on vio.lock
-
- arch/sparc/kernel/viohs.c          |   8 +-
- drivers/net/ethernet/sun/sunvnet.c | 258 +++++++++++++++++++++++--------------
- drivers/net/ethernet/sun/sunvnet.h |   6 +-
- 3 files changed, 173 insertions(+), 99 deletions(-)
-
+diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
+index 2e268b6..a2f5419 100644
+--- a/arch/sparc/include/asm/tsb.h
++++ b/arch/sparc/include/asm/tsb.h
+@@ -256,8 +256,6 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	(KERNEL_TSB_SIZE_BYTES / 16)
+ #define KERNEL_TSB4M_NENTRIES	4096
+ 
+-#define KTSB_PHYS_SHIFT		15
+-
+ 	/* Do a kernel TSB lookup at tl>0 on VADDR+TAG, branch to OK_LABEL
+ 	 * on TSB hit.  REG1, REG2, REG3, and REG4 are used as temporaries
+ 	 * and the found TTE will be left in REG1.  REG3 and REG4 must
+@@ -266,17 +264,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	 * VADDR and TAG will be preserved and not clobbered by this macro.
+ 	 */
+ #define KERN_TSB_LOOKUP_TL1(VADDR, TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
+-661:	sethi		%hi(swapper_tsb), REG1;			\
+-	or		REG1, %lo(swapper_tsb), REG1; \
++661:	sethi		%uhi(swapper_tsb), REG1; \
++	sethi		%hi(swapper_tsb), REG2; \
++	or		REG1, %ulo(swapper_tsb), REG1; \
++	or		REG2, %lo(swapper_tsb), REG2; \
+ 	.section	.swapper_tsb_phys_patch, "ax"; \
+ 	.word		661b; \
+ 	.previous; \
+-661:	nop; \
+-	.section	.tsb_ldquad_phys_patch, "ax"; \
+-	.word		661b; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	.previous; \
++	sllx		REG1, 32, REG1; \
++	or		REG1, REG2, REG1; \
+ 	srlx		VADDR, PAGE_SHIFT, REG2; \
+ 	and		REG2, (KERNEL_TSB_NENTRIES - 1), REG2; \
+ 	sllx		REG2, 4, REG2; \
+@@ -291,17 +287,15 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	 * we can make use of that for the index computation.
+ 	 */
+ #define KERN_TSB4M_LOOKUP_TL1(TAG, REG1, REG2, REG3, REG4, OK_LABEL) \
+-661:	sethi		%hi(swapper_4m_tsb), REG1;	     \
+-	or		REG1, %lo(swapper_4m_tsb), REG1; \
++661:	sethi		%uhi(swapper_4m_tsb), REG1; \
++	sethi		%hi(swapper_4m_tsb), REG2; \
++	or		REG1, %ulo(swapper_4m_tsb), REG1; \
++	or		REG2, %lo(swapper_4m_tsb), REG2; \
+ 	.section	.swapper_4m_tsb_phys_patch, "ax"; \
+ 	.word		661b; \
+ 	.previous; \
+-661:	nop; \
+-	.section	.tsb_ldquad_phys_patch, "ax"; \
+-	.word		661b; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	sllx		REG1, KTSB_PHYS_SHIFT, REG1; \
+-	.previous; \
++	sllx		REG1, 32, REG1; \
++	or		REG1, REG2, REG1; \
+ 	and		TAG, (KERNEL_TSB4M_NENTRIES - 1), REG2; \
+ 	sllx		REG2, 4, REG2; \
+ 	add		REG1, REG2, REG2; \
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 082fde1..bce3c3f 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1733,19 +1733,41 @@ static void __init tsb_phys_patch(void)
+ static struct hv_tsb_descr ktsb_descr[NUM_KTSB_DESCR];
+ extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
+ 
++/* The swapper TSBs are loaded with a base sequence of:
++ *
++ *	sethi	%uhi(SYMBOL), REG1
++ *	sethi	%hi(SYMBOL), REG2
++ *	or	REG1, %ulo(SYMBOL), REG1
++ *	or	REG2, %lo(SYMBOL), REG2
++ *	sllx	REG1, 32, REG1
++ *	or	REG1, REG2, REG1
++ *
++ * When we use physical addressing for the TSB accesses, we patch the
++ * first four instructions in the above sequence.
++ */
++
+ static void patch_one_ktsb_phys(unsigned int *start, unsigned int *end, unsigned long pa)
+ {
+-	pa >>= KTSB_PHYS_SHIFT;
++	unsigned long high_bits, low_bits;
++
++	high_bits = (pa >> 32) & 0xffffffff;
++	low_bits = (pa >> 0) & 0xffffffff;
+ 
+ 	while (start < end) {
+ 		unsigned int *ia = (unsigned int *)(unsigned long)*start;
+ 
+-		ia[0] = (ia[0] & ~0x3fffff) | (pa >> 10);
++		ia[0] = (ia[0] & ~0x3fffff) | (high_bits >> 10);
+ 		__asm__ __volatile__("flush	%0" : : "r" (ia));
+ 
+-		ia[1] = (ia[1] & ~0x3ff) | (pa & 0x3ff);
++		ia[1] = (ia[1] & ~0x3fffff) | (low_bits >> 10);
+ 		__asm__ __volatile__("flush	%0" : : "r" (ia + 1));
+ 
++		ia[2] = (ia[2] & ~0x1fff) | (high_bits & 0x3ff);
++		__asm__ __volatile__("flush	%0" : : "r" (ia + 2));
++
++		ia[3] = (ia[3] & ~0x1fff) | (low_bits & 0x3ff);
++		__asm__ __volatile__("flush	%0" : : "r" (ia + 3));
++
+ 		start++;
+ 	}
+ }
 -- 
-1.8.4.2
+1.8.1.2
 
