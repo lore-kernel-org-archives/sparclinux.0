@@ -1,55 +1,88 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 05 Oct 2014 01:53:18 +0000
-Subject: flush_tlb_kernel_range()
-Message-Id: <20141004.215318.642435987638821748.davem@davemloft.net>
+Date: Sun, 05 Oct 2014 04:07:10 +0000
+Subject: Re: flush_tlb_kernel_range()
+Message-Id: <20141005.000710.1651466440685203890.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141004.215318.642435987638821748.davem@davemloft.net>
+In-Reply-To: <20141004.215318.642435987638821748.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: David Miller <davem@davemloft.net>
+Date: Sat, 04 Oct 2014 21:53:18 -0400 (EDT)
 
-Bob, just to let you know I'm working on fixing the following problem:
+> We've sort of always had this issue, but it is exacerbated by the
+> recent massive enlargening of the vmalloc area.
 
-[18655.836592] WARNING: CPU: 76 PID: 33324 at arch/sparc/kernel/nmi.c:80 perfctr_irq+0x290/0x2e0()
-[18655.853934] Watchdog detected hard LOCKUP on cpu 76
-[18655.863296] Modules linked in: ipv6 loop usb_storage sg ehci_pci sr_mod ehci_hcd igb ptp pps_core n2_rng rng_core
-[18655.884140] CPU: 76 PID: 33324 Comm: expect Not tainted 3.17.0-rc4+ #1605
-[18655.897676] Call Trace:
-[18655.902555]  [0000000000466fb4] warn_slowpath_common+0x54/0x80
-[18655.914181]  [000000000046706c] warn_slowpath_fmt+0x2c/0x40
-[18655.925298]  [00000000008c53d0] perfctr_irq+0x290/0x2e0
-[18655.935724]  [00000000004209f4] tl0_irq15+0x14/0x20
-[18655.945428]  [00000000008c4d38] _raw_spin_trylock_bh+0x38/0x100
-[18655.957245]  [00000000004aeb98] __run_hrtimer+0x58/0x200
-[18655.967842]  [00000000004af4cc] hrtimer_interrupt+0xcc/0x220
-[18655.979130]  [000000000042f8e0] timer_interrupt+0x80/0xc0
-[18655.989883]  [00000000004209d4] tl0_irq14+0x14/0x20
-[18655.999608]  [00000000004521e8] __flush_tlb_kernel_range+0x28/0x40
-[18656.011947]  [0000000000530c24] free_vmap_area_noflush+0x64/0x80
-[18656.023926]  [0000000000531a7c] remove_vm_area+0x5c/0x80
-[18656.034514]  [0000000000531b80] __vunmap+0x20/0x120
-[18656.044241]  [000000000071cf18] n_tty_close+0x18/0x40
-[18656.054315]  [00000000007222b0] tty_ldisc_close+0x30/0x60
-[18656.065078]  [00000000007225a4] tty_ldisc_reinit+0x24/0xa0
+Actually the expansion of the vmalloc area had nothing to do with
+this, and the problem exists without any of my patches applied.
 
-We've sort of always had this issue, but it is exacerbated by the
-recent massive enlargening of the vmalloc area.
+I've pushed the following to my GIT tree:
 
-When vmalloc areas are released, the kernel doesn't just immediately
-flush the TLB/TSB.  Instead it just avoids allocating vmalloc space
-from those areas until a lot of unmaps have accumulated.
+==========
+sparc64: Fix reversed start/end in flush_tlb_kernel_range()
 
-Then it issues one huge unmap for all of the pending stuff.
+When we have to split up a flush request into multiple pieces
+(in order to avoid the firmware range) we don't specify the
+arguments in the right order for the second piece.
 
-We don't have any smarts in flush_tlb_kernel_range() and just do
-everything one page at a time for as large of a region as we are asked
-to work on.
+Fix the order, or else we get hangs as the code tries to
+flush "a lot" of entries and we get lockups like this:
 
-Obviously, if we were asked to flush the entire vmalloc range, it
-would thus take forever.
+[ 4422.981276] NMI watchdog: BUG: soft lockup - CPU#12 stuck for 23s! [expect:117032]
+[ 4422.996130] Modules linked in: ipv6 loop usb_storage igb ptp sg sr_mod ehci_pci ehci_hcd pps_core n2_rng rng_core
+[ 4423.016617] CPU: 12 PID: 117032 Comm: expect Not tainted 3.17.0-rc4+ #1608
+[ 4423.030331] task: fff8003cc730e220 ti: fff8003d99d54000 task.ti: fff8003d99d54000
+[ 4423.045282] TSTATE: 0000000011001602 TPC: 00000000004521e8 TNPC: 00000000004521ec Y: 00000000    Not tainted
+[ 4423.064905] TPC: <__flush_tlb_kernel_range+0x28/0x40>
+[ 4423.074964] g0: 000000000052fd10 g1: 00000001295a8000 g2: ffffff7176ffc000 g3: 0000000000002000
+[ 4423.092324] g4: fff8003cc730e220 g5: fff8003dfedcc000 g6: fff8003d99d54000 g7: 0000000000000006
+[ 4423.109687] o0: 0000000000000000 o1: 0000000000000000 o2: 0000000000000003 o3: 00000000f0000000
+[ 4423.127058] o4: 0000000000000080 o5: 00000001295a8000 sp: fff8003d99d56d01 ret_pc: 000000000052ff54
+[ 4423.145121] RPC: <__purge_vmap_area_lazy+0x314/0x3a0>
+[ 4423.155185] l0: 0000000000000000 l1: 0000000000000000 l2: 0000000000a38040 l3: 0000000000000000
+[ 4423.172559] l4: fff8003dae8965e0 l5: ffffffffffffffff l6: 0000000000000000 l7: 00000000f7e2b138
+[ 4423.189913] i0: fff8003d99d576a0 i1: fff8003d99d576a8 i2: fff8003d99d575e8 i3: 0000000000000000
+[ 4423.207284] i4: 0000000000008008 i5: fff8003d99d575c8 i6: fff8003d99d56df1 i7: 0000000000530c24
+[ 4423.224640] I7: <free_vmap_area_noflush+0x64/0x80>
+[ 4423.234193] Call Trace:
+[ 4423.239051]  [0000000000530c24] free_vmap_area_noflush+0x64/0x80
+[ 4423.251029]  [0000000000531a7c] remove_vm_area+0x5c/0x80
+[ 4423.261628]  [0000000000531b80] __vunmap+0x20/0x120
+[ 4423.271352]  [000000000071cf18] n_tty_close+0x18/0x40
+[ 4423.281423]  [00000000007222b0] tty_ldisc_close+0x30/0x60
+[ 4423.292183]  [00000000007225a4] tty_ldisc_reinit+0x24/0xa0
+[ 4423.303120]  [0000000000722ab4] tty_ldisc_hangup+0xd4/0x1e0
+[ 4423.314232]  [0000000000719aa0] __tty_hangup+0x280/0x3c0
+[ 4423.324835]  [0000000000724cb4] pty_close+0x134/0x1a0
+[ 4423.334905]  [000000000071aa24] tty_release+0x104/0x500
+[ 4423.345316]  [00000000005511d0] __fput+0x90/0x1e0
+[ 4423.354701]  [000000000047fa54] task_work_run+0x94/0xe0
+[ 4423.365126]  [0000000000404b44] __handle_signal+0xc/0x2c
 
-So I'm going to add a limit to flush_tlb_kernel_range(), of 128 pages
-or so, and have it do __flush_tlb_all() if that limit is exceeded.
+Fixes: 4ca9a23765da ("sparc64: Guard against flushing openfirmware mappings.")
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/init_64.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-I reproduced this by bootstrapping gcc and running the testsuite.
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index c8bccaf..bd08ed4 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2837,8 +2837,8 @@ void flush_tlb_kernel_range(unsigned long start, unsigned long end)
+ 			do_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS);
+ 		}
+ 		if (end > HI_OBP_ADDRESS) {
+-			flush_tsb_kernel_range(end, HI_OBP_ADDRESS);
+-			do_flush_tlb_kernel_range(end, HI_OBP_ADDRESS);
++			flush_tsb_kernel_range(HI_OBP_ADDRESS, end);
++			do_flush_tlb_kernel_range(HI_OBP_ADDRESS, end);
+ 		}
+ 	} else {
+ 		flush_tsb_kernel_range(start, end);
+-- 
+1.8.1.2
+
