@@ -1,23 +1,100 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 15 Oct 2014 02:36:41 +0000
-Subject: Re: [PATCH v3 25/27] Sparc/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <20141014.223641.1750858832286185881.davem@davemloft.net>
+From: Fabian Frederick <fabf@skynet.be>
+Date: Sun, 05 Oct 2014 17:19:48 +0000
+Subject: [PATCH 12/13 linux-next] serial: use container_of to resolve uart_sunzilog_port from uart_port
+Message-Id: <1412529589-1753-3-git-send-email-fabf@skynet.be>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-	<1413342435-7876-26-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-26-git-send-email-wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+References: <1412528475-1449-1-git-send-email-fabf@skynet.be>
+ <1412529589-1753-1-git-send-email-fabf@skynet.be>
+In-Reply-To: <1412529589-1753-1-git-send-email-fabf@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, arnab.basu-KZfg59tc24xl57MIdRCFDg@public.gmane.org, liviu-I3yL/QOVVjH10XsdtD+oqA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, huxinwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, wuyun.wu-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, l.stach-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Fabian Frederick <fabf@skynet.be>, "David S. Miller" <davem@davemloft.net>, Jiri Slaby <jslaby@suse.cz>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 11:07:13 +0800
+Use container_of instead of casting first structure member.
 
-> Use MSI chip framework instead of arch MSI functions to configure
-> MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
-> 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+---
+ drivers/tty/serial/sunzilog.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
+index 02df394..844aae7 100644
+--- a/drivers/tty/serial/sunzilog.c
++++ b/drivers/tty/serial/sunzilog.c
+@@ -644,7 +644,8 @@ static unsigned int sunzilog_get_mctrl(struct uart_port *port)
+ /* The port lock is held and interrupts are disabled.  */
+ static void sunzilog_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	struct zilog_channel __iomem *channel = ZILOG_CHANNEL_FROM_PORT(port);
+ 	unsigned char set_bits, clear_bits;
+ 
+@@ -668,7 +669,8 @@ static void sunzilog_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ /* The port lock is held and interrupts are disabled.  */
+ static void sunzilog_stop_tx(struct uart_port *port)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 
+ 	up->flags |= SUNZILOG_FLAG_TX_STOPPED;
+ }
+@@ -676,7 +678,8 @@ static void sunzilog_stop_tx(struct uart_port *port)
+ /* The port lock is held and interrupts are disabled.  */
+ static void sunzilog_start_tx(struct uart_port *port)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	struct zilog_channel __iomem *channel = ZILOG_CHANNEL_FROM_PORT(port);
+ 	unsigned char status;
+ 
+@@ -736,7 +739,8 @@ static void sunzilog_stop_rx(struct uart_port *port)
+ /* The port lock is held.  */
+ static void sunzilog_enable_ms(struct uart_port *port)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	struct zilog_channel __iomem *channel = ZILOG_CHANNEL_FROM_PORT(port);
+ 	unsigned char new_reg;
+ 
+@@ -752,7 +756,8 @@ static void sunzilog_enable_ms(struct uart_port *port)
+ /* The port lock is not held.  */
+ static void sunzilog_break_ctl(struct uart_port *port, int break_state)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	struct zilog_channel __iomem *channel = ZILOG_CHANNEL_FROM_PORT(port);
+ 	unsigned char set_bits, clear_bits, new_reg;
+ 	unsigned long flags;
+@@ -938,7 +943,8 @@ static void
+ sunzilog_set_termios(struct uart_port *port, struct ktermios *termios,
+ 		     struct ktermios *old)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	unsigned long flags;
+ 	int baud, brg;
+ 
+@@ -998,7 +1004,8 @@ static int sunzilog_verify_port(struct uart_port *port, struct serial_struct *se
+ static int sunzilog_get_poll_char(struct uart_port *port)
+ {
+ 	unsigned char ch, r1;
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *) port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 	struct zilog_channel __iomem *channel
+ 		= ZILOG_CHANNEL_FROM_PORT(&up->port);
+ 
+@@ -1032,7 +1039,8 @@ static int sunzilog_get_poll_char(struct uart_port *port)
+ static void sunzilog_put_poll_char(struct uart_port *port,
+ 			unsigned char ch)
+ {
+-	struct uart_sunzilog_port *up = (struct uart_sunzilog_port *)port;
++	struct uart_sunzilog_port *up +		container_of(port, struct uart_sunzilog_port, port);
+ 
+ 	sunzilog_putchar(&up->port, ch);
+ }
+-- 
+1.9.1
+
