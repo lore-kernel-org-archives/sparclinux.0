@@ -1,62 +1,40 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 02:28:23 +0000
-Subject: [PATCH v3 14/27] Irq_remapping/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1413342435-7876-15-git-send-email-wangyijing@huawei.com>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Mon, 06 Oct 2014 13:52:33 +0000
+Subject: [PATCH 1/9] ARC: Remove redundant PCI_IOBASE declaration
+Message-Id: <1412603561-27653-2-git-send-email-thierry.reding@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+References: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
+In-Reply-To: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Fengguang Wu <fengguang.wu@intel.com>
+Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
+From: Thierry Reding <treding@nvidia.com>
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+ARC's asm/io.h includes the asm-generic/io.h which already defines the
+PCI_IOBASE variable in exactly the same way, so it can be dropped from
+the architecture specific header.
+
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- drivers/iommu/irq_remapping.c |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
+ arch/arc/include/asm/io.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/iommu/irq_remapping.c b/drivers/iommu/irq_remapping.c
-index 33c4395..48d57e9 100644
---- a/drivers/iommu/irq_remapping.c
-+++ b/drivers/iommu/irq_remapping.c
-@@ -139,8 +139,8 @@ error:
- 	return ret;
- }
+diff --git a/arch/arc/include/asm/io.h b/arch/arc/include/asm/io.h
+index 334ce7017a18..cabd518cb253 100644
+--- a/arch/arc/include/asm/io.h
++++ b/arch/arc/include/asm/io.h
+@@ -13,8 +13,6 @@
+ #include <asm/byteorder.h>
+ #include <asm/page.h>
  
--static int irq_remapping_setup_msi_irqs(struct pci_dev *dev,
--					int nvec, int type)
-+static int irq_remapping_setup_msi_irqs(struct msi_chip *chip,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	if (type = PCI_CAP_ID_MSI)
- 		return do_setup_msi_irqs(dev, nvec);
-@@ -148,6 +148,11 @@ static int irq_remapping_setup_msi_irqs(struct pci_dev *dev,
- 		return do_setup_msix_irqs(dev, nvec);
- }
- 
-+static struct msi_chip remap_msi_chip = {
-+	.setup_irqs = irq_remapping_setup_msi_irqs,
-+	.teardown_irq = native_teardown_msi_irq,
-+};
-+
- static void eoi_ioapic_pin_remapped(int apic, int pin, int vector)
- {
- 	/*
-@@ -165,9 +170,9 @@ static void __init irq_remapping_modify_x86_ops(void)
- 	x86_io_apic_ops.set_affinity	= set_remapped_irq_affinity;
- 	x86_io_apic_ops.setup_entry	= setup_ioapic_remapped_entry;
- 	x86_io_apic_ops.eoi_ioapic_pin	= eoi_ioapic_pin_remapped;
--	x86_msi.setup_msi_irqs		= irq_remapping_setup_msi_irqs;
- 	x86_msi.setup_hpet_msi		= setup_hpet_msi_remapped;
- 	x86_msi.compose_msi_msg		= compose_remapped_msi_msg;
-+	x86_msi_chip = &remap_msi_chip;
- }
- 
- static __init int setup_nointremap(char *str)
+-#define PCI_IOBASE ((void __iomem *)0)
+-
+ extern void __iomem *ioremap(unsigned long physaddr, unsigned long size);
+ extern void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
+ 				  unsigned long flags);
 -- 
-1.7.1
+2.1.0
 
