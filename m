@@ -1,122 +1,166 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 04 Oct 2014 23:27:31 +0000
-Subject: [PATCH 9/9] sparc64: Kill unnecessary tables and increase MAX_BANKS.
-Message-Id: <20141004.192731.1830862699502005193.davem@davemloft.net>
+From: Thierry Reding <thierry.reding@gmail.com>
+Date: Mon, 06 Oct 2014 13:52:37 +0000
+Subject: [PATCH 5/9] /dev/mem: Use more consistent data types
+Message-Id: <1412603561-27653-6-git-send-email-thierry.reding@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
+In-Reply-To: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Fengguang Wu <fengguang.wu@intel.com>
+Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org
 
+From: Thierry Reding <treding@nvidia.com>
 
-swapper_low_pmd_dir and swapper_pud_dir are actually completely
-useless and unnecessary.
+The xlate_dev_{kmem,mem}_ptr() functions take either a physical address
+or a kernel virtual address, so data types should be phys_addr_t and
+void *. They both return a kernel virtual address which is only ever
+used in calls to copy_{from,to}_user(), so make variables that store it
+void * rather than char * for consistency.
 
-We just need swapper_pg_dir[].  Naturally the other page table chunks
-will be allocated on an as-needed basis.  Since the kernel actually
-accesses these tables in the PAGE_OFFSET view, there is not even a TLB
-locality advantage of placing them in the kernel image.
+Also only define a weak unxlate_dev_mem_ptr() function if architectures
+haven't overridden them in the asm/io.h header file.
 
-Use the hard coded vmlinux.ld.S slot for swapper_pg_dir which is
-naturally page aligned.
-
-Increase MAX_BANKS to 1024 in order to handle heavily fragmented
-virtual guests.
-
-Even with this MAX_BANKS increase, the kernel is 20K+ smaller.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |  1 -
- arch/sparc/kernel/vmlinux.lds.S     |  5 +++--
- arch/sparc/mm/init_64.c             | 25 ++-----------------------
- 3 files changed, 5 insertions(+), 26 deletions(-)
+ arch/s390/include/asm/io.h |  5 +++--
+ arch/s390/mm/maccess.c     |  4 ++--
+ arch/x86/include/asm/io.h  |  4 ++--
+ arch/x86/mm/ioremap.c      |  4 ++--
+ drivers/char/mem.c         | 13 ++++++++-----
+ 5 files changed, 17 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index c093922..bfeb626 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -927,7 +927,6 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
+index cd6b9ee7b69c..d22c2eeae78f 100644
+--- a/arch/s390/include/asm/io.h
++++ b/arch/s390/include/asm/io.h
+@@ -13,9 +13,10 @@
+ #include <asm/page.h>
+ #include <asm/pci_io.h>
+ 
+-void *xlate_dev_mem_ptr(unsigned long phys);
+ #define xlate_dev_mem_ptr xlate_dev_mem_ptr
+-void unxlate_dev_mem_ptr(unsigned long phys, void *addr);
++void *xlate_dev_mem_ptr(phys_addr_t phys);
++#define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
++void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ 
+ /*
+  * Convert a virtual cached pointer to an uncached pointer
+diff --git a/arch/s390/mm/maccess.c b/arch/s390/mm/maccess.c
+index 2a2e35416d2f..2eb34bdfc613 100644
+--- a/arch/s390/mm/maccess.c
++++ b/arch/s390/mm/maccess.c
+@@ -176,7 +176,7 @@ static int is_swapped(unsigned long addr)
+  * For swapped prefix pages a new buffer is returned that contains a copy of
+  * the absolute memory. The buffer size is maximum one page large.
+  */
+-void *xlate_dev_mem_ptr(unsigned long addr)
++void *xlate_dev_mem_ptr(phys_addr_t addr)
+ {
+ 	void *bounce = (void *) addr;
+ 	unsigned long size;
+@@ -197,7 +197,7 @@ void *xlate_dev_mem_ptr(unsigned long addr)
+ /*
+  * Free converted buffer for /dev/mem access (if necessary)
+  */
+-void unxlate_dev_mem_ptr(unsigned long addr, void *buf)
++void unxlate_dev_mem_ptr(phys_addr_t addr, void *buf)
+ {
+ 	if ((void *) addr != buf)
+ 		free_page((unsigned long) buf);
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index b8237d8a1e0c..ae2b593e7c6e 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -310,8 +310,8 @@ BUILDIO(b, b, char)
+ BUILDIO(w, w, short)
+ BUILDIO(l, , int)
+ 
+-extern void *xlate_dev_mem_ptr(unsigned long phys);
+-extern void unxlate_dev_mem_ptr(unsigned long phys, void *addr);
++extern void *xlate_dev_mem_ptr(phys_addr_t phys);
++extern void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
+ 
+ extern int ioremap_change_attr(unsigned long vaddr, unsigned long size,
+ 				unsigned long prot_val);
+diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
+index af78e50ca6ce..b12f43c192cf 100644
+--- a/arch/x86/mm/ioremap.c
++++ b/arch/x86/mm/ioremap.c
+@@ -327,7 +327,7 @@ EXPORT_SYMBOL(iounmap);
+  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
+  * access
+  */
+-void *xlate_dev_mem_ptr(unsigned long phys)
++void *xlate_dev_mem_ptr(phys_addr_t phys)
+ {
+ 	void *addr;
+ 	unsigned long start = phys & PAGE_MASK;
+@@ -343,7 +343,7 @@ void *xlate_dev_mem_ptr(unsigned long phys)
+ 	return addr;
+ }
+ 
+-void unxlate_dev_mem_ptr(unsigned long phys, void *addr)
++void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
+ {
+ 	if (page_is_ram(phys >> PAGE_SHIFT))
+ 		return;
+diff --git a/drivers/char/mem.c b/drivers/char/mem.c
+index 524b707894ef..4c58333b4257 100644
+--- a/drivers/char/mem.c
++++ b/drivers/char/mem.c
+@@ -84,9 +84,12 @@ static inline int range_is_allowed(unsigned long pfn, unsigned long size)
+ }
  #endif
  
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
--extern pmd_t swapper_low_pmd_dir[PTRS_PER_PMD];
- 
- void paging_init(void);
- unsigned long find_ecache_flush_span(unsigned long size);
-diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index 0bacceb..0924305 100644
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -35,8 +35,9 @@ jiffies = jiffies_64;
- 
- SECTIONS
+-void __weak unxlate_dev_mem_ptr(unsigned long phys, void *addr)
++#ifndef unxlate_dev_mem_ptr
++#define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
++void __weak unxlate_dev_mem_ptr(phys_addr_t phys, void *addr)
  {
--	/* swapper_low_pmd_dir is sparc64 only */
--	swapper_low_pmd_dir = 0x0000000000402000;
-+#ifdef CONFIG_SPARC64
-+	swapper_pg_dir = 0x0000000000402000;
+ }
 +#endif
- 	. = INITIAL_ADDRESS;
- 	.text TEXTSTART :
- 	{
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 72547c0..cb99b46 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -87,7 +87,7 @@ extern struct tsb swapper_tsb[KERNEL_TSB_NENTRIES];
  
- static unsigned long cpu_pgsz_mask;
- 
--#define MAX_BANKS	32
-+#define MAX_BANKS	1024
- 
- static struct linux_prom64_registers pavail[MAX_BANKS];
- static int pavail_ents;
-@@ -1943,12 +1943,6 @@ static void __init sun4v_linear_pte_xor_finalize(void)
- 
- static unsigned long last_valid_pfn;
- 
--/* These must be page aligned in order to not trigger the
-- * alignment tests of pgd_bad() and pud_bad().
-- */
--pgd_t swapper_pg_dir[PTRS_PER_PGD] __attribute__ ((aligned (PAGE_SIZE)));
--static pud_t swapper_pud_dir[PTRS_PER_PUD] __attribute__ ((aligned (PAGE_SIZE)));
--
- static void sun4u_pgprot_init(void);
- static void sun4v_pgprot_init(void);
- 
-@@ -2002,8 +1996,6 @@ void __init paging_init(void)
+ /*
+  * This funcion reads the *physical* memory. The f_pos points directly to the
+@@ -97,7 +100,7 @@ static ssize_t read_mem(struct file *file, char __user *buf,
  {
- 	unsigned long end_pfn, shift, phys_base;
- 	unsigned long real_end, i;
--	pud_t *pud;
--	pmd_t *pmd;
- 	int node;
+ 	phys_addr_t p = *ppos;
+ 	ssize_t read, sz;
+-	char *ptr;
++	void *ptr;
  
- 	setup_page_offset();
-@@ -2099,20 +2091,7 @@ void __init paging_init(void)
- 	 */
- 	init_mm.pgd += ((shift) / (sizeof(pgd_t)));
- 	
--	memset(swapper_low_pmd_dir, 0, sizeof(swapper_low_pmd_dir));
--
--	/* The kernel page tables we publish into what the rest of the
--	 * world sees must be adjusted so that they see the PAGE_OFFSET
--	 * address of these in-kerenel data structures.  However right
--	 * here we must access them from the kernel image side, because
--	 * the trap tables haven't been taken over and therefore we cannot
--	 * take TLB misses in the PAGE_OFFSET linear mappings yet.
--	 */
--	pud = swapper_pud_dir + (shift / sizeof(pud_t));
--	pgd_set(&swapper_pg_dir[0], pud);
--
--	pmd = swapper_low_pmd_dir + (shift / sizeof(pmd_t));
--	pud_set(&swapper_pud_dir[0], pmd);
-+	memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
+ 	if (p != *ppos)
+ 		return 0;
+@@ -400,7 +403,7 @@ static ssize_t read_kmem(struct file *file, char __user *buf,
+ 			 * uncached, then it must also be accessed uncached
+ 			 * by the kernel or data corruption may occur
+ 			 */
+-			kbuf = xlate_dev_kmem_ptr((char *)p);
++			kbuf = xlate_dev_kmem_ptr((void *)p);
  
- 	inherit_prom_mappings();
- 	
+ 			if (copy_to_user(buf, kbuf, sz))
+ 				return -EFAULT;
+@@ -461,7 +464,7 @@ static ssize_t do_write_kmem(unsigned long p, const char __user *buf,
+ #endif
+ 
+ 	while (count > 0) {
+-		char *ptr;
++		void *ptr;
+ 
+ 		sz = size_inside_page(p, count);
+ 
+@@ -470,7 +473,7 @@ static ssize_t do_write_kmem(unsigned long p, const char __user *buf,
+ 		 * it must also be accessed uncached by the kernel or data
+ 		 * corruption may occur.
+ 		 */
+-		ptr = xlate_dev_kmem_ptr((char *)p);
++		ptr = xlate_dev_kmem_ptr((void *)p);
+ 
+ 		copied = copy_from_user(ptr, buf, sz);
+ 		if (copied) {
 -- 
-1.8.1.2
+2.1.0
 
