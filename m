@@ -1,7 +1,7 @@
 From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Tue, 07 Oct 2014 12:44:32 +0000
+Date: Tue, 07 Oct 2014 13:23:45 +0000
 Subject: Re: [PATCH] sparc64: use COMMAND_LINE_SIZE for boot string
-Message-Id: <5433E030.8090101@oracle.com>
+Message-Id: <5433E961.8020206@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <5432BE03.10405@oracle.com>
 In-Reply-To: <5432BE03.10405@oracle.com>
@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-uOn 10/06/2014 11:23 PM, David Miller wrote:
+Even though I just sent a new patch...
+
+On 10/06/2014 11:23 PM, David Miller wrote:
 > From: Dave Kleikamp <dave.kleikamp@oracle.com>
 > Date: Mon, 06 Oct 2014 11:06:27 -0500
 > 
@@ -41,11 +43,16 @@ uOn 10/06/2014 11:23 PM, David Miller wrote:
 > 
 > So it blindly copies however many bytes you tell it to in that
 > bootstr_info area :-/
-> 
+
+strncpy will still stop at the first null character, so the only way it
+will copy more than 1024 bytes would be if it has already overflowed
+barg_out in constructing the command line. Writing the final null
+terminator into kernel_params is not a problem.
+
 > So I'm happy to apply a patch that increases the size to 1024,
 > whilst adding a comment explaining the SILO limitation.
-
-That makes sense. 1024 is much better than 256. I'll send a new patch.
-
-Thanks,
-Dave
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
