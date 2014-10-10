@@ -1,22 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 07 Oct 2014 19:34:05 +0000
-Subject: Re: [PATCH] sparc64: Increase size of boot string to 1024 bytes
-Message-Id: <20141007.153405.57016312007927067.davem@davemloft.net>
+From: Julian Calaby <julian.calaby@gmail.com>
+Date: Fri, 10 Oct 2014 00:24:53 +0000
+Subject: Re: [PATCH] bcma: Add dependency on OF_ADDRESS
+Message-Id: <CAGRGNgWWSX8rYatphNAmx+j3wZ7RAXgucUzi_7M6-3NeUjQDEg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5433E6C5.9060304@oracle.com>
-In-Reply-To: <5433E6C5.9060304@oracle.com>
+References: <1412872877-1771-1-git-send-email-linux@roeck-us.net>
+ <CACna6rzOeGcKrrftLx_3uWe_bAXQaQMmWb3wWHP0CjtdO8D0eg@mail.gmail.com>
+ <5436C2B4.6030801@broadcom.com> <20141009172120.GB2410@roeck-us.net>
+In-Reply-To: <20141009172120.GB2410@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Guenter Roeck <linux@roeck-us.net>, sparclinux <sparclinux@vger.kernel.org>
+Cc: Arend van Spriel <arend@broadcom.com>, =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hauke Mehrtens <hauke@hauke-m.de>, Arnd Bergmann <arnd@arndb.de>
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Tue, 07 Oct 2014 14:29:25 -0500
+Hi,
 
-> I'd leave off the last sentence:
-> 
-> /* We limit BARG_LEN to 1024 because this is the size of the
->  * 'barg_out' command line buffer in the SILO bootloader.
->  */
+On Fri, Oct 10, 2014 at 4:21 AM, Guenter Roeck <linux@roeck-us.net> wrote:
+> On Thu, Oct 09, 2014 at 07:15:32PM +0200, Arend van Spriel wrote:
+>> On 10/09/14 18:54, Rafał Miłecki wrote:
+>> >On 9 October 2014 18:41, Guenter Roeck<linux@roeck-us.net>  wrote:
+>> >>Commit 2101e533f41a ("bcma: register bcma as device tree driver")
+>> >>introduces a hard dependency on OF_ADDRESS into the bcma driver.
+>> >>OF_ADDRESS is specifically disabled for the sparc architecture.
+>> >>This results in the following error when building sparc64:allmodconfig.
+>>
+>> Does this mean on sparc (using allmodconfig) you will get CONFIG_OF
+>> and !CONFIG_OF_ADDRESS? Does that makes sense?
+>>
+>
+> You tell me. From drivers/of/Kconfig:
+>
+> config OF_ADDRESS
+>         def_bool y
+>         depends on !SPARC
+>         select OF_ADDRESS_PCI if PCI
+>
+> Presumably there is a reason to disable OF_ADDRESS for sparc.
 
-Works for me.
+Why not ask the sparclinux list? (CC'd)
+
+Thanks,
+
+-- 
+Julian Calaby
+
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
