@@ -1,15 +1,17 @@
 From: Jens Axboe <axboe@kernel.dk>
-Date: Tue, 14 Oct 2014 14:37:14 +0000
+Date: Tue, 14 Oct 2014 14:38:18 +0000
 Subject: Re: Sparc ESP problem with blk-mq
-Message-Id: <543D351A.1020505@kernel.dk>
+Message-Id: <543D355A.3030605@kernel.dk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.11.1410140102230.18488@adalberg.ut.ee>
 In-Reply-To: <alpine.LRH.2.11.1410140102230.18488@adalberg.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>, linux-scsi@cger.kernel.org, sparclinux@vger.kernel.org
+To: Meelis Roos <mroos@linux.ee>, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 Cc: Christoph Hellwig <hch@infradead.org>
+
+(resent with correct linux-scsi address)
 
 On 2014-10-13 16:07, Meelis Roos wrote:
 > I turned on blk-mq for all my test machines today and got a failure from
