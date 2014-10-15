@@ -1,374 +1,100 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 24 Oct 2014 16:53:46 +0000
-Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <20141024.125346.511017911263580664.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:28:06 +0000
+Subject: [PATCH v3 22/27] s390/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1413342435-7876-23-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141023.130258.548864295965807596.davem@davemloft.net>
-	<20141023.172258.1371479087269518956.davem@davemloft.net>
-	<20141024045454.GA8138@ravnborg.org>
-In-Reply-To: <20141024045454.GA8138@ravnborg.org>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sam@ravnborg.org
-Cc: mroos@linux.ee, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 24 Oct 2014 06:54:55 +0200
+Use MSI chip framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-> A minor detail.
-> 
->> [PATCH] sparc64: Fix register corruption in top-most kernel stack frame during boot.
->> 
->> -	call	start_kernel
->> +	call start_early_boot
-> 
-> Maybe add a comment about stack use - as per your nice patch description.
-
-Added.
-
->> +void __init start_early_boot(void)
-> 
-> This will likely result in sparse complaining about:
-> fuction not declared - should it be static?
-> 
-> A prototype in include/asm/setup.h would be nice.
-
-Done.
-
-This is the final patch I'll be using and submitting to -stable as well.
-
-==========
-[PATCH] sparc64: Fix register corruption in top-most kernel stack frame during boot.
-
-Meelis Roos reported that kernels built with gcc-4.9 do not boot, we
-eventually narrowed this down to only impacting machines using
-UltraSPARC-III and derivitive cpus.
-
-The crash happens right when the first user process is spawned:
-
-[   54.451346] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
-[   54.451346]
-[   54.571516] CPU: 1 PID: 1 Comm: init Not tainted 3.16.0-rc2-00211-gd7933ab #96
-[   54.666431] Call Trace:
-[   54.698453]  [0000000000762f8c] panic+0xb0/0x224
-[   54.759071]  [000000000045cf68] do_exit+0x948/0x960
-[   54.823123]  [000000000042cbc0] fault_in_user_windows+0xe0/0x100
-[   54.902036]  [0000000000404ad0] __handle_user_windows+0x0/0x10
-[   54.978662] Press Stop-A (L1-A) to return to the boot prom
-[   55.050713] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000004
-
-Further investigation showed that compiling only per_cpu_patch() with
-an older compiler fixes the boot.
-
-Detailed analysis showed that the function is not being miscompiled by
-gcc-4.9, but it is using a different register allocation ordering.
-
-With the gcc-4.9 compiled function, something during the code patching
-causes some of the %i* input registers to get corrupted.  Perhaps
-we have a TLB miss path into the firmware that is deep enough to
-cause a register window spill and subsequent restore when we get
-back from the TLB miss trap.
-
-Let's plug this up by doing two things:
-
-1) Stop using the firmware stack for client interface calls into
-   the firmware.  Just use the kernel's stack.
-
-2) As soon as we can, call into a new function "start_early_boot()"
-   to put a one-register-window buffer between the firmware's
-   deepest stack frame and the top-most initial kernel one.
-
-Reported-by: Meelis Roos <mroos@linux.ee>
-Tested-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/oplib_64.h |  3 ++-
- arch/sparc/include/asm/setup.h    |  2 ++
- arch/sparc/kernel/entry.h         |  3 ---
- arch/sparc/kernel/head_64.S       | 40 ++++-----------------------------------
- arch/sparc/kernel/hvtramp.S       |  1 -
- arch/sparc/kernel/setup_64.c      | 28 +++++++++++++++++++--------
- arch/sparc/kernel/trampoline_64.S | 12 +++++++-----
- arch/sparc/prom/cif.S             |  5 ++---
- arch/sparc/prom/init_64.c         |  6 +++---
- arch/sparc/prom/p1275.c           |  2 --
- 10 files changed, 40 insertions(+), 62 deletions(-)
+Hi Sebastian,
+   I dropped the Acked-by , because this version has a
+lot changes compared to last. So, I guess you may want to check it again.
+---
+ arch/s390/include/asm/pci.h |    9 +++++++++
+ arch/s390/pci/pci.c         |   12 ++++++++++--
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/oplib_64.h b/arch/sparc/include/asm/oplib_64.h
-index f346824..2e3a4ad 100644
---- a/arch/sparc/include/asm/oplib_64.h
-+++ b/arch/sparc/include/asm/oplib_64.h
-@@ -62,7 +62,8 @@ struct linux_mem_p1275 {
- /* You must call prom_init() before using any of the library services,
-  * preferably as early as possible.  Pass it the romvec pointer.
-  */
--void prom_init(void *cif_handler, void *cif_stack);
-+void prom_init(void *cif_handler);
-+void prom_init_report(void);
+diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
+index c030900..4d41f08 100644
+--- a/arch/s390/include/asm/pci.h
++++ b/arch/s390/include/asm/pci.h
+@@ -88,6 +88,8 @@ struct zpci_dev {
+ 	u32 uid;			/* user defined id */
+ 	u8 util_str[CLP_UTIL_STR_LEN];	/* utility string */
  
- /* Boot argument acquisition, returns the boot command line string. */
- char *prom_getbootargs(void);
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index f5fffd8..29d64b1 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -48,6 +48,8 @@ unsigned long safe_compute_effective_address(struct pt_regs *, unsigned int);
- #endif
- 
- #ifdef CONFIG_SPARC64
-+void __init start_early_boot(void);
++	struct msi_chip *msi_chip;
 +
- /* unaligned_64.c */
- int handle_ldf_stq(u32 insn, struct pt_regs *regs);
- void handle_ld_nf(u32 insn, struct pt_regs *regs);
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index ebaba61..88d322b 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -65,13 +65,10 @@ struct pause_patch_entry {
- extern struct pause_patch_entry __pause_3insn_patch,
- 	__pause_3insn_patch_end;
+ 	/* IRQ stuff */
+ 	u64		msi_addr;	/* MSI address */
+ 	struct airq_iv *aibv;		/* adapter interrupt bit vector */
+@@ -121,6 +123,13 @@ struct zpci_dev {
+ 	struct dentry	*debugfs_perf;
+ };
  
--void __init per_cpu_patch(void);
- void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *,
- 			     struct sun4v_1insn_patch_entry *);
- void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *,
- 			     struct sun4v_2insn_patch_entry *);
--void __init sun4v_patch(void);
--void __init boot_cpu_id_too_large(int cpu);
- extern unsigned int dcache_parity_tl1_occurred;
- extern unsigned int icache_parity_tl1_occurred;
- 
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 4fdeb80..3d61fca 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -672,14 +672,12 @@ tlb_fixup_done:
- 	sethi	%hi(init_thread_union), %g6
- 	or	%g6, %lo(init_thread_union), %g6
- 	ldx	[%g6 + TI_TASK], %g4
--	mov	%sp, %l6
- 
- 	wr	%g0, ASI_P, %asi
- 	mov	1, %g1
- 	sllx	%g1, THREAD_SHIFT, %g1
- 	sub	%g1, (STACKFRAME_SZ + STACK_BIAS), %g1
- 	add	%g6, %g1, %sp
--	mov	0, %fp
- 
- 	/* Set per-cpu pointer initially to zero, this makes
- 	 * the boot-cpu use the in-kernel-image per-cpu areas
-@@ -706,44 +704,14 @@ tlb_fixup_done:
- 	 nop
- #endif
- 
--	mov	%l6, %o1			! OpenPROM stack
- 	call	prom_init
- 	 mov	%l7, %o0			! OpenPROM cif handler
- 
--	/* Initialize current_thread_info()->cpu as early as possible.
--	 * In order to do that accurately we have to patch up the get_cpuid()
--	 * assembler sequences.  And that, in turn, requires that we know
--	 * if we are on a Starfire box or not.  While we're here, patch up
--	 * the sun4v sequences as well.
-+	/* To create a one-register-window buffer between the kernel's
-+	 * initial stack and the last stack frame we use from the firmware,
-+	 * do the rest of the boot from a C helper function.
- 	 */
--	call	check_if_starfire
--	 nop
--	call	per_cpu_patch
--	 nop
--	call	sun4v_patch
--	 nop
--
--#ifdef CONFIG_SMP
--	call	hard_smp_processor_id
--	 nop
--	cmp	%o0, NR_CPUS
--	blu,pt	%xcc, 1f
--	 nop
--	call	boot_cpu_id_too_large
--	 nop
--	/* Not reached... */
--
--1:
--#else
--	mov	0, %o0
--#endif
--	sth	%o0, [%g6 + TI_CPU]
--
--	call	prom_init_report
--	 nop
--
--	/* Off we go.... */
--	call	start_kernel
-+	call	start_early_boot
- 	 nop
- 	/* Not reached... */
- 
-diff --git a/arch/sparc/kernel/hvtramp.S b/arch/sparc/kernel/hvtramp.S
-index b7ddcdd..cdbfec2 100644
---- a/arch/sparc/kernel/hvtramp.S
-+++ b/arch/sparc/kernel/hvtramp.S
-@@ -109,7 +109,6 @@ hv_cpu_startup:
- 	sllx		%g5, THREAD_SHIFT, %g5
- 	sub		%g5, (STACKFRAME_SZ + STACK_BIAS), %g5
- 	add		%g6, %g5, %sp
--	mov		0, %fp
- 
- 	call		init_irqwork_curcpu
- 	 nop
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index e629b83..c38d19f 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -30,6 +30,7 @@
- #include <linux/cpu.h>
- #include <linux/initrd.h>
- #include <linux/module.h>
-+#include <linux/start_kernel.h>
- 
- #include <asm/io.h>
- #include <asm/processor.h>
-@@ -162,7 +163,7 @@ char reboot_command[COMMAND_LINE_SIZE];
- 
- static struct pt_regs fake_swapper_regs = { { 0, }, 0, 0, 0, 0 };
- 
--void __init per_cpu_patch(void)
-+static void __init per_cpu_patch(void)
++static inline struct msi_chip *pci_msi_chip(struct pci_bus *bus)
++{
++	struct zpci_dev *zpci = bus->sysdata;
++
++	return zpci->msi_chip;
++}
++
+ static inline bool zdev_enabled(struct zpci_dev *zdev)
  {
- 	struct cpuid_patch_entry *p;
- 	unsigned long ver;
-@@ -254,7 +255,7 @@ void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *start,
+ 	return (zdev->fh & (1UL << 31)) ? true : false;
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 552b990..bf6732f 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -358,7 +358,8 @@ static void zpci_irq_handler(struct airq_struct *airq)
  	}
  }
  
--void __init sun4v_patch(void)
-+static void __init sun4v_patch(void)
+-int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
++static int zpci_setup_msi_irqs(struct msi_chip *chip,
++		struct pci_dev *pdev, int nvec, int type)
  {
- 	extern void sun4v_hvapi_init(void);
- 
-@@ -323,14 +324,25 @@ static void __init pause_patch(void)
- 	}
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	unsigned int hwirq, msi_vecs;
+@@ -434,7 +435,8 @@ out:
+ 	return rc;
  }
  
--#ifdef CONFIG_SMP
--void __init boot_cpu_id_too_large(int cpu)
-+void __init start_early_boot(void)
+-void arch_teardown_msi_irqs(struct pci_dev *pdev)
++static void zpci_teardown_msi_irqs(struct msi_chip *chip,
++		struct pci_dev *pdev)
  {
--	prom_printf("Serious problem, boot cpu id (%d) >= NR_CPUS (%d)\n",
--		    cpu, NR_CPUS);
--	prom_halt();
-+	int cpu;
-+
-+	check_if_starfire();
-+	per_cpu_patch();
-+	sun4v_patch();
-+
-+	cpu = hard_smp_processor_id();
-+	if (cpu >= NR_CPUS) {
-+		prom_printf("Serious problem, boot cpu id (%d) >= NR_CPUS (%d)\n",
-+			    cpu, NR_CPUS);
-+		prom_halt();
-+	}
-+	current_thread_info()->cpu = cpu;
-+
-+	prom_init_report();
-+	start_kernel();
+ 	struct zpci_dev *zdev = get_zdev(pdev);
+ 	struct msi_desc *msi;
+@@ -464,6 +466,11 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
+ 	airq_iv_free_bit(zpci_aisb_iv, zdev->aisb);
  }
--#endif
  
- /* On Ultra, we support all of the v8 capabilities. */
- unsigned long sparc64_elf_hwcap = (HWCAP_SPARC_FLUSH | HWCAP_SPARC_STBAR |
-diff --git a/arch/sparc/kernel/trampoline_64.S b/arch/sparc/kernel/trampoline_64.S
-index 737f8cb..88ede1d 100644
---- a/arch/sparc/kernel/trampoline_64.S
-+++ b/arch/sparc/kernel/trampoline_64.S
-@@ -109,10 +109,13 @@ startup_continue:
- 	brnz,pn		%g1, 1b
- 	 nop
- 
--	sethi		%hi(p1275buf), %g2
--	or		%g2, %lo(p1275buf), %g2
--	ldx		[%g2 + 0x10], %l2
--	add		%l2, -(192 + 128), %sp
-+	/* Get onto temporary stack which will be in the locked
-+	 * kernel image.
-+	 */
-+	sethi		%hi(tramp_stack), %g1
-+	or		%g1, %lo(tramp_stack), %g1
-+	add		%g1, TRAMP_STACK_SIZE, %g1
-+	sub		%g1, STACKFRAME_SZ + STACK_BIAS + 256, %sp
- 	flushw
- 
- 	/* Setup the loop variables:
-@@ -394,7 +397,6 @@ after_lock_tlb:
- 	sllx		%g5, THREAD_SHIFT, %g5
- 	sub		%g5, (STACKFRAME_SZ + STACK_BIAS), %g5
- 	add		%g6, %g5, %sp
--	mov		0, %fp
- 
- 	rdpr		%pstate, %o1
- 	or		%o1, PSTATE_IE, %o1
-diff --git a/arch/sparc/prom/cif.S b/arch/sparc/prom/cif.S
-index 9c86b4b..8050f38 100644
---- a/arch/sparc/prom/cif.S
-+++ b/arch/sparc/prom/cif.S
-@@ -11,11 +11,10 @@
- 	.text
- 	.globl	prom_cif_direct
- prom_cif_direct:
-+	save	%sp, -192, %sp
- 	sethi	%hi(p1275buf), %o1
- 	or	%o1, %lo(p1275buf), %o1
--	ldx	[%o1 + 0x0010], %o2	! prom_cif_stack
--	save	%o2, -192, %sp
--	ldx	[%i1 + 0x0008], %l2	! prom_cif_handler
-+	ldx	[%o1 + 0x0008], %l2	! prom_cif_handler
- 	mov	%g4, %l0
- 	mov	%g5, %l1
- 	mov	%g6, %l3
-diff --git a/arch/sparc/prom/init_64.c b/arch/sparc/prom/init_64.c
-index d95db75..110b0d7 100644
---- a/arch/sparc/prom/init_64.c
-+++ b/arch/sparc/prom/init_64.c
-@@ -26,13 +26,13 @@ phandle prom_chosen_node;
-  * It gets passed the pointer to the PROM vector.
-  */
- 
--extern void prom_cif_init(void *, void *);
-+extern void prom_cif_init(void *);
- 
--void __init prom_init(void *cif_handler, void *cif_stack)
-+void __init prom_init(void *cif_handler)
++static struct msi_chip zpci_msi_chip = {
++	.setup_irqs = zpci_setup_msi_irqs,
++	.teardown_irqs = zpci_teardown_msi_irqs,
++};
++
+ static void zpci_map_resources(struct zpci_dev *zdev)
  {
- 	phandle node;
+ 	struct pci_dev *pdev = zdev->pdev;
+@@ -749,6 +756,7 @@ static int zpci_scan_bus(struct zpci_dev *zdev)
+ 	if (ret)
+ 		return ret;
  
--	prom_cif_init(cif_handler, cif_stack);
-+	prom_cif_init(cif_handler);
- 
- 	prom_chosen_node = prom_finddevice(prom_chosen_path);
- 	if (!prom_chosen_node || (s32)prom_chosen_node = -1)
-diff --git a/arch/sparc/prom/p1275.c b/arch/sparc/prom/p1275.c
-index b2340f0..545d8bb 100644
---- a/arch/sparc/prom/p1275.c
-+++ b/arch/sparc/prom/p1275.c
-@@ -20,7 +20,6 @@
- struct {
- 	long prom_callback;			/* 0x00 */
- 	void (*prom_cif_handler)(long *);	/* 0x08 */
--	unsigned long prom_cif_stack;		/* 0x10 */
- } p1275buf;
- 
- extern void prom_world(int);
-@@ -52,5 +51,4 @@ void p1275_cmd_direct(unsigned long *args)
- void prom_cif_init(void *cif_handler, void *cif_stack)
- {
- 	p1275buf.prom_cif_handler = (void (*)(long *))cif_handler;
--	p1275buf.prom_cif_stack = (unsigned long)cif_stack;
- }
++	zdev->msi_chip = &zpci_msi_chip;
+ 	zdev->bus = pci_scan_root_bus(NULL, ZPCI_BUS_NR, &pci_root_ops,
+ 				      zdev, &resources);
+ 	if (!zdev->bus) {
 -- 
-1.8.1.2
+1.7.1
 
