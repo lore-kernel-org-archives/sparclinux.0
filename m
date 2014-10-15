@@ -1,27 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 31 Oct 2014 19:50:05 +0000
-Subject: Re: [PATCH] sunvdc: don't call VD_OP_GET_VTOC
-Message-Id: <20141031.155005.1333167345031652160.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:33:11 +0000
+Subject: [PATCH v3 16/27] Mips/MSI: Save msi chip in pci sysdata
+Message-Id: <1413342435-7876-17-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414698935-7520-1-git-send-email-dwight.engen@oracle.com>
-In-Reply-To: <1414698935-7520-1-git-send-email-dwight.engen@oracle.com>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org
 
-From: Dwight Engen <dwight.engen@oracle.com>
-Date: Thu, 30 Oct 2014 15:55:35 -0400
+Save msi chip in pci sysdata, add arch pci_find_msi_chip()
+to extract out msi chip.
 
-> The VD_OP_GET_VTOC operation will succeed only if the vdisk backend has a
-> VTOC label, otherwise it will fail. In particular, it will return error
-> 48 (ENOTSUP) if the disk has an EFI label. VTOC disk labels are already
-> handled by directly reading the disk in block/partitions/sun.c (enabled by
-> CONFIG_SUN_PARTITION which defaults to y on SPARC). Since port->label is
-> unused in the driver, remove the call and the field.
-> 
-> Signed-off-by: Dwight Engen <dwight.engen@oracle.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ arch/mips/include/asm/pci.h |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-Yep, makes perfect sense.
+diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
+index 974b0e3..287661b 100644
+--- a/arch/mips/include/asm/pci.h
++++ b/arch/mips/include/asm/pci.h
+@@ -43,6 +43,9 @@ struct pci_controller {
+ 
+ 	int iommu;
+ 
++#ifdef CONFIG_PCI_MSI
++	struct msi_chip *msi_chip;
++#endif
+ 	/* Optional access methods for reading/writing the bus number
+ 	   of the PCI controller */
+ 	int (*get_busno)(void);
+@@ -54,6 +57,17 @@ struct pci_controller {
+  */
+ extern void register_pci_controller(struct pci_controller *hose);
+ 
++#ifdef CONFIG_PCI_MSI
++
++static inline struct msi_chip *pci_msi_chip(struct pci_bus *bus)
++{
++	struct pci_controller *control = (struct pci_controller *)bus->sysdata;
++
++	return control->msi_chip;
++}
++
++#endif
++
+ /*
+  * board supplied pci irq fixup routine
+  */
+-- 
+1.7.1
 
-Applied and queued up for -stable, thanks.
