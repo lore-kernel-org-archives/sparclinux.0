@@ -1,102 +1,44 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:41:45 +0000
-Subject: [PATCH 10/16] Powerpc/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-Message-Id: <1414416142-31239-11-git-send-email-wangyijing@huawei.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 15 Oct 2014 18:00:34 +0000
+Subject: [PATCHv4 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
+Message-Id: <20141015180034.GG11840@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, david.stevens@oracle.com
+Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
 
-Use MSI controller framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
----
- arch/powerpc/include/asm/pci-bridge.h |    8 ++++++++
- arch/powerpc/kernel/msi.c             |   19 +++++++++++++++++--
- arch/powerpc/kernel/pci-common.c      |    3 +++
- 3 files changed, 28 insertions(+), 2 deletions(-)
+This patchset converts the sunvnet driver to use the NAPI framework.
 
-diff --git a/arch/powerpc/include/asm/pci-bridge.h b/arch/powerpc/include/asm/pci-bridge.h
-index 4ca90a3..f7d09d0 100644
---- a/arch/powerpc/include/asm/pci-bridge.h
-+++ b/arch/powerpc/include/asm/pci-bridge.h
-@@ -32,6 +32,10 @@ struct pci_controller {
- 	int self_busno;
- 	struct resource busn;
- 
-+#ifdef CONFIG_PCI_MSI
-+	struct msi_controller *msi_ctrl;
-+#endif
-+
- 	void __iomem *io_base_virt;
- #ifdef CONFIG_PPC64
- 	void *io_base_alloc;
-@@ -94,6 +98,10 @@ struct pci_controller {
- 	void *private_data;
- };
- 
-+#ifdef CONFIG_PCI_MSI
-+extern struct msi_controller ppc_msi_ctrl;
-+#endif
-+
- /* These are used for config access before all the PCI probing
-    has been done. */
- extern int early_read_config_byte(struct pci_controller *hose, int bus,
-diff --git a/arch/powerpc/kernel/msi.c b/arch/powerpc/kernel/msi.c
-index 71bd161..64a16f3 100644
---- a/arch/powerpc/kernel/msi.c
-+++ b/arch/powerpc/kernel/msi.c
-@@ -13,7 +13,15 @@
- 
- #include <asm/machdep.h>
- 
--int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
-+{
-+	struct pci_controller *hose = bus->sysdata;
-+
-+	return hose->msi_ctrl;
-+}
-+
-+static int ppc_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	if (!ppc_md.setup_msi_irqs || !ppc_md.teardown_msi_irqs) {
- 		pr_debug("msi: Platform doesn't provide MSI callbacks.\n");
-@@ -27,7 +35,13 @@ int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- 	return ppc_md.setup_msi_irqs(dev, nvec, type);
- }
- 
--void arch_teardown_msi_irqs(struct pci_dev *dev)
-+static void ppc_teardown_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev)
- {
- 	ppc_md.teardown_msi_irqs(dev);
- }
-+
-+struct msi_controller ppc_msi_ctrl = {
-+	.setup_irqs = ppc_setup_msi_irqs,
-+	.teardown_irqs = ppc_teardown_msi_irqs,
-+};
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index e5dad9a..c3f28c5 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -1597,6 +1597,9 @@ void pcibios_scan_phb(struct pci_controller *hose)
- 	/* Wire up PHB bus resources */
- 	pcibios_setup_phb_resources(hose, &resources);
- 
-+#ifdef CONFIG_PCI_MSI
-+	hose->msi_ctrl = &ppc_msi_ctrl;
-+#endif
- 	hose->busn.start = hose->first_busno;
- 	hose->busn.end	 = hose->last_busno;
- 	hose->busn.flags = IORESOURCE_BUS;
+Patch 1 in the series addresses the packet-receive path- all
+the vnet_event() processing is moved into NAPI context.
+This patch is dependant on the sparc-next commit:
+  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
+(Please cherry-pick sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
+
+Patch 2 uses RCU to fix race conditions between vnet_port_remove and
+paths that access/modify port-related state, such as vnet_start_xmit.
+
+Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
+dropping superfluous usage of the irqsave/irqrestores on the vio.lock
+where possible.
+
+Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
+net-next.
+
+Sowmini Varadhan (4):
+  NAPIfy sunvnet
+  Use RCU to synchronize port usage with vnet_port_remove()
+  Avoid irqsave/restore on vio.lock if in_softirq()
+  Remove irqsave/irqrestore on vio.lock
+
+ arch/sparc/kernel/viohs.c          |   8 +-
+ drivers/net/ethernet/sun/sunvnet.c | 258 +++++++++++++++++++++++--------------
+ drivers/net/ethernet/sun/sunvnet.h |   6 +-
+ 3 files changed, 173 insertions(+), 99 deletions(-)
+
 -- 
-1.7.1
+1.8.4.2
 
