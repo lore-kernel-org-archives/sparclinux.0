@@ -1,49 +1,76 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 22 Oct 2014 22:12:10 +0000
-Subject: [PATCHv5 net-next 0/4] sunvnet: NAPI enhancements.
-Message-Id: <20141022221210.GB17252@oracle.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:30:40 +0000
+Subject: [PATCH v3 20/27] MIPS/Xlr/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1413342435-7876-21-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, david.stevens@oracle.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
+Use MSI chip framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-This patchset converts the sunvnet driver to use the NAPI framework.
-Changes since v4 to (Patch 1): 
-  vnet_event accumulates LDC_EVENT_* bits into rx_event. 
-  vnet_event_napi() unrolls send_events() logic to process all rx_event bits.
-(Mail Subject of cover-letter changed, to keep it distinct from 
-subject of patch 1)
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ arch/mips/pci/pci-xlr.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
 
-Patch 1 in the series addresses the packet-receive path- all
-the vnet_event() processing is moved into NAPI context.
-This patch is dependant on the sparc-next commit:
-  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
-  (sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
-
-Patch 2 uses RCU to fix race conditions between vnet_port_remove and
-paths that access/modify port-related state, such as vnet_start_xmit.
-
-Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
-dropping superfluous usage of the irqsave/irqrestores on the vio.lock
-where possible.
-
-Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
-net-next.
-
-Sowmini Varadhan (4):
-  NAPIfy sunvnet
-  Use RCU to synchronize port usage with vnet_port_remove()
-  Avoid irqsave/restore on vio.lock if in_softirq()
-  Remove irqsave/irqrestore on vio.lock
-
- arch/sparc/kernel/viohs.c          |   8 +-
- drivers/net/ethernet/sun/sunvnet.c | 265 +++++++++++++++++++++++--------------
- drivers/net/ethernet/sun/sunvnet.h |   6 +-
- 3 files changed, 179 insertions(+), 100 deletions(-)
-
+diff --git a/arch/mips/pci/pci-xlr.c b/arch/mips/pci/pci-xlr.c
+index 0dde803..0e611de 100644
+--- a/arch/mips/pci/pci-xlr.c
++++ b/arch/mips/pci/pci-xlr.c
+@@ -149,6 +149,8 @@ static struct resource nlm_pci_io_resource = {
+ 	.flags		= IORESOURCE_IO,
+ };
+ 
++static struct msi_chip xlr_msi_chip;
++
+ struct pci_controller nlm_pci_controller = {
+ 	.index		= 0,
+ 	.pci_ops	= &nlm_pci_ops,
+@@ -156,6 +158,9 @@ struct pci_controller nlm_pci_controller = {
+ 	.mem_offset	= 0x00000000UL,
+ 	.io_resource	= &nlm_pci_io_resource,
+ 	.io_offset	= 0x00000000UL,
++#ifdef CONFIG_PCI_MSI
++	.msi_chip = &xlr_msi_chip,
++#endif
+ };
+ 
+ /*
+@@ -214,11 +219,13 @@ static int get_irq_vector(const struct pci_dev *dev)
+ }
+ 
+ #ifdef CONFIG_PCI_MSI
+-void arch_teardown_msi_irq(unsigned int irq)
++static void xlr_teardown_msi_irq(struct msi_chip *chip,
++		unsigned int irq)
+ {
+ }
+ 
+-int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
++static int xlr_setup_msi_irq(struct msi_chip *chip,
++		struct pci_dev *dev, struct msi_desc *desc)
+ {
+ 	struct msi_msg msg;
+ 	struct pci_dev *lnk;
+@@ -263,6 +270,12 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
+ 	write_msi_msg(irq, &msg);
+ 	return 0;
+ }
++
++static struct msi_chip xlr_msi_chip = {
++	.setup_irq = xlr_setup_msi_irq,
++	.teardown_irq = xlr_teardown_msi_irq,
++};
++
+ #endif
+ 
+ /* Extra ACK needed for XLR on chip PCI controller */
 -- 
-1.8.4.2
+1.7.1
 
