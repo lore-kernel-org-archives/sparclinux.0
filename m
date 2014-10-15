@@ -1,87 +1,147 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:47:34 +0000
-Subject: [PATCH 08/16] MIPS/Xlp/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-Message-Id: <1414416142-31239-9-git-send-email-wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:32:34 +0000
+Subject: [PATCH v3 15/27] x86/MSI: Remove unused MSI weak arch functions
+Message-Id: <1413342435-7876-16-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, arnab.basu-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Liviu Dudau <liviu-I3yL/QOVVjH10XsdtD+oqA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Chris Metcalf <cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Xinwei Hu <huxinwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, iommu@l
 
-Use MSI controller framework instead of arch MSI functions to configure
-MSI/MSI-X IRQ. So we can manage MSI/MSI-X irq in a unified framework.
+Now we can clean up MSI weak arch functions in x86.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/mips/include/asm/netlogic/xlp-hal/pcibus.h |    1 +
- arch/mips/pci/msi-xlp.c                         |   11 +++++++++--
- arch/mips/pci/pci-xlp.c                         |    3 +++
- 3 files changed, 13 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pci.h      |    5 +----
+ arch/x86/include/asm/x86_init.h |    4 ----
+ arch/x86/kernel/apic/io_apic.c  |   21 +++++----------------
+ arch/x86/kernel/x86_init.c      |   24 ------------------------
+ 4 files changed, 6 insertions(+), 48 deletions(-)
 
-diff --git a/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h b/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-index 91540f4..8e6869a 100644
---- a/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-+++ b/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-@@ -103,6 +103,7 @@
- 
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index f41b58a..3a5cf19 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -108,14 +108,11 @@ extern void pci_iommu_alloc(void);
  #ifdef CONFIG_PCI_MSI
- void xlp_init_node_msi_irqs(int node, int link);
-+extern struct msi_controller xlp_msi_ctrl;
+ /* implemented in arch/x86/kernel/apic/io_apic. */
+ struct msi_desc;
+-int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
+-void native_teardown_msi_irq(unsigned int irq);
+-void native_restore_msi_irqs(struct pci_dev *dev);
++void native_teardown_msi_irq(struct msi_chip *chip, unsigned int irq);
+ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+ 		  unsigned int irq_base, unsigned int irq_offset);
+ extern struct msi_chip *x86_msi_chip;
  #else
- static inline void xlp_init_node_msi_irqs(int node, int link) {}
+-#define native_setup_msi_irqs		NULL
+ #define native_teardown_msi_irq		NULL
  #endif
-diff --git a/arch/mips/pci/msi-xlp.c b/arch/mips/pci/msi-xlp.c
-index fa374fe..d18a162 100644
---- a/arch/mips/pci/msi-xlp.c
-+++ b/arch/mips/pci/msi-xlp.c
-@@ -245,7 +245,8 @@ static struct irq_chip xlp_msix_chip = {
- 	.irq_unmask	= unmask_msi_irq,
+ 
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index f58a9c7..2514f67 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -174,13 +174,9 @@ struct pci_dev;
+ struct msi_msg;
+ 
+ struct x86_msi_ops {
+-	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
+ 	void (*compose_msi_msg)(struct pci_dev *dev, unsigned int irq,
+ 				unsigned int dest, struct msi_msg *msg,
+ 			       u8 hpet_id);
+-	void (*teardown_msi_irq)(unsigned int irq);
+-	void (*teardown_msi_irqs)(struct pci_dev *dev);
+-	void (*restore_msi_irqs)(struct pci_dev *dev);
+ 	int  (*setup_hpet_msi)(unsigned int irq, unsigned int id);
  };
  
--void arch_teardown_msi_irq(unsigned int irq)
-+static void xlp_teardown_msi_irq(struct msi_controller *ctrl,
-+		unsigned int irq)
- {
- }
- 
-@@ -452,7 +453,8 @@ static int xlp_setup_msix(uint64_t lnkbase, int node, int link,
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index ec79b38..11d353f 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3200,7 +3200,8 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
  	return 0;
  }
  
--int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-+static int xlp_setup_msi_irq(struct msi_controller *ctrl,
-+		struct pci_dev *dev, struct msi_desc *desc)
+-int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++static int native_setup_msi_irqs(struct msi_chip *chip,
++		struct pci_dev *dev, int nvec, int type)
  {
- 	struct pci_dev *lnkdev;
- 	uint64_t lnkbase;
-@@ -474,6 +476,11 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 		return xlp_setup_msi(lnkbase, node, link, desc);
+ 	struct msi_desc *msidesc;
+ 	unsigned int irq;
+@@ -3227,26 +3228,14 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 	return 0;
  }
  
-+struct msi_controller xlp_msi_ctrl = {
-+	.setup_irq = xlp_setup_msi_irq,
-+	.teardown_irq = xlp_teardown_msi_irq,
-+};
-+
- void __init xlp_init_node_msi_irqs(int node, int link)
+-static int __native_setup_msi_irqs(struct msi_chip *chip, 
+-		struct pci_dev *dev, int nvec, int type)
+-{
+-	return native_setup_msi_irqs(dev, nvec, type);
+-}
+-
+-void native_teardown_msi_irq(unsigned int irq)
++void native_teardown_msi_irq(struct msi_chip *chip, unsigned int irq)
  {
- 	struct nlm_soc_info *nodep;
-diff --git a/arch/mips/pci/pci-xlp.c b/arch/mips/pci/pci-xlp.c
-index 7babf01..ab80417 100644
---- a/arch/mips/pci/pci-xlp.c
-+++ b/arch/mips/pci/pci-xlp.c
-@@ -174,6 +174,9 @@ struct pci_controller nlm_pci_controller = {
- 	.mem_offset	= 0x00000000UL,
- 	.io_resource	= &nlm_pci_io_resource,
- 	.io_offset	= 0x00000000UL,
-+#ifdef CONFIG_PCI_MSI
-+	.msi_ctrl = &xlp_msi_ctrl,
-+#endif
+ 	irq_free_hwirq(irq);
+ }
+ 
+-static void __native_teardown_msi_irq(struct msi_chip *chip, 
+-		unsigned int irq)
+-{
+-	native_teardown_msi_irq(irq);
+-}
+-
+ static struct msi_chip native_msi_chip = {
+-	.setup_irqs = __native_setup_msi_irqs,
+-	.teardown_irq = __native_teardown_msi_irq,
++	.setup_irqs = native_setup_msi_irqs,
++	.teardown_irq = native_teardown_msi_irq,
  };
  
- struct pci_dev *xlp_get_pcie_link(const struct pci_dev *dev)
+ struct msi_chip *x86_msi_chip = &native_msi_chip;
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 234b072..cc32568 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -110,34 +110,10 @@ EXPORT_SYMBOL_GPL(x86_platform);
+ 
+ #if defined(CONFIG_PCI_MSI)
+ struct x86_msi_ops x86_msi = {
+-	.setup_msi_irqs		= native_setup_msi_irqs,
+ 	.compose_msi_msg	= native_compose_msi_msg,
+-	.teardown_msi_irq	= native_teardown_msi_irq,
+-	.teardown_msi_irqs	= default_teardown_msi_irqs,
+-	.restore_msi_irqs	= default_restore_msi_irqs,
+ 	.setup_hpet_msi		= default_setup_hpet_msi,
+ };
+ 
+-/* MSI arch specific hooks */
+-int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+-{
+-	return x86_msi.setup_msi_irqs(dev, nvec, type);
+-}
+-
+-void arch_teardown_msi_irqs(struct pci_dev *dev)
+-{
+-	x86_msi.teardown_msi_irqs(dev);
+-}
+-
+-void arch_teardown_msi_irq(unsigned int irq)
+-{
+-	x86_msi.teardown_msi_irq(irq);
+-}
+-
+-void arch_restore_msi_irqs(struct pci_dev *dev)
+-{
+-	x86_msi.restore_msi_irqs(dev);
+-}
+ #endif
+ 
+ struct x86_io_apic_ops x86_io_apic_ops = {
 -- 
 1.7.1
 
