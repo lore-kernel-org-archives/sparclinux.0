@@ -1,192 +1,59 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue, 28 Oct 2014 03:34:36 +0000
-Subject: [PATCH 3.17 134/146] sparc64: T5 PMU
-Message-Id: <20141028033349.249957961@linuxfoundation.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:28:24 +0000
+Subject: [PATCH v3 08/27] PCI: mvebu: Save msi chip in pci_sys_data
+Message-Id: <1413342435-7876-9-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141028033343.441992423@linuxfoundation.org>
-In-Reply-To: <20141028033343.441992423@linuxfoundation.org>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
-3.17-stable review patch.  If anyone has any objections, please let me know.
+Save msi chip in pci_sys_data instead of assign
+msi chip to every pci bus in .add_bus().
 
-------------------
-
-From: bob picco <bpicco@meloft.net>
-
-The T5 (niagara5) has different PCR related HV fast trap values and a new
-HV API Group. This patch utilizes these and shares when possible with niagara4.
-
-We use the same sparc_pmu niagara4_pmu. Should there be new effort to
-obtain the MCU perf statistics then this would have to be changed.
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/hypervisor.h |   11 ++++++++
- arch/sparc/kernel/hvapi.c           |    1 
- arch/sparc/kernel/hvcalls.S         |   16 ++++++++++++
- arch/sparc/kernel/pcr.c             |   47 ++++++++++++++++++++++++++++++++----
- arch/sparc/kernel/perf_event.c      |    3 +-
- 5 files changed, 73 insertions(+), 5 deletions(-)
+ drivers/pci/host/pci-mvebu.c |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
 
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2947,6 +2947,16 @@ unsigned long sun4v_vt_set_perfreg(unsig
- 				   unsigned long reg_val);
- #endif
+diff --git a/drivers/pci/host/pci-mvebu.c b/drivers/pci/host/pci-mvebu.c
+index b1315e1..f8e9c6c 100644
+--- a/drivers/pci/host/pci-mvebu.c
++++ b/drivers/pci/host/pci-mvebu.c
+@@ -774,12 +774,6 @@ static struct pci_bus *mvebu_pcie_scan_bus(int nr, struct pci_sys_data *sys)
+ 	return bus;
+ }
  
-+#define	HV_FAST_T5_GET_PERFREG		0x1a8
-+#define	HV_FAST_T5_SET_PERFREG		0x1a9
-+
-+#ifndef	__ASSEMBLY__
-+unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-+				   unsigned long *reg_val);
-+unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-+				   unsigned long reg_val);
+-static void mvebu_pcie_add_bus(struct pci_bus *bus)
+-{
+-	struct mvebu_pcie *pcie = sys_to_pcie(bus->sysdata);
+-	bus->msi = pcie->msi;
+-}
+-
+ static resource_size_t mvebu_pcie_align_resource(struct pci_dev *dev,
+ 						 const struct resource *res,
+ 						 resource_size_t start,
+@@ -816,6 +810,9 @@ static void mvebu_pcie_enable(struct mvebu_pcie *pcie)
+ 
+ 	memset(&hw, 0, sizeof(hw));
+ 
++#ifdef CONFIG_PCI_MSI
++	hw.msi_chip = pcie->msi;
 +#endif
-+
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-@@ -2978,6 +2988,7 @@ unsigned long sun4v_vt_set_perfreg(unsig
- #define HV_GRP_VF_CPU			0x0205
- #define HV_GRP_KT_CPU			0x0209
- #define HV_GRP_VT_CPU			0x020c
-+#define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
+ 	hw.nr_controllers = 1;
+ 	hw.private_data   = (void **)&pcie;
+ 	hw.setup          = mvebu_pcie_setup;
+@@ -823,7 +820,6 @@ static void mvebu_pcie_enable(struct mvebu_pcie *pcie)
+ 	hw.map_irq        = of_irq_parse_and_map_pci;
+ 	hw.ops            = &mvebu_pcie_ops;
+ 	hw.align_resource = mvebu_pcie_align_resource;
+-	hw.add_bus        = mvebu_pcie_add_bus;
  
- #ifndef __ASSEMBLY__
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_VF_CPU,				},
- 	{ .group = HV_GRP_KT_CPU,				},
- 	{ .group = HV_GRP_VT_CPU,				},
-+	{ .group = HV_GRP_T5_CPU,				},
- 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
- };
- 
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
- 	retl
- 	 nop
- ENDPROC(sun4v_vt_set_perfreg)
-+
-+ENTRY(sun4v_t5_get_perfreg)
-+	mov	%o1, %o4
-+	mov	HV_FAST_T5_GET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_get_perfreg)
-+
-+ENTRY(sun4v_t5_set_perfreg)
-+	mov	HV_FAST_T5_SET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_set_perfreg)
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops  	.pcr_nmi_disable	= PCR_N4_PICNPT,
- };
- 
-+static u64 n5_pcr_read(unsigned long reg_num)
-+{
-+	unsigned long val;
-+
-+	(void) sun4v_t5_get_perfreg(reg_num, &val);
-+
-+	return val;
-+}
-+
-+static void n5_pcr_write(unsigned long reg_num, u64 val)
-+{
-+	(void) sun4v_t5_set_perfreg(reg_num, val);
-+}
-+
-+static const struct pcr_ops n5_pcr_ops = {
-+	.read_pcr		= n5_pcr_read,
-+	.write_pcr		= n5_pcr_write,
-+	.read_pic		= n4_pic_read,
-+	.write_pic		= n4_pic_write,
-+	.nmi_picl_value		= n4_picl_value,
-+	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
-+				   PCR_N4_UTRACE | PCR_N4_TOE |
-+				   (26 << PCR_N4_SL_SHIFT)),
-+	.pcr_nmi_disable	= PCR_N4_PICNPT,
-+};
-+
-+
- static unsigned long perf_hsvc_group;
- static unsigned long perf_hsvc_major;
- static unsigned long perf_hsvc_minor;
- 
- static int __init register_perf_hsvc(void)
- {
-+	unsigned long hverror;
-+
- 	if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
-@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(voi
- 			perf_hsvc_group = HV_GRP_VT_CPU;
- 			break;
- 
-+		case SUN4V_CHIP_NIAGARA5:
-+			perf_hsvc_group = HV_GRP_T5_CPU;
-+			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(voi
- 
- 		perf_hsvc_major = 1;
- 		perf_hsvc_minor = 0;
--		if (sun4v_hvapi_register(perf_hsvc_group,
--					 perf_hsvc_major,
--					 &perf_hsvc_minor)) {
--			printk("perfmon: Could not register hvapi.\n");
-+		hverror = sun4v_hvapi_register(perf_hsvc_group,
-+					       perf_hsvc_major,
-+					       &perf_hsvc_minor);
-+		if (hverror) {
-+			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
-+			       hverror);
- 			return -ENODEV;
- 		}
- 	}
-@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(vo
- 		pcr_ops = &n4_pcr_ops;
- 		break;
- 
-+	case SUN4V_CHIP_NIAGARA5:
-+		pcr_ops = &n5_pcr_ops;
-+		break;
-+
- 	default:
- 		ret = -ENODEV;
- 		break;
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+	if (!strcmp(sparc_pmu_type, "niagara4") ||
-+	    !strcmp(sparc_pmu_type, "niagara5")) {
- 		sparc_pmu = &niagara4_pmu;
- 		return true;
- 	}
-
+ 	pci_common_init(&hw);
+ }
+-- 
+1.7.1
 
