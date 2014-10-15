@@ -1,115 +1,89 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:46:41 +0000
-Subject: [PATCH 02/16] x86/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-Message-Id: <1414416142-31239-3-git-send-email-wangyijing@huawei.com>
+Date: Wed, 15 Oct 2014 02:26:41 +0000
+Subject: [PATCH v3 26/27] tile/MSI: Use MSI chip framework to configure MSI/MSI-X irq
+Message-Id: <1413342435-7876-27-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
-Use MSI controller framework instead of arch MSI functions to configure
+Use MSI chip framework instead of arch MSI functions to configure
 MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/x86/include/asm/pci.h     |    4 ++++
- arch/x86/kernel/apic/io_apic.c |   25 +++++++++++++++++++++++++
- arch/x86/pci/acpi.c            |    1 +
- arch/x86/pci/common.c          |    3 +++
- 4 files changed, 33 insertions(+), 0 deletions(-)
+ arch/tile/include/asm/pci.h |   10 ++++++++++
+ arch/tile/kernel/pci_gx.c   |   13 +++++++++++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index 0892ea0..1af3d77 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -20,6 +20,9 @@ struct pci_sysdata {
- #ifdef CONFIG_X86_64
- 	void		*iommu;		/* IOMMU private data */
+diff --git a/arch/tile/include/asm/pci.h b/arch/tile/include/asm/pci.h
+index dfedd7a..d27d9ec 100644
+--- a/arch/tile/include/asm/pci.h
++++ b/arch/tile/include/asm/pci.h
+@@ -152,6 +152,7 @@ struct pci_controller {
+ 	int pio_io_index;	/* PIO region index for I/O space access */
  #endif
-+#ifdef CONFIG_PCI_MSI
-+	struct msi_controller *msi_ctrl;
-+#endif
+ 
++	struct msi_chip *msi_chip;
+ 	/*
+ 	 * Mem-Map regions for all the memory controllers so that Linux can
+ 	 * map all of its physical memory space to the PCI bus.
+@@ -179,6 +180,15 @@ struct pci_controller {
+ 	int irq_intx_table[4];
  };
  
- extern int pci_routeirq;
-@@ -101,6 +104,7 @@ void native_teardown_msi_irq(unsigned int irq);
- void native_restore_msi_irqs(struct pci_dev *dev);
- int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
- 		  unsigned int irq_base, unsigned int irq_offset);
-+extern struct msi_controller *x86_msi_ctrl;
- #else
- #define native_setup_msi_irqs		NULL
- #define native_teardown_msi_irq		NULL
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 1183d54..8b8c671 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -3234,11 +3234,36 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- 	return 0;
- }
- 
-+static int __native_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev, int nvec, int type)
++extern struct msi_chip tilegx_msi;
++
++static inline struct msi_chip *pci_msi_chip(struct pci_bus *bus)
 +{
-+	return native_setup_msi_irqs(dev, nvec, type);
++	struct pci_controller *controller = bus->sysdata;
++
++	return controller->msi_chip;
 +}
 +
- void native_teardown_msi_irq(unsigned int irq)
+ extern struct pci_controller pci_controllers[TILEGX_NUM_TRIO * TILEGX_TRIO_PCIES];
+ extern gxio_trio_context_t trio_contexts[TILEGX_NUM_TRIO];
+ extern int num_trio_shims;
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index e39f9c5..ba66517 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -887,6 +887,7 @@ int __init pcibios_init(void)
+ 					controller->mem_offset);
+ 		pci_add_resource(&resources, &controller->io_space);
+ 		controller->first_busno = next_busno;
++		controller->msi_chip = &tilegx_msi;
+ 		bus = pci_scan_root_bus(NULL, next_busno, controller->ops,
+ 					controller, &resources);
+ 		controller->root_bus = bus;
+@@ -1485,7 +1486,8 @@ static struct irq_chip tilegx_msi_chip = {
+ 	/* TBD: support set_affinity. */
+ };
+ 
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++static int tile_setup_msi_irq(struct msi_chip *chip,
++		struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	struct pci_controller *controller;
+ 	gxio_trio_context_t *trio_context;
+@@ -1604,7 +1606,12 @@ is_64_failure:
+ 	return ret;
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++static void tile_teardown_msi_irq(struct msi_chip *chip, unsigned int irq)
  {
  	irq_free_hwirq(irq);
  }
- 
-+static void __native_teardown_msi_irq(struct msi_controller *ctrl,
-+		unsigned int irq)
-+{
-+	native_teardown_msi_irq(irq);
-+}
 +
-+static struct msi_controller native_msi_ctrl = {
-+	.setup_irqs = __native_setup_msi_irqs,
-+	.teardown_irq = __native_teardown_msi_irq,
++struct msi_chip tilegx_msi = {
++	.setup_irq = tile_setup_msi_irq,
++	.teardown_irq = tile_teardown_msi_irq,
 +};
-+
-+struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
-+{
-+	struct pci_sysdata *sys = bus->sysdata;
-+
-+	return sys->msi_ctrl;
-+}
-+struct msi_controller *x86_msi_ctrl = &native_msi_ctrl;
-+
- #ifdef CONFIG_DMAR_TABLE
- static int
- dmar_msi_set_affinity(struct irq_data *data, const struct cpumask *mask,
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index cfd1b13..edb14dd 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -508,6 +508,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 
- 	sd = &info->sd;
- 	sd->domain = domain;
-+	sd->msi_ctrl = x86_msi_ctrl;
- 	sd->node = node;
- 	sd->companion = device;
- 
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 7b20bcc..4deb240 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -468,6 +468,9 @@ void pcibios_scan_root(int busnum)
- 		return;
- 	}
- 	sd->node = x86_pci_root_bus_node(busnum);
-+#ifdef CONFIG_PCI_MSI
-+	sd->msi_ctrl = x86_msi_ctrl;
-+#endif
- 	x86_pci_root_bus_resources(busnum, &resources);
- 	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
- 	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, sd, &resources);
 -- 
 1.7.1
 
