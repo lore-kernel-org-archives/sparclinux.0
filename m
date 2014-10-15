@@ -1,52 +1,44 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 17 Oct 2014 07:42:06 +0000
-Subject: Re: [PATCH v3 21/27] Powerpc/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <5440C84E.6050408@huawei.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 15 Oct 2014 16:42:34 +0000
+Subject: [PATCHv3 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
+Message-Id: <20141015164234.GA11840@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>	 <1413342435-7876-22-git-send-email-wangyijing@huawei.com> <1413530600.21650.5.camel@concordia>
-In-Reply-To: <1413530600.21650.5.camel@concordia>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.ke
+To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com
+Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
 
-On 2014/10/17 15:23, Michael Ellerman wrote:
-> On Wed, 2014-10-15 at 11:07 +0800, Yijing Wang wrote:
->> Use MSI chip framework instead of arch MSI functions to configure
->> MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
->>
->> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
->> ---
->> Hi Michael,
->>    I dropped the Acked-by , because this version has a
->> lot changes compared to last. So, I guess you may want to check it again.
-> 
-> OK thanks.
-> 
-> Still looks OK and boots on one of my test systems that uses MSI.
 
-Good!
+This patchset converts the sunvnet driver to use the NAPI framework.
 
-> 
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au> (for powerpc)
+Patch 1 in the series addresses the packet-receive path- all
+the vnet_event() processing is moved into NAPI context.
+This patch is dependant on the sparc-next commit:
+  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
+(Please cherry-pick sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
 
-Thanks very much!
+Patch 2 uses RCU to fix race conditions between vnet_port_remove and
+paths that access/modify port-related state, such as vnet_start_xmit.
 
-Thanks!
-Yijing.
+Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
+dropping superfluous usage of the irqsave/irqrestores on the vio.lock
+where possible.
 
-> 
-> 
-> cheers
-> 
-> 
-> 
-> .
-> 
+Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
+net-next.
 
+Sowmini Varadhan (4):
+  NAPIfy sunvnet
+  Use RCU to synchronize port usage with vnet_port_remove()
+  Avoid irqsave/restore on vio.lock if in_softirq()
+  Remove irqsave/irqrestore on vio.lock
+
+ arch/sparc/kernel/viohs.c          |   8 +-
+ drivers/net/ethernet/sun/sunvnet.c | 261 +++++++++++++++++++++++--------------
+ drivers/net/ethernet/sun/sunvnet.h |   6 +-
+ 3 files changed, 176 insertions(+), 99 deletions(-)
 
 -- 
-Thanks!
-Yijing
+1.8.4.2
 
