@@ -1,653 +1,111 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 19 Oct 2014 11:57:36 +0000
-Subject: [PATCH v2 1/2] silo: ext2fs: delete bitops.h
-Message-Id: <1413719857-9838-2-git-send-email-aaro.koskinen@iki.fi>
+From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
+Date: Thu, 16 Oct 2014 12:49:13 +0000
+Subject: boot crash in userspace [Re: unaligned accesses in SLAB etc.]
+Message-Id: <20141016124913.GC12736@lemon.iwr.uni-heidelberg.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Delete bitops.h, it's not used and causes issues with GNU11 mode.
+On Thu, Oct 16, 2014 at 10:22:56AM +0300, Meelis Roos wrote:
+> > compiler to narrow down what compiles into something non-working with
+> > gcc-4.9
+>=20
+> Yes, I kept gcc-4.6 to help resolving it.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
----
- include/ext2fs/bitops.h | 608 ------------------------------------------------
- include/ext2fs/ext2fs.h |   6 -
- 2 files changed, 614 deletions(-)
- delete mode 100644 include/ext2fs/bitops.h
+Probably unrelated, but as a datapoint:
+On a Enterprise 250 vanilla 3.17.0 crashes also in userspace
+with a red state exception shortly after boot. With the wheezy
+kernel the system boots sucessfully.
 
-diff --git a/include/ext2fs/bitops.h b/include/ext2fs/bitops.h
-deleted file mode 100644
-index 7e049d1..0000000
---- a/include/ext2fs/bitops.h
-+++ /dev/null
-@@ -1,608 +0,0 @@
--/*
-- * bitops.h --- Bitmap frobbing code.  The byte swapping routines are
-- * 	also included here.
-- * 
-- * Copyright (C) 1993, 1994, 1995, 1996 Theodore Ts'o.
-- *
-- * %Begin-Header%
-- * This file may be redistributed under the terms of the GNU Public
-- * License.
-- * %End-Header%
-- * 
-- * i386 bitops operations taken from <asm/bitops.h>, Copyright 1992,
-- * Linus Torvalds.
-- */
--
--
--extern int ext2fs_set_bit(int nr,void * addr);
--extern int ext2fs_clear_bit(int nr, void * addr);
--extern int ext2fs_test_bit(int nr, const void * addr);
--extern __u16 ext2fs_swab16(__u16 val);
--extern __u32 ext2fs_swab32(__u32 val);
--
--/*
-- * EXT2FS bitmap manipulation routines.
-- */
--
--/* Support for sending warning messages from the inline subroutines */
--extern const char *ext2fs_block_string;
--extern const char *ext2fs_inode_string;
--extern const char *ext2fs_mark_string;
--extern const char *ext2fs_unmark_string;
--extern const char *ext2fs_test_string;
--extern void ext2fs_warn_bitmap(errcode_t errcode, unsigned long arg,
--			       const char *description);
--extern void ext2fs_warn_bitmap2(ext2fs_generic_bitmap bitmap,
--				int code, unsigned long arg);
--
--extern int ext2fs_mark_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
--extern int ext2fs_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--				       blk_t block);
--extern int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
--
--extern int ext2fs_mark_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
--extern int ext2fs_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--				       ino_t inode);
--extern int ext2fs_test_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
--
--extern void ext2fs_fast_mark_block_bitmap(ext2fs_block_bitmap bitmap,
--					  blk_t block);
--extern void ext2fs_fast_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--					    blk_t block);
--extern int ext2fs_fast_test_block_bitmap(ext2fs_block_bitmap bitmap,
--					 blk_t block);
--
--extern void ext2fs_fast_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					  ino_t inode);
--extern void ext2fs_fast_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					    ino_t inode);
--extern int ext2fs_fast_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					 ino_t inode);
--extern blk_t ext2fs_get_block_bitmap_start(ext2fs_block_bitmap bitmap);
--extern ino_t ext2fs_get_inode_bitmap_start(ext2fs_inode_bitmap bitmap);
--extern blk_t ext2fs_get_block_bitmap_end(ext2fs_block_bitmap bitmap);
--extern ino_t ext2fs_get_inode_bitmap_end(ext2fs_inode_bitmap bitmap);
--
--extern void ext2fs_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					   blk_t block, int num);
--extern void ext2fs_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					     blk_t block, int num);
--extern int ext2fs_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					  blk_t block, int num);
--extern void ext2fs_fast_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						blk_t block, int num);
--extern void ext2fs_fast_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						  blk_t block, int num);
--extern int ext2fs_fast_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					       blk_t block, int num);
--extern void ext2fs_set_bitmap_padding(ext2fs_generic_bitmap map);
--
--/*
-- * The inline routines themselves...
-- * 
-- * If NO_INLINE_FUNCS is defined, then we won't try to do inline
-- * functions at all; they will be included as normal functions in
-- * inline.c
-- */
--#ifdef NO_INLINE_FUNCS
--#if (defined(__GNUC__) && (defined(__i386__) || defined(__i486__) || \
--			   defined(__i586__) || defined(__mc68000__) || \
--			   defined(__sparc__)))
--	/* This prevents bitops.c from trying to include the C */
--	/* function version of these functions */
--#define _EXT2_HAVE_ASM_BITOPS_
--#endif
--#endif /* NO_INLINE_FUNCS */
--
--#if (defined(INCLUDE_INLINE_FUNCS) || !defined(NO_INLINE_FUNCS))
--#ifdef INCLUDE_INLINE_FUNCS
--#define _INLINE_ extern
--#else
--#ifdef __GNUC__
--#define _INLINE_ extern __inline__
--#else				/* For Watcom C */
--#define _INLINE_ extern inline
--#endif
--#endif
--
--#if ((defined __GNUC__) && (defined(__i386__) || defined(__i486__) || \
--			    defined(__i586__)))
--
--#define _EXT2_HAVE_ASM_BITOPS_
--	
--/*
-- * These are done by inline assembly for speed reasons.....
-- *
-- * All bitoperations return 0 if the bit was cleared before the
-- * operation and != 0 if it was not.  Bit 0 is the LSB of addr; bit 32
-- * is the LSB of (addr+1).
-- */
--
--/*
-- * Some hacks to defeat gcc over-optimizations..
-- */
--struct __dummy_h { unsigned long a[100]; };
--#define EXT2FS_ADDR (*(struct __dummy_h *) addr)
--#define EXT2FS_CONST_ADDR (*(const struct __dummy_h *) addr)	
--
--_INLINE_ int ext2fs_set_bit(int nr, void * addr)
--{
--	int oldbit;
--
--	__asm__ __volatile__("btsl %2,%1\n\tsbbl %0,%0"
--		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
--		:"r" (nr));
--	return oldbit;
--}
--
--_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
--{
--	int oldbit;
--
--	__asm__ __volatile__("btrl %2,%1\n\tsbbl %0,%0"
--		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
--		:"r" (nr));
--	return oldbit;
--}
--
--_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
--{
--	int oldbit;
--
--	__asm__ __volatile__("btl %2,%1\n\tsbbl %0,%0"
--		:"=r" (oldbit)
--		:"m" (EXT2FS_CONST_ADDR),"r" (nr));
--	return oldbit;
--}
--
--#undef EXT2FS_ADDR
--
--#endif	/* i386 */
--
--#ifdef __mc68000__
--
--#define _EXT2_HAVE_ASM_BITOPS_
--
--_INLINE_ int ext2fs_set_bit(int nr,void * addr)
--{
--	char retval;
--
--	__asm__ __volatile__ ("bfset %2@{%1:#1}; sne %0"
--	     : "=d" (retval) : "d" (nr^7), "a" (addr));
--
--	return retval;
--}
--
--_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
--{
--	char retval;
--
--	__asm__ __volatile__ ("bfclr %2@{%1:#1}; sne %0"
--	     : "=d" (retval) : "d" (nr^7), "a" (addr));
--
--	return retval;
--}
--
--_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
--{
--	char retval;
--
--	__asm__ __volatile__ ("bftst %2@{%1:#1}; sne %0"
--	     : "=d" (retval) : "d" (nr^7), "a" (addr));
--
--	return retval;
--}
--
--#endif /* __mc68000__ */
--
--#ifdef __sparc__
--
--#define _EXT2_HAVE_ASM_BITOPS_
--
--#ifndef EXT2_OLD_BITOPS
--
--/*
-- * Do the bitops so that we are compatible with the standard i386
-- * convention.
-- */
--
--_INLINE_ int ext2fs_set_bit(int nr,void * addr)
--{
--#if 1
--	int		mask;
--	unsigned char	*ADDR = (unsigned char *) addr;
--
--	ADDR += nr >> 3;
--	mask = 1 << (nr & 0x07);
--	__asm__ __volatile__("ldub	[%0], %%g6\n\t"
--			     "or	%%g6, %2, %%g5\n\t"
--			     "stb	%%g5, [%0]\n\t"
--			     "and	%%g6, %2, %0\n"
--	: "=&r" (ADDR)
--	: "0" (ADDR), "r" (mask)
--	: "g5", "g6");
--	return (int) ADDR;
--#else
--	int		mask, retval;
--	unsigned char	*ADDR = (unsigned char *) addr;
--
--	ADDR += nr >> 3;
--	mask = 1 << (nr & 0x07);
--	retval = (mask & *ADDR) != 0;
--	*ADDR |= mask;
--	return retval;
--#endif
--}
--
--_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
--{
--#if 1
--	int		mask;
--	unsigned char	*ADDR = (unsigned char *) addr;
--
--	ADDR += nr >> 3;
--	mask = 1 << (nr & 0x07);
--	__asm__ __volatile__("ldub	[%0], %%g6\n\t"
--			     "andn	%%g6, %2, %%g5\n\t"
--			     "stb	%%g5, [%0]\n\t"
--			     "and	%%g6, %2, %0\n"
--	: "=&r" (ADDR)
--	: "0" (ADDR), "r" (mask)
--	: "g5", "g6");
--	return (int) ADDR;
--	
--#else
--	int		mask, retval;
--	unsigned char	*ADDR = (unsigned char *) addr;
--
--	ADDR += nr >> 3;
--	mask = 1 << (nr & 0x07);
--	retval = (mask & *ADDR) != 0;
--	*ADDR &= ~mask;
--	return retval;
--#endif
--}
--
--_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
--{
--	int			mask;
--	const unsigned char	*ADDR = (const unsigned char *) addr;
--
--	ADDR += nr >> 3;
--	mask = 1 << (nr & 0x07);
--	return ((mask & *ADDR) != 0);
--}
--
--#else
--
--/* Do things the old, unplesant way. */
--
--_INLINE_ int ext2fs_set_bit(int nr, void *addr)
--{
--	int		mask, retval;
--	unsigned long	*ADDR = (unsigned long *) addr;
--
--	ADDR += nr >> 5;
--	mask = 1 << (nr & 31);
--	retval = ((mask & *ADDR) != 0);
--	*ADDR |= mask;
--	return retval;
--}
--
--_INLINE_ int ext2fs_clear_bit(int nr, void *addr)
--{
--	int		mask, retval;
--	unsigned long	*ADDR = (unsigned long *) addr;
--
--	ADDR += nr >> 5;
--	mask = 1 << (nr & 31);
--	retval = ((mask & *ADDR) != 0);
--	*ADDR &= ~mask;
--	return retval;
--}
--
--_INLINE_ int ext2fs_test_bit(int nr, const void *addr)
--{
--	int			mask;
--	const unsigned long	*ADDR = (const unsigned long *) addr;
--
--	ADDR += nr >> 5;
--	mask = 1 << (nr & 31);
--	return ((mask & *ADDR) != 0);
--}
--#endif
--
--#endif /* __sparc__ */
--
--#ifndef _EXT2_HAVE_ASM_SWAB
--
--_INLINE_ __u16 ext2fs_swab16(__u16 val)
--{
--	return (val >> 8) | (val << 8);
--}
--
--_INLINE_ __u32 ext2fs_swab32(__u32 val)
--{
--	return ((val>>24) | ((val>>8)&0xFF00) |
--		((val<<8)&0xFF0000) | (val<<24));
--}
--
--#endif /* !_EXT2_HAVE_ASM_SWAB */
--
--_INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					 __u32 bitno);
--_INLINE_ int ext2fs_unmark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					   blk_t bitno);
--_INLINE_ int ext2fs_test_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					blk_t bitno);
--
--_INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					 __u32 bitno)
--{
--	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
--		ext2fs_warn_bitmap2(bitmap, EXT2FS_MARK_ERROR, bitno);
--		return 0;
--	}
--	return ext2fs_set_bit(bitno - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ int ext2fs_unmark_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					   blk_t bitno)
--{
--	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
--		ext2fs_warn_bitmap2(bitmap, EXT2FS_UNMARK_ERROR, bitno);
--		return 0;
--	}
--	return ext2fs_clear_bit(bitno - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ int ext2fs_test_generic_bitmap(ext2fs_generic_bitmap bitmap,
--					blk_t bitno)
--{
--	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
--		ext2fs_warn_bitmap2(bitmap, EXT2FS_TEST_ERROR, bitno);
--		return 0;
--	}
--	return ext2fs_test_bit(bitno - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ int ext2fs_mark_block_bitmap(ext2fs_block_bitmap bitmap,
--				       blk_t block)
--{
--	return ext2fs_mark_generic_bitmap((ext2fs_generic_bitmap)
--				       bitmap,
--					  block);
--}
--
--_INLINE_ int ext2fs_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--					 blk_t block)
--{
--	return ext2fs_unmark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
--					    block);
--}
--
--_INLINE_ int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap,
--				       blk_t block)
--{
--	return ext2fs_test_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
--					  block);
--}
--
--_INLINE_ int ext2fs_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--				       ino_t inode)
--{
--	return ext2fs_mark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
--					  inode);
--}
--
--_INLINE_ int ext2fs_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					 ino_t inode)
--{
--	return ext2fs_unmark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
--				     inode);
--}
--
--_INLINE_ int ext2fs_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
--				       ino_t inode)
--{
--	return ext2fs_test_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
--					  inode);
--}
--
--_INLINE_ void ext2fs_fast_mark_block_bitmap(ext2fs_block_bitmap bitmap,
--					    blk_t block)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
--				   bitmap->description);
--		return;
--	}
--#endif	
--	ext2fs_set_bit(block - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_fast_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
--					      blk_t block)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK,
--				   block, bitmap->description);
--		return;
--	}
--#endif
--	ext2fs_clear_bit(block - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ int ext2fs_fast_test_block_bitmap(ext2fs_block_bitmap bitmap,
--					    blk_t block)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
--				   block, bitmap->description);
--		return 0;
--	}
--#endif
--	return ext2fs_test_bit(block - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_fast_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					    ino_t inode)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((inode < bitmap->start) || (inode > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_MARK,
--				   inode, bitmap->description);
--		return;
--	}
--#endif
--	ext2fs_set_bit(inode - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_fast_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					      ino_t inode)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((inode < bitmap->start) || (inode > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_UNMARK,
--				   inode, bitmap->description);
--		return;
--	}
--#endif
--	ext2fs_clear_bit(inode - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ int ext2fs_fast_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
--					   ino_t inode)
--{
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((inode < bitmap->start) || (inode > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_TEST,
--				   inode, bitmap->description);
--		return 0;
--	}
--#endif
--	return ext2fs_test_bit(inode - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ blk_t ext2fs_get_block_bitmap_start(ext2fs_block_bitmap bitmap)
--{
--	return bitmap->start;
--}
--
--_INLINE_ ino_t ext2fs_get_inode_bitmap_start(ext2fs_inode_bitmap bitmap)
--{
--	return bitmap->start;
--}
--
--_INLINE_ blk_t ext2fs_get_block_bitmap_end(ext2fs_block_bitmap bitmap)
--{
--	return bitmap->end;
--}
--
--_INLINE_ ino_t ext2fs_get_inode_bitmap_end(ext2fs_inode_bitmap bitmap)
--{
--	return bitmap->end;
--}
--
--_INLINE_ int ext2fs_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					    blk_t block, int num)
--{
--	int	i;
--
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
--				   block, bitmap->description);
--		return 0;
--	}
--	for (i=0; i < num; i++) {
--		if (ext2fs_fast_test_block_bitmap(bitmap, block+i))
--			return 0;
--	}
--	return 1;
--}
--
--_INLINE_ int ext2fs_fast_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						 blk_t block, int num)
--{
--	int	i;
--
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
--				   block, bitmap->description);
--		return 0;
--	}
--#endif
--	for (i=0; i < num; i++) {
--		if (ext2fs_fast_test_block_bitmap(bitmap, block+i))
--			return 0;
--	}
--	return 1;
--}
--
--_INLINE_ void ext2fs_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					     blk_t block, int num)
--{
--	int	i;
--	
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
--				   bitmap->description);
--		return;
--	}
--	for (i=0; i < num; i++)
--		ext2fs_set_bit(block + i - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_fast_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						  blk_t block, int num)
--{
--	int	i;
--	
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
--				   bitmap->description);
--		return;
--	}
--#endif	
--	for (i=0; i < num; i++)
--		ext2fs_set_bit(block + i - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--					       blk_t block, int num)
--{
--	int	i;
--	
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK, block,
--				   bitmap->description);
--		return;
--	}
--	for (i=0; i < num; i++)
--		ext2fs_clear_bit(block + i - bitmap->start, bitmap->bitmap);
--}
--
--_INLINE_ void ext2fs_fast_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
--						    blk_t block, int num)
--{
--	int	i;
--	
--#ifdef EXT2FS_DEBUG_FAST_OPS
--	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
--		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK, block,
--				   bitmap->description);
--		return;
--	}
--#endif	
--	for (i=0; i < num; i++)
--		ext2fs_clear_bit(block + i - bitmap->start, bitmap->bitmap);
--}
--
--#undef _INLINE_
--#endif
--
-diff --git a/include/ext2fs/ext2fs.h b/include/ext2fs/ext2fs.h
-index 17481a0..78f517a 100644
---- a/include/ext2fs/ext2fs.h
-+++ b/include/ext2fs/ext2fs.h
-@@ -221,12 +221,6 @@ struct struct_ext2_filsys {
- 	struct ext2_inode_cache		*icache;
- };
- 
--#if EXT2_FLAT_INCLUDES
--#include "e2_bitops.h"
--#else
--#include "ext2fs/bitops.h"
--#endif
--
- /*
-  * Return flags for the block iterator functions
-  */
--- 
-2.1.2
+Greetings
+  Hermann
 
+[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.30.0 2003/11/11 10:37'
+[    0.000000] PROMLIB: Root node compatible: sun4u
+[    0.000000] Initializing cgroup subsys cpuset
+[    0.000000] Initializing cgroup subsys cpu
+[    0.000000] Initializing cgroup subsys cpuacct
+[    0.000000] Linux version 3.17.0 (hlauer@abacus) (gcc version 4.6.3 (Deb=
+ian 4.6.3-14) ) #1 SMP Mon Oct 13 20:44:31 CEST 2014
+[    0.000000] bootconsole [earlyprom0] enabled
+[    0.000000] ARCH: SUN4U
+[    0.000000] Ethernet address: 08:00:20:9f:45:7e
+[    0.000000] PAGE_OFFSET is 0xffffff0000000000 (max_phys_bits =3D 40)
+[    0.000000] Kernel: Using 4 locked TLB entries for main kernel image.
+[    0.000000] Remapping the kernel... done.
+[    0.000000] OF stdout device is: /pci@1f,4000/ebus@1/se@14,400000:a
+[    0.000000] PROM: Built device tree with 88024 bytes of memory.
+[    0.000000] Top of RAM: 0x1fec0000, Total RAM: 0x1feae000
+[    0.000000] Memory hole size: 0MB
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      empty
+[    0.000000]   Normal   [mem 0x00000000-0x1febffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00000000-0x1fdfdfff]
+[    0.000000]   node   0: [mem 0x1fe00000-0x1fe99fff]
+[    0.000000]   node   0: [mem 0x1feaa000-0x1febffff]
+[    0.000000] Booting Linux...
+[    0.000000] CPU CAPS: [flush,stbar,swap,muldiv,v9,mul32,div32,v8plus]
+[    0.000000] CPU CAPS: [vis]
+[    0.000000] PERCPU: Embedded 7 pages/cpu @ffffff001f000000 s23040 r8192 =
+d26112 u4194304
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Tota=
+l pages: 64856
+[    0.000000] Kernel command line: root=3D/dev/md0 ro
+[    0.000000] PID hash table entries: 2048 (order: 1, 16384 bytes)
+[    0.000000] Dentry cache hash table entries: 65536 (order: 6, 524288 byt=
+es)
+[    0.000000] Inode-cache hash table entries: 32768 (order: 5, 262144 byte=
+s)
+[    0.000000] Sorting __ex_table...
+[    0.000000] Memory: 488256K/522936K available (4099K kernel code, 530K r=
+wdata, 1272K rodata, 256K init, 6873K bss, 34680K reserved)
+[    0.000000] Hierarchical RCU implementation.
+[    0.000000] 	CONFIG_RCU_FANOUT set to non-default value of 32
+[    0.000000] 	RCU dyntick-idle grace-period acceleration is enabled.
+[    0.000000] 	RCU restricting CPUs from NR_CPUS%6 to nr_cpu_ids=3D1.
+[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=
+=3D1
+[    0.000000] NR_IRQS:255
+
+<rest available if interesting>
+
+[....] Starting enhanced syslogd: rsyslogd=1B[?25l=1B[?1c
+CPU0 RED State Exception
+
+  CPUVersion:  0017.0011.2000.0507
+  UPAConfig:   0000.06b6.34c0.803b
+  LSU-Control: 0000.0000.0000.0000
+  ECErrEnable: 0000.0000.0000.0007
+
+  AFAR:        0000.01fe.0180.2800
+  AFSR:        0000.0000.0000.0000
+
+  DMMU SFAR:   0000.0000.f78e.4004
+  DMMU SFSR:   0000.0000.0000.0000
+  IMMU SFSR:   0000.0000.0000.0011
+
+TL=0000.0000.0000.0005 TT=0000.0000.0000.0064
+   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
+402
+TL=0000.0000.0000.0004 TT=0000.0000.0000.0064
+   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
+402
+TL=0000.0000.0000.0003 TT=0000.0000.0000.0064
+   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
+402
+TL=0000.0000.0000.0002 TT=0000.0000.0000.0064
+   TPC=0000.0000.0042.0c80 TnPC=0000.0000.0042.0c84 TSTATE=0000.0000.1104.1=
+402
+TL=0000.0000.0000.0001 TT=0000.0000.0000.0064
+   TPC=0000.0000.0044.cac0 TnPC=0000.0000.0044.cac4 TSTATE=0000.0000.1100.1=
+602=EF=BF=BD
+
+--=20
+Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres=20
+Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
+IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
+Email: Hermann.Lauer@iwr.uni-heidelberg.de
