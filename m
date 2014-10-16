@@ -1,86 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 16 Oct 2014 03:11:54 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 16 Oct 2014 07:02:57 +0000
 Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <20141015.231154.1804074463934900124.davem@davemloft.net>
+Message-Id: <alpine.LRH.2.11.1410160956090.13273@adalberg.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1410151059520.8050@adalberg.ut.ee>
-	<20141015.143624.941838991598108211.davem@davemloft.net>
-	<alpine.LRH.2.11.1410152310080.11974@adalberg.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1410152310080.11974@adalberg.ut.ee>
+References: <20141013235219.GA11191@js1304-P5Q-DELUXE> <20141013.200416.641735303627599182.davem@davemloft.net> <alpine.LRH.2.11.1410150012001.11850@adalberg.ut.ee> <20141014.173246.921084057467310731.davem@davemloft.net>
+In-Reply-To: <20141014.173246.921084057467310731.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
+To: David Miller <davem@davemloft.net>
 Cc: iamjoonsoo.kim@lge.com, linux-kernel@vger.kernel.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 15 Oct 2014 23:11:34 +0300 (EEST)
-
->> >> The gcc-4.9 case is interesting, are you saying that a gcc-4.9 compiled
->> >> kernel works fine on other systems?
->> > 
->> > Yes, all USII based systems work fine with Debian gcc-4.9, as does 
->> > T2000. Of USIII* systems, V210 and V440 exhibit the boot hang with 
->> > gcc-4.9 and V480 crashes wit FATAL exception during boot that is 
->> > probably earlier than the gcc boot hang so I do not know about V480 and 
->> > gcc-4.9. V240 not tested because of fan failures, V245 is in the queue 
->> > for setup but not tested so far.
->> 
->> Ok, on the V210/V440 can you boot with "-p" on the kernel boot command
->> line and post the log?  Let's start by seeing how far it gets, maybe
->> we can figure out roughly where it dies.
+> >> > I'd like to know that your another problem is related to commit
+> >> > bf0dea23a9c0 ("mm/slab: use percpu allocator for cpu cache").  So,
+> >> > if the commit is reverted, your another problem is also gone
+> >> > completely?
+> >> 
+> >> The other problem has been present forever.
+> > 
+> > Umm? I am afraid I have been describing it badly. This random 
+> > SIGBUS+SIGSEGV problem is new - I have not seen it before.
 > 
-> http://www.spinics.net/lists/sparclinux/msg12238.html and 
-> http://www.spinics.net/lists/sparclinux/msg12468.html are my relevant 
-> posts about it. Should I get something more? It would be easy because of 
-> ALOM.
+> Sorry, I thought it was the same bug that causes git corruptions
+> for you.  I misunderstood.
+> 
+> > I have been able to do kernel compiles for years on sparc64 (modulo 
+> > specific bugs in specific configurations) and 3.17 + start/end swap 
+> > patch seems also stable for most machine. With yesterdays git + align 
+> > patch, it dies with SIGBUS multiple times during compilation so it's a 
+> > new regression for me.
+> > 
+> > Will try reverting that commit tomorrow.
+> 
+> If that fails, please try to bisect, it will help us a lot.
 
-Less information than I had hoped :-/
+Commit bf0dea23a9c0 is working OK with no revert needed (checked out 
+this revision and it tested OK).
 
-I thought it was hanging "during boot" meaning before we try to
-execute userspace.  When in fact it seems to die exactly when we start
-running the init process.
+So far I know that the breakage seems to have happened between
+cadbb58039f7cab1def9c931012ab04c953a6997 (first sparc commit of 
+the batch, working OK on V100) and 
+bdcf81b658ebc4c2640c3c2c55c8b31c601b6996 (last sparc commit before the 
+merge, breaks on E3500). Will continue bisecting the sparc64 commits.
 
-Wrt. disassembly of fault_in_user_windows(), that's not likely the
-cause because if it were being miscompiled it would equally not work
-on the other systems.
+Also, I noticed that when the problem happens, it's deterministic - with 
+some kernels, sshd dies reproducibly on login. With most kernels, 
+building kernel breaks in one specific location, not randomly.
 
-Something in the UltraSPARC-III specific code paths is going wrong
-(either it is miscompiled, or the code makes an assumption that isn't
-valid which has happened in the past).
+scripts/Makefile.build:352: recipe for target 'sound/modules.order' failed
+make[1]: *** [sound/modules.order] Bus error
+make[1]: *** Deleting file 'sound/modules.order'
+Makefile:929: recipe for target 'sound' failed
 
-Do you happen to have both gcc-4.9 and a previously working compiler
-on these systems?  If you do, we can build a kernel with gcc-4.9 and
-then selectively compile certain failes with the older working
-compiler to narrow down what compiles into something non-working with
-gcc-4.9
+Will tell when I get more details.
 
-I would start with the following files:
-
-	arch/sparc/mm/init_64.c
-	arch/sparc/mm/tlb.c
-	arch/sparc/mm/tsb.c
-	arch/sparc/mm/fault_64.c
-
-And failing that, go for various files under arch/sparc/kernel/ such as:
-
-	arch/sparc/kernel/process_64.c
-	arch/sparc/kernel/smp_64.c
-	arch/sparc/kernel/sys_sparc_64.c
-	arch/sparc/kernel/sys_sparc32.c
-	arch/sparc/kernel/traps_64.c
-
-Hopefully, this should be a simply matter of doing a complete build
-with gcc-4.9, then removing the object file we want to selectively
-build with the older compiler and then going:
-
-	make CC="gcc-4.6" arch/sparc/mm/init_64.o
-
-then relinking with plain 'make'.
-
-If the build system rebuilds the object file on you when you try
-to relink the final kernel image, we'll have to do some of this
-by hand to make the test.
-
-Thanks.
-
+-- 
+Meelis Roos (mroos@linux.ee)
