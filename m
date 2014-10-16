@@ -1,58 +1,40 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 16 Oct 2014 07:02:57 +0000
+Date: Thu, 16 Oct 2014 07:22:56 +0000
 Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <alpine.LRH.2.11.1410160956090.13273@adalberg.ut.ee>
+Message-Id: <alpine.LRH.2.11.1410161021130.5119@adalberg.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141013235219.GA11191@js1304-P5Q-DELUXE> <20141013.200416.641735303627599182.davem@davemloft.net> <alpine.LRH.2.11.1410150012001.11850@adalberg.ut.ee> <20141014.173246.921084057467310731.davem@davemloft.net>
-In-Reply-To: <20141014.173246.921084057467310731.davem@davemloft.net>
+References: <alpine.LRH.2.11.1410151059520.8050@adalberg.ut.ee> <20141015.143624.941838991598108211.davem@davemloft.net> <alpine.LRH.2.11.1410152310080.11974@adalberg.ut.ee> <20141015.231154.1804074463934900124.davem@davemloft.net>
+In-Reply-To: <20141015.231154.1804074463934900124.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: iamjoonsoo.kim@lge.com, linux-kernel@vger.kernel.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-> >> > I'd like to know that your another problem is related to commit
-> >> > bf0dea23a9c0 ("mm/slab: use percpu allocator for cpu cache").  So,
-> >> > if the commit is reverted, your another problem is also gone
-> >> > completely?
-> >> 
-> >> The other problem has been present forever.
-> > 
-> > Umm? I am afraid I have been describing it badly. This random 
-> > SIGBUS+SIGSEGV problem is new - I have not seen it before.
+> Do you happen to have both gcc-4.9 and a previously working compiler
+> on these systems?  If you do, we can build a kernel with gcc-4.9 and
+> then selectively compile certain failes with the older working
+> compiler to narrow down what compiles into something non-working with
+> gcc-4.9
+
+Yes, I kept gcc-4.6 to help resolving it.
+
+[...]
+
+> Hopefully, this should be a simply matter of doing a complete build
+> with gcc-4.9, then removing the object file we want to selectively
+> build with the older compiler and then going:
 > 
-> Sorry, I thought it was the same bug that causes git corruptions
-> for you.  I misunderstood.
+> 	make CC="gcc-4.6" arch/sparc/mm/init_64.o
 > 
-> > I have been able to do kernel compiles for years on sparc64 (modulo 
-> > specific bugs in specific configurations) and 3.17 + start/end swap 
-> > patch seems also stable for most machine. With yesterdays git + align 
-> > patch, it dies with SIGBUS multiple times during compilation so it's a 
-> > new regression for me.
-> > 
-> > Will try reverting that commit tomorrow.
+> then relinking with plain 'make'.
 > 
-> If that fails, please try to bisect, it will help us a lot.
+> If the build system rebuilds the object file on you when you try
+> to relink the final kernel image, we'll have to do some of this
+> by hand to make the test.
 
-Commit bf0dea23a9c0 is working OK with no revert needed (checked out 
-this revision and it tested OK).
-
-So far I know that the breakage seems to have happened between
-cadbb58039f7cab1def9c931012ab04c953a6997 (first sparc commit of 
-the batch, working OK on V100) and 
-bdcf81b658ebc4c2640c3c2c55c8b31c601b6996 (last sparc commit before the 
-merge, breaks on E3500). Will continue bisecting the sparc64 commits.
-
-Also, I noticed that when the problem happens, it's deterministic - with 
-some kernels, sshd dies reproducibly on login. With most kernels, 
-building kernel breaks in one specific location, not randomly.
-
-scripts/Makefile.build:352: recipe for target 'sound/modules.order' failed
-make[1]: *** [sound/modules.order] Bus error
-make[1]: *** Deleting file 'sound/modules.order'
-Makefile:929: recipe for target 'sound' failed
-
-Will tell when I get more details.
+Unfortunately it starts a full rebuild with plain make after compiling 
+some files with gcc-4.6 - detects CC change?
 
 -- 
 Meelis Roos (mroos@linux.ee)
