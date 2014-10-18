@@ -1,123 +1,61 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 17 Oct 2014 19:56:12 +0000
+Date: Sat, 18 Oct 2014 17:31:32 +0000
 Subject: Re: Sparc ESP problem with blk-mq
-Message-Id: <20141017.155612.266274322805506383.davem@davemloft.net>
+Message-Id: <20141018.133132.1505060820853861420.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141015133551.GA15539@infradead.org>
-	<20141015.165324.1768019967735260346.davem@davemloft.net>
+References: <20141015.165324.1768019967735260346.davem@davemloft.net>
 	<alpine.LRH.2.11.1410160942150.13273@adalberg.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1410160942150.13273@adalberg.ut.ee>
+	<20141017.155612.266274322805506383.davem@davemloft.net>
+In-Reply-To: <20141017.155612.266274322805506383.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: mroos@linux.ee
 Cc: hch@infradead.org, axboe@kernel.dk, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: mroos@linux.ee
-Date: Thu, 16 Oct 2014 09:43:34 +0300 (EEST)
 
-> [  158.730919] ESP: tgt[6] lun[0] scsi_cmd [ 12 00 00 00 24 00 ]
-> [  158.799397] ESP: intr sreg[87] seqreg[00] sreg2[00] ireg[18]
+Christoph, I don't see how the new tagging code with blk-mq can
+be providing compatible behavior for existing SCSI drivers.
 
-Target 6 responds, Bus Service + Function Done interrupt.
+Do you know that scsi_populate_tag_msg() is always going to provide a
+tag?  Unconditionally, every time, when using blk-mq?
 
-Status register 1 indicates interrupt pending, phase is MESSAGE IN.
+This is because the test:
 
-> [  158.866964] ESP: intr sreg[87] seqreg[02] sreg2[00] ireg[08]
+	if (blk_rq_tagged(req))
 
-Another interrupt, just plain Function Done, we're getting the
-message-in byte.  Phase is unchanged.
+is always true if a blk-mq context is attached to the request.
 
-> [  158.934651] ESP: Got msgin byte 7
+And every scsi request will have a blk-mq context.
 
-Receive MESSAGE_REJECT (0x7).
+scsi_execute() {
+	req = blk_get_request(sdev->request_queue, write, __GFP_WAIT);
+	blk_get_request() {
+		if (q->mq_ops)
+			return blk_mq_alloc_request(q, rw, gfp_mask, false);
+		blk_mq_alloc_request() {
+			rq = __blk_mq_alloc_request(&alloc_data, rw);
+			__blk_mq_alloc_request() {
+				blk_mq_rq_ctx_init() {
+					rq->mq_ctx = ctx;
 
-> [  158.974329] ESP: intr sreg[86] seqreg[02] sreg2[00] ireg[10]
+and therefore:
 
-Bus Service interrupt, we've moved to Message Out phase.
+#define blk_rq_tagged(rq) \
+	((rq)->mq_ctx || ((rq)->cmd_flags & REQ_QUEUED))
 
-> [  159.041950] ESP: Sending message [ 06 ]
+will always evaluate to true.
 
-Sending ABORT_TASK_SET message.
+This cannot work, because we can't put a TAG into the initial SCSI bus
+scanning messages for example.
 
-> [  159.087894] ESP: intr sreg[80] seqreg[02] sreg2[00] ireg[20]
+It is a common pattern in SCSI drivers to see if scsi_populate_tag_msg()
+succeeds and gives us a non-zero tag, to determine whether to enable
+DISCONNECT, whether to send the TAG in the initial MESSAGE_OUT phase
+after selection, etc.
 
-Disconnect interrupt.
+It has to be conditional upon the SCSI tcq state, perhaps a test on
+whether the queue_depth has been set to a non-zero value.
 
-> [  159.155522] ESP: start data addr[c01f1100] len[36] write(0)
-> [  159.222248] ESP: intr sreg[80] seqreg[02] sreg2[00] ireg[40]
-> [  159.289891] ESP: unexpected IREG 40
-
-We attempt some kind of data transfer (maybe for the status block)
-and the device gives us an illegal-command interrupt.
-
-More details in the event log that gets dumped:
-
-[  161.208873] esp: esp0: ent[31] EVENT val[0d] sreg[87] seqreg[02] sreg2[00] ireg[18] ss[00] event[0c]
-
-Check Phase
-
-[  161.318255] esp: esp0: ent[0] EVENT val[06] sreg[87] seqreg[02] sreg2[00] ireg[18] ss[00] event[0d]
-
-Message In
-
-[  161.426599] esp: esp0: ent[1] CMD val[01] sreg[87] seqreg[02] sreg2[00] ireg[18] ss[00] event[06]
-
-Give FIFO flush ESP command
-
-[  161.532860] esp: esp0: ent[2] CMD val[10] sreg[87] seqreg[02] sreg2[00] ireg[18] ss[00] event[06]
-
-Give "transfer information" ESP command.
-
-[  161.639125] esp: esp0: ent[3] CMD val[1a] sreg[87] seqreg[02] sreg2[00] ireg[08] ss[00] event[06]
-
-Give "Set ATN" command to move to message-out to give the chip the
-ABORT message.
-
-[  161.745386] esp: esp0: ent[4] CMD val[12] sreg[87] seqreg[02] sreg2[00] ireg[08] ss[00] event[06]
-
-Give "Message OK" command to ACK the message-in from the device.
-
-[  161.851643] esp: esp0: ent[5] EVENT val[0d] sreg[87] seqreg[02] sreg2[00] ireg[08] ss[00] event[06]
-
-Check Phase.
-
-[  161.959990] esp: esp0: ent[6] EVENT val[09] sreg[86] seqreg[02] sreg2[00] ireg[10] ss[00] event[0d]
-
-Message Out.
-
-[  162.068332] esp: esp0: ent[7] CMD val[01] sreg[86] seqreg[02] sreg2[00] ireg[10] ss[00] event[09]
-
-Flush FIFO
-
-[  162.174593] esp: esp0: ent[8] CMD val[10] sreg[86] seqreg[02] sreg2[00] ireg[10] ss[00] event[09]
-
-Transfer Information
-
-[  162.280854] esp: esp0: ent[9] EVENT val[0a] sreg[86] seqreg[02] sreg2[00] ireg[10] ss[00] event[09]
-
-Message Out done.
-
-[  162.389204] esp: esp0: ent[10] EVENT val[0d] sreg[80] seqreg[02] sreg2[00] ireg[20] ss[00] event[0a]
-
-Check Phase.
-
-[  162.498588] esp: esp0: ent[11] EVENT val[04] sreg[80] seqreg[02] sreg2[00] ireg[20] ss[00] event[0d]
-
-Data Out.
-
-[  162.607977] esp: esp0: ent[12] CMD val[90] sreg[80] seqreg[02] sreg2[00] ireg[20] ss[00] event[04]
-
-Perform DMA based Transfer Information
-
-[  162.715275] esp: esp0: ent[13] EVENT val[05] sreg[80] seqreg[02] sreg2[00] ireg[20] ss[00] event[04]
-
-Data done.
-
-What's really weird is that we disconnected as per the next-to-last interrupt in the top-level
-trace, but then we try to send the device data.  I wonder why we don't pick up on this :-/
-It seems the interrupt processing only picks up cleanly if we have not selected successfully
-yet, and this code path things we have (via esp->select_state).
-
-I'll try to see if there is anything about the blk-mq code paths that
-might shed some more light on this.
+scsi_populate_tag_msg() is giving out tags even when
+sdev->tagged_supported is false, which is bogus.
