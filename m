@@ -1,61 +1,138 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 18 Oct 2014 17:31:32 +0000
+From: Christoph Hellwig <hch@infradead.org>
+Date: Sat, 18 Oct 2014 17:57:03 +0000
 Subject: Re: Sparc ESP problem with blk-mq
-Message-Id: <20141018.133132.1505060820853861420.davem@davemloft.net>
+Message-Id: <20141018175703.GA16988@infradead.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="oyUTqETQ0mS9luUI"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141015.165324.1768019967735260346.davem@davemloft.net>
-	<alpine.LRH.2.11.1410160942150.13273@adalberg.ut.ee>
-	<20141017.155612.266274322805506383.davem@davemloft.net>
-In-Reply-To: <20141017.155612.266274322805506383.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: hch@infradead.org, axboe@kernel.dk, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+ <alpine.LRH.2.11.1410160942150.13273@adalberg.ut.ee>
+ <20141017.155612.266274322805506383.davem@davemloft.net>
+ <20141018.133132.1505060820853861420.davem@davemloft.net>
+In-Reply-To: <20141018.133132.1505060820853861420.davem@davemloft.net>
+To: David Miller <davem@davemloft.net>
+Cc: mroos@linux.ee, hch@infradead.org, axboe@kernel.dk, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
 
-Christoph, I don't see how the new tagging code with blk-mq can
-be providing compatible behavior for existing SCSI drivers.
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Do you know that scsi_populate_tag_msg() is always going to provide a
-tag?  Unconditionally, every time, when using blk-mq?
+On Sat, Oct 18, 2014 at 01:31:32PM -0400, David Miller wrote:
+> 
+> Christoph, I don't see how the new tagging code with blk-mq can
+> be providing compatible behavior for existing SCSI drivers.
 
-This is because the test:
+It doesn't, and that's my fault.
 
-	if (blk_rq_tagged(req))
+Please try the patch below:
 
-is always true if a blk-mq context is attached to the request.
 
-And every scsi request will have a blk-mq context.
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=diff
 
-scsi_execute() {
-	req = blk_get_request(sdev->request_queue, write, __GFP_WAIT);
-	blk_get_request() {
-		if (q->mq_ops)
-			return blk_mq_alloc_request(q, rw, gfp_mask, false);
-		blk_mq_alloc_request() {
-			rq = __blk_mq_alloc_request(&alloc_data, rw);
-			__blk_mq_alloc_request() {
-				blk_mq_rq_ctx_init() {
-					rq->mq_ctx = ctx;
+diff --git a/Documentation/block/biodoc.txt b/Documentation/block/biodoc.txt
+index 2101e71..e465344 100644
+--- a/Documentation/block/biodoc.txt
++++ b/Documentation/block/biodoc.txt
+@@ -740,11 +740,6 @@ one outstanding command on a queue at any given time.
+ 	Initialize internal command tagging structures for a maximum
+ 	depth of 'depth'.
+ 
+-	blk_queue_free_tags((struct request_queue *q)
+-
+-	Teardown tag info associated with the queue. This will be done
+-	automatically by block if blk_queue_cleanup() is called on a queue
+-	that is using tagging.
+ 
+ The above are initialization and exit management, the main helpers during
+ normal operations are:
+diff --git a/block/blk-tag.c b/block/blk-tag.c
+index a185b86..5daff44 100644
+--- a/block/blk-tag.c
++++ b/block/blk-tag.c
+@@ -71,20 +71,6 @@ void __blk_queue_free_tags(struct request_queue *q)
+ 	queue_flag_clear_unlocked(QUEUE_FLAG_QUEUED, q);
+ }
+ 
+-/**
+- * blk_queue_free_tags - release tag maintenance info
+- * @q:  the request queue for the device
+- *
+- *  Notes:
+- *	This is used to disable tagged queuing to a device, yet leave
+- *	queue in function.
+- **/
+-void blk_queue_free_tags(struct request_queue *q)
+-{
+-	queue_flag_clear_unlocked(QUEUE_FLAG_QUEUED, q);
+-}
+-EXPORT_SYMBOL(blk_queue_free_tags);
+-
+ static int
+ init_tag_map(struct request_queue *q, struct blk_queue_tag *tags, int depth)
+ {
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 87be398..06d1254 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1142,13 +1142,18 @@ static inline bool blk_needs_flush_plug(struct task_struct *tsk)
+ /*
+  * tag stuff
+  */
+-#define blk_rq_tagged(rq) \
+-	((rq)->mq_ctx || ((rq)->cmd_flags & REQ_QUEUED))
++static inline bool blk_rq_tagged(struct request *rq)
++{
++	if (rq->mq_ctx)
++		return blk_queue_tagged(rq->q);
++	else
++		return (rq->cmd_flags & REQ_QUEUED);
++}
++
+ extern int blk_queue_start_tag(struct request_queue *, struct request *);
+ extern struct request *blk_queue_find_tag(struct request_queue *, int);
+ extern void blk_queue_end_tag(struct request_queue *, struct request *);
+ extern int blk_queue_init_tags(struct request_queue *, int, struct blk_queue_tag *);
+-extern void blk_queue_free_tags(struct request_queue *);
+ extern int blk_queue_resize_tags(struct request_queue *, int);
+ extern void blk_queue_invalidate_tags(struct request_queue *);
+ extern struct blk_queue_tag *blk_init_tags(int);
+diff --git a/include/scsi/scsi_tcq.h b/include/scsi/scsi_tcq.h
+index e645835..c977a25 100644
+--- a/include/scsi/scsi_tcq.h
++++ b/include/scsi/scsi_tcq.h
+@@ -67,10 +67,13 @@ static inline void scsi_activate_tcq(struct scsi_device *sdev, int depth)
+ 	if (!sdev->tagged_supported)
+ 		return;
+ 
+-	if (!shost_use_blk_mq(sdev->host) &&
+-	    !blk_queue_tagged(sdev->request_queue))
+-		blk_queue_init_tags(sdev->request_queue, depth,
+-				    sdev->host->bqt);
++	if (shost_use_blk_mq(sdev->host)) {
++		queue_flag_set_unlocked(QUEUE_FLAG_QUEUED, sdev->request_queue);
++	} else {
++		if (!blk_queue_tagged(sdev->request_queue))
++			blk_queue_init_tags(sdev->request_queue, depth,
++					    sdev->host->bqt);
++	}
+ 
+ 	scsi_adjust_queue_depth(sdev, scsi_get_tag_type(sdev), depth);
+ }
+@@ -81,9 +84,9 @@ static inline void scsi_activate_tcq(struct scsi_device *sdev, int depth)
+  **/
+ static inline void scsi_deactivate_tcq(struct scsi_device *sdev, int depth)
+ {
+-	if (!shost_use_blk_mq(sdev->host) &&
+-	    blk_queue_tagged(sdev->request_queue))
+-		blk_queue_free_tags(sdev->request_queue);
++	if (blk_queue_tagged(sdev->request_queue))
++		queue_flag_clear_unlocked(QUEUE_FLAG_QUEUED,
++				sdev->request_queue);
+ 	scsi_adjust_queue_depth(sdev, 0, depth);
+ }
+ 
 
-and therefore:
-
-#define blk_rq_tagged(rq) \
-	((rq)->mq_ctx || ((rq)->cmd_flags & REQ_QUEUED))
-
-will always evaluate to true.
-
-This cannot work, because we can't put a TAG into the initial SCSI bus
-scanning messages for example.
-
-It is a common pattern in SCSI drivers to see if scsi_populate_tag_msg()
-succeeds and gives us a non-zero tag, to determine whether to enable
-DISCONNECT, whether to send the TAG in the initial MESSAGE_OUT phase
-after selection, etc.
-
-It has to be conditional upon the SCSI tcq state, perhaps a test on
-whether the queue_depth has been set to a non-zero value.
-
-scsi_populate_tag_msg() is giving out tags even when
-sdev->tagged_supported is false, which is bogus.
+--oyUTqETQ0mS9luUI--
