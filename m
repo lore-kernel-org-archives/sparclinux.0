@@ -1,163 +1,653 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 04 Oct 2014 23:27:18 +0000
-Subject: [PATCH 7/9] sparc64: Adjust vmalloc region size based upon available virtual address bits.
-Message-Id: <20141004.192718.1655412880695905158.davem@davemloft.net>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sun, 19 Oct 2014 11:57:36 +0000
+Subject: [PATCH v2 1/2] silo: ext2fs: delete bitops.h
+Message-Id: <1413719857-9838-2-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Delete bitops.h, it's not used and causes issues with GNU11 mode.
 
-In order to accomodate embedded per-cpu allocation with large numbers
-of cpus and numa nodes, we have to use as much virtual address space
-as possible for the vmalloc region.  Otherwise we can get things like:
-
-PERCPU: max_distance=0x380001c10000 too large for vmalloc space 0xff00000000
-
-So, once we select a value for PAGE_OFFSET, derive the size of the
-vmalloc region based upon that.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/sparc/include/asm/page_64.h    |  1 -
- arch/sparc/include/asm/pgtable_64.h |  9 +++++----
- arch/sparc/kernel/ktlb.S            |  8 ++++----
- arch/sparc/mm/init_64.c             | 30 +++++++++++++++++++-----------
- 4 files changed, 28 insertions(+), 20 deletions(-)
+ include/ext2fs/bitops.h | 608 ------------------------------------------------
+ include/ext2fs/ext2fs.h |   6 -
+ 2 files changed, 614 deletions(-)
+ delete mode 100644 include/ext2fs/bitops.h
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 6784a33..8c2a8c9 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -117,7 +117,6 @@ extern unsigned long sparc64_va_hole_bottom;
- 
- #include <asm-generic/memory_model.h>
- 
--#define PAGE_OFFSET_BY_BITS(X)	(-(_AC(1,UL) << (X)))
- extern unsigned long PAGE_OFFSET;
- 
- #endif /* !(__ASSEMBLY__) */
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 0552957..c093922 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -40,10 +40,7 @@
- #define LOW_OBP_ADDRESS		_AC(0x00000000f0000000,UL)
- #define HI_OBP_ADDRESS		_AC(0x0000000100000000,UL)
- #define VMALLOC_START		_AC(0x0000000100000000,UL)
--#define VMALLOC_END		_AC(0x0000010000000000,UL)
--#define VMEMMAP_BASE		_AC(0x0000010000000000,UL)
+diff --git a/include/ext2fs/bitops.h b/include/ext2fs/bitops.h
+deleted file mode 100644
+index 7e049d1..0000000
+--- a/include/ext2fs/bitops.h
++++ /dev/null
+@@ -1,608 +0,0 @@
+-/*
+- * bitops.h --- Bitmap frobbing code.  The byte swapping routines are
+- * 	also included here.
+- * 
+- * Copyright (C) 1993, 1994, 1995, 1996 Theodore Ts'o.
+- *
+- * %Begin-Header%
+- * This file may be redistributed under the terms of the GNU Public
+- * License.
+- * %End-Header%
+- * 
+- * i386 bitops operations taken from <asm/bitops.h>, Copyright 1992,
+- * Linus Torvalds.
+- */
 -
--#define vmemmap			((struct page *)VMEMMAP_BASE)
-+#define VMEMMAP_BASE		VMALLOC_END
- 
- /* PMD_SHIFT determines the size of the area a second-level page
-  * table can map
-@@ -81,6 +78,10 @@
- 
- #ifndef __ASSEMBLY__
- 
-+extern unsigned long VMALLOC_END;
-+
-+#define vmemmap			((struct page *)VMEMMAP_BASE)
-+
- #include <linux/sched.h>
- 
- bool kern_addr_valid(unsigned long addr);
-diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
-index 2627a7f..ef0d8e9 100644
---- a/arch/sparc/kernel/ktlb.S
-+++ b/arch/sparc/kernel/ktlb.S
-@@ -199,8 +199,8 @@ kvmap_dtlb_nonlinear:
- 
- #ifdef CONFIG_SPARSEMEM_VMEMMAP
- 	/* Do not use the TSB for vmemmap.  */
--	mov		(VMEMMAP_BASE >> 40), %g5
--	sllx		%g5, 40, %g5
-+	sethi		%hi(VMEMMAP_BASE), %g5
-+	ldx		[%g5 + %lo(VMEMMAP_BASE)], %g5
- 	cmp		%g4,%g5
- 	bgeu,pn		%xcc, kvmap_vmemmap
- 	 nop
-@@ -212,8 +212,8 @@ kvmap_dtlb_tsbmiss:
- 	sethi		%hi(MODULES_VADDR), %g5
- 	cmp		%g4, %g5
- 	blu,pn		%xcc, kvmap_dtlb_longpath
--	 mov		(VMALLOC_END >> 40), %g5
--	sllx		%g5, 40, %g5
-+	 sethi		%hi(VMALLOC_END), %g5
-+	ldx		[%g5 + %lo(VMALLOC_END)], %g5
- 	cmp		%g4, %g5
- 	bgeu,pn		%xcc, kvmap_dtlb_longpath
- 	 nop
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index a8e3395..72547c0 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1369,25 +1369,24 @@ static unsigned long max_phys_bits = 40;
- 
- bool kern_addr_valid(unsigned long addr)
- {
--	unsigned long above = ((long)addr) >> max_phys_bits;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 
--	if (above != 0 && above != -1UL)
--		return false;
 -
--	if (addr >= (unsigned long) KERNBASE &&
--	    addr < (unsigned long)&_end)
--		return true;
+-extern int ext2fs_set_bit(int nr,void * addr);
+-extern int ext2fs_clear_bit(int nr, void * addr);
+-extern int ext2fs_test_bit(int nr, const void * addr);
+-extern __u16 ext2fs_swab16(__u16 val);
+-extern __u32 ext2fs_swab32(__u32 val);
 -
--	if (addr >= PAGE_OFFSET) {
-+	if ((long)addr < 0L) {
- 		unsigned long pa = __pa(addr);
+-/*
+- * EXT2FS bitmap manipulation routines.
+- */
+-
+-/* Support for sending warning messages from the inline subroutines */
+-extern const char *ext2fs_block_string;
+-extern const char *ext2fs_inode_string;
+-extern const char *ext2fs_mark_string;
+-extern const char *ext2fs_unmark_string;
+-extern const char *ext2fs_test_string;
+-extern void ext2fs_warn_bitmap(errcode_t errcode, unsigned long arg,
+-			       const char *description);
+-extern void ext2fs_warn_bitmap2(ext2fs_generic_bitmap bitmap,
+-				int code, unsigned long arg);
+-
+-extern int ext2fs_mark_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
+-extern int ext2fs_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
+-				       blk_t block);
+-extern int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap, blk_t block);
+-
+-extern int ext2fs_mark_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
+-extern int ext2fs_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-				       ino_t inode);
+-extern int ext2fs_test_inode_bitmap(ext2fs_inode_bitmap bitmap, ino_t inode);
+-
+-extern void ext2fs_fast_mark_block_bitmap(ext2fs_block_bitmap bitmap,
+-					  blk_t block);
+-extern void ext2fs_fast_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
+-					    blk_t block);
+-extern int ext2fs_fast_test_block_bitmap(ext2fs_block_bitmap bitmap,
+-					 blk_t block);
+-
+-extern void ext2fs_fast_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					  ino_t inode);
+-extern void ext2fs_fast_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					    ino_t inode);
+-extern int ext2fs_fast_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					 ino_t inode);
+-extern blk_t ext2fs_get_block_bitmap_start(ext2fs_block_bitmap bitmap);
+-extern ino_t ext2fs_get_inode_bitmap_start(ext2fs_inode_bitmap bitmap);
+-extern blk_t ext2fs_get_block_bitmap_end(ext2fs_block_bitmap bitmap);
+-extern ino_t ext2fs_get_inode_bitmap_end(ext2fs_inode_bitmap bitmap);
+-
+-extern void ext2fs_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					   blk_t block, int num);
+-extern void ext2fs_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					     blk_t block, int num);
+-extern int ext2fs_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					  blk_t block, int num);
+-extern void ext2fs_fast_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-						blk_t block, int num);
+-extern void ext2fs_fast_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-						  blk_t block, int num);
+-extern int ext2fs_fast_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					       blk_t block, int num);
+-extern void ext2fs_set_bitmap_padding(ext2fs_generic_bitmap map);
+-
+-/*
+- * The inline routines themselves...
+- * 
+- * If NO_INLINE_FUNCS is defined, then we won't try to do inline
+- * functions at all; they will be included as normal functions in
+- * inline.c
+- */
+-#ifdef NO_INLINE_FUNCS
+-#if (defined(__GNUC__) && (defined(__i386__) || defined(__i486__) || \
+-			   defined(__i586__) || defined(__mc68000__) || \
+-			   defined(__sparc__)))
+-	/* This prevents bitops.c from trying to include the C */
+-	/* function version of these functions */
+-#define _EXT2_HAVE_ASM_BITOPS_
+-#endif
+-#endif /* NO_INLINE_FUNCS */
+-
+-#if (defined(INCLUDE_INLINE_FUNCS) || !defined(NO_INLINE_FUNCS))
+-#ifdef INCLUDE_INLINE_FUNCS
+-#define _INLINE_ extern
+-#else
+-#ifdef __GNUC__
+-#define _INLINE_ extern __inline__
+-#else				/* For Watcom C */
+-#define _INLINE_ extern inline
+-#endif
+-#endif
+-
+-#if ((defined __GNUC__) && (defined(__i386__) || defined(__i486__) || \
+-			    defined(__i586__)))
+-
+-#define _EXT2_HAVE_ASM_BITOPS_
+-	
+-/*
+- * These are done by inline assembly for speed reasons.....
+- *
+- * All bitoperations return 0 if the bit was cleared before the
+- * operation and != 0 if it was not.  Bit 0 is the LSB of addr; bit 32
+- * is the LSB of (addr+1).
+- */
+-
+-/*
+- * Some hacks to defeat gcc over-optimizations..
+- */
+-struct __dummy_h { unsigned long a[100]; };
+-#define EXT2FS_ADDR (*(struct __dummy_h *) addr)
+-#define EXT2FS_CONST_ADDR (*(const struct __dummy_h *) addr)	
+-
+-_INLINE_ int ext2fs_set_bit(int nr, void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btsl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
+-		:"r" (nr));
+-	return oldbit;
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btrl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
+-		:"r" (nr));
+-	return oldbit;
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit)
+-		:"m" (EXT2FS_CONST_ADDR),"r" (nr));
+-	return oldbit;
+-}
+-
+-#undef EXT2FS_ADDR
+-
+-#endif	/* i386 */
+-
+-#ifdef __mc68000__
+-
+-#define _EXT2_HAVE_ASM_BITOPS_
+-
+-_INLINE_ int ext2fs_set_bit(int nr,void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bfset %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bfclr %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bftst %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-#endif /* __mc68000__ */
+-
+-#ifdef __sparc__
+-
+-#define _EXT2_HAVE_ASM_BITOPS_
+-
+-#ifndef EXT2_OLD_BITOPS
+-
+-/*
+- * Do the bitops so that we are compatible with the standard i386
+- * convention.
+- */
+-
+-_INLINE_ int ext2fs_set_bit(int nr,void * addr)
+-{
+-#if 1
+-	int		mask;
+-	unsigned char	*ADDR = (unsigned char *) addr;
+-
+-	ADDR += nr >> 3;
+-	mask = 1 << (nr & 0x07);
+-	__asm__ __volatile__("ldub	[%0], %%g6\n\t"
+-			     "or	%%g6, %2, %%g5\n\t"
+-			     "stb	%%g5, [%0]\n\t"
+-			     "and	%%g6, %2, %0\n"
+-	: "=&r" (ADDR)
+-	: "0" (ADDR), "r" (mask)
+-	: "g5", "g6");
+-	return (int) ADDR;
+-#else
+-	int		mask, retval;
+-	unsigned char	*ADDR = (unsigned char *) addr;
+-
+-	ADDR += nr >> 3;
+-	mask = 1 << (nr & 0x07);
+-	retval = (mask & *ADDR) != 0;
+-	*ADDR |= mask;
+-	return retval;
+-#endif
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
+-{
+-#if 1
+-	int		mask;
+-	unsigned char	*ADDR = (unsigned char *) addr;
+-
+-	ADDR += nr >> 3;
+-	mask = 1 << (nr & 0x07);
+-	__asm__ __volatile__("ldub	[%0], %%g6\n\t"
+-			     "andn	%%g6, %2, %%g5\n\t"
+-			     "stb	%%g5, [%0]\n\t"
+-			     "and	%%g6, %2, %0\n"
+-	: "=&r" (ADDR)
+-	: "0" (ADDR), "r" (mask)
+-	: "g5", "g6");
+-	return (int) ADDR;
+-	
+-#else
+-	int		mask, retval;
+-	unsigned char	*ADDR = (unsigned char *) addr;
+-
+-	ADDR += nr >> 3;
+-	mask = 1 << (nr & 0x07);
+-	retval = (mask & *ADDR) != 0;
+-	*ADDR &= ~mask;
+-	return retval;
+-#endif
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
+-{
+-	int			mask;
+-	const unsigned char	*ADDR = (const unsigned char *) addr;
+-
+-	ADDR += nr >> 3;
+-	mask = 1 << (nr & 0x07);
+-	return ((mask & *ADDR) != 0);
+-}
+-
+-#else
+-
+-/* Do things the old, unplesant way. */
+-
+-_INLINE_ int ext2fs_set_bit(int nr, void *addr)
+-{
+-	int		mask, retval;
+-	unsigned long	*ADDR = (unsigned long *) addr;
+-
+-	ADDR += nr >> 5;
+-	mask = 1 << (nr & 31);
+-	retval = ((mask & *ADDR) != 0);
+-	*ADDR |= mask;
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void *addr)
+-{
+-	int		mask, retval;
+-	unsigned long	*ADDR = (unsigned long *) addr;
+-
+-	ADDR += nr >> 5;
+-	mask = 1 << (nr & 31);
+-	retval = ((mask & *ADDR) != 0);
+-	*ADDR &= ~mask;
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void *addr)
+-{
+-	int			mask;
+-	const unsigned long	*ADDR = (const unsigned long *) addr;
+-
+-	ADDR += nr >> 5;
+-	mask = 1 << (nr & 31);
+-	return ((mask & *ADDR) != 0);
+-}
+-#endif
+-
+-#endif /* __sparc__ */
+-
+-#ifndef _EXT2_HAVE_ASM_SWAB
+-
+-_INLINE_ __u16 ext2fs_swab16(__u16 val)
+-{
+-	return (val >> 8) | (val << 8);
+-}
+-
+-_INLINE_ __u32 ext2fs_swab32(__u32 val)
+-{
+-	return ((val>>24) | ((val>>8)&0xFF00) |
+-		((val<<8)&0xFF0000) | (val<<24));
+-}
+-
+-#endif /* !_EXT2_HAVE_ASM_SWAB */
+-
+-_INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					 __u32 bitno);
+-_INLINE_ int ext2fs_unmark_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					   blk_t bitno);
+-_INLINE_ int ext2fs_test_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					blk_t bitno);
+-
+-_INLINE_ int ext2fs_mark_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					 __u32 bitno)
+-{
+-	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
+-		ext2fs_warn_bitmap2(bitmap, EXT2FS_MARK_ERROR, bitno);
+-		return 0;
+-	}
+-	return ext2fs_set_bit(bitno - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ int ext2fs_unmark_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					   blk_t bitno)
+-{
+-	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
+-		ext2fs_warn_bitmap2(bitmap, EXT2FS_UNMARK_ERROR, bitno);
+-		return 0;
+-	}
+-	return ext2fs_clear_bit(bitno - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ int ext2fs_test_generic_bitmap(ext2fs_generic_bitmap bitmap,
+-					blk_t bitno)
+-{
+-	if ((bitno < bitmap->start) || (bitno > bitmap->end)) {
+-		ext2fs_warn_bitmap2(bitmap, EXT2FS_TEST_ERROR, bitno);
+-		return 0;
+-	}
+-	return ext2fs_test_bit(bitno - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ int ext2fs_mark_block_bitmap(ext2fs_block_bitmap bitmap,
+-				       blk_t block)
+-{
+-	return ext2fs_mark_generic_bitmap((ext2fs_generic_bitmap)
+-				       bitmap,
+-					  block);
+-}
+-
+-_INLINE_ int ext2fs_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
+-					 blk_t block)
+-{
+-	return ext2fs_unmark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
+-					    block);
+-}
+-
+-_INLINE_ int ext2fs_test_block_bitmap(ext2fs_block_bitmap bitmap,
+-				       blk_t block)
+-{
+-	return ext2fs_test_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
+-					  block);
+-}
+-
+-_INLINE_ int ext2fs_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-				       ino_t inode)
+-{
+-	return ext2fs_mark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
+-					  inode);
+-}
+-
+-_INLINE_ int ext2fs_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					 ino_t inode)
+-{
+-	return ext2fs_unmark_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
+-				     inode);
+-}
+-
+-_INLINE_ int ext2fs_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-				       ino_t inode)
+-{
+-	return ext2fs_test_generic_bitmap((ext2fs_generic_bitmap) bitmap, 
+-					  inode);
+-}
+-
+-_INLINE_ void ext2fs_fast_mark_block_bitmap(ext2fs_block_bitmap bitmap,
+-					    blk_t block)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
+-				   bitmap->description);
+-		return;
+-	}
+-#endif	
+-	ext2fs_set_bit(block - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_fast_unmark_block_bitmap(ext2fs_block_bitmap bitmap,
+-					      blk_t block)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK,
+-				   block, bitmap->description);
+-		return;
+-	}
+-#endif
+-	ext2fs_clear_bit(block - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ int ext2fs_fast_test_block_bitmap(ext2fs_block_bitmap bitmap,
+-					    blk_t block)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
+-				   block, bitmap->description);
+-		return 0;
+-	}
+-#endif
+-	return ext2fs_test_bit(block - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_fast_mark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					    ino_t inode)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((inode < bitmap->start) || (inode > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_MARK,
+-				   inode, bitmap->description);
+-		return;
+-	}
+-#endif
+-	ext2fs_set_bit(inode - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_fast_unmark_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					      ino_t inode)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((inode < bitmap->start) || (inode > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_UNMARK,
+-				   inode, bitmap->description);
+-		return;
+-	}
+-#endif
+-	ext2fs_clear_bit(inode - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ int ext2fs_fast_test_inode_bitmap(ext2fs_inode_bitmap bitmap,
+-					   ino_t inode)
+-{
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((inode < bitmap->start) || (inode > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_INODE_TEST,
+-				   inode, bitmap->description);
+-		return 0;
+-	}
+-#endif
+-	return ext2fs_test_bit(inode - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ blk_t ext2fs_get_block_bitmap_start(ext2fs_block_bitmap bitmap)
+-{
+-	return bitmap->start;
+-}
+-
+-_INLINE_ ino_t ext2fs_get_inode_bitmap_start(ext2fs_inode_bitmap bitmap)
+-{
+-	return bitmap->start;
+-}
+-
+-_INLINE_ blk_t ext2fs_get_block_bitmap_end(ext2fs_block_bitmap bitmap)
+-{
+-	return bitmap->end;
+-}
+-
+-_INLINE_ ino_t ext2fs_get_inode_bitmap_end(ext2fs_inode_bitmap bitmap)
+-{
+-	return bitmap->end;
+-}
+-
+-_INLINE_ int ext2fs_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					    blk_t block, int num)
+-{
+-	int	i;
+-
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
+-				   block, bitmap->description);
+-		return 0;
+-	}
+-	for (i=0; i < num; i++) {
+-		if (ext2fs_fast_test_block_bitmap(bitmap, block+i))
+-			return 0;
+-	}
+-	return 1;
+-}
+-
+-_INLINE_ int ext2fs_fast_test_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-						 blk_t block, int num)
+-{
+-	int	i;
+-
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_TEST,
+-				   block, bitmap->description);
+-		return 0;
+-	}
+-#endif
+-	for (i=0; i < num; i++) {
+-		if (ext2fs_fast_test_block_bitmap(bitmap, block+i))
+-			return 0;
+-	}
+-	return 1;
+-}
+-
+-_INLINE_ void ext2fs_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					     blk_t block, int num)
+-{
+-	int	i;
+-	
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
+-				   bitmap->description);
+-		return;
+-	}
+-	for (i=0; i < num; i++)
+-		ext2fs_set_bit(block + i - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_fast_mark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-						  blk_t block, int num)
+-{
+-	int	i;
+-	
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_MARK, block,
+-				   bitmap->description);
+-		return;
+-	}
+-#endif	
+-	for (i=0; i < num; i++)
+-		ext2fs_set_bit(block + i - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-					       blk_t block, int num)
+-{
+-	int	i;
+-	
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK, block,
+-				   bitmap->description);
+-		return;
+-	}
+-	for (i=0; i < num; i++)
+-		ext2fs_clear_bit(block + i - bitmap->start, bitmap->bitmap);
+-}
+-
+-_INLINE_ void ext2fs_fast_unmark_block_bitmap_range(ext2fs_block_bitmap bitmap,
+-						    blk_t block, int num)
+-{
+-	int	i;
+-	
+-#ifdef EXT2FS_DEBUG_FAST_OPS
+-	if ((block < bitmap->start) || (block+num-1 > bitmap->end)) {
+-		ext2fs_warn_bitmap(EXT2_ET_BAD_BLOCK_UNMARK, block,
+-				   bitmap->description);
+-		return;
+-	}
+-#endif	
+-	for (i=0; i < num; i++)
+-		ext2fs_clear_bit(block + i - bitmap->start, bitmap->bitmap);
+-}
+-
+-#undef _INLINE_
+-#endif
+-
+diff --git a/include/ext2fs/ext2fs.h b/include/ext2fs/ext2fs.h
+index 17481a0..78f517a 100644
+--- a/include/ext2fs/ext2fs.h
++++ b/include/ext2fs/ext2fs.h
+@@ -221,12 +221,6 @@ struct struct_ext2_filsys {
+ 	struct ext2_inode_cache		*icache;
+ };
  
-+		if ((addr >> max_phys_bits) != 0UL)
-+			return false;
-+
- 		return pfn_valid(pa >> PAGE_SHIFT);
- 	}
- 
-+	if (addr >= (unsigned long) KERNBASE &&
-+	    addr < (unsigned long)&_end)
-+		return true;
-+
- 	pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd))
- 		return 0;
-@@ -1656,6 +1655,9 @@ unsigned long __init find_ecache_flush_span(unsigned long size)
- unsigned long PAGE_OFFSET;
- EXPORT_SYMBOL(PAGE_OFFSET);
- 
-+unsigned long VMALLOC_END   = 0x0000010000000000UL;
-+EXPORT_SYMBOL(VMALLOC_END);
-+
- unsigned long sparc64_va_hole_top =    0xfffff80000000000UL;
- unsigned long sparc64_va_hole_bottom = 0x0000080000000000UL;
- 
-@@ -1712,10 +1714,16 @@ static void __init setup_page_offset(void)
- 		prom_halt();
- 	}
- 
--	PAGE_OFFSET = PAGE_OFFSET_BY_BITS(max_phys_bits);
-+	PAGE_OFFSET = sparc64_va_hole_top;
-+	VMALLOC_END = ((sparc64_va_hole_bottom >> 1) +
-+		       (sparc64_va_hole_bottom >> 2));
- 
--	pr_info("PAGE_OFFSET is 0x%016lx (max_phys_bits = %lu)\n",
-+	pr_info("MM: PAGE_OFFSET is 0x%016lx (max_phys_bits = %lu)\n",
- 		PAGE_OFFSET, max_phys_bits);
-+	pr_info("MM: VMALLOC [0x%016lx --> 0x%016lx]\n",
-+		VMALLOC_START, VMALLOC_END);
-+	pr_info("MM: VMEMMAP [0x%016lx --> 0x%016lx]\n",
-+		VMEMMAP_BASE, VMEMMAP_BASE << 1);
- }
- 
- static void __init tsb_phys_patch(void)
+-#if EXT2_FLAT_INCLUDES
+-#include "e2_bitops.h"
+-#else
+-#include "ext2fs/bitops.h"
+-#endif
+-
+ /*
+  * Return flags for the block iterator functions
+  */
 -- 
-1.8.1.2
+2.1.2
 
