@@ -1,114 +1,65 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Fri, 31 Oct 2014 13:12:39 +0000
-Subject: [PATCH 3.12 037/144] sparc64: find_node adjustment
-Message-Id: <67099c2a0ac84426e0c97151cb20400d9e6f99de.1414759455.git.jslaby@suse.cz>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sun, 19 Oct 2014 00:00:49 +0000
+Subject: [PATCH 1/5] silo: ext2fs: delete INCLUDE_INLINE_FUNCS ifdeffery
+Message-Id: <1413676853-23942-2-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: bob picco <bpicco@meloft.net>
+Delete INCLUDE_INLINE_FUNCS ifdeffery.
 
-3.12-stable review patch.  If anyone has any objections, please let me know.
-
-=======
-[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
-
-We have seen an issue with guest boot into LDOM that causes early boot failures
-because of no matching rules for node identitity of the memory. I analyzed this
-on my T4 and concluded there might not be a solution. I saw the issue in
-mainline too when booting into the control/primary domain - with guests
-configured.  Note, this could be a firmware bug on some older machines.
-
-I'll provide a full explanation of the issues below. Should we not find a
-matching BEST latency group for a real address (RA) then we will assume node 0.
-On the T4-2 here with the information provided I can't see an alternative.
-
-Technically the LDOM shown below should match the MBLOCK to the
-favorable latency group. However other factors must be considered too. Were
-the memory controllers configured "fine" grained interleave or "coarse"
-grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
-node?
-
-There has to be at least one Machine Description (MD) "group" and hence one
-NUMA node. The group can have one or more latency groups (lg) - more than one
-memory controller. The current code chooses the smallest latency as the most
-favorable per group. The latency and lg information is in MLGROUP below.
-MBLOCK is the base and size of the RAs for the machine as fetched from OBP
-/memory "available" property. My machine has one MBLOCK but more would be
-possible - with holes?
-
-For a T4-2 the following information has been gathered:
-with LDOM guest
-MEMBLOCK configuration:
- memory size = 0x27f870000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
- memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
- memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
-MBLOCK[0]: base[20000000] size[280000000] offset[0]
-(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
-(note: (RA + offset) & mask = val is the formula to detect a match for the
-memory controller. should there be no match for find_node node, a return
-value of -1 resulted for the node - BAD)
-
-There is one group. It has these forward links
-MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
-MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
-NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
-(note: "val" is the best lg's (smallest latency) "match")
-
-no LDOM guest - bare metal
-MEMBLOCK configuration:
- memory size = 0xfdf2d0000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
- memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
- memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
-MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
-
-there are two groups
-group node[16d5]
-MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
-MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
-NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
-group node[171d]
-MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
-MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
-NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
-(note: for this two "group" bare metal machine, 1/2 memory is in group one's
-lg and 1/2 memory is in group two's lg).
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/sparc/mm/init_64.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/ext2fs/bitops.h | 6 +-----
+ include/ext2fs/ext2fs.h | 6 +-----
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index b26015f49c0d..d9e8b06d0ffd 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -838,7 +838,10 @@ static int find_node(unsigned long addr)
- 		if ((addr & p->mask) = p->val)
- 			return i;
- 	}
--	return -1;
-+	/* The following condition has been observed on LDOM guests.*/
-+	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
-+		" rule. Some physical memory will be owned by node 0.");
-+	return 0;
- }
+diff --git a/include/ext2fs/bitops.h b/include/ext2fs/bitops.h
+index 7e049d1..f8ce0fc 100644
+--- a/include/ext2fs/bitops.h
++++ b/include/ext2fs/bitops.h
+@@ -94,16 +94,12 @@ extern void ext2fs_set_bitmap_padding(ext2fs_generic_bitmap map);
+ #endif
+ #endif /* NO_INLINE_FUNCS */
  
- static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+-#if (defined(INCLUDE_INLINE_FUNCS) || !defined(NO_INLINE_FUNCS))
+-#ifdef INCLUDE_INLINE_FUNCS
+-#define _INLINE_ extern
+-#else
++#if !defined(NO_INLINE_FUNCS)
+ #ifdef __GNUC__
+ #define _INLINE_ extern __inline__
+ #else				/* For Watcom C */
+ #define _INLINE_ extern inline
+ #endif
+-#endif
+ 
+ #if ((defined __GNUC__) && (defined(__i386__) || defined(__i486__) || \
+ 			    defined(__i586__)))
+diff --git a/include/ext2fs/ext2fs.h b/include/ext2fs/ext2fs.h
+index 17481a0..b88e3a4 100644
+--- a/include/ext2fs/ext2fs.h
++++ b/include/ext2fs/ext2fs.h
+@@ -877,16 +877,12 @@ extern blk_t ext2fs_inode_data_blocks(ext2_filsys fs,
+  * If NO_INLINE_FUNCS is defined, then we won't try to do inline
+  * functions at all!
+  */
+-#if (defined(INCLUDE_INLINE_FUNCS) || !defined(NO_INLINE_FUNCS))
+-#ifdef INCLUDE_INLINE_FUNCS
+-#define _INLINE_ extern
+-#else
++#if !defined(NO_INLINE_FUNCS)
+ #ifdef __GNUC__
+ #define _INLINE_ extern __inline__
+ #else				/* For Watcom C */
+ #define _INLINE_ extern inline
+ #endif
+-#endif
+ 
+ #ifndef EXT2_CUSTOM_MEMORY_ROUTINES
+ /*
 -- 
 2.1.2
 
