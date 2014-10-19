@@ -1,37 +1,31 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Sun, 19 Oct 2014 00:00:48 +0000
-Subject: [PATCH 0/5] SILO: fix build issues with GNU11 mode
-Message-Id: <1413676853-23942-1-git-send-email-aaro.koskinen@iki.fi>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 19 Oct 2014 04:00:07 +0000
+Subject: Re: [PATCH 0/5] SILO: fix build issues with GNU11 mode
+Message-Id: <20141019.000007.602122863382528299.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1413676853-23942-1-git-send-email-aaro.koskinen@iki.fi>
+In-Reply-To: <1413676853-23942-1-git-send-email-aaro.koskinen@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
-
-GCC will switch to GNU11 default mode, and currently SILO
-compilation is broken with GCC 4.9.1 and --std=gnu11 due to ext2fs
-inline function declarations.
-
-These cleanup patches should fix the build, while not making any
-functional changes (same code is generated with current GNU89 default
-mode with and without these patches).
-
-Tested by running SILO installation + boot with versions compiled
-with both GNU89 & GNU11 modes using GCC 4.9.1 on Ultrasparc.
-
-Aaro Koskinen (5):
-  silo: ext2fs: delete INCLUDE_INLINE_FUNCS ifdeffery
-  silo: ext2fs: delete NO_INLINE_FUNCS ifdeffery
-  silo: ext2fs: bitops: delete non-sparc code
-  silo: ext2fs: delete forward declarations of inline functions
-  silo: ext2fs: replace _INLINE_ with static inline
-
- include/ext2fs/bitops.h | 301 +++++++++---------------------------------------
- include/ext2fs/ext2fs.h |  80 +++----------
- 2 files changed, 70 insertions(+), 311 deletions(-)
-
--- 
-2.1.2
-
+RnJvbTogQWFybyBLb3NraW5lbiA8YWFyby5rb3NraW5lbkBpa2kuZmk+DQpEYXRlOiBTdW4sIDE5
+IE9jdCAyMDE0IDAzOjAwOjQ4ICswMzAwDQoNCj4gR0NDIHdpbGwgc3dpdGNoIHRvIEdOVTExIGRl
+ZmF1bHQgbW9kZSwgYW5kIGN1cnJlbnRseSBTSUxPDQo+IGNvbXBpbGF0aW9uIGlzIGJyb2tlbiB3
+aXRoIEdDQyA0LjkuMSBhbmQgLS1zdGQ9Z251MTEgZHVlIHRvIGV4dDJmcw0KPiBpbmxpbmUgZnVu
+Y3Rpb24gZGVjbGFyYXRpb25zLg0KPiANCj4gVGhlc2UgY2xlYW51cCBwYXRjaGVzIHNob3VsZCBm
+aXggdGhlIGJ1aWxkLCB3aGlsZSBub3QgbWFraW5nIGFueQ0KPiBmdW5jdGlvbmFsIGNoYW5nZXMg
+KHNhbWUgY29kZSBpcyBnZW5lcmF0ZWQgd2l0aCBjdXJyZW50IEdOVTg5IGRlZmF1bHQNCj4gbW9k
+ZSB3aXRoIGFuZCB3aXRob3V0IHRoZXNlIHBhdGNoZXMpLg0KPiANCj4gVGVzdGVkIGJ5IHJ1bm5p
+bmcgU0lMTyBpbnN0YWxsYXRpb24gKyBib290IHdpdGggdmVyc2lvbnMgY29tcGlsZWQNCj4gd2l0
+aCBib3RoIEdOVTg5ICYgR05VMTEgbW9kZXMgdXNpbmcgR0NDIDQuOS4xIG9uIFVsdHJhc3BhcmMu
+DQoNClRoaXMgcGF0Y2ggc2V0IGdlbmVyYXRlcyBhIGJ1bmNoIG9mIG5ldyB3YXJuaW5ncywgcGxl
+YXNlIGZpeCB0aGF0Og0KDQouLi9pbmNsdWRlL2V4dDJmcy9iaXRvcHMuaDogSW4gZnVuY3Rpb24g
+oWV4dDJmc19tYXJrX2dlbmVyaWNfYml0bWFwojoNCi4uL2luY2x1ZGUvZXh0MmZzL2JpdG9wcy5o
+OjE1NDozOiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiChZXh0MmZz
+X3dhcm5fYml0bWFwMqIgWy1XaW1wbGljaXQtZnVuY3Rpb24tZGVcDQpjbGFyYXRpb25dDQouLi9p
+bmNsdWRlL2V4dDJmcy9iaXRvcHMuaDogSW4gZnVuY3Rpb24goWV4dDJmc190ZXN0X2Jsb2NrX2Jp
+dG1hcF9yYW5nZaI6DQouLi9pbmNsdWRlL2V4dDJmcy9iaXRvcHMuaDozMjc6Mzogd2FybmluZzog
+aW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goWV4dDJmc193YXJuX2JpdG1hcKIgWy1X
+aW1wbGljaXQtZnVuY3Rpb24tZGVjXA0KbGFyYXRpb25dDQo
