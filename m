@@ -1,88 +1,132 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:48:18 +0000
-Subject: [PATCH 11/16] s390/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-Message-Id: <1414416142-31239-12-git-send-email-wangyijing@huawei.com>
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Sun, 19 Oct 2014 00:00:51 +0000
+Subject: [PATCH 3/5] silo: ext2fs: bitops: delete non-sparc code
+Message-Id: <1413676853-23942-4-git-send-email-aaro.koskinen@iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Use MSI controller framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
+Delete non-SPARC code.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- arch/s390/include/asm/pci.h |    1 +
- arch/s390/pci/pci.c         |   19 +++++++++++++++++--
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ include/ext2fs/bitops.h | 94 -------------------------------------------------
+ 1 file changed, 94 deletions(-)
 
-diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
-index c030900..bf14da2 100644
---- a/arch/s390/include/asm/pci.h
-+++ b/arch/s390/include/asm/pci.h
-@@ -88,6 +88,7 @@ struct zpci_dev {
- 	u32 uid;			/* user defined id */
- 	u8 util_str[CLP_UTIL_STR_LEN];	/* utility string */
+diff --git a/include/ext2fs/bitops.h b/include/ext2fs/bitops.h
+index 35f0b0b..d7d0ce0 100644
+--- a/include/ext2fs/bitops.h
++++ b/include/ext2fs/bitops.h
+@@ -83,98 +83,6 @@ extern void ext2fs_set_bitmap_padding(ext2fs_generic_bitmap map);
+ #define _INLINE_ extern inline
+ #endif
  
-+	struct msi_controller *msi_ctrl;
- 	/* IRQ stuff */
- 	u64		msi_addr;	/* MSI address */
- 	struct airq_iv *aibv;		/* adapter interrupt bit vector */
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 552b990..beed5ab 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -358,7 +358,15 @@ static void zpci_irq_handler(struct airq_struct *airq)
- 	}
+-#if ((defined __GNUC__) && (defined(__i386__) || defined(__i486__) || \
+-			    defined(__i586__)))
+-
+-#define _EXT2_HAVE_ASM_BITOPS_
+-	
+-/*
+- * These are done by inline assembly for speed reasons.....
+- *
+- * All bitoperations return 0 if the bit was cleared before the
+- * operation and != 0 if it was not.  Bit 0 is the LSB of addr; bit 32
+- * is the LSB of (addr+1).
+- */
+-
+-/*
+- * Some hacks to defeat gcc over-optimizations..
+- */
+-struct __dummy_h { unsigned long a[100]; };
+-#define EXT2FS_ADDR (*(struct __dummy_h *) addr)
+-#define EXT2FS_CONST_ADDR (*(const struct __dummy_h *) addr)	
+-
+-_INLINE_ int ext2fs_set_bit(int nr, void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btsl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
+-		:"r" (nr));
+-	return oldbit;
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btrl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit),"=m" (EXT2FS_ADDR)
+-		:"r" (nr));
+-	return oldbit;
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
+-{
+-	int oldbit;
+-
+-	__asm__ __volatile__("btl %2,%1\n\tsbbl %0,%0"
+-		:"=r" (oldbit)
+-		:"m" (EXT2FS_CONST_ADDR),"r" (nr));
+-	return oldbit;
+-}
+-
+-#undef EXT2FS_ADDR
+-
+-#endif	/* i386 */
+-
+-#ifdef __mc68000__
+-
+-#define _EXT2_HAVE_ASM_BITOPS_
+-
+-_INLINE_ int ext2fs_set_bit(int nr,void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bfset %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_clear_bit(int nr, void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bfclr %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-_INLINE_ int ext2fs_test_bit(int nr, const void * addr)
+-{
+-	char retval;
+-
+-	__asm__ __volatile__ ("bftst %2@{%1:#1}; sne %0"
+-	     : "=d" (retval) : "d" (nr^7), "a" (addr));
+-
+-	return retval;
+-}
+-
+-#endif /* __mc68000__ */
+-
+-#ifdef __sparc__
+-
+ #define _EXT2_HAVE_ASM_BITOPS_
+ 
+ #ifndef EXT2_OLD_BITOPS
+@@ -290,8 +198,6 @@ _INLINE_ int ext2fs_test_bit(int nr, const void *addr)
  }
+ #endif
  
--int arch_setup_msi_irqs(struct pci_dev *pdev, int nvec, int type)
-+struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
-+{
-+	struct zpci_dev *zpci = bus->sysdata;
-+
-+	return zpci->msi_ctrl;
-+}
-+
-+static int zpci_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *pdev, int nvec, int type)
- {
- 	struct zpci_dev *zdev = get_zdev(pdev);
- 	unsigned int hwirq, msi_vecs;
-@@ -434,7 +442,8 @@ out:
- 	return rc;
- }
+-#endif /* __sparc__ */
+-
+ #ifndef _EXT2_HAVE_ASM_SWAB
  
--void arch_teardown_msi_irqs(struct pci_dev *pdev)
-+static void zpci_teardown_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *pdev)
- {
- 	struct zpci_dev *zdev = get_zdev(pdev);
- 	struct msi_desc *msi;
-@@ -464,6 +473,11 @@ void arch_teardown_msi_irqs(struct pci_dev *pdev)
- 	airq_iv_free_bit(zpci_aisb_iv, zdev->aisb);
- }
- 
-+static struct msi_controller zpci_msi_ctrl = {
-+	.setup_irqs = zpci_setup_msi_irqs,
-+	.teardown_irqs = zpci_teardown_msi_irqs,
-+};
-+
- static void zpci_map_resources(struct zpci_dev *zdev)
- {
- 	struct pci_dev *pdev = zdev->pdev;
-@@ -749,6 +763,7 @@ static int zpci_scan_bus(struct zpci_dev *zdev)
- 	if (ret)
- 		return ret;
- 
-+	zdev->msi_ctrl = &zpci_msi_ctrl;
- 	zdev->bus = pci_scan_root_bus(NULL, ZPCI_BUS_NR, &pci_root_ops,
- 				      zdev, &resources);
- 	if (!zdev->bus) {
+ _INLINE_ __u16 ext2fs_swab16(__u16 val)
 -- 
-1.7.1
+2.1.2
 
