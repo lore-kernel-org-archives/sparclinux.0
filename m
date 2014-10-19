@@ -1,28 +1,26 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Sun, 19 Oct 2014 07:07:03 +0000
+Date: Sun, 19 Oct 2014 12:31:56 +0000
 Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <alpine.LRH.2.11.1410191006430.32417@adalberg.ut.ee>
+Message-Id: <alpine.LRH.2.11.1410191459210.32417@adalberg.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1410152310080.11974@adalberg.ut.ee> <20141015.231154.1804074463934900124.davem@davemloft.net> <alpine.LRH.2.11.1410170012130.19924@adalberg.ut.ee> <20141019.003209.2286339581794609198.davem@davemloft.net>
-In-Reply-To: <20141019.003209.2286339581794609198.davem@davemloft.net>
+References: <20141016.165017.1151349565275102498.davem@davemloft.net> <alpine.LRH.2.11.1410171410210.25429@adalberg.ut.ee> <20141018.135907.356113264227709132.davem@davemloft.net> <20141018.142335.1935310766779155342.davem@davemloft.net>
+In-Reply-To: <20141018.142335.1935310766779155342.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: iamjoonsoo.kim@lge.com, linux-kernel@vger.kernel.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-> From: Meelis Roos <mroos@linux.ee>
-> Date: Fri, 17 Oct 2014 00:38:20 +0300 (EEST)
+> > I don't want to define the array size of the fpregs save area
+> > explicitly and thereby placing an artificial limit there.
 > 
-> > arch/sparc/kernel/setup_64.c is the only culprit.
-> > 
-> > Attached are 2 versions of the object file as of v3.17-rc1-22-g480cadc 
-> > that I tested.
+> Nevermind, it seems we have a hard limit of 7 FPU save areas anyways.
 > 
-> Just to confirm, a gcc-4.9 compiled kernel works if just setup_64.c
-> is built with gcc-4.6, is that correct?
+> Meelis, please try this patch:
 
-Yes, exactly.
+Works fine with 3.17.0-09670-g0429fbc + fault patch.
+
+Will try current git next to find any new problems :)
 
 -- 
 Meelis Roos (mroos@linux.ee)
