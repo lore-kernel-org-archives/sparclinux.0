@@ -1,40 +1,27 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 18 Oct 2014 18:23:35 +0000
+Date: Sun, 19 Oct 2014 04:32:09 +0000
 Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <20141018.142335.1935310766779155342.davem@davemloft.net>
+Message-Id: <20141019.003209.2286339581794609198.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141016.165017.1151349565275102498.davem@davemloft.net>
-	<alpine.LRH.2.11.1410171410210.25429@adalberg.ut.ee>
-	<20141018.135907.356113264227709132.davem@davemloft.net>
-In-Reply-To: <20141018.135907.356113264227709132.davem@davemloft.net>
+References: <alpine.LRH.2.11.1410152310080.11974@adalberg.ut.ee>
+	<20141015.231154.1804074463934900124.davem@davemloft.net>
+	<alpine.LRH.2.11.1410170012130.19924@adalberg.ut.ee>
+In-Reply-To: <alpine.LRH.2.11.1410170012130.19924@adalberg.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: mroos@linux.ee
-Cc: iamjoonsoo.kim@lge.com, linux-kernel@vger.kernel.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Sat, 18 Oct 2014 13:59:07 -0400 (EDT)
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 17 Oct 2014 00:38:20 +0300 (EEST)
 
-> I don't want to define the array size of the fpregs save area
-> explicitly and thereby placing an artificial limit there.
+> arch/sparc/kernel/setup_64.c is the only culprit.
+> 
+> Attached are 2 versions of the object file as of v3.17-rc1-22-g480cadc 
+> that I tested.
 
-Nevermind, it seems we have a hard limit of 7 FPU save areas anyways.
+Just to confirm, a gcc-4.9 compiled kernel works if just setup_64.c
+is built with gcc-4.6, is that correct?
 
-Meelis, please try this patch:
-
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index f85dc85..cc6275c 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -63,7 +63,8 @@ struct thread_info {
- 	struct pt_regs		*kern_una_regs;
- 	unsigned int		kern_una_insn;
- 
--	unsigned long		fpregs[0] __attribute__ ((aligned(64)));
-+	unsigned long		fpregs[(7 * 256) / sizeof(unsigned long)]
-+		__attribute__ ((aligned(64)));
- };
- 
- #endif /* !(__ASSEMBLY__) */
-
+I'm looking through these two object files now, thanks!
