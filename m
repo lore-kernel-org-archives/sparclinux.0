@@ -1,44 +1,36 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 19 Oct 2014 19:55:53 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 20 Oct 2014 18:57:46 +0000
 Subject: Re: unaligned accesses in SLAB etc.
-Message-Id: <20141019195553.GA11365@ravnborg.org>
+Message-Id: <20141020.145746.428441452740929005.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141018.135907.356113264227709132.davem@davemloft.net>
- <20141018.142335.1935310766779155342.davem@davemloft.net>
- <20141019153219.GA10644@ravnborg.org>
- <20141019.132737.1392053813844289431.davem@davemloft.net>
-In-Reply-To: <20141019.132737.1392053813844289431.davem@davemloft.net>
+References: <alpine.LRH.2.11.1410170012130.19924@adalberg.ut.ee>
+	<20141019.003209.2286339581794609198.davem@davemloft.net>
+	<alpine.LRH.2.11.1410191006430.32417@adalberg.ut.ee>
+In-Reply-To: <alpine.LRH.2.11.1410191006430.32417@adalberg.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: mroos@linux.ee, iamjoonsoo.kim@lge.com, linux-kernel@vger.kernel.org, cl@linux.com, penberg@kernel.org, rientjes@google.com, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org
+To: mroos@linux.ee
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Sun, Oct 19, 2014 at 01:27:37PM -0400, David Miller wrote:
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Sun, 19 Oct 2014 17:32:20 +0200
+From: Meelis Roos <mroos@linux.ee>
+Date: Sun, 19 Oct 2014 10:07:03 +0300 (EEST)
+
+>> From: Meelis Roos <mroos@linux.ee>
+>> Date: Fri, 17 Oct 2014 00:38:20 +0300 (EEST)
+>> 
+>> > arch/sparc/kernel/setup_64.c is the only culprit.
+>> > 
+>> > Attached are 2 versions of the object file as of v3.17-rc1-22-g480cadc 
+>> > that I tested.
+>> 
+>> Just to confirm, a gcc-4.9 compiled kernel works if just setup_64.c
+>> is built with gcc-4.6, is that correct?
 > 
-> > This part:
-> > 
-> >> +		__attribute__ ((aligned(64)));
-> > 
-> > Could be written as __aligned(64)
-> 
-> I'll try to remember to sweep this up in sparc-next, thanks Sam.
-> 
-> We probably use this long-hand form in a lot of other places in
-> the sparc code too, so I'll try to do a full sweep.
+> Yes, exactly.
 
-Another related one would be a full sweep of "__asm__ __volatile__"
-to the shorter version "asm volatile".
+Just an update, I have an environment where I can perfectly reproduce
+this.  I have a gcc-4.9 SVN built that compiles kernels which crash
+the same way it does for you.
 
-The latter is used in a few places in sparc already - so toolchain supports it.
-
-I got hits in:
-include/asm/irqflags_32.h:      asm volatile("rd        %%psr, %0" : "=r" (flags));
-include/asm/processor_64.h:#define cpu_relax()  asm volatile("\n99:\n\t"                        \
-kernel/kprobes.c:       asm volatile(".global kretprobe_trampoline\n"
-
-But this would touch 93 files. Thats too much crunch :-(
-
-	Sam
+I'll let you know when I make more progress.
