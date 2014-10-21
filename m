@@ -1,20 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 22 Oct 2014 19:39:53 +0000
-Subject: Re: [PATCHv3 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
-Message-Id: <20141022.153953.731678013980885432.davem@davemloft.net>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 21 Oct 2014 14:16:47 +0000
+Subject: [PATCHv4 3/4] sparc64: Avoid irqsave/restore on vio.lock if in_softirq()
+Message-Id: <20141021141647.GF15405@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141015164234.GA11840@oracle.com>
-	<20141022185757.GA8134@oracle.com>
-In-Reply-To: <20141022185757.GA8134@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sowmini.varadhan@oracle.com
-Cc: bob.picco@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: davem@davemloft.net, sowmini.varadhan@oracle.com
+Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 22 Oct 2014 14:57:57 -0400
+For NAPIfied drivers , there is no need to
+synchronize by doing irqsave/restore on vio.lock in the I/O
+path.
 
-> Please hold off on this patch-set for the moment.
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+---
+ arch/sparc/kernel/viohs.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-Ok, no problem.
+diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
+index 7ef081a..d731586 100644
+--- a/arch/sparc/kernel/viohs.c
++++ b/arch/sparc/kernel/viohs.c
+@@ -747,10 +747,11 @@ EXPORT_SYMBOL(vio_ldc_free);
+ 
+ void vio_port_up(struct vio_driver_state *vio)
+ {
+-	unsigned long flags;
++	unsigned long flags = 0;
+ 	int err, state;
+ 
+-	spin_lock_irqsave(&vio->lock, flags);
++	if (!in_softirq())
++		spin_lock_irqsave(&vio->lock, flags);
+ 
+ 	state = ldc_state(vio->lp);
+ 
+@@ -777,7 +778,8 @@ void vio_port_up(struct vio_driver_state *vio)
+ 		mod_timer(&vio->timer, expires);
+ 	}
+ 
+-	spin_unlock_irqrestore(&vio->lock, flags);
++	if (!in_softirq())
++		spin_unlock_irqrestore(&vio->lock, flags);
+ }
+ EXPORT_SYMBOL(vio_port_up);
+ 
+-- 
+1.8.4.2
+
