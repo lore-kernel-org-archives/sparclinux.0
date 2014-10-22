@@ -1,44 +1,33 @@
 From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 15 Oct 2014 16:42:34 +0000
-Subject: [PATCHv3 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
-Message-Id: <20141015164234.GA11840@oracle.com>
+Date: Wed, 22 Oct 2014 18:57:57 +0000
+Subject: Re: [PATCHv3 RFC net-next 0/4] sunvnet: NAPIfy sunvnet
+Message-Id: <20141022185757.GA8134@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141015164234.GA11840@oracle.com>
+In-Reply-To: <20141015164234.GA11840@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com
+To: davem@davemloft.net, bob.picco@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com
 Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
 
 
-This patchset converts the sunvnet driver to use the NAPI framework.
 
-Patch 1 in the series addresses the packet-receive path- all
-the vnet_event() processing is moved into NAPI context.
-This patch is dependant on the sparc-next commit:
-  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
-(Please cherry-pick sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
+Please hold off on this patch-set for the moment.
 
-Patch 2 uses RCU to fix race conditions between vnet_port_remove and
-paths that access/modify port-related state, such as vnet_start_xmit.
+I just discovered a subtle bug that can be triggered when multiple
+ldc events (e.g., UP and DATA_READY) are passed up from
+ldc_rx -> send_events in one shot- we need to treat the vnet_port's
+(new field) rx_event as a bit mask, and need to unroll send_events() 
+into vnet_event_napi.
 
-Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
-dropping superfluous usage of the irqsave/irqrestores on the vio.lock
-where possible.
+the result of this bug is that inter-vnet handshake can sometimes
+fail incorrectly causing things to needlessly go thorugh the
+switchport. I'm working on the fix for this, I'll send out
+PATCHv5 for this series shortly.
 
-Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
-net-next.
+Apologies for the confusion.
 
-Sowmini Varadhan (4):
-  NAPIfy sunvnet
-  Use RCU to synchronize port usage with vnet_port_remove()
-  Avoid irqsave/restore on vio.lock if in_softirq()
-  Remove irqsave/irqrestore on vio.lock
+--Sowmini
 
- arch/sparc/kernel/viohs.c          |   8 +-
- drivers/net/ethernet/sun/sunvnet.c | 261 +++++++++++++++++++++++--------------
- drivers/net/ethernet/sun/sunvnet.h |   6 +-
- 3 files changed, 176 insertions(+), 99 deletions(-)
-
--- 
-1.8.4.2
 
