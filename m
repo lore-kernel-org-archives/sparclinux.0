@@ -1,53 +1,49 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Thu, 30 Oct 2014 23:04:35 +0000
-Subject: [patch added to the 3.12 stable tree] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <1414710316-25911-49-git-send-email-jslaby@suse.cz>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 22 Oct 2014 22:12:10 +0000
+Subject: [PATCHv5 net-next 0/4] sunvnet: NAPI enhancements.
+Message-Id: <20141022221210.GB17252@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, david.stevens@oracle.com
+Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-This patch has been added to the 3.12 stable tree. If you have any
-objections, please let us know.
+This patchset converts the sunvnet driver to use the NAPI framework.
+Changes since v4 to (Patch 1): 
+  vnet_event accumulates LDC_EVENT_* bits into rx_event. 
+  vnet_event_napi() unrolls send_events() logic to process all rx_event bits.
+(Mail Subject of cover-letter changed, to keep it distinct from 
+subject of patch 1)
 
-=======
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
+Patch 1 in the series addresses the packet-receive path- all
+the vnet_event() processing is moved into NAPI context.
+This patch is dependant on the sparc-next commit:
+  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
+  (sparc commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
 
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
+Patch 2 uses RCU to fix race conditions between vnet_port_remove and
+paths that access/modify port-related state, such as vnet_start_xmit.
 
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
+Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
+dropping superfluous usage of the irqsave/irqrestores on the vio.lock
+where possible.
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
+net-next.
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index e562d3caee57..ad7e178337f1 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
- extern __must_check long strlen_user(const char __user *str);
- extern __must_check long strnlen_user(const char __user *str, long n);
- 
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
- 
- struct pt_regs;
- extern unsigned long compute_effective_address(struct pt_regs *,
+Sowmini Varadhan (4):
+  NAPIfy sunvnet
+  Use RCU to synchronize port usage with vnet_port_remove()
+  Avoid irqsave/restore on vio.lock if in_softirq()
+  Remove irqsave/irqrestore on vio.lock
+
+ arch/sparc/kernel/viohs.c          |   8 +-
+ drivers/net/ethernet/sun/sunvnet.c | 265 +++++++++++++++++++++++--------------
+ drivers/net/ethernet/sun/sunvnet.h |   6 +-
+ 3 files changed, 179 insertions(+), 100 deletions(-)
+
 -- 
-2.1.2
+1.8.4.2
 
