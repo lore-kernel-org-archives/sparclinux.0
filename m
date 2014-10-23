@@ -1,169 +1,108 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Thu, 23 Oct 2014 05:35:55 +0000
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Thu, 23 Oct 2014 06:32:24 +0000
 Subject: Re: [PATCH v3 04/27] arm/MSI: Save MSI chip in pci_sys_data
-Message-Id: <20141023053555.GC11770@google.com>
+Message-Id: <5448A0F8.1040004@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-	<1413342435-7876-5-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-5-git-send-email-wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com> <1413342435-7876-5-git-send-email-wangyijing@huawei.com> <20141023053555.GC11770@google.com>
+In-Reply-To: <20141023053555.GC11770@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Sebastian Ott <sebott-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, arnab.basu-KZfg59tc24xl57MIdRCFDg@public.gmane.org, Liviu Dudau <liviu-I3yL/QOVVjH10XsdtD+oqA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Chris Metcalf <cmetcalf-kv+TWInifGbQT0dZR+AlfA@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Thomas Petazzoni <thomas.petazzoni-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org>, Xinwei Hu <huxinwei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, iommu@l
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
 
-On Wed, Oct 15, 2014 at 11:06:52AM +0800, Yijing Wang wrote:
-> Saving msi chip in pci_sys_data can make pci bus and
-> devices don't need to know msi chip detail, it also
-> make pci enumeration code be decoupled from msi chip.
-> In fact, all pci devices under the same pci hostbridge
-> share same msi chip. So msi chip should be seen as one
-> of resources or attributes to be initialized in pci host
-> bridge driver. Currently, pci hostbridge drivers create
-> pci_host_bridge in pci_create_root_bus(), and pass arch
-> specific pci sysdata to core pci scan functions. So pci
-> arch sysdata is good place to save msi chip.
+>> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+>> index 22e413c..f11108c 100644
+>> --- a/drivers/pci/msi.c
+>> +++ b/drivers/pci/msi.c
+>> @@ -35,6 +35,9 @@ int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
+>>  	struct msi_chip *chip = dev->bus->msi;
+>>  	int err;
+>>  
+>> +	if (!chip)
+>> +		chip = pci_msi_chip(dev->bus);
+>> +
+>>  	if (!chip || !chip->setup_irq)
+>>  		return -EINVAL;
+>>  
+>> @@ -50,6 +53,9 @@ void __weak arch_teardown_msi_irq(unsigned int irq)
+>>  	struct msi_desc *entry = irq_get_msi_desc(irq);
+>>  	struct msi_chip *chip = entry->dev->bus->msi;
+>>  
+>> +	if (!chip)
+>> +		chip = pci_msi_chip(entry->dev->bus);
+>> +
+>>  	if (!chip || !chip->teardown_irq)
+>>  		return;
+>>  
+>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> index 9cd2721..7a48b40 100644
+>> --- a/include/linux/pci.h
+>> +++ b/include/linux/pci.h
+>> @@ -1433,6 +1433,15 @@ static inline int pci_get_new_domain_nr(void) { return -ENOSYS; }
+>>  
+>>  #include <asm/pci.h>
+>>  
+>> +/* Just avoid compile error, will be clean up later */
+>> +#ifdef CONFIG_PCI_MSI
+>> +
+>> +#ifndef pci_msi_chip
+>> +#define pci_msi_chip(bus)	NULL
+>> +#endif
+>> +#endif
 > 
-> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-> ---
->  arch/arm/include/asm/mach/pci.h |    6 ++++++
->  arch/arm/include/asm/pci.h      |    9 +++++++++
->  arch/arm/kernel/bios32.c        |    3 +++
->  drivers/pci/msi.c               |    6 ++++++
->  include/linux/pci.h             |    9 +++++++++
->  5 files changed, 33 insertions(+), 0 deletions(-)
+> I don't like the mixture of ARM changes and PCI core changes in the same
+> patch.  Can you split this into a core patch that does something like this:
 > 
-> diff --git a/arch/arm/include/asm/mach/pci.h b/arch/arm/include/asm/mach/pci.h
-> index 7fc4278..59b0d87 100644
-> --- a/arch/arm/include/asm/mach/pci.h
-> +++ b/arch/arm/include/asm/mach/pci.h
-> @@ -22,6 +22,9 @@ struct hw_pci {
->  #ifdef CONFIG_PCI_DOMAINS
->  	int		domain;
->  #endif
-> +#ifdef CONFIG_PCI_MSI
-> +	struct msi_chip *msi_chip;
-> +#endif
->  	struct pci_ops	*ops;
->  	int		nr_controllers;
->  	void		**private_data;
-> @@ -47,6 +50,9 @@ struct pci_sys_data {
->  #ifdef CONFIG_PCI_DOMAINS
->  	int		domain;
->  #endif
-> +#ifdef CONFIG_PCI_MSI
-> +	struct msi_chip *msi_chip;
-> +#endif
->  	struct list_head node;
->  	int		busnr;		/* primary bus number			*/
->  	u64		mem_offset;	/* bus->cpu memory mapping offset	*/
-> diff --git a/arch/arm/include/asm/pci.h b/arch/arm/include/asm/pci.h
-> index 7e95d85..b562c09 100644
-> --- a/arch/arm/include/asm/pci.h
-> +++ b/arch/arm/include/asm/pci.h
-> @@ -31,6 +31,15 @@ static inline int pci_proc_domain(struct pci_bus *bus)
->  }
->  #endif /* CONFIG_PCI_DOMAINS */
->  
-> +#ifdef CONFIG_PCI_MSI
-> +static inline struct msi_chip *pci_msi_chip(struct pci_bus *bus)
-> +{
-> +	struct pci_sys_data *root = bus->sysdata;
-> +
-> +	return root->msi_chip;
-> +}
-> +#endif
-> +
->  /*
->   * The PCI address space does equal the physical memory address space.
->   * The networking and block device layers use this boolean for bounce
-> diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
-> index 17a26c1..a19038d 100644
-> --- a/arch/arm/kernel/bios32.c
-> +++ b/arch/arm/kernel/bios32.c
-> @@ -471,6 +471,9 @@ static void pcibios_init_hw(struct device *parent, struct hw_pci *hw,
->  #ifdef CONFIG_PCI_DOMAINS
->  		sys->domain  = hw->domain;
->  #endif
-> +#ifdef CONFIG_PCI_MSI
-> +		sys->msi_chip = hw->msi_chip;
-> +#endif
->  		sys->busnr   = busnr;
->  		sys->swizzle = hw->swizzle;
->  		sys->map_irq = hw->map_irq;
-> diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-> index 22e413c..f11108c 100644
-> --- a/drivers/pci/msi.c
-> +++ b/drivers/pci/msi.c
-> @@ -35,6 +35,9 @@ int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
->  	struct msi_chip *chip = dev->bus->msi;
->  	int err;
->  
-> +	if (!chip)
-> +		chip = pci_msi_chip(dev->bus);
-> +
->  	if (!chip || !chip->setup_irq)
->  		return -EINVAL;
->  
-> @@ -50,6 +53,9 @@ void __weak arch_teardown_msi_irq(unsigned int irq)
->  	struct msi_desc *entry = irq_get_msi_desc(irq);
->  	struct msi_chip *chip = entry->dev->bus->msi;
->  
-> +	if (!chip)
-> +		chip = pci_msi_chip(entry->dev->bus);
-> +
->  	if (!chip || !chip->teardown_irq)
->  		return;
->  
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 9cd2721..7a48b40 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -1433,6 +1433,15 @@ static inline int pci_get_new_domain_nr(void) { return -ENOSYS; }
->  
->  #include <asm/pci.h>
->  
-> +/* Just avoid compile error, will be clean up later */
-> +#ifdef CONFIG_PCI_MSI
-> +
-> +#ifndef pci_msi_chip
-> +#define pci_msi_chip(bus)	NULL
-> +#endif
-> +#endif
-
-I don't like the mixture of ARM changes and PCI core changes in the same
-patch.  Can you split this into a core patch that does something like this:
-
-  struct msi_chip * __weak pcibios_msi_controller(struct pci_bus *bus)
-  {
-    return NULL;
-  }
-
-  struct msi_chip *pci_msi_controller(struct pci_bus *bus)
-  {
-    msi_chip *controller = bus->msi;
-
-    if (controller)
-      return controller;
-    return pcibios_msi_controller(bus);
-  }
-
-followed by an ARM patch that puts the msi_chip pointer in struct hw_pci
-and implements pcibios_msi_controller()?
-
-I know you're trying to *remove* weak functions, and this adds one, but
-this section of the series is more about getting rid of the ARM
-pcibios_add_bus() because all it was used for was setting the bus->msi
-pointer.
-
-Eventually we might have a way to stash an MSI controller pointer in the
-generic pci_host_bridge struct, and then the pcibios_msi_controller()
-interface could go away.
-
-> +
->  /* these helpers provide future and backwards compatibility
->   * for accessing popular PCI BAR info */
->  #define pci_resource_start(dev, bar)	((dev)->resource[(bar)].start)
-> -- 
-> 1.7.1
+>   struct msi_chip * __weak pcibios_msi_controller(struct pci_bus *bus)
+>   {
+>     return NULL;
+>   }
 > 
+>   struct msi_chip *pci_msi_controller(struct pci_bus *bus)
+>   {
+>     msi_chip *controller = bus->msi;
+> 
+>     if (controller)
+>       return controller;
+>     return pcibios_msi_controller(bus);
+>   }
+> 
+> followed by an ARM patch that puts the msi_chip pointer in struct hw_pci
+> and implements pcibios_msi_controller()?
+
+OK, I will split it in half.
+
+> 
+> I know you're trying to *remove* weak functions, and this adds one, but
+> this section of the series is more about getting rid of the ARM
+> pcibios_add_bus() because all it was used for was setting the bus->msi
+> pointer.
+
+Yes, agree.
+
+> 
+> Eventually we might have a way to stash an MSI controller pointer in the
+> generic pci_host_bridge struct, and then the pcibios_msi_controller()
+> interface could go away.
+
+Yep, I am doing the work to make a generic pci_host_bridge, and try to rip it out from
+pci_create_root_bus, that's also a large changes across many archs.
+
+> 
+>> +
+>>  /* these helpers provide future and backwards compatibility
+>>   * for accessing popular PCI BAR info */
+>>  #define pci_resource_start(dev, bar)	((dev)->resource[(bar)].start)
+>> -- 
+>> 1.7.1
+>>
+> 
+> .
+> 
+
+
+-- 
+Thanks!
+Yijing
+
