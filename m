@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Oct 2014 17:26:58 +0000
+Date: Fri, 24 Oct 2014 17:32:49 +0000
 Subject: [GIT] Sparc
-Message-Id: <20141019.132658.178402001080955021.davem@davemloft.net>
+Message-Id: <20141024.133249.71272218161411159.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,35 +12,48 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Here we have two bug fixes:
+Please pull to get these two bug fixes:
 
-1) The current thread's fault_code is not setup properly upon entry to
-   do_sparc64_fault() in some paths, leading to spurious SIGBUS.
+1) Fix boots with gcc-4.9 compiled sparc64 kernels.
 
-2) Don't use a zero length array at the end of thread_info on sparc64,
-   otherwise end_of_stack() isn't right.
+2) Add missing __get_user_pages_fast() on sparc64 to fix hangs
+   on futexes used in transparent hugepage areas.
 
-Please pull, thanks!
+   It's really idiotic to have a weak symbolled fallback that just
+   returns zero, and causes this kind of bug.  There should be no
+   backup implementation and the link should fail if the architecture
+   fails to provide __get_user_pages_fast() and supports transparent
+   hugepages.
 
-The following changes since commit 52d589a01d4545ce1dc5c3892bb8c7b55edfe714:
+Thanks.
 
-  Merge branch 'for-linus' of git://git.infradead.org/users/vkoul/slave-dma (2014-10-18 18:11:04 -0700)
+The following changes since commit 61ed53deb1c6a4386d8710dbbfcee8779c381931:
+
+  Merge tag 'ntb-3.18' of git://github.com/jonmason/ntb (2014-10-19 12:58:22 -0700)
 
 are available in the git repository at:
 
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
 
-for you to fetch changes up to e2653143d7d79a49f1a961aeae1d82612838b12c:
+for you to fetch changes up to 06090e8ed89ea2113a236befb41f71d51f100e60:
 
-  sparc64: Do not define thread fpregs save area as zero-length array. (2014-10-18 23:12:33 -0400)
+  sparc64: Implement __get_user_pages_fast(). (2014-10-24 09:59:02 -0700)
 
 ----------------------------------------------------------------
 David S. Miller (2):
-      sparc64: Fix corrupted thread fault code.
-      sparc64: Do not define thread fpregs save area as zero-length array.
+      sparc64: Fix register corruption in top-most kernel stack frame during boot.
+      sparc64: Implement __get_user_pages_fast().
 
- arch/sparc/include/asm/thread_info_64.h | 3 ++-
- arch/sparc/kernel/dtlb_prot.S           | 6 +++---
- arch/sparc/kernel/tsb.S                 | 6 +++---
- 3 files changed, 8 insertions(+), 7 deletions(-)
+ arch/sparc/include/asm/oplib_64.h |  3 ++-
+ arch/sparc/include/asm/setup.h    |  2 ++
+ arch/sparc/kernel/entry.h         |  3 ---
+ arch/sparc/kernel/head_64.S       | 40 ++++------------------------------------
+ arch/sparc/kernel/hvtramp.S       |  1 -
+ arch/sparc/kernel/setup_64.c      | 28 ++++++++++++++++++++--------
+ arch/sparc/kernel/trampoline_64.S | 12 +++++++-----
+ arch/sparc/mm/gup.c               | 30 ++++++++++++++++++++++++++++++
+ arch/sparc/prom/cif.S             |  5 ++---
+ arch/sparc/prom/init_64.c         |  6 +++---
+ arch/sparc/prom/p1275.c           |  2 --
+ 11 files changed, 70 insertions(+), 62 deletions(-)
