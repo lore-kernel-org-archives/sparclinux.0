@@ -1,75 +1,71 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Mon, 06 Oct 2014 13:52:36 +0000
-Subject: [PATCH 4/9] [IA64] Change xlate_dev_{kmem,mem}_ptr() prototypes
-Message-Id: <1412603561-27653-5-git-send-email-thierry.reding@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 24 Oct 2014 16:59:54 +0000
+Subject: [PATCH] sparc64: Implement __get_user_pages_fast().
+Message-Id: <20141024.125954.2150763947929737619.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
-In-Reply-To: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Fengguang Wu <fengguang.wu@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Stephen Boyd <sboyd@codeaurora.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-serial@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Thierry Reding <treding@nvidia.com>
 
-xlate_dev_mem_ptr() is used to convert a physical address to an uncached
-kernel virtual address mapping, so make it use phys_addr_t as type for
-the physical address and return void * for the kernel virtual address.
+It is not sufficient to only implement get_user_pages_fast(), you
+must also implement the atomic version __get_user_pages_fast()
+otherwise you end up using the weak symbol fallback implementation
+which simply returns zero.
 
-xlate_dev_kmem_ptr() converts a cached kernel virtual address mapping to
-an uncached kernel virtual address mapping, so make it use void * for
-both the input parameter and return value.
+This is dangerous, because it causes the futex code to loop forever
+if transparent hugepages are supported (see get_futex_key()).
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/ia64/include/asm/uaccess.h | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/ia64/include/asm/uaccess.h b/arch/ia64/include/asm/uaccess.h
-index 449c8c0fa2bd..103bedc59644 100644
---- a/arch/ia64/include/asm/uaccess.h
-+++ b/arch/ia64/include/asm/uaccess.h
-@@ -365,15 +365,15 @@ ia64_done_with_exception (struct pt_regs *regs)
+I'll be pushing this to -stable too.
+
+ arch/sparc/mm/gup.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 1aed043..ae6ce38 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -160,6 +160,36 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 	return 1;
  }
  
- #define ARCH_HAS_TRANSLATE_MEM_PTR	1
--static __inline__ char *
--xlate_dev_mem_ptr (unsigned long p)
-+static __inline__ void *
-+xlate_dev_mem_ptr(phys_addr_t p)
++int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
++			  struct page **pages)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long addr, len, end;
++	unsigned long next, flags;
++	pgd_t *pgdp;
++	int nr = 0;
++
++	start &= PAGE_MASK;
++	addr = start;
++	len = (unsigned long) nr_pages << PAGE_SHIFT;
++	end = start + len;
++
++	local_irq_save(flags);
++	pgdp = pgd_offset(mm, addr);
++	do {
++		pgd_t pgd = *pgdp;
++
++		next = pgd_addr_end(addr, end);
++		if (pgd_none(pgd))
++			break;
++		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
++			break;
++	} while (pgdp++, addr = next, addr != end);
++	local_irq_restore(flags);
++
++	return nr;
++}
++
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages)
  {
- 	struct page *page;
--	char * ptr;
-+	void *ptr;
- 
- 	page = pfn_to_page(p >> PAGE_SHIFT);
- 	if (PageUncached(page))
--		ptr = (char *)p + __IA64_UNCACHED_OFFSET;
-+		ptr = (void *)p + __IA64_UNCACHED_OFFSET;
- 	else
- 		ptr = __va(p);
- 
-@@ -383,15 +383,15 @@ xlate_dev_mem_ptr (unsigned long p)
- /*
-  * Convert a virtual cached kernel memory pointer to an uncached pointer
-  */
--static __inline__ char *
--xlate_dev_kmem_ptr (char * p)
-+static __inline__ void *
-+xlate_dev_kmem_ptr(void *p)
- {
- 	struct page *page;
--	char * ptr;
-+	void *ptr;
- 
- 	page = virt_to_page((unsigned long)p);
- 	if (PageUncached(page))
--		ptr = (char *)__pa(p) + __IA64_UNCACHED_OFFSET;
-+		ptr = (void *)__pa(p) + __IA64_UNCACHED_OFFSET;
- 	else
- 		ptr = p;
- 
 -- 
-2.1.0
+1.8.1.2
 
