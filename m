@@ -1,31 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Oct 2014 04:00:07 +0000
-Subject: Re: [PATCH 0/5] SILO: fix build issues with GNU11 mode
-Message-Id: <20141019.000007.602122863382528299.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Sat, 25 Oct 2014 20:03:17 +0000
+Subject: Current git: good!
+Message-Id: <alpine.LRH.2.11.1410252253420.11445@adalberg.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413676853-23942-1-git-send-email-aaro.koskinen@iki.fi>
-In-Reply-To: <1413676853-23942-1-git-send-email-aaro.koskinen@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogQWFybyBLb3NraW5lbiA8YWFyby5rb3NraW5lbkBpa2kuZmk+DQpEYXRlOiBTdW4sIDE5
-IE9jdCAyMDE0IDAzOjAwOjQ4ICswMzAwDQoNCj4gR0NDIHdpbGwgc3dpdGNoIHRvIEdOVTExIGRl
-ZmF1bHQgbW9kZSwgYW5kIGN1cnJlbnRseSBTSUxPDQo+IGNvbXBpbGF0aW9uIGlzIGJyb2tlbiB3
-aXRoIEdDQyA0LjkuMSBhbmQgLS1zdGQ9Z251MTEgZHVlIHRvIGV4dDJmcw0KPiBpbmxpbmUgZnVu
-Y3Rpb24gZGVjbGFyYXRpb25zLg0KPiANCj4gVGhlc2UgY2xlYW51cCBwYXRjaGVzIHNob3VsZCBm
-aXggdGhlIGJ1aWxkLCB3aGlsZSBub3QgbWFraW5nIGFueQ0KPiBmdW5jdGlvbmFsIGNoYW5nZXMg
-KHNhbWUgY29kZSBpcyBnZW5lcmF0ZWQgd2l0aCBjdXJyZW50IEdOVTg5IGRlZmF1bHQNCj4gbW9k
-ZSB3aXRoIGFuZCB3aXRob3V0IHRoZXNlIHBhdGNoZXMpLg0KPiANCj4gVGVzdGVkIGJ5IHJ1bm5p
-bmcgU0lMTyBpbnN0YWxsYXRpb24gKyBib290IHdpdGggdmVyc2lvbnMgY29tcGlsZWQNCj4gd2l0
-aCBib3RoIEdOVTg5ICYgR05VMTEgbW9kZXMgdXNpbmcgR0NDIDQuOS4xIG9uIFVsdHJhc3BhcmMu
-DQoNClRoaXMgcGF0Y2ggc2V0IGdlbmVyYXRlcyBhIGJ1bmNoIG9mIG5ldyB3YXJuaW5ncywgcGxl
-YXNlIGZpeCB0aGF0Og0KDQouLi9pbmNsdWRlL2V4dDJmcy9iaXRvcHMuaDogSW4gZnVuY3Rpb24g
-oWV4dDJmc19tYXJrX2dlbmVyaWNfYml0bWFwojoNCi4uL2luY2x1ZGUvZXh0MmZzL2JpdG9wcy5o
-OjE1NDozOiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiChZXh0MmZz
-X3dhcm5fYml0bWFwMqIgWy1XaW1wbGljaXQtZnVuY3Rpb24tZGVcDQpjbGFyYXRpb25dDQouLi9p
-bmNsdWRlL2V4dDJmcy9iaXRvcHMuaDogSW4gZnVuY3Rpb24goWV4dDJmc190ZXN0X2Jsb2NrX2Jp
-dG1hcF9yYW5nZaI6DQouLi9pbmNsdWRlL2V4dDJmcy9iaXRvcHMuaDozMjc6Mzogd2FybmluZzog
-aW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24goWV4dDJmc193YXJuX2JpdG1hcKIgWy1X
-aW1wbGljaXQtZnVuY3Rpb24tZGVjXA0KbGFyYXRpb25dDQo
+I tested todays git (3.18.0-rc1-00422-g2cc9188) on a bunch of machines 
+and it seems good. THP, RED state on reboot, SIGBUS and gcc-4.9 problems 
+are all gone and I did not notice any new (except already broken V480 
+but I will dig some more to make a better report or two). Than you for 
+the good work!
+
+The machines tested:
+
+U1, U2 (with esp blkmq patch)
+U5, Blade 100, V100, E3500, Netra X1
+V210, V245, V440
+T2000 (bare hardware)
+
+Not tested yet:
+U10 - has radeon detection hang now that PCI allocation is fixed
+E220R, E420R - I need to set up RSC, no problems expected
+E250, E450 - not currently wired up (need to set up RSC on E250).
+
+There are some warnings in dmesg, I will look when I have time and 
+report (RCU on E3500 is probably new, others not).
+
+Additionally, I have noted network instability with tulip driver on 
+Netra X1 in the past, but during testing with iperf it seems stable but 
+asymmetric (91 Mbps in one direction, 31 in another) - I will keep an 
+eye open.
+
+-- 
+Meelis Roos (mroos@linux.ee)
