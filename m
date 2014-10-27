@@ -1,52 +1,75 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Fri, 31 Oct 2014 13:12:59 +0000
-Subject: [PATCH 3.12 057/144] Revert "sparc64: Fix __copy_{to,from}_user_inatomic defines."
-Message-Id: <34311d46541908ce166018aa6da48967d5c149ad.1414759455.git.jslaby@suse.cz>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:44:48 +0000
+Subject: [PATCH 09/16] MIPS/Xlr/MSI: Use MSI controller framework to configure MSI/MSI-X irq
+Message-Id: <1414416142-31239-10-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Use MSI controller framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-3.12-stable review patch.  If anyone has any objections, please let me know.
-
-=======
-This reverts commit 145e1c0023585e0e8f6df22316308ec61c5066b2.
-
-This commit broke the behavior of __copy_from_user_inatomic when
-it is only partially successful. Instead of returning the number
-of bytes not copied, it now returns 1. This translates to the
-wrong value being returned by iov_iter_copy_from_user_atomic.
-
-xfstests generic/246 and LTP writev01 both fail on btrfs and nfs
-because of this.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/pci/pci-xlr.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index e562d3caee57..ad7e178337f1 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -262,8 +262,8 @@ extern unsigned long __must_check __clear_user(void __user *, unsigned long);
- extern __must_check long strlen_user(const char __user *str);
- extern __must_check long strnlen_user(const char __user *str, long n);
+diff --git a/arch/mips/pci/pci-xlr.c b/arch/mips/pci/pci-xlr.c
+index 0dde803..1e43c70 100644
+--- a/arch/mips/pci/pci-xlr.c
++++ b/arch/mips/pci/pci-xlr.c
+@@ -149,6 +149,8 @@ static struct resource nlm_pci_io_resource = {
+ 	.flags		= IORESOURCE_IO,
+ };
  
--#define __copy_to_user_inatomic ___copy_to_user
--#define __copy_from_user_inatomic ___copy_from_user
-+#define __copy_to_user_inatomic __copy_to_user
-+#define __copy_from_user_inatomic __copy_from_user
++static struct msi_controller xlr_msi_ctrl;
++
+ struct pci_controller nlm_pci_controller = {
+ 	.index		= 0,
+ 	.pci_ops	= &nlm_pci_ops,
+@@ -156,6 +158,9 @@ struct pci_controller nlm_pci_controller = {
+ 	.mem_offset	= 0x00000000UL,
+ 	.io_resource	= &nlm_pci_io_resource,
+ 	.io_offset	= 0x00000000UL,
++#ifdef CONFIG_PCI_MSI
++	.msi_ctrl = &xlr_msi_ctrl,
++#endif
+ };
  
- struct pt_regs;
- extern unsigned long compute_effective_address(struct pt_regs *,
+ /*
+@@ -214,11 +219,13 @@ static int get_irq_vector(const struct pci_dev *dev)
+ }
+ 
+ #ifdef CONFIG_PCI_MSI
+-void arch_teardown_msi_irq(unsigned int irq)
++static void xlr_teardown_msi_irq(struct msi_controller *ctrl,
++		unsigned int irq)
+ {
+ }
+ 
+-int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
++static int xlr_setup_msi_irq(struct msi_controller *ctrl,
++		struct pci_dev *dev, struct msi_desc *desc)
+ {
+ 	struct msi_msg msg;
+ 	struct pci_dev *lnk;
+@@ -263,6 +270,12 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
+ 	write_msi_msg(irq, &msg);
+ 	return 0;
+ }
++
++static struct msi_controller xlr_msi_ctrl = {
++	.setup_irq = xlr_setup_msi_irq,
++	.teardown_irq = xlr_teardown_msi_irq,
++};
++
+ #endif
+ 
+ /* Extra ACK needed for XLR on chip PCI controller */
 -- 
-2.1.2
+1.7.1
 
