@@ -1,7 +1,7 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:45:23 +0000
-Subject: [PATCH 01/16] PCI/MSI: Refactor MSI controller to make it become more common
-Message-Id: <1414416142-31239-2-git-send-email-wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:41:45 +0000
+Subject: [PATCH 10/16] Powerpc/MSI: Use MSI controller framework to configure MSI/MSI-X irq
+Message-Id: <1414416142-31239-11-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
@@ -10,84 +10,93 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Now there are a lot of weak arch MSI functions in MSI code.
-These functions make MSI driver complex. Because people need
-to know much which arch MSI function should be overrode and
-which is not. Thierry introduced MSI chip framework to configure
-MSI/MSI-X irq in arm. MSI chip framework is better than raw arch
-MSI functions, people can clearly know they should implement which
-MSI ops in specific platform. Use MSI chip framework to refactor all
-other platform MSI code to eliminate weak arch MSI functions.
-This patch add .restore_irqs(), .teardown_irqs() and .setup_irqs()
-to make it become more common.
+Use MSI controller framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
 Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 ---
- drivers/pci/msi.c   |   15 +++++++++++++++
- include/linux/msi.h |    8 ++++++--
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ arch/powerpc/include/asm/pci-bridge.h |    8 ++++++++
+ arch/powerpc/kernel/msi.c             |   19 +++++++++++++++++--
+ arch/powerpc/kernel/pci-common.c      |    3 +++
+ 3 files changed, 28 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 27b6a54..0e1da3e 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -70,6 +70,11 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- {
- 	struct msi_desc *entry;
- 	int ret;
-+	struct msi_controller *ctrl;
+diff --git a/arch/powerpc/include/asm/pci-bridge.h b/arch/powerpc/include/asm/pci-bridge.h
+index 4ca90a3..f7d09d0 100644
+--- a/arch/powerpc/include/asm/pci-bridge.h
++++ b/arch/powerpc/include/asm/pci-bridge.h
+@@ -32,6 +32,10 @@ struct pci_controller {
+ 	int self_busno;
+ 	struct resource busn;
+ 
++#ifdef CONFIG_PCI_MSI
++	struct msi_controller *msi_ctrl;
++#endif
 +
-+	ctrl = pci_msi_controller(dev->bus);
-+	if (ctrl && ctrl->setup_irqs)
-+		return ctrl->setup_irqs(ctrl, dev, nvec, type);
- 
- 	/*
- 	 * If an architecture wants to support multiple MSI, it needs to
-@@ -112,6 +117,11 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
- 
- void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
- {
-+	struct msi_controller *ctrl = pci_msi_controller(dev->bus);
-+
-+	if (ctrl && ctrl->teardown_irqs)
-+		return ctrl->teardown_irqs(ctrl, dev);
-+
- 	return default_teardown_msi_irqs(dev);
- }
- 
-@@ -135,6 +145,11 @@ static void default_restore_msi_irq(struct pci_dev *dev, int irq)
- 
- void __weak arch_restore_msi_irqs(struct pci_dev *dev)
- {
-+	struct msi_controller *ctrl = pci_msi_controller(dev->bus);
-+
-+	if (ctrl && ctrl->restore_irqs)
-+             return ctrl->restore_irqs(ctrl, dev);
-+
- 	return default_restore_msi_irqs(dev);
- }
- 
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 6704991..4426cb4 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -71,9 +71,13 @@ struct msi_controller {
- 	struct device_node *of_node;
- 	struct list_head list;
- 
--	int (*setup_irq)(struct msi_controller *chip, struct pci_dev *dev,
-+	int (*setup_irq)(struct msi_controller *ctrl, struct pci_dev *dev,
- 			 struct msi_desc *desc);
--	void (*teardown_irq)(struct msi_controller *chip, unsigned int irq);
-+	int (*setup_irqs)(struct msi_controller *ctrl, struct pci_dev *dev,
-+			int nvec, int type);
-+	void (*teardown_irq)(struct msi_controller *ctrl, unsigned int irq);
-+	void (*teardown_irqs)(struct msi_controller *ctrl, struct pci_dev *dev);
-+	void (*restore_irqs)(struct msi_controller *ctrl, struct pci_dev *dev);
+ 	void __iomem *io_base_virt;
+ #ifdef CONFIG_PPC64
+ 	void *io_base_alloc;
+@@ -94,6 +98,10 @@ struct pci_controller {
+ 	void *private_data;
  };
  
- #endif /* LINUX_MSI_H */
++#ifdef CONFIG_PCI_MSI
++extern struct msi_controller ppc_msi_ctrl;
++#endif
++
+ /* These are used for config access before all the PCI probing
+    has been done. */
+ extern int early_read_config_byte(struct pci_controller *hose, int bus,
+diff --git a/arch/powerpc/kernel/msi.c b/arch/powerpc/kernel/msi.c
+index 71bd161..64a16f3 100644
+--- a/arch/powerpc/kernel/msi.c
++++ b/arch/powerpc/kernel/msi.c
+@@ -13,7 +13,15 @@
+ 
+ #include <asm/machdep.h>
+ 
+-int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
++{
++	struct pci_controller *hose = bus->sysdata;
++
++	return hose->msi_ctrl;
++}
++
++static int ppc_setup_msi_irqs(struct msi_controller *ctrl,
++		struct pci_dev *dev, int nvec, int type)
+ {
+ 	if (!ppc_md.setup_msi_irqs || !ppc_md.teardown_msi_irqs) {
+ 		pr_debug("msi: Platform doesn't provide MSI callbacks.\n");
+@@ -27,7 +35,13 @@ int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 	return ppc_md.setup_msi_irqs(dev, nvec, type);
+ }
+ 
+-void arch_teardown_msi_irqs(struct pci_dev *dev)
++static void ppc_teardown_msi_irqs(struct msi_controller *ctrl,
++		struct pci_dev *dev)
+ {
+ 	ppc_md.teardown_msi_irqs(dev);
+ }
++
++struct msi_controller ppc_msi_ctrl = {
++	.setup_irqs = ppc_setup_msi_irqs,
++	.teardown_irqs = ppc_teardown_msi_irqs,
++};
+diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+index e5dad9a..c3f28c5 100644
+--- a/arch/powerpc/kernel/pci-common.c
++++ b/arch/powerpc/kernel/pci-common.c
+@@ -1597,6 +1597,9 @@ void pcibios_scan_phb(struct pci_controller *hose)
+ 	/* Wire up PHB bus resources */
+ 	pcibios_setup_phb_resources(hose, &resources);
+ 
++#ifdef CONFIG_PCI_MSI
++	hose->msi_ctrl = &ppc_msi_ctrl;
++#endif
+ 	hose->busn.start = hose->first_busno;
+ 	hose->busn.end	 = hose->last_busno;
+ 	hose->busn.flags = IORESOURCE_BUS;
 -- 
 1.7.1
 
