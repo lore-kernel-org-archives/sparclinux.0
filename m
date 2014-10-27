@@ -1,44 +1,120 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Tue, 21 Oct 2014 14:16:12 +0000
-Subject: [PATCHv4 net-next 0/4] sunvnet: NAPIfy sunvnet
-Message-Id: <20141021141612.GC15405@oracle.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:44:15 +0000
+Subject: [PATCH 13/16] IA64/MSI: Use MSI controller framework to configure MSI/MSI-X irq
+Message-Id: <1414416142-31239-14-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, bob.picco@oracle.com, sowmini.varadhan@oracle.com, dwight.engen@oracle.com, raghuram.kothakota@oracle.com, david.stevens@oracle.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Use MSI controller framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-This patchset converts the sunvnet driver to use the NAPI framework.
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+---
+ arch/ia64/include/asm/pci.h |    3 ++-
+ arch/ia64/kernel/msi_ia64.c |   24 ++++++++++++++++++------
+ arch/ia64/pci/pci.c         |    1 +
+ 3 files changed, 21 insertions(+), 7 deletions(-)
 
-Patch 1 in the series addresses the packet-receive path- all
-the vnet_event() processing is moved into NAPI context.
-This patch is dependant on the sparc commit:
-  "sparc64: Add vio_set_intr() to enable/disable Rx interrupts"
-  (commit id ca605b7dd740c8909408d67911d8ddd272c2b320)
-
-Patch 2 uses RCU to fix race conditions between vnet_port_remove and
-paths that access/modify port-related state, such as vnet_start_xmit.
-
-Patch 3 and Patch 4 in the series leverage from the NAPIfied Rx path, 
-dropping superfluous usage of the irqsave/irqrestores on the vio.lock
-where possible.
-
-Note: Patch 3 contains changes that target sparc-next, Patch 4 targets
-net-next.
-
-Sowmini Varadhan (4):
-  NAPIfy sunvnet
-  Use RCU to synchronize port usage with vnet_port_remove()
-  Avoid irqsave/restore on vio.lock if in_softirq()
-  Remove irqsave/irqrestore on vio.lock
-
- arch/sparc/kernel/viohs.c          |   8 +-
- drivers/net/ethernet/sun/sunvnet.c | 258 +++++++++++++++++++++++--------------
- drivers/net/ethernet/sun/sunvnet.h |   6 +-
- 3 files changed, 173 insertions(+), 99 deletions(-)
-
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 52af5ed..805bbc3 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -93,7 +93,7 @@ struct pci_controller {
+ 	void *iommu;
+ 	int segment;
+ 	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
+-
++	struct msi_controller *msi_ctrl;
+ 	void *platform_data;
+ };
+ 
+@@ -101,6 +101,7 @@ struct pci_controller {
+ #define PCI_CONTROLLER(busdev) ((struct pci_controller *) busdev->sysdata)
+ #define pci_domain_nr(busdev)    (PCI_CONTROLLER(busdev)->segment)
+ 
++extern struct msi_controller ia64_msi_ctrl;
+ extern struct pci_ops pci_root_ops;
+ 
+ static inline int pci_proc_domain(struct pci_bus *bus)
+diff --git a/arch/ia64/kernel/msi_ia64.c b/arch/ia64/kernel/msi_ia64.c
+index 8c3730c..b92b8e2 100644
+--- a/arch/ia64/kernel/msi_ia64.c
++++ b/arch/ia64/kernel/msi_ia64.c
+@@ -42,7 +42,7 @@ static int ia64_set_msi_irq_affinity(struct irq_data *idata,
+ }
+ #endif /* CONFIG_SMP */
+ 
+-int ia64_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++int __ia64_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	struct msi_msg	msg;
+ 	unsigned long	dest_phys_id;
+@@ -77,7 +77,7 @@ int ia64_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ 	return 0;
+ }
+ 
+-void ia64_teardown_msi_irq(unsigned int irq)
++void __ia64_teardown_msi_irq(unsigned int irq)
+ {
+ 	destroy_irq(irq);
+ }
+@@ -111,23 +111,35 @@ static struct irq_chip ia64_msi_chip = {
+ 	.irq_retrigger		= ia64_msi_retrigger_irq,
+ };
+ 
++struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
++{
++	struct pci_controller *ctrl = bus->sysdata;
++
++	return ctrl->msi_ctrl;
++}
+ 
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++static int ia64_setup_msi_irq(struct msi_controller *ctrl,
++		struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	if (platform_setup_msi_irq)
+ 		return platform_setup_msi_irq(pdev, desc);
+ 
+-	return ia64_setup_msi_irq(pdev, desc);
++	return __ia64_setup_msi_irq(pdev, desc);
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++static void ia64_teardown_msi_irq(struct msi_controller *ctrl, unsigned int irq)
+ {
+ 	if (platform_teardown_msi_irq)
+ 		return platform_teardown_msi_irq(irq);
+ 
+-	return ia64_teardown_msi_irq(irq);
++	return __ia64_teardown_msi_irq(irq);
+ }
+ 
++struct msi_controller ia64_msi_ctrl = {
++	.setup_irq = ia64_setup_msi_irq,
++	.teardown_irq = ia64_teardown_msi_irq,
++};
++
+ #ifdef CONFIG_INTEL_IOMMU
+ #ifdef CONFIG_SMP
+ static int dmar_msi_set_affinity(struct irq_data *data,
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 291a582..875f46a 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -437,6 +437,7 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 
+ 	controller->companion = device;
+ 	controller->node = acpi_get_node(device->handle);
++	controller->msi_ctrl = &ia64_msi_ctrl;
+ 
+ 	info = kzalloc(sizeof(*info), GFP_KERNEL);
+ 	if (!info) {
 -- 
-1.8.4.2
+1.7.1
 
