@@ -1,106 +1,146 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 04 Oct 2014 23:26:46 +0000
-Subject: [PATCH 2/9] sparc64: Define VA hole at run time, rather than at compile time.
-Message-Id: <20141004.192646.1822710057249508337.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:41:57 +0000
+Subject: [PATCH 05/16] x86/MSI: Remove unused MSI weak arch functions
+Message-Id: <1414416142-31239-6-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Now we can clean up MSI weak arch functions in x86.
 
-Now that we use 4-level page tables, we can provide up to 53-bits of
-virtual address space to the user.
-
-Adjust the VA hole based upon the capabilities of the cpu type probed.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/asm/page_64.h | 15 ++++-----------
- arch/sparc/mm/init_64.c          | 21 +++++++++++++++++++++
- 2 files changed, 25 insertions(+), 11 deletions(-)
+ arch/x86/include/asm/pci.h      |    5 +----
+ arch/x86/include/asm/x86_init.h |    4 ----
+ arch/x86/kernel/apic/io_apic.c  |   21 +++++----------------
+ arch/x86/kernel/x86_init.c      |   24 ------------------------
+ 4 files changed, 6 insertions(+), 48 deletions(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 09ceb68..2211a80 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -102,21 +102,14 @@ typedef unsigned long pgprot_t;
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index 1af3d77..21fe24f 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -99,14 +99,11 @@ extern void pci_iommu_alloc(void);
+ #ifdef CONFIG_PCI_MSI
+ /* implemented in arch/x86/kernel/apic/io_apic. */
+ struct msi_desc;
+-int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type);
+-void native_teardown_msi_irq(unsigned int irq);
+-void native_restore_msi_irqs(struct pci_dev *dev);
++void native_teardown_msi_irq(struct msi_controller *ctrl, unsigned int irq);
+ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+ 		  unsigned int irq_base, unsigned int irq_offset);
+ extern struct msi_controller *x86_msi_ctrl;
+ #else
+-#define native_setup_msi_irqs		NULL
+ #define native_teardown_msi_irq		NULL
+ #endif
  
- typedef pte_t *pgtable_t;
+diff --git a/arch/x86/include/asm/x86_init.h b/arch/x86/include/asm/x86_init.h
+index f58a9c7..2514f67 100644
+--- a/arch/x86/include/asm/x86_init.h
++++ b/arch/x86/include/asm/x86_init.h
+@@ -174,13 +174,9 @@ struct pci_dev;
+ struct msi_msg;
  
--/* These two values define the virtual address space range in which we
-- * must forbid 64-bit user processes from making mappings.  It used to
-- * represent precisely the virtual address space hole present in most
-- * early sparc64 chips including UltraSPARC-I.  But now it also is
-- * further constrained by the limits of our page tables, which is
-- * 43-bits of virtual address.
-- */
--#define SPARC64_VA_HOLE_TOP	_AC(0xfffffc0000000000,UL)
--#define SPARC64_VA_HOLE_BOTTOM	_AC(0x0000040000000000,UL)
-+extern unsigned long sparc64_va_hole_top;
-+extern unsigned long sparc64_va_hole_bottom;
+ struct x86_msi_ops {
+-	int (*setup_msi_irqs)(struct pci_dev *dev, int nvec, int type);
+ 	void (*compose_msi_msg)(struct pci_dev *dev, unsigned int irq,
+ 				unsigned int dest, struct msi_msg *msg,
+ 			       u8 hpet_id);
+-	void (*teardown_msi_irq)(unsigned int irq);
+-	void (*teardown_msi_irqs)(struct pci_dev *dev);
+-	void (*restore_msi_irqs)(struct pci_dev *dev);
+ 	int  (*setup_hpet_msi)(unsigned int irq, unsigned int id);
+ };
  
- /* The next two defines specify the actual exclusion region we
-  * enforce, wherein we use a 4GB red zone on each side of the VA hole.
-  */
--#define VA_EXCLUDE_START (SPARC64_VA_HOLE_BOTTOM - (1UL << 32UL))
--#define VA_EXCLUDE_END   (SPARC64_VA_HOLE_TOP + (1UL << 32UL))
-+#define VA_EXCLUDE_START (sparc64_va_hole_bottom - (1UL << 32UL))
-+#define VA_EXCLUDE_END   (sparc64_va_hole_top + (1UL << 32UL))
- 
- #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
- 				 _AC(0x0000000070000000,UL) : \
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index a6c0a30..082fde1 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1630,25 +1630,46 @@ static void __init page_offset_shift_patch(unsigned long phys_bits)
- 	}
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index 8b8c671..04bf011 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -3207,7 +3207,8 @@ int setup_msi_irq(struct pci_dev *dev, struct msi_desc *msidesc,
+ 	return 0;
  }
  
-+unsigned long sparc64_va_hole_top =    0xfffff80000000000UL;
-+unsigned long sparc64_va_hole_bottom = 0x0000080000000000UL;
-+
- static void __init setup_page_offset(void)
+-int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
++static int native_setup_msi_irqs(struct msi_controller *ctrl,
++		struct pci_dev *dev, int nvec, int type)
  {
- 	unsigned long max_phys_bits = 40;
+ 	struct msi_desc *msidesc;
+ 	unsigned int irq;
+@@ -3234,26 +3235,14 @@ int native_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+ 	return 0;
+ }
  
- 	if (tlb_type = cheetah || tlb_type = cheetah_plus) {
-+		/* Cheetah/Panther support a full 64-bit virtual
-+		 * address, so we can use all that our page tables
-+		 * support.
-+		 */
-+		sparc64_va_hole_top =    0xfff0000000000000UL;
-+		sparc64_va_hole_bottom = 0x0010000000000000UL;
-+
- 		max_phys_bits = 42;
- 	} else if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
- 		case SUN4V_CHIP_NIAGARA2:
-+			/* T1 and T2 support 48-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xffff800000000000UL;
-+			sparc64_va_hole_bottom = 0x0000800000000000UL;
-+
- 			max_phys_bits = 39;
- 			break;
- 		case SUN4V_CHIP_NIAGARA3:
-+			/* T3 supports 48-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xffff800000000000UL;
-+			sparc64_va_hole_bottom = 0x0000800000000000UL;
-+
- 			max_phys_bits = 43;
- 			break;
- 		case SUN4V_CHIP_NIAGARA4:
- 		case SUN4V_CHIP_NIAGARA5:
- 		case SUN4V_CHIP_SPARC64X:
- 		default:
-+			/* T4 and later support 52-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xfff8000000000000UL;
-+			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 47;
- 			break;
- 		}
+-static int __native_setup_msi_irqs(struct msi_controller *ctrl, 
+-		struct pci_dev *dev, int nvec, int type)
+-{
+-	return native_setup_msi_irqs(dev, nvec, type);
+-}
+-
+-void native_teardown_msi_irq(unsigned int irq)
++void native_teardown_msi_irq(struct msi_controller *ctrl, unsigned int irq)
+ {
+ 	irq_free_hwirq(irq);
+ }
+ 
+-static void __native_teardown_msi_irq(struct msi_controller *ctrl, 
+-		unsigned int irq)
+-{
+-	native_teardown_msi_irq(irq);
+-}
+-
+ static struct msi_controller native_msi_ctrl = {
+-	.setup_irqs = __native_setup_msi_irqs,
+-	.teardown_irq = __native_teardown_msi_irq,
++	.setup_irqs = native_setup_msi_irqs,
++	.teardown_irq = native_teardown_msi_irq,
+ };
+ 
+ struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
+diff --git a/arch/x86/kernel/x86_init.c b/arch/x86/kernel/x86_init.c
+index 234b072..cc32568 100644
+--- a/arch/x86/kernel/x86_init.c
++++ b/arch/x86/kernel/x86_init.c
+@@ -110,34 +110,10 @@ EXPORT_SYMBOL_GPL(x86_platform);
+ 
+ #if defined(CONFIG_PCI_MSI)
+ struct x86_msi_ops x86_msi = {
+-	.setup_msi_irqs		= native_setup_msi_irqs,
+ 	.compose_msi_msg	= native_compose_msi_msg,
+-	.teardown_msi_irq	= native_teardown_msi_irq,
+-	.teardown_msi_irqs	= default_teardown_msi_irqs,
+-	.restore_msi_irqs	= default_restore_msi_irqs,
+ 	.setup_hpet_msi		= default_setup_hpet_msi,
+ };
+ 
+-/* MSI arch specific hooks */
+-int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
+-{
+-	return x86_msi.setup_msi_irqs(dev, nvec, type);
+-}
+-
+-void arch_teardown_msi_irqs(struct pci_dev *dev)
+-{
+-	x86_msi.teardown_msi_irqs(dev);
+-}
+-
+-void arch_teardown_msi_irq(unsigned int irq)
+-{
+-	x86_msi.teardown_msi_irq(irq);
+-}
+-
+-void arch_restore_msi_irqs(struct pci_dev *dev)
+-{
+-	x86_msi.restore_msi_irqs(dev);
+-}
+ #endif
+ 
+ struct x86_io_apic_ops x86_io_apic_ops = {
 -- 
-1.8.1.2
+1.7.1
 
