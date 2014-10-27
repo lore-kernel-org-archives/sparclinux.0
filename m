@@ -1,65 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Oct 2014 18:46:15 +0000
-Subject: [PATCH] sparc: Hook up bpf system call.
-Message-Id: <20141028.144615.2170428138307575203.davem@davemloft.net>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:47:14 +0000
+Subject: [PATCH 06/16] Mips/MSI: Save MSI controller in pci sysdata
+Message-Id: <1414416142-31239-7-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Save MSI controller in pci sysdata, add arch pcibios_msi_controller()
+to extract out MSI controller.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
 ---
- arch/sparc/include/uapi/asm/unistd.h | 3 ++-
- arch/sparc/kernel/systbls_32.S       | 2 +-
- arch/sparc/kernel/systbls_64.S       | 4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ arch/mips/include/asm/pci.h |    3 +++
+ arch/mips/pci/pci.c         |    9 +++++++++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index c842a89..46d8384 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -414,8 +414,9 @@
- #define __NR_seccomp		346
- #define __NR_getrandom		347
- #define __NR_memfd_create	348
-+#define __NR_bpf		349
+diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
+index 974b0e3..d7cd850 100644
+--- a/arch/mips/include/asm/pci.h
++++ b/arch/mips/include/asm/pci.h
+@@ -43,6 +43,9 @@ struct pci_controller {
  
--#define NR_syscalls		349
-+#define NR_syscalls		350
+ 	int iommu;
  
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index 6a873c3..ad0cdf4 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -86,4 +86,4 @@ sys_call_table:
- /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
-+/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index d9151b6..580cde9 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -87,7 +87,7 @@ sys_call_table32:
- /*330*/	.word compat_sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
-+	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++#ifdef CONFIG_PCI_MSI
++	struct msi_controller *msi_ctrl;
++#endif
+ 	/* Optional access methods for reading/writing the bus number
+ 	   of the PCI controller */
+ 	int (*get_busno)(void);
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index 1bf60b1..7917cba 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -36,6 +36,15 @@ unsigned long PCIBIOS_MIN_MEM;
  
- #endif /* CONFIG_COMPAT */
+ static int pci_initialized;
  
-@@ -166,4 +166,4 @@ sys_call_table:
- /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
--	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
-+	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++#ifdef CONFIG_PCI_MSI
++struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
++{
++	struct pci_controller *ctrl = bus->sysdata;
++
++	return ctrl->msi_ctrl;
++}
++#endif
++
+ /*
+  * We need to avoid collisions with `mirrored' VGA ports
+  * and other strange ISA hardware, so we always want the
 -- 
-2.1.2.532.g19b5d50
+1.7.1
 
