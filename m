@@ -1,41 +1,29 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Mon, 27 Oct 2014 21:09:38 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 27 Oct 2014 22:43:27 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <20141027140938.142f83a4c3bc6512dd73b54c@linux-foundation.org>
+Message-Id: <20141027.184327.1734954193920971940.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141024.133249.71272218161411159.davem@davemloft.net>
 	<CA+55aFyqtuh53PmwO65NtM_PrPd51=EMWiv8dU8bNTrXL59=Jg@mail.gmail.com>
-In-Reply-To: <CA+55aFyqtuh53PmwO65NtM_PrPd51=EMWiv8dU8bNTrXL59=Jg@mail.gmail.com>
+	<20141027140938.142f83a4c3bc6512dd73b54c@linux-foundation.org>
+In-Reply-To: <20141027140938.142f83a4c3bc6512dd73b54c@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Steve Capper <steve.capper@linaro.org>
+To: akpm@linux-foundation.org
+Cc: torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, steve.capper@linaro.org
 
-On Fri, 24 Oct 2014 12:47:48 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 27 Oct 2014 14:09:38 -0700
 
-> On Fri, Oct 24, 2014 at 10:32 AM, David Miller <davem@davemloft.net> wrote:
-> >
-> >    It's really idiotic to have a weak symbolled fallback that just
-> >    returns zero, and causes this kind of bug.  There should be no
-> >    backup implementation and the link should fail if the architecture
-> >    fails to provide __get_user_pages_fast() and supports transparent
-> >    hugepages.
+> Perhaps sparc should be defining CONFIG_HAVE_GENERIC_RCU_GUP.
 > 
-> Agreed. I think the weak fallback is for the "no hugepages support"
-> case, but that does sound very annoying and fragile.
+> We really should switch x86 to the generic version - from a quick read
+> it looks like it will work without needing any changes.
 > 
+> Steve, thoughts?
 
-Yup.  I'm thinking the get_user_pages_fast() and
-__get_user_pages_fast() in mm/util.c should be made non-weak and moved
-to mm/nommu.c.
-
-With that change, MMU architctures will need to either define
-CONFIG_HAVE_GENERIC_RCU_GUP or implement their own versions.
-
-Perhaps sparc should be defining CONFIG_HAVE_GENERIC_RCU_GUP.
-
-We really should switch x86 to the generic version - from a quick read
-it looks like it will work without needing any changes.
-
-Steve, thoughts?
+We need to add the necessary hooks to the generic code so that x86
+doesn't so specualtive gets and instead do direct increments,
+otherwise it's a performance regression, and then sparc can make use
+of that as well.
