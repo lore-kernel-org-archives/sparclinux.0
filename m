@@ -1,192 +1,98 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue, 28 Oct 2014 03:36:13 +0000
-Subject: [PATCH 3.14 088/100] sparc64: T5 PMU
-Message-Id: <20141028033504.509824325@linuxfoundation.org>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 27 Oct 2014 12:46:03 +0000
+Subject: [PATCH 14/16] Sparc/MSI: Use MSI controller framework to configure MSI/MSI-X irq
+Message-Id: <1414416142-31239-15-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141028033500.670583608@linuxfoundation.org>
-In-Reply-To: <20141028033500.670583608@linuxfoundation.org>
+References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
+To: linux-arm-kernel@lists.infradead.org
 
-3.14-stable review patch.  If anyone has any objections, please let me know.
+Use MSI controller framework instead of arch MSI functions to configure
+MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
 
-------------------
-
-From: bob picco <bpicco@meloft.net>
-
-The T5 (niagara5) has different PCR related HV fast trap values and a new
-HV API Group. This patch utilizes these and shares when possible with niagara4.
-
-We use the same sparc_pmu niagara4_pmu. Should there be new effort to
-obtain the MCU perf statistics then this would have to be changed.
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/hypervisor.h |   11 ++++++++
- arch/sparc/kernel/hvapi.c           |    1 
- arch/sparc/kernel/hvcalls.S         |   16 ++++++++++++
- arch/sparc/kernel/pcr.c             |   47 ++++++++++++++++++++++++++++++++----
- arch/sparc/kernel/perf_event.c      |    3 +-
- 5 files changed, 73 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/pci.c      |   20 ++++++++++++++++++--
+ arch/sparc/kernel/pci_impl.h |    3 +++
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2944,6 +2944,16 @@ extern unsigned long sun4v_vt_set_perfre
- 					  unsigned long reg_val);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index b36365f..c691a10 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -656,6 +656,9 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 
+ 	printk("PCI: Scanning PBM %s\n", node->full_name);
+ 
++#ifdef CONFIG_PCI_MSI
++	pbm->msi_ctrl = &sparc_msi_ctrl;
++#endif
+ 	pci_add_resource_offset(&resources, &pbm->io_space,
+ 				pbm->io_space.start);
+ 	pci_add_resource_offset(&resources, &pbm->mem_space,
+@@ -905,7 +908,15 @@ int pci_domain_nr(struct pci_bus *pbus)
+ EXPORT_SYMBOL(pci_domain_nr);
+ 
+ #ifdef CONFIG_PCI_MSI
+-int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
++struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
++{
++	struct pci_pbm_info *pbm = bus->sysdata;
++
++	return pbm->msi_ctrl;
++}
++
++static int sparc_setup_msi_irq(struct msi_controller *ctrl,
++		struct pci_dev *pdev, struct msi_desc *desc)
+ {
+ 	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
+ 	unsigned int irq;
+@@ -916,7 +927,7 @@ int arch_setup_msi_irq(struct pci_dev *pdev, struct msi_desc *desc)
+ 	return pbm->setup_msi_irq(&irq, pdev, desc);
+ }
+ 
+-void arch_teardown_msi_irq(unsigned int irq)
++static void sparc_teardown_msi_irq(struct msi_controller *ctrl, unsigned int irq)
+ {
+ 	struct msi_desc *entry = irq_get_msi_desc(irq);
+ 	struct pci_dev *pdev = entry->dev;
+@@ -925,6 +936,11 @@ void arch_teardown_msi_irq(unsigned int irq)
+ 	if (pbm->teardown_msi_irq)
+ 		pbm->teardown_msi_irq(irq, pdev);
+ }
++
++struct msi_controller sparc_msi_ctrl = {
++	.setup_irq = sparc_setup_msi_irq,
++	.teardown_irq = sparc_teardown_msi_irq,
++};
+ #endif /* !(CONFIG_PCI_MSI) */
+ 
+ static void ali_sound_dma_hack(struct pci_dev *pdev, int set_bit)
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index 75803c7..e02642d 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -55,6 +55,8 @@ struct sparc64_msiq_cookie {
+ 	struct pci_pbm_info *pbm;
+ 	unsigned long msiqid;
+ };
++
++extern struct msi_controller sparc_msi_ctrl;
  #endif
  
-+#define	HV_FAST_T5_GET_PERFREG		0x1a8
-+#define	HV_FAST_T5_SET_PERFREG		0x1a9
-+
-+#ifndef	__ASSEMBLY__
-+unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-+				   unsigned long *reg_val);
-+unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-+				   unsigned long reg_val);
-+#endif
-+
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-@@ -2975,6 +2985,7 @@ extern unsigned long sun4v_vt_set_perfre
- #define HV_GRP_VF_CPU			0x0205
- #define HV_GRP_KT_CPU			0x0209
- #define HV_GRP_VT_CPU			0x020c
-+#define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
- 
- #ifndef __ASSEMBLY__
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_VF_CPU,				},
- 	{ .group = HV_GRP_KT_CPU,				},
- 	{ .group = HV_GRP_VT_CPU,				},
-+	{ .group = HV_GRP_T5_CPU,				},
- 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
- };
- 
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
- 	retl
- 	 nop
- ENDPROC(sun4v_vt_set_perfreg)
-+
-+ENTRY(sun4v_t5_get_perfreg)
-+	mov	%o1, %o4
-+	mov	HV_FAST_T5_GET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_get_perfreg)
-+
-+ENTRY(sun4v_t5_set_perfreg)
-+	mov	HV_FAST_T5_SET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_set_perfreg)
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops  	.pcr_nmi_disable	= PCR_N4_PICNPT,
- };
- 
-+static u64 n5_pcr_read(unsigned long reg_num)
-+{
-+	unsigned long val;
-+
-+	(void) sun4v_t5_get_perfreg(reg_num, &val);
-+
-+	return val;
-+}
-+
-+static void n5_pcr_write(unsigned long reg_num, u64 val)
-+{
-+	(void) sun4v_t5_set_perfreg(reg_num, val);
-+}
-+
-+static const struct pcr_ops n5_pcr_ops = {
-+	.read_pcr		= n5_pcr_read,
-+	.write_pcr		= n5_pcr_write,
-+	.read_pic		= n4_pic_read,
-+	.write_pic		= n4_pic_write,
-+	.nmi_picl_value		= n4_picl_value,
-+	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
-+				   PCR_N4_UTRACE | PCR_N4_TOE |
-+				   (26 << PCR_N4_SL_SHIFT)),
-+	.pcr_nmi_disable	= PCR_N4_PICNPT,
-+};
-+
-+
- static unsigned long perf_hsvc_group;
- static unsigned long perf_hsvc_major;
- static unsigned long perf_hsvc_minor;
- 
- static int __init register_perf_hsvc(void)
- {
-+	unsigned long hverror;
-+
- 	if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
-@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(voi
- 			perf_hsvc_group = HV_GRP_VT_CPU;
- 			break;
- 
-+		case SUN4V_CHIP_NIAGARA5:
-+			perf_hsvc_group = HV_GRP_T5_CPU;
-+			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(voi
- 
- 		perf_hsvc_major = 1;
- 		perf_hsvc_minor = 0;
--		if (sun4v_hvapi_register(perf_hsvc_group,
--					 perf_hsvc_major,
--					 &perf_hsvc_minor)) {
--			printk("perfmon: Could not register hvapi.\n");
-+		hverror = sun4v_hvapi_register(perf_hsvc_group,
-+					       perf_hsvc_major,
-+					       &perf_hsvc_minor);
-+		if (hverror) {
-+			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
-+			       hverror);
- 			return -ENODEV;
- 		}
- 	}
-@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(vo
- 		pcr_ops = &n4_pcr_ops;
- 		break;
- 
-+	case SUN4V_CHIP_NIAGARA5:
-+		pcr_ops = &n5_pcr_ops;
-+		break;
-+
- 	default:
- 		ret = -ENODEV;
- 		break;
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+	if (!strcmp(sparc_pmu_type, "niagara4") ||
-+	    !strcmp(sparc_pmu_type, "niagara5")) {
- 		sparc_pmu = &niagara4_pmu;
- 		return true;
- 	}
-
+ struct pci_pbm_info {
+@@ -132,6 +134,7 @@ struct pci_pbm_info {
+ 	void				*msi_queues;
+ 	unsigned long			*msi_bitmap;
+ 	unsigned int			*msi_irq_table;
++	struct msi_controller *msi_ctrl;
+ 	int (*setup_msi_irq)(unsigned int *irq_p, struct pci_dev *pdev,
+ 			     struct msi_desc *entry);
+ 	void (*teardown_msi_irq)(unsigned int irq, struct pci_dev *pdev);
+-- 
+1.7.1
 
