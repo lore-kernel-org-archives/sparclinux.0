@@ -1,192 +1,116 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue, 28 Oct 2014 03:35:50 +0000
-Subject: [PATCH 3.16 115/127] sparc64: T5 PMU
-Message-Id: <20141028033425.866163449@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:34:25 +0000
+Subject: [PATCH 3.17 123/146] sparc64: find_node adjustment
+Message-Id: <20141028033348.780273911@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141028033420.925922046@linuxfoundation.org>
-In-Reply-To: <20141028033420.925922046@linuxfoundation.org>
+References: <20141028033343.441992423@linuxfoundation.org>
+In-Reply-To: <20141028033343.441992423@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
 
-3.16-stable review patch.  If anyone has any objections, please let me know.
+3.17-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
 From: bob picco <bpicco@meloft.net>
 
-The T5 (niagara5) has different PCR related HV fast trap values and a new
-HV API Group. This patch utilizes these and shares when possible with niagara4.
+[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
 
-We use the same sparc_pmu niagara4_pmu. Should there be new effort to
-obtain the MCU perf statistics then this would have to be changed.
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
+
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
+
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
+
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
+
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
+
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
+
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
 
 Cc: sparclinux@vger.kernel.org
 Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/include/asm/hypervisor.h |   11 ++++++++
- arch/sparc/kernel/hvapi.c           |    1 
- arch/sparc/kernel/hvcalls.S         |   16 ++++++++++++
- arch/sparc/kernel/pcr.c             |   47 ++++++++++++++++++++++++++++++++----
- arch/sparc/kernel/perf_event.c      |    3 +-
- 5 files changed, 73 insertions(+), 5 deletions(-)
+ arch/sparc/mm/init_64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2947,6 +2947,16 @@ unsigned long sun4v_vt_set_perfreg(unsig
- 				   unsigned long reg_val);
- #endif
- 
-+#define	HV_FAST_T5_GET_PERFREG		0x1a8
-+#define	HV_FAST_T5_SET_PERFREG		0x1a9
-+
-+#ifndef	__ASSEMBLY__
-+unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-+				   unsigned long *reg_val);
-+unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-+				   unsigned long reg_val);
-+#endif
-+
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-@@ -2978,6 +2988,7 @@ unsigned long sun4v_vt_set_perfreg(unsig
- #define HV_GRP_VF_CPU			0x0205
- #define HV_GRP_KT_CPU			0x0209
- #define HV_GRP_VT_CPU			0x020c
-+#define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
- 
- #ifndef __ASSEMBLY__
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_VF_CPU,				},
- 	{ .group = HV_GRP_KT_CPU,				},
- 	{ .group = HV_GRP_VT_CPU,				},
-+	{ .group = HV_GRP_T5_CPU,				},
- 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
- };
- 
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
- 	retl
- 	 nop
- ENDPROC(sun4v_vt_set_perfreg)
-+
-+ENTRY(sun4v_t5_get_perfreg)
-+	mov	%o1, %o4
-+	mov	HV_FAST_T5_GET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_get_perfreg)
-+
-+ENTRY(sun4v_t5_set_perfreg)
-+	mov	HV_FAST_T5_SET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_set_perfreg)
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops  	.pcr_nmi_disable	= PCR_N4_PICNPT,
- };
- 
-+static u64 n5_pcr_read(unsigned long reg_num)
-+{
-+	unsigned long val;
-+
-+	(void) sun4v_t5_get_perfreg(reg_num, &val);
-+
-+	return val;
-+}
-+
-+static void n5_pcr_write(unsigned long reg_num, u64 val)
-+{
-+	(void) sun4v_t5_set_perfreg(reg_num, val);
-+}
-+
-+static const struct pcr_ops n5_pcr_ops = {
-+	.read_pcr		= n5_pcr_read,
-+	.write_pcr		= n5_pcr_write,
-+	.read_pic		= n4_pic_read,
-+	.write_pic		= n4_pic_write,
-+	.nmi_picl_value		= n4_picl_value,
-+	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
-+				   PCR_N4_UTRACE | PCR_N4_TOE |
-+				   (26 << PCR_N4_SL_SHIFT)),
-+	.pcr_nmi_disable	= PCR_N4_PICNPT,
-+};
-+
-+
- static unsigned long perf_hsvc_group;
- static unsigned long perf_hsvc_major;
- static unsigned long perf_hsvc_minor;
- 
- static int __init register_perf_hsvc(void)
- {
-+	unsigned long hverror;
-+
- 	if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
-@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(voi
- 			perf_hsvc_group = HV_GRP_VT_CPU;
- 			break;
- 
-+		case SUN4V_CHIP_NIAGARA5:
-+			perf_hsvc_group = HV_GRP_T5_CPU;
-+			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(voi
- 
- 		perf_hsvc_major = 1;
- 		perf_hsvc_minor = 0;
--		if (sun4v_hvapi_register(perf_hsvc_group,
--					 perf_hsvc_major,
--					 &perf_hsvc_minor)) {
--			printk("perfmon: Could not register hvapi.\n");
-+		hverror = sun4v_hvapi_register(perf_hsvc_group,
-+					       perf_hsvc_major,
-+					       &perf_hsvc_minor);
-+		if (hverror) {
-+			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
-+			       hverror);
- 			return -ENODEV;
- 		}
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -840,7 +840,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
  	}
-@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(vo
- 		pcr_ops = &n4_pcr_ops;
- 		break;
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
+ }
  
-+	case SUN4V_CHIP_NIAGARA5:
-+		pcr_ops = &n5_pcr_ops;
-+		break;
-+
- 	default:
- 		ret = -ENODEV;
- 		break;
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+	if (!strcmp(sparc_pmu_type, "niagara4") ||
-+	    !strcmp(sparc_pmu_type, "niagara5")) {
- 		sparc_pmu = &niagara4_pmu;
- 		return true;
- 	}
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
 
 
