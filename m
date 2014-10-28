@@ -1,58 +1,49 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:47:14 +0000
-Subject: [PATCH 06/16] Mips/MSI: Save MSI controller in pci sysdata
-Message-Id: <1414416142-31239-7-git-send-email-wangyijing@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:36:00 +0000
+Subject: [PATCH 3.16 125/127] sparc64: Increase size of boot string to 1024 bytes
+Message-Id: <20141028033426.313737784@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+References: <20141028033420.925922046@linuxfoundation.org>
+In-Reply-To: <20141028033420.925922046@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Save MSI controller in pci sysdata, add arch pcibios_msi_controller()
-to extract out MSI controller.
+3.16-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+------------------
+
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+
+[ Upstream commit 1cef94c36bd4d79b5ae3a3df99ee0d76d6a4a6dc ]
+
+This is the longest boot string that silo supports.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/mips/include/asm/pci.h |    3 +++
- arch/mips/pci/pci.c         |    9 +++++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ arch/sparc/prom/bootstr_64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
-index 974b0e3..d7cd850 100644
---- a/arch/mips/include/asm/pci.h
-+++ b/arch/mips/include/asm/pci.h
-@@ -43,6 +43,9 @@ struct pci_controller {
+--- a/arch/sparc/prom/bootstr_64.c
++++ b/arch/sparc/prom/bootstr_64.c
+@@ -14,7 +14,10 @@
+  *          the .bss section or it will break things.
+  */
  
- 	int iommu;
- 
-+#ifdef CONFIG_PCI_MSI
-+	struct msi_controller *msi_ctrl;
-+#endif
- 	/* Optional access methods for reading/writing the bus number
- 	   of the PCI controller */
- 	int (*get_busno)(void);
-diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
-index 1bf60b1..7917cba 100644
---- a/arch/mips/pci/pci.c
-+++ b/arch/mips/pci/pci.c
-@@ -36,6 +36,15 @@ unsigned long PCIBIOS_MIN_MEM;
- 
- static int pci_initialized;
- 
-+#ifdef CONFIG_PCI_MSI
-+struct msi_controller *pcibios_msi_controller(struct pci_bus *bus)
-+{
-+	struct pci_controller *ctrl = bus->sysdata;
-+
-+	return ctrl->msi_ctrl;
-+}
-+#endif
-+
- /*
-  * We need to avoid collisions with `mirrored' VGA ports
-  * and other strange ISA hardware, so we always want the
--- 
-1.7.1
+-#define BARG_LEN  256
++/* We limit BARG_LEN to 1024 because this is the size of the
++ * 'barg_out' command line buffer in the SILO bootloader.
++ */
++#define BARG_LEN 1024
+ struct {
+ 	int bootstr_len;
+ 	int bootstr_valid;
+
 
