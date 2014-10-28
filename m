@@ -1,88 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 04 Oct 2014 23:27:12 +0000
-Subject: [PATCH 6/9] sparc64: Increase MAX_PHYS_ADDRESS_BITS to 53.
-Message-Id: <20141004.192712.702248323942947271.davem@davemloft.net>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:36:23 +0000
+Subject: [PATCH 3.14 098/100] sparc64: Increase size of boot string to 1024 bytes
+Message-Id: <20141028033504.936282409@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141028033500.670583608@linuxfoundation.org>
+In-Reply-To: <20141028033500.670583608@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+3.14-stable review patch.  If anyone has any objections, please let me know.
 
-Make sure, at compile time, that the kernel can properly support
-whatever MAX_PHYS_ADDRESS_BITS is defined to.
+------------------
 
-On M7 chips, use a max_phys_bits value of 49.
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-Based upon a patch by Bob Picco.
+[ Upstream commit 1cef94c36bd4d79b5ae3a3df99ee0d76d6a4a6dc ]
 
+This is the longest boot string that silo supports.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/include/asm/page_64.h    | 8 ++++----
- arch/sparc/include/asm/pgtable_64.h | 4 ++++
- arch/sparc/mm/init_64.c             | 9 ++++++++-
- 3 files changed, 16 insertions(+), 5 deletions(-)
+ arch/sparc/prom/bootstr_64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 732ba17..6784a33 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -122,11 +122,11 @@ extern unsigned long PAGE_OFFSET;
- 
- #endif /* !(__ASSEMBLY__) */
- 
--/* The maximum number of physical memory address bits we support, this
-- * is used to size various tables used to manage kernel TLB misses and
-- * also the sparsemem code.
-+/* The maximum number of physical memory address bits we support.  The
-+ * largest value we can support is whatever "KPGD_SHIFT + KPTE_BITS"
-+ * evaluates to.
+--- a/arch/sparc/prom/bootstr_64.c
++++ b/arch/sparc/prom/bootstr_64.c
+@@ -14,7 +14,10 @@
+  *          the .bss section or it will break things.
   */
--#define MAX_PHYS_ADDRESS_BITS	47
-+#define MAX_PHYS_ADDRESS_BITS	53
  
- #define ILOG2_4MB		22
- #define ILOG2_256MB		28
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index a305b22..0552957 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -67,6 +67,10 @@
- #define PGDIR_MASK	(~(PGDIR_SIZE-1))
- #define PGDIR_BITS	(PAGE_SHIFT - 3)
- 
-+#if (MAX_PHYS_ADDRESS_BITS > PGDIR_SHIFT + PGDIR_BITS)
-+#error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can support
-+#endif
-+
- #if (PGDIR_SHIFT + PGDIR_BITS) != 53
- #error Page table parameters do not cover virtual address space properly.
- #endif
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 08ab4f4..a8e3395 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1690,12 +1690,19 @@ static void __init setup_page_offset(void)
- 		case SUN4V_CHIP_NIAGARA4:
- 		case SUN4V_CHIP_NIAGARA5:
- 		case SUN4V_CHIP_SPARC64X:
--		default:
-+		case SUN4V_CHIP_SPARC_M6:
- 			/* T4 and later support 52-bit virtual addresses.  */
- 			sparc64_va_hole_top =    0xfff8000000000000UL;
- 			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 47;
- 			break;
-+		case SUN4V_CHIP_SPARC_M7:
-+		default:
-+			/* M7 and later support 52-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xfff8000000000000UL;
-+			sparc64_va_hole_bottom = 0x0008000000000000UL;
-+			max_phys_bits = 49;
-+			break;
- 		}
- 	}
- 
--- 
-1.8.1.2
+-#define BARG_LEN  256
++/* We limit BARG_LEN to 1024 because this is the size of the
++ * 'barg_out' command line buffer in the SILO bootloader.
++ */
++#define BARG_LEN 1024
+ struct {
+ 	int bootstr_len;
+ 	int bootstr_valid;
+
 
