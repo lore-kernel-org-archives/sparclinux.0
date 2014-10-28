@@ -1,111 +1,219 @@
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Thu, 16 Oct 2014 12:49:13 +0000
-Subject: boot crash in userspace [Re: unaligned accesses in SLAB etc.]
-Message-Id: <20141016124913.GC12736@lemon.iwr.uni-heidelberg.de>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:35:35 +0000
+Subject: [PATCH 3.16 100/127] sparc64: sun4v TLB error power off events
+Message-Id: <20141028033425.208334057@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141028033420.925922046@linuxfoundation.org>
+In-Reply-To: <20141028033420.925922046@linuxfoundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
 
-On Thu, Oct 16, 2014 at 10:22:56AM +0300, Meelis Roos wrote:
-> > compiler to narrow down what compiles into something non-working with
-> > gcc-4.9
->=20
-> Yes, I kept gcc-4.6 to help resolving it.
+3.16-stable review patch.  If anyone has any objections, please let me know.
 
-Probably unrelated, but as a datapoint:
-On a Enterprise 250 vanilla 3.17.0 crashes also in userspace
-with a red state exception shortly after boot. With the wheezy
-kernel the system boots sucessfully.
+------------------
 
-Greetings
-  Hermann
+From: bob picco <bpicco@meloft.net>
 
-[    0.000000] PROMLIB: Sun IEEE Boot Prom 'OBP 3.30.0 2003/11/11 10:37'
-[    0.000000] PROMLIB: Root node compatible: sun4u
-[    0.000000] Initializing cgroup subsys cpuset
-[    0.000000] Initializing cgroup subsys cpu
-[    0.000000] Initializing cgroup subsys cpuacct
-[    0.000000] Linux version 3.17.0 (hlauer@abacus) (gcc version 4.6.3 (Deb=
-ian 4.6.3-14) ) #1 SMP Mon Oct 13 20:44:31 CEST 2014
-[    0.000000] bootconsole [earlyprom0] enabled
-[    0.000000] ARCH: SUN4U
-[    0.000000] Ethernet address: 08:00:20:9f:45:7e
-[    0.000000] PAGE_OFFSET is 0xffffff0000000000 (max_phys_bits =3D 40)
-[    0.000000] Kernel: Using 4 locked TLB entries for main kernel image.
-[    0.000000] Remapping the kernel... done.
-[    0.000000] OF stdout device is: /pci@1f,4000/ebus@1/se@14,400000:a
-[    0.000000] PROM: Built device tree with 88024 bytes of memory.
-[    0.000000] Top of RAM: 0x1fec0000, Total RAM: 0x1feae000
-[    0.000000] Memory hole size: 0MB
-[    0.000000] Zone ranges:
-[    0.000000]   DMA      empty
-[    0.000000]   Normal   [mem 0x00000000-0x1febffff]
-[    0.000000] Movable zone start for each node
-[    0.000000] Early memory node ranges
-[    0.000000]   node   0: [mem 0x00000000-0x1fdfdfff]
-[    0.000000]   node   0: [mem 0x1fe00000-0x1fe99fff]
-[    0.000000]   node   0: [mem 0x1feaa000-0x1febffff]
-[    0.000000] Booting Linux...
-[    0.000000] CPU CAPS: [flush,stbar,swap,muldiv,v9,mul32,div32,v8plus]
-[    0.000000] CPU CAPS: [vis]
-[    0.000000] PERCPU: Embedded 7 pages/cpu @ffffff001f000000 s23040 r8192 =
-d26112 u4194304
-[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Tota=
-l pages: 64856
-[    0.000000] Kernel command line: root=3D/dev/md0 ro
-[    0.000000] PID hash table entries: 2048 (order: 1, 16384 bytes)
-[    0.000000] Dentry cache hash table entries: 65536 (order: 6, 524288 byt=
-es)
-[    0.000000] Inode-cache hash table entries: 32768 (order: 5, 262144 byte=
-s)
-[    0.000000] Sorting __ex_table...
-[    0.000000] Memory: 488256K/522936K available (4099K kernel code, 530K r=
-wdata, 1272K rodata, 256K init, 6873K bss, 34680K reserved)
-[    0.000000] Hierarchical RCU implementation.
-[    0.000000] 	CONFIG_RCU_FANOUT set to non-default value of 32
-[    0.000000] 	RCU dyntick-idle grace-period acceleration is enabled.
-[    0.000000] 	RCU restricting CPUs from NR_CPUS%6 to nr_cpu_ids=3D1.
-[    0.000000] RCU: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=
-=3D1
-[    0.000000] NR_IRQS:255
+[ Upstream commit 4ccb9272892c33ef1c19a783cfa87103b30c2784 ]
 
-<rest available if interesting>
+We've witnessed a few TLB events causing the machine to power off because
+of prom_halt. In one case it was some nfs related area during rmmod. Another
+was an mmapper of /dev/mem. A more recent one is an ITLB issue with
+a bad pagesize which could be a hardware bug. Bugs happen but we should
+attempt to not power off the machine and/or hang it when possible.
 
-[....] Starting enhanced syslogd: rsyslogd=1B[?25l=1B[?1c
-CPU0 RED State Exception
+This is a DTLB error from an mmapper of /dev/mem:
+[root@sparcie ~]# SUN4V-DTLB: Error at TPC[fffff80100903e6c], tl 1
+SUN4V-DTLB: TPC<0xfffff80100903e6c>
+SUN4V-DTLB: O7[fffff801081979d0]
+SUN4V-DTLB: O7<0xfffff801081979d0>
+SUN4V-DTLB: vaddr[fffff80100000000] ctx[1250] pte[98000000000f0610] error[2]
+.
 
-  CPUVersion:  0017.0011.2000.0507
-  UPAConfig:   0000.06b6.34c0.803b
-  LSU-Control: 0000.0000.0000.0000
-  ECErrEnable: 0000.0000.0000.0007
+This is recent mainline for ITLB:
+[ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
+[ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
+[ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
+[ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
+.
 
-  AFAR:        0000.01fe.0180.2800
-  AFSR:        0000.0000.0000.0000
+Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
+prom_halt() and drop us to OF command prompt "ok". This isn't the case for
+LDOMs and the machine powers off.
 
-  DMMU SFAR:   0000.0000.f78e.4004
-  DMMU SFSR:   0000.0000.0000.0000
-  IMMU SFSR:   0000.0000.0000.0011
+For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
+a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
+of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
+one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
 
-TL=0000.0000.0000.0005 TT=0000.0000.0000.0064
-   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
-402
-TL=0000.0000.0000.0004 TT=0000.0000.0000.0064
-   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
-402
-TL=0000.0000.0000.0003 TT=0000.0000.0000.0064
-   TPC=0000.0000.0042.4c80 TnPC=0000.0000.0042.4c84 TSTATE=0000.0000.1104.1=
-402
-TL=0000.0000.0000.0002 TT=0000.0000.0000.0064
-   TPC=0000.0000.0042.0c80 TnPC=0000.0000.0042.0c84 TSTATE=0000.0000.1104.1=
-402
-TL=0000.0000.0000.0001 TT=0000.0000.0000.0064
-   TPC=0000.0000.0044.cac0 TnPC=0000.0000.0044.cac4 TSTATE=0000.0000.1100.1=
-602=EF=BF=BD
+The logic of this patch was partially inspired by David Miller's feedback.
 
---=20
-Netzwerkadministration/Zentrale Dienste, Interdiziplinaeres=20
-Zentrum fuer wissenschaftliches Rechnen der Universitaet Heidelberg
-IWR; INF 368; 69120 Heidelberg; Tel: (06221)54-8236 Fax: -5224
-Email: Hermann.Lauer@iwr.uni-heidelberg.de
+Power off of large sparc64 machines is painful. Plus die_if_kernel provides
+more context. A reset sequence isn't a brief period on large sparc64 but
+better than power-off/power-on sequence.
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/include/asm/thread_info_64.h |    1 
+ arch/sparc/kernel/sun4v_tlb_miss.S      |   35 +++++++++++++++++++-------------
+ arch/sparc/kernel/traps_64.c            |   15 ++++++++-----
+ arch/sparc/mm/fault_64.c                |    3 ++
+ 4 files changed, 34 insertions(+), 20 deletions(-)
+
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -102,6 +102,7 @@ struct thread_info {
+ #define FAULT_CODE_ITLB		0x04	/* Miss happened in I-TLB	   */
+ #define FAULT_CODE_WINFIXUP	0x08	/* Miss happened during spill/fill */
+ #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
++#define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+ 
+ #if PAGE_SHIFT = 13
+ #define THREAD_SIZE (2*PAGE_SIZE)
+--- a/arch/sparc/kernel/sun4v_tlb_miss.S
++++ b/arch/sparc/kernel/sun4v_tlb_miss.S
+@@ -195,6 +195,11 @@ sun4v_tsb_miss_common:
+ 	 ldx	[%g2 + TRAP_PER_CPU_PGD_PADDR], %g7
+ 
+ sun4v_itlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_ITLB, %g1
++
+ 	sethi	%hi(sun4v_err_itlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_itlb_vaddr)]
+ 	sethi	%hi(sun4v_err_itlb_ctx), %g1
+@@ -206,15 +211,10 @@ sun4v_itlb_error:
+ 	sethi	%hi(sun4v_err_itlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_itlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_itlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+@@ -222,6 +222,11 @@ sun4v_itlb_error:
+ 	/* NOTREACHED */
+ 
+ sun4v_dtlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_DTLB, %g1
++
+ 	sethi	%hi(sun4v_err_dtlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_dtlb_vaddr)]
+ 	sethi	%hi(sun4v_err_dtlb_ctx), %g1
+@@ -233,21 +238,23 @@ sun4v_dtlb_error:
+ 	sethi	%hi(sun4v_err_dtlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_dtlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_dtlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+ 
+ 	/* NOTREACHED */
+ 
++sun4v_bad_ra:
++	or	%g0, %g4, %g5
++	ba,pt	%xcc, sparc64_realfault_common
++	 or	%g1, %g0, %g4
++
++	/* NOTREACHED */
++
+ 	/* Instruction Access Exception, tl0. */
+ sun4v_iacc:
+ 	ldxa	[%g0] ASI_SCRATCHPAD, %g2
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2104,6 +2104,11 @@ void sun4v_nonresum_overflow(struct pt_r
+ 	atomic_inc(&sun4v_nonresum_oflow_cnt);
+ }
+ 
++static void sun4v_tlb_error(struct pt_regs *regs)
++{
++	die_if_kernel("TLB/TSB error", regs);
++}
++
+ unsigned long sun4v_err_itlb_vaddr;
+ unsigned long sun4v_err_itlb_ctx;
+ unsigned long sun4v_err_itlb_pte;
+@@ -2111,8 +2116,7 @@ unsigned long sun4v_err_itlb_error;
+ 
+ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-ITLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2125,7 +2129,7 @@ void sun4v_itlb_error_report(struct pt_r
+ 	       sun4v_err_itlb_vaddr, sun4v_err_itlb_ctx,
+ 	       sun4v_err_itlb_pte, sun4v_err_itlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ unsigned long sun4v_err_dtlb_vaddr;
+@@ -2135,8 +2139,7 @@ unsigned long sun4v_err_dtlb_error;
+ 
+ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-DTLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2149,7 +2152,7 @@ void sun4v_dtlb_error_report(struct pt_r
+ 	       sun4v_err_dtlb_vaddr, sun4v_err_dtlb_ctx,
+ 	       sun4v_err_dtlb_pte, sun4v_err_dtlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ void hypervisor_tlbop_error(unsigned long err, unsigned long op)
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -346,6 +346,9 @@ retry:
+ 		down_read(&mm->mmap_sem);
+ 	}
+ 
++	if (fault_code & FAULT_CODE_BAD_RA)
++		goto do_sigbus;
++
+ 	vma = find_vma(mm, address);
+ 	if (!vma)
+ 		goto bad_area;
+
+
