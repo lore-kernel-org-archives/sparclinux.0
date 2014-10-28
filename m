@@ -1,87 +1,192 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 02:33:45 +0000
-Subject: [PATCH v3 11/27] PCI/MSI: Refactor struct msi_chip to make it become more common
-Message-Id: <1413342435-7876-12-git-send-email-wangyijing@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:36:13 +0000
+Subject: [PATCH 3.14 088/100] sparc64: T5 PMU
+Message-Id: <20141028033504.509824325@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+References: <20141028033500.670583608@linuxfoundation.org>
+In-Reply-To: <20141028033500.670583608@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
 
-Now there are a lot of __weak arch functions in MSI code.
-These functions make MSI driver complex. Thierry introduced
-MSI chip framework to configure MSI/MSI-X irq in arm. Use
-MSI chip framework to refactor all other platform MSI
-code to eliminate weak arch MSI functions. This patch add
-.restore_irqs(), .teardown_irqs() and .setup_irqs() to make it
-become more common.
+3.14-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-Reviewed-by: Lucas Stach <l.stach@pengutronix.de>
+------------------
+
+From: bob picco <bpicco@meloft.net>
+
+The T5 (niagara5) has different PCR related HV fast trap values and a new
+HV API Group. This patch utilizes these and shares when possible with niagara4.
+
+We use the same sparc_pmu niagara4_pmu. Should there be new effort to
+obtain the MCU perf statistics then this would have to be changed.
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/pci/msi.c   |   15 +++++++++++++++
- include/linux/msi.h |    4 ++++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/hypervisor.h |   11 ++++++++
+ arch/sparc/kernel/hvapi.c           |    1 
+ arch/sparc/kernel/hvcalls.S         |   16 ++++++++++++
+ arch/sparc/kernel/pcr.c             |   47 ++++++++++++++++++++++++++++++++----
+ arch/sparc/kernel/perf_event.c      |    3 +-
+ 5 files changed, 73 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index 56e54ad..5cbd774 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -61,6 +61,11 @@ int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
- {
- 	struct msi_desc *entry;
- 	int ret;
-+	struct msi_chip *chip;
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -2944,6 +2944,16 @@ extern unsigned long sun4v_vt_set_perfre
+ 					  unsigned long reg_val);
+ #endif
+ 
++#define	HV_FAST_T5_GET_PERFREG		0x1a8
++#define	HV_FAST_T5_SET_PERFREG		0x1a9
 +
-+	chip = pci_msi_chip(dev->bus);
-+	if (chip && chip->setup_irqs)
-+		return chip->setup_irqs(chip, dev, nvec, type);
- 
- 	/*
- 	 * If an architecture wants to support multiple MSI, it needs to
-@@ -103,6 +108,11 @@ void default_teardown_msi_irqs(struct pci_dev *dev)
- 
- void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
- {
-+	struct msi_chip *chip = pci_msi_chip(dev->bus);
++#ifndef	__ASSEMBLY__
++unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
++				   unsigned long *reg_val);
++unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
++				   unsigned long reg_val);
++#endif
 +
-+	if (chip && chip->teardown_irqs)
-+		return chip->teardown_irqs(chip, dev);
-+
- 	return default_teardown_msi_irqs(dev);
- }
+ /* Function numbers for HV_CORE_TRAP.  */
+ #define HV_CORE_SET_VER			0x00
+ #define HV_CORE_PUTCHAR			0x01
+@@ -2975,6 +2985,7 @@ extern unsigned long sun4v_vt_set_perfre
+ #define HV_GRP_VF_CPU			0x0205
+ #define HV_GRP_KT_CPU			0x0209
+ #define HV_GRP_VT_CPU			0x020c
++#define HV_GRP_T5_CPU			0x0211
+ #define HV_GRP_DIAG			0x0300
  
-@@ -126,6 +136,11 @@ static void default_restore_msi_irq(struct pci_dev *dev, int irq)
- 
- void __weak arch_restore_msi_irqs(struct pci_dev *dev)
- {
-+	struct msi_chip *chip = pci_msi_chip(dev->bus);
-+
-+	if (chip && chip->restore_irqs)
-+             return chip->restore_irqs(chip, dev);
-+
- 	return default_restore_msi_irqs(dev);
- }
- 
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index 175aa21..eb5ae36 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -74,7 +74,11 @@ struct msi_chip {
- 
- 	int (*setup_irq)(struct msi_chip *chip, struct pci_dev *dev,
- 			 struct msi_desc *desc);
-+	int (*setup_irqs)(struct msi_chip *chip, struct pci_dev *dev,
-+			int nvec, int type);
- 	void (*teardown_irq)(struct msi_chip *chip, unsigned int irq);
-+	void (*teardown_irqs)(struct msi_chip *chip, struct pci_dev *dev);
-+	void (*restore_irqs)(struct msi_chip *chip, struct pci_dev *dev);
+ #ifndef __ASSEMBLY__
+--- a/arch/sparc/kernel/hvapi.c
++++ b/arch/sparc/kernel/hvapi.c
+@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
+ 	{ .group = HV_GRP_VF_CPU,				},
+ 	{ .group = HV_GRP_KT_CPU,				},
+ 	{ .group = HV_GRP_VT_CPU,				},
++	{ .group = HV_GRP_T5_CPU,				},
+ 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
  };
  
- #endif /* LINUX_MSI_H */
--- 
-1.7.1
+--- a/arch/sparc/kernel/hvcalls.S
++++ b/arch/sparc/kernel/hvcalls.S
+@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
+ 	retl
+ 	 nop
+ ENDPROC(sun4v_vt_set_perfreg)
++
++ENTRY(sun4v_t5_get_perfreg)
++	mov	%o1, %o4
++	mov	HV_FAST_T5_GET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	stx	%o1, [%o4]
++	retl
++	 nop
++ENDPROC(sun4v_t5_get_perfreg)
++
++ENTRY(sun4v_t5_set_perfreg)
++	mov	HV_FAST_T5_SET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_t5_set_perfreg)
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops  	.pcr_nmi_disable	= PCR_N4_PICNPT,
+ };
+ 
++static u64 n5_pcr_read(unsigned long reg_num)
++{
++	unsigned long val;
++
++	(void) sun4v_t5_get_perfreg(reg_num, &val);
++
++	return val;
++}
++
++static void n5_pcr_write(unsigned long reg_num, u64 val)
++{
++	(void) sun4v_t5_set_perfreg(reg_num, val);
++}
++
++static const struct pcr_ops n5_pcr_ops = {
++	.read_pcr		= n5_pcr_read,
++	.write_pcr		= n5_pcr_write,
++	.read_pic		= n4_pic_read,
++	.write_pic		= n4_pic_write,
++	.nmi_picl_value		= n4_picl_value,
++	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
++				   PCR_N4_UTRACE | PCR_N4_TOE |
++				   (26 << PCR_N4_SL_SHIFT)),
++	.pcr_nmi_disable	= PCR_N4_PICNPT,
++};
++
++
+ static unsigned long perf_hsvc_group;
+ static unsigned long perf_hsvc_major;
+ static unsigned long perf_hsvc_minor;
+ 
+ static int __init register_perf_hsvc(void)
+ {
++	unsigned long hverror;
++
+ 	if (tlb_type = hypervisor) {
+ 		switch (sun4v_chip_type) {
+ 		case SUN4V_CHIP_NIAGARA1:
+@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(voi
+ 			perf_hsvc_group = HV_GRP_VT_CPU;
+ 			break;
+ 
++		case SUN4V_CHIP_NIAGARA5:
++			perf_hsvc_group = HV_GRP_T5_CPU;
++			break;
++
+ 		default:
+ 			return -ENODEV;
+ 		}
+@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(voi
+ 
+ 		perf_hsvc_major = 1;
+ 		perf_hsvc_minor = 0;
+-		if (sun4v_hvapi_register(perf_hsvc_group,
+-					 perf_hsvc_major,
+-					 &perf_hsvc_minor)) {
+-			printk("perfmon: Could not register hvapi.\n");
++		hverror = sun4v_hvapi_register(perf_hsvc_group,
++					       perf_hsvc_major,
++					       &perf_hsvc_minor);
++		if (hverror) {
++			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
++			       hverror);
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(vo
+ 		pcr_ops = &n4_pcr_ops;
+ 		break;
+ 
++	case SUN4V_CHIP_NIAGARA5:
++		pcr_ops = &n5_pcr_ops;
++		break;
++
+ 	default:
+ 		ret = -ENODEV;
+ 		break;
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
+ 		sparc_pmu = &niagara2_pmu;
+ 		return true;
+ 	}
+-	if (!strcmp(sparc_pmu_type, "niagara4")) {
++	if (!strcmp(sparc_pmu_type, "niagara4") ||
++	    !strcmp(sparc_pmu_type, "niagara5")) {
+ 		sparc_pmu = &niagara4_pmu;
+ 		return true;
+ 	}
+
 
