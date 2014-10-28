@@ -1,88 +1,116 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 02:30:55 +0000
-Subject: [PATCH v3 19/27] MIPS/Xlp/MSI: Use MSI chip framework to configure MSI/MSI-X irq
-Message-Id: <1413342435-7876-20-git-send-email-wangyijing@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:36:02 +0000
+Subject: [PATCH 3.14 077/100] sparc64: find_node adjustment
+Message-Id: <20141028033504.016900600@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
+References: <20141028033500.670583608@linuxfoundation.org>
+In-Reply-To: <20141028033500.670583608@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
 
-Use MSI chip framework instead of arch MSI functions to configure
-MSI/MSI-X IRQ. So we can manage MSI/MSI-X irq in a unified framework.
+3.14-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+------------------
+
+From: bob picco <bpicco@meloft.net>
+
+[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
+
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
+
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
+
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
+
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
+
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
+
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
+
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/mips/include/asm/netlogic/xlp-hal/pcibus.h |    1 +
- arch/mips/pci/msi-xlp.c                         |   11 +++++++++--
- arch/mips/pci/pci-xlp.c                         |    3 +++
- 3 files changed, 13 insertions(+), 2 deletions(-)
+ arch/sparc/mm/init_64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h b/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-index 91540f4..90646ad 100644
---- a/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-+++ b/arch/mips/include/asm/netlogic/xlp-hal/pcibus.h
-@@ -103,6 +103,7 @@
- 
- #ifdef CONFIG_PCI_MSI
- void xlp_init_node_msi_irqs(int node, int link);
-+extern struct msi_chip xlp_chip;
- #else
- static inline void xlp_init_node_msi_irqs(int node, int link) {}
- #endif
-diff --git a/arch/mips/pci/msi-xlp.c b/arch/mips/pci/msi-xlp.c
-index e469dc7..cca2257 100644
---- a/arch/mips/pci/msi-xlp.c
-+++ b/arch/mips/pci/msi-xlp.c
-@@ -245,7 +245,8 @@ static struct irq_chip xlp_msix_chip = {
- 	.irq_unmask	= unmask_msi_irq,
- };
- 
--void arch_teardown_msi_irq(unsigned int irq)
-+static void xlp_teardown_msi_irq(struct msi_chip *chip,
-+		unsigned int irq)
- {
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -838,7 +838,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
+ 	}
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
  }
  
-@@ -450,7 +451,8 @@ static int xlp_setup_msix(uint64_t lnkbase, int node, int link,
- 	return 0;
- }
- 
--int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-+static int xlp_setup_msi_irq(struct msi_chip *chip,
-+		struct pci_dev *dev, struct msi_desc *desc)
- {
- 	struct pci_dev *lnkdev;
- 	uint64_t lnkbase;
-@@ -472,6 +474,11 @@ int arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
- 		return xlp_setup_msi(lnkbase, node, link, desc);
- }
- 
-+struct msi_chip xlp_chip = {
-+	.setup_irq = xlp_setup_msi_irq,
-+	.teardown_irq = xlp_teardown_msi_irq,
-+};
-+
- void __init xlp_init_node_msi_irqs(int node, int link)
- {
- 	struct nlm_soc_info *nodep;
-diff --git a/arch/mips/pci/pci-xlp.c b/arch/mips/pci/pci-xlp.c
-index 7babf01..5d7b6a0 100644
---- a/arch/mips/pci/pci-xlp.c
-+++ b/arch/mips/pci/pci-xlp.c
-@@ -174,6 +174,9 @@ struct pci_controller nlm_pci_controller = {
- 	.mem_offset	= 0x00000000UL,
- 	.io_resource	= &nlm_pci_io_resource,
- 	.io_offset	= 0x00000000UL,
-+#ifdef CONFIG_PCI_MSI
-+	.msi_chip = &xlp_chip,
-+#endif
- };
- 
- struct pci_dev *xlp_get_pcie_link(const struct pci_dev *dev)
--- 
-1.7.1
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+
 
