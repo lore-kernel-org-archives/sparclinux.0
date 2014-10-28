@@ -1,104 +1,116 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:46:40 +0000
-Subject: [PATCH 00/16] Use MSI controller framework to configure MSI/MSI-X
-Message-Id: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 28 Oct 2014 03:35:37 +0000
+Subject: [PATCH 3.16 102/127] sparc64: find_node adjustment
+Message-Id: <20141028033425.301155371@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20141028033420.925922046@linuxfoundation.org>
+In-Reply-To: <20141028033420.925922046@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>
 
-This series is based on "[PATCH 00/10] Save MSI chip in pci_sys_data",
-https://lkml.org/lkml/2014/10/27/85.
+3.16-stable review patch.  If anyone has any objections, please let me know.
 
-This series is the v4 of "Use MSI chip framework to configure MSI/MSI-X in all platforms".
-I split it out and post it together.
+------------------
 
-v3->new:
-Some trivial changes in "IA64/MSI: Use MSI controller framework to configure MSI/MSI-X irq".
+From: bob picco <bpicco@meloft.net>
 
-Old history:
-v2->v3:
-1. For patch "x86/xen/MSI: Eliminate...", introduce a new global flag "pci_msi_ignore_mask"
-to control the msi mask instead of replacing the irqchip->mask with nop function,
-the latter method has problem pointed out by Konrad Rzeszutek Wilk.
-2. Save msi chip in arch pci sysdata instead of associating msi chip to pci bus.
-Because pci devices under same host share the same msi chip, so I think associate
-msi chip to pci host/pci sysdata is better than to bother every pci bus/devices.
-A better solution suggested by Liviu is to rip out pci_host_bridge from pci_create_root_bus(), 
-then we can save some pci host common attributes like domain_nr, msi_chip, resources,
-into the generic pci_host_bridge. Because this changes to pci host bridge is also 
-a large series, so I think we should go step by step, I will try to post it in another
-series later.
-4. Clean up arm pcibios_add_bus() and pcibios_remove_bus() which were used to associate
-msi chip to pci bus.
+[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
 
-v1->v2:
-Add a patch to make s390 MSI code build happy between patch "x86/xen/MSI: E.."
-and "s390/MSI: Use MSI..". Fix several typo problems found by Lucas.
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
 
-RFC->v1: 
-Updated "[patch 4/21] x86/xen/MSI: Eliminate...", export msi_chip instead
-of #ifdef to fix MSI bug in xen running in x86. 
-Rename arch_get_match_msi_chip() to arch_find_msi_chip().
-Drop use struct device as the msi_chip argument, we will do that
-later in another patchset.
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
 
-Yijing Wang (16):
-  PCI/MSI: Refactor MSI controller to make it become more common
-  x86/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  x86/xen/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  Irq_remapping/MSI: Use MSI controller framework to configure
-    MSI/MSI-X irq
-  x86/MSI: Remove unused MSI weak arch functions
-  Mips/MSI: Save MSI controller in pci sysdata
-  MIPS/Octeon/MSI: Use MSI controller framework to configure MSI/MSI-X
-    irq
-  MIPS/Xlp/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  MIPS/Xlr/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  Powerpc/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  s390/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  arm/iop13xx/MSI: Use MSI controller framework to configure MSI/MSI-X
-    irq
-  IA64/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  Sparc/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  tile/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-  PCI/MSI: Clean up unused MSI arch functions
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
 
- arch/arm/mach-iop13xx/include/mach/pci.h        |    4 +
- arch/arm/mach-iop13xx/iq81340mc.c               |    3 +
- arch/arm/mach-iop13xx/iq81340sc.c               |    5 +-
- arch/arm/mach-iop13xx/msi.c                     |   11 ++-
- arch/ia64/include/asm/pci.h                     |    3 +-
- arch/ia64/kernel/msi_ia64.c                     |   24 ++++--
- arch/ia64/pci/pci.c                             |    1 +
- arch/mips/include/asm/netlogic/xlp-hal/pcibus.h |    1 +
- arch/mips/include/asm/octeon/pci-octeon.h       |    4 +
- arch/mips/include/asm/pci.h                     |    3 +
- arch/mips/pci/msi-octeon.c                      |   31 ++++---
- arch/mips/pci/msi-xlp.c                         |   11 ++-
- arch/mips/pci/pci-octeon.c                      |    3 +
- arch/mips/pci/pci-xlp.c                         |    3 +
- arch/mips/pci/pci-xlr.c                         |   17 ++++-
- arch/mips/pci/pci.c                             |    9 ++
- arch/powerpc/include/asm/pci-bridge.h           |    8 ++
- arch/powerpc/kernel/msi.c                       |   19 ++++-
- arch/powerpc/kernel/pci-common.c                |    3 +
- arch/s390/include/asm/pci.h                     |    1 +
- arch/s390/pci/pci.c                             |   19 ++++-
- arch/sparc/kernel/pci.c                         |   20 ++++-
- arch/sparc/kernel/pci_impl.h                    |    3 +
- arch/tile/include/asm/pci.h                     |    2 +
- arch/tile/kernel/pci_gx.c                       |   18 ++++-
- arch/x86/include/asm/pci.h                      |    9 +-
- arch/x86/include/asm/x86_init.h                 |    4 -
- arch/x86/kernel/apic/io_apic.c                  |   18 ++++-
- arch/x86/kernel/x86_init.c                      |   24 ------
- arch/x86/pci/acpi.c                             |    1 +
- arch/x86/pci/common.c                           |    3 +
- arch/x86/pci/xen.c                              |   45 ++++++----
- drivers/iommu/irq_remapping.c                   |   11 ++-
- drivers/pci/msi.c                               |   97 ++++++++++------------
- include/linux/msi.h                             |   19 ++---
- 35 files changed, 301 insertions(+), 156 deletions(-)
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
+
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
+
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
+
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/mm/init_64.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -839,7 +839,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
+ 	}
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
+ }
+ 
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+
 
