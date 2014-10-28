@@ -1,59 +1,65 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 15 Oct 2014 02:29:39 +0000
-Subject: [PATCH v3 07/27] PCI: rcar: Save msi chip in pci_sys_data
-Message-Id: <1413342435-7876-8-git-send-email-wangyijing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 28 Oct 2014 18:46:15 +0000
+Subject: [PATCH] sparc: Hook up bpf system call.
+Message-Id: <20141028.144615.2170428138307575203.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1413342435-7876-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Xinwei Hu <huxinwei@huawei.com>, Wuyun <wuyun.wu@huawei.com>, linux-arm-kernel@lists.infradead.org, Russell King <linux@arm.linux.org.uk>, linux-arch@vger.kernel.org, arnab.basu@freescale.com, Bharat.Bhushan@freescale.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, xen-devel@lists.xenproject.org, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Metcalf <cmetcalf@til>
+To: sparclinux@vger.kernel.org
 
-Save msi chip in pci_sys_data instead of assign
-msi chip to every pci bus in .add_bus().
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- drivers/pci/host/pcie-rcar.c |   13 +++----------
- 1 files changed, 3 insertions(+), 10 deletions(-)
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pci/host/pcie-rcar.c b/drivers/pci/host/pcie-rcar.c
-index 61158e0..c999c7e 100644
---- a/drivers/pci/host/pcie-rcar.c
-+++ b/drivers/pci/host/pcie-rcar.c
-@@ -380,20 +380,10 @@ static int rcar_pcie_setup(int nr, struct pci_sys_data *sys)
- 	return 1;
- }
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index c842a89..46d8384 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -414,8 +414,9 @@
+ #define __NR_seccomp		346
+ #define __NR_getrandom		347
+ #define __NR_memfd_create	348
++#define __NR_bpf		349
  
--static void rcar_pcie_add_bus(struct pci_bus *bus)
--{
--	if (IS_ENABLED(CONFIG_PCI_MSI)) {
--		struct rcar_pcie *pcie = sys_to_pcie(bus->sysdata);
--
--		bus->msi = &pcie->msi.chip;
--	}
--}
--
- struct hw_pci rcar_pci = {
- 	.setup          = rcar_pcie_setup,
- 	.map_irq        = of_irq_parse_and_map_pci,
- 	.ops            = &rcar_pcie_ops,
--	.add_bus        = rcar_pcie_add_bus,
- };
+-#define NR_syscalls		349
++#define NR_syscalls		350
  
- static void rcar_pcie_enable(struct rcar_pcie *pcie)
-@@ -402,6 +392,9 @@ static void rcar_pcie_enable(struct rcar_pcie *pcie)
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index 6a873c3..ad0cdf4 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -86,4 +86,4 @@ sys_call_table:
+ /*330*/	.long sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
++/*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index d9151b6..580cde9 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -87,7 +87,7 @@ sys_call_table32:
+ /*330*/	.word compat_sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, compat_sys_open_by_handle_at, compat_sys_clock_adjtime
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
++	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
  
- 	rcar_pci.nr_controllers = 1;
- 	rcar_pci.private_data = (void **)&pcie;
-+#ifdef CONFIG_PCI_MSI
-+	rcar_pci.msi_chip = &pcie->msi.chip;
-+#endif
+ #endif /* CONFIG_COMPAT */
  
- 	pci_common_init_dev(&pdev->dev, &rcar_pci);
- #ifdef CONFIG_PCI_DOMAINS
+@@ -166,4 +166,4 @@ sys_call_table:
+ /*330*/	.word sys_fanotify_mark, sys_prlimit64, sys_name_to_handle_at, sys_open_by_handle_at, sys_clock_adjtime
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+-	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create
++	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
 -- 
-1.7.1
+2.1.2.532.g19b5d50
 
