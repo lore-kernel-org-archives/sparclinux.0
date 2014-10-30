@@ -1,72 +1,226 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Fri, 31 Oct 2014 20:53:32 +0000
-Subject: [3.13.y.z extended stable] Patch "sparc64: Increase size of boot string to 1024 bytes" has been adde
-Message-Id: <1414788812-9541-1-git-send-email-kamal@canonical.com>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Thu, 30 Oct 2014 23:04:13 +0000
+Subject: [patch added to the 3.12 stable tree] sparc64: sun4v TLB error power off events
+Message-Id: <1414710316-25911-27-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414788806-8595-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1414788806-8595-1-git-send-email-kamal@canonical.com>
+References: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This is a note to let you know that I have just added a patch titled
+From: bob picco <bpicco@meloft.net>
 
-    sparc64: Increase size of boot string to 1024 bytes
+This patch has been added to the 3.12 stable tree. If you have any
+objections, please let us know.
 
-to the linux-3.13.y-queue branch of the 3.13.y.z extended stable tree 
-which can be found at:
+=======
+[ Upstream commit 4ccb9272892c33ef1c19a783cfa87103b30c2784 ]
 
- http://kernel.ubuntu.com/git?p=ubuntu/linux.git;a=shortlog;h=refs/heads/linux-3.13.y-queue
+We've witnessed a few TLB events causing the machine to power off because
+of prom_halt. In one case it was some nfs related area during rmmod. Another
+was an mmapper of /dev/mem. A more recent one is an ITLB issue with
+a bad pagesize which could be a hardware bug. Bugs happen but we should
+attempt to not power off the machine and/or hang it when possible.
 
-This patch is scheduled to be released in version 3.13.11.11.
+This is a DTLB error from an mmapper of /dev/mem:
+[root@sparcie ~]# SUN4V-DTLB: Error at TPC[fffff80100903e6c], tl 1
+SUN4V-DTLB: TPC<0xfffff80100903e6c>
+SUN4V-DTLB: O7[fffff801081979d0]
+SUN4V-DTLB: O7<0xfffff801081979d0>
+SUN4V-DTLB: vaddr[fffff80100000000] ctx[1250] pte[98000000000f0610] error[2]
+.
 
-If you, or anyone else, feels it should not be added to this tree, please 
-reply to this email.
+This is recent mainline for ITLB:
+[ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
+[ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
+[ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
+[ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
+.
 
-For more information about the 3.13.y.z tree, see
-https://wiki.ubuntu.com/Kernel/Dev/ExtendedStable
+Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
+prom_halt() and drop us to OF command prompt "ok". This isn't the case for
+LDOMs and the machine powers off.
 
-Thanks.
--Kamal
+For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
+a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
+of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
+one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
 
-------
+The logic of this patch was partially inspired by David Miller's feedback.
 
-From 07ddd13795fdf9df079583c3f5c7051f4453b2ae Mon Sep 17 00:00:00 2001
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Tue, 7 Oct 2014 08:12:37 -0500
-Subject: sparc64: Increase size of boot string to 1024 bytes
+Power off of large sparc64 machines is painful. Plus die_if_kernel provides
+more context. A reset sequence isn't a brief period on large sparc64 but
+better than power-off/power-on sequence.
 
-[ Upstream commit 1cef94c36bd4d79b5ae3a3df99ee0d76d6a4a6dc ]
-
-This is the longest boot string that silo supports.
-
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Cc: Bob Picco <bob.picco@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/sparc/prom/bootstr_64.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/thread_info_64.h |  1 +
+ arch/sparc/kernel/sun4v_tlb_miss.S      | 35 ++++++++++++++++++++-------------
+ arch/sparc/kernel/traps_64.c            | 15 ++++++++------
+ arch/sparc/mm/fault_64.c                |  3 +++
+ 4 files changed, 34 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/prom/bootstr_64.c b/arch/sparc/prom/bootstr_64.c
-index ab9ccc6..7149e77 100644
---- a/arch/sparc/prom/bootstr_64.c
-+++ b/arch/sparc/prom/bootstr_64.c
-@@ -14,7 +14,10 @@
-  *          the .bss section or it will break things.
-  */
-
--#define BARG_LEN  256
-+/* We limit BARG_LEN to 1024 because this is the size of the
-+ * 'barg_out' command line buffer in the SILO bootloader.
-+ */
-+#define BARG_LEN 1024
- struct {
- 	int bootstr_len;
- 	int bootstr_valid;
---
-1.9.1
+diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+index d5e504251079..185a8c6917f8 100644
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -102,6 +102,7 @@ struct thread_info {
+ #define FAULT_CODE_ITLB		0x04	/* Miss happened in I-TLB	   */
+ #define FAULT_CODE_WINFIXUP	0x08	/* Miss happened during spill/fill */
+ #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
++#define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+ 
+ #if PAGE_SHIFT = 13
+ #define THREAD_SIZE (2*PAGE_SIZE)
+diff --git a/arch/sparc/kernel/sun4v_tlb_miss.S b/arch/sparc/kernel/sun4v_tlb_miss.S
+index bde867fd71e8..a1b464f6b9c2 100644
+--- a/arch/sparc/kernel/sun4v_tlb_miss.S
++++ b/arch/sparc/kernel/sun4v_tlb_miss.S
+@@ -195,6 +195,11 @@ sun4v_tsb_miss_common:
+ 	 ldx	[%g2 + TRAP_PER_CPU_PGD_PADDR], %g7
+ 
+ sun4v_itlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_ITLB, %g1
++
+ 	sethi	%hi(sun4v_err_itlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_itlb_vaddr)]
+ 	sethi	%hi(sun4v_err_itlb_ctx), %g1
+@@ -206,15 +211,10 @@ sun4v_itlb_error:
+ 	sethi	%hi(sun4v_err_itlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_itlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_itlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+@@ -222,6 +222,11 @@ sun4v_itlb_error:
+ 	/* NOTREACHED */
+ 
+ sun4v_dtlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_DTLB, %g1
++
+ 	sethi	%hi(sun4v_err_dtlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_dtlb_vaddr)]
+ 	sethi	%hi(sun4v_err_dtlb_ctx), %g1
+@@ -233,21 +238,23 @@ sun4v_dtlb_error:
+ 	sethi	%hi(sun4v_err_dtlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_dtlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_dtlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+ 
+ 	/* NOTREACHED */
+ 
++sun4v_bad_ra:
++	or	%g0, %g4, %g5
++	ba,pt	%xcc, sparc64_realfault_common
++	 or	%g1, %g0, %g4
++
++	/* NOTREACHED */
++
+ 	/* Instruction Access Exception, tl0. */
+ sun4v_iacc:
+ 	ldxa	[%g0] ASI_SCRATCHPAD, %g2
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index b3f833ab90eb..1a338509edb5 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2092,6 +2092,11 @@ void sun4v_nonresum_overflow(struct pt_regs *regs)
+ 	atomic_inc(&sun4v_nonresum_oflow_cnt);
+ }
+ 
++static void sun4v_tlb_error(struct pt_regs *regs)
++{
++	die_if_kernel("TLB/TSB error", regs);
++}
++
+ unsigned long sun4v_err_itlb_vaddr;
+ unsigned long sun4v_err_itlb_ctx;
+ unsigned long sun4v_err_itlb_pte;
+@@ -2099,8 +2104,7 @@ unsigned long sun4v_err_itlb_error;
+ 
+ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-ITLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2113,7 +2117,7 @@ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
+ 	       sun4v_err_itlb_vaddr, sun4v_err_itlb_ctx,
+ 	       sun4v_err_itlb_pte, sun4v_err_itlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ unsigned long sun4v_err_dtlb_vaddr;
+@@ -2123,8 +2127,7 @@ unsigned long sun4v_err_dtlb_error;
+ 
+ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-DTLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2137,7 +2140,7 @@ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
+ 	       sun4v_err_dtlb_vaddr, sun4v_err_dtlb_ctx,
+ 	       sun4v_err_dtlb_pte, sun4v_err_dtlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ void hypervisor_tlbop_error(unsigned long err, unsigned long op)
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 3841a081beb3..603e462a210e 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -346,6 +346,9 @@ retry:
+ 		down_read(&mm->mmap_sem);
+ 	}
+ 
++	if (fault_code & FAULT_CODE_BAD_RA)
++		goto do_sigbus;
++
+ 	vma = find_vma(mm, address);
+ 	if (!vma)
+ 		goto bad_area;
+-- 
+2.1.2
 
