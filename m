@@ -1,7 +1,7 @@
 From: Jiri Slaby <jslaby@suse.cz>
-Date: Thu, 30 Oct 2014 23:04:13 +0000
-Subject: [patch added to the 3.12 stable tree] sparc64: sun4v TLB error power off events
-Message-Id: <1414710316-25911-27-git-send-email-jslaby@suse.cz>
+Date: Thu, 30 Oct 2014 23:04:15 +0000
+Subject: [patch added to the 3.12 stable tree] sparc64: find_node adjustment
+Message-Id: <1414710316-25911-29-git-send-email-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
 In-Reply-To: <1398671260-9435-50-git-send-email-jslaby@suse.cz>
@@ -16,211 +16,102 @@ This patch has been added to the 3.12 stable tree. If you have any
 objections, please let us know.
 
 =======
-[ Upstream commit 4ccb9272892c33ef1c19a783cfa87103b30c2784 ]
+[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
 
-We've witnessed a few TLB events causing the machine to power off because
-of prom_halt. In one case it was some nfs related area during rmmod. Another
-was an mmapper of /dev/mem. A more recent one is an ITLB issue with
-a bad pagesize which could be a hardware bug. Bugs happen but we should
-attempt to not power off the machine and/or hang it when possible.
+We have seen an issue with guest boot into LDOM that causes early boot failures
+because of no matching rules for node identitity of the memory. I analyzed this
+on my T4 and concluded there might not be a solution. I saw the issue in
+mainline too when booting into the control/primary domain - with guests
+configured.  Note, this could be a firmware bug on some older machines.
 
-This is a DTLB error from an mmapper of /dev/mem:
-[root@sparcie ~]# SUN4V-DTLB: Error at TPC[fffff80100903e6c], tl 1
-SUN4V-DTLB: TPC<0xfffff80100903e6c>
-SUN4V-DTLB: O7[fffff801081979d0]
-SUN4V-DTLB: O7<0xfffff801081979d0>
-SUN4V-DTLB: vaddr[fffff80100000000] ctx[1250] pte[98000000000f0610] error[2]
-.
+I'll provide a full explanation of the issues below. Should we not find a
+matching BEST latency group for a real address (RA) then we will assume node 0.
+On the T4-2 here with the information provided I can't see an alternative.
 
-This is recent mainline for ITLB:
-[ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
-[ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
-[ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
-[ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
-.
+Technically the LDOM shown below should match the MBLOCK to the
+favorable latency group. However other factors must be considered too. Were
+the memory controllers configured "fine" grained interleave or "coarse"
+grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
+node?
 
-Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
-prom_halt() and drop us to OF command prompt "ok". This isn't the case for
-LDOMs and the machine powers off.
+There has to be at least one Machine Description (MD) "group" and hence one
+NUMA node. The group can have one or more latency groups (lg) - more than one
+memory controller. The current code chooses the smallest latency as the most
+favorable per group. The latency and lg information is in MLGROUP below.
+MBLOCK is the base and size of the RAs for the machine as fetched from OBP
+/memory "available" property. My machine has one MBLOCK but more would be
+possible - with holes?
 
-For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
-a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
-of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
-one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
+For a T4-2 the following information has been gathered:
+with LDOM guest
+MEMBLOCK configuration:
+ memory size = 0x27f870000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
+ memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
+ memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
+MBLOCK[0]: base[20000000] size[280000000] offset[0]
+(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
+(note: (RA + offset) & mask = val is the formula to detect a match for the
+memory controller. should there be no match for find_node node, a return
+value of -1 resulted for the node - BAD)
 
-The logic of this patch was partially inspired by David Miller's feedback.
+There is one group. It has these forward links
+MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
+MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
+NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
+(note: "val" is the best lg's (smallest latency) "match")
 
-Power off of large sparc64 machines is painful. Plus die_if_kernel provides
-more context. A reset sequence isn't a brief period on large sparc64 but
-better than power-off/power-on sequence.
+no LDOM guest - bare metal
+MEMBLOCK configuration:
+ memory size = 0xfdf2d0000
+ memory.cnt  = 0x3
+ memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
+ memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
+ memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
+ reserved.cnt  = 0x2
+ reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
+ reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
+MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+
+there are two groups
+group node[16d5]
+MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
+MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
+NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
+group node[171d]
+MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
+MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
+NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
+(note: for this two "group" bare metal machine, 1/2 memory is in group one's
+lg and 1/2 memory is in group two's lg).
 
 Cc: sparclinux@vger.kernel.org
 Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/thread_info_64.h |  1 +
- arch/sparc/kernel/sun4v_tlb_miss.S      | 35 ++++++++++++++++++++-------------
- arch/sparc/kernel/traps_64.c            | 15 ++++++++------
- arch/sparc/mm/fault_64.c                |  3 +++
- 4 files changed, 34 insertions(+), 20 deletions(-)
+ arch/sparc/mm/init_64.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index d5e504251079..185a8c6917f8 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -102,6 +102,7 @@ struct thread_info {
- #define FAULT_CODE_ITLB		0x04	/* Miss happened in I-TLB	   */
- #define FAULT_CODE_WINFIXUP	0x08	/* Miss happened during spill/fill */
- #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
-+#define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
- 
- #if PAGE_SHIFT = 13
- #define THREAD_SIZE (2*PAGE_SIZE)
-diff --git a/arch/sparc/kernel/sun4v_tlb_miss.S b/arch/sparc/kernel/sun4v_tlb_miss.S
-index bde867fd71e8..a1b464f6b9c2 100644
---- a/arch/sparc/kernel/sun4v_tlb_miss.S
-+++ b/arch/sparc/kernel/sun4v_tlb_miss.S
-@@ -195,6 +195,11 @@ sun4v_tsb_miss_common:
- 	 ldx	[%g2 + TRAP_PER_CPU_PGD_PADDR], %g7
- 
- sun4v_itlb_error:
-+	rdpr	%tl, %g1
-+	cmp	%g1, 1
-+	ble,pt	%icc, sun4v_bad_ra
-+	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_ITLB, %g1
-+
- 	sethi	%hi(sun4v_err_itlb_vaddr), %g1
- 	stx	%g4, [%g1 + %lo(sun4v_err_itlb_vaddr)]
- 	sethi	%hi(sun4v_err_itlb_ctx), %g1
-@@ -206,15 +211,10 @@ sun4v_itlb_error:
- 	sethi	%hi(sun4v_err_itlb_error), %g1
- 	stx	%o0, [%g1 + %lo(sun4v_err_itlb_error)]
- 
-+	sethi	%hi(1f), %g7
- 	rdpr	%tl, %g4
--	cmp	%g4, 1
--	ble,pt	%icc, 1f
--	 sethi	%hi(2f), %g7
- 	ba,pt	%xcc, etraptl1
--	 or	%g7, %lo(2f), %g7
--
--1:	ba,pt	%xcc, etrap
--2:	 or	%g7, %lo(2b), %g7
-+1:	 or	%g7, %lo(1f), %g7
- 	mov	%l4, %o1
- 	call	sun4v_itlb_error_report
- 	 add	%sp, PTREGS_OFF, %o0
-@@ -222,6 +222,11 @@ sun4v_itlb_error:
- 	/* NOTREACHED */
- 
- sun4v_dtlb_error:
-+	rdpr	%tl, %g1
-+	cmp	%g1, 1
-+	ble,pt	%icc, sun4v_bad_ra
-+	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_DTLB, %g1
-+
- 	sethi	%hi(sun4v_err_dtlb_vaddr), %g1
- 	stx	%g4, [%g1 + %lo(sun4v_err_dtlb_vaddr)]
- 	sethi	%hi(sun4v_err_dtlb_ctx), %g1
-@@ -233,21 +238,23 @@ sun4v_dtlb_error:
- 	sethi	%hi(sun4v_err_dtlb_error), %g1
- 	stx	%o0, [%g1 + %lo(sun4v_err_dtlb_error)]
- 
-+	sethi	%hi(1f), %g7
- 	rdpr	%tl, %g4
--	cmp	%g4, 1
--	ble,pt	%icc, 1f
--	 sethi	%hi(2f), %g7
- 	ba,pt	%xcc, etraptl1
--	 or	%g7, %lo(2f), %g7
--
--1:	ba,pt	%xcc, etrap
--2:	 or	%g7, %lo(2b), %g7
-+1:	 or	%g7, %lo(1f), %g7
- 	mov	%l4, %o1
- 	call	sun4v_dtlb_error_report
- 	 add	%sp, PTREGS_OFF, %o0
- 
- 	/* NOTREACHED */
- 
-+sun4v_bad_ra:
-+	or	%g0, %g4, %g5
-+	ba,pt	%xcc, sparc64_realfault_common
-+	 or	%g1, %g0, %g4
-+
-+	/* NOTREACHED */
-+
- 	/* Instruction Access Exception, tl0. */
- sun4v_iacc:
- 	ldxa	[%g0] ASI_SCRATCHPAD, %g2
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index b3f833ab90eb..1a338509edb5 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2092,6 +2092,11 @@ void sun4v_nonresum_overflow(struct pt_regs *regs)
- 	atomic_inc(&sun4v_nonresum_oflow_cnt);
- }
- 
-+static void sun4v_tlb_error(struct pt_regs *regs)
-+{
-+	die_if_kernel("TLB/TSB error", regs);
-+}
-+
- unsigned long sun4v_err_itlb_vaddr;
- unsigned long sun4v_err_itlb_ctx;
- unsigned long sun4v_err_itlb_pte;
-@@ -2099,8 +2104,7 @@ unsigned long sun4v_err_itlb_error;
- 
- void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
- {
--	if (tl > 1)
--		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
-+	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
- 
- 	printk(KERN_EMERG "SUN4V-ITLB: Error at TPC[%lx], tl %d\n",
- 	       regs->tpc, tl);
-@@ -2113,7 +2117,7 @@ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
- 	       sun4v_err_itlb_vaddr, sun4v_err_itlb_ctx,
- 	       sun4v_err_itlb_pte, sun4v_err_itlb_error);
- 
--	prom_halt();
-+	sun4v_tlb_error(regs);
- }
- 
- unsigned long sun4v_err_dtlb_vaddr;
-@@ -2123,8 +2127,7 @@ unsigned long sun4v_err_dtlb_error;
- 
- void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
- {
--	if (tl > 1)
--		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
-+	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
- 
- 	printk(KERN_EMERG "SUN4V-DTLB: Error at TPC[%lx], tl %d\n",
- 	       regs->tpc, tl);
-@@ -2137,7 +2140,7 @@ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
- 	       sun4v_err_dtlb_vaddr, sun4v_err_dtlb_ctx,
- 	       sun4v_err_dtlb_pte, sun4v_err_dtlb_error);
- 
--	prom_halt();
-+	sun4v_tlb_error(regs);
- }
- 
- void hypervisor_tlbop_error(unsigned long err, unsigned long op)
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index 3841a081beb3..603e462a210e 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -346,6 +346,9 @@ retry:
- 		down_read(&mm->mmap_sem);
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index b26015f49c0d..d9e8b06d0ffd 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -838,7 +838,10 @@ static int find_node(unsigned long addr)
+ 		if ((addr & p->mask) = p->val)
+ 			return i;
  	}
+-	return -1;
++	/* The following condition has been observed on LDOM guests.*/
++	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
++		" rule. Some physical memory will be owned by node 0.");
++	return 0;
+ }
  
-+	if (fault_code & FAULT_CODE_BAD_RA)
-+		goto do_sigbus;
-+
- 	vma = find_vma(mm, address);
- 	if (!vma)
- 		goto bad_area;
+ static u64 memblock_nid_range(u64 start, u64 end, int *nid)
 -- 
 2.1.2
 
