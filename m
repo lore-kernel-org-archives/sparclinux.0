@@ -1,7 +1,7 @@
 From: Kamal Mostafa <kamal@canonical.com>
-Date: Fri, 31 Oct 2014 20:53:29 +0000
-Subject: [3.13.y.z extended stable] Patch "sparc64: T5 PMU" has been added to staging queue
-Message-Id: <1414788809-9129-1-git-send-email-kamal@canonical.com>
+Date: Fri, 31 Oct 2014 20:53:32 +0000
+Subject: [3.13.y.z extended stable] Patch "sparc64: Increase size of boot string to 1024 bytes" has been adde
+Message-Id: <1414788812-9541-1-git-send-email-kamal@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1414788806-8595-1-git-send-email-kamal@canonical.com>
 In-Reply-To: <1414788806-8595-1-git-send-email-kamal@canonical.com>
@@ -12,7 +12,7 @@ To: sparclinux@vger.kernel.org
 
 This is a note to let you know that I have just added a patch titled
 
-    sparc64: T5 PMU
+    sparc64: Increase size of boot string to 1024 bytes
 
 to the linux-3.13.y-queue branch of the 3.13.y.z extended stable tree 
 which can be found at:
@@ -32,195 +32,41 @@ Thanks.
 
 ------
 
-From b34d4622ba1bb0dcfa6b95fc93eb69181e51b098 Mon Sep 17 00:00:00 2001
-From: bob picco <bpicco@meloft.net>
-Date: Tue, 16 Sep 2014 10:09:06 -0400
-Subject: sparc64: T5 PMU
+From 07ddd13795fdf9df079583c3f5c7051f4453b2ae Mon Sep 17 00:00:00 2001
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Tue, 7 Oct 2014 08:12:37 -0500
+Subject: sparc64: Increase size of boot string to 1024 bytes
 
-[ Upstream commit 05aa1651e8b9ca078b1808a2fe7b50703353ec02 ]
+[ Upstream commit 1cef94c36bd4d79b5ae3a3df99ee0d76d6a4a6dc ]
 
-The T5 (niagara5) has different PCR related HV fast trap values and a new
-HV API Group. This patch utilizes these and shares when possible with niagara4.
+This is the longest boot string that silo supports.
 
-We use the same sparc_pmu niagara4_pmu. Should there be new effort to
-obtain the MCU perf statistics then this would have to be changed.
-
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Kamal Mostafa <kamal@canonical.com>
 ---
- arch/sparc/include/asm/hypervisor.h | 11 +++++++++
- arch/sparc/kernel/hvapi.c           |  1 +
- arch/sparc/kernel/hvcalls.S         | 16 +++++++++++++
- arch/sparc/kernel/pcr.c             | 47 +++++++++++++++++++++++++++++++++----
- arch/sparc/kernel/perf_event.c      |  3 ++-
- 5 files changed, 73 insertions(+), 5 deletions(-)
+ arch/sparc/prom/bootstr_64.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index ca121f0..17be9d6 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2944,6 +2944,16 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
- 					  unsigned long reg_val);
- #endif
+diff --git a/arch/sparc/prom/bootstr_64.c b/arch/sparc/prom/bootstr_64.c
+index ab9ccc6..7149e77 100644
+--- a/arch/sparc/prom/bootstr_64.c
++++ b/arch/sparc/prom/bootstr_64.c
+@@ -14,7 +14,10 @@
+  *          the .bss section or it will break things.
+  */
 
-+#define	HV_FAST_T5_GET_PERFREG		0x1a8
-+#define	HV_FAST_T5_SET_PERFREG		0x1a9
-+
-+#ifndef	__ASSEMBLY__
-+unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
-+				   unsigned long *reg_val);
-+unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
-+				   unsigned long reg_val);
-+#endif
-+
- /* Function numbers for HV_CORE_TRAP.  */
- #define HV_CORE_SET_VER			0x00
- #define HV_CORE_PUTCHAR			0x01
-@@ -2975,6 +2985,7 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
- #define HV_GRP_VF_CPU			0x0205
- #define HV_GRP_KT_CPU			0x0209
- #define HV_GRP_VT_CPU			0x020c
-+#define HV_GRP_T5_CPU			0x0211
- #define HV_GRP_DIAG			0x0300
-
- #ifndef __ASSEMBLY__
-diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
-index c0a2de0..5c55145 100644
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_VF_CPU,				},
- 	{ .group = HV_GRP_KT_CPU,				},
- 	{ .group = HV_GRP_VT_CPU,				},
-+	{ .group = HV_GRP_T5_CPU,				},
- 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
- };
-
-diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
-index f3ab509..caedf83 100644
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
- 	retl
- 	 nop
- ENDPROC(sun4v_vt_set_perfreg)
-+
-+ENTRY(sun4v_t5_get_perfreg)
-+	mov	%o1, %o4
-+	mov	HV_FAST_T5_GET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_get_perfreg)
-+
-+ENTRY(sun4v_t5_set_perfreg)
-+	mov	HV_FAST_T5_SET_PERFREG, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 nop
-+ENDPROC(sun4v_t5_set_perfreg)
-diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
-index 269af58..7e967c8 100644
---- a/arch/sparc/kernel/pcr.c
-+++ b/arch/sparc/kernel/pcr.c
-@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops = {
- 	.pcr_nmi_disable	= PCR_N4_PICNPT,
- };
-
-+static u64 n5_pcr_read(unsigned long reg_num)
-+{
-+	unsigned long val;
-+
-+	(void) sun4v_t5_get_perfreg(reg_num, &val);
-+
-+	return val;
-+}
-+
-+static void n5_pcr_write(unsigned long reg_num, u64 val)
-+{
-+	(void) sun4v_t5_set_perfreg(reg_num, val);
-+}
-+
-+static const struct pcr_ops n5_pcr_ops = {
-+	.read_pcr		= n5_pcr_read,
-+	.write_pcr		= n5_pcr_write,
-+	.read_pic		= n4_pic_read,
-+	.write_pic		= n4_pic_write,
-+	.nmi_picl_value		= n4_picl_value,
-+	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
-+				   PCR_N4_UTRACE | PCR_N4_TOE |
-+				   (26 << PCR_N4_SL_SHIFT)),
-+	.pcr_nmi_disable	= PCR_N4_PICNPT,
-+};
-+
-+
- static unsigned long perf_hsvc_group;
- static unsigned long perf_hsvc_major;
- static unsigned long perf_hsvc_minor;
-
- static int __init register_perf_hsvc(void)
- {
-+	unsigned long hverror;
-+
- 	if (tlb_type = hypervisor) {
- 		switch (sun4v_chip_type) {
- 		case SUN4V_CHIP_NIAGARA1:
-@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(void)
- 			perf_hsvc_group = HV_GRP_VT_CPU;
- 			break;
-
-+		case SUN4V_CHIP_NIAGARA5:
-+			perf_hsvc_group = HV_GRP_T5_CPU;
-+			break;
-+
- 		default:
- 			return -ENODEV;
- 		}
-@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(void)
-
- 		perf_hsvc_major = 1;
- 		perf_hsvc_minor = 0;
--		if (sun4v_hvapi_register(perf_hsvc_group,
--					 perf_hsvc_major,
--					 &perf_hsvc_minor)) {
--			printk("perfmon: Could not register hvapi.\n");
-+		hverror = sun4v_hvapi_register(perf_hsvc_group,
-+					       perf_hsvc_major,
-+					       &perf_hsvc_minor);
-+		if (hverror) {
-+			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
-+			       hverror);
- 			return -ENODEV;
- 		}
- 	}
-@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(void)
- 		pcr_ops = &n4_pcr_ops;
- 		break;
-
-+	case SUN4V_CHIP_NIAGARA5:
-+		pcr_ops = &n5_pcr_ops;
-+		break;
-+
- 	default:
- 		ret = -ENODEV;
- 		break;
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 857baca..617b9fe 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
- 		sparc_pmu = &niagara2_pmu;
- 		return true;
- 	}
--	if (!strcmp(sparc_pmu_type, "niagara4")) {
-+	if (!strcmp(sparc_pmu_type, "niagara4") ||
-+	    !strcmp(sparc_pmu_type, "niagara5")) {
- 		sparc_pmu = &niagara4_pmu;
- 		return true;
- 	}
+-#define BARG_LEN  256
++/* We limit BARG_LEN to 1024 because this is the size of the
++ * 'barg_out' command line buffer in the SILO bootloader.
++ */
++#define BARG_LEN 1024
+ struct {
+ 	int bootstr_len;
+ 	int bootstr_valid;
 --
 1.9.1
 
