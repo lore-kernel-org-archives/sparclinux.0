@@ -1,137 +1,47 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 27 Oct 2014 12:46:02 +0000
-Subject: [PATCH 03/16] x86/xen/MSI: Use MSI controller framework to configure MSI/MSI-X irq
-Message-Id: <1414416142-31239-4-git-send-email-wangyijing@huawei.com>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Fri, 31 Oct 2014 13:12:46 +0000
+Subject: [PATCH 3.12 044/144] sparc64: Increase size of boot string to 1024 bytes
+Message-Id: <3efa1405a8a9f46a3759fce7289896b18b250afc.1414759455.git.jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1414416142-31239-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Use MSI controller framework instead of arch MSI functions to configure
-MSI/MSI-X irq. So we can manage MSI/MSI-X irq in a unified framework.
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: David Vrabel <david.vrabel@citrix.com>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+3.12-stable review patch.  If anyone has any objections, please let me know.
+
+=======
+[ Upstream commit 1cef94c36bd4d79b5ae3a3df99ee0d76d6a4a6dc ]
+
+This is the longest boot string that silo supports.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Bob Picco <bob.picco@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/x86/pci/xen.c |   45 +++++++++++++++++++++++++++------------------
- 1 files changed, 27 insertions(+), 18 deletions(-)
+ arch/sparc/prom/bootstr_64.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
-index 466b978..83d8d50 100644
---- a/arch/x86/pci/xen.c
-+++ b/arch/x86/pci/xen.c
-@@ -157,7 +157,8 @@ static int acpi_register_gsi_xen(struct device *dev, u32 gsi,
- struct xen_pci_frontend_ops *xen_pci_frontend;
- EXPORT_SYMBOL_GPL(xen_pci_frontend);
+diff --git a/arch/sparc/prom/bootstr_64.c b/arch/sparc/prom/bootstr_64.c
+index ab9ccc63b388..7149e77714a4 100644
+--- a/arch/sparc/prom/bootstr_64.c
++++ b/arch/sparc/prom/bootstr_64.c
+@@ -14,7 +14,10 @@
+  *          the .bss section or it will break things.
+  */
  
--static int xen_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int irq, ret, i;
- 	struct msi_desc *msidesc;
-@@ -219,7 +220,8 @@ static void xen_msi_compose_msg(struct pci_dev *pdev, unsigned int pirq,
- 	msg->data = XEN_PIRQ_MSI_DATA;
- }
- 
--static int xen_hvm_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_hvm_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int irq, pirq;
- 	struct msi_desc *msidesc;
-@@ -267,7 +269,8 @@ error:
- #ifdef CONFIG_XEN_DOM0
- static bool __read_mostly pci_seg_supported = true;
- 
--static int xen_initdom_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+static int xen_initdom_setup_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev, int nvec, int type)
- {
- 	int ret = 0;
- 	struct msi_desc *msidesc;
-@@ -349,7 +352,8 @@ out:
- 	return ret;
- }
- 
--static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
-+static void xen_initdom_restore_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev)
- {
- 	int ret = 0;
- 
-@@ -376,7 +380,13 @@ static void xen_initdom_restore_msi_irqs(struct pci_dev *dev)
- }
- #endif
- 
--static void xen_teardown_msi_irqs(struct pci_dev *dev)
-+static void xen_teardown_msi_irq(struct msi_controller *ctrl, unsigned int irq)
-+{
-+	xen_destroy_irq(irq);
-+}
-+
-+static void xen_teardown_msi_irqs(struct msi_controller *ctrl,
-+		struct pci_dev *dev)
- {
- 	struct msi_desc *msidesc;
- 
-@@ -390,11 +400,7 @@ static void xen_teardown_msi_irqs(struct pci_dev *dev)
- 	default_teardown_msi_irqs(dev);
- }
- 
--static void xen_teardown_msi_irq(unsigned int irq)
--{
--	xen_destroy_irq(irq);
--}
--
-+struct msi_controller xen_msi_ctrl;
- #endif
- 
- int __init pci_xen_init(void)
-@@ -415,9 +421,10 @@ int __init pci_xen_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.teardown_msi_irqs = xen_teardown_msi_irqs;
-+	xen_msi_ctrl.setup_irqs = xen_setup_msi_irqs;
-+	xen_msi_ctrl.teardown_irq = xen_teardown_msi_irq;
-+	xen_msi_ctrl.teardown_irqs = xen_teardown_msi_irqs;
-+	x86_msi_ctrl = &xen_msi_ctrl;
- 	pci_msi_ignore_mask = 1;
- #endif
- 	return 0;
-@@ -437,8 +444,9 @@ int __init pci_xen_hvm_init(void)
- #endif
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_hvm_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
-+	xen_msi_ctrl.setup_irqs = xen_hvm_setup_msi_irqs;
-+	xen_msi_ctrl.teardown_irq = xen_teardown_msi_irq;
-+	x86_msi_ctrl = &xen_msi_ctrl;
- #endif
- 	return 0;
- }
-@@ -495,9 +503,10 @@ int __init pci_xen_initial_domain(void)
- 	int irq;
- 
- #ifdef CONFIG_PCI_MSI
--	x86_msi.setup_msi_irqs = xen_initdom_setup_msi_irqs;
--	x86_msi.teardown_msi_irq = xen_teardown_msi_irq;
--	x86_msi.restore_msi_irqs = xen_initdom_restore_msi_irqs;
-+	xen_msi_ctrl.setup_irqs = xen_initdom_setup_msi_irqs;
-+	xen_msi_ctrl.teardown_irq = xen_teardown_msi_irq;
-+	xen_msi_ctrl.restore_irqs = xen_initdom_restore_msi_irqs;
-+	x86_msi_ctrl = &xen_msi_ctrl;
- 	pci_msi_ignore_mask = 1;
- #endif
- 	xen_setup_acpi_sci();
+-#define BARG_LEN  256
++/* We limit BARG_LEN to 1024 because this is the size of the
++ * 'barg_out' command line buffer in the SILO bootloader.
++ */
++#define BARG_LEN 1024
+ struct {
+ 	int bootstr_len;
+ 	int bootstr_valid;
 -- 
-1.7.1
+2.1.2
 
