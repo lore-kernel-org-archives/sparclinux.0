@@ -1,248 +1,199 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Date: Mon, 06 Oct 2014 13:52:40 +0000
-Subject: [PATCH 8/9] ARM: Use include/asm-generic/io.h
-Message-Id: <1412603561-27653-9-git-send-email-thierry.reding@gmail.com>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Fri, 31 Oct 2014 13:13:12 +0000
+Subject: [PATCH 3.12 070/144] sparc64: T5 PMU
+Message-Id: <4440c6f4f1bef106bcd4d75295cc16a16ab94a9c.1414759455.git.jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
-In-Reply-To: <1412603561-27653-1-git-send-email-thierry.reding@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Fengguang Wu <fengguang.wu@intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Stephen Boyd <sboyd@codeaurora.org>, Sam Ravnborg <sam@ravnborg.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org, linux-serial@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Thierry Reding <treding@nvidia.com>
+From: bob picco <bpicco@meloft.net>
 
-Include the generic I/O header file so that duplicate implementations
-can be removed. This will also help to establish consistency across more
-architectures regarding which accessors they support.
+3.12-stable review patch.  If anyone has any objections, please let me know.
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+=======
+The T5 (niagara5) has different PCR related HV fast trap values and a new
+HV API Group. This patch utilizes these and shares when possible with niagara4.
+
+We use the same sparc_pmu niagara4_pmu. Should there be new effort to
+obtain the MCU perf statistics then this would have to be changed.
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
-Changes in v5:
-- fix typo __raw_writew() -> __raw_writel() in iowrite32be()
-- allow virt_to_bus() and bus_to_virt() to be overridden
-- add volatile keyword to __raw_{read,write}s*()
+ arch/sparc/include/asm/hypervisor.h | 11 +++++++++
+ arch/sparc/kernel/hvapi.c           |  1 +
+ arch/sparc/kernel/hvcalls.S         | 16 +++++++++++++
+ arch/sparc/kernel/pcr.c             | 47 +++++++++++++++++++++++++++++++++----
+ arch/sparc/kernel/perf_event.c      |  3 ++-
+ 5 files changed, 73 insertions(+), 5 deletions(-)
 
-Changes in v4:
-- define xlate_dev_{kmem,mem}_ptr() before asm-generic/io.h include
-
-Changes in v3:
-- override io{read,write}{16,32}be() since the generic ones don't have
-  the required memory barriers
-
- arch/arm/include/asm/io.h     | 89 +++++++++++++++++--------------------------
- arch/arm/include/asm/memory.h |  4 ++
- 2 files changed, 40 insertions(+), 53 deletions(-)
-
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 180567408ee8..db58deb00aa7 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -47,13 +47,13 @@ extern void atomic_io_modify_relaxed(void __iomem *reg, u32 mask, u32 set);
-  * Generic IO read/write.  These perform native-endian accesses.  Note
-  * that some architectures will want to re-define __raw_{read,write}w.
-  */
--extern void __raw_writesb(void __iomem *addr, const void *data, int bytelen);
--extern void __raw_writesw(void __iomem *addr, const void *data, int wordlen);
--extern void __raw_writesl(void __iomem *addr, const void *data, int longlen);
-+void __raw_writesb(volatile void __iomem *addr, const void *data, int bytelen);
-+void __raw_writesw(volatile void __iomem *addr, const void *data, int wordlen);
-+void __raw_writesl(volatile void __iomem *addr, const void *data, int longlen);
- 
--extern void __raw_readsb(const void __iomem *addr, void *data, int bytelen);
--extern void __raw_readsw(const void __iomem *addr, void *data, int wordlen);
--extern void __raw_readsl(const void __iomem *addr, void *data, int longlen);
-+void __raw_readsb(const volatile void __iomem *addr, void *data, int bytelen);
-+void __raw_readsw(const volatile void __iomem *addr, void *data, int wordlen);
-+void __raw_readsl(const volatile void __iomem *addr, void *data, int longlen);
- 
- #if __LINUX_ARM_ARCH__ < 6
- /*
-@@ -69,6 +69,7 @@ extern void __raw_readsl(const void __iomem *addr, void *data, int longlen);
-  * writeback addressing modes as these incur a significant performance
-  * overhead (the address generation must be emulated in software).
-  */
-+#define __raw_writew __raw_writew
- static inline void __raw_writew(u16 val, volatile void __iomem *addr)
- {
- 	asm volatile("strh %1, %0"
-@@ -76,6 +77,7 @@ static inline void __raw_writew(u16 val, volatile void __iomem *addr)
- 		     : "r" (val));
- }
- 
-+#define __raw_readw __raw_readw
- static inline u16 __raw_readw(const volatile void __iomem *addr)
- {
- 	u16 val;
-@@ -86,6 +88,7 @@ static inline u16 __raw_readw(const volatile void __iomem *addr)
- }
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index ca121f0fa3ec..17be9d618335 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -2944,6 +2944,16 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
+ 					  unsigned long reg_val);
  #endif
  
-+#define __raw_writeb __raw_writeb
- static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
- {
- 	asm volatile("strb %1, %0"
-@@ -93,6 +96,7 @@ static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
- 		     : "r" (val));
- }
- 
-+#define __raw_writel __raw_writel
- static inline void __raw_writel(u32 val, volatile void __iomem *addr)
- {
- 	asm volatile("str %1, %0"
-@@ -100,6 +104,7 @@ static inline void __raw_writel(u32 val, volatile void __iomem *addr)
- 		     : "r" (val));
- }
- 
-+#define __raw_readb __raw_readb
- static inline u8 __raw_readb(const volatile void __iomem *addr)
- {
- 	u8 val;
-@@ -109,6 +114,7 @@ static inline u8 __raw_readb(const volatile void __iomem *addr)
- 	return val;
- }
- 
-+#define __raw_readl __raw_readl
- static inline u32 __raw_readl(const volatile void __iomem *addr)
- {
- 	u32 val;
-@@ -267,20 +273,6 @@ extern int pci_ioremap_io(unsigned int offset, phys_addr_t phys_addr);
- #define insl(p,d,l)		__raw_readsl(__io(p),d,l)
- #endif
- 
--#define outb_p(val,port)	outb((val),(port))
--#define outw_p(val,port)	outw((val),(port))
--#define outl_p(val,port)	outl((val),(port))
--#define inb_p(port)		inb((port))
--#define inw_p(port)		inw((port))
--#define inl_p(port)		inl((port))
--
--#define outsb_p(port,from,len)	outsb(port,from,len)
--#define outsw_p(port,from,len)	outsw(port,from,len)
--#define outsl_p(port,from,len)	outsl(port,from,len)
--#define insb_p(port,to,len)	insb(port,to,len)
--#define insw_p(port,to,len)	insw(port,to,len)
--#define insl_p(port,to,len)	insl(port,to,len)
--
- /*
-  * String version of IO memory access ops:
-  */
-@@ -347,40 +339,42 @@ extern void _memset_io(volatile void __iomem *, int, size_t);
- #define iounmap				__arm_iounmap
- 
- /*
-- * io{read,write}{8,16,32} macros
-+ * io{read,write}{16,32}be() macros
-  */
--#ifndef ioread8
--#define ioread8(p)	({ unsigned int __v = __raw_readb(p); __iormb(); __v; })
--#define ioread16(p)	({ unsigned int __v = le16_to_cpu((__force __le16)__raw_readw(p)); __iormb(); __v; })
--#define ioread32(p)	({ unsigned int __v = le32_to_cpu((__force __le32)__raw_readl(p)); __iormb(); __v; })
--
--#define ioread16be(p)	({ unsigned int __v = be16_to_cpu((__force __be16)__raw_readw(p)); __iormb(); __v; })
--#define ioread32be(p)	({ unsigned int __v = be32_to_cpu((__force __be32)__raw_readl(p)); __iormb(); __v; })
--
--#define iowrite8(v,p)	({ __iowmb(); __raw_writeb(v, p); })
--#define iowrite16(v,p)	({ __iowmb(); __raw_writew((__force __u16)cpu_to_le16(v), p); })
--#define iowrite32(v,p)	({ __iowmb(); __raw_writel((__force __u32)cpu_to_le32(v), p); })
-+#define ioread16be(p)		({ __u16 __v = be16_to_cpu((__force __be16)__raw_readw(p)); __iormb(); __v; })
-+#define ioread32be(p)		({ __u32 __v = be32_to_cpu((__force __be32)__raw_readl(p)); __iormb(); __v; })
- 
--#define iowrite16be(v,p) ({ __iowmb(); __raw_writew((__force __u16)cpu_to_be16(v), p); })
--#define iowrite32be(v,p) ({ __iowmb(); __raw_writel((__force __u32)cpu_to_be32(v), p); })
--
--#define ioread8_rep(p,d,c)	__raw_readsb(p,d,c)
--#define ioread16_rep(p,d,c)	__raw_readsw(p,d,c)
--#define ioread32_rep(p,d,c)	__raw_readsl(p,d,c)
--
--#define iowrite8_rep(p,s,c)	__raw_writesb(p,s,c)
--#define iowrite16_rep(p,s,c)	__raw_writesw(p,s,c)
--#define iowrite32_rep(p,s,c)	__raw_writesl(p,s,c)
-+#define iowrite16be(v,p)	({ __iowmb(); __raw_writew((__force __u16)cpu_to_be16(v), p); })
-+#define iowrite32be(v,p)	({ __iowmb(); __raw_writel((__force __u32)cpu_to_be32(v), p); })
- 
-+#ifndef ioport_map
-+#define ioport_map ioport_map
- extern void __iomem *ioport_map(unsigned long port, unsigned int nr);
++#define	HV_FAST_T5_GET_PERFREG		0x1a8
++#define	HV_FAST_T5_SET_PERFREG		0x1a9
++
++#ifndef	__ASSEMBLY__
++unsigned long sun4v_t5_get_perfreg(unsigned long reg_num,
++				   unsigned long *reg_val);
++unsigned long sun4v_t5_set_perfreg(unsigned long reg_num,
++				   unsigned long reg_val);
 +#endif
-+#ifndef ioport_unmap
-+#define ioport_unmap ioport_unmap
- extern void ioport_unmap(void __iomem *addr);
- #endif
- 
- struct pci_dev;
- 
-+#define pci_iounmap pci_iounmap
- extern void pci_iounmap(struct pci_dev *dev, void __iomem *addr);
- 
- /*
-+ * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-+ * access
-+ */
-+#define xlate_dev_mem_ptr(p)	__va(p)
 +
-+/*
-+ * Convert a virtual cached pointer to an uncached pointer
-+ */
-+#define xlate_dev_kmem_ptr(p)	p
+ /* Function numbers for HV_CORE_TRAP.  */
+ #define HV_CORE_SET_VER			0x00
+ #define HV_CORE_PUTCHAR			0x01
+@@ -2975,6 +2985,7 @@ extern unsigned long sun4v_vt_set_perfreg(unsigned long reg_num,
+ #define HV_GRP_VF_CPU			0x0205
+ #define HV_GRP_KT_CPU			0x0209
+ #define HV_GRP_VT_CPU			0x020c
++#define HV_GRP_T5_CPU			0x0211
+ #define HV_GRP_DIAG			0x0300
+ 
+ #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
+index c0a2de0fd624..5c55145bfbf0 100644
+--- a/arch/sparc/kernel/hvapi.c
++++ b/arch/sparc/kernel/hvapi.c
+@@ -46,6 +46,7 @@ static struct api_info api_table[] = {
+ 	{ .group = HV_GRP_VF_CPU,				},
+ 	{ .group = HV_GRP_KT_CPU,				},
+ 	{ .group = HV_GRP_VT_CPU,				},
++	{ .group = HV_GRP_T5_CPU,				},
+ 	{ .group = HV_GRP_DIAG,		.flags = FLAG_PRE_API	},
+ };
+ 
+diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
+index f3ab509b76a8..caedf8320416 100644
+--- a/arch/sparc/kernel/hvcalls.S
++++ b/arch/sparc/kernel/hvcalls.S
+@@ -821,3 +821,19 @@ ENTRY(sun4v_vt_set_perfreg)
+ 	retl
+ 	 nop
+ ENDPROC(sun4v_vt_set_perfreg)
 +
-+#include <asm-generic/io.h>
++ENTRY(sun4v_t5_get_perfreg)
++	mov	%o1, %o4
++	mov	HV_FAST_T5_GET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	stx	%o1, [%o4]
++	retl
++	 nop
++ENDPROC(sun4v_t5_get_perfreg)
 +
-+/*
-  * can the hardware map this into one segment or not, given no other
-  * constraints.
-  */
-@@ -402,17 +396,6 @@ extern int devmem_is_allowed(unsigned long pfn);
- #endif
++ENTRY(sun4v_t5_set_perfreg)
++	mov	HV_FAST_T5_SET_PERFREG, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 nop
++ENDPROC(sun4v_t5_set_perfreg)
+diff --git a/arch/sparc/kernel/pcr.c b/arch/sparc/kernel/pcr.c
+index 269af58497aa..7e967c8018c8 100644
+--- a/arch/sparc/kernel/pcr.c
++++ b/arch/sparc/kernel/pcr.c
+@@ -191,12 +191,41 @@ static const struct pcr_ops n4_pcr_ops = {
+ 	.pcr_nmi_disable	= PCR_N4_PICNPT,
+ };
  
- /*
-- * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-- * access
-- */
--#define xlate_dev_mem_ptr(p)	__va(p)
--
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
--/*
-  * Register ISA memory and port locations for glibc iopl/inb/outb
-  * emulation.
-  */
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index e731018869a7..184def0e1652 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -274,11 +274,13 @@ static inline unsigned long __phys_to_virt(phys_addr_t x)
-  * translation for translating DMA addresses.  Use the driver
-  * DMA support - see dma-mapping.h.
-  */
-+#define virt_to_phys virt_to_phys
- static inline phys_addr_t virt_to_phys(const volatile void *x)
- {
- 	return __virt_to_phys((unsigned long)(x));
- }
++static u64 n5_pcr_read(unsigned long reg_num)
++{
++	unsigned long val;
++
++	(void) sun4v_t5_get_perfreg(reg_num, &val);
++
++	return val;
++}
++
++static void n5_pcr_write(unsigned long reg_num, u64 val)
++{
++	(void) sun4v_t5_set_perfreg(reg_num, val);
++}
++
++static const struct pcr_ops n5_pcr_ops = {
++	.read_pcr		= n5_pcr_read,
++	.write_pcr		= n5_pcr_write,
++	.read_pic		= n4_pic_read,
++	.write_pic		= n4_pic_write,
++	.nmi_picl_value		= n4_picl_value,
++	.pcr_nmi_enable		= (PCR_N4_PICNPT | PCR_N4_STRACE |
++				   PCR_N4_UTRACE | PCR_N4_TOE |
++				   (26 << PCR_N4_SL_SHIFT)),
++	.pcr_nmi_disable	= PCR_N4_PICNPT,
++};
++
++
+ static unsigned long perf_hsvc_group;
+ static unsigned long perf_hsvc_major;
+ static unsigned long perf_hsvc_minor;
  
-+#define phys_to_virt phys_to_virt
- static inline void *phys_to_virt(phys_addr_t x)
+ static int __init register_perf_hsvc(void)
  {
- 	return (void *)__phys_to_virt(x);
-@@ -322,11 +324,13 @@ static inline phys_addr_t __virt_to_idmap(unsigned long x)
- #endif
++	unsigned long hverror;
++
+ 	if (tlb_type = hypervisor) {
+ 		switch (sun4v_chip_type) {
+ 		case SUN4V_CHIP_NIAGARA1:
+@@ -215,6 +244,10 @@ static int __init register_perf_hsvc(void)
+ 			perf_hsvc_group = HV_GRP_VT_CPU;
+ 			break;
  
- #ifdef CONFIG_VIRT_TO_BUS
-+#define virt_to_bus virt_to_bus
- static inline __deprecated unsigned long virt_to_bus(void *x)
- {
- 	return __virt_to_bus((unsigned long)x);
- }
++		case SUN4V_CHIP_NIAGARA5:
++			perf_hsvc_group = HV_GRP_T5_CPU;
++			break;
++
+ 		default:
+ 			return -ENODEV;
+ 		}
+@@ -222,10 +255,12 @@ static int __init register_perf_hsvc(void)
  
-+#define bus_to_virt bus_to_virt
- static inline __deprecated void *bus_to_virt(unsigned long x)
- {
- 	return (void *)__bus_to_virt(x);
+ 		perf_hsvc_major = 1;
+ 		perf_hsvc_minor = 0;
+-		if (sun4v_hvapi_register(perf_hsvc_group,
+-					 perf_hsvc_major,
+-					 &perf_hsvc_minor)) {
+-			printk("perfmon: Could not register hvapi.\n");
++		hverror = sun4v_hvapi_register(perf_hsvc_group,
++					       perf_hsvc_major,
++					       &perf_hsvc_minor);
++		if (hverror) {
++			pr_err("perfmon: Could not register hvapi(0x%lx).\n",
++			       hverror);
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -254,6 +289,10 @@ static int __init setup_sun4v_pcr_ops(void)
+ 		pcr_ops = &n4_pcr_ops;
+ 		break;
+ 
++	case SUN4V_CHIP_NIAGARA5:
++		pcr_ops = &n5_pcr_ops;
++		break;
++
+ 	default:
+ 		ret = -ENODEV;
+ 		break;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 857bacaefb68..617b9fe33771 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1662,7 +1662,8 @@ static bool __init supported_pmu(void)
+ 		sparc_pmu = &niagara2_pmu;
+ 		return true;
+ 	}
+-	if (!strcmp(sparc_pmu_type, "niagara4")) {
++	if (!strcmp(sparc_pmu_type, "niagara4") ||
++	    !strcmp(sparc_pmu_type, "niagara5")) {
+ 		sparc_pmu = &niagara4_pmu;
+ 		return true;
+ 	}
 -- 
-2.1.0
+2.1.2
 
