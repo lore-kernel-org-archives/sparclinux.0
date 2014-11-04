@@ -1,8 +1,10 @@
-From: bpost bank <info@rsnet.sk>
-Date: Tue, 04 Nov 2014 11:34:43 +0000
+From: bpost bank <msimko@kmp.sk>
+Date: Tue, 04 Nov 2014 11:53:09 +0000
 Subject: UW BPOST BANK ONLINE ACCOUNT =?UTF-8?Q?BEVEILIGING!=E2=80=8F?= =?UTF-8?Q?=E2=80=8F?=
-Message-Id: <a273bbfd80aaae6091e3a1b92d8e0476@kmp.sk>
+Message-Id: <65fc8566ddecb67a24813bb820055e70@kmp.sk>
 List-Id: <sparclinux.vger.kernel.org>
+References: <a273bbfd80aaae6091e3a1b92d8e0476@kmp.sk>
+In-Reply-To: <a273bbfd80aaae6091e3a1b92d8e0476@kmp.sk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
