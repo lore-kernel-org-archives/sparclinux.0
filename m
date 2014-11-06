@@ -1,129 +1,228 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Thu, 20 Nov 2014 17:01:37 +0000
-Subject: [PATCH v10 00/27] Add gdb python scripts as kernel debugging helpers
-Message-Id: <cover.1416502923.git.jan.kiszka@siemens.com>
+From: Kamal Mostafa <kamal@canonical.com>
+Date: Thu, 06 Nov 2014 22:34:55 +0000
+Subject: [PATCH 3.13 031/162] sparc64: sun4v TLB error power off events
+Message-Id: <1415313426-9622-32-git-send-email-kamal@canonical.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1415313426-9622-1-git-send-email-kamal@canonical.com>
+In-Reply-To: <1415313426-9622-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, Borislav Petkov <bp@suse.de>, Tatiana Al-Chueyr Martins <tatiana.alchueyr@gmail.com>, Daniel Thompson <daniel.thompson@linaro.org>, Daniel Wagner <daniel.wagner@bmw-carit.de>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Kay Sievers <kay@vrfy.org>, linux-doc@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kbuild@vger.kernel.org, Michal Marek <mmarek@suse.cz>, Pantelis Koukousoulas <pktoss@gmail.com>, Rob Landley <rob@landley.net>, Rusty Russell <rusty@rustcorp.com.au>, sparclinux@vger.kernel.org, Tony Luck <tony.luck@intel.com>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
+Cc: sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>, Kamal Mostafa <kamal@canonical.com>
 
-Hi Thomas,
+3.13.11.11 -stable review patch.  If anyone has any objections, please let me know.
 
-as discussed earlier today, I'm sending out a fresh rebase of the gdb
-scripts so that you can organize the next steps towards merge. Thanks
-for this in advance!
+------------------
 
-Changes since v9:
- - rebase over recent Linux version
- - use a generator instead of iterator for task list,
-   fixes thread-group iteration [Daniel Wagner]
- - apply generator scheme on other iterations
- - propose myself as maintainer
+From: bob picco <bpicco@meloft.net>
 
-See http://lkml.indiana.edu/hypermail/linux/kernel/1210.0/01598.html for
-the original description and
+[ Upstream commit 4ccb9272892c33ef1c19a783cfa87103b30c2784 ]
 
-    git://git.kiszka.org/linux.git queues/gdb-scripts
+We've witnessed a few TLB events causing the machine to power off because
+of prom_halt. In one case it was some nfs related area during rmmod. Another
+was an mmapper of /dev/mem. A more recent one is an ITLB issue with
+a bad pagesize which could be a hardware bug. Bugs happen but we should
+attempt to not power off the machine and/or hang it when possible.
 
-for the latest version.
+This is a DTLB error from an mmapper of /dev/mem:
+[root@sparcie ~]# SUN4V-DTLB: Error at TPC[fffff80100903e6c], tl 1
+SUN4V-DTLB: TPC<0xfffff80100903e6c>
+SUN4V-DTLB: O7[fffff801081979d0]
+SUN4V-DTLB: O7<0xfffff801081979d0>
+SUN4V-DTLB: vaddr[fffff80100000000] ctx[1250] pte[98000000000f0610] error[2]
+.
 
-There is still some issue with gdb >= 7.8 when parsing symbols of kernel
-modules, because I didn't deliver those folks the requested core dump of
-gdb so far - done now. So up to version 7.7 remains recommended for the
-time being.
+This is recent mainline for ITLB:
+[ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
+[ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
+[ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
+[ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
+.
 
-Jan
+Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
+prom_halt() and drop us to OF command prompt "ok". This isn't the case for
+LDOMs and the machine powers off.
 
-CC: Daniel Thompson <daniel.thompson@linaro.org>
-CC: Daniel Wagner <daniel.wagner@bmw-carit.de>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-CC: Kay Sievers <kay@vrfy.org>
-CC: linux-doc@vger.kernel.org
-CC: linux-ia64@vger.kernel.org
-Cc: linux-kbuild@vger.kernel.org
-CC: linux-kbuild@vger.kernel.org
-Cc: Michal Marek <mmarek@suse.cz>
-CC: Michal Marek <mmarek@suse.cz>
-CC: Pantelis Koukousoulas <pktoss@gmail.com>
-CC: Rob Landley <rob@landley.net>
-CC: Rusty Russell <rusty@rustcorp.com.au>
-CC: sparclinux@vger.kernel.org
-CC: Tony Luck <tony.luck@intel.com>
+For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
+a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
+of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
+one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
 
-Daniel Thompson (1):
-  scripts/gdb: Ignore byte-compiled python files
+The logic of this patch was partially inspired by David Miller's feedback.
 
-Daniel Wagner (1):
-  scripts/gdb: Use a generator instead of iterator for task list
+Power off of large sparc64 machines is painful. Plus die_if_kernel provides
+more context. A reset sequence isn't a brief period on large sparc64 but
+better than power-off/power-on sequence.
 
-Jan Kiszka (24):
-  scripts/gdb: Add infrastructure
-  scripts/gdb: Add cache for type objects
-  scripts/gdb: Add container_of helper and convenience function
-  scripts/gdb: Add module iteration class
-  scripts/gdb: Add lx-symbols command
-  module: Do not inline do_init_module
-  scripts/gdb: Add automatic symbol reloading on module insertion
-  scripts/gdb: Add internal helper and convenience function to look up a
-    module
-  scripts/gdb: Add get_target_endianness helper
-  scripts/gdb: Add read_u16/32/64 helpers
-  scripts/gdb: Add lx-dmesg command
-  scripts/gdb: Add task iteration class
-  scripts/gdb: Add helper and convenience function to look up tasks
-  scripts/gdb: Add is_target_arch helper
-  scripts/gdb: Add internal helper and convenience function to retrieve
-    thread_info
-  scripts/gdb: Add get_gdbserver_type helper
-  scripts/gdb: Add internal helper and convenience function for per-cpu
-    lookup
-  scripts/gdb: Add lx_current convenience function
-  scripts/gdb: Add class to iterate over CPU masks
-  scripts/gdb: Add lx-lsmod command
-  scripts/gdb: Add basic documentation
-  scripts/gdb: Convert ModuleList to generator function
-  scripts/gdb: Convert CpuList to generator function
-  scripts/gdb: Define maintainer
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+---
+ arch/sparc/include/asm/thread_info_64.h |  1 +
+ arch/sparc/kernel/sun4v_tlb_miss.S      | 35 ++++++++++++++++++++-------------
+ arch/sparc/kernel/traps_64.c            | 15 ++++++++------
+ arch/sparc/mm/fault_64.c                |  3 +++
+ 4 files changed, 34 insertions(+), 20 deletions(-)
 
-Pantelis Koukousoulas (1):
-  scripts/gdb: Port to python3 / gdb7.7
-
- .gitignore                             |   1 +
- Documentation/gdb-kernel-debugging.txt | 160 +++++++++++++++++++++++++++++++
- MAINTAINERS                            |   5 +
- Makefile                               |   6 +-
- kernel/module.c                        |   9 +-
- lib/Kconfig.debug                      |  11 +++
- scripts/Makefile                       |   3 +-
- scripts/gdb/Makefile                   |   1 +
- scripts/gdb/linux/.gitignore           |   2 +
- scripts/gdb/linux/Makefile             |  11 +++
- scripts/gdb/linux/__init__.py          |   0
- scripts/gdb/linux/cpus.py              | 135 +++++++++++++++++++++++++++
- scripts/gdb/linux/dmesg.py             |  65 +++++++++++++
- scripts/gdb/linux/modules.py           | 103 ++++++++++++++++++++
- scripts/gdb/linux/symbols.py           | 166 +++++++++++++++++++++++++++++++++
- scripts/gdb/linux/tasks.py             | 100 ++++++++++++++++++++
- scripts/gdb/linux/utils.py             | 156 +++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py             |  30 ++++++
- 18 files changed, 960 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/gdb-kernel-debugging.txt
- create mode 100644 scripts/gdb/Makefile
- create mode 100644 scripts/gdb/linux/.gitignore
- create mode 100644 scripts/gdb/linux/Makefile
- create mode 100644 scripts/gdb/linux/__init__.py
- create mode 100644 scripts/gdb/linux/cpus.py
- create mode 100644 scripts/gdb/linux/dmesg.py
- create mode 100644 scripts/gdb/linux/modules.py
- create mode 100644 scripts/gdb/linux/symbols.py
- create mode 100644 scripts/gdb/linux/tasks.py
- create mode 100644 scripts/gdb/linux/utils.py
- create mode 100644 scripts/gdb/vmlinux-gdb.py
-
+diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+index a5f01ac..f85dc85 100644
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -102,6 +102,7 @@ struct thread_info {
+ #define FAULT_CODE_ITLB		0x04	/* Miss happened in I-TLB	   */
+ #define FAULT_CODE_WINFIXUP	0x08	/* Miss happened during spill/fill */
+ #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
++#define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
+ 
+ #if PAGE_SHIFT = 13
+ #define THREAD_SIZE (2*PAGE_SIZE)
+diff --git a/arch/sparc/kernel/sun4v_tlb_miss.S b/arch/sparc/kernel/sun4v_tlb_miss.S
+index e0c09bf8..6179e19 100644
+--- a/arch/sparc/kernel/sun4v_tlb_miss.S
++++ b/arch/sparc/kernel/sun4v_tlb_miss.S
+@@ -195,6 +195,11 @@ sun4v_tsb_miss_common:
+ 	 ldx	[%g2 + TRAP_PER_CPU_PGD_PADDR], %g7
+ 
+ sun4v_itlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_ITLB, %g1
++
+ 	sethi	%hi(sun4v_err_itlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_itlb_vaddr)]
+ 	sethi	%hi(sun4v_err_itlb_ctx), %g1
+@@ -206,15 +211,10 @@ sun4v_itlb_error:
+ 	sethi	%hi(sun4v_err_itlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_itlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_itlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+@@ -222,6 +222,11 @@ sun4v_itlb_error:
+ 	/* NOTREACHED */
+ 
+ sun4v_dtlb_error:
++	rdpr	%tl, %g1
++	cmp	%g1, 1
++	ble,pt	%icc, sun4v_bad_ra
++	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_DTLB, %g1
++
+ 	sethi	%hi(sun4v_err_dtlb_vaddr), %g1
+ 	stx	%g4, [%g1 + %lo(sun4v_err_dtlb_vaddr)]
+ 	sethi	%hi(sun4v_err_dtlb_ctx), %g1
+@@ -233,21 +238,23 @@ sun4v_dtlb_error:
+ 	sethi	%hi(sun4v_err_dtlb_error), %g1
+ 	stx	%o0, [%g1 + %lo(sun4v_err_dtlb_error)]
+ 
++	sethi	%hi(1f), %g7
+ 	rdpr	%tl, %g4
+-	cmp	%g4, 1
+-	ble,pt	%icc, 1f
+-	 sethi	%hi(2f), %g7
+ 	ba,pt	%xcc, etraptl1
+-	 or	%g7, %lo(2f), %g7
+-
+-1:	ba,pt	%xcc, etrap
+-2:	 or	%g7, %lo(2b), %g7
++1:	 or	%g7, %lo(1f), %g7
+ 	mov	%l4, %o1
+ 	call	sun4v_dtlb_error_report
+ 	 add	%sp, PTREGS_OFF, %o0
+ 
+ 	/* NOTREACHED */
+ 
++sun4v_bad_ra:
++	or	%g0, %g4, %g5
++	ba,pt	%xcc, sparc64_realfault_common
++	 or	%g1, %g0, %g4
++
++	/* NOTREACHED */
++
+ 	/* Instruction Access Exception, tl0. */
+ sun4v_iacc:
+ 	ldxa	[%g0] ASI_SCRATCHPAD, %g2
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 4ced92f..25d0c7e 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2102,6 +2102,11 @@ void sun4v_nonresum_overflow(struct pt_regs *regs)
+ 	atomic_inc(&sun4v_nonresum_oflow_cnt);
+ }
+ 
++static void sun4v_tlb_error(struct pt_regs *regs)
++{
++	die_if_kernel("TLB/TSB error", regs);
++}
++
+ unsigned long sun4v_err_itlb_vaddr;
+ unsigned long sun4v_err_itlb_ctx;
+ unsigned long sun4v_err_itlb_pte;
+@@ -2109,8 +2114,7 @@ unsigned long sun4v_err_itlb_error;
+ 
+ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-ITLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2123,7 +2127,7 @@ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
+ 	       sun4v_err_itlb_vaddr, sun4v_err_itlb_ctx,
+ 	       sun4v_err_itlb_pte, sun4v_err_itlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ unsigned long sun4v_err_dtlb_vaddr;
+@@ -2133,8 +2137,7 @@ unsigned long sun4v_err_dtlb_error;
+ 
+ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
+ {
+-	if (tl > 1)
+-		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
++	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+ 
+ 	printk(KERN_EMERG "SUN4V-DTLB: Error at TPC[%lx], tl %d\n",
+ 	       regs->tpc, tl);
+@@ -2147,7 +2150,7 @@ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
+ 	       sun4v_err_dtlb_vaddr, sun4v_err_dtlb_ctx,
+ 	       sun4v_err_dtlb_pte, sun4v_err_dtlb_error);
+ 
+-	prom_halt();
++	sun4v_tlb_error(regs);
+ }
+ 
+ void hypervisor_tlbop_error(unsigned long err, unsigned long op)
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 4ced3fc..45a413e 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -348,6 +348,9 @@ retry:
+ 		down_read(&mm->mmap_sem);
+ 	}
+ 
++	if (fault_code & FAULT_CODE_BAD_RA)
++		goto do_sigbus;
++
+ 	vma = find_vma(mm, address);
+ 	if (!vma)
+ 		goto bad_area;
 -- 
-1.8.4.5
+1.9.1
 
