@@ -1,57 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 01 Nov 2014 04:28:16 +0000
-Subject: Re: NULL dereference in schizo error handler
-Message-Id: <20141101.002816.1774392257560364558.davem@davemloft.net>
+From: David Drysdale <drysdale@google.com>
+Date: Fri, 14 Nov 2014 16:23:02 +0000
+Subject: [PATCHv8 3/4] sparc: Hook up execveat system call.
+Message-Id: <1415982183-20525-4-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1410260022340.19758@adalberg.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1410260022340.19758@adalberg.ut.ee>
+References: <1415982183-20525-1-git-send-email-drysdale@google.com>
+In-Reply-To: <1415982183-20525-1-git-send-email-drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Drysdale <drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Fri, 31 Oct 2014 23:03:28 +0200 (EET)
+Signed-off-by: David Drysdale <drysdale@google.com>
+---
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 1 +
+ arch/sparc/kernel/systbls_64.S       | 2 ++
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
->> This schizo error handler definitely needs to be adjusted.  The
->> bus->self value is not necessarily going to be there.  In fact
->> often it won't be.
->>
->> The PCI controller's themselves don't show up in the device tree as
->> bonafide PCI devices, so we don't instantiate them with the PCI
->> subsystem, and therefore bus->self never takes on a non-NULL value.
->>
->> If you look at
->> arch/sparc/kernel/psycho_common.c:psycho_pcierr_intr_other()
->> it addresses this by doing the PCI config space access by hand, thus
->> avoiding the bus->self dereference.
->>
->> Meanwhile, this patch might allow things to get further:
-> 
-> It seems to work - no crash but this in dmesg, and it continues
-> booting fine:
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 46d83842eddc..6f35f4df17f2 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -415,8 +415,9 @@
+ #define __NR_getrandom		347
+ #define __NR_memfd_create	348
+ #define __NR_bpf		349
++#define __NR_execveat		350
 
-Thanks for testing, I'll push this upstream and to -stable.
+-#define NR_syscalls		350
++#define NR_syscalls		351
 
-> [ 69.137735] /pci@9,600000: PCI Error, primary error type[Master
-> Abort]
-> [ 69.144196] /pci@9,600000: bytemask[0003] was_block(0) space(Memory)
-> [   69.150520] /pci@9,600000: PCI AFAR [00000000004000c0]
-> [   69.155632] /pci@9,600000: PCI Secondary errors [(none)]
-> [   69.160984] /pci@9,600000: PCI bus error, PCI_STATUS[22a0]
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index ad0cdf497b78..e31a9056a303 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -87,3 +87,4 @@ sys_call_table:
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.long sys_execveat
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 580cde9370c9..15069cb35dac 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -88,6 +88,7 @@ sys_call_table32:
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.word sys_execveat
 
-Ok, the PCI status register has these bits set:
+ #endif /* CONFIG_COMPAT */
 
-	PCI_STATUS_REC_MASTER_ABORT
-	PCI_STATUS_DEVSEL_MEDIUM
-	PCI_STATUS_FAST_BACK
-	PCI_STATUS_66MHZ
-
-The only error condition is that it received a master abort.
-
-I wonder if this happend during firmware init or something before
-Linux even booted.
-
-I'll see if there is some way we can track down if there is something
-specific that Linux is doing at this moment that might have triggered
-this.
+@@ -167,3 +168,4 @@ sys_call_table:
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.word sys_execveat
+--
+2.1.0.rc2.206.gedb03e5
