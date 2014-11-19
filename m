@@ -1,113 +1,149 @@
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Date: Thu, 20 Nov 2014 17:01:54 +0000
-Subject: [PATCH v10 17/27] scripts/gdb: Add internal helper and convenience function for per-cpu lookup
-Message-Id: <e3408b73e6c4a214a37007623964b2df867c6f8a.1416502923.git.jan.kiszka@siemens.com>
+From: David Drysdale <drysdale@google.com>
+Date: Wed, 19 Nov 2014 17:27:49 +0000
+Subject: [PATCHv9 2/5] x86: Hook up execveat system call.
+Message-Id: <1416418072-18639-3-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1416502923.git.jan.kiszka@siemens.com>
-In-Reply-To: <cover.1416502923.git.jan.kiszka@siemens.com>
+References: <1416418072-18639-1-git-send-email-drysdale@google.com>
+In-Reply-To: <1416418072-18639-1-git-send-email-drysdale@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, Borislav Petkov <bp@suse.de>, Tatiana Al-Chueyr Martins <tatiana.alchueyr@gmail.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
+Hook up x86-64, i386 and x32 ABIs.
 
-Note: sparc64 version is untested.
-
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Signed-off-by: David Drysdale <drysdale@google.com>
 ---
- scripts/gdb/linux/cpus.py  | 68 ++++++++++++++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |  1 +
- 2 files changed, 69 insertions(+)
- create mode 100644 scripts/gdb/linux/cpus.py
+ arch/x86/ia32/audit.c            |  1 +
+ arch/x86/ia32/ia32entry.S        |  1 +
+ arch/x86/kernel/audit_64.c       |  1 +
+ arch/x86/kernel/entry_64.S       | 28 ++++++++++++++++++++++++++++
+ arch/x86/syscalls/syscall_32.tbl |  1 +
+ arch/x86/syscalls/syscall_64.tbl |  2 ++
+ arch/x86/um/sys_call_table_64.c  |  1 +
+ 7 files changed, 35 insertions(+)
 
-diff --git a/scripts/gdb/linux/cpus.py b/scripts/gdb/linux/cpus.py
-new file mode 100644
-index 0000000..18337e0
---- /dev/null
-+++ b/scripts/gdb/linux/cpus.py
-@@ -0,0 +1,68 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) Siemens AG, 2011-2013
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
+diff --git a/arch/x86/ia32/audit.c b/arch/x86/ia32/audit.c
+index 5d7b381da692..2eccc8932ae6 100644
+--- a/arch/x86/ia32/audit.c
++++ b/arch/x86/ia32/audit.c
+@@ -35,6 +35,7 @@ int ia32_classify_syscall(unsigned syscall)
+ 	case __NR_socketcall:
+ 		return 4;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 1;
+diff --git a/arch/x86/ia32/ia32entry.S b/arch/x86/ia32/ia32entry.S
+index ffe71228fc10..82e8a1d44658 100644
+--- a/arch/x86/ia32/ia32entry.S
++++ b/arch/x86/ia32/ia32entry.S
+@@ -480,6 +480,7 @@ GLOBAL(\label)
+ 	PTREGSCALL stub32_rt_sigreturn, sys32_rt_sigreturn
+ 	PTREGSCALL stub32_sigreturn, sys32_sigreturn
+ 	PTREGSCALL stub32_execve, compat_sys_execve
++	PTREGSCALL stub32_execveat, compat_sys_execveat
+ 	PTREGSCALL stub32_fork, sys_fork
+ 	PTREGSCALL stub32_vfork, sys_vfork
+ 
+diff --git a/arch/x86/kernel/audit_64.c b/arch/x86/kernel/audit_64.c
+index 06d3e5a14d9d..f3672508b249 100644
+--- a/arch/x86/kernel/audit_64.c
++++ b/arch/x86/kernel/audit_64.c
+@@ -50,6 +50,7 @@ int audit_classify_syscall(int abi, unsigned syscall)
+ 	case __NR_openat:
+ 		return 3;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 0;
+diff --git a/arch/x86/kernel/entry_64.S b/arch/x86/kernel/entry_64.S
+index df088bb03fb3..40d893c60fcc 100644
+--- a/arch/x86/kernel/entry_64.S
++++ b/arch/x86/kernel/entry_64.S
+@@ -652,6 +652,20 @@ ENTRY(stub_execve)
+ 	CFI_ENDPROC
+ END(stub_execve)
+ 
++ENTRY(stub_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_execveat)
 +
-+import gdb
+ /*
+  * sigreturn is special because it needs to restore all registers on return.
+  * This cannot be done with SYSRET, so use the IRET return path instead.
+@@ -697,6 +711,20 @@ ENTRY(stub_x32_execve)
+ 	CFI_ENDPROC
+ END(stub_x32_execve)
+ 
++ENTRY(stub_x32_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call compat_sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_x32_execveat)
 +
-+from linux import tasks, utils
-+
-+
-+MAX_CPUS = 4096
-+
-+
-+def get_current_cpu():
-+    if utils.get_gdbserver_type() = utils.GDBSERVER_QEMU:
-+        return gdb.selected_thread().num - 1
-+    elif utils.get_gdbserver_type() = utils.GDBSERVER_KGDB:
-+        tid = gdb.selected_thread().ptid[2]
-+        if tid > (0x100000000 - MAX_CPUS - 2):
-+            return 0x100000000 - tid - 2
-+        else:
-+            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
-+    else:
-+        raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
-+                           "supported with this gdb server.")
-+
-+
-+def per_cpu(var_ptr, cpu):
-+    if cpu = -1:
-+        cpu = get_current_cpu()
-+    if utils.is_target_arch("sparc:v9"):
-+        offset = gdb.parse_and_eval(
-+            "trap_block[{0}].__per_cpu_base".format(str(cpu)))
-+    else:
-+        try:
-+            offset = gdb.parse_and_eval(
-+                "__per_cpu_offset[{0}]".format(str(cpu)))
-+        except gdb.error:
-+            # !CONFIG_SMP case
-+            offset = 0
-+    pointer = var_ptr.cast(utils.get_long_type()) + offset
-+    return pointer.cast(var_ptr.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+    """Return per-cpu variable.
-+
-+$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
-+given CPU number. If CPU is omitted, the CPU of the current context is used.
-+Note that VAR has to be quoted as string."""
-+
-+    def __init__(self):
-+        super(PerCpu, self).__init__("lx_per_cpu")
-+
-+    def invoke(self, var_name, cpu=-1):
-+        var_ptr = gdb.parse_and_eval("&" + var_name.string())
-+        return per_cpu(var_ptr, cpu)
-+
-+
-+PerCpu()
-diff --git a/scripts/gdb/vmlinux-gdb.py b/scripts/gdb/vmlinux-gdb.py
-index 4d7eb2c..4848928 100644
---- a/scripts/gdb/vmlinux-gdb.py
-+++ b/scripts/gdb/vmlinux-gdb.py
-@@ -27,3 +27,4 @@ else:
-     import linux.modules
-     import linux.dmesg
-     import linux.tasks
-+    import linux.cpus
+ #endif
+ 
+ /*
+diff --git a/arch/x86/syscalls/syscall_32.tbl b/arch/x86/syscalls/syscall_32.tbl
+index 9fe1b5d002f0..b3560ece1c9f 100644
+--- a/arch/x86/syscalls/syscall_32.tbl
++++ b/arch/x86/syscalls/syscall_32.tbl
+@@ -364,3 +364,4 @@
+ 355	i386	getrandom		sys_getrandom
+ 356	i386	memfd_create		sys_memfd_create
+ 357	i386	bpf			sys_bpf
++358	i386	execveat		sys_execveat			stub32_execveat
+diff --git a/arch/x86/syscalls/syscall_64.tbl b/arch/x86/syscalls/syscall_64.tbl
+index 281150b539a2..8d656fbb57aa 100644
+--- a/arch/x86/syscalls/syscall_64.tbl
++++ b/arch/x86/syscalls/syscall_64.tbl
+@@ -328,6 +328,7 @@
+ 319	common	memfd_create		sys_memfd_create
+ 320	common	kexec_file_load		sys_kexec_file_load
+ 321	common	bpf			sys_bpf
++322	64	execveat		stub_execveat
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+@@ -366,3 +367,4 @@
+ 542	x32	getsockopt		compat_sys_getsockopt
+ 543	x32	io_setup		compat_sys_io_setup
+ 544	x32	io_submit		compat_sys_io_submit
++545	x32	execveat		stub_x32_execveat
+diff --git a/arch/x86/um/sys_call_table_64.c b/arch/x86/um/sys_call_table_64.c
+index f2f0723070ca..20c3649d0691 100644
+--- a/arch/x86/um/sys_call_table_64.c
++++ b/arch/x86/um/sys_call_table_64.c
+@@ -31,6 +31,7 @@
+ #define stub_fork sys_fork
+ #define stub_vfork sys_vfork
+ #define stub_execve sys_execve
++#define stub_execveat sys_execveat
+ #define stub_rt_sigreturn sys_rt_sigreturn
+ 
+ #define __SYSCALL_COMMON(nr, sym, compat) __SYSCALL_64(nr, sym, compat)
 -- 
-1.8.4.5
+2.1.0.rc2.206.gedb03e5
 
