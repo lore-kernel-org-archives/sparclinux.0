@@ -1,81 +1,67 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Thu, 20 Nov 2014 01:49:05 +0000
-Subject: Re: [PATCH 5/5] PCI: Rip out pci_bus_add_devices() from pci_scan_root_bus()
-Message-Id: <546D4891.80503@huawei.com>
+From: chris hyser <chris.hyser@oracle.com>
+Date: Wed, 19 Nov 2014 23:52:34 +0000
+Subject: [PATCH] sparc64: sunvdc: Complete I/O request if vdisk server error
+Message-Id: <546D2D42.2070202@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1416382369-13587-1-git-send-email-wangyijing@huawei.com>
- <1416382369-13587-6-git-send-email-wangyijing@huawei.com>
- <1645037.uypArjN50l@wuerfel>
-In-Reply-To: <1645037.uypArjN50l@wuerfel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
->> diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
->> index 076c35c..97f9730 100644
->> --- a/arch/alpha/kernel/pci.c
->> +++ b/arch/alpha/kernel/pci.c
->> @@ -334,6 +334,8 @@ common_init_pci(void)
->>  
->>  		bus = pci_scan_root_bus(NULL, next_busno, alpha_mv.pci_ops,
->>  					hose, &resources);
->> +		if (bus)
->> +			pci_bus_add_devices(bus);
->>  		hose->bus = bus;
->>  		hose->need_domain_info = need_domain_info;
->>  		next_busno = bus->busn_res.end + 1;
-> 
-> How about making pci_bus_add_devices() handle a NULL argument to save
-> the if() here and elsewhere?
+Hi All,
 
-This make sense, will update it, thanks!
+In vdc_end_one() of sunvdc.c a non-zero status indicates an error from Solaris
+vds. In the case of an actual disk as the vds backend, the error comes from the
+corresponding Solaris driver and may or may not represent an actual vdisk error
+and the I/O size may be 0. In this case __blk_end_request() does not complete
+the request and there may be no further actions to complete it.  This results
+in an indefinite hang of the process initiating the I/O.
 
->> diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
->> index 1bf60b1..f083688 100644
->> --- a/arch/mips/pci/pci.c
->> +++ b/arch/mips/pci/pci.c
->> @@ -113,6 +113,7 @@ static void pcibios_scanbus(struct pci_controller *hose)
->>  		if (!pci_has_flag(PCI_PROBE_ONLY)) {
->>  			pci_bus_size_bridges(bus);
->>  			pci_bus_assign_resources(bus);
->> +			pci_bus_add_devices(bus);
->>  		}
->>  	}
->>  }
-> 
-> This one looks wrong, I think you still want to call pci_bus_add_devices()
-> even with PCI_PROBE_ONLY set.
+with patch:
 
-Yes, this is my mistake, :(
+chrish2> dd if=/dev/zero of=/dev/vdiskc count=1
+sunvdc: virtual disk server I/O error 5
+end_request: I/O error, dev vdiskc, sector 0
+Buffer I/O error on device vdiskc, logical block 0
+lost page write due to I/O error on vdiskc
+1+0 records in
+1+0 records out
+512 bytes (512 B) copied, 0.000695392 s, 736 kB/s
 
-> 
->> diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
->> index 1f80a88..007466e 100644
->> --- a/arch/tile/kernel/pci.c
->> +++ b/arch/tile/kernel/pci.c
->> @@ -308,6 +308,8 @@ int __init pcibios_init(void)
->>  			pci_add_resource(&resources, &iomem_resource);
->>  			bus = pci_scan_root_bus(NULL, 0, controller->ops,
->>  						controller, &resources);
->> +			if (bus)
->> +				pci_bus_add_devices(bus);
->>  			controller->root_bus = bus;
->>  			controller->last_busno = bus->busn_res.end;
->>  		}
-> 
-> Should the pci_bus_add_devices come after setting the bus numbers here?
+Without this patch, dd will hang and cannot be killed. Note, 5 is a Solaris EIO.
+Still not sure what that is about. :-(
 
-I think it's doesn't matter, but move it backward is ok to me.
-
-> 
-> 	Arnd
-> 
-> .
-> 
+-chrish
 
 
--- 
-Thanks!
-Yijing
+-- >8 --
+ From 018ad8a7087a195f082dfdc2ae53288eae4a7487 Mon Sep 17 00:00:00 2001
+From: chris hyser <chris.hyser@oracle.com>
+Date: Wed, 19 Nov 2014 12:41:56 -0800
+Subject: [PATCH] sparc64: sunvdc: Complete I/O request if vdisk server error
+
+If virtual disk server returns an I/O with an error and 0 data transferred,
+complete the I/O with EIO to ensure initiating process does not hang
+indefinitely.
+
+Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
+
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 0ebadf9..17e9a50 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -279,7 +279,12 @@ static void vdc_end_one(struct vdc_port *port, struct vio_dring_state *dr,
+
+  	rqe->req = NULL;
+
+-	__blk_end_request(req, (desc->status ? -EIO : 0), desc->size);
++	if (desc->status && desc->size = 0) {
++		printk(KERN_ERR PFX "virtual disk server I/O error %d\n",
++				desc->status);
++		__blk_end_request_all(req, -EIO);
++	} else
++		__blk_end_request(req, (desc->status ? -EIO : 0) , desc->size);
+
+  	/* restart blk queue when ring is half emptied */
+  	if (blk_queue_stopped(port->disk->queue) &&
 
