@@ -1,228 +1,180 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Thu, 06 Nov 2014 22:34:55 +0000
-Subject: [PATCH 3.13 031/162] sparc64: sun4v TLB error power off events
-Message-Id: <1415313426-9622-32-git-send-email-kamal@canonical.com>
+From: David Drysdale <drysdale@google.com>
+Date: Wed, 19 Nov 2014 17:27:52 +0000
+Subject: [PATCHv9 man-pages 5/5] execveat.2: initial man page for execveat(2)
+Message-Id: <1416418072-18639-6-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1415313426-9622-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1415313426-9622-1-git-send-email-kamal@canonical.com>
+References: <1416418072-18639-1-git-send-email-drysdale@google.com>
+In-Reply-To: <1416418072-18639-1-git-send-email-drysdale@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>, Kamal Mostafa <kamal@canonical.com>
+To: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
 
-3.13.11.11 -stable review patch.  If anyone has any objections, please let me know.
-
-------------------
-
-From: bob picco <bpicco@meloft.net>
-
-[ Upstream commit 4ccb9272892c33ef1c19a783cfa87103b30c2784 ]
-
-We've witnessed a few TLB events causing the machine to power off because
-of prom_halt. In one case it was some nfs related area during rmmod. Another
-was an mmapper of /dev/mem. A more recent one is an ITLB issue with
-a bad pagesize which could be a hardware bug. Bugs happen but we should
-attempt to not power off the machine and/or hang it when possible.
-
-This is a DTLB error from an mmapper of /dev/mem:
-[root@sparcie ~]# SUN4V-DTLB: Error at TPC[fffff80100903e6c], tl 1
-SUN4V-DTLB: TPC<0xfffff80100903e6c>
-SUN4V-DTLB: O7[fffff801081979d0]
-SUN4V-DTLB: O7<0xfffff801081979d0>
-SUN4V-DTLB: vaddr[fffff80100000000] ctx[1250] pte[98000000000f0610] error[2]
-.
-
-This is recent mainline for ITLB:
-[ 3708.179864] SUN4V-ITLB: TPC<0xfffffc010071cefc>
-[ 3708.188866] SUN4V-ITLB: O7[fffffc010071cee8]
-[ 3708.197377] SUN4V-ITLB: O7<0xfffffc010071cee8>
-[ 3708.206539] SUN4V-ITLB: vaddr[e0003] ctx[1a3c] pte[2900000dcc800eeb] error[4]
-.
-
-Normally sun4v_itlb_error_report() and sun4v_dtlb_error_report() would call
-prom_halt() and drop us to OF command prompt "ok". This isn't the case for
-LDOMs and the machine powers off.
-
-For the HV reported error of HV_ENORADDR for HV HV_MMU_MAP_ADDR_TRAP we cause
-a SIGBUS error by qualifying it within do_sparc64_fault() for fault code mask
-of FAULT_CODE_BAD_RA. This is done when trap level (%tl) is less or equal
-one("1"). Otherwise, for %tl > 1,  we proceed eventually to die_if_kernel().
-
-The logic of this patch was partially inspired by David Miller's feedback.
-
-Power off of large sparc64 machines is painful. Plus die_if_kernel provides
-more context. A reset sequence isn't a brief period on large sparc64 but
-better than power-off/power-on sequence.
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+Signed-off-by: David Drysdale <drysdale@google.com>
 ---
- arch/sparc/include/asm/thread_info_64.h |  1 +
- arch/sparc/kernel/sun4v_tlb_miss.S      | 35 ++++++++++++++++++++-------------
- arch/sparc/kernel/traps_64.c            | 15 ++++++++------
- arch/sparc/mm/fault_64.c                |  3 +++
- 4 files changed, 34 insertions(+), 20 deletions(-)
+ man2/execveat.2 | 153 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 153 insertions(+)
+ create mode 100644 man2/execveat.2
 
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index a5f01ac..f85dc85 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -102,6 +102,7 @@ struct thread_info {
- #define FAULT_CODE_ITLB		0x04	/* Miss happened in I-TLB	   */
- #define FAULT_CODE_WINFIXUP	0x08	/* Miss happened during spill/fill */
- #define FAULT_CODE_BLKCOMMIT	0x10	/* Use blk-commit ASI in copy_page */
-+#define	FAULT_CODE_BAD_RA	0x20	/* Bad RA for sun4v		   */
- 
- #if PAGE_SHIFT = 13
- #define THREAD_SIZE (2*PAGE_SIZE)
-diff --git a/arch/sparc/kernel/sun4v_tlb_miss.S b/arch/sparc/kernel/sun4v_tlb_miss.S
-index e0c09bf8..6179e19 100644
---- a/arch/sparc/kernel/sun4v_tlb_miss.S
-+++ b/arch/sparc/kernel/sun4v_tlb_miss.S
-@@ -195,6 +195,11 @@ sun4v_tsb_miss_common:
- 	 ldx	[%g2 + TRAP_PER_CPU_PGD_PADDR], %g7
- 
- sun4v_itlb_error:
-+	rdpr	%tl, %g1
-+	cmp	%g1, 1
-+	ble,pt	%icc, sun4v_bad_ra
-+	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_ITLB, %g1
+diff --git a/man2/execveat.2 b/man2/execveat.2
+new file mode 100644
+index 000000000000..937d79e4c4f0
+--- /dev/null
++++ b/man2/execveat.2
+@@ -0,0 +1,153 @@
++.\" Copyright (c) 2014 Google, Inc.
++.\"
++.\" %%%LICENSE_START(VERBATIM)
++.\" Permission is granted to make and distribute verbatim copies of this
++.\" manual provided the copyright notice and this permission notice are
++.\" preserved on all copies.
++.\"
++.\" Permission is granted to copy and distribute modified versions of this
++.\" manual under the conditions for verbatim copying, provided that the
++.\" entire resulting derived work is distributed under the terms of a
++.\" permission notice identical to this one.
++.\"
++.\" Since the Linux kernel and libraries are constantly changing, this
++.\" manual page may be incorrect or out-of-date.  The author(s) assume no
++.\" responsibility for errors or omissions, or for damages resulting from
++.\" the use of the information contained herein.  The author(s) may not
++.\" have taken the same level of care in the production of this manual,
++.\" which is licensed free of charge, as they might when working
++.\" professionally.
++.\"
++.\" Formatted or processed versions of this manual, if unaccompanied by
++.\" the source, must acknowledge the copyright and authors of this work.
++.\" %%%LICENSE_END
++.\"
++.TH EXECVEAT 2 2014-04-02 "Linux" "Linux Programmer's Manual"
++.SH NAME
++execveat \- execute program relative to a directory file descriptor
++.SH SYNOPSIS
++.B #include <unistd.h>
++.sp
++.BI "int execveat(int " fd ", const char *" pathname ","
++.br
++.BI "             char *const " argv "[],  char *const " envp "[],"
++.br
++.BI "             int " flags);
++.SH DESCRIPTION
++The
++.BR execveat ()
++system call executes the program pointed to by the combination of \fIfd\fP and \fIpathname\fP.
++The
++.BR execveat ()
++system call operates in exactly the same way as
++.BR execve (2),
++except for the differences described in this manual page.
 +
- 	sethi	%hi(sun4v_err_itlb_vaddr), %g1
- 	stx	%g4, [%g1 + %lo(sun4v_err_itlb_vaddr)]
- 	sethi	%hi(sun4v_err_itlb_ctx), %g1
-@@ -206,15 +211,10 @@ sun4v_itlb_error:
- 	sethi	%hi(sun4v_err_itlb_error), %g1
- 	stx	%o0, [%g1 + %lo(sun4v_err_itlb_error)]
- 
-+	sethi	%hi(1f), %g7
- 	rdpr	%tl, %g4
--	cmp	%g4, 1
--	ble,pt	%icc, 1f
--	 sethi	%hi(2f), %g7
- 	ba,pt	%xcc, etraptl1
--	 or	%g7, %lo(2f), %g7
--
--1:	ba,pt	%xcc, etrap
--2:	 or	%g7, %lo(2b), %g7
-+1:	 or	%g7, %lo(1f), %g7
- 	mov	%l4, %o1
- 	call	sun4v_itlb_error_report
- 	 add	%sp, PTREGS_OFF, %o0
-@@ -222,6 +222,11 @@ sun4v_itlb_error:
- 	/* NOTREACHED */
- 
- sun4v_dtlb_error:
-+	rdpr	%tl, %g1
-+	cmp	%g1, 1
-+	ble,pt	%icc, sun4v_bad_ra
-+	 or	%g0, FAULT_CODE_BAD_RA | FAULT_CODE_DTLB, %g1
++If the pathname given in
++.I pathname
++is relative, then it is interpreted relative to the directory
++referred to by the file descriptor
++.I fd
++(rather than relative to the current working directory of
++the calling process, as is done by
++.BR execve (2)
++for a relative pathname).
 +
- 	sethi	%hi(sun4v_err_dtlb_vaddr), %g1
- 	stx	%g4, [%g1 + %lo(sun4v_err_dtlb_vaddr)]
- 	sethi	%hi(sun4v_err_dtlb_ctx), %g1
-@@ -233,21 +238,23 @@ sun4v_dtlb_error:
- 	sethi	%hi(sun4v_err_dtlb_error), %g1
- 	stx	%o0, [%g1 + %lo(sun4v_err_dtlb_error)]
- 
-+	sethi	%hi(1f), %g7
- 	rdpr	%tl, %g4
--	cmp	%g4, 1
--	ble,pt	%icc, 1f
--	 sethi	%hi(2f), %g7
- 	ba,pt	%xcc, etraptl1
--	 or	%g7, %lo(2f), %g7
--
--1:	ba,pt	%xcc, etrap
--2:	 or	%g7, %lo(2b), %g7
-+1:	 or	%g7, %lo(1f), %g7
- 	mov	%l4, %o1
- 	call	sun4v_dtlb_error_report
- 	 add	%sp, PTREGS_OFF, %o0
- 
- 	/* NOTREACHED */
- 
-+sun4v_bad_ra:
-+	or	%g0, %g4, %g5
-+	ba,pt	%xcc, sparc64_realfault_common
-+	 or	%g1, %g0, %g4
++If
++.I pathname
++is relative and
++.I fd
++is the special value
++.BR AT_FDCWD ,
++then
++.I pathname
++is interpreted relative to the current working
++directory of the calling process (like
++.BR execve (2)).
 +
-+	/* NOTREACHED */
++If
++.I pathname
++is absolute, then
++.I fd
++is ignored.
 +
- 	/* Instruction Access Exception, tl0. */
- sun4v_iacc:
- 	ldxa	[%g0] ASI_SCRATCHPAD, %g2
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 4ced92f..25d0c7e 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2102,6 +2102,11 @@ void sun4v_nonresum_overflow(struct pt_regs *regs)
- 	atomic_inc(&sun4v_nonresum_oflow_cnt);
- }
- 
-+static void sun4v_tlb_error(struct pt_regs *regs)
-+{
-+	die_if_kernel("TLB/TSB error", regs);
-+}
++If
++.I pathname
++is an empty string and the
++.BR AT_EMPTY_PATH
++flag is specified, then the file descriptor
++.I fd
++specifies the file to be executed.
 +
- unsigned long sun4v_err_itlb_vaddr;
- unsigned long sun4v_err_itlb_ctx;
- unsigned long sun4v_err_itlb_pte;
-@@ -2109,8 +2114,7 @@ unsigned long sun4v_err_itlb_error;
- 
- void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
- {
--	if (tl > 1)
--		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
-+	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
- 
- 	printk(KERN_EMERG "SUN4V-ITLB: Error at TPC[%lx], tl %d\n",
- 	       regs->tpc, tl);
-@@ -2123,7 +2127,7 @@ void sun4v_itlb_error_report(struct pt_regs *regs, int tl)
- 	       sun4v_err_itlb_vaddr, sun4v_err_itlb_ctx,
- 	       sun4v_err_itlb_pte, sun4v_err_itlb_error);
- 
--	prom_halt();
-+	sun4v_tlb_error(regs);
- }
- 
- unsigned long sun4v_err_dtlb_vaddr;
-@@ -2133,8 +2137,7 @@ unsigned long sun4v_err_dtlb_error;
- 
- void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
- {
--	if (tl > 1)
--		dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
-+	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
- 
- 	printk(KERN_EMERG "SUN4V-DTLB: Error at TPC[%lx], tl %d\n",
- 	       regs->tpc, tl);
-@@ -2147,7 +2150,7 @@ void sun4v_dtlb_error_report(struct pt_regs *regs, int tl)
- 	       sun4v_err_dtlb_vaddr, sun4v_err_dtlb_ctx,
- 	       sun4v_err_dtlb_pte, sun4v_err_dtlb_error);
- 
--	prom_halt();
-+	sun4v_tlb_error(regs);
- }
- 
- void hypervisor_tlbop_error(unsigned long err, unsigned long op)
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index 4ced3fc..45a413e 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -348,6 +348,9 @@ retry:
- 		down_read(&mm->mmap_sem);
- 	}
- 
-+	if (fault_code & FAULT_CODE_BAD_RA)
-+		goto do_sigbus;
-+
- 	vma = find_vma(mm, address);
- 	if (!vma)
- 		goto bad_area;
--- 
-1.9.1
-
++.I flags
++can either be 0, or include the following flags:
++.TP
++.BR AT_EMPTY_PATH
++If
++.I pathname
++is an empty string, operate on the file referred to by
++.IR fd
++(which may have been obtained using the
++.BR open (2)
++.B O_PATH
++flag).
++.TP
++.B AT_SYMLINK_NOFOLLOW
++If the file identified by
++.I fd
++and a non-NULL
++.I pathname
++is a symbolic link, then the call fails with the error
++.BR EINVAL .
++.SH "RETURN VALUE"
++On success,
++.BR execveat ()
++does not return. On error \-1 is returned, and
++.I errno
++is set appropriately.
++.SH ERRORS
++The same errors that occur for
++.BR execve (2)
++can also occur for
++.BR execveat ().
++The following additional errors can occur for
++.BR execveat ():
++.TP
++.B EBADF
++.I fd
++is not a valid file descriptor.
++.TP
++.B ENOENT
++The program identified by \fIfd\fP and \fIpathname\fP requires the
++use of an interpreter program (such as a script starting with
++"#!") but the file descriptor
++.I fd
++was opened with the
++.B O_CLOEXEC
++flag and so the program file is inaccessible to the launched interpreter.
++.TP
++.B EINVAL
++Invalid flag specified in
++.IR flags .
++.TP
++.B ENOTDIR
++.I pathname
++is relative and
++.I fd
++is a file descriptor referring to a file other than a directory.
++.SH VERSIONS
++.BR execveat ()
++was added to Linux in kernel 3.???.
++.SH NOTES
++In addition to the reasons explained in
++.BR openat (2),
++the
++.BR execveat ()
++system call is also needed to allow
++.BR fexecve (3)
++to be implemented on systems that do not have the
++.I /proc
++filesystem mounted.
++.SH SEE ALSO
++.BR execve (2),
++.BR fexecve (3)
+--
+2.1.0.rc2.206.gedb03e5
