@@ -1,119 +1,129 @@
-From: Kamal Mostafa <kamal@canonical.com>
-Date: Thu, 06 Nov 2014 22:34:57 +0000
-Subject: [PATCH 3.13 033/162] sparc64: find_node adjustment
-Message-Id: <1415313426-9622-34-git-send-email-kamal@canonical.com>
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Date: Thu, 20 Nov 2014 17:01:37 +0000
+Subject: [PATCH v10 00/27] Add gdb python scripts as kernel debugging helpers
+Message-Id: <cover.1416502923.git.jan.kiszka@siemens.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1415313426-9622-1-git-send-email-kamal@canonical.com>
-In-Reply-To: <1415313426-9622-1-git-send-email-kamal@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org, kernel-team@lists.ubuntu.com
-Cc: sparclinux@vger.kernel.org, Bob Picco <bob.picco@oracle.com>, "David S. Miller" <davem@davemloft.net>, Kamal Mostafa <kamal@canonical.com>
+To: Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Andi Kleen <andi@firstfloor.org>, Tom Tromey <tromey@redhat.com>, Ben Widawsky <ben@bwidawsk.net>, Borislav Petkov <bp@suse.de>, Tatiana Al-Chueyr Martins <tatiana.alchueyr@gmail.com>, Daniel Thompson <daniel.thompson@linaro.org>, Daniel Wagner <daniel.wagner@bmw-carit.de>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Kay Sievers <kay@vrfy.org>, linux-doc@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kbuild@vger.kernel.org, Michal Marek <mmarek@suse.cz>, Pantelis Koukousoulas <pktoss@gmail.com>, Rob Landley <rob@landley.net>, Rusty Russell <rusty@rustcorp.com.au>, sparclinux@vger.kernel.org, Tony Luck <tony.luck@intel.com>
 
-3.13.11.11 -stable review patch.  If anyone has any objections, please let me know.
+Hi Thomas,
 
-------------------
+as discussed earlier today, I'm sending out a fresh rebase of the gdb
+scripts so that you can organize the next steps towards merge. Thanks
+for this in advance!
 
-From: bob picco <bpicco@meloft.net>
+Changes since v9:
+ - rebase over recent Linux version
+ - use a generator instead of iterator for task list,
+   fixes thread-group iteration [Daniel Wagner]
+ - apply generator scheme on other iterations
+ - propose myself as maintainer
 
-[ Upstream commit 3dee9df54836d5f844f3d58281d3f3e6331b467f ]
+See http://lkml.indiana.edu/hypermail/linux/kernel/1210.0/01598.html for
+the original description and
 
-We have seen an issue with guest boot into LDOM that causes early boot failures
-because of no matching rules for node identitity of the memory. I analyzed this
-on my T4 and concluded there might not be a solution. I saw the issue in
-mainline too when booting into the control/primary domain - with guests
-configured.  Note, this could be a firmware bug on some older machines.
+    git://git.kiszka.org/linux.git queues/gdb-scripts
 
-I'll provide a full explanation of the issues below. Should we not find a
-matching BEST latency group for a real address (RA) then we will assume node 0.
-On the T4-2 here with the information provided I can't see an alternative.
+for the latest version.
 
-Technically the LDOM shown below should match the MBLOCK to the
-favorable latency group. However other factors must be considered too. Were
-the memory controllers configured "fine" grained interleave or "coarse"
-grain interleaved -  T4. Also should a "group" MD node be considered a NUMA
-node?
+There is still some issue with gdb >= 7.8 when parsing symbols of kernel
+modules, because I didn't deliver those folks the requested core dump of
+gdb so far - done now. So up to version 7.7 remains recommended for the
+time being.
 
-There has to be at least one Machine Description (MD) "group" and hence one
-NUMA node. The group can have one or more latency groups (lg) - more than one
-memory controller. The current code chooses the smallest latency as the most
-favorable per group. The latency and lg information is in MLGROUP below.
-MBLOCK is the base and size of the RAs for the machine as fetched from OBP
-/memory "available" property. My machine has one MBLOCK but more would be
-possible - with holes?
+Jan
 
-For a T4-2 the following information has been gathered:
-with LDOM guest
-MEMBLOCK configuration:
- memory size = 0x27f870000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x0000029fc67fff], 0x27f868000 bytes
- memory[0x1]    [0x0000029fd8a000-0x0000029fd8bfff], 0x2000 bytes
- memory[0x2]    [0x0000029fd92000-0x0000029fd97fff], 0x6000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x000000216c15c0], 0xec15c1 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c180c1e], 0x7980c1f bytes
-MBLOCK[0]: base[20000000] size[280000000] offset[0]
-(note: "base" and "size" reported in "MBLOCK" encompass the "memory[X]" values)
-(note: (RA + offset) & mask = val is the formula to detect a match for the
-memory controller. should there be no match for find_node node, a return
-value of -1 resulted for the node - BAD)
+CC: Daniel Thompson <daniel.thompson@linaro.org>
+CC: Daniel Wagner <daniel.wagner@bmw-carit.de>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+CC: Kay Sievers <kay@vrfy.org>
+CC: linux-doc@vger.kernel.org
+CC: linux-ia64@vger.kernel.org
+Cc: linux-kbuild@vger.kernel.org
+CC: linux-kbuild@vger.kernel.org
+Cc: Michal Marek <mmarek@suse.cz>
+CC: Michal Marek <mmarek@suse.cz>
+CC: Pantelis Koukousoulas <pktoss@gmail.com>
+CC: Rob Landley <rob@landley.net>
+CC: Rusty Russell <rusty@rustcorp.com.au>
+CC: sparclinux@vger.kernel.org
+CC: Tony Luck <tony.luck@intel.com>
 
-There is one group. It has these forward links
-MLGROUP[1]: node[545] latency[1f7e8] match[200000000] mask[200000000]
-MLGROUP[2]: node[54d] latency[2de60] match[0] mask[200000000]
-NUMA NODE[0]: node[545] mask[200000000] val[200000000] (latency[1f7e8])
-(note: "val" is the best lg's (smallest latency) "match")
+Daniel Thompson (1):
+  scripts/gdb: Ignore byte-compiled python files
 
-no LDOM guest - bare metal
-MEMBLOCK configuration:
- memory size = 0xfdf2d0000
- memory.cnt  = 0x3
- memory[0x0]    [0x00000020400000-0x00000fff6adfff], 0xfdf2ae000 bytes
- memory[0x1]    [0x00000fff6d2000-0x00000fff6e7fff], 0x16000 bytes
- memory[0x2]    [0x00000fff766000-0x00000fff771fff], 0xc000 bytes
- reserved.cnt  = 0x2
- reserved[0x0]  [0x00000020800000-0x00000021a04580], 0x1204581 bytes
- reserved[0x1]  [0x00000024800000-0x0000002c7d29fc], 0x7fd29fd bytes
-MBLOCK[0]: base[20000000] size[fe0000000] offset[0]
+Daniel Wagner (1):
+  scripts/gdb: Use a generator instead of iterator for task list
 
-there are two groups
-group node[16d5]
-MLGROUP[0]: node[1765] latency[1f7e8] match[0] mask[200000000]
-MLGROUP[3]: node[177d] latency[2de60] match[200000000] mask[200000000]
-NUMA NODE[0]: node[1765] mask[200000000] val[0] (latency[1f7e8])
-group node[171d]
-MLGROUP[2]: node[1775] latency[2de60] match[0] mask[200000000]
-MLGROUP[1]: node[176d] latency[1f7e8] match[200000000] mask[200000000]
-NUMA NODE[1]: node[176d] mask[200000000] val[200000000] (latency[1f7e8])
-(note: for this two "group" bare metal machine, 1/2 memory is in group one's
-lg and 1/2 memory is in group two's lg).
+Jan Kiszka (24):
+  scripts/gdb: Add infrastructure
+  scripts/gdb: Add cache for type objects
+  scripts/gdb: Add container_of helper and convenience function
+  scripts/gdb: Add module iteration class
+  scripts/gdb: Add lx-symbols command
+  module: Do not inline do_init_module
+  scripts/gdb: Add automatic symbol reloading on module insertion
+  scripts/gdb: Add internal helper and convenience function to look up a
+    module
+  scripts/gdb: Add get_target_endianness helper
+  scripts/gdb: Add read_u16/32/64 helpers
+  scripts/gdb: Add lx-dmesg command
+  scripts/gdb: Add task iteration class
+  scripts/gdb: Add helper and convenience function to look up tasks
+  scripts/gdb: Add is_target_arch helper
+  scripts/gdb: Add internal helper and convenience function to retrieve
+    thread_info
+  scripts/gdb: Add get_gdbserver_type helper
+  scripts/gdb: Add internal helper and convenience function for per-cpu
+    lookup
+  scripts/gdb: Add lx_current convenience function
+  scripts/gdb: Add class to iterate over CPU masks
+  scripts/gdb: Add lx-lsmod command
+  scripts/gdb: Add basic documentation
+  scripts/gdb: Convert ModuleList to generator function
+  scripts/gdb: Convert CpuList to generator function
+  scripts/gdb: Define maintainer
 
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Kamal Mostafa <kamal@canonical.com>
----
- arch/sparc/mm/init_64.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Pantelis Koukousoulas (1):
+  scripts/gdb: Port to python3 / gdb7.7
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index e275cde..a1d48b9 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -838,7 +838,10 @@ static int find_node(unsigned long addr)
- 		if ((addr & p->mask) = p->val)
- 			return i;
- 	}
--	return -1;
-+	/* The following condition has been observed on LDOM guests.*/
-+	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
-+		" rule. Some physical memory will be owned by node 0.");
-+	return 0;
- }
- 
- static u64 memblock_nid_range(u64 start, u64 end, int *nid)
+ .gitignore                             |   1 +
+ Documentation/gdb-kernel-debugging.txt | 160 +++++++++++++++++++++++++++++++
+ MAINTAINERS                            |   5 +
+ Makefile                               |   6 +-
+ kernel/module.c                        |   9 +-
+ lib/Kconfig.debug                      |  11 +++
+ scripts/Makefile                       |   3 +-
+ scripts/gdb/Makefile                   |   1 +
+ scripts/gdb/linux/.gitignore           |   2 +
+ scripts/gdb/linux/Makefile             |  11 +++
+ scripts/gdb/linux/__init__.py          |   0
+ scripts/gdb/linux/cpus.py              | 135 +++++++++++++++++++++++++++
+ scripts/gdb/linux/dmesg.py             |  65 +++++++++++++
+ scripts/gdb/linux/modules.py           | 103 ++++++++++++++++++++
+ scripts/gdb/linux/symbols.py           | 166 +++++++++++++++++++++++++++++++++
+ scripts/gdb/linux/tasks.py             | 100 ++++++++++++++++++++
+ scripts/gdb/linux/utils.py             | 156 +++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py             |  30 ++++++
+ 18 files changed, 960 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/gdb-kernel-debugging.txt
+ create mode 100644 scripts/gdb/Makefile
+ create mode 100644 scripts/gdb/linux/.gitignore
+ create mode 100644 scripts/gdb/linux/Makefile
+ create mode 100644 scripts/gdb/linux/__init__.py
+ create mode 100644 scripts/gdb/linux/cpus.py
+ create mode 100644 scripts/gdb/linux/dmesg.py
+ create mode 100644 scripts/gdb/linux/modules.py
+ create mode 100644 scripts/gdb/linux/symbols.py
+ create mode 100644 scripts/gdb/linux/tasks.py
+ create mode 100644 scripts/gdb/linux/utils.py
+ create mode 100644 scripts/gdb/vmlinux-gdb.py
+
 -- 
-1.9.1
+1.8.4.5
 
