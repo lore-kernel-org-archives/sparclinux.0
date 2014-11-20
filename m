@@ -1,68 +1,62 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Wed, 19 Nov 2014 23:42:23 +0000
+From: David Drysdale <drysdale@google.com>
+Date: Thu, 20 Nov 2014 11:28:22 +0000
 Subject: Re: [PATCHv9 4/5] sparc: Hook up execveat system call.
-Message-Id: <20141120104223.2cea8043@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Sig_/RAw1y7OKVANSa1LBZY6zEbt"
+Message-Id: <CAHse=S--yNmP5sTr2kg_7kb2V8Lh2FioTSH_o23MstVrdt4Wmw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1416418072-18639-1-git-send-email-drysdale@google.com>
-	<1416418072-18639-5-git-send-email-drysdale@google.com>
-In-Reply-To: <1416418072-18639-5-git-send-email-drysdale@google.com>
-To: David Drysdale <drysdale@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org
+ <1416418072-18639-5-git-send-email-drysdale@google.com> <20141120104223.2cea8043@canb.auug.org.au>
+In-Reply-To: <20141120104223.2cea8043-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
---Sig_/RAw1y7OKVANSa1LBZY6zEbt
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi David,
-
-On Wed, 19 Nov 2014 17:27:51 +0000 David Drysdale <drysdale@google.com> wro=
-te:
+On Wed, Nov 19, 2014 at 11:42 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> Hi David,
 >
-> diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_6=
-4.S
-> index 580cde9370c9..15069cb35dac 100644
-> --- a/arch/sparc/kernel/systbls_64.S
-> +++ b/arch/sparc/kernel/systbls_64.S
-> @@ -88,6 +88,7 @@ sys_call_table32:
->  	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm=
-_readv, compat_sys_process_vm_writev
->  /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_s=
-etattr, sys_sched_getattr
->  	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sy=
-s_bpf
-> +/*350*/	.word sys_execveat
+> On Wed, 19 Nov 2014 17:27:51 +0000 David Drysdale <drysdale@google.com> wrote:
+>>
+>> diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+>> index 580cde9370c9..15069cb35dac 100644
+>> --- a/arch/sparc/kernel/systbls_64.S
+>> +++ b/arch/sparc/kernel/systbls_64.S
+>> @@ -88,6 +88,7 @@ sys_call_table32:
+>>       .word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+>>  /*340*/      .word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+>>       .word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+>> +/*350*/      .word sys_execveat
+>
+> Shouldn't this be compat_sys_execveat?
 
-Shouldn't this be compat_sys_execveat?
+Yeah, that would make sense -- thanks for spotting.
 
-> =20
->  #endif /* CONFIG_COMPAT */
+Looking at this more closely, I also wonder if we need a pair of wrappers
+analogous to sys(32|64)_execve -- they include a (pipeline-executed)
+flushw instruction after the jmpl to [compat_]sys_execve, which I guess
+might be needed.  So I could add something like the following to
+arch/sparc/kernel/syscalls.S:
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+  sys64_execveat:
+      set sys_execveat, %g1
+      jmpl %g1, %g0
+      flushw
+  #ifdef CONFIG_COMPAT
+  sys32_execveat:
+      set compat_sys_execveat, %g1
+      jmpl %g1, %g0
+      flushw
+  #endif
 
---Sig_/RAw1y7OKVANSa1LBZY6zEbt
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+However, I don't speak SPARC and can't run the code -- any thoughts
+out there from someone who does & can?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Or maybe I should stop trying to be helpful with speculative patches, and
+just leave wiring up the sparc stuff to the experts...
 
-iQIcBAEBCAAGBQJUbSrkAAoJEMDTa8Ir7ZwVoVoP/AlHLVTxaKtx1n9YHKSFO8T8
-/G7WwXkXbsm3fb5qBHJeHtjq+rc9tOA1DM/78qeeDbr9rt4eog0N6scoLXdPeSLK
-vZSKe+Z0i8z9hGUph0CXmuQI37XmG+V+HtIQCcdtC6PxijjNWzzCmADN+NToyDKr
-pmn/jQKHDTGOQHjhfEDhq6G55M3bKzBna5V7YDAd8+Utd/PmT+5lmKNEtuLT8Y/0
-MdnuXZUaX1dsh3SKI8y/l2sCmgc91L10OW0OV+k0Jlj78/lZDmg4mPQZs9h9uZQ2
-m9+Gw86XKKunUDKoynl0u9obZGWa2J4XMKX0cBWwvgZkXd+SBwZEyeKpwiHb66OF
-b6+YxrJdf5ciu+zMkRTpFPyLfwGxGDHnp8HQBvjZtrtHmFwTdLZpQavFwLQpurNv
-9Xh3GCg/wb8wTxlvRuMqSZjCH+Wniea0RnBfdVwfGAwFBA2Yzi+gZMVhi7EvAd0i
-yDBm5WnaNcDJ9AyvMiyierIweTVJBjCGhdvVSbFtjoFcGBrql+/4Zw9Ng+u360U3
-0PGLDNB7Tc18CKP0u3JDYlL23/mFeJhe2OA9OV9899i62QOF9YnJvkDNz+PwqAXC
-PuuU/YDA8L8y8E2QOrP8ry1VnC1bWhDzHTYmfBUWwbRPGZNVFfLyy23uSj+T1GHC
-03oLWeCX9F9iyjrlQ8Ko
-=41EX
------END PGP SIGNATURE-----
-
---Sig_/RAw1y7OKVANSa1LBZY6zEbt--
+>>
+>>  #endif /* CONFIG_COMPAT */
+>
+> --
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
