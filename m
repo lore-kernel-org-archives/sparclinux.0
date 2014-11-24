@@ -1,35 +1,93 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 24 Nov 2014 22:28:57 +0000
-Subject: Re: Another (ESP?) scsi blk-mq problem on sparc64
-Message-Id: <20141124.172857.1186013178918344826.davem@davemloft.net>
+From: David Drysdale <drysdale@google.com>
+Date: Mon, 24 Nov 2014 11:53:58 +0000
+Subject: [PATCHv10 4/5] sparc: Hook up execveat system call.
+Message-Id: <1416830039-21952-5-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141124162249.GG5050@linux.vnet.ibm.com>
-	<547367DF.5060706@kernel.dk>
-	<alpine.LRH.2.11.1411250022470.31497@siim2.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1411250022470.31497@siim2.ut.ee>
+References: <1416830039-21952-1-git-send-email-drysdale@google.com>
+In-Reply-To: <1416830039-21952-1-git-send-email-drysdale@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: axboe@kernel.dk, paulmck@linux.vnet.ibm.com, hch@infradead.org, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
 
-From: mroos@linux.ee
-Date: Tue, 25 Nov 2014 00:23:20 +0200 (EET)
+Signed-off-by: David Drysdale <drysdale@google.com>
+---
+ arch/sparc/include/uapi/asm/unistd.h |  3 ++-
+ arch/sparc/kernel/syscalls.S         | 10 ++++++++++
+ arch/sparc/kernel/systbls_32.S       |  1 +
+ arch/sparc/kernel/systbls_64.S       |  2 ++
+ 4 files changed, 15 insertions(+), 1 deletion(-)
 
->> > > > Yes, that does look like the case.  Do you have a good trick on how
->> > > > to allocate a map for the highest possible cpu number without first
->> > > > iterating the cpu map?  I couldn't find something that looks like a
->> > > > highest_possible_cpu() helper.
->> > >
->> > > Honestly I think that num_posible_cpus() should return the max of
->> > > number of CPUs (weigt), and the highest numbered CPU. It's a pain in
->> > > the butt to handle this otherwise.
->> >
->> > Hear, hear!!!  That would make my life easier, and would make this sort
->> > of problem much less likely to occur!
->> 
->> How about this one?
-> 
-> It make the machine work.
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 46d83842eddc..6f35f4df17f2 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -415,8 +415,9 @@
+ #define __NR_getrandom		347
+ #define __NR_memfd_create	348
+ #define __NR_bpf		349
++#define __NR_execveat		350
+ 
+-#define NR_syscalls		350
++#define NR_syscalls		351
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index 33a17e7b3ccd..bb0008927598 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -6,6 +6,11 @@ sys64_execve:
+ 	jmpl	%g1, %g0
+ 	 flushw
+ 
++sys64_execveat:
++	set	sys_execveat, %g1
++	jmpl	%g1, %g0
++	 flushw
++
+ #ifdef CONFIG_COMPAT
+ sunos_execv:
+ 	mov	%g0, %o2
+@@ -13,6 +18,11 @@ sys32_execve:
+ 	set	compat_sys_execve, %g1
+ 	jmpl	%g1, %g0
+ 	 flushw
++
++sys32_execveat:
++	set	compat_sys_execveat, %g1
++	jmpl	%g1, %g0
++	 flushw
+ #endif
+ 
+ 	.align	32
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index ad0cdf497b78..e31a9056a303 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -87,3 +87,4 @@ sys_call_table:
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.long sys_execveat
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 580cde9370c9..d72f76ae70eb 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -88,6 +88,7 @@ sys_call_table32:
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.word sys32_execveat
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -167,3 +168,4 @@ sys_call_table:
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
++/*350*/	.word sys64_execveat
+-- 
+2.1.0.rc2.206.gedb03e5
 
-Thanks for testing!
