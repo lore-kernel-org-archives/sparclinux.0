@@ -1,34 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 24 Nov 2014 21:56:23 +0000
+From: Jens Axboe <axboe@kernel.dk>
+Date: Mon, 24 Nov 2014 22:01:55 +0000
 Subject: Re: Another (ESP?) scsi blk-mq problem on sparc64
-Message-Id: <20141124.165623.42259031853400756.davem@davemloft.net>
+Message-Id: <5473AAD3.7010409@kernel.dk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <54735052.7020807@kernel.dk>
-	<20141124162249.GG5050@linux.vnet.ibm.com>
-	<547367DF.5060706@kernel.dk>
-In-Reply-To: <547367DF.5060706@kernel.dk>
+References: <54735052.7020807@kernel.dk>	<20141124162249.GG5050@linux.vnet.ibm.com>	<547367DF.5060706@kernel.dk> <20141124.165623.42259031853400756.davem@davemloft.net>
+In-Reply-To: <20141124.165623.42259031853400756.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: axboe@kernel.dk
+To: David Miller <davem@davemloft.net>
 Cc: paulmck@linux.vnet.ibm.com, hch@infradead.org, mroos@linux.ee, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Jens Axboe <axboe@kernel.dk>
-Date: Mon, 24 Nov 2014 10:16:15 -0700
+On 11/24/2014 02:56 PM, David Miller wrote:
+> From: Jens Axboe <axboe@kernel.dk>
+> Date: Mon, 24 Nov 2014 10:16:15 -0700
+>
+>> How about this one?
+>
+> The "num" in num_possible_cpus() means a count, as in how many are
+> there.
+>
+> It doesn't mean largest ID of members of set X, which is what you
+> are asking for.
+>
+> Even worse, having num_online_cpus() and num_possible_cpus() count
+> from a different perspective is really confusing.
 
-> How about this one?
+Not disagreeing with you... Personally I don't care too much, I can just 
+work-around this in blk-mq. I'm more worried about others reimplementing 
+the same bugs later. And yes, the fact that's it's the weight of the 
+bitmap is exactly the problem, as we have no good way of saying 
+"allocate me this array indexed by cpu count", since we don't know the 
+numbers of the CPUs. This isn't a problem on x86 (or on anything but 
+sparc64, as far as I'm aware), since the weight and highest CPU count 
+are one and the same.
 
-The "num" in num_possible_cpus() means a count, as in how many are
-there.
+> Usually when people want a per-cpu thing they allocate percpu
+> memory which hides all of these details, why don't you allocate
+> the map as dynamic per-cpu memory?
+>
+> It will also do the NUMA node local allocations for you as well.
 
-It doesn't mean largest ID of members of set X, which is what you
-are asking for.
+The allocation is node affine currently. This isn't per-cpu storage, for 
+the per-cpu storage blk-mq uses the normal per-cpu primitives for 
+alloctions. It's just a small array mapping a cpu number to a hardware 
+queue number. It's read-only storage, after it has been updated.
 
-Even worse, having num_online_cpus() and num_possible_cpus() count
-from a different perspective is really confusing.
+I'll just updated blk-mq to use nr_cpu_ids and be done with it.
 
-Usually when people want a per-cpu thing they allocate percpu
-memory which hides all of these details, why don't you allocate
-the map as dynamic per-cpu memory?
+-- 
+Jens Axboe
 
-It will also do the NUMA node local allocations for you as well.
