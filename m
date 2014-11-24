@@ -1,20 +1,56 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Mon, 24 Nov 2014 12:45:57 +0000
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Mon, 24 Nov 2014 17:06:26 +0000
 Subject: Re: [PATCHv10 2/5] x86: Hook up execveat system call.
-Message-Id: <alpine.DEB.2.11.1411241345470.6439@nanos>
+Message-Id: <20141124170626.GA5316@mwanda>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1416830039-21952-1-git-send-email-drysdale@google.com> <1416830039-21952-3-git-send-email-drysdale@google.com>
-In-Reply-To: <1416830039-21952-3-git-send-email-drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+References: <1416830039-21952-1-git-send-email-drysdale@google.com>
+ <1416830039-21952-3-git-send-email-drysdale@google.com>
+In-Reply-To: <1416830039-21952-3-git-send-email-drysdale@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Drysdale <drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: David Drysdale <drysdale@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, 24 Nov 2014, David Drysdale wrote:
-
+On Mon, Nov 24, 2014 at 11:53:56AM +0000, David Drysdale wrote:
 > Hook up x86-64, i386 and x32 ABIs.
 > 
 > Signed-off-by: David Drysdale <drysdale@google.com>
 
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+This one has been breaking my linux-next build for the past week.  I'm
+not sure what's going on.  I build with a script:
+
+make allmodconfig
+
+cat << EOF >> .config
+CONFIG_DYNAMIC_DEBUG=n
+CONFIG_DEBUG_STRICT_USER_COPY_CHECKS=n
+CONFIG_DYNAMIC_DEBUG=y
+EOF
+
+make oldconfig
+
+Here are the errors:
+
+  CHK     include/generated/compile.h
+  CHECK   arch/x86/ia32/audit.c
+  CC      arch/x86/ia32/audit.o
+arch/x86/ia32/audit.c: In function ‘ia32_classify_syscall’:
+arch/x86/ia32/audit.c:38:7: error: ‘__NR_execveat’ undeclared (first use in this function)
+arch/x86/ia32/audit.c:38:7: note: each undeclared identifier is reported only once for each function it appears in
+make[2]: *** [arch/x86/ia32/audit.o] Error 1
+make[2]: Target `__build' not remade because of errors.
+make[1]: *** [arch/x86/ia32] Error 2
+  CHECK   arch/x86/kernel/audit_64.c
+  CHK     kernel/config_data.h
+  CC      arch/x86/kernel/audit_64.o
+arch/x86/kernel/audit_64.c: In function ‘audit_classify_syscall’:
+arch/x86/kernel/audit_64.c:53:7: error: ‘__NR_execveat’ undeclared (first use in this function)
+arch/x86/kernel/audit_64.c:53:7: note: each undeclared identifier is reported only once for each function it appears in
+make[2]: *** [arch/x86/kernel/audit_64.o] Error 1
+make[2]: Target `__build' not remade because of errors.
+make[1]: *** [arch/x86/kernel] Error 2
+make[1]: Target `__build' not remade because of errors.
+
+regards,
+dan carpenter
