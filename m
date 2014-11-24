@@ -1,45 +1,44 @@
-From: David Drysdale <drysdale@google.com>
-Date: Mon, 24 Nov 2014 18:26:24 +0000
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Mon, 24 Nov 2014 18:53:03 +0000
 Subject: Re: [PATCHv10 2/5] x86: Hook up execveat system call.
-Message-Id: <CAHse=S-DS=NGC619Uhzkbd-EKa0D+HgBq3rE1czmLdoxAFswPg@mail.gmail.com>
+Message-Id: <alpine.DEB.2.11.1411241950020.6439@nanos>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="8323329-1221348284-1416855184=:6439"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1416830039-21952-1-git-send-email-drysdale@google.com>
- <1416830039-21952-3-git-send-email-drysdale@google.com> <20141124170626.GA5316@mwanda>
+References: <1416830039-21952-1-git-send-email-drysdale@google.com> <1416830039-21952-3-git-send-email-drysdale@google.com> <20141124170626.GA5316@mwanda>
 In-Reply-To: <20141124170626.GA5316@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
+Cc: David Drysdale <drysdale@google.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, Nov 24, 2014 at 5:06 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--8323329-1221348284-1416855184=:6439
+Content-Type: TEXT/PLAIN; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+On Mon, 24 Nov 2014, Dan Carpenter wrote:
+
 > On Mon, Nov 24, 2014 at 11:53:56AM +0000, David Drysdale wrote:
->> Hook up x86-64, i386 and x32 ABIs.
->>
->> Signed-off-by: David Drysdale <drysdale@google.com>
->
+> > Hook up x86-64, i386 and x32 ABIs.
+> > 
+> > Signed-off-by: David Drysdale <drysdale@google.com>
+> 
 > This one has been breaking my linux-next build for the past week.  I'm
-> not sure what's going on.
-
-Hi Dan,
-
-Sorry if this has been causing you problems -- I've not had any
-errors from the kbuild robots or my local builds.
-
-> I build with a script:
->
+> not sure what's going on.  I build with a script:
+> 
 > make allmodconfig
->
+> 
 > cat << EOF >> .config
 > CONFIG_DYNAMIC_DEBUG=n
 > CONFIG_DEBUG_STRICT_USER_COPY_CHECKS=n
 > CONFIG_DYNAMIC_DEBUG=y
 > EOF
->
+> 
 > make oldconfig
->
+> 
 > Here are the errors:
->
+> 
 >   CHK     include/generated/compile.h
 >   CHECK   arch/x86/ia32/audit.c
 >   CC      arch/x86/ia32/audit.o
@@ -60,43 +59,12 @@ errors from the kbuild robots or my local builds.
 > make[1]: *** [arch/x86/kernel] Error 2
 > make[1]: Target `__build' not remade because of errors.
 
-That seems odd -- the generic definition of __NR_execveat is in the first
-patch in the series, and the various x86-specific definitions should get
-generated from the table entries in the second patch in the series (at
-least since the v9 set I sent on 19 Nov, which split out the x86 wiring
-from the general implementation).
+I don't know what you're doing.
 
-Are the syscall table generation steps happening in your build?  And does
-__NR_execveat appear in the various generated x86 unistd*.h headers?
+Tried the above and it rebuilds the relevant unistd*.h files and
+compiles happily.
 
-As an aside, I've just built next-20141124 (a4cfa44aa26a) fine from
-scratch with your config steps.   The build output included the header
-generation steps:
+Thanks,
 
-  SYSTBL  arch/x86/syscalls/../include/generated/asm/syscalls_32.h
-  SYSHDR  arch/x86/syscalls/../include/generated/asm/unistd_32_ia32.h
-  SYSHDR  arch/x86/syscalls/../include/generated/asm/unistd_64_x32.h
-  SYSTBL  arch/x86/syscalls/../include/generated/asm/syscalls_64.h
-  SYSHDR  arch/x86/syscalls/../include/generated/uapi/asm/unistd_32.h
-  HOSTCC  scripts/basic/bin2c
-  SYSHDR  arch/x86/syscalls/../include/generated/uapi/asm/unistd_64.h
-  SYSHDR  arch/x86/syscalls/../include/generated/uapi/asm/unistd_x32.h
-
-and the resulting files did include the __NR_execveat constant:
-
-  % grep execveat usr/include/asm*/*.h arch/x86/include/generated/uapi/asm/*.h
-  usr/include/asm-generic/unistd.h:#define __NR_execveat 281
-  usr/include/asm-generic/unistd.h:__SC_COMP(__NR_execveat,
-sys_execveat, compat_sys_execveat)
-  usr/include/asm/unistd_32.h:#define __NR_execveat 358
-  usr/include/asm/unistd_64.h:#define __NR_execveat 322
-  usr/include/asm/unistd_x32.h:#define __NR_execveat (__X32_SYSCALL_BIT + 545)
-  arch/x86/include/generated/uapi/asm/unistd_32.h:#define __NR_execveat 358
-  arch/x86/include/generated/uapi/asm/unistd_64.h:#define __NR_execveat 322
-  arch/x86/include/generated/uapi/asm/unistd_x32.h:#define
-__NR_execveat (__X32_SYSCALL_BIT + 545)
-
-So I can't (yet) reproduce your problem I'm afraid...
-
-> regards,
-> dan carpenter
+	tglx
+--8323329-1221348284-1416855184=:6439--
