@@ -1,144 +1,33 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 19 Nov 2014 06:52:39 +0000
-Subject: [PATCH 1/5] PCI: Rip out pci_bus_add_devices() from pci_scan_bus()
-Message-Id: <1416382369-13587-2-git-send-email-wangyijing@huawei.com>
+From: David Drysdale <drysdale@google.com>
+Date: Mon, 24 Nov 2014 11:23:18 +0000
+Subject: [PATCHv2 0/1] vfs: renumber FMODE_NONOTIFY and add to uniqueness check
+Message-Id: <1416828199-3414-1-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1416382369-13587-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1416382369-13587-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Eric Paris <eparis@redhat.com>, David Miller <davem@davemloft.net>, Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
 
-Pci_bus_add_devices() should not be placed in
-pci_scan_bus(). Now pci devices will be added
-to driver core once its creation. All the things
-left in pci_bus_add_devices() are driver attach
-and other trivial things. pci_scan_bus() should
-be the function responsible for scanning PCI devices,
-not including device driver attached. Other, lots
-callers of pci_scan_bus() call pci_bus_size_bridges()
-and pci_bus_assign_resources() after pci_scan_bus().
-It's not correct, but because pci_scan_bus() always
-be called before driver loaded, so maybe no problem
-will cause. We should rip out pci_bus_add_devices()
-for better code design.
-No functional change.
+Changes since v1:
+ - reword commit to indicate origin of clash [Heinrich Schuchardt]
+ - remove comment fix [Heinrich Schuchardt]
+ - acked-by [David S. Miller]
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Guan Xuetao <gxt@mprc.pku.edu.cn>
-CC: linux-alpha@vger.kernel.org
-CC: linux-m68k@lists.linux-m68k.org
-CC: sparclinux@vger.kernel.org
----
- arch/alpha/kernel/sys_nautilus.c  |    1 +
- arch/m68k/coldfire/pci.c          |    1 +
- arch/sparc/kernel/pcic.c          |    2 ++
- arch/unicore32/kernel/pci.c       |   11 +++--------
- drivers/pci/hotplug/ibmphp_core.c |    6 ++++--
- drivers/pci/probe.c               |    1 -
- 6 files changed, 11 insertions(+), 11 deletions(-)
+Against v3.18-rc5.
 
-diff --git a/arch/alpha/kernel/sys_nautilus.c b/arch/alpha/kernel/sys_nautilus.c
-index 837c0fa..4ae4a40 100644
---- a/arch/alpha/kernel/sys_nautilus.c
-+++ b/arch/alpha/kernel/sys_nautilus.c
-@@ -253,6 +253,7 @@ nautilus_init_pci(void)
- 	   for the root bus, so just clear it. */
- 	bus->self = NULL;
- 	pci_fixup_irqs(alpha_mv.pci_swizzle, alpha_mv.pci_map_irq);
-+	pci_bus_add_devices(bus);
- }
- 
- /*
-diff --git a/arch/m68k/coldfire/pci.c b/arch/m68k/coldfire/pci.c
-index df96792..d45f087 100644
---- a/arch/m68k/coldfire/pci.c
-+++ b/arch/m68k/coldfire/pci.c
-@@ -319,6 +319,7 @@ static int __init mcf_pci_init(void)
- 	pci_fixup_irqs(pci_common_swizzle, mcf_pci_map_irq);
- 	pci_bus_size_bridges(rootbus);
- 	pci_bus_assign_resources(rootbus);
-+	pci_bus_add_devices(rootbus);
- 	return 0;
- }
- 
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index 6cc78c2..7a82fe2 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -391,6 +391,8 @@ static void __init pcic_pbm_scan_bus(struct linux_pcic *pcic)
- 	struct linux_pbm_info *pbm = &pcic->pbm;
- 
- 	pbm->pci_bus = pci_scan_bus(pbm->pci_first_busno, &pcic_ops, pbm);
-+	if (pbm->pci_bus)
-+		pci_bus_add_devices(pbm->pci_bus);
- #if 0 /* deadwood transplanted from sparc64 */
- 	pci_fill_in_pbm_cookies(pbm->pci_bus, pbm, pbm->prom_node);
- 	pci_record_assignments(pbm, pbm->pci_bus);
-diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
-index 374a055..3d82024 100644
---- a/arch/unicore32/kernel/pci.c
-+++ b/arch/unicore32/kernel/pci.c
-@@ -266,17 +266,12 @@ static int __init pci_common_init(void)
- 	pci_fixup_irqs(pci_common_swizzle, pci_puv3_map_irq);
- 
- 	if (!pci_has_flag(PCI_PROBE_ONLY)) {
--		/*
--		 * Size the bridge windows.
--		 */
-+		/* Size the bridge windows. */
- 		pci_bus_size_bridges(puv3_bus);
--
--		/*
--		 * Assign resources.
--		 */
-+		/* Assign resources. */
- 		pci_bus_assign_resources(puv3_bus);
- 	}
--
-+	pci_bus_add_devices(puv3_bus);
- 	return 0;
- }
- subsys_initcall(pci_common_init);
-diff --git a/drivers/pci/hotplug/ibmphp_core.c b/drivers/pci/hotplug/ibmphp_core.c
-index 3efaf4c..db0f2e8 100644
---- a/drivers/pci/hotplug/ibmphp_core.c
-+++ b/drivers/pci/hotplug/ibmphp_core.c
-@@ -740,7 +740,7 @@ static void ibm_unconfigure_device(struct pci_func *func)
-  */
- static u8 bus_structure_fixup(u8 busno)
- {
--	struct pci_bus *bus;
-+	struct pci_bus *bus, *b;
- 	struct pci_dev *dev;
- 	u16 l;
- 
-@@ -767,7 +767,9 @@ static u8 bus_structure_fixup(u8 busno)
- 					(l != 0x0000) && (l != 0xffff)) {
- 			debug("%s - Inside bus_structure_fixup()\n",
- 							__func__);
--			pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
-+			b = pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
-+			if (b)
-+				pci_bus_add_devices(b);
- 			break;
- 		}
- 	}
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index db16678..5c5e01e 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2120,7 +2120,6 @@ struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops,
- 	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
- 	if (b) {
- 		pci_scan_child_bus(b);
--		pci_bus_add_devices(b);
- 	} else {
- 		pci_free_resource_list(&resources);
- 	}
+Tested by running fatrace on x86_64, and by cross-compiling against
+sparc, arm, arm64, m68k, mips, powerpc, alpha, parisc, blackfin.
+
+
+David Drysdale (1):
+  vfs: renumber FMODE_NONOTIFY and add to uniqueness check
+
+ fs/fcntl.c                       | 5 +++--
+ include/linux/fs.h               | 2 +-
+ include/uapi/asm-generic/fcntl.h | 2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
 -- 
-1.7.1
+2.1.0.rc2.206.gedb03e5
 
