@@ -1,85 +1,131 @@
-From: David Miller <davem@redhat.com>
-Date: Fri, 07 Nov 2014 20:50:22 +0000
-Subject: [PATCH] sparc64: Do irq_{enter,exit}() around generic_smp_call_function*().
-Message-Id: <20141107.155022.313831458820367274.davem@redhat.com>
+From: David Drysdale <drysdale@google.com>
+Date: Mon, 24 Nov 2014 11:53:54 +0000
+Subject: [PATCHv10 0/5] syscalls,x86,sparc: Add execveat() system call
+Message-Id: <1416830039-21952-1-git-send-email-drysdale@google.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
+
+This patch set adds execveat(2) for x86 and sparc, and is derived from
+Meredydd Luff's patch from Sept 2012 (https://lkml.org/lkml/2012/9/11/528).
+
+The primary aim of adding an execveat syscall is to allow an
+implementation of fexecve(3) that does not rely on the /proc
+filesystem, at least for executables (rather than scripts).  The
+current glibc version of fexecve(3) is implemented via /proc, which
+causes problems in sandboxed or otherwise restricted environments.
+
+Given the desire for a /proc-free fexecve() implementation, HPA
+suggested (https://lkml.org/lkml/2006/7/11/556) that an execveat(2)
+syscall would be an appropriate generalization.
+
+Also, having a new syscall means that it can take a flags argument
+without back-compatibility concerns.  The current implementation just
+defines the AT_EMPTY_PATH and AT_SYMLINK_NOFOLLOW flags, but other
+flags could be added in future -- for example, flags for new namespaces
+(as suggested at https://lkml.org/lkml/2006/7/11/474).
+
+Related history:
+ - https://lkml.org/lkml/2006/12/27/123 is an example of someone
+   realizing that fexecve() is likely to fail in a chroot environment.
+ - http://bugs.debian.org/cgi-bin/bugreport.cgi?bugQ4043 covered
+   documenting the /proc requirement of fexecve(3) in its manpage, to
+   "prevent other people from wasting their time".
+ - https://bugzilla.redhat.com/show_bug.cgi?id$1609 described a
+   problem where a process that did setuid() could not fexecve()
+   because it no longer had access to /proc/self/fd; this has since
+   been fixed.
 
 
-Otherwise rcu_irq_{enter,exit}() do not happen and we get dumps like:
+Changes since v9:
+ - Add sparc syscall wrappers and use correct sparc 32b compatibility
+   function [Stephen Rothwell, David S. Miller]
 
-==========
-[  188.275021] ===============[  188.309351] [ INFO: suspicious RCU usage. ]
-[  188.343737] 3.18.0-rc3-00068-g20f3963-dirty #54 Not tainted
-[  188.394786] -------------------------------
-[  188.429170] include/linux/rcupdate.h:883 rcu_read_lock() used
-illegally while idle!
-[  188.505235]
-other info that might help us debug this:
+Changes since v8:
+ - Split core/fs changes from x86 changes [Thomas Gleixner]
 
-[  188.554230]
-RCU used illegally from idle CPU!
-rcu_scheduler_active = 1, debug_locks = 0
-[  188.637587] RCU used illegally from extended quiescent state!
-[  188.690684] 3 locks held by swapper/7/0:
-[  188.721932]  #0:  (&x->wait#11){......}, at: [<0000000000495de8>] complete+0x8/0x60
-[  188.797994]  #1:  (&p->pi_lock){-.-.-.}, at: [<000000000048510c>] try_to_wake_up+0xc/0x400
-[  188.881343]  #2:  (rcu_read_lock){......}, at: [<000000000048a910>] select_task_rq_fair+0x90/0xb40
-[  188.973043]stack backtrace:
-[  188.993879] CPU: 7 PID: 0 Comm: swapper/7 Not tainted 3.18.0-rc3-00068-g20f3963-dirty #54
-[  189.076187] Call Trace:
-[  189.089719]  [0000000000499360] lockdep_rcu_suspicious+0xe0/0x100
-[  189.147035]  [000000000048a99c] select_task_rq_fair+0x11c/0xb40
-[  189.202253]  [00000000004852d8] try_to_wake_up+0x1d8/0x400
-[  189.252258]  [000000000048554c] default_wake_function+0xc/0x20
-[  189.306435]  [0000000000495554] __wake_up_common+0x34/0x80
-[  189.356448]  [00000000004955b4] __wake_up_locked+0x14/0x40
-[  189.406456]  [0000000000495e08] complete+0x28/0x60
-[  189.448142]  [0000000000636e28] blk_end_sync_rq+0x8/0x20
-[  189.496057]  [0000000000639898] __blk_mq_end_request+0x18/0x60
-[  189.550249]  [00000000006ee014] scsi_end_request+0x94/0x180
-[  189.601286]  [00000000006ee334] scsi_io_completion+0x1d4/0x600
-[  189.655463]  [00000000006e51c4] scsi_finish_command+0xc4/0xe0
-[  189.708598]  [00000000006ed958] scsi_softirq_done+0x118/0x140
-[  189.761735]  [00000000006398ec] __blk_mq_complete_request_remote+0xc/0x20
-[  189.827383]  [00000000004c75d0] generic_smp_call_function_single_interrupt+0x150/0x1c0
-[  189.906581]  [000000000043e514] smp_call_function_single_client+0x14/0x40
-==========
+Changes since v7:
+ - Speculatively wire up sparc version of syscall (untested)
+ - Fix leak of pathbuf in mainline arm [Oleg Nesterov]
+ - Add rcu_dereference_raw() on fdt access [sparse kbuild robot]
+ - Realigned comment [Andrew Morton]
+ - Merged up to v3.18-rc4
 
-Based almost entirely upon a patch by Paul E. McKenney.
+Changes since v6:
+ - Remove special case for O_PATH file descriptors [Andy Lutomirski]
+ - Use kasprintf rather than error-prone arithmetic [Kees Cook]
+ - Add test for long name [Kees Cook]
+ - Add test for non-executable O_PATH fd [Andy Lutomirski]
 
-Reported-by: Meelis Roos <mroos@linux.ee>
-Tested-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/kernel/smp_64.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Changes since v5:
+ - Set new flag in bprm->interp_flags for O_CLOEXEC fds, so that binfmts
+   that invoke an interpreter fail the exec (as they will not be able
+   to access the invoked file). [Andy Lutomirski]
+ - Don't truncate long paths. [Andy Lutomirski]
+ - Commonize code to open the executed file. [Eric W. Biederman]
+ - Mark O_PATH file descriptors so they cannot be fexecve()ed.
+ - Make self-test more helpful, and add additional cases:
+     - file offset non-zero
+     - binary file without execute bit
+     - O_CLOEXEC fds
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 302c476..da6f1a7 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -816,13 +816,17 @@ void arch_send_call_function_single_ipi(int cpu)
- void __irq_entry smp_call_function_client(int irq, struct pt_regs *regs)
- {
- 	clear_softint(1 << irq);
-+	irq_enter();
- 	generic_smp_call_function_interrupt();
-+	irq_exit();
- }
- 
- void __irq_entry smp_call_function_single_client(int irq, struct pt_regs *regs)
- {
- 	clear_softint(1 << irq);
-+	irq_enter();
- 	generic_smp_call_function_single_interrupt();
-+	irq_exit();
- }
- 
- static void tsb_sync(void *info)
+Changes since v4, suggested by Eric W. Biederman:
+ - Use empty filename with AT_EMPTY_PATH flag rather than NULL
+   pathname to request fexecve-like behaviour.
+ - Build pathname as "/dev/fd/<fd>/<filename>" (or "/dev/fd/<fd>")
+   rather than using d_path().
+ - Patch against v3.17 (bfe01a5ba249)
+
+Changes since Meredydd's v3 patch:
+ - Added a selftest.
+ - Added a man page.
+ - Left open_exec() signature untouched to reduce patch impact
+   elsewhere (as suggested by Al Viro).
+ - Filled in bprm->filename with d_path() into a buffer, to avoid use
+   of potentially-ephemeral dentry->d_name.
+ - Patch against v3.14 (455c6fdbd21916).
+
+
+David Drysdale (4):
+  syscalls: implement execveat() system call
+  x86: Hook up execveat system call.
+  syscalls: add selftest for execveat(2)
+  sparc: Hook up execveat system call.
+
+ arch/sparc/include/uapi/asm/unistd.h    |   3 +-
+ arch/sparc/kernel/systbls_32.S          |   1 +
+ arch/sparc/kernel/systbls_64.S          |   2 +
+ arch/x86/ia32/audit.c                   |   1 +
+ arch/x86/ia32/ia32entry.S               |   1 +
+ arch/x86/kernel/audit_64.c              |   1 +
+ arch/x86/kernel/entry_64.S              |  28 +++
+ arch/x86/syscalls/syscall_32.tbl        |   1 +
+ arch/x86/syscalls/syscall_64.tbl        |   2 +
+ arch/x86/um/sys_call_table_64.c         |   1 +
+ fs/binfmt_em86.c                        |   4 +
+ fs/binfmt_misc.c                        |   4 +
+ fs/binfmt_script.c                      |  10 +
+ fs/exec.c                               | 113 +++++++--
+ fs/namei.c                              |   2 +-
+ include/linux/binfmts.h                 |   4 +
+ include/linux/compat.h                  |   3 +
+ include/linux/fs.h                      |   1 +
+ include/linux/sched.h                   |   4 +
+ include/linux/syscalls.h                |   5 +
+ include/uapi/asm-generic/unistd.h       |   4 +-
+ kernel/sys_ni.c                         |   3 +
+ lib/audit.c                             |   3 +
+ tools/testing/selftests/Makefile        |   1 +
+ tools/testing/selftests/exec/.gitignore |   9 +
+ tools/testing/selftests/exec/Makefile   |  25 ++
+ tools/testing/selftests/exec/execveat.c | 397 ++++++++++++++++++++++++++++++++
+ 27 files changed, 617 insertions(+), 16 deletions(-)
+ create mode 100644 tools/testing/selftests/exec/.gitignore
+ create mode 100644 tools/testing/selftests/exec/Makefile
+ create mode 100644 tools/testing/selftests/exec/execveat.c
+
 -- 
-2.1.2.532.g19b5d50
-
+2.1.0.rc2.206.gedb03e5
