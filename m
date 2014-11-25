@@ -1,180 +1,69 @@
-From: David Drysdale <drysdale@google.com>
-Date: Fri, 14 Nov 2014 16:23:03 +0000
-Subject: [PATCHv8 man-pages 4/4] execveat.2: initial man page for execveat(2)
-Message-Id: <1415982183-20525-5-git-send-email-drysdale@google.com>
+From: =?utf-8?B?5bCP5aec?= <hr@vollo.com.cn>
+Date: Tue, 25 Nov 2014 06:50:42 +0000
+Subject: =?utf-8?B?MjAxNOacgOecgeW/g+eahOaJvuWuouaIt+aWueW8jw==?=
+Message-Id: <20141125145053807260@vollo.com.cn>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1415982183-20525-1-git-send-email-drysdale@google.com>
-In-Reply-To: <1415982183-20525-1-git-send-email-drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Drysdale <drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: sparclinux@vger.kernel.org
 
-Signed-off-by: David Drysdale <drysdale@google.com>
----
- man2/execveat.2 | 153 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 153 insertions(+)
- create mode 100644 man2/execveat.2
+5LuK5bm05om+5a6i5oi355qE5pyA55yB5b+D5pa55byP77yM5Y+R5Y+R55+t5L+h5pWI5p6c5Ye6
+5LmO5L2g5oSP5paZ44CC5YqgcXHvvIggMTkzIDk4OSA3MjXvvInvvIzor5XnlKjmnIDlpb3nmoTn
+n63kv6HlubPlj7DjgIINCg0KDQoNCg0KIA0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0K
+DQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoNCg0KDQoN
+Cg0KDQoNCuW8gOaUvuWIneacn+eahDgw5bm05Luj5ZKMOTDlubTku6PliJ3vvIzku47kuovohJHl
+ipvlirPliqjnmoTnn6Xor4bliIblrZDmlLblhaXmm77ov5zov5zkvY7kuo7kvZPlipvlirPliqjo
+gIXvvIzkuIDkuKrljZbojLblj7bom4vnmoTlsI/otKnvvIzkuIDkuKrmnIjmlLblhaXog73mnInk
+upTlha3nmb7vvIzogIzkuIDkuKrnp5HnuqflubLpg6jnmoTmnIjlt6XotYTkuZ/lsLHkuI3liLDk
+uIDnmb7lnZfpkrHvvIzov5nkvKDljZXov5nkuIDpmLTni6DnmoTmi5vmlbDjgIIgICAg5aSP5bCP
+5rSb5YOP5b+954S25oOz6LW35p2l5Zyw6Zeu6YGT77ya4oCc5ZSJ77yM5a+55LqG77yM546w5Zyo
+5bGA6YeM5oCO5LmI5qC35ZWK77yf4oCdICAgIOKAnOaAjuS5iOagt++8n+aBkOaAleeOi+S/iuS8
+n+aYr+awuOS4luS4jeW+l+e/u+i6q+S6hu+8jOS6i+aDheWPkeeUn+S6huaIj+WJp+aAp+eahOWP
+mOWMlu+8jOmSseWwkee+pOWxgOmVv+WujOWFqOaJrei9rOWlveS6hu+8jOaOpeedgOWlueWwseay
+iea1uOWcqOWvueWNs+WwhuWIsOadpeeahOaXheeoi+eahOWFtOWli+WSjOWQkeW+gOS5i+S4re+8
+jOaOpeedgOWSjOavjeS6sumaj+S+v+iBiuedgOWkqe+8jOWPr+aYr+eci+edgOeql+WkluaYjuWq
+mueahOaZr+iJsu+8jOi3neemu+a0m+awtOWOv+i2iuadpei2iui/nO+8jOWlueinieW+l+i2iuad
+pei2iuS5j+WRs++8jOiAjOWkj+Wwj+a0m+eahOagt+WtkOWcqOWlueiEkea1t+S4reWHuueOsOav
+m+mqqOaCmueEtu+8jOW/g+mBk++8jOi/meWutuS8meWkp+aZuuiAjOexu+Wmlu+8jOWwj+Wwj+W5
+tOe6quWNtOacieWmguatpOW/g+acuu+8jOWkquWPr+aAleS6huOAgiAgICDpqazkuIrlvIDlrabk
+uobvvIzlpI/lsI/mtJvlhrPlrprkvY/moKHvvIzkuIDmmK/ku5bmg7PlpJroioLnuqbml7bpl7Tv
+vIzmkJ7lpb3lrabkuaDvvJvkuozmmK/ku5bmg7PlpJrkuIDngrnnqbrpl7TvvIzlpKnlpKnlkozn
+iLjlpojlnKjkuIDotbfvvIzmsLTlh7rmnaXvvIzpgZPvvJrigJzmiJHnnIvllYrvvIzov5nnjovk
+v4rkvJ/mmK/msqHlronlpb3lv4PvvIzku5bov5nmmK/lrrPkvaDlkaLjgILigJ0gICAg6ZKx5bGA
+6ZW/6Z2g5Zyo5rKZ5Y+R5LiK77yM5pGY5LiL5LqG6ICB6Iqx6ZWc77yM55ay5YCm5Zyw5o+J6LW3
+5LqG6aKd5aS077yM6YGT77ya4oCc5bCP5aSP5ZWK77yM6L+R5p2l5bel5L2c5oCO5qC35ZWK77yf
+56i95p+l6IKh5bmy552A6aG65omL5LiN77yf4oCdICAgIOS7pe+8jOaIkee7meS9oOeVmeS4queU
+teivneWPt+egge+8jOS9oOaJk+i/meS4queUteivne+8jOWwseWPr+S7peaJvuWIsOi/meS9jeiA
+geW4iOKApuKApuKAneWlueaOpei/h+Wkj+Wwj+a0m+e6uOeslO+8jOWGmeS6huS4gOS4suaVsOWt
+l+OAguKAnOWFtuWunu+8jOaIkeS7rOWIneS4reeahOaXtuWAmeW3sue7j+Wtpui/h+mfs+S5kOiv
+vu+8jOiHs+WwkeivhuW+l+S6lOe6v+iwse+8jOWmguaenOS9oOmCo+aXtuWAmeWKquWKm+eahAkN
+CuWls+aAp+S7rOmrmOS4vuaAp+ino+aUvuWSjOWls+adg+S4u+S5ieeahOWkp+aXl++8jOS4gOS4
+quS4quaXoOavlOa0kuiEseS4juWllOaUvuOAgiAgICDlpI/lsI/mtJvnnIvnnYDnnLzliY3ov5nn
+vp7mtqnml6Dmr5TnmoTmn7PmnIjvvIzlpbnnmoTnmq7ogqTmmK/lgaXlurfnmoTlsI/puqboibLv
+vIzor7vlrozliJ3kuK3lkI7kuKTkuInlubTnmoTkvZPlipvlirPliqjorqnlpbnnmoTouqvkvZPm
+mL7lvpfnu4bplb/nmoTnlLfkurrjgIIgICAg5aW55oqa5pG45LqG5LiA5LiL5L2V6K+X6Z+155qE
+6ISR6KKL77yM5rip6KiA6YGT77ya4oCc5oiQ57up5pyJ54K56LW35LyP5piv5q2j5bi455qE77yM
+6KaB55u45L+h6Ieq5bex77yM5Y2D5LiH5Yir54Gw5b+D4oCm4oCm4oCdICAgIOWkj+Wwj+a0m+W/
+g+S4reWVp+WVp+aal+WPue+8jOeci+i/meagt+WtkOi3n+WtpueUn+eahOefpeW/g+WnkOWnkOS4
+gOagt++8jOiwgeiDveefpemBk+WlueeahOW/g+inieW+l+i/meS4jeaYr+S4gOi1t+eugOWNleea
+hOS8pOS6uuS6i+S7tu+8jOiAjOaYr+iThOaEj+aMkeaImOWtpuagoeeahOadg+Woge+8gSAgICDl
+pbnpgqPooqvnmb3oibLooazooaPljIXoo7nnnYDnmoTppbHmu6Hog7johpvkuI3kvY/otbfkvI/v
+vIzmmL7lvpfmr5TlubPml7bmm7TppbHmu6Hkuoblh6DliIbvvIzkuIDlvKDkv4/ohLjmsJTlvpfp
+gJrnuqLvvIzppbHmu6HojrnmtqbnmoTlmLTllIfnm7Tlk4bll6bvvIzlpbnmt7HpqpHovabliLDp
+k7booYzmiorpkrHlrZjkuobkuKrmtLvmnJ/lrZjmrL7vvIzokKXkuJrlkZjnnIvku5bkuIDkuKrl
+jYHlpJrlsoHnmoTlsI/lranlrZDmkLrluKbkuKTkuIfigJzlt6jmrL7igJ3vvIzpg73lpKfkuLrm
+g4rlvILjgIIgICAg5rip6KiA6YGT77ya4oCc5bCP5pyL5Y+L77yM5LiL5qyh5YaN5p2l5a2Y6ZKx
+77yM5LiA5a6a6KaB6K6p5a626YeM5Lq66Zmq552A77yM5LiN54S25LiN5a6J5YWo44CC4oCdICAg
+IOWkj+Wwj+S8n++8jOaDs+aDs+S9oOeahOWtpOWEv+WvoeavjeWQp++8geS9oOimgeWHuuS6huS6
+i+aDhe+8jOmCo+WPr+aYr+atu+WIke+8jOiwgeadpeeFp+mhvuS7luS7rO+8n+KAnSAgICDnjovk
+v4rkvJ/lmLblkLzpgZPvvJrigJzmiJHkuI3nrqHvvIHmiJHmoLnmnKzmsqHmnInmlaPlj5HlvKDo
+tLTkvKDljZXvvIzmiJHmmK/ooqvlhqTmnonnmoTvvIHov5nmmK/mnInkurrlnKjlrrPmiJHvvIHi
+gJ3pgqPlo7Dpn7Pku7/kvZvlj5fkuoblp5Tov5nkupvnlLXor53pg73lvojlvpfkvZPvvIzooajo
+vr7kuZ/lvojpgILluqbvvIzkvYbmmK/lgL7lkJHmgKfmmK/lvojmmI7mmL7nmoTvvIzpg73luIzm
+nJvku5bigJzmlL7kuIDpqazigJ3jgILmnIDlpJrnmoTml7blgJnvvIzku5bkuIDlpKnmjqXkuoYy
+MOWkmuS4queUteivneOAgiAgICDov5nlj6/nrJHnmoTmmK/nnIHph4zmlofogZTnmoTlh6DkuKro
+gIHlhYjnlJ/kuZ/or6Lpl67ov4fokaPpm4bnmoTkuovmg4XvvIzkvZXkuqwJDQo
 
-diff --git a/man2/execveat.2 b/man2/execveat.2
-new file mode 100644
-index 000000000000..937d79e4c4f0
---- /dev/null
-+++ b/man2/execveat.2
-@@ -0,0 +1,153 @@
-+.\" Copyright (c) 2014 Google, Inc.
-+.\"
-+.\" %%%LICENSE_START(VERBATIM)
-+.\" Permission is granted to make and distribute verbatim copies of this
-+.\" manual provided the copyright notice and this permission notice are
-+.\" preserved on all copies.
-+.\"
-+.\" Permission is granted to copy and distribute modified versions of this
-+.\" manual under the conditions for verbatim copying, provided that the
-+.\" entire resulting derived work is distributed under the terms of a
-+.\" permission notice identical to this one.
-+.\"
-+.\" Since the Linux kernel and libraries are constantly changing, this
-+.\" manual page may be incorrect or out-of-date.  The author(s) assume no
-+.\" responsibility for errors or omissions, or for damages resulting from
-+.\" the use of the information contained herein.  The author(s) may not
-+.\" have taken the same level of care in the production of this manual,
-+.\" which is licensed free of charge, as they might when working
-+.\" professionally.
-+.\"
-+.\" Formatted or processed versions of this manual, if unaccompanied by
-+.\" the source, must acknowledge the copyright and authors of this work.
-+.\" %%%LICENSE_END
-+.\"
-+.TH EXECVEAT 2 2014-04-02 "Linux" "Linux Programmer's Manual"
-+.SH NAME
-+execveat \- execute program relative to a directory file descriptor
-+.SH SYNOPSIS
-+.B #include <unistd.h>
-+.sp
-+.BI "int execveat(int " fd ", const char *" pathname ","
-+.br
-+.BI "             char *const " argv "[],  char *const " envp "[],"
-+.br
-+.BI "             int " flags);
-+.SH DESCRIPTION
-+The
-+.BR execveat ()
-+system call executes the program pointed to by the combination of \fIfd\fP and \fIpathname\fP.
-+The
-+.BR execveat ()
-+system call operates in exactly the same way as
-+.BR execve (2),
-+except for the differences described in this manual page.
-+
-+If the pathname given in
-+.I pathname
-+is relative, then it is interpreted relative to the directory
-+referred to by the file descriptor
-+.I fd
-+(rather than relative to the current working directory of
-+the calling process, as is done by
-+.BR execve (2)
-+for a relative pathname).
-+
-+If
-+.I pathname
-+is relative and
-+.I fd
-+is the special value
-+.BR AT_FDCWD ,
-+then
-+.I pathname
-+is interpreted relative to the current working
-+directory of the calling process (like
-+.BR execve (2)).
-+
-+If
-+.I pathname
-+is absolute, then
-+.I fd
-+is ignored.
-+
-+If
-+.I pathname
-+is an empty string and the
-+.BR AT_EMPTY_PATH
-+flag is specified, then the file descriptor
-+.I fd
-+specifies the file to be executed.
-+
-+.I flags
-+can either be 0, or include the following flags:
-+.TP
-+.BR AT_EMPTY_PATH
-+If
-+.I pathname
-+is an empty string, operate on the file referred to by
-+.IR fd
-+(which may have been obtained using the
-+.BR open (2)
-+.B O_PATH
-+flag).
-+.TP
-+.B AT_SYMLINK_NOFOLLOW
-+If the file identified by
-+.I fd
-+and a non-NULL
-+.I pathname
-+is a symbolic link, then the call fails with the error
-+.BR EINVAL .
-+.SH "RETURN VALUE"
-+On success,
-+.BR execveat ()
-+does not return. On error \-1 is returned, and
-+.I errno
-+is set appropriately.
-+.SH ERRORS
-+The same errors that occur for
-+.BR execve (2)
-+can also occur for
-+.BR execveat ().
-+The following additional errors can occur for
-+.BR execveat ():
-+.TP
-+.B EBADF
-+.I fd
-+is not a valid file descriptor.
-+.TP
-+.B ENOENT
-+The program identified by \fIfd\fP and \fIpathname\fP requires the
-+use of an interpreter program (such as a script starting with
-+"#!") but the file descriptor
-+.I fd
-+was opened with the
-+.B O_CLOEXEC
-+flag and so the program file is inaccessible to the launched interpreter.
-+.TP
-+.B EINVAL
-+Invalid flag specified in
-+.IR flags .
-+.TP
-+.B ENOTDIR
-+.I pathname
-+is relative and
-+.I fd
-+is a file descriptor referring to a file other than a directory.
-+.SH VERSIONS
-+.BR execveat ()
-+was added to Linux in kernel 3.???.
-+.SH NOTES
-+In addition to the reasons explained in
-+.BR openat (2),
-+the
-+.BR execveat ()
-+system call is also needed to allow
-+.BR fexecve (3)
-+to be implemented on systems that do not have the
-+.I /proc
-+filesystem mounted.
-+.SH SEE ALSO
-+.BR execve (2),
-+.BR fexecve (3)
---
-2.1.0.rc2.206.gedb03e5
