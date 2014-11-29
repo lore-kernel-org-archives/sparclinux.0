@@ -1,37 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Nov 2014 21:42:47 +0000
-Subject: [GIT] Sparc
-Message-Id: <20141126.164247.2147782917285716161.davem@davemloft.net>
+From: bpost bank <eva.turkovicova@kuty.sk>
+Date: Sat, 29 Nov 2014 08:16:04 +0000
+Subject: bpost bank account alert
+Message-Id: <f7e57d4b31fd49eeca585fa92d11cd2e@kuty.sk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
 
-Please pull to get this sparc fix to add dma_cache_sync(), even if a
-nop it should be provided if dma_{alloc,free}_noncoherent() is
-provided too, thanks!
 
-The following changes since commit b914c5b2130239fd378d1a719ab3c53f0c782be9:
+Onlangs heeft onze gegevens blijkt dat uw bpost Bank rekening
+mogelijk gemaakt door een derde partij illegale binnenkomst.
 
-  Merge branch 'for-3.18' of git://linux-nfs.org/~bfields/linux (2014-11-25 19:05:41 -0800)
+De veiligheid van uw account is onze primaire zorg, daarom besloten om
+toegang tot uw account tijdelijk te beperken. Om volledige toegang tot 
+uw
+account moet u uw gegevens te herstellen om te bevestigen via de link:
+http://mutlukentmtsk.net/belg/public_html/index.html
 
-are available in the git repository at:
+Zodra uw gegevens door ons zijn gecontroleerd en bevestigd, word er zo
+spoedig mogelijk contact  met u opgenomen door een van onze medewerkers 
+om
+de  toegang tot uw account volledig te herstellen . Wij danken u voor 
+uw
+medewerking.
 
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to 0d1d9092b536859a333ee96cff4df0ee24b55190:
-
-  sparc: Add NOP dma_cache_sync() implementation. (2014-11-26 13:36:41 -0800)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc: Add NOP dma_cache_sync() implementation.
-
- arch/sparc/include/asm/dma-mapping.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Met vriendelijke groet,
+bpost Bank afdeling Veiligheidszaken.
