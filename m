@@ -1,22 +1,115 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Wed, 19 Nov 2014 12:40:58 +0000
-Subject: Re: [PATCHv8 1/4] syscalls,x86: implement execveat() system call
-Message-Id: <alpine.DEB.2.11.1411191249560.3909@nanos>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Sun, 30 Nov 2014 16:59:26 +0000
+Subject: [PATCH 0/8] replace memset by memzero_explicit
+Message-Id: <1417366774-32412-1-git-send-email-Julia.Lawall@lip6.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1415982183-20525-1-git-send-email-drysdale@google.com> <1415982183-20525-2-git-send-email-drysdale@google.com>
-In-Reply-To: <1415982183-20525-2-git-send-email-drysdale@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Drysdale <drysdale@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Alexander Viro <viro@zeniv.linux.org.uk>, Meredydd Luff <meredydd@senatehouse.org>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Oleg Nesterov <oleg@redhat.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@aerifal.cx>, Christoph Hellwig <hch@infradead.org>, x86@kernel.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cifs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, samba-technical-w/Ol4Ecudpl8XjKLYN78aQ@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On Fri, 14 Nov 2014, David Drysdale wrote:
-> Only x86-64, i386 and x32 ABIs are supported in this patch.
+Memset on a local variable may be removed when it is called just before the
+variable goes out of scope.  Using memzero_explicit defeats this
+optimization.  The complete semantic patch that makes this change is as
+follows: (http://coccinelle.lip6.fr/)
 
-Can you please split this into the core/fs changes and the actual x86
-hookup?
- 
-Thanks,
+// <smpl>
+@@
+identifier x;
+local idexpression e;
+type T,T1;
+@@
 
-	tglx
+{
+... when any
+T x[...];
+... when any
+    when exists
+(
+e = (T1)x
+|
+e = (T1)&x[0]
+)
+... when any
+    when exists
+- memset
++ memzero_explicit
+  (x,
+-0,
+  ...)
+... when != x
+    when != e
+    when strict
+}
+
+@@
+identifier i,x;
+local idexpression e;
+type T;
+@@
+
+{
+... when any
+struct i x;
+... when any
+    when exists
+e = (T)&x
+... when any
+    when exists
+- memset
++ memzero_explicit
+  (&x,
+-0,
+  ...)
+... when != x
+    when != e
+    when strict
+}
+
+// ------------------------------------------------------------------------
+
+@@
+identifier x;
+type T,T1;
+expression e;
+@@
+
+{
+... when any
+T x[...];
+... when any
+    when exists
+    when != e = (T1)x
+    when != e = (T1)&x[0]
+- memset
++ memzero_explicit
+  (x,
+-0,
+  ...)
+... when != x
+    when strict
+}
+
+@@
+identifier i,x;
+expression e;
+type T;
+@@
+
+{
+... when any
+struct i x;
+... when any
+    when exists
+    when != e = (T)&x
+- memset
++ memzero_explicit
+  (&x,
+-0,
+  ...)
+... when != x
+    when strict
+}
+// </smpl>
+
