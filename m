@@ -1,33 +1,82 @@
-From: David Drysdale <drysdale@google.com>
-Date: Mon, 24 Nov 2014 11:23:18 +0000
-Subject: [PATCHv2 0/1] vfs: renumber FMODE_NONOTIFY and add to uniqueness check
-Message-Id: <1416828199-3414-1-git-send-email-drysdale@google.com>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Sun, 30 Nov 2014 16:59:28 +0000
+Subject: [PATCH 2/8] sparc64: replace memset by memzero_explicit
+Message-Id: <1417366774-32412-3-git-send-email-Julia.Lawall@lip6.fr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1417366774-32412-1-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1417366774-32412-1-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Eric Paris <eparis@redhat.com>, David Miller <davem@davemloft.net>, Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, David Drysdale <drysdale@google.com>
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: dborkman@redhat.com, kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Julia Lawall <julia@diku.dk>
 
-Changes since v1:
- - reword commit to indicate origin of clash [Heinrich Schuchardt]
- - remove comment fix [Heinrich Schuchardt]
- - acked-by [David S. Miller]
+From: Julia Lawall <julia@diku.dk>
 
-Against v3.18-rc5.
+Memset on a local variable may be removed when it is called just before the
+variable goes out of scope.  Using memzero_explicit defeats this
+optimization.  A simplified version of the semantic patch that makes this
+change is as follows: (http://coccinelle.lip6.fr/)
 
-Tested by running fatrace on x86_64, and by cross-compiling against
-sparc, arm, arm64, m68k, mips, powerpc, alpha, parisc, blackfin.
+// <smpl>
+@@
+identifier x;
+type T;
+@@
 
+{
+... when any
+T x[...];
+... when any
+    when exists
+- memset
++ memzero_explicit
+  (x,
+-0,
+  ...)
+... when != x
+    when strict
+}
+// </smpl>
 
-David Drysdale (1):
-  vfs: renumber FMODE_NONOTIFY and add to uniqueness check
+This change was suggested by Daniel Borkmann <dborkman@redhat.com>
 
- fs/fcntl.c                       | 5 +++--
- include/linux/fs.h               | 2 +-
- include/uapi/asm-generic/fcntl.h | 2 +-
- 3 files changed, 5 insertions(+), 4 deletions(-)
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
--- 
-2.1.0.rc2.206.gedb03e5
+---
+Daniel Borkmann suggested that these patches could go through Herbert Xu's
+cryptodev tree.
+
+I was not able to compile test these.
+
+ arch/sparc/crypto/sha256_glue.c |    2 +-
+ arch/sparc/crypto/sha512_glue.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/crypto/sha512_glue.c b/arch/sparc/crypto/sha512_glue.c
+index 9fff885..11eb36c 100644
+--- a/arch/sparc/crypto/sha512_glue.c
++++ b/arch/sparc/crypto/sha512_glue.c
+@@ -139,7 +139,7 @@ static int sha384_sparc64_final(struct shash_desc *desc, u8 *hash)
+ 	sha512_sparc64_final(desc, D);
+ 
+ 	memcpy(hash, D, 48);
+-	memset(D, 0, 64);
++	memzero_explicit(D, 64);
+ 
+ 	return 0;
+ }
+diff --git a/arch/sparc/crypto/sha256_glue.c b/arch/sparc/crypto/sha256_glue.c
+index 41f27cc..285268c 100644
+--- a/arch/sparc/crypto/sha256_glue.c
++++ b/arch/sparc/crypto/sha256_glue.c
+@@ -135,7 +135,7 @@ static int sha224_sparc64_final(struct shash_desc *desc, u8 *hash)
+ 	sha256_sparc64_final(desc, D);
+ 
+ 	memcpy(hash, D, SHA224_DIGEST_SIZE);
+-	memset(D, 0, SHA256_DIGEST_SIZE);
++	memzero_explicit(D, SHA256_DIGEST_SIZE);
+ 
+ 	return 0;
+ }
 
