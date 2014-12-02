@@ -1,39 +1,52 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 28 Dec 2014 10:21:53 +0000
-Subject: Re: [PATCH repost 15/16] sparc/uaccess: fix sparse errors
-Message-Id: <20141228102153.GA9251@redhat.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Tue, 02 Dec 2014 14:58:11 +0000
+Subject: Re: [PATCH 2/8 v2] sparc64: replace memset by memzero_explicit
+Message-Id: <20141202145811.GB26301@gondor.apana.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1419499661-8566-1-git-send-email-mst@redhat.com>
- <1419499661-8566-16-git-send-email-mst@redhat.com>
- <20141225.183930.2234745020223954872.davem@davemloft.net>
-In-Reply-To: <20141225.183930.2234745020223954872.davem@davemloft.net>
+References: <1417367029-32762-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1417367029-32762-3-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1417367029-32762-3-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org, sam@ravnborg.org, dave.kleikamp@oracle.com, sparclinux@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Dec 25, 2014 at 06:39:30PM -0500, David Miller wrote:
-> From: "Michael S. Tsirkin" <mst@redhat.com>
-> Date: Thu, 25 Dec 2014 11:30:22 +0200
+On Sun, Nov 30, 2014 at 06:03:43PM +0100, Julia Lawall wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
 > 
-> > virtio wants to read bitwise types from userspace using get_user.  At the
-> > moment this triggers sparse errors, since the value is passed through an
-> > integer.
-> > 
-> > Fix that up using __force.
-> > 
-> > Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> Memset on a local variable may be removed when it is called just before the
+> variable goes out of scope.  Using memzero_explicit defeats this
+> optimization.  A simplified version of the semantic patch that makes this
+> change is as follows: (http://coccinelle.lip6.fr/)
 > 
-> Patches #14 and #15 have identical commit message header lines, you
-> need to say "sparc32: " or "sparc64: " so that shortlog scanners can
-> distinguish them.
+> // <smpl>
+> @@
+> identifier x;
+> type T;
+> @@
 > 
-> Thanks.
+> {
+> ... when any
+> T x[...];
+> ... when any
+>     when exists
+> - memset
+> + memzero_explicit
+>   (x,
+> -0,
+>   ...)
+> ... when != x
+>     when strict
+> }
+> // </smpl>
+> 
+> This change was suggested by Daniel Borkmann <dborkman@redhat.com>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Got it.
-Arnd, you are queueing this - could you tweak the subjects please?
-Or would you prefer me to repost with tweaked subjects?
-
+Applied patches 2, 3, 6, 7.
 -- 
-MST
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
