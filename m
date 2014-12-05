@@ -1,37 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Dec 2014 02:44:16 +0000
-Subject: Re: [PATCH v2] sparc64: sunvdc: Complete I/O request if vdisk server error
-Message-Id: <20141211.214416.1552612437664125122.davem@davemloft.net>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Fri, 05 Dec 2014 09:55:28 +0000
+Subject: [PATCH] sparc32,leon: Align ccall_info to prevent unaligned traps on crosscall
+Message-Id: <1417773328-10396-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <546FA956.1070005@oracle.com>
-In-Reply-To: <546FA956.1070005@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, software@gaisler.com
 
-From: chris hyser <chris.hyser@oracle.com>
-Date: Tue, 02 Dec 2014 11:53:37 -0500
+It is being filled in using std in leon_cross_call.
 
-> Sending it again. Thanks.
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+---
+ arch/sparc/kernel/leon_smp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Please do not resubmit patches like a forwarded email
-as you are doing here.
+diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
+index ea2bad3..71e16f2 100644
+--- a/arch/sparc/kernel/leon_smp.c
++++ b/arch/sparc/kernel/leon_smp.c
+@@ -368,7 +368,7 @@ static struct smp_funcall {
+ 	unsigned long arg5;
+ 	unsigned long processors_in[NR_CPUS];	/* Set when ipi entered. */
+ 	unsigned long processors_out[NR_CPUS];	/* Set when ipi exited. */
+-} ccall_info;
++} ccall_info __attribute__((aligned(8)));
+ 
+ static DEFINE_SPINLOCK(cross_call_lock);
+ 
+-- 
+1.7.10.4
 
-Submit is like a fresh, new, patch posting.
-
-Your patch also has a few problems:
-
-> + printk(KERN_ERR PFX "virtual disk server I/O error %d\n",
-> +				desc->status);
-
-Please use "pr_err()"
-
-Also, on function calls that span multiple lines, you must
-indent the send and subsequent lines of that function call
-exactly to the column after the openning parenthesis of that
-function call.
-
-You must use the appropriate number of space and TAB characters
-necessary to do so.  If you are only using TAB characters, you
-are doing it wrong. :)
