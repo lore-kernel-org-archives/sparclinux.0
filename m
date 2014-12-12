@@ -1,7 +1,7 @@
-From: chris hyser <chris.hyser@oracle.com>
-Date: Tue, 02 Dec 2014 16:53:37 +0000
-Subject: [PATCH v2] sparc64: sunvdc: Complete I/O request if vdisk server error
-Message-Id: <547DEE91.4050903@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 12 Dec 2014 02:44:16 +0000
+Subject: Re: [PATCH v2] sparc64: sunvdc: Complete I/O request if vdisk server error
+Message-Id: <20141211.214416.1552612437664125122.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <546FA956.1070005@oracle.com>
 In-Reply-To: <546FA956.1070005@oracle.com>
@@ -10,48 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Dave,
-
-Sending it again. Thanks.
-
--chrish
-
--------- Forwarded Message --------
-Subject: [PATCH v2] sparc64: sunvdc: Complete I/O request if vdisk server error
-Date: Fri, 21 Nov 2014 16:06:30 -0500
 From: chris hyser <chris.hyser@oracle.com>
-To: sparclinux@vger.kernel.org
+Date: Tue, 02 Dec 2014 11:53:37 -0500
 
-Sorry for the confusion of the prior message. Below was the intended commit message.
+> Sending it again. Thanks.
 
--chrish
+Please do not resubmit patches like a forwarded email
+as you are doing here.
 
-sparc64: sunvdc: Complete I/O request if vdisk server error
+Submit is like a fresh, new, patch posting.
 
-If virtual disk server returns an I/O with an error and 0 data transferred,
-complete the I/O with EIO to ensure initiating process does not hang
-indefinitely.
+Your patch also has a few problems:
 
-Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
+> + printk(KERN_ERR PFX "virtual disk server I/O error %d\n",
+> +				desc->status);
 
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
-index 0ebadf9..17e9a50 100644
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -279,7 +279,12 @@ static void vdc_end_one(struct vdc_port *port, struct vio_dring_state *dr,
+Please use "pr_err()"
 
-  	rqe->req = NULL;
+Also, on function calls that span multiple lines, you must
+indent the send and subsequent lines of that function call
+exactly to the column after the openning parenthesis of that
+function call.
 
--	__blk_end_request(req, (desc->status ? -EIO : 0), desc->size);
-+	if (desc->status && desc->size = 0) {
-+		printk(KERN_ERR PFX "virtual disk server I/O error %d\n",
-+				desc->status);
-+		__blk_end_request_all(req, -EIO);
-+	} else
-+		__blk_end_request(req, (desc->status ? -EIO : 0) , desc->size);
-
-  	/* restart blk queue when ring is half emptied */
-  	if (blk_queue_stopped(port->disk->queue) &&
-
-
-
+You must use the appropriate number of space and TAB characters
+necessary to do so.  If you are only using TAB characters, you
+are doing it wrong. :)
