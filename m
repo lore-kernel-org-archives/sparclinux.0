@@ -1,27 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Dec 2014 00:42:24 +0000
-Subject: Re: 3.18 fails in firmware init of qla on V880
-Message-Id: <20141208.194224.2231087748986785217.davem@davemloft.net>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Thu, 18 Dec 2014 12:23:23 +0000
+Subject: [PATCH] sparc32: destroy_context() and switch_mm() needs to disable interrupts.
+Message-Id: <1418905403-11154-1-git-send-email-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141208154331.GB13837@lemon.iwr.uni-heidelberg.de>
-In-Reply-To: <20141208154331.GB13837@lemon.iwr.uni-heidelberg.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, software@gaisler.com
 
-From: Hermann Lauer <Hermann.Lauer@iwr.uni-heidelberg.de>
-Date: Mon, 8 Dec 2014 16:43:31 +0100
+Load balancing can be triggered in the critical sections protected by
+srmmu_context_spinlock in destroy_context() and switch_mm() and can hang
+the cpu waiting for the rq lock of another cpu that in turn has called
+switch_mm hangning on srmmu_context_spinlock leading to deadlock.
 
-> Hello,
-> after sucess with 3.17.x kernels (x>3 still to be tested) vanilla 3.18 fail
-> with V880 internal fc controller firmware init - see below. It drops then
-> into an initramfs shell.
+So, disable interrupt while taking srmmu_context_spinlock in
+destroy_context() and switch_mm() so we don't deadlock.
 
-I sincerely think you'll get a better response on the list for the
-components that are failing for you as this does not look like a sparc
-specific problem.
+See also commit 77b838fa1ef0 ("[SPARC64]: destroy_context() needs to disable
+interrupts.")
 
-And that list would be linux-scsi.
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+---
+ arch/sparc/mm/srmmu.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-Thanks.
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index be65f03..5cbc96d 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -460,10 +460,12 @@ static void __init sparc_context_init(int numctx)
+ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
+ 	       struct task_struct *tsk)
+ {
++	unsigned long flags;
++
+ 	if (mm->context = NO_CONTEXT) {
+-		spin_lock(&srmmu_context_spinlock);
++		spin_lock_irqsave(&srmmu_context_spinlock, flags);
+ 		alloc_context(old_mm, mm);
+-		spin_unlock(&srmmu_context_spinlock);
++		spin_unlock_irqrestore(&srmmu_context_spinlock, flags);
+ 		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
+ 	}
+ 
+@@ -986,14 +988,15 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ 
+ void destroy_context(struct mm_struct *mm)
+ {
++	unsigned long flags;
+ 
+ 	if (mm->context != NO_CONTEXT) {
+ 		flush_cache_mm(mm);
+ 		srmmu_ctxd_set(&srmmu_context_table[mm->context], srmmu_swapper_pg_dir);
+ 		flush_tlb_mm(mm);
+-		spin_lock(&srmmu_context_spinlock);
++		spin_lock_irqsave(&srmmu_context_spinlock, flags);
+ 		free_context(mm->context);
+-		spin_unlock(&srmmu_context_spinlock);
++		spin_unlock_irqrestore(&srmmu_context_spinlock, flags);
+ 		mm->context = NO_CONTEXT;
+ 	}
+ }
+-- 
+1.7.10.4
+
