@@ -1,7 +1,7 @@
 From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Fri, 12 Dec 2014 16:16:33 +0000
+Date: Fri, 19 Dec 2014 15:11:08 +0000
 Subject: Re: ixgbe/linux/sparc perf issues
-Message-Id: <20141212161633.GA16340@oracle.com>
+Message-Id: <20141219151108.GA25248@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141211194542.GA5536@oracle.com>
 In-Reply-To: <20141211194542.GA5536@oracle.com>
@@ -10,32 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On (12/11/14 15:27), David Miller wrote:
+On (12/12/14 11:16), Sowmini Varadhan wrote:
 > 
-> BTW, Solaris also does things which are remotely exploitable, so
-> these optimizations that get them "line rate" have a serious cost.
+> But getting back to linux, 3 Gbps is a far cry from 10 Gbps.
+> I need to spend some time collecting data to convince myself that
+> this is purely because of HV/IOMMU inefficiency.
 > 
-> In their NIU driver, the recycle all buffers in an RX queue rather
-> than allocating new buffers.
-> 
-> This means that a maliciously running TCP application can read a lot
-> of data from a bulk sender, then simply stop reading completely.
 
-Just to set the record straight, without digressing too much into
-Solaris internals..
+[e1000-devel has been Bcc'ed]
 
-Solaris follows the common practice used in such algorithms
-of having thresholds on the number of loaned ("recycled") buffers for
-this sort of thing, to avoid DoS attacks from malicious applications. 
-When that threshold is crossed, the driver falls back to the slower
-"allocate new buffers" path, so there is no stalling.
+I collected the stats, and  I have evidence that the HV is not the
+bottleneck at this point:
 
-But getting back to linux, 3 Gbps is a far cry from 10 Gbps.
-I need to spend some time collecting data to convince myself that
-this is purely because of HV/IOMMU inefficiency.
+I am running linux as the Tx side (TCP client) with 10 threads 
+(iperf -c <addr> -P 10) against an iperf server that can handle
+9-9.5 Gbps. 
 
-Thanks,
+  Baseline:
+   with default settings (TSO enabled) :    9-9.5 Gbps
+   Disable TSO using ethtool- drops badly:  2-3 Gbps.  (!)
+
+  With iommu patch to break monolithic lock: 8.5 Gbps. (Note: with no TSO!)
+  
+I'll share the iommu patch as an RFC in a separate email to sparclinux.
+
+But the Rx side may have other bottle-necks: even with the iommu
+patch, it is stuck at 3 Gbps, though I can get something a bit
+better merely by disabling GRO (as recommended by intel.com documentation), 
+so 3 Gbps is probably not the ceiling here.
+
+I am willing to believe that you can't do much better than
+approx 8.5 Gbps without additional churn to the DMA design.
+But 3 Gbps Rx out of a max of 10 Gbps suggests that something 
+other than the HV is holding linux/sparc/Rx back. 
+
+And it might not even be the DMA overhead, since Tx can pull 8.5 Gbps
+even with a map/unmap for each packet. I'm still investigating the Rx
+side, but there are a lot of factors here, with RPS, qdisc, etc all
+coming into play. Suggestions for things to investigate are welcome.
+
 --Sowmini
-
 
 
