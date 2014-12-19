@@ -1,7 +1,7 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Fri, 19 Dec 2014 18:31:33 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 19 Dec 2014 19:57:32 +0000
 Subject: Re: [PATCH RFC sparc] Break up iommu from monolithic lock for the map to multiple pools/locks
-Message-Id: <20141219183133.GH4294@oracle.com>
+Message-Id: <20141219.145732.1885898372505877024.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141219151616.GB25248@oracle.com>
 In-Reply-To: <20141219151616.GB25248@oracle.com>
@@ -10,28 +10,26 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On (12/19/14 12:26), David Miller wrote:
-> 
-> If this is such a better and more scalable algorithm for IOMMU
-> arena DMA region allocation, then instead of one platform after
-> another putting a private implementation under arch/, the generic
-> IOMMU code should be adjusted instead.
-> 
-> Right?
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Fri, 19 Dec 2014 13:31:33 -0500
 
-Then again, I just realized that you are talking about factorizing
-common code across multiple architectures, instead of multiple drivers
-within sparc.
+> I could look into that, but would need help from other arch experts for
+> help with extraction of the platform-dependant parts, implementation and 
+> testing. Looks like pci-calgary_64.c also has an obvious copy of the
+> powerpc algorithm, and there are other *iommu.c implementations as well,
+> where the duplication may be there, but is not obvious (from cscope etc.).
 
-yes, that would be even better. 
+I suspect that if we come up with something that should work for both
+powerpc and sparc, we can just let linux-arch@vger.kernel.org know
+about it to give a heads up for other platform maintainers so they
+can do the conversions for their code too.
 
-I could look into that, but would need help from other arch experts for
-help with extraction of the platform-dependant parts, implementation and 
-testing. Looks like pci-calgary_64.c also has an obvious copy of the
-powerpc algorithm, and there are other *iommu.c implementations as well,
-where the duplication may be there, but is not obvious (from cscope etc.).
+The core operation is the range allocation.  So if you just put the
+powerpc alloc/free code (basically, the bulk of your patch) into
+lib/iommu-common.c or similar, that ought to be a good starting point.
 
---Sowmini
+The patch set would look like:
 
+1) move powerpc iommu range alloc/free into lib/iommu-common.c
 
-
+2) make sparc64 use it
