@@ -1,7 +1,7 @@
 From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Fri, 19 Dec 2014 17:29:28 +0000
+Date: Fri, 19 Dec 2014 18:31:33 +0000
 Subject: Re: [PATCH RFC sparc] Break up iommu from monolithic lock for the map to multiple pools/locks
-Message-Id: <20141219172928.GG4294@oracle.com>
+Message-Id: <20141219183133.GH4294@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141219151616.GB25248@oracle.com>
 In-Reply-To: <20141219151616.GB25248@oracle.com>
@@ -18,14 +18,20 @@ On (12/19/14 12:26), David Miller wrote:
 > IOMMU code should be adjusted instead.
 > 
 > Right?
-> 
 
-Yes, it should.. that would be the eventual goal. But I wanted
-to do this incrementally (IOW, I was scared to boil the ocean just yet :-)
-I see pci, schizo, ldc using this as well. Even if I managed to 
-convert all of them successfully, the patch-set would be pretty massive)
+Then again, I just realized that you are talking about factorizing
+common code across multiple architectures, instead of multiple drivers
+within sparc.
 
-So I wanted to get some feedback on this first
+yes, that would be even better. 
+
+I could look into that, but would need help from other arch experts for
+help with extraction of the platform-dependant parts, implementation and 
+testing. Looks like pci-calgary_64.c also has an obvious copy of the
+powerpc algorithm, and there are other *iommu.c implementations as well,
+where the duplication may be there, but is not obvious (from cscope etc.).
 
 --Sowmini
+
+
 
