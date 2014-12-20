@@ -1,49 +1,87 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 14 Dec 2014 16:53:04 +0000
-Subject: [PATCH 16/18] sparc/uaccess: fix sparse errors
-Message-Id: <1418575877-21488-17-git-send-email-mst@redhat.com>
+From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+Date: Sat, 20 Dec 2014 12:33:54 +0000
+Subject: [PATCH] arch: sparc: kernel: traps_64.c:  Remove some unused functions
+Message-Id: <1419078835-31499-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1418575877-21488-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1418575877-21488-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, Dave Kleikamp <dave.kleikamp@oracle.com>, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>
+Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, bob picco <bpicco@meloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-virtio wants to read bitwise types from userspace using get_user.  At the
-moment this triggers sparse errors, since the value is passed through an
-integer.
+Removes some functions that are not used anywhere:
+do_fpdis_tl1() do_iae_tl1() do_dae_tl1() do_cee_tl1()
 
-Fix that up using __force.
+This was partially found by using a static code analysis program called cppcheck.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
 ---
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/entry.h    |    4 ----
+ arch/sparc/kernel/traps_64.c |   28 ----------------------------
+ 2 files changed, 32 deletions(-)
 
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index c990a5e..b80866d 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -145,7 +145,7 @@ case 2: __get_user_asm(__gu_val,uh,addr,__gu_ret); break; \
- case 4: __get_user_asm(__gu_val,uw,addr,__gu_ret); break; \
- case 8: __get_user_asm(__gu_val,x,addr,__gu_ret); break; \
- default: __gu_val = 0; __gu_ret = __get_user_bad(); break; \
--} data = (type) __gu_val; __gu_ret; })
-+} data = (__force type) __gu_val; __gu_ret; })
+diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
+index 88d322b..07cc49e 100644
+--- a/arch/sparc/kernel/entry.h
++++ b/arch/sparc/kernel/entry.h
+@@ -98,11 +98,7 @@ void sun4v_do_mna(struct pt_regs *regs,
+ void do_privop(struct pt_regs *regs);
+ void do_privact(struct pt_regs *regs);
+ void do_cee(struct pt_regs *regs);
+-void do_cee_tl1(struct pt_regs *regs);
+-void do_dae_tl1(struct pt_regs *regs);
+-void do_iae_tl1(struct pt_regs *regs);
+ void do_div0_tl1(struct pt_regs *regs);
+-void do_fpdis_tl1(struct pt_regs *regs);
+ void do_fpieee_tl1(struct pt_regs *regs);
+ void do_fpother_tl1(struct pt_regs *regs);
+ void do_ill_tl1(struct pt_regs *regs);
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 981a769..204315d 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2564,27 +2564,6 @@ void do_cee(struct pt_regs *regs)
+ 	die_if_kernel("TL0: Cache Error Exception", regs);
+ }
  
- #define __get_user_nocheck_ret(data,addr,size,type,retval) ({ \
- register unsigned long __gu_val __asm__ ("l1"); \
-@@ -155,7 +155,7 @@ case 2: __get_user_asm_ret(__gu_val,uh,addr,retval); break; \
- case 4: __get_user_asm_ret(__gu_val,uw,addr,retval); break; \
- case 8: __get_user_asm_ret(__gu_val,x,addr,retval); break; \
- default: if (__get_user_bad()) return retval; \
--} data = (type) __gu_val; })
-+} data = (__force type) __gu_val; })
+-void do_cee_tl1(struct pt_regs *regs)
+-{
+-	exception_enter();
+-	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+-	die_if_kernel("TL1: Cache Error Exception", regs);
+-}
+-
+-void do_dae_tl1(struct pt_regs *regs)
+-{
+-	exception_enter();
+-	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+-	die_if_kernel("TL1: Data Access Exception", regs);
+-}
+-
+-void do_iae_tl1(struct pt_regs *regs)
+-{
+-	exception_enter();
+-	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+-	die_if_kernel("TL1: Instruction Access Exception", regs);
+-}
+-
+ void do_div0_tl1(struct pt_regs *regs)
+ {
+ 	exception_enter();
+@@ -2592,13 +2571,6 @@ void do_div0_tl1(struct pt_regs *regs)
+ 	die_if_kernel("TL1: DIV0 Exception", regs);
+ }
  
- #define __get_user_asm(x,size,addr,ret)					\
- __asm__ __volatile__(							\
+-void do_fpdis_tl1(struct pt_regs *regs)
+-{
+-	exception_enter();
+-	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
+-	die_if_kernel("TL1: FPU Disabled", regs);
+-}
+-
+ void do_fpieee_tl1(struct pt_regs *regs)
+ {
+ 	exception_enter();
 -- 
-MST
+1.7.10.4
 
