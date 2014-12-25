@@ -1,36 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 18 Dec 2014 21:39:02 +0000
-Subject: [GIT] Sparc
-Message-Id: <20141218.163902.82013891201636149.davem@davemloft.net>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 25 Dec 2014 09:30:22 +0000
+Subject: [PATCH repost 15/16] sparc/uaccess: fix sparse errors
+Message-Id: <1419499661-8566-16-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1419499661-8566-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1419499661-8566-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, Dave Kleikamp <dave.kleikamp@oracle.com>, sparclinux@vger.kernel.org
 
+virtio wants to read bitwise types from userspace using get_user.  At the
+moment this triggers sparse errors, since the value is passed through an
+integer.
 
-Please pull to get this sparc32 locking bug fix from Andreas Larsson.
+Fix that up using __force.
 
-Thanks!
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The following changes since commit 44e8967d591686463e84a88b46b03beba3ab49fb:
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index c990a5e..b80866d 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -145,7 +145,7 @@ case 2: __get_user_asm(__gu_val,uh,addr,__gu_ret); break; \
+ case 4: __get_user_asm(__gu_val,uw,addr,__gu_ret); break; \
+ case 8: __get_user_asm(__gu_val,x,addr,__gu_ret); break; \
+ default: __gu_val = 0; __gu_ret = __get_user_bad(); break; \
+-} data = (type) __gu_val; __gu_ret; })
++} data = (__force type) __gu_val; __gu_ret; })
+ 
+ #define __get_user_nocheck_ret(data,addr,size,type,retval) ({ \
+ register unsigned long __gu_val __asm__ ("l1"); \
+@@ -155,7 +155,7 @@ case 2: __get_user_asm_ret(__gu_val,uh,addr,retval); break; \
+ case 4: __get_user_asm_ret(__gu_val,uw,addr,retval); break; \
+ case 8: __get_user_asm_ret(__gu_val,x,addr,retval); break; \
+ default: if (__get_user_bad()) return retval; \
+-} data = (type) __gu_val; })
++} data = (__force type) __gu_val; })
+ 
+ #define __get_user_asm(x,size,addr,ret)					\
+ __asm__ __volatile__(							\
+-- 
+MST
 
-  Ceph: remove left-over reject file (2014-12-17 18:47:01 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-
-for you to fetch changes up to 66d0f7ec9f1038452178b1993fc07fd96d30fd38:
-
-  sparc32: destroy_context() and switch_mm() needs to disable interrupts. (2014-12-18 12:47:54 -0500)
-
-----------------------------------------------------------------
-Andreas Larsson (1):
-      sparc32: destroy_context() and switch_mm() needs to disable interrupts.
-
- arch/sparc/mm/srmmu.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
