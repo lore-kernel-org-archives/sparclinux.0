@@ -1,49 +1,26 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Tue, 06 Jan 2015 15:44:20 +0000
-Subject: [PATCH v2 15/40] sparc64/uaccess: fix sparse errors
-Message-Id: <1420558883-10131-16-git-send-email-mst@redhat.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 06 Jan 2015 18:21:52 +0000
+Subject: Re: [PATCH v2 15/40] sparc64/uaccess: fix sparse errors
+Message-Id: <20150106.132152.994204445203435419.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1420558883-10131-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1420558883-10131-1-git-send-email-mst@redhat.com>
+	<1420558883-10131-16-git-send-email-mst@redhat.com>
+In-Reply-To: <1420558883-10131-16-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
+To: mst@redhat.com
+Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org, sam@ravnborg.org, sparclinux@vger.kernel.org
 
-virtio wants to read bitwise types from userspace using get_user.  At the
-moment this triggers sparse errors, since the value is passed through an
-integer.
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Tue, 6 Jan 2015 17:44:20 +0200
 
-Fix that up using __force.
+> virtio wants to read bitwise types from userspace using get_user.  At the
+> moment this triggers sparse errors, since the value is passed through an
+> integer.
+> 
+> Fix that up using __force.
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- arch/sparc/include/asm/uaccess_64.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
-index c990a5e..b80866d 100644
---- a/arch/sparc/include/asm/uaccess_64.h
-+++ b/arch/sparc/include/asm/uaccess_64.h
-@@ -145,7 +145,7 @@ case 2: __get_user_asm(__gu_val,uh,addr,__gu_ret); break; \
- case 4: __get_user_asm(__gu_val,uw,addr,__gu_ret); break; \
- case 8: __get_user_asm(__gu_val,x,addr,__gu_ret); break; \
- default: __gu_val = 0; __gu_ret = __get_user_bad(); break; \
--} data = (type) __gu_val; __gu_ret; })
-+} data = (__force type) __gu_val; __gu_ret; })
- 
- #define __get_user_nocheck_ret(data,addr,size,type,retval) ({ \
- register unsigned long __gu_val __asm__ ("l1"); \
-@@ -155,7 +155,7 @@ case 2: __get_user_asm_ret(__gu_val,uh,addr,retval); break; \
- case 4: __get_user_asm_ret(__gu_val,uw,addr,retval); break; \
- case 8: __get_user_asm_ret(__gu_val,x,addr,retval); break; \
- default: if (__get_user_bad()) return retval; \
--} data = (type) __gu_val; })
-+} data = (__force type) __gu_val; })
- 
- #define __get_user_asm(x,size,addr,ret)					\
- __asm__ __volatile__(							\
--- 
-MST
-
+Acked-by: David S. Miller <davem@davemloft.net>
