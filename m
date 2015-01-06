@@ -1,75 +1,144 @@
-From: "Tantilov, Emil S" <emil.s.tantilov@intel.com>
-Date: Thu, 15 Jan 2015 00:01:24 +0000
-Subject: RE: [PATCH] ixgbe: Re-enable relaxed ordering as part of init/restart sequence for non-DCA config
-Message-Id: <87618083B2453E4A8714035B62D67992501E1DD6@FMSMSX105.amr.corp.intel.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Tue, 06 Jan 2015 22:10:18 +0000
+Subject: [PATCH] sparc32: nocheck uaccess coding style tweaks
+Message-Id: <1420582149-23235-1-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150114144009.GG19534@oracle.com>
-In-Reply-To: <20150114144009.GG19534@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "Brandeburg, Jesse" <jesse.brandeburg@intel.com>, "Allan, Bruce W" <bruce.w.allan@intel.com>, "Wyborny, Carolyn" <carolyn.wyborny@intel.com>, "Skidmore, Donald C" <donald.c.skidmore@intel.com>, "Rose, Gregory V" <gregory.v.rose@intel.com>, "Vick, Matthew" <matthew.vick@intel.com>, "Ronciak, John" <john.ronciak@intel.com>, "Williams, Mitch A" <mitch.a.williams@intel.com>
-Cc: Linux NICS <Linux-nics@isotope.jf.intel.com>, "e1000-devel@lists.sourceforge.net" <e1000-devel@lists.sourceforge.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
->-----Original Message-----
->From: Sowmini Varadhan [mailto:sowmini.varadhan@oracle.com] 
->Relaxed ordering is disabled by default at driver initialization
->and re-enabled when DCA is used. The reason it is disabled  was
->due to an issue on some chipsets (see comments in ixgbe_update_tx_dca()).
->But when DCA is not used, RO needs to be re-enabled, else we have
->a serialization bottleneck on platforms like SPARC.
->
->This patch eliminates the bottleneck for ixgbe when DCA is not configured.
->
->Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
->Cc: Emil Tantilov <emil.s.tantilov@intel.com>
->---
-> drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  |    1 +
-> drivers/net/ethernet/intel/ixgbe/ixgbe_common.c |   20 ++++++++++++++++++++
-> drivers/net/ethernet/intel/ixgbe/ixgbe_common.h |    1 +
-> drivers/net/ethernet/intel/ixgbe/ixgbe_main.c   |   11 +++++++++++
-> drivers/net/ethernet/intel/ixgbe/ixgbe_type.h   |    1 +
-> drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c   |    1 +
-> 6 files changed, 35 insertions(+), 0 deletions(-)
->
->diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
->index c5c97b4..85c7a28 100644
->--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
->+++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
->@@ -1161,6 +1161,7 @@ static struct ixgbe_mac_operations mac_ops_82598 = {
-> 	.clear_hw_cntrs		= &ixgbe_clear_hw_cntrs_generic,
-> 	.get_media_type		= &ixgbe_get_media_type_82598,
-> 	.enable_rx_dma          = &ixgbe_enable_rx_dma_generic,
->+	.enable_relaxed_ordering = &ixgbe_enable_relaxed_ordering,
+Sam Ravnborg suggested packing single-lines cases in switch statements
+in nocheck uaccess macros makes for easier to read code.
 
-The IXGBE_DCA_TXCTRL register for 82598 is at a different offset. Also there is a limit of 16 registers. The function we have in our code for 82598 is as follows:
+Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
 
-/**
- *  ixgbe_enable_relaxed_ordering_82598 - enable relaxed ordering
- *  @hw: pointer to hardware structure
- *
- **/
-void ixgbe_enable_relaxed_ordering_82598(struct ixgbe_hw *hw)
-{
-	u32 regval;
-	u32 i;
+This is on top of coding style fixes that David already acked.
 
-	/* Enable relaxed ordering */
-	for (i = 0; ((i < hw->mac.max_tx_queues) &&
-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL(i));
-		regval |= IXGBE_DCA_TXCTRL_DESC_WRO_EN;
-		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), regval);
-	}
+Sam - you only commented on uaccess_64 but I'm guessing same thing
+applies to uaccess_32?
 
-	for (i = 0; ((i < hw->mac.max_rx_queues) &&
-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
-		regval |= IXGBE_DCA_RXCTRL_DATA_WRO_EN |
-			  IXGBE_DCA_RXCTRL_HEAD_WRO_EN;
-		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
-	}
-}
+ arch/sparc/include/asm/uaccess_32.h | 96 ++++++++++++++-----------------------
+ 1 file changed, 35 insertions(+), 61 deletions(-)
 
-Thanks,
-Emil
+diff --git a/arch/sparc/include/asm/uaccess_32.h b/arch/sparc/include/asm/uaccess_32.h
+index f966562..64ee103 100644
+--- a/arch/sparc/include/asm/uaccess_32.h
++++ b/arch/sparc/include/asm/uaccess_32.h
+@@ -142,24 +142,14 @@ struct __large_struct { unsigned long buf[100]; };
+ 	__pu_ret; \
+ })
+ 
+-#define __put_user_nocheck(x, addr, size) ({ \
+-	register int __pu_ret; \
+-	switch (size) { \
+-	case 1: \
+-		__put_user_asm(x, b, addr, __pu_ret); \
+-		break; \
+-	case 2: \
+-		__put_user_asm(x, h, addr, __pu_ret); \
+-		break; \
+-	case 4: \
+-		__put_user_asm(x, , addr, __pu_ret); \
+-		break; \
+-	case 8: \
+-		__put_user_asm(x, d, addr, __pu_ret); \
+-		break; \
+-	default: \
+-		__pu_ret = __put_user_bad(); \
+-		break; \
++#define __put_user_nocheck(x, addr, size) ({			\
++	register int __pu_ret;					\
++	switch (size) {						\
++	case 1: __put_user_asm(x, b, addr, __pu_ret); break;	\
++	case 2: __put_user_asm(x, h, addr, __pu_ret); break;	\
++	case 4: __put_user_asm(x, , addr, __pu_ret); break;	\
++	case 8: __put_user_asm(x, d, addr, __pu_ret); break;	\
++	default: __pu_ret = __put_user_bad(); break;		\
+ 	} \
+ 	__pu_ret; \
+ })
+@@ -240,51 +230,35 @@ int __put_user_bad(void);
+ 		return retval; \
+ })
+ 
+-#define __get_user_nocheck(x, addr, size, type) ({ \
+-	register int __gu_ret; \
+-	register unsigned long __gu_val; \
+-	switch (size) { \
+-	case 1: \
+-		__get_user_asm(__gu_val, ub, addr, __gu_ret); \
+-		break; \
+-	case 2: \
+-		__get_user_asm(__gu_val, uh, addr, __gu_ret); \
+-		break; \
+-	case 4: \
+-		__get_user_asm(__gu_val, , addr, __gu_ret); \
+-		break; \
+-	case 8: \
+-		__get_user_asm(__gu_val, d, addr, __gu_ret); \
+-		break; \
+-	default: \
+-		__gu_val = 0; \
+-		__gu_ret = __get_user_bad(); \
+-		break; \
+-	} \
+-	x = (__force type) __gu_val; \
+-	__gu_ret; \
++#define __get_user_nocheck(x, addr, size, type) ({			\
++	register int __gu_ret;						\
++	register unsigned long __gu_val;				\
++	switch (size) {							\
++	case 1: __get_user_asm(__gu_val, ub, addr, __gu_ret); break;	\
++	case 2: __get_user_asm(__gu_val, uh, addr, __gu_ret); break;	\
++	case 4: __get_user_asm(__gu_val, , addr, __gu_ret); break;	\
++	case 8: __get_user_asm(__gu_val, d, addr, __gu_ret); break;	\
++	default:							\
++		__gu_val = 0;						\
++		__gu_ret = __get_user_bad();				\
++		break;							\
++	}								\
++	x = (__force type) __gu_val;					\
++	__gu_ret;							\
+ })
+ 
+-#define __get_user_nocheck_ret(x, addr, size, type, retval) ({ \
+-	register unsigned long __gu_val __asm__ ("l1"); \
+-	switch (size) { \
+-	case 1: \
+-		__get_user_asm_ret(__gu_val, ub, addr, retval); \
+-		break; \
+-	case 2: \
+-		__get_user_asm_ret(__gu_val, uh, addr, retval); \
+-		break; \
+-	case 4: \
+-		__get_user_asm_ret(__gu_val, , addr, retval); \
+-		break; \
+-	case 8: \
+-		__get_user_asm_ret(__gu_val, d, addr, retval); \
+-		break; \
+-	default: \
+-		if (__get_user_bad()) \
+-			return retval; \
+-	} \
+-	x = (__force type) __gu_val; \
++#define __get_user_nocheck_ret(x, addr, size, type, retval) ({		\
++	register unsigned long __gu_val __asm__ ("l1");			\
++	switch (size) {							\
++	case 1: __get_user_asm_ret(__gu_val, ub, addr, retval); break;	\
++	case 2: __get_user_asm_ret(__gu_val, uh, addr, retval); break;	\
++	case 4: __get_user_asm_ret(__gu_val, , addr, retval);  break;	\
++	case 8: __get_user_asm_ret(__gu_val, d, addr, retval); break;	\
++	default:							\
++		if (__get_user_bad())					\
++			return retval;					\
++	}								\
++	x = (__force type) __gu_val;					\
+ })
+ 
+ #define __get_user_asm(x, size, addr, ret)				\
+-- 
+MST
