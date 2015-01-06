@@ -1,52 +1,49 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Tue, 06 Jan 2015 21:44:07 +0000
-Subject: Re: [PATCH v2 26/40] arch/sparc: uaccess_64 macro whitespace fixes
-Message-Id: <20150106214407.GA15535@redhat.com>
+Date: Tue, 06 Jan 2015 15:44:20 +0000
+Subject: [PATCH v2 15/40] sparc64/uaccess: fix sparse errors
+Message-Id: <1420558883-10131-16-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1420558883-10131-1-git-send-email-mst@redhat.com>
- <1420558883-10131-27-git-send-email-mst@redhat.com>
- <20150106165339.GA11270@ravnborg.org>
- <20150106171902.GA11577@redhat.com>
- <20150106182749.GA19490@ravnborg.org>
- <20150106202342.GB12455@redhat.com>
- <20150106204607.GA22468@ravnborg.org>
-In-Reply-To: <20150106204607.GA22468@ravnborg.org>
+In-Reply-To: <1420558883-10131-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
 
-On Tue, Jan 06, 2015 at 09:46:07PM +0100, Sam Ravnborg wrote:
-> > > sparc64: fix coding style in uaccess_64.h
-> > 
-> > OK.
-> > I see David reviewed and sent acks, so I won't bother
-> > reposting, but I'll tweak this in my tree.
-> OK.
-> 
-> > > > I get it you like it that 
-> > > > 	case 1: __get_user_asm(__gu_val,ub,addr,__gu_ret); break;
-> > > > has the whole case on the same line?
-> > > > Is that the issue?
-> > > Exactly - much easier to read this way.
-> > > That the "\" was not aligned in these parts of the code did not help either.
-> > > 
-> > > 	Sam
-> > 
-> > I see David acked this already - I'll do a patch on top to tweak just
-> > these two places to your liking?
-> 
-> Thanks.
+virtio wants to read bitwise types from userspace using get_user.  At the
+moment this triggers sparse errors, since the value is passed through an
+integer.
 
-OK, sent.
-Mind sending acks for these and the original patches?
-You can add that your ack is conditional on applying the tweak on top.
+Fix that up using __force.
 
-> When you have done so please wait for David's ack before you
-> sent then upstream. That I like it does not make it universally accepted.
-> 
-> 	Sam
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ arch/sparc/include/asm/uaccess_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Sure.
-Thanks.
+diff --git a/arch/sparc/include/asm/uaccess_64.h b/arch/sparc/include/asm/uaccess_64.h
+index c990a5e..b80866d 100644
+--- a/arch/sparc/include/asm/uaccess_64.h
++++ b/arch/sparc/include/asm/uaccess_64.h
+@@ -145,7 +145,7 @@ case 2: __get_user_asm(__gu_val,uh,addr,__gu_ret); break; \
+ case 4: __get_user_asm(__gu_val,uw,addr,__gu_ret); break; \
+ case 8: __get_user_asm(__gu_val,x,addr,__gu_ret); break; \
+ default: __gu_val = 0; __gu_ret = __get_user_bad(); break; \
+-} data = (type) __gu_val; __gu_ret; })
++} data = (__force type) __gu_val; __gu_ret; })
+ 
+ #define __get_user_nocheck_ret(data,addr,size,type,retval) ({ \
+ register unsigned long __gu_val __asm__ ("l1"); \
+@@ -155,7 +155,7 @@ case 2: __get_user_asm_ret(__gu_val,uh,addr,retval); break; \
+ case 4: __get_user_asm_ret(__gu_val,uw,addr,retval); break; \
+ case 8: __get_user_asm_ret(__gu_val,x,addr,retval); break; \
+ default: if (__get_user_bad()) return retval; \
+-} data = (type) __gu_val; })
++} data = (__force type) __gu_val; })
+ 
+ #define __get_user_asm(x,size,addr,ret)					\
+ __asm__ __volatile__(							\
+-- 
+MST
+
