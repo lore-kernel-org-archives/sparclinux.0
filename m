@@ -1,75 +1,37 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Date: Fri, 16 Jan 2015 14:45:58 +0000
-Subject: Re: [PATCHv2] ixgbe: Re-enable relaxed ordering as part of init/restart sequence for non-DCA config
-Message-Id: <1421419558.2632.111.camel@jtkirshe-mobl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-3MiGRmuaAV6qzmqb4nyP"
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Wed, 07 Jan 2015 00:29:15 +0000
+Subject: Re: [PATCHv2 1/1] vfs: renumber FMODE_NONOTIFY and add to uniqueness check
+Message-Id: <20150106162915.7edb5620999641ebdc7a74e6@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150115010352.GK24238@oracle.com>
-In-Reply-To: <20150115010352.GK24238@oracle.com>
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: jesse.brandeburg@intel.com, bruce.w.allan@intel.com, carolyn.wyborny@intel.com, donald.c.skidmore@intel.com, gregory.v.rose@intel.com, matthew.vick@intel.com, john.ronciak@intel.com, mitch.a.williams@intel.com, linux.nics@intel.com, e1000-devel@lists.sourceforge.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, emil.s.tantilov@intel.com
-
-
---=-3MiGRmuaAV6qzmqb4nyP
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2015-01-14 at 20:03 -0500, Sowmini Varadhan wrote:
-> Relaxed ordering is disabled by default at driver initialization
-> and re-enabled when DCA is used. The reason it is disabled  was
-> due to an issue on some chipsets (see comments in
-> ixgbe_update_tx_dca()).
-> But when DCA is not used, RO needs to be re-enabled, else we have
-> a serialization bottleneck on platforms like SPARC.
->=20
-> This patch eliminates the bottleneck for ixgbe when DCA is not
-> configured.
->=20
-> Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-> Cc: Emil Tantilov <emil.s.tantilov@intel.com>
->=20
-> ---
-> v2: incoroporate comments from Emil Tantilov
->=20
->  drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  |   23
-> +++++++++++++++++++++++
->  drivers/net/ethernet/intel/ixgbe/ixgbe_common.c |   20
-> ++++++++++++++++++++
->  drivers/net/ethernet/intel/ixgbe/ixgbe_common.h |    1 +
->  drivers/net/ethernet/intel/ixgbe/ixgbe_main.c   |   11 +++++++++++
->  drivers/net/ethernet/intel/ixgbe/ixgbe_type.h   |    1 +
->  drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c   |    1 +
->  6 files changed, 57 insertions(+), 0 deletions(-)
-
-Thanks Sowmini, I have added your patch to my queue.
-
-I know that Emil and others are looking into whether we can do this for
-all ixgbe silicon, so we may have a follow-on patch to the work you have
-done already to enable this for all devices.
-
---=-3MiGRmuaAV6qzmqb4nyP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+References: <1416828199-3414-1-git-send-email-drysdale@google.com>
+	<1416828199-3414-2-git-send-email-drysdale@google.com>
+In-Reply-To: <1416828199-3414-2-git-send-email-drysdale@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: David Drysdale <drysdale@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Eric Paris <eparis@redhat.com>, David Miller <davem@davemloft.net>, Heinrich Schuchardt <xypron.glpk@gmx.de>, Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.cz>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+On Mon, 24 Nov 2014 11:23:19 +0000 David Drysdale <drysdale@google.com> wrote:
 
-iQIcBAABCgAGBQJUuSQmAAoJEOVv75VaS+3OhYMP/1suBFxAMFKUxRMOkNAciBTn
-hiPFFmyrsvJUnG4FEaNBNcjdZr41RKFMKEjasEyVyzcihEamxTZzK7YDRx5Z2qrc
-eezMzXP/73Oi4R7NiCU4ESmfX8pO8BAGg/r2SaCnLKuETcHzHFa5hPDK5mqphMAE
-rI0fPCIWGkVUaoFc3r6Gb7F/EW0rRlxwCP7Yj0u7gG8nNvl9RmuHDDQR+G+WK4Je
-iB4jriDmtNv4jQ2cOdBFyBWA9L8yVrNnBgKemtH8tOWcOXw5ZmxXFP5p8EaMm9yc
-v5/dGGx3mdwZwfHG8FqvDwCKZqtMknozNBe0GQqUF4TIQmhuHCPf0pefh9dyhiQH
-v/BLfRriik2bNO+L+gdLj8W7qRf/pX3+tDe3S44ohAonQTX1psmbK/UgczPLA5Dl
-yJgLTXrLlxv26ZBhuG6iHP+za6w77lwU1UHk+NfW12Lmbc+iVaQ/RSfLXrquKbTj
-i/i4o5EmPeENXG3cCGry6kLNRkuWRVslPGvi8Y9liZ4M0BKy3vsGl9l3cBpkgwJj
-EGbD9uB0v57Fp5PpbyavBikT9XypzZjThH+bJJmxDeL1cm3zO9jbbJ7Bd0Lz04Kj
-vCZgJl/DsS7+FwXjwFAz96u0/yB0X0xrvvgCOgssSq5KxyujzzVLVEbYteJwlyr/
-QNeqnXEmvRazVDaKtUn3
-=kP7P
------END PGP SIGNATURE-----
+> Fix clashing values for O_PATH and FMODE_NONOTIFY on sparc.
+> The clashing O_PATH value was added in 5229645bdc35f1cc43eb ("vfs: add
+> nonconflicting values for O_PATH") but this can't be changed as it
+> is user-visible.
+> 
+> FMODE_NONOTIFY is only used internally in the kernel, but it is in
+> the same numbering space as the other O_* flags, as indicated by the
+> comment at the top of include/uapi/asm-generic/fcntl.h (and its use
+> in fs/notify/fanotify/fanotify_user.c).  So renumber it to avoid
+> the clash.
+> 
+> All of this has happened before (12ed2e36c98aec6c4155, "fanotify:
+> FMODE_NONOTIFY and __O_SYNC in sparc conflict"), and all of this
+> will happen again -- so update the uniqueness check in fcntl_init()
+> to include __FMODE_NONOTIFY.
 
---=-3MiGRmuaAV6qzmqb4nyP--
+What are the user-visible runtime effects of the bug?
+
+Please always include this info when fixing bugs, so people can work
+out which kernel version(s) need the fix.
 
