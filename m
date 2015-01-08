@@ -1,32 +1,29 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Tue, 06 Jan 2015 23:34:21 +0000
-Subject: Re: [PATCH V2] sparc64: fatal trap should stop all cpus
-Message-Id: <54AC70FD.1020101@oracle.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Thu, 08 Jan 2015 19:43:27 +0000
+Subject: Re: [PATCH 0/2] IOMMU pools for better scalability
+Message-Id: <20150108194327.GA29528@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <54AB1B83.6070800@oracle.com>
-In-Reply-To: <54AB1B83.6070800@oracle.com>
+References: <20141222224308.GH29674@oracle.com>
+In-Reply-To: <20141222224308.GH29674@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 01/06/2015 04:23 PM, David Miller wrote:
-> From: Dave Kleikamp <dave.kleikamp@oracle.com>
-> Date: Mon, 05 Jan 2015 17:17:23 -0600
+On (12/22/14 17:43), Sowmini Varadhan wrote:
 > 
->> The below patch works with the hypervisor. I'm not sure if the calls
->> to set_cpu_online are really needed, but I left them in for now.
+> This patch series follows up on the suggestion in
+>   http://www.spinics.net/lists/sparclinux/msg13230.html
 > 
-> I don't see any other implementation of smp_send_stop() doing this.
+> Patch 1 of the series adds the infra-structure functions
+> for range alloc/free into (new file) lib/iomm-common.c
 > 
-> I'd rather you leave it out.
+> Patch 2 of the series makes sparc64 use this via changes
+> to pci_sun4v.c
 
-Okay. I'm fine with that.
+Hello,
 
-> Please also submit new versions of patches properly, as fresh
-> list postings.
-> 
-> Otherwise I have to edit out the commit message and that's more
-> work for me.
+Any preliminary comments on this patch? Do I need to improve/supply
+something else?
 
-No problem
+--Sowmini
