@@ -1,66 +1,36 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Sun, 11 Jan 2015 02:09:10 +0000
+From: Christoph Hellwig <hch@infradead.org>
+Date: Sun, 11 Jan 2015 11:02:56 +0000
 Subject: Re: [PATCHv10 man-pages 5/5] execveat.2: initial man page for execveat(2)
-Message-Id: <87oaq6oypl.fsf@x220.int.ebiederm.org>
+Message-Id: <20150111110256.GA18765@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150109223300.GO22149@ZenIV.linux.org.uk>
-	<20150109224252.GY4574@brightrain.aerifal.cx>
-	<20150109225743.GP22149@ZenIV.linux.org.uk>
-	<20150109231248.GZ4574@brightrain.aerifal.cx>
-	<20150109233644.GR22149@ZenIV.linux.org.uk>
-	<20150110030300.GU22149@ZenIV.linux.org.uk>
-	<20150110034144.GC4574@brightrain.aerifal.cx>
-	<20150110041457.GV22149@ZenIV.linux.org.uk>
-	<20150110055713.GE4574@brightrain.aerifal.cx>
-	<878uhaqnjo.fsf@x220.int.ebiederm.org>
-	<20150111011559.GG4574@brightrain.aerifal.cx>
-In-Reply-To: <20150111011559.GG4574@brightrain.aerifal.cx> (Rich Felker's
-	message of "Sat, 10 Jan 2015 20:15:59 -0500")
+References: <20150109225743.GP22149@ZenIV.linux.org.uk>
+ <20150109231248.GZ4574@brightrain.aerifal.cx>
+ <20150109233644.GR22149@ZenIV.linux.org.uk>
+ <20150110030300.GU22149@ZenIV.linux.org.uk>
+ <20150110034144.GC4574@brightrain.aerifal.cx>
+ <20150110041457.GV22149@ZenIV.linux.org.uk>
+ <20150110055713.GE4574@brightrain.aerifal.cx>
+ <878uhaqnjo.fsf@x220.int.ebiederm.org>
+ <20150111011559.GG4574@brightrain.aerifal.cx>
+ <87oaq6oypl.fsf@x220.int.ebiederm.org>
+In-Reply-To: <87oaq6oypl.fsf-JOvCrm2gF+uungPnsOpG7nhyD016LWXt@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rich Felker <dalias@aerifal.cx>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, David Drysdale <drysdale@google.com>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>, Andy Lutomirski <luto@amacapital.net>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
+Cc: Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, David Drysdale <drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Michael Kerrisk (man-pages)" <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Rich Felker <dalias@aerifal.cx> writes:
+On Sat, Jan 10, 2015 at 08:09:10PM -0600, Eric W. Biederman wrote:
+> In implementation /proc/self/exe is a named rather than a numbered file
+> descriptor.  Essentially when loading an elf executable the file
+> descriptor is duped to the name /proc/self/exe.  The implementation
+> otherwise is the same as /proc/self/fd/N.
+> 
+> The downside of course is that I expect if we were actually to change
+> /proc/self/exe from to point at the script instead of the shell some
+> piece of software somewhere would come melting down.  I am totally not
+> ready to consider that kind of mine field today.
 
-> On Sat, Jan 10, 2015 at 04:27:23PM -0600, Eric W. Biederman wrote:
->> Rich Felker <dalias@aerifal.cx> writes:
->> 
->> > On Sat, Jan 10, 2015 at 04:14:57AM +0000, Al Viro wrote:
->> 
->> >> Except that if your interpreter does stat(2) (or access(2), or getxattr(2),
->> >> etc.) before bothering with open(2), you'll get screwed.
->> >
->> > Yes, but I think that would be very bad interpreter design.
->> > stat/getxattr/access/whatever followed by open is always a TOCTOU
->> > race. The correct sequence of actions is always open followed by
->> > fstat/fgetxattr/...
->> 
->> Sigh.  I think everyone who has looked at this has been blind.
->> 
->> If userspace is reasonable all we have to do is fix /proc/self/exe
->> for shell scripts to point at the actual script,
->> and then pass /proc/self/exe on the shell scripts command line.
->> 
->> At a practical level we have to worry about backwards compability and
->> chroot jails.  But the existence of a clean implementation with
->> /proc/self/exe serves a proof of concept that it would not be too
->> difficult.  When someone cares enough to implement it.
->
-> Is /proc/self/exe a "magic symlink" that's bound to the inode, or just
-> a regular symlink? In the latter case it defeats the whole purpose of
-> using O_EXEC fds and fexecve rather than pathnames.
-
-In implementation /proc/self/exe is a named rather than a numbered file
-descriptor.  Essentially when loading an elf executable the file
-descriptor is duped to the name /proc/self/exe.  The implementation
-otherwise is the same as /proc/self/fd/N.
-
-The downside of course is that I expect if we were actually to change
-/proc/self/exe from to point at the script instead of the shell some
-piece of software somewhere would come melting down.  I am totally not
-ready to consider that kind of mine field today.
-
-Eric
-
+We could add a /proc/self/script that points to the script, and either
+is not available or still points to the executable if we are not running
+a script.
