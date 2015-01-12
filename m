@@ -1,36 +1,52 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Sun, 11 Jan 2015 11:02:56 +0000
+From: David Drysdale <drysdale@google.com>
+Date: Mon, 12 Jan 2015 11:33:49 +0000
 Subject: Re: [PATCHv10 man-pages 5/5] execveat.2: initial man page for execveat(2)
-Message-Id: <20150111110256.GA18765@infradead.org>
+Message-Id: <CAHse=S822QjRE_FF6JHi-5cUsrXHJnyjRwYJuyYn2O6tsz2dHQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150109225743.GP22149@ZenIV.linux.org.uk>
- <20150109231248.GZ4574@brightrain.aerifal.cx>
- <20150109233644.GR22149@ZenIV.linux.org.uk>
- <20150110030300.GU22149@ZenIV.linux.org.uk>
- <20150110034144.GC4574@brightrain.aerifal.cx>
- <20150110041457.GV22149@ZenIV.linux.org.uk>
- <20150110055713.GE4574@brightrain.aerifal.cx>
- <878uhaqnjo.fsf@x220.int.ebiederm.org>
- <20150111011559.GG4574@brightrain.aerifal.cx>
- <87oaq6oypl.fsf@x220.int.ebiederm.org>
-In-Reply-To: <87oaq6oypl.fsf-JOvCrm2gF+uungPnsOpG7nhyD016LWXt@public.gmane.org>
+References: <20150109161302.GQ4574@brightrain.aerifal.cx> <CAHse=S88Jy5ZKM_VY5onfvxX7dTMngnxuHfuLeSuzvKvQNP19A@mail.gmail.com>
+ <20150109204815.GR4574@brightrain.aerifal.cx> <20150109205626.GK22149@ZenIV.linux.org.uk>
+ <20150109205926.GT4574@brightrain.aerifal.cx> <20150109210941.GL22149@ZenIV.linux.org.uk>
+ <20150109212852.GU4574@brightrain.aerifal.cx> <87lhlbvbzs.fsf@x220.int.ebiederm.org>
+ <20150109223843.GX4574@brightrain.aerifal.cx> <87mw5rtowa.fsf@x220.int.ebiederm.org>
+ <20150110013324.GB4574@brightrain.aerifal.cx>
+In-Reply-To: <20150110013324.GB4574@brightrain.aerifal.cx>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
-Cc: Rich Felker <dalias-/miJ2pyFWUyWIDz0JBNUog@public.gmane.org>, Al Viro <viro-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, David Drysdale <drysdale-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "Michael Kerrisk (man-pages)" <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, Meredydd Luff <meredydd-zPN50pYk8eUaUu29zAJCuw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, X86 ML <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rich Felker <dalias@aerifal.cx>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Al Viro <viro@zeniv.linux.org.uk>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>, Andy Lutomirski <luto@amacapital.net>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
 
-On Sat, Jan 10, 2015 at 08:09:10PM -0600, Eric W. Biederman wrote:
-> In implementation /proc/self/exe is a named rather than a numbered file
-> descriptor.  Essentially when loading an elf executable the file
-> descriptor is duped to the name /proc/self/exe.  The implementation
-> otherwise is the same as /proc/self/fd/N.
-> 
-> The downside of course is that I expect if we were actually to change
-> /proc/self/exe from to point at the script instead of the shell some
-> piece of software somewhere would come melting down.  I am totally not
-> ready to consider that kind of mine field today.
+On Sat, Jan 10, 2015 at 1:33 AM, Rich Felker <dalias@aerifal.cx> wrote:
+> On Fri, Jan 09, 2015 at 07:17:41PM -0600, Eric W. Biederman wrote:
+>> Rich Felker <dalias@aerifal.cx> writes:
+>>
+>> > I'm not proposing code because I'm a libc developer not a kernel
+>> > developer. I know what's needed for userspace to provide a conforming
+>> > fexecve to applications, not how to implement that on the kernel side,
+>> > although I'm trying to provide constructive ideas. The hostility is
+>> > really not necessary.
+>>
+>> Conforming to what?
+>>
+>> The open group fexecve says nothing about requiring a file descriptor
+>> passed to fexecve to have O_CLOEXEC.
+>
+> It doesn't require it but it allows it, and in multithreaded programs
+> that might run child processes (or library code that might be used in
+> such situations), O_CLOEXEC is mandatory everywhere to avoid fd leaks.
 
-We could add a /proc/self/script that points to the script, and either
-is not available or still points to the executable if we are not running
-a script.
+As a naive idea related to Andy's suggestion elsewhere, could you
+just have an environment convention for fexecve-ing scripts?  That
+would reduce FD leaks without any need for kernel involvement/changes.
+
+For example, set _FEXECVED_VIA_FD=4 but don't set
+O_CLOEXEC before fexecve, and the interpreter reads then
+closes that FD.  Or just get the interpreter to spot scripts named
+"/dev/fd/%d" and read-then-close the FD that way, cf. Eric's suggestion
+at https://lkml.org/lkml/2014/10/22/652.
+
+By the way, FreeBSD has a fexecve(2) syscall that behaves
+in the same way as the current Linux code for an O_CLOEXEC
+script -- the interpreter fails to open "/dev/fd/6" as it's gone.
+Do you know if there are any other OSes that already do
+something more sophisticated for this case?
