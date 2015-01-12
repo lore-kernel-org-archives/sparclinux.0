@@ -1,7 +1,7 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Thu, 08 Jan 2015 19:43:27 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 12 Jan 2015 05:22:59 +0000
 Subject: Re: [PATCH 0/2] IOMMU pools for better scalability
-Message-Id: <20150108194327.GA29528@oracle.com>
+Message-Id: <20150112.002259.199563902251549680.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20141222224308.GH29674@oracle.com>
 In-Reply-To: <20141222224308.GH29674@oracle.com>
@@ -10,20 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On (12/22/14 17:43), Sowmini Varadhan wrote:
-> 
-> This patch series follows up on the suggestion in
->   http://www.spinics.net/lists/sparclinux/msg13230.html
-> 
-> Patch 1 of the series adds the infra-structure functions
-> for range alloc/free into (new file) lib/iomm-common.c
-> 
-> Patch 2 of the series makes sparc64 use this via changes
-> to pci_sun4v.c
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Thu, 8 Jan 2015 14:43:27 -0500
 
-Hello,
+> Any preliminary comments on this patch? Do I need to improve/supply
+> something else?
 
-Any preliminary comments on this patch? Do I need to improve/supply
-something else?
+You need to do one thing, which is be patient :-)
 
---Sowmini
+I've been travelling and combine that with the fact that
+sparc work takes a strong second seat to my networking
+maintainence responsibilities, the result is that sparc
+stuff won't get looked at for a while.
