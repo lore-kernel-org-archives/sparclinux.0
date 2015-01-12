@@ -1,53 +1,60 @@
-From: David Drysdale <drysdale@google.com>
-Date: Mon, 12 Jan 2015 14:18:18 +0000
+From: Rich Felker <dalias@aerifal.cx>
+Date: Mon, 12 Jan 2015 16:07:21 +0000
 Subject: Re: [PATCHv10 man-pages 5/5] execveat.2: initial man page for execveat(2)
-Message-Id: <CAHse=S9qP19WrNRefOzJ1yKiT9qWof67-y5wHBcxAfR-r4HzmQ@mail.gmail.com>
+Message-Id: <20150112160721.GJ4574@brightrain.aerifal.cx>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1416830039-21952-1-git-send-email-drysdale@google.com>
- <1416830039-21952-6-git-send-email-drysdale@google.com> <54AFF813.7050604@gmail.com>
- <20150109161302.GQ4574@brightrain.aerifal.cx> <CAHse=S88Jy5ZKM_VY5onfvxX7dTMngnxuHfuLeSuzvKvQNP19A@mail.gmail.com>
- <20150109204815.GR4574@brightrain.aerifal.cx> <20150109205626.GK22149@ZenIV.linux.org.uk>
- <20150109205926.GT4574@brightrain.aerifal.cx> <20150109210941.GL22149@ZenIV.linux.org.uk>
- <20150109212852.GU4574@brightrain.aerifal.cx> <20150109215042.GM22149@ZenIV.linux.org.uk>
-In-Reply-To: <20150109215042.GM22149@ZenIV.linux.org.uk>
+References: <20150109204815.GR4574@brightrain.aerifal.cx>
+ <20150109205626.GK22149@ZenIV.linux.org.uk>
+ <20150109205926.GT4574@brightrain.aerifal.cx>
+ <20150109210941.GL22149@ZenIV.linux.org.uk>
+ <20150109212852.GU4574@brightrain.aerifal.cx>
+ <87lhlbvbzs.fsf@x220.int.ebiederm.org>
+ <20150109223843.GX4574@brightrain.aerifal.cx>
+ <87mw5rtowa.fsf@x220.int.ebiederm.org>
+ <20150110013324.GB4574@brightrain.aerifal.cx>
+ <CAHse=S822QjRE_FF6JHi-5cUsrXHJnyjRwYJuyYn2O6tsz2dHQ@mail.gmail.com>
+In-Reply-To: <CAHse=S822QjRE_FF6JHi-5cUsrXHJnyjRwYJuyYn2O6tsz2dHQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Rich Felker <dalias@aerifal.cx>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Andy Lutomirski <luto@amacapital.net>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
+To: David Drysdale <drysdale@google.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Al Viro <viro@zeniv.linux.org.uk>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>, Andy Lutomirski <luto@amacapital.net>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
 
-On Fri, Jan 9, 2015 at 9:50 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Fri, Jan 09, 2015 at 04:28:52PM -0500, Rich Felker wrote:
->
->> The "magic open-once magic symlink" approach is really the cleanest
->> solution I can find. In the case where the interpreter does not open
->> the script, nothing terribly bad happens; the magic symlink just
->> sticks around until _exit or exec. In the case where the interpreter
->> opens it more than once, you get a failure, but as far as I know
->> existing interpreters don't do this, and it's arguably bad design. In
->> any case it's a caught error.
->
-> You know what's cleaner than that?  git revert 27d6ec7ad
-> It has just been merged; until 3.19 it's fair game for removal.
->
-> And yes, I should've NAKed the damn thing loud and clear, rather than
-> asking questions back then, getting no answers and letting it slip.
-> Mea culpa.
+On Mon, Jan 12, 2015 at 11:33:49AM +0000, David Drysdale wrote:
+> On Sat, Jan 10, 2015 at 1:33 AM, Rich Felker <dalias@aerifal.cx> wrote:
+> > On Fri, Jan 09, 2015 at 07:17:41PM -0600, Eric W. Biederman wrote:
+> >> Rich Felker <dalias@aerifal.cx> writes:
+> >>
+> >> > I'm not proposing code because I'm a libc developer not a kernel
+> >> > developer. I know what's needed for userspace to provide a conforming
+> >> > fexecve to applications, not how to implement that on the kernel side,
+> >> > although I'm trying to provide constructive ideas. The hostility is
+> >> > really not necessary.
+> >>
+> >> Conforming to what?
+> >>
+> >> The open group fexecve says nothing about requiring a file descriptor
+> >> passed to fexecve to have O_CLOEXEC.
+> >
+> > It doesn't require it but it allows it, and in multithreaded programs
+> > that might run child processes (or library code that might be used in
+> > such situations), O_CLOEXEC is mandatory everywhere to avoid fd leaks.
+> 
+> As a naive idea related to Andy's suggestion elsewhere, could you
+> just have an environment convention for fexecve-ing scripts?  That
+> would reduce FD leaks without any need for kernel involvement/changes.
+> 
+> For example, set _FEXECVED_VIA_FD=4 but don't set
+> O_CLOEXEC before fexecve, and the interpreter reads then
+> closes that FD.  Or just get the interpreter to spot scripts named
+> "/dev/fd/%d" and read-then-close the FD that way, cf. Eric's suggestion
+> at https://lkml.org/lkml/2014/10/22/652.
 
-Al, I'm sorry if I missed a question or concern of yours back in
-October -- I certainly didn't intend to (that would be foolish indeed!).
+No. Any omission of O_CLOEXEC even momentarily is a potentially
+dangerous fd leak. This is the case whenever the process is
+multithreaded and it's possible that other threads might fork and
+exec. Think of the case of a privileged daemon re-execing itself (e.g.
+to switch to an updated version) while there are potentially other
+threads spawning non-privileged processes.
 
-[I thought the main open question was whether a dupfs
-implementation would help with /dev/fd/ and /proc/ semantics, but I
-had the (possibly incorrect) understanding that that was somewhat
-orthogonal to the execveat implementation.]
-
-Are there any changes/fixes/refactorings that I could do (especially
-within the 3.19 timeframe) that would help mollify at all?
-
-> Back then the procfs-free environments had been pushed as a serious argument
-> in favour of merging the damn thing.  Now you guys turn around and say that
-> we not only need procfs mounted, we need a yet-to-be-added kludge in there
-> to cope with the actual intended uses.
-
-Not me!
+Rich
