@@ -1,52 +1,71 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Fri, 09 Jan 2015 15:21:18 +0000
-Subject: Solved: Re: ixgbe/linux/sparc perf issues
-Message-Id: <20150109152118.GA6560@oracle.com>
+From: "Tantilov, Emil S" <emil.s.tantilov@intel.com>
+Date: Tue, 13 Jan 2015 01:08:26 +0000
+Subject: RE: [linux-nics] Solved: Re: ixgbe/linux/sparc perf issues
+Message-Id: <87618083B2453E4A8714035B62D67992501E0C73@FMSMSX105.amr.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20150109152118.GA6560@oracle.com>
+In-Reply-To: <20150109152118.GA6560@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+>-----Original Message-----
+>From: linux-nics-bounces@isotope.jf.intel.com [mailto:linux-nics-bounces@isotope.jf.intel.com] On Behalf Of >Sowmini Varadhan
+>Sent: Friday, January 09, 2015 7:21 AM
+>To: David Miller
+>Cc: e1000-devel@lists.sourceforge.net; sparclinux@vger.kernel.org; Linux NICS
+>Subject: [linux-nics] Solved: Re: ixgbe/linux/sparc perf issues
+>> From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+>> Date: Thu, 11 Dec 2014 14:45:42 -0500
+>> I'm looking at an iperf issue running over ixgbe on linux
+>> on a sparc T5-2 platform (64 cpu) where we cannot get to line-speed
+>> (peaks at 3 Gbps on a 10Gbps link) and I'm trying to get to the bottom
+>> of this.
+>
+>On (12/11/14 15:09), David Miller replied:
+>davem> The real overhead is unavoidable due to the way the hypervisor access
+>davem> to the IOMMU is implemented in sun4v.
+>       :
+>davem> I've known about this issue for a decade and I do not think there is
+>davem> anything we can really do about this.
+>
+>Not so.
+>
+>The HV implementation can handle 1 (maybe even 2) NIC ports per
+>socket on a T5-2 without needing any additional DMA optimizations.
+>
+>The real problem is that the ixgbe driver (and probably a few other
+>related drivers?) turns off relaxed-ordering during startup (not
+>sure why) and never turns it back on.
 
-> From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-> Date: Thu, 11 Dec 2014 14:45:42 -0500
-> I'm looking at an iperf issue running over ixgbe on linux
-> on a sparc T5-2 platform (64 cpu) where we cannot get to line-speed
-> (peaks at 3 Gbps on a 10Gbps link) and I'm trying to get to the bottom
-> of this.
+Relaxed ordering is disabled by default at init and the driver only enables it for reads when DCA is used, which I suppose is not the case for you since you are on sparc.
 
-On (12/11/14 15:09), David Miller replied:
-davem> The real overhead is unavoidable due to the way the hypervisor access
-davem> to the IOMMU is implemented in sun4v.
-       :
-davem> I've known about this issue for a decade and I do not think there is
-davem> anything we can really do about this.
+>The absence of relaxed-ordering is a serous serialization point,
+>and is responsible for throttling throughput down to 3 Gbps.
+>
+>After I hack things as shown in the patch below, I am able to easily
+>get 9-9.5 Gbps. (The only other patch needed is the iommu lock-break-up:
+>http://www.spinics.net/lists/sparclinux/msg13238.html)
+>
+>Perhaps someone in e1000-devel/linux.nics can provide some background 
+>here on when this really needs to be turned off, and where to turn it back 
+>on cleanly.
 
-Not so.
+Relaxed ordering was disabled due to an issue with some chipsets. There is a comment to that effect when enabling relaxed ordering for reads in ixgbe_update_tx_dca(). This was done back in 2011, so I'm still trying to dig through the details.
 
-The HV implementation can handle 1 (maybe even 2) NIC ports per
-socket on a T5-2 without needing any additional DMA optimizations.
+>I'm sure there are more drivers than ixgbe that have this crippling bug.
 
-The real problem is that the ixgbe driver (and probably a few other
-related drivers?) turns off relaxed-ordering during startup (not
-sure why) and never turns it back on.
+As I mentioned above it is intentional. I guess it makes sense to have it enabled for chipsets where it helps with performance, but I'm not sure what the criteria should be. In your patch below you enable relaxed ordering for writes - have you tested if there is any effect if you enable it only for reads or both?
 
-The absence of relaxed-ordering is a serous serialization point,
-and is responsible for throttling throughput down to 3 Gbps.
+>there is another oddity that 'lspci -vv' reports RlxOrd as enabled,
+>even though this is clearly not the case, but that's a secondary issue.
 
-After I hack things as shown in the patch below, I am able to easily
-get 9-9.5 Gbps. (The only other patch needed is the iommu lock-break-up:
-http://www.spinics.net/lists/sparclinux/msg13238.html)
+According to the docs - the IXGBE_DCA registers control R/W relaxed ordering per-queue. There is another register (IXGBE_CTRL_EXT - 0x018) that seems to enable/disable relaxed ordering for the device which could be why you are seeing the RlxOrd bit set, although I can't be sure.
 
-Perhaps someone in e1000-devel/linux.nics can provide some background 
-here on when this really needs to be turned off, and where to turn it back 
-on cleanly.
+Thanks,
+Emil
 
-I'm sure there are more drivers than ixgbe that have this crippling bug. 
-
-there is another oddity that 'lspci -vv' reports RlxOrd as enabled,
-even though this is clearly not the case, but that's a secondary issue.
 
 --Sowmini
 
@@ -117,3 +136,6 @@ index 2ed2c7d..e97c89c 100644
  	err = register_netdev(netdev);
  	if (err)
 
+_______________________________________________
+Linux-nics mailing list
+Linux-nics@intel.com
