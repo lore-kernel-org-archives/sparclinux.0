@@ -1,7 +1,7 @@
-From: "Tantilov, Emil S" <emil.s.tantilov@intel.com>
-Date: Tue, 13 Jan 2015 01:08:26 +0000
-Subject: RE: [linux-nics] Solved: Re: ixgbe/linux/sparc perf issues
-Message-Id: <87618083B2453E4A8714035B62D67992501E0C73@FMSMSX105.amr.corp.intel.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 13 Jan 2015 01:24:17 +0000
+Subject: Re: [linux-nics] Solved: Re: ixgbe/linux/sparc perf issues
+Message-Id: <20150113012417.GO20062@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20150109152118.GA6560@oracle.com>
 In-Reply-To: <20150109152118.GA6560@oracle.com>
@@ -10,68 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
->-----Original Message-----
->From: linux-nics-bounces@isotope.jf.intel.com [mailto:linux-nics-bounces@isotope.jf.intel.com] On Behalf Of >Sowmini Varadhan
->Sent: Friday, January 09, 2015 7:21 AM
->To: David Miller
->Cc: e1000-devel@lists.sourceforge.net; sparclinux@vger.kernel.org; Linux NICS
->Subject: [linux-nics] Solved: Re: ixgbe/linux/sparc perf issues
->> From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
->> Date: Thu, 11 Dec 2014 14:45:42 -0500
->> I'm looking at an iperf issue running over ixgbe on linux
->> on a sparc T5-2 platform (64 cpu) where we cannot get to line-speed
->> (peaks at 3 Gbps on a 10Gbps link) and I'm trying to get to the bottom
->> of this.
+On (01/13/15 01:08), Tantilov, Emil S wrote:
 >
->On (12/11/14 15:09), David Miller replied:
->davem> The real overhead is unavoidable due to the way the hypervisor access
->davem> to the IOMMU is implemented in sun4v.
->       :
->davem> I've known about this issue for a decade and I do not think there is
->davem> anything we can really do about this.
->
->Not so.
->
->The HV implementation can handle 1 (maybe even 2) NIC ports per
->socket on a T5-2 without needing any additional DMA optimizations.
->
->The real problem is that the ixgbe driver (and probably a few other
->related drivers?) turns off relaxed-ordering during startup (not
->sure why) and never turns it back on.
+> Relaxed ordering is disabled by default at init and the driver only
+> enables it for reads when DCA is used, which I suppose is not the case
+> for you since you are on sparc.
+   :
+> Relaxed ordering was disabled due to an issue with some chipsets. There
+> is a comment to that effect when enabling relaxed ordering for reads in
+> ixgbe_update_tx_dca(). This was done back in 2011, so I'm still trying
+> to dig through the details.
 
-Relaxed ordering is disabled by default at init and the driver only enables it for reads when DCA is used, which I suppose is not the case for you since you are on sparc.
+> As I mentioned above it is intentional. I guess it makes sense to
+> have it enabled for chipsets where it helps with performance, but I'm
+> not sure what the criteria should be. In your patch below you enable
+> relaxed ordering for writes - have you tested if there is any effect if
+> you enable it only for reads or both?
 
->The absence of relaxed-ordering is a serous serialization point,
->and is responsible for throttling throughput down to 3 Gbps.
->
->After I hack things as shown in the patch below, I am able to easily
->get 9-9.5 Gbps. (The only other patch needed is the iommu lock-break-up:
->http://www.spinics.net/lists/sparclinux/msg13238.html)
->
->Perhaps someone in e1000-devel/linux.nics can provide some background 
->here on when this really needs to be turned off, and where to turn it back 
->on cleanly.
+I'm not sure how to instrument reads separately from writes?
+In my case (tested with iperf, 10 threads) I'm guessing both happen 
+at some point. But the effect of the absence of RO is seen most clearly
+for iperf acting as the Rx (i.e., lot of incoming TCP traffic from a
+remote host, relatively little outgoing TCP traffic).
 
-Relaxed ordering was disabled due to an issue with some chipsets. There is a comment to that effect when enabling relaxed ordering for reads in ixgbe_update_tx_dca(). This was done back in 2011, so I'm still trying to dig through the details.
+FWIW,  I based my patch on the equivalent solaris driver code, which has
+an indirection per chipset, resulting in something like the patch below
+(which I'm still testing on sparc/x86 with X540/82598). But the concern
+is that we may need this fix in other related drivers like igb- I
+havent tested each driver yet.
 
->I'm sure there are more drivers than ixgbe that have this crippling bug.
+I think the perf throttle might not be seen on x86 because of DCA
+and other enhancements that are not available on sparc? 
 
-As I mentioned above it is intentional. I guess it makes sense to have it enabled for chipsets where it helps with performance, but I'm not sure what the criteria should be. In your patch below you enable relaxed ordering for writes - have you tested if there is any effect if you enable it only for reads or both?
+-----------------------------------------------------------------------
 
->there is another oddity that 'lspci -vv' reports RlxOrd as enabled,
->even though this is clearly not the case, but that's a secondary issue.
-
-According to the docs - the IXGBE_DCA registers control R/W relaxed ordering per-queue. There is another register (IXGBE_CTRL_EXT - 0x018) that seems to enable/disable relaxed ordering for the device which could be why you are seeing the RlxOrd bit set, although I can't be sure.
-
-Thanks,
-Emil
-
-
---Sowmini
-
------------patch follows below ---------------------------------------------
-
-
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+index c5c97b4..85c7a28 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+@@ -1161,6 +1161,7 @@ static struct ixgbe_mac_operations mac_ops_82598 = {
+ 	.clear_hw_cntrs		= &ixgbe_clear_hw_cntrs_generic,
+ 	.get_media_type		= &ixgbe_get_media_type_82598,
+ 	.enable_rx_dma          = &ixgbe_enable_rx_dma_generic,
++	.enable_relaxed_ordering = &ixgbe_enable_relaxed_ordering,
+ 	.get_mac_addr		= &ixgbe_get_mac_addr_generic,
+ 	.stop_adapter		= &ixgbe_stop_adapter_generic,
+ 	.get_bus_info           = &ixgbe_get_bus_info_generic,
 diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
 index 9c66bab..4453d92 100644
 --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
@@ -116,26 +100,52 @@ index 8cfadcb..c399c18 100644
  s32 ixgbe_read_pba_string_generic(struct ixgbe_hw *hw, u8 *pba_num,
  				  u32 pba_num_size);
 diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-index 2ed2c7d..e97c89c 100644
+index 2ed2c7d..a35a264 100644
 --- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
 +++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-@@ -4898,6 +4898,7 @@ void ixgbe_reset(struct ixgbe_adapter *adapter)
+@@ -4898,6 +4898,9 @@ void ixgbe_reset(struct ixgbe_adapter *adapter)
  
  	if (test_bit(__IXGBE_PTP_RUNNING, &adapter->state))
  		ixgbe_ptp_reset(adapter);
-+	ixgbe_enable_relaxed_ordering(hw);
++
++	if (hw->mac.ops.enable_relaxed_ordering)
++		hw->mac.ops.enable_relaxed_ordering(hw);
  }
  
  /**
-@@ -8470,6 +8471,7 @@ skip_sriov:
+@@ -8470,6 +8473,8 @@ skip_sriov:
  			   "representative who provided you with this "
  			   "hardware.\n");
  	}
-+	ixgbe_enable_relaxed_ordering(hw);
++	if (hw->mac.ops.enable_relaxed_ordering)
++		hw->mac.ops.enable_relaxed_ordering(hw);
  	strcpy(netdev->name, "eth%d");
  	err = register_netdev(netdev);
  	if (err)
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+index d101b25..b967241 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+@@ -3013,6 +3013,7 @@ struct ixgbe_mac_operations {
+ 	void (*release_swfw_sync)(struct ixgbe_hw *, u32);
+ 	s32 (*prot_autoc_read)(struct ixgbe_hw *, bool *, u32 *);
+ 	s32 (*prot_autoc_write)(struct ixgbe_hw *, u32, bool);
++	void (*enable_relaxed_ordering)(struct ixgbe_hw *);
+ 
+ 	/* Link */
+ 	void (*disable_tx_laser)(struct ixgbe_hw *);
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+index ba54ff0..88adad2 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+@@ -781,6 +781,7 @@ static struct ixgbe_mac_operations mac_ops_X540 = {
+ 	.clear_hw_cntrs         = &ixgbe_clear_hw_cntrs_generic,
+ 	.get_media_type         = &ixgbe_get_media_type_X540,
+ 	.enable_rx_dma          = &ixgbe_enable_rx_dma_generic,
++	.enable_relaxed_ordering = &ixgbe_enable_relaxed_ordering,
+ 	.get_mac_addr           = &ixgbe_get_mac_addr_generic,
+ 	.get_san_mac_addr       = &ixgbe_get_san_mac_addr_generic,
+ 	.get_device_caps        = &ixgbe_get_device_caps_generic,
+-- 
+1.7.1
 
-_______________________________________________
-Linux-nics mailing list
-Linux-nics@intel.com
