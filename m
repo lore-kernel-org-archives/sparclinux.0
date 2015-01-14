@@ -1,112 +1,142 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Thu, 15 Jan 2015 22:15:45 +0000
-Subject: Re: [PATCH 10/10] PCI, sparc: clip firmware assigned resource under parent bridge's
-Message-Id: <20150115221545.GA29776@google.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 14 Jan 2015 14:40:09 +0000
+Subject: [PATCH] ixgbe: Re-enable relaxed ordering as part of init/restart sequence for non-DCA config
+Message-Id: <20150114144009.GG19534@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1421090600-9750-1-git-send-email-yinghai@kernel.org>
- <1421090600-9750-11-git-send-email-yinghai@kernel.org>
- <CALMQjD91+0o=DjQDV3ydkakrG6X=3RkHoCf-T5=wLbC01WkdEA@mail.gmail.com>
-In-Reply-To: <CALMQjD91+0o=DjQDV3ydkakrG6X=3RkHoCf-T5=wLbC01WkdEA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Kjetil Oftedal <oftedal@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Paul Gortmaker <paul.gortmaker@windriver.com>, Yijing Wang <wangyijing@huawei.com>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sowmini.varadhan@oracle.com, jeffrey.t.kirsher@intel.com, jesse.brandeburg@intel.com, bruce.w.allan@intel.com, carolyn.wyborny@intel.com, donald.c.skidmore@intel.com, gregory.v.rose@intel.com, matthew.vick@intel.com, john.ronciak@intel.com, mitch.a.williams@intel.com
+Cc: linux.nics@intel.com, e1000-devel@lists.sourceforge.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, emil.s.tantilov@intel.com
 
-On Mon, Jan 12, 2015 at 11:31:09PM +0100, Kjetil Oftedal wrote:
-> Hi,
->=20
-> Am I missing something or is this just code to get the the resource
-> subsystem to accept the bus resources, not caring if the resources are
-> actually usable? PCI BARs usually have a given size for a reason?
 
-Hi Kjetil,
+Relaxed ordering is disabled by default at driver initialization
+and re-enabled when DCA is used. The reason it is disabled  was
+due to an issue on some chipsets (see comments in ixgbe_update_tx_dca()).
+But when DCA is not used, RO needs to be re-enabled, else we have
+a serialization bottleneck on platforms like SPARC.
 
-This isn't for regular PCI BARs (Yinghai did apply it to some regular BARs
-in the v1 patches, but I think that was a mistake).  This is for scenarios
-like this:
+This patch eliminates the bottleneck for ixgbe when DCA is not configured.
 
-  pci_bus 0000:00: root bus resource [mem 0xc0000000-0xffffffff]
-  pci 0000:00:01.0:   bridge window [mem 0xbdf00000-0xddefffff 64bit pref]
-  pci 0000:01:00.0: reg 0x10: [mem 0xc0000000-0xcfffffff pref]
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Cc: Emil Tantilov <emil.s.tantilov@intel.com>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  |    1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c |   20 ++++++++++++++++++++
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.h |    1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c   |   11 +++++++++++
+ drivers/net/ethernet/intel/ixgbe/ixgbe_type.h   |    1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c   |    1 +
+ 6 files changed, 35 insertions(+), 0 deletions(-)
 
-The 00:01.0 window is illegal: it starts before the host bridge window, so
-we have to assume the [0xbdf00000-0xbfffffff] region is inaccessible.  We
-can make it legal by clipping it to [mem 0xc0000000-0xddefffff 64bit pref].
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+index c5c97b4..85c7a28 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+@@ -1161,6 +1161,7 @@ static struct ixgbe_mac_operations mac_ops_82598 = {
+ 	.clear_hw_cntrs		= &ixgbe_clear_hw_cntrs_generic,
+ 	.get_media_type		= &ixgbe_get_media_type_82598,
+ 	.enable_rx_dma          = &ixgbe_enable_rx_dma_generic,
++	.enable_relaxed_ordering = &ixgbe_enable_relaxed_ordering,
+ 	.get_mac_addr		= &ixgbe_get_mac_addr_generic,
+ 	.stop_adapter		= &ixgbe_stop_adapter_generic,
+ 	.get_bus_info           = &ixgbe_get_bus_info_generic,
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+index 9c66bab..4453d92 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+@@ -338,6 +338,26 @@ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ 	return 0;
+ }
+ 
++void ixgbe_enable_relaxed_ordering(struct ixgbe_hw *hw)
++{
++	u32 i;
++	u32 regval;
++
++	/* Enable relaxed ordering */
++	for (i = 0; i < hw->mac.max_tx_queues; i++) {
++		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
++		regval |= IXGBE_DCA_TXCTRL_DESC_WRO_EN;
++		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL_82599(i), regval);
++	}
++
++	for (i = 0; i < hw->mac.max_rx_queues; i++) {
++		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
++		regval |= (IXGBE_DCA_RXCTRL_DATA_WRO_EN |
++			    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
++		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++	}
++}
++
+ /**
+  *  ixgbe_init_hw_generic - Generic hardware initialization
+  *  @hw: pointer to hardware structure
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.h b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.h
+index 8cfadcb..c399c18 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.h
+@@ -37,6 +37,7 @@ s32 ixgbe_init_ops_generic(struct ixgbe_hw *hw);
+ s32 ixgbe_init_hw_generic(struct ixgbe_hw *hw);
+ s32 ixgbe_start_hw_generic(struct ixgbe_hw *hw);
+ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw);
++void ixgbe_enable_relaxed_ordering(struct ixgbe_hw *hw);
+ s32 ixgbe_clear_hw_cntrs_generic(struct ixgbe_hw *hw);
+ s32 ixgbe_read_pba_string_generic(struct ixgbe_hw *hw, u8 *pba_num,
+ 				  u32 pba_num_size);
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index 2ed2c7d..dec815b 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -4898,6 +4898,12 @@ void ixgbe_reset(struct ixgbe_adapter *adapter)
+ 
+ 	if (test_bit(__IXGBE_PTP_RUNNING, &adapter->state))
+ 		ixgbe_ptp_reset(adapter);
++
++#ifndef CONFIG_IXGBE_DCA
++	/* ixgbe_update_tx_dca() will re-enable RO when DCA is enabled */
++	if (hw->mac.ops.enable_relaxed_ordering)
++		hw->mac.ops.enable_relaxed_ordering(hw);
++#endif
+ }
+ 
+ /**
+@@ -8470,6 +8476,11 @@ skip_sriov:
+ 			   "representative who provided you with this "
+ 			   "hardware.\n");
+ 	}
++#ifndef CONFIG_IXGBE_DCA
++	/* ixgbe_update_tx_dca() will re-enable RO when DCA is enabled */
++	if (hw->mac.ops.enable_relaxed_ordering)
++		hw->mac.ops.enable_relaxed_ordering(hw);
++#endif
+ 	strcpy(netdev->name, "eth%d");
+ 	err = register_netdev(netdev);
+ 	if (err)
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+index d101b25..b967241 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+@@ -3013,6 +3013,7 @@ struct ixgbe_mac_operations {
+ 	void (*release_swfw_sync)(struct ixgbe_hw *, u32);
+ 	s32 (*prot_autoc_read)(struct ixgbe_hw *, bool *, u32 *);
+ 	s32 (*prot_autoc_write)(struct ixgbe_hw *, u32, bool);
++	void (*enable_relaxed_ordering)(struct ixgbe_hw *);
+ 
+ 	/* Link */
+ 	void (*disable_tx_laser)(struct ixgbe_hw *);
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+index ba54ff0..88adad2 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+@@ -781,6 +781,7 @@ static struct ixgbe_mac_operations mac_ops_X540 = {
+ 	.clear_hw_cntrs         = &ixgbe_clear_hw_cntrs_generic,
+ 	.get_media_type         = &ixgbe_get_media_type_X540,
+ 	.enable_rx_dma          = &ixgbe_enable_rx_dma_generic,
++	.enable_relaxed_ordering = &ixgbe_enable_relaxed_ordering,
+ 	.get_mac_addr           = &ixgbe_get_mac_addr_generic,
+ 	.get_san_mac_addr       = &ixgbe_get_san_mac_addr_generic,
+ 	.get_device_caps        = &ixgbe_get_device_caps_generic,
+-- 
+1.7.1
 
-Linux should never assign an illegal bridge window like this, but some
-firmware does, and the idea is to make a minimal change (clip the window)
-before resorting to the big hammer of reassigning resources from scratch.
-
-Bjorn
-
-> On 12/01/2015, Yinghai Lu <yinghai@kernel.org> wrote:
-> > Some bios put range that is not fully coverred by root bus resources.
-> > Try to clip them and update them in pci bridge bars.
-> >
-> > We'd like to fix other arches instead of just x86.
-> >
-> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=85491
-> > Reported-by: Marek Kordik <kordikmarek@gmail.com>
-> > Fixes: 5b28541552ef ("PCI: Restrict 64-bit prefetchable bridge windows =
-to
-> > 64-bit resources")
-> > Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> > Cc: "David S. Miller" <davem@davemloft.net>
-> > Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-> > Cc: Yijing Wang <wangyijing@huawei.com>
-> > Cc: Sam Ravnborg <sam@ravnborg.org>
-> > Cc: sparclinux@vger.kernel.org
-> > ---
-> >  arch/sparc/kernel/pci.c | 20 +++++++++++++++++++-
-> >  1 file changed, 19 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-> > index b36365f..0e391e5 100644
-> > --- a/arch/sparc/kernel/pci.c
-> > +++ b/arch/sparc/kernel/pci.c
-> > @@ -623,6 +623,7 @@ static void pci_claim_bus_resources(struct pci_bus
-> > *bus)
-> >  	struct pci_dev *dev;
-> >
-> >  	list_for_each_entry(dev, &bus->devices, bus_list) {
-> > +		bool changed =3D false;
-> >  		int i;
-> >
-> >  		for (i =3D 0; i < PCI_NUM_RESOURCES; i++) {
-> > @@ -639,8 +640,25 @@ static void pci_claim_bus_resources(struct pci_bus
-> > *bus)
-> >  				       (unsigned long long)r->end,
-> >  				       (unsigned int)r->flags);
-> >
-> > -			pci_claim_resource(dev, i);
-> > +			if (pci_claim_resource(dev, i) >=3D 0)
-> > +				continue;
-> > +
-> > +			if (dev->subordinate &&
-> > +			    i >=3D PCI_BRIDGE_RESOURCES &&
-> > +			    i < PCI_NUM_RESOURCES &&
-> > +			    (dev->class >> 8) =3D PCI_CLASS_BRIDGE_PCI &&
-> > +			    pci_bus_clip_resource(dev, r)) {
-> > +				changed =3D true;
-> > +				pci_claim_resource(dev, i);
-> > +			} else if (i < PCI_BRIDGE_RESOURCES &&
-> > +				   i !=3D PCI_ROM_RESOURCE &&
-> > +				   pci_bus_clip_resource(dev, r)) {
-> > +					pci_update_resource(dev, i);
-> > +					pci_claim_resource(dev, i);
-> > +			}
-> >  		}
-> > +		if (changed)
-> > +			pci_setup_bridge(dev->subordinate);
-> >  	}
-> >
-> >  	list_for_each_entry(child_bus, &bus->children, node)
-> > --
-> > 1.8.4.5
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
