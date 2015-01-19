@@ -1,88 +1,21 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Wed, 21 Jan 2015 00:30:15 +0000
-Subject: [PATCH v2 20/30] PCI/sparc: Use pci_scan_root_bridge() for simplicity
-Message-Id: <1421800225-26230-21-git-send-email-wangyijing@huawei.com>
+From: "Peter Wong" <peterwong@hangsengbank.com>
+Date: Mon, 19 Jan 2015 13:45:23 +0000
+Subject: Interesse
+Message-Id: <4f9f31acaa98a3ab3243932e51b9d101.squirrel@secure167.servconfig.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1421800225-26230-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1421800225-26230-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Now we could use pci_scan_root_bridge() to scan
-pci buses, provide sparc specific pci_host_bridge_ops.
+Jeg vil foresl=E5 relasjoner som er av felles interesse. Det er overf=F8ring
+av en stor sum penger.Jeg skriver til deg fordi du har blitt anbefalt til
+meg som en som kan v=E6re egnet for mitt prosjekt.
+Ta kontakt med meg p=E5 min personlige e-postadresse; en rask respons, ville
+jeg stor pris p=E5 det.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/pci.c |   32 ++++++++++++++++++++++----------
- 1 files changed, 22 insertions(+), 10 deletions(-)
+Med v=E5re beste =F8nsker
+Peter Wong
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index d798b42..0ff5093 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -647,12 +647,25 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
- 		pci_claim_bus_resources(child_bus);
- }
- 
-+static void pci_host_bridge_of_scan_bus(
-+		struct pci_host_bridge *host)
-+{
-+	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
-+	struct device_node *node = pbm->op->dev.of_node;
-+
-+	pci_of_scan_bus(pbm, node, host->bus);
-+}
-+
-+static struct pci_host_bridge_ops phb_ops = {
-+	.phb_of_scan_bus = pci_host_bridge_of_scan_bus,
-+};
-+
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent)
- {
- 	LIST_HEAD(resources);
- 	struct device_node *node = pbm->op->dev.of_node;
--	struct pci_bus *bus;
-+	struct pci_host_bridge *host;
- 
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
- 
-@@ -664,23 +677,22 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
--	bus = pci_create_root_bus(parent, 
-+	host = pci_scan_root_bridge(parent,
- 			PCI_DOMBUS(pbm->index, pbm->pci_first_busno), 
--			pbm->pci_ops, pbm, &resources);
--	if (!bus) {
--		printk(KERN_ERR "Failed to create bus for %s\n",
-+			pbm->pci_ops, pbm, &resources, &phb_ops);
-+	if (!host) {
-+		printk(KERN_ERR "Failed to create host bridge for %s\n",
- 		       node->full_name);
- 		pci_free_resource_list(&resources);
- 		return NULL;
- 	}
- 
--	pci_of_scan_bus(pbm, node, bus);
--	pci_bus_add_devices(bus);
--	pci_bus_register_of_sysfs(bus);
-+	pci_bus_add_devices(host->bus);
-+	pci_bus_register_of_sysfs(host->bus);
- 
--	pci_claim_bus_resources(bus);
-+	pci_claim_bus_resources(host->bus);
- 
--	return bus;
-+	return host->bus;
- }
- 
- void pcibios_fixup_bus(struct pci_bus *pbus)
--- 
-1.7.1
+
 
