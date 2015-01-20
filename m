@@ -1,34 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jan 2015 04:58:58 +0000
-Subject: Re: [PATCH] sparc64: fatal trap should stop all cpus
-Message-Id: <20150104.235858.838198074051345873.davem@davemloft.net>
+From: DIAMOND SWISS LOANS COMPANY <admin.helpdesk@cryobanksindia.com>
+Date: Tue, 20 Jan 2015 16:31:43 +0000
+Subject: lening bieden
+Message-Id: <1656075348.260266.1421770783822.JavaMail.root@webmail.rjcorp.in>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Mon, 29 Dec 2014 17:23:10 -0600
 
-> +	while (1) ;
 
-Like the powerpc implementation, please correctly format this as:
 
-	while (1)
-		;
+Goede dag,
 
-However I also have to wonder if we should be doing a hypervisor
-or firmware CPU stop call in that handler.
 
-That's what the XEN x86 implementation does.
 
-It should logically do something like:
+  Dit is Diamond Zwitserse LENINGEN COMPANY leningen aan te bieden.
 
-	if (tlb_type = hypervisor) {
-		if (ldom_domaining_enabled)
-			sun4v_stop_cpu(cpuid);
-		else
-			prom_stopcpu_cpuid(cpuid);
-	} else
-		smp_call_function(wrapper_around_prom_stopself, NULL, 0);
+
+
+    Diamond Zwitserse leningen bedrijf biedt flexibele en betaalbare leningen voor enig doel om u te helpen uw doelen te bereiken. we lening tegen lage rente van 1,5%. Hier zijn enkele belangrijke kenmerken van de persoonlijke lening aangeboden door Diamond Zwitserse LENINGEN COMPANY. Hier zijn de Loan Factoren we werken met het toonaangevende Britse makelaars die toegang hebben tot de top kredietverstrekkers hebben en zijn in staat om de beste financiële oplossing tegen een betaalbare price.Please vinden als je geïnteresseerd bent vriendelijk contact met ons op via deze e-mail: diamondswissloans@hotmail.com
+
+
+
+
+
+Na de reactie, zal u een aanvraag voor een lening fill ontvangen. Geen sociale zekerheid en geen credit check, 100% Gegarandeerd.
+
+
+
+Het zal ons een eer zijn als u ons toelaten om u van dienst zijn.
+
+
+
+
+
+INFORMATIE NODIG
+
+
+
+Uw namen:
+
+Adres: ...........
+
+Telefoon: ...........
+
+Geleende bedrag nodig is: ........
+
+Duur: ...............
+
+Beroep: ...........
+
+Maandelijks Inkomen Niveau: ........
+
+Geslacht: ...............
+
+Geboortedatum: ........
+
+Staat: ..................
+
+Land: ..........
+
+Doel: .........
+
+
+
+Voldoen aan uw financiële behoeften is onze trots.
+
+
+
+Dr. Diamond Peters
