@@ -1,87 +1,65 @@
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Date: Sat, 20 Dec 2014 12:33:54 +0000
-Subject: [PATCH] arch: sparc: kernel: traps_64.c:  Remove some unused functions
-Message-Id: <1419078835-31499-1-git-send-email-rickard_strandqvist@spectrumdigital.se>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Thu, 29 Jan 2015 14:52:02 +0000
+Subject: [PATCH] sparc: io_64.h: Replace io function-link macros
+Message-Id: <1422543122-21956-1-git-send-email-ricardo.ribalda@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>
-Cc: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>, bob picco <bpicco@meloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-Removes some functions that are not used anywhere:
-do_fpdis_tl1() do_iae_tl1() do_dae_tl1() do_cee_tl1()
+Function like macros cannot be assigned to function pointers. This patch
+convert the function-like macros into object-macros, that the
+precompiler will replace with the name of the final function.
 
-This was partially found by using a static code analysis program called cppcheck.
+With this patch this kind of code will work:
 
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
+if (priv->mode_big_endian)
+	priv.read = ioread32be;
+else
+	priv.read = ioread32;
+
+Same approach has been taken on asm-generic/io.h
+
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Fixes: 99082eab63449f9d spi/xilinx: Remove iowrite/ioread wrappers
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- arch/sparc/kernel/entry.h    |    4 ----
- arch/sparc/kernel/traps_64.c |   28 ----------------------------
- 2 files changed, 32 deletions(-)
+ arch/sparc/include/asm/io_64.h | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index 88d322b..07cc49e 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -98,11 +98,7 @@ void sun4v_do_mna(struct pt_regs *regs,
- void do_privop(struct pt_regs *regs);
- void do_privact(struct pt_regs *regs);
- void do_cee(struct pt_regs *regs);
--void do_cee_tl1(struct pt_regs *regs);
--void do_dae_tl1(struct pt_regs *regs);
--void do_iae_tl1(struct pt_regs *regs);
- void do_div0_tl1(struct pt_regs *regs);
--void do_fpdis_tl1(struct pt_regs *regs);
- void do_fpieee_tl1(struct pt_regs *regs);
- void do_fpother_tl1(struct pt_regs *regs);
- void do_ill_tl1(struct pt_regs *regs);
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 981a769..204315d 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2564,27 +2564,6 @@ void do_cee(struct pt_regs *regs)
- 	die_if_kernel("TL0: Cache Error Exception", regs);
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 9b672be..50d4840 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -407,16 +407,16 @@ static inline void iounmap(volatile void __iomem *addr)
+ {
  }
  
--void do_cee_tl1(struct pt_regs *regs)
--{
--	exception_enter();
--	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
--	die_if_kernel("TL1: Cache Error Exception", regs);
--}
--
--void do_dae_tl1(struct pt_regs *regs)
--{
--	exception_enter();
--	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
--	die_if_kernel("TL1: Data Access Exception", regs);
--}
--
--void do_iae_tl1(struct pt_regs *regs)
--{
--	exception_enter();
--	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
--	die_if_kernel("TL1: Instruction Access Exception", regs);
--}
--
- void do_div0_tl1(struct pt_regs *regs)
- {
- 	exception_enter();
-@@ -2592,13 +2571,6 @@ void do_div0_tl1(struct pt_regs *regs)
- 	die_if_kernel("TL1: DIV0 Exception", regs);
- }
+-#define ioread8(X)			readb(X)
+-#define ioread16(X)			readw(X)
+-#define ioread16be(X)			__raw_readw(X)
+-#define ioread32(X)			readl(X)
+-#define ioread32be(X)			__raw_readl(X)
+-#define iowrite8(val,X)			writeb(val,X)
+-#define iowrite16(val,X)		writew(val,X)
+-#define iowrite16be(val,X)		__raw_writew(val,X)
+-#define iowrite32(val,X)		writel(val,X)
+-#define iowrite32be(val,X)		__raw_writel(val,X)
++#define ioread8			readb
++#define ioread16		readw
++#define ioread16be		__raw_readw
++#define ioread32		readl
++#define ioread32be		__raw_readl
++#define iowrite8		writeb
++#define iowrite16		writew
++#define iowrite16be		__raw_writew
++#define iowrite32		writel
++#define iowrite32be		__raw_writel
  
--void do_fpdis_tl1(struct pt_regs *regs)
--{
--	exception_enter();
--	dump_tl1_traplog((struct tl1_traplog *)(regs + 1));
--	die_if_kernel("TL1: FPU Disabled", regs);
--}
--
- void do_fpieee_tl1(struct pt_regs *regs)
- {
- 	exception_enter();
+ /* Create a virtual mapping cookie for an IO port range */
+ void __iomem *ioport_map(unsigned long port, unsigned int nr);
 -- 
-1.7.10.4
+2.1.4
 
