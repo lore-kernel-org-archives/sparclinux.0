@@ -1,60 +1,42 @@
-From: Rich Felker <dalias@aerifal.cx>
-Date: Mon, 12 Jan 2015 16:07:21 +0000
-Subject: Re: [PATCHv10 man-pages 5/5] execveat.2: initial man page for execveat(2)
-Message-Id: <20150112160721.GJ4574@brightrain.aerifal.cx>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 29 Jan 2015 07:53:47 +0000
+Subject: Re: Another (ESP?) scsi blk-mq problem on sparc64
+Message-Id: <alpine.LRH.2.11.1501290952340.25245@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150109204815.GR4574@brightrain.aerifal.cx>
- <20150109205626.GK22149@ZenIV.linux.org.uk>
- <20150109205926.GT4574@brightrain.aerifal.cx>
- <20150109210941.GL22149@ZenIV.linux.org.uk>
- <20150109212852.GU4574@brightrain.aerifal.cx>
- <87lhlbvbzs.fsf@x220.int.ebiederm.org>
- <20150109223843.GX4574@brightrain.aerifal.cx>
- <87mw5rtowa.fsf@x220.int.ebiederm.org>
- <20150110013324.GB4574@brightrain.aerifal.cx>
- <CAHse=S822QjRE_FF6JHi-5cUsrXHJnyjRwYJuyYn2O6tsz2dHQ@mail.gmail.com>
-In-Reply-To: <CAHse=S822QjRE_FF6JHi-5cUsrXHJnyjRwYJuyYn2O6tsz2dHQ@mail.gmail.com>
+References: <20141124162249.GG5050@linux.vnet.ibm.com> <547367DF.5060706@kernel.dk> <alpine.LRH.2.11.1411250022470.31497@siim2.ut.ee> <20141124.172857.1186013178918344826.davem@davemloft.net>
+In-Reply-To: <20141124.172857.1186013178918344826.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Drysdale <drysdale@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Al Viro <viro@zeniv.linux.org.uk>, "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>, Andy Lutomirski <luto@amacapital.net>, Meredydd Luff <meredydd@senatehouse.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, David Miller <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Stephen Rothwell <sfr@canb.auug.org.au>, Oleg Nesterov <oleg@redhat.com>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, Christoph Hellwig <hch@infradead.org>, X86 ML <x86@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: axboe@kernel.dk, paulmck@linux.vnet.ibm.com, hch@infradead.org, linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, Jan 12, 2015 at 11:33:49AM +0000, David Drysdale wrote:
-> On Sat, Jan 10, 2015 at 1:33 AM, Rich Felker <dalias@aerifal.cx> wrote:
-> > On Fri, Jan 09, 2015 at 07:17:41PM -0600, Eric W. Biederman wrote:
-> >> Rich Felker <dalias@aerifal.cx> writes:
-> >>
-> >> > I'm not proposing code because I'm a libc developer not a kernel
-> >> > developer. I know what's needed for userspace to provide a conforming
-> >> > fexecve to applications, not how to implement that on the kernel side,
-> >> > although I'm trying to provide constructive ideas. The hostility is
-> >> > really not necessary.
-> >>
-> >> Conforming to what?
-> >>
-> >> The open group fexecve says nothing about requiring a file descriptor
-> >> passed to fexecve to have O_CLOEXEC.
-> >
-> > It doesn't require it but it allows it, and in multithreaded programs
-> > that might run child processes (or library code that might be used in
-> > such situations), O_CLOEXEC is mandatory everywhere to avoid fd leaks.
+On Mon, 24 Nov 2014, David Miller wrote:
+
+> From: mroos@linux.ee
+> Date: Tue, 25 Nov 2014 00:23:20 +0200 (EET)
 > 
-> As a naive idea related to Andy's suggestion elsewhere, could you
-> just have an environment convention for fexecve-ing scripts?  That
-> would reduce FD leaks without any need for kernel involvement/changes.
+> >> > > > Yes, that does look like the case.  Do you have a good trick on how
+> >> > > > to allocate a map for the highest possible cpu number without first
+> >> > > > iterating the cpu map?  I couldn't find something that looks like a
+> >> > > > highest_possible_cpu() helper.
+> >> > >
+> >> > > Honestly I think that num_posible_cpus() should return the max of
+> >> > > number of CPUs (weigt), and the highest numbered CPU. It's a pain in
+> >> > > the butt to handle this otherwise.
+> >> >
+> >> > Hear, hear!!!  That would make my life easier, and would make this sort
+> >> > of problem much less likely to occur!
+> >> 
+> >> How about this one?
+> > 
+> > It make the machine work.
 > 
-> For example, set _FEXECVED_VIA_FD=4 but don't set
-> O_CLOEXEC before fexecve, and the interpreter reads then
-> closes that FD.  Or just get the interpreter to spot scripts named
-> "/dev/fd/%d" and read-then-close the FD that way, cf. Eric's suggestion
-> at https://lkml.org/lkml/2014/10/22/652.
+> Thanks for testing!
+> 
 
-No. Any omission of O_CLOEXEC even momentarily is a potentially
-dangerous fd leak. This is the case whenever the process is
-multithreaded and it's possible that other threads might fork and
-exec. Think of the case of a privileged daemon re-execing itself (e.g.
-to switch to an updated version) while there are potentially other
-threads spawning non-privileged processes.
+What's the status of this fix? It is still not applied on yesterdays 
+3.19.0-rc6-00105-gc59c961 git...
 
-Rich
+-- 
+Meelis Roos (mroos@linux.ee)
