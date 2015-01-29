@@ -1,65 +1,63 @@
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Thu, 29 Jan 2015 14:52:02 +0000
-Subject: [PATCH] sparc: io_64.h: Replace io function-link macros
-Message-Id: <1422543122-21956-1-git-send-email-ricardo.ribalda@gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 29 Jan 2015 16:02:54 +0000
+Subject: Re: [PATCH] sparc: io_64.h: Replace io function-link macros
+Message-Id: <2627276.KBn6RpFkKO@wuerfel>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1422543122-21956-1-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1422543122-21956-1-git-send-email-ricardo.ribalda@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Function like macros cannot be assigned to function pointers. This patch
-convert the function-like macros into object-macros, that the
-precompiler will replace with the name of the final function.
+On Thursday 29 January 2015 15:52:02 Ricardo Ribalda Delgado wrote:
+> Function like macros cannot be assigned to function pointers. This patch
+> convert the function-like macros into object-macros, that the
+> precompiler will replace with the name of the final function.
+> 
+> With this patch this kind of code will work:
+> 
+> if (priv->mode_big_endian)
+> 	priv.read = ioread32be;
+> else
+> 	priv.read = ioread32;
+> 
+> Same approach has been taken on asm-generic/io.h
 
-With this patch this kind of code will work:
+I suspect such code is broken on a lot of platforms:
 
-if (priv->mode_big_endian)
-	priv.read = ioread32be;
-else
-	priv.read = ioread32;
+arch/alpha/include/asm/io.h:#define ioread32be(p) be32_to_cpu(ioread32(p))
+arch/arm/include/asm/io.h:#define ioread32be(p)         ({ __u32 __v = be32_to_cpu((__force arch/arm/mach-ixp4xx/include/mach/io.h:#define  ioread32(p)                     ioread32(p)
+arch/arm/mach-ixp4xx/include/mach/io.h:#define  ioread32_rep(p, v, c)           ioread32_rep(p, v, c)
+arch/arm64/include/asm/io.h:#define ioread32be(p)               ({ __u32 __v = be32_to_cpu((__force arch/avr32/include/asm/io.h:#define ioread32(p)         ((unsigned int)readl(p))
+arch/avr32/include/asm/io.h:#define ioread32be(p)               ((unsigned int)__raw_readl(p))
+arch/mn10300/include/asm/io.h:#define ioread32(addr)            readl(addr)
+arch/sparc/include/asm/io_64.h:#define ioread32(X)                      readl(X)
+arch/sparc/include/asm/io_64.h:#define ioread32be(X)                    __raw_readl(X)
+arch/tile/include/asm/io.h:#define ioread32be(addr)     be32_to_cpu(ioread32(addr))
+arch/arm/include/asm/io.h:#define readl(c)              ({ u32 __v = readl_relaxed(c); __iormb(); __v; })
+arch/arm/mach-ebsa110/include/mach/io.h:#define readl(b)                __readl(b)
+arch/arm/mach-ebsa110/include/mach/io.h:#define readl_relaxed(addr)     readl(addr)
+arch/arm/mach-ixp4xx/include/mach/io.h:#define readl(p)                 __indirect_readl(p)
+arch/arm64/include/asm/io.h:#define readl(c)            ({ u32 __v = readl_relaxed(c); __iormb(); __v; })
+arch/cris/include/asm/io.h:#define readl_relaxed(addr) readl(addr)
+arch/ia64/include/asm/io.h:#define readl(a)     __readl((a))
+arch/m32r/include/asm/io.h:#define readl(addr)   _readl((unsigned long)(addr))
+arch/m68k/include/asm/io.h:#define readl_relaxed(addr)  readl(addr)
+arch/m68k/include/asm/io_mm.h:#define readl(addr)      in_le32(addr)
+arch/m68k/include/asm/io_no.h:#define readl(addr) \
+arch/nios2/include/asm/io.h:#define readl_relaxed(addr) readl(addr)
+arch/parisc/include/asm/io.h:#define readl_relaxed(addr)        readl(addr)
+arch/powerpc/include/asm/io.h:#define readl_relaxed(addr)       readl(addr)
+arch/sh/include/asm/io.h:#define readl(a)               ({ u32 r_ = readl_relaxed(a); rmb(); r_; })
 
-Same approach has been taken on asm-generic/io.h
+Maybe it's easier to fix the drivers that do this?
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Fixes: 99082eab63449f9d spi/xilinx: Remove iowrite/ioread wrappers
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- arch/sparc/include/asm/io_64.h | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+> Reported-by: kbuild test robot <fengguang.wu@intel.com>
+> Fixes: 99082eab63449f9d spi/xilinx: Remove iowrite/ioread wrappers
+> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 9b672be..50d4840 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -407,16 +407,16 @@ static inline void iounmap(volatile void __iomem *addr)
- {
- }
- 
--#define ioread8(X)			readb(X)
--#define ioread16(X)			readw(X)
--#define ioread16be(X)			__raw_readw(X)
--#define ioread32(X)			readl(X)
--#define ioread32be(X)			__raw_readl(X)
--#define iowrite8(val,X)			writeb(val,X)
--#define iowrite16(val,X)		writew(val,X)
--#define iowrite16be(val,X)		__raw_writew(val,X)
--#define iowrite32(val,X)		writel(val,X)
--#define iowrite32be(val,X)		__raw_writel(val,X)
-+#define ioread8			readb
-+#define ioread16		readw
-+#define ioread16be		__raw_readw
-+#define ioread32		readl
-+#define ioread32be		__raw_readl
-+#define iowrite8		writeb
-+#define iowrite16		writew
-+#define iowrite16be		__raw_writew
-+#define iowrite32		writel
-+#define iowrite32be		__raw_writel
- 
- /* Create a virtual mapping cookie for an IO port range */
- void __iomem *ioport_map(unsigned long port, unsigned int nr);
--- 
-2.1.4
+I don't see 99082eab63449f9d in linux-next.
 
+	Arnd
