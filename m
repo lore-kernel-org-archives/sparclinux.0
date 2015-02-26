@@ -1,53 +1,88 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Sat, 28 Feb 2015 02:01:11 +0000
-Subject: Re: [PATCH] seccomp: switch to using asm-generic for seccomp.h
-Message-Id: <CAGXu5jLgbzzYQkeLmpgSGu7w7DKKTHpFE=F2_a=ayjkU6atBQQ@mail.gmail.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Thu, 26 Feb 2015 08:12:14 +0000
+Subject: [PATCH v4 20/30] PCI/sparc: Use pci_scan_root_bridge() for simplicity
+Message-Id: <1424938344-4017-21-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150228005228.GA23638@www.outflux.net>
- <20150228123656.538301ef@canb.auug.org.au>
-In-Reply-To: <20150228123656.538301ef@canb.auug.org.au>
+References: <1424938344-4017-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1424938344-4017-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 27, 2015 at 5:36 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> Hi Kees,
->
-> On Fri, 27 Feb 2015 16:52:29 -0800 Kees Cook <keescook@chromium.org> wrote:
->>
->> diff --git a/arch/arm/include/asm/seccomp.h b/arch/arm/include/asm/seccomp.h
->> index 52b156b341f5..66ca6a30bf5c 100644
->> --- a/arch/arm/include/asm/seccomp.h
->> +++ b/arch/arm/include/asm/seccomp.h
->> @@ -1,11 +1 @@
->> -#ifndef _ASM_ARM_SECCOMP_H
->> -#define _ASM_ARM_SECCOMP_H
->> -
->> -#include <linux/unistd.h>
->> -
->> -#define __NR_seccomp_read __NR_read
->> -#define __NR_seccomp_write __NR_write
->> -#define __NR_seccomp_exit __NR_exit
->> -#define __NR_seccomp_sigreturn __NR_rt_sigreturn
->> -
->> -#endif /* _ASM_ARM_SECCOMP_H */
->> +#include <asm-generic/seccomp.h>
->
-> I think that these cases (where you replace the file by a stub that
-> just include <asm-generic/seccomp.h>) can be replaced by removing the
-> file completely and adding
->
-> generic-y = seccomp.h
->
-> to <ARCH>/include/asm/Kbuild
+Now we could use pci_scan_root_bridge() to scan
+pci buses, provide sparc specific pci_host_bridge_ops.
 
-Ah-ha! I thought total removal was possible, but I lacked the Kbuild
-piece. There are a lot of arch/ headers that are just the one line.
-Maybe I should send a another patch to clean up those?
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/pci.c |   32 ++++++++++++++++++++++----------
+ 1 files changed, 22 insertions(+), 10 deletions(-)
 
--Kees
-
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 0af7c58..03e7376 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -650,12 +650,25 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
+ 		pci_claim_bus_resources(child_bus);
+ }
+ 
++static void pci_host_bridge_of_scan_bus(
++		struct pci_host_bridge *host)
++{
++	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
++	struct device_node *node = pbm->op->dev.of_node;
++
++	pci_of_scan_bus(pbm, node, host->bus);
++}
++
++static struct pci_host_bridge_ops phb_ops = {
++	.phb_of_scan_bus = pci_host_bridge_of_scan_bus,
++};
++
+ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 				 struct device *parent)
+ {
+ 	LIST_HEAD(resources);
+ 	struct device_node *node = pbm->op->dev.of_node;
+-	struct pci_bus *bus;
++	struct pci_host_bridge *host;
+ 
+ 	printk("PCI: Scanning PBM %s\n", node->full_name);
+ 
+@@ -667,23 +680,22 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 	pbm->busn.end	= pbm->pci_last_busno;
+ 	pbm->busn.flags	= IORESOURCE_BUS;
+ 	pci_add_resource(&resources, &pbm->busn);
+-	bus = pci_create_root_bus(parent, 
++	host = pci_scan_root_bridge(parent, 
+ 			PCI_DOMBUS(pbm->index, pbm->pci_first_busno), 
+-			pbm->pci_ops, pbm, &resources);
+-	if (!bus) {
+-		printk(KERN_ERR "Failed to create bus for %s\n",
++			pbm->pci_ops, pbm, &resources, &phb_ops);
++	if (!host) {
++		printk(KERN_ERR "Failed to create host bridge for %s\n",
+ 		       node->full_name);
+ 		pci_free_resource_list(&resources);
+ 		return NULL;
+ 	}
+ 
+-	pci_of_scan_bus(pbm, node, bus);
+-	pci_bus_add_devices(bus);
+-	pci_bus_register_of_sysfs(bus);
++	pci_bus_add_devices(host->bus);
++	pci_bus_register_of_sysfs(host->bus);
+ 
+-	pci_claim_bus_resources(bus);
++	pci_claim_bus_resources(host->bus);
+ 
+-	return bus;
++	return host->bus;
+ }
+ 
+ void pcibios_fixup_bus(struct pci_bus *pbus)
 -- 
-Kees Cook
-Chrome OS Security
+1.7.1
+
