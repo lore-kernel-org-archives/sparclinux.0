@@ -1,23 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 26 Mar 2015 22:57:56 +0000
-Subject: Re: [PATCH] sparc64: Setup sysfs to mark LDOM sockets, cores and threads correctly
-Message-Id: <20150326.155756.50512223255873067.davem@davemloft.net>
+From: Michal Hocko <mhocko@suse.cz>
+Date: Mon, 02 Mar 2015 13:54:40 +0000
+Subject: [RFC 1/4] mm: Clarify __GFP_NOFAIL deprecation status
+Message-Id: <1425304483-7987-2-git-send-email-mhocko@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1426795630-135778-1-git-send-email-david.ahern@oracle.com>
-In-Reply-To: <1426795630-135778-1-git-send-email-david.ahern@oracle.com>
+References: <1425304483-7987-1-git-send-email-mhocko@suse.cz>
+In-Reply-To: <1425304483-7987-1-git-send-email-mhocko@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Johannes Weiner <hannes@cmpxchg.org>, David Rientjes <rientjes@google.com>, Dave Chinner <david@fromorbit.com>, Theodore Ts'o <tytso@mit.edu>, Mel Gorman <mgorman@suse.de>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Vipul Pandya <vipul@chelsio.com>, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-From: chris hyser <chris.hyser@oracle.com>
-Date: Wed, 25 Mar 2015 18:53:28 -0400
+__GFP_NOFAIL is documented as a deprecated flag since 478352e789f5 (mm:
+add comment about deprecation of __GFP_NOFAIL). This has discouraged
+people from using it but in some cases an opencoded endless loop around
+allocator has been used instead. So the allocator is not aware of the
+de facto __GFP_NOFAIL allocation because this information was not
+communicated properly.
 
-> Yes. Sorry. You pointed out many of these formatting issues to me in a
-> prior sunvdc patch that I still need to resubmit. David took this and
-> added to it not realizing these issues were there. I will work with
-> David on a resubmission.
-> 
-> So other than that, are you happy with the approach?
+Let's make clear that if the allocation context really cannot effort
+failure because there is no good failure policy then using __GFP_NOFAIL
+is preferable to opencoding the loop outside of the allocator.
 
-Yeah it looks basically fine.
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+---
+ include/linux/gfp.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 51bd1e72a917..0cf9c2772988 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -57,8 +57,10 @@ struct vm_area_struct;
+  * _might_ fail.  This depends upon the particular VM implementation.
+  *
+  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
+- * cannot handle allocation failures.  This modifier is deprecated and no new
+- * users should be added.
++ * cannot handle allocation failures. New users should be evaluated carefuly
++ * (and the flag should be used only when there is no reasonable failure policy)
++ * but it is definitely preferable to use the flag rather than opencode endless
++ * loop around allocator.
+  *
+  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
+  *
+-- 
+2.1.4
+
