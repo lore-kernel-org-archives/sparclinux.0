@@ -1,31 +1,38 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 12 Mar 2015 03:16:23 +0000
-Subject: Re: [PATCH v3 RFC 2/3] sparc: Make sparc64 use scalable lib/iommu-common.c functions
-Message-Id: <20150311.231623.1943646339519808369.davem@davemloft.net>
+Date: Mon, 02 Mar 2015 05:46:12 +0000
+Subject: Re: [PATCH] sunvdc: don't dereference port->disk before disk probe finishes
+Message-Id: <20150302.004612.409094040042578991.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <6a5fd00b661cbedb250c54d7143c818e8ca1a195.1426021520.git.sowmini.varadhan@oracle.com>
-In-Reply-To: <6a5fd00b661cbedb250c54d7143c818e8ca1a195.1426021520.git.sowmini.varadhan@oracle.com>
+References: <1422381112-21571-1-git-send-email-dwight.engen@oracle.com>
+In-Reply-To: <1422381112-21571-1-git-send-email-dwight.engen@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Tue, 10 Mar 2015 18:27:04 -0400
+From: Dwight Engen <dwight.engen@oracle.com>
+Date: Tue, 27 Jan 2015 12:51:52 -0500
 
-> @@ -142,7 +142,12 @@ struct pci_pbm_info {
->  	struct strbuf			stc;
+> If the backing file for a vdisk is not present in the service domain an
+> ldc reset can occur during the initial port/disk probing. The ldc reset
+> logic was dereferencing port->disk, which may not have been setup yet.
+> Guard against this case.
+> 
+> Orabug: 20362258
+> 
+> Signed-off-by: Dwight Engen <dwight.engen@oracle.com>
+ ...
+> @@ -938,6 +938,8 @@ err_out_free_tx_ring:
+>  	vdc_free_tx_ring(port);
 >  
->  	/* IOMMU state, potentially shared by both PBM segments. */
-> -	struct iommu			*iommu;
-> +#ifdef notyet
-> +	struct iommu_sparc			*iommu;
-> +#else
-> +	/* change only pci_sun4v and DMA to use new iommu_table for now */
-> +	void					*iommu;
-> +#endif
->  
->  	/* Now things for the actual PCI bus probes. */
->  	unsigned int			pci_first_busno;
+>  err_out_free_ldc:
+> +	flush_work(&port->ldc_reset_work);
+> +	del_timer_sync(&port->ldc_reset_timer);
+>  	vio_ldc_free(&port->vio);
 
-Since you converted everything, this shouldn't be necessary right?
+This hunk has absolutely nothing to do with the bug you claim
+to be fixing in your commit message, and needs to be split out
+into a separate fix where you explain why these two calls are
+necessary and exactly what the change is fixing.
+
+Thanks.
