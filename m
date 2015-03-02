@@ -1,47 +1,37 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Thu, 05 Mar 2015 01:27:03 +0000
-Subject: [PATCH v3 3/8] microblaze: use asm-generic for seccomp.h
-Message-Id: <1425518828-16017-4-git-send-email-keescook@chromium.org>
+From: Michal Hocko <mhocko@suse.cz>
+Date: Mon, 02 Mar 2015 13:54:39 +0000
+Subject: [RFC PATCH 0/4] Clarify and cleanup some __GFP_NOFAIL usage
+Message-Id: <1425304483-7987-1-git-send-email-mhocko@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Johannes Weiner <hannes@cmpxchg.org>, David Rientjes <rientjes@google.com>, Dave Chinner <david@fromorbit.com>, Theodore Ts'o <tytso@mit.edu>, Mel Gorman <mgorman@suse.de>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Vipul Pandya <vipul@chelsio.com>, netdev@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-Switch to using the newly created asm-generic/seccomp.h for the seccomp
-strict mode syscall definitions. Since microblaze is 32-bit, the COMPAT
-seccomp defines are unused and can be dropped. The obsolete sigreturn
-for seccomp strict mode is retained as an override. Remaining definitions
-are identical.
+Hi,
+from the last discussion about __GFP_NOFAIL it turned out that the flag
+cannot be deprecated as easily as MM people hoped for.
+The current flag description leads people to inventing their own loops
+around GFP_{KERNEL|NOFS} allocations without any fallback failure
+policy. This makes the situation much worse for the MM layer because it
+is not aware of the hard no-fail requirements.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- arch/microblaze/include/asm/seccomp.h | 8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+First patch in this series tries to rephrase the documentation to be
+more clear about our intention. __GFP_NOFAIL is generally discouraged
+but users shouldn't lie to the allocator if they really cannot have any
+failure strategy.
 
-diff --git a/arch/microblaze/include/asm/seccomp.h b/arch/microblaze/include/asm/seccomp.h
-index 0d912758a0d7..204618a2ce84 100644
---- a/arch/microblaze/include/asm/seccomp.h
-+++ b/arch/microblaze/include/asm/seccomp.h
-@@ -3,14 +3,8 @@
- 
- #include <linux/unistd.h>
- 
--#define __NR_seccomp_read		__NR_read
--#define __NR_seccomp_write		__NR_write
--#define __NR_seccomp_exit		__NR_exit
- #define __NR_seccomp_sigreturn		__NR_sigreturn
- 
--#define __NR_seccomp_read_32		__NR_read
--#define __NR_seccomp_write_32		__NR_write
--#define __NR_seccomp_exit_32		__NR_exit
--#define __NR_seccomp_sigreturn_32	__NR_sigreturn
-+#include <asm-generic/seccomp.h>
- 
- #endif	/* _ASM_MICROBLAZE_SECCOMP_H */
--- 
-1.9.1
+Second patch removes such an open coded retry loop in the jbd2 code
+which was introduced exactly because of the deprecation wording. I am
+not sure the patch is still required because Ted has mentioned something
+about changing this code. If he was faster then we can simply drop
+this one. I was hoping for more such opencoded paths but wasn't very
+successful. The next plan is to abuse coccinelle to find such patterns.
+
+The last two patches are attempts to get rid of __GFP_NOFAIL when
+it seemed they are not needed because there are error paths handled
+properly. I am not familiar with that code so I might be clearly
+wrong here and I would appreciate double checking from the respective
+maintainer.
 
