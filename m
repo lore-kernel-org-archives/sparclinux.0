@@ -1,44 +1,42 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Tue, 03 Mar 2015 22:29:16 +0000
-Subject: Re: [PATCH 1/2] Break up monolithic iommu table/lock into finer graularity pools and lock
-Message-Id: <CAGRGNgVcQ5VSop9HGuFPgc_td+MPoOZ=oqTiWGTrb3rW4SA+8Q@mail.gmail.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Tue, 03 Mar 2015 06:16:55 +0000
+Subject: [PATCH] sparc: semtimedop() unreachable due to comparison error
+Message-Id: <1425363415-4154-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20141222224321.GI29674@oracle.com>
-In-Reply-To: <20141222224321.GI29674@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Sowmini,
+A bug was reported that the semtimedop() system call was always
+failing eith ENOSYS.
 
-On Wed, Mar 4, 2015 at 1:33 AM, Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
->> Please rewrite this so that only the truly generic stuff, which is
->> %100 agnostic to IOMMU design or architecutre, goes into the new
->> "generic" code.
->
-> I just remembered that I forgot to note the changes since V1 in
-> each patch of the V2 version of the set that I just sent out,
-> though I have a detailed description in the cover letter.
->
-> Sorry about that. I can send out v3, if a description of the
-> per-patch deltas are needed.
+Since SEMCTL is defined as 3, and SEMTIMEDOP is defined as 4,
+the comparison "call <= SEMCTL" will always prevent SEMTIMEDOP
+from getting through to the semaphore ops switch statement.
 
-You might want to re-read David's email, I think you're missing the point here.
+This is corrected by changing the comparison to "call <= SEMTIMEDOP".
 
-The issue isn't the lack of change descriptions, the issue is that
-you've added lots of Sparc specific stuff to the generic
-implementation.
+Orabug: 20633375
 
-You might want to re-read your changes with that in mind and either
-justify or change things appropriately. (By justify, I mean point out
-that some other arch needs whatever facility too)
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+---
+ arch/sparc/kernel/sys_sparc_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index c85403d..30e7ddb 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -333,7 +333,7 @@ SYSCALL_DEFINE6(sparc_ipc, unsigned int, call, int, first, unsigned long, second
+ 	long err;
+ 
+ 	/* No need for backward compatibility. We can start fresh... */
+-	if (call <= SEMCTL) {
++	if (call <= SEMTIMEDOP) {
+ 		switch (call) {
+ 		case SEMOP:
+ 			err = sys_semtimedop(first, ptr,
 -- 
-Julian Calaby
+1.7.9.5
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
