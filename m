@@ -1,70 +1,47 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Thu, 12 Mar 2015 13:17:04 +0000
-Subject: Re: [PATCH v6 20/30] sparc/PCI: Use pci_scan_host_bridge() for simplicity
-Message-Id: <550191D0.3050707@huawei.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 03 Mar 2015 14:22:02 +0000
+Subject: [PATCH v2 0/2] sparc: IOMMU pools for better scalability
+Message-Id: <20150303142202.GA7696@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
- <1425868467-9667-21-git-send-email-wangyijing@huawei.com>
- <20150312033050.GG10949@google.com>
-In-Reply-To: <20150312033050.GG10949@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
-
->> @@ -667,22 +680,21 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
->>  	pbm->busn.end	= pbm->pci_last_busno;
->>  	pbm->busn.flags	= IORESOURCE_BUS;
->>  	pci_add_resource(&resources, &pbm->busn);
->> -	bus = pci_create_root_bus(parent,
->> +	host = pci_scan_host_bridge(parent,
->>  			PCI_DOMBUS(pbm->index, pbm->pci_first_busno),
->> -			pbm->pci_ops, pbm, &resources);
->> -	if (!bus) {
->> -		printk(KERN_ERR "Failed to create bus for %s\n",
->> +			pbm->pci_ops, pbm, &resources, &phb_ops);
->> +	if (!host) {
->> +		printk(KERN_ERR "Failed to create host bridge for %s\n",
->>  		       node->full_name);
->>  		pci_free_resource_list(&resources);
->>  		return NULL;
->>  	}
->>  
-> 
-> I would keep "bus" and set it here:
-> 
-> 	bus = host->bus;
-> 
-> That would remove some lines from your patch that really didn't change,
-> which makes it easier to see what actually *is* changing, namely, you're
-> removing the pci_of_scan_bus() call because it is now done inside
-> pci_scan_host_bridge().
-> 
-
-Yes, keep it will make the code more clean, thanks!
-
->> -	pci_of_scan_bus(pbm, node, bus);
->> -	pci_bus_register_of_sysfs(bus);
->> +	pci_bus_register_of_sysfs(host->bus);
->>  
->> -	pci_claim_bus_resources(bus);
->> -	pci_bus_add_devices(bus);
->> -	return bus;
->> +	pci_claim_bus_resources(host->bus);
->> +	pci_bus_add_devices(host->bus);
->> +	return host->bus;
->>  }
->>  
->>  void pcibios_fixup_bus(struct pci_bus *pbus)
->> -- 
->> 1.7.1
->>
-> 
-> .
-> 
+To: sparclinux@vger.kernel.org
 
 
--- 
-Thanks!
-Yijing
+V2 version ofthis patch-set incorporates the feedback from
+  http://marc.info/?l=linux-sparc&m2527471211108&w=2
+The sparc specific fields have been moved  off into iommu_64.h, 
+into struct iommu_sparc, leaving a minimalist struct iommu_table
+in the common functions..
+
+In addition to those changes, there are some additional enhancements to
+improve the generality of this library that were based on inspection of other 
+iommu use-case such as LDC, which have a much smaller map size 
+(8k, vs 256k for pci_sun4v.c), and some other variations. These 
+change are:
+
+  (a) When the number of map entries is small, it may not be desirable
+      to have too many pools: make npools an input parameter to the library
+  (b) the cookie-to-index mapping function could be more complex,
+      depending on the device. So added a ->cookie_to_index() indirection
+      in the iommu_tbl_ops
+  (c) Depending on the device, the span-boundary check may not be needed. 
+      Allow for optimizations of this check.
+
+
+Sowmini (2):
+  Break up monolithic iommu table/lock into finer graularity pools and
+    lock
+  Make sparc64 use scalable lib/iommu-common.c functions
+
+ arch/sparc/include/asm/iommu_64.h |   19 ++++
+ arch/sparc/kernel/pci_impl.h      |    7 +-
+ arch/sparc/kernel/pci_sun4v.c     |  217 +++++++++++++++++--------------------
+ include/linux/iommu-common.h      |   57 ++++++++++
+ lib/Makefile                      |    2 +-
+ lib/iommu-common.c                |  217 +++++++++++++++++++++++++++++++++++++
+ 6 files changed, 402 insertions(+), 117 deletions(-)
+ create mode 100644 include/linux/iommu-common.h
+ create mode 100644 lib/iommu-common.c
 
