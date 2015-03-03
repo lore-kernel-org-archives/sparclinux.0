@@ -1,32 +1,101 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Mon, 30 Mar 2015 21:38:25 +0000
-Subject: Re: [PATCH v7 RFC 1/3] sparc: Break up monolithic iommu table/lock into finer graularity pools and l
-Message-Id: <20150330213825.GN26127@oracle.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Tue, 03 Mar 2015 03:10:59 +0000
+Subject: Re: [PATCH v4 20/30] PCI/sparc: Use pci_scan_root_bridge() for simplicity
+Message-Id: <20150303031059.GJ11978@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1427295804.git.sowmini.varadhan@oracle.com>
- <b9dbeef3a3ae463a5198b6d34eb446ae50966a66.1427295804.git.sowmini.varadhan@oracle.com>
- <1427685844.20500.66.camel@kernel.crashing.org>
- <20150330103824.GA26127@oracle.com>
- <1427712943.20500.77.camel@kernel.crashing.org>
- <20150330130116.GE26127@oracle.com>
- <20150330211525.GM26127@oracle.com>
- <1427750937.20500.99.camel@kernel.crashing.org>
-In-Reply-To: <1427750937.20500.99.camel@kernel.crashing.org>
+References: <1424938344-4017-1-git-send-email-wangyijing@huawei.com>
+ <1424938344-4017-21-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1424938344-4017-21-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: linux-arm-kernel@lists.infradead.org
 
-On (03/31/15 08:28), Benjamin Herrenschmidt wrote:
+On Thu, Feb 26, 2015 at 04:12:14PM +0800, Yijing Wang wrote:
+> Now we could use pci_scan_root_bridge() to scan
+> pci buses, provide sparc specific pci_host_bridge_ops.
 > 
-> Provided that the IB test doesn't come up with a significant difference,
-> I definitely vote for the simpler version of doing a normal spin_lock.
+> Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+> CC: "David S. Miller" <davem@davemloft.net>
+> CC: sparclinux@vger.kernel.org
+> ---
+>  arch/sparc/kernel/pci.c |   32 ++++++++++++++++++++++----------
+>  1 files changed, 22 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+> index 0af7c58..03e7376 100644
+> --- a/arch/sparc/kernel/pci.c
+> +++ b/arch/sparc/kernel/pci.c
+> @@ -650,12 +650,25 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
+>  		pci_claim_bus_resources(child_bus);
+>  }
+>  
+> +static void pci_host_bridge_of_scan_bus(
+> +		struct pci_host_bridge *host)
+> +{
+> +	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
+> +	struct device_node *node = pbm->op->dev.of_node;
+> +
+> +	pci_of_scan_bus(pbm, node, host->bus);
+> +}
+> +
+> +static struct pci_host_bridge_ops phb_ops = {
+> +	.phb_of_scan_bus = pci_host_bridge_of_scan_bus,
+> +};
+> +
+>  struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+>  				 struct device *parent)
+>  {
+>  	LIST_HEAD(resources);
+>  	struct device_node *node = pbm->op->dev.of_node;
+> -	struct pci_bus *bus;
+> +	struct pci_host_bridge *host;
+>  
+>  	printk("PCI: Scanning PBM %s\n", node->full_name);
+>  
+> @@ -667,23 +680,22 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+>  	pbm->busn.end	= pbm->pci_last_busno;
+>  	pbm->busn.flags	= IORESOURCE_BUS;
+>  	pci_add_resource(&resources, &pbm->busn);
+> -	bus = pci_create_root_bus(parent, 
+> +	host = pci_scan_root_bridge(parent, 
+>  			PCI_DOMBUS(pbm->index, pbm->pci_first_busno), 
+> -			pbm->pci_ops, pbm, &resources);
+> -	if (!bus) {
+> -		printk(KERN_ERR "Failed to create bus for %s\n",
+> +			pbm->pci_ops, pbm, &resources, &phb_ops);
+> +	if (!host) {
+> +		printk(KERN_ERR "Failed to create host bridge for %s\n",
+>  		       node->full_name);
+>  		pci_free_resource_list(&resources);
+>  		return NULL;
+>  	}
+>  
+> -	pci_of_scan_bus(pbm, node, bus);
+> -	pci_bus_add_devices(bus);
+> -	pci_bus_register_of_sysfs(bus);
+> +	pci_bus_add_devices(host->bus);
+> +	pci_bus_register_of_sysfs(host->bus);
+>  
+> -	pci_claim_bus_resources(bus);
+> +	pci_claim_bus_resources(host->bus);
 
-sounds good. let me wait for the confirmation from IB,
-and I'll send out patchv8 soon after. 
+Isn't this a case where pci_claim_bus_resources() should be done before
+pci_bus_add_devices()?  You didn't introduce this problem, but since you're
+fixing similar issues, seems like we should fix this one, too.  In a patch
+of its own, of course.
 
-FWIW, I'm ok with all the other comments- thanks for the feedback.
-
---Sowmini
-
+>  
+> -	return bus;
+> +	return host->bus;
+>  }
+>  
+>  void pcibios_fixup_bus(struct pci_bus *pbus)
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
