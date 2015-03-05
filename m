@@ -1,74 +1,49 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Mon, 23 Mar 2015 12:40:47 +0000
-Subject: [PATCH v7 21/31] sparc/PCI: Use pci_scan_host_bridge() for simplicity
-Message-Id: <1427114457-16687-22-git-send-email-wangyijing@huawei.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 05 Mar 2015 01:27:07 +0000
+Subject: [PATCH v3 7/8] sparc: switch to using asm-generic for seccomp.h
+Message-Id: <1425518828-16017-8-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427114457-16687-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1427114457-16687-1-git-send-email-wangyijing@huawei.com>
+References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
+In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org
+Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
 
-Now we could use pci_scan_host_bridge() to scan
-pci buses, provide sparc specific pci_host_bridge_ops.
+Switch to using the newly created asm-generic/seccomp.h for the seccomp
+strict mode syscall definitions. The obsolete sigreturn in COMPAT mode
+is retained as an override. Remaining definitions are identical. Also
+corrected missing #define for header reinclusion protection.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- arch/sparc/kernel/pci.c |   27 +++++++++++++++++++++------
- 1 files changed, 21 insertions(+), 6 deletions(-)
+ arch/sparc/include/asm/seccomp.h | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index e40e456..2a0f5ec 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -650,6 +650,20 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
- 		pci_claim_bus_resources(child_bus);
- }
+diff --git a/arch/sparc/include/asm/seccomp.h b/arch/sparc/include/asm/seccomp.h
+index adca1bce41d4..5ef8826d44f8 100644
+--- a/arch/sparc/include/asm/seccomp.h
++++ b/arch/sparc/include/asm/seccomp.h
+@@ -1,15 +1,10 @@
+ #ifndef _ASM_SECCOMP_H
++#define _ASM_SECCOMP_H
  
-+static int pci_host_bridge_of_scan_bus(
-+		struct pci_host_bridge_ *host)
-+{
-+	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
-+	struct device_node *node = pbm->op->dev.of_node;
-+
-+	pci_of_scan_bus(pbm, node, host->bus);
-+	return pci_bus_child_max_busnr(host->bus);
-+}
-+
-+static struct pci_host_bridge_ops pci_host_ops = {
-+	.scan_bus = pci_host_of_scan_bus,
-+};
-+
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent)
- {
-@@ -667,16 +681,17 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
--	bus = pci_create_root_bus(parent, pbm->index, pbm->pci_first_busno,
--			pbm->pci_ops, pbm, &resources);
--	if (!bus) {
--		printk(KERN_ERR "Failed to create bus for %s\n",
--		       node->full_name);
-+	pci_host_ops.pci_ops = pbm->pci_ops;
-+	bus = pci_scan_host_bridge(parent, pbm->index, pbm->pci_first_busno,
-+			pbm, &resources, &pci_host_ops);
-+	if (!host) {
-+		pr_err("Failed to create host bridge pci%04x:%02x for %s\n",
-+		       pbm->index, pbm->pci_first_busno, node->full_name);
- 		pci_free_resource_list(&resources);
- 		return NULL;
- 	}
+ #include <linux/unistd.h>
  
--	pci_of_scan_bus(pbm, node, bus);
-+	bus = host->bus;
- 	pci_bus_register_of_sysfs(bus);
+-#define __NR_seccomp_read __NR_read
+-#define __NR_seccomp_write __NR_write
+-#define __NR_seccomp_exit __NR_exit
+-#define __NR_seccomp_sigreturn __NR_rt_sigreturn
+-
+-#define __NR_seccomp_read_32 __NR_read
+-#define __NR_seccomp_write_32 __NR_write
+-#define __NR_seccomp_exit_32 __NR_exit
+ #define __NR_seccomp_sigreturn_32 __NR_sigreturn
  
- 	pci_claim_bus_resources(bus);
++#include <asm-generic/seccomp.h>
++
+ #endif /* _ASM_SECCOMP_H */
 -- 
-1.7.1
+1.9.1
 
