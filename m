@@ -1,54 +1,23 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 03 Mar 2015 08:49:46 +0000
-Subject: Re: [PATCH v4 20/30] PCI/sparc: Use pci_scan_root_bridge() for simplicity
-Message-Id: <54F575AA.6050409@huawei.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 05 Mar 2015 01:27:00 +0000
+Subject: [PATCH v3 0/8] switch to using asm-generic for seccomp.h
+Message-Id: <1425518828-16017-1-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1424938344-4017-1-git-send-email-wangyijing@huawei.com>
- <1424938344-4017-21-git-send-email-wangyijing@huawei.com>
- <20150303031059.GJ11978@google.com>
-In-Reply-To: <20150303031059.GJ11978@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org
+Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
 
->> -	pci_of_scan_bus(pbm, node, bus);
->> -	pci_bus_add_devices(bus);
->> -	pci_bus_register_of_sysfs(bus);
->> +	pci_bus_add_devices(host->bus);
->> +	pci_bus_register_of_sysfs(host->bus);
->>  
->> -	pci_claim_bus_resources(bus);
->> +	pci_claim_bus_resources(host->bus);
-> 
-> Isn't this a case where pci_claim_bus_resources() should be done before
-> pci_bus_add_devices()?  You didn't introduce this problem, but since you're
-> fixing similar issues, seems like we should fix this one, too.  In a patch
-> of its own, of course.
+Most architectures don't need to do much special for the strict-mode
+seccomp syscall entries. Remove the redundant headers and reduce the
+others.
 
-OK, will fix in a another patch.
-
-> 
->>  
->> -	return bus;
->> +	return host->bus;
->>  }
->>  
->>  void pcibios_fixup_bus(struct pci_bus *pbus)
->> -- 
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> .
-> 
-
-
--- 
-Thanks!
-Yijing
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+v3:
+- split patch series by architecture
+- fix up architectures that need sigreturn overrides (ingo)
+v2:
+- use Kbuild "generic-y" instead of explicit #include lines (sfr)
 
