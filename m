@@ -1,81 +1,60 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 24 Mar 2015 03:34:15 +0000
-Subject: [PATCH v8 21/30] sparc/PCI: Use pci_scan_host_bridge() for simplicity
-Message-Id: <1427168064-8657-22-git-send-email-wangyijing@huawei.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 05 Mar 2015 01:27:05 +0000
+Subject: [PATCH v3 5/8] parisc: switch to using asm-generic for seccomp.h
+Message-Id: <1425518828-16017-6-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427168064-8657-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1427168064-8657-1-git-send-email-wangyijing@huawei.com>
+References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
+In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org
+Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
 
-Now we could use pci_scan_host_bridge() to scan
-pci buses, provide sparc specific pci_host_bridge_ops.
+Switch to using the newly created asm-generic/seccomp.h for the seccomp
+strict mode syscall definitions. Definitions were identical.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- arch/sparc/kernel/pci.c |   28 ++++++++++++++++++++++------
- 1 files changed, 22 insertions(+), 6 deletions(-)
+ arch/parisc/include/asm/Kbuild    |  1 +
+ arch/parisc/include/asm/seccomp.h | 16 ----------------
+ 2 files changed, 1 insertion(+), 16 deletions(-)
+ delete mode 100644 arch/parisc/include/asm/seccomp.h
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index e40e456..fa95a1d 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -650,12 +650,27 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
- 		pci_claim_bus_resources(child_bus);
- }
- 
-+static int pci_host_of_scan_bus(
-+		struct pci_host_bridge *host)
-+{
-+	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
-+	struct device_node *node = pbm->op->dev.of_node;
-+
-+	pci_of_scan_bus(pbm, node, host->bus);
-+	return pci_bus_child_max_busnr(host->bus);
-+}
-+
-+static struct pci_host_bridge_ops pci_host_ops = {
-+	.scan_bus = pci_host_of_scan_bus,
-+};
-+
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent)
- {
- 	LIST_HEAD(resources);
- 	struct device_node *node = pbm->op->dev.of_node;
- 	struct pci_bus *bus;
-+	struct pci_host_bridge *host;
- 
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
- 
-@@ -667,16 +682,17 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
--	bus = pci_create_root_bus(parent, pbm->index, pbm->pci_first_busno,
--			pbm->pci_ops, pbm, &resources);
--	if (!bus) {
--		printk(KERN_ERR "Failed to create bus for %s\n",
--		       node->full_name);
-+	pci_host_ops.pci_ops = pbm->pci_ops;
-+	host = pci_scan_host_bridge(parent, pbm->index, pbm->pci_first_busno,
-+			pbm, &resources, &pci_host_ops);
-+	if (!host) {
-+		pr_err("Failed to create host bridge pci%04x:%02x for %s\n",
-+		       pbm->index, pbm->pci_first_busno, node->full_name);
- 		pci_free_resource_list(&resources);
- 		return NULL;
- 	}
- 
--	pci_of_scan_bus(pbm, node, bus);
-+	bus = host->bus;
- 	pci_bus_register_of_sysfs(bus);
- 
- 	pci_claim_bus_resources(bus);
+diff --git a/arch/parisc/include/asm/Kbuild b/arch/parisc/include/asm/Kbuild
+index 8686237a3c3c..12b341d04f88 100644
+--- a/arch/parisc/include/asm/Kbuild
++++ b/arch/parisc/include/asm/Kbuild
+@@ -20,6 +20,7 @@ generic-y += param.h
+ generic-y += percpu.h
+ generic-y += poll.h
+ generic-y += preempt.h
++generic-y += seccomp.h
+ generic-y += segment.h
+ generic-y += topology.h
+ generic-y += trace_clock.h
+diff --git a/arch/parisc/include/asm/seccomp.h b/arch/parisc/include/asm/seccomp.h
+deleted file mode 100644
+index 015f7887aa29..000000000000
+--- a/arch/parisc/include/asm/seccomp.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-#ifndef _ASM_PARISC_SECCOMP_H
+-#define _ASM_PARISC_SECCOMP_H
+-
+-#include <linux/unistd.h>
+-
+-#define __NR_seccomp_read __NR_read
+-#define __NR_seccomp_write __NR_write
+-#define __NR_seccomp_exit __NR_exit
+-#define __NR_seccomp_sigreturn __NR_rt_sigreturn
+-
+-#define __NR_seccomp_read_32 __NR_read
+-#define __NR_seccomp_write_32 __NR_write
+-#define __NR_seccomp_exit_32 __NR_exit
+-#define __NR_seccomp_sigreturn_32 __NR_rt_sigreturn
+-
+-#endif	/* _ASM_PARISC_SECCOMP_H */
 -- 
-1.7.1
+1.9.1
 
