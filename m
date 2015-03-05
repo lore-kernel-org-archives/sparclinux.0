@@ -1,58 +1,47 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Tue, 10 Mar 2015 22:27:02 +0000
-Subject: [PATCH v3 RFC 0/3] sparc: IOMMU pools for better scalability
-Message-Id: <cover.1426021520.git.sowmini.varadhan@oracle.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Thu, 05 Mar 2015 01:27:03 +0000
+Subject: [PATCH v3 3/8] microblaze: use asm-generic for seccomp.h
+Message-Id: <1425518828-16017-4-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
+In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
 
-This is a follow-up to 
-  http://www.spinics.net/lists/sparclinux/msg13443.html
+Switch to using the newly created asm-generic/seccomp.h for the seccomp
+strict mode syscall definitions. Since microblaze is 32-bit, the COMPAT
+seccomp defines are unused and can be dropped. The obsolete sigreturn
+for seccomp strict mode is retained as an override. Remaining definitions
+are identical.
 
-All sparc iommu usage (LDC, sun4u, sun4v) has now been converted to the
-new library.  The one and only struct iommu for sparc uses the iommu_table
-defined in iommu-common.c. 
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ arch/microblaze/include/asm/seccomp.h | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-I tested this on a sunfire (V440) and an ultra-45, in addition to a T5,
-and LDOMS, but I could use more testing help for the legacy platforms.
-Also, I'll be on the road a bit for the rest of the week, so will be
-a bit slow to handle review feedback (hence derailing this to RFC status) 
-
-Patches division is as follows.
-
-Patch 1: Common library functions in
-             lib/Makefile 
-             include/linux/iommu-common.h
-             lib/iommu-common.c
-Patch 2: Converts  sun4u, sun4v, PCI in sparc to use common library. Impacts
-             arch/sparc/include/asm/iommu_64.h
-             arch/sparc/kernel/iommu.c
-             arch/sparc/kernel/iommu_common.h
-             arch/sparc/kernel/pci_sun4v.c
-Patch 3: Converts LDC to use Patch 1. Impacts
-             arch/sparc/kernel/ldc.c
-
-
-Sowmini (2):
-  Break up monolithic iommu table/lock into finer graularity pools and
-    lock
-  Make sparc64 use scalable lib/iommu-common.c functions
-
-Sowmini Varadhan (1):
-  Make LDC use common iommu poll management functions
-
- arch/sparc/include/asm/iommu_64.h |    7 +-
- arch/sparc/kernel/iommu.c         |  194 +++++++++++---------------------
- arch/sparc/kernel/iommu_common.h  |    8 --
- arch/sparc/kernel/ldc.c           |  185 ++++++++++++++++---------------
- arch/sparc/kernel/pci_impl.h      |    7 +-
- arch/sparc/kernel/pci_sun4v.c     |  207 +++++++++++++++++------------------
- include/linux/iommu-common.h      |   56 ++++++++++
- lib/Makefile                      |    2 +-
- lib/iommu-common.c                |  220 +++++++++++++++++++++++++++++++++++++
- 9 files changed, 550 insertions(+), 336 deletions(-)
- create mode 100644 include/linux/iommu-common.h
- create mode 100644 lib/iommu-common.c
+diff --git a/arch/microblaze/include/asm/seccomp.h b/arch/microblaze/include/asm/seccomp.h
+index 0d912758a0d7..204618a2ce84 100644
+--- a/arch/microblaze/include/asm/seccomp.h
++++ b/arch/microblaze/include/asm/seccomp.h
+@@ -3,14 +3,8 @@
+ 
+ #include <linux/unistd.h>
+ 
+-#define __NR_seccomp_read		__NR_read
+-#define __NR_seccomp_write		__NR_write
+-#define __NR_seccomp_exit		__NR_exit
+ #define __NR_seccomp_sigreturn		__NR_sigreturn
+ 
+-#define __NR_seccomp_read_32		__NR_read
+-#define __NR_seccomp_write_32		__NR_write
+-#define __NR_seccomp_exit_32		__NR_exit
+-#define __NR_seccomp_sigreturn_32	__NR_sigreturn
++#include <asm-generic/seccomp.h>
+ 
+ #endif	/* _ASM_MICROBLAZE_SECCOMP_H */
+-- 
+1.9.1
 
