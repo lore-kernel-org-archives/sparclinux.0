@@ -1,302 +1,188 @@
-From: chris hyser <chris.hyser@oracle.com>
-Date: Mon, 30 Mar 2015 16:05:21 +0000
-Subject: [PATCH v2] sparc64: Setup sysfs to mark LDOM sockets, cores and threads correctly
-Message-Id: <55197441.6080004@oracle.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Fri, 06 Mar 2015 09:33:18 +0000
+Subject: [PATCH v5 01/29] PCI: Rip out pci_bus_add_devices() from pci_scan_bus()
+Message-Id: <1425634426-437-2-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-sparc64: Setup sysfs to mark LDOM sockets, cores and threads correctly
+Pci_bus_add_devices() should not be placed in pci_scan_bus().
+Now pci device will be added to driver core once its
+creation. All things left in pci_bus_add_devices() are
+driver attachment and other trivial sysfs things.
+Pci_scan_bus() should be the function responsible for
+scanning PCI devices, not including driver attachment.
+Other, some callers(m68k,unicore32,alpha) of pci_scan_bus()
+will call pci_bus_size_bridges() and pci_bus_assign_resources()
+after pci_scan_bus().
 
-The current sparc kernel has no representation for sockets though tools like
-lscpu can pull this from sysfs. This patch walks the machine description
-cache and socket hierarchy and marks sockets as well as cores and threads
-such that a representative sysfs is created by drivers/base/topology.c.
+E.g.
+In m68k
+mcf_pci_init()
+	pci_scan_bus()
+		...
+		pci_bus_add_devices() --- try to attach driver
+	pci_fixup_irqs()
+	pci_bus_size_bridges()
+	pci_bus_assign_resources()
 
-Before this patch:
-$ lscpu
-Architecture:          sparc64
-CPU op-mode(s):        32-bit, 64-bit
-Byte Order:            Big Endian
-CPU(s):                1024
-On-line CPU(s) list:   0-1023
-Thread(s) per core:    8
-Core(s) per socket:    1     <--- wrong
-Socket(s):             128   <--- wrong
-NUMA node(s):          4
-NUMA node0 CPU(s):     0-255
-NUMA node1 CPU(s):     256-511
-NUMA node2 CPU(s):     512-767
-NUMA node3 CPU(s):     768-1023
+Above code flow make pci scan logic obscure, resources should
+be assigned correctly before attaching driver. Because
+pci_scan_bus() mostly be called in system boot path, when
+before drivers are loaded(in module_init), so no pci scan
+issues will occur. Most pci_scan_bus() callers additionally
+call pci_bus_size_bridges() and pci_bus_assign_resources()
+after pci_scan_bus(), we could rip out pci_bus_add_devices()
+for better code readability. After applied this patch,
+pci_scan_bus() should be used like:
 
-After this patch:
-$ lscpu
-Architecture:          sparc64
-CPU op-mode(s):        32-bit, 64-bit
-Byte Order:            Big Endian
-CPU(s):                1024
-On-line CPU(s) list:   0-1023
-Thread(s) per core:    8
-Core(s) per socket:    32
-Socket(s):             4
-NUMA node(s):          4
-NUMA node0 CPU(s):     0-255
-NUMA node1 CPU(s):     256-511
-NUMA node2 CPU(s):     512-767
-NUMA node3 CPU(s):     768-1023
+pci_scan_bus() (mandatory)
+pci_fixup_irqs() (optional)
+pci_bus_size_bridges() (optional)
+pci_pci_bus_assign_resources() (optional)
+pci_bus_add_devices() (mandatory)
 
-Most of this patch was done by Chris with updates by David.
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Guan Xuetao <gxt@mprc.pku.edu.cn>
+CC: Richard Henderson <rth@twiddle.net>
+CC: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+CC: Matt Turner <mattst88@gmail.com>
+CC: linux-alpha@vger.kernel.org
+CC: linux-m68k@lists.linux-m68k.org
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/alpha/kernel/sys_nautilus.c  |    4 ++++
+ arch/m68k/coldfire/pci.c          |    1 +
+ arch/sparc/kernel/pcic.c          |    3 +++
+ arch/unicore32/kernel/pci.c       |   11 +++--------
+ drivers/pci/hotplug/ibmphp_core.c |    8 ++++++--
+ drivers/pci/probe.c               |    1 -
+ 6 files changed, 17 insertions(+), 11 deletions(-)
 
-Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
-Signed-off-by: David Ahern <david.ahern@oracle.com>
-
-diff --git a/arch/sparc/include/asm/cpudata_64.h b/arch/sparc/include/asm/cpudata_64.h
-index a6e424d..a6cfdab 100644
---- a/arch/sparc/include/asm/cpudata_64.h
-+++ b/arch/sparc/include/asm/cpudata_64.h
-@@ -24,7 +24,8 @@ typedef struct {
-  	unsigned int	icache_line_size;
-  	unsigned int	ecache_size;
-  	unsigned int	ecache_line_size;
--	int		core_id;
-+	unsigned short	sock_id;
-+	unsigned short	core_id;
-  	int		proc_id;
-  } cpuinfo_sparc;
-
-diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
-index ed8f071..d1761df 100644
---- a/arch/sparc/include/asm/topology_64.h
-+++ b/arch/sparc/include/asm/topology_64.h
-@@ -40,11 +40,12 @@ static inline int pcibus_to_node(struct pci_bus *pbus)
-  #ifdef CONFIG_SMP
-  #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
-  #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
--#define topology_core_cpumask(cpu)		(&cpu_core_map[cpu])
-+#define topology_core_cpumask(cpu)		(&cpu_core_sib_map[cpu])
-  #define topology_thread_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
-  #endif /* CONFIG_SMP */
-
-  extern cpumask_t cpu_core_map[NR_CPUS];
-+extern cpumask_t cpu_core_sib_map[NR_CPUS];
-  static inline const struct cpumask *cpu_coregroup_mask(int cpu)
-  {
-          return &cpu_core_map[cpu];
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 99632a8..78beb94 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -614,45 +614,68 @@ static void fill_in_one_cache(cpuinfo_sparc *c, struct mdesc_handle *hp, u64 mp)
-  	}
-  }
-
--static void mark_core_ids(struct mdesc_handle *hp, u64 mp, int core_id)
-+static void find_back_node_value(struct mdesc_handle *hp, u64 node,
-+				 char *srch_val,
-+				 void(*func)(struct mdesc_handle *, u64, int),
-+				 u64 val, int depth)
-  {
--	u64 a;
--
--	mdesc_for_each_arc(a, hp, mp, MDESC_ARC_TYPE_BACK) {
--		u64 t = mdesc_arc_target(hp, a);
--		const char *name;
--		const u64 *id;
-+	u64 arc;
-
--		name = mdesc_node_name(hp, t);
--		if (!strcmp(name, "cpu")) {
--			id = mdesc_get_property(hp, t, "id", NULL);
--			if (*id < NR_CPUS)
--				cpu_data(*id).core_id = core_id;
--		} else {
--			u64 j;
-+	/* Since we have an estimate of recursion depth, do a sanity check. */
-+	if (depth = 0)
+diff --git a/arch/alpha/kernel/sys_nautilus.c b/arch/alpha/kernel/sys_nautilus.c
+index 837c0fa..700686d 100644
+--- a/arch/alpha/kernel/sys_nautilus.c
++++ b/arch/alpha/kernel/sys_nautilus.c
+@@ -207,6 +207,9 @@ nautilus_init_pci(void)
+ 
+ 	/* Scan our single hose.  */
+ 	bus = pci_scan_bus(0, alpha_mv.pci_ops, hose);
++	if (!bus)
 +		return;
-
--			mdesc_for_each_arc(j, hp, t, MDESC_ARC_TYPE_BACK) {
--				u64 n = mdesc_arc_target(hp, j);
--				const char *n_name;
-+	mdesc_for_each_arc(arc, hp, node, MDESC_ARC_TYPE_BACK) {
-+		u64 n = mdesc_arc_target(hp, arc);
-+		const char *name = mdesc_node_name(hp, n);
-
--				n_name = mdesc_node_name(hp, n);
--				if (strcmp(n_name, "cpu"))
--					continue;
-+		if (!strcmp(srch_val, name))
-+			(*func)(hp, n, val);
-
--				id = mdesc_get_property(hp, n, "id", NULL);
--				if (*id < NR_CPUS)
--					cpu_data(*id).core_id = core_id;
--			}
--		}
-+		find_back_node_value(hp, n, srch_val, func, val, depth-1);
-  	}
-  }
-
-+static void __mark_core_id(struct mdesc_handle *hp, u64 node,
-+			   int core_id)
-+{
-+	const u64 *id = mdesc_get_property(hp, node, "id", NULL);
 +
-+	if (*id < num_possible_cpus())
-+		cpu_data(*id).core_id = core_id;
-+}
-+
-+static void __mark_sock_id(struct mdesc_handle *hp, u64 node,
-+			   int sock_id)
-+{
-+	const u64 *id = mdesc_get_property(hp, node, "id", NULL);
-+
-+	if (*id < num_possible_cpus())
-+		cpu_data(*id).sock_id = sock_id;
-+}
-+
-+static void mark_core_ids(struct mdesc_handle *hp, u64 mp,
-+			  int core_id)
-+{
-+	find_back_node_value(hp, mp, "cpu", __mark_core_id, core_id, 10);
-+}
-+
-+static void mark_sock_ids(struct mdesc_handle *hp, u64 mp,
-+			  int sock_id)
-+{
-+	find_back_node_value(hp, mp, "cpu", __mark_sock_id, sock_id, 10);
-+}
-+
-  static void set_core_ids(struct mdesc_handle *hp)
-  {
-  	int idx;
-  	u64 mp;
-
-  	idx = 1;
-+
-+	/* Identify unique cores by looking for cpus backpointed to by
-+	 * level 1 instruction caches.
-+	 */
-  	mdesc_for_each_node_by_name(hp, mp, "cache") {
-  		const u64 *level;
-  		const char *type;
-@@ -667,11 +690,67 @@ static void set_core_ids(struct mdesc_handle *hp)
-  			continue;
-
-  		mark_core_ids(hp, mp, idx);
-+		idx++;
-+	}
-+}
-+
-+static void set_sock_ids_by_cache(struct mdesc_handle *hp, u64 mp)
-+{
-+	int idx = 1;
-+
-+	/* Identify unique sockets by looking for cpus backpointed to by
-+	 * level 3 caches.
-+	 */
-+	mdesc_for_each_node_by_name(hp, mp, "cache") {
-+		const u64 *level;
-+
-+		level = mdesc_get_property(hp, mp, "level", NULL);
-+		if (*level != 3)
-+			continue;
-
-+		mark_sock_ids(hp, mp, idx);
-  		idx++;
-  	}
-  }
-
-+static void set_sock_ids_by_socket(struct mdesc_handle *hp, u64 mp)
-+{
-+	int idx = 1;
-+
-+	mdesc_for_each_node_by_name(hp, mp, "socket") {
-+		u64 a;
-+
-+		mdesc_for_each_arc(a, hp, mp, MDESC_ARC_TYPE_FWD) {
-+			u64 t = mdesc_arc_target(hp, a);
-+			const char *name;
-+			const u64 *id;
-+
-+			name = mdesc_node_name(hp, t);
-+			if (strcmp(name, "cpu"))
+ 	hose->bus = bus;
+ 	pcibios_claim_one_bus(bus);
+ 
+@@ -253,6 +256,7 @@ nautilus_init_pci(void)
+ 	   for the root bus, so just clear it. */
+ 	bus->self = NULL;
+ 	pci_fixup_irqs(alpha_mv.pci_swizzle, alpha_mv.pci_map_irq);
++	pci_bus_add_devices(bus);
+ }
+ 
+ /*
+diff --git a/arch/m68k/coldfire/pci.c b/arch/m68k/coldfire/pci.c
+index df96792..d45f087 100644
+--- a/arch/m68k/coldfire/pci.c
++++ b/arch/m68k/coldfire/pci.c
+@@ -319,6 +319,7 @@ static int __init mcf_pci_init(void)
+ 	pci_fixup_irqs(pci_common_swizzle, mcf_pci_map_irq);
+ 	pci_bus_size_bridges(rootbus);
+ 	pci_bus_assign_resources(rootbus);
++	pci_bus_add_devices(rootbus);
+ 	return 0;
+ }
+ 
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index 6cc78c2..0f4dc6b 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -391,12 +391,15 @@ static void __init pcic_pbm_scan_bus(struct linux_pcic *pcic)
+ 	struct linux_pbm_info *pbm = &pcic->pbm;
+ 
+ 	pbm->pci_bus = pci_scan_bus(pbm->pci_first_busno, &pcic_ops, pbm);
++	if (!pbm->pci_bus)
++		return;
+ #if 0 /* deadwood transplanted from sparc64 */
+ 	pci_fill_in_pbm_cookies(pbm->pci_bus, pbm, pbm->prom_node);
+ 	pci_record_assignments(pbm, pbm->pci_bus);
+ 	pci_assign_unassigned(pbm, pbm->pci_bus);
+ 	pci_fixup_irq(pbm, pbm->pci_bus);
+ #endif
++	pci_bus_add_devices(pbm->pci_bus);
+ }
+ 
+ /*
+diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
+index 374a055..3d82024 100644
+--- a/arch/unicore32/kernel/pci.c
++++ b/arch/unicore32/kernel/pci.c
+@@ -266,17 +266,12 @@ static int __init pci_common_init(void)
+ 	pci_fixup_irqs(pci_common_swizzle, pci_puv3_map_irq);
+ 
+ 	if (!pci_has_flag(PCI_PROBE_ONLY)) {
+-		/*
+-		 * Size the bridge windows.
+-		 */
++		/* Size the bridge windows. */
+ 		pci_bus_size_bridges(puv3_bus);
+-
+-		/*
+-		 * Assign resources.
+-		 */
++		/* Assign resources. */
+ 		pci_bus_assign_resources(puv3_bus);
+ 	}
+-
++	pci_bus_add_devices(puv3_bus);
+ 	return 0;
+ }
+ subsys_initcall(pci_common_init);
+diff --git a/drivers/pci/hotplug/ibmphp_core.c b/drivers/pci/hotplug/ibmphp_core.c
+index 96c5c72..1530247 100644
+--- a/drivers/pci/hotplug/ibmphp_core.c
++++ b/drivers/pci/hotplug/ibmphp_core.c
+@@ -738,7 +738,7 @@ static void ibm_unconfigure_device(struct pci_func *func)
+  */
+ static u8 bus_structure_fixup(u8 busno)
+ {
+-	struct pci_bus *bus;
++	struct pci_bus *bus, *b;
+ 	struct pci_dev *dev;
+ 	u16 l;
+ 
+@@ -765,7 +765,11 @@ static u8 bus_structure_fixup(u8 busno)
+ 					(l != 0x0000) && (l != 0xffff)) {
+ 			debug("%s - Inside bus_structure_fixup()\n",
+ 							__func__);
+-			pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
++			b = pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
++			if (!b)
 +				continue;
 +
-+			id = mdesc_get_property(hp, t, "id", NULL);
-+			if (*id < num_possible_cpus())
-+				cpu_data(*id).sock_id = idx;
-+		}
-+		idx++;
-+	}
-+}
-+
-+static void set_sock_ids(struct mdesc_handle *hp)
-+{
-+	u64 mp;
-+
-+	/* If machine description exposes sockets data use it.
-+	 * Otherwise fallback to use L3 cache
-+	 */
-+	mp = mdesc_node_by_name(hp, MDESC_NODE_NULL, "sockets");
-+	if (mp = MDESC_NODE_NULL)
-+		return set_sock_ids_by_cache(hp, mp);
-+
-+	return set_sock_ids_by_socket(hp, mp);
-+}
-+
-  static void mark_proc_ids(struct mdesc_handle *hp, u64 mp, int proc_id)
-  {
-  	u64 a;
-@@ -707,7 +786,6 @@ static void __set_proc_ids(struct mdesc_handle *hp, const char *exec_unit_name)
-  			continue;
-
-  		mark_proc_ids(hp, mp, idx);
--
-  		idx++;
-  	}
-  }
-@@ -900,6 +978,7 @@ void mdesc_fill_in_cpu_data(cpumask_t *mask)
-
-  	set_core_ids(hp);
-  	set_proc_ids(hp);
-+	set_sock_ids(hp);
-
-  	mdesc_release(hp);
-
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 61139d9..19cd08d 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -60,8 +60,12 @@ DEFINE_PER_CPU(cpumask_t, cpu_sibling_map) = CPU_MASK_NONE;
-  cpumask_t cpu_core_map[NR_CPUS] __read_mostly   	{ [0 ... NR_CPUS-1] = CPU_MASK_NONE };
-
-+cpumask_t cpu_core_sib_map[NR_CPUS] __read_mostly = {
-+	[0 ... NR_CPUS-1] = CPU_MASK_NONE };
-+
-  EXPORT_PER_CPU_SYMBOL(cpu_sibling_map);
-  EXPORT_SYMBOL(cpu_core_map);
-+EXPORT_SYMBOL(cpu_core_sib_map);
-
-  static cpumask_t smp_commenced_mask;
-
-@@ -1243,6 +1247,15 @@ void smp_fill_in_sib_core_maps(void)
-  		}
-  	}
-
-+	for_each_present_cpu(i)  {
-+		unsigned int j;
-+
-+		for_each_present_cpu(j)  {
-+			if (cpu_data(i).sock_id = cpu_data(j).sock_id)
-+				cpumask_set_cpu(j, &cpu_core_sib_map[i]);
-+		}
-+	}
-+
-  	for_each_present_cpu(i) {
-  		unsigned int j;
-
-
++			pci_bus_add_devices(b);
+ 			break;
+ 		}
+ 	}
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 8d2f400..88604f2 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2123,7 +2123,6 @@ struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops,
+ 	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
+ 	if (b) {
+ 		pci_scan_child_bus(b);
+-		pci_bus_add_devices(b);
+ 	} else {
+ 		pci_free_resource_list(&resources);
+ 	}
+-- 
+1.7.1
 
