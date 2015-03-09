@@ -1,892 +1,323 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Sun, 22 Mar 2015 19:22:53 +0000
-Subject: [PATCH v5 RFC 2/3] sparc: Make sparc64 use scalable lib/iommu-common.c functions
-Message-Id: <d9dcee324799b51fc0819b57e510894d29b8956e.1426986386.git.sowmini.varadhan@oracle.com>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 09 Mar 2015 02:33:59 +0000
+Subject: [PATCH v6 02/30] PCI: Rip out pci_bus_add_devices() from pci_scan_root_bus()
+Message-Id: <1425868467-9667-3-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1426986386.git.sowmini.varadhan@oracle.com>
-In-Reply-To: <cover.1426986386.git.sowmini.varadhan@oracle.com>
+References: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
-Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sowmini.varadhan@oracle.com, davem@davemloft.net
+To: linux-arm-kernel@lists.infradead.org
 
-In iperf experiments running linux as the Tx side (TCP client) with
-10 threads results in a severe performance drop when TSO is disabled,
-indicating a weakness in the software that can be avoided by using
-the scalable IOMMU arena DMA allocation.
+Just like pci_scan_bus(), we also should rip out
+pci_bus_add_devices() from pci_scan_root_bus().
+Lots platforms first call pci_scan_root_bus(), but
+after that, they call pci_bus_size_bridges() and
+pci_bus_assign_resources(). Place pci_bus_add_devices()
+in pci_scan_root_bus() hurts PCI scan logic.
+For arm hw_pci->scan() functions which call
+pci_scan_root_bus(), it's no need to change anything,
+because pci_bus_add_devices() will be called later
+in pci_common_init_dev().
 
-Baseline numbers before this patch:
-   with default settings (TSO enabled) :    9-9.5 Gbps
-   Disable TSO using ethtool- drops badly:  2-3 Gbps.
-
-After this patch, iperf client with 10 threads, can give a
-throughput of at least 8.5 Gbps, even when TSO is disabled.
-
-Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+CC: Richard Henderson <rth@twiddle.net>
+CC: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+CC: Matt Turner <mattst88@gmail.com>
+CC: David Howells <dhowells@redhat.com>
+CC: Tony Luck <tony.luck@intel.com>
+CC: Michal Simek <monstr@monstr.eu>
+CC: Ralf Baechle <ralf@linux-mips.org>
+CC: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+CC: Sebastian Ott <sebott@linux.vnet.ibm.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Chris Metcalf <cmetcalf@ezchip.com>
+CC: Chris Zankel <chris@zankel.net>
+CC: Max Filippov <jcmvbkbc@gmail.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: linux-alpha@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+CC: linux-mips@linux-mips.org
+CC: linux-am33-list@redhat.com
+CC: linux-s390@vger.kernel.org
+CC: linux-sh@vger.kernel.org
+CC: sparclinux@vger.kernel.org
+CC: linux-xtensa@linux-xtensa.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
-v2: moved sparc specific fileds into iommu_sparc
-v3: converted all sparc users of iommu, so lot of cleanup and streamlining
-v4: David Miller review change:
-    - s/IOMMU_ERROR_CODE/DMA_ERROR_CODE
-    - reverts pci_impl.h (now that all iommu usage has been converted)
-v5: benh/aik feedback modifies the function signatures: pass in 
-    modified args to iommmu_tbl_pool_init() and iommu_tbl_range_free()
+ arch/alpha/kernel/pci.c          |    9 ++++++++-
+ arch/frv/mb93090-mb00/pci-vdk.c  |    6 +++++-
+ arch/ia64/sn/kernel/io_init.c    |    2 ++
+ arch/microblaze/pci/pci-common.c |    3 +++
+ arch/mips/pci/pci.c              |    1 +
+ arch/mn10300/unit-asb2305/pci.c  |    7 ++++++-
+ arch/s390/pci/pci.c              |    2 +-
+ arch/sh/drivers/pci/pci.c        |    1 +
+ arch/sparc/kernel/leon_pci.c     |    1 +
+ arch/tile/kernel/pci.c           |    2 ++
+ arch/tile/kernel/pci_gx.c        |    2 ++
+ arch/x86/pci/common.c            |    1 +
+ arch/xtensa/kernel/pci.c         |   11 +++++++++--
+ drivers/pci/probe.c              |    1 -
+ 14 files changed, 42 insertions(+), 7 deletions(-)
 
- arch/sparc/include/asm/iommu_64.h |    7 +-
- arch/sparc/kernel/iommu.c         |  187 ++++++++++++------------------------
- arch/sparc/kernel/iommu_common.h  |    8 --
- arch/sparc/kernel/pci_sun4v.c     |  194 ++++++++++++++++++-------------------
- 4 files changed, 160 insertions(+), 236 deletions(-)
-
-diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
-index 2b9321a..e3cd449 100644
---- a/arch/sparc/include/asm/iommu_64.h
-+++ b/arch/sparc/include/asm/iommu_64.h
-@@ -16,6 +16,7 @@
- #define IOPTE_WRITE   0x0000000000000002UL
- 
- #define IOMMU_NUM_CTXS	4096
-+#include <linux/iommu-common.h>
- 
- struct iommu_arena {
- 	unsigned long	*map;
-@@ -24,11 +25,10 @@ struct iommu_arena {
- };
- 
- struct iommu {
-+	struct iommu_table	tbl;
- 	spinlock_t		lock;
--	struct iommu_arena	arena;
--	void			(*flush_all)(struct iommu *);
-+	u32			dma_addr_mask;
- 	iopte_t			*page_table;
--	u32			page_table_map_base;
- 	unsigned long		iommu_control;
- 	unsigned long		iommu_tsbbase;
- 	unsigned long		iommu_flush;
-@@ -40,7 +40,6 @@ struct iommu {
- 	unsigned long		dummy_page_pa;
- 	unsigned long		ctx_lowest_free;
- 	DECLARE_BITMAP(ctx_bitmap, IOMMU_NUM_CTXS);
--	u32			dma_addr_mask;
- };
- 
- struct strbuf {
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index bfa4d0c..71a76d3 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -13,11 +13,15 @@
- #include <linux/errno.h>
- #include <linux/iommu-helper.h>
- #include <linux/bitmap.h>
-+#include <linux/hash.h>
-+#include <linux/iommu-common.h>
- 
- #ifdef CONFIG_PCI
- #include <linux/pci.h>
- #endif
- 
-+static	DEFINE_PER_CPU(unsigned int, iommu_pool_hash);
-+
- #include <asm/iommu.h>
- 
- #include "iommu_common.h"
-@@ -45,8 +49,9 @@
- 			       "i" (ASI_PHYS_BYPASS_EC_E))
- 
- /* Must be invoked under the IOMMU lock. */
--static void iommu_flushall(struct iommu *iommu)
-+static void iommu_flushall(struct iommu_table *iommu_table)
+diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
+index 98a1525..5c845ad 100644
+--- a/arch/alpha/kernel/pci.c
++++ b/arch/alpha/kernel/pci.c
+@@ -312,7 +312,7 @@ common_init_pci(void)
  {
-+	struct iommu *iommu = container_of(iommu_table, struct iommu, tbl);
- 	if (iommu->iommu_flushinv) {
- 		iommu_write(iommu->iommu_flushinv, ~(u64)0);
- 	} else {
-@@ -87,94 +92,23 @@ static inline void iopte_make_dummy(struct iommu *iommu, iopte_t *iopte)
- 	iopte_val(*iopte) = val;
+ 	struct pci_controller *hose;
+ 	struct list_head resources;
+-	struct pci_bus *bus;
++	struct pci_bus *bus, *root_bus;
+ 	int next_busno;
+ 	int need_domain_info = 0;
+ 	u32 pci_mem_end;
+@@ -338,6 +338,8 @@ common_init_pci(void)
+ 
+ 		bus = pci_scan_root_bus(NULL, next_busno, alpha_mv.pci_ops,
+ 					hose, &resources);
++		if (!bus)
++			continue;
+ 		hose->bus = bus;
+ 		hose->need_domain_info = need_domain_info;
+ 		next_busno = bus->busn_res.end + 1;
+@@ -353,6 +355,11 @@ common_init_pci(void)
+ 
+ 	pci_assign_unassigned_resources();
+ 	pci_fixup_irqs(alpha_mv.pci_swizzle, alpha_mv.pci_map_irq);
++	for (hose = hose_head; hose; hose = hose->next) {
++		root_bus = hose->bus;
++		if (root_bus)
++			pci_bus_add_devices(root_bus);
++	}
  }
  
--/* Based almost entirely upon the ppc64 iommu allocator.  If you use the 'handle'
-- * facility it must all be done in one pass while under the iommu lock.
-- *
-- * On sun4u platforms, we only flush the IOMMU once every time we've passed
-- * over the entire page table doing allocations.  Therefore we only ever advance
-- * the hint and cannot backtrack it.
-- */
--unsigned long iommu_range_alloc(struct device *dev,
--				struct iommu *iommu,
--				unsigned long npages,
--				unsigned long *handle)
--{
--	unsigned long n, end, start, limit, boundary_size;
--	struct iommu_arena *arena = &iommu->arena;
--	int pass = 0;
--
--	/* This allocator was derived from x86_64's bit string search */
--
--	/* Sanity check */
--	if (unlikely(npages = 0)) {
--		if (printk_ratelimit())
--			WARN_ON(1);
--		return DMA_ERROR_CODE;
--	}
--
--	if (handle && *handle)
--		start = *handle;
--	else
--		start = arena->hint;
--
--	limit = arena->limit;
--
--	/* The case below can happen if we have a small segment appended
--	 * to a large, or when the previous alloc was at the very end of
--	 * the available space. If so, go back to the beginning and flush.
--	 */
--	if (start >= limit) {
--		start = 0;
--		if (iommu->flush_all)
--			iommu->flush_all(iommu);
--	}
--
-- again:
--
--	if (dev)
--		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				      1 << IO_PAGE_SHIFT);
--	else
--		boundary_size = ALIGN(1UL << 32, 1 << IO_PAGE_SHIFT);
--
--	n = iommu_area_alloc(arena->map, limit, start, npages,
--			     iommu->page_table_map_base >> IO_PAGE_SHIFT,
--			     boundary_size >> IO_PAGE_SHIFT, 0);
--	if (n = -1) {
--		if (likely(pass < 1)) {
--			/* First failure, rescan from the beginning.  */
--			start = 0;
--			if (iommu->flush_all)
--				iommu->flush_all(iommu);
--			pass++;
--			goto again;
--		} else {
--			/* Second failure, give up */
--			return DMA_ERROR_CODE;
--		}
--	}
--
--	end = n + npages;
--
--	arena->hint = end;
--
--	/* Update handle for SG allocations */
--	if (handle)
--		*handle = end;
--
--	return n;
--}
-+static struct iommu_tbl_ops iommu_sparc_ops = {
-+	.reset	= iommu_flushall
-+};
  
--void iommu_range_free(struct iommu *iommu, dma_addr_t dma_addr, unsigned long npages)
-+static void setup_iommu_pool_hash(void)
+diff --git a/arch/frv/mb93090-mb00/pci-vdk.c b/arch/frv/mb93090-mb00/pci-vdk.c
+index b073f4d..f211839 100644
+--- a/arch/frv/mb93090-mb00/pci-vdk.c
++++ b/arch/frv/mb93090-mb00/pci-vdk.c
+@@ -316,6 +316,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+ 
+ int __init pcibios_init(void)
  {
--	struct iommu_arena *arena = &iommu->arena;
--	unsigned long entry;
--
--	entry = (dma_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
-+	unsigned int i;
-+	static bool do_once;
++	struct pci_bus *bus;
+ 	struct pci_ops *dir = NULL;
+ 	LIST_HEAD(resources);
  
--	bitmap_clear(arena->map, entry, npages);
-+	if (do_once)
+@@ -383,12 +384,15 @@ int __init pcibios_init(void)
+ 	printk("PCI: Probing PCI hardware\n");
+ 	pci_add_resource(&resources, &pci_ioport_resource);
+ 	pci_add_resource(&resources, &pci_iomem_resource);
+-	pci_scan_root_bus(NULL, 0, pci_root_ops, NULL, &resources);
++	bus = pci_scan_root_bus(NULL, 0, pci_root_ops, NULL, &resources);
+ 
+ 	pcibios_irq_init();
+ 	pcibios_fixup_irqs();
+ 	pcibios_resource_survey();
++	if (!bus)
++		return 0;
+ 
++	pci_bus_add_devices(bus);
+ 	return 0;
+ }
+ 
+diff --git a/arch/ia64/sn/kernel/io_init.c b/arch/ia64/sn/kernel/io_init.c
+index 0b5ce82..1be65eb 100644
+--- a/arch/ia64/sn/kernel/io_init.c
++++ b/arch/ia64/sn/kernel/io_init.c
+@@ -271,7 +271,9 @@ sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
+  	if (bus = NULL) {
+ 		kfree(res);
+ 		kfree(controller);
 +		return;
-+	do_once = true;
-+	for_each_possible_cpu(i)
-+		per_cpu(iommu_pool_hash, i) = hash_32(i, IOMMU_POOL_HASHBITS);
- }
- 
-+
- int iommu_table_init(struct iommu *iommu, int tsbsize,
- 		     u32 dma_offset, u32 dma_addr_mask,
- 		     int numa_node)
-@@ -187,22 +121,22 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
- 	/* Setup initial software IOMMU state. */
- 	spin_lock_init(&iommu->lock);
- 	iommu->ctx_lowest_free = 1;
--	iommu->page_table_map_base = dma_offset;
-+	iommu->tbl.page_table_map_base = dma_offset;
- 	iommu->dma_addr_mask = dma_addr_mask;
- 
- 	/* Allocate and initialize the free area map.  */
- 	sz = num_tsb_entries / 8;
- 	sz = (sz + 7UL) & ~7UL;
--	iommu->arena.map = kmalloc_node(sz, GFP_KERNEL, numa_node);
--	if (!iommu->arena.map) {
--		printk(KERN_ERR "IOMMU: Error, kmalloc(arena.map) failed.\n");
-+	iommu->tbl.map = kmalloc_node(sz, GFP_KERNEL, numa_node);
-+	if (!iommu->tbl.map)
- 		return -ENOMEM;
--	}
--	memset(iommu->arena.map, 0, sz);
--	iommu->arena.limit = num_tsb_entries;
--
-+	memset(iommu->tbl.map, 0, sz);
- 	if (tlb_type != hypervisor)
--		iommu->flush_all = iommu_flushall;
-+		iommu_sparc_ops.reset = NULL; /* not needed on on sun4v */
-+
-+	setup_iommu_pool_hash();
-+	iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
-+			    &iommu_sparc_ops, false, 1, false);
- 
- 	/* Allocate and initialize the dummy page which we
- 	 * set inactive IO PTEs to point to.
-@@ -235,18 +169,20 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
- 	iommu->dummy_page = 0UL;
- 
- out_free_map:
--	kfree(iommu->arena.map);
--	iommu->arena.map = NULL;
-+	kfree(iommu->tbl.map);
-+	iommu->tbl.map = NULL;
- 
- 	return -ENOMEM;
- }
- 
--static inline iopte_t *alloc_npages(struct device *dev, struct iommu *iommu,
-+static inline iopte_t *alloc_npages(struct device *dev,
-+				    struct iommu *iommu,
- 				    unsigned long npages)
- {
- 	unsigned long entry;
- 
--	entry = iommu_range_alloc(dev, iommu, npages, NULL);
-+	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-+				      __this_cpu_read(iommu_pool_hash));
- 	if (unlikely(entry = DMA_ERROR_CODE))
- 		return NULL;
- 
-@@ -284,7 +220,7 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
- 				   dma_addr_t *dma_addrp, gfp_t gfp,
- 				   struct dma_attrs *attrs)
- {
--	unsigned long flags, order, first_page;
-+	unsigned long order, first_page;
- 	struct iommu *iommu;
- 	struct page *page;
- 	int npages, nid;
-@@ -306,16 +242,14 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
- 
- 	iommu = dev->archdata.iommu;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
- 	iopte = alloc_npages(dev, iommu, size >> IO_PAGE_SHIFT);
--	spin_unlock_irqrestore(&iommu->lock, flags);
- 
- 	if (unlikely(iopte = NULL)) {
- 		free_pages(first_page, order);
- 		return NULL;
  	}
- 
--	*dma_addrp = (iommu->page_table_map_base +
-+	*dma_addrp = (iommu->tbl.page_table_map_base +
- 		      ((iopte - iommu->page_table) << IO_PAGE_SHIFT));
- 	ret = (void *) first_page;
- 	npages = size >> IO_PAGE_SHIFT;
-@@ -336,16 +270,12 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
- 				 struct dma_attrs *attrs)
- {
- 	struct iommu *iommu;
--	unsigned long flags, order, npages;
-+	unsigned long order, npages;
- 
- 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
- 	iommu = dev->archdata.iommu;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
--
--	iommu_range_free(iommu, dvma, npages);
--
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
- 
- 	order = get_order(size);
- 	if (order < 10)
-@@ -375,8 +305,8 @@ static dma_addr_t dma_4u_map_page(struct device *dev, struct page *page,
- 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
- 	base = alloc_npages(dev, iommu, npages);
-+	spin_lock_irqsave(&iommu->lock, flags);
- 	ctx = 0;
- 	if (iommu->iommu_ctxflush)
- 		ctx = iommu_alloc_ctx(iommu);
-@@ -385,7 +315,7 @@ static dma_addr_t dma_4u_map_page(struct device *dev, struct page *page,
- 	if (unlikely(!base))
- 		goto bad;
- 
--	bus_addr = (iommu->page_table_map_base +
-+	bus_addr = (iommu->tbl.page_table_map_base +
- 		    ((base - iommu->page_table) << IO_PAGE_SHIFT));
- 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
- 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
-@@ -496,7 +426,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
- 	npages = IO_PAGE_ALIGN(bus_addr + sz) - (bus_addr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 	base = iommu->page_table +
--		((bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
-+		((bus_addr - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT);
- 	bus_addr &= IO_PAGE_MASK;
- 
- 	spin_lock_irqsave(&iommu->lock, flags);
-@@ -515,11 +445,10 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
- 	for (i = 0; i < npages; i++)
- 		iopte_make_dummy(iommu, base + i);
- 
--	iommu_range_free(iommu, bus_addr, npages);
--
- 	iommu_free_ctx(iommu, ctx);
--
- 	spin_unlock_irqrestore(&iommu->lock, flags);
-+
-+	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
++	pci_bus_add_devices(bus);
  }
  
- static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
-@@ -567,7 +496,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 	max_seg_size = dma_get_max_seg_size(dev);
- 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
- 				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
--	base_shift = iommu->page_table_map_base >> IO_PAGE_SHIFT;
-+	base_shift = iommu->tbl.page_table_map_base >> IO_PAGE_SHIFT;
- 	for_each_sg(sglist, s, nelems, i) {
- 		unsigned long paddr, npages, entry, out_entry = 0, slen;
- 		iopte_t *base;
-@@ -581,7 +510,8 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
- 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
--		entry = iommu_range_alloc(dev, iommu, npages, &handle);
-+		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, &handle,
-+					      __this_cpu_read(iommu_pool_hash));
+ /*
+diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
+index 48528fb..6d8d173 100644
+--- a/arch/microblaze/pci/pci-common.c
++++ b/arch/microblaze/pci/pci-common.c
+@@ -1382,6 +1382,9 @@ static int __init pcibios_init(void)
  
- 		/* Handle failure */
- 		if (unlikely(entry = DMA_ERROR_CODE)) {
-@@ -594,7 +524,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 		base = iommu->page_table + entry;
- 
- 		/* Convert entry to a dma_addr_t */
--		dma_addr = iommu->page_table_map_base +
-+		dma_addr = iommu->tbl.page_table_map_base +
- 			(entry << IO_PAGE_SHIFT);
- 		dma_addr |= (s->offset & ~IO_PAGE_MASK);
- 
-@@ -654,15 +584,17 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 			vaddr = s->dma_address & IO_PAGE_MASK;
- 			npages = iommu_num_pages(s->dma_address, s->dma_length,
- 						 IO_PAGE_SIZE);
--			iommu_range_free(iommu, vaddr, npages);
- 
--			entry = (vaddr - iommu->page_table_map_base)
-+			entry = (vaddr - iommu->tbl.page_table_map_base)
- 				>> IO_PAGE_SHIFT;
- 			base = iommu->page_table + entry;
- 
- 			for (j = 0; j < npages; j++)
- 				iopte_make_dummy(iommu, base + j);
- 
-+			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
-+					     DMA_ERROR_CODE);
-+
- 			s->dma_address = DMA_ERROR_CODE;
- 			s->dma_length = 0;
- 		}
-@@ -677,17 +609,19 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- /* If contexts are being used, they are the same in all of the mappings
-  * we make for a particular SG.
-  */
--static unsigned long fetch_sg_ctx(struct iommu *iommu, struct scatterlist *sg)
-+static unsigned long fetch_sg_ctx(struct iommu *iommu,
-+				  struct scatterlist *sg)
- {
- 	unsigned long ctx = 0;
- 
- 	if (iommu->iommu_ctxflush) {
- 		iopte_t *base;
- 		u32 bus_addr;
-+		struct iommu_table *tbl = &iommu->tbl;
- 
- 		bus_addr = sg->dma_address & IO_PAGE_MASK;
- 		base = iommu->page_table +
--			((bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
-+		       ((bus_addr - tbl->page_table_map_base) >> IO_PAGE_SHIFT);
- 
- 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
- 	}
-@@ -723,9 +657,8 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		if (!len)
- 			break;
- 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
--		iommu_range_free(iommu, dma_handle, npages);
- 
--		entry = ((dma_handle - iommu->page_table_map_base)
-+		entry = ((dma_handle - iommu->tbl.page_table_map_base)
- 			 >> IO_PAGE_SHIFT);
- 		base = iommu->page_table + entry;
- 
-@@ -737,6 +670,8 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		for (i = 0; i < npages; i++)
- 			iopte_make_dummy(iommu, base + i);
- 
-+		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
-+				     DMA_ERROR_CODE);
- 		sg = sg_next(sg);
- 	}
- 
-@@ -770,9 +705,10 @@ static void dma_4u_sync_single_for_cpu(struct device *dev,
- 	if (iommu->iommu_ctxflush &&
- 	    strbuf->strbuf_ctxflush) {
- 		iopte_t *iopte;
-+		struct iommu_table *tbl = &iommu->tbl;
- 
- 		iopte = iommu->page_table +
--			((bus_addr - iommu->page_table_map_base)>>IO_PAGE_SHIFT);
-+			((bus_addr - tbl->page_table_map_base)>>IO_PAGE_SHIFT);
- 		ctx = (iopte_val(*iopte) & IOPTE_CONTEXT) >> 47UL;
- 	}
- 
-@@ -805,9 +741,10 @@ static void dma_4u_sync_sg_for_cpu(struct device *dev,
- 	if (iommu->iommu_ctxflush &&
- 	    strbuf->strbuf_ctxflush) {
- 		iopte_t *iopte;
-+		struct iommu_table *tbl = &iommu->tbl;
- 
--		iopte = iommu->page_table +
--			((sglist[0].dma_address - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
-+		iopte = iommu->page_table + ((sglist[0].dma_address -
-+			tbl->page_table_map_base) >> IO_PAGE_SHIFT);
- 		ctx = (iopte_val(*iopte) & IOPTE_CONTEXT) >> 47UL;
- 	}
- 
-diff --git a/arch/sparc/kernel/iommu_common.h b/arch/sparc/kernel/iommu_common.h
-index 1ec0de4..f4be0d7 100644
---- a/arch/sparc/kernel/iommu_common.h
-+++ b/arch/sparc/kernel/iommu_common.h
-@@ -48,12 +48,4 @@ static inline int is_span_boundary(unsigned long entry,
- 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
- }
- 
--unsigned long iommu_range_alloc(struct device *dev,
--				struct iommu *iommu,
--				unsigned long npages,
--				unsigned long *handle);
--void iommu_range_free(struct iommu *iommu,
--		      dma_addr_t dma_addr,
--		      unsigned long npages);
--
- #endif /* _IOMMU_COMMON_H */
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 49d33b1..5d3dcb1 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -15,6 +15,8 @@
- #include <linux/export.h>
- #include <linux/log2.h>
- #include <linux/of_device.h>
-+#include <linux/hash.h>
-+#include <linux/iommu-common.h>
- 
- #include <asm/iommu.h>
- #include <asm/irq.h>
-@@ -28,6 +30,7 @@
- 
- #define DRIVER_NAME	"pci_sun4v"
- #define PFX		DRIVER_NAME ": "
-+static DEFINE_PER_CPU(unsigned int, iommu_pool_hash);
- 
- static unsigned long vpci_major = 1;
- static unsigned long vpci_minor = 1;
-@@ -155,14 +158,13 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
- 
- 	iommu = dev->archdata.iommu;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
--	entry = iommu_range_alloc(dev, iommu, npages, NULL);
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-+				      __this_cpu_read(iommu_pool_hash));
- 
- 	if (unlikely(entry = DMA_ERROR_CODE))
- 		goto range_alloc_fail;
- 
--	*dma_addrp = (iommu->page_table_map_base +
-+	*dma_addrp = (iommu->tbl.page_table_map_base +
- 		      (entry << IO_PAGE_SHIFT));
- 	ret = (void *) first_page;
- 	first_page = __pa(first_page);
-@@ -188,45 +190,46 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
- 	return ret;
- 
- iommu_map_fail:
--	/* Interrupts are disabled.  */
--	spin_lock(&iommu->lock);
--	iommu_range_free(iommu, *dma_addrp, npages);
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	iommu_tbl_range_free(&iommu->tbl, *dma_addrp, npages, DMA_ERROR_CODE);
- 
- range_alloc_fail:
- 	free_pages(first_page, order);
- 	return NULL;
- }
- 
-+static void dma_4v_iommu_demap(void *demap_arg, unsigned long entry,
-+			       unsigned long npages)
-+{
-+	u32 devhandle = *(u32 *)demap_arg;
-+	unsigned long num, flags;
-+
-+	local_irq_save(flags);
-+	do {
-+		num = pci_sun4v_iommu_demap(devhandle,
-+					    HV_PCI_TSBID(0, entry),
-+					    npages);
-+
-+		entry += num;
-+		npages -= num;
-+	} while (npages != 0);
-+	local_irq_restore(flags);
-+}
-+
- static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
- 				 dma_addr_t dvma, struct dma_attrs *attrs)
- {
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
--	unsigned long flags, order, npages, entry;
-+	unsigned long order, npages, entry;
- 	u32 devhandle;
- 
- 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
- 	iommu = dev->archdata.iommu;
- 	pbm = dev->archdata.host_controller;
- 	devhandle = pbm->devhandle;
--	entry = ((dvma - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
--
--	spin_lock_irqsave(&iommu->lock, flags);
--
--	iommu_range_free(iommu, dvma, npages);
--
--	do {
--		unsigned long num;
--
--		num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
--					    npages);
--		entry += num;
--		npages -= num;
--	} while (npages != 0);
--
--	spin_unlock_irqrestore(&iommu->lock, flags);
--
-+	entry = ((dvma - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT);
-+	dma_4v_iommu_demap(&devhandle, entry, npages);
-+	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
- 	order = get_order(size);
- 	if (order < 10)
- 		free_pages((unsigned long)cpu, order);
-@@ -253,14 +256,13 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
- 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
--	entry = iommu_range_alloc(dev, iommu, npages, NULL);
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-+				      __this_cpu_read(iommu_pool_hash));
- 
- 	if (unlikely(entry = DMA_ERROR_CODE))
- 		goto bad;
- 
--	bus_addr = (iommu->page_table_map_base +
-+	bus_addr = (iommu->tbl.page_table_map_base +
- 		    (entry << IO_PAGE_SHIFT));
- 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
- 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
-@@ -290,11 +292,7 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
- 	return DMA_ERROR_CODE;
- 
- iommu_map_fail:
--	/* Interrupts are disabled.  */
--	spin_lock(&iommu->lock);
--	iommu_range_free(iommu, bus_addr, npages);
--	spin_unlock_irqrestore(&iommu->lock, flags);
--
-+	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
- 	return DMA_ERROR_CODE;
- }
- 
-@@ -304,7 +302,7 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
- {
- 	struct pci_pbm_info *pbm;
- 	struct iommu *iommu;
--	unsigned long flags, npages;
-+	unsigned long npages;
- 	long entry;
- 	u32 devhandle;
- 
-@@ -321,22 +319,9 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
- 	npages = IO_PAGE_ALIGN(bus_addr + sz) - (bus_addr & IO_PAGE_MASK);
- 	npages >>= IO_PAGE_SHIFT;
- 	bus_addr &= IO_PAGE_MASK;
--
--	spin_lock_irqsave(&iommu->lock, flags);
--
--	iommu_range_free(iommu, bus_addr, npages);
--
--	entry = (bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
--	do {
--		unsigned long num;
--
--		num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
--					    npages);
--		entry += num;
--		npages -= num;
--	} while (npages != 0);
--
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	entry = (bus_addr - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT;
-+	dma_4v_iommu_demap(&devhandle, entry, npages);
-+	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
- }
- 
- static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
-@@ -371,14 +356,14 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	/* Init first segment length for backout at failure */
- 	outs->dma_length = 0;
- 
--	spin_lock_irqsave(&iommu->lock, flags);
-+	local_irq_save(flags);
- 
- 	iommu_batch_start(dev, prot, ~0UL);
- 
- 	max_seg_size = dma_get_max_seg_size(dev);
- 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
- 				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
--	base_shift = iommu->page_table_map_base >> IO_PAGE_SHIFT;
-+	base_shift = iommu->tbl.page_table_map_base >> IO_PAGE_SHIFT;
- 	for_each_sg(sglist, s, nelems, i) {
- 		unsigned long paddr, npages, entry, out_entry = 0, slen;
- 
-@@ -391,7 +376,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 		/* Allocate iommu entries for that segment */
- 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
- 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
--		entry = iommu_range_alloc(dev, iommu, npages, &handle);
-+		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, &handle,
-+				      __this_cpu_read(iommu_pool_hash));
- 
- 		/* Handle failure */
- 		if (unlikely(entry = DMA_ERROR_CODE)) {
-@@ -404,7 +390,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 		iommu_batch_new_entry(entry);
- 
- 		/* Convert entry to a dma_addr_t */
--		dma_addr = iommu->page_table_map_base +
-+		dma_addr = iommu->tbl.page_table_map_base +
- 			(entry << IO_PAGE_SHIFT);
- 		dma_addr |= (s->offset & ~IO_PAGE_MASK);
- 
-@@ -451,7 +437,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	if (unlikely(err < 0L))
- 		goto iommu_map_failed;
- 
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	local_irq_restore(flags);
- 
- 	if (outcount < incount) {
- 		outs = sg_next(outs);
-@@ -469,7 +455,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 			vaddr = s->dma_address & IO_PAGE_MASK;
- 			npages = iommu_num_pages(s->dma_address, s->dma_length,
- 						 IO_PAGE_SIZE);
--			iommu_range_free(iommu, vaddr, npages);
-+			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
-+					     DMA_ERROR_CODE);
- 			/* XXX demap? XXX */
- 			s->dma_address = DMA_ERROR_CODE;
- 			s->dma_length = 0;
-@@ -477,7 +464,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 		if (s = outs)
- 			break;
- 	}
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	local_irq_restore(flags);
+ 	/* Call common code to handle resource allocation */
+ 	pcibios_resource_survey();
++	list_for_each_entry_safe(hose, tmp, &hose_list, list_node)
++		if (hose->bus)
++			pci_bus_add_devices(hose->bus);
  
  	return 0;
  }
-@@ -489,7 +476,7 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 	struct pci_pbm_info *pbm;
- 	struct scatterlist *sg;
- 	struct iommu *iommu;
--	unsigned long flags;
-+	unsigned long flags, entry;
- 	u32 devhandle;
- 
- 	BUG_ON(direction = DMA_NONE);
-@@ -498,33 +485,27 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 	pbm = dev->archdata.host_controller;
- 	devhandle = pbm->devhandle;
- 	
--	spin_lock_irqsave(&iommu->lock, flags);
-+	local_irq_save(flags);
- 
- 	sg = sglist;
- 	while (nelems--) {
- 		dma_addr_t dma_handle = sg->dma_address;
- 		unsigned int len = sg->dma_length;
--		unsigned long npages, entry;
-+		unsigned long npages;
-+		struct iommu_table *tbl = &iommu->tbl;
-+		unsigned long shift = IO_PAGE_SHIFT;
- 
- 		if (!len)
- 			break;
- 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
--		iommu_range_free(iommu, dma_handle, npages);
--
--		entry = ((dma_handle - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
--		while (npages) {
--			unsigned long num;
--
--			num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
--						    npages);
--			entry += num;
--			npages -= num;
--		}
--
-+		entry = ((dma_handle - tbl->page_table_map_base) >> shift);
-+		dma_4v_iommu_demap(&devhandle, entry, npages);
-+		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
-+				     DMA_ERROR_CODE);
- 		sg = sg_next(sg);
- 	}
- 
--	spin_unlock_irqrestore(&iommu->lock, flags);
-+	local_irq_restore(flags);
- }
- 
- static struct dma_map_ops sun4v_dma_ops = {
-@@ -536,6 +517,8 @@ static struct dma_map_ops sun4v_dma_ops = {
- 	.unmap_sg			= dma_4v_unmap_sg,
- };
- 
-+static struct iommu_tbl_ops dma_4v_iommu_ops;
-+
- static void pci_sun4v_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
- {
- 	struct property *prop;
-@@ -550,30 +533,33 @@ static void pci_sun4v_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
- }
- 
- static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
--					    struct iommu *iommu)
-+					    struct iommu_table *iommu)
- {
--	struct iommu_arena *arena = &iommu->arena;
--	unsigned long i, cnt = 0;
-+	struct iommu_pool *pool;
-+	unsigned long i, pool_nr, cnt = 0;
- 	u32 devhandle;
- 
- 	devhandle = pbm->devhandle;
--	for (i = 0; i < arena->limit; i++) {
--		unsigned long ret, io_attrs, ra;
--
--		ret = pci_sun4v_iommu_getmap(devhandle,
--					     HV_PCI_TSBID(0, i),
--					     &io_attrs, &ra);
--		if (ret = HV_EOK) {
--			if (page_in_phys_avail(ra)) {
--				pci_sun4v_iommu_demap(devhandle,
--						      HV_PCI_TSBID(0, i), 1);
--			} else {
--				cnt++;
--				__set_bit(i, arena->map);
-+	for (pool_nr = 0; pool_nr < iommu->nr_pools; pool_nr++) {
-+		pool = &(iommu->arena_pool[pool_nr]);
-+		for (i = pool->start; i <= pool->end; i++) {
-+			unsigned long ret, io_attrs, ra;
-+
-+			ret = pci_sun4v_iommu_getmap(devhandle,
-+						     HV_PCI_TSBID(0, i),
-+						     &io_attrs, &ra);
-+			if (ret = HV_EOK) {
-+				if (page_in_phys_avail(ra)) {
-+					pci_sun4v_iommu_demap(devhandle,
-+							      HV_PCI_TSBID(0,
-+							      i), 1);
-+				} else {
-+					cnt++;
-+					__set_bit(i, iommu->map);
-+				}
- 			}
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index 1bf60b1..9eb54b5 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -114,6 +114,7 @@ static void pcibios_scanbus(struct pci_controller *hose)
+ 			pci_bus_size_bridges(bus);
+ 			pci_bus_assign_resources(bus);
  		}
++		pci_bus_add_devices(bus);
  	}
--
- 	return cnt;
  }
  
-@@ -601,22 +587,23 @@ static int pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
- 	dma_offset = vdma[0];
- 
- 	/* Setup initial software IOMMU state. */
--	spin_lock_init(&iommu->lock);
- 	iommu->ctx_lowest_free = 1;
--	iommu->page_table_map_base = dma_offset;
-+	iommu->tbl.page_table_map_base = dma_offset;
- 	iommu->dma_addr_mask = dma_mask;
- 
- 	/* Allocate and initialize the free area map.  */
- 	sz = (num_tsb_entries + 7) / 8;
- 	sz = (sz + 7UL) & ~7UL;
--	iommu->arena.map = kzalloc(sz, GFP_KERNEL);
--	if (!iommu->arena.map) {
-+	iommu->tbl.map = kzalloc(sz, GFP_KERNEL);
-+	if (!iommu->tbl.map) {
- 		printk(KERN_ERR PFX "Error, kmalloc(arena.map) failed.\n");
- 		return -ENOMEM;
- 	}
--	iommu->arena.limit = num_tsb_entries;
--
--	sz = probe_existing_entries(pbm, iommu);
-+	iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
-+			    &dma_4v_iommu_ops, false /* no large_pool */,
-+			    0 /* default npools */,
-+			    false /* want span boundary checking */);
-+	sz = probe_existing_entries(pbm, &iommu->tbl);
- 	if (sz)
- 		printk("%s: Imported %lu TSB entries from OBP\n",
- 		       pbm->name, sz);
-@@ -1016,8 +1003,17 @@ static struct platform_driver pci_sun4v_driver = {
- 	.probe		= pci_sun4v_probe,
- };
- 
-+static void setup_iommu_pool_hash(void)
-+{
-+	unsigned int i;
-+
-+	for_each_possible_cpu(i)
-+		per_cpu(iommu_pool_hash, i) = hash_32(i, IOMMU_POOL_HASHBITS);
-+}
-+
- static int __init pci_sun4v_init(void)
+diff --git a/arch/mn10300/unit-asb2305/pci.c b/arch/mn10300/unit-asb2305/pci.c
+index 613ca1e..cde5e05 100644
+--- a/arch/mn10300/unit-asb2305/pci.c
++++ b/arch/mn10300/unit-asb2305/pci.c
+@@ -340,6 +340,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+  */
+ static int __init pcibios_init(void)
  {
-+	setup_iommu_pool_hash();
- 	return platform_driver_register(&pci_sun4v_driver);
++	struct pci_bus *bus;
+ 	resource_size_t io_offset, mem_offset;
+ 	LIST_HEAD(resources);
+ 
+@@ -371,11 +372,15 @@ static int __init pcibios_init(void)
+ 
+ 	pci_add_resource_offset(&resources, &pci_ioport_resource, io_offset);
+ 	pci_add_resource_offset(&resources, &pci_iomem_resource, mem_offset);
+-	pci_scan_root_bus(NULL, 0, &pci_direct_ampci, NULL, &resources);
++	bus = pci_scan_root_bus(NULL, 0, &pci_direct_ampci, NULL, &resources);
+ 
+ 	pcibios_irq_init();
+ 	pcibios_fixup_irqs();
+ 	pcibios_resource_survey();
++	if (!bus)
++		return 0;
++
++	pci_bus_add_devices(bus);
+ 	return 0;
  }
  
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 753a567..a2a7391 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -776,8 +776,8 @@ static int zpci_scan_bus(struct zpci_dev *zdev)
+ 		zpci_cleanup_bus_resources(zdev);
+ 		return -EIO;
+ 	}
+-
+ 	zdev->bus->max_bus_speed = zdev->max_bus_speed;
++	pci_bus_add_devices(zdev->bus);
+ 	return 0;
+ }
+ 
+diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
+index 1bc09ee..efc1051 100644
+--- a/arch/sh/drivers/pci/pci.c
++++ b/arch/sh/drivers/pci/pci.c
+@@ -69,6 +69,7 @@ static void pcibios_scanbus(struct pci_channel *hose)
+ 
+ 		pci_bus_size_bridges(bus);
+ 		pci_bus_assign_resources(bus);
++		pci_bus_add_devices(bus);
+ 	} else {
+ 		pci_free_resource_list(&resources);
+ 	}
+diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
+index 899b720..2971076 100644
+--- a/arch/sparc/kernel/leon_pci.c
++++ b/arch/sparc/kernel/leon_pci.c
+@@ -40,6 +40,7 @@ void leon_pci_init(struct platform_device *ofdev, struct leon_pci_info *info)
+ 
+ 		/* Assign devices with resources */
+ 		pci_assign_unassigned_resources();
++		pci_bus_add_devices(root_bus);
+ 	} else {
+ 		pci_free_resource_list(&resources);
+ 	}
+diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
+index 325df47..9475a74 100644
+--- a/arch/tile/kernel/pci.c
++++ b/arch/tile/kernel/pci.c
+@@ -339,6 +339,8 @@ int __init pcibios_init(void)
+ 			struct pci_bus *next_bus;
+ 			struct pci_dev *dev;
+ 
++			pci_bus_add_devices(root_bus);
++
+ 			list_for_each_entry(dev, &root_bus->devices, bus_list) {
+ 				/*
+ 				 * Find the PCI host controller, ie. the 1st
+diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
+index 2c95f37..b1df847 100644
+--- a/arch/tile/kernel/pci_gx.c
++++ b/arch/tile/kernel/pci_gx.c
+@@ -1030,6 +1030,8 @@ int __init pcibios_init(void)
+ alloc_mem_map_failed:
+ 			break;
+ 		}
++
++		pci_bus_add_devices(root_bus);
+ 	}
+ 
+ 	return 0;
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 3d2612b..0cbc723 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -491,6 +491,7 @@ void pcibios_scan_root(int busnum)
+ 		pci_free_resource_list(&resources);
+ 		kfree(sd);
+ 	}
++	pci_bus_add_devices(bus);
+ }
+ 
+ void __init pcibios_set_cache_line_size(void)
+diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
+index 5b34033..140e2fd 100644
+--- a/arch/xtensa/kernel/pci.c
++++ b/arch/xtensa/kernel/pci.c
+@@ -174,7 +174,7 @@ static int __init pcibios_init(void)
+ 	struct pci_controller *pci_ctrl;
+ 	struct list_head resources;
+ 	struct pci_bus *bus;
+-	int next_busno = 0;
++	int ret, next_busno = 0;
+ 
+ 	printk("PCI: Probing PCI hardware\n");
+ 
+@@ -185,14 +185,21 @@ static int __init pcibios_init(void)
+ 		pci_controller_apertures(pci_ctrl, &resources);
+ 		bus = pci_scan_root_bus(NULL, pci_ctrl->first_busno,
+ 					pci_ctrl->ops, pci_ctrl, &resources);
++		if (!bus)
++			continue;
++
+ 		pci_ctrl->bus = bus;
+ 		pci_ctrl->last_busno = bus->busn_res.end;
+ 		if (next_busno <= pci_ctrl->last_busno)
+ 			next_busno = pci_ctrl->last_busno+1;
+ 	}
+ 	pci_bus_count = next_busno;
++	ret = platform_pcibios_fixup();
++	for (pci_ctrl = pci_ctrl_head; pci_ctrl; pci_ctrl = pci_ctrl->next)
++		if (pci_ctrl->bus)
++			pci_bus_add_devices(pci_ctrl->bus);
+ 
+-	return platform_pcibios_fixup();
++	return ret;
+ }
+ 
+ subsys_initcall(pcibios_init);
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 88604f2..8ef0375 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2087,7 +2087,6 @@ struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
+ 	if (!found)
+ 		pci_bus_update_busn_res_end(b, max);
+ 
+-	pci_bus_add_devices(b);
+ 	return b;
+ }
+ EXPORT_SYMBOL(pci_scan_root_bus);
 -- 
 1.7.1
 
