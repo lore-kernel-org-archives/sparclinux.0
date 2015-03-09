@@ -1,10 +1,10 @@
 From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 06 Mar 2015 09:33:18 +0000
-Subject: [PATCH v5 01/29] PCI: Rip out pci_bus_add_devices() from pci_scan_bus()
-Message-Id: <1425634426-437-2-git-send-email-wangyijing@huawei.com>
+Date: Mon, 09 Mar 2015 02:33:58 +0000
+Subject: [PATCH v6 01/30] PCI: Rip out pci_bus_add_devices() from pci_scan_bus()
+Message-Id: <1425868467-9667-2-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
+References: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
