@@ -1,50 +1,88 @@
-From: DIAMOND SWISS LOANS <ana.loureiro@mda.gov.br>
-Date: Mon, 30 Mar 2015 22:08:04 +0000
-Subject: LAON AANBIEDING OP 1,5% rente
-Message-Id: <867116038.1558858.1427753284610.JavaMail.zimbra@mda.gov.br>
+From: Yijing Wang <wangyijing@huawei.com>
+Date: Mon, 09 Mar 2015 02:34:17 +0000
+Subject: [PATCH v6 20/30] sparc/PCI: Use pci_scan_host_bridge() for simplicity
+Message-Id: <1425868467-9667-21-git-send-email-wangyijing@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <558326185.2542297.1425824868944.JavaMail.zimbra@terceirizado.mda.gov.br>
-In-Reply-To: <558326185.2542297.1425824868944.JavaMail.zimbra@terceirizado.mda.gov.br>
+References: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
+In-Reply-To: <1425868467-9667-1-git-send-email-wangyijing@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
+Now we could use pci_scan_host_bridge() to scan
+pci buses, provide sparc specific pci_host_bridge_ops.
 
+Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/sparc/kernel/pci.c |   32 ++++++++++++++++++++++----------
+ 1 files changed, 22 insertions(+), 10 deletions(-)
 
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 21f804a..7e28f74 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -650,12 +650,25 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
+ 		pci_claim_bus_resources(child_bus);
+ }
+ 
++static void pci_host_bridge_of_scan_bus(
++		struct pci_host_bridge *host)
++{
++	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
++	struct device_node *node = pbm->op->dev.of_node;
++
++	pci_of_scan_bus(pbm, node, host->bus);
++}
++
++static struct pci_host_bridge_ops phb_ops = {
++	.scan_bus = pci_host_bridge_of_scan_bus,
++};
++
+ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 				 struct device *parent)
+ {
+ 	LIST_HEAD(resources);
+ 	struct device_node *node = pbm->op->dev.of_node;
+-	struct pci_bus *bus;
++	struct pci_host_bridge *host;
+ 
+ 	printk("PCI: Scanning PBM %s\n", node->full_name);
+ 
+@@ -667,22 +680,21 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 	pbm->busn.end	= pbm->pci_last_busno;
+ 	pbm->busn.flags	= IORESOURCE_BUS;
+ 	pci_add_resource(&resources, &pbm->busn);
+-	bus = pci_create_root_bus(parent,
++	host = pci_scan_host_bridge(parent,
+ 			PCI_DOMBUS(pbm->index, pbm->pci_first_busno),
+-			pbm->pci_ops, pbm, &resources);
+-	if (!bus) {
+-		printk(KERN_ERR "Failed to create bus for %s\n",
++			pbm->pci_ops, pbm, &resources, &phb_ops);
++	if (!host) {
++		printk(KERN_ERR "Failed to create host bridge for %s\n",
+ 		       node->full_name);
+ 		pci_free_resource_list(&resources);
+ 		return NULL;
+ 	}
+ 
+-	pci_of_scan_bus(pbm, node, bus);
+-	pci_bus_register_of_sysfs(bus);
++	pci_bus_register_of_sysfs(host->bus);
+ 
+-	pci_claim_bus_resources(bus);
+-	pci_bus_add_devices(bus);
+-	return bus;
++	pci_claim_bus_resources(host->bus);
++	pci_bus_add_devices(host->bus);
++	return host->bus;
+ }
+ 
+ void pcibios_fixup_bus(struct pci_bus *pbus)
 -- 
-Goede dag,
-      
-     We zijn Diamond Zwitserse lening bedrijf het geven van leningen per post advertentie. Wij bieden verschillende soorten leningen (korte en lange termijn leningen, persoonlijke leningen, leningen aan bedrijven etc.) met 1,5% rente. We geven leningen aan mensen in nood niet, ongeacht hun locatie, geslacht, burgerlijke staat, opleiding, status van de taak, maar moet een juridisch middel van terugbetaling hebben. Onze leningen variëren van 5.000,00 tot 10.000.000,00 US Dollar of Euro of Pound met een maximale looptijd van 20 jaar. Als u geïnteresseerd bent in meer informatie, vul dan onderstaand formulier in en stuur deze naar ons e-mailadres: d_iamondswissloans@hotmail.com
+1.7.1
 
-Gelieve in te vullen:
-
-naam:
-
-adres:
-
-leeftijd:
-
-Geslacht:
-
-Contact-Phone:
-
-beroep:
-
-Maandelijks inkomen:
-
-Het benodigde bedrag van de lening:
-
-Duur van de lening:
-
-Het doel van de lening:
-
-land:
-
-Postcode:
-
-
-"Wij tonen u een betere manier om uw financiële vrijheid"
-
-Met vriendelijke groet,
-De heer Diamond Peters (Managing Director).
