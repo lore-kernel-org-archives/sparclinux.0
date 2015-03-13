@@ -1,29 +1,42 @@
 From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 25 Mar 2015 17:36:01 +0000
-Subject: Re: [PATCH v6 0/3] Generic IOMMU pooled allocator
-Message-Id: <20150325173601.GA31861@oracle.com>
+Date: Fri, 13 Mar 2015 00:02:34 +0000
+Subject: [PATCH v4 RFC 0/3] sparc: IOMMU pools for better scalability
+Message-Id: <cover.1426194368.git.sowmini.varadhan@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1427210772.git.sowmini.varadhan@oracle.com>
- <20150324.181617.1094177939652695812.davem@davemloft.net>
-In-Reply-To: <20150324.181617.1094177939652695812.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: sparclinux@vger.kernel.org
 
-On (03/24/15 18:16), David Miller wrote:
-> Generally this looks fine to me.
-> 
-> But about patch #2, I see no reason to have multiple iommu_pool_hash
-> tables.  Even from a purely sparc perspective, we can always just do
-> with just one of them.
-> 
-> Furthermore, you can even probably move it down into lib/iommu-common.c
-> itself.  iommu_tbl_pool_init() can do the one time initialization.
 
-fixed in v7.
+Follows up on feedback to v3  patch-set from 
+  http://www.spinics.net/lists/sparclinux/msg13462.html
 
-Ben, Alexey, do you need more time to review this?
+specifically,
+- pci_impl.h has no changes, now that all sparc iommu usage is converted
+  to the common library.
+- Remove IOMMU_ERROR_CODE. use DMA_ERROR_CODE
+- page_table_map_base and page_table_shift are unsigned long.
 
---Sowmini
+
+
+Sowmini (2):
+  Break up monolithic iommu table/lock into finer graularity pools and
+    lock
+  Make sparc64 use scalable lib/iommu-common.c functions
+
+Sowmini Varadhan (1):
+  Make LDC use common iommu poll management functions
+
+ arch/sparc/include/asm/iommu_64.h |    7 +-
+ arch/sparc/kernel/iommu.c         |  188 +++++++++++---------------------
+ arch/sparc/kernel/iommu_common.h  |    8 --
+ arch/sparc/kernel/ldc.c           |  185 ++++++++++++++++---------------
+ arch/sparc/kernel/pci_sun4v.c     |  193 ++++++++++++++++-----------------
+ include/linux/iommu-common.h      |   55 +++++++++
+ lib/Makefile                      |    2 +-
+ lib/iommu-common.c                |  220 +++++++++++++++++++++++++++++++++++++
+ 8 files changed, 533 insertions(+), 325 deletions(-)
+ create mode 100644 include/linux/iommu-common.h
+ create mode 100644 lib/iommu-common.c
+
