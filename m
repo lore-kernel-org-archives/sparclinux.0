@@ -1,307 +1,251 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 06 Mar 2015 09:33:23 +0000
-Subject: [PATCH v5 06/29] PCI: Pass PCI domain number combined with root bus number
-Message-Id: <1425634426-437-7-git-send-email-wangyijing@huawei.com>
+From: Mkhize Mthembu <mkhizemthembu399@gmail.com>
+Date: Sun, 15 Mar 2015 12:22:55 +0000
+Subject: PLEASE GET BACK TO ME AS SOON AS YOU RECEIVE THIS EMAIL
+Message-Id: <1709016939.563318.1426422175374.JavaMail.yahoo@mail.yahoo.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="----=_Part_563317_1854506127.1426422175374"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: sparclinux@vger.kernel.org
+
+------=_Part_563317_1854506127.1426422175374
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
 
-Now we could pass PCI domain combined with bus number
-in u32 argu. Because in arm/arm64, PCI domain number
-is assigned by pci_bus_assign_domain_nr(). So we leave
-pci_scan_root_bus() and pci_create_root_bus() in arm/arm64
-unchanged. A new function pci_host_assign_domain_nr()
-will be introduced for arm/arm64 to assign domain number
-in later patch.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: Richard Henderson <rth@twiddle.net>
-CC: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-CC: Matt Turner <mattst88@gmail.com>
-CC: Tony Luck <tony.luck@intel.com>
-CC: Fenghua Yu <fenghua.yu@intel.com>
-CC: Michal Simek <monstr@monstr.eu>
-CC: Ralf Baechle <ralf@linux-mips.org>
-CC: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-CC: Paul Mackerras <paulus@samba.org>
-CC: Michael Ellerman <mpe@ellerman.id.au>
-CC: Sebastian Ott <sebott@linux.vnet.ibm.com>
-CC: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Chris Metcalf <cmetcalf@ezchip.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-CC: linux-alpha@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-ia64@vger.kernel.org
-CC: linux-mips@linux-mips.org
-CC: linuxppc-dev@lists.ozlabs.org
-CC: linux-s390@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-CC: sparclinux@vger.kernel.org
-CC: xen-devel@lists.xenproject.org
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- arch/alpha/kernel/pci.c          |    5 +++--
- arch/alpha/kernel/sys_nautilus.c |    4 ++--
- arch/ia64/pci/pci.c              |    4 ++--
- arch/ia64/sn/kernel/io_init.c    |    5 +++--
- arch/microblaze/pci/pci-common.c |    5 +++--
- arch/mips/pci/pci.c              |    4 ++--
- arch/powerpc/kernel/pci-common.c |    5 +++--
- arch/s390/pci/pci.c              |    5 +++--
- arch/sh/drivers/pci/pci.c        |    5 +++--
- arch/sparc/kernel/pci.c          |    5 +++--
- arch/tile/kernel/pci.c           |    5 +++--
- arch/tile/kernel/pci_gx.c        |    5 +++--
- arch/x86/pci/acpi.c              |    7 ++++---
- arch/x86/pci/common.c            |    3 ++-
- drivers/pci/xen-pcifront.c       |    5 +++--
- 15 files changed, 42 insertions(+), 30 deletions(-)
 
-diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
-index 5c845ad..deb0a36 100644
---- a/arch/alpha/kernel/pci.c
-+++ b/arch/alpha/kernel/pci.c
-@@ -336,8 +336,9 @@ common_init_pci(void)
- 		pci_add_resource_offset(&resources, hose->mem_space,
- 					hose->mem_space->start);
- 
--		bus = pci_scan_root_bus(NULL, next_busno, alpha_mv.pci_ops,
--					hose, &resources);
-+		bus = pci_scan_root_bus(NULL,
-+				PCI_DOMBUS(hose->index, next_busno),
-+				alpha_mv.pci_ops, hose, &resources);
- 		if (!bus)
- 			continue;
- 		hose->bus = bus;
-diff --git a/arch/alpha/kernel/sys_nautilus.c b/arch/alpha/kernel/sys_nautilus.c
-index 700686d..be0bbeb 100644
---- a/arch/alpha/kernel/sys_nautilus.c
-+++ b/arch/alpha/kernel/sys_nautilus.c
-@@ -206,10 +206,10 @@ nautilus_init_pci(void)
- 	unsigned long memtop = max_low_pfn << PAGE_SHIFT;
- 
- 	/* Scan our single hose.  */
--	bus = pci_scan_bus(0, alpha_mv.pci_ops, hose);
-+	bus = pci_scan_bus(PCI_DOMBUS(hose->index, 0),
-+			alpha_mv.pci_ops, hose);
- 	if (!bus)
- 		return;
--
- 	hose->bus = bus;
- 	pcibios_claim_one_bus(bus);
- 
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 48cc657..675749f 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -465,8 +465,8 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 	 * should handle the case here, but it appears that IA64 hasn't
- 	 * such quirk. So we just ignore the case now.
- 	 */
--	pbus = pci_create_root_bus(NULL, bus, &pci_root_ops, controller,
--				   &info->resources);
-+	pbus = pci_create_root_bus(NULL, PCI_DOMBUS(domain, bus),
-+			&pci_root_ops, controller, &info->resources);
- 	if (!pbus) {
- 		pci_free_resource_list(&info->resources);
- 		__release_pci_root_info(info);
-diff --git a/arch/ia64/sn/kernel/io_init.c b/arch/ia64/sn/kernel/io_init.c
-index 1be65eb..7e0b7f9 100644
---- a/arch/ia64/sn/kernel/io_init.c
-+++ b/arch/ia64/sn/kernel/io_init.c
-@@ -266,8 +266,9 @@ sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
- 	pci_add_resource_offset(&resources,	&res[1],
- 			prom_bussoft_ptr->bs_legacy_mem);
- 
--	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, controller,
--				&resources);
-+	bus = pci_scan_root_bus(NULL,
-+			PCI_DOMBUS(controller->segment, busnum),
-+			&pci_root_ops, controller, &resources);
-  	if (bus = NULL) {
- 		kfree(res);
- 		kfree(controller);
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index 6d8d173..34a32ec 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -1350,8 +1350,9 @@ static void pcibios_scan_phb(struct pci_controller *hose)
- 
- 	pcibios_setup_phb_resources(hose, &resources);
- 
--	bus = pci_scan_root_bus(hose->parent, hose->first_busno,
--				hose->ops, hose, &resources);
-+	bus = pci_scan_root_bus(hose->parent,
-+			PCI_DOMBUS(hose->global_number, hose->first_busno),
-+			hose->ops, hose, &resources);
- 	if (bus = NULL) {
- 		pr_err("Failed to create bus for PCI domain %04x\n",
- 		       hose->global_number);
-diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
-index 9eb54b5..86f8d2b 100644
---- a/arch/mips/pci/pci.c
-+++ b/arch/mips/pci/pci.c
-@@ -92,8 +92,8 @@ static void pcibios_scanbus(struct pci_controller *hose)
- 	pci_add_resource_offset(&resources,
- 				hose->mem_resource, hose->mem_offset);
- 	pci_add_resource_offset(&resources, hose->io_resource, hose->io_offset);
--	bus = pci_scan_root_bus(NULL, next_busno, hose->pci_ops, hose,
--				&resources);
-+	bus = pci_scan_root_bus(NULL, PCI_DOMBUS(hose->index, next_busno),
-+			hose->pci_ops, hose, &resources);
- 	if (!bus)
- 		pci_free_resource_list(&resources);
- 
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index 2a525c9..a467aca 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -1612,8 +1612,9 @@ void pcibios_scan_phb(struct pci_controller *hose)
- 	pci_add_resource(&resources, &hose->busn);
- 
- 	/* Create an empty bus for the toplevel */
--	bus = pci_create_root_bus(hose->parent, hose->first_busno,
--				  hose->ops, hose, &resources);
-+	bus = pci_create_root_bus(hose->parent,
-+			PCI_DOMBUS(hose->global_number, hose->first_busno),
-+			hose->ops, hose, &resources);
- 	if (bus = NULL) {
- 		pr_err("Failed to create bus for PCI domain %04x\n",
- 			hose->global_number);
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index a2a7391..20e662f 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -770,8 +770,9 @@ static int zpci_scan_bus(struct zpci_dev *zdev)
- 	if (ret)
- 		return ret;
- 
--	zdev->bus = pci_scan_root_bus(NULL, ZPCI_BUS_NR, &pci_root_ops,
--				      zdev, &resources);
-+	zdev->bus = pci_scan_root_bus(NULL,
-+			PCI_DOMBUS(zdev->domain, ZPCI_BUS_NR), &pci_root_ops,
-+			zdev, &resources);
- 	if (!zdev->bus) {
- 		zpci_cleanup_bus_resources(zdev);
- 		return -EIO;
-diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
-index efc1051..116f80f 100644
---- a/arch/sh/drivers/pci/pci.c
-+++ b/arch/sh/drivers/pci/pci.c
-@@ -52,8 +52,9 @@ static void pcibios_scanbus(struct pci_channel *hose)
- 		pci_add_resource_offset(&resources, res, offset);
- 	}
- 
--	bus = pci_scan_root_bus(NULL, next_busno, hose->pci_ops, hose,
--				&resources);
-+	bus = pci_scan_root_bus(NULL,
-+			PCI_DOMBUS(hose->index, next_busno),
-+			hose->pci_ops, hose, &resources);
- 	hose->bus = bus;
- 
- 	need_domain_info = need_domain_info || hose->index;
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 9ce5afe..838fe1e 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -667,8 +667,9 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
--	bus = pci_create_root_bus(parent, pbm->pci_first_busno, pbm->pci_ops,
--				  pbm, &resources);
-+	bus = pci_create_root_bus(parent,
-+			PCI_DOMBUS(pbm->index, pbm->pci_first_busno),
-+			pbm->pci_ops, pbm, &resources);
- 	if (!bus) {
- 		printk(KERN_ERR "Failed to create bus for %s\n",
- 		       node->full_name);
-diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
-index 9475a74..25b0d9b 100644
---- a/arch/tile/kernel/pci.c
-+++ b/arch/tile/kernel/pci.c
-@@ -306,8 +306,9 @@ int __init pcibios_init(void)
- 
- 			pci_add_resource(&resources, &ioport_resource);
- 			pci_add_resource(&resources, &iomem_resource);
--			bus = pci_scan_root_bus(NULL, 0, controller->ops,
--						controller, &resources);
-+			bus = pci_scan_root_bus(NULL,
-+				PCI_DOMBUS(controller->index, 0),
-+				controller->ops, controller, &resources);
- 			controller->root_bus = bus;
- 			controller->last_busno = bus->busn_res.end;
- 		}
-diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
-index b1df847..f6f41f3 100644
---- a/arch/tile/kernel/pci_gx.c
-+++ b/arch/tile/kernel/pci_gx.c
-@@ -881,8 +881,9 @@ int __init pcibios_init(void)
- 					controller->mem_offset);
- 		pci_add_resource(&resources, &controller->io_space);
- 		controller->first_busno = next_busno;
--		bus = pci_scan_root_bus(NULL, next_busno, controller->ops,
--					controller, &resources);
-+		bus = pci_scan_root_bus(NULL,
-+				PCI_DOMBUS(controller->index, next_busno),
-+				controller->ops, controller, &resources);
- 		controller->root_bus = bus;
- 		next_busno = bus->busn_res.end + 1;
- 	}
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 6ac2738..ad0e926 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -424,9 +424,10 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 		}
- 
- 		if (!setup_mcfg_map(info, domain, (u8)root->secondary.start,
--				    (u8)root->secondary.end, root->mcfg_addr))
--			bus = pci_create_root_bus(NULL, busnum, &pci_root_ops,
--						  sd, &resources);
-+				(u8)root->secondary.end, root->mcfg_addr))
-+			bus = pci_create_root_bus(NULL,
-+				PCI_DOMBUS(domain, busnum), &pci_root_ops,
-+				sd, &resources);
- 
- 		if (bus) {
- 			pci_scan_child_bus(bus);
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 0cbc723..0160280 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -486,7 +486,8 @@ void pcibios_scan_root(int busnum)
- 	sd->node = x86_pci_root_bus_node(busnum);
- 	x86_pci_root_bus_resources(busnum, &resources);
- 	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
--	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, sd, &resources);
-+	bus = pci_scan_root_bus(NULL, PCI_DOMBUS(0, busnum),
-+			&pci_root_ops, sd, &resources);
- 	if (!bus) {
- 		pci_free_resource_list(&resources);
- 		kfree(sd);
-diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
-index 7057930..d5dfb70 100644
---- a/drivers/pci/xen-pcifront.c
-+++ b/drivers/pci/xen-pcifront.c
-@@ -478,8 +478,9 @@ static int pcifront_scan_root(struct pcifront_device *pdev,
- 
- 	pci_lock_rescan_remove();
- 
--	b = pci_scan_root_bus(&pdev->xdev->dev, bus,
--				  &pcifront_bus_ops, sd, &resources);
-+	b = pci_scan_root_bus(&pdev->xdev->dev,
-+			PCI_DOMBUS(sd->domain, bus),
-+			&pcifront_bus_ops, sd, &resources);
- 	if (!b) {
- 		dev_err(&pdev->xdev->dev,
- 			"Error creating PCI Frontend Bus!\n");
--- 
-1.7.1
+------=_Part_563317_1854506127.1426422175374
+Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Mkhize Mthembu.docx"
+Content-ID: <eacf98e0-30d9-7d4d-f286-fc0cd7e04797@yahoo.com>
 
+UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0
+VMtuwjAQvFfqP0S+Vomhh6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2pps
+CTFp70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ44DzJOViRCh/A
+UaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1fd4qiWASyx63B2uukokQjJYCSSlf
+OvWDJd8xFNTZnElzHdINyWD8IENdOU6w63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLb
+X6OF6CWkRJ5bU7QVK7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
+EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7hLT5kz7+wYz9dVF3
+H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq38wAAAE4CAAALAAgCX3JlbHMvLnJlbHMg
+ogQCKKAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ217m9OfLT9ab
+g5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlub9YvPJGUoTyMMaui4rOGQSQ+ImYz
+sKNchci+VLqQHEkJU4+RzBv1jKu6vsf0VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdh
+b9kuYipsScZyjWop9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
+HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADEDAAAcAAgBd29yZC9f
+cmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+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
+cy54bWxQSwUGAAAAAAsACwDBAgAAzy8AAAAA
+
+------=_Part_563317_1854506127.1426422175374--
