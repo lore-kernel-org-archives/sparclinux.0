@@ -1,89 +1,63 @@
-From: Michal Hocko <mhocko@suse.cz>
-Date: Tue, 03 Mar 2015 13:18:26 +0000
-Subject: Re: [RFC 4/4] cxgb4: drop __GFP_NOFAIL allocation
-Message-Id: <20150303131826.GB2409@dhcp22.suse.cz>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 19 Mar 2015 04:59:15 +0000
+Subject: [GIT] Sparc
+Message-Id: <20150319.005915.1876746842081223499.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425304483-7987-1-git-send-email-mhocko@suse.cz>
- <1425304483-7987-5-git-send-email-mhocko@suse.cz>
- <201503032122.HJD73998.OFFMQFLHtJOSOV@I-love.SAKURA.ne.jp>
-In-Reply-To: <201503032122.HJD73998.OFFMQFLHtJOSOV@I-love.SAKURA.ne.jp>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: davem@davemloft.net, linux-mm@kvack.org, akpm@linux-foundation.org, hannes@cmpxchg.org, rientjes@google.com, david@fromorbit.com, tytso@mit.edu, mgorman@suse.de, sparclinux@vger.kernel.org, vipul@chelsio.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-
-On Tue 03-03-15 21:22:22, Tetsuo Handa wrote:
-> Michal Hocko wrote:
-> > diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-> > index ccf3436024bc..f351920fc293 100644
-> > --- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-> > +++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-> > @@ -1220,6 +1220,10 @@ static int set_filter_wr(struct adapter *adapter, int fidx)
-> >  	struct fw_filter_wr *fwr;
-> >  	unsigned int ftid;
-> >  
-> > +	skb = alloc_skb(sizeof(*fwr), GFP_KERNEL);
-> > +	if (!skb)
-> > +		return -ENOMEM;
-> > +
-> >  	/* If the new filter requires loopback Destination MAC and/or VLAN
-> >  	 * rewriting then we need to allocate a Layer 2 Table (L2T) entry for
-> >  	 * the filter.
-> > @@ -1227,19 +1231,21 @@ static int set_filter_wr(struct adapter *adapter, int fidx)
-> >  	if (f->fs.newdmac || f->fs.newvlan) {
-> >  		/* allocate L2T entry for new filter */
-> >  		f->l2t = t4_l2t_alloc_switching(adapter->l2t);
-> > -		if (f->l2t = NULL)
-> > +		if (f->l2t = NULL) {
-> > +			kfree(skb);
-> 
-> I think we need to use kfree_skb() than kfree() for memory allocated by alloc_skb().
-
-Definitely! Good point, thanks!
-
-Andrew, I've noticed you have picked up the patch. Should I resend or
-the below incremental one is good enough?
----
-From eee05867dd55efa236ba065a3e7b7eb6e6ea511d Mon Sep 17 00:00:00 2001
-From: Michal Hocko <mhocko@suse.cz>
-Date: Tue, 3 Mar 2015 14:16:30 +0100
-Subject: [PATCH] mmotm: cxgb4-drop-__gfp_nofail-allocation-fix
-
-Use kfree_skb instead of kfree because the allocation is done by
-alloc_skb.
-
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
----
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-index f351920fc293..e1e5028a714c 100644
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-+++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -1232,14 +1232,14 @@ static int set_filter_wr(struct adapter *adapter, int fidx)
- 		/* allocate L2T entry for new filter */
- 		f->l2t = t4_l2t_alloc_switching(adapter->l2t);
- 		if (f->l2t = NULL) {
--			kfree(skb);
-+			kfree_skb(skb);
- 			return -EAGAIN;
- 		}
- 		if (t4_l2t_set_switching(adapter, f->l2t, f->fs.vlan,
- 					f->fs.eport, f->fs.dmac)) {
- 			cxgb4_l2t_release(f->l2t);
- 			f->l2t = NULL;
--			kfree(skb);
-+			kfree_skb(skb);
- 			return -ENOMEM;
- 		}
- 	}
--- 
-2.1.4
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
--- 
-Michal Hocko
-SUSE Labs
+1) Some command cases of semtimedop() not even handled due to
+   miscoded comparison on sparc64.  From Rob Gardner.
+
+2) Due to two bugs, /proc/kcore wan't working properly on sparc.
+
+3) Make sure fatal traps stop all running cpus, from Dave
+   Kleikamp.
+
+Please pull, thanks!
+
+The following changes since commit a38ecbbd0be025a6ecbbfd22d2575a5b46317117:
+
+  Merge branch 'x86-urgent-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip (2015-03-01 12:22:44 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 3c08158e0ef5d6a2d4ae21d9eda218c468bc774f:
+
+  sparc: Fix /proc/kcore (2015-03-18 19:15:28 -0700)
+
+----------------------------------------------------------------
+Dave Kleikamp (1):
+      sparc64: fatal trap should stop all cpus
+
+David S. Miller (1):
+      sparc: Fix /proc/kcore
+
+Ricardo Ribalda (1):
+      sparc: io_64.h: Replace io function-link macros
+
+Rickard Strandqvist (2):
+      arch: sparc: kernel: traps_64.c: Remove some unused functions
+      arch: sparc: kernel: starfire.c: Remove unused function
+
+Rob Gardner (1):
+      sparc: semtimedop() unreachable due to comparison error
+
+ arch/sparc/Kconfig                |  3 +++
+ arch/sparc/include/asm/io_64.h    | 20 ++++++++++----------
+ arch/sparc/include/asm/starfire.h |  1 -
+ arch/sparc/kernel/entry.h         |  4 ----
+ arch/sparc/kernel/smp_64.c        | 27 ++++++++++++++++++++++++---
+ arch/sparc/kernel/starfire.c      |  5 -----
+ arch/sparc/kernel/sys_sparc_64.c  |  2 +-
+ arch/sparc/kernel/traps_64.c      | 30 ++----------------------------
+ arch/sparc/mm/init_64.c           |  2 +-
+ 9 files changed, 41 insertions(+), 53 deletions(-)
