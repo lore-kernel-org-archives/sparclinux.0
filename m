@@ -1,22 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 24 Mar 2015 16:05:22 +0000
-Subject: Re: 4.0.0-rc4: panic in free_block
-Message-Id: <20150324.120522.577453784216935829.davem@davemloft.net>
+From: David Ahern <david.ahern@oracle.com>
+Date: Thu, 19 Mar 2015 20:06:53 +0000
+Subject: [PATCH] sparc: Touch NMI watchdog when walking cpus and calling printk
+Message-Id: <1426795613-135746-1-git-send-email-david.ahern@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150322.221906.1670737065885267482.davem@davemloft.net>
-	<20150323.122530.812870422534676208.davem@davemloft.net>
-	<20150324145753.GC10685@zareason>
-In-Reply-To: <20150324145753.GC10685@zareason>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bpicco@meloft.net
-Cc: david.ahern@oracle.com, torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Bob Picco <bpicco@meloft.net>
-Date: Tue, 24 Mar 2015 10:57:53 -0400
+With the increase in number of CPUs calls to functions that dump
+output to console (e.g., arch_trigger_all_cpu_backtrace) can take
+a long time to complete. If IRQs are disabled eventually the NMI
+watchdog kicks in and creates more havoc. Avoid by telling the NMI
+watchdog everything is ok.
 
-> Seems solid with 2.6.39 on M7-4. Jalap?no is happy with current sparc.git.
+Signed-off-by: David Ahern <david.ahern@oracle.com>
+---
+ arch/sparc/kernel/process_64.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks for all the testing, it's been integrated into the -stable
-queues as well.
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 0be7bf978cb1..46a59643bb1c 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -287,6 +287,8 @@ void arch_trigger_all_cpu_backtrace(bool include_self)
+ 			printk("             TPC[%lx] O7[%lx] I7[%lx] RPC[%lx]\n",
+ 			       gp->tpc, gp->o7, gp->i7, gp->rpc);
+ 		}
++
++		touch_nmi_watchdog();
+ 	}
+ 
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+@@ -362,6 +364,8 @@ static void pmu_snapshot_all_cpus(void)
+ 		       (cpu = this_cpu ? '*' : ' '), cpu,
+ 		       pp->pcr[0], pp->pcr[1], pp->pcr[2], pp->pcr[3],
+ 		       pp->pic[0], pp->pic[1], pp->pic[2], pp->pic[3]);
++
++		touch_nmi_watchdog();
+ 	}
+ 
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+-- 
+2.3.0
+
