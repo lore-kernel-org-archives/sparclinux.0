@@ -1,32 +1,98 @@
 From: David Ahern <david.ahern@oracle.com>
-Date: Tue, 31 Mar 2015 22:42:40 +0000
-Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <551B22E0.6040600@oracle.com>
+Date: Thu, 19 Mar 2015 20:06:17 +0000
+Subject: [PATCH] sparc: perf: Make counting mode actually work
+Message-Id: <1426795577-135680-1-git-send-email-david.ahern@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5514391F.2030300@oracle.com>	<CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>	<CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>	<5515F6B8.8020606@oracle.com>	<5515F782.7060301@oracle.com>	<CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>	<551623C1.2040300@oracle.com>	<CAE9FiQUNLaNYAk6DoTDCAfbS=B1uks_=381KJDUk46+yg5cVwg@mail.gmail.com>	<5516BF4B.9030901@oracle.com>	<CAE9FiQV_BOKQu8+mCqQRx_RJYucwuGAfJog7qoUW0J_i=9u=Tg@mail.gmail.com>	<55181065.8090807@oracle.com>	<CAE9FiQXu8qvCo9Dx6vUBXEO029n8K=c=CGtsfvWMGYdVgqtgOw@mail.gmail.com>	<5519D40D.20903@oracle.com>	<CAE9FiQUVSRkKNRzh99JA7V8dqsY78z_GtnMnwTrpSFXkJV9CKA@mail.gmail.com>	<551A1E32.1010309@oracle.com>	<CAE9FiQWEZRYtk3sFU3U8ptZ5SvGtam65M-_wXXVEzcvuCWT3wA@mail.gmail.com>	<551AD384.50000@oracle.com>	<CAE9FiQU=9_NBiPNgaEBa3nOPBnCwGyj0ppOyVnf7RduKRe8K=A@mail.gmail.com>	<551B1FB2.3020203@oracle.com> <CAE9FiQVTBWQnH_UcVtg3Z38=+qwJXvx8aLoTFF_2JaTY3zi8pw@mail.gm!
- ail.com>
-In-Reply-To: <CAE9FiQVTBWQnH_UcVtg3Z38=+qwJXvx8aLoTFF_2JaTY3zi8pw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: David Miller <davem@davemloft.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On 3/31/15 4:38 PM, Yinghai Lu wrote:
-> On Tue, Mar 31, 2015 at 3:29 PM, David Ahern <david.ahern@oracle.com> wrote:
->>>
->>> Please check attached three patches on top of current linus tree.
->>>
->>
->> new log. Same as before -- PCI_DEBUG, ignore_loglevel ofpci_debug=1
->>
->
-> Good, it is clean now.
+Currently perf-stat (aka, counting mode) does not work:
 
-Yes. You can add a Tested-by to all 3. These are all 4.0 material I hope 
-with a mark for 3.19 stable?
+$ perf stat ls
+...
+ Performance counter stats for 'ls':
 
-Thanks, Yinghai.
+          1.585665      task-clock (msec)         #    0.580 CPUs utilized
+                24      context-switches          #    0.015 M/sec
+                 0      cpu-migrations            #    0.000 K/sec
+                86      page-faults               #    0.054 M/sec
+   <not supported>      cycles
+   <not supported>      stalled-cycles-frontend
+   <not supported>      stalled-cycles-backend
+   <not supported>      instructions
+   <not supported>      branches
+   <not supported>      branch-misses
 
-David
+       0.002735100 seconds time elapsed
+
+The reason is that state is never reset (stays with PERF_HES_UPTODATE set).
+Add a call to sparc_pmu_enable_event during the added_event handling.
+Clean up the encoding since pmu_start calls sparc_pmu_enable_event which
+does the same. Passing PERF_EF_RELOAD to sparc_pmu_start means the call
+to sparc_perf_event_set_period can be removed as well.
+
+With this patch:
+
+$ perf stat ls
+...
+ Performance counter stats for 'ls':
+
+          1.552890      task-clock (msec)         #    0.552 CPUs utilized
+                24      context-switches          #    0.015 M/sec
+                 0      cpu-migrations            #    0.000 K/sec
+                86      page-faults               #    0.055 M/sec
+         5,748,997      cycles                    #    3.702 GHz
+   <not supported>      stalled-cycles-frontend:HG
+   <not supported>      stalled-cycles-backend:HG
+         1,684,362      instructions:HG           #    0.29  insns per cycle
+           295,133      branches:HG               #  190.054 M/sec
+            28,007      branch-misses:HG          #    9.49% of all branches
+
+       0.002815665 seconds time elapsed
+
+Signed-off-by: David Ahern <david.ahern@oracle.com>
+Acked-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/kernel/perf_event.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 6dc4e793df4c..af53c25da2e7 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -960,6 +960,8 @@ static void calculate_single_pcr(struct cpu_hw_events *cpuc)
+ 	cpuc->pcr[0] |= cpuc->event[0]->hw.config_base;
+ }
+ 
++static void sparc_pmu_start(struct perf_event *event, int flags);
++
+ /* On this PMU each PIC has it's own PCR control register.  */
+ static void calculate_multiple_pcrs(struct cpu_hw_events *cpuc)
+ {
+@@ -972,20 +974,13 @@ static void calculate_multiple_pcrs(struct cpu_hw_events *cpuc)
+ 		struct perf_event *cp = cpuc->event[i];
+ 		struct hw_perf_event *hwc = &cp->hw;
+ 		int idx = hwc->idx;
+-		u64 enc;
+ 
+ 		if (cpuc->current_idx[i] != PIC_NO_INDEX)
+ 			continue;
+ 
+-		sparc_perf_event_set_period(cp, hwc, idx);
+ 		cpuc->current_idx[i] = idx;
+ 
+-		enc = perf_event_get_enc(cpuc->events[i]);
+-		cpuc->pcr[idx] &= ~mask_for_index(idx);
+-		if (hwc->state & PERF_HES_STOPPED)
+-			cpuc->pcr[idx] |= nop_for_index(idx);
+-		else
+-			cpuc->pcr[idx] |= event_encoding(enc, idx);
++		sparc_pmu_start(cp, PERF_EF_RELOAD);
+ 	}
+ out:
+ 	for (i = 0; i < cpuc->n_events; i++) {
+-- 
+2.3.0
 
