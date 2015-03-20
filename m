@@ -1,127 +1,44 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 03 Mar 2015 01:12:23 +0000
-Subject: Re: [PATCH v4 01/30] PCI: Rip out pci_bus_add_devices() from pci_scan_bus()
-Message-Id: <54F50A77.7040703@huawei.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 20 Mar 2015 16:48:48 +0000
+Subject: Re: 4.0.0-rc4: panic in free_block
+Message-Id: <CA+55aFxhNphSMrNvwqj0AQRzuqRdPG11J6DaazKWMb2U+H7wKg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1424938344-4017-1-git-send-email-wangyijing@huawei.com>
- <1424938344-4017-2-git-send-email-wangyijing@huawei.com>
- <20150302234147.GA11978@google.com>
-In-Reply-To: <20150302234147.GA11978@google.com>
+References: <550C37C9.2060200@oracle.com>
+In-Reply-To: <550C37C9.2060200@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: David Ahern <david.ahern@oracle.com>, "David S. Miller" <davem@davemloft.net>
+Cc: linux-mm <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
 
->>  	pbm->pci_bus = pci_scan_bus(pbm->pci_first_busno, &pcic_ops, pbm);
->> +	if (pbm->pci_bus)
->> +		pci_bus_add_devices(pbm->pci_bus);
->>  #if 0 /* deadwood transplanted from sparc64 */
->>  	pci_fill_in_pbm_cookies(pbm->pci_bus, pbm, pbm->prom_node);
->>  	pci_record_assignments(pbm, pbm->pci_bus);
-> 
-> This is correct, but it should look like this instead:
-> 
->     if (!pbm->pci_bus)
->       return;
->   #if 0 /* deadwood ... */
->   ...
->   #endif
->     pci_bus_add_devices(pbm->pci_bus);
->   }
-> 
-> That way the mainline code is the normal path, and pci_bus_add_devices() is
-> in the correct place even if the "deadwood" code is resurrected.
-> 
+[ Added Davem and the sparc mailing list, since it happens on sparc
+and that just makes me suspicious ]
 
-Yes, you are right, thanks!
+On Fri, Mar 20, 2015 at 8:07 AM, David Ahern <david.ahern@oracle.com> wrote:
+> I can easily reproduce the panic below doing a kernel build with make -j N,
+> N8, 256, etc. This is a 1024 cpu system running 4.0.0-rc4.
 
-> 
->> diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
->> index 374a055..3d82024 100644
->> --- a/arch/unicore32/kernel/pci.c
->> +++ b/arch/unicore32/kernel/pci.c
->> @@ -266,17 +266,12 @@ static int __init pci_common_init(void)
->>  	pci_fixup_irqs(pci_common_swizzle, pci_puv3_map_irq);
->>  
->>  	if (!pci_has_flag(PCI_PROBE_ONLY)) {
->> -		/*
->> -		 * Size the bridge windows.
->> -		 */
->> +		/* Size the bridge windows. */
->>  		pci_bus_size_bridges(puv3_bus);
->> -
->> -		/*
->> -		 * Assign resources.
->> -		 */
->> +		/* Assign resources. */
->>  		pci_bus_assign_resources(puv3_bus);
->>  	}
->> -
->> +	pci_bus_add_devices(puv3_bus);
->>  	return 0;
->>  }
->>  subsys_initcall(pci_common_init);
->> diff --git a/drivers/pci/hotplug/ibmphp_core.c b/drivers/pci/hotplug/ibmphp_core.c
->> index 96c5c72..86e3bfd 100644
->> --- a/drivers/pci/hotplug/ibmphp_core.c
->> +++ b/drivers/pci/hotplug/ibmphp_core.c
->> @@ -738,7 +738,7 @@ static void ibm_unconfigure_device(struct pci_func *func)
->>   */
->>  static u8 bus_structure_fixup(u8 busno)
->>  {
->> -	struct pci_bus *bus;
->> +	struct pci_bus *bus, *b;
->>  	struct pci_dev *dev;
->>  	u16 l;
->>  
->> @@ -765,7 +765,9 @@ static u8 bus_structure_fixup(u8 busno)
->>  					(l != 0x0000) && (l != 0xffff)) {
->>  			debug("%s - Inside bus_structure_fixup()\n",
->>  							__func__);
->> -			pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
->> +			b = pci_scan_bus(busno, ibmphp_pci_bus->ops, NULL);
->> +			if (b)
->> +				pci_bus_add_devices(b);
-> 
-> Use this:
-> 
->     if (!b)
->       continue;
->     pci_bus_add_devices(b);
-> 
-> for the same reason as above.
+3.19 is fine? Because I dont' think I've seen any reports like this
+for others, and what stands out is sparc (and to a lesser degree "1024
+cpus", which obviously gets a lot less testing)
 
+> The top 3 frames are consistently:
+>     free_block+0x60
+>     cache_flusharray+0xac
+>     kmem_cache_free+0xfc
+>
+> After that one path has been from __mmdrop and the others are like below,
+> from remove_vma.
+>
+> Unable to handle kernel paging request at virtual address 0006100000000000
 
-Will update, thanks!
+One thing you *might* check is if the problem goes away if you select
+CONFIG_SLUB instead of CONFIG_SLAB. I'd really like to just get rid of
+SLAB. The whole "we have multiple different allocators" is a mess and
+causes test coverage issues.
 
-Thanks!
-Yijing.
+Apart from testing with CONFIG_SLUB, if 3.19 is ok and you seem to be
+able to "easily reproduce" this, the obvious thing to do is to try to
+bisect it.
 
-> 
->>  			break;
->>  		}
->>  	}
->> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> index 8d2f400..88604f2 100644
->> --- a/drivers/pci/probe.c
->> +++ b/drivers/pci/probe.c
->> @@ -2123,7 +2123,6 @@ struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops,
->>  	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
->>  	if (b) {
->>  		pci_scan_child_bus(b);
->> -		pci_bus_add_devices(b);
->>  	} else {
->>  		pci_free_resource_list(&resources);
->>  	}
->> -- 
->> 1.7.1
->>
-> 
-> .
-> 
-
-
--- 
-Thanks!
-Yijing
-
+                         Linus
