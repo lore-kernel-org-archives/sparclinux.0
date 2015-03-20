@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 20 Mar 2015 01:55:28 +0000
+From: David Ahern <david.ahern@oracle.com>
+Date: Fri, 20 Mar 2015 02:17:37 +0000
 Subject: Re: [PATCH] sparc: perf: Remove redundant perf_pmu_{en|dis}able calls
-Message-Id: <20150319.215528.1545324728135817458.davem@davemloft.net>
+Message-Id: <550B8341.2030304@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1426795557-135648-1-git-send-email-david.ahern@oracle.com>
 In-Reply-To: <1426795557-135648-1-git-send-email-david.ahern@oracle.com>
@@ -10,19 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Ahern <david.ahern@oracle.com>
-Date: Thu, 19 Mar 2015 16:05:57 -0400
+On 3/19/15 7:55 PM, David Miller wrote:
+> I wonder why I coded it this way, maybe long ago in the past
+> the caller didn't do this.
 
-> perf_pmu_disable is called by core perf code before pmu->del and the
-> enable function is called by core perf code afterwards. No need to
-> call again within sparc_pmu_del.
-> 
-> Ditto for pmu->add and sparc_pmu_add.
-> 
-> Signed-off-by: David Ahern <david.ahern@oracle.com>
-> Acked-by: Bob Picco <bob.picco@oracle.com>
+short answer: I know 2.6.39 does not need this, so it changed somewhere 
+between 2.6.39 and 3.18.
 
-Applied, thanks David.
+ From what I can tell you used the x86 perf code as the template for 
+sparc. That was roughly 2009 or 2010. The x86 code has changed a lot 
+over the years; the sparc code not so much.
 
-I wonder why I coded it this way, maybe long ago in the past
-the caller didn't do this.
+
