@@ -1,21 +1,22 @@
-From: Dave Hansen <dave.hansen@intel.com>
-Date: Fri, 20 Mar 2015 20:01:16 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 20 Mar 2015 20:19:41 +0000
 Subject: Re: 4.0.0-rc4: panic in free_block
-Message-Id: <550C7C8C.2020309@intel.com>
+Message-Id: <20150320.161941.18622997855089870.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <550C37C9.2060200@oracle.com>	<CA+55aFxhNphSMrNvwqj0AQRzuqRdPG11J6DaazKWMb2U+H7wKg@mail.gmail.com>	<550C5078.8040402@oracle.com> <CA+55aFyQWa0PjT-3y-HB9P-UAzThrZme5gj1P6P6hMTTF9cMtA@mail.gmail.com>
-In-Reply-To: <CA+55aFyQWa0PjT-3y-HB9P-UAzThrZme5gj1P6P6hMTTF9cMtA@mail.gmail.com>
+References: <550C6151.8070803@oracle.com>
+	<20150320.154700.1250039074828760104.davem@davemloft.net>
+	<550C7AE1.1000808@oracle.com>
+In-Reply-To: <550C7AE1.1000808@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, David Ahern <david.ahern@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>, linux-mm <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: david.ahern@oracle.com
+Cc: torvalds@linux-foundation.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On 03/20/2015 09:58 AM, Linus Torvalds wrote:
-> 128 cpu's is still "unusual", of course, but by no means unheard of,
-> and I'f have expected others to report it too if it was wasy to
-> trigger on x86-64.
+From: David Ahern <david.ahern@oracle.com>
+Date: Fri, 20 Mar 2015 13:54:09 -0600
 
-FWIW, I configured a kernel with SLAB and kicked off a bunch of compiles
-on a 160-thread x86_64 system.  It definitely doesn't die _quickly_.
-It's been running for an hour or two.
+> Interesting. With -j <64 and talking softly it completes. But -j 128
+> and higher always ends in a panic.
+
+Please share more details of your configuration.
