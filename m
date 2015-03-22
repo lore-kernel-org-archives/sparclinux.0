@@ -1,42 +1,32 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Sun, 22 Mar 2015 19:22:51 +0000
-Subject: [PATCH v5 RFC 0/3] Generic IOMMU pooled allocator
-Message-Id: <cover.1426986386.git.sowmini.varadhan@oracle.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Sun, 22 Mar 2015 23:32:29 +0000
+Subject: Re: [PATCH v5 RFC 0/3] Generic IOMMU pooled allocator
+Message-Id: <1427067149.4770.209.camel@kernel.crashing.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1426986386.git.sowmini.varadhan@oracle.com>
+In-Reply-To: <cover.1426986386.git.sowmini.varadhan@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
-Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sowmini.varadhan@oracle.com, davem@davemloft.net
+To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Follows up on the feedback in the thread at
-  http://www.spinics.net/lists/sparclinux/msg13493.html
+On Sun, 2015-03-22 at 15:22 -0400, Sowmini Varadhan wrote:
+> Follows up on the feedback in the thread at
+>   http://www.spinics.net/lists/sparclinux/msg13493.html
+> 
+> - removed ->cookie_to_index and ->demap indirection from the iommu_tbl_ops
+>   The caller needs to call these functions as needed, before invoking
+>   the generic arena allocator functions.
+> 
+> - added the "skip_span_boundary" argument to iommu_tbl_pool_init() for
+>   those callers like LDC which do no care about span boundary checks.
 
-- removed ->cookie_to_index and ->demap indirection from the iommu_tbl_ops
-  The caller needs to call these functions as needed, before invoking
-  the generic arena allocator functions.
+Thanks. I'll try to look in depth some time this week, but poke me if
+you don't hear from me, I'm a bit swamped at the moment. In the
+meantime, Alexey might have some bandwidth to also check it out.
 
-- added the "skip_span_boundary" argument to iommu_tbl_pool_init() for
-  those callers like LDC which do no care about span boundary checks.
+Cheers,
+Ben.
 
-
-Sowmini (2):
-  Break up monolithic iommu table/lock into finer graularity pools and
-    lock
-  Make sparc64 use scalable lib/iommu-common.c functions
-
-Sowmini Varadhan (1):
-  Make LDC use common iommu poll management functions
-
- arch/sparc/include/asm/iommu_64.h |    7 +-
- arch/sparc/kernel/iommu.c         |  187 +++++++++++---------------------
- arch/sparc/kernel/iommu_common.h  |    8 --
- arch/sparc/kernel/ldc.c           |  172 ++++++++++++++---------------
- arch/sparc/kernel/pci_sun4v.c     |  194 ++++++++++++++++-----------------
- include/linux/iommu-common.h      |   55 +++++++++
- lib/Makefile                      |    2 +-
- lib/iommu-common.c                |  219 +++++++++++++++++++++++++++++++++++++
- 8 files changed, 519 insertions(+), 325 deletions(-)
- create mode 100644 include/linux/iommu-common.h
- create mode 100644 lib/iommu-common.c
 
