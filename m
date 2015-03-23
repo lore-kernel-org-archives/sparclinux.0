@@ -1,40 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 22 Mar 2015 23:57:43 +0000
+From: David Ahern <david.ahern@oracle.com>
+Date: Mon, 23 Mar 2015 00:03:30 +0000
 Subject: Re: 4.0.0-rc4: panic in free_block
-Message-Id: <20150322.195743.1225936659717870427.davem@davemloft.net>
+Message-Id: <550F5852.5020405@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CA+55aFwEq09vwnxPEYr67O7nuOEN9_n-uJKX11qSbuBNGJVghg@mail.gmail.com>
-	<20150322.182311.109269221031797359.davem@davemloft.net>
-	<CA+55aFwWJU+D_rFhZVf0JZ599XH-2APELyrpBYYuvDsynyoMUw@mail.gmail.com>
-In-Reply-To: <CA+55aFwWJU+D_rFhZVf0JZ599XH-2APELyrpBYYuvDsynyoMUw@mail.gmail.com>
+References: <CA+55aFwEq09vwnxPEYr67O7nuOEN9_n-uJKX11qSbuBNGJVghg@mail.gmail.com>	<20150322.182311.109269221031797359.davem@davemloft.net>	<550F51D5.2010804@oracle.com> <20150322.195403.1653355516554747742.davem@davemloft.net>
+In-Reply-To: <20150322.195403.1653355516554747742.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: david.ahern@oracle.com, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, bpicco@meloft.net
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 22 Mar 2015 16:49:51 -0700
+On 3/22/15 5:54 PM, David Miller wrote:
+>> I just put it on 4.0.0-rc4 and ditto -- problem goes away, so it
+>> clearly suggests the memcpy or memmove are the root cause.
+>
+> Thanks, didn't notice that.
+>
+> So, something is amuck.
 
-> On Sun, Mar 22, 2015 at 3:23 PM, David Miller <davem@davemloft.net> wrote:
->>
->> Yes, using VIS how we do is alright, and in fact I did an audit of
->> this about 1 year ago.  This is another one of those "if this is
->> wrong, so much stuff would break"
-> 
-> Maybe. But it does seem like Bob Picco has narrowed it down to memmove().
-> 
-> It also bothers me enormously - and perhaps unreasonably - how that
-> memcpy code has memory barriers in it. I can see _zero_ reason for a
-> memory barrier inside a memcpy, unless the memcpy does something that
-> isn't valid to begin with. Are the VIS operatiosn perhaps using some
-> kind of non-temporal form that doesn't follow the TSO rules? Kind of
-> like the "movnt" that Intel has?
+to continue to refine the problem ... I modified only the memmove lines 
+(not the memcpy) and it works fine. So its the memmove.
 
-The special cache line clearing stores (the ASI_BLK_INIT_QUAD_LDD_P
-stuff) do not adhere to the memory model.
+I'm sure this will get whitespaced damaged on the copy and paste but to 
+be clear this is the patch I am currently running and system is stable. 
+On Friday it failed on every single; with this patch I have allyesconfig 
+builds with -j 128 in a loop (clean in between) and nothing -- no panics.
 
-I had elided the memory barriers originally, but it caused memory
-corruption.
+diff --git a/mm/slab.c b/mm/slab.c
+index c4b89ea..f5e9716 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -802,6 +802,16 @@ static inline void ac_put_obj(struct kmem_cache 
+*cachep, struct array_cache *ac,
+         ac->entry[ac->avail++] = objp;
+  }
 
-So yes, this is similar to the 'movnt' situation.
++static void move_entries(void *dest, void *src, int nr)
++{
++       unsigned long *dp = dest;
++       unsigned long *sp = src;
++
++       for (; nr; nr--, dp++, sp++)
++               *dp = *sp;
++}
++
++
+  /*
+   * Transfer objects in one arraycache to another.
+   * Locking must be handled by the caller.
+@@ -3344,7 +3354,7 @@ free_done:
+         spin_unlock(&n->list_lock);
+         slabs_destroy(cachep, &list);
+         ac->avail -= batchcount;
+-       memmove(ac->entry, &(ac->entry[batchcount]), sizeof(void 
+*)*ac->avail);
++       move_entries(ac->entry, &(ac->entry[batchcount]), ac->avail);
+  }
+
+  /*
+@@ -3817,8 +3827,7 @@ static void drain_array(struct kmem_cache *cachep, 
+struct kmem_cache_node *n,
+                                 tofree = (ac->avail + 1) / 2;
+                         free_block(cachep, ac->entry, tofree, node, &list);
+                         ac->avail -= tofree;
+-                       memmove(ac->entry, &(ac->entry[tofree]),
+-                               sizeof(void *) * ac->avail);
++                       move_entries(ac->entry, &(ac->entry[tofree]), 
+ac->avail);
+                 }
+                 spin_unlock_irq(&n->list_lock);
+                 slabs_destroy(cachep, &list);
+
+
