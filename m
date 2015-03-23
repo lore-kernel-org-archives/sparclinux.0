@@ -1,28 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 23 Mar 2015 19:05:08 +0000
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Mon, 23 Mar 2015 19:09:38 +0000
 Subject: Re: Generic IOMMU pooled allocator
-Message-Id: <20150323.150508.149509757161802782.davem@davemloft.net>
+Message-Id: <20150323190938.GL14061@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20150322192726.GB19474@oracle.com>
  <20150323.122922.887448418154237329.davem@davemloft.net>
  <20150323165406.GG14061@oracle.com>
-In-Reply-To: <20150323165406.GG14061@oracle.com>
+ <20150323.150508.149509757161802782.davem@davemloft.net>
+In-Reply-To: <20150323.150508.149509757161802782.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sowmini.varadhan@oracle.com
+To: David Miller <davem@davemloft.net>
 Cc: aik@au1.ibm.com, aik@ozlabs.ru, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Mon, 23 Mar 2015 12:54:06 -0400
+On (03/23/15 15:05), David Miller wrote:
+> 
+> Why add performance regressions to old machines who already are
+> suffering too much from all the bloat we are constantly adding to the
+> kernel?
 
-> If it was only an optimization (i.e., removing it would not break
-> any functionality), and if this was done for older hardware,
-> and *if* we believe that the direction of most architectures is to 
-> follow the sun4v/HV model, then, given that the sun4u code only uses 1 
-> arena pool anyway, one thought that I have for refactoring this
-> is the following:
+I have no personal opinion on this- it's a matter of  choosing
+whether we want to have some extra baggage in the library to support
+old hardware, or keep the code lean-and-mean for the future,
+where the model has changed.
 
-Why add performance regressions to old machines who already are
-suffering too much from all the bloat we are constantly adding to the
-kernel?
+I'll let others on this list make the call.
+
+--Sowmini
+
