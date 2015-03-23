@@ -1,59 +1,46 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Mon, 23 Mar 2015 16:54:06 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 23 Mar 2015 18:45:13 +0000
 Subject: Re: Generic IOMMU pooled allocator
-Message-Id: <20150323165406.GG14061@oracle.com>
+Message-Id: <201503231945.13719.arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1426734106.4770.118.camel@kernel.crashing.org>
- <550A5E5D.90907@ozlabs.ru> <20150322192726.GB19474@oracle.com>
- <20150323.122922.887448418154237329.davem@davemloft.net>
-In-Reply-To: <20150323.122922.887448418154237329.davem@davemloft.net>
+References: <20150318.222517.1444725543017433108.davem@davemloft.net>
+ <201503230704.31878.arnd@arndb.de>
+ <1427108695.4770.227.camel@kernel.crashing.org>
+In-Reply-To: <1427108695.4770.227.camel@kernel.crashing.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: aik@au1.ibm.com, aik@ozlabs.ru, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org, paulus@samba.org, David Miller <davem@davemloft.net>, Sowmini Varadhan <sowmini.varadhan@oracle.com>
 
-On (03/23/15 12:29), David Miller wrote:
+On Monday 23 March 2015, Benjamin Herrenschmidt wrote:
+> On Mon, 2015-03-23 at 07:04 +0100, Arnd Bergmann wrote:
+> > 
+> > My guess is that the ARM code so far has been concerned mainly with
+> > getting things to work in the first place, but scalability problems
+> > will only be seen when there are faster CPU cores become available.
 > 
-> In order to elide the IOMMU flush as much as possible, I implemnented
-> a scheme for sun4u wherein we always allocated from low IOMMU
-> addresses to high IOMMU addresses.
+> In any case, I think this is mostly a non-issue. The complexity of the
+> ARM code is in various areas related to making shit work (handling
+> coherent allocations mostly) but only remotely related to the actual
+> iommu DMA space allocator (iova in ARM as far as I understand the code)
+> which is pretty standard.
+
+Ok, got it. Thanks for explaining tht part.
+
+> The work Sowmini is doing is about specifically the allocator. Making
+> our (powerpc) allocator generic since it has some nice scalability
+> features.
 > 
-> In this regime, we only need to flush the IOMMU when we rolled over
-> back to low IOMMU addresses during an allocation.
+> In fact, what Aik and I have been pushing and Sowmini is close to
+> achieving is to mostly disconnect that allocator from the rest of the
+> iommu management (the caller).
 > 
-> It made a noticable difference in performance.
-> 
-> Unfortunately, with sun4v and the hypervisor, I'm not allowed to
-> control when the IOMMU flush happens, it has to occur on every
-> single IOMMU mapping change.  So this optimization was no longer
-> possible there.
-> 
-> Anyways, that's the history behind it.
-> --
+> So in the end, the allocator itself should be splitable into something
+> separate that resides in lib/ or similar, which ARM can chose to use as
+> well.
 
-I see.
+Yes, this sounds like a good idea. I'm currently at ELC and will bring this
+up with the people working on ARM IOMMU support.
 
-If it was only an optimization (i.e., removing it would not break
-any functionality), and if this was done for older hardware,
-and *if* we believe that the direction of most architectures is to 
-follow the sun4v/HV model, then, given that the sun4u code only uses 1 
-arena pool anyway, one thought that I have for refactoring this
-is the following:
-
-- Caller of iommu_tbl_range_alloc() can do the flush_all if they 
-  see start <= end for the one single pool 
-- lose the other ->flush_all invocation (i.e., the one that is
-  done when iommu_area_alloc() fails for pass = 0, and we reset
-  start to 0 to roll-back)
-
-that would avoid the need for any iommu_tbl_ops in my patch-set.
-
-But it would imply that you would still take the perf hit for the roll-back
-if we failed the pass = 0 iteration through iommu_area_alloc().
-Perhaps this is an acceptable compromise in favor of cleaner code
-(again, assuming that current/future archs will all follow the HV
-based design).
-
---Sowmini
- 
+	Arnd
