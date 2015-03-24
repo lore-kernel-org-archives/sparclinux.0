@@ -1,323 +1,359 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Fri, 06 Mar 2015 09:33:19 +0000
-Subject: [PATCH v5 02/29] PCI: Rip out pci_bus_add_devices() from pci_scan_root_bus()
-Message-Id: <1425634426-437-3-git-send-email-wangyijing@huawei.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 24 Mar 2015 17:10:30 +0000
+Subject: [PATCH v6 RFC 3/3] sparc: Make LDC use common iommu poll management functions
+Message-Id: <0e81ec3a2ff7c114a75ea725181e043b4e5b419c.1427210772.git.sowmini.varadhan@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1425634426-437-1-git-send-email-wangyijing@huawei.com>
+References: <cover.1427210772.git.sowmini.varadhan@oracle.com>
+In-Reply-To: <cover.1427210772.git.sowmini.varadhan@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sowmini.varadhan@oracle.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Just like pci_scan_bus(), we also should rip out
-pci_bus_add_devices() from pci_scan_root_bus().
-Lots platforms first call pci_scan_root_bus(), but
-after that, they call pci_bus_size_bridges() and
-pci_bus_assign_resources(). Place pci_bus_add_devices()
-in pci_scan_root_bus() hurts PCI scan logic.
-For arm hw_pci->scan() functions which call
-pci_scan_root_bus(), it's no need to change anything,
-because pci_bus_add_devices() will be called later
-in pci_common_init_dev().
+Note that this conversion is only being done to consolidate the
+code and ensure that the common code provides the sufficient
+abstraction. It is not expected to result in any noticeable
+performance improvement, as there is typically one ldc_iommu
+per vnet_port, and each one has 8k entries, with a typical
+request for 1-4 pages.  Thus LDC uses npools = 1.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: Richard Henderson <rth@twiddle.net>
-CC: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-CC: Matt Turner <mattst88@gmail.com>
-CC: David Howells <dhowells@redhat.com>
-CC: Tony Luck <tony.luck@intel.com>
-CC: Michal Simek <monstr@monstr.eu>
-CC: Ralf Baechle <ralf@linux-mips.org>
-CC: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-CC: Sebastian Ott <sebott@linux.vnet.ibm.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Chris Metcalf <cmetcalf@ezchip.com>
-CC: Chris Zankel <chris@zankel.net>
-CC: Max Filippov <jcmvbkbc@gmail.com>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: linux-alpha@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-mips@linux-mips.org
-CC: linux-am33-list@redhat.com
-CC: linux-s390@vger.kernel.org
-CC: linux-sh@vger.kernel.org
-CC: sparclinux@vger.kernel.org
-CC: linux-xtensa@linux-xtensa.org
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/alpha/kernel/pci.c          |    9 ++++++++-
- arch/frv/mb93090-mb00/pci-vdk.c  |    6 +++++-
- arch/ia64/sn/kernel/io_init.c    |    2 ++
- arch/microblaze/pci/pci-common.c |    3 +++
- arch/mips/pci/pci.c              |    1 +
- arch/mn10300/unit-asb2305/pci.c  |    7 ++++++-
- arch/s390/pci/pci.c              |    2 +-
- arch/sh/drivers/pci/pci.c        |    1 +
- arch/sparc/kernel/leon_pci.c     |    1 +
- arch/tile/kernel/pci.c           |    2 ++
- arch/tile/kernel/pci_gx.c        |    2 ++
- arch/x86/pci/common.c            |    1 +
- arch/xtensa/kernel/pci.c         |   11 +++++++++--
- drivers/pci/probe.c              |    1 -
- 14 files changed, 42 insertions(+), 7 deletions(-)
+v3: added this file to be a consumer of the common iommu library
+v4: removed ->cookie_to_index and ->demap from iommu_tbl_ops and instead
+    inline these calls into ldc before calling into iommu-common
+v6: remove iommu_tbl_ops
 
-diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
-index 98a1525..5c845ad 100644
---- a/arch/alpha/kernel/pci.c
-+++ b/arch/alpha/kernel/pci.c
-@@ -312,7 +312,7 @@ common_init_pci(void)
- {
- 	struct pci_controller *hose;
- 	struct list_head resources;
--	struct pci_bus *bus;
-+	struct pci_bus *bus, *root_bus;
- 	int next_busno;
- 	int need_domain_info = 0;
- 	u32 pci_mem_end;
-@@ -338,6 +338,8 @@ common_init_pci(void)
+ arch/sparc/kernel/ldc.c |  169 ++++++++++++++++++++++------------------------
+ 1 files changed, 81 insertions(+), 88 deletions(-)
+
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 274a9f5..c6b1bb1 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -15,6 +15,8 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/bitmap.h>
++#include <linux/hash.h>
++#include <linux/iommu-common.h>
  
- 		bus = pci_scan_root_bus(NULL, next_busno, alpha_mv.pci_ops,
- 					hose, &resources);
-+		if (!bus)
-+			continue;
- 		hose->bus = bus;
- 		hose->need_domain_info = need_domain_info;
- 		next_busno = bus->busn_res.end + 1;
-@@ -353,6 +355,11 @@ common_init_pci(void)
+ #include <asm/hypervisor.h>
+ #include <asm/iommu.h>
+@@ -27,6 +29,11 @@
+ #define DRV_MODULE_VERSION	"1.1"
+ #define DRV_MODULE_RELDATE	"July 22, 2008"
  
- 	pci_assign_unassigned_resources();
- 	pci_fixup_irqs(alpha_mv.pci_swizzle, alpha_mv.pci_map_irq);
-+	for (hose = hose_head; hose; hose = hose->next) {
-+		root_bus = hose->bus;
-+		if (root_bus)
-+			pci_bus_add_devices(root_bus);
-+	}
- }
- 
- 
-diff --git a/arch/frv/mb93090-mb00/pci-vdk.c b/arch/frv/mb93090-mb00/pci-vdk.c
-index b073f4d..f211839 100644
---- a/arch/frv/mb93090-mb00/pci-vdk.c
-+++ b/arch/frv/mb93090-mb00/pci-vdk.c
-@@ -316,6 +316,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
- 
- int __init pcibios_init(void)
- {
-+	struct pci_bus *bus;
- 	struct pci_ops *dir = NULL;
- 	LIST_HEAD(resources);
- 
-@@ -383,12 +384,15 @@ int __init pcibios_init(void)
- 	printk("PCI: Probing PCI hardware\n");
- 	pci_add_resource(&resources, &pci_ioport_resource);
- 	pci_add_resource(&resources, &pci_iomem_resource);
--	pci_scan_root_bus(NULL, 0, pci_root_ops, NULL, &resources);
-+	bus = pci_scan_root_bus(NULL, 0, pci_root_ops, NULL, &resources);
- 
- 	pcibios_irq_init();
- 	pcibios_fixup_irqs();
- 	pcibios_resource_survey();
-+	if (!bus)
-+		return 0;
- 
-+	pci_bus_add_devices(bus);
- 	return 0;
- }
- 
-diff --git a/arch/ia64/sn/kernel/io_init.c b/arch/ia64/sn/kernel/io_init.c
-index 0b5ce82..1be65eb 100644
---- a/arch/ia64/sn/kernel/io_init.c
-+++ b/arch/ia64/sn/kernel/io_init.c
-@@ -271,7 +271,9 @@ sn_pci_controller_fixup(int segment, int busnum, struct pci_bus *bus)
-  	if (bus = NULL) {
- 		kfree(res);
- 		kfree(controller);
-+		return;
- 	}
-+	pci_bus_add_devices(bus);
- }
- 
- /*
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index 48528fb..6d8d173 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -1382,6 +1382,9 @@ static int __init pcibios_init(void)
- 
- 	/* Call common code to handle resource allocation */
- 	pcibios_resource_survey();
-+	list_for_each_entry_safe(hose, tmp, &hose_list, list_node)
-+		if (hose->bus)
-+			pci_bus_add_devices(hose->bus);
- 
- 	return 0;
- }
-diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
-index 1bf60b1..9eb54b5 100644
---- a/arch/mips/pci/pci.c
-+++ b/arch/mips/pci/pci.c
-@@ -114,6 +114,7 @@ static void pcibios_scanbus(struct pci_controller *hose)
- 			pci_bus_size_bridges(bus);
- 			pci_bus_assign_resources(bus);
- 		}
-+		pci_bus_add_devices(bus);
- 	}
- }
- 
-diff --git a/arch/mn10300/unit-asb2305/pci.c b/arch/mn10300/unit-asb2305/pci.c
-index 613ca1e..cde5e05 100644
---- a/arch/mn10300/unit-asb2305/pci.c
-+++ b/arch/mn10300/unit-asb2305/pci.c
-@@ -340,6 +340,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
-  */
- static int __init pcibios_init(void)
- {
-+	struct pci_bus *bus;
- 	resource_size_t io_offset, mem_offset;
- 	LIST_HEAD(resources);
- 
-@@ -371,11 +372,15 @@ static int __init pcibios_init(void)
- 
- 	pci_add_resource_offset(&resources, &pci_ioport_resource, io_offset);
- 	pci_add_resource_offset(&resources, &pci_iomem_resource, mem_offset);
--	pci_scan_root_bus(NULL, 0, &pci_direct_ampci, NULL, &resources);
-+	bus = pci_scan_root_bus(NULL, 0, &pci_direct_ampci, NULL, &resources);
- 
- 	pcibios_irq_init();
- 	pcibios_fixup_irqs();
- 	pcibios_resource_survey();
-+	if (!bus)
-+		return 0;
++#define COOKIE_PGSZ_CODE	0xf000000000000000ULL
++#define COOKIE_PGSZ_CODE_SHIFT	60ULL
 +
-+	pci_bus_add_devices(bus);
- 	return 0;
++static DEFINE_PER_CPU(unsigned int, ldc_pool_hash);
++
+ static char version[]  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ #define LDC_PACKET_SIZE		64
+@@ -98,10 +105,10 @@ static const struct ldc_mode_ops stream_ops;
+ int ldom_domaining_enabled;
+ 
+ struct ldc_iommu {
+-	/* Protects arena alloc/free.  */
++	/* Protects ldc_unmap.  */
+ 	spinlock_t			lock;
+-	struct iommu_arena		arena;
+ 	struct ldc_mtable_entry		*page_table;
++	struct iommu_table		iommu_table;
+ };
+ 
+ struct ldc_channel {
+@@ -998,31 +1005,73 @@ static void free_queue(unsigned long num_entries, struct ldc_packet *q)
+ 	free_pages((unsigned long)q, order);
  }
  
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 753a567..a2a7391 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -776,8 +776,8 @@ static int zpci_scan_bus(struct zpci_dev *zdev)
- 		zpci_cleanup_bus_resources(zdev);
- 		return -EIO;
++static unsigned long ldc_cookie_to_index(u64 cookie, void *arg)
++{
++	u64 szcode = cookie >> COOKIE_PGSZ_CODE_SHIFT;
++	/* struct ldc_iommu *ldc_iommu = (struct ldc_iommu *)arg; */
++
++	cookie &= ~COOKIE_PGSZ_CODE;
++
++	return (cookie >> (13ULL + (szcode * 3ULL)));
++}
++
++static void ldc_demap(struct ldc_iommu *iommu, unsigned long id, u64 cookie,
++		      unsigned long entry, unsigned long npages)
++{
++	struct ldc_mtable_entry *base;
++	unsigned long i, shift;
++
++	shift = (cookie >> COOKIE_PGSZ_CODE_SHIFT) * 3;
++	base = iommu->page_table + entry;
++	for (i = 0; i < npages; i++) {
++		if (base->cookie)
++			sun4v_ldc_revoke(id, cookie + (i << shift),
++					 base->cookie);
++		base->mte = 0;
++	}
++}
++
+ /* XXX Make this configurable... XXX */
+ #define LDC_IOTABLE_SIZE	(8 * 1024)
+ 
+-static int ldc_iommu_init(struct ldc_channel *lp)
++static void setup_ldc_pool_hash(void)
++{
++	unsigned int i;
++	static bool do_once;
++
++	if (do_once)
++		return;
++	do_once = true;
++	for_each_possible_cpu(i)
++		per_cpu(ldc_pool_hash, i) = hash_32(i, IOMMU_POOL_HASHBITS);
++}
++
++
++static int ldc_iommu_init(const char *name, struct ldc_channel *lp)
+ {
+ 	unsigned long sz, num_tsb_entries, tsbsize, order;
+-	struct ldc_iommu *iommu = &lp->iommu;
++	struct ldc_iommu *ldc_iommu = &lp->iommu;
++	struct iommu_table *iommu = &ldc_iommu->iommu_table;
+ 	struct ldc_mtable_entry *table;
+ 	unsigned long hv_err;
+ 	int err;
+ 
+ 	num_tsb_entries = LDC_IOTABLE_SIZE;
+ 	tsbsize = num_tsb_entries * sizeof(struct ldc_mtable_entry);
+-
+-	spin_lock_init(&iommu->lock);
++	setup_ldc_pool_hash();
++	spin_lock_init(&ldc_iommu->lock);
+ 
+ 	sz = num_tsb_entries / 8;
+ 	sz = (sz + 7UL) & ~7UL;
+-	iommu->arena.map = kzalloc(sz, GFP_KERNEL);
+-	if (!iommu->arena.map) {
++	iommu->map = kzalloc(sz, GFP_KERNEL);
++	if (!iommu->map) {
+ 		printk(KERN_ERR PFX "Alloc of arena map failed, sz=%lu\n", sz);
+ 		return -ENOMEM;
  	}
 -
- 	zdev->bus->max_bus_speed = zdev->max_bus_speed;
-+	pci_bus_add_devices(zdev->bus);
- 	return 0;
+-	iommu->arena.limit = num_tsb_entries;
++	iommu_tbl_pool_init(iommu, num_tsb_entries, PAGE_SHIFT,
++			    NULL, false /* no large pool */,
++			    1 /* npools */,
++			    true /* skip span boundary check */);
+ 
+ 	order = get_order(tsbsize);
+ 
+@@ -1037,7 +1086,7 @@ static int ldc_iommu_init(struct ldc_channel *lp)
+ 
+ 	memset(table, 0, PAGE_SIZE << order);
+ 
+-	iommu->page_table = table;
++	ldc_iommu->page_table = table;
+ 
+ 	hv_err = sun4v_ldc_set_map_table(lp->id, __pa(table),
+ 					 num_tsb_entries);
+@@ -1049,31 +1098,32 @@ static int ldc_iommu_init(struct ldc_channel *lp)
+ 
+ out_free_table:
+ 	free_pages((unsigned long) table, order);
+-	iommu->page_table = NULL;
++	ldc_iommu->page_table = NULL;
+ 
+ out_free_map:
+-	kfree(iommu->arena.map);
+-	iommu->arena.map = NULL;
++	kfree(iommu->map);
++	iommu->map = NULL;
+ 
+ 	return err;
  }
  
-diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
-index 1bc09ee..efc1051 100644
---- a/arch/sh/drivers/pci/pci.c
-+++ b/arch/sh/drivers/pci/pci.c
-@@ -69,6 +69,7 @@ static void pcibios_scanbus(struct pci_channel *hose)
+ static void ldc_iommu_release(struct ldc_channel *lp)
+ {
+-	struct ldc_iommu *iommu = &lp->iommu;
++	struct ldc_iommu *ldc_iommu = &lp->iommu;
++	struct iommu_table *iommu = &ldc_iommu->iommu_table;
+ 	unsigned long num_tsb_entries, tsbsize, order;
  
- 		pci_bus_size_bridges(bus);
- 		pci_bus_assign_resources(bus);
-+		pci_bus_add_devices(bus);
- 	} else {
- 		pci_free_resource_list(&resources);
- 	}
-diff --git a/arch/sparc/kernel/leon_pci.c b/arch/sparc/kernel/leon_pci.c
-index 899b720..2971076 100644
---- a/arch/sparc/kernel/leon_pci.c
-+++ b/arch/sparc/kernel/leon_pci.c
-@@ -40,6 +40,7 @@ void leon_pci_init(struct platform_device *ofdev, struct leon_pci_info *info)
+ 	(void) sun4v_ldc_set_map_table(lp->id, 0, 0);
  
- 		/* Assign devices with resources */
- 		pci_assign_unassigned_resources();
-+		pci_bus_add_devices(root_bus);
- 	} else {
- 		pci_free_resource_list(&resources);
- 	}
-diff --git a/arch/tile/kernel/pci.c b/arch/tile/kernel/pci.c
-index 325df47..9475a74 100644
---- a/arch/tile/kernel/pci.c
-+++ b/arch/tile/kernel/pci.c
-@@ -339,6 +339,8 @@ int __init pcibios_init(void)
- 			struct pci_bus *next_bus;
- 			struct pci_dev *dev;
+-	num_tsb_entries = iommu->arena.limit;
++	num_tsb_entries = iommu->poolsize * iommu->nr_pools;
+ 	tsbsize = num_tsb_entries * sizeof(struct ldc_mtable_entry);
+ 	order = get_order(tsbsize);
  
-+			pci_bus_add_devices(root_bus);
+-	free_pages((unsigned long) iommu->page_table, order);
+-	iommu->page_table = NULL;
++	free_pages((unsigned long) ldc_iommu->page_table, order);
++	ldc_iommu->page_table = NULL;
+ 
+-	kfree(iommu->arena.map);
+-	iommu->arena.map = NULL;
++	kfree(iommu->map);
++	iommu->map = NULL;
+ }
+ 
+ struct ldc_channel *ldc_alloc(unsigned long id,
+@@ -1140,7 +1190,7 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ 
+ 	lp->id = id;
+ 
+-	err = ldc_iommu_init(lp);
++	err = ldc_iommu_init(name, lp);
+ 	if (err)
+ 		goto out_free_ldc;
+ 
+@@ -1885,40 +1935,6 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
+ }
+ EXPORT_SYMBOL(ldc_read);
+ 
+-static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
+-{
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long n, start, end, limit;
+-	int pass;
+-
+-	limit = arena->limit;
+-	start = arena->hint;
+-	pass = 0;
+-
+-again:
+-	n = bitmap_find_next_zero_area(arena->map, limit, start, npages, 0);
+-	end = n + npages;
+-	if (unlikely(end >= limit)) {
+-		if (likely(pass < 1)) {
+-			limit = start;
+-			start = 0;
+-			pass++;
+-			goto again;
+-		} else {
+-			/* Scanned the whole thing, give up. */
+-			return -1;
+-		}
+-	}
+-	bitmap_set(arena->map, n, npages);
+-
+-	arena->hint = end;
+-
+-	return n;
+-}
+-
+-#define COOKIE_PGSZ_CODE	0xf000000000000000ULL
+-#define COOKIE_PGSZ_CODE_SHIFT	60ULL
+-
+ static u64 pagesize_code(void)
+ {
+ 	switch (PAGE_SIZE) {
+@@ -1945,23 +1961,14 @@ static u64 make_cookie(u64 index, u64 pgsz_code, u64 page_offset)
+ 		page_offset);
+ }
+ 
+-static u64 cookie_to_index(u64 cookie, unsigned long *shift)
+-{
+-	u64 szcode = cookie >> COOKIE_PGSZ_CODE_SHIFT;
+-
+-	cookie &= ~COOKIE_PGSZ_CODE;
+-
+-	*shift = szcode * 3;
+-
+-	return (cookie >> (13ULL + (szcode * 3ULL)));
+-}
+ 
+ static struct ldc_mtable_entry *alloc_npages(struct ldc_iommu *iommu,
+ 					     unsigned long npages)
+ {
+ 	long entry;
+ 
+-	entry = arena_alloc(iommu, npages);
++	entry = iommu_tbl_range_alloc(NULL, &iommu->iommu_table, npages,
++				     NULL, __this_cpu_read(ldc_pool_hash));
+ 	if (unlikely(entry < 0))
+ 		return NULL;
+ 
+@@ -2090,7 +2097,7 @@ int ldc_map_sg(struct ldc_channel *lp,
+ 	       struct ldc_trans_cookie *cookies, int ncookies,
+ 	       unsigned int map_perm)
+ {
+-	unsigned long i, npages, flags;
++	unsigned long i, npages;
+ 	struct ldc_mtable_entry *base;
+ 	struct cookie_state state;
+ 	struct ldc_iommu *iommu;
+@@ -2109,9 +2116,7 @@ int ldc_map_sg(struct ldc_channel *lp,
+ 
+ 	iommu = &lp->iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	base = alloc_npages(iommu, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+ 	if (!base)
+ 		return -ENOMEM;
+@@ -2136,7 +2141,7 @@ int ldc_map_single(struct ldc_channel *lp,
+ 		   struct ldc_trans_cookie *cookies, int ncookies,
+ 		   unsigned int map_perm)
+ {
+-	unsigned long npages, pa, flags;
++	unsigned long npages, pa;
+ 	struct ldc_mtable_entry *base;
+ 	struct cookie_state state;
+ 	struct ldc_iommu *iommu;
+@@ -2152,9 +2157,7 @@ int ldc_map_single(struct ldc_channel *lp,
+ 
+ 	iommu = &lp->iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	base = alloc_npages(iommu, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+ 	if (!base)
+ 		return -ENOMEM;
+@@ -2172,35 +2175,25 @@ int ldc_map_single(struct ldc_channel *lp,
+ }
+ EXPORT_SYMBOL(ldc_map_single);
+ 
 +
- 			list_for_each_entry(dev, &root_bus->devices, bus_list) {
- 				/*
- 				 * Find the PCI host controller, ie. the 1st
-diff --git a/arch/tile/kernel/pci_gx.c b/arch/tile/kernel/pci_gx.c
-index 2c95f37..b1df847 100644
---- a/arch/tile/kernel/pci_gx.c
-+++ b/arch/tile/kernel/pci_gx.c
-@@ -1030,6 +1030,8 @@ int __init pcibios_init(void)
- alloc_mem_map_failed:
- 			break;
- 		}
-+
-+		pci_bus_add_devices(root_bus);
- 	}
+ static void free_npages(unsigned long id, struct ldc_iommu *iommu,
+ 			u64 cookie, u64 size)
+ {
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long i, shift, index, npages;
+-	struct ldc_mtable_entry *base;
++	unsigned long npages, entry;
  
- 	return 0;
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 3d2612b..0cbc723 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -491,6 +491,7 @@ void pcibios_scan_root(int busnum)
- 		pci_free_resource_list(&resources);
- 		kfree(sd);
- 	}
-+	pci_bus_add_devices(bus);
+ 	npages = PAGE_ALIGN(((cookie & ~PAGE_MASK) + size)) >> PAGE_SHIFT;
+-	index = cookie_to_index(cookie, &shift);
+-	base = iommu->page_table + index;
+-
+-	BUG_ON(index > arena->limit ||
+-	       (index + npages) > arena->limit);
+ 
+-	for (i = 0; i < npages; i++) {
+-		if (base->cookie)
+-			sun4v_ldc_revoke(id, cookie + (i << shift),
+-					 base->cookie);
+-		base->mte = 0;
+-		__clear_bit(index + i, arena->map);
+-	}
++	entry = ldc_cookie_to_index(cookie, iommu);
++	ldc_demap(iommu, id, cookie, entry, npages);
++	iommu_tbl_range_free(&iommu->iommu_table, cookie, npages, entry);
  }
  
- void __init pcibios_set_cache_line_size(void)
-diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
-index 5b34033..140e2fd 100644
---- a/arch/xtensa/kernel/pci.c
-+++ b/arch/xtensa/kernel/pci.c
-@@ -174,7 +174,7 @@ static int __init pcibios_init(void)
- 	struct pci_controller *pci_ctrl;
- 	struct list_head resources;
- 	struct pci_bus *bus;
--	int next_busno = 0;
-+	int ret, next_busno = 0;
+ void ldc_unmap(struct ldc_channel *lp, struct ldc_trans_cookie *cookies,
+ 	       int ncookies)
+ {
+ 	struct ldc_iommu *iommu = &lp->iommu;
+-	unsigned long flags;
+ 	int i;
++	unsigned long flags;
  
- 	printk("PCI: Probing PCI hardware\n");
- 
-@@ -185,14 +185,21 @@ static int __init pcibios_init(void)
- 		pci_controller_apertures(pci_ctrl, &resources);
- 		bus = pci_scan_root_bus(NULL, pci_ctrl->first_busno,
- 					pci_ctrl->ops, pci_ctrl, &resources);
-+		if (!bus)
-+			continue;
-+
- 		pci_ctrl->bus = bus;
- 		pci_ctrl->last_busno = bus->busn_res.end;
- 		if (next_busno <= pci_ctrl->last_busno)
- 			next_busno = pci_ctrl->last_busno+1;
- 	}
- 	pci_bus_count = next_busno;
-+	ret = platform_pcibios_fixup();
-+	for (pci_ctrl = pci_ctrl_head; pci_ctrl; pci_ctrl = pci_ctrl->next)
-+		if (pci_ctrl->bus)
-+			pci_bus_add_devices(pci_ctrl->bus);
- 
--	return platform_pcibios_fixup();
-+	return ret;
- }
- 
- subsys_initcall(pcibios_init);
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 88604f2..8ef0375 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2087,7 +2087,6 @@ struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
- 	if (!found)
- 		pci_bus_update_busn_res_end(b, max);
- 
--	pci_bus_add_devices(b);
- 	return b;
- }
- EXPORT_SYMBOL(pci_scan_root_bus);
+ 	spin_lock_irqsave(&iommu->lock, flags);
+ 	for (i = 0; i < ncookies; i++) {
 -- 
 1.7.1
 
