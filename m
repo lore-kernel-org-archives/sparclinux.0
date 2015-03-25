@@ -1,251 +1,834 @@
-From: Mkhize Mthembu <mkhizemthembu399@gmail.com>
-Date: Sun, 15 Mar 2015 12:22:55 +0000
-Subject: PLEASE GET BACK TO ME AS SOON AS YOU RECEIVE THIS EMAIL
-Message-Id: <1709016939.563318.1426422175374.JavaMail.yahoo@mail.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_563317_1854506127.1426422175374"
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 25 Mar 2015 17:34:47 +0000
+Subject: [PATCH v7 RFC 2/3] sparc: Make sparc64 use scalable lib/iommu-common.c functions
+Message-Id: <2dad7aa5252ff4aa1e3c439b6b9ca3fb9c175f15.1427295804.git.sowmini.varadhan@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
-
-------=_Part_563317_1854506127.1426422175374
-Content-Type: text/plain; charset=UTF-8
+References: <cover.1427295804.git.sowmini.varadhan@oracle.com>
+In-Reply-To: <cover.1427295804.git.sowmini.varadhan@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sowmini.varadhan@oracle.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
+In iperf experiments running linux as the Tx side (TCP client) with
+10 threads results in a severe performance drop when TSO is disabled,
+indicating a weakness in the software that can be avoided by using
+the scalable IOMMU arena DMA allocation.
 
+Baseline numbers before this patch:
+   with default settings (TSO enabled) :    9-9.5 Gbps
+   Disable TSO using ethtool- drops badly:  2-3 Gbps.
 
-------=_Part_563317_1854506127.1426422175374
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="Mkhize Mthembu.docx"
-Content-ID: <eacf98e0-30d9-7d4d-f286-fc0cd7e04797@yahoo.com>
+After this patch, iperf client with 10 threads, can give a
+throughput of at least 8.5 Gbps, even when TSO is disabled.
 
-UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0
-VMtuwjAQvFfqP0S+Vomhh6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2pps
-CTFp70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ44DzJOViRCh/A
-UaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1fd4qiWASyx63B2uukokQjJYCSSlf
-OvWDJd8xFNTZnElzHdINyWD8IENdOU6w63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLb
-X6OF6CWkRJ5bU7QVK7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
-EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7hLT5kz7+wYz9dVF3
-H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq38wAAAE4CAAALAAgCX3JlbHMvLnJlbHMg
-ogQCKKAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ217m9OfLT9ab
-g5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlub9YvPJGUoTyMMaui4rOGQSQ+ImYz
-sKNchci+VLqQHEkJU4+RzBv1jKu6vsf0VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdh
-b9kuYipsScZyjWop9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
-HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADEDAAAcAAgBd29yZC9f
-cmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-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
-cy54bWxQSwUGAAAAAAsACwDBAgAAzy8AAAAA
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+---
+v2: moved sparc specific fileds into iommu_sparc
+v3: converted all sparc users of iommu, so lot of cleanup and streamlining
+v4: David Miller review change:
+    - s/IOMMU_ERROR_CODE/DMA_ERROR_CODE
+    - reverts pci_impl.h (now that all iommu usage has been converted)
+v5: benh/aik feedback modifies the function signatures: pass in 
+    modified args to iommmu_tbl_pool_init() and iommu_tbl_range_free()
+v6: removed iommu_tbl_ops. Pass flush_all as function pointer to 
+    iommu_tbl_pool_init
+v7: move pool_hash initialization to iommu_tbl_pool_init()
 
-------=_Part_563317_1854506127.1426422175374--
+ arch/sparc/include/asm/iommu_64.h |    7 +-
+ arch/sparc/kernel/iommu.c         |  174 +++++++++---------------------------
+ arch/sparc/kernel/iommu_common.h  |    8 --
+ arch/sparc/kernel/pci_sun4v.c     |  179 ++++++++++++++++--------------------
+ 4 files changed, 127 insertions(+), 241 deletions(-)
+
+diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
+index 2b9321a..e3cd449 100644
+--- a/arch/sparc/include/asm/iommu_64.h
++++ b/arch/sparc/include/asm/iommu_64.h
+@@ -16,6 +16,7 @@
+ #define IOPTE_WRITE   0x0000000000000002UL
+ 
+ #define IOMMU_NUM_CTXS	4096
++#include <linux/iommu-common.h>
+ 
+ struct iommu_arena {
+ 	unsigned long	*map;
+@@ -24,11 +25,10 @@ struct iommu_arena {
+ };
+ 
+ struct iommu {
++	struct iommu_table	tbl;
+ 	spinlock_t		lock;
+-	struct iommu_arena	arena;
+-	void			(*flush_all)(struct iommu *);
++	u32			dma_addr_mask;
+ 	iopte_t			*page_table;
+-	u32			page_table_map_base;
+ 	unsigned long		iommu_control;
+ 	unsigned long		iommu_tsbbase;
+ 	unsigned long		iommu_flush;
+@@ -40,7 +40,6 @@ struct iommu {
+ 	unsigned long		dummy_page_pa;
+ 	unsigned long		ctx_lowest_free;
+ 	DECLARE_BITMAP(ctx_bitmap, IOMMU_NUM_CTXS);
+-	u32			dma_addr_mask;
+ };
+ 
+ struct strbuf {
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index bfa4d0c..f7fdff2 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -13,6 +13,7 @@
+ #include <linux/errno.h>
+ #include <linux/iommu-helper.h>
+ #include <linux/bitmap.h>
++#include <linux/iommu-common.h>
+ 
+ #ifdef CONFIG_PCI
+ #include <linux/pci.h>
+@@ -45,8 +46,9 @@
+ 			       "i" (ASI_PHYS_BYPASS_EC_E))
+ 
+ /* Must be invoked under the IOMMU lock. */
+-static void iommu_flushall(struct iommu *iommu)
++static void iommu_flushall(struct iommu_table *iommu_table)
+ {
++	struct iommu *iommu = container_of(iommu_table, struct iommu, tbl);
+ 	if (iommu->iommu_flushinv) {
+ 		iommu_write(iommu->iommu_flushinv, ~(u64)0);
+ 	} else {
+@@ -87,94 +89,6 @@ static inline void iopte_make_dummy(struct iommu *iommu, iopte_t *iopte)
+ 	iopte_val(*iopte) = val;
+ }
+ 
+-/* Based almost entirely upon the ppc64 iommu allocator.  If you use the 'handle'
+- * facility it must all be done in one pass while under the iommu lock.
+- *
+- * On sun4u platforms, we only flush the IOMMU once every time we've passed
+- * over the entire page table doing allocations.  Therefore we only ever advance
+- * the hint and cannot backtrack it.
+- */
+-unsigned long iommu_range_alloc(struct device *dev,
+-				struct iommu *iommu,
+-				unsigned long npages,
+-				unsigned long *handle)
+-{
+-	unsigned long n, end, start, limit, boundary_size;
+-	struct iommu_arena *arena = &iommu->arena;
+-	int pass = 0;
+-
+-	/* This allocator was derived from x86_64's bit string search */
+-
+-	/* Sanity check */
+-	if (unlikely(npages = 0)) {
+-		if (printk_ratelimit())
+-			WARN_ON(1);
+-		return DMA_ERROR_CODE;
+-	}
+-
+-	if (handle && *handle)
+-		start = *handle;
+-	else
+-		start = arena->hint;
+-
+-	limit = arena->limit;
+-
+-	/* The case below can happen if we have a small segment appended
+-	 * to a large, or when the previous alloc was at the very end of
+-	 * the available space. If so, go back to the beginning and flush.
+-	 */
+-	if (start >= limit) {
+-		start = 0;
+-		if (iommu->flush_all)
+-			iommu->flush_all(iommu);
+-	}
+-
+- again:
+-
+-	if (dev)
+-		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+-				      1 << IO_PAGE_SHIFT);
+-	else
+-		boundary_size = ALIGN(1UL << 32, 1 << IO_PAGE_SHIFT);
+-
+-	n = iommu_area_alloc(arena->map, limit, start, npages,
+-			     iommu->page_table_map_base >> IO_PAGE_SHIFT,
+-			     boundary_size >> IO_PAGE_SHIFT, 0);
+-	if (n = -1) {
+-		if (likely(pass < 1)) {
+-			/* First failure, rescan from the beginning.  */
+-			start = 0;
+-			if (iommu->flush_all)
+-				iommu->flush_all(iommu);
+-			pass++;
+-			goto again;
+-		} else {
+-			/* Second failure, give up */
+-			return DMA_ERROR_CODE;
+-		}
+-	}
+-
+-	end = n + npages;
+-
+-	arena->hint = end;
+-
+-	/* Update handle for SG allocations */
+-	if (handle)
+-		*handle = end;
+-
+-	return n;
+-}
+-
+-void iommu_range_free(struct iommu *iommu, dma_addr_t dma_addr, unsigned long npages)
+-{
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long entry;
+-
+-	entry = (dma_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
+-
+-	bitmap_clear(arena->map, entry, npages);
+-}
+-
+ int iommu_table_init(struct iommu *iommu, int tsbsize,
+ 		     u32 dma_offset, u32 dma_addr_mask,
+ 		     int numa_node)
+@@ -187,22 +101,20 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
+ 	/* Setup initial software IOMMU state. */
+ 	spin_lock_init(&iommu->lock);
+ 	iommu->ctx_lowest_free = 1;
+-	iommu->page_table_map_base = dma_offset;
++	iommu->tbl.page_table_map_base = dma_offset;
+ 	iommu->dma_addr_mask = dma_addr_mask;
+ 
+ 	/* Allocate and initialize the free area map.  */
+ 	sz = num_tsb_entries / 8;
+ 	sz = (sz + 7UL) & ~7UL;
+-	iommu->arena.map = kmalloc_node(sz, GFP_KERNEL, numa_node);
+-	if (!iommu->arena.map) {
+-		printk(KERN_ERR "IOMMU: Error, kmalloc(arena.map) failed.\n");
++	iommu->tbl.map = kmalloc_node(sz, GFP_KERNEL, numa_node);
++	if (!iommu->tbl.map)
+ 		return -ENOMEM;
+-	}
+-	memset(iommu->arena.map, 0, sz);
+-	iommu->arena.limit = num_tsb_entries;
++	memset(iommu->tbl.map, 0, sz);
+ 
+-	if (tlb_type != hypervisor)
+-		iommu->flush_all = iommu_flushall;
++	iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
++			    (tlb_type != hypervisor ? iommu_flushall : NULL),
++			    false, 1, false);
+ 
+ 	/* Allocate and initialize the dummy page which we
+ 	 * set inactive IO PTEs to point to.
+@@ -235,18 +147,19 @@ int iommu_table_init(struct iommu *iommu, int tsbsize,
+ 	iommu->dummy_page = 0UL;
+ 
+ out_free_map:
+-	kfree(iommu->arena.map);
+-	iommu->arena.map = NULL;
++	kfree(iommu->tbl.map);
++	iommu->tbl.map = NULL;
+ 
+ 	return -ENOMEM;
+ }
+ 
+-static inline iopte_t *alloc_npages(struct device *dev, struct iommu *iommu,
++static inline iopte_t *alloc_npages(struct device *dev,
++				    struct iommu *iommu,
+ 				    unsigned long npages)
+ {
+ 	unsigned long entry;
+ 
+-	entry = iommu_range_alloc(dev, iommu, npages, NULL);
++	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL);
+ 	if (unlikely(entry = DMA_ERROR_CODE))
+ 		return NULL;
+ 
+@@ -284,7 +197,7 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
+ 				   dma_addr_t *dma_addrp, gfp_t gfp,
+ 				   struct dma_attrs *attrs)
+ {
+-	unsigned long flags, order, first_page;
++	unsigned long order, first_page;
+ 	struct iommu *iommu;
+ 	struct page *page;
+ 	int npages, nid;
+@@ -306,16 +219,14 @@ static void *dma_4u_alloc_coherent(struct device *dev, size_t size,
+ 
+ 	iommu = dev->archdata.iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	iopte = alloc_npages(dev, iommu, size >> IO_PAGE_SHIFT);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+ 	if (unlikely(iopte = NULL)) {
+ 		free_pages(first_page, order);
+ 		return NULL;
+ 	}
+ 
+-	*dma_addrp = (iommu->page_table_map_base +
++	*dma_addrp = (iommu->tbl.page_table_map_base +
+ 		      ((iopte - iommu->page_table) << IO_PAGE_SHIFT));
+ 	ret = (void *) first_page;
+ 	npages = size >> IO_PAGE_SHIFT;
+@@ -336,16 +247,12 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
+ 				 struct dma_attrs *attrs)
+ {
+ 	struct iommu *iommu;
+-	unsigned long flags, order, npages;
++	unsigned long order, npages;
+ 
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+-
+-	iommu_range_free(iommu, dvma, npages);
+-
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
+ 
+ 	order = get_order(size);
+ 	if (order < 10)
+@@ -375,8 +282,8 @@ static dma_addr_t dma_4u_map_page(struct device *dev, struct page *page,
+ 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	base = alloc_npages(dev, iommu, npages);
++	spin_lock_irqsave(&iommu->lock, flags);
+ 	ctx = 0;
+ 	if (iommu->iommu_ctxflush)
+ 		ctx = iommu_alloc_ctx(iommu);
+@@ -385,7 +292,7 @@ static dma_addr_t dma_4u_map_page(struct device *dev, struct page *page,
+ 	if (unlikely(!base))
+ 		goto bad;
+ 
+-	bus_addr = (iommu->page_table_map_base +
++	bus_addr = (iommu->tbl.page_table_map_base +
+ 		    ((base - iommu->page_table) << IO_PAGE_SHIFT));
+ 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
+ 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
+@@ -496,7 +403,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 	npages = IO_PAGE_ALIGN(bus_addr + sz) - (bus_addr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 	base = iommu->page_table +
+-		((bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
++		((bus_addr - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT);
+ 	bus_addr &= IO_PAGE_MASK;
+ 
+ 	spin_lock_irqsave(&iommu->lock, flags);
+@@ -515,11 +422,10 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 	for (i = 0; i < npages; i++)
+ 		iopte_make_dummy(iommu, base + i);
+ 
+-	iommu_range_free(iommu, bus_addr, npages);
+-
+ 	iommu_free_ctx(iommu, ctx);
+-
+ 	spin_unlock_irqrestore(&iommu->lock, flags);
++
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
+ }
+ 
+ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -567,7 +473,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	max_seg_size = dma_get_max_seg_size(dev);
+ 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+ 				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
+-	base_shift = iommu->page_table_map_base >> IO_PAGE_SHIFT;
++	base_shift = iommu->tbl.page_table_map_base >> IO_PAGE_SHIFT;
+ 	for_each_sg(sglist, s, nelems, i) {
+ 		unsigned long paddr, npages, entry, out_entry = 0, slen;
+ 		iopte_t *base;
+@@ -581,7 +487,8 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		/* Allocate iommu entries for that segment */
+ 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
+ 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
+-		entry = iommu_range_alloc(dev, iommu, npages, &handle);
++		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
++					      &handle);
+ 
+ 		/* Handle failure */
+ 		if (unlikely(entry = DMA_ERROR_CODE)) {
+@@ -594,7 +501,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		base = iommu->page_table + entry;
+ 
+ 		/* Convert entry to a dma_addr_t */
+-		dma_addr = iommu->page_table_map_base +
++		dma_addr = iommu->tbl.page_table_map_base +
+ 			(entry << IO_PAGE_SHIFT);
+ 		dma_addr |= (s->offset & ~IO_PAGE_MASK);
+ 
+@@ -654,15 +561,17 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			vaddr = s->dma_address & IO_PAGE_MASK;
+ 			npages = iommu_num_pages(s->dma_address, s->dma_length,
+ 						 IO_PAGE_SIZE);
+-			iommu_range_free(iommu, vaddr, npages);
+ 
+-			entry = (vaddr - iommu->page_table_map_base)
++			entry = (vaddr - iommu->tbl.page_table_map_base)
+ 				>> IO_PAGE_SHIFT;
+ 			base = iommu->page_table + entry;
+ 
+ 			for (j = 0; j < npages; j++)
+ 				iopte_make_dummy(iommu, base + j);
+ 
++			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
++					     DMA_ERROR_CODE);
++
+ 			s->dma_address = DMA_ERROR_CODE;
+ 			s->dma_length = 0;
+ 		}
+@@ -677,17 +586,19 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ /* If contexts are being used, they are the same in all of the mappings
+  * we make for a particular SG.
+  */
+-static unsigned long fetch_sg_ctx(struct iommu *iommu, struct scatterlist *sg)
++static unsigned long fetch_sg_ctx(struct iommu *iommu,
++				  struct scatterlist *sg)
+ {
+ 	unsigned long ctx = 0;
+ 
+ 	if (iommu->iommu_ctxflush) {
+ 		iopte_t *base;
+ 		u32 bus_addr;
++		struct iommu_table *tbl = &iommu->tbl;
+ 
+ 		bus_addr = sg->dma_address & IO_PAGE_MASK;
+ 		base = iommu->page_table +
+-			((bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
++		       ((bus_addr - tbl->page_table_map_base) >> IO_PAGE_SHIFT);
+ 
+ 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
+ 	}
+@@ -723,9 +634,8 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		if (!len)
+ 			break;
+ 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
+-		iommu_range_free(iommu, dma_handle, npages);
+ 
+-		entry = ((dma_handle - iommu->page_table_map_base)
++		entry = ((dma_handle - iommu->tbl.page_table_map_base)
+ 			 >> IO_PAGE_SHIFT);
+ 		base = iommu->page_table + entry;
+ 
+@@ -737,6 +647,8 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		for (i = 0; i < npages; i++)
+ 			iopte_make_dummy(iommu, base + i);
+ 
++		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
++				     DMA_ERROR_CODE);
+ 		sg = sg_next(sg);
+ 	}
+ 
+@@ -770,9 +682,10 @@ static void dma_4u_sync_single_for_cpu(struct device *dev,
+ 	if (iommu->iommu_ctxflush &&
+ 	    strbuf->strbuf_ctxflush) {
+ 		iopte_t *iopte;
++		struct iommu_table *tbl = &iommu->tbl;
+ 
+ 		iopte = iommu->page_table +
+-			((bus_addr - iommu->page_table_map_base)>>IO_PAGE_SHIFT);
++			((bus_addr - tbl->page_table_map_base)>>IO_PAGE_SHIFT);
+ 		ctx = (iopte_val(*iopte) & IOPTE_CONTEXT) >> 47UL;
+ 	}
+ 
+@@ -805,9 +718,10 @@ static void dma_4u_sync_sg_for_cpu(struct device *dev,
+ 	if (iommu->iommu_ctxflush &&
+ 	    strbuf->strbuf_ctxflush) {
+ 		iopte_t *iopte;
++		struct iommu_table *tbl = &iommu->tbl;
+ 
+-		iopte = iommu->page_table +
+-			((sglist[0].dma_address - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
++		iopte = iommu->page_table + ((sglist[0].dma_address -
++			tbl->page_table_map_base) >> IO_PAGE_SHIFT);
+ 		ctx = (iopte_val(*iopte) & IOPTE_CONTEXT) >> 47UL;
+ 	}
+ 
+diff --git a/arch/sparc/kernel/iommu_common.h b/arch/sparc/kernel/iommu_common.h
+index 1ec0de4..f4be0d7 100644
+--- a/arch/sparc/kernel/iommu_common.h
++++ b/arch/sparc/kernel/iommu_common.h
+@@ -48,12 +48,4 @@ static inline int is_span_boundary(unsigned long entry,
+ 	return iommu_is_span_boundary(entry, nr, shift, boundary_size);
+ }
+ 
+-unsigned long iommu_range_alloc(struct device *dev,
+-				struct iommu *iommu,
+-				unsigned long npages,
+-				unsigned long *handle);
+-void iommu_range_free(struct iommu *iommu,
+-		      dma_addr_t dma_addr,
+-		      unsigned long npages);
+-
+ #endif /* _IOMMU_COMMON_H */
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 49d33b1..be45e8b 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -15,6 +15,7 @@
+ #include <linux/export.h>
+ #include <linux/log2.h>
+ #include <linux/of_device.h>
++#include <linux/iommu-common.h>
+ 
+ #include <asm/iommu.h>
+ #include <asm/irq.h>
+@@ -155,14 +156,12 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 
+ 	iommu = dev->archdata.iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+-	entry = iommu_range_alloc(dev, iommu, npages, NULL);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL);
+ 
+ 	if (unlikely(entry = DMA_ERROR_CODE))
+ 		goto range_alloc_fail;
+ 
+-	*dma_addrp = (iommu->page_table_map_base +
++	*dma_addrp = (iommu->tbl.page_table_map_base +
+ 		      (entry << IO_PAGE_SHIFT));
+ 	ret = (void *) first_page;
+ 	first_page = __pa(first_page);
+@@ -188,45 +187,46 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	return ret;
+ 
+ iommu_map_fail:
+-	/* Interrupts are disabled.  */
+-	spin_lock(&iommu->lock);
+-	iommu_range_free(iommu, *dma_addrp, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	iommu_tbl_range_free(&iommu->tbl, *dma_addrp, npages, DMA_ERROR_CODE);
+ 
+ range_alloc_fail:
+ 	free_pages(first_page, order);
+ 	return NULL;
+ }
+ 
++static void dma_4v_iommu_demap(void *demap_arg, unsigned long entry,
++			       unsigned long npages)
++{
++	u32 devhandle = *(u32 *)demap_arg;
++	unsigned long num, flags;
++
++	local_irq_save(flags);
++	do {
++		num = pci_sun4v_iommu_demap(devhandle,
++					    HV_PCI_TSBID(0, entry),
++					    npages);
++
++		entry += num;
++		npages -= num;
++	} while (npages != 0);
++	local_irq_restore(flags);
++}
++
+ static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
+ 				 dma_addr_t dvma, struct dma_attrs *attrs)
+ {
+ 	struct pci_pbm_info *pbm;
+ 	struct iommu *iommu;
+-	unsigned long flags, order, npages, entry;
++	unsigned long order, npages, entry;
+ 	u32 devhandle;
+ 
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+ 	pbm = dev->archdata.host_controller;
+ 	devhandle = pbm->devhandle;
+-	entry = ((dvma - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
+-
+-	spin_lock_irqsave(&iommu->lock, flags);
+-
+-	iommu_range_free(iommu, dvma, npages);
+-
+-	do {
+-		unsigned long num;
+-
+-		num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
+-					    npages);
+-		entry += num;
+-		npages -= num;
+-	} while (npages != 0);
+-
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+-
++	entry = ((dvma - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT);
++	dma_4v_iommu_demap(&devhandle, entry, npages);
++	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
+ 	order = get_order(size);
+ 	if (order < 10)
+ 		free_pages((unsigned long)cpu, order);
+@@ -253,14 +253,12 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+-	entry = iommu_range_alloc(dev, iommu, npages, NULL);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL);
+ 
+ 	if (unlikely(entry = DMA_ERROR_CODE))
+ 		goto bad;
+ 
+-	bus_addr = (iommu->page_table_map_base +
++	bus_addr = (iommu->tbl.page_table_map_base +
+ 		    (entry << IO_PAGE_SHIFT));
+ 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
+ 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
+@@ -290,11 +288,7 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	return DMA_ERROR_CODE;
+ 
+ iommu_map_fail:
+-	/* Interrupts are disabled.  */
+-	spin_lock(&iommu->lock);
+-	iommu_range_free(iommu, bus_addr, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+-
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
+ 	return DMA_ERROR_CODE;
+ }
+ 
+@@ -304,7 +298,7 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ {
+ 	struct pci_pbm_info *pbm;
+ 	struct iommu *iommu;
+-	unsigned long flags, npages;
++	unsigned long npages;
+ 	long entry;
+ 	u32 devhandle;
+ 
+@@ -321,22 +315,9 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 	npages = IO_PAGE_ALIGN(bus_addr + sz) - (bus_addr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 	bus_addr &= IO_PAGE_MASK;
+-
+-	spin_lock_irqsave(&iommu->lock, flags);
+-
+-	iommu_range_free(iommu, bus_addr, npages);
+-
+-	entry = (bus_addr - iommu->page_table_map_base) >> IO_PAGE_SHIFT;
+-	do {
+-		unsigned long num;
+-
+-		num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
+-					    npages);
+-		entry += num;
+-		npages -= num;
+-	} while (npages != 0);
+-
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	entry = (bus_addr - iommu->tbl.page_table_map_base) >> IO_PAGE_SHIFT;
++	dma_4v_iommu_demap(&devhandle, entry, npages);
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
+ }
+ 
+ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -371,14 +352,14 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	/* Init first segment length for backout at failure */
+ 	outs->dma_length = 0;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
++	local_irq_save(flags);
+ 
+ 	iommu_batch_start(dev, prot, ~0UL);
+ 
+ 	max_seg_size = dma_get_max_seg_size(dev);
+ 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+ 				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
+-	base_shift = iommu->page_table_map_base >> IO_PAGE_SHIFT;
++	base_shift = iommu->tbl.page_table_map_base >> IO_PAGE_SHIFT;
+ 	for_each_sg(sglist, s, nelems, i) {
+ 		unsigned long paddr, npages, entry, out_entry = 0, slen;
+ 
+@@ -391,7 +372,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		/* Allocate iommu entries for that segment */
+ 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
+ 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
+-		entry = iommu_range_alloc(dev, iommu, npages, &handle);
++		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
++					      &handle);
+ 
+ 		/* Handle failure */
+ 		if (unlikely(entry = DMA_ERROR_CODE)) {
+@@ -404,7 +386,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		iommu_batch_new_entry(entry);
+ 
+ 		/* Convert entry to a dma_addr_t */
+-		dma_addr = iommu->page_table_map_base +
++		dma_addr = iommu->tbl.page_table_map_base +
+ 			(entry << IO_PAGE_SHIFT);
+ 		dma_addr |= (s->offset & ~IO_PAGE_MASK);
+ 
+@@ -451,7 +433,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	if (unlikely(err < 0L))
+ 		goto iommu_map_failed;
+ 
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	local_irq_restore(flags);
+ 
+ 	if (outcount < incount) {
+ 		outs = sg_next(outs);
+@@ -469,7 +451,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 			vaddr = s->dma_address & IO_PAGE_MASK;
+ 			npages = iommu_num_pages(s->dma_address, s->dma_length,
+ 						 IO_PAGE_SIZE);
+-			iommu_range_free(iommu, vaddr, npages);
++			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
++					     DMA_ERROR_CODE);
+ 			/* XXX demap? XXX */
+ 			s->dma_address = DMA_ERROR_CODE;
+ 			s->dma_length = 0;
+@@ -477,7 +460,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		if (s = outs)
+ 			break;
+ 	}
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	local_irq_restore(flags);
+ 
+ 	return 0;
+ }
+@@ -489,7 +472,7 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 	struct pci_pbm_info *pbm;
+ 	struct scatterlist *sg;
+ 	struct iommu *iommu;
+-	unsigned long flags;
++	unsigned long flags, entry;
+ 	u32 devhandle;
+ 
+ 	BUG_ON(direction = DMA_NONE);
+@@ -498,33 +481,27 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 	pbm = dev->archdata.host_controller;
+ 	devhandle = pbm->devhandle;
+ 	
+-	spin_lock_irqsave(&iommu->lock, flags);
++	local_irq_save(flags);
+ 
+ 	sg = sglist;
+ 	while (nelems--) {
+ 		dma_addr_t dma_handle = sg->dma_address;
+ 		unsigned int len = sg->dma_length;
+-		unsigned long npages, entry;
++		unsigned long npages;
++		struct iommu_table *tbl = &iommu->tbl;
++		unsigned long shift = IO_PAGE_SHIFT;
+ 
+ 		if (!len)
+ 			break;
+ 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
+-		iommu_range_free(iommu, dma_handle, npages);
+-
+-		entry = ((dma_handle - iommu->page_table_map_base) >> IO_PAGE_SHIFT);
+-		while (npages) {
+-			unsigned long num;
+-
+-			num = pci_sun4v_iommu_demap(devhandle, HV_PCI_TSBID(0, entry),
+-						    npages);
+-			entry += num;
+-			npages -= num;
+-		}
+-
++		entry = ((dma_handle - tbl->page_table_map_base) >> shift);
++		dma_4v_iommu_demap(&devhandle, entry, npages);
++		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
++				     DMA_ERROR_CODE);
+ 		sg = sg_next(sg);
+ 	}
+ 
+-	spin_unlock_irqrestore(&iommu->lock, flags);
++	local_irq_restore(flags);
+ }
+ 
+ static struct dma_map_ops sun4v_dma_ops = {
+@@ -550,30 +527,33 @@ static void pci_sun4v_scan_bus(struct pci_pbm_info *pbm, struct device *parent)
+ }
+ 
+ static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
+-					    struct iommu *iommu)
++					    struct iommu_table *iommu)
+ {
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long i, cnt = 0;
++	struct iommu_pool *pool;
++	unsigned long i, pool_nr, cnt = 0;
+ 	u32 devhandle;
+ 
+ 	devhandle = pbm->devhandle;
+-	for (i = 0; i < arena->limit; i++) {
+-		unsigned long ret, io_attrs, ra;
+-
+-		ret = pci_sun4v_iommu_getmap(devhandle,
+-					     HV_PCI_TSBID(0, i),
+-					     &io_attrs, &ra);
+-		if (ret = HV_EOK) {
+-			if (page_in_phys_avail(ra)) {
+-				pci_sun4v_iommu_demap(devhandle,
+-						      HV_PCI_TSBID(0, i), 1);
+-			} else {
+-				cnt++;
+-				__set_bit(i, arena->map);
++	for (pool_nr = 0; pool_nr < iommu->nr_pools; pool_nr++) {
++		pool = &(iommu->arena_pool[pool_nr]);
++		for (i = pool->start; i <= pool->end; i++) {
++			unsigned long ret, io_attrs, ra;
++
++			ret = pci_sun4v_iommu_getmap(devhandle,
++						     HV_PCI_TSBID(0, i),
++						     &io_attrs, &ra);
++			if (ret = HV_EOK) {
++				if (page_in_phys_avail(ra)) {
++					pci_sun4v_iommu_demap(devhandle,
++							      HV_PCI_TSBID(0,
++							      i), 1);
++				} else {
++					cnt++;
++					__set_bit(i, iommu->map);
++				}
+ 			}
+ 		}
+ 	}
+-
+ 	return cnt;
+ }
+ 
+@@ -601,22 +581,23 @@ static int pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
+ 	dma_offset = vdma[0];
+ 
+ 	/* Setup initial software IOMMU state. */
+-	spin_lock_init(&iommu->lock);
+ 	iommu->ctx_lowest_free = 1;
+-	iommu->page_table_map_base = dma_offset;
++	iommu->tbl.page_table_map_base = dma_offset;
+ 	iommu->dma_addr_mask = dma_mask;
+ 
+ 	/* Allocate and initialize the free area map.  */
+ 	sz = (num_tsb_entries + 7) / 8;
+ 	sz = (sz + 7UL) & ~7UL;
+-	iommu->arena.map = kzalloc(sz, GFP_KERNEL);
+-	if (!iommu->arena.map) {
++	iommu->tbl.map = kzalloc(sz, GFP_KERNEL);
++	if (!iommu->tbl.map) {
+ 		printk(KERN_ERR PFX "Error, kmalloc(arena.map) failed.\n");
+ 		return -ENOMEM;
+ 	}
+-	iommu->arena.limit = num_tsb_entries;
+-
+-	sz = probe_existing_entries(pbm, iommu);
++	iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
++			    NULL, false /* no large_pool */,
++			    0 /* default npools */,
++			    false /* want span boundary checking */);
++	sz = probe_existing_entries(pbm, &iommu->tbl);
+ 	if (sz)
+ 		printk("%s: Imported %lu TSB entries from OBP\n",
+ 		       pbm->name, sz);
+-- 
+1.7.1
+
