@@ -1,48 +1,343 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Thu, 05 Mar 2015 01:27:04 +0000
-Subject: [PATCH v3 4/8] mips: switch to using asm-generic for seccomp.h
-Message-Id: <1425518828-16017-5-git-send-email-keescook@chromium.org>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Wed, 25 Mar 2015 17:34:48 +0000
+Subject: [PATCH v7 RFC 3/3] sparc: Make LDC use common iommu poll management functions
+Message-Id: <7c127eef649a089ef9cde1762d22fae3ab6524df.1427295804.git.sowmini.varadhan@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
+References: <cover.1427295804.git.sowmini.varadhan@oracle.com>
+In-Reply-To: <cover.1427295804.git.sowmini.varadhan@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.o
+To: sparclinux@vger.kernel.org
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sowmini.varadhan@oracle.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Switch to using the newly created asm-generic/seccomp.h for the seccomp
-strict mode syscall definitions. COMPAT definitions retain their overrides
-and the remaining definitions were identical.
+Note that this conversion is only being done to consolidate the
+code and ensure that the common code provides the sufficient
+abstraction. It is not expected to result in any noticeable
+performance improvement, as there is typically one ldc_iommu
+per vnet_port, and each one has 8k entries, with a typical
+request for 1-4 pages.  Thus LDC uses npools = 1.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/mips/include/asm/seccomp.h | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+v3: added this file to be a consumer of the common iommu library
+v4: removed ->cookie_to_index and ->demap from iommu_tbl_ops and instead
+    inline these calls into ldc before calling into iommu-common
+v6: remove iommu_tbl_ops
+v7: move pool_hash initialization to iommu_tbl_pool_init
 
-diff --git a/arch/mips/include/asm/seccomp.h b/arch/mips/include/asm/seccomp.h
-index f29c75cf83c6..1d8a2e2c75c1 100644
---- a/arch/mips/include/asm/seccomp.h
-+++ b/arch/mips/include/asm/seccomp.h
-@@ -2,11 +2,6 @@
+ arch/sparc/kernel/ldc.c |  152 ++++++++++++++++++++---------------------------
+ 1 files changed, 64 insertions(+), 88 deletions(-)
+
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 274a9f5..e858968 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/bitmap.h>
++#include <linux/iommu-common.h>
  
- #include <linux/unistd.h>
+ #include <asm/hypervisor.h>
+ #include <asm/iommu.h>
+@@ -27,6 +28,10 @@
+ #define DRV_MODULE_VERSION	"1.1"
+ #define DRV_MODULE_RELDATE	"July 22, 2008"
  
--#define __NR_seccomp_read __NR_read
--#define __NR_seccomp_write __NR_write
--#define __NR_seccomp_exit __NR_exit
--#define __NR_seccomp_sigreturn __NR_rt_sigreturn
--
- /*
-  * Kludge alert:
-  *
-@@ -29,4 +24,6 @@
- 
- #endif /* CONFIG_MIPS32_O32 */
- 
-+#include <asm-generic/seccomp.h>
++#define COOKIE_PGSZ_CODE	0xf000000000000000ULL
++#define COOKIE_PGSZ_CODE_SHIFT	60ULL
 +
- #endif /* __ASM_SECCOMP_H */
++
+ static char version[]  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ #define LDC_PACKET_SIZE		64
+@@ -98,10 +103,10 @@ static const struct ldc_mode_ops stream_ops;
+ int ldom_domaining_enabled;
+ 
+ struct ldc_iommu {
+-	/* Protects arena alloc/free.  */
++	/* Protects ldc_unmap.  */
+ 	spinlock_t			lock;
+-	struct iommu_arena		arena;
+ 	struct ldc_mtable_entry		*page_table;
++	struct iommu_table		iommu_table;
+ };
+ 
+ struct ldc_channel {
+@@ -998,31 +1003,59 @@ static void free_queue(unsigned long num_entries, struct ldc_packet *q)
+ 	free_pages((unsigned long)q, order);
+ }
+ 
++static unsigned long ldc_cookie_to_index(u64 cookie, void *arg)
++{
++	u64 szcode = cookie >> COOKIE_PGSZ_CODE_SHIFT;
++	/* struct ldc_iommu *ldc_iommu = (struct ldc_iommu *)arg; */
++
++	cookie &= ~COOKIE_PGSZ_CODE;
++
++	return (cookie >> (13ULL + (szcode * 3ULL)));
++}
++
++static void ldc_demap(struct ldc_iommu *iommu, unsigned long id, u64 cookie,
++		      unsigned long entry, unsigned long npages)
++{
++	struct ldc_mtable_entry *base;
++	unsigned long i, shift;
++
++	shift = (cookie >> COOKIE_PGSZ_CODE_SHIFT) * 3;
++	base = iommu->page_table + entry;
++	for (i = 0; i < npages; i++) {
++		if (base->cookie)
++			sun4v_ldc_revoke(id, cookie + (i << shift),
++					 base->cookie);
++		base->mte = 0;
++	}
++}
++
+ /* XXX Make this configurable... XXX */
+ #define LDC_IOTABLE_SIZE	(8 * 1024)
+ 
+-static int ldc_iommu_init(struct ldc_channel *lp)
++static int ldc_iommu_init(const char *name, struct ldc_channel *lp)
+ {
+ 	unsigned long sz, num_tsb_entries, tsbsize, order;
+-	struct ldc_iommu *iommu = &lp->iommu;
++	struct ldc_iommu *ldc_iommu = &lp->iommu;
++	struct iommu_table *iommu = &ldc_iommu->iommu_table;
+ 	struct ldc_mtable_entry *table;
+ 	unsigned long hv_err;
+ 	int err;
+ 
+ 	num_tsb_entries = LDC_IOTABLE_SIZE;
+ 	tsbsize = num_tsb_entries * sizeof(struct ldc_mtable_entry);
+-
+-	spin_lock_init(&iommu->lock);
++	spin_lock_init(&ldc_iommu->lock);
+ 
+ 	sz = num_tsb_entries / 8;
+ 	sz = (sz + 7UL) & ~7UL;
+-	iommu->arena.map = kzalloc(sz, GFP_KERNEL);
+-	if (!iommu->arena.map) {
++	iommu->map = kzalloc(sz, GFP_KERNEL);
++	if (!iommu->map) {
+ 		printk(KERN_ERR PFX "Alloc of arena map failed, sz=%lu\n", sz);
+ 		return -ENOMEM;
+ 	}
+-
+-	iommu->arena.limit = num_tsb_entries;
++	iommu_tbl_pool_init(iommu, num_tsb_entries, PAGE_SHIFT,
++			    NULL, false /* no large pool */,
++			    1 /* npools */,
++			    true /* skip span boundary check */);
+ 
+ 	order = get_order(tsbsize);
+ 
+@@ -1037,7 +1070,7 @@ static int ldc_iommu_init(struct ldc_channel *lp)
+ 
+ 	memset(table, 0, PAGE_SIZE << order);
+ 
+-	iommu->page_table = table;
++	ldc_iommu->page_table = table;
+ 
+ 	hv_err = sun4v_ldc_set_map_table(lp->id, __pa(table),
+ 					 num_tsb_entries);
+@@ -1049,31 +1082,32 @@ static int ldc_iommu_init(struct ldc_channel *lp)
+ 
+ out_free_table:
+ 	free_pages((unsigned long) table, order);
+-	iommu->page_table = NULL;
++	ldc_iommu->page_table = NULL;
+ 
+ out_free_map:
+-	kfree(iommu->arena.map);
+-	iommu->arena.map = NULL;
++	kfree(iommu->map);
++	iommu->map = NULL;
+ 
+ 	return err;
+ }
+ 
+ static void ldc_iommu_release(struct ldc_channel *lp)
+ {
+-	struct ldc_iommu *iommu = &lp->iommu;
++	struct ldc_iommu *ldc_iommu = &lp->iommu;
++	struct iommu_table *iommu = &ldc_iommu->iommu_table;
+ 	unsigned long num_tsb_entries, tsbsize, order;
+ 
+ 	(void) sun4v_ldc_set_map_table(lp->id, 0, 0);
+ 
+-	num_tsb_entries = iommu->arena.limit;
++	num_tsb_entries = iommu->poolsize * iommu->nr_pools;
+ 	tsbsize = num_tsb_entries * sizeof(struct ldc_mtable_entry);
+ 	order = get_order(tsbsize);
+ 
+-	free_pages((unsigned long) iommu->page_table, order);
+-	iommu->page_table = NULL;
++	free_pages((unsigned long) ldc_iommu->page_table, order);
++	ldc_iommu->page_table = NULL;
+ 
+-	kfree(iommu->arena.map);
+-	iommu->arena.map = NULL;
++	kfree(iommu->map);
++	iommu->map = NULL;
+ }
+ 
+ struct ldc_channel *ldc_alloc(unsigned long id,
+@@ -1140,7 +1174,7 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ 
+ 	lp->id = id;
+ 
+-	err = ldc_iommu_init(lp);
++	err = ldc_iommu_init(name, lp);
+ 	if (err)
+ 		goto out_free_ldc;
+ 
+@@ -1885,40 +1919,6 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
+ }
+ EXPORT_SYMBOL(ldc_read);
+ 
+-static long arena_alloc(struct ldc_iommu *iommu, unsigned long npages)
+-{
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long n, start, end, limit;
+-	int pass;
+-
+-	limit = arena->limit;
+-	start = arena->hint;
+-	pass = 0;
+-
+-again:
+-	n = bitmap_find_next_zero_area(arena->map, limit, start, npages, 0);
+-	end = n + npages;
+-	if (unlikely(end >= limit)) {
+-		if (likely(pass < 1)) {
+-			limit = start;
+-			start = 0;
+-			pass++;
+-			goto again;
+-		} else {
+-			/* Scanned the whole thing, give up. */
+-			return -1;
+-		}
+-	}
+-	bitmap_set(arena->map, n, npages);
+-
+-	arena->hint = end;
+-
+-	return n;
+-}
+-
+-#define COOKIE_PGSZ_CODE	0xf000000000000000ULL
+-#define COOKIE_PGSZ_CODE_SHIFT	60ULL
+-
+ static u64 pagesize_code(void)
+ {
+ 	switch (PAGE_SIZE) {
+@@ -1945,23 +1945,13 @@ static u64 make_cookie(u64 index, u64 pgsz_code, u64 page_offset)
+ 		page_offset);
+ }
+ 
+-static u64 cookie_to_index(u64 cookie, unsigned long *shift)
+-{
+-	u64 szcode = cookie >> COOKIE_PGSZ_CODE_SHIFT;
+-
+-	cookie &= ~COOKIE_PGSZ_CODE;
+-
+-	*shift = szcode * 3;
+-
+-	return (cookie >> (13ULL + (szcode * 3ULL)));
+-}
+ 
+ static struct ldc_mtable_entry *alloc_npages(struct ldc_iommu *iommu,
+ 					     unsigned long npages)
+ {
+ 	long entry;
+ 
+-	entry = arena_alloc(iommu, npages);
++	entry = iommu_tbl_range_alloc(NULL, &iommu->iommu_table, npages, NULL);
+ 	if (unlikely(entry < 0))
+ 		return NULL;
+ 
+@@ -2090,7 +2080,7 @@ int ldc_map_sg(struct ldc_channel *lp,
+ 	       struct ldc_trans_cookie *cookies, int ncookies,
+ 	       unsigned int map_perm)
+ {
+-	unsigned long i, npages, flags;
++	unsigned long i, npages;
+ 	struct ldc_mtable_entry *base;
+ 	struct cookie_state state;
+ 	struct ldc_iommu *iommu;
+@@ -2109,9 +2099,7 @@ int ldc_map_sg(struct ldc_channel *lp,
+ 
+ 	iommu = &lp->iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	base = alloc_npages(iommu, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+ 	if (!base)
+ 		return -ENOMEM;
+@@ -2136,7 +2124,7 @@ int ldc_map_single(struct ldc_channel *lp,
+ 		   struct ldc_trans_cookie *cookies, int ncookies,
+ 		   unsigned int map_perm)
+ {
+-	unsigned long npages, pa, flags;
++	unsigned long npages, pa;
+ 	struct ldc_mtable_entry *base;
+ 	struct cookie_state state;
+ 	struct ldc_iommu *iommu;
+@@ -2152,9 +2140,7 @@ int ldc_map_single(struct ldc_channel *lp,
+ 
+ 	iommu = &lp->iommu;
+ 
+-	spin_lock_irqsave(&iommu->lock, flags);
+ 	base = alloc_npages(iommu, npages);
+-	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+ 	if (!base)
+ 		return -ENOMEM;
+@@ -2172,35 +2158,25 @@ int ldc_map_single(struct ldc_channel *lp,
+ }
+ EXPORT_SYMBOL(ldc_map_single);
+ 
++
+ static void free_npages(unsigned long id, struct ldc_iommu *iommu,
+ 			u64 cookie, u64 size)
+ {
+-	struct iommu_arena *arena = &iommu->arena;
+-	unsigned long i, shift, index, npages;
+-	struct ldc_mtable_entry *base;
++	unsigned long npages, entry;
+ 
+ 	npages = PAGE_ALIGN(((cookie & ~PAGE_MASK) + size)) >> PAGE_SHIFT;
+-	index = cookie_to_index(cookie, &shift);
+-	base = iommu->page_table + index;
+ 
+-	BUG_ON(index > arena->limit ||
+-	       (index + npages) > arena->limit);
+-
+-	for (i = 0; i < npages; i++) {
+-		if (base->cookie)
+-			sun4v_ldc_revoke(id, cookie + (i << shift),
+-					 base->cookie);
+-		base->mte = 0;
+-		__clear_bit(index + i, arena->map);
+-	}
++	entry = ldc_cookie_to_index(cookie, iommu);
++	ldc_demap(iommu, id, cookie, entry, npages);
++	iommu_tbl_range_free(&iommu->iommu_table, cookie, npages, entry);
+ }
+ 
+ void ldc_unmap(struct ldc_channel *lp, struct ldc_trans_cookie *cookies,
+ 	       int ncookies)
+ {
+ 	struct ldc_iommu *iommu = &lp->iommu;
+-	unsigned long flags;
+ 	int i;
++	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&iommu->lock, flags);
+ 	for (i = 0; i < ncookies; i++) {
 -- 
-1.9.1
+1.7.1
 
