@@ -1,25 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 31 Mar 2015 14:52:16 +0000
-Subject: Re: [PATCH v3] sunvdc: Complete I/O request if vdisk server error
-Message-Id: <20150331.105216.1807786632748218322.davem@davemloft.net>
+From: David Ahern <david.ahern@oracle.com>
+Date: Thu, 26 Mar 2015 16:51:43 +0000
+Subject: d63e2e1f3df breaks sparc/T5-8
+Message-Id: <5514391F.2030300@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <55197CB6.2020903@oracle.com>
-In-Reply-To: <55197CB6.2020903@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: yinghai@kernel.org, sparclinux@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>
 
-From: chris hyser <chris.hyser@oracle.com>
-Date: Mon, 30 Mar 2015 13:05:46 -0400
+Hi:
 
-> If the underlying VDS driver error is not intermittent and callers
-> ignore the error and keep issuing requests or the queue is filled, I
-> suppose there could be a flood of messages.
+Boot of an 8-socket T5 sparc system fails on top of tree. git bisect 
+points to this commit:
 
-Please do not "top-post".
+commit 	904bf6bd150bdafb42ddbb3257ea8
+Author: Yinghai Lu <yinghai@kernel.org>
+Date:   Thu Jan 15 16:21:51 2015 -0600
 
-First provide (only) the most relevant quoted material, then
-provide your response underneath.  Not the other way around.
+sparc/PCI: Clip bridge windows to fit in upstream windows
 
-Thank you.
+Every PCI-PCI bridge window should fit inside an upstream bridge window 
+because orphaned address space is unreachable from the primary side of 
+the upstream bridge.  If we inherit invalid bridge windows that overlap 
+an upstream window from firmware, clip them to fit and update the bridge 
+accordingly.
+
+
+Sure enough if I revert it on top of tree the system boots fine.
+
+David
