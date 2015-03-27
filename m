@@ -1,32 +1,28 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Wed, 25 Mar 2015 21:05:42 +0000
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Fri, 27 Mar 2015 10:51:23 +0000
 Subject: Re: [PATCH v7 0/3] Generic IOMMU pooled allocator
-Message-Id: <1427317542.6468.85.camel@kernel.crashing.org>
+Message-Id: <20150327105123.GC15564@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1427295804.git.sowmini.varadhan@oracle.com>
  <20150325.141235.238730018688792495.davem@davemloft.net>
-In-Reply-To: <20150325.141235.238730018688792495.davem@davemloft.net>
+ <1427317542.6468.85.camel@kernel.crashing.org>
+In-Reply-To: <1427317542.6468.85.camel@kernel.crashing.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: aik@au1.ibm.com, sowmini.varadhan@oracle.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, David Miller <davem@davemloft.net>
 
-On Wed, 2015-03-25 at 14:12 -0400, David Miller wrote:
-> From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-> Date: Wed, 25 Mar 2015 13:34:45 -0400
+On (03/26/15 08:05), Benjamin Herrenschmidt wrote:
+> > PowerPC folks, what do you think?
 > 
-> > Changes from patchv6: moved pool_hash initialization to
-> > lib/iommu-common.c and cleaned up code duplication from 
-> > sun4v/sun4u/ldc. 
+> I'll give it another look today.
 > 
-> Looks good to me.
-> 
-> PowerPC folks, what do you think?
+> Cheers,
+> Ben.
 
-I'll give it another look today.
+Hi Ben, 
 
-Cheers,
-Ben.
+did you have a chance to look at this?
 
-
+--Sowmini
