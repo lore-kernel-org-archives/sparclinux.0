@@ -1,130 +1,68 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 28 Mar 2015 05:26:53 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sat, 28 Mar 2015 08:18:43 +0000
 Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <CAE9FiQUNLaNYAk6DoTDCAfbS=B1uks_=381KJDUk46+yg5cVwg@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="001a113fb98e285fbb0512527f30"
+Message-Id: <20150328081843.GA27114@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <5514391F.2030300@oracle.com>
-	<CAE9FiQXw3QUCNNZj2SVhn-AYWWnggT=7JXPkGNpYFzq-qAB1aQ@mail.gmail.com>
-	<551495EE.20201@oracle.com>
-	<CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>
-	<CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>
-	<5515F6B8.8020606@oracle.com>
-	<5515F782.7060301@oracle.com>
-	<CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>
-	<551623C1.2040300@oracle.com>
-In-Reply-To: <551623C1.2040300@oracle.com>
-To: David Ahern <david.ahern@oracle.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+ <CAE9FiQXw3QUCNNZj2SVhn-AYWWnggT=7JXPkGNpYFzq-qAB1aQ@mail.gmail.com>
+ <551495EE.20201@oracle.com>
+ <CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>
+ <CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>
+ <20150328010532.GA15897@ravnborg.org>
+ <CAE9FiQVHwR7ge-hFXq=xqOTZEzHdm5AqiwFC3HEcrTKxeDcePg@mail.gmail.com>
+In-Reply-To: <CAE9FiQVHwR7ge-hFXq=xqOTZEzHdm5AqiwFC3HEcrTKxeDcePg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: David Ahern <david.ahern@oracle.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
---001a113fb98e285fbb0512527f30
-Content-Type: text/plain; charset=UTF-8
+> >>  config ARM_THUMB
+> >>       bool "Support Thumb user binaries" if !CPU_THUMBONLY
+> >>       depends on CPU_ARM720T || CPU_ARM740T || CPU_ARM920T || CPU_ARM922T || \
+> >> Index: linux-2.6/arch/arm64/Kconfig
+> >> =================================> >> --- linux-2.6.orig/arch/arm64/Kconfig
+> >> +++ linux-2.6/arch/arm64/Kconfig
+> >> @@ -125,6 +125,9 @@ config HAVE_GENERIC_RCU_GUP
+> >>  config ARCH_DMA_ADDR_T_64BIT
+> >>       def_bool y
+> >>
+> >> +config ARCH_PCI_BUS_ADDR_T_64BIT
+> >> +     def_bool y
+> >> +
+> > Use select
+> ...
+> 
+> I was trying to keep the style to be consistent with old one in each Kconfig.
+> 
+> So do we just need to make sure new added lines to use new style?
 
-On Fri, Mar 27, 2015 at 8:45 PM, David Ahern <david.ahern@oracle.com> wrote:
-> On 3/27/15 9:19 PM, Yinghai Lu wrote:
->>
->> Good. But we still have annoying warning about "no compatible window".
->>
->> Please try attached patch that support 64bit pci mem space for sparc.
->>
->> BTW, looks like you still do not have   CONFIG_PCI_DEBUG=y in your
->> .config.
->> otherwise we should more verbose print out.
->> Or did you have DYNAMIC_DEBUG enabled ?
->> If it is that case, can you remove that?
->>
->
-> done. attached.
->
+Use new style select everywhere.
+That could maybe in the future trigger someone to update the different arch
+configs to use select for the remaining bits.
 
-ok, we are almost there.
+> >> Index: linux-2.6/include/linux/types.h
+> >> =================================> >> --- linux-2.6.orig/include/linux/types.h
+> >> +++ linux-2.6/include/linux/types.h
+> >> @@ -146,6 +146,13 @@ typedef u64 dma_addr_t;
+> >>  typedef u32 dma_addr_t;
+> >>  #endif /* dma_addr_t */
+> >>
+> >> +/* A pci_bus_addr_t can hold pci bus address for the platform */
+> >> +#ifdef CONFIG_ARCH_PCI_BUS_ADDR_T_64BIT
+> >> +typedef u64 pci_bus_addr_t;
+> >> +#else
+> >> +typedef u32 pci_bus_addr_t;
+> >> +#endif /* pci_bus_addr_t */
+> >> +
+> > Looking att all the Kconfig logic I get the impression that
+> > the type of pci_bus_addr_t equals unsigned long.
+> > If this is correct then you can skip that and things
+> > gets much simpler.
+> 
+> For x86 32bit with PAE support, we could use 64bit for bus address.
+> but unsigned long is 32bit.
 
-[99510.956337] pci_sun4v f02dbcfc: PCI host bridge to bus 0000:00
-[99511.025812] pci_bus 0000:00: root bus resource [io
-0x804000000000-0x80400fffffff] (bus address [0x0000-0xfffffff])
-[99511.151039] pci_bus 0000:00: root bus resource [mem
-0x800000000000-0x80007effffff] (bus address [0x00000000-0x7effffff])
-[99511.282693] pci_bus 0000:00: root bus resource [mem
-0x800100000000-0x8007ffffffff] (bus address [0x00000000-0x6ffffffff])
-[99511.414878] pci_bus 0000:00: root bus resource [bus 00-77]
+Missed that part - OK.
 
-
-looks like the offset for mem64 is not right.
-
-Please try attached v2.
-
-Thanks
-
-Yinghai
-
---001a113fb98e285fbb0512527f30
-Content-Type: text/x-patch; charset=US-ASCII; name="sparc_sun4v_mem64_v2.patch"
-Content-Disposition: attachment; filename="sparc_sun4v_mem64_v2.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_i7skofxn1
-
-U3ViamVjdDogW1JGQyBQQVRDSCB2Ml0gc3BhcmMvUENJOiBBZGQgbWVtNjQgcmVzb3VyY2UgcGFy
-c2luZyBmb3Igcm9vdCBidXMKCkZvdW5kIG5vIGNvbXBhdGlibGUgYnJpZGdlIHdpbmRvdyB3YXJu
-aW5nIGluIGJvb3QgbG9nIGZyb20gVDUtOC4KCnBjaSAwMDAwOjAwOjAxLjA6IGNhbid0IGNsYWlt
-IEJBUiAxNSBbbWVtIDB4MTAwMDAwMDAwLTB4NGFmZmZmZmZmIHByZWZdOiBubyBjb21wYXRpYmxl
-IGJyaWRnZSB3aW5kb3cKCmFuZCByb290IGJ1cyBvbmx5IHJlcG9ydCBpbyBhbmQgbWVtMzIuCgpw
-Y2lfc3VuNHYgZjAyZGJjZmM6IFBDSSBob3N0IGJyaWRnZSB0byBidXMgMDAwMDowMApwY2lfYnVz
-IDAwMDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFtpbyAgMHg4MDQwMDAwMDAwMDAtMHg4MDQwMGZm
-ZmZmZmZdIChidXMgYWRkcmVzcyBbMHgwMDAwLTB4ZmZmZmZmZl0pCnBjaV9idXMgMDAwMDowMDog
-cm9vdCBidXMgcmVzb3VyY2UgW21lbSAweDgwMDAwMDAwMDAwMC0weDgwMDA3ZWZmZmZmZl0gKGJ1
-cyBhZGRyZXNzIFsweDAwMDAwMDAwLTB4N2VmZmZmZmZdKQpwY2lfYnVzIDAwMDA6MDA6IHJvb3Qg
-YnVzIHJlc291cmNlIFtidXMgMDAtNzddCgpBZGQgbWVtNjQgaGFuZGxpbmcgaW4gcGNpX2NvbW1v
-biBmb3Igc3BhcmMsIHNvIHdlIGNhbiBoYXZlIDY0Yml0IHJlc291cmNlCnJlZ2lzdGVyZWQgZm9y
-IGJ1cyBhdCBmaXJzdC4KClNpZ25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVs
-Lm9yZz4KCi0tLQotdjI6IG1lbTY0X3NwYWNlIHNob3VsZCB1c2UgbWVtX3NwYWNlLnN0YXJ0IGFz
-IG9mZnNldC4KLS0tCiBhcmNoL3NwYXJjL2tlcm5lbC9wY2kuYyAgICAgICAgfCAgICAzICsrKwog
-YXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jIHwgICAxNSArKysrKysrKysrKysrLS0KIGFy
-Y2gvc3BhcmMva2VybmVsL3BjaV9pbXBsLmggICB8ICAgIDEgKwogMyBmaWxlcyBjaGFuZ2VkLCAx
-NyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKSW5kZXg6IGxpbnV4LTIuNi9hcmNoL3Nw
-YXJjL2tlcm5lbC9wY2kuYwo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09Ci0tLSBsaW51eC0yLjYub3JpZy9hcmNoL3NwYXJj
-L2tlcm5lbC9wY2kuYworKysgbGludXgtMi42L2FyY2gvc3BhcmMva2VybmVsL3BjaS5jCkBAIC02
-NjMsNiArNjYzLDkgQEAgc3RydWN0IHBjaV9idXMgKnBjaV9zY2FuX29uZV9wYm0oc3RydWN0CiAJ
-CQkJcGJtLT5pb19zcGFjZS5zdGFydCk7CiAJcGNpX2FkZF9yZXNvdXJjZV9vZmZzZXQoJnJlc291
-cmNlcywgJnBibS0+bWVtX3NwYWNlLAogCQkJCXBibS0+bWVtX3NwYWNlLnN0YXJ0KTsKKwlpZiAo
-cGJtLT5tZW02NF9zcGFjZS5mbGFncykKKwkJcGNpX2FkZF9yZXNvdXJjZV9vZmZzZXQoJnJlc291
-cmNlcywgJnBibS0+bWVtNjRfc3BhY2UsCisJCQkJCXBibS0+bWVtX3NwYWNlLnN0YXJ0KTsKIAlw
-Ym0tPmJ1c24uc3RhcnQgPSBwYm0tPnBjaV9maXJzdF9idXNubzsKIAlwYm0tPmJ1c24uZW5kCT0g
-cGJtLT5wY2lfbGFzdF9idXNubzsKIAlwYm0tPmJ1c24uZmxhZ3MJPSBJT1JFU09VUkNFX0JVUzsK
-SW5kZXg6IGxpbnV4LTIuNi9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMKPT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PQotLS0gbGludXgtMi42Lm9yaWcvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCisrKyBs
-aW51eC0yLjYvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCkBAIC00MDYsNiArNDA2LDcg
-QEAgdm9pZCBwY2lfZGV0ZXJtaW5lX21lbV9pb19zcGFjZShzdHJ1Y3QgcAogCX0KIAogCW51bV9w
-Ym1fcmFuZ2VzID0gaSAvIHNpemVvZigqcGJtX3Jhbmdlcyk7CisJbWVtc2V0KCZwYm0tPm1lbTY0
-X3NwYWNlLCAwLCBzaXplb2Yoc3RydWN0IHJlc291cmNlKSk7CiAKIAlmb3IgKGkgPSAwOyBpIDwg
-bnVtX3BibV9yYW5nZXM7IGkrKykgewogCQljb25zdCBzdHJ1Y3QgbGludXhfcHJvbV9wY2lfcmFu
-Z2VzICpwciA9ICZwYm1fcmFuZ2VzW2ldOwpAQCAtNDUxLDcgKzQ1MiwxMSBAQCB2b2lkIHBjaV9k
-ZXRlcm1pbmVfbWVtX2lvX3NwYWNlKHN0cnVjdCBwCiAJCQlicmVhazsKIAogCQljYXNlIDM6Ci0J
-CQkvKiBYWFggNjQtYml0IE1FTSBoYW5kbGluZyBYWFggKi8KKwkJCS8qIDY0LWJpdCBNRU0gaGFu
-ZGxpbmcgKi8KKwkJCXBibS0+bWVtNjRfc3BhY2Uuc3RhcnQgPSBhOworCQkJcGJtLT5tZW02NF9z
-cGFjZS5lbmQgPSBhICsgc2l6ZSAtIDFVTDsKKwkJCXBibS0+bWVtNjRfc3BhY2UuZmxhZ3MgPSBJ
-T1JFU09VUkNFX01FTTsKKwkJCWJyZWFrOwogCiAJCWRlZmF1bHQ6CiAJCQlicmVhazsKQEAgLTQ2
-NSwxNSArNDcwLDIxIEBAIHZvaWQgcGNpX2RldGVybWluZV9tZW1faW9fc3BhY2Uoc3RydWN0IHAK
-IAkJcHJvbV9oYWx0KCk7CiAJfQogCi0JcHJpbnRrKCIlczogUENJIElPWyVsbHhdIE1FTVslbGx4
-XVxuIiwKKwlwcmludGsoIiVzOiBQQ0kgSU9bJWxseF0gTUVNWyVsbHhdIiwKIAkgICAgICAgcGJt
-LT5uYW1lLAogCSAgICAgICBwYm0tPmlvX3NwYWNlLnN0YXJ0LAogCSAgICAgICBwYm0tPm1lbV9z
-cGFjZS5zdGFydCk7CisJaWYgKHBibS0+bWVtNjRfc3BhY2UuZmxhZ3MpCisJCXByaW50aygiIE1F
-TTY0WyVsbHhdIiwKKwkJICAgICAgIHBibS0+bWVtNjRfc3BhY2Uuc3RhcnQpOworCXByaW50aygi
-XG4iKTsKIAogCXBibS0+aW9fc3BhY2UubmFtZSA9IHBibS0+bWVtX3NwYWNlLm5hbWUgPSBwYm0t
-Pm5hbWU7CiAKIAlyZXF1ZXN0X3Jlc291cmNlKCZpb3BvcnRfcmVzb3VyY2UsICZwYm0tPmlvX3Nw
-YWNlKTsKIAlyZXF1ZXN0X3Jlc291cmNlKCZpb21lbV9yZXNvdXJjZSwgJnBibS0+bWVtX3NwYWNl
-KTsKKwlpZiAocGJtLT5tZW02NF9zcGFjZS5mbGFncykKKwkJcmVxdWVzdF9yZXNvdXJjZSgmaW9t
-ZW1fcmVzb3VyY2UsICZwYm0tPm1lbTY0X3NwYWNlKTsKIAogCXBjaV9yZWdpc3Rlcl9sZWdhY3lf
-cmVnaW9ucygmcGJtLT5pb19zcGFjZSwKIAkJCQkgICAgJnBibS0+bWVtX3NwYWNlKTsKSW5kZXg6
-IGxpbnV4LTIuNi9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfaW1wbC5oCj09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxp
-bnV4LTIuNi5vcmlnL2FyY2gvc3BhcmMva2VybmVsL3BjaV9pbXBsLmgKKysrIGxpbnV4LTIuNi9h
-cmNoL3NwYXJjL2tlcm5lbC9wY2lfaW1wbC5oCkBAIC05Nyw2ICs5Nyw3IEBAIHN0cnVjdCBwY2lf
-cGJtX2luZm8gewogCS8qIFBCTSBJL08gYW5kIE1lbW9yeSBzcGFjZSByZXNvdXJjZXMuICovCiAJ
-c3RydWN0IHJlc291cmNlCQkJaW9fc3BhY2U7CiAJc3RydWN0IHJlc291cmNlCQkJbWVtX3NwYWNl
-OworCXN0cnVjdCByZXNvdXJjZQkJCW1lbTY0X3NwYWNlOwogCXN0cnVjdCByZXNvdXJjZQkJCWJ1
-c247CiAKIAkvKiBCYXNlIG9mIFBDSSBDb25maWcgc3BhY2UsIGNhbiBiZSBwZXItUEJNIG9yIHNo
-YXJlZC4gKi8K
---001a113fb98e285fbb0512527f30--
+	Sam
