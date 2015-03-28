@@ -1,123 +1,40 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 28 Mar 2015 03:19:09 +0000
+From: David Ahern <david.ahern@oracle.com>
+Date: Sat, 28 Mar 2015 03:22:06 +0000
 Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="047d7bdc9f505d71e5051250b672"
+Message-Id: <55161E5E.4040609@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5514391F.2030300@oracle.com>
-	<CAE9FiQXw3QUCNNZj2SVhn-AYWWnggT=7JXPkGNpYFzq-qAB1aQ@mail.gmail.com>
-	<551495EE.20201@oracle.com>
-	<CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>
-	<CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>
-	<5515F6B8.8020606@oracle.com>
-	<5515F782.7060301@oracle.com>
-In-Reply-To: <5515F782.7060301@oracle.com>
-To: David Ahern <david.ahern@oracle.com>
+References: <5514391F.2030300@oracle.com>	<CAE9FiQXw3QUCNNZj2SVhn-AYWWnggT=7JXPkGNpYFzq-qAB1aQ@mail.gmail.com>	<551495EE.20201@oracle.com>	<CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>	<CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>	<5515F6B8.8020606@oracle.com>	<5515F782.7060301@oracle.com> <CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>
+In-Reply-To: <CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Yinghai Lu <yinghai@kernel.org>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
---047d7bdc9f505d71e5051250b672
-Content-Type: text/plain; charset=UTF-8
-
-On Fri, Mar 27, 2015 at 5:36 PM, David Ahern <david.ahern@oracle.com> wrote:
->>>
->>>> Also please make sure your config have
->>>>
->>>> CONFIG_PCI_DEBUG=y
->>>>
->>>> and capture serial console with "debug ignore_loglevel", so we check if
->>>> pci 0000:00:01.0 really have resource assigned.
->>>
->>>
->>> Please check attached patch and send out boot log with above config.
->>
->>
->> patched applied. PCI_DEBUG enabled. options added. log attached. This is
->> with d63e2e1f3df reverted still.
->>
+On 3/27/15 9:19 PM, Yinghai Lu wrote:
+> Good. But we still have annoying warning about "no compatible window".
 >
-> oops lied about that last one; I forgot to revert the patch this round. That
-> the system booted with it applied is progress.
+> Please try attached patch that support 64bit pci mem space for sparc.
 
-Good. But we still have annoying warning about "no compatible window".
+in place of or on top of the previous patch?
 
-Please try attached patch that support 64bit pci mem space for sparc.
+>
+> BTW, looks like you still do not have   CONFIG_PCI_DEBUG=y in your .config.
+> otherwise we should more verbose print out.
 
-BTW, looks like you still do not have   CONFIG_PCI_DEBUG=y in your .config.
-otherwise we should more verbose print out.
-Or did you have DYNAMIC_DEBUG enabled ?
-If it is that case, can you remove that?
+# zcat /proc/config.gz  | grep PCI_DEBUG
+CONFIG_PCI_DEBUG=y
 
-Thanks
+> Or did you have DYNAMIC_DEBUG enabled ?
 
-Yinghai
+# zcat /proc/config.gz  | grep DYNAMIC
+CONFIG_NETCONSOLE_DYNAMIC=y
+CONFIG_SND_DYNAMIC_MINORS=y
+# CONFIG_USB_DYNAMIC_MINORS is not set
+CONFIG_DYNAMIC_DEBUG=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_DYNAMIC_FTRACE=y
 
---047d7bdc9f505d71e5051250b672
-Content-Type: text/x-patch; charset=US-ASCII; name="sparc_sun4v_mem64.patch"
-Content-Disposition: attachment; filename="sparc_sun4v_mem64.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_i7sg1mtq0
+> If it is that case, can you remove that?
 
-U3ViamVjdDogW1JGQyBQQVRDSF0gc3BhcmMvUENJOiBBZGQgbWVtNjQgcmVzb3VyY2UgcGFyc2lu
-ZyBmb3Igcm9vdCBidXMKCkZvdW5kIG5vIGNvbXBhdGlibGUgYnJpZGdlIHdpbmRvdyB3YXJuaW5n
-IGluIGJvb3QgbG9nIGZyb20gVDUtOC4KCnBjaSAwMDAwOjAwOjAxLjA6IGNhbid0IGNsYWltIEJB
-UiAxNSBbbWVtIDB4MTAwMDAwMDAwLTB4NGFmZmZmZmZmIHByZWZdOiBubyBjb21wYXRpYmxlIGJy
-aWRnZSB3aW5kb3cKCmFuZCByb290IGJ1cyBvbmx5IHJlcG9ydCBpbyBhbmQgbWVtMzIuCgpwY2lf
-c3VuNHYgZjAyZGJjZmM6IFBDSSBob3N0IGJyaWRnZSB0byBidXMgMDAwMDowMApwY2lfYnVzIDAw
-MDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFtpbyAgMHg4MDQwMDAwMDAwMDAtMHg4MDQwMGZmZmZm
-ZmZdIChidXMgYWRkcmVzcyBbMHgwMDAwLTB4ZmZmZmZmZl0pCnBjaV9idXMgMDAwMDowMDogcm9v
-dCBidXMgcmVzb3VyY2UgW21lbSAweDgwMDAwMDAwMDAwMC0weDgwMDA3ZWZmZmZmZl0gKGJ1cyBh
-ZGRyZXNzIFsweDAwMDAwMDAwLTB4N2VmZmZmZmZdKQpwY2lfYnVzIDAwMDA6MDA6IHJvb3QgYnVz
-IHJlc291cmNlIFtidXMgMDAtNzddCgpBZGQgbWVtNjQgaGFuZGxpbmcgaW4gcGNpX2NvbW1vbiBm
-b3Igc3BhcmMsIHNvIHdlIGNhbiBoYXZlIDY0Yml0IHJlc291cmNlCnJlZ2lzdGVyZWQgZm9yIGJ1
-cyBhdCBmaXJzdC4KClNpZ25lZC1vZmYtYnk6IFlpbmdoYWkgTHUgPHlpbmdoYWlAa2VybmVsLm9y
-Zz4KCi0tLQogYXJjaC9zcGFyYy9rZXJuZWwvcGNpLmMgICAgICAgIHwgICAgMyArKysKIGFyY2gv
-c3BhcmMva2VybmVsL3BjaV9jb21tb24uYyB8ICAgMTUgKysrKysrKysrKysrKy0tCiBhcmNoL3Nw
-YXJjL2tlcm5lbC9wY2lfaW1wbC5oICAgfCAgICAxICsKIDMgZmlsZXMgY2hhbmdlZCwgMTcgaW5z
-ZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCkluZGV4OiBsaW51eC0yLjYvYXJjaC9zcGFyYy9r
-ZXJuZWwvcGNpLmMKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtMi42Lm9yaWcvYXJjaC9zcGFyYy9rZXJu
-ZWwvcGNpLmMKKysrIGxpbnV4LTIuNi9hcmNoL3NwYXJjL2tlcm5lbC9wY2kuYwpAQCAtNjYzLDYg
-KzY2Myw5IEBAIHN0cnVjdCBwY2lfYnVzICpwY2lfc2Nhbl9vbmVfcGJtKHN0cnVjdAogCQkJCXBi
-bS0+aW9fc3BhY2Uuc3RhcnQpOwogCXBjaV9hZGRfcmVzb3VyY2Vfb2Zmc2V0KCZyZXNvdXJjZXMs
-ICZwYm0tPm1lbV9zcGFjZSwKIAkJCQlwYm0tPm1lbV9zcGFjZS5zdGFydCk7CisJaWYgKHBibS0+
-bWVtNjRfc3BhY2UuZmxhZ3MpCisJCXBjaV9hZGRfcmVzb3VyY2Vfb2Zmc2V0KCZyZXNvdXJjZXMs
-ICZwYm0tPm1lbTY0X3NwYWNlLAorCQkJCQlwYm0tPm1lbTY0X3NwYWNlLnN0YXJ0KTsKIAlwYm0t
-PmJ1c24uc3RhcnQgPSBwYm0tPnBjaV9maXJzdF9idXNubzsKIAlwYm0tPmJ1c24uZW5kCT0gcGJt
-LT5wY2lfbGFzdF9idXNubzsKIAlwYm0tPmJ1c24uZmxhZ3MJPSBJT1JFU09VUkNFX0JVUzsKSW5k
-ZXg6IGxpbnV4LTIuNi9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMKPT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQot
-LS0gbGludXgtMi42Lm9yaWcvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCisrKyBsaW51
-eC0yLjYvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCkBAIC00MDYsNiArNDA2LDcgQEAg
-dm9pZCBwY2lfZGV0ZXJtaW5lX21lbV9pb19zcGFjZShzdHJ1Y3QgcAogCX0KIAogCW51bV9wYm1f
-cmFuZ2VzID0gaSAvIHNpemVvZigqcGJtX3Jhbmdlcyk7CisJbWVtc2V0KCZwYm0tPm1lbTY0X3Nw
-YWNlLCAwLCBzaXplb2Yoc3RydWN0IHJlc291cmNlKSk7CiAKIAlmb3IgKGkgPSAwOyBpIDwgbnVt
-X3BibV9yYW5nZXM7IGkrKykgewogCQljb25zdCBzdHJ1Y3QgbGludXhfcHJvbV9wY2lfcmFuZ2Vz
-ICpwciA9ICZwYm1fcmFuZ2VzW2ldOwpAQCAtNDUxLDcgKzQ1MiwxMSBAQCB2b2lkIHBjaV9kZXRl
-cm1pbmVfbWVtX2lvX3NwYWNlKHN0cnVjdCBwCiAJCQlicmVhazsKIAogCQljYXNlIDM6Ci0JCQkv
-KiBYWFggNjQtYml0IE1FTSBoYW5kbGluZyBYWFggKi8KKwkJCS8qIDY0LWJpdCBNRU0gaGFuZGxp
-bmcgKi8KKwkJCXBibS0+bWVtNjRfc3BhY2Uuc3RhcnQgPSBhOworCQkJcGJtLT5tZW02NF9zcGFj
-ZS5lbmQgPSBhICsgc2l6ZSAtIDFVTDsKKwkJCXBibS0+bWVtNjRfc3BhY2UuZmxhZ3MgPSBJT1JF
-U09VUkNFX01FTTsKKwkJCWJyZWFrOwogCiAJCWRlZmF1bHQ6CiAJCQlicmVhazsKQEAgLTQ2NSwx
-NSArNDcwLDIxIEBAIHZvaWQgcGNpX2RldGVybWluZV9tZW1faW9fc3BhY2Uoc3RydWN0IHAKIAkJ
-cHJvbV9oYWx0KCk7CiAJfQogCi0JcHJpbnRrKCIlczogUENJIElPWyVsbHhdIE1FTVslbGx4XVxu
-IiwKKwlwcmludGsoIiVzOiBQQ0kgSU9bJWxseF0gTUVNWyVsbHhdIiwKIAkgICAgICAgcGJtLT5u
-YW1lLAogCSAgICAgICBwYm0tPmlvX3NwYWNlLnN0YXJ0LAogCSAgICAgICBwYm0tPm1lbV9zcGFj
-ZS5zdGFydCk7CisJaWYgKHBibS0+bWVtNjRfc3BhY2UuZmxhZ3MpCisJCXByaW50aygiIE1FTTY0
-WyVsbHhdIiwKKwkJICAgICAgIHBibS0+bWVtNjRfc3BhY2Uuc3RhcnQpOworCXByaW50aygiXG4i
-KTsKIAogCXBibS0+aW9fc3BhY2UubmFtZSA9IHBibS0+bWVtX3NwYWNlLm5hbWUgPSBwYm0tPm5h
-bWU7CiAKIAlyZXF1ZXN0X3Jlc291cmNlKCZpb3BvcnRfcmVzb3VyY2UsICZwYm0tPmlvX3NwYWNl
-KTsKIAlyZXF1ZXN0X3Jlc291cmNlKCZpb21lbV9yZXNvdXJjZSwgJnBibS0+bWVtX3NwYWNlKTsK
-KwlpZiAocGJtLT5tZW02NF9zcGFjZS5mbGFncykKKwkJcmVxdWVzdF9yZXNvdXJjZSgmaW9tZW1f
-cmVzb3VyY2UsICZwYm0tPm1lbTY0X3NwYWNlKTsKIAogCXBjaV9yZWdpc3Rlcl9sZWdhY3lfcmVn
-aW9ucygmcGJtLT5pb19zcGFjZSwKIAkJCQkgICAgJnBibS0+bWVtX3NwYWNlKTsKSW5kZXg6IGxp
-bnV4LTIuNi9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfaW1wbC5oCj09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGxpbnV4
-LTIuNi5vcmlnL2FyY2gvc3BhcmMva2VybmVsL3BjaV9pbXBsLmgKKysrIGxpbnV4LTIuNi9hcmNo
-L3NwYXJjL2tlcm5lbC9wY2lfaW1wbC5oCkBAIC05Nyw2ICs5Nyw3IEBAIHN0cnVjdCBwY2lfcGJt
-X2luZm8gewogCS8qIFBCTSBJL08gYW5kIE1lbW9yeSBzcGFjZSByZXNvdXJjZXMuICovCiAJc3Ry
-dWN0IHJlc291cmNlCQkJaW9fc3BhY2U7CiAJc3RydWN0IHJlc291cmNlCQkJbWVtX3NwYWNlOwor
-CXN0cnVjdCByZXNvdXJjZQkJCW1lbTY0X3NwYWNlOwogCXN0cnVjdCByZXNvdXJjZQkJCWJ1c247
-CiAKIAkvKiBCYXNlIG9mIFBDSSBDb25maWcgc3BhY2UsIGNhbiBiZSBwZXItUEJNIG9yIHNoYXJl
-ZC4gKi8K
---047d7bdc9f505d71e5051250b672--
+will do; wasn't aware of it before now. Let me know about the patch ordering
