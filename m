@@ -1,28 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 24 Mar 2015 15:53:58 +0000
-Subject: Re: Ultra1 warning in 4.0.0-rc4-00048-gc586165
-Message-Id: <20150324.115358.2174213200176467289.davem@davemloft.net>
+From: chris hyser <chris.hyser@oracle.com>
+Date: Mon, 30 Mar 2015 16:41:26 +0000
+Subject: [PATCH v3] sunvdc: Complete I/O request if vdisk server error
+Message-Id: <55197CB6.2020903@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1503241040040.9652@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1503241040040.9652@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 24 Mar 2015 10:44:52 +0200 (EET)
+sunvdc: Complete I/O request if vdisk server error
 
-> Just started to compile todays git with memmove fixes on many sparcs and 
-> got the following warning on Ultra 1 during git or make:
-> 
-> [435962.279707] BUG: Bad rss-counter state mm:fffff800322b72e0 idx:0 val:7
-> [435962.357276] BUG: non-zero nr_ptes on freeing mm: 1
-> 
-> This is the first time I remember having seen this. After boot into 
-> 4.0.0-rc4-00048-gc586165 I performed only debian upgrade and that was 
-> fine. No load since then.
+If virtual disk server returns an I/O with an error and 0 data transferred,
+complete the I/O with EIO to ensure initiating process does not hang
+indefinitely.
 
-That's unfortunate, I thought we killed this bug :-/
+Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
 
-Oh well, more digging to do.
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 4b911ed..dad85fe 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -308,7 +308,11 @@ static void vdc_end_one(struct vdc_port *port, struct vio_dring_state *dr,
+
+  	rqe->req = NULL;
+
+-	__blk_end_request(req, (desc->status ? -EIO : 0), desc->size);
++	if (desc->status) {
++		pr_err(PFX "VIO I/O Error %d\n", desc->status);
++		__blk_end_request_all(req, -EIO);
++	} else
++		__blk_end_request(req, 0, desc->size);
+
+  	vdc_blk_queue_start(port);
+  }
+
+
