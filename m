@@ -1,60 +1,51 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Tue, 31 Mar 2015 18:16:11 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 31 Mar 2015 18:19:11 +0000
 Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <CAE9FiQUbKu-UWRBMJwn-fTH+LnEpODnOW+kGHg1FCtTZ3oDepQ@mail.gmail.com>
+Message-Id: <20150331.141911.1147249607585406404.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAE9FiQXu8qvCo9Dx6vUBXEO029n8K=c=CGtsfvWMGYdVgqtgOw@mail.gmail.com>
-	<5519D40D.20903@oracle.com>
-	<CAE9FiQUVSRkKNRzh99JA7V8dqsY78z_GtnMnwTrpSFXkJV9CKA@mail.gmail.com>
+References: <CAE9FiQUVSRkKNRzh99JA7V8dqsY78z_GtnMnwTrpSFXkJV9CKA@mail.gmail.com>
 	<20150331.110636.1386273674508393491.davem@davemloft.net>
-In-Reply-To: <20150331.110636.1386273674508393491.davem@davemloft.net>
+	<CAE9FiQUbKu-UWRBMJwn-fTH+LnEpODnOW+kGHg1FCtTZ3oDepQ@mail.gmail.com>
+In-Reply-To: <CAE9FiQUbKu-UWRBMJwn-fTH+LnEpODnOW+kGHg1FCtTZ3oDepQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: David Miller <davem@davemloft.net>
-Cc: David Ahern <david.ahern@oracle.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: yinghai@kernel.org
+Cc: david.ahern@oracle.com, bhelgaas@google.com, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Mar 31, 2015 at 8:06 AM, David Miller <davem@davemloft.net> wrote:
-> Your patch only allows the condition behind resources that have 64-bits
-> of significance, but that is not what the document above says about
-> when this situation is allowed.
->
-> Please implement the check either exactly as stated in the errata
-> document, or more loosely if that is not possible, rather than more
-> strictly than allowed.
->
-> Your overly strict and restrictive checks are what got us into this
-> predicament in the first place. :-(
-
-From that errata:
----
-Here are criteria that are sufficient to guarantee correctness for a
-given candidate BAR:
-
-The entire path from the host to the adapter is over PCI Express.
-
-No conventional PCI or PCI-X devices do peer-t o-peer reads to the
-range mapped by the BAR.
-
-The PCI Express Host Bridge does no byte merging. (This is believed to
-be true on most
-platforms.)
-
-Any locations with read side-effects are never the target of Memory
-Reads with the TH bit Set.
-See Section 2.2.5
----
-
-We can verify first one that we have all pcie device all the way to
-the hostbridge.
-
-But we can not verify or guarantee other three.
-
-System should get better about the constraints with system design.
-So if it would assign 64bit (and above 4G) mmio to those non-pref 64bit BAR,
-that means it already make sure system design will follow those criteria.
-and then we can safely set pref bit in resource flags.
-
-Thanks
-
-Yinghai
+RnJvbTogWWluZ2hhaSBMdSA8eWluZ2hhaUBrZXJuZWwub3JnPg0KRGF0ZTogVHVlLCAzMSBNYXIg
+MjAxNSAxMToxNjoxMSAtMDcwMA0KDQo+IE9uIFR1ZSwgTWFyIDMxLCAyMDE1IGF0IDg6MDYgQU0s
+IERhdmlkIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4gd3JvdGU6DQo+PiBZb3VyIHBhdGNo
+IG9ubHkgYWxsb3dzIHRoZSBjb25kaXRpb24gYmVoaW5kIHJlc291cmNlcyB0aGF0IGhhdmUgNjQt
+Yml0cw0KPj4gb2Ygc2lnbmlmaWNhbmNlLCBidXQgdGhhdCBpcyBub3Qgd2hhdCB0aGUgZG9jdW1l
+bnQgYWJvdmUgc2F5cyBhYm91dA0KPj4gd2hlbiB0aGlzIHNpdHVhdGlvbiBpcyBhbGxvd2VkLg0K
+Pj4NCj4+IFBsZWFzZSBpbXBsZW1lbnQgdGhlIGNoZWNrIGVpdGhlciBleGFjdGx5IGFzIHN0YXRl
+ZCBpbiB0aGUgZXJyYXRhDQo+PiBkb2N1bWVudCwgb3IgbW9yZSBsb29zZWx5IGlmIHRoYXQgaXMg
+bm90IHBvc3NpYmxlLCByYXRoZXIgdGhhbiBtb3JlDQo+PiBzdHJpY3RseSB0aGFuIGFsbG93ZWQu
+DQo+Pg0KPj4gWW91ciBvdmVybHkgc3RyaWN0IGFuZCByZXN0cmljdGl2ZSBjaGVja3MgYXJlIHdo
+YXQgZ290IHVzIGludG8gdGhpcw0KPj4gcHJlZGljYW1lbnQgaW4gdGhlIGZpcnN0IHBsYWNlLiA6
+LSgNCj4gDQo+IEZyb20gdGhhdCBlcnJhdGE6DQo+IC0tLQ0KPiBIZXJlIGFyZSBjcml0ZXJpYSB0
+aGF0IGFyZSBzdWZmaWNpZW50IHRvIGd1YXJhbnRlZSBjb3JyZWN0bmVzcyBmb3IgYQ0KPiBnaXZl
+biBjYW5kaWRhdGUgQkFSOg0KPiDCiQ0KPiBUaGUgZW50aXJlIHBhdGggZnJvbSB0aGUgaG9zdCB0
+byB0aGUgYWRhcHRlciBpcyBvdmVyIFBDSSBFeHByZXNzLg0KPiDCiQ0KPiBObyBjb252ZW50aW9u
+YWwgUENJIG9yIFBDSS1YIGRldmljZXMgZG8gcGVlci10IG8tcGVlciByZWFkcyB0byB0aGUNCj4g
+cmFuZ2UgbWFwcGVkIGJ5IHRoZSBCQVIuDQo+IMKJDQo+IFRoZSBQQ0kgRXhwcmVzcyBIb3N0IEJy
+aWRnZSBkb2VzIG5vIGJ5dGUgbWVyZ2luZy4gKFRoaXMgaXMgYmVsaWV2ZWQgdG8NCj4gYmUgdHJ1
+ZSBvbiBtb3N0DQo+IHBsYXRmb3Jtcy4pDQo+IMKJDQo+IEFueSBsb2NhdGlvbnMgd2l0aCByZWFk
+IHNpZGUtZWZmZWN0cyBhcmUgbmV2ZXIgdGhlIHRhcmdldCBvZiBNZW1vcnkNCj4gUmVhZHMgd2l0
+aCB0aGUgVEggYml0IFNldC4NCj4gU2VlIFNlY3Rpb24gMi4yLjUNCj4gLS0tDQo+IA0KPiBXZSBj
+YW4gdmVyaWZ5IGZpcnN0IG9uZSB0aGF0IHdlIGhhdmUgYWxsIHBjaWUgZGV2aWNlIGFsbCB0aGUg
+d2F5IHRvDQo+IHRoZSBob3N0YnJpZGdlLg0KPiANCj4gQnV0IHdlIGNhbiBub3QgdmVyaWZ5IG9y
+IGd1YXJhbnRlZSBvdGhlciB0aHJlZS4NCg0KTGFjayBvZiBwZWVyLXRvLXBlZXIgcmVhZHMgd2Ug
+Y2FuIGFzc3VtZSwgdGhlIGJ5dGUgbWVyZ2luZyB3ZSBjYW4NCmFkZCBhcyBhIHBlci1jb250cm9s
+bGVyIGF0dHJpYnV0ZSBpbiB0aGUgZnV0dXJlIGlmIGl0IHR1cm5zIG91dCB0aGVyZQ0KYXJlIHNv
+bWUgdGhhdCBkbyBhbmQgaXQgbWF0dGVycyAoSSBkb3VidCB0aGlzIHdpbGwgZXZlciBiZSBuZWNl
+c3NhcnkpDQphbmQgdGhlIHNpZGUtZWZmZWN0IGlzc3VlIGlzIG91dHNpZGUgdGhlIHNjb3BlIG9m
+IHRoZSBQQ0kgbGF5ZXIuDQoNCj4gU3lzdGVtIHNob3VsZCBnZXQgYmV0dGVyIGFib3V0IHRoZSBj
+b25zdHJhaW50cyB3aXRoIHN5c3RlbSBkZXNpZ24uDQo+IFNvIGlmIGl0IHdvdWxkIGFzc2lnbiA2
+NGJpdCAoYW5kIGFib3ZlIDRHKSBtbWlvIHRvIHRob3NlIG5vbi1wcmVmIDY0Yml0IEJBUiwNCj4g
+dGhhdCBtZWFucyBpdCBhbHJlYWR5IG1ha2Ugc3VyZSBzeXN0ZW0gZGVzaWduIHdpbGwgZm9sbG93
+IHRob3NlIGNyaXRlcmlhLg0KPiBhbmQgdGhlbiB3ZSBjYW4gc2FmZWx5IHNldCBwcmVmIGJpdCBp
+biByZXNvdXJjZSBmbGFncy4NCg0KSSB0b3RhbGx5IGRpc2FncmVlLCBJIHRoaW5rIHlvdXIgdGVz
+dCBpcyB0b28gc3RyaW5nZW50IGFuZCBzaG91bGQgYmUNCnNpZ25pZmljYW50bHkgcmVsYXhlZCBp
+ZiBub3QgcmVtb3ZlZCBlbnRpcmVseS4NCg=
