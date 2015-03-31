@@ -1,34 +1,45 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Tue, 31 Mar 2015 15:15:33 +0000
-Subject: RE: [PATCH v8 RFC 1/3] sparc: Break up monolithic iommu table/lock into finer graularity pools and l
-Message-Id: <063D6719AE5E284EB5DD2968C1650D6D1CB118E4@AcuExch.aculab.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 31 Mar 2015 15:25:11 +0000
+Subject: Re: [PATCH v8 RFC 1/3] sparc: Break up monolithic iommu table/lock into finer graularity pools and l
+Message-Id: <20150331152511.GB20062@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1427761300.git.sowmini.varadhan@oracle.com>
  <8406d119fb885255387a400551de994cb4a4c331.1427761300.git.sowmini.varadhan@oracle.com>
-In-Reply-To: <8406d119fb885255387a400551de994cb4a4c331.1427761300.git.sowmini.varadhan@oracle.com>
+ <063D6719AE5E284EB5DD2968C1650D6D1CB118E4@AcuExch.aculab.com>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CB118E4@AcuExch.aculab.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Sowmini Varadhan' <sowmini.varadhan@oracle.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
-Cc: "paulus@samba.org" <paulus@samba.org>, "anton@au1.ibm.com" <anton@au1.ibm.com>, "aik@au1.ibm.com" <aik@au1.ibm.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "davem@davemloft.net" <davem@davemloft.net>
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: "aik@au1.ibm.com" <aik@au1.ibm.com>, "anton@au1.ibm.com" <anton@au1.ibm.com>, "paulus@samba.org" <paulus@samba.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "davem@davemloft.net" <davem@davemloft.net>
 
-RnJvbTogU293bWluaSBWYXJhZGhhbg0KPiBJbnZlc3RpZ2F0aW9uIG9mIG11bHRpdGhyZWFkZWQg
-aXBlcmYgZXhwZXJpbWVudHMgb24gYW4gZXRoZXJuZXQNCj4gaW50ZXJmYWNlIHNob3cgdGhlIGlv
-bW11LT5sb2NrIGFzIHRoZSBob3R0ZXN0IGxvY2sgaWRlbnRpZmllZCBieQ0KPiBsb2Nrc3RhdCwg
-d2l0aCBzb21ldGhpbmcgb2YgdGhlIG9yZGVyIG9mICAyMU0gY29udGVudGlvbnMgb3V0IG9mDQo+
-IDI3TSBhY3F1aXNpdGlvbnMsIGFuZCBhbiBhdmVyYWdlIHdhaXQgdGltZSBvZiAyNiB1cyBmb3Ig
-dGhlIGxvY2suDQo+IFRoaXMgaXMgbm90IGVmZmljaWVudC4gQSBtb3JlIHNjYWxhYmxlIGRlc2ln
-biBpcyB0byBmb2xsb3cgdGhlIHBwYw0KPiBtb2RlbCwgd2hlcmUgdGhlIGlvbW11X21hcF90YWJs
-ZSBoYXMgbXVsdGlwbGUgcG9vbHMsIGVhY2ggc3RyZXRjaGluZw0KPiBvdmVyIGEgc2VnbWVudCBv
-ZiB0aGUgbWFwLCBhbmQgd2l0aCBhIHNlcGFyYXRlIGxvY2sgZm9yIGVhY2ggcG9vbC4NCj4gVGhp
-cyBtb2RlbCBhbGxvd3MgZm9yIGJldHRlciBwYXJhbGxlbGl6YXRpb24gb2YgdGhlIGlvbW11IG1h
-cCBzZWFyY2guDQoNCkkndmUgd29uZGVyZWQgd2hldGhlciB0aGUgaW9tbXUgc2V0dXAgZm9yIGV0
-aGVybmV0IHJlY2VpdmUgKGluIHBhcnRpY3VsYXIpDQpjb3VsZCBiZSBtYWRlIG11Y2ggbW9yZSBl
-ZmZpY2llbnQgaWYgdGhlcmUgd2VyZSBhIGZ1bmN0aW9uIHRoYXQNCndvdWxkIHVubWFwIG9uZSBi
-dWZmZXIgYW5kIG1hcCBhIHNlY29uZCBidWZmZXI/DQpNeSB0aG91Z2h0IGlzIHRoYXQgaW9tbXUg
-cHRlIGVudHJ5IHVzZWQgYnkgdGhlIG9sZCBidWZmZXIgY291bGQganVzdA0KYmUgbW9kaWZpZWQg
-dG8gcmVmZXJlbmNlIHRoZSBuZXcgb25lLg0KSW4gZWZmZWN0IGVhY2ggcmluZyBlbnRyeSB3b3Vs
-ZCBlbmQgdXAgdXNpbmcgYSBmaXhlZCBpb21tdSBwdGUuDQoNClRoZSBvdGhlciBxdWVzdGlvbiBp
-cyBob3cgbXVjaCBkYXRhIGNhbiBiZSBjb3BpZWQgaW4gMjZ1cyA/DQpPbiBpb21tdSBzeXN0ZW1z
-ICdjb3B5YnJlYWsnIGxpbWl0cyBvbiByZWNlaXZlIGFuZCB0cmFuc21pdA0KbWF5IG5lZWQgdG8g
-YmUgcXVpdGUgaGlnaC4NCg0KCURhdmlkDQoNCg=
+On (03/31/15 15:15), David Laight wrote:
+> 
+> I've wondered whether the iommu setup for ethernet receive (in particular)
+> could be made much more efficient if there were a function that
+> would unmap one buffer and map a second buffer?
+> My thought is that iommu pte entry used by the old buffer could just
+> be modified to reference the new one.
+> In effect each ring entry would end up using a fixed iommu pte.
+
+There are a number of interesting things to investigate in
+this space, and the above is just one of them, ways to avoid
+the overhead of a full-blown map/unmap on each call. See 
+  http://www.spinics.net/lists/sparclinux/msg13613.html
+
+But the scope of this patchset is actually very rigidly defined:
+to refactor the iommu pool/arena allocator into a common library,
+and avoid code duplication (today even the single sparc arch
+duplicates it for sun4[u,v] and ldc, and that's not even counting
+the duplication across other archs/pci-drivers).
+
+Investigating ways to provide a generalized infra that can
+avoid a dma map/unmp for every packet would be a good follow-on.
+
+> The other question is how much data can be copied in 26us ?
+> On iommu systems 'copybreak' limits on receive and transmit
+> may need to be quite high.
+
+where does the "26us" number come from? I may be missing that context?
+
+--Sowmini
