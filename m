@@ -1,31 +1,60 @@
-From: David Ahern <david.ahern@oracle.com>
-Date: Tue, 31 Mar 2015 17:04:04 +0000
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Tue, 31 Mar 2015 18:16:11 +0000
 Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <551AD384.50000@oracle.com>
+Message-Id: <CAE9FiQUbKu-UWRBMJwn-fTH+LnEpODnOW+kGHg1FCtTZ3oDepQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5514391F.2030300@oracle.com>	<CAE9FiQXw3QUCNNZj2SVhn-AYWWnggT=7JXPkGNpYFzq-qAB1aQ@mail.gmail.com>	<551495EE.20201@oracle.com>	<CAE9FiQXAD1ncuJ=ZiOSR4xCKbamPJ-5JSqEx1Veiai5bZKBcGA@mail.gmail.com>	<CAE9FiQWwU4gsq4y0+BTMtisBGQDxF1m_pxAT62PmP-Ct+O1c5A@mail.gmail.com>	<5515F6B8.8020606@oracle.com>	<5515F782.7060301@oracle.com>	<CAE9FiQXpNKrX9BuC5-sgb8XEdFPN1a-wBRR2XqY5Mh1cnhXSPQ@mail.gmail.com>	<551623C1.2040300@oracle.com>	<CAE9FiQUNLaNYAk6DoTDCAfbS=B1uks_=381KJDUk46+yg5cVwg@mail.gmail.com>	<5516BF4B.9030901@oracle.com>	<CAE9FiQV_BOKQu8+mCqQRx_RJYucwuGAfJog7qoUW0J_i=9u=Tg@mail.gmail.com>	<55181065.8090807@oracle.com>	<CAE9FiQXu8qvCo9Dx6vUBXEO029n8K=c=CGtsfvWMGYdVgqtgOw@mail.gmail.com>	<5519D40D.20903@oracle.com>	<CAE9FiQUVSRkKNRzh99JA7V8dqsY78z_GtnMnwTrpSFXkJV9CKA@mail.gmail.com>	<551A1E32.1010309@oracle.com> <CAE9FiQWEZRYtk3sFU3U8ptZ5SvGtam65M-_wXXVEzcvuCWT3wA@mail.gmail.com>
-In-Reply-To: <CAE9FiQWEZRYtk3sFU3U8ptZ5SvGtam65M-_wXXVEzcvuCWT3wA@mail.gmail.com>
+References: <CAE9FiQXu8qvCo9Dx6vUBXEO029n8K=c=CGtsfvWMGYdVgqtgOw@mail.gmail.com>
+	<5519D40D.20903@oracle.com>
+	<CAE9FiQUVSRkKNRzh99JA7V8dqsY78z_GtnMnwTrpSFXkJV9CKA@mail.gmail.com>
+	<20150331.110636.1386273674508393491.davem@davemloft.net>
+In-Reply-To: <20150331.110636.1386273674508393491.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: David Miller <davem@davemloft.net>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: David Miller <davem@davemloft.net>
+Cc: David Ahern <david.ahern@oracle.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 3/31/15 10:53 AM, Yinghai Lu wrote:
-> On Mon, Mar 30, 2015 at 9:10 PM, David Ahern <david.ahern@oracle.com> wrote:
->> On 3/30/15 7:06 PM, Yinghai Lu wrote:
->> To make sure I am on the same page: these are a new round of patches? clear
->> out the old, apply these?
+On Tue, Mar 31, 2015 at 8:06 AM, David Miller <davem@davemloft.net> wrote:
+> Your patch only allows the condition behind resources that have 64-bits
+> of significance, but that is not what the document above says about
+> when this situation is allowed.
 >
-> Clear out the old and apply these new ones.
+> Please implement the check either exactly as stated in the errata
+> document, or more loosely if that is not possible, rather than more
+> strictly than allowed.
+>
+> Your overly strict and restrictive checks are what got us into this
+> predicament in the first place. :-(
 
-I take DaveM's response to mean the patches (3rd one?) needs another 
-version.
+From that errata:
+---
+Here are criteria that are sufficient to guarantee correctness for a
+given candidate BAR:
+
+The entire path from the host to the adapter is over PCI Express.
+
+No conventional PCI or PCI-X devices do peer-t o-peer reads to the
+range mapped by the BAR.
+
+The PCI Express Host Bridge does no byte merging. (This is believed to
+be true on most
+platforms.)
+
+Any locations with read side-effects are never the target of Memory
+Reads with the TH bit Set.
+See Section 2.2.5
+---
 
-I will be on PTO Wed-Fri with limited access through Sunday. If you have 
-something to try out later today I can do that; else it needs to wait 
-until next week. Given the likelihood that Linus will release 4.0 this 
-weekend that means both 3.19 and 4.0 will be broken for these systems.
+We can verify first one that we have all pcie device all the way to
+the hostbridge.
 
-David
+But we can not verify or guarantee other three.
 
+System should get better about the constraints with system design.
+So if it would assign 64bit (and above 4G) mmio to those non-pref 64bit BAR,
+that means it already make sure system design will follow those criteria.
+and then we can safely set pref bit in resource flags.
+
+Thanks
+
+Yinghai
