@@ -1,39 +1,29 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Wed, 01 Apr 2015 01:08:18 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 01 Apr 2015 03:12:24 +0000
 Subject: Re: [PATCH v8 RFC 0/3] Generic IOMMU pooled allocator
-Message-Id: <551B4502.1020603@oracle.com>
+Message-Id: <20150331.231224.402909066860518278.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1427761300.git.sowmini.varadhan@oracle.com>	
- <20150331180642.GA13314@oracle.com>
+References: <20150331180642.GA13314@oracle.com>
  <1427850091.20500.150.camel@kernel.crashing.org>
-In-Reply-To: <1427850091.20500.150.camel@kernel.crashing.org>
+ <551B4502.1020603@oracle.com>
+In-Reply-To: <551B4502.1020603@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: sowmini.varadhan@oracle.com
+Cc: aik@au1.ibm.com, anton@au1.ibm.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-On 03/31/2015 09:01 PM, Benjamin Herrenschmidt wrote:
-> On Tue, 2015-03-31 at 14:06 -0400, Sowmini Varadhan wrote:
->> Having bravely said that..
->>
->> the IB team informs me that they see a 10% degradation using
->> the spin_lock as opposed to the trylock.
->>
->> one path going forward is to continue processing this patch-set
->> as is. I can investigate this further, and later revise the spin_lock
->> to the trylock, after we are certain that it is good/necessary.
->
-> Have they tried using more pools instead ?
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 31 Mar 2015 21:08:18 -0400
 
+> I'm starting to wonder if  some approximation of dma premapped
+> buffers may be needed. Doing a map/unmap on each packet is expensive.
 
-we just tried 32 instead of 16, no change to perf.
+It's much more amortized with smart buffering strategies, which are
+common on current generation networking cards.
 
-Looks like their current bottleneck is the find_next_zero_bit (they
-can get a 2X perf improvement with the lock fragmentation, but are
-then hitting a new ceiling, even with the trylock version)
+There you only eat one map/unmap per "PAGE_SIZE / rx_pkt_size".
 
-
-I'm starting to wonder if  some approximation of dma premapped
-buffers may be needed. Doing a map/unmap on each packet is expensive.
-
+Maybe the infiniband stuff is doing things very suboptimally, and
+actually with that subsystem and drivers absolutely nothing would
+surprise me.
