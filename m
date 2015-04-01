@@ -1,81 +1,42 @@
-From: Yijing Wang <wangyijing@huawei.com>
-Date: Tue, 21 Apr 2015 11:34:40 +0000
-Subject: [PATCH v10 21/29] sparc/PCI: Use pci_scan_host_bridge() for simplicity
-Message-Id: <1429616088-10249-22-git-send-email-wangyijing@huawei.com>
+From: Joel Stanley <joel@jms.id.au>
+Date: Wed, 01 Apr 2015 07:16:48 +0000
+Subject: [PATCH v2 3/3] powerpc/powernv: Reboot when requested by firmware
+Message-Id: <1427871888-27331-3-git-send-email-joel@jms.id.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1429616088-10249-1-git-send-email-wangyijing@huawei.com>
-In-Reply-To: <1429616088-10249-1-git-send-email-wangyijing@huawei.com>
+References: <1427871888-27331-1-git-send-email-joel@jms.id.au>
+In-Reply-To: <1427871888-27331-1-git-send-email-joel@jms.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Cc: rusty@rustcorp.com.au, fabf@skynet.be, jk@ozlabs.org, akpm@linux-foundation.org, davem@davemloft.net
 
-Now we could use pci_scan_host_bridge() to scan
-pci buses, provide sparc specific pci_host_bridge_ops.
+Use orderly_reboot so userspace will to shut itself down via the reboot
+path. This is required for graceful reboot initiated by the BMC, such
+as when a user uses ipmitool to issue a 'chassis power cycle' command.
 
-Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 ---
- arch/sparc/kernel/pci.c |   28 ++++++++++++++++++++++------
- 1 files changed, 22 insertions(+), 6 deletions(-)
+ arch/powerpc/platforms/powernv/opal-power.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 6ff363c..9feaa77 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -650,12 +650,27 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
- 		pci_claim_bus_resources(child_bus);
- }
+diff --git a/arch/powerpc/platforms/powernv/opal-power.c b/arch/powerpc/platforms/powernv/opal-power.c
+index 48bf5b0..ac46c2c 100644
+--- a/arch/powerpc/platforms/powernv/opal-power.c
++++ b/arch/powerpc/platforms/powernv/opal-power.c
+@@ -29,8 +29,9 @@ static int opal_power_control_event(struct notifier_block *nb,
  
-+static int pci_host_of_scan_bus(
-+		struct pci_host_bridge *host)
-+{
-+	struct pci_pbm_info *pbm = dev_get_drvdata(&host->dev);
-+	struct device_node *node = pbm->op->dev.of_node;
-+
-+	pci_of_scan_bus(pbm, node, host->bus);
-+	return pci_bus_child_max_busnr(host->bus);
-+}
-+
-+static struct pci_host_bridge_ops pci_host_ops = {
-+	.scan_bus = pci_host_of_scan_bus,
-+};
-+
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent)
- {
- 	LIST_HEAD(resources);
- 	struct device_node *node = pbm->op->dev.of_node;
- 	struct pci_bus *bus;
-+	struct pci_host_bridge *host;
- 
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
- 
-@@ -667,16 +682,17 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
- 	pci_add_resource(&resources, &pbm->busn);
--	bus = pci_create_root_bus(parent, pbm->index,
--			pbm->pci_ops, pbm, &resources);
--	if (!bus) {
--		printk(KERN_ERR "Failed to create bus for %s\n",
--		       node->full_name);
-+	pci_host_ops.pci_ops = pbm->pci_ops;
-+	host = pci_scan_host_bridge(parent, pbm->index,
-+			pbm, &resources, &pci_host_ops);
-+	if (!host) {
-+		pr_err("Failed to create host bridge pci%04x:%02x for %s\n",
-+		       pbm->index, pbm->pci_first_busno, node->full_name);
- 		pci_free_resource_list(&resources);
- 		return NULL;
- 	}
- 
--	pci_of_scan_bus(pbm, node, bus);
-+	bus = host->bus;
- 	pci_bus_register_of_sysfs(bus);
- 
- 	pci_claim_bus_resources(bus);
+ 	switch (type) {
+ 	case SOFT_REBOOT:
+-		/* Fall through. The service processor is responsible for
+-		 * bringing the machine back up */
++		pr_info("OPAL: reboot requested\n");
++		orderly_reboot();
++		break;
+ 	case SOFT_OFF:
+ 		pr_info("OPAL: poweroff requested\n");
+ 		orderly_poweroff(true);
 -- 
-1.7.1
+2.1.4
 
