@@ -1,147 +1,164 @@
-From: Stefan Agner <stefan@agner.ch>
-Date: Sat, 04 Apr 2015 22:04:29 +0000
-Subject: Re: [PATCH] tty: serial: Add const to struct =?UTF-8?Q?uart=5Fops=20declarations?=
-Message-Id: <a938a0e86638588e5ccff85771fa3b95@agner.ch>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Wed, 01 Apr 2015 02:57:47 +0000
+Subject: [PATCH 1/3] PCI: Introduce pci_bus_addr_t
+Message-Id: <1427857069-6789-2-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1428169665.2775.53.camel@perches.com>
-In-Reply-To: <1428169665.2775.53.camel@perches.com>
+References: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>
+Cc: David Ahern <david.ahern@oracle.com>, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, stable@vger.kernel.org
 
-Hi Joe,
+David Ahern found commit d63e2e1f3df9 ("sparc/PCI: Clip bridge windows
+to fit in upstream windows") broke booting on sparc/T5-8.
 
-See comment below...
+In the boot log, there is
+  pci 0000:06:00.0: reg 0x184: can't handle BAR above 4GB (bus address
+  0x110204000)
+but that only could happen when dma_addr_t is 32-bit.
 
-On 2015-04-04 19:47, Joe Perches wrote:
-> These structs can be const, so make them const.
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
-> 
-> Done with:
-> sed -r -i -e 's/\bstruct\s+uart_ops\s+(\w+)\s*=\s*/const struct
-> uart_ops \1 = /g' drivers/tty/serial/*.c
-> 
-> Compiled x86 only, not cross-compiled.  Untested.
-> 
->  drivers/tty/serial/21285.c                  | 2 +-
->  drivers/tty/serial/altera_jtaguart.c        | 2 +-
->  drivers/tty/serial/altera_uart.c            | 2 +-
->  drivers/tty/serial/amba-pl010.c             | 2 +-
->  drivers/tty/serial/amba-pl011.c             | 2 +-
->  drivers/tty/serial/apbuart.c                | 2 +-
->  drivers/tty/serial/ar933x_uart.c            | 2 +-
->  drivers/tty/serial/arc_uart.c               | 2 +-
->  drivers/tty/serial/atmel_serial.c           | 2 +-
->  drivers/tty/serial/bcm63xx_uart.c           | 2 +-
->  drivers/tty/serial/bfin_sport_uart.c        | 2 +-
->  drivers/tty/serial/bfin_uart.c              | 2 +-
->  drivers/tty/serial/cpm_uart/cpm_uart_core.c | 2 +-
->  drivers/tty/serial/dz.c                     | 2 +-
->  drivers/tty/serial/efm32-uart.c             | 2 +-
->  drivers/tty/serial/fsl_lpuart.c             | 4 ++--
->  drivers/tty/serial/icom.c                   | 2 +-
->  drivers/tty/serial/imx.c                    | 2 +-
->  drivers/tty/serial/ioc3_serial.c            | 2 +-
->  drivers/tty/serial/ioc4_serial.c            | 2 +-
->  drivers/tty/serial/ip22zilog.c              | 2 +-
->  drivers/tty/serial/jsm/jsm_tty.c            | 2 +-
->  drivers/tty/serial/lantiq.c                 | 2 +-
->  drivers/tty/serial/lpc32xx_hs.c             | 2 +-
->  drivers/tty/serial/m32r_sio.c               | 2 +-
->  drivers/tty/serial/max3100.c                | 2 +-
->  drivers/tty/serial/men_z135_uart.c          | 2 +-
->  drivers/tty/serial/meson_uart.c             | 2 +-
->  drivers/tty/serial/mpc52xx_uart.c           | 2 +-
->  drivers/tty/serial/mpsc.c                   | 2 +-
->  drivers/tty/serial/msm_serial.c             | 2 +-
->  drivers/tty/serial/mux.c                    | 2 +-
->  drivers/tty/serial/mxs-auart.c              | 2 +-
->  drivers/tty/serial/netx-serial.c            | 2 +-
->  drivers/tty/serial/nwpserial.c              | 2 +-
->  drivers/tty/serial/omap-serial.c            | 2 +-
->  drivers/tty/serial/pch_uart.c               | 2 +-
->  drivers/tty/serial/pmac_zilog.c             | 2 +-
->  drivers/tty/serial/pnx8xxx_uart.c           | 2 +-
->  drivers/tty/serial/pxa.c                    | 2 +-
->  drivers/tty/serial/sa1100.c                 | 2 +-
->  drivers/tty/serial/samsung.c                | 2 +-
->  drivers/tty/serial/serial-tegra.c           | 2 +-
->  drivers/tty/serial/serial_ks8695.c          | 2 +-
->  drivers/tty/serial/serial_txx9.c            | 2 +-
->  drivers/tty/serial/sh-sci.c                 | 2 +-
->  drivers/tty/serial/sirfsoc_uart.c           | 2 +-
->  drivers/tty/serial/sn_console.c             | 2 +-
->  drivers/tty/serial/sprd_serial.c            | 2 +-
->  drivers/tty/serial/st-asc.c                 | 2 +-
->  drivers/tty/serial/sunhv.c                  | 2 +-
->  drivers/tty/serial/sunsab.c                 | 2 +-
->  drivers/tty/serial/sunsu.c                  | 2 +-
->  drivers/tty/serial/sunzilog.c               | 2 +-
->  drivers/tty/serial/timbuart.c               | 2 +-
->  drivers/tty/serial/uartlite.c               | 2 +-
->  drivers/tty/serial/ucc_uart.c               | 2 +-
->  drivers/tty/serial/vr41xx_siu.c             | 2 +-
->  drivers/tty/serial/vt8500_serial.c          | 2 +-
->  drivers/tty/serial/xilinx_uartps.c          | 2 +-
->  drivers/tty/serial/zs.c                     | 2 +-
->  61 files changed, 62 insertions(+), 62 deletions(-)
-> 
+According to David Miller, all DMA occurs behind an IOMMU and these
+IOMMUs only support 32-bit addressing, therefore dma_addr_t is
+32-bit on sparc64.
 
-<snip>
+Let's introduce pci_bus_addr_t instead of using dma_addr_t,
+and pci_bus_addr_t will be 64-bit on 64-bit platform or X86_PAE.
 
-> --- a/drivers/tty/serial/efm32-uart.c
-> +++ b/drivers/tty/serial/efm32-uart.c
-> @@ -487,7 +487,7 @@ static int efm32_uart_verify_port(struct uart_port *port,
->  	return ret;
->  }
->  
-> -static struct uart_ops efm32_uart_pops = {
-> +static const struct uart_ops efm32_uart_pops = {
->  	.tx_empty = efm32_uart_tx_empty,
->  	.set_mctrl = efm32_uart_set_mctrl,
->  	.get_mctrl = efm32_uart_get_mctrl,
-> diff --git a/drivers/tty/serial/fsl_lpuart.c b/drivers/tty/serial/fsl_lpuart.c
-> index 08ce76f..738b5c4 100644
-> --- a/drivers/tty/serial/fsl_lpuart.c
-> +++ b/drivers/tty/serial/fsl_lpuart.c
-> @@ -1494,7 +1494,7 @@ static int lpuart_verify_port(struct uart_port
-> *port, struct serial_struct *ser)
->  	return ret;
->  }
->  
-> -static struct uart_ops lpuart_pops = {
-> +static const const struct uart_ops lpuart_pops = {
+Fixes: commit d63e2e1f3df9 ("sparc/PCI: Clip bridge windows to fit in upstream windows")
+Fixes: commit 23b13bc76f35 ("PCI: Fail safely if we can't handle BARs larger than 4GB")
+Link: http://lkml.kernel.org/r/CAE9FiQU1gJY1LYrxs+ma5LCTEEe4xmtjRG0aXJ9K_Tsu+m9Wuw@mail.gmail.com
+Reported-by: David Ahern <david.ahern@oracle.com>
+Tested-by: David Ahern <david.ahern@oracle.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: <stable@vger.kernel.org> #3.19
+---
+ drivers/pci/Kconfig |  4 ++++
+ drivers/pci/bus.c   | 10 +++++-----
+ drivers/pci/probe.c | 12 ++++++------
+ include/linux/pci.h | 12 +++++++++---
+ 4 files changed, 24 insertions(+), 14 deletions(-)
 
-Something went wrong in this driver, const is twice...
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 7a8f1c5..6a5a269 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -1,6 +1,10 @@
+ #
+ # PCI configuration
+ #
++config PCI_BUS_ADDR_T_64BIT
++	def_bool y if (64BIT || X86_PAE)
++	depends on PCI
++
+ config PCI_MSI
+ 	bool "Message Signaled Interrupts (MSI and MSI-X)"
+ 	depends on PCI
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index 90fa3a7..6fbd3f2 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -92,11 +92,11 @@ void pci_bus_remove_resources(struct pci_bus *bus)
+ }
+ 
+ static struct pci_bus_region pci_32_bit = {0, 0xffffffffULL};
+-#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
++#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
+ static struct pci_bus_region pci_64_bit = {0,
+-				(dma_addr_t) 0xffffffffffffffffULL};
+-static struct pci_bus_region pci_high = {(dma_addr_t) 0x100000000ULL,
+-				(dma_addr_t) 0xffffffffffffffffULL};
++				(pci_bus_addr_t) 0xffffffffffffffffULL};
++static struct pci_bus_region pci_high = {(pci_bus_addr_t) 0x100000000ULL,
++				(pci_bus_addr_t) 0xffffffffffffffffULL};
+ #endif
+ 
+ /*
+@@ -200,7 +200,7 @@ int pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
+ 					  resource_size_t),
+ 		void *alignf_data)
+ {
+-#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
++#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
+ 	int rc;
+ 
+ 	if (res->flags & IORESOURCE_MEM_64) {
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 8d2f400..f71cb7c 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -253,8 +253,8 @@ int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
+ 	}
+ 
+ 	if (res->flags & IORESOURCE_MEM_64) {
+-		if ((sizeof(dma_addr_t) < 8 || sizeof(resource_size_t) < 8) &&
+-		    sz64 > 0x100000000ULL) {
++		if ((sizeof(pci_bus_addr_t) < 8 || sizeof(resource_size_t) < 8)
++		    && sz64 > 0x100000000ULL) {
+ 			res->flags |= IORESOURCE_UNSET | IORESOURCE_DISABLED;
+ 			res->start = 0;
+ 			res->end = 0;
+@@ -263,7 +263,7 @@ int __pci_read_base(struct pci_dev *dev, enum pci_bar_type type,
+ 			goto out;
+ 		}
+ 
+-		if ((sizeof(dma_addr_t) < 8) && l) {
++		if ((sizeof(pci_bus_addr_t) < 8) && l) {
+ 			/* Above 32-bit boundary; try to reallocate */
+ 			res->flags |= IORESOURCE_UNSET;
+ 			res->start = 0;
+@@ -398,7 +398,7 @@ static void pci_read_bridge_mmio_pref(struct pci_bus *child)
+ 	struct pci_dev *dev = child->self;
+ 	u16 mem_base_lo, mem_limit_lo;
+ 	u64 base64, limit64;
+-	dma_addr_t base, limit;
++	pci_bus_addr_t base, limit;
+ 	struct pci_bus_region region;
+ 	struct resource *res;
+ 
+@@ -425,8 +425,8 @@ static void pci_read_bridge_mmio_pref(struct pci_bus *child)
+ 		}
+ 	}
+ 
+-	base = (dma_addr_t) base64;
+-	limit = (dma_addr_t) limit64;
++	base = (pci_bus_addr_t) base64;
++	limit = (pci_bus_addr_t) limit64;
+ 
+ 	if (base != base64) {
+ 		dev_err(&dev->dev, "can't handle bridge window above 4GB (bus address %#010llx)\n",
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 211e9da..6021bbe 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -573,9 +573,15 @@ int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+ int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+ 		  int reg, int len, u32 val);
+ 
++#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
++typedef u64 pci_bus_addr_t;
++#else
++typedef u32 pci_bus_addr_t;
++#endif
++
+ struct pci_bus_region {
+-	dma_addr_t start;
+-	dma_addr_t end;
++	pci_bus_addr_t start;
++	pci_bus_addr_t end;
+ };
+ 
+ struct pci_dynids {
+@@ -1124,7 +1130,7 @@ int __must_check pci_bus_alloc_resource(struct pci_bus *bus,
+ 
+ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+ 
+-static inline dma_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
++static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
+ {
+ 	struct pci_bus_region region;
+ 
+-- 
+1.8.4.5
 
-Probably because we have two struct uart_ops in one driver?
-
->  	.tx_empty	= lpuart_tx_empty,
->  	.set_mctrl	= lpuart_set_mctrl,
->  	.get_mctrl	= lpuart_get_mctrl,
-> @@ -1513,7 +1513,7 @@ static struct uart_ops lpuart_pops = {
->  	.flush_buffer	= lpuart_flush_buffer,
->  };
->  
-> -static struct uart_ops lpuart32_pops = {
-> +static const const struct uart_ops lpuart32_pops = {
->  	.tx_empty	= lpuart32_tx_empty,
->  	.set_mctrl	= lpuart32_set_mctrl,
->  	.get_mctrl	= lpuart32_get_mctrl,
-> diff --git a/drivers/tty/serial/icom.c b/drivers/tty/serial/icom.c
-> index 45fc323..3915443 100644
-> --- a/drivers/tty/serial/icom.c
-> +++ b/drivers/tty/serial/icom.c
-> @@ -1287,7 +1287,7 @@ static void icom_config_port(struct uart_port
-> *port, int flags)
->  	port->type = PORT_ICOM;
->  }
->  
-
-<snip>
-
---
-Stefan
