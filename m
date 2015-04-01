@@ -1,51 +1,150 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Date: Tue, 07 Apr 2015 10:06:54 +0000
-Subject: Re: [PATCH] signal: optimize 'sigaction' call path
-Message-Id: <20150407100654.GA32743@redhat.com>
+From: Joel Stanley <joel@jms.id.au>
+Date: Wed, 01 Apr 2015 07:16:47 +0000
+Subject: [PATCH v2 2/3] kernel/reboot.c: Add orderly_reboot for graceful reboot
+Message-Id: <1427871888-27331-2-git-send-email-joel@jms.id.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1428146533-2208-1-git-send-email-yury.norov@gmail.com>
-In-Reply-To: <1428146533-2208-1-git-send-email-yury.norov@gmail.com>
+References: <1427871888-27331-1-git-send-email-joel@jms.id.au>
+In-Reply-To: <1427871888-27331-1-git-send-email-joel@jms.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yury.norov@gmail.com, rth@twiddle.net, ink@jurassic.park.msu.ru, akpm@linux-foundation.org, davem@davemloft.net
-Cc: klimov.linux@gmail.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Cc: rusty@rustcorp.com.au, fabf@skynet.be, jk@ozlabs.org, akpm@linux-foundation.org, davem@davemloft.net
 
-> There is a set of syscalls in the kernel about 'sigaction'.
-> All they end up with calling the helper 'do_sigaction',
-> so the generic scheme is:
->
-> - copy user data to kernel;
-> - 'do_sigaction';
-> - copy kernel data to user.
->
-> 'do_sigaction' checks 'signum' parameter before doing its main job.
-> If this check fails syscall fails immediately, as well. But at this
-> stage first copy is already done. And so there's a potential chance
-> having it useless. It may affect performance significantly if user
-> data was, say, swapped, and a fault was handled to obtain it.
+The kernel has orderly_poweroff which allows the kernel to initiate a
+graceful shutdown of userspace, by running /sbin/poweroff. This adds
+orderly_reboot that will cause userspace to shut itself down by calling
+/sbin/reboot.
 
-Only if the signal number is wrong? So why do we care?
+This will be used for shutdown initiated by a system controller on
+platforms that do not use ACPI.
 
-> In this patch, 'signum' sanity check is moved out of 'do_sigaction'
-> to a small function 'user_signal'. So we can call it before any copying.
-...
->  arch/alpha/kernel/signal.c       | 19 +++++++-------
->  arch/mips/kernel/signal.c        | 10 +++++---
->  arch/mips/kernel/signal32.c      | 10 +++++---
->  arch/sparc/kernel/sys_sparc32.c  | 10 ++++----
->  arch/sparc/kernel/sys_sparc_32.c | 10 ++++----
->  arch/sparc/kernel/sys_sparc_64.c | 10 ++++----
->  include/linux/sched.h            |  2 +-
->  include/linux/signal.h           |  5 ++++
->  kernel/signal.c                  | 54 +++++++++++++++++++++-------------------
->  9 files changed, 71 insertions(+), 59 deletions(-)
+orderly_reboot() should be used when the system wants to allow userspace
+to gracefully shut itself down. For cases where the system may
+imminently catch on fire, the existing emergency_restart() provides an
+immediate reboot without involving userspace.
 
-And this blows the source and compiled code. Not too much, but this
-change should be justified somehow.
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+---
+V2:
+ - remove unused return value from orderly_*
+ - use correct command in orderly_poweroff
+ - the reboot command will not have a proc knob to control it, so
+   it can be made const and static
 
-And to me this patch doesn't look like a cleanup, imho this sanity
-check makes more sense in one place.
+ include/linux/reboot.h |  3 ++-
+ kernel/reboot.c        | 53 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 50 insertions(+), 6 deletions(-)
 
-Oleg.
+diff --git a/include/linux/reboot.h b/include/linux/reboot.h
+index 48bf152..dc5e3bd 100644
+--- a/include/linux/reboot.h
++++ b/include/linux/reboot.h
+@@ -67,7 +67,8 @@ void ctrl_alt_del(void);
+ #define POWEROFF_CMD_PATH_LEN	256
+ extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
+ 
+-extern int orderly_poweroff(bool force);
++extern void orderly_poweroff(bool force);
++extern void orderly_reboot(void);
+ 
+ /*
+  * Emergency restart, callable from an interrupt handler.
+diff --git a/kernel/reboot.c b/kernel/reboot.c
+index a3a9e24..0ace9f6 100644
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -306,8 +306,9 @@ void ctrl_alt_del(void)
+ }
+ 
+ char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
++static const char reboot_cmd[] = "/sbin/reboot";
+ 
+-static int __orderly_poweroff(bool force)
++static int run_cmd(const char *cmd)
+ {
+ 	char **argv;
+ 	static char *envp[] = {
+@@ -316,8 +317,7 @@ static int __orderly_poweroff(bool force)
+ 		NULL
+ 	};
+ 	int ret;
+-
+-	argv = argv_split(GFP_KERNEL, poweroff_cmd, NULL);
++	argv = argv_split(GFP_KERNEL, cmd, NULL);
+ 	if (argv) {
+ 		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+ 		argv_free(argv);
+@@ -325,8 +325,33 @@ static int __orderly_poweroff(bool force)
+ 		ret = -ENOMEM;
+ 	}
+ 
++	return ret;
++}
++
++static int __orderly_reboot(void)
++{
++	int ret;
++
++	ret = run_cmd(reboot_cmd);
++
++	if (ret) {
++		pr_warn("Failed to start orderly reboot: forcing the issue\n");
++		emergency_sync();
++		kernel_restart(NULL);
++	}
++
++	return ret;
++}
++
++static int __orderly_poweroff(bool force)
++{
++	int ret;
++
++	ret = run_cmd(poweroff_cmd);
++
+ 	if (ret && force) {
+ 		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
++
+ 		/*
+ 		 * I guess this should try to kick off some daemon to sync and
+ 		 * poweroff asap.  Or not even bother syncing if we're doing an
+@@ -355,15 +380,33 @@ static DECLARE_WORK(poweroff_work, poweroff_work_func);
+  * This may be called from any context to trigger a system shutdown.
+  * If the orderly shutdown fails, it will force an immediate shutdown.
+  */
+-int orderly_poweroff(bool force)
++void orderly_poweroff(bool force)
+ {
+ 	if (force) /* do not override the pending "true" */
+ 		poweroff_force = true;
+ 	schedule_work(&poweroff_work);
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(orderly_poweroff);
+ 
++static void reboot_work_func(struct work_struct *work)
++{
++	__orderly_reboot();
++}
++
++static DECLARE_WORK(reboot_work, reboot_work_func);
++
++/**
++ * orderly_reboot - Trigger an orderly system reboot
++ *
++ * This may be called from any context to trigger a system reboot.
++ * If the orderly reboot fails, it will force an immediate reboot.
++ */
++void orderly_reboot(void)
++{
++	schedule_work(&reboot_work);
++}
++EXPORT_SYMBOL_GPL(orderly_reboot);
++
+ static int __init reboot_setup(char *str)
+ {
+ 	for (;;) {
+-- 
+2.1.4
 
