@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 16 Apr 2015 19:41:02 +0000
+From: chris hyser <chris.hyser@oracle.com>
+Date: Thu, 16 Apr 2015 20:31:23 +0000
 Subject: Re: [PATCH v3] sparc64: Setup sysfs to mark LDOM sockets, cores and threads correctly
-Message-Id: <20150416.154102.1660094476232520868.davem@davemloft.net>
+Message-Id: <55301C1B.5070708@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <5526cf9b.DFcVpFfcq8CBXHg7%chris.hyser@oracle.com>
 In-Reply-To: <5526cf9b.DFcVpFfcq8CBXHg7%chris.hyser@oracle.com>
@@ -10,34 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 09 Apr 2015 19:06:47 -0400 (EDT)
+On 4/16/2015 3:41 PM, David Miller wrote:
+> I'm still waiting for you to resolve this Chris.
 
-> From: chris.hyser@oracle.com
-> Date: Thu, 09 Apr 2015 15:14:35 -0400
-> 
->> +static void set_sock_ids(struct mdesc_handle *hp)
->> +{
->> +	u64 mp;
->> +
->> +	/* If machine description exposes sockets data use it.
->> +	 * Otherwise fallback to use L3 cache
->> +	 */
->> +	mp = mdesc_node_by_name(hp, MDESC_NODE_NULL, "sockets");
->> +	if (mp = MDESC_NODE_NULL)
->> +		return set_sock_ids_by_cache(hp, mp);
->> +
->> +	return set_sock_ids_by_socket(hp, mp);
->> +}
->> +
-> 
-> How will this work on T3, T2, and T1 which all neither have the
-> "socket" mdesc nodes nor level 3 caches?
+understood.
 
-I'm still waiting for you to resolve this Chris.
+> I don't think it's much effort to make this change back down
+> to using the level=2 cache if no level=3 cache is found.  Please
+> implement that and resubmit.
 
-I don't think it's much effort to make this change back down
-to using the level=2 cache if no level=3 cache is found.  Please
-implement that and resubmit.
+as soon as i reasonably can.
 
-Thanks.
+-chrish
