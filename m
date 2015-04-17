@@ -1,43 +1,57 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 03 Apr 2015 00:42:47 +0000
-Subject: Re: [PATCH 0/3] PCI/sparc: Fix booting with T5-8
-Message-Id: <20150402.204247.2017774907897750993.davem@davemloft.net>
+Date: Fri, 17 Apr 2015 20:14:03 +0000
+Subject: [GIT] Sparc
+Message-Id: <20150417.161403.768546036867659750.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
-	<20150402.163715.643586069492103151.davem@davemloft.net>
-	<CAE9FiQV8=tGiPJ0qEJvMBAzk-i2aubmQhkNoa-Gei9y7SXiubw@mail.gmail.com>
-In-Reply-To: <CAE9FiQV8=tGiPJ0qEJvMBAzk-i2aubmQhkNoa-Gei9y7SXiubw@mail.gmail.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yinghai@kernel.org
-Cc: bhelgaas@google.com, david.ahern@oracle.com, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Thu, 2 Apr 2015 15:07:57 -0700
 
-> On Thu, Apr 2, 2015 at 1:37 PM, David Miller <davem@davemloft.net> wrote:
->> From: Yinghai Lu <yinghai@kernel.org>
->> Date: Tue, 31 Mar 2015 19:57:46 -0700
->>
->>> Fix regression by commit d63e2e1f3df9 ("sparc/PCI: Clip bridge windows to
->>> fit in upstream windows").
->>>
->>> That cause bridge bar get clipped wrongly.
->>>
->>> The sparc64 dma_addr_t is 32-bit, we can not use it to check if we can
->>> use 64bit bar, introduce pci_bus_addr_t.
->>>
->>> sparc ofpci does not parse 64bit mem for root bus, add code to
->>> make sure that we get correct resource for root.
->>>
->>> Also there are device 64-bit res does not have pref bit flag, but bridges
->>> do have pref bit set, that cause extra "no compatible window".
->>> Set pref bit for them according to the errata.
->>
->> Just to be clear, who is going to merge this? :-)
->>
-> 
-> Should be you or Bjorn, but one should get ack from another.
+The PowerPC folks have a really nice scalable IOMMU pool allocator
+that we wanted to make use of for sparc.   So here we have a series
+that abstracts out their code into a common layer that anyone can
+make use of.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Sparc is converted, and the PowerPC folks have reviewed and ACK'd
+this series and plan to convert PowerPC over as well.
+
+Please pull, thanks a lot!
+
+The following changes since commit 497a5df7bf6ffd136ae21c49d1a01292930d7ca2:
+
+  Merge tag 'stable/for-linus-4.1-rc0-tag' of git://git.kernel.org/pub/scm/linux/kernel/git/xen/tip (2015-04-16 14:01:03 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to cb97201cb060d13da0b87fd1bf68208c7389c5b1:
+
+  iommu-common: Fix PARISC compile-time warnings (2015-04-17 15:24:36 -0400)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      Merge branch 'generic-iommu-allocator'
+
+Sowmini Varadhan (4):
+      sparc: Break up monolithic iommu table/lock into finer graularity pools and lock
+      sparc: Make sparc64 use scalable lib/iommu-common.c functions
+      sparc: Make LDC use common iommu poll management functions
+      iommu-common: Fix PARISC compile-time warnings
+
+ arch/sparc/include/asm/iommu_64.h |   7 ++--
+ arch/sparc/kernel/iommu.c         | 188 ++++++++++++++++++++++++++++++++---------------------------------------------------------------
+ arch/sparc/kernel/iommu_common.h  |   8 -----
+ arch/sparc/kernel/ldc.c           | 185 +++++++++++++++++++++++++++++++++++++++++++++++++---------------------------------------------
+ arch/sparc/kernel/pci_sun4v.c     | 193 ++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------
+ include/linux/iommu-common.h      |  55 ++++++++++++++++++++++++++++
+ lib/Makefile                      |   2 +-
+ lib/iommu-common.c                | 224 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 8 files changed, 537 insertions(+), 325 deletions(-)
+ create mode 100644 include/linux/iommu-common.h
+ create mode 100644 lib/iommu-common.c
