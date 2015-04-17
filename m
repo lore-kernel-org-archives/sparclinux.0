@@ -1,62 +1,47 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Wed, 01 Apr 2015 22:27:48 +0000
-Subject: Re: [PATCH v2 2/3] kernel/reboot.c: Add orderly_reboot for graceful reboot
-Message-Id: <CAGRGNgUBy0gRZADXmbFzmcAGEf-en=D-rD4Cjoh67Y=iF8puvA@mail.gmail.com>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Fri, 17 Apr 2015 02:28:04 +0000
+Subject: [PATCH] iommu-common: Fix PARISC compile-time warnings
+Message-Id: <20150417022804.GA708@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427871888-27331-1-git-send-email-joel@jms.id.au>
- <1427871888-27331-2-git-send-email-joel@jms.id.au>
-In-Reply-To: <1427871888-27331-2-git-send-email-joel@jms.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joel Stanley <joel@jms.id.au>
-Cc: rusty@rustcorp.com.au, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Fabian Frederick <fabf@skynet.be>, jk@ozlabs.org, sparclinux <sparclinux@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-Hi Joel,
 
-On Wed, Apr 1, 2015 at 6:04 PM, Joel Stanley <joel@jms.id.au> wrote:
-> The kernel has orderly_poweroff which allows the kernel to initiate a
-> graceful shutdown of userspace, by running /sbin/poweroff. This adds
-> orderly_reboot that will cause userspace to shut itself down by calling
-> /sbin/reboot.
->
-> This will be used for shutdown initiated by a system controller on
-> platforms that do not use ACPI.
->
-> orderly_reboot() should be used when the system wants to allow userspace
-> to gracefully shut itself down. For cases where the system may
-> imminently catch on fire, the existing emergency_restart() provides an
-> immediate reboot without involving userspace.
->
-> Signed-off-by: Joel Stanley <joel@jms.id.au>
-> ---
-> V2:
->  - remove unused return value from orderly_*
->  - use correct command in orderly_poweroff
->  - the reboot command will not have a proc knob to control it, so
->    it can be made const and static
->
->  include/linux/reboot.h |  3 ++-
->  kernel/reboot.c        | 53 +++++++++++++++++++++++++++++++++++++++++++++-----
->  2 files changed, 50 insertions(+), 6 deletions(-)
->
-> diff --git a/include/linux/reboot.h b/include/linux/reboot.h
-> index 48bf152..dc5e3bd 100644
-> --- a/include/linux/reboot.h
-> +++ b/include/linux/reboot.h
-> @@ -67,7 +67,8 @@ void ctrl_alt_del(void);
->  #define POWEROFF_CMD_PATH_LEN  256
->  extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
->
-> -extern int orderly_poweroff(bool force);
-> +extern void orderly_poweroff(bool force);
+Fixes warnings due to
+- no DMA_ERROR_CODE on PARISC,
+- sizeof (unsigned long) = 4 bytes on PARISC.
 
-Should making orderly_poweroff() void be in a separate patch?
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+---
+ lib/iommu-common.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Thanks,
-
+diff --git a/lib/iommu-common.c b/lib/iommu-common.c
+index 7583f9b..fac4f35 100644
+--- a/lib/iommu-common.c
++++ b/lib/iommu-common.c
+@@ -10,6 +10,10 @@
+ #include <linux/iommu-common.h>
+ #include <linux/dma-mapping.h>
+ 
++#ifndef	DMA_ERROR_CODE
++#define	DMA_ERROR_CODE (~(dma_addr_t)0x0)
++#endif
++
+ #define IOMMU_LARGE_ALLOC	15
+ 
+ /*
+@@ -121,7 +125,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+ 				      1 << iommu->page_table_shift);
+ 	else
+-		boundary_size = ALIGN(1UL << 32, 1 << iommu->page_table_shift);
++		boundary_size = ALIGN(1ULL << 32, 1 << iommu->page_table_shift);
+ 
+ 	shift = iommu->page_table_map_base >> iommu->page_table_shift;
+ 	boundary_size = boundary_size >> iommu->page_table_shift;
 -- 
-Julian Calaby
+1.7.1
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
