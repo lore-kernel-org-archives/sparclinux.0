@@ -1,49 +1,59 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Thu, 05 Mar 2015 01:27:07 +0000
-Subject: [PATCH v3 7/8] sparc: switch to using asm-generic for seccomp.h
-Message-Id: <1425518828-16017-8-git-send-email-keescook@chromium.org>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Sun, 19 Apr 2015 17:13:31 +0000
+Subject: [PATCH 2/2] iommu-common: rename iommu_pool_hash to iommu_hash_common
+Message-Id: <b170eb1ca5dbe92a4f4dd0ac7e0c3e84a6e14464.1429458174.git.sowmini.varadhan@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1425518828-16017-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1425518828-16017-1-git-send-email-keescook@chromium.org>
+References: <cover.1429458174.git.sowmini.varadhan@oracle.com>
+In-Reply-To: <cover.1429458174.git.sowmini.varadhan@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: Kees Cook <keescook@chromium.org>, Ingo Molnar <mingo@redhat.com>, Russell King <linux@arm.linux.org.uk>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Frederic Weisbecker <fweisbec@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Will Deacon <will.deacon@arm.com>, Daniel Borkmann <dborkman@redhat.com>, Laura Abbott <lauraa@codeaurora.org>, James Hogan <james.hogan@imgtec.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.
+To: sparclinux@vger.kernel.org
+Cc: davem@davemloft.net, linux@roeck-us.net, sowmini.varadhan@oracle.com, linux-kernel@vger.kernel.org
 
-Switch to using the newly created asm-generic/seccomp.h for the seccomp
-strict mode syscall definitions. The obsolete sigreturn in COMPAT mode
-is retained as an override. Remaining definitions are identical. Also
-corrected missing #define for header reinclusion protection.
+When CONFIG_DEBUG_FORCE_WEAK_PER_CPU is set, the DEFINE_PER_CPU_SECTION
+macro will define an extern __pcpu_unique_##name variable that could
+conflict with the same definition in powerpc at this time. Avoid that
+conflict by renaming iommu_pool_hash in iommu-common.c
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Thanks to Guenter Roeck for catching this, and helping to test the fix.
+
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/sparc/include/asm/seccomp.h | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ lib/iommu-common.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/include/asm/seccomp.h b/arch/sparc/include/asm/seccomp.h
-index adca1bce41d4..5ef8826d44f8 100644
---- a/arch/sparc/include/asm/seccomp.h
-+++ b/arch/sparc/include/asm/seccomp.h
-@@ -1,15 +1,10 @@
- #ifndef _ASM_SECCOMP_H
-+#define _ASM_SECCOMP_H
+diff --git a/lib/iommu-common.c b/lib/iommu-common.c
+index a9a53f5..df30632 100644
+--- a/lib/iommu-common.c
++++ b/lib/iommu-common.c
+@@ -17,7 +17,7 @@
  
- #include <linux/unistd.h>
+ static unsigned long iommu_large_alloc = 15;
  
--#define __NR_seccomp_read __NR_read
--#define __NR_seccomp_write __NR_write
--#define __NR_seccomp_exit __NR_exit
--#define __NR_seccomp_sigreturn __NR_rt_sigreturn
--
--#define __NR_seccomp_read_32 __NR_read
--#define __NR_seccomp_write_32 __NR_write
--#define __NR_seccomp_exit_32 __NR_exit
- #define __NR_seccomp_sigreturn_32 __NR_sigreturn
+-static	DEFINE_PER_CPU(unsigned int, iommu_pool_hash);
++static	DEFINE_PER_CPU(unsigned int, iommu_hash_common);
  
-+#include <asm-generic/seccomp.h>
-+
- #endif /* _ASM_SECCOMP_H */
+ static inline bool need_flush(struct iommu_map_table *iommu)
+ {
+@@ -44,7 +44,7 @@ static void setup_iommu_pool_hash(void)
+ 		return;
+ 	do_once = true;
+ 	for_each_possible_cpu(i)
+-		per_cpu(iommu_pool_hash, i) = hash_32(i, IOMMU_POOL_HASHBITS);
++		per_cpu(iommu_hash_common, i) = hash_32(i, IOMMU_POOL_HASHBITS);
+ }
+ 
+ /*
+@@ -106,7 +106,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 				unsigned long mask,
+ 				unsigned int align_order)
+ {
+-	unsigned int pool_hash = __this_cpu_read(iommu_pool_hash);
++	unsigned int pool_hash = __this_cpu_read(iommu_hash_common);
+ 	unsigned long n, end, start, limit, boundary_size;
+ 	struct iommu_pool *pool;
+ 	int pass = 0;
 -- 
-1.9.1
+1.7.1
 
