@@ -1,28 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 20 Apr 2015 16:25:19 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 20 Apr 2015 16:44:31 +0000
 Subject: Re: sparc64: Build failure due to commit f1600e549b94 (sparc: Make sparc64 use scalable lib/iommu-co
-Message-Id: <20150420.122519.1661605449214047938.davem@davemloft.net>
+Message-Id: <20150420164431.GA30837@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20150419183625.GA18901@oracle.com>
  <1429498885.28239.4.camel@ellerman.id.au>
  <55348BE1.4010305@roeck-us.net>
-In-Reply-To: <55348BE1.4010305@roeck-us.net>
+ <20150420.122519.1661605449214047938.davem@davemloft.net>
+In-Reply-To: <20150420.122519.1661605449214047938.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net
+To: David Miller <davem@davemloft.net>
 Cc: aik@au1.ibm.com, anton@au1.ibm.com, linux-kernel@vger.kernel.org, sowmini.varadhan@oracle.com, paulus@samba.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 19 Apr 2015 22:17:21 -0700
+On Mon, Apr 20, 2015 at 12:25:19PM -0400, David Miller wrote:
+> From: Guenter Roeck <linux@roeck-us.net>
+> Date: Sun, 19 Apr 2015 22:17:21 -0700
+> 
+> > The debug option is intended for all _other_ architectures, to
+> > ensure that changes made for those don't break alpha/s390
+> > builds. alpha/s390 have ARCH_NEEDS_WEAK_PER_CPU and don't need the
+> > debug option.
+> 
+> Ironically this would not create a build failure for the architectures
+> where this matters, because only powerpc has the like named percpu
+> symbol.
+> 
+> So it's not really meeting the stated objective in this case.
 
-> The debug option is intended for all _other_ architectures, to
-> ensure that changes made for those don't break alpha/s390
-> builds. alpha/s390 have ARCH_NEEDS_WEAK_PER_CPU and don't need the
-> debug option.
+Yes, that is correct; it can only find problems in non-architecture
+code, and on the downside produces false positives and thus build errors
+like this one.
 
-Ironically this would not create a build failure for the architectures
-where this matters, because only powerpc has the like named percpu
-symbol.
+Which makes the fix a bit philosophical. Rename iommu_pool_hash in
+iommu-common, or drop DEBUG_FORCE_WEAK_PER_CPU. I would rename
+iommu_pool_hash, but that is just me. Ultimately, I don't really
+care one way or another, as long as the problem gets fixed.
 
-So it's not really meeting the stated objective in this case.
+Guenter
