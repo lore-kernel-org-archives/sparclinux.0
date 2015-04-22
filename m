@@ -1,44 +1,31 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 03 Apr 2015 16:48:55 +0000
-Subject: Re: d63e2e1f3df breaks sparc/T5-8
-Message-Id: <20150403.124855.96516097693494126.davem@davemloft.net>
+Date: Wed, 22 Apr 2015 23:22:46 +0000
+Subject: Re: sparc: deadlock using perf with sched tracepoints and user callstacks
+Message-Id: <20150422.192246.1672746282210523659.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CABhMZUVqgsYdT4wn2H8hsrh4f=6hT0G+sg=wwYSt33+jtvBS9A@mail.gmail.com>
-	<20150329.113250.2136683943336875789.davem@davemloft.net>
-	<20150403154526.GB10892@google.com>
-In-Reply-To: <20150403154526.GB10892@google.com>
+References: <551AFA5A.1000908@oracle.com>
+In-Reply-To: <551AFA5A.1000908@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bhelgaas@google.com
-Cc: bjorn@helgaas.com, bjorn.helgaas@gmail.com, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, yinghai@kernel.org, david.ahern@oracle.com, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Fri, 3 Apr 2015 10:45:26 -0500
+From: David Ahern <david.ahern@oracle.com>
+Date: Tue, 31 Mar 2015 17:52:53 -0600
 
-> On Sun, Mar 29, 2015 at 11:32:50AM -0700, David Miller wrote:
->> From: Bjorn Helgaas <bjorn.helgaas@gmail.com>
->> Date: Sun, 29 Mar 2015 08:30:40 -0500
->> 
->> > Help me understand the sparc64 situation: are you saying that BAR
->> > addresses, i.e., MMIO transactions from a CPU or a peer-to-peer DMA can be
->> > 64 bits, but a DMA to main memory can only be 32 bits?
->> > 
->> > I assume this would work if we made dma_addr_t 64 bits on sparc64.  What
->> > would be the cost of doing that?
->> 
->> The cost is 4 extra bytes in every datastructure, kernel wide, that
->> stores DMA addresses.
+> On 3/31/15 5:38 PM, David Miller wrote:
+>> What is different in the PowerPC fault path vs. the Sparc one that
+>> causes the SIGBUS for sparc where the PowerPC does not see it?
+>>
+>> I don't understand where the SIGBUS comes from.  In a pagefault
+>> disable section on sparc, in_atomic() should be true, thus we'll call
+>> do_kernel_fault(), fall through to the TSTATE_PRIV code path and
+>> simply run the exception handler.
+>>
 > 
-> That much is fairly obvious.  What I don't know is how much difference this
-> makes in the end.
+> That's what I was hoping someone could explain to me. I'll dig deeper
+> on Monday.
 
-Networking drivers, and perhaps block drivers too, have a data
-structure for each entry in the send/receive rings for the device and
-these can be huge.  And each ring entry stores one or more DMA
-addresses.
-
-Larger types mean more memory, but also more capacity cache misses in
-critical code paths.
-
-I'm really sorry if this isn't painfully obvious to you.
+I've looked a few times at this and can't figure out what might be
+going wrong just from visual inspection.  I'll try reproducing the
+problem and adding some diagnostics.
