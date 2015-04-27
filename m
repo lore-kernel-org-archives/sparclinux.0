@@ -1,40 +1,80 @@
-From: Rob Herring <robherring2@gmail.com>
-Date: Mon, 06 Apr 2015 13:05:33 +0000
-Subject: Re: [PATCH 1/3] PCI: Introduce pci_bus_addr_t
-Message-Id: <CAL_JsqLhteW8p1B7DrRzWzC_0UNYOKAU-yu2UhWRcb8PZ9AEnQ@mail.gmail.com>
+From: Eric Snowberg <eric.snowberg@oracle.com>
+Date: Mon, 27 Apr 2015 22:07:15 +0000
+Subject: [PATCH RFC 1/1] sparc64: pci slots information is not populated in sysfs
+Message-Id: <1430172435-231374-1-git-send-email-eric.snowberg@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
- <1427857069-6789-2-git-send-email-yinghai@kernel.org>
- <20150403193234.GD10892@google.com>
- <20150403205201.GF10892@google.com>
- <CAE9FiQVqAEvoLDRZMcNFki0gLMQiyQd2VYivjAh1teRGeuNwBw@mail.gmail.com>
- <CAErSpo55rpO6SNeY57zZ8ah0PJ3eY+-L92vUJwYiRn4tCfLtJg@mail.gmail.com>
- <CAL_JsqJyH==8OtkcU8_P4_47U6qe6FYqj-WUZ20_Y+iC_OF4_w@mail.gmail.com>
- <CAErSpo4cw2MSPmrur_QFMwnH01qf0XMfBEAyZ2f+HrUOGEXyjw@mail.gmail.com>
-In-Reply-To: <CAErSpo4cw2MSPmrur_QFMwnH01qf0XMfBEAyZ2f+HrUOGEXyjw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Sat, Apr 4, 2015 at 10:25 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Sat, Apr 4, 2015 at 2:48 PM, Rob Herring <robherring2@gmail.com> wrote:
->> On Sat, Apr 4, 2015 at 7:46 AM, Bjorn Helgaas <bhelgaas@google.com> wrote:
->
->>> I think there's still an unresolved question about the OF parsing code.
->>
->> Got a pointer to what that is? I'll take a guess. Generally, we make
->> the parsing code independent of the kernel addr sizes and use u64
->> types. The DT sizes and kernel sizes are not always aligned. For
->> example, an LPAE capable platform running a non-LPAE kernel build.
->
-> Yep: http://lkml.kernel.org/r/1427857069-6789-3-git-send-email-yinghai@kernel.org
->
-> Yinghai made a change to the sparc OF parsing code.  The question is
-> whether a similar change should be made to clones of that code (two
-> others in arch/sparc, one in arch/powerpc, and one in drivers/of).
+Add PCI slot numbers within sysfs for sun4v hardware. Larger
+sun4v systems contain nested PCI bridges and slots further
+down on these bridges were not being populated within sysfs.
+Also add AHCI style PCI slot numbers within sysfs for sun4v
+hardware since the OF 'slot-names' information is not available
+on all sun4v platforms.
 
-Yes, it appears to me that is needed. At least the drivers/of/ code
-does not distinguish 32 and 64 bit ATM.
+Signed-off-by: Eric Snowberg <eric.snowberg@oracle.com>
+---
+ arch/sparc/kernel/pci.c |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-Rob
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 6f7251f..3a5c402 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -1002,6 +1002,38 @@ static int __init pcibios_init(void)
+ subsys_initcall(pcibios_init);
+ 
+ #ifdef CONFIG_SYSFS
++
++#define SLOT_NAME_SIZE  11  /* Max decimal digits + null in u32 */
++
++static void pci_sun4v_bus_slot_names(struct pci_bus *pbus)
++{
++	struct pci_dev *pdev;
++	struct pci_bus *bus;
++
++	list_for_each_entry(pdev, &pbus->devices, bus_list) {
++		char name[SLOT_NAME_SIZE];
++		struct pci_slot *pci_slot;
++		const u32 *slot_num;
++		int len;
++
++		slot_num = of_get_property(pdev->dev.of_node,
++					   "physical-slot#", &len);
++
++		if (slot_num = NULL || len != 4)
++			continue;
++
++		snprintf(name, sizeof(name), "%u", slot_num[0]);
++		pci_slot = pci_create_slot(pbus, slot_num[0], name, NULL);
++
++		if (IS_ERR(pci_slot))
++			pr_err("PCI: pci_create_slot returned %ld.\n",
++			       PTR_ERR(pci_slot));
++	}
++
++	list_for_each_entry(bus, &pbus->children, node)
++		pci_sun4v_bus_slot_names(bus);
++}
++
+ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ {
+ 	const struct pci_slot_names {
+@@ -1054,6 +1086,11 @@ static int __init of_pci_slot_init(void)
+ 	while ((pbus = pci_find_next_bus(pbus)) != NULL) {
+ 		struct device_node *node;
+ 
++		if (tlb_type = hypervisor) {
++			pci_sun4v_bus_slot_names(pbus);
++			continue;
++		}
++
+ 		if (pbus->self) {
+ 			/* PCI->PCI bridge */
+ 			node = pbus->self->dev.of_node;
+-- 
+1.7.1
+
