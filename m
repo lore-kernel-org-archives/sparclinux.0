@@ -1,52 +1,88 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 10 Apr 2015 04:13:02 +0000
-Subject: Re: [PATCH 3/3] PCI: Set pref for mem64 resource of pcie device
-Message-Id: <CAE9FiQVT8uqBxmQbFrvfoKwuKzsPDmtqYq_KLc2o5Zg-Z=N2ig@mail.gmail.com>
+From: Eric Snowberg <eric.snowberg@oracle.com>
+Date: Tue, 28 Apr 2015 20:51:17 +0000
+Subject: [PATCH v2] sparc64: pci slots information is not populated in sysfs
+Message-Id: <1430254277-208174-1-git-send-email-eric.snowberg@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
-	<1427857069-6789-4-git-send-email-yinghai@kernel.org>
-	<20150406220638.GH10892@google.com>
-	<20150406.203533.1356187749826485194.davem@davemloft.net>
-	<CAErSpo7zvqft2frrwCd5AKMSO1LB7=7Ys9stKsj7OGzkQv4K1Q@mail.gmail.com>
-	<20150408154759.GN10892@google.com>
-	<1428527527.18187.28.camel@kernel.crashing.org>
-	<CAE9FiQXQN-VqN3ynLEhHh5WUYE+8tLR8ubKKMeHZ3h=BQ0rA9A@mail.gmail.com>
-	<1428549459.18187.56.camel@kernel.crashing.org>
-	<CAErSpo5VwuLjZtQFcJqfpkC=j5TJmLD0oZPQ=6oJpSOthB+BFA@mail.gmail.com>
-	<1428569681.18187.69.camel@kernel.crashing.org>
-	<CAE9FiQWf1kRx2Dx7LzCy7WhDonO54Q3o+5Nu+uxxsCs1unBMtg@mail.gmail.com>
-	<1428622302.18187.87.camel@kernel.crashing.org>
-In-Reply-To: <1428622302.18187.87.camel@kernel.crashing.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, David Ahern <david.ahern@oracle.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On Thu, Apr 9, 2015 at 4:31 PM, Benjamin Herrenschmidt
-<benh@kernel.crashing.org> wrote:
->> should we make
->>
->> int pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
->>
->> to
->>
->> int pci_bus_alloc_resource(struct pci_bus *bus, struct pci_dev *dev,
->> struct resource *res,
->
-> Do you need to pass bus if you have dev ?
+Add PCI slot numbers within sysfs for sun4v hardware. Larger
+sun4v systems contain nested PCI bridges and slots further
+down on these bridges were not being populated within sysfs.
+Also add ACPI style PCI slot numbers within sysfs for sun4v
+hardware since the OF 'slot-names' information is not available
+on all sun4v platforms.
 
-in following path:
+Signed-off-by: Eric Snowberg <eric.snowberg@oracle.com>
 
-_pci_assign_resource only take dev, and it will go up for parent bus
+---
+Changes in v2:
+  - Addresses Julian Calaby's comments: moved hypervisor test
+      outside the while loop and updated the typo in the
+      commit comment.
+---
+ arch/sparc/kernel/pci.c |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 39 insertions(+), 0 deletions(-)
 
-        while ((ret = __pci_assign_resource(bus, dev, resno, size,
-                                                min_align, fit))) {
-                if (!bus->parent || !bus->self->transparent)
-                        break;
-                bus = bus->parent;
-        }
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 6f7251f..d5f06bd 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -1002,6 +1002,38 @@ static int __init pcibios_init(void)
+ subsys_initcall(pcibios_init);
+ 
+ #ifdef CONFIG_SYSFS
++
++#define SLOT_NAME_SIZE  11  /* Max decimal digits + null in u32 */
++
++static void pci_sun4v_bus_slot_names(struct pci_bus *pbus)
++{
++	struct pci_dev *pdev;
++	struct pci_bus *bus;
++
++	list_for_each_entry(pdev, &pbus->devices, bus_list) {
++		char name[SLOT_NAME_SIZE];
++		struct pci_slot *pci_slot;
++		const u32 *slot_num;
++		int len;
++
++		slot_num = of_get_property(pdev->dev.of_node,
++					   "physical-slot#", &len);
++
++		if (slot_num = NULL || len != 4)
++			continue;
++
++		snprintf(name, sizeof(name), "%u", slot_num[0]);
++		pci_slot = pci_create_slot(pbus, slot_num[0], name, NULL);
++
++		if (IS_ERR(pci_slot))
++			pr_err("PCI: pci_create_slot returned %ld.\n",
++			       PTR_ERR(pci_slot));
++	}
++
++	list_for_each_entry(bus, &pbus->children, node)
++		pci_sun4v_bus_slot_names(bus);
++}
++
+ static void pci_bus_slot_names(struct device_node *node, struct pci_bus *bus)
+ {
+ 	const struct pci_slot_names {
+@@ -1051,6 +1083,13 @@ static int __init of_pci_slot_init(void)
+ {
+ 	struct pci_bus *pbus = NULL;
+ 
++	if (tlb_type = hypervisor) {
++		while ((pbus = pci_find_next_bus(pbus)) != NULL)
++			pci_sun4v_bus_slot_names(pbus);
++
++		return 0;
++	}
++
+ 	while ((pbus = pci_find_next_bus(pbus)) != NULL) {
+ 		struct device_node *node;
+ 
+-- 
+1.7.1
 
-and __pci_assign_resource will call pci_bus_alloc_resource.
-
-so it is could go up several levels to use upper bus there.
