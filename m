@@ -1,95 +1,79 @@
-From: Xunlei Pang <xlpang@126.com>
-Date: Fri, 29 May 2015 14:46:15 +0000
-Subject: [PATCH v2 1/4] NTP: rtc: Add CONFIG_RTC_SYSTOHC_DEVICE for NTP synchronization
-Message-Id: <1432910778-314-1-git-send-email-xlpang@126.com>
+From: Eric B Munson <emunson@akamai.com>
+Date: Fri, 08 May 2015 19:33:43 +0000
+Subject: [PATCH 0/3] Allow user to request memory to be locked on page fault
+Message-Id: <1431113626-19153-1-git-send-email-emunson@akamai.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Xunlei Pang <pang.xunlei@linaro.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eric B Munson <emunson@akamai.com>, Shuah Khan <shuahkh@osg.samsung.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-From: Xunlei Pang <pang.xunlei@linaro.org>
+mlock() allows a user to control page out of program memory, but this
+comes at the cost of faulting in the entire mapping when it is
+allocated.  For large mappings where the entire area is not necessary
+this is not ideal.
 
-Currently, CONFIG_RTC_SYSTOHC uses CONFIG_RTC_HCTOSYS_DEVICE which
-is originally used by CONFIG_RTC_HCTOSYS, but this rtc device has
-some limiations, for example, it must be battery-backed, be able
-to work with irq off and through system suspension, etc.
+This series introduces new flags for mmap() and mlockall() that allow a
+user to specify that the covered are should not be paged out, but only
+after the memory has been used the first time.
 
-So add CONFIG_RTC_SYSTOHC_DEVICE used exclusively for CONFIG_RTC_SYSTOHC,
-it is more lenient compared to CONFIG_RTC_HCTOSYS_DEVICE, and could
-be assigned any available RTC in the system. Default value is "rtc0".
+The performance cost of these patches are minimal on the two benchmarks
+I have tested (stream and kernbench).
 
-After this patch, NTP will sync up "rtc0" by default.
+Avg throughput in MB/s from stream using 1000000 element arrays
+Test     4.1-rc2      4.1-rc2+lock-on-fault
+Copy:    10,979.08    10,917.34
+Scale:   11,094.45    11,023.01
+Add:     12,487.29    12,388.65
+Triad:   12,505.77    12,418.78
 
-Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
----
- drivers/rtc/Kconfig   | 28 +++++++++++++++++++---------
- drivers/rtc/systohc.c |  2 +-
- 2 files changed, 20 insertions(+), 10 deletions(-)
+Kernbench optimal load
+                 4.1-rc2  4.1-rc2+lock-on-fault
+Elapsed Time     71.046   71.324
+User Time        62.117   62.352
+System Time      8.926    8.969
+Context Switches 14531.9  14542.5
+Sleeps           14935.9  14939
 
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index 0fe4ad8..f429e9a 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -25,17 +25,9 @@ config RTC_HCTOSYS
- 	  the value read from a specified RTC device. This is useful to avoid
- 	  unnecessary fsck runs at boot time, and to network better.
- 
--config RTC_SYSTOHC
--	bool "Set the RTC time based on NTP synchronization"
--	default y
--	help
--	  If you say yes here, the system time (wall clock) will be stored
--	  in the RTC specified by RTC_HCTOSYS_DEVICE approximately every 11
--	  minutes if userspace reports synchronized NTP status.
--
- config RTC_HCTOSYS_DEVICE
- 	string "RTC used to set the system time"
--	depends on RTC_HCTOSYS = y || RTC_SYSTOHC = y
-+	depends on RTC_HCTOSYS = y
- 	default "rtc0"
- 	help
- 	  The RTC device that will be used to (re)initialize the system
-@@ -56,6 +48,24 @@ config RTC_HCTOSYS_DEVICE
- 	  sleep states. Do not specify an RTC here unless it stays powered
- 	  during all this system's supported sleep states.
- 
-+config RTC_SYSTOHC
-+	bool "Set the RTC time based on NTP synchronization"
-+	default y
-+	help
-+	  If you say yes here, the system time (wall clock) will be stored
-+	  in the RTC specified by RTC_HCTOSYS_DEVICE approximately every 11
-+	  minutes if userspace reports synchronized NTP status.
-+
-+config RTC_SYSTOHC_DEVICE
-+	string "RTC used to synchronize NTP adjustment"
-+	depends on RTC_SYSTOHC = y
-+	default "rtc0"
-+	help
-+	  The RTC device used for NTP synchronization. The main difference
-+	  between RTC_HCTOSYS_DEVICE and RTC_SYSTOHC_DEVICE is that this
-+	  one can sleep when setting time, because it runs in the workqueue
-+	  context.
-+
- config RTC_DEBUG
- 	bool "RTC debug support"
- 	help
-diff --git a/drivers/rtc/systohc.c b/drivers/rtc/systohc.c
-index 7728d5e..b4a68ff 100644
---- a/drivers/rtc/systohc.c
-+++ b/drivers/rtc/systohc.c
-@@ -31,7 +31,7 @@ int rtc_set_ntp_time(struct timespec64 now)
- 	else
- 		rtc_time64_to_tm(now.tv_sec + 1, &tm);
- 
--	rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
-+	rtc = rtc_class_open(CONFIG_RTC_SYSTOHC_DEVICE);
- 	if (rtc) {
- 		/* rtc_hctosys exclusively uses UTC, so we call set_time here,
- 		 * not set_mmss. */
+Eric B Munson (3):
+  Add flag to request pages are locked after page fault
+  Add mlockall flag for locking pages on fault
+  Add tests for lock on fault
+
+ arch/alpha/include/uapi/asm/mman.h          |   2 +
+ arch/mips/include/uapi/asm/mman.h           |   2 +
+ arch/parisc/include/uapi/asm/mman.h         |   2 +
+ arch/powerpc/include/uapi/asm/mman.h        |   2 +
+ arch/sparc/include/uapi/asm/mman.h          |   2 +
+ arch/tile/include/uapi/asm/mman.h           |   2 +
+ arch/xtensa/include/uapi/asm/mman.h         |   2 +
+ include/linux/mm.h                          |   1 +
+ include/linux/mman.h                        |   3 +-
+ include/uapi/asm-generic/mman.h             |   2 +
+ mm/mlock.c                                  |  13 ++-
+ mm/mmap.c                                   |   4 +-
+ mm/swap.c                                   |   3 +-
+ tools/testing/selftests/vm/Makefile         |   8 +-
+ tools/testing/selftests/vm/lock-on-fault.c  | 145 ++++++++++++++++++++++++++++
+ tools/testing/selftests/vm/on-fault-limit.c |  47 +++++++++
+ tools/testing/selftests/vm/run_vmtests      |  23 +++++
+ 17 files changed, 254 insertions(+), 9 deletions(-)
+ create mode 100644 tools/testing/selftests/vm/lock-on-fault.c
+ create mode 100644 tools/testing/selftests/vm/on-fault-limit.c
+
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-api@vger.kernel.org
+
 -- 
 1.9.1
-
 
