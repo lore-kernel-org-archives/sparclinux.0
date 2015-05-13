@@ -1,105 +1,96 @@
 From: Eric B Munson <emunson@akamai.com>
-Date: Wed, 13 May 2015 14:14:42 +0000
+Date: Wed, 13 May 2015 15:00:36 +0000
 Subject: Re: [PATCH 0/3] Allow user to request memory to be locked on page fault
-Message-Id: <20150513141442.GC1227@akamai.com>
+Message-Id: <20150513150036.GG1227@akamai.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="LwW0XdcUbUexiWVK"
+Content-Type: multipart/mixed; boundary="df+09Je9rNq3P+GE"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1431113626-19153-1-git-send-email-emunson@akamai.com>
  <20150508124203.6679b1d35ad9555425003929@linux-foundation.org>
- <20150508200610.GB29933@akamai.com>
- <20150513135805.GA17708@dhcp22.suse.cz>
-In-Reply-To: <20150513135805.GA17708@dhcp22.suse.cz>
+ <20150511180631.GA1227@akamai.com>
+In-Reply-To: <20150511180631.GA1227@akamai.com>
 To: Michal Hocko <mhocko@suse.cz>
 Cc: Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
 
---LwW0XdcUbUexiWVK
+--df+09Je9rNq3P+GE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 13 May 2015, Michal Hocko wrote:
+On Mon, 11 May 2015, Eric B Munson wrote:
 
-> On Fri 08-05-15 16:06:10, Eric B Munson wrote:
-> > On Fri, 08 May 2015, Andrew Morton wrote:
-> >=20
-> > > On Fri,  8 May 2015 15:33:43 -0400 Eric B Munson <emunson@akamai.com>=
- wrote:
-> > >=20
-> > > > mlock() allows a user to control page out of program memory, but th=
-is
-> > > > comes at the cost of faulting in the entire mapping when it is
-> > > > allocated.  For large mappings where the entire area is not necessa=
-ry
-> > > > this is not ideal.
-> > > >=20
-> > > > This series introduces new flags for mmap() and mlockall() that all=
-ow a
-> > > > user to specify that the covered are should not be paged out, but o=
-nly
-> > > > after the memory has been used the first time.
-> > >=20
-> > > Please tell us much much more about the value of these changes: the u=
-se
-> > > cases, the behavioural improvements and performance results which the
-> > > patchset brings to those use cases, etc.
-> > >=20
-> >=20
-> > The primary use case is for mmaping large files read only.  The process
-> > knows that some of the data is necessary, but it is unlikely that the
-> > entire file will be needed.  The developer only wants to pay the cost to
-> > read the data in once.  Unfortunately developer must choose between
-> > allowing the kernel to page in the memory as needed and guaranteeing
-> > that the data will only be read from disk once.  The first option runs
-> > the risk of having the memory reclaimed if the system is under memory
-> > pressure, the second forces the memory usage and startup delay when
-> > faulting in the entire file.
+> On Fri, 08 May 2015, Andrew Morton wrote:
 >=20
-> Is there any reason you cannot do this from the userspace? Start by
-> mmap(PROT_NONE) and do mmap(MAP_FIXED|MAP_LOCKED|MAP_READ|other_flags_you=
-_need)
-> from the SIGSEGV handler?
-> You can generate a lot of vmas that way but you can mitigate that to a
-> certain level by mapping larger than PAGE_SIZE chunks in the fault
-> handler. Would that work in your usecase?
+> > On Fri,  8 May 2015 15:33:43 -0400 Eric B Munson <emunson@akamai.com> w=
+rote:
+> >=20
+> > > mlock() allows a user to control page out of program memory, but this
+> > > comes at the cost of faulting in the entire mapping when it is
+> > > allocated.  For large mappings where the entire area is not necessary
+> > > this is not ideal.
+> > >=20
+> > > This series introduces new flags for mmap() and mlockall() that allow=
+ a
+> > > user to specify that the covered are should not be paged out, but only
+> > > after the memory has been used the first time.
+> >=20
+> > Please tell us much much more about the value of these changes: the use
+> > cases, the behavioural improvements and performance results which the
+> > patchset brings to those use cases, etc.
+> >=20
+>=20
+> To illustrate the proposed use case I wrote a quick program that mmaps
+> a 5GB file which is filled with random data and accesses 150,000 pages
+> from that mapping.  Setup and processing were timed separately to
+> illustrate the differences between the three tested approaches.  the
+> setup portion is simply the call to mmap, the processing is the
+> accessing of the various locations in  that mapping.  The following
+> values are in milliseconds and are the averages of 20 runs each with a
+> call to echo 3 > /proc/sys/vm/drop_caches between each run.
+>=20
+> The first mapping was made with MAP_PRIVATE | MAP_LOCKED as a baseline:
+> Startup average:    9476.506
+> Processing average: 3.573
+>=20
+> The second mapping was simply MAP_PRIVATE but each page was passed to
+> mlock() before being read:
+> Startup average:    0.051
+> Processing average: 721.859
+>=20
+> The final mapping was MAP_PRIVATE | MAP_LOCKONFAULT:
+> Startup average:    0.084
+> Processing average: 42.125
+>=20
 
-This might work for the use cases I have laid out (I am not sure about
-the anonymous mmap one, but I will try it).  I am concerned about how
-much memory management policy these suggestions push into userspace.
-I am also concerned about the number of system calls required to do the
-same thing.  This will require a new call to mmap() for every new page
-accessed in the file (or for every file_size/map_size in the multiple
-page chunk).  The simple case of calling mlock() on the every time the
-file was accessed was significantly slower than the LOCKONFAULT flag.
-Your suggestion will be better in that it avoids the extra mlock call
-for pages already locked, but there still significantly more system
-calls.  I will add this to the program I have been using to measure
-executuion times and see how it compares to the other options.
+Michal's suggestion of changing protections and locking in a signal
+handler was better than the locking as needed, but still significantly
+more work required than the LOCKONFAULT case.
 
-Eric
+Startup average:    0.047
+Processing average: 86.431
 
 
---LwW0XdcUbUexiWVK
+--df+09Je9rNq3P+GE
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVU1xSAAoJELbVsDOpoOa9ST0QALjeZMUC+/sOsLGgTFLfO0x9
-u6Bh2+sOR/Uba5bSaP4rYLlsfWGTD++9R3fV2yZJ9gQKGZaDm7fZOZXbaoQhjZLL
-/XwF6jnPyknimsgIMrqRf6j9RJQvJjl3ruRheA0W690BAPkBV6R40Bu6UW0X/7vx
-wMWR+3cLg5uJ80N1xxNVh2KkBezWtRKjfAueqMdIPcrXBz80xN8dnA0fdkN2Wpnp
-4CwbcYSg87W2/v0sdyiBrgIKca73Ic1/o7mv6O5isxViwd983SzKr1qn+FXAPTJc
-R66It0tG7mmZ/kIDVrCOXZY0Fme6WiK0wiImxXNZifjDkDo5Pko1Ng+MjJehyYhL
-Z/S4xy6jcQD++Ih2B95iAilK/8ZzP9mja8Wo6dhN+l/AlQdvSINULfXgi+9BnngY
-zMMUXGOEwIGAkxHWqh8iGTb7gjy7iPWTqqb06soQFq2Ol8uzFQpwEnKV1pCZG3PO
-+Wp7oqGZraI5ckiw6M4+6auXWjOgcU2Uvf+82vCRbC1/8VHHEnN088fr9+f9wSBP
-TG2JO08lQTGIF1VvwYqfEsnWRvez+CQwr+sVIs1VXqvDiS694RZlT2FHLK/6USoF
-vn8WmBMJDissA3A0jgn9zIaTq393K27pFuc96zAsI4LYMLEZguYlkPT148GRJoXO
-bjOom+hb4Q4khMm9zqtk
-=Hfxi
+iQIcBAEBAgAGBQJVU2cUAAoJELbVsDOpoOa9baQQANJIi9hDC0B5PmZg1n740+8X
+5w7lzvAiDqRYi4/xYMjtx55l9M/YpTlnEuCPHUjEUvQvpxALWGSTYmcJ6cNx47Gh
+/BHWrTr4oedPg23icayje+QC/DKF10OT/qBx/ep/+J4nEEZnbBQmk5Ce2EbjVCDm
+4Xs3RjSeD9cWAOoHTsN2oqerZSM+DlqGU0Q2mWu10VM6usItc1oWk6U/gpD/26tE
+lfMslp8jsECGvLmd4Zkj44HifD36pI0InaSKeBLrUCAe8W6qvhCuIaKRdOn00lgZ
+CcUfQsK0c/7aYOZDm5CM4EUm+F8ee0mJV19qDMOm5rU9IrFZ4zj6rzRUHQ5OHcFH
+mLxWm6wtqxYSapbWkYhiMei6lzDeMi0aL9BHKnzktgABBO1rwgNwPTlmwIWZcyPz
+GWtxOw2oQZ6NqfGp9p3s677z2yicYQEJtEsvGrj5RVCUiXOwcRbQ0qNn8hF/6DrV
+Xpk/cL6Zr9g8Klh/tLSN1CTXkcvGU6Poc83MLqf7DWmoKB86izb6MLoV4l5ckfyQ
+s3nDQ6IJHOM3LaHIxeHj3FjHABx/lzwN22sKeRhsDduqiYUq3Y0i2J39ujXbZeUl
+VlZ37T447uyO+nDgvg27P4MVsQlYYqt/vMmZ/a1NJdDXkzQU5RYpEmIeX/Z1Rifz
+2Mean0e41gkDsd0BkxJb
+=mszX
 -----END PGP SIGNATURE-----
 
---LwW0XdcUbUexiWVK--
+--df+09Je9rNq3P+GE--
