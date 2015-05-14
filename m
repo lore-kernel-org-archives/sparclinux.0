@@ -1,32 +1,94 @@
-From: John Stultz <john.stultz@linaro.org>
-Date: Fri, 15 May 2015 23:46:28 +0000
-Subject: Re: [PATCH 1/2] drivers/rtc/interface.c: Change rtc_set_mmss() to use time64_t
-Message-Id: <CALAqxLW3e79ZHwvO8-R6KJ2gCxKTZ4tnvUSUN8y+gN6UuYctXw@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 14 May 2015 03:45:17 +0000
+Subject: Re: [PATCH Resend] sparc64: Resolve conflict between sparc v9 and M7 on usage of bit 9 of TTE
+Message-Id: <20150513.234517.834150584495147194.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1431682292-29732-1-git-send-email-xlpang@126.com>
-In-Reply-To: <1431682292-29732-1-git-send-email-xlpang@126.com>
+References: <1430173189-12135-1-git-send-email-khalid.aziz@oracle.com>
+In-Reply-To: <1430173189-12135-1-git-send-email-khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Xunlei Pang <xlpang@126.com>
-Cc: lkml <linux-kernel@vger.kernel.org>, "rtc-linux@googlegroups.com" <rtc-linux@googlegroups.com>, Alessandro Zummo <a.zummo@towertech.it>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Xunlei Pang <pang.xunlei@linaro.org>
+To: khalid.aziz@oracle.com
+Cc: bob.picco@oracle.com, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, sam@ravnborg.org, rickard_strandqvist@spectrumdigital.se, allen.pais@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, May 15, 2015 at 2:31 AM, Xunlei Pang <xlpang@126.com> wrote:
-> From: Xunlei Pang <pang.xunlei@linaro.org>
->
-> rtc_set_mmss() uses "unsigned long" as its second parameter which
-> may have y2038 problem on 32-bit systems.
->
-> Change it to use time64_t.
->
-> All its call sites will be changed later(there are no problems
-> leaving these call sites untouched).
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Mon, 27 Apr 2015 16:19:49 -0600
 
-This line isn't super convincing. Better to explain *why* there aren't
-problems making this change first, rather then just asserting it, and
-to give some confidence you'll address this, point out that sparc is
-the only user of this funciton and will be updated by the following
-patch in the series.
+> @@ -342,9 +356,15 @@ static inline pgprot_t pgprot_noncached(pgprot_t prot)
+>  	"	andn		%0, %4, %0\n"
+>  	"	or		%0, %5, %0\n"
+>  	"	.previous\n"
+> +	"	.section	.sun_m7_2insn_patch, \"ax\"\n"
+> +	"	.word		661b\n"
+> +	"	andn		%0, %6, %0\n"
+> +	"	or		%0, %5, %0\n"
+> +	"	.previous\n"
+>  	: "=r" (val)
+>  	: "0" (val), "i" (_PAGE_CP_4U | _PAGE_CV_4U), "i" (_PAGE_E_4U),
+> -	             "i" (_PAGE_CP_4V | _PAGE_CV_4V), "i" (_PAGE_E_4V));
+> +			"i" (_PAGE_CP_4V | _PAGE_CV_4V), "i" (_PAGE_E_4V),
+> +			"i" (_PAGE_CP_4V));
 
-thanks
--john
+Please don't change the indentation of the "i" arguments.
+
+> @@ -2446,18 +2471,35 @@ static void __init sun4u_pgprot_init(void)
+>  static void __init sun4v_pgprot_init(void)
+>  {
+>  	unsigned long page_none, page_shared, page_copy, page_readonly;
+> -	unsigned long page_exec_bit;
+> +	unsigned long page_exec_bit, page_cache4v_flag;
+>  	int i;
+ ...
+> +	switch (sun4v_chip_type) {
+> +	case SUN4V_CHIP_SPARC_M7:
+> +		page_cache4v_flag = _PAGE_CP_4V;
+> +		break;
+> +	default:
+> +		page_cache4v_flag = _PAGE_CACHE_4V;
+> +		break;
+> +	}
+
+Ok you've computed what cacheability bits to use in page_cache4v_flag.
+
+> -	kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+> +	switch (sun4v_chip_type) {
+> +	case SUN4V_CHIP_SPARC_M7:
+> +		kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_P_4V |
+> +				   _PAGE_W_4V);
+> +		break;
+> +	default:
+> +		kern_linear_pte_xor[0] |= (_PAGE_CP_4V | _PAGE_CV_4V |
+>  				   _PAGE_P_4V | _PAGE_W_4V);
+> +		break;
+> +	}
+>  
+
+Then needlessly compute this all over again, just use the
+value you have already in page_cache4v_flag.
+
+> @@ -2541,9 +2591,18 @@ static unsigned long kern_large_tte(unsigned long paddr)
+>  	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_P_4U |
+>  	       _PAGE_EXEC_4U | _PAGE_L_4U | _PAGE_W_4U);
+>  	if (tlb_type = hypervisor)
+> -		val = (_PAGE_VALID | _PAGE_SZ4MB_4V |
+> -		       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_P_4V |
+> -		       _PAGE_EXEC_4V | _PAGE_W_4V);
+> +		switch (sun4v_chip_type) {
+> +		case SUN4V_CHIP_SPARC_M7:
+> +			val = (_PAGE_VALID | _PAGE_SZ4MB_4V |
+> +			       _PAGE_CP_4V | _PAGE_P_4V |
+> +			       _PAGE_EXEC_4V | _PAGE_W_4V);
+> +			break;
+> +		default:
+> +			val = (_PAGE_VALID | _PAGE_SZ4MB_4V |
+> +			       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_P_4V |
+> +			       _PAGE_EXEC_4V | _PAGE_W_4V);
+> +			break;
+> +		}
+
+Although in another function, we seem to compute it here yet again.
+
+Perhaps early on put this into a "static unsigned long
+page_cache4v_flag" and just use that everywhere.
+
+If you do it early enough in paging_init() you should be fine.
