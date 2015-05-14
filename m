@@ -1,51 +1,37 @@
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Date: Thu, 28 May 2015 11:52:32 +0000
-Subject: [PATCH 0/5] Remove s390 sw-emulated hugepages and cleanup
-Message-Id: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 14 May 2015 03:55:43 +0000
+Subject: Re: [PATCH v2] sparc64: pci slots information is not populated in sysfs
+Message-Id: <20150513.235543.1420996136261895921.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1430254277-208174-1-git-send-email-eric.snowberg@oracle.com>
+In-Reply-To: <1430254277-208174-1-git-send-email-eric.snowberg@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Hi everyone,
+From: Eric Snowberg <eric.snowberg@oracle.com>
+Date: Tue, 28 Apr 2015 16:51:17 -0400
 
-there is a potential bug with KVM and hugetlbfs if the hardware does not
-support hugepages (EDAT1).
-We fix this by making EDAT1 a hard requirement for hugepages and 
-therefore removing and simplifying code.
+> Add PCI slot numbers within sysfs for sun4v hardware. Larger
+> sun4v systems contain nested PCI bridges and slots further
+> down on these bridges were not being populated within sysfs.
+> Also add ACPI style PCI slot numbers within sysfs for sun4v
+> hardware since the OF 'slot-names' information is not available
+> on all sun4v platforms.
+> 
+> Signed-off-by: Eric Snowberg <eric.snowberg@oracle.com>
+> 
+> ---
+> Changes in v2:
+>   - Addresses Julian Calaby's comments: moved hypervisor test
+>       outside the while loop and updated the typo in the
+>       commit comment.
 
-As s390, with the sw-emulated hugepages, was the only user of arch_prepare/release_hugepage
-I also removed theses calls from common and other architecture code.
+This property definitely exists in sun4u systems, "Ultra 45" and "Sun
+Fire V245" at a minimum.
 
-Thanks,
-    Dominik
+You can see this clearly by merely perusing the prtconf dumps in my
+'prtconfs' GIT repository.
 
-Dominik Dingel (5):
-  s390/mm: make hugepages_supported a boot time decision
-  mm/hugetlb: remove unused arch hook prepare/release_hugepage
-  mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
-  s390/hugetlb: remove dead code for sw emulated huge pages
-  s390/mm: forward check for huge pmds to pmd_large()
-
- arch/arm/include/asm/hugetlb.h     |  9 ------
- arch/arm64/include/asm/hugetlb.h   |  9 ------
- arch/ia64/include/asm/hugetlb.h    |  9 ------
- arch/metag/include/asm/hugetlb.h   |  9 ------
- arch/mips/include/asm/hugetlb.h    |  9 ------
- arch/powerpc/include/asm/hugetlb.h |  9 ------
- arch/s390/include/asm/hugetlb.h    |  3 --
- arch/s390/include/asm/page.h       |  8 ++---
- arch/s390/kernel/setup.c           |  2 ++
- arch/s390/mm/hugetlbpage.c         | 65 +++-----------------------------------
- arch/s390/mm/pgtable.c             |  2 ++
- arch/sh/include/asm/hugetlb.h      |  9 ------
- arch/sparc/include/asm/hugetlb.h   |  9 ------
- arch/tile/include/asm/hugetlb.h    |  9 ------
- arch/x86/include/asm/hugetlb.h     |  9 ------
- mm/hugetlb.c                       | 10 ------
- 16 files changed, 12 insertions(+), 168 deletions(-)
-
--- 
-2.3.7
-
+So it makes no sense at all the limit this code to sun4v systems.
