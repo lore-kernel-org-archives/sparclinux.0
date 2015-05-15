@@ -1,21 +1,21 @@
 From: Eric B Munson <emunson@akamai.com>
-Date: Thu, 14 May 2015 13:58:35 +0000
+Date: Fri, 15 May 2015 15:35:50 +0000
 Subject: Re: [PATCH 0/3] Allow user to request memory to be locked on page fault
-Message-Id: <20150514135835.GH1227@akamai.com>
+Message-Id: <20150515153550.GA2454@akamai.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="fd5uyaI9j6xoeUBo"
+Content-Type: multipart/mixed; boundary="UugvWAfsgieZRqgk"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1431113626-19153-1-git-send-email-emunson@akamai.com>
  <20150508124203.6679b1d35ad9555425003929@linux-foundation.org>
  <20150511180631.GA1227@akamai.com>
  <20150513150036.GG1227@akamai.com>
  <20150514080812.GC6433@dhcp22.suse.cz>
-In-Reply-To: <20150514080812.GC6433-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org>
-To: Michal Hocko <mhocko-AlSwsSmVLrQ@public.gmane.org>
-Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Shuah Khan <shuahkh-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20150514080812.GC6433@dhcp22.suse.cz>
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
 
---fd5uyaI9j6xoeUBo
+--UugvWAfsgieZRqgk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
@@ -87,43 +87,72 @@ e:
 > to mlock sounds trickier and MAP_LOCKED is tricky enough already...
 >=20
 
-The test code I have been using is a pathalogical test case that only
-touches pages once and they are fairly far apart.
+I reworked the experiment to better cover the batching solution.  The
+same 5GB data file is used, however instead of 150,000 accesses at
+regular intervals, the test program now does 15,000,000 accesses to
+random pages in the mapping.  The rest of the setup remains the same.
 
-On the face batching sounds like a good idea, but I have a couple of
-questions.  In order to batch fault in pages the seg fault handler needs
-to know about the mapping in question.  Specifically it needs to know
-where it ends so that it doesn't try and mprotect()/mlock() past the
-end.  So now the program has to start tracking its maps in some globally
-accessible structure and this sounds more like implementing memory
-management in userspace.  How could this batching be implemented without
-requiring the signal handler to know about mapping that is being
-accessed?  Also, how much memory management policy is it reasonable to
-expect user space to implement in these cases?
+mmap with MAP_LOCKED:
+Setup avg:      11821.193
+Processing avg: 3404.286
+
+mmap with mlock() before each access:
+Setup avg:      0.054
+Processing avg: 34263.201
+
+mmap with PROT_NONE and signal handler and batch size of 1 page:
+With the default value in max_map_count, this gets ENOMEM as I attempt
+to change the permissions, after upping the sysctl significantly I get:
+Setup avg:      0.050
+Processing avg: 67690.625
+
+mmap with PROT_NONE and signal handler and batch size of 8 pages:
+Setup avg:      0.098
+Processing avg: 37344.197
+
+mmap with PROT_NONE and signal handler and batch size of 16 pages:
+Setup avg:      0.0548
+Processing avg: 29295.669
+
+mmap with MAP_LOCKONFAULT:
+Setup avg:      0.073
+Processing avg: 18392.136
+
+The signal handler in the batch cases faulted in memory in two steps to
+avoid having to know the start and end of the faulting mapping.  The
+first step covers the page that caused the fault as we know that it will
+be possible to lock.  The second step speculatively tries to mlock and
+mprotect the batch size - 1 pages that follow.  There may be a clever
+way to avoid this without having the program track each mapping to be
+covered by this handeler in a globally accessible structure, but I could
+not find it.
+
+These results show that if the developer knows that a majority of the
+mapping will be used, it is better to try and fault it in at once,
+otherwise MAP_LOCKONFAULT is significantly faster.
 
 Eric
 
-
---fd5uyaI9j6xoeUBo
+--UugvWAfsgieZRqgk
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVVKoLAAoJELbVsDOpoOa90wkQANW2KnooZXzzNUTsJw2B/QTN
-YVIypMnzYWbm6PiOrXWmLEYy2WkkhZRFsFfrtj0qXNqj1JHI2l+ziyx0SEAeK6LZ
-aN2/wL8E/uogVP0E8ti06hnkYdmq0AvwHujH3txHVK49wYl/q/X39tf2VxJBA1Ei
-At3JVQ12OymEmzpsnttij1X6uTQQwzaXV/mgeNAk9TYxvj6IWmvkqhrvxBQQpfec
-7yllbH2CWoWRxuhf+mc3R+LX2Vqz14nV0aWSDhIOSO+K+n5LVqBNrLKhKipnqPxQ
-AID/yjBbZuXz/5RP+WddtFk1DwU25f9GyGzXhiq6tiLnayqmaL1vV61E1wkcsspA
-CuS8+jmPcUJvNaiHP9126qTzTVybsz8vtJaZkNSM8Vp2RMrtQvODHuQYBBTClrqd
-35PF/frytzOeEuqpP/Z0kwW/XnNGvcSC2wqM2Gmirn0QK7GsoEHqWRpvuFEcau1j
-/beVWrq6anUmD5PB3RgWb58XP6Q5iQOFbNI8mHHnqZQg2RIMjujJ+f1pXt3bwVJ3
-oZFLALVs9xvy5rDYyFnSVRs4iVEhn2tGdi/mW/oypHyfDsLHX+FhzSuvYCfocGq6
-2jHlCcmQ1osDn8SXNf9bZpp0U0J18YRxV3fj2MHb8MDp9f7aaSr7oIrrZ2A/Zr6G
-0b6iQjK20eFmcy4ranev
-=Fok5
+iQIcBAEBAgAGBQJVVhJWAAoJELbVsDOpoOa9WYAP/3ov0vZPI/nakqAuXYzn2jqU
+1Dv9ox2VB8OOYQ7rwRVnpS+yJ7uxXSHHiKZLwBOiCI6nRCAlPmropUW8M+2UsdLV
+i/hvNzA4IuazdL2LqZ/w8pLD9wLtbP+9EqFP5ELbmNxmZyakXctGtxpsa+YUXoZM
+viRheOLn9A6qkZvGqDo6A9jMckXRuvd2x7dG4M/qjSPTVGBq573/qFmcOzNqHRZ9
+PQptov2DdetLXYLBIMoU9kb/cK9EHja8fL/vOyB53DScGcMBLNCcjFJIaPz33wy0
+Jdm4/rJIW5SYF3D4V1UvcJY54MdumOiKkidGIPYsqOApyTiUmc6PK/fZxWz2/P6b
+ab4AOBOHNYrURr45nDbgI0/exrvezuOlqnH4xvZTkZKuprx/pMaWFsv07oECfBpm
+iQk7AcTzoF6j8k+UAl8so+VbZ9m5/FSvR+TAMkNb1mtACVL7Y3gAMcuQG7rap3fN
+lJoe72b4MRpXfBaD/sdW1Q9Zi9SelcEzrV8jPZiEbRHyIQC0UkYRrL6wCM+lClV0
+xj8A/y3LD9Kq+k4S0s7oSc65n1EEejx3SumZ3JoWxno1aNT2RI5c7sclxmaviGr0
+Ro2Gbb0HwrlH2yXwGKkC8jEayG7NzDCZVlXHJ6j6SSGABaLD5DWbaDgzIhT8lGtL
+xI28uUdrt/3kVWpHEZr3
+=ycZg
 -----END PGP SIGNATURE-----
 
---fd5uyaI9j6xoeUBo--
+--UugvWAfsgieZRqgk--
