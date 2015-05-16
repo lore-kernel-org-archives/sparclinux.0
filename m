@@ -1,22 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 27 May 2015 15:53:51 +0000
-Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
-Message-Id: <20150527.115351.590594935690171018.davem@davemloft.net>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Sat, 16 May 2015 15:25:37 +0000
+Subject: Re: [PATCH 0/3] PCI/sparc: Fix booting with T5-8
+Message-Id: <20150516152537.GJ31666@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1432728342-32748-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
+References: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1427857069-6789-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-ppc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: David Miller <davem@davemloft.net>, David Ahern <david.ahern@oracle.com>, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 27 May 2015 15:05:42 +0300
-
-> Even though 'compatability' has a dedicated entry in the Wiktionary,
-> it's listed as 'Mispelling of compatibility'. Fix it.
+On Tue, Mar 31, 2015 at 07:57:46PM -0700, Yinghai Lu wrote:
+> Fix regression by commit d63e2e1f3df9 ("sparc/PCI: Clip bridge windows to
+> fit in upstream windows").
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> That cause bridge bar get clipped wrongly.
+> 
+> The sparc64 dma_addr_t is 32-bit, we can not use it to check if we can
+> use 64bit bar, introduce pci_bus_addr_t.
+> 
+> sparc ofpci does not parse 64bit mem for root bus, add code to
+> make sure that we get correct resource for root.
+> 
+> Also there are device 64-bit res does not have pref bit flag, but bridges
+> do have pref bit set, that cause extra "no compatible window".
+> Set pref bit for them according to the errata.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Ping, any updates on this?  AFAICT, we should add a new pci_bus_addr_t
+distinct from dma_addr_t, but Ben raised an issue that needs to be
+resolved first.
+
+Bjorn
