@@ -1,59 +1,42 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Fri, 01 May 2015 13:56:42 +0000
-Subject: [PATCH v2 09/10] sparc: use for_each_sg()
-Message-Id: <1430488603-11055-9-git-send-email-akinobu.mita@gmail.com>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Sun, 17 May 2015 10:54:15 +0000
+Subject: [PATCH 4/6] crypto: sparc/md5: use md5 IV MD5_HX instead of their raw value
+Message-Id: <1431860057-5232-4-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1430488603-11055-1-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1430488603-11055-1-git-send-email-akinobu.mita@gmail.com>
+References: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
+In-Reply-To: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
+Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since sparc does
-select ARCH_HAS_SG_CHAIN, it is necessary to use for_each_sg() in
-order to loop over each sg element.  This also help find problems with
-drivers that do not properly initialize their sg tables when
-CONFIG_DEBUG_SG is enabled.
+Since MD5 IV are now available in crypto/md5.h, use them.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
 ---
-* New patch from v2
+ arch/sparc/crypto/md5_glue.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
- arch/sparc/kernel/ldc.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 7d3ca30..1ae5eb1 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -2086,6 +2086,7 @@ int ldc_map_sg(struct ldc_channel *lp,
- 	struct cookie_state state;
- 	struct ldc_iommu *iommu;
- 	int err;
-+	struct scatterlist *s;
+diff --git a/arch/sparc/crypto/md5_glue.c b/arch/sparc/crypto/md5_glue.c
+index b688731..c9d2b92 100644
+--- a/arch/sparc/crypto/md5_glue.c
++++ b/arch/sparc/crypto/md5_glue.c
+@@ -33,10 +33,10 @@ static int md5_sparc64_init(struct shash_desc *desc)
+ {
+ 	struct md5_state *mctx = shash_desc_ctx(desc);
  
- 	if (map_perm & ~LDC_MAP_ALL)
- 		return -EINVAL;
-@@ -2112,9 +2113,10 @@ int ldc_map_sg(struct ldc_channel *lp,
- 	state.pte_idx = (base - iommu->page_table);
- 	state.nc = 0;
+-	mctx->hash[0] = cpu_to_le32(0x67452301);
+-	mctx->hash[1] = cpu_to_le32(0xefcdab89);
+-	mctx->hash[2] = cpu_to_le32(0x98badcfe);
+-	mctx->hash[3] = cpu_to_le32(0x10325476);
++	mctx->hash[0] = cpu_to_le32(MD5_H0);
++	mctx->hash[1] = cpu_to_le32(MD5_H1);
++	mctx->hash[2] = cpu_to_le32(MD5_H2);
++	mctx->hash[3] = cpu_to_le32(MD5_H3);
+ 	mctx->byte_count = 0;
  
--	for (i = 0; i < num_sg; i++)
--		fill_cookies(&state, page_to_pfn(sg_page(&sg[i])) << PAGE_SHIFT,
--			     sg[i].offset, sg[i].length);
-+	for_each_sg(sg, s, num_sg, i) {
-+		fill_cookies(&state, page_to_pfn(sg_page(s)) << PAGE_SHIFT,
-+			     s->offset, s->length);
-+	}
- 
- 	return state.nc;
- }
+ 	return 0;
 -- 
-1.9.1
+2.3.6
 
