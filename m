@@ -1,16 +1,42 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Date: Thu, 28 May 2015 13:59:06 +0000
-Subject: Re: [PATCH 3/5] mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
-Message-Id: <20150528135905.GD1179@linux-mips.org>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Sun, 17 May 2015 10:54:16 +0000
+Subject: [PATCH 5/6] crypto: n2: use md5 IV MD5_HX instead of their raw value
+Message-Id: <1431860057-5232-5-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
- <1432813957-46874-4-git-send-email-dingel@linux.vnet.ibm.com>
-In-Reply-To: <1432813957-46874-4-git-send-email-dingel@linux.vnet.ibm.com>
+References: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
+In-Reply-To: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
+Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
 
-On Thu, May 28, 2015 at 01:52:35PM +0200, Dominik Dingel wrote:
+Since MD5 IV are now available in crypto/md5.h, use them.
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
+---
+ drivers/crypto/n2_core.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/crypto/n2_core.c b/drivers/crypto/n2_core.c
+index 10a9aef..2e8dab9 100644
+--- a/drivers/crypto/n2_core.c
++++ b/drivers/crypto/n2_core.c
+@@ -1281,10 +1281,10 @@ static const char md5_zero[MD5_DIGEST_SIZE] = {
+ 	0xe9, 0x80, 0x09, 0x98, 0xec, 0xf8, 0x42, 0x7e,
+ };
+ static const u32 md5_init[MD5_HASH_WORDS] = {
+-	cpu_to_le32(0x67452301),
+-	cpu_to_le32(0xefcdab89),
+-	cpu_to_le32(0x98badcfe),
+-	cpu_to_le32(0x10325476),
++	cpu_to_le32(MD5_H0),
++	cpu_to_le32(MD5_H1),
++	cpu_to_le32(MD5_H2),
++	cpu_to_le32(MD5_H3),
+ };
+ static const char sha1_zero[SHA1_DIGEST_SIZE] = {
+ 	0xda, 0x39, 0xa3, 0xee, 0x5e, 0x6b, 0x4b, 0x0d, 0x32,
+-- 
+2.3.6
+
