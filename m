@@ -1,97 +1,42 @@
-From: Xunlei Pang <xlpang@126.com>
-Date: Fri, 29 May 2015 14:46:17 +0000
-Subject: [PATCH v2 3/4] drivers/rtc/interface.c: Remove rtc_set_mmss()
-Message-Id: <1432910778-314-3-git-send-email-xlpang@126.com>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Sun, 17 May 2015 10:54:14 +0000
+Subject: [PATCH 3/6] crypto: powerpc/md5: use md5 IV MD5_HX instead of their raw value
+Message-Id: <1431860057-5232-3-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432910778-314-1-git-send-email-xlpang@126.com>
-In-Reply-To: <1432910778-314-1-git-send-email-xlpang@126.com>
+References: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
+In-Reply-To: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Xunlei Pang <pang.xunlei@linaro.org>
+To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
+Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
 
-From: Xunlei Pang <pang.xunlei@linaro.org>
+Since MD5 IV are now available in crypto/md5.h, use them.
 
-Now rtc_set_mmss() has no users, just remove it.
-
-We still have rtc_set_time() doing similar things.
-
-Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
 ---
- drivers/rtc/interface.c | 45 ---------------------------------------------
- include/linux/rtc.h     |  1 -
- 2 files changed, 46 deletions(-)
+ arch/powerpc/crypto/md5-glue.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
-index 166fc60..b511aa1 100644
---- a/drivers/rtc/interface.c
-+++ b/drivers/rtc/interface.c
-@@ -91,51 +91,6 @@ int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm)
- }
- EXPORT_SYMBOL_GPL(rtc_set_time);
- 
--int rtc_set_mmss(struct rtc_device *rtc, unsigned long secs)
--{
--	int err;
--
--	err = mutex_lock_interruptible(&rtc->ops_lock);
--	if (err)
--		return err;
--
--	if (!rtc->ops)
--		err = -ENODEV;
--	else if (rtc->ops->set_mmss64)
--		err = rtc->ops->set_mmss64(rtc->dev.parent, secs);
--	else if (rtc->ops->set_mmss)
--		err = rtc->ops->set_mmss(rtc->dev.parent, secs);
--	else if (rtc->ops->read_time && rtc->ops->set_time) {
--		struct rtc_time new, old;
--
--		err = rtc->ops->read_time(rtc->dev.parent, &old);
--		if (err = 0) {
--			rtc_time64_to_tm(secs, &new);
--
--			/*
--			 * avoid writing when we're going to change the day of
--			 * the month. We will retry in the next minute. This
--			 * basically means that if the RTC must not drift
--			 * by more than 1 minute in 11 minutes.
--			 */
--			if (!((old.tm_hour = 23 && old.tm_min = 59) ||
--				(new.tm_hour = 23 && new.tm_min = 59)))
--				err = rtc->ops->set_time(rtc->dev.parent,
--						&new);
--		}
--	} else {
--		err = -EINVAL;
--	}
--
--	pm_stay_awake(rtc->dev.parent);
--	mutex_unlock(&rtc->ops_lock);
--	/* A timer might have just expired */
--	schedule_work(&rtc->irqwork);
--
--	return err;
--}
--EXPORT_SYMBOL_GPL(rtc_set_mmss);
--
- static int rtc_read_alarm_internal(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
+diff --git a/arch/powerpc/crypto/md5-glue.c b/arch/powerpc/crypto/md5-glue.c
+index 452fb4d..9228967 100644
+--- a/arch/powerpc/crypto/md5-glue.c
++++ b/arch/powerpc/crypto/md5-glue.c
+@@ -37,10 +37,10 @@ static int ppc_md5_init(struct shash_desc *desc)
  {
- 	int err;
-diff --git a/include/linux/rtc.h b/include/linux/rtc.h
-index 8dcf682..e8f2c3c 100644
---- a/include/linux/rtc.h
-+++ b/include/linux/rtc.h
-@@ -161,7 +161,6 @@ extern void devm_rtc_device_unregister(struct device *dev,
+ 	struct md5_state *sctx = shash_desc_ctx(desc);
  
- extern int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm);
- extern int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm);
--extern int rtc_set_mmss(struct rtc_device *rtc, unsigned long secs);
- extern int rtc_set_ntp_time(struct timespec64 now);
- int __rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm);
- extern int rtc_read_alarm(struct rtc_device *rtc,
+-	sctx->hash[0] = 0x67452301;
+-	sctx->hash[1] = 0xefcdab89;
+-	sctx->hash[2] = 0x98badcfe;
+-	sctx->hash[3] =	0x10325476;
++	sctx->hash[0] = MD5_H0;
++	sctx->hash[1] = MD5_H1;
++	sctx->hash[2] = MD5_H2;
++	sctx->hash[3] =	MD5_H3;
+ 	sctx->byte_count = 0;
+ 
+ 	return 0;
 -- 
-1.9.1
-
+2.3.6
 
