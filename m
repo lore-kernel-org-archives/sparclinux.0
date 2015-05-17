@@ -1,29 +1,37 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 14 May 2015 13:47:22 +0000
-Subject: Re: [PATCH Resend] sparc64: Resolve conflict between sparc v9 and M7 on usage of bit 9 of TTE
-Message-Id: <5554A76A.6090408@oracle.com>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Sun, 17 May 2015 10:54:12 +0000
+Subject: [PATCH 1/6] crypto: md5: add MD5 initial vectors
+Message-Id: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1430173189-12135-1-git-send-email-khalid.aziz@oracle.com> <20150513.234517.834150584495147194.davem@davemloft.net>
-In-Reply-To: <20150513.234517.834150584495147194.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: bob.picco@oracle.com, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, sam@ravnborg.org, rickard_strandqvist@spectrumdigital.se, allen.pais@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
+Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
 
-On 05/13/2015 09:45 PM, David Miller wrote:
->
-> Ok you've computed what cacheability bits to use in page_cache4v_flag.
->.......
-> Although in another function, we seem to compute it here yet again.
->
-> Perhaps early on put this into a "static unsigned long
-> page_cache4v_flag" and just use that everywhere.
->
-> If you do it early enough in paging_init() you should be fine.
+This patch simply adds the MD5 IV in the md5 header.
 
-Makes perfect sense. Thanks! I will send out a v2 patch.
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
+---
+ include/crypto/md5.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
---
-Khalid
+diff --git a/include/crypto/md5.h b/include/crypto/md5.h
+index 65f299b..146af82 100644
+--- a/include/crypto/md5.h
++++ b/include/crypto/md5.h
+@@ -8,6 +8,11 @@
+ #define MD5_BLOCK_WORDS		16
+ #define MD5_HASH_WORDS		4
+ 
++#define MD5_H0	0x67452301UL
++#define MD5_H1	0xefcdab89UL
++#define MD5_H2	0x98badcfeUL
++#define MD5_H3	0x10325476UL
++
+ struct md5_state {
+ 	u32 hash[MD5_HASH_WORDS];
+ 	u32 block[MD5_BLOCK_WORDS];
+-- 
+2.3.6
 
