@@ -1,76 +1,42 @@
-From: Xunlei Pang <xlpang@126.com>
-Date: Fri, 29 May 2015 14:46:18 +0000
-Subject: [PATCH v2 4/4] cris: time: Cleanup of persistent clock stuff
-Message-Id: <1432910778-314-4-git-send-email-xlpang@126.com>
+From: LABBE Corentin <clabbe.montjoie@gmail.com>
+Date: Sun, 17 May 2015 10:54:17 +0000
+Subject: [PATCH 6/6] crypto: octeon: use md5 IV MD5_HX instead of their raw value
+Message-Id: <1431860057-5232-6-git-send-email-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432910778-314-1-git-send-email-xlpang@126.com>
-In-Reply-To: <1432910778-314-1-git-send-email-xlpang@126.com>
+References: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
+In-Reply-To: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Xunlei Pang <pang.xunlei@linaro.org>
+To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
+Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
 
-From: Xunlei Pang <pang.xunlei@linaro.org>
+Since MD5 IV are now available in crypto/md5.h, use them.
 
-- Remove update_persistent_clock(), as it does nothing now.
-- Remove read_persistent_clock(), let it fall back to the weak version.
-
-Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
+Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
 ---
- arch/cris/Kconfig       |  1 -
- arch/cris/kernel/time.c | 25 -------------------------
- 2 files changed, 26 deletions(-)
+ arch/mips/cavium-octeon/crypto/octeon-md5.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/cris/Kconfig b/arch/cris/Kconfig
-index 0314e32..982d562 100644
---- a/arch/cris/Kconfig
-+++ b/arch/cris/Kconfig
-@@ -46,7 +46,6 @@ config CRIS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IOMAP
--	select GENERIC_CMOS_UPDATE
- 	select MODULES_USE_ELF_RELA
- 	select CLONE_BACKWARDS2
- 	select OLD_SIGSUSPEND
-diff --git a/arch/cris/kernel/time.c b/arch/cris/kernel/time.c
-index 7780d37..2dda6da 100644
---- a/arch/cris/kernel/time.c
-+++ b/arch/cris/kernel/time.c
-@@ -39,31 +39,6 @@
- extern unsigned long loops_per_jiffy; /* init/main.c */
- unsigned long loops_per_usec;
+diff --git a/arch/mips/cavium-octeon/crypto/octeon-md5.c b/arch/mips/cavium-octeon/crypto/octeon-md5.c
+index 12dccdb..af4c712 100644
+--- a/arch/mips/cavium-octeon/crypto/octeon-md5.c
++++ b/arch/mips/cavium-octeon/crypto/octeon-md5.c
+@@ -69,10 +69,10 @@ static int octeon_md5_init(struct shash_desc *desc)
+ {
+ 	struct md5_state *mctx = shash_desc_ctx(desc);
  
--int set_rtc_mmss(unsigned long nowtime)
--{
--	D(printk(KERN_DEBUG "set_rtc_mmss(%lu)\n", nowtime));
--	return 0;
--}
--
--/* grab the time from the RTC chip */
--unsigned long get_cmos_time(void)
--{
--	return 0;
--}
--
--
--int update_persistent_clock(struct timespec now)
--{
--	return set_rtc_mmss(now.tv_sec);
--}
--
--void read_persistent_clock(struct timespec *ts)
--{
--	ts->tv_sec = 0;
--	ts->tv_nsec = 0;
--}
--
--
- extern void cris_profile_sample(struct pt_regs* regs);
+-	mctx->hash[0] = cpu_to_le32(0x67452301);
+-	mctx->hash[1] = cpu_to_le32(0xefcdab89);
+-	mctx->hash[2] = cpu_to_le32(0x98badcfe);
+-	mctx->hash[3] = cpu_to_le32(0x10325476);
++	mctx->hash[0] = cpu_to_le32(MD5_H0);
++	mctx->hash[1] = cpu_to_le32(MD5_H1);
++	mctx->hash[2] = cpu_to_le32(MD5_H2);
++	mctx->hash[3] = cpu_to_le32(MD5_H3);
+ 	mctx->byte_count = 0;
  
- void
+ 	return 0;
 -- 
-1.9.1
-
+2.3.6
 
