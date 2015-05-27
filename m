@@ -1,168 +1,119 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Tue, 19 May 2015 20:30:05 +0000
-Subject: Re: [PATCH 0/3] Allow user to request memory to be locked on page fault
-Message-Id: <20150519203005.GB2454@akamai.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="pvezYHf7grwyp3Bc"
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Wed, 27 May 2015 12:05:42 +0000
+Subject: [PATCH] treewide: Fix typo compatability -> compatibility
+Message-Id: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1431113626-19153-1-git-send-email-emunson@akamai.com>
- <20150508124203.6679b1d35ad9555425003929@linux-foundation.org>
- <20150511180631.GA1227@akamai.com>
- <20150513150036.GG1227@akamai.com>
- <20150514080812.GC6433@dhcp22.suse.cz>
- <20150515153550.GA2454@akamai.com>
-In-Reply-To: <20150515153550.GA2454@akamai.com>
-To: Michal Hocko <mhocko@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org, kvm-ppc@vger.kernel.org, dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org, linux-metag@vger.kernel.org, linux-media@vger.kernel.org
 
+Even though 'compatability' has a dedicated entry in the Wiktionary,
+it's listed as 'Mispelling of compatibility'. Fix it.
 
---pvezYHf7grwyp3Bc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/metag/include/asm/elf.h             | 2 +-
+ arch/powerpc/kvm/book3s.c                | 2 +-
+ arch/sparc/include/uapi/asm/pstate.h     | 2 +-
+ drivers/gpu/drm/drm_atomic_helper.c      | 4 ++--
+ drivers/media/dvb-frontends/au8522_dig.c | 2 +-
+ drivers/net/wireless/ipw2x00/ipw2100.h   | 2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-On Fri, 15 May 2015, Eric B Munson wrote:
+I can split this into one patch per subsystem, but that seems a bit overkill.
+Can someone take it ?
 
-> On Thu, 14 May 2015, Michal Hocko wrote:
->=20
-> > On Wed 13-05-15 11:00:36, Eric B Munson wrote:
-> > > On Mon, 11 May 2015, Eric B Munson wrote:
-> > >=20
-> > > > On Fri, 08 May 2015, Andrew Morton wrote:
-> > > >=20
-> > > > > On Fri,  8 May 2015 15:33:43 -0400 Eric B Munson <emunson@akamai.=
-com> wrote:
-> > > > >=20
-> > > > > > mlock() allows a user to control page out of program memory, bu=
-t this
-> > > > > > comes at the cost of faulting in the entire mapping when it is
-> > > > > > allocated.  For large mappings where the entire area is not nec=
-essary
-> > > > > > this is not ideal.
-> > > > > >=20
-> > > > > > This series introduces new flags for mmap() and mlockall() that=
- allow a
-> > > > > > user to specify that the covered are should not be paged out, b=
-ut only
-> > > > > > after the memory has been used the first time.
-> > > > >=20
-> > > > > Please tell us much much more about the value of these changes: t=
-he use
-> > > > > cases, the behavioural improvements and performance results which=
- the
-> > > > > patchset brings to those use cases, etc.
-> > > > >=20
-> > > >=20
-> > > > To illustrate the proposed use case I wrote a quick program that mm=
-aps
-> > > > a 5GB file which is filled with random data and accesses 150,000 pa=
-ges
-> > > > from that mapping.  Setup and processing were timed separately to
-> > > > illustrate the differences between the three tested approaches.  the
-> > > > setup portion is simply the call to mmap, the processing is the
-> > > > accessing of the various locations in  that mapping.  The following
-> > > > values are in milliseconds and are the averages of 20 runs each wit=
-h a
-> > > > call to echo 3 > /proc/sys/vm/drop_caches between each run.
-> > > >=20
-> > > > The first mapping was made with MAP_PRIVATE | MAP_LOCKED as a basel=
-ine:
-> > > > Startup average:    9476.506
-> > > > Processing average: 3.573
-> > > >=20
-> > > > The second mapping was simply MAP_PRIVATE but each page was passed =
-to
-> > > > mlock() before being read:
-> > > > Startup average:    0.051
-> > > > Processing average: 721.859
-> > > >=20
-> > > > The final mapping was MAP_PRIVATE | MAP_LOCKONFAULT:
-> > > > Startup average:    0.084
-> > > > Processing average: 42.125
-> > > >=20
-> > >=20
-> > > Michal's suggestion of changing protections and locking in a signal
-> > > handler was better than the locking as needed, but still significantly
-> > > more work required than the LOCKONFAULT case.
-> > >=20
-> > > Startup average:    0.047
-> > > Processing average: 86.431
-> >=20
-> > Have you played with batching? Has it helped? Anyway it is to be
-> > expected that the overhead will be higher than a single mmap call. The
-> > question is whether you can live with it because adding a new semantic
-> > to mlock sounds trickier and MAP_LOCKED is tricky enough already...
-> >=20
->=20
-> I reworked the experiment to better cover the batching solution.  The
-> same 5GB data file is used, however instead of 150,000 accesses at
-> regular intervals, the test program now does 15,000,000 accesses to
-> random pages in the mapping.  The rest of the setup remains the same.
->=20
-> mmap with MAP_LOCKED:
-> Setup avg:      11821.193
-> Processing avg: 3404.286
->=20
-> mmap with mlock() before each access:
-> Setup avg:      0.054
-> Processing avg: 34263.201
->=20
-> mmap with PROT_NONE and signal handler and batch size of 1 page:
-> With the default value in max_map_count, this gets ENOMEM as I attempt
-> to change the permissions, after upping the sysctl significantly I get:
-> Setup avg:      0.050
-> Processing avg: 67690.625
->=20
-> mmap with PROT_NONE and signal handler and batch size of 8 pages:
-> Setup avg:      0.098
-> Processing avg: 37344.197
->=20
-> mmap with PROT_NONE and signal handler and batch size of 16 pages:
-> Setup avg:      0.0548
-> Processing avg: 29295.669
->=20
-> mmap with MAP_LOCKONFAULT:
-> Setup avg:      0.073
-> Processing avg: 18392.136
->=20
-> The signal handler in the batch cases faulted in memory in two steps to
-> avoid having to know the start and end of the faulting mapping.  The
-> first step covers the page that caused the fault as we know that it will
-> be possible to lock.  The second step speculatively tries to mlock and
-> mprotect the batch size - 1 pages that follow.  There may be a clever
-> way to avoid this without having the program track each mapping to be
-> covered by this handeler in a globally accessible structure, but I could
-> not find it.
->=20
-> These results show that if the developer knows that a majority of the
-> mapping will be used, it is better to try and fault it in at once,
-> otherwise MAP_LOCKONFAULT is significantly faster.
->=20
-> Eric
+diff --git a/arch/metag/include/asm/elf.h b/arch/metag/include/asm/elf.h
+index d2baf6961794..87b0cf1e0acb 100644
+--- a/arch/metag/include/asm/elf.h
++++ b/arch/metag/include/asm/elf.h
+@@ -11,7 +11,7 @@
+ #define R_METAG_RELBRANCH                4
+ #define R_METAG_GETSETOFF                5
+ 
+-/* Backward compatability */
++/* Backward compatibility */
+ #define R_METAG_REG32OP1                 6
+ #define R_METAG_REG32OP2                 7
+ #define R_METAG_REG32OP3                 8
+diff --git a/arch/powerpc/kvm/book3s.c b/arch/powerpc/kvm/book3s.c
+index 453a8a47a467..cb14dd78a2e7 100644
+--- a/arch/powerpc/kvm/book3s.c
++++ b/arch/powerpc/kvm/book3s.c
+@@ -901,7 +901,7 @@ int kvmppc_core_check_processor_compat(void)
+ {
+ 	/*
+ 	 * We always return 0 for book3s. We check
+-	 * for compatability while loading the HV
++	 * for compatibility while loading the HV
+ 	 * or PR module
+ 	 */
+ 	return 0;
+diff --git a/arch/sparc/include/uapi/asm/pstate.h b/arch/sparc/include/uapi/asm/pstate.h
+index 4b6b998afd99..cf832e14aa05 100644
+--- a/arch/sparc/include/uapi/asm/pstate.h
++++ b/arch/sparc/include/uapi/asm/pstate.h
+@@ -88,7 +88,7 @@
+ #define VERS_MAXTL	_AC(0x000000000000ff00,UL) /* Max Trap Level.	*/
+ #define VERS_MAXWIN	_AC(0x000000000000001f,UL) /* Max RegWindow Idx.*/
+ 
+-/* Compatability Feature Register (%asr26), SPARC-T4 and later  */
++/* Compatibility Feature Register (%asr26), SPARC-T4 and later  */
+ #define CFR_AES		_AC(0x0000000000000001,UL) /* Supports AES opcodes     */
+ #define CFR_DES		_AC(0x0000000000000002,UL) /* Supports DES opcodes     */
+ #define CFR_KASUMI	_AC(0x0000000000000004,UL) /* Supports KASUMI opcodes  */
+diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
+index b82ef6262469..12c5b79b0e8f 100644
+--- a/drivers/gpu/drm/drm_atomic_helper.c
++++ b/drivers/gpu/drm/drm_atomic_helper.c
+@@ -751,7 +751,7 @@ crtc_set_mode(struct drm_device *dev, struct drm_atomic_state *old_state)
+  * This function shuts down all the outputs that need to be shut down and
+  * prepares them (if required) with the new mode.
+  *
+- * For compatability with legacy crtc helpers this should be called before
++ * For compatibility with legacy crtc helpers this should be called before
+  * drm_atomic_helper_commit_planes(), which is what the default commit function
+  * does. But drivers with different needs can group the modeset commits together
+  * and do the plane commits at the end. This is useful for drivers doing runtime
+@@ -776,7 +776,7 @@ EXPORT_SYMBOL(drm_atomic_helper_commit_modeset_disables);
+  * This function enables all the outputs with the new configuration which had to
+  * be turned off for the update.
+  *
+- * For compatability with legacy crtc helpers this should be called after
++ * For compatibility with legacy crtc helpers this should be called after
+  * drm_atomic_helper_commit_planes(), which is what the default commit function
+  * does. But drivers with different needs can group the modeset commits together
+  * and do the plane commits at the end. This is useful for drivers doing runtime
+diff --git a/drivers/media/dvb-frontends/au8522_dig.c b/drivers/media/dvb-frontends/au8522_dig.c
+index 5d06c99b0e97..edadcc7eea6c 100644
+--- a/drivers/media/dvb-frontends/au8522_dig.c
++++ b/drivers/media/dvb-frontends/au8522_dig.c
+@@ -922,7 +922,7 @@ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Enable verbose debug messages");
+ 
+ module_param(zv_mode, int, 0644);
+-MODULE_PARM_DESC(zv_mode, "Turn on/off ZeeVee modulator compatability mode (default:on).\n"
++MODULE_PARM_DESC(zv_mode, "Turn on/off ZeeVee modulator compatibility mode (default:on).\n"
+ 	"\t\ton - modified AU8522 QAM256 initialization.\n"
+ 	"\t\tProvides faster lock when using ZeeVee modulator based sources");
+ 
+diff --git a/drivers/net/wireless/ipw2x00/ipw2100.h b/drivers/net/wireless/ipw2x00/ipw2100.h
+index c6d78790cb0d..193947865efd 100644
+--- a/drivers/net/wireless/ipw2x00/ipw2100.h
++++ b/drivers/net/wireless/ipw2x00/ipw2100.h
+@@ -746,7 +746,7 @@ struct ipw2100_priv {
+ #define IPW_REG_GPIO			IPW_REG_DOMAIN_0_OFFSET + 0x0030
+ #define IPW_REG_FW_TYPE                 IPW_REG_DOMAIN_1_OFFSET + 0x0188
+ #define IPW_REG_FW_VERSION 		IPW_REG_DOMAIN_1_OFFSET + 0x018C
+-#define IPW_REG_FW_COMPATABILITY_VERSION IPW_REG_DOMAIN_1_OFFSET + 0x0190
++#define IPW_REG_FW_COMPATIBILITY_VERSION IPW_REG_DOMAIN_1_OFFSET + 0x0190
+ 
+ #define IPW_REG_INDIRECT_ADDR_MASK	0x00FFFFFC
+ 
+-- 
+Regards,
 
-Is there anything else I can add to the discussion here?
+Laurent Pinchart
 
-
---pvezYHf7grwyp3Bc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJVW51NAAoJELbVsDOpoOa9PQIQAJYsWV/aTxT1NeePEHXXzgc2
-mZLqLo0f1XF66qBn4eFO8mSy3CD+MKTqxMxF5dtRJhHkelz7s6JJqwRjfQgr6IT6
-bsGSERcshD3rpNdJQnfkGd3mTmq6FmfvTeaUYPopZrN1zkZU/SmrAvm6GpPhjnH2
-TrXEVm2MEcESl3Q7mNZfNDeduI1sKSw03BaBj2uSVMY7EllwpnvlO4pujmAC9ZBY
-fb+lNttd0wTErNUHvHrUtBT7dCqLuOjAqANT78k+aXROCuIIkmnHjJctVRjRz9Bh
-KFCY9JQTTZ3llNFdO6w/EYGD+u8qVN+8NnGYlR31rQUgVQ9EkLkaoCTdWVl/4dlF
-GklDSDyG7ICUly7lTRSE59Zbph+8SiLPAd9YnGI/Tv5QUTrKRtv2sBD7ahU39eF0
-XLFB02ZX9nzOTTYxKp4UO8iFcRhIkVrefIB467HeW1k15jOoY9Js8Wv1DMcGuUcb
-6iETzFsnYhi/+vQq27rUGNq8MVN0dEsqlI80hfUdmhuSZeeHefmWSPIA7fsROdYk
-zx11IRSbEVzSkcLTKn3Y15futwTl6oAHg3uKcfehxSiY3HmLm7w1EWJ64XKLpWry
-5Dr4G78pWTLTm+Z9TqpBtg5sAcPPnMZwzJybMGHBaNAJqB6ZW83oDM5ght/kStpT
-n6kIODdplDv+SdRLA+3k
-=Cgdc
------END PGP SIGNATURE-----
-
---pvezYHf7grwyp3Bc--
