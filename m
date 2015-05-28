@@ -1,93 +1,125 @@
-From: Xunlei Pang <xlpang@126.com>
-Date: Fri, 15 May 2015 09:31:32 +0000
-Subject: [PATCH 2/2] sparc: time: Provide update_persistent_clock64()
-Message-Id: <1431682292-29732-2-git-send-email-xlpang@126.com>
+From: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Date: Thu, 28 May 2015 11:52:36 +0000
+Subject: [PATCH 4/5] s390/hugetlb: remove dead code for sw emulated huge pages
+Message-Id: <1432813957-46874-5-git-send-email-dingel@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1431682292-29732-1-git-send-email-xlpang@126.com>
-In-Reply-To: <1431682292-29732-1-git-send-email-xlpang@126.com>
+References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
+In-Reply-To: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Xunlei Pang <pang.xunlei@linaro.org>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Xunlei Pang <pang.xunlei@linaro.org>
+We now support only hugepages on hardware with EDAT1 support.
+So we remove the prepare/release_hugepage hooks and
+simplify set_huge_pte_at and huge_ptep_get.
 
-As part of addressing "y2038 problem" for in-kernel uses, this patch
-converts update_persistent_clock() to update_persistent_clock64()
-using timespec64 for both 32-bit and 64-bit sparc, since timekeeping
-had already supported update_persistent_clock64().
-
-Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
 ---
- arch/sparc/kernel/time_32.c | 27 ++++++++++-----------------
- arch/sparc/kernel/time_64.c |  2 +-
- 2 files changed, 11 insertions(+), 18 deletions(-)
+ arch/s390/include/asm/hugetlb.h |  3 ---
+ arch/s390/mm/hugetlbpage.c      | 60 +++--------------------------------------
+ 2 files changed, 3 insertions(+), 60 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 18147a5..47b295f 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -65,8 +65,6 @@ DEFINE_PER_CPU(struct clock_event_device, sparc32_clockevent);
- DEFINE_SPINLOCK(rtc_lock);
- EXPORT_SYMBOL(rtc_lock);
+diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
+index dfb542a..0130d03 100644
+--- a/arch/s390/include/asm/hugetlb.h
++++ b/arch/s390/include/asm/hugetlb.h
+@@ -37,9 +37,6 @@ static inline int prepare_hugepage_range(struct file *file,
  
--static int set_rtc_mmss(unsigned long);
+ #define arch_clear_hugepage_flags(page)		do { } while (0)
+ 
+-int arch_prepare_hugepage(struct page *page);
+-void arch_release_hugepage(struct page *page);
 -
- unsigned long profile_pc(struct pt_regs *regs)
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ 				  pte_t *ptep)
  {
- 	extern char __copy_user_begin[], __copy_user_end[];
-@@ -87,9 +85,17 @@ EXPORT_SYMBOL(profile_pc);
- 
- volatile u32 __iomem *master_l10_counter;
- 
--int update_persistent_clock(struct timespec now)
-+int update_persistent_clock64(struct timespec64 now)
+diff --git a/arch/s390/mm/hugetlbpage.c b/arch/s390/mm/hugetlbpage.c
+index fa6e1bc..999616b 100644
+--- a/arch/s390/mm/hugetlbpage.c
++++ b/arch/s390/mm/hugetlbpage.c
+@@ -80,31 +80,16 @@ static inline pte_t __pmd_to_pte(pmd_t pmd)
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte)
  {
--	return set_rtc_mmss(now.tv_sec);
-+	struct rtc_device *rtc = rtc_class_open("rtc0");
-+	int err = -1;
-+
-+	if (rtc) {
-+		err = rtc_set_mmss(rtc, now.tv_sec);
-+		rtc_class_close(rtc);
-+	}
-+
-+	return err;
+-	pmd_t pmd;
++	pmd_t pmd = __pte_to_pmd(pte);
+ 
+-	pmd = __pte_to_pmd(pte);
+-	if (!MACHINE_HAS_HPAGE) {
+-		/* Emulated huge ptes loose the dirty and young bit */
+-		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
+-		pmd_val(pmd) |= pte_page(pte)[1].index;
+-	} else
+-		pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
++	pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
+ 	*(pmd_t *) ptep = pmd;
  }
  
- irqreturn_t notrace timer_interrupt(int dummy, void *dev_id)
-@@ -362,16 +368,3 @@ void __init time_init(void)
- 		sbus_time_init();
- }
+ pte_t huge_ptep_get(pte_t *ptep)
+ {
+-	unsigned long origin;
+-	pmd_t pmd;
++	pmd_t pmd = *(pmd_t *) ptep;
  
--
--static int set_rtc_mmss(unsigned long secs)
--{
--	struct rtc_device *rtc = rtc_class_open("rtc0");
--	int err = -1;
--
--	if (rtc) {
--		err = rtc_set_mmss(rtc, secs);
--		rtc_class_close(rtc);
+-	pmd = *(pmd_t *) ptep;
+-	if (!MACHINE_HAS_HPAGE && pmd_present(pmd)) {
+-		origin = pmd_val(pmd) & _SEGMENT_ENTRY_ORIGIN;
+-		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
+-		pmd_val(pmd) |= *(unsigned long *) origin;
+-		/* Emulated huge ptes are young and dirty by definition */
+-		pmd_val(pmd) |= _SEGMENT_ENTRY_YOUNG | _SEGMENT_ENTRY_DIRTY;
 -	}
+ 	return __pmd_to_pte(pmd);
+ }
+ 
+@@ -119,45 +104,6 @@ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 	return pte;
+ }
+ 
+-int arch_prepare_hugepage(struct page *page)
+-{
+-	unsigned long addr = page_to_phys(page);
+-	pte_t pte;
+-	pte_t *ptep;
+-	int i;
 -
--	return err;
+-	if (MACHINE_HAS_HPAGE)
+-		return 0;
+-
+-	ptep = (pte_t *) pte_alloc_one(&init_mm, addr);
+-	if (!ptep)
+-		return -ENOMEM;
+-
+-	pte_val(pte) = addr;
+-	for (i = 0; i < PTRS_PER_PTE; i++) {
+-		set_pte_at(&init_mm, addr + i * PAGE_SIZE, ptep + i, pte);
+-		pte_val(pte) += PAGE_SIZE;
+-	}
+-	page[1].index = (unsigned long) ptep;
+-	return 0;
 -}
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index edbbeb1..7c8f819 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -394,7 +394,7 @@ static struct sparc64_tick_ops hbtick_operations __read_mostly = {
- 
- static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
- 
--int update_persistent_clock(struct timespec now)
-+int update_persistent_clock64(struct timespec64 now)
+-
+-void arch_release_hugepage(struct page *page)
+-{
+-	pte_t *ptep;
+-
+-	if (MACHINE_HAS_HPAGE)
+-		return;
+-
+-	ptep = (pte_t *) page[1].index;
+-	if (!ptep)
+-		return;
+-	clear_table((unsigned long *) ptep, _PAGE_INVALID,
+-		    PTRS_PER_PTE * sizeof(pte_t));
+-	page_table_free(&init_mm, (unsigned long *) ptep);
+-	page[1].index = 0;
+-}
+-
+ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 			unsigned long addr, unsigned long sz)
  {
- 	struct rtc_device *rtc = rtc_class_open("rtc0");
- 	int err = -1;
 -- 
-1.9.1
-
+2.3.7
 
