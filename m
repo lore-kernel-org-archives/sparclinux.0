@@ -1,38 +1,233 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Wed, 06 May 2015 11:53:39 +0000
-Subject: Re: Ultra1 warning in 4.0.0-rc4-00048-gc586165
-Message-Id: <20150506115339.GC2358@fuloong-minipc.musicnaut.iki.fi>
+From: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Date: Thu, 28 May 2015 11:52:35 +0000
+Subject: [PATCH 3/5] mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
+Message-Id: <1432813957-46874-4-git-send-email-dingel@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1503241040040.9652@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1503241040040.9652@math.ut.ee>
+References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
+In-Reply-To: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Hi,
+Nobody used these hooks so they were removed from common code,
+and can now be removed from the architectures.
 
-On Tue, Mar 24, 2015 at 11:53:58AM -0400, David Miller wrote:
-> From: Meelis Roos <mroos@linux.ee>
-> Date: Tue, 24 Mar 2015 10:44:52 +0200 (EET)
-> 
-> > Just started to compile todays git with memmove fixes on many sparcs and 
-> > got the following warning on Ultra 1 during git or make:
-> > 
-> > [435962.279707] BUG: Bad rss-counter state mm:fffff800322b72e0 idx:0 val:7
-> > [435962.357276] BUG: non-zero nr_ptes on freeing mm: 1
-> > 
-> > This is the first time I remember having seen this. After boot into 
-> > 4.0.0-rc4-00048-gc586165 I performed only debian upgrade and that was 
-> > fine. No load since then.
-> 
-> That's unfortunate, I thought we killed this bug :-/
-> 
-> Oh well, more digging to do.
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
+---
+ arch/arm/include/asm/hugetlb.h     | 9 ---------
+ arch/arm64/include/asm/hugetlb.h   | 9 ---------
+ arch/ia64/include/asm/hugetlb.h    | 9 ---------
+ arch/metag/include/asm/hugetlb.h   | 9 ---------
+ arch/mips/include/asm/hugetlb.h    | 9 ---------
+ arch/powerpc/include/asm/hugetlb.h | 9 ---------
+ arch/sh/include/asm/hugetlb.h      | 9 ---------
+ arch/sparc/include/asm/hugetlb.h   | 9 ---------
+ arch/tile/include/asm/hugetlb.h    | 9 ---------
+ arch/x86/include/asm/hugetlb.h     | 9 ---------
+ 10 files changed, 90 deletions(-)
 
-I also got this on Ultra 10 during GCC bootstrap with 4.1-rc2:
+diff --git a/arch/arm/include/asm/hugetlb.h b/arch/arm/include/asm/hugetlb.h
+index 31bb7dc..7d26f6c 100644
+--- a/arch/arm/include/asm/hugetlb.h
++++ b/arch/arm/include/asm/hugetlb.h
+@@ -63,15 +63,6 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ 	return pte_wrprotect(pte);
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 734c17e..2fd9b14 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -96,15 +96,6 @@ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ 	return pte_wrprotect(pte);
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
+index ff1377b..ef65f02 100644
+--- a/arch/ia64/include/asm/hugetlb.h
++++ b/arch/ia64/include/asm/hugetlb.h
+@@ -65,15 +65,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/metag/include/asm/hugetlb.h b/arch/metag/include/asm/hugetlb.h
+index f730b39..905ed42 100644
+--- a/arch/metag/include/asm/hugetlb.h
++++ b/arch/metag/include/asm/hugetlb.h
+@@ -67,15 +67,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
+index 4a5bb54..982bc06 100644
+--- a/arch/mips/include/asm/hugetlb.h
++++ b/arch/mips/include/asm/hugetlb.h
+@@ -110,15 +110,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index 4bbd3c8..7eac89b 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -168,15 +168,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
+index b788a9b..ef489a5 100644
+--- a/arch/sh/include/asm/hugetlb.h
++++ b/arch/sh/include/asm/hugetlb.h
+@@ -79,15 +79,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 3130d76..139e711 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -78,15 +78,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/tile/include/asm/hugetlb.h b/arch/tile/include/asm/hugetlb.h
+index 1abd00c..2fac5be 100644
+--- a/arch/tile/include/asm/hugetlb.h
++++ b/arch/tile/include/asm/hugetlb.h
+@@ -94,15 +94,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index dab7a3a..f8a29d2 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -80,15 +80,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+-- 
+2.3.7
 
-[13189.466077] BUG: Bad rss-counter state mm:fffff8001f3c2d80 idx:1 val:3
-[13189.543306] BUG: non-zero nr_ptes on freeing mm: 1
-
-A.
