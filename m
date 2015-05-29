@@ -1,125 +1,97 @@
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Date: Thu, 28 May 2015 11:52:36 +0000
-Subject: [PATCH 4/5] s390/hugetlb: remove dead code for sw emulated huge pages
-Message-Id: <1432813957-46874-5-git-send-email-dingel@linux.vnet.ibm.com>
+From: Xunlei Pang <xlpang@126.com>
+Date: Fri, 29 May 2015 14:46:17 +0000
+Subject: [PATCH v2 3/4] drivers/rtc/interface.c: Remove rtc_set_mmss()
+Message-Id: <1432910778-314-3-git-send-email-xlpang@126.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
-In-Reply-To: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
+References: <1432910778-314-1-git-send-email-xlpang@126.com>
+In-Reply-To: <1432910778-314-1-git-send-email-xlpang@126.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Xunlei Pang <pang.xunlei@linaro.org>
 
-We now support only hugepages on hardware with EDAT1 support.
-So we remove the prepare/release_hugepage hooks and
-simplify set_huge_pte_at and huge_ptep_get.
+From: Xunlei Pang <pang.xunlei@linaro.org>
 
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Now rtc_set_mmss() has no users, just remove it.
+
+We still have rtc_set_time() doing similar things.
+
+Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
 ---
- arch/s390/include/asm/hugetlb.h |  3 ---
- arch/s390/mm/hugetlbpage.c      | 60 +++--------------------------------------
- 2 files changed, 3 insertions(+), 60 deletions(-)
+ drivers/rtc/interface.c | 45 ---------------------------------------------
+ include/linux/rtc.h     |  1 -
+ 2 files changed, 46 deletions(-)
 
-diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
-index dfb542a..0130d03 100644
---- a/arch/s390/include/asm/hugetlb.h
-+++ b/arch/s390/include/asm/hugetlb.h
-@@ -37,9 +37,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 
- #define arch_clear_hugepage_flags(page)		do { } while (0)
- 
--int arch_prepare_hugepage(struct page *page);
--void arch_release_hugepage(struct page *page);
--
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 				  pte_t *ptep)
- {
-diff --git a/arch/s390/mm/hugetlbpage.c b/arch/s390/mm/hugetlbpage.c
-index fa6e1bc..999616b 100644
---- a/arch/s390/mm/hugetlbpage.c
-+++ b/arch/s390/mm/hugetlbpage.c
-@@ -80,31 +80,16 @@ static inline pte_t __pmd_to_pte(pmd_t pmd)
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte)
- {
--	pmd_t pmd;
-+	pmd_t pmd = __pte_to_pmd(pte);
- 
--	pmd = __pte_to_pmd(pte);
--	if (!MACHINE_HAS_HPAGE) {
--		/* Emulated huge ptes loose the dirty and young bit */
--		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) |= pte_page(pte)[1].index;
--	} else
--		pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
-+	pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
- 	*(pmd_t *) ptep = pmd;
+diff --git a/drivers/rtc/interface.c b/drivers/rtc/interface.c
+index 166fc60..b511aa1 100644
+--- a/drivers/rtc/interface.c
++++ b/drivers/rtc/interface.c
+@@ -91,51 +91,6 @@ int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm)
  }
+ EXPORT_SYMBOL_GPL(rtc_set_time);
  
- pte_t huge_ptep_get(pte_t *ptep)
- {
--	unsigned long origin;
--	pmd_t pmd;
-+	pmd_t pmd = *(pmd_t *) ptep;
- 
--	pmd = *(pmd_t *) ptep;
--	if (!MACHINE_HAS_HPAGE && pmd_present(pmd)) {
--		origin = pmd_val(pmd) & _SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) |= *(unsigned long *) origin;
--		/* Emulated huge ptes are young and dirty by definition */
--		pmd_val(pmd) |= _SEGMENT_ENTRY_YOUNG | _SEGMENT_ENTRY_DIRTY;
--	}
- 	return __pmd_to_pte(pmd);
- }
- 
-@@ -119,45 +104,6 @@ pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 	return pte;
- }
- 
--int arch_prepare_hugepage(struct page *page)
+-int rtc_set_mmss(struct rtc_device *rtc, unsigned long secs)
 -{
--	unsigned long addr = page_to_phys(page);
--	pte_t pte;
--	pte_t *ptep;
--	int i;
+-	int err;
 -
--	if (MACHINE_HAS_HPAGE)
--		return 0;
+-	err = mutex_lock_interruptible(&rtc->ops_lock);
+-	if (err)
+-		return err;
 -
--	ptep = (pte_t *) pte_alloc_one(&init_mm, addr);
--	if (!ptep)
--		return -ENOMEM;
+-	if (!rtc->ops)
+-		err = -ENODEV;
+-	else if (rtc->ops->set_mmss64)
+-		err = rtc->ops->set_mmss64(rtc->dev.parent, secs);
+-	else if (rtc->ops->set_mmss)
+-		err = rtc->ops->set_mmss(rtc->dev.parent, secs);
+-	else if (rtc->ops->read_time && rtc->ops->set_time) {
+-		struct rtc_time new, old;
 -
--	pte_val(pte) = addr;
--	for (i = 0; i < PTRS_PER_PTE; i++) {
--		set_pte_at(&init_mm, addr + i * PAGE_SIZE, ptep + i, pte);
--		pte_val(pte) += PAGE_SIZE;
+-		err = rtc->ops->read_time(rtc->dev.parent, &old);
+-		if (err = 0) {
+-			rtc_time64_to_tm(secs, &new);
+-
+-			/*
+-			 * avoid writing when we're going to change the day of
+-			 * the month. We will retry in the next minute. This
+-			 * basically means that if the RTC must not drift
+-			 * by more than 1 minute in 11 minutes.
+-			 */
+-			if (!((old.tm_hour = 23 && old.tm_min = 59) ||
+-				(new.tm_hour = 23 && new.tm_min = 59)))
+-				err = rtc->ops->set_time(rtc->dev.parent,
+-						&new);
+-		}
+-	} else {
+-		err = -EINVAL;
 -	}
--	page[1].index = (unsigned long) ptep;
--	return 0;
+-
+-	pm_stay_awake(rtc->dev.parent);
+-	mutex_unlock(&rtc->ops_lock);
+-	/* A timer might have just expired */
+-	schedule_work(&rtc->irqwork);
+-
+-	return err;
 -}
+-EXPORT_SYMBOL_GPL(rtc_set_mmss);
 -
--void arch_release_hugepage(struct page *page)
--{
--	pte_t *ptep;
--
--	if (MACHINE_HAS_HPAGE)
--		return;
--
--	ptep = (pte_t *) page[1].index;
--	if (!ptep)
--		return;
--	clear_table((unsigned long *) ptep, _PAGE_INVALID,
--		    PTRS_PER_PTE * sizeof(pte_t));
--	page_table_free(&init_mm, (unsigned long *) ptep);
--	page[1].index = 0;
--}
--
- pte_t *huge_pte_alloc(struct mm_struct *mm,
- 			unsigned long addr, unsigned long sz)
+ static int rtc_read_alarm_internal(struct rtc_device *rtc, struct rtc_wkalrm *alarm)
  {
+ 	int err;
+diff --git a/include/linux/rtc.h b/include/linux/rtc.h
+index 8dcf682..e8f2c3c 100644
+--- a/include/linux/rtc.h
++++ b/include/linux/rtc.h
+@@ -161,7 +161,6 @@ extern void devm_rtc_device_unregister(struct device *dev,
+ 
+ extern int rtc_read_time(struct rtc_device *rtc, struct rtc_time *tm);
+ extern int rtc_set_time(struct rtc_device *rtc, struct rtc_time *tm);
+-extern int rtc_set_mmss(struct rtc_device *rtc, unsigned long secs);
+ extern int rtc_set_ntp_time(struct timespec64 now);
+ int __rtc_read_alarm(struct rtc_device *rtc, struct rtc_wkalrm *alarm);
+ extern int rtc_read_alarm(struct rtc_device *rtc,
 -- 
-2.3.7
+1.9.1
+
 
