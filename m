@@ -1,42 +1,36 @@
-From: LABBE Corentin <clabbe.montjoie@gmail.com>
-Date: Sun, 17 May 2015 10:54:13 +0000
-Subject: [PATCH 2/6] crypto: md5: use md5 IV MD5_HX instead of their raw value
-Message-Id: <1431860057-5232-2-git-send-email-clabbe.montjoie@gmail.com>
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Mon, 01 Jun 2015 07:35:57 +0000
+Subject: Re: [PATCH 0/5] Remove s390 sw-emulated hugepages and cleanup
+Message-Id: <556C0B5D.40205@de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
-In-Reply-To: <1431860057-5232-1-git-send-email-clabbe.montjoie@gmail.com>
+References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
+In-Reply-To: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: herbert@gondor.apana.org.au, davem@davemloft.net, ralf@linux-mips.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, aaro.koskinen@iki.fi
-Cc: linux-crypto@vger.kernel.org, linux-mips@linux-mips.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, LABBE Corentin <clabbe.montjoie@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
 
-Since MD5 IV are now available in crypto/md5.h, use them.
+Am 28.05.2015 um 13:52 schrieb Dominik Dingel:
+> Hi everyone,
+> 
+> there is a potential bug with KVM and hugetlbfs if the hardware does not
+> support hugepages (EDAT1).
+> We fix this by making EDAT1 a hard requirement for hugepages and 
+> therefore removing and simplifying code.
 
-Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
----
- crypto/md5.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+The cleanup itself is nice and probably the right thing to do. 
+Emulating large pages makes the code more complex and asks for
+trouble (as outlined above)
 
-diff --git a/crypto/md5.c b/crypto/md5.c
-index 36f5e5b..33d17e9 100644
---- a/crypto/md5.c
-+++ b/crypto/md5.c
-@@ -51,10 +51,10 @@ static int md5_init(struct shash_desc *desc)
- {
- 	struct md5_state *mctx = shash_desc_ctx(desc);
- 
--	mctx->hash[0] = 0x67452301;
--	mctx->hash[1] = 0xefcdab89;
--	mctx->hash[2] = 0x98badcfe;
--	mctx->hash[3] = 0x10325476;
-+	mctx->hash[0] = MD5_H0;
-+	mctx->hash[1] = MD5_H1;
-+	mctx->hash[2] = MD5_H2;
-+	mctx->hash[3] = MD5_H3;
- 	mctx->byte_count = 0;
- 
- 	return 0;
--- 
-2.3.6
+The only downside that I see is that z/VM as of today does not
+announce EDAT1 for its guests so the "emulated" large pages for
+hugetlbfs would be useful in that case. The current code allocates
+the page table only once and shares it for all mappers - which is
+useful for some big databases that spawn hundreds of processes with
+shared mappings of several hundred GBs. In these cases we do save
+a decent amount of page table memory. 
+
+Not sure if that case is actually important, though.
+
+Christian
 
