@@ -1,18 +1,21 @@
-From: "Woody" <akw004@aokewei.com>
-Date: Wed, 17 Jun 2015 11:21:42 +0000
-Subject: TENS stimulator/TENS massager
-Message-Id: <201506171921424150011@a.chinahuadun.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 01 Jun 2015 05:45:50 +0000
+Subject: Re: [PATCH] sparc: kernel: GRPCI2: Remove a useless memset
+Message-Id: <20150531.224550.513857798121431185.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1430481939-10268-1-git-send-email-christophe.jaillet@wanadoo.fr>
+In-Reply-To: <1430481939-10268-1-git-send-email-christophe.jaillet@wanadoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: christophe.jaillet@wanadoo.fr
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-RGVhciBDbGllbnQsDQoNCkdvb2QgZGF5ICENCg0KV2UgYXJlIHRoZSBwcm9mZXNzaW9uYWwgbWFu
-dWZhY3R1cmUgYXQgbG93IGZyZXF1ZW5jeSBkZXZpY2VzIHNpbmNlIDIwMDAuDQpIYXZlIElTTzEz
-NDg1OjIwMDMgTWVkaWNhbCBjZXJ0aWZpY2F0ZSBmcm9tIFRVVihHZXJtYW55KSAsIElTTyA5MDAx
-OiAyMDAwIGNlcnRpZmljYXRlLCBGREEgYXBwcm92ZWQgYW5kIEV1cm9wZSBDRSBjZXJ0aWZpY2F0
-aW9uLg0KDQpNYWluIHByb2R1Y3RzIGluY2x1ZGUgVEVOUyBzdGltdWxhdG9yIGFuZCBtYXNzYXJn
-ZXIgZGV2aWNlcy4NCldpdGggZ29vZCBxdWFsaXR5IGFuZCBmYXN0IGRlbGl2ZXJ5IHRpbWUuDQoN
-CkhhdmUgYW55IGludGVyZXN0aW5nIHBsZWFzZSB0YWxrIHdpdGggbWUgZm9yIHRoZSBkZXRhaWxz
-Lg0KDQpCZXN0IHJlZ2FyZHMuDQoNCldvb2R5
+From: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
+Date: Fri,  1 May 2015 14:05:39 +0200
+
+> grpci2priv is allocated using kzalloc, so there is no need to memset it.
+> 
+> Signed-off-by: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
+
+Applied.
