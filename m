@@ -1,53 +1,57 @@
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Date: Tue, 02 Jun 2015 07:46:40 +0000
-Subject: Re: [PATCH 0/5] Remove s390 sw-emulated hugepages and cleanup
-Message-Id: <20150602094640.4fedc046@BR9TG4T3.de.ibm.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Mon, 01 Jun 2015 22:27:46 +0000
+Subject: Re: [RESEND PATCH 0/3] Allow user to request memory to be locked on page fault
+Message-Id: <20150601152746.abbbbb9d479c0e2dbdec2aaf@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432813957-46874-1-git-send-email-dingel@linux.vnet.ibm.com>
- <556C0B5D.40205@de.ibm.com>
-In-Reply-To: <556C0B5D.40205@de.ibm.com>
+References: <1432908808-31150-1-git-send-email-emunson@akamai.com>
+In-Reply-To: <1432908808-31150-1-git-send-email-emunson@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Eric B Munson <emunson@akamai.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, Michal Hocko <mhocko@suse.cz>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On Mon, 01 Jun 2015 09:35:57 +0200
-Christian Borntraeger <borntraeger@de.ibm.com> wrote:
+On Fri, 29 May 2015 10:13:25 -0400 Eric B Munson <emunson@akamai.com> wrote:
 
-> Am 28.05.2015 um 13:52 schrieb Dominik Dingel:
-> > Hi everyone,
-> > 
-> > there is a potential bug with KVM and hugetlbfs if the hardware does not
-> > support hugepages (EDAT1).
-> > We fix this by making EDAT1 a hard requirement for hugepages and 
-> > therefore removing and simplifying code.
+> mlock() allows a user to control page out of program memory, but this
+> comes at the cost of faulting in the entire mapping when it is
+> allocated.  For large mappings where the entire area is not necessary
+> this is not ideal.
 > 
-> The cleanup itself is nice and probably the right thing to do. 
-> Emulating large pages makes the code more complex and asks for
-> trouble (as outlined above)
-> 
-> The only downside that I see is that z/VM as of today does not
-> announce EDAT1 for its guests so the "emulated" large pages for
-> hugetlbfs would be useful in that case. The current code allocates
-> the page table only once and shares it for all mappers - which is
-> useful for some big databases that spawn hundreds of processes with
-> shared mappings of several hundred GBs. In these cases we do save
-> a decent amount of page table memory. 
+> This series introduces new flags for mmap() and mlockall() that allow a
+> user to specify that the covered are should not be paged out, but only
+> after the memory has been used the first time.
 
-To limit the damage done, we could always allocate page tables with pgstes for that case.
-That would allow one guest manipulating another guests storage keys,
-but at least would prevent random memory overwrites in the host.
+I almost applied these, but the naming issue (below) stopped me.
 
-Another thing we could do, make software emulated large pages a kernel config option
-and only if KVM is not selected allow it, visa versa.
+A few things...
 
-@Martin what do you think?
+- The 0/n changelog should reveal how MAP_LOCKONFAULT interacts with
+  rlimit(RLIMIT_MEMLOCK).
 
-Thanks,
-	Dominik
+  I see the implementation is "as if the entire mapping will be
+  faulted in" (for mmap) and "as if it was MCL_FUTURE" (for mlockall)
+  which seems fine.  Please include changelog text explaining and
+  justifying these decisions.  This stuff will need to be in the
+  manpage updates as well.
 
-> Not sure if that case is actually important, though.
-> 
-> Christian
-> 
+- I think I already asked "why not just use MCL_FUTURE" but I forget
+  the answer ;) In general it is a good idea to update changelogs in
+  response to reviewer questions, because other people will be
+  wondering the same things.  Or maybe I forgot to ask.  Either way,
+  please address this in the changelogs.
+
+- I can perhaps see the point in mmap(MAP_LOCKONFAULT) (other
+  mappings don't get lock-in-memory treatment), but what's the benefit
+  in mlockall(MCL_ON_FAULT) over MCL_FUTURE?  (Add to changelog also,
+  please).
+
+- Is there a manpage update?
+
+- Can we rename patch 1/3 from "add flag to ..." to "add mmap flag to
+  ...", to distinguish from 2/3 "add mlockall flag ..."?
+
+- The MAP_LOCKONFAULT versus MCL_ON_FAULT inconsistency is
+  irritating!  Can we get these consistent please: switch to either
+  MAP_LOCK_ON_FAULT or MCL_ONFAULT.
 
