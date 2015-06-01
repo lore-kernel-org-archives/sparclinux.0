@@ -1,65 +1,32 @@
-From: pang.xunlei@zte.com.cn
-Date: Tue, 02 Jun 2015 03:18:09 +0000
-Subject: Re: [PATCH v2 1/4] NTP: rtc: Add CONFIG_RTC_SYSTOHC_DEVICE for NTP synchronization
-Message-Id: <OFA83CEB22.B9F4BDE6-ON48257E58.0011E159-48257E58.00122289@zte.com.cn>
+From: Alexander Graf <agraf@suse.de>
+Date: Mon, 01 Jun 2015 11:38:44 +0000
+Subject: Re: [PATCH] treewide: Fix typo compatability -> compatibility
+Message-Id: <556C4444.4070808@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1432910778-314-1-git-send-email-xlpang@126.com> <1433147260.2361.25.camel@x220>
-In-Reply-To: <1433147260.2361.25.camel@x220>
+References: <1432728342-32748-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1432728342-32748-1-git-send-email-laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Alessandro Zummo <a.zummo@towertech.it>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Jesper Nilsson <jesper.nilsson@axis.com>, John Stultz <john.stultz@linaro.org>, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, Xunlei Pang <pang.xunlei@linaro.org>, rtc-linux@googlegroups.com, sparclinux@vger.kernel.org, Mikael Starvik <starvik@axis.com>, Xunlei Pang <xlpang@126.com>
+To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-ppc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Hi Paul,
 
-Paul Bolle <pebolle@tiscali.nl> wrote 2015-06-01 PM 04:27:40:
-> 
-> Re: [PATCH v2 1/4] NTP: rtc: Add CONFIG_RTC_SYSTOHC_DEVICE for NTP 
-> synchronization
-> 
-> On Fri, 2015-05-29 at 22:46 +0800, Xunlei Pang wrote:
-> > --- a/drivers/rtc/Kconfig
-> > +++ b/drivers/rtc/Kconfig
-> 
-> >  config RTC_HCTOSYS_DEVICE
-> >     string "RTC used to set the system time"
-> > -   depends on RTC_HCTOSYS = y || RTC_SYSTOHC = y
-> > +   depends on RTC_HCTOSYS = y
-> 
-> RTC_HCTOSYS and RTC_SYSTOHC are bool symbols. The "= y" test is not
-> needed and the common idiom is to use only
->    depends on RTC_HCTOSYS
-> 
-> Since you're touching this you might as well switch to that idiom.
-> 
-> >     default "rtc0"
-> >     help
-> >       The RTC device that will be used to (re)initialize the system
-> >      minutes if userspace reports synchronized NTP status.
-> 
-> > +config RTC_SYSTOHC_DEVICE
-> > +   string "RTC used to synchronize NTP adjustment"
-> > +   depends on RTC_SYSTOHC = y
-> 
-> Likewise.
 
-Yea, thanks for pointing this out.
+On 27.05.15 14:05, Laurent Pinchart wrote:
+> Even though 'compatability' has a dedicated entry in the Wiktionary,
+> it's listed as 'Mispelling of compatibility'. Fix it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  arch/metag/include/asm/elf.h             | 2 +-
 
--Xunlei
 
-> 
-> > +   default "rtc0"
-> > +   help
-> > +     The RTC device used for NTP synchronization. The main difference
-> > +     between RTC_HCTOSYS_DEVICE and RTC_SYSTOHC_DEVICE is that this
-> > +     one can sleep when setting time, because it runs in the 
-workqueue
-> > +     context.
-> 
-> 
-> Paul Bolle
-> 
+>  arch/powerpc/kvm/book3s.c                | 2 +-
 
---------------------------------------------------------
-ZTE Information Security Notice: The information contained in this mail (and any attachment transmitted herewith) is privileged and confidential and is intended for the exclusive use of the addressee(s).  If you are not an intended recipient, any disclosure, reproduction, distribution or other dissemination or use of the information contained is strictly prohibited.  If you have received this mail in error, please delete it and notify us immediately.
+Acked-by: Alexander Graf <agraf@suse.de>
+
+for the PPC KVM bit.
+
+
+Alex
