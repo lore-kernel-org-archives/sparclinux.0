@@ -1,32 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 18 Jun 2015 10:21:18 +0000
-Subject: Re: How to compile glibc?
-Message-Id: <20150618.032118.1100068885060514353.davem@davemloft.net>
+From: Paul Bolle <pebolle@tiscali.nl>
+Date: Mon, 01 Jun 2015 08:27:40 +0000
+Subject: Re: [PATCH v2 1/4] NTP: rtc: Add CONFIG_RTC_SYSTOHC_DEVICE for NTP synchronization
+Message-Id: <1433147260.2361.25.camel@x220>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1506181135370.27402@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1506181135370.27402@math.ut.ee>
+References: <1432910778-314-1-git-send-email-xlpang@126.com>
+In-Reply-To: <1432910778-314-1-git-send-email-xlpang@126.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Xunlei Pang <xlpang@126.com>
+Cc: linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, Alessandro Zummo <a.zummo@towertech.it>, John Stultz <john.stultz@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-cris-kernel@axis.com, Mikael Starvik <starvik@axis.com>, Jesper Nilsson <jesper.nilsson@axis.com>, Xunlei Pang <pang.xunlei@linaro.org>
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 18 Jun 2015 11:45:13 +0300 (EEST)
+On Fri, 2015-05-29 at 22:46 +0800, Xunlei Pang wrote:
+> --- a/drivers/rtc/Kconfig
+> +++ b/drivers/rtc/Kconfig
 
-> I read DeaveM's post about upstream glibc probably having working 
-> optimizations for post-ultrasparcIII CPUs and decided that I should give 
-> the latest upstream glibc a try.
-> 
-> However, I do not understand how should I configure it for mostly-32-bit 
-> Debian but with optimized versions for different CPUs.
-> 
-> --host=sparc64-linux-gnu or --host=sparc-linux-gnu?
+>  config RTC_HCTOSYS_DEVICE
+>  	string "RTC used to set the system time"
+> -	depends on RTC_HCTOSYS = y || RTC_SYSTOHC = y
+> +	depends on RTC_HCTOSYS = y
 
-You want to use --target=sparcv9-linux-gnu and have multiarch
-enabled and run the build under "sparc32 bash" environment where
-'uname' returns plain 'sparc'.
+RTC_HCTOSYS and RTC_SYSTOHC are bool symbols. The "= y" test is not
+needed and the common idiom is to use only
+	depends on RTC_HCTOSYS
 
-For 64-bit builds I use just plain:
+Since you're touching this you might as well switch to that idiom.
 
-	CC="gcc -m64" CXX="g++ -m64" ./configure
+>  	default "rtc0"
+>  	help
+>  	  The RTC device that will be used to (re)initialize the system
+> 	  minutes if userspace reports synchronized NTP status.
+
+> +config RTC_SYSTOHC_DEVICE
+> +	string "RTC used to synchronize NTP adjustment"
+> +	depends on RTC_SYSTOHC = y
+
+Likewise.
+
+> +	default "rtc0"
+> +	help
+> +	  The RTC device used for NTP synchronization. The main difference
+> +	  between RTC_HCTOSYS_DEVICE and RTC_SYSTOHC_DEVICE is that this
+> +	  one can sleep when setting time, because it runs in the workqueue
+> +	  context.
+
+
+Paul Bolle
 
