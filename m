@@ -1,24 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 12 Jun 2015 18:14:20 +0000
-Subject: Re: [PATCH v3 2/3] sparc: time: Replace update_persistent_clock() with CONFIG_RTC_SYSTOHC
-Message-Id: <20150612.111420.1641483331763914330.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 02 Jun 2015 16:50:19 +0000
+Subject: netboot failure with current kernels?
+Message-Id: <alpine.LRH.2.11.1506021937230.9956@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1434078618-16373-1-git-send-email-xlpang@126.com>
-	<1434078618-16373-2-git-send-email-xlpang@126.com>
-	<20150612084238.GE3890@piout.net>
-In-Reply-To: <20150612084238.GE3890@piout.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: alexandre.belloni@free-electrons.com
-Cc: xlpang@126.com, linux-kernel@vger.kernel.org, rtc-linux@googlegroups.com, a.zummo@towertech.it, john.stultz@linaro.org, arnd@arndb.de, sparclinux@vger.kernel.org, pang.xunlei@linaro.org
+To: sparclinux@vger.kernel.org
 
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Date: Fri, 12 Jun 2015 10:42:38 +0200
+I tried to install Debian on my E280R. Netboot is the most natural way 
+for remote install so I tried that. Current Debian installer fails to 
+load:
 
-> I would like to take that patch as part of the series once you have
-> acked it.
+{0} ok boot net
+Boot device: /pci@8,700000/network@5,1:  File and args: 
+Timeout waiting for ARP/RARP packet
+4000 \
+     ERROR: /packages/obp-tftp: Last Trap: Fast Data Access MMU Miss
 
-Sure:
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Boot load failed
+
+Is this some known problem with TFTP booting that Debian needs to fix, 
+or something new? Size of the boot.img file is 12988928 bytes, OBP 
+version 4.16.4 2004/12/18.
+
+-- 
+Meelis Roos (mroos@linux.ee)
