@@ -1,42 +1,66 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Tue, 30 Jun 2015 22:18:05 +0000
-Subject: Re: [PATCH RESEND] Update kernel math-emu code from current glibc soft-fp
-Message-Id: <1435702685.24693.3.camel@ellerman.id.au>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 02 Jun 2015 00:17:18 +0000
+Subject: [GIT] Sparc
+Message-Id: <20150601.171718.1226234480003413221.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.DEB.2.10.1505192206580.28384@digraph.polyomino.org.uk>
- <alpine.DEB.2.10.1506221321340.27145@digraph.polyomino.org.uk>
- <1435634913.24866.1.camel@ellerman.id.au>
- <alpine.DEB.2.10.1506301042250.2339@digraph.polyomino.org.uk>
-In-Reply-To: <alpine.DEB.2.10.1506301042250.2339@digraph.polyomino.org.uk>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joseph Myers <joseph@codesourcery.com>
-Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, "David S.Miller" <davem@davemloft.net>, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com
-
-On Tue, 2015-06-30 at 10:48 +0000, Joseph Myers wrote:
-> On Tue, 30 Jun 2015, Michael Ellerman wrote:
-> 
-> > Is there some way you can imagine of splitting this up into smaller chunks, so
-> > that different arches can merge the pieces separately?
-> 
-> Well, it could be split as:
-> 
-> 1. Rename include/math-emu to math-emu-old and update architectures for 
-> the renaming (mechanically).
-> 
-> 2. Add new include/math-emu.
-> 
-> 3,4,5,6,7. Move each architecture from math-emu-old to math-emu.
-> 
-> 8. Remove math-emu-old.
-> 
-> You still have patch 1 affecting all five architectures, but with the 
-> per-architecture changes being much simpler.
-
-OK. That's obviously a bit more churn, but I think it's probably the best
-approach. Unless someone else has a better idea?
-
-cheers
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+1) Setup the core/threads/sockets bitmaps correctly so that 'lscpus' and friends
+   operate properly.  Frtom Chris Hyser.
+
+2) The bit that normally means "Cached Virtually" on sun4v systems,
+   actually changes meaning in M7 and later chips.  Fix from Khalid
+   Aziz.
+
+3) One some PCI-E systems we need to probe different OF properties
+   to fill in the PCI slot information properly, from Eric Snowberg.
+
+4) Kill an extraneous memset after kzalloc(), from Christophe Jaillet.
+
+Please pull, thanks a lot!
+
+The following changes since commit a62d016cece2fce1d5e4eedf36b17f03a7a5c78e:
+
+  Merge tag 'for-linus-20150422' of git://git.infradead.org/linux-mtd (2015-04-22 12:00:44 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc 
+
+for you to fetch changes up to 494e5b6faeda1d1e830a13e10b3c7bc323f35d97:
+
+  sparc: Resolve conflict between sparc v9 and M7 on usage of bit 9 of TTE (2015-05-31 22:15:01 -0700)
+
+----------------------------------------------------------------
+Christophe Jaillet (1):
+      sparc: kernel: GRPCI2: Remove a useless memset
+
+Eric Snowberg (1):
+      sparc64: pci slots information is not populated in sysfs
+
+Khalid Aziz (1):
+      sparc: Resolve conflict between sparc v9 and M7 on usage of bit 9 of TTE
+
+chris hyser (1):
+      sparc64: Setup sysfs to mark LDOM sockets, cores and threads correctly
+
+ arch/sparc/include/asm/cpudata_64.h  |   3 +-
+ arch/sparc/include/asm/pgtable_64.h  |  22 +++++-
+ arch/sparc/include/asm/topology_64.h |   3 +-
+ arch/sparc/include/asm/trap_block.h  |   2 +
+ arch/sparc/kernel/entry.h            |   2 +
+ arch/sparc/kernel/leon_pci_grpci2.c  |   1 -
+ arch/sparc/kernel/mdesc.c            | 136 ++++++++++++++++++++++++++++-------
+ arch/sparc/kernel/pci.c              |  59 ++++++++++++---
+ arch/sparc/kernel/setup_64.c         |  21 ++++++
+ arch/sparc/kernel/smp_64.c           |  13 ++++
+ arch/sparc/kernel/vmlinux.lds.S      |   5 ++
+ arch/sparc/mm/init_64.c              |  74 +++++++++++++------
+ 12 files changed, 282 insertions(+), 59 deletions(-)
