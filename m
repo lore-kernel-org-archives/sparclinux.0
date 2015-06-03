@@ -1,138 +1,68 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Date: Mon, 01 Jun 2015 08:05:17 +0000
-Subject: [Patch v3 08/36] sparc, irq: Use helper irq_data_get_irq_handler_data() to hide irq_desc details
-Message-Id: <1433145945-789-9-git-send-email-jiang.liu@linux.intel.com>
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Date: Wed, 03 Jun 2015 14:27:27 +0000
+Subject: Generic kernel features that need architecture(sparc) support
+Message-Id: <556F0ECF.1000800@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
-In-Reply-To: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, "David S. Miller" <davem@davemloft.net>, bob picco <bpicco@meloft.net>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Use helper function irq_data_get_irq_handler_data() to hide irq_desc
-implementation details.
+Hi,
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/sparc/kernel/irq_64.c    |   15 +++++++++------
- arch/sparc/kernel/sun4d_irq.c |    4 ++--
- arch/sparc/kernel/sun4m_irq.c |    6 ++++--
- 3 files changed, 15 insertions(+), 10 deletions(-)
+If there is anything wrong, please report it in this thread:
+https://marc.info/?t3332955700003
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 4033c23bdfa6..5130f6e3e68e 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -210,21 +210,21 @@ struct irq_handler_data {
- 
- static inline unsigned int irq_data_to_handle(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->dev_handle;
- }
- 
- static inline unsigned int irq_data_to_ino(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->dev_ino;
- }
- 
- static inline unsigned long irq_data_to_sysino(struct irq_data *data)
- {
--	struct irq_handler_data *ihd = data->handler_data;
-+	struct irq_handler_data *ihd = irq_data_get_irq_handler_data(data);
- 
- 	return ihd->sysino;
- }
-@@ -370,8 +370,9 @@ static int irq_choose_cpu(unsigned int irq, const struct cpumask *affinity)
- 
- static void sun4u_irq_enable(struct irq_data *data)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
-@@ -393,8 +394,9 @@ static void sun4u_irq_enable(struct irq_data *data)
- static int sun4u_set_affinity(struct irq_data *data,
- 			       const struct cpumask *mask, bool force)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data)) {
- 		unsigned long cpuid, imap, val;
- 		unsigned int tid;
-@@ -438,8 +440,9 @@ static void sun4u_irq_disable(struct irq_data *data)
- 
- static void sun4u_irq_eoi(struct irq_data *data)
- {
--	struct irq_handler_data *handler_data = data->handler_data;
-+	struct irq_handler_data *handler_data;
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (likely(handler_data))
- 		upa_writeq(ICLR_IDLE, handler_data->iclr);
- }
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index a1bb2675b280..a87d0e47c168 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -188,7 +188,7 @@ void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
- 
- static void sun4d_mask_irq(struct irq_data *data)
- {
--	struct sun4d_handler_data *handler_data = data->handler_data;
-+	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
- 	unsigned int real_irq;
- #ifdef CONFIG_SMP
- 	int cpuid = handler_data->cpuid;
-@@ -206,7 +206,7 @@ static void sun4d_mask_irq(struct irq_data *data)
- 
- static void sun4d_unmask_irq(struct irq_data *data)
- {
--	struct sun4d_handler_data *handler_data = data->handler_data;
-+	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
- 	unsigned int real_irq;
- #ifdef CONFIG_SMP
- 	int cpuid = handler_data->cpuid;
-diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
-index 8bb3b3fddea7..da737c712fa8 100644
---- a/arch/sparc/kernel/sun4m_irq.c
-+++ b/arch/sparc/kernel/sun4m_irq.c
-@@ -188,9 +188,10 @@ static unsigned long sun4m_imask[0x50] = {
- 
- static void sun4m_mask_irq(struct irq_data *data)
- {
--	struct sun4m_handler_data *handler_data = data->handler_data;
-+	struct sun4m_handler_data *handler_data;
- 	int cpu = smp_processor_id();
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (handler_data->mask) {
- 		unsigned long flags;
- 
-@@ -206,9 +207,10 @@ static void sun4m_mask_irq(struct irq_data *data)
- 
- static void sun4m_unmask_irq(struct irq_data *data)
- {
--	struct sun4m_handler_data *handler_data = data->handler_data;
-+	struct sun4m_handler_data *handler_data;
- 	int cpu = smp_processor_id();
- 
-+	handler_data = irq_data_get_irq_handler_data(data);
- 	if (handler_data->mask) {
- 		unsigned long flags;
- 
--- 
-1.7.10.4
 
+The meaning of entries in the tables is:
+
+    | ok |  # feature supported by the architecture
+    |TODO|  # feature not yet supported by the architecture
+    | .. |  # feature cannot be supported by the hardware
+
+#
+# Kernel feature support matrix of the 'sparc' architecture:
+#
+      time/ irq-time-acct        :  ..  |            HAVE_IRQ_TIME_ACCOUNTING #  arch supports precise IRQ time accounting
+        io/ sg-chain             :  ok  |                   ARCH_HAS_SG_CHAIN #  arch supports chained scatter-gather lists
+      time/ modern-timekeeping   :  ok  |            !ARCH_USES_GETTIMEOFFSET #  arch does not use arch_gettimeoffset() anymore
+      time/ clockevents          :  ok  |                 GENERIC_CLOCKEVENTS #  arch support generic clock events
+      core/ generic-idle-thread  :  ok  |             GENERIC_SMP_IDLE_THREAD #  arch makes use of the generic SMP idle thread facility
+      core/ jump-labels          :  ok  |                HAVE_ARCH_JUMP_LABEL #  arch supports live patched, high efficiency branches
+     debug/ kgdb                 :  ok  |                      HAVE_ARCH_KGDB #  arch supports the kGDB kernel debugger
+        vm/ pte_special          :  ok  |             __HAVE_ARCH_PTE_SPECIAL #  arch supports the pte_special()/pte_mkspecial() VM APIs
+      core/ tracehook            :  ok  |                 HAVE_ARCH_TRACEHOOK #  arch supports tracehook (ptrace) register handling APIs
+        vm/ THP                  :  ok  |      HAVE_ARCH_TRANSPARENT_HUGEPAGE #  arch supports transparent hugepages
+      core/ BPF-JIT              :  ok  |                        HAVE_BPF_JIT #  arch supports BPF JIT optimizations
+      time/ context-tracking     :  ok  |               HAVE_CONTEXT_TRACKING #  arch supports context tracking for NO_HZ_FULL
+        io/ dma-api-debug        :  ok  |                  HAVE_DMA_API_DEBUG #  arch supports DMA debug facilities
+        io/ dma_map_attrs        :  ok  |                      HAVE_DMA_ATTRS #  arch provides dma_*map*_attrs() APIs
+     debug/ kprobes              :  ok  |                        HAVE_KPROBES #  arch supports live patched kernel probe
+     debug/ kretprobes           :  ok  |                     HAVE_KRETPROBES #  arch supports kernel function-return probes
+        vm/ numa-memblock        :  ok  |              HAVE_MEMBLOCK_NODE_MAP #  arch supports NUMA aware memblocks
+      time/ virt-cpuacct         :  ok  |            HAVE_VIRT_CPU_ACCOUNTING #  arch supports precise virtual CPU time accounting
+   locking/ lockdep              :  ok  |                     LOCKDEP_SUPPORT #  arch supports the runtime locking correctness debug facility
+   locking/ rwsem-optimized      :  ok  |               Optimized asm/rwsem.h #  arch provides optimized rwsem APIs
+        vm/ ELF-ASLR             : TODO |              ARCH_HAS_ELF_RANDOMIZE #  arch randomizes the stack, heap and binary images of ELF binaries
+     debug/ gcov-profile-all     : TODO |           ARCH_HAS_GCOV_PROFILE_ALL #  arch supports whole-kernel GCOV code coverage profiling
+      time/ arch-tick-broadcast  : TODO |             ARCH_HAS_TICK_BROADCAST #  arch provides tick_broadcast()
+     sched/ numa-balancing       : TODO |        ARCH_SUPPORTS_NUMA_BALANCING #  arch supports NUMA balancing
+     debug/ uprobes              : TODO |               ARCH_SUPPORTS_UPROBES #  arch supports live patched user probes
+   locking/ queued-rwlocks       : TODO |             ARCH_USE_QUEUED_RWLOCKS #  arch supports queued rwlocks
+   locking/ queued-spinlocks     : TODO |           ARCH_USE_QUEUED_SPINLOCKS #  arch supports queued spinlocks
+        vm/ PG_uncached          : TODO |               ARCH_USES_PG_UNCACHED #  arch supports the PG_uncached page flag
+        vm/ huge-vmap            : TODO |                 HAVE_ARCH_HUGE_VMAP #  arch supports the ioremap_pud_enabled() and ioremap_pmd_enabled() VM APIs
+     debug/ KASAN                : TODO |                     HAVE_ARCH_KASAN #  arch supports the KASAN runtime memory checker
+        vm/ pmdp_splitting_flush : TODO |    __HAVE_ARCH_PMDP_SPLITTING_FLUSH #  arch supports the pmdp_splitting_flush() VM API
+   seccomp/ seccomp-filter       : TODO |            HAVE_ARCH_SECCOMP_FILTER #  arch supports seccomp filters
+       lib/ strncasecmp          : TODO |             __HAVE_ARCH_STRNCASECMP #  arch provides an optimized strncasecmp() function
+     debug/ stackprotector       : TODO |              HAVE_CC_STACKPROTECTOR #  arch supports compiler driven stack overflow protection
+   locking/ cmpxchg-local        : TODO |                  HAVE_CMPXCHG_LOCAL #  arch supports the this_cpu_cmpxchg() API
+        io/ dma-contiguous       : TODO |                 HAVE_DMA_CONTIGUOUS #  arch supports the DMA CMA (continuous memory allocator)
+        vm/ ioremap_prot         : TODO |                   HAVE_IOREMAP_PROT #  arch has ioremap_prot()
+     debug/ kprobes-on-ftrace    : TODO |              HAVE_KPROBES_ON_FTRACE #  arch supports combined kprobes and ftrace live patching
+     debug/ optprobes            : TODO |                      HAVE_OPTPROBES #  arch supports live patched optprobes
+      perf/ perf-regs            : TODO |                      HAVE_PERF_REGS #  arch supports perf events register access
+      perf/ perf-stackdump       : TODO |           HAVE_PERF_USER_STACK_DUMP #  arch supports perf events stack dumps
+      perf/ kprobes-event        : TODO |      HAVE_REGS_AND_STACK_ACCESS_API #  arch supports kprobes with perf events
+     debug/ user-ret-profiler    : TODO |           HAVE_USER_RETURN_NOTIFIER #  arch supports user-space return from system call profiler
