@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Jun 2015 18:07:38 +0000
+Date: Wed, 10 Jun 2015 20:22:07 +0000
 Subject: Re: Linux Sparc FPU register corruption
-Message-Id: <20150610.110738.1101193887993858245.davem@davemloft.net>
+Message-Id: <20150610.132207.1606053216447272806.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <49B61131-8512-493B-BF49-7B2362383CCF@google.com>
 In-Reply-To: <49B61131-8512-493B-BF49-7B2362383CCF@google.com>
@@ -10,22 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: James Y Knight <jyknight@google.com>
-Date: Wed, 10 Jun 2015 10:40:58 -0400
+From: David Miller <davem@davemloft.net>
+Date: Tue, 09 Jun 2015 13:45:37 -0700 (PDT)
 
-> But separately from the reliability issue, it seems rather
-> unfortunate that the 'default' sparcv9 and sparc64 routines aren't
-> actually coded to the base sparcv9 standard instruction set. It
-> seems like probably the base routines should limit themselves to
-> normal LDX/STX or LDDF/STDF instructions, and leave things like
-> LDBLOCKF (which the docs mark CPU-specific, and deprecated, and
-> potentially to be removed from future chips), for when a specific
-> processor is targeted.
+> Just FYI, I commented out the usleep() in your test program and have
+> been running your:
+> 
+> seq 64 | xargs -n1 -P64 /bin/sh -c 'while ./a.out; do : ; done'
+> 
+> test, and it's been running flawlessly for 2 hours on my T4.
+> 
+> This is with Linus's current tree.
+> 
+> I'll fire up my T3 later and try to reproduce it there.
 
-All sparc64 cpus support block loads and stores.
+Good news, I can reproduce it on my T3.
 
-There are documents, and then there is reality.
-
-Those instructions cannot be removed without breaking tons of code
-out there and the people making changes to the sparc64 cpus are
-painfully aware of this.
+I'll try to debug this.
