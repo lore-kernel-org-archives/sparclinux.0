@@ -1,45 +1,26 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Mon, 15 Jun 2015 18:27:57 +0000
-Subject: Re: netboot failure with current kernels?
-Message-Id: <20150615182757.GA1347@aspire-one.musicnaut.iki.fi>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Thu, 25 Jun 2015 15:24:24 +0000
+Subject: [next] nfs update breaks build on sparc
+Message-Id: <20150625152424.GC3069@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1506021937230.9956@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1506021937230.9956@math.ut.ee>
+References: <20150625145528.GA3069@windriver.com>
+In-Reply-To: <20150625145528.GA3069@windriver.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Trond Myklebust <trond.myklebust@primarydata.com>
+Cc: linux-next@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
 
-On Wed, Jun 10, 2015 at 12:29:43AM +0300, Aaro Koskinen wrote:
-> On Tue, Jun 02, 2015 at 07:50:19PM +0300, Meelis Roos wrote:
-> > I tried to install Debian on my E280R. Netboot is the most natural way =
+New breakage seen in linux-next today:
 
-> > for remote install so I tried that. Current Debian installer fails to=20
-> > load:
-> >=20
-> > {0} ok boot net
-> > Boot device: /pci@8,700000/network@5,1:  File and args:=20
-> > Timeout waiting for ARP/RARP packet
-> > 4000 \
-> >      ERROR: /packages/obp-tftp: Last Trap: Fast Data Access MMU Miss
-> >=20
-> >=20
-> > Boot load failed
-> >=20
-> > Is this some known problem with TFTP booting that Debian needs to fix, =
+ERROR: "__xchg_called_with_bad_pointer" [fs/nfs/flexfilelayout/nfs_layout_flexfiles.ko] undefined!
+ERROR: "__cmpxchg_called_with_bad_pointer" [fs/nfs/flexfilelayout/nfs_layout_flexfiles.ko] undefined!
+make[2]: *** [__modpost] Error 1
+make[1]: *** [modules] Error 2
 
-> > or something new? Size of the boot.img file is 12988928 bytes, OBP=20
-> > version 4.16.4 2004/12/18.
->=20
-> Probably the image is too big. At least on older sparcs the limit
-> is 10 MB.
+I tried to reproduce it locally so I could run a bisect,
+but it must be toolchain specific because I don't see it.
 
-Based on quick look, Debian netboot image has 8 MB
-uncompressed kernel=A0and 4.5 MB compressed initramfs.
-By using compressed kernel it would all fit under 10 MB.
-Such image could be created using the latest TILO version from:
-https://git.kernel.org/cgit/linux/kernel/git/davem/silo.git
+Paul.
 
-A.
