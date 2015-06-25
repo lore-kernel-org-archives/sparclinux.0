@@ -1,16 +1,18 @@
-From: Harrison Ken <momotabi.5@apricot.ocn.ne.jp>
-Date: Sat, 13 Jun 2015 23:21:31 +0000
-Subject: BUSINESS DEAL?
-Message-Id: <344557744.965329.1434237691485.JavaMail.root@apricot.ocn.ne.jp>
+From: "Jng Che" <vmach@live.com>
+Date: Thu, 25 Jun 2015 14:35:37 +0000
+Subject: Transakce /
+Message-Id: <ab7ed796c91907133ed0079fca45c0dd.squirrel@204.151.221.234>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Dear Sir/Ma,
 
-I need your consent to transfer $25.5M that has remained unclaimed since 1999. The funds will be moved to any of our correspondent Banks in "YOUR NAME" immediately to secure the funds first. The Principal will be shared on a 50/50 basis.
 
-Yours Faithfully,
-Mr. Harrison Ken.
+
+Mam vzajemne mit prospech podnik pro nas oba. pokud mate zajem, muzete mi
+dostat na e-mailovou adresu a pro detaily a vysvetlen=ED.
+
+E-mail: jgg.ch23@gmail.com
+
