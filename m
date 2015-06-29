@@ -1,21 +1,18 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 01 Jun 2015 05:45:50 +0000
-Subject: Re: [PATCH] sparc: kernel: GRPCI2: Remove a useless memset
-Message-Id: <20150531.224550.513857798121431185.davem@davemloft.net>
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Mon, 29 Jun 2015 14:19:23 +0000
+Subject: Ping Re: [PATCH RESEND] Update kernel math-emu code from current glibc soft-fp
+Message-Id: <alpine.DEB.2.10.1506291416420.7278@digraph.polyomino.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1430481939-10268-1-git-send-email-christophe.jaillet@wanadoo.fr>
-In-Reply-To: <1430481939-10268-1-git-send-email-christophe.jaillet@wanadoo.fr>
+References: <alpine.DEB.2.10.1505192206580.28384@digraph.polyomino.org.uk>
+ <alpine.DEB.2.10.1506221321340.27145@digraph.polyomino.org.uk>
+In-Reply-To: <alpine.DEB.2.10.1506221321340.27145@digraph.polyomino.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: christophe.jaillet@wanadoo.fr
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
-Date: Fri,  1 May 2015 14:05:39 +0200
+Ping.  This patch <https://lkml.org/lkml/2015/6/22/266> is pending review.
 
-> grpci2priv is allocated using kzalloc, so there is no need to memset it.
-> 
-> Signed-off-by: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
-
-Applied.
+-- 
+Joseph S. Myers
+joseph@codesourcery.com
