@@ -1,31 +1,65 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 27 Jul 2015 11:38:49 +0000
-Subject: Occasional userland crashes on sparc in 4.1.0+
-Message-Id: <alpine.LRH.2.11.1507271430410.23956@math.ut.ee>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 01 Jul 2015 07:34:11 +0000
+Subject: Re: [PATCH RESEND] Update kernel math-emu code from current glibc soft-fp
+Message-Id: <CAMuHMdV+t0OVYq=VFydRCq6+94E89Rt8AupZApZgCNqZ6mGJSw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.DEB.2.10.1505192206580.28384@digraph.polyomino.org.uk>
+ <alpine.DEB.2.10.1506221321340.27145@digraph.polyomino.org.uk>
+ <1435634913.24866.1.camel@ellerman.id.au>
+ <alpine.DEB.2.10.1506301042250.2339@digraph.polyomino.org.uk>
+ <1435702685.24693.3.camel@ellerman.id.au>
+In-Reply-To: <1435702685.24693.3.camel@ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Joseph Myers <joseph@codesourcery.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, alpha <linux-alpha@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, "David S.Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>
 
-While compiling 4.2-rc3 on my test machines, I got segfaults during 
-compilation on V240 and V440. Running repeated compilations encountered 
-some more of these, on both 4.1.0 and 4.2-rc3.
+On Wed, Jul 1, 2015 at 12:18 AM, Michael Ellerman <mpe@ellerman.id.au> wrote:
+> On Tue, 2015-06-30 at 10:48 +0000, Joseph Myers wrote:
+>> On Tue, 30 Jun 2015, Michael Ellerman wrote:
+>>
+>> > Is there some way you can imagine of splitting this up into smaller chunks, so
+>> > that different arches can merge the pieces separately?
+>>
+>> Well, it could be split as:
+>>
+>> 1. Rename include/math-emu to math-emu-old and update architectures for
+>> the renaming (mechanically).
+>>
+>> 2. Add new include/math-emu.
+>>
+>> 3,4,5,6,7. Move each architecture from math-emu-old to math-emu.
+>>
+>> 8. Remove math-emu-old.
+>>
+>> You still have patch 1 affecting all five architectures, but with the
+>> per-architecture changes being much simpler.
+>
+> OK. That's obviously a bit more churn, but I think it's probably the best
+> approach. Unless someone else has a better idea?
 
-At the first glance, no UltraSparc II machines had this but I have not 
-done any more stresstesting on them.
+Does it make that much of a difference?
 
-Symptions from dmesg:
+You said:
+| However in it's current form it's not easily mergeable, because it
+touches five
+| architectures and has the potential to cause breakage on all of them.
 
-[111825.922395] as[22148]: segfault at 2424f128 ip 0000000000021f30 (rpc 0000000000050c85) sp 00000000ffcea018 error 30001 in as[10000+46000]
-[76756.534860] git[20101]: segfault at 0 ip 00000000f7752448 (rpc 00000000f76e7d68) sp 00000000f6fbeef0 error 30001 in libc-2.19.so[f7668000+16a000]
+Patch 1 still touches five architectures.
+Patches 3-7 still have the potential to break an architecture, but only one of
+them at a time.
 
-These happen once per several days for continuous compilation. So they 
-might be slightly older than 4.1.0.
+From a bisectability point of view there's no change.
+Except that patch 1 (and 8) may break something, too ;-)
 
-Additionally, v240 still sees the possible irq lock inversion dependency 
-as reported in https://lkml.org/lkml/2015/5/11/348 but this is probably 
-not related.
+Gr{oetje,eeting}s,
 
--- 
-Meelis Roos (mroos@linux.ee)
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
