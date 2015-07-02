@@ -1,259 +1,745 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Tue, 21 Jul 2015 19:59:35 +0000
-Subject: [PATCH V4 0/6] Allow user to request memory to be locked on page fault
-Message-Id: <1437508781-28655-1-git-send-email-emunson@akamai.com>
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Thu, 02 Jul 2015 15:46:21 +0000
+Subject: [PATCH 1/8] math-emu: Move math-emu to math-emu-old
+Message-Id: <alpine.DEB.2.10.1507021544450.29415@digraph.polyomino.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric B Munson <emunson@akamai.com>, Shuah Khan <shuahkh@osg.samsung.com>, Michal Hocko <mhocko@suse.cz>, Michael Kerrisk <mtk.manpages@gmail.com>, Vlastimil Babka <vbabka@suse.cz>, Jonathan Corbet <corbet@lwn.net>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, mpe@ellerman.id.au
 
-mlock() allows a user to control page out of program memory, but this
-comes at the cost of faulting in the entire mapping when it is
-allocated.  For large mappings where the entire area is not necessary
-this is not ideal.  Instead of forcing all locked pages to be present
-when they are allocated, this set creates a middle ground.  Pages are
-marked to be placed on the unevictable LRU (locked) when they are first
-used, but they are not faulted in by the mlock call.
+From: Joseph Myers <joseph@codesourcery.com>
 
-This series introduces a new mlock() system call that takes a flags
-argument along with the start address and size.  This flags argument
-gives the caller the ability to request memory be locked in the
-traditional way, or to be locked after the page is faulted in.  New
-calls are added for munlock() and munlockall() which give the called a
-way to specify which flags are supposed to be cleared.  A new MCL flag
-is added to mirror the lock on fault behavior from mlock() in
-mlockall().  Finally, a flag for mmap() is added that allows a user to
-specify that the covered are should not be paged out, but only after the
-memory has been used the first time.
+The include/math-emu code (used for alpha powerpc sh sparc, and to a
+very limited extent for s390) was taken from an old version of glibc's
+soft-fp code around 15 years ago (in the pre-git era, anyway, and some
+of the initial code may have been developed around 1997-9 with a view
+to being used in both places).  Since then, there have only been a
+handful of small changes in the kernel version, while the glibc
+version has been extensively developed, with many bug fixes,
+performance improvements and miscellaneous cleanups, and is also now
+used in libgcc, including for __float128 on x86_64 since GCC 4.3 (see
+<https://ols.fedoraproject.org/GCC/Reprints-2006/sidwell-reprint.pdf>
+for more information regarding performance improvements and use in
+libgcc).
 
-There are two main use cases that this set covers.  The first is the
-security focussed mlock case.  A buffer is needed that cannot be written
-to swap.  The maximum size is known, but on average the memory used is
-significantly less than this maximum.  With lock on fault, the buffer
-is guaranteed to never be paged out without consuming the maximum size
-every time such a buffer is created.
+Thus the kernel version is missing those various improvements and it
+would make sense to update it to include them (as was noted back in
+2006 <https://sourceware.org/ml/libc-alpha/2006-02/msg00075.html> when
+a large group of changes went into glibc).  I believe it also makes
+sense to aim to have *exactly* the same code in both places to
+simplify future updates of the kernel version.  (And in particular, as
+external code imported largely verbatim into the kernel,
+include/math-emu has never followed the kernel coding style and it
+doesn't make sense for it to do so.)
 
-The second use case is focussed on performance.  Portions of a large
-file are needed and we want to keep the used portions in memory once
-accessed.  This is the case for large graphical models where the path
-through the graph is not known until run time.  The entire graph is
-unlikely to be used in a given invocation, but once a node has been
-used it needs to stay resident for further processing.  Given these
-constraints we have a number of options.  We can potentially waste a
-large amount of memory by mlocking the entire region (this can also
-cause a significant stall at startup as the entire file is read in).
-We can mlock every page as we access them without tracking if the page
-is already resident but this introduces large overhead for each access.
-The third option is mapping the entire region with PROT_NONE and using
-a signal handler for SIGSEGV to mprotect(PROT_READ) and mlock() the
-needed page.  Doing this page at a time adds a significant performance
-penalty.  Batching can be used to mitigate this overhead, but in order
-to safely avoid trying to mprotect pages outside of the mapping, the
-boundaries of each mapping to be used in this way must be tracked and
-available to the signal handler.  This is precisely what the mm system
-in the kernel should already be doing.
+I made an analysis of what kernel-local changes there were to this
+code in <https://sourceware.org/ml/libc-alpha/2013-10/msg00345.html>,
+and since then have added the various missing features to the glibc
+version so that it is feature-complete regarding features used in the
+kernel and so that exactly the same code is usable in both places.
 
-For mlock(MLOCK_ONFAULT) and mmap(MAP_LOCKONFAULT) the user is charged
-against RLIMIT_MEMLOCK as if mlock(MLOCK_LOCKED) or mmap(MAP_LOCKED) was
-used, so when the VMA is created not when the pages are faulted in.  For
-mlockall(MCL_ONFAULT) the user is charged as if MCL_FUTURE was used.
-This decision was made to keep the accounting checks out of the page
-fault path.
+This patch moves the include/math-emu code to math-emu-old, updating
+#includes, in preparation for importing glibc's current soft-fp code
+as include/math-emu without requiring all architectures to be updated
+for API changes at the same time.
 
-To illustrate the benefit of this set I wrote a test program that mmaps
-a 5 GB file filled with random data and then makes 15,000,000 accesses
-to random addresses in that mapping.  The test program was run 20 times
-for each setup.  Results are reported for two program portions, setup
-and execution.  The setup phase is calling mmap and optionally mlock on
-the entire region.  For most experiments this is trivial, but it
-highlights the cost of faulting in the entire region.  Results are
-averages across the 20 runs in milliseconds.
-
-mmap with mlock(MLOCK_LOCKED) on entire range:
-Setup avg:      8228.666
-Processing avg: 8274.257
-
-mmap with mlock(MLOCK_LOCKED) before each access:
-Setup avg:      0.113
-Processing avg: 90993.552
-
-mmap with PROT_NONE and signal handler and batch size of 1 page:
-With the default value in max_map_count, this gets ENOMEM as I attempt
-to change the permissions, after upping the sysctl significantly I get:
-Setup avg:      0.058
-Processing avg: 69488.073
-
-mmap with PROT_NONE and signal handler and batch size of 8 pages:
-Setup avg:      0.068
-Processing avg: 38204.116
-
-mmap with PROT_NONE and signal handler and batch size of 16 pages:
-Setup avg:      0.044
-Processing avg: 29671.180
-
-mmap with mlock(MLOCK_ONFAULT) on entire range:
-Setup avg:      0.189
-Processing avg: 17904.899
-
-The signal handler in the batch cases faulted in memory in two steps to
-avoid having to know the start and end of the faulting mapping.  The
-first step covers the page that caused the fault as we know that it will
-be possible to lock.  The second step speculatively tries to mlock and
-mprotect the batch size - 1 pages that follow.  There may be a clever
-way to avoid this without having the program track each mapping to be
-covered by this handeler in a globally accessible structure, but I could
-not find it.  It should be noted that with a large enough batch size
-this two step fault handler can still cause the program to crash if it
-reaches far beyond the end of the mapping.
-
-These results show that if the developer knows that a majority of the
-mapping will be used, it is better to try and fault it in at once,
-otherwise MAP_LOCKONFAULT is significantly faster.
-
-The performance cost of these patches are minimal on the two benchmarks
-I have tested (stream and kernbench).  The following are the average
-values across 20 runs of stream and 10 runs of kernbench after a warmup
-run whose results were discarded.
-
-Avg throughput in MB/s from stream using 1000000 element arrays
-Test     4.2-rc1      4.2-rc1+lock-on-fault
-Copy:    10,566.5     10,421
-Scale:   10,685       10,503.5
-Add:     12,044.1     11,814.2
-Triad:   12,064.8     11,846.3
-
-Kernbench optimal load
-                 4.2-rc1  4.2-rc1+lock-on-fault
-Elapsed Time     78.453   78.991
-User Time        64.2395  65.2355
-System Time      9.7335   9.7085
-Context Switches 22211.5  22412.1
-Sleeps           14965.3  14956.1
+Signed-off-by: Joseph Myers <joseph@codesourcery.com>
 
 ---
-Changes from V3:
-Ensure that pages present when mlock2(MLOCK_ONFAULT) is called are locked
-Ensure that VM_LOCKONFAULT is handled in cases that used to only check VM_LOCKED
-Add tests for new system calls
-Add missing syscall entries, fix NR_syscalls on multiple arch's
-Add missing MAP_LOCKONFAULT for tile
 
-Changes from V2:
-Added new system calls for mlock, munlock, and munlockall with added
-flags arguments for controlling how memory is locked or unlocked.
+diff --git a/arch/alpha/math-emu/math.c b/arch/alpha/math-emu/math.c
+index 58c2669..917196e 100644
+--- a/arch/alpha/math-emu/math.c
++++ b/arch/alpha/math-emu/math.c
+@@ -6,9 +6,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include "sfp-util.h"
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
++#include <math-emu-old/double.h>
+ 
+ #define	OPC_PAL		0x00
+ #define OPC_INTA	0x10
+diff --git a/arch/powerpc/math-emu/fadd.c b/arch/powerpc/math-emu/fadd.c
+index 0158a16..3c821be 100644
+--- a/arch/powerpc/math-emu/fadd.c
++++ b/arch/powerpc/math-emu/fadd.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fadd(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fadds.c b/arch/powerpc/math-emu/fadds.c
+index 5930f40..14bc579 100644
+--- a/arch/powerpc/math-emu/fadds.c
++++ b/arch/powerpc/math-emu/fadds.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fadds(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fcmpo.c b/arch/powerpc/math-emu/fcmpo.c
+index 5bce011..3c4afbf 100644
+--- a/arch/powerpc/math-emu/fcmpo.c
++++ b/arch/powerpc/math-emu/fcmpo.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fcmpo(u32 *ccr, int crfD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fcmpu.c b/arch/powerpc/math-emu/fcmpu.c
+index d4fb1ba..948d9db 100644
+--- a/arch/powerpc/math-emu/fcmpu.c
++++ b/arch/powerpc/math-emu/fcmpu.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fcmpu(u32 *ccr, int crfD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fctiw.c b/arch/powerpc/math-emu/fctiw.c
+index f694440..d3efc14 100644
+--- a/arch/powerpc/math-emu/fctiw.c
++++ b/arch/powerpc/math-emu/fctiw.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fctiw(u32 *frD, void *frB)
+diff --git a/arch/powerpc/math-emu/fctiwz.c b/arch/powerpc/math-emu/fctiwz.c
+index 71e782f..cce3457 100644
+--- a/arch/powerpc/math-emu/fctiwz.c
++++ b/arch/powerpc/math-emu/fctiwz.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fctiwz(u32 *frD, void *frB)
+diff --git a/arch/powerpc/math-emu/fdiv.c b/arch/powerpc/math-emu/fdiv.c
+index a29239c..f3084fd 100644
+--- a/arch/powerpc/math-emu/fdiv.c
++++ b/arch/powerpc/math-emu/fdiv.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fdiv(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fdivs.c b/arch/powerpc/math-emu/fdivs.c
+index 526bc26..4fde33b 100644
+--- a/arch/powerpc/math-emu/fdivs.c
++++ b/arch/powerpc/math-emu/fdivs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fdivs(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fmadd.c b/arch/powerpc/math-emu/fmadd.c
+index 8c3f20a..9a2b1ff 100644
+--- a/arch/powerpc/math-emu/fmadd.c
++++ b/arch/powerpc/math-emu/fmadd.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fmadd(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fmadds.c b/arch/powerpc/math-emu/fmadds.c
+index 794fb31..3dac172 100644
+--- a/arch/powerpc/math-emu/fmadds.c
++++ b/arch/powerpc/math-emu/fmadds.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fmadds(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fmsub.c b/arch/powerpc/math-emu/fmsub.c
+index 626f6fe..bfcf698 100644
+--- a/arch/powerpc/math-emu/fmsub.c
++++ b/arch/powerpc/math-emu/fmsub.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fmsub(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fmsubs.c b/arch/powerpc/math-emu/fmsubs.c
+index 3425bc8..144d43a 100644
+--- a/arch/powerpc/math-emu/fmsubs.c
++++ b/arch/powerpc/math-emu/fmsubs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fmsubs(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fmul.c b/arch/powerpc/math-emu/fmul.c
+index 2c19297..1ea819d 100644
+--- a/arch/powerpc/math-emu/fmul.c
++++ b/arch/powerpc/math-emu/fmul.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fmul(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fmuls.c b/arch/powerpc/math-emu/fmuls.c
+index f5ad5c9..6f62191 100644
+--- a/arch/powerpc/math-emu/fmuls.c
++++ b/arch/powerpc/math-emu/fmuls.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fmuls(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fnmadd.c b/arch/powerpc/math-emu/fnmadd.c
+index e817bc5..e290ef7 100644
+--- a/arch/powerpc/math-emu/fnmadd.c
++++ b/arch/powerpc/math-emu/fnmadd.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fnmadd(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fnmadds.c b/arch/powerpc/math-emu/fnmadds.c
+index 4db4b7d..41a5a4c 100644
+--- a/arch/powerpc/math-emu/fnmadds.c
++++ b/arch/powerpc/math-emu/fnmadds.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fnmadds(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fnmsub.c b/arch/powerpc/math-emu/fnmsub.c
+index f65979f..7e6168a 100644
+--- a/arch/powerpc/math-emu/fnmsub.c
++++ b/arch/powerpc/math-emu/fnmsub.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fnmsub(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/fnmsubs.c b/arch/powerpc/math-emu/fnmsubs.c
+index 9021dac..bb4a27f 100644
+--- a/arch/powerpc/math-emu/fnmsubs.c
++++ b/arch/powerpc/math-emu/fnmsubs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fnmsubs(void *frD, void *frA, void *frB, void *frC)
+diff --git a/arch/powerpc/math-emu/frsp.c b/arch/powerpc/math-emu/frsp.c
+index ddcc146..6fda802 100644
+--- a/arch/powerpc/math-emu/frsp.c
++++ b/arch/powerpc/math-emu/frsp.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ frsp(void *frD, void *frB)
+diff --git a/arch/powerpc/math-emu/fsel.c b/arch/powerpc/math-emu/fsel.c
+index 1b0c144..681898d 100644
+--- a/arch/powerpc/math-emu/fsel.c
++++ b/arch/powerpc/math-emu/fsel.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fsel(u32 *frD, void *frA, u32 *frB, u32 *frC)
+diff --git a/arch/powerpc/math-emu/fsqrt.c b/arch/powerpc/math-emu/fsqrt.c
+index a55fc7d..f66b52e 100644
+--- a/arch/powerpc/math-emu/fsqrt.c
++++ b/arch/powerpc/math-emu/fsqrt.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fsqrt(void *frD, void *frB)
+diff --git a/arch/powerpc/math-emu/fsqrts.c b/arch/powerpc/math-emu/fsqrts.c
+index 31dccbf..b042ff6 100644
+--- a/arch/powerpc/math-emu/fsqrts.c
++++ b/arch/powerpc/math-emu/fsqrts.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fsqrts(void *frD, void *frB)
+diff --git a/arch/powerpc/math-emu/fsub.c b/arch/powerpc/math-emu/fsub.c
+index 02c5dff..aa2105f 100644
+--- a/arch/powerpc/math-emu/fsub.c
++++ b/arch/powerpc/math-emu/fsub.c
+@@ -3,8 +3,8 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ fsub(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/fsubs.c b/arch/powerpc/math-emu/fsubs.c
+index 5d9b18c..9fd6cf6 100644
+--- a/arch/powerpc/math-emu/fsubs.c
++++ b/arch/powerpc/math-emu/fsubs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ fsubs(void *frD, void *frA, void *frB)
+diff --git a/arch/powerpc/math-emu/lfd.c b/arch/powerpc/math-emu/lfd.c
+index 79ac76d..acc5a3f 100644
+--- a/arch/powerpc/math-emu/lfd.c
++++ b/arch/powerpc/math-emu/lfd.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/double.h>
+ 
+ int
+ lfd(void *frD, void *ea)
+diff --git a/arch/powerpc/math-emu/lfs.c b/arch/powerpc/math-emu/lfs.c
+index 434ed27..582e0b8 100644
+--- a/arch/powerpc/math-emu/lfs.c
++++ b/arch/powerpc/math-emu/lfs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ lfs(void *frD, void *ea)
+diff --git a/arch/powerpc/math-emu/math.c b/arch/powerpc/math-emu/math.c
+index ab151f0..d6e1a8f 100644
+--- a/arch/powerpc/math-emu/math.c
++++ b/arch/powerpc/math-emu/math.c
+@@ -10,7 +10,7 @@
+ #include <asm/switch_to.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/double.h>
+ 
+ #define FLOATFUNC(x)	extern int x(void *, void *, void *, void *)
+ 
+diff --git a/arch/powerpc/math-emu/math_efp.c b/arch/powerpc/math-emu/math_efp.c
+index 28337c9..8d87cf9 100644
+--- a/arch/powerpc/math-emu/math_efp.c
++++ b/arch/powerpc/math-emu/math_efp.c
+@@ -28,9 +28,9 @@
+ #define FP_EX_BOOKE_E500_SPE
+ #include <asm/sfp-machine.h>
+ 
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
++#include <math-emu-old/double.h>
+ 
+ #define EFAPU		0x4
+ 
+diff --git a/arch/powerpc/math-emu/mcrfs.c b/arch/powerpc/math-emu/mcrfs.c
+index e948d57..f37ea50 100644
+--- a/arch/powerpc/math-emu/mcrfs.c
++++ b/arch/powerpc/math-emu/mcrfs.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mcrfs(u32 *ccr, u32 crfD, u32 crfS)
+diff --git a/arch/powerpc/math-emu/mffs.c b/arch/powerpc/math-emu/mffs.c
+index 5526cf9..558e621 100644
+--- a/arch/powerpc/math-emu/mffs.c
++++ b/arch/powerpc/math-emu/mffs.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mffs(u32 *frD)
+diff --git a/arch/powerpc/math-emu/mtfsb0.c b/arch/powerpc/math-emu/mtfsb0.c
+index bc98558..7c325d8 100644
+--- a/arch/powerpc/math-emu/mtfsb0.c
++++ b/arch/powerpc/math-emu/mtfsb0.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mtfsb0(int crbD)
+diff --git a/arch/powerpc/math-emu/mtfsb1.c b/arch/powerpc/math-emu/mtfsb1.c
+index fe6ed5a..d15f724 100644
+--- a/arch/powerpc/math-emu/mtfsb1.c
++++ b/arch/powerpc/math-emu/mtfsb1.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mtfsb1(int crbD)
+diff --git a/arch/powerpc/math-emu/mtfsf.c b/arch/powerpc/math-emu/mtfsf.c
+index 44b0fc8..b352968 100644
+--- a/arch/powerpc/math-emu/mtfsf.c
++++ b/arch/powerpc/math-emu/mtfsf.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mtfsf(unsigned int FM, u32 *frB)
+diff --git a/arch/powerpc/math-emu/mtfsfi.c b/arch/powerpc/math-emu/mtfsfi.c
+index fd2acc2..8abeb3c 100644
+--- a/arch/powerpc/math-emu/mtfsfi.c
++++ b/arch/powerpc/math-emu/mtfsfi.c
+@@ -3,7 +3,7 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ int
+ mtfsfi(unsigned int crfD, unsigned int IMM)
+diff --git a/arch/powerpc/math-emu/stfs.c b/arch/powerpc/math-emu/stfs.c
+index 6122147..8430631 100644
+--- a/arch/powerpc/math-emu/stfs.c
++++ b/arch/powerpc/math-emu/stfs.c
+@@ -3,9 +3,9 @@
+ #include <asm/uaccess.h>
+ 
+ #include <asm/sfp-machine.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/double.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/single.h>
+ 
+ int
+ stfs(void *frS, void *ea)
+diff --git a/arch/powerpc/math-emu/udivmodti4.c b/arch/powerpc/math-emu/udivmodti4.c
+index 6172044..86e4013 100644
+--- a/arch/powerpc/math-emu/udivmodti4.c
++++ b/arch/powerpc/math-emu/udivmodti4.c
+@@ -1,6 +1,6 @@
+ /* This has so very few changes over libgcc2's __udivmoddi4 it isn't funny.  */
+ 
+-#include <math-emu/soft-fp.h>
++#include <math-emu-old/soft-fp.h>
+ 
+ #undef count_leading_zeros
+ #define count_leading_zeros  __FP_CLZ
+diff --git a/arch/s390/kernel/sysinfo.c b/arch/s390/kernel/sysinfo.c
+index 99babea..c7d8df7 100644
+--- a/arch/s390/kernel/sysinfo.c
++++ b/arch/s390/kernel/sysinfo.c
+@@ -19,8 +19,8 @@
+ 
+ /* Sigh, math-emu. Don't ask. */
+ #include <asm/sfp-util.h>
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
+ 
+ int topology_max_mnest;
+ 
+diff --git a/arch/sh/math-emu/math.c b/arch/sh/math-emu/math.c
+index 04aa55f..0cd5ec3 100644
+--- a/arch/sh/math-emu/math.c
++++ b/arch/sh/math-emu/math.c
+@@ -19,9 +19,9 @@
+ #include <asm/io.h>
+ 
+ #include "sfp-util.h"
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
+-#include <math-emu/double.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
++#include <math-emu-old/double.h>
+ 
+ #define	FPUL		(fregs->fpul)
+ #define FPSCR		(fregs->fpscr)
+diff --git a/arch/sparc/math-emu/math_32.c b/arch/sparc/math-emu/math_32.c
+index 5ce8f2f..3aaaeef 100644
+--- a/arch/sparc/math-emu/math_32.c
++++ b/arch/sparc/math-emu/math_32.c
+@@ -71,10 +71,10 @@
+ #include <asm/uaccess.h>
+ 
+ #include "sfp-util_32.h"
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
+-#include <math-emu/double.h>
+-#include <math-emu/quad.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/quad.h>
+ 
+ #define FLOATFUNC(x) extern int x(void *,void *,void *)
+ 
+diff --git a/arch/sparc/math-emu/math_64.c b/arch/sparc/math-emu/math_64.c
+index 034aadb..c720cbb 100644
+--- a/arch/sparc/math-emu/math_64.c
++++ b/arch/sparc/math-emu/math_64.c
+@@ -19,10 +19,10 @@
+ #include <asm/cacheflush.h>
+ 
+ #include "sfp-util_64.h"
+-#include <math-emu/soft-fp.h>
+-#include <math-emu/single.h>
+-#include <math-emu/double.h>
+-#include <math-emu/quad.h>
++#include <math-emu-old/soft-fp.h>
++#include <math-emu-old/single.h>
++#include <math-emu-old/double.h>
++#include <math-emu-old/quad.h>
+ 
+ /* QUAD - ftt = 3 */
+ #define FMOVQ	0x003
+diff --git a/include/math-emu/double.h b/include/math-emu-old/double.h
+similarity index 100%
+rename from include/math-emu/double.h
+rename to include/math-emu-old/double.h
+diff --git a/include/math-emu/op-1.h b/include/math-emu-old/op-1.h
+similarity index 100%
+rename from include/math-emu/op-1.h
+rename to include/math-emu-old/op-1.h
+diff --git a/include/math-emu/op-2.h b/include/math-emu-old/op-2.h
+similarity index 100%
+rename from include/math-emu/op-2.h
+rename to include/math-emu-old/op-2.h
+diff --git a/include/math-emu/op-4.h b/include/math-emu-old/op-4.h
+similarity index 100%
+rename from include/math-emu/op-4.h
+rename to include/math-emu-old/op-4.h
+diff --git a/include/math-emu/op-8.h b/include/math-emu-old/op-8.h
+similarity index 100%
+rename from include/math-emu/op-8.h
+rename to include/math-emu-old/op-8.h
+diff --git a/include/math-emu/op-common.h b/include/math-emu-old/op-common.h
+similarity index 100%
+rename from include/math-emu/op-common.h
+rename to include/math-emu-old/op-common.h
+diff --git a/include/math-emu/quad.h b/include/math-emu-old/quad.h
+similarity index 100%
+rename from include/math-emu/quad.h
+rename to include/math-emu-old/quad.h
+diff --git a/include/math-emu/single.h b/include/math-emu-old/single.h
+similarity index 100%
+rename from include/math-emu/single.h
+rename to include/math-emu-old/single.h
+diff --git a/include/math-emu/soft-fp.h b/include/math-emu-old/soft-fp.h
+similarity index 96%
+rename from include/math-emu/soft-fp.h
+rename to include/math-emu-old/soft-fp.h
+index 3f284bc..0ce1032 100644
+--- a/include/math-emu/soft-fp.h
++++ b/include/math-emu-old/soft-fp.h
+@@ -180,11 +180,11 @@ do {						\
+ 
+ #define _FP_CLS_COMBINE(x,y)	(((x) << 2) | (y))
+ 
+-#include <math-emu/op-1.h>
+-#include <math-emu/op-2.h>
+-#include <math-emu/op-4.h>
+-#include <math-emu/op-8.h>
+-#include <math-emu/op-common.h>
++#include <math-emu-old/op-1.h>
++#include <math-emu-old/op-2.h>
++#include <math-emu-old/op-4.h>
++#include <math-emu-old/op-8.h>
++#include <math-emu-old/op-common.h>
+ 
+ /* Sigh.  Silly things longlong.h needs.  */
+ #define UWtype		_FP_W_TYPE
 
-Eric B Munson (6):
-  mm: mlock: Refactor mlock, munlock, and munlockall code
-  mm: mlock: Add new mlock, munlock, and munlockall system calls
-  mm: gup: Add mm_lock_present()
-  mm: mlock: Introduce VM_LOCKONFAULT and add mlock flags to enable it
-  mm: mmap: Add mmap flag to request VM_LOCKONFAULT
-  selftests: vm: Add tests for lock on fault
-
- arch/alpha/include/asm/unistd.h             |   2 +-
- arch/alpha/include/uapi/asm/mman.h          |   5 +
- arch/alpha/include/uapi/asm/unistd.h        |   3 +
- arch/alpha/kernel/systbls.S                 |   3 +
- arch/arm/include/asm/unistd.h               |   2 +-
- arch/arm/include/uapi/asm/unistd.h          |   3 +
- arch/arm/kernel/calls.S                     |   3 +
- arch/arm64/include/asm/unistd32.h           |   6 +
- arch/avr32/include/uapi/asm/unistd.h        |   3 +
- arch/avr32/kernel/syscall_table.S           |   3 +
- arch/blackfin/include/uapi/asm/unistd.h     |   3 +
- arch/blackfin/mach-common/entry.S           |   3 +
- arch/cris/arch-v10/kernel/entry.S           |   3 +
- arch/cris/arch-v32/kernel/entry.S           |   3 +
- arch/frv/kernel/entry.S                     |   3 +
- arch/ia64/include/asm/unistd.h              |   2 +-
- arch/ia64/include/uapi/asm/unistd.h         |   3 +
- arch/ia64/kernel/entry.S                    |   3 +
- arch/m32r/kernel/entry.S                    |   3 +
- arch/m32r/kernel/syscall_table.S            |   3 +
- arch/m68k/include/asm/unistd.h              |   2 +-
- arch/m68k/include/uapi/asm/unistd.h         |   3 +
- arch/m68k/kernel/syscalltable.S             |   3 +
- arch/microblaze/include/uapi/asm/unistd.h   |   3 +
- arch/microblaze/kernel/syscall_table.S      |   3 +
- arch/mips/include/uapi/asm/mman.h           |   8 +
- arch/mips/include/uapi/asm/unistd.h         |  21 +-
- arch/mips/kernel/scall32-o32.S              |   3 +
- arch/mips/kernel/scall64-64.S               |   3 +
- arch/mips/kernel/scall64-n32.S              |   3 +
- arch/mips/kernel/scall64-o32.S              |   3 +
- arch/mn10300/kernel/entry.S                 |   3 +
- arch/parisc/include/uapi/asm/mman.h         |   5 +
- arch/parisc/include/uapi/asm/unistd.h       |   5 +-
- arch/powerpc/include/uapi/asm/mman.h        |   5 +
- arch/powerpc/include/uapi/asm/unistd.h      |   3 +
- arch/s390/include/uapi/asm/unistd.h         |   5 +-
- arch/s390/kernel/compat_wrapper.c           |   3 +
- arch/s390/kernel/syscalls.S                 |   3 +
- arch/sh/kernel/syscalls_32.S                |   3 +
- arch/sparc/include/uapi/asm/mman.h          |   5 +
- arch/sparc/include/uapi/asm/unistd.h        |   5 +-
- arch/sparc/kernel/systbls_32.S              |   2 +-
- arch/sparc/kernel/systbls_64.S              |   4 +-
- arch/tile/include/uapi/asm/mman.h           |   9 +
- arch/x86/entry/syscalls/syscall_32.tbl      |   3 +
- arch/x86/entry/syscalls/syscall_64.tbl      |   3 +
- arch/xtensa/include/uapi/asm/mman.h         |   8 +
- arch/xtensa/include/uapi/asm/unistd.h       |  10 +-
- drivers/gpu/drm/drm_vm.c                    |   8 +-
- fs/proc/task_mmu.c                          |   3 +-
- include/linux/mm.h                          |   2 +
- include/linux/mman.h                        |   3 +-
- include/linux/syscalls.h                    |   4 +
- include/uapi/asm-generic/mman.h             |   5 +
- include/uapi/asm-generic/unistd.h           |   8 +-
- kernel/events/core.c                        |   2 +
- kernel/events/uprobes.c                     |   2 +-
- kernel/fork.c                               |   2 +-
- kernel/sys_ni.c                             |   3 +
- mm/debug.c                                  |   1 +
- mm/gup.c                                    | 175 +++++++-
- mm/huge_memory.c                            |   3 +-
- mm/hugetlb.c                                |   4 +-
- mm/internal.h                               |   5 +-
- mm/ksm.c                                    |   2 +-
- mm/madvise.c                                |   4 +-
- mm/memory.c                                 |   5 +-
- mm/mlock.c                                  | 159 +++++--
- mm/mmap.c                                   |  32 +-
- mm/mremap.c                                 |   6 +-
- mm/msync.c                                  |   2 +-
- mm/rmap.c                                   |  12 +-
- mm/shmem.c                                  |   2 +-
- mm/swap.c                                   |   3 +-
- mm/vmscan.c                                 |   2 +-
- tools/testing/selftests/vm/Makefile         |   3 +
- tools/testing/selftests/vm/lock-on-fault.c  | 344 +++++++++++++++
- tools/testing/selftests/vm/mlock2-tests.c   | 621 ++++++++++++++++++++++++++++
- tools/testing/selftests/vm/on-fault-limit.c |  47 +++
- tools/testing/selftests/vm/run_vmtests      |  33 ++
- 81 files changed, 1604 insertions(+), 104 deletions(-)
- create mode 100644 tools/testing/selftests/vm/lock-on-fault.c
- create mode 100644 tools/testing/selftests/vm/mlock2-tests.c
- create mode 100644 tools/testing/selftests/vm/on-fault-limit.c
-
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-api@vger.kernel.org
 
 -- 
-1.9.1
-
+Joseph S. Myers
+joseph@codesourcery.com
