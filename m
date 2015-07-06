@@ -1,29 +1,59 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Wed, 08 Jul 2015 17:00:08 +0000
-Subject: Re: [PATCH V3 0/5] Allow user to request memory to be locked on page fault
-Message-Id: <20150708100008.e8a000ec.akpm@linux-foundation.org>
+From: Phil Sutter <phil@nwl.cc>
+Date: Mon, 06 Jul 2015 12:01:42 +0000
+Subject: [PATCH] rhashtable: fix for resize events during table walk
+Message-Id: <1436184102-19175-1-git-send-email-phil@nwl.cc>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436288623-13007-1-git-send-email-emunson@akamai.com>
-	<20150707141613.f945c98279dcb71c9743d5f2@linux-foundation.org>
-	<20150708132302.GB4669@akamai.com>
-In-Reply-To: <20150708132302.GB4669@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric B Munson <emunson@akamai.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, Michal Hocko <mhocko@suse.cz>, Michael Kerrisk <mtk.manpages@gmail.com>, Vlastimil Babka <vbabka@suse.cz>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, herbert@gondor.apana.org.au, daniel@iogearbox.net, geert@linux-m68k.org, mroos@linux.ee
 
-On Wed, 8 Jul 2015 09:23:02 -0400 Eric B Munson <emunson@akamai.com> wrote:
+If rhashtable_walk_next detects a resize operation in progress, it jumps
+to the new table and continues walking that one. But it misses to drop
+the reference to it's current item, leading it to continue traversing
+the new table's bucket in which the current item is sorted into, and
+after reaching that bucket's end continues traversing the new table's
+second bucket instead of the first one, thereby potentially missing
+items.
 
-> > I don't know whether these syscalls should be documented via new
-> > manpages, or if we should instead add them to the existing
-> > mlock/munlock/mlockall manpages.  Michael, could you please advise?
-> > 
-> 
-> Thanks for adding the series.  I owe you several updates (getting the
-> new syscall right for all architectures and a set of tests for the new
-> syscalls).  Would you prefer a new pair of patches or I update this set?
+This fixes the rhashtable runtime test for me. Bug probably introduced
+by Herbert Xu's patch eddee5ba ("rhashtable: Fix walker behaviour during
+rehash") although not explicitly tested.
 
-It doesn't matter much.  I guess a full update will be more convenient
-at your end.
+Fixes: eddee5ba ("rhashtable: Fix walker behaviour during rehash")
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ lib/rhashtable.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index a60a6d3..e36b94b 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -585,6 +585,7 @@ void *rhashtable_walk_next(struct rhashtable_iter *iter)
+ 	struct bucket_table *tbl = iter->walker->tbl;
+ 	struct rhashtable *ht = iter->ht;
+ 	struct rhash_head *p = iter->p;
++	void *rc = NULL;
+ 
+ 	if (p) {
+ 		p = rht_dereference_bucket_rcu(p->next, tbl, iter->slot);
+@@ -617,12 +618,12 @@ next:
+ 	if (iter->walker->tbl) {
+ 		iter->slot = 0;
+ 		iter->skip = 0;
+-		return ERR_PTR(-EAGAIN);
++		rc = ERR_PTR(-EAGAIN);
+ 	}
+ 
+ 	iter->p = NULL;
+ 
+-	return NULL;
++	return rc;
+ }
+ EXPORT_SYMBOL_GPL(rhashtable_walk_next);
+ 
+-- 
+2.1.2
 
