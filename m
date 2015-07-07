@@ -1,89 +1,158 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Mon, 27 Jul 2015 05:40:32 +0000
-Subject: [PATCH 04/10] perf: Rename perf_event_read_{one,group}, perf_read_hw
-Message-Id: <1437975638-789-5-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Eric B Munson <emunson@akamai.com>
+Date: Tue, 07 Jul 2015 17:03:42 +0000
+Subject: [PATCH V3 4/5] mm: mmap: Add mmap flag to request VM_LOCKONFAULT
+Message-Id: <1436288623-13007-5-git-send-email-emunson@akamai.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1436288623-13007-1-git-send-email-emunson@akamai.com>
+In-Reply-To: <1436288623-13007-1-git-send-email-emunson@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eric B Munson <emunson@akamai.com>, Michal Hocko <mhocko@suse.cz>, Vlastimil Babka <vbabka@suse.cz>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-From: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+The cost of faulting in all memory to be locked can be very high when
+working with large mappings.  If only portions of the mapping will be
+used this can incur a high penalty for locking.
 
-In order to free up the perf_event_read_group() name:
+Now that we have the new VMA flag for the locked but not present state,
+expose it  as an mmap option like MAP_LOCKED -> VM_LOCKED.
 
- s/perf_event_read_\(one\|group\)/perf_read_\1/g
- s/perf_read_hw/__perf_read/g
-
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Eric B Munson <emunson@akamai.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-api@vger.kernel.org
 ---
- kernel/events/core.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h   | 1 +
+ arch/mips/include/uapi/asm/mman.h    | 1 +
+ arch/parisc/include/uapi/asm/mman.h  | 1 +
+ arch/powerpc/include/uapi/asm/mman.h | 1 +
+ arch/sparc/include/uapi/asm/mman.h   | 1 +
+ arch/xtensa/include/uapi/asm/mman.h  | 1 +
+ include/linux/mman.h                 | 3 ++-
+ include/uapi/asm-generic/mman.h      | 1 +
+ mm/mmap.c                            | 2 +-
+ 9 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 97619ed..a6bd09d 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3675,7 +3675,7 @@ static void put_event(struct perf_event *event)
- 	 *     see the comment there.
- 	 *
- 	 *  2) there is a lock-inversion with mmap_sem through
--	 *     perf_event_read_group(), which takes faults while
-+	 *     perf_read_group(), which takes faults while
- 	 *     holding ctx->mutex, however this is called after
- 	 *     the last filedesc died, so there is no possibility
- 	 *     to trigger the AB-BA case.
-@@ -3783,7 +3783,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- }
- EXPORT_SYMBOL_GPL(perf_event_read_value);
+diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+index 77ae8db..3f80ca4 100644
+--- a/arch/alpha/include/uapi/asm/mman.h
++++ b/arch/alpha/include/uapi/asm/mman.h
+@@ -30,6 +30,7 @@
+ #define MAP_NONBLOCK	0x40000		/* do not block on IO */
+ #define MAP_STACK	0x80000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x100000	/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x200000	/* Lock pages after they are faulted in, do not prefault */
  
--static int perf_event_read_group(struct perf_event *event,
-+static int perf_read_group(struct perf_event *event,
- 				   u64 read_format, char __user *buf)
+ #define MS_ASYNC	1		/* sync memory asynchronously */
+ #define MS_SYNC		2		/* synchronous memory sync */
+diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
+index 71ed81d..905c1ea 100644
+--- a/arch/mips/include/uapi/asm/mman.h
++++ b/arch/mips/include/uapi/asm/mman.h
+@@ -48,6 +48,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
+ 
+ /*
+  * Flags for msync
+diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
+index c0871ce..c4695f6 100644
+--- a/arch/parisc/include/uapi/asm/mman.h
++++ b/arch/parisc/include/uapi/asm/mman.h
+@@ -24,6 +24,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
+ 
+ #define MS_SYNC		1		/* synchronous memory sync */
+ #define MS_ASYNC	2		/* sync memory asynchronously */
+diff --git a/arch/powerpc/include/uapi/asm/mman.h b/arch/powerpc/include/uapi/asm/mman.h
+index f93f7eb..40a3fda 100644
+--- a/arch/powerpc/include/uapi/asm/mman.h
++++ b/arch/powerpc/include/uapi/asm/mman.h
+@@ -31,5 +31,6 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x80000		/* Lock pages after they are faulted in, do not prefault */
+ 
+ #endif /* _UAPI_ASM_POWERPC_MMAN_H */
+diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
+index 8cd2ebc..3d74ab7 100644
+--- a/arch/sparc/include/uapi/asm/mman.h
++++ b/arch/sparc/include/uapi/asm/mman.h
+@@ -26,6 +26,7 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x8000		/* Lock pages after they are faulted in, do not prefault */
+ 
+ 
+ #endif /* _UAPI__SPARC_MMAN_H__ */
+diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
+index 5725a15..689e1f2 100644
+--- a/arch/xtensa/include/uapi/asm/mman.h
++++ b/arch/xtensa/include/uapi/asm/mman.h
+@@ -55,6 +55,7 @@
+ #define MAP_NONBLOCK	0x20000		/* do not block on IO */
+ #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
+ #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
+ # define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
+ 					 * uninitialized */
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index 16373c8..437264b 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -86,7 +86,8 @@ calc_vm_flag_bits(unsigned long flags)
  {
- 	struct perf_event *leader = event->group_leader, *sub;
-@@ -3831,7 +3831,7 @@ static int perf_event_read_group(struct perf_event *event,
- 	return ret;
+ 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
+ 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
+-	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
++	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
++	       _calc_vm_trans(flags, MAP_LOCKONFAULT,VM_LOCKONFAULT);
  }
  
--static int perf_event_read_one(struct perf_event *event,
-+static int perf_read_one(struct perf_event *event,
- 				 u64 read_format, char __user *buf)
- {
- 	u64 enabled, running;
-@@ -3869,7 +3869,7 @@ static bool is_event_hup(struct perf_event *event)
-  * Read the performance event - simple non blocking version for now
-  */
- static ssize_t
--perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
-+__perf_read(struct perf_event *event, char __user *buf, size_t count)
- {
- 	u64 read_format = event->attr.read_format;
- 	int ret;
-@@ -3887,9 +3887,9 @@ perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
+ unsigned long vm_commit_limit(void);
+diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
+index 555aab0..007b784 100644
+--- a/include/uapi/asm-generic/mman.h
++++ b/include/uapi/asm-generic/mman.h
+@@ -12,6 +12,7 @@
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+ #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
+ #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
++#define MAP_LOCKONFAULT	0x80000		/* Lock pages after they are faulted in, do not prefault */
  
- 	WARN_ON_ONCE(event->ctx->parent_ctx);
- 	if (read_format & PERF_FORMAT_GROUP)
--		ret = perf_event_read_group(event, read_format, buf);
-+		ret = perf_read_group(event, read_format, buf);
- 	else
--		ret = perf_event_read_one(event, read_format, buf);
-+		ret = perf_read_one(event, read_format, buf);
+ /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
  
- 	return ret;
- }
-@@ -3902,7 +3902,7 @@ perf_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- 	int ret;
+diff --git a/mm/mmap.c b/mm/mmap.c
+index eb970ba..2dc4da3 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -1301,7 +1301,7 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
+ 	vm_flags = calc_vm_prot_bits(prot) | calc_vm_flag_bits(flags) |
+ 			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
  
- 	ctx = perf_event_ctx_lock(event);
--	ret = perf_read_hw(event, buf, count);
-+	ret = __perf_read(event, buf, count);
- 	perf_event_ctx_unlock(event, ctx);
+-	if (flags & MAP_LOCKED)
++	if (flags & (MAP_LOCKED | MAP_LOCKONFAULT))
+ 		if (!can_do_mlock())
+ 			return -EPERM;
  
- 	return ret;
 -- 
-1.7.9.5
+1.9.1
 
