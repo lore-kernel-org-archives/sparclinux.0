@@ -1,17 +1,19 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Mon, 06 Jul 2015 13:53:54 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 08 Jul 2015 21:55:06 +0000
 Subject: Re: [PATCH v2] rhashtable: fix for resize events during table walk
-Message-Id: <20150706135353.GA22998@gondor.apana.org.au>
+Message-Id: <20150708.145506.1343225462680114617.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1436190680-21887-1-git-send-email-phil@nwl.cc>
 In-Reply-To: <1436190680-21887-1-git-send-email-phil@nwl.cc>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Phil Sutter <phil@nwl.cc>
-Cc: Thomas Graf <tgraf@suug.ch>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, davem@davemloft.net, daniel@iogearbox.net, geert@linux-m68k.org, mroos@linux.ee
+To: phil@nwl.cc
+Cc: tgraf@suug.ch, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, herbert@gondor.apana.org.au, daniel@iogearbox.net, geert@linux-m68k.org, mroos@linux.ee
 
-On Mon, Jul 06, 2015 at 03:51:20PM +0200, Phil Sutter wrote:
+From: Phil Sutter <phil@nwl.cc>
+Date: Mon,  6 Jul 2015 15:51:20 +0200
+
 > If rhashtable_walk_next detects a resize operation in progress, it jumps
 > to the new table and continues walking that one. But it misses to drop
 > the reference to it's current item, leading it to continue traversing
@@ -27,8 +29,4 @@ On Mon, Jul 06, 2015 at 03:51:20PM +0200, Phil Sutter wrote:
 > Fixes: eddee5ba ("rhashtable: Fix walker behaviour during rehash")
 > Signed-off-by: Phil Sutter <phil@nwl.cc>
 
-Acked-by: Herbert Xu <herbert@gondor.apana.org.au>
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+Applied and queued up for -stable, thanks.
