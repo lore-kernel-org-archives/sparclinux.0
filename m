@@ -1,33 +1,106 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 16 Jul 2015 18:13:20 +0000
-Subject: Re: [PATCH 17/23] sparc/time: Migrate to new 'set-state' interface
-Message-Id: <20150716.111320.2166392647435701190.davem@davemloft.net>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Wed, 15 Jul 2015 03:01:54 +0000
+Subject: [PATCH v3 7/8] perf: Define PMU_TXN_READ interface
+Message-Id: <1436929315-28520-8-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1437044517.git.viresh.kumar@linaro.org>
-	<cover.1437044517.git.viresh.kumar@linaro.org>
-	<6ec789f9988fac66caedf10f065072ed0047dd38.1437044518.git.viresh.kumar@linaro.org>
-In-Reply-To: <6ec789f9988fac66caedf10f065072ed0047dd38.1437044518.git.viresh.kumar@linaro.org>
+References: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: viresh.kumar@linaro.org
-Cc: tglx@linutronix.de, daniel.lezcano@linaro.org, linaro-kernel@lists.linaro.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, alexandre.belloni@free-electrons.com, cl@linux.com, mingo@kernel.org, john.stultz@linaro.org, rusty@rustcorp.com.au, tj@kernel.org, wsa@the-dreams.de, pang.xunlei@linaro.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Date: Thu, 16 Jul 2015 16:56:29 +0530
+Define a new PERF_PMU_TXN_READ interface to read a group of counters
+at once. Note that we use this interface with all PMUs.
 
-> Migrate sparc drivers to the new 'set-state' interface provided by
-> clockevents core, the earlier 'set-mode' interface is marked obsolete
-> now.
-> 
-> This also enables us to implement callbacks for new states of clockevent
-> devices, for example: ONESHOT_STOPPED.
-> 
-> We weren't doing anything which switching to few clockevent modes and so
-> their callbacks aren't implemented.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+PMUs that implement this interface use the ->read() operation to _queue_
+the counters to be read and use ->commit_txn() to actually read all the
+queued counters at once.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+PMUs that don't implement PERF_PMU_TXN_READ ignore ->start_txn() and
+->commit_txn() and continue to read counters one at a time.
+
+Thanks to input from Peter Zijlstra.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+---
+ include/linux/perf_event.h |    1 +
+ kernel/events/core.c       |   35 +++++++++++++++++++++++++++++++++--
+ 2 files changed, 34 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
+index 44bf05f..da307ad 100644
+--- a/include/linux/perf_event.h
++++ b/include/linux/perf_event.h
+@@ -169,6 +169,7 @@ struct perf_event;
+ #define PERF_EVENT_TXN 0x1
+ 
+ #define PERF_PMU_TXN_ADD  0x1		/* txn to add/schedule event on PMU */
++#define PERF_PMU_TXN_READ 0x2		/* txn to read event group from PMU */
+ 
+ /**
+  * pmu::capabilities flags
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index a83d45c..2ea06c4 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -3763,6 +3763,33 @@ static void orphans_remove_work(struct work_struct *work)
+ 	put_ctx(ctx);
+ }
+ 
++/*
++ * Use the transaction interface to read the group of events in @leader.
++ * PMUs like the 24x7 counters in Power, can use this to queue the events
++ * in the ->read() operation and perform the actual read in ->commit_txn.
++ *
++ * Other PMUs can ignore the ->start_txn and ->commit_txn and read each
++ * PMU directly in the ->read() operation.
++ */
++static int perf_event_read_group(struct perf_event *leader)
++{
++	int ret;
++	struct perf_event *sub;
++	struct pmu *pmu;
++
++	pmu = leader->pmu;
++
++	pmu->start_txn(pmu, PERF_PMU_TXN_READ);
++
++	perf_event_read(leader);
++	list_for_each_entry(sub, &leader->sibling_list, group_entry)
++		perf_event_read(sub);
++
++	ret = pmu->commit_txn(pmu);
++
++	return ret;
++}
++
+ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ {
+ 	u64 total = 0;
+@@ -3792,7 +3819,11 @@ static int perf_read_group(struct perf_event *event,
+ 
+ 	lockdep_assert_held(&ctx->mutex);
+ 
+-	count = perf_event_read_value(leader, &enabled, &running);
++	ret = perf_event_read_group(leader);
++	if (ret)
++		return ret;
++
++	count = perf_event_compute(leader, &enabled, &running);
+ 
+ 	values[n++] = 1 + leader->nr_siblings;
+ 	if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED)
+@@ -3813,7 +3844,7 @@ static int perf_read_group(struct perf_event *event,
+ 	list_for_each_entry(sub, &leader->sibling_list, group_entry) {
+ 		n = 0;
+ 
+-		values[n++] = perf_event_read_value(sub, &enabled, &running);
++		values[n++] = perf_event_compute(sub, &enabled, &running);
+ 		if (read_format & PERF_FORMAT_ID)
+ 			values[n++] = primary_event_id(sub);
+ 
+-- 
+1.7.9.5
+
