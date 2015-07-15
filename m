@@ -1,158 +1,81 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Tue, 07 Jul 2015 17:03:42 +0000
-Subject: [PATCH V3 4/5] mm: mmap: Add mmap flag to request VM_LOCKONFAULT
-Message-Id: <1436288623-13007-5-git-send-email-emunson@akamai.com>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Wed, 15 Jul 2015 03:01:47 +0000
+Subject: [PATCH v3 0/8] Implement group-read of events using txn interface
+Message-Id: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436288623-13007-1-git-send-email-emunson@akamai.com>
-In-Reply-To: <1436288623-13007-1-git-send-email-emunson@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric B Munson <emunson@akamai.com>, Michal Hocko <mhocko@suse.cz>, Vlastimil Babka <vbabka@suse.cz>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-The cost of faulting in all memory to be locked can be very high when
-working with large mappings.  If only portions of the mapping will be
-used this can incur a high penalty for locking.
+Unlike normal hardware PMCs, the 24x7 counters in Power8 are stored in
+memory and accessed via a hypervisor call(HCALL).  A major aspect of the
+HCALL is that it allows retireving _several_ counters at once (unlike
+regular PMCs, which are read one at a time). By reading several counters
+at once, we can get a more consistent snapshot of the system.
 
-Now that we have the new VMA flag for the locked but not present state,
-expose it  as an mmap option like MAP_LOCKED -> VM_LOCKED.
+This patchset extends the transaction interface to accomplish submitting
+several events to the PMU and have the PMU read them all at once. User is
+expected to submit the set of events they want to read as an "event group".
 
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-api@vger.kernel.org
----
- arch/alpha/include/uapi/asm/mman.h   | 1 +
- arch/mips/include/uapi/asm/mman.h    | 1 +
- arch/parisc/include/uapi/asm/mman.h  | 1 +
- arch/powerpc/include/uapi/asm/mman.h | 1 +
- arch/sparc/include/uapi/asm/mman.h   | 1 +
- arch/xtensa/include/uapi/asm/mman.h  | 1 +
- include/linux/mman.h                 | 3 ++-
- include/uapi/asm-generic/mman.h      | 1 +
- mm/mmap.c                            | 2 +-
- 9 files changed, 10 insertions(+), 2 deletions(-)
+In the kernel, we submit each event to the PMU using the following logic
+(from Peter Zijlstra).
 
-diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
-index 77ae8db..3f80ca4 100644
---- a/arch/alpha/include/uapi/asm/mman.h
-+++ b/arch/alpha/include/uapi/asm/mman.h
-@@ -30,6 +30,7 @@
- #define MAP_NONBLOCK	0x40000		/* do not block on IO */
- #define MAP_STACK	0x80000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x100000	/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x200000	/* Lock pages after they are faulted in, do not prefault */
- 
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_SYNC		2		/* synchronous memory sync */
-diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
-index 71ed81d..905c1ea 100644
---- a/arch/mips/include/uapi/asm/mman.h
-+++ b/arch/mips/include/uapi/asm/mman.h
-@@ -48,6 +48,7 @@
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
- #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
- 
- /*
-  * Flags for msync
-diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
-index c0871ce..c4695f6 100644
---- a/arch/parisc/include/uapi/asm/mman.h
-+++ b/arch/parisc/include/uapi/asm/mman.h
-@@ -24,6 +24,7 @@
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
- #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
- 
- #define MS_SYNC		1		/* synchronous memory sync */
- #define MS_ASYNC	2		/* sync memory asynchronously */
-diff --git a/arch/powerpc/include/uapi/asm/mman.h b/arch/powerpc/include/uapi/asm/mman.h
-index f93f7eb..40a3fda 100644
---- a/arch/powerpc/include/uapi/asm/mman.h
-+++ b/arch/powerpc/include/uapi/asm/mman.h
-@@ -31,5 +31,6 @@
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x80000		/* Lock pages after they are faulted in, do not prefault */
- 
- #endif /* _UAPI_ASM_POWERPC_MMAN_H */
-diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
-index 8cd2ebc..3d74ab7 100644
---- a/arch/sparc/include/uapi/asm/mman.h
-+++ b/arch/sparc/include/uapi/asm/mman.h
-@@ -26,6 +26,7 @@
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x8000		/* Lock pages after they are faulted in, do not prefault */
- 
- 
- #endif /* _UAPI__SPARC_MMAN_H__ */
-diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
-index 5725a15..689e1f2 100644
---- a/arch/xtensa/include/uapi/asm/mman.h
-+++ b/arch/xtensa/include/uapi/asm/mman.h
-@@ -55,6 +55,7 @@
- #define MAP_NONBLOCK	0x20000		/* do not block on IO */
- #define MAP_STACK	0x40000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x80000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x100000	/* Lock pages after they are faulted in, do not prefault */
- #ifdef CONFIG_MMAP_ALLOW_UNINITIALIZED
- # define MAP_UNINITIALIZED 0x4000000	/* For anonymous mmap, memory could be
- 					 * uninitialized */
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index 16373c8..437264b 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -86,7 +86,8 @@ calc_vm_flag_bits(unsigned long flags)
- {
- 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
- 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
--	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
-+	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    ) |
-+	       _calc_vm_trans(flags, MAP_LOCKONFAULT,VM_LOCKONFAULT);
- }
- 
- unsigned long vm_commit_limit(void);
-diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
-index 555aab0..007b784 100644
---- a/include/uapi/asm-generic/mman.h
-+++ b/include/uapi/asm-generic/mman.h
-@@ -12,6 +12,7 @@
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
-+#define MAP_LOCKONFAULT	0x80000		/* Lock pages after they are faulted in, do not prefault */
- 
- /* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
- 
-diff --git a/mm/mmap.c b/mm/mmap.c
-index eb970ba..2dc4da3 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -1301,7 +1301,7 @@ unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
- 	vm_flags = calc_vm_prot_bits(prot) | calc_vm_flag_bits(flags) |
- 			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
- 
--	if (flags & MAP_LOCKED)
-+	if (flags & (MAP_LOCKED | MAP_LOCKONFAULT))
- 		if (!can_do_mlock())
- 			return -EPERM;
- 
+        pmu->start_txn(pmu, PMU_TXN_READ);
+
+        leader->read();
+        for_each_sibling()
+                sibling->read();
+        pmu->commit_txn();
+
+where:
+        - the ->read()s queue events to be submitted to the hypervisor, and,
+        - the ->commit_txn() issues the HCALL, retrieves the result and
+          updates the event count.
+
+Architectures/PMUs that don't need/implement PMU_TXN_READ type of transactions,
+simply ignore the ->start_txn() and ->commit_txn() and continue to read the
+counters one at a time in the ->read() call.
+
+Compile/touch tested on x86. Need help testing on s390 and Sparc.
+
+Thanks to Peter Zijlstra for his input.
+
+Changelog [v3]
+	- Simple changes/reorg of patchset to split/rename functions
+	- [Peter Zijlstra] Save the transaction flags in ->start_txn() and
+	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
+	- [Peter Zijlstra] The nop txn interfaces don't need to disable/enable
+	  PMU for PERF_PMU_TXN_READ transactions.
+
+Changelog [v2]
+        - Use the transaction interface unconditionally to avoid special-case
+          code. Architectures/PMUs that don't need the READ transaction types
+          simply ignore the ->start_txn() and ->commit_txn() calls.
+
+Peter Zijlstra (Intel) (1):
+  perf: Rename perf_event_read_{one,group}, perf_read_hw
+
+Sukadev Bhattiprolu (7):
+  powerpc/perf/hv-24x7: Whitespace - fix parameter alignment
+  powerpc/perf/hv-24x7: Simplify extracting counter from result buffer
+  perf: Add a flags parameter to pmu txn interfaces
+  perf: Split perf_event_read() and perf_event_count()
+  perf: Split perf_event_read_value()
+  perf: Define PMU_TXN_READ interface
+  powerpc/perf/hv-24x7: Use PMU_TXN_READ interface
+
+ arch/powerpc/perf/core-book3s.c  |   25 ++++-
+ arch/powerpc/perf/hv-24x7.c      |  186 ++++++++++++++++++++++++++++++++++----
+ arch/s390/kernel/perf_cpum_cf.c  |   24 ++++-
+ arch/sparc/kernel/perf_event.c   |   19 +++-
+ arch/x86/kernel/cpu/perf_event.c |   27 +++++-
+ arch/x86/kernel/cpu/perf_event.h |    1 +
+ include/linux/perf_event.h       |   15 ++-
+ kernel/events/core.c             |  143 +++++++++++++++++++++++------
+ 8 files changed, 389 insertions(+), 51 deletions(-)
+
 -- 
-1.9.1
+1.7.9.5
 
