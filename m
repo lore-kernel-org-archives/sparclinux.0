@@ -1,94 +1,73 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Wed, 15 Jul 2015 03:01:52 +0000
-Subject: [PATCH v3 5/8] perf: Split perf_event_read_value()
-Message-Id: <1436929315-28520-6-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 16 Jul 2015 21:12:19 +0000
+Subject: Re: [PATCH v3 5/8] perf: Split perf_event_read_value()
+Message-Id: <20150716211219.GN3644@twins.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
+ <1436929315-28520-6-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1436929315-28520-6-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-Move the part of perf_event_read_value() that computes the event
-counts and event times into a new function, perf_event_compute().
+On Tue, Jul 14, 2015 at 08:01:52PM -0700, Sukadev Bhattiprolu wrote:
+> Move the part of perf_event_read_value() that computes the event
+> counts and event times into a new function, perf_event_compute().
+> 
+> This would allow us to call perf_event_compute() independently.
+> 
+> Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+> 
+> Changelog[v3]
+> 	Rather than move perf_event_read() into callers and then
+> 	rename, just move the computations into a separate function
+> 	(redesign to address comment from Peter Zijlstra).
+> ---
 
-This would allow us to call perf_event_compute() independently.
+Changelog[] bits go here, below the '---' where they get discarded.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+>  kernel/events/core.c |   37 ++++++++++++++++++++++++-------------
+>  1 file changed, 24 insertions(+), 13 deletions(-)
+> 
+> diff --git a/kernel/events/core.c b/kernel/events/core.c
+> index 44fb89d..b1e9a42 100644
+> --- a/kernel/events/core.c
+> +++ b/kernel/events/core.c
+> @@ -3704,6 +3704,29 @@ static int perf_release(struct inode *inode, struct file *file)
+>  	return 0;
+>  }
+>  
+> +static u64 perf_event_compute(struct perf_event *event, u64 *enabled,
+> +			      u64 *running)
 
-Changelog[v3]
-	Rather than move perf_event_read() into callers and then
-	rename, just move the computations into a separate function
-	(redesign to address comment from Peter Zijlstra).
----
- kernel/events/core.c |   37 ++++++++++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 13 deletions(-)
+This is a horrible name, 'compute' what?
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 44fb89d..b1e9a42 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3704,6 +3704,29 @@ static int perf_release(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
-+static u64 perf_event_compute(struct perf_event *event, u64 *enabled,
-+			      u64 *running)
-+{
-+	struct perf_event *child;
-+	u64 total;
-+
-+	total = perf_event_count(event);
-+
-+	*enabled += event->total_time_enabled +
-+			atomic64_read(&event->child_total_time_enabled);
-+	*running += event->total_time_running +
-+			atomic64_read(&event->child_total_time_running);
-+
-+	list_for_each_entry(child, &event->child_list, child_list) {
-+		perf_event_read(child);
-+		total += perf_event_count(child);
-+		*enabled += child->total_time_enabled;
-+		*running += child->total_time_running;
-+	}
-+
-+	return total;
-+}
-+
- /*
-  * Remove all orphanes events from the context.
-  */
-@@ -3742,7 +3765,6 @@ static void orphans_remove_work(struct work_struct *work)
- 
- u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- {
--	struct perf_event *child;
- 	u64 total = 0;
- 
- 	*enabled = 0;
-@@ -3751,19 +3773,8 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- 	mutex_lock(&event->child_mutex);
- 
- 	perf_event_read(event);
--	total += perf_event_count(event);
-+	total = perf_event_compute(event, enabled, running);
- 
--	*enabled += event->total_time_enabled +
--			atomic64_read(&event->child_total_time_enabled);
--	*running += event->total_time_running +
--			atomic64_read(&event->child_total_time_running);
--
--	list_for_each_entry(child, &event->child_list, child_list) {
--		perf_event_read(child);
--		total += perf_event_count(child);
--		*enabled += child->total_time_enabled;
--		*running += child->total_time_running;
--	}
- 	mutex_unlock(&event->child_mutex);
- 
- 	return total;
--- 
-1.7.9.5
+> +{
+> +	struct perf_event *child;
+> +	u64 total;
+> +
+> +	total = perf_event_count(event);
+> +
+> +	*enabled += event->total_time_enabled +
+> +			atomic64_read(&event->child_total_time_enabled);
+> +	*running += event->total_time_running +
+> +			atomic64_read(&event->child_total_time_running);
+> +
 
+	lockdep_assert_held(&event->child_mutex);
+
+> +	list_for_each_entry(child, &event->child_list, child_list) {
+> +		perf_event_read(child);
+> +		total += perf_event_count(child);
+> +		*enabled += child->total_time_enabled;
+> +		*running += child->total_time_running;
+> +	}
+> +
+> +	return total;
+> +}
+> +
+>  /*
+>   * Remove all orphanes events from the context.
+>   */
