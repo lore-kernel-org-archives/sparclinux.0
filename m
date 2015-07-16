@@ -1,75 +1,35 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 16 Jul 2015 20:48:07 +0000
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Thu, 16 Jul 2015 21:28:18 +0000
 Subject: Re: [PATCH v3 3/8] perf: Add a flags parameter to pmu txn interfaces
-Message-Id: <20150716204807.GM3644@twins.programming.kicks-ass.net>
+Message-Id: <20150716212818.GA31962@us.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
  <1436929315-28520-4-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1436929315-28520-4-git-send-email-sukadev@linux.vnet.ibm.com>
+ <20150716201749.GL3644@twins.programming.kicks-ass.net>
+In-Reply-To: <20150716201749.GL3644@twins.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+To: Peter Zijlstra <peterz@infradead.org>
 Cc: Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Tue, Jul 14, 2015 at 08:01:50PM -0700, Sukadev Bhattiprolu wrote:
-> +DEFINE_PER_CPU(int, nop_txn_flags);
-> +
-> +static int nop_txn_flags_get_and_clear(void)
-> +{
-> +	int *flagsp;
-> +	int flags;
-> +	
-> +	flagsp = &get_cpu_var(nop_txn_flags);
-> +
-> +	flags = *flagsp;
-> +	*flagsp = 0;
-> +
-> +	put_cpu_var(nop_txn_flags);
-> +
-> +	return flags;
-> +}
-> +
-> +static void nop_txn_flags_set(int flags)
-> +{
-> +	int *flagsp;
-> +	
-> +	flagsp = &get_cpu_var(nop_txn_flags);
-> +	*flagsp = flags;
-> +	put_cpu_var(nop_txn_flags);
-> +}
+Peter Zijlstra [peterz@infradead.org] wrote:
+| On Tue, Jul 14, 2015 at 08:01:50PM -0700, Sukadev Bhattiprolu wrote:
+| > @@ -1604,6 +1613,12 @@ static void power_pmu_start_txn(struct pmu *pmu)
+| >  static void power_pmu_cancel_txn(struct pmu *pmu)
+| >  {
+| >  	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
+| > +	int txn_flags;
+| > +
+| > +	txn_flags = cpuhw->txn_flags;
+| > +	cpuhw->txn_flags = 0;
+| > +	if (cpuhw->txn_flags & ~PERF_PMU_TXN_ADD)
+| > +		return;
+| 
+| That seems, unintentional? ;-)
 
-That's really horrible, see below:
+Argh. Thanks for catching it.
 
-> +static void perf_pmu_start_txn(struct pmu *pmu, int flags)
->  {
-	__this_cpu_write(nop_txn_flags, flags);
-> +
-> +	if (flags & ~PERF_PMU_TXN_ADD)
-> +		return;
-> +
->  	perf_pmu_disable(pmu);
->  }
->  
->  static int perf_pmu_commit_txn(struct pmu *pmu)
->  {
-	int flags = __this_cpu_read(nop_txn_flags);
-	__this_cpu_write(nop_txn_flags, 0);
-> +
-> +	if (flags & ~PERF_PMU_TXN_ADD)
-> +		return 0;
-> +
->  	perf_pmu_enable(pmu);
->  	return 0;
->  }
->  
->  static void perf_pmu_cancel_txn(struct pmu *pmu)
->  {
-	int flags = __this_cpu_read(nop_txn_flags);
-	__this_cpu_write(nop_txn_flags, 0);
-> +
-> +	if (flags & ~PERF_PMU_TXN_ADD)
-> +		return;
-> +
->  	perf_pmu_enable(pmu);
->  }
+Sukadev
+
+
