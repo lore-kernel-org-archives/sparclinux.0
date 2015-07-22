@@ -1,42 +1,78 @@
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Date: Wed, 22 Jul 2015 15:45:29 +0000
-Subject: Re: [PATCH V4 5/6] mm: mmap: Add mmap flag to request VM_LOCKONFAULT
-Message-Id: <20150722154529.GA9107@node.dhcp.inet.fi>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Wed, 22 Jul 2015 01:13:00 +0000
+Subject: Re: [PATCH 2/3] mfd: Remove MFD_CROS_EC depends on X86 || ARM
+Message-Id: <20150722011300.GF4477@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437508781-28655-1-git-send-email-emunson@akamai.com>
- <1437508781-28655-6-git-send-email-emunson@akamai.com>
- <20150722112558.GC8630@node.dhcp.inet.fi>
- <20150722143220.GB3203@akamai.com>
-In-Reply-To: <20150722143220.GB3203@akamai.com>
+References: <1435191645-6022-1-git-send-email-javier.martinez@collabora.co.uk>
+ <1435191645-6022-3-git-send-email-javier.martinez@collabora.co.uk>
+ <20150625083854.GV15013@x1>
+ <558BBF6C.7000906@collabora.co.uk>
+In-Reply-To: <558BBF6C.7000906@collabora.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric B Munson <emunson@akamai.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.cz>, Vlastimil Babka <vbabka@suse.cz>, Paul Gortmaker <paul.gortmaker@windriver.com>, Chris Metcalf <cmetcalf@ezchip.com>, Guenter Roeck <linux@roeck-us.net>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Cc: Lee Jones <lee.jones@linaro.org>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Gwendal Grignou <gwendal@google.com>, Doug Anderson <dianders@chromium.org>, linux-kernel@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-next@vger.kernel.org, sparclinux@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Wed, Jul 22, 2015 at 10:32:20AM -0400, Eric B Munson wrote:
-> On Wed, 22 Jul 2015, Kirill A. Shutemov wrote:
+[Re: [PATCH 2/3] mfd: Remove MFD_CROS_EC depends on X86 || ARM] On 25/06/2015 (Thu 10:44) Javier Martinez Canillas wrote:
+
+> Hello Lee,
 > 
-> > On Tue, Jul 21, 2015 at 03:59:40PM -0400, Eric B Munson wrote:
-> > > The cost of faulting in all memory to be locked can be very high when
-> > > working with large mappings.  If only portions of the mapping will be
-> > > used this can incur a high penalty for locking.
-> > > 
-> > > Now that we have the new VMA flag for the locked but not present state,
-> > > expose it as an mmap option like MAP_LOCKED -> VM_LOCKED.
+> On 06/25/2015 10:38 AM, Lee Jones wrote:
+> > On Thu, 25 Jun 2015, Javier Martinez Canillas wrote:
 > > 
-> > What is advantage over mmap() + mlock(MLOCK_ONFAULT)?
+> >> A dependency on X86 || ARM for MFD_CROS_EC was added to fix the warning:
+> >> 
+> >> (MFD_CROS_EC) selects CHROME_PLATFORMS which has unmet direct dependencies (X86 || ARM)
+> >> 
+> >> This happened because CHROME_PLATFORMS had a dependency on X86 || ARM but
+> >> that dependency was removed since there isn't a reason why the option can
+> >> not be selected on other architectures. So now the above warning will not
+> >> happen and the MFD_CROS_EC dependency can be removed since is not needed.
+> >> 
+> >> Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+> >> ---
+> >> 
+> >>  drivers/mfd/Kconfig | 1 -
+> >>  1 file changed, 1 deletion(-)
+> > 
+> > Applied for v4.3, thanks.
+> > 
 > 
-> There isn't one, it was added to maintain parity with the
-> mlock(MLOCK_LOCK) -> mmap(MAP_LOCKED) set.  I think not having will lead
-> to confusion because we have MAP_LOCKED so why don't we support
-> LOCKONFAULT from mmap as well.
+> Thanks a lot.
+> 
+> Olof,
+> 
+> Could you please ack patch 1/3 so Lee can pick it through the mfd tree?
+> Since both patches 1/3 and 2/3 are needed to fix the build warning for
+> !X86 and !ARM architectures.
 
-I don't think it's ia good idea to spend bits in flags unless we have a
-reason for that.
+Hi all,
 
-BTW, you have typo on sparc: s/0x8000/0x80000/.
+Wondering if this fell through the cracks.  It used to be just a
+linux-next issue, but now it is a mainline issue.  This _really_ should
+be fixed and fed to Linus ASAP.  Ideally it should have been fixed before 
+going to mainline as it was reported in plenty of time ; that is the
+whole point of linux-next.... to fix unanticipated fallout and revise.
 
+------------------
+paul@builder:~/git/linux-head$ git describe 
+v4.2-rc3
+paul@builder:~/git/linux-head$ echo $ARCH
+sparc64
+paul@builder:~/git/linux-head$ make allyesconfig
+scripts/kconfig/conf  --allyesconfig Kconfig
+warning: (MFD_CROS_EC) selects CHROME_PLATFORMS which has unmet direct dependencies (X86 || ARM)
+#
+# configuration written to .config
+#
+paul@builder:~/git/linux-head$ 
+------------------
 
--- 
- Kirill A. Shutemov
+Thanks,
+Paul.
+--
+
+> 
+> Best regards,
+> Javier
