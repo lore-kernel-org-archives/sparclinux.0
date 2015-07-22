@@ -1,48 +1,73 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Wed, 15 Jul 2015 03:01:49 +0000
-Subject: [PATCH v3 2/8] powerpc/perf/hv-24x7: Simplify extracting counter from result buffer
-Message-Id: <1436929315-28520-3-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Wed, 22 Jul 2015 02:02:17 +0000
+Subject: [PATCH 3/4] drivers/tty: make serial/suncore.c driver explicitly non-modular
+Message-Id: <1437530538-5078-4-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1437530538-5078-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1437530538-5078-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-Simplify code that extracts a 24x7 counter from the HCALL's result buffer.
+The Kconfig for this driver is currently:
 
-Suggested-by: Joe Perches <joe@perches.com>
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+config SERIAL_SUNCORE
+        bool
+
+...meaning that it currently is not being built as a module by
+anyone.  Lets remove the modular and unused code here, so that
+when reading the driver there is no doubt it is builtin-only.
+
+Since module_init translates to device_initcall in the non-modular
+case, the init ordering remains unchanged with this commit.
+
+We don't swap module.h for init.h since this file has init.h already.
+
+We leave some tags like MODULE_LICENSE for documentation purposes, and
+for the "git blame" value.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-serial@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- arch/powerpc/perf/hv-24x7.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/tty/serial/suncore.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/arch/powerpc/perf/hv-24x7.c b/arch/powerpc/perf/hv-24x7.c
-index 9d73c69..4d1a8d1 100644
---- a/arch/powerpc/perf/hv-24x7.c
-+++ b/arch/powerpc/perf/hv-24x7.c
-@@ -1104,7 +1104,7 @@ static unsigned long single_24x7_request(struct perf_event *event, u64 *count)
- 	unsigned long ret;
- 	struct hv_24x7_request_buffer *request_buffer;
- 	struct hv_24x7_data_result_buffer *result_buffer;
--	struct hv_24x7_result *resb;
-+	__be64 val;
+diff --git a/drivers/tty/serial/suncore.c b/drivers/tty/serial/suncore.c
+index 6e4ac8db2d79..127472bd6a7c 100644
+--- a/drivers/tty/serial/suncore.c
++++ b/drivers/tty/serial/suncore.c
+@@ -10,7 +10,6 @@
+  * Copyright (C) 2002 David S. Miller (davem@redhat.com)
+  */
  
- 	BUILD_BUG_ON(sizeof(*request_buffer) > 4096);
- 	BUILD_BUG_ON(sizeof(*result_buffer) > 4096);
-@@ -1125,8 +1125,8 @@ static unsigned long single_24x7_request(struct perf_event *event, u64 *count)
- 	}
+-#include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/console.h>
+ #include <linux/tty.h>
+@@ -234,14 +233,10 @@ static int __init suncore_init(void)
+ {
+ 	return 0;
+ }
++device_initcall(suncore_init);
  
- 	/* process result from hcall */
--	resb = &result_buffer->results[0];
--	*count = be64_to_cpu(resb->elements[0].element_data[0]);
-+	val = result_buffer->results[0].elements[0].element_data[0];
-+	*count = be64_to_cpu(val);
- 
- out:
- 	put_cpu_var(hv_24x7_reqb);
+-static void __exit suncore_exit(void)
+-{
+-}
+-
+-module_init(suncore_init);
+-module_exit(suncore_exit);
+-
++#if 0 /* ..def MODULE ; never supported as such */
+ MODULE_AUTHOR("Eddie C. Dost, David S. Miller");
+ MODULE_DESCRIPTION("Sun serial common layer");
+ MODULE_LICENSE("GPL");
++#endif
 -- 
-1.7.9.5
+2.2.1
 
