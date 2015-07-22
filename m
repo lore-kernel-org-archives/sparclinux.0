@@ -1,90 +1,84 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Mon, 27 Jul 2015 05:40:36 +0000
-Subject: [PATCH 08/10] perf: Add return value to __perf_event_read()
-Message-Id: <1437975638-789-9-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Wed, 22 Jul 2015 02:02:18 +0000
+Subject: [PATCH 4/4] drivers/tty: make serial/sunhv.c driver explicitly non-modular
+Message-Id: <1437530538-5078-5-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1437530538-5078-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1437530538-5078-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-Add a return value to __perf_event_read(). The return value will be
-needed later in perf_read_group() implements ability to read several
-counters in a PERF_PMU_TXN_READ transaction.
+The Kconfig for this driver is currently:
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+config SERIAL_SUNHV
+        bool "Sun4v Hypervisor Console support"
+
+...meaning that it currently is not being built as a module by
+anyone.  Lets remove the modular and unused code here, so that
+when reading the driver there is no doubt it is builtin-only.
+
+Since module_init translates to device_initcall in the non-modular
+case, the init ordering remains unchanged with this commit.
+
+We don't swap module.h for init.h since this file has init.h already.
+
+We leave some tags like MODULE_LICENSE for documentation purposes, and
+for the "git blame" value.  Also note that MODULE_DEVICE_TABLE is a
+no-op for non-modular code, so we remove that too.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-serial@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- kernel/events/core.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+ drivers/tty/serial/sunhv.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index f38fe0b..951d835 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3174,12 +3174,18 @@ void perf_event_exec(void)
- 	rcu_read_unlock();
- }
- 
-+struct perf_read_data {
-+	struct perf_event *event;
-+	int ret;
-+};
-+
- /*
-  * Cross CPU call to read the hardware event
+diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+index 534754440fa8..064031870ba0 100644
+--- a/drivers/tty/serial/sunhv.c
++++ b/drivers/tty/serial/sunhv.c
+@@ -3,7 +3,6 @@
+  * Copyright (C) 2006, 2007 David S. Miller (davem@davemloft.net)
   */
- static void __perf_event_read(void *info)
- {
--	struct perf_event *event = info;
-+	struct perf_read_data *data = info;
-+	struct perf_event *event = data->event;
- 	struct perf_event_context *ctx = event->ctx;
- 	struct perf_cpu_context *cpuctx = __get_cpu_context(ctx);
  
-@@ -3201,6 +3207,8 @@ static void __perf_event_read(void *info)
- 	update_event_times(event);
- 	if (event->state = PERF_EVENT_STATE_ACTIVE)
- 		event->pmu->read(event);
-+
-+	data->ret = 0;
- 	raw_spin_unlock(&ctx->lock);
+-#include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/tty.h>
+@@ -621,7 +620,6 @@ static const struct of_device_id hv_match[] = {
+ 	},
+ 	{},
+ };
+-MODULE_DEVICE_TABLE(of, hv_match);
+ 
+ static struct platform_driver hv_driver = {
+ 	.driver = {
+@@ -639,16 +637,11 @@ static int __init sunhv_init(void)
+ 
+ 	return platform_driver_register(&hv_driver);
  }
++device_initcall(sunhv_init);
  
-@@ -3214,13 +3222,21 @@ static inline u64 perf_event_count(struct perf_event *event)
- 
- static int perf_event_read(struct perf_event *event, bool group)
- {
-+	int ret = 0;
-+
- 	/*
- 	 * If event is enabled and currently active on a CPU, update the
- 	 * value in the event structure:
- 	 */
- 	if (event->state = PERF_EVENT_STATE_ACTIVE) {
-+		struct perf_read_data data = {
-+			.event = event,
-+			.ret = 0,
-+		};
-+
- 		smp_call_function_single(event->oncpu,
--					 __perf_event_read, event, 1);
-+					 __perf_event_read, &data, 1);
-+		ret = data.ret;
- 	} else if (event->state = PERF_EVENT_STATE_INACTIVE) {
- 		struct perf_event_context *ctx = event->ctx;
- 		unsigned long flags;
-@@ -3244,7 +3260,7 @@ static int perf_event_read(struct perf_event *event, bool group)
- 		raw_spin_unlock_irqrestore(&ctx->lock, flags);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- /*
+-static void __exit sunhv_exit(void)
+-{
+-	platform_driver_unregister(&hv_driver);
+-}
+-
+-module_init(sunhv_init);
+-module_exit(sunhv_exit);
+-
++#if 0 /* ...def MODULE ; never supported as such */
+ MODULE_AUTHOR("David S. Miller");
+ MODULE_DESCRIPTION("SUN4V Hypervisor console driver");
+ MODULE_VERSION("2.0");
+ MODULE_LICENSE("GPL");
++#endif
 -- 
-1.7.9.5
+2.2.1
 
