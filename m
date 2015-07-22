@@ -1,81 +1,60 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Wed, 15 Jul 2015 03:01:47 +0000
-Subject: [PATCH v3 0/8] Implement group-read of events using txn interface
-Message-Id: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Wed, 22 Jul 2015 02:02:14 +0000
+Subject: [PATCH 0/4] tty/serial: delete orphaned code in non-modules
+Message-Id: <1437530538-5078-1-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org
 
-Unlike normal hardware PMCs, the 24x7 counters in Power8 are stored in
-memory and accessed via a hypervisor call(HCALL).  A major aspect of the
-HCALL is that it allows retireving _several_ counters at once (unlike
-regular PMCs, which are read one at a time). By reading several counters
-at once, we can get a more consistent snapshot of the system.
+In the previous merge window, we made changes to allow better
+delineation between modular and non-modular code in commit
+0fd972a7d91d6e15393c449492a04d94c0b89351 ("module: relocate module_init
+from init.h to module.h").  This allows us to now ensure module code
+looks modular and non-modular code does not accidentally look modular
+without suffering build breakage.
 
-This patchset extends the transaction interface to accomplish submitting
-several events to the PMU and have the PMU read them all at once. User is
-expected to submit the set of events they want to read as an "event group".
+Here we target code that is, by nature of their Kconfig settings, only
+available to be built-in, but implicitly presenting itself as being
+possibly modular by way of using modular headers, macros, and functions.
 
-In the kernel, we submit each event to the PMU using the following logic
-(from Peter Zijlstra).
+The goal here is to remove that illusion of modularity from these
+drivers, but in a way that leaves the actual runtime unchanged.
+In doing so, we remove code that has never been tested and adds
+no value to the tree.  And we begin the process of expecting a
+level of consistency between the Kconfig of a driver and the code
+that the driver uses.
 
-        pmu->start_txn(pmu, PMU_TXN_READ);
+Even though some of these drivers have their origin predating git
+history, we change them as well; since the reality is that most linux
+drivers are created by copying existing drivers.  Given that, our
+new code will only be as good as the examples we have in tree.
 
-        leader->read();
-        for_each_sibling()
-                sibling->read();
-        pmu->commit_txn();
+Build tested for allyesconfig on sparc32, sparc64 and x86-64, on
+tty/tty-next (currently v4.2-rc3).
 
-where:
-        - the ->read()s queue events to be submitted to the hypervisor, and,
-        - the ->commit_txn() issues the HCALL, retrieves the result and
-          updates the event count.
+Paul.
+---
 
-Architectures/PMUs that don't need/implement PMU_TXN_READ type of transactions,
-simply ignore the ->start_txn() and ->commit_txn() and continue to read the
-counters one at a time in the ->read() call.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: linux-serial@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-Compile/touch tested on x86. Need help testing on s390 and Sparc.
+Paul Gortmaker (4):
+  drivers/tty: make serial/sn_console.c driver explicitly non-modular
+  drivers/tty: make serial/lantic.c driver explicitly non-modular
+  drivers/tty: make serial/suncore.c driver explicitly non-modular
+  drivers/tty: make serial/sunhv.c driver explicitly non-modular
 
-Thanks to Peter Zijlstra for his input.
-
-Changelog [v3]
-	- Simple changes/reorg of patchset to split/rename functions
-	- [Peter Zijlstra] Save the transaction flags in ->start_txn() and
-	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
-	- [Peter Zijlstra] The nop txn interfaces don't need to disable/enable
-	  PMU for PERF_PMU_TXN_READ transactions.
-
-Changelog [v2]
-        - Use the transaction interface unconditionally to avoid special-case
-          code. Architectures/PMUs that don't need the READ transaction types
-          simply ignore the ->start_txn() and ->commit_txn() calls.
-
-Peter Zijlstra (Intel) (1):
-  perf: Rename perf_event_read_{one,group}, perf_read_hw
-
-Sukadev Bhattiprolu (7):
-  powerpc/perf/hv-24x7: Whitespace - fix parameter alignment
-  powerpc/perf/hv-24x7: Simplify extracting counter from result buffer
-  perf: Add a flags parameter to pmu txn interfaces
-  perf: Split perf_event_read() and perf_event_count()
-  perf: Split perf_event_read_value()
-  perf: Define PMU_TXN_READ interface
-  powerpc/perf/hv-24x7: Use PMU_TXN_READ interface
-
- arch/powerpc/perf/core-book3s.c  |   25 ++++-
- arch/powerpc/perf/hv-24x7.c      |  186 ++++++++++++++++++++++++++++++++++----
- arch/s390/kernel/perf_cpum_cf.c  |   24 ++++-
- arch/sparc/kernel/perf_event.c   |   19 +++-
- arch/x86/kernel/cpu/perf_event.c |   27 +++++-
- arch/x86/kernel/cpu/perf_event.h |    1 +
- include/linux/perf_event.h       |   15 ++-
- kernel/events/core.c             |  143 +++++++++++++++++++++++------
- 8 files changed, 389 insertions(+), 51 deletions(-)
+ drivers/tty/serial/lantiq.c     |  8 +-------
+ drivers/tty/serial/sn_console.c | 32 +++++++++-----------------------
+ drivers/tty/serial/suncore.c    | 11 +++--------
+ drivers/tty/serial/sunhv.c      | 13 +++----------
+ 4 files changed, 16 insertions(+), 48 deletions(-)
 
 -- 
-1.7.9.5
-
+2.2.1
