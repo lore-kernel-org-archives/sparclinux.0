@@ -1,15 +1,15 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Date: Tue, 14 Jul 2015 22:47:19 +0000
-Subject: [PATCH v2 48/49] PCI: Introduce resource_disabled()
-Message-Id: <1436914040-13206-49-git-send-email-yinghai@kernel.org>
+Date: Mon, 27 Jul 2015 23:30:08 +0000
+Subject: [PATCH v3 50/51] PCI: Introduce resource_disabled()
+Message-Id: <1438039809-24957-51-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
+References: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1438039809-24957-1-git-send-email-yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-am33-list@redhat.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, iommu@lists.linux-foundation.org, linux-sh@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Wei Yang <weiyang-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, TJ <linux-7m3hRoVZU5A@public.gmane.org>, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
 so we can cover !flags and IORESOURCE_DISABLED both.
 
@@ -40,12 +40,12 @@ Signed-off-by: Yinghai Lu <yinghai@kernel.org>
  drivers/pci/host/pcie-rcar.c              |  2 +-
  drivers/pci/iov.c                         |  2 +-
  drivers/pci/probe.c                       |  2 +-
- drivers/pci/quirks.c                      |  2 +-
+ drivers/pci/quirks.c                      |  4 ++--
  drivers/pci/rom.c                         |  2 +-
  drivers/pci/setup-bus.c                   |  8 ++++----
  drivers/pci/setup-res.c                   |  2 +-
  include/linux/ioport.h                    |  4 ++++
- 20 files changed, 52 insertions(+), 44 deletions(-)
+ 20 files changed, 53 insertions(+), 45 deletions(-)
 
 diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
 index 82f738e..91a7153 100644
@@ -392,7 +392,7 @@ index b848cc3..f34d061 100644
  				continue;
  			printk(KERN_ERR "Memory resource not set for "
 diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index a98a7b2..de7788b 100644
+index 0649b94..ee9bdbf 100644
 --- a/drivers/iommu/intel-iommu.c
 +++ b/drivers/iommu/intel-iommu.c
 @@ -1743,7 +1743,8 @@ static int dmar_init_reserved_ranges(void)
@@ -445,18 +445,27 @@ index 14bdbca..5440fb1 100644
  
  	ret = release_resource(res);
 diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 184a09e..1d6ae73 100644
+index a2945a4..abbc2ac 100644
 --- a/drivers/pci/quirks.c
 +++ b/drivers/pci/quirks.c
 @@ -337,7 +337,7 @@ static void quirk_bar_fixed(struct pci_dev *dev)
  	for (i = 0; i < PCI_STD_RESOURCE_END; i++) {
  		struct resource *r = &dev->resource[i];
  
--		if (!r->flags || r->flags & IORESOURCE_UNSET)
-+		if (resource_disabled(r) || r->flags & IORESOURCE_UNSET)
+-		if (!r->start || !r->flags)
++		if (!r->start || resource_disabled(r))
  			continue;
  		r->flags |= IORESOURCE_PCI_FIXED;
  	}
+@@ -351,7 +351,7 @@ static void quirk_allocate_fixed(struct pci_dev *dev)
+ 	for (i = 0; i < PCI_NUM_RESOURCES; i++) {
+ 		struct resource *r = &dev->resource[i];
+ 
+-		if (r->parent ||
++		if (r->parent || resource_disabled(r) ||
+ 		    !(r->flags & IORESOURCE_PCI_FIXED) ||
+ 		    !(r->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
+ 			continue;
 diff --git a/drivers/pci/rom.c b/drivers/pci/rom.c
 index eb0ad53..585a9d3 100644
 --- a/drivers/pci/rom.c
@@ -471,7 +480,7 @@ index eb0ad53..585a9d3 100644
  
  	pcibios_resource_to_bus(pdev->bus, &region, res);
 diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index d9cfb55..7734be6 100644
+index 7b296b0..b44a327 100644
 --- a/drivers/pci/setup-bus.c
 +++ b/drivers/pci/setup-bus.c
 @@ -248,7 +248,7 @@ static void pdev_check_resources(struct pci_dev *dev,
@@ -492,7 +501,7 @@ index d9cfb55..7734be6 100644
  			goto out;
  
  		/* skip this resource if not found in head list */
-@@ -2133,7 +2133,7 @@ static void pci_bus_dump_res(struct pci_bus *bus)
+@@ -2144,7 +2144,7 @@ static void pci_bus_dump_res(struct pci_bus *bus)
  	int i;
  
  	pci_bus_for_each_resource(bus, res, i) {
@@ -501,7 +510,7 @@ index d9cfb55..7734be6 100644
  			continue;
  
  		dev_printk(KERN_DEBUG, &bus->dev, "resource %d %pR\n", i, res);
-@@ -2216,7 +2216,7 @@ static int iov_resources_unassigned(struct pci_dev *dev, void *data)
+@@ -2227,7 +2227,7 @@ static int iov_resources_unassigned(struct pci_dev *dev, void *data)
  		struct pci_bus_region region;
  
  		/* Not assigned or rejected by kernel? */
