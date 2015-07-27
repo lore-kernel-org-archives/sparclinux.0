@@ -1,94 +1,88 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Fri, 24 Jul 2015 15:53:13 +0000
-Subject: Re: [PATCH V4 2/6] mm: mlock: Add new mlock, munlock, and munlockall system calls
-Message-Id: <20150724155313.GF9203@akamai.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="iBwuxWUsK/REspAd"
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Mon, 27 Jul 2015 05:40:28 +0000
+Subject: [PATCH v4 0/10] Implement group-read of events using txn interface
+Message-Id: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437508781-28655-1-git-send-email-emunson@akamai.com>
- <1437508781-28655-3-git-send-email-emunson@akamai.com>
- <20150721134441.d69e4e1099bd43e56835b3c5@linux-foundation.org>
- <1437528316.16792.7.camel@ellerman.id.au>
- <20150722141501.GA3203@akamai.com>
- <20150723065830.GA5919@linux-mips.org>
- <20150724143936.GE9203@akamai.com>
- <55B25DDE.8090107@roeck-us.net>
-In-Reply-To: <55B25DDE.8090107@roeck-us.net>
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linux-mips@linux-mips.org, linux-m68k@vger.kernel.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@suse.cz>, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, linux-am33-list@redhat.com, Geert Uytterhoeven <geert@linux-m68k.org>, Vlastimil Babka <vbabka@suse.cz>, linux-xtensa@linux-xtensa.org, linux-s390@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.or
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
+Unlike normal hardware PMCs, the 24x7 counters in Power8 are stored in
+memory and accessed via a hypervisor call (HCALL).  A major aspect of the
+HCALL is that it allows retireving _several_ counters at once (unlike
+regular PMCs, which are read one at a time). By reading several counters
+at once, we can get a more consistent snapshot of the system.
 
---iBwuxWUsK/REspAd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patchset extends the transaction interface to accomplish submitting
+several events to the PMU and have the PMU read them all at once. User is
+expected to submit the set of events they want to read as an "event group".
 
-On Fri, 24 Jul 2015, Guenter Roeck wrote:
+In the kernel, we submit each event to the PMU using the following logic
+(from Peter Zijlstra).
 
-> On 07/24/2015 07:39 AM, Eric B Munson wrote:
-> >On Thu, 23 Jul 2015, Ralf Baechle wrote:
-> >
-> >>On Wed, Jul 22, 2015 at 10:15:01AM -0400, Eric B Munson wrote:
-> >>
-> >>>>
-> >>>>You haven't wired it up properly on powerpc, but I haven't mentioned =
-it because
-> >>>>I'd rather we did it.
-> >>>>
-> >>>>cheers
-> >>>
-> >>>It looks like I will be spinning a V5, so I will drop all but the x86
-> >>>system calls additions in that version.
-> >>
-> >>The MIPS bits are looking good however, so
-> >>
-> >>Acked-by: Ralf Baechle <ralf@linux-mips.org>
-> >>
-> >>With my ack, will you keep them or maybe carry them as a separate patch?
-> >
-> >I will keep the MIPS additions as a separate patch in the series, though
-> >I have dropped two of the new syscalls after some discussion.  So I will
-> >not include your ack on the new patch.
-> >
-> >Eric
-> >
->=20
-> Hi Eric,
->=20
-> next-20150724 still has some failures due to this patch set. Are those
-> being looked at (I know parisc builds fail, but there may be others) ?
->=20
-> Thanks,
-> Guenter
+        pmu->start_txn(pmu, PMU_TXN_READ);
 
-Guenter,
+        leader->read();
+        for_each_sibling()
+                sibling->read();
+        pmu->commit_txn();
 
-Yes, the next respin will drop all new arch syscall entries except
-x86[_64] and MIPS.  I will leave it up to arch maintainers to add the
-entries.
+where:
+        - the ->read()s queue events to be submitted to the hypervisor, and,
+        - the ->commit_txn() issues the HCALL, retrieves the result and
+          updates the event count.
 
-Eric
+Architectures/PMUs that don't need/implement PMU_TXN_READ type of transactions,
+simply ignore the ->start_txn() and ->commit_txn() and continue to read the
+counters one at a time in the ->read() call.
 
---iBwuxWUsK/REspAd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Compile/touch tested on x86. Need help testing on s390 and Sparc.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Thanks to Peter Zijlstra for his input/code.
 
-iQIcBAEBAgAGBQJVsl9pAAoJELbVsDOpoOa9EEUP/2M1Xsm8+njDOkkKbV0gBjBz
-b3xOA+mBrdWvRUHtbhky0XhLX9AQkuolm5Lqel2ldbkHMF2DQtqvQxMCpWJ25dJW
-oR5fnuh+arfoOsnEJAJ4Z47Qs/jiVAWHB3jupCxexg5zVZL2BIomII5Ewk00waGw
-zHjUYeLYPTn6IE1MWV1Mlbbx+kGCDRz8HgFq8b3WbrgH4pPzqaeSf3wxMnIYVKuL
-D/vyOdBOE0dW0Co4GdA3iqZ0JGSKknZUP/F3xB/z67wCkIjh133cUI3oDL/4MKbU
-vSac0mG99uhmMPii1kWKyF3OVx3flbHo4IPFDAaUfU1O1OAXHvjezBgL3eLEV3xl
-M/BZQZMEGNZjs6+c8oIrFuEvKDc424HRj7bKbBRvv7rXp3oaksyvuJ3mpEJyEhep
-O+pSxjZc5J9QaXer+Rdh3yX/hjM/dpnTsUPXTIgPlJcIS8gSc5GxrCOe1hQD7u08
-lIxdAs3sI5Tn6iwrjDRq1ySz2NZ2LkfBlliZ41xxt8/kzHvPoieeep2DRDJnpqJG
-nyQItitQpzs0vB7UMJV+yrbfSAR+lupvVdfyXjk8fsYPMNPBhWHQKZ6Ky6euTkYs
-/BWwZ2nvEjopIBEdrXJ97jJcjsAstFCnCm8V75JOX9KznfD0OUNCB6bg9UpUYQfX
-IV8UQYGPDzfVm060LKYD
-=SPSa
------END PGP SIGNATURE-----
+Changelog[v4]
+	- Ensure all the transactions operations happen on the same CPU so PMUs
+	  can use per-CPU buffers for the transaction.
+	- Add lockdep assert and fix a locking issue in perf_read_group().
 
---iBwuxWUsK/REspAd--
+Changelog [v3]
+	- Simple changes/reorg of patchset to split/rename functions
+	- [Peter Zijlstra] Save the transaction flags in ->start_txn() and
+	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
+	- [Peter Zijlstra] The nop txn interfaces don't need to disable/enable
+	  PMU for PERF_PMU_TXN_READ transactions.
+
+Changelog [v2]
+        - Use the transaction interface unconditionally to avoid special-case
+          code. Architectures/PMUs that don't need the READ transaction types
+          simply ignore the ->start_txn() and ->commit_txn() calls.
+
+Peter Zijlstra (Intel) (1):
+  perf: Rename perf_event_read_{one,group}, perf_read_hw
+
+Sukadev Bhattiprolu (9):
+  perf: Add a flags parameter to pmu txn interfaces
+  perf: Split perf_event_read() and perf_event_count()
+  perf: Define perf_event_aggregate()
+  perf: Unroll perf_event_read_value() in perf_read_group()
+  perf: Add return value for perf_event_read().
+  perf: Add group parameter to perf_event_read()
+  perf: Add return value to __perf_event_read()
+  Define PERF_PMU_TXN_READ interface
+  powerpc/perf/hv-24x7: Use PMU_TXN_READ interface
+
+ arch/powerpc/perf/core-book3s.c  |   25 +++++-
+ arch/powerpc/perf/hv-24x7.c      |  166 ++++++++++++++++++++++++++++++++++++-
+ arch/s390/kernel/perf_cpum_cf.c  |   24 +++++-
+ arch/sparc/kernel/perf_event.c   |   19 ++++-
+ arch/x86/kernel/cpu/perf_event.c |   27 +++++-
+ arch/x86/kernel/cpu/perf_event.h |    1 +
+ include/linux/perf_event.h       |   15 +++-
+ kernel/events/core.c             |  167 +++++++++++++++++++++++++++++++-------
+ 8 files changed, 403 insertions(+), 41 deletions(-)
+
+-- 
+1.7.9.5
+
