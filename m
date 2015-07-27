@@ -1,7 +1,7 @@
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Mon, 27 Jul 2015 05:40:30 +0000
-Subject: [PATCH 02/10] perf: Split perf_event_read() and perf_event_count()
-Message-Id: <1437975638-789-3-git-send-email-sukadev@linux.vnet.ibm.com>
+Date: Mon, 27 Jul 2015 05:40:34 +0000
+Subject: [PATCH 06/10] perf: Add return value for perf_event_read().
+Message-Id: <1437975638-789-7-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
 In-Reply-To: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
@@ -11,73 +11,84 @@ Content-Transfer-Encoding: 7bit
 To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
 Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-perf_event_read() does two things:
-
-	- call the PMU to read/update the counter value, and
-	- compute the total count of the event and its children
-
-Not all callers need both. perf_event_reset() for instance needs the
-first piece but doesn't need the second.  Similarly, when we implement
-the ability to read a group of events using the transaction interface,
-we would need the two pieces done independently.
-
-Break up perf_event_read() and have it just read/update the counter
-and have the callers compute the total count if necessary.
+Add a return value to perf_event_read(). The return value will be
+needed later in perf_read_group() implements ability to read several
+counters in a PERF_PMU_TXN_READ transaction.
 
 Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
- kernel/events/core.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ kernel/events/core.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 4435bf5..f9ca8cb 100644
+index 0ce3012..21a55d1 100644
 --- a/kernel/events/core.c
 +++ b/kernel/events/core.c
 @@ -3212,7 +3212,7 @@ static inline u64 perf_event_count(struct perf_event *event)
  	return __perf_event_count(event);
  }
  
--static u64 perf_event_read(struct perf_event *event)
-+static void perf_event_read(struct perf_event *event)
+-static void perf_event_read(struct perf_event *event)
++static int perf_event_read(struct perf_event *event)
  {
  	/*
  	 * If event is enabled and currently active on a CPU, update the
-@@ -3238,8 +3238,6 @@ static u64 perf_event_read(struct perf_event *event)
+@@ -3238,6 +3238,8 @@ static void perf_event_read(struct perf_event *event)
  		update_event_times(event);
  		raw_spin_unlock_irqrestore(&ctx->lock, flags);
  	}
--
--	return perf_event_count(event);
++
++	return 0;
  }
  
  /*
-@@ -3751,14 +3749,18 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- 	*running = 0;
- 
- 	mutex_lock(&event->child_mutex);
--	total += perf_event_read(event);
-+
-+	perf_event_read(event);
-+	total += perf_event_count(event);
-+
- 	*enabled += event->total_time_enabled +
- 			atomic64_read(&event->child_total_time_enabled);
- 	*running += event->total_time_running +
- 			atomic64_read(&event->child_total_time_running);
+@@ -3720,7 +3722,7 @@ static u64 perf_event_aggregate(struct perf_event *event, u64 *enabled,
+ 	lockdep_assert_held(&event->child_mutex);
  
  	list_for_each_entry(child, &event->child_list, child_list) {
--		total += perf_event_read(child);
-+		perf_event_read(child);
-+		total += perf_event_count(child);
+-		perf_event_read(child);
++		(void)perf_event_read(child);
+ 		total += perf_event_count(child);
  		*enabled += child->total_time_enabled;
  		*running += child->total_time_running;
- 	}
-@@ -3918,7 +3920,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
+@@ -3774,7 +3776,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ 
+ 	mutex_lock(&event->child_mutex);
+ 
+-	perf_event_read(event);
++	(void)perf_event_read(event);
+ 	total = perf_event_aggregate(event, enabled, running);
+ 
+ 	mutex_unlock(&event->child_mutex);
+@@ -3798,7 +3800,12 @@ static int perf_read_group(struct perf_event *event,
+ 
+ 	mutex_lock(&leader->child_mutex);
+ 
+-	perf_event_read(leader);
++	ret = perf_event_read(leader);
++	if (ret) {
++		mutex_unlock(&leader->child_mutex);
++		return ret;
++	}
++
+ 	count = perf_event_aggregate(leader, &enabled, &running);
+ 
+ 	mutex_unlock(&leader->child_mutex);
+@@ -3824,7 +3831,7 @@ static int perf_read_group(struct perf_event *event,
+ 
+ 		mutex_lock(&leader->child_mutex);
+ 
+-		perf_event_read(sub);
++		(void)perf_event_read(sub);
+ 		values[n++] = perf_event_aggregate(sub, &enabled, &running);
+ 
+ 		mutex_unlock(&leader->child_mutex);
+@@ -3946,7 +3953,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
  
  static void _perf_event_reset(struct perf_event *event)
  {
--	(void)perf_event_read(event);
-+	perf_event_read(event);
+-	perf_event_read(event);
++	(void)perf_event_read(event);
  	local64_set(&event->count, 0);
  	perf_event_update_userpage(event);
  }
