@@ -1,53 +1,31 @@
-From: Vlastimil Babka <vbabka@suse.cz>
-Date: Tue, 21 Jul 2015 15:35:59 +0000
-Subject: Re: [PATCH V3 3/5] mm: mlock: Introduce VM_LOCKONFAULT and add mlock flags to enable it
-Message-Id: <55AE66DF.1060600@suse.cz>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 27 Jul 2015 11:38:49 +0000
+Subject: Occasional userland crashes on sparc in 4.1.0+
+Message-Id: <alpine.LRH.2.11.1507271430410.23956@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436288623-13007-1-git-send-email-emunson@akamai.com> <1436288623-13007-4-git-send-email-emunson@akamai.com> <20150708132351.61c13db6@lwn.net> <20150708203456.GC4669@akamai.com> <20150708151750.75e65859@lwn.net> <20150709184635.GE4669@akamai.com> <20150710101118.5d04d627@lwn.net> <20150710161948.GF4669@akamai.com>
-In-Reply-To: <20150710161948.GF4669@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric B Munson <emunson@akamai.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.cz>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 07/10/2015 06:19 PM, Eric B Munson wrote:
-> On Fri, 10 Jul 2015, Jonathan Corbet wrote:
->
->> On Thu, 9 Jul 2015 14:46:35 -0400
->> Eric B Munson <emunson@akamai.com> wrote:
->>
->>>> One other question...if I call mlock2(MLOCK_ONFAULT) on a range that
->>>> already has resident pages, I believe that those pages will not be locked
->>>> until they are reclaimed and faulted back in again, right?  I suspect that
->>>> could be surprising to users.
->>>
->>> That is the case.  I am looking into what it would take to find only the
->>> present pages in a range and lock them, if that is the behavior that is
->>> preferred I can include it in the updated series.
->>
->> For whatever my $0.02 is worth, I think that should be done.  Otherwise
->> the mlock2() interface is essentially nondeterministic; you'll never
->> really know if a specific page is locked or not.
->>
->> Thanks,
->>
->> jon
->
-> Okay, I likely won't have the new set out today then.  This change is
-> more invasive.  IIUC, I need an equivalent to __get_user_page() skips
-> pages which are not present instead of faulting in and the call chain to
-> get to it.  Unless there is an easier way that I am missing.
+While compiling 4.2-rc3 on my test machines, I got segfaults during 
+compilation on V240 and V440. Running repeated compilations encountered 
+some more of these, on both 4.1.0 and 4.2-rc3.
 
-IIRC having page PageMlocked and put on unevictable list isn't necessary 
-to prevent it from being reclaimed. It's just to prevent it from being 
-scanned for reclaim in the first place. When attempting to unmap the 
-page, vma flags are still checked, see the code in try_to_unmap_one(). 
-You should probably extend the checks to your new VM_ flag as it is done 
-for VM_LOCKED and then you shouldn't need to walk the pages to mlock 
-them (although it would probably still be better for the accounting 
-accuracy).
+At the first glance, no UltraSparc II machines had this but I have not 
+done any more stresstesting on them.
 
-> Eric
->
+Symptions from dmesg:
 
+[111825.922395] as[22148]: segfault at 2424f128 ip 0000000000021f30 (rpc 0000000000050c85) sp 00000000ffcea018 error 30001 in as[10000+46000]
+[76756.534860] git[20101]: segfault at 0 ip 00000000f7752448 (rpc 00000000f76e7d68) sp 00000000f6fbeef0 error 30001 in libc-2.19.so[f7668000+16a000]
+
+These happen once per several days for continuous compilation. So they 
+might be slightly older than 4.1.0.
+
+Additionally, v240 still sees the possible irq lock inversion dependency 
+as reported in https://lkml.org/lkml/2015/5/11/348 but this is probably 
+not related.
+
+-- 
+Meelis Roos (mroos@linux.ee)
