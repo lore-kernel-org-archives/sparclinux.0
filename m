@@ -1,10 +1,10 @@
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Wed, 15 Jul 2015 03:01:51 +0000
-Subject: [PATCH v3 4/8] perf: Split perf_event_read() and perf_event_count()
-Message-Id: <1436929315-28520-5-git-send-email-sukadev@linux.vnet.ibm.com>
+Date: Mon, 27 Jul 2015 05:40:30 +0000
+Subject: [PATCH 02/10] perf: Split perf_event_read() and perf_event_count()
+Message-Id: <1437975638-789-3-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1436929315-28520-1-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -30,7 +30,7 @@ Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
  1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/events/core.c b/kernel/events/core.c
-index b79aad2..44fb89d 100644
+index 4435bf5..f9ca8cb 100644
 --- a/kernel/events/core.c
 +++ b/kernel/events/core.c
 @@ -3212,7 +3212,7 @@ static inline u64 perf_event_count(struct perf_event *event)
