@@ -1,86 +1,58 @@
-From: Vlastimil Babka <vbabka@suse.cz>
-Date: Mon, 27 Jul 2015 15:40:24 +0000
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 28 Jul 2015 11:17:25 +0000
 Subject: Re: [PATCH V5 0/7] Allow user to request memory to be locked on page fault
-Message-Id: <55B650E8.9030102@suse.cz>
+Message-Id: <20150728111725.GG24972@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1437773325-8623-1-git-send-email-emunson@akamai.com>
- <55B5F4FF.9070604@suse.cz> <20150727133555.GA17133@akamai.com>
- <55B63D37.20303@suse.cz> <20150727145409.GB21664@akamai.com>
+ <55B5F4FF.9070604@suse.cz>
+ <20150727133555.GA17133@akamai.com>
+ <55B63D37.20303@suse.cz>
+ <20150727145409.GB21664@akamai.com>
 In-Reply-To: <20150727145409.GB21664@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Eric B Munson <emunson@akamai.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, Michal Hocko <mhocko@suse.cz>, Michael Kerrisk <mtk.manpages@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+Cc: Vlastimil Babka <vbabka@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 07/27/2015 04:54 PM, Eric B Munson wrote:
-> On Mon, 27 Jul 2015, Vlastimil Babka wrote:
->>
->>> We do actually have an MCL_LOCKED, we just call it MCL_CURRENT.  Would
->>> you prefer that I match the name in mlock2() (add MLOCK_CURRENT
->>> instead)?
->>
->> Hm it's similar but not exactly the same, because MCL_FUTURE is not
->> the same as MLOCK_ONFAULT :) So MLOCK_CURRENT would be even more
->> confusing. Especially if mlockall(MCL_CURRENT | MCL_FUTURE) is OK,
->> but mlock2(MLOCK_LOCKED | MLOCK_ONFAULT) is invalid.
->
-> MLOCK_ONFAULT isn't meant to be the same as MCL_FUTURE, rather it is
-> meant to be the same as MCL_ONFAULT.  MCL_FUTURE only controls if the
-> locking policy will be applied to any new mappings made by this process,
-> not the locking policy itself.  The better comparison is MCL_CURRENT to
-> MLOCK_LOCK and MCL_ONFAULT to MLOCK_ONFAULT.  MCL_CURRENT and
-> MLOCK_LOCK do the same thing, only one requires a specific range of
-> addresses while the other works process wide.  This is why I suggested
-> changing MLOCK_LOCK to MLOCK_CURRENT.  It is an error to call
-> mlock2(MLOCK_LOCK | MLOCK_ONFAULT) just like it is an error to call
-> mlockall(MCL_CURRENT | MCL_ONFAULT).  The combinations do no make sense.
+[I am sorry but I didn't get to this sooner.]
 
-How is it an error to call mlockall(MCL_CURRENT | MCL_ONFAULT)? How else 
-would you apply mlock2(MCL_ONFAULT) to all current mappings? Later below 
-you use the same example and I don't think it's different by removing 
-MLOCK_LOCKED flag.
-
-> This was all decided when VM_LOCKONFAULT was a separate state from
-> VM_LOCKED.  Now that VM_LOCKONFAULT is a modifier to VM_LOCKED and
+On Mon 27-07-15 10:54:09, Eric B Munson wrote:
+> Now that VM_LOCKONFAULT is a modifier to VM_LOCKED and
 > cannot be specified independentally, it might make more sense to mirror
 > that relationship to userspace.  Which would lead to soemthing like the
 > following:
->
+
+A modifier makes more sense.
+ 
 > To lock and populate a region:
 > mlock2(start, len, 0);
->
+> 
 > To lock on fault a region:
 > mlock2(start, len, MLOCK_ONFAULT);
->
+> 
 > If LOCKONFAULT is seen as a modifier to mlock, then having the flags
 > argument as 0 mean do mlock classic makes more sense to me.
-
-Yup that's what I was trying to suggest.
-
+> 
 > To mlock current on fault only:
 > mlockall(MCL_CURRENT | MCL_ONFAULT);
->
+> 
 > To mlock future on fault only:
 > mlockall(MCL_FUTURE | MCL_ONFAULT);
->
+> 
 > To lock everything on fault:
 > mlockall(MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT);
->
-> I think I have talked myself into rewriting the set again :/
 
-Sorry :) You could also wait a bit for more input than just from me...
+Makes sense to me. The only remaining and still tricky part would be
+the munlock{all}(flags) behavior. What should munlock(MLOCK_ONFAULT)
+do? Keep locked and poppulate the range or simply ignore the flag an
+just unlock?
 
->>
->>> Finally, on the question of MAP_LOCKONFAULT, do you just dislike
->>> MAP_LOCKED and do not want to see it extended, or is this a NAK on the
->>> set if that patch is included.  I ask because I have to spin a V6 to get
->>> the MLOCK flag declarations right, but I would prefer not to do a V7+.
->>> If this is a NAK with, I can drop that patch and rework the tests to
->>> cover without the mmap flag.  Otherwise I want to keep it, I have an
->>> internal user that would like to see it added.
->>
->> I don't want to NAK that patch if you think it's useful.
->>
->>
+I can see some sense to allow munlockall(MCL_FUTURE[|MLOCK_ONFAULT]),
+munlockall(MCL_CURRENT) resp. munlockall(MCL_CURRENT|MCL_FUTURE) but
+other combinations sound weird to me.
 
+Anyway munlock with flags opens new doors of trickiness.
+-- 
+Michal Hocko
+SUSE Labs
