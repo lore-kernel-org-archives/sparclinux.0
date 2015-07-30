@@ -1,33 +1,44 @@
-From: Vlastimil Babka <vbabka@suse.cz>
-Date: Wed, 29 Jul 2015 10:49:57 +0000
-Subject: Re: [PATCH V5 0/7] Allow user to request memory to be locked on page fault
-Message-Id: <55B8AFD5.3030902@suse.cz>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 30 Jul 2015 14:04:54 +0000
+Subject: Debian drops support for sparc
+Message-Id: <20150730140453.GA25014@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437773325-8623-1-git-send-email-emunson@akamai.com>
- <55B5F4FF.9070604@suse.cz> <20150727133555.GA17133@akamai.com>
- <55B63D37.20303@suse.cz> <20150727145409.GB21664@akamai.com>
- <20150728111725.GG24972@dhcp22.suse.cz> <20150728134942.GB2407@akamai.com>
- <20150729104532.GE15801@dhcp22.suse.cz>
-In-Reply-To: <20150729104532.GE15801@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>, Eric B Munson <emunson@akamai.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Shuah Khan <shuahkh@osg.samsung.com>, Michael Kerrisk <mtk.manpages@gmail.com>, Jonathan Corbet <corbet@lwn.net>, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 07/29/2015 12:45 PM, Michal Hocko wrote:
->> In a much less
->> likely corner case, it is not possible in the current setup to request
->> all current VMAs be VM_LOCKONFAULT and all future be VM_LOCKED.
-> 
-> Vlastimil has already pointed that out. MCL_FUTURE doesn't clear
-> MCL_CURRENT. I was quite surprised in the beginning but it makes a
-> perfect sense. mlockall call shouldn't lead into munlocking, that would
-> be just weird. Clearing MCL_FUTURE on MCL_CURRENT makes sense on the
-> other hand because the request is explicit about _current_ memory and it
-> doesn't lead to any munlocking.
+Hi all.
 
-Yeah after more thinking it does make some sense despite the perceived
-inconsistency, but it's definitely worth documenting properly. It also already
-covers the usecase for munlockall2(MCL_FUTURE) which IIRC you had in the earlier
-revisions...
+Debian have decided to drop support for sparc.
+See additional details  here: https://lists.debian.org/debian-sparc/2015/07/msg00023.html
+
+To the best of my understanding this is 32 bit userland
+on top of sparc64 kernel that is dropped.
+
+In Debian ports there is a sparc64 port which is 64-bit
+userland on top of sparc64 kernel.
+There are talks about improving support for the sparc64
+ports but I have not read anything conclusive.
+
+Additional details can be found the following bug report:
+https://bugs.debian.org/cgi-bin/bugreport.cgi?bugt5938
+
+A major issue is that gcc-4.9 cannot be built for sparc
+for reasons that I failed to follow.
+
+When I read: https://bugs.debian.org/cgi-bin/bugreport.cgi?bugt5938#48
+I get the impression that this is for the most part
+bugs that may have been fixed recently.
+The regression testing doen by Meelis Roos has shown
+that things has improved a lot the last couple of months
+if I recall correct. So sad that Debian drops sparc support now
+when these fixes may not have propagated.
+
+In a G+ post I also referred to the memcpy / FPU register
+corruption bug that David only recently were able to reproduce.
+I am not sure how much this bug influence the lack of stability
+that people see when using sparc64 kernels.
+See details here: http://marc.info/?t3382318800002&r=1&w=2
+
+	Sam
