@@ -1,426 +1,95 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Thu, 27 Aug 2015 13:49:32 +0000
-Subject: Re: [PATCH 3/5] dma-mapping: cosolidate dma_mapping_error
-Message-Id: <CAHp75Vf5RjL2A=-aP7kw8PzGBS10XPSqBYE57R7h6GvLjkMnhQ@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 02 Aug 2015 03:02:20 +0000
+Subject: Build failure (sparc32:allmodconfig) in -next due to 'memcg: export struct mem_cgroup'
+Message-Id: <20150802030220.GA25165@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439795216-32189-1-git-send-email-hch@lst.de>
-        <1439795216-32189-4-git-send-email-hch@lst.de>
-In-Reply-To: <1439795216-32189-4-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, catalin.marinas@arm.com, Will Deacon <will.deacon@arm.com>, ysato@users.sourceforge.jp, Michal Simek <monstr@monstr.eu>, jonas@southpole.se, cmetcalf@ezchip.com, gxt@mprc.pku.edu.cn, "x86@kernel.org" <x86@kernel.org>, linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Mon, Aug 17, 2015 at 10:06 AM, Christoph Hellwig <hch@lst.de> wrote:
-> Currently there are three valid implementations of dma_mapping_error:
->
->  (1) call ->mapping_error
->  (2) check for a hardcoded error code
->  (3) always return 0
->
-> This patch provides a common implementation that calls ->mapping_error
-> if present, then checks for DMA_ERROR_CODE if defined or otherwise
-> returns 0.
+Hi,
 
-Sorry for late comment, but still.
+Commit b65390c6c2178f ("memcg: export struct mem_cgroup") causes several
+build failures in -next (next-20150731) when trying to build
+sparc32:allmodconfig.
 
-Shall we assign DMA_ERROR_CODE to the type of dma_addr_t ?
-I think it might be better to have ((dma_addr_t)(0ULL))
+Below are some of the errors, as well as a bisect log.
 
-Second observation is ia64 that has bad_dma_address variable exported.
-Should code use that instead of 0?
+Guenter
 
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/alpha/include/asm/dma-mapping.h      |  5 -----
->  arch/arm/include/asm/dma-mapping.h        |  9 ---------
->  arch/arm64/include/asm/dma-mapping.h      |  7 -------
->  arch/h8300/include/asm/dma-mapping.h      |  5 -----
->  arch/hexagon/include/asm/dma-mapping.h    | 11 +----------
->  arch/ia64/include/asm/dma-mapping.h       |  7 -------
->  arch/microblaze/include/asm/dma-mapping.h | 11 -----------
->  arch/mips/include/asm/dma-mapping.h       |  8 --------
->  arch/openrisc/include/asm/dma-mapping.h   |  5 -----
->  arch/powerpc/include/asm/dma-mapping.h    | 17 ++---------------
->  arch/s390/include/asm/dma-mapping.h       | 10 ----------
->  arch/sh/include/asm/dma-mapping.h         | 13 ++-----------
->  arch/sparc/include/asm/dma-mapping.h      |  6 ------
->  arch/tile/include/asm/dma-mapping.h       |  7 -------
->  arch/unicore32/include/asm/dma-mapping.h  | 10 ----------
->  arch/x86/include/asm/dma-mapping.h        | 11 -----------
->  include/asm-generic/dma-mapping-common.h  | 14 ++++++++++++++
->  17 files changed, 19 insertions(+), 137 deletions(-)
->
-> diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
-> index 0552bf0..80ac3e8 100644
-> --- a/arch/alpha/include/asm/dma-mapping.h
-> +++ b/arch/alpha/include/asm/dma-mapping.h
-> @@ -12,11 +12,6 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
->
->  #include <asm-generic/dma-mapping-common.h>
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       return get_dma_ops(dev)->mapping_error(dev, dma_addr);
-> -}
-> -
->  static inline int dma_supported(struct device *dev, u64 mask)
->  {
->         return get_dma_ops(dev)->dma_supported(dev, mask);
-> diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-> index 2191f9c..b4f1b6b 100644
-> --- a/arch/arm/include/asm/dma-mapping.h
-> +++ b/arch/arm/include/asm/dma-mapping.h
-> @@ -172,15 +172,6 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
->
->  static inline void dma_mark_clean(void *addr, size_t size) { }
->
-> -/*
-> - * DMA errors are defined by all-bits-set in the DMA address.
-> - */
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       return dma_addr = DMA_ERROR_CODE;
-> -}
-> -
->  extern int dma_supported(struct device *dev, u64 mask);
->
->  extern int arm_dma_set_mask(struct device *dev, u64 dma_mask);
-> diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/include/asm/dma-mapping.h
-> index 178e60b..f45f444 100644
-> --- a/arch/arm64/include/asm/dma-mapping.h
-> +++ b/arch/arm64/include/asm/dma-mapping.h
-> @@ -84,13 +84,6 @@ static inline phys_addr_t dma_to_phys(struct device *dev, dma_addr_t dev_addr)
->         return (phys_addr_t)dev_addr;
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dev_addr)
-> -{
-> -       struct dma_map_ops *ops = get_dma_ops(dev);
-> -       debug_dma_mapping_error(dev, dev_addr);
-> -       return ops->mapping_error(dev, dev_addr);
-> -}
-> -
->  static inline int dma_supported(struct device *dev, u64 mask)
->  {
->         struct dma_map_ops *ops = get_dma_ops(dev);
-> diff --git a/arch/h8300/include/asm/dma-mapping.h b/arch/h8300/include/asm/dma-mapping.h
-> index 72465ce..5eef053 100644
-> --- a/arch/h8300/include/asm/dma-mapping.h
-> +++ b/arch/h8300/include/asm/dma-mapping.h
-> @@ -20,9 +20,4 @@ static inline int dma_set_mask(struct device *dev, u64 mask)
->         return 0;
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       return 0;
-> -}
-> -
->  #endif
-> diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
-> index 58d2d8f..e661192 100644
-> --- a/arch/hexagon/include/asm/dma-mapping.h
-> +++ b/arch/hexagon/include/asm/dma-mapping.h
-> @@ -31,6 +31,7 @@
->
->  struct device;
->  extern int bad_dma_address;
-> +#define DMA_ERROR_CODE bad_dma_address
->
->  extern struct dma_map_ops *dma_ops;
->
-> @@ -57,14 +58,4 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
->         return addr + size - 1 <= *dev->dma_mask;
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *dma_ops = get_dma_ops(dev);
-> -
-> -       if (dma_ops->mapping_error)
-> -               return dma_ops->mapping_error(dev, dma_addr);
-> -
-> -       return (dma_addr = bad_dma_address);
-> -}
-> -
->  #endif
-> diff --git a/arch/ia64/include/asm/dma-mapping.h b/arch/ia64/include/asm/dma-mapping.h
-> index a925ff0..27b713d 100644
-> --- a/arch/ia64/include/asm/dma-mapping.h
-> +++ b/arch/ia64/include/asm/dma-mapping.h
-> @@ -27,13 +27,6 @@ extern void machvec_dma_sync_sg(struct device *, struct scatterlist *, int,
->
->  #include <asm-generic/dma-mapping-common.h>
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t daddr)
-> -{
-> -       struct dma_map_ops *ops = platform_dma_get_ops(dev);
-> -       debug_dma_mapping_error(dev, daddr);
-> -       return ops->mapping_error(dev, daddr);
-> -}
-> -
->  static inline int dma_supported(struct device *dev, u64 mask)
->  {
->         struct dma_map_ops *ops = platform_dma_get_ops(dev);
-> diff --git a/arch/microblaze/include/asm/dma-mapping.h b/arch/microblaze/include/asm/dma-mapping.h
-> index bc81625..e5b8438 100644
-> --- a/arch/microblaze/include/asm/dma-mapping.h
-> +++ b/arch/microblaze/include/asm/dma-mapping.h
-> @@ -87,17 +87,6 @@ static inline void __dma_sync(unsigned long paddr,
->         }
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *ops = get_dma_ops(dev);
-> -
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       if (ops->mapping_error)
-> -               return ops->mapping_error(dev, dma_addr);
-> -
-> -       return (dma_addr = DMA_ERROR_CODE);
-> -}
-> -
->  static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
->                 enum dma_data_direction direction)
->  {
-> diff --git a/arch/mips/include/asm/dma-mapping.h b/arch/mips/include/asm/dma-mapping.h
-> index 709b2ba..158bb36 100644
-> --- a/arch/mips/include/asm/dma-mapping.h
-> +++ b/arch/mips/include/asm/dma-mapping.h
-> @@ -37,14 +37,6 @@ static inline int dma_supported(struct device *dev, u64 mask)
->         return ops->dma_supported(dev, mask);
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, u64 mask)
-> -{
-> -       struct dma_map_ops *ops = get_dma_ops(dev);
-> -
-> -       debug_dma_mapping_error(dev, mask);
-> -       return ops->mapping_error(dev, mask);
-> -}
-> -
->  static inline int
->  dma_set_mask(struct device *dev, u64 mask)
->  {
-> diff --git a/arch/openrisc/include/asm/dma-mapping.h b/arch/openrisc/include/asm/dma-mapping.h
-> index 57722528..7dfe9d5 100644
-> --- a/arch/openrisc/include/asm/dma-mapping.h
-> +++ b/arch/openrisc/include/asm/dma-mapping.h
-> @@ -43,11 +43,6 @@ static inline int dma_supported(struct device *dev, u64 dma_mask)
->         return dma_mask = DMA_BIT_MASK(32);
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       return 0;
-> -}
-> -
->  static inline int dma_set_mask(struct device *dev, u64 dma_mask)
->  {
->         if (!dev->dma_mask || !dma_supported(dev, dma_mask))
-> diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
-> index dec0260..72d05ab 100644
-> --- a/arch/powerpc/include/asm/dma-mapping.h
-> +++ b/arch/powerpc/include/asm/dma-mapping.h
-> @@ -18,7 +18,9 @@
->  #include <asm/io.h>
->  #include <asm/swiotlb.h>
->
-> +#ifdef CONFIG_PPC64
->  #define DMA_ERROR_CODE         (~(dma_addr_t)0x0)
-> +#endif
->
->  /* Some dma direct funcs must be visible for use in other dma_ops */
->  extern void *dma_direct_alloc_coherent(struct device *dev, size_t size,
-> @@ -137,21 +139,6 @@ extern int dma_set_mask(struct device *dev, u64 dma_mask);
->  extern int __dma_set_mask(struct device *dev, u64 dma_mask);
->  extern u64 __dma_get_required_mask(struct device *dev);
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *dma_ops = get_dma_ops(dev);
-> -
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       if (dma_ops->mapping_error)
-> -               return dma_ops->mapping_error(dev, dma_addr);
-> -
-> -#ifdef CONFIG_PPC64
-> -       return (dma_addr = DMA_ERROR_CODE);
-> -#else
-> -       return 0;
-> -#endif
-> -}
-> -
->  static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
->  {
->  #ifdef CONFIG_SWIOTLB
-> diff --git a/arch/s390/include/asm/dma-mapping.h b/arch/s390/include/asm/dma-mapping.h
-> index b729efe..3c29329 100644
-> --- a/arch/s390/include/asm/dma-mapping.h
-> +++ b/arch/s390/include/asm/dma-mapping.h
-> @@ -43,14 +43,4 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
->         return addr + size - 1 <= *dev->dma_mask;
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *dma_ops = get_dma_ops(dev);
-> -
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       if (dma_ops->mapping_error)
-> -               return dma_ops->mapping_error(dev, dma_addr);
-> -       return dma_addr = DMA_ERROR_CODE;
-> -}
-> -
->  #endif /* _ASM_S390_DMA_MAPPING_H */
-> diff --git a/arch/sh/include/asm/dma-mapping.h b/arch/sh/include/asm/dma-mapping.h
-> index 2c3fa2c..98308c4 100644
-> --- a/arch/sh/include/asm/dma-mapping.h
-> +++ b/arch/sh/include/asm/dma-mapping.h
-> @@ -9,6 +9,8 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
->         return dma_ops;
->  }
->
-> +#define DMA_ERROR_CODE 0
-> +
->  #include <asm-generic/dma-mapping-common.h>
->
->  static inline int dma_supported(struct device *dev, u64 mask)
-> @@ -38,17 +40,6 @@ static inline int dma_set_mask(struct device *dev, u64 mask)
->  void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
->                     enum dma_data_direction dir);
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *ops = get_dma_ops(dev);
-> -
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       if (ops->mapping_error)
-> -               return ops->mapping_error(dev, dma_addr);
-> -
-> -       return dma_addr = 0;
-> -}
-> -
->  /* arch/sh/mm/consistent.c */
->  extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
->                                         dma_addr_t *dma_addr, gfp_t flag,
-> diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-> index 2564edc..5069d13 100644
-> --- a/arch/sparc/include/asm/dma-mapping.h
-> +++ b/arch/sparc/include/asm/dma-mapping.h
-> @@ -38,12 +38,6 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
->
->  #include <asm-generic/dma-mapping-common.h>
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       return (dma_addr = DMA_ERROR_CODE);
-> -}
-> -
->  static inline int dma_set_mask(struct device *dev, u64 mask)
->  {
->  #ifdef CONFIG_PCI
-> diff --git a/arch/tile/include/asm/dma-mapping.h b/arch/tile/include/asm/dma-mapping.h
-> index e982dfa..f8f7a05 100644
-> --- a/arch/tile/include/asm/dma-mapping.h
-> +++ b/arch/tile/include/asm/dma-mapping.h
-> @@ -75,13 +75,6 @@ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
->  }
->
->  static inline int
-> -dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       return get_dma_ops(dev)->mapping_error(dev, dma_addr);
-> -}
-> -
-> -static inline int
->  dma_supported(struct device *dev, u64 mask)
->  {
->         return get_dma_ops(dev)->dma_supported(dev, mask);
-> diff --git a/arch/unicore32/include/asm/dma-mapping.h b/arch/unicore32/include/asm/dma-mapping.h
-> index 636e942..175d7e3 100644
-> --- a/arch/unicore32/include/asm/dma-mapping.h
-> +++ b/arch/unicore32/include/asm/dma-mapping.h
-> @@ -38,16 +38,6 @@ static inline int dma_supported(struct device *dev, u64 mask)
->         return dma_ops->dma_supported(dev, mask);
->  }
->
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *dma_ops = get_dma_ops(dev);
-> -
-> -       if (dma_ops->mapping_error)
-> -               return dma_ops->mapping_error(dev, dma_addr);
-> -
-> -       return 0;
-> -}
-> -
->  #include <asm-generic/dma-mapping-common.h>
->
->  static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-> diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
-> index 7e47e4d..bbca62e 100644
-> --- a/arch/x86/include/asm/dma-mapping.h
-> +++ b/arch/x86/include/asm/dma-mapping.h
-> @@ -45,17 +45,6 @@ bool arch_dma_alloc_attrs(struct device **dev, gfp_t *gfp);
->
->  #include <asm-generic/dma-mapping-common.h>
->
-> -/* Make sure we keep the same behaviour */
-> -static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> -{
-> -       struct dma_map_ops *ops = get_dma_ops(dev);
-> -       debug_dma_mapping_error(dev, dma_addr);
-> -       if (ops->mapping_error)
-> -               return ops->mapping_error(dev, dma_addr);
-> -
-> -       return (dma_addr = DMA_ERROR_CODE);
-> -}
-> -
->  extern int dma_supported(struct device *hwdev, u64 mask);
->  extern int dma_set_mask(struct device *dev, u64 mask);
->
-> diff --git a/include/asm-generic/dma-mapping-common.h b/include/asm-generic/dma-mapping-common.h
-> index ec321dd..cdaa241 100644
-> --- a/include/asm-generic/dma-mapping-common.h
-> +++ b/include/asm-generic/dma-mapping-common.h
-> @@ -313,4 +313,18 @@ static inline void dma_free_noncoherent(struct device *dev, size_t size,
->         dma_free_attrs(dev, size, cpu_addr, dma_handle, &attrs);
->  }
->
-> +static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-> +{
-> +       debug_dma_mapping_error(dev, dma_addr);
-> +
-> +       if (get_dma_ops(dev)->mapping_error)
-> +               return get_dma_ops(dev)->mapping_error(dev, dma_addr);
-> +
-> +#ifdef DMA_ERROR_CODE
-> +       return dma_addr = DMA_ERROR_CODE;
-> +#else
-> +       return 0;
-> +#endif
-> +}
-> +
->  #endif
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+---
+In file included from include/linux/pid_namespace.h:6:0,
+                 from include/linux/ptrace.h:8,
+                 from include/linux/ftrace.h:13,
+                 from include/linux/init_task.h:8,
+                 from init/init_task.c:1:
+include/linux/mm.h: At top level:
+include/linux/mm.h:888:7: error: conflicting types for 'page_address'
+./arch/sparc/include/asm/highmem.h:59:10: note: previous implicit declaration of 'page_address' was here
 
+In file included from include/linux/highmem.h:7:0,
+                 from include/linux/bio.h:23,
+                 from include/linux/writeback.h:192,
+                 from include/linux/memcontrol.h:30,
+                 from include/linux/swap.h:8,
+                 from ./arch/sparc/include/asm/pgtable_32.h:17,
+                 from ./arch/sparc/include/asm/pgtable.h:6,
+                 from arch/sparc/kernel/traps_32.c:23:
+include/linux/mm.h: In function 'is_vmalloc_addr':
+include/linux/mm.h:371:17: error: 'VMALLOC_START' undeclared (first use in this function)
+include/linux/mm.h:371:17: note: each undeclared identifier is reported only once for each function it appears in
+include/linux/mm.h:371:41: error: 'VMALLOC_END' undeclared (first use in this function)
+include/linux/mm.h: In function 'maybe_mkwrite':
+include/linux/mm.h:556:3: error: implicit declaration of function 'pte_mkwrite'
 
+In file included from include/linux/highmem.h:7:0,
+                 from include/linux/bio.h:23,
+                 from include/linux/writeback.h:192,
+                 from include/linux/memcontrol.h:30,
+                 from include/linux/swap.h:8,
+                 from ./arch/sparc/include/asm/pgtable_32.h:17,
+                 from ./arch/sparc/include/asm/pgtable.h:6,
+                 from ./arch/sparc/include/asm/pgalloc_32.h:8,
+                 from ./arch/sparc/include/asm/pgalloc.h:6,
+                 from arch/sparc/kernel/sun4m_irq.c:16:
+include/linux/mm.h: In function 'pte_lockptr':
+include/linux/mm.h:1422:2: error: implicit declaration of function 'pmd_page' [-Werror=implicit-function-declaration]
+include/linux/mm.h:1422:2: error: passing argument 1 of 'ptlock_ptr' makes pointer from integer without a cast [-Werror]
+include/linux/mm.h:1396:27: note: expected 'struct page *' but argument is of type 'int'
+include/linux/mm.h: In function 'pgtable_init':
+include/linux/mm.h:1465:2: error: implicit declaration of function 'pgtable_cache_init'
 
--- 
-With Best Regards,
-Andy Shevchenko
+---
+
+Bisect log:
+
+# bad: [37bd1ea52d362219b1882814cb75bb365736890f] Add linux-next specific files for 20150731
+# good: [cbfe8fa6cd672011c755c3cd85c9ffd4e2d10a6f] Linux 4.2-rc4
+git bisect start 'HEAD' 'v4.2-rc4'
+# good: [dee8e3fb6da725af9f6576203043e28e1fc24112] Merge remote-tracking branch 'drm/drm-next'
+git bisect good dee8e3fb6da725af9f6576203043e28e1fc24112
+# good: [18e555796935152bb99fba6225e119e334e46e0b] Merge remote-tracking branch 'usb-serial/usb-next'
+git bisect good 18e555796935152bb99fba6225e119e334e46e0b
+# good: [d130dd99924fd8bd36a2d6469fb4650555885674] Merge remote-tracking branch 'pinctrl/for-next'
+git bisect good d130dd99924fd8bd36a2d6469fb4650555885674
+# bad: [0fc5899188276020bf18bbd081adb8d904f19c36] lib: Add CRC64 ECMA module
+git bisect bad 0fc5899188276020bf18bbd081adb8d904f19c36
+# good: [0ce35077894da68fe4b428239ba78565a85f873a] ext4: huge page fault support
+git bisect good 0ce35077894da68fe4b428239ba78565a85f873a
+# bad: [ab75dc42ab76dc589ba9ebc3ac4559bf16ad9b9e] hwpoison: use page_cgroup_ino for filtering by memcg
+git bisect bad ab75dc42ab76dc589ba9ebc3ac4559bf16ad9b9e
+# bad: [4ae161e1a34b0251fdcad1f1200e4aa024bf15a1] mm-page_isolation-remove-bogus-tests-for-isolated-pages-fix
+git bisect bad 4ae161e1a34b0251fdcad1f1200e4aa024bf15a1
+# good: [2f2a822d1ade8faed5d5faa36f7ce672d8032560] fs: do not prefault sys_write() user buffer pages
+git bisect good 2f2a822d1ade8faed5d5faa36f7ce672d8032560
+# good: [7e6c8c501cc9e471227ce852a8214c9653a9a93e] mm/dmapool: allow NULL `pool' pointer in dma_pool_destroy()
+git bisect good 7e6c8c501cc9e471227ce852a8214c9653a9a93e
+# bad: [f1a893781a72f9b8dffe98fc73e57949497a1e0f] memcg: get rid of extern for functions in memcontrol.h
+git bisect bad f1a893781a72f9b8dffe98fc73e57949497a1e0f
+# bad: [1b9131b73abd4324ea3f6b8005a1b586a0c44a5f] memcg-export-struct-mem_cgroup-fix
+git bisect bad 1b9131b73abd4324ea3f6b8005a1b586a0c44a5f
+# bad: [b65390c6c2178f51faa396a6b2f1d64ebbd3c373] memcg: export struct mem_cgroup
+git bisect bad b65390c6c2178f51faa396a6b2f1d64ebbd3c373
+# first bad commit: [b65390c6c2178f51faa396a6b2f1d64ebbd3c373] memcg: export struct mem_cgroup
