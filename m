@@ -1,94 +1,23 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 14 Aug 2015 06:49:33 +0000
-Subject: [PATCH v5 0/8] perf: Implement group-read of events using txn interface
-Message-Id: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Mon, 03 Aug 2015 01:35:05 +0000
+Subject: Re: [v3, 2/8] powerpc/perf/hv-24x7: Simplify extracting counter from result buffer
+Message-Id: <20150803013505.22281140DF7@ozlabs.org>
 List-Id: <sparclinux.vger.kernel.org>
+In-Reply-To: <1436929315-28520-3-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org
 
-Unlike normal hardware PMCs, the 24x7 counters in Power8 are stored in
-memory and accessed via a hypervisor call (HCALL).  A major aspect of the
-HCALL is that it allows retireving _several_ counters at once (unlike
-regular PMCs, which are read one at a time). By reading several counters
-at once, we can get a more consistent snapshot of the system.
+On Wed, 2015-15-07 at 03:01:49 UTC, Sukadev Bhattiprolu wrote:
+> Simplify code that extracts a 24x7 counter from the HCALL's result buffer.
+> 
+> Suggested-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 
-This patchset extends the transaction interface to accomplish submitting
-several events to the PMU and have the PMU read them all at once. User is
-expected to submit the set of events they want to read as an "event group".
+Applied to powerpc next, thanks.
 
-In the kernel, we submit each event to the PMU using the following logic
-(from Peter Zijlstra).
+https://git.kernel.org/powerpc/c/465345ca387ed491c467
 
-        pmu->start_txn(pmu, PMU_TXN_READ);
-
-        leader->read();
-        for_each_sibling()
-                sibling->read();
-        pmu->commit_txn();
-
-where:
-        - the ->read()s queue events to be submitted to the hypervisor, and,
-        - the ->commit_txn() issues the HCALL, retrieves the result and
-          updates the event count.
-
-Architectures/PMUs that don't need/implement PMU_TXN_READ type of transactions,
-simply ignore the ->start_txn() and ->commit_txn() and continue to read the
-counters one at a time in the ->read() call.
-
-Compile/touch tested on x86. Need help testing on s390 and Sparc.
-
-Thanks to Peter Zijlstra for his input/code.
-
-Changelog[v5]
-	- Invert the sibling-child loop nesting in perf-read-group (re-org
-	  code and drop the patch that defined perf_event_aggregate()).
-
-Changelog[v4]
-	- Ensure all the transactions operations happen on the same CPU so PMUs
-	  can use per-CPU buffers for the transaction.
-	- Add lockdep assert and fix a locking issue in perf_read_group().
-
-Changelog [v3]
-	- Simple changes/reorg of patchset to split/rename functions
-	- [Peter Zijlstra] Save the transaction flags in ->start_txn() and
-	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
-	- [Peter Zijlstra] The nop txn interfaces don't need to disable/enable
-	  PMU for PERF_PMU_TXN_READ transactions.
-
-Changelog [v2]
-        - Use the transaction interface unconditionally to avoid special-case
-          code. Architectures/PMUs that don't need the READ transaction types
-          simply ignore the ->start_txn() and ->commit_txn() calls.
-
-
-
-Peter Zijlstra (2):
-  perf: Add group reads to perf_event_read()
-  perf: Invert perf_read_group() loops
-
-Peter Zijlstra (Intel) (1):
-  perf: Rename perf_event_read_{one,group}, perf_read_hw
-
-Sukadev Bhattiprolu (5):
-  perf: Add a flags parameter to pmu txn interfaces
-  perf: Split perf_event_read() and perf_event_count()
-  perf: Add return value for perf_event_read().
-  Define PERF_PMU_TXN_READ interface
-  powerpc/perf/hv-24x7: Use PMU_TXN_READ interface
-
- arch/powerpc/perf/core-book3s.c  |   25 ++++-
- arch/powerpc/perf/hv-24x7.c      |  166 +++++++++++++++++++++++++++++-
- arch/s390/kernel/perf_cpum_cf.c  |   24 ++++-
- arch/sparc/kernel/perf_event.c   |   19 +++-
- arch/x86/kernel/cpu/perf_event.c |   27 ++++-
- arch/x86/kernel/cpu/perf_event.h |    1 +
- include/linux/perf_event.h       |   15 ++-
- kernel/events/core.c             |  210 +++++++++++++++++++++++++++++---------
- 8 files changed, 429 insertions(+), 58 deletions(-)
-
--- 
-1.7.9.5
-
+cheers
