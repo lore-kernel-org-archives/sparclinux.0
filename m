@@ -1,55 +1,81 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Thu, 13 Aug 2015 23:40:30 +0000
-Subject: Re: RFC: prepare for struct scatterlist entries without page backing
-Message-Id: <CAGRGNgWXO9fYSf5YxPM9atSCmUdHB_WDB=n8zd=7eWK1GaJU4A@mail.gmail.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 04 Aug 2015 14:25:52 +0000
+Subject: [PATCH] sparc32: do not include swap.h from pgtable_32.h export struct mem_cgroup'
+Message-Id: <20150804142552.GI28571@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de> <55CB3F47.3000902@plexistor.com>
- <CAGRGNgUKkaPnyvn30DXyNpdiXQzS6J=1+mQ3ick8C8=bhx_RHA@mail.gmail.com> <20150813143528.GC17183@lst.de>
-In-Reply-To: <20150813143528.GC17183@lst.de>
+References: <20150802030220.GA25165@roeck-us.net>
+In-Reply-To: <20150802030220.GA25165@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Boaz Harrosh <boaz@plexistor.com>, Linus Torvalds <torvalds@linux-foundation.org>, axboe@kernel.dk, linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-nvdimm@ml01.01.org, David Howells <dhowells@redhat.com>, sparclinux <sparclinux@vger.kernel.org>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, David Woodhouse <dwmw2@infradead.org>, =?UTF-8?Q?H=C3=A5vard_Skinnemoen?= <hskinnemoen@gmail.com>, linux-xtensa@linux-xtensa.org, grundler@parisc-linux.org, Miao Steven <realmz6@gmail.com>, alex.williamson@redhat.com, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, vgupta@synopsys.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-alpha@vger.kernel.org, Linux Media Mailing List <linux-media@vger.kernel.org>, linuxppc-dev@lists.ozl
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Vladimir Davydov <vdavydov@parallels.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Hi Christoph,
+On Sat 01-08-15 20:02:20, Guenter Roeck wrote:
+> Hi,
+> 
+> Commit b65390c6c2178f ("memcg: export struct mem_cgroup") causes several
+> build failures in -next (next-20150731) when trying to build
+> sparc32:allmodconfig.
+> 
+> Below are some of the errors, as well as a bisect log.
 
-On Fri, Aug 14, 2015 at 12:35 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Thu, Aug 13, 2015 at 09:37:37AM +1000, Julian Calaby wrote:
->> I.e. ~90% of this patch set seems to be just mechanically dropping
->> BUG_ON()s and converting open coded stuff to use accessor functions
->> (which should be macros or get inlined, right?) - and the remaining
->> bit is not flushing if we don't have a physical page somewhere.
->
-> Which is was 90%.  By lines changed most actually is the diffs for
-> the cache flushing.
+The following patch should take care of the mess. I've tested it with
+all{no,mod}config and defconfig. allyesconfig fails due to unrelated issue but
+make mm/ succeeds.
+---
+From 3ca0dfa93b1418bcb9a8dc2860bf93f095f72399 Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mhocko@suse.com>
+Date: Tue, 4 Aug 2015 14:31:28 +0200
+Subject: [PATCH] sparc32: do not include swap.h from pgtable_32.h
 
-I was talking in terms of changes made, not lines changed: by my
-recollection, about a third of the patches didn't touch flush calls
-and most of the lines changed looked like refactoring so that making
-the flush call conditional would be easier.
+"memcg: export struct mem_cgroup" has added few includes into linux/memcontro.h
+which led to further header dependency issues as reported by Guenter Roeck:
 
-I guess it smelled like you were doing lots of distinct changes in a
-single patch and I got my numbers wrong.
+In file included from include/linux/highmem.h:7:0,
+                 from include/linux/bio.h:23,
+                 from include/linux/writeback.h:192,
+                 from include/linux/memcontrol.h:30,
+                 from include/linux/swap.h:8,
+                 from ./arch/sparc/include/asm/pgtable_32.h:17,
+                 from ./arch/sparc/include/asm/pgtable.h:6,
+                 from arch/sparc/kernel/traps_32.c:23:
+include/linux/mm.h: In function 'is_vmalloc_addr':
+include/linux/mm.h:371:17: error: 'VMALLOC_START' undeclared (first use in this function)
+include/linux/mm.h:371:17: note: each undeclared identifier is reported only once for each function it appears in
+include/linux/mm.h:371:41: error: 'VMALLOC_END' undeclared (first use in this function)
+include/linux/mm.h: In function 'maybe_mkwrite':
+include/linux/mm.h:556:3: error: implicit declaration of function 'pte_mkwrite'
 
->> Would it make sense to split this patch set into a few bits: one to
->> drop all the useless BUG_ON()s, one to convert all the open coded
->> stuff to accessor functions, then another to do the actual page-less
->> sg stuff?
->
-> Without the ifs the BUG_ON() actually are useful to assert we
-> never feed the sort of physical addresses we can't otherwise support,
-> so I don't think that part is doable.
+The issue is that pgtable_32.h depends on swap.h to get swap_entry_t but
+that goes all the way down to linux/mm.h which wants to have VMALLOC_*
+which is defined later in pgtable_32.h, though.
 
-My point is that there's a couple of patches that only remove
-BUG_ON()s, which implies that for that particular driver it doesn't
-matter if there's a physical page or not, so therefore that code is
-purely "documentation".
+swap_entry_t is defined in include/mm_types.h so it should be sufficient
+to include this header without more dependencies.
 
-Thanks,
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ arch/sparc/include/asm/pgtable_32.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index f06b36a00a3b..91b963a887b7 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -14,7 +14,7 @@
+ #include <asm-generic/4level-fixup.h>
+ 
+ #include <linux/spinlock.h>
+-#include <linux/swap.h>
++#include <linux/mm_types.h>
+ #include <asm/types.h>
+ #include <asm/pgtsrmmu.h>
+ #include <asm/vaddrs.h>
+-- 
+2.1.4
 
 -- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
+Michal Hocko
+SUSE Labs
