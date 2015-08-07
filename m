@@ -1,47 +1,98 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 12 Aug 2015 07:05:28 +0000
-Subject: [PATCH 09/31] ia64/pci_dma: handle page-less SG entries
-Message-Id: <1439363150-8661-10-git-send-email-hch@lst.de>
+From: Vlastimil Babka <vbabka@suse.cz>
+Date: Fri, 07 Aug 2015 11:50:01 +0000
+Subject: Re: [PATCH V6 4/6] mm: mlock: Add mlock flags to enable VM_LOCKONFAULT usage
+Message-Id: <55C49B69.9050805@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1438184575-10537-1-git-send-email-emunson@akamai.com>
+ <1438184575-10537-5-git-send-email-emunson@akamai.com>
+In-Reply-To: <1438184575-10537-5-git-send-email-emunson-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+To: Eric B Munson <emunson-JqFfY2XvxFXQT0dZR+AlfA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Michal Hocko <mhocko-AlSwsSmVLrQ@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, "Kirill A. Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
 
-Use sg_phys() instead of virt_to_phys(sg_virt(sg)) so that we don't
-require a kernel virtual address.
+On 07/29/2015 05:42 PM, Eric B Munson wrote:
+> The previous patch introduced a flag that specified pages in a VMA
+> should be placed on the unevictable LRU, but they should not be made
+> present when the area is created.  This patch adds the ability to set
+> this state via the new mlock system calls.
+>
+> We add MLOCK_ONFAULT for mlock2 and MCL_ONFAULT for mlockall.
+> MLOCK_ONFAULT will set the VM_LOCKONFAULT modifier for VM_LOCKED.
+> MCL_ONFAULT should be used as a modifier to the two other mlockall
+> flags.  When used with MCL_CURRENT, all current mappings will be marked
+> with VM_LOCKED | VM_LOCKONFAULT.  When used with MCL_FUTURE, the
+> mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.  When used
+> with both MCL_CURRENT and MCL_FUTURE, all current mappings and
+> mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.
+>
+> Prior to this patch, mlockall() will unconditionally clear the
+> mm->def_flags any time it is called without MCL_FUTURE.  This behavior
+> is maintained after adding MCL_ONFAULT.  If a call to
+> mlockall(MCL_FUTURE) is followed by mlockall(MCL_CURRENT), the
+> mm->def_flags will be cleared and new VMAs will be unlocked.  This
+> remains true with or without MCL_ONFAULT in either mlockall()
+> invocation.
+>
+> munlock() will unconditionally clear both vma flags.  munlockall()
+> unconditionally clears for VMA flags on all VMAs and in the
+> mm->def_flags field.
+>
+> Signed-off-by: Eric B Munson <emunson@akamai.com>
+> Cc: Michal Hocko <mhocko@suse.cz>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/ia64/sn/pci/pci_dma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+The logic seems ok, although the fact that apply_mlockall_flags() is 
+shared by both mlockall and munlockall makes it even more subtle than 
+before :)
 
-diff --git a/arch/ia64/sn/pci/pci_dma.c b/arch/ia64/sn/pci/pci_dma.c
-index d0853e8..8f713c8 100644
---- a/arch/ia64/sn/pci/pci_dma.c
-+++ b/arch/ia64/sn/pci/pci_dma.c
-@@ -18,9 +18,6 @@
- #include <asm/sn/pcidev.h>
- #include <asm/sn/sn_sal.h>
- 
--#define SG_ENT_VIRT_ADDRESS(sg)	(sg_virt((sg)))
--#define SG_ENT_PHYS_ADDRESS(SG)	virt_to_phys(SG_ENT_VIRT_ADDRESS(SG))
--
- /**
-  * sn_dma_supported - test a DMA mask
-  * @dev: device to test
-@@ -291,7 +288,7 @@ static int sn_dma_map_sg(struct device *dev, struct scatterlist *sgl,
- 	 */
- 	for_each_sg(sgl, sg, nhwentries, i) {
- 		dma_addr_t dma_addr;
--		phys_addr = SG_ENT_PHYS_ADDRESS(sg);
-+		phys_addr = sg_phys(sg);
- 		if (dmabarr)
- 			dma_addr = provider->dma_map_consistent(pdev,
- 								phys_addr,
--- 
-1.9.1
+Anyway, just some nitpicks below.
 
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+
+[...]
+
+> +/*
+> + * Take the MCL_* flags passed into mlockall (or 0 if called from munlockall)
+> + * and translate into the appropriate modifications to mm->def_flags and/or the
+> + * flags for all current VMAs.
+> + *
+> + * There are a couple of sublties with this.  If mlockall() is called multiple
+
+                             ^ typo
+
+> + * times with different flags, the values do not necessarily stack.  If mlockall
+> + * is called once including the MCL_FUTURE flag and then a second time without
+> + * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_flags.
+> + */
+>   static int apply_mlockall_flags(int flags)
+>   {
+>   	struct vm_area_struct * vma, * prev = NULL;
+> +	vm_flags_t to_add = 0;
+>
+> -	if (flags & MCL_FUTURE)
+> +	current->mm->def_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
+> +	if (flags & MCL_FUTURE) {
+>   		current->mm->def_flags |= VM_LOCKED;
+> -	else
+> -		current->mm->def_flags &= ~VM_LOCKED;
+>
+> -	if (flags = MCL_FUTURE)
+> -		goto out;
+> +		if (flags & MCL_ONFAULT)
+> +			current->mm->def_flags |= VM_LOCKONFAULT;
+> +
+> +		/*
+> +		 * When there were only two flags, we used to early out if only
+> +		 * MCL_FUTURE was set.  Now that we have MCL_ONFAULT, we can
+> +		 * only early out if MCL_FUTURE is set, but MCL_CURRENT is not.
+
+Describing the relation to history of individual code lines in such 
+detail is noise imho. The stacking subtleties is already described above.
+
+> +		 * This is done, even though it promotes odd behavior, to
+> +		 * maintain behavior from older kernels
+> +		 */
+> +		if (!(flags & MCL_CURRENT))
+> +			goto out;
