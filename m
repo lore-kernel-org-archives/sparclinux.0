@@ -1,73 +1,211 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 12 Aug 2015 07:05:22 +0000
-Subject: [PATCH 03/31] dma-debug: handle page-less SG entries
-Message-Id: <1439363150-8661-4-git-send-email-hch@lst.de>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 07 Aug 2015 02:18:25 +0000
+Subject: [PATCH] sparc64: Fix userspace FPU register corruptions.
+Message-Id: <20150806.191825.147259155892066895.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Use sg_pfn to get a the PFN and skip checks that require a kernel
-virtual address.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+If we have a series of events from userpsace, with %fprs=FPRS_FEF,
+like follows:
+
+ETRAP
+	ETRAP
+		VIS_ENTRY(fprs=0x4)
+		VIS_EXIT
+		RTRAP (kernel FPU restore with fpu_saved=0x4)
+	RTRAP
+
+We will not restore the user registers that were clobbered by the FPU
+using kernel code in the inner-most trap.
+
+Traps allocate FPU save slots in the thread struct, and FPU using
+sequences save the "dirty" FPU registers only.
+
+This works at the initial trap level because all of the registers
+get recorded into the top-level FPU save area, and we'll return
+to userspace with the FPU disabled so that any FPU use by the user
+will take an FPU disabled trap wherein we'll load the registers
+back up properly.
+
+But this is not how trap returns from kernel to kernel operate.
+
+The simplest fix for this bug is to always save all FPU register state
+for anything other than the top-most FPU save area.
+
+Getting rid of the optimized inner-slot FPU saving code ends up
+making VISEntryHalf degenerate into plain VISEntry.
+
+Longer term we need to do something smarter to reinstate the partial
+save optimizations.  Perhaps the fundament error is having trap entry
+and exit allocate FPU save slots and restore register state.  Instead,
+the VISEntry et al. calls should be doing that work.
+
+This bug is about two decades old.
+
+Reported-by: James Y Knight <jyknight@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- lib/dma-debug.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index dace71f..a215a80 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -1368,7 +1368,7 @@ void debug_dma_map_sg(struct device *dev, struct scatterlist *sg,
+I'll get this to Linus and -stable ASAP...
+
+ arch/sparc/include/asm/visasm.h | 16 +++-------
+ arch/sparc/lib/NG4memcpy.S      |  5 ++-
+ arch/sparc/lib/VISsave.S        | 67 ++---------------------------------------
+ arch/sparc/lib/ksyms.c          |  4 ---
+ 4 files changed, 11 insertions(+), 81 deletions(-)
+
+diff --git a/arch/sparc/include/asm/visasm.h b/arch/sparc/include/asm/visasm.h
+index 1f0aa20..6424249 100644
+--- a/arch/sparc/include/asm/visasm.h
++++ b/arch/sparc/include/asm/visasm.h
+@@ -28,16 +28,10 @@
+  * Must preserve %o5 between VISEntryHalf and VISExitHalf */
  
- 		entry->type           = dma_debug_sg;
- 		entry->dev            = dev;
--		entry->pfn	      = page_to_pfn(sg_page(s));
-+		entry->pfn	      = sg_pfn(s);
- 		entry->offset	      = s->offset,
- 		entry->size           = sg_dma_len(s);
- 		entry->dev_addr       = sg_dma_address(s);
-@@ -1376,7 +1376,7 @@ void debug_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 		entry->sg_call_ents   = nents;
- 		entry->sg_mapped_ents = mapped_ents;
+ #define VISEntryHalf					\
+-	rd		%fprs, %o5;			\
+-	andcc		%o5, FPRS_FEF, %g0;		\
+-	be,pt		%icc, 297f;			\
+-	 sethi		%hi(298f), %g7;			\
+-	sethi		%hi(VISenterhalf), %g1;		\
+-	jmpl		%g1 + %lo(VISenterhalf), %g0;	\
+-	 or		%g7, %lo(298f), %g7;		\
+-	clr		%o5;				\
+-297:	wr		%o5, FPRS_FEF, %fprs;		\
+-298:
++	VISEntry
++
++#define VISExitHalf					\
++	VISExit
  
--		if (!PageHighMem(sg_page(s))) {
-+		if (sg_has_page(s) && !PageHighMem(sg_page(s))) {
- 			check_for_stack(dev, sg_virt(s));
- 			check_for_illegal_area(dev, sg_virt(s), sg_dma_len(s));
- 		}
-@@ -1419,7 +1419,7 @@ void debug_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		struct dma_debug_entry ref = {
- 			.type           = dma_debug_sg,
- 			.dev            = dev,
--			.pfn		= page_to_pfn(sg_page(s)),
-+			.pfn		= sg_pfn(s),
- 			.offset		= s->offset,
- 			.dev_addr       = sg_dma_address(s),
- 			.size           = sg_dma_len(s),
-@@ -1580,7 +1580,7 @@ void debug_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
- 		struct dma_debug_entry ref = {
- 			.type           = dma_debug_sg,
- 			.dev            = dev,
--			.pfn		= page_to_pfn(sg_page(s)),
-+			.pfn		= sg_pfn(s),
- 			.offset		= s->offset,
- 			.dev_addr       = sg_dma_address(s),
- 			.size           = sg_dma_len(s),
-@@ -1613,7 +1613,7 @@ void debug_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
- 		struct dma_debug_entry ref = {
- 			.type           = dma_debug_sg,
- 			.dev            = dev,
--			.pfn		= page_to_pfn(sg_page(s)),
-+			.pfn		= sg_pfn(s),
- 			.offset		= s->offset,
- 			.dev_addr       = sg_dma_address(s),
- 			.size           = sg_dma_len(s),
+ #define VISEntryHalfFast(fail_label)			\
+ 	rd		%fprs, %o5;			\
+@@ -47,7 +41,7 @@
+ 	ba,a,pt		%xcc, fail_label;		\
+ 297:	wr		%o5, FPRS_FEF, %fprs;
+ 
+-#define VISExitHalf					\
++#define VISExitHalfFast					\
+ 	wr		%o5, 0, %fprs;
+ 
+ #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/lib/NG4memcpy.S b/arch/sparc/lib/NG4memcpy.S
+index 140527a..83aeeb1 100644
+--- a/arch/sparc/lib/NG4memcpy.S
++++ b/arch/sparc/lib/NG4memcpy.S
+@@ -240,8 +240,11 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	add		%o0, 0x40, %o0
+ 	bne,pt		%icc, 1b
+ 	 LOAD(prefetch, %g1 + 0x200, #n_reads_strong)
++#ifdef NON_USER_COPY
++	VISExitHalfFast
++#else
+ 	VISExitHalf
+-
++#endif
+ 	brz,pn		%o2, .Lexit
+ 	 cmp		%o2, 19
+ 	ble,pn		%icc, .Lsmall_unaligned
+diff --git a/arch/sparc/lib/VISsave.S b/arch/sparc/lib/VISsave.S
+index b320ae9..a063d84 100644
+--- a/arch/sparc/lib/VISsave.S
++++ b/arch/sparc/lib/VISsave.S
+@@ -44,9 +44,8 @@ vis1:	ldub		[%g6 + TI_FPSAVED], %g3
+ 
+ 	 stx		%g3, [%g6 + TI_GSR]
+ 2:	add		%g6, %g1, %g3
+-	cmp		%o5, FPRS_DU
+-	be,pn		%icc, 6f
+-	 sll		%g1, 3, %g1
++	mov		FPRS_DU | FPRS_DL | FPRS_FEF, %o5
++	sll		%g1, 3, %g1
+ 	stb		%o5, [%g3 + TI_FPSAVED]
+ 	rd		%gsr, %g2
+ 	add		%g6, %g1, %g3
+@@ -80,65 +79,3 @@ vis1:	ldub		[%g6 + TI_FPSAVED], %g3
+ 	.align		32
+ 80:	jmpl		%g7 + %g0, %g0
+ 	 nop
+-
+-6:	ldub		[%g3 + TI_FPSAVED], %o5
+-	or		%o5, FPRS_DU, %o5
+-	add		%g6, TI_FPREGS+0x80, %g2
+-	stb		%o5, [%g3 + TI_FPSAVED]
+-
+-	sll		%g1, 5, %g1
+-	add		%g6, TI_FPREGS+0xc0, %g3
+-	wr		%g0, FPRS_FEF, %fprs
+-	membar		#Sync
+-	stda		%f32, [%g2 + %g1] ASI_BLK_P
+-	stda		%f48, [%g3 + %g1] ASI_BLK_P
+-	membar		#Sync
+-	ba,pt		%xcc, 80f
+-	 nop
+-
+-	.align		32
+-80:	jmpl		%g7 + %g0, %g0
+-	 nop
+-
+-	.align		32
+-VISenterhalf:
+-	ldub		[%g6 + TI_FPDEPTH], %g1
+-	brnz,a,pn	%g1, 1f
+-	 cmp		%g1, 1
+-	stb		%g0, [%g6 + TI_FPSAVED]
+-	stx		%fsr, [%g6 + TI_XFSR]
+-	clr		%o5
+-	jmpl		%g7 + %g0, %g0
+-	 wr		%g0, FPRS_FEF, %fprs
+-
+-1:	bne,pn		%icc, 2f
+-	 srl		%g1, 1, %g1
+-	ba,pt		%xcc, vis1
+-	 sub		%g7, 8, %g7
+-2:	addcc		%g6, %g1, %g3
+-	sll		%g1, 3, %g1
+-	andn		%o5, FPRS_DU, %g2
+-	stb		%g2, [%g3 + TI_FPSAVED]
+-
+-	rd		%gsr, %g2
+-	add		%g6, %g1, %g3
+-	stx		%g2, [%g3 + TI_GSR]
+-	add		%g6, %g1, %g2
+-	stx		%fsr, [%g2 + TI_XFSR]
+-	sll		%g1, 5, %g1
+-3:	andcc		%o5, FPRS_DL, %g0
+-	be,pn		%icc, 4f
+-	 add		%g6, TI_FPREGS, %g2
+-
+-	add		%g6, TI_FPREGS+0x40, %g3
+-	membar		#Sync
+-	stda		%f0, [%g2 + %g1] ASI_BLK_P
+-	stda		%f16, [%g3 + %g1] ASI_BLK_P
+-	membar		#Sync
+-	ba,pt		%xcc, 4f
+-	 nop
+-
+-	.align		32
+-4:	and		%o5, FPRS_DU, %o5
+-	jmpl		%g7 + %g0, %g0
+-	 wr		%o5, FPRS_FEF, %fprs
+diff --git a/arch/sparc/lib/ksyms.c b/arch/sparc/lib/ksyms.c
+index 1d649a9..8069ce1 100644
+--- a/arch/sparc/lib/ksyms.c
++++ b/arch/sparc/lib/ksyms.c
+@@ -135,10 +135,6 @@ EXPORT_SYMBOL(copy_user_page);
+ void VISenter(void);
+ EXPORT_SYMBOL(VISenter);
+ 
+-/* CRYPTO code needs this */
+-void VISenterhalf(void);
+-EXPORT_SYMBOL(VISenterhalf);
+-
+ extern void xor_vis_2(unsigned long, unsigned long *, unsigned long *);
+ extern void xor_vis_3(unsigned long, unsigned long *, unsigned long *,
+ 		unsigned long *);
 -- 
-1.9.1
+2.1.0
 
