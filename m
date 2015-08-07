@@ -1,36 +1,73 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Aug 2015 06:04:21 +0000
-Subject: Re: How to decode RED state exception?
-Message-Id: <20150825.230421.1591691580456453582.davem@davemloft.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 07 Aug 2015 18:34:12 +0000
+Subject: [PATCH] sparc64: use ENTRY/ENDPROC in VISsave
+Message-Id: <20150807183412.GA12019@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1508260820320.1761@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1508260820320.1761@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 26 Aug 2015 08:22:09 +0300 (EEST)
+From 7d8a508d74e6cacf0f2438286a959c3195a35a37 Mon Sep 17 00:00:00 2001
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 7 Aug 2015 20:26:12 +0200
+Subject: [PATCH] sparc64: use ENTRY/ENDPROC in VISsave
 
-> I turned on my E450 over a long time and got spontaneous reboots with 
-> 4.0.0 and 4.1.0 with RED State Exceptions like this. How to decode them 
-> to see if my hardware is failing or software is broken?
+Commit 44922150d87cef616fd183220d43d8fde4d41390
+("sparc64: Fix userspace FPU register corruptions") left a
+stale globl symbol which was not used.
 
-The "TPC/TNPC" values are probably the most interesting from a software
-perspective.  You can match them up to addresses in the kernel image to
-see where they are.
+Fix this and introduce use of ENTRY/ENDPROC
 
-Easiest thing to do is use a 64-bit gdb and do things like:
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+---
 
-(gdb) x/4i 0x407900
+Noticed this while looking through the FPU fix patch.
 
-That covers the first three trap stack entries and then:
+	Sam
 
-(gdb) x/4i 0x449e38
 
-for the fourth and final one.
+ arch/sparc/lib/VISsave.S | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-The RED state trap is happening because we're taking traps
-endless without resolving them until we are out of trap
-stack entries of which there are 4.
+diff --git a/arch/sparc/lib/VISsave.S b/arch/sparc/lib/VISsave.S
+index a063d84..62c2647b 100644
+--- a/arch/sparc/lib/VISsave.S
++++ b/arch/sparc/lib/VISsave.S
+@@ -6,24 +6,23 @@
+  * Copyright (C) 1998 Jakub Jelinek (jj@ultra.linux.cz)
+  */
+ 
++#include <linux/linkage.h>
++
+ #include <asm/asi.h>
+ #include <asm/page.h>
+ #include <asm/ptrace.h>
+ #include <asm/visasm.h>
+ #include <asm/thread_info.h>
+ 
+-	.text
+-	.globl		VISenter, VISenterhalf
+-
+ 	/* On entry: %o5=current FPRS value, %g7 is callers address */
+ 	/* May clobber %o5, %g1, %g2, %g3, %g7, %icc, %xcc */
+ 
+ 	/* Nothing special need be done here to handle pre-emption, this
+ 	 * FPU save/restore mechanism is already preemption safe.
+ 	 */
+-
++	.text
+ 	.align		32
+-VISenter:
++ENTRY(VISenter)
+ 	ldub		[%g6 + TI_FPDEPTH], %g1
+ 	brnz,a,pn	%g1, 1f
+ 	 cmp		%g1, 1
+@@ -79,3 +78,4 @@ vis1:	ldub		[%g6 + TI_FPSAVED], %g3
+ 	.align		32
+ 80:	jmpl		%g7 + %g0, %g0
+ 	 nop
++ENDPROC(VISenter)
+-- 
+2.1.0
+
