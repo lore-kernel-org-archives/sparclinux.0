@@ -1,193 +1,299 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Date: Mon, 10 Aug 2015 09:52:26 +0000
-Subject: [PATCH 69/74] sparc/time: Migrate to new 'set-state' interface
-Message-Id: <1439200352-26767-69-git-send-email-daniel.lezcano@linaro.org>
+From: Eric B Munson <emunson@akamai.com>
+Date: Sun, 09 Aug 2015 05:22:54 +0000
+Subject: [PATCH v7 4/6] mm: mlock: Add mlock flags to enable VM_LOCKONFAULT usage
+Message-Id: <1439097776-27695-5-git-send-email-emunson@akamai.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <55C87382.4070309@linaro.org>
- <1439200352-26767-1-git-send-email-daniel.lezcano@linaro.org>
-In-Reply-To: <1439200352-26767-1-git-send-email-daniel.lezcano@linaro.org>
+References: <1439097776-27695-1-git-send-email-emunson@akamai.com>
+In-Reply-To: <1439097776-27695-1-git-send-email-emunson@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mingo@kernel.org
-Cc: tglx@linutronix.de, linux-kernel@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, John Stultz <john.stultz@linaro.org>, Rusty Russell <rusty@rustcorp.com.au>, Xunlei Pang <pang.xunlei@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Tejun Heo <tj@kernel.org>, Christoph Lameter <cl@linux.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Eric B Munson <emunson@akamai.com>, Michal Hocko <mhocko@suse.cz>, Vlastimil Babka <vbabka@suse.cz>, Jonathan Corbet <corbet@lwn.net>, "Kirill A. Shutemov" <kirill@shutemov.name>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, linux-mm@kvack.org
 
-From: Viresh Kumar <viresh.kumar@linaro.org>
+The previous patch introduced a flag that specified pages in a VMA
+should be placed on the unevictable LRU, but they should not be made
+present when the area is created.  This patch adds the ability to set
+this state via the new mlock system calls.
 
-Migrate sparc drivers to the new 'set-state' interface provided by
-clockevents core, the earlier 'set-mode' interface is marked obsolete
-now.
+We add MLOCK_ONFAULT for mlock2 and MCL_ONFAULT for mlockall.
+MLOCK_ONFAULT will set the VM_LOCKONFAULT modifier for VM_LOCKED.
+MCL_ONFAULT should be used as a modifier to the two other mlockall
+flags.  When used with MCL_CURRENT, all current mappings will be marked
+with VM_LOCKED | VM_LOCKONFAULT.  When used with MCL_FUTURE, the
+mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.  When used
+with both MCL_CURRENT and MCL_FUTURE, all current mappings and
+mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.
 
-This also enables us to implement callbacks for new states of clockevent
-devices, for example: ONESHOT_STOPPED.
+Prior to this patch, mlockall() will unconditionally clear the
+mm->def_flags any time it is called without MCL_FUTURE.  This behavior
+is maintained after adding MCL_ONFAULT.  If a call to
+mlockall(MCL_FUTURE) is followed by mlockall(MCL_CURRENT), the
+mm->def_flags will be cleared and new VMAs will be unlocked.  This
+remains true with or without MCL_ONFAULT in either mlockall()
+invocation.
 
-We weren't doing anything which switching to few clockevent modes and so
-their callbacks aren't implemented.
+munlock() will unconditionally clear both vma flags.  munlockall()
+unconditionally clears for VMA flags on all VMAs and in the
+mm->def_flags field.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Eric B Munson <emunson@akamai.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
 Cc: sparclinux@vger.kernel.org
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-api@vger.kernel.org
+Cc: linux-mm@kvack.org
 ---
- arch/sparc/kernel/sun4m_smp.c |  2 +-
- arch/sparc/kernel/time_32.c   | 57 ++++++++++++++++++++-----------------------
- arch/sparc/kernel/time_64.c   | 33 ++++++++-----------------
- 3 files changed, 38 insertions(+), 54 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h     |  3 ++
+ arch/mips/include/uapi/asm/mman.h      |  6 ++++
+ arch/parisc/include/uapi/asm/mman.h    |  3 ++
+ arch/powerpc/include/uapi/asm/mman.h   |  1 +
+ arch/sparc/include/uapi/asm/mman.h     |  1 +
+ arch/tile/include/uapi/asm/mman.h      |  1 +
+ arch/xtensa/include/uapi/asm/mman.h    |  6 ++++
+ include/uapi/asm-generic/mman-common.h |  5 ++++
+ include/uapi/asm-generic/mman.h        |  1 +
+ mm/mlock.c                             | 53 +++++++++++++++++++++++++---------
+ 10 files changed, 67 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/kernel/sun4m_smp.c b/arch/sparc/kernel/sun4m_smp.c
-index d3408e7..278c40a 100644
---- a/arch/sparc/kernel/sun4m_smp.c
-+++ b/arch/sparc/kernel/sun4m_smp.c
-@@ -247,7 +247,7 @@ void smp4m_percpu_timer_interrupt(struct pt_regs *regs)
+diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+index 0086b47..f2f9496 100644
+--- a/arch/alpha/include/uapi/asm/mman.h
++++ b/arch/alpha/include/uapi/asm/mman.h
+@@ -37,6 +37,9 @@
  
- 	ce = &per_cpu(sparc32_clockevent, cpu);
+ #define MCL_CURRENT	 8192		/* lock all currently mapped pages */
+ #define MCL_FUTURE	16384		/* lock all additions to address space */
++#define MCL_ONFAULT	32768		/* lock all pages that are faulted in */
++
++#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
  
--	if (ce->mode & CLOCK_EVT_MODE_PERIODIC)
-+	if (clockevent_state_periodic(ce))
- 		sun4m_clear_profile_irq(cpu);
- 	else
- 		sparc_config.load_profile_irq(cpu, 0); /* Is this needless? */
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index c9692f3..1affabc 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -101,21 +101,18 @@ irqreturn_t notrace timer_interrupt(int dummy, void *dev_id)
- 	return IRQ_HANDLED;
- }
+ #define MADV_NORMAL	0		/* no further special treatment */
+ #define MADV_RANDOM	1		/* expect random page references */
+diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
+index cfcb876..97c03f4 100644
+--- a/arch/mips/include/uapi/asm/mman.h
++++ b/arch/mips/include/uapi/asm/mman.h
+@@ -61,6 +61,12 @@
+  */
+ #define MCL_CURRENT	1		/* lock all current mappings */
+ #define MCL_FUTURE	2		/* lock all future mappings */
++#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
++
++/*
++ * Flags for mlock
++ */
++#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
  
--static void timer_ce_set_mode(enum clock_event_mode mode,
--			      struct clock_event_device *evt)
-+static int timer_ce_shutdown(struct clock_event_device *evt)
+ #define MADV_NORMAL	0		/* no further special treatment */
+ #define MADV_RANDOM	1		/* expect random page references */
+diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
+index 294d251..ecc3ae1 100644
+--- a/arch/parisc/include/uapi/asm/mman.h
++++ b/arch/parisc/include/uapi/asm/mman.h
+@@ -31,6 +31,9 @@
+ 
+ #define MCL_CURRENT	1		/* lock all current mappings */
+ #define MCL_FUTURE	2		/* lock all future mappings */
++#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
++
++#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
+ 
+ #define MADV_NORMAL     0               /* no further special treatment */
+ #define MADV_RANDOM     1               /* expect random page references */
+diff --git a/arch/powerpc/include/uapi/asm/mman.h b/arch/powerpc/include/uapi/asm/mman.h
+index 6ea26df..03c06ba 100644
+--- a/arch/powerpc/include/uapi/asm/mman.h
++++ b/arch/powerpc/include/uapi/asm/mman.h
+@@ -22,6 +22,7 @@
+ 
+ #define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
+ #define MCL_FUTURE      0x4000          /* lock all additions to address space */
++#define MCL_ONFAULT	0x8000		/* lock all pages that are faulted in */
+ 
+ #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
+index 0b14df3..9765896 100644
+--- a/arch/sparc/include/uapi/asm/mman.h
++++ b/arch/sparc/include/uapi/asm/mman.h
+@@ -17,6 +17,7 @@
+ 
+ #define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
+ #define MCL_FUTURE      0x4000          /* lock all additions to address space */
++#define MCL_ONFAULT	0x8000		/* lock all pages that are faulted in */
+ 
+ #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
+ #define MAP_NONBLOCK	0x10000		/* do not block on IO */
+diff --git a/arch/tile/include/uapi/asm/mman.h b/arch/tile/include/uapi/asm/mman.h
+index 81b8fc3..63ee13f 100644
+--- a/arch/tile/include/uapi/asm/mman.h
++++ b/arch/tile/include/uapi/asm/mman.h
+@@ -36,6 +36,7 @@
+  */
+ #define MCL_CURRENT	1		/* lock all current mappings */
+ #define MCL_FUTURE	2		/* lock all future mappings */
++#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
+ 
+ 
+ #endif /* _ASM_TILE_MMAN_H */
+diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
+index 201aec0..360944e 100644
+--- a/arch/xtensa/include/uapi/asm/mman.h
++++ b/arch/xtensa/include/uapi/asm/mman.h
+@@ -74,6 +74,12 @@
+  */
+ #define MCL_CURRENT	1		/* lock all current mappings */
+ #define MCL_FUTURE	2		/* lock all future mappings */
++#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
++
++/*
++ * Flags for mlock
++ */
++#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
+ 
+ #define MADV_NORMAL	0		/* no further special treatment */
+ #define MADV_RANDOM	1		/* expect random page references */
+diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
+index ddc3b36..a74dd84 100644
+--- a/include/uapi/asm-generic/mman-common.h
++++ b/include/uapi/asm-generic/mman-common.h
+@@ -25,6 +25,11 @@
+ # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
+ #endif
+ 
++/*
++ * Flags for mlock
++ */
++#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
++
+ #define MS_ASYNC	1		/* sync memory asynchronously */
+ #define MS_INVALIDATE	2		/* invalidate the caches */
+ #define MS_SYNC		4		/* synchronous memory sync */
+diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
+index e9fe6fd..7162cd4 100644
+--- a/include/uapi/asm-generic/mman.h
++++ b/include/uapi/asm-generic/mman.h
+@@ -17,5 +17,6 @@
+ 
+ #define MCL_CURRENT	1		/* lock all current mappings */
+ #define MCL_FUTURE	2		/* lock all future mappings */
++#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
+ 
+ #endif /* __ASM_GENERIC_MMAN_H */
+diff --git a/mm/mlock.c b/mm/mlock.c
+index 029a75b..7e1b8c5 100644
+--- a/mm/mlock.c
++++ b/mm/mlock.c
+@@ -506,7 +506,8 @@ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
+ 
+ 	if (newflags = vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma = get_gate_vma(current->mm))
+-		goto out;	/* don't set VM_LOCKED,  don't count */
++		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
++		goto out;
+ 
+ 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
+ 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
+@@ -576,7 +577,8 @@ static int apply_vma_lock_flags(unsigned long start, size_t len,
+ 		prev = vma;
+ 
+ 	for (nstart = start ; ; ) {
+-		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++		vm_flags_t newflags +			vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
+ 
+ 		newflags |= flags;
+ 
+@@ -645,10 +647,15 @@ SYSCALL_DEFINE2(mlock, unsigned long, start, size_t, len)
+ 
+ SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
  {
--	switch (mode) {
--		case CLOCK_EVT_MODE_PERIODIC:
--		case CLOCK_EVT_MODE_RESUME:
--			timer_ce_enabled = 1;
--			break;
--		case CLOCK_EVT_MODE_SHUTDOWN:
--			timer_ce_enabled = 0;
--			break;
--		default:
--			break;
--	}
-+	timer_ce_enabled = 0;
-+	smp_mb();
-+	return 0;
-+}
+-	if (flags)
++	vm_flags_t vm_flags = VM_LOCKED;
 +
-+static int timer_ce_set_periodic(struct clock_event_device *evt)
-+{
-+	timer_ce_enabled = 1;
- 	smp_mb();
-+	return 0;
++	if (flags & ~MLOCK_ONFAULT)
+ 		return -EINVAL;
+ 
+-	return do_mlock(start, len, VM_LOCKED);
++	if (flags & MLOCK_ONFAULT)
++		vm_flags |= VM_LOCKONFAULT;
++
++	return do_mlock(start, len, vm_flags);
  }
  
- static __init void setup_timer_ce(void)
-@@ -127,7 +124,9 @@ static __init void setup_timer_ce(void)
- 	ce->name     = "timer_ce";
- 	ce->rating   = 100;
- 	ce->features = CLOCK_EVT_FEAT_PERIODIC;
--	ce->set_mode = timer_ce_set_mode;
-+	ce->set_state_shutdown = timer_ce_shutdown;
-+	ce->set_state_periodic = timer_ce_set_periodic;
-+	ce->tick_resume = timer_ce_set_periodic;
- 	ce->cpumask  = cpu_possible_mask;
- 	ce->shift    = 32;
- 	ce->mult     = div_sc(sparc_config.clock_rate, NSEC_PER_SEC,
-@@ -183,24 +182,20 @@ static __init int setup_timer_cs(void)
+ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+@@ -665,24 +672,43 @@ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+ 	return ret;
  }
  
- #ifdef CONFIG_SMP
--static void percpu_ce_setup(enum clock_event_mode mode,
--			struct clock_event_device *evt)
-+static int percpu_ce_shutdown(struct clock_event_device *evt)
++/*
++ * Take the MCL_* flags passed into mlockall (or 0 if called from munlockall)
++ * and translate into the appropriate modifications to mm->def_flags and/or the
++ * flags for all current VMAs.
++ *
++ * There are a couple of subtleties with this.  If mlockall() is called multiple
++ * times with different flags, the values do not necessarily stack.  If mlockall
++ * is called once including the MCL_FUTURE flag and then a second time without
++ * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_flags.
++ */
+ static int apply_mlockall_flags(int flags)
  {
- 	int cpu = cpumask_first(evt->cpumask);
+ 	struct vm_area_struct * vma, * prev = NULL;
++	vm_flags_t to_add = 0;
  
--	switch (mode) {
--		case CLOCK_EVT_MODE_PERIODIC:
--			sparc_config.load_profile_irq(cpu,
--						      SBUS_CLOCK_RATE / HZ);
--			break;
--		case CLOCK_EVT_MODE_ONESHOT:
--		case CLOCK_EVT_MODE_SHUTDOWN:
--		case CLOCK_EVT_MODE_UNUSED:
--			sparc_config.load_profile_irq(cpu, 0);
--			break;
--		default:
--			break;
--	}
-+	sparc_config.load_profile_irq(cpu, 0);
-+	return 0;
-+}
+-	if (flags & MCL_FUTURE)
++	current->mm->def_flags &= ~(VM_LOCKED | VM_LOCKONFAULT);
++	if (flags & MCL_FUTURE) {
+ 		current->mm->def_flags |= VM_LOCKED;
+-	else
+-		current->mm->def_flags &= ~VM_LOCKED;
+ 
+-	if (flags = MCL_FUTURE)
+-		goto out;
++		if (flags & MCL_ONFAULT)
++			current->mm->def_flags |= VM_LOCKONFAULT;
 +
-+static int percpu_ce_set_periodic(struct clock_event_device *evt)
-+{
-+	int cpu = cpumask_first(evt->cpumask);
++		if (!(flags & MCL_CURRENT))
++			goto out;
++	}
 +
-+	sparc_config.load_profile_irq(cpu, SBUS_CLOCK_RATE / HZ);
-+	return 0;
- }
++	if (flags & MCL_CURRENT) {
++		to_add |= VM_LOCKED;
++		if (flags & MCL_ONFAULT)
++			to_add |= VM_LOCKONFAULT;
++	}
  
- static int percpu_ce_set_next_event(unsigned long delta,
-@@ -224,7 +219,9 @@ void register_percpu_ce(int cpu)
- 	ce->name           = "percpu_ce";
- 	ce->rating         = 200;
- 	ce->features       = features;
--	ce->set_mode       = percpu_ce_setup;
-+	ce->set_state_shutdown = percpu_ce_shutdown;
-+	ce->set_state_periodic = percpu_ce_set_periodic;
-+	ce->set_state_oneshot = percpu_ce_shutdown;
- 	ce->set_next_event = percpu_ce_set_next_event;
- 	ce->cpumask        = cpumask_of(cpu);
- 	ce->shift          = 32;
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 2e6035c..c69b21e 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -674,32 +674,19 @@ static int sparc64_next_event(unsigned long delta,
- 	return tick_ops->add_compare(delta) ? -ETIME : 0;
- }
+ 	for (vma = current->mm->mmap; vma ; vma = prev->vm_next) {
+ 		vm_flags_t newflags;
  
--static void sparc64_timer_setup(enum clock_event_mode mode,
--				struct clock_event_device *evt)
--{
--	switch (mode) {
--	case CLOCK_EVT_MODE_ONESHOT:
--	case CLOCK_EVT_MODE_RESUME:
--		break;
--
--	case CLOCK_EVT_MODE_SHUTDOWN:
--		tick_ops->disable_irq();
--		break;
--
--	case CLOCK_EVT_MODE_PERIODIC:
--	case CLOCK_EVT_MODE_UNUSED:
--		WARN_ON(1);
--		break;
--	}
-+static int sparc64_timer_shutdown(struct clock_event_device *evt)
-+{
-+	tick_ops->disable_irq();
-+	return 0;
- }
+-		newflags = vma->vm_flags & ~VM_LOCKED;
+-		if (flags & MCL_CURRENT)
+-			newflags |= VM_LOCKED;
++		newflags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
++		newflags |= to_add;
  
- static struct clock_event_device sparc64_clockevent = {
--	.features	= CLOCK_EVT_FEAT_ONESHOT,
--	.set_mode	= sparc64_timer_setup,
--	.set_next_event	= sparc64_next_event,
--	.rating		= 100,
--	.shift		= 30,
--	.irq		= -1,
-+	.features		= CLOCK_EVT_FEAT_ONESHOT,
-+	.set_state_shutdown	= sparc64_timer_shutdown,
-+	.set_next_event		= sparc64_next_event,
-+	.rating			= 100,
-+	.shift			= 30,
-+	.irq			= -1,
- };
- static DEFINE_PER_CPU(struct clock_event_device, sparc64_events);
+ 		/* Ignore errors */
+ 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
+@@ -697,7 +723,8 @@ SYSCALL_DEFINE1(mlockall, int, flags)
+ 	unsigned long lock_limit;
+ 	int ret = -EINVAL;
  
+-	if (!flags || (flags & ~(MCL_CURRENT | MCL_FUTURE)))
++	if (!flags || (flags & ~(MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT)) ||
++	    flags = MCL_ONFAULT)
+ 		goto out;
+ 
+ 	ret = -EPERM;
 -- 
 1.9.1
 
