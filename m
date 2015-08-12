@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 12 Aug 2015 07:05:41 +0000
-Subject: [PATCH 22/31] metag: handle page-less SG entries
-Message-Id: <1439363150-8661-23-git-send-email-hch@lst.de>
+Date: Wed, 12 Aug 2015 07:05:47 +0000
+Subject: [PATCH 28/31] powerpc: handle page-less SG entries
+Message-Id: <1439363150-8661-29-git-send-email-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1439363150-8661-1-git-send-email-hch@lst.de>
 In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
@@ -15,65 +15,37 @@ Make all cache invalidation conditional on sg_has_page().
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/metag/include/asm/dma-mapping.h | 22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ arch/powerpc/kernel/dma.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/metag/include/asm/dma-mapping.h b/arch/metag/include/asm/dma-mapping.h
-index eb5cdec..2ae9057 100644
---- a/arch/metag/include/asm/dma-mapping.h
-+++ b/arch/metag/include/asm/dma-mapping.h
-@@ -55,10 +55,9 @@ dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	WARN_ON(nents = 0 || sglist[0].length = 0);
- 
- 	for_each_sg(sglist, sg, nents, i) {
--		BUG_ON(!sg_page(sg));
--
- 		sg->dma_address = sg_phys(sg);
--		dma_sync_for_device(sg_virt(sg), sg->length, direction);
-+		if (sg_has_page(sg))
-+			dma_sync_for_device(sg_virt(sg), sg->length, direction);
+diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
+index 35e4dcc..cece40b 100644
+--- a/arch/powerpc/kernel/dma.c
++++ b/arch/powerpc/kernel/dma.c
+@@ -135,7 +135,10 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	for_each_sg(sgl, sg, nents, i) {
+ 		sg->dma_address = sg_phys(sg) + get_dma_offset(dev);
+ 		sg->dma_length = sg->length;
+-		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
++		if (sg_has_page(sg)) {
++			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
++					direction);
++		}
  	}
  
  	return nents;
-@@ -94,10 +93,9 @@ dma_unmap_sg(struct device *dev, struct scatterlist *sglist, int nhwentries,
- 	WARN_ON(nhwentries = 0 || sglist[0].length = 0);
- 
- 	for_each_sg(sglist, sg, nhwentries, i) {
--		BUG_ON(!sg_page(sg));
--
- 		sg->dma_address = sg_phys(sg);
--		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
-+		if (sg_has_page(sg))
-+			dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
- 	}
- }
- 
-@@ -140,8 +138,10 @@ dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
+@@ -200,7 +203,10 @@ static inline void dma_direct_sync_sg(struct device *dev,
  	int i;
- 	struct scatterlist *sg;
  
--	for_each_sg(sglist, sg, nelems, i)
--		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
-+	}
+ 	for_each_sg(sgl, sg, nents, i)
+-		__dma_sync_page(sg_page(sg), sg->offset, sg->length, direction);
++		if (sg_has_page(sg)) {
++			__dma_sync_page(sg_page(sg), sg->offset, sg->length,
++					direction);
++		}
  }
  
- static inline void
-@@ -151,8 +151,10 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
- 	int i;
- 	struct scatterlist *sg;
- 
--	for_each_sg(sglist, sg, nelems, i)
--		dma_sync_for_device(sg_virt(sg), sg->length, direction);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			dma_sync_for_device(sg_virt(sg), sg->length, direction);
-+	}
- }
- 
- static inline int
+ static inline void dma_direct_sync_single(struct device *dev,
 -- 
 1.9.1
 
