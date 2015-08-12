@@ -1,138 +1,173 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 14 Aug 2015 06:49:37 +0000
-Subject: [PATCH v5 4/8] perf: Add group reads to perf_event_read()
-Message-Id: <1439534981-7937-5-git-send-email-sukadev@linux.vnet.ibm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 12 Aug 2015 07:05:26 +0000
+Subject: [PATCH 07/31] alpha/pci_iommu: handle page-less SG entries
+Message-Id: <1439363150-8661-8-git-send-email-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1439363150-8661-1-git-send-email-hch@lst.de>
+In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: torvalds@linux-foundation.org, axboe@kernel.dk
+Cc: dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
 
-From: Peter Zijlstra <peterz@infradead.org>
+Use sg_phys() instead of virt_to_phys(sg_virt(sg)) so that we don't
+require a kernel virtual address, and switch a few debug printfs to
+print physical instead of virtual addresses.
 
-Enable perf_event_read() to update entire groups at once, this will be
-useful for read transactions.
-
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Link: http://lkml.kernel.org/r/20150723080435.GE25159@twins.programming.kicks-ass.net
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- kernel/events/core.c |   39 ++++++++++++++++++++++++++++++++-------
- 1 file changed, 32 insertions(+), 7 deletions(-)
+ arch/alpha/kernel/pci_iommu.c | 36 +++++++++++++++---------------------
+ 1 file changed, 15 insertions(+), 21 deletions(-)
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 02095f4..31ec842 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3174,12 +3174,18 @@ void perf_event_exec(void)
- 	rcu_read_unlock();
- }
+diff --git a/arch/alpha/kernel/pci_iommu.c b/arch/alpha/kernel/pci_iommu.c
+index eddee77..5d46b49 100644
+--- a/arch/alpha/kernel/pci_iommu.c
++++ b/arch/alpha/kernel/pci_iommu.c
+@@ -248,20 +248,17 @@ static int pci_dac_dma_supported(struct pci_dev *dev, u64 mask)
+    until either pci_unmap_single or pci_dma_sync_single is performed.  */
  
-+struct perf_read_data {
-+	struct perf_event *event;
-+	bool group;
-+};
-+
- /*
-  * Cross CPU call to read the hardware event
-  */
- static void __perf_event_read(void *info)
+ static dma_addr_t
+-pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
++pci_map_single_1(struct pci_dev *pdev, unsigned long paddr, size_t size,
+ 		 int dac_allowed)
  {
--	struct perf_event *event = info;
-+	struct perf_read_data *data = info;
-+	struct perf_event *sub, *event = data->event;
- 	struct perf_event_context *ctx = event->ctx;
- 	struct perf_cpu_context *cpuctx = __get_cpu_context(ctx);
+ 	struct pci_controller *hose = pdev ? pdev->sysdata : pci_isa_hose;
+ 	dma_addr_t max_dma = pdev ? pdev->dma_mask : ISA_DMA_MASK;
+ 	struct pci_iommu_arena *arena;
+ 	long npages, dma_ofs, i;
+-	unsigned long paddr;
+ 	dma_addr_t ret;
+ 	unsigned int align = 0;
+ 	struct device *dev = pdev ? &pdev->dev : NULL;
  
-@@ -3198,9 +3204,21 @@ static void __perf_event_read(void *info)
- 		update_context_time(ctx);
- 		update_cgrp_time_from_event(event);
+-	paddr = __pa(cpu_addr);
+-
+ #if !DEBUG_NODIRECT
+ 	/* First check to see if we can use the direct map window.  */
+ 	if (paddr + size + __direct_map_base - 1 <= max_dma
+@@ -269,7 +266,7 @@ pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
+ 		ret = paddr + __direct_map_base;
+ 
+ 		DBGA2("pci_map_single: [%p,%zx] -> direct %llx from %pf\n",
+-		      cpu_addr, size, ret, __builtin_return_address(0));
++		      paddr, size, ret, __builtin_return_address(0));
+ 
+ 		return ret;
  	}
-+
- 	update_event_times(event);
- 	if (event->state = PERF_EVENT_STATE_ACTIVE)
- 		event->pmu->read(event);
-+
-+	if (!data->group)
-+		goto unlock;
-+
-+	list_for_each_entry(sub, &event->sibling_list, group_entry) {
-+		update_event_times(sub);
-+		if (sub->state = PERF_EVENT_STATE_ACTIVE)
-+			sub->pmu->read(sub);
-+	}
-+
-+unlock:
- 	raw_spin_unlock(&ctx->lock);
+@@ -280,7 +277,7 @@ pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
+ 		ret = paddr + alpha_mv.pci_dac_offset;
+ 
+ 		DBGA2("pci_map_single: [%p,%zx] -> DAC %llx from %pf\n",
+-		      cpu_addr, size, ret, __builtin_return_address(0));
++		      paddr, size, ret, __builtin_return_address(0));
+ 
+ 		return ret;
+ 	}
+@@ -309,15 +306,15 @@ pci_map_single_1(struct pci_dev *pdev, void *cpu_addr, size_t size,
+ 		return 0;
+ 	}
+ 
++	offset = paddr & ~PAGE_MASK;
+ 	paddr &= PAGE_MASK;
+ 	for (i = 0; i < npages; ++i, paddr += PAGE_SIZE)
+ 		arena->ptes[i + dma_ofs] = mk_iommu_pte(paddr);
+ 
+-	ret = arena->dma_base + dma_ofs * PAGE_SIZE;
+-	ret += (unsigned long)cpu_addr & ~PAGE_MASK;
++	ret = arena->dma_base + dma_ofs * PAGE_SIZE + offset;
+ 
+ 	DBGA2("pci_map_single: [%p,%zx] np %ld -> sg %llx from %pf\n",
+-	      cpu_addr, size, npages, ret, __builtin_return_address(0));
++	      paddr, size, npages, ret, __builtin_return_address(0));
+ 
+ 	return ret;
+ }
+@@ -357,7 +354,7 @@ static dma_addr_t alpha_pci_map_page(struct device *dev, struct page *page,
+ 	BUG_ON(dir = PCI_DMA_NONE);
+ 
+ 	dac_allowed = pdev ? pci_dac_dma_supported(pdev, pdev->dma_mask) : 0; 
+-	return pci_map_single_1(pdev, (char *)page_address(page) + offset, 
++	return pci_map_single_1(pdev, page_to_phys(page) + offset,
+ 				size, dac_allowed);
  }
  
-@@ -3212,15 +3230,19 @@ static inline u64 perf_event_count(struct perf_event *event)
- 	return __perf_event_count(event);
- }
+@@ -453,7 +450,7 @@ try_again:
+ 	}
+ 	memset(cpu_addr, 0, size);
  
--static void perf_event_read(struct perf_event *event)
-+static void perf_event_read(struct perf_event *event, bool group)
+-	*dma_addrp = pci_map_single_1(pdev, cpu_addr, size, 0);
++	*dma_addrp = pci_map_single_1(pdev, __pa(cpu_addr), size, 0);
+ 	if (*dma_addrp = 0) {
+ 		free_pages((unsigned long)cpu_addr, order);
+ 		if (alpha_mv.mv_pci_tbi || (gfp & GFP_DMA))
+@@ -497,9 +494,6 @@ static void alpha_pci_free_coherent(struct device *dev, size_t size,
+    Write dma_length of each leader with the combined lengths of
+    the mergable followers.  */
+ 
+-#define SG_ENT_VIRT_ADDRESS(SG) (sg_virt((SG)))
+-#define SG_ENT_PHYS_ADDRESS(SG) __pa(SG_ENT_VIRT_ADDRESS(SG))
+-
+ static void
+ sg_classify(struct device *dev, struct scatterlist *sg, struct scatterlist *end,
+ 	    int virt_ok)
+@@ -512,13 +506,13 @@ sg_classify(struct device *dev, struct scatterlist *sg, struct scatterlist *end,
+ 	leader = sg;
+ 	leader_flag = 0;
+ 	leader_length = leader->length;
+-	next_paddr = SG_ENT_PHYS_ADDRESS(leader) + leader_length;
++	next_paddr = sg_phys(leader) + leader_length;
+ 
+ 	/* we will not marge sg without device. */
+ 	max_seg_size = dev ? dma_get_max_seg_size(dev) : 0;
+ 	for (++sg; sg < end; ++sg) {
+ 		unsigned long addr, len;
+-		addr = SG_ENT_PHYS_ADDRESS(sg);
++		addr = sg_phys(sg);
+ 		len = sg->length;
+ 
+ 		if (leader_length + len > max_seg_size)
+@@ -555,7 +549,7 @@ sg_fill(struct device *dev, struct scatterlist *leader, struct scatterlist *end,
+ 	struct scatterlist *out, struct pci_iommu_arena *arena,
+ 	dma_addr_t max_dma, int dac_allowed)
  {
- 	/*
- 	 * If event is enabled and currently active on a CPU, update the
- 	 * value in the event structure:
- 	 */
- 	if (event->state = PERF_EVENT_STATE_ACTIVE) {
-+		struct perf_read_data data = {
-+			.event = event,
-+			.group = group,
-+		};
- 		smp_call_function_single(event->oncpu,
--					 __perf_event_read, event, 1);
-+					 __perf_event_read, &data, 1);
- 	} else if (event->state = PERF_EVENT_STATE_INACTIVE) {
- 		struct perf_event_context *ctx = event->ctx;
- 		unsigned long flags;
-@@ -3235,7 +3257,10 @@ static void perf_event_read(struct perf_event *event)
- 			update_context_time(ctx);
- 			update_cgrp_time_from_event(event);
+-	unsigned long paddr = SG_ENT_PHYS_ADDRESS(leader);
++	unsigned long paddr = sg_phys(leader);
+ 	long size = leader->dma_length;
+ 	struct scatterlist *sg;
+ 	unsigned long *ptes;
+@@ -621,7 +615,7 @@ sg_fill(struct device *dev, struct scatterlist *leader, struct scatterlist *end,
+ #endif
+ 
+ 		size = sg->length;
+-		paddr = SG_ENT_PHYS_ADDRESS(sg);
++		paddr = sg_phys(sg);
+ 
+ 		while (sg+1 < end && (int) sg[1].dma_address = -1) {
+ 			size += sg[1].length;
+@@ -636,11 +630,11 @@ sg_fill(struct device *dev, struct scatterlist *leader, struct scatterlist *end,
+ 
+ #if DEBUG_ALLOC > 0
+ 		DBGA("    (%ld) [%p,%x] np %ld\n",
+-		     last_sg - leader, SG_ENT_VIRT_ADDRESS(last_sg),
++		     last_sg - leader, sg_phys(last_sg),
+ 		     last_sg->length, npages);
+ 		while (++last_sg <= sg) {
+ 			DBGA("        (%ld) [%p,%x] cont\n",
+-			     last_sg - leader, SG_ENT_VIRT_ADDRESS(last_sg),
++			     last_sg - leader, sg_phys(last_sg),
+ 			     last_sg->length);
  		}
--		update_event_times(event);
-+		if (group)
-+			update_group_times(event);
-+		else
-+			update_event_times(event);
- 		raw_spin_unlock_irqrestore(&ctx->lock, flags);
+ #endif
+@@ -668,7 +662,7 @@ static int alpha_pci_map_sg(struct device *dev, struct scatterlist *sg,
+ 	if (nents = 1) {
+ 		sg->dma_length = sg->length;
+ 		sg->dma_address
+-		  = pci_map_single_1(pdev, SG_ENT_VIRT_ADDRESS(sg),
++		  = pci_map_single_1(pdev, sg_phys(sg),
+ 				     sg->length, dac_allowed);
+ 		return sg->dma_address != 0;
  	}
- }
-@@ -3750,7 +3775,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- 
- 	mutex_lock(&event->child_mutex);
- 
--	perf_event_read(event);
-+	perf_event_read(event, false);
- 	total += perf_event_count(event);
- 
- 	*enabled += event->total_time_enabled +
-@@ -3759,7 +3784,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- 			atomic64_read(&event->child_total_time_running);
- 
- 	list_for_each_entry(child, &event->child_list, child_list) {
--		perf_event_read(child);
-+		perf_event_read(child, false);
- 		total += perf_event_count(child);
- 		*enabled += child->total_time_enabled;
- 		*running += child->total_time_running;
-@@ -3920,7 +3945,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
- 
- static void _perf_event_reset(struct perf_event *event)
- {
--	perf_event_read(event);
-+	perf_event_read(event, false);
- 	local64_set(&event->count, 0);
- 	perf_event_update_userpage(event);
- }
 -- 
-1.7.9.5
+1.9.1
 
