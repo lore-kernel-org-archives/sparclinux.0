@@ -1,94 +1,84 @@
-From: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Date: Wed, 12 Aug 2015 11:51:58 +0000
-Subject: Re: [PATCH 16/31] s390: handle page-less SG entries
-Message-Id: <alpine.LFD.2.11.1508121350090.1732@denkbrett>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 12 Aug 2015 18:56:34 +0000
+Subject: bisected: boot hang on sparc64 after PCIe changes
+Message-Id: <alpine.LRH.2.20.1508122118210.18637@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de> <1439363150-8661-17-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-17-git-send-email-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: torvalds@linux-foundation.org, axboe@kernel.dk, dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Wed, 12 Aug 2015, Christoph Hellwig wrote:
+4.1.0 worked but 4.2-rc2 hangs on boot after switching console but=20
+before reprinting dmesg to the new console. That happens on 2 of my=20
+sparc64's: T2000 and V245. These happen to have the PCIe slot names in=20
+sysfs so it may be related. The following commit breaks the boot at=20
+least on V245 where I performed the bisection:
 
-> Use sg_phys() instead of page_to_phys(sg_page(sg)) so that we don't
-> require a page structure for all DMA memory.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+d0751b98dfa391f862e02dc36a233a54615e3f1d is the first bad commit
+commit d0751b98dfa391f862e02dc36a233a54615e3f1d
+Author: Yijing Wang <wangyijing@huawei.com>
+Date:   Thu May 21 15:05:02 2015 +0800
 
-Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+    PCI: Add dev->has_secondary_link to track downstream PCIe links
+
+    A PCIe Port is an interface to a Link.  A Root Port is a PCI-PCI bridge=
+ in
+    a Root Complex and has a Link on its secondary (downstream) side.  For
+    other Ports, the Link may be on either the upstream (closer to the Root
+    Complex) or downstream side of the Port.
+
+    The usual topology has a Root Port connected to an Upstream Port.  We
+    previously assumed this was the only possible topology, and that a
+    Downstream Port's Link was always on its downstream side, like this:
+
+                      +---------------------+
+      +------+        |          Downstream |
+      | Root |        | Upstream       Port +--Link--
+      | Port +--Link--+ Port                |
+      +------+        |          Downstream |
+                      |                Port +--Link--
+                      +---------------------+
+
+    But systems do exist (see URL below) where the Root Port is connected t=
+o a
+    Downstream Port.  In this case, a Downstream Port's Link may be on eith=
+er
+    the upstream or downstream side:
+
+                      +---------------------+
+      +------+        |            Upstream |
+      | Root |        | Downstream     Port +--Link--
+      | Port +--Link--+ Port                |
+      +------+        |          Downstream |
+                      |                Port +--Link--
+                      +---------------------+
+
+    We can't use the Port type to determine which side the Link is on, so a=
+dd a
+    bit in struct pci_dev to keep track.
+
+    A Root Port's Link is always on the Port's secondary side.  A component
+    (Endpoint or Port) on the other end of the Link obviously has the Link =
+on
+    its upstream side.  If that component is a Port, it is part of a Switch=
+ or
+    a Bridge.  A Bridge has a PCI or PCI-X bus on its secondary side, not a
+    Link.  The internal bus of a Switch connects the Port to another Port w=
+hose
+    Link is on the downstream side.
+
+    [bhelgaas: changelog, comment, cache "type", use if/else]
+    Link: http://lkml.kernel.org/r/54EB81B2.4050904@pobox.com
+    Link: https://bugzilla.kernel.org/show_bug.cgi?id=94361
+    Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+    Signed-off-by: Yijing Wang <wangyijing@huawei.com>
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+
+:040000 040000 3ab85bca5c0a1bdb75f7b83131482fe63110c96f dc49c2621bd450d16ee=
+a33491a27affc1dab35ce M      drivers
+:040000 040000 37493ef5238ad154ccad6a184617975e8502730e ef846910636ac240587=
+9bcf5395e261df396e266 M      include
 
 
-> ---
->  arch/s390/pci/pci_dma.c | 20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-> index 6fd8d58..aae5a47 100644
-> --- a/arch/s390/pci/pci_dma.c
-> +++ b/arch/s390/pci/pci_dma.c
-> @@ -272,14 +272,13 @@ int dma_set_mask(struct device *dev, u64 mask)
->  }
->  EXPORT_SYMBOL_GPL(dma_set_mask);
->  
-> -static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
-> -				     unsigned long offset, size_t size,
-> +static dma_addr_t s390_dma_map_phys(struct device *dev, unsigned long pa,
-> +				     size_t size,
->  				     enum dma_data_direction direction,
->  				     struct dma_attrs *attrs)
->  {
->  	struct zpci_dev *zdev = get_zdev(to_pci_dev(dev));
->  	unsigned long nr_pages, iommu_page_index;
-> -	unsigned long pa = page_to_phys(page) + offset;
->  	int flags = ZPCI_PTE_VALID;
->  	dma_addr_t dma_addr;
->  
-> @@ -301,7 +300,7 @@ static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
->  
->  	if (!dma_update_trans(zdev, pa, dma_addr, size, flags)) {
->  		atomic64_add(nr_pages, &zdev->mapped_pages);
-> -		return dma_addr + (offset & ~PAGE_MASK);
-> +		return dma_addr + (pa & ~PAGE_MASK);
->  	}
->  
->  out_free:
-> @@ -312,6 +311,16 @@ out_err:
->  	return DMA_ERROR_CODE;
->  }
->  
-> +static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
-> +				     unsigned long offset, size_t size,
-> +				     enum dma_data_direction direction,
-> +				     struct dma_attrs *attrs)
-> +{
-> +	unsigned long pa = page_to_phys(page) + offset;
-> +
-> +	return s390_dma_map_phys(dev, pa, size, direction, attrs);
-> +}
-> +
->  static void s390_dma_unmap_pages(struct device *dev, dma_addr_t dma_addr,
->  				 size_t size, enum dma_data_direction direction,
->  				 struct dma_attrs *attrs)
-> @@ -384,8 +393,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  	int i;
->  
->  	for_each_sg(sg, s, nr_elements, i) {
-> -		struct page *page = sg_page(s);
-> -		s->dma_address = s390_dma_map_pages(dev, page, s->offset,
-> +		s->dma_address = s390_dma_map_phys(dev, sg_phys(s),
->  						    s->length, dir, NULL);
->  		if (!dma_mapping_error(dev, s->dma_address)) {
->  			s->dma_length = s->length;
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
+--=20
+Meelis Roos (mroos@linux.ee)
