@@ -1,84 +1,78 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 12 Aug 2015 18:56:34 +0000
-Subject: bisected: boot hang on sparc64 after PCIe changes
-Message-Id: <alpine.LRH.2.20.1508122118210.18637@math.ut.ee>
+From: wangyijing <wangyijing@huawei.com>
+Date: Thu, 13 Aug 2015 01:08:07 +0000
+Subject: Re: bisected: boot hang on sparc64 after PCIe changes
+Message-Id: <55CBEDF7.5010109@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.LRH.2.20.1508122118210.18637@math.ut.ee>
+In-Reply-To: <alpine.LRH.2.20.1508122118210.18637@math.ut.ee>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-4.1.0 worked but 4.2-rc2 hangs on boot after switching console but=20
-before reprinting dmesg to the new console. That happens on 2 of my=20
-sparc64's: T2000 and V245. These happen to have the PCIe slot names in=20
-sysfs so it may be related. The following commit breaks the boot at=20
-least on V245 where I performed the bisection:
-
-d0751b98dfa391f862e02dc36a233a54615e3f1d is the first bad commit
-commit d0751b98dfa391f862e02dc36a233a54615e3f1d
-Author: Yijing Wang <wangyijing@huawei.com>
-Date:   Thu May 21 15:05:02 2015 +0800
-
-    PCI: Add dev->has_secondary_link to track downstream PCIe links
-
-    A PCIe Port is an interface to a Link.  A Root Port is a PCI-PCI bridge=
- in
-    a Root Complex and has a Link on its secondary (downstream) side.  For
-    other Ports, the Link may be on either the upstream (closer to the Root
-    Complex) or downstream side of the Port.
-
-    The usual topology has a Root Port connected to an Upstream Port.  We
-    previously assumed this was the only possible topology, and that a
-    Downstream Port's Link was always on its downstream side, like this:
-
-                      +---------------------+
-      +------+        |          Downstream |
-      | Root |        | Upstream       Port +--Link--
-      | Port +--Link--+ Port                |
-      +------+        |          Downstream |
-                      |                Port +--Link--
-                      +---------------------+
-
-    But systems do exist (see URL below) where the Root Port is connected t=
-o a
-    Downstream Port.  In this case, a Downstream Port's Link may be on eith=
-er
-    the upstream or downstream side:
-
-                      +---------------------+
-      +------+        |            Upstream |
-      | Root |        | Downstream     Port +--Link--
-      | Port +--Link--+ Port                |
-      +------+        |          Downstream |
-                      |                Port +--Link--
-                      +---------------------+
-
-    We can't use the Port type to determine which side the Link is on, so a=
-dd a
-    bit in struct pci_dev to keep track.
-
-    A Root Port's Link is always on the Port's secondary side.  A component
-    (Endpoint or Port) on the other end of the Link obviously has the Link =
-on
-    its upstream side.  If that component is a Port, it is part of a Switch=
- or
-    a Bridge.  A Bridge has a PCI or PCI-X bus on its secondary side, not a
-    Link.  The internal bus of a Switch connects the Port to another Port w=
-hose
-    Link is on the downstream side.
-
-    [bhelgaas: changelog, comment, cache "type", use if/else]
-    Link: http://lkml.kernel.org/r/54EB81B2.4050904@pobox.com
-    Link: https://bugzilla.kernel.org/show_bug.cgi?id=94361
-    Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
-    Signed-off-by: Yijing Wang <wangyijing@huawei.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-
-:040000 040000 3ab85bca5c0a1bdb75f7b83131482fe63110c96f dc49c2621bd450d16ee=
-a33491a27affc1dab35ce M      drivers
-:040000 040000 37493ef5238ad154ccad6a184617975e8502730e ef846910636ac240587=
-9bcf5395e261df396e266 M      include
-
-
---=20
-Meelis Roos (mroos@linux.ee)
+SGkgTWVlbGlzLCBjb3VsZCB5b3UgcHJvdmlkZSB5b3VyIFBDSSBpbmZvIG9uIHlvdXIgbWFjaGlu
+ZSA/Cgpsc3BjaSAtdnZ2IGFuZCBsc3BjaSAtdHYgY291bGQgaGVscCB1cyB0byBmaW5kIGl0IG91
+dC4KCklmIHlvdSBjb3VsZCBub3QgYm9vdCB1cCB3aXRoIDQuMi1yYzIsIGR1bXAgYWJvdmUgaW5m
+b3JtYXRpb24Kd2l0aCA0LjEuMC4gV2Ugd2FudCB0byBrbm93IHdoYXQgdGhlIHBjaWUgdHJlZSBp
+biB5b3VyIG1hY2hpbmUsIHRoYW5rcyEKClRoYW5rcyEKWWlqaW5nLgoK5ZyoIDIwMTUvOC8xMyAy
+OjU2LCBNZWVsaXMgUm9vcyDlhpnpgZM6Cj4gNC4xLjAgd29ya2VkIGJ1dCA0LjItcmMyIGhhbmdz
+IG9uIGJvb3QgYWZ0ZXIgc3dpdGNoaW5nIGNvbnNvbGUgYnV0IAo+IGJlZm9yZSByZXByaW50aW5n
+IGRtZXNnIHRvIHRoZSBuZXcgY29uc29sZS4gVGhhdCBoYXBwZW5zIG9uIDIgb2YgbXkgCj4gc3Bh
+cmM2NCdzOiBUMjAwMCBhbmQgVjI0NS4gVGhlc2UgaGFwcGVuIHRvIGhhdmUgdGhlIFBDSWUgc2xv
+dCBuYW1lcyBpbiAKPiBzeXNmcyBzbyBpdCBtYXkgYmUgcmVsYXRlZC4gVGhlIGZvbGxvd2luZyBj
+b21taXQgYnJlYWtzIHRoZSBib290IGF0IAo+IGxlYXN0IG9uIFYyNDUgd2hlcmUgSSBwZXJmb3Jt
+ZWQgdGhlIGJpc2VjdGlvbjoKPiAKPiBkMDc1MWI5OGRmYTM5MWY4NjJlMDJkYzM2YTIzM2E1NDYx
+NWUzZjFkIGlzIHRoZSBmaXJzdCBiYWQgY29tbWl0Cj4gY29tbWl0IGQwNzUxYjk4ZGZhMzkxZjg2
+MmUwMmRjMzZhMjMzYTU0NjE1ZTNmMWQKPiBBdXRob3I6IFlpamluZyBXYW5nIDx3YW5neWlqaW5n
+QGh1YXdlaS5jb20+Cj4gRGF0ZTogICBUaHUgTWF5IDIxIDE1OjA1OjAyIDIwMTUgKzA4MDAKPiAK
+PiAgICAgUENJOiBBZGQgZGV2LT5oYXNfc2Vjb25kYXJ5X2xpbmsgdG8gdHJhY2sgZG93bnN0cmVh
+bSBQQ0llIGxpbmtzCj4gCj4gICAgIEEgUENJZSBQb3J0IGlzIGFuIGludGVyZmFjZSB0byBhIExp
+bmsuICBBIFJvb3QgUG9ydCBpcyBhIFBDSS1QQ0kgYnJpZGdlIGluCj4gICAgIGEgUm9vdCBDb21w
+bGV4IGFuZCBoYXMgYSBMaW5rIG9uIGl0cyBzZWNvbmRhcnkgKGRvd25zdHJlYW0pIHNpZGUuICBG
+b3IKPiAgICAgb3RoZXIgUG9ydHMsIHRoZSBMaW5rIG1heSBiZSBvbiBlaXRoZXIgdGhlIHVwc3Ry
+ZWFtIChjbG9zZXIgdG8gdGhlIFJvb3QKPiAgICAgQ29tcGxleCkgb3IgZG93bnN0cmVhbSBzaWRl
+IG9mIHRoZSBQb3J0Lgo+IAo+ICAgICBUaGUgdXN1YWwgdG9wb2xvZ3kgaGFzIGEgUm9vdCBQb3J0
+IGNvbm5lY3RlZCB0byBhbiBVcHN0cmVhbSBQb3J0LiAgV2UKPiAgICAgcHJldmlvdXNseSBhc3N1
+bWVkIHRoaXMgd2FzIHRoZSBvbmx5IHBvc3NpYmxlIHRvcG9sb2d5LCBhbmQgdGhhdCBhCj4gICAg
+IERvd25zdHJlYW0gUG9ydCdzIExpbmsgd2FzIGFsd2F5cyBvbiBpdHMgZG93bnN0cmVhbSBzaWRl
+LCBsaWtlIHRoaXM6Cj4gCj4gICAgICAgICAgICAgICAgICAgICAgICstLS0tLS0tLS0tLS0tLS0t
+LS0tLS0rCj4gICAgICAgKy0tLS0tLSsgICAgICAgIHwgICAgICAgICAgRG93bnN0cmVhbSB8Cj4g
+ICAgICAgfCBSb290IHwgICAgICAgIHwgVXBzdHJlYW0gICAgICAgUG9ydCArLS1MaW5rLS0KPiAg
+ICAgICB8IFBvcnQgKy0tTGluay0tKyBQb3J0ICAgICAgICAgICAgICAgIHwKPiAgICAgICArLS0t
+LS0tKyAgICAgICAgfCAgICAgICAgICBEb3duc3RyZWFtIHwKPiAgICAgICAgICAgICAgICAgICAg
+ICAgfCAgICAgICAgICAgICAgICBQb3J0ICstLUxpbmstLQo+ICAgICAgICAgICAgICAgICAgICAg
+ICArLS0tLS0tLS0tLS0tLS0tLS0tLS0tKwo+IAo+ICAgICBCdXQgc3lzdGVtcyBkbyBleGlzdCAo
+c2VlIFVSTCBiZWxvdykgd2hlcmUgdGhlIFJvb3QgUG9ydCBpcyBjb25uZWN0ZWQgdG8gYQo+ICAg
+ICBEb3duc3RyZWFtIFBvcnQuICBJbiB0aGlzIGNhc2UsIGEgRG93bnN0cmVhbSBQb3J0J3MgTGlu
+ayBtYXkgYmUgb24gZWl0aGVyCj4gICAgIHRoZSB1cHN0cmVhbSBvciBkb3duc3RyZWFtIHNpZGU6
+Cj4gCj4gICAgICAgICAgICAgICAgICAgICAgICstLS0tLS0tLS0tLS0tLS0tLS0tLS0rCj4gICAg
+ICAgKy0tLS0tLSsgICAgICAgIHwgICAgICAgICAgICBVcHN0cmVhbSB8Cj4gICAgICAgfCBSb290
+IHwgICAgICAgIHwgRG93bnN0cmVhbSAgICAgUG9ydCArLS1MaW5rLS0KPiAgICAgICB8IFBvcnQg
+Ky0tTGluay0tKyBQb3J0ICAgICAgICAgICAgICAgIHwKPiAgICAgICArLS0tLS0tKyAgICAgICAg
+fCAgICAgICAgICBEb3duc3RyZWFtIHwKPiAgICAgICAgICAgICAgICAgICAgICAgfCAgICAgICAg
+ICAgICAgICBQb3J0ICstLUxpbmstLQo+ICAgICAgICAgICAgICAgICAgICAgICArLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tKwo+IAo+ICAgICBXZSBjYW4ndCB1c2UgdGhlIFBvcnQgdHlwZSB0byBkZXRl
+cm1pbmUgd2hpY2ggc2lkZSB0aGUgTGluayBpcyBvbiwgc28gYWRkIGEKPiAgICAgYml0IGluIHN0
+cnVjdCBwY2lfZGV2IHRvIGtlZXAgdHJhY2suCj4gCj4gICAgIEEgUm9vdCBQb3J0J3MgTGluayBp
+cyBhbHdheXMgb24gdGhlIFBvcnQncyBzZWNvbmRhcnkgc2lkZS4gIEEgY29tcG9uZW50Cj4gICAg
+IChFbmRwb2ludCBvciBQb3J0KSBvbiB0aGUgb3RoZXIgZW5kIG9mIHRoZSBMaW5rIG9idmlvdXNs
+eSBoYXMgdGhlIExpbmsgb24KPiAgICAgaXRzIHVwc3RyZWFtIHNpZGUuICBJZiB0aGF0IGNvbXBv
+bmVudCBpcyBhIFBvcnQsIGl0IGlzIHBhcnQgb2YgYSBTd2l0Y2ggb3IKPiAgICAgYSBCcmlkZ2Uu
+ICBBIEJyaWRnZSBoYXMgYSBQQ0kgb3IgUENJLVggYnVzIG9uIGl0cyBzZWNvbmRhcnkgc2lkZSwg
+bm90IGEKPiAgICAgTGluay4gIFRoZSBpbnRlcm5hbCBidXMgb2YgYSBTd2l0Y2ggY29ubmVjdHMg
+dGhlIFBvcnQgdG8gYW5vdGhlciBQb3J0IHdob3NlCj4gICAgIExpbmsgaXMgb24gdGhlIGRvd25z
+dHJlYW0gc2lkZS4KPiAKPiAgICAgW2JoZWxnYWFzOiBjaGFuZ2Vsb2csIGNvbW1lbnQsIGNhY2hl
+ICJ0eXBlIiwgdXNlIGlmL2Vsc2VdCj4gICAgIExpbms6IGh0dHA6Ly9sa21sLmtlcm5lbC5vcmcv
+ci81NEVCODFCMi40MDUwOTA0QHBvYm94LmNvbQo+ICAgICBMaW5rOiBodHRwczovL2J1Z3ppbGxh
+Lmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lklDM2MQo+ICAgICBTdWdnZXN0ZWQtYnk6IEJqb3Ju
+IEhlbGdhYXMgPGJoZWxnYWFzQGdvb2dsZS5jb20+Cj4gICAgIFNpZ25lZC1vZmYtYnk6IFlpamlu
+ZyBXYW5nIDx3YW5neWlqaW5nQGh1YXdlaS5jb20+Cj4gICAgIFNpZ25lZC1vZmYtYnk6IEJqb3Ju
+IEhlbGdhYXMgPGJoZWxnYWFzQGdvb2dsZS5jb20+Cj4gCj4gOjA0MDAwMCAwNDAwMDAgM2FiODVi
+Y2E1YzBhMWJkYjc1ZjdiODMxMzE0ODJmZTYzMTEwYzk2ZiBkYzQ5YzI2MjFiZDQ1MGQxNmVlYTMz
+NDkxYTI3YWZmYzFkYWIzNWNlIE0gICAgICBkcml2ZXJzCj4gOjA0MDAwMCAwNDAwMDAgMzc0OTNl
+ZjUyMzhhZDE1NGNjYWQ2YTE4NDYxNzk3NWU4NTAyNzMwZSBlZjg0NjkxMDYzNmFjMjQwNTg3OWJj
+ZjUzOTVlMjYxZGYzOTZlMjY2IE0gICAgICBpbmNsdWRlCj4gCj4gCgotLQpUbyB1bnN1YnNjcmli
+ZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIg
+aW4KdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9y
+ZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5m
+by5odG1s
