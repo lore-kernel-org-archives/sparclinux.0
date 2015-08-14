@@ -1,66 +1,106 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 12 Aug 2015 07:05:43 +0000
-Subject: [PATCH 24/31] xtensa: handle page-less SG entries
-Message-Id: <1439363150-8661-25-git-send-email-hch@lst.de>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:40 +0000
+Subject: [PATCH v5 7/8] Define PERF_PMU_TXN_READ interface
+Message-Id: <1439534981-7937-8-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-Make all cache invalidation conditional on sg_has_page().
+Define a new PERF_PMU_TXN_READ interface to read a group of counters
+at once.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+        pmu->start_txn()                // Initialize before first event
+
+        for each event in group
+                pmu->read(event);       // Queue each event to be read
+
+        rc = pmu->commit_txn()          // Read/update all queued counters
+
+Note that we use this interface with all PMUs.  PMUs that implement this
+interface use the ->read() operation to _queue_ the counters to be read
+and use ->commit_txn() to actually read all the queued counters at once.
+
+PMUs that don't implement PERF_PMU_TXN_READ ignore ->start_txn() and
+->commit_txn() and continue to read counters one at a time.
+
+Thanks to input from Peter Zijlstra.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
- arch/xtensa/include/asm/dma-mapping.h | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+Changelog[v4]
+        - [Peter Zijlstra] Add lockdep_assert_held() in perf_event_read_group().
+          Make sure the entire transaction happens on the same CPU.
+---
+ include/linux/perf_event.h |    1 +
+ kernel/events/core.c       |   24 +++++++++++++++++++-----
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
-diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
-index 1f5f6dc..262a1d1 100644
---- a/arch/xtensa/include/asm/dma-mapping.h
-+++ b/arch/xtensa/include/asm/dma-mapping.h
-@@ -61,10 +61,9 @@ dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	BUG_ON(direction = DMA_NONE);
+diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
+index 44bf05f..da307ad 100644
+--- a/include/linux/perf_event.h
++++ b/include/linux/perf_event.h
+@@ -169,6 +169,7 @@ struct perf_event;
+ #define PERF_EVENT_TXN 0x1
  
- 	for_each_sg(sglist, sg, nents, i) {
--		BUG_ON(!sg_page(sg));
--
- 		sg->dma_address = sg_phys(sg);
--		consistent_sync(sg_virt(sg), sg->length, direction);
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, direction);
+ #define PERF_PMU_TXN_ADD  0x1		/* txn to add/schedule event on PMU */
++#define PERF_PMU_TXN_READ 0x2		/* txn to read event group from PMU */
+ 
+ /**
+  * pmu::capabilities flags
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index e3ce047..fde2f43 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -3189,6 +3189,7 @@ static void __perf_event_read(void *info)
+ 	struct perf_event *sub, *event = data->event;
+ 	struct perf_event_context *ctx = event->ctx;
+ 	struct perf_cpu_context *cpuctx = __get_cpu_context(ctx);
++	struct pmu *pmu = event->pmu;
+ 
+ 	/*
+ 	 * If this is a task context, we need to check whether it is
+@@ -3207,18 +3208,31 @@ static void __perf_event_read(void *info)
  	}
  
- 	return nents;
-@@ -131,8 +130,10 @@ dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
- 	int i;
- 	struct scatterlist *sg;
+ 	update_event_times(event);
+-	if (event->state = PERF_EVENT_STATE_ACTIVE)
+-		event->pmu->read(event);
++	if (event->state != PERF_EVENT_STATE_ACTIVE)
++		goto unlock;
  
--	for_each_sg(sglist, sg, nelems, i)
--		consistent_sync(sg_virt(sg), sg->length, dir);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, dir);
+-	if (!data->group)
++	if (!data->group) {
++		pmu->read(event);
++		data->ret = 0;
+ 		goto unlock;
 +	}
- }
++
++	pmu->start_txn(pmu, PERF_PMU_TXN_READ);
++
++	pmu->read(event);
  
- static inline void
-@@ -142,8 +143,10 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
- 	int i;
- 	struct scatterlist *sg;
+ 	list_for_each_entry(sub, &event->sibling_list, group_entry) {
+ 		update_event_times(sub);
+-		if (sub->state = PERF_EVENT_STATE_ACTIVE)
++		if (sub->state = PERF_EVENT_STATE_ACTIVE) {
++			/*
++			 * Use sibling's PMU rather than @event's since
++			 * sibling could be on different (eg: software) PMU.
++			 */
+ 			sub->pmu->read(sub);
++		}
+ 	}
+-	data->ret = 0;
++
++	data->ret = pmu->commit_txn(pmu);
  
--	for_each_sg(sglist, sg, nelems, i)
--		consistent_sync(sg_virt(sg), sg->length, dir);
-+	for_each_sg(sglist, sg, nelems, i) {
-+		if (sg_has_page(sg))
-+			consistent_sync(sg_virt(sg), sg->length, dir);
-+	}
- }
- static inline int
- dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ unlock:
+ 	raw_spin_unlock(&ctx->lock);
 -- 
-1.9.1
+1.7.9.5
 
