@@ -1,231 +1,247 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Wed, 26 Aug 2015 18:24:19 +0000
-Subject: [PATCH v8 0/6] Allow user to request memory to be locked on page fault
-Message-Id: <1440613465-30393-1-git-send-email-emunson@akamai.com>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:41 +0000
+Subject: [PATCH v5 8/8] powerpc/perf/hv-24x7: Use PERF_PMU_TXN_READ interface
+Message-Id: <1439534981-7937-9-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric B Munson <emunson@akamai.com>, Shuah Khan <shuahkh@osg.samsung.com>, Michal Hocko <mhocko@suse.cz>, Michael Kerrisk <mtk.manpages@gmail.com>, Vlastimil Babka <vbabka@suse.cz>, Jonathan Corbet <corbet@lwn.net>, Ralf Baechle <ralf@linux-mips.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-mlock() allows a user to control page out of program memory, but this
-comes at the cost of faulting in the entire mapping when it is
-allocated.  For large mappings where the entire area is not necessary
-this is not ideal.  Instead of forcing all locked pages to be present
-when they are allocated, this set creates a middle ground.  Pages are
-marked to be placed on the unevictable LRU (locked) when they are first
-used, but they are not faulted in by the mlock call.
+The 24x7 counters in Powerpc allow monitoring a large number of counters
+simultaneously. They also allow reading several counters in a single
+HCALL so we can get a more consistent snapshot of the system.
 
-This series introduces a new mlock() system call that takes a flags
-argument along with the start address and size.  This flags argument
-gives the caller the ability to request memory be locked in the
-traditional way, or to be locked after the page is faulted in.  A new
-MCL flag is added to mirror the lock on fault behavior from mlock() in
-mlockall().
+Use the PMU's transaction interface to monitor and read several event
+counters at once. The idea is that users can group several 24x7 events
+into a single group of events. We use the following logic to submit
+the group of events to the PMU and read the values:
 
-There are two main use cases that this set covers.  The first is the
-security focussed mlock case.  A buffer is needed that cannot be written
-to swap.  The maximum size is known, but on average the memory used is
-significantly less than this maximum.  With lock on fault, the buffer
-is guaranteed to never be paged out without consuming the maximum size
-every time such a buffer is created.
+	pmu->start_txn()		// Initialize before first event
 
-The second use case is focussed on performance.  Portions of a large
-file are needed and we want to keep the used portions in memory once
-accessed.  This is the case for large graphical models where the path
-through the graph is not known until run time.  The entire graph is
-unlikely to be used in a given invocation, but once a node has been
-used it needs to stay resident for further processing.  Given these
-constraints we have a number of options.  We can potentially waste a
-large amount of memory by mlocking the entire region (this can also
-cause a significant stall at startup as the entire file is read in).
-We can mlock every page as we access them without tracking if the page
-is already resident but this introduces large overhead for each access.
-The third option is mapping the entire region with PROT_NONE and using
-a signal handler for SIGSEGV to mprotect(PROT_READ) and mlock() the
-needed page.  Doing this page at a time adds a significant performance
-penalty.  Batching can be used to mitigate this overhead, but in order
-to safely avoid trying to mprotect pages outside of the mapping, the
-boundaries of each mapping to be used in this way must be tracked and
-available to the signal handler.  This is precisely what the mm system
-in the kernel should already be doing.
+	for each event in group
+		pmu->read(event);	// Queue each event to be read
 
-For mlock(MLOCK_ONFAULT) the user is charged against RLIMIT_MEMLOCK as
-if mlock(MLOCK_LOCKED) or mmap(MAP_LOCKED) was used, so when the VMA is
-created not when the pages are faulted in.  For mlockall(MCL_ONFAULT)
-the user is charged as if MCL_FUTURE was used.  This decision was made
-to keep the accounting checks out of the page fault path.
+	pmu->commit_txn()		// Read/update all queuedcounters
 
-To illustrate the benefit of this set I wrote a test program that mmaps
-a 5 GB file filled with random data and then makes 15,000,000 accesses
-to random addresses in that mapping.  The test program was run 20 times
-for each setup.  Results are reported for two program portions, setup
-and execution.  The setup phase is calling mmap and optionally mlock on
-the entire region.  For most experiments this is trivial, but it
-highlights the cost of faulting in the entire region.  Results are
-averages across the 20 runs in milliseconds.
+The ->commit_txn() also updates the event counts in the respective
+perf_event objects.  The perf subsystem can then directly get the
+event counts from the perf_event and can avoid submitting a new
+->read() request to the PMU.
 
-mmap with mlock(MLOCK_LOCKED) on entire range:
-Setup avg:      8228.666
-Processing avg: 8274.257
+Thanks to input from Peter Zijlstra.
 
-mmap with mlock(MLOCK_LOCKED) before each access:
-Setup avg:      0.113
-Processing avg: 90993.552
-
-mmap with PROT_NONE and signal handler and batch size of 1 page:
-With the default value in max_map_count, this gets ENOMEM as I attempt
-to change the permissions, after upping the sysctl significantly I get:
-Setup avg:      0.058
-Processing avg: 69488.073
-mmap with PROT_NONE and signal handler and batch size of 8 pages:
-Setup avg:      0.068
-Processing avg: 38204.116
-
-mmap with PROT_NONE and signal handler and batch size of 16 pages:
-Setup avg:      0.044
-Processing avg: 29671.180
-
-mmap with mlock(MLOCK_ONFAULT) on entire range:
-Setup avg:      0.189
-Processing avg: 17904.899
-
-The signal handler in the batch cases faulted in memory in two steps to
-avoid having to know the start and end of the faulting mapping.  The
-first step covers the page that caused the fault as we know that it will
-be possible to lock.  The second step speculatively tries to mlock and
-mprotect the batch size - 1 pages that follow.  There may be a clever
-way to avoid this without having the program track each mapping to be
-covered by this handeler in a globally accessible structure, but I could
-not find it.  It should be noted that with a large enough batch size
-this two step fault handler can still cause the program to crash if it
-reaches far beyond the end of the mapping.
-
-These results show that if the developer knows that a majority of the
-mapping will be used, it is better to try and fault it in at once,
-otherwise mlock(MLOCK_ONFAULT) is significantly faster.
-
-The performance cost of these patches are minimal on the two benchmarks
-I have tested (stream and kernbench).  The following are the average
-values across 20 runs of stream and 10 runs of kernbench after a warmup
-run whose results were discarded.
-
-Avg throughput in MB/s from stream using 1000000 element arrays
-Test     4.2-rc1      4.2-rc1+lock-on-fault
-Copy:    10,566.5     10,421
-Scale:   10,685       10,503.5
-Add:     12,044.1     11,814.2
-Triad:   12,064.8     11,846.3
-
-Kernbench optimal load
-                 4.2-rc1  4.2-rc1+lock-on-fault
-Elapsed Time     78.453   78.991
-User Time        64.2395  65.2355
-System Time      9.7335   9.7085
-Context Switches 22211.5  22412.1
-Sleeps           14965.3  14956.1
-
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
-Changes from V7:
-* Do not expose the VM_LOCKONFAULT flag to userspace via proc
-* Fix mlock2 self tests
+Changelog[v3]
+	- [Peter Zijlstra] Save the transaction state in ->start_txn() and
+	  remove the flags parameter from ->commit_txn() and ->cancel_txn().
+---
+ arch/powerpc/perf/hv-24x7.c |  166 ++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 164 insertions(+), 2 deletions(-)
 
-Changes from V6:
-* Bump the x86 system call number to avoid collision with userfaultfd
-* Fix FOLL_POPULATE and FOLL_MLOCK usage when mmap is called with
- MAP_POPULATE
-* Add documentation for the proc smaps change
-* checkpatch fixes
-
-Changes from V5:
-Drop MLOCK_LOCKED flag
-* MLOCK_ONFAULT and MCL_ONFAULT are treated as a modifier to other locking
- operations, mirroring the relationship between VM_LOCKED and
- VM_LOCKONFAULT
-* Drop mmap flag and related tests
-* Fix clearing of MCL_CURRENT when mlockall is called with MCL_FUTURE,
- mlockall behavoir now matches the old behavior WRT to ordering
-
-Changes from V4:
-Drop all architectures for new sys call entries except x86[_64] and MIPS
-Drop munlock2 and munlockall2
-Make VM_LOCKONFAULT a modifier to VM_LOCKED only to simplify book keeping
-Adjust tests to match
-
-Changes from V3:
-Ensure that pages present when mlock2(MLOCK_ONFAULT) is called are locked
-Ensure that VM_LOCKONFAULT is handled in cases that used to only check VM_LOCKED
-Add tests for new system calls
-Add missing syscall entries, fix NR_syscalls on multiple arch's
-Add missing MAP_LOCKONFAULT for tile
-
-Changes from V2:
-Added new system calls for mlock, munlock, and munlockall with added
-flags arguments for controlling how memory is locked or unlocked.
-
-Eric B Munson (6):
-  mm: mlock: Refactor mlock, munlock, and munlockall code
-  mm: mlock: Add new mlock system call
-  mm: Introduce VM_LOCKONFAULT
-  mm: mlock: Add mlock flags to enable VM_LOCKONFAULT usage
-  selftests: vm: Add tests for lock on fault
-  mips: Add entry for new mlock2 syscall
-
- arch/alpha/include/uapi/asm/mman.h          |   3 +
- arch/mips/include/uapi/asm/mman.h           |   6 +
- arch/mips/include/uapi/asm/unistd.h         |  15 +-
- arch/mips/kernel/scall32-o32.S              |   1 +
- arch/mips/kernel/scall64-64.S               |   1 +
- arch/mips/kernel/scall64-n32.S              |   1 +
- arch/mips/kernel/scall64-o32.S              |   1 +
- arch/parisc/include/uapi/asm/mman.h         |   3 +
- arch/powerpc/include/uapi/asm/mman.h        |   1 +
- arch/sparc/include/uapi/asm/mman.h          |   1 +
- arch/tile/include/uapi/asm/mman.h           |   1 +
- arch/x86/entry/syscalls/syscall_32.tbl      |   1 +
- arch/x86/entry/syscalls/syscall_64.tbl      |   1 +
- arch/xtensa/include/uapi/asm/mman.h         |   6 +
- include/linux/mm.h                          |   5 +
- include/linux/syscalls.h                    |   2 +
- include/uapi/asm-generic/mman-common.h      |   5 +
- include/uapi/asm-generic/mman.h             |   1 +
- include/uapi/asm-generic/unistd.h           |   4 +-
- kernel/fork.c                               |   2 +-
- kernel/sys_ni.c                             |   1 +
- mm/debug.c                                  |   1 +
- mm/gup.c                                    |  10 +-
- mm/huge_memory.c                            |   2 +-
- mm/hugetlb.c                                |   4 +-
- mm/mlock.c                                  |  86 +++-
- mm/mmap.c                                   |   2 +-
- mm/rmap.c                                   |   6 +-
- tools/testing/selftests/vm/Makefile         |   2 +
- tools/testing/selftests/vm/mlock2-tests.c   | 737 ++++++++++++++++++++++++++++
- tools/testing/selftests/vm/on-fault-limit.c |  47 ++
- tools/testing/selftests/vm/run_vmtests      |  22 +
- 32 files changed, 941 insertions(+), 40 deletions(-)
- create mode 100644 tools/testing/selftests/vm/mlock2-tests.c
- create mode 100644 tools/testing/selftests/vm/on-fault-limit.c
-
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-api@vger.kernel.org
-
+diff --git a/arch/powerpc/perf/hv-24x7.c b/arch/powerpc/perf/hv-24x7.c
+index 4d1a8d1..c4eee39 100644
+--- a/arch/powerpc/perf/hv-24x7.c
++++ b/arch/powerpc/perf/hv-24x7.c
+@@ -142,6 +142,15 @@ static struct attribute_group event_long_desc_group = {
+ 
+ static struct kmem_cache *hv_page_cache;
+ 
++DEFINE_PER_CPU(int, hv_24x7_txn_flags);
++DEFINE_PER_CPU(int, hv_24x7_txn_err);
++
++struct hv_24x7_hw {
++	struct perf_event *events[255];
++};
++
++DEFINE_PER_CPU(struct hv_24x7_hw, hv_24x7_hw);
++
+ /*
+  * request_buffer and result_buffer are not required to be 4k aligned,
+  * but are not allowed to cross any 4k boundary. Aligning them to 4k is
+@@ -1233,9 +1242,48 @@ static void update_event_count(struct perf_event *event, u64 now)
+ static void h_24x7_event_read(struct perf_event *event)
+ {
+ 	u64 now;
++	struct hv_24x7_request_buffer *request_buffer;
++	struct hv_24x7_hw *h24x7hw;
++	int txn_flags;
++
++	txn_flags = __this_cpu_read(hv_24x7_txn_flags);
++
++	/*
++	 * If in a READ transaction, add this counter to the list of
++	 * counters to read during the next HCALL (i.e commit_txn()).
++	 * If not in a READ transaction, go ahead and make the HCALL
++	 * to read this counter by itself.
++	 */
++
++	if (txn_flags & PERF_PMU_TXN_READ) {
++		int i;
++		int ret;
+ 
+-	now = h_24x7_get_value(event);
+-	update_event_count(event, now);
++		if (__this_cpu_read(hv_24x7_txn_err))
++			return;
++
++		request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
++
++		ret = add_event_to_24x7_request(event, request_buffer);
++		if (ret) {
++			__this_cpu_write(hv_24x7_txn_err, ret);
++		} else {
++			/*
++			 * Assoicate the event with the HCALL request index,
++			 * so ->commit_txn() can quickly find/update count.
++			 */
++			i = request_buffer->num_requests - 1;
++
++			h24x7hw = &get_cpu_var(hv_24x7_hw);
++			h24x7hw->events[i] = event;
++			put_cpu_var(h24x7hw);
++		}
++
++		put_cpu_var(hv_24x7_reqb);
++	} else {
++		now = h_24x7_get_value(event);
++		update_event_count(event, now);
++	}
+ }
+ 
+ static void h_24x7_event_start(struct perf_event *event, int flags)
+@@ -1257,6 +1305,117 @@ static int h_24x7_event_add(struct perf_event *event, int flags)
+ 	return 0;
+ }
+ 
++/*
++ * 24x7 counters only support READ transactions. They are
++ * always counting and dont need/support ADD transactions.
++ * Cache the flags, but otherwise ignore transactions that
++ * are not PERF_PMU_TXN_READ.
++ */
++static void h_24x7_event_start_txn(struct pmu *pmu, int flags)
++{
++	struct hv_24x7_request_buffer *request_buffer;
++	struct hv_24x7_data_result_buffer *result_buffer;
++
++	/* We should not be called if we are already in a txn */
++	WARN_ON_ONCE(__this_cpu_read(hv_24x7_txn_flags));
++
++	__this_cpu_write(hv_24x7_txn_flags, flags);
++	if (flags & ~PERF_PMU_TXN_READ)
++		return;
++
++	request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
++	result_buffer = (void *)get_cpu_var(hv_24x7_resb);
++
++	init_24x7_request(request_buffer, result_buffer);
++
++	put_cpu_var(hv_24x7_resb);
++	put_cpu_var(hv_24x7_reqb);
++}
++
++/*
++ * Clean up transaction state.
++ *
++ * NOTE: Ignore state of request and result buffers for now.
++ *	 We will initialize them during the next read/txn.
++ */
++static void reset_txn(void)
++{
++	__this_cpu_write(hv_24x7_txn_flags, 0);
++	__this_cpu_write(hv_24x7_txn_err, 0);
++}
++
++/*
++ * 24x7 counters only support READ transactions. They are always counting
++ * and dont need/support ADD transactions. Clear ->txn_flags but otherwise
++ * ignore transactions that are not of type PERF_PMU_TXN_READ.
++ *
++ * For READ transactions, submit all pending 24x7 requests (i.e requests
++ * that were queued by h_24x7_event_read()), to the hypervisor and update
++ * the event counts.
++ */
++static int h_24x7_event_commit_txn(struct pmu *pmu)
++{
++	struct hv_24x7_request_buffer *request_buffer;
++	struct hv_24x7_data_result_buffer *result_buffer;
++	struct hv_24x7_result *resb;
++	struct perf_event *event;
++	u64 count;
++	int i, ret, txn_flags;
++	struct hv_24x7_hw *h24x7hw;
++
++	txn_flags = __this_cpu_read(hv_24x7_txn_flags);
++	WARN_ON_ONCE(!txn_flags);
++
++	ret = 0;
++	if (txn_flags & ~PERF_PMU_TXN_READ)
++		goto out;
++
++	ret = __this_cpu_read(hv_24x7_txn_err);
++	if (ret)
++		goto out;
++
++	request_buffer = (void *)get_cpu_var(hv_24x7_reqb);
++	result_buffer = (void *)get_cpu_var(hv_24x7_resb);
++
++	ret = make_24x7_request(request_buffer, result_buffer);
++	if (ret) {
++		log_24x7_hcall(request_buffer, result_buffer, ret);
++		goto put_reqb;
++	}
++
++	h24x7hw = &get_cpu_var(hv_24x7_hw);
++
++	/* Update event counts from hcall */
++	for (i = 0; i < request_buffer->num_requests; i++) {
++		resb = &result_buffer->results[i];
++		count = be64_to_cpu(resb->elements[0].element_data[0]);
++		event = h24x7hw->events[i];
++		h24x7hw->events[i] = NULL;
++		update_event_count(event, count);
++	}
++
++	put_cpu_var(hv_24x7_hw);
++
++put_reqb:
++	put_cpu_var(hv_24x7_resb);
++	put_cpu_var(hv_24x7_reqb);
++out:
++	reset_txn();
++	return ret;
++}
++
++/*
++ * 24x7 counters only support READ transactions. They are always counting
++ * and dont need/support ADD transactions. However, regardless of type
++ * of transaction, all we need to do is cleanup, so we don't have to check
++ * the type of transaction.
++ */
++static void h_24x7_event_cancel_txn(struct pmu *pmu)
++{
++	WARN_ON_ONCE(!__this_cpu_read(hv_24x7_txn_flags));
++	reset_txn();
++}
++
+ static struct pmu h_24x7_pmu = {
+ 	.task_ctx_nr = perf_invalid_context,
+ 
+@@ -1268,6 +1427,9 @@ static struct pmu h_24x7_pmu = {
+ 	.start       = h_24x7_event_start,
+ 	.stop        = h_24x7_event_stop,
+ 	.read        = h_24x7_event_read,
++	.start_txn   = h_24x7_event_start_txn,
++	.commit_txn  = h_24x7_event_commit_txn,
++	.cancel_txn  = h_24x7_event_cancel_txn,
+ };
+ 
+ static int hv_24x7_init(void)
 -- 
-1.9.1
+1.7.9.5
 
