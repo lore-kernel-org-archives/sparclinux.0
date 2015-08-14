@@ -1,86 +1,94 @@
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 14 Aug 2015 06:49:35 +0000
-Subject: [PATCH v5 2/8] perf: Split perf_event_read() and perf_event_count()
-Message-Id: <1439534981-7937-3-git-send-email-sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:33 +0000
+Subject: [PATCH v5 0/8] perf: Implement group-read of events using txn interface
+Message-Id: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
 Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-perf_event_read() does two things:
+Unlike normal hardware PMCs, the 24x7 counters in Power8 are stored in
+memory and accessed via a hypervisor call (HCALL).  A major aspect of the
+HCALL is that it allows retireving _several_ counters at once (unlike
+regular PMCs, which are read one at a time). By reading several counters
+at once, we can get a more consistent snapshot of the system.
 
-	- call the PMU to read/update the counter value, and
-	- compute the total count of the event and its children
+This patchset extends the transaction interface to accomplish submitting
+several events to the PMU and have the PMU read them all at once. User is
+expected to submit the set of events they want to read as an "event group".
 
-Not all callers need both. perf_event_reset() for instance needs the
-first piece but doesn't need the second.  Similarly, when we implement
-the ability to read a group of events using the transaction interface,
-we would need the two pieces done independently.
+In the kernel, we submit each event to the PMU using the following logic
+(from Peter Zijlstra).
 
-Break up perf_event_read() and have it just read/update the counter
-and have the callers compute the total count if necessary.
+        pmu->start_txn(pmu, PMU_TXN_READ);
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
----
- kernel/events/core.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+        leader->read();
+        for_each_sibling()
+                sibling->read();
+        pmu->commit_txn();
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 4435bf5..f9ca8cb 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3212,7 +3212,7 @@ static inline u64 perf_event_count(struct perf_event *event)
- 	return __perf_event_count(event);
- }
- 
--static u64 perf_event_read(struct perf_event *event)
-+static void perf_event_read(struct perf_event *event)
- {
- 	/*
- 	 * If event is enabled and currently active on a CPU, update the
-@@ -3238,8 +3238,6 @@ static u64 perf_event_read(struct perf_event *event)
- 		update_event_times(event);
- 		raw_spin_unlock_irqrestore(&ctx->lock, flags);
- 	}
--
--	return perf_event_count(event);
- }
- 
- /*
-@@ -3751,14 +3749,18 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- 	*running = 0;
- 
- 	mutex_lock(&event->child_mutex);
--	total += perf_event_read(event);
-+
-+	perf_event_read(event);
-+	total += perf_event_count(event);
-+
- 	*enabled += event->total_time_enabled +
- 			atomic64_read(&event->child_total_time_enabled);
- 	*running += event->total_time_running +
- 			atomic64_read(&event->child_total_time_running);
- 
- 	list_for_each_entry(child, &event->child_list, child_list) {
--		total += perf_event_read(child);
-+		perf_event_read(child);
-+		total += perf_event_count(child);
- 		*enabled += child->total_time_enabled;
- 		*running += child->total_time_running;
- 	}
-@@ -3918,7 +3920,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
- 
- static void _perf_event_reset(struct perf_event *event)
- {
--	(void)perf_event_read(event);
-+	perf_event_read(event);
- 	local64_set(&event->count, 0);
- 	perf_event_update_userpage(event);
- }
+where:
+        - the ->read()s queue events to be submitted to the hypervisor, and,
+        - the ->commit_txn() issues the HCALL, retrieves the result and
+          updates the event count.
+
+Architectures/PMUs that don't need/implement PMU_TXN_READ type of transactions,
+simply ignore the ->start_txn() and ->commit_txn() and continue to read the
+counters one at a time in the ->read() call.
+
+Compile/touch tested on x86. Need help testing on s390 and Sparc.
+
+Thanks to Peter Zijlstra for his input/code.
+
+Changelog[v5]
+	- Invert the sibling-child loop nesting in perf-read-group (re-org
+	  code and drop the patch that defined perf_event_aggregate()).
+
+Changelog[v4]
+	- Ensure all the transactions operations happen on the same CPU so PMUs
+	  can use per-CPU buffers for the transaction.
+	- Add lockdep assert and fix a locking issue in perf_read_group().
+
+Changelog [v3]
+	- Simple changes/reorg of patchset to split/rename functions
+	- [Peter Zijlstra] Save the transaction flags in ->start_txn() and
+	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
+	- [Peter Zijlstra] The nop txn interfaces don't need to disable/enable
+	  PMU for PERF_PMU_TXN_READ transactions.
+
+Changelog [v2]
+        - Use the transaction interface unconditionally to avoid special-case
+          code. Architectures/PMUs that don't need the READ transaction types
+          simply ignore the ->start_txn() and ->commit_txn() calls.
+
+
+
+Peter Zijlstra (2):
+  perf: Add group reads to perf_event_read()
+  perf: Invert perf_read_group() loops
+
+Peter Zijlstra (Intel) (1):
+  perf: Rename perf_event_read_{one,group}, perf_read_hw
+
+Sukadev Bhattiprolu (5):
+  perf: Add a flags parameter to pmu txn interfaces
+  perf: Split perf_event_read() and perf_event_count()
+  perf: Add return value for perf_event_read().
+  Define PERF_PMU_TXN_READ interface
+  powerpc/perf/hv-24x7: Use PMU_TXN_READ interface
+
+ arch/powerpc/perf/core-book3s.c  |   25 ++++-
+ arch/powerpc/perf/hv-24x7.c      |  166 +++++++++++++++++++++++++++++-
+ arch/s390/kernel/perf_cpum_cf.c  |   24 ++++-
+ arch/sparc/kernel/perf_event.c   |   19 +++-
+ arch/x86/kernel/cpu/perf_event.c |   27 ++++-
+ arch/x86/kernel/cpu/perf_event.h |    1 +
+ include/linux/perf_event.h       |   15 ++-
+ kernel/events/core.c             |  210 +++++++++++++++++++++++++++++---------
+ 8 files changed, 429 insertions(+), 58 deletions(-)
+
 -- 
 1.7.9.5
 
