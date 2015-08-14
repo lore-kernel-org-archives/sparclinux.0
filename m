@@ -1,75 +1,89 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 12 Aug 2015 07:05:29 +0000
-Subject: [PATCH 10/31] powerpc/iommu: handle page-less SG entries
-Message-Id: <1439363150-8661-11-git-send-email-hch@lst.de>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:36 +0000
+Subject: [PATCH v5 3/8] perf: Rename perf_event_read_{one,group}, perf_read_hw
+Message-Id: <1439534981-7937-4-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-1-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-1-git-send-email-hch@lst.de>
+References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org, axboe@kernel.dk
-Cc: dan.j.williams@intel.com, vgupta@synopsys.com, hskinnemoen@gmail.com, egtvedt@samfundet.no, realmz6@gmail.com, dhowells@redhat.com, monstr@monstr.eu, x86@kernel.org, dwmw2@infradead.org, alex.williamson@redhat.com, grundler@parisc-linux.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-nvdimm@ml01.01.org, linux-media@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-For the iommu offset we just need and offset into the page.  Calculate
-that using the physical address instead of using the virtual address
-so that we don't require a virtual mapping.
+From: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+In order to free up the perf_event_read_group() name:
+
+ s/perf_event_read_\(one\|group\)/perf_read_\1/g
+ s/perf_read_hw/__perf_read/g
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/powerpc/kernel/iommu.c | 14 +++++++-------
+ kernel/events/core.c |   14 +++++++-------
  1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
-index a8e3490..0f52e40 100644
---- a/arch/powerpc/kernel/iommu.c
-+++ b/arch/powerpc/kernel/iommu.c
-@@ -457,7 +457,7 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index f9ca8cb..02095f4 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -3675,7 +3675,7 @@ static void put_event(struct perf_event *event)
+ 	 *     see the comment there.
+ 	 *
+ 	 *  2) there is a lock-inversion with mmap_sem through
+-	 *     perf_event_read_group(), which takes faults while
++	 *     perf_read_group(), which takes faults while
+ 	 *     holding ctx->mutex, however this is called after
+ 	 *     the last filedesc died, so there is no possibility
+ 	 *     to trigger the AB-BA case.
+@@ -3770,7 +3770,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ }
+ EXPORT_SYMBOL_GPL(perf_event_read_value);
  
- 	max_seg_size = dma_get_max_seg_size(dev);
- 	for_each_sg(sglist, s, nelems, i) {
--		unsigned long vaddr, npages, entry, slen;
-+		unsigned long paddr, npages, entry, slen;
+-static int perf_event_read_group(struct perf_event *event,
++static int perf_read_group(struct perf_event *event,
+ 				   u64 read_format, char __user *buf)
+ {
+ 	struct perf_event *leader = event->group_leader, *sub;
+@@ -3818,7 +3818,7 @@ static int perf_event_read_group(struct perf_event *event,
+ 	return ret;
+ }
  
- 		slen = s->length;
- 		/* Sanity check */
-@@ -466,22 +466,22 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
- 			continue;
- 		}
- 		/* Allocate iommu entries for that segment */
--		vaddr = (unsigned long) sg_virt(s);
--		npages = iommu_num_pages(vaddr, slen, IOMMU_PAGE_SIZE(tbl));
-+		paddr = sg_phys(s);
-+		npages = iommu_num_pages(paddr, slen, IOMMU_PAGE_SIZE(tbl));
- 		align = 0;
- 		if (tbl->it_page_shift < PAGE_SHIFT && slen >= PAGE_SIZE &&
--		    (vaddr & ~PAGE_MASK) = 0)
-+		    (paddr & ~PAGE_MASK) = 0)
- 			align = PAGE_SHIFT - tbl->it_page_shift;
- 		entry = iommu_range_alloc(dev, tbl, npages, &handle,
- 					  mask >> tbl->it_page_shift, align);
+-static int perf_event_read_one(struct perf_event *event,
++static int perf_read_one(struct perf_event *event,
+ 				 u64 read_format, char __user *buf)
+ {
+ 	u64 enabled, running;
+@@ -3856,7 +3856,7 @@ static bool is_event_hup(struct perf_event *event)
+  * Read the performance event - simple non blocking version for now
+  */
+ static ssize_t
+-perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
++__perf_read(struct perf_event *event, char __user *buf, size_t count)
+ {
+ 	u64 read_format = event->attr.read_format;
+ 	int ret;
+@@ -3874,9 +3874,9 @@ perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
  
--		DBG("  - vaddr: %lx, size: %lx\n", vaddr, slen);
-+		DBG("  - paddr: %lx, size: %lx\n", paddr, slen);
+ 	WARN_ON_ONCE(event->ctx->parent_ctx);
+ 	if (read_format & PERF_FORMAT_GROUP)
+-		ret = perf_event_read_group(event, read_format, buf);
++		ret = perf_read_group(event, read_format, buf);
+ 	else
+-		ret = perf_event_read_one(event, read_format, buf);
++		ret = perf_read_one(event, read_format, buf);
  
- 		/* Handle failure */
- 		if (unlikely(entry = DMA_ERROR_CODE)) {
- 			if (printk_ratelimit())
- 				dev_info(dev, "iommu_alloc failed, tbl %p "
--					 "vaddr %lx npages %lu\n", tbl, vaddr,
-+					 "paddr %lx npages %lu\n", tbl, paddr,
- 					 npages);
- 			goto failure;
- 		}
-@@ -496,7 +496,7 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
+ 	return ret;
+ }
+@@ -3889,7 +3889,7 @@ perf_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ 	int ret;
  
- 		/* Insert into HW table */
- 		build_fail = tbl->it_ops->set(tbl, entry, npages,
--					      vaddr & IOMMU_PAGE_MASK(tbl),
-+					      paddr & IOMMU_PAGE_MASK(tbl),
- 					      direction, attrs);
- 		if(unlikely(build_fail))
- 			goto failure;
+ 	ctx = perf_event_ctx_lock(event);
+-	ret = perf_read_hw(event, buf, count);
++	ret = __perf_read(event, buf, count);
+ 	perf_event_ctx_unlock(event, ctx);
+ 
+ 	return ret;
 -- 
-1.9.1
+1.7.9.5
 
