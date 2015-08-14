@@ -1,7 +1,7 @@
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 14 Aug 2015 06:49:36 +0000
-Subject: [PATCH v5 3/8] perf: Rename perf_event_read_{one,group}, perf_read_hw
-Message-Id: <1439534981-7937-4-git-send-email-sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:35 +0000
+Subject: [PATCH v5 2/8] perf: Split perf_event_read() and perf_event_count()
+Message-Id: <1439534981-7937-3-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
@@ -11,79 +11,76 @@ Content-Transfer-Encoding: 7bit
 To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
 Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+perf_event_read() does two things:
 
-In order to free up the perf_event_read_group() name:
+	- call the PMU to read/update the counter value, and
+	- compute the total count of the event and its children
 
- s/perf_event_read_\(one\|group\)/perf_read_\1/g
- s/perf_read_hw/__perf_read/g
+Not all callers need both. perf_event_reset() for instance needs the
+first piece but doesn't need the second.  Similarly, when we implement
+the ability to read a group of events using the transaction interface,
+we would need the two pieces done independently.
 
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Break up perf_event_read() and have it just read/update the counter
+and have the callers compute the total count if necessary.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
- kernel/events/core.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/events/core.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/kernel/events/core.c b/kernel/events/core.c
-index f9ca8cb..02095f4 100644
+index 4435bf5..f9ca8cb 100644
 --- a/kernel/events/core.c
 +++ b/kernel/events/core.c
-@@ -3675,7 +3675,7 @@ static void put_event(struct perf_event *event)
- 	 *     see the comment there.
- 	 *
- 	 *  2) there is a lock-inversion with mmap_sem through
--	 *     perf_event_read_group(), which takes faults while
-+	 *     perf_read_group(), which takes faults while
- 	 *     holding ctx->mutex, however this is called after
- 	 *     the last filedesc died, so there is no possibility
- 	 *     to trigger the AB-BA case.
-@@ -3770,7 +3770,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- }
- EXPORT_SYMBOL_GPL(perf_event_read_value);
- 
--static int perf_event_read_group(struct perf_event *event,
-+static int perf_read_group(struct perf_event *event,
- 				   u64 read_format, char __user *buf)
- {
- 	struct perf_event *leader = event->group_leader, *sub;
-@@ -3818,7 +3818,7 @@ static int perf_event_read_group(struct perf_event *event,
- 	return ret;
+@@ -3212,7 +3212,7 @@ static inline u64 perf_event_count(struct perf_event *event)
+ 	return __perf_event_count(event);
  }
  
--static int perf_event_read_one(struct perf_event *event,
-+static int perf_read_one(struct perf_event *event,
- 				 u64 read_format, char __user *buf)
+-static u64 perf_event_read(struct perf_event *event)
++static void perf_event_read(struct perf_event *event)
  {
- 	u64 enabled, running;
-@@ -3856,7 +3856,7 @@ static bool is_event_hup(struct perf_event *event)
-  * Read the performance event - simple non blocking version for now
-  */
- static ssize_t
--perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
-+__perf_read(struct perf_event *event, char __user *buf, size_t count)
- {
- 	u64 read_format = event->attr.read_format;
- 	int ret;
-@@ -3874,9 +3874,9 @@ perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
- 
- 	WARN_ON_ONCE(event->ctx->parent_ctx);
- 	if (read_format & PERF_FORMAT_GROUP)
--		ret = perf_event_read_group(event, read_format, buf);
-+		ret = perf_read_group(event, read_format, buf);
- 	else
--		ret = perf_event_read_one(event, read_format, buf);
-+		ret = perf_read_one(event, read_format, buf);
- 
- 	return ret;
+ 	/*
+ 	 * If event is enabled and currently active on a CPU, update the
+@@ -3238,8 +3238,6 @@ static u64 perf_event_read(struct perf_event *event)
+ 		update_event_times(event);
+ 		raw_spin_unlock_irqrestore(&ctx->lock, flags);
+ 	}
+-
+-	return perf_event_count(event);
  }
-@@ -3889,7 +3889,7 @@ perf_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- 	int ret;
  
- 	ctx = perf_event_ctx_lock(event);
--	ret = perf_read_hw(event, buf, count);
-+	ret = __perf_read(event, buf, count);
- 	perf_event_ctx_unlock(event, ctx);
+ /*
+@@ -3751,14 +3749,18 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ 	*running = 0;
  
- 	return ret;
+ 	mutex_lock(&event->child_mutex);
+-	total += perf_event_read(event);
++
++	perf_event_read(event);
++	total += perf_event_count(event);
++
+ 	*enabled += event->total_time_enabled +
+ 			atomic64_read(&event->child_total_time_enabled);
+ 	*running += event->total_time_running +
+ 			atomic64_read(&event->child_total_time_running);
+ 
+ 	list_for_each_entry(child, &event->child_list, child_list) {
+-		total += perf_event_read(child);
++		perf_event_read(child);
++		total += perf_event_count(child);
+ 		*enabled += child->total_time_enabled;
+ 		*running += child->total_time_running;
+ 	}
+@@ -3918,7 +3920,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
+ 
+ static void _perf_event_reset(struct perf_event *event)
+ {
+-	(void)perf_event_read(event);
++	perf_event_read(event);
+ 	local64_set(&event->count, 0);
+ 	perf_event_update_userpage(event);
+ }
 -- 
 1.7.9.5
 
