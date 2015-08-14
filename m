@@ -1,7 +1,7 @@
 From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 14 Aug 2015 06:49:38 +0000
-Subject: [PATCH v5 5/8] perf: Invert perf_read_group() loops
-Message-Id: <1439534981-7937-6-git-send-email-sukadev@linux.vnet.ibm.com>
+Date: Fri, 14 Aug 2015 06:49:37 +0000
+Subject: [PATCH v5 4/8] perf: Add group reads to perf_event_read()
+Message-Id: <1439534981-7937-5-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
 In-Reply-To: <1439534981-7937-1-git-send-email-sukadev@linux.vnet.ibm.com>
@@ -13,134 +13,125 @@ Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger
 
 From: Peter Zijlstra <peterz@infradead.org>
 
-In order to enable the use of perf_event_read(.group = true), we need
-to invert the sibling-child loop nesting of perf_read_group().
+Enable perf_event_read() to update entire groups at once, this will be
+useful for read transactions.
 
-Currently we iterate the child list for each sibling, this precludes
-using group reads. Flip things around so we iterate each group for
-each child.
-
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Link: http://lkml.kernel.org/r/20150723080435.GE25159@twins.programming.kicks-ass.net
 ---
-Changes to Peter's patch:
-	- Add GFP_KERNEL to kzalloc().
-	- Pass in address of counter to atomic_read().
-	- Return event->size rather than leader->size (perf_read_group())
-	- Keep chkpatch happy.
----
- kernel/events/core.c |   85 ++++++++++++++++++++++++++++++++------------------
- 1 file changed, 55 insertions(+), 30 deletions(-)
+ kernel/events/core.c |   39 ++++++++++++++++++++++++++++++++-------
+ 1 file changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 31ec842..2221ebe 100644
+index 02095f4..31ec842 100644
 --- a/kernel/events/core.c
 +++ b/kernel/events/core.c
-@@ -3795,50 +3795,75 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+@@ -3174,12 +3174,18 @@ void perf_event_exec(void)
+ 	rcu_read_unlock();
  }
- EXPORT_SYMBOL_GPL(perf_event_read_value);
  
--static int perf_read_group(struct perf_event *event,
--				   u64 read_format, char __user *buf)
-+static void __perf_read_group_add(struct perf_event *leader,
-+					u64 read_format, u64 *values)
++struct perf_read_data {
++	struct perf_event *event;
++	bool group;
++};
++
+ /*
+  * Cross CPU call to read the hardware event
+  */
+ static void __perf_event_read(void *info)
  {
--	struct perf_event *leader = event->group_leader, *sub;
--	struct perf_event_context *ctx = leader->ctx;
--	int n = 0, size = 0, ret;
--	u64 count, enabled, running;
--	u64 values[5];
-+	struct perf_event *sub;
-+	int n = 1; /* skip @nr */
+-	struct perf_event *event = info;
++	struct perf_read_data *data = info;
++	struct perf_event *sub, *event = data->event;
+ 	struct perf_event_context *ctx = event->ctx;
+ 	struct perf_cpu_context *cpuctx = __get_cpu_context(ctx);
  
--	lockdep_assert_held(&ctx->mutex);
-+	perf_event_read(leader, true);
+@@ -3198,9 +3204,21 @@ static void __perf_event_read(void *info)
+ 		update_context_time(ctx);
+ 		update_cgrp_time_from_event(event);
+ 	}
 +
-+	/*
-+	 * Since we co-schedule groups, {enabled,running} times of siblings
-+	 * will be identical to those of the leader, so we only publish one
-+	 * set.
-+	 */
-+	if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED) {
-+		values[n++] += leader->total_time_enabled +
-+			atomic64_read(&leader->child_total_time_enabled);
-+	}
- 
--	count = perf_event_read_value(leader, &enabled, &running);
-+	if (read_format & PERF_FORMAT_TOTAL_TIME_RUNNING) {
-+		values[n++] += leader->total_time_running +
-+			atomic64_read(&leader->child_total_time_running);
-+	}
- 
--	values[n++] = 1 + leader->nr_siblings;
--	if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED)
--		values[n++] = enabled;
--	if (read_format & PERF_FORMAT_TOTAL_TIME_RUNNING)
--		values[n++] = running;
--	values[n++] = count;
-+	/*
-+	 * Write {count,id} tuples for every sibling.
-+	 */
-+	values[n++] += perf_event_count(leader);
- 	if (read_format & PERF_FORMAT_ID)
- 		values[n++] = primary_event_id(leader);
- 
--	size = n * sizeof(u64);
-+	list_for_each_entry(sub, &leader->sibling_list, group_entry) {
-+		values[n++] += perf_event_count(sub);
-+		if (read_format & PERF_FORMAT_ID)
-+			values[n++] = primary_event_id(sub);
-+	}
-+}
- 
--	if (copy_to_user(buf, values, size))
--		return -EFAULT;
-+static int perf_read_group(struct perf_event *event,
-+				   u64 read_format, char __user *buf)
-+{
-+	struct perf_event *leader = event->group_leader, *child;
-+	struct perf_event_context *ctx = leader->ctx;
-+	int ret = event->read_size;
-+	u64 *values;
- 
--	ret = size;
-+	lockdep_assert_held(&ctx->mutex);
- 
--	list_for_each_entry(sub, &leader->sibling_list, group_entry) {
--		n = 0;
-+	values = kzalloc(event->read_size, GFP_KERNEL);
-+	if (!values)
-+		return -ENOMEM;
- 
--		values[n++] = perf_event_read_value(sub, &enabled, &running);
--		if (read_format & PERF_FORMAT_ID)
--			values[n++] = primary_event_id(sub);
-+	values[0] = 1 + leader->nr_siblings;
+ 	update_event_times(event);
+ 	if (event->state = PERF_EVENT_STATE_ACTIVE)
+ 		event->pmu->read(event);
 +
-+	/*
-+	 * By locking the child_mutex of the leader we effectively
-+	 * lock the child list of all siblings.. XXX explain how.
-+	 */
-+	mutex_lock(&leader->child_mutex);
- 
--		size = n * sizeof(u64);
-+	__perf_read_group_add(leader, read_format, values);
-+	list_for_each_entry(child, &leader->child_list, child_list)
-+		__perf_read_group_add(child, read_format, values);
- 
--		if (copy_to_user(buf + ret, values, size)) {
--			return -EFAULT;
--		}
-+	mutex_unlock(&leader->child_mutex);
- 
--		ret += size;
--	}
-+	if (copy_to_user(buf, values, event->read_size))
-+		ret = -EFAULT;
++	if (!data->group)
++		goto unlock;
 +
-+	kfree(values);
++	list_for_each_entry(sub, &event->sibling_list, group_entry) {
++		update_event_times(sub);
++		if (sub->state = PERF_EVENT_STATE_ACTIVE)
++			sub->pmu->read(sub);
++	}
++
++unlock:
+ 	raw_spin_unlock(&ctx->lock);
+ }
  
- 	return ret;
+@@ -3212,15 +3230,19 @@ static inline u64 perf_event_count(struct perf_event *event)
+ 	return __perf_event_count(event);
+ }
+ 
+-static void perf_event_read(struct perf_event *event)
++static void perf_event_read(struct perf_event *event, bool group)
+ {
+ 	/*
+ 	 * If event is enabled and currently active on a CPU, update the
+ 	 * value in the event structure:
+ 	 */
+ 	if (event->state = PERF_EVENT_STATE_ACTIVE) {
++		struct perf_read_data data = {
++			.event = event,
++			.group = group,
++		};
+ 		smp_call_function_single(event->oncpu,
+-					 __perf_event_read, event, 1);
++					 __perf_event_read, &data, 1);
+ 	} else if (event->state = PERF_EVENT_STATE_INACTIVE) {
+ 		struct perf_event_context *ctx = event->ctx;
+ 		unsigned long flags;
+@@ -3235,7 +3257,10 @@ static void perf_event_read(struct perf_event *event)
+ 			update_context_time(ctx);
+ 			update_cgrp_time_from_event(event);
+ 		}
+-		update_event_times(event);
++		if (group)
++			update_group_times(event);
++		else
++			update_event_times(event);
+ 		raw_spin_unlock_irqrestore(&ctx->lock, flags);
+ 	}
+ }
+@@ -3750,7 +3775,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ 
+ 	mutex_lock(&event->child_mutex);
+ 
+-	perf_event_read(event);
++	perf_event_read(event, false);
+ 	total += perf_event_count(event);
+ 
+ 	*enabled += event->total_time_enabled +
+@@ -3759,7 +3784,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ 			atomic64_read(&event->child_total_time_running);
+ 
+ 	list_for_each_entry(child, &event->child_list, child_list) {
+-		perf_event_read(child);
++		perf_event_read(child, false);
+ 		total += perf_event_count(child);
+ 		*enabled += child->total_time_enabled;
+ 		*running += child->total_time_running;
+@@ -3920,7 +3945,7 @@ static unsigned int perf_poll(struct file *file, poll_table *wait)
+ 
+ static void _perf_event_reset(struct perf_event *event)
+ {
+-	perf_event_read(event);
++	perf_event_read(event, false);
+ 	local64_set(&event->count, 0);
+ 	perf_event_update_userpage(event);
  }
 -- 
 1.7.9.5
