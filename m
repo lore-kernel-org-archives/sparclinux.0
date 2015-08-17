@@ -1,41 +1,25 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 13 Aug 2015 20:47:14 +0000
-Subject: Re: [PATCH 09/10] Define PERF_PMU_TXN_READ interface
-Message-Id: <20150813204714.GG16853@twins.programming.kicks-ass.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 17 Aug 2015 07:06:51 +0000
+Subject: provide more common DMA API functions V2
+Message-Id: <1439795216-32189-1-git-send-email-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1437975638-789-1-git-send-email-sukadev@linux.vnet.ibm.com>
- <1437975638-789-10-git-send-email-sukadev@linux.vnet.ibm.com>
- <20150806121029.GQ19282@twins.programming.kicks-ass.net>
- <20150812041400.GA28426@us.ibm.com>
- <20150812084545.GR16853@twins.programming.kicks-ass.net>
- <20150813200428.GA19057@us.ibm.com>
-In-Reply-To: <20150813200428.GA19057@us.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: arnd@arndb.de, linux@arm.linux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, ysato@users.sourceforge.jp, monstr@monstr.eu, jonas@southpole.se, cmetcalf@ezchip.com, gxt@mprc.pku.edu.cn, x86@kernel.org, linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Aug 13, 2015 at 01:04:28PM -0700, Sukadev Bhattiprolu wrote:
+Since 2009 we have a nice asm-generic header implementing lots of DMA API
+functions for architectures using struct dma_map_ops, but unfortunately
+it's still missing a lot of APIs that all architectures still have to
+duplicate.
 
-> | > | +static int perf_read_group(struct perf_event *event,
-> | > | +				   u64 read_format, char __user *buf)
-> | > | +{
-> | > | +	struct perf_event *leader = event->group_leader, *child;
-> | > | +	struct perf_event_context *ctx = leader->ctx;
-> | > | +	int ret = leader->read_size;
+This series consolidates the remaining functions, although we still
+need arch opt outs for two of them as a few architectures have very
+non-standard implementations.
 
-> One other question, We return leader->read_size but allocate/copy_to_user
-> the sibling's event->read_size. We consistently use read_format from the
-> 'event' being read, rather than its 'group_leader', so we are ok in terms
-> of what we copy into values[] for each event in the group.
-> 
-> But, can the leader's read_format (and hence its read_size) differ from
-> its sibling's read_size? If so, in the current code, we return the event's
-> read_size but in the new code, we return the leader's read_size.
+Changes since V1:
+ - keep a modified comment about dma_alloc_noncoherent vs
+   dma_cache_sync in the ARM asm/dma-mapping.h
+ - keep the ARM dma_set_mask instances to deal with dmabounce
 
-Hmm, good spotting that. I'm fairly sure I didn't do that on purpose.
-
-I think we should use event->read_size there too and have the lot
-consistent. I don't think we require read_format to be uniform across
-siblings.
