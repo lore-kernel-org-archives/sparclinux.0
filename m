@@ -1,54 +1,52 @@
-From: Josip Rodin <joy@entuzijast.net>
-Date: Fri, 14 Aug 2015 12:03:03 +0000
-Subject: Re: [PATCH 14/31] sparc32/io-unit: handle page-less SG entries
-Message-Id: <20150814120303.GA21682@entuzijast.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 18 Aug 2015 18:44:13 +0000
+Subject: Re: Aw: A500 boot crash in 4.2.0-rc3-00246-g763e326
+Message-Id: <alpine.LRH.2.20.1508182141200.24742@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439363150-8661-15-git-send-email-hch@lst.de>
-In-Reply-To: <1439363150-8661-15-git-send-email-hch@lst.de>
+References: <alpine.LRH.2.11.1507260929000.30065@math.ut.ee>, <trinity-122a736f-3aac-4830-afc5-2abcd91792ea-1439820380917@3capp-gmx-bs71> <trinity-5720bef8-5a4c-4465-b9eb-622daaef650a-1439902901415@3capp-gmx-bs02>
+In-Reply-To: <trinity-5720bef8-5a4c-4465-b9eb-622daaef650a-1439902901415@3capp-gmx-bs02>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Helge Deller <deller@gmx.de>, Yinghai Lu <yinghai@kernel.org>
+Cc: linux-parisc@vger.kernel.org, linux-pci@vger.kernel.org, David Ahern <david.ahern@oracle.com>, Bjorn Helgaas <bhelgaas@google.com>, sparclinux@vger.kernel.org
 
-On Wed, Aug 12, 2015 at 09:05:33AM +0200, Christoph Hellwig wrote:
-> For the iommu offset we just need and offset into the page.  Calculate
-> that using the physical address instead of using the virtual address
-> so that we don't require a virtual mapping.
+(CC-s added)
+
+> > > Tried 4.2.0-rc3-00246-g763e326 on A500 but it crashes on boot. This is 
+> > > still present in todays 4.2.0-rc6+git. 4.1 was fine, I Will bisect but 
+> > > it takes time.
+> > > 
+> > > PDC Stable Storage facility v0.30
+> > > STI GSC/PCI core graphics driver Version 0.9b
+> > > Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+> > > serial 0000:00:04.0: enabling device (0146 -> 0147)
+> > > console [ttyS0] disabled
+> > > 0000:00:04.0: ttyS0 at MMIO 0xfffffffff8000000 (irq = 21, base_baud = 115200) is a 16550A
+> > > console [ttyS0] enabled
+> > > console [ttyS0] enabled
+> > > bootconsole [ttyB0] disabled
+> > > bootconsole [ttyB0] disabled
+> > > 0000:00:04.0: ttyS1 at MMIO 0xfffffffff8000008 (irq = 21, base_baud = 115200) is a 16550A
+> > > 0000:00:04.0: ttyS2 at MMIO 0xfffffffff8000010 (irq = 21, base_baud = 115200) is a 16550A
+> > > serial 0000:00:05.0: enabling device (0000 -> 0003)
+> > > serial 0000:00:05.0: enabling SERR and PARITY (0003 -> 0143)
+> > > 0000:00:05.0: ttyS3 at MMIO 0xfffffffff8003000 (irq = 22, base_baud = 115200) is a 16550A
+> > > serial 0000:00:05.0: Couldn't register serial port 0, irq 22, type 2, error -28
+> > > sym53c8xx 0000:00:01.0: enabling device (0000 -> 0003)
+> > > sym53c8xx 0000:00:01.0: enabling SERR and PARITY (0003 -> 0143)
+> > 
+> > I'm seeing the same problem on my rp5470 with Kernel 4.2-rc7. My machine just hangs though and doesn't crash.
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/sparc/mm/io-unit.c | 23 ++++++++++++-----------
->  1 file changed, 12 insertions(+), 11 deletions(-)
+> I did a bisect and commit 3a9ad0b4fdcd57f775d3615004c8c64c021a9e7d ("PCI: Add pci_bus_addr_t") seems to be the culprit:
+> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id:9ad0b4fdcd57f775d3615004c8c64c021a9e7d
 > 
-> diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
-> index f311bf2..82f97ae 100644
-> --- a/arch/sparc/mm/io-unit.c
-> +++ b/arch/sparc/mm/io-unit.c
+> Since the patch has "CC: stable@vger.kernel.org  # v3.19+", it might be the reason why you see kernel 3.19 failing too...
 
-> -static unsigned long iounit_get_area(struct iounit_struct *iounit, unsigned long vaddr, int size)
-> +static dma_addr_t iounit_get_area(struct iounit_struct *iounit,
-> +		unsigned long paddr, int size)
->  {
+I just found the same commit breaking my A500 parisc machine by 
+bisecting.
 
-> -	unsigned long rotor, scan, limit;
-> +	unsigned long rotor, scan, limit, dma_addr;
-
-> +	dma_addr = IOUNIT_DMA_BASE + (scan << PAGE_SHIFT) + (paddr & ~PAGE_MASK);
-
-> +	return dma_addr;
->  }
-
-> @@ -145,7 +146,7 @@ static __u32 iounit_get_scsi_one(struct device *dev, char *vaddr, unsigned long
->  	unsigned long ret, flags;
-
-> -	ret = iounit_get_area(iounit, (unsigned long)vaddr, len);
-> +	ret = iounit_get_area(iounit, virt_to_phys(vaddr), len);
-
->  	return ret;
->  }
-
-Would it make sense to normalize all these other instances of unsigned long
-into dma_addr_t, and not just one?
+CC: patch author and linux-pci.
 
 -- 
-     2. That which causes joy or happiness.
+Meelis Roos (mroos@linux.ee)
