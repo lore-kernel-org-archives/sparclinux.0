@@ -1,29 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 07 Aug 2015 22:22:56 +0000
-Subject: Re: [PATCH] sparc64: use ENTRY/ENDPROC in VISsave
-Message-Id: <20150807.152256.960911445777356991.davem@davemloft.net>
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Wed, 19 Aug 2015 14:39:27 +0000
+Subject: Ping Re: [PATCH 0/8] math-emu: Update kernel math-emu code from current glibc soft-fp
+Message-Id: <alpine.DEB.2.10.1508191433380.11312@digraph.polyomino.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20150807183412.GA12019@ravnborg.org>
-In-Reply-To: <20150807183412.GA12019@ravnborg.org>
+References: <alpine.DEB.2.10.1507021542380.29415@digraph.polyomino.org.uk>
+In-Reply-To: <alpine.DEB.2.10.1507021542380.29415@digraph.polyomino.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, mpe@ellerman.id.au
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 7 Aug 2015 20:34:12 +0200
+I'd like to ping this patch series, not having seen any comments on it.
 
-> From 7d8a508d74e6cacf0f2438286a959c3195a35a37 Mon Sep 17 00:00:00 2001
-> From: Sam Ravnborg <sam@ravnborg.org>
-> Date: Fri, 7 Aug 2015 20:26:12 +0200
-> Subject: [PATCH] sparc64: use ENTRY/ENDPROC in VISsave
-> 
-> Commit 44922150d87cef616fd183220d43d8fde4d41390
-> ("sparc64: Fix userspace FPU register corruptions") left a
-> stale globl symbol which was not used.
-> 
-> Fix this and introduce use of ENTRY/ENDPROC
-> 
-> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+[PATCH 0/8] math-emu: Update kernel math-emu code from current glibc soft-fp
+https://lkml.org/lkml/2015/7/2/394
 
-Applied, thanks Sam.
+[PATCH 1/8] math-emu: Move math-emu to math-emu-old
+https://lkml.org/lkml/2015/7/2/395
+
+[PATCH 2/8] math-emu: Import current glibc soft-fp as include/math-emu
+https://lkml.org/lkml/2015/7/2/398
+
+[PATCH 3/8] alpha/math-emu: Move alpha from math-emu-old to math-emu
+https://lkml.org/lkml/2015/7/2/399
+
+[PATCH 4/8] powerpc/math-emu: Move powerpc from math-emu-old to math-emu
+https://lkml.org/lkml/2015/7/2/400
+
+[PATCH 5/8] s390/math-emu: Move s390 from math-emu-old to math-emu
+https://lkml.org/lkml/2015/7/2/401
+
+[PATCH 6/8] sh/math-emu: Move sh from math-emu-old to math-emu
+https://lkml.org/lkml/2015/7/2/402
+
+[PATCH 7/8] sparc/math-emu: Move sparc from math-emu-old to math-emu
+https://lkml.org/lkml/2015/7/2/404
+
+[PATCH 8/8] math-emu: Remove math-emu-old
+https://lkml.org/lkml/2015/7/2/405
+
+As noted in patch 0, the dependencies are as follows: patch 2 depends on 
+patch 1, patches 3-7 depend on patches 1 and 2 but are independent of each 
+other, patch 8 depends on all the other patches.
+
+-- 
+Joseph S. Myers
+joseph@codesourcery.com
