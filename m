@@ -1,34 +1,32 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Date: Thu, 20 Aug 2015 18:23:43 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Aug 2015 18:40:42 +0000
 Subject: Re: [PATCH] PCI/ASPM: Fix a NULL pointer crash on sparc64
-Message-Id: <CAErSpo5SApFYWOs8Q2ZH2vpnEW6jY0XWAgeiyhMk4aCNtON46w@mail.gmail.com>
+Message-Id: <20150820.114042.1327127338658980319.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1439808478-23253-1-git-send-email-wangyijing@huawei.com>
- <20150820054800.GB10267@google.com> <20150820.104728.699050706854625548.davem@davemloft.net>
-In-Reply-To: <20150820.104728.699050706854625548.davem@davemloft.net>
+References: <20150820054800.GB10267@google.com>
+	<20150820.104728.699050706854625548.davem@davemloft.net>
+	<CAErSpo5SApFYWOs8Q2ZH2vpnEW6jY0XWAgeiyhMk4aCNtON46w@mail.gmail.com>
+In-Reply-To: <CAErSpo5SApFYWOs8Q2ZH2vpnEW6jY0XWAgeiyhMk4aCNtON46w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Meelis Roos <mroos@linux.ee>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Eric Snowberg <eric.snowberg@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+To: bhelgaas@google.com
+Cc: wangyijing@huawei.com, linux-pci@vger.kernel.org, mroos@linux.ee, sparclinux@vger.kernel.org, eric.snowberg@oracle.com, benh@kernel.crashing.org
 
-On Thu, Aug 20, 2015 at 10:47 AM, David Miller <davem@davemloft.net> wrote:
-> From: Bjorn Helgaas <bhelgaas@google.com>
-> Date: Thu, 20 Aug 2015 00:48:00 -0500
->
->> [+cc Dave, Eric, Ben, sparclinux]
->
-> I think the comment is terrible.
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Thu, 20 Aug 2015 11:23:43 -0700
 
-I'll update the comment if you suggest some text.  Do you object
-mainly to the mention of the specific systems?
+> On Thu, Aug 20, 2015 at 10:47 AM, David Miller <davem@davemloft.net> wrote:
+>> From: Bjorn Helgaas <bhelgaas@google.com>
+>> Date: Thu, 20 Aug 2015 00:48:00 -0500
+>>
+>>> [+cc Dave, Eric, Ben, sparclinux]
+>>
+>> I think the comment is terrible.
+> 
+> I'll update the comment if you suggest some text.  Do you object
+> mainly to the mention of the specific systems?
 
-> It is not limited to those two systems, it is a general problem with
-> how the code assumes the root PCI-E port is instantiated in the PCI
-> bus hierarchy which will not be true on any system which has a PCI
-> controller that doesn't actually provide a bonafide config space to
-> access.
-
-I agree, we should not crash if the hardware we find isn't what we expect.
-
-Bjorn
+"PCI root complex can not be assumed to be instantiated in the PCI bus
+ hierarchy."
+ 
