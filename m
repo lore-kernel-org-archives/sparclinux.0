@@ -1,22 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Aug 2015 17:51:20 +0000
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Thu, 20 Aug 2015 18:23:43 +0000
 Subject: Re: [PATCH] PCI/ASPM: Fix a NULL pointer crash on sparc64
-Message-Id: <20150820.105120.2282063631702003363.davem@davemloft.net>
+Message-Id: <CAErSpo5SApFYWOs8Q2ZH2vpnEW6jY0XWAgeiyhMk4aCNtON46w@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1440023349.2737.21.camel@kernel.crashing.org>
-	<CAErSpo7JtRLWRAUPBdsoKauHNmftsb6fST317V9Sg4PkTV91pg@mail.gmail.com>
-	<CALMQjD_d+S4e1OLhMDdt6PTn8Bfm3o9ZqXJxitcVtzE+hSrs+A@mail.gmail.com>
-In-Reply-To: <CALMQjD_d+S4e1OLhMDdt6PTn8Bfm3o9ZqXJxitcVtzE+hSrs+A@mail.gmail.com>
+References: <1439808478-23253-1-git-send-email-wangyijing@huawei.com>
+ <20150820054800.GB10267@google.com> <20150820.104728.699050706854625548.davem@davemloft.net>
+In-Reply-To: <20150820.104728.699050706854625548.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: oftedal@gmail.com
-Cc: bhelgaas@google.com, benh@kernel.crashing.org, wangyijing@huawei.com, linux-pci@vger.kernel.org, mroos@linux.ee, sparclinux@vger.kernel.org, eric.snowberg@oracle.com
+To: David Miller <davem@davemloft.net>
+Cc: Yijing Wang <wangyijing@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Meelis Roos <mroos@linux.ee>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Eric Snowberg <eric.snowberg@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-From: Kjetil Oftedal <oftedal@gmail.com>
-Date: Thu, 20 Aug 2015 08:44:45 +0200
+On Thu, Aug 20, 2015 at 10:47 AM, David Miller <davem@davemloft.net> wrote:
+> From: Bjorn Helgaas <bhelgaas@google.com>
+> Date: Thu, 20 Aug 2015 00:48:00 -0500
+>
+>> [+cc Dave, Eric, Ben, sparclinux]
+>
+> I think the comment is terrible.
 
-> Less assumptions made on the basis of the PCIe spec might prevent
-> some of this breakage?
+I'll update the comment if you suggest some text.  Do you object
+mainly to the mention of the specific systems?
 
-+1
+> It is not limited to those two systems, it is a general problem with
+> how the code assumes the root PCI-E port is instantiated in the PCI
+> bus hierarchy which will not be true on any system which has a PCI
+> controller that doesn't actually provide a bonafide config space to
+> access.
+
+I agree, we should not crash if the hardware we find isn't what we expect.
+
+Bjorn
