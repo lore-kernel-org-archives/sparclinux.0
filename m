@@ -1,23 +1,73 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Mon, 03 Aug 2015 01:35:05 +0000
-Subject: Re: [v3, 2/8] powerpc/perf/hv-24x7: Simplify extracting counter from result buffer
-Message-Id: <20150803013505.22281140DF7@ozlabs.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Fri, 21 Aug 2015 06:20:56 +0000
+Subject: [PATCH v4 41/52] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <1440138067-4314-42-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <1436929315-28520-3-git-send-email-sukadev@linux.vnet.ibm.com>
+References: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-On Wed, 2015-15-07 at 03:01:49 UTC, Sukadev Bhattiprolu wrote:
-> Simplify code that extracts a 24x7 counter from the HCALL's result buffer.
-> 
-> Suggested-by: Joe Perches <joe@perches.com>
-> Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+For device resource PREF bit setting under bridge 64-bit pref resource,
+we need to make sure only set PREF for 64bit resource, so set
+IORESOUCE_MEM_64 for 64bit resource during of device resource flags
+parsing.
 
-Applied to powerpc next, thanks.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/of_device_32.c | 5 +++--
+ arch/sparc/kernel/of_device_64.c | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-https://git.kernel.org/powerpc/c/465345ca387ed491c467
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
+_32.c
+index 185aa96..3e9f273 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
+dr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
+_64.c
+index 7bbdc26..defee61 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
+addr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+--=20
+1.8.4.5
 
-cheers
