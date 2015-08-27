@@ -1,47 +1,75 @@
-From: Meelis Roos <mroos@ut.ee>
-Date: Wed, 12 Aug 2015 09:40:46 +0000
-Subject: Re: Occasional userland crashes on sparc in 4.1.0+
-Message-Id: <alpine.LRH.2.20.1508121238380.18570@math.ut.ee>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Thu, 27 Aug 2015 17:56:52 +0000
+Subject: [RFC PATCH 6/9] sparc/sparc64: allocate sys_membarrier system call number
+Message-Id: <1440698215-8355-7-git-send-email-mathieu.desnoyers@efficios.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.11.1507271430410.23956@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.11.1507271430410.23956@math.ut.ee>
+References: <1440698215-8355-1-git-send-email-mathieu.desnoyers@efficios.com>
+In-Reply-To: <1440698215-8355-1-git-send-email-mathieu.desnoyers@efficios.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-api@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-> > > While compiling 4.2-rc3 on my test machines, I got segfaults during 
-> > > compilation on V240 and V440. Running repeated compilations encountered 
-> > > some more of these, on both 4.1.0 and 4.2-rc3.
-> > > 
-> > > At the first glance, no UltraSparc II machines had this but I have not 
-> > > done any more stresstesting on them.
-> > 
-> > Reconnected and tested my Ultra 1, with problems:
-> > 
-> > [63949.058730] resolvconf[11593]: segfault at 3860 ip 00000000f7c4e790 (rpc 00000000f7c4e714) sp 00000000fffeaf60 error 30001 in libc-2.19.so[f7b98000+16a000]
-> > [63949.389191] BUG: Bad rss-counter state mm:fffff800335b4440 idx:1 val:1
-> > [63949.465567] BUG: non-zero nr_ptes on freeing mm: 1
-> > 
-> > This was with 4.1.0 while compiling newer git release.
-> 
-> Tested todays git with the FPU fix on most of my sparcs and got the same 
-> error on Ultra 5 running 4.2.0-rc5-00078-g49d7c65-dirty (dirty because 
-> of test_rhashtable.c cond_resxhed() additions) while doing repeated 
-> make; make clean:
-> 
-> BUG: Bad rss-counter state mm:fffff8001c982ea0 idx:0 val:8
-> BUG: non-zero nr_ptes on freeing mm: 1
+[ Untested on this architecture. To try it out: fetch linux-next/akpm,
+  apply this patch, build/run a membarrier-enabled kernel, and do make
+  kselftest. ]
 
-And similar but slightly different on Fire V100 with UltraSparc IIe with 
-4.2.0-rc5-00078-g49d7c65:
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: linux-api@vger.kernel.org
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+---
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-[ 9271.941651] BUG: Bad rss-counter state mm:fffff8006c8b20c0 idx:1 val:1
-[ 9272.027556] BUG: non-zero nr_ptes on freeing mm: 1
-[ 9272.090591] BUG: non-zero nr_pmds on freeing mm: 1
-
-Not bisecting yet because I have another sparc bisection in progress - 
-will report when done.
-
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 6f35f4d..efe9479 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -416,8 +416,9 @@
+ #define __NR_memfd_create	348
+ #define __NR_bpf		349
+ #define __NR_execveat		350
++#define __NR_membarrier		351
+ 
+-#define NR_syscalls		351
++#define NR_syscalls		352
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index e31a905..cc23b62 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -87,4 +87,4 @@ sys_call_table:
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.long sys_execveat
++/*350*/	.long sys_execveat, sys_membarrier
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index d72f76a..f229468 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -88,7 +88,7 @@ sys_call_table32:
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys32_execveat
++/*350*/	.word sys32_execveat, sys_membarrier
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -168,4 +168,4 @@ sys_call_table:
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys64_execveat
++/*350*/	.word sys64_execveat, sys_membarrier
 -- 
-Meelis Roos (mroos@linux.ee)
+1.9.1
+
