@@ -1,26 +1,27 @@
-From: International Basic Sciences Programmer  <ccmidtowntrading01@gmail.com>
-Date: Fri, 14 Aug 2015 08:53:53 +0000
-Subject: International Basic Sciences Programmer Letter  Attached
-Message-Id: <315163226.4564010.1439542433110.JavaMail.yahoo@mail.yahoo.com>
+From: International Basic Sciences Programmer  <distributingwarehousex@gmail.com>
+Date: Fri, 28 Aug 2015 06:15:26 +0000
+Subject: International Basic Sciences Programmer Letter Attached
+Message-Id: <1837174490.2051084.1440742526294.JavaMail.yahoo@mail.yahoo.com>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_4564009_2142154581.1439542433110"
+Content-Type: multipart/mixed; boundary="----=_Part_2051083_644949281.1440742526294"
 List-Id: <sparclinux.vger.kernel.org>
+References: <315163226.4564010.1439542433110.JavaMail.yahoo@mail.yahoo.com>
+In-Reply-To: <315163226.4564010.1439542433110.JavaMail.yahoo@mail.yahoo.com>
 To: sparclinux@vger.kernel.org
 
-------=_Part_4564009_2142154581.1439542433110
+------=_Part_2051083_644949281.1440742526294
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
  
 International Basic Sciences Programmer Award Letter Attached 
-Mr. F.T Fagebuder
-
-------=_Part_4564009_2142154581.1439542433110
+Mr. F.T Fagebuder 
+------=_Part_2051083_644949281.1440742526294
 Content-Type: application/pdf
 Content-Transfer-Encoding: base64
 Content-Disposition: attachment; 
 	filename="International Basic Sciences Programmer.pdf"
-Content-ID: <5a6babfd-0718-40ab-8c18-554e3b061363@yahoo.com>
+Content-ID: <a95cf5f5-bdec-7c8e-0bd8-75bcf4ca513d@yahoo.com>
 
 JVBERi0xLjUNCiW1tbW1DQoxIDAgb2JqDQo8PC9UeXBlL0NhdGFsb2cvUGFnZXMgMiAwIFIvTGFu
 Zyhlbi1VUykgPj4NCmVuZG9iag0KMiAwIG9iag0KPDwvVHlwZS9QYWdlcy9Db3VudCAxL0tpZHNb
@@ -1827,4 +1828,4 @@ PDExM0Q5OTE0NDI3MUIwNDVCNjY2OTY3MDdDOEYwRjg0PjwxMTNEOTkxNDQyNzFCMDQ1QjY2Njk2
 NzA3QzhGMEY4ND5dIC9QcmV2IDEwMTk0Mi9YUmVmU3RtIDEwMTY0ND4+DQpzdGFydHhyZWYNCjEw
 MjYwMA0KJSVFT0Y=
 
-------=_Part_4564009_2142154581.1439542433110--
+------=_Part_2051083_644949281.1440742526294--
