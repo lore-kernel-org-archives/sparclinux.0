@@ -1,73 +1,11 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 21 Aug 2015 06:20:56 +0000
-Subject: [PATCH v4 41/52] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <1440138067-4314-42-git-send-email-yinghai@kernel.org>
+From: online2130204@telkomsa.net
+Date: Sat, 29 Aug 2015 15:56:08 +0000
+Subject: DO YOU NEED A LOAN? BUSINESS OR PERSONAL,IF YES APPLY NOW
+Message-Id: <327014484.27042794.1440863768060.JavaMail.root@telkomsa.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-For device resource PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource, so set
-IORESOUCE_MEM_64 for 64bit resource during of device resource flags
-parsing.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-1.8.4.5
-
+We Offer personal and business loan at 2% Interest Rate within 1 year to 10 years repayment duration. We offer loan  to Individuals and Corporate Bodies. Our loan are well insured for maximum security is our priority.for more info contact us via email: mavinicfastloan@gmail.com
