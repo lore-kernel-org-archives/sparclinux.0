@@ -1,556 +1,479 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 21 Aug 2015 06:21:06 +0000
-Subject: [PATCH v4 51/52] PCI: Introduce resource_disabled()
-Message-Id: <1440138067-4314-52-git-send-email-yinghai@kernel.org>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 04 Sep 2015 03:07:45 +0000
+Subject: [[PATCH v6 02/10] perf: Add a flags parameter to pmu txn interfaces
+Message-Id: <1441336073-22750-3-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1440138067-4314-1-git-send-email-yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+References: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Wei Yang <weiyang-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, TJ <linux-7m3hRoVZU5A@public.gmane.org>, Yijing Wang <wangyijing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-am33-list-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Yinghai Lu <yinghai-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-Current is using !flags, and we are going to use
-IORESOURCE_DISABLED instead of clearing resource flags.
+Currently, the PMU interface allows reading only one counter at a time.
+But some PMUs like the 24x7 counters in Power, support reading several
+counters at once. To leveage this functionality, extend the transaction
+interface to support a "transaction type".
 
-Let's convert all !flags to helper function resource_disabled().
-resource_disabled will check !flags and IORESOURCE_DISABLED both.
+The first type, PERF_PMU_TXN_ADD, refers to the existing transactions,
+i.e. used to _schedule_ all the events on the PMU as a group. A second
+transaction type, PERF_PMU_TXN_READ, will be used in a follow-on patch,
+by the 24x7 counters to read several counters at once.
 
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-am33-list@redhat.com
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-s390@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-pci@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: iommu@lists.linux-foundation.org
-Cc: linux-sh@vger.kernel.org
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Extend the transaction interfaces to the PMU to accept a 'txn_flags'
+parameter and use this parameter to ignore any transactions that are
+not of type PERF_PMU_TXN_ADD.
+
+Thanks to Peter Zijlstra for his input.
+
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+
 ---
- arch/alpha/kernel/pci.c                   |  2 +-
- arch/ia64/pci/pci.c                       |  4 ++--
- arch/microblaze/pci/pci-common.c          | 15 ++++++++-------
- arch/mn10300/unit-asb2305/pci-asb2305.c   |  4 ++--
- arch/mn10300/unit-asb2305/pci.c           |  4 ++--
- arch/powerpc/kernel/pci-common.c          | 16 +++++++++-------
- arch/powerpc/platforms/powernv/pci-ioda.c | 12 ++++++------
- arch/s390/pci/pci.c                       |  2 +-
- arch/sparc/kernel/pci.c                   |  2 +-
- arch/x86/pci/i386.c                       |  4 ++--
- arch/xtensa/kernel/pci.c                  |  4 ++--
- drivers/iommu/intel-iommu.c               |  3 ++-
- drivers/pci/host/pcie-rcar.c              |  2 +-
- drivers/pci/iov.c                         |  2 +-
- drivers/pci/probe.c                       |  2 +-
- drivers/pci/quirks.c                      |  4 ++--
- drivers/pci/rom.c                         |  2 +-
- drivers/pci/setup-bus.c                   |  8 ++++----
- drivers/pci/setup-res.c                   |  2 +-
- include/linux/ioport.h                    |  4 ++++
- 20 files changed, 53 insertions(+), 45 deletions(-)
+Changelog[v6]
+	- [Peter Zijlstra]
+		- Change txn_flags to unsigned int.
+		- In commit_txn() clear txn_flags independently for TXN_ADD
+	          TXN_READ transactions (to reduce churn in a later patch).
+		- Drop local 'txn_flags' variable.
+		- Add WARN_ON_ONCE() around txn_flags.
 
-diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
-index 82f738e..91a7153 100644
---- a/arch/alpha/kernel/pci.c
-+++ b/arch/alpha/kernel/pci.c
-@@ -282,7 +282,7 @@ pcibios_claim_one_bus(struct pci_bus *b)
- 		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 			struct resource *r = &dev->resource[i];
+Changelog[v4]
+	- [Peter Zijlstra] Fix an copy-paste error in power_pmu_cancel_txn().
+	- [Peter Zijlstra] Use __this_cpu_read() and __this_cpu_write().
+
+Changelog[v3]
+	- [Peter Zijlstra] Ensure the nop_txn interfaces disable/enable
+	  PMU only for TXN_ADD transactions.
+	- [Peter Zijlstra] Cache the flags parameter in ->start_txn() and
+	  drop the flags parameter from ->commit_txn() and ->cancel_txn().
+---
+ arch/powerpc/perf/core-book3s.c  |   30 +++++++++++++++++++++++++++++-
+ arch/s390/kernel/perf_cpum_cf.c  |   30 +++++++++++++++++++++++++++++-
+ arch/sparc/kernel/perf_event.c   |   25 ++++++++++++++++++++++++-
+ arch/x86/kernel/cpu/perf_event.c |   32 +++++++++++++++++++++++++++++++-
+ arch/x86/kernel/cpu/perf_event.h |    1 +
+ include/linux/perf_event.h       |   14 +++++++++++---
+ kernel/events/core.c             |   31 ++++++++++++++++++++++++++++---
+ 7 files changed, 153 insertions(+), 10 deletions(-)
+
+diff --git a/arch/powerpc/perf/core-book3s.c b/arch/powerpc/perf/core-book3s.c
+index d90893b..a9e9a39 100644
+--- a/arch/powerpc/perf/core-book3s.c
++++ b/arch/powerpc/perf/core-book3s.c
+@@ -49,6 +49,7 @@ struct cpu_hw_events {
+ 	unsigned long avalues[MAX_HWEVENTS][MAX_EVENT_ALTERNATIVES];
  
--			if (r->parent || !r->start || !r->flags)
-+			if (r->parent || !r->start || resource_disabled(r))
- 				continue;
- 			if (pci_has_flag(PCI_PROBE_ONLY) ||
- 			    (r->flags & IORESOURCE_PCI_FIXED)) {
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 7cc3be9..cc293ea 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -501,7 +501,7 @@ void pcibios_fixup_device_resources(struct pci_dev *dev)
- 	for (idx = 0; idx < PCI_BRIDGE_RESOURCES; idx++) {
- 		struct resource *r = &dev->resource[idx];
+ 	unsigned int group_flag;
++	unsigned int txn_flags;
+ 	int n_txn_start;
  
--		if (!r->flags || r->parent || !r->start)
-+		if (resource_disabled(r) || r->parent || !r->start)
- 			continue;
+ 	/* BHRB bits */
+@@ -1586,11 +1587,21 @@ static void power_pmu_stop(struct perf_event *event, int ef_flags)
+  * Start group events scheduling transaction
+  * Set the flag to make pmu::enable() not perform the
+  * schedulability test, it will be performed at commit time
++ *
++ * We only support PERF_PMU_TXN_ADD transactions. Save the
++ * transaction flags but otherwise ignore non-PERF_PMU_TXN_ADD
++ * transactions.
+  */
+-static void power_pmu_start_txn(struct pmu *pmu)
++static void power_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ {
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
  
- 		pci_claim_resource(dev, idx);
-@@ -519,7 +519,7 @@ static void pcibios_fixup_bridge_resources(struct pci_dev *dev)
- 	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
- 		struct resource *r = &dev->resource[idx];
++	WARN_ON_ONCE(cpuhw->txn_flags);		/* txn already in flight */
++
++	cpuhw->txn_flags = txn_flags;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_disable(pmu);
+ 	cpuhw->group_flag |= PERF_EVENT_TXN;
+ 	cpuhw->n_txn_start = cpuhw->n_events;
+@@ -1604,6 +1615,14 @@ static void power_pmu_start_txn(struct pmu *pmu)
+ static void power_pmu_cancel_txn(struct pmu *pmu)
+ {
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
++	unsigned int txn_flags;
++
++	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
++
++	txn_flags = cpuhw->txn_flags;
++	cpuhw->txn_flags = 0;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
  
--		if (!r->flags || r->parent || !r->start)
-+		if (resource_disabled(r) || r->parent || !r->start)
- 			continue;
+ 	cpuhw->group_flag &= ~PERF_EVENT_TXN;
+ 	perf_pmu_enable(pmu);
+@@ -1621,7 +1640,15 @@ static int power_pmu_commit_txn(struct pmu *pmu)
  
- 		pci_claim_bridge_resource(dev, idx);
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index 09b1af6..c123d3c 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -705,7 +705,7 @@ static void pcibios_fixup_resources(struct pci_dev *dev)
- 	}
- 	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
- 		struct resource *res = dev->resource + i;
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			continue;
- 		if (res->start = 0) {
- 			pr_debug("PCI:%s Resource %d %016llx-%016llx [%x]",
-@@ -806,7 +806,7 @@ static void pcibios_fixup_bridge(struct pci_bus *bus)
- 	pci_bus_for_each_resource(bus, res, i) {
- 		if (!res)
- 			continue;
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			continue;
- 		if (i >= 3 && bus->self->transparent)
- 			continue;
-@@ -985,7 +985,7 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
- 		 pci_domain_nr(bus), bus->number);
+ 	if (!ppmu)
+ 		return -EAGAIN;
++
+ 	cpuhw = this_cpu_ptr(&cpu_hw_events);
++	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
++
++	if (cpuhw->txn_flags & ~PERF_PMU_TXN_ADD) {
++		cpuhw->txn_flags = 0;
++		return 0;
++	}
++
+ 	n = cpuhw->n_events;
+ 	if (check_excludes(cpuhw->event, cpuhw->flags, 0, n))
+ 		return -EAGAIN;
+@@ -1633,6 +1660,7 @@ static int power_pmu_commit_txn(struct pmu *pmu)
+ 		cpuhw->event[i]->hw.config = cpuhw->events[i];
  
- 	pci_bus_for_each_resource(bus, res, i) {
--		if (!res || !res->flags
-+		if (!res || resource_disabled(res)
- 		    || res->start > res->end || res->parent)
- 			continue;
- 		if (bus->parent = NULL)
-@@ -1087,7 +1087,8 @@ static void __init pcibios_allocate_resources(int pass)
- 			r = &dev->resource[idx];
- 			if (r->parent)		/* Already allocated */
- 				continue;
--			if (!r->flags || (r->flags & IORESOURCE_UNSET))
-+			if (resource_disabled(r) ||
-+			    (r->flags & IORESOURCE_UNSET))
- 				continue;	/* Not assigned at all */
- 			/* We only allocate ROMs on pass 1 just in case they
- 			 * have been screwed up by firmware
-@@ -1218,7 +1219,7 @@ void pcibios_claim_one_bus(struct pci_bus *bus)
- 		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 			struct resource *r = &dev->resource[i];
+ 	cpuhw->group_flag &= ~PERF_EVENT_TXN;
++	cpuhw->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+ }
+diff --git a/arch/s390/kernel/perf_cpum_cf.c b/arch/s390/kernel/perf_cpum_cf.c
+index 56fdad4..dbcfd29 100644
+--- a/arch/s390/kernel/perf_cpum_cf.c
++++ b/arch/s390/kernel/perf_cpum_cf.c
+@@ -72,6 +72,7 @@ struct cpu_hw_events {
+ 	atomic_t		ctr_set[CPUMF_CTR_SET_MAX];
+ 	u64			state, tx_state;
+ 	unsigned int		flags;
++	unsigned int		txn_flags;
+ };
+ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = {
+ 	.ctr_set = {
+@@ -82,6 +83,7 @@ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = {
+ 	},
+ 	.state = 0,
+ 	.flags = 0,
++	.txn_flags = 0,
+ };
  
--			if (r->parent || !r->start || !r->flags)
-+			if (r->parent || !r->start || resource_disabled(r))
- 				continue;
+ static int get_counter_set(u64 event)
+@@ -572,11 +574,21 @@ static void cpumf_pmu_del(struct perf_event *event, int flags)
+ /*
+  * Start group events scheduling transaction.
+  * Set flags to perform a single test at commit time.
++ *
++ * We only support PERF_PMU_TXN_ADD transactions. Save the
++ * transaction flags but otherwise ignore non-PERF_PMU_TXN_ADD
++ * transactions.
+  */
+-static void cpumf_pmu_start_txn(struct pmu *pmu)
++static void cpumf_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ {
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
  
- 			pr_debug("PCI: Claiming %s: ", pci_name(dev));
-@@ -1278,7 +1279,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
- 	res->start = (res->start + io_offset) & 0xffffffffu;
- 	res->end = (res->end + io_offset) & 0xffffffffu;
++	WARN_ON_ONCE(cpuhw->txn_flags);		/* txn already in flight */
++
++	cpuhw->txn_flags = txn_flags;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_disable(pmu);
+ 	cpuhw->flags |= PERF_EVENT_TXN;
+ 	cpuhw->tx_state = cpuhw->state;
+@@ -589,8 +601,16 @@ static void cpumf_pmu_start_txn(struct pmu *pmu)
+  */
+ static void cpumf_pmu_cancel_txn(struct pmu *pmu)
+ {
++	unsigned int txn_flags;
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
  
--	if (!res->flags) {
-+	if (resource_disabled(res)) {
- 		pr_warn("PCI: I/O resource not set for host ");
- 		pr_cont("bridge %s (domain %d)\n",
- 			hose->dn->full_name, hose->global_number);
-@@ -1298,7 +1299,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
- 	/* Hookup PHB Memory resources */
- 	for (i = 0; i < 3; ++i) {
- 		res = &hose->mem_resources[i];
--		if (!res->flags) {
-+		if (resource_disabled(res)) {
- 			if (i > 0)
- 				continue;
- 			pr_err("PCI: Memory resource 0 not set for ");
-diff --git a/arch/mn10300/unit-asb2305/pci-asb2305.c b/arch/mn10300/unit-asb2305/pci-asb2305.c
-index b5b036f..a249821 100644
---- a/arch/mn10300/unit-asb2305/pci-asb2305.c
-+++ b/arch/mn10300/unit-asb2305/pci-asb2305.c
-@@ -103,7 +103,7 @@ static void __init pcibios_allocate_bus_resources(struct list_head *bus_list)
- 			     idx < PCI_NUM_RESOURCES;
- 			     idx++) {
- 				r = &dev->resource[idx];
--				if (!r->flags)
-+				if (resource_disabled(r))
- 					continue;
- 				if (!r->start ||
- 				    pci_claim_bridge_resource(dev, idx) < 0) {
-@@ -189,7 +189,7 @@ static int __init pcibios_assign_resources(void)
- 		   addresses. */
- 		for_each_pci_dev(dev) {
- 			r = &dev->resource[PCI_ROM_RESOURCE];
--			if (!r->flags || !r->start)
-+			if (resource_disabled(r) || !r->start)
- 				continue;
- 			if (pci_claim_resource(dev, PCI_ROM_RESOURCE) < 0) {
- 				r->end -= r->start;
-diff --git a/arch/mn10300/unit-asb2305/pci.c b/arch/mn10300/unit-asb2305/pci.c
-index 3dfe2d3..ad77b18 100644
---- a/arch/mn10300/unit-asb2305/pci.c
-+++ b/arch/mn10300/unit-asb2305/pci.c
-@@ -291,7 +291,7 @@ static void pcibios_fixup_device_resources(struct pci_dev *dev)
- 	for (idx = 0; idx < PCI_BRIDGE_RESOURCES; idx++) {
- 		struct resource *r = &dev->resource[idx];
++	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
++
++	txn_flags = cphw->txn_flags;
++	cpuhw->txn_flags = 0;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	WARN_ON(cpuhw->tx_state != cpuhw->state);
  
--		if (!r->flags || r->parent || !r->start)
-+		if (resource_disabled(r) || r->parent || !r->start)
- 			continue;
+ 	cpuhw->flags &= ~PERF_EVENT_TXN;
+@@ -607,6 +627,13 @@ static int cpumf_pmu_commit_txn(struct pmu *pmu)
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
+ 	u64 state;
  
- 		pci_claim_resource(dev, idx);
-@@ -308,7 +308,7 @@ static void pcibios_fixup_bridge_resources(struct pci_dev *dev)
- 	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
- 		struct resource *r = &dev->resource[idx];
++	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
++
++	if (cpuhw->txn_flags & ~PERF_PMU_TXN_ADD) {
++		cpuhw->txn_flags = 0;
++		return 0;
++	}
++
+ 	/* check if the updated state can be scheduled */
+ 	state = cpuhw->state & ~((1 << CPUMF_LCCTL_ENABLE_SHIFT) - 1);
+ 	state >>= CPUMF_LCCTL_ENABLE_SHIFT;
+@@ -614,6 +641,7 @@ static int cpumf_pmu_commit_txn(struct pmu *pmu)
+ 		return -EPERM;
  
--		if (!r->flags || r->parent || !r->start)
-+		if (resource_disabled(r) || r->parent || !r->start)
- 			continue;
+ 	cpuhw->flags &= ~PERF_EVENT_TXN;
++	cpuhw->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+ }
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index e3f89c7..2c0984d 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -109,6 +109,7 @@ struct cpu_hw_events {
+ 	int			enabled;
  
- 		pci_claim_bridge_resource(dev, idx);
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index 2d8d654..10bb5cd 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -810,7 +810,7 @@ static void pcibios_fixup_resources(struct pci_dev *dev)
- 	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
- 		struct resource *res = dev->resource + i;
- 		struct pci_bus_region reg;
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			continue;
+ 	unsigned int		group_flag;
++	unsigned int		txn_flags;
+ };
+ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
  
- 		/* If we're going to re-assign everything, we mark all resources
-@@ -927,7 +927,7 @@ static void pcibios_fixup_bridge(struct pci_bus *bus)
- 	struct pci_dev *dev = bus->self;
+@@ -1494,10 +1495,16 @@ static int sparc_pmu_event_init(struct perf_event *event)
+  * Set the flag to make pmu::enable() not perform the
+  * schedulability test, it will be performed at commit time
+  */
+-static void sparc_pmu_start_txn(struct pmu *pmu)
++static void sparc_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ {
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
  
- 	pci_bus_for_each_resource(bus, res, i) {
--		if (!res || !res->flags)
-+		if (!res || resource_disabled(res))
- 			continue;
- 		if (i >= 3 && bus->self->transparent)
- 			continue;
-@@ -1174,7 +1174,8 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
- 		 pci_domain_nr(bus), bus->number);
++	WARN_ON_ONCE(cpuhw->txn_flags);		/* txn already in flight */
++
++	cpuhw->txn_flags = txn_flags;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_disable(pmu);
+ 	cpuhw->group_flag |= PERF_EVENT_TXN;
+ }
+@@ -1510,6 +1517,14 @@ static void sparc_pmu_start_txn(struct pmu *pmu)
+ static void sparc_pmu_cancel_txn(struct pmu *pmu)
+ {
+ 	struct cpu_hw_events *cpuhw = this_cpu_ptr(&cpu_hw_events);
++	unsigned int txn_flags;
++
++	WARN_ON_ONCE(!cpuhw->txn_flags);	/* no txn in flight */
++
++	txn_flags = cpuhw->txn_flags;
++	cpuhw->txn_flags = 0;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
  
- 	pci_bus_for_each_resource(bus, res, i) {
--		if (!res || !res->flags || res->start > res->end || res->parent)
-+		if (!res || resource_disabled(res) ||
-+		    res->start > res->end || res->parent)
- 			continue;
+ 	cpuhw->group_flag &= ~PERF_EVENT_TXN;
+ 	perf_pmu_enable(pmu);
+@@ -1528,6 +1543,13 @@ static int sparc_pmu_commit_txn(struct pmu *pmu)
+ 	if (!sparc_pmu)
+ 		return -EINVAL;
  
- 		/* If the resource was left unset at this point, we clear it */
-@@ -1281,7 +1282,8 @@ static void __init pcibios_allocate_resources(int pass)
- 			r = &dev->resource[idx];
- 			if (r->parent)		/* Already allocated */
- 				continue;
--			if (!r->flags || (r->flags & IORESOURCE_UNSET))
-+			if (resource_disabled(r) ||
-+			    (r->flags & IORESOURCE_UNSET))
- 				continue;	/* Not assigned at all */
- 			/* We only allocate ROMs on pass 1 just in case they
- 			 * have been screwed up by firmware
-@@ -1419,7 +1421,7 @@ void pcibios_claim_one_bus(struct pci_bus *bus)
- 		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 			struct resource *r = &dev->resource[i];
++	WARN_ON_ONCE(!cpuc->txn_flags);	/* no txn in flight */
++
++	if (cpuc->txn_flags & ~PERF_PMU_TXN_ADD) {
++		cpuc->txn_flags = 0;
++		return 0;
++	}
++
+ 	n = cpuc->n_events;
+ 	if (check_excludes(cpuc->event, 0, n))
+ 		return -EINVAL;
+@@ -1535,6 +1557,7 @@ static int sparc_pmu_commit_txn(struct pmu *pmu)
+ 		return -EAGAIN;
  
--			if (r->parent || !r->start || !r->flags)
-+			if (r->parent || !r->start || resource_disabled(r))
- 				continue;
+ 	cpuc->group_flag &= ~PERF_EVENT_TXN;
++	cpuc->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+ }
+diff --git a/arch/x86/kernel/cpu/perf_event.c b/arch/x86/kernel/cpu/perf_event.c
+index 66dd3fe9..dc77ef4 100644
+--- a/arch/x86/kernel/cpu/perf_event.c
++++ b/arch/x86/kernel/cpu/perf_event.c
+@@ -1748,9 +1748,21 @@ static inline void x86_pmu_read(struct perf_event *event)
+  * Start group events scheduling transaction
+  * Set the flag to make pmu::enable() not perform the
+  * schedulability test, it will be performed at commit time
++ *
++ * We only support PERF_PMU_TXN_ADD transactions. Save the
++ * transaction flags but otherwise ignore non-PERF_PMU_TXN_ADD
++ * transactions.
+  */
+-static void x86_pmu_start_txn(struct pmu *pmu)
++static void x86_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ {
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
++
++	WARN_ON_ONCE(cpuc->txn_flags);		/* txn already in flight */
++
++	cpuc->txn_flags = txn_flags;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_disable(pmu);
+ 	__this_cpu_or(cpu_hw_events.group_flag, PERF_EVENT_TXN);
+ 	__this_cpu_write(cpu_hw_events.n_txn, 0);
+@@ -1763,6 +1775,16 @@ static void x86_pmu_start_txn(struct pmu *pmu)
+  */
+ static void x86_pmu_cancel_txn(struct pmu *pmu)
+ {
++	unsigned int txn_flags;
++	struct cpu_hw_events *cpuc = this_cpu_ptr(&cpu_hw_events);
++
++	WARN_ON_ONCE(!cpuc->txn_flags);	/* no txn in flight */
++
++	txn_flags = cpuc->txn_flags;
++	cpuc->txn_flags = 0;
++	if (txn_flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	__this_cpu_and(cpu_hw_events.group_flag, ~PERF_EVENT_TXN);
+ 	/*
+ 	 * Truncate collected array by the number of events added in this
+@@ -1786,6 +1808,13 @@ static int x86_pmu_commit_txn(struct pmu *pmu)
+ 	int assign[X86_PMC_IDX_MAX];
+ 	int n, ret;
  
- 			pr_debug("PCI: Claiming %s: "
-@@ -1504,7 +1506,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
- 	/* Hookup PHB IO resource */
- 	res = &hose->io_resource;
++	WARN_ON_ONCE(!cpuc->txn_flags);	/* no txn in flight */
++
++	if (cpuc->txn_flags & ~PERF_PMU_TXN_ADD) {
++		cpuc->txn_flags = 0;
++		return 0;
++	}
++
+ 	n = cpuc->n_events;
  
--	if (!res->flags) {
-+	if (resource_disabled(res)) {
- 		pr_info("PCI: I/O resource not set for host"
- 		       " bridge %s (domain %d)\n",
- 		       hose->dn->full_name, hose->global_number);
-@@ -1522,7 +1524,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
- 	/* Hookup PHB Memory resources */
- 	for (i = 0; i < 3; ++i) {
- 		res = &hose->mem_resources[i];
--		if (!res->flags) {
-+		if (resource_disabled(res)) {
- 			if (i = 0)
- 				printk(KERN_ERR "PCI: Memory resource 0 not set for "
- 				       "host bridge %s (domain %d)\n",
-diff --git a/arch/powerpc/platforms/powernv/pci-ioda.c b/arch/powerpc/platforms/powernv/pci-ioda.c
-index 85cbc96..7146c8f 100644
---- a/arch/powerpc/platforms/powernv/pci-ioda.c
-+++ b/arch/powerpc/platforms/powernv/pci-ioda.c
-@@ -905,7 +905,7 @@ static int pnv_pci_vf_resource_shift(struct pci_dev *dev, int offset)
- 	num_vfs = pdn->num_vfs;
- 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
- 		res = &dev->resource[i + PCI_IOV_RESOURCES];
--		if (!res->flags || !res->parent)
-+		if (resource_disabled(res) || !res->parent)
- 			continue;
+ 	if (!x86_pmu_initialized())
+@@ -1802,6 +1831,7 @@ static int x86_pmu_commit_txn(struct pmu *pmu)
+ 	memcpy(cpuc->assign, assign, n*sizeof(int));
  
- 		if (!pnv_pci_is_mem_pref_64(res->flags))
-@@ -936,7 +936,7 @@ static int pnv_pci_vf_resource_shift(struct pci_dev *dev, int offset)
+ 	cpuc->group_flag &= ~PERF_EVENT_TXN;
++	cpuc->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+ }
+diff --git a/arch/x86/kernel/cpu/perf_event.h b/arch/x86/kernel/cpu/perf_event.h
+index 5edf6d8..c99c93b 100644
+--- a/arch/x86/kernel/cpu/perf_event.h
++++ b/arch/x86/kernel/cpu/perf_event.h
+@@ -196,6 +196,7 @@ struct cpu_hw_events {
+ 	int			n_excl; /* the number of exclusive events */
+ 
+ 	unsigned int		group_flag;
++	unsigned int		txn_flags;
+ 	int			is_fake;
+ 
+ 	/*
+diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
+index 092a0e8..4e8d780 100644
+--- a/include/linux/perf_event.h
++++ b/include/linux/perf_event.h
+@@ -168,6 +168,8 @@ struct perf_event;
+  */
+ #define PERF_EVENT_TXN 0x1
+ 
++#define PERF_PMU_TXN_ADD  0x1		/* txn to add/schedule event on PMU */
++
+ /**
+  * pmu::capabilities flags
+  */
+@@ -252,20 +254,26 @@ struct pmu {
+ 	 *
+ 	 * Start the transaction, after this ->add() doesn't need to
+ 	 * do schedulability tests.
++	 *
++	 * Optional.
  	 */
- 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
- 		res = &dev->resource[i + PCI_IOV_RESOURCES];
--		if (!res->flags || !res->parent)
-+		if (resource_disabled(res) || !res->parent)
- 			continue;
- 
- 		if (!pnv_pci_is_mem_pref_64(res->flags))
-@@ -1218,7 +1218,7 @@ static int pnv_pci_vf_assign_m64(struct pci_dev *pdev, u16 num_vfs)
- 
- 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
- 		res = &pdev->resource[i + PCI_IOV_RESOURCES];
--		if (!res->flags || !res->parent)
-+		if (resource_disabled(res) || !res->parent)
- 			continue;
- 
- 		if (!pnv_pci_is_mem_pref_64(res->flags))
-@@ -2772,7 +2772,7 @@ static void pnv_pci_ioda_fixup_iov_resources(struct pci_dev *pdev)
- 
- 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
- 		res = &pdev->resource[i + PCI_IOV_RESOURCES];
--		if (!res->flags || res->parent)
-+		if (resource_disabled(res) || res->parent)
- 			continue;
- 		if (!pnv_pci_is_mem_pref_64(res->flags)) {
- 			dev_warn(&pdev->dev, " non M64 VF BAR%d: %pR\n",
-@@ -2794,7 +2794,7 @@ static void pnv_pci_ioda_fixup_iov_resources(struct pci_dev *pdev)
- 
- 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
- 		res = &pdev->resource[i + PCI_IOV_RESOURCES];
--		if (!res->flags || res->parent)
-+		if (resource_disabled(res) || res->parent)
- 			continue;
- 		if (!pnv_pci_is_mem_pref_64(res->flags)) {
- 			dev_warn(&pdev->dev, "Skipping expanding VF BAR%d: %pR\n",
-@@ -2835,7 +2835,7 @@ static void pnv_ioda_setup_pe_seg(struct pci_controller *hose,
- 	BUG_ON(!(pe->flags & (PNV_IODA_PE_BUS | PNV_IODA_PE_BUS_ALL)));
- 
- 	pci_bus_for_each_resource(pe->pbus, res, i) {
--		if (!res || !res->flags ||
-+		if (!res || resource_disabled(res) ||
- 		    res->start > res->end)
- 			continue;
- 
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 598f023..d850749 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -658,7 +658,7 @@ int pcibios_add_device(struct pci_dev *pdev)
- 
- 	for (i = 0; i < PCI_BAR_COUNT; i++) {
- 		res = &pdev->resource[i];
--		if (res->parent || !res->flags)
-+		if (res->parent || resource_disabled(res))
- 			continue;
- 		pci_claim_resource(pdev, i);
- 	}
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index bfd0b70..f5e9536 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -630,7 +630,7 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
- 		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 			struct resource *r = &dev->resource[i];
- 
--			if (r->parent || !r->start || !r->flags)
-+			if (r->parent || !r->start || resource_disabled(r))
- 				continue;
- 
- 			if (ofpci_verbose)
-diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
-index 0b74efe..8538edb 100644
---- a/arch/x86/pci/i386.c
-+++ b/arch/x86/pci/i386.c
-@@ -204,7 +204,7 @@ static void pcibios_allocate_bridge_resources(struct pci_dev *dev)
- 
- 	for (idx = PCI_BRIDGE_RESOURCES; idx < PCI_NUM_RESOURCES; idx++) {
- 		r = &dev->resource[idx];
--		if (!r->flags)
-+		if (resource_disabled(r))
- 			continue;
- 		if (r->parent)	/* Already allocated */
- 			continue;
-@@ -333,7 +333,7 @@ static void pcibios_allocate_dev_rom_resource(struct pci_dev *dev)
- 	 * addresses.
+-	void (*start_txn)		(struct pmu *pmu); /* optional */
++	void (*start_txn)		(struct pmu *pmu, unsigned int txn_flags);
+ 	/*
+ 	 * If ->start_txn() disabled the ->add() schedulability test
+ 	 * then ->commit_txn() is required to perform one. On success
+ 	 * the transaction is closed. On error the transaction is kept
+ 	 * open until ->cancel_txn() is called.
++	 *
++	 * Optional.
  	 */
- 	r = &dev->resource[PCI_ROM_RESOURCE];
--	if (!r->flags || !r->start)
-+	if (resource_disabled(r) || !r->start)
- 		return;
- 	if (r->parent) /* Already allocated */
- 		return;
-diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
-index b848cc3..f34d061 100644
---- a/arch/xtensa/kernel/pci.c
-+++ b/arch/xtensa/kernel/pci.c
-@@ -142,7 +142,7 @@ static void __init pci_controller_apertures(struct pci_controller *pci_ctrl,
- 
- 	io_offset = (unsigned long)pci_ctrl->io_space.base;
- 	res = &pci_ctrl->io_resource;
--	if (!res->flags) {
-+	if (resource_disabled(res)) {
- 		if (io_offset)
- 			printk (KERN_ERR "I/O resource not set for host"
- 				" bridge %d\n", pci_ctrl->index);
-@@ -156,7 +156,7 @@ static void __init pci_controller_apertures(struct pci_controller *pci_ctrl,
- 
- 	for (i = 0; i < 3; i++) {
- 		res = &pci_ctrl->mem_resources[i];
--		if (!res->flags) {
-+		if (resource_disabled(res)) {
- 			if (i > 0)
- 				continue;
- 			printk(KERN_ERR "Memory resource not set for "
-diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index 0649b94..ee9bdbf 100644
---- a/drivers/iommu/intel-iommu.c
-+++ b/drivers/iommu/intel-iommu.c
-@@ -1743,7 +1743,8 @@ static int dmar_init_reserved_ranges(void)
- 
- 		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 			r = &pdev->resource[i];
--			if (!r->flags || !(r->flags & IORESOURCE_MEM))
-+			if (resource_disabled(r) ||
-+			    !(r->flags & IORESOURCE_MEM))
- 				continue;
- 			iova = reserve_iova(&reserved_iova_list,
- 					    IOVA_PFN(r->start),
-diff --git a/drivers/pci/host/pcie-rcar.c b/drivers/pci/host/pcie-rcar.c
-index c086210..a6d6bd0 100644
---- a/drivers/pci/host/pcie-rcar.c
-+++ b/drivers/pci/host/pcie-rcar.c
-@@ -365,7 +365,7 @@ static int rcar_pcie_setup(int nr, struct pci_sys_data *sys)
- 	for (i = 0; i < RCAR_PCI_MAX_RESOURCES; i++) {
- 
- 		res = &pcie->res[i];
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			continue;
- 
- 		rcar_pcie_setup_window(i, pcie);
-diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
-index ee0ebff..808d08b 100644
---- a/drivers/pci/iov.c
-+++ b/drivers/pci/iov.c
-@@ -438,7 +438,7 @@ found:
- 		res = &dev->resource[i + PCI_IOV_RESOURCES];
- 		bar64 = __pci_read_base(dev, pci_bar_unknown, res,
- 					pos + PCI_SRIOV_BAR + i * 4);
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			continue;
- 		if (resource_size(res) & (PAGE_SIZE - 1)) {
- 			rc = -EIO;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 14bdbca..5440fb1 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2129,7 +2129,7 @@ void pci_bus_release_busn_res(struct pci_bus *b)
- 	struct resource *res = &b->busn_res;
- 	int ret;
- 
--	if (!res->flags || !res->parent)
-+	if (resource_disabled(res) || !res->parent)
- 		return;
- 
- 	ret = release_resource(res);
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index a2945a4..abbc2ac 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -337,7 +337,7 @@ static void quirk_bar_fixed(struct pci_dev *dev)
- 	for (i = 0; i < PCI_STD_RESOURCE_END; i++) {
- 		struct resource *r = &dev->resource[i];
- 
--		if (!r->start || !r->flags)
-+		if (!r->start || resource_disabled(r))
- 			continue;
- 		r->flags |= IORESOURCE_PCI_FIXED;
- 	}
-@@ -351,7 +351,7 @@ static void quirk_allocate_fixed(struct pci_dev *dev)
- 	for (i = 0; i < PCI_NUM_RESOURCES; i++) {
- 		struct resource *r = &dev->resource[i];
- 
--		if (r->parent ||
-+		if (r->parent || resource_disabled(r) ||
- 		    !(r->flags & IORESOURCE_PCI_FIXED) ||
- 		    !(r->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
- 			continue;
-diff --git a/drivers/pci/rom.c b/drivers/pci/rom.c
-index eb0ad53..585a9d3 100644
---- a/drivers/pci/rom.c
-+++ b/drivers/pci/rom.c
-@@ -28,7 +28,7 @@ int pci_enable_rom(struct pci_dev *pdev)
- 	struct pci_bus_region region;
- 	u32 rom_addr;
- 
--	if (!res->flags)
-+	if (resource_disabled(res))
- 		return -1;
- 
- 	pcibios_resource_to_bus(pdev->bus, &region, res);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 32ce700..0374446 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -247,7 +247,7 @@ static void pdev_assign_resources_prepare(struct pci_dev *dev,
- 		if (r->flags & IORESOURCE_PCI_FIXED)
- 			continue;
- 
--		if (!(r->flags) || r->parent)
-+		if (resource_disabled(r) || r->parent)
- 			continue;
- 
- 		r_align = __pci_resource_alignment(dev, r, realloc_head);
-@@ -379,7 +379,7 @@ static void reassign_resources_sorted(struct list_head *realloc_head,
- 	list_for_each_entry_safe(add_res, tmp, realloc_head, list) {
- 		res = add_res->res;
- 		/* skip resource that has been reset */
--		if (!res->flags)
-+		if (resource_disabled(res))
- 			goto out;
- 
- 		/* skip this resource if not found in head list */
-@@ -2138,7 +2138,7 @@ static void pci_bus_dump_res(struct pci_bus *bus)
- 	int i;
- 
- 	pci_bus_for_each_resource(bus, res, i) {
--		if (!res || !res->end || !res->flags)
-+		if (!res || !res->end || resource_disabled(res))
- 			continue;
- 
- 		dev_printk(KERN_DEBUG, &bus->dev, "resource %d %pR\n", i, res);
-@@ -2221,7 +2221,7 @@ static int iov_resources_unassigned(struct pci_dev *dev, void *data)
- 		struct pci_bus_region region;
- 
- 		/* Not assigned or rejected by kernel? */
--		if (!r->flags)
-+		if (resource_disabled(r))
- 			continue;
- 
- 		pcibios_resource_to_bus(dev->bus, &region, r);
-diff --git a/drivers/pci/setup-res.c b/drivers/pci/setup-res.c
-index 26aedde..55caf7a 100644
---- a/drivers/pci/setup-res.c
-+++ b/drivers/pci/setup-res.c
-@@ -40,7 +40,7 @@ void pci_update_resource(struct pci_dev *dev, int resno)
- 	 * Ignore resources for unimplemented BARs and unused resource slots
- 	 * for 64 bit BARs.
+-	int  (*commit_txn)		(struct pmu *pmu); /* optional */
++	int  (*commit_txn)		(struct pmu *pmu);
+ 	/*
+ 	 * Will cancel the transaction, assumes ->del() is called
+ 	 * for each successful ->add() during the transaction.
++	 *
++	 * Optional.
  	 */
--	if (!res->flags)
-+	if (resource_disabled(res))
- 		return;
+-	void (*cancel_txn)		(struct pmu *pmu); /* optional */
++	void (*cancel_txn)		(struct pmu *pmu);
  
- 	if (res->flags & IORESOURCE_UNSET)
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 27dbb18..fb21179 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -179,6 +179,10 @@ static inline bool resource_contains(struct resource *r1, struct resource *r2)
- 	return r1->start <= r2->start && r1->end >= r2->end;
+ 	/*
+ 	 * Will return the value for perf_event_mmap_page::index for this event,
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index e818389..e221432 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -1914,7 +1914,7 @@ group_sched_in(struct perf_event *group_event,
+ 	if (group_event->state = PERF_EVENT_STATE_OFF)
+ 		return 0;
+ 
+-	pmu->start_txn(pmu);
++	pmu->start_txn(pmu, PERF_PMU_TXN_ADD);
+ 
+ 	if (event_sched_in(group_event, cpuctx, ctx)) {
+ 		pmu->cancel_txn(pmu);
+@@ -7267,24 +7267,49 @@ static void perf_pmu_nop_void(struct pmu *pmu)
+ {
  }
  
-+static inline bool resource_disabled(struct resource *r)
++static void perf_pmu_nop_txn(struct pmu *pmu, unsigned int flags)
 +{
-+	return !r->flags || (r->flags & IORESOURCE_DISABLED);
 +}
++
+ static int perf_pmu_nop_int(struct pmu *pmu)
+ {
+ 	return 0;
+ }
  
- /* Convenience shorthand with allocation */
- #define request_region(start,n,name)		__request_region(&ioport_resource, (start), (n), (name), 0)
+-static void perf_pmu_start_txn(struct pmu *pmu)
++DEFINE_PER_CPU(unsigned int, nop_txn_flags);
++
++static void perf_pmu_start_txn(struct pmu *pmu, unsigned int flags)
+ {
++	__this_cpu_write(nop_txn_flags, flags);
++
++	if (flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_disable(pmu);
+ }
+ 
+ static int perf_pmu_commit_txn(struct pmu *pmu)
+ {
++	unsigned int flags = __this_cpu_read(nop_txn_flags);
++
++	__this_cpu_write(nop_txn_flags, 0);
++
++	if (flags & ~PERF_PMU_TXN_ADD)
++		return 0;
++
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+ }
+ 
+ static void perf_pmu_cancel_txn(struct pmu *pmu)
+ {
++	unsigned int flags =  __this_cpu_read(nop_txn_flags);
++
++	__this_cpu_write(nop_txn_flags, 0);
++
++	if (flags & ~PERF_PMU_TXN_ADD)
++		return;
++
+ 	perf_pmu_enable(pmu);
+ }
+ 
+@@ -7523,7 +7548,7 @@ got_cpu_context:
+ 			pmu->commit_txn = perf_pmu_commit_txn;
+ 			pmu->cancel_txn = perf_pmu_cancel_txn;
+ 		} else {
+-			pmu->start_txn  = perf_pmu_nop_void;
++			pmu->start_txn  = perf_pmu_nop_txn;
+ 			pmu->commit_txn = perf_pmu_nop_int;
+ 			pmu->cancel_txn = perf_pmu_nop_void;
+ 		}
 -- 
-1.8.4.5
+1.7.9.5
 
