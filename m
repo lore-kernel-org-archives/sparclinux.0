@@ -1,36 +1,36 @@
-From: "Theresa A. Dixon" <tdixon@warrick.k12.in.us>
-Date: Sun, 06 Sep 2015 07:55:10 +0000
-Subject: =?Windows-1252?Q?Schv=E1leno_Claire?=
-Message-Id: <AD55B3A1AFC70742A39E08B65AAC1A1115F7FCBD@WCSCMAIL2.wcsc.loc>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 04 Sep 2015 03:07:44 +0000
+Subject: [[PATCH v6 01/10] sparc/perf: Remove unnecessary assignment
+Message-Id: <1441336073-22750-2-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-Schv=E1leno Claire
+In ->commit_txn() 'cpuc' is already initialized when it is
+declared, so we can remove the duplicate assignment.
 
-El Gordo Award 29th/08/2015 Email Gratulujeme pr=E1ve vyhr=E1l 150,000,00 E=
-uro bylo mezi v=EDteze mes=EDce mno=9Estv=ED Won 150,000,00 =FAcastn=EDku E=
-uro .V=9Aechny byly vybr=E1ny n=E1hodne z World Wide webu pres poc=EDtac ce=
-rp=E1 systemTo Facebook pro v=E1=9A soubor Claire kontaktujte pros=EDm na=
-=9Ae duvern=EDk agent okam=9Eite ctete tuto zpr=E1vu pro rychl=E9 a nal=E9h=
-av=E9 propu=9Aten=ED va=9Aeho fondu.
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+---
+ arch/sparc/kernel/perf_event.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-Loterie duvern=EDk agent v=FDroba Dept
-Z=E1morsk=E9 N=E1roky Unit Reklamace Kontaktn=ED osoba Pan Anthony Oliver.
-Reklamace pred=E1n=ED ceny Kontaktn=ED e-mail: mr.anthonyoliver@aol.com
-Telefonn=ED c=EDslo kontakt, Tel: + 34 602 689 690
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 689db65..e3f89c7 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1528,7 +1528,6 @@ static int sparc_pmu_commit_txn(struct pmu *pmu)
+ 	if (!sparc_pmu)
+ 		return -EINVAL;
+ 
+-	cpuc = this_cpu_ptr(&cpu_hw_events);
+ 	n = cpuc->n_events;
+ 	if (check_excludes(cpuc->event, 0, n))
+ 		return -EINVAL;
+-- 
+1.7.9.5
 
-Va=9Ae v=EDtezn=E1 Podrobnosti.
-
-Ref c=EDslo: AZLKM / 077HY / 2.015
-C=EDslo =9Aar=9Ee: XXB001-ESP / 22mA
-V=FDrobn=ED c=EDslo: TUK / 1107/915
-Ticket Number: 77QH / GY098-WYH1
-
-GRATULUJEME !!!
-
-Velmi Yours Truly,
-Pan=ED Veronica Davidson.
-N=E1rodn=ED loterie Gordo
