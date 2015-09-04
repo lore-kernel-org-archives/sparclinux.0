@@ -1,73 +1,147 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Wed, 16 Sep 2015 21:57:40 +0000
-Subject: [PATCH v5 42/53] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <1442440671-5361-43-git-send-email-yinghai@kernel.org>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 04 Sep 2015 03:07:49 +0000
+Subject: [[PATCH v6 06/10] perf: Invert perf_read_group() loops
+Message-Id: <1441336073-22750-7-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1442440671-5361-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1442440671-5361-1-git-send-email-yinghai@kernel.org>
+References: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-For device resource PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource, so set
-IORESOUCE_MEM_64 for 64bit resource during of device resource flags
-parsing.
+From: Peter Zijlstra <peterz@infradead.org>
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+In order to enable the use of perf_event_read(.group = true), we need
+to invert the sibling-child loop nesting of perf_read_group().
+
+Currently we iterate the child list for each sibling, this precludes
+using group reads. Flip things around so we iterate each group for
+each child.
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+Changes to Peter's patch:
+	- Add GFP_KERNEL to kzalloc().
+	- Pass in address of counter to atomic_read().
+	- Return event->size rather than leader->size (perf_read_group())
+	- Keep chkpatch happy.
+---
+ kernel/events/core.c |   85 ++++++++++++++++++++++++++++++++------------------
+ 1 file changed, 55 insertions(+), 30 deletions(-)
 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-1.8.4.5
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index 7bb9141..2c38c09 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -3862,50 +3862,75 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
+ }
+ EXPORT_SYMBOL_GPL(perf_event_read_value);
+ 
+-static int perf_read_group(struct perf_event *event,
+-				   u64 read_format, char __user *buf)
++static void __perf_read_group_add(struct perf_event *leader,
++					u64 read_format, u64 *values)
+ {
+-	struct perf_event *leader = event->group_leader, *sub;
+-	struct perf_event_context *ctx = leader->ctx;
+-	int n = 0, size = 0, ret;
+-	u64 count, enabled, running;
+-	u64 values[5];
++	struct perf_event *sub;
++	int n = 1; /* skip @nr */
+ 
+-	lockdep_assert_held(&ctx->mutex);
++	perf_event_read(leader, true);
++
++	/*
++	 * Since we co-schedule groups, {enabled,running} times of siblings
++	 * will be identical to those of the leader, so we only publish one
++	 * set.
++	 */
++	if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED) {
++		values[n++] += leader->total_time_enabled +
++			atomic64_read(&leader->child_total_time_enabled);
++	}
+ 
+-	count = perf_event_read_value(leader, &enabled, &running);
++	if (read_format & PERF_FORMAT_TOTAL_TIME_RUNNING) {
++		values[n++] += leader->total_time_running +
++			atomic64_read(&leader->child_total_time_running);
++	}
+ 
+-	values[n++] = 1 + leader->nr_siblings;
+-	if (read_format & PERF_FORMAT_TOTAL_TIME_ENABLED)
+-		values[n++] = enabled;
+-	if (read_format & PERF_FORMAT_TOTAL_TIME_RUNNING)
+-		values[n++] = running;
+-	values[n++] = count;
++	/*
++	 * Write {count,id} tuples for every sibling.
++	 */
++	values[n++] += perf_event_count(leader);
+ 	if (read_format & PERF_FORMAT_ID)
+ 		values[n++] = primary_event_id(leader);
+ 
+-	size = n * sizeof(u64);
++	list_for_each_entry(sub, &leader->sibling_list, group_entry) {
++		values[n++] += perf_event_count(sub);
++		if (read_format & PERF_FORMAT_ID)
++			values[n++] = primary_event_id(sub);
++	}
++}
+ 
+-	if (copy_to_user(buf, values, size))
+-		return -EFAULT;
++static int perf_read_group(struct perf_event *event,
++				   u64 read_format, char __user *buf)
++{
++	struct perf_event *leader = event->group_leader, *child;
++	struct perf_event_context *ctx = leader->ctx;
++	int ret = event->read_size;
++	u64 *values;
+ 
+-	ret = size;
++	lockdep_assert_held(&ctx->mutex);
+ 
+-	list_for_each_entry(sub, &leader->sibling_list, group_entry) {
+-		n = 0;
++	values = kzalloc(event->read_size, GFP_KERNEL);
++	if (!values)
++		return -ENOMEM;
+ 
+-		values[n++] = perf_event_read_value(sub, &enabled, &running);
+-		if (read_format & PERF_FORMAT_ID)
+-			values[n++] = primary_event_id(sub);
++	values[0] = 1 + leader->nr_siblings;
++
++	/*
++	 * By locking the child_mutex of the leader we effectively
++	 * lock the child list of all siblings.. XXX explain how.
++	 */
++	mutex_lock(&leader->child_mutex);
+ 
+-		size = n * sizeof(u64);
++	__perf_read_group_add(leader, read_format, values);
++	list_for_each_entry(child, &leader->child_list, child_list)
++		__perf_read_group_add(child, read_format, values);
+ 
+-		if (copy_to_user(buf + ret, values, size)) {
+-			return -EFAULT;
+-		}
++	mutex_unlock(&leader->child_mutex);
+ 
+-		ret += size;
+-	}
++	if (copy_to_user(buf, values, event->read_size))
++		ret = -EFAULT;
++
++	kfree(values);
+ 
+ 	return ret;
+ }
+-- 
+1.7.9.5
 
