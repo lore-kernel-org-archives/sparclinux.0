@@ -1,300 +1,238 @@
-From: Eric B Munson <emunson@akamai.com>
-Date: Tue, 08 Sep 2015 13:59:00 +0000
-Subject: [PATCH v9 4/6] mm: mlock: Add mlock flags to enable VM_LOCKONFAULT usage
-Message-Id: <1441720742-7803-5-git-send-email-emunson@akamai.com>
+From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
+Date: Fri, 04 Sep 2015 03:07:53 +0000
+Subject: [[PATCH v6 10/10] perf: Drop PERF_EVENT_TXN
+Message-Id: <1441336073-22750-11-git-send-email-sukadev@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1441720742-7803-1-git-send-email-emunson@akamai.com>
-In-Reply-To: <1441720742-7803-1-git-send-email-emunson@akamai.com>
+References: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
+In-Reply-To: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric B Munson <emunson@akamai.com>, Michal Hocko <mhocko@suse.cz>, Vlastimil Babka <vbabka@suse.cz>, Jonathan Corbet <corbet@lwn.net>, "Kirill A. Shutemov" <kirill@shutemov.name>, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org, linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-The previous patch introduced a flag that specified pages in a VMA
-should be placed on the unevictable LRU, but they should not be made
-present when the area is created.  This patch adds the ability to set
-this state via the new mlock system calls.
+We currently use PERF_EVENT_TXN flag to determine if we are in the middle
+of a transaction. If in a transaction, we defer the schedulability checks
+from pmu->add() operation to the pmu->commit() operation.
 
-We add MLOCK_ONFAULT for mlock2 and MCL_ONFAULT for mlockall.
-MLOCK_ONFAULT will set the VM_LOCKONFAULT modifier for VM_LOCKED.
-MCL_ONFAULT should be used as a modifier to the two other mlockall
-flags.  When used with MCL_CURRENT, all current mappings will be marked
-with VM_LOCKED | VM_LOCKONFAULT.  When used with MCL_FUTURE, the
-mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.  When used
-with both MCL_CURRENT and MCL_FUTURE, all current mappings and
-mm->def_flags will be marked with VM_LOCKED | VM_LOCKONFAULT.
+Now that we have "transaction types" (PERF_PMU_TXN_ADD, PERF_PMU_TXN_READ)
+we can use the type to determine if we are in a transaction and drop the
+PERF_EVENT_TXN flag.
 
-Prior to this patch, mlockall() will unconditionally clear the
-mm->def_flags any time it is called without MCL_FUTURE.  This behavior
-is maintained after adding MCL_ONFAULT.  If a call to
-mlockall(MCL_FUTURE) is followed by mlockall(MCL_CURRENT), the
-mm->def_flags will be cleared and new VMAs will be unlocked.  This
-remains true with or without MCL_ONFAULT in either mlockall()
-invocation.
+When PERF_EVENT_TXN is dropped, the cpuhw->group_flag on some architectures
+becomes unused, so drop that field as well.
 
-munlock() will unconditionally clear both vma flags.  munlockall()
-unconditionally clears for VMA flags on all VMAs and in the
-mm->def_flags field.
+This is an extension of the Powerpc patch from Peter Zijlstra to s390,
+Sparc and x86 architectures.
 
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-api@vger.kernel.org
-Cc: linux-mm@kvack.org
+Signed-off-by: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
 ---
- arch/alpha/include/uapi/asm/mman.h     |  3 ++
- arch/mips/include/uapi/asm/mman.h      |  6 ++++
- arch/parisc/include/uapi/asm/mman.h    |  3 ++
- arch/powerpc/include/uapi/asm/mman.h   |  1 +
- arch/sparc/include/uapi/asm/mman.h     |  1 +
- arch/tile/include/uapi/asm/mman.h      |  1 +
- arch/xtensa/include/uapi/asm/mman.h    |  6 ++++
- include/uapi/asm-generic/mman-common.h |  5 ++++
- include/uapi/asm-generic/mman.h        |  1 +
- mm/mlock.c                             | 52 +++++++++++++++++++++++++---------
- 10 files changed, 66 insertions(+), 13 deletions(-)
+ arch/powerpc/perf/core-book3s.c  |    6 +-----
+ arch/s390/kernel/perf_cpum_cf.c  |    5 +----
+ arch/sparc/kernel/perf_event.c   |    6 +-----
+ arch/x86/kernel/cpu/perf_event.c |    7 ++-----
+ arch/x86/kernel/cpu/perf_event.h |    1 -
+ include/linux/perf_event.h       |    2 --
+ 6 files changed, 5 insertions(+), 22 deletions(-)
 
-diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
-index 0086b47..f2f9496 100644
---- a/arch/alpha/include/uapi/asm/mman.h
-+++ b/arch/alpha/include/uapi/asm/mman.h
-@@ -37,6 +37,9 @@
+diff --git a/arch/powerpc/perf/core-book3s.c b/arch/powerpc/perf/core-book3s.c
+index a9e9a39..b699d19 100644
+--- a/arch/powerpc/perf/core-book3s.c
++++ b/arch/powerpc/perf/core-book3s.c
+@@ -48,7 +48,6 @@ struct cpu_hw_events {
+ 	unsigned long amasks[MAX_HWEVENTS][MAX_EVENT_ALTERNATIVES];
+ 	unsigned long avalues[MAX_HWEVENTS][MAX_EVENT_ALTERNATIVES];
  
- #define MCL_CURRENT	 8192		/* lock all currently mapped pages */
- #define MCL_FUTURE	16384		/* lock all additions to address space */
-+#define MCL_ONFAULT	32768		/* lock all pages that are faulted in */
-+
-+#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
+-	unsigned int group_flag;
+ 	unsigned int txn_flags;
+ 	int n_txn_start;
  
- #define MADV_NORMAL	0		/* no further special treatment */
- #define MADV_RANDOM	1		/* expect random page references */
-diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
-index cfcb876..97c03f4 100644
---- a/arch/mips/include/uapi/asm/mman.h
-+++ b/arch/mips/include/uapi/asm/mman.h
-@@ -61,6 +61,12 @@
-  */
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-+#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
-+
-+/*
-+ * Flags for mlock
-+ */
-+#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
+@@ -1442,7 +1441,7 @@ static int power_pmu_add(struct perf_event *event, int ef_flags)
+ 	 * skip the schedulability test here, it will be performed
+ 	 * at commit time(->commit_txn) as a whole
+ 	 */
+-	if (cpuhw->group_flag & PERF_EVENT_TXN)
++	if (cpuhw->txn_flags & PERF_PMU_TXN_ADD)
+ 		goto nocheck;
  
- #define MADV_NORMAL	0		/* no further special treatment */
- #define MADV_RANDOM	1		/* expect random page references */
-diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
-index 294d251..ecc3ae1 100644
---- a/arch/parisc/include/uapi/asm/mman.h
-+++ b/arch/parisc/include/uapi/asm/mman.h
-@@ -31,6 +31,9 @@
+ 	if (check_excludes(cpuhw->event, cpuhw->flags, n0, 1))
+@@ -1603,7 +1602,6 @@ static void power_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ 		return;
  
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-+#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
-+
-+#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
- 
- #define MADV_NORMAL     0               /* no further special treatment */
- #define MADV_RANDOM     1               /* expect random page references */
-diff --git a/arch/powerpc/include/uapi/asm/mman.h b/arch/powerpc/include/uapi/asm/mman.h
-index 6ea26df..03c06ba 100644
---- a/arch/powerpc/include/uapi/asm/mman.h
-+++ b/arch/powerpc/include/uapi/asm/mman.h
-@@ -22,6 +22,7 @@
- 
- #define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
- #define MCL_FUTURE      0x4000          /* lock all additions to address space */
-+#define MCL_ONFAULT	0x8000		/* lock all pages that are faulted in */
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
-index 0b14df3..9765896 100644
---- a/arch/sparc/include/uapi/asm/mman.h
-+++ b/arch/sparc/include/uapi/asm/mman.h
-@@ -17,6 +17,7 @@
- 
- #define MCL_CURRENT     0x2000          /* lock all currently mapped pages */
- #define MCL_FUTURE      0x4000          /* lock all additions to address space */
-+#define MCL_ONFAULT	0x8000		/* lock all pages that are faulted in */
- 
- #define MAP_POPULATE	0x8000		/* populate (prefault) pagetables */
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
-diff --git a/arch/tile/include/uapi/asm/mman.h b/arch/tile/include/uapi/asm/mman.h
-index 81b8fc3..63ee13f 100644
---- a/arch/tile/include/uapi/asm/mman.h
-+++ b/arch/tile/include/uapi/asm/mman.h
-@@ -36,6 +36,7 @@
-  */
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-+#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
- 
- 
- #endif /* _ASM_TILE_MMAN_H */
-diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
-index 201aec0..360944e 100644
---- a/arch/xtensa/include/uapi/asm/mman.h
-+++ b/arch/xtensa/include/uapi/asm/mman.h
-@@ -74,6 +74,12 @@
-  */
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-+#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
-+
-+/*
-+ * Flags for mlock
-+ */
-+#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
- 
- #define MADV_NORMAL	0		/* no further special treatment */
- #define MADV_RANDOM	1		/* expect random page references */
-diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-index ddc3b36..a74dd84 100644
---- a/include/uapi/asm-generic/mman-common.h
-+++ b/include/uapi/asm-generic/mman-common.h
-@@ -25,6 +25,11 @@
- # define MAP_UNINITIALIZED 0x0		/* Don't support this flag */
- #endif
- 
-+/*
-+ * Flags for mlock
-+ */
-+#define MLOCK_ONFAULT	0x01		/* Lock pages in range after they are faulted in, do not prefault */
-+
- #define MS_ASYNC	1		/* sync memory asynchronously */
- #define MS_INVALIDATE	2		/* invalidate the caches */
- #define MS_SYNC		4		/* synchronous memory sync */
-diff --git a/include/uapi/asm-generic/mman.h b/include/uapi/asm-generic/mman.h
-index e9fe6fd..7162cd4 100644
---- a/include/uapi/asm-generic/mman.h
-+++ b/include/uapi/asm-generic/mman.h
-@@ -17,5 +17,6 @@
- 
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
-+#define MCL_ONFAULT	4		/* lock all pages that are faulted in */
- 
- #endif /* __ASM_GENERIC_MMAN_H */
-diff --git a/mm/mlock.c b/mm/mlock.c
-index ffcec2e..ddbfda7 100644
---- a/mm/mlock.c
-+++ b/mm/mlock.c
-@@ -506,7 +506,8 @@ static int mlock_fixup(struct vm_area_struct *vma, struct vm_area_struct **prev,
- 
- 	if (newflags = vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
- 	    is_vm_hugetlb_page(vma) || vma = get_gate_vma(current->mm))
--		goto out;	/* don't set VM_LOCKED,  don't count */
-+		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
-+		goto out;
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
-@@ -577,7 +578,7 @@ static int apply_vma_lock_flags(unsigned long start, size_t len,
- 		prev = vma;
- 
- 	for (nstart = start ; ; ) {
--		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
-+		vm_flags_t newflags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
- 
- 		newflags |= flags;
- 
-@@ -646,10 +647,15 @@ SYSCALL_DEFINE2(mlock, unsigned long, start, size_t, len)
- 
- SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
- {
--	if (flags)
-+	vm_flags_t vm_flags = VM_LOCKED;
-+
-+	if (flags & ~MLOCK_ONFAULT)
- 		return -EINVAL;
- 
--	return do_mlock(start, len, VM_LOCKED);
-+	if (flags & MLOCK_ONFAULT)
-+		vm_flags |= VM_LOCKONFAULT;
-+
-+	return do_mlock(start, len, vm_flags);
+ 	perf_pmu_disable(pmu);
+-	cpuhw->group_flag |= PERF_EVENT_TXN;
+ 	cpuhw->n_txn_start = cpuhw->n_events;
  }
  
- SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
-@@ -666,24 +672,43 @@ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
- 	return ret;
+@@ -1624,7 +1622,6 @@ static void power_pmu_cancel_txn(struct pmu *pmu)
+ 	if (txn_flags & ~PERF_PMU_TXN_ADD)
+ 		return;
+ 
+-	cpuhw->group_flag &= ~PERF_EVENT_TXN;
+ 	perf_pmu_enable(pmu);
  }
  
-+/*
-+ * Take the MCL_* flags passed into mlockall (or 0 if called from munlockall)
-+ * and translate into the appropriate modifications to mm->def_flags and/or the
-+ * flags for all current VMAs.
-+ *
-+ * There are a couple of subtleties with this.  If mlockall() is called multiple
-+ * times with different flags, the values do not necessarily stack.  If mlockall
-+ * is called once including the MCL_FUTURE flag and then a second time without
-+ * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_flags.
-+ */
- static int apply_mlockall_flags(int flags)
- {
- 	struct vm_area_struct * vma, * prev = NULL;
-+	vm_flags_t to_add = 0;
+@@ -1659,7 +1656,6 @@ static int power_pmu_commit_txn(struct pmu *pmu)
+ 	for (i = cpuhw->n_txn_start; i < n; ++i)
+ 		cpuhw->event[i]->hw.config = cpuhw->events[i];
  
--	if (flags & MCL_FUTURE)
-+	current->mm->def_flags &= VM_LOCKED_CLEAR_MASK;
-+	if (flags & MCL_FUTURE) {
- 		current->mm->def_flags |= VM_LOCKED;
--	else
--		current->mm->def_flags &= ~VM_LOCKED;
+-	cpuhw->group_flag &= ~PERF_EVENT_TXN;
+ 	cpuhw->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+diff --git a/arch/s390/kernel/perf_cpum_cf.c b/arch/s390/kernel/perf_cpum_cf.c
+index dbcfd29..f50ef65 100644
+--- a/arch/s390/kernel/perf_cpum_cf.c
++++ b/arch/s390/kernel/perf_cpum_cf.c
+@@ -536,7 +536,7 @@ static int cpumf_pmu_add(struct perf_event *event, int flags)
+ 	 * For group events transaction, the authorization check is
+ 	 * done in cpumf_pmu_commit_txn().
+ 	 */
+-	if (!(cpuhw->flags & PERF_EVENT_TXN))
++	if (!(cpuhw->txn_flags & PERF_PMU_TXN_ADD))
+ 		if (validate_ctr_auth(&event->hw))
+ 			return -EPERM;
  
--	if (flags = MCL_FUTURE)
--		goto out;
-+		if (flags & MCL_ONFAULT)
-+			current->mm->def_flags |= VM_LOCKONFAULT;
-+
-+		if (!(flags & MCL_CURRENT))
-+			goto out;
-+	}
-+
-+	if (flags & MCL_CURRENT) {
-+		to_add |= VM_LOCKED;
-+		if (flags & MCL_ONFAULT)
-+			to_add |= VM_LOCKONFAULT;
-+	}
+@@ -590,7 +590,6 @@ static void cpumf_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ 		return;
  
- 	for (vma = current->mm->mmap; vma ; vma = prev->vm_next) {
- 		vm_flags_t newflags;
+ 	perf_pmu_disable(pmu);
+-	cpuhw->flags |= PERF_EVENT_TXN;
+ 	cpuhw->tx_state = cpuhw->state;
+ }
  
--		newflags = vma->vm_flags & ~VM_LOCKED;
--		if (flags & MCL_CURRENT)
--			newflags |= VM_LOCKED;
-+		newflags = vma->vm_flags & VM_LOCKED_CLEAR_MASK;
-+		newflags |= to_add;
+@@ -613,7 +612,6 @@ static void cpumf_pmu_cancel_txn(struct pmu *pmu)
  
- 		/* Ignore errors */
- 		mlock_fixup(vma, &prev, vma->vm_start, vma->vm_end, newflags);
-@@ -698,7 +723,8 @@ SYSCALL_DEFINE1(mlockall, int, flags)
- 	unsigned long lock_limit;
- 	int ret = -EINVAL;
+ 	WARN_ON(cpuhw->tx_state != cpuhw->state);
  
--	if (!flags || (flags & ~(MCL_CURRENT | MCL_FUTURE)))
-+	if (!flags || (flags & ~(MCL_CURRENT | MCL_FUTURE | MCL_ONFAULT)) ||
-+	    flags = MCL_ONFAULT)
- 		goto out;
+-	cpuhw->flags &= ~PERF_EVENT_TXN;
+ 	perf_pmu_enable(pmu);
+ }
  
- 	ret = -EPERM;
+@@ -640,7 +638,6 @@ static int cpumf_pmu_commit_txn(struct pmu *pmu)
+ 	if ((state & cpuhw->info.auth_ctl) != state)
+ 		return -EPERM;
+ 
+-	cpuhw->flags &= ~PERF_EVENT_TXN;
+ 	cpuhw->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 2c0984d..b0da5ae 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -108,7 +108,6 @@ struct cpu_hw_events {
+ 	/* Enabled/disable state.  */
+ 	int			enabled;
+ 
+-	unsigned int		group_flag;
+ 	unsigned int		txn_flags;
+ };
+ static DEFINE_PER_CPU(struct cpu_hw_events, cpu_hw_events) = { .enabled = 1, };
+@@ -1380,7 +1379,7 @@ static int sparc_pmu_add(struct perf_event *event, int ef_flags)
+ 	 * skip the schedulability test here, it will be performed
+ 	 * at commit time(->commit_txn) as a whole
+ 	 */
+-	if (cpuc->group_flag & PERF_EVENT_TXN)
++	if (cpuc->txn_flags & PERF_PMU_TXN_ADD)
+ 		goto nocheck;
+ 
+ 	if (check_excludes(cpuc->event, n0, 1))
+@@ -1506,7 +1505,6 @@ static void sparc_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ 		return;
+ 
+ 	perf_pmu_disable(pmu);
+-	cpuhw->group_flag |= PERF_EVENT_TXN;
+ }
+ 
+ /*
+@@ -1526,7 +1524,6 @@ static void sparc_pmu_cancel_txn(struct pmu *pmu)
+ 	if (txn_flags & ~PERF_PMU_TXN_ADD)
+ 		return;
+ 
+-	cpuhw->group_flag &= ~PERF_EVENT_TXN;
+ 	perf_pmu_enable(pmu);
+ }
+ 
+@@ -1556,7 +1553,6 @@ static int sparc_pmu_commit_txn(struct pmu *pmu)
+ 	if (sparc_check_constraints(cpuc->event, cpuc->events, n))
+ 		return -EAGAIN;
+ 
+-	cpuc->group_flag &= ~PERF_EVENT_TXN;
+ 	cpuc->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+diff --git a/arch/x86/kernel/cpu/perf_event.c b/arch/x86/kernel/cpu/perf_event.c
+index dc77ef4..4562cf0 100644
+--- a/arch/x86/kernel/cpu/perf_event.c
++++ b/arch/x86/kernel/cpu/perf_event.c
+@@ -1175,7 +1175,7 @@ static int x86_pmu_add(struct perf_event *event, int flags)
+ 	 * skip the schedulability test here, it will be performed
+ 	 * at commit time (->commit_txn) as a whole.
+ 	 */
+-	if (cpuc->group_flag & PERF_EVENT_TXN)
++	if (cpuc->txn_flags & PERF_PMU_TXN_ADD)
+ 		goto done_collect;
+ 
+ 	ret = x86_pmu.schedule_events(cpuc, n, assign);
+@@ -1326,7 +1326,7 @@ static void x86_pmu_del(struct perf_event *event, int flags)
+ 	 * XXX assumes any ->del() called during a TXN will only be on
+ 	 * an event added during that same TXN.
+ 	 */
+-	if (cpuc->group_flag & PERF_EVENT_TXN)
++	if (cpuc->txn_flags & PERF_PMU_TXN_ADD)
+ 		return;
+ 
+ 	/*
+@@ -1764,7 +1764,6 @@ static void x86_pmu_start_txn(struct pmu *pmu, unsigned int txn_flags)
+ 		return;
+ 
+ 	perf_pmu_disable(pmu);
+-	__this_cpu_or(cpu_hw_events.group_flag, PERF_EVENT_TXN);
+ 	__this_cpu_write(cpu_hw_events.n_txn, 0);
+ }
+ 
+@@ -1785,7 +1784,6 @@ static void x86_pmu_cancel_txn(struct pmu *pmu)
+ 	if (txn_flags & ~PERF_PMU_TXN_ADD)
+ 		return;
+ 
+-	__this_cpu_and(cpu_hw_events.group_flag, ~PERF_EVENT_TXN);
+ 	/*
+ 	 * Truncate collected array by the number of events added in this
+ 	 * transaction. See x86_pmu_add() and x86_pmu_*_txn().
+@@ -1830,7 +1828,6 @@ static int x86_pmu_commit_txn(struct pmu *pmu)
+ 	 */
+ 	memcpy(cpuc->assign, assign, n*sizeof(int));
+ 
+-	cpuc->group_flag &= ~PERF_EVENT_TXN;
+ 	cpuc->txn_flags = 0;
+ 	perf_pmu_enable(pmu);
+ 	return 0;
+diff --git a/arch/x86/kernel/cpu/perf_event.h b/arch/x86/kernel/cpu/perf_event.h
+index c99c93b..953a0e4 100644
+--- a/arch/x86/kernel/cpu/perf_event.h
++++ b/arch/x86/kernel/cpu/perf_event.h
+@@ -195,7 +195,6 @@ struct cpu_hw_events {
+ 
+ 	int			n_excl; /* the number of exclusive events */
+ 
+-	unsigned int		group_flag;
+ 	unsigned int		txn_flags;
+ 	int			is_fake;
+ 
+diff --git a/include/linux/perf_event.h b/include/linux/perf_event.h
+index b3435e7..8d204d3 100644
+--- a/include/linux/perf_event.h
++++ b/include/linux/perf_event.h
+@@ -166,8 +166,6 @@ struct perf_event;
+ /*
+  * Common implementation detail of pmu::{start,commit,cancel}_txn
+  */
+-#define PERF_EVENT_TXN 0x1
+-
+ #define PERF_PMU_TXN_ADD  0x1		/* txn to add/schedule event on PMU */
+ #define PERF_PMU_TXN_READ 0x2		/* txn to read event group from PMU */
+ 
 -- 
-1.9.1
+1.7.9.5
 
