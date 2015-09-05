@@ -1,89 +1,39 @@
-From: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>
-Date: Fri, 04 Sep 2015 03:07:47 +0000
-Subject: [[PATCH v6 04/10] perf: Rename perf_event_read_{one,group}, perf_read_hw
-Message-Id: <1441336073-22750-5-git-send-email-sukadev@linux.vnet.ibm.com>
+From: <>
+Date: Sat, 05 Sep 2015 19:51:16 +0000
+Subject: 
+Message-Id: <SIXPR04MB0891A3F49F876CA3C060F51DB8560@SIXPR04MB0891.apcprd04.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
-In-Reply-To: <1441336073-22750-1-git-send-email-sukadev@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+ We offer both personal and business loan to any interested=20
 
-In order to free up the perf_event_read_group() name:
+individual or company who will be able to pay back the loan when=20
 
- s/perf_event_read_\(one\|group\)/perf_read_\1/g
- s/perf_read_hw/__perf_read/g
+due for repayment. should Fill and return the application=20
 
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- kernel/events/core.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+details below to my e-mail at ( montageglobalpvtltd@gmail.com ).
 
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 01ede6b..be39e63 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -3742,7 +3742,7 @@ static void put_event(struct perf_event *event)
- 	 *     see the comment there.
- 	 *
- 	 *  2) there is a lock-inversion with mmap_sem through
--	 *     perf_event_read_group(), which takes faults while
-+	 *     perf_read_group(), which takes faults while
- 	 *     holding ctx->mutex, however this is called after
- 	 *     the last filedesc died, so there is no possibility
- 	 *     to trigger the AB-BA case.
-@@ -3837,7 +3837,7 @@ u64 perf_event_read_value(struct perf_event *event, u64 *enabled, u64 *running)
- }
- EXPORT_SYMBOL_GPL(perf_event_read_value);
- 
--static int perf_event_read_group(struct perf_event *event,
-+static int perf_read_group(struct perf_event *event,
- 				   u64 read_format, char __user *buf)
- {
- 	struct perf_event *leader = event->group_leader, *sub;
-@@ -3885,7 +3885,7 @@ static int perf_event_read_group(struct perf_event *event,
- 	return ret;
- }
- 
--static int perf_event_read_one(struct perf_event *event,
-+static int perf_read_one(struct perf_event *event,
- 				 u64 read_format, char __user *buf)
- {
- 	u64 enabled, running;
-@@ -3923,7 +3923,7 @@ static bool is_event_hup(struct perf_event *event)
-  * Read the performance event - simple non blocking version for now
-  */
- static ssize_t
--perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
-+__perf_read(struct perf_event *event, char __user *buf, size_t count)
- {
- 	u64 read_format = event->attr.read_format;
- 	int ret;
-@@ -3941,9 +3941,9 @@ perf_read_hw(struct perf_event *event, char __user *buf, size_t count)
- 
- 	WARN_ON_ONCE(event->ctx->parent_ctx);
- 	if (read_format & PERF_FORMAT_GROUP)
--		ret = perf_event_read_group(event, read_format, buf);
-+		ret = perf_read_group(event, read_format, buf);
- 	else
--		ret = perf_event_read_one(event, read_format, buf);
-+		ret = perf_read_one(event, read_format, buf);
- 
- 	return ret;
- }
-@@ -3956,7 +3956,7 @@ perf_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- 	int ret;
- 
- 	ctx = perf_event_ctx_lock(event);
--	ret = perf_read_hw(event, buf, count);
-+	ret = __perf_read(event, buf, count);
- 	perf_event_ctx_unlock(event, ctx);
- 
- 	return ret;
--- 
-1.7.9.5
+APPLICATION DETAILS
 
+1) FULL NAMES:
+2) CONTACT ADDRESS:
+3) COUNTRY:
+4) PHONE NUMBER:
+5) SEX:
+6) AGE:
+7) AMOUNT NEEDED AS LOAN:
+8) LOAN DURATION:
+9) OCCUPATION:
+10)MONTHLY INCOME:
+11)PURPOSE OF LOAN:
+
+
+Warm regard.
+William Allen.
+Phone: +91-7838915074
+(Chairman, Montage Global Pvt Ltd.)
+
+=A9 2015 Montage Global Pvt Ltd.
