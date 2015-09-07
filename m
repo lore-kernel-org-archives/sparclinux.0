@@ -1,38 +1,71 @@
-From: Andre Przywara <andre.przywara@arm.com>
-Date: Fri, 18 Sep 2015 17:28:24 +0000
-Subject: Re: [PATCH] iommu-common: only compile lib/iommu_common.c for Sparc64
-Message-Id: <55FC49B8.3020100@arm.com>
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Mon, 07 Sep 2015 16:15:50 +0000
+Subject: [PATCH v2 3/9] sparc/sparc64: allocate sys_membarrier system call number
+Message-Id: <1441642556-30972-4-git-send-email-mathieu.desnoyers@efficios.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1442479227-18320-1-git-send-email-andre.przywara@arm.com>
- <20150917.113806.1491126940106627619.davem@davemloft.net>
- <55FBD36C.5070301@arm.com>
- <20150918.100952.975850165461332930.davem@davemloft.net>
-In-Reply-To: <20150918.100952.975850165461332930.davem@davemloft.net>
+References: <1441642556-30972-1-git-send-email-mathieu.desnoyers@efficios.com>
+In-Reply-To: <1441642556-30972-1-git-send-email-mathieu.desnoyers@efficios.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-api@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, sparclinux@vger.kernel.org
 
-Hi David,
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Acked-by: "David S. Miller" <davem@davemloft.net>
+CC: Andrew Morton <akpm@linux-foundation.org>
+CC: linux-api@vger.kernel.org
+CC: sparclinux@vger.kernel.org
+---
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-On 18/09/15 18:09, David Miller wrote:
-> From: Andre Przywara <andre.przywara@arm.com>
-> Date: Fri, 18 Sep 2015 10:03:40 +0100
-> 
->> Or do you know of a simpler way to fixing it properly which could make
->> it still into 4.3?
-> 
-> All I worry about is that if you take it out of the build, doing
-> the proper fix will suddenly become very low priority and be
-> forgotten about completely.
-> 
-> Whereas if it actually blocks the build for someone, it's a high
-> priority issue to address.
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 6f35f4d..efe9479 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -416,8 +416,9 @@
+ #define __NR_memfd_create	348
+ #define __NR_bpf		349
+ #define __NR_execveat		350
++#define __NR_membarrier		351
+ 
+-#define NR_syscalls		351
++#define NR_syscalls		352
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index e31a905..cc23b62 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -87,4 +87,4 @@ sys_call_table:
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.long sys_execveat
++/*350*/	.long sys_execveat, sys_membarrier
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index d72f76a..f229468 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -88,7 +88,7 @@ sys_call_table32:
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys32_execveat
++/*350*/	.word sys32_execveat, sys_membarrier
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -168,4 +168,4 @@ sys_call_table:
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys64_execveat
++/*350*/	.word sys64_execveat, sys_membarrier
+-- 
+1.9.1
 
-I see. What about if I provide the two patches at the same time? An easy
-fix for 4.3 and the proper fix for 4.4? You can then even choose to take
-the proper fix for 4.3 if it's reasonably low risk.
-I will try sending something on Monday.
-
-Cheers,
-Andre.
