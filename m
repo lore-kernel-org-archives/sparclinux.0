@@ -1,73 +1,33 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Thu, 08 Oct 2015 21:38:24 +0000
-Subject: [PATCH v7 05/60] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <1444340359-8011-6-git-send-email-yinghai@kernel.org>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 09 Oct 2015 16:19:20 +0000
+Subject: Re: [PATCH v7 05/60] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <1444407560.17726.6.camel@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1444340359-8011-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1444340359-8011-1-git-send-email-yinghai@kernel.org>
+	 <1444340359-8011-6-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1444340359-8011-6-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-For device resource PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource, so set
-IORESOUCE_MEM_64 for 64bit resource during of device resource flags
-parsing.
+On Thu, 2015-10-08 at 14:38 -0700, Yinghai Lu wrote:
+> For device resource PREF bit setting under bridge 64-bit pref resource,
+> we need to make sure only set PREF for 64bit resource, so set
+> IORESOUCE_MEM_64 for 64bit resource during of device resource flags
+> parsing.
+>=20
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+Tested on sparc platforms
 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-1.8.4.5
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>=20
+
+
+
 
