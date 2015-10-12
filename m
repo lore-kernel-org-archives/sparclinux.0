@@ -1,20 +1,31 @@
-From: "2015" <aripatrick@df.ufpe.br>
-Date: Mon, 19 Oct 2015 21:35:12 +0000
-Subject: =?utf-8?b?RE9Bw4fDg08=?=
-Message-Id: <20151019213533.608762C167@mail.df.ufpe.br>
+From: "Mrs Hayet Zara" <hayetzaara@gmail.com>
+Date: Mon, 12 Oct 2015 21:27:36 +0000
+Subject: PLS I NEED YOUR HELP
+Message-Id: <30cf69fbe0cf674c3e5794bd5485a93f.squirrel@82.79.55.74>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Fundos foi DOADO para voc=EA responder para este e-mail: (que onu_claims2@1=
-63.com) para obter detalhes
 
-Funds has been DONATED to you Reply to this email: (onu_claims2@163.com) fo=
-r details
 
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+
+I am Mrs Zaara Heyet an oil-servicing equipment merchant, am writing this
+mail to you with tears and love from my heart of charity work i could not
+fulfill before the end of my days due to my present healness ,Please do
+not think of this letter as one of those being sent around to ask for
+money,I got your email id from our chambers of commerce while searching
+for a reliable person to help me carry out this project.
+
+I have an urgent and confidential business proposition involving transfer
+of Nine Million $9,000.000.00 USD ,it will be of great benefit for both of
+us especially you as my days are number on earth. I will give you more
+details as regards this transaction as soon as you, reply me of your
+interest via my personal E-mail: geldkantornl@aim.com , Thanks for your
+interested .
+
+WARNING!!WARNING!!
+This winning notification is expected to be read and/or used only by the
+individual(s) for whom it is intended.:**************
 
