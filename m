@@ -1,174 +1,153 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Fri, 30 Oct 2015 01:09:50 +0000
-Subject: [PATCH v4 5/6] virtio_mmio: Use the DMA API
-Message-Id: <f66b7ee2da7b7bb357fe17d319ec0932451ba5bf.1446162273.git.luto@kernel.org>
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Tue, 13 Oct 2015 09:48:27 +0000
+Subject: Re: [v7,58/60] PCI: Introduce resource_disabled()
+Message-Id: <20151013094827.666D5140FDF@ozlabs.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1446162273.git.luto@kernel.org>
-In-Reply-To: <cover.1446162273.git.luto@kernel.org>
+References: <1444340359-8011-59-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1444340359-8011-59-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, benh@kernel.crashing.org, KVM <kvm@vger.kernel.org>, dwmw2@infradead.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, virtualization@lists.linux-foundation.org, Andy Lutomirski <luto@kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-ia64@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-sh@vger.kernel.org, linux-pci@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-This switches to vring_create_virtqueue, simplifying the driver and
-adding DMA API support.
+On Thu, 2015-08-10 at 21:39:17 UTC, Yinghai Lu wrote:
+> Current is using !flags, and we are going to use
+> IORESOURCE_DISABLED instead of clearing resource flags.
+> 
+> Let's convert all !flags to helper function resource_disabled().
+> resource_disabled will check !flags and IORESOURCE_DISABLED both.
+> 
+> diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+> index 8853667..a830e0c 100644
+> --- a/arch/powerpc/kernel/pci-common.c
+> +++ b/arch/powerpc/kernel/pci-common.c
+> @@ -810,7 +810,7 @@ static void pcibios_fixup_resources(struct pci_dev *dev)
+>  	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+>  		struct resource *res = dev->resource + i;
+>  		struct pci_bus_region reg;
+> -		if (!res->flags)
+> +		if (resource_disabled(res))
+>  			continue;
+>  
+>  		/* If we're going to re-assign everything, we mark all resources
+> @@ -919,7 +919,7 @@ static void pcibios_fixup_bridge(struct pci_bus *bus)
+>  	struct pci_dev *dev = bus->self;
+>  
+>  	pci_bus_for_each_resource(bus, res, i) {
+> -		if (!res || !res->flags)
+> +		if (!res || resource_disabled(res))
+>  			continue;
+>  		if (i >= 3 && bus->self->transparent)
+>  			continue;
+> @@ -1160,7 +1160,8 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+>  		 pci_domain_nr(bus), bus->number);
+>  
+>  	pci_bus_for_each_resource(bus, res, i) {
+> -		if (!res || !res->flags || res->start > res->end || res->parent)
+> +		if (!res || resource_disabled(res) ||
+> +		    res->start > res->end || res->parent)
+>  			continue;
+>  
+>  		/* If the resource was left unset at this point, we clear it */
+> @@ -1255,7 +1256,8 @@ static void __init pcibios_allocate_resources(int pass)
+>  			r = &dev->resource[idx];
+>  			if (r->parent)		/* Already allocated */
+>  				continue;
+> -			if (!r->flags || (r->flags & IORESOURCE_UNSET))
+> +			if (resource_disabled(r) ||
+> +			    (r->flags & IORESOURCE_UNSET))
+>  				continue;	/* Not assigned at all */
+>  			/* We only allocate ROMs on pass 1 just in case they
+>  			 * have been screwed up by firmware
+> @@ -1393,7 +1395,7 @@ void pcibios_claim_one_bus(struct pci_bus *bus)
+>  		for (i = 0; i < PCI_NUM_RESOURCES; i++) {
+>  			struct resource *r = &dev->resource[i];
+>  
+> -			if (r->parent || !r->start || !r->flags)
+> +			if (r->parent || !r->start || resource_disabled(r))
+>  				continue;
+>  
+>  			pr_debug("PCI: Claiming %s: Resource %d: %pR\n",
+> @@ -1474,7 +1476,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
+>  	/* Hookup PHB IO resource */
+>  	res = &hose->io_resource;
+>  
+> -	if (!res->flags) {
+> +	if (resource_disabled(res)) {
+>  		pr_info("PCI: I/O resource not set for host"
+>  		       " bridge %s (domain %d)\n",
+>  		       hose->dn->full_name, hose->global_number);
+> @@ -1489,7 +1491,7 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
+>  	/* Hookup PHB Memory resources */
+>  	for (i = 0; i < 3; ++i) {
+>  		res = &hose->mem_resources[i];
+> -		if (!res->flags) {
+> +		if (resource_disabled(res)) {
+>  			if (i = 0)
+>  				printk(KERN_ERR "PCI: Memory resource 0 not set for "
+>  				       "host bridge %s (domain %d)\n",
+> diff --git a/arch/powerpc/platforms/powernv/pci-ioda.c b/arch/powerpc/platforms/powernv/pci-ioda.c
+> index 414fd1a..81484c1 100644
+> --- a/arch/powerpc/platforms/powernv/pci-ioda.c
+> +++ b/arch/powerpc/platforms/powernv/pci-ioda.c
+> @@ -874,7 +874,7 @@ static int pnv_pci_vf_resource_shift(struct pci_dev *dev, int offset)
+>  	num_vfs = pdn->num_vfs;
+>  	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+>  		res = &dev->resource[i + PCI_IOV_RESOURCES];
+> -		if (!res->flags || !res->parent)
+> +		if (resource_disabled(res) || !res->parent)
+>  			continue;
+>  
+>  		if (!pnv_pci_is_mem_pref_64(res->flags))
+> @@ -905,7 +905,7 @@ static int pnv_pci_vf_resource_shift(struct pci_dev *dev, int offset)
+>  	 */
+>  	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+>  		res = &dev->resource[i + PCI_IOV_RESOURCES];
+> -		if (!res->flags || !res->parent)
+> +		if (resource_disabled(res) || !res->parent)
+>  			continue;
+>  
+>  		if (!pnv_pci_is_mem_pref_64(res->flags))
+> @@ -1188,7 +1188,7 @@ static int pnv_pci_vf_assign_m64(struct pci_dev *pdev, u16 num_vfs)
+>  
+>  	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+>  		res = &pdev->resource[i + PCI_IOV_RESOURCES];
+> -		if (!res->flags || !res->parent)
+> +		if (resource_disabled(res) || !res->parent)
+>  			continue;
+>  
+>  		if (!pnv_pci_is_mem_pref_64(res->flags))
+> @@ -2757,7 +2757,7 @@ static void pnv_pci_ioda_fixup_iov_resources(struct pci_dev *pdev)
+>  
+>  	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+>  		res = &pdev->resource[i + PCI_IOV_RESOURCES];
+> -		if (!res->flags || res->parent)
+> +		if (resource_disabled(res) || res->parent)
+>  			continue;
+>  		if (!pnv_pci_is_mem_pref_64(res->flags)) {
+>  			dev_warn(&pdev->dev, " non M64 VF BAR%d: %pR\n",
+> @@ -2779,7 +2779,7 @@ static void pnv_pci_ioda_fixup_iov_resources(struct pci_dev *pdev)
+>  
+>  	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+>  		res = &pdev->resource[i + PCI_IOV_RESOURCES];
+> -		if (!res->flags || res->parent)
+> +		if (resource_disabled(res) || res->parent)
+>  			continue;
+>  		if (!pnv_pci_is_mem_pref_64(res->flags)) {
+>  			dev_warn(&pdev->dev, "Skipping expanding VF BAR%d: %pR\n",
+> @@ -2820,7 +2820,7 @@ static void pnv_ioda_setup_pe_seg(struct pci_controller *hose,
+>  	BUG_ON(!(pe->flags & (PNV_IODA_PE_BUS | PNV_IODA_PE_BUS_ALL)));
+>  
+>  	pci_bus_for_each_resource(pe->pbus, res, i) {
+> -		if (!res || !res->flags ||
+> +		if (!res || resource_disabled(res) ||
+>  		    res->start > res->end)
+>  			continue;
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
----
- drivers/virtio/virtio_mmio.c | 67 ++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 52 deletions(-)
+Those conversions all look correct to me.
 
-diff --git a/drivers/virtio/virtio_mmio.c b/drivers/virtio/virtio_mmio.c
-index f499d9da7237..2b9fab52a3cb 100644
---- a/drivers/virtio/virtio_mmio.c
-+++ b/drivers/virtio/virtio_mmio.c
-@@ -99,12 +99,6 @@ struct virtio_mmio_vq_info {
- 	/* the actual virtqueue */
- 	struct virtqueue *vq;
- 
--	/* the number of entries in the queue */
--	unsigned int num;
--
--	/* the virtual address of the ring queue */
--	void *queue;
--
- 	/* the list node for the virtqueues list */
- 	struct list_head node;
- };
-@@ -322,15 +316,13 @@ static void vm_del_vq(struct virtqueue *vq)
- {
- 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vq->vdev);
- 	struct virtio_mmio_vq_info *info = vq->priv;
--	unsigned long flags, size;
-+	unsigned long flags;
- 	unsigned int index = vq->index;
- 
- 	spin_lock_irqsave(&vm_dev->lock, flags);
- 	list_del(&info->node);
- 	spin_unlock_irqrestore(&vm_dev->lock, flags);
- 
--	vring_del_virtqueue(vq);
--
- 	/* Select and deactivate the queue */
- 	writel(index, vm_dev->base + VIRTIO_MMIO_QUEUE_SEL);
- 	if (vm_dev->version = 1) {
-@@ -340,8 +332,8 @@ static void vm_del_vq(struct virtqueue *vq)
- 		WARN_ON(readl(vm_dev->base + VIRTIO_MMIO_QUEUE_READY));
- 	}
- 
--	size = PAGE_ALIGN(vring_size(info->num, VIRTIO_MMIO_VRING_ALIGN));
--	free_pages_exact(info->queue, size);
-+	vring_del_virtqueue(vq);
-+
- 	kfree(info);
- }
- 
-@@ -356,8 +348,6 @@ static void vm_del_vqs(struct virtio_device *vdev)
- 	free_irq(platform_get_irq(vm_dev->pdev, 0), vm_dev);
- }
- 
--
--
- static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 				  void (*callback)(struct virtqueue *vq),
- 				  const char *name)
-@@ -365,7 +355,8 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
- 	struct virtio_mmio_vq_info *info;
- 	struct virtqueue *vq;
--	unsigned long flags, size;
-+	unsigned long flags;
-+	unsigned int num;
- 	int err;
- 
- 	if (!name)
-@@ -388,66 +379,40 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 		goto error_kmalloc;
- 	}
- 
--	/* Allocate pages for the queue - start with a queue as big as
--	 * possible (limited by maximum size allowed by device), drop down
--	 * to a minimal size, just big enough to fit descriptor table
--	 * and two rings (which makes it "alignment_size * 2")
--	 */
--	info->num = readl(vm_dev->base + VIRTIO_MMIO_QUEUE_NUM_MAX);
--
--	/* If the device reports a 0 entry queue, we won't be able to
--	 * use it to perform I/O, and vring_new_virtqueue() can't create
--	 * empty queues anyway, so don't bother to set up the device.
--	 */
--	if (info->num = 0) {
-+	num = readl(vm_dev->base + VIRTIO_MMIO_QUEUE_NUM_MAX);
-+	if (num = 0) {
- 		err = -ENOENT;
--		goto error_alloc_pages;
--	}
--
--	while (1) {
--		size = PAGE_ALIGN(vring_size(info->num,
--				VIRTIO_MMIO_VRING_ALIGN));
--		/* Did the last iter shrink the queue below minimum size? */
--		if (size < VIRTIO_MMIO_VRING_ALIGN * 2) {
--			err = -ENOMEM;
--			goto error_alloc_pages;
--		}
--
--		info->queue = alloc_pages_exact(size, GFP_KERNEL | __GFP_ZERO);
--		if (info->queue)
--			break;
--
--		info->num /= 2;
-+		goto error_new_virtqueue;
- 	}
- 
- 	/* Create the vring */
--	vq = vring_new_virtqueue(index, info->num, VIRTIO_MMIO_VRING_ALIGN, vdev,
--				 true, info->queue, vm_notify, callback, name);
-+	vq = vring_create_virtqueue(index, num, VIRTIO_MMIO_VRING_ALIGN, vdev,
-+				 true, true, vm_notify, callback, name);
- 	if (!vq) {
- 		err = -ENOMEM;
- 		goto error_new_virtqueue;
- 	}
- 
- 	/* Activate the queue */
--	writel(info->num, vm_dev->base + VIRTIO_MMIO_QUEUE_NUM);
-+	writel(virtqueue_get_vring_size(vq), vm_dev->base + VIRTIO_MMIO_QUEUE_NUM);
- 	if (vm_dev->version = 1) {
- 		writel(PAGE_SIZE, vm_dev->base + VIRTIO_MMIO_QUEUE_ALIGN);
--		writel(virt_to_phys(info->queue) >> PAGE_SHIFT,
-+		writel(virtqueue_get_desc_addr(vq) >> PAGE_SHIFT,
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_PFN);
- 	} else {
- 		u64 addr;
- 
--		addr = virt_to_phys(info->queue);
-+		addr = virtqueue_get_desc_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_DESC_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_DESC_HIGH);
- 
--		addr = virt_to_phys(virtqueue_get_avail(vq));
-+		addr = virtqueue_get_avail_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_AVAIL_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_AVAIL_HIGH);
- 
--		addr = virt_to_phys(virtqueue_get_used(vq));
-+		addr = virtqueue_get_used_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_USED_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_USED_HIGH);
-@@ -471,8 +436,6 @@ error_new_virtqueue:
- 		writel(0, vm_dev->base + VIRTIO_MMIO_QUEUE_READY);
- 		WARN_ON(readl(vm_dev->base + VIRTIO_MMIO_QUEUE_READY));
- 	}
--	free_pages_exact(info->queue, size);
--error_alloc_pages:
- 	kfree(info);
- error_kmalloc:
- error_available:
--- 
-2.4.3
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
+
+cheers
