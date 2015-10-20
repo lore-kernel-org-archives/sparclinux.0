@@ -1,196 +1,82 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Fri, 30 Oct 2015 01:09:48 +0000
-Subject: [PATCH v4 3/6] virtio_pci: Use the DMA API
-Message-Id: <064dc8bba95b14bf33292092087ad90e04ccc5ef.1446162273.git.luto@kernel.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Tue, 20 Oct 2015 20:40:34 +0000
+Subject: sparc crashes in -next due to 'of/platform: Point to struct device from device node'
+Message-Id: <5626A6C2.4010706@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1446162273.git.luto@kernel.org>
-In-Reply-To: <cover.1446162273.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, benh@kernel.crashing.org, KVM <kvm@vger.kernel.org>, dwmw2@infradead.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, virtualization@lists.linux-foundation.org, Andy Lutomirski <luto@kernel.org>
+To: sparclinux@vger.kernel.org
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This fixes virtio-pci on platforms and busses that have IOMMUs.  This
-will break the experimental QEMU Q35 IOMMU support until QEMU is
-fixed.  In exchange, it fixes physical virtio hardware as well as
-virtio-pci running under Xen.
+Hi,
 
-We should clean up the virtqueue API to do its own allocation and
-teach virtqueue_get_avail and virtqueue_get_used to return DMA
-addresses directly.
+I see the following sparc/sparc64 runtime crashes since next-20151016.
+The problem is seen with sparc32_defconfig and sparc64_defconfig
+(the traceback is a bit different for sparc64).
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+NET: Registered protocol family 16
+Unable to handle kernel NULL pointer dereference
+tsk->{mm,active_mm}->context = ffffffff
+tsk->{mm,active_mm}->pgd = fc000000
+               \|/ ____ \|/
+               "@'/ ,. \`@"
+               /_| \__/ |_\
+                  \__U_/
+swapper/0(1): Oops [#1]
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.3.0-rc1-00003-g61e82530d80f #1
+task: f681da20 ti: f681e000 task.ti: f681e000
+PSR: 408010c6 PC: f0417a10 NPC: f0417a28 Y: 00000000    Not tainted
+PC: <iommu_init+0x60/0x208>
+%G: f6844000 00008000  00461000 0000006c  00000017 00000076  f681e000 00697400
+%O: f687a600 000000d0  f681fe2c 00000000  f6800040 404010e6  f681fd80 f0417a00
+RPC: <iommu_init+0x50/0x208>
+%L: f0440800 f687a600  00000000 00000002  f04408a4 00000000  f03f8f94 00000000
+%I: f03a6190 f0000000  f03a6210 f03a6160  f0437400 f088b120  f681fde0 f000a0ec
+Disabling lock debugging due to kernel taint
+Caller[f000a0ec]: do_one_initcall+0x84/0x1e8
+Caller[f0410094]: kernel_init_freeable+0x130/0x1e0
+Caller[f034244c]: kernel_init+0x4/0xf4
+Caller[f000b4d4]: ret_from_kernel_thread+0xc/0x38
+Caller[00000000]:   (null)
+Instruction DUMP: d0052018  a2922000  32800007 <d004a0f4> 113c0e98  7ff6159e  90122168  7ff61511  01000000
+Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
+
+Bisect points to "of/platform: Point to struct device from device node".
+Bisect log is below. Reverting this patch results in build failures, so
+I could not test if a revert would fix the problem.
+
+Guenter
+
 ---
- drivers/virtio/virtio_pci_common.h |  3 ++-
- drivers/virtio/virtio_pci_legacy.c | 19 +++++++++++++++----
- drivers/virtio/virtio_pci_modern.c | 34 ++++++++++++++++++++++++----------
- 3 files changed, 41 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/virtio/virtio_pci_common.h b/drivers/virtio/virtio_pci_common.h
-index b976d968e793..cd6196b513ad 100644
---- a/drivers/virtio/virtio_pci_common.h
-+++ b/drivers/virtio/virtio_pci_common.h
-@@ -38,8 +38,9 @@ struct virtio_pci_vq_info {
- 	/* the number of entries in the queue */
- 	int num;
- 
--	/* the virtual address of the ring queue */
-+	/* the ring queue */
- 	void *queue;
-+	dma_addr_t queue_dma_addr;      /* bus address */
- 
- 	/* the list node for the virtqueues list */
- 	struct list_head node;
-diff --git a/drivers/virtio/virtio_pci_legacy.c b/drivers/virtio/virtio_pci_legacy.c
-index 48bc9797e530..b5293e5f2af4 100644
---- a/drivers/virtio/virtio_pci_legacy.c
-+++ b/drivers/virtio/virtio_pci_legacy.c
-@@ -135,12 +135,14 @@ static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
- 	info->msix_vector = msix_vec;
- 
- 	size = PAGE_ALIGN(vring_size(num, VIRTIO_PCI_VRING_ALIGN));
--	info->queue = alloc_pages_exact(size, GFP_KERNEL|__GFP_ZERO);
-+	info->queue = dma_zalloc_coherent(&vp_dev->pci_dev->dev, size,
-+					  &info->queue_dma_addr,
-+					  GFP_KERNEL);
- 	if (info->queue = NULL)
- 		return ERR_PTR(-ENOMEM);
- 
- 	/* activate the queue */
--	iowrite32(virt_to_phys(info->queue) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT,
-+	iowrite32(info->queue_dma_addr >> VIRTIO_PCI_QUEUE_ADDR_SHIFT,
- 		  vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN);
- 
- 	/* create the vring */
-@@ -169,7 +171,8 @@ out_assign:
- 	vring_del_virtqueue(vq);
- out_activate_queue:
- 	iowrite32(0, vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN);
--	free_pages_exact(info->queue, size);
-+	dma_free_coherent(&vp_dev->pci_dev->dev, size,
-+			  info->queue, info->queue_dma_addr);
- 	return ERR_PTR(err);
- }
- 
-@@ -194,7 +197,8 @@ static void del_vq(struct virtio_pci_vq_info *info)
- 	iowrite32(0, vp_dev->ioaddr + VIRTIO_PCI_QUEUE_PFN);
- 
- 	size = PAGE_ALIGN(vring_size(info->num, VIRTIO_PCI_VRING_ALIGN));
--	free_pages_exact(info->queue, size);
-+	dma_free_coherent(&vp_dev->pci_dev->dev, size,
-+			  info->queue, info->queue_dma_addr);
- }
- 
- static const struct virtio_config_ops virtio_pci_config_ops = {
-@@ -227,6 +231,13 @@ int virtio_pci_legacy_probe(struct virtio_pci_device *vp_dev)
- 		return -ENODEV;
- 	}
- 
-+	rc = dma_set_mask_and_coherent(&pci_dev->dev, DMA_BIT_MASK(64));
-+	if (rc)
-+		rc = dma_set_mask_and_coherent(&pci_dev->dev,
-+						DMA_BIT_MASK(32));
-+	if (rc)
-+		dev_warn(&pci_dev->dev, "Failed to enable 64-bit or 32-bit DMA.  Trying to continue, but this might not work.\n");
-+
- 	rc = pci_request_region(pci_dev, 0, "virtio-pci-legacy");
- 	if (rc)
- 		return rc;
-diff --git a/drivers/virtio/virtio_pci_modern.c b/drivers/virtio/virtio_pci_modern.c
-index 8e5cf194cc0b..fbe0bd1c4881 100644
---- a/drivers/virtio/virtio_pci_modern.c
-+++ b/drivers/virtio/virtio_pci_modern.c
-@@ -293,14 +293,16 @@ static size_t vring_pci_size(u16 num)
- 	return PAGE_ALIGN(vring_size(num, SMP_CACHE_BYTES));
- }
- 
--static void *alloc_virtqueue_pages(int *num)
-+static void *alloc_virtqueue_pages(struct virtio_pci_device *vp_dev,
-+				   int *num, dma_addr_t *dma_addr)
- {
- 	void *pages;
- 
- 	/* TODO: allocate each queue chunk individually */
- 	for (; *num && vring_pci_size(*num) > PAGE_SIZE; *num /= 2) {
--		pages = alloc_pages_exact(vring_pci_size(*num),
--					  GFP_KERNEL|__GFP_ZERO|__GFP_NOWARN);
-+		pages = dma_zalloc_coherent(
-+			&vp_dev->pci_dev->dev, vring_pci_size(*num),
-+			dma_addr, GFP_KERNEL|__GFP_NOWARN);
- 		if (pages)
- 			return pages;
- 	}
-@@ -309,7 +311,9 @@ static void *alloc_virtqueue_pages(int *num)
- 		return NULL;
- 
- 	/* Try to get a single page. You are my only hope! */
--	return alloc_pages_exact(vring_pci_size(*num), GFP_KERNEL|__GFP_ZERO);
-+	return dma_zalloc_coherent(
-+		&vp_dev->pci_dev->dev, vring_pci_size(*num),
-+		dma_addr, GFP_KERNEL);
- }
- 
- static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
-@@ -346,7 +350,8 @@ static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
- 	info->num = num;
- 	info->msix_vector = msix_vec;
- 
--	info->queue = alloc_virtqueue_pages(&info->num);
-+	info->queue = alloc_virtqueue_pages(vp_dev, &info->num,
-+					    &info->queue_dma_addr);
- 	if (info->queue = NULL)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -361,11 +366,11 @@ static struct virtqueue *setup_vq(struct virtio_pci_device *vp_dev,
- 
- 	/* activate the queue */
- 	vp_iowrite16(num, &cfg->queue_size);
--	vp_iowrite64_twopart(virt_to_phys(info->queue),
-+	vp_iowrite64_twopart(info->queue_dma_addr,
- 			     &cfg->queue_desc_lo, &cfg->queue_desc_hi);
--	vp_iowrite64_twopart(virt_to_phys(virtqueue_get_avail(vq)),
-+	vp_iowrite64_twopart(info->queue_dma_addr + ((char *)virtqueue_get_avail(vq) - (char *)info->queue),
- 			     &cfg->queue_avail_lo, &cfg->queue_avail_hi);
--	vp_iowrite64_twopart(virt_to_phys(virtqueue_get_used(vq)),
-+	vp_iowrite64_twopart(info->queue_dma_addr + ((char *)virtqueue_get_used(vq) - (char *)info->queue),
- 			     &cfg->queue_used_lo, &cfg->queue_used_hi);
- 
- 	if (vp_dev->notify_base) {
-@@ -411,7 +416,8 @@ err_assign_vector:
- err_map_notify:
- 	vring_del_virtqueue(vq);
- err_new_queue:
--	free_pages_exact(info->queue, vring_pci_size(info->num));
-+	dma_free_coherent(&vp_dev->pci_dev->dev, vring_pci_size(info->num),
-+			  info->queue, info->queue_dma_addr);
- 	return ERR_PTR(err);
- }
- 
-@@ -457,7 +463,8 @@ static void del_vq(struct virtio_pci_vq_info *info)
- 
- 	vring_del_virtqueue(vq);
- 
--	free_pages_exact(info->queue, vring_pci_size(info->num));
-+	dma_free_coherent(&vp_dev->pci_dev->dev, vring_pci_size(info->num),
-+			  info->queue, info->queue_dma_addr);
- }
- 
- static const struct virtio_config_ops virtio_pci_config_nodev_ops = {
-@@ -641,6 +648,13 @@ int virtio_pci_modern_probe(struct virtio_pci_device *vp_dev)
- 		return -EINVAL;
- 	}
- 
-+	err = dma_set_mask_and_coherent(&pci_dev->dev, DMA_BIT_MASK(64));
-+	if (err)
-+		err = dma_set_mask_and_coherent(&pci_dev->dev,
-+						DMA_BIT_MASK(32));
-+	if (err)
-+		dev_warn(&pci_dev->dev, "Failed to enable 64-bit or 32-bit DMA.  Trying to continue, but this might not work.\n");
-+
- 	/* Device capability is only mandatory for devices that have
- 	 * device-specific configuration.
- 	 */
--- 
-2.4.3
-
+$ git bisect log
+# bad: [1c7a47a97a31902a96fd4ec9e930af23cca3d67d] Add linux-next specific files for 20151020
+# good: [7379047d5585187d1288486d4627873170d0005a] Linux 4.3-rc6
+git bisect start 'HEAD' 'v4.3-rc6'
+# good: [0e3a82ce0a0479cb4d7a6cca303942fe95b37687] Merge remote-tracking branch 'md/for-next'
+git bisect good 0e3a82ce0a0479cb4d7a6cca303942fe95b37687
+# good: [c3af8a28f43315fc46753465a4e77e5619dd9f30] staging: IB/hfi1: use TASK_COMM_LEN in hfi1_ctxtdata
+git bisect good c3af8a28f43315fc46753465a4e77e5619dd9f30
+# bad: [75a52ca1c066307d4a9a4b42a20a7640b0e81fe4] Merge remote-tracking branch 'driver-core/driver-core-next'
+git bisect bad 75a52ca1c066307d4a9a4b42a20a7640b0e81fe4
+# good: [d3f683641ad30eecfca7599abfd2baefe763c72f] Merge branch 'x86/urgent'
+git bisect good d3f683641ad30eecfca7599abfd2baefe763c72f
+# bad: [00e16fdd52add4874c585e2fc3d8f28bb2bb8ca5] Merge remote-tracking branch 'mailbox/mailbox-for-next'
+git bisect bad 00e16fdd52add4874c585e2fc3d8f28bb2bb8ca5
+# good: [a5e241ac9f2df39200df1ea06392c7d801f6b127] Merge remote-tracking branch 'regulator/for-next'
+git bisect good a5e241ac9f2df39200df1ea06392c7d801f6b127
+# good: [3ea73388f1d40169b9cfcce578991a9c3c33d0be] Merge remote-tracking branch 'dwmw2-iommu/master'
+git bisect good 3ea73388f1d40169b9cfcce578991a9c3c33d0be
+# good: [15800f083f028b6df640ea258014458b8c3d805c] Merge remote-tracking branch 'audit/next'
+git bisect good 15800f083f028b6df640ea258014458b8c3d805c
+# good: [0f1cba62520b611914e0365e8487e12bee5a651e] Merge branch 'dt-doc-cleanup' into for-next
+git bisect good 0f1cba62520b611914e0365e8487e12bee5a651e
+# bad: [dd915c6fd3f9df40906dbf432e587b2e7a175b3a] clk: Probe clk providers on demand
+git bisect bad dd915c6fd3f9df40906dbf432e587b2e7a175b3a
+# bad: [5634acd9c8e3cd43767978a7987762390d0b7e18] regulator: core: Probe regulators on demand
+git bisect bad 5634acd9c8e3cd43767978a7987762390d0b7e18
+# bad: [61e82530d80f05591cba20687aad50010eef45e3] of/platform: Point to struct device from device node
+git bisect bad 61e82530d80f05591cba20687aad50010eef45e3
+# good: [f7d5891639697aa3d4aa319d2b2e88d536ba1276] ARM: amba: Move reading of periphid to amba_match()
+git bisect good f7d5891639697aa3d4aa319d2b2e88d536ba1276
+# first bad commit: [61e82530d80f05591cba20687aad50010eef45e3] of/platform: Point to struct device from device node
