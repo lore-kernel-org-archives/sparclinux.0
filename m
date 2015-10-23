@@ -1,31 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 26 Oct 2015 11:45:56 +0000
-Subject: Re: [PATCH 7/8] sparc/math-emu: Move sparc from math-emu-old to math-emu
-Message-Id: <20151026.050228.1805118062504707338.davem@davemloft.net>
+From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Date: Fri, 23 Oct 2015 20:56:10 +0000
+Subject: [PATCH 1/7 v3] dma-mapping: add generic dma_get_page_shift API
+Message-Id: <20151023205610.GB10197@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.DEB.2.10.1507021553390.29415@digraph.polyomino.org.uk>
-In-Reply-To: <alpine.DEB.2.10.1507021553390.29415@digraph.polyomino.org.uk>
+References: <20151023205420.GA10197@linux.vnet.ibm.com>
+In-Reply-To: <20151023205420.GA10197@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: joseph@codesourcery.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, mpe@ellerman.id.au
+To: sparclinux@vger.kernel.org
 
-From: Joseph Myers <joseph@codesourcery.com>
-Date: Thu, 2 Jul 2015 15:54:34 +0000
+Drivers like NVMe need to be able to determine the page size used for
+DMA transfers. Add a new API that defaults to return PAGE_SHIFT on all
+architectures.
 
-> From: Joseph Myers <joseph@codesourcery.com>
-> 
-> This patch moves sparc from math-emu-old to math-emu, updating it for
-> the API changes.
-> 
-> The following cleanup (that goes beyond mechanical conversion to new
-> APIs) is included in this patch because of its close connection to the
-> API changes:
-> 
-> * On SPARC, comparisons now use raw unpacking (this should not in fact
->   change how the emulation behaves, just make it more efficient).
-> 
-> Signed-off-by: Joseph Myers <joseph@codesourcery.com>
+Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
 
-Acked-by: David S. Miller <davem@davemloft.net>
+---
+v1 -> v2:
+  Based upon feedback from Christoph Hellwig, implement the IOMMU page
+  size lookup as a generic DMA API, rather than an architecture-specific
+  hack.
+v2 -> v3:
+  Based upon feedback from Christoph Hellwig that not all architectures
+  have moved to dma-mapping-common.h, so move the #ifdef and default to
+  linux/dma-mapping.h.
+---
+ include/linux/dma-mapping.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index ac07ff0..7eaba8d 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -95,6 +95,13 @@ static inline u64 dma_get_mask(struct device *dev)
+ 	return DMA_BIT_MASK(32);
+ }
+ 
++#ifndef HAVE_ARCH_DMA_GET_PAGE_SHIFT
++static inline unsigned long dma_get_page_shift(struct device *dev)
++{
++	return PAGE_SHIFT;
++}
++#endif
++
+ #ifdef CONFIG_ARCH_HAS_DMA_SET_COHERENT_MASK
+ int dma_set_coherent_mask(struct device *dev, u64 mask);
+ #else
+-- 
+1.9.1
+
