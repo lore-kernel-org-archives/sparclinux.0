@@ -1,42 +1,87 @@
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Date: Fri, 30 Oct 2015 09:57:37 +0000
-Subject: Re: [PATCH v4 0/6] virtio core DMA API conversion
-Message-Id: <56333F11.5030300@de.ibm.com>
+From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Date: Fri, 23 Oct 2015 20:59:25 +0000
+Subject: [PATCH 4/7 v2] pseries/iommu: implement DDW-aware dma_get_page_shift
+Message-Id: <20151023205925.GF10197@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1446162273.git.luto@kernel.org>
-In-Reply-To: <cover.1446162273.git.luto@kernel.org>
+References: <20151023205420.GA10197@linux.vnet.ibm.com>
+In-Reply-To: <20151023205420.GA10197@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@kernel.org>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Joerg Roedel <jroedel@suse.de>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, benh@kernel.crashing.org, KVM <kvm@vger.kernel.org>, dwmw2@infradead.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, virtualization@lists.linux-foundation.org
+To: sparclinux@vger.kernel.org
 
-Am 30.10.2015 um 02:09 schrieb Andy Lutomirski:
-> This switches virtio to use the DMA API unconditionally.  I'm sure
-> it breaks things, but it seems to work on x86 using virtio-pci, with
-> and without Xen, and using both the modern 1.0 variant and the
-> legacy variant.
-> 
-> This appears to work on native and Xen x86_64 using both modern and
-> legacy virtio-pci.  It also appears to work on arm and arm64.
-> 
-> It definitely won't work as-is on s390x, and I haven't been able to
-> test Christian's patches because I can't get virtio-ccw to work in
-> QEMU at all.  I don't know what I'm doing wrong.
+When DDW (Dynamic DMA Windows) are present for a device, we have stored
+the TCE (Translation Control Entry) size in a special device tree
+property. Check if we have enabled DDW for the device and return the TCE
+size from that property if present. If the property isn't present,
+fallback to looking the value up in struct iommu_table. If we don't find
+a iommu_table, fallback to the kernel's page size.
 
+Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+---
+ arch/powerpc/platforms/pseries/iommu.c | 36 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-[...]
->   virtio-net: Stop doing DMA from the stack
-> 
->  drivers/net/virtio_net.c           |  34 ++--
->  drivers/virtio/Kconfig             |   2 +-
->  drivers/virtio/virtio_mmio.c       |  67 ++-----
->  drivers/virtio/virtio_pci_common.h |   6 -
->  drivers/virtio/virtio_pci_legacy.c |  42 ++---
->  drivers/virtio/virtio_pci_modern.c |  61 ++-----
->  drivers/virtio/virtio_ring.c       | 348 ++++++++++++++++++++++++++++++-------
-
-do you also have an untested patch for drivers/s390/virtio/* ?
-
-
+diff --git a/arch/powerpc/platforms/pseries/iommu.c b/arch/powerpc/platforms/pseries/iommu.c
+index 0946b98..1bf6471 100644
+--- a/arch/powerpc/platforms/pseries/iommu.c
++++ b/arch/powerpc/platforms/pseries/iommu.c
+@@ -1292,6 +1292,40 @@ static u64 dma_get_required_mask_pSeriesLP(struct device *dev)
+ 	return dma_iommu_ops.get_required_mask(dev);
+ }
+ 
++static unsigned long dma_get_page_shift_pSeriesLP(struct device *dev)
++{
++	struct iommu_table *tbl;
++
++	if (!disable_ddw && dev_is_pci(dev)) {
++		struct pci_dev *pdev = to_pci_dev(dev);
++		struct device_node *dn;
++
++		dn = pci_device_to_OF_node(pdev);
++
++		/* search upwards for ibm,dma-window */
++		for (; dn && PCI_DN(dn) && !PCI_DN(dn)->table_group;
++				dn = dn->parent)
++			if (of_get_property(dn, "ibm,dma-window", NULL))
++				break;
++		/*
++		 * if there is a DDW configuration, the TCE shift is stored in
++		 * the property
++		 */
++		if (dn && PCI_DN(dn)) {
++			const struct dynamic_dma_window_prop *direct64 +				of_get_property(dn, DIRECT64_PROPNAME, NULL);
++			if (direct64)
++				return be32_to_cpu(direct64->tce_shift);
++		}
++	}
++
++	tbl = get_iommu_table_base(dev);
++	if (tbl)
++		return tbl->it_page_shift;
++
++	return PAGE_SHIFT;
++}
++
+ #else  /* CONFIG_PCI */
+ #define pci_dma_bus_setup_pSeries	NULL
+ #define pci_dma_dev_setup_pSeries	NULL
+@@ -1299,6 +1333,7 @@ static u64 dma_get_required_mask_pSeriesLP(struct device *dev)
+ #define pci_dma_dev_setup_pSeriesLP	NULL
+ #define dma_set_mask_pSeriesLP		NULL
+ #define dma_get_required_mask_pSeriesLP	NULL
++#define dma_get_page_shift_pSeriesLP	NULL
+ #endif /* !CONFIG_PCI */
+ 
+ static int iommu_mem_notifier(struct notifier_block *nb, unsigned long action,
+@@ -1395,6 +1430,7 @@ void iommu_init_early_pSeries(void)
+ 		pseries_pci_controller_ops.dma_dev_setup = pci_dma_dev_setup_pSeriesLP;
+ 		ppc_md.dma_set_mask = dma_set_mask_pSeriesLP;
+ 		ppc_md.dma_get_required_mask = dma_get_required_mask_pSeriesLP;
++		ppc_md.dma_get_page_shift = dma_get_page_shift_pSeriesLP;
+ 	} else {
+ 		pseries_pci_controller_ops.dma_bus_setup = pci_dma_bus_setup_pSeries;
+ 		pseries_pci_controller_ops.dma_dev_setup = pci_dma_dev_setup_pSeries;
+-- 
+1.9.1
 
