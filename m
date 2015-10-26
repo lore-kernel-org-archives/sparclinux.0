@@ -1,31 +1,31 @@
-From: "Mrs Hayet Zara" <hayetzaara@gmail.com>
-Date: Mon, 12 Oct 2015 21:27:36 +0000
-Subject: PLS I NEED YOUR HELP
-Message-Id: <30cf69fbe0cf674c3e5794bd5485a93f.squirrel@82.79.55.74>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 26 Oct 2015 11:45:56 +0000
+Subject: Re: [PATCH 7/8] sparc/math-emu: Move sparc from math-emu-old to math-emu
+Message-Id: <20151026.050228.1805118062504707338.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <alpine.DEB.2.10.1507021553390.29415@digraph.polyomino.org.uk>
+In-Reply-To: <alpine.DEB.2.10.1507021553390.29415@digraph.polyomino.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: joseph@codesourcery.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, mpe@ellerman.id.au
 
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Thu, 2 Jul 2015 15:54:34 +0000
 
+> From: Joseph Myers <joseph@codesourcery.com>
+> 
+> This patch moves sparc from math-emu-old to math-emu, updating it for
+> the API changes.
+> 
+> The following cleanup (that goes beyond mechanical conversion to new
+> APIs) is included in this patch because of its close connection to the
+> API changes:
+> 
+> * On SPARC, comparisons now use raw unpacking (this should not in fact
+>   change how the emulation behaves, just make it more efficient).
+> 
+> Signed-off-by: Joseph Myers <joseph@codesourcery.com>
 
-
-I am Mrs Zaara Heyet an oil-servicing equipment merchant, am writing this
-mail to you with tears and love from my heart of charity work i could not
-fulfill before the end of my days due to my present healness ,Please do
-not think of this letter as one of those being sent around to ask for
-money,I got your email id from our chambers of commerce while searching
-for a reliable person to help me carry out this project.
-
-I have an urgent and confidential business proposition involving transfer
-of Nine Million $9,000.000.00 USD ,it will be of great benefit for both of
-us especially you as my days are number on earth. I will give you more
-details as regards this transaction as soon as you, reply me of your
-interest via my personal E-mail: geldkantornl@aim.com , Thanks for your
-interested .
-
-WARNING!!WARNING!!
-This winning notification is expected to be read and/or used only by the
-individual(s) for whom it is intended.:**************
-
+Acked-by: David S. Miller <davem@davemloft.net>
