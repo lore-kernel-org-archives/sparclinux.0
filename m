@@ -1,14 +1,14 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Date: Thu, 01 Oct 2015 05:52:36 +0000
-Subject: [PATCH v6 02/53] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <1443678807-786-3-git-send-email-yinghai@kernel.org>
+Date: Tue, 27 Oct 2015 20:54:57 +0000
+Subject: [PATCH v8 05/61] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <1445979353-1728-6-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1443678807-786-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1443678807-786-1-git-send-email-yinghai@kernel.org>
+References: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
 Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
 For device resource PREF bit setting under bridge 64-bit pref resource,
@@ -21,6 +21,7 @@ Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
 ---
  arch/sparc/kernel/of_device_32.c | 5 +++--
  arch/sparc/kernel/of_device_64.c | 5 +++--
