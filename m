@@ -1,31 +1,18 @@
-From: "Mr,Zaara Heyet." <geldkantor@aim.com>
-Date: Thu, 08 Oct 2015 20:24:22 +0000
-Subject: PLS I NEED YOUR HELP!
-Message-Id: <347c28dfac4231a972aa7679cdd6b0c9.squirrel@82.79.55.74>
+From: "mssg" <m-files@digres.cz>
+Date: Wed, 28 Oct 2015 23:42:01 +0000
+Subject: =?iso-8859-1?Q?n=E1vrh!?=
+Message-Id: <fdb5a1d896c82aa8e068dace839f6875.squirrel@204.151.234.107>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
 
 
 
-I am Mrs Zaara Heyet an oil-servicing equipment merchant, am writing this
-mail to you with tears and love from my heart of charity work i could not
-fulfill before the end of my days due to my present healness ,Please do
-not think of this letter as one of those being sent around to ask for
-money,I got your email id from our chambers of commerce while searching
-for a reliable person to help me carry out this project.
+Muzete me kontaktovat na e-mailovou adresu nize pro vysvetlen=ED prospesny
+spoluprace.
 
-I have an urgent and confidential business proposition involving transfer
-of Nine Million $9,000.000.00 USD ,it will be of great benefit for both of
-us especially you as my days are number on earth. I will give you more
-details as regards this transaction as soon as you, reply me of your
-interest via my personal E-mail: hayettzaara@yahoo.com  , Thanks for your
-interested .
-
-WARNING!!WARNING!!
-This winning notification is expected to be read and/or used only by
-theindividual(s) for whom it is intended.:*********
+e-mail: chn.jg57@gmail.com
 
