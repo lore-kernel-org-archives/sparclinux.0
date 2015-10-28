@@ -1,42 +1,35 @@
-From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Date: Wed, 28 Oct 2015 01:52:55 +0000
+From: "Busch, Keith" <keith.busch@intel.com>
+Date: Wed, 28 Oct 2015 13:59:23 +0000
 Subject: Re: [PATCH 0/5 v3] Fix NVMe driver support on Power with 32-bit DMA
-Message-Id: <20151028015255.GG7716@linux.vnet.ibm.com>
+Message-Id: <20151028135922.GA27909@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20151023205420.GA10197@linux.vnet.ibm.com>
- <20151026.182746.1323901353520152838.davem@davemloft.net>
+References: <20151026.182746.1323901353520152838.davem@davemloft.net>
  <20151027222010.GD7716@linux.vnet.ibm.com>
- <20151027.175322.247163553940004154.davem@davemloft.net>
-In-Reply-To: <20151027.175322.247163553940004154.davem@davemloft.net>
+ <20151027223643.GA25332@localhost.localdomain>
+ <20151027.175443.140992924519172506.davem@davemloft.net>
+In-Reply-To: <20151027.175443.140992924519172506.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 27.10.2015 [17:53:22 -0700], David Miller wrote:
-> From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-> Date: Tue, 27 Oct 2015 15:20:10 -0700
+On Tue, Oct 27, 2015 at 05:54:43PM -0700, David Miller wrote:
+> From: "Busch, Keith" <keith.busch@intel.com>
+> Date: Tue, 27 Oct 2015 22:36:43 +0000
 > 
-> > Well, looks like I should spin up a v4 anyways for the powerpc changes.
-> > So, to make sure I understand your point, should I make the generic
-> > dma_get_page_shift a compile-error kind of thing? It will only fail on
-> > architectures that actually build the NVME driver (as the only caller).
-> > But I'm not sure how exactly to achieve that, if you could give a bit
-> > more detail I'd appreciate it!
+> > If you're suggesting to compile-time break architectures that currently
+> > work just fine with NVMe, let me stop you right there.
 > 
-> Yes, I am basically suggesting to simply not provide a default at all.
+> Silently "working" without the architecture maintainer having to explicity
+> look at the new interface and make sure his platform is implementing it
+> properly is an extremely bad practice.
 
-For my own edification -- what is the way that gets resolved? I guess I
-mean it seems like linux-next would cease to compile because of my new
-series. Would my patches just get kicked out of -next for introducing
-that (or even via the 0-day notifications), or should I put something
-into the commit message indicating it is an API introduction?
+It won't work if it's wrong. It'll BUG_ON, and I'll be assigned to help
+fix it, like what's happened here (on a private bugzilla).
 
-Sorry for the tentativeness, I have not introduce a cross-architecture
-API like this before.
+The "new" interface for all the other architectures is the same as the
+old one we've been using for the last 5 years.
 
-Thanks,
-Nish
-
-> 
-
+I welcome x86 maintainer feedback to confirm virtual and DMA addresses
+have the same offset at 4k alignment, but I have to insist we don't
+break my currently working hardware to force their attention.
