@@ -1,40 +1,42 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Fri, 30 Oct 2015 01:17:02 +0000
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Fri, 30 Oct 2015 09:57:37 +0000
 Subject: Re: [PATCH v4 0/6] virtio core DMA API conversion
-Message-Id: <CALCETrWP14E9k=BKhhm3CJZmM_W9CYt77W0m29BtzigZucSu5g@mail.gmail.com>
+Message-Id: <56333F11.5030300@de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1446162273.git.luto@kernel.org>
 In-Reply-To: <cover.1446162273.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@kernel.org>
-Cc: linux-s390 <linux-s390@vger.kernel.org>, Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christian Borntraeger <borntraeger@de.ibm.com>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: Andy Lutomirski <luto@kernel.org>, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Joerg Roedel <jroedel@suse.de>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, benh@kernel.crashing.org, KVM <kvm@vger.kernel.org>, dwmw2@infradead.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, virtualization@lists.linux-foundation.org
 
-On Thu, Oct 29, 2015 at 6:09 PM, Andy Lutomirski <luto@kernel.org> wrote:
+Am 30.10.2015 um 02:09 schrieb Andy Lutomirski:
 > This switches virtio to use the DMA API unconditionally.  I'm sure
 > it breaks things, but it seems to work on x86 using virtio-pci, with
 > and without Xen, and using both the modern 1.0 variant and the
 > legacy variant.
+> 
+> This appears to work on native and Xen x86_64 using both modern and
+> legacy virtio-pci.  It also appears to work on arm and arm64.
+> 
+> It definitely won't work as-is on s390x, and I haven't been able to
+> test Christian's patches because I can't get virtio-ccw to work in
+> QEMU at all.  I don't know what I'm doing wrong.
 
-...
 
-> Andy Lutomirski (5):
->   virtio_ring: Support DMA APIs
->   virtio_pci: Use the DMA API
->   virtio: Add improved queue allocation API
->   virtio_mmio: Use the DMA API
->   virtio_pci: Use the DMA API
+[...]
+>   virtio-net: Stop doing DMA from the stack
+> 
+>  drivers/net/virtio_net.c           |  34 ++--
+>  drivers/virtio/Kconfig             |   2 +-
+>  drivers/virtio/virtio_mmio.c       |  67 ++-----
+>  drivers/virtio/virtio_pci_common.h |   6 -
+>  drivers/virtio/virtio_pci_legacy.c |  42 ++---
+>  drivers/virtio/virtio_pci_modern.c |  61 ++-----
+>  drivers/virtio/virtio_ring.c       | 348 ++++++++++++++++++++++++++++++-------
 
-Ugh.  The two virtio_pci patches should be squashed together.  I'll do
-that for v5, but I'm not going to send it until there's more feedback.
+do you also have an untested patch for drivers/s390/virtio/* ?
 
-FWIW, I'm collecting this stuff here:
 
-https://git.kernel.org/cgit/linux/kernel/git/luto/linux.git/log/?h=virtio_dma
 
-That branch includes this series (with the squash) and the s390
-patches.  I'll keep it up to date, since it seems silly to declare it
-stable enough to stop rebasing yet.
-
---Andy
