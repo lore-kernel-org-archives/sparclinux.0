@@ -1,67 +1,134 @@
-From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Date: Mon, 19 Oct 2015 17:56:35 +0000
-Subject: Re: [PATCH 1/5 v2] dma-mapping: add generic dma_get_page_shift API
-Message-Id: <20151019175635.GG30179@linux.vnet.ibm.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Fri, 30 Oct 2015 01:09:46 +0000
+Subject: [PATCH v4 1/6] virtio-net: Stop doing DMA from the stack
+Message-Id: <8d6b1fc3b5d3b6f5e8b212ef690691a52fbefaff.1446162273.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20151002171606.GA41011@linux.vnet.ibm.com>
- <20151002200953.GB40695@linux.vnet.ibm.com>
- <20151002201142.GC40695@linux.vnet.ibm.com>
- <20151006095136.GB14144@infradead.org>
- <20151012210651.GB26702@linux.vnet.ibm.com>
- <20151014153900.GC30179@linux.vnet.ibm.com>
- <20151014154251.GA7271@infradead.org>
- <20151015225219.GD30179@linux.vnet.ibm.com>
-In-Reply-To: <20151015225219.GD30179@linux.vnet.ibm.com>
+References: <cover.1446162273.git.luto@kernel.org>
+In-Reply-To: <cover.1446162273.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, benh@kernel.crashing.org, KVM <kvm@vger.kernel.org>, dwmw2@infradead.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, virtualization@lists.linux-foundation.org, Andy Lutomirski <luto@kernel.org>
 
-On 15.10.2015 [15:52:19 -0700], Nishanth Aravamudan wrote:
-> On 14.10.2015 [08:42:51 -0700], Christoph Hellwig wrote:
-> > Hi Nishanth,
-> > 
-> > sorry for the late reply.
-> > 
-> > > > On Power, since it's technically variable, we'd need a function. So are
-> > > > you suggesting define'ing it to a function just on Power and leaving it
-> > > > a constant elsewhere?
-> > > > 
-> > > > I noticed that sparc has a IOMMU_PAGE_SHIFT already, fwiw.
-> > > 
-> > > Sorry, I should have been more specific -- I'm ready to spin out a v3,
-> > > with a sparc-specific function.
-> > > 
-> > > Are you ok with leaving it a function for now (the only caller is in
-> > > NVMe obviously).
-> > 
-> > 
-> > I guess we do indeed need a function then.  I'll take a look at your
-> > patch, but as long you found a way to avoid adding too much boilerplate
-> > code it should be fine.
-> 
-> Ok, so I've got the moved function (include/linux/dma-mapping.h
-> instead of dma-mapping-common.h) ready to go, which should only
-> involve changing the first patch in the series. But I'm really
-> mystified by what to do for sparc, which defines IOMMU_PAGE_SHIFT and
-> IO_PAGE_SHIFT in arch/sparc/kernel/iommu_common.h.
-> 
-> 1) Which constant reflects the value we mean for this function on
-> sparc?  I assume it should be IOMMU_PAGE_SHIFT, but they are the same
-> value and I want to make sure I get the semantics right.
-> 
-> 2) Where would I put sparc's definition of dma_get_page_shift()?
-> Should it be in a asm/dma-mapping.h? Should we move some of the
-> constants from arch/sparc/kernel/iommu_common.h to
-> arch/sparc/include/asm/iommu_common.h and then #include that in
-> asm/dma-mapping.h?
-> 
-> Dave M., any opinions/insights? Essentially, this helper function
-> assists the NVMe driver in determining what page size it should use to
-> satisfy both the device and IOMMU's requirements. Maybe I
-> misunderstand the constants on sparc and PAGE_SHIFT is fine there too?
+From: "Michael S. Tsirkin" <mst@redhat.com>
 
-Anyone with sparc knowledge have an opinion/input?
+Once virtio starts using the DMA API, we won't be able to safely DMA
+from the stack.  virtio-net does a couple of config DMA requests
+from small stack buffers -- switch to using dynamically-allocated
+memory.
 
--Nish
+This should have no effect on any performance-critical code paths.
+
+[I wrote the subject and commit message.  mst wrote the code. --luto]
+
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ drivers/net/virtio_net.c | 34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/net/virtio_net.c b/drivers/net/virtio_net.c
+index d8838dedb7a4..f94ab786088f 100644
+--- a/drivers/net/virtio_net.c
++++ b/drivers/net/virtio_net.c
+@@ -140,6 +140,12 @@ struct virtnet_info {
+ 
+ 	/* CPU hot plug notifier */
+ 	struct notifier_block nb;
++
++	/* Control VQ buffers: protected by the rtnl lock */
++	struct virtio_net_ctrl_hdr ctrl_hdr;
++	virtio_net_ctrl_ack ctrl_status;
++	u8 ctrl_promisc;
++	u8 ctrl_allmulti;
+ };
+ 
+ struct padded_vnet_hdr {
+@@ -976,31 +982,30 @@ static bool virtnet_send_command(struct virtnet_info *vi, u8 class, u8 cmd,
+ 				 struct scatterlist *out)
+ {
+ 	struct scatterlist *sgs[4], hdr, stat;
+-	struct virtio_net_ctrl_hdr ctrl;
+-	virtio_net_ctrl_ack status = ~0;
+ 	unsigned out_num = 0, tmp;
+ 
+ 	/* Caller should know better */
+ 	BUG_ON(!virtio_has_feature(vi->vdev, VIRTIO_NET_F_CTRL_VQ));
+ 
+-	ctrl.class = class;
+-	ctrl.cmd = cmd;
++	vi->ctrl_status = ~0;
++	vi->ctrl_hdr.class = class;
++	vi->ctrl_hdr.cmd = cmd;
+ 	/* Add header */
+-	sg_init_one(&hdr, &ctrl, sizeof(ctrl));
++	sg_init_one(&hdr, &vi->ctrl_hdr, sizeof(vi->ctrl_hdr));
+ 	sgs[out_num++] = &hdr;
+ 
+ 	if (out)
+ 		sgs[out_num++] = out;
+ 
+ 	/* Add return status. */
+-	sg_init_one(&stat, &status, sizeof(status));
++	sg_init_one(&stat, &vi->ctrl_status, sizeof(vi->ctrl_status));
+ 	sgs[out_num] = &stat;
+ 
+ 	BUG_ON(out_num + 1 > ARRAY_SIZE(sgs));
+ 	virtqueue_add_sgs(vi->cvq, sgs, out_num, 1, vi, GFP_ATOMIC);
+ 
+ 	if (unlikely(!virtqueue_kick(vi->cvq)))
+-		return status = VIRTIO_NET_OK;
++		return vi->ctrl_status = VIRTIO_NET_OK;
+ 
+ 	/* Spin for a response, the kick causes an ioport write, trapping
+ 	 * into the hypervisor, so the request should be handled immediately.
+@@ -1009,7 +1014,7 @@ static bool virtnet_send_command(struct virtnet_info *vi, u8 class, u8 cmd,
+ 	       !virtqueue_is_broken(vi->cvq))
+ 		cpu_relax();
+ 
+-	return status = VIRTIO_NET_OK;
++	return vi->ctrl_status = VIRTIO_NET_OK;
+ }
+ 
+ static int virtnet_set_mac_address(struct net_device *dev, void *p)
+@@ -1151,7 +1156,6 @@ static void virtnet_set_rx_mode(struct net_device *dev)
+ {
+ 	struct virtnet_info *vi = netdev_priv(dev);
+ 	struct scatterlist sg[2];
+-	u8 promisc, allmulti;
+ 	struct virtio_net_ctrl_mac *mac_data;
+ 	struct netdev_hw_addr *ha;
+ 	int uc_count;
+@@ -1163,22 +1167,22 @@ static void virtnet_set_rx_mode(struct net_device *dev)
+ 	if (!virtio_has_feature(vi->vdev, VIRTIO_NET_F_CTRL_RX))
+ 		return;
+ 
+-	promisc = ((dev->flags & IFF_PROMISC) != 0);
+-	allmulti = ((dev->flags & IFF_ALLMULTI) != 0);
++	vi->ctrl_promisc = ((dev->flags & IFF_PROMISC) != 0);
++	vi->ctrl_allmulti = ((dev->flags & IFF_ALLMULTI) != 0);
+ 
+-	sg_init_one(sg, &promisc, sizeof(promisc));
++	sg_init_one(sg, &vi->ctrl_promisc, sizeof(vi->ctrl_promisc));
+ 
+ 	if (!virtnet_send_command(vi, VIRTIO_NET_CTRL_RX,
+ 				  VIRTIO_NET_CTRL_RX_PROMISC, sg))
+ 		dev_warn(&dev->dev, "Failed to %sable promisc mode.\n",
+-			 promisc ? "en" : "dis");
++			 vi->ctrl_promisc ? "en" : "dis");
+ 
+-	sg_init_one(sg, &allmulti, sizeof(allmulti));
++	sg_init_one(sg, &vi->ctrl_allmulti, sizeof(vi->ctrl_allmulti));
+ 
+ 	if (!virtnet_send_command(vi, VIRTIO_NET_CTRL_RX,
+ 				  VIRTIO_NET_CTRL_RX_ALLMULTI, sg))
+ 		dev_warn(&dev->dev, "Failed to %sable allmulti mode.\n",
+-			 allmulti ? "en" : "dis");
++			 vi->ctrl_allmulti ? "en" : "dis");
+ 
+ 	uc_count = netdev_uc_count(dev);
+ 	mc_count = netdev_mc_count(dev);
+-- 
+2.4.3
 
