@@ -1,39 +1,142 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Mon, 30 Nov 2015 14:25:45 +0000
-Subject: Re: [PATCH v2 1/5] printk/nmi: Generic solution for safe printk in NMI
-Message-Id: <20151130142545.GB8047@pathway.suse.cz>
+From: Hugh Dickins <hughd@google.com>
+Date: Mon, 02 Nov 2015 00:08:27 +0000
+Subject: Re: [PATCH 3/8] arch: uapi: asm: mman.h: Let MADV_FREE have same value for all architectures
+Message-Id: <alpine.LSU.2.11.1511011542030.11427@eggly.anvils>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
- <1448622572-16900-2-git-send-email-pmladek@suse.com>
- <CAMo8BfJKrrCxhHFEgOrB+KgttjZOSKO1a=FMdEw=YcHa2KDCqw@mail.gmail.com>
-In-Reply-To: <CAMo8BfJKrrCxhHFEgOrB+KgttjZOSKO1a=FMdEw=YcHa2KDCqw@mail.gmail.com>
+References: <1446188504-28023-1-git-send-email-minchan@kernel.org> <1446188504-28023-4-git-send-email-minchan@kernel.org>
+In-Reply-To: <1446188504-28023-4-git-send-email-minchan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Minchan Kim <minchan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Michael Kerrisk <mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, zhangyanfei-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org, Rik van Riel <riel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mel Gorman <mgorman-l3A5Bk7waGM@public.gmane.org>, KOSAKI Motohiro <kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jason Evans <je-b10kYP2dOMg@public.gmane.org>, Daniel Micay <danielmicay-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Kirill A. Shutemov" <kirill-oKw7cIdHH8eLwutG50LtGA@public.gmane.org>, Michal Hocko <mhocko-AlSwsSmVLrQ@public.gmane.org>, yalin.wang2010-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Shaohua Li <shli-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Chen Gang <gang.chen.5i5j-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "rth-hL46jP5Bxq7R7s880joybQ@public.gmane.org" <rth-hL46jP5Bxq7R7s880joybQ@public.gmane.org>, "ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org" <ink-biIs/Y0ymYJMZLIVYojuPNP0rXTJTi09@public.gmane.org>, "mattst88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <mattst88-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ralf Baechle <ralf@l>
 
-On Fri 2015-11-27 17:26:16, Max Filippov wrote:
-Hi Max,
-
-> > Another exception is Xtensa architecture that uses just a
-> > fake NMI.
+On Fri, 30 Oct 2015, Minchan Kim wrote:
+> From: Chen Gang <gang.chen.5i5j@gmail.com>
 > 
-> It's called fake because it's actually maskable, but sometimes
-> it is safe to use it as NMI (when there are no other IRQs at the
-> same priority level and that level equals EXCM level). That
-> condition is checked in arch/xtensa/include/asm/processor.h
-> So 'fake' here is to avoid confusion with real NMI that exists
-> on xtensa (and is not currently used in linux), otherwise code
-> that runs in fake NMI must follow the NMI rules.
+> For uapi, need try to let all macros have same value, and MADV_FREE is
+> added into main branch recently, so need redefine MADV_FREE for it.
 > 
-> To make xtensa compatible with your change we can add a
-> choice whether fake NMI should be used to kconfig. It can
-> then set HAVE_NMI accordingly. I'll post a patch for xtensa.
+> At present, '8' can be shared with all architectures, so redefine it to
+> '8'.
+> 
+> Cc: rth@twiddle.net <rth@twiddle.net>,
+> Cc: ink@jurassic.park.msu.ru <ink@jurassic.park.msu.ru>
+> Cc: mattst88@gmail.com <mattst88@gmail.com>
+> Cc: Ralf Baechle <ralf@linux-mips.org>
+> Cc: jejb@parisc-linux.org <jejb@parisc-linux.org>
+> Cc: deller@gmx.de <deller@gmx.de>
+> Cc: chris@zankel.net <chris@zankel.net>
+> Cc: jcmvbkbc@gmail.com <jcmvbkbc@gmail.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: linux-arch@vger.kernel.org
+> Cc: linux-api@vger.kernel.org
+> Acked-by: Minchan Kim <minchan@kernel.org>
+> Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 
-Thanks a lot for explanation. I'll wait for the destiny of
-the patch adding CONFIG_XTENSA_FAKE_NMI. It is not easy
-for me to review. Anyway, we could select HAVE_NMI for
-Xtensa anytime later if this patchset goes in earlier.
+Let me add
+Acked-by: Hugh Dickins <hughd@google.com>
+to this one too.
 
-Best Regards,
-Petr
+But I have extended your mail's Cc list: Darrick pointed out earlier
+that dietlibc has a Solaris #define MADV_FREE 0x5 in its mman.h,
+and that was in the kernel's sparc mman.h up until 2.6.25.  I doubt
+that presents any obstacle nowadays, but Dave Miller should be Cc'ed.
+
+I was a little suspicious that 8 is available for MADV_FREE: why did
+the common/generic parameters start at 9 instead of 8 back in 2.6.16?
+I think the answer is that we had MADV_REMOVE coming in from one
+direction, and MADV_DONTFORK coming from another direction, and when
+Roland looked for where to start the commons for MADV_DONTFORK, it
+appeared that 8 was occupied - by MADV_REMOVE; then a little later
+MADV_REMOVE was shifted to become the first of the commons, at 9.
+
+Hugh
+
+> ---
+>  arch/alpha/include/uapi/asm/mman.h     | 2 +-
+>  arch/mips/include/uapi/asm/mman.h      | 2 +-
+>  arch/parisc/include/uapi/asm/mman.h    | 2 +-
+>  arch/xtensa/include/uapi/asm/mman.h    | 2 +-
+>  include/uapi/asm-generic/mman-common.h | 2 +-
+>  5 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+> index 836fbd44f65b..0b8a5de7aee3 100644
+> --- a/arch/alpha/include/uapi/asm/mman.h
+> +++ b/arch/alpha/include/uapi/asm/mman.h
+> @@ -44,9 +44,9 @@
+>  #define MADV_WILLNEED	3		/* will need these pages */
+>  #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
+>  #define MADV_DONTNEED	6		/* don't need these pages */
+> -#define MADV_FREE	7		/* free pages only if memory pressure */
+>  
+>  /* common/generic parameters */
+> +#define MADV_FREE	8		/* free pages only if memory pressure */
+>  #define MADV_REMOVE	9		/* remove these pages & resources */
+>  #define MADV_DONTFORK	10		/* don't inherit across fork */
+>  #define MADV_DOFORK	11		/* do inherit across fork */
+> diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
+> index 106e741aa7ee..d247f5457944 100644
+> --- a/arch/mips/include/uapi/asm/mman.h
+> +++ b/arch/mips/include/uapi/asm/mman.h
+> @@ -67,9 +67,9 @@
+>  #define MADV_SEQUENTIAL 2		/* expect sequential page references */
+>  #define MADV_WILLNEED	3		/* will need these pages */
+>  #define MADV_DONTNEED	4		/* don't need these pages */
+> -#define MADV_FREE	5		/* free pages only if memory pressure */
+>  
+>  /* common parameters: try to keep these consistent across architectures */
+> +#define MADV_FREE	8		/* free pages only if memory pressure */
+>  #define MADV_REMOVE	9		/* remove these pages & resources */
+>  #define MADV_DONTFORK	10		/* don't inherit across fork */
+>  #define MADV_DOFORK	11		/* do inherit across fork */
+> diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
+> index 6cb8db76fd4e..700d83fd9352 100644
+> --- a/arch/parisc/include/uapi/asm/mman.h
+> +++ b/arch/parisc/include/uapi/asm/mman.h
+> @@ -40,9 +40,9 @@
+>  #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
+>  #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
+>  #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
+> -#define MADV_FREE	8		/* free pages only if memory pressure */
+>  
+>  /* common/generic parameters */
+> +#define MADV_FREE	8		/* free pages only if memory pressure */
+>  #define MADV_REMOVE	9		/* remove these pages & resources */
+>  #define MADV_DONTFORK	10		/* don't inherit across fork */
+>  #define MADV_DOFORK	11		/* do inherit across fork */
+> diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
+> index 1b19f25bc567..77eaca434071 100644
+> --- a/arch/xtensa/include/uapi/asm/mman.h
+> +++ b/arch/xtensa/include/uapi/asm/mman.h
+> @@ -80,9 +80,9 @@
+>  #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+>  #define MADV_WILLNEED	3		/* will need these pages */
+>  #define MADV_DONTNEED	4		/* don't need these pages */
+> -#define MADV_FREE	5		/* free pages only if memory pressure */
+>  
+>  /* common parameters: try to keep these consistent across architectures */
+> +#define MADV_FREE	8		/* free pages only if memory pressure */
+>  #define MADV_REMOVE	9		/* remove these pages & resources */
+>  #define MADV_DONTFORK	10		/* don't inherit across fork */
+>  #define MADV_DOFORK	11		/* do inherit across fork */
+> diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
+> index 7a94102b7a02..869595947873 100644
+> --- a/include/uapi/asm-generic/mman-common.h
+> +++ b/include/uapi/asm-generic/mman-common.h
+> @@ -34,9 +34,9 @@
+>  #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+>  #define MADV_WILLNEED	3		/* will need these pages */
+>  #define MADV_DONTNEED	4		/* don't need these pages */
+> -#define MADV_FREE	5		/* free pages only if memory pressure */
+>  
+>  /* common parameters: try to keep these consistent across architectures */
+> +#define MADV_FREE	8		/* free pages only if memory pressure */
+>  #define MADV_REMOVE	9		/* remove these pages & resources */
+>  #define MADV_DONTFORK	10		/* don't inherit across fork */
+>  #define MADV_DOFORK	11		/* do inherit across fork */
+> -- 
+> 1.9.1
+> 
+> 
