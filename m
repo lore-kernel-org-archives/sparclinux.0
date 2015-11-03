@@ -1,60 +1,41 @@
-From: Yang Shi <yang.shi@linaro.org>
-Date: Wed, 25 Nov 2015 22:45:43 +0000
-Subject: [V2 PATCH] sparc64/gup: check address scope legitimacy
-Message-Id: <1448491543-17946-1-git-send-email-yang.shi@linaro.org>
+From: Christoph Hellwig <hch@infradead.org>
+Date: Tue, 03 Nov 2015 13:18:24 +0000
+Subject: Re: [PATCH 1/1 v3] drivers/nvme: default to 4k device page size
+Message-Id: <20151103131824.GA12232@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
-In-Reply-To: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
+References: <20151026.182746.1323901353520152838.davem@davemloft.net>
+ <20151027222010.GD7716@linux.vnet.ibm.com>
+ <20151027223643.GA25332@localhost.localdomain>
+ <20151027.175443.140992924519172506.davem@davemloft.net>
+ <20151028135922.GA27909@localhost.localdomain>
+ <20151029115536.GA28090@infradead.org>
+ <20151029155701.GJ7716@linux.vnet.ibm.com>
+ <20151029172043.GA8343@localhost.localdomain>
+ <20151030213511.GK7716@linux.vnet.ibm.com>
+In-Reply-To: <20151030213511.GK7716@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linaro-kernel@lists.linaro.org, yang.shi@linaro.org
+To: sparclinux@vger.kernel.org
 
-Check if user address is accessible in atomic version __get_user_pages_fast()
-before walking the page table.
-And, check if end > start in get_user_pages_fast(), otherwise fallback to slow
-path.
+On Fri, Oct 30, 2015 at 02:35:11PM -0700, Nishanth Aravamudan wrote:
+> diff --git a/drivers/block/nvme-core.c b/drivers/block/nvme-core.c
+> index ccc0c1f93daa..a9a5285bdb39 100644
+> --- a/drivers/block/nvme-core.c
+> +++ b/drivers/block/nvme-core.c
+> @@ -1717,7 +1717,12 @@ static int nvme_configure_admin_queue(struct nvme_dev *dev)
+>  	u32 aqa;
+>  	u64 cap = readq(&dev->bar->cap);
+>  	struct nvme_queue *nvmeq;
+> -	unsigned page_shift = PAGE_SHIFT;
+> +	/*
+> +	 * default to a 4K page size, with the intention to update this
+> +	 * path in the future to accomodate architectures with differing
+> +	 * kernel and IO page sizes.
+> +	 */
+> +	unsigned page_shift = 12;
+>  	unsigned dev_page_min = NVME_CAP_MPSMIN(cap) + 12;
+>  	unsigned dev_page_max = NVME_CAP_MPSMAX(cap) + 12;
 
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
----
-Just found slow_irqon label is not defined, added it to avoid compile error.
-
- arch/sparc/mm/gup.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index 2e5c4fc..cf4fb47 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -173,6 +173,9 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	addr = start;
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
- 	end = start + len;
-+	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
-+					(void __user *)start, len)))
-+		return 0;
- 
- 	local_irq_save(flags);
- 	pgdp = pgd_offset(mm, addr);
-@@ -203,6 +206,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	addr = start;
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
- 	end = start + len;
-+	if (end < start)
-+		goto slow_irqon;
- 
- 	/*
- 	 * XXX: batch / limit 'nr', to avoid large irq off latency
-@@ -244,7 +249,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- slow:
- 		local_irq_enable();
--
-+slow_irqon:
- 		/* Try to get the remaining pages with get_user_pages */
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
--- 
-2.0.2
-
+Looks good as a start.  Note that all the MPSMIN/MAX checking could
+be removed as NVMe devices must support 4k pages.
