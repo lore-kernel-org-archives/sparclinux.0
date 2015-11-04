@@ -1,129 +1,243 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Fri, 27 Nov 2015 11:09:30 +0000
-Subject: [PATCH v2 3/5] printk/nmi: Try hard to print Oops message in NMI context
-Message-Id: <1448622572-16900-4-git-send-email-pmladek@suse.com>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 04 Nov 2015 19:34:17 +0000
+Subject: [PATCH] iommu-common: Fix error code used in iommu_tbl_range_{alloc,free}().
+Message-Id: <20151104.143417.1514217749334656481.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
-In-Reply-To: <1448622572-16900-1-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Oops messages are important for debugging. We should try hard to get
-them directly into the ring buffer and print them to the console
-even in NMI context. This is problematic because the needed locks
-might already be taken.
 
-What we can do, though, is to zap all printk locks. We already do this
-when a printk recursion is detected. This should be safe because
-the system is crashing and there shouldn't be any printk caller
-that would cause the deadlock.
+The value returned from iommu_tbl_range_alloc() (and the one passed
+in as a fourth argument to iommu_tbl_range_free) is not a DMA address,
+it is rather an index into the IOMMU page table.
 
-We should also flush the printk NMI buffers when Oops begins.
-bust_spinlocks() might sound like a bad location but
-it already does several other printk-related operations.
+Therefore using DMA_ERROR_CODE is not appropriate.
 
-Finally, we have to serialize the printing to do not mix backtraces
-from different CPUs. A simple spinlock is enough. It has already been
-used for this purpose, see the commit a9edc88093287183a ("x86/nmi:
-Perform a safe NMI stack trace on all CPUs").
+Use a more type matching error code define, IOMMU_ERROR_CODE, and
+update all users of this interface.
 
-Signed-off-by: Petr Mladek <pmladek@suse.cz>
+Reported-by: Andre Przywara <andre.przywara@arm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/s390/mm/fault.c   | 1 +
- kernel/printk/nmi.c    | 6 +++++-
- kernel/printk/printk.c | 7 +++++++
- lib/bust_spinlocks.c   | 1 +
- lib/nmi_backtrace.c    | 8 ++++++++
- 5 files changed, 22 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/iommu.c     | 12 ++++++------
+ arch/sparc/kernel/ldc.c       |  2 +-
+ arch/sparc/kernel/pci_sun4v.c | 18 +++++++++---------
+ include/linux/iommu-common.h  |  1 +
+ lib/iommu-common.c            | 10 +++-------
+ 5 files changed, 20 insertions(+), 23 deletions(-)
 
-diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
-index ec1a30d0d11a..6566344db263 100644
---- a/arch/s390/mm/fault.c
-+++ b/arch/s390/mm/fault.c
-@@ -80,6 +80,7 @@ void bust_spinlocks(int yes)
- {
- 	if (yes) {
- 		oops_in_progress = 1;
-+		printk_nmi_flush();
- 	} else {
- 		int loglevel_save = console_loglevel;
- 		console_unblank();
-diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-index 05b4c09110f9..34ba760ae794 100644
---- a/kernel/printk/nmi.c
-+++ b/kernel/printk/nmi.c
-@@ -202,7 +202,11 @@ void __init printk_nmi_init(void)
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5320689..3768682 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -161,7 +161,7 @@ static inline iopte_t *alloc_npages(struct device *dev,
  
- void printk_nmi_enter(void)
- {
--	this_cpu_write(printk_func, vprintk_nmi);
-+	/*
-+	 * We try hard to print the messages directly when Oops is in progress.
-+	 */
-+	if (!oops_in_progress)
-+		this_cpu_write(printk_func, vprintk_nmi);
+ 	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
+ 				      (unsigned long)(-1), 0);
+-	if (unlikely(entry = DMA_ERROR_CODE))
++	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		return NULL;
+ 
+ 	return iommu->page_table + entry;
+@@ -253,7 +253,7 @@ static void dma_4u_free_coherent(struct device *dev, size_t size,
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+ 
+-	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
+ 
+ 	order = get_order(size);
+ 	if (order < 10)
+@@ -426,7 +426,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 	iommu_free_ctx(iommu, ctx);
+ 	spin_unlock_irqrestore(&iommu->lock, flags);
+ 
+-	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
  }
  
- void printk_nmi_exit(void)
-diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 88641c74163d..e970b623ae26 100644
---- a/kernel/printk/printk.c
-+++ b/kernel/printk/printk.c
-@@ -1705,6 +1705,13 @@ asmlinkage int vprintk_emit(int facility, int level,
+ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -492,7 +492,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 					      &handle, (unsigned long)(-1), 0);
+ 
+ 		/* Handle failure */
+-		if (unlikely(entry = DMA_ERROR_CODE)) {
++		if (unlikely(entry = IOMMU_ERROR_CODE)) {
+ 			if (printk_ratelimit())
+ 				printk(KERN_INFO "iommu_alloc failed, iommu %p paddr %lx"
+ 				       " npages %lx\n", iommu, paddr, npages);
+@@ -571,7 +571,7 @@ iommu_map_failed:
+ 				iopte_make_dummy(iommu, base + j);
+ 
+ 			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
+-					     DMA_ERROR_CODE);
++					     IOMMU_ERROR_CODE);
+ 
+ 			s->dma_address = DMA_ERROR_CODE;
+ 			s->dma_length = 0;
+@@ -648,7 +648,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 			iopte_make_dummy(iommu, base + i);
+ 
+ 		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
+-				     DMA_ERROR_CODE);
++				     IOMMU_ERROR_CODE);
+ 		sg = sg_next(sg);
  	}
  
- 	lockdep_off();
-+	/*
-+	 * Messages are passed from NMI context using an extra buffer.
-+	 * The only exception is when Oops is in progress. In this case
-+	 * we try hard to get them out directly.
-+	 */
-+	if (unlikely(oops_in_progress && in_nmi()))
-+		zap_locks();
- 	raw_spin_lock(&logbuf_lock);
- 	logbuf_cpu = this_cpu;
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 1ae5eb1..59d5038 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1953,7 +1953,7 @@ static struct ldc_mtable_entry *alloc_npages(struct ldc_iommu *iommu,
  
-diff --git a/lib/bust_spinlocks.c b/lib/bust_spinlocks.c
-index f8e0e5367398..7a98098b0fef 100644
---- a/lib/bust_spinlocks.c
-+++ b/lib/bust_spinlocks.c
-@@ -20,6 +20,7 @@ void __attribute__((weak)) bust_spinlocks(int yes)
- {
- 	if (yes) {
- 		++oops_in_progress;
-+		printk_nmi_flush();
- 	} else {
- #ifdef CONFIG_VT
- 		unblank_screen();
-diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
-index 26caf51cc238..026e9f16e742 100644
---- a/lib/nmi_backtrace.c
-+++ b/lib/nmi_backtrace.c
-@@ -74,14 +74,22 @@ void nmi_trigger_all_cpu_backtrace(bool include_self,
+ 	entry = iommu_tbl_range_alloc(NULL, &iommu->iommu_map_table,
+ 				      npages, NULL, (unsigned long)-1, 0);
+-	if (unlikely(entry < 0))
++	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		return NULL;
  
- bool nmi_cpu_backtrace(struct pt_regs *regs)
- {
-+	static arch_spinlock_t lock = __ARCH_SPIN_LOCK_UNLOCKED;
- 	int cpu = smp_processor_id();
+ 	return iommu->page_table + entry;
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index d2fe57d..836e8ce 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -159,7 +159,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
+ 				      (unsigned long)(-1), 0);
  
- 	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
-+		/* Serialize backtraces when printing directly. */
-+		if (unlikely(oops_in_progress))
-+			arch_spin_lock(&lock);
-+
- 		pr_warn("NMI backtrace for cpu %d\n", cpu);
- 		if (regs)
- 			show_regs(regs);
- 		else
- 			dump_stack();
-+
-+		if (unlikely(oops_in_progress))
-+			arch_spin_unlock(&lock);
- 		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
- 		return true;
+-	if (unlikely(entry = DMA_ERROR_CODE))
++	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		goto range_alloc_fail;
+ 
+ 	*dma_addrp = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
+@@ -187,7 +187,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	return ret;
+ 
+ iommu_map_fail:
+-	iommu_tbl_range_free(&iommu->tbl, *dma_addrp, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, *dma_addrp, npages, IOMMU_ERROR_CODE);
+ 
+ range_alloc_fail:
+ 	free_pages(first_page, order);
+@@ -226,7 +226,7 @@ static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
+ 	devhandle = pbm->devhandle;
+ 	entry = ((dvma - iommu->tbl.table_map_base) >> IO_PAGE_SHIFT);
+ 	dma_4v_iommu_demap(&devhandle, entry, npages);
+-	iommu_tbl_range_free(&iommu->tbl, dvma, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
+ 	order = get_order(size);
+ 	if (order < 10)
+ 		free_pages((unsigned long)cpu, order);
+@@ -256,7 +256,7 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
+ 				      (unsigned long)(-1), 0);
+ 
+-	if (unlikely(entry = DMA_ERROR_CODE))
++	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		goto bad;
+ 
+ 	bus_addr = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
+@@ -288,7 +288,7 @@ bad:
+ 	return DMA_ERROR_CODE;
+ 
+ iommu_map_fail:
+-	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
+ 	return DMA_ERROR_CODE;
+ }
+ 
+@@ -317,7 +317,7 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 	bus_addr &= IO_PAGE_MASK;
+ 	entry = (bus_addr - iommu->tbl.table_map_base) >> IO_PAGE_SHIFT;
+ 	dma_4v_iommu_demap(&devhandle, entry, npages);
+-	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, DMA_ERROR_CODE);
++	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
+ }
+ 
+ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -376,7 +376,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 					      &handle, (unsigned long)(-1), 0);
+ 
+ 		/* Handle failure */
+-		if (unlikely(entry = DMA_ERROR_CODE)) {
++		if (unlikely(entry = IOMMU_ERROR_CODE)) {
+ 			if (printk_ratelimit())
+ 				printk(KERN_INFO "iommu_alloc failed, iommu %p paddr %lx"
+ 				       " npages %lx\n", iommu, paddr, npages);
+@@ -451,7 +451,7 @@ iommu_map_failed:
+ 			npages = iommu_num_pages(s->dma_address, s->dma_length,
+ 						 IO_PAGE_SIZE);
+ 			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
+-					     DMA_ERROR_CODE);
++					     IOMMU_ERROR_CODE);
+ 			/* XXX demap? XXX */
+ 			s->dma_address = DMA_ERROR_CODE;
+ 			s->dma_length = 0;
+@@ -496,7 +496,7 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		entry = ((dma_handle - tbl->table_map_base) >> shift);
+ 		dma_4v_iommu_demap(&devhandle, entry, npages);
+ 		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
+-				     DMA_ERROR_CODE);
++				     IOMMU_ERROR_CODE);
+ 		sg = sg_next(sg);
  	}
+ 
+diff --git a/include/linux/iommu-common.h b/include/linux/iommu-common.h
+index bbced83..376a27c 100644
+--- a/include/linux/iommu-common.h
++++ b/include/linux/iommu-common.h
+@@ -7,6 +7,7 @@
+ 
+ #define IOMMU_POOL_HASHBITS     4
+ #define IOMMU_NR_POOLS          (1 << IOMMU_POOL_HASHBITS)
++#define IOMMU_ERROR_CODE	(~(unsigned long) 0)
+ 
+ struct iommu_pool {
+ 	unsigned long	start;
+diff --git a/lib/iommu-common.c b/lib/iommu-common.c
+index ff19f66..0f2c887 100644
+--- a/lib/iommu-common.c
++++ b/lib/iommu-common.c
+@@ -11,10 +11,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/hash.h>
+ 
+-#ifndef	DMA_ERROR_CODE
+-#define	DMA_ERROR_CODE (~(dma_addr_t)0x0)
+-#endif
+-
+ static unsigned long iommu_large_alloc = 15;
+ 
+ static	DEFINE_PER_CPU(unsigned int, iommu_hash_common);
+@@ -124,7 +120,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 	/* Sanity check */
+ 	if (unlikely(npages = 0)) {
+ 		WARN_ON_ONCE(1);
+-		return DMA_ERROR_CODE;
++		return IOMMU_ERROR_CODE;
+ 	}
+ 
+ 	if (largealloc) {
+@@ -207,7 +203,7 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 			goto again;
+ 		} else {
+ 			/* give up */
+-			n = DMA_ERROR_CODE;
++			n = IOMMU_ERROR_CODE;
+ 			goto bail;
+ 		}
+ 	}
+@@ -259,7 +255,7 @@ void iommu_tbl_range_free(struct iommu_map_table *iommu, u64 dma_addr,
+ 	unsigned long flags;
+ 	unsigned long shift = iommu->table_shift;
+ 
+-	if (entry = DMA_ERROR_CODE) /* use default addr->entry mapping */
++	if (entry = IOMMU_ERROR_CODE) /* use default addr->entry mapping */
+ 		entry = (dma_addr - iommu->table_map_base) >> shift;
+ 	pool = get_pool(iommu, entry);
+ 
 -- 
-1.8.5.6
+2.1.2.532.g19b5d50
 
