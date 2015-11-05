@@ -1,58 +1,67 @@
-From: yalin wang <yalin.wang2010@gmail.com>
-Date: Mon, 30 Nov 2015 16:42:04 +0000
-Subject: Re: [PATCH v2 5/5] printk/nmi: Increase the size of the temporary buffer
-Message-Id: <81211733-2484-40A9-9D4A-644AA27FBC73@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 05 Nov 2015 21:39:59 +0000
+Subject: [GIT] Sparc
+Message-Id: <20151105.163959.1438115257720770769.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
- <1448622572-16900-6-git-send-email-pmladek@suse.com>
-In-Reply-To: <1448622572-16900-6-git-send-email-pmladek@suse.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-> On Nov 27, 2015, at 19:09, Petr Mladek <pmladek@suse.com> wrote:
-> 
-> Testing has shown that the backtrace sometimes does not fit
-> into the 4kB temporary buffer that is used in NMI context.
-> 
-> The warnings are gone when I double the temporary buffer size.
-> 
-> Note that this problem existed even in the x86-specific
-> implementation that was added by the commit a9edc8809328
-> ("x86/nmi: Perform a safe NMI stack trace on all CPUs").
-> Nobody noticed it because it did not print any warnings.
-> 
-> Signed-off-by: Petr Mladek <pmladek@suse.com>
-> ---
-> kernel/printk/nmi.c | 2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-> index 8af1e4016719..6111644d5f01 100644
-> --- a/kernel/printk/nmi.c
-> +++ b/kernel/printk/nmi.c
-> @@ -42,7 +42,7 @@ atomic_t nmi_message_lost;
-> struct nmi_seq_buf {
-> 	atomic_t		len;	/* length of written data */
-> 	struct irq_work		work;	/* IRQ work that flushes the buffer */
-> -	unsigned char		buffer[PAGE_SIZE - sizeof(atomic_t) -
-> +	unsigned char		buffer[2 * PAGE_SIZE - sizeof(atomic_t) -
-> 				       sizeof(struct irq_work)];
-> };
-> 
+Just a couple of fixes/cleanups:
 
-why not define like this:
+1) Correct NUMA latency calculations on sparc64, from Nitin Gupta.
 
-union {
-struct {atomic_t		len;	
-	struct irq_work		work;
-}
-unsigned char		buffer[PAGE_SIZE * 2] ;
-}
+2) ASI_ST_BLKINIT_MRU_S value was wrong, from Rob Gardner.
 
-we can make sure the union is 2 PAGE_SIZE .
+3) Fix non-faulting load handling of non-quad values, also from Rob
+   Gardner.
 
-Thanks
+4) Cleanup VISsave assembler, from Sam Ravnborg.
 
+5) Fix iommu-common code so it doesn't emit rediculous warnings
+   on some architectures, particularly ARM.
+
+Please pull, thanks a lot!
+
+The following changes since commit 49d7c6559bf2ab4f1d56be131ab9571a51fc71bd:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc (2015-08-07 05:28:24 +0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 52708d690b8be132ba9d294464625dbbdb9fa5df:
+
+  sparc64: Fix numa distance values (2015-11-04 12:14:49 -0800)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      iommu-common: Fix error code used in iommu_tbl_range_{alloc,free}().
+
+Nitin Gupta (1):
+      sparc64: Fix numa distance values
+
+Rob Gardner (2):
+      sparc64: Fix incorrect ASI_ST_BLKINIT_MRU_S value
+      sparc64: Don't restrict fp regs for no-fault loads
+
+Sam Ravnborg (1):
+      sparc64: use ENTRY/ENDPROC in VISsave
+
+ arch/sparc/include/asm/topology_64.h |  3 +++
+ arch/sparc/include/uapi/asm/asi.h    |  2 +-
+ arch/sparc/kernel/iommu.c            | 12 ++++++------
+ arch/sparc/kernel/ldc.c              |  2 +-
+ arch/sparc/kernel/pci_sun4v.c        | 18 +++++++++---------
+ arch/sparc/kernel/unaligned_64.c     | 22 +++++++++++++++-------
+ arch/sparc/lib/VISsave.S             | 10 +++++-----
+ arch/sparc/mm/init_64.c              | 70 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ include/linux/iommu-common.h         |  1 +
+ lib/iommu-common.c                   | 10 +++-------
+ 10 files changed, 113 insertions(+), 37 deletions(-)
