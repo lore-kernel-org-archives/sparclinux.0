@@ -1,184 +1,414 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 09 Nov 2015 18:17:21 +0000
-Subject: [PATCH 16/16] dma-mapping: remove <asm-generic/dma-coherent.h>
-Message-Id: <1447093041-21832-17-git-send-email-hch@lst.de>
+From: Amanieu d'Antras <amanieu@gmail.com>
+Date: Thu, 05 Nov 2015 00:50:21 +0000
+Subject: [PATCH v2 02/20] compat: Add generic copy_siginfo_{to,from}_user32
+Message-Id: <1446684640-4112-3-git-send-email-amanieu@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1447093041-21832-1-git-send-email-hch@lst.de>
-In-Reply-To: <1447093041-21832-1-git-send-email-hch@lst.de>
+References: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
+In-Reply-To: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Steven Miao <realmz6@gmail.com>, Ley Foon Tan <lftan@altera.com>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Chris Metcalf <cmetcalf@ezchip.com>, linux-snps-arc@lists.infraded.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org
+To: linux-kernel@vger.kernel.org
+Cc: Oleg Nesterov <oleg@redhat.com>, Amanieu d'Antras <amanieu@gmail.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ralf Baechle <ralf@linux-mips.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.
 
-This wasn't an asm-generic header to start with, and can be merged into
-dma-mapping.h trivially.
+These routines try to match the behavior of native 32-bit kernels
+as closely as possible. They will replace architecture-specific
+versions that are missing support for some fields and have various
+bugs that cause behavior to diverge from that of a 32-bit kernel.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+The only problematic situation is when sending a si_ptr from a
+32-bit process to a 64-bit process or vice-versa, but this has
+never worked correctly in the past anyways.
+
+One thing to note is that, because the size of the siginfo_t union
+differs between 32-bit and 64-bit systems, we need to stash the
+last 4 bytes of the union in the 4 bytes of padding between the
+64-bit union and the initial 3 siginfo_t members.
+
+Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
 ---
- arch/xtensa/include/asm/dma-mapping.h |  2 --
- drivers/base/dma-mapping.c            |  3 +--
- include/asm-generic/dma-coherent.h    | 32 --------------------------------
- include/linux/dma-mapping.h           | 34 ++++++++++++++++++++++++++++------
- 4 files changed, 29 insertions(+), 42 deletions(-)
- delete mode 100644 include/asm-generic/dma-coherent.h
+ arch/arm64/include/asm/compat.h    |   2 +
+ arch/mips/include/asm/compat.h     |   2 +
+ arch/parisc/include/asm/compat.h   |   2 +
+ arch/powerpc/include/asm/compat.h  |   2 +
+ arch/s390/include/asm/compat.h     |   2 +
+ arch/sparc/include/asm/compat.h    |   2 +
+ arch/tile/include/asm/compat.h     |   2 +
+ arch/x86/include/asm/compat.h      |   2 +
+ include/uapi/asm-generic/siginfo.h |   1 +
+ kernel/compat.c                    | 224 +++++++++++++++++++++++++++++++++++++
+ kernel/signal.c                    |  12 +-
+ 11 files changed, 248 insertions(+), 5 deletions(-)
 
-diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
-index 32350e9..4e6ff4d 100644
---- a/arch/xtensa/include/asm/dma-mapping.h
-+++ b/arch/xtensa/include/asm/dma-mapping.h
-@@ -13,8 +13,6 @@
- #include <asm/cache.h>
- #include <asm/io.h>
+diff --git a/arch/arm64/include/asm/compat.h b/arch/arm64/include/asm/compat.h
+index ff4e294..5eae749 100644
+--- a/arch/arm64/include/asm/compat.h
++++ b/arch/arm64/include/asm/compat.h
+@@ -156,6 +156,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
  
--#include <asm-generic/dma-coherent.h>
--
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
  
-diff --git a/drivers/base/dma-mapping.c b/drivers/base/dma-mapping.c
-index 381e39d..d799662 100644
---- a/drivers/base/dma-mapping.c
-+++ b/drivers/base/dma-mapping.c
-@@ -12,7 +12,6 @@
- #include <linux/gfp.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
--#include <asm-generic/dma-coherent.h>
+ typedef struct compat_siginfo {
+ 	int si_signo;
+diff --git a/arch/mips/include/asm/compat.h b/arch/mips/include/asm/compat.h
+index 5f1f816..1e5ba38 100644
+--- a/arch/mips/include/asm/compat.h
++++ b/arch/mips/include/asm/compat.h
+@@ -131,6 +131,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
  
- /*
-  * Managed DMA API
-@@ -167,7 +166,7 @@ void dmam_free_noncoherent(struct device *dev, size_t size, void *vaddr,
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/parisc/include/asm/compat.h b/arch/parisc/include/asm/compat.h
+index e0be05f..46a0a8a 100644
+--- a/arch/parisc/include/asm/compat.h
++++ b/arch/parisc/include/asm/compat.h
+@@ -135,6 +135,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ 
+ typedef struct compat_siginfo {
+ 	int si_signo;
+diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
+index 75b25ff..cdc8638 100644
+--- a/arch/powerpc/include/asm/compat.h
++++ b/arch/powerpc/include/asm/compat.h
+@@ -125,6 +125,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
+index ac73ac7..497af62 100644
+--- a/arch/s390/include/asm/compat.h
++++ b/arch/s390/include/asm/compat.h
+@@ -193,6 +193,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ 
+ typedef struct compat_siginfo {
+ 	int	si_signo;
+diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
+index 0c80f59..9357014 100644
+--- a/arch/sparc/include/asm/compat.h
++++ b/arch/sparc/include/asm/compat.h
+@@ -154,6 +154,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/tile/include/asm/compat.h b/arch/tile/include/asm/compat.h
+index f9bba8d..e0c61da 100644
+--- a/arch/tile/include/asm/compat.h
++++ b/arch/tile/include/asm/compat.h
+@@ -116,6 +116,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ #define COMPAT_SI_PAD_SIZE	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
+index 69176b4..c6b58b1 100644
+--- a/arch/x86/include/asm/compat.h
++++ b/arch/x86/include/asm/compat.h
+@@ -131,6 +131,8 @@ typedef union compat_sigval {
+ } compat_sigval_t;
+ 
+ #define HAVE_ARCH_COMPAT_SIGINFO_T
++#define HAVE_ARCH_COPY_SIGINFO_TO_USER32
++#define HAVE_ARCH_COPY_SIGINFO_FROM_USER32
+ 
+ typedef struct compat_siginfo {
+ 	int si_signo;
+diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
+index 1e35520..cc8d95e 100644
+--- a/include/uapi/asm-generic/siginfo.h
++++ b/include/uapi/asm-generic/siginfo.h
+@@ -49,6 +49,7 @@ typedef struct siginfo {
+ 	int si_signo;
+ 	int si_errno;
+ 	int si_code;
++	int _pad2[__ARCH_SI_PREAMBLE_SIZE / sizeof(int) - 3];
+ 
+ 	union {
+ 		int _pad[SI_PAD_SIZE];
+diff --git a/kernel/compat.c b/kernel/compat.c
+index 333d364..644da25 100644
+--- a/kernel/compat.c
++++ b/kernel/compat.c
+@@ -1174,3 +1174,227 @@ void __user *compat_alloc_user_space(unsigned long len)
+ 	return ptr;
  }
- EXPORT_SYMBOL(dmam_free_noncoherent);
- 
--#ifdef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
- 
- static void dmam_coherent_decl_release(struct device *dev, void *res)
- {
-diff --git a/include/asm-generic/dma-coherent.h b/include/asm-generic/dma-coherent.h
-deleted file mode 100644
-index 0297e58..0000000
---- a/include/asm-generic/dma-coherent.h
-+++ /dev/null
-@@ -1,32 +0,0 @@
--#ifndef DMA_COHERENT_H
--#define DMA_COHERENT_H
--
--#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
--/*
-- * These three functions are only for dma allocator.
-- * Don't use them in device drivers.
-- */
--int dma_alloc_from_coherent(struct device *dev, ssize_t size,
--				       dma_addr_t *dma_handle, void **ret);
--int dma_release_from_coherent(struct device *dev, int order, void *vaddr);
--
--int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
--			    void *cpu_addr, size_t size, int *ret);
--/*
-- * Standard interface
-- */
--#define ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
--int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
--				dma_addr_t device_addr, size_t size, int flags);
--
--void dma_release_declared_memory(struct device *dev);
--
--void *dma_mark_declared_memory_occupied(struct device *dev,
--					dma_addr_t device_addr, size_t size);
--#else
--#define dma_alloc_from_coherent(dev, size, handle, ret) (0)
--#define dma_release_from_coherent(dev, order, vaddr) (0)
--#define dma_mmap_from_coherent(dev, vma, vaddr, order, ret) (0)
--#endif
--
--#endif
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index cc0517b..d6b575b 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -11,7 +11,6 @@
- #include <linux/scatterlist.h>
- #include <linux/kmemcheck.h>
- #include <linux/bug.h>
--#include <asm-generic/dma-coherent.h>
- 
- /*
-  * A dma_addr_t can hold any valid DMA or bus address for the platform.
-@@ -87,6 +86,23 @@ static inline int is_device_dma_capable(struct device *dev)
- 	return dev->dma_mask != NULL && *dev->dma_mask != DMA_MASK_NONE;
- }
- 
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
-+/*
-+ * These three functions are only for dma allocator.
-+ * Don't use them in device drivers.
-+ */
-+int dma_alloc_from_coherent(struct device *dev, ssize_t size,
-+				       dma_addr_t *dma_handle, void **ret);
-+int dma_release_from_coherent(struct device *dev, int order, void *vaddr);
+ EXPORT_SYMBOL_GPL(compat_alloc_user_space);
 +
-+int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
-+			    void *cpu_addr, size_t size, int *ret);
-+#else
-+#define dma_alloc_from_coherent(dev, size, handle, ret) (0)
-+#define dma_release_from_coherent(dev, order, vaddr) (0)
-+#define dma_mmap_from_coherent(dev, vma, vaddr, order, ret) (0)
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
++#ifndef HAVE_ARCH_COPY_SIGINFO_TO_USER32
++int copy_siginfo_to_user32(compat_siginfo_t __user *to, const siginfo_t *from)
++{
++	int err, si_code;
 +
- #ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
- #else
-@@ -568,7 +584,13 @@ static inline int dma_get_cache_alignment(void)
- #define DMA_MEMORY_INCLUDES_CHILDREN	0x04
- #define DMA_MEMORY_EXCLUSIVE		0x08
- 
--#ifndef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
-+int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
-+				dma_addr_t device_addr, size_t size, int flags);
-+void dma_release_declared_memory(struct device *dev);
-+void *dma_mark_declared_memory_occupied(struct device *dev,
-+					dma_addr_t device_addr, size_t size);
-+#else
- static inline int
- dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
- 			    dma_addr_t device_addr, size_t size, int flags)
-@@ -587,7 +609,7 @@ dma_mark_declared_memory_occupied(struct device *dev,
- {
- 	return ERR_PTR(-EBUSY);
- }
--#endif
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- 
- /*
-  * Managed DMA API
-@@ -600,13 +622,13 @@ extern void *dmam_alloc_noncoherent(struct device *dev, size_t size,
- 				    dma_addr_t *dma_handle, gfp_t gfp);
- extern void dmam_free_noncoherent(struct device *dev, size_t size, void *vaddr,
- 				  dma_addr_t dma_handle);
--#ifdef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
- extern int dmam_declare_coherent_memory(struct device *dev,
- 					phys_addr_t phys_addr,
- 					dma_addr_t device_addr, size_t size,
- 					int flags);
- extern void dmam_release_declared_memory(struct device *dev);
--#else /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
-+#else /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- static inline int dmam_declare_coherent_memory(struct device *dev,
- 				phys_addr_t phys_addr, dma_addr_t device_addr,
- 				size_t size, gfp_t gfp)
-@@ -617,7 +639,7 @@ static inline int dmam_declare_coherent_memory(struct device *dev,
- static inline void dmam_release_declared_memory(struct device *dev)
- {
- }
--#endif /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- 
- static inline void *dma_alloc_writecombine(struct device *dev, size_t size,
- 					   dma_addr_t *dma_addr, gfp_t gfp)
++	if (!access_ok(VERIFY_WRITE, to, sizeof(compat_siginfo_t)))
++		return -EFAULT;
++
++	/*
++	 * Get the user-visible si_code by hiding the top 16 bits if this is a
++	 * kernel-generated signal.
++	 */
++	si_code = from->si_code < 0 ? from->si_code : (short)from->si_code;
++
++	/*
++	 * If you change siginfo_t structure, please be sure that
++	 * all these functions are fixed accordingly:
++	 * copy_siginfo_to_user
++	 * copy_siginfo_to_user32
++	 * copy_siginfo_from_user32
++	 * signalfd_copyinfo
++	 * They should never copy any pad contained in the structure
++	 * to avoid security leaks, but must copy the generic
++	 * 3 ints plus the relevant union member.
++	 */
++	err = __put_user(from->si_signo, &to->si_signo);
++	err |= __put_user(from->si_errno, &to->si_errno);
++	err |= __put_user(si_code, &to->si_code);
++	if (from->si_code < 0) {
++		/*
++		 * Copy the tail bytes of the union from the padding, see the
++		 * comment in copy_siginfo_from_user32. Note that this padding
++		 * is always initialized when si_code < 0.
++		 */
++		BUILD_BUG_ON(sizeof(to->_sifields._pad) !+			sizeof(from->_sifields._pad) + sizeof(from->_pad2));
++		err |= __copy_to_user(to->_sifields._pad, from->_sifields._pad,
++			sizeof(from->_sifields._pad)) ? -EFAULT : 0;
++		err |= __copy_to_user(to->_sifields._pad + SI_PAD_SIZE,
++			from->_pad2, sizeof(from->_pad2)) ? -EFAULT : 0;
++		return err;
++	}
++	switch (from->si_code & __SI_MASK) {
++	case __SI_KILL:
++		err |= __put_user(from->si_pid, &to->si_pid);
++		err |= __put_user(from->si_uid, &to->si_uid);
++		break;
++	case __SI_TIMER:
++		err |= __put_user(from->si_tid, &to->si_tid);
++		err |= __put_user(from->si_overrun, &to->si_overrun);
++		/*
++		 * Get the sigval from si_int, which matches the convention
++		 * used in get_compat_sigevent.
++		 */
++		err |= __put_user(from->si_int, &to->si_int);
++		break;
++	case __SI_POLL:
++		err |= __put_user(from->si_band, &to->si_band);
++		err |= __put_user(from->si_fd, &to->si_fd);
++		break;
++	case __SI_FAULT:
++		err |= __put_user(ptr_to_compat(from->si_addr), &to->si_addr);
++#ifdef __ARCH_SI_TRAPNO
++		err |= __put_user(from->si_trapno, &to->si_trapno);
++#endif
++#ifdef BUS_MCEERR_AO
++		/*
++		 * Other callers might not initialize the si_lsb field,
++		 * so check explicitly for the right codes here.
++		 */
++		if (from->si_signo = SIGBUS &&
++		    (from->si_code = BUS_MCEERR_AR ||
++		     from->si_code = BUS_MCEERR_AO))
++			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
++#endif
++#ifdef SEGV_BNDERR
++		if (from->si_signo = SIGSEGV && from->si_code = SEGV_BNDERR) {
++			err |= __put_user(ptr_to_compat(from->si_lower),
++				&to->si_lower);
++			err |= __put_user(ptr_to_compat(from->si_upper),
++				&to->si_upper);
++		}
++#endif
++		break;
++	case __SI_CHLD:
++		err |= __put_user(from->si_pid, &to->si_pid);
++		err |= __put_user(from->si_uid, &to->si_uid);
++		err |= __put_user(from->si_status, &to->si_status);
++		err |= __put_user(from->si_utime, &to->si_utime);
++		err |= __put_user(from->si_stime, &to->si_stime);
++		break;
++	case __SI_RT: /* This is not generated by the kernel as of now. */
++	case __SI_MESGQ: /* But this is */
++		err |= __put_user(from->si_pid, &to->si_pid);
++		err |= __put_user(from->si_uid, &to->si_uid);
++		/*
++		 * Get the sigval from si_int, which matches the convention
++		 * used in get_compat_sigevent.
++		 */
++		err |= __put_user(from->si_int, &to->si_int);
++		break;
++#ifdef __ARCH_SIGSYS
++	case __SI_SYS:
++		err |= __put_user(ptr_to_compat(from->si_call_addr),
++			&to->si_call_addr);
++		err |= __put_user(from->si_syscall, &to->si_syscall);
++		err |= __put_user(from->si_arch, &to->si_arch);
++		break;
++#endif
++	default: /* this is just in case for now ... */
++		err |= __put_user(from->si_pid, &to->si_pid);
++		err |= __put_user(from->si_uid, &to->si_uid);
++		break;
++	}
++	return err;
++}
++#endif
++
++#ifndef HAVE_ARCH_COPY_SIGINFO_FROM_USER32
++int copy_siginfo_from_user32(siginfo_t *to, compat_siginfo_t __user *from)
++{
++	int err;
++	compat_uptr_t ptr32;
++
++	if (!access_ok(VERIFY_READ, from, sizeof(compat_siginfo_t)))
++		return -EFAULT;
++
++	/*
++	 * If you change siginfo_t structure, please be sure that
++	 * all these functions are fixed accordingly:
++	 * copy_siginfo_to_user
++	 * copy_siginfo_to_user32
++	 * copy_siginfo_from_user32
++	 * signalfd_copyinfo
++	 * They should never copy any pad contained in the structure
++	 * to avoid security leaks, but must copy the generic
++	 * 3 ints plus the relevant union member.
++	 */
++	err = __get_user(to->si_signo, &from->si_signo);
++	err |= __get_user(to->si_errno, &from->si_errno);
++	err |= __get_user(to->si_code, &from->si_code);
++	if (to->si_code < 0) {
++		/*
++		 * Note that the compat union may be larger than the normal one
++		 * due to alignment. We work around this by copying any data
++		 * that doesn't fit in the normal union into the padding before
++		 * the union.
++		 */
++		BUILD_BUG_ON(sizeof(to->_sifields._pad) + sizeof(to->_pad2) !+			sizeof(from->_sifields._pad));
++		err |= __copy_from_user(to->_sifields._pad,
++			from->_sifields._pad,
++			sizeof(to->_sifields._pad)) ? -EFAULT : 0;
++		err |= __copy_from_user(to->_pad2,
++			from->_sifields._pad + SI_PAD_SIZE, sizeof(to->_pad2))
++			? -EFAULT : 0;
++		return err;
++	}
++	switch (to->si_code & __SI_MASK) {
++	case __SI_KILL:
++		err |= __get_user(to->si_pid, &from->si_pid);
++		err |= __get_user(to->si_uid, &from->si_uid);
++		break;
++	case __SI_TIMER:
++		err |= __get_user(to->si_tid, &from->si_tid);
++		err |= __get_user(to->si_overrun, &from->si_overrun);
++		/*
++		 * Put the sigval in si_int, which matches the convention
++		 * used in get_compat_sigevent.
++		 */
++		to->si_ptr = NULL; /* Avoid uninitialized bits in the union */
++		err |= __get_user(to->si_int, &from->si_int);
++		break;
++	case __SI_POLL:
++		err |= __get_user(to->si_band, &from->si_band);
++		err |= __get_user(to->si_fd, &from->si_fd);
++		break;
++	case __SI_FAULT:
++		err |= __get_user(ptr32, &from->si_addr);
++		to->si_addr = compat_ptr(ptr32);
++#ifdef __ARCH_SI_TRAPNO
++		err |= __get_user(to->si_trapno, &from->si_trapno);
++#endif
++		err |= __get_user(to->si_addr_lsb, &from->si_addr_lsb);
++		err |= __get_user(ptr32, &from->si_lower);
++		to->si_lower = compat_ptr(ptr32);
++		err |= __get_user(ptr32, &from->si_upper);
++		to->si_upper = compat_ptr(ptr32);
++		break;
++	case __SI_CHLD:
++		err |= __get_user(to->si_pid, &from->si_pid);
++		err |= __get_user(to->si_uid, &from->si_uid);
++		err |= __get_user(to->si_status, &from->si_status);
++		err |= __get_user(to->si_utime, &from->si_utime);
++		err |= __get_user(to->si_stime, &from->si_stime);
++		break;
++	case __SI_RT: /* This is not generated by the kernel as of now. */
++	case __SI_MESGQ: /* But this is */
++		err |= __get_user(to->si_pid, &from->si_pid);
++		err |= __get_user(to->si_uid, &from->si_uid);
++		/*
++		 * Put the sigval in si_int, which matches the convention
++		 * used in get_compat_sigevent.
++		 */
++		to->si_ptr = NULL; /* Avoid uninitialized bits in the union */
++		err |= __get_user(to->si_int, &from->si_int);
++		break;
++#ifdef __ARCH_SIGSYS
++	case __SI_SYS:
++		err |= __get_user(ptr32, &from->si_call_addr);
++		to->si_call_addr = compat_ptr(ptr32);
++		err |= __get_user(to->si_syscall, &from->si_syscall);
++		err |= __get_user(to->si_arch, &from->si_arch);
++		break;
++#endif
++	default: /* this is just in case for now ... */
++		err |= __get_user(to->si_pid, &from->si_pid);
++		err |= __get_user(to->si_uid, &from->si_uid);
++		break;
++	}
++	return err;
++}
++#endif
+diff --git a/kernel/signal.c b/kernel/signal.c
+index 0f6bbbe..873e8e2 100644
+--- a/kernel/signal.c
++++ b/kernel/signal.c
+@@ -2713,11 +2713,13 @@ int copy_siginfo_to_user(siginfo_t __user *to, const siginfo_t *from)
+ 		return __copy_to_user(to, from, sizeof(siginfo_t))
+ 			? -EFAULT : 0;
+ 	/*
+-	 * If you change siginfo_t structure, please be sure
+-	 * this code is fixed accordingly.
+-	 * Please remember to update the signalfd_copyinfo() function
+-	 * inside fs/signalfd.c too, in case siginfo_t changes.
+-	 * It should never copy any pad contained in the structure
++	 * If you change siginfo_t structure, please be sure that
++	 * all these functions are fixed accordingly:
++	 * copy_siginfo_to_user
++	 * copy_siginfo_to_user32
++	 * copy_siginfo_from_user32
++	 * signalfd_copyinfo
++	 * They should never copy any pad contained in the structure
+ 	 * to avoid security leaks, but must copy the generic
+ 	 * 3 ints plus the relevant union member.
+ 	 */
 -- 
-1.9.1
+2.6.2
 
