@@ -1,405 +1,208 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 09 Nov 2015 18:17:13 +0000
-Subject: [PATCH 08/16] frv: convert to dma_map_ops
-Message-Id: <1447093041-21832-9-git-send-email-hch@lst.de>
+From: Amanieu d'Antras <amanieu@gmail.com>
+Date: Thu, 05 Nov 2015 00:50:20 +0000
+Subject: [PATCH v2 01/20] compat: Add generic compat_siginfo_t
+Message-Id: <1446684640-4112-2-git-send-email-amanieu@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1447093041-21832-1-git-send-email-hch@lst.de>
-In-Reply-To: <1447093041-21832-1-git-send-email-hch@lst.de>
+References: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
+In-Reply-To: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Steven Miao <realmz6@gmail.com>, Ley Foon Tan <lftan@altera.com>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Chris Metcalf <cmetcalf@ezchip.com>, linux-snps-arc@lists.infraded.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org
+To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This matches the normal siginfo_t as closely as possible, unlike
+some architecture-specific versions which are missing some fields.
+
+Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
 ---
- arch/frv/Kconfig                      |   2 +
- arch/frv/include/asm/dma-mapping.h    | 132 ++--------------------------------
- arch/frv/mb93090-mb00/pci-dma-nommu.c |  72 ++++++++++++-------
- arch/frv/mb93090-mb00/pci-dma.c       |  74 ++++++++++++-------
- 4 files changed, 101 insertions(+), 179 deletions(-)
+ arch/arm64/include/asm/compat.h   |  2 ++
+ arch/mips/include/asm/compat.h    |  1 +
+ arch/parisc/include/asm/compat.h  |  2 ++
+ arch/powerpc/include/asm/compat.h |  1 +
+ arch/s390/include/asm/compat.h    |  2 ++
+ arch/sparc/include/asm/compat.h   |  1 +
+ arch/tile/include/asm/compat.h    |  1 +
+ arch/x86/include/asm/compat.h     |  2 ++
+ include/linux/compat.h            | 66 ++++++++++++++++++++++++++++++++++++++-
+ 9 files changed, 77 insertions(+), 1 deletion(-)
 
-diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
-index 34aa193..d4fc724 100644
---- a/arch/frv/Kconfig
-+++ b/arch/frv/Kconfig
-@@ -14,6 +14,8 @@ config FRV
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
- 	select HAVE_DEBUG_STACKOVERFLOW
-+	select ARCH_NO_COHERENT_DMA_MMAP
-+	select HAVE_DMA_ATTRS
+diff --git a/arch/arm64/include/asm/compat.h b/arch/arm64/include/asm/compat.h
+index 7fbed69..ff4e294 100644
+--- a/arch/arm64/include/asm/compat.h
++++ b/arch/arm64/include/asm/compat.h
+@@ -155,6 +155,8 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
  
- config ZONE_DMA
- 	bool
-diff --git a/arch/frv/include/asm/dma-mapping.h b/arch/frv/include/asm/dma-mapping.h
-index 2840adc..750951c 100644
---- a/arch/frv/include/asm/dma-mapping.h
-+++ b/arch/frv/include/asm/dma-mapping.h
-@@ -1,128 +1,17 @@
- #ifndef _ASM_DMA_MAPPING_H
- #define _ASM_DMA_MAPPING_H
- 
--#include <linux/device.h>
--#include <linux/scatterlist.h>
- #include <asm/cache.h>
- #include <asm/cacheflush.h>
--#include <asm/io.h>
--
--/*
-- * See Documentation/DMA-API.txt for the description of how the
-- * following DMA API should work.
-- */
--
--#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
--#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
- 
- extern unsigned long __nongprelbss dma_coherent_mem_start;
- extern unsigned long __nongprelbss dma_coherent_mem_end;
- 
--void *dma_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle, gfp_t gfp);
--void dma_free_coherent(struct device *dev, size_t size, void *vaddr, dma_addr_t dma_handle);
--
--extern dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
--				 enum dma_data_direction direction);
--
--static inline
--void dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
--		      enum dma_data_direction direction)
--{
--	BUG_ON(direction = DMA_NONE);
--}
--
--extern int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--		      enum dma_data_direction direction);
--
--static inline
--void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
--	     enum dma_data_direction direction)
--{
--	BUG_ON(direction = DMA_NONE);
--}
--
--extern
--dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
--			size_t size, enum dma_data_direction direction);
--
--static inline
--void dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
--		    enum dma_data_direction direction)
--{
--	BUG_ON(direction = DMA_NONE);
--}
--
--
--static inline
--void dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
--			     enum dma_data_direction direction)
--{
--}
--
--static inline
--void dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle, size_t size,
--				enum dma_data_direction direction)
--{
--	flush_write_buffers();
--}
-+extern struct dma_map_ops frv_dma_ops;
- 
--static inline
--void dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
--				   unsigned long offset, size_t size,
--				   enum dma_data_direction direction)
-+static inline struct dma_map_ops *get_dma_ops(struct device *dev)
- {
--}
--
--static inline
--void dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
--				      unsigned long offset, size_t size,
--				      enum dma_data_direction direction)
--{
--	flush_write_buffers();
--}
--
--static inline
--void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
--			 enum dma_data_direction direction)
--{
--}
--
--static inline
--void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
--			    enum dma_data_direction direction)
--{
--	flush_write_buffers();
--}
--
--static inline
--int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return 0;
--}
--
--static inline
--int dma_supported(struct device *dev, u64 mask)
--{
--        /*
--         * we fall back to GFP_DMA when the mask isn't all 1s,
--         * so we can't guarantee allocations that must be
--         * within a tighter range than GFP_DMA..
--         */
--        if (mask < 0x00ffffff)
--                return 0;
--
--	return 1;
--}
--
--static inline
--int dma_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--
--	return 0;
-+	return &frv_dma_ops;
- }
- 
- static inline
-@@ -132,19 +21,6 @@ void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 	flush_write_buffers();
- }
- 
--/* Not supported for now */
--static inline int dma_mmap_coherent(struct device *dev,
--				    struct vm_area_struct *vma, void *cpu_addr,
--				    dma_addr_t dma_addr, size_t size)
--{
--	return -EINVAL;
--}
--
--static inline int dma_get_sgtable(struct device *dev, struct sg_table *sgt,
--				  void *cpu_addr, dma_addr_t dma_addr,
--				  size_t size)
--{
--	return -EINVAL;
--}
-+#include <asm-generic/dma-mapping-common.h>
- 
- #endif  /* _ASM_DMA_MAPPING_H */
-diff --git a/arch/frv/mb93090-mb00/pci-dma-nommu.c b/arch/frv/mb93090-mb00/pci-dma-nommu.c
-index 8eeea0d..082be49 100644
---- a/arch/frv/mb93090-mb00/pci-dma-nommu.c
-+++ b/arch/frv/mb93090-mb00/pci-dma-nommu.c
-@@ -34,7 +34,8 @@ struct dma_alloc_record {
- static DEFINE_SPINLOCK(dma_alloc_lock);
- static LIST_HEAD(dma_alloc_list);
- 
--void *dma_alloc_coherent(struct device *hwdev, size_t size, dma_addr_t *dma_handle, gfp_t gfp)
-+static void *frv_dma_alloc(struct device *hwdev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, struct dma_attrs *attrs)
- {
- 	struct dma_alloc_record *new;
- 	struct list_head *this = &dma_alloc_list;
-@@ -84,9 +85,8 @@ void *dma_alloc_coherent(struct device *hwdev, size_t size, dma_addr_t *dma_hand
- 	return NULL;
- }
- 
--EXPORT_SYMBOL(dma_alloc_coherent);
--
--void dma_free_coherent(struct device *hwdev, size_t size, void *vaddr, dma_addr_t dma_handle)
-+static void frv_dma_free(struct device *hwdev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
- 	struct dma_alloc_record *rec;
- 	unsigned long flags;
-@@ -105,22 +105,9 @@ void dma_free_coherent(struct device *hwdev, size_t size, void *vaddr, dma_addr_
- 	BUG();
- }
- 
--EXPORT_SYMBOL(dma_free_coherent);
--
--dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
--			  enum dma_data_direction direction)
--{
--	BUG_ON(direction = DMA_NONE);
--
--	frv_cache_wback_inv((unsigned long) ptr, (unsigned long) ptr + size);
--
--	return virt_to_bus(ptr);
--}
--
--EXPORT_SYMBOL(dma_map_single);
--
--int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
--	       enum dma_data_direction direction)
-+static int frv_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-+		int nents, enum dma_data_direction direction,
-+		struct dma_attrs *attrs)
- {
- 	int i;
- 	struct scatterlist *sg;
-@@ -135,14 +122,49 @@ int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	return nents;
- }
- 
--EXPORT_SYMBOL(dma_map_sg);
--
--dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
--			size_t size, enum dma_data_direction direction)
-+static dma_addr_t frv_dma_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t size,
-+		enum dma_data_direction direction, struct dma_attrs *attrs)
- {
- 	BUG_ON(direction = DMA_NONE);
- 	flush_dcache_page(page);
- 	return (dma_addr_t) page_to_phys(page) + offset;
- }
- 
--EXPORT_SYMBOL(dma_map_page);
-+static void frv_dma_sync_single_for_device(struct device *dev,
-+		dma_addr_t dma_handle, size_t size,
-+		enum dma_data_direction direction)
-+{
-+	flush_write_buffers();
-+}
++#define HAVE_ARCH_COMPAT_SIGINFO_T
 +
-+static void frv_dma_sync_sg_for_device(struct device *dev,
-+		struct scatterlist *sg, int nelems,
-+		enum dma_data_direction direction)
-+{
-+	flush_write_buffers();
-+}
-+
-+
-+static int frv_dma_supported(struct device *dev, u64 mask)
-+{
-+        /*
-+         * we fall back to GFP_DMA when the mask isn't all 1s,
-+         * so we can't guarantee allocations that must be
-+         * within a tighter range than GFP_DMA..
-+         */
-+        if (mask < 0x00ffffff)
-+                return 0;
-+	return 1;
-+}
-+
-+struct dma_map_ops frv_dma_ops = {
-+	.alloc			= frv_dma_alloc,
-+	.free			= frv_dma_free,
-+	.map_page		= frv_dma_map_page,
-+	.map_sg			= frv_dma_map_sg,
-+	.sync_single_for_device	= frv_dma_sync_single_for_device,
-+	.sync_sg_for_device	= frv_dma_sync_sg_for_device,
-+	.dma_supported		= frv_dma_supported,
-+};
-+EXPORT_SYMBOL(frv_dma_ops);
-diff --git a/arch/frv/mb93090-mb00/pci-dma.c b/arch/frv/mb93090-mb00/pci-dma.c
-index 4d1f01d..316b7b6 100644
---- a/arch/frv/mb93090-mb00/pci-dma.c
-+++ b/arch/frv/mb93090-mb00/pci-dma.c
-@@ -18,7 +18,9 @@
- #include <linux/scatterlist.h>
- #include <asm/io.h>
+ typedef struct compat_siginfo {
+ 	int si_signo;
+ 	int si_errno;
+diff --git a/arch/mips/include/asm/compat.h b/arch/mips/include/asm/compat.h
+index c4bd54a..5f1f816 100644
+--- a/arch/mips/include/asm/compat.h
++++ b/arch/mips/include/asm/compat.h
+@@ -130,6 +130,7 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
  
--void *dma_alloc_coherent(struct device *hwdev, size_t size, dma_addr_t *dma_handle, gfp_t gfp)
-+static void *frv_dma_alloc(struct device *hwdev, size_t size,
-+		dma_addr_t *dma_handle, gfp_t gfp,
-+		struct dma_attrs *attrs)
- {
- 	void *ret;
++#define HAVE_ARCH_COMPAT_SIGINFO_T
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
  
-@@ -29,29 +31,15 @@ void *dma_alloc_coherent(struct device *hwdev, size_t size, dma_addr_t *dma_hand
- 	return ret;
- }
+ typedef struct compat_siginfo {
+diff --git a/arch/parisc/include/asm/compat.h b/arch/parisc/include/asm/compat.h
+index 94710cf..e0be05f 100644
+--- a/arch/parisc/include/asm/compat.h
++++ b/arch/parisc/include/asm/compat.h
+@@ -134,6 +134,8 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
  
--EXPORT_SYMBOL(dma_alloc_coherent);
--
--void dma_free_coherent(struct device *hwdev, size_t size, void *vaddr, dma_addr_t dma_handle)
-+static void frv_dma_free(struct device *hwdev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
- 	consistent_free(vaddr);
- }
- 
--EXPORT_SYMBOL(dma_free_coherent);
--
--dma_addr_t dma_map_single(struct device *dev, void *ptr, size_t size,
--			  enum dma_data_direction direction)
--{
--	BUG_ON(direction = DMA_NONE);
--
--	frv_cache_wback_inv((unsigned long) ptr, (unsigned long) ptr + size);
--
--	return virt_to_bus(ptr);
--}
--
--EXPORT_SYMBOL(dma_map_single);
--
--int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
--	       enum dma_data_direction direction)
-+static int frv_dma_map_sg(struct device *dev, struct scatterlist *sglist,
-+		int nents, enum dma_data_direction direction,
-+		struct dma_attrs *attrs)
- {
- 	unsigned long dampr2;
- 	void *vaddr;
-@@ -79,14 +67,48 @@ int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	return nents;
- }
- 
--EXPORT_SYMBOL(dma_map_sg);
--
--dma_addr_t dma_map_page(struct device *dev, struct page *page, unsigned long offset,
--			size_t size, enum dma_data_direction direction)
-+static dma_addr_t frv_dma_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t size,
-+		enum dma_data_direction direction, struct dma_attrs *attrs)
- {
--	BUG_ON(direction = DMA_NONE);
- 	flush_dcache_page(page);
- 	return (dma_addr_t) page_to_phys(page) + offset;
- }
- 
--EXPORT_SYMBOL(dma_map_page);
-+static void frv_dma_sync_single_for_device(struct device *dev,
-+		dma_addr_t dma_handle, size_t size,
-+		enum dma_data_direction direction)
-+{
-+	flush_write_buffers();
-+}
++#define HAVE_ARCH_COMPAT_SIGINFO_T
 +
-+static void frv_dma_sync_sg_for_device(struct device *dev,
-+		struct scatterlist *sg, int nelems,
-+		enum dma_data_direction direction)
-+{
-+	flush_write_buffers();
-+}
+ typedef struct compat_siginfo {
+ 	int si_signo;
+ 	int si_errno;
+diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
+index 4f2df58..75b25ff 100644
+--- a/arch/powerpc/include/asm/compat.h
++++ b/arch/powerpc/include/asm/compat.h
+@@ -124,6 +124,7 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
+ 
++#define HAVE_ARCH_COMPAT_SIGINFO_T
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
+index d350ed9..ac73ac7 100644
+--- a/arch/s390/include/asm/compat.h
++++ b/arch/s390/include/asm/compat.h
+@@ -192,6 +192,8 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
+ 
++#define HAVE_ARCH_COMPAT_SIGINFO_T
 +
+ typedef struct compat_siginfo {
+ 	int	si_signo;
+ 	int	si_errno;
+diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
+index 830502fe..0c80f59 100644
+--- a/arch/sparc/include/asm/compat.h
++++ b/arch/sparc/include/asm/compat.h
+@@ -153,6 +153,7 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
+ 
++#define HAVE_ARCH_COMPAT_SIGINFO_T
+ #define SI_PAD_SIZE32	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/tile/include/asm/compat.h b/arch/tile/include/asm/compat.h
+index c14e36f..f9bba8d 100644
+--- a/arch/tile/include/asm/compat.h
++++ b/arch/tile/include/asm/compat.h
+@@ -115,6 +115,7 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
+ 
++#define HAVE_ARCH_COMPAT_SIGINFO_T
+ #define COMPAT_SI_PAD_SIZE	(128/sizeof(int) - 3)
+ 
+ typedef struct compat_siginfo {
+diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
+index acdee09..69176b4 100644
+--- a/arch/x86/include/asm/compat.h
++++ b/arch/x86/include/asm/compat.h
+@@ -130,6 +130,8 @@ typedef union compat_sigval {
+ 	compat_uptr_t	sival_ptr;
+ } compat_sigval_t;
+ 
++#define HAVE_ARCH_COMPAT_SIGINFO_T
 +
-+static int frv_dma_supported(struct device *dev, u64 mask)
-+{
-+        /*
-+         * we fall back to GFP_DMA when the mask isn't all 1s,
-+         * so we can't guarantee allocations that must be
-+         * within a tighter range than GFP_DMA..
-+         */
-+        if (mask < 0x00ffffff)
-+                return 0;
-+	return 1;
-+}
+ typedef struct compat_siginfo {
+ 	int si_signo;
+ 	int si_errno;
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index a76c917..e51574c 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -196,7 +196,71 @@ struct compat_rusage {
+ extern int put_compat_rusage(const struct rusage *,
+ 			     struct compat_rusage __user *);
+ 
+-struct compat_siginfo;
++#ifndef HAVE_ARCH_COMPAT_SIGINFO_T
++typedef struct compat_siginfo {
++	int si_signo;
++	int si_errno;
++	int si_code;
 +
-+struct dma_map_ops frv_dma_ops = {
-+	.alloc			= frv_dma_alloc,
-+	.free			= frv_dma_free,
-+	.map_page		= frv_dma_map_page,
-+	.map_sg			= frv_dma_map_sg,
-+	.sync_single_for_device	= frv_dma_sync_single_for_device,
-+	.sync_sg_for_device	= frv_dma_sync_sg_for_device,
-+	.dma_supported		= frv_dma_supported,
-+};
-+EXPORT_SYMBOL(frv_dma_ops);
++	union {
++		int _pad[128 / sizeof(int) - 3];
++
++		/* kill() */
++		struct {
++			compat_pid_t _pid;	/* sender's pid */
++			compat_uid_t _uid;	/* sender's uid */
++		} _kill;
++
++		/* POSIX.1b timers */
++		struct {
++			compat_timer_t _tid;	/* timer id */
++			int _overrun;		/* overrun count */
++			compat_sigval_t _sigval;	/* same as below */
++		} _timer;
++
++		/* POSIX.1b signals */
++		struct {
++			compat_pid_t _pid;	/* sender's pid */
++			compat_uid_t _uid;	/* sender's uid */
++			compat_sigval_t _sigval;
++		} _rt;
++
++		/* SIGCHLD */
++		struct {
++			compat_pid_t _pid;	/* which child */
++			compat_uid_t _uid;	/* sender's uid */
++			int _status;		/* exit code */
++			compat_clock_t _utime;
++			compat_clock_t _stime;
++		} _sigchld;
++
++		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
++		struct {
++			compat_uptr_t _addr;	/* faulting insn/memory ref. */
++#ifdef __ARCH_SI_TRAPNO
++			int _trapno;	/* TRAP # which caused the signal */
++#endif
++			short _addr_lsb; /* LSB of the reported address */
++			struct {
++				compat_uptr_t _lower;
++				compat_uptr_t _upper;
++			} _addr_bnd;
++		} _sigfault;
++
++		/* SIGPOLL */
++		struct {
++			compat_long_t _band; /* POLL_IN, POLL_OUT, POLL_MSG */
++			int _fd;
++		} _sigpoll;
++
++		struct {
++			compat_uptr_t _call_addr; /* calling insn */
++			int _syscall;	/* triggering system call number */
++			compat_uint_t _arch;	/* AUDIT_ARCH_* of syscall */
++		} _sigsys;
++	} _sifields;
++} compat_siginfo_t;
++#endif
+ 
+ extern asmlinkage long compat_sys_waitid(int, compat_pid_t,
+ 		struct compat_siginfo __user *, int,
 -- 
-1.9.1
+2.6.2
 
