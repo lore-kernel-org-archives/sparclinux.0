@@ -1,30 +1,38 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Fri, 06 Nov 2015 00:43:52 +0000
+Date: Fri, 06 Nov 2015 00:56:19 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <CA+55aFwvFvsZuiURSfKuP85tcQgNUwj+bXdL9smZgMV8c++1EQ@mail.gmail.com>
+Message-Id: <CA+55aFz54eqrSy0TM3JNLXzyHO-DjsTHBLTWY1HTeZSyMLf73A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20151105.163959.1438115257720770769.davem@davemloft.net>
-In-Reply-To: <20151105.163959.1438115257720770769.davem@davemloft.net>
+	<CA+55aFwvFvsZuiURSfKuP85tcQgNUwj+bXdL9smZgMV8c++1EQ@mail.gmail.com>
+In-Reply-To: <CA+55aFwvFvsZuiURSfKuP85tcQgNUwj+bXdL9smZgMV8c++1EQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, Nov 5, 2015 at 1:39 PM, David Miller <davem@davemloft.net> wrote:
+On Thu, Nov 5, 2015 at 4:43 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> 5) Fix iommu-common code so it doesn't emit rediculous warnings
->    on some architectures, particularly ARM.
+> Not that this *matters*, but it's a bit odd to have to cast constants
+> to perfectly regular C types.
 
-Heh. So looking at that patch, I can't but help to react that this:
+Looking around with "git grep", there's a few more of these.
 
-  #define IOMMU_ERROR_CODE       (~(unsigned long) 0)
+ - btrfs seems to like "(unsigned long)-1"
 
-is still pretty ridiculous.  Maybe just (-1ul), or for those people
-who don't understand C unsigned long arithmetic and think that a
-negative unsigned long looks odd, (~0ul)?
+   There's a few other users of that too, including more sparc uses.
 
-Not that this *matters*, but it's a bit odd to have to cast constants
-to perfectly regular C types.
+ - scsi/qla seems to like "(unsigned long)<hexnumber>"
 
-                    Linus
+ - fmdrv_common.h seems to like "((unsigned long)1<<x)" for bitmaps
+
+along with a smattering of random noise all over of "(unsigned long)
+n" where 'n' is some integer.
+
+Apparently people aren't as aware of the normal "ul" postfix syntax as
+I would have expected. That said, it's a hundred-odd cases in all of
+the kernel, so it's still fairly rare.
+
+                 Linus
