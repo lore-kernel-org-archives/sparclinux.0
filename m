@@ -1,7 +1,7 @@
 From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Date: Thu, 05 Nov 2015 21:54:03 +0000
+Date: Fri, 06 Nov 2015 16:13:45 +0000
 Subject: Re: [PATCH 1/1 v4] drivers/nvme: default to 4k device page size
-Message-Id: <20151105215403.GA18259@linux.vnet.ibm.com>
+Message-Id: <20151106161345.GB18259@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20151027.175443.140992924519172506.davem@davemloft.net>
  <20151028135922.GA27909@localhost.localdomain>
@@ -29,7 +29,9 @@ On 05.11.2015 [11:58:39 -0800], Christoph Hellwig wrote:
 > for different iommus vs direct mapping for very little gain.  There's a
 > reason why we never bothered for RDMA either.
 
-Fair enough :) Thanks for all your reviews and comments.
+FWIW, whose tree should this go through? The bug only appears on Power,
+afaik, but the patch is now just an NVMe change.
 
--Nish
+Thanks,
+Nish
 
