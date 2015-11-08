@@ -1,87 +1,45 @@
-From: Amanieu d'Antras <amanieu@gmail.com>
-Date: Thu, 05 Nov 2015 00:50:19 +0000
-Subject: [PATCH v2 00/20] Fix handling of compat_siginfo_t
-Message-Id: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Sun, 08 Nov 2015 05:09:27 +0000
+Subject: Re: [PATCH v2 00/20] Fix handling of compat_siginfo_t
+Message-Id: <CALCETrWKK_REdX7TJO8X7jC=8k=YdgJH_txXpC4Pdzn-tukg5A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
+In-Reply-To: <1446684640-4112-1-git-send-email-amanieu@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Oleg Nesterov <oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Amanieu d'Antras <amanieu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Amanieu d'Antras <amanieu@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Oleg Nesterov <oleg@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, sparclinux@vger.kernel.org, Linux FS Devel <linux-fsdevel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, Kenton Varda <kenton@sandstorm.io>
 
-The current handling of compat_siginfo_t is a mess: each architecture has its
-own implementation, all of which are incorrect in different ways. This patch
-series replaces all of the arch-specific versions with a single generic one that
-is guaranteed to produce the same results as a 32-bit kernel.
+On Wed, Nov 4, 2015 at 4:50 PM, Amanieu d'Antras <amanieu@gmail.com> wrote:
+> One issue that isn't resolved in this series is sending signals between a 32-bit
+> process and 64-bit process. Sending a si_int will work correctly, but a si_ptr
+> value will likely get corrupted due to the different layouts of the 32-bit and
+> 64-bit siginfo_t structures.
 
-Most architectures are able to use the generic compat_siginfo_t, except x86 and
-MIPS. MIPS uses a slightly different compat_siginfo_t structure for ABI reasons
-but can still use the generic copy_siginfo_{to,from}_user32. x86 can't use the
-generic versions because it needs special handling for __SI_CHLD for x32 tasks.
+This is so screwed up it's not even funny.
 
-One issue that isn't resolved in this series is sending signals between a 32-bit
-process and 64-bit process. Sending a si_int will work correctly, but a si_ptr
-value will likely get corrupted due to the different layouts of the 32-bit and
-64-bit siginfo_t structures.
+A 64-bit big-endian compat calls rt_sigqueueinfo.  It passes in (among
+other things) a sigval_t.  The kernel can choose to interpret it as a
+pointer (call it p) or an integer (call it i).  Then (unsigned long)p
+= (i<<32) | [something].  If the number was an integer to begin with
+*and* user code zeroed out the mess first, then [something] will be 0.
+Regardless, p != i unless they're both zero.
 
-signalfd_copyinfo was also modified to properly generate data for compat tasks.
-In particular the ssi_ptr and ssi_data members need to be sign-extended to 64
-bits rather than zero-extended, since that is the behavior in 32-bit kernels.
+If the result gets delivered to a signalfd, then it's plausible that
+everything could work.  If it gets delivered to a 64-bit siginfo, then
+all is well because it's in exactly the same screwed up state it was
+in when the signal gets sent.
 
-This series has been tested on x86_64 and arm64.
+If, however, it's delivered to a compat task, wtf is the kernel
+supposed to do?  We're effectively supposed to convert a 64-bit
+sigval_t to a 32-bit sigval_t.  On a little-endian architecture, we
+can fudge it because it doesn't really matter whether we consider the
+pointer or the int to be authoritative.  I think that, on big-endian,
+we're screwed.
 
-Changes since v1:
-- Properly copy padding bytes and avoid leaking uninitialized data to userspace
-- Fixed compile errors on mips and powerpc
-- Fixed some compiler warnings
-- Fixed some formatting issues
+BTW, x86 has its own set of screwups here.  Somehow cr2 and error_code
+ended up as part of ucontext instead of siginfo, which makes
+absolutely no sense to me and bloats task_struct.
 
-Amanieu d'Antras (20):
-  compat: Add generic compat_siginfo_t
-  compat: Add generic copy_siginfo_{to,from}_user32
-  x86: Update compat_siginfo_t to be closer to the generic version
-  x86: Rewrite copy_siginfo_{to,from}_user32
-  mips: Clean up compat_siginfo_t
-  mips: Use generic copy_siginfo_{to,from}_user32
-  arm64: Use generic compat_siginfo_t
-  arm64: Use generic copy_siginfo_{to,from}_user32
-  parisc: Use generic compat_siginfo_t
-  parsic: Use generic copy_siginfo_{to,from}_user32
-  s390: Use generic compat_siginfo_t
-  s390: Use generic copy_siginfo_{to,from}_user32
-  powerpc: Use generic compat_siginfo_t
-  powerpc: Use generic copy_siginfo_{to,from}_user32
-  tile: Use generic compat_siginfo_t
-  tile: Use generic copy_siginfo_{to,from}_user32
-  sparc: Use generic compat_siginfo_t
-  sparc: Use generic copy_siginfo_{to,from}_user32
-  signalfd: Fix some issues in signalfd_copyinfo
-  signal: Remove unnecessary zero-initialization of siginfo_t
-
- arch/arm64/include/asm/compat.h    |  59 --------
- arch/arm64/kernel/signal32.c       |  85 -----------
- arch/mips/include/asm/compat.h     |  63 ++++----
- arch/mips/kernel/signal32.c        |  62 --------
- arch/parisc/include/asm/compat.h   |  52 -------
- arch/parisc/kernel/signal32.c      | 102 -------------
- arch/powerpc/include/asm/compat.h  |  60 --------
- arch/powerpc/kernel/signal_32.c    |  72 +---------
- arch/s390/include/asm/compat.h     |  51 -------
- arch/s390/kernel/compat_signal.c   | 102 -------------
- arch/sparc/include/asm/compat.h    |  54 -------
- arch/sparc/kernel/signal32.c       |  69 ---------
- arch/tile/include/asm/compat.h     |  57 --------
- arch/tile/kernel/compat_signal.c   |  75 ----------
- arch/x86/include/asm/compat.h      |  39 +++--
- arch/x86/kernel/signal_compat.c    | 285 ++++++++++++++++++++++++++++---------
- fs/signalfd.c                      |  58 +++++---
- include/linux/compat.h             |  66 ++++++++-
- include/uapi/asm-generic/siginfo.h |   1 +
- kernel/compat.c                    | 224 +++++++++++++++++++++++++++++
- kernel/ptrace.c                    |   1 -
- kernel/signal.c                    |  16 ++-
- 22 files changed, 615 insertions(+), 1038 deletions(-)
-
--- 
-2.6.2
-
+--Andy
