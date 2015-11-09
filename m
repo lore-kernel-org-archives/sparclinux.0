@@ -1,482 +1,441 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Date: Fri, 27 Nov 2015 12:33:08 +0000
-Subject: [linux-review:Petr-Mladek/Cleaning-printk-stuff-in-NMI-context/20151127-191620] bafdcb831ce105cb7ff2
-Message-Id: <56584d84.4StRnjWkBzJ331mB%fengguang.wu@intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 09 Nov 2015 18:17:17 +0000
+Subject: [PATCH 12/16] metag: convert to dma_map_ops
+Message-Id: <1447093041-21832-13-git-send-email-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1447093041-21832-1-git-send-email-hch@lst.de>
+In-Reply-To: <1447093041-21832-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Steven Miao <realmz6@gmail.com>, Ley Foon Tan <lftan@altera.com>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Chris Metcalf <cmetcalf@ezchip.com>, linux-snps-arc@lists.infraded.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org
 
-https://github.com/0day-ci/linux  Petr-Mladek/Cleaning-printk-stuff-in-NMI-context/20151127-191620
-bafdcb831ce105cb7ff2b9e11acfcf3764da11b9  printk/nmi: Increase the size of the temporary buffer
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/metag/Kconfig                   |   1 +
+ arch/metag/include/asm/dma-mapping.h | 179 +----------------------------------
+ arch/metag/kernel/dma.c              | 146 +++++++++++++++++++++-------
+ 3 files changed, 117 insertions(+), 209 deletions(-)
 
-include/asm-generic/percpu.h:111:2: error: implicit declaration of function 'preempt_disable' [-Werror=implicit-function-declaration]
-include/asm-generic/percpu.h:113:2: error: implicit declaration of function 'preempt_enable' [-Werror=implicit-function-declaration]
-include/asm-generic/percpu.h:305:31: note: in expansion of macro 'this_cpu_generic_read'
-include/linux/percpu-defs.h:101:9: note: in expansion of macro '__PCPU_ATTRS'
-include/linux/percpu-defs.h:113:38: error: expected ')' before string constant
-include/linux/percpu-defs.h:223:26: error: implicit declaration of function 'per_cpu_offset' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:223:2: note: in expansion of macro 'SHIFT_PERCPU_PTR'
-include/linux/percpu-defs.h:229:2: error: implicit declaration of function 'arch_raw_cpu_ptr' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:239:27: note: in expansion of macro 'raw_cpu_ptr'
-include/linux/percpu-defs.h:252:27: note: in expansion of macro 'raw_cpu_ptr'
-include/linux/percpu-defs.h:304:1: error: called object is not a function or function pointer
-include/linux/percpu-defs.h:311:23: note: in expansion of macro 'this_cpu_read_8'
-include/linux/percpu-defs.h:49:34: error: 'PER_CPU_BASE_SECTION' undeclared here (not in a function)
-include/linux/percpu-defs.h:494:29: note: in expansion of macro '__pcpu_size_call_return'
-include/linux/percpu-defs.h:494:53: error: implicit declaration of function 'this_cpu_read_1' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:494:53: error: implicit declaration of function 'this_cpu_read_2' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:494:53: error: implicit declaration of function 'this_cpu_read_4' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:494:53: error: implicit declaration of function 'this_cpu_read_8' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:495:51: error: implicit declaration of function 'this_cpu_write_1' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:495:51: error: implicit declaration of function 'this_cpu_write_2' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:495:51: error: implicit declaration of function 'this_cpu_write_4' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:495:51: error: implicit declaration of function 'this_cpu_write_8' [-Werror=implicit-function-declaration]
-include/linux/percpu-defs.h:49:59: error: expected identifier or '(' before ')' token
-kernel/printk/nmi.c:106:9: error: unknown type name 'raw_spinlock_t'
-kernel/printk/nmi.c:107:3: error: implicit declaration of function '__RAW_SPIN_LOCK_INITIALIZER' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:107:3: error: initializer element is not constant
-kernel/printk/nmi.c:113:2: error: unknown type name 'raw_spinlock_t'
-kernel/printk/nmi.c:113:9: error: unknown type name 'raw_spinlock_t'
-kernel/printk/nmi.c:114:3: error: implicit declaration of function '__RAW_SPIN_LOCK_INITIALIZER'
-kernel/printk/nmi.c:114:3: error: implicit declaration of function '__RAW_SPIN_LOCK_INITIALIZER' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:114:3: error: initializer element is not constant
-kernel/printk/nmi.c:114: error: implicit declaration of function '__RAW_SPIN_LOCK_INITIALIZER'
-kernel/printk/nmi.c:118:2: error: implicit declaration of function 'raw_spin_lock' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:125:2: error: implicit declaration of function 'raw_spin_lock'
-kernel/printk/nmi.c:125:2: error: implicit declaration of function 'raw_spin_lock' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:125: error: implicit declaration of function 'raw_spin_lock'
-kernel/printk/nmi.c:163:2: error: implicit declaration of function 'raw_spin_unlock' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:170:2: error: implicit declaration of function 'raw_spin_unlock'
-kernel/printk/nmi.c:170:2: error: implicit declaration of function 'raw_spin_unlock' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:170: error: implicit declaration of function 'raw_spin_unlock'
-kernel/printk/nmi.c:178:23: note: in expansion of macro 'per_cpu'
-kernel/printk/nmi.c:178:3: error: implicit declaration of function 'per_cpu_offset' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:185:23: note: in expansion of macro 'per_cpu'
-kernel/printk/nmi.c:194:17: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/nmi.c:194:2: note: in expansion of macro 'this_cpu_write'
-kernel/printk/nmi.c:212:18: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/nmi.c:212:3: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/nmi.c:212:3: note: in expansion of macro 'this_cpu_write'
-kernel/printk/nmi.c:212:51: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/nmi.c:38:1: note: in expansion of macro 'DEFINE_PER_CPU'
-kernel/printk/nmi.c:43:24: error: 'PAGE_SIZE' undeclared here (not in a function)
-kernel/printk/nmi.c:45:27: error: 'PAGE_SIZE' undeclared here (not in a function)
-kernel/printk/nmi.c:45:28: error: 'PAGE_SIZE' undeclared here (not in a function)
-kernel/printk/nmi.c:45: error: 'PAGE_SIZE' undeclared here (not in a function)
-kernel/printk/nmi.c:56:26: note: in expansion of macro 'this_cpu_ptr'
-kernel/printk/nmi.c:56:40: error: 'nmi_print_seq' undeclared (first use in this function)
-kernel/printk/nmi.c:56:9: error: implicit declaration of function 'arch_raw_cpu_ptr' [-Werror=implicit-function-declaration]
-kernel/printk/nmi.c:58:26: error: 'nmi_print_seq' undeclared (first use in this function)
-kernel/printk/nmi.c:58:26: note: in expansion of macro 'this_cpu_ptr'
-kernel/printk/nmi.c:58:40: error: 'nmi_print_seq' undeclared (first use in this function)
-kernel/printk/nmi.c:58:71: error: 'nmi_print_seq' undeclared (first use in this function)
-kernel/printk/nmi.c:58:85: error: 'nmi_print_seq' undeclared (first use in this function)
-kernel/printk/printk.h:31:1: note: in expansion of macro 'DECLARE_PER_CPU'
-kernel/printk/printk.h:34:19: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/printk.h:34:23: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/printk.h:34:35: error: called object '(({...}))' is not a function
-kernel/printk/printk.h:34:475: error: called object '(({...}))' is not a function
-kernel/printk/printk.h:34:9: error: 'printk_func' undeclared (first use in this function)
-kernel/printk/printk.h:34:9: note: in expansion of macro 'this_cpu_read'
-warning: (MN10300) selects HAVE_NMI_WATCHDOG which has unmet direct dependencies (HAVE_NMI)
+diff --git a/arch/metag/Kconfig b/arch/metag/Kconfig
+index 0b389a8..36af3c0 100644
+--- a/arch/metag/Kconfig
++++ b/arch/metag/Kconfig
+@@ -29,6 +29,7 @@ config METAG
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select SPARSE_IRQ
++	select HAVE_DMA_ATTRS
+ 
+ config STACKTRACE_SUPPORT
+ 	def_bool y
+diff --git a/arch/metag/include/asm/dma-mapping.h b/arch/metag/include/asm/dma-mapping.h
+index eb5cdec..768f2e3 100644
+--- a/arch/metag/include/asm/dma-mapping.h
++++ b/arch/metag/include/asm/dma-mapping.h
+@@ -1,178 +1,14 @@
+ #ifndef _ASM_METAG_DMA_MAPPING_H
+ #define _ASM_METAG_DMA_MAPPING_H
+ 
+-#include <linux/mm.h>
++extern struct dma_map_ops metag_dma_ops;
+ 
+-#include <asm/cache.h>
+-#include <asm/io.h>
+-#include <linux/scatterlist.h>
+-#include <asm/bug.h>
+-
+-#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+-#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+-
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			 dma_addr_t *dma_handle, gfp_t flag);
+-
+-void dma_free_coherent(struct device *dev, size_t size,
+-		       void *vaddr, dma_addr_t dma_handle);
+-
+-void dma_sync_for_device(void *vaddr, size_t size, int dma_direction);
+-void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction);
+-
+-int dma_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
+-		      void *cpu_addr, dma_addr_t dma_addr, size_t size);
+-
+-int dma_mmap_writecombine(struct device *dev, struct vm_area_struct *vma,
+-			  void *cpu_addr, dma_addr_t dma_addr, size_t size);
+-
+-static inline dma_addr_t
+-dma_map_single(struct device *dev, void *ptr, size_t size,
+-	       enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-	WARN_ON(size = 0);
+-	dma_sync_for_device(ptr, size, direction);
+-	return virt_to_phys(ptr);
+-}
+-
+-static inline void
+-dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+-		 enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-	dma_sync_for_cpu(phys_to_virt(dma_addr), size, direction);
+-}
+-
+-static inline int
+-dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
+-	   enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	BUG_ON(!valid_dma_direction(direction));
+-	WARN_ON(nents = 0 || sglist[0].length = 0);
+-
+-	for_each_sg(sglist, sg, nents, i) {
+-		BUG_ON(!sg_page(sg));
+-
+-		sg->dma_address = sg_phys(sg);
+-		dma_sync_for_device(sg_virt(sg), sg->length, direction);
+-	}
+-
+-	return nents;
+-}
+-
+-static inline dma_addr_t
+-dma_map_page(struct device *dev, struct page *page, unsigned long offset,
+-	     size_t size, enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-	dma_sync_for_device((void *)(page_to_phys(page) + offset), size,
+-			    direction);
+-	return page_to_phys(page) + offset;
+-}
+-
+-static inline void
+-dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
+-	       enum dma_data_direction direction)
++static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-	dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
++	return &metag_dma_ops;
+ }
+ 
+-
+-static inline void
+-dma_unmap_sg(struct device *dev, struct scatterlist *sglist, int nhwentries,
+-	     enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	BUG_ON(!valid_dma_direction(direction));
+-	WARN_ON(nhwentries = 0 || sglist[0].length = 0);
+-
+-	for_each_sg(sglist, sg, nhwentries, i) {
+-		BUG_ON(!sg_page(sg));
+-
+-		sg->dma_address = sg_phys(sg);
+-		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+-	}
+-}
+-
+-static inline void
+-dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle, size_t size,
+-			enum dma_data_direction direction)
+-{
+-	dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
+-}
+-
+-static inline void
+-dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle,
+-			   size_t size, enum dma_data_direction direction)
+-{
+-	dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
+-}
+-
+-static inline void
+-dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
+-			      unsigned long offset, size_t size,
+-			      enum dma_data_direction direction)
+-{
+-	dma_sync_for_cpu(phys_to_virt(dma_handle)+offset, size,
+-			 direction);
+-}
+-
+-static inline void
+-dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
+-				 unsigned long offset, size_t size,
+-				 enum dma_data_direction direction)
+-{
+-	dma_sync_for_device(phys_to_virt(dma_handle)+offset, size,
+-			    direction);
+-}
+-
+-static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
+-		    enum dma_data_direction direction)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-
+-	for_each_sg(sglist, sg, nelems, i)
+-		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+-}
+-
+-static inline void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
+-		       int nelems, enum dma_data_direction direction)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-
+-	for_each_sg(sglist, sg, nelems, i)
+-		dma_sync_for_device(sg_virt(sg), sg->length, direction);
+-}
+-
+-static inline int
+-dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return 0;
+-}
+-
+-#define dma_supported(dev, mask)        (1)
+-
+-static inline int
+-dma_set_mask(struct device *dev, u64 mask)
+-{
+-	if (!dev->dma_mask || !dma_supported(dev, mask))
+-		return -EIO;
+-
+-	*dev->dma_mask = mask;
+-
+-	return 0;
+-}
++#include <asm-generic/dma-mapping-common.h>
+ 
+ /*
+  * dma_alloc_noncoherent() returns non-cacheable memory, so there's no need to
+@@ -184,11 +20,4 @@ dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ {
+ }
+ 
+-/* drivers/base/dma-mapping.c */
+-extern int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+-				  void *cpu_addr, dma_addr_t dma_addr,
+-				  size_t size);
+-
+-#define dma_get_sgtable(d, t, v, h, s) dma_common_get_sgtable(d, t, v, h, s)
+-
+ #endif
+diff --git a/arch/metag/kernel/dma.c b/arch/metag/kernel/dma.c
+index c700d62..e12368d 100644
+--- a/arch/metag/kernel/dma.c
++++ b/arch/metag/kernel/dma.c
+@@ -171,8 +171,8 @@ out:
+  * Allocate DMA-coherent memory space and return both the kernel remapped
+  * virtual and bus address for that space.
+  */
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			 dma_addr_t *handle, gfp_t gfp)
++static void *metag_dma_alloc(struct device *dev, size_t size,
++		dma_addr_t *handle, gfp_t gfp, struct dma_attrs *attrs)
+ {
+ 	struct page *page;
+ 	struct metag_vm_region *c;
+@@ -263,13 +263,12 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
+ no_page:
+ 	return NULL;
+ }
+-EXPORT_SYMBOL(dma_alloc_coherent);
+ 
+ /*
+  * free a page as defined by the above mapping.
+  */
+-void dma_free_coherent(struct device *dev, size_t size,
+-		       void *vaddr, dma_addr_t dma_handle)
++static void metag_dma_free(struct device *dev, size_t size, void *vaddr,
++		dma_addr_t dma_handle, struct dma_attrs *attrs)
+ {
+ 	struct metag_vm_region *c;
+ 	unsigned long flags, addr;
+@@ -329,16 +328,19 @@ no_area:
+ 	       __func__, vaddr);
+ 	dump_stack();
+ }
+-EXPORT_SYMBOL(dma_free_coherent);
+ 
+-
+-static int dma_mmap(struct device *dev, struct vm_area_struct *vma,
+-		    void *cpu_addr, dma_addr_t dma_addr, size_t size)
++static int metag_dma_mmap(struct device *dev, struct vm_area_struct *vma,
++		void *cpu_addr, dma_addr_t dma_addr, size_t size,
++		struct dma_attrs *attrs)
+ {
+-	int ret = -ENXIO;
+-
+ 	unsigned long flags, user_size, kern_size;
+ 	struct metag_vm_region *c;
++	int ret = -ENXIO;
++
++	if (dma_get_attr(DMA_ATTR_WRITE_COMBINE, attrs))
++		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
++	else
++		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 
+ 	user_size = (vma->vm_end - vma->vm_start) >> PAGE_SHIFT;
+ 
+@@ -364,25 +366,6 @@ static int dma_mmap(struct device *dev, struct vm_area_struct *vma,
+ 	return ret;
+ }
+ 
+-int dma_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
+-		      void *cpu_addr, dma_addr_t dma_addr, size_t size)
+-{
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	return dma_mmap(dev, vma, cpu_addr, dma_addr, size);
+-}
+-EXPORT_SYMBOL(dma_mmap_coherent);
+-
+-int dma_mmap_writecombine(struct device *dev, struct vm_area_struct *vma,
+-			  void *cpu_addr, dma_addr_t dma_addr, size_t size)
+-{
+-	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+-	return dma_mmap(dev, vma, cpu_addr, dma_addr, size);
+-}
+-EXPORT_SYMBOL(dma_mmap_writecombine);
+-
+-
+-
+-
+ /*
+  * Initialise the consistent memory allocation.
+  */
+@@ -423,7 +406,7 @@ early_initcall(dma_alloc_init);
+ /*
+  * make an area consistent to devices.
+  */
+-void dma_sync_for_device(void *vaddr, size_t size, int dma_direction)
++static void dma_sync_for_device(void *vaddr, size_t size, int dma_direction)
+ {
+ 	/*
+ 	 * Ensure any writes get through the write combiner. This is necessary
+@@ -465,12 +448,11 @@ void dma_sync_for_device(void *vaddr, size_t size, int dma_direction)
+ 
+ 	wmb();
+ }
+-EXPORT_SYMBOL(dma_sync_for_device);
+ 
+ /*
+  * make an area consistent to the core.
+  */
+-void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction)
++static void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction)
+ {
+ 	/*
+ 	 * Hardware L2 cache prefetch doesn't occur across 4K physical
+@@ -497,4 +479,100 @@ void dma_sync_for_cpu(void *vaddr, size_t size, int dma_direction)
+ 
+ 	rmb();
+ }
+-EXPORT_SYMBOL(dma_sync_for_cpu);
++
++static dma_addr_t metag_dma_map_page(struct device *dev, struct page *page,
++		unsigned long offset, size_t size,
++		enum dma_data_direction direction, struct dma_attrs *attrs)
++{
++	dma_sync_for_device((void *)(page_to_phys(page) + offset), size,
++			    direction);
++	return page_to_phys(page) + offset;
++}
++
++static void metag_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
++		size_t size, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
++{
++	dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
++}
++
++static int metag_dma_map_sg(struct device *dev, struct scatterlist *sglist,
++		int nents, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
++{
++	struct scatterlist *sg;
++	int i;
++
++	for_each_sg(sglist, sg, nents, i) {
++		BUG_ON(!sg_page(sg));
++
++		sg->dma_address = sg_phys(sg);
++		dma_sync_for_device(sg_virt(sg), sg->length, direction);
++	}
++
++	return nents;
++}
++
++
++static void metag_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
++		int nhwentries, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
++{
++	struct scatterlist *sg;
++	int i;
++
++	for_each_sg(sglist, sg, nhwentries, i) {
++		BUG_ON(!sg_page(sg));
++
++		sg->dma_address = sg_phys(sg);
++		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
++	}
++}
++
++static void metag_dma_sync_single_for_cpu(struct device *dev,
++		dma_addr_t dma_handle, size_t size,
++		enum dma_data_direction direction)
++{
++	dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
++}
++
++static void metag_dma_sync_single_for_device(struct device *dev,
++		dma_addr_t dma_handle, size_t size,
++		enum dma_data_direction direction)
++{
++	dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
++}
++
++static void metag_dma_sync_sg_for_cpu(struct device *dev,
++		struct scatterlist *sglist, int nelems,
++		enum dma_data_direction direction)
++{
++	int i;
++	struct scatterlist *sg;
++
++	for_each_sg(sglist, sg, nelems, i)
++		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
++}
++
++static void metag_dma_sync_sg_for_device(struct device *dev,
++		struct scatterlist *sglist, int nelems,
++		enum dma_data_direction direction)
++{
++	int i;
++	struct scatterlist *sg;
++
++	for_each_sg(sglist, sg, nelems, i)
++		dma_sync_for_device(sg_virt(sg), sg->length, direction);
++}
++
++struct dma_map_ops metag_dma_ops = {
++	.alloc			= metag_dma_alloc,
++	.free			= metag_dma_free,
++	.map_page		= metag_dma_map_page,
++	.map_sg			= metag_dma_map_sg,
++	.sync_single_for_device	= metag_dma_sync_single_for_device,
++	.sync_single_for_cpu	= metag_dma_sync_single_for_cpu,
++	.sync_sg_for_cpu	= metag_dma_sync_sg_for_cpu,
++	.mmap			= metag_dma_mmap,
++};
++EXPORT_SYMBOL(metag_dma_ops);
+-- 
+1.9.1
 
-Error ids grouped by kconfigs:
-
-recent_errors
-├── avr32-atngw100_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   └── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-├── avr32-atstk1006_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   └── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-├── blackfin-BF526-EZBRD_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── blackfin-BF533-EZKIT_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── blackfin-BF561-EZKIT-SMP_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-arch_raw_cpu_ptr
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-per_cpu_offset
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── blackfin-TCM-BF537_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── cris-etrax-100lx_v2_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── i386-alldefconfig
-│   ├── include-asm-generic-percpu.h:error:implicit-declaration-of-function-preempt_disable
-│   ├── include-asm-generic-percpu.h:error:implicit-declaration-of-function-preempt_enable
-│   ├── include-asm-generic-percpu.h:note:in-expansion-of-macro-this_cpu_generic_read
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__pcpu_size_call_return
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-this_cpu_read_8
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   └── kernel-printk-printk.h:note:in-expansion-of-macro-this_cpu_read
-├── i386-randconfig-s1-201547
-│   ├── include-asm-generic-percpu.h:error:implicit-declaration-of-function-preempt_disable
-│   ├── include-asm-generic-percpu.h:error:implicit-declaration-of-function-preempt_enable
-│   ├── include-asm-generic-percpu.h:note:in-expansion-of-macro-this_cpu_generic_read
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__pcpu_size_call_return
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-this_cpu_read_8
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   └── kernel-printk-printk.h:note:in-expansion-of-macro-this_cpu_read
-├── mips-bmips_be_defconfig
-│   ├── include-linux-percpu-defs.h:error:called-object-is-not-a-function-or-function-pointer
-│   ├── include-linux-percpu-defs.h:error:expected-)-before-string-constant
-│   ├── include-linux-percpu-defs.h:error:expected-identifier-or-(-before-)-token
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-arch_raw_cpu_ptr
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-per_cpu_offset
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_8
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_8
-│   ├── include-linux-percpu-defs.h:error:PER_CPU_BASE_SECTION-undeclared-here-(not-in-a-function)
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__PCPU_ATTRS
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__pcpu_size_call_return
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-raw_cpu_ptr
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-SHIFT_PERCPU_PTR
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-DEFINE_PER_CPU
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-per_cpu
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_ptr
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_write
-│   ├── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-printk.h:note:in-expansion-of-macro-DECLARE_PER_CPU
-│   └── kernel-printk-printk.h:note:in-expansion-of-macro-this_cpu_read
-├── mips-fuloong2e_defconfig
-│   └── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-├── mips-jz4740
-│   └── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-├── mips-malta_kvm_defconfig
-│   ├── include-linux-percpu-defs.h:error:called-object-is-not-a-function-or-function-pointer
-│   ├── include-linux-percpu-defs.h:error:expected-)-before-string-constant
-│   ├── include-linux-percpu-defs.h:error:expected-identifier-or-(-before-)-token
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-arch_raw_cpu_ptr
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-per_cpu_offset
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_8
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_8
-│   ├── include-linux-percpu-defs.h:error:PER_CPU_BASE_SECTION-undeclared-here-(not-in-a-function)
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__PCPU_ATTRS
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-raw_cpu_ptr
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-SHIFT_PERCPU_PTR
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-DEFINE_PER_CPU
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-per_cpu
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_ptr
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_write
-│   ├── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-│   └── kernel-printk-printk.h:note:in-expansion-of-macro-DECLARE_PER_CPU
-├── mips-tb0226_defconfig
-│   ├── include-linux-percpu-defs.h:error:called-object-is-not-a-function-or-function-pointer
-│   ├── include-linux-percpu-defs.h:error:expected-)-before-string-constant
-│   ├── include-linux-percpu-defs.h:error:expected-identifier-or-(-before-)-token
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_read_8
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_1
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_2
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_4
-│   ├── include-linux-percpu-defs.h:error:implicit-declaration-of-function-this_cpu_write_8
-│   ├── include-linux-percpu-defs.h:error:PER_CPU_BASE_SECTION-undeclared-here-(not-in-a-function)
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__PCPU_ATTRS
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-__pcpu_size_call_return
-│   ├── include-linux-percpu-defs.h:note:in-expansion-of-macro-raw_cpu_ptr
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-DEFINE_PER_CPU
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-per_cpu
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_ptr
-│   ├── kernel-printk-nmi.c:note:in-expansion-of-macro-this_cpu_write
-│   ├── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-printk.h:note:in-expansion-of-macro-DECLARE_PER_CPU
-│   └── kernel-printk-printk.h:note:in-expansion-of-macro-this_cpu_read
-├── mips-txx9
-│   └── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-├── mn10300-asb2364_defconfig
-│   └── warning:(MN10300)-selects-HAVE_NMI_WATCHDOG-which-has-unmet-direct-dependencies-(HAVE_NMI)
-├── powerpc-defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-├── powerpc-kmp204x_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-├── powerpc-ppc64_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-├── sh-rsk7201_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── sh-rsk7269_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── sh-sh7785lcr_32bit_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── sh-titan_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   ├── kernel-printk-nmi.c:error:nmi_print_seq-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:PAGE_SIZE-undeclared-here-(not-in-a-function)
-│   ├── kernel-printk-nmi.c:error:printk_func-undeclared-(first-use-in-this-function)
-│   ├── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-│   ├── kernel-printk-printk.h:error:called-object-((-...-))-is-not-a-function
-│   └── kernel-printk-printk.h:error:printk_func-undeclared-(first-use-in-this-function)
-├── tile-defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-├── tile-tilegx_defconfig
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-│   ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-│   ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-│   └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-└── x86_64-randconfig-i0-201547
-    ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_lock
-    ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-__RAW_SPIN_LOCK_INITIALIZER
-    ├── kernel-printk-nmi.c:error:implicit-declaration-of-function-raw_spin_unlock
-    ├── kernel-printk-nmi.c:error:initializer-element-is-not-constant
-    └── kernel-printk-nmi.c:error:unknown-type-name-raw_spinlock_t
-
-elapsed time: 75m
-
-configs tested: 119
-
-i386                     randconfig-a0-201547
-blackfin                BF526-EZBRD_defconfig
-blackfin                BF533-EZKIT_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-blackfin                  TCM-BF537_defconfig
-cris                 etrax-100lx_v2_defconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-parisc                         b180_defconfig
-parisc                        c3000_defconfig
-parisc                              defconfig
-i386                             allmodconfig
-m32r                    mappi2.opsp_defconfig
-mips                       bmips_be_defconfig
-mips                         tb0226_defconfig
-sh                          rsk7201_defconfig
-tile                                defconfig
-x86_64               randconfig-x014-11241713
-x86_64               randconfig-x016-11241713
-x86_64               randconfig-x019-11241713
-x86_64               randconfig-x010-11241713
-x86_64               randconfig-x015-11241713
-x86_64               randconfig-x011-11241713
-x86_64               randconfig-x012-11241713
-x86_64               randconfig-x013-11241713
-x86_64               randconfig-x017-11241713
-x86_64               randconfig-x018-11241713
-i386                             alldefconfig
-i386                              allnoconfig
-i386                                defconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-i386                     randconfig-s0-201547
-i386                     randconfig-s1-201547
-x86_64                 randconfig-s0-11271939
-x86_64                 randconfig-s1-11271939
-x86_64                 randconfig-s2-11271939
-x86_64                           allmodconfig
-x86_64                 randconfig-s3-11271943
-x86_64                 randconfig-s4-11271943
-x86_64                 randconfig-s5-11271943
-avr32                      atngw100_defconfig
-avr32                     atstk1006_defconfig
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-um                           x86_64_defconfig
-i386                               tinyconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                                     txx9
-x86_64                   randconfig-i0-201547
-arm                         palmz72_defconfig
-arm                           sunxi_defconfig
-powerpc               mpc85xx_basic_defconfig
-xtensa                  nommu_kc705_defconfig
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-i386                   randconfig-i0-11270816
-i386                   randconfig-i1-11270816
-x86_64                 randconfig-b0-11271947
-sparc                               defconfig
-sparc64                           allnoconfig
-sparc64                             defconfig
-arm64                               defconfig
-mips                      malta_kvm_defconfig
-powerpc                     tqm8548_defconfig
-powerpc                      walnut_defconfig
-x86_64                                    lkp
-x86_64                                   rhel
-i386                     randconfig-n0-201547
-i386                   randconfig-h0-11271847
-i386                   randconfig-h1-11271847
-m32r                    mappi.nommu_defconfig
-parisc                           alldefconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-x86_64               randconfig-x007-11230704
-x86_64               randconfig-x001-11230704
-x86_64               randconfig-x006-11230704
-x86_64               randconfig-x008-11230704
-x86_64               randconfig-x003-11230704
-x86_64               randconfig-x002-11230704
-x86_64               randconfig-x005-11230704
-x86_64               randconfig-x000-11230704
-x86_64               randconfig-x009-11230704
-x86_64               randconfig-x004-11230704
-ia64                             alldefconfig
-ia64                              allnoconfig
-ia64                                defconfig
-i386                     randconfig-r0-201547
-i386                 randconfig-x003-11251907
-i386                 randconfig-x001-11251907
-i386                 randconfig-x005-11251907
-i386                 randconfig-x004-11251907
-i386                 randconfig-x002-11251907
-i386                 randconfig-x000-11251907
-i386                 randconfig-x007-11251907
-i386                 randconfig-x008-11251907
-i386                 randconfig-x006-11251907
-i386                 randconfig-x009-11251907
-
-Thanks,
-Fengguang
