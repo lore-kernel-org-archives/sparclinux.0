@@ -1,125 +1,404 @@
-From: Minchan Kim <minchan@kernel.org>
-Date: Wed, 04 Nov 2015 01:25:57 +0000
-Subject: [PATCH v2 03/13] arch: uapi: asm: mman.h: Let MADV_FREE have same value for all architectures
-Message-Id: <1446600367-7976-4-git-send-email-minchan@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 09 Nov 2015 18:17:12 +0000
+Subject: [PATCH 07/16] nios2: convert to dma_map_ops
+Message-Id: <1447093041-21832-8-git-send-email-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1446600367-7976-1-git-send-email-minchan@kernel.org>
-In-Reply-To: <1446600367-7976-1-git-send-email-minchan@kernel.org>
+References: <1447093041-21832-1-git-send-email-hch@lst.de>
+In-Reply-To: <1447093041-21832-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, linux-api@vger.kernel.org, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@suse.de>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jason Evans <je@fb.com>, Daniel Micay <danielmicay@gmail.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Shaohua Li <shli@kernel.org>, Michal Hocko <mhocko@suse.cz>, yalin.wang2010@gmail.com, Chen Gang <gang.chen.5i5j@gmail.com>, "rth@twiddle.net" <rth@twiddle.net>, "ink@jurassic.park.msu.ru" <ink@jurassic.park.msu.ru>, "mattst88@gmail.com" <mattst88@gmail.com>, Ralf Baechle <ralf@linux-mips.org>, "jejb@parisc-linux.org" <jejb@parisc-linux.org>, "deller@gmx.de" <deller@gmx.de>, "chris@zankel.net" <chris@zankel.net>, "jcmvbkbc@gmail.com" <jcmvbkbc@gmail.com>, Ar
+To: Andrew Morton <akpm@linux-foundation.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Steven Miao <realmz6@gmail.com>, Ley Foon Tan <lftan@altera.com>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Chris Metcalf <cmetcalf@ezchip.com>, linux-snps-arc@lists.infraded.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org
 
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-
-For uapi, need try to let all macros have same value, and MADV_FREE is
-added into main branch recently, so need redefine MADV_FREE for it.
-
-At present, '8' can be shared with all architectures, so redefine it to
-'8'.
-
-Cc: rth@twiddle.net <rth@twiddle.net>,
-Cc: ink@jurassic.park.msu.ru <ink@jurassic.park.msu.ru>
-Cc: mattst88@gmail.com <mattst88@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: jejb@parisc-linux.org <jejb@parisc-linux.org>
-Cc: deller@gmx.de <deller@gmx.de>
-Cc: chris@zankel.net <chris@zankel.net>
-Cc: jcmvbkbc@gmail.com <jcmvbkbc@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arch@vger.kernel.org
-Cc: linux-api@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: roland@kernel.org
-Cc: darrick.wong@oracle.com
-Cc: davem@davemloft.net
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/alpha/include/uapi/asm/mman.h     | 2 +-
- arch/mips/include/uapi/asm/mman.h      | 2 +-
- arch/parisc/include/uapi/asm/mman.h    | 2 +-
- arch/xtensa/include/uapi/asm/mman.h    | 2 +-
- include/uapi/asm-generic/mman-common.h | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ arch/nios2/Kconfig                   |   1 +
+ arch/nios2/include/asm/dma-mapping.h | 123 ++---------------------------
+ arch/nios2/mm/dma-mapping.c          | 147 +++++++++++++++++++----------------
+ 3 files changed, 85 insertions(+), 186 deletions(-)
 
-diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
-index 836fbd44f65b..0b8a5de7aee3 100644
---- a/arch/alpha/include/uapi/asm/mman.h
-+++ b/arch/alpha/include/uapi/asm/mman.h
-@@ -44,9 +44,9 @@
- #define MADV_WILLNEED	3		/* will need these pages */
- #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
- #define MADV_DONTNEED	6		/* don't need these pages */
--#define MADV_FREE	7		/* free pages only if memory pressure */
+diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
+index 4375554..4b2504d 100644
+--- a/arch/nios2/Kconfig
++++ b/arch/nios2/Kconfig
+@@ -16,6 +16,7 @@ config NIOS2
+ 	select SOC_BUS
+ 	select SPARSE_IRQ
+ 	select USB_ARCH_HAS_HCD if USB_SUPPORT
++	select HAVE_DMA_ATTRS
  
- /* common/generic parameters */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
-diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
-index 106e741aa7ee..d247f5457944 100644
---- a/arch/mips/include/uapi/asm/mman.h
-+++ b/arch/mips/include/uapi/asm/mman.h
-@@ -67,9 +67,9 @@
- #define MADV_SEQUENTIAL 2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
--#define MADV_FREE	5		/* free pages only if memory pressure */
+ config GENERIC_CSUM
+ 	def_bool y
+diff --git a/arch/nios2/include/asm/dma-mapping.h b/arch/nios2/include/asm/dma-mapping.h
+index b556723..bec8ac8 100644
+--- a/arch/nios2/include/asm/dma-mapping.h
++++ b/arch/nios2/include/asm/dma-mapping.h
+@@ -10,131 +10,20 @@
+ #ifndef _ASM_NIOS2_DMA_MAPPING_H
+ #define _ASM_NIOS2_DMA_MAPPING_H
  
- /* common parameters: try to keep these consistent across architectures */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
-diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
-index 6cb8db76fd4e..700d83fd9352 100644
---- a/arch/parisc/include/uapi/asm/mman.h
-+++ b/arch/parisc/include/uapi/asm/mman.h
-@@ -40,9 +40,9 @@
- #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
- #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
- #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
--#define MADV_FREE	8		/* free pages only if memory pressure */
+-#include <linux/scatterlist.h>
+-#include <linux/cache.h>
+-#include <asm/cacheflush.h>
++extern struct dma_map_ops nios2_dma_ops;
  
- /* common/generic parameters */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
-diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
-index 1b19f25bc567..77eaca434071 100644
---- a/arch/xtensa/include/uapi/asm/mman.h
-+++ b/arch/xtensa/include/uapi/asm/mman.h
-@@ -80,9 +80,9 @@
- #define MADV_SEQUENTIAL	2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
--#define MADV_FREE	5		/* free pages only if memory pressure */
+-static inline void __dma_sync_for_device(void *vaddr, size_t size,
+-			      enum dma_data_direction direction)
++static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+ {
+-	switch (direction) {
+-	case DMA_FROM_DEVICE:
+-		invalidate_dcache_range((unsigned long)vaddr,
+-			(unsigned long)(vaddr + size));
+-		break;
+-	case DMA_TO_DEVICE:
+-		/*
+-		 * We just need to flush the caches here , but Nios2 flush
+-		 * instruction will do both writeback and invalidate.
+-		 */
+-	case DMA_BIDIRECTIONAL: /* flush and invalidate */
+-		flush_dcache_range((unsigned long)vaddr,
+-			(unsigned long)(vaddr + size));
+-		break;
+-	default:
+-		BUG();
+-	}
+-}
+-
+-static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
+-			      enum dma_data_direction direction)
+-{
+-	switch (direction) {
+-	case DMA_BIDIRECTIONAL:
+-	case DMA_FROM_DEVICE:
+-		invalidate_dcache_range((unsigned long)vaddr,
+-			(unsigned long)(vaddr + size));
+-		break;
+-	case DMA_TO_DEVICE:
+-		break;
+-	default:
+-		BUG();
+-	}
+-}
+-
+-#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+-#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+-
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			   dma_addr_t *dma_handle, gfp_t flag);
+-
+-void dma_free_coherent(struct device *dev, size_t size,
+-			 void *vaddr, dma_addr_t dma_handle);
+-
+-static inline dma_addr_t dma_map_single(struct device *dev, void *ptr,
+-					size_t size,
+-					enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-	__dma_sync_for_device(ptr, size, direction);
+-	return virt_to_phys(ptr);
+-}
+-
+-static inline void dma_unmap_single(struct device *dev, dma_addr_t dma_addr,
+-				size_t size, enum dma_data_direction direction)
+-{
+-}
+-
+-extern int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+-	enum dma_data_direction direction);
+-extern dma_addr_t dma_map_page(struct device *dev, struct page *page,
+-	unsigned long offset, size_t size, enum dma_data_direction direction);
+-extern void dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+-	size_t size, enum dma_data_direction direction);
+-extern void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+-	int nhwentries, enum dma_data_direction direction);
+-extern void dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle,
+-	size_t size, enum dma_data_direction direction);
+-extern void dma_sync_single_for_device(struct device *dev,
+-	dma_addr_t dma_handle, size_t size, enum dma_data_direction direction);
+-extern void dma_sync_single_range_for_cpu(struct device *dev,
+-	dma_addr_t dma_handle, unsigned long offset, size_t size,
+-	enum dma_data_direction direction);
+-extern void dma_sync_single_range_for_device(struct device *dev,
+-	dma_addr_t dma_handle, unsigned long offset, size_t size,
+-	enum dma_data_direction direction);
+-extern void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+-	int nelems, enum dma_data_direction direction);
+-extern void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-	int nelems, enum dma_data_direction direction);
+-
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	return 1;
+-}
+-
+-static inline int dma_set_mask(struct device *dev, u64 mask)
+-{
+-	if (!dev->dma_mask || !dma_supported(dev, mask))
+-		return -EIO;
+-
+-	*dev->dma_mask = mask;
+-
+-	return 0;
+-}
+-
+-static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return 0;
++	return &nios2_dma_ops;
+ }
  
- /* common parameters: try to keep these consistent across architectures */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
-diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
-index 7a94102b7a02..869595947873 100644
---- a/include/uapi/asm-generic/mman-common.h
-+++ b/include/uapi/asm-generic/mman-common.h
-@@ -34,9 +34,9 @@
- #define MADV_SEQUENTIAL	2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
--#define MADV_FREE	5		/* free pages only if memory pressure */
+ /*
+-* dma_alloc_noncoherent() returns non-cacheable memory, so there's no need to
+-* do any flushing here.
+-*/
++ * dma_alloc_noncoherent() returns non-cacheable memory, so there's no need to
++ * do any flushing here.
++ */
+ static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ 				  enum dma_data_direction direction)
+ {
+ }
  
- /* common parameters: try to keep these consistent across architectures */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- #define MADV_REMOVE	9		/* remove these pages & resources */
- #define MADV_DONTFORK	10		/* don't inherit across fork */
- #define MADV_DOFORK	11		/* do inherit across fork */
+-/* drivers/base/dma-mapping.c */
+-extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
+-		void *cpu_addr, dma_addr_t dma_addr, size_t size);
+-extern int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+-		void *cpu_addr, dma_addr_t dma_addr,
+-		size_t size);
+-
+-#define dma_mmap_coherent(d, v, c, h, s) dma_common_mmap(d, v, c, h, s)
+-#define dma_get_sgtable(d, t, v, h, s) dma_common_get_sgtable(d, t, v, h, s)
+-
+ #endif /* _ASM_NIOS2_DMA_MAPPING_H */
+diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
+index ac5da75..43c1149 100644
+--- a/arch/nios2/mm/dma-mapping.c
++++ b/arch/nios2/mm/dma-mapping.c
+@@ -20,9 +20,46 @@
+ #include <linux/cache.h>
+ #include <asm/cacheflush.h>
+ 
++static inline void __dma_sync_for_device(void *vaddr, size_t size,
++			      enum dma_data_direction direction)
++{
++	switch (direction) {
++	case DMA_FROM_DEVICE:
++		invalidate_dcache_range((unsigned long)vaddr,
++			(unsigned long)(vaddr + size));
++		break;
++	case DMA_TO_DEVICE:
++		/*
++		 * We just need to flush the caches here , but Nios2 flush
++		 * instruction will do both writeback and invalidate.
++		 */
++	case DMA_BIDIRECTIONAL: /* flush and invalidate */
++		flush_dcache_range((unsigned long)vaddr,
++			(unsigned long)(vaddr + size));
++		break;
++	default:
++		BUG();
++	}
++}
+ 
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			    dma_addr_t *dma_handle, gfp_t gfp)
++static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
++			      enum dma_data_direction direction)
++{
++	switch (direction) {
++	case DMA_BIDIRECTIONAL:
++	case DMA_FROM_DEVICE:
++		invalidate_dcache_range((unsigned long)vaddr,
++			(unsigned long)(vaddr + size));
++		break;
++	case DMA_TO_DEVICE:
++		break;
++	default:
++		BUG();
++	}
++}
++
++static void *nios2_dma_alloc(struct device *dev, size_t size,
++		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
+ {
+ 	void *ret;
+ 
+@@ -45,24 +82,21 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(dma_alloc_coherent);
+ 
+-void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
+-			dma_addr_t dma_handle)
++static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
++		dma_addr_t dma_handle, struct dma_attrs *attrs)
+ {
+ 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
+ 
+ 	free_pages(addr, get_order(size));
+ }
+-EXPORT_SYMBOL(dma_free_coherent);
+ 
+-int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+-		enum dma_data_direction direction)
++static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
++		int nents, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
+ {
+ 	int i;
+ 
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	for_each_sg(sg, sg, nents, i) {
+ 		void *addr;
+ 
+@@ -75,40 +109,32 @@ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 
+ 	return nents;
+ }
+-EXPORT_SYMBOL(dma_map_sg);
+ 
+-dma_addr_t dma_map_page(struct device *dev, struct page *page,
++static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
+ 			unsigned long offset, size_t size,
+-			enum dma_data_direction direction)
++			enum dma_data_direction direction,
++			struct dma_attrs *attrs)
+ {
+-	void *addr;
+-
+-	BUG_ON(!valid_dma_direction(direction));
++	void *addr = page_address(page) + offset;
+ 
+-	addr = page_address(page) + offset;
+ 	__dma_sync_for_device(addr, size, direction);
+-
+ 	return page_to_phys(page) + offset;
+ }
+-EXPORT_SYMBOL(dma_map_page);
+ 
+-void dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
+-		    enum dma_data_direction direction)
++static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
++		size_t size, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
+ }
+-EXPORT_SYMBOL(dma_unmap_page);
+ 
+-void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
+-		  enum dma_data_direction direction)
++static void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
++		int nhwentries, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
+ {
+ 	void *addr;
+ 	int i;
+ 
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	if (direction = DMA_TO_DEVICE)
+ 		return;
+ 
+@@ -118,69 +144,52 @@ void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
+ 			__dma_sync_for_cpu(addr, sg->length, direction);
+ 	}
+ }
+-EXPORT_SYMBOL(dma_unmap_sg);
+-
+-void dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle,
+-			     size_t size, enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+ 
+-	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
+-}
+-EXPORT_SYMBOL(dma_sync_single_for_cpu);
+-
+-void dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle,
+-				size_t size, enum dma_data_direction direction)
+-{
+-	BUG_ON(!valid_dma_direction(direction));
+-
+-	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
+-}
+-EXPORT_SYMBOL(dma_sync_single_for_device);
+-
+-void dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
+-					unsigned long offset, size_t size,
+-					enum dma_data_direction direction)
++static void nios2_dma_sync_single_for_cpu(struct device *dev,
++		dma_addr_t dma_handle, size_t size,
++		enum dma_data_direction direction)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
+ }
+-EXPORT_SYMBOL(dma_sync_single_range_for_cpu);
+ 
+-void dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
+-					unsigned long offset, size_t size,
+-					enum dma_data_direction direction)
++static void nios2_dma_sync_single_for_device(struct device *dev,
++		dma_addr_t dma_handle, size_t size,
++		enum dma_data_direction direction)
+ {
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
+ }
+-EXPORT_SYMBOL(dma_sync_single_range_for_device);
+ 
+-void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
+-			 enum dma_data_direction direction)
++static void nios2_dma_sync_sg_for_cpu(struct device *dev,
++		struct scatterlist *sg, int nelems,
++		enum dma_data_direction direction)
+ {
+ 	int i;
+ 
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	/* Make sure that gcc doesn't leave the empty loop body.  */
+ 	for_each_sg(sg, sg, nelems, i)
+ 		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+ }
+-EXPORT_SYMBOL(dma_sync_sg_for_cpu);
+ 
+-void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-				int nelems, enum dma_data_direction direction)
++static void nios2_dma_sync_sg_for_device(struct device *dev,
++		struct scatterlist *sg, int nelems,
++		enum dma_data_direction direction)
+ {
+ 	int i;
+ 
+-	BUG_ON(!valid_dma_direction(direction));
+-
+ 	/* Make sure that gcc doesn't leave the empty loop body.  */
+ 	for_each_sg(sg, sg, nelems, i)
+ 		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
+ 
+ }
+-EXPORT_SYMBOL(dma_sync_sg_for_device);
++
++struct dma_map_ops nios2_dma_ops = {
++	.alloc                  = nios2_dma_alloc,
++	.free                   = nios2_dma_free,
++	.map_page               = nios2_dma_map_page,
++	.map_sg                 = nios2_dma_map_sg,
++	.sync_single_for_device = nios2_dma_sync_single_for_device,
++	.sync_single_for_cpu    = nios2_dma_sync_single_for_cpu,
++	.sync_sg_for_cpu        = nios2_dma_sync_sg_for_cpu,
++	.sync_sg_for_dev        = nios2_dma_sync_sg_for_device,
++};
++EXPORT_SYMBOL(nios2_dma_ops);
 -- 
 1.9.1
 
