@@ -1,7 +1,7 @@
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Tue, 10 Nov 2015 05:26:30 +0000
+Date: Tue, 10 Nov 2015 05:28:36 +0000
 Subject: Re: [PATCH v4 0/6] virtio core DMA API conversion
-Message-Id: <1447133190.31884.65.camel@kernel.crashing.org>
+Message-Id: <1447133316.31884.67.camel@kernel.crashing.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1446162273.git.luto@kernel.org>
 	<20151109133624-mutt-send-email-mst@redhat.com>
@@ -18,15 +18,19 @@ Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux
 
 On Mon, 2015-11-09 at 18:18 -0800, Andy Lutomirski wrote:
 > 
-> Which leaves the special case of Xen, where even preexisting devices
-> don't bypass the IOMMU.  Can we keep this specific to powerpc and
-> sparc?  On x86, this problem is basically nonexistent, since the IOMMU
-> is properly self-describing.
+> /* Qumranet donated their vendor ID for devices 0x1000 thru 0x10FF.
+> */
+> static const struct pci_device_id virtio_pci_id_table[] = {
+>         { PCI_DEVICE(0x1af4, PCI_ANY_ID) },
+>         { 0 }
+> };
 > 
-> IOW, I think that on x86 we should assume that all virtio devices
-> honor the IOMMU.
+> Can we match on that range?
 
-You don't like performances ? :-)
+We can, but the problem remains, how do we differenciate an existing
+device that does bypass vs. a newer one that needs the IOMMU and thus
+doesn't have the new "bypass" property in the device-tree.
 
 Cheers,
 Ben.
+
