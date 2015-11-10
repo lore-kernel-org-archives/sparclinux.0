@@ -1,69 +1,90 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Tue, 10 Nov 2015 00:46:20 +0000
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Date: Tue, 10 Nov 2015 02:04:36 +0000
 Subject: Re: [PATCH v4 0/6] virtio core DMA API conversion
-Message-Id: <CALCETrX7Gkw3WrBHff=TpCFHj444E8hHcR6sAqOghQFBo5wp_A@mail.gmail.com>
+Message-Id: <1447121076.31884.61.camel@kernel.crashing.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1446162273.git.luto@kernel.org>
 	<20151109133624-mutt-send-email-mst@redhat.com>
 	<1447109937.31884.42.camel@kernel.crashing.org>
-In-Reply-To: <1447109937.31884.42.camel@kernel.crashing.org>
+	<CALCETrX7Gkw3WrBHff=TpCFHj444E8hHcR6sAqOghQFBo5wp_A@mail.gmail.com>
+In-Reply-To: <CALCETrX7Gkw3WrBHff=TpCFHj444E8hHcR6sAqOghQFBo5wp_A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andy Lutomirski <luto@amacapital.net>
 Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Andy Lutomirski <luto@kernel.org>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-On Mon, Nov 9, 2015 at 2:58 PM, Benjamin Herrenschmidt
-<benh@kernel.crashing.org> wrote:
-> So ...
->
-> I've finally tried to sort that out for powerpc and I can't find a way
-> to make that work that isn't a complete pile of stinking shit.
->
-> I'm very tempted to go back to my original idea: virtio itself should
-> indicate it's "bypassing ability" via the virtio config space or some
-> other bit (like the ProgIf of the PCI header etc...).
->
-> I don't see how I can make it work otherwise.
->
-> The problem with the statement "it's a platform matter" is that:
->
->   - It's not entirely correct. It's actually a feature of a specific
-> virtio implementation (qemu's) that it bypasses all the platform IOMMU
-> facilities.
->
->   - The platforms (on powerpc there's at least 3 or 4 that have qemu
-> emulation and support some form of PCI) don't have an existing way to
-> convey the information that a device bypasses the IOMMU (if any).
->
->   - Even if we add such a mechanism (new property in the device-tree),
-> we end up with a big turd: Because we need to be compatible with older
-> qemus, we essentially need a quirk that will make all virtio devices
-> assume that property is present. That will of course break whenever we
-> try to use another implementation of virtio on powerpc which doesn't
-> bypass the iommu.
->
-> We don't have a way to differenciate a virtio device that does the
-> bypass from one that doesn't and the backward compatibility requirement
-> forces us to treat all existing virtio devices as doing bypass.
+On Mon, 2015-11-09 at 16:46 -0800, Andy Lutomirski wrote:
+> The problem here is that in some of the problematic cases the virtio
+> driver may not even be loaded.  If someone runs an L1 guest with an
+> IOMMU-bypassing virtio device and assigns it to L2 using vfio, then
+> *boom* L1 crashes.  (Same if, say, DPDK gets used, I think.)
+> 
+> >
+> > The only way out of this while keeping the "platform" stuff would be to
+> > also bump some kind of version in the virtio config (or PCI header). I
+> > have no other way to differenciate between "this is an old qemu that
+> > doesn't do the 'bypass property' yet" from "this is a virtio device
+> > that doesn't bypass".
+> >
+> > Any better idea ?
+> 
+> I'd suggest that, in the absence of the new DT binding, we assume that
+> any PCI device with the virtio vendor ID is passthrough on powerpc.  I
+> can do this in the virtio driver, but if it's in the platform code
+> then vfio gets it right too (i.e. fails to load).
 
-The problem here is that in some of the problematic cases the virtio
-driver may not even be loaded.  If someone runs an L1 guest with an
-IOMMU-bypassing virtio device and assigns it to L2 using vfio, then
-*boom* L1 crashes.  (Same if, say, DPDK gets used, I think.)
+The problem is there isn't *a* virtio vendor ID. It's the RedHat vendor
+ID which will be used by more than just virtio, so we need to
+specifically list the devices.
 
->
-> The only way out of this while keeping the "platform" stuff would be to
-> also bump some kind of version in the virtio config (or PCI header). I
-> have no other way to differenciate between "this is an old qemu that
-> doesn't do the 'bypass property' yet" from "this is a virtio device
-> that doesn't bypass".
->
-> Any better idea ?
+Additionally, that still means that once we have a virtio device that
+actually uses the iommu, powerpc will not work since the "workaround"
+above will kick in.
 
-I'd suggest that, in the absence of the new DT binding, we assume that
-any PCI device with the virtio vendor ID is passthrough on powerpc.  I
-can do this in the virtio driver, but if it's in the platform code
-then vfio gets it right too (i.e. fails to load).
+The "in absence of the new DT binding" doesn't make that much sense.
 
---Andy
+Those platforms use device-trees defined since the dawn of ages by
+actual open firmware implementations, they either have no iommu
+representation in there (Macs, the platform code hooks it all up) or
+have various properties related to the iommu but no concept of "bypass"
+in there.
+
+We can *add* a new property under some circumstances that indicates a
+bypass on a per-device basis, however that doesn't completely solve it:
+
+  - As I said above, what does the absence of that property mean ? An
+old qemu that does bypass on all virtio or a new qemu trying to tell
+you that the virtio device actually does use the iommu (or some other
+environment that isn't qemu) ?
+
+  - On things like macs, the device-tree is generated by openbios, it
+would have to have some added logic to try to figure that out, which
+means it needs to know *via different means* that some or all virtio
+devices bypass the iommu.
+
+I thus go back to my original statement, it's a LOT easier to handle if
+the device itself is self describing, indicating whether it is set to
+bypass a host iommu or not. For L1->L2, well, that wouldn't be the
+first time qemu/VFIO plays tricks with the passed through device
+configuration space...
+
+Note that the above can be solved via some kind of compromise: The
+device self describes the ability to honor the iommu, along with the
+property (or ACPI table entry) that indicates whether or not it does.
+
+IE. We could use the revision or ProgIf field of the config space for
+example. Or something in virtio config. If it's an "old" device, we
+know it always bypass. If it's a new device, we know it only bypasses
+if the corresponding property is in. I still would have to sort out the
+openbios case for mac among others but it's at least a workable
+direction.
+
+BTW. Don't you have a similar problem on x86 that today qemu claims
+that everything honors the iommu in ACPI ?
+
+Unless somebody can come up with a better idea...
+
+Cheers,
+Ben.
+
