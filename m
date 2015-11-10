@@ -1,7 +1,7 @@
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Tue, 10 Nov 2015 19:37:38 +0000
+Date: Tue, 10 Nov 2015 22:27:07 +0000
 Subject: Re: [PATCH v4 0/6] virtio core DMA API conversion
-Message-Id: <1447184258.31884.91.camel@kernel.crashing.org>
+Message-Id: <1447194427.31884.100.camel@kernel.crashing.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1446162273.git.luto@kernel.org>
 	<20151109133624-mutt-send-email-mst@redhat.com>
@@ -12,24 +12,28 @@ References: <cover.1446162273.git.luto@kernel.org>
 	<1447133316.31884.67.camel@kernel.crashing.org>
 	<CALCETrVPQc04Ah7FXcRMb4RhpUJ1WPCoC_4dbacB8a+u5XpmwA@mail.gmail.com>
 	<1447151874.31884.82.camel@kernel.crashing.org>
-	<20151110142633-mutt-send-email-mst@redhat.com>
-In-Reply-To: <20151110142633-mutt-send-email-mst@redhat.com>
+	<CALCETrVkE3=KCxK-_bf-P8UfTS96Vck+QPE8EsLvP7THxpLe1A@mail.gmail.com>
+In-Reply-To: <CALCETrVkE3=KCxK-_bf-P8UfTS96Vck+QPE8EsLvP7THxpLe1A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Christoph Hellwig <hch@lst.de>, Andy Lutomirski <luto@kernel.org>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S.
-	Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: linux-s390 <linux-s390@vger.kernel.org>, sparclinux@vger.kernel.org, KVM <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Joerg Roedel <jroedel@suse.de>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S.
+	Miller" <davem@davemloft.net>
 
-On Tue, 2015-11-10 at 14:43 +0200, Michael S. Tsirkin wrote:
-> But not virtio-pci I think - that's broken for that usecase since we use
-> weaker barriers than required for real IO, as these have measureable
-> overhead.  We could have a feature "is a real PCI device",
-> that's completely reasonable.
+On Tue, 2015-11-10 at 10:54 -0800, Andy Lutomirski wrote:
+>=C2=A0
+> Does that work on powerpc on existing kernels?
+>=20
+> Anyway, here's another crazy idea: make the quirk assume that the
+> IOMMU is bypasses if and only if the weak barriers bit is set on
+> systems that are missing the new DT binding.
 
-Do we use weaker barriers on the Linux driver side ? I didn't think so
-... 
+"New DT bindings" doesn't mean much ... how do we change DT bindings on
+existing machines with a FW in flash ?
 
-Cheers,
+What about partition <-> partition virtio such as what we could do on
+PAPR systems. That would have the weak barrier bit.
+
 Ben.
 
