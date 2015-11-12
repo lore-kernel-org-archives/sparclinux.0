@@ -1,107 +1,125 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Wed, 18 Nov 2015 00:23:19 +0000
-Subject: Re: [powerpc:test 7/8] include/math-emu/quad.h:72:1: error: unable to emulate 'TF'
-Message-Id: <1447806199.10464.2.camel@ellerman.id.au>
+From: Minchan Kim <minchan@kernel.org>
+Date: Thu, 12 Nov 2015 04:32:59 +0000
+Subject: [PATCH v3 03/17] arch: uapi: asm: mman.h: Let MADV_FREE have same value for all architectures
+Message-Id: <1447302793-5376-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201511171656.yqpXMbFx%fengguang.wu@intel.com>
- <alpine.DEB.2.10.1511171542010.14808@digraph.polyomino.org.uk>
-In-Reply-To: <alpine.DEB.2.10.1511171542010.14808@digraph.polyomino.org.uk>
+References: <1447302793-5376-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1447302793-5376-1-git-send-email-minchan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joseph Myers <joseph@codesourcery.com>, kbuild test robot <fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, linux-api@vger.kernel.org, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@suse.de>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jason Evans <je@fb.com>, Daniel Micay <danielmicay@gmail.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Shaohua Li <shli@kernel.org>, Michal Hocko <mhocko@suse.cz>, yalin.wang2010@gmail.com, Chen Gang <gang.chen.5i5j@gmail.com>, "rth@twiddle.net" <rth@twiddle.net>, "ink@jurassic.park.msu.ru" <ink@jurassic.park.msu.ru>, "mattst88@gmail.com" <mattst88@gmail.com>, Ralf Baechle <ralf@linux-mips.org>, "jejb@parisc-linux.org" <jejb@parisc-linux.org>, "deller@gmx.de" <deller@gmx.de>, "chris@zankel.net" <chris@zankel.net>, "jcmvbkbc@gmail.com" <jcmvbkbc@gmail.com>, Arnd
 
-Hi Joseph,
+From: Chen Gang <gang.chen.5i5j@gmail.com>
 
-On Tue, 2015-11-17 at 15:55 +0000, Joseph Myers wrote:
+For uapi, need try to let all macros have same value, and MADV_FREE is
+added into main branch recently, so need redefine MADV_FREE for it.
 
-> On Tue, 17 Nov 2015, kbuild test robot wrote:
+At present, '8' can be shared with all architectures, so redefine it to
+'8'.
 
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git test
-> > head:   e37d8480fbd6b9ad3665ac85a903098413ba67ae
-> > commit: 71fa67f178c6c3c338d0b99644bce808f2f0965e [7/8] sparc/math-emu: Move sparc from math-emu-old to math-emu
-> > config: sparc-defconfig (attached as .config)
-> > reproduce:
-> >         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-> >         chmod +x ~/bin/make.cross
-> >         git checkout 71fa67f178c6c3c338d0b99644bce808f2f0965e
-> >         # save the attached .config to linux build tree
-> >         make.cross ARCH=sparc 
-> > 
-> > All errors (new ones prefixed by >>):
-> > 
-> >    In file included from arch/sparc/math-emu/math_32.c:77:0:
+Cc: rth@twiddle.net <rth@twiddle.net>,
+Cc: ink@jurassic.park.msu.ru <ink@jurassic.park.msu.ru>
+Cc: mattst88@gmail.com <mattst88@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: jejb@parisc-linux.org <jejb@parisc-linux.org>
+Cc: deller@gmx.de <deller@gmx.de>
+Cc: chris@zankel.net <chris@zankel.net>
+Cc: jcmvbkbc@gmail.com <jcmvbkbc@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-api@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: roland@kernel.org
+Cc: darrick.wong@oracle.com
+Cc: davem@davemloft.net
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+---
+ arch/alpha/include/uapi/asm/mman.h     | 2 +-
+ arch/mips/include/uapi/asm/mman.h      | 2 +-
+ arch/parisc/include/uapi/asm/mman.h    | 2 +-
+ arch/xtensa/include/uapi/asm/mman.h    | 2 +-
+ include/uapi/asm-generic/mman-common.h | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-> > > > include/math-emu/quad.h:72:1: error: unable to emulate 'TF'
-> >     typedef float TFtype __attribute__ ((mode (TF)));
-> 
-> Is this with a compiler that defaults to -mlong-double-64 (which is, I 
-> think, now an unusual configuration on SPARC - it might arise for 
-> bootstrap compilers, but any normal distribution compiler should default 
-> to -mlong-double-128)?
-
-FWIW this built OK with my sparc compiler which is 4.6.3, I don't know what
-compiler the robot is using:
-
-http://kisskb.ellerman.id.au/kisskb/buildresult/12549136/
-
-> If so, the old code would have been quietly building with a union that 
-> contains the "wrong" long double type, when using such a compiler.  And 
-> actually I think that because of the particular subset of macros used, 
-> this would have worked; the long double member of the union wouldn't have 
-> been used in this code.
-> 
-> My inclination would be to use
-> 
-> CFLAGS_math_32.o = -mlong-double-128
-> CFLAGS_math_64.o = -mlong-double-128
-> 
-> in arch/sparc/math-emu/Makefile to fix this properly (the "unable to 
-> emulate" error is for modes that fail GCC's scalar_mode_supported_p hook, 
-> which by default allows the modes for all standard types, hence an error 
-> for -mlong-double-64 when TFmode isn't used by a standard type).  Untested 
-> incremental patch follows.
-> 
-> Signed-off-by: Joseph Myers <joseph@codesourcery.com>
-
-> diff --git a/arch/sparc/math-emu/Makefile b/arch/sparc/math-emu/Makefile
-> index 825dbee..6df8769 100644
-> --- a/arch/sparc/math-emu/Makefile
-> +++ b/arch/sparc/math-emu/Makefile
-> @@ -5,4 +5,9 @@
->  # suppress all warnings - as math.c produces a lot!
->  ccflags-y := -w
->  
-> +# Emulation of quad instructions requires -mlong-double-128 for
-> +# __attribute__ ((mode (TF))) to be accepted.
-> +CFLAGS_math_32.o = -mlong-double-128
-> +CFLAGS_math_64.o = -mlong-double-128
-> +
->  obj-y    := math_$(BITS).o
-
-Thanks. I'll take this patch for now and repush the branch to see if it fixes
-the build error.
-
-I cobbled together a commit message which is hopefully vaguely correct:
-
-    sparc/math-emu: Use -mlong-double-128
-
-    The updated math-emu code requires -mlong-double-128 in order to
-    compile, otherwise on some compilers we see errors:
-
-        In file included from arch/sparc/math-emu/math_32.c:77:0:
-        include/math-emu/quad.h:72:1: error: unable to emulate 'TF'
-        typedef float TFtype __attribute__ ((mode (TF)));
-
-    Add -mlong-double-128 in arch/sparc/math-emu/Makefile to fix this
-    properly (the "unable to emulate" error is for modes that fail GCC's
-    scalar_mode_supported_p hook, which by default allows the modes for all
-    standard types, hence an error for -mlong-double-64 when TFmode isn't
-    used by a standard type).
-
-    Signed-off-by: Joseph Myers <joseph@codesourcery.com>
-
-
-cheers
+diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+index 836fbd44f65b..0b8a5de7aee3 100644
+--- a/arch/alpha/include/uapi/asm/mman.h
++++ b/arch/alpha/include/uapi/asm/mman.h
+@@ -44,9 +44,9 @@
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
+ #define MADV_DONTNEED	6		/* don't need these pages */
+-#define MADV_FREE	7		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
+index 106e741aa7ee..d247f5457944 100644
+--- a/arch/mips/include/uapi/asm/mman.h
++++ b/arch/mips/include/uapi/asm/mman.h
+@@ -67,9 +67,9 @@
+ #define MADV_SEQUENTIAL 2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
+index 6cb8db76fd4e..700d83fd9352 100644
+--- a/arch/parisc/include/uapi/asm/mman.h
++++ b/arch/parisc/include/uapi/asm/mman.h
+@@ -40,9 +40,9 @@
+ #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
+ #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
+ #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
+-#define MADV_FREE	8		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
+index 1b19f25bc567..77eaca434071 100644
+--- a/arch/xtensa/include/uapi/asm/mman.h
++++ b/arch/xtensa/include/uapi/asm/mman.h
+@@ -80,9 +80,9 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
+index 7a94102b7a02..869595947873 100644
+--- a/include/uapi/asm-generic/mman-common.h
++++ b/include/uapi/asm-generic/mman-common.h
+@@ -34,9 +34,9 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+-- 
+1.9.1
 
