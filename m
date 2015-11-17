@@ -1,58 +1,77 @@
-From: "Shi, Yang" <yang.shi@linaro.org>
-Date: Thu, 26 Nov 2015 00:31:21 +0000
-Subject: Re: [PATCH] sparc64/gup: check address scope legitimacy
-Message-Id: <565652D9.7040009@linaro.org>
+From: Joseph Myers <joseph@codesourcery.com>
+Date: Tue, 17 Nov 2015 15:55:54 +0000
+Subject: Re: [powerpc:test 7/8] include/math-emu/quad.h:72:1: error: unable to emulate 'TF'
+Message-Id: <alpine.DEB.2.10.1511171542010.14808@digraph.polyomino.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <201511260819.RuE4G4tG%fengguang.wu@intel.com>
-In-Reply-To: <201511260819.RuE4G4tG%fengguang.wu@intel.com>
+References: <201511171656.yqpXMbFx%fengguang.wu@intel.com>
+In-Reply-To: <201511171656.yqpXMbFx%fengguang.wu@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linaro-kernel@lists.linaro.org
+To: kbuild test robot <fengguang.wu@intel.com>
+Cc: kbuild-all@01.org, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, sparclinux@vger.kernel.org
 
-On 11/25/2015 4:26 PM, kbuild test robot wrote:
-> Hi Yang,
->
-> [auto build test ERROR on v4.4-rc2]
-> [also build test ERROR on next-20151124]
->
-> url:    https://github.com/0day-ci/linux/commits/Yang-Shi/sparc64-gup-check-address-scope-legitimacy/20151126-065342
-> config: sparc64-allnoconfig (attached as .config)
+On Tue, 17 Nov 2015, kbuild test robot wrote:
+
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux.git test
+> head:   e37d8480fbd6b9ad3665ac85a903098413ba67ae
+> commit: 71fa67f178c6c3c338d0b99644bce808f2f0965e [7/8] sparc/math-emu: Move sparc from math-emu-old to math-emu
+> config: sparc-defconfig (attached as .config)
 > reproduce:
->          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->          chmod +x ~/bin/make.cross
->          # save the attached .config to linux build tree
->          make.cross ARCH=sparc64
->
+>         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         git checkout 71fa67f178c6c3c338d0b99644bce808f2f0965e
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=sparc 
+> 
 > All errors (new ones prefixed by >>):
->
->     arch/sparc/mm/gup.c: In function 'get_user_pages_fast':
->>> arch/sparc/mm/gup.c:210:3: error: label 'slow_irqon' used but not defined
->        goto slow_irqon;
+> 
+>    In file included from arch/sparc/math-emu/math_32.c:77:0:
+> >> include/math-emu/quad.h:72:1: error: unable to emulate 'TF'
+>     typedef float TFtype __attribute__ ((mode (TF)));
 
-Already fixed in v2.
+Is this with a compiler that defaults to -mlong-double-64 (which is, I 
+think, now an unusual configuration on SPARC - it might arise for 
+bootstrap compilers, but any normal distribution compiler should default 
+to -mlong-double-128)?
 
-Thanks,
-Yang
+If so, the old code would have been quietly building with a union that 
+contains the "wrong" long double type, when using such a compiler.  And 
+actually I think that because of the particular subset of macros used, 
+this would have worked; the long double member of the union wouldn't have 
+been used in this code.
 
->        ^
->
-> vim +/slow_irqon +210 arch/sparc/mm/gup.c
->
->     204	
->     205		start &= PAGE_MASK;
->     206		addr = start;
->     207		len = (unsigned long) nr_pages << PAGE_SHIFT;
->     208		end = start + len;
->     209		if (end < start)
->   > 210			goto slow_irqon;
->     211	
->     212		/*
->     213		 * XXX: batch / limit 'nr', to avoid large irq off latency
->
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
->
+My inclination would be to use
 
+CFLAGS_math_32.o = -mlong-double-128
+CFLAGS_math_64.o = -mlong-double-128
+
+in arch/sparc/math-emu/Makefile to fix this properly (the "unable to 
+emulate" error is for modes that fail GCC's scalar_mode_supported_p hook, 
+which by default allows the modes for all standard types, hence an error 
+for -mlong-double-64 when TFmode isn't used by a standard type).  Untested 
+incremental patch follows.
+
+Signed-off-by: Joseph Myers <joseph@codesourcery.com>
+
+---
+
+diff --git a/arch/sparc/math-emu/Makefile b/arch/sparc/math-emu/Makefile
+index 825dbee..6df8769 100644
+--- a/arch/sparc/math-emu/Makefile
++++ b/arch/sparc/math-emu/Makefile
+@@ -5,4 +5,9 @@
+ # suppress all warnings - as math.c produces a lot!
+ ccflags-y := -w
+ 
++# Emulation of quad instructions requires -mlong-double-128 for
++# __attribute__ ((mode (TF))) to be accepted.
++CFLAGS_math_32.o = -mlong-double-128
++CFLAGS_math_64.o = -mlong-double-128
++
+ obj-y    := math_$(BITS).o
+
+
+-- 
+Joseph S. Myers
+joseph@codesourcery.com
