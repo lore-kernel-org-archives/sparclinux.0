@@ -1,47 +1,150 @@
-From: Yang Shi <yang.shi@linaro.org>
-Date: Wed, 25 Nov 2015 22:31:24 +0000
-Subject: [PATCH] sparc64/gup: check address scope legitimacy
-Message-Id: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
+From: kbuild test robot <lkp@intel.com>
+Date: Thu, 26 Nov 2015 00:26:01 +0000
+Subject: Re: [PATCH] sparc64/gup: check address scope legitimacy
+Message-Id: <201511260819.RuE4G4tG%fengguang.wu@intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="KsGdsel6WgEHnImy"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linaro-kernel@lists.linaro.org, yang.shi@linaro.org
+References: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
+In-Reply-To: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
+To: sparclinux@vger.kernel.org
 
-Check if user address is accessible in atomic version __get_user_pages_fast()
-before walking the page table.
-And, check if end > start in get_user_pages_fast(), otherwise fallback to slow
-path.
 
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
+--KsGdsel6WgEHnImy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Yang,
+
+[auto build test ERROR on v4.4-rc2]
+[also build test ERROR on next-20151124]
+
+url:    https://github.com/0day-ci/linux/commits/Yang-Shi/sparc64-gup-check-address-scope-legitimacy/20151126-065342
+config: sparc64-allnoconfig (attached as .config)
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # save the attached .config to linux build tree
+        make.cross ARCH=sparc64 
+
+All errors (new ones prefixed by >>):
+
+   arch/sparc/mm/gup.c: In function 'get_user_pages_fast':
+>> arch/sparc/mm/gup.c:210:3: error: label 'slow_irqon' used but not defined
+      goto slow_irqon;
+      ^
+
+vim +/slow_irqon +210 arch/sparc/mm/gup.c
+
+   204	
+   205		start &= PAGE_MASK;
+   206		addr = start;
+   207		len = (unsigned long) nr_pages << PAGE_SHIFT;
+   208		end = start + len;
+   209		if (end < start)
+ > 210			goto slow_irqon;
+   211	
+   212		/*
+   213		 * XXX: batch / limit 'nr', to avoid large irq off latency
+
 ---
- arch/sparc/mm/gup.c | 5 +++++
- 1 file changed, 5 insertions(+)
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index 2e5c4fc..08b8da5 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -173,6 +173,9 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	addr = start;
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
- 	end = start + len;
-+	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
-+					(void __user *)start, len)))
-+		return 0;
- 
- 	local_irq_save(flags);
- 	pgdp = pgd_offset(mm, addr);
-@@ -203,6 +206,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	addr = start;
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
- 	end = start + len;
-+	if (end < start)
-+		goto slow_irqon;
- 
- 	/*
- 	 * XXX: batch / limit 'nr', to avoid large irq off latency
--- 
-2.0.2
+--KsGdsel6WgEHnImy
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
+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
+AAA=
+
+--KsGdsel6WgEHnImy--
