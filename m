@@ -1,35 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 04 Nov 2015 20:15:24 +0000
-Subject: Re: [PATCH] sparc64: Fix numa distance values
-Message-Id: <20151104.151524.1722330668045451237.davem@davemloft.net>
+From: Petr Mladek <pmladek@suse.com>
+Date: Fri, 27 Nov 2015 11:09:29 +0000
+Subject: [PATCH v2 2/5] printk/nmi: Use IRQ work only when ready
+Message-Id: <1448622572-16900-3-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1446499824-211085-1-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1446499824-211085-1-git-send-email-nitin.m.gupta@oracle.com>
+References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
+In-Reply-To: <1448622572-16900-1-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: nitin.m.gupta@oracle.com
-Cc: sparclinux@vger.kernel.org, akpm@linux-foundation.org, chris.hyser@oracle.com, khalid.aziz@oracle.com, iamjoonsoo.kim@lge.com, dahi@linux.vnet.ibm.com, tony.luck@intel.com, santosh.shilimkar@oracle.com, sam@ravnborg.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Mon,  2 Nov 2015 16:30:24 -0500
+NMIs could happen at any time. This patch makes sure that the safe
+printk() in NMI will schedule IRQ work only when the related
+structs are initialized.
 
-> Orabug: 21896119
-> 
-> Use machine descriptor (MD) to get node latency
-> values instead of just using default values.
-> 
-> Testing:
-> On an T5-8 system with:
->  - total nodes = 8
->  - self latencies = 0x26d18
->  - latency to other nodes = 0x3a598
->    => latency ratio = ~1.5
-> 
-> output of numactl --hardware
- ...
-> Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
-> Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
-> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+All pending messages are flushed when the IRQ work is being
+initialized.
 
-Looks good, applied, thanks!
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+---
+ kernel/printk/nmi.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
+index 3989e13a0021..05b4c09110f9 100644
+--- a/kernel/printk/nmi.c
++++ b/kernel/printk/nmi.c
+@@ -36,6 +36,7 @@
+  * were handled or when IRQs are blocked.
+  */
+ DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
++static int printk_nmi_irq_ready;
+ 
+ struct nmi_seq_buf {
+ 	atomic_t		len;	/* length of written data */
+@@ -80,8 +81,11 @@ again:
+ 		goto again;
+ 
+ 	/* Get flushed in a more safe context. */
+-	if (add)
++	if (add && printk_nmi_irq_ready) {
++		/* Make sure that IRQ work is really initialized. */
++		smp_rmb();
+ 		irq_work_queue(&s->work);
++	}
+ 
+ 	return add;
+ }
+@@ -187,6 +191,13 @@ void __init printk_nmi_init(void)
+ 
+ 		init_irq_work(&s->work, __printk_nmi_flush);
+ 	}
++
++	/* Make sure that IRQ works are initialized before enabling. */
++	smp_wmb();
++	printk_nmi_irq_ready = 1;
++
++	/* Flush pending messages that did not have scheduled IRQ works. */
++	printk_nmi_flush();
+ }
+ 
+ void printk_nmi_enter(void)
+-- 
+1.8.5.6
+
