@@ -1,404 +1,82 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 09 Nov 2015 18:17:12 +0000
-Subject: [PATCH 07/16] nios2: convert to dma_map_ops
-Message-Id: <1447093041-21832-8-git-send-email-hch@lst.de>
+From: Petr Mladek <pmladek@suse.com>
+Date: Fri, 27 Nov 2015 11:09:27 +0000
+Subject: [PATCH v2 0/5] Cleaning printk stuff in NMI context
+Message-Id: <1448622572-16900-1-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1447093041-21832-1-git-send-email-hch@lst.de>
-In-Reply-To: <1447093041-21832-1-git-send-email-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Steven Miao <realmz6@gmail.com>, Ley Foon Tan <lftan@altera.com>, David Howells <dhowells@redhat.com>, Koichi Yasutake <yasutake.koichi@jp.panasonic.com>, Chris Metcalf <cmetcalf@ezchip.com>, linux-snps-arc@lists.infraded.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org
+To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/nios2/Kconfig                   |   1 +
- arch/nios2/include/asm/dma-mapping.h | 123 ++---------------------------
- arch/nios2/mm/dma-mapping.c          | 147 +++++++++++++++++++----------------
- 3 files changed, 85 insertions(+), 186 deletions(-)
+This patch set generalizes the already existing solution for
+printing NMI messages. The main idea comes from Peter Zijlstra.
 
-diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
-index 4375554..4b2504d 100644
---- a/arch/nios2/Kconfig
-+++ b/arch/nios2/Kconfig
-@@ -16,6 +16,7 @@ config NIOS2
- 	select SOC_BUS
- 	select SPARSE_IRQ
- 	select USB_ARCH_HAS_HCD if USB_SUPPORT
-+	select HAVE_DMA_ATTRS
- 
- config GENERIC_CSUM
- 	def_bool y
-diff --git a/arch/nios2/include/asm/dma-mapping.h b/arch/nios2/include/asm/dma-mapping.h
-index b556723..bec8ac8 100644
---- a/arch/nios2/include/asm/dma-mapping.h
-+++ b/arch/nios2/include/asm/dma-mapping.h
-@@ -10,131 +10,20 @@
- #ifndef _ASM_NIOS2_DMA_MAPPING_H
- #define _ASM_NIOS2_DMA_MAPPING_H
- 
--#include <linux/scatterlist.h>
--#include <linux/cache.h>
--#include <asm/cacheflush.h>
-+extern struct dma_map_ops nios2_dma_ops;
- 
--static inline void __dma_sync_for_device(void *vaddr, size_t size,
--			      enum dma_data_direction direction)
-+static inline struct dma_map_ops *get_dma_ops(struct device *dev)
- {
--	switch (direction) {
--	case DMA_FROM_DEVICE:
--		invalidate_dcache_range((unsigned long)vaddr,
--			(unsigned long)(vaddr + size));
--		break;
--	case DMA_TO_DEVICE:
--		/*
--		 * We just need to flush the caches here , but Nios2 flush
--		 * instruction will do both writeback and invalidate.
--		 */
--	case DMA_BIDIRECTIONAL: /* flush and invalidate */
--		flush_dcache_range((unsigned long)vaddr,
--			(unsigned long)(vaddr + size));
--		break;
--	default:
--		BUG();
--	}
--}
--
--static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
--			      enum dma_data_direction direction)
--{
--	switch (direction) {
--	case DMA_BIDIRECTIONAL:
--	case DMA_FROM_DEVICE:
--		invalidate_dcache_range((unsigned long)vaddr,
--			(unsigned long)(vaddr + size));
--		break;
--	case DMA_TO_DEVICE:
--		break;
--	default:
--		BUG();
--	}
--}
--
--#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
--#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
--
--void *dma_alloc_coherent(struct device *dev, size_t size,
--			   dma_addr_t *dma_handle, gfp_t flag);
--
--void dma_free_coherent(struct device *dev, size_t size,
--			 void *vaddr, dma_addr_t dma_handle);
--
--static inline dma_addr_t dma_map_single(struct device *dev, void *ptr,
--					size_t size,
--					enum dma_data_direction direction)
--{
--	BUG_ON(!valid_dma_direction(direction));
--	__dma_sync_for_device(ptr, size, direction);
--	return virt_to_phys(ptr);
--}
--
--static inline void dma_unmap_single(struct device *dev, dma_addr_t dma_addr,
--				size_t size, enum dma_data_direction direction)
--{
--}
--
--extern int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--	enum dma_data_direction direction);
--extern dma_addr_t dma_map_page(struct device *dev, struct page *page,
--	unsigned long offset, size_t size, enum dma_data_direction direction);
--extern void dma_unmap_page(struct device *dev, dma_addr_t dma_address,
--	size_t size, enum dma_data_direction direction);
--extern void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
--	int nhwentries, enum dma_data_direction direction);
--extern void dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle,
--	size_t size, enum dma_data_direction direction);
--extern void dma_sync_single_for_device(struct device *dev,
--	dma_addr_t dma_handle, size_t size, enum dma_data_direction direction);
--extern void dma_sync_single_range_for_cpu(struct device *dev,
--	dma_addr_t dma_handle, unsigned long offset, size_t size,
--	enum dma_data_direction direction);
--extern void dma_sync_single_range_for_device(struct device *dev,
--	dma_addr_t dma_handle, unsigned long offset, size_t size,
--	enum dma_data_direction direction);
--extern void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
--	int nelems, enum dma_data_direction direction);
--extern void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
--	int nelems, enum dma_data_direction direction);
--
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	return 1;
--}
--
--static inline int dma_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--
--	return 0;
--}
--
--static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return 0;
-+	return &nios2_dma_ops;
- }
- 
- /*
--* dma_alloc_noncoherent() returns non-cacheable memory, so there's no need to
--* do any flushing here.
--*/
-+ * dma_alloc_noncoherent() returns non-cacheable memory, so there's no need to
-+ * do any flushing here.
-+ */
- static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 				  enum dma_data_direction direction)
- {
- }
- 
--/* drivers/base/dma-mapping.c */
--extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
--		void *cpu_addr, dma_addr_t dma_addr, size_t size);
--extern int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
--		void *cpu_addr, dma_addr_t dma_addr,
--		size_t size);
--
--#define dma_mmap_coherent(d, v, c, h, s) dma_common_mmap(d, v, c, h, s)
--#define dma_get_sgtable(d, t, v, h, s) dma_common_get_sgtable(d, t, v, h, s)
--
- #endif /* _ASM_NIOS2_DMA_MAPPING_H */
-diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
-index ac5da75..43c1149 100644
---- a/arch/nios2/mm/dma-mapping.c
-+++ b/arch/nios2/mm/dma-mapping.c
-@@ -20,9 +20,46 @@
- #include <linux/cache.h>
- #include <asm/cacheflush.h>
- 
-+static inline void __dma_sync_for_device(void *vaddr, size_t size,
-+			      enum dma_data_direction direction)
-+{
-+	switch (direction) {
-+	case DMA_FROM_DEVICE:
-+		invalidate_dcache_range((unsigned long)vaddr,
-+			(unsigned long)(vaddr + size));
-+		break;
-+	case DMA_TO_DEVICE:
-+		/*
-+		 * We just need to flush the caches here , but Nios2 flush
-+		 * instruction will do both writeback and invalidate.
-+		 */
-+	case DMA_BIDIRECTIONAL: /* flush and invalidate */
-+		flush_dcache_range((unsigned long)vaddr,
-+			(unsigned long)(vaddr + size));
-+		break;
-+	default:
-+		BUG();
-+	}
-+}
- 
--void *dma_alloc_coherent(struct device *dev, size_t size,
--			    dma_addr_t *dma_handle, gfp_t gfp)
-+static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
-+			      enum dma_data_direction direction)
-+{
-+	switch (direction) {
-+	case DMA_BIDIRECTIONAL:
-+	case DMA_FROM_DEVICE:
-+		invalidate_dcache_range((unsigned long)vaddr,
-+			(unsigned long)(vaddr + size));
-+		break;
-+	case DMA_TO_DEVICE:
-+		break;
-+	default:
-+		BUG();
-+	}
-+}
-+
-+static void *nios2_dma_alloc(struct device *dev, size_t size,
-+		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
- {
- 	void *ret;
- 
-@@ -45,24 +82,21 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
- 
- 	return ret;
- }
--EXPORT_SYMBOL(dma_alloc_coherent);
- 
--void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
--			dma_addr_t dma_handle)
-+static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
- 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
- 
- 	free_pages(addr, get_order(size));
- }
--EXPORT_SYMBOL(dma_free_coherent);
- 
--int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
--		enum dma_data_direction direction)
-+static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
-+		int nents, enum dma_data_direction direction,
-+		struct dma_attrs *attrs)
- {
- 	int i;
- 
--	BUG_ON(!valid_dma_direction(direction));
--
- 	for_each_sg(sg, sg, nents, i) {
- 		void *addr;
- 
-@@ -75,40 +109,32 @@ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
- 
- 	return nents;
- }
--EXPORT_SYMBOL(dma_map_sg);
- 
--dma_addr_t dma_map_page(struct device *dev, struct page *page,
-+static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
- 			unsigned long offset, size_t size,
--			enum dma_data_direction direction)
-+			enum dma_data_direction direction,
-+			struct dma_attrs *attrs)
- {
--	void *addr;
--
--	BUG_ON(!valid_dma_direction(direction));
-+	void *addr = page_address(page) + offset;
- 
--	addr = page_address(page) + offset;
- 	__dma_sync_for_device(addr, size, direction);
--
- 	return page_to_phys(page) + offset;
- }
--EXPORT_SYMBOL(dma_map_page);
- 
--void dma_unmap_page(struct device *dev, dma_addr_t dma_address, size_t size,
--		    enum dma_data_direction direction)
-+static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
-+		size_t size, enum dma_data_direction direction,
-+		struct dma_attrs *attrs)
- {
--	BUG_ON(!valid_dma_direction(direction));
--
- 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
- }
--EXPORT_SYMBOL(dma_unmap_page);
- 
--void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
--		  enum dma_data_direction direction)
-+static void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-+		int nhwentries, enum dma_data_direction direction,
-+		struct dma_attrs *attrs)
- {
- 	void *addr;
- 	int i;
- 
--	BUG_ON(!valid_dma_direction(direction));
--
- 	if (direction = DMA_TO_DEVICE)
- 		return;
- 
-@@ -118,69 +144,52 @@ void dma_unmap_sg(struct device *dev, struct scatterlist *sg, int nhwentries,
- 			__dma_sync_for_cpu(addr, sg->length, direction);
- 	}
- }
--EXPORT_SYMBOL(dma_unmap_sg);
--
--void dma_sync_single_for_cpu(struct device *dev, dma_addr_t dma_handle,
--			     size_t size, enum dma_data_direction direction)
--{
--	BUG_ON(!valid_dma_direction(direction));
- 
--	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
--}
--EXPORT_SYMBOL(dma_sync_single_for_cpu);
--
--void dma_sync_single_for_device(struct device *dev, dma_addr_t dma_handle,
--				size_t size, enum dma_data_direction direction)
--{
--	BUG_ON(!valid_dma_direction(direction));
--
--	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
--}
--EXPORT_SYMBOL(dma_sync_single_for_device);
--
--void dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t dma_handle,
--					unsigned long offset, size_t size,
--					enum dma_data_direction direction)
-+static void nios2_dma_sync_single_for_cpu(struct device *dev,
-+		dma_addr_t dma_handle, size_t size,
-+		enum dma_data_direction direction)
- {
--	BUG_ON(!valid_dma_direction(direction));
--
- 	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
- }
--EXPORT_SYMBOL(dma_sync_single_range_for_cpu);
- 
--void dma_sync_single_range_for_device(struct device *dev, dma_addr_t dma_handle,
--					unsigned long offset, size_t size,
--					enum dma_data_direction direction)
-+static void nios2_dma_sync_single_for_device(struct device *dev,
-+		dma_addr_t dma_handle, size_t size,
-+		enum dma_data_direction direction)
- {
--	BUG_ON(!valid_dma_direction(direction));
--
- 	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
- }
--EXPORT_SYMBOL(dma_sync_single_range_for_device);
- 
--void dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
--			 enum dma_data_direction direction)
-+static void nios2_dma_sync_sg_for_cpu(struct device *dev,
-+		struct scatterlist *sg, int nelems,
-+		enum dma_data_direction direction)
- {
- 	int i;
- 
--	BUG_ON(!valid_dma_direction(direction));
--
- 	/* Make sure that gcc doesn't leave the empty loop body.  */
- 	for_each_sg(sg, sg, nelems, i)
- 		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
- }
--EXPORT_SYMBOL(dma_sync_sg_for_cpu);
- 
--void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
--				int nelems, enum dma_data_direction direction)
-+static void nios2_dma_sync_sg_for_device(struct device *dev,
-+		struct scatterlist *sg, int nelems,
-+		enum dma_data_direction direction)
- {
- 	int i;
- 
--	BUG_ON(!valid_dma_direction(direction));
--
- 	/* Make sure that gcc doesn't leave the empty loop body.  */
- 	for_each_sg(sg, sg, nelems, i)
- 		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
- 
- }
--EXPORT_SYMBOL(dma_sync_sg_for_device);
-+
-+struct dma_map_ops nios2_dma_ops = {
-+	.alloc                  = nios2_dma_alloc,
-+	.free                   = nios2_dma_free,
-+	.map_page               = nios2_dma_map_page,
-+	.map_sg                 = nios2_dma_map_sg,
-+	.sync_single_for_device = nios2_dma_sync_single_for_device,
-+	.sync_single_for_cpu    = nios2_dma_sync_single_for_cpu,
-+	.sync_sg_for_cpu        = nios2_dma_sync_sg_for_cpu,
-+	.sync_sg_for_dev        = nios2_dma_sync_sg_for_device,
-+};
-+EXPORT_SYMBOL(nios2_dma_ops);
+This second version has only few changes in compare with v1, see
+below. Peter Zijlstra suggested to improve also handling of
+the serial console. I looked into tit and it seems to be
+a rather huge task. It might need to review all console
+implementations and avoid a deadlock in the locally used locks.
+It would be nice but I would move this to another season.
+
+I think that this patchset makes sense as is. It definitely
+improves the situation. It allows to put all messages into
+the ring buffer so that they are available in the crashdump.
+We have had a similar solution in SLE for years and customers
+stopped complaining about the deadlock.
+
+Changes against v1:
+
+  + rebased on top of 4.4-rc2; there the old implementation was
+    moved to lib/nmi_backtrace.c and used also on arm; I hope that
+    I got the arm side correctly; I was not able to test on arm :-(
+
+  + defined HAVE_NMI on arm for !CPU_V7M instead of !CPU_V7;
+    handle_fiq_as_nmi() is called from entry-armv.S that
+    is compiled when !CPU_V7M
+
+  + defined HAVE_NMI also on mips; it calls nmi_enter() and
+    seems to have real NMIs (or am I wrong?)
+
+  + serialized backtraces when printing directly
+    (oops_in_progress)
+
+Petr Mladek (5):
+  printk/nmi: Generic solution for safe printk in NMI
+  printk/nmi: Use IRQ work only when ready
+  printk/nmi: Try hard to print Oops message in NMI context
+  printk/nmi: Warn when some message has been lost in NMI context
+  printk/nmi: Increase the size of the temporary buffer
+
+ arch/Kconfig                  |   7 ++
+ arch/arm/Kconfig              |   2 +
+ arch/arm/kernel/smp.c         |   2 +
+ arch/avr32/Kconfig            |   1 +
+ arch/blackfin/Kconfig         |   1 +
+ arch/cris/Kconfig             |   1 +
+ arch/mips/Kconfig             |   1 +
+ arch/powerpc/Kconfig          |   1 +
+ arch/s390/Kconfig             |   1 +
+ arch/s390/mm/fault.c          |   1 +
+ arch/sh/Kconfig               |   1 +
+ arch/sparc/Kconfig            |   1 +
+ arch/tile/Kconfig             |   1 +
+ arch/x86/Kconfig              |   1 +
+ arch/x86/kernel/apic/hw_nmi.c |   1 -
+ include/linux/hardirq.h       |   2 +
+ include/linux/percpu.h        |   3 -
+ include/linux/printk.h        |  12 ++-
+ init/Kconfig                  |   5 +
+ init/main.c                   |   1 +
+ kernel/printk/Makefile        |   1 +
+ kernel/printk/nmi.c           | 218 ++++++++++++++++++++++++++++++++++++++++++
+ kernel/printk/printk.c        |  36 +++----
+ kernel/printk/printk.h        |  55 +++++++++++
+ lib/bust_spinlocks.c          |   1 +
+ lib/nmi_backtrace.c           |  93 +++---------------
+ 26 files changed, 345 insertions(+), 105 deletions(-)
+ create mode 100644 kernel/printk/nmi.c
+ create mode 100644 kernel/printk/printk.h
+
 -- 
-1.9.1
+1.8.5.6
 
