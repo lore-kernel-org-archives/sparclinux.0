@@ -1,255 +1,113 @@
-From: MANDIA BARKER <mandiabarker7@gmail.com>
-Date: Mon, 23 Nov 2015 07:03:55 +0000
-Subject: PLEASE GET BACK TO ME AS SOON AS YOU RECEIVE THIS EMAIL
-Message-Id: <1956724813.7405844.1448262235944.JavaMail.yahoo@mail.yahoo.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="----=_Part_7405843_790101019.1448262235944"
+From: Minchan Kim <minchan@kernel.org>
+Date: Mon, 30 Nov 2015 06:39:34 +0000
+Subject: [PATCH v5 03/12] arch: uapi: asm: mman.h: Let MADV_FREE have same value for all architectures
+Message-Id: <1448865583-2446-4-git-send-email-minchan@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
-
-------=_Part_7405843_790101019.1448262235944
-Content-Type: text/plain; charset=UTF-8
+References: <1448865583-2446-1-git-send-email-minchan@kernel.org>
+In-Reply-To: <1448865583-2446-1-git-send-email-minchan@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Michael Kerrisk <mtk.manpages@gmail.com>, linux-api@vger.kernel.org, Hugh Dickins <hughd@google.com>, Johannes Weiner <hannes@cmpxchg.org>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@suse.de>, KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, Jason Evans <je@fb.com>, Daniel Micay <danielmicay@gmail.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Shaohua Li <shli@kernel.org>, Michal Hocko <mhocko@suse.cz>, yalin.wang2010@gmail.com, Andy Lutomirski <luto@amacapital.net>, Chen Gang <gang.chen.5i5j@gmail.com>, "rth@twiddle.net" <rth@twiddle.net>, "ink@jurassic.park.msu.ru" <ink@jurassic.park.msu.ru>, "mattst88@gmail.com" <mattst88@gmail.com>, Ralf Baechle <ralf@linux-mips.org>, "jejb@parisc-linux.org" <jejb@parisc-linux.org>, "deller@gmx.de" <deller@gmx.de>, "chris@zankel.net" <chris@zankel.net>, jcmvb
 
+From: Chen Gang <gang.chen.5i5j@gmail.com>
 
+For uapi, need try to let all macros have same value, and MADV_FREE is
+added into main branch recently, so need redefine MADV_FREE for it.
 
-------=_Part_7405843_790101019.1448262235944
-Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="MANDIA BARKER.docx"
-Content-ID: <1f7062ac-768e-e029-a83b-a9052c6e59c4@yahoo.com>
+At present, '8' can be shared with all architectures, so redefine it to
+'8'.
 
-UEsDBBQABgAIAAAAIQDd/JU3ZgEAACAFAAATAAgCW0NvbnRlbnRfVHlwZXNdLnhtbCCiBAIooAAC
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAC0
-VMtuwjAQvFfqP0S+Vomhh6qqCBz6OLZIpR9g7A1Y9Uv28vr7bgJEVQtBKuUSKVnvzOzsxIPR2pps
-CTFp70rWL3osAye90m5Wso/JS37PsoTCKWG8g5JtILHR8PpqMNkESBl1u1SyOWJ44DzJOViRCh/A
-UaXy0Qqk1zjjQchPMQN+2+vdcekdgsMcaww2HDxBJRYGs+c1fd4qiWASyx63B2uukokQjJYCSSlf
-OvWDJd8xFNTZnElzHdINyWD8IENdOU6w63sja6JWkI1FxFdhSQZf+ai48nJhaYaiG+aATl9VWkLb
-X6OF6CWkRJ5bU7QVK7Tb6z+qI+HGQPp/FVvcLnrSOY4+JE57OZsf6s0rUDlZESCihnZ1x0cHRLLs
-EsPvkLvGb1KAlHfgzbN/tgcNzEnKin6JiZgaOJvvV/Ja6JMiVjB9v5j738C7hLT5kz7+wYz9dVF3
-H0gdb+634RcAAAD//wMAUEsDBBQABgAIAAAAIQAekRq38wAAAE4CAAALAAgCX3JlbHMvLnJlbHMg
-ogQCKKAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAjJLbSgNBDIbvBd9hyH032woi0tneSKF3IusDhJnsAXcOzKTavr2jILpQ217m9OfLT9ab
-g5vUO6c8Bq9hWdWg2JtgR99reG23iwdQWchbmoJnDUfOsGlub9YvPJGUoTyMMaui4rOGQSQ+ImYz
-sKNchci+VLqQHEkJU4+RzBv1jKu6vsf0VwOamabaWQ1pZ+9AtcdYNl/WDl03Gn4KZu/Yy4kVyAdh
-b9kuYipsScZyjWop9SwabDDPJZ2RYqwKNuBpotX1RP9fi46FLAmhCYnP83x1nANaXg902aJ5x687
-HyFZLBZ9e/tDg7MvaD4BAAD//wMAUEsDBBQABgAIAAAAIQDWZLNR+gAAADEDAAAcAAgBd29yZC9f
-cmVscy9kb2N1bWVudC54bWwucmVscyCiBAEooAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-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
-AAsAwQIAAKUwAAAAAA==
+Cc: rth@twiddle.net <rth@twiddle.net>,
+Cc: ink@jurassic.park.msu.ru <ink@jurassic.park.msu.ru>
+Cc: mattst88@gmail.com <mattst88@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: jejb@parisc-linux.org <jejb@parisc-linux.org>
+Cc: deller@gmx.de <deller@gmx.de>
+Cc: chris@zankel.net <chris@zankel.net>
+Cc: jcmvbkbc@gmail.com <jcmvbkbc@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-api@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: roland@kernel.org
+Cc: darrick.wong@oracle.com
+Cc: davem@davemloft.net
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+---
+ arch/alpha/include/uapi/asm/mman.h     | 1 +
+ arch/mips/include/uapi/asm/mman.h      | 1 +
+ arch/parisc/include/uapi/asm/mman.h    | 1 +
+ arch/xtensa/include/uapi/asm/mman.h    | 1 +
+ include/uapi/asm-generic/mman-common.h | 2 +-
+ 5 files changed, 5 insertions(+), 1 deletion(-)
 
-------=_Part_7405843_790101019.1448262235944--
+diff --git a/arch/alpha/include/uapi/asm/mman.h b/arch/alpha/include/uapi/asm/mman.h
+index d828beb5e69b..ab336c06153e 100644
+--- a/arch/alpha/include/uapi/asm/mman.h
++++ b/arch/alpha/include/uapi/asm/mman.h
+@@ -50,6 +50,7 @@
+ #define MADV_FREE	7		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/mips/include/uapi/asm/mman.h b/arch/mips/include/uapi/asm/mman.h
+index a6f8daff8e3b..b0ebe59f73fd 100644
+--- a/arch/mips/include/uapi/asm/mman.h
++++ b/arch/mips/include/uapi/asm/mman.h
+@@ -76,6 +76,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/parisc/include/uapi/asm/mman.h b/arch/parisc/include/uapi/asm/mman.h
+index bda94f0d0b94..cf830d465f75 100644
+--- a/arch/parisc/include/uapi/asm/mman.h
++++ b/arch/parisc/include/uapi/asm/mman.h
+@@ -46,6 +46,7 @@
+ #define MADV_FREE	8		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/arch/xtensa/include/uapi/asm/mman.h b/arch/xtensa/include/uapi/asm/mman.h
+index 83c5150b06f9..d030594ed22b 100644
+--- a/arch/xtensa/include/uapi/asm/mman.h
++++ b/arch/xtensa/include/uapi/asm/mman.h
+@@ -89,6 +89,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff --git a/include/uapi/asm-generic/mman-common.h b/include/uapi/asm-generic/mman-common.h
+index 0e821e3c3d45..58274382a616 100644
+--- a/include/uapi/asm-generic/mman-common.h
++++ b/include/uapi/asm-generic/mman-common.h
+@@ -39,9 +39,9 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+-- 
+1.9.1
+
