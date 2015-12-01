@@ -1,59 +1,59 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Wed, 30 Dec 2015 13:26:01 +0000
-Subject: [PATCH 25/34] sparc: define __smp_xxx
-Message-Id: <1451473761-30019-26-git-send-email-mst@redhat.com>
+From: Yang Shi <yang.shi@linaro.org>
+Date: Tue, 01 Dec 2015 23:06:17 +0000
+Subject: [PATCH 7/7] sparc64: mm/gup: add gup trace points
+Message-Id: <1449011177-30686-8-git-send-email-yang.shi@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451473761-30019-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451473761-30019-1-git-send-email-mst@redhat.com>
+References: <1449011177-30686-1-git-send-email-yang.shi@linaro.org>
+In-Reply-To: <1449011177-30686-1-git-send-email-yang.shi@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Peter Zijlstra <peterz@infradead.org>, Andrew Cooper <andrew.cooper3@citrix.com>, Ingo Molnar <mingo@kernel.org>, Andrey Konovalov <andreyknvl@google.com>, virtualization@lists.linux-foundation.org, Michael Ellerman <mpe@ellerman.id.au>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: akpm@linux-foundation.org, rostedt@goodmis.org, mingo@redhat.com
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linaro-kernel@lists.linaro.org, yang.shi@linaro.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-This defines __smp_XXX barriers for sparc,
-for use by virtualization.
-
-smp_XXX barriers are removed as they are
-defined correctly by asm-generic/barriers.h
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
 ---
- arch/sparc/include/asm/barrier_64.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+The context depends on the below patch:
+https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1028752.html
 
-diff --git a/arch/sparc/include/asm/barrier_64.h b/arch/sparc/include/asm/barrier_64.h
-index 26c3f72..c9f6ee6 100644
---- a/arch/sparc/include/asm/barrier_64.h
-+++ b/arch/sparc/include/asm/barrier_64.h
-@@ -37,14 +37,14 @@ do {	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t" \
- #define rmb()	__asm__ __volatile__("":::"memory")
- #define wmb()	__asm__ __volatile__("":::"memory")
+ arch/sparc/mm/gup.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index cf4fb47..6dcfc4d 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -10,6 +10,10 @@
+ #include <linux/vmstat.h>
+ #include <linux/pagemap.h>
+ #include <linux/rwsem.h>
++
++#define CREATE_TRACE_POINTS
++#include <trace/events/gup.h>
++
+ #include <asm/pgtable.h>
  
--#define smp_store_release(p, v)						\
-+#define __smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
- 	barrier();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
+ /*
+@@ -177,6 +181,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 					(void __user *)start, len)))
+ 		return 0;
  
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
-@@ -52,8 +52,8 @@ do {									\
- 	___p1;								\
- })
++	trace_gup_get_user_pages_fast(start, nr_pages, write, pages);
++
+ 	local_irq_save(flags);
+ 	pgdp = pgd_offset(mm, addr);
+ 	do {
+@@ -209,6 +215,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	if (end < start)
+ 		goto slow_irqon;
  
--#define smp_mb__before_atomic()	barrier()
--#define smp_mb__after_atomic()	barrier()
-+#define __smp_mb__before_atomic()	barrier()
-+#define __smp_mb__after_atomic()	barrier()
- 
- #include <asm-generic/barrier.h>
- 
++	trace_gup_get_user_pages_fast(start, nr_pages, write, pages);
++
+ 	/*
+ 	 * XXX: batch / limit 'nr', to avoid large irq off latency
+ 	 * needs some instrumenting to determine the common sizes used by
 -- 
-MST
+2.0.2
 
