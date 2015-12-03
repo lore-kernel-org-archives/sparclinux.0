@@ -1,53 +1,72 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:07:59 +0000
-Subject: [PATCH v2 17/32] arm: define __smp_xxx
-Message-Id: <1451572003-2440-18-git-send-email-mst@redhat.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 03 Dec 2015 20:38:10 +0000
+Subject: Re: [V2 PATCH] sparc64/gup: check address scope legitimacy
+Message-Id: <20151203203809.GA15235@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
+References: <1448490684-17171-1-git-send-email-yang.shi@linaro.org>
+ <1448491543-17946-1-git-send-email-yang.shi@linaro.org>
+In-Reply-To: <1448491543-17946-1-git-send-email-yang.shi@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@kernel.org>, Tony Lindgren <tony@atomide.co>
+To: Yang Shi <yang.shi@linaro.org>
+Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linaro-kernel@lists.linaro.org
 
-This defines __smp_xxx barriers for arm,
-for use by virtualization.
+Hi Yang.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
+On Wed, Nov 25, 2015 at 02:45:43PM -0800, Yang Shi wrote:
+> Check if user address is accessible in atomic version __get_user_pages_fast()
+> before walking the page table.
+> And, check if end > start in get_user_pages_fast(), otherwise fallback to slow
+> path.
 
-This reduces the amount of arch-specific boiler-plate code.
+Two different but related things in one patch is often a bad thing.
+It would have been better to split it up.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/include/asm/barrier.h | 12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
-index 31152e8..112cc1a 100644
---- a/arch/arm/include/asm/barrier.h
-+++ b/arch/arm/include/asm/barrier.h
-@@ -60,15 +60,9 @@ extern void arm_heavy_mb(void);
- #define dma_wmb()	barrier()
- #endif
- 
--#ifndef CONFIG_SMP
--#define smp_mb()	barrier()
--#define smp_rmb()	barrier()
--#define smp_wmb()	barrier()
--#else
--#define smp_mb()	dmb(ish)
--#define smp_rmb()	smp_mb()
--#define smp_wmb()	dmb(ishst)
--#endif
-+#define __smp_mb()	dmb(ish)
-+#define __smp_rmb()	__smp_mb()
-+#define __smp_wmb()	dmb(ishst)
- 
- #include <asm-generic/barrier.h>
- 
--- 
-MST
+> 
+> Signed-off-by: Yang Shi <yang.shi@linaro.org>
+> ---
+> Just found slow_irqon label is not defined, added it to avoid compile error.
+> 
+>  arch/sparc/mm/gup.c | 7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+> index 2e5c4fc..cf4fb47 100644
+> --- a/arch/sparc/mm/gup.c
+> +++ b/arch/sparc/mm/gup.c
+> @@ -173,6 +173,9 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+>  	addr = start;
+>  	len = (unsigned long) nr_pages << PAGE_SHIFT;
+>  	end = start + len;
+> +	if (unlikely(!access_ok(write ? VERIFY_WRITE : VERIFY_READ,
+> +					(void __user *)start, len)))
+> +		return 0;
+This change is not justified.
+Why would we take the time to first do the access_ok() stuff.
+If this had been an expensive operation then we had made this function
+slower in the normal case ( assuming there were no access violations in the
+normal case).
+When I look at the implementation of access_ok() I get the impression that
+this is not really a check we need.
 
+access_ok() always returns 1.
+
+
+>  
+>  	local_irq_save(flags);
+>  	pgdp = pgd_offset(mm, addr);
+> @@ -203,6 +206,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+>  	addr = start;
+>  	len = (unsigned long) nr_pages << PAGE_SHIFT;
+>  	end = start + len;
+> +	if (end < start)
+> +		goto slow_irqon;
+
+end can only be smaller than start if there is some overflow.
+See how end is calculated just the line above.
+
+This looks like a highly suspicious change.
+
+	Sam
