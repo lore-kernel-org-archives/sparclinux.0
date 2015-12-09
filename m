@@ -1,91 +1,80 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:09:32 +0000
-Subject: [PATCH v2 29/32] Revert "virtio_ring: Update weak barriers to use dma_wmb/rmb"
-Message-Id: <1451572003-2440-30-git-send-email-mst@redhat.com>
+From: Petr Mladek <pmladek@suse.com>
+Date: Wed, 09 Dec 2015 13:21:01 +0000
+Subject: [PATCH v3 0/4] Cleaning printk stuff in NMI context
+Message-Id: <1449667265-17525-1-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Alexander Duyck <alexander.duyck@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
 
-This reverts commit 9e1a27ea42691429e31f158cce6fc61bc79bb2e9.
+This patch set generalizes the already existing solution for
+printing NMI messages. The main idea comes from Peter Zijlstra.
 
-While that commit optimizes !CONFIG_SMP, it mixes
-up DMA and SMP concepts, making the code hard
-to figure out.
+Changes against v2:
 
-A better way to optimize this is with the new __smp_XXX
-barriers.
+  + fixed compilation problems reported by 0-day build robot
 
-As a first step, go back to full rmb/wmb barriers
-for !SMP.
-We switch to __smp_XXX barriers in the next patch.
+  + MN10300 and Xtensa architectures will get handled separately
 
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- include/linux/virtio_ring.h | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+  + dropped the patch that printed NMI messages directly when Oops
+    in progress; it made the solution less reliable
 
-diff --git a/include/linux/virtio_ring.h b/include/linux/virtio_ring.h
-index 8e50888..67e06fe 100644
---- a/include/linux/virtio_ring.h
-+++ b/include/linux/virtio_ring.h
-@@ -21,20 +21,19 @@
-  * actually quite cheap.
-  */
- 
-+#ifdef CONFIG_SMP
- static inline void virtio_mb(bool weak_barriers)
- {
--#ifdef CONFIG_SMP
- 	if (weak_barriers)
- 		smp_mb();
- 	else
--#endif
- 		mb();
- }
- 
- static inline void virtio_rmb(bool weak_barriers)
- {
- 	if (weak_barriers)
--		dma_rmb();
-+		smp_rmb();
- 	else
- 		rmb();
- }
-@@ -42,10 +41,26 @@ static inline void virtio_rmb(bool weak_barriers)
- static inline void virtio_wmb(bool weak_barriers)
- {
- 	if (weak_barriers)
--		dma_wmb();
-+		smp_wmb();
- 	else
- 		wmb();
- }
-+#else
-+static inline void virtio_mb(bool weak_barriers)
-+{
-+	mb();
-+}
-+
-+static inline void virtio_rmb(bool weak_barriers)
-+{
-+	rmb();
-+}
-+
-+static inline void virtio_wmb(bool weak_barriers)
-+{
-+	wmb();
-+}
-+#endif
- 
- struct virtio_device;
- struct virtqueue;
+  + made the size of the buffer configurable; use real numbers
+    instead of PAGE_SIZE
+
+
+Changes against v1:
+
+  + rebased on top of 4.4-rc2; there the old implementation was
+    moved to lib/nmi_backtrace.c and used also on arm; I hope that
+    I got the arm side correctly; I was not able to test on arm :-(
+
+  + defined HAVE_NMI on arm for !CPU_V7M instead of !CPU_V7;
+    handle_fiq_as_nmi() is called from entry-armv.S that
+    is compiled when !CPU_V7M
+
+  + defined HAVE_NMI also on mips; it calls nmi_enter() and
+    seems to have real NMIs (or am I wrong?)
+
+  + serialized backtraces when printing directly
+    (oops_in_progress)
+
+
+Petr Mladek (4):
+  printk/nmi: Generic solution for safe printk in NMI
+  printk/nmi: Use IRQ work only when ready
+  printk/nmi: Warn when some message has been lost in NMI context
+  printk/nmi: Increase the size of NMI buffer and make it configurable
+
+ arch/Kconfig                  |   7 ++
+ arch/arm/Kconfig              |   2 +
+ arch/arm/kernel/smp.c         |   2 +
+ arch/avr32/Kconfig            |   1 +
+ arch/blackfin/Kconfig         |   1 +
+ arch/cris/Kconfig             |   1 +
+ arch/mips/Kconfig             |   1 +
+ arch/powerpc/Kconfig          |   1 +
+ arch/s390/Kconfig             |   1 +
+ arch/sh/Kconfig               |   1 +
+ arch/sparc/Kconfig            |   1 +
+ arch/tile/Kconfig             |   1 +
+ arch/x86/Kconfig              |   1 +
+ arch/x86/kernel/apic/hw_nmi.c |   1 -
+ include/linux/hardirq.h       |   2 +
+ include/linux/percpu.h        |   3 -
+ include/linux/printk.h        |  12 ++-
+ init/Kconfig                  |  27 ++++++
+ init/main.c                   |   1 +
+ kernel/printk/Makefile        |   1 +
+ kernel/printk/nmi.c           | 218 ++++++++++++++++++++++++++++++++++++++++++
+ kernel/printk/printk.c        |  29 +++---
+ kernel/printk/printk.h        |  55 +++++++++++
+ lib/nmi_backtrace.c           |  89 +----------------
+ 24 files changed, 352 insertions(+), 107 deletions(-)
+ create mode 100644 kernel/printk/nmi.c
+ create mode 100644 kernel/printk/printk.h
+
 -- 
-MST
+1.8.5.6
 
