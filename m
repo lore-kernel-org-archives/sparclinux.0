@@ -1,87 +1,66 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:07:10 +0000
-Subject: [PATCH v2 11/32] mips: reuse asm-generic/barrier.h
-Message-Id: <1451572003-2440-12-git-send-email-mst@redhat.com>
+From: Petr Mladek <pmladek@suse.com>
+Date: Wed, 09 Dec 2015 13:21:03 +0000
+Subject: [PATCH v3 2/4] printk/nmi: Use IRQ work only when ready
+Message-Id: <1449667265-17525-3-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
+References: <1449667265-17525-1-git-send-email-pmladek@suse.com>
+In-Reply-To: <1449667265-17525-1-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ralf Baechle <ralf@linux-mips.org>, Ingo Molnar <mingo@kernel.org>, Michael Ellerman <mpe@ellerman.id.>
+To: linux-arm-kernel@lists.infradead.org
 
-On mips dma_rmb, dma_wmb, smp_store_mb, read_barrier_depends,
-smp_read_barrier_depends, smp_store_release and smp_load_acquire  match
-the asm-generic variants exactly. Drop the local definitions and pull in
-asm-generic/barrier.h instead.
+NMIs could happen at any time. This patch makes sure that the safe
+printk() in NMI will schedule IRQ work only when the related
+structs are initialized.
 
-This is in preparation to refactoring this code area.
+All pending messages are flushed when the IRQ work is being
+initialized.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Petr Mladek <pmladek@suse.com>
 ---
- arch/mips/include/asm/barrier.h | 25 ++-----------------------
- 1 file changed, 2 insertions(+), 23 deletions(-)
+ kernel/printk/nmi.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/arch/mips/include/asm/barrier.h b/arch/mips/include/asm/barrier.h
-index 752e0b8..3eac4b9 100644
---- a/arch/mips/include/asm/barrier.h
-+++ b/arch/mips/include/asm/barrier.h
-@@ -10,9 +10,6 @@
+diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
+index 7b5ff81b291f..29a498586465 100644
+--- a/kernel/printk/nmi.c
++++ b/kernel/printk/nmi.c
+@@ -38,6 +38,7 @@
+  * were handled or when IRQs are blocked.
+  */
+ DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
++static int printk_nmi_irq_ready;
  
- #include <asm/addrspace.h>
+ #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
  
--#define read_barrier_depends()		do { } while(0)
--#define smp_read_barrier_depends()	do { } while(0)
--
- #ifdef CONFIG_CPU_HAS_SYNC
- #define __sync()				\
- 	__asm__ __volatile__(			\
-@@ -87,8 +84,6 @@
+@@ -83,8 +84,11 @@ again:
+ 		goto again;
  
- #define wmb()		fast_wmb()
- #define rmb()		fast_rmb()
--#define dma_wmb()	fast_wmb()
--#define dma_rmb()	fast_rmb()
+ 	/* Get flushed in a more safe context. */
+-	if (add)
++	if (add && printk_nmi_irq_ready) {
++		/* Make sure that IRQ work is really initialized. */
++		smp_rmb();
+ 		irq_work_queue(&s->work);
++	}
  
- #if defined(CONFIG_WEAK_ORDERING) && defined(CONFIG_SMP)
- # ifdef CONFIG_CPU_CAVIUM_OCTEON
-@@ -112,9 +107,6 @@
- #define __WEAK_LLSC_MB		"		\n"
- #endif
+ 	return add;
+ }
+@@ -190,6 +194,13 @@ void __init printk_nmi_init(void)
  
--#define smp_store_mb(var, value) \
--	do { WRITE_ONCE(var, value); smp_mb(); } while (0)
--
- #define smp_llsc_mb()	__asm__ __volatile__(__WEAK_LLSC_MB : : :"memory")
- 
- #ifdef CONFIG_CPU_CAVIUM_OCTEON
-@@ -129,22 +121,9 @@
- #define nudge_writes() mb()
- #endif
- 
--#define smp_store_release(p, v)						\
--do {									\
--	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
--	WRITE_ONCE(*p, v);						\
--} while (0)
--
--#define smp_load_acquire(p)						\
--({									\
--	typeof(*p) ___p1 = READ_ONCE(*p);				\
--	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
--	___p1;								\
--})
--
- #define smp_mb__before_atomic()	smp_mb__before_llsc()
- #define smp_mb__after_atomic()	smp_llsc_mb()
- 
-+#include <asm-generic/barrier.h>
+ 		init_irq_work(&s->work, __printk_nmi_flush);
+ 	}
 +
- #endif /* __ASM_BARRIER_H */
++	/* Make sure that IRQ works are initialized before enabling. */
++	smp_wmb();
++	printk_nmi_irq_ready = 1;
++
++	/* Flush pending messages that did not have scheduled IRQ works. */
++	printk_nmi_flush();
+ }
+ 
+ void printk_nmi_enter(void)
 -- 
-MST
+1.8.5.6
 
