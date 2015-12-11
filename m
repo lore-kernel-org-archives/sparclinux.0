@@ -1,65 +1,74 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 31 Dec 2015 20:30:31 +0000
-Subject: [PATCH] sparc: Wire up mlock2 system call.
-Message-Id: <20151231.153031.1204716147186023428.davem@davemloft.net>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Fri, 11 Dec 2015 05:06:00 +0000
+Subject: [PATCH v9 04/60] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <1449810416-2950-5-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1449810416-2950-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1449810416-2950-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
+For device resource PREF bit setting under bridge 64-bit pref resource,
+we need to make sure only set PREF for 64bit resource, so set
+IORESOUCE_MEM_64 for 64bit resource during of device resource flags
+parsing.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
 ---
- arch/sparc/include/uapi/asm/unistd.h | 3 ++-
- arch/sparc/kernel/systbls_32.S       | 2 +-
- arch/sparc/kernel/systbls_64.S       | 4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/of_device_32.c | 5 +++--
+ arch/sparc/kernel/of_device_64.c | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index 5655912..1c26d44 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -421,8 +421,9 @@
- #define __NR_bind		353
- #define __NR_listen		354
- #define __NR_setsockopt		355
-+#define __NR_mlock2		356
- 
--#define NR_syscalls		356
-+#define NR_syscalls		357
- 
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index d557a25..e663b6c 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -88,4 +88,4 @@ sys_call_table:
- /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
--/*355*/	.long sys_setsockopt
-+/*355*/	.long sys_setsockopt, sys_mlock2
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index 898684c..1557121 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -89,7 +89,7 @@ sys_call_table32:
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
--	.word compat_sys_setsockopt
-+	.word compat_sys_setsockopt, sys_mlock2
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -170,4 +170,4 @@ sys_call_table:
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
--	.word sys_setsockopt
-+	.word sys_setsockopt, sys_mlock2
--- 
-2.4.1
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
+_32.c
+index 185aa96..3e9f273 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
+dr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
+_64.c
+index 7bbdc26..defee61 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
+addr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+--=20
+1.8.4.5
 
