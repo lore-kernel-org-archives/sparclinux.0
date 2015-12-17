@@ -1,34 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 31 Dec 2015 19:43:47 +0000
-Subject: Re: [PATCH v2 07/32] sparc: reuse asm-generic/barrier.h
-Message-Id: <20151231.144347.54643465516219979.davem@davemloft.net>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 17 Dec 2015 17:33:50 +0000
+Subject: [PATCH v2] sparc64: Add ADI capability to cpu capabilities
+Message-Id: <1450373630-6916-1-git-send-email-khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-	<1451572003-2440-8-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-8-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mst@redhat.com
-Cc: linux-kernel@vger.kernel.org, peterz@infradead.org, arnd@arndb.de, linux-arch@vger.kernel.org, andrew.cooper3@citrix.com, virtualization@lists.linux-foundation.org, stefano.stabellini@eu.citrix.com, tglx@linutronix.de, mingo@elte.hu, hpa@zytor.com, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, mingo@kernel.org, ralf@linux-mips.org, andreyknvl@google.com
+To: davem@davemloft.net
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 21:06:38 +0200
+Add ADI (Application Data Integrity) capability to cpu capabilities list.
+ADI capability allows virtual addresses to be encoded with a tag in
+bits 63-60. This tag serves as an access control key for the regions
+of virtual address with ADI enabled and a key set on them. Hypervisor
+encodes this capability as "adp" in "hwcap-list" property in machine
+description.
 
-> On sparc 64 bit dma_rmb, dma_wmb, smp_store_mb, smp_mb, smp_rmb,
-> smp_wmb, read_barrier_depends and smp_read_barrier_depends match the
-> asm-generic variants exactly. Drop the local definitions and pull in
-> asm-generic/barrier.h instead.
-> 
-> nop uses __asm__ __volatile but is otherwise identical to
-> the generic version, drop that as well.
-> 
-> This is in preparation to refactoring this code area.
-> 
-> Note: nop() was in processor.h and not in barrier.h as on other
-> architectures. Nothing seems to depend on it being there though.
-> 
-> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+---
+v2:
+	- Removed string translation of capability from "adp" to "adi"
 
-Acked-by: David S. Miller <davem@davemloft.net>
+ arch/sparc/include/asm/elf_64.h | 1 +
+ arch/sparc/kernel/setup_64.c    | 9 +++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
+index 370ca1e..9331083 100644
+--- a/arch/sparc/include/asm/elf_64.h
++++ b/arch/sparc/include/asm/elf_64.h
+@@ -95,6 +95,7 @@
+  * really available.  So we simply advertise only "crypto" support.
+  */
+ #define HWCAP_SPARC_CRYPTO	0x04000000 /* CRYPTO insns available */
++#define HWCAP_SPARC_ADI		0x08000000 /* ADI available */
+ 
+ #define CORE_DUMP_USE_REGSET
+ 
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index f7b2617..f3185e2 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -380,7 +380,8 @@ static const char *hwcaps[] = {
+ 	 */
+ 	"mul32", "div32", "fsmuld", "v8plus", "popc", "vis", "vis2",
+ 	"ASIBlkInit", "fmaf", "vis3", "hpc", "random", "trans", "fjfmau",
+-	"ima", "cspare", "pause", "cbcond",
++	"ima", "cspare", "pause", "cbcond", NULL /*reserved for crypto */,
++	"adp",
+ };
+ 
+ static const char *crypto_hwcaps[] = {
+@@ -396,7 +397,7 @@ void cpucap_info(struct seq_file *m)
+ 	seq_puts(m, "cpucaps\t\t: ");
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (caps & bit) {
++		if (hwcaps[i] && (caps & bit)) {
+ 			seq_printf(m, "%s%s",
+ 				   printed ? "," : "", hwcaps[i]);
+ 			printed++;
+@@ -450,7 +451,7 @@ static void __init report_hwcaps(unsigned long caps)
+ 
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (caps & bit)
++		if (hwcaps[i] && (caps & bit))
+ 			report_one_hwcap(&printed, hwcaps[i]);
+ 	}
+ 	if (caps & HWCAP_SPARC_CRYPTO)
+@@ -485,7 +486,7 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
+ 		for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 			unsigned long bit = 1UL << i;
+ 
+-			if (!strcmp(prop, hwcaps[i])) {
++			if (hwcaps[i] && !strcmp(prop, hwcaps[i])) {
+ 				caps |= bit;
+ 				break;
+ 			}
+-- 
+2.1.4
+
