@@ -1,64 +1,58 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Date: Sun, 20 Dec 2015 05:47:54 +0000
-Subject: using ptrace to cancel a syscall on sparc
-Message-Id: <20151220054754.GZ11489@vapier.lan>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Sun, 20 Dec 2015 23:31:44 +0000
+Subject: Re: using ptrace to cancel a syscall on sparc
+Message-Id: <20151220233144.GA23664@altlinux.org>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="gi3iJNaOIGm63TYM"
+Content-Type: multipart/mixed; boundary="PEIAKu/WMn1b1Hv9"
 List-Id: <sparclinux.vger.kernel.org>
+References: <20151220054754.GZ11489@vapier.lan>
+In-Reply-To: <20151220054754.GZ11489@vapier.lan>
 To: sparclinux@vger.kernel.org
 
 
---gi3iJNaOIGm63TYM
-Content-Type: text/plain; charset=utf-8
+--PEIAKu/WMn1b1Hv9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Dec 20, 2015 at 12:47:54AM -0500, Mike Frysinger wrote:
+> i've been playing with ptrace on sparc and trying to use it to watch and
+> cancel specific syscalls.  i have this working for other arches already.
+[...]
+> i'm having trouble with canceling of the syscall itself.  seems like
+> no matter what i stuff into o0, the kernel executes the unlink.  i've
+> tried tracing arch/sparc/kernel/syscalls.S and kernel/head_64.S, the
+> the entry is linux_sparc_syscall32 which calls linux_syscall_trace32,
+> but it seems like the o0 stuff doesn't seem to work for me.  my sparc
+> asm foo isn't strong enough to figure out what's going wrong :/.
+
+Yes, sparc is odd in this respect: whatever you write to u_regs[] on
+entering syscall, it doesn't affect syscall number or syscall arguments.
+
+
+--=20
+ldv
+
+--PEIAKu/WMn1b1Hv9
+Content-Type: application/pgp-signature
 Content-Disposition: inline
 
-i've been playing with ptrace on sparc and trying to use it to watch and
-cancel specific syscalls.  i have this working for other arches already.
-
-the test is pretty simple:
- - call open("f", O_CREAT)
- - call unlink("f")
-the tracer will watch for the unlink, and when it gets notified, stuffs
-the syscall # with -1 (so it'll get skipped).  then when it gets called
-a second time, it stuffs the exit with -1/EPERM.
-
-i'm using PTRACE_GETREGS/PTRACE_SETREGS to read/write the regsets (and
-i've swapped the addr/data args specifically for sparc).  i extract the
-syscall # from g1 (u_regs[0]) and syscalls args from o0..o5 (u_regs[7]
-through u_regs[12]).  this seems to be working fine.
-
-when setting the return value, i set PSR_C in the psr register, and i
-set o0 to EPERM.  seems to be working (the unlink function returns a
--1 and errno is EPERM).
-
-i'm having trouble with canceling of the syscall itself.  seems like
-no matter what i stuff into o0, the kernel executes the unlink.  i've
-tried tracing arch/sparc/kernel/syscalls.S and kernel/head_64.S, the
-the entry is linux_sparc_syscall32 which calls linux_syscall_trace32,
-but it seems like the o0 stuff doesn't seem to work for me.  my sparc
-asm foo isn't strong enough to figure out what's going wrong :/.
--mike
-
---gi3iJNaOIGm63TYM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJWdkEKAAoJEEFjO5/oN/WBPYsQAIMaBSPrDU1XzClihMAGr1LR
-SXZTCAWWi7EPJSRqAPawnu72EswDZChNRM/4EK+/wKZRyAbJGiLpFpFSkL+b06WD
-zmvqJdyQhaLQz2tLS9oFNhJRtPczsC08ENLeuEpNu17xCvYHLguuTPxT1ESbz8vv
-CaV7FBJYVpmwiqFKUKcie3YF5ZW9tsW3WmmBjBFsmv9y649R9Bqa9y6SOFQDN+44
-UwU3X4YmvQwlyN6+OJmt25zlwe1rnKK9utN9o2+x/WC4uR3/aQe+4nmI+LYNXdks
-HoUAaP+RhGbX9OeqwVpiKqmscvvW9zCzrFQ/h3AgPXhC+692InnlTvocDZKtZBab
-udEzViKRSeJ/PAvW7KoXXMBULIwwoRg/hKfN2yCGlLh3ppiCXoFn2u6sgEIuFzma
-KC2SZrp+FHu3FhlxUX52EnKeyhVQgSR04lY9hS0OMVDJaulvLUjvRsMQcKT2Q/mS
-ZwZXMR4iVdHUOwm5AfVX2UEdGtao46EFxuz56uBjvpZgNrGJnOVJ4R/r4fYuUf3r
-QPKnmivKpNckB9dmIhgDYk8XdmLTXU2IXSuVKluBdgpvLnjnN74OICVu4GPrJUYn
-gHlyfgOd87XqZcJ4qlMt1D+itbGaKB/JNtbkecHYUqr1QH44WonPbeXW5Wj9cUM6
-6Fa+sfG4VbKK1KIyghQD
-=IwL+
+iQIcBAEBCAAGBQJWdzpgAAoJEAVFT+BVnCUIB+gQAK2Q128ivmCQEaphmepMDVco
+1NB+R5Ch6kuMy0tbUmUe107CWfrIb/+QEhTWQ0J5E/OST4lgjP4ocIRAN5jRkp1Z
+pL73eBdwQ9zhunjOV9PNs/bCUEifiRTNfkjRiiCRp1kN4k/qBnUJeA3pgytboCex
+TE+L1hrVl4eshO+K5NitJkMDLZsQoHCDHb/CB21gGz+i/pWa/Fplz6oQ1AgCNpP1
+QL+yUyXti7Oc4NC56jWnFm4+nEKP+4AStNx1d9Y47LSAGiWdYE3a4m+xU9fRd3gK
+wUe6tlRq238lVbPwDgnHfuQ3Uto/Iro1Rslkf9LDeaoNoEIBZND0WBJTapPk7yzL
+LWteYzkPkzTlL51rHnu25gPko6T7yZcvos5116b+O7TFhOU5TqGju1lsu0GaVXAC
+lOBKzVJaHStaL7+T2vbvhjNF3zW8CHHW4zM/6uc5xV2NAePEMAkgIymWwN5zZixs
+CAEgo8tcP//pOwb7Di2rrEY7Hh6eMUvs36bs4Kztli80DXLpnqy4isoBMf0WGBwu
+MJwI/ullMSSbMsk9forASbl1sP4e+JDmpJzlSc+DIVGaJsZLZ0esNuEdSkOYY+qo
+8H2q5Ftzqix3hf9Jpx0vfV+Q/n1X9hLVV8nxynw5vD0DiR4m3YbLkuJ1FrqmU0Wj
+6L4cUSnRs847ypI3GVMf
+=f9+L
 -----END PGP SIGNATURE-----
 
---gi3iJNaOIGm63TYM--
+--PEIAKu/WMn1b1Hv9--
