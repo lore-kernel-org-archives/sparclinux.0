@@ -1,64 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Dec 2015 16:43:34 +0000
-Subject: Re: [PATCH] sparc64: fix FP corruption in user copy functions
-Message-Id: <20151224.114334.711621212133951275.davem@davemloft.net>
+From: Mike Frysinger <vapier@gentoo.org>
+Date: Sun, 20 Dec 2015 05:47:54 +0000
+Subject: using ptrace to cancel a syscall on sparc
+Message-Id: <20151220054754.GZ11489@vapier.lan>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="gi3iJNaOIGm63TYM"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1450851889-8950-1-git-send-email-rob.gardner@oracle.com>
-In-Reply-To: <1450851889-8950-1-git-send-email-rob.gardner@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Tue, 22 Dec 2015 23:24:49 -0700
 
-> Short story: Exception handlers used by some copy_to_user() and
-> copy_from_user() functions do not diligently clean up floating point
-> register usage, and this can result in a user process seeing invalid
-> values in floating point registers. This sometimes makes the process
-> fail.
-> 
-> Long story: Several cpu-specific (NG4, NG2, U1, U3) memcpy functions
-> use floating point registers and VIS alignaddr/faligndata to
-> accelerate data copying when source and dest addresses don't align
-> well. Linux uses a lazy scheme for saving floating point registers; It
-> is not done upon entering the kernel since it's a very expensive
-> operation. Rather, it is done only when needed. If the kernel ends up
-> not using FP regs during the course of some trap or system call, then
-> it can return to user space without saving or restoring them.
-> 
-> The various memcpy functions begin their FP code with VISEntry (or a
-> variation thereof), which saves the FP regs. They conclude their FP
-> code with VISExit (or a variation) which essentially marks the FP regs
-> "clean", ie, they contain no unsaved values. fprs.FPRS_FEF is turned
-> off so that a lazy restore will be triggered when/if the user process
-> accesses floating point regs again.
-> 
-> The bug is that the user copy variants of memcpy, copy_from_user() and
-> copy_to_user(), employ an exception handling mechanism to detect faults
-> when accessing user space addresses, and when this handler is invoked,
-> an immediate return from the function is forced, and VISExit is not
-> executed, thus leaving the fprs register in an indeterminate state,
-> but often with fprs.FPRS_FEF set and one or more dirty bits. This
-> results in a return to user space with invalid values in the FP regs,
-> and since fprs.FPRS_FEF is on, no lazy restore occurs.
-> 
-> This bug affects copy_to_user() and copy_from_user() for NG4, NG2,
-> U3, and U1. All are fixed by using a new exception handler for those
-> loads and stores that are done during the time between VISEnter and
-> VISExit.
-> 
-> n.b. In NG4memcpy, the problematic code can be triggered by a copy
-> size greater than 128 bytes and an unaligned source address.  This bug
-> is known to be the cause of random user process memory corruptions
-> while perf is running with the callgraph option (ie, perf record -g).
-> This occurs because perf uses copy_from_user() to read user stacks,
-> and may fault when it follows a stack frame pointer off to an
-> invalid page. Validation checks on the stack address just obscure
-> the underlying problem.
-> 
-> Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
-> Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+--gi3iJNaOIGm63TYM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Also applied, thanks a lot.
+i've been playing with ptrace on sparc and trying to use it to watch and
+cancel specific syscalls.  i have this working for other arches already.
+
+the test is pretty simple:
+ - call open("f", O_CREAT)
+ - call unlink("f")
+the tracer will watch for the unlink, and when it gets notified, stuffs
+the syscall # with -1 (so it'll get skipped).  then when it gets called
+a second time, it stuffs the exit with -1/EPERM.
+
+i'm using PTRACE_GETREGS/PTRACE_SETREGS to read/write the regsets (and
+i've swapped the addr/data args specifically for sparc).  i extract the
+syscall # from g1 (u_regs[0]) and syscalls args from o0..o5 (u_regs[7]
+through u_regs[12]).  this seems to be working fine.
+
+when setting the return value, i set PSR_C in the psr register, and i
+set o0 to EPERM.  seems to be working (the unlink function returns a
+-1 and errno is EPERM).
+
+i'm having trouble with canceling of the syscall itself.  seems like
+no matter what i stuff into o0, the kernel executes the unlink.  i've
+tried tracing arch/sparc/kernel/syscalls.S and kernel/head_64.S, the
+the entry is linux_sparc_syscall32 which calls linux_syscall_trace32,
+but it seems like the o0 stuff doesn't seem to work for me.  my sparc
+asm foo isn't strong enough to figure out what's going wrong :/.
+-mike
+
+--gi3iJNaOIGm63TYM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWdkEKAAoJEEFjO5/oN/WBPYsQAIMaBSPrDU1XzClihMAGr1LR
+SXZTCAWWi7EPJSRqAPawnu72EswDZChNRM/4EK+/wKZRyAbJGiLpFpFSkL+b06WD
+zmvqJdyQhaLQz2tLS9oFNhJRtPczsC08ENLeuEpNu17xCvYHLguuTPxT1ESbz8vv
+CaV7FBJYVpmwiqFKUKcie3YF5ZW9tsW3WmmBjBFsmv9y649R9Bqa9y6SOFQDN+44
+UwU3X4YmvQwlyN6+OJmt25zlwe1rnKK9utN9o2+x/WC4uR3/aQe+4nmI+LYNXdks
+HoUAaP+RhGbX9OeqwVpiKqmscvvW9zCzrFQ/h3AgPXhC+692InnlTvocDZKtZBab
+udEzViKRSeJ/PAvW7KoXXMBULIwwoRg/hKfN2yCGlLh3ppiCXoFn2u6sgEIuFzma
+KC2SZrp+FHu3FhlxUX52EnKeyhVQgSR04lY9hS0OMVDJaulvLUjvRsMQcKT2Q/mS
+ZwZXMR4iVdHUOwm5AfVX2UEdGtao46EFxuz56uBjvpZgNrGJnOVJ4R/r4fYuUf3r
+QPKnmivKpNckB9dmIhgDYk8XdmLTXU2IXSuVKluBdgpvLnjnN74OICVu4GPrJUYn
+gHlyfgOd87XqZcJ4qlMt1D+itbGaKB/JNtbkecHYUqr1QH44WonPbeXW5Wj9cUM6
+6Fa+sfG4VbKK1KIyghQD
+=IwL+
+-----END PGP SIGNATURE-----
+
+--gi3iJNaOIGm63TYM--
