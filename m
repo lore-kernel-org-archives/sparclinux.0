@@ -1,37 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 31 Dec 2015 20:30:07 +0000
-Subject: [GIT] Sparc
-Message-Id: <20151231.153007.364069531098368708.davem@davemloft.net>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Tue, 22 Dec 2015 04:48:03 +0000
+Subject: [PATCH] sparc64: Don't set %pil in rtrap_nmi too early
+Message-Id: <1450759683-1080-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+Commit 28a1f53 delays setting %pil to avoid potential
+hardirq stack overflow in the common rtrap_irq path.
+Setting %pil also needs to be delayed in the rtrap_nmi
+path for the same reason.
 
-Just some missing syscall wire ups, please pull, thanks!
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+---
+ arch/sparc/kernel/rtrap_64.S |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-The following changes since commit 8db7b3c54401d83a4dc370a59b8692854000ea03:
+diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
+index 39f0c66..d08bdaf 100644
+--- a/arch/sparc/kernel/rtrap_64.S
++++ b/arch/sparc/kernel/rtrap_64.S
+@@ -73,7 +73,13 @@ rtrap_nmi:	ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
+ 		andn			%l1, %l4, %l1
+ 		srl			%l4, 20, %l4
+ 		ba,pt			%xcc, rtrap_no_irq_enable
+-		 wrpr			%l4, %pil
++		nop
++		/* Do not actually set the %pil here.  We will do that
++		 * below after we clear PSTATE_IE in the %pstate register.
++		 * If we re-enable interrupts here, we can recurse down
++		 * the hardirq stack potentially endlessly, causing a
++		 * stack overflow.
++		 */
+ 
+ 		.align			64
+ 		.globl			rtrap_irq, rtrap, irqsz_patchme, rtrap_xcall
+-- 
+1.7.9.5
 
-  Merge branch 'parisc-4.4-4' of git://git.kernel.org/pub/scm/linux/kernel/git/deller/parisc-linux (2015-12-25 13:19:50 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to 42d85c52f88dd0d2159f531eb33cc66d6e3e60c0:
-
-  sparc: Wire up mlock2 system call. (2015-12-31 15:38:56 -0500)
-
-----------------------------------------------------------------
-David S. Miller (2):
-      sparc: Add all necessary direct socket system calls.
-      sparc: Wire up mlock2 system call.
-
- arch/sparc/include/uapi/asm/unistd.h |  6 +++++-
- arch/sparc/kernel/systbls_32.S       | 19 ++++++++++---------
- arch/sparc/kernel/systbls_64.S       | 18 ++++++++++--------
- 3 files changed, 25 insertions(+), 18 deletions(-)
