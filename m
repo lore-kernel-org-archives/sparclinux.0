@@ -1,63 +1,68 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:08:38 +0000
-Subject: [PATCH v2 22/32] s390: define __smp_xxx
-Message-Id: <1451572003-2440-23-git-send-email-mst@redhat.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Wed, 23 Dec 2015 04:16:06 +0000
+Subject: [PATCH 1/2] sparc64: Ensure perf can access user stacks
+Message-Id: <1450844167-7327-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>Ingo
+To: sparclinux@vger.kernel.org
 
-This defines __smp_xxx barriers for s390,
-for use by virtualization.
+When an interrupt (such as a perf counter interrupt) is delivered
+while executing in user space, the trap entry code puts ASI_AIUS in
+%asi so that copy_from_user() and copy_to_user() will access the
+correct memory. But if a perf counter interrupt is delivered while the
+cpu is already executing in kernel space, then the trap entry code
+will put ASI_P in %asi, and this will prevent copy_from_user() from
+reading any useful stack data in either of the perf_callchain_user_X
+functions, and thus no user callgraph data will be collected for this
+sample period. An additional problem is that a fault is guaranteed
+to occur, and though it will be silently covered up, it wastes time
+and could perturb state.
 
-Some smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
+In perf_callchain_user(), we ensure that %asi contains ASI_AIUS
+because we know for a fact that the subsequent calls to
+copy_from_user() are intended to read the user's stack.
 
-Note: smp_mb, smp_rmb and smp_wmb are defined as full barriers
-unconditionally on this architecture.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
 ---
- arch/s390/include/asm/barrier.h | 15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/perf_event.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/arch/s390/include/asm/barrier.h b/arch/s390/include/asm/barrier.h
-index c358c31..fbd25b2 100644
---- a/arch/s390/include/asm/barrier.h
-+++ b/arch/s390/include/asm/barrier.h
-@@ -26,18 +26,21 @@
- #define wmb()				barrier()
- #define dma_rmb()			mb()
- #define dma_wmb()			mb()
--#define smp_mb()			mb()
--#define smp_rmb()			rmb()
--#define smp_wmb()			wmb()
--
--#define smp_store_release(p, v)						\
-+#define __smp_mb()			mb()
-+#define __smp_rmb()			rmb()
-+#define __smp_wmb()			wmb()
-+#define smp_mb()			__smp_mb()
-+#define smp_rmb()			__smp_rmb()
-+#define smp_wmb()			__smp_wmb()
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 689db65..55a6caa 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1810,11 +1810,19 @@ static void perf_callchain_user_32(struct perf_callchain_entry *entry,
+ void
+ perf_callchain_user(struct perf_callchain_entry *entry, struct pt_regs *regs)
+ {
++	u8  saved_asi;
 +
-+#define __smp_store_release(p, v)					\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
- 	barrier();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
+ 	perf_callchain_store(entry, regs->tpc);
  
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
+ 	if (!current->mm)
+ 		return;
+ 
++	/* ensure we get user memory when trying to read stacks */
++	__asm__ __volatile__ ("rd %%asi, %0\n" : "=r" (saved_asi));
++	if (saved_asi != ASI_AIUS)
++		__asm__ __volatile__ (
++			"wr %%g0, %0, %%asi\n" : : "i" (ASI_AIUS));
++
+ 	flushw_user();
+ 
+ 	pagefault_disable();
+@@ -1825,4 +1833,8 @@ perf_callchain_user(struct perf_callchain_entry *entry, struct pt_regs *regs)
+ 		perf_callchain_user_64(entry, regs);
+ 
+ 	pagefault_enable();
++
++	if (saved_asi != ASI_AIUS)
++		__asm__ __volatile__ (
++			"wr %%g0, %0, %%asi\n" : : "r" (saved_asi));
+ }
 -- 
-MST
+1.7.9.5
 
