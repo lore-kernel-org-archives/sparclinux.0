@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 23 Dec 2015 05:45:43 +0000
+Date: Thu, 24 Dec 2015 16:43:14 +0000
 Subject: Re: [PATCH 1/2] sparc64: Ensure perf can access user stacks
-Message-Id: <20151223.004543.1496411443529232075.davem@davemloft.net>
+Message-Id: <20151224.114314.1502876776705566878.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1450844167-7327-1-git-send-email-rob.gardner@oracle.com>
 In-Reply-To: <1450844167-7327-1-git-send-email-rob.gardner@oracle.com>
@@ -32,5 +32,14 @@ Date: Tue, 22 Dec 2015 21:16:06 -0700
 > Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
 > Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
 
-Thanks for tracking this down, David Ahern and I spent quite some time
-trying to figure this one out.
+I applied this, but modified it slightly.
+
+We have shorthand helpers "get_fs()" and "set_fs()" for doing this
+kind of work, and as you can see in arch/sparc/kernel/process_64.c
+and elsewhere this is the canonical way to adjust the %asi value in
+these kinds of circumstances.
+
+Also, set_fs() updates the thread's current_ds value properly.  Notice
+that NGmemcpy.S uses the TI_CURRENT_DS value via the RESTORE_ASI()
+macro.  So if that's not set properly, the %asi restore won't be done
+properly.
