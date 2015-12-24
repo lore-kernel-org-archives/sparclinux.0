@@ -1,70 +1,85 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Mon, 07 Dec 2015 14:16:46 +0000
-Subject: Re: [PATCH v2 5/5] printk/nmi: Increase the size of the temporary buffer
-Message-Id: <20151207141646.GF20935@pathway.suse.cz>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 24 Dec 2015 17:16:07 +0000
+Subject: [GIT] Sparc
+Message-Id: <20151224.121607.687935147425469983.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
- <1448622572-16900-6-git-send-email-pmladek@suse.com>
- <81211733-2484-40A9-9D4A-644AA27FBC73@gmail.com>
-In-Reply-To: <81211733-2484-40A9-9D4A-644AA27FBC73@gmail.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon 2015-11-30 08:42:04, yalin wang wrote:
-> 
-> > On Nov 27, 2015, at 19:09, Petr Mladek <pmladek@suse.com> wrote:
-> > 
-> > Testing has shown that the backtrace sometimes does not fit
-> > into the 4kB temporary buffer that is used in NMI context.
-> > 
-> > The warnings are gone when I double the temporary buffer size.
-> > 
-> > Note that this problem existed even in the x86-specific
-> > implementation that was added by the commit a9edc8809328
-> > ("x86/nmi: Perform a safe NMI stack trace on all CPUs").
-> > Nobody noticed it because it did not print any warnings.
-> > 
-> > Signed-off-by: Petr Mladek <pmladek@suse.com>
-> > ---
-> > kernel/printk/nmi.c | 2 +-
-> > 1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-> > index 8af1e4016719..6111644d5f01 100644
-> > --- a/kernel/printk/nmi.c
-> > +++ b/kernel/printk/nmi.c
-> > @@ -42,7 +42,7 @@ atomic_t nmi_message_lost;
-> > struct nmi_seq_buf {
-> > 	atomic_t		len;	/* length of written data */
-> > 	struct irq_work		work;	/* IRQ work that flushes the buffer */
-> > -	unsigned char		buffer[PAGE_SIZE - sizeof(atomic_t) -
-> > +	unsigned char		buffer[2 * PAGE_SIZE - sizeof(atomic_t) -
-> > 				       sizeof(struct irq_work)];
-> > };
-> > 
-> 
-> why not define like this:
-> 
-> union {
-> struct {atomic_t		len;	
-> 	struct irq_work		work;
-> }
-> unsigned char		buffer[PAGE_SIZE * 2] ;
-> }
-> 
-> we can make sure the union is 2 PAGE_SIZE .
 
-IMHO, this would add more confusion. It would just move the
-computation somewhere else. The union will have 2*PAGE_SIZE
-but the beginning of "buffer" will be shared with "len"
-and "work". Therefore, we would need to skip the beginning
-of the buffer when storing the data. By other words, we still
-will be able to use only (sizeof(buffer) - sizeof(atomic_t) -
-sizeof(struct irq_work)] of the "buffer".
+Please pull to get the following sparc bug fixes:
 
-Or did I miss something, please?
+1) Finally make perf stack backtraces stable on sparc, several
+   problems (mostly due to the context in which the user copies
+   from the stack are done) contributed to this.
 
-Best Regards,
-Petr
+   From Rob Gardner.
+
+2) Export ADI capability if the cpu supports it.
+
+3) Hook up userfaultfd system call.
+
+4) When faults happen during user copies we really have to
+   clean up and restore the FPU state fully.   Also from
+   Rob Gardner.
+
+Please pull, thanks a lot!
+
+The following changes since commit 73796d8bf27372e26c2b79881947304c14c2d353:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2015-12-17 14:05:22 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 079317a65d05ce52b69b7d47fe1fb419d40a4395:
+
+  tty/serial: Skip 'NULL' char after console break when sysrq enabled (2015-12-24 12:13:37 -0500)
+
+----------------------------------------------------------------
+Aya Mahfouz (1):
+      tty: serial: constify sunhv_ops structs
+
+Khalid Aziz (1):
+      sparc64: Add ADI capability to cpu capabilities
+
+Mike Kravetz (1):
+      sparc: Hook up userfaultfd system call
+
+Rob Gardner (4):
+      sparc64: Don't set %pil in rtrap_nmi too early
+      sparc64: Ensure perf can access user stacks
+      sparc64: Perf should save/restore fault info
+      sparc64: fix FP corruption in user copy functions
+
+Vijay Kumar (1):
+      tty/serial: Skip 'NULL' char after console break when sysrq enabled
+
+ arch/sparc/include/asm/elf_64.h      |   1 +
+ arch/sparc/include/uapi/asm/unistd.h |   3 ++-
+ arch/sparc/kernel/head_64.S          |  13 ++++++++++++
+ arch/sparc/kernel/perf_event.c       |  11 ++++++++++
+ arch/sparc/kernel/rtrap_64.S         |   8 ++++++-
+ arch/sparc/kernel/setup_64.c         |   9 ++++----
+ arch/sparc/kernel/systbls_32.S       |   2 +-
+ arch/sparc/kernel/systbls_64.S       |   4 ++--
+ arch/sparc/lib/NG2copy_from_user.S   |   8 +++++++
+ arch/sparc/lib/NG2copy_to_user.S     |   8 +++++++
+ arch/sparc/lib/NG2memcpy.S           | 118 ++++++++++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------------
+ arch/sparc/lib/NG4copy_from_user.S   |   8 +++++++
+ arch/sparc/lib/NG4copy_to_user.S     |   8 +++++++
+ arch/sparc/lib/NG4memcpy.S           |  40 ++++++++++++++++++++---------------
+ arch/sparc/lib/U1copy_from_user.S    |   8 +++++++
+ arch/sparc/lib/U1copy_to_user.S      |   8 +++++++
+ arch/sparc/lib/U1memcpy.S            |  48 ++++++++++++++++++++++++------------------
+ arch/sparc/lib/U3copy_from_user.S    |   8 +++++++
+ arch/sparc/lib/U3copy_to_user.S      |   8 +++++++
+ arch/sparc/lib/U3memcpy.S            |  86 +++++++++++++++++++++++++++++++++++++++-----------------------------------
+ drivers/tty/serial/sunhv.c           |  12 ++++++-----
+ 21 files changed, 271 insertions(+), 148 deletions(-)
