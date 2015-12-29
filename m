@@ -1,60 +1,29 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:07:51 +0000
-Subject: [PATCH v2 16/32] arm64: define __smp_xxx
-Message-Id: <1451572003-2440-17-git-send-email-mst@redhat.com>
+From: Mikael Pettersson <mikpelinux@gmail.com>
+Date: Tue, 29 Dec 2015 20:01:08 +0000
+Subject: 4.4-rc kernels only use one of two CPUs on Sun Blade 2500
+Message-Id: <22146.59012.540193.349474@gargle.gargle.HOWL>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@kern>
+To: sparclinux@vger.kernel.org
 
-This defines __smp_xxx barriers for arm64,
-for use by virtualization.
+Something is causing the 4.4-rc kernels to only use half the CPU
+capacity of my Sun Blade 2500 (dual USIIIi).  The kernel does detect
+both CPUs, but it doesn't seem to want to schedule processes on
+both of them.  During CPU-intensive jobs like GCC bootstraps, 'top'
+indicates the machine is 50% idle and aggregate CPU usage is 100%
+(should be 200%).  This is completely deterministic.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
+Going back to 4.3.0 resolves the problems.
 
-Note: arm64 does not support !SMP config,
-so smp_xxx and __smp_xxx are always equivalent.
+Any ideas?  I'll try a git bisect, but it's going to take a while
+on this old HW.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm64/include/asm/barrier.h | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+The 4.4-rc .config is my working 4.3 .config + make oldconfig with
+default answers (mostly N) to all new options -- I diffed them and
+didn't see anything suspicious.
 
-diff --git a/arch/arm64/include/asm/barrier.h b/arch/arm64/include/asm/barrier.h
-index 91a43f4..dae5c49 100644
---- a/arch/arm64/include/asm/barrier.h
-+++ b/arch/arm64/include/asm/barrier.h
-@@ -35,11 +35,11 @@
- #define dma_rmb()	dmb(oshld)
- #define dma_wmb()	dmb(oshst)
- 
--#define smp_mb()	dmb(ish)
--#define smp_rmb()	dmb(ishld)
--#define smp_wmb()	dmb(ishst)
-+#define __smp_mb()	dmb(ish)
-+#define __smp_rmb()	dmb(ishld)
-+#define __smp_wmb()	dmb(ishst)
- 
--#define smp_store_release(p, v)						\
-+#define __smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
- 	switch (sizeof(*p)) {						\
-@@ -62,7 +62,7 @@ do {									\
- 	}								\
- } while (0)
- 
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	union { typeof(*p) __val; char __c[1]; } __u;			\
- 	compiletime_assert_atomic_type(*p);				\
--- 
-MST
+I also didn't find anything suspicious in the kernel log.
 
+/Mikael
