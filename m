@@ -1,40 +1,97 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Fri, 04 Dec 2015 16:57:44 +0000
-Subject: Re: [PATCH v2 1/5] printk/nmi: Generic solution for safe printk in NMI
-Message-Id: <20151204165744.GD20935@pathway.suse.cz>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Wed, 30 Dec 2015 13:24:43 +0000
+Subject: [PATCH 07/34] sparc: reuse asm-generic/barrier.h
+Message-Id: <1451473761-30019-8-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-2-git-send-email-pmladek@suse.com>
- <201511271919.aEZuZKNe%fengguang.wu@intel.com>
- <20151127153804.GC2648@pathway.suse.cz>
- <alpine.LNX.2.00.1512020022460.32500@pobox.suse.cz>
-In-Reply-To: <alpine.LNX.2.00.1512020022460.32500@pobox.suse.cz>
+References: <1451473761-30019-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451473761-30019-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "David S. Miller" <davem@davemloft.net>, Ingo Molnar <mingo@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Andrey Konovalov <andreyknvl@google.com>, sparclinux@vger.kernel.org
 
-On Wed 2015-12-02 00:24:49, Jiri Kosina wrote:
-> On Fri, 27 Nov 2015, Petr Mladek wrote:
-> 
-> > MN10300 has its own implementation for entering and exiting NMI 
-> > handlers. It does not call nmi_enter() and nmi_exit(). Please, find 
-> > below an updated patch that adds printk_nmi_enter() and 
-> > printk_nmi_exit() to the custom entry points. Then we could add HAVE_NMI 
-> > to arch/mn10300/Kconfig and avoid the above warning.
-> 
-> Hmm, so what exactly would go wrong if MN10300 (whatever that architecture 
-> is) would call nmi_enter() and nmi_exit() at the places where it's 
-> starting and finishing NMI handler?
-> 
-> >From a cursory look, it seems like most (if not all) of the things called 
-> from nmi_{enter,exit}() would be nops there anyway.
+On sparc 64 bit dma_rmb, dma_wmb, smp_store_mb, smp_mb, smp_rmb,
+smp_wmb, read_barrier_depends and smp_read_barrier_depends match the
+asm-generic variants exactly. Drop the local definitions and pull in
+asm-generic/barrier.h instead.
 
-Good point. Max mentioned in the other main that the NMI handler
-should follow the NMI ruler. I do not why it could not work.
-In fact, it might improve things, e.g. nmi_enter() blocks
-recursive NMIs.
+nop uses __asm__ __volatile but is otherwise identical to
+the generic version, drop that as well.
 
-I think that it will move it into a separate patch, thought.
+This is in preparation to refactoring this code area.
 
-Best Regards,
-Petr
+Note: nop() was in processor.h and not in barrier.h as on other
+architectures. Nothing seems to depend on it being there though.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ arch/sparc/include/asm/barrier_32.h |  1 -
+ arch/sparc/include/asm/barrier_64.h | 21 ++-------------------
+ arch/sparc/include/asm/processor.h  |  3 ---
+ 3 files changed, 2 insertions(+), 23 deletions(-)
+
+diff --git a/arch/sparc/include/asm/barrier_32.h b/arch/sparc/include/asm/barrier_32.h
+index ae69eda..8059130 100644
+--- a/arch/sparc/include/asm/barrier_32.h
++++ b/arch/sparc/include/asm/barrier_32.h
+@@ -1,7 +1,6 @@
+ #ifndef __SPARC_BARRIER_H
+ #define __SPARC_BARRIER_H
+ 
+-#include <asm/processor.h> /* for nop() */
+ #include <asm-generic/barrier.h>
+ 
+ #endif /* !(__SPARC_BARRIER_H) */
+diff --git a/arch/sparc/include/asm/barrier_64.h b/arch/sparc/include/asm/barrier_64.h
+index 14a9286..26c3f72 100644
+--- a/arch/sparc/include/asm/barrier_64.h
++++ b/arch/sparc/include/asm/barrier_64.h
+@@ -37,25 +37,6 @@ do {	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t" \
+ #define rmb()	__asm__ __volatile__("":::"memory")
+ #define wmb()	__asm__ __volatile__("":::"memory")
+ 
+-#define dma_rmb()	rmb()
+-#define dma_wmb()	wmb()
+-
+-#define smp_store_mb(__var, __value) \
+-	do { WRITE_ONCE(__var, __value); membar_safe("#StoreLoad"); } while(0)
+-
+-#ifdef CONFIG_SMP
+-#define smp_mb()	mb()
+-#define smp_rmb()	rmb()
+-#define smp_wmb()	wmb()
+-#else
+-#define smp_mb()	__asm__ __volatile__("":::"memory")
+-#define smp_rmb()	__asm__ __volatile__("":::"memory")
+-#define smp_wmb()	__asm__ __volatile__("":::"memory")
+-#endif
+-
+-#define read_barrier_depends()		do { } while (0)
+-#define smp_read_barrier_depends()	do { } while (0)
+-
+ #define smp_store_release(p, v)						\
+ do {									\
+ 	compiletime_assert_atomic_type(*p);				\
+@@ -74,4 +55,6 @@ do {									\
+ #define smp_mb__before_atomic()	barrier()
+ #define smp_mb__after_atomic()	barrier()
+ 
++#include <asm-generic/barrier.h>
++
+ #endif /* !(__SPARC64_BARRIER_H) */
+diff --git a/arch/sparc/include/asm/processor.h b/arch/sparc/include/asm/processor.h
+index 2fe99e6..9da9646 100644
+--- a/arch/sparc/include/asm/processor.h
++++ b/arch/sparc/include/asm/processor.h
+@@ -5,7 +5,4 @@
+ #else
+ #include <asm/processor_32.h>
+ #endif
+-
+-#define nop() 		__asm__ __volatile__ ("nop")
+-
+ #endif
+-- 
+MST
+
