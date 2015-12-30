@@ -1,81 +1,73 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:07:42 +0000
-Subject: [PATCH v2 15/32] powerpc: define __smp_xxx
-Message-Id: <1451572003-2440-16-git-send-email-mst@redhat.com>
+From: Mikael Pettersson <mikpelinux@gmail.com>
+Date: Wed, 30 Dec 2015 16:18:57 +0000
+Subject: [BISECTED] "sparc64: Fix numa distance values" breakage (was: 4.4-rc kernels only use one of two CPU
+Message-Id: <22148.1009.8278.45539@gargle.gargle.HOWL>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael
+To: sparclinux@vger.kernel.org
 
-This defines __smp_xxx barriers for powerpc
-for use by virtualization.
+Mikael Pettersson writes:
+ > Something is causing the 4.4-rc kernels to only use half the CPU
+ > capacity of my Sun Blade 2500 (dual USIIIi).  The kernel does detect
+ > both CPUs, but it doesn't seem to want to schedule processes on
+ > both of them.  During CPU-intensive jobs like GCC bootstraps, 'top'
+ > indicates the machine is 50% idle and aggregate CPU usage is 100%
+ > (should be 200%).  This is completely deterministic.
+ > 
+ > Going back to 4.3.0 resolves the problems.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
+A git bisect identified the commit below as the culprit.
+I've confirmed that reverting it from 4.4-rc7 solves the problem.
 
-This reduces the amount of arch-specific boiler-plate code.
+commit 52708d690b8be132ba9d294464625dbbdb9fa5df
+Author: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date:   Mon Nov 2 16:30:24 2015 -0500
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/powerpc/include/asm/barrier.h | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
-
-diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
-index 980ad0c..c0deafc 100644
---- a/arch/powerpc/include/asm/barrier.h
-+++ b/arch/powerpc/include/asm/barrier.h
-@@ -44,19 +44,11 @@
- #define dma_rmb()	__lwsync()
- #define dma_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
- 
--#ifdef CONFIG_SMP
--#define smp_lwsync()	__lwsync()
-+#define __smp_lwsync()	__lwsync()
- 
--#define smp_mb()	mb()
--#define smp_rmb()	__lwsync()
--#define smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
--#else
--#define smp_lwsync()	barrier()
--
--#define smp_mb()	barrier()
--#define smp_rmb()	barrier()
--#define smp_wmb()	barrier()
--#endif /* CONFIG_SMP */
-+#define __smp_mb()	mb()
-+#define __smp_rmb()	__lwsync()
-+#define __smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
- 
- /*
-  * This is a barrier which prevents following instructions from being
-@@ -67,18 +59,18 @@
- #define data_barrier(x)	\
- 	asm volatile("twi 0,%0,0; isync" : : "r" (x) : "memory");
- 
--#define smp_store_release(p, v)						\
-+#define __smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_lwsync();							\
-+	__smp_lwsync();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
- 
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_lwsync();							\
-+	__smp_lwsync();							\
- 	___p1;								\
- })
- 
--- 
-MST
-
+    sparc64: Fix numa distance values
+    
+    Orabug: 21896119
+    
+    Use machine descriptor (MD) to get node latency
+    values instead of just using default values.
+    
+    Testing:
+    On an T5-8 system with:
+     - total nodes = 8
+     - self latencies = 0x26d18
+     - latency to other nodes = 0x3a598
+       => latency ratio = ~1.5
+    
+    output of numactl --hardware
+    
+     - before fix:
+    
+    node distances:
+    node   0   1   2   3   4   5   6   7
+      0:  10  20  20  20  20  20  20  20
+      1:  20  10  20  20  20  20  20  20
+      2:  20  20  10  20  20  20  20  20
+      3:  20  20  20  10  20  20  20  20
+      4:  20  20  20  20  10  20  20  20
+      5:  20  20  20  20  20  10  20  20
+      6:  20  20  20  20  20  20  10  20
+      7:  20  20  20  20  20  20  20  10
+    
+     - after fix:
+    
+    node distances:
+    node   0   1   2   3   4   5   6   7
+      0:  10  15  15  15  15  15  15  15
+      1:  15  10  15  15  15  15  15  15
+      2:  15  15  10  15  15  15  15  15
+      3:  15  15  15  10  15  15  15  15
+      4:  15  15  15  15  10  15  15  15
+      5:  15  15  15  15  15  10  15  15
+      6:  15  15  15  15  15  15  10  15
+      7:  15  15  15  15  15  15  15  10
+    
+    Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+    Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
+    Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
