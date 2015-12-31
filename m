@@ -1,55 +1,52 @@
-From: Yang Shi <yang.shi@linaro.org>
-Date: Wed, 09 Dec 2015 17:29:24 +0000
-Subject: [PATCH v4 7/7] sparc64: mm/gup: add gup trace points
-Message-Id: <1449682164-9933-8-git-send-email-yang.shi@linaro.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:09:01 +0000
+Subject: [PATCH v2 25/32] tile: define __smp_xxx
+Message-Id: <1451572003-2440-26-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1449682164-9933-1-git-send-email-yang.shi@linaro.org>
-In-Reply-To: <1449682164-9933-1-git-send-email-yang.shi@linaro.org>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, rostedt@goodmis.org, mingo@redhat.com
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, linaro-kernel@lists.linaro.org, yang.shi@linaro.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Chris Metcalf <cmetcalf@ezchip.com>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
+This defines __smp_xxx barriers for tile,
+for use by virtualization.
+
+Some smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
+
+Note: for 32 bit, keep smp_mb__after_atomic around since it's faster
+than the generic implementation.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/sparc/mm/gup.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/tile/include/asm/barrier.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index 2e5c4fc..d9f573c 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -12,6 +12,9 @@
- #include <linux/rwsem.h>
- #include <asm/pgtable.h>
+diff --git a/arch/tile/include/asm/barrier.h b/arch/tile/include/asm/barrier.h
+index 96a42ae..d552228 100644
+--- a/arch/tile/include/asm/barrier.h
++++ b/arch/tile/include/asm/barrier.h
+@@ -79,11 +79,12 @@ mb_incoherent(void)
+  * But after the word is updated, the routine issues an "mf" before returning,
+  * and since it's a function call, we don't even need a compiler barrier.
+  */
+-#define smp_mb__before_atomic()	smp_mb()
+-#define smp_mb__after_atomic()	do { } while (0)
++#define __smp_mb__before_atomic()	__smp_mb()
++#define __smp_mb__after_atomic()	do { } while (0)
++#define smp_mb__after_atomic()	__smp_mb__after_atomic()
+ #else /* 64 bit */
+-#define smp_mb__before_atomic()	smp_mb()
+-#define smp_mb__after_atomic()	smp_mb()
++#define __smp_mb__before_atomic()	__smp_mb()
++#define __smp_mb__after_atomic()	__smp_mb()
+ #endif
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/gup.h>
-+
- /*
-  * The performance critical leaf functions are made noinline otherwise gcc
-  * inlines everything into a single function which results in too much
-@@ -174,6 +177,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	len = (unsigned long) nr_pages << PAGE_SHIFT;
- 	end = start + len;
- 
-+	trace_gup_get_user_pages_fast(start, nr_pages);
-+
- 	local_irq_save(flags);
- 	pgdp = pgd_offset(mm, addr);
- 	do {
-@@ -236,6 +241,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 	local_irq_enable();
- 
-+	trace_gup_get_user_pages_fast(start, nr_pages);
-+
- 	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
- 	return nr;
- 
+ #include <asm-generic/barrier.h>
 -- 
-2.0.2
+MST
 
