@@ -1,68 +1,63 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Thu, 31 Dec 2015 19:10:01 +0000
-Subject: [PATCH v2 33/34] xenbus: use virt_xxx barriers
-Message-Id: <1451572003-2440-34-git-send-email-mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:06:46 +0000
+Subject: [PATCH v2 08/32] arm: reuse asm-generic/barrier.h
+Message-Id: <1451572003-2440-9-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-1-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Cooper <andrew.cooper3-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>David
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@kernel.org>, Tony Lindgren <tony@atomide.co>
 
-drivers/xen/xenbus/xenbus_comms.c uses
-full memory barriers to communicate with the other side.
+On arm smp_store_mb, read_barrier_depends, smp_read_barrier_depends,
+smp_store_release, smp_load_acquire, smp_mb__before_atomic and
+smp_mb__after_atomic match the asm-generic variants exactly. Drop the
+local definitions and pull in asm-generic/barrier.h instead.
 
-For guests compiled with CONFIG_SMP, smp_wmb and smp_mb
-would be sufficient, so mb() and wmb() here are only needed if
-a non-SMP guest runs on an SMP host.
-
-Switch to virt_xxx barriers which serve this exact purpose.
+This is in preparation to refactoring this code area.
 
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/xen/xenbus/xenbus_comms.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/include/asm/barrier.h | 23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
 
-diff --git a/drivers/xen/xenbus/xenbus_comms.c b/drivers/xen/xenbus/xenbus_comms.c
-index fdb0f33..ecdecce 100644
---- a/drivers/xen/xenbus/xenbus_comms.c
-+++ b/drivers/xen/xenbus/xenbus_comms.c
-@@ -123,14 +123,14 @@ int xb_write(const void *data, unsigned len)
- 			avail = len;
+diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
+index 3ff5642..31152e8 100644
+--- a/arch/arm/include/asm/barrier.h
++++ b/arch/arm/include/asm/barrier.h
+@@ -70,28 +70,7 @@ extern void arm_heavy_mb(void);
+ #define smp_wmb()	dmb(ishst)
+ #endif
  
- 		/* Must write data /after/ reading the consumer index. */
--		mb();
-+		virt_mb();
+-#define smp_store_release(p, v)						\
+-do {									\
+-	compiletime_assert_atomic_type(*p);				\
+-	smp_mb();							\
+-	WRITE_ONCE(*p, v);						\
+-} while (0)
+-
+-#define smp_load_acquire(p)						\
+-({									\
+-	typeof(*p) ___p1 = READ_ONCE(*p);				\
+-	compiletime_assert_atomic_type(*p);				\
+-	smp_mb();							\
+-	___p1;								\
+-})
+-
+-#define read_barrier_depends()		do { } while(0)
+-#define smp_read_barrier_depends()	do { } while(0)
+-
+-#define smp_store_mb(var, value)	do { WRITE_ONCE(var, value); smp_mb(); } while (0)
+-
+-#define smp_mb__before_atomic()	smp_mb()
+-#define smp_mb__after_atomic()	smp_mb()
++#include <asm-generic/barrier.h>
  
- 		memcpy(dst, data, avail);
- 		data += avail;
- 		len -= avail;
- 
- 		/* Other side must not see new producer until data is there. */
--		wmb();
-+		virt_wmb();
- 		intf->req_prod += avail;
- 
- 		/* Implies mb(): other side will see the updated producer. */
-@@ -180,14 +180,14 @@ int xb_read(void *data, unsigned len)
- 			avail = len;
- 
- 		/* Must read data /after/ reading the producer index. */
--		rmb();
-+		virt_rmb();
- 
- 		memcpy(data, src, avail);
- 		data += avail;
- 		len -= avail;
- 
- 		/* Other side must not see free space until we've copied out */
--		mb();
-+		virt_mb();
- 		intf->rsp_cons += avail;
- 
- 		pr_debug("Finished read of %i bytes (%i to go)\n", avail, len);
+ #endif /* !__ASSEMBLY__ */
+ #endif /* __ASM_BARRIER_H */
 -- 
 MST
 
