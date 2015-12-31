@@ -1,123 +1,53 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Thu, 10 Dec 2015 15:26:06 +0000
-Subject: Re: [PATCH v3 1/4] printk/nmi: Generic solution for safe printk in NMI
-Message-Id: <20151210152606.GD2946@pathway.suse.cz>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:07:59 +0000
+Subject: [PATCH v2 17/32] arm: define __smp_xxx
+Message-Id: <1451572003-2440-18-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1449667265-17525-1-git-send-email-pmladek@suse.com>
- <1449667265-17525-2-git-send-email-pmladek@suse.com>
- <20151209155007.cab2f1afd7e76878a1733033@linux-foundation.org>
-In-Reply-To: <20151209155007.cab2f1afd7e76878a1733033@linux-foundation.org>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Russell King <linux@arm.linux.org.uk>, Ingo Molnar <mingo@kernel.org>, Tony Lindgren <tony@atomide.co>
 
-On Wed 2015-12-09 15:50:07, Andrew Morton wrote:
-> On Wed,  9 Dec 2015 14:21:02 +0100 Petr Mladek <pmladek@suse.com> wrote:
-> 
-> > printk() takes some locks and could not be used a safe way in NMI
-> > context.
-> > 
-> > The chance of a deadlock is real especially when printing
-> > stacks from all CPUs. This particular problem has been addressed
-> > on x86 by the commit a9edc8809328 ("x86/nmi: Perform a safe NMI stack
-> > trace on all CPUs").
-> > 
-> > This patch reuses most of the code and makes it generic. It is
-> > useful for all messages and architectures that support NMI.
-> > 
-> > The patch is heavily based on the draft from Peter Zijlstra,
-> > see https://lkml.org/lkml/2015/6/10/327
-> > 
-> 
-> I guess this code is useful even on CONFIG_SMP=n: to avoid corruption
-> of the printk internal structures whcih the problematic locking
-> protects.
+This defines __smp_xxx barriers for arm,
+for use by virtualization.
 
-Yup and it is used even on CONFIG_SMP=n if I am not missing
-something. At least, CONFIG_PRINTK_NMI stays enabled here.
+smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
 
+This reduces the amount of arch-specific boiler-plate code.
 
-> > +#define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
-> > +
-> > +struct nmi_seq_buf {
-> > +	atomic_t		len;	/* length of written data */
-> > +	struct irq_work		work;	/* IRQ work that flushes the buffer */
-> > +	unsigned char		buffer[NMI_LOG_BUF_LEN];
-> 
-> When this buffer overflows, which characters get lost?  Most recent or
-> least recent?
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/include/asm/barrier.h | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-The most recent messages are lost when the buffer overflows. The other
-way would require to use a ring-buffer instead the seq_buf. We would need
-a lock-less synchronization for both, begin and end, pointers. It
-would add quite some complications.
+diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
+index 31152e8..112cc1a 100644
+--- a/arch/arm/include/asm/barrier.h
++++ b/arch/arm/include/asm/barrier.h
+@@ -60,15 +60,9 @@ extern void arm_heavy_mb(void);
+ #define dma_wmb()	barrier()
+ #endif
+ 
+-#ifndef CONFIG_SMP
+-#define smp_mb()	barrier()
+-#define smp_rmb()	barrier()
+-#define smp_wmb()	barrier()
+-#else
+-#define smp_mb()	dmb(ish)
+-#define smp_rmb()	smp_mb()
+-#define smp_wmb()	dmb(ishst)
+-#endif
++#define __smp_mb()	dmb(ish)
++#define __smp_rmb()	__smp_mb()
++#define __smp_wmb()	dmb(ishst)
+ 
+ #include <asm-generic/barrier.h>
+ 
+-- 
+MST
 
-
-> I'm not sure which is best, really.  For an oops trace you probably
-> want to preserve the least recent output: the stuff at the start of the
-> output.
-
-I agree. Fortunately, this is easier and it works this way.
-
-
-> > +static void __printk_nmi_flush(struct irq_work *work)
-> > +{
-> > +	static raw_spinlock_t read_lock > > +		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
-> > +	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
-> > +	int len, size, i, last_i;
-> > +
-> > +	/*
-> > +	 * The lock has two functions. First, one reader has to flush all
-> > +	 * available message to make the lockless synchronization with
-> > +	 * writers easier. Second, we do not want to mix messages from
-> > +	 * different CPUs. This is especially important when printing
-> > +	 * a backtrace.
-> > +	 */
-> > +	raw_spin_lock(&read_lock);
-> > +
-> > +	i = 0;
-> > +more:
-> > +	len = atomic_read(&s->len);
-> > +
-> > +	/*
-> > +	 * This is just a paranoid check that nobody has manipulated
-> > +	 * the buffer an unexpected way. If we printed something then
-> > +	 * @len must only increase.
-> > +	 */
-> > +	WARN_ON(i && i >= len);
-> 
-> hm, dumping a big backtrace in this context seems a poor idea.  Oh
-> well, shouldn't happen.
-
-I see and the backtrace probably would not help much because "len"
-might be manipulated also from NMI context. I am going to change
-this to:
-
-	if (i && i >= len)
-		pr_err("printk_nmi_flush: internal error: i=%d >		len=%d)\n", i, len);
-
-
-
-> > +	if (!len)
-> > +		goto out; /* Someone else has already flushed the buffer. */
-> > +
-> > +	/* Make sure that data has been written up to the @len */
-> > +	smp_rmb();
-> > +
-> > +	size = min_t(int, len, sizeof(s->buffer));
-> 
-> len and size should have type size_t.
-
-OK
-
-> > --- /dev/null
-> > +++ b/kernel/printk/printk.h
-> 
-> I find it a bit irritating to have duplicated filenames.  We could
-> follow convention and call this "internal.h".
-
-No problem. I am going to send an updated patchset soon.
-
-Thanks a lot for review,
-Petr
