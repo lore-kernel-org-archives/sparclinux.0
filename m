@@ -1,108 +1,91 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Wed, 09 Dec 2015 13:21:04 +0000
-Subject: [PATCH v3 3/4] printk/nmi: Warn when some message has been lost in NMI context
-Message-Id: <1449667265-17525-4-git-send-email-pmladek@suse.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:09:32 +0000
+Subject: [PATCH v2 29/32] Revert "virtio_ring: Update weak barriers to use dma_wmb/rmb"
+Message-Id: <1451572003-2440-30-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1449667265-17525-1-git-send-email-pmladek@suse.com>
-In-Reply-To: <1449667265-17525-1-git-send-email-pmladek@suse.com>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Alexander Duyck <alexander.duyck@gmail.com>
 
-We could not resize the temporary buffer in NMI context. Let's warn
-if a message is lost.
+This reverts commit 9e1a27ea42691429e31f158cce6fc61bc79bb2e9.
 
-This is rather theoretical. printk() should not be used in NMI.
-The only sensible use is when we want to print backtrace from all
-CPUs. The current buffer should be enough for this purpose.
+While that commit optimizes !CONFIG_SMP, it mixes
+up DMA and SMP concepts, making the code hard
+to figure out.
 
-Signed-off-by: Petr Mladek <pmladek@suse.com>
+A better way to optimize this is with the new __smp_XXX
+barriers.
+
+As a first step, go back to full rmb/wmb barriers
+for !SMP.
+We switch to __smp_XXX barriers in the next patch.
+
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- kernel/printk/nmi.c    |  5 ++++-
- kernel/printk/printk.c | 10 ++++++++++
- kernel/printk/printk.h | 11 +++++++++++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ include/linux/virtio_ring.h | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-index 29a498586465..5465230b75ec 100644
---- a/kernel/printk/nmi.c
-+++ b/kernel/printk/nmi.c
-@@ -39,6 +39,7 @@
+diff --git a/include/linux/virtio_ring.h b/include/linux/virtio_ring.h
+index 8e50888..67e06fe 100644
+--- a/include/linux/virtio_ring.h
++++ b/include/linux/virtio_ring.h
+@@ -21,20 +21,19 @@
+  * actually quite cheap.
   */
- DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
- static int printk_nmi_irq_ready;
-+atomic_t nmi_message_lost;
  
- #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
- 
-@@ -63,8 +64,10 @@ static int vprintk_nmi(const char *fmt, va_list args)
- again:
- 	len = atomic_read(&s->len);
- 
--	if (len >=  sizeof(s->buffer))
-+	if (len >=  sizeof(s->buffer)) {
-+		atomic_inc(&nmi_message_lost);
- 		return 0;
-+	}
- 
- 	/*
- 	 * Make sure that all old data have been read before the buffer was
-diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index 88641c74163d..a6bb0b0838f3 100644
---- a/kernel/printk/printk.c
-+++ b/kernel/printk/printk.c
-@@ -1669,6 +1669,7 @@ asmlinkage int vprintk_emit(int facility, int level,
- 	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-+	int nmi_message_lost;
- 	bool in_sched = false;
- 	/* cpu currently holding logbuf_lock in this function */
- 	static unsigned int logbuf_cpu = UINT_MAX;
-@@ -1719,6 +1720,15 @@ asmlinkage int vprintk_emit(int facility, int level,
- 					 strlen(recursion_msg));
- 	}
- 
-+	nmi_message_lost = get_nmi_message_lost();
-+	if (unlikely(nmi_message_lost)) {
-+		text_len = scnprintf(textbuf, sizeof(textbuf),
-+				     "BAD LUCK: lost %d message(s) from NMI context!",
-+				     nmi_message_lost);
-+		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
-+					 NULL, 0, textbuf, text_len);
-+	}
-+
- 	/*
- 	 * The printf needs to come first; we need the syslog
- 	 * prefix which might be passed-in as a parameter.
-diff --git a/kernel/printk/printk.h b/kernel/printk/printk.h
-index dc97c1c4d53b..7f778b609492 100644
---- a/kernel/printk/printk.h
-+++ b/kernel/printk/printk.h
-@@ -34,6 +34,12 @@ static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
- 	return this_cpu_read(printk_func)(fmt, args);
++#ifdef CONFIG_SMP
+ static inline void virtio_mb(bool weak_barriers)
+ {
+-#ifdef CONFIG_SMP
+ 	if (weak_barriers)
+ 		smp_mb();
+ 	else
+-#endif
+ 		mb();
  }
  
-+extern atomic_t nmi_message_lost;
-+static inline int get_nmi_message_lost(void)
-+{
-+	return atomic_xchg(&nmi_message_lost, 0);
-+}
-+
- #else /* CONFIG_PRINTK_NMI */
- 
- static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-@@ -41,4 +47,9 @@ static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
- 	return vprintk_default(fmt, args);
+ static inline void virtio_rmb(bool weak_barriers)
+ {
+ 	if (weak_barriers)
+-		dma_rmb();
++		smp_rmb();
+ 	else
+ 		rmb();
  }
- 
-+static inline int get_nmi_message_lost(void)
+@@ -42,10 +41,26 @@ static inline void virtio_rmb(bool weak_barriers)
+ static inline void virtio_wmb(bool weak_barriers)
+ {
+ 	if (weak_barriers)
+-		dma_wmb();
++		smp_wmb();
+ 	else
+ 		wmb();
+ }
++#else
++static inline void virtio_mb(bool weak_barriers)
 +{
-+	return 0;
++	mb();
 +}
 +
- #endif /* CONFIG_PRINTK_NMI */
++static inline void virtio_rmb(bool weak_barriers)
++{
++	rmb();
++}
++
++static inline void virtio_wmb(bool weak_barriers)
++{
++	wmb();
++}
++#endif
+ 
+ struct virtio_device;
+ struct virtqueue;
 -- 
-1.8.5.6
+MST
 
