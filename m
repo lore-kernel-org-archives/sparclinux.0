@@ -1,67 +1,81 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Tue, 08 Dec 2015 14:49:06 +0000
-Subject: Re: [PATCH v2 3/5] printk/nmi: Try hard to print Oops message in NMI context
-Message-Id: <20151208144906.GL20935@pathway.suse.cz>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:07:42 +0000
+Subject: [PATCH v2 15/32] powerpc: define __smp_xxx
+Message-Id: <1451572003-2440-16-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-1-git-send-email-pmladek@suse.com>
- <1448622572-16900-4-git-send-email-pmladek@suse.com>
- <20151201234437.GA8644@n2100.arm.linux.org.uk>
- <20151204152709.GA20935@pathway.suse.cz>
- <20151204171255.GZ8644@n2100.arm.linux.org.uk>
- <063D6719AE5E284EB5DD2968C1650D6D1CBE68C7@AcuExch.aculab.com>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CBE68C7@AcuExch.aculab.com>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael
 
-On Mon 2015-12-07 15:48:33, David Laight wrote:
-> From: Russell King - ARM Linux
-> > Sent: 04 December 2015 17:13
-> ...
-> > I have a slightly different view...
-> > 
-> > > > I don't see bust_spinlocks() dealing with any of these locks, so IMHO
-> > > > trying to make this work in NMI context strikes me as making the
-> > > > existing solution more unreliable on ARM systems.
-> > >
-> > > bust_spinlocks() calls printk_nmi_flush() that would call printk()
-> > > that would zap "lockbuf_lock" and "console_sem" when in Oops and NMI.
-> > > Yes, there might be more locks blocked but we try to break at least
-> > > the first two walls. Also zapping is allowed only once per 30 seconds,
-> > > see zap_locks(). Why do you think that it might make things more
-> > > unreliable, please?
-> > 
-> > Take the scenario where CPU1 is in the middle of a printk(), and is
-> > holding its lock.
-> > 
-> > CPU0 comes along and decides to trigger a NMI backtrace.  This sends
-> > a NMI to CPU1, which takes it in the middle of the serial console
-> > output.
-> > 
-> > With the existing solution, the NMI output will be written to the
-> > temporary buffer, and CPU1 has finished handling the NMI it resumes
-> > the serial console output, eventually dropping the lock.  That then
-> > allows CPU0 to print the contents of all buffers, and we get NMI
-> > printk output.
-> 
-> Is the traceback from inside printk() or serial console code
-> likely to be useful?
+This defines __smp_xxx barriers for powerpc
+for use by virtualization.
 
-It is useful if a problem is caused by the printk or serial console
-code. For example, a slow serial console might cause a soft lockup
-if there are too many messages to print.
+smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
 
+This reduces the amount of arch-specific boiler-plate code.
 
-> If not then why not get the stacktrace generated when the relevant
-> lock is released? That should save any faffing with a special
-> buffer.
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/powerpc/include/asm/barrier.h | 24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-Another question is how to detect that NMI interrupted printk() code.
-We would either need to analyze backtrace. Or we would need to
-know which CPU took the printk() or console locks. This check
-should be race-safe vs. the NMI context.
+diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
+index 980ad0c..c0deafc 100644
+--- a/arch/powerpc/include/asm/barrier.h
++++ b/arch/powerpc/include/asm/barrier.h
+@@ -44,19 +44,11 @@
+ #define dma_rmb()	__lwsync()
+ #define dma_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+ 
+-#ifdef CONFIG_SMP
+-#define smp_lwsync()	__lwsync()
++#define __smp_lwsync()	__lwsync()
+ 
+-#define smp_mb()	mb()
+-#define smp_rmb()	__lwsync()
+-#define smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+-#else
+-#define smp_lwsync()	barrier()
+-
+-#define smp_mb()	barrier()
+-#define smp_rmb()	barrier()
+-#define smp_wmb()	barrier()
+-#endif /* CONFIG_SMP */
++#define __smp_mb()	mb()
++#define __smp_rmb()	__lwsync()
++#define __smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+ 
+ /*
+  * This is a barrier which prevents following instructions from being
+@@ -67,18 +59,18 @@
+ #define data_barrier(x)	\
+ 	asm volatile("twi 0,%0,0; isync" : : "r" (x) : "memory");
+ 
+-#define smp_store_release(p, v)						\
++#define __smp_store_release(p, v)						\
+ do {									\
+ 	compiletime_assert_atomic_type(*p);				\
+-	smp_lwsync();							\
++	__smp_lwsync();							\
+ 	WRITE_ONCE(*p, v);						\
+ } while (0)
+ 
+-#define smp_load_acquire(p)						\
++#define __smp_load_acquire(p)						\
+ ({									\
+ 	typeof(*p) ___p1 = READ_ONCE(*p);				\
+ 	compiletime_assert_atomic_type(*p);				\
+-	smp_lwsync();							\
++	__smp_lwsync();							\
+ 	___p1;								\
+ })
+ 
+-- 
+MST
 
-
-Best Regards,
-Petr
