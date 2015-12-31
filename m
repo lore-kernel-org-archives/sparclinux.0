@@ -1,28 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Dec 2015 16:43:46 +0000
-Subject: Re: [PATCH] tty/serial: Skip 'NULL' char after console break when sysrq enabled
-Message-Id: <20151224.114346.690529944368284120.davem@davemloft.net>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:08:38 +0000
+Subject: [PATCH v2 22/32] s390: define __smp_xxx
+Message-Id: <1451572003-2440-23-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1450896933-192269-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1450896933-192269-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: vijay.ac.kumar@oracle.com
-Cc: gregkh@linuxfoundation.org, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, karl.volz@oracle.com
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>Ingo
 
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 23 Dec 2015 10:55:33 -0800
+This defines __smp_xxx barriers for s390,
+for use by virtualization.
 
-> When sysrq is triggered from console, serial driver for SUN hypervisor
-> console receives a console break and enables the sysrq. It expects a valid
-> sysrq char following with break. Meanwhile if driver receives 'NULL'
-> ASCII char then it disables sysrq and sysrq handler will never be invoked.
-> 
-> This fix skips calling uart sysrq handler when 'NULL' is received while
-> sysrq is enabled.
-> 
-> Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
-> Acked-by: Karl Volz <karl.volz@oracle.com>
+Some smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
 
-Applied, thank you.
+Note: smp_mb, smp_rmb and smp_wmb are defined as full barriers
+unconditionally on this architecture.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/s390/include/asm/barrier.h | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/arch/s390/include/asm/barrier.h b/arch/s390/include/asm/barrier.h
+index c358c31..fbd25b2 100644
+--- a/arch/s390/include/asm/barrier.h
++++ b/arch/s390/include/asm/barrier.h
+@@ -26,18 +26,21 @@
+ #define wmb()				barrier()
+ #define dma_rmb()			mb()
+ #define dma_wmb()			mb()
+-#define smp_mb()			mb()
+-#define smp_rmb()			rmb()
+-#define smp_wmb()			wmb()
+-
+-#define smp_store_release(p, v)						\
++#define __smp_mb()			mb()
++#define __smp_rmb()			rmb()
++#define __smp_wmb()			wmb()
++#define smp_mb()			__smp_mb()
++#define smp_rmb()			__smp_rmb()
++#define smp_wmb()			__smp_wmb()
++
++#define __smp_store_release(p, v)					\
+ do {									\
+ 	compiletime_assert_atomic_type(*p);				\
+ 	barrier();							\
+ 	WRITE_ONCE(*p, v);						\
+ } while (0)
+ 
+-#define smp_load_acquire(p)						\
++#define __smp_load_acquire(p)						\
+ ({									\
+ 	typeof(*p) ___p1 = READ_ONCE(*p);				\
+ 	compiletime_assert_atomic_type(*p);				\
+-- 
+MST
+
