@@ -1,51 +1,65 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Date: Sat, 26 Dec 2015 23:13:27 +0000
-Subject: [PATCH] sparc64: fix incorrect sign extension in sys_sparc64_personality
-Message-Id: <20151226231327.GA18682@altlinux.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 31 Dec 2015 20:30:31 +0000
+Subject: [PATCH] sparc: Wire up mlock2 system call.
+Message-Id: <20151231.153031.1204716147186023428.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Rob Gardner <rob.gardner@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-The value returned by sys_personality has type "long int".
-It is saved to a variable of type "int", which is not a problem
-yet because the type of task_struct->pesonality is "unsigned int".
-The problem is the sign extension from "int" to "long int"
-that happens on return from sys_sparc64_personality.
 
-For example, a userspace call personality((unsigned) -EINVAL) will
-result to any subsequent personality call, including absolutely
-harmless read-only personality(0xffffffff) call, failing with
-errno set to EINVAL.
-
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/sys_sparc_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index 30e7ddb..c690c8e 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -413,15 +413,15 @@ out:
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 5655912..1c26d44 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -421,8 +421,9 @@
+ #define __NR_bind		353
+ #define __NR_listen		354
+ #define __NR_setsockopt		355
++#define __NR_mlock2		356
  
- SYSCALL_DEFINE1(sparc64_personality, unsigned long, personality)
- {
--	int ret;
-+	long ret;
+-#define NR_syscalls		356
++#define NR_syscalls		357
  
- 	if (personality(current->personality) = PER_LINUX32 &&
- 	    personality(personality) = PER_LINUX)
- 		personality |= PER_LINUX32;
- 	ret = sys_personality(personality);
- 	if (personality(ret) = PER_LINUX32)
- 		ret &= ~PER_LINUX32;
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index d557a25..e663b6c 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -88,4 +88,4 @@ sys_call_table:
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-/*355*/	.long sys_setsockopt
++/*355*/	.long sys_setsockopt, sys_mlock2
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 898684c..1557121 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -89,7 +89,7 @@ sys_call_table32:
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-	.word compat_sys_setsockopt
++	.word compat_sys_setsockopt, sys_mlock2
  
- 	return ret;
- }
-
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -170,4 +170,4 @@ sys_call_table:
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-	.word sys_setsockopt
++	.word sys_setsockopt, sys_mlock2
 -- 
-ldv
+2.4.1
+
