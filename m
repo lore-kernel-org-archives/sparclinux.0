@@ -1,66 +1,63 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Wed, 09 Dec 2015 13:21:03 +0000
-Subject: [PATCH v3 2/4] printk/nmi: Use IRQ work only when ready
-Message-Id: <1449667265-17525-3-git-send-email-pmladek@suse.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 31 Dec 2015 19:06:21 +0000
+Subject: [PATCH v2 05/32] powerpc: reuse asm-generic/barrier.h
+Message-Id: <1451572003-2440-6-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1449667265-17525-1-git-send-email-pmladek@suse.com>
-In-Reply-To: <1449667265-17525-1-git-send-email-pmladek@suse.com>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael
 
-NMIs could happen at any time. This patch makes sure that the safe
-printk() in NMI will schedule IRQ work only when the related
-structs are initialized.
+On powerpc read_barrier_depends, smp_read_barrier_depends
+smp_store_mb(), smp_mb__before_atomic and smp_mb__after_atomic match the
+asm-generic variants exactly. Drop the local definitions and pull in
+asm-generic/barrier.h instead.
 
-All pending messages are flushed when the IRQ work is being
-initialized.
+This is in preparation to refactoring this code area.
 
-Signed-off-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- kernel/printk/nmi.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/powerpc/include/asm/barrier.h | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-index 7b5ff81b291f..29a498586465 100644
---- a/kernel/printk/nmi.c
-+++ b/kernel/printk/nmi.c
-@@ -38,6 +38,7 @@
-  * were handled or when IRQs are blocked.
-  */
- DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
-+static int printk_nmi_irq_ready;
+diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
+index a7af5fb..980ad0c 100644
+--- a/arch/powerpc/include/asm/barrier.h
++++ b/arch/powerpc/include/asm/barrier.h
+@@ -34,8 +34,6 @@
+ #define rmb()  __asm__ __volatile__ ("sync" : : : "memory")
+ #define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
  
- #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
+-#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); smp_mb(); } while (0)
+-
+ #ifdef __SUBARCH_HAS_LWSYNC
+ #    define SMPWMB      LWSYNC
+ #else
+@@ -60,9 +58,6 @@
+ #define smp_wmb()	barrier()
+ #endif /* CONFIG_SMP */
  
-@@ -83,8 +84,11 @@ again:
- 		goto again;
+-#define read_barrier_depends()		do { } while (0)
+-#define smp_read_barrier_depends()	do { } while (0)
+-
+ /*
+  * This is a barrier which prevents following instructions from being
+  * started until the value of the argument x is known.  For example, if
+@@ -87,8 +82,8 @@ do {									\
+ 	___p1;								\
+ })
  
- 	/* Get flushed in a more safe context. */
--	if (add)
-+	if (add && printk_nmi_irq_ready) {
-+		/* Make sure that IRQ work is really initialized. */
-+		smp_rmb();
- 		irq_work_queue(&s->work);
-+	}
+-#define smp_mb__before_atomic()     smp_mb()
+-#define smp_mb__after_atomic()      smp_mb()
+ #define smp_mb__before_spinlock()   smp_mb()
  
- 	return add;
- }
-@@ -190,6 +194,13 @@ void __init printk_nmi_init(void)
- 
- 		init_irq_work(&s->work, __printk_nmi_flush);
- 	}
++#include <asm-generic/barrier.h>
 +
-+	/* Make sure that IRQ works are initialized before enabling. */
-+	smp_wmb();
-+	printk_nmi_irq_ready = 1;
-+
-+	/* Flush pending messages that did not have scheduled IRQ works. */
-+	printk_nmi_flush();
- }
- 
- void printk_nmi_enter(void)
+ #endif /* _ASM_POWERPC_BARRIER_H */
 -- 
-1.8.5.6
+MST
 
