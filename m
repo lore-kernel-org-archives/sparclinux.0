@@ -1,76 +1,19 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Wed, 06 Jan 2016 06:26:09 +0000
-Subject: Re: [PATCH] sparc64: Fix numa node distance initialization
-Message-Id: <568CB0B1.6050302@oracle.com>
+From: "Jeff Skoll" <s_w9gc9x@uni-kassel.de>
+Date: Sat, 02 Jan 2016 17:16:11 +0000
+Subject: Charity Donation
+Message-Id: <auto-000000215368@mailadmin.uni-kassel.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451986811-197131-1-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1451986811-197131-1-git-send-email-nitin.m.gupta@oracle.com>
+References: <20130722195231.EA6EAE68904@mx.faratasystems.com>
+In-Reply-To: <20130722195231.EA6EAE68904@mx.faratasystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
+Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of the largest private foundations in the world. I believe strongly in ‘giving while living.’ I had one idea that never changed in my mind — that you should use your wealth to help people and I have decided to secretly give USD2.498 Million to a randomly selected individual. On receipt of this email, you should count yourself as the individual. Kindly get back to me at your earliest convenience, so I know your email address is valid.
 
+Visit the web page to know more about me: http://www.theglobeandmail.com/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/article4209888/ or you can read an article of me on Wikipedia.
 
-On 1/6/16 2:32 AM, Khalid Aziz wrote:
-> On 01/05/2016 02:40 AM, Nitin Gupta wrote:
->> Orabug: 22495713
->>
->> Currently, NUMA node distance matrix is initialized only
->> when a machine descriptor (MD) exists. However, sun4u
->> machines (e.g. Sun Blade 2500) do not have an MD and thus
->> distance values were left uninitialized. The initialization
->> is now moved such that it happens on both sun4u and sun4v.
->>
->> Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
->> Tested-by: Mikael Pettersson <mikpelinux@gmail.com>
->> ---
->>   arch/sparc/mm/init_64.c | 15 ++++++++-------
->>   1 file changed, 8 insertions(+), 7 deletions(-)
->>
->> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
->> index 3025bd5..ff63db5 100644
->> --- a/arch/sparc/mm/init_64.c
->> +++ b/arch/sparc/mm/init_64.c
->> @@ -1267,13 +1267,6 @@ static int __init numa_parse_mdesc(void)
->>       int i, j, err, count;
->>       u64 node;
->>
->> -    /* Some sane defaults for numa latency values */
->> -    for (i = 0; i < MAX_NUMNODES; i++) {
->> -        for (j = 0; j < MAX_NUMNODES; j++)
->> -            numa_latency[i][j] = (i = j) ?
->> -                LOCAL_DISTANCE : REMOTE_DISTANCE;
->> -    }
->> -
->>       node = mdesc_node_by_name(md, MDESC_NODE_NULL, "latency-groups");
->>       if (node = MDESC_NODE_NULL) {
->>           mdesc_release(md);
->> @@ -1374,6 +1367,14 @@ static int __init bootmem_init_numa(void)
->>       numadbg("bootmem_init_numa()\n");
->>
->>       if (numa_enabled) {
->> +        int i, j;
->> +        /* Some sane defaults for numa latency values */
->> +        for (i = 0; i < MAX_NUMNODES; i++) {
->> +            for (j = 0; j < MAX_NUMNODES; j++)
->> +                numa_latency[i][j] = (i = j) ?
->> +                    LOCAL_DISTANCE : REMOTE_DISTANCE;
->> +        }
->> +
->>           if (tlb_type = hypervisor)
->>               err = numa_parse_mdesc();
->>           else
->>
-> 
-> If one were to boot up with "numa=off" kernel option, numa_latency array wouldn't be initialized by this code which will cause node_distance() to return 0 for any two nodes. Would it make more sense to do this initialization outside of "if (numa_enabled)" or is a value of 0, instead of LOCAL_DISTANCE when numa is not enabled, for node_distance() not a problem?
-> 
-
-I see that in places in page_alloc, numa_distance() is used based just on
-compile time CONFIG_NUMA. So, yes the initialization should be moved outside
-of dynamic config 'numa_enabled'. I will correct this in next patch v2.
-
-Thanks,
-Nitin
-
-
+Regards,
+Jeffrey Skoll.
