@@ -1,50 +1,85 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 19:30:49 +0000
-Subject: [PATCH v3 2/3] checkpatch: check for __smp outside barrier.h
-Message-Id: <1452454200-8844-3-git-send-email-mst@redhat.com>
+From: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Date: Mon, 04 Jan 2016 12:03:11 +0000
+Subject: Re: [PATCH v2 33/34] xenbus: use virt_xxx barriers
+Message-Id: <alpine.DEB.2.02.1601041201120.19710@kaball.uk.xensource.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452454200-8844-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452454200-8844-1-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+ <1451572003-2440-34-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-34-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andy Whitcroft <apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Cooper <andrew.cooper3-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ton
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Konrad Rzeszutek Wilk <konrad.wilk@or>
 
-Introduction of __smp barriers cleans up a bunch of duplicate code, but
-it gives people an additional handle onto a "new" set of barriers - just
-because they're prefixed with __* unfortunately doesn't stop anyone from
-using it (as happened with other arch stuff before.)
+On Thu, 31 Dec 2015, Michael S. Tsirkin wrote:
+> drivers/xen/xenbus/xenbus_comms.c uses
+> full memory barriers to communicate with the other side.
+> 
+> For guests compiled with CONFIG_SMP, smp_wmb and smp_mb
+> would be sufficient, so mb() and wmb() here are only needed if
+> a non-SMP guest runs on an SMP host.
+> 
+> Switch to virt_xxx barriers which serve this exact purpose.
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 
-Add a checkpatch test so it will trigger a warning.
+Reviewed-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
 
-Reported-by: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- scripts/checkpatch.pl | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Are you also going to take care of
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 1c01b7d..15cfca4 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5143,6 +5143,16 @@ sub process {
- 			}
- 		}
- 
-+		my $underscore_smp_barriers = qr{__smp_(?:$smp_barrier_stems)}x;
-+
-+		if ($realfile !~ m@^include/asm-generic/@ &&
-+		    $realfile !~ m@/barrier\.h$@ &&
-+		    $line =~ m/\b(?:$underscore_smp_barriers)\s*\(/ &&
-+		    $line !~ m/^.\s*\#\s*define\s+(?:$underscore_smp_barriers)\s*\(/) {
-+			WARN("MEMORY_BARRIER",
-+			     "__smp memory barriers shouldn't be used outside barrier.h and asm-generic\n" . $herecurr);
-+		}
-+
- # check for waitqueue_active without a comment.
- 		if ($line =~ /\bwaitqueue_active\s*\(/) {
- 			if (!ctx_has_comment($first_line, $linenr)) {
--- 
-MST
+drivers/xen/grant-table.c
+drivers/xen/evtchn.c
+drivers/xen/events/events_fifo.c
+drivers/xen/xen-scsiback.c
+drivers/xen/tmem.c
+drivers/xen/xen-pciback/pci_stub.c
+drivers/xen/xen-pciback/pciback_ops.c
 
+?
+
+
+>  drivers/xen/xenbus/xenbus_comms.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/xen/xenbus/xenbus_comms.c b/drivers/xen/xenbus/xenbus_comms.c
+> index fdb0f33..ecdecce 100644
+> --- a/drivers/xen/xenbus/xenbus_comms.c
+> +++ b/drivers/xen/xenbus/xenbus_comms.c
+> @@ -123,14 +123,14 @@ int xb_write(const void *data, unsigned len)
+>  			avail = len;
+>  
+>  		/* Must write data /after/ reading the consumer index. */
+> -		mb();
+> +		virt_mb();
+>  
+>  		memcpy(dst, data, avail);
+>  		data += avail;
+>  		len -= avail;
+>  
+>  		/* Other side must not see new producer until data is there. */
+> -		wmb();
+> +		virt_wmb();
+>  		intf->req_prod += avail;
+>  
+>  		/* Implies mb(): other side will see the updated producer. */
+> @@ -180,14 +180,14 @@ int xb_read(void *data, unsigned len)
+>  			avail = len;
+>  
+>  		/* Must read data /after/ reading the producer index. */
+> -		rmb();
+> +		virt_rmb();
+>  
+>  		memcpy(data, src, avail);
+>  		data += avail;
+>  		len -= avail;
+>  
+>  		/* Other side must not see free space until we've copied out */
+> -		mb();
+> +		virt_mb();
+>  		intf->rsp_cons += avail;
+>  
+>  		pr_debug("Finished read of %i bytes (%i to go)\n", avail, len);
+> -- 
+> MST
+> 
