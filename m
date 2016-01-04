@@ -1,38 +1,115 @@
-From: Wim Coekaerts <wim.coekaerts@oracle.com>
-Date: Fri, 29 Jan 2016 17:39:23 +0000
-Subject: Re: [PATCH v6] Add sun4v_wdt watchdog driver
-Message-Id: <56ABA3CB.4070904@oracle.com>
+From: Alexandre Chartre <alexandre.chartre@oracle.com>
+Date: Mon, 04 Jan 2016 07:43:20 +0000
+Subject: Re: [BISECTED] "sparc64: Fix numa distance values" breakage
+Message-Id: <7AFAA94F-B242-4384-9694-4BF1161F37D5@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1454017572-5235-1-git-send-email-wim.coekaerts@oracle.com> <56AB816B.6030900@oracle.com> <56AB83DA.1020505@roeck-us.net>
-In-Reply-To: <56AB83DA.1020505@roeck-us.net>
+References: <22148.1009.8278.45539@gargle.gargle.HOWL>
+In-Reply-To: <22148.1009.8278.45539@gargle.gargle.HOWL>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>, wim@iguana.be
-Cc: linux-watchdog@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 01/29/2016 07:23 AM, Guenter Roeck wrote:
-> On 01/29/2016 07:12 AM, Stanislav Kholmanskikh wrote:
->>
->>
->> On 01/29/2016 12:46 AM, Wim Coekaerts wrote:
->> <cut>
->>> +static const struct watchdog_info sun4v_wdt_ident = {
->>> +    .options =    WDIOF_SETTIMEOUT | WDIOF_MAGICCLOSE,
->>> +    .identity =    "sun4v hypervisor watchdog",
->>> +    .firmware_version = 0,
->>> +};
->>
->> In accordance to watchdog_ioctl() in drivers/watchdog/watchdog_dev.c 
->> WDIOF_KEEPALIVEPING may be needed here as to enable the support of 
->> WDIOC_KEEPALIVE ioctl.
->>
->> Correct? So maybe add it then?
->>
-> Yes. Not having the flag means that the ioctl is not supported,
-> and that keepalives have to be implemented using file i/o.
->
-> Wim, oversight or on purpose ?
-good catch, oversight from moving from the implementation of the old 
-_ioctl() in the driver and I didn't have a test for it in my testprogram 
-so missed it. Added in and tested it.
+
+A Sun Blade 2500 is sun4u so there's no MD; the MD is only available on sun4v. 
+
+alex.
+
+> On Jan 4, 2016, at 06:57, Nitin Gupta <nitin.m.gupta@oracle.com> wrote:
+> 
+> Mike,
+> 
+> I believe this is due to the firmware exporting wrong/incomplete
+> information about memory latency groups in the machine descriptor (MD).
+> Before this patch, this information was not used at all and kernel
+> always used default values for numa node distance values. With incorrect
+> values, scheduler can have a skewed view of the machine causing this
+> non optimal usage. My testing on T7, T5, T4 with recent firmwares never
+> showed such issues.
+> 
+> Can you please provide output of 'numactl --hardware' on your machine?
+> Ideally, I would also require dump of the MD but I don't have a script
+> handy for this which I can share externally.
+> 
+> Dave: would you have a script to dump MD which you can share?
+> 
+> Thanks,
+> Nitin
+> 
+>>> 
+>>> From: Mikael Pettersson <mikpelinux@gmail.com>
+>>> Subject: [BISECTED] "sparc64: Fix numa distance values" breakage (was: 4.4-rc kernels only use one of two CPUs on Sun Blade 2500)
+>>> Date: December 30, 2015 at 9:18:57 AM MST
+>>> To: Mikael Pettersson <mikpelinux@gmail.com>
+>>> Cc: Linux SPARC Kernel Mailing List <sparclinux@vger.kernel.org>
+>>> 
+>>> Mikael Pettersson writes:
+>>>> Something is causing the 4.4-rc kernels to only use half the CPU
+>>>> capacity of my Sun Blade 2500 (dual USIIIi).  The kernel does detect
+>>>> both CPUs, but it doesn't seem to want to schedule processes on
+>>>> both of them.  During CPU-intensive jobs like GCC bootstraps, 'top'
+>>>> indicates the machine is 50% idle and aggregate CPU usage is 100%
+>>>> (should be 200%).  This is completely deterministic.
+>>>> 
+>>>> Going back to 4.3.0 resolves the problems.
+>>> 
+>>> A git bisect identified the commit below as the culprit.
+>>> I've confirmed that reverting it from 4.4-rc7 solves the problem.
+>>> 
+>>> commit 52708d690b8be132ba9d294464625dbbdb9fa5df
+>>> Author: Nitin Gupta <nitin.m.gupta@oracle.com>
+>>> Date:   Mon Nov 2 16:30:24 2015 -0500
+>>> 
+>>>    sparc64: Fix numa distance values
+>>> 
+>>>    Orabug: 21896119
+>>> 
+>>>    Use machine descriptor (MD) to get node latency
+>>>    values instead of just using default values.
+>>> 
+>>>    Testing:
+>>>    On an T5-8 system with:
+>>>     - total nodes = 8
+>>>     - self latencies = 0x26d18
+>>>     - latency to other nodes = 0x3a598
+>>>       => latency ratio = ~1.5
+>>> 
+>>>    output of numactl --hardware
+>>> 
+>>>     - before fix:
+>>> 
+>>>    node distances:
+>>>    node   0   1   2   3   4   5   6   7
+>>>      0:  10  20  20  20  20  20  20  20
+>>>      1:  20  10  20  20  20  20  20  20
+>>>      2:  20  20  10  20  20  20  20  20
+>>>      3:  20  20  20  10  20  20  20  20
+>>>      4:  20  20  20  20  10  20  20  20
+>>>      5:  20  20  20  20  20  10  20  20
+>>>      6:  20  20  20  20  20  20  10  20
+>>>      7:  20  20  20  20  20  20  20  10
+>>> 
+>>>     - after fix:
+>>> 
+>>>    node distances:
+>>>    node   0   1   2   3   4   5   6   7
+>>>      0:  10  15  15  15  15  15  15  15
+>>>      1:  15  10  15  15  15  15  15  15
+>>>      2:  15  15  10  15  15  15  15  15
+>>>      3:  15  15  15  10  15  15  15  15
+>>>      4:  15  15  15  15  10  15  15  15
+>>>      5:  15  15  15  15  15  10  15  15
+>>>      6:  15  15  15  15  15  15  10  15
+>>>      7:  15  15  15  15  15  15  15  10
+>>> 
+>>>    Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+>>>    Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
+>>>    Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+>>>    Signed-off-by: David S. Miller <davem@davemloft.net>
+>>> --
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
