@@ -1,26 +1,52 @@
-From: "Maciej W. Rozycki" <macro@imgtec.com>
-Date: Fri, 29 Jan 2016 13:38:59 +0000
-Subject: Re: [v3,11/41] mips: reuse asm-generic/barrier.h
-Message-Id: <alpine.DEB.2.00.1601291333130.5958@tp.orcam.me.uk>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Mon, 04 Jan 2016 13:45:25 +0000
+Subject: Re: [PATCH v2 22/32] s390: define __smp_xxx
+Message-Id: <20160104134525.GA6344@twins.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160113104516.GE25458@arm.com> <5696CF08.8080700@imgtec.com> <20160114121449.GC15828@arm.com> <5697F6D2.60409@imgtec.com> <20160114203430.GC3818@linux.vnet.ibm.com> <56980C91.1010403@imgtec.com> <20160114212913.GF3818@linux.vnet.ibm.com>
- <569814F2.50801@imgtec.com> <20160114225510.GJ3818@linux.vnet.ibm.com> <56983054.4070807@imgtec.com> <20160115004753.GN3818@linux.vnet.ibm.com> <56984642.3090106@imgtec.com> <alpine.DEB.2.00.1601271116520.5958@tp.orcam.me.uk> <56A9656D.3080707@imgtec.com>
-In-Reply-To: <56A9656D.3080707@imgtec.com>
+References: <1451572003-2440-1-git-send-email-mst@redhat.com>
+	<1451572003-2440-23-git-send-email-mst@redhat.com>
+In-Reply-To: <1451572003-2440-23-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Leonid Yegoshin <Leonid.Yegoshin@imgtec.com>
-Cc: paulmck@linux.vnet.ibm.com, Will Deacon <will.deacon@arm.com>, Peter Zijlstra <peterz@infradead.org>, "Michael S. Tsirkin" <mst@redhat.com>, linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Cooper <andrew.cooper3@citrix.com>linux-
 
-On Thu, 28 Jan 2016, Leonid Yegoshin wrote:
+On Thu, Dec 31, 2015 at 09:08:38PM +0200, Michael S. Tsirkin wrote:
+> This defines __smp_xxx barriers for s390,
+> for use by virtualization.
+> 
+> Some smp_xxx barriers are removed as they are
+> defined correctly by asm-generic/barriers.h
+> 
+> Note: smp_mb, smp_rmb and smp_wmb are defined as full barriers
+> unconditionally on this architecture.
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/s390/include/asm/barrier.h | 15 +++++++++------
+>  1 file changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/s390/include/asm/barrier.h b/arch/s390/include/asm/barrier.h
+> index c358c31..fbd25b2 100644
+> --- a/arch/s390/include/asm/barrier.h
+> +++ b/arch/s390/include/asm/barrier.h
+> @@ -26,18 +26,21 @@
+>  #define wmb()				barrier()
+>  #define dma_rmb()			mb()
+>  #define dma_wmb()			mb()
+> -#define smp_mb()			mb()
+> -#define smp_rmb()			rmb()
+> -#define smp_wmb()			wmb()
+> -
+> -#define smp_store_release(p, v)						\
+> +#define __smp_mb()			mb()
+> +#define __smp_rmb()			rmb()
+> +#define __smp_wmb()			wmb()
+> +#define smp_mb()			__smp_mb()
+> +#define smp_rmb()			__smp_rmb()
+> +#define smp_wmb()			__smp_wmb()
 
-> In http://patchwork.linux-mips.org/patch/10505/ the very last mesg exchange
-> is:
-[...]
-> ... and that stops forever...
-
- Thanks for the reminder -- last June was very hectic, I travelled a lot 
-and I lost the discussion from my radar.  Apologies for that.  I replied 
-in that thread now with my results.  I hope this helps.
-
-  Maciej
+Why define the smp_*mb() primitives here? Would not the inclusion of
+asm-generic/barrier.h do this?
