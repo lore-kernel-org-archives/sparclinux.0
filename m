@@ -1,87 +1,51 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:18:02 +0000
-Subject: [PATCH v3 11/41] mips: reuse asm-generic/barrier.h
-Message-Id: <1452426622-4471-12-git-send-email-mst@redhat.com>
+Date: Mon, 04 Jan 2016 11:37:00 +0000
+Subject: [PATCH 2/3] checkpatch: check for __smp outside barrier.h
+Message-Id: <1451907395-15978-3-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <1451907395-15978-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1451907395-15978-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ralf Baechle <ralf@l>
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, "Cc : Andy Whitcroft" <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew
 
-On mips dma_rmb, dma_wmb, smp_store_mb, read_barrier_depends,
-smp_read_barrier_depends, smp_store_release and smp_load_acquire  match
-the asm-generic variants exactly. Drop the local definitions and pull in
-asm-generic/barrier.h instead.
+Introduction of __smp barriers cleans up a bunch of duplicate code, but
+it gives people an additional handle onto a "new" set of barriers - just
+because they're prefixed with __* unfortunately doesn't stop anyone from
+using it (as happened with other arch stuff before.)
 
-This is in preparation to refactoring this code area.
+Add a checkpatch test so it will trigger a warning.
 
+Reported-by: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/mips/include/asm/barrier.h | 25 ++-----------------------
- 1 file changed, 2 insertions(+), 23 deletions(-)
+ scripts/checkpatch.pl | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/mips/include/asm/barrier.h b/arch/mips/include/asm/barrier.h
-index 752e0b8..3eac4b9 100644
---- a/arch/mips/include/asm/barrier.h
-+++ b/arch/mips/include/asm/barrier.h
-@@ -10,9 +10,6 @@
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 0245bbe..e3f9ad9 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5130,6 +5130,17 @@ sub process {
+ 			}
+ 		}
  
- #include <asm/addrspace.h>
- 
--#define read_barrier_depends()		do { } while(0)
--#define smp_read_barrier_depends()	do { } while(0)
--
- #ifdef CONFIG_CPU_HAS_SYNC
- #define __sync()				\
- 	__asm__ __volatile__(			\
-@@ -87,8 +84,6 @@
- 
- #define wmb()		fast_wmb()
- #define rmb()		fast_rmb()
--#define dma_wmb()	fast_wmb()
--#define dma_rmb()	fast_rmb()
- 
- #if defined(CONFIG_WEAK_ORDERING) && defined(CONFIG_SMP)
- # ifdef CONFIG_CPU_CAVIUM_OCTEON
-@@ -112,9 +107,6 @@
- #define __WEAK_LLSC_MB		"		\n"
- #endif
- 
--#define smp_store_mb(var, value) \
--	do { WRITE_ONCE(var, value); smp_mb(); } while (0)
--
- #define smp_llsc_mb()	__asm__ __volatile__(__WEAK_LLSC_MB : : :"memory")
- 
- #ifdef CONFIG_CPU_CAVIUM_OCTEON
-@@ -129,22 +121,9 @@
- #define nudge_writes() mb()
- #endif
- 
--#define smp_store_release(p, v)						\
--do {									\
--	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
--	WRITE_ONCE(*p, v);						\
--} while (0)
--
--#define smp_load_acquire(p)						\
--({									\
--	typeof(*p) ___p1 = READ_ONCE(*p);				\
--	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
--	___p1;								\
--})
--
- #define smp_mb__before_atomic()	smp_mb__before_llsc()
- #define smp_mb__after_atomic()	smp_llsc_mb()
- 
-+#include <asm-generic/barrier.h>
++		my @underscore_smp_barriers = map {"__" . $_} @smp_barriers;
++		my $underscore_all_barriers = join('|', @underscore_smp_barriers);
 +
- #endif /* __ASM_BARRIER_H */
++		if ($realfile !~ m@^include/asm-generic/@ &&
++		    $realfile !~ m@/barrier\.h$@ &&
++		    $line =~ m/\b($underscore_all_barriers)\(/ &&
++		    $line !~ m/^.\s*\#\s*define\s+($underscore_all_barriers)\(/) {
++			WARN("MEMORY_BARRIER",
++			     "__smp memory barriers shouldn't be used outside barrier.h and asm-generic\n" . $herecurr);
++		}
++
+ # check for waitqueue_active without a comment.
+ 		if ($line =~ /\bwaitqueue_active\s*\(/) {
+ 			if (!ctx_has_comment($first_line, $linenr)) {
 -- 
 MST
 
