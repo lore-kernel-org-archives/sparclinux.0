@@ -1,26 +1,199 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Tue, 12 Jan 2016 12:50:07 +0000
-Subject: Re: [PATCH v3 00/41] arch: barrier cleanup + barriers for virt
-Message-Id: <20160112125007.GR6344@twins.programming.kicks-ass.net>
+From: Rabin Vincent <rabin@rab.in>
+Date: Tue, 05 Jan 2016 15:23:07 +0000
+Subject: [PATCH] net: filter: make JITs zero A for SKF_AD_ALU_XOR_X
+Message-Id: <1452007387-626-1-git-send-email-rabin@rab.in>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Sun, Jan 10, 2016 at 04:16:22PM +0200, Michael S. Tsirkin wrote:
-> I parked this in vhost tree for now, though the inclusion of patch 1 from tip
-> creates a merge conflict - but one that is trivial to resolve.
-> 
-> So I intend to just merge it all through my tree, including the
-> duplicate patch, and assume conflict will be resolved.
-> 
-> I would really appreciate some feedback on arch bits (especially the x86 bits),
-> and acks for merging this through the vhost tree.
+The SKF_AD_ALU_XOR_X ancillary is not like the other ancillary data
+instructions since it XORs A with X while all the others replace A with
+some loaded value.  All the BPF JITs fail to clear A if this is used as
+the first instruction in a filter.  This was found using american fuzzy
+lop.
 
-Thanks for doing this, looks good to me.
+Add a helper to determine if A needs to be cleared given the first
+instruction in a filter, and use this in the JITs.  Except for ARM, the
+rest have only been compile-tested.
 
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Fixes: 3480593131e0 ("net: filter: get rid of BPF_S_* enum")
+Signed-off-by: Rabin Vincent <rabin@rab.in>
+---
+ arch/arm/net/bpf_jit_32.c       | 16 +---------------
+ arch/mips/net/bpf_jit.c         | 16 +---------------
+ arch/powerpc/net/bpf_jit_comp.c | 13 ++-----------
+ arch/sparc/net/bpf_jit_comp.c   | 17 ++---------------
+ include/linux/filter.h          | 19 +++++++++++++++++++
+ 5 files changed, 25 insertions(+), 56 deletions(-)
+
+diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
+index 591f9db3bf40..e153eb065fe4 100644
+--- a/arch/arm/net/bpf_jit_32.c
++++ b/arch/arm/net/bpf_jit_32.c
+@@ -187,19 +187,6 @@ static inline int mem_words_used(struct jit_ctx *ctx)
+ 	return fls(ctx->seen & SEEN_MEM);
+ }
+ 
+-static inline bool is_load_to_a(u16 inst)
+-{
+-	switch (inst) {
+-	case BPF_LD | BPF_W | BPF_LEN:
+-	case BPF_LD | BPF_W | BPF_ABS:
+-	case BPF_LD | BPF_H | BPF_ABS:
+-	case BPF_LD | BPF_B | BPF_ABS:
+-		return true;
+-	default:
+-		return false;
+-	}
+-}
+-
+ static void jit_fill_hole(void *area, unsigned int size)
+ {
+ 	u32 *ptr;
+@@ -211,7 +198,6 @@ static void jit_fill_hole(void *area, unsigned int size)
+ static void build_prologue(struct jit_ctx *ctx)
+ {
+ 	u16 reg_set = saved_regs(ctx);
+-	u16 first_inst = ctx->skf->insns[0].code;
+ 	u16 off;
+ 
+ #ifdef CONFIG_FRAME_POINTER
+@@ -241,7 +227,7 @@ static void build_prologue(struct jit_ctx *ctx)
+ 		emit(ARM_MOV_I(r_X, 0), ctx);
+ 
+ 	/* do not leak kernel data to userspace */
+-	if ((first_inst != (BPF_RET | BPF_K)) && !(is_load_to_a(first_inst)))
++	if (bpf_needs_clear_a(&ctx->skf->insns[0]))
+ 		emit(ARM_MOV_I(r_A, 0), ctx);
+ 
+ 	/* stack space for the BPF_MEM words */
+diff --git a/arch/mips/net/bpf_jit.c b/arch/mips/net/bpf_jit.c
+index 77cb27309db2..1a8c96035716 100644
+--- a/arch/mips/net/bpf_jit.c
++++ b/arch/mips/net/bpf_jit.c
+@@ -521,19 +521,6 @@ static inline u16 align_sp(unsigned int num)
+ 	return num;
+ }
+ 
+-static bool is_load_to_a(u16 inst)
+-{
+-	switch (inst) {
+-	case BPF_LD | BPF_W | BPF_LEN:
+-	case BPF_LD | BPF_W | BPF_ABS:
+-	case BPF_LD | BPF_H | BPF_ABS:
+-	case BPF_LD | BPF_B | BPF_ABS:
+-		return true;
+-	default:
+-		return false;
+-	}
+-}
+-
+ static void save_bpf_jit_regs(struct jit_ctx *ctx, unsigned offset)
+ {
+ 	int i = 0, real_off = 0;
+@@ -614,7 +601,6 @@ static unsigned int get_stack_depth(struct jit_ctx *ctx)
+ 
+ static void build_prologue(struct jit_ctx *ctx)
+ {
+-	u16 first_inst = ctx->skf->insns[0].code;
+ 	int sp_off;
+ 
+ 	/* Calculate the total offset for the stack pointer */
+@@ -641,7 +627,7 @@ static void build_prologue(struct jit_ctx *ctx)
+ 		emit_jit_reg_move(r_X, r_zero, ctx);
+ 
+ 	/* Do not leak kernel data to userspace */
+-	if ((first_inst != (BPF_RET | BPF_K)) && !(is_load_to_a(first_inst)))
++	if (bpf_needs_clear_a(&ctx->skf->insns[0]))
+ 		emit_jit_reg_move(r_A, r_zero, ctx);
+ }
+ 
+diff --git a/arch/powerpc/net/bpf_jit_comp.c b/arch/powerpc/net/bpf_jit_comp.c
+index 04782164ee67..2d66a8446198 100644
+--- a/arch/powerpc/net/bpf_jit_comp.c
++++ b/arch/powerpc/net/bpf_jit_comp.c
+@@ -78,18 +78,9 @@ static void bpf_jit_build_prologue(struct bpf_prog *fp, u32 *image,
+ 		PPC_LI(r_X, 0);
+ 	}
+ 
+-	switch (filter[0].code) {
+-	case BPF_RET | BPF_K:
+-	case BPF_LD | BPF_W | BPF_LEN:
+-	case BPF_LD | BPF_W | BPF_ABS:
+-	case BPF_LD | BPF_H | BPF_ABS:
+-	case BPF_LD | BPF_B | BPF_ABS:
+-		/* first instruction sets A register (or is RET 'constant') */
+-		break;
+-	default:
+-		/* make sure we dont leak kernel information to user */
++	/* make sure we dont leak kernel information to user */
++	if (bpf_needs_clear_a(&filter[0]))
+ 		PPC_LI(r_A, 0);
+-	}
+ }
+ 
+ static void bpf_jit_build_epilogue(u32 *image, struct codegen_context *ctx)
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index 22564f5f2364..3e6e05a7c4c2 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -420,22 +420,9 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 		}
+ 		emit_reg_move(O7, r_saved_O7);
+ 
+-		switch (filter[0].code) {
+-		case BPF_RET | BPF_K:
+-		case BPF_LD | BPF_W | BPF_LEN:
+-		case BPF_LD | BPF_W | BPF_ABS:
+-		case BPF_LD | BPF_H | BPF_ABS:
+-		case BPF_LD | BPF_B | BPF_ABS:
+-			/* The first instruction sets the A register (or is
+-			 * a "RET 'constant'")
+-			 */
+-			break;
+-		default:
+-			/* Make sure we dont leak kernel information to the
+-			 * user.
+-			 */
++		/* Make sure we dont leak kernel information to the user. */
++		if (bpf_needs_clear_a(&filter[0]))
+ 			emit_clear(r_A); /* A = 0 */
+-		}
+ 
+ 		for (i = 0; i < flen; i++) {
+ 			unsigned int K = filter[i].k;
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 4165e9ac9e36..5972ffe5719a 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -493,6 +493,25 @@ static inline void bpf_jit_free(struct bpf_prog *fp)
+ 
+ #define BPF_ANC		BIT(15)
+ 
++static inline bool bpf_needs_clear_a(const struct sock_filter *first)
++{
++	switch (first->code) {
++	case BPF_RET | BPF_K:
++	case BPF_LD | BPF_W | BPF_LEN:
++		return false;
++
++	case BPF_LD | BPF_W | BPF_ABS:
++	case BPF_LD | BPF_H | BPF_ABS:
++	case BPF_LD | BPF_B | BPF_ABS:
++		if (first->k = SKF_AD_OFF + SKF_AD_ALU_XOR_X)
++			return true;
++		return false;
++
++	default:
++		return true;
++	}
++}
++
+ static inline u16 bpf_anc_helper(const struct sock_filter *ftest)
+ {
+ 	BUG_ON(ftest->code & BPF_ANC);
+-- 
+2.6.4
+
