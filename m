@@ -1,21 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 25 Jan 2016 18:53:36 +0000
-Subject: Re: [PATCH 1/2] n2rng: documentation, add DT bindings, vendor prefixes
-Message-Id: <20160125.105336.914707443204131771.davem@davemloft.net>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Tue, 05 Jan 2016 09:40:11 +0000
+Subject: [PATCH] sparc64: Fix numa node distance initialization
+Message-Id: <1451986811-197131-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160125160921.GA26873@yogzotot>
-In-Reply-To: <20160125160921.GA26873@yogzotot>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: matorola@gmail.com
-Cc: linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, herbert@gondor.apana.org.au
+To: sparclinux@vger.kernel.org
 
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 25 Jan 2016 19:09:21 +0300
+Orabug: 22495713
 
-> n2rng: documentation, add DT bindings, vendor prefixes
-> 
-> Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
+Currently, NUMA node distance matrix is initialized only
+when a machine descriptor (MD) exists. However, sun4u
+machines (e.g. Sun Blade 2500) do not have an MD and thus
+distance values were left uninitialized. The initialization
+is now moved such that it happens on both sun4u and sun4v.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+Tested-by: Mikael Pettersson <mikpelinux@gmail.com>
+---
+ arch/sparc/mm/init_64.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 3025bd5..ff63db5 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1267,13 +1267,6 @@ static int __init numa_parse_mdesc(void)
+ 	int i, j, err, count;
+ 	u64 node;
+ 
+-	/* Some sane defaults for numa latency values */
+-	for (i = 0; i < MAX_NUMNODES; i++) {
+-		for (j = 0; j < MAX_NUMNODES; j++)
+-			numa_latency[i][j] = (i = j) ?
+-				LOCAL_DISTANCE : REMOTE_DISTANCE;
+-	}
+-
+ 	node = mdesc_node_by_name(md, MDESC_NODE_NULL, "latency-groups");
+ 	if (node = MDESC_NODE_NULL) {
+ 		mdesc_release(md);
+@@ -1374,6 +1367,14 @@ static int __init bootmem_init_numa(void)
+ 	numadbg("bootmem_init_numa()\n");
+ 
+ 	if (numa_enabled) {
++		int i, j;
++		/* Some sane defaults for numa latency values */
++		for (i = 0; i < MAX_NUMNODES; i++) {
++			for (j = 0; j < MAX_NUMNODES; j++)
++				numa_latency[i][j] = (i = j) ?
++					LOCAL_DISTANCE : REMOTE_DISTANCE;
++		}
++
+ 		if (tlb_type = hypervisor)
+ 			err = numa_parse_mdesc();
+ 		else
+-- 
+2.6.4
+
