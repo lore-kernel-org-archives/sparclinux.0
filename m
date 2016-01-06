@@ -1,38 +1,29 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Tue, 05 Jan 2016 17:43:10 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 06 Jan 2016 05:44:42 +0000
 Subject: Re: [PATCH] net: filter: make JITs zero A for SKF_AD_ALU_XOR_X
-Message-Id: <20160105174309.GA83548@ast-mbp.thefacebook.com>
+Message-Id: <20160106.004442.109655096478479740.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1452007387-626-1-git-send-email-rabin@rab.in>
- <568BF11F.1060507@iogearbox.net>
-In-Reply-To: <568BF11F.1060507@iogearbox.net>
+In-Reply-To: <1452007387-626-1-git-send-email-rabin@rab.in>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 05, 2016 at 05:36:47PM +0100, Daniel Borkmann wrote:
-> On 01/05/2016 04:23 PM, Rabin Vincent wrote:
-> >The SKF_AD_ALU_XOR_X ancillary is not like the other ancillary data
-> >instructions since it XORs A with X while all the others replace A with
-> >some loaded value.  All the BPF JITs fail to clear A if this is used as
-> >the first instruction in a filter.  This was found using american fuzzy
-> >lop.
-> >
-> >Add a helper to determine if A needs to be cleared given the first
-> >instruction in a filter, and use this in the JITs.  Except for ARM, the
-> >rest have only been compile-tested.
-> >
-> >Fixes: 3480593131e0 ("net: filter: get rid of BPF_S_* enum")
-> >Signed-off-by: Rabin Vincent <rabin@rab.in>
+From: Rabin Vincent <rabin@rab.in>
+Date: Tue,  5 Jan 2016 16:23:07 +0100
+
+> The SKF_AD_ALU_XOR_X ancillary is not like the other ancillary data
+> instructions since it XORs A with X while all the others replace A with
+> some loaded value.  All the BPF JITs fail to clear A if this is used as
+> the first instruction in a filter.  This was found using american fuzzy
+> lop.
 > 
-> Excellent catch, thanks a lot! The fix looks good to me and should
-> go to -net tree.
+> Add a helper to determine if A needs to be cleared given the first
+> instruction in a filter, and use this in the JITs.  Except for ARM, the
+> rest have only been compile-tested.
 > 
-> Acked-by: Daniel Borkmann <daniel@iogearbox.net>
+> Fixes: 3480593131e0 ("net: filter: get rid of BPF_S_* enum")
+> Signed-off-by: Rabin Vincent <rabin@rab.in>
 
-good catch indeed.
-Classic bpf jits didn't have much love. Great to see this work.
-
-Acked-by: Alexei Starovoitov <ast@kernel.org>
-
+Applied and queued up for -stable, thanks!
