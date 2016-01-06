@@ -1,24 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 31 Jan 2016 19:06:45 +0000
-Subject: Re: [PATCH v7] Add sun4v_wdt watchdog driver
-Message-Id: <20160131.110645.985983227353861690.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 06 Jan 2016 15:21:24 +0000
+Subject: Recent spontaneous reboots on multiple machines
+Message-Id: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1454089178-29836-1-git-send-email-wim.coekaerts@oracle.com>
-In-Reply-To: <1454089178-29836-1-git-send-email-wim.coekaerts@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: wim.coekaerts@oracle.com
-Cc: wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Wim Coekaerts <wim.coekaerts@oracle.com>
-Date: Fri, 29 Jan 2016 09:39:38 -0800
+Recently (maybe since 4.3.0 or for some models, during 4.4-rc cycle 
+before rc5), multiple sparc64 machines have been spontaneously rebooting 
+for me during kernel compiles.
 
-> This driver adds sparc hypervisor watchdog support. The default
-> timeout is 60 seconds and the range is between 1 and
-> 31536000 seconds. Both watchdog-resolution and
-> watchdog-max-timeout MD properties settings are supported.
-> 
-> Signed-off-by: Wim Coekaerts <wim.coekaerts@oracle.com>
+First noticed on V240 and E450 (4.3 timeframe).
+Recently also on V440, V100, T2000.
 
-Applied, thanks.
+Nothing in LOM console history for dmesg, just spontaneous reboot.
+
+All machines have different kernel configs, machine-optimized plus 
+random set of debug options and other features.
+
+I am planning to try bisecting this but it will take time. Any other 
+good advice for speeding up the pinpointing?
+
+-- 
+Meelis Roos (mroos@linux.ee)
