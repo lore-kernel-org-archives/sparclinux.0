@@ -1,7 +1,7 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Fri, 08 Jan 2016 21:15:32 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 08 Jan 2016 21:29:08 +0000
 Subject: Re: Recent spontaneous reboots on multiple machines
-Message-Id: <20160108211532.GE3398@oracle.com>
+Message-Id: <alpine.LRH.2.20.1601082326150.23187@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
 In-Reply-To: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
@@ -10,75 +10,116 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On (01/08/16 22:18), mroos@linux.ee wrote:
+> On (01/08/16 22:18), mroos@linux.ee wrote:
+> > 
+> > lsmod on v440:
 > 
-> lsmod on v440:
-
-my lsmod output is a superset of this list.
-
-> > It could also be influenced by either the amount of memory he has
-> > installed, or what userland he is using.
+> my lsmod output is a superset of this list.
 > 
-> v240 has 6G RAM, v440 has 8G.
+> > > It could also be influenced by either the amount of memory he has
+> > > installed, or what userland he is using.
+> > 
+> > v240 has 6G RAM, v440 has 8G.
+> 
+> here's meminfo for my v440:
+> 
+> # cat /proc/meminfo
+> MemTotal:        4114000 kB
+> MemFree:         3456744 kB
+> MemAvailable:    4012144 kB
+> Buffers:           83464 kB
+> Cached:           414264 kB
+> SwapCached:            0 kB
+> Active:           457064 kB
+> Inactive:          74816 kB
+> Active(anon):      34256 kB
+> Inactive(anon):      240 kB
+> Active(file):     422808 kB
+> Inactive(file):    74576 kB
+> Unevictable:           0 kB
+> Mlocked:               0 kB
+> SwapTotal:       1566328 kB
+> SwapFree:        1566328 kB
+> Dirty:              2808 kB
+> Writeback:             0 kB
+> AnonPages:         34176 kB
+> Mapped:            16272 kB
+> Shmem:               352 kB
+> Slab:             102320 kB
+> SReclaimable:      87920 kB
+> SUnreclaim:        14400 kB
+> KernelStack:        1664 kB
+> PageTables:         1064 kB
+> NFS_Unstable:          0 kB
+> Bounce:                0 kB
+> WritebackTmp:          0 kB
+> CommitLimit:     3623328 kB
+> Committed_AS:      72432 kB
+> VmallocTotal:   3298530689024 kB
+> VmallocUsed:           0 kB
+> VmallocChunk:          0 kB
+> AnonHugePages:         0 kB
 
-here's meminfo for my v440:
+Mine is slightly different - Mlocked is also huge:
 
-# cat /proc/meminfo
-MemTotal:        4114000 kB
-MemFree:         3456744 kB
-MemAvailable:    4012144 kB
-Buffers:           83464 kB
-Cached:           414264 kB
+MemTotal:        8236304 kB
+MemFree:         7841232 kB
+MemAvailable:    8050272 kB
+Buffers:           58168 kB
+Cached:           160472 kB
 SwapCached:            0 kB
-Active:           457064 kB
-Inactive:          74816 kB
-Active(anon):      34256 kB
-Inactive(anon):      240 kB
-Active(file):     422808 kB
-Inactive(file):    74576 kB
+Active:           297040 kB
+Inactive:          20776 kB
+Active(anon):      99232 kB
+Inactive(anon):      296 kB
+Active(file):     197808 kB
+Inactive(file):    20480 kB
 Unevictable:           0 kB
-Mlocked:               0 kB
-SwapTotal:       1566328 kB
-SwapFree:        1566328 kB
-Dirty:              2808 kB
+Mlocked:        7215545057280 kB
+SwapTotal:       3083320 kB
+SwapFree:        3083320 kB
+Dirty:              4624 kB
 Writeback:             0 kB
-AnonPages:         34176 kB
-Mapped:            16272 kB
-Shmem:               352 kB
-Slab:             102320 kB
-SReclaimable:      87920 kB
-SUnreclaim:        14400 kB
-KernelStack:        1664 kB
-PageTables:         1064 kB
+AnonPages:         99368 kB
+Mapped:            22448 kB
+Shmem:               360 kB
+Slab:              52096 kB
+SReclaimable:      33424 kB
+SUnreclaim:        18672 kB
+KernelStack:        1968 kB
+PageTables:         1384 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
-CommitLimit:     3623328 kB
-Committed_AS:      72432 kB
+CommitLimit:     7201472 kB
+Committed_AS:     134392 kB
 VmallocTotal:   3298530689024 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
 AnonHugePages:         0 kB
 
+> > Userland is Debian unstable, as it was as of July 25, 2015. gcc 4.9.3-2, 
+> > binutils 2.25-10.
 > 
-> Userland is Debian unstable, as it was as of July 25, 2015. gcc 4.9.3-2, 
-> binutils 2.25-10.
+> maybe it's the gcc/binutils? I'm using something older:
+> 
+> # gcc --version
+> gcc (Debian 4.6.3-14) 4.6.3
+> Copyright (C) 2011 Free Software Foundation, Inc.
+> This is free software; see the source for copying conditions.  There is NO
+> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> 
+> My binutils is 2.22-8+deb7u2
+> 
+> the other difference is that (due to firewall/proxy headaches) I 
+> git-pull on a different machine and then rsync over that tree to
+> the v440. 
+> 
+> I did not see anything significantly different about the ps/interrupts
+> etc. I do not have irqbalance or ntpd on the v440, though.
+> 
+> --Sowmini
+> 
 
-maybe it's the gcc/binutils? I'm using something older:
-
-# gcc --version
-gcc (Debian 4.6.3-14) 4.6.3
-Copyright (C) 2011 Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.  There is NO
-warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
-My binutils is 2.22-8+deb7u2
-
-the other difference is that (due to firewall/proxy headaches) I 
-git-pull on a different machine and then rsync over that tree to
-the v440. 
-
-I did not see anything significantly different about the ps/interrupts
-etc. I do not have irqbalance or ntpd on the v440, though.
-
---Sowmini
+-- 
+Meelis Roos (mroos@linux.ee)
