@@ -1,58 +1,52 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Mon, 11 Jan 2016 11:00:19 +0000
-Subject: [PATCH v4 1/3] checkpatch.pl: add missing memory barriers
-Message-Id: <1452509968-19778-2-git-send-email-mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:20:00 +0000
+Subject: [PATCH v3 25/41] tile: define __smp_xxx
+Message-Id: <1452426622-4471-26-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452509968-19778-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452509968-19778-1-git-send-email-mst@redhat.com>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Andy Whitcroft <apw@canonical.com>, Joe Perches <joe@perches.com>, Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@kernel.org>, Ton
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Cooper <andrew.cooper3-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Chris Metcalf <cmetc>
 
-SMP-only barriers were missing in checkpatch.pl
+This defines __smp_xxx barriers for tile,
+for use by virtualization.
 
-Refactor code slightly to make adding more variants easier.
+Some smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
+
+Note: for 32 bit, keep smp_mb__after_atomic around since it's faster
+than the generic implementation.
 
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- scripts/checkpatch.pl | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ arch/tile/include/asm/barrier.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 2b3c228..94b4e33 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5116,7 +5116,27 @@ sub process {
- 			}
- 		}
- # check for memory barriers without a comment.
--		if ($line =~ /\b(mb|rmb|wmb|read_barrier_depends|smp_mb|smp_rmb|smp_wmb|smp_read_barrier_depends)\(/) {
-+
-+		my $barriers = qr{
-+			mb|
-+			rmb|
-+			wmb|
-+			read_barrier_depends
-+		}x;
-+		my $barrier_stems = qr{
-+			mb__before_atomic|
-+			mb__after_atomic|
-+			store_release|
-+			load_acquire|
-+			store_mb|
-+			(?:$barriers)
-+		}x;
-+		my $all_barriers = qr{
-+			(?:$barriers)|
-+			smp_(?:$barrier_stems)
-+		}x;
-+
-+		if ($line =~ /\b(?:$all_barriers)\s*\(/) {
- 			if (!ctx_has_comment($first_line, $linenr)) {
- 				WARN("MEMORY_BARRIER",
- 				     "memory barrier without comment\n" . $herecurr);
+diff --git a/arch/tile/include/asm/barrier.h b/arch/tile/include/asm/barrier.h
+index 96a42ae..d552228 100644
+--- a/arch/tile/include/asm/barrier.h
++++ b/arch/tile/include/asm/barrier.h
+@@ -79,11 +79,12 @@ mb_incoherent(void)
+  * But after the word is updated, the routine issues an "mf" before returning,
+  * and since it's a function call, we don't even need a compiler barrier.
+  */
+-#define smp_mb__before_atomic()	smp_mb()
+-#define smp_mb__after_atomic()	do { } while (0)
++#define __smp_mb__before_atomic()	__smp_mb()
++#define __smp_mb__after_atomic()	do { } while (0)
++#define smp_mb__after_atomic()	__smp_mb__after_atomic()
+ #else /* 64 bit */
+-#define smp_mb__before_atomic()	smp_mb()
+-#define smp_mb__after_atomic()	smp_mb()
++#define __smp_mb__before_atomic()	__smp_mb()
++#define __smp_mb__after_atomic()	__smp_mb()
+ #endif
+ 
+ #include <asm-generic/barrier.h>
 -- 
 MST
 
