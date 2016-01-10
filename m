@@ -1,55 +1,54 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 25 Jan 2016 21:15:08 +0000
-Subject: Re: [PATCH v3] Add sun4v_wdt watchdog driver
-Message-Id: <56A6905C.4070106@roeck-us.net>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:18:54 +0000
+Subject: [PATCH v3 17/41] arm: define __smp_xxx
+Message-Id: <1452426622-4471-18-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1453754288-30997-1-git-send-email-wim.coekaerts@oracle.com>
- <56A68D5F.40406@roeck-us.net> <56A68F1B.80605@oracle.com>
-In-Reply-To: <56A68F1B.80605@oracle.com>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Wim Coekaerts <wim.coekaerts@oracle.com>, wim@iguana.be
-Cc: linux-watchdog@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Russell King <rmk+k>
 
-On 01/25/2016 01:09 PM, Wim Coekaerts wrote:
-> On 01/25/2016 01:02 PM, Guenter Roeck wrote:
->> On 01/25/2016 12:38 PM, Wim Coekaerts wrote:
->>> This driver adds sparc hypervisor watchdog support. Timeout is set in
->>> milliseconds since that is the granularity supported and it honors
->>> the settings of both the watchdog-resolution and watchdog-max-timeout
->>> MD properties.
->>>
->>> Default timeout is set at 60 seconds or 60000ms. The range is between
->>> 1 second and 180 seconds. The default resolution is 1000ms.
->>>
->>> Signed-off-by: Wim Coekaerts <wim.coekaerts@oracle.com>
->>> ---
->>> Changes in v3:
->>>    - Modify sun4v_mach_set_watchdog to allow for NULL and remove
->>>     time_remaining
->>>    - Cleanup includes
->>>    - Consolidate _start and _ping into _ping since they were the same
->>>    - Fix checkpatch warnings
->>>    - Remove pr_info()s
->>>    - Clean up return codes to be standard kernel return values
->>>    - Consolidate _init and _probe into _init
->>>     Don't use platform_device anymore because this is really
->>>     just a driver that depends on a hv call. This now looks more
->>>     like softdog.
->>>    - Cleanly check for sun4v architecture and remove extra tests
->>>    - Convert to ms timer support and honor resolution
->>>     since most drivers use seconds I added _ms to make it clear
->>
->> You can not redefine the watchdog ABI to mean milli-seconds instead of seconds.
->
-> ugh ok. Then it makes honoring resolutions a bit useless (comment on
-> previous patch about having a fixed 1s resolution)
->
+This defines __smp_xxx barriers for arm,
+for use by virtualization.
 
-Why ? You can still round the resolution to seconds, and use the milli-second
-resolution internally while keeping the ABI stable. Many other drivers have a
-hardware watchdog resolution which differs from 1 second.
+smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
 
-Guenter
+This reduces the amount of arch-specific boiler-plate code.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ arch/arm/include/asm/barrier.h | 12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
+
+diff --git a/arch/arm/include/asm/barrier.h b/arch/arm/include/asm/barrier.h
+index 31152e8..112cc1a 100644
+--- a/arch/arm/include/asm/barrier.h
++++ b/arch/arm/include/asm/barrier.h
+@@ -60,15 +60,9 @@ extern void arm_heavy_mb(void);
+ #define dma_wmb()	barrier()
+ #endif
+ 
+-#ifndef CONFIG_SMP
+-#define smp_mb()	barrier()
+-#define smp_rmb()	barrier()
+-#define smp_wmb()	barrier()
+-#else
+-#define smp_mb()	dmb(ish)
+-#define smp_rmb()	smp_mb()
+-#define smp_wmb()	dmb(ishst)
+-#endif
++#define __smp_mb()	dmb(ish)
++#define __smp_rmb()	__smp_mb()
++#define __smp_wmb()	dmb(ishst)
+ 
+ #include <asm-generic/barrier.h>
+ 
+-- 
+MST
 
