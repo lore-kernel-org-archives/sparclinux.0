@@ -1,7 +1,7 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:18:36 +0000
-Subject: [PATCH v3 15/41] powerpc: define __smp_xxx
-Message-Id: <1452426622-4471-16-git-send-email-mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:21:07 +0000
+Subject: [PATCH v3 33/41] virtio_ring: use virt_store_mb
+Message-Id: <1452426622-4471-34-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1452426622-4471-1-git-send-email-mst@redhat.com>
 In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
@@ -9,74 +9,76 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Boqun Feng <boqun.fe>
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
 
-This defines __smp_xxx barriers for powerpc
-for use by virtualization.
+We need a full barrier after writing out event index, using
+virt_store_mb there seems better than open-coding.  As usual, we need a
+wrapper to account for strong barriers.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
-
-This reduces the amount of arch-specific boiler-plate code.
+It's tempting to use this in vhost as well, for that, we'll
+need a variant of smp_store_mb that works on __user pointers.
 
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Boqun Feng <boqun.feng@gmail.com>
 ---
- arch/powerpc/include/asm/barrier.h | 24 ++++++++----------------
- 1 file changed, 8 insertions(+), 16 deletions(-)
+ include/linux/virtio_ring.h  | 11 +++++++++++
+ drivers/virtio/virtio_ring.c | 15 +++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
-index 980ad0c..c0deafc 100644
---- a/arch/powerpc/include/asm/barrier.h
-+++ b/arch/powerpc/include/asm/barrier.h
-@@ -44,19 +44,11 @@
- #define dma_rmb()	__lwsync()
- #define dma_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+diff --git a/include/linux/virtio_ring.h b/include/linux/virtio_ring.h
+index f3fa55b..a156e2b 100644
+--- a/include/linux/virtio_ring.h
++++ b/include/linux/virtio_ring.h
+@@ -45,6 +45,17 @@ static inline void virtio_wmb(bool weak_barriers)
+ 		wmb();
+ }
  
--#ifdef CONFIG_SMP
--#define smp_lwsync()	__lwsync()
-+#define __smp_lwsync()	__lwsync()
++static inline void virtio_store_mb(bool weak_barriers,
++				   __virtio16 *p, __virtio16 v)
++{
++	if (weak_barriers) {
++		virt_store_mb(*p, v);
++	} else {
++		WRITE_ONCE(*p, v);
++		mb();
++	}
++}
++
+ struct virtio_device;
+ struct virtqueue;
  
--#define smp_mb()	mb()
--#define smp_rmb()	__lwsync()
--#define smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
--#else
--#define smp_lwsync()	barrier()
--
--#define smp_mb()	barrier()
--#define smp_rmb()	barrier()
--#define smp_wmb()	barrier()
--#endif /* CONFIG_SMP */
-+#define __smp_mb()	mb()
-+#define __smp_rmb()	__lwsync()
-+#define __smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index ee663c4..e12e385 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -517,10 +517,10 @@ void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
+ 	/* If we expect an interrupt for the next entry, tell host
+ 	 * by writing event index and flush out the write before
+ 	 * the read in the next get_buf call. */
+-	if (!(vq->avail_flags_shadow & VRING_AVAIL_F_NO_INTERRUPT)) {
+-		vring_used_event(&vq->vring) = cpu_to_virtio16(_vq->vdev, vq->last_used_idx);
+-		virtio_mb(vq->weak_barriers);
+-	}
++	if (!(vq->avail_flags_shadow & VRING_AVAIL_F_NO_INTERRUPT))
++		virtio_store_mb(vq->weak_barriers,
++				&vring_used_event(&vq->vring),
++				cpu_to_virtio16(_vq->vdev, vq->last_used_idx));
  
- /*
-  * This is a barrier which prevents following instructions from being
-@@ -67,18 +59,18 @@
- #define data_barrier(x)	\
- 	asm volatile("twi 0,%0,0; isync" : : "r" (x) : "memory");
- 
--#define smp_store_release(p, v)						\
-+#define __smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_lwsync();							\
-+	__smp_lwsync();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
- 
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_lwsync();							\
-+	__smp_lwsync();							\
- 	___p1;								\
- })
- 
+ #ifdef DEBUG
+ 	vq->last_add_time_valid = false;
+@@ -653,8 +653,11 @@ bool virtqueue_enable_cb_delayed(struct virtqueue *_vq)
+ 	}
+ 	/* TODO: tune this threshold */
+ 	bufs = (u16)(vq->avail_idx_shadow - vq->last_used_idx) * 3 / 4;
+-	vring_used_event(&vq->vring) = cpu_to_virtio16(_vq->vdev, vq->last_used_idx + bufs);
+-	virtio_mb(vq->weak_barriers);
++
++	virtio_store_mb(vq->weak_barriers,
++			&vring_used_event(&vq->vring),
++			cpu_to_virtio16(_vq->vdev, vq->last_used_idx + bufs));
++
+ 	if (unlikely((u16)(virtio16_to_cpu(_vq->vdev, vq->vring.used->idx) - vq->last_used_idx) > bufs)) {
+ 		END_USE(vq);
+ 		return false;
 -- 
 MST
 
