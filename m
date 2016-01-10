@@ -1,62 +1,53 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Fri, 29 Jan 2016 02:31:17 +0000
-Subject: [PATCH v5 04/10] vring: Introduce vring_use_dma_api()
-Message-Id: <cab70812b0a46a5a5b36e6de4110c5c66a6f6916.1454034075.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:21:56 +0000
+Subject: [PATCH v3 39/41] xen/events: use virt_xxx barriers
+Message-Id: <1452426622-4471-40-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454034075.git.luto@kernel.org>
-In-Reply-To: <cover.1454034075.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, David Vrabel <david>
 
-This is a kludge, but no one has come up with a a better idea yet.
-We'll introduce DMA API support guarded by vring_use_dma_api().
-Eventually we may be able to return true on more and more systems,
-and hopefully we can get rid of vring_use_dma_api() entirely some
-day.
+drivers/xen/events/events_fifo.c uses rmb() to communicate with the
+other side.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+For guests compiled with CONFIG_SMP, smp_rmb would be sufficient, so
+rmb() here is only needed if a non-SMP guest runs on an SMP host.
+
+Switch to the virt_rmb barrier which serves this exact purpose.
+
+Pull in asm/barrier.h here to make sure the file is self-contained.
+
+Suggested-by: David Vrabel <david.vrabel@citrix.com>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- drivers/virtio/virtio_ring.c | 24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/xen/events/events_fifo.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
-index e12e385f7ac3..4b8dab4960bb 100644
---- a/drivers/virtio/virtio_ring.c
-+++ b/drivers/virtio/virtio_ring.c
-@@ -25,6 +25,30 @@
- #include <linux/hrtimer.h>
- #include <linux/kmemleak.h>
+diff --git a/drivers/xen/events/events_fifo.c b/drivers/xen/events/events_fifo.c
+index 96a1b8d..eff2b88 100644
+--- a/drivers/xen/events/events_fifo.c
++++ b/drivers/xen/events/events_fifo.c
+@@ -41,6 +41,7 @@
+ #include <linux/percpu.h>
+ #include <linux/cpu.h>
  
-+/*
-+ * The interaction between virtio and a possible IOMMU is a mess.
-+ *
-+ * On most systems with virtio, physical addresses match bus addresses,
-+ * and it doesn't particularly matter whether we use the DMI API.
-+ *
-+ * On some sytems, including Xen and any system with a physical device
-+ * that speaks virtio behind a physical IOMMU, we must use the DMA API
-+ * for virtio DMA to work at all.
-+ *
-+ * On other systems, including SPARC and PPC64, virtio-pci devices are
-+ * enumerated as though they are behind an IOMMU, but the virtio host
-+ * ignores the IOMMU, so we must either pretend that the IOMMU isn't
-+ * there or somehow map everything as the identity.
-+ *
-+ * For the time being, we preseve historic behavior and bypass the DMA
-+ * API.
-+ */
-+
-+static bool vring_use_dma_api(void)
-+{
-+	return false;
-+}
-+
- #ifdef DEBUG
- /* For development, we want to crash whenever the ring is screwed. */
- #define BAD_RING(_vq, fmt, args...)				\
++#include <asm/barrier.h>
+ #include <asm/sync_bitops.h>
+ #include <asm/xen/hypercall.h>
+ #include <asm/xen/hypervisor.h>
+@@ -296,7 +297,7 @@ static void consume_one_event(unsigned cpu,
+ 	 * control block.
+ 	 */
+ 	if (head = 0) {
+-		rmb(); /* Ensure word is up-to-date before reading head. */
++		virt_rmb(); /* Ensure word is up-to-date before reading head. */
+ 		head = control_block->head[priority];
+ 	}
+ 
 -- 
-2.5.0
+MST
 
