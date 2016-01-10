@@ -1,189 +1,39 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:18:28 +0000
-Subject: [PATCH v3 14/41] asm-generic: add __smp_xxx wrappers
-Message-Id: <1452426622-4471-15-git-send-email-mst@redhat.com>
+Date: Sun, 10 Jan 2016 19:30:27 +0000
+Subject: [PATCH v3 0/3] checkpatch: handling of memory barriers
+Message-Id: <1452454200-8844-1-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.orgAndrewCooperan
 
-On !SMP, most architectures define their
-barriers as compiler barriers.
-On SMP, most need an actual barrier.
+As part of memory barrier cleanup, this patchset
+extends checkpatch to make it easier to stop
+incorrect memory barrier usage.
 
-Make it possible to remove the code duplication for
-!SMP by defining low-level __smp_xxx barriers
-which do not depend on the value of SMP, then
-use them from asm-generic conditionally.
+This replaces the checkpatch patches in my series
+	arch: barrier cleanup + barriers for virt
+and will be included in the next version of the series.
 
-Besides reducing code duplication, these low level APIs will also be
-useful for virtualization, where a barrier is sometimes needed even if
-!SMP since we might be talking to another kernel on the same SMP system.
+changes from v2:
+	address comments by Joe Perches:
+	use (?: ... ) to avoid unnecessary capture groups
+	rename smp_barriers to smp_barrier_stems for clarity
+	add barriers before/after atomic
+Changes from v1:
+	catch optional\s* before () in barriers
+	rewrite using qr{} instead of map
 
-Both virtio and Xen drivers will benefit.
+Michael S. Tsirkin (3):
+  checkpatch.pl: add missing memory barriers
+  checkpatch: check for __smp outside barrier.h
+  checkpatch: add virt barriers
 
-The smp_xxx variants should use __smp_XXX ones or barrier() depending on
-SMP, identically for all architectures.
+ scripts/checkpatch.pl | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
-We keep ifndef guards around them for now - once/if all
-architectures are converted to use the generic
-code, we'll be able to remove these.
-
-Suggested-by: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- include/asm-generic/barrier.h | 91 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 82 insertions(+), 9 deletions(-)
-
-diff --git a/include/asm-generic/barrier.h b/include/asm-generic/barrier.h
-index 987b2e0..8752964 100644
---- a/include/asm-generic/barrier.h
-+++ b/include/asm-generic/barrier.h
-@@ -54,22 +54,38 @@
- #define read_barrier_depends()		do { } while (0)
- #endif
- 
-+#ifndef __smp_mb
-+#define __smp_mb()	mb()
-+#endif
-+
-+#ifndef __smp_rmb
-+#define __smp_rmb()	rmb()
-+#endif
-+
-+#ifndef __smp_wmb
-+#define __smp_wmb()	wmb()
-+#endif
-+
-+#ifndef __smp_read_barrier_depends
-+#define __smp_read_barrier_depends()	read_barrier_depends()
-+#endif
-+
- #ifdef CONFIG_SMP
- 
- #ifndef smp_mb
--#define smp_mb()	mb()
-+#define smp_mb()	__smp_mb()
- #endif
- 
- #ifndef smp_rmb
--#define smp_rmb()	rmb()
-+#define smp_rmb()	__smp_rmb()
- #endif
- 
- #ifndef smp_wmb
--#define smp_wmb()	wmb()
-+#define smp_wmb()	__smp_wmb()
- #endif
- 
- #ifndef smp_read_barrier_depends
--#define smp_read_barrier_depends()	read_barrier_depends()
-+#define smp_read_barrier_depends()	__smp_read_barrier_depends()
- #endif
- 
- #else	/* !CONFIG_SMP */
-@@ -92,23 +108,78 @@
- 
- #endif	/* CONFIG_SMP */
- 
-+#ifndef __smp_store_mb
-+#define __smp_store_mb(var, value)  do { WRITE_ONCE(var, value); __smp_mb(); } while (0)
-+#endif
-+
-+#ifndef __smp_mb__before_atomic
-+#define __smp_mb__before_atomic()	__smp_mb()
-+#endif
-+
-+#ifndef __smp_mb__after_atomic
-+#define __smp_mb__after_atomic()	__smp_mb()
-+#endif
-+
-+#ifndef __smp_store_release
-+#define __smp_store_release(p, v)					\
-+do {									\
-+	compiletime_assert_atomic_type(*p);				\
-+	__smp_mb();							\
-+	WRITE_ONCE(*p, v);						\
-+} while (0)
-+#endif
-+
-+#ifndef __smp_load_acquire
-+#define __smp_load_acquire(p)						\
-+({									\
-+	typeof(*p) ___p1 = READ_ONCE(*p);				\
-+	compiletime_assert_atomic_type(*p);				\
-+	__smp_mb();							\
-+	___p1;								\
-+})
-+#endif
-+
-+#ifdef CONFIG_SMP
-+
-+#ifndef smp_store_mb
-+#define smp_store_mb(var, value)  __smp_store_mb(var, value)
-+#endif
-+
-+#ifndef smp_mb__before_atomic
-+#define smp_mb__before_atomic()	__smp_mb__before_atomic()
-+#endif
-+
-+#ifndef smp_mb__after_atomic
-+#define smp_mb__after_atomic()	__smp_mb__after_atomic()
-+#endif
-+
-+#ifndef smp_store_release
-+#define smp_store_release(p, v) __smp_store_release(p, v)
-+#endif
-+
-+#ifndef smp_load_acquire
-+#define smp_load_acquire(p) __smp_load_acquire(p)
-+#endif
-+
-+#else	/* !CONFIG_SMP */
-+
- #ifndef smp_store_mb
--#define smp_store_mb(var, value)  do { WRITE_ONCE(var, value); smp_mb(); } while (0)
-+#define smp_store_mb(var, value)  do { WRITE_ONCE(var, value); barrier(); } while (0)
- #endif
- 
- #ifndef smp_mb__before_atomic
--#define smp_mb__before_atomic()	smp_mb()
-+#define smp_mb__before_atomic()	barrier()
- #endif
- 
- #ifndef smp_mb__after_atomic
--#define smp_mb__after_atomic()	smp_mb()
-+#define smp_mb__after_atomic()	barrier()
- #endif
- 
- #ifndef smp_store_release
- #define smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
-+	barrier();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
- #endif
-@@ -118,10 +189,12 @@ do {									\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
--	smp_mb();							\
-+	barrier();							\
- 	___p1;								\
- })
- #endif
- 
-+#endif
-+
- #endif /* !__ASSEMBLY__ */
- #endif /* __ASM_GENERIC_BARRIER_H */
 -- 
 MST
 
