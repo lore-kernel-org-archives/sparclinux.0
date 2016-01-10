@@ -1,44 +1,61 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Fri, 29 Jan 2016 02:31:22 +0000
-Subject: [PATCH v5 09/10] vring: Use the DMA API on Xen
-Message-Id: <64e979cc139c5e6a9bbfae9f1bc5e6693d91bea9.1454034075.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:17:01 +0000
+Subject: [PATCH v3 04/41] ia64: reuse asm-generic/barrier.h
+Message-Id: <1452426622-4471-5-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454034075.git.luto@kernel.org>
-In-Reply-To: <cover.1454034075.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, adi-buildroot-devel@lists.sourceforge.net, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Luck <tony.luck@intel.com>, Andrew Cooper <andrew.cooper3@citrix.com>, Fenghua Yu <fengh>
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+On ia64 smp_rmb, smp_wmb, read_barrier_depends, smp_read_barrier_depends
+and smp_store_mb() match the asm-generic variants exactly. Drop the
+local definitions and pull in asm-generic/barrier.h instead.
+
+This is in preparation to refactoring this code area.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/virtio/virtio_ring.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/ia64/include/asm/barrier.h | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
-index c169c6444637..305c05cc249a 100644
---- a/drivers/virtio/virtio_ring.c
-+++ b/drivers/virtio/virtio_ring.c
-@@ -47,6 +47,18 @@
+diff --git a/arch/ia64/include/asm/barrier.h b/arch/ia64/include/asm/barrier.h
+index 209c4b8..2f93348 100644
+--- a/arch/ia64/include/asm/barrier.h
++++ b/arch/ia64/include/asm/barrier.h
+@@ -48,12 +48,6 @@
+ # define smp_mb()	barrier()
+ #endif
  
- static bool vring_use_dma_api(void)
- {
-+#if defined(CONFIG_X86) && defined(CONFIG_XEN)
-+	/*
-+	 * In theory, it's possible to have a buggy QEMU-supposed
-+	 * emulated Q35 IOMMU and Xen enabled at the same time.  On
-+	 * such a configuration, virtio has never worked and will
-+	 * not work without an even larger kludge.  Instead, enable
-+	 * the DMA API if we're a Xen guest, which at least allows
-+	 * all of the sensible Xen configurations to work correctly.
-+	 */
-+	return static_cpu_has(X86_FEATURE_XENPV);
-+#endif
+-#define smp_rmb()	smp_mb()
+-#define smp_wmb()	smp_mb()
+-
+-#define read_barrier_depends()		do { } while (0)
+-#define smp_read_barrier_depends()	do { } while (0)
+-
+ #define smp_mb__before_atomic()	barrier()
+ #define smp_mb__after_atomic()	barrier()
+ 
+@@ -77,12 +71,12 @@ do {									\
+ 	___p1;								\
+ })
+ 
+-#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); smp_mb(); } while (0)
+-
+ /*
+  * The group barrier in front of the rsm & ssm are necessary to ensure
+  * that none of the previous instructions in the same group are
+  * affected by the rsm/ssm.
+  */
+ 
++#include <asm-generic/barrier.h>
 +
- 	return false;
- }
- 
+ #endif /* _ASM_IA64_BARRIER_H */
 -- 
-2.5.0
+MST
 
