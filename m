@@ -1,38 +1,43 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:23 +0000
-Subject: [PATCH v2 09/16] net/sctp: Use in_compat_syscall for sctp_getsockopt_connectx3
-Message-Id: <f2dfab45994770860a85edacf90f254952027861.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:20:09 +0000
+Subject: [PATCH v3 26/41] xtensa: define __smp_xxx
+Message-Id: <1452426622-4471-27-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
 
-SCTP unfortunately has a different ABI for SCTP_SOCKOPT_CONNECTX3
-for 32-bit and 64-bit callers.  Use in_compat_syscall to correctly
-distinguish them on all architectures.
+This defines __smp_xxx barriers for xtensa,
+for use by virtualization.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- net/sctp/socket.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/include/asm/barrier.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/sctp/socket.c b/net/sctp/socket.c
-index 9bb80ec4c08f..20ab6b2bbbb9 100644
---- a/net/sctp/socket.c
-+++ b/net/sctp/socket.c
-@@ -1389,7 +1389,7 @@ static int sctp_getsockopt_connectx3(struct sock *sk, int len,
- 	int err = 0;
+diff --git a/arch/xtensa/include/asm/barrier.h b/arch/xtensa/include/asm/barrier.h
+index 5b88774..956596e 100644
+--- a/arch/xtensa/include/asm/barrier.h
++++ b/arch/xtensa/include/asm/barrier.h
+@@ -13,8 +13,8 @@
+ #define rmb() barrier()
+ #define wmb() mb()
  
- #ifdef CONFIG_COMPAT
--	if (is_compat_task()) {
-+	if (in_compat_syscall()) {
- 		struct compat_sctp_getaddrs_old param32;
+-#define smp_mb__before_atomic()		barrier()
+-#define smp_mb__after_atomic()		barrier()
++#define __smp_mb__before_atomic()		barrier()
++#define __smp_mb__after_atomic()		barrier()
  
- 		if (len < sizeof(param32))
+ #include <asm-generic/barrier.h>
+ 
 -- 
-2.5.0
+MST
 
