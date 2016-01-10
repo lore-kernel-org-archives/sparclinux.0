@@ -1,55 +1,38 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Fri, 29 Jan 2016 05:28:36 +0000
-Subject: Re: [RFC] hugepages on sparc
-Message-Id: <56AAF884.3000303@oracle.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 19:31:00 +0000
+Subject: [PATCH v3 3/3] checkpatch: add virt barriers
+Message-Id: <1452454200-8844-4-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56A944DD.3060809@oracle.com>
-In-Reply-To: <56A944DD.3060809@oracle.com>
+References: <1452454200-8844-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452454200-8844-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.orgAndrewCooperan
 
-T24gMS8yOC8xNiAxOjQ3IFBNLCBTYW0gUmF2bmJvcmcgd3JvdGU6Cj4gT24gVGh1LCBKYW4gMjgs
-IDIwMTYgYXQgMTE6MjI6NTJBTSAtMDgwMCwgTml0aW4gR3VwdGEgd3JvdGU6Cj4+Cj4+Cj4+IE9u
-IDAxLzI3LzIwMTYgMDM6MTcgUE0sIERhdmlkIE1pbGxlciB3cm90ZToKPj4+IEZyb206IE5pdGlu
-IEd1cHRhIDxuaXRpbi5tLmd1cHRhQG9yYWNsZS5jb20+Cj4+PiBEYXRlOiBXZWQsIDI3IEphbiAy
-MDE2IDE0OjI5OjQ5IC0wODAwCj4+Pgo+Pgo+Pj4KPj4+IEkgZG9uJ3Qgc2VlIHdoYXQgdGhlIHBy
-b2JsZW0gd2l0aCA4TUIgaHVnZSBwYWdlcyBhcmUsIHRoZXkgd29yayByZWFsbHkKPj4+IHdlbGwg
-YW5kIHRoZSBpbXBsZW1lbnRhdGlvbiBpcyBpbmNyZWRpYmx5IHN0cmFpZ2h0Zm9yd2FyZC4KPj4+
-Cj4+PiBZb3UgaGF2ZSB0byBkZW1vbnN0cmF0ZSBhIHBlcmZvcm1hbmNlIG9mIGJlaGF2aW9yYWwg
-cHJvYmxlbSB0byBqdXN0aWZ5Cj4+PiBzdWNoIHdvcmsuICBUaGVuIHlvdSBoYXZlIHRvIGNvbWUg
-dXAgd2l0aCBhbiBpbXBsZW1lbnRhdGlvbiBvZiB0aGUKPj4+IFRIUCBBQkkgY2hhbmdlcywgYW5k
-IHNhdGlzZnkgdGhlIFRIUCBhbmQgbW0gbWFpbnRhaW5lcnMuCj4+Pgo+Pgo+PiA4TSBwYWdlcyBk
-b24ndCBzZWVtIHRvIHdvcmsgdG9vIHdlbGw6Cj4+Cj4+IEkgcmFuIHN0cmVhbSBiZW5jaG1hcms6
-Cj4+IGh0dHBzOi8vd3d3LmNzLnZpcmdpbmlhLmVkdS9zdHJlYW0vcmVmLmh0bWwKPj4KPj4gT24g
-YSBTUEFSQyBUNCAoMTI4IENQVXMsIDEyOEcgUkFNKSBydW5uaW5nIDQuNS4wLXJjMSwgIEkgZ290
-IENQVQo+PiBsb2NrdXBzIGFuZCB0aGUgdGVzdCBzZWVtcyB0byBnZXQgc3R1Y2sgbmVhciBpbml0
-aWFsaXphdGlvbi4gVGhlCj4+IHNhbWUgdGVzdCBjb21wbGV0ZWQgb24gdGhlIHNhbWUgaGFyZHdh
-cmUgaW4gMW01M3Mgd2l0aCBub3JtYWwgOEsKPj4gcGFnZXMuICBUaGUgdGVzdCBhbGxvY2F0ZXMg
-YSB0b3RhbCBvZiA0OEcgb2YgUkFNIGFuZCBJIGZvcmNlZCBpdAo+PiB0byB1c2UgaHVnZXBhZ2Vz
-IHdpdGggJ2h1Z2VjdGwgLS1oZWFwPThNJy4gSSBwYXNzZWQgaHVnZXBhZ2VzgTkyCj4+IGFzIGtl
-cm5lbCBib290IHBhcmFtIHRvIG1ha2Ugc3VyZSBhbGwgNDhHIGNvdWxkIGJlIGFsbG9jYXRlZCB3
-aXRoCj4+IGh1Z2VwYWdlcy4KPj4KPj4gU2luY2UgOE0gc2VlbXMgbm90IHF1aXRlIGZ1bmN0aW9u
-YWwsIEkgY2FuIHdvcmsgb24gZ2V0dGluZyBiYWNrIDRNCj4+IHBhZ2VzIHdpdGggaG9wZWZ1bGx5
-IGRlY2VudCBwZXJmb3JtYW5jZS4gVGhpcyB3b3VsZCB0ZW1wb3JhcmlseQo+PiBicmVhayBUSFAg
-b24gc3BhcmMvbGludXggYnV0IGl0IHdvdWxkIGFsbG93IG1lIHRvIHNwbGl0IHRoZSB3b3JrCj4+
-IGluIHBoYXNlcy4KPiAKPiBCZWZvcmUgaW50cm9kdWNpbmcgYW55dGhpbmcgbmV3IGl0IHdvdWxk
-IGJlIGdvb2QgdG8gaGF2ZSB0aGUgY3VycmVudAo+IGZ1bmN0aW9uYWxpdHkgZml4ZWQuIFRoZW4g
-eW91IGhhdmUgc29tZXRoaW5nIHdvcmtpbmcgdGhhdCBjYW4gYmUgaW1wcm92ZWQuCj4gQW5kIHlv
-dSBzZWVtIHRvIGtub3cgdGhlIGFyZWEsIGhhdmUgYWNjZXNzIHRvIEhXIGFuZCBjYW4gcmVwcm9k
-dWNlIHRoZSBidWcuCj4gU28gaXMgdGhpcyBzb21ldGhpbmcgeW91IGNvdWxkIGF0IGxlYXN0IHRy
-eSB0byBzcGVuZCBzb21lIHRpbWUgb24gYmVmb3JlCj4gc3RhcnRpbmcgYSBiaWdnZXIgcmV3cml0
-ZT8KPiAKCgpJIHdhcyBqdXN0IGNvbmNlcm5lZCB0aGF0IGZpeGluZyA4TSBtaWdodCBiZSBtb3Jl
-IHdvcmsgdGhhbiBnZXR0aW5nCmh3LXN1cHBvcnRlZCA0TSBwYWdlcyB0byB3b3JrIGFuZCBzaW5j
-ZSA0TS0+OE0gdHJhbnNpdGlvbiBkaWQgbm90CnNlZW0gdG8gYmUgYmFzZWQgb24gdmVyeSBmdW5k
-YW1lbnRhbCByZWFzb25zLCBJIGJlbGlldmVkIGRpcmVjdGx5CmdvaW5nIGZvciA0TSBwYWdlcyB3
-aGlsZSBkaXNhYmxpbmcgVEhQIHRlbXBvcmFyaWx5IChjdXJyZW50bHkKaXQgZG9lc24ndCByZWFs
-bHkgd29yayBncmVhdCBvbiBzcGFyYy9saW51eCBhbnl3YXlzKSB3b3VsZCBiZQp3b3J0aCBpdC4K
-CkFueXdheXMsIEkgZGlkIG1ha2UgYSBxdWljayBoYWNrIHRvIGVuYWJsZSA0TSBwYWdlcyBhbmQg
-SSBzZWUKQ1BVIGxvY2t1cHMgd2l0aCBzYW1lIHN0YWNrIHRyYWNlIHNvIEkgZ3Vlc3MgdGhleSBi
-b3RoCmhhdmUgc2FtZSB1bmRlcmx5aW5nIGNhdXNlLCBzbyBJJ20gbm93IG9rYXkgd2l0aCBmaXhp
-bmcgOE0KY2FzZSBmaXJzdC4KClRoYW5rcywKTml0aW4KCgotLQpUbyB1bnN1YnNjcmliZSBmcm9t
-IHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgc3BhcmNsaW51eCIgaW4KdGhl
-IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKTW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
+Add virt_ barriers to list of barriers to check for
+presence of a comment.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ scripts/checkpatch.pl | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 15cfca4..4466579 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5133,7 +5133,8 @@ sub process {
+ 		}x;
+ 		my $all_barriers = qr{
+ 			$barriers|
+-			smp_(?:$smp_barrier_stems)
++			smp_(?:$smp_barrier_stems)|
++			virt_(?:$smp_barrier_stems)
+ 		}x;
+ 
+ 		if ($line =~ /\b(?:$all_barriers)\s*\(/) {
+-- 
+MST
+
