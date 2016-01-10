@@ -1,102 +1,61 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Mon, 04 Jan 2016 05:57:35 +0000
-Subject: Re: Fwd: [BISECTED] "sparc64: Fix numa distance values" breakage
-Message-Id: <568A09C6.3000306@oracle.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:16:52 +0000
+Subject: [PATCH v3 03/41] ia64: rename nop->iosapic_nop
+Message-Id: <1452426622-4471-4-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Tony Luck <tony.luck>
 
-Mike,
+asm-generic/barrier.h defines a nop() macro.
+To be able to use this header on ia64, we shouldn't
+call local functions/variables nop().
 
-I believe this is due to the firmware exporting wrong/incomplete
-information about memory latency groups in the machine descriptor (MD).
-Before this patch, this information was not used at all and kernel
-always used default values for numa node distance values. With incorrect
-values, scheduler can have a skewed view of the machine causing this
-non optimal usage. My testing on T7, T5, T4 with recent firmwares never
-showed such issues.
+There's one instance where this breaks on ia64:
+rename the function to iosapic_nop to avoid the conflict.
 
-Can you please provide output of 'numactl --hardware' on your machine?
-Ideally, I would also require dump of the MD but I don't have a script
-handy for this which I can share externally.
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/ia64/kernel/iosapic.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Dave: would you have a script to dump MD which you can share?
-
-Thanks,
-Nitin
-
->>
->> From: Mikael Pettersson <mikpelinux@gmail.com>
->> Subject: [BISECTED] "sparc64: Fix numa distance values" breakage (was: 4.4-rc kernels only use one of two CPUs on Sun Blade 2500)
->> Date: December 30, 2015 at 9:18:57 AM MST
->> To: Mikael Pettersson <mikpelinux@gmail.com>
->> Cc: Linux SPARC Kernel Mailing List <sparclinux@vger.kernel.org>
->>
->> Mikael Pettersson writes:
->>> Something is causing the 4.4-rc kernels to only use half the CPU
->>> capacity of my Sun Blade 2500 (dual USIIIi).  The kernel does detect
->>> both CPUs, but it doesn't seem to want to schedule processes on
->>> both of them.  During CPU-intensive jobs like GCC bootstraps, 'top'
->>> indicates the machine is 50% idle and aggregate CPU usage is 100%
->>> (should be 200%).  This is completely deterministic.
->>>
->>> Going back to 4.3.0 resolves the problems.
->>
->> A git bisect identified the commit below as the culprit.
->> I've confirmed that reverting it from 4.4-rc7 solves the problem.
->>
->> commit 52708d690b8be132ba9d294464625dbbdb9fa5df
->> Author: Nitin Gupta <nitin.m.gupta@oracle.com>
->> Date:   Mon Nov 2 16:30:24 2015 -0500
->>
->>     sparc64: Fix numa distance values
->>
->>     Orabug: 21896119
->>
->>     Use machine descriptor (MD) to get node latency
->>     values instead of just using default values.
->>
->>     Testing:
->>     On an T5-8 system with:
->>      - total nodes = 8
->>      - self latencies = 0x26d18
->>      - latency to other nodes = 0x3a598
->>        => latency ratio = ~1.5
->>
->>     output of numactl --hardware
->>
->>      - before fix:
->>
->>     node distances:
->>     node   0   1   2   3   4   5   6   7
->>       0:  10  20  20  20  20  20  20  20
->>       1:  20  10  20  20  20  20  20  20
->>       2:  20  20  10  20  20  20  20  20
->>       3:  20  20  20  10  20  20  20  20
->>       4:  20  20  20  20  10  20  20  20
->>       5:  20  20  20  20  20  10  20  20
->>       6:  20  20  20  20  20  20  10  20
->>       7:  20  20  20  20  20  20  20  10
->>
->>      - after fix:
->>
->>     node distances:
->>     node   0   1   2   3   4   5   6   7
->>       0:  10  15  15  15  15  15  15  15
->>       1:  15  10  15  15  15  15  15  15
->>       2:  15  15  10  15  15  15  15  15
->>       3:  15  15  15  10  15  15  15  15
->>       4:  15  15  15  15  10  15  15  15
->>       5:  15  15  15  15  15  10  15  15
->>       6:  15  15  15  15  15  15  10  15
->>       7:  15  15  15  15  15  15  15  10
->>
->>     Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
->>     Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
->>     Reviewed-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
->>     Signed-off-by: David S. Miller <davem@davemloft.net>
->> --
-
+diff --git a/arch/ia64/kernel/iosapic.c b/arch/ia64/kernel/iosapic.c
+index d2fae05..90fde5b 100644
+--- a/arch/ia64/kernel/iosapic.c
++++ b/arch/ia64/kernel/iosapic.c
+@@ -256,7 +256,7 @@ set_rte (unsigned int gsi, unsigned int irq, unsigned int dest, int mask)
+ }
+ 
+ static void
+-nop (struct irq_data *data)
++iosapic_nop (struct irq_data *data)
+ {
+ 	/* do nothing... */
+ }
+@@ -415,7 +415,7 @@ iosapic_unmask_level_irq (struct irq_data *data)
+ #define iosapic_shutdown_level_irq	mask_irq
+ #define iosapic_enable_level_irq	unmask_irq
+ #define iosapic_disable_level_irq	mask_irq
+-#define iosapic_ack_level_irq		nop
++#define iosapic_ack_level_irq		iosapic_nop
+ 
+ static struct irq_chip irq_type_iosapic_level = {
+ 	.name =			"IO-SAPIC-level",
+@@ -453,7 +453,7 @@ iosapic_ack_edge_irq (struct irq_data *data)
+ }
+ 
+ #define iosapic_enable_edge_irq		unmask_irq
+-#define iosapic_disable_edge_irq	nop
++#define iosapic_disable_edge_irq	iosapic_nop
+ 
+ static struct irq_chip irq_type_iosapic_edge = {
+ 	.name =			"IO-SAPIC-edge",
+-- 
+MST
 
