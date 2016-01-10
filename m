@@ -1,37 +1,64 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:24 +0000
-Subject: [PATCH v2 10/16] net/xfrm_user: Use in_compat_syscall to deny compat syscalls
-Message-Id: <ba8cd4d5f06bead4294ac3ff26e2b76d10536d83.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:19:35 +0000
+Subject: [PATCH v3 22/41] s390: define __smp_xxx
+Message-Id: <1452426622-4471-23-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Martin
 
-The code wants to prevent compat code from receiving messages.  Use
-in_compat_syscall for this.
+This defines __smp_xxx barriers for s390,
+for use by virtualization.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Some smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
+
+Note: smp_mb, smp_rmb and smp_wmb are defined as full barriers
+unconditionally on this architecture.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 ---
- net/xfrm/xfrm_user.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/include/asm/barrier.h | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
-index 805681a7d356..2cc7af858c6f 100644
---- a/net/xfrm/xfrm_user.c
-+++ b/net/xfrm/xfrm_user.c
-@@ -2449,7 +2449,7 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 	int type, err;
+diff --git a/arch/s390/include/asm/barrier.h b/arch/s390/include/asm/barrier.h
+index c358c31..fbd25b2 100644
+--- a/arch/s390/include/asm/barrier.h
++++ b/arch/s390/include/asm/barrier.h
+@@ -26,18 +26,21 @@
+ #define wmb()				barrier()
+ #define dma_rmb()			mb()
+ #define dma_wmb()			mb()
+-#define smp_mb()			mb()
+-#define smp_rmb()			rmb()
+-#define smp_wmb()			wmb()
+-
+-#define smp_store_release(p, v)						\
++#define __smp_mb()			mb()
++#define __smp_rmb()			rmb()
++#define __smp_wmb()			wmb()
++#define smp_mb()			__smp_mb()
++#define smp_rmb()			__smp_rmb()
++#define smp_wmb()			__smp_wmb()
++
++#define __smp_store_release(p, v)					\
+ do {									\
+ 	compiletime_assert_atomic_type(*p);				\
+ 	barrier();							\
+ 	WRITE_ONCE(*p, v);						\
+ } while (0)
  
- #ifdef CONFIG_COMPAT
--	if (is_compat_task())
-+	if (in_compat_syscall())
- 		return -ENOTSUPP;
- #endif
- 
+-#define smp_load_acquire(p)						\
++#define __smp_load_acquire(p)						\
+ ({									\
+ 	typeof(*p) ___p1 = READ_ONCE(*p);				\
+ 	compiletime_assert_atomic_type(*p);				\
 -- 
-2.5.0
+MST
 
