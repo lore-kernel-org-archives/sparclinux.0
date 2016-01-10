@@ -1,7 +1,7 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:16:52 +0000
-Subject: [PATCH v3 03/41] ia64: rename nop->iosapic_nop
-Message-Id: <1452426622-4471-4-git-send-email-mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:20:34 +0000
+Subject: [PATCH v3 29/41] Revert "virtio_ring: Update weak barriers to use dma_wmb/rmb"
+Message-Id: <1452426622-4471-30-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1452426622-4471-1-git-send-email-mst@redhat.com>
 In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
@@ -9,53 +9,83 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Tony Luck <tony.luck>
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.orgAlexanderDuyckal
 
-asm-generic/barrier.h defines a nop() macro.
-To be able to use this header on ia64, we shouldn't
-call local functions/variables nop().
+This reverts commit 9e1a27ea42691429e31f158cce6fc61bc79bb2e9.
 
-There's one instance where this breaks on ia64:
-rename the function to iosapic_nop to avoid the conflict.
+While that commit optimizes !CONFIG_SMP, it mixes
+up DMA and SMP concepts, making the code hard
+to figure out.
 
+A better way to optimize this is with the new __smp_XXX
+barriers.
+
+As a first step, go back to full rmb/wmb barriers
+for !SMP.
+We switch to __smp_XXX barriers in the next patch.
+
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/ia64/kernel/iosapic.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/virtio_ring.h | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff --git a/arch/ia64/kernel/iosapic.c b/arch/ia64/kernel/iosapic.c
-index d2fae05..90fde5b 100644
---- a/arch/ia64/kernel/iosapic.c
-+++ b/arch/ia64/kernel/iosapic.c
-@@ -256,7 +256,7 @@ set_rte (unsigned int gsi, unsigned int irq, unsigned int dest, int mask)
- }
+diff --git a/include/linux/virtio_ring.h b/include/linux/virtio_ring.h
+index 8e50888..67e06fe 100644
+--- a/include/linux/virtio_ring.h
++++ b/include/linux/virtio_ring.h
+@@ -21,20 +21,19 @@
+  * actually quite cheap.
+  */
  
- static void
--nop (struct irq_data *data)
-+iosapic_nop (struct irq_data *data)
++#ifdef CONFIG_SMP
+ static inline void virtio_mb(bool weak_barriers)
  {
- 	/* do nothing... */
- }
-@@ -415,7 +415,7 @@ iosapic_unmask_level_irq (struct irq_data *data)
- #define iosapic_shutdown_level_irq	mask_irq
- #define iosapic_enable_level_irq	unmask_irq
- #define iosapic_disable_level_irq	mask_irq
--#define iosapic_ack_level_irq		nop
-+#define iosapic_ack_level_irq		iosapic_nop
- 
- static struct irq_chip irq_type_iosapic_level = {
- 	.name =			"IO-SAPIC-level",
-@@ -453,7 +453,7 @@ iosapic_ack_edge_irq (struct irq_data *data)
+-#ifdef CONFIG_SMP
+ 	if (weak_barriers)
+ 		smp_mb();
+ 	else
+-#endif
+ 		mb();
  }
  
- #define iosapic_enable_edge_irq		unmask_irq
--#define iosapic_disable_edge_irq	nop
-+#define iosapic_disable_edge_irq	iosapic_nop
+ static inline void virtio_rmb(bool weak_barriers)
+ {
+ 	if (weak_barriers)
+-		dma_rmb();
++		smp_rmb();
+ 	else
+ 		rmb();
+ }
+@@ -42,10 +41,26 @@ static inline void virtio_rmb(bool weak_barriers)
+ static inline void virtio_wmb(bool weak_barriers)
+ {
+ 	if (weak_barriers)
+-		dma_wmb();
++		smp_wmb();
+ 	else
+ 		wmb();
+ }
++#else
++static inline void virtio_mb(bool weak_barriers)
++{
++	mb();
++}
++
++static inline void virtio_rmb(bool weak_barriers)
++{
++	rmb();
++}
++
++static inline void virtio_wmb(bool weak_barriers)
++{
++	wmb();
++}
++#endif
  
- static struct irq_chip irq_type_iosapic_edge = {
- 	.name =			"IO-SAPIC-edge",
+ struct virtio_device;
+ struct virtqueue;
 -- 
 MST
 
