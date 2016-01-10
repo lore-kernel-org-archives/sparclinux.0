@@ -1,51 +1,38 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:18 +0000
-Subject: [PATCH v2 04/16] seccomp: Check in_compat_syscall, not is_compat_task, in strict mode
-Message-Id: <9cc3588071d4e31b035e0cf1d09483067df38823.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:21:31 +0000
+Subject: [PATCH v3 36/41] checkpatch: add virt barriers
+Message-Id: <1452426622-4471-37-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
 
-Seccomp wants to know the syscall bitness, not the caller task
-bitness, when it selects the syscall whitelist.
+Add virt_ barriers to list of barriers to check for
+presence of a comment.
 
-As far as I know, this makes no difference on any architecture, so
-it's not a security problem.  (It generates identical code
-everywhere except sparc, and, on sparc, the syscall numbering is the
-same for both ABIs.)
-
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- kernel/seccomp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/kernel/seccomp.c b/kernel/seccomp.c
-index 580ac2d4024f..26858fa43a60 100644
---- a/kernel/seccomp.c
-+++ b/kernel/seccomp.c
-@@ -395,7 +395,7 @@ seccomp_prepare_user_filter(const char __user *user_filter)
- 	struct seccomp_filter *filter = ERR_PTR(-EFAULT);
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index a96adcb..5ca272b 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5131,7 +5131,8 @@ sub process {
+ 		}x;
+ 		my $all_barriers = qr{
+ 			$barriers|
+-			smp_($smp_barriers)
++			smp_($smp_barriers)|
++			virt_($smp_barriers)
+ 		}x;
  
- #ifdef CONFIG_COMPAT
--	if (is_compat_task()) {
-+	if (in_compat_syscall()) {
- 		struct compat_sock_fprog fprog32;
- 		if (copy_from_user(&fprog32, user_filter, sizeof(fprog32)))
- 			goto out;
-@@ -529,7 +529,7 @@ static void __secure_computing_strict(int this_syscall)
- {
- 	int *syscall_whitelist = mode1_syscalls;
- #ifdef CONFIG_COMPAT
--	if (is_compat_task())
-+	if (in_compat_syscall())
- 		syscall_whitelist = mode1_syscalls_32;
- #endif
- 	do {
+ 		if ($line =~ /\b($all_barriers)\s*\(/) {
 -- 
-2.5.0
+MST
 
