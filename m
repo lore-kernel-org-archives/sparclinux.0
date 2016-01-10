@@ -1,59 +1,82 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:15 +0000
-Subject: [PATCH v2 01/16] compat: Add in_compat_syscall to ask whether we're in a compat syscall
-Message-Id: <4cd121066a85fe57356569e3bae28fe9d7098806.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Sun, 10 Jan 2016 14:18:36 +0000
+Subject: [PATCH v3 15/41] powerpc: define __smp_xxx
+Message-Id: <1452426622-4471-16-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452426622-4471-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Boqun Feng <boqun.fe>
 
-A lot of code currently abuses is_compat_task to determine this.
+This defines __smp_xxx barriers for powerpc
+for use by virtualization.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+smp_xxx barriers are removed as they are
+defined correctly by asm-generic/barriers.h
+
+This reduces the amount of arch-specific boiler-plate code.
+
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Boqun Feng <boqun.feng@gmail.com>
 ---
- include/linux/compat.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/powerpc/include/asm/barrier.h | 24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index a76c9172b2eb..f911bcec618f 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -5,6 +5,8 @@
-  * syscall compatibility layer.
-  */
+diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
+index 980ad0c..c0deafc 100644
+--- a/arch/powerpc/include/asm/barrier.h
++++ b/arch/powerpc/include/asm/barrier.h
+@@ -44,19 +44,11 @@
+ #define dma_rmb()	__lwsync()
+ #define dma_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
  
-+#include <linux/types.h>
-+
- #ifdef CONFIG_COMPAT
+-#ifdef CONFIG_SMP
+-#define smp_lwsync()	__lwsync()
++#define __smp_lwsync()	__lwsync()
  
- #include <linux/stat.h>
-@@ -713,9 +715,22 @@ asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+-#define smp_mb()	mb()
+-#define smp_rmb()	__lwsync()
+-#define smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
+-#else
+-#define smp_lwsync()	barrier()
+-
+-#define smp_mb()	barrier()
+-#define smp_rmb()	barrier()
+-#define smp_wmb()	barrier()
+-#endif /* CONFIG_SMP */
++#define __smp_mb()	mb()
++#define __smp_rmb()	__lwsync()
++#define __smp_wmb()	__asm__ __volatile__ (stringify_in_c(SMPWMB) : : :"memory")
  
- asmlinkage long compat_sys_fanotify_mark(int, unsigned int, __u32, __u32,
- 					    int, const char __user *);
-+
-+/*
-+ * For most but not all architectures, "am I in a compat syscall?" and
-+ * "am I a compat task?" are the same question.  For architectures on which
-+ * they aren't the same question, arch code can override in_compat_syscall.
-+ */
-+
-+#ifndef in_compat_syscall
-+static inline bool in_compat_syscall(void) { return is_compat_task(); }
-+#endif
-+
- #else
+ /*
+  * This is a barrier which prevents following instructions from being
+@@ -67,18 +59,18 @@
+ #define data_barrier(x)	\
+ 	asm volatile("twi 0,%0,0; isync" : : "r" (x) : "memory");
  
- #define is_compat_task() (0)
-+static inline bool in_compat_syscall(void) { return false; }
+-#define smp_store_release(p, v)						\
++#define __smp_store_release(p, v)						\
+ do {									\
+ 	compiletime_assert_atomic_type(*p);				\
+-	smp_lwsync();							\
++	__smp_lwsync();							\
+ 	WRITE_ONCE(*p, v);						\
+ } while (0)
  
- #endif /* CONFIG_COMPAT */
-+
- #endif /* _LINUX_COMPAT_H */
+-#define smp_load_acquire(p)						\
++#define __smp_load_acquire(p)						\
+ ({									\
+ 	typeof(*p) ___p1 = READ_ONCE(*p);				\
+ 	compiletime_assert_atomic_type(*p);				\
+-	smp_lwsync();							\
++	__smp_lwsync();							\
+ 	___p1;								\
+ })
+ 
 -- 
-2.5.0
+MST
 
