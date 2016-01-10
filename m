@@ -1,92 +1,50 @@
 From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:21:47 +0000
-Subject: [PATCH v3 38/41] xen/io: use virt_xxx barriers
-Message-Id: <1452426622-4471-39-git-send-email-mst@redhat.com>
+Date: Sun, 10 Jan 2016 19:30:49 +0000
+Subject: [PATCH v3 2/3] checkpatch: check for __smp outside barrier.h
+Message-Id: <1452454200-8844-3-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <1452454200-8844-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452454200-8844-1-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, David Vrabel <david>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andy Whitcroft <apw-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Cooper <andrew.cooper3-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ton
 
-include/xen/interface/io/ring.h uses
-full memory barriers to communicate with the other side.
+Introduction of __smp barriers cleans up a bunch of duplicate code, but
+it gives people an additional handle onto a "new" set of barriers - just
+because they're prefixed with __* unfortunately doesn't stop anyone from
+using it (as happened with other arch stuff before.)
 
-For guests compiled with CONFIG_SMP, smp_wmb and smp_mb
-would be sufficient, so mb() and wmb() here are only needed if
-a non-SMP guest runs on an SMP host.
+Add a checkpatch test so it will trigger a warning.
 
-Switch to virt_xxx barriers which serve this exact purpose.
-
+Reported-by: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
 ---
- include/xen/interface/io/ring.h | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/xen/interface/io/ring.h b/include/xen/interface/io/ring.h
-index 7dc685b..21f4fbd 100644
---- a/include/xen/interface/io/ring.h
-+++ b/include/xen/interface/io/ring.h
-@@ -208,12 +208,12 @@ struct __name##_back_ring {						\
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 1c01b7d..15cfca4 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5143,6 +5143,16 @@ sub process {
+ 			}
+ 		}
  
- 
- #define RING_PUSH_REQUESTS(_r) do {					\
--    wmb(); /* back sees requests /before/ updated producer index */	\
-+    virt_wmb(); /* back sees requests /before/ updated producer index */	\
-     (_r)->sring->req_prod = (_r)->req_prod_pvt;				\
- } while (0)
- 
- #define RING_PUSH_RESPONSES(_r) do {					\
--    wmb(); /* front sees responses /before/ updated producer index */	\
-+    virt_wmb(); /* front sees responses /before/ updated producer index */	\
-     (_r)->sring->rsp_prod = (_r)->rsp_prod_pvt;				\
- } while (0)
- 
-@@ -250,9 +250,9 @@ struct __name##_back_ring {						\
- #define RING_PUSH_REQUESTS_AND_CHECK_NOTIFY(_r, _notify) do {		\
-     RING_IDX __old = (_r)->sring->req_prod;				\
-     RING_IDX __new = (_r)->req_prod_pvt;				\
--    wmb(); /* back sees requests /before/ updated producer index */	\
-+    virt_wmb(); /* back sees requests /before/ updated producer index */	\
-     (_r)->sring->req_prod = __new;					\
--    mb(); /* back sees new requests /before/ we check req_event */	\
-+    virt_mb(); /* back sees new requests /before/ we check req_event */	\
-     (_notify) = ((RING_IDX)(__new - (_r)->sring->req_event) <		\
- 		 (RING_IDX)(__new - __old));				\
- } while (0)
-@@ -260,9 +260,9 @@ struct __name##_back_ring {						\
- #define RING_PUSH_RESPONSES_AND_CHECK_NOTIFY(_r, _notify) do {		\
-     RING_IDX __old = (_r)->sring->rsp_prod;				\
-     RING_IDX __new = (_r)->rsp_prod_pvt;				\
--    wmb(); /* front sees responses /before/ updated producer index */	\
-+    virt_wmb(); /* front sees responses /before/ updated producer index */	\
-     (_r)->sring->rsp_prod = __new;					\
--    mb(); /* front sees new responses /before/ we check rsp_event */	\
-+    virt_mb(); /* front sees new responses /before/ we check rsp_event */	\
-     (_notify) = ((RING_IDX)(__new - (_r)->sring->rsp_event) <		\
- 		 (RING_IDX)(__new - __old));				\
- } while (0)
-@@ -271,7 +271,7 @@ struct __name##_back_ring {						\
-     (_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
-     if (_work_to_do) break;						\
-     (_r)->sring->req_event = (_r)->req_cons + 1;			\
--    mb();								\
-+    virt_mb();								\
-     (_work_to_do) = RING_HAS_UNCONSUMED_REQUESTS(_r);			\
- } while (0)
- 
-@@ -279,7 +279,7 @@ struct __name##_back_ring {						\
-     (_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
-     if (_work_to_do) break;						\
-     (_r)->sring->rsp_event = (_r)->rsp_cons + 1;			\
--    mb();								\
-+    virt_mb();								\
-     (_work_to_do) = RING_HAS_UNCONSUMED_RESPONSES(_r);			\
- } while (0)
- 
++		my $underscore_smp_barriers = qr{__smp_(?:$smp_barrier_stems)}x;
++
++		if ($realfile !~ m@^include/asm-generic/@ &&
++		    $realfile !~ m@/barrier\.h$@ &&
++		    $line =~ m/\b(?:$underscore_smp_barriers)\s*\(/ &&
++		    $line !~ m/^.\s*\#\s*define\s+(?:$underscore_smp_barriers)\s*\(/) {
++			WARN("MEMORY_BARRIER",
++			     "__smp memory barriers shouldn't be used outside barrier.h and asm-generic\n" . $herecurr);
++		}
++
+ # check for waitqueue_active without a comment.
+ 		if ($line =~ /\bwaitqueue_active\s*\(/) {
+ 			if (!ctx_has_comment($first_line, $linenr)) {
 -- 
 MST
 
