@@ -1,40 +1,50 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:19 +0000
-Subject: [PATCH v2 05/16] ptrace: in PEEK_SIGINFO, check syscall bitness, not task bitness
-Message-Id: <d1f58b0983fc85bf2440fdb86b186d9f214e03f7.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Mon, 11 Jan 2016 11:00:30 +0000
+Subject: [PATCH v4 2/3] checkpatch: check for __smp outside barrier.h
+Message-Id: <1452509968-19778-3-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452509968-19778-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452509968-19778-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Julian Calaby <julian.calaby@gmail.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Cooper <and>
 
-Users of the 32-bit ptrace() ABI expect the full 32-bit ABI.
-siginfo translation should check ptrace() ABI, not caller task ABI.
+Introduction of __smp barriers cleans up a bunch of duplicate code, but
+it gives people an additional handle onto a "new" set of barriers - just
+because they're prefixed with __* unfortunately doesn't stop anyone from
+using it (as happened with other arch stuff before.)
 
-This is an ABI change on SPARC.  Let's hope that no one relied on
-the old buggy ABI.
+Add a checkpatch test so it will trigger a warning.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Reported-by: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- kernel/ptrace.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index 2341efe7fe02..c79b91d09e35 100644
---- a/kernel/ptrace.c
-+++ b/kernel/ptrace.c
-@@ -681,7 +681,7 @@ static int ptrace_peek_siginfo(struct task_struct *child,
- 			break;
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 94b4e33..25476c2 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5143,6 +5143,16 @@ sub process {
+ 			}
+ 		}
  
- #ifdef CONFIG_COMPAT
--		if (unlikely(is_compat_task())) {
-+		if (unlikely(in_compat_syscall())) {
- 			compat_siginfo_t __user *uinfo = compat_ptr(data);
- 
- 			if (copy_siginfo_to_user32(uinfo, &info) ||
++		my $underscore_smp_barriers = qr{__smp_(?:$barrier_stems)}x;
++
++		if ($realfile !~ m@^include/asm-generic/@ &&
++		    $realfile !~ m@/barrier\.h$@ &&
++		    $line =~ m/\b(?:$underscore_smp_barriers)\s*\(/ &&
++		    $line !~ m/^.\s*\#\s*define\s+(?:$underscore_smp_barriers)\s*\(/) {
++			WARN("MEMORY_BARRIER",
++			     "__smp memory barriers shouldn't be used outside barrier.h and asm-generic\n" . $herecurr);
++		}
++
+ # check for waitqueue_active without a comment.
+ 		if ($line =~ /\bwaitqueue_active\s*\(/) {
+ 			if (!ctx_has_comment($first_line, $linenr)) {
 -- 
-2.5.0
+MST
 
