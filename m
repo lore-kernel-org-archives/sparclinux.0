@@ -1,54 +1,38 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:17 +0000
-Subject: [PATCH v2 03/16] sparc/syscall: Fix syscall_get_arch
-Message-Id: <dc060687116306416e656e25c6a02611bf6e894e.1453759363.git.luto@kernel.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Mon, 11 Jan 2016 11:00:40 +0000
+Subject: [PATCH v4 3/3] checkpatch: add virt barriers
+Message-Id: <1452509968-19778-4-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <1452509968-19778-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1452509968-19778-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Julian Calaby <julian.calaby@gmail.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Cooper <and>
 
-Sparc's syscall_get_arch was buggy: it returned the task arch, not the
-syscall arch.  This could confuse seccomp and audit.
+Add virt_ barriers to list of barriers to check for
+presence of a comment.
 
-I don't think this is as bad for seccomp as it looks: sparc's
-32-bit and 64-bit syscalls are numbered the same.
-
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- arch/sparc/include/asm/syscall.h | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
-index 49f71fd5b56e..1757cd6c521b 100644
---- a/arch/sparc/include/asm/syscall.h
-+++ b/arch/sparc/include/asm/syscall.h
-@@ -3,6 +3,7 @@
+diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+index 25476c2..c7bf1aa 100755
+--- a/scripts/checkpatch.pl
++++ b/scripts/checkpatch.pl
+@@ -5133,7 +5133,8 @@ sub process {
+ 		}x;
+ 		my $all_barriers = qr{
+ 			(?:$barriers)|
+-			smp_(?:$barrier_stems)
++			smp_(?:$barrier_stems)|
++			virt_(?:$barrier_stems)
+ 		}x;
  
- #include <uapi/linux/audit.h>
- #include <linux/kernel.h>
-+#include <linux/compat.h>
- #include <linux/sched.h>
- #include <asm/ptrace.h>
- #include <asm/thread_info.h>
-@@ -128,7 +129,13 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 
- static inline int syscall_get_arch(void)
- {
--	return is_32bit_task() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
-+#if defined(CONFIG_SPARC64) && defined(CONFIG_COMPAT)
-+	return in_compat_syscall() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
-+#elif defined(CONFIG_SPARC64)
-+	return AUDIT_ARCH_SPARC64;
-+#else
-+	return AUDIT_ARCH_SPARC;
-+#endif
- }
- 
- #endif /* __ASM_SPARC_SYSCALL_H */
+ 		if ($line =~ /\b(?:$all_barriers)\s*\(/) {
 -- 
-2.5.0
+MST
 
