@@ -1,45 +1,79 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Sun, 31 Jan 2016 20:16:18 +0000
-Subject: Re: [PATCH v5 00/10] virtio DMA API, yet again
-Message-Id: <CALCETrUtRx3Lzzsjg3ugictuNVNcQK_9+6LYnH2OUZZV9PiFZQ@mail.gmail.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Wed, 13 Jan 2016 21:44:03 +0000
+Subject: [PATCH 2/2] n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
+Message-Id: <20160113214403.GD32766@yogzotot>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454034075.git.luto@kernel.org> <20160131201232.GA1643@redhat.com>
-In-Reply-To: <20160131201232.GA1643@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>
+To: linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-On Sun, Jan 31, 2016 at 12:12 PM, Michael S. Tsirkin <mst@redhat.com> wrote:
-> On Thu, Jan 28, 2016 at 06:31:13PM -0800, Andy Lutomirski wrote:
->> This switches virtio to use the DMA API on Xen and if requested by
->> module option.
->>
->> This fixes virtio on Xen, and it should break anything because it's
->> off by default on everything except Xen PV on x86.
->>
->> To the Xen people: is this okay?  If it doesn't work on other Xen
->> variants (PVH? HVM?), can you submit follow-up patches to fix it?
->>
->> To everyone else: we've waffled on this for way too long.  I think
->> we should to get DMA API implementation in with a conservative
->> policy like this rather than waiting until we achieve perfection.
->> I'm tired of carrying these patches around.
->
-> I agree, thanks for working on this!
->
->> Michael, if these survive review, can you stage these in your tree?
->
-> Yes, I'll stage everything except 10/10. I'd rather not maintain a
-> module option like this, things work for now and I'm working on a
-> clean solution for things like dpdk within guest.
 
-The module option was mainly for testing, but patching in a "return
-true" works just as well.
+2. n2rng: documentation, add DT bindings, vendor prefixes
 
-I ran the code through the DMA API debugging stuff and swiotlb=force
-with the module option set under KVM (no Xen), and everything seemed
-to work.
+Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
 
---Andy
+---
+
+ .../bindings/rng/sparc_sun_oracle_rng.txt          | 31 ++++++++++++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt        |  2 ++
+ 2 files changed, 33 insertions(+)
+
+diff --git b/Documentation/devicetree/bindings/rng/sparc_sun_oracle_rng.txt b/Documentation/devicetree/bindings/rng/sparc_sun_oracle_rng.txt
+new file mode 100644
+index 0000000..bec6b83
+--- /dev/null
++++ b/Documentation/devicetree/bindings/rng/sparc_sun_oracle_rng.txt
+@@ -0,0 +1,31 @@
++HWRNG support for the n2_rng driver
++
++Required properties:
++- compatible : should contain one of the following
++  RNG versions:
++    - 'SUNW,n2-rng' for Niagara 2 Platform (SUN UltraSPARC T2 CPU)
++    - 'SUNW,vf-rng' for Victoria Falls Platform (SUN UltraSPARC T2 Plus CPU)
++    - 'SUNW,kt-rng' for Rainbow/Yosemite Falls Platform (SUN SPARC T3/T4), (UltraSPARC KT/Niagara 3 - development names)
++    more recent systems (after Oracle acquisition of SUN)
++    - 'ORCL,m4-rng' for SPARC T5/M5
++    - 'ORCL,m7-rng' for SPARC T7/M7
++- reg : base address to sample from
++
++Examples:
++/* linux LDOM on SPARC T5-2 */
++        Node 0xf029a4f4
++            .node:  f029a4f4
++            rng-#units:  00000002
++            compatible: 'ORCL,m4-rng'
++            reg:  0000000e
++            name: 'random-number-generator'
++
++/* solaris on SPARC M7-8 */
++        Node 0xf028c08c
++            rng-#units:  00000003
++            compatible: 'ORCL,m7-rng'
++            reg:  0000000e
++            name:  'random-number-generator'
++
++
++PS: see as well prtconfs.git by DaveM
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 55df1d4..6b8007f 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -166,6 +166,7 @@ opencores   OpenCores.org
+ option Option NV
+ ortustech      Ortus Technology Co., Ltd.
+ ovti   OmniVision Technologies
++ORCL   Oracle Corporation
+ panasonic      Panasonic Corporation
+ parade Parade Technologies Inc.
+ pericom        Pericom Technology Inc.
+@@ -221,6 +222,7 @@ st  STMicroelectronics
+ ste    ST-Ericsson
+ stericsson     ST-Ericsson
+ synology       Synology, Inc.
++SUNW   Sun Microsystems, Inc
+ tbs    TBS Technologies
+ tcl    Toby Churchill Ltd.
+ thine  THine Electronics, Inc.
