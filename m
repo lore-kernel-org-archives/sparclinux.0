@@ -1,29 +1,34 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 13 Jan 2016 21:43:18 +0000
-Subject: [PATCH 0/2] n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
-Message-Id: <20160113214318.GB32766@yogzotot>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 15 Jan 2016 20:22:53 +0000
+Subject: Re: [PATCH 0/2] n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
+Message-Id: <20160115.152253.1613974535141140248.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20160113214318.GB32766@yogzotot>
+In-Reply-To: <20160113214318.GB32766@yogzotot>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
-To: linux-crypto@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: matorola@gmail.com
+Cc: linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, herbert@gondor.apana.org.au
 
-This patch adds support for recent oracle hardware (T5/M5, T7/M7 SPARC CPUs=
-),
-so n2_rng driver would work on them.
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Thu, 14 Jan 2016 00:43:18 +0300
 
-1. n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
-2. n2rng: documentation, add DT bindings, vendor prefixes
+> This patch adds support for recent oracle hardware (T5/M5, T7/M7 SPARC CP=
+Us),
+> so n2_rng driver would work on them.
+>=20
+> 1. n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
+> 2. n2rng: documentation, add DT bindings, vendor prefixes
+>=20
+> PS: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809815#32
+>=20
+> Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
 
-PS: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809815#32
+This series looks fine:
 
-Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 
----
+Herbert, please take this via your crypto tree.
 
- .../bindings/rng/sparc_sun_oracle_rng.txt          | 31 ++++++++++++++++++=
-++++
- .../devicetree/bindings/vendor-prefixes.txt        |  2 ++
- {a =3D> b}/drivers/char/hw_random/n2-drv.c           | 10 +++++++
- 3 files changed, 43 insertions(+)
+Thanks!
