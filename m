@@ -1,56 +1,51 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:21:15 +0000
-Subject: [PATCH v3 34/41] checkpatch.pl: add missing memory barriers
-Message-Id: <1452426622-4471-35-git-send-email-mst@redhat.com>
+From: Wafa Adel <wadel64@egbelu.onmicrosoft.com>
+Date: Mon, 18 Jan 2016 17:38:46 +0000
+Subject: Urgent:Get back to me
+Message-Id: <AM3PR02MB1140D2AF717F16F0E83554EA8BC00@AM3PR02MB1140.eurprd02.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
+To: sparclinux@vger.kernel.org
 
-SMP-only barriers were missing in checkpatch.pl
+ I know this letter will come to you as a surprise especially as you do not know me and we have not met before.My name is COL.WAFA ALHALABI ADEL,i got your
+ contact through Eropean chambers of commerce and industry during my search for a reliable and credible individual who have the capacity to handle transaction of huge magnitude
+ and volume.I have seen your profile and your resume,after going through it with other considerations i decided to send you this propsal.
+  
+ I am the commanding officer of the Syrian army fighting the ISIL rebels.
+  
+ This circumstance have prompted this proposal and i will explain more in details upon your acceptance,
+  
+ I have the sum of 16.5 million Dollars which i got from  business deals here. this funds is currently deposited with a Red Cross unit with message that i am making contact for
+ the real owner of the fund. this measure was taken to shield me from involvement with the fund because of Military ethics that forbid us involved in business activity.
+  
+  
+ However It is under my power to approve whoever comes forth for this money.I wish to use this money for charity purposes in Turkey, where we have high number of refugees and Sudan
+ where we have currently the highest numbers of refugees displaced as a result of war. you need to visit such places.I am not forgetting the displaced in India.
+  
+ I want to invest the money on stock fish to support this refugees because based on my experience on battle ground in this places, they lack a lot of fish and meat to add to
+ their meager and unpalatable meals which they get in little quantity just to keep them living until God knows when the problem ends. Instead of allowing this terrorist to get the
+ money and spend it on purchasing arms illegally from Russia and China it is better channeled to saving the world.
 
-Refactor code slightly to make adding more variants easier.
+ I cannot move this money out because I am a uniformed personnel and i cannot be parading such an amount, so i need to present someone as the beneficiary, someone I could trust
+ to move the funds in his names as the Beneficiary. that is why i seek your cooperation to be this beneficiary.
+  
+ As a trained Specialist officer I have a 100% authentic means of moving the funds out through diplomatic means. All I just need is your acceptance for this to be done, so that
+ you can receive the funds.if you are interested in this transaction I will give to you the complete details you need for us to carry out this transaction successfully. I decided
+ to find someone that is real and not imaginary and that is why I went to a secured property site where I can be sure that the person is real and i believe I can trust you.
+  
+ For now we can only communicate through our military communication a facility which is secured so nobody can monitor our emails, I can explain in details to you because
+ calls might be monitored and I just have to be sure of whom I am dealing with. I can only call you when I am out of our military network. If you are interested please inform me and
+ I will give you more details. I am writing from a fresh email account so if you are not interested do not reply to this email and please delete this message, if no response
+ after 3 days I will then search for someone else.
+  
+ I am doing this on trust, you should understand and you should know that as a trained military expert I will always play safe in case you are the bad type, but I pray you are
+ not. 16,500,000.00 Dollars is a lot of money which is the dream of anyone.
+  
+ I await for your acceptance so that we can go on. In less than 21 working days this should be successfully finalized and i will give you 15% of the total fund for your
+ assistance. You can contact me on: wafa.adel@asia.com
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
----
- scripts/checkpatch.pl | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
-
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 2b3c228..97b8b62 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5116,7 +5116,25 @@ sub process {
- 			}
- 		}
- # check for memory barriers without a comment.
--		if ($line =~ /\b(mb|rmb|wmb|read_barrier_depends|smp_mb|smp_rmb|smp_wmb|smp_read_barrier_depends)\(/) {
-+
-+		my $barriers = qr{
-+			mb|
-+			rmb|
-+			wmb|
-+			read_barrier_depends
-+		}x;
-+		my $smp_barriers = qr{
-+			store_release|
-+			load_acquire|
-+			store_mb|
-+			($barriers)
-+		}x;
-+		my $all_barriers = qr{
-+			$barriers|
-+			smp_($smp_barriers)
-+		}x;
-+
-+		if ($line =~ /\b($all_barriers)\s*\(/) {
- 			if (!ctx_has_comment($first_line, $linenr)) {
- 				WARN("MEMORY_BARRIER",
- 				     "memory barrier without comment\n" . $herecurr);
--- 
-MST
-
+ I hope i am fair enough
+  
+ Col.Wafa Alhalabi Adel.
+ Email:wafa.adel@asia.com
