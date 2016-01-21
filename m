@@ -1,58 +1,65 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 19:30:38 +0000
-Subject: [PATCH v3 1/3] checkpatch.pl: add missing memory barriers
-Message-Id: <1452454200-8844-2-git-send-email-mst@redhat.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Jan 2016 23:58:05 +0000
+Subject: [PATCH] sparc: Hook up copy_file_range syscall.
+Message-Id: <20160121.155805.1330211258083641331.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452454200-8844-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452454200-8844-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.orgAndrewCooperan
+To: sparclinux@vger.kernel.org
 
-SMP-only barriers were missing in checkpatch.pl
 
-Refactor code slightly to make adding more variants easier.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- scripts/checkpatch.pl | 22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 2b3c228..1c01b7d 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5116,7 +5116,27 @@ sub process {
- 			}
- 		}
- # check for memory barriers without a comment.
--		if ($line =~ /\b(mb|rmb|wmb|read_barrier_depends|smp_mb|smp_rmb|smp_wmb|smp_read_barrier_depends)\(/) {
-+
-+		my $barriers = qr{
-+			mb|
-+			rmb|
-+			wmb|
-+			read_barrier_depends
-+		}x;
-+		my $smp_barrier_stems = qr{
-+			mb__before_atomic|
-+			mb__after_atomic|
-+			store_release|
-+			load_acquire|
-+			store_mb|
-+			(?:$barriers)
-+		}x;
-+		my $all_barriers = qr{
-+			$barriers|
-+			smp_(?:$smp_barrier_stems)
-+		}x;
-+
-+		if ($line =~ /\b(?:$all_barriers)\s*\(/) {
- 			if (!ctx_has_comment($first_line, $linenr)) {
- 				WARN("MEMORY_BARRIER",
- 				     "memory barrier without comment\n" . $herecurr);
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 1c26d44..b6de8b1 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -422,8 +422,9 @@
+ #define __NR_listen		354
+ #define __NR_setsockopt		355
+ #define __NR_mlock2		356
++#define __NR_copy_file_range	357
+ 
+-#define NR_syscalls		357
++#define NR_syscalls		358
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index e663b6c..6c3dd6c 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -88,4 +88,4 @@ sys_call_table:
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-/*355*/	.long sys_setsockopt, sys_mlock2
++/*355*/	.long sys_setsockopt, sys_mlock2, sys_copy_file_range
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 1557121..12b524c 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -89,7 +89,7 @@ sys_call_table32:
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-	.word compat_sys_setsockopt, sys_mlock2
++	.word compat_sys_setsockopt, sys_mlock2, sys_copy_file_range
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -170,4 +170,4 @@ sys_call_table:
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+-	.word sys_setsockopt, sys_mlock2
++	.word sys_setsockopt, sys_mlock2, sys_copy_file_range
 -- 
-MST
+2.1.2.532.g19b5d50
 
