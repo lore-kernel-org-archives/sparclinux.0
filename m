@@ -1,39 +1,83 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 19:30:27 +0000
-Subject: [PATCH v3 0/3] checkpatch: handling of memory barriers
-Message-Id: <1452454200-8844-1-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:14 +0000
+Subject: [PATCH v2 00/16] compat: Introduce and use in_compat_syscall
+Message-Id: <cover.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.orgAndrewCooperan
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-As part of memory barrier cleanup, this patchset
-extends checkpatch to make it easier to stop
-incorrect memory barrier usage.
+Linux distinguishes compat syscalls from normal syscalls in two ways.
+First, compat syscalls use separate entry points.  This is entirely
+sensible.  Second, code paths that are common to compat and non-compat
+syscalls can query is_compat_task() to check whether they are being
+called from a compat syscall or not.
 
-This replaces the checkpatch patches in my series
-	arch: barrier cleanup + barriers for virt
-and will be included in the next version of the series.
+The latter is problematic.  Two architectures explicitly allow tasks
+to issue syscalls for which the task bitness and the syscall bitness
+don't match.  On x86, is_compat_task returns true if the current
+syscall is a compat syscall, which is a different condition from being
+a compat task.  This oddity is confusing.  On SPARC, is_compat_task
+does what it sounds like, which means that user programs can cause
+is_compat_task to fail to match the syscall entry used.  That could
+expose bugs.
 
-changes from v2:
-	address comments by Joe Perches:
-	use (?: ... ) to avoid unnecessary capture groups
-	rename smp_barriers to smp_barrier_stems for clarity
-	add barriers before/after atomic
-Changes from v1:
-	catch optional\s* before () in barriers
-	rewrite using qr{} instead of map
+This series introduces in_compat_syscall() as a new way to query the
+syscall type.  On SPARC, it really does check the syscall bitness.
+Later patches change all of the non arch-specific is_compat_task
+callers to use in_compat_syscall.  The last patch removes
+is_compat_task on x86, which will prevent this confusion from
+recurring.
 
-Michael S. Tsirkin (3):
-  checkpatch.pl: add missing memory barriers
-  checkpatch: check for __smp outside barrier.h
-  checkpatch: add virt barriers
+I've cc'd the maintainers of all archs that support compat.  If your
+arch makes it possible for a malicious user process to invoke a compat
+syscall in a nominally 64-bit task or vice versa and your arch is not
+x86 or SPARC, please tell me.
 
- scripts/checkpatch.pl | 33 ++++++++++++++++++++++++++++++++-
- 1 file changed, 32 insertions(+), 1 deletion(-)
+Davem, can you check whether I handled SPARC correctly?
+
+Andy Lutomirski (16):
+  compat: Add in_compat_syscall to ask whether we're in a compat syscall
+  sparc/compat: Provide an accurate in_compat_syscall implementation
+  sparc/syscall: Fix syscall_get_arch
+  seccomp: Check in_compat_syscall, not is_compat_task, in strict mode
+  ptrace: in PEEK_SIGINFO, check syscall bitness, not task bitness
+  auditsc: For seccomp events, log syscall compat state using
+    in_compat_syscall
+  staging/lustre: Switch from is_compat_task to in_compat_syscall
+  ext4: In ext4_dir_llseek, check syscall bitness directly
+  net/sctp: Use in_compat_syscall for sctp_getsockopt_connectx3
+  net/xfrm_user: Use in_compat_syscall to deny compat syscalls
+  firewire: Use in_compat_syscall to check ioctl compatness
+  efivars: Use in_compat_syscall to check for compat callers
+  amdkfd: Use in_compat_syscall to check open() caller type
+  input: Redefine INPUT_COMPAT_TEST as in_compat_syscall()
+  uhid: Check write() bitness using in_compat_syscall
+  x86/compat: Remove is_compat_task
+
+ arch/sparc/include/asm/compat.h                      |  6 ++++++
+ arch/sparc/include/asm/syscall.h                     |  9 ++++++++-
+ arch/x86/include/asm/compat.h                        |  3 ++-
+ arch/x86/include/asm/ftrace.h                        |  2 +-
+ arch/x86/kernel/process_64.c                         |  2 +-
+ drivers/firewire/core-cdev.c                         |  4 ++--
+ drivers/firmware/efi/efivars.c                       |  2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c             |  2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c             |  2 +-
+ drivers/hid/uhid.c                                   |  2 +-
+ drivers/input/input-compat.h                         | 12 +-----------
+ drivers/staging/lustre/lustre/llite/llite_internal.h |  2 +-
+ fs/ext4/dir.c                                        |  2 +-
+ include/linux/compat.h                               | 15 +++++++++++++++
+ kernel/auditsc.c                                     |  4 ++--
+ kernel/ptrace.c                                      |  2 +-
+ kernel/seccomp.c                                     |  4 ++--
+ net/sctp/socket.c                                    |  2 +-
+ net/xfrm/xfrm_user.c                                 |  2 +-
+ 19 files changed, 49 insertions(+), 30 deletions(-)
 
 -- 
-MST
+2.5.0
 
