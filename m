@@ -1,34 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Date: Sat, 02 Jan 2016 11:20:12 +0000
-Subject: Re: [PATCH v2 08/32] arm: reuse asm-generic/barrier.h
-Message-Id: <20160102112011.GT8644@n2100.arm.linux.org.uk>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:15 +0000
+Subject: [PATCH v2 01/16] compat: Add in_compat_syscall to ask whether we're in a compat syscall
+Message-Id: <4cd121066a85fe57356569e3bae28fe9d7098806.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
-	<1451572003-2440-9-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-9-git-send-email-mst@redhat.com>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Andrey Konovalov <andreyknvl@google.com>, adi-buildroot-devel@lists.sourceforge.net, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Cooper <andrew.cooper3@citrix.com>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-On Thu, Dec 31, 2015 at 09:06:46PM +0200, Michael S. Tsirkin wrote:
-> On arm smp_store_mb, read_barrier_depends, smp_read_barrier_depends,
-> smp_store_release, smp_load_acquire, smp_mb__before_atomic and
-> smp_mb__after_atomic match the asm-generic variants exactly. Drop the
-> local definitions and pull in asm-generic/barrier.h instead.
-> 
-> This is in preparation to refactoring this code area.
-> 
-> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
+A lot of code currently abuses is_compat_task to determine this.
 
-Thanks, the asm-generic versions looks identical to me, so this should
-result in no code generation difference.
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ include/linux/compat.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index a76c9172b2eb..f911bcec618f 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -5,6 +5,8 @@
+  * syscall compatibility layer.
+  */
+ 
++#include <linux/types.h>
++
+ #ifdef CONFIG_COMPAT
+ 
+ #include <linux/stat.h>
+@@ -713,9 +715,22 @@ asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+ 
+ asmlinkage long compat_sys_fanotify_mark(int, unsigned int, __u32, __u32,
+ 					    int, const char __user *);
++
++/*
++ * For most but not all architectures, "am I in a compat syscall?" and
++ * "am I a compat task?" are the same question.  For architectures on which
++ * they aren't the same question, arch code can override in_compat_syscall.
++ */
++
++#ifndef in_compat_syscall
++static inline bool in_compat_syscall(void) { return is_compat_task(); }
++#endif
++
+ #else
+ 
+ #define is_compat_task() (0)
++static inline bool in_compat_syscall(void) { return false; }
+ 
+ #endif /* CONFIG_COMPAT */
++
+ #endif /* _LINUX_COMPAT_H */
 -- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.5.0
+
