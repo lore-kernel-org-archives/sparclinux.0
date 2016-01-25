@@ -1,38 +1,38 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Mon, 11 Jan 2016 11:00:40 +0000
-Subject: [PATCH v4 3/3] checkpatch: add virt barriers
-Message-Id: <1452509968-19778-4-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:22 +0000
+Subject: [PATCH v2 08/16] ext4: In ext4_dir_llseek, check syscall bitness directly
+Message-Id: <8946a5499b6b9f2837fed067885b595ea52aafdf.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452509968-19778-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452509968-19778-1-git-send-email-mst@redhat.com>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, x86@kernel.org, Tony Lindgren <tony@atomide.com>, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, user-mode-linux-devel@lists.sourceforge.net, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Julian Calaby <julian.calaby@gmail.com>, adi-buildroot-devel@lists.sourceforge.net, Andy Whitcroft <apw@canonical.com>, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Andrew Cooper <and>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-Add virt_ barriers to list of barriers to check for
-presence of a comment.
+ext4 treats directory offsets differently for 32-bit and 64-bit
+callers.  Check the caller type using in_compat_syscall, not
+is_compat_task.  This changes behavior on SPARC slightly.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- scripts/checkpatch.pl | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ext4/dir.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 25476c2..c7bf1aa 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -5133,7 +5133,8 @@ sub process {
- 		}x;
- 		my $all_barriers = qr{
- 			(?:$barriers)|
--			smp_(?:$barrier_stems)
-+			smp_(?:$barrier_stems)|
-+			virt_(?:$barrier_stems)
- 		}x;
- 
- 		if ($line =~ /\b(?:$all_barriers)\s*\(/) {
+diff --git a/fs/ext4/dir.c b/fs/ext4/dir.c
+index 1d1bca74f844..6395456edea6 100644
+--- a/fs/ext4/dir.c
++++ b/fs/ext4/dir.c
+@@ -276,7 +276,7 @@ errout:
+ static inline int is_32bit_api(void)
+ {
+ #ifdef CONFIG_COMPAT
+-	return is_compat_task();
++	return in_compat_syscall();
+ #else
+ 	return (BITS_PER_LONG = 32);
+ #endif
 -- 
-MST
+2.5.0
 
