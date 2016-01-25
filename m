@@ -1,19 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 05 Jan 2016 03:06:22 +0000
-Subject: Re: linux-4.4-rc8/arch/sparc/kernel/pcic.c:785: possible int/long mixup ?
-Message-Id: <20160104.220622.1166874009341937754.davem@davemloft.net>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:24 +0000
+Subject: [PATCH v2 10/16] net/xfrm_user: Use in_compat_syscall to deny compat syscalls
+Message-Id: <ba8cd4d5f06bead4294ac3ff26e2b76d10536d83.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-From: David Binderman <dcb314@hotmail.com>
-Date: Mon, 4 Jan 2016 09:02:34 +0000
+The code wants to prevent compat code from receiving messages.  Use
+in_compat_syscall for this.
 
-> Hello there,
-> 
-> [linux-4.4-rc8/arch/sparc/kernel/pcic.c:785]: (style) int result is returned as long value. If the return value is long to avoid loss of information, then you have loss of information.
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ net/xfrm/xfrm_user.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Sparc 32-bit has both long and int the same size, and yes IRQ numbers are limited
-to be below (1 << 32) -1.
+diff --git a/net/xfrm/xfrm_user.c b/net/xfrm/xfrm_user.c
+index 805681a7d356..2cc7af858c6f 100644
+--- a/net/xfrm/xfrm_user.c
++++ b/net/xfrm/xfrm_user.c
+@@ -2449,7 +2449,7 @@ static int xfrm_user_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 	int type, err;
+ 
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return -ENOTSUPP;
+ #endif
+ 
+-- 
+2.5.0
+
