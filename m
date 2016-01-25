@@ -1,94 +1,39 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:19:19 +0000
-Subject: [PATCH v3 20/41] metag: define __smp_xxx
-Message-Id: <1452426622-4471-21-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:26 +0000
+Subject: [PATCH v2 12/16] efivars: Use in_compat_syscall to check for compat callers
+Message-Id: <bb33b15489a3da562dcb9c73b333152c0821a3f8.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, James Hogan <james.>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-This defines __smp_xxx barriers for metag,
-for use by virtualization.
+This should make no difference on any architecture, as x86's
+historical is_compat_task behavior really did check whether the
+calling syscall was a compat syscall.  x86's is_compat_task is going
+away, though.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
-
-Note: as __smp_XX macros should not depend on CONFIG_SMP, they can not
-use the existing fence() macro since that is defined differently between
-SMP and !SMP.  For this reason, this patch introduces a wrapper
-metag_fence() that doesn't depend on CONFIG_SMP.
-fence() is then defined using that, depending on CONFIG_SMP.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- arch/metag/include/asm/barrier.h | 32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ drivers/firmware/efi/efivars.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/metag/include/asm/barrier.h b/arch/metag/include/asm/barrier.h
-index b5b778b..84880c9 100644
---- a/arch/metag/include/asm/barrier.h
-+++ b/arch/metag/include/asm/barrier.h
-@@ -44,13 +44,6 @@ static inline void wr_fence(void)
- #define rmb()		barrier()
- #define wmb()		mb()
+diff --git a/drivers/firmware/efi/efivars.c b/drivers/firmware/efi/efivars.c
+index 756eca8c4cf8..21c3b2016b2d 100644
+--- a/drivers/firmware/efi/efivars.c
++++ b/drivers/firmware/efi/efivars.c
+@@ -231,7 +231,7 @@ sanity_check(struct efi_variable *var, efi_char16_t *name, efi_guid_t vendor,
  
--#ifndef CONFIG_SMP
--#define fence()		do { } while (0)
--#define smp_mb()        barrier()
--#define smp_rmb()       barrier()
--#define smp_wmb()       barrier()
--#else
--
- #ifdef CONFIG_METAG_SMP_WRITE_REORDERING
- /*
-  * Write to the atomic memory unlock system event register (command 0). This is
-@@ -60,26 +53,31 @@ static inline void wr_fence(void)
-  * incoherence). It is therefore ineffective if used after and on the same
-  * thread as a write.
-  */
--static inline void fence(void)
-+static inline void metag_fence(void)
+ static inline bool is_compat(void)
  {
- 	volatile int *flushptr = (volatile int *) LINSYSEVENT_WR_ATOMIC_UNLOCK;
- 	barrier();
- 	*flushptr = 0;
- 	barrier();
- }
--#define smp_mb()        fence()
--#define smp_rmb()       fence()
--#define smp_wmb()       barrier()
-+#define __smp_mb()        metag_fence()
-+#define __smp_rmb()       metag_fence()
-+#define __smp_wmb()       barrier()
- #else
--#define fence()		do { } while (0)
--#define smp_mb()        barrier()
--#define smp_rmb()       barrier()
--#define smp_wmb()       barrier()
-+#define metag_fence()		do { } while (0)
-+#define __smp_mb()        barrier()
-+#define __smp_rmb()       barrier()
-+#define __smp_wmb()       barrier()
- #endif
-+
-+#ifdef CONFIG_SMP
-+#define fence() metag_fence()
-+#else
-+#define fence()		do { } while (0)
- #endif
+-	if (IS_ENABLED(CONFIG_COMPAT) && is_compat_task())
++	if (IS_ENABLED(CONFIG_COMPAT) && in_compat_syscall())
+ 		return true;
  
--#define smp_mb__before_atomic()	barrier()
--#define smp_mb__after_atomic()	barrier()
-+#define __smp_mb__before_atomic()	barrier()
-+#define __smp_mb__after_atomic()	barrier()
- 
- #include <asm-generic/barrier.h>
- 
+ 	return false;
 -- 
-MST
+2.5.0
 
