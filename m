@@ -1,111 +1,79 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Tue, 12 Jan 2016 18:40:48 +0000
-Subject: Re: [PATCH v3 01/41] lcoking/barriers, arch: Use smp barriers in smp_store_release()
-Message-Id: <20160112203857-mutt-send-email-mst@redhat.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 25 Jan 2016 16:09:21 +0000
+Subject: [PATCH 1/2] n2rng: documentation, add DT bindings, vendor prefixes
+Message-Id: <20160125160921.GA26873@yogzotot>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
- <1452426622-4471-2-git-send-email-mst@redhat.com>
- <20160112162844.GD3818@linux.vnet.ibm.com>
-In-Reply-To: <20160112162844.GD3818@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenpr
+To: linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>
 
-On Tue, Jan 12, 2016 at 08:28:44AM -0800, Paul E. McKenney wrote:
-> On Sun, Jan 10, 2016 at 04:16:32PM +0200, Michael S. Tsirkin wrote:
-> > From: Davidlohr Bueso <dave@stgolabs.net>
-> > 
-> > With commit b92b8b35a2e ("locking/arch: Rename set_mb() to smp_store_mb()")
-> > it was made clear that the context of this call (and thus set_mb)
-> > is strictly for CPU ordering, as opposed to IO. As such all archs
-> > should use the smp variant of mb(), respecting the semantics and
-> > saving a mandatory barrier on UP.
-> > 
-> > Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-> > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > Cc: <linux-arch@vger.kernel.org>
-> > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> > Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-> > Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> > Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-> > Cc: Peter Zijlstra <peterz@infradead.org>
-> > Cc: Thomas Gleixner <tglx@linutronix.de>
-> > Cc: Tony Luck <tony.luck@intel.com>
-> > Cc: dave@stgolabs.net
-> > Link: http://lkml.kernel.org/r/1445975631-17047-3-git-send-email-dave@stgolabs.net
-> > Signed-off-by: Ingo Molnar <mingo@kernel.org>
-> 
-> Aside from a need for s/lcoking/locking/ in the subject line:
-> 
-> Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+n2rng: documentation, add DT bindings, vendor prefixes
 
-Thanks!
-Though Ingo already put this in tip tree like this,
-and I need a copy in my tree to avoid breaking bisect,
-so I will probably keep it exactly the same to avoid confusion.
+Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
+---
+ .../devicetree/bindings/sparc_sun_oracle_rng.txt   | 30 ++++++++++++++++++++++
+ .../devicetree/bindings/vendor-prefixes.txt        |  2 ++
+ 2 files changed, 32 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/sparc_sun_oracle_rng.txt
 
-> > ---
-> >  arch/ia64/include/asm/barrier.h    | 2 +-
-> >  arch/powerpc/include/asm/barrier.h | 2 +-
-> >  arch/s390/include/asm/barrier.h    | 2 +-
-> >  include/asm-generic/barrier.h      | 2 +-
-> >  4 files changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/arch/ia64/include/asm/barrier.h b/arch/ia64/include/asm/barrier.h
-> > index df896a1..209c4b8 100644
-> > --- a/arch/ia64/include/asm/barrier.h
-> > +++ b/arch/ia64/include/asm/barrier.h
-> > @@ -77,7 +77,7 @@ do {									\
-> >  	___p1;								\
-> >  })
-> > 
-> > -#define smp_store_mb(var, value)	do { WRITE_ONCE(var, value); mb(); } while (0)
-> > +#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); smp_mb(); } while (0)
-> > 
-> >  /*
-> >   * The group barrier in front of the rsm & ssm are necessary to ensure
-> > diff --git a/arch/powerpc/include/asm/barrier.h b/arch/powerpc/include/asm/barrier.h
-> > index 0eca6ef..a7af5fb 100644
-> > --- a/arch/powerpc/include/asm/barrier.h
-> > +++ b/arch/powerpc/include/asm/barrier.h
-> > @@ -34,7 +34,7 @@
-> >  #define rmb()  __asm__ __volatile__ ("sync" : : : "memory")
-> >  #define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
-> > 
-> > -#define smp_store_mb(var, value)	do { WRITE_ONCE(var, value); mb(); } while (0)
-> > +#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); smp_mb(); } while (0)
-> > 
-> >  #ifdef __SUBARCH_HAS_LWSYNC
-> >  #    define SMPWMB      LWSYNC
-> > diff --git a/arch/s390/include/asm/barrier.h b/arch/s390/include/asm/barrier.h
-> > index d68e11e..7ffd0b1 100644
-> > --- a/arch/s390/include/asm/barrier.h
-> > +++ b/arch/s390/include/asm/barrier.h
-> > @@ -36,7 +36,7 @@
-> >  #define smp_mb__before_atomic()		smp_mb()
-> >  #define smp_mb__after_atomic()		smp_mb()
-> > 
-> > -#define smp_store_mb(var, value)		do { WRITE_ONCE(var, value); mb(); } while (0)
-> > +#define smp_store_mb(var, value)	do { WRITE_ONCE(var, value); smp_mb(); } while (0)
-> > 
-> >  #define smp_store_release(p, v)						\
-> >  do {									\
-> > diff --git a/include/asm-generic/barrier.h b/include/asm-generic/barrier.h
-> > index b42afad..0f45f93 100644
-> > --- a/include/asm-generic/barrier.h
-> > +++ b/include/asm-generic/barrier.h
-> > @@ -93,7 +93,7 @@
-> >  #endif	/* CONFIG_SMP */
-> > 
-> >  #ifndef smp_store_mb
-> > -#define smp_store_mb(var, value)  do { WRITE_ONCE(var, value); mb(); } while (0)
-> > +#define smp_store_mb(var, value)  do { WRITE_ONCE(var, value); smp_mb(); } while (0)
-> >  #endif
-> > 
-> >  #ifndef smp_mb__before_atomic
-> > -- 
-> > MST
-> > 
+diff --git a/Documentation/devicetree/bindings/sparc_sun_oracle_rng.txt b/Documentation/devicetree/bindings/sparc_sun_oracle_rng.txt
+new file mode 100644
+index 0000000..b0b2111
+--- /dev/null
++++ b/Documentation/devicetree/bindings/sparc_sun_oracle_rng.txt
+@@ -0,0 +1,30 @@
++HWRNG support for the n2_rng driver
++
++Required properties:
++- reg		: base address to sample from
++- compatible	: should contain one of the following
++	RNG versions:
++	- 'SUNW,n2-rng' for Niagara 2 Platform (SUN UltraSPARC T2 CPU)
++	- 'SUNW,vf-rng' for Victoria Falls Platform (SUN UltraSPARC T2 Plus CPU)
++	- 'SUNW,kt-rng' for Rainbow/Yosemite Falls Platform (SUN SPARC T3/T4), (UltraSPARC KT/Niagara 3 - development names)
++	more recent systems (after Oracle acquisition of SUN)
++	- 'ORCL,m4-rng' for SPARC T5/M5
++	- 'ORCL,m7-rng' for SPARC T7/M7
++
++Examples:
++/* linux LDOM on SPARC T5-2 */
++Node 0xf029a4f4
++	.node:  f029a4f4
++	rng-#units:  00000002
++	compatible: 'ORCL,m4-rng'
++	reg:  0000000e
++	name: 'random-number-generator'
++
++/* solaris on SPARC M7-8 */
++Node 0xf028c08c
++	rng-#units:  00000003
++	compatible: 'ORCL,m7-rng'
++	reg:  0000000e
++	name:  'random-number-generator'
++
++PS: see as well prtconfs.git by DaveM
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.txt b/Documentation/devicetree/bindings/vendor-prefixes.txt
+index 72e2c5a..e00029d 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt
++++ b/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -170,6 +170,7 @@ opencores	OpenCores.org
+ option	Option NV
+ ortustech	Ortus Technology Co., Ltd.
+ ovti	OmniVision Technologies
++ORCL	Oracle Corporation
+ panasonic	Panasonic Corporation
+ parade	Parade Technologies Inc.
+ pericom	Pericom Technology Inc.
+@@ -227,6 +228,7 @@ startek	Startek
+ ste	ST-Ericsson
+ stericsson	ST-Ericsson
+ synology	Synology, Inc.
++SUNW	Sun Microsystems, Inc
+ tbs	TBS Technologies
+ tcl	Toby Churchill Ltd.
+ technologic	Technologic Systems
+-- 
+2.7.0
+
