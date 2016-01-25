@@ -1,61 +1,47 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:19:52 +0000
-Subject: [PATCH v3 24/41] sparc: define __smp_xxx
-Message-Id: <1452426622-4471-25-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:25 +0000
+Subject: [PATCH v2 11/16] firewire: Use in_compat_syscall to check ioctl compatness
+Message-Id: <35556b0fffab7a629e9a4e1115480ee5bfb5263a.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@k>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-This defines __smp_xxx barriers for sparc,
-for use by virtualization.
+Firewire was using is_compat_task to check whether it was in a
+compat ioctl or a non-compat ioctl.  Use is_compat_syscall instead
+so it works properly on all architectures.
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- arch/sparc/include/asm/barrier_64.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/firewire/core-cdev.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/barrier_64.h b/arch/sparc/include/asm/barrier_64.h
-index 26c3f72..c9f6ee6 100644
---- a/arch/sparc/include/asm/barrier_64.h
-+++ b/arch/sparc/include/asm/barrier_64.h
-@@ -37,14 +37,14 @@ do {	__asm__ __volatile__("ba,pt	%%xcc, 1f\n\t" \
- #define rmb()	__asm__ __volatile__("":::"memory")
- #define wmb()	__asm__ __volatile__("":::"memory")
+diff --git a/drivers/firewire/core-cdev.c b/drivers/firewire/core-cdev.c
+index 36a7c2d89a01..aee149bdf4c0 100644
+--- a/drivers/firewire/core-cdev.c
++++ b/drivers/firewire/core-cdev.c
+@@ -221,7 +221,7 @@ struct inbound_phy_packet_event {
+ #ifdef CONFIG_COMPAT
+ static void __user *u64_to_uptr(u64 value)
+ {
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return compat_ptr(value);
+ 	else
+ 		return (void __user *)(unsigned long)value;
+@@ -229,7 +229,7 @@ static void __user *u64_to_uptr(u64 value)
  
--#define smp_store_release(p, v)						\
-+#define __smp_store_release(p, v)						\
- do {									\
- 	compiletime_assert_atomic_type(*p);				\
- 	barrier();							\
- 	WRITE_ONCE(*p, v);						\
- } while (0)
- 
--#define smp_load_acquire(p)						\
-+#define __smp_load_acquire(p)						\
- ({									\
- 	typeof(*p) ___p1 = READ_ONCE(*p);				\
- 	compiletime_assert_atomic_type(*p);				\
-@@ -52,8 +52,8 @@ do {									\
- 	___p1;								\
- })
- 
--#define smp_mb__before_atomic()	barrier()
--#define smp_mb__after_atomic()	barrier()
-+#define __smp_mb__before_atomic()	barrier()
-+#define __smp_mb__after_atomic()	barrier()
- 
- #include <asm-generic/barrier.h>
- 
+ static u64 uptr_to_u64(void __user *ptr)
+ {
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return ptr_to_compat(ptr);
+ 	else
+ 		return (u64)(unsigned long)ptr;
 -- 
-MST
+2.5.0
 
