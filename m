@@ -1,48 +1,72 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:18:10 +0000
-Subject: [PATCH v3 12/41] x86/um: reuse asm-generic/barrier.h
-Message-Id: <1452426622-4471-13-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:30 +0000
+Subject: [PATCH v2 16/16] x86/compat: Remove is_compat_task
+Message-Id: <c48a8336218fcd6e27a386d89afef155458f1551.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Richard
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
-On x86/um CONFIG_SMP is never defined.  As a result, several macros
-match the asm-generic variant exactly. Drop the local definitions and
-pull in asm-generic/barrier.h instead.
+x86's is_compat_task always checked the current syscall type, not
+the task type.  It has no non-arch users any more, so just remove it
+to avoid confusion.
 
-This is in preparation to refactoring this code area.
+On x86, nothing should really be checking the task ABI.  There are
+legitimate users for the syscall ABI and for the mm ABI.
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Richard Weinberger <richard@nod.at>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- arch/x86/um/asm/barrier.h | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ arch/x86/include/asm/compat.h | 3 ++-
+ arch/x86/include/asm/ftrace.h | 2 +-
+ arch/x86/kernel/process_64.c  | 2 +-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/x86/um/asm/barrier.h b/arch/x86/um/asm/barrier.h
-index 755481f..174781a 100644
---- a/arch/x86/um/asm/barrier.h
-+++ b/arch/x86/um/asm/barrier.h
-@@ -36,13 +36,6 @@
- #endif /* CONFIG_X86_PPRO_FENCE */
- #define dma_wmb()	barrier()
+diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
+index acdee09228b3..ebb102e1bbc7 100644
+--- a/arch/x86/include/asm/compat.h
++++ b/arch/x86/include/asm/compat.h
+@@ -316,9 +316,10 @@ static inline bool is_x32_task(void)
+ 	return false;
+ }
  
--#define smp_mb()	barrier()
--#define smp_rmb()	barrier()
--#define smp_wmb()	barrier()
--
--#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); barrier(); } while (0)
--
--#define read_barrier_depends()		do { } while (0)
--#define smp_read_barrier_depends()	do { } while (0)
-+#include <asm-generic/barrier.h>
+-static inline bool is_compat_task(void)
++static inline bool in_compat_syscall(void)
+ {
+ 	return is_ia32_task() || is_x32_task();
+ }
++#define in_compat_syscall in_compat_syscall	/* override the generic impl */
  
- #endif
+ #endif /* _ASM_X86_COMPAT_H */
+diff --git a/arch/x86/include/asm/ftrace.h b/arch/x86/include/asm/ftrace.h
+index 24938852db30..21b66dbf3601 100644
+--- a/arch/x86/include/asm/ftrace.h
++++ b/arch/x86/include/asm/ftrace.h
+@@ -58,7 +58,7 @@ int ftrace_int3_handler(struct pt_regs *regs);
+ #define ARCH_TRACE_IGNORE_COMPAT_SYSCALLS 1
+ static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
+ {
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return true;
+ 	return false;
+ }
+diff --git a/arch/x86/kernel/process_64.c b/arch/x86/kernel/process_64.c
+index b9d99e0f82c4..71a18a22ae2f 100644
+--- a/arch/x86/kernel/process_64.c
++++ b/arch/x86/kernel/process_64.c
+@@ -476,7 +476,7 @@ void set_personality_ia32(bool x32)
+ 		if (current->mm)
+ 			current->mm->context.ia32_compat = TIF_X32;
+ 		current->personality &= ~READ_IMPLIES_EXEC;
+-		/* is_compat_task() uses the presence of the x32
++		/* in_compat_syscall() uses the presence of the x32
+ 		   syscall bit flag to determine compat status */
+ 		current_thread_info()->status &= ~TS_COMPAT;
+ 	} else {
 -- 
-MST
+2.5.0
 
