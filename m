@@ -1,114 +1,56 @@
-From: James Hogan <james.hogan@imgtec.com>
-Date: Mon, 04 Jan 2016 23:24:04 +0000
-Subject: Re: [PATCH v2 10/32] metag: reuse asm-generic/barrier.h
-Message-Id: <20160104232404.GL17861@jhogan-linux.le.imgtec.org>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="2OzUYMsT4j3Kc+NU"
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 25 Jan 2016 22:24:27 +0000
+Subject: [PATCH v2 13/16] amdkfd: Use in_compat_syscall to check open() caller type
+Message-Id: <f9ae00f060781de8174c371b3c1918ff429572f4.1453759363.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
- <1451572003-2440-11-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-11-git-send-email-mst@redhat.com>
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@kernel.org>
+References: <cover.1453759363.git.luto@kernel.org>
+In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
 
---2OzUYMsT4j3Kc+NU
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+amdkfd wants to know syscall type, not task type.  Check directly.
 
-On Thu, Dec 31, 2015 at 09:07:02PM +0200, Michael S. Tsirkin wrote:
-> On metag dma_rmb, dma_wmb, smp_store_mb, read_barrier_depends,
-> smp_read_barrier_depends, smp_store_release and smp_load_acquire  match
-> the asm-generic variants exactly. Drop the local definitions and pull in
-> asm-generic/barrier.h instead.
->=20
-> This is in preparation to refactoring this code area.
->=20
-> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
+Unfortunately, amdkfd is making nasty assumptions that a process'
+bitness is a well-defined constant thing.  This isn't the case on
+x86.  I don't know how much this matters, but this patch has no
+effect on generated code on x86, so amdkfd is equally broken with
+and without this patch.
 
-Looks good, and confirmed no text change (once patch 1 is applied that
-is).
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c | 2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Acked-by: James Hogan <james.hogan@imgtec.com>
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+index d2b49c026cf6..07ac724e3ec9 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+@@ -107,7 +107,7 @@ static int kfd_open(struct inode *inode, struct file *filep)
+ 	if (iminor(inode) != 0)
+ 		return -ENODEV;
+ 
+-	is_32bit_user_mode = is_compat_task();
++	is_32bit_user_mode = in_compat_syscall();
+ 
+ 	if (is_32bit_user_mode = true) {
+ 		dev_warn(kfd_device,
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_process.c b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+index 9be007081b72..fd1a90a0f435 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -311,7 +311,7 @@ static struct kfd_process *create_process(const struct task_struct *thread)
+ 		goto err_process_pqm_init;
+ 
+ 	/* init process apertures*/
+-	process->is_32bit_user_mode = is_compat_task();
++	process->is_32bit_user_mode = in_compat_syscall();
+ 	if (kfd_init_apertures(process) != 0)
+ 		goto err_init_apretures;
+ 
+-- 
+2.5.0
 
-Thanks
-James
-
-> ---
->  arch/metag/include/asm/barrier.h | 25 ++-----------------------
->  1 file changed, 2 insertions(+), 23 deletions(-)
->=20
-> diff --git a/arch/metag/include/asm/barrier.h b/arch/metag/include/asm/ba=
-rrier.h
-> index 172b7e5..b5b778b 100644
-> --- a/arch/metag/include/asm/barrier.h
-> +++ b/arch/metag/include/asm/barrier.h
-> @@ -44,9 +44,6 @@ static inline void wr_fence(void)
->  #define rmb()		barrier()
->  #define wmb()		mb()
-> =20
-> -#define dma_rmb()	rmb()
-> -#define dma_wmb()	wmb()
-> -
->  #ifndef CONFIG_SMP
->  #define fence()		do { } while (0)
->  #define smp_mb()        barrier()
-> @@ -81,27 +78,9 @@ static inline void fence(void)
->  #endif
->  #endif
-> =20
-> -#define read_barrier_depends()		do { } while (0)
-> -#define smp_read_barrier_depends()	do { } while (0)
-> -
-> -#define smp_store_mb(var, value) do { WRITE_ONCE(var, value); smp_mb(); =
-} while (0)
-> -
-> -#define smp_store_release(p, v)						\
-> -do {									\
-> -	compiletime_assert_atomic_type(*p);				\
-> -	smp_mb();							\
-> -	WRITE_ONCE(*p, v);						\
-> -} while (0)
-> -
-> -#define smp_load_acquire(p)						\
-> -({									\
-> -	typeof(*p) ___p1 =3D READ_ONCE(*p);				\
-> -	compiletime_assert_atomic_type(*p);				\
-> -	smp_mb();							\
-> -	___p1;								\
-> -})
-> -
->  #define smp_mb__before_atomic()	barrier()
->  #define smp_mb__after_atomic()	barrier()
-> =20
-> +#include <asm-generic/barrier.h>
-> +
->  #endif /* _ASM_METAG_BARRIER_H */
-> --=20
-> MST
->=20
-
---2OzUYMsT4j3Kc+NU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWiv8UAAoJEGwLaZPeOHZ6hSwQAJCVQc5QdNomZOnrxJp5uv9r
-iT+zYpXRNC4k29ENp5iDq29d07OM1zooI0szDvvKi351dsFwfOXrEBIcoKJjLRcm
-VGVtFCCI0IffzBGaMa2u16xywqgCogk+uMnlOmyk2cSM6lx0BdWIb6sL4fzkocfT
-a1sTWJnh45/sQG+VQQUUFokjUM0UFCXOV+77I556Khe9tS5qgZnObEsAIk+lrY/3
-lRo2nd2wbZsybzqlQVKp3nKYbFNUpoCGT/myPpj8A3NQ/FBUOs6LtpZvD0i06CJh
-E01ASo6Cr5SvTyOAYsty+zcZvFGZPB+2i9jyv/7vGDBgdiCwLEX25gXxz9aS8GB6
-2Oa2E/5z/uCltUZyM3y3Yz/K8XwnhORh3PMpZR/b2Ze5MnguCLy2zWrcKWdZhCJ+
-UkNkLe3rcbdLSfCcK6kCSAwHoqj78IeHmBG+96vEwePwsQh7YkAKIoKSMxbx88BU
-gD/yn8y+dc7wSJGYgHM4eBw35H3o7HTB6bPRZsw8/ak1nG8ClOMtWkoLB7a+9wOA
-J5tM/aHE0ixB02QphdN8lkvqMA+U9EKmq6hBHZeiyIxNx/mCAm+6dcGv484Hh2UF
-tvsj4erVkGZa9EJ3KL49xvAJx23RTZcR+a2djcLUlzeLr32UDWh3zuVzSoNc+ZKD
-Cnc7cQMIdlTlucxbu/OU
-=IkXd
------END PGP SIGNATURE-----
-
---2OzUYMsT4j3Kc+NU--
