@@ -1,81 +1,81 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Sun, 31 Jan 2016 20:27:39 +0000
-Subject: Re: [Xen-devel] [PATCH v5 09/10] vring: Use the DMA API on Xen
-Message-Id: <CALCETrVjocgx3wVcsgJ3-eLTASvS5rtam7SkQVyXGkx8=xVZFQ@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Wed, 27 Jan 2016 08:35:46 +0000
+Subject: [PATCH] documentation: Add disclaimer
+Message-Id: <20160127083546.GJ6357@twins.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454034075.git.luto@kernel.org> <64e979cc139c5e6a9bbfae9f1bc5e6693d91bea9.1454034075.git.luto@kernel.org>
- <56AB4053.4070007@citrix.com> <20160131220601-mutt-send-email-mst@redhat.com>
- <CALCETrU4p5qz_3aq+Xrx7P2m0Ce0yWMczzjngjEp8OzL1yvX6Q@mail.gmail.com> <20160131221600-mutt-send-email-mst@redhat.com>
-In-Reply-To: <20160131221600-mutt-send-email-mst@redhat.com>
+References: <5696BA6E.4070508@imgtec.com> <20160114120445.GB15828@arm.com>
+ <56980145.5030901@imgtec.com>
+ <20160114204827.GE3818@linux.vnet.ibm.com>
+ <56981212.7050301@imgtec.com>
+ <20160114222046.GH3818@linux.vnet.ibm.com>
+ <20160126102402.GE6357@twins.programming.kicks-ass.net>
+ <20160126103200.GI6375@twins.programming.kicks-ass.net>
+ <20160126110053.GA21553@arm.com>
+ <20160126201143.GV4503@linux.vnet.ibm.com>
+In-Reply-To: <20160126201143.GV4503@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: David Vrabel <david.vrabel@citrix.com>, Andy Lutomirski <luto@kernel.org>, Cornelia Huck <cornelia.huck@de.ibm.com>, Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, "Michael S. Tsirkin" <mst@redhat.com>, Will Deacon <will.deacon@arm.com>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, user-mode-linux-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, james.hogan@imgtec.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, adi-buildroot-devel@lists.sourceforge.net, Leonid Yegoshin <Leonid.Yegoshin@imgtec.com>, ddaney.cavm@gmail.com, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.orgl
 
-On Sun, Jan 31, 2016 at 12:18 PM, Michael S. Tsirkin <mst@redhat.com> wrote:
-> On Sun, Jan 31, 2016 at 12:13:58PM -0800, Andy Lutomirski wrote:
->> On Sun, Jan 31, 2016 at 12:09 PM, Michael S. Tsirkin <mst@redhat.com> wrote:
->> > On Fri, Jan 29, 2016 at 10:34:59AM +0000, David Vrabel wrote:
->> >> On 29/01/16 02:31, Andy Lutomirski wrote:
->> >> > Signed-off-by: Andy Lutomirski <luto@kernel.org>
->> >> > ---
->> >> >  drivers/virtio/virtio_ring.c | 12 ++++++++++++
->> >> >  1 file changed, 12 insertions(+)
->> >> >
->> >> > diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
->> >> > index c169c6444637..305c05cc249a 100644
->> >> > --- a/drivers/virtio/virtio_ring.c
->> >> > +++ b/drivers/virtio/virtio_ring.c
->> >> > @@ -47,6 +47,18 @@
->> >> >
->> >> >  static bool vring_use_dma_api(void)
->> >> >  {
->> >> > +#if defined(CONFIG_X86) && defined(CONFIG_XEN)
->> >> > +   /*
->> >> > +    * In theory, it's possible to have a buggy QEMU-supposed
->> >> > +    * emulated Q35 IOMMU and Xen enabled at the same time.  On
->> >> > +    * such a configuration, virtio has never worked and will
->> >> > +    * not work without an even larger kludge.  Instead, enable
->> >> > +    * the DMA API if we're a Xen guest, which at least allows
->> >> > +    * all of the sensible Xen configurations to work correctly.
->> >> > +    */
->> >> > +   return static_cpu_has(X86_FEATURE_XENPV);
->> >>
->> >> You want:
->> >>
->> >>     if (xen_domain())
->> >>         return true;
->> >>
->> >> Without the #if so we use the DMA API for all types of Xen guest on all
->> >> architectures.
->> >>
->> >> David
->> >
->> > I doubt HVM domains can have virtio devices.
->> >
->>
->> They certainly can under nested virt (L0 provides virtio device, L1 is
->> Xen, and L2 is Linux).  Of course, this won't work given the current
->> QEMU situation unless Xen can pass things through to dom0 without an
->> IOMMU, which seems plausible to me.
->>
->> But yes, xen_domain() sounds right to me.  I just failed to find that
->> function when I wrote this patch.
->>
->> Michael, if you like the rest of the series, I'd be okay if you
->> changed this patch to use xen_domain() when you apply it.  If I send a
->> v2, I'll fix it up.
->>
->> --Andy
->
-> I'd rather you just posted a tested v2 of 9/10 for now as I don't test
-> Xen.  It seems easy but I had more than my share of obvious fixes
-> failing spectacularly.
->
+On Tue, Jan 26, 2016 at 12:11:43PM -0800, Paul E. McKenney wrote:
+> So Peter, would you like to update your patch to include yourself
+> and Will as authors?
 
-In that case, let me test for real.  Can you point me to a git tree
-when you have patches 1-8 staged and I'll spin patch 9 v2 and test it
-with the real context?
+Sure, here goes.
 
---Andy
+---
+Subject: documentation: Add disclaimer
+
+It appears people are reading this document as a requirements list for
+building hardware. This is not the intent of this document. Nor is it
+particularly suited for this purpose.
+
+The primary purpose of this document is our collective attempt to define
+a set of primitives that (hopefully) allow us to write correct code on
+the myriad of SMP platforms Linux supports.
+
+Its a definite work in progress as our understanding of these platforms,
+and memory ordering in general, progresses.
+
+Nor does being mentioned in this document mean we think its a
+particularly good idea; the data dependency barrier required by Alpha
+being a prime example. Yes we have it, no you're insane to require it
+when building new hardware.
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ Documentation/memory-barriers.txt | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/memory-barriers.txt b/Documentation/memory-barriers.txt
+index a61be39c7b51..98626125f484 100644
+--- a/Documentation/memory-barriers.txt
++++ b/Documentation/memory-barriers.txt
+@@ -4,8 +4,24 @@
+ 
+ By: David Howells <dhowells@redhat.com>
+     Paul E. McKenney <paulmck@linux.vnet.ibm.com>
++    Will Deacon <will.deacon@arm.com>
++    Peter Zijlstra <peterz@infradead.org>
+ 
+-Contents:
++=====
++DISCLAIMER
++=====
++
++This document is not a specification; it is intentionally (for the sake of
++brevity) and unintentionally (due to being human) incomplete. This document is
++meant as a guide to using the various memory barriers provided by Linux, but
++in case of any doubt (and there are many) please ask.
++
++I repeat, this document is not a specification of what Linux expects from
++hardware.
++
++====
++CONTENTS
++====
+ 
+  (*) Abstract memory access model.
+ 
