@@ -1,25 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 11 Jan 2016 21:22:33 +0000
-Subject: Re: [RESEND PATCH] sparc64: fix incorrect sign extension in sys_sparc64_personality
-Message-Id: <20160111.162233.2153725773770338366.davem@davemloft.net>
+From: Jeffrey Merkey <jeffmerkey@gmail.com>
+Date: Thu, 28 Jan 2016 19:47:48 +0000
+Subject: [PATCH 30/31] Add debugger entry points for SPARC
+Message-Id: <1454010468-29651-1-git-send-email-jeffmerkey@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20151226231327.GA18682@altlinux.org>
-	<20160111143019.GA29007@altlinux.org>
-In-Reply-To: <20160111143019.GA29007@altlinux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ldv@altlinux.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: davem@davemloft.net, linux.mdb@gmail.com, sparclinux@vger.kernel.org
 
+This patch series adds an export which can be set by system debuggers to
+direct the hard lockup and soft lockup detector to trigger a breakpoint
+exception and enter a debugger if one is active.  It is assumed that if
+someone sets this variable, then an breakpoint handler of some sort will
+be actively loaded or registered via the notify die handler chain.
 
-You never need to resubmit a patch which is properly queued up
-in patchwork, which you can check here:
+This addition is extremely useful for debugging hard and soft lockups
+real time and quickly from a console debugger.
 
-http://patchwork.ozlabs.org/project/sparclinux/list/
+Signed-off-by: Jeffrey Merkey <jeffmerkey@gmail.com>
+---
+ arch/sparc/include/asm/kdebug.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-I work on sparc patches with a secondary priority compared to my
-networking duties, and right now I've been backlogged on the
-networking side for a week or two.
+diff --git a/arch/sparc/include/asm/kdebug.h b/arch/sparc/include/asm/kdebug.h
+index 8d12581..a4b78d3 100644
+--- a/arch/sparc/include/asm/kdebug.h
++++ b/arch/sparc/include/asm/kdebug.h
+@@ -5,4 +5,9 @@
+ #else
+ #include <asm/kdebug_32.h>
+ #endif
++
++static inline void arch_breakpoint(void)
++{
++	asm("ta	$0x7d");
++}
+ #endif
+-- 
+1.8.3.1
 
-You simply need to be patient.
