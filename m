@@ -1,56 +1,47 @@
 From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 25 Jan 2016 22:24:27 +0000
-Subject: [PATCH v2 13/16] amdkfd: Use in_compat_syscall to check open() caller type
-Message-Id: <f9ae00f060781de8174c371b3c1918ff429572f4.1453759363.git.luto@kernel.org>
+Date: Fri, 29 Jan 2016 02:31:23 +0000
+Subject: [PATCH v5 10/10] vring: Add a module parameter to force-enable the DMA API
+Message-Id: <76b6105e15c27c669cffc665e3a074c5cb3d5e16.1454034075.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1453759363.git.luto@kernel.org>
-In-Reply-To: <cover.1453759363.git.luto@kernel.org>
+References: <cover.1454034075.git.luto@kernel.org>
+In-Reply-To: <cover.1454034075.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, x86@kernel.org, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Chris Metcalf <cmetcalf@ezchip.com>, linux-parisc@vger.kernel.org, linux-mips@linux-mips.org, sparclinux@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
 
-amdkfd wants to know syscall type, not task type.  Check directly.
-
-Unfortunately, amdkfd is making nasty assumptions that a process'
-bitness is a well-defined constant thing.  This isn't the case on
-x86.  I don't know how much this matters, but this patch has no
-effect on generated code on x86, so amdkfd is equally broken with
-and without this patch.
+This will be useful for testing.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- drivers/gpu/drm/amd/amdkfd/kfd_chardev.c | 2 +-
- drivers/gpu/drm/amd/amdkfd/kfd_process.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/virtio/virtio_ring.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-index d2b49c026cf6..07ac724e3ec9 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-@@ -107,7 +107,7 @@ static int kfd_open(struct inode *inode, struct file *filep)
- 	if (iminor(inode) != 0)
- 		return -ENODEV;
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index 305c05cc249a..46fb77d824e9 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -45,6 +45,10 @@
+  * API.
+  */
  
--	is_32bit_user_mode = is_compat_task();
-+	is_32bit_user_mode = in_compat_syscall();
++static bool force_dma_api = false;
++module_param(force_dma_api, bool, 0644);
++MODULE_PARM_DESC(force_dma_api, "force-enable the DMA API");
++
+ static bool vring_use_dma_api(void)
+ {
+ #if defined(CONFIG_X86) && defined(CONFIG_XEN)
+@@ -59,7 +63,7 @@ static bool vring_use_dma_api(void)
+ 	return static_cpu_has(X86_FEATURE_XENPV);
+ #endif
  
- 	if (is_32bit_user_mode = true) {
- 		dev_warn(kfd_device,
-diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_process.c b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-index 9be007081b72..fd1a90a0f435 100644
---- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-+++ b/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-@@ -311,7 +311,7 @@ static struct kfd_process *create_process(const struct task_struct *thread)
- 		goto err_process_pqm_init;
+-	return false;
++	return force_dma_api;
+ }
  
- 	/* init process apertures*/
--	process->is_32bit_user_mode = is_compat_task();
-+	process->is_32bit_user_mode = in_compat_syscall();
- 	if (kfd_init_apertures(process) != 0)
- 		goto err_init_apretures;
- 
+ #ifdef DEBUG
 -- 
 2.5.0
 
