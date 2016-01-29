@@ -1,34 +1,44 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Mon, 04 Jan 2016 13:26:10 +0000
-Subject: Re: [PATCH v2 11/32] mips: reuse asm-generic/barrier.h
-Message-Id: <20160104132610.GX6344@twins.programming.kicks-ass.net>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Fri, 29 Jan 2016 02:31:22 +0000
+Subject: [PATCH v5 09/10] vring: Use the DMA API on Xen
+Message-Id: <64e979cc139c5e6a9bbfae9f1bc5e6693d91bea9.1454034075.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1451572003-2440-1-git-send-email-mst@redhat.com>
- <1451572003-2440-12-git-send-email-mst@redhat.com>
-In-Reply-To: <1451572003-2440-12-git-send-email-mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+References: <cover.1454034075.git.luto@kernel.org>
+In-Reply-To: <cover.1454034075.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Cooper <andrew.cooper3-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, user-mode-linux-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, Ralf Baechle <ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>And
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
 
-On Thu, Dec 31, 2015 at 09:07:10PM +0200, Michael S. Tsirkin wrote:
-> -#define smp_store_release(p, v)						\
-> -do {									\
-> -	compiletime_assert_atomic_type(*p);				\
-> -	smp_mb();							\
-> -	WRITE_ONCE(*p, v);						\
-> -} while (0)
-> -
-> -#define smp_load_acquire(p)						\
-> -({									\
-> -	typeof(*p) ___p1 = READ_ONCE(*p);				\
-> -	compiletime_assert_atomic_type(*p);				\
-> -	smp_mb();							\
-> -	___p1;								\
-> -})
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ drivers/virtio/virtio_ring.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-David Daney wanted to use fancy new MIPS barriers to provide better
-implementations of this.
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index c169c6444637..305c05cc249a 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -47,6 +47,18 @@
+ 
+ static bool vring_use_dma_api(void)
+ {
++#if defined(CONFIG_X86) && defined(CONFIG_XEN)
++	/*
++	 * In theory, it's possible to have a buggy QEMU-supposed
++	 * emulated Q35 IOMMU and Xen enabled at the same time.  On
++	 * such a configuration, virtio has never worked and will
++	 * not work without an even larger kludge.  Instead, enable
++	 * the DMA API if we're a Xen guest, which at least allows
++	 * all of the sensible Xen configurations to work correctly.
++	 */
++	return static_cpu_has(X86_FEATURE_XENPV);
++#endif
++
+ 	return false;
+ }
+ 
+-- 
+2.5.0
 
-This patch isn't in the way of that, just a FYI.
