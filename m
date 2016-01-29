@@ -1,91 +1,91 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:19:27 +0000
-Subject: [PATCH v3 21/41] mips: define __smp_xxx
-Message-Id: <1452426622-4471-22-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Fri, 29 Jan 2016 02:31:15 +0000
+Subject: [PATCH v5 02/10] alpha/dma: use common noop dma ops
+Message-Id: <e7bf04abe8495e1e0964fbb318791bad96f84b7b.1454034075.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <cover.1454034075.git.luto@kernel.org>
+In-Reply-To: <cover.1454034075.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org, Ralf Baechle <ralf@l>
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-This defines __smp_xxx barriers for mips,
-for use by virtualization.
+From: Christian Borntraeger <borntraeger@de.ibm.com>
 
-smp_xxx barriers are removed as they are
-defined correctly by asm-generic/barriers.h
+Some of the alpha pci noop dma ops are identical to the common ones.
+Use them.
 
-Note: the only exception is smp_mb__before_llsc which is mips-specific.
-We define both the __smp_mb__before_llsc variant (for use in
-asm/barriers.h) and smp_mb__before_llsc (for use elsewhere on this
-architecture).
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/mips/include/asm/barrier.h | 26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ arch/alpha/kernel/pci-noop.c | 46 ++++----------------------------------------
+ 1 file changed, 4 insertions(+), 42 deletions(-)
 
-diff --git a/arch/mips/include/asm/barrier.h b/arch/mips/include/asm/barrier.h
-index 3eac4b9..d296633 100644
---- a/arch/mips/include/asm/barrier.h
-+++ b/arch/mips/include/asm/barrier.h
-@@ -85,20 +85,20 @@
- #define wmb()		fast_wmb()
- #define rmb()		fast_rmb()
+diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
+index 2b1f4a1e9272..8e735b5e56bd 100644
+--- a/arch/alpha/kernel/pci-noop.c
++++ b/arch/alpha/kernel/pci-noop.c
+@@ -123,44 +123,6 @@ static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
+ 	return ret;
+ }
  
--#if defined(CONFIG_WEAK_ORDERING) && defined(CONFIG_SMP)
-+#if defined(CONFIG_WEAK_ORDERING)
- # ifdef CONFIG_CPU_CAVIUM_OCTEON
--#  define smp_mb()	__sync()
--#  define smp_rmb()	barrier()
--#  define smp_wmb()	__syncw()
-+#  define __smp_mb()	__sync()
-+#  define __smp_rmb()	barrier()
-+#  define __smp_wmb()	__syncw()
- # else
--#  define smp_mb()	__asm__ __volatile__("sync" : : :"memory")
--#  define smp_rmb()	__asm__ __volatile__("sync" : : :"memory")
--#  define smp_wmb()	__asm__ __volatile__("sync" : : :"memory")
-+#  define __smp_mb()	__asm__ __volatile__("sync" : : :"memory")
-+#  define __smp_rmb()	__asm__ __volatile__("sync" : : :"memory")
-+#  define __smp_wmb()	__asm__ __volatile__("sync" : : :"memory")
- # endif
- #else
--#define smp_mb()	barrier()
--#define smp_rmb()	barrier()
--#define smp_wmb()	barrier()
-+#define __smp_mb()	barrier()
-+#define __smp_rmb()	barrier()
-+#define __smp_wmb()	barrier()
- #endif
+-static void alpha_noop_free_coherent(struct device *dev, size_t size,
+-				     void *cpu_addr, dma_addr_t dma_addr,
+-				     struct dma_attrs *attrs)
+-{
+-	free_pages((unsigned long)cpu_addr, get_order(size));
+-}
+-
+-static dma_addr_t alpha_noop_map_page(struct device *dev, struct page *page,
+-				      unsigned long offset, size_t size,
+-				      enum dma_data_direction dir,
+-				      struct dma_attrs *attrs)
+-{
+-	return page_to_pa(page) + offset;
+-}
+-
+-static int alpha_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
+-			     enum dma_data_direction dir, struct dma_attrs *attrs)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		void *va;
+-
+-		BUG_ON(!sg_page(sg));
+-		va = sg_virt(sg);
+-		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va);
+-		sg_dma_len(sg) = sg->length;
+-	}
+-
+-	return nents;
+-}
+-
+-static int alpha_noop_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return 0;
+-}
+-
+ static int alpha_noop_supported(struct device *dev, u64 mask)
+ {
+ 	return mask < 0x00ffffffUL ? 0 : 1;
+@@ -168,10 +130,10 @@ static int alpha_noop_supported(struct device *dev, u64 mask)
  
- #if defined(CONFIG_WEAK_REORDERING_BEYOND_LLSC) && defined(CONFIG_SMP)
-@@ -111,6 +111,7 @@
- 
- #ifdef CONFIG_CPU_CAVIUM_OCTEON
- #define smp_mb__before_llsc() smp_wmb()
-+#define __smp_mb__before_llsc() __smp_wmb()
- /* Cause previous writes to become visible on all CPUs as soon as possible */
- #define nudge_writes() __asm__ __volatile__(".set push\n\t"		\
- 					    ".set arch=octeon\n\t"	\
-@@ -118,11 +119,12 @@
- 					    ".set pop" : : : "memory")
- #else
- #define smp_mb__before_llsc() smp_llsc_mb()
-+#define __smp_mb__before_llsc() smp_llsc_mb()
- #define nudge_writes() mb()
- #endif
- 
--#define smp_mb__before_atomic()	smp_mb__before_llsc()
--#define smp_mb__after_atomic()	smp_llsc_mb()
-+#define __smp_mb__before_atomic()	__smp_mb__before_llsc()
-+#define __smp_mb__after_atomic()	smp_llsc_mb()
- 
- #include <asm-generic/barrier.h>
+ struct dma_map_ops alpha_noop_ops = {
+ 	.alloc			= alpha_noop_alloc_coherent,
+-	.free			= alpha_noop_free_coherent,
+-	.map_page		= alpha_noop_map_page,
+-	.map_sg			= alpha_noop_map_sg,
+-	.mapping_error		= alpha_noop_mapping_error,
++	.free			= dma_noop_free_coherent,
++	.map_page		= dma_noop_map_page,
++	.map_sg			= dma_noop_map_sg,
++	.mapping_error		= dma_noop_mapping_error,
+ 	.dma_supported		= alpha_noop_supported,
+ };
  
 -- 
-MST
+2.5.0
 
