@@ -1,50 +1,89 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 25 Jan 2016 16:13:57 +0000
-Subject: Re: [PATCH 0/2] n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
-Message-Id: <20160125161357.GC26873@yogzotot>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Fri, 29 Jan 2016 02:31:13 +0000
+Subject: [PATCH v5 00/10] virtio DMA API, yet again
+Message-Id: <cover.1454034075.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160113214318.GB32766@yogzotot>
- <20160115.152253.1613974535141140248.davem@davemloft.net>
- <20160125144101.GC8414@gondor.apana.org.au>
-In-Reply-To: <20160125144101.GC8414@gondor.apana.org.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David Miller <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
 
-On Mon, Jan 25, 2016 at 10:41:01PM +0800, Herbert Xu wrote:
-> On Fri, Jan 15, 2016 at 03:22:53PM -0500, David Miller wrote:
-> > From: Anatoly Pugachev <matorola@gmail.com>
-> > Date: Thu, 14 Jan 2016 00:43:18 +0300
-> >=20
-> > > This patch adds support for recent oracle hardware (T5/M5, T7/M7 SPAR=
-C CPUs),
-> > > so n2_rng driver would work on them.
-> > >=20
-> > > 1. n2rng: Attach on T5/M5, T7/M7 SPARC CPUs
-> > > 2. n2rng: documentation, add DT bindings, vendor prefixes
-> > >=20
-> > > PS: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=809815#32
-> > >=20
-> > > Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
-> >=20
-> > This series looks fine:
-> >=20
-> > Acked-by: David S. Miller <davem@davemloft.net>
-> >=20
-> > Herbert, please take this via your crypto tree.
->=20
-> I'd love to but unfortunately the pathces are white-space damaged
-> and all the tabs have turned into spaces.
->=20
-> Anatoly, could you please repost with a mailer that does not eat
-> tabs for lunch?
+This switches virtio to use the DMA API on Xen and if requested by
+module option.
 
-Herbert,
+This fixes virtio on Xen, and it should break anything because it's
+off by default on everything except Xen PV on x86.
 
-I've no idea what has changed tabs to spaces. Resubmitted again, should be =
-in
-proper format now...
+To the Xen people: is this okay?  If it doesn't work on other Xen
+variants (PVH? HVM?), can you submit follow-up patches to fix it?
 
-Thanks.
+To everyone else: we've waffled on this for way too long.  I think
+we should to get DMA API implementation in with a conservative
+policy like this rather than waiting until we achieve perfection.
+I'm tired of carrying these patches around.
+
+Michael, if these survive review, can you stage these in your tree?
+Can you also take a look at tools/virtio?  I probably broke it, but I
+couldn't get it to build without these patches either, so I'm stuck.
+
+Changes from v4:
+ - Bake vring_use_dma_api in from the beginning.
+ - Automatically enable only on Xen.
+ - Add module parameter.
+ - Add s390 and alpha DMA API implementations.
+ - Rebase to 4.5-rc1.
+
+Changes from v3:
+ - More big-endian fixes.
+ - Added better virtio-ring APIs that handle allocation and use them in
+   virtio-mmio and virtio-pci.
+ - Switch to Michael's virtio-net patch.
+
+Changes from v2:
+ - Fix vring_mapping_error incorrect argument
+
+Changes from v1:
+ - Fix an endian conversion error causing a BUG to hit.
+ - Fix a DMA ordering issue (swiotlb=force works now).
+ - Minor cleanups.
+
+Andy Lutomirski (7):
+  vring: Introduce vring_use_dma_api()
+  virtio_ring: Support DMA APIs
+  virtio: Add improved queue allocation API
+  virtio_mmio: Use the DMA API if enabled
+  virtio_pci: Use the DMA API if enabled
+  vring: Use the DMA API on Xen
+  vring: Add a module parameter to force-enable the DMA API
+
+Christian Borntraeger (3):
+  dma: Provide simple noop dma ops
+  alpha/dma: use common noop dma ops
+  s390/dma: Allow per device dma ops
+
+ arch/alpha/kernel/pci-noop.c        |  46 +---
+ arch/s390/Kconfig                   |   6 +-
+ arch/s390/include/asm/device.h      |   6 +-
+ arch/s390/include/asm/dma-mapping.h |   6 +-
+ arch/s390/pci/pci.c                 |   1 +
+ arch/s390/pci/pci_dma.c             |   4 +-
+ drivers/virtio/Kconfig              |   2 +-
+ drivers/virtio/virtio_mmio.c        |  67 ++----
+ drivers/virtio/virtio_pci_common.h  |   6 -
+ drivers/virtio/virtio_pci_legacy.c  |  42 ++--
+ drivers/virtio/virtio_pci_modern.c  |  61 ++----
+ drivers/virtio/virtio_ring.c        | 412 ++++++++++++++++++++++++++++++------
+ include/linux/dma-mapping.h         |   2 +
+ include/linux/virtio.h              |  23 +-
+ include/linux/virtio_ring.h         |  35 +++
+ lib/Makefile                        |   1 +
+ lib/dma-noop.c                      |  75 +++++++
+ tools/virtio/linux/dma-mapping.h    |  17 ++
+ 18 files changed, 568 insertions(+), 244 deletions(-)
+ create mode 100644 lib/dma-noop.c
+ create mode 100644 tools/virtio/linux/dma-mapping.h
+
+-- 
+2.5.0
+
