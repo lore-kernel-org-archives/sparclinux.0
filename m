@@ -1,183 +1,137 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Date: Sun, 10 Jan 2016 14:20:50 +0000
-Subject: [PATCH v3 31/41] sh: support 1 and 2 byte xchg
-Message-Id: <1452426622-4471-32-git-send-email-mst@redhat.com>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Fri, 29 Jan 2016 02:31:14 +0000
+Subject: [PATCH v5 01/10] dma: Provide simple noop dma ops
+Message-Id: <6973e55a7ae955d7aaa94d143e84091c06bdd18f.1454034075.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1452426622-4471-1-git-send-email-mst@redhat.com>
-In-Reply-To: <1452426622-4471-1-git-send-email-mst@redhat.com>
+References: <cover.1454034075.git.luto@kernel.org>
+In-Reply-To: <cover.1454034075.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-arch@vger.kernel.org, Andrew Cooper <andrew.cooper3@citrix.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, virtualization@lists.linux-foundation.org, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@elte.hu>, "H. Peter Anvin" <hpa@zytor.com>, Joe Perches <joe@perches.com>, David Miller <davem@davemloft.net>, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, x86@kernel.org, user-mode-linux-devel@lists.sourceforge.net, adi-buildroot-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, xen-devel@lists.xenproject.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-This completes the xchg implementation for sh architecture.  Note: The
-llsc variant is tricky since this only supports 4 byte atomics, the
-existing implementation of 1 byte xchg is wrong: we need to do a 4 byte
-cmpxchg and retry if any bytes changed meanwhile.
+From: Christian Borntraeger <borntraeger@de.ibm.com>
 
-Write this in C for clarity.
+We are going to require dma_ops for several common drivers, even for
+systems that do have an identity mapping. Lets provide some minimal
+no-op dma_ops that can be used for that purpose.
 
-Suggested-by: Rich Felker <dalias@libc.org>
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Joerg Roedel <jroedel@suse.de>
 ---
- arch/sh/include/asm/cmpxchg-grb.h  | 22 +++++++++++++++
- arch/sh/include/asm/cmpxchg-irq.h  | 11 ++++++++
- arch/sh/include/asm/cmpxchg-llsc.h | 58 +++++++++++++++++++++++---------------
- arch/sh/include/asm/cmpxchg.h      |  3 ++
- 4 files changed, 72 insertions(+), 22 deletions(-)
+ include/linux/dma-mapping.h |  2 ++
+ lib/Makefile                |  1 +
+ lib/dma-noop.c              | 75 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 78 insertions(+)
+ create mode 100644 lib/dma-noop.c
 
-diff --git a/arch/sh/include/asm/cmpxchg-grb.h b/arch/sh/include/asm/cmpxchg-grb.h
-index f848dec..2ed557b 100644
---- a/arch/sh/include/asm/cmpxchg-grb.h
-+++ b/arch/sh/include/asm/cmpxchg-grb.h
-@@ -23,6 +23,28 @@ static inline unsigned long xchg_u32(volatile u32 *m, unsigned long val)
- 	return retval;
- }
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 75857cda38e9..c0b27ff2c784 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -70,6 +70,8 @@ struct dma_map_ops {
+ 	int is_phys;
+ };
  
-+static inline unsigned long xchg_u16(volatile u16 *m, unsigned long val)
++extern struct dma_map_ops dma_noop_ops;
++
+ #define DMA_BIT_MASK(n)	(((n) = 64) ? ~0ULL : ((1ULL<<(n))-1))
+ 
+ #define DMA_MASK_NONE	0x0ULL
+diff --git a/lib/Makefile b/lib/Makefile
+index a7c26a41a738..a572b86a1b1d 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -18,6 +18,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ obj-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
++lib-$(CONFIG_HAS_DMA) += dma-noop.o
+ 
+ lib-y	+= kobject.o klist.o
+ obj-y	+= lockref.o
+diff --git a/lib/dma-noop.c b/lib/dma-noop.c
+new file mode 100644
+index 000000000000..72145646857e
+--- /dev/null
++++ b/lib/dma-noop.c
+@@ -0,0 +1,75 @@
++/*
++ *	lib/dma-noop.c
++ *
++ * Simple DMA noop-ops that map 1:1 with memory
++ */
++#include <linux/export.h>
++#include <linux/mm.h>
++#include <linux/dma-mapping.h>
++#include <linux/scatterlist.h>
++
++static void *dma_noop_alloc(struct device *dev, size_t size,
++			    dma_addr_t *dma_handle, gfp_t gfp,
++			    struct dma_attrs *attrs)
 +{
-+	unsigned long retval;
++	void *ret;
 +
-+	__asm__ __volatile__ (
-+		"   .align  2             \n\t"
-+		"   mova    1f,   r0      \n\t" /* r0 = end point */
-+		"   mov    r15,   r1      \n\t" /* r1 = saved sp */
-+		"   mov    #-6,   r15     \n\t" /* LOGIN */
-+		"   mov.w  @%1,   %0      \n\t" /* load  old value */
-+		"   extu.w  %0,   %0      \n\t" /* extend as unsigned */
-+		"   mov.w   %2,   @%1     \n\t" /* store new value */
-+		"1: mov     r1,   r15     \n\t" /* LOGOUT */
-+		: "=&r" (retval),
-+		  "+r"  (m),
-+		  "+r"  (val)		/* inhibit r15 overloading */
-+		:
-+		: "memory" , "r0", "r1");
-+
-+	return retval;
-+}
-+
- static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
- {
- 	unsigned long retval;
-diff --git a/arch/sh/include/asm/cmpxchg-irq.h b/arch/sh/include/asm/cmpxchg-irq.h
-index bd11f63..f888772 100644
---- a/arch/sh/include/asm/cmpxchg-irq.h
-+++ b/arch/sh/include/asm/cmpxchg-irq.h
-@@ -14,6 +14,17 @@ static inline unsigned long xchg_u32(volatile u32 *m, unsigned long val)
- 	return retval;
- }
- 
-+static inline unsigned long xchg_u16(volatile u16 *m, unsigned long val)
-+{
-+	unsigned long flags, retval;
-+
-+	local_irq_save(flags);
-+	retval = *m;
-+	*m = val;
-+	local_irq_restore(flags);
-+	return retval;
-+}
-+
- static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
- {
- 	unsigned long flags, retval;
-diff --git a/arch/sh/include/asm/cmpxchg-llsc.h b/arch/sh/include/asm/cmpxchg-llsc.h
-index 4713666..e754794 100644
---- a/arch/sh/include/asm/cmpxchg-llsc.h
-+++ b/arch/sh/include/asm/cmpxchg-llsc.h
-@@ -1,6 +1,9 @@
- #ifndef __ASM_SH_CMPXCHG_LLSC_H
- #define __ASM_SH_CMPXCHG_LLSC_H
- 
-+#include <linux/bitops.h>
-+#include <asm/byteorder.h>
-+
- static inline unsigned long xchg_u32(volatile u32 *m, unsigned long val)
- {
- 	unsigned long retval;
-@@ -22,29 +25,8 @@ static inline unsigned long xchg_u32(volatile u32 *m, unsigned long val)
- 	return retval;
- }
- 
--static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
--{
--	unsigned long retval;
--	unsigned long tmp;
--
--	__asm__ __volatile__ (
--		"1:					\n\t"
--		"movli.l	@%2, %0	! xchg_u8	\n\t"
--		"mov		%0, %1			\n\t"
--		"mov		%3, %0			\n\t"
--		"movco.l	%0, @%2			\n\t"
--		"bf		1b			\n\t"
--		"synco					\n\t"
--		: "=&z"(tmp), "=&r" (retval)
--		: "r" (m), "r" (val & 0xff)
--		: "t", "memory"
--	);
--
--	return retval;
--}
--
- static inline unsigned long
--__cmpxchg_u32(volatile int *m, unsigned long old, unsigned long new)
-+__cmpxchg_u32(volatile u32 *m, unsigned long old, unsigned long new)
- {
- 	unsigned long retval;
- 	unsigned long tmp;
-@@ -68,4 +50,36 @@ __cmpxchg_u32(volatile int *m, unsigned long old, unsigned long new)
- 	return retval;
- }
- 
-+static inline u32 __xchg_cmpxchg(volatile void *ptr, u32 x, int size)
-+{
-+	int off = (unsigned long)ptr % sizeof(u32);
-+	volatile u32 *p = ptr - off;
-+#ifdef __BIG_ENDIAN
-+	int bitoff = (sizeof(u32) - 1 - off) * BITS_PER_BYTE;
-+#else
-+	int bitoff = off * BITS_PER_BYTE;
-+#endif
-+	u32 bitmask = ((0x1 << size * BITS_PER_BYTE) - 1) << bitoff;
-+	u32 oldv, newv;
-+	u32 ret;
-+
-+	do {
-+		oldv = READ_ONCE(*p);
-+		ret = (oldv & bitmask) >> bitoff;
-+		newv = (oldv & ~bitmask) | (x << bitoff);
-+	} while (__cmpxchg_u32(p, oldv, newv) != oldv);
-+
++	ret = (void *)__get_free_pages(gfp, get_order(size));
++	if (ret)
++		*dma_handle = virt_to_phys(ret);
 +	return ret;
 +}
 +
-+static inline unsigned long xchg_u16(volatile u16 *m, unsigned long val)
++static void dma_noop_free(struct device *dev, size_t size,
++			  void *cpu_addr, dma_addr_t dma_addr,
++			  struct dma_attrs *attrs)
 +{
-+	return __xchg_cmpxchg(m, val, sizeof *m);
++	free_pages((unsigned long)cpu_addr, get_order(size));
 +}
 +
-+static inline unsigned long xchg_u8(volatile u8 *m, unsigned long val)
++static dma_addr_t dma_noop_map_page(struct device *dev, struct page *page,
++				      unsigned long offset, size_t size,
++				      enum dma_data_direction dir,
++				      struct dma_attrs *attrs)
 +{
-+	return __xchg_cmpxchg(m, val, sizeof *m);
++	return page_to_phys(page) + offset;
 +}
 +
- #endif /* __ASM_SH_CMPXCHG_LLSC_H */
-diff --git a/arch/sh/include/asm/cmpxchg.h b/arch/sh/include/asm/cmpxchg.h
-index 85c97b18..5225916 100644
---- a/arch/sh/include/asm/cmpxchg.h
-+++ b/arch/sh/include/asm/cmpxchg.h
-@@ -27,6 +27,9 @@ extern void __xchg_called_with_bad_pointer(void);
- 	case 4:						\
- 		__xchg__res = xchg_u32(__xchg_ptr, x);	\
- 		break;					\
-+	case 2:						\
-+		__xchg__res = xchg_u16(__xchg_ptr, x);	\
-+		break;					\
- 	case 1:						\
- 		__xchg__res = xchg_u8(__xchg_ptr, x);	\
- 		break;					\
++static int dma_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
++			     enum dma_data_direction dir, struct dma_attrs *attrs)
++{
++	int i;
++	struct scatterlist *sg;
++
++	for_each_sg(sgl, sg, nents, i) {
++		void *va;
++
++		BUG_ON(!sg_page(sg));
++		va = sg_virt(sg);
++		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va);
++		sg_dma_len(sg) = sg->length;
++	}
++
++	return nents;
++}
++
++static int dma_noop_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return 0;
++}
++
++static int dma_noop_supported(struct device *dev, u64 mask)
++{
++	return 1;
++}
++
++struct dma_map_ops dma_noop_ops = {
++	.alloc			= dma_noop_alloc,
++	.free			= dma_noop_free,
++	.map_page		= dma_noop_map_page,
++	.map_sg			= dma_noop_map_sg,
++	.mapping_error		= dma_noop_mapping_error,
++	.dma_supported		= dma_noop_supported,
++};
++
++EXPORT_SYMBOL(dma_noop_ops);
 -- 
-MST
+2.5.0
 
