@@ -1,334 +1,419 @@
-From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sun, 14 Feb 2016 19:06:53 +0000
-Subject: Today's kernel on sun4u
-Message-Id: <1455476813.2158.27.camel@xs4all.nl>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="=-E+eYG4Z6FVBUdArq9bpY"
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 01 Feb 2016 18:00:55 +0000
+Subject: [PATCH v6 5/9] virtio_ring: Support DMA APIs
+Message-Id: <7eb1a0b0144ea9e5f0a21b958dae21f4d7439823.1454349471.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
-
-
---=-E+eYG4Z6FVBUdArq9bpY
-Content-Type: text/plain; charset="UTF-8"
+References: <cover.1454349471.git.luto@kernel.org>
+In-Reply-To: <cover.1454349471.git.luto@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
 
-Today I build Linus 4.5 kernel git, to get my Sun Fire Blade 1000
-booted with the Debian Sparc64 port. If i am well, that's the same
-board used with the Sun Fire Blade 2000 and Sun Fire 280r. It looks
-like there a bug in the past 4.x kernel versions qla2xxx driver.
+virtio_ring currently sends the device (usually a hypervisor)
+physical addresses of its I/O buffers.  This is okay when DMA
+addresses and physical addresses are the same thing, but this isn't
+always the case.  For example, this never works on Xen guests, and
+it is likely to fail if a physical "virtio" device ever ends up
+behind an IOMMU or swiotlb.
 
-ERROR(1): Cheetah error trap taken afsr[0000080000000000]
-afar[000007fd00100040] TL1(0)
+The immediate use case for me is to enable virtio on Xen guests.
+For that to work, we need vring to support DMA address translation
+as well as a corresponding change to virtio_pci or to another
+driver.
 
-Good to know, i installed the system last December with a 4.3 & 4.4
-kernel. At that time I posted a bug report about the error.
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ drivers/virtio/Kconfig           |   2 +-
+ drivers/virtio/virtio_ring.c     | 200 ++++++++++++++++++++++++++++++++-------
+ tools/virtio/linux/dma-mapping.h |  17 ++++
+ 3 files changed, 183 insertions(+), 36 deletions(-)
+ create mode 100644 tools/virtio/linux/dma-mapping.h
 
-https://bugzilla.kernel.org/show_bug.cgi?id=110081
-
-Today i build and install the 4.5 kernel and started debug again. The
-same partition boots with 3.2 kernel as you might expect. Wanne find
-out what goes wrong. Any idea what i can do for solving the issue?
-
-Attaching dmesg-sprac64-4.5.txt and lsmod-sparc64-4.5.txt.
-
-
-Frans van Berckel
-
-
---=-E+eYG4Z6FVBUdArq9bpY
-Content-Disposition: attachment; filename="dmesg-sparc64-4.5.txt"
-Content-Type: text/plain; name="dmesg-sparc64-4.5.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-WyAgICAwLjAwMDAwMF0gUFJPTUxJQjogU3VuIElFRUUgQm9vdCBQcm9tICdPQlAgNC4xNi40IDIw
-MDQvMTIvMTggMDU6MTgnClsgICAgMC4wMDAwMDBdIFBST01MSUI6IFJvb3Qgbm9kZSBjb21wYXRp
-YmxlOiAKWyAgICAwLjAwMDAwMF0gTGludXggdmVyc2lvbiA0LjUuMC1yYzMtZ2l0IChyb290QGRl
-YmxueHNydjIzMCkgKGdjYyB2ZXJzaW9uIDYuMC4wIDIwMTYwMTIyIChleHBlcmltZW50YWwpIFt0
-cnVuayByZXZpc2lvbiAyMzI3MjldIChEZWJpYW4gNi0yMDE2MDEyMi0xKSApICMyIFNNUCBTdW4g
-RmViIDE0IDE4OjE3OjMxIENFVCAyMDE2ClsgICAgMC4wMDAwMDBdIGJvb3Rjb25zb2xlIFtlYXJs
-eXByb20wXSBlbmFibGVkClsgICAgMC4wMDAwMDBdIEFSQ0g6IFNVTjRVClsgICAgMC4wMDAwMDBd
-IEV0aGVybmV0IGFkZHJlc3M6IDAwOjAzOmJhOjA5OjkyOjM5ClsgICAgMC4wMDAwMDBdIE1NOiBQ
-QUdFX09GRlNFVCBpcyAweGZmZjAwMDAwMDAwMDAwMDAgKG1heF9waHlzX2JpdHMgPT0gNDIpClsg
-ICAgMC4wMDAwMDBdIE1NOiBWTUFMTE9DIFsweDAwMDAwMDAxMDAwMDAwMDAgLS0+IDB4MDAwYzAw
-MDAwMDAwMDAwMF0KWyAgICAwLjAwMDAwMF0gTU06IFZNRU1NQVAgWzB4MDAwYzAwMDAwMDAwMDAw
-MCAtLT4gMHgwMDE4MDAwMDAwMDAwMDAwXQpbICAgIDAuMDAwMDAwXSBLZXJuZWw6IFVzaW5nIDMg
-bG9ja2VkIFRMQiBlbnRyaWVzIGZvciBtYWluIGtlcm5lbCBpbWFnZS4KWyAgICAwLjAwMDAwMF0g
-UmVtYXBwaW5nIHRoZSBrZXJuZWwuLi4gZG9uZS4KWyAgICAwLjAwMDAwMF0gT0Ygc3Rkb3V0IGRl
-dmljZSBpczogL3VwYUA4LDQ4MDAwMC9TVU5XLGZmYkAwLDAKWyAgICAwLjAwMDAwMF0gUFJPTTog
-QnVpbHQgZGV2aWNlIHRyZWUgd2l0aCAxMTE5ODQgYnl0ZXMgb2YgbWVtb3J5LgpbICAgIDAuMDAw
-MDAwXSBUb3Agb2YgUkFNOiAweDdmZGRhMDAwLCBUb3RhbCBSQU06IDB4N2ZkYzgwMDAKWyAgICAw
-LjAwMDAwMF0gTWVtb3J5IGhvbGUgc2l6ZTogME1CClsgICAgMC4wMDAwMDBdIEFsbG9jYXRlZCAx
-NjM4NCBieXRlcyBmb3Iga2VybmVsIHBhZ2UgdGFibGVzLgpbICAgIDAuMDAwMDAwXSBab25lIHJh
-bmdlczoKWyAgICAwLjAwMDAwMF0gICBOb3JtYWwgICBbbWVtIDB4MDAwMDAwMDAwMDAwMDAwMC0w
-eDAwMDAwMDAwN2ZkZDlmZmZdClsgICAgMC4wMDAwMDBdIE1vdmFibGUgem9uZSBzdGFydCBmb3Ig
-ZWFjaCBub2RlClsgICAgMC4wMDAwMDBdIEVhcmx5IG1lbW9yeSBub2RlIHJhbmdlcwpbICAgIDAu
-MDAwMDAwXSAgIG5vZGUgICAwOiBbbWVtIDB4MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDAwN2Vm
-ZmRmZmZdClsgICAgMC4wMDAwMDBdICAgbm9kZSAgIDA6IFttZW0gMHgwMDAwMDAwMDdmMDAwMDAw
-LTB4MDAwMDAwMDA3ZmRhYmZmZl0KWyAgICAwLjAwMDAwMF0gICBub2RlICAgMDogW21lbSAweDAw
-MDAwMDAwN2ZkYmMwMDAtMHgwMDAwMDAwMDdmZGQ5ZmZmXQpbICAgIDAuMDAwMDAwXSBJbml0bWVt
-IHNldHVwIG5vZGUgMCBbbWVtIDB4MDAwMDAwMDAwMDAwMDAwMC0weDAwMDAwMDAwN2ZkZDlmZmZd
-ClsgICAgMC4wMDAwMDBdIE9uIG5vZGUgMCB0b3RhbHBhZ2VzOiAyNjE4NjAKWyAgICAwLjAwMDAw
-MF0gICBOb3JtYWwgem9uZTogMjMwMiBwYWdlcyB1c2VkIGZvciBtZW1tYXAKWyAgICAwLjAwMDAw
-MF0gICBOb3JtYWwgem9uZTogMCBwYWdlcyByZXNlcnZlZApbICAgIDAuMDAwMDAwXSAgIE5vcm1h
-bCB6b25lOiAyNjE4NjAgcGFnZXMsIExJRk8gYmF0Y2g6MTUKWyAgICAwLjAwMDAwMF0gQm9vdGlu
-ZyBMaW51eC4uLgpbICAgIDAuMDAwMDAwXSBDUFUgQ0FQUzogW2ZsdXNoLHN0YmFyLHN3YXAsbXVs
-ZGl2LHY5LHVsdHJhMyxtdWwzMixkaXYzMl0KWyAgICAwLjAwMDAwMF0gQ1BVIENBUFM6IFt2OHBs
-dXMsdmlzLHZpczJdClsgICAgMC4wMDAwMDBdIFBFUkNQVTogRW1iZWRkZWQgOCBwYWdlcy9jcHUg
-QGZmZjAwMDAwN2Y4MDAwMDAgczI4Mzc2IHI4MTkyIGQyODk2OCB1MjA5NzE1MgpbICAgIDAuMDAw
-MDAwXSBwY3B1LWFsbG9jOiBzMjgzNzYgcjgxOTIgZDI4OTY4IHUyMDk3MTUyIGFsbG9jPTEqNDE5
-NDMwNApbICAgIDAuMDAwMDAwXSBwY3B1LWFsbG9jOiBbMF0gMCAxIApbICAgIDAuMDAwMDAwXSBC
-dWlsdCAxIHpvbmVsaXN0cyBpbiBab25lIG9yZGVyLCBtb2JpbGl0eSBncm91cGluZyBvbi4gIFRv
-dGFsIHBhZ2VzOiAyNTk1NTgKWyAgICAwLjAwMDAwMF0gS2VybmVsIGNvbW1hbmQgbGluZTogcm9v
-dD0vZGV2L3NkYTUgcm8KWyAgICAwLjAwMDAwMF0gUElEIGhhc2ggdGFibGUgZW50cmllczogNDA5
-NiAob3JkZXI6IDIsIDMyNzY4IGJ5dGVzKQpbICAgIDAuMDAwMDAwXSBEZW50cnkgY2FjaGUgaGFz
-aCB0YWJsZSBlbnRyaWVzOiAyNjIxNDQgKG9yZGVyOiA4LCAyMDk3MTUyIGJ5dGVzKQpbICAgIDAu
-MDAwMDAwXSBJbm9kZS1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6IDEzMTA3MiAob3JkZXI6IDcs
-IDEwNDg1NzYgYnl0ZXMpClsgICAgMC4wMDAwMDBdIFNvcnRpbmcgX19leF90YWJsZS4uLgpbICAg
-IDAuMDAwMDAwXSBNZW1vcnk6IDIwMzk3MTJLLzIwOTQ4ODBLIGF2YWlsYWJsZSAoNTQ5MUsga2Vy
-bmVsIGNvZGUsIDczMUsgcndkYXRhLCAxNDU2SyByb2RhdGEsIDQ0OEsgaW5pdCwgNzQ1SyBic3Ms
-IDU1MTY4SyByZXNlcnZlZCwgMEsgY21hLXJlc2VydmVkKQpbICAgIDAuMDAwMDAwXSBIaWVyYXJj
-aGljYWwgUkNVIGltcGxlbWVudGF0aW9uLgpbICAgIDAuMDAwMDAwXSAJQnVpbGQtdGltZSBhZGp1
-c3RtZW50IG9mIGxlYWYgZmFub3V0IHRvIDY0LgpbICAgIDAuMDAwMDAwXSAJUkNVIHJlc3RyaWN0
-aW5nIENQVXMgZnJvbSBOUl9DUFVTPTI1NiB0byBucl9jcHVfaWRzPTIuClsgICAgMC4wMDAwMDBd
-IFJDVTogQWRqdXN0aW5nIGdlb21ldHJ5IGZvciByY3VfZmFub3V0X2xlYWY9NjQsIG5yX2NwdV9p
-ZHM9MgpbICAgIDAuMDAwMDAwXSBOUl9JUlFTOjIwNDggbnJfaXJxczoyMDQ4IDEKWyAgIDU4LjQ2
-MDc0OF0gY2xvY2tzb3VyY2U6IHN0aWNrOiBtYXNrOiAweGZmZmZmZmZmZmZmZmZmZmYgbWF4X2N5
-Y2xlczogMHgxMjczNTBiODgsIG1heF9pZGxlX25zOiA0NDA3OTUyMDIxMjAgbnMKWyAgIDU4LjQ5
-NDU5MF0gY2xvY2tzb3VyY2U6IG11bHRbYzgwMDAwMDBdIHNoaWZ0WzI0XQpbICAgNTguNTExMDQ1
-XSBjbG9ja2V2ZW50OiBtdWx0WzE0N2FlMTRdIHNoaWZ0WzMyXQpbICAgNTguNTI3NzYxXSBDb25z
-b2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDI1ClsgICA1OC41NDM4NzddIGNvbnNvbGUgW3R0
-eTBdIGVuYWJsZWQKWyAgIDU4LjU1NzcxNl0gYm9vdGNvbnNvbGUgW2Vhcmx5cHJvbTBdIGRpc2Fi
-bGVkClsgICA1OC42NTM3MDRdIENhbGlicmF0aW5nIGRlbGF5IHVzaW5nIHRpbWVyIHNwZWNpZmlj
-IHJvdXRpbmUuLiAxMC4wMSBCb2dvTUlQUyAobHBqPTIwMDM2KQpbICAgNTguNjUzNzMzXSBwaWRf
-bWF4OiBkZWZhdWx0OiAzMjc2OCBtaW5pbXVtOiAzMDEKWyAgIDU4LjY1NDAyMl0gU2VjdXJpdHkg
-RnJhbWV3b3JrIGluaXRpYWxpemVkClsgICA1OC42NTQwNDJdIFlhbWE6IGJlY29taW5nIG1pbmRm
-dWwuClsgICA1OC42NTQwODNdIEFwcEFybW9yOiBBcHBBcm1vciBkaXNhYmxlZCBieSBib290IHRp
-bWUgcGFyYW1ldGVyClsgICA1OC42NTQxODddIE1vdW50LWNhY2hlIGhhc2ggdGFibGUgZW50cmll
-czogNDA5NiAob3JkZXI6IDIsIDMyNzY4IGJ5dGVzKQpbICAgNTguNjU0MjA5XSBNb3VudHBvaW50
-LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogNDA5NiAob3JkZXI6IDIsIDMyNzY4IGJ5dGVzKQpb
-ICAgNTguNjU2MDA2XSBmdHJhY2U6IGFsbG9jYXRpbmcgMTgyOTAgZW50cmllcyBpbiAzNiBwYWdl
-cwpbICAgNTguNjk1ODI3XSBDUFUgMTogc3luY2hyb25pemVkIFRJQ0sgd2l0aCBtYXN0ZXIgQ1BV
-IChsYXN0IGRpZmYgMCBjeWNsZXMsIG1heGVyciA1IGN5Y2xlcykKWyAgIDU4LjY5NTkxNV0gQnJv
-dWdodCB1cCAyIENQVXMKWyAgIDU4LjY5Njk2NV0gZGV2dG1wZnM6IGluaXRpYWxpemVkClsgICA1
-OC43MDIyOTFdIFBlcmZvcm1hbmNlIGV2ZW50czogClsgICA1OC43MDIzMjBdIFRlc3RpbmcgTk1J
-IHdhdGNoZG9nIC4uLiBPSy4KWyAgIDU4Ljc4MjM1MF0gU3VwcG9ydGVkIFBNVSB0eXBlIGlzICd1
-bHRyYTMnClsgICA1OC44MDQ0MjhdIGNsb2Nrc291cmNlOiBqaWZmaWVzOiBtYXNrOiAweGZmZmZm
-ZmZmIG1heF9jeWNsZXM6IDB4ZmZmZmZmZmYsIG1heF9pZGxlX25zOiA3NjQ1MDQxNzg1MTAwMDAw
-IG5zClsgICA1OC44MDU0NzRdIE5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMTYKWyAg
-IDU4LjgxODQwNF0gL3BjaUA4LDcwMDAwMDogU0NISVpPIFBDSSBCdXMgTW9kdWxlIHZlcls0OjBd
-ClsgICA1OC44MTg0MzBdIC9wY2lAOCw3MDAwMDA6IFBDSSBJT1s3ZmZlZjAwMDAwMF0gTUVNWzdm
-ZTAwMDAwMDAwXSBNRU02NFs3ZmUwMDAwMDAwMF0KWyAgIDU4LjgyMjg3M10gUENJOiBTY2Fubmlu
-ZyBQQk0gL3BjaUA4LDcwMDAwMApbICAgNTguODIzMTcxXSBzY2hpem8gZjAwNjE2ODA6IFBDSSBo
-b3N0IGJyaWRnZSB0byBidXMgMDAwMDowMApbICAgNTguODIzMjE1XSBwY2lfYnVzIDAwMDA6MDA6
-IHJvb3QgYnVzIHJlc291cmNlIFtpbyAgMHg3ZmZlZjAwMDAwMC0weDdmZmVmZmZmZmZmXSAoYnVz
-IGFkZHJlc3MgWzB4MDAwMC0weGZmZmZmZl0pClsgICA1OC44MjMyNjhdIHBjaV9idXMgMDAwMDow
-MDogcm9vdCBidXMgcmVzb3VyY2UgW21lbSAweDdmZTAwMDAwMDAwLTB4N2ZlZmZmZmZmZmZdIChi
-dXMgYWRkcmVzcyBbMHgwMDAwMDAwMC0weGZmZmZmZmZmXSkKWyAgIDU4LjgyMzMyMF0gcGNpX2J1
-cyAwMDAwOjAwOiByb290IGJ1cyByZXNvdXJjZSBbbWVtIDB4N2ZlMDAwMDAwMDAtMHg3ZmVmZmZm
-ZmZmZl0gKGJ1cyBhZGRyZXNzIFsweDAwMDAwMDAwLTB4ZmZmZmZmZmZdKQpbICAgNTguODIzMzcy
-XSBwY2lfYnVzIDAwMDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFtidXMgMDBdClsgICA1OC44MjUx
-MDZdIHBjaSAwMDAwOjAwOjA2LjA6IHN1cHBvcnRzIEQxIEQyClsgICA1OC44MjU0MjhdIHBjaSAw
-MDAwOjAwOjA2LjE6IHN1cHBvcnRzIEQxIEQyClsgICA1OC44MjYxMjZdIC9wY2lAOCw2MDAwMDA6
-IFNDSElaTyBQQ0kgQnVzIE1vZHVsZSB2ZXJbNDowXQpbICAgNTguODI2MTY1XSAvcGNpQDgsNjAw
-MDAwOiBQQ0kgSU9bN2ZmZWQwMDAwMDBdIE1FTVs3ZmQwMDAwMDAwMF0gTUVNNjRbN2ZkMDAwMDAw
-MDBdClsgICA1OC44MzA2NTJdIFBDSTogU2Nhbm5pbmcgUEJNIC9wY2lAOCw2MDAwMDAKWyAgIDU4
-LjgzMDkzOF0gc2NoaXpvIGYwMDZhMjE0OiBQQ0kgaG9zdCBicmlkZ2UgdG8gYnVzIDAwMDE6MDAK
-WyAgIDU4LjgzMDk3Nl0gcGNpX2J1cyAwMDAxOjAwOiByb290IGJ1cyByZXNvdXJjZSBbaW8gIDB4
-N2ZmZWQwMDAwMDAtMHg3ZmZlZGZmZmZmZl0gKGJ1cyBhZGRyZXNzIFsweDAwMDAtMHhmZmZmZmZd
-KQpbICAgNTguODMxMDI4XSBwY2lfYnVzIDAwMDE6MDA6IHJvb3QgYnVzIHJlc291cmNlIFttZW0g
-MHg3ZmQwMDAwMDAwMC0weDdmZGZmZmZmZmZmXSAoYnVzIGFkZHJlc3MgWzB4MDAwMDAwMDAtMHhm
-ZmZmZmZmZl0pClsgICA1OC44MzEwNzldIHBjaV9idXMgMDAwMTowMDogcm9vdCBidXMgcmVzb3Vy
-Y2UgW21lbSAweDdmZDAwMDAwMDAwLTB4N2ZkZmZmZmZmZmZdIChidXMgYWRkcmVzcyBbMHgwMDAw
-MDAwMC0weGZmZmZmZmZmXSkKWyAgIDU4LjgzMTEyOV0gcGNpX2J1cyAwMDAxOjAwOiByb290IGJ1
-cyByZXNvdXJjZSBbYnVzIDAwXQpbICAgNTguODQ0ODM3XSBIdWdlVExCIHJlZ2lzdGVyZWQgOCBN
-QiBwYWdlIHNpemUsIHByZS1hbGxvY2F0ZWQgMCBwYWdlcwpbICAgNTguODQ2NjIzXSB2Z2FhcmI6
-IGxvYWRlZApbICAgNTguODQ4MTM4XSAvcGNpQDgsNzAwMDAwL2VidXNANS9ydGNAMSwzMDAwNzA6
-IFJUQyByZWdzIGF0IDB4N2ZlN2UzMDAwNzAKWyAgIDU4Ljg0OTMxMF0gY2xvY2tzb3VyY2U6IFN3
-aXRjaGVkIHRvIGNsb2Nrc291cmNlIHN0aWNrClsgICA1OC44OTg2MjVdIFZGUzogRGlzayBxdW90
-YXMgZHF1b3RfNi42LjAKWyAgIDU4Ljg5ODc3OF0gVkZTOiBEcXVvdC1jYWNoZSBoYXNoIHRhYmxl
-IGVudHJpZXM6IDEwMjQgKG9yZGVyIDAsIDgxOTIgYnl0ZXMpClsgICA1OC45MTM0NjBdIE5FVDog
-UmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMgpbICAgNTguOTE0NDI5XSBUQ1AgZXN0YWJsaXNo
-ZWQgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3JkZXI6IDQsIDEzMTA3MiBieXRlcykKWyAg
-IDU4LjkxNDkyNF0gVENQIGJpbmQgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3JkZXI6IDUs
-IDI2MjE0NCBieXRlcykKWyAgIDU4LjkxNTgwNV0gVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVk
-IChlc3RhYmxpc2hlZCAxNjM4NCBiaW5kIDE2Mzg0KQpbICAgNTguOTE2MzA1XSBVRFAgaGFzaCB0
-YWJsZSBlbnRyaWVzOiAxMDI0IChvcmRlcjogMiwgMzI3NjggYnl0ZXMpClsgICA1OC45MTY0NDVd
-IFVEUC1MaXRlIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3JkZXI6IDIsIDMyNzY4IGJ5dGVz
-KQpbICAgNTguOTE2OTY2XSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDEKWyAgIDU4
-Ljk2OTM5MF0gUENJOiBDTFMgNjQgYnl0ZXMsIGRlZmF1bHQgNjQKWyAgIDU4Ljk2OTcxM10gVW5w
-YWNraW5nIGluaXRyYW1mcy4uLgpbICAgNjAuMzE2NjY5XSBGcmVlaW5nIGluaXRyZCBtZW1vcnk6
-IDE4MDI0SyAoZmZmMDAwMDAwNDQwMDAwMCAtIGZmZjAwMDAwMDU1OWEwMDApClsgICA2MC4zMTc3
-MzJdIGNobWM6IFVsdHJhU1BBUkMtSUlJIG1lbW9yeSBjb250cm9sbGVyIGF0IC9tZW1vcnktY29u
-dHJvbGxlckAwLDQwMDAwMCBbQUNUSVZFXQpbICAgNjAuMzE3ODU2XSBjaG1jOiBVbHRyYVNQQVJD
-LUlJSSBtZW1vcnkgY29udHJvbGxlciBhdCAvbWVtb3J5LWNvbnRyb2xsZXJAMSw0MDAwMDAgW0FD
-VElWRV0KWyAgIDYwLjMxOTMwM10gZnV0ZXggaGFzaCB0YWJsZSBlbnRyaWVzOiA1MTIgKG9yZGVy
-OiAyLCAzMjc2OCBieXRlcykKWyAgIDYwLjMxOTUzOV0gYXVkaXQ6IGluaXRpYWxpemluZyBuZXRs
-aW5rIHN1YnN5cyAoZGlzYWJsZWQpClsgICA2MC4zMTk3MjRdIGF1ZGl0OiB0eXBlPTIwMDAgYXVk
-aXQoMS43NDg6MSk6IGluaXRpYWxpemVkClsgICA2MC4zMjEwOTFdIHpidWQ6IGxvYWRlZApbICAg
-NjAuMzI0NTMwXSBCbG9jayBsYXllciBTQ1NJIGdlbmVyaWMgKGJzZykgZHJpdmVyIHZlcnNpb24g
-MC40IGxvYWRlZCAobWFqb3IgMjUyKQpbICAgNjAuMzI0NzUyXSBpbyBzY2hlZHVsZXIgbm9vcCBy
-ZWdpc3RlcmVkClsgICA2MC4zMjQ3ODhdIGlvIHNjaGVkdWxlciBkZWFkbGluZSByZWdpc3RlcmVk
-ClsgICA2MC4zMjQ4ODFdIGlvIHNjaGVkdWxlciBjZnEgcmVnaXN0ZXJlZCAoZGVmYXVsdCkKWyAg
-IDYwLjMyNTg3OV0gZmJjb246IENyZWF0b3IgM0QgKGZiMCkgaXMgcHJpbWFyeSBkZXZpY2UKWyAg
-IDYwLjMzNDE0NF0gQ29uc29sZTogc3dpdGNoaW5nIHRvIGNvbG91ciBmcmFtZSBidWZmZXIgZGV2
-aWNlIDE2MHg2NApbICAgNjAuMzQyMTAzXSAvdXBhQDgsNDgwMDAwL1NVTlcsZmZiQDAsMDogRkZC
-IGF0IDAwMDAwN2Y4MDAwMDAwMDAsIHR5cGUgNTEsIERBQyBwbnVtWzIzNmVdIHJldlsxMF0gbWFu
-dWZfcmV2WzFdClsgICA2MC4zNDM2OTRdIGYwMDgzZWEwOiB0dHlTMCBhdCBNTUlPIDB4N2ZlN2U0
-MDAwMDAgKGlycSA9IDEyLCBiYXNlX2JhdWQgPSAxMTUyMDApIGlzIGEgU0FCODI1MzIgVjMuMgpb
-ICAgNjAuMzQ0MTE1XSBmMDA4M2VhMDogdHR5UzEgYXQgTU1JTyAweDdmZTdlNDAwMDQwIChpcnEg
-PSAxMiwgYmFzZV9iYXVkID0gMTE1MjAwKSBpcyBhIFNBQjgyNTMyIFYzLjIKWyAgIDYwLjM0NTU4
-N10gbW91c2VkZXY6IFBTLzIgbW91c2UgZGV2aWNlIGNvbW1vbiBmb3IgYWxsIG1pY2UKWyAgIDYw
-LjM0NzEwMV0gcnRjX2Ntb3MgcnRjX2Ntb3M6IHJ0YyBjb3JlOiByZWdpc3RlcmVkIHJ0Y19jbW9z
-IGFzIHJ0YzAKWyAgIDYwLjM0NzE5Ml0gcnRjX2Ntb3MgcnRjX2Ntb3M6IG5vIGFsYXJtcywgMTE0
-IGJ5dGVzIG52cmFtClsgICA2MC4zNDc2NjhdIGxlZHRyaWctY3B1OiByZWdpc3RlcmVkIHRvIGlu
-ZGljYXRlIGFjdGl2aXR5IG9uIENQVXMKWyAgIDYwLjM0ODI5MV0gTkVUOiBSZWdpc3RlcmVkIHBy
-b3RvY29sIGZhbWlseSAxMApbICAgNjAuMzQ5ODY2XSBtaXA2OiBNb2JpbGUgSVB2NgpbICAgNjAu
-MzQ5OTIyXSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE3ClsgICA2MC4zNTAwMDRd
-IG1wbHNfZ3NvOiBNUExTIEdTTyBzdXBwb3J0ClsgICA2MC4zNTEwMTNdIHJlZ2lzdGVyZWQgdGFz
-a3N0YXRzIHZlcnNpb24gMQpbICAgNjAuMzUxMjAyXSB6c3dhcDogbG9hZGVkIHVzaW5nIHBvb2wg
-bHpvL3pidWQKWyAgIDYwLjM1MTk2OF0gcnRjX2Ntb3MgcnRjX2Ntb3M6IHNldHRpbmcgc3lzdGVt
-IGNsb2NrIHRvIDIwMTYtMDItMTQgMTg6MDY6MDIgVVRDICgxNDU1NDczMTYyKQpbICAgNjAuMzUy
-MDk1XSBQTTogSGliZXJuYXRpb24gaW1hZ2Ugbm90IHByZXNlbnQgb3IgY291bGQgbm90IGJlIGxv
-YWRlZC4KWyAgIDYwLjQyOTUyM10gcmFuZG9tOiBzeXN0ZW1kLXVkZXZkIHVyYW5kb20gcmVhZCB3
-aXRoIDAgYml0cyBvZiBlbnRyb3B5IGF2YWlsYWJsZQpbICAgNjAuNjU3ODEyXSBzdW5nZW0uYzp2
-MS4wIERhdmlkIFMuIE1pbGxlciA8ZGF2ZW1AcmVkaGF0LmNvbT4KWyAgIDYwLjY1ODk1MF0gZ2Vt
-IDAwMDA6MDA6MDUuMSBldGgwOiBTdW4gR0VNIChQQ0kpIDEwLzEwMC8xMDAwQmFzZVQgRXRoZXJu
-ZXQgMDA6MDM6YmE6MDk6OTI6MzkKWyAgIDYwLjY4MzQ4OF0gU0NTSSBzdWJzeXN0ZW0gaW5pdGlh
-bGl6ZWQKWyAgIDYwLjY5NjIyNV0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRy
-aXZlciB1c2JmcwpbICAgNjAuNjk2Mzc5XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZh
-Y2UgZHJpdmVyIGh1YgpbICAgNjAuNjk5MDYyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBkZXZp
-Y2UgZHJpdmVyIHVzYgpbICAgNjAuNzA5ODg0XSBlaGNpX2hjZDogVVNCIDIuMCAnRW5oYW5jZWQn
-IEhvc3QgQ29udHJvbGxlciAoRUhDSSkgRHJpdmVyClsgICA2MC43MTE5MTNdIG9oY2lfaGNkOiBV
-U0IgMS4xICdPcGVuJyBIb3N0IENvbnRyb2xsZXIgKE9IQ0kpIERyaXZlcgpbICAgNjAuNzEzMjQw
-XSBlaGNpLXBjaTogRUhDSSBQQ0kgcGxhdGZvcm0gZHJpdmVyClsgICA2MC43MTgzNTZdIG9oY2kt
-cGNpOiBPSENJIFBDSSBwbGF0Zm9ybSBkcml2ZXIKWyAgIDYwLjc0MTQ2M10gZmlyZXdpcmVfb2hj
-aSAwMDAwOjAwOjA1LjI6IGFkZGVkIE9IQ0kgdjEuMCBkZXZpY2UgYXMgY2FyZCAwLCA0IElSICsg
-NCBJVCBjb250ZXh0cywgcXVpcmtzIDB4MApbICAgNjAuNzQyMTM3XSBQQ0k6IEVuYWJsaW5nIGRl
-dmljZTogKDAwMDA6MDA6MDYuMCksIGNtZCAxNDcKWyAgIDYwLjc0MzMyMV0gc3ltMDogPDg3NT4g
-cmV2IDB4MzcgYXQgcGNpIDAwMDA6MDA6MDYuMCBpcnEgMTYKWyAgIDYwLjc1MDE5Nl0gcWxhMnh4
-eCBbMDAwMDowMDowMC4wXS0wMDA1OiA6IFFMb2dpYyBGaWJyZSBDaGFubmVsIEhCQSBEcml2ZXI6
-IDguMDcuMDAuMjYtay4KWyAgIDYwLjc1MDM4OF0gUENJOiBFbmFibGluZyBkZXZpY2U6ICgwMDAx
-OjAwOjA0LjApLCBjbWQgMwpbICAgNjAuNzUwNDY5XSBxbGEyeHh4IFswMDAxOjAwOjA0LjBdLTAw
-MWQ6IDogRm91bmQgYW4gSVNQMjIwMCBpcnEgMjAgaW9iYXNlIDB4MDAwMDA3ZmQwMDEwMDAwMC4K
-WyAgIDYwLjc1MjE2N10gcWxhMnh4eCBbMDAwMTowMDowNC4wXS0wMDUwOjE6IE5vIG1hdGNoaW5n
-IFJPTSBzaWduYXR1cmUuClsgICA2MC44MzQ4MzRdIHN5bTA6IE5vIE5WUkFNLCBJRCA3LCBGYXN0
-LTIwLCBTRSwgcGFyaXR5IGNoZWNraW5nClsgICA2MC44NDY2MDVdIHFsYTJ4eHggWzAwMDE6MDA6
-MDQuMF0tMDA2NDoxOiBJbmNvbnNpc3RlbnQgTlZSQU0gZGV0ZWN0ZWQ6IGNoZWNrc3VtPTB4MCBp
-ZD0AIHZlcnNpb249MHgwLgpbICAgNjAuODQ2NzIzXSBxbGEyeHh4IFswMDAxOjAwOjA0LjBdLTAw
-NjU6MTogRmFsbGluZyBiYWNrIHRvIGZ1bmN0aW9uaW5nICh5ZXQgaW52YWxpZCAtLSBXV1BOKSBk
-ZWZhdWx0cy4KWyAgIDYwLjg0NjgzM10gcWxhMnh4eCBbMDAwMTowMDowNC4wXS0wMDY5OjE6IE5W
-UkFNIGNvbmZpZ3VyYXRpb24gZmFpbGVkLgpbICAgNjAuODU0MjEyXSBzeW0wOiBTQ1NJIEJVUyBo
-YXMgYmVlbiByZXNldC4KWyAgIDYwLjg1NDM0MV0gc2NzaSBob3N0MDogc3ltLTIuMi4zClsgICA2
-MC44NjIzMThdIFBDSTogRW5hYmxpbmcgZGV2aWNlOiAoMDAwMDowMDowNi4xKSwgY21kIDE0Nwpb
-ICAgNjAuODYzNjQ0XSBzeW0xOiA8ODc1PiByZXYgMHgzNyBhdCBwY2kgMDAwMDowMDowNi4xIGly
-cSAxNwpbICAgNjAuODk2NjY1XSBnZW0gMDAwMDowMDowNS4xIGVucDBzNWYxOiByZW5hbWVkIGZy
-b20gZXRoMApbICAgNjAuOTU0NjcyXSBzeW0xOiBObyBOVlJBTSwgSUQgNywgRmFzdC0yMCwgU0Us
-IHBhcml0eSBjaGVja2luZwpbICAgNjAuOTY0OTIwXSBzeW0xOiBTQ1NJIEJVUyBoYXMgYmVlbiBy
-ZXNldC4KWyAgIDYwLjk2NzkwNV0gc2NzaSBob3N0Mjogc3ltLTIuMi4zClsgICA2MC45NzE3MTJd
-IG9oY2ktcGNpIDAwMDA6MDA6MDUuMzogT0hDSSBQQ0kgaG9zdCBjb250cm9sbGVyClsgICA2MC45
-NzQ3OTRdIG9oY2ktcGNpIDAwMDA6MDA6MDUuMzogbmV3IFVTQiBidXMgcmVnaXN0ZXJlZCwgYXNz
-aWduZWQgYnVzIG51bWJlciAxClsgICA2MC45Nzc4OTldIG9oY2ktcGNpIDAwMDA6MDA6MDUuMzog
-aXJxIDE1LCBpbyBtZW0gMHg3ZmUwMTAwMDAwMApbICAgNjEuMDM3NTc1XSB1c2IgdXNiMTogTmV3
-IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTFkNmIsIGlkUHJvZHVjdD0wMDAxClsgICA2MS4w
-NDA1MjVdIHVzYiB1c2IxOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0y
-LCBTZXJpYWxOdW1iZXI9MQpbICAgNjEuMDQzNTY0XSB1c2IgdXNiMTogUHJvZHVjdDogT0hDSSBQ
-Q0kgaG9zdCBjb250cm9sbGVyClsgICA2MS4wNDY1NDldIHVzYiB1c2IxOiBNYW51ZmFjdHVyZXI6
-IExpbnV4IDQuNS4wLXJjMy1naXQgb2hjaV9oY2QKWyAgIDYxLjA0OTUyMV0gdXNiIHVzYjE6IFNl
-cmlhbE51bWJlcjogMDAwMDowMDowNS4zClsgICA2MS4wNTMyMDddIGh1YiAxLTA6MS4wOiBVU0Ig
-aHViIGZvdW5kClsgICA2MS4wNTYwOThdIGh1YiAxLTA6MS4wOiA0IHBvcnRzIGRldGVjdGVkClsg
-ICA2MS4yNDE3NjVdIGZpcmV3aXJlX2NvcmUgMDAwMDowMDowNS4yOiBjcmVhdGVkIGRldmljZSBm
-dzA6IEdVSUQgMDAwM2JhZmZmZTA5OTIzOSwgUzQwMApbICAgNjEuNDMzMzMxXSB1c2IgMS0yOiBu
-ZXcgbG93LXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDIgdXNpbmcgb2hjaS1wY2kKWyAgIDYxLjY0
-MDA1OV0gdXNiIDEtMjogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTA0MzAsIGlkUHJv
-ZHVjdD0wMDA1ClsgICA2MS42NDI5NDldIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6
-IE1mcj0wLCBQcm9kdWN0PTAsIFNlcmlhbE51bWJlcj0wClsgICA2MS42NTU1NjZdIGhpZHJhdzog
-cmF3IEhJRCBldmVudHMgZHJpdmVyIChDKSBKaXJpIEtvc2luYQpbICAgNjEuNjY2Nzk0XSB1c2Jj
-b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmhpZApbICAgNjEuNjY5NzMz
-XSB1c2JoaWQ6IFVTQiBISUQgY29yZSBkcml2ZXIKWyAgIDYxLjY3NTgzMl0gaW5wdXQ6IEhJRCAw
-NDMwOjAwMDUgYXMgL2RldmljZXMvcm9vdC9mMDA2MTY4MC9wY2kwMDAwOjAwLzAwMDA6MDA6MDUu
-My91c2IxLzEtMi8xLTI6MS4wLzAwMDM6MDQzMDowMDA1LjAwMDEvaW5wdXQvaW5wdXQwClsgICA2
-MS43MzQzNzhdIGhpZC1nZW5lcmljIDAwMDM6MDQzMDowMDA1LjAwMDE6IGlucHV0LGhpZHJhdzA6
-IFVTQiBISUQgdjEuMDAgS2V5Ym9hcmQgW0hJRCAwNDMwOjAwMDVdIG9uIHVzYi0wMDAwOjAwOjA1
-LjMtMi9pbnB1dDAKWyAgIDcxLjYwNTU1MF0gRVJST1IoMSk6IENoZWV0YWggZXJyb3IgdHJhcCB0
-YWtlbiBhZnNyWzAwMDAwODAwMDAwMDAwMDBdIGFmYXJbMDAwMDA3ZmQwMDEwMDA0MF0gVEwxKDAp
-ClsgICA3MS42MDg2NDldIEVSUk9SKDEpOiBUUENbMTAxOWQzZTBdIFROUENbMTAxOWQzZTRdIE83
-WzEwMTlkM2Q0XSBUU1RBVEVbOTkxMTAwMTYwM10KWyAgIDcxLjYxMTc5M10gRVJST1IoMSk6IFRQ
-QzxxbGEyeDAwX21haWxib3hfY29tbWFuZCsweDhhMC8weGU0MCBbcWxhMnh4eF0+ClsgICA3MS42
-MTUxMDldIEVSUk9SKDEpOiBNX1NZTkQoMCksICBFX1NZTkQoMCkKWyAgIDcxLjYxODIzOF0gRVJS
-T1IoMSk6IEhpZ2hlc3QgcHJpb3JpdHkgZXJyb3IgKDAwMDAwODAwMDAwMDAwMDApICJCdXMgZXJy
-b3IgcmVzcG9uc2UgZnJvbSBzeXN0ZW0gYnVzIgpbICAgNzEuNjIxMzk0XSBFUlJPUigxKTogRC1j
-YWNoZSBpZHhbMF0gdGFnWzAwMDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAwMDAwMDAwMF0g
-c3RhZ1swMDAwMDAwMDAwMDAwMDAwXQpbICAgNzEuNjI0NTYwXSBFUlJPUigxKTogRC1jYWNoZSBk
-YXRhMFswMDAwMDAwMDAwMDAwMDAwXSBkYXRhMVswMDAwMDAwMDAwMDAwMDAwXSBkYXRhMlswMDAw
-MDAwMDAwMDAwMDAwXSBkYXRhM1swMDAwMDAwMDAwMDAwMDAwXQpbICAgNzEuNjI3NzY2XSBFUlJP
-UigxKTogSS1jYWNoZSBpZHhbMF0gdGFnWzAwMDAwMDAwMDAwMDAwMDBdIHV0YWdbMDAwMDAwMDAw
-MDAwMDAwMF0gc3RhZ1swMDAwMDAwMDAwMDAwMDAwXSB1WzAwMDAwMDAwMDAwMDAwMDBdIGxbMDAw
-MDAwMDAwMDAwMDAwMF0KWyAgIDcxLjYzMDk5OF0gRVJST1IoMSk6IEktY2FjaGUgSU5TTjBbMDAw
-MDAwMDAwMDAwMDAwMF0gSU5TTjFbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjJbMDAwMDAwMDAwMDAw
-MDAwMF0gSU5TTjNbMDAwMDAwMDAwMDAwMDAwMF0KWyAgIDcxLjYzNDIyM10gRVJST1IoMSk6IEkt
-Y2FjaGUgSU5TTjRbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjVbMDAwMDAwMDAwMDAwMDAwMF0gSU5T
-TjZbMDAwMDAwMDAwMDAwMDAwMF0gSU5TTjdbMDAwMDAwMDAwMDAwMDAwMF0KWyAgIDcxLjYzNzQz
-Ml0gRVJST1IoMSk6IEUtY2FjaGUgaWR4WzEwMDA0MF0gdGFnWzAwMDAwMDAwMDk0OTI0OTJdClsg
-ICA3MS42NDA2MzFdIEVSUk9SKDEpOiBFLWNhY2hlIGRhdGEwWzg2MTFjMDAzODIxMGMwMDFdIGRh
-dGExW2MyMjZlMDFjYzIwZjYwMTRdIGRhdGEyW2M0MGY2MDE1ODIwODYwZmZdIGRhdGEzWzg0MDhh
-MGZmODMyODcwMDhdClsgICA3MS42NDM5MTddIEtlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBJ
-cnJlY292ZXJhYmxlIGRlZmVycmVkIGVycm9yIHRyYXAuClsgICA3MS42NDM5MTddIApbICAgNzEu
-NjUwNDkxXSBDUFU6IDEgUElEOiA4NCBDb21tOiBzeXN0ZW1kLXVkZXZkIE5vdCB0YWludGVkIDQu
-NS4wLXJjMy1naXQgIzIKWyAgIDcxLjY1Mzc5MF0gQ2FsbCBUcmFjZToKWyAgIDcxLjY1NzA1N10g
-IFswMDAwMDAwMDAwNTU2YTVjXSBwYW5pYysweGRjLzB4MjYwClsgICA3MS42NjAzMzldICBbMDAw
-MDAwMDAwMDQyOWE4Y10gY2hlZXRhaF9kZWZlcnJlZF9oYW5kbGVyKzB4MWVjLzB4NDYwClsgICA3
-MS42NjM2MThdICBbMDAwMDAwMDAwMDQwNWVkMF0gY19kZWZlcnJlZCsweDE4LzB4MjQKWyAgIDcx
-LjY2Njk1NF0gIFswMDAwMDAwMDEwMTlkM2UwXSBxbGEyeDAwX21haWxib3hfY29tbWFuZCsweDhh
-MC8weGU0MCBbcWxhMnh4eF0KWyAgIDcxLjY3MDIxNV0gIFswMDAwMDAwMDEwMTlmOGU0XSBxbGEy
-eDAwX2luaXRfZmlybXdhcmUrMHhlNC8weDFjMCBbcWxhMnh4eF0KWyAgIDcxLjY3MzQ0NV0gIFsw
-MDAwMDAwMDEwMTk1MzcwXSBxbGEyeDAwX2luaXRfcmluZ3MrMHgzMzAvMHgzYTAgW3FsYTJ4eHhd
-ClsgICA3MS42NzY2NjVdICBbMDAwMDAwMDAxMDE5YjllMF0gcWxhMngwMF9pbml0aWFsaXplX2Fk
-YXB0ZXIrMHg0NDAvMHg2YTAgW3FsYTJ4eHhdClsgICA3MS42Nzk5MDldICBbMDAwMDAwMDAxMDE4
-ZTU3NF0gcWxhMngwMF9wcm9iZV9vbmUrMHgxMDM0LzB4Mjg0MCBbcWxhMnh4eF0KWyAgIDcxLjY4
-MzA5Ml0gIFswMDAwMDAwMDAwNzQxMTYwXSBwY2lfZGV2aWNlX3Byb2JlKzB4ODAvMHgxMDAKWyAg
-IDcxLjY4NjMzM10gIFswMDAwMDAwMDAwN2JhZWEwXSBkcml2ZXJfcHJvYmVfZGV2aWNlKzB4MWEw
-LzB4NDYwClsgICA3MS42ODk1NTZdICBbMDAwMDAwMDAwMDdiYjFlOF0gX19kcml2ZXJfYXR0YWNo
-KzB4ODgvMHhhMApbICAgNzEuNjkyNzUwXSAgWzAwMDAwMDAwMDA3Yjg4M2NdIGJ1c19mb3JfZWFj
-aF9kZXYrMHg1Yy8weGEwClsgICA3MS42OTU5NzldICBbMDAwMDAwMDAwMDdiYTU1Y10gZHJpdmVy
-X2F0dGFjaCsweDFjLzB4NDAKWyAgIDcxLjY5OTE1OV0gIFswMDAwMDAwMDAwN2I5ZWIwXSBidXNf
-YWRkX2RyaXZlcisweDEzMC8weDJhMApbICAgNzEuNzAyMzAyXSAgWzAwMDAwMDAwMDA3YmJiZDRd
-IGRyaXZlcl9yZWdpc3RlcisweDc0LzB4MTIwClsgICA3MS43MDU0MDddICBbMDAwMDAwMDAwMDcz
-ZmExOF0gX19wY2lfcmVnaXN0ZXJfZHJpdmVyKzB4MzgvMHg2MApbICAgNzEuNzA4NTE0XSBQcmVz
-cyBTdG9wLUEgKEwxLUEpIHRvIHJldHVybiB0byB0aGUgYm9vdCBwcm9tClsgICA3MS43MTE1OTVd
-IC0tLVsgZW5kIEtlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBJcnJlY292ZXJhYmxlIGRlZmVy
-cmVkIGVycm9yIHRyYXAuClsgICA3MS43MTE1OTVdIApbICA0OTEuMDU2MTA4XSByYW5kb206IG5v
-bmJsb2NraW5nIHBvb2wgaXMgaW5pdGlhbGl6ZWQKWyAgNTU1LjY4MjcyNV0gc3VuZ2VtX3BoeTog
-UEhZIElEOiAxODA3NGMxLCBhZGRyOiAwClsgIDU1NS42ODQ0MzRdIGdlbSAwMDAwOjAwOjA1LjEg
-ZW5wMHM1ZjE6IEZvdW5kIEdlbmVyaWMgTUlJIFBIWQpbICA1NTUuNjg2Njc0XSBJUHY2OiBBRERS
-Q09ORihORVRERVZfVVApOiBlbnAwczVmMTogbGluayBpcyBub3QgcmVhZHkKWyAgNTU4LjA5MzUz
-Ml0gZ2VtIDAwMDA6MDA6MDUuMSBlbnAwczVmMTogTGluayBpcyB1cCBhdCAxMDAgTWJwcywgZnVs
-bC1kdXBsZXgKWyAgNTU4LjA5NTQxN10gZ2VtIDAwMDA6MDA6MDUuMSBlbnAwczVmMTogUGF1c2Ug
-aXMgZGlzYWJsZWQKWyAgNTU4LjA5NzIyMV0gSVB2NjogQUREUkNPTkYoTkVUREVWX0NIQU5HRSk6
-IGVucDBzNWYxOiBsaW5rIGJlY29tZXMgcmVhZHkK
-
-
---=-E+eYG4Z6FVBUdArq9bpY
-Content-Disposition: attachment; filename="lsmod-sparc64-4.5.txt"
-Content-Type: text/plain; name="lsmod-sparc64-4.5.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-TW9kdWxlICAgICAgICAgICAgICAgICAgU2l6ZSAgVXNlZCBieSAgICBOb3QgdGFpbnRlZApoaWRf
-Z2VuZXJpYyAgICAgICAgICAgICAxMzg1ICAwIAp1c2JoaWQgICAgICAgICAgICAgICAgIDQ3Mjk4
-ICAwIApoaWQgICAgICAgICAgICAgICAgICAgMTA3NzM4ICAyIGhpZF9nZW5lcmljLHVzYmhpZApv
-aGNpX3BjaSAgICAgICAgICAgICAgICA0NDg4ICAwIAplaGNpX3BjaSAgICAgICAgICAgICAgICA0
-Njc5ICAwIApxbGEyeHh4ICAgICAgICAgICAgICAgNzA3MjQ2ICAxIApvaGNpX2hjZCAgICAgICAg
-ICAgICAgIDM5Njc0ICAxIG9oY2lfcGNpCmVoY2lfaGNkICAgICAgICAgICAgICAgNjc1MTkgIDEg
-ZWhjaV9wY2kKc3ltNTNjOHh4ICAgICAgICAgICAgICA3NTg5OCAgMCAKc2NzaV90cmFuc3BvcnRf
-ZmMgICAgICA0NzU1NyAgMSBxbGEyeHh4CnNjc2lfdHJhbnNwb3J0X3NwaSAgICAgMjI3MTEgIDEg
-c3ltNTNjOHh4CmZpcmV3aXJlX29oY2kgICAgICAgICAgMzMzNDggIDAgCnVzYmNvcmUgICAgICAg
-ICAgICAgICAyMDA3MDggIDUgdXNiaGlkLG9oY2lfcGNpLGVoY2lfcGNpLG9oY2lfaGNkLGVoY2lf
-aGNkCnNjc2lfbW9kICAgICAgICAgICAgICAyMDM4NzcgIDQgcWxhMnh4eCxzeW01M2M4eHgsc2Nz
-aV90cmFuc3BvcnRfZmMsc2NzaV90cmFuc3BvcnRfc3BpCnVzYl9jb21tb24gICAgICAgICAgICAg
-IDQwNDAgIDEgdXNiY29yZQpmaXJld2lyZV9jb3JlICAgICAgICAgIDUzOTEwICAxIGZpcmV3aXJl
-X29oY2kKY3JjX2l0dV90ICAgICAgICAgICAgICAgMTY1OSAgMSBmaXJld2lyZV9jb3JlCnN1bmdl
-bSAgICAgICAgICAgICAgICAgMjkzMjkgIDAgCnN1bmdlbV9waHkgICAgICAgICAgICAgMTA5MjIg
-IDEgc3VuZ2VtCg==
-
-
---=-E+eYG4Z6FVBUdArq9bpY--
+diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
+index cab9f3f63a38..77590320d44c 100644
+--- a/drivers/virtio/Kconfig
++++ b/drivers/virtio/Kconfig
+@@ -60,7 +60,7 @@ config VIRTIO_INPUT
+ 
+  config VIRTIO_MMIO
+ 	tristate "Platform bus driver for memory mapped virtio devices"
+-	depends on HAS_IOMEM
++	depends on HAS_IOMEM && HAS_DMA
+  	select VIRTIO
+  	---help---
+  	 This drivers provides support for memory mapped virtio
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index b78aeeb3f6be..2f621e96b9ff 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -24,6 +24,7 @@
+ #include <linux/module.h>
+ #include <linux/hrtimer.h>
+ #include <linux/kmemleak.h>
++#include <linux/dma-mapping.h>
+ 
+ #ifdef DEBUG
+ /* For development, we want to crash whenever the ring is screwed. */
+@@ -54,6 +55,11 @@
+ #define END_USE(vq)
+ #endif
+ 
++struct vring_desc_state {
++	void *data;			/* Data for callback. */
++	struct vring_desc *indir_desc;	/* Indirect descriptor, if any. */
++};
++
+ struct vring_virtqueue {
+ 	struct virtqueue vq;
+ 
+@@ -98,8 +104,8 @@ struct vring_virtqueue {
+ 	ktime_t last_add_time;
+ #endif
+ 
+-	/* Tokens for callbacks. */
+-	void *data[];
++	/* Per-descriptor state. */
++	struct vring_desc_state desc_state[];
+ };
+ 
+ #define to_vvq(_vq) container_of(_vq, struct vring_virtqueue, vq)
+@@ -128,6 +134,79 @@ static bool vring_use_dma_api(const struct vring_virtqueue *vq)
+ 	return false;
+ }
+ 
++/*
++ * The DMA ops on various arches are rather gnarly right now, and
++ * making all of the arch DMA ops work on the vring device itself
++ * is a mess.  For now, we use the parent device for DMA ops.
++ */
++struct device *vring_dma_dev(const struct vring_virtqueue *vq)
++{
++	return vq->vq.vdev->dev.parent;
++}
++
++/* Map one sg entry. */
++static dma_addr_t vring_map_one_sg(const struct vring_virtqueue *vq,
++				   struct scatterlist *sg,
++				   enum dma_data_direction direction)
++{
++	if (!vring_use_dma_api(vq))
++		return (dma_addr_t)sg_phys(sg);
++
++	/*
++	 * We can't use dma_map_sg, because we don't use scatterlists in
++	 * the way it expects (we don't guarantee that the scatterlist
++	 * will exist for the lifetime of the mapping).
++	 */
++	return dma_map_page(vring_dma_dev(vq),
++			    sg_page(sg), sg->offset, sg->length,
++			    direction);
++}
++
++static dma_addr_t vring_map_single(const struct vring_virtqueue *vq,
++				   void *cpu_addr, size_t size,
++				   enum dma_data_direction direction)
++{
++	if (!vring_use_dma_api(vq))
++		return (dma_addr_t)virt_to_phys(cpu_addr);
++
++	return dma_map_single(vring_dma_dev(vq),
++			      cpu_addr, size, direction);
++}
++
++static void vring_unmap_one(const struct vring_virtqueue *vq,
++			    struct vring_desc *desc)
++{
++	u16 flags;
++
++	if (!vring_use_dma_api(vq))
++		return;
++
++	flags = virtio16_to_cpu(vq->vq.vdev, desc->flags);
++
++	if (flags & VRING_DESC_F_INDIRECT) {
++		dma_unmap_single(vring_dma_dev(vq),
++				 virtio64_to_cpu(vq->vq.vdev, desc->addr),
++				 virtio32_to_cpu(vq->vq.vdev, desc->len),
++				 (flags & VRING_DESC_F_WRITE) ?
++				 DMA_FROM_DEVICE : DMA_TO_DEVICE);
++	} else {
++		dma_unmap_page(vring_dma_dev(vq),
++			       virtio64_to_cpu(vq->vq.vdev, desc->addr),
++			       virtio32_to_cpu(vq->vq.vdev, desc->len),
++			       (flags & VRING_DESC_F_WRITE) ?
++			       DMA_FROM_DEVICE : DMA_TO_DEVICE);
++	}
++}
++
++static int vring_mapping_error(const struct vring_virtqueue *vq,
++			       dma_addr_t addr)
++{
++	if (!vring_use_dma_api(vq))
++		return 0;
++
++	return dma_mapping_error(vring_dma_dev(vq), addr);
++}
++
+ static struct vring_desc *alloc_indirect(struct virtqueue *_vq,
+ 					 unsigned int total_sg, gfp_t gfp)
+ {
+@@ -161,7 +240,7 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 	struct vring_virtqueue *vq = to_vvq(_vq);
+ 	struct scatterlist *sg;
+ 	struct vring_desc *desc;
+-	unsigned int i, n, avail, descs_used, uninitialized_var(prev);
++	unsigned int i, n, avail, descs_used, uninitialized_var(prev), err_idx;
+ 	int head;
+ 	bool indirect;
+ 
+@@ -201,21 +280,15 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 
+ 	if (desc) {
+ 		/* Use a single buffer which doesn't continue */
+-		vq->vring.desc[head].flags = cpu_to_virtio16(_vq->vdev, VRING_DESC_F_INDIRECT);
+-		vq->vring.desc[head].addr = cpu_to_virtio64(_vq->vdev, virt_to_phys(desc));
+-		/* avoid kmemleak false positive (hidden by virt_to_phys) */
+-		kmemleak_ignore(desc);
+-		vq->vring.desc[head].len = cpu_to_virtio32(_vq->vdev, total_sg * sizeof(struct vring_desc));
+-
++		indirect = true;
+ 		/* Set up rest to use this indirect table. */
+ 		i = 0;
+ 		descs_used = 1;
+-		indirect = true;
+ 	} else {
++		indirect = false;
+ 		desc = vq->vring.desc;
+ 		i = head;
+ 		descs_used = total_sg;
+-		indirect = false;
+ 	}
+ 
+ 	if (vq->vq.num_free < descs_used) {
+@@ -230,13 +303,14 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 		return -ENOSPC;
+ 	}
+ 
+-	/* We're about to use some buffers from the free list. */
+-	vq->vq.num_free -= descs_used;
+-
+ 	for (n = 0; n < out_sgs; n++) {
+ 		for (sg = sgs[n]; sg; sg = sg_next(sg)) {
++			dma_addr_t addr = vring_map_one_sg(vq, sg, DMA_TO_DEVICE);
++			if (vring_mapping_error(vq, addr))
++				goto unmap_release;
++
+ 			desc[i].flags = cpu_to_virtio16(_vq->vdev, VRING_DESC_F_NEXT);
+-			desc[i].addr = cpu_to_virtio64(_vq->vdev, sg_phys(sg));
++			desc[i].addr = cpu_to_virtio64(_vq->vdev, addr);
+ 			desc[i].len = cpu_to_virtio32(_vq->vdev, sg->length);
+ 			prev = i;
+ 			i = virtio16_to_cpu(_vq->vdev, desc[i].next);
+@@ -244,8 +318,12 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 	}
+ 	for (; n < (out_sgs + in_sgs); n++) {
+ 		for (sg = sgs[n]; sg; sg = sg_next(sg)) {
++			dma_addr_t addr = vring_map_one_sg(vq, sg, DMA_FROM_DEVICE);
++			if (vring_mapping_error(vq, addr))
++				goto unmap_release;
++
+ 			desc[i].flags = cpu_to_virtio16(_vq->vdev, VRING_DESC_F_NEXT | VRING_DESC_F_WRITE);
+-			desc[i].addr = cpu_to_virtio64(_vq->vdev, sg_phys(sg));
++			desc[i].addr = cpu_to_virtio64(_vq->vdev, addr);
+ 			desc[i].len = cpu_to_virtio32(_vq->vdev, sg->length);
+ 			prev = i;
+ 			i = virtio16_to_cpu(_vq->vdev, desc[i].next);
+@@ -254,14 +332,33 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 	/* Last one doesn't continue. */
+ 	desc[prev].flags &= cpu_to_virtio16(_vq->vdev, ~VRING_DESC_F_NEXT);
+ 
++	if (indirect) {
++		/* Now that the indirect table is filled in, map it. */
++		dma_addr_t addr = vring_map_single(
++			vq, desc, total_sg * sizeof(struct vring_desc),
++			DMA_TO_DEVICE);
++		if (vring_mapping_error(vq, addr))
++			goto unmap_release;
++
++		vq->vring.desc[head].flags = cpu_to_virtio16(_vq->vdev, VRING_DESC_F_INDIRECT);
++		vq->vring.desc[head].addr = cpu_to_virtio64(_vq->vdev, addr);
++
++		vq->vring.desc[head].len = cpu_to_virtio32(_vq->vdev, total_sg * sizeof(struct vring_desc));
++	}
++
++	/* We're using some buffers from the free list. */
++	vq->vq.num_free -= descs_used;
++
+ 	/* Update free pointer */
+ 	if (indirect)
+ 		vq->free_head = virtio16_to_cpu(_vq->vdev, vq->vring.desc[head].next);
+ 	else
+ 		vq->free_head = i;
+ 
+-	/* Set token. */
+-	vq->data[head] = data;
++	/* Store token and indirect buffer state. */
++	vq->desc_state[head].data = data;
++	if (indirect)
++		vq->desc_state[head].indir_desc = desc;
+ 
+ 	/* Put entry in available array (but don't update avail->idx until they
+ 	 * do sync). */
+@@ -284,6 +381,24 @@ static inline int virtqueue_add(struct virtqueue *_vq,
+ 		virtqueue_kick(_vq);
+ 
+ 	return 0;
++
++unmap_release:
++	err_idx = i;
++	i = head;
++
++	for (n = 0; n < total_sg; n++) {
++		if (i = err_idx)
++			break;
++		vring_unmap_one(vq, &desc[i]);
++		i = vq->vring.desc[i].next;
++	}
++
++	vq->vq.num_free += total_sg;
++
++	if (indirect)
++		kfree(desc);
++
++	return -EIO;
+ }
+ 
+ /**
+@@ -454,27 +569,43 @@ EXPORT_SYMBOL_GPL(virtqueue_kick);
+ 
+ static void detach_buf(struct vring_virtqueue *vq, unsigned int head)
+ {
+-	unsigned int i;
++	unsigned int i, j;
++	u16 nextflag = cpu_to_virtio16(vq->vq.vdev, VRING_DESC_F_NEXT);
+ 
+ 	/* Clear data ptr. */
+-	vq->data[head] = NULL;
++	vq->desc_state[head].data = NULL;
+ 
+-	/* Put back on free list: find end */
++	/* Put back on free list: unmap first-level descriptors and find end */
+ 	i = head;
+ 
+-	/* Free the indirect table */
+-	if (vq->vring.desc[i].flags & cpu_to_virtio16(vq->vq.vdev, VRING_DESC_F_INDIRECT))
+-		kfree(phys_to_virt(virtio64_to_cpu(vq->vq.vdev, vq->vring.desc[i].addr)));
+-
+-	while (vq->vring.desc[i].flags & cpu_to_virtio16(vq->vq.vdev, VRING_DESC_F_NEXT)) {
++	while (vq->vring.desc[i].flags & nextflag) {
++		vring_unmap_one(vq, &vq->vring.desc[i]);
+ 		i = virtio16_to_cpu(vq->vq.vdev, vq->vring.desc[i].next);
+ 		vq->vq.num_free++;
+ 	}
+ 
++	vring_unmap_one(vq, &vq->vring.desc[i]);
+ 	vq->vring.desc[i].next = cpu_to_virtio16(vq->vq.vdev, vq->free_head);
+ 	vq->free_head = head;
++
+ 	/* Plus final descriptor */
+ 	vq->vq.num_free++;
++
++	/* Free the indirect table, if any, now that it's unmapped. */
++	if (vq->desc_state[head].indir_desc) {
++		struct vring_desc *indir_desc = vq->desc_state[head].indir_desc;
++		u32 len = virtio32_to_cpu(vq->vq.vdev, vq->vring.desc[head].len);
++
++		BUG_ON(!(vq->vring.desc[head].flags &
++			 cpu_to_virtio16(vq->vq.vdev, VRING_DESC_F_INDIRECT)));
++		BUG_ON(len = 0 || len % sizeof(struct vring_desc));
++
++		for (j = 0; j < len / sizeof(struct vring_desc); j++)
++			vring_unmap_one(vq, &indir_desc[j]);
++
++		kfree(vq->desc_state[head].indir_desc);
++		vq->desc_state[head].indir_desc = NULL;
++	}
+ }
+ 
+ static inline bool more_used(const struct vring_virtqueue *vq)
+@@ -529,13 +660,13 @@ void *virtqueue_get_buf(struct virtqueue *_vq, unsigned int *len)
+ 		BAD_RING(vq, "id %u out of range\n", i);
+ 		return NULL;
+ 	}
+-	if (unlikely(!vq->data[i])) {
++	if (unlikely(!vq->desc_state[i].data)) {
+ 		BAD_RING(vq, "id %u is not a head!\n", i);
+ 		return NULL;
+ 	}
+ 
+ 	/* detach_buf clears data, so grab it now. */
+-	ret = vq->data[i];
++	ret = vq->desc_state[i].data;
+ 	detach_buf(vq, i);
+ 	vq->last_used_idx++;
+ 	/* If we expect an interrupt for the next entry, tell host
+@@ -709,10 +840,10 @@ void *virtqueue_detach_unused_buf(struct virtqueue *_vq)
+ 	START_USE(vq);
+ 
+ 	for (i = 0; i < vq->vring.num; i++) {
+-		if (!vq->data[i])
++		if (!vq->desc_state[i].data)
+ 			continue;
+ 		/* detach_buf clears data, so grab it now. */
+-		buf = vq->data[i];
++		buf = vq->desc_state[i].data;
+ 		detach_buf(vq, i);
+ 		vq->avail_idx_shadow--;
+ 		vq->vring.avail->idx = cpu_to_virtio16(_vq->vdev, vq->avail_idx_shadow);
+@@ -766,7 +897,8 @@ struct virtqueue *vring_new_virtqueue(unsigned int index,
+ 		return NULL;
+ 	}
+ 
+-	vq = kmalloc(sizeof(*vq) + sizeof(void *)*num, GFP_KERNEL);
++	vq = kmalloc(sizeof(*vq) + num * sizeof(struct vring_desc_state),
++		     GFP_KERNEL);
+ 	if (!vq)
+ 		return NULL;
+ 
+@@ -800,11 +932,9 @@ struct virtqueue *vring_new_virtqueue(unsigned int index,
+ 
+ 	/* Put everything in free lists. */
+ 	vq->free_head = 0;
+-	for (i = 0; i < num-1; i++) {
++	for (i = 0; i < num-1; i++)
+ 		vq->vring.desc[i].next = cpu_to_virtio16(vdev, i + 1);
+-		vq->data[i] = NULL;
+-	}
+-	vq->data[i] = NULL;
++	memset(vq->desc_state, 0, num * sizeof(struct vring_desc_state));
+ 
+ 	return &vq->vq;
+ }
+diff --git a/tools/virtio/linux/dma-mapping.h b/tools/virtio/linux/dma-mapping.h
+new file mode 100644
+index 000000000000..4f93af89ae16
+--- /dev/null
++++ b/tools/virtio/linux/dma-mapping.h
+@@ -0,0 +1,17 @@
++#ifndef _LINUX_DMA_MAPPING_H
++#define _LINUX_DMA_MAPPING_H
++
++#ifdef CONFIG_HAS_DMA
++# error Virtio userspace code does not support CONFIG_HAS_DMA
++#endif
++
++#define PCI_DMA_BUS_IS_PHYS 1
++
++enum dma_data_direction {
++	DMA_BIDIRECTIONAL = 0,
++	DMA_TO_DEVICE = 1,
++	DMA_FROM_DEVICE = 2,
++	DMA_NONE = 3,
++};
++
++#endif
+-- 
+2.5.0
 
