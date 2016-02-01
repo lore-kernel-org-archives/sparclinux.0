@@ -1,10 +1,10 @@
 From: Andy Lutomirski <luto@kernel.org>
-Date: Wed, 03 Feb 2016 05:46:38 +0000
-Subject: [PATCH v7 7/9] virtio_mmio: Use the DMA API if enabled
-Message-Id: <a5dcce6d76c55c528dfc0d51482daa255e9317d5.1454477782.git.luto@kernel.org>
+Date: Mon, 01 Feb 2016 18:00:57 +0000
+Subject: [PATCH v6 7/9] virtio_mmio: Use the DMA API if enabled
+Message-Id: <b8900175ff51138c0eed100de9b7155a530b7cb7.1454349471.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454477782.git.luto@kernel.org>
-In-Reply-To: <cover.1454477782.git.luto@kernel.org>
+References: <cover.1454349471.git.luto@kernel.org>
+In-Reply-To: <cover.1454349471.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
