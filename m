@@ -1,50 +1,62 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Tue, 02 Feb 2016 20:19:25 +0000
-Subject: [RFC 08/12] sparc, rwsem: provide __down_write_killable
-Message-Id: <1454444369-2146-9-git-send-email-mhocko@kernel.org>
+From: Andy Lutomirski <luto@kernel.org>
+Date: Mon, 01 Feb 2016 18:00:54 +0000
+Subject: [PATCH v6 4/9] vring: Introduce vring_use_dma_api()
+Message-Id: <336edab2e5b4825abe899e10aa4368770362daf9.1454349471.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+References: <cover.1454349471.git.luto@kernel.org>
+In-Reply-To: <cover.1454349471.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, Andy Lutomirski <luto@kernel.org>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-From: Michal Hocko <mhocko@suse.com>
+This is a kludge, but no one has come up with a a better idea yet.
+We'll introduce DMA API support guarded by vring_use_dma_api().
+Eventually we may be able to return true on more and more systems,
+and hopefully we can get rid of vring_use_dma_api() entirely some
+day.
 
-which is uses the same fast path as __down_write except it falls back to
-rwsem_down_write_failed_killable slow path and return -EINTR if killed.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- arch/sparc/include/asm/rwsem.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/virtio/virtio_ring.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/arch/sparc/include/asm/rwsem.h b/arch/sparc/include/asm/rwsem.h
-index e5a0d575bc7f..c1e9e32e8b63 100644
---- a/arch/sparc/include/asm/rwsem.h
-+++ b/arch/sparc/include/asm/rwsem.h
-@@ -55,6 +55,19 @@ static inline void __down_write(struct rw_semaphore *sem)
- 		rwsem_down_write_failed(sem);
- }
+diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
+index e12e385f7ac3..b78aeeb3f6be 100644
+--- a/drivers/virtio/virtio_ring.c
++++ b/drivers/virtio/virtio_ring.c
+@@ -104,6 +104,30 @@ struct vring_virtqueue {
  
-+static inline int __down_write_killable(struct rw_semaphore *sem)
+ #define to_vvq(_vq) container_of(_vq, struct vring_virtqueue, vq)
+ 
++/*
++ * The interaction between virtio and a possible IOMMU is a mess.
++ *
++ * On most systems with virtio, physical addresses match bus addresses,
++ * and it doesn't particularly matter whether we use the DMA API.
++ *
++ * On some systems, including Xen and any system with a physical device
++ * that speaks virtio behind a physical IOMMU, we must use the DMA API
++ * for virtio DMA to work at all.
++ *
++ * On other systems, including SPARC and PPC64, virtio-pci devices are
++ * enumerated as though they are behind an IOMMU, but the virtio host
++ * ignores the IOMMU, so we must either pretend that the IOMMU isn't
++ * there or somehow map everything as the identity.
++ *
++ * For the time being, we preserve historic behavior and bypass the DMA
++ * API.
++ */
++
++static bool vring_use_dma_api(const struct vring_virtqueue *vq)
 +{
-+	long tmp;
-+
-+	tmp = atomic64_add_return(RWSEM_ACTIVE_WRITE_BIAS,
-+				  (atomic64_t *)(&sem->count));
-+	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
-+		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
-+			return -EINTR;
-+
-+	return 0;
++	return false;
 +}
 +
- static inline int __down_write_trylock(struct rw_semaphore *sem)
+ static struct vring_desc *alloc_indirect(struct virtqueue *_vq,
+ 					 unsigned int total_sg, gfp_t gfp)
  {
- 	long tmp;
 -- 
-2.7.0
+2.5.0
 
