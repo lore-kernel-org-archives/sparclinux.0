@@ -1,76 +1,18 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Thu, 25 Feb 2016 02:11:55 +0000
-Subject: [PATCH v10 04/59] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <1456366370-28995-5-git-send-email-yinghai@kernel.org>
+From: Wei Liu <wei.liu2@citrix.com>
+Date: Mon, 01 Feb 2016 21:26:07 +0000
+Subject: Re: [Xen-devel] [PATCH v6 9/9] vring: Use the DMA API on Xen
+Message-Id: <20160201212607.GB9915@citrix.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456366370-28995-1-git-send-email-yinghai@kernel.org>
-In-Reply-To: <1456366370-28995-1-git-send-email-yinghai@kernel.org>
+References: <cover.1454349471.git.luto@kernel.org>
+	<41aeb1bd026494e277ea5827d99df4a4f41b8b8f.1454349471.git.luto@kernel.org>
+In-Reply-To: <41aeb1bd026494e277ea5827d99df4a4f41b8b8f.1454349471.git.luto@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andy Lutomirski <luto@kernel.org>
+Cc: linux-s390 <linux-s390@vger.kernel.org>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, wei.liu2@citrix.com, KVM <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, Christian Borntraeger <borntraeger@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, David Vrabel <david.vrabel@citrix.com>, Paolo Bonzini <pbonzini@redhat.com>, xen-devel@lists.xenproject.org, David Woodhouse <dwmw2@infradead.org>, Christoph Hellwig <hch@lst.de>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-For device resource with PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource.
+On Mon, Feb 01, 2016 at 10:00:59AM -0800, Andy Lutomirski wrote:
+> Signed-off-by: Andy Lutomirski <luto@kernel.org>
 
-so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device reso=
-urce
-flags parsing.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
----
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-1.8.4.5
-
+Reviewed-by: Wei Liu <wei.liu2@citrix.com>
