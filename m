@@ -1,174 +1,188 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 01 Feb 2016 18:00:57 +0000
-Subject: [PATCH v6 7/9] virtio_mmio: Use the DMA API if enabled
-Message-Id: <b8900175ff51138c0eed100de9b7155a530b7cb7.1454349471.git.luto@kernel.org>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 02 Feb 2016 20:19:18 +0000
+Subject: [RFC 01/12] locking, rwsem: get rid of __down_write_nested
+Message-Id: <1454444369-2146-2-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454349471.git.luto@kernel.org>
-In-Reply-To: <cover.1454349471.git.luto@kernel.org>
+References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-This switches to vring_create_virtqueue, simplifying the driver and
-adding DMA API support.
+From: Michal Hocko <mhocko@suse.com>
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+This is no longer used anywhere and all callers (__down_write) use
+0 as a subclass. Ditch __down_write_nested to make the code easier
+to follow.
+
+This shouldn't introduce any functional change.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- drivers/virtio/virtio_mmio.c | 67 ++++++++++----------------------------------
- 1 file changed, 15 insertions(+), 52 deletions(-)
+ arch/s390/include/asm/rwsem.h   | 7 +------
+ arch/sh/include/asm/rwsem.h     | 5 -----
+ arch/sparc/include/asm/rwsem.h  | 7 +------
+ arch/x86/include/asm/rwsem.h    | 7 +------
+ include/asm-generic/rwsem.h     | 7 +------
+ include/linux/rwsem-spinlock.h  | 1 -
+ kernel/locking/rwsem-spinlock.c | 7 +------
+ 7 files changed, 5 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/virtio/virtio_mmio.c b/drivers/virtio/virtio_mmio.c
-index 745c6ee1bb3e..48bfea91dbca 100644
---- a/drivers/virtio/virtio_mmio.c
-+++ b/drivers/virtio/virtio_mmio.c
-@@ -99,12 +99,6 @@ struct virtio_mmio_vq_info {
- 	/* the actual virtqueue */
- 	struct virtqueue *vq;
- 
--	/* the number of entries in the queue */
--	unsigned int num;
--
--	/* the virtual address of the ring queue */
--	void *queue;
--
- 	/* the list node for the virtqueues list */
- 	struct list_head node;
- };
-@@ -322,15 +316,13 @@ static void vm_del_vq(struct virtqueue *vq)
+diff --git a/arch/s390/include/asm/rwsem.h b/arch/s390/include/asm/rwsem.h
+index 4b43ee7e6776..8e52e72f3efc 100644
+--- a/arch/s390/include/asm/rwsem.h
++++ b/arch/s390/include/asm/rwsem.h
+@@ -90,7 +90,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
++static inline void __down_write(struct rw_semaphore *sem)
  {
- 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vq->vdev);
- 	struct virtio_mmio_vq_info *info = vq->priv;
--	unsigned long flags, size;
-+	unsigned long flags;
- 	unsigned int index = vq->index;
+ 	signed long old, new, tmp;
  
- 	spin_lock_irqsave(&vm_dev->lock, flags);
- 	list_del(&info->node);
- 	spin_unlock_irqrestore(&vm_dev->lock, flags);
- 
--	vring_del_virtqueue(vq);
--
- 	/* Select and deactivate the queue */
- 	writel(index, vm_dev->base + VIRTIO_MMIO_QUEUE_SEL);
- 	if (vm_dev->version = 1) {
-@@ -340,8 +332,8 @@ static void vm_del_vq(struct virtqueue *vq)
- 		WARN_ON(readl(vm_dev->base + VIRTIO_MMIO_QUEUE_READY));
- 	}
- 
--	size = PAGE_ALIGN(vring_size(info->num, VIRTIO_MMIO_VRING_ALIGN));
--	free_pages_exact(info->queue, size);
-+	vring_del_virtqueue(vq);
-+
- 	kfree(info);
+@@ -108,11 +108,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 		rwsem_down_write_failed(sem);
  }
  
-@@ -356,8 +348,6 @@ static void vm_del_vqs(struct virtio_device *vdev)
- 	free_irq(platform_get_irq(vm_dev->pdev, 0), vm_dev);
+-static inline void __down_write(struct rw_semaphore *sem)
+-{
+-	__down_write_nested(sem, 0);
+-}
+-
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
+diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
+index edab57265293..a5104bebd1eb 100644
+--- a/arch/sh/include/asm/rwsem.h
++++ b/arch/sh/include/asm/rwsem.h
+@@ -114,11 +114,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ 		rwsem_downgrade_wake(sem);
  }
  
+-static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+-{
+-	__down_write(sem);
+-}
 -
+ /*
+  * implement exchange and add functionality
+  */
+diff --git a/arch/sparc/include/asm/rwsem.h b/arch/sparc/include/asm/rwsem.h
+index 069bf4d663a1..e5a0d575bc7f 100644
+--- a/arch/sparc/include/asm/rwsem.h
++++ b/arch/sparc/include/asm/rwsem.h
+@@ -45,7 +45,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
++static inline void __down_write(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+@@ -55,11 +55,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 		rwsem_down_write_failed(sem);
+ }
+ 
+-static inline void __down_write(struct rw_semaphore *sem)
+-{
+-	__down_write_nested(sem, 0);
+-}
 -
- static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 				  void (*callback)(struct virtqueue *vq),
- 				  const char *name)
-@@ -365,7 +355,8 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 	struct virtio_mmio_device *vm_dev = to_virtio_mmio_device(vdev);
- 	struct virtio_mmio_vq_info *info;
- 	struct virtqueue *vq;
--	unsigned long flags, size;
-+	unsigned long flags;
-+	unsigned int num;
- 	int err;
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+diff --git a/arch/x86/include/asm/rwsem.h b/arch/x86/include/asm/rwsem.h
+index cad82c9c2fde..d79a218675bc 100644
+--- a/arch/x86/include/asm/rwsem.h
++++ b/arch/x86/include/asm/rwsem.h
+@@ -99,7 +99,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
++static inline void __down_write(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 	asm volatile("# beginning down_write\n\t"
+@@ -116,11 +116,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 		     : "memory", "cc");
+ }
  
- 	if (!name)
-@@ -388,66 +379,40 @@ static struct virtqueue *vm_setup_vq(struct virtio_device *vdev, unsigned index,
- 		goto error_kmalloc;
- 	}
- 
--	/* Allocate pages for the queue - start with a queue as big as
--	 * possible (limited by maximum size allowed by device), drop down
--	 * to a minimal size, just big enough to fit descriptor table
--	 * and two rings (which makes it "alignment_size * 2")
--	 */
--	info->num = readl(vm_dev->base + VIRTIO_MMIO_QUEUE_NUM_MAX);
+-static inline void __down_write(struct rw_semaphore *sem)
+-{
+-	__down_write_nested(sem, 0);
+-}
 -
--	/* If the device reports a 0 entry queue, we won't be able to
--	 * use it to perform I/O, and vring_new_virtqueue() can't create
--	 * empty queues anyway, so don't bother to set up the device.
--	 */
--	if (info->num = 0) {
-+	num = readl(vm_dev->base + VIRTIO_MMIO_QUEUE_NUM_MAX);
-+	if (num = 0) {
- 		err = -ENOENT;
--		goto error_alloc_pages;
--	}
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
+diff --git a/include/asm-generic/rwsem.h b/include/asm-generic/rwsem.h
+index d6d5dc98d7da..b8d8a6cf4ca8 100644
+--- a/include/asm-generic/rwsem.h
++++ b/include/asm-generic/rwsem.h
+@@ -53,7 +53,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
++static inline void __down_write(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+@@ -63,11 +63,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 		rwsem_down_write_failed(sem);
+ }
+ 
+-static inline void __down_write(struct rw_semaphore *sem)
+-{
+-	__down_write_nested(sem, 0);
+-}
 -
--	while (1) {
--		size = PAGE_ALIGN(vring_size(info->num,
--				VIRTIO_MMIO_VRING_ALIGN));
--		/* Did the last iter shrink the queue below minimum size? */
--		if (size < VIRTIO_MMIO_VRING_ALIGN * 2) {
--			err = -ENOMEM;
--			goto error_alloc_pages;
--		}
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+diff --git a/include/linux/rwsem-spinlock.h b/include/linux/rwsem-spinlock.h
+index 561e8615528d..a733a5467e6c 100644
+--- a/include/linux/rwsem-spinlock.h
++++ b/include/linux/rwsem-spinlock.h
+@@ -34,7 +34,6 @@ struct rw_semaphore {
+ extern void __down_read(struct rw_semaphore *sem);
+ extern int __down_read_trylock(struct rw_semaphore *sem);
+ extern void __down_write(struct rw_semaphore *sem);
+-extern void __down_write_nested(struct rw_semaphore *sem, int subclass);
+ extern int __down_write_trylock(struct rw_semaphore *sem);
+ extern void __up_read(struct rw_semaphore *sem);
+ extern void __up_write(struct rw_semaphore *sem);
+diff --git a/kernel/locking/rwsem-spinlock.c b/kernel/locking/rwsem-spinlock.c
+index 3a5048572065..bab26104a5d0 100644
+--- a/kernel/locking/rwsem-spinlock.c
++++ b/kernel/locking/rwsem-spinlock.c
+@@ -191,7 +191,7 @@ int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * get a write lock on the semaphore
+  */
+-void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
++void __sched __down_write(struct rw_semaphore *sem)
+ {
+ 	struct rwsem_waiter waiter;
+ 	struct task_struct *tsk;
+@@ -227,11 +227,6 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
+ }
+ 
+-void __sched __down_write(struct rw_semaphore *sem)
+-{
+-	__down_write_nested(sem, 0);
+-}
 -
--		info->queue = alloc_pages_exact(size, GFP_KERNEL | __GFP_ZERO);
--		if (info->queue)
--			break;
--
--		info->num /= 2;
-+		goto error_new_virtqueue;
- 	}
- 
- 	/* Create the vring */
--	vq = vring_new_virtqueue(index, info->num, VIRTIO_MMIO_VRING_ALIGN, vdev,
--				 true, info->queue, vm_notify, callback, name);
-+	vq = vring_create_virtqueue(index, num, VIRTIO_MMIO_VRING_ALIGN, vdev,
-+				 true, true, vm_notify, callback, name);
- 	if (!vq) {
- 		err = -ENOMEM;
- 		goto error_new_virtqueue;
- 	}
- 
- 	/* Activate the queue */
--	writel(info->num, vm_dev->base + VIRTIO_MMIO_QUEUE_NUM);
-+	writel(virtqueue_get_vring_size(vq), vm_dev->base + VIRTIO_MMIO_QUEUE_NUM);
- 	if (vm_dev->version = 1) {
- 		writel(PAGE_SIZE, vm_dev->base + VIRTIO_MMIO_QUEUE_ALIGN);
--		writel(virt_to_phys(info->queue) >> PAGE_SHIFT,
-+		writel(virtqueue_get_desc_addr(vq) >> PAGE_SHIFT,
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_PFN);
- 	} else {
- 		u64 addr;
- 
--		addr = virt_to_phys(info->queue);
-+		addr = virtqueue_get_desc_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_DESC_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_DESC_HIGH);
- 
--		addr = virt_to_phys(virtqueue_get_avail(vq));
-+		addr = virtqueue_get_avail_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_AVAIL_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_AVAIL_HIGH);
- 
--		addr = virt_to_phys(virtqueue_get_used(vq));
-+		addr = virtqueue_get_used_addr(vq);
- 		writel((u32)addr, vm_dev->base + VIRTIO_MMIO_QUEUE_USED_LOW);
- 		writel((u32)(addr >> 32),
- 				vm_dev->base + VIRTIO_MMIO_QUEUE_USED_HIGH);
-@@ -471,8 +436,6 @@ error_new_virtqueue:
- 		writel(0, vm_dev->base + VIRTIO_MMIO_QUEUE_READY);
- 		WARN_ON(readl(vm_dev->base + VIRTIO_MMIO_QUEUE_READY));
- 	}
--	free_pages_exact(info->queue, size);
--error_alloc_pages:
- 	kfree(info);
- error_kmalloc:
- error_available:
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
 -- 
-2.5.0
+2.7.0
 
