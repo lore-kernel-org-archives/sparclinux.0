@@ -1,27 +1,50 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Sun, 28 Feb 2016 17:57:18 +0000
-Subject: Re: Kernels 4.+ are breaking rsync?
-Message-Id: <20160228175718.GO17997@ZenIV.linux.org.uk>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 02 Feb 2016 20:19:24 +0000
+Subject: [RFC 07/12] sh, rwsem: provide __down_write_killable
+Message-Id: <1454444369-2146-8-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56C11585.3060503@triadic.us>
-In-Reply-To: <56C11585.3060503@triadic.us>
+References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-On Sun, Feb 28, 2016 at 06:41:37PM +0100, Sam Ravnborg wrote:
-> On Sun, Feb 21, 2016 at 09:14:45PM +0100, Sam Ravnborg wrote:
-> > Added Al Viro, as author of the commit git bisect pointed out.
-> 
-> Al, have you by chance looked at this bug report?
+From: Michal Hocko <mhocko@suse.com>
 
-Not enough details...
+which is uses the same fast path as __down_write except it falls back to
+rwsem_down_write_failed_killable slow path and return -EINTR if killed.
 
-> Alex, did you try to revert just this single patch on mainline
-> to verify this _is_ indeed the culprint?
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ arch/sh/include/asm/rwsem.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-Not a chance - a lot of stuff past it depends on that series.
+diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
+index f6c951c7a875..8a457b83d2a5 100644
+--- a/arch/sh/include/asm/rwsem.h
++++ b/arch/sh/include/asm/rwsem.h
+@@ -54,6 +54,19 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 		rwsem_down_write_failed(sem);
+ }
+ 
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	int tmp;
++
++	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
++				(atomic_t *)(&sem->count));
++	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++
++	return 0;
++}
++
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	int tmp;
+-- 
+2.7.0
 
-How does rsync die there?  oops, segfault, something else?  Any way to
-reproduce it?
