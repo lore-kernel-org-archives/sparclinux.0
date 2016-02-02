@@ -1,131 +1,177 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Wed, 03 Feb 2016 05:46:34 +0000
-Subject: [PATCH v7 3/9] s390/dma: Allow per device dma ops
-Message-Id: <df2d6b89dde05190a3d3cc6a841f5eb8943503a4.1454477782.git.luto@kernel.org>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 02 Feb 2016 20:19:19 +0000
+Subject: [RFC 02/12] locking, rwsem: drop explicit memory barriers
+Message-Id: <1454444369-2146-3-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454477782.git.luto@kernel.org>
-In-Reply-To: <cover.1454477782.git.luto@kernel.org>
+References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, Andy Lutomirski <luto@kernel.org>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+From: Michal Hocko <mhocko@suse.com>
 
-As virtio-ccw will have dma ops, we can no longer default to the
-zPCI ones. Make use of dev_archdata to keep the dma_ops per device.
-The pci devices now use that to override the default, and the
-default is changed to use the noop ops for everything that does not
-specify a device specific one.
-To compile without PCI support we will enable HAS_DMA all the time,
-via the default config in lib/Kconfig.
+sh and xtensa seem to be the only architectures which use explicit
+memory barriers for rw_semaphore operations even though they are not
+really needed because there is the full memory barrier is always implied
+by atomic_{inc,dec,add,sub}_return resp. cmpxchg. Remove them.
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Reviewed-by: Joerg Roedel <jroedel@suse.de>
-Acked-by: Cornelia Huck <cornelia.huck@de.ibm.com>
-Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/s390/Kconfig                   | 5 +----
- arch/s390/include/asm/device.h      | 6 +++++-
- arch/s390/include/asm/dma-mapping.h | 6 ++++--
- arch/s390/pci/pci.c                 | 1 +
- arch/s390/pci/pci_dma.c             | 4 ++--
- 5 files changed, 13 insertions(+), 9 deletions(-)
+ arch/sh/include/asm/rwsem.h     | 14 ++------------
+ arch/xtensa/include/asm/rwsem.h | 14 ++------------
+ 2 files changed, 4 insertions(+), 24 deletions(-)
 
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 3be9c832dec1..b29c66e77e32 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -124,6 +124,7 @@ config S390
- 	select HAVE_CMPXCHG_DOUBLE
- 	select HAVE_CMPXCHG_LOCAL
- 	select HAVE_DEBUG_KMEMLEAK
-+	select HAVE_DMA_API_DEBUG
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_DYNAMIC_FTRACE_WITH_REGS
- 	select HAVE_FTRACE_MCOUNT_RECORD
-@@ -619,10 +620,6 @@ config HAS_IOMEM
- config IOMMU_HELPER
- 	def_bool PCI
- 
--config HAS_DMA
--	def_bool PCI
--	select HAVE_DMA_API_DEBUG
--
- config NEED_SG_DMA_LENGTH
- 	def_bool PCI
- 
-diff --git a/arch/s390/include/asm/device.h b/arch/s390/include/asm/device.h
-index d8f9872b0e2d..4a9f35e0973f 100644
---- a/arch/s390/include/asm/device.h
-+++ b/arch/s390/include/asm/device.h
-@@ -3,5 +3,9 @@
-  *
-  * This file is released under the GPLv2
+diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
+index a5104bebd1eb..f6c951c7a875 100644
+--- a/arch/sh/include/asm/rwsem.h
++++ b/arch/sh/include/asm/rwsem.h
+@@ -24,9 +24,7 @@
   */
--#include <asm-generic/device.h>
-+struct dev_archdata {
-+	struct dma_map_ops *dma_ops;
-+};
- 
-+struct pdev_archdata {
-+};
-diff --git a/arch/s390/include/asm/dma-mapping.h b/arch/s390/include/asm/dma-mapping.h
-index e64bfcb9702f..3249b7464889 100644
---- a/arch/s390/include/asm/dma-mapping.h
-+++ b/arch/s390/include/asm/dma-mapping.h
-@@ -11,11 +11,13 @@
- 
- #define DMA_ERROR_CODE		(~(dma_addr_t) 0x0)
- 
--extern struct dma_map_ops s390_dma_ops;
-+extern struct dma_map_ops s390_pci_dma_ops;
- 
- static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+ static inline void __down_read(struct rw_semaphore *sem)
  {
--	return &s390_dma_ops;
-+	if (dev && dev->archdata.dma_ops)
-+		return dev->archdata.dma_ops;
-+	return &dma_noop_ops;
+-	if (atomic_inc_return((atomic_t *)(&sem->count)) > 0)
+-		smp_wmb();
+-	else
++	if (atomic_inc_return((atomic_t *)(&sem->count)) <= 0)
+ 		rwsem_down_read_failed(sem);
  }
  
- static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 11d4f277e9f6..f5931135b9ae 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -649,6 +649,7 @@ int pcibios_add_device(struct pci_dev *pdev)
+@@ -37,7 +35,6 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ 	while ((tmp = sem->count) >= 0) {
+ 		if (tmp = cmpxchg(&sem->count, tmp,
+ 				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
+-			smp_wmb();
+ 			return 1;
+ 		}
+ 	}
+@@ -53,9 +50,7 @@ static inline void __down_write(struct rw_semaphore *sem)
  
- 	zdev->pdev = pdev;
- 	pdev->dev.groups = zpci_attr_groups;
-+	pdev->dev.archdata.dma_ops = &s390_pci_dma_ops;
- 	zpci_map_resources(pdev);
- 
- 	for (i = 0; i < PCI_BAR_COUNT; i++) {
-diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-index 4638b93c7632..a79173ec54b9 100644
---- a/arch/s390/pci/pci_dma.c
-+++ b/arch/s390/pci/pci_dma.c
-@@ -544,7 +544,7 @@ static int __init dma_debug_do_init(void)
+ 	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
+ 				(atomic_t *)(&sem->count));
+-	if (tmp = RWSEM_ACTIVE_WRITE_BIAS)
+-		smp_wmb();
+-	else
++	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
+ 		rwsem_down_write_failed(sem);
  }
- fs_initcall(dma_debug_do_init);
  
--struct dma_map_ops s390_dma_ops = {
-+struct dma_map_ops s390_pci_dma_ops = {
- 	.alloc		= s390_dma_alloc,
- 	.free		= s390_dma_free,
- 	.map_sg		= s390_dma_map_sg,
-@@ -555,7 +555,7 @@ struct dma_map_ops s390_dma_ops = {
- 	.is_phys	= 0,
- 	/* dma_supported is unconditionally true without a callback */
- };
--EXPORT_SYMBOL_GPL(s390_dma_ops);
-+EXPORT_SYMBOL_GPL(s390_pci_dma_ops);
+@@ -65,7 +60,6 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
  
- static int __init s390_iommu_setup(char *str)
+ 	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
+ 		      RWSEM_ACTIVE_WRITE_BIAS);
+-	smp_wmb();
+ 	return tmp = RWSEM_UNLOCKED_VALUE;
+ }
+ 
+@@ -76,7 +70,6 @@ static inline void __up_read(struct rw_semaphore *sem)
  {
+ 	int tmp;
+ 
+-	smp_wmb();
+ 	tmp = atomic_dec_return((atomic_t *)(&sem->count));
+ 	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
+ 		rwsem_wake(sem);
+@@ -87,7 +80,6 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
+-	smp_wmb();
+ 	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
+ 			      (atomic_t *)(&sem->count)) < 0)
+ 		rwsem_wake(sem);
+@@ -108,7 +100,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ {
+ 	int tmp;
+ 
+-	smp_wmb();
+ 	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
+ 	if (tmp < 0)
+ 		rwsem_downgrade_wake(sem);
+@@ -119,7 +110,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+  */
+ static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
+ {
+-	smp_mb();
+ 	return atomic_add_return(delta, (atomic_t *)(&sem->count));
+ }
+ 
+diff --git a/arch/xtensa/include/asm/rwsem.h b/arch/xtensa/include/asm/rwsem.h
+index 249619e7e7f2..593483f6e1ff 100644
+--- a/arch/xtensa/include/asm/rwsem.h
++++ b/arch/xtensa/include/asm/rwsem.h
+@@ -29,9 +29,7 @@
+  */
+ static inline void __down_read(struct rw_semaphore *sem)
+ {
+-	if (atomic_add_return(1,(atomic_t *)(&sem->count)) > 0)
+-		smp_wmb();
+-	else
++	if (atomic_add_return(1,(atomic_t *)(&sem->count)) <= 0)
+ 		rwsem_down_read_failed(sem);
+ }
+ 
+@@ -42,7 +40,6 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ 	while ((tmp = sem->count) >= 0) {
+ 		if (tmp = cmpxchg(&sem->count, tmp,
+ 				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
+-			smp_wmb();
+ 			return 1;
+ 		}
+ 	}
+@@ -58,9 +55,7 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 
+ 	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
+ 				(atomic_t *)(&sem->count));
+-	if (tmp = RWSEM_ACTIVE_WRITE_BIAS)
+-		smp_wmb();
+-	else
++	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
+ 		rwsem_down_write_failed(sem);
+ }
+ 
+@@ -70,7 +65,6 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ 
+ 	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
+ 		      RWSEM_ACTIVE_WRITE_BIAS);
+-	smp_wmb();
+ 	return tmp = RWSEM_UNLOCKED_VALUE;
+ }
+ 
+@@ -81,7 +75,6 @@ static inline void __up_read(struct rw_semaphore *sem)
+ {
+ 	int tmp;
+ 
+-	smp_wmb();
+ 	tmp = atomic_sub_return(1,(atomic_t *)(&sem->count));
+ 	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
+ 		rwsem_wake(sem);
+@@ -92,7 +85,6 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
+-	smp_wmb();
+ 	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
+ 			      (atomic_t *)(&sem->count)) < 0)
+ 		rwsem_wake(sem);
+@@ -113,7 +105,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ {
+ 	int tmp;
+ 
+-	smp_wmb();
+ 	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
+ 	if (tmp < 0)
+ 		rwsem_downgrade_wake(sem);
+@@ -124,7 +115,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+  */
+ static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
+ {
+-	smp_mb();
+ 	return atomic_add_return(delta, (atomic_t *)(&sem->count));
+ }
+ 
 -- 
-2.5.0
+2.7.0
 
