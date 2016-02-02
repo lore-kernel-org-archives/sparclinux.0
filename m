@@ -1,7 +1,7 @@
 From: Michal Hocko <mhocko@kernel.org>
-Date: Tue, 02 Feb 2016 20:19:18 +0000
-Subject: [RFC 01/12] locking, rwsem: get rid of __down_write_nested
-Message-Id: <1454444369-2146-2-git-send-email-mhocko@kernel.org>
+Date: Tue, 02 Feb 2016 20:19:20 +0000
+Subject: [RFC 03/12] locking, rwsem: introduce basis for down_write_killable
+Message-Id: <1454444369-2146-4-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
@@ -13,176 +13,220 @@ Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thoma
 
 From: Michal Hocko <mhocko@suse.com>
 
-This is no longer used anywhere and all callers (__down_write) use
-0 as a subclass. Ditch __down_write_nested to make the code easier
-to follow.
+Introduce a generic implementation necessary for down_write_killable.
+This is a trivial extension of the already existing down_write call
+which can be interrupted by SIGKILL.  This patch doesn't provide
+down_write_killable yet because arches have to provide the necessary
+pieces before.
 
-This shouldn't introduce any functional change.
+rwsem_down_write_failed which is a generic slow path for the
+write lock is extended to allow a task state and renamed to
+__rwsem_down_write_failed_state. The return value is either a valid
+semaphore pointer or ERR_PTR(-EINTR).
+
+rwsem_down_write_failed_killable is exported as a new way to wait for
+the lock and be killable.
+
+For rwsem-spinlock implementation the current __down_write it updated
+in a similar way as __rwsem_down_write_failed_state except it doesn't
+need new exports just visible __down_write_killable.
+
+Architectures which are not using the generic rwsem implementation are
+supposed to provide their __down_write_killable implementation and
+use rwsem_down_write_failed_killable for the slow path.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- arch/s390/include/asm/rwsem.h   | 7 +------
- arch/sh/include/asm/rwsem.h     | 5 -----
- arch/sparc/include/asm/rwsem.h  | 7 +------
- arch/x86/include/asm/rwsem.h    | 7 +------
- include/asm-generic/rwsem.h     | 7 +------
- include/linux/rwsem-spinlock.h  | 1 -
- kernel/locking/rwsem-spinlock.c | 7 +------
- 7 files changed, 5 insertions(+), 36 deletions(-)
 
-diff --git a/arch/s390/include/asm/rwsem.h b/arch/s390/include/asm/rwsem.h
-index 4b43ee7e6776..8e52e72f3efc 100644
---- a/arch/s390/include/asm/rwsem.h
-+++ b/arch/s390/include/asm/rwsem.h
-@@ -90,7 +90,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
-+static inline void __down_write(struct rw_semaphore *sem)
- {
- 	signed long old, new, tmp;
- 
-@@ -108,11 +108,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
- 		rwsem_down_write_failed(sem);
- }
- 
--static inline void __down_write(struct rw_semaphore *sem)
--{
--	__down_write_nested(sem, 0);
--}
--
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
-diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
-index edab57265293..a5104bebd1eb 100644
---- a/arch/sh/include/asm/rwsem.h
-+++ b/arch/sh/include/asm/rwsem.h
-@@ -114,11 +114,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
- 		rwsem_downgrade_wake(sem);
- }
- 
--static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
--{
--	__down_write(sem);
--}
--
- /*
-  * implement exchange and add functionality
-  */
-diff --git a/arch/sparc/include/asm/rwsem.h b/arch/sparc/include/asm/rwsem.h
-index 069bf4d663a1..e5a0d575bc7f 100644
---- a/arch/sparc/include/asm/rwsem.h
-+++ b/arch/sparc/include/asm/rwsem.h
-@@ -45,7 +45,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
-+static inline void __down_write(struct rw_semaphore *sem)
- {
- 	long tmp;
- 
-@@ -55,11 +55,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
- 		rwsem_down_write_failed(sem);
- }
- 
--static inline void __down_write(struct rw_semaphore *sem)
--{
--	__down_write_nested(sem, 0);
--}
--
- static inline int __down_write_trylock(struct rw_semaphore *sem)
- {
- 	long tmp;
-diff --git a/arch/x86/include/asm/rwsem.h b/arch/x86/include/asm/rwsem.h
-index cad82c9c2fde..d79a218675bc 100644
---- a/arch/x86/include/asm/rwsem.h
-+++ b/arch/x86/include/asm/rwsem.h
-@@ -99,7 +99,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
-+static inline void __down_write(struct rw_semaphore *sem)
- {
- 	long tmp;
- 	asm volatile("# beginning down_write\n\t"
-@@ -116,11 +116,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
- 		     : "memory", "cc");
- }
- 
--static inline void __down_write(struct rw_semaphore *sem)
--{
--	__down_write_nested(sem, 0);
--}
--
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
+fold me "locking, rwsem: introduce basis for down_write_killable"
+---
+ include/asm-generic/rwsem.h     | 13 +++++++++++++
+ include/linux/rwsem-spinlock.h  |  1 +
+ include/linux/rwsem.h           |  2 ++
+ kernel/locking/rwsem-spinlock.c | 23 +++++++++++++++++++++--
+ kernel/locking/rwsem-xadd.c     | 31 +++++++++++++++++++++++++------
+ 5 files changed, 62 insertions(+), 8 deletions(-)
+
 diff --git a/include/asm-generic/rwsem.h b/include/asm-generic/rwsem.h
-index d6d5dc98d7da..b8d8a6cf4ca8 100644
+index b8d8a6cf4ca8..b3f3aebbb994 100644
 --- a/include/asm-generic/rwsem.h
 +++ b/include/asm-generic/rwsem.h
-@@ -53,7 +53,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
-+static inline void __down_write(struct rw_semaphore *sem)
- {
- 	long tmp;
- 
-@@ -63,11 +63,6 @@ static inline void __down_write_nested(struct rw_semaphore *sem, int subclass)
+@@ -63,6 +63,19 @@ static inline void __down_write(struct rw_semaphore *sem)
  		rwsem_down_write_failed(sem);
  }
  
--static inline void __down_write(struct rw_semaphore *sem)
--{
--	__down_write_nested(sem, 0);
--}
--
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	long tmp;
++	int ret;
++
++	tmp = atomic_long_add_return_acquire(RWSEM_ACTIVE_WRITE_BIAS,
++				     (atomic_long_t *)&sem->count);
++	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++	return 0;
++}
++
  static inline int __down_write_trylock(struct rw_semaphore *sem)
  {
  	long tmp;
 diff --git a/include/linux/rwsem-spinlock.h b/include/linux/rwsem-spinlock.h
-index 561e8615528d..a733a5467e6c 100644
+index a733a5467e6c..ae0528b834cd 100644
 --- a/include/linux/rwsem-spinlock.h
 +++ b/include/linux/rwsem-spinlock.h
-@@ -34,7 +34,6 @@ struct rw_semaphore {
+@@ -34,6 +34,7 @@ struct rw_semaphore {
  extern void __down_read(struct rw_semaphore *sem);
  extern int __down_read_trylock(struct rw_semaphore *sem);
  extern void __down_write(struct rw_semaphore *sem);
--extern void __down_write_nested(struct rw_semaphore *sem, int subclass);
++extern int __must_check __down_write_killable(struct rw_semaphore *sem);
  extern int __down_write_trylock(struct rw_semaphore *sem);
  extern void __up_read(struct rw_semaphore *sem);
  extern void __up_write(struct rw_semaphore *sem);
+diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
+index 8f498cdde280..7d7ae029dac5 100644
+--- a/include/linux/rwsem.h
++++ b/include/linux/rwsem.h
+@@ -14,6 +14,7 @@
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/atomic.h>
++#include <linux/err.h>
+ #ifdef CONFIG_RWSEM_SPIN_ON_OWNER
+ #include <linux/osq_lock.h>
+ #endif
+@@ -43,6 +44,7 @@ struct rw_semaphore {
+ 
+ extern struct rw_semaphore *rwsem_down_read_failed(struct rw_semaphore *sem);
+ extern struct rw_semaphore *rwsem_down_write_failed(struct rw_semaphore *sem);
++extern struct rw_semaphore *rwsem_down_write_failed_killable(struct rw_semaphore *sem);
+ extern struct rw_semaphore *rwsem_wake(struct rw_semaphore *);
+ extern struct rw_semaphore *rwsem_downgrade_wake(struct rw_semaphore *sem);
+ 
 diff --git a/kernel/locking/rwsem-spinlock.c b/kernel/locking/rwsem-spinlock.c
-index 3a5048572065..bab26104a5d0 100644
+index bab26104a5d0..d1d04ca10d0e 100644
 --- a/kernel/locking/rwsem-spinlock.c
 +++ b/kernel/locking/rwsem-spinlock.c
-@@ -191,7 +191,7 @@ int __down_read_trylock(struct rw_semaphore *sem)
+@@ -191,11 +191,12 @@ int __down_read_trylock(struct rw_semaphore *sem)
  /*
   * get a write lock on the semaphore
   */
--void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
-+void __sched __down_write(struct rw_semaphore *sem)
+-void __sched __down_write(struct rw_semaphore *sem)
++int __sched __down_write_state(struct rw_semaphore *sem, int state)
  {
  	struct rwsem_waiter waiter;
  	struct task_struct *tsk;
-@@ -227,11 +227,6 @@ void __sched __down_write_nested(struct rw_semaphore *sem, int subclass)
+ 	unsigned long flags;
++	int ret = 0;
+ 
+ 	raw_spin_lock_irqsave(&sem->wait_lock, flags);
+ 
+@@ -215,16 +216,34 @@ void __sched __down_write(struct rw_semaphore *sem)
+ 		 */
+ 		if (sem->count = 0)
+ 			break;
+-		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		set_task_state(tsk, state);
+ 		raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 		schedule();
++		if (signal_pending_state(state, current)) {
++			ret = -EINTR;
++			raw_spin_lock_irqsave(&sem->wait_lock, flags);
++			goto out;
++		}
+ 		raw_spin_lock_irqsave(&sem->wait_lock, flags);
+ 	}
+ 	/* got the lock */
+ 	sem->count = -1;
++out:
+ 	list_del(&waiter.list);
+ 
  	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
++
++	return ret;
++}
++
++void __sched __down_write(struct rw_semaphore *sem)
++{
++	__down_write_state(sem, TASK_UNINTERRUPTIBLE);
++}
++
++int __sched __down_write_killable(struct rw_semaphore *sem)
++{
++	return __down_write_state(sem, TASK_KILLABLE);
  }
  
--void __sched __down_write(struct rw_semaphore *sem)
--{
--	__down_write_nested(sem, 0);
--}
--
  /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index a4d4de05b2d1..5cec34f1ad6f 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -433,12 +433,13 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ /*
+  * Wait until we successfully acquire the write lock
   */
+-__visible
+-struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
++static inline struct rw_semaphore *
++__rwsem_down_write_failed_state(struct rw_semaphore *sem, int state)
+ {
+ 	long count;
+ 	bool waiting = true; /* any queued threads before us */
+ 	struct rwsem_waiter waiter;
++	struct rw_semaphore *ret = sem;
+ 
+ 	/* undo write bias from down_write operation, stop active locking */
+ 	count = rwsem_atomic_update(-RWSEM_ACTIVE_WRITE_BIAS, sem);
+@@ -478,7 +479,7 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
+ 		count = rwsem_atomic_update(RWSEM_WAITING_BIAS, sem);
+ 
+ 	/* wait until we successfully acquire the lock */
+-	set_current_state(TASK_UNINTERRUPTIBLE);
++	set_current_state(state);
+ 	while (true) {
+ 		if (rwsem_try_write_lock(count, sem))
+ 			break;
+@@ -487,20 +488,38 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
+ 		/* Block until there are no active lockers. */
+ 		do {
+ 			schedule();
+-			set_current_state(TASK_UNINTERRUPTIBLE);
++			if (signal_pending_state(state, current)) {
++				raw_spin_lock_irq(&sem->wait_lock);
++				ret = ERR_PTR(-EINTR);
++				goto out;
++			}
++			set_current_state(state);
+ 		} while ((count = sem->count) & RWSEM_ACTIVE_MASK);
+ 
+ 		raw_spin_lock_irq(&sem->wait_lock);
+ 	}
+ 	__set_current_state(TASK_RUNNING);
+-
++out:
+ 	list_del(&waiter.list);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+ 
+-	return sem;
++	return ret;
++}
++
++__visible struct rw_semaphore * __sched
++rwsem_down_write_failed(struct rw_semaphore *sem)
++{
++	return __rwsem_down_write_failed_state(sem, TASK_UNINTERRUPTIBLE);
+ }
+ EXPORT_SYMBOL(rwsem_down_write_failed);
+ 
++__visible struct rw_semaphore * __sched
++rwsem_down_write_failed_killable(struct rw_semaphore *sem)
++{
++	return __rwsem_down_write_failed_state(sem, TASK_KILLABLE);
++}
++EXPORT_SYMBOL(rwsem_down_write_failed_killable);
++
+ /*
+  * handle waking up a waiter on the semaphore
+  * - up_read/up_write has decremented the active part of count if we come here
 -- 
 2.7.0
 
