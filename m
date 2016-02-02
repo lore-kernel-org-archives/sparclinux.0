@@ -1,70 +1,61 @@
-From: Wei Liu <wei.liu2@citrix.com>
-Date: Mon, 01 Feb 2016 21:24:57 +0000
-Subject: Re: [Xen-devel] [PATCH v5 09/10] vring: Use the DMA API on Xen
-Message-Id: <20160201212457.GA9915@citrix.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 02 Feb 2016 20:19:17 +0000
+Subject: [RFC 0/12] introduce down_write_killable for rw_semaphore
+Message-Id: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454034075.git.luto@kernel.org>
-	<64e979cc139c5e6a9bbfae9f1bc5e6693d91bea9.1454034075.git.luto@kernel.org>
-	<56AB4053.4070007@citrix.com>
-	<20160131220601-mutt-send-email-mst@redhat.com>
-In-Reply-To: <20160131220601-mutt-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-s390 <linux-s390@vger.kernel.org>, Joerg Roedel <jroedel@suse.de>, wei.liu2@citrix.com, KVM <kvm@vger.kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, Christian Borntraeger <borntraeger@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Christoph Hellwig <hch@lst.de>, David Vrabel <david.vrabel@citrix.com>, Andy Lutomirski <luto@kernel.org>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org
 
-On Sun, Jan 31, 2016 at 10:09:07PM +0200, Michael S. Tsirkin wrote:
-> On Fri, Jan 29, 2016 at 10:34:59AM +0000, David Vrabel wrote:
-> > On 29/01/16 02:31, Andy Lutomirski wrote:
-> > > Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> > > ---
-> > >  drivers/virtio/virtio_ring.c | 12 ++++++++++++
-> > >  1 file changed, 12 insertions(+)
-> > > 
-> > > diff --git a/drivers/virtio/virtio_ring.c b/drivers/virtio/virtio_ring.c
-> > > index c169c6444637..305c05cc249a 100644
-> > > --- a/drivers/virtio/virtio_ring.c
-> > > +++ b/drivers/virtio/virtio_ring.c
-> > > @@ -47,6 +47,18 @@
-> > >  
-> > >  static bool vring_use_dma_api(void)
-> > >  {
-> > > +#if defined(CONFIG_X86) && defined(CONFIG_XEN)
-> > > +	/*
-> > > +	 * In theory, it's possible to have a buggy QEMU-supposed
-> > > +	 * emulated Q35 IOMMU and Xen enabled at the same time.  On
-> > > +	 * such a configuration, virtio has never worked and will
-> > > +	 * not work without an even larger kludge.  Instead, enable
-> > > +	 * the DMA API if we're a Xen guest, which at least allows
-> > > +	 * all of the sensible Xen configurations to work correctly.
-> > > +	 */
-> > > +	return static_cpu_has(X86_FEATURE_XENPV);
-> > 
-> > You want:
-> > 
-> >     if (xen_domain())
-> >         return true;
-> > 
-> > Without the #if so we use the DMA API for all types of Xen guest on all
-> > architectures.
-> > 
-> > David
-> 
-> I doubt HVM domains can have virtio devices.
-> 
+Hi,
+the following patchset implements a killable variant of write lock for
+rw_semaphore. My usecase is to turn as many mmap_sem write users to use
+a killable variant which will be helpful for the oom_reaper [1] to
+asynchronously tear down the oom victim address space which requires
+mmap_sem for read. This will reduce a likelihood of OOM livelocks caused
+by oom victim being stuck on a lock or other resource which prevents it
+to reach its exit path and release the memory. I haven't implemented
+the killable variant of the read lock because I do not have any usecase
+for this API.
 
-Yes, they can.
+The patchset is organized as follows.
+- Patch 1 is a trivial cleanup
+- Patch 2, I belive, shouldn't introduce any functional changes as per
+  Documentation/memory-barriers.txt.
+- Patch 3 is the preparatory work and necessary infrastructure for
+  down_write_killable. It implements generic __down_write_killable
+  and prepares the write lock slow path to bail out earlier when told so
+- Patch 4-9 are implementing arch specific __down_write_killable. One
+  patch per architecture. I haven't even tried to compile test anything but
+  sparch which uses CONFIG_RWSEM_GENERIC_SPINLOCK in allnoconfig.
+  Those shold be mostly trivial.
+- One exception is x86 which replaces the current implementation of
+  __down_write with the generic one to make easier to read and get rid
+  of one level of indirection to the slow path. More on that in patch 10.
+  I do not have any problems to drop patch 10 and rework 11 to the current
+  inline asm but I think the easier code would be better.
+- finally patch 11 implements down_write_killable and ties everything
+  together. I am not really an expert on lockdep so I hope I got it right.
 
-When virtio-pci is used virtio device is just yet another pci device
-emulated by QEMU.
+Many of arch specific patches are basically same and I can squash them
+into one patch if this is preferred but I thought that one patch per
+arch is preferable.
 
-Wei.
+My patch to change mmap_sem write users to killable form is not part
+of the series because it is not finished yet but I guess it is not
+really necessary for the RFC. The API is used in the same way as
+mutex_lock_killable.
 
-> -- 
-> MST
-> 
-> _______________________________________________
-> Xen-devel mailing list
-> Xen-devel@lists.xen.org
-> http://lists.xen.org/xen-devel
+I have tested on x86 with OOM situations with high mmap_sem contention
+(basically many parallel page faults racing with many parallel mmap/munmap
+tight loops) so the waiters for the write locks are routinely interrupted
+by SIGKILL.
+
+Patches should apply cleanly on both Linus and next tree.
+
+Any feedback is highly appreciated.
+---
+[1] http://lkml.kernel.org/r/1452094975-551-1-git-send-email-mhocko@kernel.org
+
