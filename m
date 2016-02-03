@@ -1,15 +1,15 @@
 From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 01 Feb 2016 18:00:51 +0000
-Subject: [PATCH v6 1/9] dma: Provide simple noop dma ops
-Message-Id: <6973e55a7ae955d7aaa94d143e84091c06bdd18f.1454349471.git.luto@kernel.org>
+Date: Wed, 03 Feb 2016 05:46:32 +0000
+Subject: [PATCH v7 1/9] dma: Provide simple noop dma ops
+Message-Id: <95091525af1b5a742709bb4357bb9ffdc7968dec.1454477782.git.luto@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454349471.git.luto@kernel.org>
-In-Reply-To: <cover.1454349471.git.luto@kernel.org>
+References: <cover.1454477782.git.luto@kernel.org>
+In-Reply-To: <cover.1454477782.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, David Vrabel <david.vrabel@citrix.com>, Andy Lutomirski <luto@kernel.org>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
 From: Christian Borntraeger <borntraeger@de.ibm.com>
 
@@ -19,6 +19,7 @@ no-op dma_ops that can be used for that purpose.
 
 Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Reviewed-by: Joerg Roedel <jroedel@suse.de>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
  include/linux/dma-mapping.h |  2 ++
  lib/Makefile                |  1 +
