@@ -1,105 +1,38 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Mon, 29 Feb 2016 12:58:25 +0000
-Subject: [PATCH 11/11] locking, rwsem: provide down_write_killable
-Message-Id: <1456750705-7141-12-git-send-email-mhocko@kernel.org>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 05 Feb 2016 09:06:47 +0000
+Subject: Re: Recent spontaneous reboots on multiple machines
+Message-Id: <alpine.LRH.2.20.1602051103140.5582@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+References: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
+In-Reply-To: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: sparclinux@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
+> > On (01/07/16 21:46), Meelis Roos wrote:
+> > > So far I have made sure that 4.2.0 works fine on V240 overnight with the 
+> > > following command to find any other errors too.
+> > > while true; do make clean; make -j2 || break; done
+> > 
+> > let me restart a loop with your .config on my v440 and let this run
+> > overnight, to see if I can reproduce your case.
+> 
+> Hmm. I've rebooted my v440 with a kernel built with your .config,
+> I've been able to do the above make loop for several hours now. 
 
-Now that all the architectures implement the necessary glue code
-we can introduce down_write_killable. The only difference wrt. regular
-down_write is that the slow path waits in TASK_KILLABLE state and the
-interruption by the fatal signal is reported as -EINTR to the caller.
+It's getting more strange. I ran 4.4-rc8-00005 for 2-3 weeks nonstop, 
+doing git clone and make -j4 in a loop, on both V240 and V440. Worked 
+100% stable.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- include/linux/lockdep.h | 15 +++++++++++++++
- include/linux/rwsem.h   |  1 +
- kernel/locking/rwsem.c  | 19 +++++++++++++++++++
- 3 files changed, 35 insertions(+)
+Then I git git pull from kernel.org, tried to compile 4.5-rc1 (or was it 
+rc2 already), on the same running 4.4.0-rc8-00005 and it rebooted, on 
+both V240 and V440.
 
-diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
-index d026b190c530..accfe56d8c51 100644
---- a/include/linux/lockdep.h
-+++ b/include/linux/lockdep.h
-@@ -444,6 +444,18 @@ do {								\
- 	lock_acquired(&(_lock)->dep_map, _RET_IP_);			\
- } while (0)
- 
-+#define LOCK_CONTENDED_RETURN(_lock, try, lock)			\
-+({								\
-+	int ____err = 0;					\
-+	if (!try(_lock)) {					\
-+		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
-+		____err = lock(_lock);				\
-+	}							\
-+	if (!____err)						\
-+		lock_acquired(&(_lock)->dep_map, _RET_IP_);	\
-+	____err;						\
-+})
-+
- #else /* CONFIG_LOCK_STAT */
- 
- #define lock_contended(lockdep_map, ip) do {} while (0)
-@@ -452,6 +464,9 @@ do {								\
- #define LOCK_CONTENDED(_lock, try, lock) \
- 	lock(_lock)
- 
-+#define LOCK_CONTENDED_RETURN(_lock, try, lock) \
-+	lock(_lock)
-+
- #endif /* CONFIG_LOCK_STAT */
- 
- #ifdef CONFIG_LOCKDEP
-diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
-index 7d7ae029dac5..d1c12d160ace 100644
---- a/include/linux/rwsem.h
-+++ b/include/linux/rwsem.h
-@@ -118,6 +118,7 @@ extern int down_read_trylock(struct rw_semaphore *sem);
-  * lock for writing
-  */
- extern void down_write(struct rw_semaphore *sem);
-+extern int __must_check down_write_killable(struct rw_semaphore *sem);
- 
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
-index 205be0ce34de..c817216c1615 100644
---- a/kernel/locking/rwsem.c
-+++ b/kernel/locking/rwsem.c
-@@ -55,6 +55,25 @@ void __sched down_write(struct rw_semaphore *sem)
- EXPORT_SYMBOL(down_write);
- 
- /*
-+ * lock for writing
-+ */
-+int __sched down_write_killable(struct rw_semaphore *sem)
-+{
-+	might_sleep();
-+	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
-+
-+	if (LOCK_CONTENDED_RETURN(sem, __down_write_trylock, __down_write_killable)) {
-+		rwsem_release(&sem->dep_map, 1, _RET_IP_);
-+		return -EINTR;
-+	}
-+
-+	rwsem_set_owner(sem);
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL(down_write_killable);
-+
-+/*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
- int down_write_trylock(struct rw_semaphore *sem)
+I also saw a spontaneous reboot on E450 with 4.4.0-rc5-00008. Did not 
+try continuous building on E450.
+
+I'm quite stumped in trying to reproduce that...
+
 -- 
-2.7.0
-
+Meelis Roos (mroos@linux.ee)
