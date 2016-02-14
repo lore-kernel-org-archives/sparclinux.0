@@ -1,7 +1,7 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Fri, 05 Feb 2016 09:06:47 +0000
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Sun, 14 Feb 2016 10:51:31 +0000
 Subject: Re: Recent spontaneous reboots on multiple machines
-Message-Id: <alpine.LRH.2.20.1602051103140.5582@math.ut.ee>
+Message-Id: <20160214105131.GD20715@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
 In-Reply-To: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
@@ -10,29 +10,24 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> > On (01/07/16 21:46), Meelis Roos wrote:
-> > > So far I have made sure that 4.2.0 works fine on V240 overnight with the 
-> > > following command to find any other errors too.
-> > > while true; do make clean; make -j2 || break; done
-> > 
-> > let me restart a loop with your .config on my v440 and let this run
-> > overnight, to see if I can reproduce your case.
+On (02/05/16 11:06), Meelis Roos wrote:
+> It's getting more strange. I ran 4.4-rc8-00005 for 2-3 weeks nonstop, 
+> doing git clone and make -j4 in a loop, on both V240 and V440. Worked 
+> 100% stable.
 > 
-> Hmm. I've rebooted my v440 with a kernel built with your .config,
-> I've been able to do the above make loop for several hours now. 
+> Then I git git pull from kernel.org, tried to compile 4.5-rc1 (or was it 
+> rc2 already), on the same running 4.4.0-rc8-00005 and it rebooted, on 
+> both V240 and V440.
 
-It's getting more strange. I ran 4.4-rc8-00005 for 2-3 weeks nonstop, 
-doing git clone and make -j4 in a loop, on both V240 and V440. Worked 
-100% stable.
+sorry for not getting back sooner - was on the road, and will be
+mostly offline again next week. But the symptoms sound like there 
+might be a memory and/or compiler issue. I'm not sure how to check this
+theory out.. maybe someone else with more expertise in this space
+can check?
 
-Then I git git pull from kernel.org, tried to compile 4.5-rc1 (or was it 
-rc2 already), on the same running 4.4.0-rc8-00005 and it rebooted, on 
-both V240 and V440.
+If not, I can come back and try this out in a week- will take
+some extra config/pkg-installation in my test machine to get around
+firewalls etc and run git directly from the sunfire.
 
-I also saw a spontaneous reboot on E450 with 4.4.0-rc5-00008. Did not 
-try continuous building on E450.
+--Sowmini
 
-I'm quite stumped in trying to reproduce that...
-
--- 
-Meelis Roos (mroos@linux.ee)
