@@ -1,31 +1,78 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Thu, 04 Feb 2016 17:49:22 +0000
-Subject: Re: [PATCH v7 9/9] vring: Use the DMA API on Xen
-Message-Id: <CALCETrXs_2dhuBMo=oMDHF7W+QpVW5haj+audrZZo+f6sZJyNA@mail.gmail.com>
+From: Ilya Malakhov <ilmalakhovthefirst@gmail.com>
+Date: Mon, 15 Feb 2016 09:21:51 +0000
+Subject: Invalid SIGSEGV from sparc64_set_context ()
+Message-Id: <CAK1sNPDEk0x4mdOfma97EyAkiBAuKc10dC-hhqb3XWSkWw=SZw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454477782.git.luto@kernel.org>
-	<a5b072806984a0fceb4f4d33cbeb1cea7d881e8b.1454477782.git.luto@kernel.org>
-	<56B1CD18.1050509@citrix.com>
-In-Reply-To: <56B1CD18.1050509@citrix.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Vrabel <david.vrabel@citrix.com>
-Cc: linux-s390 <linux-s390@vger.kernel.org>, Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Andy Lutomirski <luto@kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: sparclinux@vger.kernel.org
 
-On Wed, Feb 3, 2016 at 1:49 AM, David Vrabel <david.vrabel@citrix.com> wrote:
-> On 03/02/16 05:46, Andy Lutomirski wrote:
->> Signed-off-by: Andy Lutomirski <luto@kernel.org>
->
-> You forgot the previous Reviewed-by tags.
+ Hi.
 
-Whoops.  If I send another version, they'll be there.
-
->
-> David
+ There seems to be a rather transparent bug in `sparc64_set_context ()':
 
 
+$ cat ./arch/sparc/kernel/signal_64.c
+. . .
+asmlinkage void sparc64_set_context(struct pt_regs *regs)
+{
+. . .
+        flush_user_windows();
+        if (get_thread_wsaved()                    ||
+. . .
+           )
+                goto do_sigsegv;
+. . .
 
--- 
-Andy Lutomirski
-AMA Capital Management, LLC
+ It would make a process get an invalid SIGSEGV if, for a example, a
+"fast_data_access" exception were to happen while spilling window registers
+to a previously untouched page of the stack. I wonder if `synchronize_user
+_stack ()' should be used in place of `flush_user_windows ()' here to ensure
+that the registers are actually spilled to memory and thus successfully proceed
+with setcontext.
+
+ The situation described above is sure to happen when running the following
+64-bit test (note the use of `-static' to prevent the window registers in `f ()'
+from being occasionally flushed while resolving a reference to `longjmp ()'
+lazily at runtime):
+
+$ sparc64-linux-gcc -m64 ./test.c -o ./test.64 -static
+
+sparc64 $ ./test.64
+Segmentation fault
+
+$ cat ./test.c
+
+#include <setjmp.h>
+
+static jmp_buf env;
+static int f (int) __attribute__ ((noinline));
+
+static int
+f (int j)
+{
+  volatile char arr[8192];
+
+  if (j != 0)
+    longjmp (env, 17);
+
+  arr[0] = 0;
+  return arr[0];
+}
+
+int jmp = 1;
+
+int
+main ()
+{
+  int res;
+
+  res = setjmp (env);
+  if (res = 0)
+    return  f (jmp);
+  else if (res != 17)
+    return 1;
+
+  return 0;
+}
