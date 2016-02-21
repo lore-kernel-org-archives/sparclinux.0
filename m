@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 21 Feb 2016 20:13:24 +0000
+Date: Sun, 21 Feb 2016 20:14:45 +0000
 Subject: Re: Kernels 4.+ are breaking rsync?
-Message-Id: <20160221201324.GA24601@ravnborg.org>
+Message-Id: <20160221201445.GB24601@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <56C11585.3060503@triadic.us>
 In-Reply-To: <56C11585.3060503@triadic.us>
@@ -9,6 +9,8 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+Added Al Viro, as author of the commit git bisect pointed out.
 
 On Sun, Feb 21, 2016 at 01:52:55PM -0500, Alex McWhirter wrote:
 > On 02/14/2016 07:02 PM, Alex McWhirter wrote:
@@ -45,9 +47,40 @@ On Sun, Feb 21, 2016 at 01:52:55PM -0500, Alex McWhirter wrote:
 > 
 > e5a4b0bb803b39a36478451eae53a880d2663d5b is the first bad commit
 > commit e5a4b0bb803b39a36478451eae53a880d2663d5b
-Well done!
-
-Did you try to revert the offending commit on top of a faulty
-kernel, just to double check this is the guilty commit?
-
-	Sam
+> Author: Al Viro <viro@zeniv.linux.org.uk>
+> Date:   Mon Nov 24 18:17:55 2014 -0500
+> 
+>     switch memcpy_to_msg() and skb_copy{,_and_csum}_datagram_msg() to
+> primitives
+>    
+>     ... making both non-draining.  That means that tcp_recvmsg() becomes
+>     non-draining.  And _that_ would break iscsit_do_rx_data() unless we
+>         a) make sure tcp_recvmsg() is uniformly non-draining (it is)
+>         b) make sure it copes with arbitrary (including shifted)
+>     iov_iter (it does, all it uses is iov_iter primitives)
+>         c) make iscsit_do_rx_data() initialize ->msg_iter only once.
+>    
+>     Fortunately, (c) is doable with minimal work and we are rid of one
+>     the two places where kernel send/recvmsg users would be unhappy with
+>     non-draining behaviour.
+>    
+>     Actually, that makes all but one of ->recvmsg() instances
+> iov_iter-clean.
+>     The exception is skcipher_recvmsg() and it also isn't hard to convert
+>     to primitives (iov_iter_get_pages() is needed there).  That'll wait
+>     a bit - there's some interplay with ->sendmsg() path for that one.
+>    
+>     Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+> 
+> :040000 040000 b4d6852e73bd3d54a30b72441c8e35f79dc07266
+> f0b90ef68ee891b38decf571247002c1d7fad519 M      drivers
+> :040000 040000 8ba2fadf14c05a86a7c21448dac52fed661a2e12
+> 0051ec4b6f273dbaed2bed21e4fddd48664d5afa M      include
+> :040000 040000 d28e72369891521f7d853b30612a32cf65a27f6b
+> b828e68082a6fed2cf240aad4b365c5808928122 M      net
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
