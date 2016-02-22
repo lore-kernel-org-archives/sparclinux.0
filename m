@@ -1,210 +1,119 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Date: Thu, 25 Feb 2016 00:02:07 +0000
-Subject: [PATCH 1/2] topology, cleanup: Avoid redefinition of cpumask_of_pcibus in asm header files.
-Message-Id: <1456358528-24213-2-git-send-email-ddaney.cavm@gmail.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 22 Feb 2016 03:13:12 +0000
+Subject: [PATCH 3/3] drivers/video: make fbdev/sunxvr2500.c explicitly non-modular
+Message-Id: <1456110792-21771-4-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
-In-Reply-To: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
+References: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s39
-Cc: linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, David Daney <david.daney@cavium.com>
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+The Kconfig currently controlling compilation of this code is:
 
-At present cpumask_of_pcibus is defined for !CONFIG_NUMA and moving out
-to common will allow to use for numa too. This also avoids
-redefinition of this macro in respective architecture header files.
+config FB_XVR2500
+        bool "Sun XVR-2500 3DLABS Wildcat support"
 
-Reviewed-by: Robert Richter <rrichter@cavium.com>
-Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-Signed-off-by: David Daney <david.daney@cavium.com>
+...meaning that it currently is not being built as a module by anyone.
+Lets remove the modular code that is essentially orphaned, so that
+when reading the driver there is no doubt it is builtin-only.
+
+Since module_init translates to device_initcall in the non-modular
+case, the init ordering remains unchanged with this commit.
+
+We explicitly disallow a driver unbind, since that doesn't have a
+sensible use case anyway, and it allows us to drop the ".remove"
+code for non-modular drivers.
+
+We don't replace module.h with init.h since the file already has that.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+was (or is now) contained at the top of the file in the comments.
+
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- arch/arm64/include/asm/topology.h   | 3 ---
- arch/ia64/include/asm/topology.h    | 4 ----
- arch/metag/include/asm/topology.h   | 3 ---
- arch/powerpc/include/asm/topology.h | 4 ----
- arch/s390/include/asm/pci.h         | 2 +-
- arch/s390/include/asm/topology.h    | 1 +
- arch/sh/include/asm/topology.h      | 3 ---
- arch/tile/include/asm/pci.h         | 2 --
- arch/tile/include/asm/topology.h    | 3 +++
- arch/x86/include/asm/pci.h          | 2 +-
- arch/x86/include/asm/topology.h     | 1 +
- include/asm-generic/topology.h      | 4 ++--
- 12 files changed, 9 insertions(+), 23 deletions(-)
+ drivers/video/fbdev/sunxvr2500.c | 39 +++++++--------------------------------
+ 1 file changed, 7 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
-index 8b57339..6e1f62c 100644
---- a/arch/arm64/include/asm/topology.h
-+++ b/arch/arm64/include/asm/topology.h
-@@ -26,9 +26,6 @@ const struct cpumask *cpu_coregroup_mask(int cpu);
+diff --git a/drivers/video/fbdev/sunxvr2500.c b/drivers/video/fbdev/sunxvr2500.c
+index 843b6bab0483..1a053292f2eb 100644
+--- a/drivers/video/fbdev/sunxvr2500.c
++++ b/drivers/video/fbdev/sunxvr2500.c
+@@ -1,9 +1,10 @@
+-/* s3d.c: Sun 3DLABS XVR-2500 et al. driver for sparc64 systems
++/* sunxvr2500.c: Sun 3DLABS XVR-2500 et al. fb driver for sparc64 systems
++ *
++ * License: GPL
+  *
+  * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
+  */
  
- struct pci_bus;
- int pcibus_to_node(struct pci_bus *bus);
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ?		\
--				 cpu_all_mask :				\
--				 cpumask_of_node(pcibus_to_node(bus)))
+-#include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fb.h>
+ #include <linux/pci.h>
+@@ -219,22 +220,6 @@ err_out:
+ 	return err;
+ }
  
- #endif /* CONFIG_NUMA */
- 
-diff --git a/arch/ia64/include/asm/topology.h b/arch/ia64/include/asm/topology.h
-index 3ad8f69..2778eb6 100644
---- a/arch/ia64/include/asm/topology.h
-+++ b/arch/ia64/include/asm/topology.h
-@@ -58,10 +58,6 @@ void build_cpu_to_node_map(void);
- 
- extern void arch_fix_phys_package_id(int num, u32 slot);
- 
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ?		\
--				 cpu_all_mask :				\
--				 cpumask_of_node(pcibus_to_node(bus)))
+-static void s3d_pci_unregister(struct pci_dev *pdev)
+-{
+-	struct fb_info *info = pci_get_drvdata(pdev);
+-	struct s3d_info *sp = info->par;
 -
- #include <asm-generic/topology.h>
- 
- #endif /* _ASM_IA64_TOPOLOGY_H */
-diff --git a/arch/metag/include/asm/topology.h b/arch/metag/include/asm/topology.h
-index e95f874..b285196 100644
---- a/arch/metag/include/asm/topology.h
-+++ b/arch/metag/include/asm/topology.h
-@@ -9,9 +9,6 @@
- #define cpumask_of_node(node)	((void)node, cpu_online_mask)
- 
- #define pcibus_to_node(bus)	((void)(bus), -1)
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ? \
--					cpu_all_mask : \
--					cpumask_of_node(pcibus_to_node(bus)))
- 
- #endif
- 
-diff --git a/arch/powerpc/include/asm/topology.h b/arch/powerpc/include/asm/topology.h
-index 8b3b46b..eee025d 100644
---- a/arch/powerpc/include/asm/topology.h
-+++ b/arch/powerpc/include/asm/topology.h
-@@ -32,10 +32,6 @@ static inline int pcibus_to_node(struct pci_bus *bus)
- }
- #endif
- 
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ?		\
--				 cpu_all_mask :				\
--				 cpumask_of_node(pcibus_to_node(bus)))
+-	unregister_framebuffer(info);
 -
- extern int __node_distance(int, int);
- #define node_distance(a, b) __node_distance(a, b)
- 
-diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
-index c873e68..539fb2d 100644
---- a/arch/s390/include/asm/pci.h
-+++ b/arch/s390/include/asm/pci.h
-@@ -205,7 +205,7 @@ static inline int __pcibus_to_node(const struct pci_bus *bus)
- }
- 
- static inline const struct cpumask *
--cpumask_of_pcibus(const struct pci_bus *bus)
-+__cpumask_of_pcibus(const struct pci_bus *bus)
- {
- 	return cpu_online_mask;
- }
-diff --git a/arch/s390/include/asm/topology.h b/arch/s390/include/asm/topology.h
-index 6b53962..ac2f88f 100644
---- a/arch/s390/include/asm/topology.h
-+++ b/arch/s390/include/asm/topology.h
-@@ -78,6 +78,7 @@ static inline const struct cpumask *cpumask_of_node(int node)
- #define parent_node(node) (node)
- 
- #define pcibus_to_node(bus) __pcibus_to_node(bus)
-+#define cpumask_of_pcibus(bus) __cpumask_of_pcibus(bus)
- 
- #define node_distance(a, b) __node_distance(a, b)
- 
-diff --git a/arch/sh/include/asm/topology.h b/arch/sh/include/asm/topology.h
-index b0a282d..357983d 100644
---- a/arch/sh/include/asm/topology.h
-+++ b/arch/sh/include/asm/topology.h
-@@ -9,9 +9,6 @@
- #define cpumask_of_node(node)	((void)node, cpu_online_mask)
- 
- #define pcibus_to_node(bus)	((void)(bus), -1)
--#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ? \
--					cpu_all_mask : \
--					cpumask_of_node(pcibus_to_node(bus)))
- 
- #endif
- 
-diff --git a/arch/tile/include/asm/pci.h b/arch/tile/include/asm/pci.h
-index dfedd7a..473ed46 100644
---- a/arch/tile/include/asm/pci.h
-+++ b/arch/tile/include/asm/pci.h
-@@ -223,8 +223,6 @@ static inline int pcibios_assign_all_busses(void)
- /* Minimum PCI I/O address, starting at the page boundary. */
- #define PCIBIOS_MIN_IO		PAGE_SIZE
- 
--/* Use any cpu for PCI. */
--#define cpumask_of_pcibus(bus) cpu_online_mask
- 
- /* implement the pci_ DMA API in terms of the generic device dma_ one */
- #include <asm-generic/pci-dma-compat.h>
-diff --git a/arch/tile/include/asm/topology.h b/arch/tile/include/asm/topology.h
-index b11d5fc..9770b86 100644
---- a/arch/tile/include/asm/topology.h
-+++ b/arch/tile/include/asm/topology.h
-@@ -46,6 +46,9 @@ static inline const struct cpumask *cpumask_of_node(int node)
- 
- #endif /* CONFIG_NUMA */
- 
-+/* Use any cpu for PCI. */
-+#define cpumask_of_pcibus(bus) cpu_online_mask
-+
- #include <asm-generic/topology.h>
- 
- #ifdef CONFIG_SMP
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index 4625943..4a6f358 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -121,7 +121,7 @@ static inline int __pcibus_to_node(const struct pci_bus *bus)
- }
- 
- static inline const struct cpumask *
--cpumask_of_pcibus(const struct pci_bus *bus)
-+__cpumask_of_pcibus(const struct pci_bus *bus)
- {
- 	int node;
- 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 0fb4648..980f6ee 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -91,6 +91,7 @@ extern void setup_node_to_cpumask_map(void);
- #define parent_node(node) (node)
- 
- #define pcibus_to_node(bus) __pcibus_to_node(bus)
-+#define cpumask_of_pcibus(bus) __cpumask_of_pcibus(bus)
- 
- extern int __node_distance(int, int);
- #define node_distance(a, b) __node_distance(a, b)
-diff --git a/include/asm-generic/topology.h b/include/asm-generic/topology.h
-index fc824e2..ee305f1 100644
---- a/include/asm-generic/topology.h
-+++ b/include/asm-generic/topology.h
-@@ -54,14 +54,14 @@
- #define pcibus_to_node(bus)	((void)(bus), -1)
- #endif
- 
-+#endif	/* !CONFIG_NUMA */
-+
- #ifndef cpumask_of_pcibus
- #define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ?		\
- 				 cpu_all_mask :				\
- 				 cpumask_of_node(pcibus_to_node(bus)))
- #endif
- 
--#endif	/* CONFIG_NUMA */
+-	iounmap(sp->fb_base);
 -
- #if !defined(CONFIG_NUMA) || !defined(CONFIG_HAVE_MEMORYLESS_NODES)
+-	pci_release_region(pdev, 1);
+-
+-        framebuffer_release(info);
+-
+-	pci_disable_device(pdev);
+-}
+-
+ static struct pci_device_id s3d_pci_table[] = {
+ 	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002c),	},
+ 	{	PCI_DEVICE(PCI_VENDOR_ID_3DLABS, 0x002d),	},
+@@ -248,10 +233,12 @@ static struct pci_device_id s3d_pci_table[] = {
+ };
  
- #ifndef set_numa_mem
+ static struct pci_driver s3d_driver = {
++	.driver = {
++		.suppress_bind_attrs = true,
++	},
+ 	.name		= "s3d",
+ 	.id_table	= s3d_pci_table,
+ 	.probe		= s3d_pci_register,
+-	.remove		= s3d_pci_unregister,
+ };
+ 
+ static int __init s3d_init(void)
+@@ -261,16 +248,4 @@ static int __init s3d_init(void)
+ 
+ 	return pci_register_driver(&s3d_driver);
+ }
+-
+-static void __exit s3d_exit(void)
+-{
+-	pci_unregister_driver(&s3d_driver);
+-}
+-
+-module_init(s3d_init);
+-module_exit(s3d_exit);
+-
+-MODULE_DESCRIPTION("framebuffer driver for Sun XVR-2500 graphics");
+-MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
+-MODULE_VERSION("1.0");
+-MODULE_LICENSE("GPL");
++device_initcall(s3d_init);
 -- 
-1.8.3.1
+2.6.1
 
