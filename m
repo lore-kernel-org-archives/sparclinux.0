@@ -1,60 +1,123 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Date: Wed, 03 Feb 2016 17:53:39 +0000
-Subject: Re: [PATCH v7 5/9] virtio_ring: Support DMA APIs
-Message-Id: <CALCETrWXPEMTTTD3raO6uOF+WG+msszRXQY5QMhBf+UwF5kArw@mail.gmail.com>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 22 Feb 2016 03:13:11 +0000
+Subject: [PATCH 2/3] drivers/video: make fbdev/sunxvr1000.c explicitly non-modular
+Message-Id: <1456110792-21771-3-git-send-email-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454477782.git.luto@kernel.org> <a6c1a2d0b3ea60bfb27c810896179bd553e7e240.1454477782.git.luto@kernel.org>
- <20160203154633-mutt-send-email-mst@redhat.com>
-In-Reply-To: <20160203154633-mutt-send-email-mst@redhat.com>
+References: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
+In-Reply-To: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, David Woodhouse <dwmw2@infradead.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "David S. Miller" <davem@davemloft.net>, linux-s390 <linux-s390@vger.kernel.org>, David Vrabel <david.vrabel@citrix.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Christoph Hellwig <hch@lst.de>, Linux Virtualization <virtualization@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Feb 3, 2016 5:52 AM, "Michael S. Tsirkin" <mst@redhat.com> wrote:
->
-> On Tue, Feb 02, 2016 at 09:46:36PM -0800, Andy Lutomirski wrote:
-> > virtio_ring currently sends the device (usually a hypervisor)
-> > physical addresses of its I/O buffers.  This is okay when DMA
-> > addresses and physical addresses are the same thing, but this isn't
-> > always the case.  For example, this never works on Xen guests, and
-> > it is likely to fail if a physical "virtio" device ever ends up
-> > behind an IOMMU or swiotlb.
-> >
-> > The immediate use case for me is to enable virtio on Xen guests.
-> > For that to work, we need vring to support DMA address translation
-> > as well as a corresponding change to virtio_pci or to another
-> > driver.
-> >
-> > Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> > ---
-> >  drivers/virtio/Kconfig           |   2 +-
-> >  drivers/virtio/virtio_ring.c     | 200 ++++++++++++++++++++++++++++++++-------
-> >  tools/virtio/linux/dma-mapping.h |  17 ++++
-> >  3 files changed, 183 insertions(+), 36 deletions(-)
-> >  create mode 100644 tools/virtio/linux/dma-mapping.h
-> >
-> > diff --git a/drivers/virtio/Kconfig b/drivers/virtio/Kconfig
-> > index cab9f3f63a38..77590320d44c 100644
-> > --- a/drivers/virtio/Kconfig
-> > +++ b/drivers/virtio/Kconfig
-> > @@ -60,7 +60,7 @@ config VIRTIO_INPUT
-> >
-> >   config VIRTIO_MMIO
-> >       tristate "Platform bus driver for memory mapped virtio devices"
-> > -     depends on HAS_IOMEM
-> > +     depends on HAS_IOMEM && HAS_DMA
-> >       select VIRTIO
-> >       ---help---
-> >        This drivers provides support for memory mapped virtio
->
-> What's this chunk doing here btw? Should be part of the mmio patch?
->
+The Kconfig currently controlling compilation of this code is:
 
-IIRC it was deliberate.  Making virtio depend on HAS_DMA didn't work
-right because kconfig doesn't propagate dependencies through select
-intelligently.  This patch makes core virtio depend on HAS_DMA, so I
-added the dependency here, too.
+config FB_XVR1000
+        bool "Sun XVR-1000 support"
 
---Andy
+...meaning that it currently is not being built as a module by anyone.
+Lets remove the modular code that is essentially orphaned, so that
+when reading the driver there is no doubt it is builtin-only.
+
+Since module_init translates to device_initcall in the non-modular
+case, the init ordering remains unchanged with this commit.
+
+We explicitly disallow a driver unbind, since that doesn't have a
+sensible use case anyway, and it allows us to drop the ".remove"
+code for non-modular drivers.
+
+We don't replace module.h with init.h since the file already has that.
+Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
+
+We also delete the MODULE_LICENSE tag etc. since all that information
+was (or is now) contained at the top of the file in the comments.
+
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+---
+ drivers/video/fbdev/sunxvr1000.c | 42 +++++++---------------------------------
+ 1 file changed, 7 insertions(+), 35 deletions(-)
+
+diff --git a/drivers/video/fbdev/sunxvr1000.c b/drivers/video/fbdev/sunxvr1000.c
+index 08879bdfad35..fb37f6e05391 100644
+--- a/drivers/video/fbdev/sunxvr1000.c
++++ b/drivers/video/fbdev/sunxvr1000.c
+@@ -1,9 +1,10 @@
+-/* sunxvr1000.c: Sun XVR-1000 driver for sparc64 systems
++/* sunxvr1000.c: Sun XVR-1000 fb driver for sparc64 systems
++ *
++ * License: GPL
+  *
+  * Copyright (C) 2010 David S. Miller (davem@davemloft.net)
+  */
+ 
+-#include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fb.h>
+ #include <linux/init.h>
+@@ -173,36 +174,19 @@ err_out:
+ 	return err;
+ }
+ 
+-static int gfb_remove(struct platform_device *op)
+-{
+-	struct fb_info *info = dev_get_drvdata(&op->dev);
+-	struct gfb_info *gp = info->par;
+-
+-	unregister_framebuffer(info);
+-
+-	iounmap(gp->fb_base);
+-
+-	of_iounmap(&op->resource[6], gp->fb_base, gp->fb_size);
+-
+-        framebuffer_release(info);
+-
+-	return 0;
+-}
+-
+ static const struct of_device_id gfb_match[] = {
+ 	{
+ 		.name = "SUNW,gfb",
+ 	},
+ 	{},
+ };
+-MODULE_DEVICE_TABLE(of, ffb_match);
+ 
+ static struct platform_driver gfb_driver = {
+ 	.probe		= gfb_probe,
+-	.remove		= gfb_remove,
+ 	.driver = {
+-		.name		= "gfb",
+-		.of_match_table	= gfb_match,
++		.name			= "gfb",
++		.of_match_table		= gfb_match,
++		.suppress_bind_attrs	= true,
+ 	},
+ };
+ 
+@@ -213,16 +197,4 @@ static int __init gfb_init(void)
+ 
+ 	return platform_driver_register(&gfb_driver);
+ }
+-
+-static void __exit gfb_exit(void)
+-{
+-	platform_driver_unregister(&gfb_driver);
+-}
+-
+-module_init(gfb_init);
+-module_exit(gfb_exit);
+-
+-MODULE_DESCRIPTION("framebuffer driver for Sun XVR-1000 graphics");
+-MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
+-MODULE_VERSION("1.0");
+-MODULE_LICENSE("GPL");
++device_initcall(gfb_init);
+-- 
+2.6.1
+
