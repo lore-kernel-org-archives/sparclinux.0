@@ -1,38 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Feb 2016 23:05:31 +0000
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 23 Feb 2016 23:59:46 +0000
 Subject: Re: Invalid sk_policy[] access
-Message-Id: <20160223.180531.2065639746334843320.davem@davemloft.net>
+Message-Id: <20160223235946.GE4941@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160223202901.GC4941@oracle.com>
-	<alpine.LRH.2.20.1602232250000.30129@math.ut.ee>
-	<20160223205329.GD4941@oracle.com>
-In-Reply-To: <20160223205329.GD4941@oracle.com>
+References: <20160223.152045.440181358695767083.davem@davemloft.net>
+ <20160223202901.GC4941@oracle.com>
+ <alpine.LRH.2.20.1602232250000.30129@math.ut.ee>
+ <20160223.175901.15624631458340642.davem@davemloft.net>
+In-Reply-To: <20160223.175901.15624631458340642.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sowmini.varadhan@oracle.com
+To: David Miller <davem@davemloft.net>
 Cc: mroos@linux.ee, sparclinux@vger.kernel.org, edumazet@google.com, netdev@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Tue, 23 Feb 2016 15:53:29 -0500
-
-> On (02/23/16 22:51), mroos@linux.ee wrote:
->> Since there are no config-dependent difference in the struct, maybe it's 
->> a compiler version difference for padding/optimization instead?
+> > Since there are no config-dependent difference in the struct, maybe it's 
+> > a compiler version difference for padding/optimization instead?
 > 
-> possibly. The v440 is using  a Debian 4.6.3-14 gcc, while the
-> T5 is using "4.4.7 20120313 (Red Hat 4.4.7-4)"
+> Changing the layout of a structure would break ABI, so unlikely.
 > 
-> But my question from the email remains. Unless I am missing
-> something subtle in the code, a  struct request_sock and a 
-> struct sock only have the sock_common part in common. So casting
-> a request_sock as a struct sock may have issues?
+> I've never used crash, so I have no idea where it gets it's
+> information from nor how it interprets it.
 
-Of course it can have issues and contextually we have to be careful
-about what the code can assume about that casted 'sk' object.
+fwiw, I applied the exact same printk to the T5, namely,
 
-Your report looks legit and I was hoping Eric would chime in here with
-an analysis.
+                printk(KERN_INFO "sizeof sock %ld \n"
+                        "sizeof request_sock %ld\n"
+                        "sizeof inet_request_sock %ld\n"
+                        "offsetof sk_policy 1 %ld\n",
+                        sizeof (struct sock), sizeof (struct request_sock),
+                        sizeof (struct inet_request_sock),
+                        offsetof(struct sock, sk_policy[1]));
 
-Eric, we can't access sk->sk_policy[] on a request sock.  I guess we'll
-have to use the sk->sk_policy[] of the parent?
+and got this:
+
+   sizeof sock 1216 
+   sizeof request_sock 312
+   sizeof inet_request_sock 328
+   offsetof sk_policy 1 520
+
+So it's good to know that crash does not lie.
+
+But then it's odd that the struct sizes (esp of things like 
+request_sock, which are not config dependant) are not the same.
+
+--Sowmini
+
