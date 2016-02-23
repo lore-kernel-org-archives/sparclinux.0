@@ -1,7 +1,7 @@
 From: mroos@linux.ee
-Date: Tue, 23 Feb 2016 20:37:13 +0000
+Date: Tue, 23 Feb 2016 20:51:01 +0000
 Subject: Re: Invalid sk_policy[] access
-Message-Id: <alpine.LRH.2.20.1602232236080.30129@math.ut.ee>
+Message-Id: <alpine.LRH.2.20.1602232250000.30129@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160222010201.GB23053@oracle.com> <20160223121244.GI28756@oracle.com> <alpine.LRH.2.20.1602232132190.30129@math.ut.ee> <20160223.152045.440181358695767083.davem@davemloft.net> <20160223202901.GC4941@oracle.com>
 In-Reply-To: <20160223202901.GC4941@oracle.com>
@@ -17,13 +17,9 @@ Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, edumazet@goo
 > hang on; The sizeof (and offsetof) values I listed were obtained either
 > from /usr/bin/crash (on the T5) or from simple printk's of the structures
 > in the case of the v440. And they *are* different, and the numbers
-> match the values dumped on the console on pnaic. So isnt there actually
-> a problem here?
 
-There certianly seems to be a problem - that's how you ended up looking 
-under that rock.
-
-Maybe the offsets are different because of different kernel config?
+Since there are no config-dependent difference in the struct, maybe it's 
+a compiler version difference for padding/optimization instead?
 
 -- 
 Meelis Roos (mroos@linux.ee)
