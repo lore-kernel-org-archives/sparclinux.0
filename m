@@ -1,63 +1,45 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Tue, 23 Feb 2016 12:12:44 +0000
-Subject: Invalid sk_policy[] access (was Re: Recent spontaneous reboots on multiple machines)
-Message-Id: <20160223121244.GI28756@oracle.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 23 Feb 2016 19:36:24 +0000
+Subject: Re: Invalid sk_policy[] access (was Re: Recent spontaneous reboots on multiple machines)
+Message-Id: <alpine.LRH.2.20.1602232132190.30129@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee>
- <alpine.LRH.2.20.1601061722190.27880@math.ut.ee>
- <20160107174105.GD23579@oracle.com>
- <alpine.LRH.2.20.1601072133480.29795@math.ut.ee>
- <20160107201445.GF23579@oracle.com>
- <20160108172022.GA3398@oracle.com>
- <alpine.LRH.2.20.1602051103140.5582@math.ut.ee>
- <20160214105131.GD20715@oracle.com>
- <alpine.LRH.2.20.1602150751180.29662@math.ut.ee>
- <20160222010201.GB23053@oracle.com>
-In-Reply-To: <20160222010201.GB23053@oracle.com>
+References: <alpine.LRH.2.20.1601061716510.27880@math.ut.ee> <alpine.LRH.2.20.1601061722190.27880@math.ut.ee> <20160107174105.GD23579@oracle.com> <alpine.LRH.2.20.1601072133480.29795@math.ut.ee> <20160107201445.GF23579@oracle.com> <20160108172022.GA3398@oracle.com>
+ <alpine.LRH.2.20.1602051103140.5582@math.ut.ee> <20160214105131.GD20715@oracle.com> <alpine.LRH.2.20.1602150751180.29662@math.ut.ee> <20160222010201.GB23053@oracle.com> <20160223121244.GI28756@oracle.com>
+In-Reply-To: <20160223121244.GI28756@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
+To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 Cc: sparclinux@vger.kernel.org, edumazet@google.com, netdev@vger.kernel.org
 
+> I figured out what's the root-cause of my panics.
 
-I figured out what's the root-cause of my panics.
+Great!
 
-In my case, for the stack shown in 
- http://marc.info/?l=linux-sparc&m5610295109214&w=2
-(which also has all the details about the issue),
+>   sizeof             32-bit        64-bit
+> -------------------------------------------
+> request_sock          256           312
+> inet_request_sock     272           328
+> sock                  688          1216
+> 
+> And offsetof sk_policy[1] is 256 on the 32-bit v440, whereas
+> it is 520 on my 64-bit T5. 
 
-tcp_make_synack has been called with attach_req set to true
-so it sets up the skb->sk via:
+Sorry, I do not understand - what is 32-bit on V440? The kernel should 
+be 64-bit since it's sun4u.
 
-        if (attach_req) {
-                skb_set_owner_w(skb, req_to_sk(req));
-        } else { /* .. */
+> so how is this supposed to work? (Evidently it worked for Meelis
+> before, but I dont know if that was before or after  commit
+> 9e17f8a475).
 
-Now, req is a struct inet_request_sock, and we are casting this
-as a struct sock, to later get the ->sk_policy[1] in the xfrm
-code. Consider the sizes of these structures between 32 and 64 bits:
+It might be related to my problem, yes (I have different kernel configs 
+on different machines and the XFRM settings are varying at least). 
 
-  sizeof             32-bit        64-bit
--------------------------------------------
-request_sock          256           312
-inet_request_sock     272           328
-sock                  688          1216
+However, I have not succeeded in reproducing the problem at will - git 
+checkout of another release + subsequent compile still does not trigger 
+it. But if it is the same problem, it seems to go int triple fault or 
+something similar for me to cause it reboot with no trace in the 
+console.
 
-And offsetof sk_policy[1] is 256 on the 32-bit v440, whereas
-it is 520 on my 64-bit T5. 
-
-Thus on the v440, the sk_policy[1] is pointing at somewhere
-in the middle of stuff set up by tcp_openreq_init() (the ireq
-flags initialization).
-
-Even on the 64-bit arch, trying to do req_to_sk(req) and accessing
-fields beyond the sock_common, e.g., between offset 312 and 328 
-may not give you the fields you are looking for? 
-
-so how is this supposed to work? (Evidently it worked for Meelis
-before, but I dont know if that was before or after  commit
-9e17f8a475).
-
---Sowmini
-
+-- 
+Meelis Roos (mroos@linux.ee)
