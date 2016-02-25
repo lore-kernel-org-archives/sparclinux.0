@@ -1,91 +1,63 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Mon, 01 Feb 2016 18:00:52 +0000
-Subject: [PATCH v6 2/9] alpha/dma: use common noop dma ops
-Message-Id: <e7bf04abe8495e1e0964fbb318791bad96f84b7b.1454349471.git.luto@kernel.org>
+From: David Daney <ddaney.cavm@gmail.com>
+Date: Thu, 25 Feb 2016 00:02:06 +0000
+Subject: [PATCH 0/2] NUMA related header file cleanups.
+Message-Id: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454349471.git.luto@kernel.org>
-In-Reply-To: <cover.1454349471.git.luto@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org
+To: Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s39
+Cc: linux-kernel@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+From: David Daney <david.daney@cavium.com>
 
-Some of the alpha pci noop dma ops are identical to the common ones.
-Use them.
+Refactor many architectures' cpumask_of_pcibus and NODE_DATA definitions
+by moving them to asm-generic.
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Reviewed-by: Joerg Roedel <jroedel@suse.de>
----
- arch/alpha/kernel/pci-noop.c | 46 ++++----------------------------------------
- 1 file changed, 4 insertions(+), 42 deletions(-)
+Tested on arm64.
 
-diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
-index 2b1f4a1e9272..8e735b5e56bd 100644
---- a/arch/alpha/kernel/pci-noop.c
-+++ b/arch/alpha/kernel/pci-noop.c
-@@ -123,44 +123,6 @@ static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
- 	return ret;
- }
- 
--static void alpha_noop_free_coherent(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_addr,
--				     struct dma_attrs *attrs)
--{
--	free_pages((unsigned long)cpu_addr, get_order(size));
--}
--
--static dma_addr_t alpha_noop_map_page(struct device *dev, struct page *page,
--				      unsigned long offset, size_t size,
--				      enum dma_data_direction dir,
--				      struct dma_attrs *attrs)
--{
--	return page_to_pa(page) + offset;
--}
--
--static int alpha_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
--			     enum dma_data_direction dir, struct dma_attrs *attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sgl, sg, nents, i) {
--		void *va;
--
--		BUG_ON(!sg_page(sg));
--		va = sg_virt(sg);
--		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va);
--		sg_dma_len(sg) = sg->length;
--	}
--
--	return nents;
--}
--
--static int alpha_noop_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return 0;
--}
--
- static int alpha_noop_supported(struct device *dev, u64 mask)
- {
- 	return mask < 0x00ffffffUL ? 0 : 1;
-@@ -168,10 +130,10 @@ static int alpha_noop_supported(struct device *dev, u64 mask)
- 
- struct dma_map_ops alpha_noop_ops = {
- 	.alloc			= alpha_noop_alloc_coherent,
--	.free			= alpha_noop_free_coherent,
--	.map_page		= alpha_noop_map_page,
--	.map_sg			= alpha_noop_map_sg,
--	.mapping_error		= alpha_noop_mapping_error,
-+	.free			= dma_noop_free_coherent,
-+	.map_page		= dma_noop_map_page,
-+	.map_sg			= dma_noop_map_sg,
-+	.mapping_error		= dma_noop_mapping_error,
- 	.dma_supported		= alpha_noop_supported,
- };
- 
+Build tested on ia64, m32r, powerpc, s390, sh, sparc(64), tile, x86
+
+This patch set (arm64 portion) depends on this one:
+
+https://lkml.org/lkml/2016/2/22/1066
+
+Earler versions of these patches were part of the arm64 NUMA patch
+set.  They have been split out here into a separate set.
+
+Ganapatrao Kulkarni (2):
+  topology, cleanup: Avoid redefinition of cpumask_of_pcibus in asm
+    header files.
+  numa, mm, cleanup: remove redundant NODE_DATA macro from asm header
+    files.
+
+ arch/arm64/include/asm/mmzone.h     |  4 +---
+ arch/arm64/include/asm/topology.h   |  3 ---
+ arch/ia64/include/asm/topology.h    |  4 ----
+ arch/m32r/include/asm/mmzone.h      |  4 +---
+ arch/metag/include/asm/mmzone.h     |  4 +---
+ arch/metag/include/asm/topology.h   |  3 ---
+ arch/powerpc/include/asm/mmzone.h   |  8 ++------
+ arch/powerpc/include/asm/topology.h |  4 ----
+ arch/s390/include/asm/mmzone.h      |  6 +-----
+ arch/s390/include/asm/pci.h         |  2 +-
+ arch/s390/include/asm/topology.h    |  1 +
+ arch/sh/include/asm/mmzone.h        |  4 +---
+ arch/sh/include/asm/topology.h      |  3 ---
+ arch/sparc/include/asm/mmzone.h     |  6 ++----
+ arch/tile/include/asm/pci.h         |  2 --
+ arch/tile/include/asm/topology.h    |  3 +++
+ arch/x86/include/asm/mmzone.h       |  3 +--
+ arch/x86/include/asm/mmzone_32.h    |  5 -----
+ arch/x86/include/asm/mmzone_64.h    | 17 -----------------
+ arch/x86/include/asm/pci.h          |  2 +-
+ arch/x86/include/asm/topology.h     |  1 +
+ include/asm-generic/mmzone.h        | 24 ++++++++++++++++++++++++
+ include/asm-generic/topology.h      |  4 ++--
+ 23 files changed, 43 insertions(+), 74 deletions(-)
+ delete mode 100644 arch/x86/include/asm/mmzone_64.h
+ create mode 100644 include/asm-generic/mmzone.h
+
 -- 
-2.5.0
+1.8.3.1
 
