@@ -1,90 +1,60 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date: Mon, 29 Feb 2016 08:51:29 +0000
-Subject: Re: [PATCH 0/3] video/fbdev: avoid module usage in non-modular sparc code,Re: [PATCH 0/3] video/fbde
-Message-Id: <56D40691.6030002@ti.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="tm63m6t9h9xjDofsvDsVwOcL8ccTrhKDG"
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:14 +0000
+Subject: [PATCH 0/11] introduce down_write_killable for rw_semaphore
+Message-Id: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
- <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
- <56D02FB8.90803@ti.com>
- <20160226.122112.1169840448330570848.davem@davemloft.net>
-In-Reply-To: <20160226.122112.1169840448330570848.davem@davemloft.net>
-To: David Miller <davem@davemloft.net>
-Cc: paul.gortmaker@windriver.com, linux-kernel@vger.kernel.org, plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org
 
---tm63m6t9h9xjDofsvDsVwOcL8ccTrhKDG
-Content-Type: multipart/mixed; boundary="6ukDhQ3aGS2soHdhnwofaxEC03hE59ima"
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: David Miller <davem@davemloft.net>
-Cc: paul.gortmaker@windriver.com, linux-kernel@vger.kernel.org,
- plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
- sparclinux@vger.kernel.org
-Message-ID: <56D40691.6030002@ti.com>
-Subject: Re: [PATCH 0/3] video/fbdev: avoid module usage in non-modular sparc
- code,Re: [PATCH 0/3] video/fbdev: avoid module usage in non-modular sparc
- code
-References: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
- <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
- <56D02FB8.90803@ti.com>
- <20160226.122112.1169840448330570848.davem@davemloft.net>
-In-Reply-To: <20160226.122112.1169840448330570848.davem@davemloft.net>
+Hi,
+I have posted this series [1] and there didn't seem to be any
+fundamental objections except for x86 maintainers who preferred the asm
+__down_write implementation which I have reworked for this series. Apart
+from that I have refreshed on top of the current linux-next and fixed
+one unused variable warning which happened to trigger a compilation
+failure on ppc.
 
---6ukDhQ3aGS2soHdhnwofaxEC03hE59ima
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+The following patchset implements a killable variant of write lock for
+rw_semaphore. My usecase is to turn as many mmap_sem write users to use
+a killable variant which will be helpful for the oom_reaper [2] to
+asynchronously tear down the oom victim address space which requires
+mmap_sem for read. This will reduce a likelihood of OOM livelocks caused
+by oom victim being stuck on a lock or other resource which prevents it
+to reach its exit path and release the memory. I haven't implemented
+the killable variant of the read lock because I do not have any usecase
+for this API.
 
-On 26/02/16 19:21, David Miller wrote:
-> From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Date: Fri, 26 Feb 2016 12:58:00 +0200
->=20
->> While doing this, did you just go forward removing the module support,=
+The patchset is organized as follows.
+- Patch 1 is a trivial cleanup
+- Patch 2, I belive, shouldn't introduce any functional changes as per
+  Documentation/memory-barriers.txt.
+- Patch 3 is the preparatory work and necessary infrastructure for
+  down_write_killable. It implements generic __down_write_killable
+  and prepares the write lock slow path to bail out earlier when told so
+- Patch 4-1- are implementing arch specific __down_write_killable. One
+  patch per architecture.
+- finally patch 11 implements down_write_killable and ties everything
+  together. I am not really an expert on lockdep so I hope I got it right.
 
->> or did you check if it would be trivial to make the driver build as a
->> module? I wouldn't be surprised if in some cases all that would need t=
-o
->> be done is change the Kconfig's bool to tristate.
->=20
-> I think what he is doing is reasonable, and none of these sparc drivers=
+Many of arch specific patches are basically same and I can squash them
+into one patch if this is preferred but I thought that one patch per
+arch is preferable.
 
-> have any reason to be built modular.  You need them to have any bootup
-> console whatsoever, so they have to be built in statically to be
-> usable at all.
+My patch to change mmap_sem write users to killable form is not part of
+the series because it is a larger change and I would like to prevent
+from spamming people too much. I will post the series shortly.
 
-I disagree. Having drivers buildable as modules is always good, even if
-the normal use case would be to have them as built-in.
+I have tested on x86 with OOM situations with high mmap_sem contention
+(basically many parallel page faults racing with many parallel mmap/munmap
+tight loops) so the waiters for the write locks are routinely interrupted
+by SIGKILL.
 
-> I plan to apply this patch series to my sparc tree as-is.
+Patches should apply cleanly on both Linus and next tree.
 
-They are fbdev patches without any dependency to sparc afaics. So let's
-apply them via fbdev tree.
+[1] http://lkml.kernel.org/r/1454444369-2146-1-git-send-email-mhocko@kernel.org
+[2] http://lkml.kernel.org/r/1452094975-551-1-git-send-email-mhocko@kernel.org
 
- Tomi
-
-
---6ukDhQ3aGS2soHdhnwofaxEC03hE59ima--
-
---tm63m6t9h9xjDofsvDsVwOcL8ccTrhKDG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJW1AaRAAoJEPo9qoy8lh71UygP/jf4TLfp63mxTsCDIeD11pX5
-26XL0PikiNhS+I30fO5El8C3fPRIdrCGkTk/z9foT5LIneRjYl4catVZOhd0vTlw
-RiaLUuXSs57bQH4U0fJA9Ch3umtgbzs0x/290lppGfzFgmjZsqOc2WkEF3PgtftL
-RWDDCJbRNFKtP4DxX8eVBg7jnAJsxHwGyvuM7O0NkNUlqBrkcO3x/9AiAYC2cbQ3
-/9F6LPMj0ZBRBlZiNzdKym6OQUWo0H57j3v05X2rNRKhWekZZ1bEqpuh5mewPogg
-068FVExXtIKW/VwGc4Zj1Zv73j7gnypleDajSHNETiwwU7afMc+Wi1p/7PLjfR/i
-CcfeaQrwTicDC/BAS+1GFVr7oaBovtgFxgdHpWONhSdOnqWtF8rWz+mDksx1IiLS
-yh+U2ctVeH0CZNWRW1nB9ahFCWIuRBfPf+H9l6tn5ETs//I0IcxBKrLvcnV+Tyeu
-uS4bhL/+eFojMCiJS/Ty5on5CviBszRpk3CJYWhn/Szmt2mhkX8lzMnWCKbWBic9
-OtNjg+0CVF1+peDNiSpF/6ufWkOMgzhB7gGmlwyLcKUAE9UKhAYIrF59nVycZ+Dz
-CqIdvOQEYATe9OTffNGDfB/OW2hE+yVkYC/VDOOdys2l2aSsPEqNcCGxNcij5lJa
-JSu14Mh35jFnB8xvrAut
-=IYBC
------END PGP SIGNATURE-----
-
---tm63m6t9h9xjDofsvDsVwOcL8ccTrhKDG--
+Any feedback is highly appreciated.
