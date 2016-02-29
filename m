@@ -1,10 +1,10 @@
 From: Michal Hocko <mhocko@kernel.org>
-Date: Tue, 02 Feb 2016 20:19:26 +0000
-Subject: [RFC 09/12] xtensa, rwsem: provide __down_write_killable
-Message-Id: <1454444369-2146-10-git-send-email-mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:21 +0000
+Subject: [PATCH 07/11] sh, rwsem: provide __down_write_killable
+Message-Id: <1456750705-7141-8-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,19 +13,19 @@ Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thoma
 
 From: Michal Hocko <mhocko@suse.com>
 
-which is uses the same fast path as __down_write except it falls back to
+which uses the same fast path as __down_write except it falls back to
 rwsem_down_write_failed_killable slow path and return -EINTR if killed.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/xtensa/include/asm/rwsem.h | 13 +++++++++++++
+ arch/sh/include/asm/rwsem.h | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/arch/xtensa/include/asm/rwsem.h b/arch/xtensa/include/asm/rwsem.h
-index 593483f6e1ff..6283823b8040 100644
---- a/arch/xtensa/include/asm/rwsem.h
-+++ b/arch/xtensa/include/asm/rwsem.h
-@@ -59,6 +59,19 @@ static inline void __down_write(struct rw_semaphore *sem)
+diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
+index f6c951c7a875..8a457b83d2a5 100644
+--- a/arch/sh/include/asm/rwsem.h
++++ b/arch/sh/include/asm/rwsem.h
+@@ -54,6 +54,19 @@ static inline void __down_write(struct rw_semaphore *sem)
  		rwsem_down_write_failed(sem);
  }
  
