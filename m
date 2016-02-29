@@ -1,92 +1,66 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Wed, 03 Feb 2016 05:46:33 +0000
-Subject: [PATCH v7 2/9] alpha/dma: use common noop dma ops
-Message-Id: <72a5975b085a6b076473b0fc84b71a8642fdf632.1454477782.git.luto@kernel.org>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:18 +0000
+Subject: [PATCH 04/11] alpha, rwsem: provide __down_write_killable
+Message-Id: <1456750705-7141-5-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454477782.git.luto@kernel.org>
-In-Reply-To: <cover.1454477782.git.luto@kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Woodhouse <dwmw2@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Christian Borntraeger <borntraeger@de.ibm.com>, Cornelia Huck <cornelia.huck@de.ibm.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Paolo Bonzini <pbonzini@redhat.com>, Christoph Hellwig <hch@lst.de>, KVM <kvm@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Vrabel <david.vrabel@citrix.com>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, xen-devel@lists.xenproject.org, Andy Lutomirski <luto@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-From: Christian Borntraeger <borntraeger@de.ibm.com>
+From: Michal Hocko <mhocko@suse.com>
 
-Some of the alpha pci noop dma ops are identical to the common ones.
-Use them.
+Introduce ___down_write for the fast path and reuse it for __down_write
+resp. __down_write_killable each using the respective generic slow path
+(rwsem_down_write_failed resp. rwsem_down_write_failed_killable).
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Reviewed-by: Joerg Roedel <jroedel@suse.de>
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/alpha/kernel/pci-noop.c | 46 ++++----------------------------------------
- 1 file changed, 4 insertions(+), 42 deletions(-)
+ arch/alpha/include/asm/rwsem.h | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
-index 2b1f4a1e9272..8e735b5e56bd 100644
---- a/arch/alpha/kernel/pci-noop.c
-+++ b/arch/alpha/kernel/pci-noop.c
-@@ -123,44 +123,6 @@ static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
- 	return ret;
+diff --git a/arch/alpha/include/asm/rwsem.h b/arch/alpha/include/asm/rwsem.h
+index a83bbea62c67..0131a7058778 100644
+--- a/arch/alpha/include/asm/rwsem.h
++++ b/arch/alpha/include/asm/rwsem.h
+@@ -63,7 +63,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ 	return res >= 0 ? 1 : 0;
  }
  
--static void alpha_noop_free_coherent(struct device *dev, size_t size,
--				     void *cpu_addr, dma_addr_t dma_addr,
--				     struct dma_attrs *attrs)
--{
--	free_pages((unsigned long)cpu_addr, get_order(size));
--}
--
--static dma_addr_t alpha_noop_map_page(struct device *dev, struct page *page,
--				      unsigned long offset, size_t size,
--				      enum dma_data_direction dir,
--				      struct dma_attrs *attrs)
--{
--	return page_to_pa(page) + offset;
--}
--
--static int alpha_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
--			     enum dma_data_direction dir, struct dma_attrs *attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sgl, sg, nents, i) {
--		void *va;
--
--		BUG_ON(!sg_page(sg));
--		va = sg_virt(sg);
--		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va);
--		sg_dma_len(sg) = sg->length;
--	}
--
--	return nents;
--}
--
--static int alpha_noop_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return 0;
--}
--
- static int alpha_noop_supported(struct device *dev, u64 mask)
+-static inline void __down_write(struct rw_semaphore *sem)
++static inline long ___down_write(struct rw_semaphore *sem)
  {
- 	return mask < 0x00ffffffUL ? 0 : 1;
-@@ -168,10 +130,10 @@ static int alpha_noop_supported(struct device *dev, u64 mask)
+ 	long oldcount;
+ #ifndef	CONFIG_SMP
+@@ -83,10 +83,24 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 	:"=&r" (oldcount), "=m" (sem->count), "=&r" (temp)
+ 	:"Ir" (RWSEM_ACTIVE_WRITE_BIAS), "m" (sem->count) : "memory");
+ #endif
+-	if (unlikely(oldcount))
++	return oldcount;
++}
++
++static inline void __down_write(struct rw_semaphore *sem)
++{
++	if (unlikely(___down_write(sem)))
+ 		rwsem_down_write_failed(sem);
+ }
  
- struct dma_map_ops alpha_noop_ops = {
- 	.alloc			= alpha_noop_alloc_coherent,
--	.free			= alpha_noop_free_coherent,
--	.map_page		= alpha_noop_map_page,
--	.map_sg			= alpha_noop_map_sg,
--	.mapping_error		= alpha_noop_mapping_error,
-+	.free			= dma_noop_free_coherent,
-+	.map_page		= dma_noop_map_page,
-+	.map_sg			= dma_noop_map_sg,
-+	.mapping_error		= dma_noop_mapping_error,
- 	.dma_supported		= alpha_noop_supported,
- };
- 
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	if (unlikely(___down_write(sem)))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++
++	return 0;
++}
++
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
 -- 
-2.5.0
+2.7.0
 
