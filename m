@@ -1,10 +1,10 @@
 From: Michal Hocko <mhocko@kernel.org>
-Date: Tue, 02 Feb 2016 20:19:22 +0000
-Subject: [RFC 05/12] ia64, rwsem: provide __down_write_killable
-Message-Id: <1454444369-2146-6-git-send-email-mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:19 +0000
+Subject: [PATCH 05/11] ia64, rwsem: provide __down_write_killable
+Message-Id: <1456750705-7141-6-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
