@@ -1,143 +1,103 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Sat, 27 Feb 2016 09:50:26 +0000
-Subject: [PATCH 1/1] [RFC]sparc64: enable cpu hotplug feature
-Message-Id: <1456565906-2072-1-git-send-email-allen.pais@oracle.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:24 +0000
+Subject: [PATCH 10/11] x86, rwsem: provide __down_write_killable
+Message-Id: <1456750705-7141-11-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-This patch provides users with an option to
-disable/enable cpu at runtime by writing to
-/sys/devices/system/cpu/cpuX/online field.
+From: Michal Hocko <mhocko@suse.com>
 
-Eg:
-$ echo [0/1] > /sys/devices/system/cpu/cpu2/online
+which uses the same fast path as __down_write except it falls back to
+call_rwsem_down_write_failed_killable slow path and return -EINTR if
+killed. To prevent from code duplication extract the skeleton of
+__down_write into a helper macro which just takes the semaphore
+and the slow path function to be called.
 
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sparc/kernel/smp_64.c |   48 +++++++++++++++++++++++--------------------
- arch/sparc/kernel/sysfs.c  |    4 +++
- 2 files changed, 30 insertions(+), 22 deletions(-)
+ arch/x86/include/asm/rwsem.h | 41 ++++++++++++++++++++++++++++-------------
+ arch/x86/lib/rwsem.S         |  8 ++++++++
+ 2 files changed, 36 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 19cd08d..5ea2f91 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1277,20 +1277,26 @@ int __cpu_up(unsigned int cpu, struct task_struct *tidle)
+diff --git a/arch/x86/include/asm/rwsem.h b/arch/x86/include/asm/rwsem.h
+index 4a8292a0d6e1..d759c5f70f49 100644
+--- a/arch/x86/include/asm/rwsem.h
++++ b/arch/x86/include/asm/rwsem.h
+@@ -99,21 +99,36 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
++#define ____down_write(sem, slow_path)			\
++({							\
++	long tmp;					\
++	struct rw_semaphore* ret = sem;			\
++	asm volatile("# beginning down_write\n\t"	\
++		     LOCK_PREFIX "  xadd      %1,(%2)\n\t"	\
++		     /* adds 0xffff0001, returns the old value */ \
++		     "  test " __ASM_SEL(%w1,%k1) "," __ASM_SEL(%w1,%k1) "\n\t" \
++		     /* was the active mask 0 before? */\
++		     "  jz        1f\n"			\
++		     "  call " slow_path "\n"		\
++		     "1:\n"				\
++		     "# ending down_write"		\
++		     : "+m" (sem->count), "=d" (tmp), "+a" (ret)	\
++		     : "a" (sem), "1" (RWSEM_ACTIVE_WRITE_BIAS) \
++		     : "memory", "cc");			\
++	ret;						\
++})
++
+ static inline void __down_write(struct rw_semaphore *sem)
  {
- 	int ret = smp_boot_one_cpu(cpu, tidle);
- 
--	if (!ret) {
--		cpumask_set_cpu(cpu, &smp_commenced_mask);
--		while (!cpu_online(cpu))
--			mb();
--		if (!cpu_online(cpu)) {
--			ret = -ENODEV;
--		} else {
--			/* On SUN4V, writes to %tick and %stick are
--			 * not allowed.
--			 */
--			if (tlb_type != hypervisor)
--				smp_synchronize_one_tick(cpu);
--		}
-+	if (ret)
-+		goto out;
+-	long tmp;
+-	asm volatile("# beginning down_write\n\t"
+-		     LOCK_PREFIX "  xadd      %1,(%2)\n\t"
+-		     /* adds 0xffff0001, returns the old value */
+-		     "  test " __ASM_SEL(%w1,%k1) "," __ASM_SEL(%w1,%k1) "\n\t"
+-		     /* was the active mask 0 before? */
+-		     "  jz        1f\n"
+-		     "  call call_rwsem_down_write_failed\n"
+-		     "1:\n"
+-		     "# ending down_write"
+-		     : "+m" (sem->count), "=d" (tmp)
+-		     : "a" (sem), "1" (RWSEM_ACTIVE_WRITE_BIAS)
+-		     : "memory", "cc");
++	____down_write(sem, "call_rwsem_down_write_failed");
++}
 +
-+	cpumask_set_cpu(cpu, &smp_commenced_mask);
-+	while (!cpu_online(cpu))
-+		mb();
-+	if (!cpu_online(cpu)) {
-+		ret = -ENODEV;
-+		goto out;
- 	}
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	if (IS_ERR(____down_write(sem, "call_rwsem_down_write_failed_killable")))
++		return -EINTR;
 +
-+	/* On SUN4V, writes to %tick and %stick are
-+	 * not allowed.
-+	 */
-+	if (tlb_type != hypervisor)
-+		smp_synchronize_one_tick(cpu);
-+
-+	smp_fill_in_sib_core_maps();
-+	cpu_map_rebuild();
-+out:
- 	return ret;
++	return 0;
  }
  
-@@ -1333,24 +1339,24 @@ void cpu_play_dead(void)
- int __cpu_disable(void)
- {
- 	int cpu = smp_processor_id();
--	cpuinfo_sparc *c;
- 	int i;
+ /*
+diff --git a/arch/x86/lib/rwsem.S b/arch/x86/lib/rwsem.S
+index be110efa0096..4534a7e912f3 100644
+--- a/arch/x86/lib/rwsem.S
++++ b/arch/x86/lib/rwsem.S
+@@ -106,6 +106,14 @@ ENTRY(call_rwsem_down_write_failed)
+ 	ret
+ ENDPROC(call_rwsem_down_write_failed)
  
- 	for_each_cpu(i, &cpu_core_map[cpu])
- 		cpumask_clear_cpu(cpu, &cpu_core_map[i]);
- 	cpumask_clear(&cpu_core_map[cpu]);
- 
-+	for_each_cpu(i, &cpu_core_sib_map[cpu])
-+		cpumask_clear_cpu(cpu, &cpu_core_sib_map[i]);
-+	cpumask_clear(&cpu_core_sib_map[cpu]);
++ENTRY(call_rwsem_down_write_failed_killable)
++	save_common_regs
++	movq %rax,%rdi
++	call rwsem_down_write_failed_killable
++	restore_common_regs
++	ret
++ENDPROC(call_rwsem_down_write_failed_killable)
 +
- 	for_each_cpu(i, &per_cpu(cpu_sibling_map, cpu))
- 		cpumask_clear_cpu(cpu, &per_cpu(cpu_sibling_map, i));
- 	cpumask_clear(&per_cpu(cpu_sibling_map, cpu));
- 
--	c = &cpu_data(cpu);
--
--	c->core_id = 0;
--	c->proc_id = -1;
--
- 	smp_wmb();
- 
-+	set_cpu_online(cpu, false);
-+
- 	/* Make sure no interrupts point to this cpu.  */
- 	fixup_irqs();
- 
-@@ -1358,8 +1364,6 @@ int __cpu_disable(void)
- 	mdelay(1);
- 	local_irq_disable();
- 
--	set_cpu_online(cpu, false);
--
- 	cpu_map_rebuild();
- 
- 	return 0;
-@@ -1385,7 +1389,7 @@ void __cpu_die(unsigned int cpu)
- 		do {
- 			hv_err = sun4v_cpu_stop(cpu);
- 			if (hv_err = HV_EOK) {
--				set_cpu_present(cpu, false);
-+				set_cpu_online(cpu, false);
- 				break;
- 			}
- 		} while (--limit > 0);
-diff --git a/arch/sparc/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
-index 7f41d40..43dc6ef 100644
---- a/arch/sparc/kernel/sysfs.c
-+++ b/arch/sparc/kernel/sysfs.c
-@@ -240,6 +240,8 @@ static void unregister_cpu_online(unsigned int cpu)
- 	struct device *s = &c->dev;
- 	int i;
- 
-+	BUG_ON(!c->hotpluggable);
-+
- 	unregister_mmu_stats(s);
- 	for (i = 0; i < ARRAY_SIZE(cpu_core_attrs); i++)
- 		device_remove_file(s, &cpu_core_attrs[i]);
-@@ -305,7 +307,9 @@ static int __init topology_init(void)
- 	for_each_possible_cpu(cpu) {
- 		struct cpu *c = &per_cpu(cpu_devices, cpu);
- 
-+		c->hotpluggable = 1;
- 		register_cpu(c, cpu);
-+
- 		if (cpu_online(cpu))
- 			register_cpu_online(cpu);
- 	}
+ ENTRY(call_rwsem_wake)
+ 	FRAME_BEGIN
+ 	/* do nothing if still outstanding active readers */
 -- 
-1.7.1
+2.7.0
 
