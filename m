@@ -1,102 +1,105 @@
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Date: Tue, 02 Feb 2016 09:54:02 +0000
-Subject: Re: [PATCH v6 0/9] virtio DMA API, yet again
-Message-Id: <56B07CBA.1040009@de.ibm.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:25 +0000
+Subject: [PATCH 11/11] locking, rwsem: provide down_write_killable
+Message-Id: <1456750705-7141-12-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1454349471.git.luto@kernel.org>
-In-Reply-To: <cover.1454349471.git.luto@kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@kernel.org>, "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-s390 <linux-s390@vger.kernel.org>, Joerg Roedel <jroedel@suse.de>, KVM <kvm@vger.kernel.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, David Vrabel <david.vrabel@citrix.com>, xen-devel@lists.xenproject.org, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Linux Virtualization <virtualization@lists.linux-foundation.org>, David Woodhouse <dwmw2@infradead.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-On 02/01/2016 07:00 PM, Andy Lutomirski wrote:
-> This switches virtio to use the DMA API on Xen and if requested by
-> module option.
-> 
-> This fixes virtio on Xen, and it should break anything because it's
-> off by default on everything except Xen PV on x86.
-> 
-> To the Xen people: is this okay?  If it doesn't work on other Xen
-> variants (PVH? HVM?), can you submit follow-up patches to fix it?
-> 
-> To everyone else: we've waffled on this for way too long.  I think
-> we should to get DMA API implementation in with a conservative
-> policy like this rather than waiting until we achieve perfection.
-> I'm tired of carrying these patches around.
+From: Michal Hocko <mhocko@suse.com>
 
-I used your branch pub/scm/linux/kernel/git/luto/linux.git virtio_dma
-on kernel.org.
+Now that all the architectures implement the necessary glue code
+we can introduce down_write_killable. The only difference wrt. regular
+down_write is that the slow path waits in TASK_KILLABLE state and the
+interruption by the fatal signal is reported as -EINTR to the caller.
 
-It seems to survive a basic test (simple block and net) on s390 with
-and without dma api enabled. No full test, though.
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ include/linux/lockdep.h | 15 +++++++++++++++
+ include/linux/rwsem.h   |  1 +
+ kernel/locking/rwsem.c  | 19 +++++++++++++++++++
+ 3 files changed, 35 insertions(+)
 
-> 
-> Michael, if these survive review, can you stage these in your tree?
-> Can you also take a look at tools/virtio?  I probably broke it, but I
-> couldn't get it to build without these patches either, so I'm stuck.
-> 
-> Changes from v5:
->  - Typo fixes (David Woodhouse)
->  - Use xen_domain() to detect Xen (David Vrabel)
->  - Pass struct vring_virtqueue * into vring_use_dma_api for future proofing
->  - Removed module parameter (Michael)
-> 
-> Changes from v4:
->  - Bake vring_use_dma_api in from the beginning.
->  - Automatically enable only on Xen.
->  - Add module parameter.
->  - Add s390 and alpha DMA API implementations.
->  - Rebase to 4.5-rc1.
-> 
-> Changes from v3:
->  - More big-endian fixes.
->  - Added better virtio-ring APIs that handle allocation and use them in
->    virtio-mmio and virtio-pci.
->  - Switch to Michael's virtio-net patch.
-> 
-> Changes from v2:
->  - Fix vring_mapping_error incorrect argument
-> 
-> Changes from v1:
->  - Fix an endian conversion error causing a BUG to hit.
->  - Fix a DMA ordering issue (swiotlb=force works now).
->  - Minor cleanups.
-> 
-> Andy Lutomirski (6):
->   vring: Introduce vring_use_dma_api()
->   virtio_ring: Support DMA APIs
->   virtio: Add improved queue allocation API
->   virtio_mmio: Use the DMA API if enabled
->   virtio_pci: Use the DMA API if enabled
->   vring: Use the DMA API on Xen
-> 
-> Christian Borntraeger (3):
->   dma: Provide simple noop dma ops
->   alpha/dma: use common noop dma ops
->   s390/dma: Allow per device dma ops
-> 
->  arch/alpha/kernel/pci-noop.c        |  46 +---
->  arch/s390/Kconfig                   |   6 +-
->  arch/s390/include/asm/device.h      |   6 +-
->  arch/s390/include/asm/dma-mapping.h |   6 +-
->  arch/s390/pci/pci.c                 |   1 +
->  arch/s390/pci/pci_dma.c             |   4 +-
->  drivers/virtio/Kconfig              |   2 +-
->  drivers/virtio/virtio_mmio.c        |  67 ++----
->  drivers/virtio/virtio_pci_common.h  |   6 -
->  drivers/virtio/virtio_pci_legacy.c  |  42 ++--
->  drivers/virtio/virtio_pci_modern.c  |  61 ++----
->  drivers/virtio/virtio_ring.c        | 408 ++++++++++++++++++++++++++++++------
->  include/linux/dma-mapping.h         |   2 +
->  include/linux/virtio.h              |  23 +-
->  include/linux/virtio_ring.h         |  35 ++++
->  lib/Makefile                        |   1 +
->  lib/dma-noop.c                      |  75 +++++++
->  tools/virtio/linux/dma-mapping.h    |  17 ++
->  18 files changed, 564 insertions(+), 244 deletions(-)
->  create mode 100644 lib/dma-noop.c
->  create mode 100644 tools/virtio/linux/dma-mapping.h
-> 
+diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
+index d026b190c530..accfe56d8c51 100644
+--- a/include/linux/lockdep.h
++++ b/include/linux/lockdep.h
+@@ -444,6 +444,18 @@ do {								\
+ 	lock_acquired(&(_lock)->dep_map, _RET_IP_);			\
+ } while (0)
+ 
++#define LOCK_CONTENDED_RETURN(_lock, try, lock)			\
++({								\
++	int ____err = 0;					\
++	if (!try(_lock)) {					\
++		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
++		____err = lock(_lock);				\
++	}							\
++	if (!____err)						\
++		lock_acquired(&(_lock)->dep_map, _RET_IP_);	\
++	____err;						\
++})
++
+ #else /* CONFIG_LOCK_STAT */
+ 
+ #define lock_contended(lockdep_map, ip) do {} while (0)
+@@ -452,6 +464,9 @@ do {								\
+ #define LOCK_CONTENDED(_lock, try, lock) \
+ 	lock(_lock)
+ 
++#define LOCK_CONTENDED_RETURN(_lock, try, lock) \
++	lock(_lock)
++
+ #endif /* CONFIG_LOCK_STAT */
+ 
+ #ifdef CONFIG_LOCKDEP
+diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
+index 7d7ae029dac5..d1c12d160ace 100644
+--- a/include/linux/rwsem.h
++++ b/include/linux/rwsem.h
+@@ -118,6 +118,7 @@ extern int down_read_trylock(struct rw_semaphore *sem);
+  * lock for writing
+  */
+ extern void down_write(struct rw_semaphore *sem);
++extern int __must_check down_write_killable(struct rw_semaphore *sem);
+ 
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index 205be0ce34de..c817216c1615 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -55,6 +55,25 @@ void __sched down_write(struct rw_semaphore *sem)
+ EXPORT_SYMBOL(down_write);
+ 
+ /*
++ * lock for writing
++ */
++int __sched down_write_killable(struct rw_semaphore *sem)
++{
++	might_sleep();
++	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
++
++	if (LOCK_CONTENDED_RETURN(sem, __down_write_trylock, __down_write_killable)) {
++		rwsem_release(&sem->dep_map, 1, _RET_IP_);
++		return -EINTR;
++	}
++
++	rwsem_set_owner(sem);
++	return 0;
++}
++
++EXPORT_SYMBOL(down_write_killable);
++
++/*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
+ int down_write_trylock(struct rw_semaphore *sem)
+-- 
+2.7.0
 
