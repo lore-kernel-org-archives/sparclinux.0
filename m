@@ -1,123 +1,50 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Mon, 22 Feb 2016 03:13:11 +0000
-Subject: [PATCH 2/3] drivers/video: make fbdev/sunxvr1000.c explicitly non-modular
-Message-Id: <1456110792-21771-3-git-send-email-paul.gortmaker@windriver.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Feb 2016 12:58:22 +0000
+Subject: [PATCH 08/11] sparc, rwsem: provide __down_write_killable
+Message-Id: <1456750705-7141-9-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
-In-Reply-To: <1456110792-21771-1-git-send-email-paul.gortmaker@windriver.com>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-The Kconfig currently controlling compilation of this code is:
+From: Michal Hocko <mhocko@suse.com>
 
-config FB_XVR1000
-        bool "Sun XVR-1000 support"
+which uses the same fast path as __down_write except it falls back to
+rwsem_down_write_failed_killable slow path and return -EINTR if killed.
 
-...meaning that it currently is not being built as a module by anyone.
-Lets remove the modular code that is essentially orphaned, so that
-when reading the driver there is no doubt it is builtin-only.
-
-Since module_init translates to device_initcall in the non-modular
-case, the init ordering remains unchanged with this commit.
-
-We explicitly disallow a driver unbind, since that doesn't have a
-sensible use case anyway, and it allows us to drop the ".remove"
-code for non-modular drivers.
-
-We don't replace module.h with init.h since the file already has that.
-Also note that MODULE_DEVICE_TABLE is a no-op for non-modular code.
-
-We also delete the MODULE_LICENSE tag etc. since all that information
-was (or is now) contained at the top of the file in the comments.
-
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- drivers/video/fbdev/sunxvr1000.c | 42 +++++++---------------------------------
- 1 file changed, 7 insertions(+), 35 deletions(-)
+ arch/sparc/include/asm/rwsem.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/video/fbdev/sunxvr1000.c b/drivers/video/fbdev/sunxvr1000.c
-index 08879bdfad35..fb37f6e05391 100644
---- a/drivers/video/fbdev/sunxvr1000.c
-+++ b/drivers/video/fbdev/sunxvr1000.c
-@@ -1,9 +1,10 @@
--/* sunxvr1000.c: Sun XVR-1000 driver for sparc64 systems
-+/* sunxvr1000.c: Sun XVR-1000 fb driver for sparc64 systems
-+ *
-+ * License: GPL
-  *
-  * Copyright (C) 2010 David S. Miller (davem@davemloft.net)
-  */
- 
--#include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/fb.h>
- #include <linux/init.h>
-@@ -173,36 +174,19 @@ err_out:
- 	return err;
+diff --git a/arch/sparc/include/asm/rwsem.h b/arch/sparc/include/asm/rwsem.h
+index e5a0d575bc7f..c1e9e32e8b63 100644
+--- a/arch/sparc/include/asm/rwsem.h
++++ b/arch/sparc/include/asm/rwsem.h
+@@ -55,6 +55,19 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 		rwsem_down_write_failed(sem);
  }
  
--static int gfb_remove(struct platform_device *op)
--{
--	struct fb_info *info = dev_get_drvdata(&op->dev);
--	struct gfb_info *gp = info->par;
--
--	unregister_framebuffer(info);
--
--	iounmap(gp->fb_base);
--
--	of_iounmap(&op->resource[6], gp->fb_base, gp->fb_size);
--
--        framebuffer_release(info);
--
--	return 0;
--}
--
- static const struct of_device_id gfb_match[] = {
- 	{
- 		.name = "SUNW,gfb",
- 	},
- 	{},
- };
--MODULE_DEVICE_TABLE(of, ffb_match);
- 
- static struct platform_driver gfb_driver = {
- 	.probe		= gfb_probe,
--	.remove		= gfb_remove,
- 	.driver = {
--		.name		= "gfb",
--		.of_match_table	= gfb_match,
-+		.name			= "gfb",
-+		.of_match_table		= gfb_match,
-+		.suppress_bind_attrs	= true,
- 	},
- };
- 
-@@ -213,16 +197,4 @@ static int __init gfb_init(void)
- 
- 	return platform_driver_register(&gfb_driver);
- }
--
--static void __exit gfb_exit(void)
--{
--	platform_driver_unregister(&gfb_driver);
--}
--
--module_init(gfb_init);
--module_exit(gfb_exit);
--
--MODULE_DESCRIPTION("framebuffer driver for Sun XVR-1000 graphics");
--MODULE_AUTHOR("David S. Miller <davem@davemloft.net>");
--MODULE_VERSION("1.0");
--MODULE_LICENSE("GPL");
-+device_initcall(gfb_init);
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	long tmp;
++
++	tmp = atomic64_add_return(RWSEM_ACTIVE_WRITE_BIAS,
++				  (atomic64_t *)(&sem->count));
++	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++
++	return 0;
++}
++
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	long tmp;
 -- 
-2.6.1
+2.7.0
 
