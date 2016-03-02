@@ -1,63 +1,60 @@
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Date: Tue, 01 Mar 2016 14:04:20 +0000
-Subject: Re: [PATCH v3 4/4] printk/nmi: Increase the size of NMI buffer and make it configurable
-Message-Id: <56D5A164.3000000@linaro.org>
+From: Will Deacon <will.deacon@arm.com>
+Date: Wed, 02 Mar 2016 02:15:50 +0000
+Subject: Re: [PATCH 2/2] numa, mm, cleanup: remove redundant NODE_DATA macro from asm header files.
+Message-Id: <20160302021550.GI14022@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1449667265-17525-1-git-send-email-pmladek@suse.com>
- <1449667265-17525-5-git-send-email-pmladek@suse.com>
- <CAMuHMdXVgr58YjoePGrRbMyMncQ27f85prL7G5SpeHeNxoYrXQ@mail.gmail.com>
- <20151211124159.GB3729@pathway.suse.cz>
- <20151211145725.b0e81bb4bb18fcd72ef5f557@linux-foundation.org>
- <20151211232113.GZ8644@n2100.arm.linux.org.uk>
- <alpine.LNX.2.00.1512120024370.9922@cbobk.fhfr.pm>
- <5673DD60.7080302@linaro.org> <20151218145207.GK3729@pathway.suse.cz>
- <56743BA0.1030409@linaro.org>
-In-Reply-To: <56743BA0.1030409@linaro.org>
+References: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
+ <1456358528-24213-3-git-send-email-ddaney.cavm@gmail.com>
+In-Reply-To: <1456358528-24213-3-git-send-email-ddaney.cavm@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.ker
 
-On 18/12/15 17:00, Daniel Thompson wrote:
->>> The MCE handlers should only call printk() when they decide to panic
->>> and *after* busting the spinlocks. At this point deferring printk()
->>> until it is safe is not very helpful.
->>>
->>> When we bust the spinlocks we should probably restore the normal
->>> printk() function to give best chance of the failure messages making
->>> it out.
->>
->> The problem is that we do not know what locks need to be busted. There
->> are too many consoles and too many locks involved. Also busting locks
->> open another can of worms.
->
-> Yes, I agree that busting the spinlocks doesn't avoid all risk of deadlock.
->
-> Probably I've been placing too much weight on the importance of getting
-> messages out when dying. You're right that surviving far enough through
-> a panic to trigger kdump or reset is equally (or more) important in many
-> scenarios than getting a failure message out.
->
-> However on a system with nothing but "while(1) {}" hooked up to panic()
-> then its worth risking a lock up. In this case restoring normal printk()
-> behavior and dumping the NMI buffers would be worthwhile.
+On Wed, Feb 24, 2016 at 04:02:08PM -0800, David Daney wrote:
+> From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+> 
+> NODE_DATA is defined across multiple asm header files.
+> Moving generic definition to asm-generic/mmzone.h to
+> remove redundant definitions.
+> 
+> Reviewed-by: Robert Richter <rrichter@cavium.com>
+> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+> Signed-off-by: David Daney <david.daney@cavium.com>
+> ---
+>  arch/arm64/include/asm/mmzone.h   |  4 +---
+>  arch/m32r/include/asm/mmzone.h    |  4 +---
+>  arch/metag/include/asm/mmzone.h   |  4 +---
+>  arch/powerpc/include/asm/mmzone.h |  8 ++------
+>  arch/s390/include/asm/mmzone.h    |  6 +-----
+>  arch/sh/include/asm/mmzone.h      |  4 +---
+>  arch/sparc/include/asm/mmzone.h   |  6 ++----
+>  arch/x86/include/asm/mmzone.h     |  3 +--
+>  arch/x86/include/asm/mmzone_32.h  |  5 -----
+>  arch/x86/include/asm/mmzone_64.h  | 17 -----------------
+>  include/asm-generic/mmzone.h      | 24 ++++++++++++++++++++++++
+>  11 files changed, 34 insertions(+), 51 deletions(-)
+>  delete mode 100644 arch/x86/include/asm/mmzone_64.h
+>  create mode 100644 include/asm-generic/mmzone.h
+> 
+> diff --git a/arch/arm64/include/asm/mmzone.h b/arch/arm64/include/asm/mmzone.h
+> index a0de9e6..611a1cf 100644
+> --- a/arch/arm64/include/asm/mmzone.h
+> +++ b/arch/arm64/include/asm/mmzone.h
+> @@ -4,9 +4,7 @@
+>  #ifdef CONFIG_NUMA
+>  
+>  #include <asm/numa.h>
+> -
+> -extern struct pglist_data *node_data[];
+> -#define NODE_DATA(nid)		(node_data[(nid)])
+> +#include  <asm-generic/mmzone.h>
+>  
+>  #endif /* CONFIG_NUMA */
+>  #endif /* __ASM_MMZONE_H */
 
-An a (much) later thread[1] Andrew Morton described this comment as 
-non-committal. Sorry for that.
+Actually, we can remove the header file entirely and use a generic-y
+line in Kbuild instead.
 
-I don't object to the overall approach taken by Petr, merely that I 
-think there are cases where the current patchset doesn't put in quite 
-enough effort to issue messages.
-
-Panic triggered during NMI is the only case I can think of and that, I 
-think, could be addressed by adding an extra call to printk_nmi_flush() 
-during panic(). It should probably only cover cases where we *don't* 
-call kdump and the panic handler doesn't restart the machine... so just 
-after the pr_emerg("...end kernel panic") would be OK for me.
-
-
-Daniel.
-
-
-[1]: http://thread.gmane.org/gmane.linux.ports.arm.kernel/482845
-
+Will
