@@ -1,438 +1,182 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Thu, 03 Mar 2016 00:48:49 +0000
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 03 Mar 2016 17:28:45 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <CAGRGNgVyPUUUTV9_GAyE9S4FVPce4PBU-G+QXv3eNkosGj3eyg@mail.gmail.com>
+Message-Id: <56D8744D.9020300@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com>
- <CAGRGNgXCcEmKU9f2XRpRv6By4QPZU7rxxTQPzSp+kahjmRTO5Q@mail.gmail.com> <56D78471.1020707@oracle.com>
-In-Reply-To: <56D78471.1020707@oracle.com>
+ <CAGRGNgXCcEmKU9f2XRpRv6By4QPZU7rxxTQPzSp+kahjmRTO5Q@mail.gmail.com>
+ <56D78471.1020707@oracle.com>
+ <CAGRGNgVyPUUUTV9_GAyE9S4FVPce4PBU-G+QXv3eNkosGj3eyg@mail.gmail.com>
+In-Reply-To: <CAGRGNgVyPUUUTV9_GAyE9S4FVPce4PBU-G+QXv3eNkosGj3eyg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: "David S. Miller" <davem@davemloft.net>, corbet@lwn.net, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, Arnd Bergmann <arnd@arndb.de>, sparclinux <sparclinux@vger.kernel.org>, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andy Lutomirski <luto@kernel.org>, ebiederm@xmission.com, bsegall@google.com, Geert Uytterhoeven <geert@linux-m68k.org>, dave@stgolabs.net, Alexey Dobriyan <adobriyan@gmail.com>, linux-doc@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, linux-arch@vger.kernel.orglinux
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Julian Calaby <julian.calaby@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>, corbet@lwn.net, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, Arnd Bergmann <arnd@arndb.de>, sparclinux <sparclinux@vger.kernel.org>, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andy Lutomirski <luto@kernel.org>, ebiederm@xmission.com, bsegall@google.com, Geert Uytterhoeven <geert@linux-m68k.org>, dave@stgolabs.net, Alexey Dobriyan <adobriyan@gmail.com>, linux-doc@vger.kernel.org"linux-kernel@vger.kernel.org" <linu>
 
-Hi Khalid,
-
-On Thu, Mar 3, 2016 at 11:25 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
-> Thanks, Julian! I really appreciate your feedback.
-
-No problem!
-
-> My comments below.
+On 03/02/2016 05:48 PM, Julian Calaby wrote:
+> Hi Khalid,
 >
-> On 03/02/2016 04:08 PM, Julian Calaby wrote:
+> On Thu, Mar 3, 2016 at 11:25 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
+>> Thanks, Julian! I really appreciate your feedback.
+>
+> No problem!
+>
+>> My comments below.
 >>
->> Hi Khalid,
->>
->> On Thu, Mar 3, 2016 at 7:39 AM, Khalid Aziz <khalid.aziz@oracle.com>
->> wrote:
+>> On 03/02/2016 04:08 PM, Julian Calaby wrote:
+>>>
+>>> Hi Khalid,
+>>>
+>>> On Thu, Mar 3, 2016 at 7:39 AM, Khalid Aziz <khalid.aziz@oracle.com>
+>>> wrote:
+>>>>
+>>>>
+>>>> Enable Application Data Integrity (ADI) support in the sparc
+>>>> kernel for applications to use ADI in userspace. ADI is a new
+>>>> feature supported on sparc M7 and newer processors. ADI is supported
+>>>> for data fetches only and not instruction fetches. This patch adds
+>>>> prctl commands to enable and disable ADI (TSTATE.mcde), return ADI
+>>>> parameters to userspace, enable/disable MCD (Memory Corruption
+>>>> Detection) on selected memory ranges and enable TTE.mcd in PTEs. It
+>>>> also adds handlers for all traps related to MCD. ADI is not enabled
+>>>> by default for any task and a task must explicitly enable ADI
+>>>> (TSTATE.mcde), turn MCD on on a memory range and set version tag
+>>>> for ADI to be effective for the task. This patch adds support for
+>>>> ADI for hugepages only. Addresses passed into system calls must be
+>>>> non-ADI tagged addresses.
 >>>
 >>>
->>> Enable Application Data Integrity (ADI) support in the sparc
->>> kernel for applications to use ADI in userspace. ADI is a new
->>> feature supported on sparc M7 and newer processors. ADI is supported
->>> for data fetches only and not instruction fetches. This patch adds
->>> prctl commands to enable and disable ADI (TSTATE.mcde), return ADI
->>> parameters to userspace, enable/disable MCD (Memory Corruption
->>> Detection) on selected memory ranges and enable TTE.mcd in PTEs. It
->>> also adds handlers for all traps related to MCD. ADI is not enabled
->>> by default for any task and a task must explicitly enable ADI
->>> (TSTATE.mcde), turn MCD on on a memory range and set version tag
->>> for ADI to be effective for the task. This patch adds support for
->>> ADI for hugepages only. Addresses passed into system calls must be
->>> non-ADI tagged addresses.
->>
->>
->> I can't comment on the actual functionality here, but I do see a few
->> minor style issues in your patch.
->>
->> My big concern is that you're defining a lot of new code that is ADI
->> specific but isn't inside a CONFIG_SPARC_ADI ifdef. (That said,
->> handling ADI specific traps if ADI isn't enabled looks like a good
->> idea to me, however most of the other stuff is just dead code if
->> CONFIG_SPARC_ADI isn't enabled.)
->
->
-> Some of the code will be executed when CONFIG_SPARC_ADI is not enabled, f=
-or
-> instance init_adi() which will parse machine description to determine if
-> platform supports ADI. On the other hand, it might still make sense to
-> enclose this code in #ifdef. More on that below.
->
->
->>
->>> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
->>> ---
->>> NOTES: ADI is a new feature added to M7 processor to allow hardware
->>>          to catch rogue accesses to memory. An app can enable ADI on
->>>          its data pages, set version tags on them and use versioned
->>>          addresses (bits 63-60 of the address contain a version tag)
->>>          to access the data pages. If a rogue app attempts to access
->>>          ADI enabled data pages, its access is blocked and processor
->>>          generates an exception. Enabling this functionality for all
->>>          data pages of an app requires adding infrastructure to save
->>>          version tags for any data pages that get swapped out and
->>>          restoring those tags when pages are swapped back in. In this
->>>          first implementation I am enabling ADI for hugepages only
->>>          since these pages are locked in memory and hence avoid the
->>>          issue of saving and restoring tags. Once this core functionali=
-ty
->>>          is stable, ADI for other memory pages can be enabled more
->>>          easily.
+>>> I can't comment on the actual functionality here, but I do see a few
+>>> minor style issues in your patch.
 >>>
->>> v2:
->>>          - Fixed a build error
+>>> My big concern is that you're defining a lot of new code that is ADI
+>>> specific but isn't inside a CONFIG_SPARC_ADI ifdef. (That said,
+>>> handling ADI specific traps if ADI isn't enabled looks like a good
+>>> idea to me, however most of the other stuff is just dead code if
+>>> CONFIG_SPARC_ADI isn't enabled.)
+>>
+>>
+>> Some of the code will be executed when CONFIG_SPARC_ADI is not enabled, for
+>> instance init_adi() which will parse machine description to determine if
+>> platform supports ADI. On the other hand, it might still make sense to
+>> enclose this code in #ifdef. More on that below.
+>>
+>>
 >>>
->>>   Documentation/prctl/sparc_adi.txt     |  62 ++++++++++
->>>   Documentation/sparc/adi.txt           | 206
->>> +++++++++++++++++++++++++++++++
->>>   arch/sparc/Kconfig                    |  12 ++
->>>   arch/sparc/include/asm/hugetlb.h      |  14 +++
->>>   arch/sparc/include/asm/hypervisor.h   |   2 +
->>>   arch/sparc/include/asm/mmu_64.h       |   1 +
->>>   arch/sparc/include/asm/pgtable_64.h   |  15 +++
->>>   arch/sparc/include/asm/processor_64.h |  19 +++
->>>   arch/sparc/include/asm/ttable.h       |  10 ++
->>>   arch/sparc/include/uapi/asm/asi.h     |   3 +
->>>   arch/sparc/include/uapi/asm/pstate.h  |  10 ++
->>>   arch/sparc/kernel/entry.h             |   3 +
->>>   arch/sparc/kernel/head_64.S           |   1 +
->>>   arch/sparc/kernel/mdesc.c             |  81 +++++++++++++
->>>   arch/sparc/kernel/process_64.c        | 222
->>> ++++++++++++++++++++++++++++++++++
->>>   arch/sparc/kernel/sun4v_mcd.S         |  16 +++
->>>   arch/sparc/kernel/traps_64.c          |  96 ++++++++++++++-
->>>   arch/sparc/kernel/ttable_64.S         |   6 +-
->>>   include/linux/mm.h                    |   2 +
->>>   include/uapi/asm-generic/siginfo.h    |   5 +-
->>>   include/uapi/linux/prctl.h            |  16 +++
->>>   kernel/sys.c                          |  30 +++++
->>>   22 files changed, 826 insertions(+), 6 deletions(-)
->>>   create mode 100644 Documentation/prctl/sparc_adi.txt
->>>   create mode 100644 Documentation/sparc/adi.txt
->>>   create mode 100644 arch/sparc/kernel/sun4v_mcd.S
->>
->>
->> I must admit that I'm slightly impressed that the documentation is
->> over a quarter of the lines added. =3D)
->>
->>> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
->>> index 56442d2..0aac0ae 100644
->>> --- a/arch/sparc/Kconfig
->>> +++ b/arch/sparc/Kconfig
->>> @@ -80,6 +80,7 @@ config SPARC64
->>>          select NO_BOOTMEM
->>>          select HAVE_ARCH_AUDITSYSCALL
->>>          select ARCH_SUPPORTS_ATOMIC_RMW
->>> +       select SPARC_ADI
->>
->>
->> This doesn't look right.
->>
->>>   config ARCH_DEFCONFIG
->>>          string
->>> @@ -314,6 +315,17 @@ if SPARC64
->>>   source "kernel/power/Kconfig"
->>>   endif
+>>>> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+>>>> ---
+>>>> NOTES: ADI is a new feature added to M7 processor to allow hardware
+>>>>           to catch rogue accesses to memory. An app can enable ADI on
+>>>>           its data pages, set version tags on them and use versioned
+>>>>           addresses (bits 63-60 of the address contain a version tag)
+>>>>           to access the data pages. If a rogue app attempts to access
+>>>>           ADI enabled data pages, its access is blocked and processor
+>>>>           generates an exception. Enabling this functionality for all
+>>>>           data pages of an app requires adding infrastructure to save
+>>>>           version tags for any data pages that get swapped out and
+>>>>           restoring those tags when pages are swapped back in. In this
+>>>>           first implementation I am enabling ADI for hugepages only
+>>>>           since these pages are locked in memory and hence avoid the
+>>>>           issue of saving and restoring tags. Once this core functionality
+>>>>           is stable, ADI for other memory pages can be enabled more
+>>>>           easily.
+>>>>
+>>>> v2:
+>>>>           - Fixed a build error
+>>>>
+>>>>    Documentation/prctl/sparc_adi.txt     |  62 ++++++++++
+>>>>    Documentation/sparc/adi.txt           | 206
+>>>> +++++++++++++++++++++++++++++++
+>>>>    arch/sparc/Kconfig                    |  12 ++
+>>>>    arch/sparc/include/asm/hugetlb.h      |  14 +++
+>>>>    arch/sparc/include/asm/hypervisor.h   |   2 +
+>>>>    arch/sparc/include/asm/mmu_64.h       |   1 +
+>>>>    arch/sparc/include/asm/pgtable_64.h   |  15 +++
+>>>>    arch/sparc/include/asm/processor_64.h |  19 +++
+>>>>    arch/sparc/include/asm/ttable.h       |  10 ++
+>>>>    arch/sparc/include/uapi/asm/asi.h     |   3 +
+>>>>    arch/sparc/include/uapi/asm/pstate.h  |  10 ++
+>>>>    arch/sparc/kernel/entry.h             |   3 +
+>>>>    arch/sparc/kernel/head_64.S           |   1 +
+>>>>    arch/sparc/kernel/mdesc.c             |  81 +++++++++++++
+>>>>    arch/sparc/kernel/process_64.c        | 222
+>>>> ++++++++++++++++++++++++++++++++++
+>>>>    arch/sparc/kernel/sun4v_mcd.S         |  16 +++
+>>>>    arch/sparc/kernel/traps_64.c          |  96 ++++++++++++++-
+>>>>    arch/sparc/kernel/ttable_64.S         |   6 +-
+>>>>    include/linux/mm.h                    |   2 +
+>>>>    include/uapi/asm-generic/siginfo.h    |   5 +-
+>>>>    include/uapi/linux/prctl.h            |  16 +++
+>>>>    kernel/sys.c                          |  30 +++++
+>>>>    22 files changed, 826 insertions(+), 6 deletions(-)
+>>>>    create mode 100644 Documentation/prctl/sparc_adi.txt
+>>>>    create mode 100644 Documentation/sparc/adi.txt
+>>>>    create mode 100644 arch/sparc/kernel/sun4v_mcd.S
 >>>
->>> +config SPARC_ADI
->>> +       bool "Application Data Integrity support"
->>> +       def_bool y if SPARC64
->>
->>
->> def_bool is for config options without names (i.e. "this is a boolean
->> value and it's default is...")
->>
->> So if you want people to be able to disable this option, then you
->> should remove the select above and just have:
->>
->> bool "Application Data Integrity support"
->> default y if SPARC64
->>
->> If you don't want people disabling it, then there's no point in having
->> a separate Kconfig symbol.
->>
->
-> Ah, I see. I do not want people disabling it. I will make changes.
-
-Why don't you want people disabling it? I must acknowledge that it's
-not a lot of code, but I can see people wanting to build "minimal"
-kernels for processors without ADI or to run some specific thing that
-doesn't use ADI. Providing the kernel responds appropriately if
-there's an unexpected ADI fault I don't see why the code would be
-needed if it'll never be used.
-
->>> +       help
->>> +         Support for Application Data Integrity (ADI). ADI feature
->>> allows
->>> +         a process to tag memory blocks with version tags. Once ADI is
->>> +         enabled and version tag is set on a memory block, any access =
-to
->>> +         it is allowed only if the correct version tag is presented by
->>> +         a process. This feature is meant to help catch rogue accesses
->>> +         to memory.
->>> +
->>
->>
->> You should probably mention that it's only available on newer
->> processors and recommend that it's enabled on them.
->
->
-> Good point.
->
->>
->> This code won't break anything on older processors, right? I haven't
->> looked very closely, but I don't see anything that specifically
->> disables the code if it's run on, say, a UltraSparc I.
->
->
-> Right, this code does not break anything on older processors and has been
-> tested on older machines. init_adi() will detect the platform does not
-> support ADI when it parses machine description and will leave ADI disabled
-> in that case (adi_state.enabled=FAlse).
-
-Awesome, I just wanted to check =3D)
-
->>>   config SCHED_SMT
->>>          bool "SMT (Hyperthreading) scheduler support"
->>>          depends on SPARC64 && SMP
->>> diff --git a/arch/sparc/include/asm/processor_64.h
->>> b/arch/sparc/include/asm/processor_64.h
->>> index 6924bde..9a71701 100644
->>> --- a/arch/sparc/include/asm/processor_64.h
->>> +++ b/arch/sparc/include/asm/processor_64.h
->>> @@ -97,6 +97,25 @@ struct thread_struct {
->>>   struct task_struct;
->>>   unsigned long thread_saved_pc(struct task_struct *);
 >>>
->>> +#ifdef CONFIG_SPARC_ADI
->>> +extern struct adi_caps *get_adi_caps(void);
->>> +extern long get_sparc_adicaps(unsigned long);
->>> +extern long set_sparc_pstate_mcde(unsigned long);
->>> +extern long enable_sparc_adi(unsigned long, unsigned long);
->>> +extern long disable_sparc_adi(unsigned long, unsigned long);
->>> +extern long get_sparc_adi_status(unsigned long);
->>> +extern bool adi_capable(void);
->>> +
->>> +#define GET_SPARC_ADICAPS(a)   get_sparc_adicaps(a)
->>> +#define SET_SPARC_MCDE(a)      set_sparc_pstate_mcde(a)
->>> +#define ENABLE_SPARC_ADI(a, b) enable_sparc_adi(a, b)
->>> +#define DISABLE_SPARC_ADI(a, b)        disable_sparc_adi(a, b)
->>> +#define GET_SPARC_ADI_STATUS(a)        get_sparc_adi_status(a)
->>> +#define ADI_CAPABLE()          adi_capable()
->>
->>
->> Get rid of the ADI_CAPABLE macro, the usual pattern here is to define
->> a static inline function for the entire API when the symbol is
->> disabled, i.e.
->>
->> #ifdef CONFIG_SPARC_ADI
->> ...
->> extern bool adi_capable(void);
->> #else
->> ...
->> static inline bool adi_capable(void) {
->>      return false;
->> }
->> #endif
->>
->> That way you get type checking on the arguments even if the option is
->> disabled and modern compilers are smart enough to optimise all the
->> no-op code away. (Not that the type checking is needed here.)
->>
->> Also, in all but one place you use the ADI_CAPABLE() macro when the
->> adi_capable() function is defined and available.
->
->
-> I defined ADI_CAPABLE() 0 for the case when CONFIG_SPARC_ADI is not set to
-> help compiler optimize sun4v_mem_corrupt_detect_precise(). Since
-> sun4v_mem_corrupt_detect_precise() is exception handler, optimizing it can
-> be good for performance but perhaps compiler is smart enough to do that a=
-ny
-> way if adi_capable() is defined inline as you show above? I do like that
-> doing it this way retains type checking.
-
-Inlines can usually be treated as if they're macros from an optimising
-perspective.
-
->>> +#else
->>> +#define ADI_CAPABLE()          0
->>> +#endif
->>> +
->>>   /* On Uniprocessor, even in RMO processes see TSO semantics */
->>>   #ifdef CONFIG_SMP
->>>   #define TSTATE_INITIAL_MM      TSTATE_TSO
->>> diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
->>> index 6f80936..79f981c 100644
->>> --- a/arch/sparc/kernel/mdesc.c
->>> +++ b/arch/sparc/kernel/mdesc.c
->>> @@ -1007,6 +1013,80 @@ static int mdesc_open(struct inode *inode, struct
->>> file *file)
->>>          return 0;
->>>   }
+>>> I must admit that I'm slightly impressed that the documentation is
+>>> over a quarter of the lines added. =)
 >>>
->>> +bool adi_capable(void)
->>> +{
->>> +       return adi_state.enabled;
->>> +}
->>> +
->>> +struct adi_caps *get_adi_caps(void)
->>> +{
->>> +       return &adi_state.caps;
->>> +}
->>> +
->>> +void __init
->>> +init_adi(void)
->>> +{
->>> +       struct mdesc_handle *hp =3D mdesc_grab();
->>> +       const char *prop;
->>> +       u64 pn, *val;
->>> +       int len;
->>> +
->>> +       adi_state.enabled =3D false;
->>> +
->>> +       if (!hp)
->>> +               return;
->>> +
->>> +       pn =3D mdesc_node_by_name(hp, MDESC_NODE_NULL, "cpu");
->>> +       if (pn =3D MDESC_NODE_NULL)
->>> +               goto out;
->>> +
->>> +       prop =3D mdesc_get_property(hp, pn, "hwcap-list", &len);
->>> +       if (!prop)
->>> +               goto out;
->>> +
->>> +       /*
->>> +        * Look for "adp" keyword in hwcap-list which would indicate
->>> +        * ADI support
->>> +        */
->>> +       while (len) {
->>> +               int plen;
->>> +
->>> +               if (!strcmp(prop, "adp")) {
->>> +                       adi_state.enabled =3D true;
->>> +                       break;
->>> +               }
->>> +
->>> +               plen =3D strlen(prop) + 1;
->>> +               prop +=3D plen;
->>> +               len -=3D plen;
->>> +       }
->>> +
->>> +       if (!adi_state.enabled)
->>> +               goto out;
->>> +
->>> +       pn =3D mdesc_node_by_name(hp, MDESC_NODE_NULL, "platform");
->>> +       if (pn =3D MDESC_NODE_NULL)
->>> +               goto out;
->>> +
->>> +       val =3D (u64 *) mdesc_get_property(hp, pn, "adp-blksz", &len);
->>> +       if (!val)
->>> +               goto out;
->>> +       adi_state.caps.blksz =3D *val;
->>> +
->>> +       val =3D (u64 *) mdesc_get_property(hp, pn, "adp-nbits", &len);
->>> +       if (!val)
->>> +               goto out;
->>> +       adi_state.caps.nbits =3D *val;
->>> +
->>> +       val =3D (u64 *) mdesc_get_property(hp, pn, "ue-on-adp", &len);
->>> +       if (!val)
->>> +               goto out;
->>> +       adi_state.caps.ue_on_adi =3D *val;
->>> +
->>> +out:
->>> +       mdesc_release(hp);
->>> +}
->>> +
->>
->>
->> Should all the ADI related functions above be within a #ifdef
->> CONFIG_SPARC_ADI?
->>
->
-> CONFIG_SPARC_ADI is selected for 64-bit kernels only since M7 is 64-bit
-> only. init_adi() will do the right thing whether CONFIG_SPARC_ADI is enab=
-led
-> or not. It will parse machine description on 32-bit kernels, detect ADI is
-> not supported by the platform and leave adi_state.enabled=FAlse. I was
-> considering adding something like /proc/sys/vm/sparc_adi_available at lat=
-er
-> point which would get its data from what init_adi() detects. On the other
-> hand, since 32-bit processors do not support ADI, why have even this much
-> code run on them. I can enclose this code as well inside #ifdef.
-
-Precisely.
-
->>>   static ssize_t mdesc_read(struct file *file, char __user *buf,
->>>                            size_t len, loff_t *offp)
->>>   {
->>> diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
->>> index d21cd62..29db583 100644
->>> --- a/arch/sparc/kernel/traps_64.c
->>> +++ b/arch/sparc/kernel/traps_64.c
->>> @@ -2531,6 +2589,38 @@ void sun4v_do_mna(struct pt_regs *regs, unsigned
->>> long addr, unsigned long type_c
->>>          force_sig_info(SIGBUS, &info, current);
->>>   }
+>>>> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+>>>> index 56442d2..0aac0ae 100644
+>>>> --- a/arch/sparc/Kconfig
+>>>> +++ b/arch/sparc/Kconfig
+>>>> @@ -80,6 +80,7 @@ config SPARC64
+>>>>           select NO_BOOTMEM
+>>>>           select HAVE_ARCH_AUDITSYSCALL
+>>>>           select ARCH_SUPPORTS_ATOMIC_RMW
+>>>> +       select SPARC_ADI
 >>>
->>> +void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs, unsigned
->>> long addr,
->>> +                                     unsigned long context)
->>> +{
->>> +       siginfo_t info;
->>> +
->>> +       if (!ADI_CAPABLE()) {
->>> +               bad_trap(regs, 0x1a);
->>> +               return;
->>> +       }
->>> +
->>> +       if (notify_die(DIE_TRAP, "memory corruption precise exception",
->>> regs,
->>> +                      0, 0x8, SIGSEGV) =3D NOTIFY_STOP)
->>> +               return;
->>> +
->>> +       if (regs->tstate & TSTATE_PRIV) {
->>> +               pr_emerg("sun4v_mem_corrupt_detect_precise: ADDR[%016lx]
->>> "
->>> +                       "CTX[%lx], going.\n", addr, context);
->>> +               die_if_kernel("MCD precise", regs);
->>> +       }
->>> +
->>> +       if (test_thread_flag(TIF_32BIT)) {
->>> +               regs->tpc &=3D 0xffffffff;
->>> +               regs->tnpc &=3D 0xffffffff;
->>> +       }
->>> +       info.si_signo =3D SIGSEGV;
->>> +       info.si_code =3D SEGV_ADIPERR;
->>> +       info.si_errno =3D 0;
->>> +       info.si_addr =3D (void __user *) addr;
->>> +       info.si_trapno =3D 0;
->>> +       force_sig_info(SIGSEGV, &info, current);
->>> +}
->>> +
+>>>
+>>> This doesn't look right.
+>>>
+>>>>    config ARCH_DEFCONFIG
+>>>>           string
+>>>> @@ -314,6 +315,17 @@ if SPARC64
+>>>>    source "kernel/power/Kconfig"
+>>>>    endif
+>>>>
+>>>> +config SPARC_ADI
+>>>> +       bool "Application Data Integrity support"
+>>>> +       def_bool y if SPARC64
+>>>
+>>>
+>>> def_bool is for config options without names (i.e. "this is a boolean
+>>> value and it's default is...")
+>>>
+>>> So if you want people to be able to disable this option, then you
+>>> should remove the select above and just have:
+>>>
+>>> bool "Application Data Integrity support"
+>>> default y if SPARC64
+>>>
+>>> If you don't want people disabling it, then there's no point in having
+>>> a separate Kconfig symbol.
+>>>
 >>
->>
->> Should this be ifdef'd too?
+>> Ah, I see. I do not want people disabling it. I will make changes.
 >
+> Why don't you want people disabling it? I must acknowledge that it's
+> not a lot of code, but I can see people wanting to build "minimal"
+> kernels for processors without ADI or to run some specific thing that
+> doesn't use ADI. Providing the kernel responds appropriately if
+> there's an unexpected ADI fault I don't see why the code would be
+> needed if it'll never be used.
 >
-> I would prefer to leave exception handlers in place any way unless there =
-are
-> strong objections.
 
-Thinking over it again, you're right. It's possible, however unlikely,
-that this trap could occur without ADI being enabled anywhere, so we
-should handle it unconditionally.
+Hi Julian,
 
->>>   void do_privop(struct pt_regs *regs)
->>>   {
->>>          enum ctx_state prev_state =3D exception_enter();
+My goal in making CONFIG_SPARC_ADI auto-selected was to not add yet 
+another config option that end user has to understand and figure out 
+what to do with, and make the kernel self-configuring where ADI simply 
+becomes available if platform supports it. Kernel auto-detecting 
+platform features is especially useful for distro kernels. I do see your 
+point in being able to build a minimal kernel when building a custom 
+kernel. Both options of making CONFIG_SPARC_ADI auto-selected or not, 
+have pros and cons. I don't have a strong feeling about it one way or 
+the other and can go either way.
 
 Thanks,
+Khalid
 
---=20
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
