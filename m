@@ -1,7 +1,7 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Fri, 04 Mar 2016 20:47:13 +0000
+Date: Fri, 04 Mar 2016 21:41:06 +0000
 Subject: Re: Kernels 4.+ are breaking rsync?
-Message-Id: <56D9F451.8080603@physik.fu-berlin.de>
+Message-Id: <56DA00F2.1000209@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <56C11585.3060503@triadic.us>
 In-Reply-To: <56C11585.3060503@triadic.us>
@@ -10,18 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 03/05/2016 05:24 AM, alexmcwhirter@triadic.us wrote:
-> I do find it odd that the Debian port seems to be working fine. I'm
-> going to give the latest kernel on a try on this box. Previously i had
-> only tried up to the latest rendition of 4.1. If it's still broken I
-> will boot up Debian and see what's going on. Hopefully it isn't hardware
-> specific "This is a cheetah box IIRC"
+On 03/05/2016 06:21 AM, alexmcwhirter@triadic.us wrote:
+> Anyways, im giving Debian a shot now. The installer refused to format my
+> boot partition as ext2, so i had to use ext3. That probably a little off
+> topic though, so ill keep you updated on my findings.
 
-It might be a toolchain issue.
+Great!
 
-Are you using the default compiler options or did you tune anything?
+Please report issue with the installer on Debian sparc64 to the
+debian-sparc mailing list:
 
-Adrian
+> https://lists.debian.org/debian-sparc/
 
 -- 
  .''`.  John Paul Adrian Glaubitz
