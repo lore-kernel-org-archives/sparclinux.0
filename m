@@ -1,182 +1,47 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 03 Mar 2016 17:28:45 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 06 Mar 2016 04:07:02 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56D8744D.9020300@oracle.com>
+Message-Id: <20160305.230702.1325379875282120281.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com>
- <CAGRGNgXCcEmKU9f2XRpRv6By4QPZU7rxxTQPzSp+kahjmRTO5Q@mail.gmail.com>
- <56D78471.1020707@oracle.com>
- <CAGRGNgVyPUUUTV9_GAyE9S4FVPce4PBU-G+QXv3eNkosGj3eyg@mail.gmail.com>
-In-Reply-To: <CAGRGNgVyPUUUTV9_GAyE9S4FVPce4PBU-G+QXv3eNkosGj3eyg@mail.gmail.com>
+In-Reply-To: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julian Calaby <julian.calaby@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, corbet@lwn.net, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, Arnd Bergmann <arnd@arndb.de>, sparclinux <sparclinux@vger.kernel.org>, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andy Lutomirski <luto@kernel.org>, ebiederm@xmission.com, bsegall@google.com, Geert Uytterhoeven <geert@linux-m68k.org>, dave@stgolabs.net, Alexey Dobriyan <adobriyan@gmail.com>, linux-doc@vger.kernel.org"linux-kernel@vger.kernel.org" <linu>
+To: khalid.aziz@oracle.com
+Cc: corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 03/02/2016 05:48 PM, Julian Calaby wrote:
-> Hi Khalid,
->
-> On Thu, Mar 3, 2016 at 11:25 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
->> Thanks, Julian! I really appreciate your feedback.
->
-> No problem!
->
->> My comments below.
->>
->> On 03/02/2016 04:08 PM, Julian Calaby wrote:
->>>
->>> Hi Khalid,
->>>
->>> On Thu, Mar 3, 2016 at 7:39 AM, Khalid Aziz <khalid.aziz@oracle.com>
->>> wrote:
->>>>
->>>>
->>>> Enable Application Data Integrity (ADI) support in the sparc
->>>> kernel for applications to use ADI in userspace. ADI is a new
->>>> feature supported on sparc M7 and newer processors. ADI is supported
->>>> for data fetches only and not instruction fetches. This patch adds
->>>> prctl commands to enable and disable ADI (TSTATE.mcde), return ADI
->>>> parameters to userspace, enable/disable MCD (Memory Corruption
->>>> Detection) on selected memory ranges and enable TTE.mcd in PTEs. It
->>>> also adds handlers for all traps related to MCD. ADI is not enabled
->>>> by default for any task and a task must explicitly enable ADI
->>>> (TSTATE.mcde), turn MCD on on a memory range and set version tag
->>>> for ADI to be effective for the task. This patch adds support for
->>>> ADI for hugepages only. Addresses passed into system calls must be
->>>> non-ADI tagged addresses.
->>>
->>>
->>> I can't comment on the actual functionality here, but I do see a few
->>> minor style issues in your patch.
->>>
->>> My big concern is that you're defining a lot of new code that is ADI
->>> specific but isn't inside a CONFIG_SPARC_ADI ifdef. (That said,
->>> handling ADI specific traps if ADI isn't enabled looks like a good
->>> idea to me, however most of the other stuff is just dead code if
->>> CONFIG_SPARC_ADI isn't enabled.)
->>
->>
->> Some of the code will be executed when CONFIG_SPARC_ADI is not enabled, for
->> instance init_adi() which will parse machine description to determine if
->> platform supports ADI. On the other hand, it might still make sense to
->> enclose this code in #ifdef. More on that below.
->>
->>
->>>
->>>> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
->>>> ---
->>>> NOTES: ADI is a new feature added to M7 processor to allow hardware
->>>>           to catch rogue accesses to memory. An app can enable ADI on
->>>>           its data pages, set version tags on them and use versioned
->>>>           addresses (bits 63-60 of the address contain a version tag)
->>>>           to access the data pages. If a rogue app attempts to access
->>>>           ADI enabled data pages, its access is blocked and processor
->>>>           generates an exception. Enabling this functionality for all
->>>>           data pages of an app requires adding infrastructure to save
->>>>           version tags for any data pages that get swapped out and
->>>>           restoring those tags when pages are swapped back in. In this
->>>>           first implementation I am enabling ADI for hugepages only
->>>>           since these pages are locked in memory and hence avoid the
->>>>           issue of saving and restoring tags. Once this core functionality
->>>>           is stable, ADI for other memory pages can be enabled more
->>>>           easily.
->>>>
->>>> v2:
->>>>           - Fixed a build error
->>>>
->>>>    Documentation/prctl/sparc_adi.txt     |  62 ++++++++++
->>>>    Documentation/sparc/adi.txt           | 206
->>>> +++++++++++++++++++++++++++++++
->>>>    arch/sparc/Kconfig                    |  12 ++
->>>>    arch/sparc/include/asm/hugetlb.h      |  14 +++
->>>>    arch/sparc/include/asm/hypervisor.h   |   2 +
->>>>    arch/sparc/include/asm/mmu_64.h       |   1 +
->>>>    arch/sparc/include/asm/pgtable_64.h   |  15 +++
->>>>    arch/sparc/include/asm/processor_64.h |  19 +++
->>>>    arch/sparc/include/asm/ttable.h       |  10 ++
->>>>    arch/sparc/include/uapi/asm/asi.h     |   3 +
->>>>    arch/sparc/include/uapi/asm/pstate.h  |  10 ++
->>>>    arch/sparc/kernel/entry.h             |   3 +
->>>>    arch/sparc/kernel/head_64.S           |   1 +
->>>>    arch/sparc/kernel/mdesc.c             |  81 +++++++++++++
->>>>    arch/sparc/kernel/process_64.c        | 222
->>>> ++++++++++++++++++++++++++++++++++
->>>>    arch/sparc/kernel/sun4v_mcd.S         |  16 +++
->>>>    arch/sparc/kernel/traps_64.c          |  96 ++++++++++++++-
->>>>    arch/sparc/kernel/ttable_64.S         |   6 +-
->>>>    include/linux/mm.h                    |   2 +
->>>>    include/uapi/asm-generic/siginfo.h    |   5 +-
->>>>    include/uapi/linux/prctl.h            |  16 +++
->>>>    kernel/sys.c                          |  30 +++++
->>>>    22 files changed, 826 insertions(+), 6 deletions(-)
->>>>    create mode 100644 Documentation/prctl/sparc_adi.txt
->>>>    create mode 100644 Documentation/sparc/adi.txt
->>>>    create mode 100644 arch/sparc/kernel/sun4v_mcd.S
->>>
->>>
->>> I must admit that I'm slightly impressed that the documentation is
->>> over a quarter of the lines added. =)
->>>
->>>> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
->>>> index 56442d2..0aac0ae 100644
->>>> --- a/arch/sparc/Kconfig
->>>> +++ b/arch/sparc/Kconfig
->>>> @@ -80,6 +80,7 @@ config SPARC64
->>>>           select NO_BOOTMEM
->>>>           select HAVE_ARCH_AUDITSYSCALL
->>>>           select ARCH_SUPPORTS_ATOMIC_RMW
->>>> +       select SPARC_ADI
->>>
->>>
->>> This doesn't look right.
->>>
->>>>    config ARCH_DEFCONFIG
->>>>           string
->>>> @@ -314,6 +315,17 @@ if SPARC64
->>>>    source "kernel/power/Kconfig"
->>>>    endif
->>>>
->>>> +config SPARC_ADI
->>>> +       bool "Application Data Integrity support"
->>>> +       def_bool y if SPARC64
->>>
->>>
->>> def_bool is for config options without names (i.e. "this is a boolean
->>> value and it's default is...")
->>>
->>> So if you want people to be able to disable this option, then you
->>> should remove the select above and just have:
->>>
->>> bool "Application Data Integrity support"
->>> default y if SPARC64
->>>
->>> If you don't want people disabling it, then there's no point in having
->>> a separate Kconfig symbol.
->>>
->>
->> Ah, I see. I do not want people disabling it. I will make changes.
->
-> Why don't you want people disabling it? I must acknowledge that it's
-> not a lot of code, but I can see people wanting to build "minimal"
-> kernels for processors without ADI or to run some specific thing that
-> doesn't use ADI. Providing the kernel responds appropriately if
-> there's an unexpected ADI fault I don't see why the code would be
-> needed if it'll never be used.
->
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed,  2 Mar 2016 13:39:37 -0700
 
-Hi Julian,
+> 	In this
+> 	first implementation I am enabling ADI for hugepages only
+> 	since these pages are locked in memory and hence avoid the
+> 	issue of saving and restoring tags.
 
-My goal in making CONFIG_SPARC_ADI auto-selected was to not add yet 
-another config option that end user has to understand and figure out 
-what to do with, and make the kernel self-configuring where ADI simply 
-becomes available if platform supports it. Kernel auto-detecting 
-platform features is especially useful for distro kernels. I do see your 
-point in being able to build a minimal kernel when building a custom 
-kernel. Both options of making CONFIG_SPARC_ADI auto-selected or not, 
-have pros and cons. I don't have a strong feeling about it one way or 
-the other and can go either way.
+This makes the feature almost entire useless.
 
-Thanks,
-Khalid
+Non-hugepages must be in the initial implementation.
 
+> +	PR_ENABLE_SPARC_ADI - Enable ADI checking in all pages in the address
+> +		range specified. The pages in the range must be already
+> +		locked. This operation enables the TTE.mcd bit for the
+> +		pages specified. arg2 is the starting address for address
+> +		range and must be page aligned. arg3 is the length of
+> +		memory address range and must be a multiple of page size.
+
+I strongly dislike this interface, and it makes the prtctl cases look
+extremely ugly and hide to the casual reader what the code is actually
+doing.
+
+This is an mprotect() operation, so add a new flag bit and implement
+this via mprotect please.
+
+Then since you are guarenteed to have a consistent ADI setting for
+every single VMA region, you never "lose" the ADI state when you swap
+out.  It's implicit in the VMA itself, because you'll store in the VMA
+that this is an ADI region.
+
+I also want this enabled unconditionally, without any Kconfig knobs.
+
+Thanks.
