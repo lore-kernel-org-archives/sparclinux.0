@@ -1,25 +1,42 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Mon, 07 Mar 2016 18:12:12 +0000
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Mon, 07 Mar 2016 18:15:16 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56DDC47C.8010206@linux.intel.com>
+Message-Id: <56DDC534.3040301@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com>
- <20160305.230702.1325379875282120281.davem@davemloft.net>
- <56DD9949.1000106@oracle.com> <56DD9E94.70201@oracle.com>
- <CALCETrXey2_xEXhzjgHtZmf-dLp-9pec===d-8chLxrp8wgRXg@mail.gmail.com>
- <56DDA6FD.4040404@oracle.com> <56DDBE68.6080709@linux.intel.com>
- <CALCETrWPeFsyGsDNyehMpub1QrjZxyWpG_x_2A0yKqROXYfJ5A@mail.gmail.com>
-In-Reply-To: <CALCETrWPeFsyGsDNyehMpub1QrjZxyWpG_x_2A0yKqROXYfJ5A@mail.gmail.com>
+ <56DDBBFD.8040106@intel.com>
+In-Reply-To: <56DDBBFD.8040106@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, Rob Gardner <rob.gardner@oracle.com>, David Miller <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, Michal Hocko <mhocko@suse.cz>, chris.hyser@oracle.com, Richard Weinberger <richard@nod.at>, Vlastimil Babka <vbabka@suse.cz>, Konstantin Khlebnikov <koct9i@gmail.com>, Oleg Nesterov <oleg@redhat.com>, Greg Thelen <gthelen@google.com>, Jan Kara <jack@suse.cz>, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andrew Lutomirski <luto@kernel.org>, "Eric W. Biederman" <ebiederm@xmission.com>, bsegall@goo
+To: Dave Hansen <dave.hansen@intel.com>, davem@davemloft.net, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org
+Cc: rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 03/07/2016 09:53 AM, Andy Lutomirski wrote:
-> Also, what am I missing?  Tying these tags to the physical page seems
-> like a poor design to me.  This seems really awkward to use.
+On 03/07/2016 10:35 AM, Dave Hansen wrote:
+> On 03/02/2016 12:39 PM, Khalid Aziz wrote:
+>> +long enable_sparc_adi(unsigned long addr, unsigned long len)
+>> +{
+>> +	unsigned long end, pagemask;
+>> +	int error;
+>> +	struct vm_area_struct *vma, *vma2;
+>> +	struct mm_struct *mm;
+>> +
+>> +	if (!ADI_CAPABLE())
+>> +		return -EINVAL;
+> ...
+>
+> This whole thing with the VMA splitting and so forth looks pretty darn
+> arch-independent.  Are you sure you need that much arch-specific code
+> for it, or can you share more of the generic VMA management code?
+>
 
-Yeah, can you describe the structures that store these things?  Surely
-the hardware has some kind of lookup tables for them and stores them in
-memory _somewhere_.
+All of the VMA splitting/merging code is rather generic and is very 
+similar to the code for mbind, mlock, madavise and mprotect. Currently 
+there is no code sharing across all of these implementations. Maybe that 
+should change. In any case, I am looking at changing the interface to go 
+through mprotect instead as Dave suggested. I can share the code in 
+mprotect in that case. The only arch dependent part will be to set the 
+VM_SPARC_ADI flag on the VMA.
+
+Thanks,
+Khalid
