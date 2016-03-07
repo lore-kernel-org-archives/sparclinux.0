@@ -1,24 +1,28 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 07 Mar 2016 16:45:21 +0000
+Date: Mon, 07 Mar 2016 16:56:26 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <20160307.114521.1646726145228714690.davem@davemloft.net>
+Message-Id: <20160307.115626.807716799249471744.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com>
 	<20160305.230702.1325379875282120281.davem@davemloft.net>
 	<56DD9949.1000106@oracle.com>
-In-Reply-To: <56DD9949.1000106@oracle.com>
+In-Reply-To: <56DD9949.1000106-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: khalid.aziz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: corbet-T1hC0tSOHrs@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, dingel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, zhenzhang.zhang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, bob.picco-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, aneesh.kumar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.gardner-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mhocko-AlSwsSmVLrQ@public.gmane.org, chris.hyser-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, vbabka-AlSwsSmVLrQ@public.gmane.org, koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiexiuqi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, bsegall-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org, adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
 From: Khalid Aziz <khalid.aziz@oracle.com>
 Date: Mon, 7 Mar 2016 08:07:53 -0700
 
-> I can remove CONFIG_SPARC_ADI. It does mean this code will be built
-> into 32-bit kernels as well but it will be inactive code.
+> PR_GET_SPARC_ADICAPS
 
-The code should be built only into obj-$(CONFIG_SPARC64) just like the
-rest of the 64-bit specific code.  I don't know why in the world you
-would build it into the 32-bit kernel.
+Put this into a new ELF auxiliary vector entry via ARCH_DLINFO.
+
+So now all that's left is supposedly the TAG stuff, please explain
+that to me so I can direct you to the correct existing interface to
+provide that as well.
+
+Really, try to avoid prtctl, it's poorly typed and almost worse than
+ioctl().
