@@ -1,34 +1,63 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 07 Mar 2016 21:34:01 +0000
+Date: Mon, 07 Mar 2016 21:38:50 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <20160307.163401.1082539079648850099.davem@davemloft.net>
+Message-Id: <20160307.163850.1494834587897617780.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56DDC2B6.6020009@oracle.com>
-	<20160307.140915.1323031236840000210.davem@davemloft.net>
-	<56DDF22D.9090102@oracle.com>
-In-Reply-To: <56DDF22D.9090102-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+References: <56DDC776.3040003@oracle.com>
+	<20160307.141600.1873883635480850431.davem@davemloft.net>
+	<56DDF3C4.7070701@oracle.com>
+In-Reply-To: <56DDF3C4.7070701@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: corbet-T1hC0tSOHrs@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, dingel-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, bob.picco-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, kirill.shutemov-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, aneesh.kumar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, arnd-r2nGTMty4D4@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.gardner-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mhocko-AlSwsSmVLrQ@public.gmane.org, chris.hyser-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, richard-/L3Ra7n9ekc@public.gmane.org, vbabka-AlSwsSmVLrQ@public.gmane.org, koct9i-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, gthelen-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, jack-AlSwsSmVLrQ@public.gmane.org, xiexiuqi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, bsegall-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org, dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org, adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: khalid.aziz@oracle.com
+Cc: rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
 From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Mon, 7 Mar 2016 14:27:09 -0700
+Date: Mon, 7 Mar 2016 14:33:56 -0700
 
-> I agree with your point of view. PSTATE.mcde and TTE.mcd are set in
-> response to request from userspace. If userspace asked for them to be
-> set, they already know but it was the database guys that asked for
-> these two functions and they are the primary customers for the ADI
-> feature. I am not crazy about this idea since this extends the
-> mprotect API even further but would you consider using the return
-> value from mprotect to indicate if PSTATE.mcde or TTE.mcd were already
-> set on the given address?
+> On 03/07/2016 12:16 PM, David Miller wrote:
+>> From: Khalid Aziz <khalid.aziz@oracle.com>
+>> Date: Mon, 7 Mar 2016 11:24:54 -0700
+>>
+>>> Tags can be cleared by user by setting tag to 0. Tags are
+>>> automatically cleared by the hardware when the mapping for a virtual
+>>> address is removed from TSB (which is why swappable pages are a
+>>> problem), so kernel does not have to do it as part of clean up.
+>>
+>> You might be able to crib some bits for the Tag in the swp_entry_t,
+>> it's
+>> 64-bit and you can therefore steal bits from the offset field.
+>>
+>> That way you'll have the ADI tag in the page tables, ready to
+>> re-install
+>> at swapin time.
+>>
+> 
+> That is a possibility but limited in scope. An address range covered
+> by a single TTE can have large number of tags. Version tags are set on
+> cacheline. In extreme case, one could set a tag for each set of
+> 64-bytes in a page. Also tags are set completely in userspace and no
+> transition occurs to kernel space, so kernel has no idea of what tags
+> have been set. I have not found a way to query the MMU on tags.
+> 
+> I will think some more about it.
 
-Well, that's the idea.
+That would mean that ADI is impossible to use for swappable memory.
 
-If the mprotect using MAP_ADI or whatever succeeds, then ADI is
-enabled.
+...
 
-Users can thus also pass MAP_ADI as a flag to mmap() to get ADI
-protection from the very beginning.
+If that's true I'm extremely disappointed that they devoted so much
+silicon and engineering to this feature yet didn't take that one
+critical step to make it generally useful. :(
+
+We could have a way to do this via the kernel, wherein the user has a
+contract with us.  Basically we have a call to pass the Tags (what
+granularity to use for this is a design point, pages, cache lines,
+etc.)  into the kernel and the user agrees not to change them behind
+the kernel's back.
+
+In return the kernel agrees to restore the tags upon swapin.
+
+So we could support something for swappable pages, it would just be
+more work.
