@@ -1,66 +1,42 @@
 From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Mon, 07 Mar 2016 21:27:09 +0000
+Date: Mon, 07 Mar 2016 21:33:56 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56DDF22D.9090102@oracle.com>
+Message-Id: <56DDF3C4.7070701@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56DD9949.1000106@oracle.com>
- <20160307.115626.807716799249471744.davem@davemloft.net>
- <56DDC2B6.6020009@oracle.com>
- <20160307.140915.1323031236840000210.davem@davemloft.net>
-In-Reply-To: <20160307.140915.1323031236840000210.davem@davemloft.net>
+References: <56DDC2B6.6020009@oracle.com> <56DDC3EB.8060909@oracle.com>
+ <56DDC776.3040003@oracle.com>
+ <20160307.141600.1873883635480850431.davem@davemloft.net>
+In-Reply-To: <20160307.141600.1873883635480850431.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, rob.gardner@oracle.com, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+Cc: rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 03/07/2016 12:09 PM, David Miller wrote:
+On 03/07/2016 12:16 PM, David Miller wrote:
 > From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Mon, 7 Mar 2016 11:04:38 -0700
+> Date: Mon, 7 Mar 2016 11:24:54 -0700
 >
->> On 03/07/2016 09:56 AM, David Miller wrote:
->>> From: Khalid Aziz <khalid.aziz@oracle.com>
->>> Date: Mon, 7 Mar 2016 08:07:53 -0700
->>>
->>>> PR_GET_SPARC_ADICAPS
->>>
->>> Put this into a new ELF auxiliary vector entry via ARCH_DLINFO.
->>>
->>> So now all that's left is supposedly the TAG stuff, please explain
->>> that to me so I can direct you to the correct existing interface to
->>> provide that as well.
->>>
->>> Really, try to avoid prtctl, it's poorly typed and almost worse than
->>> ioctl().
->>>
->>
->> The two remaining operations I am looking at are:
->>
->> 1. Is PSTATE.mcde bit set for the process? PR_SET_SPARC_ADI provides
->> this in its return value in the patch I sent.
+>> Tags can be cleared by user by setting tag to 0. Tags are
+>> automatically cleared by the hardware when the mapping for a virtual
+>> address is removed from TSB (which is why swappable pages are a
+>> problem), so kernel does not have to do it as part of clean up.
 >
-> Unnecessary.  If any ADI mappings exist then mcde is set, otherwise it is
-> clear.  This is internal state and the application has no need to every
-> set nor query it.
+> You might be able to crib some bits for the Tag in the swp_entry_t, it's
+> 64-bit and you can therefore steal bits from the offset field.
 >
-> It is implicit from the mprotect() calls the user makes to enable ADI
-> regions.
->
->> 2. Is TTE.mcd set for a given virtual address? PR_GET_SPARC_ADI_STATUS
->> provides this function in the patch I sent.
->
-> Again, implied by the mprotect() calls.
+> That way you'll have the ADI tag in the page tables, ready to re-install
+> at swapin time.
 >
 
-Hi Dave,
+That is a possibility but limited in scope. An address range covered by 
+a single TTE can have large number of tags. Version tags are set on 
+cacheline. In extreme case, one could set a tag for each set of 64-bytes 
+in a page. Also tags are set completely in userspace and no transition 
+occurs to kernel space, so kernel has no idea of what tags have been 
+set. I have not found a way to query the MMU on tags.
 
-I agree with your point of view. PSTATE.mcde and TTE.mcd are set in 
-response to request from userspace. If userspace asked for them to be 
-set, they already know but it was the database guys that asked for these 
-two functions and they are the primary customers for the ADI feature. I 
-am not crazy about this idea since this extends the mprotect API even 
-further but would you consider using the return value from mprotect to 
-indicate if PSTATE.mcde or TTE.mcd were already set on the given address?
+I will think some more about it.
 
 Thanks,
 Khalid
