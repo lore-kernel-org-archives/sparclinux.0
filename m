@@ -1,44 +1,40 @@
-From: James Morris <james.l.morris@oracle.com>
-Date: Tue, 08 Mar 2016 09:33:01 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 08 Mar 2016 19:57:48 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56DE9C4D.8000709@oracle.com>
+Message-Id: <20160308.145748.1648298790157991002.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com> <20160305.230702.1325379875282120281.davem@davemloft.net> <56DD9949.1000106@oracle.com> <20160307.115626.807716799249471744.davem@davemloft.net> <56DDC2B6.6020009@oracle.com> <CALCETrXN43nT4zq2MpO90VrgK3k+DKHjOHWf7iOhS7TSBmdCPQ@mail.gmail.com> <56DDC6E0.4000907@oracle.com> <CALCETrU5NCzh3b7We8903G0_Tm-oycgP3+gS9fG+vC_rdgTddw@mail.gmail.com> <56DDDA31.9090105@oracle.com> <CALCETrXXU0fs2ezq+Wn_kr4dZTO=0RJmt6b=XBSA-wM7W_9j9A@mail.gmail.com> <56DE1341.4080206@oracle.com>
-In-Reply-To: <56DE1341.4080206@oracle.com>
+References: <56DDA6FD.4040404@oracle.com>
+	<56DDBE68.6080709@linux.intel.com>
+	<56DDED63.8010302@oracle.com>
+In-Reply-To: <56DDED63.8010302@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@amacapital.net>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Miller <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, Rob Gardner <rob.gardner@oracle.com>, Michal Hocko <mhocko@suse.cz>, chris.hyser@oracle.com, Richard Weinberger <richard@nod.at>, Vlastimil Babka <vbabka@suse.cz>, Konstantin Khlebnikov <koct9i@gmail.com>, Oleg Nesterov <oleg@redhat.com>, Greg Thelen <gthelen@google.com>, Jan Kara <jack@suse.cz>, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andrew Lutomirski <luto@kernel.org>, "Eric W. Biederman" <ebiederm@xmissio>
+To: khalid.aziz@oracle.com
+Cc: dave.hansen@linux.intel.com, luto@amacapital.net, rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, zhenzhang.zhang@huawei.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 03/08/2016 10:48 AM, James Morris wrote:
-> On 03/08/2016 06:54 AM, Andy Lutomirski wrote:
->>
->> This makes sense, but I still think the design is poor.  If the hacker
->> gets code execution, then they can trivially brute force the ADI bits.
->>
->
-> ADI in this scenario is intended to prevent the attacker from gaining
-> code execution in the first place.
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Mon, 7 Mar 2016 14:06:43 -0700
 
-Here's some more background from Enrico Perla (who literally wrote the 
-book on kernel exploitation):
+> Good questions. Isn't set of valid VAs already constrained by VA_BITS
+> (set to 44 in arch/sparc/include/asm/processor_64.h)? As I see it we
+> are already not using the top 4 bits. Please correct me if I am wrong.
 
-https://blogs.oracle.com/enrico/entry/hardening_allocators_with_adi
+Another limiting constraint is the number of address bits coverable by
+the 4-level page tables we use.  And this is sign extended so we have
+a top-half and a bottom-half with a "hole" in the center of the VA
+space.
 
-Probably the most significant advantage from a security point of view is 
-the ability to eliminate an entire class of vulnerability: adjacent heap 
-overflows, as discussed above, where, for example, adjacent heap objects 
-are tagged differently.  Classic linear buffer overflows can be eliminated.
+I want some clarification on the top bits during ADI accesses.
 
-As Kees Cook outlined at the 2015 kernel summit, it's best to mitigate 
-classes of vulnerabilities rather than patch each instance:
+If ADI is enabled, then the top bits of the virtual address are
+intepreted as tag bits.  Once "verified" with the ADI settings, what
+happense to these tag bits?  Are they dropped from the virtual address
+before being passed down the TLB et al. for translations?
 
-https://outflux.net/slides/2011/defcon/kernel-exploitation.pdf
+If not, then this means you have to map ADI memory to the correct
+location so that the tags match up.
 
-The Linux ADI implementation is currently very rudimentary, and we 
-definitely welcome continued feedback from the community and ideas as it 
-evolves.
-
-- James
-
+And if that's the case, if you really wanted to mix tags within a
+single page, you'd have to map that page several times, once for each
+and every cacheline granular tag you'd like to use within that page.
