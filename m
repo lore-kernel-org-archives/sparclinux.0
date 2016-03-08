@@ -1,24 +1,38 @@
-From: James Morris <james.l.morris@oracle.com>
-Date: Mon, 07 Mar 2016 23:48:17 +0000
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Tue, 08 Mar 2016 00:21:05 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56DE1341.4080206@oracle.com>
+Message-Id: <56DE1AF1.40107@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com> <20160305.230702.1325379875282120281.davem@davemloft.net> <56DD9949.1000106@oracle.com> <20160307.115626.807716799249471744.davem@davemloft.net> <56DDC2B6.6020009@oracle.com> <CALCETrXN43nT4zq2MpO90VrgK3k+DKHjOHWf7iOhS7TSBmdCPQ@mail.gmail.com> <56DDC6E0.4000907@oracle.com> <CALCETrU5NCzh3b7We8903G0_Tm-oycgP3+gS9fG+vC_rdgTddw@mail.gmail.com> <56DDDA31.9090105@oracle.com> <CALCETrXXU0fs2ezq+Wn_kr4dZTO=0RJmt6b=XBSA-wM7W_9j9A@mail.gmail.com>
-In-Reply-To: <CALCETrXXU0fs2ezq+Wn_kr4dZTO=0RJmt6b=XBSA-wM7W_9j9A@mail.gmail.com>
+References: <56DDC2B6.6020009@oracle.com> <56DDC3EB.8060909@oracle.com>
+ <56DDC776.3040003@oracle.com>
+ <20160307.141600.1873883635480850431.davem@davemloft.net>
+In-Reply-To: <20160307.141600.1873883635480850431.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@amacapital.net>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Miller <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, Rob Gardner <rob.gardner@oracle.com>, Michal Hocko <mhocko@suse.cz>, chris.hyser@oracle.com, Richard Weinberger <richard@nod.at>, Vlastimil Babka <vbabka@suse.cz>, Konstantin Khlebnikov <koct9i@gmail.com>, Oleg Nesterov <oleg@redhat.com>, Greg Thelen <gthelen@google.com>, Jan Kara <jack@suse.cz>, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andrew Lutomirski <luto@kernel.org>, "Eric W. Biederman" <ebiederm@xmissio>
+To: David Miller <davem@davemloft.net>
+Cc: rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
 
-On 03/08/2016 06:54 AM, Andy Lutomirski wrote:
+On 03/07/2016 12:16 PM, David Miller wrote:
+> From: Khalid Aziz <khalid.aziz@oracle.com>
+> Date: Mon, 7 Mar 2016 11:24:54 -0700
 >
-> This makes sense, but I still think the design is poor.  If the hacker
-> gets code execution, then they can trivially brute force the ADI bits.
+>> Tags can be cleared by user by setting tag to 0. Tags are
+>> automatically cleared by the hardware when the mapping for a virtual
+>> address is removed from TSB (which is why swappable pages are a
+>> problem), so kernel does not have to do it as part of clean up.
+>
+> You might be able to crib some bits for the Tag in the swp_entry_t, it's
+> 64-bit and you can therefore steal bits from the offset field.
+>
+> That way you'll have the ADI tag in the page tables, ready to re-install
+> at swapin time.
 >
 
-ADI in this scenario is intended to prevent the attacker from gaining 
-code execution in the first place.
+Hi Dave,
 
+Can we enable ADI support for swappable pages in a subsequent update 
+after the core functionality is stable on mlock'd pages?
 
-
+Thanks,
+Khalid
