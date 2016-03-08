@@ -1,22 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 08 Mar 2016 04:24:18 +0000
+From: James Morris <james.l.morris@oracle.com>
+Date: Tue, 08 Mar 2016 09:33:01 +0000
 Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <20160307.232418.1734056188463866385.davem@davemloft.net>
+Message-Id: <56DE9C4D.8000709@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56DDC776.3040003@oracle.com>
-	<20160307.141600.1873883635480850431.davem@davemloft.net>
-	<56DE1AF1.40107@oracle.com>
-In-Reply-To: <56DE1AF1.40107@oracle.com>
+References: <1456951177-23579-1-git-send-email-khalid.aziz@oracle.com> <20160305.230702.1325379875282120281.davem@davemloft.net> <56DD9949.1000106@oracle.com> <20160307.115626.807716799249471744.davem@davemloft.net> <56DDC2B6.6020009@oracle.com> <CALCETrXN43nT4zq2MpO90VrgK3k+DKHjOHWf7iOhS7TSBmdCPQ@mail.gmail.com> <56DDC6E0.4000907@oracle.com> <CALCETrU5NCzh3b7We8903G0_Tm-oycgP3+gS9fG+vC_rdgTddw@mail.gmail.com> <56DDDA31.9090105@oracle.com> <CALCETrXXU0fs2ezq+Wn_kr4dZTO=0RJmt6b=XBSA-wM7W_9j9A@mail.gmail.com> <56DE1341.4080206@oracle.com>
+In-Reply-To: <56DE1341.4080206@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: David Miller <davem@davemloft.net>, Jonathan Corbet <corbet@lwn.net>, Andrew Morton <akpm@linux-foundation.org>, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, Rob Gardner <rob.gardner@oracle.com>, Michal Hocko <mhocko@suse.cz>, chris.hyser@oracle.com, Richard Weinberger <richard@nod.at>, Vlastimil Babka <vbabka@suse.cz>, Konstantin Khlebnikov <koct9i@gmail.com>, Oleg Nesterov <oleg@redhat.com>, Greg Thelen <gthelen@google.com>, Jan Kara <jack@suse.cz>, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, Andrew Lutomirski <luto@kernel.org>, "Eric W. Biederman" <ebiederm@xmissio>
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Mon, 7 Mar 2016 17:21:05 -0700
+On 03/08/2016 10:48 AM, James Morris wrote:
+> On 03/08/2016 06:54 AM, Andy Lutomirski wrote:
+>>
+>> This makes sense, but I still think the design is poor.  If the hacker
+>> gets code execution, then they can trivially brute force the ADI bits.
+>>
+>
+> ADI in this scenario is intended to prevent the attacker from gaining
+> code execution in the first place.
 
-> Can we enable ADI support for swappable pages in a subsequent update
-> after the core functionality is stable on mlock'd pages?
+Here's some more background from Enrico Perla (who literally wrote the 
+book on kernel exploitation):
 
-I already said no.
+https://blogs.oracle.com/enrico/entry/hardening_allocators_with_adi
+
+Probably the most significant advantage from a security point of view is 
+the ability to eliminate an entire class of vulnerability: adjacent heap 
+overflows, as discussed above, where, for example, adjacent heap objects 
+are tagged differently.  Classic linear buffer overflows can be eliminated.
+
+As Kees Cook outlined at the 2015 kernel summit, it's best to mitigate 
+classes of vulnerabilities rather than patch each instance:
+
+https://outflux.net/slides/2011/defcon/kernel-exploitation.pdf
+
+The Linux ADI implementation is currently very rudimentary, and we 
+definitely welcome continued feedback from the community and ideas as it 
+evolves.
+
+- James
+
