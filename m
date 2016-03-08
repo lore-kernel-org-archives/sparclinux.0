@@ -1,64 +1,46 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 08 Mar 2016 20:59:58 +0000
-Subject: Re: [PATCH v2] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <56DF3D4E.3090501@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Tue, 08 Mar 2016 02:23:27 +0000
+Subject: sparc64: Reduce TLB flushes on hugetlb PTE change
+Message-Id: <1457403807-26555-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <56DDED63.8010302@oracle.com>
- <20160308.145748.1648298790157991002.davem@davemloft.net>
- <56DF330B.2010600@oracle.com>
- <20160308.152746.1746115669072714849.davem@davemloft.net>
-In-Reply-To: <20160308.152746.1746115669072714849.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: dave.hansen@linux.intel.com, luto@amacapital.net, rob.gardner@oracle.com, corbet@lwn.net, akpm@linux-foundation.org, dingel@linux.vnet.ibm.com, bob.picco@oracle.com, kirill.shutemov@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, arnd@arndb.de, sparclinux@vger.kernel.org, mhocko@suse.cz, chris.hyser@oracle.com, richard@nod.at, vbabka@suse.cz, koct9i@gmail.com, oleg@redhat.com, gthelen@google.com, jack@suse.cz, xiexiuqi@huawei.com, Vineet.Gupta1@synopsys.com, luto@kernel.org, ebiederm@xmission.com, bsegall@google.com, geert@linux-m68k.org, dave@stgolabs.net, adobriyan@gmail.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-api@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 03/08/2016 01:27 PM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Tue, 8 Mar 2016 13:16:11 -0700
->
->> On 03/08/2016 12:57 PM, David Miller wrote:
->>> From: Khalid Aziz <khalid.aziz@oracle.com>
->>> Date: Mon, 7 Mar 2016 14:06:43 -0700
->>>
->>>> Good questions. Isn't set of valid VAs already constrained by VA_BITS
->>>> (set to 44 in arch/sparc/include/asm/processor_64.h)? As I see it we
->>>> are already not using the top 4 bits. Please correct me if I am wrong.
->>>
->>> Another limiting constraint is the number of address bits coverable by
->>> the 4-level page tables we use.  And this is sign extended so we have
->>> a top-half and a bottom-half with a "hole" in the center of the VA
->>> space.
->>>
->>> I want some clarification on the top bits during ADI accesses.
->>>
->>> If ADI is enabled, then the top bits of the virtual address are
->>> intepreted as tag bits.  Once "verified" with the ADI settings, what
->>> happense to these tag bits?  Are they dropped from the virtual address
->>> before being passed down the TLB et al. for translations?
->>
->> Bits 63-60 (tag bits) are dropped from the virtual address before
->> being passed down the TLB for translation when PSTATE.mcde = 1.
->
-> Ok and you said that values 15 and 0 are special.
->
-> I'm just wondering if this means you can't really use ADI mappings in
-> the top half of the 64-bit address space.  If the bits are dropped, they
-> will be zero, but they need to be all 1's for the top-half of the VA
-> space since it's sign extended.
->
+Flush TSB and TLB only at REAL_HPAGE_SIZE boundaries and
+not at every 8K stride.
 
-According to the manual when PSTATE.mcde=1, bits 63:60 of the virtual 
-address of any load or store (using virtual address) are masked before 
-being sent to memory system which includes MMU. Hardware TSB walker 
-masks bits 63:60 and then sign extends from bit 59 before generating TSB 
-pointer and before comparison to TSB TTE VAs but the virtual address in 
-the TTE tag that is written to DTLB is masked and not sign extended. 
-Manual also states that for implementations that fully support 60 bits 
-or more of virtual address, they must sign-extend virtual address in TSB 
-TTE tag.
+Orabug: 22643230
 
---
-Khalid
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+---
+ arch/sparc/mm/hugetlbpage.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index d8f625c..0f4f320 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -182,11 +182,17 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 
+ 	addr &= HPAGE_MASK;
+ 	for (i = 0; i < (1 << HUGETLB_PAGE_ORDER); i++) {
+-		set_pte_at(mm, addr, ptep, entry);
++		*ptep = entry;
+ 		ptep++;
+ 		addr += PAGE_SIZE;
+ 		pte_val(entry) += PAGE_SIZE;
+ 	}
++
++	/* Issue TSB and TLB flush at REAL_HPAGE_SIZE boundaries */
++	flush_tsb_user_page(mm, addr, true);
++	flush_tsb_user_page(mm, addr + REAL_HPAGE_SIZE, true);
++	global_flush_tlb_page(mm, addr);
++	global_flush_tlb_page(mm, addr + REAL_HPAGE_SIZE);
+ }
+ 
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+-- 
+2.6.4
 
