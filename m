@@ -1,93 +1,65 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Wed, 30 Mar 2016 19:37:06 +0000
-Subject: Re: [PATCH v4] sparc/PCI: Fix for panic while enabling SR-IOV
-Message-Id: <20160330193705.GA15506@localhost>
+From: Ingo Molnar <mingo@kernel.org>
+Date: Wed, 09 Mar 2016 12:18:50 +0000
+Subject: Re: [RFC 0/12] introduce down_write_killable for rw_semaphore
+Message-Id: <20160309121850.GA14915@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1458849742-162399-1-git-send-email-babu.moger@oracle.com>
- <20160329.205717.1170899993877119259.davem@davemloft.net>
- <56FBF146.3020701@oracle.com>
-In-Reply-To: <56FBF146.3020701@oracle.com>
+References: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1454444369-2146-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Babu Moger <babu.moger@oracle.com>
-Cc: David Miller <davem@davemloft.net>, bhelgaas@google.com, wangyijing@huawei.com, sowmini.varadhan@oracle.com, jiang.liu@linux.intel.com, eric.snowberg@oracle.com, yinghai@kernel.org, dan.j.williams@intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, ethan.zhao@oracle.com
+To: Michal Hocko <mhocko@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <a.p.zijlstra@chello.nl>
 
-On Wed, Mar 30, 2016 at 10:31:18AM -0500, Babu Moger wrote:
-> Hi David,
-> 
-> On 3/29/2016 7:57 PM, David Miller wrote:
-> > From: Babu Moger <babu.moger@oracle.com>
-> > Date: Thu, 24 Mar 2016 13:02:22 -0700
-> > 
-> >> We noticed this panic while enabling SR-IOV in sparc.
-> >  ...
-> >> SR-IOV code looks for arch specific data while enabling
-> >> VFs. When VF device is added, driver probe function makes set
-> >> of calls to initialize the pci device. Because the VF device is
-> >> added different way than the normal PF device(which happens via
-> >> of_create_pci_dev for sparc), some of the arch specific initialization
-> >> does not happen for VF device.  That causes panic when archdata is
-> >> accessed.
-> >>
-> >> To fix this, I have used already defined weak function
-> >> pcibios_setup_device to copy archdata from PF to VF.
-> >> Also verified the fix.
-> >>
-> >> Signed-off-by: Babu Moger <babu.moger@oracle.com>
-> >> Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-> >> Reviewed-by: Ethan Zhao <ethan.zhao@oracle.com>
-> > 
-> > Looks good, applied and queued up for -stable, thanks.
-> 
-> Thanks.
-> 
-> > 
-> > Just a note, I am assuming that the VFs are not instantiated in the
-> > device tree.  Because when you just memcpy the arch data over from the
-> > PF, one thing we end up doing is using the device node of the PF.
-> 
-> No. VFs are not instantiated in device tree(/proc/device-tree)
-> 
-> > 
-> > I slightly cringed at the memcpy, because at least one of these
-> > pointers are to objects which are reference counted, the OF device.
-> > 
-> > Generally speaking we don't really support hot-plug for OF probed
-> > devices, but if we did all of the device tree pointers have to be
-> > refcounted properly.
-> > 
-> > So in the long term that whole sequence where we go:
-> > 
-> > 	struct dev_archdata *sd;
-> >  ...
-> > 	sd = &dev->dev.archdata;
-> > 	sd->iommu = pbm->iommu;
-> > 	sd->stc = &pbm->stc;
-> > 	sd->host_controller = pbm;
-> > 	sd->op = op = of_find_device_by_node(node);
-> > 	sd->numa_node = pbm->numa_node;
-> > 
-> > should be encapsulated into a helper function, and both
-> > of_create_pci_dev() and this new pcibios_setup_device() can
-> > invoke it.
-> > 
-> 
-> Yes. Agree. We need to refactor the whole of_create_pci_dev path to support
-> hot-plug for the long term. I will start looking at it. For now we should be
-> fine with the current patch. thanks
 
-of_create_pci_dev() duplicates a lot of the code in
-pci_setup_device().  I wish we didn't have to do that
-because it's easy to let them get out of sync, but I
-don't know if there are any reasonable alternatives.
+* Michal Hocko <mhocko@kernel.org> wrote:
 
-I've wondered in the past whether it would be possible
-to use the pci_setup_device() path on sparc & powerpc by
-writing PCI config accessors that look up OF properties
-as needed to fabricate responses to config reads.  Several
-of the drivers in drivers/pci/host/* do a little bit of
-this fabrication, although I don't think any go to the
-extent of using OF.
+> Hi,
+>
+> the following patchset implements a killable variant of write lock for 
+> rw_semaphore. My usecase is to turn as many mmap_sem write users to use a 
+> killable variant which will be helpful for the oom_reaper [1] to asynchronously 
+> tear down the oom victim address space which requires mmap_sem for read. This 
+> will reduce a likelihood of OOM livelocks caused by oom victim being stuck on a 
+> lock or other resource which prevents it to reach its exit path and release the 
+> memory. [...]
 
-Bjorn
+So I'm a tiny bit concerned about this arguments.
+
+AFAICS killability here just makes existing system calls more interruptible - 
+right? In that sense that's not really a livelock scenario: it just takes shorter 
+time for resources to be released.
+
+If a livelock is possible (where resources are never released) then I'd like to 
+see a specific example of such a livelock.
+
+You have the other patch-set:
+
+   [PATCH 0/18] change mmap_sem taken for write killable
+
+that makes use of down_write_killable(), and there you argue:
+
+ [...] this is a follow up work for oom_reaper [1]. As the async OOM killing 
+ depends on oom_sem for read we would really appreciate if a holder for write 
+ stood in the way. This patchset is changing many of down_write calls to be 
+ killable to help those cases when the writer is blocked and waiting for readers 
+ to release the lock and so help __oom_reap_task to process the oom victim.
+
+there seems to be a misunderstanding: if a writer is blocked waiting for readers 
+then no new readers are allowed - the writer will get its turn the moment all 
+existing readers drop the lock.
+
+So there's no livelock scenario - it's "only" about latencies.
+
+And once we realize that it's about latencies (assuming I'm right!), not about 
+correctness per se, I'm wondering whether it would be a good idea to introduce 
+down_write_interruptible(), instead of down_write_killable().
+
+I'd love various processes to quit faster on Ctrl-C as well, not just on kill -9!
+
+This would also test the new code paths a lot better: kill -9 is a lot rarer than 
+regular interruption.
+
+Thanks,
+
+	Ingo
