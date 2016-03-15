@@ -1,229 +1,177 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 31 Mar 2016 08:55:59 +0000
-Subject: [PATCH] locking, rwsem: introduce basis for down_write_killable
-Message-Id: <1459414559-1150-1-git-send-email-mhocko@kernel.org>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 15 Mar 2016 23:12:48 +0000
+Subject: [PATCH RFC] PCI: Fix for panic while enabling SR-IOV
+Message-Id: <1458083568-193689-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456750705-7141-4-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1456750705-7141-4-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: davem@davemloft.net, bhelgaas@google.com
+Cc: wangyijing@huawei.com, sowmini.varadhan@oracle.com, babu.moger@oracle.com, jiang.liu@linux.intel.com, eric.snowberg@oracle.com, yinghai@kernel.org, dan.j.williams@intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
+We noticed this panic while enabling SR-IOV in sparc.
+=======================mlx4_core: Mellanox ConnectX core driver v2.2-1 (Jan  1 2015)
+mlx4_core: Initializing 0007:01:00.0
+mlx4_core 0007:01:00.0: Enabling SR-IOV with 5 VFs
+mlx4_core: Initializing 0007:01:00.1
+Unable to handle kernel NULL pointer dereference
+insmod(10010): Oops [#1]
+CPU: 391 PID: 10010 Comm: insmod Not tainted
+		4.1.12-32.el6uek.kdump2.sparc64 #1
+TPC: <dma_supported+0x20/0x80>
+I7: <__mlx4_init_one+0x324/0x500 [mlx4_core]>
+Call Trace:
+ [00000000104c5ea4] __mlx4_init_one+0x324/0x500 [mlx4_core]
+ [00000000104c613c] mlx4_init_one+0xbc/0x120 [mlx4_core]
+ [0000000000725f14] local_pci_probe+0x34/0xa0
+ [0000000000726028] pci_call_probe+0xa8/0xe0
+ [0000000000726310] pci_device_probe+0x50/0x80
+ [000000000079f700] really_probe+0x140/0x420
+ [000000000079fa24] driver_probe_device+0x44/0xa0
+ [000000000079fb5c] __device_attach+0x3c/0x60
+ [000000000079d85c] bus_for_each_drv+0x5c/0xa0
+ [000000000079f588] device_attach+0x88/0xc0
+ [000000000071acd0] pci_bus_add_device+0x30/0x80
+ [0000000000736090] virtfn_add.clone.1+0x210/0x360
+ [00000000007364a4] sriov_enable+0x2c4/0x520
+ [000000000073672c] pci_enable_sriov+0x2c/0x40
+ [00000000104c2d58] mlx4_enable_sriov+0xf8/0x180 [mlx4_core]
+ [00000000104c49ac] mlx4_load_one+0x42c/0xd40 [mlx4_core]
+Disabling lock debugging due to kernel taint
+Caller[00000000104c5ea4]: __mlx4_init_one+0x324/0x500 [mlx4_core]
+Caller[00000000104c613c]: mlx4_init_one+0xbc/0x120 [mlx4_core]
+Caller[0000000000725f14]: local_pci_probe+0x34/0xa0
+Caller[0000000000726028]: pci_call_probe+0xa8/0xe0
+Caller[0000000000726310]: pci_device_probe+0x50/0x80
+Caller[000000000079f700]: really_probe+0x140/0x420
+Caller[000000000079fa24]: driver_probe_device+0x44/0xa0
+Caller[000000000079fb5c]: __device_attach+0x3c/0x60
+Caller[000000000079d85c]: bus_for_each_drv+0x5c/0xa0
+Caller[000000000079f588]: device_attach+0x88/0xc0
+Caller[000000000071acd0]: pci_bus_add_device+0x30/0x80
+Caller[0000000000736090]: virtfn_add.clone.1+0x210/0x360
+Caller[00000000007364a4]: sriov_enable+0x2c4/0x520
+Caller[000000000073672c]: pci_enable_sriov+0x2c/0x40
+Caller[00000000104c2d58]: mlx4_enable_sriov+0xf8/0x180 [mlx4_core]
+Caller[00000000104c49ac]: mlx4_load_one+0x42c/0xd40 [mlx4_core]
+Caller[00000000104c5f90]: __mlx4_init_one+0x410/0x500 [mlx4_core]
+Caller[00000000104c613c]: mlx4_init_one+0xbc/0x120 [mlx4_core]
+Caller[0000000000725f14]: local_pci_probe+0x34/0xa0
+Caller[0000000000726028]: pci_call_probe+0xa8/0xe0
+Caller[0000000000726310]: pci_device_probe+0x50/0x80
+Caller[000000000079f700]: really_probe+0x140/0x420
+Caller[000000000079fa24]: driver_probe_device+0x44/0xa0
+Caller[000000000079fb08]: __driver_attach+0x88/0xa0
+Caller[000000000079d90c]: bus_for_each_dev+0x6c/0xa0
+Caller[000000000079f29c]: driver_attach+0x1c/0x40
+Caller[000000000079e35c]: bus_add_driver+0x17c/0x220
+Caller[00000000007a02d4]: driver_register+0x74/0x120
+Caller[00000000007263fc]: __pci_register_driver+0x3c/0x60
+Caller[00000000104f62bc]: mlx4_init+0x60/0xcc [mlx4_core]
+Kernel panic - not syncing: Fatal exception
+Press Stop-A (L1-A) to return to the boot prom
+---[ end Kernel panic - not syncing: Fatal exception
+===========================
+Details:
+Here is the call sequence
+virtfn_add->__mlx4_init_one->dma_set_mask->dma_supported
 
-Introduce a generic implementation necessary for down_write_killable.
-This is a trivial extension of the already existing down_write call
-which can be interrupted by SIGKILL.  This patch doesn't provide
-down_write_killable yet because arches have to provide the necessary
-pieces before.
+The panic happened at line 760(file arch/sparc/kernel/iommu.c)
 
-rwsem_down_write_failed which is a generic slow path for the
-write lock is extended to allow a task state and renamed to
-__rwsem_down_write_failed_state. The return value is either a valid
-semaphore pointer or ERR_PTR(-EINTR).
+758 int dma_supported(struct device *dev, u64 device_mask)
+759 {
+760         struct iommu *iommu = dev->archdata.iommu;
+761         u64 dma_addr_mask = iommu->dma_addr_mask;
+762
+763         if (device_mask >= (1UL << 32UL))
+764                 return 0;
+765
+766         if ((device_mask & dma_addr_mask) = dma_addr_mask)
+767                 return 1;
+768
+769 #ifdef CONFIG_PCI
+770         if (dev_is_pci(dev))
+771		return pci64_dma_supported(to_pci_dev(dev), device_mask);
+772 #endif
+773
+774         return 0;
+775 }
+776 EXPORT_SYMBOL(dma_supported);
 
-rwsem_down_write_failed_killable is exported as a new way to wait for
-the lock and be killable.
+Same panic happened with Intel ixgbe driver also.
 
-For rwsem-spinlock implementation the current __down_write it updated
-in a similar way as __rwsem_down_write_failed_state except it doesn't
-need new exports just visible __down_write_killable.
+When VF device is added, driver probe function makes set of calls to
+initialize the pci device. Because the VF device is added different
+way than the normal PF device(which happens via of_create_pci_dev),
+some of the arch specific initialization does not happen for VF device.
+That causes panic when archdata is accessed.
 
-Architectures which are not using the generic rwsem implementation are
-supposed to provide their __down_write_killable implementation and
-use rwsem_down_write_failed_killable for the slow path.
+To fix this I have introduced weak function pci_init_archdata in SR-IOV
+code. Sparc will copy the archdata from PF to VF. Also verified the fix.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Please review. Let me know if there is a better way to fix this.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- include/asm-generic/rwsem.h     | 12 ++++++++++++
- include/linux/rwsem-spinlock.h  |  1 +
- include/linux/rwsem.h           |  2 ++
- kernel/locking/rwsem-spinlock.c | 22 ++++++++++++++++++++--
- kernel/locking/rwsem-xadd.c     | 31 +++++++++++++++++++++++++------
- 5 files changed, 60 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/pci.c |    7 +++++++
+ drivers/pci/iov.c       |    5 +++++
+ include/linux/pci.h     |    1 +
+ 3 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/include/asm-generic/rwsem.h b/include/asm-generic/rwsem.h
-index b8d8a6cf4ca8..3fc94a046bf5 100644
---- a/include/asm-generic/rwsem.h
-+++ b/include/asm-generic/rwsem.h
-@@ -63,6 +63,18 @@ static inline void __down_write(struct rw_semaphore *sem)
- 		rwsem_down_write_failed(sem);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index badf095..0fc774a 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -994,6 +994,13 @@ void pcibios_set_master(struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
  }
  
-+static inline int __down_write_killable(struct rw_semaphore *sem)
++void pci_init_archdata(struct pci_dev *pdev, struct pci_dev *virtfn)
 +{
-+	long tmp;
-+
-+	tmp = atomic_long_add_return_acquire(RWSEM_ACTIVE_WRITE_BIAS,
-+				     (atomic_long_t *)&sem->count);
-+	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
-+		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
-+			return -EINTR;
-+	return 0;
++	/* Copy dev_archdata from PF to VF */
++	memcpy(&virtfn->dev.archdata, &pdev->dev.archdata,
++			sizeof(struct dev_archdata));
 +}
 +
- static inline int __down_write_trylock(struct rw_semaphore *sem)
+ static int __init pcibios_init(void)
  {
- 	long tmp;
-diff --git a/include/linux/rwsem-spinlock.h b/include/linux/rwsem-spinlock.h
-index a733a5467e6c..ae0528b834cd 100644
---- a/include/linux/rwsem-spinlock.h
-+++ b/include/linux/rwsem-spinlock.h
-@@ -34,6 +34,7 @@ struct rw_semaphore {
- extern void __down_read(struct rw_semaphore *sem);
- extern int __down_read_trylock(struct rw_semaphore *sem);
- extern void __down_write(struct rw_semaphore *sem);
-+extern int __must_check __down_write_killable(struct rw_semaphore *sem);
- extern int __down_write_trylock(struct rw_semaphore *sem);
- extern void __up_read(struct rw_semaphore *sem);
- extern void __up_write(struct rw_semaphore *sem);
-diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
-index 8f498cdde280..7d7ae029dac5 100644
---- a/include/linux/rwsem.h
-+++ b/include/linux/rwsem.h
-@@ -14,6 +14,7 @@
- #include <linux/list.h>
- #include <linux/spinlock.h>
- #include <linux/atomic.h>
-+#include <linux/err.h>
- #ifdef CONFIG_RWSEM_SPIN_ON_OWNER
- #include <linux/osq_lock.h>
- #endif
-@@ -43,6 +44,7 @@ struct rw_semaphore {
+ 	pci_dfl_cache_line_size = 64 >> 2;
+diff --git a/drivers/pci/iov.c b/drivers/pci/iov.c
+index 2194b44..73e3538 100644
+--- a/drivers/pci/iov.c
++++ b/drivers/pci/iov.c
+@@ -19,6 +19,10 @@
  
- extern struct rw_semaphore *rwsem_down_read_failed(struct rw_semaphore *sem);
- extern struct rw_semaphore *rwsem_down_write_failed(struct rw_semaphore *sem);
-+extern struct rw_semaphore *rwsem_down_write_failed_killable(struct rw_semaphore *sem);
- extern struct rw_semaphore *rwsem_wake(struct rw_semaphore *);
- extern struct rw_semaphore *rwsem_downgrade_wake(struct rw_semaphore *sem);
+ #define VIRTFN_ID_LEN	16
  
-diff --git a/kernel/locking/rwsem-spinlock.c b/kernel/locking/rwsem-spinlock.c
-index bab26104a5d0..fb2db7b408f0 100644
---- a/kernel/locking/rwsem-spinlock.c
-+++ b/kernel/locking/rwsem-spinlock.c
-@@ -191,11 +191,12 @@ int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * get a write lock on the semaphore
-  */
--void __sched __down_write(struct rw_semaphore *sem)
-+int __sched __down_write_state(struct rw_semaphore *sem, int state)
++void __weak pci_init_archdata(struct pci_dev *pdev, struct pci_dev *virtfn)
++{
++}
++
+ int pci_iov_virtfn_bus(struct pci_dev *dev, int vf_id)
  {
- 	struct rwsem_waiter waiter;
- 	struct task_struct *tsk;
- 	unsigned long flags;
-+	int ret = 0;
+ 	if (!dev->is_physfn)
+@@ -141,6 +145,7 @@ int pci_iov_add_virtfn(struct pci_dev *dev, int id, int reset)
+ 	virtfn->physfn = pci_dev_get(dev);
+ 	virtfn->is_virtfn = 1;
+ 	virtfn->multifunction = 0;
++	pci_init_archdata(dev, virtfn);
  
- 	raw_spin_lock_irqsave(&sem->wait_lock, flags);
+ 	for (i = 0; i < PCI_SRIOV_NUM_BARS; i++) {
+ 		res = &dev->resource[i + PCI_IOV_RESOURCES];
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 004b813..15b4fbd 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -791,6 +791,7 @@ void pcibios_fixup_bus(struct pci_bus *);
+ int __must_check pcibios_enable_device(struct pci_dev *, int mask);
+ /* Architecture-specific versions may override this (weak) */
+ char *pcibios_setup(char *str);
++void pci_init_archdata(struct pci_dev *pdev, struct pci_dev *virtfn);
  
-@@ -215,16 +216,33 @@ void __sched __down_write(struct rw_semaphore *sem)
- 		 */
- 		if (sem->count = 0)
- 			break;
--		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
-+		if (signal_pending_state(state, current)) {
-+			ret = -EINTR;
-+			goto out;
-+		}
-+		set_task_state(tsk, state);
- 		raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
- 		schedule();
- 		raw_spin_lock_irqsave(&sem->wait_lock, flags);
- 	}
- 	/* got the lock */
- 	sem->count = -1;
-+out:
- 	list_del(&waiter.list);
- 
- 	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
-+
-+	return ret;
-+}
-+
-+void __sched __down_write(struct rw_semaphore *sem)
-+{
-+	__down_write_state(sem, TASK_UNINTERRUPTIBLE);
-+}
-+
-+int __sched __down_write_killable(struct rw_semaphore *sem)
-+{
-+	return __down_write_state(sem, TASK_KILLABLE);
- }
- 
- /*
-diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
-index a4d4de05b2d1..781b2628e41b 100644
---- a/kernel/locking/rwsem-xadd.c
-+++ b/kernel/locking/rwsem-xadd.c
-@@ -433,12 +433,13 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
- /*
-  * Wait until we successfully acquire the write lock
-  */
--__visible
--struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
-+static inline struct rw_semaphore *
-+__rwsem_down_write_failed_state(struct rw_semaphore *sem, int state)
- {
- 	long count;
- 	bool waiting = true; /* any queued threads before us */
- 	struct rwsem_waiter waiter;
-+	struct rw_semaphore *ret = sem;
- 
- 	/* undo write bias from down_write operation, stop active locking */
- 	count = rwsem_atomic_update(-RWSEM_ACTIVE_WRITE_BIAS, sem);
-@@ -478,7 +479,7 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
- 		count = rwsem_atomic_update(RWSEM_WAITING_BIAS, sem);
- 
- 	/* wait until we successfully acquire the lock */
--	set_current_state(TASK_UNINTERRUPTIBLE);
-+	set_current_state(state);
- 	while (true) {
- 		if (rwsem_try_write_lock(count, sem))
- 			break;
-@@ -486,21 +487,39 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
- 
- 		/* Block until there are no active lockers. */
- 		do {
-+			if (signal_pending_state(state, current)) {
-+				raw_spin_lock_irq(&sem->wait_lock);
-+				ret = ERR_PTR(-EINTR);
-+				goto out;
-+			}
- 			schedule();
--			set_current_state(TASK_UNINTERRUPTIBLE);
-+			set_current_state(state);
- 		} while ((count = sem->count) & RWSEM_ACTIVE_MASK);
- 
- 		raw_spin_lock_irq(&sem->wait_lock);
- 	}
-+out:
- 	__set_current_state(TASK_RUNNING);
--
- 	list_del(&waiter.list);
- 	raw_spin_unlock_irq(&sem->wait_lock);
- 
--	return sem;
-+	return ret;
-+}
-+
-+__visible struct rw_semaphore * __sched
-+rwsem_down_write_failed(struct rw_semaphore *sem)
-+{
-+	return __rwsem_down_write_failed_state(sem, TASK_UNINTERRUPTIBLE);
- }
- EXPORT_SYMBOL(rwsem_down_write_failed);
- 
-+__visible struct rw_semaphore * __sched
-+rwsem_down_write_failed_killable(struct rw_semaphore *sem)
-+{
-+	return __rwsem_down_write_failed_state(sem, TASK_KILLABLE);
-+}
-+EXPORT_SYMBOL(rwsem_down_write_failed_killable);
-+
- /*
-  * handle waking up a waiter on the semaphore
-  * - up_read/up_write has decremented the active part of count if we come here
+ /* Used only when drivers/pci/setup.c is used */
+ resource_size_t pcibios_align_resource(void *, const struct resource *,
 -- 
-2.8.0.rc3
+1.7.1
 
