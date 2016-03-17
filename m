@@ -1,59 +1,59 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Wed, 23 Mar 2016 18:21:32 +0000
-Subject: Fwd: [Crash-utility] [PATCH 0/2] sparc64 support for crash utility
-Message-Id: <56F2DEAC.2000806@oracle.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Thu, 17 Mar 2016 19:35:27 +0000
+Subject: Re: [PATCH v2 1/5] printk/nmi: Generic solution for safe printk in NMI
+Message-Id: <20160317123527.6346bce3284509849d061eaa@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1448622572-16900-2-git-send-email-pmladek@suse.com>
+ <201511271919.aEZuZKNe%fengguang.wu@intel.com>
+ <20151127153804.GC2648@pathway.suse.cz>
+ <alpine.LNX.2.00.1512020022460.32500@pobox.suse.cz>
+ <20151204165744.GD20935@pathway.suse.cz>
+In-Reply-To: <20151204165744.GD20935@pathway.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Dave,
-I had meant to cc you on this, but it slipped my mind when I sent it.
-The patches are in the archive at
-https://www.redhat.com/archives/crash-utility/2016-March/msg00022.html
-or I can resend them to you and sparclinux if you'd like.
+On Fri, 4 Dec 2015 17:57:44 +0100 Petr Mladek <pmladek@suse.com> wrote:
 
-Thanks,
-Dave
+> On Wed 2015-12-02 00:24:49, Jiri Kosina wrote:
+> > On Fri, 27 Nov 2015, Petr Mladek wrote:
+> > 
+> > > MN10300 has its own implementation for entering and exiting NMI 
+> > > handlers. It does not call nmi_enter() and nmi_exit(). Please, find 
+> > > below an updated patch that adds printk_nmi_enter() and 
+> > > printk_nmi_exit() to the custom entry points. Then we could add HAVE_NMI 
+> > > to arch/mn10300/Kconfig and avoid the above warning.
+> > 
+> > Hmm, so what exactly would go wrong if MN10300 (whatever that architecture 
+> > is) would call nmi_enter() and nmi_exit() at the places where it's 
+> > starting and finishing NMI handler?
+> > 
+> > >From a cursory look, it seems like most (if not all) of the things called 
+> > from nmi_{enter,exit}() would be nops there anyway.
+> 
+> Good point. Max mentioned in the other main that the NMI handler
+> should follow the NMI ruler. I do not why it could not work.
+> In fact, it might improve things, e.g. nmi_enter() blocks
+> recursive NMIs.
+> 
+> I think that it will move it into a separate patch, thought.
+> 
 
--------- Forwarded Message --------
-Subject: [Crash-utility] [PATCH 0/2] sparc64 support for crash utility
-Date: Wed, 23 Mar 2016 11:22:30 -0500
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Reply-To: Discussion list for crash utility usage, maintenance and
-development <crash-utility@redhat.com>
-To: crash-utility@redhat.com
-CC: Karl Volz <karl.volz@oracle.com>
+I've sort of lost the plot on this patchset.
 
-These patches add support for the sparc64 architecture.
+I know Daniel had concerns (resolved?).  Sergey lost the ability to
+perform backtraces and has a proposed fix ("printk/nmi: restore
+printk_func in nmi_panic") but that wasn't fully resolved and I didn't
+merge anything.  I'm not sure what Jan's thinking is on it all.
 
-This supports running against a live kernel. Diskdump support is
-also here, but the crashdump support for the kernel, kexec-tools,
-and makedumpfile is still pending.
+So... I'll retain 
 
-Initial work was done by Karl Volz with help from Bob Picco.
+printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
+printk-nmi-use-irq-work-only-when-ready.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
 
-Dave Kleikamp (2):
-  sparc64 changes for gdb-7.6
-  sparc64 changes
-
- Makefile            |    9 +-
- configure.c         |   23 +
- defs.h              |  190 ++++++++-
- diskdump.c          |   36 ++-
- gdb-7.6.patch       |   37 ++
- lkcd_vmdump_v2_v3.h |    2 +-
- sparc64.c           | 1186
-+++++++++++++++++++++++++++++++++++++++++++++++++++
- symbols.c           |   10 +
- task.c              |   11 +-
- 9 files changed, 1496 insertions(+), 8 deletions(-)
- create mode 100644 sparc64.c
-
---
-Crash-utility mailing list
-Crash-utility@redhat.com
-https://www.redhat.com/mailman/listinfo/crash-utility
-
+in -mm for now.  Perhaps I should drop them all and we start again
+after -rc1?
 
