@@ -1,78 +1,38 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Wed, 30 Mar 2016 15:53:27 +0000
-Subject: [PATCH v4 2/5] printk/nmi: use IRQ work only when ready
-Message-Id: <1459353210-20260-3-git-send-email-pmladek@suse.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Wed, 23 Mar 2016 22:41:06 +0000
+Subject: [Patch V2 0/2] sparc64 support for crash utility
+Message-Id: <1458772868-10255-1-git-send-email-dave.kleikamp@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1459353210-20260-1-git-send-email-pmladek@suse.com>
-In-Reply-To: <1459353210-20260-1-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-NMIs could happen at any time.  This patch makes sure that the safe
-printk() in NMI will schedule IRQ work only when the related structs are
-initialized.
+These patches add support for the sparc64 architecture.
 
-All pending messages are flushed when the IRQ work is being initialized.
+This supports running against a live kernel. Diskdump support is
+also here, but the crashdump support for the kernel, kexec-tools,
+and makedumpfile is still pending.
 
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Jiri Kosina <jkosina@suse.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
- kernel/printk/nmi.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+Initial work was done by Karl Volz with help from Bob Picco.
 
-diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
-index 479e0764203c..303cf0d15e57 100644
---- a/kernel/printk/nmi.c
-+++ b/kernel/printk/nmi.c
-@@ -38,6 +38,7 @@
-  * were handled or when IRQs are blocked.
-  */
- DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
-+static int printk_nmi_irq_ready;
- 
- #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
- 
-@@ -84,8 +85,11 @@ again:
- 		goto again;
- 
- 	/* Get flushed in a more safe context. */
--	if (add)
-+	if (add && printk_nmi_irq_ready) {
-+		/* Make sure that IRQ work is really initialized. */
-+		smp_rmb();
- 		irq_work_queue(&s->work);
-+	}
- 
- 	return add;
- }
-@@ -195,6 +199,13 @@ void __init printk_nmi_init(void)
- 
- 		init_irq_work(&s->work, __printk_nmi_flush);
- 	}
-+
-+	/* Make sure that IRQ works are initialized before enabling. */
-+	smp_wmb();
-+	printk_nmi_irq_ready = 1;
-+
-+	/* Flush pending messages that did not have scheduled IRQ works. */
-+	printk_nmi_flush();
- }
- 
- void printk_nmi_enter(void)
--- 
-1.8.5.6
+V2:
+ * Use SIZE(task_struct_flags) instead of just changing ULONG to UINT
+ * Put new code in get_idle_threads() inside #ifdef SPARC64
+
+Dave Kleikamp (2):
+  sparc64 changes for gdb-7.6
+  sparc64 changes
+
+ Makefile            |    9 +-
+ configure.c         |   23 +
+ defs.h              |  191 ++++++++-
+ diskdump.c          |   36 ++-
+ gdb-7.6.patch       |   37 ++
+ lkcd_vmdump_v2_v3.h |    2 +-
+ sparc64.c           | 1186 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ symbols.c           |   10 +
+ task.c              |   23 +-
+ 9 files changed, 1508 insertions(+), 9 deletions(-)
+ create mode 100644 sparc64.c
 
