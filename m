@@ -1,87 +1,164 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Wed, 23 Mar 2016 20:41:13 +0000
-Subject: Re: [Crash-utility] [PATCH 0/2] sparc64 support for crash utility
-Message-Id: <56F2FF69.1060809@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 23 Mar 2016 22:37:56 +0000
+Subject: [PATCH v3] sparc/PCI: Fix for panic while enabling SR-IOV
+Message-Id: <1458772676-47866-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160323.144039.1853321572894699789.davem@davemloft.net>
-In-Reply-To: <20160323.144039.1853321572894699789.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, bhelgaas@google.com
+Cc: wangyijing@huawei.com, sowmini.varadhan@oracle.com, babu.moger@oracle.com, jiang.liu@linux.intel.com, eric.snowberg@oracle.com, yinghai@kernel.org, dan.j.williams@intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, ethan.zhao@oracle.com
 
-On 03/23/2016 03:06 PM, Dave Anderson wrote:
-> 
-> Hi Dave,
-> 
-> Welcome to the party after all these years.  
-> 
-> With any new architecture addition, one of the primary requirements
-> for acceptance is that it in no way impacts any of the other architectures.
-> This patchset was nicely done with that in mind, although there are two
-> places in task.c where it does modify generic code:  
-> 
-> First, I prefer that the change in get_idle_threads() be segregated for 
-> SPARC64 only.
+We noticed this panic while enabling SR-IOV in sparc.
 
-I can do that.
+mlx4_core: Mellanox ConnectX core driver v2.2-1 (Jan  1 2015)
+mlx4_core: Initializing 0007:01:00.0
+mlx4_core 0007:01:00.0: Enabling SR-IOV with 5 VFs
+mlx4_core: Initializing 0007:01:00.1
+Unable to handle kernel NULL pointer dereference
+insmod(10010): Oops [#1]
+CPU: 391 PID: 10010 Comm: insmod Not tainted
+		4.1.12-32.el6uek.kdump2.sparc64 #1
+TPC: <dma_supported+0x20/0x80>
+I7: <__mlx4_init_one+0x324/0x500 [mlx4_core]>
+Call Trace:
+ [00000000104c5ea4] __mlx4_init_one+0x324/0x500 [mlx4_core]
+ [00000000104c613c] mlx4_init_one+0xbc/0x120 [mlx4_core]
+ [0000000000725f14] local_pci_probe+0x34/0xa0
+ [0000000000726028] pci_call_probe+0xa8/0xe0
+ [0000000000726310] pci_device_probe+0x50/0x80
+ [000000000079f700] really_probe+0x140/0x420
+ [000000000079fa24] driver_probe_device+0x44/0xa0
+ [000000000079fb5c] __device_attach+0x3c/0x60
+ [000000000079d85c] bus_for_each_drv+0x5c/0xa0
+ [000000000079f588] device_attach+0x88/0xc0
+ [000000000071acd0] pci_bus_add_device+0x30/0x80
+ [0000000000736090] virtfn_add.clone.1+0x210/0x360
+ [00000000007364a4] sriov_enable+0x2c4/0x520
+ [000000000073672c] pci_enable_sriov+0x2c/0x40
+ [00000000104c2d58] mlx4_enable_sriov+0xf8/0x180 [mlx4_core]
+ [00000000104c49ac] mlx4_load_one+0x42c/0xd40 [mlx4_core]
+Disabling lock debugging due to kernel taint
+Caller[00000000104c5ea4]: __mlx4_init_one+0x324/0x500 [mlx4_core]
+Caller[00000000104c613c]: mlx4_init_one+0xbc/0x120 [mlx4_core]
+Caller[0000000000725f14]: local_pci_probe+0x34/0xa0
+Caller[0000000000726028]: pci_call_probe+0xa8/0xe0
+Caller[0000000000726310]: pci_device_probe+0x50/0x80
+Caller[000000000079f700]: really_probe+0x140/0x420
+Caller[000000000079fa24]: driver_probe_device+0x44/0xa0
+Caller[000000000079fb5c]: __device_attach+0x3c/0x60
+Caller[000000000079d85c]: bus_for_each_drv+0x5c/0xa0
+Caller[000000000079f588]: device_attach+0x88/0xc0
+Caller[000000000071acd0]: pci_bus_add_device+0x30/0x80
+Caller[0000000000736090]: virtfn_add.clone.1+0x210/0x360
+Caller[00000000007364a4]: sriov_enable+0x2c4/0x520
+Caller[000000000073672c]: pci_enable_sriov+0x2c/0x40
+Caller[00000000104c2d58]: mlx4_enable_sriov+0xf8/0x180 [mlx4_core]
+Caller[00000000104c49ac]: mlx4_load_one+0x42c/0xd40 [mlx4_core]
+Caller[00000000104c5f90]: __mlx4_init_one+0x410/0x500 [mlx4_core]
+Caller[00000000104c613c]: mlx4_init_one+0xbc/0x120 [mlx4_core]
+Caller[0000000000725f14]: local_pci_probe+0x34/0xa0
+Caller[0000000000726028]: pci_call_probe+0xa8/0xe0
+Caller[0000000000726310]: pci_device_probe+0x50/0x80
+Caller[000000000079f700]: really_probe+0x140/0x420
+Caller[000000000079fa24]: driver_probe_device+0x44/0xa0
+Caller[000000000079fb08]: __driver_attach+0x88/0xa0
+Caller[000000000079d90c]: bus_for_each_dev+0x6c/0xa0
+Caller[000000000079f29c]: driver_attach+0x1c/0x40
+Caller[000000000079e35c]: bus_add_driver+0x17c/0x220
+Caller[00000000007a02d4]: driver_register+0x74/0x120
+Caller[00000000007263fc]: __pci_register_driver+0x3c/0x60
+Caller[00000000104f62bc]: mlx4_init+0x60/0xcc [mlx4_core]
+Kernel panic - not syncing: Fatal exception
+Press Stop-A (L1-A) to return to the boot prom
+---[ end Kernel panic - not syncing: Fatal exception
 
-> The second change to task_flags() looks reasonable, but I would prefer 
-> that it be done differently.  The reason it reads the flags with ULONG()
-> is because originally it was an unsigned long.  I'm not sure when the 
-> kernel changed it to an unsigned int, but interestingly enough, it's never
-> been reported as a problem.  In any case, to maintain backwards compatibility
-> with older kernels, the read size should be based upon MEMBER_SIZE()
-> instead of forcing it to use UINT() as you have done.
+Details:
+Here is the call sequence
+virtfn_add->__mlx4_init_one->dma_set_mask->dma_supported
 
-I thought about that, but it's been an unsigned int since 2.6.22.
-Anyway, I'll make the change.
+The panic happened at line 760(file arch/sparc/kernel/iommu.c)
 
-> And as far as sparc64.c, I did look at it, and it looks fine on paper,
-> but I'll give you free reign as the sparc64 maintainer to do with it
-> as you like.  You will be my go-to sparc64 maintainer, correct?
+758 int dma_supported(struct device *dev, u64 device_mask)
+759 {
+760         struct iommu *iommu = dev->archdata.iommu;
+761         u64 dma_addr_mask = iommu->dma_addr_mask;
+762
+763         if (device_mask >= (1UL << 32UL))
+764                 return 0;
+765
+766         if ((device_mask & dma_addr_mask) = dma_addr_mask)
+767                 return 1;
+768
+769 #ifdef CONFIG_PCI
+770         if (dev_is_pci(dev))
+771		return pci64_dma_supported(to_pci_dev(dev), device_mask);
+772 #endif
+773
+774         return 0;
+775 }
+776 EXPORT_SYMBOL(dma_supported);
 
-I'd be happy to, unless Dave Miller wants to add it to his roles.
+Same panic happened with Intel ixgbe driver also.
 
-> 
-> Dave
-> 
-> 
-> 
-> ----- Original Message -----
->> These patches add support for the sparc64 architecture.
->>
->> This supports running against a live kernel. Diskdump support is
->> also here, but the crashdump support for the kernel, kexec-tools,
->> and makedumpfile is still pending.
->>
->> Initial work was done by Karl Volz with help from Bob Picco.
->>
->> Dave Kleikamp (2):
->>   sparc64 changes for gdb-7.6
->>   sparc64 changes
->>
->>  Makefile            |    9 +-
->>  configure.c         |   23 +
->>  defs.h              |  190 ++++++++-
->>  diskdump.c          |   36 ++-
->>  gdb-7.6.patch       |   37 ++
->>  lkcd_vmdump_v2_v3.h |    2 +-
->>  sparc64.c           | 1186
->>  +++++++++++++++++++++++++++++++++++++++++++++++++++
->>  symbols.c           |   10 +
->>  task.c              |   11 +-
->>  9 files changed, 1496 insertions(+), 8 deletions(-)
->>  create mode 100644 sparc64.c
->>
->> --
->> Crash-utility mailing list
->> Crash-utility@redhat.com
->> https://www.redhat.com/mailman/listinfo/crash-utility
->>
-> 
-> --
-> Crash-utility mailing list
-> Crash-utility@redhat.com
-> https://www.redhat.com/mailman/listinfo/crash-utility
-> 
+SR-IOV code looks for arch specific data while enabling
+VFs. When VF device is added, driver probe function makes set
+of calls to initialize the pci device. Because the VF device is
+added different way than the normal PF device(which happens via
+of_create_pci_dev for sparc), some of the arch specific initialization
+does not happen for VF device.  That causes panic when archdata is
+accessed.
+
+To fix this, I have used already defined weak function
+pcibios_setup_device to copy archdata from PF to VF.
+Also verified the fix.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Reviewed-by: Ethan Zhao <ethan.zhao@oracle.com>
+---
+v2:
+ Removed RFC.
+ Made changes per comments from Ethan Zhao.
+ Now the changes are only in Sparc specific code.
+ Removed the changes from driver/pci.
+ Implemented already defined weak function pcibios_add_device
+ in arch/sparc/kernel/pci.c to initialize sriov archdata. 
+
+v3:
+ Fixed the compile error reported in kbuild test robot.
+
+ arch/sparc/kernel/pci.c |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index badf095..00a99c5 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -994,6 +994,23 @@ void pcibios_set_master(struct pci_dev *dev)
+ 	/* No special bus mastering setup handling */
+ }
+ 
++#ifdef CONFIG_PCI_IOV
++int pcibios_add_device(struct pci_dev *dev)
++{
++	struct pci_dev *pdev;
++	/*
++	 * Add sriov arch specific initialization here.
++	 * Copy dev_archdata from PF to VF
++	 */
++	if (dev->is_virtfn) {
++		pdev = dev->physfn;
++		memcpy(&dev->dev.archdata, &pdev->dev.archdata,
++				sizeof(struct dev_archdata));
++	}
++	return 0;
++}
++#endif /* CONFIG_PCI_IOV */
++
+ static int __init pcibios_init(void)
+ {
+ 	pci_dfl_cache_line_size = 64 >> 2;
+-- 
+1.7.1
+
