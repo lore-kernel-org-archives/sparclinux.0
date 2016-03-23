@@ -1,59 +1,63 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 17 Mar 2016 19:35:27 +0000
-Subject: Re: [PATCH v2 1/5] printk/nmi: Generic solution for safe printk in NMI
-Message-Id: <20160317123527.6346bce3284509849d061eaa@linux-foundation.org>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Wed, 23 Mar 2016 18:44:59 +0000
+Subject: [PATCH 1/2] sparc64 changes for gdb-7.6
+Message-Id: <1458758700-7591-2-git-send-email-dave.kleikamp@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1448622572-16900-2-git-send-email-pmladek@suse.com>
- <201511271919.aEZuZKNe%fengguang.wu@intel.com>
- <20151127153804.GC2648@pathway.suse.cz>
- <alpine.LNX.2.00.1512020022460.32500@pobox.suse.cz>
- <20151204165744.GD20935@pathway.suse.cz>
-In-Reply-To: <20151204165744.GD20935@pathway.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Fri, 4 Dec 2015 17:57:44 +0100 Petr Mladek <pmladek@suse.com> wrote:
+Originally by Karl Volz <karl.volz@oracle.com>
+---
+ gdb-7.6.patch |   37 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-> On Wed 2015-12-02 00:24:49, Jiri Kosina wrote:
-> > On Fri, 27 Nov 2015, Petr Mladek wrote:
-> > 
-> > > MN10300 has its own implementation for entering and exiting NMI 
-> > > handlers. It does not call nmi_enter() and nmi_exit(). Please, find 
-> > > below an updated patch that adds printk_nmi_enter() and 
-> > > printk_nmi_exit() to the custom entry points. Then we could add HAVE_NMI 
-> > > to arch/mn10300/Kconfig and avoid the above warning.
-> > 
-> > Hmm, so what exactly would go wrong if MN10300 (whatever that architecture 
-> > is) would call nmi_enter() and nmi_exit() at the places where it's 
-> > starting and finishing NMI handler?
-> > 
-> > >From a cursory look, it seems like most (if not all) of the things called 
-> > from nmi_{enter,exit}() would be nops there anyway.
-> 
-> Good point. Max mentioned in the other main that the NMI handler
-> should follow the NMI ruler. I do not why it could not work.
-> In fact, it might improve things, e.g. nmi_enter() blocks
-> recursive NMIs.
-> 
-> I think that it will move it into a separate patch, thought.
-> 
-
-I've sort of lost the plot on this patchset.
-
-I know Daniel had concerns (resolved?).  Sergey lost the ability to
-perform backtraces and has a proposed fix ("printk/nmi: restore
-printk_func in nmi_panic") but that wasn't fully resolved and I didn't
-merge anything.  I'm not sure what Jan's thinking is on it all.
-
-So... I'll retain 
-
-printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
-printk-nmi-use-irq-work-only-when-ready.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
-printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
-
-in -mm for now.  Perhaps I should drop them all and we start again
-after -rc1?
+diff --git a/gdb-7.6.patch b/gdb-7.6.patch
+index 5bd9b0c..8b2d5c8 100644
+--- a/gdb-7.6.patch
++++ b/gdb-7.6.patch
+@@ -2044,3 +2044,40 @@ diff -up gdb-7.6/bfd/elf64-ppc.c.orig gdb-7.6/bfd/elf64-ppc.c
+  		  {
+  		    struct type *target = TYPE_TYPEDEF_FIELD_TYPE (type, i);
+  
++diff -up gdb-7.6/gdb/dwarf2read.c.old gdb-7.6/gdb/dwarf2read.c
++--- gdb-7.6/gdb/dwarf2read.c.old	2014-02-11 10:29:01.668110122 -0800
+++++ gdb-7.6/gdb/dwarf2read.c	2014-02-11 14:13:30.257151330 -0800
++@@ -84,6 +84,10 @@ static int dwarf2_read_debug = 0;
++ /* When non-zero, dump DIEs after they are read in.  */
++ static unsigned int dwarf2_die_debug = 0;
++ 
+++#if defined(__sparc__) && __WORDSIZE = 64
+++static int pagesize;
+++#endif
+++
++ /* When non-zero, cross-check physname against demangler.  */
++ static int check_physname = 0;
++ 
++@@ -1932,9 +1936,21 @@ dwarf2_read_section (struct objfile *obj
++ 
++   abfd = sectp->owner;
++ 
+++#if defined(__sparc__) && __WORDSIZE = 64
+++  if (pagesize = 0)
+++    pagesize = getpagesize ();
+++#endif
+++
++   /* If the section has relocations, we must read it ourselves.
++-     Otherwise we attach it to the BFD.  */
+++     Otherwise we attach it to the BFD.  
+++     Also, in sparc64 only try mmap for sections which
+++     are properly aligned in order to avoid SIGBUS errors.  */
+++
+++#if defined(__sparc__) && __WORDSIZE = 64
+++  if (info->size > 4 * pagesize && (sectp->flags & SEC_RELOC) = 0 && !(sectp->filepos & 0x3))
+++#else
++   if ((sectp->flags & SEC_RELOC) = 0)
+++#endif
++     {
++       const gdb_byte *bytes = gdb_bfd_map_section (sectp, &info->size);
++ 
+-- 
+1.7.1
 
