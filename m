@@ -1,8 +1,10 @@
 From: Frank <Frank@Frank.easytrade.top>
-Date: Fri, 25 Mar 2016 10:56:28 +0000
+Date: Fri, 25 Mar 2016 21:14:20 +0000
 Subject: =?UTF-8?B?UmU6wrjCtMKjwrpQcm9jZXMgZGVudHVyZSB0b29scw==?=
-Message-Id: <01d18684$Blat.v3.2.11$fbbb8dfe$2f8c779b@localhost>
+Message-Id: <01d186db$Blat.v3.2.11$4c2206b8$4364385a@localhost>
 List-Id: <sparclinux.vger.kernel.org>
+References: <01d18684$Blat.v3.2.11$fbbb8dfe$2f8c779b@localhost>
+In-Reply-To: <01d18684$Blat.v3.2.11$fbbb8dfe$2f8c779b@localhost>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
@@ -17,16 +19,24 @@ Our company is the Guangzhou Honda and China FAW suppliers. We have been providi
 Our company's main products:
 
 Graphite machining end mill
+
 The denture machining tool
+
 Zirconia processing tool
+
 PCD tools
+
 CNC inserts
+
 Milling toolholder
+
 Boron carbide nozzles
+
 Mould parts
+
 Guide bush and collet
 
-Dental with titanium screws, this product quality has certification ISO13485 of the German T¡§1V 
+Dental with titanium screws, this product quality has certification ISO13485 of the German T¨¹V 
 
 We will frequently introduce new products, please pay attention www.jch-tools.com.
 
@@ -41,10 +51,18 @@ If you are interested in, you can test some samples for confirming our products 
 
 Best regards!
 
-Frank
+FANG
 
-SHENZHEN KALEAD TOOLS CO.,LTD | Shenzhen Surmount Tools Co., Ltd 
+SHENZHEN KALEAD TOOLS CO.,LTD
+
+Shenzhen Surmount Tools Co., Ltd 
+
  TEL: 86-0755-27261985 
+
  FAX: 86-0755-27261895
+
  Email: smt@jch-tools.com 
+
  Web: www.jch-tools.com 
+
+
