@@ -1,7 +1,7 @@
 From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Fri, 25 Mar 2016 03:39:11 +0000
+Date: Fri, 25 Mar 2016 16:17:48 +0000
 Subject: Re: [Patch V2 1/2] sparc64 changes for gdb-7.6
-Message-Id: <56F4B2DF.5080201@oracle.com>
+Message-Id: <56F564AC.2090001@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1458772868-10255-2-git-send-email-dave.kleikamp@oracle.com>
 In-Reply-To: <1458772868-10255-2-git-send-email-dave.kleikamp@oracle.com>
@@ -22,6 +22,12 @@ On 03/24/2016 07:21 PM, David Miller wrote:
 > Ok, if you can reproduce the unaligned acces just get a backtrace and
 > I think that might help us understand the true issue more quickly.
 
-I'm not sure that is still even needed. It was a workaround that wasn't
-meant to be sent upstream, but I didn't know any better. I'll get it
-figured out tomorrow.
+Dave A.,
+Please ignore this first patch. It was a workaround for a broken
+internal binutils that I've been hanging onto because I didn't have a
+need to wade into the internals of gdb to know why it was needed in the
+first place.
+
+Thanks for pointing this out, Dave M.
+
+Dave K. (Too many Daves)
