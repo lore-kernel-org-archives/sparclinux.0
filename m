@@ -1,7 +1,7 @@
 From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Tue, 22 Mar 2016 01:47:41 +0000
+Date: Fri, 25 Mar 2016 23:55:08 +0000
 Subject: Re: [PATCH v2] sparc64: Reduce TLB flushes during hugepage unmap
-Message-Id: <56F0A43D.3090904@oracle.com>
+Message-Id: <56F5CFDC.7020606@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1454540423-67071-1-git-send-email-nitin.m.gupta@oracle.com>
 In-Reply-To: <1454540423-67071-1-git-send-email-nitin.m.gupta@oracle.com>
@@ -83,6 +83,27 @@ On 03/20/2016 09:28 PM, David Miller wrote:
 > 
 > 	if (huge & (vaddr & (REAL_HPAGE_SIZE - 1)))
 > 		return;
+
+Wouldn't this cause a race:
+ - PTE for REAL_HPAGE_SIZE aligned vaddr is cleared
+ - huge-TSB, TLB flushes issued (or scheduled) for this vaddr
+ - another thread accesses PTE for vaddr + PAGE_SIZE
+   - TSB, TLB again created for aligned vaddr which is then never cleared.
+
+So, I think the solution is just clear/set hugetlb pte in loop
+by direct assignment and after the loop, call set_pte_at() for base
+addr and addr + REAL_HPAGE_SIZE
+
+This is ugly but this problem would disappear when I'm done with
+pagetable trimming patch which allocates page table till PMD level
+only for 8M hugepage backed area just like THP. With this patch
+we would have just one PMD to change so above race cannot happen,
+and would save a lot of memory.
+
+Thanks,
+Nitin
+
+
 > 	if (!fullmm)
 > 		tlb_batch_add_one(mm, vaddr, pte_exec(orig), huge);
 > 
@@ -96,12 +117,8 @@ On 03/20/2016 09:28 PM, David Miller wrote:
 > 
 > Then flush_tsb_user() uses 'tb->huge' to decide whether to flush
 > MM_TSB_BASE or not.
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
-Thanks for detailed notes.  I will now combine my last two patches
-which fix TLB flushing on PTE change and zero'ing out resp., along
-with changes you suggested and send a v2 soon.
-
-Thanks,
-Nitin
-
