@@ -1,58 +1,117 @@
-From: Will Deacon <will.deacon@arm.com>
-Date: Wed, 02 Mar 2016 02:17:10 +0000
-Subject: Re: [PATCH 1/2] topology, cleanup: Avoid redefinition of cpumask_of_pcibus in asm header files.
-Message-Id: <20160302021710.GJ14022@arm.com>
+From: Petr Mladek <pmladek@suse.com>
+Date: Wed, 30 Mar 2016 15:53:25 +0000
+Subject: [PATCH v4 0/5] Cleaning printk stuff in NMI context
+Message-Id: <1459353210-20260-1-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
- <1456358528-24213-2-git-send-email-ddaney.cavm@gmail.com>
-In-Reply-To: <1456358528-24213-2-git-send-email-ddaney.cavm@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.ker
+To: linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 24, 2016 at 04:02:07PM -0800, David Daney wrote:
-> From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> 
-> At present cpumask_of_pcibus is defined for !CONFIG_NUMA and moving out
-> to common will allow to use for numa too. This also avoids
-> redefinition of this macro in respective architecture header files.
-> 
-> Reviewed-by: Robert Richter <rrichter@cavium.com>
-> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> Signed-off-by: David Daney <david.daney@cavium.com>
-> ---
->  arch/arm64/include/asm/topology.h   | 3 ---
->  arch/ia64/include/asm/topology.h    | 4 ----
->  arch/metag/include/asm/topology.h   | 3 ---
->  arch/powerpc/include/asm/topology.h | 4 ----
->  arch/s390/include/asm/pci.h         | 2 +-
->  arch/s390/include/asm/topology.h    | 1 +
->  arch/sh/include/asm/topology.h      | 3 ---
->  arch/tile/include/asm/pci.h         | 2 --
->  arch/tile/include/asm/topology.h    | 3 +++
->  arch/x86/include/asm/pci.h          | 2 +-
->  arch/x86/include/asm/topology.h     | 1 +
->  include/asm-generic/topology.h      | 4 ++--
->  12 files changed, 9 insertions(+), 23 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
-> index 8b57339..6e1f62c 100644
-> --- a/arch/arm64/include/asm/topology.h
-> +++ b/arch/arm64/include/asm/topology.h
-> @@ -26,9 +26,6 @@ const struct cpumask *cpu_coregroup_mask(int cpu);
->  
->  struct pci_bus;
->  int pcibus_to_node(struct pci_bus *bus);
-> -#define cpumask_of_pcibus(bus)	(pcibus_to_node(bus) = -1 ?		\
-> -				 cpu_all_mask :				\
-> -				 cpumask_of_node(pcibus_to_node(bus)))
->  
->  #endif /* CONFIG_NUMA */
+This patch set generalizes the already existing solution for
+printing NMI messages. The main idea comes from Peter Zijlstra.
 
-Looks like a sensible clean up to me (on top of the arm64 NUMA patches):
+v4 adds one more patch that flushes NNI buffers when the system
+is panicing. Otherwise, it is almost the same as the last version
+in the -mm tree, see changes below for more details
 
-Acked-by: Will Deacon <will.deacon@arm.com>
+There is a trivial conflict with Sergey's v8 of async printk,
+see http://thread.gmane.org/gmane.linux.kernel/2183611
+In short, we must handle console in vprintk_emit() neither in sched
+nor in nmi. Therefore we need the line
 
-Will
+	if (!in_sched && !deferred_console_in_nmi()) {
+
+
+There are move conflicts with the nmi_backtrace improvements
+from Chris Metcalf, see
+ http://marc.info/?l=linux-kernel&m5866814901740&w=2
+Feel free to ask me to resolve them.
+
+
+Changes against v3:
+
+  + merged all small changes from -mm tree, including commit
+    descriptions
+
+  + disabled interrupts when taking the read_lock in __printk_nmi_flush();
+    printk_nmi_flush() might be called from any context; reported
+    by lockdep
+
+  + never introduce NEED_PRINTK_NMI; in -mm tree was introduced
+    in 1st patch and removed in the 4th one
+
+  + flush NMI buffers when the system goes down (new 5th patch);
+    addresses Daniel's concerns
+
+
+Changes against v2:
+
+  + fixed compilation problems reported by 0-day build robot
+
+  + MN10300 and Xtensa architectures will get handled separately
+
+  + dropped the patch that printed NMI messages directly when Oops
+    in progress; it made the solution less reliable
+
+  + made the size of the buffer configurable; use real numbers
+    instead of PAGE_SIZE
+
+
+Changes against v1:
+
+  + rebased on top of 4.4-rc2; there the old implementation was
+    moved to lib/nmi_backtrace.c and used also on arm; I hope that
+    I got the arm side correctly; I was not able to test on arm :-(
+
+  + defined HAVE_NMI on arm for !CPU_V7M instead of !CPU_V7;
+    handle_fiq_as_nmi() is called from entry-armv.S that
+    is compiled when !CPU_V7M
+
+  + defined HAVE_NMI also on mips; it calls nmi_enter() and
+    seems to have real NMIs (or am I wrong?)
+
+  + serialized backtraces when printing directly
+    (oops_in_progress)
+
+
+Petr Mladek (5):
+  printk/nmi: generic solution for safe printk in NMI
+  printk/nmi: use IRQ work only when ready
+  printk/nmi: warn when some message has been lost in NMI context
+  printk/nmi: increase the size of NMI buffer and make it configurable
+  printk/nmi: flush NMI messages on the system panic
+
+ arch/Kconfig                  |   4 +
+ arch/arm/Kconfig              |   1 +
+ arch/arm/kernel/smp.c         |   2 +
+ arch/avr32/Kconfig            |   1 +
+ arch/blackfin/Kconfig         |   1 +
+ arch/cris/Kconfig             |   1 +
+ arch/mips/Kconfig             |   1 +
+ arch/powerpc/Kconfig          |   1 +
+ arch/s390/Kconfig             |   1 +
+ arch/sh/Kconfig               |   1 +
+ arch/sparc/Kconfig            |   1 +
+ arch/tile/Kconfig             |   1 +
+ arch/x86/Kconfig              |   1 +
+ arch/x86/kernel/apic/hw_nmi.c |   1 -
+ include/linux/hardirq.h       |   2 +
+ include/linux/percpu.h        |   3 -
+ include/linux/printk.h        |  16 ++-
+ init/Kconfig                  |  27 +++++
+ init/main.c                   |   1 +
+ kernel/kexec_core.c           |   1 +
+ kernel/panic.c                |   6 +-
+ kernel/printk/Makefile        |   1 +
+ kernel/printk/internal.h      |  57 ++++++++++
+ kernel/printk/nmi.c           | 258 ++++++++++++++++++++++++++++++++++++++++++
+ kernel/printk/printk.c        |  43 +++----
+ lib/nmi_backtrace.c           |  89 +--------------
+ 26 files changed, 411 insertions(+), 111 deletions(-)
+ create mode 100644 kernel/printk/internal.h
+ create mode 100644 kernel/printk/nmi.c
+
+-- 
+1.8.5.6
+
