@@ -1,44 +1,23 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Mar 2016 19:16:54 +0000
-Subject: Re: [PATCH v3] sparc/PCI: Fix for panic while enabling SR-IOV
-Message-Id: <20160324.151654.1707693980081136191.davem@davemloft.net>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Wed, 30 Mar 2016 13:32:17 +0000
+Subject: Re: [PATCH 0/11] introduce down_write_killable for rw_semaphore
+Message-Id: <20160330133217.GV3408@twins.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1458772676-47866-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1458772676-47866-1-git-send-email-babu.moger@oracle.com>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: babu.moger@oracle.com
-Cc: bhelgaas@google.com, wangyijing@huawei.com, sowmini.varadhan@oracle.com, jiang.liu@linux.intel.com, eric.snowberg@oracle.com, yinghai@kernel.org, dan.j.williams@intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, ethan.zhao@oracle.com
+To: Michal Hocko <mhocko@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org
 
-From: Babu Moger <babu.moger@oracle.com>
-Date: Wed, 23 Mar 2016 15:37:56 -0700
+On Mon, Feb 29, 2016 at 01:58:14PM +0100, Michal Hocko wrote:
+> I have tested on x86 with OOM situations with high mmap_sem contention
+> (basically many parallel page faults racing with many parallel mmap/munmap
+> tight loops) so the waiters for the write locks are routinely interrupted
+> by SIGKILL.
 
-> +#ifdef CONFIG_PCI_IOV
-> +int pcibios_add_device(struct pci_dev *dev)
-> +{
-> +	struct pci_dev *pdev;
-> +	/*
-> +	 * Add sriov arch specific initialization here.
-> +	 * Copy dev_archdata from PF to VF
-> +	 */
+Aside from the one niggle (as per the other email) they look good to me
+and I would take them through the tip/locking tree.
 
-Always have an empty line after a set of local variable declarations.
-
-Sparc code is to have comments formatted:
-
-	/* Like
-	 * this.
-	 */
-
-> +		memcpy(&dev->dev.archdata, &pdev->dev.archdata,
-> +				sizeof(struct dev_archdata));
-
-Sparc code should indent multi-line expressions by having the second
-and subsequent line be indented exactly to the column following the
-openning parenthesis on the first line.
-
-You must use the appropriate number of TAB then SPACE characters
-necessary to do so.
-
-Thanks.
+Thanks!
