@@ -1,10 +1,10 @@
 From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 07 Apr 2016 15:12:24 +0000
-Subject: [PATCH 04/11] sh, rwsem: drop superfluous arch specific implementation
-Message-Id: <1460041951-22347-5-git-send-email-mhocko@kernel.org>
+Date: Fri, 01 Apr 2016 11:04:50 +0000
+Subject: [PATCH 06/11] s390, rwsem: provide __down_write_killable
+Message-Id: <1459508695-14915-7-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
+References: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,153 +13,55 @@ Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thoma
 
 From: Michal Hocko <mhocko@suse.com>
 
-since "locking, rwsem: drop explicit memory barriers" the arch specific
-code is basically same as the the generic one so we can drop the
-superfluous code.
+Introduce ___down_write for the fast path and reuse it for __down_write
+resp. __down_write_killable each using the respective generic slow path
+(rwsem_down_write_failed resp. rwsem_down_write_failed_killable).
 
-Suggested-by: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sh/include/asm/Kbuild  |   1 +
- arch/sh/include/asm/rwsem.h | 117 --------------------------------------------
- 2 files changed, 1 insertion(+), 117 deletions(-)
- delete mode 100644 arch/sh/include/asm/rwsem.h
+ arch/s390/include/asm/rwsem.h | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sh/include/asm/Kbuild b/arch/sh/include/asm/Kbuild
-index aac452b26aa8..6d866c7a9b74 100644
---- a/arch/sh/include/asm/Kbuild
-+++ b/arch/sh/include/asm/Kbuild
-@@ -25,6 +25,7 @@ generic-y += percpu.h
- generic-y += poll.h
- generic-y += preempt.h
- generic-y += resource.h
-+generic-y += rwsem.h
- generic-y += sembuf.h
- generic-y += serial.h
- generic-y += shmbuf.h
-diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
-deleted file mode 100644
-index f6c951c7a875..000000000000
---- a/arch/sh/include/asm/rwsem.h
-+++ /dev/null
-@@ -1,117 +0,0 @@
--/*
-- * include/asm-sh/rwsem.h: R/W semaphores for SH using the stuff
-- * in lib/rwsem.c.
-- */
--
--#ifndef _ASM_SH_RWSEM_H
--#define _ASM_SH_RWSEM_H
--
--#ifndef _LINUX_RWSEM_H
--#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
--#endif
--
--#ifdef __KERNEL__
--
--#define RWSEM_UNLOCKED_VALUE		0x00000000
--#define RWSEM_ACTIVE_BIAS		0x00000001
--#define RWSEM_ACTIVE_MASK		0x0000ffff
--#define RWSEM_WAITING_BIAS		(-0x00010000)
--#define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
--#define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
--
--/*
-- * lock for reading
-- */
--static inline void __down_read(struct rw_semaphore *sem)
--{
--	if (atomic_inc_return((atomic_t *)(&sem->count)) <= 0)
--		rwsem_down_read_failed(sem);
--}
--
--static inline int __down_read_trylock(struct rw_semaphore *sem)
--{
--	int tmp;
--
--	while ((tmp = sem->count) >= 0) {
--		if (tmp = cmpxchg(&sem->count, tmp,
--				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
--			return 1;
--		}
--	}
--	return 0;
--}
--
--/*
-- * lock for writing
-- */
+diff --git a/arch/s390/include/asm/rwsem.h b/arch/s390/include/asm/rwsem.h
+index 8e52e72f3efc..8e7b2b7e10f3 100644
+--- a/arch/s390/include/asm/rwsem.h
++++ b/arch/s390/include/asm/rwsem.h
+@@ -90,7 +90,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
 -static inline void __down_write(struct rw_semaphore *sem)
--{
--	int tmp;
--
--	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
--				(atomic_t *)(&sem->count));
--	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
--		rwsem_down_write_failed(sem);
--}
--
--static inline int __down_write_trylock(struct rw_semaphore *sem)
--{
--	int tmp;
--
--	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
--		      RWSEM_ACTIVE_WRITE_BIAS);
--	return tmp = RWSEM_UNLOCKED_VALUE;
--}
--
--/*
-- * unlock after reading
-- */
--static inline void __up_read(struct rw_semaphore *sem)
--{
--	int tmp;
--
--	tmp = atomic_dec_return((atomic_t *)(&sem->count));
--	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
--		rwsem_wake(sem);
--}
--
--/*
-- * unlock after writing
-- */
--static inline void __up_write(struct rw_semaphore *sem)
--{
--	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
--			      (atomic_t *)(&sem->count)) < 0)
--		rwsem_wake(sem);
--}
--
--/*
-- * implement atomic add functionality
-- */
--static inline void rwsem_atomic_add(int delta, struct rw_semaphore *sem)
--{
--	atomic_add(delta, (atomic_t *)(&sem->count));
--}
--
--/*
-- * downgrade write lock to read lock
-- */
--static inline void __downgrade_write(struct rw_semaphore *sem)
--{
--	int tmp;
--
--	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
--	if (tmp < 0)
--		rwsem_downgrade_wake(sem);
--}
--
--/*
-- * implement exchange and add functionality
-- */
--static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
--{
--	return atomic_add_return(delta, (atomic_t *)(&sem->count));
--}
--
--#endif /* __KERNEL__ */
--#endif /* _ASM_SH_RWSEM_H */
++static inline long ___down_write(struct rw_semaphore *sem)
+ {
+ 	signed long old, new, tmp;
+ 
+@@ -104,10 +104,25 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
+ 		: "Q" (sem->count), "m" (tmp)
+ 		: "cc", "memory");
+-	if (old != 0)
++
++	return old;
++}
++
++static inline void __down_write(struct rw_semaphore *sem)
++{
++	if (___down_write(sem))
+ 		rwsem_down_write_failed(sem);
+ }
+ 
++static inline int __down_write_killable(struct rw_semaphore *sem)
++{
++	if (___down_write(sem))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++
++	return 0;
++}
++
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
 -- 
 2.8.0.rc3
 
