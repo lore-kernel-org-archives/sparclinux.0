@@ -1,177 +1,51 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 07 Apr 2016 15:12:22 +0000
-Subject: [PATCH 02/11] locking, rwsem: drop explicit memory barriers
-Message-Id: <1460041951-22347-3-git-send-email-mhocko@kernel.org>
+From: Ingo Molnar <mingo@kernel.org>
+Date: Fri, 01 Apr 2016 06:33:48 +0000
+Subject: Re: [PATCH 0/11] introduce down_write_killable for rw_semaphore
+Message-Id: <20160401063348.GA6815@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
+References: <1456750705-7141-1-git-send-email-mhocko@kernel.org>
+ <20160330133217.GV3408@twins.programming.kicks-ass.net>
+ <20160331085926.GB27831@dhcp22.suse.cz>
+ <20160331092005.GA18640@gmail.com>
+ <20160331100331.73eb381a45a1e03473f700a9@linux-foundation.org>
+In-Reply-To: <20160331100331.73eb381a45a1e03473f700a9@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@kernel.org>, Peter Zijlstra <peterz@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
 
-sh and xtensa seem to be the only architectures which use explicit
-memory barriers for rw_semaphore operations even though they are not
-really needed because there is the full memory barrier is always implied
-by atomic_{inc,dec,add,sub}_return resp. cmpxchg. Remove them.
+* Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- arch/sh/include/asm/rwsem.h     | 14 ++------------
- arch/xtensa/include/asm/rwsem.h | 14 ++------------
- 2 files changed, 4 insertions(+), 24 deletions(-)
+> On Thu, 31 Mar 2016 11:20:05 +0200 Ingo Molnar <mingo@kernel.org> wrote:
+> 
+> > So AFAIK Andrew's tree is based on top of linux-next
+> 
+> Not really true any more - I only base -mm patches on linux-next
+> patches when they must be based that way due to some known dependency.
+> 
+> I can certainly handle MM patches which are based on linux-next.  Such
+> an arrangement is going to make life awkward for Michal's
+> auto-maintained git tree of the -mm MM patches
+> (git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git).
+> 
+> Maybe I could merge down_write_killable into -mm's main MM section then
+> knock it out of my copy of linux-next, so everything is seamless for
+> mm.git.  I've done that before.
+> 
+> But it's all a bit of a pain - it would be simpler to keep
+> down_write_killable in the same tree as the patches which depend on it.
 
-diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
-index a5104bebd1eb..f6c951c7a875 100644
---- a/arch/sh/include/asm/rwsem.h
-+++ b/arch/sh/include/asm/rwsem.h
-@@ -24,9 +24,7 @@
-  */
- static inline void __down_read(struct rw_semaphore *sem)
- {
--	if (atomic_inc_return((atomic_t *)(&sem->count)) > 0)
--		smp_wmb();
--	else
-+	if (atomic_inc_return((atomic_t *)(&sem->count)) <= 0)
- 		rwsem_down_read_failed(sem);
- }
- 
-@@ -37,7 +35,6 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- 	while ((tmp = sem->count) >= 0) {
- 		if (tmp = cmpxchg(&sem->count, tmp,
- 				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
--			smp_wmb();
- 			return 1;
- 		}
- 	}
-@@ -53,9 +50,7 @@ static inline void __down_write(struct rw_semaphore *sem)
- 
- 	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
- 				(atomic_t *)(&sem->count));
--	if (tmp = RWSEM_ACTIVE_WRITE_BIAS)
--		smp_wmb();
--	else
-+	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
- 		rwsem_down_write_failed(sem);
- }
- 
-@@ -65,7 +60,6 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
- 
- 	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
- 		      RWSEM_ACTIVE_WRITE_BIAS);
--	smp_wmb();
- 	return tmp = RWSEM_UNLOCKED_VALUE;
- }
- 
-@@ -76,7 +70,6 @@ static inline void __up_read(struct rw_semaphore *sem)
- {
- 	int tmp;
- 
--	smp_wmb();
- 	tmp = atomic_dec_return((atomic_t *)(&sem->count));
- 	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
- 		rwsem_wake(sem);
-@@ -87,7 +80,6 @@ static inline void __up_read(struct rw_semaphore *sem)
-  */
- static inline void __up_write(struct rw_semaphore *sem)
- {
--	smp_wmb();
- 	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
- 			      (atomic_t *)(&sem->count)) < 0)
- 		rwsem_wake(sem);
-@@ -108,7 +100,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
- {
- 	int tmp;
- 
--	smp_wmb();
- 	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
- 	if (tmp < 0)
- 		rwsem_downgrade_wake(sem);
-@@ -119,7 +110,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
-  */
- static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
- {
--	smp_mb();
- 	return atomic_add_return(delta, (atomic_t *)(&sem->count));
- }
- 
-diff --git a/arch/xtensa/include/asm/rwsem.h b/arch/xtensa/include/asm/rwsem.h
-index 249619e7e7f2..593483f6e1ff 100644
---- a/arch/xtensa/include/asm/rwsem.h
-+++ b/arch/xtensa/include/asm/rwsem.h
-@@ -29,9 +29,7 @@
-  */
- static inline void __down_read(struct rw_semaphore *sem)
- {
--	if (atomic_add_return(1,(atomic_t *)(&sem->count)) > 0)
--		smp_wmb();
--	else
-+	if (atomic_add_return(1,(atomic_t *)(&sem->count)) <= 0)
- 		rwsem_down_read_failed(sem);
- }
- 
-@@ -42,7 +40,6 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- 	while ((tmp = sem->count) >= 0) {
- 		if (tmp = cmpxchg(&sem->count, tmp,
- 				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
--			smp_wmb();
- 			return 1;
- 		}
- 	}
-@@ -58,9 +55,7 @@ static inline void __down_write(struct rw_semaphore *sem)
- 
- 	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
- 				(atomic_t *)(&sem->count));
--	if (tmp = RWSEM_ACTIVE_WRITE_BIAS)
--		smp_wmb();
--	else
-+	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
- 		rwsem_down_write_failed(sem);
- }
- 
-@@ -70,7 +65,6 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
- 
- 	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
- 		      RWSEM_ACTIVE_WRITE_BIAS);
--	smp_wmb();
- 	return tmp = RWSEM_UNLOCKED_VALUE;
- }
- 
-@@ -81,7 +75,6 @@ static inline void __up_read(struct rw_semaphore *sem)
- {
- 	int tmp;
- 
--	smp_wmb();
- 	tmp = atomic_sub_return(1,(atomic_t *)(&sem->count));
- 	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
- 		rwsem_wake(sem);
-@@ -92,7 +85,6 @@ static inline void __up_read(struct rw_semaphore *sem)
-  */
- static inline void __up_write(struct rw_semaphore *sem)
- {
--	smp_wmb();
- 	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
- 			      (atomic_t *)(&sem->count)) < 0)
- 		rwsem_wake(sem);
-@@ -113,7 +105,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
- {
- 	int tmp;
- 
--	smp_wmb();
- 	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
- 	if (tmp < 0)
- 		rwsem_downgrade_wake(sem);
-@@ -124,7 +115,6 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
-  */
- static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
- {
--	smp_mb();
- 	return atomic_add_return(delta, (atomic_t *)(&sem->count));
- }
- 
--- 
-2.8.0.rc3
+I can help on the Git level: I can do tip:locking/rwsem tree with only these 
+changes, with stable sha1's, on which the remaining work can be based. The
+locking tree typically goes in early during the merge window, so there's no
+real dependencies.
 
+On the source code level this series is changing the existing locking code too,
+it doesn't just add a new orthogonal method or so, so I'd really like to have
+it in the locking tree.
+
+Thanks,
+
+	Ingo
