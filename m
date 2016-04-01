@@ -1,92 +1,105 @@
-From: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
-Date: Thu, 07 Apr 2016 03:56:08 +0000
-Subject: Re: [PATCH v2 08/30] Add sparc-specific parity functions
-Message-Id: <5705DA58.3040207@gmail.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Fri, 01 Apr 2016 11:04:55 +0000
+Subject: [PATCH 11/11] locking, rwsem: provide down_write_killable
+Message-Id: <1459508695-14915-12-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <57031D9D.801@gmail.com>
- <1459933647-6940-1-git-send-email-zengzhaoxiu@163.com>
- <20160406184447.GA5963@ravnborg.org>
-In-Reply-To: <20160406184447.GA5963@ravnborg.org>
+References: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Sam Ravnborg <sam@ravnborg.org>, zengzhaoxiu@163.com
-Cc: davem@davemloft.net, wim.coekaerts@oracle.com, linux@roeck-us.net, julian.calaby@gmail.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-在 2016年04月07日 02:44, Sam Ravnborg 写道:
-> Hi Zeng.
->
->> Use runtime patching for sparc64, lifted from hweight
-> No errors found in patch - but a few comments.
-> In general patch looks good.
+From: Michal Hocko <mhocko@suse.com>
 
-Thanks. Sparc, powerpc, and x86 are all new to me.
+Now that all the architectures implement the necessary glue code
+we can introduce down_write_killable. The only difference wrt. regular
+down_write is that the slow path waits in TASK_KILLABLE state and the
+interruption by the fatal signal is reported as -EINTR to the caller.
 
->> +++ b/arch/sparc/include/asm/bitops_64.h
->> @@ -47,6 +47,24 @@ unsigned int __arch_hweight16(unsigned int w);
->>   unsigned int __arch_hweight8(unsigned int w);
->>   
->>   #include <asm-generic/bitops/const_hweight.h>
->> +
->> +/*
->> + * parityN: returns the parity of a N-bit word,
->> + * i.e. the number of 1-bits in w modulo 2.
->> + */
->> +
->> +static inline unsigned int __arch_parity4(unsigned int w)
->> +{
->> +	w &= 0xf;
->> +	return (0x6996 >> w) & 1;
->> +}
-> As Josef already said - this constant should have a name.
-> PARITY_BIT
-> ?
->
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ include/linux/lockdep.h | 15 +++++++++++++++
+ include/linux/rwsem.h   |  1 +
+ kernel/locking/rwsem.c  | 19 +++++++++++++++++++
+ 3 files changed, 35 insertions(+)
 
-Maybe PARITY_MAGIC?
-
->> +++ b/arch/sparc/kernel/sparc_ksyms_64.c
->> @@ -45,6 +45,12 @@ EXPORT_SYMBOL(__arch_hweight16);
->>   EXPORT_SYMBOL(__arch_hweight32);
->>   EXPORT_SYMBOL(__arch_hweight64);
->>   
->> +/* from parity.S */
->> +EXPORT_SYMBOL(__arch_parity8);
->> +EXPORT_SYMBOL(__arch_parity16);
->> +EXPORT_SYMBOL(__arch_parity32);
->> +EXPORT_SYMBOL(__arch_parity64);
-> Did you compile this?
-> I wonder if bitops_64.h is indirectly included.
-
-Yes.
-
->> index 0000000..b1945e3
->> --- /dev/null
->> +++ b/arch/sparc/lib/parity.S
->> @@ -0,0 +1,93 @@
->> +#include <linux/linkage.h>
->> +
->> +	.text
->> +	.align	32
->> +
->> +ENTRY(__arch_parity8)
->> +	srl		%o0, 4, %g1
->> +	xor		%o0, %g1, %o0
->> +	and		%o0, 0xf, %o0
->> +	sethi		%hi(0x6996), %g1
->> +	or		%g1, %lo(0x6996), %g1
->> +	srl		%g1, %o0, %o0
->> +	retl
->> +	 and		%o0, 1, %o0
->> +ENDPROC(__arch_parity8)
-> I know the level of comments in hweight is equal to none.
-> But please do not follow this bad example.
-> At least for each function a one-liner of the C code.
-> And in the top of the file maybe two lines that the functions
-> are patched at run-time if the processor has popc available.
->
->
-> 	Sam
-
-OK. I will try, but my english is very poor! :-)
+diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
+index 4dca42fd32f5..13a80779b6da 100644
+--- a/include/linux/lockdep.h
++++ b/include/linux/lockdep.h
+@@ -446,6 +446,18 @@ do {								\
+ 	lock_acquired(&(_lock)->dep_map, _RET_IP_);			\
+ } while (0)
+ 
++#define LOCK_CONTENDED_RETURN(_lock, try, lock)			\
++({								\
++	int ____err = 0;					\
++	if (!try(_lock)) {					\
++		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
++		____err = lock(_lock);				\
++	}							\
++	if (!____err)						\
++		lock_acquired(&(_lock)->dep_map, _RET_IP_);	\
++	____err;						\
++})
++
+ #else /* CONFIG_LOCK_STAT */
+ 
+ #define lock_contended(lockdep_map, ip) do {} while (0)
+@@ -454,6 +466,9 @@ do {								\
+ #define LOCK_CONTENDED(_lock, try, lock) \
+ 	lock(_lock)
+ 
++#define LOCK_CONTENDED_RETURN(_lock, try, lock) \
++	lock(_lock)
++
+ #endif /* CONFIG_LOCK_STAT */
+ 
+ #ifdef CONFIG_LOCKDEP
+diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
+index 7d7ae029dac5..d1c12d160ace 100644
+--- a/include/linux/rwsem.h
++++ b/include/linux/rwsem.h
+@@ -118,6 +118,7 @@ extern int down_read_trylock(struct rw_semaphore *sem);
+  * lock for writing
+  */
+ extern void down_write(struct rw_semaphore *sem);
++extern int __must_check down_write_killable(struct rw_semaphore *sem);
+ 
+ /*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index 205be0ce34de..c817216c1615 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -55,6 +55,25 @@ void __sched down_write(struct rw_semaphore *sem)
+ EXPORT_SYMBOL(down_write);
+ 
+ /*
++ * lock for writing
++ */
++int __sched down_write_killable(struct rw_semaphore *sem)
++{
++	might_sleep();
++	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
++
++	if (LOCK_CONTENDED_RETURN(sem, __down_write_trylock, __down_write_killable)) {
++		rwsem_release(&sem->dep_map, 1, _RET_IP_);
++		return -EINTR;
++	}
++
++	rwsem_set_owner(sem);
++	return 0;
++}
++
++EXPORT_SYMBOL(down_write_killable);
++
++/*
+  * trylock for writing -- returns 1 if successful, 0 if contention
+  */
+ int down_write_trylock(struct rw_semaphore *sem)
+-- 
+2.8.0.rc3
 
