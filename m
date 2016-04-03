@@ -1,67 +1,29 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Fri, 01 Apr 2016 11:04:50 +0000
-Subject: [PATCH 06/11] s390, rwsem: provide __down_write_killable
-Message-Id: <1459508695-14915-7-git-send-email-mhocko@kernel.org>
+From: fu.zhongjun@execs.com
+Date: Sun, 03 Apr 2016 05:43:51 +0000
+Subject: Hilsener.
+Message-Id: <80606E86-6B65-41FA-B7E8-C102F98BF247@mail.resulticks.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
+God dag,
 
-Introduce ___down_write for the fast path and reuse it for __down_write
-resp. __down_write_killable each using the respective generic slow path
-(rwsem_down_write_failed resp. rwsem_down_write_failed_killable).
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- arch/s390/include/asm/rwsem.h | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+Jeg trenger en utenlandsk partner for en gjensidig virksomhet forslag, som =
+er relatert til overf=F8ring av en stor sum penger til en utenlandsk konto,=
+ som mottaker av midlene. Alt om denne transaksjonen vil bli gjort lovlig u=
+ten bro av =F8konomisk autoritet b=E5de i mitt land og yours.I wil hengi de=
+g til =E5 observere ytterste skj=F8nn i alle saker knyttet til dette proble=
+met. Hvis du er interessert, kan du svare tilbake via min private e-postadr=
+esse er skrevet under, vil jeg gi deg mer informasjon om meg selv med finan=
+s institusjonen jeg representerte og faktiske bel=F8pene inneb=E6rer om pro=
+sjektet s=E5 snart jeg f=E5r positiv respons.
 
-diff --git a/arch/s390/include/asm/rwsem.h b/arch/s390/include/asm/rwsem.h
-index 8e52e72f3efc..8e7b2b7e10f3 100644
---- a/arch/s390/include/asm/rwsem.h
-+++ b/arch/s390/include/asm/rwsem.h
-@@ -90,7 +90,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write(struct rw_semaphore *sem)
-+static inline long ___down_write(struct rw_semaphore *sem)
- {
- 	signed long old, new, tmp;
- 
-@@ -104,10 +104,25 @@ static inline void __down_write(struct rw_semaphore *sem)
- 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
- 		: "Q" (sem->count), "m" (tmp)
- 		: "cc", "memory");
--	if (old != 0)
-+
-+	return old;
-+}
-+
-+static inline void __down_write(struct rw_semaphore *sem)
-+{
-+	if (___down_write(sem))
- 		rwsem_down_write_failed(sem);
- }
- 
-+static inline int __down_write_killable(struct rw_semaphore *sem)
-+{
-+	if (___down_write(sem))
-+		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
-+			return -EINTR;
-+
-+	return 0;
-+}
-+
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
--- 
-2.8.0.rc3
+Privat e-post:zhongjunfu@yahoo.com.hk
+
+Vennlig hilsen,
+
+Daglig leder.
 
