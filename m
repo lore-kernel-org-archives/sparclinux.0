@@ -1,24 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 27 Apr 2016 20:39:25 +0000
-Subject: Re: [PATCH] sparc64: recognize and support Sonoma CPU type
-Message-Id: <20160427.163925.443861285003292360.davem@davemloft.net>
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Date: Mon, 04 Apr 2016 04:52:00 +0000
+Subject: Re: [PATCH v4 5/5] printk/nmi: flush NMI messages on the system panic
+Message-Id: <20160404045200.GE6164@swordfish>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1461085974-13534-1-git-send-email-khalid.aziz@oracle.com>
-In-Reply-To: <1461085974-13534-1-git-send-email-khalid.aziz@oracle.com>
+References: <1459353210-20260-6-git-send-email-pmladek@suse.com>
+ <201603310000.dKufp7mg%fengguang.wu@intel.com>
+ <20160331123657.GN5522@pathway.suse.cz>
+In-Reply-To: <20160331123657.GN5522@pathway.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: allen.pais@oracle.com, david.j.aldridge@oracle.com, rob.gardner@oracle.com, nitin.m.gupta@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, khalid@gonehiking.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 19 Apr 2016 11:12:54 -0600
+Hello,
 
-> Add code to recognize SPARC-Sonoma cpu correctly and update cpu hardware
-> caps and cpu distribution map. SPARC-Sonoma is based upon SPARC-M7 core
-> along with additional PCI functions added on and is reported by firmware
-> as "SPARC-SN".
-> 
-> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+On (03/31/16 14:36), Petr Mladek wrote:
+[..]
+>  #ifdef CONFIG_PRINTK_NMI
+> +#define deferred_console_in_nmi() in_nmi()
+>  #else
+> +#define deferred_console_in_nmi() 0
+[..]
+> +	if (!in_sched && !deferred_console_in_nmi()) {
+>  		lockdep_off();
+>  		/*
+>  		 * Try to acquire and then immediately release the console
 
-Applied.
+or use SCHED level for nmi messages instead of defining deferred_console_in_nmi()?
+so !in_sched will work for both SCHED and NMI messages.
+
+	-ss
