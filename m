@@ -1,14 +1,57 @@
-From: =?utf-8?B?0JLQvtGA0L7QvdGG0L7QstCwINCh0LLQtdGC0LvQsNC90LA=?=  <vorontsova.682@ma
-Date: Tue, 12 Apr 2016 10:44:12 +0000
-Subject: =?utf-8?B?0JDRgNC10L3QtNCwINC+0YTQuNGB0LAg0LDQutGC0YPQsNC70YzQvdCwINC00LvRjyDQktCw0YE/?=
-Message-Id: <201604121044.u3CAiCDF010779@sampi.lunariffic.com>
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Date: Mon, 04 Apr 2016 04:56:30 +0000
+Subject: Re: [PATCH v4 2/5] printk/nmi: use IRQ work only when ready
+Message-Id: <20160404045629.GF6164@swordfish>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1459353210-20260-1-git-send-email-pmladek@suse.com>
+ <1459353210-20260-3-git-send-email-pmladek@suse.com>
+In-Reply-To: <1459353210-20260-3-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Hello,
 
-0JTQvtCx0YDRi9C5INC00LXQvdGMIQoK0JLRiyDQtdGJ0LUg0L3QtSDQvdCw0YjQu9C4INC+0YTQuNGBPwoK0KXQvtGC0LXQu9C+0YHRjCDQsdGLINC/0YDQtdC00LvQvtC20LjRgtGMINC+0YTQuNGB0Ysg0L/QvtC0INCS0LDRiNC4INGG0LXQu9C4INCyINCw0YDQtdC90LTRgzog0L/Qu9C+0YnQsNC00YzRjiDQvtGCIDEyINCcMiDQv9C+INC00LXQudGB0YLQstC40YLQtdC70YzQvdC+INC90LjQt9C60L7QuSDRgdGC0L7QuNC80L7RgdGC0LggKNCx0LXQtyDQutC+0LzQuNGB0YHQuNC4KSDQsiDQvdCw0YjQuNGFINCx0LjQt9C90LXRgS3RhtC10L3RgtGA0LDRhSwg0LLQvtC30LvQtSDRgdGC0LDQvdGG0LjQuSDQvNC10YLRgNC+OgogLSDQmtC40YLQsNC5LdCz0L7RgNC+0LQKIC0g0JvRg9Cx0Y/QvdC60LAKIC0g0J/Quy4g0YDQtdCy0L7Qu9GO0YbQuNC4CiAtINCd0L7QstGL0LUg0KfQtdGA0LXQvNGD0YjQutC4CiAtINCf0YDQvtGE0YHQvtGO0LfQvdCw0Y8KIC0g0KHQstC40LHQu9C+0LLQvgogLSDQkdC+0YLQsNC90LjRh9C10YHQutC40Lkg0YHQsNC0CiAtINCf0YDQtdC+0LHRgNCw0LbQtdC90YHQutCw0Y8g0L/Quy4KIC0g0JEt0YAg0KDQvtC60L7RgdGB0L7QstGB0LrQvtCz0L4KIC0g0JLQlNCd0KUKCtCd0L7QstGL0Lwg0LrQu9C40LXQvdGC0LDQvCDQv9GA0LXQtNC+0YHRgtCw0LLQuNC8INC60LDQvdC40LrRg9C70Ysg0L3QsCDQsNGA0LXQvdC00YMsINGO0YDQuNC00LjRh9C10YHQutC40Lkg0!
- LDQtNGA0LXRgSDQuCDQv9Cw0YDQutC+0LLQvtGH0L3Ri9C1INC80LXRgdGC0LAg0LIg0L/QvtC00LDRgNC+0LouCgrQndCw0L/QuNGI0LjRgtC1INC/0L7QttCw0LvRg9C50YHRgtCwIC0g0YDRj9C00L7QvCDRgSDQutCw0LrQuNC80Lgg0YHRgtCw0L3RhtC40Y/QvNC4INC80LXRgtGA0L4g0JLQsNC8INCx0YvQu9C+INCx0Ysg0LjQvdGC0LXRgNC10YHQvdC+INGA0LDRgdGB0LzQvtGC0YDQtdGC0Ywg0LDRgNC10L3QtNGLINC+0YTQuNGB0L7QsiAtINGPINC/0YDQuNGI0LvRjiDQktCw0Lwg0LLQvtC30LzQvtC20L3Ri9C1INCy0LDRgNC40LDQvdGC0Ysg0L/QvtC80LXRidC10L3QuNC5INC4INGB0YLQvtC40LzQvtGB0YLRjCDQsNGA0LXQvdC00Ysg0LrQsNC20LTQvtCz0L4uCgpDINGD0LLQsNC20LXQvdC40LXQvCwg0JLQvtGA0L7QvdGG0L7QstCwINCh0LLQtdGC0LvQsNC90LAu
+On (03/30/16 17:53), Petr Mladek wrote:
+> NMIs could happen at any time.  This patch makes sure that the safe
+> printk() in NMI will schedule IRQ work only when the related structs are
+> initialized.
+> 
+> All pending messages are flushed when the IRQ work is being initialized.
 
+so, does this patch 'fix' 0001 (in a way)? shouldn't it then be folded?
+sorry if I'm missing something.
+
+	-ss
+
+>  DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
+> +static int printk_nmi_irq_ready;
+>  
+>  #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
+>  
+> @@ -84,8 +85,11 @@ again:
+>  		goto again;
+>  
+>  	/* Get flushed in a more safe context. */
+> -	if (add)
+> +	if (add && printk_nmi_irq_ready) {
+> +		/* Make sure that IRQ work is really initialized. */
+> +		smp_rmb();
+>  		irq_work_queue(&s->work);
+> +	}
+>  
+>  	return add;
+>  }
+> @@ -195,6 +199,13 @@ void __init printk_nmi_init(void)
+>  
+>  		init_irq_work(&s->work, __printk_nmi_flush);
+>  	}
+> +
+> +	/* Make sure that IRQ works are initialized before enabling. */
+> +	smp_wmb();
+> +	printk_nmi_irq_ready = 1;
+> +
+> +	/* Flush pending messages that did not have scheduled IRQ works. */
+> +	printk_nmi_flush();
+>  }
