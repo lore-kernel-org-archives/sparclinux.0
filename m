@@ -1,105 +1,126 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 07 Apr 2016 15:12:31 +0000
-Subject: [PATCH 11/11] locking, rwsem: provide down_write_killable
-Message-Id: <1460041951-22347-12-git-send-email-mhocko@kernel.org>
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Date: Mon, 04 Apr 2016 04:49:28 +0000
+Subject: Re: [PATCH v4 1/5] printk/nmi: generic solution for safe printk in NMI
+Message-Id: <20160404044928.GD6164@swordfish>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
+References: <1459353210-20260-1-git-send-email-pmladek@suse.com>
+ <1459353210-20260-2-git-send-email-pmladek@suse.com>
+In-Reply-To: <1459353210-20260-2-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Michal Hocko <mhocko@suse.com>
+Hello,
 
-Now that all the architectures implement the necessary glue code
-we can introduce down_write_killable. The only difference wrt. regular
-down_write is that the slow path waits in TASK_KILLABLE state and the
-interruption by the fatal signal is reported as -EINTR to the caller.
+On (03/30/16 17:53), Petr Mladek wrote:
+[..]
+> @@ -67,10 +67,12 @@ extern void irq_exit(void);
+>  		preempt_count_add(NMI_OFFSET + HARDIRQ_OFFSET);	\
+>  		rcu_nmi_enter();				\
+>  		trace_hardirq_enter();				\
+> +		printk_nmi_enter();				\
+>  	} while (0)
+>  
+>  #define nmi_exit()						\
+>  	do {							\
+> +		printk_nmi_exit();				\
+>  		trace_hardirq_exit();				\
+>  		rcu_nmi_exit();					\
+>  		BUG_ON(!in_nmi());				\
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- include/linux/lockdep.h | 15 +++++++++++++++
- include/linux/rwsem.h   |  1 +
- kernel/locking/rwsem.c  | 19 +++++++++++++++++++
- 3 files changed, 35 insertions(+)
+isn't it a bit too early to printk_nmi_exit()? rcu_nmi_exit() can
+WARN_ON_ONCE() in 3 places.
 
-diff --git a/include/linux/lockdep.h b/include/linux/lockdep.h
-index 4dca42fd32f5..13a80779b6da 100644
---- a/include/linux/lockdep.h
-+++ b/include/linux/lockdep.h
-@@ -446,6 +446,18 @@ do {								\
- 	lock_acquired(&(_lock)->dep_map, _RET_IP_);			\
- } while (0)
- 
-+#define LOCK_CONTENDED_RETURN(_lock, try, lock)			\
-+({								\
-+	int ____err = 0;					\
-+	if (!try(_lock)) {					\
-+		lock_contended(&(_lock)->dep_map, _RET_IP_);	\
-+		____err = lock(_lock);				\
-+	}							\
-+	if (!____err)						\
-+		lock_acquired(&(_lock)->dep_map, _RET_IP_);	\
-+	____err;						\
-+})
-+
- #else /* CONFIG_LOCK_STAT */
- 
- #define lock_contended(lockdep_map, ip) do {} while (0)
-@@ -454,6 +466,9 @@ do {								\
- #define LOCK_CONTENDED(_lock, try, lock) \
- 	lock(_lock)
- 
-+#define LOCK_CONTENDED_RETURN(_lock, try, lock) \
-+	lock(_lock)
-+
- #endif /* CONFIG_LOCK_STAT */
- 
- #ifdef CONFIG_LOCKDEP
-diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
-index 7d7ae029dac5..d1c12d160ace 100644
---- a/include/linux/rwsem.h
-+++ b/include/linux/rwsem.h
-@@ -118,6 +118,7 @@ extern int down_read_trylock(struct rw_semaphore *sem);
-  * lock for writing
-  */
- extern void down_write(struct rw_semaphore *sem);
-+extern int __must_check down_write_killable(struct rw_semaphore *sem);
- 
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
-index 205be0ce34de..c817216c1615 100644
---- a/kernel/locking/rwsem.c
-+++ b/kernel/locking/rwsem.c
-@@ -55,6 +55,25 @@ void __sched down_write(struct rw_semaphore *sem)
- EXPORT_SYMBOL(down_write);
- 
- /*
-+ * lock for writing
-+ */
-+int __sched down_write_killable(struct rw_semaphore *sem)
-+{
-+	might_sleep();
-+	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
-+
-+	if (LOCK_CONTENDED_RETURN(sem, __down_write_trylock, __down_write_killable)) {
-+		rwsem_release(&sem->dep_map, 1, _RET_IP_);
-+		return -EINTR;
-+	}
-+
-+	rwsem_set_owner(sem);
-+	return 0;
-+}
-+
-+EXPORT_SYMBOL(down_write_killable);
-+
-+/*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
- int down_write_trylock(struct rw_semaphore *sem)
--- 
-2.8.0.rc3
+the same goes for printk_nmi_enter(). rcu_nmi_enter() can WARN_ON_ONCE().
 
+seems that in both cases we can endup having WARN_ON_ONCE() from nmi,
+but with default printk function.
+
+
+> +/*
+> + * Flush data from the associated per_CPU buffer. The function
+> + * can be called either via IRQ work or independently.
+> + */
+> +static void __printk_nmi_flush(struct irq_work *work)
+> +{
+> +	static raw_spinlock_t read_lock > +		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
+> +	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
+> +	unsigned long flags;
+> +	size_t len, size;
+> +	int i, last_i;
+> +
+> +	/*
+> +	 * The lock has two functions. First, one reader has to flush all
+> +	 * available message to make the lockless synchronization with
+> +	 * writers easier. Second, we do not want to mix messages from
+> +	 * different CPUs. This is especially important when printing
+> +	 * a backtrace.
+> +	 */
+> +	raw_spin_lock_irqsave(&read_lock, flags);
+> +
+
+hm... so here we have
+	for (; i < size; i++)
+		printk()
+
+under the spinlock. the thing is that one of printk() can end up
+in console_unlock()->call_console_drivers() loop, iterating there
+long enough to spinlock lockup other CPUs that might want to flush
+NMI buffers (if any), assuming that there are enough printk() (or
+may be a slow serial console) happening concurrently on other CPUs
+to keep the current ->read_lock busy. async printk can help here,
+but user can request sync version of printk.
+
+how about using deferred printk for nmi flush?
+print_nmi_seq_line()->printk_deferred() ?
+
+	-ss
+
+> +	i = 0;
+> +more:
+> +	len = atomic_read(&s->len);
+> +
+> +	/*
+> +	 * This is just a paranoid check that nobody has manipulated
+> +	 * the buffer an unexpected way. If we printed something then
+> +	 * @len must only increase.
+> +	 */
+> +	if (i && i >= len)
+> +		pr_err("printk_nmi_flush: internal error: i=%d >= len=%zu\n",
+> +		       i, len);
+> +
+> +	if (!len)
+> +		goto out; /* Someone else has already flushed the buffer. */
+> +
+> +	/* Make sure that data has been written up to the @len */
+> +	smp_rmb();
+> +
+> +	size = min(len, sizeof(s->buffer));
+> +	last_i = i;
+> +
+> +	/* Print line by line. */
+> +	for (; i < size; i++) {
+> +		if (s->buffer[i] = '\n') {
+> +			print_nmi_seq_line(s, last_i, i);
+> +			last_i = i + 1;
+> +		}
+> +	}
+> +	/* Check if there was a partial line. */
+> +	if (last_i < size) {
+> +		print_nmi_seq_line(s, last_i, size - 1);
+> +		pr_cont("\n");
+> +	}
+> +
+> +	/*
+> +	 * Check that nothing has got added in the meantime and truncate
+> +	 * the buffer. Note that atomic_cmpxchg() is an implicit memory
+> +	 * barrier that makes sure that the data were copied before
+> +	 * updating s->len.
+> +	 */
+> +	if (atomic_cmpxchg(&s->len, len, 0) != len)
+> +		goto more;
+> +
+> +out:
+> +	raw_spin_unlock_irqrestore(&read_lock, flags);
+> +}
