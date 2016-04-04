@@ -1,45 +1,179 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 21 Apr 2016 19:39:32 +0000
-Subject: Re: [PATCH 1/1] sparc32: fix trap number in call to kgdb_handle_exception
-Message-Id: <20160421.153932.699747719643262034.davem@davemloft.net>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 04 Apr 2016 09:06:40 +0000
+Subject: [PATCH 2/2] sh, rwsem: drop superfluous arch specific implementation
+Message-Id: <1459760800-13477-2-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160330184930.GA25233@ravnborg.org>
-In-Reply-To: <20160330184930.GA25233@ravnborg.org>
+References: <20160404090335.GB10272@dhcp22.suse.cz>
+ <1459760800-13477-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1459760800-13477-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 31 Mar 2016 07:19:41 +0200
+From: Michal Hocko <mhocko@suse.com>
 
-> On Wed, Mar 30, 2016 at 08:49:30PM +0200, Sam Ravnborg wrote:
->> >From ae7ae09c77621331f8aa18f2281f74640fcc39f2 Mon Sep 17 00:00:00 2001
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Wed, 30 Mar 2016 20:39:11 +0200
->> Subject: [PATCH 1/1] sparc32: fix trap number in call to kgdb_handle_exception
->> 
->> While browsing this code for other reasons this disprecancy
->> was noticed. It looks like the code originates from sparc64.
->> 
->> The trap number is in the generic code only used as argument
->> to a few methods that for sparc is simple stub functions.
->> So the trap number is not used, thus this patch does not
->> have any functional impact.
->> 
->> Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
->> ---
->> 
->> I was tempted to modify kgdb_trap to take the trap number
->> as argument, like we do for sparc64.
->> But in first try I did the minimal fix.
->> 
->> If you prefer I will redo the patch so we pass the
->> trap number in %o1 and pt_regs in %o2 like
->> we do on sparc64.
-> Scrap this patch.
-> 
-> I ended up doing as I suggested above. Needs to sort out a toolchain issue
-> so I at least have done a test build before I submit it.
+since "locking, rwsem: drop explicit memory barriers" the arch specific
+code is basically same as the the generic one so we can drop the
+superfluous code.
 
-Ok.
+Suggested-by: Davidlohr Bueso <dave@stgolabs.net>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ arch/sh/include/asm/Kbuild  |   1 +
+ arch/sh/include/asm/rwsem.h | 130 --------------------------------------------
+ 2 files changed, 1 insertion(+), 130 deletions(-)
+ delete mode 100644 arch/sh/include/asm/rwsem.h
+
+diff --git a/arch/sh/include/asm/Kbuild b/arch/sh/include/asm/Kbuild
+index aac452b26aa8..6d866c7a9b74 100644
+--- a/arch/sh/include/asm/Kbuild
++++ b/arch/sh/include/asm/Kbuild
+@@ -25,6 +25,7 @@ generic-y += percpu.h
+ generic-y += poll.h
+ generic-y += preempt.h
+ generic-y += resource.h
++generic-y += rwsem.h
+ generic-y += sembuf.h
+ generic-y += serial.h
+ generic-y += shmbuf.h
+diff --git a/arch/sh/include/asm/rwsem.h b/arch/sh/include/asm/rwsem.h
+deleted file mode 100644
+index 8a457b83d2a5..000000000000
+--- a/arch/sh/include/asm/rwsem.h
++++ /dev/null
+@@ -1,130 +0,0 @@
+-/*
+- * include/asm-sh/rwsem.h: R/W semaphores for SH using the stuff
+- * in lib/rwsem.c.
+- */
+-
+-#ifndef _ASM_SH_RWSEM_H
+-#define _ASM_SH_RWSEM_H
+-
+-#ifndef _LINUX_RWSEM_H
+-#error "please don't include asm/rwsem.h directly, use linux/rwsem.h instead"
+-#endif
+-
+-#ifdef __KERNEL__
+-
+-#define RWSEM_UNLOCKED_VALUE		0x00000000
+-#define RWSEM_ACTIVE_BIAS		0x00000001
+-#define RWSEM_ACTIVE_MASK		0x0000ffff
+-#define RWSEM_WAITING_BIAS		(-0x00010000)
+-#define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
+-#define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
+-
+-/*
+- * lock for reading
+- */
+-static inline void __down_read(struct rw_semaphore *sem)
+-{
+-	if (atomic_inc_return((atomic_t *)(&sem->count)) <= 0)
+-		rwsem_down_read_failed(sem);
+-}
+-
+-static inline int __down_read_trylock(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	while ((tmp = sem->count) >= 0) {
+-		if (tmp = cmpxchg(&sem->count, tmp,
+-				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
+-			return 1;
+-		}
+-	}
+-	return 0;
+-}
+-
+-/*
+- * lock for writing
+- */
+-static inline void __down_write(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
+-				(atomic_t *)(&sem->count));
+-	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
+-		rwsem_down_write_failed(sem);
+-}
+-
+-static inline int __down_write_killable(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	tmp = atomic_add_return(RWSEM_ACTIVE_WRITE_BIAS,
+-				(atomic_t *)(&sem->count));
+-	if (tmp != RWSEM_ACTIVE_WRITE_BIAS)
+-		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+-			return -EINTR;
+-
+-	return 0;
+-}
+-
+-static inline int __down_write_trylock(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	tmp = cmpxchg(&sem->count, RWSEM_UNLOCKED_VALUE,
+-		      RWSEM_ACTIVE_WRITE_BIAS);
+-	return tmp = RWSEM_UNLOCKED_VALUE;
+-}
+-
+-/*
+- * unlock after reading
+- */
+-static inline void __up_read(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	tmp = atomic_dec_return((atomic_t *)(&sem->count));
+-	if (tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0)
+-		rwsem_wake(sem);
+-}
+-
+-/*
+- * unlock after writing
+- */
+-static inline void __up_write(struct rw_semaphore *sem)
+-{
+-	if (atomic_sub_return(RWSEM_ACTIVE_WRITE_BIAS,
+-			      (atomic_t *)(&sem->count)) < 0)
+-		rwsem_wake(sem);
+-}
+-
+-/*
+- * implement atomic add functionality
+- */
+-static inline void rwsem_atomic_add(int delta, struct rw_semaphore *sem)
+-{
+-	atomic_add(delta, (atomic_t *)(&sem->count));
+-}
+-
+-/*
+- * downgrade write lock to read lock
+- */
+-static inline void __downgrade_write(struct rw_semaphore *sem)
+-{
+-	int tmp;
+-
+-	tmp = atomic_add_return(-RWSEM_WAITING_BIAS, (atomic_t *)(&sem->count));
+-	if (tmp < 0)
+-		rwsem_downgrade_wake(sem);
+-}
+-
+-/*
+- * implement exchange and add functionality
+- */
+-static inline int rwsem_atomic_update(int delta, struct rw_semaphore *sem)
+-{
+-	return atomic_add_return(delta, (atomic_t *)(&sem->count));
+-}
+-
+-#endif /* __KERNEL__ */
+-#endif /* _ASM_SH_RWSEM_H */
+-- 
+2.8.0.rc3
+
