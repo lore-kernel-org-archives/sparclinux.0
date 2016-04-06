@@ -1,69 +1,201 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Date: Wed, 27 Apr 2016 15:16:19 +0000
-Subject: Re: kernel boot broken since 4.5 on t5220 ( niagara2 ) machine
-Message-Id: <20160427151619.GD5369@vapier.lan>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="BUkSJvRMivPPUEQV"
+From: zengzhaoxiu@163.com
+Date: Wed, 06 Apr 2016 09:07:27 +0000
+Subject: [PATCH v2 08/30] Add sparc-specific parity functions
+Message-Id: <1459933647-6940-1-git-send-email-zengzhaoxiu@163.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <57207083.1000703@alcatel-lucent.com>
-In-Reply-To: <57207083.1000703@alcatel-lucent.com>
-To: sparclinux@vger.kernel.org
+References: <57031D9D.801@gmail.com>
+In-Reply-To: <57031D9D.801@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, wim.coekaerts@oracle.com, linux@roeck-us.net, julian.calaby@gmail.com, sam@ravnborg.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+
+From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+
+Use runtime patching for sparc64, lifted from hweight
+
+Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+---
+ arch/sparc/include/asm/bitops_32.h |  1 +
+ arch/sparc/include/asm/bitops_64.h | 18 ++++++++
+ arch/sparc/kernel/sparc_ksyms_64.c |  6 +++
+ arch/sparc/lib/Makefile            |  2 +-
+ arch/sparc/lib/parity.S            | 93 ++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 119 insertions(+), 1 deletion(-)
+ create mode 100644 arch/sparc/lib/parity.S
+
+diff --git a/arch/sparc/include/asm/bitops_32.h b/arch/sparc/include/asm/bitops_32.h
+index 600ed1d..8c41896 100644
+--- a/arch/sparc/include/asm/bitops_32.h
++++ b/arch/sparc/include/asm/bitops_32.h
+@@ -98,6 +98,7 @@ static inline void change_bit(unsigned long nr, volatile unsigned long *addr)
+ #include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+ #include <asm-generic/bitops/hweight.h>
++#include <asm-generic/bitops/parity.h>
+ #include <asm-generic/bitops/lock.h>
+ #include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/le.h>
+diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
+index 2d52240..5312fed 100644
+--- a/arch/sparc/include/asm/bitops_64.h
++++ b/arch/sparc/include/asm/bitops_64.h
+@@ -47,6 +47,24 @@ unsigned int __arch_hweight16(unsigned int w);
+ unsigned int __arch_hweight8(unsigned int w);
+ 
+ #include <asm-generic/bitops/const_hweight.h>
++
++/*
++ * parityN: returns the parity of a N-bit word,
++ * i.e. the number of 1-bits in w modulo 2.
++ */
++
++static inline unsigned int __arch_parity4(unsigned int w)
++{
++	w &= 0xf;
++	return (0x6996 >> w) & 1;
++}
++unsigned int __arch_parity8(unsigned int w);
++unsigned int __arch_parity16(unsigned int w);
++unsigned int __arch_parity32(unsigned int w);
++unsigned int __arch_parity64(__u64 w);
++
++#include <asm-generic/bitops/const_parity.h>
++
+ #include <asm-generic/bitops/lock.h>
+ #endif /* __KERNEL__ */
+ 
+diff --git a/arch/sparc/kernel/sparc_ksyms_64.c b/arch/sparc/kernel/sparc_ksyms_64.c
+index 9e034f2..7ee0818 100644
+--- a/arch/sparc/kernel/sparc_ksyms_64.c
++++ b/arch/sparc/kernel/sparc_ksyms_64.c
+@@ -45,6 +45,12 @@ EXPORT_SYMBOL(__arch_hweight16);
+ EXPORT_SYMBOL(__arch_hweight32);
+ EXPORT_SYMBOL(__arch_hweight64);
+ 
++/* from parity.S */
++EXPORT_SYMBOL(__arch_parity8);
++EXPORT_SYMBOL(__arch_parity16);
++EXPORT_SYMBOL(__arch_parity32);
++EXPORT_SYMBOL(__arch_parity64);
++
+ /* from ffs_ffz.S */
+ EXPORT_SYMBOL(ffs);
+ EXPORT_SYMBOL(__ffs);
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 3269b02..2dbbcb1 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -39,7 +39,7 @@ lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
+ lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
+ 
+ lib-$(CONFIG_SPARC64) += copy_in_user.o user_fixup.o memmove.o
+-lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o
++lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o parity.o
+ 
+ obj-$(CONFIG_SPARC64) += iomap.o
+ obj-$(CONFIG_SPARC32) += atomic32.o ucmpdi2.o
+diff --git a/arch/sparc/lib/parity.S b/arch/sparc/lib/parity.S
+new file mode 100644
+index 0000000..b1945e3
+--- /dev/null
++++ b/arch/sparc/lib/parity.S
+@@ -0,0 +1,93 @@
++#include <linux/linkage.h>
++
++	.text
++	.align	32
++
++ENTRY(__arch_parity8)
++	srl		%o0, 4, %g1
++	xor		%o0, %g1, %o0
++	and		%o0, 0xf, %o0
++	sethi		%hi(0x6996), %g1
++	or		%g1, %lo(0x6996), %g1
++	srl		%g1, %o0, %o0
++	retl
++	 and		%o0, 1, %o0
++ENDPROC(__arch_parity8)
++	.section	.popc_6insn_patch, "ax"
++	.word		__arch_parity8
++	sllx		%o0, 64-8, %g1
++	popc		%g1, %o0
++	retl
++	 and		%o0, 1, %o0
++	nop
++	nop
++	.previous
++
++ENTRY(__arch_parity16)
++	srl		%o0, 8, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 4, %g1
++	xor		%o0, %g1, %o0
++	and		%o0, 0xf, %o0
++	sethi		%hi(0x6996), %g1
++	or		%g1, %lo(0x6996), %g1
++	srl		%g1, %o0, %o0
++	retl
++	 and		%o0, 1, %o0
++ENDPROC(__arch_parity16)
++	.section	.popc_6insn_patch, "ax"
++	.word		__arch_parity16
++	sllx		%o0, 64-16, %g1
++	popc		%g1, %o0
++	retl
++	 and		%o0, 1, %o0
++	nop
++	nop
++	.previous
++
++ENTRY(__arch_parity32)
++	srl		%o0, 16, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 8, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 4, %g1
++	xor		%o0, %g1, %o0
++	and		%o0, 0xf, %o0
++	sethi		%hi(0x6996), %g1
++	or		%g1, %lo(0x6996), %g1
++	srl		%g1, %o0, %o0
++	retl
++	 and		%o0, 1, %o0
++ENDPROC(__arch_parity32)
++	.section	.popc_6insn_patch, "ax"
++	.word		__arch_parity32
++	sllx		%o0, 64-32, %g1
++	popc		%g1, %o0
++	retl
++	 and		%o0, 1, %o0
++	nop
++	nop
++	.previous
++
++ENTRY(__arch_parity64)
++	srlx	%o0, 32, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 16, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 8, %g1
++	xor		%o0, %g1, %o0
++	srl		%o0, 4, %g1
++	xor		%o0, %g1, %o0
++	and		%o0, 0xf, %o0
++	sethi		%hi(0x6996), %g1
++	or		%g1, %lo(0x6996), %g1
++	srl		%g1, %o0, %o0
++	retl
++	 and		%o0, 1, %o0
++ENDPROC(__arch_parity64)
++	.section	.popc_3insn_patch, "ax"
++	.word		__arch_parity64
++	popc		%o0, %o0
++	retl
++	 and		%o0, 1, %o0
++	.previous
+-- 
+2.5.0
 
 
---BUkSJvRMivPPUEQV
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On 27 Apr 2016 14:28, Anatoly Pugachev wrote:
-> On Wed, Apr 27, 2016 at 1:09 PM, Sam Ravnborg <sam@ravnborg.org> wrote:
-> > On Wed, Apr 27, 2016 at 09:55:47AM +0200, Joerg Abraham wrote:
-> >> Hi,
-> >>
-> >> since kernel version 4.5 my t5220 does not boot anymore, small logs
-> >> attached...
-> >>
-> >> bisecting the problem points to commit:
-> >>
-> >> 1a40b95374f680625318ab61d81958e949e0afe3
-> >>
-> >> or
-> >>
-> >> 1a40b95 (sparc: Fix system call tracing register handling.)
-> >
-> > Meelis Roos reported issues with the same commit.
-> > See the thread "RED State Exception in 4.5 on E420R"
->=20
-> Just to let you know guys, I have quite a similar hardware, not T5220,
-> but T5120, and I don't have this issue, 4.5.x kernel works, 4.6.0
-> boots (but OOPS with different trace, going to report it with another
-> email).
-
-i've been running v4.5 on a Sun Fire T200 for a while and haven't
-noticed boot issues.  i do have some troubles under high loads and
-cores locking up, but that isn't new to v4.5 :).
--mike
-
---BUkSJvRMivPPUEQV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXINfCAAoJEEFjO5/oN/WBQtEP/2UAgqlbvGwIDh7WUsT7ir2Y
-zNqHYMJas8ZgGwF3SwTur5CmwZDMa1Aiq5aqjkBpR8FV2XzLVAd2BE8TRl5/Sp5V
-wIW6etPxFs7WlrLyWewE5RKFIklNkytRutka5MSy7zibGZFFldw3RYLKN2SZSWXr
-b8DlR0+PBQURGfVQtUTIJzwQ0xmjATAgTnaJpAbGULChxcToay0IAzJmlwGfSpyU
-7Qy8F2/0GxyGePcpjn8vuWAOxPi/0qK/hr4O80fOzYQSIbtRtHG/vTauvHH0xRPJ
-6VD0s0sLrEncwsmDm76Jg2DiKm9DPeb1jzJX3lXqJI9nIXmpZUUFvf4rF878VDxl
-szhy8rMbaYv2bQkTw9g6netnuY6mZ4UZdw3JuHdvmGdTjA8QGZBvQYCHVH5k2d7E
-7Qp1jd71BnDTp7Z0jUxyCfWtQfXPjywlzVgLukLCoh1tvXpBwK0aCZ2ZlNfKXUs3
-6COe/6NnbjhEkka3CR0I0MqIzoXrqzMvDdycKg3YcNXgXXOcXX+CPHuVKdS1a+Ob
-vgDLuWoUuy4UyMf713MPj7ByXHIiFoBOjHy0CKNWwpCsIPubpxJV/kFyj6wmWmH2
-OBSeKikm5FKnUAxDzPnofXH2af5rY7+smkkZCpAmMO5f1qdtVoxTfxVI8GQ1TAlb
-0n6WRAW1ZpAYcfNiXXdi
-=YFvM
------END PGP SIGNATURE-----
-
---BUkSJvRMivPPUEQV--
