@@ -1,236 +1,231 @@
-From: zengzhaoxiu@163.com
-Date: Thu, 14 Apr 2016 03:08:01 +0000
-Subject: [PATCH V3 08/29] Add sparc-specific parity functions
-Message-Id: <1460603291-4851-1-git-send-email-zengzhaoxiu@163.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Thu, 07 Apr 2016 15:12:26 +0000
+Subject: [PATCH 06/11] locking, rwsem: introduce basis for down_write_killable
+Message-Id: <1460041951-22347-7-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
+References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sam@ravnborg.org
-Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>, "David S. Miller" <davem@davemloft.net>, "wim.coekaerts@oracle.com" <wim.coekaerts@oracle.com>, Guenter Roeck <linux@roeck-us.net>, Julian Calaby <julian.calaby@gmail.com>, sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+From: Michal Hocko <mhocko@suse.com>
 
-Use runtime patching for sparc64, lifted from hweight
+Introduce a generic implementation necessary for down_write_killable.
+This is a trivial extension of the already existing down_write call
+which can be interrupted by SIGKILL.  This patch doesn't provide
+down_write_killable yet because arches have to provide the necessary
+pieces before.
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+rwsem_down_write_failed which is a generic slow path for the
+write lock is extended to take a task state and renamed to
+__rwsem_down_write_failed_common. The return value is either a valid
+semaphore pointer or ERR_PTR(-EINTR).
+
+rwsem_down_write_failed_killable is exported as a new way to wait for
+the lock and be killable.
+
+For rwsem-spinlock implementation the current __down_write it updated
+in a similar way as __rwsem_down_write_failed_common except it doesn't
+need new exports just visible __down_write_killable.
+
+Architectures which are not using the generic rwsem implementation are
+supposed to provide their __down_write_killable implementation and
+use rwsem_down_write_failed_killable for the slow path.
+
+[dave@stgolabs.net - rename __rwsem_down_write_failed_state to
+ __rwsem_down_write_failed_common]
+Signed-off-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sparc/include/asm/bitops_32.h |   1 +
- arch/sparc/include/asm/bitops_64.h |  18 ++++++
- arch/sparc/kernel/sparc_ksyms_64.c |   6 ++
- arch/sparc/lib/Makefile            |   2 +-
- arch/sparc/lib/parity.S            | 128 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 154 insertions(+), 1 deletion(-)
- create mode 100644 arch/sparc/lib/parity.S
+ include/asm-generic/rwsem.h     | 12 ++++++++++++
+ include/linux/rwsem-spinlock.h  |  1 +
+ include/linux/rwsem.h           |  2 ++
+ kernel/locking/rwsem-spinlock.c | 22 ++++++++++++++++++++--
+ kernel/locking/rwsem-xadd.c     | 31 +++++++++++++++++++++++++------
+ 5 files changed, 60 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/include/asm/bitops_32.h b/arch/sparc/include/asm/bitops_32.h
-index 600ed1d..8c41896 100644
---- a/arch/sparc/include/asm/bitops_32.h
-+++ b/arch/sparc/include/asm/bitops_32.h
-@@ -98,6 +98,7 @@ static inline void change_bit(unsigned long nr, volatile unsigned long *addr)
- #include <asm-generic/bitops/__fls.h>
- #include <asm-generic/bitops/fls64.h>
- #include <asm-generic/bitops/hweight.h>
-+#include <asm-generic/bitops/parity.h>
- #include <asm-generic/bitops/lock.h>
- #include <asm-generic/bitops/find.h>
- #include <asm-generic/bitops/le.h>
-diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
-index 2d52240..999d504 100644
---- a/arch/sparc/include/asm/bitops_64.h
-+++ b/arch/sparc/include/asm/bitops_64.h
-@@ -47,6 +47,24 @@ unsigned int __arch_hweight16(unsigned int w);
- unsigned int __arch_hweight8(unsigned int w);
+diff --git a/include/asm-generic/rwsem.h b/include/asm-generic/rwsem.h
+index b8d8a6cf4ca8..3fc94a046bf5 100644
+--- a/include/asm-generic/rwsem.h
++++ b/include/asm-generic/rwsem.h
+@@ -63,6 +63,18 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 		rwsem_down_write_failed(sem);
+ }
  
- #include <asm-generic/bitops/const_hweight.h>
-+
-+/*
-+ * parityN: returns the parity of a N-bit word,
-+ * i.e. the number of 1-bits in w modulo 2.
-+ */
-+
-+static inline unsigned int __arch_parity4(unsigned int w)
++static inline int __down_write_killable(struct rw_semaphore *sem)
 +{
-+	w &= 0xf;
-+	return ((PARITY_MAGIC) >> w) & 1;
++	long tmp;
++
++	tmp = atomic_long_add_return_acquire(RWSEM_ACTIVE_WRITE_BIAS,
++				     (atomic_long_t *)&sem->count);
++	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++	return 0;
 +}
-+unsigned int __arch_parity8(unsigned int w);
-+unsigned int __arch_parity16(unsigned int w);
-+unsigned int __arch_parity32(unsigned int w);
-+unsigned int __arch_parity64(__u64 w);
 +
-+#include <asm-generic/bitops/const_parity.h>
-+
- #include <asm-generic/bitops/lock.h>
- #endif /* __KERNEL__ */
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+diff --git a/include/linux/rwsem-spinlock.h b/include/linux/rwsem-spinlock.h
+index a733a5467e6c..ae0528b834cd 100644
+--- a/include/linux/rwsem-spinlock.h
++++ b/include/linux/rwsem-spinlock.h
+@@ -34,6 +34,7 @@ struct rw_semaphore {
+ extern void __down_read(struct rw_semaphore *sem);
+ extern int __down_read_trylock(struct rw_semaphore *sem);
+ extern void __down_write(struct rw_semaphore *sem);
++extern int __must_check __down_write_killable(struct rw_semaphore *sem);
+ extern int __down_write_trylock(struct rw_semaphore *sem);
+ extern void __up_read(struct rw_semaphore *sem);
+ extern void __up_write(struct rw_semaphore *sem);
+diff --git a/include/linux/rwsem.h b/include/linux/rwsem.h
+index 8f498cdde280..7d7ae029dac5 100644
+--- a/include/linux/rwsem.h
++++ b/include/linux/rwsem.h
+@@ -14,6 +14,7 @@
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/atomic.h>
++#include <linux/err.h>
+ #ifdef CONFIG_RWSEM_SPIN_ON_OWNER
+ #include <linux/osq_lock.h>
+ #endif
+@@ -43,6 +44,7 @@ struct rw_semaphore {
  
-diff --git a/arch/sparc/kernel/sparc_ksyms_64.c b/arch/sparc/kernel/sparc_ksyms_64.c
-index 9e034f2..7ee0818 100644
---- a/arch/sparc/kernel/sparc_ksyms_64.c
-+++ b/arch/sparc/kernel/sparc_ksyms_64.c
-@@ -45,6 +45,12 @@ EXPORT_SYMBOL(__arch_hweight16);
- EXPORT_SYMBOL(__arch_hweight32);
- EXPORT_SYMBOL(__arch_hweight64);
+ extern struct rw_semaphore *rwsem_down_read_failed(struct rw_semaphore *sem);
+ extern struct rw_semaphore *rwsem_down_write_failed(struct rw_semaphore *sem);
++extern struct rw_semaphore *rwsem_down_write_failed_killable(struct rw_semaphore *sem);
+ extern struct rw_semaphore *rwsem_wake(struct rw_semaphore *);
+ extern struct rw_semaphore *rwsem_downgrade_wake(struct rw_semaphore *sem);
  
-+/* from parity.S */
-+EXPORT_SYMBOL(__arch_parity8);
-+EXPORT_SYMBOL(__arch_parity16);
-+EXPORT_SYMBOL(__arch_parity32);
-+EXPORT_SYMBOL(__arch_parity64);
-+
- /* from ffs_ffz.S */
- EXPORT_SYMBOL(ffs);
- EXPORT_SYMBOL(__ffs);
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 3269b02..2dbbcb1 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -39,7 +39,7 @@ lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
- lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
+diff --git a/kernel/locking/rwsem-spinlock.c b/kernel/locking/rwsem-spinlock.c
+index bab26104a5d0..1591f6b3539f 100644
+--- a/kernel/locking/rwsem-spinlock.c
++++ b/kernel/locking/rwsem-spinlock.c
+@@ -191,11 +191,12 @@ int __down_read_trylock(struct rw_semaphore *sem)
+ /*
+  * get a write lock on the semaphore
+  */
+-void __sched __down_write(struct rw_semaphore *sem)
++int __sched __down_write_common(struct rw_semaphore *sem, int state)
+ {
+ 	struct rwsem_waiter waiter;
+ 	struct task_struct *tsk;
+ 	unsigned long flags;
++	int ret = 0;
  
- lib-$(CONFIG_SPARC64) += copy_in_user.o user_fixup.o memmove.o
--lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o
-+lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o parity.o
+ 	raw_spin_lock_irqsave(&sem->wait_lock, flags);
  
- obj-$(CONFIG_SPARC64) += iomap.o
- obj-$(CONFIG_SPARC32) += atomic32.o ucmpdi2.o
-diff --git a/arch/sparc/lib/parity.S b/arch/sparc/lib/parity.S
-new file mode 100644
-index 0000000..ff84234
---- /dev/null
-+++ b/arch/sparc/lib/parity.S
-@@ -0,0 +1,128 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-+ *
-+ * Author: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-+ */
+@@ -215,16 +216,33 @@ void __sched __down_write(struct rw_semaphore *sem)
+ 		 */
+ 		if (sem->count = 0)
+ 			break;
+-		set_task_state(tsk, TASK_UNINTERRUPTIBLE);
++		if (signal_pending_state(state, current)) {
++			ret = -EINTR;
++			goto out;
++		}
++		set_task_state(tsk, state);
+ 		raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
+ 		schedule();
+ 		raw_spin_lock_irqsave(&sem->wait_lock, flags);
+ 	}
+ 	/* got the lock */
+ 	sem->count = -1;
++out:
+ 	list_del(&waiter.list);
+ 
+ 	raw_spin_unlock_irqrestore(&sem->wait_lock, flags);
 +
-+#include <linux/linkage.h>
++	return ret;
++}
 +
-+/*
-+ * This file contains the generic code to calculate the odd parity
-+ * of N-bits number, and the popc-patches.
-+ */
++void __sched __down_write(struct rw_semaphore *sem)
++{
++	__down_write_common(sem, TASK_UNINTERRUPTIBLE);
++}
 +
-+	.text
-+	.align	32
++int __sched __down_write_killable(struct rw_semaphore *sem)
++{
++	return __down_write_common(sem, TASK_KILLABLE);
+ }
+ 
+ /*
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index a4d4de05b2d1..df4dcb883b50 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -433,12 +433,13 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ /*
+  * Wait until we successfully acquire the write lock
+  */
+-__visible
+-struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
++static inline struct rw_semaphore *
++__rwsem_down_write_failed_common(struct rw_semaphore *sem, int state)
+ {
+ 	long count;
+ 	bool waiting = true; /* any queued threads before us */
+ 	struct rwsem_waiter waiter;
++	struct rw_semaphore *ret = sem;
+ 
+ 	/* undo write bias from down_write operation, stop active locking */
+ 	count = rwsem_atomic_update(-RWSEM_ACTIVE_WRITE_BIAS, sem);
+@@ -478,7 +479,7 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
+ 		count = rwsem_atomic_update(RWSEM_WAITING_BIAS, sem);
+ 
+ 	/* wait until we successfully acquire the lock */
+-	set_current_state(TASK_UNINTERRUPTIBLE);
++	set_current_state(state);
+ 	while (true) {
+ 		if (rwsem_try_write_lock(count, sem))
+ 			break;
+@@ -486,21 +487,39 @@ struct rw_semaphore __sched *rwsem_down_write_failed(struct rw_semaphore *sem)
+ 
+ 		/* Block until there are no active lockers. */
+ 		do {
++			if (signal_pending_state(state, current)) {
++				raw_spin_lock_irq(&sem->wait_lock);
++				ret = ERR_PTR(-EINTR);
++				goto out;
++			}
+ 			schedule();
+-			set_current_state(TASK_UNINTERRUPTIBLE);
++			set_current_state(state);
+ 		} while ((count = sem->count) & RWSEM_ACTIVE_MASK);
+ 
+ 		raw_spin_lock_irq(&sem->wait_lock);
+ 	}
++out:
+ 	__set_current_state(TASK_RUNNING);
+-
+ 	list_del(&waiter.list);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+ 
+-	return sem;
++	return ret;
++}
 +
-+/*
-+ * unsigned int __arch_parity8(unsigned int w)
-+ */
-+ENTRY(__arch_parity8)
-+	srl		%o0, 4, %g1
-+	xor		%o0, %g1, %o0
-+	and		%o0, 0xf, %o0
-+	sethi		%hi(0x6996), %g1
-+	or		%g1, %lo(0x6996), %g1
-+	srl		%g1, %o0, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+ENDPROC(__arch_parity8)
-+	.section	.popc_6insn_patch, "ax"
-+	.word		__arch_parity8
-+	sllx		%o0, 64-8, %g1
-+	popc		%g1, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+	nop
-+	nop
-+	.previous
++__visible struct rw_semaphore * __sched
++rwsem_down_write_failed(struct rw_semaphore *sem)
++{
++	return __rwsem_down_write_failed_common(sem, TASK_UNINTERRUPTIBLE);
+ }
+ EXPORT_SYMBOL(rwsem_down_write_failed);
+ 
++__visible struct rw_semaphore * __sched
++rwsem_down_write_failed_killable(struct rw_semaphore *sem)
++{
++	return __rwsem_down_write_failed_common(sem, TASK_KILLABLE);
++}
++EXPORT_SYMBOL(rwsem_down_write_failed_killable);
 +
-+/*
-+ * unsigned int __arch_parity16(unsigned int w)
-+ */
-+ENTRY(__arch_parity16)
-+	srl		%o0, 8, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 4, %g1
-+	xor		%o0, %g1, %o0
-+	and		%o0, 0xf, %o0
-+	sethi		%hi(0x6996), %g1
-+	or		%g1, %lo(0x6996), %g1
-+	srl		%g1, %o0, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+ENDPROC(__arch_parity16)
-+	.section	.popc_6insn_patch, "ax"
-+	.word		__arch_parity16
-+	sllx		%o0, 64-16, %g1
-+	popc		%g1, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+	nop
-+	nop
-+	.previous
-+
-+/*
-+ * unsigned int __arch_parity32(unsigned int w)
-+ */
-+ENTRY(__arch_parity32)
-+	srl		%o0, 16, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 8, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 4, %g1
-+	xor		%o0, %g1, %o0
-+	and		%o0, 0xf, %o0
-+	sethi		%hi(0x6996), %g1
-+	or		%g1, %lo(0x6996), %g1
-+	srl		%g1, %o0, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+ENDPROC(__arch_parity32)
-+	.section	.popc_6insn_patch, "ax"
-+	.word		__arch_parity32
-+	sllx		%o0, 64-32, %g1
-+	popc		%g1, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+	nop
-+	nop
-+	.previous
-+
-+/*
-+ * unsigned int __arch_parity64(__u64 w)
-+ */
-+ENTRY(__arch_parity64)
-+	srlx	%o0, 32, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 16, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 8, %g1
-+	xor		%o0, %g1, %o0
-+	srl		%o0, 4, %g1
-+	xor		%o0, %g1, %o0
-+	and		%o0, 0xf, %o0
-+	sethi		%hi(0x6996), %g1
-+	or		%g1, %lo(0x6996), %g1
-+	srl		%g1, %o0, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+ENDPROC(__arch_parity64)
-+	.section	.popc_3insn_patch, "ax"
-+	.word		__arch_parity64
-+	popc		%o0, %o0
-+	retl
-+	 and		%o0, 1, %o0
-+	.previous
+ /*
+  * handle waking up a waiter on the semaphore
+  * - up_read/up_write has decremented the active part of count if we come here
 -- 
-2.5.0
-
+2.8.0.rc3
 
