@@ -1,45 +1,70 @@
-From: "George Spelvin" <linux@horizon.com>
-Date: Thu, 28 Apr 2016 23:15:33 +0000
-Subject: Re: [patch V3] lib: GCD: add binary GCD algorithm
-Message-Id: <20160428231533.17445.qmail@ns.horizon.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Thu, 07 Apr 2016 15:12:28 +0000
+Subject: [PATCH 08/11] ia64, rwsem: provide __down_write_killable
+Message-Id: <1460041951-22347-9-git-send-email-mhocko@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
+References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
+In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
 
-Dave Miller spake truth from on high:
-> Read it again, it is patched if the cpu supports the necessary instructions
-> in which case it's a very short sequence.
-> 
-> The actual code used when the cpu support said instruction is simply:
-> 
->	neg	%o0, %g1
->	xnor	%o0, %g1, %o1
->	popc	%o1, %o0
->	retl
->	 sub	%o0, 1, %o0
+From: Michal Hocko <mhocko@suse.com>
 
-D'oh!  Missed that run-time patching.  (Done by popc_patch() in
-arch/sparc/kernel/setup_64.c, which is executed based on boot-time
-capabilities detection.)
+Introduce ___down_write for the fast path and reuse it for __down_write
+resp. __down_write_killable each using the respective generic slow path
+(rwsem_down_write_failed resp. rwsem_down_write_failed_killable).
 
-I'm surprised you don't use the shorter:
-	sub	%o0, 1, %g1
-	andn	%g1, %o0, %g1
-	retl
-	 popc	%g1, %o0
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+---
+ arch/ia64/include/asm/rwsem.h | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-This kind of blows a hole in having a compile-time flag.  Which code
-path to use?  It's absolutely not worth choosing gcd() implementations
-at boot time.
+diff --git a/arch/ia64/include/asm/rwsem.h b/arch/ia64/include/asm/rwsem.h
+index 3027e7516d85..5e78cb40d9df 100644
+--- a/arch/ia64/include/asm/rwsem.h
++++ b/arch/ia64/include/asm/rwsem.h
+@@ -49,8 +49,8 @@ __down_read (struct rw_semaphore *sem)
+ /*
+  * lock for writing
+  */
+-static inline void
+-__down_write (struct rw_semaphore *sem)
++static inline long
++___down_write (struct rw_semaphore *sem)
+ {
+ 	long old, new;
+ 
+@@ -59,10 +59,26 @@ __down_write (struct rw_semaphore *sem)
+ 		new = old + RWSEM_ACTIVE_WRITE_BIAS;
+ 	} while (cmpxchg_acq(&sem->count, old, new) != old);
+ 
+-	if (old != 0)
++	return old;
++}
++
++static inline void
++__down_write (struct rw_semaphore *sem)
++{
++	if (___down_write(sem))
+ 		rwsem_down_write_failed(sem);
+ }
+ 
++static inline int
++__down_write_killable (struct rw_semaphore *sem)
++{
++	if (___down_write(sem))
++		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
++			return -EINTR;
++
++	return 0;
++}
++
+ /*
+  * unlock after reading
+  */
+-- 
+2.8.0.rc3
 
-The race is between that, plus the call and right shift, and the loop
-
-1:	andcc	<src>, 1, %g0
-	bne,a	1b
-	 srl	<src>, 1, <src>
-... where the branch is taken 50% of the time, so on average it
-will be taken once before being not taken.
