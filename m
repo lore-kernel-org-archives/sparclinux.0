@@ -1,43 +1,76 @@
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
-Date: Mon, 25 Apr 2016 18:28:05 +0000
-Subject: [PATCH V3 0/3] sparc64 support for crash utility
-Message-Id: <1461608888-5063-1-git-send-email-dave.kleikamp@oracle.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Fri, 08 Apr 2016 00:15:19 +0000
+Subject: [PATCH v11 06/60] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <1460074573-7481-7-git-send-email-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1460074573-7481-1-git-send-email-yinghai@kernel.org>
+In-Reply-To: <1460074573-7481-1-git-send-email-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-These patches add support for the sparc64 architecture.
+For device resource with PREF bit setting under bridge 64-bit pref resource,
+we need to make sure only set PREF for 64bit resource.
 
-This supports running against a live kernel. Diskdump support is
-also here, but the crashdump support for the kernel, kexec-tools,
-and makedumpfile is still pending.
+so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device reso=
+urce
+flags parsing.
 
-Initial work was done by Karl Volz with help from Bob Picco.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
+---
+ arch/sparc/kernel/of_device_32.c | 5 +++--
+ arch/sparc/kernel/of_device_64.c | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-V3:
- * Broke task_struct_flags fix into separate patch
- * A lot of various cleanups suggested by Sam Ravnborg
- * Implemented sparc64_dump_machdep_table()
-
-V2:
- * Use SIZE(task_struct_flags) instead of just changing ULONG to UINT
- * Put new code in get_idle_threads() inside #ifdef SPARC64
-
-Dave Kleikamp (3):
-  Use proper size for task_struct->flags
-  Implement byte-by-byte memory access facilitators
-  crash-utility: Support for sparc64 architecture
-
- Makefile            |    9 +-
- configure.c         |   23 +
- defs.h              |  180 ++++++++-
- diskdump.c          |   36 ++-
- lkcd_vmdump_v2_v3.h |    2 +-
- sparc64.c           | 1253 +++++++++++++++++++++++++++++++++++++++++++++++++++
- symbols.c           |   10 +
- task.c              |   23 +-
- 8 files changed, 1527 insertions(+), 9 deletions(-)
- create mode 100644 sparc64.c
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
+_32.c
+index 185aa96..3e9f273 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
+dr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
+_64.c
+index 7bbdc26..defee61 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
+addr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+--=20
+1.8.4.5
 
