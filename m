@@ -1,67 +1,14 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 07 Apr 2016 15:12:29 +0000
-Subject: [PATCH 09/11] s390, rwsem: provide __down_write_killable
-Message-Id: <1460041951-22347-10-git-send-email-mhocko@kernel.org>
+From: =?utf-8?B?0JLQvtGA0L7QvdGG0L7QstCwINCh0LLQtdGC0LvQsNC90LA=?=  <vorontsova.682@ma
+Date: Tue, 12 Apr 2016 10:44:12 +0000
+Subject: =?utf-8?B?0JDRgNC10L3QtNCwINC+0YTQuNGB0LAg0LDQutGC0YPQsNC70YzQvdCwINC00LvRjyDQktCw0YE/?=
+Message-Id: <201604121044.u3CAiCDF010779@sampi.lunariffic.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: sparclinux@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
 
-Introduce ___down_write for the fast path and reuse it for __down_write
-resp. __down_write_killable each using the respective generic slow path
-(rwsem_down_write_failed resp. rwsem_down_write_failed_killable).
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
----
- arch/s390/include/asm/rwsem.h | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
-
-diff --git a/arch/s390/include/asm/rwsem.h b/arch/s390/include/asm/rwsem.h
-index 8e52e72f3efc..8e7b2b7e10f3 100644
---- a/arch/s390/include/asm/rwsem.h
-+++ b/arch/s390/include/asm/rwsem.h
-@@ -90,7 +90,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
--static inline void __down_write(struct rw_semaphore *sem)
-+static inline long ___down_write(struct rw_semaphore *sem)
- {
- 	signed long old, new, tmp;
- 
-@@ -104,10 +104,25 @@ static inline void __down_write(struct rw_semaphore *sem)
- 		: "=&d" (old), "=&d" (new), "=Q" (sem->count)
- 		: "Q" (sem->count), "m" (tmp)
- 		: "cc", "memory");
--	if (old != 0)
-+
-+	return old;
-+}
-+
-+static inline void __down_write(struct rw_semaphore *sem)
-+{
-+	if (___down_write(sem))
- 		rwsem_down_write_failed(sem);
- }
- 
-+static inline int __down_write_killable(struct rw_semaphore *sem)
-+{
-+	if (___down_write(sem))
-+		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
-+			return -EINTR;
-+
-+	return 0;
-+}
-+
- /*
-  * trylock for writing -- returns 1 if successful, 0 if contention
-  */
--- 
-2.8.0.rc3
+0JTQvtCx0YDRi9C5INC00LXQvdGMIQoK0JLRiyDQtdGJ0LUg0L3QtSDQvdCw0YjQu9C4INC+0YTQuNGBPwoK0KXQvtGC0LXQu9C+0YHRjCDQsdGLINC/0YDQtdC00LvQvtC20LjRgtGMINC+0YTQuNGB0Ysg0L/QvtC0INCS0LDRiNC4INGG0LXQu9C4INCyINCw0YDQtdC90LTRgzog0L/Qu9C+0YnQsNC00YzRjiDQvtGCIDEyINCcMiDQv9C+INC00LXQudGB0YLQstC40YLQtdC70YzQvdC+INC90LjQt9C60L7QuSDRgdGC0L7QuNC80L7RgdGC0LggKNCx0LXQtyDQutC+0LzQuNGB0YHQuNC4KSDQsiDQvdCw0YjQuNGFINCx0LjQt9C90LXRgS3RhtC10L3RgtGA0LDRhSwg0LLQvtC30LvQtSDRgdGC0LDQvdGG0LjQuSDQvNC10YLRgNC+OgogLSDQmtC40YLQsNC5LdCz0L7RgNC+0LQKIC0g0JvRg9Cx0Y/QvdC60LAKIC0g0J/Quy4g0YDQtdCy0L7Qu9GO0YbQuNC4CiAtINCd0L7QstGL0LUg0KfQtdGA0LXQvNGD0YjQutC4CiAtINCf0YDQvtGE0YHQvtGO0LfQvdCw0Y8KIC0g0KHQstC40LHQu9C+0LLQvgogLSDQkdC+0YLQsNC90LjRh9C10YHQutC40Lkg0YHQsNC0CiAtINCf0YDQtdC+0LHRgNCw0LbQtdC90YHQutCw0Y8g0L/Quy4KIC0g0JEt0YAg0KDQvtC60L7RgdGB0L7QstGB0LrQvtCz0L4KIC0g0JLQlNCd0KUKCtCd0L7QstGL0Lwg0LrQu9C40LXQvdGC0LDQvCDQv9GA0LXQtNC+0YHRgtCw0LLQuNC8INC60LDQvdC40LrRg9C70Ysg0L3QsCDQsNGA0LXQvdC00YMsINGO0YDQuNC00LjRh9C10YHQutC40Lkg0!
+ LDQtNGA0LXRgSDQuCDQv9Cw0YDQutC+0LLQvtGH0L3Ri9C1INC80LXRgdGC0LAg0LIg0L/QvtC00LDRgNC+0LouCgrQndCw0L/QuNGI0LjRgtC1INC/0L7QttCw0LvRg9C50YHRgtCwIC0g0YDRj9C00L7QvCDRgSDQutCw0LrQuNC80Lgg0YHRgtCw0L3RhtC40Y/QvNC4INC80LXRgtGA0L4g0JLQsNC8INCx0YvQu9C+INCx0Ysg0LjQvdGC0LXRgNC10YHQvdC+INGA0LDRgdGB0LzQvtGC0YDQtdGC0Ywg0LDRgNC10L3QtNGLINC+0YTQuNGB0L7QsiAtINGPINC/0YDQuNGI0LvRjiDQktCw0Lwg0LLQvtC30LzQvtC20L3Ri9C1INCy0LDRgNC40LDQvdGC0Ysg0L/QvtC80LXRidC10L3QuNC5INC4INGB0YLQvtC40LzQvtGB0YLRjCDQsNGA0LXQvdC00Ysg0LrQsNC20LTQvtCz0L4uCgpDINGD0LLQsNC20LXQvdC40LXQvCwg0JLQvtGA0L7QvdGG0L7QstCwINCh0LLQtdGC0LvQsNC90LAu
 
