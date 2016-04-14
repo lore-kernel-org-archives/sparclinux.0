@@ -1,29 +1,41 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Wed, 06 Apr 2016 10:27:03 +0000
-Subject: Re: [PATCH 2/2] sh, rwsem: drop superfluous arch specific implementation
-Message-Id: <20160406102703.GR3448@twins.programming.kicks-ass.net>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Thu, 14 Apr 2016 18:14:41 +0000
+Subject: [PATCH 1/2] sparc: Implement and wire up modalias_show for vio.
+Message-Id: <1460657682-12209-2-git-send-email-glaubitz@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160404090335.GB10272@dhcp22.suse.cz>
- <1459760800-13477-1-git-send-email-mhocko@kernel.org>
- <1459760800-13477-2-git-send-email-mhocko@kernel.org>
- <20160406092655.GP3448@twins.programming.kicks-ass.net>
- <CAMuHMdUVmNn7eo6K5R37B6_tfuq7CrOBgS_uio93JOBWzvoW1w@mail.gmail.com>
-In-Reply-To: <CAMuHMdUVmNn7eo6K5R37B6_tfuq7CrOBgS_uio93JOBWzvoW1w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Hocko <mhocko@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, the arch/x86 maintainers <x86@kernel.org>, alpha <linux-alpha@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, Linux-Arch <linux-arch@vger.kernel.org>, Michal Hocko <mhocko@suse.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>
+To: sparclinux@vger.kernel.org
 
-On Wed, Apr 06, 2016 at 11:50:00AM +0200, Geert Uytterhoeven wrote:
-> Dag Peter,
-> 
-> On Wed, Apr 6, 2016 at 11:26 AM, Peter Zijlstra <peterz@infradead.org> wrote:
-> > +Cc maintainers, linux-sh list is very high signal-to-noise as its been
-> > appropriated for renesas arm parts.
-> 
-> FTR, Renesas ARM parts have moved to linux-renesas-soc.
+Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+---
+ arch/sparc/kernel/vio.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Ah, good to know that situation has been sorted.
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index cb5789c..d705560 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -105,9 +105,18 @@ static ssize_t type_show(struct device *dev,
+ 	return sprintf(buf, "%s\n", vdev->type);
+ }
+ 
++static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	const struct vio_dev *vdev = to_vio_dev(dev);
++
++	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
++}
++
+ static struct device_attribute vio_dev_attrs[] = {
+ 	__ATTR_RO(devspec),
+ 	__ATTR_RO(type),
++	__ATTR_RO(modalias),
+ 	__ATTR_NULL
+ };
+ 
+-- 
+2.8.0.rc3
 
-Thanks!
