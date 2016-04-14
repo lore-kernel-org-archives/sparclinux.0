@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Apr 2016 01:53:34 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Thu, 14 Apr 2016 09:00:41 +0000
 Subject: Re: Enable module aliases for vio on sparc/sparc64
-Message-Id: <20160413.215334.1103572430212775156.davem@davemloft.net>
+Message-Id: <570F5C39.7030202@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <570B52AE.8080603@physik.fu-berlin.de>
 In-Reply-To: <570B52AE.8080603@physik.fu-berlin.de>
@@ -10,38 +10,44 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 14 Apr 2016 01:22:37 +0200
-
-> From 8d95bce6a35dc037d1e419896af19e12b3cda910 Mon Sep 17 00:00:00 2001
-> From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Date: Thu, 14 Apr 2016 01:16:14 +0200
-> Subject: [PATCH 1/2] sparc/kernel/vio.c: implement modalias_show()
+On 04/14/2016 03:52 AM, David Miller wrote:
+>> root@deb4g:/sys/devices/channel-devices# cat vdc*/mod*
+>> vio:Tvdc-portSunknown
+>> vio:Tvdc-portSunknown
+>> vio:Tvdc-portSunknown
+>> vio:Tvdc-portSunknown
+>> vio:Tvdc-portSunknown
+>> root@deb4g:/sys/devices/channel-devices#
+>>
+>> Testing a much simpler version now. Second.
 > 
-> Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> ---
->  arch/sparc/kernel/vio.c | 7 +++++++
->  1 file changed, 7 insertions(+)
+> Those all say "vdc-port", which again is the block device.
 > 
-> diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-> index cb5789c..5a9bb9d 100644
-> --- a/arch/sparc/kernel/vio.c
-> +++ b/arch/sparc/kernel/vio.c
-> @@ -105,6 +105,13 @@ static ssize_t type_show(struct device *dev,
->  	return sprintf(buf, "%s\n", vdev->type);
->  }
->  
-> +static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
-> +                             char *buf)
-> +{
-> +	const struct vio_dev *vdev = to_vio_dev(dev);
-> +	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
-> +}
-> +
+> Where are the networking devices?
 
-You're not hooking this function up at all into the operations.  Looks like
-you are mixing this patch up with other local changes.
+Sigh, I shouldn't do such things in the middle of the night, sorry:
 
-And again, please, empty line after local variable declarations.
+root@deb4g:/sys/devices/channel-devices# cat v*/mod*
+vio:Tvdc-portS
+vio:Tvdc-portS
+vio:Tvdc-portS
+vio:Tvdc-portS
+vio:Tvdc-portS
+vio:Tvlds-portS
+vio:Tvnet-portS
+vio:Tvnet-portS
+vio:Tvnet-portS
+vio:Tvnet-portS
+vio:Tvnet-portS
+vio:Tvnet-portS
+root@deb4g:/sys/devices/channel-devices#
 
-Thanks.
+And, thanks for the comments on the patches. Will fix those, too.
+
+Adrian
+
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
