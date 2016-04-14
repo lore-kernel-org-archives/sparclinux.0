@@ -1,83 +1,93 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Wed, 20 Apr 2016 13:49:14 +0000
-Subject: Re: [PATCH v4 1/5] printk/nmi: generic solution for safe printk in NMI
-Message-Id: <20160420134914.GK6862@pathway.suse.cz>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Thu, 14 Apr 2016 21:40:15 +0000
+Subject: Re: [PATCH] documentation: Add disclaimer
+Message-Id: <20160414214015.GA31866@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1459353210-20260-1-git-send-email-pmladek@suse.com>
- <1459353210-20260-2-git-send-email-pmladek@suse.com>
- <20160404044928.GD6164@swordfish>
- <20160404093819.GH1023@pathway.suse.cz>
-In-Reply-To: <20160404093819.GH1023@pathway.suse.cz>
+References: <20160114120445.GB15828@arm.com> <56980145.5030901@imgtec.com>
+	<20160114204827.GE3818@linux.vnet.ibm.com>
+	<56981212.7050301@imgtec.com>
+	<20160114222046.GH3818@linux.vnet.ibm.com>
+	<20160126102402.GE6357@twins.programming.kicks-ass.net>
+	<20160126103200.GI6375@twins.programming.kicks-ass.net>
+	<20160126110053.GA21553@arm.com>
+	<20160126201143.GV4503@linux.vnet.ibm.com>
+	<20160127083546.GJ6357@twins.programming.kicks-ass.net>
+In-Reply-To: <20160127083546.GJ6357@twins.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, "Michael S. Tsirkin" <mst@redhat.com>, Will Deacon <will.deacon@arm.com>, virtualization@lists.linux-foundation.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, user-mode-linux-devel@lists.sourceforge.net, linux-sh@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, xen-devel@lists.xenproject.org, Ingo Molnar <mingo@elte.hu>, linux-xtensa@linux-xtensa.org, james.hogan@imgtec.com, Arnd Bergmann <arnd@arndb.de>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>, adi-buildroot-devel@lists.sourceforge.net, Leonid Yegoshin <Leonid.Yegoshin@imgtec.com>, ddaney.cavm@gmail.com, Thomas Gleixner <tglx@linutronix.de>, linux-metag@vger.kernel.org
 
-On Mon 2016-04-04 11:38:19, Petr Mladek wrote:
-> On Mon 2016-04-04 13:49:28, Sergey Senozhatsky wrote:
-> > Hello,
-> > 
-> > On (03/30/16 17:53), Petr Mladek wrote:
-> > > +/*
-> > > + * Flush data from the associated per_CPU buffer. The function
-> > > + * can be called either via IRQ work or independently.
-> > > + */
-> > > +static void __printk_nmi_flush(struct irq_work *work)
-> > > +{
-> > > +	static raw_spinlock_t read_lock > > > +		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
-> > > +	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
-> > > +	unsigned long flags;
-> > > +	size_t len, size;
-> > > +	int i, last_i;
-> > > +
-> > > +	/*
-> > > +	 * The lock has two functions. First, one reader has to flush all
-> > > +	 * available message to make the lockless synchronization with
-> > > +	 * writers easier. Second, we do not want to mix messages from
-> > > +	 * different CPUs. This is especially important when printing
-> > > +	 * a backtrace.
-> > > +	 */
-> > > +	raw_spin_lock_irqsave(&read_lock, flags);
-> > > +
-> > 
-> > hm... so here we have
-> > 	for (; i < size; i++)
-> > 		printk()
-> > 
-> > under the spinlock. the thing is that one of printk() can end up
-> > in console_unlock()->call_console_drivers() loop, iterating there
-> > long enough to spinlock lockup other CPUs that might want to flush
-> > NMI buffers (if any), assuming that there are enough printk() (or
-> > may be a slow serial console) happening concurrently on other CPUs
-> > to keep the current ->read_lock busy. async printk can help here,
-> > but user can request sync version of printk.
+On Wed, Jan 27, 2016 at 09:35:46AM +0100, Peter Zijlstra wrote:
+> On Tue, Jan 26, 2016 at 12:11:43PM -0800, Paul E. McKenney wrote:
+> > So Peter, would you like to update your patch to include yourself
+> > and Will as authors?
 > 
-> I think that printk() is called on many other locations under
-> a spinlock and they all are waiting for the async printk.
->
-> > how about using deferred printk for nmi flush?
-> > print_nmi_seq_line()->printk_deferred() ?
+> Sure, here goes.
+> 
+> ---
+> Subject: documentation: Add disclaimer
+> 
+> It appears people are reading this document as a requirements list for
+> building hardware. This is not the intent of this document. Nor is it
+> particularly suited for this purpose.
+> 
+> The primary purpose of this document is our collective attempt to define
+> a set of primitives that (hopefully) allow us to write correct code on
+> the myriad of SMP platforms Linux supports.
+> 
+> Its a definite work in progress as our understanding of these platforms,
+> and memory ordering in general, progresses.
+> 
+> Nor does being mentioned in this document mean we think its a
+> particularly good idea; the data dependency barrier required by Alpha
+> being a prime example. Yes we have it, no you're insane to require it
+> when building new hardware.
+> 
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 
-I thought more about it. printk_nmi_flush() is primary called
-via irq work. If we use deferred printk() here we will just delay
-the console stuff to another irq work.
+Rather belatedly queued and pushed to -rcu, apologies for the delay.
+One minor edit noted below.
 
-If we use async printk from your patch set, it will unnecessary
-create another irq work and delay the waking of the printk kthread.
+							Thanx, Paul
 
-If anyone forces sync printk, it will not help much. We will still
-call console from the IRQ context and the potential flood of messages
-still might cause a soft lookup.
+> ---
+>  Documentation/memory-barriers.txt | 18 +++++++++++++++++-
+>  1 file changed, 17 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/memory-barriers.txt b/Documentation/memory-barriers.txt
+> index a61be39c7b51..98626125f484 100644
+> --- a/Documentation/memory-barriers.txt
+> +++ b/Documentation/memory-barriers.txt
+> @@ -4,8 +4,24 @@
+> 
+>  By: David Howells <dhowells@redhat.com>
+>      Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> +    Will Deacon <will.deacon@arm.com>
+> +    Peter Zijlstra <peterz@infradead.org>
+> 
+> -Contents:
+> +=====
+> +DISCLAIMER
+> +=====
+> +
+> +This document is not a specification; it is intentionally (for the sake of
+> +brevity) and unintentionally (due to being human) incomplete. This document is
+> +meant as a guide to using the various memory barriers provided by Linux, but
+> +in case of any doubt (and there are many) please ask.
+> +
+> +I repeat, this document is not a specification of what Linux expects from
 
-Finally, as I already said. This is not different from any other
-printk() call under a spinlock.
+s/I/To/ because there is more than one author.
 
-After all, I am going to use the normal printk() when flushing
-the NMI buffers.
+> +hardware.
+> +
+> +====
+> +CONTENTS
+> +====
+> 
+>   (*) Abstract memory access model.
+> 
+> 
 
-The only exception will be when this is called on panic in NMI
-context. In this case, printk_deferred() will do exactly what
-we need.
-
-Best Regards,
-Petr
