@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Apr 2016 01:52:58 +0000
+Date: Thu, 14 Apr 2016 01:53:34 +0000
 Subject: Re: Enable module aliases for vio on sparc/sparc64
-Message-Id: <20160413.215258.706543387484948942.davem@davemloft.net>
+Message-Id: <20160413.215334.1103572430212775156.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <570B52AE.8080603@physik.fu-berlin.de>
 In-Reply-To: <570B52AE.8080603@physik.fu-berlin.de>
@@ -13,32 +13,35 @@ To: sparclinux@vger.kernel.org
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 Date: Thu, 14 Apr 2016 01:22:37 +0200
 
-> From 3515ad550f7b1db467664acc9bf0ed3d2aec9fdd Mon Sep 17 00:00:00 2001
+> From 8d95bce6a35dc037d1e419896af19e12b3cda910 Mon Sep 17 00:00:00 2001
 > From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Date: Thu, 14 Apr 2016 01:19:40 +0200
-> Subject: [PATCH 2/2] sparc/kernel/vio.c: implement vio_hotplug and add it to
->  vio_bus_type
+> Date: Thu, 14 Apr 2016 01:16:14 +0200
+> Subject: [PATCH 1/2] sparc/kernel/vio.c: implement modalias_show()
 > 
 > Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
 > ---
->  arch/sparc/kernel/vio.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
+>  arch/sparc/kernel/vio.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
 > diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-> index 5a9bb9d..59f4b7c 100644
+> index cb5789c..5a9bb9d 100644
 > --- a/arch/sparc/kernel/vio.c
 > +++ b/arch/sparc/kernel/vio.c
-> @@ -45,6 +45,13 @@ static const struct vio_device_id *vio_match_device(
->  	return NULL;
+> @@ -105,6 +105,13 @@ static ssize_t type_show(struct device *dev,
+>  	return sprintf(buf, "%s\n", vdev->type);
 >  }
 >  
-> +static int vio_hotplug(struct device *dev, struct kobj_uevent_env *env)
+> +static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+> +                             char *buf)
 > +{
-> +	const struct vio_dev *vio_dev = to_vio_dev(dev);
-> +	add_uevent_var(env, "MODALIAS=vio:T%sS%s", vio_dev->type, vio_dev->compat);
-> +	 return 0;
+> +	const struct vio_dev *vdev = to_vio_dev(dev);
+> +	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
+> +}
+> +
 
-Extra space before "return 0" after the TAB.
+You're not hooking this function up at all into the operations.  Looks like
+you are mixing this patch up with other local changes.
 
-Need an empty line after the local variable declarations.
+And again, please, empty line after local variable declarations.
 
+Thanks.
