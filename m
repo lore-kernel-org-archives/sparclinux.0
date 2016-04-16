@@ -1,34 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 27 Apr 2016 20:38:53 +0000
-Subject: Re: [PATCH] sparc/pci: Refactor dev_archdata initialization into pci_init_dev_archdata
-Message-Id: <20160427.163853.1641891293821574917.davem@davemloft.net>
+From: Frank <Frank@Frank.easytrade.top>
+Date: Sat, 16 Apr 2016 04:33:32 +0000
+Subject: =?UTF-8?B?UmU6wrjCtMKjwrpQcm9jZXMgZGVudHVyZSB0b29scw==?=
+Message-Id: <01d19799$Blat.v3.2.11$21e37bd5$17e014f9@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160412005705.GF12906@oracle.com>
-In-Reply-To: <20160412005705.GF12906@oracle.com>
+References: <01d18684$Blat.v3.2.11$fbbb8dfe$2f8c779b@localhost>
+In-Reply-To: <01d18684$Blat.v3.2.11$fbbb8dfe$2f8c779b@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Date: Mon, 11 Apr 2016 17:57:05 -0700
+Dear Sir
 
-> The function pcibios_add_device() added by commit d0c31e020057
-> ("sparc/PCI: Fix for panic while enabling SR-IOV") initializes
-> the dev_archdata by doing a memcpy from the PF. This has the
-> problem that it erroneously copies the OF device without
-> explicitly refcounting it.
-> 
-> As David Miller pointed out: "Generally speaking we don't
-> really support hot-plug for OF probed devices, but if we did
-> all of the device tree pointers have to be refcounted properly."
-> 
-> To fix this error, and also avoid code duplication, this patch
-> creates a new helper function, pci_init_dev_archdata(), that
-> initializes the fields in dev_archdata, and can be invoked
-> by callers after they have taken the needed refcounts
-> 
-> Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-> Tested-by: Babu Moger <babu.moger@oracle.com>
+Hello!
 
-Applied.
+Our company is the Guangzhou Honda and China FAW suppliers. We have been providing quality products and services for them.
+
+Our company's main products:
+
+Graphite machining end mill
+The denture machining tool
+Zirconia processing tool
+PCD tools
+CNC inserts
+Milling toolholder
+Boron carbide nozzles
+Mould parts
+Guide bush and collet
+
+Dental with titanium screws, this product quality has certification ISO13485 of the German T¡§1V 
+
+We will frequently introduce new products, please pay attention www.jch-tools.com.
+
+We have been providing our customers with high quality products and quality service, we performed continuous processing technology improvement, continuing to reduce the production cost, to provide customers maximize profits.
+
+Our products are exported around the world, has a good customer evaluation.
+
+Our quality service, has a good customer evaluation.
+
+If you are interested in, you can test some samples for confirming our products quality, I believe we will have pleasant cooperation in the near future.
+
+
+Best regards!
+
+Frank
+
+SHENZHEN KALEAD TOOLS CO.,LTD | Shenzhen Surmount Tools Co., Ltd 
+ TEL: 86-0755-27261985 
+ FAX: 86-0755-27261895
+ Email: smt@jch-tools.com 
+ Web: www.jch-tools.com 
