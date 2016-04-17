@@ -1,45 +1,15 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 14 Apr 2016 18:14:42 +0000
-Subject: [PATCH 2/2] sparc: Implement and wire up vio_hotplug for vio.
-Message-Id: <1460657682-12209-3-git-send-email-glaubitz@physik.fu-berlin.de>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 17 Apr 2016 19:29:51 +0000
+Subject: Re: [PATCH 2/2] sparc: Implement and wire up vio_hotplug for vio.
+Message-Id: <20160417192950.GB21060@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1460657682-12209-3-git-send-email-glaubitz@physik.fu-berlin.de>
+In-Reply-To: <1460657682-12209-3-git-send-email-glaubitz@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
----
- arch/sparc/kernel/vio.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index d705560..f6bb857 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -45,6 +45,14 @@ static const struct vio_device_id *vio_match_device(
- 	return NULL;
- }
- 
-+static int vio_hotplug(struct device *dev, struct kobj_uevent_env *env)
-+{
-+	const struct vio_dev *vio_dev = to_vio_dev(dev);
-+
-+	add_uevent_var(env, "MODALIAS=vio:T%sS%s", vio_dev->type, vio_dev->compat);
-+	return 0;
-+}
-+
- static int vio_bus_match(struct device *dev, struct device_driver *drv)
- {
- 	struct vio_dev *vio_dev = to_vio_dev(dev);
-@@ -123,6 +131,7 @@ static struct device_attribute vio_dev_attrs[] = {
- static struct bus_type vio_bus_type = {
- 	.name		= "vio",
- 	.dev_attrs	= vio_dev_attrs,
-+	.uevent         = vio_hotplug,
- 	.match		= vio_bus_match,
- 	.probe		= vio_device_probe,
- 	.remove		= vio_device_remove,
--- 
-2.8.0.rc3
-
+On Thu, Apr 14, 2016 at 08:14:42PM +0200, John Paul Adrian Glaubitz wrote:
+> Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
