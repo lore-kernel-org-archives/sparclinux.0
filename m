@@ -1,8 +1,10 @@
-From: andreas111@elisaandreas.biz
-Date: Mon, 18 Apr 2016 17:47:46 +0000
+From: andreas123@elisaandreas.biz
+Date: Mon, 18 Apr 2016 20:14:42 +0000
 Subject: Greetings!!!
-Message-Id: <131453.2334.qm@smtp102.biz.mail.gq1.yahoo.com>
+Message-Id: <620110.63933.qm@smtp103.biz.mail.gq1.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <131453.2334.qm@smtp102.biz.mail.gq1.yahoo.com>
+In-Reply-To: <131453.2334.qm@smtp102.biz.mail.gq1.yahoo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
