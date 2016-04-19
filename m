@@ -1,44 +1,34 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 21 Apr 2016 16:08:58 +0000
-Subject: Re: Enable module autoloading support for vio
-Message-Id: <5718FB1A.8070908@physik.fu-berlin.de>
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Tue, 19 Apr 2016 22:33:25 +0000
+Subject: console noise after commit c1e9b3b0eea
+Message-Id: <20160419223325.GA15852@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460657682-12209-1-git-send-email-glaubitz@physik.fu-berlin.de>
-In-Reply-To: <1460657682-12209-1-git-send-email-glaubitz@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: matorola@gmail.com
+Cc: sparclinux@vger.kernel.org, herbert@gondor.apana.org.au, mpm@selenic.com, linux-crypto@vger.kernel.org, larry.bassel@oracle.com
 
-On 04/21/2016 06:01 PM, David Miller wrote:
-> Putting such a roadblock towards users having a working system is a
-> matter of your policies and is therefore your problem.  Please don't
-> try to make it mine too.
 
-I wasn't trying to make it your problem, sorry. This isn't my policy,
-it's Debian's policy and I can't really change it, at least on my
-own. If it was just up to me, I would merge the patch in the Debian
-package, but I'm not maintaining the kernel in Debian, so I have
-no word in there.
+Hi Anatoly,
 
-> I will review your patch when I feel that I have the time and the
-> proper resources to do so.
-> 
-> This might be today, or it might be next week, or the week after.
+after commit c1e9b3b0eea1 ("hwrng: n2 - Attach on T5/M5, T7/M7 SPARC CPUs")
+I get a *lot* of console noise on my T5-2, of the form:
 
-Ok, thanks.
+n2rng f028f21c: Selftest failed on unit 0
+n2rng f028f21c: Test buffer slot 0 [0x0000000000000000]
+n2rng f028f21c: Test buffer slot 1 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 2 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 3 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 4 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 5 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 6 [0xe63f56d6a22eb116]
+n2rng f028f21c: Test buffer slot 7 [0xe63f56d6a22eb116]
 
-> You must be patient since I do this for fun and in my spare time, and
-> not because of deadlines and pressure applied by other people.
+Why/when is your commit needed on my T5-2?
 
-Same here. I'm not getting paid in any way and my actual job
-is unrelated to SPARC, but I just want to help people who are
-having issues installing Linux on their SPARC boxes.
+I'm not sure how this was tested, but if you need to revise it and test
+on sparc, please let me know- I think it needs more work on sparc.
 
-Adrian
+--Sowmini
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
