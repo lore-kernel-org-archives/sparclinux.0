@@ -1,60 +1,56 @@
-From: Will Deacon <will.deacon@arm.com>
-Date: Wed, 02 Mar 2016 02:15:50 +0000
-Subject: Re: [PATCH 2/2] numa, mm, cleanup: remove redundant NODE_DATA macro from asm header files.
-Message-Id: <20160302021550.GI14022@arm.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Date: Wed, 20 Apr 2016 08:58:19 +0000
+Subject: [PATCH 21/23] sparc: remove ARCH_WANT_OPTIONAL_GPIOLIB
+Message-Id: <1461142701-21096-22-git-send-email-linus.walleij@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1456358528-24213-1-git-send-email-ddaney.cavm@gmail.com>
- <1456358528-24213-3-git-send-email-ddaney.cavm@gmail.com>
-In-Reply-To: <1456358528-24213-3-git-send-email-ddaney.cavm@gmail.com>
+References: <1461142701-21096-1-git-send-email-linus.walleij@linaro.org>
+In-Reply-To: <1461142701-21096-1-git-send-email-linus.walleij@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Chris Metcalf <cmetcalf@ezchip.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.ker
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: linux-gpio@vger.kernel.org, Alexandre Courbot <acourbot@nvidia.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, =?UTF-8?q?Michael=20B=C3=BCsch?= <m@bues.ch>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Wed, Feb 24, 2016 at 04:02:08PM -0800, David Daney wrote:
-> From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> 
-> NODE_DATA is defined across multiple asm header files.
-> Moving generic definition to asm-generic/mmzone.h to
-> remove redundant definitions.
-> 
-> Reviewed-by: Robert Richter <rrichter@cavium.com>
-> Signed-off-by: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> Signed-off-by: David Daney <david.daney@cavium.com>
-> ---
->  arch/arm64/include/asm/mmzone.h   |  4 +---
->  arch/m32r/include/asm/mmzone.h    |  4 +---
->  arch/metag/include/asm/mmzone.h   |  4 +---
->  arch/powerpc/include/asm/mmzone.h |  8 ++------
->  arch/s390/include/asm/mmzone.h    |  6 +-----
->  arch/sh/include/asm/mmzone.h      |  4 +---
->  arch/sparc/include/asm/mmzone.h   |  6 ++----
->  arch/x86/include/asm/mmzone.h     |  3 +--
->  arch/x86/include/asm/mmzone_32.h  |  5 -----
->  arch/x86/include/asm/mmzone_64.h  | 17 -----------------
->  include/asm-generic/mmzone.h      | 24 ++++++++++++++++++++++++
->  11 files changed, 34 insertions(+), 51 deletions(-)
->  delete mode 100644 arch/x86/include/asm/mmzone_64.h
->  create mode 100644 include/asm-generic/mmzone.h
-> 
-> diff --git a/arch/arm64/include/asm/mmzone.h b/arch/arm64/include/asm/mmzone.h
-> index a0de9e6..611a1cf 100644
-> --- a/arch/arm64/include/asm/mmzone.h
-> +++ b/arch/arm64/include/asm/mmzone.h
-> @@ -4,9 +4,7 @@
->  #ifdef CONFIG_NUMA
->  
->  #include <asm/numa.h>
-> -
-> -extern struct pglist_data *node_data[];
-> -#define NODE_DATA(nid)		(node_data[(nid)])
-> +#include  <asm-generic/mmzone.h>
->  
->  #endif /* CONFIG_NUMA */
->  #endif /* __ASM_MMZONE_H */
+This symbols is not needed to get access to selecting the
+GPIOLIB anymore: any arch can select GPIOLIB.
 
-Actually, we can remove the header file entirely and use a generic-y
-line in Kbuild instead.
+Cc: Michael B=C3=BCsch <m@bues.ch>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+Various arch maintainers:
 
-Will
+either ACK this and I will merge it into the GPIO tree for v4.7
+anticipating no clashes, or you wait until I have the enabling patch
+upstream (patch 1 in this series, removing deps on
+ARCH_[WANTS_OPTIONAL|REQUIRES]_GPIOLIB), and you will be able to
+merge it to your arch trees yourselves for late v4.7
+(post GPIO tree merge) or for v4.8.
+
+You can also ask me for an immutable branch if you prefer that, I
+will put the enabling patch on a branch and the patch for your arch
+on top and ask you to pull it.
+
+Select your option from the menu, silence probably means I will
+merge it to the GPIO tree. Unless you are X86 or ARM in which case
+I will be cautious.
+---
+ arch/sparc/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 57ffaf285c2f..6bd1b1c3f5cc 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -21,7 +21,6 @@ config SPARC
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select SYSCTL_EXCEPTION_TRACE
+-	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select RTC_CLASS
+ 	select RTC_DRV_M48T59
+--=20
+2.4.11
+
