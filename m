@@ -1,122 +1,93 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 22 Apr 2016 17:41:03 +0000
-Subject: [PATCH 1/5] sparc32: drop hardcoding trap_level in kgdb_trap
-Message-Id: <1461346867-9736-1-git-send-email-sam@ravnborg.org>
+From: Petr Mladek <pmladek@suse.com>
+Date: Thu, 21 Apr 2016 11:48:44 +0000
+Subject: [PATCH v5 3/4] printk/nmi: increase the size of NMI buffer and make it configurable
+Message-Id: <1461239325-22779-4-git-send-email-pmladek@suse.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1461239325-22779-1-git-send-email-pmladek@suse.com>
+In-Reply-To: <1461239325-22779-1-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Fix this so we pass the trap_level from the actual trap
-code like we do in sparc64.
-Add use on ENTRY(), ENDPROC() in the assembler function too.
+Testing has shown that the backtrace sometimes does not fit into the 4kB
+temporary buffer that is used in NMI context.  The warnings are gone when
+I double the temporary buffer size.
 
-This fixes a bug where the hardcoded value for trap_level
-was the sparc64 value.
+This patch doubles the buffer size and makes it configurable.
 
-As the generic code does not use the trap_level argument
-(for sparc32) - this patch does not have any functional impact.
+Note that this problem existed even in the x86-specific implementation
+that was added by the commit a9edc8809328 ("x86/nmi: Perform a safe NMI
+stack trace on all CPUs").  Nobody noticed it because it did not print any
+warnings.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jiri Kosina <jkosina@suse.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- arch/sparc/include/asm/head_32.h |  8 ++++----
- arch/sparc/include/asm/kgdb.h    |  2 +-
- arch/sparc/kernel/entry.S        | 10 ++++------
- arch/sparc/kernel/kgdb_32.c      |  6 +++---
- 4 files changed, 12 insertions(+), 14 deletions(-)
+ init/Kconfig        | 22 ++++++++++++++++++++++
+ kernel/printk/nmi.c |  3 ++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/head_32.h b/arch/sparc/include/asm/head_32.h
-index 5f1dbe3..6fc60fd 100644
---- a/arch/sparc/include/asm/head_32.h
-+++ b/arch/sparc/include/asm/head_32.h
-@@ -43,10 +43,10 @@
- 	nop;
+diff --git a/init/Kconfig b/init/Kconfig
+index 85c7a2bf1ea4..9dfd27394d43 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -862,6 +862,28 @@ config LOG_CPU_MAX_BUF_SHIFT
+ 		     13 =>   8 KB for each CPU
+ 		     12 =>   4 KB for each CPU
  
- #ifdef CONFIG_KGDB
--#define KGDB_TRAP(num) \
--	b kgdb_trap_low; \
--	rd %psr,%l0; \
--	nop; \
-+#define KGDB_TRAP(num)                  \
-+	mov num, %l7;                   \
-+	b kgdb_trap_low;                \
-+	rd %psr,%l0;                    \
- 	nop;
- #else
- #define KGDB_TRAP(num) \
-diff --git a/arch/sparc/include/asm/kgdb.h b/arch/sparc/include/asm/kgdb.h
-index 47366af..a6ad7bf 100644
---- a/arch/sparc/include/asm/kgdb.h
-+++ b/arch/sparc/include/asm/kgdb.h
-@@ -28,10 +28,10 @@ enum regnames {
- #define NUMREGBYTES		((GDB_CSR + 1) * 4)
- #else
- #define NUMREGBYTES		((GDB_Y + 1) * 8)
-+#endif
++config NMI_LOG_BUF_SHIFT
++	int "Temporary per-CPU NMI log buffer size (12 => 4KB, 13 => 8KB)"
++	range 10 21
++	default 13
++	depends on PRINTK_NMI
++	help
++	  Select the size of a per-CPU buffer where NMI messages are temporary
++	  stored. They are copied to the main log buffer in a safe context
++	  to avoid a deadlock. The value defines the size as a power of 2.
++
++	  NMI messages are rare and limited. The largest one is when
++	  a backtrace is printed. It usually fits into 4KB. Select
++	  8KB if you want to be on the safe side.
++
++	  Examples:
++		     17 => 128 KB for each CPU
++		     16 =>  64 KB for each CPU
++		     15 =>  32 KB for each CPU
++		     14 =>  16 KB for each CPU
++		     13 =>   8 KB for each CPU
++		     12 =>   4 KB for each CPU
++
+ #
+ # Architectures with an unreliable sched_clock() should select this:
+ #
+diff --git a/kernel/printk/nmi.c b/kernel/printk/nmi.c
+index 572f94922230..bf08557d7e3d 100644
+--- a/kernel/printk/nmi.c
++++ b/kernel/printk/nmi.c
+@@ -41,7 +41,8 @@ DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
+ static int printk_nmi_irq_ready;
+ atomic_t nmi_message_lost;
  
- struct pt_regs;
- asmlinkage void kgdb_trap(unsigned long trap_level, struct pt_regs *regs);
--#endif
+-#define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
++#define NMI_LOG_BUF_LEN ((1 << CONFIG_NMI_LOG_BUF_SHIFT) -		\
++			 sizeof(atomic_t) - sizeof(struct irq_work))
  
- void arch_kgdb_breakpoint(void);
- 
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index a83707c..6ece718 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -1225,20 +1225,18 @@ breakpoint_trap:
- 	RESTORE_ALL
- 
- #ifdef CONFIG_KGDB
--	.align	4
--	.globl	kgdb_trap_low
--	.type	kgdb_trap_low,#function
--kgdb_trap_low:
-+	ENTRY(kgdb_trap_low)
- 	rd	%wim,%l3
- 	SAVE_ALL
- 	wr 	%l0, PSR_ET, %psr
- 	WRITE_PAUSE
- 
-+	mov	%l7, %o0		! trap_level
- 	call	kgdb_trap
--	 add	%sp, STACKFRAME_SZ, %o0
-+	 add	%sp, STACKFRAME_SZ, %o1	! struct pt_regs *regs
- 
- 	RESTORE_ALL
--	.size	kgdb_trap_low,.-kgdb_trap_low
-+	ENDPROC(kgdb_trap_low)
- #endif
- 
- 	.align	4
-diff --git a/arch/sparc/kernel/kgdb_32.c b/arch/sparc/kernel/kgdb_32.c
-index dcf2108..5d0a323 100644
---- a/arch/sparc/kernel/kgdb_32.c
-+++ b/arch/sparc/kernel/kgdb_32.c
-@@ -135,19 +135,19 @@ int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
- 
- extern void do_hw_interrupt(struct pt_regs *regs, unsigned long type);
- 
--asmlinkage void kgdb_trap(struct pt_regs *regs)
-+asmlinkage void kgdb_trap(unsigned long trap_level, struct pt_regs *regs)
- {
- 	unsigned long flags;
- 
- 	if (user_mode(regs)) {
--		do_hw_interrupt(regs, 0xfd);
-+		do_hw_interrupt(regs, trap_level);
- 		return;
- 	}
- 
- 	flushw_all();
- 
- 	local_irq_save(flags);
--	kgdb_handle_exception(0x172, SIGTRAP, 0, regs);
-+	kgdb_handle_exception(trap_level, SIGTRAP, 0, regs);
- 	local_irq_restore(flags);
- }
- 
+ struct nmi_seq_buf {
+ 	atomic_t		len;	/* length of written data */
 -- 
-2.5.0
+1.8.5.6
 
