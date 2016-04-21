@@ -1,33 +1,32 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 21 Apr 2016 12:49:27 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 21 Apr 2016 16:01:10 +0000
 Subject: Re: Enable module autoloading support for vio
-Message-Id: <5718CC57.8020806@physik.fu-berlin.de>
+Message-Id: <20160421.120110.1507713066383648421.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1460657682-12209-1-git-send-email-glaubitz@physik.fu-berlin.de>
 In-Reply-To: <1460657682-12209-1-git-send-email-glaubitz@physik.fu-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-SGkgRGF2ZSEKCk9uIDA0LzE0LzIwMTYgMDg6MTQgUE0sIEpvaG4gUGF1bCBBZHJpYW4gR2xhdWJp
-dHogd3JvdGU6Cj4gSSBoYXZlIGFnYWluIHJldmlzZWQgbXkgcGF0Y2hlcyBhbmQgZml4ZWQgdGhl
-IGluZGVudGF0aW9uIGFzIHN1Z2dlc3RlZCBieQo+IFNhbSBSYXZuYm9yZy4gSSBhbSBmdXJ0aGVy
-bW9yZSBzZW5kaW5nIHRoZSBwYXRjaGVzIGluIHRoZSB3YXkgU2FtIHN1Z2dlc3RlZCwKPiBzbyBJ
-IGhvcGUgdGhlIHBhdGNoZXMgaGF2ZSB0aGUgZGVzaXJlZCBxdWFsaXR5IG5vdy4KCkhhdmUgeW91
-IGZvdW5kIHRoZSB0aW1lIHRvIGxvb2sgYXQgdGhpcyB5ZXQ/IEl0IHdvdWxkIGJlIGdyZWF0IHRv
-IGhhdmUKdGhlIHR3byBwYXRjaGVzIHJldmlld2VkIHNvb24gYW5kIC0gaWYgdGhleSB0dXJuIG91
-dCBmaW5lIC0gbWVyZ2UKdGhlbS4KCkluIERlYmlhbiwgd2UgaGF2ZSBhIHBvbGljeSBmb3Iga2Vy
-bmVsIHBhdGNoZXMgd2hpY2ggYWxsb3dzIHN1Y2ggcGF0Y2hlcwp0byBiZSBtZXJnZWQgb25seSBv
-bmNlIHRoZXkgaGF2ZSBiZWVuIG1lcmdlZCB1cHN0cmVhbSBieSB0aGUgc3Vic3lzdGVtCm1haW50
-YWluZXIgWzFdLiAgQW5kIHdlIG5lZWQgdGhlIHBhdGNoZXMgbWVyZ2VkIHNvIHdlIGNhbiBhZGRy
-ZXNzIHRoZQpwcm9ibGVtIHBlb3BsZSBoYXZlIGluc3RhbGxpbmcgRGViaWFuIHNwYXJjNjQgd2l0
-aGluIGEgTERPTXMuCgpDaGVlcnMsCkFkcmlhbgoKPiBbMV0gaHR0cHM6Ly9idWdzLmRlYmlhbi5v
-cmcvY2dpLWJpbi9idWdyZXBvcnQuY2dpP2J1Z4E1OTc3Izg4CgotLSAKIC4nJ2AuICBKb2huIFBh
-dWwgQWRyaWFuIEdsYXViaXR6CjogOicgOiAgRGViaWFuIERldmVsb3BlciAtIGdsYXViaXR6QGRl
-Ymlhbi5vcmcKYC4gYCcgICBGcmVpZSBVbml2ZXJzaXRhZXQgQmVybGluIC0gZ2xhdWJpdHpAcGh5
-c2lrLmZ1LWJlcmxpbi5kZQogIGAtICAgIEdQRzogNjJGRiA4QTc1IDg0RTAgMjk1NiA5NTQ2ICAw
-MDA2IDc0MjYgM0IzNyBGNUI1IEY5MTMKLS0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6
-IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJjbGludXgiIGluCnRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCk1vcmUgbWFqb3Jkb21vIGluZm8g
-YXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA==
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Thu, 21 Apr 2016 14:49:27 +0200
+
+> In Debian, we have a policy for kernel patches which allows such patches
+> to be merged only once they have been merged upstream by the subsystem
+> maintainer [1].
+
+Putting such a roadblock towards users having a working system is a
+matter of your policies and is therefore your problem.  Please don't
+try to make it mine too.
+
+I will review your patch when I feel that I have the time and the
+proper resources to do so.
+
+This might be today, or it might be next week, or the week after.
+
+You must be patient since I do this for fun and in my spare time, and
+not because of deadlines and pressure applied by other people.
+
+Thanks.
