@@ -1,83 +1,53 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Fri, 29 Apr 2016 00:16:29 +0000
-Subject: Re: Bisected: RED State Exception in 4.5 on E420R
-Message-Id: <CAGRGNgWvTLbJxD0AGFSCfsxEaksx2iuh5cPZXPf7ncvpFnenqQ@mail.gmail.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 22 Apr 2016 17:37:12 +0000
+Subject: [PATCH 0/5] sparc32: kgdb_32 and STRICT_MM_TYPECHECKS updates
+Message-Id: <20160422173712.GA9705@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+A few cosmetic pathes for sparc32 follows.
+I noticed some inconsistency in kgdb_32 that triggered a few patches.
+The inconsistency in kgdb_32 turned out to have no functional impact.
+But I anyway fixed it so kgdb_32 and kgdb_64 became just a tiny
+bit more alike.
 
-On Fri, Apr 29, 2016 at 8:54 AM, Rob Gardner <rob.gardner@oracle.com> wrote:
-> On 04/28/2016 02:10 PM, David Miller wrote:
->>
->> From: Sam Ravnborg <sam@ravnborg.org>
->> Date: Thu, 28 Apr 2016 21:49:39 +0200
->>
->>>> diff --git a/arch/sparc/kernel/fpu_traps.S
->>>> b/arch/sparc/kernel/fpu_traps.S
->>>> index a686482..336d275 100644
->>>> --- a/arch/sparc/kernel/fpu_traps.S
->>>> +++ b/arch/sparc/kernel/fpu_traps.S
->>>> @@ -100,8 +100,8 @@ do_fpdis:
->>>>         fmuld           %f0, %f2, %f26
->>>>         faddd           %f0, %f2, %f28
->>>>         fmuld           %f0, %f2, %f30
->>>> -       b,pt            %xcc, fpdis_exit
->>>> -        nop
->>>> +       ba,a,pt         %xcc, fpdis_exit
->>>> +
->>>
->>> My sparc assembler foo is not good.
->>> And I could not find any references to "b," branch instructions.
->>> So I assume the "b," is equivalent to "ba,".
->>> Which makes this good as the code now uses a documented variant.
->>
->> In v9, 'b' got changed into 'ba'.  There is no difference except that
->> with 'ba' you can add the prediction tags like ",pt" and ",pnt".
->>
->>>>         add     %g1, 1, %g1
->>>> -       mov     SUN4V_CHIP_SPARC64X, %g4
->>>>         ba,pt   %xcc, 5f
->>>> -       nop
->>>> +        mov    SUN4V_CHIP_SPARC64X, %g4
->>>
->>> Nice..
->>> Maybe we could have done so in mor places, but I did not spot them.
->>
->> I tried to find more low hanging fruit, if you do end up spotting some
->> more let me know. :-)
->>
->
->
-> It's good to free up a few bytes here and there, but I think we're going to
-> need to go further than this in the near future since code in this tiny
-> region between 404000 and 0x408000 is going to grow. For example, code to
-> check for new cpu chips is always being added. Also, new code such as
-> Khalid's ADI patch adds a new exception handler for memory corruption
-> detection.
->
-> Having run into this problem myself, I tried to understand why all this code
-> needed to be squeezed into this small area, and as best I could determine,
-> it was just an attempt to not "waste" the space. So why couldn't some of the
-> code be moved to the region after the trap table? As long as code in the
-> trap table can reach (in the branch displacement sense) all the code it
-> needs to, is there any problem with moving things? For instance, there is a
-> list of includes beginning with  "etrap_64.S", and one or more of those can
-> be moved to after the include "ttable_64.S", which will free up a chunk of
-> space immediately.
+The STRICT_MM_TYPECHECKS patch was triggered by a
+discussion on linux-arch where Arnd considered removing
+this cruft.
+The resulting benary of srmmu.c (I checked an assembler file)
+was _smaller_ when I defined STRICT_MM_TYPECHECKS.
+But due to lack of testing I left it undefined.
+With the build errors fixed it should be trivial to
+try out if defining STRICT_MM_TYPECHECKS breaks anything.
 
-I have a similar question: Why not move all the "optional" code after
-swapper_tsb?
+Any takers?
 
-Thanks,
+As I miss any working sparc32 gear for the moment this
+has only been build tested - so please consider if it
+is worth taking the risk to apply the patches.
 
--- 
-Julian Calaby
+	Sam
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
+Sam Ravnborg (5):
+      sparc32: drop hardcoding trap_level in kgdb_trap
+      sparc32: drop local prototype in kgdb_32
+      sparc32: use proper prototype for trapbase
+      sparc32: fix build with STRICT_MM_TYPECHECKS
+      sparc32: drop superfluous cast in calls to __nocache_pa()
+
+ arch/sparc/include/asm/head_32.h    |  8 ++++----
+ arch/sparc/include/asm/kgdb.h       |  2 +-
+ arch/sparc/include/asm/page_32.h    |  2 --
+ arch/sparc/include/asm/pgalloc_32.h |  4 ++--
+ arch/sparc/include/asm/pgtable_32.h |  2 +-
+ arch/sparc/kernel/entry.S           | 10 ++++------
+ arch/sparc/kernel/kernel.h          |  1 +
+ arch/sparc/kernel/kgdb_32.c         | 11 +++++------
+ arch/sparc/kernel/setup_32.c        |  4 +---
+ arch/sparc/mm/io-unit.c             |  4 ++--
+ arch/sparc/mm/srmmu.c               | 19 ++++++++++++-------
+ 11 files changed, 33 insertions(+), 34 deletions(-)
+
