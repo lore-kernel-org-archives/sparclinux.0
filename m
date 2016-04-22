@@ -1,50 +1,40 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Fri, 01 Apr 2016 11:04:52 +0000
-Subject: [PATCH 08/11] sparc, rwsem: provide __down_write_killable
-Message-Id: <1459508695-14915-9-git-send-email-mhocko@kernel.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 22 Apr 2016 17:41:04 +0000
+Subject: [PATCH 2/5] sparc32: drop local prototype in kgdb_32
+Message-Id: <1461346867-9736-2-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: sparclinux@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
-
-which uses the same fast path as __down_write except it falls back to
-rwsem_down_write_failed_killable slow path and return -EINTR if killed.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- arch/sparc/include/asm/rwsem.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/sparc/kernel/kgdb_32.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/rwsem.h b/arch/sparc/include/asm/rwsem.h
-index e5a0d575bc7f..c1e9e32e8b63 100644
---- a/arch/sparc/include/asm/rwsem.h
-+++ b/arch/sparc/include/asm/rwsem.h
-@@ -55,6 +55,19 @@ static inline void __down_write(struct rw_semaphore *sem)
- 		rwsem_down_write_failed(sem);
+diff --git a/arch/sparc/kernel/kgdb_32.c b/arch/sparc/kernel/kgdb_32.c
+index 5d0a323..8602e88 100644
+--- a/arch/sparc/kernel/kgdb_32.c
++++ b/arch/sparc/kernel/kgdb_32.c
+@@ -12,6 +12,8 @@
+ #include <asm/irq.h>
+ #include <asm/cacheflush.h>
+ 
++#include "entry.h"
++
+ extern unsigned long trapbase;
+ 
+ void pt_regs_to_gdb_regs(unsigned long *gdb_regs, struct pt_regs *regs)
+@@ -133,8 +135,6 @@ int kgdb_arch_handle_exception(int e_vector, int signo, int err_code,
+ 	return -1;
  }
  
-+static inline int __down_write_killable(struct rw_semaphore *sem)
-+{
-+	long tmp;
-+
-+	tmp = atomic64_add_return(RWSEM_ACTIVE_WRITE_BIAS,
-+				  (atomic64_t *)(&sem->count));
-+	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
-+		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
-+			return -EINTR;
-+
-+	return 0;
-+}
-+
- static inline int __down_write_trylock(struct rw_semaphore *sem)
+-extern void do_hw_interrupt(struct pt_regs *regs, unsigned long type);
+-
+ asmlinkage void kgdb_trap(unsigned long trap_level, struct pt_regs *regs)
  {
- 	long tmp;
+ 	unsigned long flags;
 -- 
-2.8.0.rc3
+2.5.0
 
