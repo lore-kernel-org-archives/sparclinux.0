@@ -1,103 +1,141 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Fri, 01 Apr 2016 11:04:54 +0000
-Subject: [PATCH 10/11] x86, rwsem: provide __down_write_killable
-Message-Id: <1459508695-14915-11-git-send-email-mhocko@kernel.org>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 22 Apr 2016 17:41:06 +0000
+Subject: [PATCH 4/5] sparc32: fix build with STRICT_MM_TYPECHECKS
+Message-Id: <1461346867-9736-4-git-send-email-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
-In-Reply-To: <1459508695-14915-1-git-send-email-mhocko@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Michal Hocko <mhocko@suse.com>
+To: sparclinux@vger.kernel.org
 
-From: Michal Hocko <mhocko@suse.com>
+Based on recent thread on linux-arch (some weeks ago) I
+decided to check how much work was required to build sparc32
+with STRICT_MM_TYPECHECKS enabled.
 
-which uses the same fast path as __down_write except it falls back to
-call_rwsem_down_write_failed_killable slow path and return -EINTR if
-killed. To prevent from code duplication extract the skeleton of
-__down_write into a helper macro which just takes the semaphore
-and the slow path function to be called.
+The resulting binary (checked srmmu.o) was to my suprise smaller with
+STRICT_MM_TYPECHECKS defined, than without.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+As I have no working gear to test sparc32 bits at for the moment,
+I did not enable STRICT_MM_TYPECHECKS - but was tempeted to do so.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/x86/include/asm/rwsem.h | 41 ++++++++++++++++++++++++++++-------------
- arch/x86/lib/rwsem.S         |  8 ++++++++
- 2 files changed, 36 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/page_32.h    |  2 --
+ arch/sparc/include/asm/pgalloc_32.h |  2 +-
+ arch/sparc/include/asm/pgtable_32.h |  2 +-
+ arch/sparc/mm/io-unit.c             |  4 ++--
+ arch/sparc/mm/srmmu.c               | 15 ++++++++++-----
+ 5 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/arch/x86/include/asm/rwsem.h b/arch/x86/include/asm/rwsem.h
-index d79a218675bc..4c3d90dbe89a 100644
---- a/arch/x86/include/asm/rwsem.h
-+++ b/arch/x86/include/asm/rwsem.h
-@@ -99,21 +99,36 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
- /*
-  * lock for writing
-  */
-+#define ____down_write(sem, slow_path)			\
-+({							\
-+	long tmp;					\
-+	struct rw_semaphore* ret = sem;			\
-+	asm volatile("# beginning down_write\n\t"	\
-+		     LOCK_PREFIX "  xadd      %1,(%2)\n\t"	\
-+		     /* adds 0xffff0001, returns the old value */ \
-+		     "  test " __ASM_SEL(%w1,%k1) "," __ASM_SEL(%w1,%k1) "\n\t" \
-+		     /* was the active mask 0 before? */\
-+		     "  jz        1f\n"			\
-+		     "  call " slow_path "\n"		\
-+		     "1:\n"				\
-+		     "# ending down_write"		\
-+		     : "+m" (sem->count), "=d" (tmp), "+a" (ret)	\
-+		     : "a" (sem), "1" (RWSEM_ACTIVE_WRITE_BIAS) \
-+		     : "memory", "cc");			\
-+	ret;						\
-+})
-+
- static inline void __down_write(struct rw_semaphore *sem)
+diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+index f82a1f3..0efd058 100644
+--- a/arch/sparc/include/asm/page_32.h
++++ b/arch/sparc/include/asm/page_32.h
+@@ -69,7 +69,6 @@ typedef struct { unsigned long iopgprot; } iopgprot_t;
+ 
+ #define __pte(x)	((pte_t) { (x) } )
+ #define __iopte(x)	((iopte_t) { (x) } )
+-/* #define __pmd(x)        ((pmd_t) { (x) } ) */ /* XXX procedure with loop */
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __ctxd(x)	((ctxd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
+@@ -97,7 +96,6 @@ typedef unsigned long iopgprot_t;
+ 
+ #define __pte(x)	(x)
+ #define __iopte(x)	(x)
+-/* #define __pmd(x)        (x) */ /* XXX later */
+ #define __pgd(x)	(x)
+ #define __ctxd(x)	(x)
+ #define __pgprot(x)	(x)
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index a3890da..21f6482 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -31,7 +31,7 @@ static inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
  {
--	long tmp;
--	asm volatile("# beginning down_write\n\t"
--		     LOCK_PREFIX "  xadd      %1,(%2)\n\t"
--		     /* adds 0xffff0001, returns the old value */
--		     "  test " __ASM_SEL(%w1,%k1) "," __ASM_SEL(%w1,%k1) "\n\t"
--		     /* was the active mask 0 before? */
--		     "  jz        1f\n"
--		     "  call call_rwsem_down_write_failed\n"
--		     "1:\n"
--		     "# ending down_write"
--		     : "+m" (sem->count), "=d" (tmp)
--		     : "a" (sem), "1" (RWSEM_ACTIVE_WRITE_BIAS)
--		     : "memory", "cc");
-+	____down_write(sem, "call_rwsem_down_write_failed");
-+}
-+
-+static inline int __down_write_killable(struct rw_semaphore *sem)
-+{
-+	if (IS_ERR(____down_write(sem, "call_rwsem_down_write_failed_killable")))
-+		return -EINTR;
-+
-+	return 0;
+ 	unsigned long pa = __nocache_pa((unsigned long)pmdp);
+ 
+-	set_pte((pte_t *)pgdp, (SRMMU_ET_PTD | (pa >> 4)));
++	set_pte((pte_t *)pgdp, __pte((SRMMU_ET_PTD | (pa >> 4))));
  }
  
- /*
-diff --git a/arch/x86/lib/rwsem.S b/arch/x86/lib/rwsem.S
-index 40027db99140..d1a1397e1fb3 100644
---- a/arch/x86/lib/rwsem.S
-+++ b/arch/x86/lib/rwsem.S
-@@ -101,6 +101,14 @@ ENTRY(call_rwsem_down_write_failed)
- 	ret
- ENDPROC(call_rwsem_down_write_failed)
+ #define pgd_populate(MM, PGD, PMD)      pgd_set(PGD, PMD)
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 91b963a..ce6f569 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -298,7 +298,7 @@ static inline pte_t mk_pte_io(unsigned long page, pgprot_t pgprot, int space)
+ #define pgprot_noncached pgprot_noncached
+ static inline pgprot_t pgprot_noncached(pgprot_t prot)
+ {
+-	prot &= ~__pgprot(SRMMU_CACHE);
++	pgprot_val(prot) &= ~pgprot_val(__pgprot(SRMMU_CACHE));
+ 	return prot;
+ }
  
-+ENTRY(call_rwsem_down_write_failed_killable)
-+	save_common_regs
-+	movq %rax,%rdi
-+	call rwsem_down_write_failed_killable
-+	restore_common_regs
-+	ret
-+ENDPROC(call_rwsem_down_write_failed_killable)
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index f311bf2..338fb71 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -133,7 +133,7 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
+ 	vaddr = IOUNIT_DMA_BASE + (scan << PAGE_SHIFT) + (vaddr & ~PAGE_MASK);
+ 	for (k = 0; k < npages; k++, iopte = __iopte(iopte_val(iopte) + 0x100), scan++) {
+ 		set_bit(scan, iounit->bmap);
+-		sbus_writel(iopte, &iounit->page_table[scan]);
++		sbus_writel(iopte_val(iopte), &iounit->page_table[scan]);
+ 	}
+ 	IOD(("%08lx\n", vaddr));
+ 	return vaddr;
+@@ -228,7 +228,7 @@ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned lon
+ 			i = ((addr - IOUNIT_DMA_BASE) >> PAGE_SHIFT);
+ 
+ 			iopte = iounit->page_table + i;
+-			sbus_writel(MKIOPTE(__pa(page)), iopte);
++			sbus_writel(iopte_val(MKIOPTE(__pa(page))), iopte);
+ 		}
+ 		addr += PAGE_SIZE;
+ 		va += PAGE_SIZE;
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 5cbc96d..3b1c047 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -107,7 +107,12 @@ static inline int srmmu_pmd_none(pmd_t pmd)
+ 
+ /* XXX should we hyper_flush_whole_icache here - Anton */
+ static inline void srmmu_ctxd_set(ctxd_t *ctxp, pgd_t *pgdp)
+-{ set_pte((pte_t *)ctxp, (SRMMU_ET_PTD | (__nocache_pa((unsigned long) pgdp) >> 4))); }
++{
++	pte_t pte;
 +
- ENTRY(call_rwsem_wake)
- 	/* do nothing if still outstanding active readers */
- 	__ASM_HALF_SIZE(dec) %__ASM_HALF_REG(dx)
++	pte = __pte((SRMMU_ET_PTD | (__nocache_pa(pgdp) >> 4)));
++	set_pte((pte_t *)ctxp, pte);
++}
+ 
+ void pmd_set(pmd_t *pmdp, pte_t *ptep)
+ {
+@@ -116,8 +121,8 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep)
+ 
+ 	ptp = __nocache_pa((unsigned long) ptep) >> 4;
+ 	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
+-		set_pte((pte_t *)&pmdp->pmdv[i], SRMMU_ET_PTD | ptp);
+-		ptp += (SRMMU_REAL_PTRS_PER_PTE*sizeof(pte_t) >> 4);
++		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
++		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
+ 	}
+ }
+ 
+@@ -128,8 +133,8 @@ void pmd_populate(struct mm_struct *mm, pmd_t *pmdp, struct page *ptep)
+ 
+ 	ptp = page_to_pfn(ptep) << (PAGE_SHIFT-4);	/* watch for overflow */
+ 	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
+-		set_pte((pte_t *)&pmdp->pmdv[i], SRMMU_ET_PTD | ptp);
+-		ptp += (SRMMU_REAL_PTRS_PER_PTE*sizeof(pte_t) >> 4);
++		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
++		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
+ 	}
+ }
+ 
 -- 
-2.8.0.rc3
+2.5.0
 
