@@ -1,50 +1,43 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Fri, 22 Apr 2016 06:53:49 +0000
-Subject: Re: [PATCH 10/11] x86, rwsem: provide __down_write_killable
-Message-Id: <20160422065349.GA1135@gmail.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 24 Apr 2016 17:51:05 +0000
+Subject: [PATCH] aeroflex/greth: fix warning about unused variable
+Message-Id: <20160424175105.GA14620@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1460041951-22347-1-git-send-email-mhocko@kernel.org>
- <1460041951-22347-11-git-send-email-mhocko@kernel.org>
- <20160413090829.GB29579@gmail.com>
- <20160413091625.GF14351@dhcp22.suse.cz>
- <20160413091943.GA17858@gmail.com>
- <20160413102731.GA29896@gmail.com>
- <20160413124943.GH14351@dhcp22.suse.cz>
- <20160420134019.GX3448@twins.programming.kicks-ass.net>
-In-Reply-To: <20160420134019.GX3448@twins.programming.kicks-ass.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Josh Poimboeuf <jpoimboe@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 24 Apr 2016 18:39:52 +0200
+Subject: [PATCH] aeroflex/greth: fix warning about unused variable
 
-* Peter Zijlstra <peterz@infradead.org> wrote:
+Fix following warning:
+aeroflex/greth.c:1326:11: warning: unused variable 'phy' [-Wunused-variable]
 
-> On Wed, Apr 13, 2016 at 02:49:43PM +0200, Michal Hocko wrote:
-> > On Wed 13-04-16 12:27:31, Ingo Molnar wrote:
-> > > 
-> > > * Ingo Molnar <mingo@kernel.org> wrote:
-> > > 
-> > > > I'm testing your patches today, if they are otherwise OK [...]
-> > > 
-> > > got this build failure:
-> > > 
-> > >   ./arch/x86/include/asm/rwsem.h:106:2: error: ‘asm’ operand has impossible constraints
-> > 
-> > Hmm, I have no idea why 64b didn't have problem with the asm but 32b
-> > complains. Anyway, the following makes both happy. I have checked the
-> > generated code for 64b and it hasn't changed after the patch. 32b also
-> > seems to be generating a proper code. My gcc asm()-foo is rather weak so
-> > I would feel better if somebody double checked after me.
-> 
-> I completely blow at this gcc-asm constraints thing too :/
-> 
-> In any case, Ingo will you look after the rest of these patches, or do
-> you want me to pick up the remaining bits?
+The variable was unused - remove it.
+It looks like this warning has been there forever - was found by an
+allyesconfig build of sparc32.
 
-Yeah, it's on my list!
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Kristoffer Glembo <kristoffer@gaisler.com>
+---
+ drivers/net/ethernet/aeroflex/greth.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
+diff --git a/drivers/net/ethernet/aeroflex/greth.c b/drivers/net/ethernet/aeroflex/greth.c
+index b873531..bca07c5 100644
+--- a/drivers/net/ethernet/aeroflex/greth.c
++++ b/drivers/net/ethernet/aeroflex/greth.c
+@@ -1323,7 +1323,7 @@ static inline int phy_aneg_done(struct phy_device *phydev)
+ 
+ static int greth_mdio_init(struct greth_private *greth)
+ {
+-	int ret, phy;
++	int ret;
+ 	unsigned long timeout;
+ 
+ 	greth->mdio = mdiobus_alloc();
+-- 
+1.8.3.1
 
-	Ingo
