@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 27 Apr 2016 20:01:02 +0000
+Date: Wed, 27 Apr 2016 20:02:11 +0000
 Subject: Re: Bisected: RED State Exception in 4.5 on E420R
-Message-Id: <20160427.160102.1070511723846662737.davem@davemloft.net>
+Message-Id: <20160427.160211.71829582702131634.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
 In-Reply-To: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
@@ -10,38 +10,14 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Wed, 27 Apr 2016 13:46:46 -0600
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 27 Apr 2016 23:01:07 +0300 (EEST)
 
-> On 04/27/2016 01:36 PM, David Miller wrote:
->> From: David Miller <davem@davemloft.net>
->> Date: Wed, 27 Apr 2016 15:33:55 -0400 (EDT)
->>
->>> Therefore some other aspect of the change is causing problems and I
->>> think that aspect is the size of the new code.
->> Actually, there is a way to prove that this is indeed the bug, Meelis
->> what does the entry for "swapper_tsb" say in your System.map file for
->> a failing kernel?
->>
->> If it is not "0000000000408000", then that shows the bug.
->>
-> 
-> 
-> I've run into this situation, and the assembler emits a warning that
-> looks like this:
-> 
-> arch/sparc/kernel/head_64.S:869: Warning: .space or .fill with
-> negative value, ignored
-> 
-> I've worked around it by moving some of the includes to after the
-> ttable include. I think this is ok as long as code doesn't get
-> situated too far away for the branch displacement to handle.
+> System.map-4.5.0-rc4-00037-g65c23c6:0000000000408000 T swapper_tsb
+> System.map-4.6.0-rc4-00007-g95d0c42:0000000000408028 T swapper_tsb
+                                                    ^^
 
-Maybe older binutils don't catch this properly.
+Yeah that's definitely wrong.
 
-On my config here I definitely can see that the size is getting
-really close to the limit, and that's without all of the mentioned
-features enabled.
+This confirms my theory, thanks!
 
-Meanwhile, I'll keep working on the patch I said I'd do which trims
-down the size of all of this code.
