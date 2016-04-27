@@ -1,7 +1,7 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Wed, 27 Apr 2016 20:06:04 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 27 Apr 2016 20:22:42 +0000
 Subject: Re: Bisected: RED State Exception in 4.5 on E420R
-Message-Id: <57211BAC.9070902@oracle.com>
+Message-Id: <20160427.162242.2092669305356110105.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
 In-Reply-To: <alpine.LRH.2.20.1604061729350.16827@math.ut.ee>
@@ -10,44 +10,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 04/27/2016 02:01 PM, David Miller wrote:
-> From: Rob Gardner <rob.gardner@oracle.com>
-> Date: Wed, 27 Apr 2016 13:46:46 -0600
->
->> On 04/27/2016 01:36 PM, David Miller wrote:
->>> From: David Miller <davem@davemloft.net>
->>> Date: Wed, 27 Apr 2016 15:33:55 -0400 (EDT)
->>>
->>>> Therefore some other aspect of the change is causing problems and I
->>>> think that aspect is the size of the new code.
->>> Actually, there is a way to prove that this is indeed the bug, Meelis
->>> what does the entry for "swapper_tsb" say in your System.map file for
->>> a failing kernel?
->>>
->>> If it is not "0000000000408000", then that shows the bug.
->>>
->>
->> I've run into this situation, and the assembler emits a warning that
->> looks like this:
->>
->> arch/sparc/kernel/head_64.S:869: Warning: .space or .fill with
->> negative value, ignored
->>
->> I've worked around it by moving some of the includes to after the
->> ttable include. I think this is ok as long as code doesn't get
->> situated too far away for the branch displacement to handle.
-> Maybe older binutils don't catch this properly.
->
-> On my config here I definitely can see that the size is getting
-> really close to the limit, and that's without all of the mentioned
-> features enabled.
->
-> Meanwhile, I'll keep working on the patch I said I'd do which trims
-> down the size of all of this code.
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Wed, 27 Apr 2016 14:06:04 -0600
 
-Also, perhaps think about a way to make the assembler emit something 
-fatal instead of a warning when this situation occurs? People tend to 
-ignore warnings. ;)
+> Also, perhaps think about a way to make the assembler emit something
+> fatal instead of a warning when this situation occurs? People tend to
+> ignore warnings. ;)
 
-Rob
+Yeah, good idea, I'll try to come up with something.
+
+I think you can put asserts into the linker script, and we should have
+added a test on swapper_tsb's address a very long time ago. :)
 
