@@ -1,7 +1,7 @@
-From: "George Spelvin" <linux@horizon.com>
-Date: Thu, 28 Apr 2016 21:21:26 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 28 Apr 2016 21:46:53 +0000
 Subject: Re: [patch V3] lib: GCD: add binary GCD algorithm
-Message-Id: <20160428212126.16985.qmail@ns.horizon.com>
+Message-Id: <20160428.174653.607032263739732285.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
 In-Reply-To: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
@@ -10,27 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-[Obviously non-SPARC recipients dropped, but I probably missed some.]
+From: "George Spelvin" <linux@horizon.com>
+Date: 28 Apr 2016 17:21:26 -0400
 
->> __ffs on the available architectures:
+> arch/sparc/lib/ffs.S is a custom implementation of __ffs, but it's a
+> function call and 33 instructions/18 cycles long.  There are several
+> similar custom implementations that I also considered "NO".
 
-> SPARC: sparc64: YES, sparc32: NO
-> Patch needs to be updated to refelct this.
+Read it again, it is patched if the cpu supports the necessary instructions
+in which case it's a very short sequence.
 
-I didn't see the sparc64 implementation, but on looking again, I have
-to say that no, it doesn't.
+The actual code used when the cpu support said instruction is simply:
 
-arch/sparc/lib/ffs.S is a custom implementation of __ffs, but it's a
-function call and 33 instructions/18 cycles long.  There are several
-similar custom implementations that I also considered "NO".
-
-"fast" in this context means a handful of inline instructions,
-usually one of:
-
-1. A direct count_trailing_zeros instruction,
-2. count_leading_zeros(x ^ (x-1)), or
-3. count_leading_zeros(bit_reverse(x)), or
-4. popcount(~x & (x-1)).
-
-The question is whether __ffs plus a variable shift is faster than
-three instructions plus an unpredictable branch.
+	.section	.popc_6insn_patch, "ax"
+	.word		ffs
+	brz,pn	%o0, 98f
+	 neg	%o0, %g1
+	xnor	%o0, %g1, %o1
+	popc	%o1, %o0
+98:	retl
+	 nop
+	.word		__ffs
+	neg	%o0, %g1
+	xnor	%o0, %g1, %o1
+	popc	%o1, %o0
+	retl
+	 sub	%o0, 1, %o0
+	nop
+	.previous
