@@ -1,32 +1,38 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Thu, 28 Apr 2016 17:22:50 +0000
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 28 Apr 2016 17:51:06 +0000
 Subject: Re: [patch V3] lib: GCD: add binary GCD algorithm
-Message-Id: <1461864170.2307.19.camel@HansenPartnership.com>
+Message-Id: <CAMuHMdU2e2PdwKYVaEsJ73X8Di1XHNPqnxuunr8R8bN8udazxw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1461843824-19853-1-git-send-email-zengzhaoxiu@163.com>
+ <20160428164856.10120.qmail@ns.horizon.com>
+In-Reply-To: <20160428164856.10120.qmail@ns.horizon.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Thu, 2016-04-28 at 19:43 +0800, zengzhaoxiu@163.com wrote:
-> From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-> 
-> Because some architectures (alpha, armv6, etc.) don't provide 
-> hardware division, the mod operation is slow! Binary GCD algorithm 
-> uses simple arithmetic operations, it replaces division with 
-> arithmetic shifts, comparisons, and subtractions.
-> 
-> I have compiled successfully with x86_64_defconfig and 
-> i386_defconfig.
+On Thu, Apr 28, 2016 at 6:48 PM, George Spelvin <linux@horizon.com> wrote:
+> Another few comments:
+>
+> 1. Would ARCH_HAS_FAST_FFS involve fewer changes than CPU_NO_EFFICIENT_FFS?
 
-What's the reason for wanting to optimize this and thus have to
-maintain (and test) two separate code paths, which is a significant
-expense? As far as I can see, gcd() is mosly used in finding optimal
-clocks for operations, which is usually done at start of day and not
-time critical.
+No, as you want to _disable_ ARCH_HAS_FAST_FFS / _enable_
+CPU_NO_EFFICIENT_FFS as soon as you're enabling support for a
+CPU that doesn't support it.
 
-James
+Logical OR is easier in both the Kconfig and C preprocessor languages
+than logical NAND.
 
+E.g. in Kconfig, a CPU core not supporting it can just select
+CPU_NO_EFFICIENT_FFS.
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
