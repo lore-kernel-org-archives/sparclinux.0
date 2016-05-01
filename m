@@ -1,47 +1,40 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Date: Sat, 21 May 2016 14:50:21 +0000
-Subject: Re: [PATCH 0258/1529] Fix typo
-Message-Id: <20160521145021.GB26300@vapier.lan>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="qdUnDMrzfAkbfH6m"
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Sun, 01 May 2016 23:13:19 +0000
+Subject: Re: [PATCH 2/2] sparc: Implement and wire up vio_hotplug for vio.
+Message-Id: <57268D8F.3000903@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160521121019.13530-1-andrea.gelmini@gelma.net>
-In-Reply-To: <20160521121019.13530-1-andrea.gelmini@gelma.net>
+References: <1460657682-12209-3-git-send-email-glaubitz@physik.fu-berlin.de>
+In-Reply-To: <1460657682-12209-3-git-send-email-glaubitz@physik.fu-berlin.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi!
 
---qdUnDMrzfAkbfH6m
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 04/28/2016 11:13 AM, John Paul Adrian Glaubitz wrote:
+> On Wed, Apr 27, 2016 at 10:00:32PM -0400, David Miller wrote:
+>> My tree may never be rebased, as people clone and do work against it,
+>> therefore any commit made there is permanent.
+>>
+>> Please just be careful with patches you submit in the future, thanks.
+> 
+> Well, my patches are
+> 
+>       Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+> 
+> so, I think did everything correctly on my side. I don't exactly know
+> my name was cut off, but I guess it's too late now -.-.
 
-On 21 May 2016 14:10, Andrea Gelmini wrote:
-> -	/* Thanks for Theo Deraadt=20
-> +	/* Thanks for Theo Theo de Raadt=20
+I was just wondering: Would it be possible to ask Linus to fix my name
+when he pulls in the changes from the sparc tree? From what I can see,
+the current changes are not in Linus' tree yet, so there might be a
+chance to fix the problem.
 
-you fixed one typo while adding another ;)
--mike
+Adrian
 
---qdUnDMrzfAkbfH6m
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXQHWsAAoJEEFjO5/oN/WBUwEP/13vdZhB6fOD0j44F6oyxUgj
-tPAJnbls3Cuqiqs8v7S1R9W+lm/cEDVsbcQZhXFfoMHjDhWhNbfX4MTNBLzvuiMx
-SLVSd8+CJTwYDzRgXdh2jEoUX5ZB2CCfFfUtGf6EJQkjrYTJSIWluewZIaMXwd2e
-EzyZPkdsE7ZGFkogIRMEPyzQLp7QkET2ovgoi2AVCu92rdCd6AGOfSDsK3EoKKaa
-Tf3zwJXCRZo4m7iFtX8za4Xfaq7WtW+NHhsA9RvOI1C7PwY+i515h9TZs4EW1a5B
-WGpDxMP7fIEgzbAE+kgnppO5wrhTUAm4sbeQB51l5SVal6XxP6u4/J5t3Rx7X0l5
-XsaCjWnjfqedRYPw1/YeS6WWMZyuXxPA4s8c32OtBukGewlxH5qCgXnoIN7drIp4
-laRyPncxkqaV6kj4xsEJJ339Pd1E/YnkiJFMeV06vNGRCO0vNxNg650j/Pjd70ax
-33sJB8hcK9S9ayFbH1lnKvFD4mtiDFGgSl4dkj3cosMcts/MB6w4M5yUvVLYGoJx
-XrAQWLQR4Vk34/lnAHr20QU6Pv1mTPkkSlc2dUEOoUJNP5qNFov1Py62q0Rv+Cy9
-tWaqffe/zou4sE3lHVRXn5dwEQx4smQOyDh3QShXK43Mx+BysUlBib+w6k0zOpwG
-r0K6rkxGxkZUiSf3yw+A
-=QeVn
------END PGP SIGNATURE-----
-
---qdUnDMrzfAkbfH6m--
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
