@@ -1,40 +1,58 @@
 From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 04 May 2016 14:49:04 +0000
+Date: Wed, 04 May 2016 19:10:47 +0000
 Subject: Re: [crypto / sparc64] cryptomgr_test OOPS
-Message-Id: <CADxRZqws2yAMSqeMDYb6w6OUXJMMbv9wMaY7Zc6YX+szk2vO3g@mail.gmail.com>
+Message-Id: <CADxRZqzynaTAD+vcJwW2ueGnQyy=tQAJq2TvTT-_pZG26=_ZLQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160503.123301.298039059390449291.davem@davemloft.net>
-	<20160504040731.GA25758@gondor.apana.org.au>
-In-Reply-To: <20160504040731.GA25758@gondor.apana.org.au>
+References: <CADxRZqyMwme53etMrnx3xkpGsR6-W88RHLA3nh0GCGAzcz5=Fw@mail.gmail.com>
+	<20160503.123301.298039059390449291.davem@davemloft.net>
+In-Reply-To: <20160503.123301.298039059390449291.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David Miller <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
+To: David Miller <davem@davemloft.net>
+Cc: linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Wed, May 4, 2016 at 7:07 AM, Herbert Xu <herbert@gondor.apana.org.au> wrote:
-> David Miller <davem@davemloft.net> wrote:
->> From: Anatoly Pugachev <matorola@gmail.com>
->> Date: Tue, 3 May 2016 16:54:18 +0300
->>
->>> I have git kernel OOPS (4.6.0-rc6) on sparc64. This OOPS does not
->>> happen, if I set the following kernel option:
->>>
->>> CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
->>>
->>> Can someone please look at https://bugzilla.kernel.org/show_bug.cgi?id7551 ?
->>
->> The lib/mpi/ code hasn't been touched in a long time, so I can only see that it might
->> be the crypto/rsa.c changes that happened this release.
->>
->> Can you possibly bisect this or at least tell us that 4.5 doesn't have this problem?
+On Tue, May 3, 2016 at 7:33 PM, David Miller <davem@davemloft.net> wrote:
+> From: Anatoly Pugachev <matorola@gmail.com>
+> Date: Tue, 3 May 2016 16:54:18 +0300
 >
-> It would also be helpful to test the latest cryptodev tree which
-> has a large number of MPI fixes from Nicolai Stange.
+>> I have git kernel OOPS (4.6.0-rc6) on sparc64. This OOPS does not
+>> happen, if I set the following kernel option:
+>>
+>> CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
+>>
+>> Can someone please look at https://bugzilla.kernel.org/show_bug.cgi?id7551 ?
+>
+> The lib/mpi/ code hasn't been touched in a long time, so I can only see that it might
+> be the crypto/rsa.c changes that happened this release.
+>
+> Can you possibly bisect this or at least tell us that 4.5 doesn't have this problem?
 
-Herbert,
+David,
 
-just tested cryptodev (
-http://git.kernel.org/pub/scm/linux/kernel/git/herbert/cryptodev-2.6.git
-) kernel, same OOPS, but kernel version is 4.6.0-rc2+ .
-kernel OOPS message - https://paste.fedoraproject.org/362554/23732641/
+we're using 4.5.2 debian kernel here without this problem. I'm not
+sure I would be able to bisect, never did it before, but I could
+try...
+
+Here's a quick diff related to crypto for debian kernel configs:
+
+$ diff -u /boot/config-4.5.0-2-sparc64-smp /boot/config-4.6.0-rc5-sparc64-smp
+@@ -5299,10 +5380,9 @@
+ CONFIG_CRYPTO_RNG=m
+ CONFIG_CRYPTO_RNG2=y
+ CONFIG_CRYPTO_RNG_DEFAULT=m
+-CONFIG_CRYPTO_PCOMP=m
+-CONFIG_CRYPTO_PCOMP2=y
+ CONFIG_CRYPTO_AKCIPHER2=y
+-# CONFIG_CRYPTO_RSA is not set
++CONFIG_CRYPTO_AKCIPHER=y
++CONFIG_CRYPTO_RSA=y
+ CONFIG_CRYPTO_MANAGER=y
+ CONFIG_CRYPTO_MANAGER2=y
+ # CONFIG_CRYPTO_USER is not set
+
+so, I need to compile 4.5.x kernel (or even older kernels) with
+CRYPTO_RSA=y and test how it would act. And if it would not crash, I
+could try to bisect.
+
+Thanks.
