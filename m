@@ -1,7 +1,7 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Thu, 05 May 2016 09:50:20 +0000
+From: Tadeusz Struk <tadeusz.struk@intel.com>
+Date: Thu, 05 May 2016 15:00:19 +0000
 Subject: Re: [crypto / sparc64] cryptomgr_test OOPS
-Message-Id: <20160505095020.GA5473@gondor.apana.org.au>
+Message-Id: <efc65239-4d7f-8d32-8928-0ac1bd8e46f3@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160503.123301.298039059390449291.davem@davemloft.net>
  <20160504040731.GA25758@gondor.apana.org.au>
@@ -13,10 +13,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Anatoly Pugachev <matorola@gmail.com>
-Cc: David Miller <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>, David Miller <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
 
-On Thu, May 05, 2016 at 12:40:18PM +0300, Anatoly Pugachev wrote:
-> 
+On 05/05/2016 02:40 AM, Anatoly Pugachev wrote:
 > sure, based on your cryptodev git, just tried 4.3 (6a13feb , good)
 > kernel in attempt to find (bisect) when RSA code break, already tested
 > 4.5 (44d1b6d , bad) , 4.4 (afd2ff9 , bad).
@@ -25,11 +24,25 @@ On Thu, May 05, 2016 at 12:40:18PM +0300, Anatoly Pugachev wrote:
 > not boot to login prompt. Boot log exempt (4.3), this is with
 > CONFIG_CRYPTO_RSA=y :
 
-That jibes with this being a problem with the SG list since it
-was only added in 4.4.
+Anatoly, could you also give this a try please: 
+Thanks
 
-Cheers,
+diff --git a/crypto/testmgr.c b/crypto/testmgr.c
+index b86883a..770970ff 100644
+--- a/crypto/testmgr.c
++++ b/crypto/testmgr.c
+@@ -1805,8 +1805,8 @@ static int do_test_rsa(struct crypto_akcipher *tfm,
+ 		goto free_req;
+ 
+ 	sg_init_table(src_tab, 2);
+-	sg_set_buf(&src_tab[0], vecs->m, 8);
+-	sg_set_buf(&src_tab[1], vecs->m + 8, vecs->m_size - 8);
++	sg_set_buf(&src_tab[0], vecs->m, 4);
++	sg_set_buf(&src_tab[1], vecs->m + 4, vecs->m_size - 4);
+ 	sg_init_one(&dst, outbuf_enc, out_len_max);
+ 	akcipher_request_set_crypt(req, src_tab, &dst, vecs->m_size,
+ 				   out_len_max);
+
+
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+TS
