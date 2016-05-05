@@ -1,12 +1,26 @@
-From: program12@uscombat.info
-Date: Sun, 29 May 2016 00:45:00 +0000
-Subject: Hello
-Message-Id: <919103.7733.bm@smtp113.mail.ne1.yahoo.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Thu, 05 May 2016 14:59:35 +0000
+Subject: Re: Netra T1-105 reboot hang (prtfconf/openprom module related?)
+Message-Id: <alpine.LRH.2.20.1605051758110.4685@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Recipients <program12-cpgL+PMETWIk+I/owrrOrA@public.gmane.org>
+To: sparclinux@vger.kernel.org
 
-Hi,
-I am Kristi and i saw your contact through google page of your country which impress me and i feel we can be friends to share ideals and reason together for good,if not bad then let us know more about each other and i hope there will be no problem for us to be friend with no bad intention.You can also reply me through email(cplkristibakar@outlook.com) so that i can share details about myself, i will be waiting to hear from you soon. 
+> I have a Netra T1-105 (OBP is latest that was released, 3.10.27 ME) with 
+> Linux (debian unstable snapshot from July 2015) running latest devel 
+> kernels and I have not seen it rebooting without hang yet (4.1, 4.2, 
+> 4.3-rc5 tested so far).
+[...]
+> Probably related: running prtfconf puts the system into a soft lockup - 
+> answers to ping but no ssh any more. openprom module is built into the 
+> kernel. On hang, I get the same kind of backtrace from watchdog but from 
+> different offset in misc_open:
+
+I retested it with 4.6-rc6-... and it has been fine with two lastest 
+post-4.5 kernels (both reboot and prtconf -pv). So something has fixed 
+it.
+
+-- 
+Meelis Roos (mroos@linux.ee)
