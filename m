@@ -1,37 +1,32 @@
-From: Tadeusz Struk <tadeusz.struk@intel.com>
-Date: Thu, 05 May 2016 16:17:32 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 06 May 2016 19:52:46 +0000
 Subject: Re: [crypto / sparc64] cryptomgr_test OOPS
-Message-Id: <a3758abe-ec4e-56f7-c05a-7e9dd462d7c2@intel.com>
+Message-Id: <20160506.155246.1005161410295236920.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160503.123301.298039059390449291.davem@davemloft.net>
- <20160504040731.GA25758@gondor.apana.org.au>
- <CADxRZqws2yAMSqeMDYb6w6OUXJMMbv9wMaY7Zc6YX+szk2vO3g@mail.gmail.com>
- <20160505084249.GA4971@gondor.apana.org.au>
- <CADxRZqwxB-+DTV-qKFK6CVXwVV0h9yDkH6GxcjmA-M9KY2HM7g@mail.gmail.com>
- <20160505095020.GA5473@gondor.apana.org.au>
-In-Reply-To: <20160505095020.GA5473@gondor.apana.org.au>
+References: <20160504040731.GA25758@gondor.apana.org.au>
+	<CADxRZqws2yAMSqeMDYb6w6OUXJMMbv9wMaY7Zc6YX+szk2vO3g@mail.gmail.com>
+	<20160505084249.GA4971@gondor.apana.org.au>
+In-Reply-To: <20160505084249.GA4971@gondor.apana.org.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>, Anatoly Pugachev <matorola@gmail.com>
-Cc: David Miller <davem@davemloft.net>, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>
+To: herbert@gondor.apana.org.au
+Cc: matorola@gmail.com, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, nicstange@gmail.com
 
-On 05/05/2016 02:50 AM, Herbert Xu wrote:
-> On Thu, May 05, 2016 at 12:40:18PM +0300, Anatoly Pugachev wrote:
->>
->> sure, based on your cryptodev git, just tried 4.3 (6a13feb , good)
->> kernel in attempt to find (bisect) when RSA code break, already tested
->> 4.5 (44d1b6d , bad) , 4.4 (afd2ff9 , bad).
->> Going to try your patch soon (when I'm back home).
->> So far 4.3 passes RSA stage without OOPS, but for other reason does
->> not boot to login prompt. Boot log exempt (4.3), this is with
->> CONFIG_CRYPTO_RSA=y :
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Thu, 5 May 2016 16:42:49 +0800
+
+> Subject: crypto: testmgr - Use kmalloc memory for RSA input
 > 
-> That jibes with this being a problem with the SG list since it
-> was only added in 4.4.
+> As akcipher uses an SG interface, you must not use vmalloc memory
+> as input for it.  This patch fixes testmgr to copy the vmalloc
+> test vectors to kmalloc memory before running the test.
+> 
+> This patch also removes a superfluous sg_virt call in do_test_rsa.
+> 
+> Cc: <stable@vger.kernel.org>
+> Reported-by: Anatoly Pugachev <matorola@gmail.com>
+> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 
-Before 4.4 the rsa sw implementation kmalloced intermediate flat buffer
-and copied the data internally.
-Thanks,
--- 
-TS
+I'm really surprised this didn't trigger on non-sparc64 systems, but
+what do I know :-)
