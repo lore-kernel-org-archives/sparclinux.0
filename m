@@ -1,61 +1,94 @@
-From: "George Spelvin" <linux@horizon.com>
-Date: Sat, 07 May 2016 22:30:18 +0000
+From: Zhaoxiu Zeng <zengzhaoxiu@163.com>
+Date: Sun, 08 May 2016 12:52:52 +0000
 Subject: Re: [patch V4] lib: GCD: Use binary GCD algorithm instead of Euclidean
-Message-Id: <20160507223018.17111.qmail@ns.horizon.com>
+Message-Id: <042bae7f-51d6-93e8-549d-a38bcb4c9cf5@163.com>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <20160507112308.GA2612@ravnborg.org>
-References: <1462527763-15301-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1462527763-15301-1-git-send-email-zengzhaoxiu@163.com>
+References: <20160507084129.7284.qmail@ns.horizon.com>
+In-Reply-To: <20160507084129.7284.qmail@ns.horizon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sam@ravnborg.org, zengzhaoxiu@163.com
-Cc: akpm@linux-foundation.org, linux@horizon.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: linux-arm-kernel@lists.infradead.org
 
-Sam Ravnborg wrote:
-> sparc64 have an efficient ffs implementation.
-> We use run-time patching to use the proper version
-> depending on the actual sparc cpu.
-> 
-> As this is determinded at config time, then let the
-> sparc cpu that has the efficient ffs benefit from this.
-> 
-> In other words - select CPU_NO_EFFICIENT_FFS only for SPARC32.
+=D4=DA 2016/5/7 16:41, George Spelvin =D0=B4=B5=C0:
+> Nothing critical, but a bit of kibitzing.
+> (That is slang in the Yiddish language for a person
+> who offers annoying and unwanted advice.)
+>
+>> The binary GCD algorithm is based on the following facts:
+>> 	1. If a and b are all evens, then gcd(a,b) =3D 2 * gcd(a/2, b/2)
+>> 	2. If a is even and b is odd, then gcd(a,b) =3D gcd(a/2, b)
+>> 	3. If a and b are all odds, then gcd(a,b) =3D gcd((a-b)/2, b) =3D gcd((=
+a+b)/2, b)
+> 1) "even" and "odd" are adjectives.  In English, adjectives to not have
+>    plural suffixes.  Thus, "they are even" or "they are odd".
+> 2) Although "all" is not exactly wrong, it sounds odd.  Since there are
+>    exactly two of them it's clearer to say "both".
+>
+> If I also rephrase the last line to fit into 80 columns, you get:
+>
+>   The binary GCD algorithm is based on the following facts:
+> - 	1. If a and b are all evens, then gcd(a,b) =3D 2 * gcd(a/2, b/2)
+> + 	1. If a and b are both even, then gcd(a,b) =3D 2 * gcd(a/2, b/2)
+>  	2. If a is even and b is odd, then gcd(a,b) =3D gcd(a/2, b)
+> -	3. If a and b are all odds, then gcd(a,b) =3D gcd((a-b)/2, b) =3D gcd((=
+a+b)/2, b)
+> +	3. If both are odd, then gcd(a,b) =3D gcd((a-b)/2, b) =3D gcd((a+b)/2, =
+b)
+>
+> 3) Negative config options are always confusing.
+>
+> Would it be better to call it CONFIG_INEFFICIEBNT_FFS, or even simpler
+> CONFIG_SLOW_FFS?
+>
+> Also, you're allowed to add "help" to a non-interactive config option,
+> and some documentation might be useful.
+> E.g.
+>
+> +config CPU_SLOW_FFS
+> +	def_bool n
+> +	help
+> +	  If n, the CPU supports a fast __ffs (__builtin_ctz) operation,
+> +	  either directly or via a short code sequence using a count
+> +	  leading zeros or population count instruction.  If y, the
+> +	  operation is emulated by slower software, such as an unrolled
+> +	  binary search.
+> +
+> +	  This is purely an optimization option; the kernel
+> +	  will function correctly regardless of how it is set.
+> +
 
-I'm not sure this is the right thing.
+Thanks a lot.
 
-It's always a function call, and there's boot-time code patching to use
-either an unrolled binary search or a POPC instructon on processors that
-have that instruction.
+> Your benchmark code doesn't have to have a separate code path if
+> __x86_64__; rdtsc works on 32-bit code just as well.  paths.  And the
+> way you subtract the end and start times is unnecessarily complicated.
+> The C language guarantees that unsigned arithmetic simply wraps modulo
+> 2^bits as expected.
 
-The NO_EFFICIENT_FFS isn't much slower than the __ffs version, so the
-call/return alone might eat the difference, and if the CPU doesn't have
-POPC support it's definitely a lose.
+rdsc works on x86, the other path is prepared for other architectures.
 
-Quite simply, gcd isn't important enough to be worth the same boot-time
-code patching, and if we have to use one on both types of CPU the the
-NO_EFFICIENT_FFS path is the safer alternative in case of uncertainty.
+> Here are some more timings, with the same flags as your tests:
+>
+> First, 32 bit code:
+> 		gcd0	gcd1	gcd2	gcd3	gcd4
+> Ivy Bridge	3156	1192	1740	1160	1640	PASS
+> AMD Phenom	7150	2564	2348	2975	2843	PASS
+> Core 2		4176	2592	4164	2604	3900	PASS
+> Pentium 4	11492	4784	7632	4852	6452	PASS
+>
+> And 64-bit (longer times becuase the inputs are larger):
+> Ivy Bridge	10636	2496	3500	2432	3360	PASS
+> AMD Phenom	19482	4058	6030	5001	6845	PASS
+>
+> Looking at those, I'm not sure how much better the gcd3/4 versions are
+> than gcd1/2.  The difference seems pretty minor and sometimes negative.
+>
 
-Would you be willing to try benchmarking it?  The baseline code, plus two
-versions of the __ffs code using the two different __ffs implementations
-(forced out of line by compiling from assembler source or using
-inine asm and __attribute((noinline))).
+The worst case of binary GCD is that one number is power of 2,
+for example a is 0xffffffff (0xcccccccc for the "even/odd" variant) and b i=
+s 1.
+
+The gcd3/4 versions can handle this properly.
 
 
-
-By the way, the SPARC64 implementation could be improved.
-
-It's currently 5 instructions:
-
-__ffs:
-        neg     %o0, %g1
-        xnor    %o0, %g1, %o1
-        popc    %o1, %o0
-        retl
-         sub    %o0, 1, %o0
-
-That could be improved to 4:
-	sub	%o0, 1, %g1
-	andn	%g1, %o0, %g1
-	retl
-	 popc	%g1, %o0
