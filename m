@@ -1,21 +1,11 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 25 May 2016 19:56:58 +0000
-Subject: Re: prtconfs: Add SPARC M9000 prtconf
-Message-Id: <20160525.125658.1909463341533803406.davem@davemloft.net>
+From: joe moriarty <joe.moriarty@oracle.com>
+Date: Wed, 18 May 2016 16:05:34 +0000
+Subject: test
+Message-Id: <573C92CE.3070800@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160519125244.GA28640@yogzotot>
-In-Reply-To: <20160519125244.GA28640@yogzotot>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Thu, 19 May 2016 15:52:44 +0300
-
-> prtconf M9000, taken from solaris 11 HCL
-> http://www.oracle.com/webfolder/technetwork/hcl/data/systems/prtconf/sun_microsystems/sol_10_11_06/2541.txt
-> 
-> Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
-
-Applied.
+test
