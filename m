@@ -1,33 +1,31 @@
-From: Mikael Pettersson <mikpelinux@gmail.com>
-Date: Sat, 07 May 2016 18:35:32 +0000
-Subject: Re: accessing stacked FPU state in 32-bit SIGFPE handler?
-Message-Id: <22318.13684.656234.970015@gargle.gargle.HOWL>
+From: Andrea Gelmini <andrea.gelmini@gelma.net>
+Date: Sat, 21 May 2016 12:10:19 +0000
+Subject: [PATCH 0258/1529] Fix typo
+Message-Id: <20160521121019.13530-1-andrea.gelmini@gelma.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <22318.3784.29204.471465@gargle.gargle.HOWL>
-In-Reply-To: <22318.3784.29204.471465@gargle.gargle.HOWL>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-David Miller writes:
- > From: Mikael Pettersson <mikpelinux@gmail.com>
- > Date: Sat, 7 May 2016 17:50:32 +0200
- > 
- > > What is the approved way of accessing the stacked FPU state from a
- > > SIGFPE handler (sigaction + SA_SIGINFO) in a 32-bit process?  I need
- > > to update parts of that state.
- > > 
- > > The third parameter to the handler is a sigcontext pointer, but the
- > > struct ends just before the stacked fpu_save pointer.  Also, the type
- > > that fpu_save points to doesn't appear to be defined by glibc's headers.
- > > 
- > > I could duplicate the kernel's types (32-bit __siginfo_fpu_t and struct
- > > rt_signal_frame), but that feels a bit unsafe unless there's a statement
- > > that they form a de-facto ABI.
- > 
- > You can be sure the on-stack signal saved state layout won't change,
- > otherwise gdb, exception unwinding, and a host of other things would
- > break.
+Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
+---
+ arch/sparc/kernel/entry.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks, that works for me.
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 51aa6e8..47a394b 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -1121,7 +1121,7 @@ fpsave_magic:
+ 	retl
+ 	 std	%f30, [%o0 + 0x78]
+ 
+-	/* Thanks for Theo Deraadt and the authors of the Sprite/netbsd/openbsd
++	/* Thanks for Theo Theo de Raadt and the authors of the Sprite/netbsd/openbsd
+ 	 * code for pointing out this possible deadlock, while we save state
+ 	 * above we could trap on the fsr store so our low level fpu trap
+ 	 * code has to know how to deal with this.
+-- 
+2.8.2.534.g1f66975
+
