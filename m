@@ -1,24 +1,141 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 11 May 2016 23:59:14 +0000
-Subject: Re: [patch V4 08/31] bitops: Add sparc-specific parity functions
-Message-Id: <20160511.195914.1075673631952634530.davem@davemloft.net>
+From: joe moriarty <joe.moriarty@oracle.com>
+Date: Mon, 23 May 2016 19:40:44 +0000
+Subject: [PATCH 2/2] arch/sparc: SPARC-S7 IB software support
+Message-Id: <be051dde-f2bc-39ea-9460-9ad36c666723@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
-	<1462958007-24716-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1462958007-24716-1-git-send-email-zengzhaoxiu@163.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: zengzhaoxiu@163.com
-Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, zhaoxiu.zeng@gmail.com, wim.coekaerts@oracle.com, linux@roeck-us.net, julian.calaby@gmail.com, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: zengzhaoxiu@163.com
-Date: Wed, 11 May 2016 17:13:18 +0800
+Modified existing code to provide support for the IB software model on 
+SPARC-S7.
 
-> From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-> 
-> Use runtime patching for sparc64, lifted from hweight
-> 
-> Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Patch 1/2
+ From 1c021a3c7801a044886cc8efad15e4777fb68ad8 Mon Sep 17 00:00:00 2001
+From: Joe Moriarty <joe.moriarty@oracle.com>
+Date: Mon, 23 May 2016 13:40:24 -0400
+Subject: [PATCH 4.7 1/2] arch/sparc:  SPARC-S7 piggyback support
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Needed for SPARC-S7 IB software support
+
+Orabug: 23055807
+Signed-off-by: Joe Moriarty <joe.moriarty@oracle.com>
+Acked-by: Karl Volz <karl.volz@oracle.com>
+---
+  arch/sparc/boot/piggyback.c |   17 +++++++++--------
+  1 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
+index bb7c951..85e5816 100644
+--- a/arch/sparc/boot/piggyback.c
++++ b/arch/sparc/boot/piggyback.c
+@@ -103,7 +103,7 @@ static int end_line(const char *line)
+   * f0004000 ... _start
+   * f0379f79 ... _end
+   * 1234567890123456
+- * ^coloumn 1
++ * ^column 1
+   * There is support for 64 bit addresses too.
+   *
+   * Return 0 if either start or end is not found
+@@ -216,13 +216,15 @@ int main(int argc,char **argv)
+       * To locate these symbols search for the "HdrS" text which appear
+       * in the image a little before the gokernel symbol.
+       * See definition of these in init_32.S
++     * See definition of these in head_32.S (there is no gokernel symbol
++     * in head_64.S).
+       */
+
+      offset = get_hdrs_offset(image, argv[2]);
+      /* skip HdrS + LINUX_VERSION_CODE + HdrS version */
+      offset += 10;
+
+-    if (lseek(image, offset, 0) < 0)
++    if (lseek(image, offset, SEEK_SET) < 0)
+          die("lseek");
+
+      /*
+@@ -234,7 +236,7 @@ int main(int argc,char **argv)
+       */
+      st4(buffer, 0);
+      st4(buffer + 4, 0x01000000);
+-    st4(buffer + 8, align(end + 32));
++    st4(buffer + 8, align(end));
+      st4(buffer + 12, s.st_size);
+
+      if (write(image, buffer + 2, 14) != 14)
+@@ -243,11 +245,10 @@ int main(int argc,char **argv)
+      /* For sparc64 update a_text and clear a_data + a_bss */
+      if (is64bit)
+      {
+-        if (lseek(image, 4, 0) < 0)
++        if (lseek(image, 4, SEEK_SET) < 0)
+              die("lseek");
+          /* a_text */
+-        st4(buffer, align(end + 32 + 8191) - (start & ~0x3fffffUL) +
+-                    s.st_size);
++        st4(buffer, align(end - start) + s.st_size);
+          /* a_data */
+          st4(buffer + 4, 0);
+          /* a_bss */
+@@ -256,8 +257,8 @@ int main(int argc,char **argv)
+              die(argv[2]);
+      }
+
+-    /* seek page aligned boundary in the image file and add boot image */
+-    if (lseek(image, AOUT_TEXT_OFFSET - start + align(end + 32), 0) < 0)
++    /* seek page aligned boundary in the text and add boot image */
++    if (lseek(image, AOUT_TEXT_OFFSET + align(end - start), SEEK_SET) < 0)
+          die("lseek");
+      if ((tail = open(argv[4], O_RDONLY)) < 0)
+          die(argv[4]);
+-- 
+1.7.1
+
+Patch 2/2*
+*From aef060fc56161ab8952f788a70db43fb3333aea7 Mon Sep 17 00:00:00 2001
+From: Joe Moriarty <joe.moriarty@oracle.com>
+Date: Mon, 23 May 2016 13:42:32 -0400
+Subject: [PATCH 4.7 2/2] arch/sparc:  SPARC-S7 epsc group support
+
+Needed for SPARC-S7 IB software support
+
+Orabug: 23055865
+Signed-off-by: Joe Moriarty <joe.moriarty@oracle.com>
+Acked-by: Babu Moger <babu.moger@oracle.com>
+---
+  arch/sparc/include/asm/hypervisor.h |    1 +
+  arch/sparc/kernel/hvapi.c           |    1 +
+  2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/include/asm/hypervisor.h 
+b/arch/sparc/include/asm/hypervisor.h
+index f5b6537..aa25da4 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -3001,6 +3001,7 @@ unsigned long sun4v_m7_set_perfreg(unsigned long 
+reg_num,
+  #define HV_GRP_KT_CPU            0x0209
+  #define HV_GRP_VT_CPU            0x020c
+  #define HV_GRP_T5_CPU            0x0211
++#define HV_GRP_EPSC            0x0241
+  #define HV_GRP_DIAG            0x0300
+
+  #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
+index 662500f..9bc39a3 100644
+--- a/arch/sparc/kernel/hvapi.c
++++ b/arch/sparc/kernel/hvapi.c
+@@ -47,6 +47,7 @@ static struct api_info api_table[] = {
+      { .group = HV_GRP_KT_CPU,                },
+      { .group = HV_GRP_VT_CPU,                },
+      { .group = HV_GRP_T5_CPU,                },
++    { .group = HV_GRP_EPSC,                    },
+      { .group = HV_GRP_DIAG,        .flags = FLAG_PRE_API    },
+      { .group = HV_GRP_M7_PERF,                },
+  };
+-- 
+1.7.1*
+*
+
