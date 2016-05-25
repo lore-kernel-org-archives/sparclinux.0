@@ -1,31 +1,40 @@
-From: Andrea Gelmini <andrea.gelmini@gelma.net>
-Date: Sat, 21 May 2016 12:10:29 +0000
-Subject: [PATCH 0259/1529] Fix typo
-Message-Id: <20160521121029.13602-1-andrea.gelmini@gelma.net>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 25 May 2016 13:43:28 +0000
+Subject: clone syscall interface on sparc64
+Message-Id: <35ee1e4a-f48a-7a61-a827-415930ad66e7@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
----
- arch/sparc/kernel/vio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi!
 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index f6bb857..b542524 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -383,7 +383,7 @@ static struct mdesc_notifier_client vio_device_notifier = {
- 
- /* We are only interested in domain service ports under the
-  * "domain-services" node.  On control nodes there is another port
-- * under "openboot" that we should not mess with as aparently that is
-+ * under "openboot" that we should not mess with as apparently that is
-  * reserved exclusively for OBP use.
-  */
- static void vio_add_ds(struct mdesc_handle *hp, u64 node)
+I'm currently looking into fixing a testsuite failure in systemd on sparc64.
+
+For that, I need to fix how the clone syscall is invoked on sparc64 since the
+systemd code makes wrong assumptions about that.
+
+From the clone manpage [1]:
+
+   blackfin, m68k, and sparc
+       The argument-passing conventions on blackfin, m68k, and sparc are
+       different from the descriptions above.  For details, see the kernel
+       (and glibc) source.
+
+I have been browsing through the kernel sources and glibc, but I couldn't really
+find a clue which would help me to understand how clone() is properly invoked
+on sparc64.
+
+Does anyone have a hint?
+
+Thanks,
+Adrian
+
+> [1] http://man7.org/linux/man-pages/man2/clone.2.html
+
 -- 
-2.8.2.534.g1f66975
-
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
