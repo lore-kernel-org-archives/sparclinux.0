@@ -1,191 +1,176 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 04 Jun 2016 00:06:30 +0000
-Subject: [PATCH v12 03/15] sparc/PCI: Use correct offset for bus address to resource
-Message-Id: <20160604000642.28162-4-yinghai@kernel.org>
+Date: Sat, 04 Jun 2016 00:06:38 +0000
+Subject: [PATCH v12 11/15] PCI: Check pref compatible bit for mem64 resource of PCIe device
+Message-Id: <20160604000642.28162-12-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160604000642.28162-1-yinghai@kernel.org>
 In-Reply-To: <20160604000642.28162-1-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-After we added 64bit mmio parsing, we got some "no compatible bridge window"
-warning on anther new model that support 64bit resource.
-
-It turns out that we can not use mem_space.start as 64bit mem space
-offset, aka there is mem_space.start != offset.
-
-Use child_phys_addr to calculate exact offset and record offset in
-pbm.
-
-After patch we get correct offset.
-
-/pci@305: PCI IO [io  0x2007e00000000-0x2007e0fffffff] offset 2007e00000000
-/pci@305: PCI MEM [mem 0x2000000100000-0x200007effffff] offset 2000000000000
-/pci@305: PCI MEM64 [mem 0x2000100000000-0x2000dffffffff] offset 2000000000000
-...
-pci_sun4v f02ae7f8: PCI host bridge to bus 0000:00
-pci_bus 0000:00: root bus resource [io  0x2007e00000000-0x2007e0fffffff] (bus address [0x0000-0xfffffff])
-pci_bus 0000:00: root bus resource [mem 0x2000000100000-0x200007effffff] (bus address [0x00100000-0x7effffff])
-pci_bus 0000:00: root bus resource [mem 0x2000100000000-0x2000dffffffff] (bus address [0x100000000-0xdffffffff])
-
--v3: put back mem64_offset, as we found T4 has mem_offset != mem64_offset
-     check overlapping between mem64_space and mem_space.
--v7: after new pci_mmap_page_range patches.
-
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/pci.c        | 18 +++++++-----------
- arch/sparc/kernel/pci_common.c | 32 ++++++++++++++++++++++++--------
- arch/sparc/kernel/pci_impl.h   |  4 ++++
- 3 files changed, 35 insertions(+), 19 deletions(-)
-
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 4dbdad4..4245dc4 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -663,12 +663,12 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
- 
- 	pci_add_resource_offset(&resources, &pbm->io_space,
--				pbm->io_space.start);
-+				pbm->io_offset);
- 	pci_add_resource_offset(&resources, &pbm->mem_space,
--				pbm->mem_space.start);
-+				pbm->mem_offset);
- 	if (pbm->mem64_space.flags)
- 		pci_add_resource_offset(&resources, &pbm->mem64_space,
--					pbm->mem_space.start);
-+					pbm->mem64_offset);
- 	pbm->busn.start = pbm->pci_first_busno;
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
-@@ -870,16 +870,12 @@ void pci_resource_to_user(const struct pci_dev *pdev, int bar,
- 			  const struct resource *rp, resource_size_t *start,
- 			  resource_size_t *end)
- {
--	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
--	unsigned long offset;
-+	struct pci_bus_region region;
- 
--	if (rp->flags & IORESOURCE_IO)
--		offset = pbm->io_space.start;
--	else
--		offset = pbm->mem_space.start;
-+	pcibios_resource_to_bus(pdev->bus, &region, (struct resource *)rp);
- 
--	*start = rp->start - offset;
--	*end = rp->end - offset;
-+	*start = region.start;
-+	*end = region.end;
- }
- 
- void pcibios_set_master(struct pci_dev *dev)
-diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
-index 33524c1..76998f8 100644
---- a/arch/sparc/kernel/pci_common.c
-+++ b/arch/sparc/kernel/pci_common.c
-@@ -410,13 +410,16 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 
- 	for (i = 0; i < num_pbm_ranges; i++) {
- 		const struct linux_prom_pci_ranges *pr = &pbm_ranges[i];
--		unsigned long a, size;
-+		unsigned long a, size, region_a;
- 		u32 parent_phys_hi, parent_phys_lo;
-+		u32 child_phys_mid, child_phys_lo;
- 		u32 size_hi, size_lo;
- 		int type;
- 
- 		parent_phys_hi = pr->parent_phys_hi;
- 		parent_phys_lo = pr->parent_phys_lo;
-+		child_phys_mid = pr->child_phys_mid;
-+		child_phys_lo = pr->child_phys_lo;
- 		if (tlb_type = hypervisor)
- 			parent_phys_hi &= 0x0fffffff;
- 
-@@ -426,6 +429,8 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 		type = (pr->child_phys_hi >> 24) & 0x3;
- 		a = (((unsigned long)parent_phys_hi << 32UL) |
- 		     ((unsigned long)parent_phys_lo  <<  0UL));
-+		region_a = (((unsigned long)child_phys_mid << 32UL) |
-+		     ((unsigned long)child_phys_lo  <<  0UL));
- 		size = (((unsigned long)size_hi << 32UL) |
- 			((unsigned long)size_lo  <<  0UL));
- 
-@@ -440,6 +445,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->io_space.start = a;
- 			pbm->io_space.end = a + size - 1UL;
- 			pbm->io_space.flags = IORESOURCE_IO;
-+			pbm->io_offset = a - region_a;
- 			saw_io = 1;
- 			break;
- 
-@@ -448,6 +454,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->mem_space.start = a;
- 			pbm->mem_space.end = a + size - 1UL;
- 			pbm->mem_space.flags = IORESOURCE_MEM;
-+			pbm->mem_offset = a - region_a;
- 			saw_mem = 1;
- 			break;
- 
-@@ -456,6 +463,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->mem64_space.start = a;
- 			pbm->mem64_space.end = a + size - 1UL;
- 			pbm->mem64_space.flags = IORESOURCE_MEM;
-+			pbm->mem64_offset = a - region_a;
- 			saw_mem = 1;
- 			break;
- 
-@@ -471,14 +479,22 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 		prom_halt();
- 	}
- 
--	printk("%s: PCI IO[%llx] MEM[%llx]",
--	       pbm->name,
--	       pbm->io_space.start,
--	       pbm->mem_space.start);
-+	if (pbm->io_space.flags)
-+		printk("%s: PCI IO %pR offset %llx\n",
-+		       pbm->name, &pbm->io_space, pbm->io_offset);
-+	if (pbm->mem_space.flags)
-+		printk("%s: PCI MEM %pR offset %llx\n",
-+		       pbm->name, &pbm->mem_space, pbm->mem_offset);
-+	if (pbm->mem64_space.flags && pbm->mem_space.flags) {
-+		if (pbm->mem64_space.start <= pbm->mem_space.end)
-+			pbm->mem64_space.start = pbm->mem_space.end + 1;
-+		if (pbm->mem64_space.start > pbm->mem64_space.end)
-+			pbm->mem64_space.flags = 0;
-+	}
-+
- 	if (pbm->mem64_space.flags)
--		printk(" MEM64[%llx]",
--		       pbm->mem64_space.start);
--	printk("\n");
-+		printk("%s: PCI MEM64 %pR offset %llx\n",
-+		       pbm->name, &pbm->mem64_space, pbm->mem64_offset);
- 
- 	pbm->io_space.name = pbm->mem_space.name = pbm->name;
- 	pbm->mem64_space.name = pbm->name;
-diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
-index 37222ca..2853af7 100644
---- a/arch/sparc/kernel/pci_impl.h
-+++ b/arch/sparc/kernel/pci_impl.h
-@@ -99,6 +99,10 @@ struct pci_pbm_info {
- 	struct resource			mem_space;
- 	struct resource			mem64_space;
- 	struct resource			busn;
-+	/* offset */
-+	resource_size_t			io_offset;
-+	resource_size_t			mem_offset;
-+	resource_size_t			mem64_offset;
- 
- 	/* Base of PCI Config space, can be per-PBM or shared. */
- 	unsigned long			config_space;
--- 
-2.8.3
-
+V2Ugc3RpbGwgZ2V0ICJubyBjb21wYXRpYmxlIGJyaWRnZSB3aW5kb3ciIHdhcm5pbmcgb24gc3Bh
+cmMgVDUtOAphZnRlciB3ZSBhZGQgc3VwcG9ydCBmb3IgNjRiaXQgcmVzb3VyY2UgcGFyc2luZyBm
+b3Igcm9vdCBidXMuCgogUENJOiBzY2FuX2J1c1svcGNpQDMwMC9wY2lAMS9wY2lAMC9wY2lANl0g
+YnVzIG5vIDgKIFBDSTogQ2xhaW1pbmcgMDAwMDowMDowMS4wOiBSZXNvdXJjZSAxNTogMDAwMDgw
+MDEwMDAwMDAwMC4uMDAwMDgwMDRhZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDow
+MTowMC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEwMDAwMDAwMC4uMDAwMDgwMDRhZmZmZmZmZiBb
+MjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowMjowNC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEw
+MDAwMDAwMC4uMDAwMDgwMDEyZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowMzow
+MC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEwMDAwMDAwMC4uMDAwMDgwMDEyZmZmZmZmZiBbMjIw
+Y10KIFBDSTogQ2xhaW1pbmcgMDAwMDowNDowNi4wOiBSZXNvdXJjZSAxNDogMDAwMDgwMDEwMDAw
+MDAwMC4uMDAwMDgwMDEwZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowNTowMC4w
+OiBSZXNvdXJjZSAwOiAwMDAwODAwMTAwMDAwMDAwLi4wMDAwODAwMTAwMDAxZmZmIFsyMDRdCiBw
+Y2kgMDAwMDowNTowMC4wOiBjYW4ndCBjbGFpbSBCQVIgMCBbbWVtIDB4ODAwMTAwMDAwMDAwLTB4
+ODAwMTAwMDAxZmZmXTogbm8gY29tcGF0aWJsZSBicmlkZ2Ugd2luZG93CgpBbGwgdGhlIGJyaWRn
+ZXMgNjQtYml0IHJlc291cmNlIGhhdmUgcHJlZiBiaXQsIGJ1dCB0aGUgZGV2aWNlIHJlc291cmNl
+IGRvZXMgbm90CmhhdmUgcHJlZiBzZXQsIHRoZW4gd2UgY2FuIG5vdCBmaW5kIHBhcmVudCBmb3Ig
+dGhlIGRldmljZSByZXNvdXJjZSwKYXMgd2UgY2FuIG5vdCBwdXQgbm9uLXByZWYgbW1pbyB1bmRl
+ciBwcmVmIG1taW8uCgpBY2NvcmRpbmcgdG8gcGNpZSBzcGVjIGVycnRhCmh0dHBzOi8vd3d3LnBj
+aXNpZy5jb20vc3BlY2lmaWNhdGlvbnMvcGNpZXhwcmVzcy9iYXNlMi9QQ0llX0Jhc2VfcjIuMV9F
+cnJhdGFfMDhKdW4xMC5wZGYKcGFnZSAxMywgaW4gc29tZSBjYXNlIGl0IGlzIG9rIHRvIG1hcmsg
+c29tZSBhcyBwcmVmLgoKTWFyayBpZiB0aGUgZW50aXJlIHBhdGggZnJvbSB0aGUgaG9zdCB0byB0
+aGUgYWRhcHRlciBpcyBvdmVyIFBDSSBFeHByZXNzLgpTZXQgcHJlZiBjb21wYXRpYmxlIGJpdCBm
+b3IgY2xhaW0vc2l6aW5nL2Fzc2lnbiBmb3IgNjRiaXQgbWVtIHJlc291cmNlCm9uIHRoYXQgcGNp
+ZSBkZXZpY2UuCgotdjI6IHNldCBwcmVmIGZvciBtbWlvIDY0IHdoZW4gd2hvbGUgcGF0aCBpcyBQ
+Q0kgRXhwcmVzcywgYWNjb3JkaW5nIHRvIERhdmlkIE1pbGxlci4KLXYzOiBkb24ndCBzZXQgcHJl
+ZiBkaXJlY3RseSwgY2hhbmdlIHRvIFVOREVSX1BSRUYsIGFuZCBzZXQgUFJFRiBiZWZvcmUKICAg
+ICBzaXppbmcgYW5kIGFzc2lnbiByZXNvdXJjZSwgYW5kIGNsZWFydCBQUkVGIGFmdGVyd2FyZHMu
+IHJlcXVlc3RlZCBieSBCZW5ILgotdjQ6IHVzZSBvbl9hbGxfcGNpZV9wYXRoIGRldmljZSBmbGFn
+IGluc3RlYWQuCi12NjogdXBkYXRlIGFmdGVyIHBjaV9maW5kX2J1c19yZXNvdXJjZSgpIGNoYW5n
+ZQoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yL0NBRTlGaVFVMWdKWTFMWXJ4cyttYTVM
+Q1RFRWU0eG10alJHMGFYSjlLX1RzdSttOVd1d0BtYWlsLmdtYWlsLmNvbQpSZXBvcnRlZC1ieTog
+RGF2aWQgQWhlcm4gPGRhdmlkLmFoZXJuQG9yYWNsZS5jb20+ClRlc3RlZC1ieTogRGF2aWQgQWhl
+cm4gPGRhdmlkLmFoZXJuQG9yYWNsZS5jb20+Ckxpbms6IGh0dHBzOi8vYnVnemlsbGEua2VybmVs
+Lm9yZy9zaG93X2J1Zy5jZ2k/aWSBNDMxClRlc3RlZC1ieTogVEogPGxpbnV4QGlhbS50aj4KU2ln
+bmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWluZ2hhaUBrZXJuZWwub3JnPgpUZXN0ZWQtYnk6IEto
+YWxpZCBBeml6IDxraGFsaWQuYXppekBvcmFjbGUuY29tPgpDYzogc3BhcmNsaW51eEB2Z2VyLmtl
+cm5lbC5vcmcKLS0tCiBhcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMgfCAgMiArLQogZHJp
+dmVycy9wY2kvcGNpLmMgICAgICAgICAgICAgIHwgIDggKysrKystLS0KIGRyaXZlcnMvcGNpL3Bj
+aS5oICAgICAgICAgICAgICB8ICAyICsrCiBkcml2ZXJzL3BjaS9wcm9iZS5jICAgICAgICAgICAg
+fCAzMyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvcGNpL3NldHVw
+LWJ1cy5jICAgICAgICB8IDIzICsrKysrKysrKysrKysrKysrKystLS0tCiBkcml2ZXJzL3BjaS9z
+ZXR1cC1yZXMuYyAgICAgICAgfCAgNCArKysrCiBpbmNsdWRlL2xpbnV4L3BjaS5oICAgICAgICAg
+ICAgfCAgMyArKy0KIDcgZmlsZXMgY2hhbmdlZCwgNjYgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlv
+bnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMgYi9hcmNo
+L3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMKaW5kZXggMWViYzdmZi4uNmYyMDZhMSAxMDA2NDQK
+LS0tIGEvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCisrKyBiL2FyY2gvc3BhcmMva2Vy
+bmVsL3BjaV9jb21tb24uYwpAQCAtMzQzLDcgKzM0Myw3IEBAIHN0YXRpYyB2b2lkIHBjaV9yZWdp
+c3Rlcl9yZWdpb24oc3RydWN0IHBjaV9idXMgKmJ1cywgY29uc3QgY2hhciAqbmFtZSwKIAlyZWdp
+b24uc3RhcnQgPSByc3RhcnQ7CiAJcmVnaW9uLmVuZCA9IHJzdGFydCArIHNpemUgLSAxVUw7CiAJ
+cGNpYmlvc19idXNfdG9fcmVzb3VyY2UoYnVzLCByZXMsICZyZWdpb24pOwotCWJ1c19yZXMgPSBw
+Y2lfZmluZF9idXNfcmVzb3VyY2UoYnVzLCByZXMpOworCWJ1c19yZXMgPSBwY2lfZmluZF9idXNf
+cmVzb3VyY2UoYnVzLCByZXMsIHJlcy0+ZmxhZ3MpOwogCWlmICghYnVzX3JlcykgewogCQlrZnJl
+ZShyZXMpOwogCQlyZXR1cm47CmRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9wY2kuYyBiL2RyaXZl
+cnMvcGNpL3BjaS5jCmluZGV4IDgxYzZjZjkuLmY0YWQxZTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
+cGNpL3BjaS5jCisrKyBiL2RyaXZlcnMvcGNpL3BjaS5jCkBAIC00MTUsNyArNDE1LDcgQEAgaW50
+IHBjaV9maW5kX2h0X2NhcGFiaWxpdHkoc3RydWN0IHBjaV9kZXYgKmRldiwgaW50IGh0X2NhcCkK
+IEVYUE9SVF9TWU1CT0xfR1BMKHBjaV9maW5kX2h0X2NhcGFiaWxpdHkpOwogCiBzdHJ1Y3QgcmVz
+b3VyY2UgKnBjaV9maW5kX2J1c19yZXNvdXJjZShjb25zdCBzdHJ1Y3QgcGNpX2J1cyAqYnVzLAot
+CQkJCQlzdHJ1Y3QgcmVzb3VyY2UgKnJlcykKKwkJCQkJc3RydWN0IHJlc291cmNlICpyZXMsIGlu
+dCBmbGFncykKIHsKIAlzdHJ1Y3QgcmVzb3VyY2UgKnI7CiAJaW50IGk7CkBAIC00MzAsNyArNDMw
+LDcgQEAgc3RydWN0IHJlc291cmNlICpwY2lfZmluZF9idXNfcmVzb3VyY2UoY29uc3Qgc3RydWN0
+IHBjaV9idXMgKmJ1cywKIAkJCSAqIG5vdCwgdGhlIGFsbG9jYXRvciBtYWRlIGEgbWlzdGFrZS4K
+IAkJCSAqLwogCQkJaWYgKHItPmZsYWdzICYgSU9SRVNPVVJDRV9QUkVGRVRDSCAmJgotCQkJICAg
+ICEocmVzLT5mbGFncyAmIElPUkVTT1VSQ0VfUFJFRkVUQ0gpKQorCQkJICAgICEoZmxhZ3MgJiBJ
+T1JFU09VUkNFX1BSRUZFVENIKSkKIAkJCQlyZXR1cm4gTlVMTDsKIAogCQkJLyoKQEAgLTQ1OCw3
+ICs0NTgsOSBAQCBzdHJ1Y3QgcmVzb3VyY2UgKnBjaV9maW5kX2J1c19yZXNvdXJjZShjb25zdCBz
+dHJ1Y3QgcGNpX2J1cyAqYnVzLAogc3RydWN0IHJlc291cmNlICpwY2lfZmluZF9wYXJlbnRfcmVz
+b3VyY2UoY29uc3Qgc3RydWN0IHBjaV9kZXYgKmRldiwKIAkJCQkJICBzdHJ1Y3QgcmVzb3VyY2Ug
+KnJlcykKIHsKLQlyZXR1cm4gcGNpX2ZpbmRfYnVzX3Jlc291cmNlKGRldi0+YnVzLCByZXMpOwor
+CWludCBmbGFncyA9IHBjaV9yZXNvdXJjZV9wcmVmX2NvbXBhdGlibGUoZGV2LCByZXMpOworCisJ
+cmV0dXJuIHBjaV9maW5kX2J1c19yZXNvdXJjZShkZXYtPmJ1cywgcmVzLCBmbGFncyk7CiB9CiBF
+WFBPUlRfU1lNQk9MKHBjaV9maW5kX3BhcmVudF9yZXNvdXJjZSk7CiAKZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvcGNpL3BjaS5oIGIvZHJpdmVycy9wY2kvcGNpLmgKaW5kZXggN2QzMzljMy4uNDUwOGEx
+ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvcGNpLmgKKysrIGIvZHJpdmVycy9wY2kvcGNpLmgK
+QEAgLTMzNiw0ICszMzYsNiBAQCBzdGF0aWMgaW5saW5lIGludCBwY2lfZGV2X3NwZWNpZmljX3Jl
+c2V0KHN0cnVjdCBwY2lfZGV2ICpkZXYsIGludCBwcm9iZSkKIH0KICNlbmRpZgogCitpbnQgcGNp
+X3Jlc291cmNlX3ByZWZfY29tcGF0aWJsZShjb25zdCBzdHJ1Y3QgcGNpX2RldiAqZGV2LAorCQkJ
+CSBzdHJ1Y3QgcmVzb3VyY2UgKnJlcyk7CiAjZW5kaWYgLyogRFJJVkVSU19QQ0lfSCAqLwpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9wY2kvcHJvYmUuYyBiL2RyaXZlcnMvcGNpL3Byb2JlLmMKaW5kZXgg
+OGUzZWY3Mi4uNWQxMWRlYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvcHJvYmUuYworKysgYi9k
+cml2ZXJzL3BjaS9wcm9iZS5jCkBAIC0xNzMyLDYgKzE3MzIsMzYgQEAgc3RhdGljIHZvaWQgcGNp
+X2RtYV9jb25maWd1cmUoc3RydWN0IHBjaV9kZXYgKmRldikKIAlwY2lfcHV0X2hvc3RfYnJpZGdl
+X2RldmljZShicmlkZ2UpOwogfQogCitzdGF0aWMgYm9vbCBwY2lfdXBfcGF0aF9vdmVyX3BjaWUo
+c3RydWN0IHBjaV9idXMgKmJ1cykKK3sKKwlpZiAocGNpX2lzX3Jvb3RfYnVzKGJ1cykpCisJCXJl
+dHVybiB0cnVlOworCisJaWYgKGJ1cy0+c2VsZiAmJiAhcGNpX2lzX3BjaWUoYnVzLT5zZWxmKSkK
+KwkJcmV0dXJuIGZhbHNlOworCisJcmV0dXJuIHBjaV91cF9wYXRoX292ZXJfcGNpZShidXMtPnBh
+cmVudCk7Cit9CisKKy8qCisgKiBBY2NvcmRpbmcgdG8KKyAqIGh0dHBzOi8vd3d3LnBjaXNpZy5j
+b20vc3BlY2lmaWNhdGlvbnMvcGNpZXhwcmVzcy9iYXNlMi9QQ0llX0Jhc2VfcjIuMV9FcnJhdGFf
+MDhKdW4xMC5wZGYKKyAqIHBhZ2UgMTMsIHN5c3RlbSBmaXJtd2FyZSBjb3VsZCBwdXQgc29tZSA2
+NGJpdCBub24tcHJlZiB1bmRlciA2NGJpdCBwcmVmLAorICogb24gc29tZSBjYXNlcy4KKyAqIExl
+dCdzIG1hcmsgaWYgZW50aXJlIHBhdGggZnJvbSB0aGUgaG9zdCB0byB0aGUgYWRhcHRlciBpcyBv
+dmVyIFBDSQorICogRXhwcmVzcy4gbGF0ZXIgd2lsbCB1c2UgdGhhdCBjb21wdXRlIHByZWYgY29t
+cGFpdGFibGUgYml0LgorICovCitzdGF0aWMgdm9pZCBwY2lfc2V0X29uX2FsbF9wY2llX3BhdGgo
+c3RydWN0IHBjaV9kZXYgKmRldikKK3sKKwlpZiAoIXBjaV9pc19wY2llKGRldikpCisJCXJldHVy
+bjsKKworCWlmICghcGNpX3VwX3BhdGhfb3Zlcl9wY2llKGRldi0+YnVzKSkKKwkJcmV0dXJuOwor
+CisJZGV2LT5vbl9hbGxfcGNpZV9wYXRoID0gMTsKK30KKwogdm9pZCBwY2lfZGV2aWNlX2FkZChz
+dHJ1Y3QgcGNpX2RldiAqZGV2LCBzdHJ1Y3QgcGNpX2J1cyAqYnVzKQogewogCWludCByZXQ7CkBA
+IC0xNzYyLDYgKzE3OTIsOSBAQCB2b2lkIHBjaV9kZXZpY2VfYWRkKHN0cnVjdCBwY2lfZGV2ICpk
+ZXYsIHN0cnVjdCBwY2lfYnVzICpidXMpCiAJLyogSW5pdGlhbGl6ZSB2YXJpb3VzIGNhcGFiaWxp
+dGllcyAqLwogCXBjaV9pbml0X2NhcGFiaWxpdGllcyhkZXYpOwogCisJLyogQWZ0ZXIgcGNpZV9j
+YXAgaXMgYXNzaWduZWQgKi8KKwlwY2lfc2V0X29uX2FsbF9wY2llX3BhdGgoZGV2KTsKKwogCS8q
+CiAJICogQWRkIHRoZSBkZXZpY2UgdG8gb3VyIGxpc3Qgb2YgZGlzY292ZXJlZCBkZXZpY2VzCiAJ
+ICogYW5kIHRoZSBidXMgbGlzdCBmb3IgZml4dXAgZnVuY3Rpb25zLCBldGMuCmRpZmYgLS1naXQg
+YS9kcml2ZXJzL3BjaS9zZXR1cC1idXMuYyBiL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCmluZGV4
+IDU1NjQxYTMuLmIzYjE1NjUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCisr
+KyBiL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCkBAIC03MzgsNiArNzM4LDIwIEBAIGludCBwY2lf
+Y2xhaW1fYnJpZGdlX3Jlc291cmNlKHN0cnVjdCBwY2lfZGV2ICpicmlkZ2UsIGludCBpKQogCXJl
+dHVybiAtRUlOVkFMOwogfQogCitpbnQgcGNpX3Jlc291cmNlX3ByZWZfY29tcGF0aWJsZShjb25z
+dCBzdHJ1Y3QgcGNpX2RldiAqZGV2LAorCQkJCSBzdHJ1Y3QgcmVzb3VyY2UgKnJlcykKK3sKKwlp
+ZiAocmVzLT5mbGFncyAmIElPUkVTT1VSQ0VfUFJFRkVUQ0gpCisJCXJldHVybiByZXMtPmZsYWdz
+OworCisJaWYgKChyZXMtPmZsYWdzICYgSU9SRVNPVVJDRV9NRU0pICYmCisJICAgIChyZXMtPmZs
+YWdzICYgSU9SRVNPVVJDRV9NRU1fNjQpICYmCisJICAgIGRldi0+b25fYWxsX3BjaWVfcGF0aCkK
+KwkJcmV0dXJuIHJlcy0+ZmxhZ3MgfCBJT1JFU09VUkNFX1BSRUZFVENIOworCisJcmV0dXJuIHJl
+cy0+ZmxhZ3M7Cit9CisKIC8qIENoZWNrIHdoZXRoZXIgdGhlIGJyaWRnZSBzdXBwb3J0cyBvcHRp
+b25hbCBJL08gYW5kCiAgICBwcmVmZXRjaGFibGUgbWVtb3J5IHJhbmdlcy4gSWYgbm90LCB0aGUg
+cmVzcGVjdGl2ZQogICAgYmFzZS9saW1pdCByZWdpc3RlcnMgbXVzdCBiZSByZWFkLW9ubHkgYW5k
+IHJlYWQgYXMgMC4gKi8KQEAgLTEwMzUsMTEgKzEwNDksMTIgQEAgc3RhdGljIGludCBwYnVzX3Np
+emVfbWVtKHN0cnVjdCBwY2lfYnVzICpidXMsIHVuc2lnbmVkIGxvbmcgbWFzaywKIAkJZm9yIChp
+ID0gMDsgaSA8IFBDSV9OVU1fUkVTT1VSQ0VTOyBpKyspIHsKIAkJCXN0cnVjdCByZXNvdXJjZSAq
+ciA9ICZkZXYtPnJlc291cmNlW2ldOwogCQkJcmVzb3VyY2Vfc2l6ZV90IHJfc2l6ZTsKKwkJCWlu
+dCBmbGFncyA9IHBjaV9yZXNvdXJjZV9wcmVmX2NvbXBhdGlibGUoZGV2LCByKTsKIAotCQkJaWYg
+KHItPnBhcmVudCB8fCAoci0+ZmxhZ3MgJiBJT1JFU09VUkNFX1BDSV9GSVhFRCkgfHwKLQkJCSAg
+ICAoKHItPmZsYWdzICYgbWFzaykgIT0gdHlwZSAmJgotCQkJICAgICAoci0+ZmxhZ3MgJiBtYXNr
+KSAhPSB0eXBlMiAmJgotCQkJICAgICAoci0+ZmxhZ3MgJiBtYXNrKSAhPSB0eXBlMykpCisJCQlp
+ZiAoci0+cGFyZW50IHx8IChmbGFncyAmIElPUkVTT1VSQ0VfUENJX0ZJWEVEKSB8fAorCQkJICAg
+ICgoZmxhZ3MgJiBtYXNrKSAhPSB0eXBlICYmCisJCQkgICAgIChmbGFncyAmIG1hc2spICE9IHR5
+cGUyICYmCisJCQkgICAgIChmbGFncyAmIG1hc2spICE9IHR5cGUzKSkKIAkJCQljb250aW51ZTsK
+IAkJCXJfc2l6ZSA9IHJlc291cmNlX3NpemUocik7CiAjaWZkZWYgQ09ORklHX1BDSV9JT1YKZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvcGNpL3NldHVwLXJlcy5jIGIvZHJpdmVycy9wY2kvc2V0dXAtcmVz
+LmMKaW5kZXggNjZjNGQ4Zi4uZjc0MWZlZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvc2V0dXAt
+cmVzLmMKKysrIGIvZHJpdmVycy9wY2kvc2V0dXAtcmVzLmMKQEAgLTI1NywxNSArMjU3LDE5IEBA
+IHN0YXRpYyBpbnQgX19wY2lfYXNzaWduX3Jlc291cmNlKHN0cnVjdCBwY2lfYnVzICpidXMsIHN0
+cnVjdCBwY2lfZGV2ICpkZXYsCiBzdGF0aWMgaW50IF9wY2lfYXNzaWduX3Jlc291cmNlKHN0cnVj
+dCBwY2lfZGV2ICpkZXYsIGludCByZXNubywKIAkJCQlyZXNvdXJjZV9zaXplX3Qgc2l6ZSwgcmVz
+b3VyY2Vfc2l6ZV90IG1pbl9hbGlnbikKIHsKKwlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9IGRldi0+
+cmVzb3VyY2UgKyByZXNubzsKKwlpbnQgb2xkX2ZsYWdzID0gcmVzLT5mbGFnczsKIAlzdHJ1Y3Qg
+cGNpX2J1cyAqYnVzOwogCWludCByZXQ7CiAKKwlyZXMtPmZsYWdzID0gcGNpX3Jlc291cmNlX3By
+ZWZfY29tcGF0aWJsZShkZXYsIHJlcyk7CiAJYnVzID0gZGV2LT5idXM7CiAJd2hpbGUgKChyZXQg
+PSBfX3BjaV9hc3NpZ25fcmVzb3VyY2UoYnVzLCBkZXYsIHJlc25vLCBzaXplLCBtaW5fYWxpZ24p
+KSkgewogCQlpZiAoIWJ1cy0+cGFyZW50IHx8ICFidXMtPnNlbGYtPnRyYW5zcGFyZW50KQogCQkJ
+YnJlYWs7CiAJCWJ1cyA9IGJ1cy0+cGFyZW50OwogCX0KKwlyZXMtPmZsYWdzID0gb2xkX2ZsYWdz
+OwogCiAJcmV0dXJuIHJldDsKIH0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvcGNpLmggYi9p
+bmNsdWRlL2xpbnV4L3BjaS5oCmluZGV4IDExYjIxNmQuLmRhYWFjMzggMTAwNjQ0Ci0tLSBhL2lu
+Y2x1ZGUvbGludXgvcGNpLmgKKysrIGIvaW5jbHVkZS9saW51eC9wY2kuaApAQCAtMzA5LDYgKzMw
+OSw3IEBAIHN0cnVjdCBwY2lfZGV2IHsKIAkJCQkJCSAgIHBvd2VyZWQgb24vb2ZmIGJ5IHRoZQog
+CQkJCQkJICAgY29ycmVzcG9uZGluZyBicmlkZ2UgKi8KIAl1bnNpZ25lZCBpbnQJaWdub3JlX2hv
+dHBsdWc6MTsJLyogSWdub3JlIGhvdHBsdWcgZXZlbnRzICovCisJdW5zaWduZWQgaW50CW9uX2Fs
+bF9wY2llX3BhdGg6MTsJLyogdXAgdG8gaG9zdC1icmlkZ2UgYWxsIHBjaWUgKi8KIAl1bnNpZ25l
+ZCBpbnQJZDNfZGVsYXk7CS8qIEQzLT5EMCB0cmFuc2l0aW9uIHRpbWUgaW4gbXMgKi8KIAl1bnNp
+Z25lZCBpbnQJZDNjb2xkX2RlbGF5OwkvKiBEM2NvbGQtPkQwIHRyYW5zaXRpb24gdGltZSBpbiBt
+cyAqLwogCkBAIC04MTIsNyArODEzLDcgQEAgdm9pZCBwY2liaW9zX3Jlc291cmNlX3RvX2J1cyhz
+dHJ1Y3QgcGNpX2J1cyAqYnVzLCBzdHJ1Y3QgcGNpX2J1c19yZWdpb24gKnJlZ2lvbiwKIHZvaWQg
+cGNpYmlvc19idXNfdG9fcmVzb3VyY2Uoc3RydWN0IHBjaV9idXMgKmJ1cywgc3RydWN0IHJlc291
+cmNlICpyZXMsCiAJCQkgICAgIHN0cnVjdCBwY2lfYnVzX3JlZ2lvbiAqcmVnaW9uKTsKIHN0cnVj
+dCByZXNvdXJjZSAqcGNpX2ZpbmRfYnVzX3Jlc291cmNlKGNvbnN0IHN0cnVjdCBwY2lfYnVzICpi
+dXMsCi0JCQkJCXN0cnVjdCByZXNvdXJjZSAqcmVzKTsKKwkJCQkJc3RydWN0IHJlc291cmNlICpy
+ZXMsIGludCBmbGFncyk7CiB2b2lkIHBjaWJpb3Nfc2Nhbl9zcGVjaWZpY19idXMoaW50IGJ1c24p
+Owogc3RydWN0IHBjaV9idXMgKnBjaV9maW5kX2J1cyhpbnQgZG9tYWluLCBpbnQgYnVzbnIpOwog
+dm9pZCBwY2lfYnVzX2FkZF9kZXZpY2VzKGNvbnN0IHN0cnVjdCBwY2lfYnVzICpidXMpOwotLSAK
+Mi44LjMKCi0tClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
+bnN1YnNjcmliZSBzcGFyY2xpbnV4IiBpbgp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
+b21vQHZnZXIua2VybmVsLm9yZwpNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5r
+ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWw=
