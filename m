@@ -1,375 +1,466 @@
-From: kbuild test robot <lkp@intel.com>
-Date: Thu, 23 Jun 2016 03:30:40 +0000
-Subject: Re: [PATCH 2/2] sparc64: Fix pagetable freeing for hugepage regions
-Message-Id: <201606231106.2FftOmv6%fengguang.wu@intel.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="ew6BAiZeqk4r7MaW"
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Tue, 07 Jun 2016 18:08:46 +0000
+Subject: [PATCH v12.update 01/15] PCI: Let pci_mmap_page_range() take extra resource pointer
+Message-Id: <20160607180847.15205-1-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1466644374-58354-2-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1466644374-58354-2-git-send-email-nitin.m.gupta@oracle.com>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
+This one is preparing patch for next one:
+  PCI: Let pci_mmap_page_range() take resource addr
 
---ew6BAiZeqk4r7MaW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+We need to pass extra resource pointer to avoid searching that again
+for powerpc and microblaze prot set operation.
 
-Hi,
+update for fixing bisectibility problem found by build test robot.
 
-[auto build test ERROR on sparc/master]
-[also build test ERROR on v4.7-rc4 next-20160622]
-[cannot apply to sparc-next/master]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Nitin-Gupta/sparc64-Trim-page-tables-for-8M-hugepages/20160623-092926
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-config: tile-tilegx_defconfig (attached as .config)
-compiler: tilegx-linux-gcc (GCC) 4.6.2
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=tile 
-
-All errors (new ones prefixed by >>):
-
-   In file included from include/linux/hugetlb.h:420:0,
-                    from arch/tile/kernel/proc.c:25:
->> arch/tile/include/asm/hugetlb.h:43:20: error: static declaration of 'hugetlb_free_pgd_range' follows non-static declaration
-   include/linux/hugetlb.h:123:6: note: previous declaration of 'hugetlb_free_pgd_range' was here
-
-vim +/hugetlb_free_pgd_range +43 arch/tile/include/asm/hugetlb.h
-
-867e359b Chris Metcalf 2010-05-28  37  		return -EINVAL;
-867e359b Chris Metcalf 2010-05-28  38  	if (addr & ~huge_page_mask(h))
-867e359b Chris Metcalf 2010-05-28  39  		return -EINVAL;
-867e359b Chris Metcalf 2010-05-28  40  	return 0;
-867e359b Chris Metcalf 2010-05-28  41  }
-867e359b Chris Metcalf 2010-05-28  42  
-867e359b Chris Metcalf 2010-05-28 @43  static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
-867e359b Chris Metcalf 2010-05-28  44  					  unsigned long addr, unsigned long end,
-867e359b Chris Metcalf 2010-05-28  45  					  unsigned long floor,
-867e359b Chris Metcalf 2010-05-28  46  					  unsigned long ceiling)
-
-:::::: The code at line 43 was first introduced by commit
-:::::: 867e359b97c970a60626d5d76bbe2a8fadbf38fb arch/tile: core support for Tilera 32-bit chips.
-
-:::::: TO: Chris Metcalf <cmetcalf@tilera.com>
-:::::: CC: Chris Metcalf <cmetcalf@tilera.com>
-
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-cris-kernel@axis.com
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-am33-list@redhat.com
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ arch/arm/include/asm/pci.h              | 2 --
+ arch/arm/kernel/bios32.c                | 3 ++-
+ arch/cris/arch-v32/drivers/pci/bios.c   | 3 ++-
+ arch/cris/include/asm/pci.h             | 3 ---
+ arch/ia64/include/asm/pci.h             | 2 --
+ arch/ia64/pci/pci.c                     | 3 ++-
+ arch/microblaze/include/asm/pci.h       | 3 ---
+ arch/microblaze/pci/pci-common.c        | 3 ++-
+ arch/mips/include/asm/pci.h             | 3 ---
+ arch/mips/pci/pci.c                     | 3 ++-
+ arch/mn10300/include/asm/pci.h          | 3 ---
+ arch/mn10300/unit-asb2305/pci-asb2305.c | 3 ++-
+ arch/parisc/include/asm/pci.h           | 3 ---
+ arch/parisc/kernel/pci.c                | 3 ++-
+ arch/powerpc/include/asm/pci.h          | 3 ---
+ arch/powerpc/kernel/pci-common.c        | 3 ++-
+ arch/sh/drivers/pci/pci.c               | 3 ++-
+ arch/sh/include/asm/pci.h               | 2 --
+ arch/sparc/include/asm/pci_64.h         | 4 ----
+ arch/sparc/kernel/pci.c                 | 3 ++-
+ arch/unicore32/include/asm/pci.h        | 2 --
+ arch/unicore32/kernel/pci.c             | 3 ++-
+ arch/x86/include/asm/pci.h              | 4 ----
+ arch/x86/pci/i386.c                     | 3 ++-
+ arch/xtensa/include/asm/pci.h           | 4 ----
+ arch/xtensa/kernel/pci.c                | 3 ++-
+ drivers/pci/pci-sysfs.c                 | 2 +-
+ drivers/pci/proc.c                      | 2 +-
+ include/linux/pci.h                     | 6 ++++++
+ 29 files changed, 34 insertions(+), 53 deletions(-)
 
---ew6BAiZeqk4r7MaW
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/arch/arm/include/asm/pci.h b/arch/arm/include/asm/pci.h
+index 057d381..51118a0 100644
+--- a/arch/arm/include/asm/pci.h
++++ b/arch/arm/include/asm/pci.h
+@@ -29,8 +29,6 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ #define PCI_DMA_BUS_IS_PHYS     (1)
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-                               enum pci_mmap_state mmap_state, int write_combine);
+ 
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+diff --git a/arch/arm/kernel/bios32.c b/arch/arm/kernel/bios32.c
+index 05e61a2..d3245d1 100644
+--- a/arch/arm/kernel/bios32.c
++++ b/arch/arm/kernel/bios32.c
+@@ -602,7 +602,8 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return pci_enable_resources(dev, mask);
+ }
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	if (mmap_state = pci_mmap_io)
+diff --git a/arch/cris/arch-v32/drivers/pci/bios.c b/arch/cris/arch-v32/drivers/pci/bios.c
+index 64a5fb9..082efb9 100644
+--- a/arch/cris/arch-v32/drivers/pci/bios.c
++++ b/arch/cris/arch-v32/drivers/pci/bios.c
+@@ -14,7 +14,8 @@ void pcibios_set_master(struct pci_dev *dev)
+ 	pci_write_config_byte(dev, PCI_LATENCY_TIMER, lat);
+ }
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long prot;
+diff --git a/arch/cris/include/asm/pci.h b/arch/cris/include/asm/pci.h
+index b1b289d..65198cb 100644
+--- a/arch/cris/include/asm/pci.h
++++ b/arch/cris/include/asm/pci.h
+@@ -42,9 +42,6 @@ struct pci_dev;
+ #define PCI_DMA_BUS_IS_PHYS	(1)
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-			       enum pci_mmap_state mmap_state, int write_combine);
+-
+ 
+ #endif /* __KERNEL__ */
+ 
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index c0835b0..6a2f5d8 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -51,8 +51,6 @@ extern unsigned long ia64_max_iommu_merge_mask;
+ #define PCI_DMA_BUS_IS_PHYS	(ia64_max_iommu_merge_mask = ~0UL)
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range (struct pci_dev *dev, struct vm_area_struct *vma,
+-				enum pci_mmap_state mmap_state, int write_combine);
+ #define HAVE_PCI_LEGACY
+ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ 				      struct vm_area_struct *vma,
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 8f6ac2f..1518d66 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -419,7 +419,8 @@ pcibios_align_resource (void *data, const struct resource *res,
+ }
+ 
+ int
+-pci_mmap_page_range (struct pci_dev *dev, struct vm_area_struct *vma,
++pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++		     struct vm_area_struct *vma,
+ 		     enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long size = vma->vm_end - vma->vm_start;
+diff --git a/arch/microblaze/include/asm/pci.h b/arch/microblaze/include/asm/pci.h
+index fc3ecb5..1b93824 100644
+--- a/arch/microblaze/include/asm/pci.h
++++ b/arch/microblaze/include/asm/pci.h
+@@ -46,9 +46,6 @@ extern int pci_domain_nr(struct pci_bus *bus);
+ extern int pci_proc_domain(struct pci_bus *bus);
+ 
+ struct vm_area_struct;
+-/* Map a range of PCI memory or I/O space for a device into user space */
+-int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
+-			enum pci_mmap_state mmap_state, int write_combine);
+ 
+ /* Tell drivers/pci/proc.c that we have pci_mmap_page_range() */
+ #define HAVE_PCI_MMAP	1
+diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
+index 14cba60..fd2b013 100644
+--- a/arch/microblaze/pci/pci-common.c
++++ b/arch/microblaze/pci/pci-common.c
+@@ -304,7 +304,8 @@ pgprot_t pci_phys_mem_access_prot(struct file *file,
+  *
+  * Returns a negative error code on failure, zero on success.
+  */
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	resource_size_t offset diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
+index 86b239d..71d2c3b 100644
+--- a/arch/mips/include/asm/pci.h
++++ b/arch/mips/include/asm/pci.h
+@@ -75,9 +75,6 @@ extern void pcibios_set_master(struct pci_dev *dev);
+ 
+ #define HAVE_PCI_MMAP
+ 
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-	enum pci_mmap_state mmap_state, int write_combine);
+-
+ #define HAVE_ARCH_PCI_RESOURCE_TO_USER
+ 
+ static inline void pci_resource_to_user(const struct pci_dev *dev, int bar,
+diff --git a/arch/mips/pci/pci.c b/arch/mips/pci/pci.c
+index f1b11f0..e620333 100644
+--- a/arch/mips/pci/pci.c
++++ b/arch/mips/pci/pci.c
+@@ -319,7 +319,8 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+ EXPORT_SYMBOL(PCIBIOS_MIN_IO);
+ EXPORT_SYMBOL(PCIBIOS_MIN_MEM);
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long prot;
+diff --git a/arch/mn10300/include/asm/pci.h b/arch/mn10300/include/asm/pci.h
+index 51159ff..082b6de 100644
+--- a/arch/mn10300/include/asm/pci.h
++++ b/arch/mn10300/include/asm/pci.h
+@@ -74,9 +74,6 @@ static inline int pci_controller_num(struct pci_dev *dev)
+ }
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-			       enum pci_mmap_state mmap_state,
+-			       int write_combine);
+ 
+ #endif /* __KERNEL__ */
+ 
+diff --git a/arch/mn10300/unit-asb2305/pci-asb2305.c b/arch/mn10300/unit-asb2305/pci-asb2305.c
+index b7ab837..40efdc6 100644
+--- a/arch/mn10300/unit-asb2305/pci-asb2305.c
++++ b/arch/mn10300/unit-asb2305/pci-asb2305.c
+@@ -211,7 +211,8 @@ void __init pcibios_resource_survey(void)
+ 	pcibios_allocate_resources(1);
+ }
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long prot;
+diff --git a/arch/parisc/include/asm/pci.h b/arch/parisc/include/asm/pci.h
+index defebd9..bb9ea90 100644
+--- a/arch/parisc/include/asm/pci.h
++++ b/arch/parisc/include/asm/pci.h
+@@ -201,7 +201,4 @@ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ 
+ #define HAVE_PCI_MMAP
+ 
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-	enum pci_mmap_state mmap_state, int write_combine);
+-
+ #endif /* __ASM_PARISC_PCI_H */
+diff --git a/arch/parisc/kernel/pci.c b/arch/parisc/kernel/pci.c
+index 0903c6a..8d5c34c 100644
+--- a/arch/parisc/kernel/pci.c
++++ b/arch/parisc/kernel/pci.c
+@@ -228,7 +228,8 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
+ }
+ 
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long prot;
+diff --git a/arch/powerpc/include/asm/pci.h b/arch/powerpc/include/asm/pci.h
+index a6f3ac0..662c1ef 100644
+--- a/arch/powerpc/include/asm/pci.h
++++ b/arch/powerpc/include/asm/pci.h
+@@ -77,9 +77,6 @@ extern int pci_domain_nr(struct pci_bus *bus);
+ extern int pci_proc_domain(struct pci_bus *bus);
+ 
+ struct vm_area_struct;
+-/* Map a range of PCI memory or I/O space for a device into user space */
+-int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
+-			enum pci_mmap_state mmap_state, int write_combine);
+ 
+ /* Tell drivers/pci/proc.c that we have pci_mmap_page_range() */
+ #define HAVE_PCI_MMAP	1
+diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+index 0f7a60f..1596362 100644
+--- a/arch/powerpc/kernel/pci-common.c
++++ b/arch/powerpc/kernel/pci-common.c
+@@ -445,7 +445,8 @@ pgprot_t pci_phys_mem_access_prot(struct file *file,
+  *
+  * Returns a negative error code on failure, zero on success.
+  */
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	resource_size_t offset diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
+index d5462b7..a1bc7ba 100644
+--- a/arch/sh/drivers/pci/pci.c
++++ b/arch/sh/drivers/pci/pci.c
+@@ -269,7 +269,8 @@ void __init_refok pcibios_report_status(unsigned int status_mask, int warn)
+ 	}
+ }
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	/*
+diff --git a/arch/sh/include/asm/pci.h b/arch/sh/include/asm/pci.h
+index 644314f..8e0fdb9 100644
+--- a/arch/sh/include/asm/pci.h
++++ b/arch/sh/include/asm/pci.h
+@@ -66,8 +66,6 @@ extern unsigned long PCIBIOS_MIN_IO, PCIBIOS_MIN_MEM;
+ struct pci_dev;
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-	enum pci_mmap_state mmap_state, int write_combine);
+ extern void pcibios_set_master(struct pci_dev *dev);
+ 
+ /* Dynamic DMA mapping stuff.
+diff --git a/arch/sparc/include/asm/pci_64.h b/arch/sparc/include/asm/pci_64.h
+index 022d160..f7a93df 100644
+--- a/arch/sparc/include/asm/pci_64.h
++++ b/arch/sparc/include/asm/pci_64.h
+@@ -45,10 +45,6 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ #define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
+ #define get_pci_unmapped_area get_fb_unmapped_area
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-			enum pci_mmap_state mmap_state,
+-			int write_combine);
+-
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+ 	return PCI_IRQ_NONE;
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index c2b202d..86d7dda 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -862,7 +862,8 @@ static void __pci_mmap_set_pgprot(struct pci_dev *dev, struct vm_area_struct *vm
+  *
+  * Returns a negative error code on failure, zero on success.
+  */
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state,
+ 			int write_combine)
+ {
+diff --git a/arch/unicore32/include/asm/pci.h b/arch/unicore32/include/asm/pci.h
+index 37e55d0..a5129086 100644
+--- a/arch/unicore32/include/asm/pci.h
++++ b/arch/unicore32/include/asm/pci.h
+@@ -17,8 +17,6 @@
+ #include <mach/hardware.h> /* for PCIBIOS_MIN_* */
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-	enum pci_mmap_state mmap_state, int write_combine);
+ 
+ #endif /* __KERNEL__ */
+ #endif
+diff --git a/arch/unicore32/kernel/pci.c b/arch/unicore32/kernel/pci.c
+index d45fa5f..ff1b7ef 100644
+--- a/arch/unicore32/kernel/pci.c
++++ b/arch/unicore32/kernel/pci.c
+@@ -362,7 +362,8 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return 0;
+ }
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long phys;
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index 9ab7507..eb87481 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -88,10 +88,6 @@ int pcibios_set_irq_routing(struct pci_dev *dev, int pin, int irq);
+ 
+ 
+ #define HAVE_PCI_MMAP
+-extern int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+-			       enum pci_mmap_state mmap_state,
+-			       int write_combine);
+-
+ 
+ #ifdef CONFIG_PCI
+ extern void early_quirks(void);
+diff --git a/arch/x86/pci/i386.c b/arch/x86/pci/i386.c
+index 0a9f2ca..36463c7 100644
+--- a/arch/x86/pci/i386.c
++++ b/arch/x86/pci/i386.c
+@@ -411,7 +411,8 @@ static const struct vm_operations_struct pci_mmap_ops = {
+ 	.access = generic_access_phys,
+ };
+ 
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state, int write_combine)
+ {
+ 	unsigned long prot;
+diff --git a/arch/xtensa/include/asm/pci.h b/arch/xtensa/include/asm/pci.h
+index 5d6bd93..bb5510b 100644
+--- a/arch/xtensa/include/asm/pci.h
++++ b/arch/xtensa/include/asm/pci.h
+@@ -46,10 +46,6 @@ struct pci_dev;
+ 
+ #define PCI_DMA_BUS_IS_PHYS	(1)
+ 
+-/* Map a range of PCI memory or I/O space for a device into user space */
+-int pci_mmap_page_range(struct pci_dev *pdev, struct vm_area_struct *vma,
+-			enum pci_mmap_state mmap_state, int write_combine);
+-
+ /* Tell drivers/pci/proc.c that we have pci_mmap_page_range() */
+ #define HAVE_PCI_MMAP	1
+ 
+diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
+index b848cc3..89c8687 100644
+--- a/arch/xtensa/kernel/pci.c
++++ b/arch/xtensa/kernel/pci.c
+@@ -362,7 +362,8 @@ __pci_mmap_set_pgprot(struct pci_dev *dev, struct vm_area_struct *vma,
+  *
+  * Returns a negative error code on failure, zero on success.
+  */
+-int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
+ 			enum pci_mmap_state mmap_state,
+ 			int write_combine)
+ {
+diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
+index d319a9c..5bbe20c 100644
+--- a/drivers/pci/pci-sysfs.c
++++ b/drivers/pci/pci-sysfs.c
+@@ -1027,7 +1027,7 @@ static int pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
+ 	pci_resource_to_user(pdev, i, res, &start, &end);
+ 	vma->vm_pgoff += start >> PAGE_SHIFT;
+ 	mmap_type = res->flags & IORESOURCE_MEM ? pci_mmap_mem : pci_mmap_io;
+-	return pci_mmap_page_range(pdev, vma, mmap_type, write_combine);
++	return pci_mmap_page_range(pdev, res, vma, mmap_type, write_combine);
+ }
+ 
+ static int pci_mmap_resource_uc(struct file *filp, struct kobject *kobj,
+diff --git a/drivers/pci/proc.c b/drivers/pci/proc.c
+index 3f155e7..f19ee2a 100644
+--- a/drivers/pci/proc.c
++++ b/drivers/pci/proc.c
+@@ -245,7 +245,7 @@ static int proc_bus_pci_mmap(struct file *file, struct vm_area_struct *vma)
+ 	if (i >= PCI_ROM_RESOURCE)
+ 		return -ENODEV;
+ 
+-	ret = pci_mmap_page_range(dev, vma,
++	ret = pci_mmap_page_range(dev, &dev->resource[i], vma,
+ 				  fpriv->mmap_state,
+ 				  fpriv->write_combine);
+ 	if (ret < 0)
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index b67e4df..3c1a0f4 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -70,6 +70,12 @@ enum pci_mmap_state {
+ 	pci_mmap_mem
+ };
+ 
++struct vm_area_struct;
++/* Map a range of PCI memory or I/O space for a device into user space */
++int pci_mmap_page_range(struct pci_dev *dev, struct resource *res,
++			struct vm_area_struct *vma,
++			enum pci_mmap_state mmap_state, int write_combine);
++
+ /*
+  *  For PCI devices, the region numbers are assigned this way:
+  */
+-- 
+2.8.3
 
-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
-/XUDAQA=
-
---ew6BAiZeqk4r7MaW--
