@@ -1,26 +1,26 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 08 Jun 2016 18:27:21 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 08 Jun 2016 18:33:48 +0000
 Subject: Re: [sparc] niagara2 cpu, opcodes not available message?
-Message-Id: <CADxRZqxhpKHS6mRcf01GNUTzDN4BEne337_CZJ_kD6XMrtzsNw@mail.gmail.com>
+Message-Id: <20160608.113348.1609018295943976971.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqwr9=9ZsrFR_8iC+f1Z=hSPi7Saj3uxB2=YmH42sVf6pQ@mail.gmail.com>
 In-Reply-To: <CADxRZqwr9=9ZsrFR_8iC+f1Z=hSPi7Saj3uxB2=YmH42sVf6pQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: debian-sparc <debian-sparc@lists.debian.org>, linux-crypto@vger.kernel.org
+To: matorola@gmail.com
+Cc: sparclinux@vger.kernel.org, debian-sparc@lists.debian.org, linux-crypto@vger.kernel.org
 
-On Wed, Jun 8, 2016 at 8:30 PM, Anatoly Pugachev <matorola@gmail.com> wrote:
-> Hello!
->
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Wed, 8 Jun 2016 20:30:40 +0300
+
 > Can someone please tell, why do we get a bunch of the following
 > messages on niagara2 cpu hardware (SPARC Enterprise T5120, T5220,
 > T5140, and T5240 servers)
->
+> 
 > Asking, because I see the following lines on kernel boot (removing
 > first field boot time stamp in cut):
->
+> 
 > mator@nvg5120:~/linux-sparc-boot-logs/t5120$ grep opcode
 > dmesg-4.7.0-rc2+.log  | cut -f2- -d' ' | sort | uniq -c
 >       4 aes_sparc64: sparc64 aes opcodes not available.
@@ -31,10 +31,8 @@ On Wed, Jun 8, 2016 at 8:30 PM, Anatoly Pugachev <matorola@gmail.com> wrote:
 >       1 sha1_sparc64: sparc64 sha1 opcode not available.
 >       2 sha256_sparc64: sparc64 sha256 opcode not available.
 >       3 sha512_sparc64: sparc64 sha512 opcode not available.
->
-> Can we probably remove this functionality/messages from niagara2 cpus,
-> if it does not support it anyway?
 
-Wasn't clear at all, I mean can we please change pr_info in
-arch/sparc/crypto/ to pr_debug in xx_sparc64_mod_init() functions?
-Thanks.
+Because the drivers unconditionally try to load, check the CPU capabilites
+and emit the log message if the cpu caps aren't present.
+
+I don't see what the problem is, everying is working as designed.
