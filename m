@@ -1,76 +1,47 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 04 Jun 2016 00:06:33 +0000
-Subject: [PATCH v12 06/15] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <20160604000642.28162-7-yinghai@kernel.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Date: Fri, 17 Jun 2016 20:11:47 +0000
+Subject: [PATCH v1 0/4] PCI: pci_resource_to_user() cleanups
+Message-Id: <20160617195835.11714.18657.stgit@bhelgaas-glaptop2.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160604000642.28162-1-yinghai@kernel.org>
-In-Reply-To: <20160604000642.28162-1-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Michal Simek <monstr@monstr.eu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Yinghai Lu <yinghai@kernel.org>, "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-For device resource with PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource.
+The /sys/devices/pci.../.../resource and /proc/bus/pci/devices files
+contain PCI BAR addresses.  On most architectures these addresses are
+"resource" values, e.g., CPU physical memory addresses or Linux I/O port
+numbers.  These may be offset from the raw PCI values if there are multiple
+PCI host bridges.
 
-so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device reso=
-urce
-flags parsing.
+On others (microblaze, mips, powerpc, sparc) they are raw PCI values as
+they would appear on the PCI bus.  pci_resource_to_user() converts from the
+struct resource to whatever the arch wants to expose.  It's a no-op on
+most arches.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
+The PCI core provides a pcibios_resource_to_bus() function that converts
+from struct resource values to raw PCI bus values.  These patches use that
+when possible instead of the arch-specific hand-coded equivalent.
+
+These shouldn't fix or break anything unless I've made a mistake.
+
 ---
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-2.8.3
+Bjorn Helgaas (4):
+      PCI: Unify pci_resource_to_user() declarations
+      microblaze/PCI: Implement pci_resource_to_user() with pcibios_resource_to_bus()
+      powerpc/pci: Implement pci_resource_to_user() with pcibios_resource_to_bus()
+      sparc/PCI: Implement pci_resource_to_user() with pcibios_resource_to_bus()
 
+
+ arch/microblaze/include/asm/pci.h |    3 ---
+ arch/microblaze/pci/pci-common.c  |   42 ++++++++++++-------------------------
+ arch/mips/include/asm/pci.h       |   10 ---------
+ arch/mips/pci/pci.c               |   10 +++++++++
+ arch/powerpc/include/asm/pci.h    |    3 ---
+ arch/powerpc/kernel/pci-common.c  |   42 ++++++++++++-------------------------
+ arch/sparc/include/asm/pci_64.h   |    3 ---
+ arch/sparc/kernel/pci.c           |   20 ++++++++++--------
+ include/linux/pci.h               |    6 ++++-
+ 9 files changed, 54 insertions(+), 85 deletions(-)
