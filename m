@@ -1,176 +1,169 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Date: Sat, 04 Jun 2016 00:06:38 +0000
-Subject: [PATCH v12 11/15] PCI: Check pref compatible bit for mem64 resource of PCIe device
-Message-Id: <20160604000642.28162-12-yinghai@kernel.org>
+Date: Sat, 18 Jun 2016 02:24:51 +0000
+Subject: [PATCH v13 06/16] sparc/PCI: Reserve legacy mmio after PCI mmio
+Message-Id: <20160618022501.15648-7-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160604000642.28162-1-yinghai@kernel.org>
-In-Reply-To: <20160604000642.28162-1-yinghai@kernel.org>
+References: <20160618022501.15648-1-yinghai@kernel.org>
+In-Reply-To: <20160618022501.15648-1-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-V2Ugc3RpbGwgZ2V0ICJubyBjb21wYXRpYmxlIGJyaWRnZSB3aW5kb3ciIHdhcm5pbmcgb24gc3Bh
-cmMgVDUtOAphZnRlciB3ZSBhZGQgc3VwcG9ydCBmb3IgNjRiaXQgcmVzb3VyY2UgcGFyc2luZyBm
-b3Igcm9vdCBidXMuCgogUENJOiBzY2FuX2J1c1svcGNpQDMwMC9wY2lAMS9wY2lAMC9wY2lANl0g
-YnVzIG5vIDgKIFBDSTogQ2xhaW1pbmcgMDAwMDowMDowMS4wOiBSZXNvdXJjZSAxNTogMDAwMDgw
-MDEwMDAwMDAwMC4uMDAwMDgwMDRhZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDow
-MTowMC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEwMDAwMDAwMC4uMDAwMDgwMDRhZmZmZmZmZiBb
-MjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowMjowNC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEw
-MDAwMDAwMC4uMDAwMDgwMDEyZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowMzow
-MC4wOiBSZXNvdXJjZSAxNTogMDAwMDgwMDEwMDAwMDAwMC4uMDAwMDgwMDEyZmZmZmZmZiBbMjIw
-Y10KIFBDSTogQ2xhaW1pbmcgMDAwMDowNDowNi4wOiBSZXNvdXJjZSAxNDogMDAwMDgwMDEwMDAw
-MDAwMC4uMDAwMDgwMDEwZmZmZmZmZiBbMjIwY10KIFBDSTogQ2xhaW1pbmcgMDAwMDowNTowMC4w
-OiBSZXNvdXJjZSAwOiAwMDAwODAwMTAwMDAwMDAwLi4wMDAwODAwMTAwMDAxZmZmIFsyMDRdCiBw
-Y2kgMDAwMDowNTowMC4wOiBjYW4ndCBjbGFpbSBCQVIgMCBbbWVtIDB4ODAwMTAwMDAwMDAwLTB4
-ODAwMTAwMDAxZmZmXTogbm8gY29tcGF0aWJsZSBicmlkZ2Ugd2luZG93CgpBbGwgdGhlIGJyaWRn
-ZXMgNjQtYml0IHJlc291cmNlIGhhdmUgcHJlZiBiaXQsIGJ1dCB0aGUgZGV2aWNlIHJlc291cmNl
-IGRvZXMgbm90CmhhdmUgcHJlZiBzZXQsIHRoZW4gd2UgY2FuIG5vdCBmaW5kIHBhcmVudCBmb3Ig
-dGhlIGRldmljZSByZXNvdXJjZSwKYXMgd2UgY2FuIG5vdCBwdXQgbm9uLXByZWYgbW1pbyB1bmRl
-ciBwcmVmIG1taW8uCgpBY2NvcmRpbmcgdG8gcGNpZSBzcGVjIGVycnRhCmh0dHBzOi8vd3d3LnBj
-aXNpZy5jb20vc3BlY2lmaWNhdGlvbnMvcGNpZXhwcmVzcy9iYXNlMi9QQ0llX0Jhc2VfcjIuMV9F
-cnJhdGFfMDhKdW4xMC5wZGYKcGFnZSAxMywgaW4gc29tZSBjYXNlIGl0IGlzIG9rIHRvIG1hcmsg
-c29tZSBhcyBwcmVmLgoKTWFyayBpZiB0aGUgZW50aXJlIHBhdGggZnJvbSB0aGUgaG9zdCB0byB0
-aGUgYWRhcHRlciBpcyBvdmVyIFBDSSBFeHByZXNzLgpTZXQgcHJlZiBjb21wYXRpYmxlIGJpdCBm
-b3IgY2xhaW0vc2l6aW5nL2Fzc2lnbiBmb3IgNjRiaXQgbWVtIHJlc291cmNlCm9uIHRoYXQgcGNp
-ZSBkZXZpY2UuCgotdjI6IHNldCBwcmVmIGZvciBtbWlvIDY0IHdoZW4gd2hvbGUgcGF0aCBpcyBQ
-Q0kgRXhwcmVzcywgYWNjb3JkaW5nIHRvIERhdmlkIE1pbGxlci4KLXYzOiBkb24ndCBzZXQgcHJl
-ZiBkaXJlY3RseSwgY2hhbmdlIHRvIFVOREVSX1BSRUYsIGFuZCBzZXQgUFJFRiBiZWZvcmUKICAg
-ICBzaXppbmcgYW5kIGFzc2lnbiByZXNvdXJjZSwgYW5kIGNsZWFydCBQUkVGIGFmdGVyd2FyZHMu
-IHJlcXVlc3RlZCBieSBCZW5ILgotdjQ6IHVzZSBvbl9hbGxfcGNpZV9wYXRoIGRldmljZSBmbGFn
-IGluc3RlYWQuCi12NjogdXBkYXRlIGFmdGVyIHBjaV9maW5kX2J1c19yZXNvdXJjZSgpIGNoYW5n
-ZQoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9yL0NBRTlGaVFVMWdKWTFMWXJ4cyttYTVM
-Q1RFRWU0eG10alJHMGFYSjlLX1RzdSttOVd1d0BtYWlsLmdtYWlsLmNvbQpSZXBvcnRlZC1ieTog
-RGF2aWQgQWhlcm4gPGRhdmlkLmFoZXJuQG9yYWNsZS5jb20+ClRlc3RlZC1ieTogRGF2aWQgQWhl
-cm4gPGRhdmlkLmFoZXJuQG9yYWNsZS5jb20+Ckxpbms6IGh0dHBzOi8vYnVnemlsbGEua2VybmVs
-Lm9yZy9zaG93X2J1Zy5jZ2k/aWSBNDMxClRlc3RlZC1ieTogVEogPGxpbnV4QGlhbS50aj4KU2ln
-bmVkLW9mZi1ieTogWWluZ2hhaSBMdSA8eWluZ2hhaUBrZXJuZWwub3JnPgpUZXN0ZWQtYnk6IEto
-YWxpZCBBeml6IDxraGFsaWQuYXppekBvcmFjbGUuY29tPgpDYzogc3BhcmNsaW51eEB2Z2VyLmtl
-cm5lbC5vcmcKLS0tCiBhcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMgfCAgMiArLQogZHJp
-dmVycy9wY2kvcGNpLmMgICAgICAgICAgICAgIHwgIDggKysrKystLS0KIGRyaXZlcnMvcGNpL3Bj
-aS5oICAgICAgICAgICAgICB8ICAyICsrCiBkcml2ZXJzL3BjaS9wcm9iZS5jICAgICAgICAgICAg
-fCAzMyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvcGNpL3NldHVw
-LWJ1cy5jICAgICAgICB8IDIzICsrKysrKysrKysrKysrKysrKystLS0tCiBkcml2ZXJzL3BjaS9z
-ZXR1cC1yZXMuYyAgICAgICAgfCAgNCArKysrCiBpbmNsdWRlL2xpbnV4L3BjaS5oICAgICAgICAg
-ICAgfCAgMyArKy0KIDcgZmlsZXMgY2hhbmdlZCwgNjYgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlv
-bnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMgYi9hcmNo
-L3NwYXJjL2tlcm5lbC9wY2lfY29tbW9uLmMKaW5kZXggMWViYzdmZi4uNmYyMDZhMSAxMDA2NDQK
-LS0tIGEvYXJjaC9zcGFyYy9rZXJuZWwvcGNpX2NvbW1vbi5jCisrKyBiL2FyY2gvc3BhcmMva2Vy
-bmVsL3BjaV9jb21tb24uYwpAQCAtMzQzLDcgKzM0Myw3IEBAIHN0YXRpYyB2b2lkIHBjaV9yZWdp
-c3Rlcl9yZWdpb24oc3RydWN0IHBjaV9idXMgKmJ1cywgY29uc3QgY2hhciAqbmFtZSwKIAlyZWdp
-b24uc3RhcnQgPSByc3RhcnQ7CiAJcmVnaW9uLmVuZCA9IHJzdGFydCArIHNpemUgLSAxVUw7CiAJ
-cGNpYmlvc19idXNfdG9fcmVzb3VyY2UoYnVzLCByZXMsICZyZWdpb24pOwotCWJ1c19yZXMgPSBw
-Y2lfZmluZF9idXNfcmVzb3VyY2UoYnVzLCByZXMpOworCWJ1c19yZXMgPSBwY2lfZmluZF9idXNf
-cmVzb3VyY2UoYnVzLCByZXMsIHJlcy0+ZmxhZ3MpOwogCWlmICghYnVzX3JlcykgewogCQlrZnJl
-ZShyZXMpOwogCQlyZXR1cm47CmRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9wY2kuYyBiL2RyaXZl
-cnMvcGNpL3BjaS5jCmluZGV4IDgxYzZjZjkuLmY0YWQxZTAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-cGNpL3BjaS5jCisrKyBiL2RyaXZlcnMvcGNpL3BjaS5jCkBAIC00MTUsNyArNDE1LDcgQEAgaW50
-IHBjaV9maW5kX2h0X2NhcGFiaWxpdHkoc3RydWN0IHBjaV9kZXYgKmRldiwgaW50IGh0X2NhcCkK
-IEVYUE9SVF9TWU1CT0xfR1BMKHBjaV9maW5kX2h0X2NhcGFiaWxpdHkpOwogCiBzdHJ1Y3QgcmVz
-b3VyY2UgKnBjaV9maW5kX2J1c19yZXNvdXJjZShjb25zdCBzdHJ1Y3QgcGNpX2J1cyAqYnVzLAot
-CQkJCQlzdHJ1Y3QgcmVzb3VyY2UgKnJlcykKKwkJCQkJc3RydWN0IHJlc291cmNlICpyZXMsIGlu
-dCBmbGFncykKIHsKIAlzdHJ1Y3QgcmVzb3VyY2UgKnI7CiAJaW50IGk7CkBAIC00MzAsNyArNDMw
-LDcgQEAgc3RydWN0IHJlc291cmNlICpwY2lfZmluZF9idXNfcmVzb3VyY2UoY29uc3Qgc3RydWN0
-IHBjaV9idXMgKmJ1cywKIAkJCSAqIG5vdCwgdGhlIGFsbG9jYXRvciBtYWRlIGEgbWlzdGFrZS4K
-IAkJCSAqLwogCQkJaWYgKHItPmZsYWdzICYgSU9SRVNPVVJDRV9QUkVGRVRDSCAmJgotCQkJICAg
-ICEocmVzLT5mbGFncyAmIElPUkVTT1VSQ0VfUFJFRkVUQ0gpKQorCQkJICAgICEoZmxhZ3MgJiBJ
-T1JFU09VUkNFX1BSRUZFVENIKSkKIAkJCQlyZXR1cm4gTlVMTDsKIAogCQkJLyoKQEAgLTQ1OCw3
-ICs0NTgsOSBAQCBzdHJ1Y3QgcmVzb3VyY2UgKnBjaV9maW5kX2J1c19yZXNvdXJjZShjb25zdCBz
-dHJ1Y3QgcGNpX2J1cyAqYnVzLAogc3RydWN0IHJlc291cmNlICpwY2lfZmluZF9wYXJlbnRfcmVz
-b3VyY2UoY29uc3Qgc3RydWN0IHBjaV9kZXYgKmRldiwKIAkJCQkJICBzdHJ1Y3QgcmVzb3VyY2Ug
-KnJlcykKIHsKLQlyZXR1cm4gcGNpX2ZpbmRfYnVzX3Jlc291cmNlKGRldi0+YnVzLCByZXMpOwor
-CWludCBmbGFncyA9IHBjaV9yZXNvdXJjZV9wcmVmX2NvbXBhdGlibGUoZGV2LCByZXMpOworCisJ
-cmV0dXJuIHBjaV9maW5kX2J1c19yZXNvdXJjZShkZXYtPmJ1cywgcmVzLCBmbGFncyk7CiB9CiBF
-WFBPUlRfU1lNQk9MKHBjaV9maW5kX3BhcmVudF9yZXNvdXJjZSk7CiAKZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvcGNpL3BjaS5oIGIvZHJpdmVycy9wY2kvcGNpLmgKaW5kZXggN2QzMzljMy4uNDUwOGEx
-ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvcGNpLmgKKysrIGIvZHJpdmVycy9wY2kvcGNpLmgK
-QEAgLTMzNiw0ICszMzYsNiBAQCBzdGF0aWMgaW5saW5lIGludCBwY2lfZGV2X3NwZWNpZmljX3Jl
-c2V0KHN0cnVjdCBwY2lfZGV2ICpkZXYsIGludCBwcm9iZSkKIH0KICNlbmRpZgogCitpbnQgcGNp
-X3Jlc291cmNlX3ByZWZfY29tcGF0aWJsZShjb25zdCBzdHJ1Y3QgcGNpX2RldiAqZGV2LAorCQkJ
-CSBzdHJ1Y3QgcmVzb3VyY2UgKnJlcyk7CiAjZW5kaWYgLyogRFJJVkVSU19QQ0lfSCAqLwpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9wY2kvcHJvYmUuYyBiL2RyaXZlcnMvcGNpL3Byb2JlLmMKaW5kZXgg
-OGUzZWY3Mi4uNWQxMWRlYyAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvcHJvYmUuYworKysgYi9k
-cml2ZXJzL3BjaS9wcm9iZS5jCkBAIC0xNzMyLDYgKzE3MzIsMzYgQEAgc3RhdGljIHZvaWQgcGNp
-X2RtYV9jb25maWd1cmUoc3RydWN0IHBjaV9kZXYgKmRldikKIAlwY2lfcHV0X2hvc3RfYnJpZGdl
-X2RldmljZShicmlkZ2UpOwogfQogCitzdGF0aWMgYm9vbCBwY2lfdXBfcGF0aF9vdmVyX3BjaWUo
-c3RydWN0IHBjaV9idXMgKmJ1cykKK3sKKwlpZiAocGNpX2lzX3Jvb3RfYnVzKGJ1cykpCisJCXJl
-dHVybiB0cnVlOworCisJaWYgKGJ1cy0+c2VsZiAmJiAhcGNpX2lzX3BjaWUoYnVzLT5zZWxmKSkK
-KwkJcmV0dXJuIGZhbHNlOworCisJcmV0dXJuIHBjaV91cF9wYXRoX292ZXJfcGNpZShidXMtPnBh
-cmVudCk7Cit9CisKKy8qCisgKiBBY2NvcmRpbmcgdG8KKyAqIGh0dHBzOi8vd3d3LnBjaXNpZy5j
-b20vc3BlY2lmaWNhdGlvbnMvcGNpZXhwcmVzcy9iYXNlMi9QQ0llX0Jhc2VfcjIuMV9FcnJhdGFf
-MDhKdW4xMC5wZGYKKyAqIHBhZ2UgMTMsIHN5c3RlbSBmaXJtd2FyZSBjb3VsZCBwdXQgc29tZSA2
-NGJpdCBub24tcHJlZiB1bmRlciA2NGJpdCBwcmVmLAorICogb24gc29tZSBjYXNlcy4KKyAqIExl
-dCdzIG1hcmsgaWYgZW50aXJlIHBhdGggZnJvbSB0aGUgaG9zdCB0byB0aGUgYWRhcHRlciBpcyBv
-dmVyIFBDSQorICogRXhwcmVzcy4gbGF0ZXIgd2lsbCB1c2UgdGhhdCBjb21wdXRlIHByZWYgY29t
-cGFpdGFibGUgYml0LgorICovCitzdGF0aWMgdm9pZCBwY2lfc2V0X29uX2FsbF9wY2llX3BhdGgo
-c3RydWN0IHBjaV9kZXYgKmRldikKK3sKKwlpZiAoIXBjaV9pc19wY2llKGRldikpCisJCXJldHVy
-bjsKKworCWlmICghcGNpX3VwX3BhdGhfb3Zlcl9wY2llKGRldi0+YnVzKSkKKwkJcmV0dXJuOwor
-CisJZGV2LT5vbl9hbGxfcGNpZV9wYXRoID0gMTsKK30KKwogdm9pZCBwY2lfZGV2aWNlX2FkZChz
-dHJ1Y3QgcGNpX2RldiAqZGV2LCBzdHJ1Y3QgcGNpX2J1cyAqYnVzKQogewogCWludCByZXQ7CkBA
-IC0xNzYyLDYgKzE3OTIsOSBAQCB2b2lkIHBjaV9kZXZpY2VfYWRkKHN0cnVjdCBwY2lfZGV2ICpk
-ZXYsIHN0cnVjdCBwY2lfYnVzICpidXMpCiAJLyogSW5pdGlhbGl6ZSB2YXJpb3VzIGNhcGFiaWxp
-dGllcyAqLwogCXBjaV9pbml0X2NhcGFiaWxpdGllcyhkZXYpOwogCisJLyogQWZ0ZXIgcGNpZV9j
-YXAgaXMgYXNzaWduZWQgKi8KKwlwY2lfc2V0X29uX2FsbF9wY2llX3BhdGgoZGV2KTsKKwogCS8q
-CiAJICogQWRkIHRoZSBkZXZpY2UgdG8gb3VyIGxpc3Qgb2YgZGlzY292ZXJlZCBkZXZpY2VzCiAJ
-ICogYW5kIHRoZSBidXMgbGlzdCBmb3IgZml4dXAgZnVuY3Rpb25zLCBldGMuCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL3BjaS9zZXR1cC1idXMuYyBiL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCmluZGV4
-IDU1NjQxYTMuLmIzYjE1NjUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCisr
-KyBiL2RyaXZlcnMvcGNpL3NldHVwLWJ1cy5jCkBAIC03MzgsNiArNzM4LDIwIEBAIGludCBwY2lf
-Y2xhaW1fYnJpZGdlX3Jlc291cmNlKHN0cnVjdCBwY2lfZGV2ICpicmlkZ2UsIGludCBpKQogCXJl
-dHVybiAtRUlOVkFMOwogfQogCitpbnQgcGNpX3Jlc291cmNlX3ByZWZfY29tcGF0aWJsZShjb25z
-dCBzdHJ1Y3QgcGNpX2RldiAqZGV2LAorCQkJCSBzdHJ1Y3QgcmVzb3VyY2UgKnJlcykKK3sKKwlp
-ZiAocmVzLT5mbGFncyAmIElPUkVTT1VSQ0VfUFJFRkVUQ0gpCisJCXJldHVybiByZXMtPmZsYWdz
-OworCisJaWYgKChyZXMtPmZsYWdzICYgSU9SRVNPVVJDRV9NRU0pICYmCisJICAgIChyZXMtPmZs
-YWdzICYgSU9SRVNPVVJDRV9NRU1fNjQpICYmCisJICAgIGRldi0+b25fYWxsX3BjaWVfcGF0aCkK
-KwkJcmV0dXJuIHJlcy0+ZmxhZ3MgfCBJT1JFU09VUkNFX1BSRUZFVENIOworCisJcmV0dXJuIHJl
-cy0+ZmxhZ3M7Cit9CisKIC8qIENoZWNrIHdoZXRoZXIgdGhlIGJyaWRnZSBzdXBwb3J0cyBvcHRp
-b25hbCBJL08gYW5kCiAgICBwcmVmZXRjaGFibGUgbWVtb3J5IHJhbmdlcy4gSWYgbm90LCB0aGUg
-cmVzcGVjdGl2ZQogICAgYmFzZS9saW1pdCByZWdpc3RlcnMgbXVzdCBiZSByZWFkLW9ubHkgYW5k
-IHJlYWQgYXMgMC4gKi8KQEAgLTEwMzUsMTEgKzEwNDksMTIgQEAgc3RhdGljIGludCBwYnVzX3Np
-emVfbWVtKHN0cnVjdCBwY2lfYnVzICpidXMsIHVuc2lnbmVkIGxvbmcgbWFzaywKIAkJZm9yIChp
-ID0gMDsgaSA8IFBDSV9OVU1fUkVTT1VSQ0VTOyBpKyspIHsKIAkJCXN0cnVjdCByZXNvdXJjZSAq
-ciA9ICZkZXYtPnJlc291cmNlW2ldOwogCQkJcmVzb3VyY2Vfc2l6ZV90IHJfc2l6ZTsKKwkJCWlu
-dCBmbGFncyA9IHBjaV9yZXNvdXJjZV9wcmVmX2NvbXBhdGlibGUoZGV2LCByKTsKIAotCQkJaWYg
-KHItPnBhcmVudCB8fCAoci0+ZmxhZ3MgJiBJT1JFU09VUkNFX1BDSV9GSVhFRCkgfHwKLQkJCSAg
-ICAoKHItPmZsYWdzICYgbWFzaykgIT0gdHlwZSAmJgotCQkJICAgICAoci0+ZmxhZ3MgJiBtYXNr
-KSAhPSB0eXBlMiAmJgotCQkJICAgICAoci0+ZmxhZ3MgJiBtYXNrKSAhPSB0eXBlMykpCisJCQlp
-ZiAoci0+cGFyZW50IHx8IChmbGFncyAmIElPUkVTT1VSQ0VfUENJX0ZJWEVEKSB8fAorCQkJICAg
-ICgoZmxhZ3MgJiBtYXNrKSAhPSB0eXBlICYmCisJCQkgICAgIChmbGFncyAmIG1hc2spICE9IHR5
-cGUyICYmCisJCQkgICAgIChmbGFncyAmIG1hc2spICE9IHR5cGUzKSkKIAkJCQljb250aW51ZTsK
-IAkJCXJfc2l6ZSA9IHJlc291cmNlX3NpemUocik7CiAjaWZkZWYgQ09ORklHX1BDSV9JT1YKZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvcGNpL3NldHVwLXJlcy5jIGIvZHJpdmVycy9wY2kvc2V0dXAtcmVz
-LmMKaW5kZXggNjZjNGQ4Zi4uZjc0MWZlZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9wY2kvc2V0dXAt
-cmVzLmMKKysrIGIvZHJpdmVycy9wY2kvc2V0dXAtcmVzLmMKQEAgLTI1NywxNSArMjU3LDE5IEBA
-IHN0YXRpYyBpbnQgX19wY2lfYXNzaWduX3Jlc291cmNlKHN0cnVjdCBwY2lfYnVzICpidXMsIHN0
-cnVjdCBwY2lfZGV2ICpkZXYsCiBzdGF0aWMgaW50IF9wY2lfYXNzaWduX3Jlc291cmNlKHN0cnVj
-dCBwY2lfZGV2ICpkZXYsIGludCByZXNubywKIAkJCQlyZXNvdXJjZV9zaXplX3Qgc2l6ZSwgcmVz
-b3VyY2Vfc2l6ZV90IG1pbl9hbGlnbikKIHsKKwlzdHJ1Y3QgcmVzb3VyY2UgKnJlcyA9IGRldi0+
-cmVzb3VyY2UgKyByZXNubzsKKwlpbnQgb2xkX2ZsYWdzID0gcmVzLT5mbGFnczsKIAlzdHJ1Y3Qg
-cGNpX2J1cyAqYnVzOwogCWludCByZXQ7CiAKKwlyZXMtPmZsYWdzID0gcGNpX3Jlc291cmNlX3By
-ZWZfY29tcGF0aWJsZShkZXYsIHJlcyk7CiAJYnVzID0gZGV2LT5idXM7CiAJd2hpbGUgKChyZXQg
-PSBfX3BjaV9hc3NpZ25fcmVzb3VyY2UoYnVzLCBkZXYsIHJlc25vLCBzaXplLCBtaW5fYWxpZ24p
-KSkgewogCQlpZiAoIWJ1cy0+cGFyZW50IHx8ICFidXMtPnNlbGYtPnRyYW5zcGFyZW50KQogCQkJ
-YnJlYWs7CiAJCWJ1cyA9IGJ1cy0+cGFyZW50OwogCX0KKwlyZXMtPmZsYWdzID0gb2xkX2ZsYWdz
-OwogCiAJcmV0dXJuIHJldDsKIH0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvcGNpLmggYi9p
-bmNsdWRlL2xpbnV4L3BjaS5oCmluZGV4IDExYjIxNmQuLmRhYWFjMzggMTAwNjQ0Ci0tLSBhL2lu
-Y2x1ZGUvbGludXgvcGNpLmgKKysrIGIvaW5jbHVkZS9saW51eC9wY2kuaApAQCAtMzA5LDYgKzMw
-OSw3IEBAIHN0cnVjdCBwY2lfZGV2IHsKIAkJCQkJCSAgIHBvd2VyZWQgb24vb2ZmIGJ5IHRoZQog
-CQkJCQkJICAgY29ycmVzcG9uZGluZyBicmlkZ2UgKi8KIAl1bnNpZ25lZCBpbnQJaWdub3JlX2hv
-dHBsdWc6MTsJLyogSWdub3JlIGhvdHBsdWcgZXZlbnRzICovCisJdW5zaWduZWQgaW50CW9uX2Fs
-bF9wY2llX3BhdGg6MTsJLyogdXAgdG8gaG9zdC1icmlkZ2UgYWxsIHBjaWUgKi8KIAl1bnNpZ25l
-ZCBpbnQJZDNfZGVsYXk7CS8qIEQzLT5EMCB0cmFuc2l0aW9uIHRpbWUgaW4gbXMgKi8KIAl1bnNp
-Z25lZCBpbnQJZDNjb2xkX2RlbGF5OwkvKiBEM2NvbGQtPkQwIHRyYW5zaXRpb24gdGltZSBpbiBt
-cyAqLwogCkBAIC04MTIsNyArODEzLDcgQEAgdm9pZCBwY2liaW9zX3Jlc291cmNlX3RvX2J1cyhz
-dHJ1Y3QgcGNpX2J1cyAqYnVzLCBzdHJ1Y3QgcGNpX2J1c19yZWdpb24gKnJlZ2lvbiwKIHZvaWQg
-cGNpYmlvc19idXNfdG9fcmVzb3VyY2Uoc3RydWN0IHBjaV9idXMgKmJ1cywgc3RydWN0IHJlc291
-cmNlICpyZXMsCiAJCQkgICAgIHN0cnVjdCBwY2lfYnVzX3JlZ2lvbiAqcmVnaW9uKTsKIHN0cnVj
-dCByZXNvdXJjZSAqcGNpX2ZpbmRfYnVzX3Jlc291cmNlKGNvbnN0IHN0cnVjdCBwY2lfYnVzICpi
-dXMsCi0JCQkJCXN0cnVjdCByZXNvdXJjZSAqcmVzKTsKKwkJCQkJc3RydWN0IHJlc291cmNlICpy
-ZXMsIGludCBmbGFncyk7CiB2b2lkIHBjaWJpb3Nfc2Nhbl9zcGVjaWZpY19idXMoaW50IGJ1c24p
-Owogc3RydWN0IHBjaV9idXMgKnBjaV9maW5kX2J1cyhpbnQgZG9tYWluLCBpbnQgYnVzbnIpOwog
-dm9pZCBwY2lfYnVzX2FkZF9kZXZpY2VzKGNvbnN0IHN0cnVjdCBwY2lfYnVzICpidXMpOwotLSAK
-Mi44LjMKCi0tClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
-bnN1YnNjcmliZSBzcGFyY2xpbnV4IiBpbgp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
-b21vQHZnZXIua2VybmVsLm9yZwpNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5r
-ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWw=
+On one system found bunch of claim resource fail from pci device.
+pci_sun4v f02b894c: PCI host bridge to bus 0000:00
+pci_bus 0000:00: root bus resource [io  0x2007e00000000-0x2007e0fffffff] (bus address [0x0000-0xfffffff])
+pci_bus 0000:00: root bus resource [mem 0x2000000000000-0x200007effffff] (bus address [0x00000000-0x7effffff])
+pci_bus 0000:00: root bus resource [mem 0x2000100000000-0x20007ffffffff] (bus address [0x100000000-0x7ffffffff])
+...
+PCI: Claiming 0000:00:02.0: Resource 14: 0002000000000000..00020000004fffff [200]
+pci 0000:00:02.0: can't claim BAR 14 [mem 0x2000000000000-0x20000004fffff]: address conflict with Video RAM area [??? 0x20000000a0000-0x20000000bffff flags 0x80000000]
+pci 0000:02:00.0: can't claim BAR 0 [mem 0x2000000000000-0x20000000fffff]: no compatible bridge window
+PCI: Claiming 0000:02:00.0: Resource 3: 0002000000100000..0002000000103fff [200]
+pci 0000:02:00.0: can't claim BAR 3 [mem 0x2000000100000-0x2000000103fff]: no compatible bridge window
+PCI: Claiming 0000:02:00.1: Resource 0: 0002000000200000..00020000002fffff [200]
+pci 0000:02:00.1: can't claim BAR 0 [mem 0x2000000200000-0x20000002fffff]: no compatible bridge window
+PCI: Claiming 0000:02:00.1: Resource 3: 0002000000104000..0002000000107fff [200]
+pci 0000:02:00.1: can't claim BAR 3 [mem 0x2000000104000-0x2000000107fff]: no compatible bridge window
+PCI: Claiming 0000:02:00.2: Resource 0: 0002000000300000..00020000003fffff [200]
+pci 0000:02:00.2: can't claim BAR 0 [mem 0x2000000300000-0x20000003fffff]: no compatible bridge window
+PCI: Claiming 0000:02:00.2: Resource 3: 0002000000108000..000200000010bfff [200]
+pci 0000:02:00.2: can't claim BAR 3 [mem 0x2000000108000-0x200000010bfff]: no compatible bridge window
+PCI: Claiming 0000:02:00.3: Resource 0: 0002000000400000..00020000004fffff [200]
+pci 0000:02:00.3: can't claim BAR 0 [mem 0x2000000400000-0x20000004fffff]: no compatible bridge window
+PCI: Claiming 0000:02:00.3: Resource 3: 000200000010c000..000200000010ffff [200]
+pci 0000:02:00.3: can't claim BAR 3 [mem 0x200000010c000-0x200000010ffff]: no compatible bridge window
+
+The bridge 00:02.0 resource does not get reserved as Video RAM take the position early,
+and following children resources reservation all fail.
+
+Move down Video RAM area reservation after pci mmio get reserved,
+so we leave pci driver to use those regions.
+
+-v5: merge simplify one and use pcibios_bus_to_resource()
+
+-v6: use pci_find_bus_resource()
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/pci.c        |  1 +
+ arch/sparc/kernel/pci_common.c | 59 ++++++++++++++++++++++--------------------
+ arch/sparc/kernel/pci_impl.h   |  1 +
+ 3 files changed, 33 insertions(+), 28 deletions(-)
+
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index e16da35..654cf21 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -686,6 +686,7 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 	pci_bus_register_of_sysfs(bus);
+ 
+ 	pci_claim_bus_resources(bus);
++	pci_register_legacy_regions(bus);
+ 	pci_bus_add_devices(bus);
+ 	return bus;
+ }
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index 76998f8..1ebc7ff 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -328,41 +328,46 @@ void pci_get_pbm_props(struct pci_pbm_info *pbm)
+ 	}
+ }
+ 
+-static void pci_register_legacy_regions(struct resource *io_res,
+-					struct resource *mem_res)
++static void pci_register_region(struct pci_bus *bus, const char *name,
++				resource_size_t rstart, resource_size_t size)
+ {
+-	struct resource *p;
++	struct resource *res, *conflict, *bus_res;
++	struct pci_bus_region region;
+ 
+-	/* VGA Video RAM. */
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
+ 		return;
+ 
+-	p->name = "Video RAM area";
+-	p->start = mem_res->start + 0xa0000UL;
+-	p->end = p->start + 0x1ffffUL;
+-	p->flags = IORESOURCE_BUSY;
+-	request_resource(mem_res, p);
++	res->flags = IORESOURCE_MEM;
+ 
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
++	region.start = rstart;
++	region.end = rstart + size - 1UL;
++	pcibios_bus_to_resource(bus, res, &region);
++	bus_res = pci_find_bus_resource(bus, res);
++	if (!bus_res) {
++		kfree(res);
+ 		return;
++	}
++
++	res->name = name;
++	res->flags |= IORESOURCE_BUSY;
++	conflict = request_resource_conflict(bus_res, res);
++	if (conflict) {
++		dev_printk(KERN_DEBUG, &bus->dev,
++			" can't claim %s %pR: address conflict with %s %pR\n",
++			res->name, res, conflict->name, conflict);
++		kfree(res);
++	}
++}
+ 
+-	p->name = "System ROM";
+-	p->start = mem_res->start + 0xf0000UL;
+-	p->end = p->start + 0xffffUL;
+-	p->flags = IORESOURCE_BUSY;
+-	request_resource(mem_res, p);
++void pci_register_legacy_regions(struct pci_bus *bus)
++{
++	/* VGA Video RAM. */
++	pci_register_region(bus, "Video RAM area", 0xa0000UL, 0x20000UL);
+ 
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
+-		return;
++	pci_register_region(bus, "System ROM",     0xf0000UL, 0x10000UL);
+ 
+-	p->name = "Video ROM";
+-	p->start = mem_res->start + 0xc0000UL;
+-	p->end = p->start + 0x7fffUL;
+-	p->flags = IORESOURCE_BUSY;
+-	request_resource(mem_res, p);
++	pci_register_region(bus, "Video ROM",      0xc0000UL,  0x8000UL);
+ }
+ 
+ static void pci_register_iommu_region(struct pci_pbm_info *pbm)
+@@ -504,8 +509,6 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 	if (pbm->mem64_space.flags)
+ 		request_resource(&iomem_resource, &pbm->mem64_space);
+ 
+-	pci_register_legacy_regions(&pbm->io_space,
+-				    &pbm->mem_space);
+ 	pci_register_iommu_region(pbm);
+ }
+ 
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index 2853af7..ff8f5e1 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -167,6 +167,7 @@ void pci_get_pbm_props(struct pci_pbm_info *pbm);
+ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 				 struct device *parent);
+ void pci_determine_mem_io_space(struct pci_pbm_info *pbm);
++void pci_register_legacy_regions(struct pci_bus *bus);
+ 
+ /* Error reporting support. */
+ void pci_scan_for_target_abort(struct pci_pbm_info *, struct pci_bus *);
+-- 
+2.8.3
+
