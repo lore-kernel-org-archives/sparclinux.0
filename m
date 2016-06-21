@@ -1,90 +1,62 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 21 Jun 2016 08:15:04 +0000
-Subject: Please upgrade your machines to sparc64
-Message-Id: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 21 Jun 2016 11:37:17 +0000
+Subject: Re: Please upgrade your machines to sparc64
+Message-Id: <alpine.LRH.2.20.1606211425370.20966@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
+References: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
+In-Reply-To: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello!
+> According to to Debian's popularity contest page [1], there are still 82 machines
+> reporting to be running Debian's old, unsupported sparc port (32-bit userland,
+> 64-bit kernel). Since popcon only reports machines where the users decided to
+> opt-in, the number of unreported sparc installations will most certainly be
+> higher.
 
-According to to Debian's popularity contest page [1], there are still 82 machines
-reporting to be running Debian's old, unsupported sparc port (32-bit userland,
-64-bit kernel). Since popcon only reports machines where the users decided to
-opt-in, the number of unreported sparc installations will most certainly be
-higher.
+I might have quite a number of machines there :) Most of my sparcs are 
+running snapshot of debian sid from Jul 27, 2015, with systemd packages 
+slightly earlier (218-something). Getting something newer on them would 
+be good...
 
-I would like to ask anyone still running the old sparc port to reinstall their
-machines using the sparc64 NETINST installation image [2]. I have just done
-that yesterday on a SPARC T200 server and it was very easy when you keep
-a few things in mind:
+I have been planning to test the sparc64 port when I get some time, to 
+see if it is ready enough to easily upgrade all the machines. From your 
+description it seems that it is installable but not ready yet.
 
-  * when setting up the partitions, create a small (~1 GiB) boot partition
-    which is formatted with ext3 and mounted /boot; this is required for SILO
-    to work reliably and find the installed kernels
-  * when prompted to enter mirror data, use the following:
+>   * when setting up the partitions, create a small (~1 GiB) boot partition
+>     which is formatted with ext3 and mounted /boot; this is required for SILO
+>     to work reliably and find the installed kernels
 
-    - mirror: http://ftp.ports.debian.org
-    - directory: /debian-ports/
+I have always wanted to know why? I understanrd there was OBP problem in 
+old 32-bit sparc machines that was the reason for this suggestion, but I 
+have impression that this is not the case for any sun4u era or later 
+OBP.
 
-    although you won't be able to install any packages during installation
-    anyway due to the missing Debian Ports signing key (see next point),
-    you should still already set up the mirror data here as it will be
-    used to configure your /etc/apt/sources.list for the installed system
+I have installed most of my sparcs with single root only and never seen 
+any problems (OK, my disks usually do not fill up much, most stay under 
+10G total - but defintely use more from 1G from the start of the disks 
+even for files under /boot).
 
-  * ignore the error message about software packages being unable to be
-    installed, just skip this step and you will be fine; you can install
-    additional packages easily after rebooting the machine with the installed
-    system
-  * after skipping the software installation step, just let debian-installer
-    finish the installation by installation SILO and completing the remaining
-    tasks
-  * after the machine has reset and is about to boot the installed system,
-    boot the machine with "Linux console=ttyS0,9600,8n1" where "Linux"
-    is the name of the configuration in SILO to be booted (defaults to
-    "Linux" - view available configurations by pressing <TAB>) and
-    console=ttyS0,9600,8n1 configures the serial console which is disabled
-    by default currently (I will look into changing this in the future)
+And silo should support ext4 for years - I have multiple sparcs with 
+ext4 root and no /boot and it all still works. Last commit about ext4 in 
+silo git was from 2012 so I have the impression that it should work.
 
-After system has rebooted, you should be able to log in using the root login
-you created during installation. Before you will be able to install packages,
-you need to install the signing key for Debian Ports manually:
+Does anyone remember the exact reasons we suggest separate /boot 
+partition?
 
-# gpg --keyserver pgp.mit.edu --recv-keys 705A2CE1
-# gpg --export 705A2CE1 --armor | apt-key add -
-# apt-get update
+>   * after the machine has reset and is about to boot the installed system,
+>     boot the machine with "Linux console=ttyS0,9600,8n1" where "Linux"
+>     is the name of the configuration in SILO to be booted (defaults to
+>     "Linux" - view available configurations by pressing <TAB>) and
+>     console=ttyS0,9600,8n1 configures the serial console which is disabled
+>     by default currently (I will look into changing this in the future)
 
-After this, your system should be ready to use and you can upgrade with:
+Does <TAB> work in silo for anybody for filename completion?
 
-# apt-get update && apt-get upgrade
-
-When dist-upgrading, *always* read what APT is going to do before hitting <ENTER>
-and in case some important packages would be deleted, press <n> to cancel. This
-issue usually resolves after a certain time when the buildds have caught
-up with building new packages.
-
-# apt-get dist-upgrade
-
->>> Read the warnings about potential packages being removed <<<
-
-Finally, you should install the popularity-contest package to help the popularity
-of the sparc64 port:
-
-# apt-get install popularity-contest
-
-The more people are running the sparc64 port of Debian, the easier it will be for
-us to convince the release team to make sparc64 an official Debian port!
-
-Thanks,
-Adrian
-
-> [1] http://popcon.debian.org/
-> [2] https://people.debian.org/~glaubitz/debian-cd/2016-05-04/debian-9.0-sparc64-NETINST-1.iso
+I reported https://bugs.debian.org/cgi-bin/bugreport.cgi?bug'9480 in 
+2004 and I am still seeing the same behaviour as far as I can remember.
 
 -- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Meelis Roos (mroos@linux.ee)
