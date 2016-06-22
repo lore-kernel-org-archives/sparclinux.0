@@ -1,21 +1,32 @@
-From: Xose Vazquez Perez <xose.vazquez@gmail.com>
-Date: Tue, 21 Jun 2016 17:03:25 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Jun 2016 18:48:01 +0000
 Subject: Re: [PATCH] sparc64: Swap registers for fault code and address in mna trap
-Message-Id: <d2dceeba-439d-8325-9f77-e53ba13d1c1a@gmail.com>
+Message-Id: <20160622.144801.1635213470824395549.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <TYXPR01MB058946C0AC6B6523F82004FC99570@TYXPR01MB0589.jpnprd01.prod.outlook.com>
-In-Reply-To: <TYXPR01MB058946C0AC6B6523F82004FC99570@TYXPR01MB0589.jpnprd01.prod.outlook.com>
+References: <TYXPR01MB0589F696D4EADB7B1244D97A99570@TYXPR01MB0589.jpnprd01.prod.outlook.com>
+	<20160617.231234.1295900275353757289.davem@davemloft.net>
+	<TYXPR01MB05893FD71E27BA04B44B5625992B0@TYXPR01MB0589.jpnprd01.prod.outlook.com>
+In-Reply-To: <TYXPR01MB05893FD71E27BA04B44B5625992B0@TYXPR01MB0589.jpnprd01.prod.outlook.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
-To: Hisashi Kanda <hikanda@zlab.co.jp>, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: hikanda@zlab.co.jp
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hisashi Kanda wrote:
+From: 神田　尚 <hikanda@zlab.co.jp>
+Date: Tue, 21 Jun 2016 10:36:42 +0000
 
+> Hi, David
+> 
+> Thank you for your reply.
+> 
+>> If you can really trigger this code path, please post the kernel log
+>> backtrace that happens when the BUG() triggers.  That way we can
+>> figure out what the real problem is.
+> I'm sorry I cannot show the information. I don't have now.
 > In fact, BUG() in do_sparc64_fault occurred in modified version
 > of linux-2.6.25.8 on SPARC64VIIIfx. I'm misunderstanding that
 > the same problem remains in the latest.
 
-Fujitsu K computer, with SPARC64 VIIIfx, runs a heavily modified
-2.6.25.8 kernel. And maybe also binutils, glibc, gcc, gdb, ...
-Even UTS_MACHINE was changed from sparc64 to s64fx.
+You have to show me that the calltrace occurs with the latest
+kernel.
