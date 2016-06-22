@@ -1,7 +1,7 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Date: Wed, 22 Jun 2016 20:14:29 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 22 Jun 2016 20:43:43 +0000
 Subject: Re: Please upgrade your machines to sparc64
-Message-Id: <20160622201429.GE11384@raspberrypi.musicnaut.iki.fi>
+Message-Id: <96fc9c8e-520c-610a-80ef-0f5d99697982@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
 In-Reply-To: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
@@ -10,18 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
+On 06/22/2016 10:14 PM, Aaro Koskinen wrote:
+> Or compile and maintain your own 32-bit userspace (like I do). For the
+> stuff I need, upstream projects have no issues with 32-bit.
 
-On Wed, Jun 22, 2016 at 09:23:40PM +0200, John Paul Adrian Glaubitz wrote:
-> That won't change the fact that the majority of work is now happening on
-> sparc64. I don't think there is a realistic chance of getting most projects
-> spending much work on the 32-bit code since the focus is on new hardware.
-> 
-> Either way, Debian sparc (32-bit) is completely unsupported these days
-> and no longer receiving any security updates. So, anyone should either
-> use Gentoo or switch over to Debian sparc64.
+That's what I meant when I mentioned Gentoo as an option.
 
-Or compile and maintain your own 32-bit userspace (like I do). For the
-stuff I need, upstream projects have no issues with 32-bit.
+Adrian
 
-A.
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
