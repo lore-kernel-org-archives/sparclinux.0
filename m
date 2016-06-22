@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Wed, 22 Jun 2016 20:43:43 +0000
+From: chase rayfield <cusbrar1@gmail.com>
+Date: Wed, 22 Jun 2016 20:54:51 +0000
 Subject: Re: Please upgrade your machines to sparc64
-Message-Id: <96fc9c8e-520c-610a-80ef-0f5d99697982@physik.fu-berlin.de>
+Message-Id: <CACwypyPsSiEasjcx9WdnYZT6_pWe7dmDsMLZO+tjdydn3nTaFg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
 In-Reply-To: <756b931c-35f9-e094-94bf-f12839b61d92@physik.fu-berlin.de>
@@ -10,16 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 06/22/2016 10:14 PM, Aaro Koskinen wrote:
-> Or compile and maintain your own 32-bit userspace (like I do). For the
-> stuff I need, upstream projects have no issues with 32-bit.
+Actually it's quite different from the x32 ABI.... 32bit Sparc code
+has always been fastest by a large margin and has been what everyone
+used unlike x32 which is only marginally faster as well as unstable.
+On the other hand 64bit on Sparc code has only been used in the small
+corner cases were 64bit was indeed faster or large memory access was
+needed. I can imagine situations on big iron where a database may be
+64bit due to large memory use but any client software also running
+would be 32bit...
 
-That's what I meant when I mentioned Gentoo as an option.
+Also, who seriously runs Firefox on a T4 server or a LEON4 system or
+vintage sun4 gear like I have? Though I would applaud someone for
+trying it isn't a good point on which to make a decision regarding
+userland maintenance. It just isn't a class of software that runs in
+any practical sense on Sparc hardware that is in existence. It is far
+too bloated for one... Firefox is a worst offender in this area and
+depreciated everything else just because it can't build Firefox which
+isn't even supported on Sparc anyway... is nonsense. Even on my T2000
+it doesn't make a lot of sense to run Firefox even though it is fast
+enough Firefox isn't threaded enough for it to use the hardware
+efficiently.
 
-Adrian
+sparc64 kernel + 32bit userland will probably never go away it's what
+most people should be running. So, you'll just end up loosing userbase
+further and inevitably dropping the Debian Sparc port.
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Davem, has anything become of getting recent kernels running on sun4m
+hardware? I was thinking it might be possible to reduce kernel size
+with LTO as yet another temporary workaround until it becomes
+relocatable as I think you mentioned would be the real fix.
+
+Chase
