@@ -1,36 +1,46 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Tue, 28 Jun 2016 10:37:19 +0000
+From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+Date: Tue, 28 Jun 2016 20:57:56 +0000
 Subject: Re: [PATCH] sparc64: sparc64_defconfig: convert to use libata PATA drivers
-Message-Id: <CAGRGNgX8OtTL-jN6ya0Who5Z2QAS7YqQutO4aEPCqYRO8pA9mQ@mail.gmail.com>
+Message-Id: <a7ea42b4-5b55-0dcf-78cc-634b400219cf@ilande.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1467030232-10027-1-git-send-email-b.zolnierkie@samsung.com>
-In-Reply-To: <1467030232-10027-1-git-send-email-b.zolnierkie@samsung.com>
+ <6e328063b70b3fe60b4dd962c1616260@triadic.us>
+ <CAGRGNgUzCDkXvq3YvihUoh87NFNWOUnqCUbWMAa09oj8N2vskw@mail.gmail.com>
+In-Reply-To: <CAGRGNgUzCDkXvq3YvihUoh87NFNWOUnqCUbWMAa09oj8N2vskw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Julian Calaby <julian.calaby@gmail.com>, alexmcwhirter@triadic.us
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, linux-ide@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, sparclinux-owner@vger.kernel.org
 
-Hi Meelis,
+On 28/06/16 00:18, Julian Calaby wrote:
 
-On Tue, Jun 28, 2016 at 8:27 PM, Meelis Roos <mroos@linux.ee> wrote:
->> The Ultra 5 uses a CMD64x controller.
+> Hi Alex,
+> 
+> On Tue, Jun 28, 2016 at 2:38 AM,  <alexmcwhirter@triadic.us> wrote:
+>> On 2016-06-27 08:23, Bartlomiej Zolnierkiewicz wrote:
 >>
->> That said, last time I tried to get that machine working, I couldn't
->> partition the disk due to bugs in that driver.
->
-> Yes, Ultra 5 uses CMD64x. This has worked well for me on U5 for ages.
-> The debug messages have also been there as long as I remember. The
-> controller is limited to 128GiB disks in DMA mode so I have used up to
-> 120G disks only and have not tried any bigger ones.
+>>> If you have affected hardware please test.  Thank you.
+>>
+>>
+>> For what it's worth, I've been using libata on sparc64 for roughly two years
+>> with no issues to report. All of my PATA machines have ALI controllers, not
+>> sure if any other controllers were ever used in sparc gear.
+> 
+> The Ultra 5 uses a CMD64x controller.
+> 
+> That said, last time I tried to get that machine working, I couldn't
+> partition the disk due to bugs in that driver.
+> 
+> I believe the Ultra 10 uses the same motherboard so it's likely also
+> affected. I believe these were in the first generation of "PC" like
+> SPARC workstations.
 
-Oh, the last time I tried, I had trouble partitioning the disk due to
-it seemingly not writing beyond the first sector. I'll have to try
-again.
+FWIW QEMU's qemu-system-sparc64 emulator also uses the cmd646 controller
+and can boot vmlinuz/initrd binaries directly for testing.
 
-Thanks,
 
--- 
-Julian Calaby
+ATB,
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
+Mark.
+
