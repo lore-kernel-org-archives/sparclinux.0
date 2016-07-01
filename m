@@ -1,121 +1,115 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Wed, 27 Jul 2016 22:55:03 +0000
-Subject: Re: [RFC v3 10/13] jump_label: port __jump_table to linker tables
-Message-Id: <20160727225503.GP5537@wotan.suse.de>
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Date: Fri, 01 Jul 2016 19:30:13 +0000
+Subject: Re: [PATCH v2 4/4] dynamic_debug: add jump label support
+Message-Id: <5c98fce0-7d90-14ec-6ff5-6fd5cde673b8@mellanox.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
- <1469222687-1600-11-git-send-email-mcgrof@kernel.org>
- <20160722214945.h7v7fvsnuhnvz6ux@treble>
- <20160722222654.GO5537@wotan.suse.de>
- <20160722225535.uu7h7iowwchby7uy@treble>
-In-Reply-To: <20160722225535.uu7h7iowwchby7uy@treble>
+References: <cover.1463778029.git.jbaron@akamai.com>
+ <587263b37406eda0d2ab84874a9fd4c81eaeca1d.1463778029.git.jbaron@akamai.com>
+ <3796097.4dlb9d7Id8@wuerfel> <575B3108.1020409@akamai.com>
+In-Reply-To: <575B3108.1020409@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevche
+To: Jason Baron <jbaron@akamai.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: akpm@linux-foundation.org, joe@perches.com, peterz@infradead.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Fri, Jul 22, 2016 at 05:55:35PM -0500, Josh Poimboeuf wrote:
-> On Sat, Jul 23, 2016 at 12:26:54AM +0200, Luis R. Rodriguez wrote:
-> > On Fri, Jul 22, 2016 at 04:49:45PM -0500, Josh Poimboeuf wrote:
-> > > On Fri, Jul 22, 2016 at 02:24:44PM -0700, Luis R. Rodriguez wrote:
-> > > > diff --git a/tools/objtool/special.c b/tools/objtool/special.c
-> > > > index bff8abb3a4aa..f0ad369f994b 100644
-> > > > --- a/tools/objtool/special.c
-> > > > +++ b/tools/objtool/special.c
-> > > > @@ -26,6 +26,10 @@
-> > > >  #include "special.h"
-> > > >  #include "warn.h"
-> > > >  
-> > > > +#include "../../include/asm-generic/sections.h"
-> > > > +#include "../../include/asm-generic/tables.h"
-> > > > +#include "../../include/linux/stringify.h"
-> > > > +
-> > > >  #define EX_ENTRY_SIZE		12
-> > > >  #define EX_ORIG_OFFSET		0
-> > > >  #define EX_NEW_OFFSET		4
-> > > > @@ -63,7 +67,9 @@ struct special_entry entries[] = {
-> > > >  		.feature = ALT_FEATURE_OFFSET,
-> > > >  	},
-> > > >  	{
-> > > > -		.sec = "__jump_table",
-> > > > +		.sec = __stringify(SECTION_TBL(SECTION_DATA,
-> > > > +				               __jump_table,
-> > > > +					       SECTION_ORDER_ANY)),
-> > > >  		.jump_or_nop = true,
-> > > >  		.size = JUMP_ENTRY_SIZE,
-> > > >  		.orig = JUMP_ORIG_OFFSET,
-> > > 
-> > > (continuing our discussion from another thread...)
-> > > 
-> > > I think tools code isn't allowed to include kernel files because the
-> > > tools subdirectory is supposed to be completely independent.
-> > 
-> > That was also the case for userpsace tools in scripts/ -- for instance
-> > scripts/mod/modpost.c made an exception. What I've proposed here to
-> > keep things simple was to ensure -UKERNEL is passed and then only
-> > include files we know will work.
-> > 
-> > Refer to the patch "kprobes: port .kprobes.text to section range"
-> > in this series for an extension of the scripts/mod/modpost.c kernel
-> > headers use.
-> 
-> I think the rule of separating code is stricter for tools/ than it is
-> for scripts/.  The scripts are generally kernel-specific whereas the
-> tools are independent.  I believe the goal is to be able to copy them
-> out of the kernel tree and still be able to compile them.
+On 6/10/2016 5:28 PM, Jason Baron wrote:
+> On 06/10/2016 05:54 AM, Arnd Bergmann wrote:
+>> On Friday, May 20, 2016 5:16:36 PM CEST Jason Baron wrote:
+>>> Although dynamic debug is often only used for debug builds, sometimes its
+>>> enabled for production builds as well. Minimize its impact by using jump
+>>> labels. This reduces the text section by 7000+ bytes in the kernel image
+>>> below. It does increase data, but this should only be referenced when
+>>> changing the direction of the branches, and hence usually not in cache.
+>>>
+>>>     text	   data	    bss	    dec	    hex	filename
+>>> 8194852	4879776	 925696	14000324	 d5a0c4	vmlinux.pre
+>>> 8187337	4960224	 925696	14073257	 d6bda9	vmlinux.post
+>>>
+>>> Signed-off-by: Jason Baron <jbaron@akamai.com>
+>>> ---
+>> This causes problems for some of my randconfig builds, when a dynamic
+>> debug call is used inside of an __exit function:
+>>
+>> `.exit.text' referenced in section `__jump_table' of drivers/built-in.o: defined in discarded section `.exit.text' of drivers/built-in.o
+>> `.exit.text' referenced in section `__jump_table' of drivers/built-in.o: defined in discarded section `.exit.text' of drivers/built-in.o
+>>
+>> 	Arnd
+>>
+> Hi Arnd,
+>
+> Ok, I managed to reproduce this on tile and sparc64 by adding
+> static_branch_[un]likely() to __exit functions as you mentioned.
+> Although I didn't find the actual broken config.
+>
+> I think its only an issue on those 2 arches b/c they have jump
+> label support and discard __exit text at build time (most
+> arches seem to do it at run-time). Thus, we can end up with
+> references in the __jump_table to addresses that may be in an
+> __exit section. The jump label code already protects itself
+> from touch code in the init sections after it has been freed.
+> Thus, simply having functions marked with __exit in the init
+> section is sufficient here.
 
-I see.
+It seems plausible to me to only include the exit text in with the init text
+under an #ifdef CONFIG_JUMP_TABLE (with a suitable comment) in any
+case, because if we don't need to include it in the image, then why do so?
+It adds about 7KB to the loaded size of the vmlinux image for no gain
+(on a typical tilegx configuration).
 
-> > > As far as I can tell, the section name will always be
-> > > ".data.tbl.__jump_table.any".  Is that true?  If so, any reason why we
-> > > can't just hard-code the string here?
-> > 
-> > Its a fair strategy, however if upstream changes the order name we'd
-> > have to hand code this as well, by using a macro we keep it all in one
-> > place.
-> 
-> Hm, do you expect the section name to change often?
+> --- a/arch/tile/kernel/vmlinux.lds.S
+> +++ b/arch/tile/kernel/vmlinux.lds.S
+> @@ -58,7 +58,21 @@ SECTIONS
+>     _etext = .;
+>
+>     /* "Init" is divided into two areas with very different virtual
+> addresses. */
+> +  . = ALIGN(PAGE_SIZE);
+> +  .init.begin : AT(ADDR(.init.begin) - LOAD_OFFSET) {
+> +     __init_begin = .; /* paired with __init_end */
+> +  }
+> +
+>     INIT_TEXT_SECTION(PAGE_SIZE)
+> +  .exit.text : AT(ADDR(.exit.text) - LOAD_OFFSET) {
+> +       EXIT_TEXT
+> +  }
+> +
+> +  . = ALIGN(PAGE_SIZE);
+> +  /* freed after init ends here */
+> +  .init.end : AT(ADDR(.init.end) - LOAD_OFFSET) {
+> +       __init_end = .;
+> +  }
+>
+>     /* Now we skip back to PAGE_OFFSET for the data. */
+>     . = (. - TEXT_OFFSET + PAGE_OFFSET);
 
-Nope, if anything only upon deployment on major distributions due to
-some perhaps compatibility thing with custom hacks folks may have carried
-and this just ended up clashing with. The only other case I can think
-of a need for a change would be if upstream linkers supported something
-similar for another brand of section names, with the added gain that
-we would then not even need the 2 new lines on the kernel linker script
-for section ranges and tables per section.
+This doesn't look right to me; we already have an __init_begin
+symbol defined a few lines further down in vmlinux.lds.S.
+How does this patch work instead?
 
-> > > As you saw, if the string
-> > > changes, objtool will complain and 0-day will report it.
-> > 
-> > Indeed, which is why I was hoping to instead stick to a standard
-> > sections set of header files that lets us get these in on place.
-> 
-> Actually, I meant that obtool reporting the change would be a good
-> thing, in favor of just hard-coding the string.  It lets objtool do its
-> job of letting us know when something changes, like it did today.
+diff --git a/arch/tile/kernel/vmlinux.lds.S b/arch/tile/kernel/vmlinux.lds.S
+index 378f5d8d1ec8..5e83d2689def 100644
+--- a/arch/tile/kernel/vmlinux.lds.S
++++ b/arch/tile/kernel/vmlinux.lds.S
+@@ -58,7 +58,15 @@ SECTIONS
+    _etext = .;
 
-Getting a report so you can fix something is one reason to have a tool,
-having it so you can inspect changes is another. So it depends what uses
-there are for objtool. I take it that for this case we do want upstream
-objtool to embrace the new section name to avoid further reports as
-issues ?
+    /* "Init" is divided into two areas with very different virtual addresses. */
+-  INIT_TEXT_SECTION(PAGE_SIZE)
++  . = ALIGN(PAGE_SIZE);
++  .init.text : AT(ADDR(.init.text) - LOAD_OFFSET) {
++    VMLINUX_SYMBOL(_sinittext) = .;
++    INIT_TEXT
++#ifdef CONFIG_JUMP_LABEL  /* __jump_table may reference __exit text */
++    EXIT_TEXT
++#endif
++    VMLINUX_SYMBOL(_einittext) = .;
++  }
 
-> > The only place I hand coded in this series was in the perl
-> > file scripts/recordmcount.pl but I suppose if we wanted to get
-> > creative we could even generate a header for it too.
-> > 
-> > If we want to avoid all this hacker include stuff another option
-> > is to *generate* each respective sections.h for the kernel, and
-> > also, one for tools, and one for perl. What do you think?
-> 
-> If the generated files aren't checked into git, tools/ will rely on
-> kernel files and will no longer be independent.  If they *are* checked
-> in, then we have to keep the files in sync.  Either way it sounds like
-> overkill, just to avoid hard-coding a string for which objtool will
-> already warn if it changes.
+    /* Now we skip back to PAGE_OFFSET for the data. */
+    . = (. - TEXT_OFFSET + PAGE_OFFSET);
 
-We can open code the string, that's fine. In retrospect since things
-won't change often that keeps things simple.
+-- 
+Chris Metcalf, Mellanox Technologies
+http://www.mellanox.com
 
-  Luis
