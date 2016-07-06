@@ -1,114 +1,77 @@
 From: Kees Cook <keescook@chromium.org>
-Date: Thu, 14 Jul 2016 21:38:33 +0000
-Subject: Re: [PATCH v2 01/11] mm: Implement stack frame object validation
-Message-Id: <CAGXu5jJuYDTZX7+tXCxvxdB0k4foO4z1yvejF8fjSWQMFVjksQ@mail.gmail.com>
+Date: Wed, 06 Jul 2016 22:25:28 +0000
+Subject: [PATCH 9/9] mm: SLUB hardened usercopy support
+Message-Id: <1467843928-29351-10-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1468446964-22213-1-git-send-email-keescook@chromium.org>
- <1468446964-22213-2-git-send-email-keescook@chromium.org> <CALCETrVDJDjdoh7yvOPd=_5twQnzQRhe8G2KLaRw-NnA1Uf__g@mail.gmail.com>
- <CAGXu5jLPZiRJx8n3_7GW2bufiuUgE9=c6dQcNxDRPHMU72sD9g@mail.gmail.com>
- <20160714054842.6zal5rqawpgew26r@treble> <CAGXu5jLv_pMRqdaM72D_FTQzxoGxgcEqxpvUzqwgjOmZ8D-zSw@mail.gmail.com>
- <20160714192351.567fmaz2h4drrxrc@treble>
-In-Reply-To: <20160714192351.567fmaz2h4drrxrc@treble>
+References: <1467843928-29351-1-git-send-email-keescook@chromium.org>
+In-Reply-To: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, X86 ML <x86@kernel.org>, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, sparclinux <sparclinux@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>
+To: linux-kernel@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, kernel-hardening@lists.openwall.com
 
-On Thu, Jul 14, 2016 at 12:23 PM, Josh Poimboeuf <jpoimboe@redhat.com> wrote:
-> On Thu, Jul 14, 2016 at 11:10:18AM -0700, Kees Cook wrote:
->> On Wed, Jul 13, 2016 at 10:48 PM, Josh Poimboeuf <jpoimboe@redhat.com> wrote:
->> > On Wed, Jul 13, 2016 at 03:04:26PM -0700, Kees Cook wrote:
->> >> On Wed, Jul 13, 2016 at 3:01 PM, Andy Lutomirski <luto@amacapital.net> wrote:
->> >> > On Wed, Jul 13, 2016 at 2:55 PM, Kees Cook <keescook@chromium.org> wrote:
->> >> >> This creates per-architecture function arch_within_stack_frames() that
->> >> >> should validate if a given object is contained by a kernel stack frame.
->> >> >> Initial implementation is on x86.
->> >> >>
->> >> >> This is based on code from PaX.
->> >> >>
->> >> >
->> >> > This, along with Josh's livepatch work, are two examples of unwinders
->> >> > that matter for correctness instead of just debugging.  ISTM this
->> >> > should just use Josh's code directly once it's been written.
->> >>
->> >> Do you have URL for Josh's code? I'd love to see what happening there.
->> >
->> > The code is actually going to be 100% different next time around, but
->> > FWIW, here's the last attempt:
->> >
->> >   https://lkml.kernel.org/r/4d34d452bf8f85c7d6d5f93db1d3eeb4cba335c7.1461875890.git.jpoimboe@redhat.com
->> >
->> > In the meantime I've realized the need to rewrite the x86 core stack
->> > walking code to something much more manageable so we don't need all
->> > these unwinders everywhere.  I'll probably post the patches in the next
->> > week or so.  I'll add you to the CC list.
->>
->> Awesome!
->>
->> > With the new interface I think you'll be able to do something like:
->> >
->> >         struct unwind_state;
->> >
->> >         unwind_start(&state, current, NULL, NULL);
->> >         unwind_next_frame(&state);
->> >         oldframe = unwind_get_stack_pointer(&state);
->> >
->> >         unwind_next_frame(&state);
->> >         frame = unwind_get_stack_pointer(&state);
->> >
->> >         do {
->> >                 if (obj + len <= frame)
->> >                         return blah;
->> >                 oldframe = frame;
->> >                 frame = unwind_get_stack_pointer(&state);
->> >
->> >         } while (unwind_next_frame(&state);
->> >
->> > And then at the end there'll be some (still TBD) way to query whether it
->> > reached the last syscall pt_regs frame, or if it instead encountered a
->> > bogus frame pointer along the way and had to bail early.
->>
->> Sounds good to me. Will there be any frame size information available?
->> Right now, the unwinder from PaX just drops 2 pointers (saved frame,
->> saved ip) from the delta of frame address to find the size of the
->> actual stack area used by the function. If I could shave things like
->> padding and possible stack canaries off the size too, that would be
->> great.
->
-> For x86, stacks are aligned at long word boundaries, so there's no real
-> stack padding.
+Under CONFIG_HARDENED_USERCOPY, this adds object size checking to the
+SLUB allocator to catch any copies that may span objects.
 
-Well, I guess I meant the possible padding between variables and the
-aligned pointers, but that's a really minor concern in my mind (as far
-as being a potential kernel memory exposure on a bad usercopy).
+Based on code from PaX and grsecurity.
 
-> Also the CC_STACKPROTECTOR stack canaries are created by a gcc feature
-> which only affects certain functions (and thus certain frames) and I
-> don't know of any reliable way to find them.
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ init/Kconfig |  1 +
+ mm/slub.c    | 27 +++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-Okay, that's fine. I had a horrible idea to just have the unwinder
-look at the value stored in front of the saved ip, and if it matches
-the known canary (for current anyway), then reduce the frame size by
-another long word. ;)
-
-> So with frame pointers, I think the best you can do is just assume that
-> the frame data area is always two words smaller than the total frame
-> size.
-
-Yeah, that's what's happening here currently. Cool.
-
->> Since I'm aiming the hardened usercopy series for 4.8, I figure I'll
->> just leave this unwinder in for now, and once yours lands, I can rip
->> it out again.
->
-> Sure, sounds fine to me.  If your code lands before I post mine, I can
-> convert it myself.
-
-Awesome, I'll keep you posted. Thanks!
-
--Kees
-
+diff --git a/init/Kconfig b/init/Kconfig
+index 798c2020ee7c..1c4711819dfd 100644
+--- a/init/Kconfig
++++ b/init/Kconfig
+@@ -1765,6 +1765,7 @@ config SLAB
+ 
+ config SLUB
+ 	bool "SLUB (Unqueued Allocator)"
++	select HAVE_HARDENED_USERCOPY_ALLOCATOR
+ 	help
+ 	   SLUB is a slab allocator that minimizes cache line usage
+ 	   instead of managing queues of cached objects (SLAB approach).
+diff --git a/mm/slub.c b/mm/slub.c
+index 825ff4505336..0c8ace04f075 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -3614,6 +3614,33 @@ void *__kmalloc_node(size_t size, gfp_t flags, int node)
+ EXPORT_SYMBOL(__kmalloc_node);
+ #endif
+ 
++#ifdef CONFIG_HARDENED_USERCOPY
++/*
++ * Rejects objects that are incorrectly sized.
++ *
++ * Returns NULL if check passes, otherwise const char * to name of cache
++ * to indicate an error.
++ */
++const char *__check_heap_object(const void *ptr, unsigned long n,
++				struct page *page)
++{
++	struct kmem_cache *s;
++	unsigned long offset;
++
++	/* Find object. */
++	s = page->slab_cache;
++
++	/* Find offset within object. */
++	offset = (ptr - page_address(page)) % s->size;
++
++	/* Allow address range falling entirely within object size. */
++	if (offset <= s->object_size && n <= s->object_size - offset)
++		return NULL;
++
++	return s->name;
++}
++#endif /* CONFIG_HARDENED_USERCOPY */
++
+ static size_t __ksize(const void *object)
+ {
+ 	struct page *page;
 -- 
-Kees Cook
-Chrome OS & Brillo Security
+2.7.4
+
