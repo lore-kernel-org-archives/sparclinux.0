@@ -1,10 +1,10 @@
 From: Kees Cook <keescook@chromium.org>
-Date: Wed, 13 Jul 2016 21:56:03 +0000
-Subject: [PATCH v2 10/11] mm: SLAB hardened usercopy support
-Message-Id: <1468446964-22213-11-git-send-email-keescook@chromium.org>
+Date: Wed, 06 Jul 2016 22:25:27 +0000
+Subject: [PATCH 8/9] mm: SLAB hardened usercopy support
+Message-Id: <1467843928-29351-9-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1468446964-22213-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1468446964-22213-1-git-send-email-keescook@chromium.org>
+References: <1467843928-29351-1-git-send-email-keescook@chromium.org>
+In-Reply-To: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
