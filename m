@@ -1,145 +1,416 @@
 From: Kees Cook <keescook@chromium.org>
-Date: Mon, 11 Jul 2016 18:40:15 +0000
-Subject: Re: [PATCH 0/9] mm: Hardened usercopy
-Message-Id: <CAGXu5jKO2Yihuaw7f087tdAWPQZE+nk+6bdC5VWRws3f1V1y1g@mail.gmail.com>
+Date: Wed, 06 Jul 2016 22:25:20 +0000
+Subject: [PATCH 1/9] mm: Hardened usercopy
+Message-Id: <1467843928-29351-2-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1467843928-29351-1-git-send-email-keescook@chromium.org>
- <578185D4.29090.242668C8@pageexec.freemail.hu> <20160710091632.GA14172@gmail.com>
- <5782398B.32731.26E46C3D@pageexec.freemail.hu> <CALCETrXfdEbmSTs6XkZjHkAc3W_380bpde4bWQgRA5CQM0PtLA@mail.gmail.com>
-In-Reply-To: <CALCETrXfdEbmSTs6XkZjHkAc3W_380bpde4bWQgRA5CQM0PtLA@mail.gmail.com>
+In-Reply-To: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: PaX Team <pageexec@freemail.hu>, Ingo Molnar <mingo@kernel.org>, Christoph Lameter <cl@linux.com>, Andrew Morton <akpm@linux-foundation.org>, Brad Spengler <spender@grsecurity.net>, Pekka Enberg <penberg@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Casey Schaufler <casey@schaufler-ca.com>, Will Deacon <will.deacon@arm.com>, Rik van Riel <riel@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dmitry Vyukov <dvyukov@google.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, X86 ML <x86@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, linux-arch <linux-arch@vger.kernel.org>, David Rientjes <rientjes@google.com>, Mathias Krause <minipli@googlemail.com>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, "David S. Miller" <davem@davemloft.net>, Laura Abbott <labbott@fedoraproject.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Russell King <linux@armlinux.org.uk>, Michael Ellerman <mpe@ellerman.id.au>, Andrea Arcangeli <aarcange@redhat.com>, Fenghua Yu <fenghua.yu@intel.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, Vitaly Wool <vitalywool@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, sparclinux <sparclinux@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, "H. Peter Anvin" <hpa@zytor.com>
+To: linux-kernel@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, kernel-hardening@lists.openwall.com
 
-On Sun, Jul 10, 2016 at 8:38 AM, Andy Lutomirski <luto@amacapital.net> wrote:
-> On Sun, Jul 10, 2016 at 5:03 AM, PaX Team <pageexec@freemail.hu> wrote:
->> On 10 Jul 2016 at 11:16, Ingo Molnar wrote:
->>
->>> * PaX Team <pageexec@freemail.hu> wrote:
->>>
->>> > On 9 Jul 2016 at 14:27, Andy Lutomirski wrote:
->>> >
->>> > > I like the series, but I have one minor nit to pick.  The effect of this
->>> > > series is to harden usercopy, but most of the code is really about
->>> > > infrastructure to validate that a pointed-to object is valid.
->>> >
->>> > actually USERCOPY has never been about validating pointers. its sole purpose is
->>> > to validate the *size* argument of copy*user calls, a very specific form of
->>> > runtime bounds checking.
->>>
->>> What this code has been about originally is largely immaterial, unless you can
->>> formulate it into a technical argument.
->>
->> we design defense mechanisms for specific and clear purposes, starting with
->> a threat model, evaluating defense options based on various criteria, etc.
->> USERCOPY underwent this same process and taking it out of its original context
->> means that all you get in the end is cargo cult security (wouldn't be the first
->> time it has happened (ExecShield, ASLR, etc)).
->>
->> that said, i actually started that discussion but for some reason you chose
->> not to respond to that one part of my mail so let me ask it again:
->>
->>   what kind of checks are you thinking of here? and more fundamentally, against
->>   what kind of threats?
->>
->> as far as i'm concerned, a defense mechanism is only as good as its underlying
->> threat model. by validating pointers (for yet to be stated security related
->> properties) you're presumably assuming some kind of threat and unless stated
->> clearly what that threat is (unintended pointer modification through memory
->> corruption and/or other bugs?) noone can tell whether the proposed defense
->> mechanism will actually be effective in preventing exploitation. it is the
->> worst kind of defense that doesn't actually achieve its stated goals, that
->> way lies false sense of security and i hope noone here is in that business.
->
-> I'm imaging security bugs that involve buffer length corruption but
-> that don't call copy_to/from_user.  Hardened usercopy shuts
-> expoitation down if the first use of the corrupt size is
-> copy_to/from_user or similar.  I bet that a bit better coverage could
-> be achieved by instrumenting more functions.
->
-> To be clear: I'm not objecting to calling the overall feature hardened
-> usercopy or similar.  I object to
-> CONFIG_HAVE_HARDENED_USERCOPY_ALLOCATOR.  That feature is *used* for
-> hardened usercopy but is not, in and of itself, a usercopy thing.
-> It's an object / memory range validation thing.  So we'll feel silly
-> down the road if we use it for something else and the config option
-> name has nothing to do with the feature.
+This is the start of porting PAX_USERCOPY into the mainline kernel. This
+is the first set of features, controlled by CONFIG_HARDENED_USERCOPY. The
+work is based on code by PaX Team and Brad Spengler, and an earlier port
+from Casey Schaufler. Additional non-slab page tests are from Rik van Riel.
 
-Well, the CONFIG_HAVE* stuff is almost entirely invisible to the
-end-user, and I feel like it's better to be specific about names now,
-and when they change their meaning, we can change their names with it.
+This patch contains the logic for validating several conditions when
+performing copy_to_user() and copy_from_user() on the kernel object
+being copied to/from:
+- address range doesn't wrap around
+- address range isn't NULL or zero-allocated (with a non-zero copy size)
+- if on the slab allocator:
+  - object size must be less than or equal to copy size (when check is
+    implemented in the allocator, which appear in subsequent patches)
+- otherwise, object must not span page allocations
+- if on the stack
+  - object must not extend before/after the current process task
+  - object must be contained by the current stack frame (when there is
+    arch/build support for identifying stack frames)
+- object must not overlap with kernel text
 
-I intend to extend the HARDENED_USERCOPY logic in similar ways to how
-it is extended in Grsecurity: parts can be used for the "is this
-destined for a userspace memory buffer?" test when rejecting writing
-pointers or other sensitive information during sprintf (see the
-HIDESYM work in grsecurity).
+Signed-off-by: Kees Cook <keescook@chromium.org>
+---
+ arch/Kconfig                |   7 ++
+ include/linux/slab.h        |  12 +++
+ include/linux/thread_info.h |  15 +++
+ mm/Makefile                 |   4 +
+ mm/usercopy.c               | 239 ++++++++++++++++++++++++++++++++++++++++++++
+ security/Kconfig            |  27 +++++
+ 6 files changed, 304 insertions(+)
+ create mode 100644 mm/usercopy.c
 
-But, I don't like to over-think it: right now, it is named for what it
-does, and we can adjust as we need to.
-
->
->>> > [...] like the renaming of .data..read_only to .data..ro_after_init which also
->>> > had nothing to do with init but everything to do with objects being conceptually
->>> > read-only...
->>>
->>> .data..ro_after_init objects get written to during bootup so it's conceptually
->>> quite confusing to name it "read-only" without any clear qualifiers.
->>>
->>> That it's named consistently with its role of "read-write before init and read
->>> only after init" on the other hand is not confusing at all. Not sure what your
->>> problem is with the new name.
->>
->> the new name reflects a complete misunderstanding of the PaX feature it was based
->> on (typical case of cargo cult security). in particular, the __read_only facility
->> in PaX is part of a defense mechanism that attempts to solve a specific problem
->> (like everything else) and that problem has nothing whatsoever to do with what
->> happens before/after the kernel init process. enforcing read-ony kernel memory at
->> the end of kernel initialization is an implementation detail only and wasn't even
->> true always (and still isn't true for kernel modules for example): in the linux 2.4
->> days PaX actually enforced read-only kernel memory properties in startup_32 already
->> but i relaxed that for the 2.6+ port as the maintenance cost (finding out and
->> handling new exceptional cases) wasn't worth it.
->>
->> also naming things after their implementation is poor taste and can result in
->> even bigger problems down the line since as soon as the implementation changes,
->> you will have a flag day or have to keep a bad name. this is a lesson that the
->> REFCOUNT submission will learn too since the kernel's atomic*_t types (an
->> implementation detail) are used extensively for different purposes, instead of
->> using specialized types (kref is a good example of that). for .data..ro_after_init
->> the lesson will happen when you try to add back the remaining pieces from PaX,
->> such as module handling and not-always-const-in-the-C-sense objects and associated
->> accessors.
->
-> The name is related to how the thing works.  If I understand
-> correctly, in PaX, the idea is to make some things readonly and use
-> pax_open_kernel(), etc to write it as needed.  This is a nifty
-> mechanism, but it's *not* what .data..ro_after_init does upstream.  If
-> I mark something __ro_after_init, then I can write it freely during
-> boot, but I can't write it thereafter.  In contrast, if I put
-> something in .rodata (using 'const', for example), then I must not
-> write it *at all* unless I use special helpers (kmap, pax_open_kernel,
-> etc).  So the practical effect from a programer's perspective of
-> __ro_after_init is quite different from .rodata, and I think the names
-> should reflect that.
-
-I expect that if/when we add the open/close_kernel logic, we'll have a
-new section and it will be named accordingly (since it, too, is not
-const-in-the-C-sense, and shouldn't live in the standard .rodata
-section).
-
-> (And yes, the upstream kernel should soon have __ro_after_init working
-> in modules.  And the not-always-const-in-the-C-sense objects using
-> accessors will need changes to add those accessors, and we can and
-> should change the annotation on the object itself at the same time.
-> But if I mark something __ro_after_init, I can write it using normal C
-> during init, and there's nothing wrong with that.)
-
--Kees
-
-
+diff --git a/arch/Kconfig b/arch/Kconfig
+index d794384a0404..3ea04d8dcf62 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -424,6 +424,13 @@ config CC_STACKPROTECTOR_STRONG
+ 
+ endchoice
+ 
++config HAVE_ARCH_LINEAR_KERNEL_MAPPING
++	bool
++	help
++	  An architecture should select this if it has a secondary linear
++	  mapping of the kernel text. This is used to verify that kernel
++	  text exposures are not visible under CONFIG_HARDENED_USERCOPY.
++
+ config HAVE_CONTEXT_TRACKING
+ 	bool
+ 	help
+diff --git a/include/linux/slab.h b/include/linux/slab.h
+index aeb3e6d00a66..96a16a3fb7cb 100644
+--- a/include/linux/slab.h
++++ b/include/linux/slab.h
+@@ -155,6 +155,18 @@ void kfree(const void *);
+ void kzfree(const void *);
+ size_t ksize(const void *);
+ 
++#ifdef CONFIG_HAVE_HARDENED_USERCOPY_ALLOCATOR
++const char *__check_heap_object(const void *ptr, unsigned long n,
++				struct page *page);
++#else
++static inline const char *__check_heap_object(const void *ptr,
++					      unsigned long n,
++					      struct page *page)
++{
++	return NULL;
++}
++#endif
++
+ /*
+  * Some archs want to perform DMA into kmalloc caches and need a guaranteed
+  * alignment larger than the alignment of a 64-bit integer.
+diff --git a/include/linux/thread_info.h b/include/linux/thread_info.h
+index b4c2a485b28a..a02200db9c33 100644
+--- a/include/linux/thread_info.h
++++ b/include/linux/thread_info.h
+@@ -146,6 +146,21 @@ static inline bool test_and_clear_restore_sigmask(void)
+ #error "no set_restore_sigmask() provided and default one won't work"
+ #endif
+ 
++#ifdef CONFIG_HARDENED_USERCOPY
++extern void __check_object_size(const void *ptr, unsigned long n,
++					bool to_user);
++
++static inline void check_object_size(const void *ptr, unsigned long n,
++				     bool to_user)
++{
++	__check_object_size(ptr, n, to_user);
++}
++#else
++static inline void check_object_size(const void *ptr, unsigned long n,
++				     bool to_user)
++{ }
++#endif /* CONFIG_HARDENED_USERCOPY */
++
+ #endif	/* __KERNEL__ */
+ 
+ #endif /* _LINUX_THREAD_INFO_H */
+diff --git a/mm/Makefile b/mm/Makefile
+index 78c6f7dedb83..32d37247c7e5 100644
+--- a/mm/Makefile
++++ b/mm/Makefile
+@@ -21,6 +21,9 @@ KCOV_INSTRUMENT_memcontrol.o := n
+ KCOV_INSTRUMENT_mmzone.o := n
+ KCOV_INSTRUMENT_vmstat.o := n
+ 
++# Since __builtin_frame_address does work as used, disable the warning.
++CFLAGS_usercopy.o += $(call cc-disable-warning, frame-address)
++
+ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= gup.o highmem.o memory.o mincore.o \
+ 			   mlock.o mmap.o mprotect.o mremap.o msync.o rmap.o \
+@@ -99,3 +102,4 @@ obj-$(CONFIG_USERFAULTFD) += userfaultfd.o
+ obj-$(CONFIG_IDLE_PAGE_TRACKING) += page_idle.o
+ obj-$(CONFIG_FRAME_VECTOR) += frame_vector.o
+ obj-$(CONFIG_DEBUG_PAGE_REF) += debug_page_ref.o
++obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
+diff --git a/mm/usercopy.c b/mm/usercopy.c
+new file mode 100644
+index 000000000000..ad2765dd6dc4
+--- /dev/null
++++ b/mm/usercopy.c
+@@ -0,0 +1,239 @@
++/*
++ * This implements the various checks for CONFIG_HARDENED_USERCOPY*,
++ * which are designed to protect kernel memory from needless exposure
++ * and overwrite under many unintended conditions. This code is based
++ * on PAX_USERCOPY, which is:
++ *
++ * Copyright (C) 2001-2016 PaX Team, Bradley Spengler, Open Source
++ * Security Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <asm/sections.h>
++
++/*
++ * Checks if a given pointer and length is contained by the current
++ * stack frame (if possible).
++ *
++ *	0: not at all on the stack
++ *	1: fully on the stack (when can't do frame-checking)
++ *	2: fully inside the current stack frame
++ *	-1: error condition (invalid stack position or bad stack frame)
++ */
++static noinline int check_stack_object(const void *obj, unsigned long len)
++{
++	const void * const stack = task_stack_page(current);
++	const void * const stackend = stack + THREAD_SIZE;
++
++#if defined(CONFIG_FRAME_POINTER) && defined(CONFIG_X86)
++	const void *frame = NULL;
++	const void *oldframe;
++#endif
++
++	/* Object is not on the stack at all. */
++	if (obj + len <= stack || stackend <= obj)
++		return 0;
++
++	/*
++	 * Reject: object partially overlaps the stack (passing the
++	 * the check above means at least one end is within the stack,
++	 * so if this check fails, the other end is outside the stack).
++	 */
++	if (obj < stack || stackend < obj + len)
++		return -1;
++
++#if defined(CONFIG_FRAME_POINTER) && defined(CONFIG_X86)
++	oldframe = __builtin_frame_address(1);
++	if (oldframe)
++		frame = __builtin_frame_address(2);
++	/*
++	 * low ----------------------------------------------> high
++	 * [saved bp][saved ip][args][local vars][saved bp][saved ip]
++	 *		     ^----------------^
++	 *             allow copies only within here
++	 */
++	while (stack <= frame && frame < stackend) {
++		/*
++		 * If obj + len extends past the last frame, this
++		 * check won't pass and the next frame will be 0,
++		 * causing us to bail out and correctly report
++		 * the copy as invalid.
++		 */
++		if (obj + len <= frame)
++			return obj >= oldframe + 2 * sizeof(void *) ? 2 : -1;
++		oldframe = frame;
++		frame = *(const void * const *)frame;
++	}
++	return -1;
++#else
++	return 1;
++#endif
++}
++
++static void report_usercopy(const void *ptr, unsigned long len,
++			    bool to_user, const char *type)
++{
++	pr_emerg("kernel memory %s attempt detected %s %p (%s) (%lu bytes)\n",
++		to_user ? "exposure" : "overwrite",
++		to_user ? "from" : "to", ptr, type ? : "unknown", len);
++	dump_stack();
++	do_group_exit(SIGKILL);
++}
++
++/* Returns true if any portion of [ptr,ptr+n) over laps with [low,high). */
++static bool overlaps(const void *ptr, unsigned long n, unsigned long low,
++		     unsigned long high)
++{
++	unsigned long check_low = (uintptr_t)ptr;
++	unsigned long check_high = check_low + n;
++
++	/* Does not overlap if entirely above or entirely below. */
++	if (check_low >= high || check_high < low)
++		return false;
++
++	return true;
++}
++
++/* Is this address range in the kernel text area? */
++static inline const char *check_kernel_text_object(const void *ptr,
++						   unsigned long n)
++{
++	unsigned long textlow = (unsigned long)_stext;
++	unsigned long texthigh = (unsigned long)_etext;
++
++	if (overlaps(ptr, n, textlow, texthigh))
++		return "<kernel text>";
++
++#ifdef HAVE_ARCH_LINEAR_KERNEL_MAPPING
++	/* Check against linear mapping as well. */
++	if (overlaps(ptr, n, (unsigned long)__va(__pa(textlow)),
++		     (unsigned long)__va(__pa(texthigh))))
++		return "<linear kernel text>";
++#endif
++
++	return NULL;
++}
++
++static inline const char *check_bogus_address(const void *ptr, unsigned long n)
++{
++	/* Reject if object wraps past end of memory. */
++	if (ptr + n < ptr)
++		return "<wrapped address>";
++
++	/* Reject if NULL or ZERO-allocation. */
++	if (ZERO_OR_NULL_PTR(ptr))
++		return "<null>";
++
++	return NULL;
++}
++
++static inline const char *check_heap_object(const void *ptr, unsigned long n)
++{
++	struct page *page, *endpage;
++	const void *end = ptr + n - 1;
++
++	if (!virt_addr_valid(ptr))
++		return NULL;
++
++	page = virt_to_head_page(ptr);
++
++	/* Check slab allocator for flags and size. */
++	if (PageSlab(page))
++		return __check_heap_object(ptr, n, page);
++
++	/* Is the object wholly within one base page? */
++	if (likely(((unsigned long)ptr & (unsigned long)PAGE_MASK) =
++		   ((unsigned long)end & (unsigned long)PAGE_MASK)))
++		return NULL;
++
++	/* Allow if start and end are inside the same compound page. */
++	endpage = virt_to_head_page(end);
++	if (likely(endpage = page))
++		return NULL;
++
++	/* Allow special areas, device memory, and sometimes kernel data. */
++	if (PageReserved(page) && PageReserved(endpage))
++		return NULL;
++
++	/*
++	 * Sometimes the kernel data regions are not marked Reserved. And
++	 * sometimes [_sdata,_edata) does not cover rodata and/or bss,
++	 * so check each range explicitly.
++	 */
++
++	/* Allow kernel data region (if not marked as Reserved). */
++	if (ptr >= (const void *)_sdata && end <= (const void *)_edata)
++		return NULL;
++
++	/* Allow kernel rodata region (if not marked as Reserved). */
++	if (ptr >= (const void *)__start_rodata &&
++	    end <= (const void *)__end_rodata)
++		return NULL;
++
++	/* Allow kernel bss region (if not marked as Reserved). */
++	if (ptr >= (const void *)__bss_start &&
++	    end <= (const void *)__bss_stop)
++		return NULL;
++
++	/* Uh oh. The "object" spans several independently allocated pages. */
++	return "<spans multiple pages>";
++}
++
++/*
++ * Validates that the given object is one of:
++ * - known safe heap object
++ * - known safe stack object
++ * - not in kernel text
++ */
++void __check_object_size(const void *ptr, unsigned long n, bool to_user)
++{
++	const char *err;
++
++	/* Skip all tests if size is zero. */
++	if (!n)
++		return;
++
++	/* Check for invalid addresses. */
++	err = check_bogus_address(ptr, n);
++	if (err)
++		goto report;
++
++	/* Check for bad heap object. */
++	err = check_heap_object(ptr, n);
++	if (err)
++		goto report;
++
++	/* Check for bad stack object. */
++	switch (check_stack_object(ptr, n)) {
++	case 0:
++		/* Object is not touching the current process stack. */
++		break;
++	case 1:
++	case 2:
++		/*
++		 * Object is either in the correct frame (when it
++		 * is possible to check) or just generally on the
++		 * process stack (when frame checking not available).
++		 */
++		return;
++	default:
++		err = "<process stack>";
++		goto report;
++	}
++
++	/* Check for object in kernel to avoid text exposure. */
++	err = check_kernel_text_object(ptr, n);
++	if (!err)
++		return;
++
++report:
++	report_usercopy(ptr, n, to_user, err);
++}
++EXPORT_SYMBOL(__check_object_size);
+diff --git a/security/Kconfig b/security/Kconfig
+index 176758cdfa57..63340ad0b9f9 100644
+--- a/security/Kconfig
++++ b/security/Kconfig
+@@ -118,6 +118,33 @@ config LSM_MMAP_MIN_ADDR
+ 	  this low address space will need the permission specific to the
+ 	  systems running LSM.
+ 
++config HAVE_HARDENED_USERCOPY_ALLOCATOR
++	bool
++	help
++	  The heap allocator implements __check_heap_object() for
++	  validating memory ranges against heap object sizes in
++	  support of CONFIG_HARDENED_USERCOPY.
++
++config HAVE_ARCH_HARDENED_USERCOPY
++	bool
++	help
++	  The architecture supports CONFIG_HARDENED_USERCOPY by
++	  calling check_object_size() just before performing the
++	  userspace copies in the low level implementation of
++	  copy_to_user() and copy_from_user().
++
++config HARDENED_USERCOPY
++	bool "Harden memory copies between kernel and userspace"
++	depends on HAVE_ARCH_HARDENED_USERCOPY
++	help
++	  This option checks for obviously wrong memory regions when
++	  copying memory to/from the kernel (via copy_to_user() and
++	  copy_from_user() functions) by rejecting memory ranges that
++	  are larger than the specified heap object, span multiple
++	  separately allocates pages, are not on the process stack,
++	  or are part of the kernel text. This kills entire classes
++	  of heap overflow exploits and similar kernel memory exposures.
++
+ source security/selinux/Kconfig
+ source security/smack/Kconfig
+ source security/tomoyo/Kconfig
 -- 
-Kees Cook
-Chrome OS & Brillo Security
+2.7.4
+
