@@ -1,63 +1,86 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Wed, 27 Jul 2016 22:46:09 +0000
-Subject: Re: [RFC v3 00/13] linux: generalize sections, ranges and linker tables
-Message-Id: <20160727224609.GO5537@wotan.suse.de>
+From: Kees Cook <keescook@chromium.org>
+Date: Wed, 06 Jul 2016 22:25:19 +0000
+Subject: [PATCH 0/9] mm: Hardened usercopy
+Message-Id: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
- <20160725223229.7de71264e9e6ec8d635ee785@kernel.org>
-In-Reply-To: <20160725223229.7de71264e9e6ec8d635ee785@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com
+To: linux-kernel@vger.kernel.org
+Cc: Kees Cook <keescook@chromium.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, kernel-hardening@lists.openwall.com
 
-On Mon, Jul 25, 2016 at 10:32:29PM +0900, Masami Hiramatsu wrote:
-> Hi Luis,
-> 
-> On Fri, 22 Jul 2016 14:24:34 -0700
-> "Luis R. Rodriguez" <mcgrof@kernel.org> wrote:
-> 
-> > This RFC v3 builds off the last RFC v2 series [0] for adding linker tables.
-> > The largest amount of work here was to take Russell King's feedback on
-> > using linker table for kprobes text not being appropriate -- and providing
-> > another lightweight API for simple section ranges: read-only stitched pieces
-> > of executable code. This required also generalizing common building blocks
-> > for both linker tables and section ranges, these building blocks are defined
-> > now in include/linux/sections.h and asm-generic/section.h. The other last thing
-> > decided was to not support sub-sections. In the hunt for this I could think of
-> > anything that really required this, and if it was needed it did not seem
-> > impossible to port over to avoid its use. Please let me know if there are valid
-> > uses cases for sub-sections.
-> > 
-> > Other significant effort here was to provide a set of common assembly helpers
-> > which could be used across architectures, this starts off some of this work
-> > for generic helpers which carve out and define custom Linux sections.
-> > 
-> > Lastly, this now also goes with two ports which required module support when
-> > using linker tables: jump labels, and dynamic debug support. A few
-> > extensions have been made to the original series in order to provide
-> > support for that.
-> > 
-> > Since kprobes actually had both a linker table and a section range the
-> > patch that dealt with kprobes is now split off in two patches, one
-> > that deals with its linker table and another for its section ranges.
-> > 
-> > More elaborate uses for linker tables are possible, I'll hold off on any
-> > of this type of work until at least the basic building blocks are fleshed
-> > out. To review how this work came about, and more elaborate uses being
-> > evaluated check out the userspace linker-tables mockup solution [1].
-> > Hopefully most of the possible bikeshedding was already dealt with through
-> > that tree. Thanks to hpa for tons of feedback.
-> 
-> Great! so table and ranges completely replace the old-style(add-hoc)
-> _kprobe and NOKPROBE_SYMBOL() implementation, good job! :)
+Hi,
 
-Indeed, thanks! In reality this is generalizing custom section hacks, but also
-making them much more powerful due to the fact that we sort now at link time,
-this buys us better than O(1) sort for code where dependencies can be spelled
-out in code, it also expands on the semantics available to us for order
-levels -- so we're no longer restricted to 7 levels for built-in code -- and
-order levels can be subject/subsystem specific.
+This is a start of the mainline port of PAX_USERCOPY[1]. After I started
+writing tests (now in lkdtm in -next) for Casey's earlier port[2], I
+kept tweaking things further and further until I ended up with a whole
+new patch series. To that end, I took Rik's feedback and made a number
+of other changes and clean-ups as well.
 
-  Luis
+Based on my understanding, PAX_USERCOPY was designed to catch a few
+classes of flaws around the use of copy_to_user()/copy_from_user(). These
+changes don't touch get_user() and put_user(), since these operate on
+constant sized lengths, and tend to be much less vulnerable. There
+are effectively three distinct protections in the whole series,
+each of which I've given a separate CONFIG, though this patch set is
+only the first of the three intended protections. (Generally speaking,
+PAX_USERCOPY covers what I'm calling CONFIG_HARDENED_USERCOPY (this) and
+CONFIG_HARDENED_USERCOPY_WHITELIST (future), and PAX_USERCOPY_SLABS covers
+CONFIG_HARDENED_USERCOPY_SPLIT_KMALLOC (future).)
+
+This series, which adds CONFIG_HARDENED_USERCOPY, checks that objects
+being copied to/from userspace meet certain criteria:
+- if address is a heap object, the size must not exceed the object's
+  allocated size. (This will catch all kinds of heap overflow flaws.)
+- if address range is in the current process stack, it must be within the
+  current stack frame (if such checking is possible) or at least entirely
+  within the current process's stack. (This could catch large lengths that
+  would have extended beyond the current process stack, or overflows if
+  their length extends back into the original stack.)
+- if the address range is part of kernel data, rodata, or bss, allow it.
+- if address range is page-allocated, that it doesn't span multiple
+  allocations.
+- if address is within the kernel text, reject it.
+- everything else is accepted
+
+The patches in the series are:
+- The core copy_to/from_user() checks, without the slab object checks:
+	1- mm: Hardened usercopy
+- Per-arch enablement of the protection:
+	2- x86/uaccess: Enable hardened usercopy
+	3- ARM: uaccess: Enable hardened usercopy
+	4- arm64/uaccess: Enable hardened usercopy
+	5- ia64/uaccess: Enable hardened usercopy
+	6- powerpc/uaccess: Enable hardened usercopy
+	7- sparc/uaccess: Enable hardened usercopy
+- The heap allocator implementation of object size checking:
+	8- mm: SLAB hardened usercopy support
+	9- mm: SLUB hardened usercopy support
+
+Some notes:
+
+- This is expected to apply on top of -next which contains fixes for the
+  position of _etext on both arm and arm64.
+
+- I couldn't detect a measurable performance change with these features
+  enabled. Kernel build times were unchanged, hackbench was unchanged,
+  etc. I think we could flip this to "on by default" at some point.
+
+- The SLOB support extracted from grsecurity seems entirely broken. I
+  have no idea what's going on there, I spent my time testing SLAB and
+  SLUB. Having someone else look at SLOB would be nice, but this series
+  doesn't depend on it.
+
+Additional features that would be nice, but aren't blocking this series:
+
+- Needs more architecture support for stack frame checking (only x86 now).
+
+
+Thanks!
+
+-Kees
+
+[1] https://grsecurity.net/download.php "grsecurity - test kernel patch"
+[2] http://www.openwall.com/lists/kernel-hardening/2016/05/19/5
+
+
