@@ -1,86 +1,81 @@
-From: Chris Metcalf <cmetcalf@mellanox.com>
-Date: Wed, 06 Jul 2016 16:52:23 +0000
-Subject: Re: [PATCH v2 4/4] dynamic_debug: add jump label support
-Message-Id: <b0cc5899-ce56-bb26-38e8-c3e2528da961@mellanox.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Thu, 07 Jul 2016 14:29:35 +0000
+Subject: btrfs module does not load on sparc64
+Message-Id: <CADxRZqwhBoc9sNxxZ4a9ZJ0JiYWiL9xtG8T_ws4i61YrtNHtHg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1463778029.git.jbaron@akamai.com>
- <587263b37406eda0d2ab84874a9fd4c81eaeca1d.1463778029.git.jbaron@akamai.com>
- <3796097.4dlb9d7Id8@wuerfel> <575B3108.1020409@akamai.com>
- <5c98fce0-7d90-14ec-6ff5-6fd5cde673b8@mellanox.com>
- <577C1F43.9090209@akamai.com>
-In-Reply-To: <577C1F43.9090209@akamai.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason Baron <jbaron@akamai.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: akpm@linux-foundation.org, joe@perches.com, peterz@infradead.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Btrfs BTRFS <linux-btrfs@vger.kernel.org>
+Cc: sparclinux@vger.kernel.org, debian-sparc <debian-sparc@lists.debian.org>
 
-On 7/5/2016 4:57 PM, Jason Baron wrote:
-> On 07/01/2016 03:30 PM, Chris Metcalf wrote:
->> On 6/10/2016 5:28 PM, Jason Baron wrote:
->>> Hi Arnd,
->>>
->>> Ok, I managed to reproduce this on tile and sparc64 by adding
->>> static_branch_[un]likely() to __exit functions as you mentioned.
->>> Although I didn't find the actual broken config.
->>>
->>> I think its only an issue on those 2 arches b/c they have jump
->>> label support and discard __exit text at build time (most
->>> arches seem to do it at run-time). Thus, we can end up with
->>> references in the __jump_table to addresses that may be in an
->>> __exit section. The jump label code already protects itself
->>> from touch code in the init sections after it has been freed.
->>> Thus, simply having functions marked with __exit in the init
->>> section is sufficient here.
->> How does this patch work instead?
->>
->> diff --git a/arch/tile/kernel/vmlinux.lds.S
->> b/arch/tile/kernel/vmlinux.lds.S
->> index 378f5d8d1ec8..5e83d2689def 100644
->> --- a/arch/tile/kernel/vmlinux.lds.S
->> +++ b/arch/tile/kernel/vmlinux.lds.S
->> @@ -58,7 +58,15 @@ SECTIONS
->>     _etext = .;
->>
->>     /* "Init" is divided into two areas with very different virtual
->> addresses. */
->> -  INIT_TEXT_SECTION(PAGE_SIZE)
->> +  . = ALIGN(PAGE_SIZE);
->> +  .init.text : AT(ADDR(.init.text) - LOAD_OFFSET) {
->> +    VMLINUX_SYMBOL(_sinittext) = .;
->> +    INIT_TEXT
->> +#ifdef CONFIG_JUMP_LABEL  /* __jump_table may reference __exit text */
->> +    EXIT_TEXT
->> +#endif
->> +    VMLINUX_SYMBOL(_einittext) = .;
->> +  }
->>
->>     /* Now we skip back to PAGE_OFFSET for the data. */
->>     . = (. - TEXT_OFFSET + PAGE_OFFSET);
->>
->
-> Hi Chris,
->
-> Thanks for the patch. I can confirm that it resolves the following
-> compilation issue:
->
-> `.exit.text' referenced in section `__jump_table' of fs/built-in.o:
-> defined in discarded section `.exit.text' of fs/built-in.o
-> `.exit.text' referenced in section `__jump_table' of fs/built-in.o:
-> defined in discarded section `.exit.text' of fs/built-in.o
->
-> I was able to create the issue by simply adding a
-> static_key_unlikely() branch to an __exit section that ends
-> up being built-in (non-module).
->
-> So this issue is really independent of this patch series...
-> Should I add your patch to my series when I re-post?
+Hi!
 
-I'm happy to just take a version of this into the tile tree instead, since
-you're right, it's a pre-existing problem.  I'll post the revised change
-shortly and cc you.  Thanks!
+Compiled linux kernel (git version 4.7.0-rc6+) using my own kernel
+config file, enabling :
 
--- 
-Chris Metcalf, Mellanox Technologies
-http://www.mellanox.com
+CONFIG_BTRFS_FS_RUN_SANITY_TESTS=y
+CONFIG_BTRFS_DEBUG=y
+CONFIG_BTRFS_ASSERT=y
 
+and now I can't load btrfs module:
+
+# modprobe btrfs
+modprobe: ERROR: could not insert 'btrfs': Invalid argument
+
+
+and in logs (and on console):
+
+[1897399.942697] Btrfs loaded, crc32c=crc32c-generic, debug=on, assert=on
+[1897400.024645] BTRFS: selftest: sectorsize: 8192  nodesize: 8192
+[1897400.098089] BTRFS: selftest: Running btrfs free space cache tests
+[1897400.175863] BTRFS: selftest: Running extent only tests
+[1897400.241871] BTRFS: selftest: Running bitmap only tests
+[1897400.307877] BTRFS: selftest: Running bitmap and extent tests
+[1897400.380329] BTRFS: selftest: Running space stealing from bitmap to extent
+[1897400.470517] BTRFS: selftest: Free space cache tests finished
+[1897400.542875] BTRFS: selftest: Running extent buffer operation tests
+[1897400.621710] BTRFS: selftest: Running btrfs_split_item tests
+[1897400.692929] BTRFS: selftest: Running extent I/O tests
+[1897400.757459] BTRFS: selftest: Running find delalloc tests
+[1897401.082670] BTRFS: selftest: Running extent buffer bitmap tests
+[1897401.161223] BTRFS: selftest: Setting straddling pages failed
+[1897401.233661] BTRFS: selftest: Extent I/O tests finished
+
+
+this is sparc64 sid/unstable debian:
+
+# uname -a
+Linux nvg5120 4.7.0-rc6+ #38 SMP Thu Jul 7 14:51:23 MSK 2016 sparc64 GNU/Linux
+
+# getconf PAGESIZE
+8192
+
+PS: using btrfs-progs from kdave repo,
+git://git.kernel.org/pub/scm/linux/kernel/git/kdave/btrfs-progs.git ,
+i'm able to create fs, but unable to mount:
+
+root@nvg5120:/home/mator/btrfs-progs# ./mkfs.btrfs -f /dev/vg1/vol1
+btrfs-progs v4.6.1
+See http://btrfs.wiki.kernel.org for more information.
+
+WARNING: failed to open /dev/btrfs-control, skipping device
+registration: No such device
+Label:              (null)
+UUID:               ddd8a268-62e5-444c-9baf-6ba1b2d4448b
+Node size:          16384
+Sector size:        8192
+Filesystem size:    15.00GiB
+Block group profiles:
+  Data:             single            8.00MiB
+  Metadata:         DUP               1.01GiB
+  System:           DUP              12.00MiB
+SSD detected:       no
+Incompat features:  extref, skinny-metadata
+Number of devices:  1
+Devices:
+   ID        SIZE  PATH
+    1    15.00GiB  /dev/vg1/vol1
+
+
+Can someone help please? Thanks.
