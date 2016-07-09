@@ -1,159 +1,31 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Sat, 09 Jul 2016 17:03:24 +0000
+From: Andy Lutomirski <luto@amacapital.net>
+Date: Sat, 09 Jul 2016 21:27:25 +0000
 Subject: Re: [PATCH 0/9] mm: Hardened usercopy
-Message-Id: <CAGXu5jJLH9kSxiR9=pHnHvv00UCJRCcrB_Juj=9ROyDxB0wK6A@mail.gmail.com>
+Message-Id: <CALCETrU5Emr7jZNH5bh7Z+C8fLOcAah9SzeJbDjqW7N-xWGxHA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1467843928-29351-1-git-send-email-keescook@chromium.org>
- <b113b487-acc6-24b8-d58c-425d3c884f4c@redhat.com> <CAKv+Gu_F03ncqT2wWFte2bFWQ7tSruL0ZaxTBLT9_NEs-1SioQ@mail.gmail.com>
-In-Reply-To: <CAKv+Gu_F03ncqT2wWFte2bFWQ7tSruL0ZaxTBLT9_NEs-1SioQ@mail.gmail.com>
+In-Reply-To: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Laura Abbott <labbott@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, "x86@kernel.org" <x86@kernel.org>, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, sparclinux <sparclinux@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Kees Cook <keescook@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>, Andrew Morton <akpm@linux-foundation.org>, Brad Spengler <spender@grsecurity.net>, Pekka Enberg <penberg@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Casey Schaufler <casey@schaufler-ca.com>, Will Deacon <will.deacon@arm.com>, Rik van Riel <riel@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dmitry Vyukov <dvyukov@google.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, X86 ML <x86@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, linux-arch <linux-arch@vger.kernel.org>, David Rientjes <rientjes@google.com>, Mathias Krause <minipli@googlemail.com>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>, "David S. Miller" <davem@davemloft.net>, Laura Abbott <labbott@fedoraproject.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Jan Kara <jack@suse.cz>, Russell King <linux@armlinux.org.uk>, Michael Ellerman <mpe@ellerman.id.au>, Andrea Arcangeli <aarcange@redhat.com>, Fenghua Yu <fenghua.yu@intel.com>, linuxppc-dev@lists.ozlabs.org, Vitaly Wool <vitalywool@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, PaX Team <pageexec@freemail.hu>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, sparclinux@vger.kernel.org
 
-On Sat, Jul 9, 2016 at 1:25 AM, Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
-> On 9 July 2016 at 04:22, Laura Abbott <labbott@redhat.com> wrote:
->> On 07/06/2016 03:25 PM, Kees Cook wrote:
->>>
->>> Hi,
->>>
->>> This is a start of the mainline port of PAX_USERCOPY[1]. After I started
->>> writing tests (now in lkdtm in -next) for Casey's earlier port[2], I
->>> kept tweaking things further and further until I ended up with a whole
->>> new patch series. To that end, I took Rik's feedback and made a number
->>> of other changes and clean-ups as well.
->>>
->>> Based on my understanding, PAX_USERCOPY was designed to catch a few
->>> classes of flaws around the use of copy_to_user()/copy_from_user(). The=
-se
->>> changes don't touch get_user() and put_user(), since these operate on
->>> constant sized lengths, and tend to be much less vulnerable. There
->>> are effectively three distinct protections in the whole series,
->>> each of which I've given a separate CONFIG, though this patch set is
->>> only the first of the three intended protections. (Generally speaking,
->>> PAX_USERCOPY covers what I'm calling CONFIG_HARDENED_USERCOPY (this) and
->>> CONFIG_HARDENED_USERCOPY_WHITELIST (future), and PAX_USERCOPY_SLABS cov=
-ers
->>> CONFIG_HARDENED_USERCOPY_SPLIT_KMALLOC (future).)
->>>
->>> This series, which adds CONFIG_HARDENED_USERCOPY, checks that objects
->>> being copied to/from userspace meet certain criteria:
->>> - if address is a heap object, the size must not exceed the object's
->>>   allocated size. (This will catch all kinds of heap overflow flaws.)
->>> - if address range is in the current process stack, it must be within t=
-he
->>>   current stack frame (if such checking is possible) or at least entire=
-ly
->>>   within the current process's stack. (This could catch large lengths t=
-hat
->>>   would have extended beyond the current process stack, or overflows if
->>>   their length extends back into the original stack.)
->>> - if the address range is part of kernel data, rodata, or bss, allow it.
->>> - if address range is page-allocated, that it doesn't span multiple
->>>   allocations.
->>> - if address is within the kernel text, reject it.
->>> - everything else is accepted
->>>
->>> The patches in the series are:
->>> - The core copy_to/from_user() checks, without the slab object checks:
->>>         1- mm: Hardened usercopy
->>> - Per-arch enablement of the protection:
->>>         2- x86/uaccess: Enable hardened usercopy
->>>         3- ARM: uaccess: Enable hardened usercopy
->>>         4- arm64/uaccess: Enable hardened usercopy
->>>         5- ia64/uaccess: Enable hardened usercopy
->>>         6- powerpc/uaccess: Enable hardened usercopy
->>>         7- sparc/uaccess: Enable hardened usercopy
->>> - The heap allocator implementation of object size checking:
->>>         8- mm: SLAB hardened usercopy support
->>>         9- mm: SLUB hardened usercopy support
->>>
->>> Some notes:
->>>
->>> - This is expected to apply on top of -next which contains fixes for the
->>>   position of _etext on both arm and arm64.
->>>
->>> - I couldn't detect a measurable performance change with these features
->>>   enabled. Kernel build times were unchanged, hackbench was unchanged,
->>>   etc. I think we could flip this to "on by default" at some point.
->>>
->>> - The SLOB support extracted from grsecurity seems entirely broken. I
->>>   have no idea what's going on there, I spent my time testing SLAB and
->>>   SLUB. Having someone else look at SLOB would be nice, but this series
->>>   doesn't depend on it.
->>>
->>> Additional features that would be nice, but aren't blocking this series:
->>>
->>> - Needs more architecture support for stack frame checking (only x86 no=
-w).
->>>
->>>
->>
->> Even with the SLUB fixup I'm still seeing this blow up on my arm64 syste=
-m.
->> This is a
->> Fedora rawhide kernel + the patches
->>
->> [ 0.666700] usercopy: kernel memory exposure attempt detected from
->> fffffc0008b4dd58 (<kernel text>) (8 bytes)
->> [ 0.666720] CPU: 2 PID: 79 Comm: modprobe Tainted: G        W
->> 4.7.0-0.rc6.git1.1.hardenedusercopy.fc25.aarch64 #1
->> [ 0.666733] Hardware name: AppliedMicro Mustang/Mustang, BIOS 1.1.0 Nov =
-24
->> 2015
->> [ 0.666744] Call trace:
->> [ 0.666756] [<fffffc0008088a20>] dump_backtrace+0x0/0x1e8
->> [ 0.666765] [<fffffc0008088c2c>] show_stack+0x24/0x30
->> [ 0.666775] [<fffffc0008455344>] dump_stack+0xa4/0xe0
->> [ 0.666785] [<fffffc000828d874>] __check_object_size+0x6c/0x230
->> [ 0.666795] [<fffffc00083a5748>] create_elf_tables+0x74/0x420
->> [ 0.666805] [<fffffc00082fb1f0>] load_elf_binary+0x828/0xb70
->> [ 0.666814] [<fffffc0008298b4c>] search_binary_handler+0xb4/0x240
->> [ 0.666823] [<fffffc0008299864>] do_execveat_common+0x63c/0x950
->> [ 0.666832] [<fffffc0008299bb4>] do_execve+0x3c/0x50
->> [ 0.666841] [<fffffc00080e3720>] call_usermodehelper_exec_async+0xe8/0x1=
-48
->> [ 0.666850] [<fffffc0008084a80>] ret_from_fork+0x10/0x50
->>
->> This happens on every call to execve. This seems to be the first
->> copy_to_user in
->> create_elf_tables. I didn't get a chance to debug and I'm going out of t=
-own
->> all of next week so all I have is the report unfortunately. config attac=
-hed.
->>
+On Jul 6, 2016 6:25 PM, "Kees Cook" <keescook@chromium.org> wrote:
 >
-> This is a known issue, and a fix is already queued for v4.8 in the arm64 =
-tree:
+> Hi,
 >
-> 9fdc14c55c arm64: mm: fix location of _etext [0]
+> This is a start of the mainline port of PAX_USERCOPY[1]. After I started
+> writing tests (now in lkdtm in -next) for Casey's earlier port[2], I
+> kept tweaking things further and further until I ended up with a whole
+> new patch series. To that end, I took Rik's feedback and made a number
+> of other changes and clean-ups as well.
 >
-> which moves _etext up in the linker script so that it does not cover .rod=
-ata
 
-Oops, I missed this reply, sorry for the redundant answer. :)
-
-> ARM was suffering from the same problem, and Kees proposed a fix for
-> it. I don't know what the status of that patch is, though.
-
-This is also in -next "ARM: 8583/1: mm: fix location of _etext".
-
-> Note that on arm64, we have
->
->   #define ELF_PLATFORM            ("aarch64")
->
-> which explains why k_platform points into .rodata in this case. On
-> ARM, it points to a writable string (as the code quoted by Rik shows),
-> so there it will likely explode elsewhere without the linker script
-> fix.
->
-> [0] https://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/commit/?=
-h=3Dfor-next/core&id=9Fdc14c55c
-
--Kees
-
---=20
-Kees Cook
-Chrome OS & Brillo Security
+I like the series, but I have one minor nit to pick.  The effect of
+this series is to harden usercopy, but most of the code is really
+about infrastructure to validate that a pointed-to object is valid.
+Might it make sense to call the infrastructure part something else?
+After all, this could be extended in the future for memcpy or even for
+some GCC plugin to check pointers passed to ordinary (non-allocator)
+functions.
