@@ -1,71 +1,17 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 20 Jul 2016 20:27:00 +0000
-Subject: [PATCH v4 05/12] ARM: uaccess: Enable hardened usercopy
-Message-Id: <1469046427-12696-6-git-send-email-keescook@chromium.org>
+From: David Rogers <noreply@eracom.ch>
+Date: Sat, 09 Jul 2016 21:21:05 +0000
+Subject: 2% DARLEHEN
+Message-Id: <20160709212132.515CF3B3371F@webmail.eracom.ch>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1469046427-12696-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1469046427-12696-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: kernel-hardening@lists.openwall.com
-Cc: Kees Cook <keescook@chromium.org>, Laura Abbott <labbott@fedoraproject.org>, Balbir Singh <bsingharora@gmail.com>, Daniel Micay <danielmicay@gmail.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Enables CONFIG_HARDENED_USERCOPY checks on arm.
+Aufmerksamkeit;
 
-Based on code from PaX and grsecurity.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- arch/arm/Kconfig               |  1 +
- arch/arm/include/asm/uaccess.h | 11 +++++++++--
- 2 files changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 90542db1220d..f56b29b3f57e 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -35,6 +35,7 @@ config ARM
- 	select HARDIRQS_SW_RESEND
- 	select HAVE_ARCH_AUDITSYSCALL if (AEABI && !OABI_COMPAT)
- 	select HAVE_ARCH_BITREVERSE if (CPU_32v7M || CPU_32v7) && !CPU_32v6
-+	select HAVE_ARCH_HARDENED_USERCOPY
- 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL && !CPU_ENDIAN_BE32 && MMU
- 	select HAVE_ARCH_KGDB if !CPU_ENDIAN_BE32 && MMU
- 	select HAVE_ARCH_MMAP_RND_BITS if MMU
-diff --git a/arch/arm/include/asm/uaccess.h b/arch/arm/include/asm/uaccess.h
-index 35c9db857ebe..7fb59199c6bb 100644
---- a/arch/arm/include/asm/uaccess.h
-+++ b/arch/arm/include/asm/uaccess.h
-@@ -496,7 +496,10 @@ arm_copy_from_user(void *to, const void __user *from, unsigned long n);
- static inline unsigned long __must_check
- __copy_from_user(void *to, const void __user *from, unsigned long n)
- {
--	unsigned int __ua_flags = uaccess_save_and_enable();
-+	unsigned int __ua_flags;
-+
-+	check_object_size(to, n, false);
-+	__ua_flags = uaccess_save_and_enable();
- 	n = arm_copy_from_user(to, from, n);
- 	uaccess_restore(__ua_flags);
- 	return n;
-@@ -511,11 +514,15 @@ static inline unsigned long __must_check
- __copy_to_user(void __user *to, const void *from, unsigned long n)
- {
- #ifndef CONFIG_UACCESS_WITH_MEMCPY
--	unsigned int __ua_flags = uaccess_save_and_enable();
-+	unsigned int __ua_flags;
-+
-+	check_object_size(from, n, true);
-+	__ua_flags = uaccess_save_and_enable();
- 	n = arm_copy_to_user(to, from, n);
- 	uaccess_restore(__ua_flags);
- 	return n;
- #else
-+	check_object_size(from, n, true);
- 	return arm_copy_to_user(to, from, n);
- #endif
- }
--- 
-2.7.4
-
+Hiermit teilen wir Ihnen mit, dass als privates Unternehmen, Kredite Untern=
+ehmen mit Sitz in Gro=DFbritannien (Um Financial Ltd). Wir geben Kredite in=
+ H=F6he von $ 10.000 bis $ 300.000.000 bei 2% Zinssatz f=FCr alle Interessi=
+erten. Land ist kein Hindernis, so f=FChlen sich frei, mit uns an diese E-M=
+ail zu kontaktieren: customer.service@umafh.co.uk
