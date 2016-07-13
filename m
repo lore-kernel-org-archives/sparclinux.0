@@ -1,70 +1,114 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Wed, 13 Jul 2016 13:38:16 +0000
-Subject: [bug report] SPARC/LEON: added support for selecting Timer Core and Timer within core
-Message-Id: <20160713133816.GA8019@mwanda>
+From: joe moriarty <joe.moriarty@oracle.com>
+Date: Wed, 13 Jul 2016 21:25:45 +0000
+Subject: Mapping PADDR into virtual memory problem.
+Message-Id: <4701cc90-2a15-0ab9-3527-170ce306a51d@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello Daniel Hellstrom,
+I'm stuck trying to get this to work and I don't know why what I am 
+doing doesn't work.  I'm hoping maybe someone on here has a suggestion.  
+The piece of code below is suppose to take a PADDR and memory map it to 
+a kernel address.  The output I get from the code below is shown here:
 
-The patch 2791c1a43900: "SPARC/LEON: added support for selecting
-Timer Core and Timer within core" from Jan 4, 2011, leads to the
-following static checker warning:
+PCI: Enabling device: (0002:08:00.0), cmd 3
+vm_area->phys_addr=0x0008080100040000
+vaddr=0x0000000136180000
+nr_pages2
+page protection =0x9C08080100040690
+I/O address location mapped
+ioread32 RegBase[0] = 0x00000000
+vread RegBase[0] = 0x00000000
+PCI: Enabling device: (0002:09:00.0), cmd 3
+vm_area->phys_addr=0x0008080110040000
+vaddr=0x0000000136200000
+nr_pages2
+page protection =0x9C08080110040690
+I/O address location mapped
+ioread32 RegBase[0] = 0x00000000
+vread RegBase[0] = 0x00000000
+PCI: Enabling device: (0002:0a:00.0), cmd 3
+vm_area->phys_addr=0x0008080120040000
+vaddr=0x0000000136280000
+nr_pages2
+page protection =0x9C08080120040690
+I/O address location mapped
+ioread32 RegBase[0] = 0x00000000
+vread RegBase[0] = 0x00000000
+PCI: Enabling device: (0002:0b:00.0), cmd 3
+vm_area->phys_addr=0x0008080130040000
+vaddr=0x0000000136300000
+nr_pages2
+page protection =0x9C08080130040690
+I/O address location mapped
+ioread32 RegBase[0] = 0x00000000
+vread RegBase[0] = 0x00000000
 
-	arch/sparc/kernel/leon_kernel.c:368 leon_init_timers()
-	warn: continue to end of do { ... } while(0) loop.
+I know I should be getting 0x00EA0408 from RegBase[0].
+Do you see anything obvious that is wrong?
 
-arch/sparc/kernel/leon_kernel.c
-   350          /* Find GPTIMER Timer Registers base address otherwise bail out. */
-   351          nnp = rootnp;
+  void __iomem *ioremap_prefetch(unsigned long offset, unsigned long size)
+{
+         struct vm_struct *vm_area = NULL;
+         unsigned long vaddr;
+         int error = 0, tmp_val;
+         pgprot_t prot = __pgprot(pgprot_val(PAGE_SHARED) | 
+(_PAGE_PADDR_4V &
+                         offset));
+         void __iomem *ret_addr;
 
-I think the intent was to jump back to here.
+         /*
+          * Get Contiguous Kernel Virtual Memory Area.  Note: 
+get_vm_area will
+          * page align the area to use.
+          */
+         vm_area = get_vm_area(size, VM_IOREMAP | VM_NO_GUARD);
+         if (!vm_area) {
+                 printk("Unable to allocate Contiguous Virtual Memory 
+for Mapping
+\n");
+                 error = 1;
+                 goto done;
+         }
+         vm_area->phys_addr = (phys_addr_t)offset;
+         vm_area->nr_pages = size / PAGE_SIZE;
+         vaddr = (unsigned long)vm_area->addr;
+         printk("vm_area->phys_addr=0x%016llX\n", (unsigned long 
+long)vm_area->ph
+ys_addr);
+         printk("vaddr=0x%016llX\n", (unsigned long long)vaddr);
+         printk("nr_pages=%d\n", vm_area->nr_pages);
+         printk("page protection =0x%08lX\n", (unsigned 
+long)pgprot_val(prot));
+         if(ioremap_page_range((unsigned long)vm_area->addr,
+                               (unsigned long)vm_area->addr + size,
+                               vm_area->phys_addr, prot)) {
+                 printk("Unable to Map Page Range.\n");
+                 error = 1;
+                 goto done;
+         }
+         else {
+                 printk("I/O address location mapped\n");
+                 ret_addr = vm_area->addr;
+                 printk("ioread32 RegBase[0] = 0x%08X\n", 
+ioread32(ret_addr));
+                 vread((char *)&tmp_val, ret_addr, 4);
+                 printk("vread RegBase[0] = 0x%08X\n", tmp_val);
+         }
 
-   352          do {
-   353                  np = of_find_node_by_name(nnp, "GAISLER_GPTIMER");
-   354                  if (!np) {
-   355                          np = of_find_node_by_name(nnp, "01_011");
-   356                          if (!np)
-   357                                  goto bad;
-   358                  }
-   359  
-   360                  ampopts = 0;
-   361                  pp = of_find_property(np, "ampopts", &len);
-   362                  if (pp) {
-   363                          ampopts = *(int *)pp->value;
-   364                          if (ampopts = 0) {
-   365                                  /* Skip this instance, resource already
-   366                                   * allocated by other OS */
-   367                                  nnp = np;
-   368                                  continue;
+done:
+         if(error) {
+                 /*
+                  * Cleanup After oneself
+                  */
+                 free_vm_area(vm_area);
+                 ret_addr = 0;
+         }
+         return (ret_addr);
+         //return ((void __iomem *)offset);
+}
 
-But the continue actually jumps down to the end of the loop like a break
-would.
-
-   369                          }
-   370                  }
-   371  
-   372                  /* Select Timer-Instance on Timer Core. Default is zero */
-   373                  leon3_gptimer_idx = ampopts & 0x7;
-   374  
-   375                  pp = of_find_property(np, "reg", &len);
-   376                  if (pp)
-   377                          leon3_gptimer_regs = *(struct leon3_gptimer_regs_map **)
-   378                                                  pp->value;
-   379                  pp = of_find_property(np, "interrupts", &len);
-   380                  if (pp)
-   381                          leon3_gptimer_irq = *(unsigned int *)pp->value;
-   382          } while (0);
-   383  
-
-We jump to here instead.  Either way, it would probably be best to get
-rid of the loop entirely and use a label and a goto.
-
-   384          if (!(leon3_gptimer_regs && leon3_irqctrl_regs && leon3_gptimer_irq))
-   385                  goto bad;
-
-regards,
-dan carpenter
+Thanks In Advance,
+Joe
