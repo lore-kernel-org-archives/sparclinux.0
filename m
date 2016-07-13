@@ -1,80 +1,98 @@
 From: Kees Cook <keescook@chromium.org>
-Date: Wed, 06 Jul 2016 22:25:27 +0000
-Subject: [PATCH 8/9] mm: SLAB hardened usercopy support
-Message-Id: <1467843928-29351-9-git-send-email-keescook@chromium.org>
+Date: Wed, 13 Jul 2016 21:55:53 +0000
+Subject: [PATCH v2 0/11] mm: Hardened usercopy
+Message-Id: <1468446964-22213-1-git-send-email-keescook@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1467843928-29351-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1467843928-29351-1-git-send-email-keescook@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: Kees Cook <keescook@chromium.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, kernel-hardening@lists.openwall.com
 
-Under CONFIG_HARDENED_USERCOPY, this adds object size checking to the
-SLAB allocator to catch any copies that may span objects.
+Hi,
 
-Based on code from PaX and grsecurity.
+This is a start of the mainline port of PAX_USERCOPY[1]. After I started
+writing tests (now in lkdtm in -next) for Casey's earlier port[2], I
+kept tweaking things further and further until I ended up with a whole
+new patch series. To that end, I took Rik's feedback and made a number
+of other changes and clean-ups as well.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- init/Kconfig |  1 +
- mm/slab.c    | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+Based on my understanding, PAX_USERCOPY was designed to catch a
+few classes of flaws (mainly bad bounds checking) around the use of
+copy_to_user()/copy_from_user(). These changes don't touch get_user() and
+put_user(), since these operate on constant sized lengths, and tend to be
+much less vulnerable. There are effectively three distinct protections in
+the whole series, each of which I've given a separate CONFIG, though this
+patch set is only the first of the three intended protections. (Generally
+speaking, PAX_USERCOPY covers what I'm calling CONFIG_HARDENED_USERCOPY
+(this) and CONFIG_HARDENED_USERCOPY_WHITELIST (future), and
+PAX_USERCOPY_SLABS covers CONFIG_HARDENED_USERCOPY_SPLIT_KMALLOC
+(future).)
 
-diff --git a/init/Kconfig b/init/Kconfig
-index f755a602d4a1..798c2020ee7c 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -1757,6 +1757,7 @@ choice
- 
- config SLAB
- 	bool "SLAB"
-+	select HAVE_HARDENED_USERCOPY_ALLOCATOR
- 	help
- 	  The regular slab allocator that is established and known to work
- 	  well in all environments. It organizes cache hot objects in
-diff --git a/mm/slab.c b/mm/slab.c
-index cc8bbc1e6bc9..5e2d5f349aca 100644
---- a/mm/slab.c
-+++ b/mm/slab.c
-@@ -4477,6 +4477,36 @@ static int __init slab_proc_init(void)
- module_init(slab_proc_init);
- #endif
- 
-+#ifdef CONFIG_HARDENED_USERCOPY
-+/*
-+ * Rejects objects that are incorrectly sized.
-+ *
-+ * Returns NULL if check passes, otherwise const char * to name of cache
-+ * to indicate an error.
-+ */
-+const char *__check_heap_object(const void *ptr, unsigned long n,
-+				struct page *page)
-+{
-+	struct kmem_cache *cachep;
-+	unsigned int objnr;
-+	unsigned long offset;
-+
-+	/* Find and validate object. */
-+	cachep = page->slab_cache;
-+	objnr = obj_to_index(cachep, page, (void *)ptr);
-+	BUG_ON(objnr >= cachep->num);
-+
-+	/* Find offset within object. */
-+	offset = ptr - index_to_obj(cachep, page, objnr) - obj_offset(cachep);
-+
-+	/* Allow address range falling entirely within object size. */
-+	if (offset <= cachep->object_size && n <= cachep->object_size - offset)
-+		return NULL;
-+
-+	return cachep->name;
-+}
-+#endif /* CONFIG_HARDENED_USERCOPY */
-+
- /**
-  * ksize - get the actual amount of memory allocated for a given object
-  * @objp: Pointer to the object
--- 
-2.7.4
+This series, which adds CONFIG_HARDENED_USERCOPY, checks that objects
+being copied to/from userspace meet certain criteria:
+- if address is a heap object, the size must not exceed the object's
+  allocated size. (This will catch all kinds of heap overflow flaws.)
+- if address range is in the current process stack, it must be within the
+  current stack frame (if such checking is possible) or at least entirely
+  within the current process's stack. (This could catch large lengths that
+  would have extended beyond the current process stack, or overflows if
+  their length extends back into the original stack.)
+- if the address range is part of kernel data, rodata, or bss, allow it.
+- if address range is page-allocated, that it doesn't span multiple
+  allocations.
+- if address is within the kernel text, reject it.
+- everything else is accepted
+
+The patches in the series are:
+- Support for arch-specific stack frame checking:
+	1- mm: Implement stack frame object validation
+- The core copy_to/from_user() checks, without the slab object checks:
+        2- mm: Hardened usercopy
+- Per-arch enablement of the protection:
+        3- x86/uaccess: Enable hardened usercopy
+        4- ARM: uaccess: Enable hardened usercopy
+        5- arm64/uaccess: Enable hardened usercopy
+        6- ia64/uaccess: Enable hardened usercopy
+        7- powerpc/uaccess: Enable hardened usercopy
+        8- sparc/uaccess: Enable hardened usercopy
+        9- s390/uaccess: Enable hardened usercopy
+- The heap allocator implementation of object size checking:
+       10- mm: SLAB hardened usercopy support
+       11- mm: SLUB hardened usercopy support
+
+Some notes:
+
+- This is expected to apply on top of -next which contains fixes for the
+  position of _etext on both arm and arm64.
+
+- I couldn't detect a measurable performance change with these features
+  enabled. Kernel build times were unchanged, hackbench was unchanged,
+  etc. I think we could flip this to "on by default" at some point, but
+  for now, I'm leaving it off until I can get some more definitive
+  measurements.
+
+- The SLOB support extracted from grsecurity seems entirely broken. I
+  have no idea what's going on there, I spent my time testing SLAB and
+  SLUB. Having someone else look at SLOB would be nice, but this series
+  doesn't depend on it.
+
+Additional features that would be nice, but aren't blocking this series:
+
+- Needs more architecture support for stack frame checking (only x86 now).
+
+
+Thanks!
+
+-Kees
+
+[1] https://grsecurity.net/download.php "grsecurity - test kernel patch"
+[2] http://www.openwall.com/lists/kernel-hardening/2016/05/19/5
+
+v2:
+- added s390 support
+- handle slub red zone
+- disallow writes to rodata area
+- stack frame walker now CONFIG-controlled arch-specific helper
+
 
