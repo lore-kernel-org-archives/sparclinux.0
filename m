@@ -1,39 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Jul 2016 04:42:17 +0000
-Subject: Re: [PATCH] sparc64 mm: Fix base TSB sizing when hugetlb pages are used
-Message-Id: <20160728.214217.257756679660455048.davem@davemloft.net>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Fri, 15 Jul 2016 11:05:33 +0000
+Subject: [patch] sparc32: off by ones in BUG_ON()
+Message-Id: <20160715110533.GA9258@mwanda>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1468613322-8491-1-git-send-email-mike.kravetz@oracle.com>
-In-Reply-To: <1468613322-8491-1-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mike.kravetz@oracle.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, nitin.m.gupta@oracle.com
+To: kernel-janitors@vger.kernel.org
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri, 15 Jul 2016 13:08:42 -0700
+Smatch complains that these tests are off by one, which is true but not
+life threatening.
 
-> do_sparc64_fault() calculates both the base and huge page RSS sizes and
-> uses this information in calls to tsb_grow().  The calculation for base
-> page TSB size is not correct if the task uses hugetlb pages.  hugetlb
-> pages are not accounted for in RSS, therefore the call to get_mm_rss(mm)
-> does not include hugetlb pages.  However, the number of pages based on
-> huge_pte_count (which does include hugetlb pages) is subtracted from
-> this value.  This will result in an artificially small and often negative
-> RSS calculation.  The base TSB size is then often set to max_tsb_size
-> as the passed RSS is unsigned, so a negative value looks really big.
-> 
-> THP pages are also accounted for in huge_pte_count, and THP pages are
-> accounted for in RSS so the calculation in do_sparc64_fault() is correct
-> if a task only uses THP pages.
-> 
-> A single huge_pte_count is not sufficient for TSB sizing if both hugetlb
-> and THP pages can be used.  Instead of a single counter, use two:  one
-> for hugetlb and one for THP.
-> 
-> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+	arch/sparc/kernel/irq_32.c:169 irq_link()
+	error: buffer overflow 'irq_map' 384 <= 384
 
-Great catch, applied and queued up for -stable.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thanks.
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index a979e99..cac4a55 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -165,7 +165,7 @@ void irq_link(unsigned int irq)
+ 
+ 	p = &irq_table[irq];
+ 	pil = p->pil;
+-	BUG_ON(pil > SUN4D_MAX_IRQ);
++	BUG_ON(pil >= SUN4D_MAX_IRQ);
+ 	p->next = irq_map[pil];
+ 	irq_map[pil] = p;
+ 
+@@ -182,7 +182,7 @@ void irq_unlink(unsigned int irq)
+ 	spin_lock_irqsave(&irq_map_lock, flags);
+ 
+ 	p = &irq_table[irq];
+-	BUG_ON(p->pil > SUN4D_MAX_IRQ);
++	BUG_ON(p->pil >= SUN4D_MAX_IRQ);
+ 	pnext = &irq_map[p->pil];
+ 	while (*pnext != p)
+ 		pnext = &(*pnext)->next;
