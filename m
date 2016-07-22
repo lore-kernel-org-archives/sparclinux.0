@@ -1,98 +1,157 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 13 Jul 2016 21:55:53 +0000
-Subject: [PATCH v2 0/11] mm: Hardened usercopy
-Message-Id: <1468446964-22213-1-git-send-email-keescook@chromium.org>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Fri, 22 Jul 2016 21:24:43 +0000
+Subject: [RFC v3 09/13] firmware: port built-in section to linker table
+Message-Id: <1469222687-1600-10-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Kees Cook <keescook@chromium.org>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, kernel-hardening@lists.openwall.com
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, tony.luck@intel.com, akpm@linux-foun
 
-Hi,
+This ports built-in firmware to use linker tables,
+this replaces the custom section solution with a
+generic solution.
 
-This is a start of the mainline port of PAX_USERCOPY[1]. After I started
-writing tests (now in lkdtm in -next) for Casey's earlier port[2], I
-kept tweaking things further and further until I ended up with a whole
-new patch series. To that end, I took Rik's feedback and made a number
-of other changes and clean-ups as well.
+This also demos the use of the .rodata (SECTION_RO)
+linker tables.
 
-Based on my understanding, PAX_USERCOPY was designed to catch a
-few classes of flaws (mainly bad bounds checking) around the use of
-copy_to_user()/copy_from_user(). These changes don't touch get_user() and
-put_user(), since these operate on constant sized lengths, and tend to be
-much less vulnerable. There are effectively three distinct protections in
-the whole series, each of which I've given a separate CONFIG, though this
-patch set is only the first of the three intended protections. (Generally
-speaking, PAX_USERCOPY covers what I'm calling CONFIG_HARDENED_USERCOPY
-(this) and CONFIG_HARDENED_USERCOPY_WHITELIST (future), and
-PAX_USERCOPY_SLABS covers CONFIG_HARDENED_USERCOPY_SPLIT_KMALLOC
-(future).)
+Tested with 0 built-in firmware, 1 and 2 built-in
+firmwares successfully.
 
-This series, which adds CONFIG_HARDENED_USERCOPY, checks that objects
-being copied to/from userspace meet certain criteria:
-- if address is a heap object, the size must not exceed the object's
-  allocated size. (This will catch all kinds of heap overflow flaws.)
-- if address range is in the current process stack, it must be within the
-  current stack frame (if such checking is possible) or at least entirely
-  within the current process's stack. (This could catch large lengths that
-  would have extended beyond the current process stack, or overflows if
-  their length extends back into the original stack.)
-- if the address range is part of kernel data, rodata, or bss, allow it.
-- if address range is page-allocated, that it doesn't span multiple
-  allocations.
-- if address is within the kernel text, reject it.
-- everything else is accepted
+v3:
+o explicitly include tables.h as we no longer include
+  tables.h from sections.h
 
-The patches in the series are:
-- Support for arch-specific stack frame checking:
-	1- mm: Implement stack frame object validation
-- The core copy_to/from_user() checks, without the slab object checks:
-        2- mm: Hardened usercopy
-- Per-arch enablement of the protection:
-        3- x86/uaccess: Enable hardened usercopy
-        4- ARM: uaccess: Enable hardened usercopy
-        5- arm64/uaccess: Enable hardened usercopy
-        6- ia64/uaccess: Enable hardened usercopy
-        7- powerpc/uaccess: Enable hardened usercopy
-        8- sparc/uaccess: Enable hardened usercopy
-        9- s390/uaccess: Enable hardened usercopy
-- The heap allocator implementation of object size checking:
-       10- mm: SLAB hardened usercopy support
-       11- mm: SLUB hardened usercopy support
+o use new section_tbl_asmtype() helper on firmware/Makefile
+  to enable having to unfold things on our own.
 
-Some notes:
+v2: introduced this file in this version of the series
 
-- This is expected to apply on top of -next which contains fixes for the
-  position of _etext on both arm and arm64.
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ arch/x86/kernel/cpu/microcode/core.c |  8 ++++----
+ drivers/base/firmware_class.c        | 12 ++++++------
+ firmware/Makefile                    |  4 +++-
+ include/asm-generic/vmlinux.lds.h    |  7 -------
+ 4 files changed, 13 insertions(+), 18 deletions(-)
 
-- I couldn't detect a measurable performance change with these features
-  enabled. Kernel build times were unchanged, hackbench was unchanged,
-  etc. I think we could flip this to "on by default" at some point, but
-  for now, I'm leaving it off until I can get some more definitive
-  measurements.
-
-- The SLOB support extracted from grsecurity seems entirely broken. I
-  have no idea what's going on there, I spent my time testing SLAB and
-  SLUB. Having someone else look at SLOB would be nice, but this series
-  doesn't depend on it.
-
-Additional features that would be nice, but aren't blocking this series:
-
-- Needs more architecture support for stack frame checking (only x86 now).
-
-
-Thanks!
-
--Kees
-
-[1] https://grsecurity.net/download.php "grsecurity - test kernel patch"
-[2] http://www.openwall.com/lists/kernel-hardening/2016/05/19/5
-
-v2:
-- added s390 support
-- handle slub red zone
-- disallow writes to rodata area
-- stack frame walker now CONFIG-controlled arch-specific helper
-
+diff --git a/arch/x86/kernel/cpu/microcode/core.c b/arch/x86/kernel/cpu/microcode/core.c
+index df04b2d033f6..3e7c08d99601 100644
+--- a/arch/x86/kernel/cpu/microcode/core.c
++++ b/arch/x86/kernel/cpu/microcode/core.c
+@@ -31,6 +31,7 @@
+ #include <linux/cpu.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/tables.h>
+ 
+ #include <asm/microcode_intel.h>
+ #include <asm/cpu_device_id.h>
+@@ -91,15 +92,14 @@ static bool __init check_loader_disabled_bsp(void)
+ 	return *res;
+ }
+ 
+-extern struct builtin_fw __start_builtin_fw[];
+-extern struct builtin_fw __end_builtin_fw[];
++DECLARE_LINKTABLE_RO(struct builtin_fw, builtin_fw);
+ 
+ bool get_builtin_firmware(struct cpio_data *cd, const char *name)
+ {
+ #ifdef CONFIG_FW_LOADER
+-	struct builtin_fw *b_fw;
++	const struct builtin_fw *b_fw;
+ 
+-	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++) {
++	LINKTABLE_FOR_EACH(b_fw, builtin_fw) {
+ 		if (!strcmp(name, b_fw->name)) {
+ 			cd->size = b_fw->size;
+ 			cd->data = b_fw->data;
+diff --git a/drivers/base/firmware_class.c b/drivers/base/firmware_class.c
+index 22d1760a4278..8fbf03c3e4c2 100644
+--- a/drivers/base/firmware_class.c
++++ b/drivers/base/firmware_class.c
+@@ -30,6 +30,7 @@
+ #include <linux/syscore_ops.h>
+ #include <linux/reboot.h>
+ #include <linux/security.h>
++#include <linux/tables.h>
+ 
+ #include <generated/utsrelease.h>
+ 
+@@ -43,15 +44,14 @@ MODULE_LICENSE("GPL");
+ 
+ #ifdef CONFIG_FW_LOADER
+ 
+-extern struct builtin_fw __start_builtin_fw[];
+-extern struct builtin_fw __end_builtin_fw[];
++DEFINE_LINKTABLE_RO(struct builtin_fw, builtin_fw);
+ 
+ static bool fw_get_builtin_firmware(struct firmware *fw, const char *name,
+ 				    void *buf, size_t size)
+ {
+-	struct builtin_fw *b_fw;
++	const struct builtin_fw *b_fw;
+ 
+-	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++) {
++	LINKTABLE_FOR_EACH(b_fw, builtin_fw) {
+ 		if (strcmp(name, b_fw->name) = 0) {
+ 			fw->size = b_fw->size;
+ 			fw->data = b_fw->data;
+@@ -67,9 +67,9 @@ static bool fw_get_builtin_firmware(struct firmware *fw, const char *name,
+ 
+ static bool fw_is_builtin_firmware(const struct firmware *fw)
+ {
+-	struct builtin_fw *b_fw;
++	const struct builtin_fw *b_fw;
+ 
+-	for (b_fw = __start_builtin_fw; b_fw != __end_builtin_fw; b_fw++)
++	LINKTABLE_FOR_EACH(b_fw, builtin_fw)
+ 		if (fw->data = b_fw->data)
+ 			return true;
+ 
+diff --git a/firmware/Makefile b/firmware/Makefile
+index fa3e81c2a97b..32304a227f09 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -155,6 +155,8 @@ quiet_cmd_fwbin = MK_FW   $@
+ 		  ASM_ALIGN=$(if $(CONFIG_64BIT),3,2);			     \
+ 		  PROGBITS=$(if $(CONFIG_ARM),%,@)progbits;		     \
+ 		  echo "/* Generated by firmware/Makefile */"		> $@;\
++		  echo "\#include <asm/sections.h>"			>>$@;\
++		  echo "\#include <asm/tables.h>"			>>$@;\
+ 		  echo "    .section .rodata"				>>$@;\
+ 		  echo "    .p2align $${ASM_ALIGN}"			>>$@;\
+ 		  echo "_fw_$${FWSTR}_bin:"				>>$@;\
+@@ -164,7 +166,7 @@ quiet_cmd_fwbin = MK_FW   $@
+ 		  echo "    .p2align $${ASM_ALIGN}"			>>$@;\
+ 		  echo "_fw_$${FWSTR}_name:"				>>$@;\
+ 		  echo "    .string \"$$FWNAME\""			>>$@;\
+-		  echo "    .section .builtin_fw,\"a\",$${PROGBITS}"	>>$@;\
++		  echo "    section_tbl_asmtype(SECTION_RODATA, builtin_fw, SECTION_ORDER_ANY, a,$${PROGBITS})"	>>$@;\
+ 		  echo "    .p2align $${ASM_ALIGN}"			>>$@;\
+ 		  echo "    $${ASM_WORD} _fw_$${FWSTR}_name"		>>$@;\
+ 		  echo "    $${ASM_WORD} _fw_$${FWSTR}_bin"		>>$@;\
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index b3a9cd7bc947..8e31a4454841 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -313,13 +313,6 @@
+ 		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
+ 	}								\
+ 									\
+-	/* Built-in firmware blobs */					\
+-	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
+-		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
+-		*(.builtin_fw)						\
+-		VMLINUX_SYMBOL(__end_builtin_fw) = .;			\
+-	}								\
+-									\
+ 	TRACEDATA							\
+ 									\
+ 	/* Kernel symbol table: Normal symbols */			\
+-- 
+2.8.4
 
