@@ -1,101 +1,143 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Tue, 26 Jul 2016 04:46:36 +0000
-Subject: Re: [PATCH v3 02/11] mm: Hardened usercopy
-Message-Id: <CAGXu5jJDHYfGwsULKqpWVykPB9TJHNy8pBELq-K08HnHGE2Tjw@mail.gmail.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Fri, 22 Jul 2016 21:24:47 +0000
+Subject: [RFC v3 13/13] kprobes: port blacklist kprobes to linker table
+Message-Id: <1469222687-1600-14-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1468619065-3222-1-git-send-email-keescook@chromium.org>
- <1468619065-3222-3-git-send-email-keescook@chromium.org> <5790711f.2350420a.b4287.2cc0SMTPIN_ADDED_BROKEN@mx.google.com>
- <CAGXu5jLCu1Vv0uugKZrsjSEsoABgXJSOJ8GkKmrHbvj9jkC2YA@mail.gmail.com>
- <20160722174551.jddle6mf7zlq6xmb@treble> <87poq1jgtw.fsf@concordia.ellerman.id.au>
-In-Reply-To: <87poq1jgtw.fsf@concordia.ellerman.id.au>
+References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>, LKML <linux-kernel@vger.kernel.org>, Balbir Singh <bsingharora@gmail.com>, Daniel Micay <danielmicay@gmail.com>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, "x86@kernel.org" <x86@kernel.org>, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Dmitry Vyukov <dvyukov@google.com>, Laura Abbott <labbott@fedoraproject.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-ia64@vger.kernel.org, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, sparclinux <sparclinux@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, "kernel-hardening@lists.openwall.com" <kernel-hardening@lists.openwall.com>
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, tony.luck@intel.com, akpm@linux-foun
 
-On Mon, Jul 25, 2016 at 7:03 PM, Michael Ellerman <mpe@ellerman.id.au> wrote:
-> Josh Poimboeuf <jpoimboe@redhat.com> writes:
->
->> On Thu, Jul 21, 2016 at 11:34:25AM -0700, Kees Cook wrote:
->>> On Wed, Jul 20, 2016 at 11:52 PM, Michael Ellerman <mpe@ellerman.id.au> wrote:
->>> > Kees Cook <keescook@chromium.org> writes:
->>> >
->>> >> diff --git a/mm/usercopy.c b/mm/usercopy.c
->>> >> new file mode 100644
->>> >> index 000000000000..e4bf4e7ccdf6
->>> >> --- /dev/null
->>> >> +++ b/mm/usercopy.c
->>> >> @@ -0,0 +1,234 @@
->>> > ...
->>> >> +
->>> >> +/*
->>> >> + * Checks if a given pointer and length is contained by the current
->>> >> + * stack frame (if possible).
->>> >> + *
->>> >> + *   0: not at all on the stack
->>> >> + *   1: fully within a valid stack frame
->>> >> + *   2: fully on the stack (when can't do frame-checking)
->>> >> + *   -1: error condition (invalid stack position or bad stack frame)
->>> >> + */
->>> >> +static noinline int check_stack_object(const void *obj, unsigned long len)
->>> >> +{
->>> >> +     const void * const stack = task_stack_page(current);
->>> >> +     const void * const stackend = stack + THREAD_SIZE;
->>> >
->>> > That allows access to the entire stack, including the struct thread_info,
->>> > is that what we want - it seems dangerous? Or did I miss a check
->>> > somewhere else?
->>>
->>> That seems like a nice improvement to make, yeah.
->>>
->>> > We have end_of_stack() which computes the end of the stack taking
->>> > thread_info into account (end being the opposite of your end above).
->>>
->>> Amusingly, the object_is_on_stack() check in sched.h doesn't take
->>> thread_info into account either. :P Regardless, I think using
->>> end_of_stack() may not be best. To tighten the check, I think we could
->>> add this after checking that the object is on the stack:
->>>
->>> #ifdef CONFIG_STACK_GROWSUP
->>>         stackend -= sizeof(struct thread_info);
->>> #else
->>>         stack += sizeof(struct thread_info);
->>> #endif
->>>
->>> e.g. then if the pointer was in the thread_info, the second test would
->>> fail, triggering the protection.
->>
->> FWIW, this won't work right on x86 after Andy's
->> CONFIG_THREAD_INFO_IN_TASK patches get merged.
->
-> Yeah. I wonder if it's better for the arch helper to just take the obj and len,
-> and work out it's own bounds for the stack using current and whatever makes
-> sense on that arch.
->
-> It would avoid too much ifdefery in the generic code, and also avoid any
-> confusion about whether stackend is the high or low address.
->
-> eg. on powerpc we could do:
->
-> int noinline arch_within_stack_frames(const void *obj, unsigned long len)
-> {
->         void *stack_low  = end_of_stack(current);
->         void *stack_high = task_stack_page(current) + THREAD_SIZE;
->
->
-> Whereas arches with STACK_GROWSUP=y could do roughly the reverse, and x86 can do
-> whatever it needs to depending on whether the thread_info is on or off stack.
->
-> cheers
+kprobe makes use of two sections, the one dealing with the actual
+kprobes was recently ported using the standard section range API.
+The blacklist functionality of kprobes is still using a custom
+section and declaring its custom section using the linker script
+as follows:
 
-Yeah, I agree: this should be in the arch code. If the arch can
-actually do frame checking, the thread_info (if it exists on the
-stack) would already be excluded. But it'd be a nice tightening of the
-check.
+type  Linux-section custom section name  begin                    end
+table .init.data    _kprobe_blacklist    __start_kprobe_blacklist __stop_kprobe_blacklist
 
--Kees
+This ports the _kprobe_blacklist custom section to the standard
+Linux linker table API allowing us remove all the custom blacklist
+kprobe section declarations from the linker script.
 
+This has been tested by trying to register a kprobe on a blacklisted
+symbol (these are declared with NOKPROBE_SYMBOL()), and confirms that
+this fails to work as expected. This was tested with:
+
+ # insmod samples/kprobes/kprobe_example.ko symbol="get_kprobe"
+
+This fails to load as expected with:
+
+insmod: ERROR: could not insert module samples/kprobes/kprobe_example.ko: Invalid parameters
+
+v3: this patch was introduced in this series
+
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ include/asm-generic/vmlinux.lds.h | 10 ----------
+ include/linux/kprobes.h           |  5 +++--
+ kernel/kprobes.c                  | 11 ++++-------
+ 3 files changed, 7 insertions(+), 19 deletions(-)
+
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index 1664050e6560..0e4df8c61c18 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -113,15 +113,6 @@
+ #define BRANCH_PROFILE()
+ #endif
+ 
+-#ifdef CONFIG_KPROBES
+-#define KPROBE_BLACKLIST()	. = ALIGN(8);				      \
+-				VMLINUX_SYMBOL(__start_kprobe_blacklist) = .; \
+-				*(_kprobe_blacklist)			      \
+-				VMLINUX_SYMBOL(__stop_kprobe_blacklist) = .;
+-#else
+-#define KPROBE_BLACKLIST()
+-#endif
+-
+ #ifdef CONFIG_EVENT_TRACING
+ #define FTRACE_EVENTS()	. = ALIGN(8);					\
+ 			VMLINUX_SYMBOL(__start_ftrace_events) = .;	\
+@@ -519,7 +510,6 @@
+ 	*(SECTION_INIT_RODATA)						\
+ 	FTRACE_EVENTS()							\
+ 	TRACE_SYSCALLS()						\
+-	KPROBE_BLACKLIST()						\
+ 	MEM_DISCARD(init.rodata)					\
+ 	CLK_OF_TABLES()							\
+ 	RESERVEDMEM_OF_TABLES()						\
+diff --git a/include/linux/kprobes.h b/include/linux/kprobes.h
+index 3f46b282a3f9..c9bb9caef70c 100644
+--- a/include/linux/kprobes.h
++++ b/include/linux/kprobes.h
+@@ -43,9 +43,11 @@
+ 
+ #ifdef CONFIG_KPROBES
+ #include <linux/ranges.h>
++#include <linux/tables.h>
+ #include <asm/kprobes.h>
+ 
+ DECLARE_SECTION_RANGE(kprobes);
++DECLARE_LINKTABLE(unsigned long, _kprobe_blacklist);
+ 
+ /* kprobe_status settings */
+ #define KPROBE_HIT_ACTIVE	0x00000001
+@@ -490,8 +492,7 @@ static inline int enable_jprobe(struct jprobe *jp)
+  * by using this macro.
+  */
+ #define __NOKPROBE_SYMBOL(fname)			\
+-static unsigned long __used				\
+-	__attribute__((section("_kprobe_blacklist")))	\
++static LINKTABLE_INIT_DATA(_kprobe_blacklist, all)		\
+ 	_kbl_addr_##fname = (unsigned long)fname;
+ #define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)
+ #else
+diff --git a/kernel/kprobes.c b/kernel/kprobes.c
+index 387605682622..4801aa3b4adf 100644
+--- a/kernel/kprobes.c
++++ b/kernel/kprobes.c
+@@ -2053,14 +2053,13 @@ NOKPROBE_SYMBOL(dump_kprobe);
+  * since a kprobe need not necessarily be at the beginning
+  * of a function.
+  */
+-static int __init populate_kprobe_blacklist(unsigned long *start,
+-					     unsigned long *end)
++static int __init populate_kprobe_blacklist(void)
+ {
+ 	unsigned long *iter;
+ 	struct kprobe_blacklist_entry *ent;
+ 	unsigned long entry, offset = 0, size = 0;
+ 
+-	for (iter = start; iter < end; iter++) {
++	LINKTABLE_FOR_EACH(iter, _kprobe_blacklist) {
+ 		entry = arch_deref_entry_point((void *)*iter);
+ 
+ 		if (!kernel_text_address(entry) ||
+@@ -2125,8 +2124,7 @@ static struct notifier_block kprobe_module_nb = {
+ };
+ 
+ /* Markers of _kprobe_blacklist section */
+-extern unsigned long __start_kprobe_blacklist[];
+-extern unsigned long __stop_kprobe_blacklist[];
++DEFINE_LINKTABLE_INIT_DATA(unsigned long, _kprobe_blacklist);
+ 
+ /* Actual kprobes section range */
+ DEFINE_SECTION_RANGE(kprobes, SECTION_TEXT);
+@@ -2143,8 +2141,7 @@ static int __init init_kprobes(void)
+ 		raw_spin_lock_init(&(kretprobe_table_locks[i].lock));
+ 	}
+ 
+-	err = populate_kprobe_blacklist(__start_kprobe_blacklist,
+-					__stop_kprobe_blacklist);
++	err = populate_kprobe_blacklist();
+ 	if (err) {
+ 		pr_err("kprobes: failed to populate blacklist: %d\n", err);
+ 		pr_err("Please take care of using kprobes.\n");
 -- 
-Kees Cook
-Chrome OS & Brillo Security
+2.8.4
+
