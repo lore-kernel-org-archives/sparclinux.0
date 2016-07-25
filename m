@@ -1,88 +1,98 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 20 Jul 2016 20:27:02 +0000
-Subject: [PATCH v4 07/12] ia64/uaccess: Enable hardened usercopy
-Message-Id: <1469046427-12696-8-git-send-email-keescook@chromium.org>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 25 Jul 2016 03:42:39 +0000
+Subject: [PATCH 06/14] sparc: migrate exception table users off module.h and onto extable.h
+Message-Id: <20160725034247.109173-7-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1469046427-12696-1-git-send-email-keescook@chromium.org>
-In-Reply-To: <1469046427-12696-1-git-send-email-keescook@chromium.org>
+References: <20160725034247.109173-1-paul.gortmaker@windriver.com>
+In-Reply-To: <20160725034247.109173-1-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-hardening@lists.openwall.com
-Cc: Kees Cook <keescook@chromium.org>, Laura Abbott <labbott@fedoraproject.org>, Balbir Singh <bsingharora@gmail.com>, Daniel Micay <danielmicay@gmail.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Rik van Riel <riel@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, PaX Team <pageexec@freemail.hu>, Brad Spengler <spender@grsecurity.net>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michael Ellerman <mpe@ellerman.id.au>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "David S. Miller" <davem@davemloft.net>, x86@kernel.org, Christoph Lameter <cl@linux.com>, Pekka Enberg <penberg@kernel.org>, David Rientjes <rientjes@google.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@suse.de>, Mathias Krause <minipli@googlemail.com>, Jan Kara <jack@suse.cz>, Vitaly Wool <vitalywool@gmail.com>, Andrea Arcangeli <aarcange@redhat.com>, Dmitry Vyukov <dvyukov@google.com>, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Enables CONFIG_HARDENED_USERCOPY checks on ia64.
+These files were only including module.h for exception table
+related functions.  We've now separated that content out into its
+own file "extable.h" so now move over to that and avoid all the
+extra header content in module.h that we don't really need to compile
+these files.
 
-Based on code from PaX and grsecurity.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 ---
- arch/ia64/Kconfig               |  1 +
- arch/ia64/include/asm/uaccess.h | 18 +++++++++++++++---
- 2 files changed, 16 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/kprobes.c      | 2 +-
+ arch/sparc/kernel/traps_64.c     | 2 +-
+ arch/sparc/kernel/unaligned_64.c | 2 +-
+ arch/sparc/mm/fault_64.c         | 2 +-
+ arch/sparc/mm/init_64.c          | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index f80758cb7157..32a87ef516a0 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -53,6 +53,7 @@ config IA64
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select HAVE_ARCH_HARDENED_USERCOPY
- 	default y
- 	help
- 	  The Itanium Processor Family is Intel's 64-bit successor to
-diff --git a/arch/ia64/include/asm/uaccess.h b/arch/ia64/include/asm/uaccess.h
-index 2189d5ddc1ee..465c70982f40 100644
---- a/arch/ia64/include/asm/uaccess.h
-+++ b/arch/ia64/include/asm/uaccess.h
-@@ -241,12 +241,18 @@ extern unsigned long __must_check __copy_user (void __user *to, const void __use
- static inline unsigned long
- __copy_to_user (void __user *to, const void *from, unsigned long count)
- {
-+	if (!__builtin_constant_p(count))
-+		check_object_size(from, count, true);
-+
- 	return __copy_user(to, (__force void __user *) from, count);
- }
+diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
+index cd83be527586..b0377db12d83 100644
+--- a/arch/sparc/kernel/kprobes.c
++++ b/arch/sparc/kernel/kprobes.c
+@@ -5,7 +5,7 @@
  
- static inline unsigned long
- __copy_from_user (void *to, const void __user *from, unsigned long count)
- {
-+	if (!__builtin_constant_p(count))
-+		check_object_size(to, count, false);
-+
- 	return __copy_user((__force void __user *) to, from, count);
- }
+ #include <linux/kernel.h>
+ #include <linux/kprobes.h>
+-#include <linux/module.h>
++#include <linux/extable.h>
+ #include <linux/kdebug.h>
+ #include <linux/slab.h>
+ #include <linux/context_tracking.h>
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index d21cd625c0de..4094a51b1970 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -8,7 +8,7 @@
+  * I like traps on v9, :))))
+  */
  
-@@ -258,8 +264,11 @@ __copy_from_user (void *to, const void __user *from, unsigned long count)
- 	const void *__cu_from = (from);							\
- 	long __cu_len = (n);								\
- 											\
--	if (__access_ok(__cu_to, __cu_len, get_fs()))					\
--		__cu_len = __copy_user(__cu_to, (__force void __user *) __cu_from, __cu_len);	\
-+	if (__access_ok(__cu_to, __cu_len, get_fs())) {					\
-+		if (!__builtin_constant_p(n))						\
-+			check_object_size(__cu_from, __cu_len, true);			\
-+		__cu_len = __copy_user(__cu_to, (__force void __user *)  __cu_from, __cu_len);	\
-+	}										\
- 	__cu_len;									\
- })
- 
-@@ -270,8 +279,11 @@ __copy_from_user (void *to, const void __user *from, unsigned long count)
- 	long __cu_len = (n);								\
- 											\
- 	__chk_user_ptr(__cu_from);							\
--	if (__access_ok(__cu_from, __cu_len, get_fs()))					\
-+	if (__access_ok(__cu_from, __cu_len, get_fs())) {				\
-+		if (!__builtin_constant_p(n))						\
-+			check_object_size(__cu_to, __cu_len, false);			\
- 		__cu_len = __copy_user((__force void __user *) __cu_to, __cu_from, __cu_len);	\
-+	}										\
- 	__cu_len;									\
- })
- 
+-#include <linux/module.h>
++#include <linux/extable.h>
+ #include <linux/sched.h>
+ #include <linux/linkage.h>
+ #include <linux/kernel.h>
+diff --git a/arch/sparc/kernel/unaligned_64.c b/arch/sparc/kernel/unaligned_64.c
+index 9aacb9159262..52c00d90d4b4 100644
+--- a/arch/sparc/kernel/unaligned_64.c
++++ b/arch/sparc/kernel/unaligned_64.c
+@@ -11,7 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+ #include <linux/mm.h>
+-#include <linux/module.h>
++#include <linux/extable.h>
+ #include <asm/asi.h>
+ #include <asm/ptrace.h>
+ #include <asm/pstate.h>
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 6c43b924a7a2..0e9773ca7ff1 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -14,7 +14,7 @@
+ #include <linux/mman.h>
+ #include <linux/signal.h>
+ #include <linux/mm.h>
+-#include <linux/module.h>
++#include <linux/extable.h>
+ #include <linux/init.h>
+ #include <linux/perf_event.h>
+ #include <linux/interrupt.h>
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index aec508e37490..96680a687799 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -5,7 +5,7 @@
+  *  Copyright (C) 1997-1999 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+  */
+  
+-#include <linux/module.h>
++#include <linux/extable.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+ #include <linux/string.h>
 -- 
-2.7.4
+2.8.4
 
