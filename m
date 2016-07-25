@@ -1,107 +1,147 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Wed, 27 Jul 2016 22:40:46 +0000
-Subject: Re: [RFC v3 12/13] kprobes: port .kprobes.text to section range
-Message-Id: <20160727224046.GN5537@wotan.suse.de>
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 25 Jul 2016 03:42:33 +0000
+Subject: [RFC/PATCH 00/14] split exception table content out of module.h into extable.h
+Message-Id: <20160725034247.109173-1-paul.gortmaker@windriver.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
- <1469222687-1600-13-git-send-email-mcgrof@kernel.org>
- <20160726001958.09b64d73e0bdda461ad1451c@kernel.org>
-In-Reply-To: <20160726001958.09b64d73e0bdda461ad1451c@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Paul Gortmaker <paul.gortmaker@windriver.com>, Andrew Morton <akpm@linux-foundation.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Catalin Marinas <catalin.marinas@arm.com>, Chris Metcalf <cmetcalf@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Helge Deller <deller@gmx.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Linus Torvalds <torvalds@linux-foundation.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Paul Mackerras <paulus@sa>
 
-On Tue, Jul 26, 2016 at 12:19:58AM +0900, Masami Hiramatsu wrote:
-> On Fri, 22 Jul 2016 14:24:46 -0700
-> "Luis R. Rodriguez" <mcgrof@kernel.org> wrote:
-> 
-> > kprobe makes use of two custom sections, each custom section
-> > is folded into one of the standard Linux sections types as follows,
-> > it currently relies on the linker script to fold the custom section
-> > onto the respective Linux section:
-> > 
-> > type  Linux-section custom section name  begin                    end
-> > table .init.data    _kprobe_blacklist    __start_kprobe_blacklist __stop_kprobe_blacklist
-> > range .text         .kprobes.text        __kprobes_text_start     __kprobes_text_end
-> > 
-> > This ports the .kprobes.text custom section to the standard
-> > Linux ranges API allowing us remove all the custom kprobe section
-> > declarations from the linker script.
-> > 
-> > Tested with CONFIG_KPROBES_SANITY_TEST, it passes with:
-> > 
-> > Kprobe smoke test: started
-> > Kprobe smoke test: passed successfully
-> > 
-> > Then tested CONFIG_SAMPLE_KPROBES on do_fork, and the kprobe bites
-> > and kicks as expected.
-> > 
-> > Also ran ./ftracetest with no issues:
-> > 
-> > $ sudo ./ftracetest
-> > == Ftrace unit tests => > [1] Basic trace file check      [PASS]
-> > [2] Basic test for tracers      [PASS]
-> > [3] Basic trace clock test      [PASS]
-> > [4] Basic event tracing check   [PASS]
-> > [5] event tracing - enable/disable with event level files       [PASS]
-> > [6] event tracing - restricts events based on pid       [PASS]
-> > [7] event tracing - enable/disable with subsystem level files   [PASS]
-> > [8] event tracing - enable/disable with top level files [PASS]
-> > [9] ftrace - function graph filters with stack tracer   [PASS]
-> > [10] ftrace - function graph filters    [PASS]
-> > [11] ftrace - function profiler with function tracing   [PASS]
-> > [12] Test creation and deletion of trace instances while setting an event[PASS]
-> > [13] Test creation and deletion of trace instances      [PASS]
-> > [14] Kprobe dynamic event - adding and removing [PASS]
-> > [15] Kprobe dynamic event - busy event check    [PASS]
-> > [16] Kprobe dynamic event with arguments        [PASS]
-> > [17] Kprobe dynamic event with function tracer  [PASS]
-> > [18] Kretprobe dynamic event with arguments     [PASS]
-> > [19] event trigger - test event enable/disable trigger  [PASS]
-> > [20] event trigger - test trigger filter        [PASS]
-> > [21] event trigger - test histogram modifiers   [PASS]
-> > [22] event trigger - test histogram trigger     [PASS]
-> > [23] event trigger - test multiple histogram triggers   [PASS]
-> > [24] event trigger - test snapshot-trigger      [PASS]
-> > [25] event trigger - test stacktrace-trigger    [PASS]
-> > [26] event trigger - test traceon/off trigger   [PASS]
-> > 
-> >  # of passed:  26
-> >  # of failed:  0
-> >  # of unresolved:  0
-> >  # of untested:  0
-> >  # of unsupported:  0
-> >  # of xfailed:  0
-> >  # of undefined(test bug):  0
-> 
-> Looks good to me except for the modpost part.
+[RFC: Not looking for detailed review given the merge window is open.
+ As long as nobody thinks the general idea is horrible, I'll expand into
+ more fringe arch and resend in 2wks and get it added then to linux-next.]
 
-OK thanks!
+While doing an audit looking for unnecessary instances of module.h
+inclusion across arch/x86/ I found a significant number of includes
+of module.h were for things like search_exception_table and friends.
 
-> > diff --git a/scripts/Makefile b/scripts/Makefile
-> > index 1d80897a9644..77a0cc91628c 100644
-> > --- a/scripts/Makefile
-> > +++ b/scripts/Makefile
-> > @@ -10,6 +10,7 @@
-> >  # check-lc_ctype: Used in Documentation/DocBook
-> >  
-> >  HOST_EXTRACFLAGS += -I$(srctree)/tools/include
-> > +HOST_EXTRACFLAGS += -U__KERNEL__
-> 
-> This looks a add-hoc hack. If we just need SECTION_RNG(SECTION_TEXT, kprobes)
-> to convert to section name, can we export the definitions outside of _KERNEL_ ?
+For historical reasons (i.e. pre-git) the exception table stuff was
+buried in the middle of the module.h file.  So we have core kernel
+files that are completely non-modular (both arch specific and arch
+independent) that are just including module.h for this.
 
-We can, it was just a matter of deciding if we were OK with open coding the
-section, copying over some defines, or sharing somehow (this was one way) the
-header files.
+The converse is also true, in that conventional drivers, be they for
+filesystems or actual hardware peripherals or similar, do not
+normally care about the exception tables.
 
-Josh seems to prefer to open coding out the names on the tools we can certanly
-do that here as well, I think his point that the names should/will likely
-never change is sufficient motivation to avoid all this and prefer open coding
-this.
+Here we fork the exception table content out of module.h into a new
+extable.h file.  The gain here is that module.h gets a bit smaller;
+a win for all modular drivers that we build for allmodconfig.  Also
+most core files that only need exception table stuff get to shed an
+include of module.h that brings in lots of extra stuff and just
+looks generally out of place.  They use the tiny extable.h instead.
 
-Will do that in the next spin unless I hear otherwise.
+We temporarily include extable.h into the module.h itself.  Then we
+will work our way across the arch independent and arch specific
+files needing just exception table content, and move them off
+module.h and onto extable.h
 
-  Luis
+Once that is done, we can remove the extable.h from module.h and in
+doing it like this, we avoid introducing build failures into the git
+history.
+
+We have the option of taking this final one line commit and pushing
+it out a complete release if we want to open up a bigger window for
+converting some of the more fringe archtectures.
+
+I've converted about a dozen architectures here w/o issue; that
+largely reflects what I currently have toolchains for.  Build
+testing seems necessary in all instances, since the odds are high
+that the module.h presence was hiding implicit use of other headers,
+as was the case for s390.
+
+Paul.
+-- 
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: x86@kernel.org
+Cc: sparclinux@vger.kernel.org
+
+Paul Gortmaker (14):
+  exceptions: fork exception table content from module.h into extable.h
+  x86: migrate exception table users off module.h and onto extable.h
+  arm: migrate exception table users off module.h and onto extable.h
+  arm64: migrate exception table users off module.h and onto extable.h
+  mips: migrate exception table users off module.h and onto extable.h
+  sparc: migrate exception table users off module.h and onto extable.h
+  powerpc: migrate exception table users off module.h and onto extable.h
+  m68k: migrate exception table users off module.h and onto extable.h
+  s390: migrate exception table users off module.h and onto extable.h
+  tile: migrate exception table users off module.h and onto extable.h
+  alpha: migrate exception table users off module.h and onto extable.h
+  parisc: migrate exception table users off module.h and onto extable.h
+  core: migrate exception table users off module.h and onto extable.h
+  module.h: remove extable.h include now users have migrated
+
+ arch/alpha/kernel/traps.c          |  2 +-
+ arch/alpha/mm/fault.c              |  2 +-
+ arch/arm/mm/extable.c              |  2 +-
+ arch/arm/mm/fault.c                |  2 +-
+ arch/arm64/kernel/probes/kprobes.c |  2 +-
+ arch/arm64/mm/extable.c            |  2 +-
+ arch/arm64/mm/fault.c              |  2 +-
+ arch/m68k/kernel/signal.c          |  2 +-
+ arch/mips/kernel/module.c          |  1 +
+ arch/mips/kernel/traps.c           |  2 +-
+ arch/mips/mm/extable.c             |  2 +-
+ arch/parisc/mm/fault.c             |  2 +-
+ arch/powerpc/kernel/kprobes.c      |  2 +-
+ arch/powerpc/mm/fault.c            |  2 +-
+ arch/s390/kernel/early.c           |  2 +-
+ arch/s390/kernel/kprobes.c         |  2 ++
+ arch/s390/kernel/traps.c           |  3 ++-
+ arch/s390/mm/fault.c               |  2 +-
+ arch/sparc/kernel/kprobes.c        |  2 +-
+ arch/sparc/kernel/traps_64.c       |  2 +-
+ arch/sparc/kernel/unaligned_64.c   |  2 +-
+ arch/sparc/mm/fault_64.c           |  2 +-
+ arch/sparc/mm/init_64.c            |  2 +-
+ arch/tile/kernel/unaligned.c       |  2 +-
+ arch/tile/mm/extable.c             |  2 +-
+ arch/tile/mm/fault.c               |  2 +-
+ arch/x86/kernel/kprobes/core.c     |  2 +-
+ arch/x86/kernel/kprobes/opt.c      |  2 +-
+ arch/x86/mm/extable.c              |  2 +-
+ arch/x86/mm/fault.c                |  2 +-
+ include/linux/extable.h            | 30 ++++++++++++++++++++++++++++++
+ include/linux/module.h             | 26 +-------------------------
+ init/main.c                        |  1 +
+ kernel/extable.c                   |  1 +
+ kernel/module.c                    |  1 +
+ 35 files changed, 66 insertions(+), 53 deletions(-)
+ create mode 100644 include/linux/extable.h
+
+-- 
+2.8.4
+
