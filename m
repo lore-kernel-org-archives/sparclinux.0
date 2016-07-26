@@ -1,37 +1,25 @@
-From: alexmcwhirter@triadic.us
-Date: Mon, 25 Jul 2016 22:14:28 +0000
+From: rodent@NetBSD.org
+Date: Tue, 26 Jul 2016 00:00:32 +0000
 Subject: Re: QLogic PTI firmware
-Message-Id: <fdca2bc4e057d30a2981a5237e2428ef@triadic.us>
+Message-Id: <20160726000029.GC4153@nixsyspaus.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <fdca2bc4e057d30a2981a5237e2428ef@triadic.us>
+In-Reply-To: <fdca2bc4e057d30a2981a5237e2428ef@triadic.us>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Well i'm bringing this email back from the dead, original thread can be 
-found here https://lists.debian.org/debian-sparc/2013/01/msg00008.html
+On Mon, Jul 25, 2016 at 06:14:28PM -0400, alexmcwhirter@triadic.us wrote:
+> [...]
+> Does anyone have any input on this? Fixing this would help stabilize a 
+> ton of early sparc64 machines, almost everything with a scsi controller 
+> around the US2 days use and isp1000 card.
 
-In a nutshell the qlogicpti driver isn't handling traffic demands very 
-well, the request queue will overflow and the system will panic. Just 
-letting a box idle for a few days will result in this issue popping up. 
-You can accelerate it by doing a large amount of disk I/O.
+IIRC, the Alphas had a few of these isp chips in SCSI adapters which came with
+the machines. You might get two-for-one by fixing this. Perhaps, some of this
+might help:
 
-In particular, we are hitting this code in qlogicpti.c
+http://netbsd.gw.com/cgi-bin/man-cgi?isp++NetBSD-current
 
-toss_command:
-         printk(KERN_EMERG "qlogicpti%d: request queue overflow\n",
-                qpti->qpti_id);
-
-         /* Unfortunately, unless you use the new EH code, which
-          * we don't, the midlayer will ignore the return value,
-          * which is insane.  We pick up the pieces like this.
-          */
-         Cmnd->result = DID_BUS_BUSY;
-         done(Cmnd);
-         return 1;
-}
-
-Does anyone have any input on this? Fixing this would help stabilize a 
-ton of early sparc64 machines, almost everything with a scsi controller 
-around the US2 days use and isp1000 card.
-
+http://cvsweb.netbsd.org/bsdweb.cgi/src/sys/dev/pci/isp_pci.c?rev=1.119&content-type=text/x-cvsweb-markup&only_with_tag=MAIN
