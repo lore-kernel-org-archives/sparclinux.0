@@ -1,139 +1,180 @@
-From: Filipe Manana <fdmanana@gmail.com>
-Date: Thu, 14 Jul 2016 10:29:37 +0000
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Sat, 30 Jul 2016 07:41:23 +0000
 Subject: Re: btrfs on sparc64 results in kernel stack trace in 1 minute test
-Message-Id: <CAL3q7H5s_h4x6_=cUY+5VL6vG_riF9j9MuPxH032QmBFa6WU-g@mail.gmail.com>
+Message-Id: <CADxRZqxV4NYJWofpkFNrYSQonpuUAw-A3W-8U7BK3v=tAe1Q2g@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqx-NJNpkA2hWeEuw_uMBB=oajUmTgMizdd2g5Ti9Cn1GQ@mail.gmail.com>
-In-Reply-To: <CADxRZqx-NJNpkA2hWeEuw_uMBB=oajUmTgMizdd2g5Ti9Cn1GQ@mail.gmail.com>
+ <CAL3q7H5s_h4x6_=cUY+5VL6vG_riF9j9MuPxH032QmBFa6WU-g@mail.gmail.com>
+ <CADxRZqw27A4TaYbzWLODXko3+yn=bMBEcKdsv89Jm9eqYAHEOA@mail.gmail.com> <F9437FCA-585E-43EC-B004-72A300AC3FD6@suse.com>
+In-Reply-To: <F9437FCA-585E-43EC-B004-72A300AC3FD6@suse.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anatoly Pugachev <matorola@gmail.com>
-Cc: Btrfs BTRFS <linux-btrfs@vger.kernel.org>, Omar Sandoval <osandov@fb.com>, debian-sparc <debian-sparc@lists.debian.org>, sparclinux@vger.kernel.org
+To: Jeff Mahoney <jeffm@suse.com>
+Cc: Btrfs BTRFS <linux-btrfs@vger.kernel.org>, debian-sparc <debian-sparc@lists.debian.org>, sparclinux@vger.kernel.org
 
-On Thu, Jul 14, 2016 at 11:08 AM, Anatoly Pugachev <matorola@gmail.com> wrote:
-> Hi!
->
-> I'm using git (describe, v4.7-rc7-16-gcf875cc) kernel,
-> with patch "fix extent buffer bitmap tests on big-endian systems", see
-> [1] (to be able to load/use btrfs module)
->
-> and getting brtfs filesystem going to read only mode as well getting
-> kernel stack trace in 1 minute after started to copying files to fs.
->
-> Here's my steps to reproduce:
->
-> create a ramdisk and file on it
->
-> root@nvg5120:# mount -t tmpfs tmpfs -o size=8G /ramdisk
-> root@nvg5120:# dd if=/dev/zero of=/ramdisk/disk0 bs=1M countp00
->
-> create btrfs filesystem
->
-> root@nvg5120:/home/mator/btrfs-progs# ./mkfs.btrfs /ramdisk/disk0
-> btrfs-progs v4.6.1
-> See http://btrfs.wiki.kernel.org for more information.
->
-> Label:              (null)
-> UUID:               81500fe0-da01-44dd-8fa6-d43646dd4916
-> Node size:          16384
-> Sector size:        8192
-> Filesystem size:    6.84GiB
-> Block group profiles:
->   Data:             single            8.00MiB
->   Metadata:         DUP             358.00MiB
->   System:           DUP              12.00MiB
-> SSD detected:       no
-> Incompat features:  extref, skinny-metadata
-> Number of devices:  1
-> Devices:
->    ID        SIZE  PATH
->     1     6.84GiB  /ramdisk/disk0
->
->
-> mount it and start to copy files:
->
-> root@nvg5120:/home/mator/btrfs-progs# mount /ramdisk/disk0 /mnt
-> root@nvg5120:/home/mator/btrfs-progs# mkdir /mnt/1
-> root@nvg5120:/home/mator/btrfs-progs# chown mator /mnt/1
->
-> mator@nvg5120:~$ cnt=0; while true; do let cnt++; echo -n "$cnt ";
-> date; sleep 2; rm -rf /mnt/1/testdir; rsync -a debian-installer
-> linux-2.6 gcc-6.1.0 v7.4.1a /mnt/1/testdir;  [ $? != 0 ] && break;
-> done; date
-> 1 Thu Jul 14 12:37:39 MSK 2016
-> rsync: rename "/mnt/1/testdir/gcc-6.1.0/gcc/testsuite/g++.dg/cpp0x/.variadic13.C.g2qPwQ"
-> -> "gcc-6.1.0/gcc/testsuite/g++.dg/cpp0x/variadic13.C": No such file
-> or directory (2)
-> ...
-> rsync: mkstemp "/mnt/1/testdir/gcc-6.1.0/gcc/testsuite/g++.dg/torture/.pr33134.C.Y2O2ac"
-> failed: Read-only file system (30)
-> rsync error: received SIGINT, SIGTERM, or SIGHUP (code 20) at
-> io.c(504) [generator=3.1.1]
-> rsync: [generator] write error: Broken pipe (32)
-> Thu Jul 14 12:38:37 MSK 2016
->
->
-> root@nvg5120:/home/mator/btrfs-progs# journalctl -k -f
-> -- Logs begin at Mon 2016-04-18 15:59:04 MSK. --
-> Jul 14 12:37:29 nvg5120 kernel: loop: module loaded
-> Jul 14 12:37:30 nvg5120 kernel: BTRFS: device fsid
-> 81500fe0-da01-44dd-8fa6-d43646dd4916 devid 1 transid 5 /dev/loop0
-> Jul 14 12:37:30 nvg5120 kernel: BTRFS info (device loop0): disk space
-> caching is enabled
-> Jul 14 12:37:30 nvg5120 kernel: BTRFS info (device loop0): has skinny extents
-> Jul 14 12:37:30 nvg5120 kernel: BTRFS info (device loop0): flagging fs
-> with big metadata feature
-> Jul 14 12:37:30 nvg5120 kernel: BTRFS info (device loop0): creating UUID tree
-> Jul 14 12:38:32 nvg5120 kernel: ------------[ cut here ]------------
-> Jul 14 12:38:32 nvg5120 kernel: WARNING: CPU: 12 PID: 11815 at
-> fs/btrfs/inode.c:9832 btrfs_rename2+0x300/0x1300 [btrfs]
-> Jul 14 12:38:32 nvg5120 kernel: BTRFS: Transaction aborted (error -2)
-> Jul 14 12:38:33 nvg5120 kernel: Modules linked in: loop btrfs sg
-> n2_rng rng_core n2_crypto flash sha256_generic des_generic autofs4
-> ext4 crc16 jbd2 mbcache zlib_deflate raid10 raid456 async_raid6_recov
-> async_memcpy async_pq async_xor async_tx xor raid6_pq libcrc32c
-> crc32c_generic raid0 multipath linear dm_mod raid1 md_mod sd_mod
-> mptsas scsi_transport_sas mptscsih scsi_mod mptbase e1000e ptp
-> pps_core [last unloaded: btrfs]
-> Jul 14 12:38:33 nvg5120 kernel: CPU: 12 PID: 11815 Comm: rsync
-> Tainted: G        W       4.7.0-rc7+ #45
-> Jul 14 12:38:33 nvg5120 kernel: Call Trace:
-> Jul 14 12:38:33 nvg5120 kernel:  [00000000004671c0] __warn+0xc0/0xe0
-> Jul 14 12:38:33 nvg5120 kernel:  [0000000000467214] warn_slowpath_fmt+0x34/0x60
-> Jul 14 12:38:33 nvg5120 kernel:  [0000000011a8c340]
-> btrfs_rename2+0x300/0x1300 [btrfs]
-> Jul 14 12:38:33 nvg5120 kernel:  [00000000005e38f0] vfs_rename+0x630/0x980
-> Jul 14 12:38:33 nvg5120 kernel:  [00000000005e9404] SyS_renameat2+0x484/0x500
-> Jul 14 12:38:33 nvg5120 kernel:  [00000000005e94dc] SyS_rename+0x1c/0x40
-> Jul 14 12:38:33 nvg5120 kernel:  [00000000004061f4]
-> linux_sparc_syscall+0x34/0x44
-> Jul 14 12:38:33 nvg5120 kernel: ---[ end trace 92caaac5f44fc009 ]---
-> Jul 14 12:38:34 nvg5120 kernel: BTRFS: error (device loop0) in
-> btrfs_rename:9832: errno=-2 No such entry
-> Jul 14 12:38:34 nvg5120 kernel: BTRFS info (device loop0): forced readonly
-
-We've seen this happening on arm64 as well, and it's currently being
-investigated.
-Thanks for the report.
-
->
-> Thanks.
->
-> PS:  I can provide machine access to debug this issue (as well access
-> to serial management console, if it hangs).
->
-> 1. http://www.mail-archive.com/linux-btrfs@vger.kernel.org/msg55792.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-btrfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sat, Jul 30, 2016 at 12:52 AM, Jeff Mahoney <jeffm@suse.com> wrote:
+>> On Jul 29, 2016, at 5:11 PM, Anatoly Pugachev <matorola@gmail.com> wrote:
+>> and in logs:
+>>
+>> Jul 30 00:05:48 nvg5120 kernel: BTRFS info (device loop0): inode
+>> 227514 still on the orphan list
+>> Jul 30 00:06:01 nvg5120 kernel: ------------[ cut here ]------------
+>> Jul 30 00:06:01 nvg5120 kernel: WARNING: CPU: 36 PID: 3110 at
+>> fs/btrfs/inode.c:3215 btrfs_orphan_commit_root+0x188/0x1a0 [btrfs]
+>> Jul 30 00:06:02 nvg5120 kernel: Modules linked in: loop btrfs
+>> zlib_deflate sg e1000e ptp pps_core n2_crypto(+) flash sha256_generic
+>> des_generic n2_rng rng_core sunrpc autofs4 ext4 crc16 jbd2 mbcache
+>> raid10 raid456 libcrc32c crc32c_generic async_raid6_recov async_memcpy
+>> async_pq raid6_pq async_xor xor async_tx raid0 multipath linear dm_mod
+>> raid1 md_mod sd_mod mptsas scsi_transport_sas mptscsih scsi_mod
+>> mptbase
+>> Jul 30 00:06:02 nvg5120 kernel: CPU: 36 PID: 3110 Comm:
+>> btrfs-transacti Tainted: G      D         4.7.0+ #51
+>> Jul 30 00:06:02 nvg5120 kernel: Call Trace:
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000000463e44] __warn+0xa4/0xc0
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000010a2ae48]
+>> btrfs_orphan_commit_root+0x188/0x1a0 [btrfs]
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000010a214c0]
+>> commit_fs_roots+0xa0/0x180 [btrfs]
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000010a242d0]
+>> btrfs_commit_transaction+0x4b0/0xd00 [btrfs]
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000010a1cc30]
+>> transaction_kthread+0xf0/0x1c0 [btrfs]
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000000480ff0] kthread+0xb0/0xe0
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000000406044] ret_from_fork+0x1c/0x2c
+>> Jul 30 00:06:02 nvg5120 kernel:  [0000000000000000]           (null)
+>> Jul 30 00:06:02 nvg5120 kernel: ---[ end trace ee8374e54a090229 ]---
+>>
+> This is tainted D, which means there's an Oops above this in the log.  Can you provide that?
 
 
+Jeff,
 
--- 
-Filipe David Manana,
+it is another kernel OOPS, which i need to investigate:
 
-"People will forget what you said,
- people will forget what you did,
- but people will never forget how you made them feel."
+Jul 29 21:25:35 nvg5120 kernel: e1000e 0000:09:00.1 enp9s0f1: renamed from eth3
+Jul 29 21:25:35 nvg5120 systemd-udevd[1488]: worker [1654] terminated
+by signal 9 (Killed)
+Jul 29 21:25:35 nvg5120 systemd-udevd[1488]: worker [1654] failed
+while handling '/devices/root/f0283a50/f028681c'
+Jul 29 21:25:36 nvg5120 systemd[1]: Found device ST914602SSUN146G 1.
+Jul 29 21:25:40 nvg5120 kernel: e1000e 0000:08:00.1 enp8s0f1: renamed from eth1
+Jul 29 21:25:40 nvg5120 kernel: n2_crypto: md5 alg registration failed
+Jul 29 21:25:40 nvg5120 kernel: n2cp f028681c:
+/virtual-devices@100/n2cp@7: Unable to register algorithms.
+Jul 29 21:25:40 nvg5120 kernel: sha1_sparc64: sparc64 sha1 opcode not available.
+Jul 29 21:25:40 nvg5120 kernel: n2cp: probe of f028681c failed with error -22
+Jul 29 21:25:40 nvg5120 kernel: n2_crypto: Found NCP at
+/virtual-devices@100/ncp@6
+Jul 29 21:25:40 nvg5120 kernel: n2_crypto: Registered NCS HVAPI version 2.0
+Jul 29 21:25:40 nvg5120 kernel: Kernel unaligned access at TPC[577b68]
+kmem_cache_alloc+0xa8/0x1a0
+Jul 29 21:25:40 nvg5120 kernel: Unable to handle kernel paging request
+in mna handler
+Jul 29 21:25:40 nvg5120 kernel:  at virtual address 6b6aeb6f69f2cb6b
+Jul 29 21:25:41 nvg5120 kernel: current->{active_,}mm->context 00000000000007a2
+Jul 29 21:25:41 nvg5120 kernel: current->{active_,}mm->pgd = ffff8003e9c72000
+Jul 29 21:25:41 nvg5120 kernel:               \|/ ____ \|/
+                                              "@'/ .. \`@"
+                                              /_| \__/ |_\
+                                                 \__U_/
+Jul 29 21:25:41 nvg5120 kernel: systemd-udevd(1654): Oops [#1]
+Jul 29 21:25:41 nvg5120 kernel: CPU: 56 PID: 1654 Comm: systemd-udevd
+Not tainted 4.7.0+ #51
+Jul 29 21:25:41 nvg5120 kernel: task: ffff8003ecf90a20 ti:
+ffff8003edcd4000 task.ti: ffff8003edcd4000
+Jul 29 21:25:41 nvg5120 kernel: TSTATE: 0000004411e01605 TPC:
+0000000000577b68 TNPC: 0000000000577b6c Y: 00000000    Not tainted
+Jul 29 21:25:41 nvg5120 kernel: TPC: <kmem_cache_alloc+0xa8/0x1a0>
+Jul 29 21:25:41 nvg5120 kernel: g0: 0000000000000000 g1:
+6b6b6b6b6b6b6b6b g2: 0000000000000000 g3: 0000000000000000
+Jul 29 21:25:41 nvg5120 kernel: g4: ffff8003ecf90a20 g5:
+ffff8003fe876000 g6: ffff8003edcd4000 g7: 000000000000cee0
+Jul 29 21:25:41 nvg5120 kernel: o0: 0000000000000000 o1:
+0000000003ffffff o2: 0000000000000000 o3: ffff8003eee883c0
+Jul 29 21:25:41 nvg5120 kernel: o4: 0000000000000080 o5:
+0000000000000011 sp: ffff8003edcd6b51 ret_pc: 0000000000577b34
+Jul 29 21:25:41 nvg5120 kernel: RPC: <kmem_cache_alloc+0x74/0x1a0>
+Jul 29 21:25:41 nvg5120 kernel: l0: ffff8003ffa28040 l1:
+ffff8003ffa28030 l2: 000000000000d5c0 l3: 00000000009f4800
+Jul 29 21:25:41 nvg5120 kernel: l4: 0000000000000000 l5:
+00000000009f4c00 l6: 0000000000ab2968 l7: 0000000000ab296a
+Jul 29 21:25:41 nvg5120 kernel: i0: ffff8003f1dad580 i1:
+00000000024080c0 i2: 00000000106230e8 i3: 0000000000000000
+Jul 29 21:25:41 nvg5120 kernel: i4: 0000000010621d90 i5:
+00000000024080c0 i6: ffff8003edcd6c01 i7: 0000000010621d90
+Jul 29 21:25:41 nvg5120 kernel: I7: <spu_mdesc_scan+0x470/0x4c0 [n2_crypto]>
+Jul 29 21:25:41 nvg5120 kernel: Call Trace:
+Jul 29 21:25:41 nvg5120 kernel:  [0000000010621d90]
+spu_mdesc_scan+0x470/0x4c0 [n2_crypto]
+Jul 29 21:25:41 nvg5120 kernel:  [00000000106220d4]
+n2_mau_probe+0x134/0x1e0 [n2_crypto]
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000734bec] platform_drv_probe+0x2c/0xa0
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000732a20]
+driver_probe_device+0x1e0/0x400
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000732d18] __driver_attach+0xd8/0x120
+Jul 29 21:25:41 nvg5120 kernel:  [000000000073077c] bus_for_each_dev+0x3c/0xa0
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000731bd4] bus_add_driver+0x114/0x280
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000733608] driver_register+0xa8/0x100
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000734ea8]
+__platform_register_drivers+0x88/0x160
+Jul 29 21:25:41 nvg5120 kernel:  [0000000000426d00] do_one_initcall+0x80/0x160
+Jul 29 21:25:41 nvg5120 kernel:  [00000000005228e8] do_init_module+0x4c/0x1c4
+Jul 29 21:25:41 nvg5120 kernel:  [00000000004d9ffc] load_module+0x1efc/0x24e0
+Jul 29 21:25:41 nvg5120 kernel:  [00000000004da828] SyS_finit_module+0xc8/0x100
+Jul 29 21:25:41 nvg5120 kernel:  [00000000004061f4]
+linux_sparc_syscall+0x34/0x44
+Jul 29 21:25:41 nvg5120 kernel: Disabling lock debugging due to kernel taint
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000010621d90]:
+spu_mdesc_scan+0x470/0x4c0 [n2_crypto]
+Jul 29 21:25:41 nvg5120 kernel: Caller[00000000106220d4]:
+n2_mau_probe+0x134/0x1e0 [n2_crypto]
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000734bec]:
+platform_drv_probe+0x2c/0xa0
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000732a20]:
+driver_probe_device+0x1e0/0x400
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000732d18]:
+__driver_attach+0xd8/0x120
+Jul 29 21:25:41 nvg5120 kernel: Caller[000000000073077c]:
+bus_for_each_dev+0x3c/0xa0
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000731bd4]:
+bus_add_driver+0x114/0x280
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000733608]:
+driver_register+0xa8/0x100
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000734ea8]:
+__platform_register_drivers+0x88/0x160
+Jul 29 21:25:41 nvg5120 kernel: Caller[0000000000426d00]:
+do_one_initcall+0x80/0x160
+Jul 29 21:25:41 nvg5120 kernel: Caller[00000000005228e8]:
+do_init_module+0x4c/0x1c4
+Jul 29 21:25:41 nvg5120 kernel: Caller[00000000004d9ffc]:
+load_module+0x1efc/0x24e0
+Jul 29 21:25:41 nvg5120 kernel: Caller[00000000004da828]:
+SyS_finit_module+0xc8/0x100
+Jul 29 21:25:41 nvg5120 kernel: Caller[00000000004061f4]:
+linux_sparc_syscall+0x34/0x44
+Jul 29 21:25:41 nvg5120 kernel: Caller[ffff800100382290]: 0xffff800100382290
+Jul 29 21:25:41 nvg5120 kernel: Instruction DUMP: 7ffac059  90122120
+91d02005 <c4004005> 80a0a000  0240000f  ba004005  8400bfff  86102001
+Jul 29 21:25:41 nvg5120 kernel: sha256_sparc64: sparc64 sha256 opcode
+not available.
+Jul 29 21:25:41 nvg5120 kernel: e1000e 0000:09:00.0 enp9s0f0: renamed from eth2
+
+it is only appeared after I have enabled debugging on my kernel.
+Difference in kernel configs, which does not have it and OOPS kernel,
+i believe, i'm not sure yet, is in the following options:
+
+ CONFIG_DEBUG_INFO=y
++CONFIG_DEBUG_INFO_DWARF4=y
++CONFIG_READABLE_ASM=y
++CONFIG_DEBUG_OBJECTS=y
++CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT=1
++CONFIG_DEBUG_SLAB=y
++CONFIG_DEBUG_SPINLOCK=y
+
+so, I'm going to try to find which exact option triggers it. And maybe
+someone with a better knowledge of kernel internals can spot away what
+is wrong.
+
+Thanks.
