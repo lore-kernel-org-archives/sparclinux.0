@@ -1,23 +1,13 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Jul 2016 05:55:33 +0000
-Subject: Re: [patch -old] sparc: serial: sunhv: fix a double lock bug
-Message-Id: <20160727.225533.598242834832960771.davem@davemloft.net>
+From: Tim Chen <monicaleao@globo.com>
+Date: Sat, 30 Jul 2016 11:45:47 +0000
+Subject: =?utf-8?B?cmVjZW50IHBob3Rvcw==?=
+Message-Id: <00003a2900f0$225b678d$4a3e7245$@yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160715111733.GB13153@mwanda>
-In-Reply-To: <20160715111733.GB13153@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: dan.carpenter@oracle.com
-Cc: gregkh@linuxfoundation.org, jslaby@suse.com, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Fri, 15 Jul 2016 14:17:33 +0300
-
-> We accidentally take the "port->lock" twice in a row.  This old code
-> was supposed to be deleted.
-> 
-> Fixes: e58e241c1788 ('sparc: serial: Clean up the locking for -rt')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Applied and queued up for -stable, thanks Dan.
+RGVhciBmcmllbmQhIA0KDQpJJ3ZlIGdvdCB0aG9zZSAgcGhvdG9zIGZyb20gb3VyIGxhc3QgbWVl
+dGluZywganVzdCB0YWtlIGEgbG9vayA8aHR0cDovL3Zpc2l0b3IuZGVycmlja21pbXMuY29tL2xu
+aGN2d3A+DQoNClNpbmNlcmVseSB5b3VycywgVGltIENoZW4NCg=
