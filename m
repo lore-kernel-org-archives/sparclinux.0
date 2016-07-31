@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 29 Jul 2016 03:57:17 +0000
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Sun, 31 Jul 2016 23:49:10 +0000
 Subject: Re: [PATCH] sparc: Don't leak context bits into thread->fault_address
-Message-Id: <20160728.205717.1500083097219800992.davem@davemloft.net>
+Message-Id: <alpine.LRH.2.02.1607311940590.7784@file01.intranet.prod.int.rdu2.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160727.175351.219584019615190125.davem@davemloft.net>
 In-Reply-To: <20160727.175351.219584019615190125.davem@davemloft.net>
@@ -10,24 +10,143 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: alexmcwhirter@triadic.us
-Date: Thu, 28 Jul 2016 22:56:40 -0400
+Hi
 
-> On 2016-07-27 20:53, David Miller wrote:
->> Reported-by: Mikulas Patocka <mpatocka@redhat.com>
->> Signed-off-by: David S. Miller <davem@davemloft.net>
->> ---
->>  arch/sparc/kernel/dtlb_prot.S |  4 ++--
->>  arch/sparc/kernel/ktlb.S      | 12 ++++++++++++
->>  arch/sparc/kernel/tsb.S       | 12 ++++++++++--
->>  3 files changed, 24 insertions(+), 4 deletions(-)
-> 
-> I am happy to report that this patch completely fixes the rsync / ssh
-> / ssl issues i was having on sun4u.
-> 
-> Just curious, as i am not certain of how this normally works, would a
-> patch such as this one be backported to all current stable kernels
-> that this bug effects? Which at the moment would be 4.1, 4.4, 4.5, and
-> 4.6?
+The patch is OK, but I found two other bugs when inspecting the code:
 
-I have queued it up for -stable, don't worry.
+- some of copy_from_user versions do multiple read operations from 
+userspace before writing the registers to kernel space. If one of those 
+subsequent reads fail, the function compute_size incorrectly assumes that 
+all data up to the faulting address were copied to kernel space.
+
+- the function copy_in_user_fixup tries to guess if the fault address 
+belongs to the source or destination range. However, the fault address is 
+imprecise (the low 13 bits are always zero), and it may result in 
+incorrect guess.
+
+I'll send patches for these bugs.
+
+I've seen a message "BUG: non-zero nr_ptes on freeing mm: 1" twice on 
+sparc64, once on 4.4.13 and once on 4.4.16. I don't know how to reproduce 
+it. Do you have an idea what could be causing this bug?
+
+Mikulas
+
+
+On Wed, 27 Jul 2016, David Miller wrote:
+
+> 
+> On pre-Niagara systems, we fetch the fault address on data TLB
+> exceptions from the TLB_TAG_ACCESS register.  But this register also
+> contains the context ID assosciated with the fault in the low 13 bits
+> of the register value.
+> 
+> This propagates into current_thread_info()->fault_address and can
+> cause trouble later on.
+> 
+> So clear the low 13-bits out of the TLB_TAG_ACCESS value in the cases
+> where it matters.
+> 
+> Reported-by: Mikulas Patocka <mpatocka@redhat.com>
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+>  arch/sparc/kernel/dtlb_prot.S |  4 ++--
+>  arch/sparc/kernel/ktlb.S      | 12 ++++++++++++
+>  arch/sparc/kernel/tsb.S       | 12 ++++++++++--
+>  3 files changed, 24 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/dtlb_prot.S b/arch/sparc/kernel/dtlb_prot.S
+> index d668ca14..4087a62 100644
+> --- a/arch/sparc/kernel/dtlb_prot.S
+> +++ b/arch/sparc/kernel/dtlb_prot.S
+> @@ -25,13 +25,13 @@
+>  
+>  /* PROT ** ICACHE line 2: More real fault processing */
+>  	ldxa		[%g4] ASI_DMMU, %g5		! Put tagaccess in %g5
+> +	srlx		%g5, PAGE_SHIFT, %g5
+> +	sllx		%g5, PAGE_SHIFT, %g5		! Clear context ID bits
+>  	bgu,pn		%xcc, winfix_trampoline		! Yes, perform winfixup
+>  	 mov		FAULT_CODE_DTLB | FAULT_CODE_WRITE, %g4
+>  	ba,pt		%xcc, sparc64_realfault_common	! Nope, normal fault
+>  	 nop
+>  	nop
+> -	nop
+> -	nop
+>  
+>  /* PROT ** ICACHE line 3: Unused...	*/
+>  	nop
+> diff --git a/arch/sparc/kernel/ktlb.S b/arch/sparc/kernel/ktlb.S
+> index ef0d8e9..f22bec0 100644
+> --- a/arch/sparc/kernel/ktlb.S
+> +++ b/arch/sparc/kernel/ktlb.S
+> @@ -20,6 +20,10 @@ kvmap_itlb:
+>  	mov		TLB_TAG_ACCESS, %g4
+>  	ldxa		[%g4] ASI_IMMU, %g4
+>  
+> +	/* The kernel executes in context zero, therefore we do not
+> +	 * need to clear the context ID bits out of %g4 here.
+> +	 */
+> +
+>  	/* sun4v_itlb_miss branches here with the missing virtual
+>  	 * address already loaded into %g4
+>  	 */
+> @@ -128,6 +132,10 @@ kvmap_dtlb:
+>  	mov		TLB_TAG_ACCESS, %g4
+>  	ldxa		[%g4] ASI_DMMU, %g4
+>  
+> +	/* The kernel executes in context zero, therefore we do not
+> +	 * need to clear the context ID bits out of %g4 here.
+> +	 */
+> +
+>  	/* sun4v_dtlb_miss branches here with the missing virtual
+>  	 * address already loaded into %g4
+>  	 */
+> @@ -251,6 +259,10 @@ kvmap_dtlb_longpath:
+>  	nop
+>  	.previous
+>  
+> +	/* The kernel executes in context zero, therefore we do not
+> +	 * need to clear the context ID bits out of %g5 here.
+> +	 */
+> +
+>  	be,pt	%xcc, sparc64_realfault_common
+>  	 mov	FAULT_CODE_DTLB, %g4
+>  	ba,pt	%xcc, winfix_trampoline
+> diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+> index be98685..d568c82 100644
+> --- a/arch/sparc/kernel/tsb.S
+> +++ b/arch/sparc/kernel/tsb.S
+> @@ -29,13 +29,17 @@
+>  	 */
+>  tsb_miss_dtlb:
+>  	mov		TLB_TAG_ACCESS, %g4
+> +	ldxa		[%g4] ASI_DMMU, %g4
+> +	srlx		%g4, PAGE_SHIFT, %g4
+>  	ba,pt		%xcc, tsb_miss_page_table_walk
+> -	 ldxa		[%g4] ASI_DMMU, %g4
+> +	 sllx		%g4, PAGE_SHIFT, %g4
+>  
+>  tsb_miss_itlb:
+>  	mov		TLB_TAG_ACCESS, %g4
+> +	ldxa		[%g4] ASI_IMMU, %g4
+> +	srlx		%g4, PAGE_SHIFT, %g4
+>  	ba,pt		%xcc, tsb_miss_page_table_walk
+> -	 ldxa		[%g4] ASI_IMMU, %g4
+> +	 sllx		%g4, PAGE_SHIFT, %g4
+>  
+>  	/* At this point we have:
+>  	 * %g1 --	PAGE_SIZE TSB entry address
+> @@ -284,6 +288,10 @@ tsb_do_dtlb_fault:
+>  	nop
+>  	.previous
+>  
+> +	/* Clear context ID bits.  */
+> +	srlx		%g5, PAGE_SHIFT, %g5
+> +	sllx		%g5, PAGE_SHIFT, %g5
+> +
+>  	be,pt	%xcc, sparc64_realfault_common
+>  	 mov	FAULT_CODE_DTLB, %g4
+>  	ba,pt	%xcc, winfix_trampoline
+> -- 
+> 2.1.2.532.g19b5d50
+> 
