@@ -1,89 +1,96 @@
-From: Mikael Pettersson <mikpelinux@gmail.com>
-Date: Sun, 10 Jul 2016 09:40:14 +0000
+From: Meelis Roos <mroos@linux.ee>
+Date: Sun, 31 Jul 2016 15:19:56 +0000
 Subject: Re: 4.7-rc6, ext4, sparc64: Unable to handle kernel paging request at ...
-Message-Id: <22402.6142.307987.804603@gargle.gargle.HOWL>
+Message-Id: <alpine.LRH.2.20.1607311944440.26644@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1607041429380.6651@math.ut.ee>
-	<CADxRZqy42TR9Y1yKM=yCQnAwyCYoU-mR2SEMT3wcSLO-NHbiSg@mail.gmail.com>
-	<alpine.LRH.2.20.1607042002200.17692@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1607042002200.17692@math.ut.ee>
+In-Reply-To: <alpine.LRH.2.20.1607041429380.6651@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Anatoly Pugachev <matorola@gmail.com>, Linux Kernel list <linux-kernel@vger.kernel.org>, linux-ext4@vger.kernel.org, sparclinux@vger.kernel.org
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, linux-ext4@vger.kernel.org, sparclinux@vger.kernel.org
 
-Meelis Roos writes:
- > > > Just got this on bootup of my Sun T2000:
- > > >...
- > > > I have not seen it before, this includes 4.6.0 4.6.0-08907-g7639dad
- > > > 4.7.0-rc1-00094-g6b15d66 4.7.0-rc4-00014-g67016f6.
- > > >
- > > > It is not reproducible, did not appear on next reboot of the same
- > > > kernel.
- > > 
- > > mine T5120 boots ok 4.7.0-rc6, rootfs being on ext4 .
- > 
- > My T5120 and many other sparc64 machines also boot fine, most of them 
- > using ext4, others ext3 with ext4 driver.
- > 
- > However, I also got a very similar oops from T1000:
- > 
- > [   55.251101] Unable to handle kernel paging request at virtual address 00000000fe42a000
- > [   55.251348] tsk->{mm,active_mm}->context = 0000000000000083
- > [   55.251533] tsk->{mm,active_mm}->pgd = ffff8001f6224000
- > [   55.251719]               \|/ ____ \|/
- >                              "@'/ .. \`@"
- >                              /_| \__/ |_\
- >                                 \__U_/
- > [   55.252038] systemd-udevd(268): Oops [#1]
- > [   55.252274] CPU: 9 PID: 268 Comm: systemd-udevd Not tainted 4.7.0-rc6 #26
- > [   55.252367] task: ffff8001f6064380 ti: ffff8001f620c000 task.ti: ffff8001f620c000
- > [   55.252497] TSTATE: 0000000811001604 TPC: 0000000000649380 TNPC: 0000000000649384 Y: 00000000    Not tainted
- > [   55.252651] TPC: <__radix_tree_lookup+0x60/0x1a0>
-...
+> Just got this on bootup of my Sun T2000:
 
-A few weeks ago I got a similar oops with 4.7.0-rc2 on a Sun Blade 2500 (dual USIIIi):
+This time I got similar (but with slightly different virtual address) 
+one on the same t2000 on 4.7.0-07753-gc9b95e5. Looks like pointer 
+corruption?
 
-Jun 12 18:40:26 lauter kernel: Unable to handle kernel paging request at virtual address 000000000000a000
-Jun 12 18:40:26 lauter kernel: tsk->{mm,active_mm}->context = 00000000000017e3
-Jun 12 18:40:26 lauter kernel: tsk->{mm,active_mm}->pgd = fff000023edb8000
-Jun 12 18:40:26 lauter kernel:               \|/ ____ \|/
-Jun 12 18:40:26 lauter kernel:               "@'/ .. \`@"
-Jun 12 18:40:26 lauter kernel:               /_| \__/ |_\
-Jun 12 18:40:26 lauter kernel:                  \__U_/
-Jun 12 18:40:26 lauter kernel: gnat1(19464): Oops [#1]
-Jun 12 18:40:26 lauter kernel: CPU: 0 PID: 19464 Comm: gnat1 Not tainted 4.7.0-rc2 #1
-Jun 12 18:40:26 lauter kernel: task: fff000023ebd1440 ti: fff000123c360000 task.ti: fff000123c360000
-Jun 12 18:40:27 lauter kernel: TSTATE: 0000000011001604 TPC: 00000000005db288 TNPC: 00000000005db28c Y: 00000000    Not tainted
-Jun 12 18:40:27 lauter kernel: TPC: <__radix_tree_lookup+0x44/0xd4>
-Jun 12 18:40:27 lauter kernel: g0: 0000000000003000 g1: 000000000000a6d9 g2: 0000000000000001 g3: 0000000000000000
-Jun 12 18:40:27 lauter kernel: g4: fff000023ebd1440 g5: fff000023ef7a000 g6: fff000123c360000 g7: 0000000000000000
-Jun 12 18:40:27 lauter kernel: o0: 000000000000000c o1: fff000123c363980 o2: fff000123c363988 o3: fff000123c363968
-Jun 12 18:40:27 lauter kernel: o4: 0000000000000020 o5: fff000023fffefc0 sp: fff000123c3630d1 ret_pc: fff0000232e42540
-Jun 12 18:40:27 lauter kernel: RPC: <0xfff0000232e42540>
-Jun 12 18:40:27 lauter kernel: l0: 00000000024213ca l1: 0000000000000000 l2: 0000000000000000 l3: 0000000000000000
-Jun 12 18:40:27 lauter kernel: l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000000
-Jun 12 18:40:27 lauter kernel: i0: fff0001225e56900 i1: 0000000000000441 i2: 0000000000000000 i3: 0000000000000000
-Jun 12 18:40:27 lauter kernel: i4: 000000000000a6d8 i5: fff0000232e42540 i6: fff000123c363191 i7: 00000000004bf680
-Jun 12 18:40:27 lauter kernel: I7: <__do_page_cache_readahead+0x78/0x200>
-Jun 12 18:40:27 lauter kernel: Call Trace:
-Jun 12 18:40:27 lauter kernel:  [00000000004bf680] __do_page_cache_readahead+0x78/0x200
-Jun 12 18:40:27 lauter kernel:  [00000000004b5990] filemap_fault+0x164/0x4c4
-Jun 12 18:40:27 lauter kernel:  [0000000000562a84] ext4_filemap_fault+0x1c/0x38
-Jun 12 18:40:27 lauter kernel:  [00000000004d2c38] __do_fault+0x58/0xdc
-Jun 12 18:40:27 lauter kernel:  [00000000004d611c] handle_mm_fault+0x604/0xe5c
-Jun 12 18:40:27 lauter kernel:  [0000000000448288] do_sparc64_fault+0x228/0x684
-Jun 12 18:40:27 lauter kernel:  [0000000000407bcc] sparc64_realfault_common+0x10/0x20
-Jun 12 18:40:28 lauter kernel: Disabling lock debugging due to kernel taint
-Jun 12 18:40:28 lauter kernel: Caller[00000000004bf680]: __do_page_cache_readahead+0x78/0x200
-Jun 12 18:40:28 lauter kernel: Caller[00000000004b5990]: filemap_fault+0x164/0x4c4
-Jun 12 18:40:28 lauter kernel: Caller[0000000000562a84]: ext4_filemap_fault+0x1c/0x38
-Jun 12 18:40:28 lauter kernel: Caller[00000000004d2c38]: __do_fault+0x58/0xdc
-Jun 12 18:40:28 lauter kernel: Caller[00000000004d611c]: handle_mm_fault+0x604/0xe5c
-Jun 12 18:40:28 lauter kernel: Caller[0000000000448288]: do_sparc64_fault+0x228/0x684
-Jun 12 18:40:28 lauter kernel: Caller[0000000000407bcc]: sparc64_realfault_common+0x10/0x20
-Jun 12 18:40:28 lauter kernel: Caller[00000000006ee248]: ip_options_compile+0x288/0x60c
-Jun 12 18:40:28 lauter kernel: Instruction DUMP: 80a06001  0267fff2  b8087ffe <c20f0000> 83365001  8208603f  84006004  83287003  8528b003
+[   70.888080] This architecture does not have kernel memory protection.
+[   70.901299] random: fast init done
+[   72.796476] Unable to handle kernel paging request at virtual address 000000000000e000
+[   72.796717] tsk->{mm,active_mm}->context = 00000000000000b7
+[   72.796904] tsk->{mm,active_mm}->pgd = ffff8003f354c000
+[   72.797088]               \|/ ____ \|/
+                             "@'/ .. \`@"
+                             /_| \__/ |_\
+                                \__U_/
+[   72.797490] udevd(410): Oops [#1]
+[   72.797669] CPU: 30 PID: 410 Comm: udevd Not tainted 4.7.0-07753-gc9b95e5 #115
+[   72.797900] task: ffff8003fd72c440 task.stack: ffff8003f363c000
+[   72.798090] TSTATE: 0000000011001601 TPC: 0000000000741b00 TNPC: 0000000000741b04 Y: 00000000    Not tainted
+[   72.798396] TPC: <__radix_tree_lookup+0x60/0x1a0>
+[   72.798521] g0: 0000000000bcec00 g1: 000000000000e6e1 g2: 0000000000000001 g3: 000000008064d76f
+[   72.798752] g4: ffff8003fd72c440 g5: ffff8003fec68000 g6: ffff8003f363c000 g7: 0000000000000000
+[   72.798980] o0: ffff8003fca8b6e0 o1: ffff8003f3502700 o2: 000000000000028d o3: 0000000000000010
+[   72.799200] o4: 0000000000000000 o5: 0000000000000040 sp: ffff8003f363f111 ret_pc: ffff8003fcda2b40
+[   72.799419] RPC: <0xffff8003fcda2b40>
+[   72.799534] l0: 0000000000000292 l1: 0000000000000005 l2: 0000000000000329 l3: 0000000000000005
+[   72.799757] l4: ffff8003fca8b6e8 l5: ffff8003f363fa70 l6: 00000000024213ca l7: 00000000024213ca
+[   72.799979] i0: ffff8003fca8b6e8 i1: 0000000000000292 i2: 0000000000000000 i3: 0000000000000000
+[   72.800196] i4: 000000000000e6e0 i5: 000000000000000a i6: ffff8003f363f1c1 i7: 0000000000541bac
+[   72.800451] I7: <__do_page_cache_readahead+0x6c/0x260>
+[   72.800631] Call Trace:
+[   72.800751]  [0000000000541bac] __do_page_cache_readahead+0x6c/0x260
+[   72.800941]  [00000000005351e0] filemap_fault+0x2a0/0x540
+[   72.801127]  [00000000006355bc] ext4_filemap_fault+0x1c/0x40
+[   72.801312]  [00000000005640c0] __do_fault+0x60/0x100
+[   72.801493]  [0000000000569648] handle_mm_fault+0x968/0xdc0
+[   72.801629]  [0000000000455aa4] do_sparc64_fault+0x264/0x780
+[   72.801861]  [0000000000407c08] sparc64_realfault_common+0x10/0x20
+[   72.801939] Disabling lock debugging due to kernel taint
+[   72.802123] Caller[0000000000541bac]: __do_page_cache_readahead+0x6c/0x260
+[   72.802363] Caller[00000000005351e0]: filemap_fault+0x2a0/0x540
+[   72.802546] Caller[00000000006355bc]: ext4_filemap_fault+0x1c/0x40
+[   72.802778] Caller[00000000005640c0]: __do_fault+0x60/0x100
+[   72.802863] Caller[0000000000569648]: handle_mm_fault+0x968/0xdc0
+[   72.803096] Caller[0000000000455aa4]: do_sparc64_fault+0x264/0x780
+[   72.803182] Caller[0000000000407c08]: sparc64_realfault_common+0x10/0x20
+[   72.803412] Caller[0000000070038494]: 0x70038494
+[   72.803525] Instruction DUMP: 80a06001  0267ffec  b8087ffe <fa0f0000> 9e10001c  bb36501d  ba0f603f  83376000  82006004 
 
-It's only happended that one time, so far.
+ 
+> [   72.333077] Unable to handle kernel paging request at virtual address 00000000fcdf6000
+> [   72.333314] tsk->{mm,active_mm}->context = 00000000000000ba
+> [   72.333517] tsk->{mm,active_mm}->pgd = ffff8003f3518000
+> [   72.333730]               \|/ ____ \|/
+>                              "@'/ .. \`@"
+>                              /_| \__/ |_\
+>                                 \__U_/
+> [   72.334080] udevd(413): Oops [#1]
+> [   72.334328] CPU: 12 PID: 413 Comm: udevd Not tainted 4.7.0-rc6 #113
+> [   72.334427] task: ffff8003f34b91a0 ti: ffff8003f3540000 task.ti: ffff8003f3540000
+> [   72.334558] TSTATE: 0000000811001604 TPC: 00000000007384e0 TNPC: 00000000007384e4 Y: 00000000    Not tainted
+> [   72.334721] TPC: <__radix_tree_lookup+0x60/0x1a0>
+> [   72.334797] g0: 0000600007e6a970 g1: 00000000fcdf6b81 g2: 0000000000000001 g3: 00000000a0063cd7
+> [   72.334922] g4: ffff8003f34b91a0 g5: ffff8003fea3a000 g6: ffff8003f3540000 g7: 0000000000000000
+> [   72.335048] o0: ffff8003fcad5518 o1: ffff8003fbf25700 o2: 00000000000002dc o3: 0000000000000010
+> [   72.335174] o4: 0000000000000000 o5: 0000000000000040 sp: ffff8003f35430e1 ret_pc: ffff8003fcad84a0
+> [   72.335300] RPC: <0xffff8003fcad84a0>
+> [   72.335371] l0: 0000000000000329 l1: 000000000000000f l2: ffff8003fcad5520 l3: ffff8003f3543a40
+> [   72.335496] l4: 0000000000001300 l5: 0000000003ffffff l6: 000000000000000f l7: 00000000000002eb
+> [   72.335622] i0: ffff8003fcad5520 i1: 00000000000002eb i2: 0000000000000000 i3: 0000000000000000
+> [   72.335749] i4: 00000000fcdf6b80 i5: 000000000000000b i6: ffff8003f3543191 i7: 000000000053ef40
+> [   72.335882] I7: <__do_page_cache_readahead+0x60/0x260>
+> [   72.335969] Call Trace:
+> [   72.336043]  [000000000053ef40] __do_page_cache_readahead+0x60/0x260
+> [   72.336148]  [0000000000532500] filemap_fault+0x2a0/0x540
+> [   72.336241]  [0000000000629bbc] ext4_filemap_fault+0x1c/0x40
+> [   72.336338]  [000000000055eb78] __do_fault+0x58/0x100
+> [   72.336433]  [0000000000563bb0] handle_mm_fault+0xd50/0x1380
+> [   72.336536]  [0000000000455aa8] do_sparc64_fault+0x268/0x780
+> [   72.336630]  [0000000000407bf0] sparc64_realfault_common+0x10/0x20
+
+
+-- 
+Meelis Roos (mroos@linux.ee)
