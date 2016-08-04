@@ -1,33 +1,19 @@
-From: Robert David <clarkraymond377@gmail.com>
-Date: Sun, 21 Aug 2016 06:50:47 +0000
-Subject: Attention Beneficially
-Message-Id: <908285276.426230.1471762247322@mail.yahoo.com>
+From: "BertPhil" <info@hitmedia.cz>
+Date: Thu, 04 Aug 2016 15:59:00 +0000
+Subject: =?iso-8859-1?Q?-Zpr=E1va_pro_v=E1s-?=
+Message-Id: <f8c69cd7d6db41ad8c03f857608957f5.squirrel@40.85.176.90>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-sctp@vger.kernel.org
-
-Attention Beneficially
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
 
-WESTERN UNION
 
-This is very urgent Our Operation manager has sent your first payment of $5000.00 to you. Here is what we need from you to complete the
-transfer, Your Name, Your Address,A Copy Of Your ID and Your Telephone Number: Noted That Only Fee Request from You Is to
-Reactivate Transfer Files which is Sum Of $65Only, No More Fee again after that.
-Western Union Agent: Mr. Peterson Godwin
-Direct phone line is: + 229 98782817
-E-mail ::(westernunion8087@gmail.com)
 
-Bellow is your first payment for $5000usd sent today in your name.
-Sender Name: Mr. 
-MTCN: 
-Question
-Answer
-Amount Sent: $5000.00
+Jsem zastupujic=ED investicn=ED zajem ze strany Dubaj, pro ktere hled=E1me =
+vasi
+ucast. Odpoved na e-mailu nize v pripade zajmu.
+E-mail: plippbert@gmail.com
 
-You can use this link to confirm the payment,
 
-Best Regards,
-Mr.Joseph Ezo
