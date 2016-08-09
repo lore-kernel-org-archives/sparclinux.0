@@ -1,63 +1,48 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Mon, 22 Aug 2016 08:33:42 +0000
-Subject: Re: [PATCH v8 1/4] nmi_backtrace: add more trigger_*_cpu_backtrace() methods
-Message-Id: <20160822083342.GA4866@pathway.suse.cz>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+Date: Tue, 09 Aug 2016 14:24:29 +0000
+Subject: Re: [RFC v3 00/13] linux: generalize sections, ranges and linker tables
+Message-Id: <20160809152429.5bb1c077@lxorguk.ukuu.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471377024-2244-1-git-send-email-cmetcalf@mellanox.com>
- <1471377024-2244-2-git-send-email-cmetcalf@mellanox.com>
- <20160818141242.GK26194@pathway.suse.cz>
- <233b9270-2f35-b3c5-2520-bf513153f260@mellanox.com>
-In-Reply-To: <233b9270-2f35-b3c5-2520-bf513153f260@mellanox.com>
+References: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1469222687-1600-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, ciaran.farrell@suse.com, christopher.denicolo@suse.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xen
 
-On Fri 2016-08-19 21:54:31, Chris Metcalf wrote:
-> On 8/18/2016 10:12 AM, Petr Mladek wrote:
-> >On Tue 2016-08-16 15:50:21, Chris Metcalf wrote:
-> >>Currently you can only request a backtrace of either all cpus, or
-> >>all cpus but yourself.  It can also be helpful to request a remote
-> >>backtrace of a single cpu, and since we want that, the logical
-> >>extension is to support a cpumask as the underlying primitive.
-> >>
-> >>This change modifies the existing lib/nmi_backtrace.c code to take
-> >>a cpumask as its basic primitive, and modifies the linux/nmi.h code
-> >>to use the new "cpumask" method instead.
-> >>
-> >>The mips code ignored the "include_self" boolean but with this change
-> >>it will now also dump a local backtrace if requested.
-> >>
-> >>diff --git a/arch/mips/kernel/process.c b/arch/mips/kernel/process.c
-> >>index 7429ad09fbe3..fea1fa7726e3 100644
-> >>--- a/arch/mips/kernel/process.c
-> >>+++ b/arch/mips/kernel/process.c
-> >>@@ -569,9 +569,16 @@ static void arch_dump_stack(void *info)
-> >>  	dump_stack();
-> >>  }
-> >>-void arch_trigger_all_cpu_backtrace(bool include_self)
-> >>+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
-> >>  {
-> >>-	smp_call_function(arch_dump_stack, NULL, 1);
-> >>+	long this_cpu = get_cpu();
-> >>+
-> >>+	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
-> >>+		dump_stack();
-> >The bit is not cleared in the mask. Therefore arch_dump_stack
-> >will get called for this CPU as well.
-> 
-> Actually, and kind of confusingly, smp_call_function_many() never calls
-> the current cpu, even if it is in the mask.  So this code is OK as-is.
+> table development go under copyleft-next, Rusty recently asked for code
+> to go in prior to the license tag being added denoting this license as
+> GPL-compatible [3] -- I had noted in the patch submission which annotated
+> copyleft-next's compatibility to GPLv2 that copyleft-next is the license
+> of choice for ongoing kernel development on my end [4]. If this is
+> objectionable I'm happy to change it to GPLv2 however I'd like a reason
+> provided as I've gone through all possible channels to ensure this is kosher,
+> including vetting by 3 attorneys now, 2 at SUSE.
 
-I see it now.
+You don't need a new tag, you can use "GPL" or "GPL and additional
+rights". In fact you don't want any other tag because when combined with
+the kernel it is GPLv2 anyway because the only way the two are fully
+compatible is for the kernel community to license the derived work under
+the GPL.
 
-> >Otherwise the patch patch looks good to me.
-> 
-> Great, thanks!  Should I add your Reviewed-by?
+The second reason you must use the GPL or GPL with additional tag is
+clause 8. We don't want anyone to create a module under your licence,
+claim it is "open source" then fifteen years later release the module in
+binary only form still with a tag saying "copyleft-next" which we treat
+as GPL compatible. It's the same reason we don't have a BSD tag but use
+"GPL with additional rights" to stop abuse of the module tags.
 
-Yup. This patch looks fine then:
+However you need to clarify the licence first I think. Linux is GPLv2,
+your document only allows use of GPL with "GPL" works - not GPL v2 works ?
 
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+As PS: btw your licence is kind of weird. I can combine it with GPL work,
+make it GPL therefore, and then use the GPL rights to remove the bits I
+added thereby meaning I have your exact original work under the GPL. Not
+sure how it's intended to work ?
 
-Best Regards,
-Petr
+It would also be good if someone clarified whether 6 and 7 are intended
+to combine so you can take contributed patches and put them in your own
+proprietary version. As a non-lawyer the intent is not clear at all.
+
+Alan
