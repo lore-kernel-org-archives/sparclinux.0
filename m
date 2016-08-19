@@ -1,182 +1,90 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Wed, 31 Aug 2016 20:48:19 +0000
-Subject: [PATCH v2] sparc64 mm: Fix more TSB sizing issues
-Message-Id: <1472676499-6325-1-git-send-email-mike.kravetz@oracle.com>
+From: mcgrof@kernel.org
+Date: Fri, 19 Aug 2016 21:41:09 +0000
+Subject: [PATCH v1 1/7] tools: add a userspace tools bug.h
+Message-Id: <1471642875-5957-2-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
+ <1471642875-5957-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1471642875-5957-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>
+To: acme@redhat.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, ton
 
-Commit af1b1a9b36b8 ("sparc64 mm: Fix base TSB sizing when hugetlb
-pages are used") addressed the difference between hugetlb and THP
-pages when computing TSB sizes.  The following additional issues
-were also discovered while working with the code.
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-In order to save memory, THP makes use of a huge zero page.  This huge
-zero page does not count against a task's RSS, but it does consume TSB
-entries.  This is similar to hugetlb pages.  Therefore, count huge
-zero page entries in hugetlb_pte_count.
+This will be used later by the userspace linker-tables sandbox.
+As a convenience, include bug.h on kernel.h -- this is not done
+on upstream kernel.h, however most header files do include bug.h
+eventually, if we were to only add the ones that need it we'd
+need to copy a lot of headers to tools for the ony purpose of
+includeing bug.h. This simplifies that.
 
-Accounting of THP pages is done in the routine set_pmd_at().
-Unfortunately, this does not catch the case where a THP page is split.
-To handle this case, decrement the count in pmdp_invalidate().
-pmdp_invalidate is only called when splitting a THP.  However, 'sanity
-checks' are added in case it is ever called for other purposes.
-
-A more general issue exists with HPAGE_SIZE accounting.
-hugetlb_pte_count tracks the number of HPAGE_SIZE (8M) pages.  This
-value is used to size the TSB for HPAGE_SIZE pages.  However,
-each HPAGE_SIZE page consists of two REAL_HPAGE_SIZE (4M) pages.
-The TSB contains an entry for each REAL_HPAGE_SIZE page.  Therefore,
-the number of REAL_HPAGE_SIZE pages should be used to size the huge
-page TSB.  A new compile time constant REAL_HPAGE_PER_HPAGE is used
-to multiply hugetlb_pte_count before sizing the TSB.
-
-Changes from V1
-- Fixed build issue if hugetlb or THP not configured
-
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/sparc/include/asm/page_64.h |  1 +
- arch/sparc/mm/fault_64.c         |  1 +
- arch/sparc/mm/tlb.c              | 35 +++++++++++++++++++++++++++++++----
- arch/sparc/mm/tsb.c              | 18 ++++++++++++------
- 4 files changed, 45 insertions(+), 10 deletions(-)
+ tools/include/asm-generic/bug.h | 24 ++++++++++++++++++++++++
+ tools/include/linux/bug.h       |  6 ++++++
+ tools/include/linux/kernel.h    |  2 ++
+ 3 files changed, 32 insertions(+)
+ create mode 100644 tools/include/asm-generic/bug.h
+ create mode 100644 tools/include/linux/bug.h
 
-diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
-index 8c2a8c9..c1263fc 100644
---- a/arch/sparc/include/asm/page_64.h
-+++ b/arch/sparc/include/asm/page_64.h
-@@ -25,6 +25,7 @@
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
- #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-+#define REAL_HPAGE_PER_HPAGE	(_AC(1,UL) << (HPAGE_SHIFT - REAL_HPAGE_SHIFT))
- #endif
- 
- #ifndef __ASSEMBLY__
-diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
-index e16fdd2..3f291d8 100644
---- a/arch/sparc/mm/fault_64.c
-+++ b/arch/sparc/mm/fault_64.c
-@@ -484,6 +484,7 @@ good_area:
- 		tsb_grow(mm, MM_TSB_BASE, mm_rss);
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
- 	mm_rss = mm->context.hugetlb_pte_count + mm->context.thp_pte_count;
-+	mm_rss *= REAL_HPAGE_PER_HPAGE;
- 	if (unlikely(mm_rss >
- 		     mm->context.tsb_block[MM_TSB_HUGE].tsb_rss_limit)) {
- 		if (mm->context.tsb_block[MM_TSB_HUGE].tsb)
-diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-index 3659d37..c56a195 100644
---- a/arch/sparc/mm/tlb.c
-+++ b/arch/sparc/mm/tlb.c
-@@ -174,10 +174,25 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 		return;
- 
- 	if ((pmd_val(pmd) ^ pmd_val(orig)) & _PAGE_PMD_HUGE) {
--		if (pmd_val(pmd) & _PAGE_PMD_HUGE)
--			mm->context.thp_pte_count++;
--		else
--			mm->context.thp_pte_count--;
-+		/*
-+		 * Note that this routine only sets pmds for THP pages.
-+		 * Hugetlb pages are handled elsewhere.  We need to check
-+		 * for huge zero page.  Huge zero pages are like hugetlb
-+		 * pages in that there is no RSS, but there is the need
-+		 * for TSB entries.  So, huge zero page counts go into
-+		 * hugetlb_pte_count.
-+		 */
-+		if (pmd_val(pmd) & _PAGE_PMD_HUGE) {
-+			if (is_huge_zero_page(pmd_page(pmd)))
-+				mm->context.hugetlb_pte_count++;
-+			else
-+				mm->context.thp_pte_count++;
-+		} else {
-+			if (is_huge_zero_page(pmd_page(orig)))
-+				mm->context.hugetlb_pte_count--;
-+			else
-+				mm->context.thp_pte_count--;
-+		}
- 
- 		/* Do not try to allocate the TSB hash table if we
- 		 * don't have one already.  We have various locks held
-@@ -204,6 +219,9 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 	}
- }
- 
-+/*
-+ * This routine is only called when splitting a THP
-+ */
- void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 		     pmd_t *pmdp)
- {
-@@ -213,6 +231,15 @@ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
- 
- 	set_pmd_at(vma->vm_mm, address, pmdp, entry);
- 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+diff --git a/tools/include/asm-generic/bug.h b/tools/include/asm-generic/bug.h
+new file mode 100644
+index 000000000000..7b0f48b60dbe
+--- /dev/null
++++ b/tools/include/asm-generic/bug.h
+@@ -0,0 +1,24 @@
++#ifndef __TOOLS_ASM_GENERIC_BUG
++#define __TOOLS_ASM_GENERIC_BUG
 +
-+	/*
-+	 * set_pmd_at() will not be called in a way to decrement
-+	 * thp_pte_count when splitting a THP, so do it now.
-+	 * Sanity check pmd before doing the actual decrement.
-+	 */
-+	if ((pmd_val(entry) & _PAGE_PMD_HUGE) &&
-+	    !is_huge_zero_page(pmd_page(entry)))
-+		(vma->vm_mm)->context.thp_pte_count--;
- }
- 
- void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
-diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
-index 6725ed4..f2b7711 100644
---- a/arch/sparc/mm/tsb.c
-+++ b/arch/sparc/mm/tsb.c
-@@ -469,8 +469,10 @@ retry_tsb_alloc:
- 
- int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
- {
-+	unsigned long mm_rss = get_mm_rss(mm);
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
--	unsigned long total_huge_pte_count;
-+	unsigned long saved_hugetlb_pte_count;
-+	unsigned long saved_thp_pte_count;
- #endif
- 	unsigned int i;
- 
-@@ -483,10 +485,12 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
- 	 * will re-increment the counters as the parent PTEs are
- 	 * copied into the child address space.
- 	 */
--	total_huge_pte_count = mm->context.hugetlb_pte_count +
--			 mm->context.thp_pte_count;
-+	saved_hugetlb_pte_count = mm->context.hugetlb_pte_count;
-+	saved_thp_pte_count = mm->context.thp_pte_count;
- 	mm->context.hugetlb_pte_count = 0;
- 	mm->context.thp_pte_count = 0;
++#include <stdio.h>
++#include <stdlib.h>
 +
-+	mm_rss -= saved_thp_pte_count * (HPAGE_SIZE / PAGE_SIZE);
- #endif
++#define BUG() do {										\
++	fprintf(stderr, "----------------------------------------------------------\n");	\
++	fprintf (stderr, "BUG on %s at %s: %i\n", __func__, __FILE__, __LINE__);		\
++	abort();										\
++}												\
++while (0)
++
++#define BUG_ON(cond) do { if (cond) BUG(); } while (0)
++
++#define WARN_ON(__test) do {									\
++	if (__test) {										\
++		fprintf(stderr, "----------------------------------------------------------\n");\
++		fprintf (stderr, "WARN_ON on %s at %s: %i\n", __func__, __FILE__, __LINE__);	\
++	}											\
++}												\
++while (0)
++
++#endif /* __TOOLS_ASM_GENERIC_BUG */
+diff --git a/tools/include/linux/bug.h b/tools/include/linux/bug.h
+new file mode 100644
+index 000000000000..9be515b40b5c
+--- /dev/null
++++ b/tools/include/linux/bug.h
+@@ -0,0 +1,6 @@
++#ifndef _TOOLS_LINUX_BUG_H
++#define _TOOLS_LINUX_BUG_H
++
++#include <asm-generic/bug.h>
++
++#endif /* _TOOLS_LINUX_BUG_H */
+diff --git a/tools/include/linux/kernel.h b/tools/include/linux/kernel.h
+index 28607db02bd3..3d385a6d4fc1 100644
+--- a/tools/include/linux/kernel.h
++++ b/tools/include/linux/kernel.h
+@@ -5,6 +5,8 @@
+ #include <stddef.h>
+ #include <assert.h>
  
- 	/* copy_mm() copies over the parent's mm_struct before calling
-@@ -499,11 +503,13 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
- 	/* If this is fork, inherit the parent's TSB size.  We would
- 	 * grow it to that size on the first page fault anyways.
- 	 */
--	tsb_grow(mm, MM_TSB_BASE, get_mm_rss(mm));
-+	tsb_grow(mm, MM_TSB_BASE, mm_rss);
++#include <linux/bug.h>
++
+ #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
  
- #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
--	if (unlikely(total_huge_pte_count))
--		tsb_grow(mm, MM_TSB_HUGE, total_huge_pte_count);
-+	if (unlikely(saved_hugetlb_pte_count + saved_thp_pte_count))
-+		tsb_grow(mm, MM_TSB_HUGE,
-+			 (saved_hugetlb_pte_count + saved_thp_pte_count) *
-+			 REAL_HPAGE_PER_HPAGE);
- #endif
- 
- 	if (unlikely(!mm->context.tsb_block[MM_TSB_BASE].tsb))
+ #define PERF_ALIGN(x, a)	__PERF_ALIGN_MASK(x, (typeof(x))(a)-1)
 -- 
-2.4.11
+2.9.2
 
