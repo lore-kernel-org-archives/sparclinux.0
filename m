@@ -1,65 +1,39 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Date: Sat, 06 Aug 2016 04:31:48 +0000
-Subject: [PATCH] sparc64: fix section mismatch in find_numa_latencies_for_group
-Message-Id: <20160806043148.11674-1-paul.gortmaker@windriver.com>
+From: mcgrof@kernel.org
+Date: Fri, 19 Aug 2016 21:34:09 +0000
+Subject: [PATCH v4 11/16] jump_label: move guard #endif down where it belongs
+Message-Id: <1471642454-5679-12-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, ton
 
-To fix:
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-  WARNING: vmlinux.o(.text.unlikely+0x580): Section mismatch in
-  reference from the function find_numa_latencies_for_group() to the
-  function .init.text:find_mlgroup()
+The ending header guard is misplaced. This has no
+functional change, this is just an eye-sore.
 
-  The function find_numa_latencies_for_group() references the
-  function __init find_mlgroup().  This is often because
-  find_numa_latencies_for_group lacks a __init annotation or the
-  annotation of find_mlgroup is wrong.
-
-It turns out find_numa_latencies_for_group is only called from:
-    static int __init numa_parse_mdesc(void)
-and hence we can tag find_numa_latencies_for_group with __init.
-
-In doing so we see that find_best_numa_node_for_mlgroup is only
-called from within __init and hence can also be marked with __init.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Nitin Gupta <nitin.m.gupta@oracle.com>
-Cc: Chris Hyser <chris.hyser@oracle.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/sparc/mm/init_64.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/jump_label.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 904cf7d1a744..ddb71fd4d09a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1160,7 +1160,7 @@ int __node_distance(int from, int to)
- 	return numa_latency[from][to];
- }
+diff --git a/include/linux/jump_label.h b/include/linux/jump_label.h
+index 661af564fae8..1256f543b002 100644
+--- a/include/linux/jump_label.h
++++ b/include/linux/jump_label.h
+@@ -384,6 +384,6 @@ extern bool ____wrong_branch_error(void);
+ #define static_branch_enable(x)		static_key_enable(&(x)->key)
+ #define static_branch_disable(x)	static_key_disable(&(x)->key)
  
--static int find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
-+static int __init find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
- {
- 	int i;
- 
-@@ -1173,8 +1173,8 @@ static int find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
- 	return i;
- }
- 
--static void find_numa_latencies_for_group(struct mdesc_handle *md, u64 grp,
--					  int index)
-+static void __init find_numa_latencies_for_group(struct mdesc_handle *md,
-+						 u64 grp, int index)
- {
- 	u64 arc;
- 
+-#endif	/* _LINUX_JUMP_LABEL_H */
+-
+ #endif /* __ASSEMBLY__ */
++
++#endif	/* _LINUX_JUMP_LABEL_H */
 -- 
-2.8.4
+2.9.2
 
