@@ -1,71 +1,47 @@
-From: Nicholas Piggin <npiggin@gmail.com>
-Date: Fri, 26 Aug 2016 13:28:55 +0000
-Subject: Re: [PATCH v4 04/16] generic-sections: add section core helpers
-Message-Id: <20160826232855.31464a63@roar.ozlabs.ibm.com>
+From: mcgrof@kernel.org
+Date: Fri, 19 Aug 2016 21:32:54 +0000
+Subject: [PATCH v4 05/16] xtensa: skip adding literal when SORT() is used
+Message-Id: <1471642385-5629-6-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160823173306.GA3296@wotan.suse.de>
-        <20160824135141.2c8f06ec@roar.ozlabs.ibm.com>
-        <20160824201253.GS3296@wotan.suse.de>
-        <20160825120633.057b2f6f@roar.ozlabs.ibm.com>
-        <20160825060540.GX3296@wotan.suse.de>
-        <20160825165121.45d26fb0@roar.ozlabs.ibm.com>
-        <20160825175239.GB3296@wotan.suse.de>
-        <20160826130024.0ad51d33@roar.ozlabs.ibm.com>
-        <CAB=NE6UQ8qE6AqRg9=YddNYrMyU7opCEij-5Usty7wMgEJJbpw@mail.gmail.com>
-        <20160826173338.41a56103@roar.ozlabs.ibm.com>
-        <20160826132219.GG3296@wotan.suse.de>
-In-Reply-To: <20160826132219.GG3296@wotan.suse.de>
+References: <1471642385-5629-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1471642385-5629-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: benh@kernel.crashing.org, jani.nikula@intel.com, masami.hiramatsu.pt@hitachi.com, linux@rasmusvillemoes.dk, linux-kbuild@vger.kernel.org, linux-sh@vger.kernel.org, luto@amacapital.net, gnomes@lxorguk.ukuu.org.uk, jcmvbkbc@gmail.com, torvalds@linux-foundation.org, akpm@linux-foundation.org, dwmw2@infradead.org, xen-devel@lists.xensource.com, anil.s.keshavamurthy@intel.com, will.deacon@arm.com, linux-ia64@vger.kernel.org, x86@kernel.org, korea.drzix@gmail.com, mingo@redhat.com, andrew.cooper3@citrix.com, jgross@suse.com, tglx@linutronix.de, keescook@chromium.org, ananth@linux.vnet.ibm.com, jpoimboe@redhat.com, rostedt@goodmis.org, hpa@zytor.com, acme@redhat.com, arnd@arndb.de, davem@davemloft.net, platform-driver-x86@vger.kernel.org, jkosina@suse.cz, david.vrabel@citrix.com
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, x86@kernel.org, fontana@sharpeleven.org, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org, acme@redhat.com, ak@linux.intel.com, andriy.shevchenko@linux.intel.com, mcb30@ip
 
-On Fri, 26 Aug 2016 15:22:19 +0200
-"Luis R. Rodriguez" <mcgrof@kernel.org> wrote:
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-> On Fri, Aug 26, 2016 at 05:33:38PM +1000, Nicholas Piggin wrote:
-> > On Thu, 25 Aug 2016 23:38:44 -0700
-> > "Luis R. Rodriguez" <mcgrof@kernel.org> wrote:  
-> > > > > > > Ah, thing is we use this for both linktables and section ranges.
-> > > > > > > Or do we want macros for both that do the same thing ?    
-> > > > > >
-> > > > > > I think it would make the code using it more readable.    
-> > > > >
-> > > > > Alrighty... so:
-> > > > >
-> > > > > LINKTABLE_START()
-> > > > > LINKTABLE_END()
-> > > > >
-> > > > > SECTION_RANGE_START()
-> > > > > SECTION_RANGE_END()
-> > > > >
-> > > > > And these macros do the exact same thing. Ie, nothing shared. Right?    
-> > > >
-> > > > Yeah I think so. Internally they would probably be aliased to the
-> > > > same common definition (unless you had some type check or something),
-> > > > but user would know about such details.    
-> > > 
-> > > What name should we use for such common macro definition ?  
-> > 
-> > 
-> > Ah, not really sure. I guess the "link table" is some kind of
-> > section range? I haven't actually looked closely at both of them
-> > in the subsequent patches. It matters less if it's not expected
-> > to be used as an API though.
-> >   
-> 
-> OK well, going with LINUX_SECTION_START() so we'll have:
-> 
-> #define LINKTABLE_START		LINUX_SECTION_START
-> #define LINKTABLE_END		LINUX_SECTION_END
-> 
-> #define SECTION_RANGE_START	LINUX_SECTION_START
-> #define SECTION_RANGE_END	LINUX_SECTION_END
-> 
-> Is that OK?
+When SORT(foo.*) is used the current sed replacements add
+SORT(foo.literal foo.*), this breaks linking. Avoid adding
+literals for SORT globs, if needed, these need to be added
+manually.
 
-I guess so, without having seen the updated, although I don't see why
-you'd not just
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ arch/xtensa/kernel/Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-#define LINKTABLE_START SECTION_RANGE_START
+diff --git a/arch/xtensa/kernel/Makefile b/arch/xtensa/kernel/Makefile
+index c31f5d5afc7d..8180850ed147 100644
+--- a/arch/xtensa/kernel/Makefile
++++ b/arch/xtensa/kernel/Makefile
+@@ -29,10 +29,10 @@ AFLAGS_mxhead.o += -mtext-section-literals
+ #
+ # Replicate rules in scripts/Makefile.build
+ 
+-sed-y = -e ':a; s/\*(\([^)]*\)\.text\.unlikely/*(\1.literal.unlikely .{text}.unlikely/; ta; ' \
+-	-e ':b; s/\*(\([^)]*\)\.text\(\.[a-z]*\)/*(\1.{text}\2.literal .{text}\2/; tb; ' \
+-	-e ':c; s/\*(\([^)]*\)\(\.[a-z]*it\|\.ref\)\.text/*(\1\2.literal \2.{text}/; tc; ' \
+-	-e ':d; s/\*(\([^)]\+ \|\)\.text/*(\1.literal .{text}/; td; ' \
++sed-y = -e ':a; s/\*(\([^)SORT]*\)\.text\.unlikely/*(\1.literal.unlikely .{text}.unlikely/; ta; ' \
++	-e ':b; s/\*(\([^)SORT]*\)\.text\(\.[a-z]*\)/*(\1.{text}\2.literal .{text}\2/; tb; ' \
++	-e ':c; s/\*(\([^SORT)]*\)\(\.[a-z]*it\|\.ref\)\.text/*(\1\2.literal \2.{text}/; tc; ' \
++	-e ':d; s/\*(\([^SORT)]\+ \|\)\.text/*(\1.literal .{text}/; td; ' \
+ 	-e 's/\.{text}/.text/g'
+ 
+ quiet_cmd__cpp_lds_S = LDS     $@
+-- 
+2.9.2
+
