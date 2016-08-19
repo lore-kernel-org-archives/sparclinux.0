@@ -1,63 +1,45 @@
-From: Jens Axboe <axboe@kernel.dk>
-Date: Mon, 22 Aug 2016 19:24:13 +0000
-Subject: Re: [sparc64] fio bus error
-Message-Id: <4155a143-a703-2eed-776e-9766dcd87d86@kernel.dk>
+From: mcgrof@kernel.org
+Date: Fri, 19 Aug 2016 21:32:58 +0000
+Subject: [PATCH v4 09/16] firmware/Makefile: force recompilation if makefile changes
+Message-Id: <1471642385-5629-10-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqwnO-UuLgAkDb4bvqVY9hMMSnFFcdkYdPnfwfJukN09yA@mail.gmail.com>
-In-Reply-To: <CADxRZqwnO-UuLgAkDb4bvqVY9hMMSnFFcdkYdPnfwfJukN09yA@mail.gmail.com>
+References: <1471642385-5629-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1471642385-5629-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, x86@kernel.org, fontana@sharpeleven.org, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org, acme@redhat.com, ak@linux.intel.com, andriy.shevchenko@linux.intel.com, mcb30@ip
 
-On 08/22/2016 01:17 PM, Anatoly Pugachev wrote:
-> On Mon, Aug 22, 2016 at 8:32 PM, Jens Axboe <axboe@kernel.dk> wrote:
->> On 08/20/2016 09:19 AM, Anatoly Pugachev wrote:
->>> Thread 2 "fio" received signal SIGBUS, Bus error.
->>> [Switching to Thread 0xffff80011025b910 (LWP 15753)]
->>> calc_log_samples () at stat.c:2461
->>> 2461                            tmp = add_bw_samples(td, &now);
->>> (gdb) bt
->>> #0  calc_log_samples () at stat.c:2461
->>> #1  0x000000000018e944 in helper_thread_main (data=0xffff800100ac5670)
->>> at helper_thread.c:121
->>> #2  0xffff80010063ba04 in start_thread (arg=0xffff80011025b910) at
->>> pthread_create.c:335
->>> #3  0xffff800100944f58 in __thread_start () at
->>> ../sysdeps/unix/sysv/linux/sparc/sparc64/clone.S:93
->>> Backtrace stopped: previous frame identical to this frame (corrupt stack?)
->>> (gdb)
->>
->>
->> Does this help?
->>
->> diff --git a/stat.c b/stat.c
->> index 552d88dde067..74c2686c660c 100644
->> --- a/stat.c
->> +++ b/stat.c
->> @@ -2457,12 +2457,12 @@ int calc_log_samples(void)
->>                         next = min(td->o.iops_avg_time, td->o.bw_avg_time);
->>                         continue;
->>                 }
->> -               if (!per_unit_log(td->bw_log)) {
->> +               if (td->bw_log && !per_unit_log(td->bw_log)) {
->>                         tmp = add_bw_samples(td, &now);
->>                         if (tmp < next)
->>                                 next = tmp;
->>                 }
->> -               if (!per_unit_log(td->iops_log)) {
->> +               if (td->iops_log && !per_unit_log(td->iops_log)) {
->>                         tmp = add_iops_samples(td, &now);
->>                         if (tmp < next)
->>                                 next = tmp;
->>
->
->
-> Jens,
->
-> yes, this patch fixed sigbus. Thanks.
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-Great, thanks for reporting. I have committed the fix.
+If you modify the target asm we currently do not force the
+recompilation of the firmware files. The target asm is in
+the firmware/Makefile, peg this file as a dependency to
+require re-compilation of firmware targets when the asm
+changes.
 
+v3: introduced in this series
+
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ firmware/Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/firmware/Makefile b/firmware/Makefile
+index e297e1b52636..fa3e81c2a97b 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -176,7 +176,8 @@ quiet_cmd_fwbin = MK_FW   $@
+ wordsize_deps := $(wildcard include/config/64bit.h include/config/32bit.h \
+ 		include/config/ppc32.h include/config/ppc64.h \
+ 		include/config/superh32.h include/config/superh64.h \
+-		include/config/x86_32.h include/config/x86_64.h)
++		include/config/x86_32.h include/config/x86_64.h \
++		firmware/Makefile)
+ 
+ $(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps)
+ 	$(call cmd,fwbin,$(patsubst %.gen.S,%,$@))
 -- 
-Jens Axboe
+2.9.2
+
