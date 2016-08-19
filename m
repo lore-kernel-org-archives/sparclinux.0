@@ -1,343 +1,157 @@
-From: Chris Metcalf <cmetcalf@mellanox.com>
-Date: Mon, 29 Aug 2016 16:12:46 +0000
-Subject: [PATCH v9 1/4] nmi_backtrace: add more trigger_*_cpu_backtrace() methods
-Message-Id: <1472487169-14923-2-git-send-email-cmetcalf@mellanox.com>
+From: mcgrof@kernel.org
+Date: Fri, 19 Aug 2016 21:34:14 +0000
+Subject: [PATCH v4 16/16] kprobes: port blacklist kprobes to linker table
+Message-Id: <1471642454-5679-17-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1472487169-14923-1-git-send-email-cmetcalf@mellanox.com>
-In-Reply-To: <1472487169-14923-1-git-send-email-cmetcalf@mellanox.com>
+References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
+In-Reply-To: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, ton
 
-Currently you can only request a backtrace of either all cpus, or
-all cpus but yourself.  It can also be helpful to request a remote
-backtrace of a single cpu, and since we want that, the logical
-extension is to support a cpumask as the underlying primitive.
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
-This change modifies the existing lib/nmi_backtrace.c code to take
-a cpumask as its basic primitive, and modifies the linux/nmi.h code
-to use the new "cpumask" method instead.
+kprobe makes use of two sections, the one dealing with the actual
+kprobes was recently ported using the standard section range API.
+The blacklist functionality of kprobes is still using a custom
+section and declaring its custom section using the linker script
+as follows:
 
-The existing clients of nmi_backtrace (arm and x86) are converted
-to using the new cpumask approach in this change.
+type  Linux-section custom section name  begin                    end
+table .init.data    _kprobe_blacklist    __start_kprobe_blacklist __stop_kprobe_blacklist
 
-The other users of the backtracing API (sparc64 and mips) are converted
-to use the cpumask approach rather than the all/allbutself approach.
-The mips code ignored the "include_self" boolean but with this change
-it will now also dump a local backtrace if requested.
+This ports the _kprobe_blacklist custom section to the standard
+Linux linker table API allowing us remove all the custom blacklist
+kprobe section declarations from the linker script.
 
-Signed-off-by: Chris Metcalf <cmetcalf@mellanox.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Tested-by: Daniel Thompson <daniel.thompson@linaro.org> [arm]
+This has been tested by trying to register a kprobe on a blacklisted
+symbol (these are declared with NOKPROBE_SYMBOL()), and confirms that
+this fails to work as expected. This was tested with:
+
+ # insmod samples/kprobes/kprobe_example.ko symbol="get_kprobe"
+
+This fails to load as expected with:
+
+insmod: ERROR: could not insert module samples/kprobes/kprobe_example.ko: Invalid parameters
+
+v3: this patch was introduced in this series
+
+Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/arm/include/asm/irq.h      |  5 +++--
- arch/arm/kernel/smp.c           |  4 ++--
- arch/mips/include/asm/irq.h     |  5 +++--
- arch/mips/kernel/process.c      | 11 +++++++++--
- arch/sparc/include/asm/irq_64.h |  5 +++--
- arch/sparc/kernel/process_64.c  | 10 +++++-----
- arch/x86/include/asm/irq.h      |  5 +++--
- arch/x86/kernel/apic/hw_nmi.c   | 18 +++++++++---------
- include/linux/nmi.h             | 31 ++++++++++++++++++++++++++-----
- lib/nmi_backtrace.c             | 17 +++++++++--------
- 10 files changed, 72 insertions(+), 39 deletions(-)
+ include/asm-generic/kprobes.h     |  4 ++--
+ include/asm-generic/vmlinux.lds.h | 10 ----------
+ include/linux/kprobes.h           |  2 ++
+ kernel/kprobes.c                  | 11 ++++-------
+ 4 files changed, 8 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/include/asm/irq.h b/arch/arm/include/asm/irq.h
-index 1bd9510de1b9..e53638c8ed8a 100644
---- a/arch/arm/include/asm/irq.h
-+++ b/arch/arm/include/asm/irq.h
-@@ -36,8 +36,9 @@ extern void set_handle_irq(void (*handle_irq)(struct pt_regs *));
- #endif
+diff --git a/include/asm-generic/kprobes.h b/include/asm-generic/kprobes.h
+index 7b986f4b7ccd..23a49a4c7a38 100644
+--- a/include/asm-generic/kprobes.h
++++ b/include/asm-generic/kprobes.h
+@@ -3,14 +3,14 @@
  
- #ifdef CONFIG_SMP
--extern void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace(x) arch_trigger_all_cpu_backtrace(x)
-+extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
-+					   bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- #endif
- 
- static inline int nr_legacy_irqs(void)
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 861521606c6d..2a367b2de0e1 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -760,7 +760,7 @@ static void raise_nmi(cpumask_t *mask)
- 	smp_cross_call(mask, IPI_CPU_BACKTRACE);
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	nmi_trigger_all_cpu_backtrace(include_self, raise_nmi);
-+	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
- }
-diff --git a/arch/mips/include/asm/irq.h b/arch/mips/include/asm/irq.h
-index 15e0fecbc300..6bf10e796553 100644
---- a/arch/mips/include/asm/irq.h
-+++ b/arch/mips/include/asm/irq.h
-@@ -51,7 +51,8 @@ extern int cp0_fdc_irq;
- 
- extern int get_c0_fdc_int(void);
- 
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- 
- #endif /* _ASM_IRQ_H */
-diff --git a/arch/mips/kernel/process.c b/arch/mips/kernel/process.c
-index 7429ad09fbe3..fea1fa7726e3 100644
---- a/arch/mips/kernel/process.c
-+++ b/arch/mips/kernel/process.c
-@@ -569,9 +569,16 @@ static void arch_dump_stack(void *info)
- 	dump_stack();
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	smp_call_function(arch_dump_stack, NULL, 1);
-+	long this_cpu = get_cpu();
-+
-+	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
-+		dump_stack();
-+
-+	smp_call_function_many(mask, arch_dump_stack, NULL, 1);
-+
-+	put_cpu();
- }
- 
- int mips_get_process_fp_mode(struct task_struct *task)
-diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
-index 3f70f900e834..1d51a11fb261 100644
---- a/arch/sparc/include/asm/irq_64.h
-+++ b/arch/sparc/include/asm/irq_64.h
-@@ -86,8 +86,9 @@ static inline unsigned long get_softint(void)
- 	return retval;
- }
- 
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- 
- extern void *hardirq_stack[NR_CPUS];
- extern void *softirq_stack[NR_CPUS];
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index fa14402b33f9..47ff5588e521 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -239,7 +239,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
- 	}
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
- 	struct thread_info *tp = current_thread_info();
- 	struct pt_regs *regs = get_irq_regs();
-@@ -255,15 +255,15 @@ void arch_trigger_all_cpu_backtrace(bool include_self)
- 
- 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
- 
--	if (include_self)
-+	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
- 		__global_reg_self(tp, regs, this_cpu);
- 
- 	smp_fetch_global_regs();
- 
--	for_each_online_cpu(cpu) {
-+	for_each_cpu(cpu, mask) {
- 		struct global_reg_snapshot *gp;
- 
--		if (!include_self && cpu = this_cpu)
-+		if (exclude_self && cpu = this_cpu)
- 			continue;
- 
- 		gp = &global_cpu_snapshot[cpu].reg;
-@@ -300,7 +300,7 @@ void arch_trigger_all_cpu_backtrace(bool include_self)
- 
- static void sysrq_handle_globreg(int key)
- {
--	arch_trigger_all_cpu_backtrace(true);
-+	trigger_all_cpu_backtrace();
- }
- 
- static struct sysrq_key_op sparc_globalreg_op = {
-diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
-index e7de5c9a4fbd..16d3fa211962 100644
---- a/arch/x86/include/asm/irq.h
-+++ b/arch/x86/include/asm/irq.h
-@@ -50,8 +50,9 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
- extern void init_ISA_irqs(void);
- 
- #ifdef CONFIG_X86_LOCAL_APIC
--void arch_trigger_all_cpu_backtrace(bool);
--#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
-+void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
-+				    bool exclude_self);
-+#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
- #endif
- 
- #endif /* _ASM_X86_IRQ_H */
-diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
-index f29501e1a5c1..c73c9fb281e1 100644
---- a/arch/x86/kernel/apic/hw_nmi.c
-+++ b/arch/x86/kernel/apic/hw_nmi.c
-@@ -26,32 +26,32 @@ u64 hw_nmi_get_sample_period(int watchdog_thresh)
- }
- #endif
- 
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- static void nmi_raise_cpu_backtrace(cpumask_t *mask)
- {
- 	apic->send_IPI_mask(mask, NMI_VECTOR);
- }
- 
--void arch_trigger_all_cpu_backtrace(bool include_self)
-+void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
- {
--	nmi_trigger_all_cpu_backtrace(include_self, nmi_raise_cpu_backtrace);
-+	nmi_trigger_cpumask_backtrace(mask, exclude_self,
-+				      nmi_raise_cpu_backtrace);
- }
- 
--static int
--arch_trigger_all_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
-+static int nmi_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
- {
- 	if (nmi_cpu_backtrace(regs))
- 		return NMI_HANDLED;
- 
- 	return NMI_DONE;
- }
--NOKPROBE_SYMBOL(arch_trigger_all_cpu_backtrace_handler);
-+NOKPROBE_SYMBOL(nmi_cpu_backtrace_handler);
- 
--static int __init register_trigger_all_cpu_backtrace(void)
-+static int __init register_nmi_cpu_backtrace_handler(void)
- {
--	register_nmi_handler(NMI_LOCAL, arch_trigger_all_cpu_backtrace_handler,
-+	register_nmi_handler(NMI_LOCAL, nmi_cpu_backtrace_handler,
- 				0, "arch_bt");
- 	return 0;
- }
--early_initcall(register_trigger_all_cpu_backtrace);
-+early_initcall(register_nmi_cpu_backtrace_handler);
- #endif
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 4630eeae18e0..a78c35cff1ae 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -35,21 +35,34 @@ static inline void hardlockup_detector_disable(void) {}
-  * base function. Return whether such support was available,
-  * to allow calling code to fall back to some other mechanism:
-  */
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- static inline bool trigger_all_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace(true);
--
-+	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
- 	return true;
- }
-+
- static inline bool trigger_allbutself_cpu_backtrace(void)
- {
--	arch_trigger_all_cpu_backtrace(false);
-+	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
-+	return true;
-+}
-+
-+static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
-+{
-+	arch_trigger_cpumask_backtrace(mask, false);
-+	return true;
-+}
-+
-+static inline bool trigger_single_cpu_backtrace(int cpu)
-+{
-+	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
- 	return true;
- }
- 
- /* generic implementation */
--void nmi_trigger_all_cpu_backtrace(bool include_self,
-+void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-+				   bool exclude_self,
- 				   void (*raise)(cpumask_t *mask));
- bool nmi_cpu_backtrace(struct pt_regs *regs);
- 
-@@ -62,6 +75,14 @@ static inline bool trigger_allbutself_cpu_backtrace(void)
- {
- 	return false;
- }
-+static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
-+{
-+	return false;
-+}
-+static inline bool trigger_single_cpu_backtrace(int cpu)
-+{
-+	return false;
-+}
- #endif
- 
- #ifdef CONFIG_LOCKUP_DETECTOR
-diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
-index 26caf51cc238..df347e355267 100644
---- a/lib/nmi_backtrace.c
-+++ b/lib/nmi_backtrace.c
-@@ -17,20 +17,21 @@
- #include <linux/kprobes.h>
- #include <linux/nmi.h>
- 
--#ifdef arch_trigger_all_cpu_backtrace
-+#ifdef arch_trigger_cpumask_backtrace
- /* For reliability, we're prepared to waste bits here. */
- static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
- 
--/* "in progress" flag of arch_trigger_all_cpu_backtrace */
-+/* "in progress" flag of arch_trigger_cpumask_backtrace */
- static unsigned long backtrace_flag;
- 
+ #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
+ #ifdef CONFIG_KPROBES
++#include <linux/tables.h>
+ #include <asm/ranges.h>
  /*
-- * When raise() is called it will be is passed a pointer to the
-+ * When raise() is called it will be passed a pointer to the
-  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
-  * directly from their raise() functions may rely on the mask
-  * they are passed being updated as a side effect of this call.
+  * Blacklist ganerating macro. Specify functions which is not probed
+  * by using this macro.
   */
--void nmi_trigger_all_cpu_backtrace(bool include_self,
-+void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
-+				   bool exclude_self,
- 				   void (*raise)(cpumask_t *mask))
+ # define __NOKPROBE_SYMBOL(fname)				\
+-static unsigned long __used					\
+-	__attribute__((__section__("_kprobe_blacklist")))	\
++static LINKTABLE_INIT_DATA(_kprobe_blacklist, all)		\
+ 	_kbl_addr_##fname = (unsigned long)fname;
+ # define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)
+ /* Use this to forbid a kprobes attach on very low level functions */
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index f2444d82d02a..47ef04de9958 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -114,15 +114,6 @@
+ #define BRANCH_PROFILE()
+ #endif
+ 
+-#ifdef CONFIG_KPROBES
+-#define KPROBE_BLACKLIST()	. = ALIGN(8);				      \
+-				VMLINUX_SYMBOL(__start_kprobe_blacklist) = .; \
+-				*(_kprobe_blacklist)			      \
+-				VMLINUX_SYMBOL(__stop_kprobe_blacklist) = .;
+-#else
+-#define KPROBE_BLACKLIST()
+-#endif
+-
+ #ifdef CONFIG_EVENT_TRACING
+ #define FTRACE_EVENTS()	. = ALIGN(8);					\
+ 			VMLINUX_SYMBOL(__start_ftrace_events) = .;	\
+@@ -525,7 +516,6 @@
+ 	*(SECTION_INIT_RODATA)						\
+ 	FTRACE_EVENTS()							\
+ 	TRACE_SYSCALLS()						\
+-	KPROBE_BLACKLIST()						\
+ 	MEM_DISCARD(init.rodata)					\
+ 	CLK_OF_TABLES()							\
+ 	RESERVEDMEM_OF_TABLES()						\
+diff --git a/include/linux/kprobes.h b/include/linux/kprobes.h
+index 445cc6fe7afa..2707820cbb56 100644
+--- a/include/linux/kprobes.h
++++ b/include/linux/kprobes.h
+@@ -44,8 +44,10 @@
+ 
+ #ifdef CONFIG_KPROBES
+ #include <linux/ranges.h>
++#include <linux/tables.h>
+ 
+ DECLARE_SECTION_RANGE(kprobes);
++DECLARE_LINKTABLE(unsigned long, _kprobe_blacklist);
+ 
+ /* kprobe_status settings */
+ #define KPROBE_HIT_ACTIVE	0x00000001
+diff --git a/kernel/kprobes.c b/kernel/kprobes.c
+index 387605682622..4801aa3b4adf 100644
+--- a/kernel/kprobes.c
++++ b/kernel/kprobes.c
+@@ -2053,14 +2053,13 @@ NOKPROBE_SYMBOL(dump_kprobe);
+  * since a kprobe need not necessarily be at the beginning
+  * of a function.
+  */
+-static int __init populate_kprobe_blacklist(unsigned long *start,
+-					     unsigned long *end)
++static int __init populate_kprobe_blacklist(void)
  {
- 	int i, this_cpu = get_cpu();
-@@ -44,13 +45,13 @@ void nmi_trigger_all_cpu_backtrace(bool include_self,
- 		return;
+ 	unsigned long *iter;
+ 	struct kprobe_blacklist_entry *ent;
+ 	unsigned long entry, offset = 0, size = 0;
+ 
+-	for (iter = start; iter < end; iter++) {
++	LINKTABLE_FOR_EACH(iter, _kprobe_blacklist) {
+ 		entry = arch_deref_entry_point((void *)*iter);
+ 
+ 		if (!kernel_text_address(entry) ||
+@@ -2125,8 +2124,7 @@ static struct notifier_block kprobe_module_nb = {
+ };
+ 
+ /* Markers of _kprobe_blacklist section */
+-extern unsigned long __start_kprobe_blacklist[];
+-extern unsigned long __stop_kprobe_blacklist[];
++DEFINE_LINKTABLE_INIT_DATA(unsigned long, _kprobe_blacklist);
+ 
+ /* Actual kprobes section range */
+ DEFINE_SECTION_RANGE(kprobes, SECTION_TEXT);
+@@ -2143,8 +2141,7 @@ static int __init init_kprobes(void)
+ 		raw_spin_lock_init(&(kretprobe_table_locks[i].lock));
  	}
  
--	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
--	if (!include_self)
-+	cpumask_copy(to_cpumask(backtrace_mask), mask);
-+	if (exclude_self)
- 		cpumask_clear_cpu(this_cpu, to_cpumask(backtrace_mask));
- 
- 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
--		pr_info("Sending NMI to %s CPUs:\n",
--			(include_self ? "all" : "other"));
-+		pr_info("Sending NMI from CPU %d to CPUs %*pbl:\n",
-+			this_cpu, nr_cpumask_bits, to_cpumask(backtrace_mask));
- 		raise(to_cpumask(backtrace_mask));
- 	}
- 
+-	err = populate_kprobe_blacklist(__start_kprobe_blacklist,
+-					__stop_kprobe_blacklist);
++	err = populate_kprobe_blacklist();
+ 	if (err) {
+ 		pr_err("kprobes: failed to populate blacklist: %d\n", err);
+ 		pr_err("Please take care of using kprobes.\n");
 -- 
-2.7.2
+2.9.2
 
