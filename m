@@ -1,7 +1,7 @@
 From: mcgrof@kernel.org
-Date: Fri, 19 Aug 2016 21:41:09 +0000
-Subject: [PATCH v1 1/7] tools: add a userspace tools bug.h
-Message-Id: <1471642875-5957-2-git-send-email-mcgrof@kernel.org>
+Date: Fri, 19 Aug 2016 21:41:10 +0000
+Subject: [PATCH v1 2/7] tools: add a basic tools printk.h
+Message-Id: <1471642875-5957-3-git-send-email-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
  <1471642875-5957-1-git-send-email-mcgrof@kernel.org>
@@ -15,76 +15,48 @@ Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-f
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
 
 This will be used later by the userspace linker-tables sandbox.
-As a convenience, include bug.h on kernel.h -- this is not done
-on upstream kernel.h, however most header files do include bug.h
-eventually, if we were to only add the ones that need it we'd
-need to copy a lot of headers to tools for the ony purpose of
-includeing bug.h. This simplifies that.
+Since upstream kernel.h includes printk.h mimic this so we can
+match and replicate C code as-is on userspace sandbox tools.
 
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- tools/include/asm-generic/bug.h | 24 ++++++++++++++++++++++++
- tools/include/linux/bug.h       |  6 ++++++
- tools/include/linux/kernel.h    |  2 ++
- 3 files changed, 32 insertions(+)
- create mode 100644 tools/include/asm-generic/bug.h
- create mode 100644 tools/include/linux/bug.h
+ tools/include/linux/kernel.h |  1 +
+ tools/include/linux/printk.h | 14 ++++++++++++++
+ 2 files changed, 15 insertions(+)
+ create mode 100644 tools/include/linux/printk.h
 
-diff --git a/tools/include/asm-generic/bug.h b/tools/include/asm-generic/bug.h
-new file mode 100644
-index 000000000000..7b0f48b60dbe
---- /dev/null
-+++ b/tools/include/asm-generic/bug.h
-@@ -0,0 +1,24 @@
-+#ifndef __TOOLS_ASM_GENERIC_BUG
-+#define __TOOLS_ASM_GENERIC_BUG
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+
-+#define BUG() do {										\
-+	fprintf(stderr, "----------------------------------------------------------\n");	\
-+	fprintf (stderr, "BUG on %s at %s: %i\n", __func__, __FILE__, __LINE__);		\
-+	abort();										\
-+}												\
-+while (0)
-+
-+#define BUG_ON(cond) do { if (cond) BUG(); } while (0)
-+
-+#define WARN_ON(__test) do {									\
-+	if (__test) {										\
-+		fprintf(stderr, "----------------------------------------------------------\n");\
-+		fprintf (stderr, "WARN_ON on %s at %s: %i\n", __func__, __FILE__, __LINE__);	\
-+	}											\
-+}												\
-+while (0)
-+
-+#endif /* __TOOLS_ASM_GENERIC_BUG */
-diff --git a/tools/include/linux/bug.h b/tools/include/linux/bug.h
-new file mode 100644
-index 000000000000..9be515b40b5c
---- /dev/null
-+++ b/tools/include/linux/bug.h
-@@ -0,0 +1,6 @@
-+#ifndef _TOOLS_LINUX_BUG_H
-+#define _TOOLS_LINUX_BUG_H
-+
-+#include <asm-generic/bug.h>
-+
-+#endif /* _TOOLS_LINUX_BUG_H */
 diff --git a/tools/include/linux/kernel.h b/tools/include/linux/kernel.h
-index 28607db02bd3..3d385a6d4fc1 100644
+index 3d385a6d4fc1..afdf760bf35c 100644
 --- a/tools/include/linux/kernel.h
 +++ b/tools/include/linux/kernel.h
-@@ -5,6 +5,8 @@
- #include <stddef.h>
+@@ -6,6 +6,7 @@
  #include <assert.h>
  
-+#include <linux/bug.h>
-+
+ #include <linux/bug.h>
++#include <linux/printk.h>
+ 
  #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
  
- #define PERF_ALIGN(x, a)	__PERF_ALIGN_MASK(x, (typeof(x))(a)-1)
+diff --git a/tools/include/linux/printk.h b/tools/include/linux/printk.h
+new file mode 100644
+index 000000000000..7e34e9c817e8
+--- /dev/null
++++ b/tools/include/linux/printk.h
+@@ -0,0 +1,14 @@
++#ifndef __TOOLS_KERNEL_PRINTK__
++#define __TOOLS_KERNEL_PRINTK__
++
++#include <stdio.h>
++
++#ifndef pr_fmt
++#define pr_fmt(fmt)	fmt
++#endif
++
++#define pr_info(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_err(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++#define pr_debug(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++
++#endif /* __TOOLS_KERNEL_PRINTK__ */
 -- 
 2.9.2
 
