@@ -1,69 +1,96 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Date: Tue, 23 Aug 2016 00:28:42 +0000
-Subject: Re: [PATCH v1 7/7] tools: add userspace linker table sandbox
-Message-Id: <201608230028.u7N0SneR020502@mail.zytor.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Wed, 24 Aug 2016 08:13:25 +0000
+Subject: [sparc64] ext4 TPC and call trace (process blocked/stuck) on git kernel 4.8.0-rc3+
+Message-Id: <CADxRZqyE2HjaXzbv-9ovJM=G18C28tr7pEL8RsUx+9o870jqBg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org> <1471642875-5957-1-git-send-email-mcgrof@kernel.org> <1471642875-5957-8-git-send-email-mcgrof@kernel.org> <CAGXu5jKX-VZR_r9wMsnLAU+Z10vB4yDiRPpvwXbRZj0=wU208A@mail.gmail.com> <20160823000739.GX3296@wotan.suse.de>
-In-Reply-To: <20160823000739.GX3296@wotan.suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>, Kees Cook <keescook@chromium.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Arnaldo Carvalho de Melo <acme@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Russell King - ARM Linux <linux@arm.linux.org.uk>, mhiramat@kernel.org, Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>, jbaron@akamai.com, Heiko Carstens <heiko.carstens@de.ibm.com>, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, "David S. Miller" <davem@davemloft.net>, Miao Steven <realmz6@gmail.com>, "x86@kernel.org" <x86@kernel.org>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Greg KH <gregkh@linuxfoundation.org>, Rusty Russell <rusty@rustcorp.com.au>, "gnomes@lxorguk.ukuu.org.uk" <gnomes@lxorguk.ukuu.org.uk>, Alan Cox <alan@linux.intel.com>, David Woodhouse <dwmw2@infradead.org>, Arnd
+To: linux-ext4@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, fstests@vger.kernel.org
 
-Vrabel <david.vrabel@citrix.com>,Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,Michael Brown <mcb30@ipxe.org>,Juergen Gross <jgross@suse.com>,Andrew Cooper <andrew.cooper3@citrix.com>,Andy Shevchenko <andriy.shevchenko@linux.intel.com>,Paul Gortmaker <paul.gortmaker@windriver.com>,"xen-devel@lists.xensource.com" <xen-devel@lists.xensource.com>,Andi Kleen <ak@linux.intel.com>,pali.rohar@gmail.com,dvhart@infradead.org,platform-driver-x86@vger.kernel.org,Michal Marek <mmarek@suse.com>,Rasmus Villemoes <linux@rasmusvillemoes.dk>,Jiri Kosina <jkosina@suse.cz>,=?UTF-8?B?7KGw6rK966+8?= <korea.drzix@gmail.com>,linux-kbuild <linux-kbuild@vger.kernel.org>,Tony Luck <tony.luck@intel.com>,Andrew Morton <akpm@linux-foundation.org>,linux-ia64@vger.kernel.org,"linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>,linux-sh <linux-sh@vger.kernel.org>,sparclinux <sparclinux@vger.kernel.org>,Catalin Marinas <catalin.marinas@arm.com>,Will Deacon <will.deacon@arm.com>,Ste!
- ven
-Rostedt <rostedt@goodmis.org>,Jani Nikula <jani.nikula@intel.com>,Mauro Carvalho Chehab <mchehab@osg.samsung.com>,markus.heiser@darmarit.de,jolsa@kernel.org,Mark Salter <msalter@redhat.com>,Chris Zankel <chris@zankel.net>,Max Filippov <jcmvbkbc@gmail.com>,linux-xtensa@linux-xtensa.org,Paul Mackerras <paulus@samba.org>,Michael Ellerman <mpe@ellerman.id.au>,James Bottomley <James.Bottomley@hansenpartnership.com>
-Message-ID: <58F06CEA-AEB3-4ED7-8211-95F402C9D3D3@zytor.com>
+Hello!
 
-On August 22, 2016 5:07:39 PM PDT, "Luis R. Rodriguez" <mcgrof@kernel.org> wrote:
->On Fri, Aug 19, 2016 at 03:31:47PM -0700, Kees Cook wrote:
->> On Fri, Aug 19, 2016 at 2:41 PM,  <mcgrof@kernel.org> wrote:
->> > From: "Luis R. Rodriguez" <mcgrof@kernel.org>
->> >
->> > Add a userspace sandbox to allow easy experimentation and
->> > test extensions with linker tables, section ranges and the
->> > new section core definitions.
->> >
->> > The userspace sandbox tries to mimic the Linux kernel development
->> > flow as much as possible, it however relies on and uses libc.
->Support
->> > is currently only provided to x86_64.
->> >
->> > v4: this patch is new in this series -- added to the kenrel as
->> >     suggested by Boris, as otherwise it'd be really hard to keep
->> >     an external userspace repository in sync.
->> >
->> > Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
->> > ---
->> >  Documentation/sections/linker-tables.rst           |   4 +-
->> >  MAINTAINERS                                        |   1 +
->> >  include/linux/tables.h                             |   5 +-
->> >  tools/Makefile                                     |   3 +-
->> >  .../arch/x86/include/generated/asm/section-core.h  |   1 +
->> >  tools/arch/x86/include/generated/ranges.h          |   1 +
->> >  tools/arch/x86/include/generated/tables.h          |   1 +
->> >  tools/include/asm-generic/ranges.h                 | 103 ++++
->> >  tools/include/asm-generic/section-core.h           | 341
->+++++++++++
->> >  tools/include/asm-generic/tables.h                 |  50 ++
->> 
->> Aren't a bunch of these files exact duplicates of the headers in
->include/linux?
->
->Indeed... This a userspace tools/ architecture decision that was made
->long ago,
->so its not up to me, I am just following the strategy devised and
->picked up.
->Refer to 7d7d1bf1d1dabe435ef50efb051724b8664749cb ("perf bench: Copy
->kernel
->files needed to build mem{cpy,set} x86_64 benchmarks") for an example
->of
->previous similar work. By sharing header files this enable more tools/
->to be hacked on.
->
->  Luis
+Running fstests (xfstests) suite on sparc64 debian sid/unstable with
+linux kernel 4.8.0-rc3+ , I'm getting the following call trace and TPC
+on server console and system logs:
 
-I think this is a legacy from before the uapi change that should really be fixed.  If we need to export additional kernel structures for the tools, we could define a third level of we really need it.
--- 
-Sent from my Android device with K-9 Mail. Please excuse brevity and formatting.
+mator@nvg5120:~/xfstests-dev$ ./check ext4/022
+
+[1968295.582734] run fstests ext4/022 at 2016-08-23 18:19:00
+[1968298.917006] EXT4-fs (loop1): mounted filesystem with ordered data
+mode. Opts: acl,user_xattr
+[1968303.922338] EXT4-fs (loop1): mounted filesystem with ordered data
+mode. Opts: acl,user_xattr
+[1968304.032985] Kernel unaligned access at TPC[101c59d4]
+ext4_mark_inode_dirty+0xf4/0x200 [ext4]
+[1968493.042138] INFO: task 022:18119 blocked for more than 120 seconds.
+[1968493.122028]       Not tainted 4.8.0-rc3+ #76
+[1968493.176979] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[1968493.276108] 022             D 00000000008e1edc     0 18119   2687
+0x308000107000000
+[1968493.373659] Call Trace:
+[1968493.406193]  [00000000008dfa28] schedule+0x68/0xa0
+[1968493.467933]  [00000000008e1edc] rwsem_down_write_failed+0x13c/0x1e0
+[1968493.547804]  [00000000008e16e4] down_write+0x24/0x40
+[1968493.611787]  [00000000102027f4]
+ext4_expand_extra_isize_ea+0x54/0x760 [ext4]
+[1968493.701731]  [00000000101c5a04] ext4_mark_inode_dirty+0x124/0x200 [ext4]
+[1968493.786655]  [00000000101c945c] ext4_dirty_inode+0x3c/0x60 [ext4]
+[1968493.864366]  [00000000005b4dc4] __mark_inode_dirty+0x24/0x260
+[1968493.937888]  [00000000101f7518] ext4_mb_new_blocks+0x118/0xa00 [ext4]
+[1968494.019896]  [00000000101b8a74] ext4_new_meta_blocks+0xb4/0xe0 [ext4]
+[1968494.101994]  [000000001020147c] ext4_xattr_block_set+0x7dc/0xa80 [ext4]
+[1968494.185871]  [0000000010202d44]
+ext4_expand_extra_isize_ea+0x5a4/0x760 [ext4]
+[1968494.276431]  [00000000101c5a04] ext4_mark_inode_dirty+0x124/0x200 [ext4]
+[1968494.361345]  [00000000101ec074] ext4_ext_truncate+0x14/0xe0 [ext4]
+[1968494.440200]  [00000000101c6d34] ext4_truncate+0x254/0x3a0 [ext4]
+[1968494.516622]  [00000000101c90c0] ext4_setattr+0x5c0/0x920 [ext4]
+[1968494.591953]  [00000000005a7358] notify_change+0x2f8/0x4a0
+[1968494.660866] INFO: task jbd2/loop1-8:19633 blocked for more than
+120 seconds.
+[1968494.750050]       Not tainted 4.8.0-rc3+ #76
+[1968494.805325] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[1968494.904421] jbd2/loop1-8    D 0000000010199684     0 19633      2
+0x06000000
+[1968494.994475] Call Trace:
+[1968495.026968]  [00000000008dfa28] schedule+0x68/0xa0
+[1968495.088380]  [0000000010199684]
+jbd2_journal_commit_transaction+0x224/0x1580 [jbd2]
+[1968495.185728]  [000000001019dec0] kjournald2+0xa0/0x240 [jbd2]
+[1968495.258797]  [0000000000480b70] kthread+0xb0/0xe0
+[1968495.319106]  [0000000000406044] ret_from_fork+0x1c/0x2c
+[1968495.386182]  [0000000000000000]           (null)
+
+I'll try to bisect it, but not earlier than 4.4 kernel (not sure i'll
+able to boot 4.3).
+
+xfstests setup is following:
+
+mator@nvg5120:~/xfstests-dev$ git remote -v
+origin  git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git (fetch)
+origin  git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git (push)
+
+mator@nvg5120:~/xfstests-dev$ cat local.config
+export TEST_DEV=/dev/loop0
+export TEST_DIR=/fst
+export SCRATCH_DEV=/dev/loop1
+export SCRATCH_MNT=/mnt/scratch
+
+root@nvg5120:/home/mator/xfstests-dev# mkfs.ext4 /dev/loop0
+
+/dev/loop0 and /dev/loop1 , each one is 6Gb file on tmpfs/ramdisk made
+with fallocate.
+
+mator@nvg5120:~/xfstests-dev$ findmnt /ramdisk/
+TARGET   SOURCE FSTYPE OPTIONS
+/ramdisk tmpfs  tmpfs  rw,relatime,size631488k
+mator@nvg5120:~/xfstests-dev$ sudo losetup
+NAME       SIZELIMIT OFFSET AUTOCLEAR RO BACK-FILE            DIO
+/dev/loop1         0      0         0  0 /ramdisk/scratchvol1   0
+/dev/loop0         0      0         0  0 /ramdisk/testvol1      0
+
+Thanks.
