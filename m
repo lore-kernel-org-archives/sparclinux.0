@@ -1,471 +1,343 @@
-From: mcgrof@kernel.org
-Date: Fri, 19 Aug 2016 21:34:10 +0000
-Subject: [PATCH v4 12/16] jump_label: port __jump_table to linker tables
-Message-Id: <1471642454-5679-13-git-send-email-mcgrof@kernel.org>
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Date: Mon, 29 Aug 2016 16:12:46 +0000
+Subject: [PATCH v9 1/4] nmi_backtrace: add more trigger_*_cpu_backtrace() methods
+Message-Id: <1472487169-14923-2-git-send-email-cmetcalf@mellanox.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
-In-Reply-To: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
+References: <1472487169-14923-1-git-send-email-cmetcalf@mellanox.com>
+In-Reply-To: <1472487169-14923-1-git-send-email-cmetcalf@mellanox.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
-Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, ananth@in.ibm.com, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel.org, ton
+To: linux-arm-kernel@lists.infradead.org
 
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Currently you can only request a backtrace of either all cpus, or
+all cpus but yourself.  It can also be helpful to request a remote
+backtrace of a single cpu, and since we want that, the logical
+extension is to support a cpumask as the underlying primitive.
 
-Move the __jump_table from the a custom section solution
-to a generic solution, this avoiding extra vmlinux.lds.h
-customizations.
+This change modifies the existing lib/nmi_backtrace.c code to take
+a cpumask as its basic primitive, and modifies the linux/nmi.h code
+to use the new "cpumask" method instead.
 
-This also demos the use of the .data (SECTION_DATA) linker
-table and of the shared asm call push_section_tbl().
+The existing clients of nmi_backtrace (arm and x86) are converted
+to using the new cpumask approach in this change.
 
-Built-in kernel functionality was tested with CONFIG_STATIC_KEYS_SELFTEST.
-Moduler  kernel functionality was tested with CONFIG_TEST_STATIC_KEYS.
-Both work as expected.
+The other users of the backtracing API (sparc64 and mips) are converted
+to use the cpumask approach rather than the all/allbutself approach.
+The mips code ignored the "include_self" boolean but with this change
+it will now also dump a local backtrace if requested.
 
-Since __jump_table sections are also supported per
-module this also required expanding module-common.lds.S
-to capture and fold all .data.tlb.__jump_table.* onto
-the the section __jump_table -- in this case for modules
-need to keep a reference in place, given the alternative
-is to use DEFINE_LINKTABLE(struct jump_entry, __jump_table)
-per module -- and later through macro hacks instantiate
-the jump entries per module upon init. This is doable but
-we'd loose out on the sorting of the table using the
-linker, to sort we'd always still need to expand the
-module common linker script. An alternative mechanism
-is possible which would make these custom module sections
-extensions dynamic without requiring manual changes, this
-however is best done later through a separate evolution
-once linker tables are in place.
-
-A careful reviewer may note that some architectures use
-"\n\t" to separate asm code, while others just use a new line.
-Upon review last time it was deemed reasonable to for all
-architectures to just use "\n", this is defined as ASM_CMD_SEP,
-and if an architecture needs to override they can do so on their
-architecture sections.h prior to including asm-generic/sections.h
-
-v4:
-
-o Some architectures allow linker scripts to follow including header
-  files, some others do not, so if you need a helper on a linker script
-  you need to explicitly include it. So for instance although
-  scripts/module-common.lds.S includes <asm/tables.h> and this file
-  includes <asm/section-core.h>, you still need to explicitly
-  include it on the linker script. This issue is present on ARM.
-
-o as per Josh Poimboeuf open code the section table name instead
-  of including the kernel section headers, the simplicity and
-  independence from the kernel is preferred.
-
-v3:
-
-o More elaborate tests performed
-o first modular support use case, module tested was
-  CONFIG_TEST_STATIC_KEYS (lib/test_static_keys.ko), this
-  required us to extend module-common.lds.S
-o use generic push_section_tbl_any() for all architectures
-o Makes use of ASM_CMD_SEP to enable architectures to override later
-  if needed
-o guard tables.h inclusion and table definition with __KERNEL__
-
-v2: introduced in this series
-
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Chris Metcalf <cmetcalf@mellanox.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Tested-by: Daniel Thompson <daniel.thompson@linaro.org> [arm]
 ---
- arch/arm/include/asm/jump_label.h     |  6 ++++--
- arch/arm64/include/asm/jump_label.h   |  6 ++++--
- arch/mips/include/asm/jump_label.h    |  6 ++++--
- arch/powerpc/include/asm/jump_label.h |  8 +++++---
- arch/s390/include/asm/jump_label.h    |  6 ++++--
- arch/sparc/include/asm/jump_label.h   |  6 ++++--
- arch/x86/include/asm/jump_label.h     | 10 ++++++----
- include/asm-generic/vmlinux.lds.h     |  4 ----
- include/linux/jump_label.h            |  4 ++--
- kernel/jump_label.c                   | 17 ++++++++++-------
- scripts/module-common.lds.S           |  5 +++++
- tools/objtool/special.c               |  2 +-
- 12 files changed, 49 insertions(+), 31 deletions(-)
+ arch/arm/include/asm/irq.h      |  5 +++--
+ arch/arm/kernel/smp.c           |  4 ++--
+ arch/mips/include/asm/irq.h     |  5 +++--
+ arch/mips/kernel/process.c      | 11 +++++++++--
+ arch/sparc/include/asm/irq_64.h |  5 +++--
+ arch/sparc/kernel/process_64.c  | 10 +++++-----
+ arch/x86/include/asm/irq.h      |  5 +++--
+ arch/x86/kernel/apic/hw_nmi.c   | 18 +++++++++---------
+ include/linux/nmi.h             | 31 ++++++++++++++++++++++++++-----
+ lib/nmi_backtrace.c             | 17 +++++++++--------
+ 10 files changed, 72 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/include/asm/jump_label.h b/arch/arm/include/asm/jump_label.h
-index 34f7b6980d21..960135a7b88e 100644
---- a/arch/arm/include/asm/jump_label.h
-+++ b/arch/arm/include/asm/jump_label.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_ARM_JUMP_LABEL_H
- #define _ASM_ARM_JUMP_LABEL_H
- 
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
- 
- #include <linux/types.h>
-@@ -12,7 +14,7 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- {
- 	asm_volatile_goto("1:\n\t"
- 		 WASM(nop) "\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".word 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection\n\t"
- 		 : :  "i" (&((char *)key)[branch]) :  : l_yes);
-@@ -26,7 +28,7 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- {
- 	asm_volatile_goto("1:\n\t"
- 		 WASM(b) " %l[l_yes]\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".word 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection\n\t"
- 		 : :  "i" (&((char *)key)[branch]) :  : l_yes);
-diff --git a/arch/arm64/include/asm/jump_label.h b/arch/arm64/include/asm/jump_label.h
-index 1b5e0e843c3a..aa52cd2607e3 100644
---- a/arch/arm64/include/asm/jump_label.h
-+++ b/arch/arm64/include/asm/jump_label.h
-@@ -19,6 +19,8 @@
- #ifndef __ASM_JUMP_LABEL_H
- #define __ASM_JUMP_LABEL_H
- 
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
- 
- #include <linux/types.h>
-@@ -29,7 +31,7 @@
- static __always_inline bool arch_static_branch(struct static_key *key, bool branch)
- {
- 	asm goto("1: nop\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".align 3\n\t"
- 		 ".quad 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection\n\t"
-@@ -43,7 +45,7 @@ l_yes:
- static __always_inline bool arch_static_branch_jump(struct static_key *key, bool branch)
- {
- 	asm goto("1: b %l[l_yes]\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".align 3\n\t"
- 		 ".quad 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection\n\t"
-diff --git a/arch/mips/include/asm/jump_label.h b/arch/mips/include/asm/jump_label.h
-index e77672539e8e..78e70cb98592 100644
---- a/arch/mips/include/asm/jump_label.h
-+++ b/arch/mips/include/asm/jump_label.h
-@@ -8,6 +8,8 @@
- #ifndef _ASM_MIPS_JUMP_LABEL_H
- #define _ASM_MIPS_JUMP_LABEL_H
- 
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
- 
- #include <linux/types.h>
-@@ -30,7 +32,7 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- {
- 	asm_volatile_goto("1:\t" NOP_INSN "\n\t"
- 		"nop\n\t"
--		".pushsection __jump_table,  \"aw\"\n\t"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		WORD_INSN " 1b, %l[l_yes], %0\n\t"
- 		".popsection\n\t"
- 		: :  "i" (&((char *)key)[branch]) : : l_yes);
-@@ -44,7 +46,7 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- {
- 	asm_volatile_goto("1:\tj %l[l_yes]\n\t"
- 		"nop\n\t"
--		".pushsection __jump_table,  \"aw\"\n\t"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		WORD_INSN " 1b, %l[l_yes], %0\n\t"
- 		".popsection\n\t"
- 		: :  "i" (&((char *)key)[branch]) : : l_yes);
-diff --git a/arch/powerpc/include/asm/jump_label.h b/arch/powerpc/include/asm/jump_label.h
-index 9a287e0ac8b1..a1225f66887e 100644
---- a/arch/powerpc/include/asm/jump_label.h
-+++ b/arch/powerpc/include/asm/jump_label.h
-@@ -10,6 +10,8 @@
-  * 2 of the License, or (at your option) any later version.
-  */
- 
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
- #include <linux/types.h>
- 
-@@ -23,7 +25,7 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- {
- 	asm_volatile_goto("1:\n\t"
- 		 "nop # arch_static_branch\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 JUMP_ENTRY_TYPE "1b, %l[l_yes], %c0\n\t"
- 		 ".popsection \n\t"
- 		 : :  "i" (&((char *)key)[branch]) : : l_yes);
-@@ -37,7 +39,7 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- {
- 	asm_volatile_goto("1:\n\t"
- 		 "b %l[l_yes] # arch_static_branch_jump\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 JUMP_ENTRY_TYPE "1b, %l[l_yes], %c0\n\t"
- 		 ".popsection \n\t"
- 		 : :  "i" (&((char *)key)[branch]) : : l_yes);
-@@ -62,7 +64,7 @@ struct jump_entry {
- #else
- #define ARCH_STATIC_BRANCH(LABEL, KEY)		\
- 1098:	nop;					\
--	.pushsection __jump_table, "aw";	\
-+	push_section_tbl_any(SECTION_DATA, __jump_table, aw); \
- 	FTR_ENTRY_LONG 1098b, LABEL, KEY;	\
- 	.popsection
+diff --git a/arch/arm/include/asm/irq.h b/arch/arm/include/asm/irq.h
+index 1bd9510de1b9..e53638c8ed8a 100644
+--- a/arch/arm/include/asm/irq.h
++++ b/arch/arm/include/asm/irq.h
+@@ -36,8 +36,9 @@ extern void set_handle_irq(void (*handle_irq)(struct pt_regs *));
  #endif
-diff --git a/arch/s390/include/asm/jump_label.h b/arch/s390/include/asm/jump_label.h
-index 9be198f5ee79..17f02aec4644 100644
---- a/arch/s390/include/asm/jump_label.h
-+++ b/arch/s390/include/asm/jump_label.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_S390_JUMP_LABEL_H
- #define _ASM_S390_JUMP_LABEL_H
  
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
+ #ifdef CONFIG_SMP
+-extern void arch_trigger_all_cpu_backtrace(bool);
+-#define arch_trigger_all_cpu_backtrace(x) arch_trigger_all_cpu_backtrace(x)
++extern void arch_trigger_cpumask_backtrace(const cpumask_t *mask,
++					   bool exclude_self);
++#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
  
- #include <linux/types.h>
-@@ -16,7 +18,7 @@
- static __always_inline bool arch_static_branch(struct static_key *key, bool branch)
- {
- 	asm_volatile_goto("0:	brcl 0,"__stringify(JUMP_LABEL_NOP_OFFSET)"\n"
--		".pushsection __jump_table, \"aw\"\n"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		".balign 8\n"
- 		".quad 0b, %l[label], %0\n"
- 		".popsection\n"
-@@ -30,7 +32,7 @@ label:
- static __always_inline bool arch_static_branch_jump(struct static_key *key, bool branch)
- {
- 	asm_volatile_goto("0:	brcl 15, %l[label]\n"
--		".pushsection __jump_table, \"aw\"\n"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		".balign 8\n"
- 		".quad 0b, %l[label], %0\n"
- 		".popsection\n"
-diff --git a/arch/sparc/include/asm/jump_label.h b/arch/sparc/include/asm/jump_label.h
-index 62d0354d1727..dde1275233f7 100644
---- a/arch/sparc/include/asm/jump_label.h
-+++ b/arch/sparc/include/asm/jump_label.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_SPARC_JUMP_LABEL_H
- #define _ASM_SPARC_JUMP_LABEL_H
- 
-+#include <asm/tables.h>
-+
- #ifndef __ASSEMBLY__
- 
- #include <linux/types.h>
-@@ -12,7 +14,7 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- 	asm_volatile_goto("1:\n\t"
- 		 "nop\n\t"
- 		 "nop\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".align 4\n\t"
- 		 ".word 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection \n\t"
-@@ -28,7 +30,7 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- 	asm_volatile_goto("1:\n\t"
- 		 "b %l[l_yes]\n\t"
- 		 "nop\n\t"
--		 ".pushsection __jump_table,  \"aw\"\n\t"
-+		 push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		 ".align 4\n\t"
- 		 ".word 1b, %l[l_yes], %c0\n\t"
- 		 ".popsection \n\t"
-diff --git a/arch/x86/include/asm/jump_label.h b/arch/x86/include/asm/jump_label.h
-index adc54c12cbd1..d25fafa3df4b 100644
---- a/arch/x86/include/asm/jump_label.h
-+++ b/arch/x86/include/asm/jump_label.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_X86_JUMP_LABEL_H
- #define _ASM_X86_JUMP_LABEL_H
- 
-+#include <asm/tables.h>
-+
- #ifndef HAVE_JUMP_LABEL
- /*
-  * For better or for worse, if jump labels (the gcc extension) are missing,
-@@ -34,7 +36,7 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- {
- 	asm_volatile_goto("1:"
- 		".byte " __stringify(STATIC_KEY_INIT_NOP) "\n\t"
--		".pushsection __jump_table,  \"aw\" \n\t"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		_ASM_ALIGN "\n\t"
- 		_ASM_PTR "1b, %l[l_yes], %c0 + %c1 \n\t"
- 		".popsection \n\t"
-@@ -50,7 +52,7 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- 	asm_volatile_goto("1:"
- 		".byte 0xe9\n\t .long %l[l_yes] - 2f\n\t"
- 		"2:\n\t"
--		".pushsection __jump_table,  \"aw\" \n\t"
-+		push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 		_ASM_ALIGN "\n\t"
- 		_ASM_PTR "1b, %l[l_yes], %c0 + %c1 \n\t"
- 		".popsection \n\t"
-@@ -85,7 +87,7 @@ struct jump_entry {
- 	.else
- 	.byte		STATIC_KEY_INIT_NOP
- 	.endif
--	.pushsection __jump_table, "aw"
-+	push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 	_ASM_ALIGN
- 	_ASM_PTR	.Lstatic_jump_\@, \target, \key
- 	.popsection
-@@ -101,7 +103,7 @@ struct jump_entry {
- 	.long		\target - .Lstatic_jump_after_\@
- .Lstatic_jump_after_\@:
- 	.endif
--	.pushsection __jump_table, "aw"
-+	push_section_tbl_any(SECTION_DATA, __jump_table, aw)
- 	_ASM_ALIGN
- 	_ASM_PTR	.Lstatic_jump_\@, \target, \key + 1
- 	.popsection
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 2413444c048d..140fbed4a817 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -212,10 +212,6 @@
- 	STRUCT_ALIGN();							\
- 	*(__tracepoints)						\
- 	/* implement dynamic printk debug */				\
--	. = ALIGN(8);                                                   \
--	VMLINUX_SYMBOL(__start___jump_table) = .;                       \
--	*(__jump_table)                                                 \
--	VMLINUX_SYMBOL(__stop___jump_table) = .;                        \
- 	. = ALIGN(8);							\
- 	VMLINUX_SYMBOL(__start___verbose) = .;                          \
- 	*(__verbose)                                                    \
-diff --git a/include/linux/jump_label.h b/include/linux/jump_label.h
-index 1256f543b002..842a24892a91 100644
---- a/include/linux/jump_label.h
-+++ b/include/linux/jump_label.h
-@@ -115,6 +115,7 @@ enum jump_label_type {
- struct module;
- 
- #ifdef HAVE_JUMP_LABEL
-+#include <linux/tables.h>
- 
- #define JUMP_TYPE_FALSE	0UL
- #define JUMP_TYPE_TRUE	1UL
-@@ -130,8 +131,7 @@ static __always_inline bool static_key_true(struct static_key *key)
- 	return !arch_static_branch(key, true);
+ static inline int nr_legacy_irqs(void)
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 861521606c6d..2a367b2de0e1 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -760,7 +760,7 @@ static void raise_nmi(cpumask_t *mask)
+ 	smp_cross_call(mask, IPI_CPU_BACKTRACE);
  }
  
--extern struct jump_entry __start___jump_table[];
--extern struct jump_entry __stop___jump_table[];
-+DECLARE_LINKTABLE(struct jump_entry, __jump_table);
- 
- extern void jump_label_init(void);
- extern void jump_label_lock(void);
-diff --git a/kernel/jump_label.c b/kernel/jump_label.c
-index 93ad6c1fb9b6..7582ca28e3b8 100644
---- a/kernel/jump_label.c
-+++ b/kernel/jump_label.c
-@@ -15,9 +15,12 @@
- #include <linux/static_key.h>
- #include <linux/jump_label_ratelimit.h>
- #include <linux/bug.h>
-+#include <linux/tables.h>
- 
- #ifdef HAVE_JUMP_LABEL
- 
-+DEFINE_LINKTABLE(struct jump_entry, __jump_table);
-+
- /* mutex to protect coming/going of the the jump_label table */
- static DEFINE_MUTEX(jump_label_mutex);
- 
-@@ -274,8 +277,6 @@ static void __jump_label_update(struct static_key *key,
- 
- void __init jump_label_init(void)
+-void arch_trigger_all_cpu_backtrace(bool include_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
  {
--	struct jump_entry *iter_start = __start___jump_table;
--	struct jump_entry *iter_stop = __stop___jump_table;
- 	struct static_key *key = NULL;
- 	struct jump_entry *iter;
+-	nmi_trigger_all_cpu_backtrace(include_self, raise_nmi);
++	nmi_trigger_cpumask_backtrace(mask, exclude_self, raise_nmi);
+ }
+diff --git a/arch/mips/include/asm/irq.h b/arch/mips/include/asm/irq.h
+index 15e0fecbc300..6bf10e796553 100644
+--- a/arch/mips/include/asm/irq.h
++++ b/arch/mips/include/asm/irq.h
+@@ -51,7 +51,8 @@ extern int cp0_fdc_irq;
  
-@@ -292,9 +293,10 @@ void __init jump_label_init(void)
+ extern int get_c0_fdc_int(void);
+ 
+-void arch_trigger_all_cpu_backtrace(bool);
+-#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
++void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++				    bool exclude_self);
++#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ #endif /* _ASM_IRQ_H */
+diff --git a/arch/mips/kernel/process.c b/arch/mips/kernel/process.c
+index 7429ad09fbe3..fea1fa7726e3 100644
+--- a/arch/mips/kernel/process.c
++++ b/arch/mips/kernel/process.c
+@@ -569,9 +569,16 @@ static void arch_dump_stack(void *info)
+ 	dump_stack();
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(bool include_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+-	smp_call_function(arch_dump_stack, NULL, 1);
++	long this_cpu = get_cpu();
++
++	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
++		dump_stack();
++
++	smp_call_function_many(mask, arch_dump_stack, NULL, 1);
++
++	put_cpu();
+ }
+ 
+ int mips_get_process_fp_mode(struct task_struct *task)
+diff --git a/arch/sparc/include/asm/irq_64.h b/arch/sparc/include/asm/irq_64.h
+index 3f70f900e834..1d51a11fb261 100644
+--- a/arch/sparc/include/asm/irq_64.h
++++ b/arch/sparc/include/asm/irq_64.h
+@@ -86,8 +86,9 @@ static inline unsigned long get_softint(void)
+ 	return retval;
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(bool);
+-#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
++void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++				    bool exclude_self);
++#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ 
+ extern void *hardirq_stack[NR_CPUS];
+ extern void *softirq_stack[NR_CPUS];
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index fa14402b33f9..47ff5588e521 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -239,7 +239,7 @@ static void __global_reg_poll(struct global_reg_snapshot *gp)
+ 	}
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(bool include_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+ 	struct thread_info *tp = current_thread_info();
+ 	struct pt_regs *regs = get_irq_regs();
+@@ -255,15 +255,15 @@ void arch_trigger_all_cpu_backtrace(bool include_self)
+ 
+ 	memset(global_cpu_snapshot, 0, sizeof(global_cpu_snapshot));
+ 
+-	if (include_self)
++	if (cpumask_test_cpu(this_cpu, mask) && !exclude_self)
+ 		__global_reg_self(tp, regs, this_cpu);
+ 
+ 	smp_fetch_global_regs();
+ 
+-	for_each_online_cpu(cpu) {
++	for_each_cpu(cpu, mask) {
+ 		struct global_reg_snapshot *gp;
+ 
+-		if (!include_self && cpu = this_cpu)
++		if (exclude_self && cpu = this_cpu)
+ 			continue;
+ 
+ 		gp = &global_cpu_snapshot[cpu].reg;
+@@ -300,7 +300,7 @@ void arch_trigger_all_cpu_backtrace(bool include_self)
+ 
+ static void sysrq_handle_globreg(int key)
+ {
+-	arch_trigger_all_cpu_backtrace(true);
++	trigger_all_cpu_backtrace();
+ }
+ 
+ static struct sysrq_key_op sparc_globalreg_op = {
+diff --git a/arch/x86/include/asm/irq.h b/arch/x86/include/asm/irq.h
+index e7de5c9a4fbd..16d3fa211962 100644
+--- a/arch/x86/include/asm/irq.h
++++ b/arch/x86/include/asm/irq.h
+@@ -50,8 +50,9 @@ extern int vector_used_by_percpu_irq(unsigned int vector);
+ extern void init_ISA_irqs(void);
+ 
+ #ifdef CONFIG_X86_LOCAL_APIC
+-void arch_trigger_all_cpu_backtrace(bool);
+-#define arch_trigger_all_cpu_backtrace arch_trigger_all_cpu_backtrace
++void arch_trigger_cpumask_backtrace(const struct cpumask *mask,
++				    bool exclude_self);
++#define arch_trigger_cpumask_backtrace arch_trigger_cpumask_backtrace
+ #endif
+ 
+ #endif /* _ASM_X86_IRQ_H */
+diff --git a/arch/x86/kernel/apic/hw_nmi.c b/arch/x86/kernel/apic/hw_nmi.c
+index f29501e1a5c1..c73c9fb281e1 100644
+--- a/arch/x86/kernel/apic/hw_nmi.c
++++ b/arch/x86/kernel/apic/hw_nmi.c
+@@ -26,32 +26,32 @@ u64 hw_nmi_get_sample_period(int watchdog_thresh)
+ }
+ #endif
+ 
+-#ifdef arch_trigger_all_cpu_backtrace
++#ifdef arch_trigger_cpumask_backtrace
+ static void nmi_raise_cpu_backtrace(cpumask_t *mask)
+ {
+ 	apic->send_IPI_mask(mask, NMI_VECTOR);
+ }
+ 
+-void arch_trigger_all_cpu_backtrace(bool include_self)
++void arch_trigger_cpumask_backtrace(const cpumask_t *mask, bool exclude_self)
+ {
+-	nmi_trigger_all_cpu_backtrace(include_self, nmi_raise_cpu_backtrace);
++	nmi_trigger_cpumask_backtrace(mask, exclude_self,
++				      nmi_raise_cpu_backtrace);
+ }
+ 
+-static int
+-arch_trigger_all_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
++static int nmi_cpu_backtrace_handler(unsigned int cmd, struct pt_regs *regs)
+ {
+ 	if (nmi_cpu_backtrace(regs))
+ 		return NMI_HANDLED;
+ 
+ 	return NMI_DONE;
+ }
+-NOKPROBE_SYMBOL(arch_trigger_all_cpu_backtrace_handler);
++NOKPROBE_SYMBOL(nmi_cpu_backtrace_handler);
+ 
+-static int __init register_trigger_all_cpu_backtrace(void)
++static int __init register_nmi_cpu_backtrace_handler(void)
+ {
+-	register_nmi_handler(NMI_LOCAL, arch_trigger_all_cpu_backtrace_handler,
++	register_nmi_handler(NMI_LOCAL, nmi_cpu_backtrace_handler,
+ 				0, "arch_bt");
+ 	return 0;
+ }
+-early_initcall(register_trigger_all_cpu_backtrace);
++early_initcall(register_nmi_cpu_backtrace_handler);
+ #endif
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 4630eeae18e0..a78c35cff1ae 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -35,21 +35,34 @@ static inline void hardlockup_detector_disable(void) {}
+  * base function. Return whether such support was available,
+  * to allow calling code to fall back to some other mechanism:
+  */
+-#ifdef arch_trigger_all_cpu_backtrace
++#ifdef arch_trigger_cpumask_backtrace
+ static inline bool trigger_all_cpu_backtrace(void)
+ {
+-	arch_trigger_all_cpu_backtrace(true);
+-
++	arch_trigger_cpumask_backtrace(cpu_online_mask, false);
+ 	return true;
+ }
++
+ static inline bool trigger_allbutself_cpu_backtrace(void)
+ {
+-	arch_trigger_all_cpu_backtrace(false);
++	arch_trigger_cpumask_backtrace(cpu_online_mask, true);
++	return true;
++}
++
++static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
++{
++	arch_trigger_cpumask_backtrace(mask, false);
++	return true;
++}
++
++static inline bool trigger_single_cpu_backtrace(int cpu)
++{
++	arch_trigger_cpumask_backtrace(cpumask_of(cpu), false);
+ 	return true;
+ }
+ 
+ /* generic implementation */
+-void nmi_trigger_all_cpu_backtrace(bool include_self,
++void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
++				   bool exclude_self,
+ 				   void (*raise)(cpumask_t *mask));
+ bool nmi_cpu_backtrace(struct pt_regs *regs);
+ 
+@@ -62,6 +75,14 @@ static inline bool trigger_allbutself_cpu_backtrace(void)
+ {
+ 	return false;
+ }
++static inline bool trigger_cpumask_backtrace(struct cpumask *mask)
++{
++	return false;
++}
++static inline bool trigger_single_cpu_backtrace(int cpu)
++{
++	return false;
++}
+ #endif
+ 
+ #ifdef CONFIG_LOCKUP_DETECTOR
+diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
+index 26caf51cc238..df347e355267 100644
+--- a/lib/nmi_backtrace.c
++++ b/lib/nmi_backtrace.c
+@@ -17,20 +17,21 @@
+ #include <linux/kprobes.h>
+ #include <linux/nmi.h>
+ 
+-#ifdef arch_trigger_all_cpu_backtrace
++#ifdef arch_trigger_cpumask_backtrace
+ /* For reliability, we're prepared to waste bits here. */
+ static DECLARE_BITMAP(backtrace_mask, NR_CPUS) __read_mostly;
+ 
+-/* "in progress" flag of arch_trigger_all_cpu_backtrace */
++/* "in progress" flag of arch_trigger_cpumask_backtrace */
+ static unsigned long backtrace_flag;
+ 
+ /*
+- * When raise() is called it will be is passed a pointer to the
++ * When raise() is called it will be passed a pointer to the
+  * backtrace_mask. Architectures that call nmi_cpu_backtrace()
+  * directly from their raise() functions may rely on the mask
+  * they are passed being updated as a side effect of this call.
+  */
+-void nmi_trigger_all_cpu_backtrace(bool include_self,
++void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
++				   bool exclude_self,
+ 				   void (*raise)(cpumask_t *mask))
+ {
+ 	int i, this_cpu = get_cpu();
+@@ -44,13 +45,13 @@ void nmi_trigger_all_cpu_backtrace(bool include_self,
  		return;
+ 	}
  
- 	jump_label_lock();
--	jump_label_sort_entries(iter_start, iter_stop);
-+	jump_label_sort_entries(LINUX_SECTION_START(__jump_table),
-+				LINUX_SECTION_END(__jump_table));
+-	cpumask_copy(to_cpumask(backtrace_mask), cpu_online_mask);
+-	if (!include_self)
++	cpumask_copy(to_cpumask(backtrace_mask), mask);
++	if (exclude_self)
+ 		cpumask_clear_cpu(this_cpu, to_cpumask(backtrace_mask));
  
--	for (iter = iter_start; iter < iter_stop; iter++) {
-+	LINKTABLE_FOR_EACH(iter, __jump_table) {
- 		struct static_key *iterk;
+ 	if (!cpumask_empty(to_cpumask(backtrace_mask))) {
+-		pr_info("Sending NMI to %s CPUs:\n",
+-			(include_self ? "all" : "other"));
++		pr_info("Sending NMI from CPU %d to CPUs %*pbl:\n",
++			this_cpu, nr_cpumask_bits, to_cpumask(backtrace_mask));
+ 		raise(to_cpumask(backtrace_mask));
+ 	}
  
- 		/* rewrite NOPs */
-@@ -539,8 +541,9 @@ early_initcall(jump_label_init_module);
-  */
- int jump_label_text_reserved(void *start, void *end)
- {
--	int ret = __jump_label_text_reserved(__start___jump_table,
--			__stop___jump_table, start, end);
-+	int ret = __jump_label_text_reserved(LINUX_SECTION_START(__jump_table),
-+					     LINUX_SECTION_END(__jump_table),
-+					     start, end);
- 
- 	if (ret)
- 		return ret;
-@@ -553,7 +556,7 @@ int jump_label_text_reserved(void *start, void *end)
- 
- static void jump_label_update(struct static_key *key)
- {
--	struct jump_entry *stop = __stop___jump_table;
-+	struct jump_entry *stop = LINUX_SECTION_END(__jump_table);
- 	struct jump_entry *entry = static_key_entries(key);
- #ifdef CONFIG_MODULES
- 	struct module *mod;
-diff --git a/scripts/module-common.lds.S b/scripts/module-common.lds.S
-index 73a2c7da0e55..be3bde1ea0ce 100644
---- a/scripts/module-common.lds.S
-+++ b/scripts/module-common.lds.S
-@@ -3,6 +3,10 @@
-  * Archs are free to supply their own linker scripts.  ld will
-  * combine them automatically.
-  */
-+
-+#include <asm/section-core.h>
-+#include <asm/tables.h>
-+
- SECTIONS {
- 	/DISCARD/ : { *(.discard) }
- 
-@@ -16,6 +20,7 @@ SECTIONS {
- 	__kcrctab_unused	0 : { *(SORT(___kcrctab_unused+*)) }
- 	__kcrctab_unused_gpl	0 : { *(SORT(___kcrctab_unused_gpl+*)) }
- 	__kcrctab_gpl_future	0 : { *(SORT(___kcrctab_gpl_future+*)) }
-+	__jump_table		0 : { *(SORT(SECTION_TBL(SECTION_DATA, __jump_table, *))) }
- 
- 	. = ALIGN(8);
- 	.init_array		0 : { *(SORT(.init_array.*)) *(.init_array) }
-diff --git a/tools/objtool/special.c b/tools/objtool/special.c
-index bff8abb3a4aa..6f7f519abacc 100644
---- a/tools/objtool/special.c
-+++ b/tools/objtool/special.c
-@@ -63,7 +63,7 @@ struct special_entry entries[] = {
- 		.feature = ALT_FEATURE_OFFSET,
- 	},
- 	{
--		.sec = "__jump_table",
-+		.sec = ".data.tbl.__jump_table.any",
- 		.jump_or_nop = true,
- 		.size = JUMP_ENTRY_SIZE,
- 		.orig = JUMP_ORIG_OFFSET,
 -- 
-2.9.2
+2.7.2
 
