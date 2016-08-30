@@ -1,39 +1,35 @@
-From: Baole Ni <baolex.ni@intel.com>
-Date: Tue, 02 Aug 2016 10:35:31 +0000
-Subject: [PATCH 0028/1285] Replace numeric parameter like 0444 with macro
-Message-Id: <20160802103531.15637-1-baolex.ni@intel.com>
+From: NWesternUnion@unionp.com
+Date: Tue, 30 Aug 2016 14:30:47 +0000
+Subject: myWesternUnion membership : MTransfer Control Number (MTCN): 5179004395
+Message-Id: <20160830073047.9A3BE45182624A42@unionp.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dalias@libc.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, adam.buchbinder@gmail.com, julian.calaby@gmail.com, chuansheng.liu@intel.com, baolex.ni@intel.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-I find that the developers often just specified the numeric value
-when calling a macro which is defined with a parameter for access permission.
-As we know, these numeric value for access permission have had the corresponding macro,
-and that using macro can improve the robustness and readability of the code,
-thus, I suggest replacing the numeric parameter with the macro.
+V=E5rt sikkerhetsteam har avdekket noe uvanlig informasjon i din=20
+Western Union konto.
 
-Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
-Signed-off-by: Baole Ni <baolex.ni@intel.com>
----
- arch/sparc/kernel/sysfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hva betyr dette?
+Hvis du ikke bekrefter kontoen din innen 48 timer kan du risikere=20
+=E5 miste Western Union konto.
 
-diff --git a/arch/sparc/kernel/sysfs.c b/arch/sparc/kernel/sysfs.c
-index fa8e21a..881ba0b 100644
---- a/arch/sparc/kernel/sysfs.c
-+++ b/arch/sparc/kernel/sysfs.c
-@@ -163,7 +163,7 @@ static ssize_t store_mmustat_enable(struct device *s,
- 	return count;
- }
- 
--static DEVICE_ATTR(mmustat_enable, 0644, show_mmustat_enable, store_mmustat_enable);
-+static DEVICE_ATTR(mmustat_enable, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, show_mmustat_enable, store_mmustat_enable);
- 
- static int mmu_stats_supported;
- 
--- 
-2.9.2
+Hva kan jeg gj=F8re for =E5 gjenopprette det?
+Fremgangsm=E5te for =E5 gjenopprette:
 
+Western Union Logg Inn :
+
+
+
+
+http://www.m.kushequ.com/NO/euWesternUnionAccount/iWesternUnionKonto/Bekref=
+terKontoen/LoggInn.htm
+
+
+
+
+
+
+Takk,=20
+Western Union Kundeservice.=20
