@@ -1,103 +1,174 @@
-From: mcgrof@kernel.org
-Date: Fri, 19 Aug 2016 21:34:01 +0000
-Subject: [PATCH v4 03/16] scripts/module-common.lds: enable generation
-Message-Id: <1471642454-5679-4-git-send-email-mcgrof@kernel.org>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Tue, 30 Aug 2016 21:28:22 +0000
+Subject: [PATCH] sparc64 mm: Fix more TSB sizing issues
+Message-Id: <1472592502-16007-1-git-send-email-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
-In-Reply-To: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, linux@arm.linux.org.uk, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com
-Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, x86@kernel.org, fontana@sharpeleven.org, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org, acme@redhat.com, ak@linux.intel.com, andriy.shevchenko@linux.intel.com, mcb30@ip
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>
 
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Commit af1b1a9b36b8 ("sparc64 mm: Fix base TSB sizing when hugetlb
+pages are used") addressed the difference between hugetlb and THP
+pages when computing TSB sizes.  The following additional issues
+were also discovered while working with the code.
 
-scripts/module-common.lds is currently pretty static, in the
-future this may change and we will want access to kernel macros
-to help expands certain areas. To get access to use macros we
-need to generate module-common.lds from module-common.lds.S, for
-now though only enable the generation. We'll later expand on this
-as needed.
+In order to save memory, THP makes use of a huge zero page.  This huge
+zero page does not count against a task's RSS, but it does consume TSB
+entries.  This is similar to hugetlb pages.  Therefore, count huge
+zero page entries in hugetlb_pte_count.
 
-Since this file is now generated add it to .gitignore.
+Accounting of THP pages is done in the routine set_pmd_at().
+Unfortunately, this does not catch the case where a THP page is split.
+To handle this case, decrement the count in pmdp_invalidate().
+pmdp_invalidate is only called when splitting a THP.  However, 'sanity
+checks' are added in case it is ever called for other purposes.
 
-v4: add file to MAINTAINERS
-v3: new to this series
+A more general issue exists with HPAGE_SIZE accounting.
+hugetlb_pte_count tracks the number of HPAGE_SIZE (8M) pages.  This
+value is used to size the TSB for HPAGE_SIZE pages.  However,
+each HPAGE_SIZE page consists of two REAL_HPAGE_SIZE (4M) pages.
+The TSB contains an entry for each REAL_HPAGE_SIZE page.  Therefore,
+the number of REAL_HPAGE_SIZE pages should be used to size the huge
+page TSB.  A new compile time constant REAL_HPAGE_PER_HPAGE is used
+to multiply hugetlb_pte_count before sizing the TSB.
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- .gitignore                                         | 2 ++
- MAINTAINERS                                        | 1 +
- Makefile                                           | 6 +++++-
- scripts/Makefile.modpost                           | 2 +-
- scripts/{module-common.lds => module-common.lds.S} | 0
- 5 files changed, 9 insertions(+), 2 deletions(-)
- rename scripts/{module-common.lds => module-common.lds.S} (100%)
+ arch/sparc/include/asm/page_64.h |  1 +
+ arch/sparc/mm/fault_64.c         |  1 +
+ arch/sparc/mm/tlb.c              | 35 +++++++++++++++++++++++++++++++----
+ arch/sparc/mm/tsb.c              | 16 ++++++++++------
+ 4 files changed, 43 insertions(+), 10 deletions(-)
 
-diff --git a/.gitignore b/.gitignore
-index c2ed4ecb0acd..0f0702054fdb 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -114,3 +114,5 @@ all.config
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index 8c2a8c9..c1263fc 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -25,6 +25,7 @@
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
++#define REAL_HPAGE_PER_HPAGE	(_AC(1,UL) << (HPAGE_SHIFT - REAL_HPAGE_SHIFT))
+ #endif
  
- # Kdevelop4
- *.kdev4
+ #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index e16fdd2..3f291d8 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -484,6 +484,7 @@ good_area:
+ 		tsb_grow(mm, MM_TSB_BASE, mm_rss);
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	mm_rss = mm->context.hugetlb_pte_count + mm->context.thp_pte_count;
++	mm_rss *= REAL_HPAGE_PER_HPAGE;
+ 	if (unlikely(mm_rss >
+ 		     mm->context.tsb_block[MM_TSB_HUGE].tsb_rss_limit)) {
+ 		if (mm->context.tsb_block[MM_TSB_HUGE].tsb)
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index 3659d37..c56a195 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -174,10 +174,25 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		return;
+ 
+ 	if ((pmd_val(pmd) ^ pmd_val(orig)) & _PAGE_PMD_HUGE) {
+-		if (pmd_val(pmd) & _PAGE_PMD_HUGE)
+-			mm->context.thp_pte_count++;
+-		else
+-			mm->context.thp_pte_count--;
++		/*
++		 * Note that this routine only sets pmds for THP pages.
++		 * Hugetlb pages are handled elsewhere.  We need to check
++		 * for huge zero page.  Huge zero pages are like hugetlb
++		 * pages in that there is no RSS, but there is the need
++		 * for TSB entries.  So, huge zero page counts go into
++		 * hugetlb_pte_count.
++		 */
++		if (pmd_val(pmd) & _PAGE_PMD_HUGE) {
++			if (is_huge_zero_page(pmd_page(pmd)))
++				mm->context.hugetlb_pte_count++;
++			else
++				mm->context.thp_pte_count++;
++		} else {
++			if (is_huge_zero_page(pmd_page(orig)))
++				mm->context.hugetlb_pte_count--;
++			else
++				mm->context.thp_pte_count--;
++		}
+ 
+ 		/* Do not try to allocate the TSB hash table if we
+ 		 * don't have one already.  We have various locks held
+@@ -204,6 +219,9 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 	}
+ }
+ 
++/*
++ * This routine is only called when splitting a THP
++ */
+ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 		     pmd_t *pmdp)
+ {
+@@ -213,6 +231,15 @@ void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
+ 
+ 	set_pmd_at(vma->vm_mm, address, pmdp, entry);
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 +
-+scripts/module-common.lds
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d635ab047f3a..5aec01883020 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7887,6 +7887,7 @@ M:	Rusty Russell <rusty@rustcorp.com.au>
- S:	Maintained
- F:	include/linux/module.h
- F:	kernel/module.c
-+F:	scripts/module-common.lds.S
++	/*
++	 * set_pmd_at() will not be called in a way to decrement
++	 * thp_pte_count when splitting a THP, so do it now.
++	 * Sanity check pmd before doing the actual decrement.
++	 */
++	if ((pmd_val(entry) & _PAGE_PMD_HUGE) &&
++	    !is_huge_zero_page(pmd_page(entry)))
++		(vma->vm_mm)->context.thp_pte_count--;
+ }
  
- MOTION EYE VAIO PICTUREBOOK CAMERA DRIVER
- W:	http://popies.net/meye/
-diff --git a/Makefile b/Makefile
-index 5c18baad7218..b3e5ea78d582 100644
---- a/Makefile
-+++ b/Makefile
-@@ -408,6 +408,10 @@ KBUILD_AFLAGS_MODULE  := -DMODULE
- KBUILD_CFLAGS_MODULE  := -DMODULE
- KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
+ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index 6725ed4..bf68969 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -470,7 +470,8 @@ retry_tsb_alloc:
+ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ {
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-	unsigned long total_huge_pte_count;
++	unsigned long saved_hugetlb_pte_count;
++	unsigned long saved_thp_pte_count;
+ #endif
+ 	unsigned int i;
  
-+$(srctree)/scripts/module-common.lds: $(srctree)/scripts/module-common.lds.S
-+	$(Q)$(CC) $(CFLAGS) $(INCLUDES) $(LINUXINCLUDE) -E -P \
-+		-D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
-+
- # Read KERNELRELEASE from include/config/kernel.release (if it exists)
- KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
- KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
-@@ -1174,7 +1178,7 @@ all: modules
- # using awk while concatenating to the final file.
+@@ -483,8 +484,8 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ 	 * will re-increment the counters as the parent PTEs are
+ 	 * copied into the child address space.
+ 	 */
+-	total_huge_pte_count = mm->context.hugetlb_pte_count +
+-			 mm->context.thp_pte_count;
++	saved_hugetlb_pte_count = mm->context.hugetlb_pte_count;
++	saved_thp_pte_count = mm->context.thp_pte_count;
+ 	mm->context.hugetlb_pte_count = 0;
+ 	mm->context.thp_pte_count = 0;
+ #endif
+@@ -499,11 +500,14 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ 	/* If this is fork, inherit the parent's TSB size.  We would
+ 	 * grow it to that size on the first page fault anyways.
+ 	 */
+-	tsb_grow(mm, MM_TSB_BASE, get_mm_rss(mm));
++	tsb_grow(mm, MM_TSB_BASE, get_mm_rss(mm) -
++		 saved_thp_pte_count * (HPAGE_SIZE / PAGE_SIZE));
  
- PHONY += modules
--modules: $(vmlinux-dirs) $(if $(KBUILD_BUILTIN),vmlinux) modules.builtin
-+modules: $(srctree)/scripts/module-common.lds $(vmlinux-dirs) $(if $(KBUILD_BUILTIN),vmlinux) modules.builtin
- 	$(Q)$(AWK) '!x[$$0]++' $(vmlinux-dirs:%=$(objtree)/%/modules.order) > $(objtree)/modules.order
- 	@$(kecho) '  Building modules, stage 2.';
- 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.modpost
-diff --git a/scripts/Makefile.modpost b/scripts/Makefile.modpost
-index 1366a94b6c39..2d8aff7735d6 100644
---- a/scripts/Makefile.modpost
-+++ b/scripts/Makefile.modpost
-@@ -121,7 +121,7 @@ quiet_cmd_ld_ko_o = LD [M]  $@
-                              $(KBUILD_LDFLAGS_MODULE) $(LDFLAGS_MODULE) \
-                              -o $@ $(filter-out FORCE,$^)
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-	if (unlikely(total_huge_pte_count))
+-		tsb_grow(mm, MM_TSB_HUGE, total_huge_pte_count);
++	if (unlikely(saved_hugetlb_pte_count + saved_thp_pte_count))
++		tsb_grow(mm, MM_TSB_HUGE,
++			 (saved_hugetlb_pte_count + saved_thp_pte_count) *
++			 REAL_HPAGE_PER_HPAGE);
+ #endif
  
--$(modules): %.ko :%.o %.mod.o FORCE
-+$(modules): %.ko : $(srctree)/scripts/module-common.lds %.o %.mod.o FORCE
- 	$(call if_changed,ld_ko_o)
- 
- targets += $(modules)
-diff --git a/scripts/module-common.lds b/scripts/module-common.lds.S
-similarity index 100%
-rename from scripts/module-common.lds
-rename to scripts/module-common.lds.S
+ 	if (unlikely(!mm->context.tsb_block[MM_TSB_BASE].tsb))
 -- 
-2.9.2
+2.4.11
 
