@@ -1,58 +1,35 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Mon, 26 Sep 2016 22:31:38 +0000
-Subject: [PATCH v2 2/2] lockdep: Keep the static allocations small for PROVE_LOCKING_SMALL
-Message-Id: <1474929098-68914-3-git-send-email-babu.moger@oracle.com>
+From: "XiaSu" <info@otnet.cz>
+Date: Fri, 02 Sep 2016 18:53:05 +0000
+Subject: Zprava pro vas..
+Message-Id: <6cbd9d5fa91a4ced4c766b0c52003a2f.squirrel@52.187.45.86>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1474929098-68914-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1474929098-68914-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Reduce the size of data structure for lockdep entries half if
-PROVE_LOCKING_SMALL if defined. This is used for sparc. This
-config variable is disabled by default.
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
----
- kernel/locking/lockdep_internals.h |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/kernel/locking/lockdep_internals.h b/kernel/locking/lockdep_internals.h
-index 51c4b24..7d364a6 100644
---- a/kernel/locking/lockdep_internals.h
-+++ b/kernel/locking/lockdep_internals.h
-@@ -54,18 +54,25 @@ enum {
-  * table (if it's not there yet), and we check it for lock order
-  * conflicts and deadlocks.
-  */
-+#ifdef CONFIG_PROVE_LOCKING_SMALL
-+#define MAX_LOCKDEP_ENTRIES	16384UL
-+#define MAX_LOCKDEP_CHAINS_BITS	15
-+#define MAX_STACK_TRACE_ENTRIES	262144UL
-+#else
- #define MAX_LOCKDEP_ENTRIES	32768UL
- 
- #define MAX_LOCKDEP_CHAINS_BITS	16
--#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
--
--#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
- 
- /*
-  * Stack-trace: tightly packed array of stack backtrace
-  * addresses. Protected by the hash_lock.
-  */
- #define MAX_STACK_TRACE_ENTRIES	524288UL
-+#endif
-+
-+#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
-+
-+#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
- 
- extern struct list_head all_lock_classes;
- extern struct lock_chain lock_chains[];
--- 
-1.7.1
+
+Ahoj....,
+
+Jsem zastupuj=EDc=ED investicn=ED z=E1jem ze strany Thajska maj=ED z=E1jem
+zahranicn=EDch investic zahrnuj=EDc=ED velk=FD objem financnich prostredku,=
+ pro
+kter=E9 se snaz=EDme svou ucast jako v z=E1mori z=E1stupce zvl=E1dnout inve=
+stice.
+Muj klient, kter=FD je rod=E1k z Thajska, m=E1 nejak=E9 pen=EDze ze sv=FDch=
+ obchodn=EDch
+=FAspor chce investovat na z=E1klade kvalifikovan=FDch zahranicn=EDch partn=
+erstv=ED.
+Pokud mate pocit nakloneni vyzadan=E1 roli, uvedte o rychlou odezvu, takze
+j=E1 v=E1m muze poskytnout dals=ED podrobnosti spolupr=E1ce.
+
+Mejte vsak na pameti, ze se jedn=E1 o legitimn=ED transakce a tesim se na v=
+ase
+rychle odpovedi na muj soukrom=FD e-mail n=EDze:
+
+Pozdravy,
+xiasun55@gmail.com
+Barr. Xiaodong Su
 
