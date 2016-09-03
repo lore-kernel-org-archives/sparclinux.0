@@ -1,30 +1,59 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 29 Sep 2016 00:43:12 +0000
-Subject: Re: [PATCH v2 0/2] Fixes nr_cpus bug along with irq stack bootmem allocation.
-Message-Id: <20160928.204312.1907983401064189852.davem@davemloft.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 03 Sep 2016 16:38:03 +0000
+Subject: [PATCH 2/4] sparc: bpf_jit: Move four assignments in bpf_jit_compile()
+Message-Id: <2179bf7c-9878-adf7-da97-2746d5aa3d34@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1475092880-85252-1-git-send-email-atish.patra@oracle.com>
-In-Reply-To: <1475092880-85252-1-git-send-email-atish.patra@oracle.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
+In-Reply-To: <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-From: Atish Patra <atish.patra@oracle.com>
-Date: Wed, 28 Sep 2016 13:01:18 -0700
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Sep 2016 17:45:28 +0200
 
-> The first patch fixes a panic caused by nr_cpus boot parameter.
-> In addition to that, irq stack boot memory is allocated before 
-> cpu_possible_mask is modified. This can lead to wastage of boot
-> memory if nr_cpus is set to a lower value. The second patch
-> addresses this issue.
-> 
-> v1->v2:
->     Fixed compilation error in the v2 1/2 when CONFIG_SMP is not set.
+Move the assignments for four local variables a bit at the beginning
+so that they will only be performed if a corresponding memory allocation
+succeeded by this function.
 
-Sorry, it doesn't work this way.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ arch/sparc/net/bpf_jit_comp.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-I've already applied your patches so you would have to send me
-a relative fixup.
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index ced1393..a927470 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -362,10 +362,10 @@ do {	*prog++ = BR_OPC | WDISP22(OFF);		\
+ 
+ void bpf_jit_compile(struct bpf_prog *fp)
+ {
+-	unsigned int cleanup_addr, proglen, oldproglen = 0;
+-	u32 temp[8], *prog, *func, seen = 0, pass;
+-	const struct sock_filter *filter = fp->insns;
+-	int i, flen = fp->len, pc_ret0 = -1;
++	unsigned int cleanup_addr, proglen, oldproglen;
++	u32 temp[8], *prog, *func, seen, pass;
++	const struct sock_filter *filter;
++	int i, flen = fp->len, pc_ret0;
+ 	unsigned int *addrs;
+ 	void *image;
+ 
+@@ -385,6 +385,10 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 	}
+ 	cleanup_addr = proglen; /* epilogue address */
+ 	image = NULL;
++	filter = fp->insns;
++	oldproglen = 0;
++	pc_ret0 = -1;
++	seen = 0;
+ 	for (pass = 0; pass < 10; pass++) {
+ 		u8 seen_or_pass0 = (pass = 0) ? (SEEN_XREG | SEEN_DATAREF | SEEN_MEM) : seen;
+ 
+-- 
+2.9.3
 
-But I'll take care of this.
