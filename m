@@ -1,26 +1,44 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Date: Sat, 03 Sep 2016 16:58:12 +0000
-Subject: Re: [PATCH 3/4] sparc: bpf_jit: Avoid assignment for "flen" if BPF JIT is disabled
-Message-Id: <57CB0124.1040605@iogearbox.net>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 03 Sep 2016 16:36:35 +0000
+Subject: [PATCH 1/4] sparc: bpf_jit: Use kmalloc_array() in bpf_jit_compile()
+Message-Id: <259699cf-6fb1-f9e6-f535-fe880a7fa6dc@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <566ABCD9.1060404@users.sourceforge.net> <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net> <2bd51cac-bbb7-da76-9648-4ae24ba342b2@users.sourceforge.net>
-In-Reply-To: <2bd51cac-bbb7-da76-9648-4ae24ba342b2@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
+In-Reply-To: <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: SF Markus Elfring <elfring@users.sourceforge.net>, sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>
+To: sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>
 Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-On 09/03/2016 06:40 PM, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 3 Sep 2016 18:00:03 +0200
->
-> Move the assignment for the local variable "flen" a bit at the beginning
-> so that it will only be performed if BPF JIT is enabled for this function.
->
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Sep 2016 17:10:20 +0200
 
-Why is that a particular issue (did you measure some improvement when
-you say "fine-tuning" as per subject) ?
+A multiplication for the size determination of a memory allocation
+indicated that an array data structure should be processed.
+Thus use the corresponding function "kmalloc_array".
 
-That's all not in critical path here by the way, same for patch 2.
+This issue was detected by using the Coccinelle software.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ arch/sparc/net/bpf_jit_comp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index a6d9204..ced1393 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -372,7 +372,7 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 	if (!bpf_jit_enable)
+ 		return;
+ 
+-	addrs = kmalloc(flen * sizeof(*addrs), GFP_KERNEL);
++	addrs = kmalloc_array(flen, sizeof(*addrs), GFP_KERNEL);
+ 	if (addrs = NULL)
+ 		return;
+ 
+-- 
+2.9.3
+
