@@ -1,59 +1,58 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Sun, 04 Sep 2016 07:18:55 +0000
-Subject: Re: sparc: bpf_jit: Move four assignments in bpf_jit_compile()
-Message-Id: <CAGRGNgVMtZ_dJYSrn+uVTxc6B8Fd+1RZY6dOkDdv9sVALii4vw@mail.gmail.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 03 Sep 2016 16:41:27 +0000
+Subject: [PATCH 4/4] sparc: bpf_jit: Rename jump labels in bpf_jit_compile()
+Message-Id: <054ff9e1-2b84-904b-5f92-55746292916e@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a6afaf8a-837e-6cc3-fdec-3a37f0e731d5@users.sourceforge.net>
- <CAGRGNgUxt+qgiDHQ7qQ3a7QEJ3xZ4rRTW6RN8fTLNK6E6pgWTw@mail.gmail.com>
- <ec58924c-25d6-e525-fb8a-35bdbf6a8f12@users.sourceforge.net>
- <20160903.233256.116565014024856604.davem@davemloft.net> <CAGRGNgX1Y2AeaF38Lw1NaM+NvWkmALrVcqx-DL72ot-kcSCmBA@mail.gmail.com>
- <d9e83d28-296e-00bc-a18c-66fca51c3adf@users.sourceforge.net>
-In-Reply-To: <d9e83d28-296e-00bc-a18c-66fca51c3adf@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
+In-Reply-To: <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: David Miller <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Rabin Vincent <rabin@rab.in>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, kernel-janitors <kernel-janitors@vger.kernel.org>, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
+To: sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-Hi Markus,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Sep 2016 18:14:19 +0200
 
-On Sun, Sep 4, 2016 at 5:07 PM, SF Markus Elfring
-<elfring@users.sourceforge.net> wrote:
->> I really wish he'd concentrate on the former rather than the latter.
->
-> I am on the way for such a software development adventure.
-> There are further improvement opportunities to consider besides the main route,
-> aren't there?
+Adjust jump labels according to the current Linux coding style convention.
 
-You're missing the point here. Find something useful to change.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ arch/sparc/net/bpf_jit_comp.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-People are going through the kernel finding functions that should be
-static for example - this is useful as it provides better
-documentation for those functions (static = not used outside this
-file) and fixes errors reported by GCC and static code checkers. Those
-changes are useful.
-
-Another useful change would be ensuring that every struct that has a
-bool member is kzalloc'd instead of kmalloc'd as this eliminates a
-possible source of undefined behaviour. (A bool is effectively a u8
-with behaviour defined for when that value is 0 or 1, kmalloc'd memory
-can have any data in it, therefore it's possible and likely that a
-kmalloc'd struct with a bool member will end up with some value for
-that member that isn't 0 or 1. kzalloc eliminates this possibility.)
-
-Moving four assignments because you think they might improve stuff is
-just annoying people.
-
->> He's not another Nick Krause.
->
-> Are you going to remember me under an other nickname anyhow?
-
-Nick Krause submitted patches that make yours look good. At least yours compile.
-
-Thanks,
-
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index a6b6e29..3aa19a1 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -761,7 +761,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 
+ 			default:
+ 				/* hmm, too complex filter, give up with jit compiler */
+-				goto out;
++				goto free_addresses;
+ 			}
+ 			ilen = (void *) prog - (void *) temp;
+ 			if (image) {
+@@ -793,7 +793,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 		if (proglen = oldproglen) {
+ 			image = module_alloc(proglen);
+ 			if (!image)
+-				goto out;
++				goto free_addresses;
+ 		}
+ 		oldproglen = proglen;
+ 	}
+@@ -806,7 +806,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 		fp->bpf_func = (void *)image;
+ 		fp->jited = 1;
+ 	}
+-out:
++ free_addresses:
+ 	kfree(addrs);
+ 	return;
+ }
 -- 
-Julian Calaby
+2.9.3
 
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
