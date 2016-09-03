@@ -1,85 +1,31 @@
-From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Date: Fri, 16 Sep 2016 07:11:26 +0000
-Subject: [PATCH v2 10/11] sparc/tracing: fix compat syscall handling
-Message-Id: <1474009887-7225-11-git-send-email-marcin.nowakowski@imgtec.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 03 Sep 2016 16:33:42 +0000
+Subject: [PATCH 0/4] sparc: bpf_jit: Fine-tuning for bpf_jit_compile()
+Message-Id: <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1474009887-7225-1-git-send-email-marcin.nowakowski@imgtec.com>
-In-Reply-To: <1474009887-7225-1-git-send-email-marcin.nowakowski@imgtec.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Marcin Nowakowski <marcin.nowakowski@imgtec.com>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-Add missing arch code - arch_trace_is_compat_syscall and
-arch_syscall_addr
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 3 Sep 2016 18:28:02 +0200
 
-Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/include/asm/ftrace.h | 10 ++++++++++
- arch/sparc/kernel/Makefile      |  1 +
- arch/sparc/kernel/ftrace.c      | 14 ++++++++++++++
- 3 files changed, 25 insertions(+)
+A few update suggestions were taken into account
+from static source code analysis.
 
-diff --git a/arch/sparc/include/asm/ftrace.h b/arch/sparc/include/asm/ftrace.h
-index 3192a8e..a9789c6 100644
---- a/arch/sparc/include/asm/ftrace.h
-+++ b/arch/sparc/include/asm/ftrace.h
-@@ -6,6 +6,16 @@
- #define MCOUNT_INSN_SIZE	4 /* sizeof mcount call */
- 
- #ifndef __ASSEMBLY__
-+
-+#if defined(CONFIG_FTRACE_SYSCALLS) && defined(CONFIG_COMPAT)
-+#include <asm/compat.h>
-+
-+#define ARCH_COMPAT_SYSCALL_NUMBERS_OVERLAP 1
-+static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
-+{
-+	return in_compat_syscall();
-+}
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
- void _mcount(void);
- #endif
- 
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index fdb1332..60a12eb 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -93,6 +93,7 @@ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
- 
- obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
- obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
-+obj-$(CONFIG_FTRACE_SYSCALLS) += ftrace.o
- 
- obj-$(CONFIG_EARLYFB) += btext.o
- obj-$(CONFIG_STACKTRACE)     += stacktrace.o
-diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
-index 0a2d2dd..afeb520 100644
---- a/arch/sparc/kernel/ftrace.c
-+++ b/arch/sparc/kernel/ftrace.c
-@@ -145,3 +145,17 @@ unsigned long prepare_ftrace_return(unsigned long parent,
- 	return return_hooker;
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-+
-+#if (defined CONFIG_FTRACE_SYSCALLS) && (defined CONFIG_COMPAT)
-+extern const unsigned int sys_call_table[];
-+extern const unsigned int sys_call_table32[];
-+
-+unsigned long __init arch_syscall_addr(int nr, bool compat)
-+{
-+	if (compat)
-+		return (unsigned long)sys_call_table32[nr];
-+
-+	return (unsigned long)sys_call_table[nr];
-+}
-+
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
+Markus Elfring (4):
+  Use kmalloc_array()
+  Move four assignments
+  Avoid assignment for the variable "flen" if BPF JIT is disabled.
+  Rename jump labels
+
+ arch/sparc/net/bpf_jit_comp.c | 21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
 -- 
-2.7.4
+2.9.3
 
