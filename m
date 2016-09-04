@@ -1,46 +1,38 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Tue, 27 Sep 2016 19:33:26 +0000
-Subject: [PATCH v3 0/2] Ajust lockdep static allocations for sparc
-Message-Id: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 04 Sep 2016 05:00:22 +0000
+Subject: Re: sparc: bpf_jit: Move four assignments in bpf_jit_compile()
+Message-Id: <ec58924c-25d6-e525-fb8a-35bdbf6a8f12@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
+ <2179bf7c-9878-adf7-da97-2746d5aa3d34@users.sourceforge.net>
+ <CAGRGNgWXdzvfL4wdM2uQr7DRbJgCuY0O-jRmSGhqfbPBZGS2Aw@mail.gmail.com>
+ <a6afaf8a-837e-6cc3-fdec-3a37f0e731d5@users.sourceforge.net>
+ <CAGRGNgUxt+qgiDHQ7qQ3a7QEJ3xZ4rRTW6RN8fTLNK6E6pgWTw@mail.gmail.com>
+In-Reply-To: <CAGRGNgUxt+qgiDHQ7qQ3a7QEJ3xZ4rRTW6RN8fTLNK6E6pgWTw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, sam@ravnborg.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
+To: Julian Calaby <julian.calaby@gmail.com>
+Cc: sparclinux <sparclinux@vger.kernel.org>, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, Rabin Vincent <rabin@rab.in>, LKML <linux-kernel@vger.kernel.org>, kernel-janitors <kernel-janitors@vger.kernel.org>, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>
 
-These patches limit the static allocations for lockdep data structures
-used for debugging locking correctness. For sparc, all the kernel's code,
-data, and bss, must have locked translations in the TLB so that we don't
-get TLB misses on kernel code and data. Current sparc chips have 8 TLB
-entries available that may be locked down, and with a 4mb page size,
-this gives a maximum of 32MB. With PROVE_LOCKING we could go over this
-limit and cause system boot-up problems. These patches limit the static
-allocations so that everything fits in current required size limit.
+> Does this change improve the resulting binary?
 
-patch 1 : Adds new config parameter CONFIG_PROVE_LOCKING_SMALL
-Patch 2 : Adjusts the sizes based on the new config parameter
+I hope so. - I propose to give the refactorings "Reduce scope of variable"
+and "Extract a function" (and the corresponding consequences) another look.
 
-v2-> v3:
-   Some more comments from Sam Ravnborg and Peter Zijlstra.
-   Defined PROVE_LOCKING_SMALL as invisible and moved the selection to
-   arch/sparc/Kconfig. 
 
-v1-> v2:
-   As suggested by Peter Zijlstra, keeping the default as is.
-   Introduced new config variable CONFIG_PROVE_LOCKING_SMALL
-   to handle sparc specific case.
+> I.e. does it make it smaller or faster?
 
-v0:
-   Initial revision.
+It is generally possible that a specific code generation variant will also affect
+the run time properties you mentioned.
 
-Babu Moger (2):
-  config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL
-    for sparc
-  lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
 
- arch/sparc/Kconfig                 |    1 +
- kernel/locking/lockdep_internals.h |   20 +++++++++++++++++---
- lib/Kconfig.debug                  |    3 +++
- 3 files changed, 21 insertions(+), 3 deletions(-)
+> Otherwise this change is useless churn - you're making the code more
+> complicated, longer and harder to read for practically no benefit.
 
+I imagine that there other reasons you could eventually accept
+for this use case, aren't there?
+
+Regards,
+Markus
