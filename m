@@ -1,57 +1,160 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Date: Sun, 04 Sep 2016 17:04:12 +0000
-Subject: Re: Clarification for source code formatting around jump labels
-Message-Id: <57CC540C.6070701@iogearbox.net>
+From: alexmcwhirter@triadic.us
+Date: Mon, 12 Sep 2016 00:02:10 +0000
+Subject: SILO Issues on an E4900
+Message-Id: <62477e32a682342782e652fcfdbf9fb5@triadic.us>
 List-Id: <sparclinux.vger.kernel.org>
-References: <57CAFFDC.4030606@iogearbox.net> <20160903.230607.1667562673788737377.davem@davemloft.net> <1365a588-c7c7-717c-1e3d-ceabd71e8479@users.sourceforge.net> <20160903.235916.1892276070318494855.davem@davemloft.net> <deecaab4-011b-b8d5-a3c7-6e34abef60e5@users.sourceforge.net> <57CBEFEA.3080007@iogearbox.net> <50edcf58-112e-0b89-4265-7c39d2f147ca@users.sourceforge.net>
-In-Reply-To: <50edcf58-112e-0b89-4265-7c39d2f147ca@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: Jonathan Corbet <corbet@lwn.net>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Rabin Vincent <rabin@rab.in>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>, linux-doc@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On 09/04/2016 03:50 PM, SF Markus Elfring wrote:
->>> I am just curious on how much further software development "fun" the re=
-cent update
->>> by a topic like "CodingStyle: Clarify and complete chapter 7" will trig=
-ger.
->>
->> I don't want to drag this thread onwards for (way) too long, but clearly=
- "it is
->> advised to indent labels with a single space (not tab)" (from diff in ab=
-ove commit)
->
-> How do you think about the reason (which you omitted from your quotation)=
- for this advice?
->
-> =93=85,
-> so that "diff -p" does not confuse labels with functions.
-> =85=94
+I was wondering if anyone has posted here about SILO failing to load on 
+Serengeti and Amazon machines? These would be the Sun Fire 3800, 4800, 
+4810, 6800, E2900, E4900, and E6900. These machines are similar in the 
+fact that they all use modularized system controllers running VxWorks 
+which in turn runs a Java implementation of the SSC software.
 
-Yep, since this recently came up in a different thread as well, please
-see here, for example:
+On an E4900 i am getting an error nearly identical to this users post 
+about a 6800.
 
-   http://patchwork.ozlabs.org/patch/664966/
 
->> doesn't really reflect the majority of kernel practice we have in-tree t=
-oday and
->> actually rather adds more confusion than any clarification whatsoever:
->>
->>    $ git grep -n "^\ [a-z_]*:" -- '*.[ch]' | wc -l
->>    4919
->>    $ git grep -n "^[a-z_]*:" -- '*.[ch]' | wc -l
->>    54686
->
-> So there is a mixture already.
->
-[...]
-> In which ways would you prefer that the style specifications should be
-> clarified further?
->
-> Where should source code become more consistent?
 
-It would likely make sense to document that git config mentioned in the
-link above as a recommendation for that paragraph, and stick with what
-is used in the vast majority of cases already, meaning no leading space
-before labels.
+I'm having trouble trying to boot off of an install CD (I don't have
+networking set up at the moment, but could probably get that set up).  
+I'm
+trying to install on a 2nd "B" domain on the machine, with a single
+CPU/memory board.
+
+When I try to issue the command to boot from the CDROM:
+
+{14} ok boot /ssm@0,0/pci@1a,700000/pci@1/SUNW,isptwo@4/sd@6,0:f
+  or
+{14} ok boot /ssm@0,0/pci@1a,700000/pci@1/SUNW,isptwo@4/sd@6,0
+
+I immediately get the error message (no text between command and this):
+
+<-------------------
+ERROR: Illegal Instruction
+debugger entered.
+<-------------------
+
+Looking at where the PC is and what's there in memory (seems to be same
+for sd@6,0 and sd@6,0:f):
+
+<-------------------
+{14} ok %pc .
+4004
+{14} ok 4000 40 dump
+              \/  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
+0123456789ABCDEF
+00000004000  01 03 01 07 00 00 18 f0 00 00 00 00 00 00 01 88 
+................
+00000004010  00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 
+......@.........
+00000004020  40 00 00 02 a0 10 00 0f 33 00 00 16 b2 16 61 00 
+@.......3.....a.
+00000004030  23 00 00 10 a2 14 60 00 b0 10 00 11 af c3 e0 c0 
+#.....`.........
+<-------------------
+
+I can boot a copy of Solaris installed on the disk just fine.  Here's a
+copy of the output from the openboot prom initialising:
+
+<-------------------
+Resetting ...
+Copying IO prom to Cpu dram
+.{/N0/SB5/P0} @(#) lpost        5.15.2  2003/08/04 10:27
+{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P0} Use is subject to license terms.
+..................................
+{/N0/SB5/P0} Running PCI IO Controller Basic Tests
+{/N0/SB5/P0} Jumping to memory 00000000.00000020 [00000010]
+{/N0/SB5/P0} System PCI IO post code running from memory
+{/N0/SB5/P0} @(#) lpost         5.15.2  2003/08/04 10:28
+{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P0} Use is subject to license terms.
+{/N0/SB5/P0} Subtest: PCI IO Controller Register Initialization for aid 
+0x1a
+{/N0/SB5/P0} Running PCI IO Controller Functional Tests
+{/N0/SB5/P0} Running SBBC Basic Tests
+{/N0/SB5/P0} Subtest: SBBC PCI Reg Initialization for aid 0x1a
+{/N0/SB5/P0} Running PCI IO Controller Basic Tests
+{/N0/SB5/P0} Subtest: PCI IO Controller Register Initialization for aid 
+0x1b
+{/N0/SB5/P0} Running PCI IO Controller Functional Tests
+{/N0/SB5/P0} @(#) lpost         5.15.2  2003/08/04 10:27
+{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P0} Use is subject to license terms.
+{/N0/SB5/P1} @(#) lpost         5.15.2  2003/08/04 10:27
+{/N0/SB5/P1} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P1} Use is subject to license terms.
+{/N0/IB7/P0} Passed
+{/N0/IB7/P1} Passed
+{/N0/SB5/P0} Running Domain Level Tests
+{/N0/SB5/P2} @(#) lpost         5.15.2  2003/08/04 10:27
+{/N0/SB5/P3} @(#) lpost         5.15.2  2003/08/04 10:27
+{/N0/SB5/P2} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P2} Use is subject to license terms.
+{/N0/SB5/P3} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
+reserved.
+{/N0/SB5/P3} Use is subject to license terms.
+{/N0/SB5/P0} Running Domain Basic Tests
+{/N0/SB5/P0} Running Domain Advanced Tests
+{/N0/SB5/P0} Running Domain Stick Sync Tests
+{/N0/SB5/P0} Running Domain Verify Stick Sync Tests
+{/N0/SB5/P0} DCB_DECOMP_OBP command succeeded
+{/N0/SB5/P0} Committing retained memory 
+00000000.0096c000-00000000.0096dfff
+{/N0/SB5/P0} Retaining 00000000.0096c000-00000000.0096dfff
+{/N0/SB5/P0} Committing retained memory 
+00000000.00984000-00000000.00985fff
+{/N0/SB5/P0} Retaining 00000000.00984000-00000000.00985fff
+{/N0/SB5/P0}  CPU 21 clearing 00000000.00000000 to 00000000.0025b000
+{/N0/SB5/P0}  CPU 22 clearing 00000000.0025b000 to 00000000.004b6000
+{/N0/SB5/P0}  CPU 23 clearing 00000000.004b6000 to 00000000.00711000
+{/N0/SB5/P0}  CPU 20 clearing 00000000.00711000 to 00000000.0096c000
+{/N0/SB5/P0}  CPU 21 clearing 00000000.0096e000 to 00000000.00973800
+{/N0/SB5/P0}  CPU 22 clearing 00000000.00973800 to 00000000.00979000
+{/N0/SB5/P0}  CPU 23 clearing 00000000.00979000 to 00000000.0097e800
+{/N0/SB5/P0}  CPU 20 clearing 00000000.0097e800 to 00000000.00984000
+{/N0/SB5/P0}  CPU 21 clearing 00000000.00986000 to 00000002.00724800
+{/N0/SB5/P0}  CPU 22 clearing 00000002.00724800 to 00000004.004c3000
+{/N0/SB5/P0}  CPU 23 clearing 00000004.004c3000 to 00000006.00261800
+{/N0/SB5/P0}  CPU 20 clearing 00000006.00261800 to 00000008.00000000
+{/N0/SB5/P0} Decompress OBP done
+{/N0/SB5/P0} DCB_ENTER_OBP command succeeded
+{/N0/SB5/P1} DCB_ENTER_OBP command succeeded
+{/N0/SB5/P2} DCB_ENTER_OBP command succeeded
+{/N0/SB5/P3} DCB_ENTER_OBP command succeeded
+
+
+Sun Fire 6800
+OpenFirmware version 5.15.2 (08/04/03 10:27)
+Copyright 2001-2003 Sun Microsystems, Inc.  All rights reserved.
+Use is subject to license terms.
+SmartFirmware, Copyright (C) 1996-2001.  All rights reserved.
+32768 MB memory installed, Serial #51339462.
+Ethernet address 0:3:ba:f:60:c6, Host ID: 830f60c6.
+<-------------------
+
+Thanks for any help!
+
+Pat
+
+
+
+
+Illegal instruction is quite vague, but the OBP does enter a debugging 
+subsystem at the time of the error. I have seen people point fingers at 
+exhausting all of the trap levels causing a similar error message, but 
+without knowing more about what is actually happening i am not so sure. 
+I have relatively easy access to the machine in question if anyone has 
+any ideas at pin pointing the problem? This is quite a broad range of 
+machines that seem to be affected, so i would very much like to work on 
+getting at least SILO able to load a kernel. Whether or not the kernel 
+has issues of it's own at that point is another matter.
