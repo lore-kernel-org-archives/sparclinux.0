@@ -1,103 +1,119 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Tue, 27 Sep 2016 16:26:27 +0000
-Subject: Re: [PATCH v2 1/2] config: Add new CONFIG_PROVE_LOCKING_SMALL
-Message-Id: <1e154efc-b7c8-d1ce-c47f-d00fc71a4c76@oracle.com>
+From: Atish Patra <atish.patra@oracle.com>
+Date: Thu, 15 Sep 2016 20:54:41 +0000
+Subject: [PATCH 2/2] sparc64: Fix irq stack bootmem allocation.
+Message-Id: <1473972881-10671-3-git-send-email-atish.patra@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1474929098-68914-1-git-send-email-babu.moger@oracle.com>
- <1474929098-68914-2-git-send-email-babu.moger@oracle.com>
- <20160927044625.GA13264@ravnborg.org>
- <20160927114009.GM5016@twins.programming.kicks-ass.net>
- <a46631c4-a25f-88b7-9ab5-5e6733c63f51@oracle.com>
- <20160927154339.GA32499@ravnborg.org>
-In-Reply-To: <20160927154339.GA32499@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
+Currently, irq stack bootmem is allocated for all possible cpus
+before nr_cpus value changes the list of possible cpus. As a result,
+there is unnecessary wastage of bootmemory.
 
+Move the irq stack bootmem allocation so that it happens after
+possible cpu list is modified based on nr_cpus value.
 
-On 9/27/2016 10:43 AM, Sam Ravnborg wrote:
-> On Tue, Sep 27, 2016 at 09:51:40AM -0500, Babu Moger wrote:
->> On 9/27/2016 6:40 AM, Peter Zijlstra wrote:
->>> On Tue, Sep 27, 2016 at 06:46:25AM +0200, Sam Ravnborg wrote:
->>>> Since this is only relevant for sparc, and for sparc this is "select"ed,
->>>> then there is limited/no gain having this as a visible menu config option.
->>>>
->>>> How about adding just a simple non-visible config symbol:
->>>>
->>>> config PROVE_LOCKING_SMALL
->>>> 	bool
->>>>
->>>> The nice help text can be added to the H file, and the select
->>>> can be move to the sparc/Kconfig file where it really belongs.
->>> Yes, this should not be user selectable. I don't mind the help being
->>> here though.
->>   How about this?
->>   Moved everything to arch/sparc/Kconfig.debug. It may be not useful
->> to have help in
->> config file as it is not visible. Lets have some explanation in .h file.
->> I will send v3 version if you all agree.
->> ==================>> diff --git a/arch/sparc/Kconfig.debug b/arch/sparc/Kconfig.debug
->> index 6db35fb..67e58a1 100644
->> --- a/arch/sparc/Kconfig.debug
->> +++ b/arch/sparc/Kconfig.debug
->> @@ -21,4 +21,9 @@ config FRAME_POINTER
->>          depends on MCOUNT
->>          default y
->>
->> +config PROVE_LOCKING_SMALL
->> +       bool
->> +       depends on PROVE_LOCKING && SPARC
->> +       default y
->> +
->>   endmenu
-> The idea is to have the SPAC specific stuff in arch/sparc/Kconfig,
-> and not scattered in Kconfig files all over the tree.
->
-> Therefore drop the "depends".
->
-> In sparc/Kconfig you then just do:
->
-> config SPARC
-> 	select PROVE_LOCKING_SMALL if PROVE_LOCKING
->
-> The if part is likely not needed as PROVE_LOCKING_SMALL will be ignored
-> unless PROVE_LOCKING is enabled.
-  Sure. thanks.  Here it is below. I will re-post v3.
+Signed-off-by: Atish Patra <atish.patra@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/kernel/setup_64.c |   25 +++++++++++++++++++++++++
+ arch/sparc/mm/init_64.c      |   16 ----------------
+ 2 files changed, 25 insertions(+), 16 deletions(-)
 
-
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index cde1a62..353731f 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -43,6 +43,7 @@ config SPARC
-         select ODD_RT_SIGACTION
-         select OLD_SIGSUSPEND
-         select ARCH_HAS_SG_CHAIN
-+       select PROVE_LOCKING_SMALL if PROVE_LOCKING
-
-  config SPARC32
-         def_bool !64BIT
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index ba2b0c8..3ba1665 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1008,6 +1008,9 @@ config PROVE_LOCKING
-
-          For more details, see Documentation/locking/lockdep-design.txt.
-
-+config PROVE_LOCKING_SMALL
-+       bool
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index f32cfe8..6b7331d 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -31,6 +31,7 @@
+ #include <linux/initrd.h>
+ #include <linux/module.h>
+ #include <linux/start_kernel.h>
++#include <linux/bootmem.h>
+ 
+ #include <asm/io.h>
+ #include <asm/processor.h>
+@@ -50,6 +51,8 @@
+ #include <asm/elf.h>
+ #include <asm/mdesc.h>
+ #include <asm/cacheflush.h>
++#include <asm/dma.h>
++#include <asm/irq.h>
+ 
+ #ifdef CONFIG_IP_PNP
+ #include <net/ipconfig.h>
+@@ -590,6 +593,22 @@ static void __init init_sparc64_elf_hwcap(void)
+ 		pause_patch();
+ }
+ 
++void __init alloc_irqstack_bootmem(void)
++{
++	unsigned int i, node;
 +
-  config LOCKDEP
-         bool
-         depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && 
-STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-
-
-
-
-> 	Sam
++	for_each_possible_cpu(i) {
++		node = cpu_to_node(i);
++
++		softirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
++							THREAD_SIZE,
++							THREAD_SIZE, 0);
++		hardirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
++							THREAD_SIZE,
++							THREAD_SIZE, 0);
++	}
++}
++
+ void __init setup_arch(char **cmdline_p)
+ {
+ 	/* Initialize PROM console and command line. */
+@@ -651,6 +670,12 @@ void __init setup_arch(char **cmdline_p)
+ 	paging_init();
+ 	init_sparc64_elf_hwcap();
+ 	smp_fill_in_cpu_possible_map();
++	/*
++	 * Once the OF device tree and MDESC have been setup and nr_cpus has
++	 * been parsed, we know the list of possible cpus.  Therefore we can
++	 * allocate the IRQ stacks.
++	 */
++	alloc_irqstack_bootmem();
+ }
+ 
+ extern int stop_a_enabled;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 65457c9..bc7a239 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2081,7 +2081,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long end_pfn, shift, phys_base;
+ 	unsigned long real_end, i;
+-	int node;
+ 
+ 	setup_page_offset();
+ 
+@@ -2250,21 +2249,6 @@ void __init paging_init(void)
+ 	/* Setup bootmem... */
+ 	last_valid_pfn = end_pfn = bootmem_init(phys_base);
+ 
+-	/* Once the OF device tree and MDESC have been setup, we know
+-	 * the list of possible cpus.  Therefore we can allocate the
+-	 * IRQ stacks.
+-	 */
+-	for_each_possible_cpu(i) {
+-		node = cpu_to_node(i);
+-
+-		softirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
+-							THREAD_SIZE,
+-							THREAD_SIZE, 0);
+-		hardirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
+-							THREAD_SIZE,
+-							THREAD_SIZE, 0);
+-	}
+-
+ 	kernel_physical_mapping_init();
+ 
+ 	{
+-- 
+1.7.1
 
