@@ -1,7 +1,7 @@
 From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 16 Sep 2016 20:01:53 +0000
-Subject: [PATCH v14 03/17] PCI: Remove __pci_mmap_make_offset()
-Message-Id: <20160916200207.21439-4-yinghai@kernel.org>
+Date: Fri, 16 Sep 2016 20:01:55 +0000
+Subject: [PATCH v14 05/17] sparc/PCI: Use correct offset for bus address to resource
+Message-Id: <20160916200207.21439-6-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160916200207.21439-1-yinghai@kernel.org>
 In-Reply-To: <20160916200207.21439-1-yinghai@kernel.org>
@@ -9,370 +9,162 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-After
-  PCI: Let pci_mmap_page_range() take resource address
-No user for __pci_mmap_make_offset in those arch.
+After we added 64bit mmio parsing, we got some "no compatible bridge window"
+warning on anther new model that support 64bit resource.
 
-Remove them.
+It turns out that we can not use mem_space.start as 64bit mem space
+offset, aka there is mem_space.start != offset.
+
+Use child_phys_addr to calculate exact offset and record offset in
+pbm.
+
+After patch we get correct offset.
+
+/pci@305: PCI IO [io  0x2007e00000000-0x2007e0fffffff] offset 2007e00000000
+/pci@305: PCI MEM [mem 0x2000000100000-0x200007effffff] offset 2000000000000
+/pci@305: PCI MEM64 [mem 0x2000100000000-0x2000dffffffff] offset 2000000000000
+...
+pci_sun4v f02ae7f8: PCI host bridge to bus 0000:00
+pci_bus 0000:00: root bus resource [io  0x2007e00000000-0x2007e0fffffff] (bus address [0x0000-0xfffffff])
+pci_bus 0000:00: root bus resource [mem 0x2000000100000-0x200007effffff] (bus address [0x00100000-0x7effffff])
+pci_bus 0000:00: root bus resource [mem 0x2000100000000-0x2000dffffffff] (bus address [0x100000000-0xdffffffff])
+
+-v3: put back mem64_offset, as we found T4 has mem_offset != mem64_offset
+     check overlapping between mem64_space and mem_space.
+-v7: after new pci_mmap_page_range patches.
+-v8: remove change in pci_resource_to_user()
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: linuxppc-dev@lists.ozlabs.org
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: sparclinux@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
 ---
- arch/microblaze/pci/pci-common.c |  63 ----------------------
- arch/powerpc/kernel/pci-common.c |  63 ----------------------
- arch/sparc/kernel/pci.c          | 113 ---------------------------------------
- arch/xtensa/kernel/pci.c         |  62 ---------------------
- 4 files changed, 301 deletions(-)
+ arch/sparc/kernel/pci.c        |  6 +++---
+ arch/sparc/kernel/pci_common.c | 32 ++++++++++++++++++++++++--------
+ arch/sparc/kernel/pci_impl.h   |  4 ++++
+ 3 files changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index 9e3bc05..e7cd0ab 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -156,69 +156,6 @@ void pcibios_set_master(struct pci_dev *dev)
-  */
- 
- /*
-- * Adjust vm_pgoff of VMA such that it is the physical page offset
-- * corresponding to the 32-bit pci bus offset for DEV requested by the user.
-- *
-- * Basically, the user finds the base address for his device which he wishes
-- * to mmap.  They read the 32-bit value from the config space base register,
-- * add whatever PAGE_SIZE multiple offset they wish, and feed this into the
-- * offset parameter of mmap on /proc/bus/pci/XXX for that device.
-- *
-- * Returns negative error code on failure, zero on success.
-- */
--static struct resource *__pci_mmap_make_offset(struct pci_dev *dev,
--					       resource_size_t *offset,
--					       enum pci_mmap_state mmap_state)
--{
--	struct pci_controller *hose = pci_bus_to_host(dev->bus);
--	unsigned long io_offset = 0;
--	int i, res_bit;
--
--	if (!hose)
--		return NULL;		/* should never happen */
--
--	/* If memory, add on the PCI bridge address offset */
--	if (mmap_state = pci_mmap_mem) {
--#if 0 /* See comment in pci_resource_to_user() for why this is disabled */
--		*offset += hose->pci_mem_offset;
--#endif
--		res_bit = IORESOURCE_MEM;
--	} else {
--		io_offset = (unsigned long)hose->io_base_virt - _IO_BASE;
--		*offset += io_offset;
--		res_bit = IORESOURCE_IO;
--	}
--
--	/*
--	 * Check that the offset requested corresponds to one of the
--	 * resources of the device.
--	 */
--	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
--		struct resource *rp = &dev->resource[i];
--		int flags = rp->flags;
--
--		/* treat ROM as memory (should be already) */
--		if (i = PCI_ROM_RESOURCE)
--			flags |= IORESOURCE_MEM;
--
--		/* Active and same type? */
--		if ((flags & res_bit) = 0)
--			continue;
--
--		/* In the range of this resource? */
--		if (*offset < (rp->start & PAGE_MASK) || *offset > rp->end)
--			continue;
--
--		/* found it! construct the final physical address */
--		if (mmap_state = pci_mmap_io)
--			*offset += hose->io_base_phys - io_offset;
--		return rp;
--	}
--
--	return NULL;
--}
--
--/*
-  * This one is used by /dev/mem and fbdev who have no clue about the
-  * PCI device, it tries to find the PCI device first and calls the
-  * above routine
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index 67b2e68..07fa9d5 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -388,69 +388,6 @@ static int pci_read_irq_line(struct pci_dev *pci_dev)
-  */
- 
- /*
-- * Adjust vm_pgoff of VMA such that it is the physical page offset
-- * corresponding to the 32-bit pci bus offset for DEV requested by the user.
-- *
-- * Basically, the user finds the base address for his device which he wishes
-- * to mmap.  They read the 32-bit value from the config space base register,
-- * add whatever PAGE_SIZE multiple offset they wish, and feed this into the
-- * offset parameter of mmap on /proc/bus/pci/XXX for that device.
-- *
-- * Returns negative error code on failure, zero on success.
-- */
--static struct resource *__pci_mmap_make_offset(struct pci_dev *dev,
--					       resource_size_t *offset,
--					       enum pci_mmap_state mmap_state)
--{
--	struct pci_controller *hose = pci_bus_to_host(dev->bus);
--	unsigned long io_offset = 0;
--	int i, res_bit;
--
--	if (hose = NULL)
--		return NULL;		/* should never happen */
--
--	/* If memory, add on the PCI bridge address offset */
--	if (mmap_state = pci_mmap_mem) {
--#if 0 /* See comment in pci_resource_to_user() for why this is disabled */
--		*offset += hose->pci_mem_offset;
--#endif
--		res_bit = IORESOURCE_MEM;
--	} else {
--		io_offset = (unsigned long)hose->io_base_virt - _IO_BASE;
--		*offset += io_offset;
--		res_bit = IORESOURCE_IO;
--	}
--
--	/*
--	 * Check that the offset requested corresponds to one of the
--	 * resources of the device.
--	 */
--	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
--		struct resource *rp = &dev->resource[i];
--		int flags = rp->flags;
--
--		/* treat ROM as memory (should be already) */
--		if (i = PCI_ROM_RESOURCE)
--			flags |= IORESOURCE_MEM;
--
--		/* Active and same type? */
--		if ((flags & res_bit) = 0)
--			continue;
--
--		/* In the range of this resource? */
--		if (*offset < (rp->start & PAGE_MASK) || *offset > rp->end)
--			continue;
--
--		/* found it! construct the final physical address */
--		if (mmap_state = pci_mmap_io)
--			*offset += hose->io_base_phys - io_offset;
--		return rp;
--	}
--
--	return NULL;
--}
--
--/*
-  * This one is used by /dev/mem and fbdev who have no clue about the
-  * PCI device, it tries to find the PCI device first and calls the
-  * above routine
 diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 5f2d78e..c7d2ce6 100644
+index c7d2ce6..e16da35 100644
 --- a/arch/sparc/kernel/pci.c
 +++ b/arch/sparc/kernel/pci.c
-@@ -732,119 +732,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+@@ -663,12 +663,12 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+ 	printk("PCI: Scanning PBM %s\n", node->full_name);
  
- /* Platform support for /proc/bus/pci/X/Y mmap()s. */
+ 	pci_add_resource_offset(&resources, &pbm->io_space,
+-				pbm->io_space.start);
++				pbm->io_offset);
+ 	pci_add_resource_offset(&resources, &pbm->mem_space,
+-				pbm->mem_space.start);
++				pbm->mem_offset);
+ 	if (pbm->mem64_space.flags)
+ 		pci_add_resource_offset(&resources, &pbm->mem64_space,
+-					pbm->mem_space.start);
++					pbm->mem64_offset);
+ 	pbm->busn.start = pbm->pci_first_busno;
+ 	pbm->busn.end	= pbm->pci_last_busno;
+ 	pbm->busn.flags	= IORESOURCE_BUS;
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index 33524c1..76998f8 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -410,13 +410,16 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
  
--/* If the user uses a host-bridge as the PCI device, he may use
-- * this to perform a raw mmap() of the I/O or MEM space behind
-- * that controller.
-- *
-- * This can be useful for execution of x86 PCI bios initialization code
-- * on a PCI card, like the xfree86 int10 stuff does.
-- */
--static int __pci_mmap_make_offset_bus(struct pci_dev *pdev, struct vm_area_struct *vma,
--				      enum pci_mmap_state mmap_state)
--{
--	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
--	unsigned long space_size, user_offset, user_size;
--
--	if (mmap_state = pci_mmap_io) {
--		space_size = resource_size(&pbm->io_space);
--	} else {
--		space_size = resource_size(&pbm->mem_space);
--	}
--
--	/* Make sure the request is in range. */
--	user_offset = vma->vm_pgoff << PAGE_SHIFT;
--	user_size = vma->vm_end - vma->vm_start;
--
--	if (user_offset >= space_size ||
--	    (user_offset + user_size) > space_size)
--		return -EINVAL;
--
--	if (mmap_state = pci_mmap_io) {
--		vma->vm_pgoff = (pbm->io_space.start +
--				 user_offset) >> PAGE_SHIFT;
--	} else {
--		vma->vm_pgoff = (pbm->mem_space.start +
--				 user_offset) >> PAGE_SHIFT;
--	}
--
--	return 0;
--}
--
--/* Adjust vm_pgoff of VMA such that it is the physical page offset
-- * corresponding to the 32-bit pci bus offset for DEV requested by the user.
-- *
-- * Basically, the user finds the base address for his device which he wishes
-- * to mmap.  They read the 32-bit value from the config space base register,
-- * add whatever PAGE_SIZE multiple offset they wish, and feed this into the
-- * offset parameter of mmap on /proc/bus/pci/XXX for that device.
-- *
-- * Returns negative error code on failure, zero on success.
-- */
--static int __pci_mmap_make_offset(struct pci_dev *pdev,
--				  struct vm_area_struct *vma,
--				  enum pci_mmap_state mmap_state)
--{
--	unsigned long user_paddr, user_size;
--	int i, err;
--
--	/* First compute the physical address in vma->vm_pgoff,
--	 * making sure the user offset is within range in the
--	 * appropriate PCI space.
--	 */
--	err = __pci_mmap_make_offset_bus(pdev, vma, mmap_state);
--	if (err)
--		return err;
--
--	/* If this is a mapping on a host bridge, any address
--	 * is OK.
--	 */
--	if ((pdev->class >> 8) = PCI_CLASS_BRIDGE_HOST)
--		return err;
--
--	/* Otherwise make sure it's in the range for one of the
--	 * device's resources.
--	 */
--	user_paddr = vma->vm_pgoff << PAGE_SHIFT;
--	user_size = vma->vm_end - vma->vm_start;
--
--	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
--		struct resource *rp = &pdev->resource[i];
--		resource_size_t aligned_end;
--
--		/* Active? */
--		if (!rp->flags)
--			continue;
--
--		/* Same type? */
--		if (i = PCI_ROM_RESOURCE) {
--			if (mmap_state != pci_mmap_mem)
--				continue;
--		} else {
--			if ((mmap_state = pci_mmap_io &&
--			     (rp->flags & IORESOURCE_IO) = 0) ||
--			    (mmap_state = pci_mmap_mem &&
--			     (rp->flags & IORESOURCE_MEM) = 0))
--				continue;
--		}
--
--		/* Align the resource end to the next page address.
--		 * PAGE_SIZE intentionally added instead of (PAGE_SIZE - 1),
--		 * because actually we need the address of the next byte
--		 * after rp->end.
--		 */
--		aligned_end = (rp->end + PAGE_SIZE) & PAGE_MASK;
--
--		if ((rp->start <= user_paddr) &&
--		    (user_paddr + user_size) <= aligned_end)
--			break;
--	}
--
--	if (i > PCI_ROM_RESOURCE)
--		return -EINVAL;
--
--	return 0;
--}
--
- /* Set vm_page_prot of VMA, as appropriate for this architecture, for a pci
-  * device mapping.
-  */
-diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
-index 4c5f1fa..97ad3dd 100644
---- a/arch/xtensa/kernel/pci.c
-+++ b/arch/xtensa/kernel/pci.c
-@@ -272,68 +272,6 @@ pci_controller_num(struct pci_dev *dev)
-  */
+ 	for (i = 0; i < num_pbm_ranges; i++) {
+ 		const struct linux_prom_pci_ranges *pr = &pbm_ranges[i];
+-		unsigned long a, size;
++		unsigned long a, size, region_a;
+ 		u32 parent_phys_hi, parent_phys_lo;
++		u32 child_phys_mid, child_phys_lo;
+ 		u32 size_hi, size_lo;
+ 		int type;
  
- /*
-- * Adjust vm_pgoff of VMA such that it is the physical page offset
-- * corresponding to the 32-bit pci bus offset for DEV requested by the user.
-- *
-- * Basically, the user finds the base address for his device which he wishes
-- * to mmap.  They read the 32-bit value from the config space base register,
-- * add whatever PAGE_SIZE multiple offset they wish, and feed this into the
-- * offset parameter of mmap on /proc/bus/pci/XXX for that device.
-- *
-- * Returns negative error code on failure, zero on success.
-- */
--static __inline__ int
--__pci_mmap_make_offset(struct pci_dev *dev, struct vm_area_struct *vma,
--		       enum pci_mmap_state mmap_state)
--{
--	struct pci_controller *pci_ctrl = (struct pci_controller*) dev->sysdata;
--	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
--	unsigned long io_offset = 0;
--	int i, res_bit;
--
--	if (pci_ctrl = 0)
--		return -EINVAL;		/* should never happen */
--
--	/* If memory, add on the PCI bridge address offset */
--	if (mmap_state = pci_mmap_mem) {
--		res_bit = IORESOURCE_MEM;
--	} else {
--		io_offset = (unsigned long)pci_ctrl->io_space.base;
--		offset += io_offset;
--		res_bit = IORESOURCE_IO;
--	}
--
--	/*
--	 * Check that the offset requested corresponds to one of the
--	 * resources of the device.
--	 */
--	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
--		struct resource *rp = &dev->resource[i];
--		int flags = rp->flags;
--
--		/* treat ROM as memory (should be already) */
--		if (i = PCI_ROM_RESOURCE)
--			flags |= IORESOURCE_MEM;
--
--		/* Active and same type? */
--		if ((flags & res_bit) = 0)
--			continue;
--
--		/* In the range of this resource? */
--		if (offset < (rp->start & PAGE_MASK) || offset > rp->end)
--			continue;
--
--		/* found it! construct the final physical address */
--		if (mmap_state = pci_mmap_io)
--			offset += pci_ctrl->io_space.start - io_offset;
--		vma->vm_pgoff = offset >> PAGE_SHIFT;
--		return 0;
--	}
--
--	return -EINVAL;
--}
--
--/*
-  * Set vm_page_prot of VMA, as appropriate for this architecture, for a pci
-  * device mapping.
-  */
+ 		parent_phys_hi = pr->parent_phys_hi;
+ 		parent_phys_lo = pr->parent_phys_lo;
++		child_phys_mid = pr->child_phys_mid;
++		child_phys_lo = pr->child_phys_lo;
+ 		if (tlb_type = hypervisor)
+ 			parent_phys_hi &= 0x0fffffff;
+ 
+@@ -426,6 +429,8 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 		type = (pr->child_phys_hi >> 24) & 0x3;
+ 		a = (((unsigned long)parent_phys_hi << 32UL) |
+ 		     ((unsigned long)parent_phys_lo  <<  0UL));
++		region_a = (((unsigned long)child_phys_mid << 32UL) |
++		     ((unsigned long)child_phys_lo  <<  0UL));
+ 		size = (((unsigned long)size_hi << 32UL) |
+ 			((unsigned long)size_lo  <<  0UL));
+ 
+@@ -440,6 +445,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 			pbm->io_space.start = a;
+ 			pbm->io_space.end = a + size - 1UL;
+ 			pbm->io_space.flags = IORESOURCE_IO;
++			pbm->io_offset = a - region_a;
+ 			saw_io = 1;
+ 			break;
+ 
+@@ -448,6 +454,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 			pbm->mem_space.start = a;
+ 			pbm->mem_space.end = a + size - 1UL;
+ 			pbm->mem_space.flags = IORESOURCE_MEM;
++			pbm->mem_offset = a - region_a;
+ 			saw_mem = 1;
+ 			break;
+ 
+@@ -456,6 +463,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 			pbm->mem64_space.start = a;
+ 			pbm->mem64_space.end = a + size - 1UL;
+ 			pbm->mem64_space.flags = IORESOURCE_MEM;
++			pbm->mem64_offset = a - region_a;
+ 			saw_mem = 1;
+ 			break;
+ 
+@@ -471,14 +479,22 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ 		prom_halt();
+ 	}
+ 
+-	printk("%s: PCI IO[%llx] MEM[%llx]",
+-	       pbm->name,
+-	       pbm->io_space.start,
+-	       pbm->mem_space.start);
++	if (pbm->io_space.flags)
++		printk("%s: PCI IO %pR offset %llx\n",
++		       pbm->name, &pbm->io_space, pbm->io_offset);
++	if (pbm->mem_space.flags)
++		printk("%s: PCI MEM %pR offset %llx\n",
++		       pbm->name, &pbm->mem_space, pbm->mem_offset);
++	if (pbm->mem64_space.flags && pbm->mem_space.flags) {
++		if (pbm->mem64_space.start <= pbm->mem_space.end)
++			pbm->mem64_space.start = pbm->mem_space.end + 1;
++		if (pbm->mem64_space.start > pbm->mem64_space.end)
++			pbm->mem64_space.flags = 0;
++	}
++
+ 	if (pbm->mem64_space.flags)
+-		printk(" MEM64[%llx]",
+-		       pbm->mem64_space.start);
+-	printk("\n");
++		printk("%s: PCI MEM64 %pR offset %llx\n",
++		       pbm->name, &pbm->mem64_space, pbm->mem64_offset);
+ 
+ 	pbm->io_space.name = pbm->mem_space.name = pbm->name;
+ 	pbm->mem64_space.name = pbm->name;
+diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
+index 37222ca..2853af7 100644
+--- a/arch/sparc/kernel/pci_impl.h
++++ b/arch/sparc/kernel/pci_impl.h
+@@ -99,6 +99,10 @@ struct pci_pbm_info {
+ 	struct resource			mem_space;
+ 	struct resource			mem64_space;
+ 	struct resource			busn;
++	/* offset */
++	resource_size_t			io_offset;
++	resource_size_t			mem_offset;
++	resource_size_t			mem64_offset;
+ 
+ 	/* Base of PCI Config space, can be per-PBM or shared. */
+ 	unsigned long			config_space;
 -- 
 2.8.3
 
