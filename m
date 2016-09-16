@@ -1,90 +1,75 @@
-From: Atish Patra <atish.patra@oracle.com>
-Date: Wed, 28 Sep 2016 20:01:19 +0000
-Subject: [PATCH v2 1/2] sparc64: Fix cpu_possible_mask if nr_cpus is set
-Message-Id: <1475092880-85252-2-git-send-email-atish.patra@oracle.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Date: Fri, 16 Sep 2016 20:01:58 +0000
+Subject: [PATCH v14 08/17] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <20160916200207.21439-9-yinghai@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20160916200207.21439-1-yinghai@kernel.org>
+In-Reply-To: <20160916200207.21439-1-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
 
-If kernel boot parameter nr_cpus is set, it should define the number
-of CPUs that can ever be available in the system i.e.
-cpu_possible_mask. setup_nr_cpu_ids() overrides the nr_cpu_ids based
-on the cpu_possible_mask during kernel initialization. If
-cpu_possible_mask is not set based on the nr_cpus value, earlier part
-of the kernel would be initialized using nr_cpus value leading to a
-kernel crash.
+For device resource with PREF bit setting under bridge 64-bit pref resource,
+we need to make sure only set PREF for 64bit resource.
 
-Set cpu_possible_mask based on nr_cpus value. Thus setup_nr_cpu_ids()
-becomes redundant and does not corrupt nr_cpu_ids value.
+so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device
+resource flags parsing.
 
-Signed-off-by: Atish Patra <atish.patra@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
 ---
- arch/sparc/include/asm/smp_64.h |    2 ++
- arch/sparc/kernel/setup_64.c    |    1 +
- arch/sparc/kernel/smp_64.c      |   14 ++++++++++++++
- 3 files changed, 17 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/of_device_32.c | 5 +++--
+ arch/sparc/kernel/of_device_64.c | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/smp_64.h b/arch/sparc/include/asm/smp_64.h
-index 26d9e77..ce2233f 100644
---- a/arch/sparc/include/asm/smp_64.h
-+++ b/arch/sparc/include/asm/smp_64.h
-@@ -43,6 +43,7 @@ void arch_send_call_function_ipi_mask(const struct cpumask *mask);
- int hard_smp_processor_id(void);
- #define raw_smp_processor_id() (current_thread_info()->cpu)
- 
-+void smp_fill_in_cpu_possible_map(void);
- void smp_fill_in_sib_core_maps(void);
- void cpu_play_dead(void);
- 
-@@ -72,6 +73,7 @@ void __cpu_die(unsigned int cpu);
- #define smp_fill_in_sib_core_maps() do { } while (0)
- #define smp_fetch_global_regs() do { } while (0)
- #define smp_fetch_global_pmu() do { } while (0)
-+#define smp_fill_in_cpu_possible_map() do { } while (0)
- 
- #endif /* !(CONFIG_SMP) */
- 
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 599f120..f32cfe8 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -650,6 +650,7 @@ void __init setup_arch(char **cmdline_p)
- 
- 	paging_init();
- 	init_sparc64_elf_hwcap();
-+	smp_fill_in_cpu_possible_map();
- }
- 
- extern int stop_a_enabled;
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 8a6151a..d3035ba 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1227,6 +1227,20 @@ void __init smp_setup_processor_id(void)
- 		xcall_deliver_impl = hypervisor_xcall_deliver;
- }
- 
-+void __init smp_fill_in_cpu_possible_map(void)
-+{
-+	int possible_cpus = num_possible_cpus();
-+	int i;
-+
-+	if (possible_cpus > nr_cpu_ids)
-+		possible_cpus = nr_cpu_ids;
-+
-+	for (i = 0; i < possible_cpus; i++)
-+		set_cpu_possible(i, true);
-+	for (; i < NR_CPUS; i++)
-+		set_cpu_possible(i, false);
-+}
-+
- void smp_fill_in_sib_core_maps(void)
- {
- 	unsigned int i;
--- 
-1.7.1
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
+_32.c
+index 185aa96..3e9f273 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
+dr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
+_64.c
+index 7bbdc26..defee61 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
+addr, unsigned long flags)
+ 	case 0x01:
+ 		flags |=3D IORESOURCE_IO;
+ 		break;
+-
+ 	case 0x02: /* 32 bits */
+-	case 0x03: /* 64 bits */
+ 		flags |=3D IORESOURCE_MEM;
+ 		break;
++	case 0x03: /* 64 bits */
++		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
++		break;
+ 	}
+ 	if (w & 0x40000000)
+ 		flags |=3D IORESOURCE_PREFETCH;
+--=20
+2.8.3
 
