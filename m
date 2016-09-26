@@ -1,30 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 04 Sep 2016 06:06:07 +0000
-Subject: Re: [PATCH 4/4] sparc: bpf_jit: Rename jump labels in bpf_jit_compile()
-Message-Id: <20160903.230607.1667562673788737377.davem@davemloft.net>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 26 Sep 2016 22:31:37 +0000
+Subject: [PATCH v2 1/2] config: Add new CONFIG_PROVE_LOCKING_SMALL
+Message-Id: <1474929098-68914-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ab4a20b2-16be-c3b2-58a7-fe7db39ab559@users.sourceforge.net>
-        <054ff9e1-2b84-904b-5f92-55746292916e@users.sourceforge.net>
-        <57CAFFDC.4030606@iogearbox.net>
-In-Reply-To: <57CAFFDC.4030606@iogearbox.net>
+References: <1474929098-68914-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1474929098-68914-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: daniel@iogearbox.net
-Cc: elfring@users.sourceforge.net, sparclinux@vger.kernel.org, adam.buchbinder@gmail.com, ast@kernel.org, rabin@rab.in, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, julia.lawall@lip6.fr, pbonzini@redhat.com
+To: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
 
-From: Daniel Borkmann <daniel@iogearbox.net>
-Date: Sat, 03 Sep 2016 18:52:44 +0200
+Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL for sparc.
 
-> On 09/03/2016 06:41 PM, SF Markus Elfring wrote:
->> From: Markus Elfring <elfring@users.sourceforge.net>
->> Date: Sat, 3 Sep 2016 18:14:19 +0200
->>
->> Adjust jump labels according to the current Linux coding style
->> convention.
->>
->> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> 
-> NAK, just noise.
+This feature limits the space used for "Lock debugging: prove locking
+correctness" by about 4MB. The current sparc systms have the limitation of
+32MB size for kernel size including .text, .data and .bss sections. With
+PROVE_LOCKING feature, the kernel size could grow beyond this limit and
+causing system bootup issues. With this option, kernel limits the size
+of the entries of lock_chains, stack_trace etc. so that kernel fits in
+required size limit.  This is only visible for sparc.
 
-And frankly I hate that leading space.
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+---
+ lib/Kconfig.debug |   17 +++++++++++++++++
+ 1 files changed, 17 insertions(+), 0 deletions(-)
+
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index b9cfdbf..c79de25 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1035,6 +1035,7 @@ config PROVE_LOCKING
+ 	select DEBUG_MUTEXES
+ 	select DEBUG_LOCK_ALLOC
+ 	select TRACE_IRQFLAGS
++	select PROVE_LOCKING_SMALL if SPARC
+ 	default n
+ 	help
+ 	 This feature enables the kernel to prove that all locking
+@@ -1070,6 +1071,22 @@ config PROVE_LOCKING
+ 
+ 	 For more details, see Documentation/locking/lockdep-design.txt.
+ 
++config PROVE_LOCKING_SMALL
++	bool "Limit the space for prove locking correctness"
++	depends on PROVE_LOCKING && SPARC
++	help
++	 This feature limits the space used for "Lock debugging: prove
++	 locking correctness" by about 4MB. In sparc system, all the
++	 kernel's code, data, and bss, must have locked translations in
++	 the TLB so that it does not hit TLB misses. The current sparc
++	 chips have 8 TLB entries available that may be locked down, and
++	 with a 4mb page size, this gives a maximum of 32mb of memory for
++	 the kernel size. With PROVE_LOCKING feature, the kernel size could
++	 grow beyond this limit and causing system bootup issues. With
++	 this option, kernel limits the size of the entries of lock_chains,
++	 stack_trace etc. to debug PROVE_LOCKING so that kernel size fits
++	 in 32MB. This is only visible for SPARC.
++
+ config LOCKDEP
+ 	bool
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
+-- 
+1.7.1
+
