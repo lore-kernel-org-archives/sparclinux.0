@@ -1,94 +1,57 @@
-From: Jean Delvare <jdelvare@suse.de>
-Date: Wed, 07 Sep 2016 12:30:18 +0000
-Subject: Re: sparc: bpf_jit: Rename jump labels in bpf_jit_compile()
-Message-Id: <20160907143018.7e2fffbc@endymion>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 27 Sep 2016 19:33:27 +0000
+Subject: [PATCH v3 1/2] config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL for sparc
+Message-Id: <1475004808-91920-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160903.230607.1667562673788737377.davem@davemloft.net>
-        <1365a588-c7c7-717c-1e3d-ceabd71e8479@users.sourceforge.net>
-        <20160903.235916.1892276070318494855.davem@davemloft.net>
-        <deecaab4-011b-b8d5-a3c7-6e34abef60e5@users.sourceforge.net>
-        <57CBEFEA.3080007@iogearbox.net>
-        <20160905130737.74f63abe@endymion>
-        <20160905113704.GA10153@twins.programming.kicks-ass.net>
-        <20160905135445.501814a1@endymion>
-        <20160905115838.GC10153@twins.programming.kicks-ass.net>
-        <20160906163413.470f37d4@endymion>
-        <20160906144756.GF2794@worktop>
-In-Reply-To: <20160906144756.GF2794@worktop>
+References: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>, Jonathan Corbet <corbet@lwn.net>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Adam Buchbinder <adam.buchbinder@gmail.com>, Alexei Starovoitov <ast@kernel.org>, Rabin Vincent <rabin@rab.in>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, Paolo Bonzini <pbonzini@redhat.com>, linux-doc@vger.kernel.org
+To: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, sam@ravnborg.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
 
-Hi Peter,
+This new config parameter limits the space used for "Lock debugging:
+prove locking correctness" by about 4MB. The current sparc systems have
+the limitation of 32MB size for kernel size including .text, .data and
+.bss sections. With PROVE_LOCKING feature, the kernel size could grow
+beyond this limit and causing system boot-up issues. With this option,
+kernel limits the size of the entries of lock_chains, stack_trace etc.,
+so that kernel fits in required size limit. This is not visible to user
+and only used for sparc.
 
-On Tue, 6 Sep 2016 16:47:56 +0200, Peter Zijlstra wrote:
-> On Tue, Sep 06, 2016 at 04:34:13PM +0200, Jean Delvare wrote:
-> > > [diff "default"]
-> > >         xfuncname = "^[[:alpha:]$_].*[^:]$"
-> > 
-> > OK, I see. As mentioned somewhere else, it fails for labels which have
-> > comments. 
-> 
-> Heh, There's labels that have comments?
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+---
+ arch/sparc/Kconfig |    1 +
+ lib/Kconfig.debug  |    3 +++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-Yes, 43.
-
-> > My worry is that you recommending it to contributors on a individual
-> > and opportunity basis, doesn't scale. Basing coding style
-> > recommendations on a personal quirk doesn't strike me as the best idea
-> > ever in the long run.
-> 
-> Don't care too much, I simply will not take any patch that adds stupid
-> spaces :-)
-> 
-> > While looking at the syntax of your example, I have found something
-> > which looks more promising. git already has predefined xfuncname
-> > definitions for various languages, including C. These can be enabled
-> > based on file name patterns via gitattributes. The
-> > following .gitattribute file placed at the root of the kernel source
-> > tree achieves what you want:
-> > 
-> > *.c   diff=cpp
-> > *.h   diff=cpp
-> > 
-> > The major difference between git config and gitattributes is that the
-> > latter can be part of the project itself, just like gitignore. So we
-> > could just push that .gitattribute file upstream, and then labels
-> > without leading spaces would no longer be a problem, at least within
-> > git.
-> 
-> Works for me,
-
-OK, I'll send a patch now.
-
-> and last time this came up Linus agreed with the
-> "whitespace before labels is stupid" thing. Although I cannot find a
-> link to that just now.
-
-Murphy's law applies, you can never find links again the day you
-desperately need them. If you ever get your hands on that one again,
-please let me know, I really would like to read that post.
-
-> > It would still be a problem for me as an inveterate quilt user,
-> 
-> Add the below to your .quiltrc or environment:
-> 
-> QUILT_DIFF_OPTS="-F ^[[:alpha:]\$_].*[^:]\$"
-
-I didn't know this option existed, thanks for the pointer.
-
-Now I'm sure I won't try to get the behavior of GNU diff option -p
-changed, as I think I know what the answer would be.
-
-> Same caveat about labels with comments, but then I'd not take a patch
-> doing that in the first place.
-
-I'll improve the regular expression if I ever have to (I don't think a
-function declaration can have a colon anywhere?), but I'm happy if it
-works in 99.9 % of the cases, thank sagain.
-
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 59b0960..8da321c 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -44,6 +44,7 @@ config SPARC
+ 	select ARCH_HAS_SG_CHAIN
+ 	select CPU_NO_EFFICIENT_FFS
+ 	select HAVE_ARCH_HARDENED_USERCOPY
++	select PROVE_LOCKING_SMALL if PROVE_LOCKING
+ 
+ config SPARC32
+ 	def_bool !64BIT
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index cab7405..597e589 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1084,6 +1084,9 @@ config PROVE_LOCKING
+ 
+ 	 For more details, see Documentation/locking/lockdep-design.txt.
+ 
++config PROVE_LOCKING_SMALL
++	bool
++
+ config LOCKDEP
+ 	bool
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
 -- 
-Jean Delvare
-SUSE L3 Support
+1.7.1
+
