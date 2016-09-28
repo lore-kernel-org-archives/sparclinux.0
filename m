@@ -1,160 +1,151 @@
-From: alexmcwhirter@triadic.us
-Date: Mon, 12 Sep 2016 00:02:10 +0000
-Subject: SILO Issues on an E4900
-Message-Id: <62477e32a682342782e652fcfdbf9fb5@triadic.us>
+From: kbuild test robot <fengguang.wu@intel.com>
+Date: Wed, 28 Sep 2016 17:18:43 +0000
+Subject: [sparc:master 3/4] arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function 'smp_
+Message-Id: <201609290139.lu4LV1CF%fengguang.wu@intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="pWyiEgJYm5f9v55/"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-I was wondering if anyone has posted here about SILO failing to load on 
-Serengeti and Amazon machines? These would be the Sun Fire 3800, 4800, 
-4810, 6800, E2900, E4900, and E6900. These machines are similar in the 
-fact that they all use modularized system controllers running VxWorks 
-which in turn runs a Java implementation of the SSC software.
 
-On an E4900 i am getting an error nearly identical to this users post 
-about a 6800.
+--pWyiEgJYm5f9v55/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+head:   ebb99a4c12e4daabe1940ae936e8e7e97ae68c6f
+commit: 9b2f753ec23710aa32c0d837d2499db92fe9115b [3/4] sparc64: Fix cpu_possible_mask if nr_cpus is set
+config: sparc64-allnoconfig (attached as .config)
+compiler: sparc64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+reproduce:
+        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        git checkout 9b2f753ec23710aa32c0d837d2499db92fe9115b
+        # save the attached .config to linux build tree
+        make.cross ARCH=sparc64 
 
+All errors (new ones prefixed by >>):
 
-I'm having trouble trying to boot off of an install CD (I don't have
-networking set up at the moment, but could probably get that set up).  
-I'm
-trying to install on a 2nd "B" domain on the machine, with a single
-CPU/memory board.
+   arch/sparc/kernel/setup_64.c: In function 'setup_arch':
+>> arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function 'smp_fill_in_cpu_possible_map' [-Werror=implicit-function-declaration]
+     smp_fill_in_cpu_possible_map();
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   cc1: all warnings being treated as errors
 
-When I try to issue the command to boot from the CDROM:
+vim +/smp_fill_in_cpu_possible_map +653 arch/sparc/kernel/setup_64.c
 
-{14} ok boot /ssm@0,0/pci@1a,700000/pci@1/SUNW,isptwo@4/sd@6,0:f
-  or
-{14} ok boot /ssm@0,0/pci@1a,700000/pci@1/SUNW,isptwo@4/sd@6,0
+   647	
+   648		/* Get boot processor trap_block[] setup.  */
+   649		init_cur_cpu_trap(current_thread_info());
+   650	
+   651		paging_init();
+   652		init_sparc64_elf_hwcap();
+ > 653		smp_fill_in_cpu_possible_map();
+   654	}
+   655	
+   656	extern int stop_a_enabled;
 
-I immediately get the error message (no text between command and this):
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-<-------------------
-ERROR: Illegal Instruction
-debugger entered.
-<-------------------
+--pWyiEgJYm5f9v55/
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
-Looking at where the PC is and what's there in memory (seems to be same
-for sd@6,0 and sd@6,0:f):
+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
 
-<-------------------
-{14} ok %pc .
-4004
-{14} ok 4000 40 dump
-              \/  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 
-0123456789ABCDEF
-00000004000  01 03 01 07 00 00 18 f0 00 00 00 00 00 00 01 88 
-................
-00000004010  00 00 00 00 00 00 40 00 00 00 00 00 00 00 00 00 
-......@.........
-00000004020  40 00 00 02 a0 10 00 0f 33 00 00 16 b2 16 61 00 
-@.......3.....a.
-00000004030  23 00 00 10 a2 14 60 00 b0 10 00 11 af c3 e0 c0 
-#.....`.........
-<-------------------
-
-I can boot a copy of Solaris installed on the disk just fine.  Here's a
-copy of the output from the openboot prom initialising:
-
-<-------------------
-Resetting ...
-Copying IO prom to Cpu dram
-.{/N0/SB5/P0} @(#) lpost        5.15.2  2003/08/04 10:27
-{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P0} Use is subject to license terms.
-..................................
-{/N0/SB5/P0} Running PCI IO Controller Basic Tests
-{/N0/SB5/P0} Jumping to memory 00000000.00000020 [00000010]
-{/N0/SB5/P0} System PCI IO post code running from memory
-{/N0/SB5/P0} @(#) lpost         5.15.2  2003/08/04 10:28
-{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P0} Use is subject to license terms.
-{/N0/SB5/P0} Subtest: PCI IO Controller Register Initialization for aid 
-0x1a
-{/N0/SB5/P0} Running PCI IO Controller Functional Tests
-{/N0/SB5/P0} Running SBBC Basic Tests
-{/N0/SB5/P0} Subtest: SBBC PCI Reg Initialization for aid 0x1a
-{/N0/SB5/P0} Running PCI IO Controller Basic Tests
-{/N0/SB5/P0} Subtest: PCI IO Controller Register Initialization for aid 
-0x1b
-{/N0/SB5/P0} Running PCI IO Controller Functional Tests
-{/N0/SB5/P0} @(#) lpost         5.15.2  2003/08/04 10:27
-{/N0/SB5/P0} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P0} Use is subject to license terms.
-{/N0/SB5/P1} @(#) lpost         5.15.2  2003/08/04 10:27
-{/N0/SB5/P1} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P1} Use is subject to license terms.
-{/N0/IB7/P0} Passed
-{/N0/IB7/P1} Passed
-{/N0/SB5/P0} Running Domain Level Tests
-{/N0/SB5/P2} @(#) lpost         5.15.2  2003/08/04 10:27
-{/N0/SB5/P3} @(#) lpost         5.15.2  2003/08/04 10:27
-{/N0/SB5/P2} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P2} Use is subject to license terms.
-{/N0/SB5/P3} Copyright 2001-2003 Sun Microsystems, Inc.  All rights 
-reserved.
-{/N0/SB5/P3} Use is subject to license terms.
-{/N0/SB5/P0} Running Domain Basic Tests
-{/N0/SB5/P0} Running Domain Advanced Tests
-{/N0/SB5/P0} Running Domain Stick Sync Tests
-{/N0/SB5/P0} Running Domain Verify Stick Sync Tests
-{/N0/SB5/P0} DCB_DECOMP_OBP command succeeded
-{/N0/SB5/P0} Committing retained memory 
-00000000.0096c000-00000000.0096dfff
-{/N0/SB5/P0} Retaining 00000000.0096c000-00000000.0096dfff
-{/N0/SB5/P0} Committing retained memory 
-00000000.00984000-00000000.00985fff
-{/N0/SB5/P0} Retaining 00000000.00984000-00000000.00985fff
-{/N0/SB5/P0}  CPU 21 clearing 00000000.00000000 to 00000000.0025b000
-{/N0/SB5/P0}  CPU 22 clearing 00000000.0025b000 to 00000000.004b6000
-{/N0/SB5/P0}  CPU 23 clearing 00000000.004b6000 to 00000000.00711000
-{/N0/SB5/P0}  CPU 20 clearing 00000000.00711000 to 00000000.0096c000
-{/N0/SB5/P0}  CPU 21 clearing 00000000.0096e000 to 00000000.00973800
-{/N0/SB5/P0}  CPU 22 clearing 00000000.00973800 to 00000000.00979000
-{/N0/SB5/P0}  CPU 23 clearing 00000000.00979000 to 00000000.0097e800
-{/N0/SB5/P0}  CPU 20 clearing 00000000.0097e800 to 00000000.00984000
-{/N0/SB5/P0}  CPU 21 clearing 00000000.00986000 to 00000002.00724800
-{/N0/SB5/P0}  CPU 22 clearing 00000002.00724800 to 00000004.004c3000
-{/N0/SB5/P0}  CPU 23 clearing 00000004.004c3000 to 00000006.00261800
-{/N0/SB5/P0}  CPU 20 clearing 00000006.00261800 to 00000008.00000000
-{/N0/SB5/P0} Decompress OBP done
-{/N0/SB5/P0} DCB_ENTER_OBP command succeeded
-{/N0/SB5/P1} DCB_ENTER_OBP command succeeded
-{/N0/SB5/P2} DCB_ENTER_OBP command succeeded
-{/N0/SB5/P3} DCB_ENTER_OBP command succeeded
-
-
-Sun Fire 6800
-OpenFirmware version 5.15.2 (08/04/03 10:27)
-Copyright 2001-2003 Sun Microsystems, Inc.  All rights reserved.
-Use is subject to license terms.
-SmartFirmware, Copyright (C) 1996-2001.  All rights reserved.
-32768 MB memory installed, Serial #51339462.
-Ethernet address 0:3:ba:f:60:c6, Host ID: 830f60c6.
-<-------------------
-
-Thanks for any help!
-
-Pat
-
-
-
-
-Illegal instruction is quite vague, but the OBP does enter a debugging 
-subsystem at the time of the error. I have seen people point fingers at 
-exhausting all of the trap levels causing a similar error message, but 
-without knowing more about what is actually happening i am not so sure. 
-I have relatively easy access to the machine in question if anyone has 
-any ideas at pin pointing the problem? This is quite a broad range of 
-machines that seem to be affected, so i would very much like to work on 
-getting at least SILO able to load a kernel. Whether or not the kernel 
-has issues of it's own at that point is another matter.
+--pWyiEgJYm5f9v55/--
