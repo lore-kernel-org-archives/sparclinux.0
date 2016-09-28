@@ -1,7 +1,7 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Wed, 28 Sep 2016 08:39:26 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Wed, 28 Sep 2016 20:51:40 +0000
 Subject: Re: [PATCH v3 1/2] config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL for sparc
-Message-Id: <20160928083926.GQ5016@twins.programming.kicks-ass.net>
+Message-Id: <20160928205140.GA1750@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
  <1475004808-91920-2-git-send-email-babu.moger@oracle.com>
@@ -10,7 +10,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Babu Moger <babu.moger@oracle.com>
-Cc: mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, sam@ravnborg.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>
+Cc: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
 On Tue, Sep 27, 2016 at 12:33:27PM -0700, Babu Moger wrote:
 > This new config parameter limits the space used for "Lock debugging:
@@ -23,43 +23,4 @@ On Tue, Sep 27, 2016 at 12:33:27PM -0700, Babu Moger wrote:
 > and only used for sparc.
 > 
 > Signed-off-by: Babu Moger <babu.moger@oracle.com>
-
-You forgot to Cc Dave, and since you're touching sparc I need an Ack
-from him before I can queue this.
-
-Dave?
-
-> ---
->  arch/sparc/Kconfig |    1 +
->  lib/Kconfig.debug  |    3 +++
->  2 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 59b0960..8da321c 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -44,6 +44,7 @@ config SPARC
->  	select ARCH_HAS_SG_CHAIN
->  	select CPU_NO_EFFICIENT_FFS
->  	select HAVE_ARCH_HARDENED_USERCOPY
-> +	select PROVE_LOCKING_SMALL if PROVE_LOCKING
->  
->  config SPARC32
->  	def_bool !64BIT
-> diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-> index cab7405..597e589 100644
-> --- a/lib/Kconfig.debug
-> +++ b/lib/Kconfig.debug
-> @@ -1084,6 +1084,9 @@ config PROVE_LOCKING
->  
->  	 For more details, see Documentation/locking/lockdep-design.txt.
->  
-> +config PROVE_LOCKING_SMALL
-> +	bool
-> +
->  config LOCKDEP
->  	bool
->  	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
-> -- 
-> 1.7.1
-> 
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
