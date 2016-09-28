@@ -1,169 +1,101 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 16 Sep 2016 20:01:57 +0000
-Subject: [PATCH v14 07/17] sparc/PCI: Reserve legacy mmio after PCI mmio
-Message-Id: <20160916200207.21439-8-yinghai@kernel.org>
+From: chris hyser <chris.hyser@oracle.com>
+Date: Wed, 28 Sep 2016 19:19:50 +0000
+Subject: [PATCH v2 2/2] sparc64: Enable setting "relaxed ordering" in IOMMU mappings
+Message-Id: <201609281919.u8SJJohu005671@aserv0121.oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160916200207.21439-1-yinghai@kernel.org>
-In-Reply-To: <20160916200207.21439-1-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On one system found bunch of claim resource fail from pci device.
-pci_sun4v f02b894c: PCI host bridge to bus 0000:00
-pci_bus 0000:00: root bus resource [io  0x2007e00000000-0x2007e0fffffff] (bus address [0x0000-0xfffffff])
-pci_bus 0000:00: root bus resource [mem 0x2000000000000-0x200007effffff] (bus address [0x00000000-0x7effffff])
-pci_bus 0000:00: root bus resource [mem 0x2000100000000-0x20007ffffffff] (bus address [0x100000000-0x7ffffffff])
-...
-PCI: Claiming 0000:00:02.0: Resource 14: 0002000000000000..00020000004fffff [200]
-pci 0000:00:02.0: can't claim BAR 14 [mem 0x2000000000000-0x20000004fffff]: address conflict with Video RAM area [??? 0x20000000a0000-0x20000000bffff flags 0x80000000]
-pci 0000:02:00.0: can't claim BAR 0 [mem 0x2000000000000-0x20000000fffff]: no compatible bridge window
-PCI: Claiming 0000:02:00.0: Resource 3: 0002000000100000..0002000000103fff [200]
-pci 0000:02:00.0: can't claim BAR 3 [mem 0x2000000100000-0x2000000103fff]: no compatible bridge window
-PCI: Claiming 0000:02:00.1: Resource 0: 0002000000200000..00020000002fffff [200]
-pci 0000:02:00.1: can't claim BAR 0 [mem 0x2000000200000-0x20000002fffff]: no compatible bridge window
-PCI: Claiming 0000:02:00.1: Resource 3: 0002000000104000..0002000000107fff [200]
-pci 0000:02:00.1: can't claim BAR 3 [mem 0x2000000104000-0x2000000107fff]: no compatible bridge window
-PCI: Claiming 0000:02:00.2: Resource 0: 0002000000300000..00020000003fffff [200]
-pci 0000:02:00.2: can't claim BAR 0 [mem 0x2000000300000-0x20000003fffff]: no compatible bridge window
-PCI: Claiming 0000:02:00.2: Resource 3: 0002000000108000..000200000010bfff [200]
-pci 0000:02:00.2: can't claim BAR 3 [mem 0x2000000108000-0x200000010bfff]: no compatible bridge window
-PCI: Claiming 0000:02:00.3: Resource 0: 0002000000400000..00020000004fffff [200]
-pci 0000:02:00.3: can't claim BAR 0 [mem 0x2000000400000-0x20000004fffff]: no compatible bridge window
-PCI: Claiming 0000:02:00.3: Resource 3: 000200000010c000..000200000010ffff [200]
-pci 0000:02:00.3: can't claim BAR 3 [mem 0x200000010c000-0x200000010ffff]: no compatible bridge window
+Enable relaxed ordering for memory writes in IOMMU TSB entry from
+dma_4v_alloc_coherent(), dma_4v_map_page() and dma_4v_map_sg() when
+dma_attrs DMA_ATTR_WEAK_ORDERING is set. This requires PCI IOMMU I/O
+Translation Services version 2.0 API.
 
-The bridge 00:02.0 resource does not get reserved as Video RAM take the position early,
-and following children resources reservation all fail.
+Many PCIe devices allow enabling relaxed-ordering (memory writes bypassing
+other memory writes) for various DMA buffers. A notable exception is the
+Mellanox mlx4 IB adapter. Due to the nature of x86 HW this appears to have
+little performance impact there. On SPARC HW however, this results in major
+performance degradation getting only about 3Gbps. Enabling RO in the IOMMU
+entries corresponding to mlx4 data buffers increases the throughput to
+about 13 Gbps.
 
-Move down Video RAM area reservation after pci mmio get reserved,
-so we leave pci driver to use those regions.
+Orabug: 19245907
 
--v5: merge simplify one and use pcibios_bus_to_resource()
+Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
 
--v6: use pci_find_bus_resource()
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/kernel/pci.c        |  1 +
- arch/sparc/kernel/pci_common.c | 59 ++++++++++++++++++++++--------------------
- arch/sparc/kernel/pci_impl.h   |  1 +
- 3 files changed, 33 insertions(+), 28 deletions(-)
-
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index e16da35..654cf21 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -686,6 +686,7 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	pci_bus_register_of_sysfs(bus);
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index f5b6537..666d5ba 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -1744,6 +1744,7 @@ unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
  
- 	pci_claim_bus_resources(bus);
-+	pci_register_legacy_regions(bus);
- 	pci_bus_add_devices(bus);
- 	return bus;
- }
-diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
-index 76998f8..1ebc7ff 100644
---- a/arch/sparc/kernel/pci_common.c
-+++ b/arch/sparc/kernel/pci_common.c
-@@ -328,41 +328,46 @@ void pci_get_pbm_props(struct pci_pbm_info *pbm)
- 	}
- }
+ #define HV_PCI_MAP_ATTR_READ		0x01
+ #define HV_PCI_MAP_ATTR_WRITE		0x02
++#define HV_PCI_MAP_ATTR_RELAXED_ORDER	0x04
  
--static void pci_register_legacy_regions(struct resource *io_res,
--					struct resource *mem_res)
-+static void pci_register_region(struct pci_bus *bus, const char *name,
-+				resource_size_t rstart, resource_size_t size)
- {
--	struct resource *p;
-+	struct resource *res, *conflict, *bus_res;
-+	struct pci_bus_region region;
+ #define HV_PCI_DEVICE_BUILD(b,d,f)	\
+ 	((((b) & 0xff) << 16) | \
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index c5c819d..db57d8a 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -78,6 +78,10 @@ static long iommu_batch_flush(struct iommu_batch *p)
+ 	u64 *pglist = p->pglist;
+ 	unsigned long npages = p->npages;
  
--	/* VGA Video RAM. */
--	p = kzalloc(sizeof(*p), GFP_KERNEL);
--	if (!p)
-+	res = kzalloc(sizeof(*res), GFP_KERNEL);
-+	if (!res)
- 		return;
- 
--	p->name = "Video RAM area";
--	p->start = mem_res->start + 0xa0000UL;
--	p->end = p->start + 0x1ffffUL;
--	p->flags = IORESOURCE_BUSY;
--	request_resource(mem_res, p);
-+	res->flags = IORESOURCE_MEM;
- 
--	p = kzalloc(sizeof(*p), GFP_KERNEL);
--	if (!p)
-+	region.start = rstart;
-+	region.end = rstart + size - 1UL;
-+	pcibios_bus_to_resource(bus, res, &region);
-+	bus_res = pci_find_bus_resource(bus, res);
-+	if (!bus_res) {
-+		kfree(res);
- 		return;
-+	}
++	/* VPCI maj=1, min=[0,1] only supports read and write */
++	if (vpci_major < 2)
++		prot &= (HV_PCI_MAP_ATTR_READ | HV_PCI_MAP_ATTR_WRITE);
 +
-+	res->name = name;
-+	res->flags |= IORESOURCE_BUSY;
-+	conflict = request_resource_conflict(bus_res, res);
-+	if (conflict) {
-+		dev_printk(KERN_DEBUG, &bus->dev,
-+			" can't claim %s %pR: address conflict with %s %pR\n",
-+			res->name, res, conflict->name, conflict);
-+		kfree(res);
-+	}
-+}
+ 	while (npages != 0) {
+ 		long num;
  
--	p->name = "System ROM";
--	p->start = mem_res->start + 0xf0000UL;
--	p->end = p->start + 0xffffUL;
--	p->flags = IORESOURCE_BUSY;
--	request_resource(mem_res, p);
-+void pci_register_legacy_regions(struct pci_bus *bus)
-+{
-+	/* VGA Video RAM. */
-+	pci_register_region(bus, "Video RAM area", 0xa0000UL, 0x20000UL);
+@@ -144,6 +148,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 				   unsigned long attrs)
+ {
+ 	unsigned long flags, order, first_page, npages, n;
++	unsigned long prot = 0;
+ 	struct iommu *iommu;
+ 	struct page *page;
+ 	void *ret;
+@@ -157,6 +162,9 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
  
--	p = kzalloc(sizeof(*p), GFP_KERNEL);
--	if (!p)
--		return;
-+	pci_register_region(bus, "System ROM",     0xf0000UL, 0x10000UL);
+ 	npages = size >> IO_PAGE_SHIFT;
  
--	p->name = "Video ROM";
--	p->start = mem_res->start + 0xc0000UL;
--	p->end = p->start + 0x7fffUL;
--	p->flags = IORESOURCE_BUSY;
--	request_resource(mem_res, p);
-+	pci_register_region(bus, "Video ROM",      0xc0000UL,  0x8000UL);
- }
++	if (attrs & DMA_ATTR_WEAK_ORDERING)
++		prot = HV_PCI_MAP_ATTR_RELAXED_ORDER;
++
+ 	nid = dev->archdata.numa_node;
+ 	page = alloc_pages_node(nid, gfp, order);
+ 	if (unlikely(!page))
+@@ -180,7 +188,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	local_irq_save(flags);
  
- static void pci_register_iommu_region(struct pci_pbm_info *pbm)
-@@ -504,8 +509,6 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 	if (pbm->mem64_space.flags)
- 		request_resource(&iomem_resource, &pbm->mem64_space);
+ 	iommu_batch_start(dev,
+-			  (HV_PCI_MAP_ATTR_READ |
++			  (HV_PCI_MAP_ATTR_READ | prot |
+ 			   HV_PCI_MAP_ATTR_WRITE),
+ 			  entry);
  
--	pci_register_legacy_regions(&pbm->io_space,
--				    &pbm->mem_space);
- 	pci_register_iommu_region(pbm);
- }
+@@ -277,6 +285,9 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	if (direction != DMA_TO_DEVICE)
+ 		prot |= HV_PCI_MAP_ATTR_WRITE;
  
-diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
-index 2853af7..ff8f5e1 100644
---- a/arch/sparc/kernel/pci_impl.h
-+++ b/arch/sparc/kernel/pci_impl.h
-@@ -167,6 +167,7 @@ void pci_get_pbm_props(struct pci_pbm_info *pbm);
- struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 				 struct device *parent);
- void pci_determine_mem_io_space(struct pci_pbm_info *pbm);
-+void pci_register_legacy_regions(struct pci_bus *bus);
++	if (attrs & DMA_ATTR_WEAK_ORDERING)
++		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
++
+ 	local_irq_save(flags);
  
- /* Error reporting support. */
- void pci_scan_for_target_abort(struct pci_pbm_info *, struct pci_bus *);
--- 
-2.8.3
-
+ 	iommu_batch_start(dev, prot, entry);
+@@ -355,6 +366,9 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	if (direction != DMA_TO_DEVICE)
+ 		prot |= HV_PCI_MAP_ATTR_WRITE;
+ 
++	if (attrs & DMA_ATTR_WEAK_ORDERING)
++		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
++
+ 	outs = s = segstart = &sglist[0];
+ 	outcount = 1;
+ 	incount = nelems;
