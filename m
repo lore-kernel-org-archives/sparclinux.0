@@ -1,170 +1,119 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 16 Sep 2016 20:01:55 +0000
-Subject: [PATCH v14 05/17] sparc/PCI: Use correct offset for bus address to resource
-Message-Id: <20160916200207.21439-6-yinghai@kernel.org>
+From: Atish Patra <atish.patra@oracle.com>
+Date: Wed, 28 Sep 2016 20:01:20 +0000
+Subject: [PATCH v2 2/2] sparc64: Fix irq stack bootmem allocation.
+Message-Id: <1475092880-85252-3-git-send-email-atish.patra@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160916200207.21439-1-yinghai@kernel.org>
-In-Reply-To: <20160916200207.21439-1-yinghai@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-After we added 64bit mmio parsing, we got some "no compatible bridge window"
-warning on anther new model that support 64bit resource.
+Currently, irq stack bootmem is allocated for all possible cpus
+before nr_cpus value changes the list of possible cpus. As a result,
+there is unnecessary wastage of bootmemory.
 
-It turns out that we can not use mem_space.start as 64bit mem space
-offset, aka there is mem_space.start != offset.
+Move the irq stack bootmem allocation so that it happens after
+possible cpu list is modified based on nr_cpus value.
 
-Use child_phys_addr to calculate exact offset and record offset in
-pbm.
-
-After patch we get correct offset.
-
-/pci@305: PCI IO [io  0x2007e00000000-0x2007e0fffffff] offset 2007e00000000
-/pci@305: PCI MEM [mem 0x2000000100000-0x200007effffff] offset 2000000000000
-/pci@305: PCI MEM64 [mem 0x2000100000000-0x2000dffffffff] offset 2000000000000
-...
-pci_sun4v f02ae7f8: PCI host bridge to bus 0000:00
-pci_bus 0000:00: root bus resource [io  0x2007e00000000-0x2007e0fffffff] (bus address [0x0000-0xfffffff])
-pci_bus 0000:00: root bus resource [mem 0x2000000100000-0x200007effffff] (bus address [0x00100000-0x7effffff])
-pci_bus 0000:00: root bus resource [mem 0x2000100000000-0x2000dffffffff] (bus address [0x100000000-0xdffffffff])
-
--v3: put back mem64_offset, as we found T4 has mem_offset != mem64_offset
-     check overlapping between mem64_space and mem_space.
--v7: after new pci_mmap_page_range patches.
--v8: remove change in pci_resource_to_user()
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Atish Patra <atish.patra@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/kernel/pci.c        |  6 +++---
- arch/sparc/kernel/pci_common.c | 32 ++++++++++++++++++++++++--------
- arch/sparc/kernel/pci_impl.h   |  4 ++++
- 3 files changed, 31 insertions(+), 11 deletions(-)
+ arch/sparc/kernel/setup_64.c |   25 +++++++++++++++++++++++++
+ arch/sparc/mm/init_64.c      |   16 ----------------
+ 2 files changed, 25 insertions(+), 16 deletions(-)
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index c7d2ce6..e16da35 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -663,12 +663,12 @@ struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
- 	printk("PCI: Scanning PBM %s\n", node->full_name);
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index f32cfe8..6b7331d 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -31,6 +31,7 @@
+ #include <linux/initrd.h>
+ #include <linux/module.h>
+ #include <linux/start_kernel.h>
++#include <linux/bootmem.h>
  
- 	pci_add_resource_offset(&resources, &pbm->io_space,
--				pbm->io_space.start);
-+				pbm->io_offset);
- 	pci_add_resource_offset(&resources, &pbm->mem_space,
--				pbm->mem_space.start);
-+				pbm->mem_offset);
- 	if (pbm->mem64_space.flags)
- 		pci_add_resource_offset(&resources, &pbm->mem64_space,
--					pbm->mem_space.start);
-+					pbm->mem64_offset);
- 	pbm->busn.start = pbm->pci_first_busno;
- 	pbm->busn.end	= pbm->pci_last_busno;
- 	pbm->busn.flags	= IORESOURCE_BUS;
-diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
-index 33524c1..76998f8 100644
---- a/arch/sparc/kernel/pci_common.c
-+++ b/arch/sparc/kernel/pci_common.c
-@@ -410,13 +410,16 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
+ #include <asm/io.h>
+ #include <asm/processor.h>
+@@ -50,6 +51,8 @@
+ #include <asm/elf.h>
+ #include <asm/mdesc.h>
+ #include <asm/cacheflush.h>
++#include <asm/dma.h>
++#include <asm/irq.h>
  
- 	for (i = 0; i < num_pbm_ranges; i++) {
- 		const struct linux_prom_pci_ranges *pr = &pbm_ranges[i];
--		unsigned long a, size;
-+		unsigned long a, size, region_a;
- 		u32 parent_phys_hi, parent_phys_lo;
-+		u32 child_phys_mid, child_phys_lo;
- 		u32 size_hi, size_lo;
- 		int type;
+ #ifdef CONFIG_IP_PNP
+ #include <net/ipconfig.h>
+@@ -590,6 +593,22 @@ static void __init init_sparc64_elf_hwcap(void)
+ 		pause_patch();
+ }
  
- 		parent_phys_hi = pr->parent_phys_hi;
- 		parent_phys_lo = pr->parent_phys_lo;
-+		child_phys_mid = pr->child_phys_mid;
-+		child_phys_lo = pr->child_phys_lo;
- 		if (tlb_type = hypervisor)
- 			parent_phys_hi &= 0x0fffffff;
- 
-@@ -426,6 +429,8 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 		type = (pr->child_phys_hi >> 24) & 0x3;
- 		a = (((unsigned long)parent_phys_hi << 32UL) |
- 		     ((unsigned long)parent_phys_lo  <<  0UL));
-+		region_a = (((unsigned long)child_phys_mid << 32UL) |
-+		     ((unsigned long)child_phys_lo  <<  0UL));
- 		size = (((unsigned long)size_hi << 32UL) |
- 			((unsigned long)size_lo  <<  0UL));
- 
-@@ -440,6 +445,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->io_space.start = a;
- 			pbm->io_space.end = a + size - 1UL;
- 			pbm->io_space.flags = IORESOURCE_IO;
-+			pbm->io_offset = a - region_a;
- 			saw_io = 1;
- 			break;
- 
-@@ -448,6 +454,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->mem_space.start = a;
- 			pbm->mem_space.end = a + size - 1UL;
- 			pbm->mem_space.flags = IORESOURCE_MEM;
-+			pbm->mem_offset = a - region_a;
- 			saw_mem = 1;
- 			break;
- 
-@@ -456,6 +463,7 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 			pbm->mem64_space.start = a;
- 			pbm->mem64_space.end = a + size - 1UL;
- 			pbm->mem64_space.flags = IORESOURCE_MEM;
-+			pbm->mem64_offset = a - region_a;
- 			saw_mem = 1;
- 			break;
- 
-@@ -471,14 +479,22 @@ void pci_determine_mem_io_space(struct pci_pbm_info *pbm)
- 		prom_halt();
- 	}
- 
--	printk("%s: PCI IO[%llx] MEM[%llx]",
--	       pbm->name,
--	       pbm->io_space.start,
--	       pbm->mem_space.start);
-+	if (pbm->io_space.flags)
-+		printk("%s: PCI IO %pR offset %llx\n",
-+		       pbm->name, &pbm->io_space, pbm->io_offset);
-+	if (pbm->mem_space.flags)
-+		printk("%s: PCI MEM %pR offset %llx\n",
-+		       pbm->name, &pbm->mem_space, pbm->mem_offset);
-+	if (pbm->mem64_space.flags && pbm->mem_space.flags) {
-+		if (pbm->mem64_space.start <= pbm->mem_space.end)
-+			pbm->mem64_space.start = pbm->mem_space.end + 1;
-+		if (pbm->mem64_space.start > pbm->mem64_space.end)
-+			pbm->mem64_space.flags = 0;
-+	}
++void __init alloc_irqstack_bootmem(void)
++{
++	unsigned int i, node;
 +
- 	if (pbm->mem64_space.flags)
--		printk(" MEM64[%llx]",
--		       pbm->mem64_space.start);
--	printk("\n");
-+		printk("%s: PCI MEM64 %pR offset %llx\n",
-+		       pbm->name, &pbm->mem64_space, pbm->mem64_offset);
++	for_each_possible_cpu(i) {
++		node = cpu_to_node(i);
++
++		softirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
++							THREAD_SIZE,
++							THREAD_SIZE, 0);
++		hardirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
++							THREAD_SIZE,
++							THREAD_SIZE, 0);
++	}
++}
++
+ void __init setup_arch(char **cmdline_p)
+ {
+ 	/* Initialize PROM console and command line. */
+@@ -651,6 +670,12 @@ void __init setup_arch(char **cmdline_p)
+ 	paging_init();
+ 	init_sparc64_elf_hwcap();
+ 	smp_fill_in_cpu_possible_map();
++	/*
++	 * Once the OF device tree and MDESC have been setup and nr_cpus has
++	 * been parsed, we know the list of possible cpus.  Therefore we can
++	 * allocate the IRQ stacks.
++	 */
++	alloc_irqstack_bootmem();
+ }
  
- 	pbm->io_space.name = pbm->mem_space.name = pbm->name;
- 	pbm->mem64_space.name = pbm->name;
-diff --git a/arch/sparc/kernel/pci_impl.h b/arch/sparc/kernel/pci_impl.h
-index 37222ca..2853af7 100644
---- a/arch/sparc/kernel/pci_impl.h
-+++ b/arch/sparc/kernel/pci_impl.h
-@@ -99,6 +99,10 @@ struct pci_pbm_info {
- 	struct resource			mem_space;
- 	struct resource			mem64_space;
- 	struct resource			busn;
-+	/* offset */
-+	resource_size_t			io_offset;
-+	resource_size_t			mem_offset;
-+	resource_size_t			mem64_offset;
+ extern int stop_a_enabled;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 80031fc..7ac6b62 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2081,7 +2081,6 @@ void __init paging_init(void)
+ {
+ 	unsigned long end_pfn, shift, phys_base;
+ 	unsigned long real_end, i;
+-	int node;
  
- 	/* Base of PCI Config space, can be per-PBM or shared. */
- 	unsigned long			config_space;
+ 	setup_page_offset();
+ 
+@@ -2250,21 +2249,6 @@ void __init paging_init(void)
+ 	/* Setup bootmem... */
+ 	last_valid_pfn = end_pfn = bootmem_init(phys_base);
+ 
+-	/* Once the OF device tree and MDESC have been setup, we know
+-	 * the list of possible cpus.  Therefore we can allocate the
+-	 * IRQ stacks.
+-	 */
+-	for_each_possible_cpu(i) {
+-		node = cpu_to_node(i);
+-
+-		softirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
+-							THREAD_SIZE,
+-							THREAD_SIZE, 0);
+-		hardirq_stack[i] = __alloc_bootmem_node(NODE_DATA(node),
+-							THREAD_SIZE,
+-							THREAD_SIZE, 0);
+-	}
+-
+ 	kernel_physical_mapping_init();
+ 
+ 	{
 -- 
-2.8.3
+1.7.1
 
