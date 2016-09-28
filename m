@@ -1,36 +1,24 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 30 Sep 2016 04:29:59 +0000
-Subject: Re: [PATCH] Sparc/prom/ranges.c cosmetic improvement
-Message-Id: <20160930042959.GA29708@ravnborg.org>
+From: chris.hyser@oracle.com
+Date: Wed, 28 Sep 2016 17:03:05 +0000
+Subject: [PATCH 0/2] sparc64: PCIe performance enhancements
+Message-Id: <201609281703.u8SH35MH028152@userv0122.oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160928214625.GA24725@netmonk.localdomain>
-In-Reply-To: <20160928214625.GA24725@netmonk.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> 
-> Thank you for the correction. 
-> Can i resubmit the patch in reply of this thread, or do i need to create a new thread ?
+This set of patches initiates a series of PCIe performance enhancement patch
+submittals.
 
-Both will work - but in this case just create a
-new thread - and mark the patch as v2:
+Patch 1/2 enables version 2 of the SPARC sun4v IOMMU I/O address translation
+services need for subsequent enhancements.
 
-[PATCH v2] sparc: bla bla
+Patch 2/2 allows drivers to specify DMA_ATTR_WEAK_ORDERING via DMA attributes
+to the SPARC DMA mapping routines enabling "relaxed ordering" for the buffer
+being mapped.
 
 
-And in the changelog part of the patch do:
-
-bla bla
-More bla bla
----
-
-v2:
-Fixed indent..
-
-Keep version information below the "---" marker.
-So the version information is not part of the final commit message.
-
-	Sam
-
+[Still relevant write-up]
+PCI-Express Relaxed Ordering and the Sun SPARC Enterprise M-class Servers
+https://blogs.oracle.com/olympus/entry/relaxed_ordering
