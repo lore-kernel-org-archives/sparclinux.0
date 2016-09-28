@@ -1,7 +1,7 @@
 From: chris hyser <chris.hyser@oracle.com>
-Date: Wed, 28 Sep 2016 19:19:50 +0000
-Subject: [PATCH v2 2/2] sparc64: Enable setting "relaxed ordering" in IOMMU mappings
-Message-Id: <201609281919.u8SJJohu005671@aserv0121.oracle.com>
+Date: Wed, 28 Sep 2016 17:03:14 +0000
+Subject: [PATCH 2/2] sparc64: Enable setting "relaxed ordering" in IOMMU mappings
+Message-Id: <201609281703.u8SH3F40005804@userv0121.oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -38,7 +38,7 @@ index f5b6537..666d5ba 100644
  #define HV_PCI_DEVICE_BUILD(b,d,f)	\
  	((((b) & 0xff) << 16) | \
 diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index c5c819d..db57d8a 100644
+index 590e6d3..9d8957a 100644
 --- a/arch/sparc/kernel/pci_sun4v.c
 +++ b/arch/sparc/kernel/pci_sun4v.c
 @@ -78,6 +78,10 @@ static long iommu_batch_flush(struct iommu_batch *p)
@@ -53,7 +53,7 @@ index c5c819d..db57d8a 100644
  		long num;
  
 @@ -144,6 +148,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
- 				   unsigned long attrs)
+ 				   struct dma_attrs *attrs)
  {
  	unsigned long flags, order, first_page, npages, n;
 +	unsigned long prot = 0;
@@ -64,7 +64,7 @@ index c5c819d..db57d8a 100644
  
  	npages = size >> IO_PAGE_SHIFT;
  
-+	if (attrs & DMA_ATTR_WEAK_ORDERING)
++	if (dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
 +		prot = HV_PCI_MAP_ATTR_RELAXED_ORDER;
 +
  	nid = dev->archdata.numa_node;
@@ -83,17 +83,23 @@ index c5c819d..db57d8a 100644
  	if (direction != DMA_TO_DEVICE)
  		prot |= HV_PCI_MAP_ATTR_WRITE;
  
-+	if (attrs & DMA_ATTR_WEAK_ORDERING)
++	if (dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
 +		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
 +
  	local_irq_save(flags);
  
  	iommu_batch_start(dev, prot, entry);
-@@ -355,6 +366,9 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -350,11 +361,14 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	iommu = dev->archdata.iommu;
+ 	if (nelems = 0 || !iommu)
+ 		return 0;
+-	
++
+ 	prot = HV_PCI_MAP_ATTR_READ;
  	if (direction != DMA_TO_DEVICE)
  		prot |= HV_PCI_MAP_ATTR_WRITE;
  
-+	if (attrs & DMA_ATTR_WEAK_ORDERING)
++	if (dma_get_attr(DMA_ATTR_WEAK_ORDERING, attrs))
 +		prot |= HV_PCI_MAP_ATTR_RELAXED_ORDER;
 +
  	outs = s = segstart = &sglist[0];
