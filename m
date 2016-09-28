@@ -1,7 +1,7 @@
 From: chris hyser <chris.hyser@oracle.com>
-Date: Wed, 28 Sep 2016 17:03:10 +0000
-Subject: [PATCH 1/2] sparc64: Enable PCI IOMMU version 2 API
-Message-Id: <201609281703.u8SH3ANh013439@aserv0122.oracle.com>
+Date: Wed, 28 Sep 2016 19:19:45 +0000
+Subject: [PATCH v2 1/2] sparc64: Enable PCI IOMMU version 2 API
+Message-Id: <201609281919.u8SJJk6x013125@userv0122.oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -15,7 +15,7 @@ space per root complex.
 Signed-off-by: Chris Hyser <chris.hyser@oracle.com>
 
 diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 836e8ce..590e6d3 100644
+index 61c6f93..c5c819d 100644
 --- a/arch/sparc/kernel/pci_sun4v.c
 +++ b/arch/sparc/kernel/pci_sun4v.c
 @@ -30,8 +30,19 @@
