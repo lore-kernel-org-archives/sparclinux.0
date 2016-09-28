@@ -1,122 +1,47 @@
-From: netmonk@netmonk.org
-Date: Fri, 30 Sep 2016 22:14:15 +0000
-Subject: [PATCH v2] sparc: fixed ident, unsplitted 2 shorts lines in one big line
-Message-Id: <20160930221415.GA26751@netmonk.localdomain>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 28 Sep 2016 15:30:18 +0000
+Subject: Re: [PATCH v2] sparc64 mm: Fix more TSB sizing issues
+Message-Id: <20160928.113018.46166819947237523.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1472676499-6325-1-git-send-email-mike.kravetz@oracle.com>
+In-Reply-To: <1472676499-6325-1-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mike.kravetz@oracle.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, nitin.m.gupta@oracle.com
 
-Good evening, 
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 31 Aug 2016 13:48:19 -0700
 
-Fixed some ident error from following linux coding guidestyle. 
-Also unsplitted a long line to be consistent with the long one just
-above. 
+> Commit af1b1a9b36b8 ("sparc64 mm: Fix base TSB sizing when hugetlb
+> pages are used") addressed the difference between hugetlb and THP
+> pages when computing TSB sizes.  The following additional issues
+> were also discovered while working with the code.
+> 
+> In order to save memory, THP makes use of a huge zero page.  This huge
+> zero page does not count against a task's RSS, but it does consume TSB
+> entries.  This is similar to hugetlb pages.  Therefore, count huge
+> zero page entries in hugetlb_pte_count.
+> 
+> Accounting of THP pages is done in the routine set_pmd_at().
+> Unfortunately, this does not catch the case where a THP page is split.
+> To handle this case, decrement the count in pmdp_invalidate().
+> pmdp_invalidate is only called when splitting a THP.  However, 'sanity
+> checks' are added in case it is ever called for other purposes.
+> 
+> A more general issue exists with HPAGE_SIZE accounting.
+> hugetlb_pte_count tracks the number of HPAGE_SIZE (8M) pages.  This
+> value is used to size the TSB for HPAGE_SIZE pages.  However,
+> each HPAGE_SIZE page consists of two REAL_HPAGE_SIZE (4M) pages.
+> The TSB contains an entry for each REAL_HPAGE_SIZE page.  Therefore,
+> the number of REAL_HPAGE_SIZE pages should be used to size the huge
+> page TSB.  A new compile time constant REAL_HPAGE_PER_HPAGE is used
+> to multiply hugetlb_pte_count before sizing the TSB.
+> 
+> Changes from V1
+> - Fixed build issue if hugetlb or THP not configured
+> 
+> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 
-Signed-off-by: netmonk <netmonk@netmonk.org> 
----
- arch/sparc/prom/ranges.c | 38 ++++++++++++++++----------------------
- 1 file changed, 16 insertions(+), 22 deletions(-)
-
-diff --git a/arch/sparc/prom/ranges.c b/arch/sparc/prom/ranges.c
-index ad143c1..079d1e4 100644
---- a/arch/sparc/prom/ranges.c
-+++ b/arch/sparc/prom/ranges.c
-@@ -16,9 +16,8 @@ static struct linux_prom_ranges promlib_obio_ranges[PROMREG_MAX];
- static int num_obio_ranges;
- 
- /* Adjust register values based upon the ranges parameters. */
--static void
--prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
--		 struct linux_prom_ranges *rangep, int nranges)
-+static void prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
-+			     struct linux_prom_ranges *rangep, int nranges)
- {
- 	int regc, rngc;
- 
-@@ -34,33 +33,30 @@ prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
- 	}
- }
- 
--static void
--prom_adjust_ranges(struct linux_prom_ranges *ranges1, int nranges1,
--		   struct linux_prom_ranges *ranges2, int nranges2)
-+static void prom_adjust_ranges(struct linux_prom_ranges *ranges1, int nranges1,
-+			       struct linux_prom_ranges *ranges2, int nranges2)
- {
- 	int rng1c, rng2c;
- 
--	for(rng1c=0; rng1c < nranges1; rng1c++) {
--		for(rng2c=0; rng2c < nranges2; rng2c++)
--			if(ranges1[rng1c].ot_parent_space = ranges2[rng2c].ot_child_space &&
-+	for (rng1c = 0; rng1c < nranges1; rng1c++) {
-+		for (rng2c = 0; rng2c < nranges2; rng2c++)
-+			if (ranges1[rng1c].ot_parent_space = ranges2[rng2c].ot_child_space &&
- 			   ranges1[rng1c].ot_parent_base >= ranges2[rng2c].ot_child_base &&
- 			   ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size - ranges1[rng1c].ot_parent_base > 0U)
- 			break;
--		if(rng2c = nranges2) /* oops */
-+		if (rng2c = nranges2) /* oops */
- 			prom_printf("adjust_ranges: Could not find matching bus type...\n");
- 		else if (ranges1[rng1c].ot_parent_base + ranges1[rng1c].or_size > ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size)
--			ranges1[rng1c].or_size -				ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size - ranges1[rng1c].ot_parent_base;
-+			ranges1[rng1c].or_size = ranges2[rng2c].ot_child_base + ranges2[rng2c].or_size - ranges1[rng1c].ot_parent_base;
- 		ranges1[rng1c].ot_parent_space = ranges2[rng2c].ot_parent_space;
- 		ranges1[rng1c].ot_parent_base += ranges2[rng2c].ot_parent_base;
- 	}
- }
- 
- /* Apply probed obio ranges to registers passed, if no ranges return. */
--void
--prom_apply_obio_ranges(struct linux_prom_registers *regs, int nregs)
-+void prom_apply_obio_ranges(struct linux_prom_registers *regs, int nregs)
- {
--	if(num_obio_ranges)
-+	if (num_obio_ranges)
- 		prom_adjust_regs(regs, nregs, promlib_obio_ranges, num_obio_ranges);
- }
- EXPORT_SYMBOL(prom_apply_obio_ranges);
-@@ -76,15 +72,15 @@ void __init prom_ranges_init(void)
- 	node = prom_getchild(prom_root_node);
- 	obio_node = prom_searchsiblings(node, "obio");
- 
--	if(obio_node) {
-+	if (obio_node) {
- 		success = prom_getproperty(obio_node, "ranges",
- 					   (char *) promlib_obio_ranges,
- 					   sizeof(promlib_obio_ranges));
--		if(success != -1)
-+		if (success != -1)
- 			num_obio_ranges = (success/sizeof(struct linux_prom_ranges));
- 	}
- 
--	if(num_obio_ranges)
-+	if (num_obio_ranges)
- 		prom_printf("PROMLIB: obio_ranges %d\n", num_obio_ranges);
- }
- 
-@@ -94,7 +90,6 @@ void prom_apply_generic_ranges(phandle node, phandle parent,
- 	int success;
- 	int num_ranges;
- 	struct linux_prom_ranges ranges[PROMREG_MAX];
--	
- 	success = prom_getproperty(node, "ranges",
- 				   (char *) ranges,
- 				   sizeof (ranges));
-@@ -103,10 +98,9 @@ void prom_apply_generic_ranges(phandle node, phandle parent,
- 		if (parent) {
- 			struct linux_prom_ranges parent_ranges[PROMREG_MAX];
- 			int num_parent_ranges;
--		
- 			success = prom_getproperty(parent, "ranges",
--				   		   (char *) parent_ranges,
--				   		   sizeof (parent_ranges));
-+						   (char *) parent_ranges,
-+						   sizeof (parent_ranges));
- 			if (success != -1) {
- 				num_parent_ranges = (success/sizeof(struct linux_prom_ranges));
- 				prom_adjust_ranges (ranges, num_ranges, parent_ranges, num_parent_ranges);
--- 
-2.10.0
-
+Applied.
