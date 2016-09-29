@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Thu, 29 Sep 2016 04:50:13 +0000
+Date: Thu, 29 Sep 2016 04:51:55 +0000
 Subject: Re: [PATCH] Sparc/prom/ranges.c cosmetic improvement
-Message-Id: <20160929045013.GA30814@ravnborg.org>
+Message-Id: <20160929045155.GB30814@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160928214625.GA24725@netmonk.localdomain>
 In-Reply-To: <20160928214625.GA24725@netmonk.localdomain>
@@ -22,27 +22,12 @@ On Wed, Sep 28, 2016 at 11:46:25PM +0200, netmonk@netmonk.org wrote:
 > From: netmonk <netmonk@netmonk.org>
 > Date: Wed, 28 Sep 2016 23:26:33 +0200
 > Subject: [PATCH]  Cosmetic improvement in arch/sparc/prom/ranges.c
-> 
-> ---
->  arch/sparc/prom/ranges.c | 31 +++++++++++++------------------
->  1 file changed, 13 insertions(+), 18 deletions(-)
-> 
-> diff --git a/arch/sparc/prom/ranges.c b/arch/sparc/prom/ranges.c
-> index ad143c1..a493de3 100644
-> --- a/arch/sparc/prom/ranges.c
-> +++ b/arch/sparc/prom/ranges.c
-> @@ -16,8 +16,7 @@ static struct linux_prom_ranges promlib_obio_ranges[PROMREG_MAX];
->  static int num_obio_ranges;
->  
->  /* Adjust register values based upon the ranges parameters. */
-> -static void
-> -prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
-> +static void prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
->  		 struct linux_prom_ranges *rangep, int nranges)
 
-The arguments on the second line shall be aligned with the first line.
-Use tabs and then the number of spaces required.
-In this case "struct linux_*" and "struct linux_*" shall be just below each other.
-Fix up similar bug in rest of the patch.
+Please fix subject as well.
+prefix all patches with "sparc: what you did".
+
+Use sparc: - for patches touching both 32 and 64 bit code.
+Use sparc32: - for patches touching only 32 bit code.
+Use sparc64: - for patches touching only 64 bit code.
 
 	Sam
