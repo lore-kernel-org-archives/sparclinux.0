@@ -1,151 +1,64 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Date: Wed, 28 Sep 2016 17:18:43 +0000
-Subject: [sparc:master 3/4] arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function 'smp_
-Message-Id: <201609290139.lu4LV1CF%fengguang.wu@intel.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="pWyiEgJYm5f9v55/"
+From: David Miller <davem@davemloft.net>
+Date: Thu, 29 Sep 2016 00:44:51 +0000
+Subject: Re: [sparc:master 3/4] arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function '
+Message-Id: <20160928.204451.954612877106240508.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <201609290139.lu4LV1CF%fengguang.wu@intel.com>
+In-Reply-To: <201609290139.lu4LV1CF%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+From: kbuild test robot <fengguang.wu@intel.com>
+Date: Thu, 29 Sep 2016 01:18:43 +0800
 
---pWyiEgJYm5f9v55/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
+> head:   ebb99a4c12e4daabe1940ae936e8e7e97ae68c6f
+> commit: 9b2f753ec23710aa32c0d837d2499db92fe9115b [3/4] sparc64: Fix cpu_possible_mask if nr_cpus is set
+> config: sparc64-allnoconfig (attached as .config)
+> compiler: sparc64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+> reproduce:
+>         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         git checkout 9b2f753ec23710aa32c0d837d2499db92fe9115b
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=sparc64 
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    arch/sparc/kernel/setup_64.c: In function 'setup_arch':
+>>> arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function 'smp_fill_in_cpu_possible_map' [-Werror=implicit-function-declaration]
+>      smp_fill_in_cpu_possible_map();
+>      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>    cc1: all warnings being treated as errors
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git master
-head:   ebb99a4c12e4daabe1940ae936e8e7e97ae68c6f
-commit: 9b2f753ec23710aa32c0d837d2499db92fe9115b [3/4] sparc64: Fix cpu_possible_mask if nr_cpus is set
-config: sparc64-allnoconfig (attached as .config)
-compiler: sparc64-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
-reproduce:
-        wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        git checkout 9b2f753ec23710aa32c0d837d2499db92fe9115b
-        # save the attached .config to linux build tree
-        make.cross ARCH=sparc64 
+Thanks for the report, fixed thusly:
 
-All errors (new ones prefixed by >>):
+==========
+[PATCH] sparc64: Fix non-SMP build.
 
-   arch/sparc/kernel/setup_64.c: In function 'setup_arch':
->> arch/sparc/kernel/setup_64.c:653:2: error: implicit declaration of function 'smp_fill_in_cpu_possible_map' [-Werror=implicit-function-declaration]
-     smp_fill_in_cpu_possible_map();
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   cc1: all warnings being treated as errors
+Need to provide a dummy smp_fill_in_cpu_possible_map.
 
-vim +/smp_fill_in_cpu_possible_map +653 arch/sparc/kernel/setup_64.c
-
-   647	
-   648		/* Get boot processor trap_block[] setup.  */
-   649		init_cur_cpu_trap(current_thread_info());
-   650	
-   651		paging_init();
-   652		init_sparc64_elf_hwcap();
- > 653		smp_fill_in_cpu_possible_map();
-   654	}
-   655	
-   656	extern int stop_a_enabled;
-
+Fixes: 9b2f753ec237 ("sparc64: Fix cpu_possible_mask if nr_cpus is set")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ arch/sparc/include/asm/smp_64.h | 1 +
+ 1 file changed, 1 insertion(+)
 
---pWyiEgJYm5f9v55/
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
+diff --git a/arch/sparc/include/asm/smp_64.h b/arch/sparc/include/asm/smp_64.h
+index 87b0575..ce2233f 100644
+--- a/arch/sparc/include/asm/smp_64.h
++++ b/arch/sparc/include/asm/smp_64.h
+@@ -73,6 +73,7 @@ void __cpu_die(unsigned int cpu);
+ #define smp_fill_in_sib_core_maps() do { } while (0)
+ #define smp_fetch_global_regs() do { } while (0)
+ #define smp_fetch_global_pmu() do { } while (0)
++#define smp_fill_in_cpu_possible_map() do { } while (0)
+ 
+ #endif /* !(CONFIG_SMP) */
+ 
+-- 
+2.5.5
 
-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
-
---pWyiEgJYm5f9v55/--
