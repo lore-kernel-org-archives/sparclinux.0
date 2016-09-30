@@ -1,7 +1,7 @@
-From: netmonk@netmonk.org
-Date: Thu, 29 Sep 2016 19:52:43 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 30 Sep 2016 04:29:59 +0000
 Subject: Re: [PATCH] Sparc/prom/ranges.c cosmetic improvement
-Message-Id: <20160929195243.GA23730@netmonk.localdomain>
+Message-Id: <20160930042959.GA29708@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160928214625.GA24725@netmonk.localdomain>
 In-Reply-To: <20160928214625.GA24725@netmonk.localdomain>
@@ -10,45 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Sep 29, 2016 at 06:50:13AM +0200, Sam Ravnborg wrote:
-> On Wed, Sep 28, 2016 at 11:46:25PM +0200, netmonk@netmonk.org wrote:
-> > Following Linux Coding Style documentation, removed, added some spaces 
-> > to improve compliance to the formating standard.
-> > 
-> > Signed-of-by: Netmonk <netmonk@netmonk.org>
-> > 
-> > 
 > 
-> > >From 276b83b74716cbd39c6c72428c6e385881b089e7 Mon Sep 17 00:00:00 2001
-> > From: netmonk <netmonk@netmonk.org>
-> > Date: Wed, 28 Sep 2016 23:26:33 +0200
-> > Subject: [PATCH]  Cosmetic improvement in arch/sparc/prom/ranges.c
-> > 
-> > ---
-> >  arch/sparc/prom/ranges.c | 31 +++++++++++++------------------
-> >  1 file changed, 13 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/arch/sparc/prom/ranges.c b/arch/sparc/prom/ranges.c
-> > index ad143c1..a493de3 100644
-> > --- a/arch/sparc/prom/ranges.c
-> > +++ b/arch/sparc/prom/ranges.c
-> > @@ -16,8 +16,7 @@ static struct linux_prom_ranges promlib_obio_ranges[PROMREG_MAX];
-> >  static int num_obio_ranges;
-> >  
-> >  /* Adjust register values based upon the ranges parameters. */
-> > -static void
-> > -prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
-> > +static void prom_adjust_regs(struct linux_prom_registers *regp, int nregs,
-> >  		 struct linux_prom_ranges *rangep, int nranges)
-> 
-> The arguments on the second line shall be aligned with the first line.
-> Use tabs and then the number of spaces required.
-> In this case "struct linux_*" and "struct linux_*" shall be just below each other.
-> Fix up similar bug in rest of the patch.
-> 
-> 	Sam
+> Thank you for the correction. 
+> Can i resubmit the patch in reply of this thread, or do i need to create a new thread ?
 
-Thank you for the correction. 
-Can i resubmit the patch in reply of this thread, or do i need to create a new thread ?
+Both will work - but in this case just create a
+new thread - and mark the patch as v2:
 
-Regards
+[PATCH v2] sparc: bla bla
+
+
+And in the changelog part of the patch do:
+
+bla bla
+More bla bla
+---
+
+v2:
+Fixed indent..
+
+Keep version information below the "---" marker.
+So the version information is not part of the final commit message.
+
+	Sam
+
