@@ -1,75 +1,60 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Date: Fri, 16 Sep 2016 20:01:58 +0000
-Subject: [PATCH v14 08/17] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <20160916200207.21439-9-yinghai@kernel.org>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Thu, 06 Oct 2016 23:33:36 +0000
+Subject: [RFC PATCH 6/6] sparc64: Enable 64-bit DMA
+Message-Id: <1475796816-14448-7-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160916200207.21439-1-yinghai@kernel.org>
-In-Reply-To: <20160916200207.21439-1-yinghai@kernel.org>
+References: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-For device resource with PREF bit setting under bridge 64-bit pref resource,
-we need to make sure only set PREF for 64bit resource.
+ATU 64bit addressing allows PCIe devices with 64bit DMA capabilities
+to use ATU for 64bit DMA.
 
-so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device
-resource flags parsing.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: chris hyser <chris.hyser@oracle.com>
+Acked-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/sparc/kernel/of_device_32.c | 5 +++--
- arch/sparc/kernel/of_device_64.c | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ arch/sparc/Kconfig        | 4 ++++
+ arch/sparc/kernel/iommu.c | 8 ++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device=
-_32.c
-index 185aa96..3e9f273 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *ad=
-dr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device=
-_64.c
-index 7bbdc26..defee61 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
- 	case 0x01:
- 		flags |=3D IORESOURCE_IO;
- 		break;
--
- 	case 0x02: /* 32 bits */
--	case 0x03: /* 64 bits */
- 		flags |=3D IORESOURCE_MEM;
- 		break;
-+	case 0x03: /* 64 bits */
-+		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-+		break;
- 	}
- 	if (w & 0x40000000)
- 		flags |=3D IORESOURCE_PREFETCH;
---=20
-2.8.3
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 338282d..78e7556 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -95,6 +95,10 @@ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+ 
++config ARCH_DMA_ADDR_T_64BIT
++	bool
++	default y if ARCH_ATU
++
+ config IOMMU_HELPER
+ 	bool
+ 	default y if SPARC64
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5c615ab..852a329 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -760,8 +760,12 @@ int dma_supported(struct device *dev, u64 device_mask)
+ 	struct iommu *iommu = dev->archdata.iommu;
+ 	u64 dma_addr_mask = iommu->dma_addr_mask;
+ 
+-	if (device_mask >= (1UL << 32UL))
+-		return 0;
++	if (device_mask > DMA_BIT_MASK(32)) {
++		if (iommu->atu)
++			dma_addr_mask = iommu->atu->dma_addr_mask;
++		else
++			return 0;
++	}
+ 
+ 	if ((device_mask & dma_addr_mask) = dma_addr_mask)
+ 		return 1;
+-- 
+1.9.1
 
