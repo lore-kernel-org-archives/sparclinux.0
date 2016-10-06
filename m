@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sun, 02 Oct 2016 13:02:12 +0000
+Date: Thu, 06 Oct 2016 07:57:58 +0000
 Subject: [GIT] Sparc
-Message-Id: <20161002.090212.746125237002734416.davem@davemloft.net>
+Message-Id: <20161006.035758.1766823520509065815.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,49 +12,44 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Fix section mismatches in some builds, from Paul Gortmaker.
+Besides some cleanups the major thing here is supporting relaxed
+ordering PCIe transactions on newer sparc64 machines, from Chris
+Hyser.
 
-2) Need to count huge zero page mappings when doing TSB sizing,
-   from Mike Kravetz.
+Please pull, thanks a lot!
 
-3) Fix handing of cpu_possible_mask when nr_cpus module option
-   is specified, from Atish Patra.
+The following changes since commit c8d2bc9bc39ebea8437fd974fdbc21847bb897a3:
 
-4) Don't allocate irq stacks until nr_irqs has been processed,
-   also from Atish Patra.
-
-The following changes since commit 8ab293e3a1376574e11f9059c09cc0db212546cb:
-
-  Merge branch 'for-4.8-fixes' of git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup (2016-09-27 16:43:11 -0700)
+  Linux 4.8 (2016-10-02 16:24:33 -0700)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
-for you to fetch changes up to 2a0100d7beebd2fb2c436852648f75396253e9f8:
+for you to fetch changes up to 98e98eb6a8a179a444a30d903714fab356726155:
 
-  sparc64: Fix non-SMP build. (2016-09-28 20:40:52 -0400)
+  sparc: fixing ident and beautifying code (2016-10-06 01:46:40 -0400)
 
 ----------------------------------------------------------------
-Atish Patra (2):
-      sparc64: Fix cpu_possible_mask if nr_cpus is set
-      sparc64: Fix irq stack bootmem allocation.
-
 David S. Miller (1):
-      sparc64: Fix non-SMP build.
-
-Mike Kravetz (1):
-      sparc64 mm: Fix more TSB sizing issues
+      Merge branch 'sparc-pcie-perf'
 
 Paul Gortmaker (1):
-      sparc64: fix section mismatch in find_numa_latencies_for_group
+      sparc: migrate exception table users off module.h and onto extable.h
 
- arch/sparc/include/asm/page_64.h |  1 +
- arch/sparc/include/asm/smp_64.h  |  2 ++
- arch/sparc/kernel/setup_64.c     | 26 ++++++++++++++++++++++++++
- arch/sparc/kernel/smp_64.c       | 14 ++++++++++++++
- arch/sparc/mm/fault_64.c         |  1 +
- arch/sparc/mm/init_64.c          | 22 +++-------------------
- arch/sparc/mm/tlb.c              | 35 +++++++++++++++++++++++++++++++----
- arch/sparc/mm/tsb.c              | 18 ++++++++++++------
- 8 files changed, 90 insertions(+), 29 deletions(-)
+chris hyser (2):
+      sparc64: Enable PCI IOMMU version 2 API
+      sparc64: Enable setting "relaxed ordering" in IOMMU mappings
+
+netmonk@netmonk.org (1):
+      sparc: fixing ident and beautifying code
+
+ arch/sparc/include/asm/hypervisor.h |  1 +
+ arch/sparc/kernel/kprobes.c         |  2 +-
+ arch/sparc/kernel/pci_sun4v.c       | 52 +++++++++++++++++++++++++++++++++++++++++-----------
+ arch/sparc/kernel/traps_64.c        |  2 +-
+ arch/sparc/kernel/unaligned_64.c    |  2 +-
+ arch/sparc/mm/fault_64.c            |  2 +-
+ arch/sparc/mm/init_64.c             |  2 +-
+ arch/sparc/prom/ranges.c            | 52 ++++++++++++++++++++++++----------------------------
+ 8 files changed, 71 insertions(+), 44 deletions(-)
