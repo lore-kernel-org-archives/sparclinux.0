@@ -1,106 +1,78 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 15:01:44 +0000
-Subject: [PATCH 03/11] sparc64: Convert copy_in_user to accurate exception reporting.
-Message-Id: <20161025.110144.1842634324463598516.davem@davemloft.net>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Thu, 06 Oct 2016 23:33:33 +0000
+Subject: [RFC PATCH 3/6] sparc64: Initialize iommu_map_table and iommu_pool
+Message-Id: <1475796816-14448-4-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Like legacy IOMMU, use common iommu_map_table and iommu_pool for ATU.
+This change initializes iommu_map_table and iommu_pool for ATU.
 
-Report the exact number of bytes which have not been successfully
-copied when an exception occurs, using the running remaining length.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: chris hyser <chris.hyser@oracle.com>
+Reviewed-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/sparc/lib/copy_in_user.S | 35 +++++++++++++++++++++++++----------
- 1 file changed, 25 insertions(+), 10 deletions(-)
+ arch/sparc/include/asm/iommu_64.h |  2 ++
+ arch/sparc/kernel/pci_sun4v.c     | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/arch/sparc/lib/copy_in_user.S b/arch/sparc/lib/copy_in_user.S
-index 86e6663..0252b21 100644
---- a/arch/sparc/lib/copy_in_user.S
-+++ b/arch/sparc/lib/copy_in_user.S
-@@ -9,18 +9,33 @@
+diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
+index 93daa59..f24f356 100644
+--- a/arch/sparc/include/asm/iommu_64.h
++++ b/arch/sparc/include/asm/iommu_64.h
+@@ -45,8 +45,10 @@ struct atu_ranges {
+ struct atu {
+ 	struct	atu_ranges	*ranges;
+ 	struct	atu_iotsb	*iotsb;
++	struct	iommu_map_table	tbl;
+ 	u64			base;
+ 	u64			size;
++	u64			dma_addr_mask;
+ };
  
- #define XCC xcc
+ struct iommu {
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index a1c4d5e..5404b33 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -643,6 +643,8 @@ static int pci_sun4v_atu_init(struct pci_pbm_info *pbm)
+ 	struct atu *atu = pbm->iommu->atu;
+ 	unsigned long err;
+ 	const u64 *ranges;
++	u64 map_size, num_iotte;
++	u64 dma_mask;
+ 	const u32 *page_size;
+ 	int len;
  
--#define EX(x,y)			\
-+#define EX(x,y,z)		\
- 98:	x,y;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone;	\
-+	.word 98b, z;		\
- 	.text;			\
- 	.align 4;
+@@ -681,6 +683,23 @@ static int pci_sun4v_atu_init(struct pci_pbm_info *pbm)
+ 		return err;
+ 	}
  
-+#define EX_O4(x,y) EX(x,y,__retl_o4_plus_8)
-+#define EX_O2_4(x,y) EX(x,y,__retl_o2_plus_4)
-+#define EX_O2_1(x,y) EX(x,y,__retl_o2_plus_1)
++	/* Create ATU iommu map.
++	 * One bit represents one iotte in IOTSB table.
++	 */
++	dma_mask = (roundup_pow_of_two(atu->size) - 1UL);
++	num_iotte = atu->size / IO_PAGE_SIZE;
++	map_size = num_iotte / 8;
++	atu->tbl.table_map_base = atu->base;
++	atu->dma_addr_mask = dma_mask;
++	atu->tbl.map = kzalloc(map_size, GFP_KERNEL);
++	if (!atu->tbl.map)
++		return -ENOMEM;
 +
- 	.register	%g2,#scratch
- 	.register	%g3,#scratch
- 
- 	.text
-+__retl_o4_plus_8:
-+	add	%o4, %o2, %o4
-+	retl
-+	 add	%o4, 8, %o0
-+__retl_o2_plus_4:
-+	retl
-+	 add	%o2, 4, %o0
-+__retl_o2_plus_1:
-+	retl
-+	 add	%o2, 1, %o0
++	iommu_tbl_pool_init(&atu->tbl, num_iotte, IO_PAGE_SHIFT,
++			    NULL, false /* no large_pool */,
++			    0 /* default npools */,
++			    false /* want span boundary checking */);
 +
- 	.align	32
+ 	return 0;
+ }
  
- 	/* Don't try to get too fancy here, just nice and
-@@ -45,8 +60,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
- 	andn		%o2, 0x7, %o4
- 	and		%o2, 0x7, %o2
- 1:	subcc		%o4, 0x8, %o4
--	EX(ldxa [%o1] %asi, %o5)
--	EX(stxa %o5, [%o0] %asi)
-+	EX_O4(ldxa [%o1] %asi, %o5)
-+	EX_O4(stxa %o5, [%o0] %asi)
- 	add		%o1, 0x8, %o1
- 	bgu,pt		%XCC, 1b
- 	 add		%o0, 0x8, %o0
-@@ -54,8 +69,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
- 	be,pt		%XCC, 1f
- 	 nop
- 	sub		%o2, 0x4, %o2
--	EX(lduwa [%o1] %asi, %o5)
--	EX(stwa %o5, [%o0] %asi)
-+	EX_O2_4(lduwa [%o1] %asi, %o5)
-+	EX_O2_4(stwa %o5, [%o0] %asi)
- 	add		%o1, 0x4, %o1
- 	add		%o0, 0x4, %o0
- 1:	cmp		%o2, 0
-@@ -71,8 +86,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
- 
- 82:
- 	subcc		%o2, 4, %o2
--	EX(lduwa [%o1] %asi, %g1)
--	EX(stwa %g1, [%o0] %asi)
-+	EX_O2_4(lduwa [%o1] %asi, %g1)
-+	EX_O2_4(stwa %g1, [%o0] %asi)
- 	add		%o1, 4, %o1
- 	bgu,pt		%XCC, 82b
- 	 add		%o0, 4, %o0
-@@ -83,8 +98,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
- 	.align	32
- 90:
- 	subcc		%o2, 1, %o2
--	EX(lduba [%o1] %asi, %g1)
--	EX(stba %g1, [%o0] %asi)
-+	EX_O2_1(lduba [%o1] %asi, %g1)
-+	EX_O2_1(stba %g1, [%o0] %asi)
- 	add		%o1, 1, %o1
- 	bgu,pt		%XCC, 90b
- 	 add		%o0, 1, %o0
 -- 
-2.1.2.532.g19b5d50
+1.9.1
 
