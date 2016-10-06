@@ -1,7 +1,7 @@
 From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Thu, 06 Oct 2016 23:33:32 +0000
-Subject: [RFC PATCH 2/6] sparc64: Add ATU (new IOMMU) support
-Message-Id: <1475796816-14448-3-git-send-email-tushar.n.dave@oracle.com>
+Date: Thu, 06 Oct 2016 23:33:35 +0000
+Subject: [RFC PATCH 5/6] sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
+Message-Id: <1475796816-14448-6-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
 In-Reply-To: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
@@ -10,679 +10,583 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
-Hypervisor IOMMU v2 APIs.
-
-Current SPARC IOMMU supports only 32bit address ranges and one TSB
-per PCIe root complex that has a 2GB per root complex DVMA space
-limit. The limit has become a scalability bottleneck nowadays that
-a typical 10G/40G NIC can consume 300MB-500MB DVMA space per
-instance. When DVMA resource is exhausted, devices will not be usable
-since the driver can't allocate DVMA.
-
-ATU removes bottleneck by allowing guest os to create IOTSB of size
-32G (or more) with 64bit address ranges available in ATU HW. 32G is
-more than enough DVMA space to be shared by all PCIe devices under
-root complex contrast to 2G space provided by legacy IOMMU.
-
-ATU allows PCIe devices to use 64bit DMA addressing. Devices
-which choose to use 32bit DMA mask will continue to work with the
-existing legacy IOMMU.
+Add Hypervisor IOMMU v2 APIs pci_iotsb_map(), pci_iotsb_demap() and
+enable sun4v dma ops to use IOMMU v2 API for all PCIe devices with
+64bit DMA mask.
 
 Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
 Reviewed-by: chris hyser <chris.hyser@oracle.com>
 Acked-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 ---
- arch/sparc/include/asm/hypervisor.h | 337 ++++++++++++++++++++++++++++++++++++
- arch/sparc/include/asm/iommu_64.h   |  26 +++
- arch/sparc/kernel/hvapi.c           |   1 +
- arch/sparc/kernel/pci_sun4v.c       | 139 +++++++++++++++
- arch/sparc/kernel/pci_sun4v.h       |   7 +
- arch/sparc/kernel/pci_sun4v_asm.S   |  18 ++
- 6 files changed, 528 insertions(+)
+ arch/sparc/include/asm/hypervisor.h |   6 +
+ arch/sparc/kernel/pci_sun4v.c       | 214 ++++++++++++++++++++++++++----------
+ arch/sparc/kernel/pci_sun4v.h       |  11 ++
+ arch/sparc/kernel/pci_sun4v_asm.S   |  36 ++++++
+ 4 files changed, 209 insertions(+), 58 deletions(-)
 
 diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index 666d5ba..7b15df8 100644
+index 7b15df8..73cb897 100644
 --- a/arch/sparc/include/asm/hypervisor.h
 +++ b/arch/sparc/include/asm/hypervisor.h
-@@ -2335,6 +2335,342 @@ unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
+@@ -2377,6 +2377,12 @@ unsigned long sun4v_vintr_set_target(unsigned long dev_handle,
+  *	iotsb_index	Zero-based IOTTE number within an IOTSB.
   */
- #define HV_FAST_PCI_MSG_SETVALID	0xd3
  
-+/* PCI IOMMU v2 definitions and services
-+ *
-+ * While the PCI IO definitions above is valid IOMMU v2 adds new PCI IO
-+ * definitions and services.
-+ *
-+ *	CTE		Clump Table Entry. First level table entry in the ATU.
-+ *
-+ *	pci_device_list
-+ *			A 32-bit aligned list of pci_devices.
-+ *
-+ *	pci_device_listp
-+ *			real address of a pci_device_list. 32-bit aligned.
-+ *
-+ *	iotte		IOMMU translation table entry.
-+ *
-+ *	iotte_attributes
-+ *			IO Attributes for IOMMU v2 mappings. In addition to
-+ *			read, write IOMMU v2 supports relax ordering
-+ *
-+ *	io_page_list	A 64-bit aligned list of real addresses. Each real
-+ *			address in an io_page_list must be properly aligned
-+ *			to the pagesize of the given IOTSB.
-+ *
-+ *	io_page_list_p	Real address of an io_page_list, 64-bit aligned.
-+ *
-+ *	IOTSB		IO Translation Storage Buffer. An aligned table of
-+ *			IOTTEs. Each IOTSB has a pagesize, table size, and
-+ *			virtual address associated with it that must match
-+ *			a pagesize and table size supported by the un-derlying
-+ *			hardware implementation. The alignment requirements
-+ *			for an IOTSB depend on the pagesize used for that IOTSB.
-+ *			Each IOTTE in an IOTSB maps one pagesize-sized page.
-+ *			The size of the IOTSB dictates how large of a virtual
-+ *			address space the IOTSB is capable of mapping.
-+ *
-+ *	iotsb_handle	An opaque identifier for an IOTSB. A devhandle plus
-+ *			iotsb_handle represents a binding of an IOTSB to a
-+ *			PCI root complex.
-+ *
-+ *	iotsb_index	Zero-based IOTTE number within an IOTSB.
++/* The index_count argument consists of two fields:
++ * bits 63:48 #iottes and bits 47:0 iotsb_index
 + */
++#define HV_PCI_IOTSB_INDEX_COUNT(__iottes, __iotsb_index) \
++	(((u64)(__iottes) << 48UL) | ((u64)(__iotsb_index)))
 +
-+/* pci_iotsb_conf()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_CONF
-+ * ARG0:	devhandle
-+ * ARG1:	r_addr
-+ * ARG2:	size
-+ * ARG3:	pagesize
-+ * ARG4:	iova
-+ * RET0:	status
-+ * RET1:	iotsb_handle
-+ * ERRORS:	EINVAL		Invalid devhandle, size, iova, or pagesize
-+ *		EBADALIGN	r_addr is not properly aligned
-+ *		ENORADDR	r_addr is not a valid real address
-+ *		ETOOMANY	No further IOTSBs may be configured
-+ *		EBUSY		Duplicate devhandle, raddir, iova combination
-+ *
-+ * Create an IOTSB suitable for the PCI root complex identified by devhandle,
-+ * for the DMA virtual address defined by the argument iova.
-+ *
-+ * r_addr is the properly aligned base address of the IOTSB and size is the
-+ * IOTSB (table) size in bytes.The IOTSB is required to be zeroed prior to
-+ * being configured. If it contains any values other than zeros then the
-+ * behavior is undefined.
-+ *
-+ * pagesize is the size of each page in the IOTSB. Note that the combination of
-+ * size (table size) and pagesize must be valid.
-+ *
-+ * virt is the DMA virtual address this IOTSB will map.
-+ *
-+ * If successful, the opaque 64-bit handle iotsb_handle is returned in ret1.
-+ * Once configured, privileged access to the IOTSB memory is prohibited and
-+ * creates undefined behavior. The only permitted access is indirect via these
-+ * services.
-+ */
-+#define HV_FAST_PCI_IOTSB_CONF		0x190
-+
-+/* pci_iotsb_info()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_INFO
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * RET0:	status
-+ * RET1:	r_addr
-+ * RET2:	size
-+ * RET3:	pagesize
-+ * RET4:	iova
-+ * RET5:	#bound
-+ * ERRORS:	EINVAL	Invalid devhandle or iotsb_handle
-+ *
-+ * This service returns configuration information about an IOTSB previously
-+ * created with pci_iotsb_conf.
-+ *
-+ * iotsb_handle value 0 may be used with this service to inquire about the
-+ * legacy IOTSB that may or may not exist. If the service succeeds, the return
-+ * values describe the legacy IOTSB and I/O virtual addresses mapped by that
-+ * table. However, the table base address r_addr may contain the value -1 which
-+ * indicates a memory range that cannot be accessed or be reclaimed.
-+ *
-+ * The return value #bound contains the number of PCI devices that iotsb_handle
-+ * is currently bound to.
-+ */
-+#define HV_FAST_PCI_IOTSB_INFO		0x191
-+
-+/* pci_iotsb_unconf()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_UNCONF
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * RET0:	status
-+ * ERRORS:	EINVAL	Invalid devhandle or iotsb_handle
-+ *		EBUSY	The IOTSB is bound and may not be unconfigured
-+ *
-+ * This service unconfigures the IOTSB identified by the devhandle and
-+ * iotsb_handle arguments, previously created with pci_iotsb_conf.
-+ * The IOTSB must not be currently bound to any device or the service will fail
-+ *
-+ * If the call succeeds, iotsb_handle is no longer valid.
-+ */
-+#define HV_FAST_PCI_IOTSB_UNCONF	0x192
-+
-+/* pci_iotsb_bind()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_BIND
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	pci_device
-+ * RET0:	status
-+ * ERRORS:	EINVAL	Invalid devhandle, iotsb_handle, or pci_device
-+ *		EBUSY	A PCI function is already bound to an IOTSB at the same
-+ *			address range as specified by devhandle, iotsb_handle.
-+ *
-+ * This service binds the PCI function specified by the argument pci_device to
-+ * the IOTSB specified by the arguments devhandle and iotsb_handle.
-+ *
-+ * The PCI device function is bound to the specified IOTSB with the IOVA range
-+ * specified when the IOTSB was configured via pci_iotsb_conf. If the function
-+ * is already bound then it is unbound first.
-+ */
-+#define HV_FAST_PCI_IOTSB_BIND		0x193
-+
-+/* pci_iotsb_unbind()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_UNBIND
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	pci_device
-+ * RET0:	status
-+ * ERRORS:	EINVAL	Invalid devhandle, iotsb_handle, or pci_device
-+ *		ENOMAP	The PCI function was not bound to the specified IOTSB
-+ *
-+ * This service unbinds the PCI device specified by the argument pci_device
-+ * from the IOTSB identified  * by the arguments devhandle and iotsb_handle.
-+ *
-+ * If the PCI device is not bound to the specified IOTSB then this service will
-+ * fail with status ENOMAP
-+ */
-+#define HV_FAST_PCI_IOTSB_UNBIND	0x194
-+
-+/* pci_iotsb_get_binding()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_GET_BINDING
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	iova
-+ * RET0:	status
-+ * RET1:	iotsb_handle
-+ * ERRORS:	EINVAL	Invalid devhandle, pci_device, or iova
-+ *		ENOMAP	The PCI function is not bound to an IOTSB at iova
-+ *
-+ * This service returns the IOTSB binding, iotsb_handle, for a given pci_device
-+ * and DMA virtual address, iova.
-+ *
-+ * iova must be the base address of a DMA virtual address range as defined by
-+ * the iommu-address-ranges property in the root complex device node defined
-+ * by the argument devhandle.
-+ */
-+#define HV_FAST_PCI_IOTSB_GET_BINDING	0x195
-+
-+/* pci_iotsb_map()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_MAP
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	index_count
-+ * ARG3:	iotte_attributes
-+ * ARG4:	io_page_list_p
-+ * RET0:	status
-+ * RET1:	#mapped
-+ * ERRORS:	EINVAL		Invalid devhandle, iotsb_handle, #iottes,
-+ *				iotsb_index or iotte_attributes
-+ *		EBADALIGN	Improperly aligned io_page_list_p or I/O page
-+ *				address in the I/O page list.
-+ *		ENORADDR	Invalid io_page_list_p or I/O page address in
-+ *				the I/O page list.
-+ *
-+ * This service creates and flushes mappings in the IOTSB defined by the
-+ * arguments devhandle, iotsb.
-+ *
-+ * The index_count argument consists of two fields. Bits 63:48 contain #iotte
-+ * and bits 47:0 contain iotsb_index
-+ *
-+ * The first mapping is created in the IOTSB index specified by iotsb_index.
-+ * Subsequent mappings are  created at iotsb_index+1 and so on.
-+ *
-+ * The attributes of each mapping are defined by the argument iotte_attributes.
-+ *
-+ * The io_page_list_p specifies the real address of the 64-bit-aligned list of
-+ * #iottes I/O page addresses. Each page address must be a properly aligned
-+ * real address of a page to be mapped in the IOTSB. The first entry in the I/O
-+ * page list contains the real address of the first page, the 2nd entry for the
-+ * 2nd page, and so on.
-+ *
-+ * #iottes must be greater than zero.
-+ *
-+ * The return value #mapped is the actual number of mappings created, which may
-+ * be less than or equal to the argument #iottes. If the function returns
-+ * successfully with a #mapped value less than the requested #iottes then the
-+ * caller should continue to invoke the service with updated iotsb_index,
-+ * #iottes, and io_page_list_p arguments until all pages are mapped.
-+ *
-+ * This service must not be used to demap a mapping. In other words, all
-+ * mappings must be valid and have  one or both of the RW attribute bits set.
-+ *
-+ * Note:
-+ * It is implementation-defined whether I/O page real address validity checking
-+ * is done at time mappings are established or deferred until they are
-+ * accessed.
-+ */
-+#define HV_FAST_PCI_IOTSB_MAP		0x196
-+
-+/* pci_iotsb_map_one()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_MAP_ONE
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	iotsb_index
-+ * ARG3:	iotte_attributes
-+ * ARG4:	r_addr
-+ * RET0:	status
-+ * ERRORS:	EINVAL		Invalid devhandle,iotsb_handle, iotsb_index
-+ *				or iotte_attributes
-+ *		EBADALIGN	Improperly aligned r_addr
-+ *		ENORADDR	Invalid r_addr
-+ *
-+ * This service creates and flushes a single mapping in the IOTSB defined by the
-+ * arguments devhandle, iotsb.
-+ *
-+ * The mapping for the page at r_addr is created at the IOTSB index specified by
-+ * iotsb_index with  the attributes iotte_attributes.
-+ *
-+ * This service must not be used to demap a mapping. In other words, the mapping
-+ * must be valid and have one or both of the RW attribute bits set.
-+ *
-+ * Note:
-+ * It is implementation-defined whether I/O page real address validity checking
-+ * is done at time mappings are established or deferred until they are
-+ * accessed.
-+ */
-+#define HV_FAST_PCI_IOTSB_MAP_ONE	0x197
-+
-+/* pci_iotsb_demap()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_DEMAP
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	iotsb_index
-+ * ARG3:	#iottes
-+ * RET0:	status
-+ * RET1:	#unmapped
-+ * ERRORS:	EINVAL	Invalid devhandle, iotsb_handle, iotsb_index or #iottes
-+ *
-+ * This service unmaps and flushes up to #iottes mappings starting at index
-+ * iotsb_index from the IOTSB defined by the arguments devhandle, iotsb.
-+ *
-+ * #iottes must be greater than zero.
-+ *
-+ * The actual number of IOTTEs unmapped is returned in #unmapped and may be less
-+ * than or equal to the requested number of IOTTEs, #iottes.
-+ *
-+ * If #unmapped is less than #iottes, the caller should continue to invoke this
-+ * service with updated iotsb_index and #iottes arguments until all pages are
-+ * demapped.
-+ */
-+#define HV_FAST_PCI_IOTSB_DEMAP		0x198
-+
-+/* pci_iotsb_getmap()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_GETMAP
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	iotsb_index
-+ * RET0:	status
-+ * RET1:	r_addr
-+ * RET2:	iotte_attributes
-+ * ERRORS:	EINVAL	Invalid devhandle, iotsb_handle, or iotsb_index
-+ *		ENOMAP	No mapping was found
-+ *
-+ * This service returns the mapping specified by index iotsb_index from the
-+ * IOTSB defined by the arguments devhandle, iotsb.
-+ *
-+ * Upon success, the real address of the mapping shall be returned in
-+ * r_addr and thethe IOTTE mapping attributes shall be returned in
-+ * iotte_attributes.
-+ *
-+ * The return value iotte_attributes may not include optional features used in
-+ * the call to create the  mapping.
-+ */
-+#define HV_FAST_PCI_IOTSB_GETMAP	0x199
-+
-+/* pci_iotsb_sync_mappings()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_FAST_PCI_IOTSB_SYNC_MAPPINGS
-+ * ARG0:	devhandle
-+ * ARG1:	iotsb_handle
-+ * ARG2:	iotsb_index
-+ * ARG3:	#iottes
-+ * RET0:	status
-+ * RET1:	#synced
-+ * ERROS:	EINVAL	Invalid devhandle, iotsb_handle, iotsb_index, or #iottes
-+ *
-+ * This service synchronizes #iottes mappings starting at index iotsb_index in
-+ * the IOTSB defined by the arguments devhandle, iotsb.
-+ *
-+ * #iottes must be greater than zero.
-+ *
-+ * The actual number of IOTTEs synchronized is returned in #synced, which may
-+ * be less than or equal to the requested number, #iottes.
-+ *
-+ * Upon a successful return, #synced is less than #iottes, the caller should
-+ * continue to invoke this service with updated iotsb_index and #iottes
-+ * arguments until all pages are synchronized.
-+ */
-+#define HV_FAST_PCI_IOTSB_SYNC_MAPPINGS	0x19a
-+
- /* Logical Domain Channel services.  */
- 
- #define LDC_CHANNEL_DOWN		0
-@@ -2993,6 +3329,7 @@ unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
- #define HV_GRP_SDIO			0x0108
- #define HV_GRP_SDIO_ERR			0x0109
- #define HV_GRP_REBOOT_DATA		0x0110
-+#define HV_GRP_ATU			0x0111
- #define HV_GRP_M7_PERF			0x0114
- #define HV_GRP_NIAG_PERF		0x0200
- #define HV_GRP_FIRE_PERF		0x0201
-diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
-index cd0d69f..93daa59 100644
---- a/arch/sparc/include/asm/iommu_64.h
-+++ b/arch/sparc/include/asm/iommu_64.h
-@@ -24,8 +24,34 @@ struct iommu_arena {
- 	unsigned int	limit;
- };
- 
-+#define ATU_64_SPACE_SIZE 0x800000000 /* 32G */
-+
-+/* Data structures for SPARC ATU architecture */
-+struct atu_iotsb {
-+	void	*table;		/* IOTSB table base virtual addr*/
-+	u64	ra;		/* IOTSB table real addr */
-+	u64	dvma_size;	/* ranges[3].size or OS slected 32G size */
-+	u64	dvma_base;	/* ranges[3].base */
-+	u64	table_size;	/* IOTSB table size */
-+	u64	page_size;	/* IO PAGE size for IOTSB */
-+	u32	iotsb_num;	/* tsbnum is same as iotsb_handle */
-+};
-+
-+struct atu_ranges {
-+	u64	base;
-+	u64	size;
-+};
-+
-+struct atu {
-+	struct	atu_ranges	*ranges;
-+	struct	atu_iotsb	*iotsb;
-+	u64			base;
-+	u64			size;
-+};
-+
- struct iommu {
- 	struct iommu_map_table	tbl;
-+	struct atu		*atu;
- 	spinlock_t		lock;
- 	u32			dma_addr_mask;
- 	iopte_t			*page_table;
-diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
-index 662500f..2677312 100644
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -39,6 +39,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_SDIO,					},
- 	{ .group = HV_GRP_SDIO_ERR,				},
- 	{ .group = HV_GRP_REBOOT_DATA,				},
-+	{ .group = HV_GRP_ATU,		.flags = FLAG_PRE_API	},
- 	{ .group = HV_GRP_NIAG_PERF,	.flags = FLAG_PRE_API	},
- 	{ .group = HV_GRP_FIRE_PERF,				},
- 	{ .group = HV_GRP_N2_CPU,				},
+ /* pci_iotsb_conf()
+  * TRAP:	HV_FAST_TRAP
+  * FUNCTION:	HV_FAST_PCI_IOTSB_CONF
 diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index db57d8a..a1c4d5e 100644
+index c7f3a0b3..1ea6d30 100644
 --- a/arch/sparc/kernel/pci_sun4v.c
 +++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -44,6 +44,9 @@ static struct vpci_version vpci_versions[] = {
- 	{ .major = 1, .minor = 1 },
- };
- 
-+static unsigned long vatu_major = 1;
-+static unsigned long vatu_minor = 1;
-+
- #define PGLIST_NENTS	(PAGE_SIZE / sizeof(u64))
- 
- struct iommu_batch {
-@@ -581,6 +584,106 @@ static unsigned long probe_existing_entries(struct pci_pbm_info *pbm,
- 	return cnt;
+@@ -72,34 +72,55 @@ static inline void iommu_batch_start(struct device *dev, unsigned long prot, uns
  }
  
-+static int pci_sun4v_atu_alloc_iotsb(struct pci_pbm_info *pbm)
-+{
-+	struct atu *atu = pbm->iommu->atu;
-+	struct atu_iotsb *iotsb;
-+	void *table;
-+	u64 table_size;
-+	u64 iotsb_num;
-+	unsigned long err;
-+
-+	iotsb = kzalloc(sizeof(*iotsb), GFP_KERNEL);
-+	if (!iotsb) {
-+		err = -ENOMEM;
-+		goto out_err;
-+	}
-+	atu->iotsb = iotsb;
-+
-+	/* calculate size of IOTSB */
-+	table_size = (atu->size / IO_PAGE_SIZE) * 8;
-+	table = kzalloc(table_size, GFP_KERNEL);
-+	if (!table) {
-+		err = -ENOMEM;
-+		goto table_failed;
-+	}
-+	table = (void *)IO_PAGE_ALIGN((u64)table);
-+	iotsb->table = table;
-+	iotsb->ra = __pa(table);
-+	iotsb->dvma_size = atu->size;
-+	iotsb->dvma_base = atu->base;
-+	iotsb->table_size = table_size;
-+	iotsb->page_size = IO_PAGE_SIZE;
-+
-+	/* configure and register IOTSB with HV */
-+	err = pci_sun4v_iotsb_conf(pbm->devhandle,
-+				   iotsb->ra,
-+				   iotsb->table_size,
-+				   iotsb->page_size,
-+				   iotsb->dvma_base,
-+				   &iotsb_num);
-+	if (err) {
-+		pr_err(PFX "pci_iotsb_conf failed error: %ld\n", err);
-+		goto iotsb_conf_failed;
-+	}
-+	iotsb->iotsb_num = iotsb_num;
-+
-+	return 0;
-+
-+iotsb_conf_failed:
-+	kfree(table);
-+table_failed:
-+	kfree(iotsb);
-+out_err:
-+	return err;
-+}
-+
-+static int pci_sun4v_atu_init(struct pci_pbm_info *pbm)
-+{
-+	struct atu *atu = pbm->iommu->atu;
-+	unsigned long err;
-+	const u64 *ranges;
-+	const u32 *page_size;
-+	int len;
-+
-+	ranges = of_get_property(pbm->op->dev.of_node, "iommu-address-ranges",
-+				 &len);
-+	if (!ranges) {
-+		pr_err(PFX "No iommu-address-ranges\n");
-+		return -EINVAL;
-+	}
-+
-+	page_size = of_get_property(pbm->op->dev.of_node, "iommu-pagesizes",
-+				    NULL);
-+	if (!page_size) {
-+		pr_err(PFX "No iommu-pagesizes\n");
-+		return -EINVAL;
-+	}
-+
-+	/* There are 4 iommu-address-ranges supported. Each range is pair of
-+	 * {base, size}. The ranges[0] and ranges[1] are 32bit address space
-+	 * while ranges[2] and ranges[3] are 64bit space.  We want to use 64bit
-+	 * address ranges to support 64bit addressing. Because 'size' for
-+	 * address ranges[2] and ranges[3] are same we can select either of
-+	 * ranges[2] or ranges[3] for mapping. However due to 'size' is too
-+	 * large for OS to allocate IOTSB we are using fix size 32G
-+	 * (ATU_64_SPACE_SIZE) which is more than enough for all PCIe devices
-+	 * to share.
-+	 */
-+	atu->ranges = (struct atu_ranges *)ranges;
-+	atu->base = atu->ranges[3].base;
-+	atu->size = ATU_64_SPACE_SIZE;
-+
-+	/* Create IOTSB */
-+	err = pci_sun4v_atu_alloc_iotsb(pbm);
-+	if (err) {
-+		pr_err(PFX "Error creating ATU IOTSB\n");
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
- static int pci_sun4v_iommu_init(struct pci_pbm_info *pbm)
+ /* Interrupts must be disabled.  */
+-static long iommu_batch_flush(struct iommu_batch *p)
++static long iommu_batch_flush(struct iommu_batch *p, u64 mask)
  {
- 	static const u32 vdma_default[] = { 0x80000000, 0x80000000 };
-@@ -918,6 +1021,18 @@ static int pci_sun4v_pbm_init(struct pci_pbm_info *pbm,
+ 	struct pci_pbm_info *pbm = p->dev->archdata.host_controller;
++	u64 *pglist = p->pglist;
++	u64 index_count;
+ 	unsigned long devhandle = pbm->devhandle;
+ 	unsigned long prot = p->prot;
+ 	unsigned long entry = p->entry;
+-	u64 *pglist = p->pglist;
+ 	unsigned long npages = p->npages;
++	unsigned long iotsb_num;
++	unsigned long ret;
++	long num;
  
- 	pci_sun4v_scan_bus(pbm, &op->dev);
+ 	/* VPCI maj=1, min=[0,1] only supports read and write */
+ 	if (vpci_major < 2)
+ 		prot &= (HV_PCI_MAP_ATTR_READ | HV_PCI_MAP_ATTR_WRITE);
  
-+	/* if atu_init fails its not complete failure.
-+	 * we can still continue using legacy iommu.
-+	 */
-+	if (pbm->iommu->atu) {
-+		err = pci_sun4v_atu_init(pbm);
-+		if (err) {
-+			kfree(pbm->iommu->atu);
-+			pbm->iommu->atu = NULL;
-+			pr_err(PFX "ATU init failed, err=%d\n", err);
-+		}
-+	}
-+
- 	pbm->next = pci_pbm_root;
- 	pci_pbm_root = pbm;
+ 	while (npages != 0) {
+-		long num;
+-
+-		num = pci_sun4v_iommu_map(devhandle, HV_PCI_TSBID(0, entry),
+-					  npages, prot, __pa(pglist));
+-		if (unlikely(num < 0)) {
+-			if (printk_ratelimit())
+-				printk("iommu_batch_flush: IOMMU map of "
+-				       "[%08lx:%08llx:%lx:%lx:%lx] failed with "
+-				       "status %ld\n",
+-				       devhandle, HV_PCI_TSBID(0, entry),
+-				       npages, prot, __pa(pglist), num);
+-			return -1;
++		if (mask <= DMA_BIT_MASK(32)) {
++			num = pci_sun4v_iommu_map(devhandle,
++						  HV_PCI_TSBID(0, entry),
++						  npages,
++						  prot,
++						  __pa(pglist));
++			if (unlikely(num < 0)) {
++				pr_err_ratelimited("iommu_batch_flush: IOMMU map of [%08lx:%08llx:%lx:%lx:%lx] failed with status %ld\n",
++						   devhandle,
++						   HV_PCI_TSBID(0, entry),
++						   npages, prot, __pa(pglist),
++						   num);
++				return -1;
++			}
++		} else {
++			index_count = HV_PCI_IOTSB_INDEX_COUNT(npages, entry),
++			iotsb_num = pbm->iommu->atu->iotsb->iotsb_num;
++			ret = pci_sun4v_iotsb_map(devhandle,
++						  iotsb_num,
++						  index_count,
++						  prot,
++						  __pa(pglist),
++						  &num);
++			if (unlikely(ret != HV_EOK)) {
++				pr_err_ratelimited("iommu_batch_flush: ATU map of [%08lx:%lx:%llx:%lx:%lx] failed with status %ld\n",
++						   devhandle, iotsb_num,
++						   index_count, prot,
++						   __pa(pglist), ret);
++				return -1;
++			}
+ 		}
+-
+ 		entry += num;
+ 		npages -= num;
+ 		pglist += num;
+@@ -111,19 +132,19 @@ static long iommu_batch_flush(struct iommu_batch *p)
+ 	return 0;
+ }
  
-@@ -931,8 +1046,10 @@ static int pci_sun4v_probe(struct platform_device *op)
- 	struct pci_pbm_info *pbm;
- 	struct device_node *dp;
+-static inline void iommu_batch_new_entry(unsigned long entry)
++static inline void iommu_batch_new_entry(unsigned long entry, u64 mask)
+ {
+ 	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
+ 
+ 	if (p->entry + p->npages = entry)
+ 		return;
+ 	if (p->entry != ~0UL)
+-		iommu_batch_flush(p);
++		iommu_batch_flush(p, mask);
+ 	p->entry = entry;
+ }
+ 
+ /* Interrupts must be disabled.  */
+-static inline long iommu_batch_add(u64 phys_page)
++static inline long iommu_batch_add(u64 phys_page, u64 mask)
+ {
+ 	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
+ 
+@@ -131,28 +152,31 @@ static inline long iommu_batch_add(u64 phys_page)
+ 
+ 	p->pglist[p->npages++] = phys_page;
+ 	if (p->npages = PGLIST_NENTS)
+-		return iommu_batch_flush(p);
++		return iommu_batch_flush(p, mask);
+ 
+ 	return 0;
+ }
+ 
+ /* Interrupts must be disabled.  */
+-static inline long iommu_batch_end(void)
++static inline long iommu_batch_end(u64 mask)
+ {
+ 	struct iommu_batch *p = this_cpu_ptr(&iommu_batch);
+ 
+ 	BUG_ON(p->npages >= PGLIST_NENTS);
+ 
+-	return iommu_batch_flush(p);
++	return iommu_batch_flush(p, mask);
+ }
+ 
+ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 				   dma_addr_t *dma_addrp, gfp_t gfp,
+ 				   unsigned long attrs)
+ {
++	u64 mask;
+ 	unsigned long flags, order, first_page, npages, n;
+ 	unsigned long prot = 0;
  	struct iommu *iommu;
 +	struct atu *atu;
- 	u32 devhandle;
- 	int i, err = -ENODEV;
-+	static bool hv_atu = 1;
++	struct iommu_map_table *tbl;
+ 	struct page *page;
+ 	void *ret;
+ 	long entry;
+@@ -177,14 +201,21 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	memset((char *)first_page, 0, PAGE_SIZE << order);
  
- 	dp = op->dev.of_node;
- 
-@@ -954,6 +1071,19 @@ static int pci_sun4v_probe(struct platform_device *op)
- 		pr_info(PFX "Registered hvapi major[%lu] minor[%lu]\n",
- 			vpci_major, vpci_minor);
- 
-+		err = sun4v_hvapi_register(HV_GRP_ATU, vatu_major, &vatu_minor);
-+		if (err) {
-+			/* don't return an error if we fail to register the
-+			 * ATU group, but ATU hcalls won't be available.
-+			 */
-+			hv_atu = 0;
-+			pr_err(PFX "Could not register hvapi ATU err=%d\n",
-+			       err);
-+		} else {
-+			pr_info(PFX "Registered hvapi ATU major[%lu] minor[%lu]\n",
-+				vatu_major, vatu_minor);
-+		}
+ 	iommu = dev->archdata.iommu;
++	atu = iommu->atu;
 +
- 		dma_ops = &sun4v_dma_ops;
++	mask = dev->coherent_dma_mask;
++	if (mask <= DMA_BIT_MASK(32))
++		tbl = &iommu->tbl;
++	else
++		tbl = &atu->tbl;
+ 
+-	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
++	entry = iommu_tbl_range_alloc(dev, tbl, npages, NULL,
+ 				      (unsigned long)(-1), 0);
+ 
+ 	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		goto range_alloc_fail;
+ 
+-	*dma_addrp = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
++	*dma_addrp = (tbl->table_map_base + (entry << IO_PAGE_SHIFT));
+ 	ret = (void *) first_page;
+ 	first_page = __pa(first_page);
+ 
+@@ -196,12 +227,12 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 			  entry);
+ 
+ 	for (n = 0; n < npages; n++) {
+-		long err = iommu_batch_add(first_page + (n * PAGE_SIZE));
++		long err = iommu_batch_add(first_page + (n * PAGE_SIZE), mask);
+ 		if (unlikely(err < 0L))
+ 			goto iommu_map_fail;
  	}
  
-@@ -991,6 +1121,14 @@ static int pci_sun4v_probe(struct platform_device *op)
- 	}
+-	if (unlikely(iommu_batch_end() < 0L))
++	if (unlikely(iommu_batch_end(mask) < 0L))
+ 		goto iommu_map_fail;
  
- 	pbm->iommu = iommu;
-+	iommu->atu = NULL;
-+	if (hv_atu) {
-+		atu = kzalloc(sizeof(*atu), GFP_KERNEL);
-+		if (!atu)
-+			pr_err(PFX "Could not allocate atu\n");
-+		else
-+			iommu->atu = atu;
-+	}
+ 	local_irq_restore(flags);
+@@ -209,7 +240,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+ 	return ret;
  
- 	err = pci_sun4v_pbm_init(pbm, op, devhandle);
- 	if (err)
-@@ -1001,6 +1139,7 @@ static int pci_sun4v_probe(struct platform_device *op)
+ iommu_map_fail:
+-	iommu_tbl_range_free(&iommu->tbl, *dma_addrp, npages, IOMMU_ERROR_CODE);
++	iommu_tbl_range_free(tbl, *dma_addrp, npages, IOMMU_ERROR_CODE);
+ 
+ range_alloc_fail:
+ 	free_pages(first_page, order);
+@@ -253,18 +284,27 @@ unsigned long dma_4v_iotsb_bind(unsigned long devhandle,
  	return 0;
+ }
  
- out_free_iommu:
-+	kfree(iommu->atu);
- 	kfree(pbm->iommu);
+-static void dma_4v_iommu_demap(void *demap_arg, unsigned long entry,
+-			       unsigned long npages)
++static void dma_4v_iommu_demap(struct device *dev, unsigned long devhandle,
++			       dma_addr_t dvma, unsigned long iotsb_num,
++			       unsigned long entry, unsigned long npages)
+ {
+-	u32 devhandle = *(u32 *)demap_arg;
+ 	unsigned long num, flags;
++	unsigned long ret;
  
- out_free_controller:
+ 	local_irq_save(flags);
+ 	do {
+-		num = pci_sun4v_iommu_demap(devhandle,
+-					    HV_PCI_TSBID(0, entry),
+-					    npages);
+-
++		if (dvma <= DMA_BIT_MASK(32)) {
++			num = pci_sun4v_iommu_demap(devhandle,
++						    HV_PCI_TSBID(0, entry),
++						    npages);
++		} else {
++			ret = pci_sun4v_iotsb_demap(devhandle, iotsb_num,
++						    entry, npages, &num);
++			if (unlikely(ret != HV_EOK)) {
++				pr_err_ratelimited("pci_iotsb_demap() failed with error: %ld\n",
++						   ret);
++			}
++		}
+ 		entry += num;
+ 		npages -= num;
+ 	} while (npages != 0);
+@@ -276,16 +316,28 @@ static void dma_4v_free_coherent(struct device *dev, size_t size, void *cpu,
+ {
+ 	struct pci_pbm_info *pbm;
+ 	struct iommu *iommu;
++	struct atu *atu;
++	struct iommu_map_table *tbl;
+ 	unsigned long order, npages, entry;
++	unsigned long iotsb_num;
+ 	u32 devhandle;
+ 
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+ 	pbm = dev->archdata.host_controller;
++	atu = iommu->atu;
+ 	devhandle = pbm->devhandle;
+-	entry = ((dvma - iommu->tbl.table_map_base) >> IO_PAGE_SHIFT);
+-	dma_4v_iommu_demap(&devhandle, entry, npages);
+-	iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
++
++	if (dvma <= DMA_BIT_MASK(32)) {
++		tbl = &iommu->tbl;
++		iotsb_num = 0; /* we don't care for legacy iommu */
++	} else {
++		tbl = &atu->tbl;
++		iotsb_num = atu->iotsb->iotsb_num;
++	}
++	entry = ((dvma - tbl->table_map_base) >> IO_PAGE_SHIFT);
++	dma_4v_iommu_demap(dev, devhandle, dvma, iotsb_num, entry, npages);
++	iommu_tbl_range_free(tbl, dvma, npages, IOMMU_ERROR_CODE);
+ 	order = get_order(size);
+ 	if (order < 10)
+ 		free_pages((unsigned long)cpu, order);
+@@ -297,13 +349,17 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 				  unsigned long attrs)
+ {
+ 	struct iommu *iommu;
++	struct atu *atu;
++	struct iommu_map_table *tbl;
++	u64 mask;
+ 	unsigned long flags, npages, oaddr;
+ 	unsigned long i, base_paddr;
+-	u32 bus_addr, ret;
+ 	unsigned long prot;
++	dma_addr_t bus_addr, ret;
+ 	long entry;
+ 
+ 	iommu = dev->archdata.iommu;
++	atu = iommu->atu;
+ 
+ 	if (unlikely(direction = DMA_NONE))
+ 		goto bad;
+@@ -312,13 +368,19 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	npages = IO_PAGE_ALIGN(oaddr + sz) - (oaddr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 
+-	entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
++	mask = *dev->dma_mask;
++	if (mask <= DMA_BIT_MASK(32))
++		tbl = &iommu->tbl;
++	else
++		tbl = &atu->tbl;
++
++	entry = iommu_tbl_range_alloc(dev, tbl, npages, NULL,
+ 				      (unsigned long)(-1), 0);
+ 
+ 	if (unlikely(entry = IOMMU_ERROR_CODE))
+ 		goto bad;
+ 
+-	bus_addr = (iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT));
++	bus_addr = (tbl->table_map_base + (entry << IO_PAGE_SHIFT));
+ 	ret = bus_addr | (oaddr & ~IO_PAGE_MASK);
+ 	base_paddr = __pa(oaddr & IO_PAGE_MASK);
+ 	prot = HV_PCI_MAP_ATTR_READ;
+@@ -333,11 +395,11 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
+ 	iommu_batch_start(dev, prot, entry);
+ 
+ 	for (i = 0; i < npages; i++, base_paddr += IO_PAGE_SIZE) {
+-		long err = iommu_batch_add(base_paddr);
++		long err = iommu_batch_add(base_paddr, mask);
+ 		if (unlikely(err < 0L))
+ 			goto iommu_map_fail;
+ 	}
+-	if (unlikely(iommu_batch_end() < 0L))
++	if (unlikely(iommu_batch_end(mask) < 0L))
+ 		goto iommu_map_fail;
+ 
+ 	local_irq_restore(flags);
+@@ -350,7 +412,7 @@ bad:
+ 	return DMA_ERROR_CODE;
+ 
+ iommu_map_fail:
+-	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
++	iommu_tbl_range_free(tbl, bus_addr, npages, IOMMU_ERROR_CODE);
+ 	return DMA_ERROR_CODE;
+ }
+ 
+@@ -360,7 +422,10 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ {
+ 	struct pci_pbm_info *pbm;
+ 	struct iommu *iommu;
++	struct atu *atu;
++	struct iommu_map_table *tbl;
+ 	unsigned long npages;
++	unsigned long iotsb_num;
+ 	long entry;
+ 	u32 devhandle;
+ 
+@@ -372,14 +437,23 @@ static void dma_4v_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 
+ 	iommu = dev->archdata.iommu;
+ 	pbm = dev->archdata.host_controller;
++	atu = iommu->atu;
+ 	devhandle = pbm->devhandle;
+ 
+ 	npages = IO_PAGE_ALIGN(bus_addr + sz) - (bus_addr & IO_PAGE_MASK);
+ 	npages >>= IO_PAGE_SHIFT;
+ 	bus_addr &= IO_PAGE_MASK;
+-	entry = (bus_addr - iommu->tbl.table_map_base) >> IO_PAGE_SHIFT;
+-	dma_4v_iommu_demap(&devhandle, entry, npages);
+-	iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
++
++	if (bus_addr <= DMA_BIT_MASK(32)) {
++		iotsb_num = 0; /* we don't care for legacy iommu */
++		tbl = &iommu->tbl;
++	} else {
++		iotsb_num = atu->iotsb->iotsb_num;
++		tbl = &atu->tbl;
++	}
++	entry = (bus_addr - tbl->table_map_base) >> IO_PAGE_SHIFT;
++	dma_4v_iommu_demap(dev, devhandle, bus_addr, iotsb_num, entry, npages);
++	iommu_tbl_range_free(tbl, bus_addr, npages, IOMMU_ERROR_CODE);
+ }
+ 
+ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+@@ -393,12 +467,17 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	unsigned long seg_boundary_size;
+ 	int outcount, incount, i;
+ 	struct iommu *iommu;
++	struct atu *atu;
++	struct iommu_map_table *tbl;
++	u64 mask;
+ 	unsigned long base_shift;
+ 	long err;
+ 
+ 	BUG_ON(direction = DMA_NONE);
+ 
+ 	iommu = dev->archdata.iommu;
++	atu = iommu->atu;
++
+ 	if (nelems = 0 || !iommu)
+ 		return 0;
+ 	
+@@ -424,7 +503,15 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	max_seg_size = dma_get_max_seg_size(dev);
+ 	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+ 				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
+-	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
++
++	mask = *dev->dma_mask;
++	if (mask <= DMA_BIT_MASK(32))
++		tbl = &iommu->tbl;
++	else
++		tbl = &atu->tbl;
++
++	base_shift = tbl->table_map_base >> IO_PAGE_SHIFT;
++
+ 	for_each_sg(sglist, s, nelems, i) {
+ 		unsigned long paddr, npages, entry, out_entry = 0, slen;
+ 
+@@ -437,27 +524,26 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		/* Allocate iommu entries for that segment */
+ 		paddr = (unsigned long) SG_ENT_PHYS_ADDRESS(s);
+ 		npages = iommu_num_pages(paddr, slen, IO_PAGE_SIZE);
+-		entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
++		entry = iommu_tbl_range_alloc(dev, tbl, npages,
+ 					      &handle, (unsigned long)(-1), 0);
+ 
+ 		/* Handle failure */
+ 		if (unlikely(entry = IOMMU_ERROR_CODE)) {
+-			if (printk_ratelimit())
+-				printk(KERN_INFO "iommu_alloc failed, iommu %p paddr %lx"
+-				       " npages %lx\n", iommu, paddr, npages);
++			pr_err_ratelimited("iommu_alloc failed, iommu %p paddr %lx npages %lx\n",
++					   tbl, paddr, npages);
+ 			goto iommu_map_failed;
+ 		}
+ 
+-		iommu_batch_new_entry(entry);
++		iommu_batch_new_entry(entry, mask);
+ 
+ 		/* Convert entry to a dma_addr_t */
+-		dma_addr = iommu->tbl.table_map_base + (entry << IO_PAGE_SHIFT);
++		dma_addr = tbl->table_map_base + (entry << IO_PAGE_SHIFT);
+ 		dma_addr |= (s->offset & ~IO_PAGE_MASK);
+ 
+ 		/* Insert into HW table */
+ 		paddr &= IO_PAGE_MASK;
+ 		while (npages--) {
+-			err = iommu_batch_add(paddr);
++			err = iommu_batch_add(paddr, mask);
+ 			if (unlikely(err < 0L))
+ 				goto iommu_map_failed;
+ 			paddr += IO_PAGE_SIZE;
+@@ -492,7 +578,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 		dma_next = dma_addr + slen;
+ 	}
+ 
+-	err = iommu_batch_end();
++	err = iommu_batch_end(mask);
+ 
+ 	if (unlikely(err < 0L))
+ 		goto iommu_map_failed;
+@@ -515,7 +601,7 @@ iommu_map_failed:
+ 			vaddr = s->dma_address & IO_PAGE_MASK;
+ 			npages = iommu_num_pages(s->dma_address, s->dma_length,
+ 						 IO_PAGE_SIZE);
+-			iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
++			iommu_tbl_range_free(tbl, vaddr, npages,
+ 					     IOMMU_ERROR_CODE);
+ 			/* XXX demap? XXX */
+ 			s->dma_address = DMA_ERROR_CODE;
+@@ -536,13 +622,16 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 	struct pci_pbm_info *pbm;
+ 	struct scatterlist *sg;
+ 	struct iommu *iommu;
++	struct atu *atu;
+ 	unsigned long flags, entry;
++	unsigned long iotsb_num;
+ 	u32 devhandle;
+ 
+ 	BUG_ON(direction = DMA_NONE);
+ 
+ 	iommu = dev->archdata.iommu;
+ 	pbm = dev->archdata.host_controller;
++	atu = iommu->atu;
+ 	devhandle = pbm->devhandle;
+ 	
+ 	local_irq_save(flags);
+@@ -552,15 +641,24 @@ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		dma_addr_t dma_handle = sg->dma_address;
+ 		unsigned int len = sg->dma_length;
+ 		unsigned long npages;
+-		struct iommu_map_table *tbl = &iommu->tbl;
++		struct iommu_map_table *tbl;
+ 		unsigned long shift = IO_PAGE_SHIFT;
+ 
+ 		if (!len)
+ 			break;
+ 		npages = iommu_num_pages(dma_handle, len, IO_PAGE_SIZE);
++
++		if (dma_handle <= DMA_BIT_MASK(32)) {
++			iotsb_num = 0; /* we don't care for legacy iommu */
++			tbl = &iommu->tbl;
++		} else {
++			iotsb_num = atu->iotsb->iotsb_num;
++			tbl = &atu->tbl;
++		}
+ 		entry = ((dma_handle - tbl->table_map_base) >> shift);
+-		dma_4v_iommu_demap(&devhandle, entry, npages);
+-		iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
++		dma_4v_iommu_demap(dev, devhandle, dma_handle, iotsb_num,
++				   entry, npages);
++		iommu_tbl_range_free(tbl, dma_handle, npages,
+ 				     IOMMU_ERROR_CODE);
+ 		sg = sg_next(sg);
+ 	}
 diff --git a/arch/sparc/kernel/pci_sun4v.h b/arch/sparc/kernel/pci_sun4v.h
-index 5642212..0ef6d1c 100644
+index 1019e0f..22603a4 100644
 --- a/arch/sparc/kernel/pci_sun4v.h
 +++ b/arch/sparc/kernel/pci_sun4v.h
-@@ -89,4 +89,11 @@ unsigned long pci_sun4v_msg_setvalid(unsigned long devhandle,
- 				     unsigned long msinum,
- 				     unsigned long valid);
- 
-+/* Sun4v HV IOMMU v2 APIs */
-+unsigned long pci_sun4v_iotsb_conf(unsigned long devhandle,
-+				   unsigned long ra,
-+				   unsigned long table_size,
-+				   unsigned long page_size,
-+				   unsigned long dvma_base,
-+				   u64 *iotsb_num);
+@@ -99,4 +99,15 @@ unsigned long pci_sun4v_iotsb_conf(unsigned long devhandle,
+ unsigned long pci_sun4v_iotsb_bind(unsigned long devhandle,
+ 				   unsigned long iotsb_num,
+ 				   unsigned int pci_device);
++unsigned long pci_sun4v_iotsb_map(unsigned long devhandle,
++				  unsigned long iotsb_num,
++				  unsigned long iotsb_index_iottes,
++				  unsigned long io_attributes,
++				  unsigned long io_page_list_pa,
++				  long *mapped);
++unsigned long pci_sun4v_iotsb_demap(unsigned long devhandle,
++				    unsigned long iotsb_num,
++				    unsigned long iotsb_index,
++				    unsigned long iottes,
++				    unsigned long *demapped);
  #endif /* !(_PCI_SUN4V_H) */
 diff --git a/arch/sparc/kernel/pci_sun4v_asm.S b/arch/sparc/kernel/pci_sun4v_asm.S
-index e606d46..fd94d0e 100644
+index 22024a9..578f096 100644
 --- a/arch/sparc/kernel/pci_sun4v_asm.S
 +++ b/arch/sparc/kernel/pci_sun4v_asm.S
-@@ -360,3 +360,21 @@ ENTRY(pci_sun4v_msg_setvalid)
- 	 mov	%o0, %o0
- ENDPROC(pci_sun4v_msg_setvalid)
- 
+@@ -392,3 +392,39 @@ ENTRY(pci_sun4v_iotsb_bind)
+ 	retl
+ 	 nop
+ ENDPROC(pci_sun4v_iotsb_bind)
++
 +	/*
 +	 * %o0:	devhandle
-+	 * %o1:	r_addr
-+	 * %o2:	size
-+	 * %o3:	pagesize
-+	 * %o4:	virt
-+	 * %o5: &iotsb_num/&iotsb_handle
++	 * %o1:	iotsb_num/iotsb_handle
++	 * %o2:	index_count
++	 * %o3:	iotte_attributes
++	 * %o4:	io_page_list_p
++	 * %o5: &mapped
 +	 *
 +	 * returns %o0:	status
-+	 *         %o1:	iotsb_num/iotsb_handle
++	 *         %o1:	#mapped
 +	 */
-+ENTRY(pci_sun4v_iotsb_conf)
++ENTRY(pci_sun4v_iotsb_map)
 +	mov	%o5, %g1
-+	mov	HV_FAST_PCI_IOTSB_CONF, %o5
++	mov	HV_FAST_PCI_IOTSB_MAP, %o5
 +	ta	HV_FAST_TRAP
 +	retl
 +	 stx	%o1, [%g1]
-+ENDPROC(pci_sun4v_iotsb_conf)
++ENDPROC(pci_sun4v_iotsb_map)
++
++	/*
++	 * %o0:	devhandle
++	 * %o1:	iotsb_num/iotsb_handle
++	 * %o2:	iotsb_index
++	 * %o3:	#iottes
++	 * %o4: &demapped
++	 *
++	 * returns %o0:	status
++	 *         %o1:	#demapped
++	 */
++ENTRY(pci_sun4v_iotsb_demap)
++	mov	HV_FAST_PCI_IOTSB_DEMAP, %o5
++	ta	HV_FAST_TRAP
++	retl
++	 stx	%o1, [%o4]
++ENDPROC(pci_sun4v_iotsb_demap)
 -- 
 1.9.1
 
