@@ -1,63 +1,67 @@
 From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Fri, 28 Oct 2016 17:12:40 +0000
-Subject: [PATCH v3 1/6] sparc64: Add FORCE_MAX_ZONEORDER and default to 13
-Message-Id: <1477674765-22160-2-git-send-email-tushar.n.dave@oracle.com>
+Date: Thu, 06 Oct 2016 23:33:30 +0000
+Subject: [RFC PATCH 0/6] sparc: Enable sun4v hypervisor PCI IOMMU v2 APIs and ATU
+Message-Id: <1475796816-14448-1-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Dave Kleikamp <dave.kleikamp@oracle.com>
+ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
+sun4v hypervisor PCI IOMMU v2 APIs.
 
-This change allows ATU (new IOMMU) in SPARC systems to request
-large (32M) contiguous memory during boot for creating IOTSB backing
-store.
+Current SPARC IOMMU supports only 32bit address ranges and one TSB
+per PCIe root complex that has a 2GB per root complex DVMA space
+limit. The limit has become a scalability bottleneck nowadays that
+a typical 10G/40G NIC can consume 500MB DVMA space per instance.
+When DVMA resource is exhausted, devices will not be usable
+since the driver can't allocate DVMA.
 
-Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
-Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
----
- arch/sparc/Kconfig | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+For example, we recently experienced legacy IOMMU limitation while
+using i40e driver in system with large number of CPUs (e.g. 128).
+Four ports of i40e, each request 128 QP (Queue Pairs). Each queue has
+512 (default) descriptors. So considering only RX queues (because RX
+premap DMA buffers), i40e takes 4*128*512 number of DMA entries in
+IOMMU table. Legacy IOMMU can have at max (2G/8K)- 1 entries available
+in table. So bringing up four instance of i40e alone saturate existing
+IOMMU resource.
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index b23c76b..5202eb4 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -89,6 +89,10 @@ config ARCH_DEFCONFIG
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
- 
-+config ARCH_ATU
-+	bool
-+	default y if SPARC64
-+
- config IOMMU_HELPER
- 	bool
- 	default y if SPARC64
-@@ -304,6 +308,20 @@ config ARCH_SPARSEMEM_ENABLE
- config ARCH_SPARSEMEM_DEFAULT
- 	def_bool y if SPARC64
- 
-+config FORCE_MAX_ZONEORDER
-+	int "Maximum zone order"
-+	default "13"
-+	help
-+	  The kernel memory allocator divides physically contiguous memory
-+	  blocks into "zones", where each zone is a power of two number of
-+	  pages.  This option selects the largest power of two that the kernel
-+	  keeps in the memory allocator.  If you need to allocate very large
-+	  blocks of physically contiguous memory, then you may need to
-+	  increase this value.
-+
-+	  This config option is actually maximum order plus one. For example,
-+	  a value of 13 means that the largest free memory block is 2^12 pages.
-+
- source "mm/Kconfig"
- 
- if SPARC64
+ATU removes bottleneck by allowing guest os to create IOTSB of size
+32G (or more) with 64bit address ranges available in ATU HW. 32G is
+more than enough DVMA space to be shared by all PCIe devices under
+root complex contrast to 2G space provided by legacy IOMMU.
+
+ATU allows PCIe devices to use 64bit DMA addressing. Devices
+which choose to use 32bit DMA mask will continue to work with the
+existing legacy IOMMU.
+
+The patch set is tested on sun4v (T1000, T2000, T3, T4, T5, T7, S7)
+and sun4u SPARC.
+
+Thanks.
+-Tushar
+
+Dave Kleikamp (1):
+  sparc64: Add FORCE_MAX_ZONEORDER and default to 13
+
+Tushar Dave (5):
+  sparc64: Add ATU (new IOMMU) support
+  sparc64: Initialize iommu_map_table and iommu_pool
+  sparc64: Bind PCIe devices to use IOMMU v2 service
+  sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
+  sparc64: Enable 64-bit DMA
+
+ arch/sparc/Kconfig                  |  22 ++
+ arch/sparc/include/asm/hypervisor.h | 343 +++++++++++++++++++++++++++++
+ arch/sparc/include/asm/iommu_64.h   |  28 +++
+ arch/sparc/kernel/hvapi.c           |   1 +
+ arch/sparc/kernel/iommu.c           |   8 +-
+ arch/sparc/kernel/pci_sun4v.c       | 415 +++++++++++++++++++++++++++++++-----
+ arch/sparc/kernel/pci_sun4v.h       |  21 ++
+ arch/sparc/kernel/pci_sun4v_asm.S   |  68 ++++++
+ 8 files changed, 846 insertions(+), 60 deletions(-)
+
 -- 
 1.9.1
 
