@@ -1,70 +1,67 @@
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Date: Tue, 25 Oct 2016 15:38:34 +0000
-Subject: [net-next PATCH 20/27] arch/sparc: Add option to skip DMA sync as a part of map and unmap
-Message-Id: <20161025153834.4815.28700.stgit@ahduyck-blue-test.jf.intel.com>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Mon, 10 Oct 2016 18:12:01 +0000
+Subject: [PATCH 0/6] sparc: Enable sun4v hypervisor PCI IOMMU v2 APIs and ATU
+Message-Id: <1476123127-24314-1-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161025153220.4815.61239.stgit@ahduyck-blue-test.jf.intel.com>
-In-Reply-To: <20161025153220.4815.61239.stgit@ahduyck-blue-test.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, davem@davemloft.net, brouer@redhat.com
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, rkuo@codeaurora.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-avoid invoking cache line invalidation if the driver will just handle it
-via a sync_for_cpu or sync_for_device call.
+ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
+sun4v hypervisor PCI IOMMU v2 APIs.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
----
- arch/sparc/kernel/iommu.c  |    4 ++--
- arch/sparc/kernel/ioport.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Current SPARC IOMMU supports only 32bit address ranges and one TSB
+per PCIe root complex that has a 2GB per root complex DVMA space
+limit. The limit has become a scalability bottleneck nowadays that
+a typical 10G/40G NIC can consume 500MB DVMA space per instance.
+When DVMA resource is exhausted, devices will not be usable
+since the driver can't allocate DVMA.
 
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 5c615ab..8fda4e4 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -415,7 +415,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
- 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
- 
- 	/* Step 1: Kick data out of streaming buffers if necessary. */
--	if (strbuf->strbuf_enabled)
-+	if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		strbuf_flush(strbuf, iommu, bus_addr, ctx,
- 			     npages, direction);
- 
-@@ -640,7 +640,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		base = iommu->page_table + entry;
- 
- 		dma_handle &= IO_PAGE_MASK;
--		if (strbuf->strbuf_enabled)
-+		if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 			strbuf_flush(strbuf, iommu, dma_handle, ctx,
- 				     npages, direction);
- 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 2344103..6ffaec4 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -527,7 +527,7 @@ static dma_addr_t pci32_map_page(struct device *dev, struct page *page,
- static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
- 			     enum dma_data_direction dir, unsigned long attrs)
- {
--	if (dir != PCI_DMA_TODEVICE)
-+	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		dma_make_coherent(ba, PAGE_ALIGN(size));
- }
- 
-@@ -572,7 +572,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
- 	struct scatterlist *sg;
- 	int n;
- 
--	if (dir != PCI_DMA_TODEVICE) {
-+	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
- 		for_each_sg(sgl, sg, nents, n) {
- 			dma_make_coherent(sg_phys(sg), PAGE_ALIGN(sg->length));
- 		}
+For example, we recently experienced legacy IOMMU limitation while
+using i40e driver in system with large number of CPUs (e.g. 128).
+Four ports of i40e, each request 128 QP (Queue Pairs). Each queue has
+512 (default) descriptors. So considering only RX queues (because RX
+premap DMA buffers), i40e takes 4*128*512 number of DMA entries in
+IOMMU table. Legacy IOMMU can have at max (2G/8K)- 1 entries available
+in table. So bringing up four instance of i40e alone saturate existing
+IOMMU resource.
+
+ATU removes bottleneck by allowing guest os to create IOTSB of size
+32G (or more) with 64bit address ranges available in ATU HW. 32G is
+more than enough DVMA space to be shared by all PCIe devices under
+root complex contrast to 2G space provided by legacy IOMMU.
+
+ATU allows PCIe devices to use 64bit DMA addressing. Devices
+which choose to use 32bit DMA mask will continue to work with the
+existing legacy IOMMU.
+
+The patch set is tested on sun4v (T1000, T2000, T3, T4, T5, T7, S7)
+and sun4u SPARC.
+
+Thanks.
+-Tushar
+
+Dave Kleikamp (1):
+  sparc64: Add FORCE_MAX_ZONEORDER and default to 13
+
+Tushar Dave (5):
+  sparc64: Add ATU (new IOMMU) support
+  sparc64: Initialize iommu_map_table and iommu_pool
+  sparc64: Bind PCIe devices to use IOMMU v2 service
+  sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
+  sparc64: Enable 64-bit DMA
+
+ arch/sparc/Kconfig                  |  22 ++
+ arch/sparc/include/asm/hypervisor.h | 343 +++++++++++++++++++++++++++++
+ arch/sparc/include/asm/iommu_64.h   |  28 +++
+ arch/sparc/kernel/hvapi.c           |   1 +
+ arch/sparc/kernel/iommu.c           |   8 +-
+ arch/sparc/kernel/pci_sun4v.c       | 415 +++++++++++++++++++++++++++++++-----
+ arch/sparc/kernel/pci_sun4v.h       |  21 ++
+ arch/sparc/kernel/pci_sun4v_asm.S   |  68 ++++++
+ 8 files changed, 846 insertions(+), 60 deletions(-)
+
+-- 
+1.9.1
 
