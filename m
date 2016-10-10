@@ -1,14 +1,14 @@
 From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Fri, 28 Oct 2016 17:12:43 +0000
-Subject: [PATCH v3 4/6] sparc64: Bind PCIe devices to use IOMMU v2 service
-Message-Id: <1477674765-22160-5-git-send-email-tushar.n.dave@oracle.com>
+Date: Mon, 10 Oct 2016 18:12:05 +0000
+Subject: [PATCH 4/6] sparc64: Bind PCIe devices to use IOMMU v2 service
+Message-Id: <1476123127-24314-5-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
+References: <1476123127-24314-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1476123127-24314-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, rkuo@codeaurora.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 In order to use Hypervisor (HV) IOMMU v2 API for map/demap, each PCIe
 device has to be bound to IOTSB using HV API pci_iotsb_bind().
@@ -23,10 +23,10 @@ Acked-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
  3 files changed, 60 insertions(+)
 
 diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 242477c..d4208aa 100644
+index 5404b33..c7f3a0b3 100644
 --- a/arch/sparc/kernel/pci_sun4v.c
 +++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -216,6 +216,43 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
+@@ -216,6 +216,43 @@ range_alloc_fail:
  	return NULL;
  }
  
@@ -70,7 +70,7 @@ index 242477c..d4208aa 100644
  static void dma_4v_iommu_demap(void *demap_arg, unsigned long entry,
  			       unsigned long npages)
  {
-@@ -629,6 +666,12 @@ static int pci_sun4v_atu_alloc_iotsb(struct pci_pbm_info *pbm)
+@@ -628,6 +665,12 @@ static int pci_sun4v_atu_alloc_iotsb(struct pci_pbm_info *pbm)
  	}
  	iotsb->iotsb_num = iotsb_num;
  
