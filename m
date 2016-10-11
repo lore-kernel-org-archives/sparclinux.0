@@ -1,163 +1,85 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 15:01:53 +0000
-Subject: [PATCH 04/11] sparc64: Convert GENcopy_{from,to}_user to accurate exception reporting.
-Message-Id: <20161025.110153.191337136016941725.davem@davemloft.net>
+From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Date: Tue, 11 Oct 2016 10:42:55 +0000
+Subject: [PATCH v3 10/11] sparc/tracing: fix compat syscall handling
+Message-Id: <1476182576-15247-11-git-send-email-marcin.nowakowski@imgtec.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1476182576-15247-1-git-send-email-marcin.nowakowski@imgtec.com>
+In-Reply-To: <1476182576-15247-1-git-send-email-marcin.nowakowski@imgtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-api@vger.kernel.org, luto@amacapital.net, rostedt@goodmis.org, Marcin Nowakowski <marcin.nowakowski@imgtec.com>, Ingo Molnar <mingo@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Add missing arch code - arch_trace_is_compat_syscall and
+arch_syscall_addr
 
-Report the exact number of bytes which have not been successfully
-copied when an exception occurs, using the running remaining length.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/sparc/lib/GENcopy_from_user.S |  4 ++--
- arch/sparc/lib/GENcopy_to_user.S   |  4 ++--
- arch/sparc/lib/GENmemcpy.S         | 48 +++++++++++++++++++++++++++-----------
- 3 files changed, 38 insertions(+), 18 deletions(-)
+ arch/sparc/include/asm/ftrace.h | 10 ++++++++++
+ arch/sparc/kernel/Makefile      |  1 +
+ arch/sparc/kernel/ftrace.c      | 14 ++++++++++++++
+ 3 files changed, 25 insertions(+)
 
-diff --git a/arch/sparc/lib/GENcopy_from_user.S b/arch/sparc/lib/GENcopy_from_user.S
-index 5bce682..69a439f 100644
---- a/arch/sparc/lib/GENcopy_from_user.S
-+++ b/arch/sparc/lib/GENcopy_from_user.S
-@@ -3,11 +3,11 @@
-  * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
-  */
+diff --git a/arch/sparc/include/asm/ftrace.h b/arch/sparc/include/asm/ftrace.h
+index 62755a3..82e5269 100644
+--- a/arch/sparc/include/asm/ftrace.h
++++ b/arch/sparc/include/asm/ftrace.h
+@@ -6,6 +6,16 @@
+ #define MCOUNT_INSN_SIZE	4 /* sizeof mcount call */
  
--#define EX_LD(x)		\
-+#define EX_LD(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone;	\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/GENcopy_to_user.S b/arch/sparc/lib/GENcopy_to_user.S
-index f663ce3..9947427 100644
---- a/arch/sparc/lib/GENcopy_to_user.S
-+++ b/arch/sparc/lib/GENcopy_to_user.S
-@@ -3,11 +3,11 @@
-  * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
-  */
- 
--#define EX_ST(x)		\
-+#define EX_ST(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone;	\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/GENmemcpy.S b/arch/sparc/lib/GENmemcpy.S
-index 89358ee..059ea24 100644
---- a/arch/sparc/lib/GENmemcpy.S
-+++ b/arch/sparc/lib/GENmemcpy.S
-@@ -4,21 +4,18 @@
-  */
- 
- #ifdef __KERNEL__
-+#include <linux/linkage.h>
- #define GLOBAL_SPARE	%g7
- #else
- #define GLOBAL_SPARE	%g5
- #endif
- 
- #ifndef EX_LD
--#define EX_LD(x)	x
-+#define EX_LD(x,y)	x
- #endif
- 
- #ifndef EX_ST
--#define EX_ST(x)	x
--#endif
--
--#ifndef EX_RETVAL
--#define EX_RETVAL(x)	x
-+#define EX_ST(x,y)	x
- #endif
- 
- #ifndef LOAD
-@@ -45,6 +42,29 @@
- 	.register	%g3,#scratch
- 
- 	.text
+ #ifndef __ASSEMBLY__
 +
-+#ifndef EX_RETVAL
-+#define EX_RETVAL(x)	x
-+ENTRY(GEN_retl_o4_1)
-+	add	%o4, %o2, %o4
-+	retl
-+	 add	%o4, 1, %o0
-+ENDPROC(GEN_retl_o4_1)
-+ENTRY(GEN_retl_g1_8)
-+	add	%g1, %o2, %g1
-+	retl
-+	 add	%g1, 8, %o0
-+ENDPROC(GEN_retl_g1_8)
-+ENTRY(GEN_retl_o2_4)
-+	retl
-+	 add	%o2, 4, %o0
-+ENDPROC(GEN_retl_o2_4)
-+ENTRY(GEN_retl_o2_1)
-+	retl
-+	 add	%o2, 1, %o0
-+ENDPROC(GEN_retl_o2_1)
-+#endif
++#if defined(CONFIG_FTRACE_SYSCALLS) && defined(CONFIG_COMPAT)
++#include <asm/compat.h>
 +
- 	.align		64
++#define ARCH_COMPAT_SYSCALL_NUMBERS_OVERLAP 1
++static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
++{
++	return in_compat_syscall();
++}
++#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
+ void _mcount(void);
+ #endif
  
- 	.globl	FUNC_NAME
-@@ -73,8 +93,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	sub		%g0, %o4, %o4
- 	sub		%o2, %o4, %o2
- 1:	subcc		%o4, 1, %o4
--	EX_LD(LOAD(ldub, %o1, %g1))
--	EX_ST(STORE(stb, %g1, %o0))
-+	EX_LD(LOAD(ldub, %o1, %g1),GEN_retl_o4_1)
-+	EX_ST(STORE(stb, %g1, %o0),GEN_retl_o4_1)
- 	add		%o1, 1, %o1
- 	bne,pt		%XCC, 1b
- 	add		%o0, 1, %o0
-@@ -82,8 +102,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	andn		%o2, 0x7, %g1
- 	sub		%o2, %g1, %o2
- 1:	subcc		%g1, 0x8, %g1
--	EX_LD(LOAD(ldx, %o1, %g2))
--	EX_ST(STORE(stx, %g2, %o0))
-+	EX_LD(LOAD(ldx, %o1, %g2),GEN_retl_g1_8)
-+	EX_ST(STORE(stx, %g2, %o0),GEN_retl_g1_8)
- 	add		%o1, 0x8, %o1
- 	bne,pt		%XCC, 1b
- 	 add		%o0, 0x8, %o0
-@@ -100,8 +120,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index fa3c02d..7808084 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -93,6 +93,7 @@ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
  
- 1:
- 	subcc		%o2, 4, %o2
--	EX_LD(LOAD(lduw, %o1, %g1))
--	EX_ST(STORE(stw, %g1, %o1 + %o3))
-+	EX_LD(LOAD(lduw, %o1, %g1),GEN_retl_o2_4)
-+	EX_ST(STORE(stw, %g1, %o1 + %o3),GEN_retl_o2_4)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 4, %o1
+ obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
+ obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
++obj-$(CONFIG_FTRACE_SYSCALLS) += ftrace.o
  
-@@ -111,8 +131,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	.align		32
- 90:
- 	subcc		%o2, 1, %o2
--	EX_LD(LOAD(ldub, %o1, %g1))
--	EX_ST(STORE(stb, %g1, %o1 + %o3))
-+	EX_LD(LOAD(ldub, %o1, %g1),GEN_retl_o2_1)
-+	EX_ST(STORE(stb, %g1, %o1 + %o3),GEN_retl_o2_1)
- 	bgu,pt		%XCC, 90b
- 	 add		%o1, 1, %o1
- 	retl
+ obj-$(CONFIG_EARLYFB) += btext.o
+ obj-$(CONFIG_STACKTRACE)     += stacktrace.o
+diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
+index 6bcff69..e76f012 100644
+--- a/arch/sparc/kernel/ftrace.c
++++ b/arch/sparc/kernel/ftrace.c
+@@ -145,3 +145,17 @@ unsigned long prepare_ftrace_return(unsigned long parent,
+ 	return return_hooker;
+ }
+ #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
++
++#if (defined CONFIG_FTRACE_SYSCALLS) && (defined CONFIG_COMPAT)
++extern const unsigned int sys_call_table[];
++extern const unsigned int sys_call_table32[];
++
++unsigned long __init arch_syscall_addr(int nr, bool compat)
++{
++	if (compat)
++		return (unsigned long)sys_call_table32[nr];
++
++	return (unsigned long)sys_call_table[nr];
++}
++
++#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
 -- 
-2.1.2.532.g19b5d50
+2.7.4
 
