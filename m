@@ -1,49 +1,135 @@
-From: tndave <tushar.n.dave@oracle.com>
-Date: Mon, 24 Oct 2016 20:36:54 +0000
-Subject: Re: [PATCH 3/6] sparc64: Initialize iommu_map_table and iommu_pool
-Message-Id: <91dd06dd-22bd-c50a-4a6f-f45334b13b4a@oracle.com>
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Date: Thu, 13 Oct 2016 00:20:15 +0000
+Subject: [PATCH 05/10] mm: replace get_vaddr_frames() write/force parameters with gup_flags
+Message-Id: <20161013002020.3062-6-lstoakes@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476123127-24314-1-git-send-email-tushar.n.dave@oracle.com>
- <1476123127-24314-4-git-send-email-tushar.n.dave@oracle.com>
- <20161024.134750.374485400910042905.davem@davemloft.net>
-In-Reply-To: <20161024.134750.374485400910042905.davem@davemloft.net>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, rkuo@codeaurora.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@vger.kerne
 
+This patch removes the write and force parameters from get_vaddr_frames() and
+replaces them with a gup_flags parameter to make the use of FOLL_FORCE explicit
+in callers as use of this flag can result in surprising behaviour (and hence
+bugs) within the mm subsystem.
 
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+---
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c    |  3 ++-
+ drivers/media/platform/omap/omap_vout.c    |  2 +-
+ drivers/media/v4l2-core/videobuf2-memops.c |  6 +++++-
+ include/linux/mm.h                         |  2 +-
+ mm/frame_vector.c                          | 13 ++-----------
+ 5 files changed, 11 insertions(+), 15 deletions(-)
 
-On 10/24/2016 10:47 AM, David Miller wrote:
-> From: Tushar Dave <tushar.n.dave@oracle.com>
-> Date: Mon, 10 Oct 2016 11:12:04 -0700
->
->> Like legacy IOMMU, use common iommu_map_table and iommu_pool for ATU.
->> This change initializes iommu_map_table and iommu_pool for ATU.
->>
->> Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
->> Reviewed-by: chris hyser <chris.hyser@oracle.com>
->> Reviewed-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
->
-> I suspect you are adding a bisection problem here.
->
-> It looks to me like patch #2 starts setting up to use the ATU
-> but these changes in #3 and later are necessary for it to even
-> work properly.
->
-> You can't leave the tree in an intermediate non-working state
-> between changes like that.
-I agree but even if you apply only patch #1, #2 things still work using
-legacy IOMMU. (and the same is true for rest of the other patches i.e.
-#3, #4, #5).
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+index aa92dec..fbd13fa 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -488,7 +488,8 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct drm_device *drm_dev,
+ 		goto err_free;
+ 	}
+ 
+-	ret = get_vaddr_frames(start, npages, true, true, g2d_userptr->vec);
++	ret = get_vaddr_frames(start, npages, FOLL_FORCE | FOLL_WRITE,
++		g2d_userptr->vec);
+ 	if (ret != npages) {
+ 		DRM_ERROR("failed to get user pages from userptr.\n");
+ 		if (ret < 0)
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index e668dde..a31b95c 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -214,7 +214,7 @@ static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
+ 	if (!vec)
+ 		return -ENOMEM;
+ 
+-	ret = get_vaddr_frames(virtp, 1, true, false, vec);
++	ret = get_vaddr_frames(virtp, 1, FOLL_WRITE, vec);
+ 	if (ret != 1) {
+ 		frame_vector_destroy(vec);
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index 3c3b517..1cd322e 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -42,6 +42,10 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 	unsigned long first, last;
+ 	unsigned long nr;
+ 	struct frame_vector *vec;
++	unsigned int flags = FOLL_FORCE;
++
++	if (write)
++		flags |= FOLL_WRITE;
+ 
+ 	first = start >> PAGE_SHIFT;
+ 	last = (start + length - 1) >> PAGE_SHIFT;
+@@ -49,7 +53,7 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 	vec = frame_vector_create(nr);
+ 	if (!vec)
+ 		return ERR_PTR(-ENOMEM);
+-	ret = get_vaddr_frames(start & PAGE_MASK, nr, write, true, vec);
++	ret = get_vaddr_frames(start & PAGE_MASK, nr, flags, vec);
+ 	if (ret < 0)
+ 		goto out_destroy;
+ 	/* We accept only complete set of PFNs */
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 27ab538..5ff084f6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1305,7 +1305,7 @@ struct frame_vector {
+ struct frame_vector *frame_vector_create(unsigned int nr_frames);
+ void frame_vector_destroy(struct frame_vector *vec);
+ int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
+-		     bool write, bool force, struct frame_vector *vec);
++		     unsigned int gup_flags, struct frame_vector *vec);
+ void put_vaddr_frames(struct frame_vector *vec);
+ int frame_vector_to_pages(struct frame_vector *vec);
+ void frame_vector_to_pfns(struct frame_vector *vec);
+diff --git a/mm/frame_vector.c b/mm/frame_vector.c
+index 81b6749..db77dcb 100644
+--- a/mm/frame_vector.c
++++ b/mm/frame_vector.c
+@@ -11,10 +11,7 @@
+  * get_vaddr_frames() - map virtual addresses to pfns
+  * @start:	starting user address
+  * @nr_frames:	number of pages / pfns from start to map
+- * @write:	whether pages will be written to by the caller
+- * @force:	whether to force write access even if user mapping is
+- *		readonly. See description of the same argument of
+-		get_user_pages().
++ * @gup_flags:	flags modifying lookup behaviour
+  * @vec:	structure which receives pages / pfns of the addresses mapped.
+  *		It should have space for at least nr_frames entries.
+  *
+@@ -34,23 +31,17 @@
+  * This function takes care of grabbing mmap_sem as necessary.
+  */
+ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+-		     bool write, bool force, struct frame_vector *vec)
++		     unsigned int gup_flags, struct frame_vector *vec)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	int ret = 0;
+ 	int err;
+ 	int locked;
+-	unsigned int gup_flags = 0;
+ 
+ 	if (nr_frames = 0)
+ 		return 0;
+ 
+-	if (write)
+-		gup_flags |= FOLL_WRITE;
+-	if (force)
+-		gup_flags |= FOLL_FORCE;
+-
+ 	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+ 		nr_frames = vec->nr_allocated;
+ 
+-- 
+2.10.0
 
-All the patches, except patch #6 , sets up needed data structures and
-functions for ATU however ATU will only be used in action after you
-apply patch #6 which actually enables 64bit DMA. Until then, things are
-going to work using legacy IOMMU with 32bit DMA.
-
-Thanks.
-
--Tushar
->
