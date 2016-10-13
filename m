@@ -1,68 +1,116 @@
-From: Don Zickus <dzickus@redhat.com>
-Date: Tue, 18 Oct 2016 20:02:44 +0000
-Subject: Re: [PATCH v3 0/2] Introduce arch specific nmi enable, disable handlers
-Message-Id: <20161018200244.GB98438@redhat.com>
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Date: Thu, 13 Oct 2016 00:20:14 +0000
+Subject: [PATCH 04/10] mm: replace get_user_pages_locked() write/force parameters with gup_flags
+Message-Id: <20161013002020.3062-5-lstoakes@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Babu Moger <babu.moger@oracle.com>
-Cc: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, sam@ravnborg.org
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@vger.kerne
 
-On Tue, Oct 18, 2016 at 12:14:08PM -0700, Babu Moger wrote:
-> During our testing we noticed that nmi watchdogs in sparc could not be disabled or
-> enabled dynamically using sysctl/proc interface. Sparc uses its own arch specific
-> nmi watchdogs. There is a sysctl and proc interface(proc/sys/kernel/nmi_watchdog)
-> to enable/disable nmi watchdogs. However, that is not working for sparc. There
-> is no interface to feed this parameter to arch specific nmi watchdogs.
-> 
-> These patches extend the same sysctl/proc interface to enable or disable
-> these arch specific nmi watchdogs dynamically. Introduced new functions
-> arch_watchdog_nmi_enable and arch_watchdog_nmi_disable which can be implemented
-> in arch specific handlers.
-> If you think there is a better way to do this. Please advice.
-> 
-> Tested on sparc. Compile tested on x86.
+This patch removes the write and force parameters from get_user_pages_locked()
+and replaces them with a gup_flags parameter to make the use of FOLL_FORCE
+explicit in callers as use of this flag can result in surprising behaviour (and
+hence bugs) within the mm subsystem.
 
-Thanks Babu!
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+---
+ include/linux/mm.h |  2 +-
+ mm/frame_vector.c  |  8 +++++++-
+ mm/gup.c           | 12 +++---------
+ mm/nommu.c         |  5 ++++-
+ 4 files changed, 15 insertions(+), 12 deletions(-)
 
-Tested-and-Reviewed-by: Don Zickus <dzickus@redhat.com>
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 6adc4bc..27ab538 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1282,7 +1282,7 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    int write, int force, struct page **pages,
+ 			    struct vm_area_struct **vmas);
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-		    int write, int force, struct page **pages, int *locked);
++		    unsigned int gup_flags, struct page **pages, int *locked);
+ long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+ 			       unsigned long start, unsigned long nr_pages,
+ 			       struct page **pages, unsigned int gup_flags);
+diff --git a/mm/frame_vector.c b/mm/frame_vector.c
+index 381bb07..81b6749 100644
+--- a/mm/frame_vector.c
++++ b/mm/frame_vector.c
+@@ -41,10 +41,16 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+ 	int ret = 0;
+ 	int err;
+ 	int locked;
++	unsigned int gup_flags = 0;
+ 
+ 	if (nr_frames = 0)
+ 		return 0;
+ 
++	if (write)
++		gup_flags |= FOLL_WRITE;
++	if (force)
++		gup_flags |= FOLL_FORCE;
++
+ 	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+ 		nr_frames = vec->nr_allocated;
+ 
+@@ -59,7 +65,7 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+ 		vec->got_ref = true;
+ 		vec->is_pfns = false;
+ 		ret = get_user_pages_locked(start, nr_frames,
+-			write, force, (struct page **)(vec->ptrs), &locked);
++			gup_flags, (struct page **)(vec->ptrs), &locked);
+ 		goto out;
+ 	}
+ 
+diff --git a/mm/gup.c b/mm/gup.c
+index cfcb014..7a0d033 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -838,18 +838,12 @@ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
+  *          up_read(&mm->mmap_sem);
+  */
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-			   int write, int force, struct page **pages,
++			   unsigned int gup_flags, struct page **pages,
+ 			   int *locked)
+ {
+-	unsigned int flags = FOLL_TOUCH;
+-
+-	if (write)
+-		flags |= FOLL_WRITE;
+-	if (force)
+-		flags |= FOLL_FORCE;
+-
+ 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
+-				       pages, NULL, locked, true, flags);
++				       pages, NULL, locked, true,
++				       gup_flags | FOLL_TOUCH);
+ }
+ EXPORT_SYMBOL(get_user_pages_locked);
+ 
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 7e27add..842cfdd 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -176,9 +176,12 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ EXPORT_SYMBOL(get_user_pages);
+ 
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-			    int write, int force, struct page **pages,
++			    unsigned int gup_flags, struct page **pages,
+ 			    int *locked)
+ {
++	int write = gup_flags & FOLL_WRITE;
++	int force = gup_flags & FOLL_FORCE;
++
+ 	return get_user_pages(start, nr_pages, write, force, pages, NULL);
+ }
+ EXPORT_SYMBOL(get_user_pages_locked);
+-- 
+2.10.0
 
-> 
-> v3:
->   Made one more change per Don Zickus comments.
->   Moved failure path messages to into generic code inside watchdog_nmi_enable.
->   Also added matching prints in sparc to warn about the failure.
-> 
-> v2:
->   a)Sam Ravnborg's comments about making the definitions visible.
->   With the new approach we dont need those definitions((NMI_WATCHDOG_ENABLED,
->   SOFT_WATCHDOG_ENABLED etc..) outside watchdog.c. So no action.
-> 
->   b) Made changes per Don Zickus comments.
->   Don, I could not use your patches as is. Reason is sparc does not define
->   CONFIG_HARDLOCKUP_DETECTOR. So, defining default __weak function did not
->   work for me. However, I have used your idea to define __weak functions
->   arch_watchdog_nmi_enable and arch_watchdog_nmi_disable when CONFIG_HARDLOCKUP_DETECTOR
->   is not defined. I feel this should have very less impact on the races you are
->   concerned about. Please take a look. Feel free to suggest.
-> 
->   Patch2 changes: I had to introduce new variable nmi_init_done to synchronize
->   watchdog thread and kernel init thread.
-> 
-> v1:
->  Initial version. Discussion thread here
->  http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1245427.html
-> 
-> Babu Moger (2):
->   watchdog: Introduce arch_watchdog_nmi_enable and
->     arch_watchdog_nmi_disable
->   sparc: Implement arch_watchdog_nmi_enable and
->     arch_watchdog_nmi_disable
-> 
->  arch/sparc/kernel/nmi.c |   44 +++++++++++++++++++++++++++++-
->  kernel/watchdog.c       |   69 +++++++++++++++++++++++++++++++---------------
->  2 files changed, 89 insertions(+), 24 deletions(-)
-> 
