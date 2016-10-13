@@ -1,150 +1,103 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Thu, 13 Oct 2016 20:37:21 +0000
-Subject: Re: [PATCH 0/2] Introduce update_arch_nmi_watchdog for arch specific handlers
-Message-Id: <8b817de5-f9fa-c794-07db-eaed1aa918c3@oracle.com>
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Date: Thu, 13 Oct 2016 00:20:10 +0000
+Subject: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly pass FOLL_* flags
+Message-Id: <20161013002020.3062-1-lstoakes@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1475792203-230942-1-git-send-email-babu.moger@oracle.com>
- <20161007155128.GP98438@redhat.com>
-In-Reply-To: <20161007155128.GP98438@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Don Zickus <dzickus@redhat.com>
-Cc: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>, Dave Hansen <dave.hansen@linux.intel.com>, Rik van Riel <riel@redhat.com>, Mel Gorman <mgorman@techsingularity.net>, Andrew Morton <akpm@linux-foundation.org>, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, linux-mips@linux-mips.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org, linux-sh@vger.kerne
 
+This patch series adjusts functions in the get_user_pages* family such that
+desired FOLL_* flags are passed as an argument rather than implied by flags.
 
-On 10/7/2016 10:51 AM, Don Zickus wrote:
-> On Thu, Oct 06, 2016 at 03:16:41PM -0700, Babu Moger wrote:
->> During our testing we noticed that nmi watchdogs in sparc could not be disabled or
->> enabled dynamically using sysctl/proc interface. Sparc uses its own arch specific
->> nmi watchdogs. There is a sysctl and proc interface(proc/sys/kernel/nmi_watchdog)
->> to enable/disable nmi watchdogs. However, that is not working for sparc. There
->> is no interface to feed this parameter to arch specific nmi watchdogs.
->>
->> These patches extend the same sysctl/proc interface to enable or disable
->> these arch specific nmi watchdogs dynamically. Introduced new function
->> update_arch_nmi_watchdog which can be implemented in arch specific handlers.
->> If you think there is a better way to do this. Please advice.
->>
->> Tested on sparc. Compile tested on x86.
-> Hi Babu,
->
-> Thanks for the patch.  Yeah, I don't test sparc at all (lack of hardware).
-> Sorry about that.
->
-> We did spend quite a bit of time trying to get various soft/hard lockup
-> logic going for the /proc stuff and I am wondering if your patches are to
-> simple and expose some of the races we tried to fix.
->
-> Therefore I am wondering if we could re-use some of our logic for your case.
->
-> The perf stuff is really the x86 equivalent of arch_watchdog_enable.  I am
-> wondering if we break that out as a __weak default function and then have
-> sparc override it with its own enable/disable functions.  Something along
-> the lines below (compiled on x86 but untested)?
-Hi Don, Sorry for the late response. I ran into issues with the setups 
-and new approach.
-  I could not use your patches as is. Reason is sparc does not define 
-CONFIG_HARDLOCKUP_DETECTOR.
-  So, defining default __weak function did not  work for me. However, I 
-have used your idea to
-define __weak functions  arch_watchdog_nmi_enable and 
-arch_watchdog_nmi_disable when
-CONFIG_HARDLOCKUP_DETECTOR  is not defined. Sending v2 version now.
-Please take a look. Thanks for your inputs.
->
-> Cheers,
-> Don
->
->
-> diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> index 9acb29f..55cd2d3 100644
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -585,15 +585,11 @@ static void watchdog(unsigned int cpu)
->    */
->   static unsigned long cpu0_err;
->   
-> -static int watchdog_nmi_enable(unsigned int cpu)
-> +int __weak arch_watchdog_nmi_enable(unsigned int cpu)
->   {
->   	struct perf_event_attr *wd_attr;
->   	struct perf_event *event = per_cpu(watchdog_ev, cpu);
->   
-> -	/* nothing to do if the hard lockup detector is disabled */
-> -	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-> -		goto out;
-> -
->   	/* is it already setup and enabled? */
->   	if (event && event->state > PERF_EVENT_STATE_OFF)
->   		goto out;
-> @@ -619,18 +615,6 @@ static int watchdog_nmi_enable(unsigned int cpu)
->   		goto out_save;
->   	}
->   
-> -	/*
-> -	 * Disable the hard lockup detector if _any_ CPU fails to set up
-> -	 * set up the hardware perf event. The watchdog() function checks
-> -	 * the NMI_WATCHDOG_ENABLED bit periodically.
-> -	 *
-> -	 * The barriers are for syncing up watchdog_enabled across all the
-> -	 * cpus, as clear_bit() does not use barriers.
-> -	 */
-> -	smp_mb__before_atomic();
-> -	clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
-> -	smp_mb__after_atomic();
-> -
->   	/* skip displaying the same error again */
->   	if (cpu > 0 && (PTR_ERR(event) = cpu0_err))
->   		return PTR_ERR(event);
-> @@ -658,7 +642,36 @@ out:
->   	return 0;
->   }
->   
-> -static void watchdog_nmi_disable(unsigned int cpu)
-> +static int watchdog_nmi_enable(unsigned int cpu)
-> +{
-> +	int err;
-> +
-> +	/* nothing to do if the hard lockup detector is disabled */
-> +	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-> +		return 0;
-> +
-> +	err = arch_watchdog_nmi_enable(cpu);
-> +
-> +	if (err) {
-> +		/*
-> +		 * Disable the hard lockup detector if _any_ CPU fails to set up
-> +		 * set up the hardware perf event. The watchdog() function checks
-> +		 * the NMI_WATCHDOG_ENABLED bit periodically.
-> +		 *
-> +		 * The barriers are for syncing up watchdog_enabled across all the
-> +		 * cpus, as clear_bit() does not use barriers.
-> +		 */
-> +		smp_mb__before_atomic();
-> +		clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
-> +		smp_mb__after_atomic();
-> +
-> +		return err;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +void __weak arch_watchdog_nmi_disable(unsigned int cpu)
->   {
->   	struct perf_event *event = per_cpu(watchdog_ev, cpu);
->   
-> @@ -675,6 +688,11 @@ static void watchdog_nmi_disable(unsigned int cpu)
->   	}
->   }
->   
-> +static void watchdog_nmi_disable(unsigned int cpu)
-> +{
-> +	arch_watchdog_nmi_disable(cpu);
-> +}
-> +
->   #else
->   static int watchdog_nmi_enable(unsigned int cpu) { return 0; }
->   static void watchdog_nmi_disable(unsigned int cpu) { return; }
+The purpose of this change is to make the use of FOLL_FORCE explicit so it is
+easier to grep for and clearer to callers that this flag is being used. The use
+of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
+VMA whose pages we are reading from/writing to, which can result in surprising
+behaviour.
 
+The patch series came out of the discussion around commit 38e0885, which
+addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
+set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
+assumption the page _must_ be one marked for NUMA node migration as an actual
+PROT_NONE page would have been dealt with prior to this code path, however
+FOLL_FORCE introduced a situation where this assumption did not hold.
+
+See https://marc.info/?l=linux-mm&m7585445805166 for the patch proposal.
+
+Lorenzo Stoakes (10):
+  mm: remove write/force parameters from __get_user_pages_locked()
+  mm: remove write/force parameters from __get_user_pages_unlocked()
+  mm: replace get_user_pages_unlocked() write/force parameters with gup_flags
+  mm: replace get_user_pages_locked() write/force parameters with gup_flags
+  mm: replace get_vaddr_frames() write/force parameters with gup_flags
+  mm: replace get_user_pages() write/force parameters with gup_flags
+  mm: replace get_user_pages_remote() write/force parameters with gup_flags
+  mm: replace __access_remote_vm() write parameter with gup_flags
+  mm: replace access_remote_vm() write parameter with gup_flags
+  mm: replace access_process_vm() write parameter with gup_flags
+
+ arch/alpha/kernel/ptrace.c                         |  9 ++--
+ arch/blackfin/kernel/ptrace.c                      |  5 ++-
+ arch/cris/arch-v32/drivers/cryptocop.c             |  4 +-
+ arch/cris/arch-v32/kernel/ptrace.c                 |  4 +-
+ arch/ia64/kernel/err_inject.c                      |  2 +-
+ arch/ia64/kernel/ptrace.c                          | 14 +++---
+ arch/m32r/kernel/ptrace.c                          | 15 ++++---
+ arch/mips/kernel/ptrace32.c                        |  5 ++-
+ arch/mips/mm/gup.c                                 |  2 +-
+ arch/powerpc/kernel/ptrace32.c                     |  5 ++-
+ arch/s390/mm/gup.c                                 |  3 +-
+ arch/score/kernel/ptrace.c                         | 10 +++--
+ arch/sh/mm/gup.c                                   |  3 +-
+ arch/sparc/kernel/ptrace_64.c                      | 24 +++++++----
+ arch/sparc/mm/gup.c                                |  3 +-
+ arch/x86/kernel/step.c                             |  3 +-
+ arch/x86/mm/gup.c                                  |  2 +-
+ arch/x86/mm/mpx.c                                  |  5 +--
+ arch/x86/um/ptrace_32.c                            |  3 +-
+ arch/x86/um/ptrace_64.c                            |  3 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c            |  7 ++-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c              |  7 ++-
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  3 +-
+ drivers/gpu/drm/i915/i915_gem_userptr.c            |  6 ++-
+ drivers/gpu/drm/radeon/radeon_ttm.c                |  3 +-
+ drivers/gpu/drm/via/via_dmablit.c                  |  4 +-
+ drivers/infiniband/core/umem.c                     |  6 ++-
+ drivers/infiniband/core/umem_odp.c                 |  7 ++-
+ drivers/infiniband/hw/mthca/mthca_memfree.c        |  2 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c         |  3 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c           |  5 ++-
+ drivers/media/pci/ivtv/ivtv-udma.c                 |  4 +-
+ drivers/media/pci/ivtv/ivtv-yuv.c                  |  5 ++-
+ drivers/media/platform/omap/omap_vout.c            |  2 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c          |  7 ++-
+ drivers/media/v4l2-core/videobuf2-memops.c         |  6 ++-
+ drivers/misc/mic/scif/scif_rma.c                   |  3 +-
+ drivers/misc/sgi-gru/grufault.c                    |  2 +-
+ drivers/platform/goldfish/goldfish_pipe.c          |  3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c           |  3 +-
+ drivers/scsi/st.c                                  |  5 +--
+ .../interface/vchiq_arm/vchiq_2835_arm.c           |  3 +-
+ .../vc04_services/interface/vchiq_arm/vchiq_arm.c  |  3 +-
+ drivers/video/fbdev/pvr2fb.c                       |  4 +-
+ drivers/virt/fsl_hypervisor.c                      |  4 +-
+ fs/exec.c                                          |  9 +++-
+ fs/proc/base.c                                     | 19 +++++---
+ include/linux/mm.h                                 | 18 ++++----
+ kernel/events/uprobes.c                            |  6 ++-
+ kernel/ptrace.c                                    | 16 ++++---
+ mm/frame_vector.c                                  |  9 ++--
+ mm/gup.c                                           | 50 ++++++++++------------
+ mm/memory.c                                        | 16 ++++---
+ mm/mempolicy.c                                     |  2 +-
+ mm/nommu.c                                         | 38 +++++++---------
+ mm/process_vm_access.c                             |  7 ++-
+ mm/util.c                                          |  8 ++--
+ net/ceph/pagevec.c                                 |  2 +-
+ security/tomoyo/domain.c                           |  2 +-
+ virt/kvm/async_pf.c                                |  3 +-
+ virt/kvm/kvm_main.c                                | 11 +++--
+ 61 files changed, 260 insertions(+), 187 deletions(-)
