@@ -1,665 +1,110 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 15:02:00 +0000
-Subject: [PATCH 05/11] sparc64: Convert U1copy_{from,to}_user to accurate exception reporting.
-Message-Id: <20161025.110200.1437100455337854315.davem@davemloft.net>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Thu, 13 Oct 2016 20:38:02 +0000
+Subject: [PATCH v2 2/2] sparc: Implement arch_watchdog_nmi_enable and arch_watchdog_nmi_disable
+Message-Id: <1476391082-77928-3-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1476391082-77928-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1476391082-77928-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, babu.moger@oracle.com
 
+Implement functions arch_watchdog_nmi_enable and arch_watchdog_nmi_disable
+to enable/disable nmi watchdog. Sparc uses arch specific nmi watchdog
+handler. Currently, we do not have a way to enable/disable nmi watchdog
+dynamically. With these patches we can enable or disable arch
+specific nmi watchdogs using proc or sysctl interface.
 
-Report the exact number of bytes which have not been successfully
-copied when an exception occurs, using the running remaining length.
+Example commands.
+To enable: echo 1 >  /proc/sys/kernel/nmi_watchdog
+To disable: echo 0 >  /proc/sys/kernel/nmi_watchdog
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+It can also achieved using the sysctl parameter kernel.nmi_watchdog
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
 ---
- arch/sparc/lib/U1copy_from_user.S |   8 +-
- arch/sparc/lib/U1copy_to_user.S   |   8 +-
- arch/sparc/lib/U1memcpy.S         | 345 +++++++++++++++++++++++++-------------
- 3 files changed, 237 insertions(+), 124 deletions(-)
+ arch/sparc/kernel/nmi.c |   41 ++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 40 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/lib/U1copy_from_user.S b/arch/sparc/lib/U1copy_from_user.S
-index 1ad59fb..bb6ff73 100644
---- a/arch/sparc/lib/U1copy_from_user.S
-+++ b/arch/sparc/lib/U1copy_from_user.S
-@@ -3,19 +3,19 @@
-  * Copyright (C) 1999, 2000, 2004 David S. Miller (davem@redhat.com)
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index a9973bb..d7e2c01 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -42,7 +42,7 @@ static int panic_on_timeout;
   */
- 
--#define EX_LD(x)		\
-+#define EX_LD(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone;	\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
--#define EX_LD_FP(x)		\
-+#define EX_LD_FP(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_fp;\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/U1copy_to_user.S b/arch/sparc/lib/U1copy_to_user.S
-index adcc3a5..ed92ce73 100644
---- a/arch/sparc/lib/U1copy_to_user.S
-+++ b/arch/sparc/lib/U1copy_to_user.S
-@@ -3,19 +3,19 @@
-  * Copyright (C) 1999, 2000, 2004 David S. Miller (davem@redhat.com)
-  */
- 
--#define EX_ST(x)		\
-+#define EX_ST(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone;	\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
--#define EX_ST_FP(x)		\
-+#define EX_ST_FP(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_fp;\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/U1memcpy.S b/arch/sparc/lib/U1memcpy.S
-index 97e1b21..4f0d50b 100644
---- a/arch/sparc/lib/U1memcpy.S
-+++ b/arch/sparc/lib/U1memcpy.S
-@@ -5,6 +5,7 @@
-  */
- 
- #ifdef __KERNEL__
-+#include <linux/linkage.h>
- #include <asm/visasm.h>
- #include <asm/asi.h>
- #include <asm/export.h>
-@@ -24,21 +25,17 @@
- #endif
- 
- #ifndef EX_LD
--#define EX_LD(x)	x
-+#define EX_LD(x,y)	x
- #endif
- #ifndef EX_LD_FP
--#define EX_LD_FP(x)	x
-+#define EX_LD_FP(x,y)	x
- #endif
- 
- #ifndef EX_ST
--#define EX_ST(x)	x
-+#define EX_ST(x,y)	x
- #endif
- #ifndef EX_ST_FP
--#define EX_ST_FP(x)	x
--#endif
+ atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
+ EXPORT_SYMBOL(nmi_active);
 -
--#ifndef EX_RETVAL
--#define EX_RETVAL(x)	x
-+#define EX_ST_FP(x,y)	x
- #endif
++static int nmi_init_done;
+ static unsigned int nmi_hz = HZ;
+ static DEFINE_PER_CPU(short, wd_enabled);
+ static int endflag __initdata;
+@@ -153,6 +153,8 @@ static void report_broken_nmi(int cpu, int *prev_nmi_count)
  
- #ifndef LOAD
-@@ -79,53 +76,169 @@
- 	faligndata		%f7, %f8, %f60;			\
- 	faligndata		%f8, %f9, %f62;
+ void stop_nmi_watchdog(void *unused)
+ {
++	if (!__this_cpu_read(wd_enabled))
++		return;
+ 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
+ 	__this_cpu_write(wd_enabled, 0);
+ 	atomic_dec(&nmi_active);
+@@ -207,6 +209,9 @@ error:
  
--#define MAIN_LOOP_CHUNK(src, dest, fdest, fsrc, len, jmptgt)	\
--	EX_LD_FP(LOAD_BLK(%src, %fdest));				\
--	EX_ST_FP(STORE_BLK(%fsrc, %dest));				\
--	add			%src, 0x40, %src;		\
--	subcc			%len, 0x40, %len;		\
--	be,pn			%xcc, jmptgt;			\
--	 add			%dest, 0x40, %dest;		\
--
--#define LOOP_CHUNK1(src, dest, len, branch_dest)		\
--	MAIN_LOOP_CHUNK(src, dest, f0,  f48, len, branch_dest)
--#define LOOP_CHUNK2(src, dest, len, branch_dest)		\
--	MAIN_LOOP_CHUNK(src, dest, f16, f48, len, branch_dest)
--#define LOOP_CHUNK3(src, dest, len, branch_dest)		\
--	MAIN_LOOP_CHUNK(src, dest, f32, f48, len, branch_dest)
-+#define MAIN_LOOP_CHUNK(src, dest, fdest, fsrc, jmptgt)			\
-+	EX_LD_FP(LOAD_BLK(%src, %fdest), U1_gs_80_fp);			\
-+	EX_ST_FP(STORE_BLK(%fsrc, %dest), U1_gs_80_fp);			\
-+	add			%src, 0x40, %src;			\
-+	subcc			%GLOBAL_SPARE, 0x40, %GLOBAL_SPARE;	\
-+	be,pn			%xcc, jmptgt;				\
-+	 add			%dest, 0x40, %dest;			\
+ void start_nmi_watchdog(void *unused)
+ {
++	if (__this_cpu_read(wd_enabled))
++		return;
 +
-+#define LOOP_CHUNK1(src, dest, branch_dest)		\
-+	MAIN_LOOP_CHUNK(src, dest, f0,  f48, branch_dest)
-+#define LOOP_CHUNK2(src, dest, branch_dest)		\
-+	MAIN_LOOP_CHUNK(src, dest, f16, f48, branch_dest)
-+#define LOOP_CHUNK3(src, dest, branch_dest)		\
-+	MAIN_LOOP_CHUNK(src, dest, f32, f48, branch_dest)
+ 	__this_cpu_write(wd_enabled, 1);
+ 	atomic_inc(&nmi_active);
  
- #define DO_SYNC			membar	#Sync;
- #define STORE_SYNC(dest, fsrc)				\
--	EX_ST_FP(STORE_BLK(%fsrc, %dest));			\
-+	EX_ST_FP(STORE_BLK(%fsrc, %dest), U1_gs_80_fp);	\
- 	add			%dest, 0x40, %dest;	\
- 	DO_SYNC
+@@ -259,6 +264,8 @@ int __init nmi_init(void)
+ 		}
+ 	}
  
- #define STORE_JUMP(dest, fsrc, target)			\
--	EX_ST_FP(STORE_BLK(%fsrc, %dest));			\
-+	EX_ST_FP(STORE_BLK(%fsrc, %dest), U1_gs_40_fp);	\
- 	add			%dest, 0x40, %dest;	\
- 	ba,pt			%xcc, target;		\
- 	 nop;
- 
--#define FINISH_VISCHUNK(dest, f0, f1, left)	\
--	subcc			%left, 8, %left;\
--	bl,pn			%xcc, 95f;	\
--	 faligndata		%f0, %f1, %f48;	\
--	EX_ST_FP(STORE(std, %f48, %dest));		\
-+#define FINISH_VISCHUNK(dest, f0, f1)			\
-+	subcc			%g3, 8, %g3;		\
-+	bl,pn			%xcc, 95f;		\
-+	 faligndata		%f0, %f1, %f48;		\
-+	EX_ST_FP(STORE(std, %f48, %dest), U1_g3_8_fp);	\
- 	add			%dest, 8, %dest;
- 
--#define UNEVEN_VISCHUNK_LAST(dest, f0, f1, left)	\
--	subcc			%left, 8, %left;	\
--	bl,pn			%xcc, 95f;		\
-+#define UNEVEN_VISCHUNK_LAST(dest, f0, f1)	\
-+	subcc			%g3, 8, %g3;	\
-+	bl,pn			%xcc, 95f;	\
- 	 fsrc2			%f0, %f1;
- 
--#define UNEVEN_VISCHUNK(dest, f0, f1, left)		\
--	UNEVEN_VISCHUNK_LAST(dest, f0, f1, left)	\
-+#define UNEVEN_VISCHUNK(dest, f0, f1)		\
-+	UNEVEN_VISCHUNK_LAST(dest, f0, f1)	\
- 	ba,a,pt			%xcc, 93f;
- 
- 	.register	%g2,#scratch
- 	.register	%g3,#scratch
- 
- 	.text
-+#ifndef EX_RETVAL
-+#define EX_RETVAL(x)	x
-+ENTRY(U1_g1_1_fp)
-+	VISExitHalf
-+	add		%g1, 1, %g1
-+	add		%g1, %g2, %g1
-+	retl
-+	 add		%g1, %o2, %o0
-+ENDPROC(U1_g1_1_fp)
-+ENTRY(U1_g2_0_fp)
-+	VISExitHalf
-+	retl
-+	 add		%g2, %o2, %o0
-+ENDPROC(U1_g2_0_fp)
-+ENTRY(U1_g2_8_fp)
-+	VISExitHalf
-+	add		%g2, 8, %g2
-+	retl
-+	 add		%g2, %o2, %o0
-+ENDPROC(U1_g2_8_fp)
-+ENTRY(U1_gs_0_fp)
-+	VISExitHalf
-+	add		%GLOBAL_SPARE, %g3, %o0
-+	retl
-+	 add		%o0, %o2, %o0
-+ENDPROC(U1_gs_0_fp)
-+ENTRY(U1_gs_80_fp)
-+	VISExitHalf
-+	add		%GLOBAL_SPARE, 0x80, %GLOBAL_SPARE
-+	add		%GLOBAL_SPARE, %g3, %o0
-+	retl
-+	 add		%o0, %o2, %o0
-+ENDPROC(U1_gs_80_fp)
-+ENTRY(U1_gs_40_fp)
-+	VISExitHalf
-+	add		%GLOBAL_SPARE, 0x40, %GLOBAL_SPARE
-+	add		%GLOBAL_SPARE, %g3, %o0
-+	retl
-+	 add		%o0, %o2, %o0
-+ENDPROC(U1_gs_40_fp)
-+ENTRY(U1_g3_0_fp)
-+	VISExitHalf
-+	retl
-+	 add		%g3, %o2, %o0
-+ENDPROC(U1_g3_0_fp)
-+ENTRY(U1_g3_8_fp)
-+	VISExitHalf
-+	add		%g3, 8, %g3
-+	retl
-+	 add		%g3, %o2, %o0
-+ENDPROC(U1_g3_8_fp)
-+ENTRY(U1_o2_0_fp)
-+	VISExitHalf
-+	retl
-+	 mov		%o2, %o0
-+ENDPROC(U1_o2_0_fp)
-+ENTRY(U1_o2_1_fp)
-+	VISExitHalf
-+	retl
-+	 add		%o2, 1, %o0
-+ENDPROC(U1_o2_1_fp)
-+ENTRY(U1_gs_0)
-+	VISExitHalf
-+	retl
-+	 add		%GLOBAL_SPARE, %o2, %o0
-+ENDPROC(U1_gs_0)
-+ENTRY(U1_gs_8)
-+	VISExitHalf
-+	add		%GLOBAL_SPARE, %o2, %GLOBAL_SPARE
-+	retl
-+	 add		%GLOBAL_SPARE, 0x8, %o0
-+ENDPROC(U1_gs_8)
-+ENTRY(U1_gs_10)
-+	VISExitHalf
-+	add		%GLOBAL_SPARE, %o2, %GLOBAL_SPARE
-+	retl
-+	 add		%GLOBAL_SPARE, 0x10, %o0
-+ENDPROC(U1_gs_10)
-+ENTRY(U1_o2_0)
-+	retl
-+	 mov		%o2, %o0
-+ENDPROC(U1_o2_0)
-+ENTRY(U1_o2_8)
-+	retl
-+	 add		%o2, 8, %o0
-+ENDPROC(U1_o2_8)
-+ENTRY(U1_o2_4)
-+	retl
-+	 add		%o2, 4, %o0
-+ENDPROC(U1_o2_4)
-+ENTRY(U1_o2_1)
-+	retl
-+	 add		%o2, 1, %o0
-+ENDPROC(U1_o2_1)
-+ENTRY(U1_g1_0)
-+	retl
-+	 add		%g1, %o2, %o0
-+ENDPROC(U1_g1_0)
-+ENTRY(U1_g1_1)
-+	add		%g1, 1, %g1
-+	retl
-+	 add		%g1, %o2, %o0
-+ENDPROC(U1_g1_1)
-+ENTRY(U1_gs_0_o2_adj)
-+	and		%o2, 7, %o2
-+	retl
-+	 add		%GLOBAL_SPARE, %o2, %o0
-+ENDPROC(U1_gs_0_o2_adj)
-+ENTRY(U1_gs_8_o2_adj)
-+	and		%o2, 7, %o2
-+	add		%GLOBAL_SPARE, 8, %GLOBAL_SPARE
-+	retl
-+	 add		%GLOBAL_SPARE, %o2, %o0
-+ENDPROC(U1_gs_8_o2_adj)
-+#endif
++	nmi_init_done = 1;
 +
- 	.align		64
+ 	return err;
+ }
  
- 	.globl		FUNC_NAME
-@@ -167,8 +280,8 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	 and		%g2, 0x38, %g2
- 
- 1:	subcc		%g1, 0x1, %g1
--	EX_LD_FP(LOAD(ldub, %o1 + 0x00, %o3))
--	EX_ST_FP(STORE(stb, %o3, %o1 + %GLOBAL_SPARE))
-+	EX_LD_FP(LOAD(ldub, %o1 + 0x00, %o3), U1_g1_1_fp)
-+	EX_ST_FP(STORE(stb, %o3, %o1 + %GLOBAL_SPARE), U1_g1_1_fp)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 0x1, %o1
- 
-@@ -179,20 +292,20 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	be,pt		%icc, 3f
- 	 alignaddr	%o1, %g0, %o1
- 
--	EX_LD_FP(LOAD(ldd, %o1, %f4))
--1:	EX_LD_FP(LOAD(ldd, %o1 + 0x8, %f6))
-+	EX_LD_FP(LOAD(ldd, %o1, %f4), U1_g2_0_fp)
-+1:	EX_LD_FP(LOAD(ldd, %o1 + 0x8, %f6), U1_g2_0_fp)
- 	add		%o1, 0x8, %o1
- 	subcc		%g2, 0x8, %g2
- 	faligndata	%f4, %f6, %f0
--	EX_ST_FP(STORE(std, %f0, %o0))
-+	EX_ST_FP(STORE(std, %f0, %o0), U1_g2_8_fp)
- 	be,pn		%icc, 3f
- 	 add		%o0, 0x8, %o0
- 
--	EX_LD_FP(LOAD(ldd, %o1 + 0x8, %f4))
-+	EX_LD_FP(LOAD(ldd, %o1 + 0x8, %f4), U1_g2_0_fp)
- 	add		%o1, 0x8, %o1
- 	subcc		%g2, 0x8, %g2
- 	faligndata	%f6, %f4, %f0
--	EX_ST_FP(STORE(std, %f0, %o0))
-+	EX_ST_FP(STORE(std, %f0, %o0), U1_g2_8_fp)
- 	bne,pt		%icc, 1b
- 	 add		%o0, 0x8, %o0
- 
-@@ -215,13 +328,13 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	add		%g1, %GLOBAL_SPARE, %g1
- 	subcc		%o2, %g3, %o2
- 
--	EX_LD_FP(LOAD_BLK(%o1, %f0))
-+	EX_LD_FP(LOAD_BLK(%o1, %f0), U1_gs_0_fp)
- 	add		%o1, 0x40, %o1
- 	add		%g1, %g3, %g1
--	EX_LD_FP(LOAD_BLK(%o1, %f16))
-+	EX_LD_FP(LOAD_BLK(%o1, %f16), U1_gs_0_fp)
- 	add		%o1, 0x40, %o1
- 	sub		%GLOBAL_SPARE, 0x80, %GLOBAL_SPARE
--	EX_LD_FP(LOAD_BLK(%o1, %f32))
-+	EX_LD_FP(LOAD_BLK(%o1, %f32), U1_gs_80_fp)
- 	add		%o1, 0x40, %o1
- 
- 	/* There are 8 instances of the unrolled loop,
-@@ -241,11 +354,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 
- 	.align		64
- 1:	FREG_FROB(f0, f2, f4, f6, f8, f10,f12,f14,f16)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f16,f18,f20,f22,f24,f26,f28,f30,f32)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f32,f34,f36,f38,f40,f42,f44,f46,f0)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f0, %f2, %f48
- 1:	FREG_FROB(f16,f18,f20,f22,f24,f26,f28,f30,f32)
-@@ -262,11 +375,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 56f)
- 
- 1:	FREG_FROB(f2, f4, f6, f8, f10,f12,f14,f16,f18)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f18,f20,f22,f24,f26,f28,f30,f32,f34)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f34,f36,f38,f40,f42,f44,f46,f0, f2)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f2, %f4, %f48
- 1:	FREG_FROB(f18,f20,f22,f24,f26,f28,f30,f32,f34)
-@@ -283,11 +396,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 57f)
- 
- 1:	FREG_FROB(f4, f6, f8, f10,f12,f14,f16,f18,f20)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f20,f22,f24,f26,f28,f30,f32,f34,f36)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f36,f38,f40,f42,f44,f46,f0, f2, f4)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f4, %f6, %f48
- 1:	FREG_FROB(f20,f22,f24,f26,f28,f30,f32,f34,f36)
-@@ -304,11 +417,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 58f)
- 
- 1:	FREG_FROB(f6, f8, f10,f12,f14,f16,f18,f20,f22)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f22,f24,f26,f28,f30,f32,f34,f36,f38)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f38,f40,f42,f44,f46,f0, f2, f4, f6) 
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f6, %f8, %f48
- 1:	FREG_FROB(f22,f24,f26,f28,f30,f32,f34,f36,f38)
-@@ -325,11 +438,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 59f)
- 
- 1:	FREG_FROB(f8, f10,f12,f14,f16,f18,f20,f22,f24)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f24,f26,f28,f30,f32,f34,f36,f38,f40)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f40,f42,f44,f46,f0, f2, f4, f6, f8)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f8, %f10, %f48
- 1:	FREG_FROB(f24,f26,f28,f30,f32,f34,f36,f38,f40)
-@@ -346,11 +459,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 60f)
- 
- 1:	FREG_FROB(f10,f12,f14,f16,f18,f20,f22,f24,f26)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f26,f28,f30,f32,f34,f36,f38,f40,f42)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f42,f44,f46,f0, f2, f4, f6, f8, f10)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f10, %f12, %f48
- 1:	FREG_FROB(f26,f28,f30,f32,f34,f36,f38,f40,f42)
-@@ -367,11 +480,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 61f)
- 
- 1:	FREG_FROB(f12,f14,f16,f18,f20,f22,f24,f26,f28)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f28,f30,f32,f34,f36,f38,f40,f42,f44)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f44,f46,f0, f2, f4, f6, f8, f10,f12)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f12, %f14, %f48
- 1:	FREG_FROB(f28,f30,f32,f34,f36,f38,f40,f42,f44)
-@@ -388,11 +501,11 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	STORE_JUMP(o0, f48, 62f)
- 
- 1:	FREG_FROB(f14,f16,f18,f20,f22,f24,f26,f28,f30)
--	LOOP_CHUNK1(o1, o0, GLOBAL_SPARE, 1f)
-+	LOOP_CHUNK1(o1, o0, 1f)
- 	FREG_FROB(f30,f32,f34,f36,f38,f40,f42,f44,f46)
--	LOOP_CHUNK2(o1, o0, GLOBAL_SPARE, 2f)
-+	LOOP_CHUNK2(o1, o0, 2f)
- 	FREG_FROB(f46,f0, f2, f4, f6, f8, f10,f12,f14)
--	LOOP_CHUNK3(o1, o0, GLOBAL_SPARE, 3f)
-+	LOOP_CHUNK3(o1, o0, 3f)
- 	ba,pt		%xcc, 1b+4
- 	 faligndata	%f14, %f16, %f48
- 1:	FREG_FROB(f30,f32,f34,f36,f38,f40,f42,f44,f46)
-@@ -408,53 +521,53 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	FREG_FROB(f30,f32,f34,f36,f38,f40,f42,f44,f46)
- 	STORE_JUMP(o0, f48, 63f)
- 
--40:	FINISH_VISCHUNK(o0, f0,  f2,  g3)
--41:	FINISH_VISCHUNK(o0, f2,  f4,  g3)
--42:	FINISH_VISCHUNK(o0, f4,  f6,  g3)
--43:	FINISH_VISCHUNK(o0, f6,  f8,  g3)
--44:	FINISH_VISCHUNK(o0, f8,  f10, g3)
--45:	FINISH_VISCHUNK(o0, f10, f12, g3)
--46:	FINISH_VISCHUNK(o0, f12, f14, g3)
--47:	UNEVEN_VISCHUNK(o0, f14, f0,  g3)
--48:	FINISH_VISCHUNK(o0, f16, f18, g3)
--49:	FINISH_VISCHUNK(o0, f18, f20, g3)
--50:	FINISH_VISCHUNK(o0, f20, f22, g3)
--51:	FINISH_VISCHUNK(o0, f22, f24, g3)
--52:	FINISH_VISCHUNK(o0, f24, f26, g3)
--53:	FINISH_VISCHUNK(o0, f26, f28, g3)
--54:	FINISH_VISCHUNK(o0, f28, f30, g3)
--55:	UNEVEN_VISCHUNK(o0, f30, f0,  g3)
--56:	FINISH_VISCHUNK(o0, f32, f34, g3)
--57:	FINISH_VISCHUNK(o0, f34, f36, g3)
--58:	FINISH_VISCHUNK(o0, f36, f38, g3)
--59:	FINISH_VISCHUNK(o0, f38, f40, g3)
--60:	FINISH_VISCHUNK(o0, f40, f42, g3)
--61:	FINISH_VISCHUNK(o0, f42, f44, g3)
--62:	FINISH_VISCHUNK(o0, f44, f46, g3)
--63:	UNEVEN_VISCHUNK_LAST(o0, f46, f0,  g3)
--
--93:	EX_LD_FP(LOAD(ldd, %o1, %f2))
-+40:	FINISH_VISCHUNK(o0, f0,  f2)
-+41:	FINISH_VISCHUNK(o0, f2,  f4)
-+42:	FINISH_VISCHUNK(o0, f4,  f6)
-+43:	FINISH_VISCHUNK(o0, f6,  f8)
-+44:	FINISH_VISCHUNK(o0, f8,  f10)
-+45:	FINISH_VISCHUNK(o0, f10, f12)
-+46:	FINISH_VISCHUNK(o0, f12, f14)
-+47:	UNEVEN_VISCHUNK(o0, f14, f0)
-+48:	FINISH_VISCHUNK(o0, f16, f18)
-+49:	FINISH_VISCHUNK(o0, f18, f20)
-+50:	FINISH_VISCHUNK(o0, f20, f22)
-+51:	FINISH_VISCHUNK(o0, f22, f24)
-+52:	FINISH_VISCHUNK(o0, f24, f26)
-+53:	FINISH_VISCHUNK(o0, f26, f28)
-+54:	FINISH_VISCHUNK(o0, f28, f30)
-+55:	UNEVEN_VISCHUNK(o0, f30, f0)
-+56:	FINISH_VISCHUNK(o0, f32, f34)
-+57:	FINISH_VISCHUNK(o0, f34, f36)
-+58:	FINISH_VISCHUNK(o0, f36, f38)
-+59:	FINISH_VISCHUNK(o0, f38, f40)
-+60:	FINISH_VISCHUNK(o0, f40, f42)
-+61:	FINISH_VISCHUNK(o0, f42, f44)
-+62:	FINISH_VISCHUNK(o0, f44, f46)
-+63:	UNEVEN_VISCHUNK_LAST(o0, f46, f0)
+@@ -270,3 +277,35 @@ static int __init setup_nmi_watchdog(char *str)
+ 	return 0;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
 +
-+93:	EX_LD_FP(LOAD(ldd, %o1, %f2), U1_g3_0_fp)
- 	add		%o1, 8, %o1
- 	subcc		%g3, 8, %g3
- 	faligndata	%f0, %f2, %f8
--	EX_ST_FP(STORE(std, %f8, %o0))
-+	EX_ST_FP(STORE(std, %f8, %o0), U1_g3_8_fp)
- 	bl,pn		%xcc, 95f
- 	 add		%o0, 8, %o0
--	EX_LD_FP(LOAD(ldd, %o1, %f0))
-+	EX_LD_FP(LOAD(ldd, %o1, %f0), U1_g3_0_fp)
- 	add		%o1, 8, %o1
- 	subcc		%g3, 8, %g3
- 	faligndata	%f2, %f0, %f8
--	EX_ST_FP(STORE(std, %f8, %o0))
-+	EX_ST_FP(STORE(std, %f8, %o0), U1_g3_8_fp)
- 	bge,pt		%xcc, 93b
- 	 add		%o0, 8, %o0
- 
- 95:	brz,pt		%o2, 2f
- 	 mov		%g1, %o1
- 
--1:	EX_LD_FP(LOAD(ldub, %o1, %o3))
-+1:	EX_LD_FP(LOAD(ldub, %o1, %o3), U1_o2_0_fp)
- 	add		%o1, 1, %o1
- 	subcc		%o2, 1, %o2
--	EX_ST_FP(STORE(stb, %o3, %o0))
-+	EX_ST_FP(STORE(stb, %o3, %o0), U1_o2_1_fp)
- 	bne,pt		%xcc, 1b
- 	 add		%o0, 1, %o0
- 
-@@ -470,27 +583,27 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 
- 72:	andn		%o2, 0xf, %GLOBAL_SPARE
- 	and		%o2, 0xf, %o2
--1:	EX_LD(LOAD(ldx, %o1 + 0x00, %o5))
--	EX_LD(LOAD(ldx, %o1 + 0x08, %g1))
-+1:	EX_LD(LOAD(ldx, %o1 + 0x00, %o5), U1_gs_0)
-+	EX_LD(LOAD(ldx, %o1 + 0x08, %g1), U1_gs_0)
- 	subcc		%GLOBAL_SPARE, 0x10, %GLOBAL_SPARE
--	EX_ST(STORE(stx, %o5, %o1 + %o3))
-+	EX_ST(STORE(stx, %o5, %o1 + %o3), U1_gs_10)
- 	add		%o1, 0x8, %o1
--	EX_ST(STORE(stx, %g1, %o1 + %o3))
-+	EX_ST(STORE(stx, %g1, %o1 + %o3), U1_gs_8)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 0x8, %o1
- 73:	andcc		%o2, 0x8, %g0
- 	be,pt		%XCC, 1f
- 	 nop
--	EX_LD(LOAD(ldx, %o1, %o5))
-+	EX_LD(LOAD(ldx, %o1, %o5), U1_o2_0)
- 	sub		%o2, 0x8, %o2
--	EX_ST(STORE(stx, %o5, %o1 + %o3))
-+	EX_ST(STORE(stx, %o5, %o1 + %o3), U1_o2_8)
- 	add		%o1, 0x8, %o1
- 1:	andcc		%o2, 0x4, %g0
- 	be,pt		%XCC, 1f
- 	 nop
--	EX_LD(LOAD(lduw, %o1, %o5))
-+	EX_LD(LOAD(lduw, %o1, %o5), U1_o2_0)
- 	sub		%o2, 0x4, %o2
--	EX_ST(STORE(stw, %o5, %o1 + %o3))
-+	EX_ST(STORE(stw, %o5, %o1 + %o3), U1_o2_4)
- 	add		%o1, 0x4, %o1
- 1:	cmp		%o2, 0
- 	be,pt		%XCC, 85f
-@@ -504,9 +617,9 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	 sub		%g0, %g1, %g1
- 	sub		%o2, %g1, %o2
- 
--1:	EX_LD(LOAD(ldub, %o1, %o5))
-+1:	EX_LD(LOAD(ldub, %o1, %o5), U1_g1_0)
- 	subcc		%g1, 1, %g1
--	EX_ST(STORE(stb, %o5, %o1 + %o3))
-+	EX_ST(STORE(stb, %o5, %o1 + %o3), U1_g1_1)
- 	bgu,pt		%icc, 1b
- 	 add		%o1, 1, %o1
- 
-@@ -522,16 +635,16 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 
- 8:	mov		64, %o3
- 	andn		%o1, 0x7, %o1
--	EX_LD(LOAD(ldx, %o1, %g2))
-+	EX_LD(LOAD(ldx, %o1, %g2), U1_o2_0)
- 	sub		%o3, %g1, %o3
- 	andn		%o2, 0x7, %GLOBAL_SPARE
- 	sllx		%g2, %g1, %g2
--1:	EX_LD(LOAD(ldx, %o1 + 0x8, %g3))
-+1:	EX_LD(LOAD(ldx, %o1 + 0x8, %g3), U1_gs_0_o2_adj)
- 	subcc		%GLOBAL_SPARE, 0x8, %GLOBAL_SPARE
- 	add		%o1, 0x8, %o1
- 	srlx		%g3, %o3, %o5
- 	or		%o5, %g2, %o5
--	EX_ST(STORE(stx, %o5, %o0))
-+	EX_ST(STORE(stx, %o5, %o0), U1_gs_8_o2_adj)
- 	add		%o0, 0x8, %o0
- 	bgu,pt		%icc, 1b
- 	 sllx		%g3, %g1, %g2
-@@ -549,9 +662,9 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	bne,pn		%XCC, 90f
- 	 sub		%o0, %o1, %o3
- 
--1:	EX_LD(LOAD(lduw, %o1, %g1))
-+1:	EX_LD(LOAD(lduw, %o1, %g1), U1_o2_0)
- 	subcc		%o2, 4, %o2
--	EX_ST(STORE(stw, %g1, %o1 + %o3))
-+	EX_ST(STORE(stw, %g1, %o1 + %o3), U1_o2_4)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 4, %o1
- 
-@@ -559,9 +672,9 @@ FUNC_NAME:		/* %o0=dst, %o1=src, %o2=len */
- 	 mov		EX_RETVAL(%o4), %o0
- 
- 	.align		32
--90:	EX_LD(LOAD(ldub, %o1, %g1))
-+90:	EX_LD(LOAD(ldub, %o1, %g1), U1_o2_0)
- 	subcc		%o2, 1, %o2
--	EX_ST(STORE(stb, %g1, %o1 + %o3))
-+	EX_ST(STORE(stb, %g1, %o1 + %o3), U1_o2_1)
- 	bgu,pt		%XCC, 90b
- 	 add		%o1, 1, %o1
- 	retl
++/*
++ * sparc specific NMI watchdog enable function.
++ * Enables watchdog if it is not enabled already.
++ */
++int arch_watchdog_nmi_enable(unsigned int cpu)
++{
++	if (atomic_read(&nmi_active) = -1) {
++		pr_info_once("NMI watchdog cannot be enabled\n");
++		return -1;
++	}
++
++	/*
++	 * watchdog thread could start even before nmi_init is called.
++	 * Just Return in that case. Let nmi_init finish the init
++	 * process first.
++	 */
++	if (!nmi_init_done)
++		return 0;
++
++	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
++
++	return 0;
++}
++/*
++ * sparc specific NMI watchdog disable function.
++ * Disables watchdog if it is not disabled already.
++ */
++void arch_watchdog_nmi_disable(unsigned int cpu)
++{
++	smp_call_function_single(cpu, stop_nmi_watchdog, NULL, 1);
++}
 -- 
-2.1.2.532.g19b5d50
+1.7.1
 
