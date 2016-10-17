@@ -1,111 +1,108 @@
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Date: Tue, 25 Oct 2016 09:03:10 +0000
-Subject: [GIT PULL v2 0/5] cpu_relax: drop lowlatency, introduce yield
-Message-Id: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Mon, 17 Oct 2016 20:56:59 +0000
+Subject: [PATCH 1/2] sunqe: Fix compiler warnings
+Message-Id: <1476737820-29584-2-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1476737820-29584-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1476737820-29584-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Noam Camus <noamc@ezchip.com>, sparclinux@vger.kernel.org, x86@kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King <linux@armlinux.org.uk>, virtualization@lists.linux-foundation.org, xen-devel@lists.xenproject.org, kvm@vger.kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
+Cc: chris.hyser@oracle.com, linux-kernel@vger.kernel.org
 
-Peter,
+sunqe uses '__u32' for dma handle while invoking kernel DMA APIs,
+instead of using dma_addr_t. This hasn't caused any 'incompatible
+pointer type' warning on SPARC because until now dma_addr_t is of
+type u32. However, recent changes in SPARC ATU (iommu) enables 64bit
+DMA and therefore dma_addr_t becomes of type u64. This makes
+'incompatible pointer type' warnings inevitable.
 
-here is v2 with some improved patch descriptions and some fixes. The
-previous version has survived one day of linux-next and I only changed
-small parts.
-So unless there is some other issue, feel free to pull (or to apply
-the patches) to tip/locking.
+e.g.
+drivers/net/ethernet/sun/sunqe.c: In function ‘qec_ether_init’:
+drivers/net/ethernet/sun/sunqe.c:883: warning: passing argument 3 of ‘dma_alloc_coherent’ from incompatible pointer type
+./include/linux/dma-mapping.h:445: note: expected ‘dma_addr_t *’ but argument is of type ‘__u32 *’
+drivers/net/ethernet/sun/sunqe.c:885: warning: passing argument 3 of ‘dma_alloc_coherent’ from incompatible pointer type
+./include/linux/dma-mapping.h:445: note: expected ‘dma_addr_t *’ but argument is of type ‘__u32 *’
 
-The following changes since commit 07d9a380680d1c0eb51ef87ff2eab5c994949e69:
+This patch resolves above compiler warnings.
 
-  Linux 4.9-rc2 (2016-10-23 17:10:14 -0700)
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: chris hyser <chris.hyser@oracle.com>
+---
+ drivers/net/ethernet/sun/sunqe.c | 11 ++++++-----
+ drivers/net/ethernet/sun/sunqe.h |  4 ++--
+ 2 files changed, 8 insertions(+), 7 deletions(-)
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/borntraeger/linux.git  tags/cpurelax
-
-for you to fetch changes up to dcc37f9044436438360402714b7544a8e8779b07:
-
-  processor.h: remove cpu_relax_lowlatency (2016-10-25 09:49:57 +0200)
-
-----------------------------------------------------------------
-cpu_relax: drop lowlatency, introduce yield
-
-For spinning loops people do often use barrier() or cpu_relax().
-For most architectures cpu_relax and barrier are the same, but on
-some architectures cpu_relax can add some latency.
-For example on power,sparc64 and arc, cpu_relax can shift the CPU
-towards other hardware threads in an SMT environment.
-On s390 cpu_relax does even more, it uses an hypercall to the
-hypervisor to give up the timeslice.
-In contrast to the SMT yielding this can result in larger latencies.
-In some places this latency is unwanted, so another variant
-"cpu_relax_lowlatency" was introduced. Before this is used in more
-and more places, lets revert the logic and provide a cpu_relax_yield
-that can be called in places where yielding is more important than
-latency. By default this is the same as cpu_relax on all architectures.
-
-So my proposal boils down to:
-- lowest latency: use barrier() or mb() if necessary
-- low latency: use cpu_relax (e.g. might give up some cpu for the other
-  _hardware_ threads)
-- really give up CPU: use  cpu_relax_yield
-
-PS: In the long run I would also try to provide for s390 something
-like cpu_relax_yield_to with a cpu number (or just add that to
-cpu_relax_yield), since a yield_to is always better than a yield as
-long as we know the waiter.
-
-----------------------------------------------------------------
-Christian Borntraeger (5):
-      processor.h: introduce cpu_relax_yield
-      stop_machine: yield CPU during stop machine
-      s390: make cpu_relax a barrier again
-      processor.h: Remove cpu_relax_lowlatency users
-      processor.h: remove cpu_relax_lowlatency
-
- arch/alpha/include/asm/processor.h      | 2 +-
- arch/arc/include/asm/processor.h        | 4 ++--
- arch/arm/include/asm/processor.h        | 2 +-
- arch/arm64/include/asm/processor.h      | 2 +-
- arch/avr32/include/asm/processor.h      | 2 +-
- arch/blackfin/include/asm/processor.h   | 2 +-
- arch/c6x/include/asm/processor.h        | 2 +-
- arch/cris/include/asm/processor.h       | 2 +-
- arch/frv/include/asm/processor.h        | 2 +-
- arch/h8300/include/asm/processor.h      | 2 +-
- arch/hexagon/include/asm/processor.h    | 2 +-
- arch/ia64/include/asm/processor.h       | 2 +-
- arch/m32r/include/asm/processor.h       | 2 +-
- arch/m68k/include/asm/processor.h       | 2 +-
- arch/metag/include/asm/processor.h      | 2 +-
- arch/microblaze/include/asm/processor.h | 2 +-
- arch/mips/include/asm/processor.h       | 2 +-
- arch/mn10300/include/asm/processor.h    | 2 +-
- arch/nios2/include/asm/processor.h      | 2 +-
- arch/openrisc/include/asm/processor.h   | 2 +-
- arch/parisc/include/asm/processor.h     | 2 +-
- arch/powerpc/include/asm/processor.h    | 2 +-
- arch/s390/include/asm/processor.h       | 4 ++--
- arch/s390/kernel/processor.c            | 4 ++--
- arch/score/include/asm/processor.h      | 2 +-
- arch/sh/include/asm/processor.h         | 2 +-
- arch/sparc/include/asm/processor_32.h   | 2 +-
- arch/sparc/include/asm/processor_64.h   | 2 +-
- arch/tile/include/asm/processor.h       | 2 +-
- arch/unicore32/include/asm/processor.h  | 2 +-
- arch/x86/include/asm/processor.h        | 2 +-
- arch/x86/um/asm/processor.h             | 2 +-
- arch/xtensa/include/asm/processor.h     | 2 +-
- drivers/gpu/drm/i915/i915_gem_request.c | 2 +-
- drivers/vhost/net.c                     | 4 ++--
- kernel/locking/mcs_spinlock.h           | 4 ++--
- kernel/locking/mutex.c                  | 4 ++--
- kernel/locking/osq_lock.c               | 6 +++---
- kernel/locking/qrwlock.c                | 6 +++---
- kernel/locking/rwsem-xadd.c             | 4 ++--
- kernel/stop_machine.c                   | 2 +-
- lib/lockref.c                           | 2 +-
- 42 files changed, 53 insertions(+), 53 deletions(-)
+diff --git a/drivers/net/ethernet/sun/sunqe.c b/drivers/net/ethernet/sun/sunqe.c
+index 9b825780..9582948 100644
+--- a/drivers/net/ethernet/sun/sunqe.c
++++ b/drivers/net/ethernet/sun/sunqe.c
+@@ -124,7 +124,7 @@ static void qe_init_rings(struct sunqe *qep)
+ {
+ 	struct qe_init_block *qb = qep->qe_block;
+ 	struct sunqe_buffers *qbufs = qep->buffers;
+-	__u32 qbufs_dvma = qep->buffers_dvma;
++	__u32 qbufs_dvma = (__u32)qep->buffers_dvma;
+ 	int i;
+ 
+ 	qep->rx_new = qep->rx_old = qep->tx_new = qep->tx_old = 0;
+@@ -144,6 +144,7 @@ static int qe_init(struct sunqe *qep, int from_irq)
+ 	void __iomem *mregs = qep->mregs;
+ 	void __iomem *gregs = qecp->gregs;
+ 	unsigned char *e = &qep->dev->dev_addr[0];
++	__u32 qblk_dvma = (__u32)qep->qblock_dvma;
+ 	u32 tmp;
+ 	int i;
+ 
+@@ -152,8 +153,8 @@ static int qe_init(struct sunqe *qep, int from_irq)
+ 		return -EAGAIN;
+ 
+ 	/* Setup initial rx/tx init block pointers. */
+-	sbus_writel(qep->qblock_dvma + qib_offset(qe_rxd, 0), cregs + CREG_RXDS);
+-	sbus_writel(qep->qblock_dvma + qib_offset(qe_txd, 0), cregs + CREG_TXDS);
++	sbus_writel(qblk_dvma + qib_offset(qe_rxd, 0), cregs + CREG_RXDS);
++	sbus_writel(qblk_dvma + qib_offset(qe_txd, 0), cregs + CREG_TXDS);
+ 
+ 	/* Enable/mask the various irq's. */
+ 	sbus_writel(0, cregs + CREG_RIMASK);
+@@ -413,7 +414,7 @@ static void qe_rx(struct sunqe *qep)
+ 	struct net_device *dev = qep->dev;
+ 	struct qe_rxd *this;
+ 	struct sunqe_buffers *qbufs = qep->buffers;
+-	__u32 qbufs_dvma = qep->buffers_dvma;
++	__u32 qbufs_dvma = (__u32)qep->buffers_dvma;
+ 	int elem = qep->rx_new;
+ 	u32 flags;
+ 
+@@ -572,7 +573,7 @@ static int qe_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct sunqe *qep = netdev_priv(dev);
+ 	struct sunqe_buffers *qbufs = qep->buffers;
+-	__u32 txbuf_dvma, qbufs_dvma = qep->buffers_dvma;
++	__u32 txbuf_dvma, qbufs_dvma = (__u32)qep->buffers_dvma;
+ 	unsigned char *txbuf;
+ 	int len, entry;
+ 
+diff --git a/drivers/net/ethernet/sun/sunqe.h b/drivers/net/ethernet/sun/sunqe.h
+index 581781b..ae190b7 100644
+--- a/drivers/net/ethernet/sun/sunqe.h
++++ b/drivers/net/ethernet/sun/sunqe.h
+@@ -334,12 +334,12 @@ struct sunqe {
+ 	void __iomem			*qcregs;		/* QEC per-channel Registers   */
+ 	void __iomem			*mregs;		/* Per-channel MACE Registers  */
+ 	struct qe_init_block      	*qe_block;	/* RX and TX descriptors       */
+-	__u32                      	qblock_dvma;	/* RX and TX descriptors       */
++	dma_addr_t			qblock_dvma;	/* RX and TX descriptors       */
+ 	spinlock_t			lock;		/* Protects txfull state       */
+ 	int                        	rx_new, rx_old;	/* RX ring extents	       */
+ 	int			   	tx_new, tx_old;	/* TX ring extents	       */
+ 	struct sunqe_buffers		*buffers;	/* CPU visible address.        */
+-	__u32				buffers_dvma;	/* DVMA visible address.       */
++	dma_addr_t			buffers_dvma;	/* DVMA visible address.       */
+ 	struct sunqec			*parent;
+ 	u8				mconfig;	/* Base MACE mconfig value     */
+ 	struct platform_device		*op;		/* QE's OF device struct       */
+-- 
+1.9.1
 
