@@ -1,486 +1,156 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 15:02:19 +0000
-Subject: [PATCH 08/11] sparc64: Convert NG2copy_{from,to}_user to accurate exception reporting.
-Message-Id: <20161025.110219.1829620748513990151.davem@davemloft.net>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 18 Oct 2016 19:14:09 +0000
+Subject: [PATCH v3 1/2] watchdog: Introduce arch_watchdog_nmi_enable and arch_watchdog_nmi_disable
+Message-Id: <1476818050-117332-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, babu.moger@oracle.com
 
+Currently we do not have a way to enable/disable arch specific
+watchdog handlers if it was implemented by any of the architectures.
 
-Report the exact number of bytes which have not been successfully
-copied when an exception occurs, using the running remaining length.
+This patch introduces new functions arch_watchdog_nmi_enable and
+arch_watchdog_nmi_disable which can be used to enable/disable architecture
+specific NMI watchdog handlers. These functions are defined as weak as
+architectures can override their definitions to enable/disable nmi
+watchdog behaviour.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
 ---
- arch/sparc/lib/NG2copy_from_user.S |   8 +-
- arch/sparc/lib/NG2copy_to_user.S   |   8 +-
- arch/sparc/lib/NG2memcpy.S         | 228 +++++++++++++++++++++++--------------
- 3 files changed, 153 insertions(+), 91 deletions(-)
+ kernel/watchdog.c |   69 +++++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 46 insertions(+), 23 deletions(-)
 
-diff --git a/arch/sparc/lib/NG2copy_from_user.S b/arch/sparc/lib/NG2copy_from_user.S
-index 4d47fa5..b79a699 100644
---- a/arch/sparc/lib/NG2copy_from_user.S
-+++ b/arch/sparc/lib/NG2copy_from_user.S
-@@ -3,19 +3,19 @@
-  * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 9acb29f..2d0765b 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -46,7 +46,7 @@
+ 
+ static DEFINE_MUTEX(watchdog_proc_mutex);
+ 
+-#ifdef CONFIG_HARDLOCKUP_DETECTOR
++#if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
+ static unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED|NMI_WATCHDOG_ENABLED;
+ #else
+ static unsigned long __read_mostly watchdog_enabled = SOFT_WATCHDOG_ENABLED;
+@@ -585,15 +585,11 @@ static void watchdog(unsigned int cpu)
   */
+ static unsigned long cpu0_err;
  
--#define EX_LD(x)		\
-+#define EX_LD(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_asi;\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
+-static int watchdog_nmi_enable(unsigned int cpu)
++static int arch_watchdog_nmi_enable(unsigned int cpu)
+ {
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *event = per_cpu(watchdog_ev, cpu);
  
--#define EX_LD_FP(x)		\
-+#define EX_LD_FP(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_asi_fp;\
-+	.word 98b, y##_fp;	\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/NG2copy_to_user.S b/arch/sparc/lib/NG2copy_to_user.S
-index 2078d75..dcec55f 100644
---- a/arch/sparc/lib/NG2copy_to_user.S
-+++ b/arch/sparc/lib/NG2copy_to_user.S
-@@ -3,19 +3,19 @@
-  * Copyright (C) 2007 David S. Miller (davem@davemloft.net)
-  */
- 
--#define EX_ST(x)		\
-+#define EX_ST(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_asi;\
-+	.word 98b, y;		\
- 	.text;			\
- 	.align 4;
- 
--#define EX_ST_FP(x)		\
-+#define EX_ST_FP(x,y)		\
- 98:	x;			\
- 	.section __ex_table,"a";\
- 	.align 4;		\
--	.word 98b, __retl_mone_asi_fp;\
-+	.word 98b, y##_fp;	\
- 	.text;			\
- 	.align 4;
- 
-diff --git a/arch/sparc/lib/NG2memcpy.S b/arch/sparc/lib/NG2memcpy.S
-index d5f585d..c629dbd 100644
---- a/arch/sparc/lib/NG2memcpy.S
-+++ b/arch/sparc/lib/NG2memcpy.S
-@@ -4,6 +4,7 @@
-  */
- 
- #ifdef __KERNEL__
-+#include <linux/linkage.h>
- #include <asm/visasm.h>
- #include <asm/asi.h>
- #define GLOBAL_SPARE	%g7
-@@ -32,21 +33,17 @@
- #endif
- 
- #ifndef EX_LD
--#define EX_LD(x)	x
-+#define EX_LD(x,y)	x
- #endif
- #ifndef EX_LD_FP
--#define EX_LD_FP(x)	x
-+#define EX_LD_FP(x,y)	x
- #endif
- 
- #ifndef EX_ST
--#define EX_ST(x)	x
-+#define EX_ST(x,y)	x
- #endif
- #ifndef EX_ST_FP
--#define EX_ST_FP(x)	x
--#endif
+-	/* nothing to do if the hard lockup detector is disabled */
+-	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
+-		goto out;
 -
--#ifndef EX_RETVAL
--#define EX_RETVAL(x)	x
-+#define EX_ST_FP(x,y)	x
- #endif
+ 	/* is it already setup and enabled? */
+ 	if (event && event->state > PERF_EVENT_STATE_OFF)
+ 		goto out;
+@@ -619,18 +615,6 @@ static int watchdog_nmi_enable(unsigned int cpu)
+ 		goto out_save;
+ 	}
  
- #ifndef LOAD
-@@ -140,45 +137,110 @@
- 	fsrc2		%x6, %f12; \
- 	fsrc2		%x7, %f14;
- #define FREG_LOAD_1(base, x0) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0))
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1)
- #define FREG_LOAD_2(base, x0, x1) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1);
- #define FREG_LOAD_3(base, x0, x1, x2) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1)); \
--	EX_LD_FP(LOAD(ldd, base + 0x10, %x2));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x10, %x2), NG2_retl_o2_plus_g1);
- #define FREG_LOAD_4(base, x0, x1, x2, x3) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1)); \
--	EX_LD_FP(LOAD(ldd, base + 0x10, %x2)); \
--	EX_LD_FP(LOAD(ldd, base + 0x18, %x3));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x10, %x2), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x18, %x3), NG2_retl_o2_plus_g1);
- #define FREG_LOAD_5(base, x0, x1, x2, x3, x4) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1)); \
--	EX_LD_FP(LOAD(ldd, base + 0x10, %x2)); \
--	EX_LD_FP(LOAD(ldd, base + 0x18, %x3)); \
--	EX_LD_FP(LOAD(ldd, base + 0x20, %x4));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x10, %x2), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x18, %x3), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x20, %x4), NG2_retl_o2_plus_g1);
- #define FREG_LOAD_6(base, x0, x1, x2, x3, x4, x5) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1)); \
--	EX_LD_FP(LOAD(ldd, base + 0x10, %x2)); \
--	EX_LD_FP(LOAD(ldd, base + 0x18, %x3)); \
--	EX_LD_FP(LOAD(ldd, base + 0x20, %x4)); \
--	EX_LD_FP(LOAD(ldd, base + 0x28, %x5));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x10, %x2), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x18, %x3), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x20, %x4), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x28, %x5), NG2_retl_o2_plus_g1);
- #define FREG_LOAD_7(base, x0, x1, x2, x3, x4, x5, x6) \
--	EX_LD_FP(LOAD(ldd, base + 0x00, %x0)); \
--	EX_LD_FP(LOAD(ldd, base + 0x08, %x1)); \
--	EX_LD_FP(LOAD(ldd, base + 0x10, %x2)); \
--	EX_LD_FP(LOAD(ldd, base + 0x18, %x3)); \
--	EX_LD_FP(LOAD(ldd, base + 0x20, %x4)); \
--	EX_LD_FP(LOAD(ldd, base + 0x28, %x5)); \
--	EX_LD_FP(LOAD(ldd, base + 0x30, %x6));
-+	EX_LD_FP(LOAD(ldd, base + 0x00, %x0), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x08, %x1), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x10, %x2), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x18, %x3), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x20, %x4), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x28, %x5), NG2_retl_o2_plus_g1); \
-+	EX_LD_FP(LOAD(ldd, base + 0x30, %x6), NG2_retl_o2_plus_g1);
+-	/*
+-	 * Disable the hard lockup detector if _any_ CPU fails to set up
+-	 * set up the hardware perf event. The watchdog() function checks
+-	 * the NMI_WATCHDOG_ENABLED bit periodically.
+-	 *
+-	 * The barriers are for syncing up watchdog_enabled across all the
+-	 * cpus, as clear_bit() does not use barriers.
+-	 */
+-	smp_mb__before_atomic();
+-	clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
+-	smp_mb__after_atomic();
+-
+ 	/* skip displaying the same error again */
+ 	if (cpu > 0 && (PTR_ERR(event) = cpu0_err))
+ 		return PTR_ERR(event);
+@@ -645,8 +629,6 @@ static int watchdog_nmi_enable(unsigned int cpu)
+ 		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
+ 			cpu, PTR_ERR(event));
  
- 	.register	%g2,#scratch
- 	.register	%g3,#scratch
+-	pr_info("Shutting down hard lockup detector on all cpus\n");
+-
+ 	return PTR_ERR(event);
  
- 	.text
-+#ifndef EX_RETVAL
-+#define EX_RETVAL(x)	x
-+__restore_fp:
-+	VISExitHalf
-+__restore_asi:
-+	retl
-+	 wr	%g0, ASI_AIUS, %asi
-+ENTRY(NG2_retl_o2)
-+	ba,pt	%xcc, __restore_asi
-+	 mov	%o2, %o0
-+ENDPROC(NG2_retl_o2)
-+ENTRY(NG2_retl_o2_plus_1)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, 1, %o0
-+ENDPROC(NG2_retl_o2_plus_1)
-+ENTRY(NG2_retl_o2_plus_4)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, 4, %o0
-+ENDPROC(NG2_retl_o2_plus_4)
-+ENTRY(NG2_retl_o2_plus_8)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, 8, %o0
-+ENDPROC(NG2_retl_o2_plus_8)
-+ENTRY(NG2_retl_o2_plus_o4_plus_1)
-+	add	%o4, 1, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG2_retl_o2_plus_o4_plus_1)
-+ENTRY(NG2_retl_o2_plus_o4_plus_8)
-+	add	%o4, 8, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG2_retl_o2_plus_o4_plus_8)
-+ENTRY(NG2_retl_o2_plus_o4_plus_16)
-+	add	%o4, 16, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG2_retl_o2_plus_o4_plus_16)
-+ENTRY(NG2_retl_o2_plus_g1_fp)
-+	ba,pt	%xcc, __restore_fp
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG2_retl_o2_plus_g1_fp)
-+ENTRY(NG2_retl_o2_plus_g1_plus_64_fp)
-+	add	%g1, 64, %g1
-+	ba,pt	%xcc, __restore_fp
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG2_retl_o2_plus_g1_plus_64_fp)
-+ENTRY(NG2_retl_o2_plus_g1_plus_1)
-+	add	%g1, 1, %g1
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG2_retl_o2_plus_g1_plus_1)
-+ENTRY(NG2_retl_o2_and_7_plus_o4)
-+	and	%o2, 7, %o2
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG2_retl_o2_and_7_plus_o4)
-+ENTRY(NG2_retl_o2_and_7_plus_o4_plus_8)
-+	and	%o2, 7, %o2
-+	add	%o4, 8, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG2_retl_o2_and_7_plus_o4_plus_8)
-+#endif
+ 	/* success path */
+@@ -658,7 +640,7 @@ out:
+ 	return 0;
+ }
+ 
+-static void watchdog_nmi_disable(unsigned int cpu)
++static void arch_watchdog_nmi_disable(unsigned int cpu)
+ {
+ 	struct perf_event *event = per_cpu(watchdog_ev, cpu);
+ 
+@@ -676,8 +658,13 @@ static void watchdog_nmi_disable(unsigned int cpu)
+ }
+ 
+ #else
+-static int watchdog_nmi_enable(unsigned int cpu) { return 0; }
+-static void watchdog_nmi_disable(unsigned int cpu) { return; }
++/*
++ * These two functions are mostly architecture specific
++ * defining them as weak here.
++ */
++int __weak arch_watchdog_nmi_enable(unsigned int cpu) { return 0; }
++void __weak arch_watchdog_nmi_disable(unsigned int cpu) { return; }
 +
- 	.align		64
+ #endif /* CONFIG_HARDLOCKUP_DETECTOR */
  
- 	.globl	FUNC_NAME
-@@ -230,8 +292,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	sub		%g0, %o4, %o4	! bytes to align dst
- 	sub		%o2, %o4, %o2
- 1:	subcc		%o4, 1, %o4
--	EX_LD(LOAD(ldub, %o1, %g1))
--	EX_ST(STORE(stb, %g1, %o0))
-+	EX_LD(LOAD(ldub, %o1, %g1), NG2_retl_o2_plus_o4_plus_1)
-+	EX_ST(STORE(stb, %g1, %o0), NG2_retl_o2_plus_o4_plus_1)
- 	add		%o1, 1, %o1
- 	bne,pt		%XCC, 1b
- 	add		%o0, 1, %o0
-@@ -281,11 +343,11 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	 nop
- 	/* fall through for 0 < low bits < 8 */
- 110:	sub		%o4, 64, %g2
--	EX_LD_FP(LOAD_BLK(%g2, %f0))
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+	EX_LD_FP(LOAD_BLK(%g2, %f0), NG2_retl_o2_plus_g1)
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f6, f8, f10, f12, f14, f16)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_8(f16, f18, f20, f22, f24, f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -296,10 +358,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ static struct smp_hotplug_thread watchdog_threads = {
+@@ -781,6 +768,42 @@ void lockup_detector_resume(void)
+ 	put_online_cpus();
+ }
  
- 120:	sub		%o4, 56, %g2
- 	FREG_LOAD_7(%g2, f0, f2, f4, f6, f8, f10, f12)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f6, f8, f10, f12, f16, f18)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_7(f18, f20, f22, f24, f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -310,10 +372,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 130:	sub		%o4, 48, %g2
- 	FREG_LOAD_6(%g2, f0, f2, f4, f6, f8, f10)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f6, f8, f10, f16, f18, f20)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_6(f20, f22, f24, f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -324,10 +386,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 140:	sub		%o4, 40, %g2
- 	FREG_LOAD_5(%g2, f0, f2, f4, f6, f8)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f6, f8, f16, f18, f20, f22)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_5(f22, f24, f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -338,10 +400,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 150:	sub		%o4, 32, %g2
- 	FREG_LOAD_4(%g2, f0, f2, f4, f6)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f6, f16, f18, f20, f22, f24)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_4(f24, f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -352,10 +414,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 160:	sub		%o4, 24, %g2
- 	FREG_LOAD_3(%g2, f0, f2, f4)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f4, f16, f18, f20, f22, f24, f26)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_3(f26, f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -366,10 +428,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 170:	sub		%o4, 16, %g2
- 	FREG_LOAD_2(%g2, f0, f2)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f2, f16, f18, f20, f22, f24, f26, f28)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_2(f28, f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -380,10 +442,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 180:	sub		%o4, 8, %g2
- 	FREG_LOAD_1(%g2, f0)
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
--	EX_LD_FP(LOAD_BLK(%o4, %f16))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
-+	EX_LD_FP(LOAD_BLK(%o4, %f16), NG2_retl_o2_plus_g1)
- 	FREG_FROB(f0, f16, f18, f20, f22, f24, f26, f28, f30)
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	FREG_MOVE_1(f30)
- 	subcc		%g1, 64, %g1
- 	add		%o4, 64, %o4
-@@ -393,10 +455,10 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	 nop
- 
- 190:
--1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3))
-+1:	EX_ST_FP(STORE_INIT(%g0, %o4 + %g3), NG2_retl_o2_plus_g1)
- 	subcc		%g1, 64, %g1
--	EX_LD_FP(LOAD_BLK(%o4, %f0))
--	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3))
-+	EX_LD_FP(LOAD_BLK(%o4, %f0), NG2_retl_o2_plus_g1_plus_64)
-+	EX_ST_FP(STORE_BLK(%f0, %o4 + %g3), NG2_retl_o2_plus_g1_plus_64)
- 	add		%o4, 64, %o4
- 	bne,pt		%xcc, 1b
- 	 LOAD(prefetch, %o4 + 64, #one_read)
-@@ -423,28 +485,28 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	andn		%o2, 0xf, %o4
- 	and		%o2, 0xf, %o2
- 1:	subcc		%o4, 0x10, %o4
--	EX_LD(LOAD(ldx, %o1, %o5))
-+	EX_LD(LOAD(ldx, %o1, %o5), NG2_retl_o2_plus_o4_plus_16)
- 	add		%o1, 0x08, %o1
--	EX_LD(LOAD(ldx, %o1, %g1))
-+	EX_LD(LOAD(ldx, %o1, %g1), NG2_retl_o2_plus_o4_plus_16)
- 	sub		%o1, 0x08, %o1
--	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE))
-+	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_o4_plus_16)
- 	add		%o1, 0x8, %o1
--	EX_ST(STORE(stx, %g1, %o1 + GLOBAL_SPARE))
-+	EX_ST(STORE(stx, %g1, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_o4_plus_8)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 0x8, %o1
- 73:	andcc		%o2, 0x8, %g0
- 	be,pt		%XCC, 1f
- 	 nop
- 	sub		%o2, 0x8, %o2
--	EX_LD(LOAD(ldx, %o1, %o5))
--	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE))
-+	EX_LD(LOAD(ldx, %o1, %o5), NG2_retl_o2_plus_8)
-+	EX_ST(STORE(stx, %o5, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_8)
- 	add		%o1, 0x8, %o1
- 1:	andcc		%o2, 0x4, %g0
- 	be,pt		%XCC, 1f
- 	 nop
- 	sub		%o2, 0x4, %o2
--	EX_LD(LOAD(lduw, %o1, %o5))
--	EX_ST(STORE(stw, %o5, %o1 + GLOBAL_SPARE))
-+	EX_LD(LOAD(lduw, %o1, %o5), NG2_retl_o2_plus_4)
-+	EX_ST(STORE(stw, %o5, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_4)
- 	add		%o1, 0x4, %o1
- 1:	cmp		%o2, 0
- 	be,pt		%XCC, 85f
-@@ -460,8 +522,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	sub		%o2, %g1, %o2
- 
- 1:	subcc		%g1, 1, %g1
--	EX_LD(LOAD(ldub, %o1, %o5))
--	EX_ST(STORE(stb, %o5, %o1 + GLOBAL_SPARE))
-+	EX_LD(LOAD(ldub, %o1, %o5), NG2_retl_o2_plus_g1_plus_1)
-+	EX_ST(STORE(stb, %o5, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_g1_plus_1)
- 	bgu,pt		%icc, 1b
- 	 add		%o1, 1, %o1
- 
-@@ -477,16 +539,16 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 8:	mov		64, GLOBAL_SPARE
- 	andn		%o1, 0x7, %o1
--	EX_LD(LOAD(ldx, %o1, %g2))
-+	EX_LD(LOAD(ldx, %o1, %g2), NG2_retl_o2)
- 	sub		GLOBAL_SPARE, %g1, GLOBAL_SPARE
- 	andn		%o2, 0x7, %o4
- 	sllx		%g2, %g1, %g2
- 1:	add		%o1, 0x8, %o1
--	EX_LD(LOAD(ldx, %o1, %g3))
-+	EX_LD(LOAD(ldx, %o1, %g3), NG2_retl_o2_and_7_plus_o4)
- 	subcc		%o4, 0x8, %o4
- 	srlx		%g3, GLOBAL_SPARE, %o5
- 	or		%o5, %g2, %o5
--	EX_ST(STORE(stx, %o5, %o0))
-+	EX_ST(STORE(stx, %o5, %o0), NG2_retl_o2_and_7_plus_o4_plus_8)
- 	add		%o0, 0x8, %o0
- 	bgu,pt		%icc, 1b
- 	 sllx		%g3, %g1, %g2
-@@ -506,8 +568,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 
- 1:
- 	subcc		%o2, 4, %o2
--	EX_LD(LOAD(lduw, %o1, %g1))
--	EX_ST(STORE(stw, %g1, %o1 + GLOBAL_SPARE))
-+	EX_LD(LOAD(lduw, %o1, %g1), NG2_retl_o2_plus_4)
-+	EX_ST(STORE(stw, %g1, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_4)
- 	bgu,pt		%XCC, 1b
- 	 add		%o1, 4, %o1
- 
-@@ -517,8 +579,8 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
- 	.align		32
- 90:
- 	subcc		%o2, 1, %o2
--	EX_LD(LOAD(ldub, %o1, %g1))
--	EX_ST(STORE(stb, %g1, %o1 + GLOBAL_SPARE))
-+	EX_LD(LOAD(ldub, %o1, %g1), NG2_retl_o2_plus_1)
-+	EX_ST(STORE(stb, %g1, %o1 + GLOBAL_SPARE), NG2_retl_o2_plus_1)
- 	bgu,pt		%XCC, 90b
- 	 add		%o1, 1, %o1
- 	retl
++void watchdog_nmi_disable(unsigned int cpu)
++{
++	arch_watchdog_nmi_disable(cpu);
++}
++
++int watchdog_nmi_enable(unsigned int cpu)
++{
++	int err;
++
++	/* nothing to do if the hard lockup detector is disabled */
++	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
++		return 0;
++
++	err = arch_watchdog_nmi_enable(cpu);
++
++	if (err) {
++		/*
++		 * Disable the hard lockup detector if _any_ CPU fails to set up
++		 * set up the hardware perf event. The watchdog() function checks
++		 * the NMI_WATCHDOG_ENABLED bit periodically.
++		 *
++		 * The barriers are for syncing up watchdog_enabled across all the
++		 * cpus, as clear_bit() does not use barriers.
++		 */
++		smp_mb__before_atomic();
++		clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
++		smp_mb__after_atomic();
++
++		pr_info("Shutting down hard lockup detector on all cpus\n");
++
++		return err;
++	}
++
++	return 0;
++}
++
+ static int update_watchdog_all_cpus(void)
+ {
+ 	int ret;
 -- 
-2.1.2.532.g19b5d50
+1.7.1
 
