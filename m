@@ -1,29 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Oct 2016 02:12:10 +0000
-Subject: Re: Regression with 4.7.2 on sun4u
-Message-Id: <20161025.221210.2111791233077964365.davem@davemloft.net>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 18 Oct 2016 19:14:08 +0000
+Subject: [PATCH v3 0/2] Introduce arch specific nmi enable, disable handlers
+Message-Id: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3fc12066-505b-5f87-cbbe-88593a736162@physik.fu-berlin.de>
-In-Reply-To: <3fc12066-505b-5f87-cbbe-88593a736162@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, babu.moger@oracle.com
 
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Tue, 25 Oct 2016 01:10:55 +0100
+During our testing we noticed that nmi watchdogs in sparc could not be disabled or
+enabled dynamically using sysctl/proc interface. Sparc uses its own arch specific
+nmi watchdogs. There is a sysctl and proc interface(proc/sys/kernel/nmi_watchdog)
+to enable/disable nmi watchdogs. However, that is not working for sparc. There
+is no interface to feed this parameter to arch specific nmi watchdogs.
 
-> Sure, that makes sense; updated and tested for a few hours:
-> 
-> From d5997fd98fc80d1ceabe11f6fcd63dfce99b8253 Mon Sep 17 00:00:00 2001
-> From: James Clarke <jrtc27@jrtc27.com>
-> Date: Mon, 24 Oct 2016 19:49:25 +0100
-> Subject: [PATCH v2] sparc: Handle negative offsets in
->  arch_jump_label_transform
-> 
-> Additionally, if the offset will overflow the immediate for a ba,pt
-> instruction, fall back on a standard ba to get an extra 3 bits.
-> 
-> Signed-off-by: James Clarke <jrtc27@jrtc27.com>
+These patches extend the same sysctl/proc interface to enable or disable
+these arch specific nmi watchdogs dynamically. Introduced new functions
+arch_watchdog_nmi_enable and arch_watchdog_nmi_disable which can be implemented
+in arch specific handlers.
+If you think there is a better way to do this. Please advice.
 
-Applied, thanks.
+Tested on sparc. Compile tested on x86.
+
+v3:
+  Made one more change per Don Zickus comments.
+  Moved failure path messages to into generic code inside watchdog_nmi_enable.
+  Also added matching prints in sparc to warn about the failure.
+
+v2:
+  a)Sam Ravnborg's comments about making the definitions visible.
+  With the new approach we dont need those definitions((NMI_WATCHDOG_ENABLED,
+  SOFT_WATCHDOG_ENABLED etc..) outside watchdog.c. So no action.
+
+  b) Made changes per Don Zickus comments.
+  Don, I could not use your patches as is. Reason is sparc does not define
+  CONFIG_HARDLOCKUP_DETECTOR. So, defining default __weak function did not
+  work for me. However, I have used your idea to define __weak functions
+  arch_watchdog_nmi_enable and arch_watchdog_nmi_disable when CONFIG_HARDLOCKUP_DETECTOR
+  is not defined. I feel this should have very less impact on the races you are
+  concerned about. Please take a look. Feel free to suggest.
+
+  Patch2 changes: I had to introduce new variable nmi_init_done to synchronize
+  watchdog thread and kernel init thread.
+
+v1:
+ Initial version. Discussion thread here
+ http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1245427.html
+
+Babu Moger (2):
+  watchdog: Introduce arch_watchdog_nmi_enable and
+    arch_watchdog_nmi_disable
+  sparc: Implement arch_watchdog_nmi_enable and
+    arch_watchdog_nmi_disable
+
+ arch/sparc/kernel/nmi.c |   44 +++++++++++++++++++++++++++++-
+ kernel/watchdog.c       |   69 +++++++++++++++++++++++++++++++---------------
+ 2 files changed, 89 insertions(+), 24 deletions(-)
+
