@@ -1,42 +1,80 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 24 Oct 2016 18:32:49 +0000
-Subject: Re: [PATCH 1/6] sparc64: Add FORCE_MAX_ZONEORDER and default to 13
-Message-Id: <20161024.143249.602890744080296174.davem@davemloft.net>
+From: Tobias Klauser <tklauser@distanz.ch>
+Date: Fri, 21 Oct 2016 13:25:54 +0000
+Subject: [PATCH] sparc64: Fix old style declaration GCC warnings
+Message-Id: <20161021132554.20839-1-tklauser@distanz.ch>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476123127-24314-2-git-send-email-tushar.n.dave@oracle.com>
-        <20161024.134543.843902561898603557.davem@davemloft.net>
-        <149c73af-f3a5-2704-ba73-5e2fbbb4749e@oracle.com>
-In-Reply-To: <149c73af-f3a5-2704-ba73-5e2fbbb4749e@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tushar.n.dave@oracle.com
-Cc: chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, rkuo@codeaurora.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: tndave <tushar.n.dave@oracle.com>
-Date: Mon, 24 Oct 2016 11:31:14 -0700
+Fix [-Wold-style-declaration] GCC warnings by moving the inline keyword
+before the return type.
 
-> 
-> 
-> On 10/24/2016 10:45 AM, David Miller wrote:
->> From: Tushar Dave <tushar.n.dave@oracle.com>
->> Date: Mon, 10 Oct 2016 11:12:02 -0700
->>
->>> From: Dave Kleikamp <dave.kleikamp@oracle.com>
->>>
->>> This change allows ATU (new IOMMU) in SPARC systems to request
->>> large (32M) contiguous memory during boot for creating IOTSB backing
->>> store.
->>>
->>> Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
->>> Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
->>
->> If you need 32MB allocations, wouldn't a max zone order of 12 be
->> sufficient?  (8K << 12 = 32MB)
-> Yes, but config FORCE_MAX_ZONEORDER is actually maximum order plus
-> one.
-> For example, a value of 13 means that the largest free memory block is
-> 2^12 pages. For 32MB we need 2^12 8K pages, hence FORCE_MAX_ZONEORDER
-> must be MAX_ORDER + 1 i.e. 13.
+Signed-off-by: Tobias Klnuser <tklauser@distanz.ch>
+---
+ arch/sparc/include/asm/spinlock_64.h | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Ok, thanks for explaining.
+diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
+index 87990b7c6b0d..07c9f2e9bf57 100644
+--- a/arch/sparc/include/asm/spinlock_64.h
++++ b/arch/sparc/include/asm/spinlock_64.h
+@@ -96,7 +96,7 @@ static inline void arch_spin_lock_flags(arch_spinlock_t *lock, unsigned long fla
+ 
+ /* Multi-reader locks, these are much saner than the 32-bit Sparc ones... */
+ 
+-static void inline arch_read_lock(arch_rwlock_t *lock)
++static inline void arch_read_lock(arch_rwlock_t *lock)
+ {
+ 	unsigned long tmp1, tmp2;
+ 
+@@ -119,7 +119,7 @@ static void inline arch_read_lock(arch_rwlock_t *lock)
+ 	: "memory");
+ }
+ 
+-static int inline arch_read_trylock(arch_rwlock_t *lock)
++static inline int arch_read_trylock(arch_rwlock_t *lock)
+ {
+ 	int tmp1, tmp2;
+ 
+@@ -140,7 +140,7 @@ static int inline arch_read_trylock(arch_rwlock_t *lock)
+ 	return tmp1;
+ }
+ 
+-static void inline arch_read_unlock(arch_rwlock_t *lock)
++static inline void arch_read_unlock(arch_rwlock_t *lock)
+ {
+ 	unsigned long tmp1, tmp2;
+ 
+@@ -156,7 +156,7 @@ static void inline arch_read_unlock(arch_rwlock_t *lock)
+ 	: "memory");
+ }
+ 
+-static void inline arch_write_lock(arch_rwlock_t *lock)
++static inline void arch_write_lock(arch_rwlock_t *lock)
+ {
+ 	unsigned long mask, tmp1, tmp2;
+ 
+@@ -181,7 +181,7 @@ static void inline arch_write_lock(arch_rwlock_t *lock)
+ 	: "memory");
+ }
+ 
+-static void inline arch_write_unlock(arch_rwlock_t *lock)
++static inline void arch_write_unlock(arch_rwlock_t *lock)
+ {
+ 	__asm__ __volatile__(
+ "	stw		%%g0, [%0]"
+@@ -190,7 +190,7 @@ static void inline arch_write_unlock(arch_rwlock_t *lock)
+ 	: "memory");
+ }
+ 
+-static int inline arch_write_trylock(arch_rwlock_t *lock)
++static inline int arch_write_trylock(arch_rwlock_t *lock)
+ {
+ 	unsigned long mask, tmp1, tmp2, result;
+ 
+-- 
+2.9.0
+
+
