@@ -1,173 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Oct 2016 17:21:10 +0000
-Subject: [PATCH] sparc64: Fix illegal relative branches in hypervisor patched TLB cross-call code.
-Message-Id: <20161026.132110.102955591332693808.davem@davemloft.net>
+From: Tobias Klauser <tklauser@distanz.ch>
+Date: Fri, 21 Oct 2016 13:39:03 +0000
+Subject: [PATCH] sparc32: Fix old style declaration GCC warnings
+Message-Id: <20161021133903.7608-1-tklauser@distanz.ch>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161025.192942.710602177952900056.davem@davemloft.net>
-In-Reply-To: <20161025.192942.710602177952900056.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Fix [-Wold-style-declaration] GCC warnings by moving the inline keyword
+before the return type.
 
-Just like the non-cross-call TLB flush handlers, the cross-call ones need
-to avoid doing PC-relative branches outside of their code blocks.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
 ---
- arch/sparc/mm/ultra.S | 42 ++++++++++++++++++++++++++++++------------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+ arch/sparc/include/asm/spinlock_32.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
-index 5128d38..0fa2e62 100644
---- a/arch/sparc/mm/ultra.S
-+++ b/arch/sparc/mm/ultra.S
-@@ -484,7 +484,7 @@ cheetah_patch_cachetlbops:
- 	 */
- 	.align		32
- 	.globl		xcall_flush_tlb_mm
--xcall_flush_tlb_mm:	/* 21 insns */
-+xcall_flush_tlb_mm:	/* 24 insns */
- 	mov		PRIMARY_CONTEXT, %g2
- 	ldxa		[%g2] ASI_DMMU, %g3
- 	srlx		%g3, CTX_PGSZ1_NUC_SHIFT, %g4
-@@ -506,9 +506,12 @@ xcall_flush_tlb_mm:	/* 21 insns */
- 	nop
- 	nop
- 	nop
-+	nop
-+	nop
-+	nop
+diff --git a/arch/sparc/include/asm/spinlock_32.h b/arch/sparc/include/asm/spinlock_32.h
+index d9c5876c6121..8011e79f59c9 100644
+--- a/arch/sparc/include/asm/spinlock_32.h
++++ b/arch/sparc/include/asm/spinlock_32.h
+@@ -134,7 +134,7 @@ static inline void arch_write_lock(arch_rwlock_t *rw)
+ 	*(volatile __u32 *)&lp->lock = ~0U;
+ }
  
- 	.globl		xcall_flush_tlb_page
--xcall_flush_tlb_page:	/* 17 insns */
-+xcall_flush_tlb_page:	/* 20 insns */
- 	/* %g5=context, %g1=vaddr */
- 	mov		PRIMARY_CONTEXT, %g4
- 	ldxa		[%g4] ASI_DMMU, %g2
-@@ -527,9 +530,12 @@ xcall_flush_tlb_page:	/* 17 insns */
- 	retry
- 	nop
- 	nop
-+	nop
-+	nop
-+	nop
- 
- 	.globl		xcall_flush_tlb_kernel_range
--xcall_flush_tlb_kernel_range:	/* 25 insns */
-+xcall_flush_tlb_kernel_range:	/* 28 insns */
- 	sethi		%hi(PAGE_SIZE - 1), %g2
- 	or		%g2, %lo(PAGE_SIZE - 1), %g2
- 	andn		%g1, %g2, %g1
-@@ -555,6 +561,9 @@ xcall_flush_tlb_kernel_range:	/* 25 insns */
- 	nop
- 	nop
- 	nop
-+	nop
-+	nop
-+	nop
- 
- 	/* This runs in a very controlled environment, so we do
- 	 * not need to worry about BH races etc.
-@@ -737,7 +746,7 @@ __hypervisor_tlb_xcall_error:
- 	ba,a,pt	%xcc, rtrap
- 
- 	.globl		__hypervisor_xcall_flush_tlb_mm
--__hypervisor_xcall_flush_tlb_mm: /* 21 insns */
-+__hypervisor_xcall_flush_tlb_mm: /* 24 insns */
- 	/* %g5=ctx, g1,g2,g3,g4,g7=scratch, %g6=unusable */
- 	mov		%o0, %g2
- 	mov		%o1, %g3
-@@ -751,7 +760,7 @@ __hypervisor_xcall_flush_tlb_mm: /* 21 insns */
- 	mov		HV_FAST_MMU_DEMAP_CTX, %o5
- 	ta		HV_FAST_TRAP
- 	mov		HV_FAST_MMU_DEMAP_CTX, %g6
--	brnz,pn		%o0, __hypervisor_tlb_xcall_error
-+	brnz,pn		%o0, 1f
- 	 mov		%o0, %g5
- 	mov		%g2, %o0
- 	mov		%g3, %o1
-@@ -760,9 +769,12 @@ __hypervisor_xcall_flush_tlb_mm: /* 21 insns */
- 	mov		%g7, %o5
- 	membar		#Sync
- 	retry
-+1:	sethi		%hi(__hypervisor_tlb_xcall_error), %g4
-+	jmpl		%g4 + %lo(__hypervisor_tlb_xcall_error), %g0
-+	 nop
- 
- 	.globl		__hypervisor_xcall_flush_tlb_page
--__hypervisor_xcall_flush_tlb_page: /* 17 insns */
-+__hypervisor_xcall_flush_tlb_page: /* 20 insns */
- 	/* %g5=ctx, %g1=vaddr */
- 	mov		%o0, %g2
- 	mov		%o1, %g3
-@@ -774,16 +786,19 @@ __hypervisor_xcall_flush_tlb_page: /* 17 insns */
- 	sllx		%o0, PAGE_SHIFT, %o0
- 	ta		HV_MMU_UNMAP_ADDR_TRAP
- 	mov		HV_MMU_UNMAP_ADDR_TRAP, %g6
--	brnz,a,pn	%o0, __hypervisor_tlb_xcall_error
-+	brnz,a,pn	%o0, 1f
- 	 mov		%o0, %g5
- 	mov		%g2, %o0
- 	mov		%g3, %o1
- 	mov		%g4, %o2
- 	membar		#Sync
- 	retry
-+1:	sethi		%hi(__hypervisor_tlb_xcall_error), %g4
-+	jmpl		%g4 + %lo(__hypervisor_tlb_xcall_error), %g0
-+	 nop
- 
- 	.globl		__hypervisor_xcall_flush_tlb_kernel_range
--__hypervisor_xcall_flush_tlb_kernel_range: /* 25 insns */
-+__hypervisor_xcall_flush_tlb_kernel_range: /* 28 insns */
- 	/* %g1=start, %g7=end, g2,g3,g4,g5,g6=scratch */
- 	sethi		%hi(PAGE_SIZE - 1), %g2
- 	or		%g2, %lo(PAGE_SIZE - 1), %g2
-@@ -800,7 +815,7 @@ __hypervisor_xcall_flush_tlb_kernel_range: /* 25 insns */
- 	mov		HV_MMU_ALL, %o2	/* ARG2: flags */
- 	ta		HV_MMU_UNMAP_ADDR_TRAP
- 	mov		HV_MMU_UNMAP_ADDR_TRAP, %g6
--	brnz,pn		%o0, __hypervisor_tlb_xcall_error
-+	brnz,pn		%o0, 1f
- 	 mov		%o0, %g5
- 	sethi		%hi(PAGE_SIZE), %o2
- 	brnz,pt		%g3, 1b
-@@ -810,6 +825,9 @@ __hypervisor_xcall_flush_tlb_kernel_range: /* 25 insns */
- 	mov		%g7, %o2
- 	membar		#Sync
- 	retry
-+1:	sethi		%hi(__hypervisor_tlb_xcall_error), %g4
-+	jmpl		%g4 + %lo(__hypervisor_tlb_xcall_error), %g0
-+	 nop
- 
- 	/* These just get rescheduled to PIL vectors. */
- 	.globl		xcall_call_function
-@@ -894,21 +912,21 @@ hypervisor_patch_cachetlbops:
- 	sethi		%hi(__hypervisor_xcall_flush_tlb_mm), %o1
- 	or		%o1, %lo(__hypervisor_xcall_flush_tlb_mm), %o1
- 	call		tlb_patch_one
--	 mov		21, %o2
-+	 mov		24, %o2
- 
- 	sethi		%hi(xcall_flush_tlb_page), %o0
- 	or		%o0, %lo(xcall_flush_tlb_page), %o0
- 	sethi		%hi(__hypervisor_xcall_flush_tlb_page), %o1
- 	or		%o1, %lo(__hypervisor_xcall_flush_tlb_page), %o1
- 	call		tlb_patch_one
--	 mov		17, %o2
-+	 mov		20, %o2
- 
- 	sethi		%hi(xcall_flush_tlb_kernel_range), %o0
- 	or		%o0, %lo(xcall_flush_tlb_kernel_range), %o0
- 	sethi		%hi(__hypervisor_xcall_flush_tlb_kernel_range), %o1
- 	or		%o1, %lo(__hypervisor_xcall_flush_tlb_kernel_range), %o1
- 	call		tlb_patch_one
--	 mov		25, %o2
-+	 mov		28, %o2
- #endif /* CONFIG_SMP */
- 
- 	ret
+-static void inline arch_write_unlock(arch_rwlock_t *lock)
++static inline void arch_write_unlock(arch_rwlock_t *lock)
+ {
+ 	__asm__ __volatile__(
+ "	st		%%g0, [%0]"
 -- 
-2.1.2.532.g19b5d50
+2.9.0
+
 
