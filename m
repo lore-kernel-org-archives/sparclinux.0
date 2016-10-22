@@ -1,113 +1,104 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Tue, 18 Oct 2016 19:14:10 +0000
-Subject: [PATCH v3 2/2] sparc: Implement arch_watchdog_nmi_enable and arch_watchdog_nmi_disable
-Message-Id: <1476818050-117332-3-git-send-email-babu.moger@oracle.com>
+From: <carlcole@nova.edu>
+Date: Sat, 22 Oct 2016 11:41:21 +0000
+Subject: 
+Message-Id: <147713648194.13763.13841332988118861619@tpgi.com.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1476818050-117332-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, sam@ravnborg.org, babu.moger@oracle.com
+To: sparclinux@vger.kernel.org
 
-Implement functions arch_watchdog_nmi_enable and arch_watchdog_nmi_disable
-to enable/disable nmi watchdog. Sparc uses arch specific nmi watchdog
-handler. Currently, we do not have a way to enable/disable nmi watchdog
-dynamically. With these patches we can enable or disable arch
-specific nmi watchdogs using proc or sysctl interface.
-
-Example commands.
-To enable: echo 1 >  /proc/sys/kernel/nmi_watchdog
-To disable: echo 0 >  /proc/sys/kernel/nmi_watchdog
-
-It can also achieved using the sysctl parameter kernel.nmi_watchdog
-
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
----
- arch/sparc/kernel/nmi.c |   44 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 43 insertions(+), 1 deletions(-)
-
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index a9973bb..b55d518 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -42,7 +42,7 @@ static int panic_on_timeout;
-  */
- atomic_t nmi_active = ATOMIC_INIT(0);		/* oprofile uses this */
- EXPORT_SYMBOL(nmi_active);
--
-+static int nmi_init_done;
- static unsigned int nmi_hz = HZ;
- static DEFINE_PER_CPU(short, wd_enabled);
- static int endflag __initdata;
-@@ -153,6 +153,8 @@ static void report_broken_nmi(int cpu, int *prev_nmi_count)
- 
- void stop_nmi_watchdog(void *unused)
- {
-+	if (!__this_cpu_read(wd_enabled))
-+		return;
- 	pcr_ops->write_pcr(0, pcr_ops->pcr_nmi_disable);
- 	__this_cpu_write(wd_enabled, 0);
- 	atomic_dec(&nmi_active);
-@@ -207,6 +209,9 @@ error:
- 
- void start_nmi_watchdog(void *unused)
- {
-+	if (__this_cpu_read(wd_enabled))
-+		return;
-+
- 	__this_cpu_write(wd_enabled, 1);
- 	atomic_inc(&nmi_active);
- 
-@@ -259,6 +264,8 @@ int __init nmi_init(void)
- 		}
- 	}
- 
-+	nmi_init_done = 1;
-+
- 	return err;
- }
- 
-@@ -270,3 +277,38 @@ static int __init setup_nmi_watchdog(char *str)
- 	return 0;
- }
- __setup("nmi_watchdog=", setup_nmi_watchdog);
-+
-+/*
-+ * sparc specific NMI watchdog enable function.
-+ * Enables watchdog if it is not enabled already.
-+ */
-+int arch_watchdog_nmi_enable(unsigned int cpu)
-+{
-+	if (atomic_read(&nmi_active) = -1) {
-+		pr_warn("NMI watchdog cannot be enabled or disabled\n");
-+		return -1;
-+	}
-+
-+	/*
-+	 * watchdog thread could start even before nmi_init is called.
-+	 * Just Return in that case. Let nmi_init finish the init
-+	 * process first.
-+	 */
-+	if (!nmi_init_done)
-+		return 0;
-+
-+	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
-+
-+	return 0;
-+}
-+/*
-+ * sparc specific NMI watchdog disable function.
-+ * Disables watchdog if it is not disabled already.
-+ */
-+void arch_watchdog_nmi_disable(unsigned int cpu)
-+{
-+	if (atomic_read(&nmi_active) = -1)
-+		pr_warn_once("NMI watchdog cannot be enabled or disabled\n");
-+	else
-+		smp_call_function_single(cpu, stop_nmi_watchdog, NULL, 1);
-+}
--- 
-1.7.1
-
+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
+AAAAAA=
