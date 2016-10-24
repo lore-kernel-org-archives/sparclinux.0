@@ -1,41 +1,70 @@
-From: Juergen Gross <jgross@suse.com>
-Date: Fri, 28 Oct 2016 09:23:31 +0000
-Subject: Re: Fwd: Fujitsu PrimePower 450 with SPARC64 V & Linux support
-Message-Id: <6b7d09be-f965-40f7-facf-823a6efb1e32@suse.com>
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Date: Mon, 24 Oct 2016 12:06:07 +0000
+Subject: [net-next PATCH RFC 19/26] arch/sparc: Add option to skip DMA sync as a part of map and unmap
+Message-Id: <20161024120607.16276.5989.stgit@ahduyck-blue-test.jf.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <B4E4747C-3A32-435B-A882-F89338148733@gmail.com>
- <CAC=+HvZpz32O5oER7=bM84PQU3xgwJDTj4iuuYssy69pkNGGvQ@mail.gmail.com>
- <CAC=+HvYmY7sQ=MEf9eveKMqHrP8zKcmGS9ZE6uR9=7bneMeiqA@mail.gmail.com>
- <581314E5.4070309@oracle.com>
-In-Reply-To: <581314E5.4070309@oracle.com>
+References: <20161024115737.16276.71059.stgit@ahduyck-blue-test.jf.intel.com>
+In-Reply-To: <20161024115737.16276.71059.stgit@ahduyck-blue-test.jf.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Allan Tsakuhhin <allan.tsakuhhin@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: mroos@linux.ee
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, davem@davemloft.net, brouer@redhat.com
 
-On 10/27/2016 08:50 PM, Allan Tsakuhhin wrote:
-> I am trying to build Linux system on Fujitsu PrimePower 450 running by
-> SPARC64 V CPUs. Does anyone have supportive materials (manuals,
-> overviews, specs) about Fujitsu PP450 and SPARC64 V CPUs. Every kind
-> of source material may be useful!
->
-> All I have found from Internet, there is no Linux support to SPARC64
-> V. Persons, who have tried to get it work before, please give me some
-> advice and let me know about your results.
+This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
+avoid invoking cache line invalidation if the driver will just handle it
+via a sync_for_cpu or sync_for_device call.
 
-Have a look at:
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+---
+ arch/sparc/kernel/iommu.c  |    4 ++--
+ arch/sparc/kernel/ioport.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-http://www.fujitsu.com/global/products/computing/servers/unix/sparc-enterpr=
-ise/downloads/documents/
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5c615ab..8fda4e4 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -415,7 +415,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
+ 
+ 	/* Step 1: Kick data out of streaming buffers if necessary. */
+-	if (strbuf->strbuf_enabled)
++	if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		strbuf_flush(strbuf, iommu, bus_addr, ctx,
+ 			     npages, direction);
+ 
+@@ -640,7 +640,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		base = iommu->page_table + entry;
+ 
+ 		dma_handle &= IO_PAGE_MASK;
+-		if (strbuf->strbuf_enabled)
++		if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 			strbuf_flush(strbuf, iommu, dma_handle, ctx,
+ 				     npages, direction);
+ 
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 2344103..6ffaec4 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -527,7 +527,7 @@ static dma_addr_t pci32_map_page(struct device *dev, struct page *page,
+ static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
+ 			     enum dma_data_direction dir, unsigned long attrs)
+ {
+-	if (dir != PCI_DMA_TODEVICE)
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		dma_make_coherent(ba, PAGE_ALIGN(size));
+ }
+ 
+@@ -572,7 +572,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
+ 	struct scatterlist *sg;
+ 	int n;
+ 
+-	if (dir != PCI_DMA_TODEVICE) {
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		for_each_sg(sgl, sg, nents, n) {
+ 			dma_make_coherent(sg_phys(sg), PAGE_ALIGN(sg->length));
+ 		}
 
-The processor details can found in the documents:
-
-SPARC Joint Programming Specification 1 (JPS1) : Commonality
-SPARC JPS1 Implementation Supplement: Fujitsu SPARC64=E2=84=A2 V
-
-which are accessible via above link.
-
-HTH,
-
-Juergen
