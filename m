@@ -1,328 +1,543 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Wed, 26 Oct 2016 16:02:20 +0000
-Subject: [RFC PATCH 1/4] watchdog: Remove hardlockup handler references
-Message-Id: <1477497743-15357-2-git-send-email-babu.moger@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 15:02:06 +0000
+Subject: [PATCH 06/11] sparc64: Convert NG4copy_{from,to}_user to accurate exception reporting.
+Message-Id: <20161025.110206.154124856929755386.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, dzickus@redhat.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org
-Cc: bp@suse.de, bywxiaobai@163.com, cmetcalf@mellanox.com, keescook@chromium.org, ebiederm@xmission.com, huawei.libin@huawei.com, ralf@linux-mips.org, dvyukov@google.com, linux-kernel@vger.kernel.org, sam@ravnborg.org, babu.moger@oracle.com
+To: sparclinux@vger.kernel.org
 
-Separate hardlockup code from watchdog.c. It is mostly straight forward.
-Remove everything inside CONFIG_HARDLOCKUP_DETECTORS. This code will go
-to file watchdog_hld.c. 
 
-We also define weak handlers watchdog_nmi_enable and watchdog_nmi_disable.
+Report the exact number of bytes which have not been successfully
+copied when an exception occurs, using the running remaining length.
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- kernel/watchdog.c |  251 ++---------------------------------------------------
- 1 files changed, 7 insertions(+), 244 deletions(-)
+ arch/sparc/lib/NG4copy_from_user.S |   8 +-
+ arch/sparc/lib/NG4copy_to_user.S   |   8 +-
+ arch/sparc/lib/NG4memcpy.S         | 294 ++++++++++++++++++++++++++++---------
+ 3 files changed, 231 insertions(+), 79 deletions(-)
 
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 9acb29f..a88e179 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -24,7 +24,6 @@
+diff --git a/arch/sparc/lib/NG4copy_from_user.S b/arch/sparc/lib/NG4copy_from_user.S
+index f9746e7..16a286c 100644
+--- a/arch/sparc/lib/NG4copy_from_user.S
++++ b/arch/sparc/lib/NG4copy_from_user.S
+@@ -3,19 +3,19 @@
+  * Copyright (C) 2012 David S. Miller (davem@davemloft.net)
+  */
  
- #include <asm/irq_regs.h>
- #include <linux/kvm_para.h>
--#include <linux/perf_event.h>
- #include <linux/kthread.h>
+-#define EX_LD(x)		\
++#define EX_LD(x, y)		\
+ 98:	x;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_mone_asi;\
++	.word 98b, y;		\
+ 	.text;			\
+ 	.align 4;
  
- /*
-@@ -100,50 +99,8 @@
- static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts);
- static DEFINE_PER_CPU(unsigned long, soft_lockup_hrtimer_cnt);
- static DEFINE_PER_CPU(struct task_struct *, softlockup_task_ptr_saved);
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--static DEFINE_PER_CPU(bool, hard_watchdog_warn);
--static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
--static DEFINE_PER_CPU(unsigned long, hrtimer_interrupts_saved);
--static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+-#define EX_LD_FP(x)		\
++#define EX_LD_FP(x,y)		\
+ 98:	x;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_mone_asi_fp;\
++	.word 98b, y##_fp;	\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/NG4copy_to_user.S b/arch/sparc/lib/NG4copy_to_user.S
+index 5fa4434..6b0276f 100644
+--- a/arch/sparc/lib/NG4copy_to_user.S
++++ b/arch/sparc/lib/NG4copy_to_user.S
+@@ -3,19 +3,19 @@
+  * Copyright (C) 2012 David S. Miller (davem@davemloft.net)
+  */
+ 
+-#define EX_ST(x)		\
++#define EX_ST(x,y)		\
+ 98:	x;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_mone_asi;\
++	.word 98b, y;		\
+ 	.text;			\
+ 	.align 4;
+ 
+-#define EX_ST_FP(x)		\
++#define EX_ST_FP(x,y)		\
+ 98:	x;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_mone_asi_fp;\
++	.word 98b, y##_fp;	\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/NG4memcpy.S b/arch/sparc/lib/NG4memcpy.S
+index 8e13ee1..75bb93b 100644
+--- a/arch/sparc/lib/NG4memcpy.S
++++ b/arch/sparc/lib/NG4memcpy.S
+@@ -4,6 +4,7 @@
+  */
+ 
+ #ifdef __KERNEL__
++#include <linux/linkage.h>
+ #include <asm/visasm.h>
+ #include <asm/asi.h>
+ #define GLOBAL_SPARE	%g7
+@@ -46,22 +47,19 @@
+ #endif
+ 
+ #ifndef EX_LD
+-#define EX_LD(x)	x
++#define EX_LD(x,y)	x
+ #endif
+ #ifndef EX_LD_FP
+-#define EX_LD_FP(x)	x
++#define EX_LD_FP(x,y)	x
+ #endif
+ 
+ #ifndef EX_ST
+-#define EX_ST(x)	x
++#define EX_ST(x,y)	x
+ #endif
+ #ifndef EX_ST_FP
+-#define EX_ST_FP(x)	x
++#define EX_ST_FP(x,y)	x
+ #endif
+ 
+-#ifndef EX_RETVAL
+-#define EX_RETVAL(x)	x
 -#endif
- static unsigned long soft_lockup_nmi_warn;
  
--/* boot commands */
--/*
-- * Should we panic when a soft-lockup or hard-lockup occurs:
-- */
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--unsigned int __read_mostly hardlockup_panic -			CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
--static unsigned long hardlockup_allcpu_dumped;
--/*
-- * We may not want to enable hard lockup detection by default in all cases,
-- * for example when running the kernel as a guest on a hypervisor. In these
-- * cases this function can be called to disable hard lockup detection. This
-- * function should only be executed once by the boot processor before the
-- * kernel command line parameters are parsed, because otherwise it is not
-- * possible to override this in hardlockup_panic_setup().
-- */
--void hardlockup_detector_disable(void)
--{
--	watchdog_enabled &= ~NMI_WATCHDOG_ENABLED;
--}
--
--static int __init hardlockup_panic_setup(char *str)
--{
--	if (!strncmp(str, "panic", 5))
--		hardlockup_panic = 1;
--	else if (!strncmp(str, "nopanic", 7))
--		hardlockup_panic = 0;
--	else if (!strncmp(str, "0", 1))
--		watchdog_enabled &= ~NMI_WATCHDOG_ENABLED;
--	else if (!strncmp(str, "1", 1))
--		watchdog_enabled |= NMI_WATCHDOG_ENABLED;
--	return 1;
--}
--__setup("nmi_watchdog=", hardlockup_panic_setup);
--#endif
--
- unsigned int __read_mostly softlockup_panic  			CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE;
+ #ifndef LOAD
+ #define LOAD(type,addr,dest)	type [addr], dest
+@@ -94,6 +92,158 @@
+ 	.register	%g3,#scratch
  
-@@ -264,43 +221,12 @@ void touch_all_softlockup_watchdogs(void)
- 	wq_watchdog_touch(-1);
- }
+ 	.text
++#ifndef EX_RETVAL
++#define EX_RETVAL(x)	x
++__restore_asi_fp:
++	VISExitHalf
++__restore_asi:
++	retl
++	 wr	%g0, ASI_AIUS, %asi
++
++ENTRY(NG4_retl_o2)
++	ba,pt	%xcc, __restore_asi
++	 mov	%o2, %o0
++ENDPROC(NG4_retl_o2)
++ENTRY(NG4_retl_o2_plus_1)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, 1, %o0
++ENDPROC(NG4_retl_o2_plus_1)
++ENTRY(NG4_retl_o2_plus_4)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, 4, %o0
++ENDPROC(NG4_retl_o2_plus_4)
++ENTRY(NG4_retl_o2_plus_o5)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5)
++ENTRY(NG4_retl_o2_plus_o5_plus_4)
++	add	%o5, 4, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_4)
++ENTRY(NG4_retl_o2_plus_o5_plus_8)
++	add	%o5, 8, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_8)
++ENTRY(NG4_retl_o2_plus_o5_plus_16)
++	add	%o5, 16, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_16)
++ENTRY(NG4_retl_o2_plus_o5_plus_24)
++	add	%o5, 24, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_24)
++ENTRY(NG4_retl_o2_plus_o5_plus_32)
++	add	%o5, 32, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_32)
++ENTRY(NG4_retl_o2_plus_g1)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1)
++ENTRY(NG4_retl_o2_plus_g1_plus_1)
++	add	%g1, 1, %g1
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1_plus_1)
++ENTRY(NG4_retl_o2_plus_g1_plus_8)
++	add	%g1, 8, %g1
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1_plus_8)
++ENTRY(NG4_retl_o2_plus_o4)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4)
++ENTRY(NG4_retl_o2_plus_o4_plus_8)
++	add	%o4, 8, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_8)
++ENTRY(NG4_retl_o2_plus_o4_plus_16)
++	add	%o4, 16, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_16)
++ENTRY(NG4_retl_o2_plus_o4_plus_24)
++	add	%o4, 24, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_24)
++ENTRY(NG4_retl_o2_plus_o4_plus_32)
++	add	%o4, 32, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_32)
++ENTRY(NG4_retl_o2_plus_o4_plus_40)
++	add	%o4, 40, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_40)
++ENTRY(NG4_retl_o2_plus_o4_plus_48)
++	add	%o4, 48, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_48)
++ENTRY(NG4_retl_o2_plus_o4_plus_56)
++	add	%o4, 56, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_56)
++ENTRY(NG4_retl_o2_plus_o4_plus_64)
++	add	%o4, 64, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_64)
++ENTRY(NG4_retl_o2_plus_o4_fp)
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_8_fp)
++	add	%o4, 8, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_8_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_16_fp)
++	add	%o4, 16, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_16_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_24_fp)
++	add	%o4, 24, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_24_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_32_fp)
++	add	%o4, 32, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_32_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_40_fp)
++	add	%o4, 40, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_40_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_48_fp)
++	add	%o4, 48, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_48_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_56_fp)
++	add	%o4, 56, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_56_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_64_fp)
++	add	%o4, 64, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_64_fp)
++#endif
+ 	.align		64
  
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--void touch_nmi_watchdog(void)
--{
--	/*
--	 * Using __raw here because some code paths have
--	 * preemption enabled.  If preemption is enabled
--	 * then interrupts should be enabled too, in which
--	 * case we shouldn't have to worry about the watchdog
--	 * going off.
--	 */
--	raw_cpu_write(watchdog_nmi_touch, true);
--	touch_softlockup_watchdog();
--}
--EXPORT_SYMBOL(touch_nmi_watchdog);
--
--#endif
--
- void touch_softlockup_watchdog_sync(void)
- {
- 	__this_cpu_write(softlockup_touch_sync, true);
- 	__this_cpu_write(watchdog_touch_ts, 0);
- }
+ 	.globl	FUNC_NAME
+@@ -124,12 +274,13 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	brz,pt		%g1, 51f
+ 	 sub		%o2, %g1, %o2
  
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--/* watchdog detector functions */
--static bool is_hardlockup(void)
--{
--	unsigned long hrint = __this_cpu_read(hrtimer_interrupts);
--
--	if (__this_cpu_read(hrtimer_interrupts_saved) = hrint)
--		return true;
--
--	__this_cpu_write(hrtimer_interrupts_saved, hrint);
--	return false;
--}
--#endif
--
- static int is_softlockup(unsigned long touch_ts)
- {
- 	unsigned long now = get_timestamp();
-@@ -313,78 +239,18 @@ static int is_softlockup(unsigned long touch_ts)
- 	return 0;
- }
+-1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2))
++
++1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), NG4_retl_o2_plus_g1)
+ 	add		%o1, 1, %o1
+ 	subcc		%g1, 1, %g1
+ 	add		%o0, 1, %o0
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stb, %g2, %o0 - 0x01))
++	 EX_ST(STORE(stb, %g2, %o0 - 0x01), NG4_retl_o2_plus_g1_plus_1)
  
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--
--static struct perf_event_attr wd_hw_attr = {
--	.type		= PERF_TYPE_HARDWARE,
--	.config		= PERF_COUNT_HW_CPU_CYCLES,
--	.size		= sizeof(struct perf_event_attr),
--	.pinned		= 1,
--	.disabled	= 1,
--};
--
--/* Callback function for perf event subsystem */
--static void watchdog_overflow_callback(struct perf_event *event,
--		 struct perf_sample_data *data,
--		 struct pt_regs *regs)
--{
--	/* Ensure the watchdog never gets throttled */
--	event->hw.interrupts = 0;
--
--	if (__this_cpu_read(watchdog_nmi_touch) = true) {
--		__this_cpu_write(watchdog_nmi_touch, false);
--		return;
--	}
--
--	/* check for a hardlockup
--	 * This is done by making sure our timer interrupt
--	 * is incrementing.  The timer interrupt should have
--	 * fired multiple times before we overflow'd.  If it hasn't
--	 * then this is a good indication the cpu is stuck
--	 */
--	if (is_hardlockup()) {
--		int this_cpu = smp_processor_id();
--		struct pt_regs *regs = get_irq_regs();
--
--		/* only print hardlockups once */
--		if (__this_cpu_read(hard_watchdog_warn) = true)
--			return;
--
--		pr_emerg("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
--		print_modules();
--		print_irqtrace_events(current);
--		if (regs)
--			show_regs(regs);
--		else
--			dump_stack();
--
--		/*
--		 * Perform all-CPU dump only once to avoid multiple hardlockups
--		 * generating interleaving traces
--		 */
--		if (sysctl_hardlockup_all_cpu_backtrace &&
--				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
--			trigger_allbutself_cpu_backtrace();
--
--		if (hardlockup_panic)
--			nmi_panic(regs, "Hard LOCKUP");
--
--		__this_cpu_write(hard_watchdog_warn, true);
--		return;
--	}
--
--	__this_cpu_write(hard_watchdog_warn, false);
--	return;
--}
--#endif /* CONFIG_HARDLOCKUP_DETECTOR */
--
- static void watchdog_interrupt_count(void)
- {
- 	__this_cpu_inc(hrtimer_interrupts);
- }
+ 51:	LOAD(prefetch, %o1 + 0x040, #n_reads_strong)
+ 	LOAD(prefetch, %o1 + 0x080, #n_reads_strong)
+@@ -154,43 +305,43 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	brz,pt		%g1, .Llarge_aligned
+ 	 sub		%o2, %g1, %o2
  
--static int watchdog_nmi_enable(unsigned int cpu);
--static void watchdog_nmi_disable(unsigned int cpu);
-+int __weak watchdog_nmi_enable(unsigned int cpu)
-+{
-+	return 0;
-+}
-+void __weak watchdog_nmi_disable(unsigned int cpu)
-+{
-+}
+-1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g2))
++1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g2), NG4_retl_o2_plus_g1)
+ 	add		%o1, 8, %o1
+ 	subcc		%g1, 8, %g1
+ 	add		%o0, 8, %o0
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stx, %g2, %o0 - 0x08))
++	 EX_ST(STORE(stx, %g2, %o0 - 0x08), NG4_retl_o2_plus_g1_plus_8)
  
- static int watchdog_enable_all_cpus(void);
- static void watchdog_disable_all_cpus(void);
-@@ -577,109 +443,6 @@ static void watchdog(unsigned int cpu)
- 		watchdog_nmi_disable(cpu);
- }
+ .Llarge_aligned:
+ 	/* len >= 0x80 && src 8-byte aligned && dest 8-byte aligned */
+ 	andn		%o2, 0x3f, %o4
+ 	sub		%o2, %o4, %o2
  
--#ifdef CONFIG_HARDLOCKUP_DETECTOR
--/*
-- * People like the simple clean cpu node info on boot.
-- * Reduce the watchdog noise by only printing messages
-- * that are different from what cpu0 displayed.
-- */
--static unsigned long cpu0_err;
--
--static int watchdog_nmi_enable(unsigned int cpu)
--{
--	struct perf_event_attr *wd_attr;
--	struct perf_event *event = per_cpu(watchdog_ev, cpu);
--
--	/* nothing to do if the hard lockup detector is disabled */
--	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
--		goto out;
--
--	/* is it already setup and enabled? */
--	if (event && event->state > PERF_EVENT_STATE_OFF)
--		goto out;
--
--	/* it is setup but not enabled */
--	if (event != NULL)
--		goto out_enable;
--
--	wd_attr = &wd_hw_attr;
--	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
--
--	/* Try to register using hardware perf events */
--	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
--
--	/* save cpu0 error for future comparision */
--	if (cpu = 0 && IS_ERR(event))
--		cpu0_err = PTR_ERR(event);
--
--	if (!IS_ERR(event)) {
--		/* only print for cpu0 or different than cpu0 */
--		if (cpu = 0 || cpu0_err)
--			pr_info("enabled on all CPUs, permanently consumes one hw-PMU counter.\n");
--		goto out_save;
--	}
--
--	/*
--	 * Disable the hard lockup detector if _any_ CPU fails to set up
--	 * set up the hardware perf event. The watchdog() function checks
--	 * the NMI_WATCHDOG_ENABLED bit periodically.
--	 *
--	 * The barriers are for syncing up watchdog_enabled across all the
--	 * cpus, as clear_bit() does not use barriers.
--	 */
--	smp_mb__before_atomic();
--	clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
--	smp_mb__after_atomic();
--
--	/* skip displaying the same error again */
--	if (cpu > 0 && (PTR_ERR(event) = cpu0_err))
--		return PTR_ERR(event);
--
--	/* vary the KERN level based on the returned errno */
--	if (PTR_ERR(event) = -EOPNOTSUPP)
--		pr_info("disabled (cpu%i): not supported (no LAPIC?)\n", cpu);
--	else if (PTR_ERR(event) = -ENOENT)
--		pr_warn("disabled (cpu%i): hardware events not enabled\n",
--			 cpu);
--	else
--		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
--			cpu, PTR_ERR(event));
--
--	pr_info("Shutting down hard lockup detector on all cpus\n");
--
--	return PTR_ERR(event);
--
--	/* success path */
--out_save:
--	per_cpu(watchdog_ev, cpu) = event;
--out_enable:
--	perf_event_enable(per_cpu(watchdog_ev, cpu));
--out:
--	return 0;
--}
--
--static void watchdog_nmi_disable(unsigned int cpu)
--{
--	struct perf_event *event = per_cpu(watchdog_ev, cpu);
--
--	if (event) {
--		perf_event_disable(event);
--		per_cpu(watchdog_ev, cpu) = NULL;
--
--		/* should be in cleanup, but blocks oprofile */
--		perf_event_release_kernel(event);
--	}
--	if (cpu = 0) {
--		/* watchdog_nmi_enable() expects this to be zero initially. */
--		cpu0_err = 0;
--	}
--}
--
--#else
--static int watchdog_nmi_enable(unsigned int cpu) { return 0; }
--static void watchdog_nmi_disable(unsigned int cpu) { return; }
--#endif /* CONFIG_HARDLOCKUP_DETECTOR */
--
- static struct smp_hotplug_thread watchdog_threads = {
- 	.store			= &softlockup_watchdog,
- 	.thread_should_run	= watchdog_should_run,
+-1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1))
++1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1), NG4_retl_o2_plus_o4)
+ 	add		%o1, 0x40, %o1
+-	EX_LD(LOAD(ldx, %o1 - 0x38, %g2))
++	EX_LD(LOAD(ldx, %o1 - 0x38, %g2), NG4_retl_o2_plus_o4)
+ 	subcc		%o4, 0x40, %o4
+-	EX_LD(LOAD(ldx, %o1 - 0x30, %g3))
+-	EX_LD(LOAD(ldx, %o1 - 0x28, GLOBAL_SPARE))
+-	EX_LD(LOAD(ldx, %o1 - 0x20, %o5))
+-	EX_ST(STORE_INIT(%g1, %o0))
++	EX_LD(LOAD(ldx, %o1 - 0x30, %g3), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD(LOAD(ldx, %o1 - 0x28, GLOBAL_SPARE), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD(LOAD(ldx, %o1 - 0x20, %o5), NG4_retl_o2_plus_o4_plus_64)
++	EX_ST(STORE_INIT(%g1, %o0), NG4_retl_o2_plus_o4_plus_64)
+ 	add		%o0, 0x08, %o0
+-	EX_ST(STORE_INIT(%g2, %o0))
++	EX_ST(STORE_INIT(%g2, %o0), NG4_retl_o2_plus_o4_plus_56)
+ 	add		%o0, 0x08, %o0
+-	EX_LD(LOAD(ldx, %o1 - 0x18, %g2))
+-	EX_ST(STORE_INIT(%g3, %o0))
++	EX_LD(LOAD(ldx, %o1 - 0x18, %g2), NG4_retl_o2_plus_o4_plus_48)
++	EX_ST(STORE_INIT(%g3, %o0), NG4_retl_o2_plus_o4_plus_48)
+ 	add		%o0, 0x08, %o0
+-	EX_LD(LOAD(ldx, %o1 - 0x10, %g3))
+-	EX_ST(STORE_INIT(GLOBAL_SPARE, %o0))
++	EX_LD(LOAD(ldx, %o1 - 0x10, %g3), NG4_retl_o2_plus_o4_plus_40)
++	EX_ST(STORE_INIT(GLOBAL_SPARE, %o0), NG4_retl_o2_plus_o4_plus_40)
+ 	add		%o0, 0x08, %o0
+-	EX_LD(LOAD(ldx, %o1 - 0x08, GLOBAL_SPARE))
+-	EX_ST(STORE_INIT(%o5, %o0))
++	EX_LD(LOAD(ldx, %o1 - 0x08, GLOBAL_SPARE), NG4_retl_o2_plus_o4_plus_32)
++	EX_ST(STORE_INIT(%o5, %o0), NG4_retl_o2_plus_o4_plus_32)
+ 	add		%o0, 0x08, %o0
+-	EX_ST(STORE_INIT(%g2, %o0))
++	EX_ST(STORE_INIT(%g2, %o0), NG4_retl_o2_plus_o4_plus_24)
+ 	add		%o0, 0x08, %o0
+-	EX_ST(STORE_INIT(%g3, %o0))
++	EX_ST(STORE_INIT(%g3, %o0), NG4_retl_o2_plus_o4_plus_16)
+ 	add		%o0, 0x08, %o0
+-	EX_ST(STORE_INIT(GLOBAL_SPARE, %o0))
++	EX_ST(STORE_INIT(GLOBAL_SPARE, %o0), NG4_retl_o2_plus_o4_plus_8)
+ 	add		%o0, 0x08, %o0
+ 	bne,pt		%icc, 1b
+ 	 LOAD(prefetch, %o1 + 0x200, #n_reads_strong)
+@@ -216,17 +367,17 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	sub		%o2, %o4, %o2
+ 	alignaddr	%o1, %g0, %g1
+ 	add		%o1, %o4, %o1
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x00, %f0))
+-1:	EX_LD_FP(LOAD(ldd, %g1 + 0x08, %f2))
++	EX_LD_FP(LOAD(ldd, %g1 + 0x00, %f0), NG4_retl_o2_plus_o4)
++1:	EX_LD_FP(LOAD(ldd, %g1 + 0x08, %f2), NG4_retl_o2_plus_o4)
+ 	subcc		%o4, 0x40, %o4
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x10, %f4))
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x18, %f6))
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x20, %f8))
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x28, %f10))
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x30, %f12))
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x38, %f14))
++	EX_LD_FP(LOAD(ldd, %g1 + 0x10, %f4), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD_FP(LOAD(ldd, %g1 + 0x18, %f6), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD_FP(LOAD(ldd, %g1 + 0x20, %f8), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD_FP(LOAD(ldd, %g1 + 0x28, %f10), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD_FP(LOAD(ldd, %g1 + 0x30, %f12), NG4_retl_o2_plus_o4_plus_64)
++	EX_LD_FP(LOAD(ldd, %g1 + 0x38, %f14), NG4_retl_o2_plus_o4_plus_64)
+ 	faligndata	%f0, %f2, %f16
+-	EX_LD_FP(LOAD(ldd, %g1 + 0x40, %f0))
++	EX_LD_FP(LOAD(ldd, %g1 + 0x40, %f0), NG4_retl_o2_plus_o4_plus_64)
+ 	faligndata	%f2, %f4, %f18
+ 	add		%g1, 0x40, %g1
+ 	faligndata	%f4, %f6, %f20
+@@ -235,14 +386,14 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	faligndata	%f10, %f12, %f26
+ 	faligndata	%f12, %f14, %f28
+ 	faligndata	%f14, %f0, %f30
+-	EX_ST_FP(STORE(std, %f16, %o0 + 0x00))
+-	EX_ST_FP(STORE(std, %f18, %o0 + 0x08))
+-	EX_ST_FP(STORE(std, %f20, %o0 + 0x10))
+-	EX_ST_FP(STORE(std, %f22, %o0 + 0x18))
+-	EX_ST_FP(STORE(std, %f24, %o0 + 0x20))
+-	EX_ST_FP(STORE(std, %f26, %o0 + 0x28))
+-	EX_ST_FP(STORE(std, %f28, %o0 + 0x30))
+-	EX_ST_FP(STORE(std, %f30, %o0 + 0x38))
++	EX_ST_FP(STORE(std, %f16, %o0 + 0x00), NG4_retl_o2_plus_o4_plus_64)
++	EX_ST_FP(STORE(std, %f18, %o0 + 0x08), NG4_retl_o2_plus_o4_plus_56)
++	EX_ST_FP(STORE(std, %f20, %o0 + 0x10), NG4_retl_o2_plus_o4_plus_48)
++	EX_ST_FP(STORE(std, %f22, %o0 + 0x18), NG4_retl_o2_plus_o4_plus_40)
++	EX_ST_FP(STORE(std, %f24, %o0 + 0x20), NG4_retl_o2_plus_o4_plus_32)
++	EX_ST_FP(STORE(std, %f26, %o0 + 0x28), NG4_retl_o2_plus_o4_plus_24)
++	EX_ST_FP(STORE(std, %f28, %o0 + 0x30), NG4_retl_o2_plus_o4_plus_16)
++	EX_ST_FP(STORE(std, %f30, %o0 + 0x38), NG4_retl_o2_plus_o4_plus_8)
+ 	add		%o0, 0x40, %o0
+ 	bne,pt		%icc, 1b
+ 	 LOAD(prefetch, %g1 + 0x200, #n_reads_strong)
+@@ -270,37 +421,38 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	andncc		%o2, 0x20 - 1, %o5
+ 	be,pn		%icc, 2f
+ 	 sub		%o2, %o5, %o2
+-1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1))
+-	EX_LD(LOAD(ldx, %o1 + 0x08, %g2))
+-	EX_LD(LOAD(ldx, %o1 + 0x10, GLOBAL_SPARE))
+-	EX_LD(LOAD(ldx, %o1 + 0x18, %o4))
++1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1), NG4_retl_o2_plus_o5)
++	EX_LD(LOAD(ldx, %o1 + 0x08, %g2), NG4_retl_o2_plus_o5)
++	EX_LD(LOAD(ldx, %o1 + 0x10, GLOBAL_SPARE), NG4_retl_o2_plus_o5)
++	EX_LD(LOAD(ldx, %o1 + 0x18, %o4), NG4_retl_o2_plus_o5)
+ 	add		%o1, 0x20, %o1
+ 	subcc		%o5, 0x20, %o5
+-	EX_ST(STORE(stx, %g1, %o0 + 0x00))
+-	EX_ST(STORE(stx, %g2, %o0 + 0x08))
+-	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10))
+-	EX_ST(STORE(stx, %o4, %o0 + 0x18))
++	EX_ST(STORE(stx, %g1, %o0 + 0x00), NG4_retl_o2_plus_o5_plus_32)
++	EX_ST(STORE(stx, %g2, %o0 + 0x08), NG4_retl_o2_plus_o5_plus_24)
++	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x10), NG4_retl_o2_plus_o5_plus_24)
++	EX_ST(STORE(stx, %o4, %o0 + 0x18), NG4_retl_o2_plus_o5_plus_8)
+ 	bne,pt		%icc, 1b
+ 	 add		%o0, 0x20, %o0
+ 2:	andcc		%o2, 0x18, %o5
+ 	be,pt		%icc, 3f
+ 	 sub		%o2, %o5, %o2
+-1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1))
++
++1:	EX_LD(LOAD(ldx, %o1 + 0x00, %g1), NG4_retl_o2_plus_o5)
+ 	add		%o1, 0x08, %o1
+ 	add		%o0, 0x08, %o0
+ 	subcc		%o5, 0x08, %o5
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stx, %g1, %o0 - 0x08))
++	 EX_ST(STORE(stx, %g1, %o0 - 0x08), NG4_retl_o2_plus_o5_plus_8)
+ 3:	brz,pt		%o2, .Lexit
+ 	 cmp		%o2, 0x04
+ 	bl,pn		%icc, .Ltiny
+ 	 nop
+-	EX_LD(LOAD(lduw, %o1 + 0x00, %g1))
++	EX_LD(LOAD(lduw, %o1 + 0x00, %g1), NG4_retl_o2)
+ 	add		%o1, 0x04, %o1
+ 	add		%o0, 0x04, %o0
+ 	subcc		%o2, 0x04, %o2
+ 	bne,pn		%icc, .Ltiny
+-	 EX_ST(STORE(stw, %g1, %o0 - 0x04))
++	 EX_ST(STORE(stw, %g1, %o0 - 0x04), NG4_retl_o2_plus_4)
+ 	ba,a,pt		%icc, .Lexit
+ .Lmedium_unaligned:
+ 	/* First get dest 8 byte aligned.  */
+@@ -309,12 +461,12 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	brz,pt		%g1, 2f
+ 	 sub		%o2, %g1, %o2
+ 
+-1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2))
++1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g2), NG4_retl_o2_plus_g1)
+ 	add		%o1, 1, %o1
+ 	subcc		%g1, 1, %g1
+ 	add		%o0, 1, %o0
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stb, %g2, %o0 - 0x01))
++	 EX_ST(STORE(stb, %g2, %o0 - 0x01), NG4_retl_o2_plus_g1_plus_1)
+ 2:
+ 	and		%o1, 0x7, %g1
+ 	brz,pn		%g1, .Lmedium_noprefetch
+@@ -322,16 +474,16 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	mov		64, %g2
+ 	sub		%g2, %g1, %g2
+ 	andn		%o1, 0x7, %o1
+-	EX_LD(LOAD(ldx, %o1 + 0x00, %o4))
++	EX_LD(LOAD(ldx, %o1 + 0x00, %o4), NG4_retl_o2)
+ 	sllx		%o4, %g1, %o4
+ 	andn		%o2, 0x08 - 1, %o5
+ 	sub		%o2, %o5, %o2
+-1:	EX_LD(LOAD(ldx, %o1 + 0x08, %g3))
++1:	EX_LD(LOAD(ldx, %o1 + 0x08, %g3), NG4_retl_o2_plus_o5)
+ 	add		%o1, 0x08, %o1
+ 	subcc		%o5, 0x08, %o5
+ 	srlx		%g3, %g2, GLOBAL_SPARE
+ 	or		GLOBAL_SPARE, %o4, GLOBAL_SPARE
+-	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x00))
++	EX_ST(STORE(stx, GLOBAL_SPARE, %o0 + 0x00), NG4_retl_o2_plus_o5_plus_8)
+ 	add		%o0, 0x08, %o0
+ 	bne,pt		%icc, 1b
+ 	 sllx		%g3, %g1, %o4
+@@ -342,17 +494,17 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	ba,pt		%icc, .Lsmall_unaligned
+ 
+ .Ltiny:
+-	EX_LD(LOAD(ldub, %o1 + 0x00, %g1))
++	EX_LD(LOAD(ldub, %o1 + 0x00, %g1), NG4_retl_o2)
+ 	subcc		%o2, 1, %o2
+ 	be,pn		%icc, .Lexit
+-	 EX_ST(STORE(stb, %g1, %o0 + 0x00))
+-	EX_LD(LOAD(ldub, %o1 + 0x01, %g1))
++	 EX_ST(STORE(stb, %g1, %o0 + 0x00), NG4_retl_o2_plus_1)
++	EX_LD(LOAD(ldub, %o1 + 0x01, %g1), NG4_retl_o2)
+ 	subcc		%o2, 1, %o2
+ 	be,pn		%icc, .Lexit
+-	 EX_ST(STORE(stb, %g1, %o0 + 0x01))
+-	EX_LD(LOAD(ldub, %o1 + 0x02, %g1))
++	 EX_ST(STORE(stb, %g1, %o0 + 0x01), NG4_retl_o2_plus_1)
++	EX_LD(LOAD(ldub, %o1 + 0x02, %g1), NG4_retl_o2)
+ 	ba,pt		%icc, .Lexit
+-	 EX_ST(STORE(stb, %g1, %o0 + 0x02))
++	 EX_ST(STORE(stb, %g1, %o0 + 0x02), NG4_retl_o2)
+ 
+ .Lsmall:
+ 	andcc		%g2, 0x3, %g0
+@@ -360,22 +512,22 @@ FUNC_NAME:	/* %o0=dst, %o1=src, %o2=len */
+ 	 andn		%o2, 0x4 - 1, %o5
+ 	sub		%o2, %o5, %o2
+ 1:
+-	EX_LD(LOAD(lduw, %o1 + 0x00, %g1))
++	EX_LD(LOAD(lduw, %o1 + 0x00, %g1), NG4_retl_o2_plus_o5)
+ 	add		%o1, 0x04, %o1
+ 	subcc		%o5, 0x04, %o5
+ 	add		%o0, 0x04, %o0
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stw, %g1, %o0 - 0x04))
++	 EX_ST(STORE(stw, %g1, %o0 - 0x04), NG4_retl_o2_plus_o5_plus_4)
+ 	brz,pt		%o2, .Lexit
+ 	 nop
+ 	ba,a,pt		%icc, .Ltiny
+ 
+ .Lsmall_unaligned:
+-1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g1))
++1:	EX_LD(LOAD(ldub, %o1 + 0x00, %g1), NG4_retl_o2)
+ 	add		%o1, 1, %o1
+ 	add		%o0, 1, %o0
+ 	subcc		%o2, 1, %o2
+ 	bne,pt		%icc, 1b
+-	 EX_ST(STORE(stb, %g1, %o0 - 0x01))
++	 EX_ST(STORE(stb, %g1, %o0 - 0x01), NG4_retl_o2_plus_1)
+ 	ba,a,pt		%icc, .Lexit
+ 	.size		FUNC_NAME, .-FUNC_NAME
 -- 
-1.7.1
+2.1.2.532.g19b5d50
 
