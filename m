@@ -1,67 +1,106 @@
-From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Mon, 10 Oct 2016 18:12:01 +0000
-Subject: [PATCH 0/6] sparc: Enable sun4v hypervisor PCI IOMMU v2 APIs and ATU
-Message-Id: <1476123127-24314-1-git-send-email-tushar.n.dave@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 15:01:44 +0000
+Subject: [PATCH 03/11] sparc64: Convert copy_in_user to accurate exception reporting.
+Message-Id: <20161025.110144.1842634324463598516.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, robin.murphy@arm.com, jroedel@suse.de, egtvedt@samfundet.no, krzk@kernel.org, rkuo@codeaurora.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
-sun4v hypervisor PCI IOMMU v2 APIs.
 
-Current SPARC IOMMU supports only 32bit address ranges and one TSB
-per PCIe root complex that has a 2GB per root complex DVMA space
-limit. The limit has become a scalability bottleneck nowadays that
-a typical 10G/40G NIC can consume 500MB DVMA space per instance.
-When DVMA resource is exhausted, devices will not be usable
-since the driver can't allocate DVMA.
+Report the exact number of bytes which have not been successfully
+copied when an exception occurs, using the running remaining length.
 
-For example, we recently experienced legacy IOMMU limitation while
-using i40e driver in system with large number of CPUs (e.g. 128).
-Four ports of i40e, each request 128 QP (Queue Pairs). Each queue has
-512 (default) descriptors. So considering only RX queues (because RX
-premap DMA buffers), i40e takes 4*128*512 number of DMA entries in
-IOMMU table. Legacy IOMMU can have at max (2G/8K)- 1 entries available
-in table. So bringing up four instance of i40e alone saturate existing
-IOMMU resource.
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/lib/copy_in_user.S | 35 +++++++++++++++++++++++++----------
+ 1 file changed, 25 insertions(+), 10 deletions(-)
 
-ATU removes bottleneck by allowing guest os to create IOTSB of size
-32G (or more) with 64bit address ranges available in ATU HW. 32G is
-more than enough DVMA space to be shared by all PCIe devices under
-root complex contrast to 2G space provided by legacy IOMMU.
-
-ATU allows PCIe devices to use 64bit DMA addressing. Devices
-which choose to use 32bit DMA mask will continue to work with the
-existing legacy IOMMU.
-
-The patch set is tested on sun4v (T1000, T2000, T3, T4, T5, T7, S7)
-and sun4u SPARC.
-
-Thanks.
--Tushar
-
-Dave Kleikamp (1):
-  sparc64: Add FORCE_MAX_ZONEORDER and default to 13
-
-Tushar Dave (5):
-  sparc64: Add ATU (new IOMMU) support
-  sparc64: Initialize iommu_map_table and iommu_pool
-  sparc64: Bind PCIe devices to use IOMMU v2 service
-  sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
-  sparc64: Enable 64-bit DMA
-
- arch/sparc/Kconfig                  |  22 ++
- arch/sparc/include/asm/hypervisor.h | 343 +++++++++++++++++++++++++++++
- arch/sparc/include/asm/iommu_64.h   |  28 +++
- arch/sparc/kernel/hvapi.c           |   1 +
- arch/sparc/kernel/iommu.c           |   8 +-
- arch/sparc/kernel/pci_sun4v.c       | 415 +++++++++++++++++++++++++++++++-----
- arch/sparc/kernel/pci_sun4v.h       |  21 ++
- arch/sparc/kernel/pci_sun4v_asm.S   |  68 ++++++
- 8 files changed, 846 insertions(+), 60 deletions(-)
-
+diff --git a/arch/sparc/lib/copy_in_user.S b/arch/sparc/lib/copy_in_user.S
+index 86e6663..0252b21 100644
+--- a/arch/sparc/lib/copy_in_user.S
++++ b/arch/sparc/lib/copy_in_user.S
+@@ -9,18 +9,33 @@
+ 
+ #define XCC xcc
+ 
+-#define EX(x,y)			\
++#define EX(x,y,z)		\
+ 98:	x,y;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_mone;	\
++	.word 98b, z;		\
+ 	.text;			\
+ 	.align 4;
+ 
++#define EX_O4(x,y) EX(x,y,__retl_o4_plus_8)
++#define EX_O2_4(x,y) EX(x,y,__retl_o2_plus_4)
++#define EX_O2_1(x,y) EX(x,y,__retl_o2_plus_1)
++
+ 	.register	%g2,#scratch
+ 	.register	%g3,#scratch
+ 
+ 	.text
++__retl_o4_plus_8:
++	add	%o4, %o2, %o4
++	retl
++	 add	%o4, 8, %o0
++__retl_o2_plus_4:
++	retl
++	 add	%o2, 4, %o0
++__retl_o2_plus_1:
++	retl
++	 add	%o2, 1, %o0
++
+ 	.align	32
+ 
+ 	/* Don't try to get too fancy here, just nice and
+@@ -45,8 +60,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
+ 	andn		%o2, 0x7, %o4
+ 	and		%o2, 0x7, %o2
+ 1:	subcc		%o4, 0x8, %o4
+-	EX(ldxa [%o1] %asi, %o5)
+-	EX(stxa %o5, [%o0] %asi)
++	EX_O4(ldxa [%o1] %asi, %o5)
++	EX_O4(stxa %o5, [%o0] %asi)
+ 	add		%o1, 0x8, %o1
+ 	bgu,pt		%XCC, 1b
+ 	 add		%o0, 0x8, %o0
+@@ -54,8 +69,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
+ 	be,pt		%XCC, 1f
+ 	 nop
+ 	sub		%o2, 0x4, %o2
+-	EX(lduwa [%o1] %asi, %o5)
+-	EX(stwa %o5, [%o0] %asi)
++	EX_O2_4(lduwa [%o1] %asi, %o5)
++	EX_O2_4(stwa %o5, [%o0] %asi)
+ 	add		%o1, 0x4, %o1
+ 	add		%o0, 0x4, %o0
+ 1:	cmp		%o2, 0
+@@ -71,8 +86,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
+ 
+ 82:
+ 	subcc		%o2, 4, %o2
+-	EX(lduwa [%o1] %asi, %g1)
+-	EX(stwa %g1, [%o0] %asi)
++	EX_O2_4(lduwa [%o1] %asi, %g1)
++	EX_O2_4(stwa %g1, [%o0] %asi)
+ 	add		%o1, 4, %o1
+ 	bgu,pt		%XCC, 82b
+ 	 add		%o0, 4, %o0
+@@ -83,8 +98,8 @@ ENTRY(___copy_in_user)	/* %o0=dst, %o1=src, %o2=len */
+ 	.align	32
+ 90:
+ 	subcc		%o2, 1, %o2
+-	EX(lduba [%o1] %asi, %g1)
+-	EX(stba %g1, [%o0] %asi)
++	EX_O2_1(lduba [%o1] %asi, %g1)
++	EX_O2_1(stba %g1, [%o0] %asi)
+ 	add		%o1, 1, %o1
+ 	bgu,pt		%XCC, 90b
+ 	 add		%o0, 1, %o0
 -- 
-1.9.1
+2.1.2.532.g19b5d50
 
