@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 17:18:08 +0000
+Date: Tue, 25 Oct 2016 17:27:54 +0000
 Subject: Re: NMI watchdog: BUG: soft lockup
-Message-Id: <20161025.131808.2057778566694340992.davem@davemloft.net>
+Message-Id: <20161025.132754.2126439466725155599.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 In-Reply-To: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
@@ -10,24 +10,36 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFR1ZSwgMjUgT2N0
-IDIwMTYgMTg6MDk6MTIgKzAxMDANCg0KPj4gT24gMjUgT2N0IDIwMTYsIGF0IDE4OjA0LCBEYXZp
-ZCBNaWxsZXIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+IHdyb3RlOg0KPj4gDQo+PiBGcm9tOiBKYW1l
-cyBDbGFya2UgPGpydGMyN0BqcnRjMjcuY29tPg0KPj4gRGF0ZTogVHVlLCAyNSBPY3QgMjAxNiAx
-Njo1OTowNCArMDEwMA0KPj4gDQo+Pj4gVGhhdKJzIGJhc2ljYWxseSB0aGUgc2FtZSBhcyBteSBw
-YXRjaCwgZXhjZXB0IHRoaXMgcG90ZW50aWFsbHkgZmx1c2hlcyB0aGluZ3MNCj4+PiBvdXRzaWRl
-IFtzdGFydCwgZW5kKSBpZiB0aGV5onJlIG5vdCBvbiAyXjIyLWJ5dGUgYm91bmRhcmllcy4NCj4+
-IA0KPj4gT2ggeWVzLCBJIHNlZSwgdGhhbmtzIGZvciBwb2ludGluZyB0aGF0IG91dC4NCj4+IA0K
-Pj4gV2UgaGF2ZSB0byB0YWtlIHRoZSBpbmRleCBpbnRvIGFjY291bnQgZm9yIHRoZSBwdXJwb3Nl
-cyBvZiB2aXJ0dWFsDQo+PiBhZGRyZXNzIGNvbXBhcmlzb24uDQo+IA0KPiBJIGRvbqJ0IHF1aXRl
-IGZvbGxvdyB3aGF0IHlvdaJyZSB0cnlpbmcgdG8gc2F5IGhlcmU/IGlkeCBpcyBvbmx5IHVzZWQg
-dG8gaW5kZXggdGhlIFRTQi4NCg0KSXQgaXMgYWxzbyBob3cgYml0cyAiMTMtMjEiIG9mIHRoZSB2
-aXJ0dWFsIGFkZHJlc3MgYXJlIG1hdGNoZWQuDQoNClRoaW5rIGFib3V0IHdoYXQgaGFwcGVucyB3
-aGVuIGEgVFNCIGVudHJ5IGlzIGxvb2tlZCB1cC4NCg0KU2luY2UsIGJ5IHZpcnR1ZSBiZWluZyBp
-biBUU0IgZW50cnkgd2l0aCBpbmRleCBYIHRoZSB2aXJ0dWFsIGFkZHJlc3MNCmJpdHMgMTMtMjEg
-YXJlIGltcGxpZWQsIHRoZXkgZG9uJ3QgbmVlZCB0byBiZSBzdG9yZWQgaW4gdGhlIHRhZy4NCg0K
-U28gdGhlIGZ1bGwgdmlydHVhbCBhZGRyZXNzIGNvbXBhcmlzb24gaXMgc29tZXRoaW5nIGxpa2U6
-DQoNCgl1bnNpZ25lZCBsb25nIGNvbXBhcmUgPSAodGFnID4+IDIyKSA8PCAyMjsgLyogQ2xlYXIg
-Q09OVEVYVCBiaXRzICovDQoNCgljb21wYXJlIHw9ICh0c2JfaW5kZXggJiAobmVudHJpZXMgLSAx
-KSkgPDwgMTM7DQoNCglpZiAodmFkZHIgPT0gY29tcGFyZSkNCgkJZ290byBtYXRjaDsNCg0KVGhl
-IHN3YXBwZXIgVFNCIG9ubHkgc3RvcmVzIFBBR0VfU0laRSB0cmFuc2xhdGlvbnMuDQo
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 13:18:08 -0400 (EDT)
+
+> So the full virtual address comparison is something like:
+> 
+> 	unsigned long compare = (tag >> 22) << 22; /* Clear CONTEXT bits */
+> 
+> 	compare |= (tsb_index & (nentries - 1)) << 13;
+> 
+> 	if (vaddr = compare)
+> 		goto match;
+> 
+> The swapper TSB only stores PAGE_SIZE translations.
+
+Ok, this should work:
+
+static void flush_tsb_kernel_range_scan(unsigned long start, unsigned long end)
+{
+        unsigned long idx;
+
+        for (idx = 0; idx < KERNEL_TSB_NENTRIES; idx++) {
+                struct tsb *ent = &swapper_tsb[idx];
+                unsigned long match = idx << 13;
+
+                match |= (ent->tag << 22);
+                if (match >= start && match < end)
+                        ent->tag = (1UL << TSB_TAG_INVALID_BIT);
+        }
+}
+
+Bits 13-"21+N" come from the TSB index, and the tag always stores
+bits 22 and above.  So simply 'or'ing them together always gives
+us a usable match value.
