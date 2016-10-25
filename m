@@ -1,85 +1,39 @@
-From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Date: Tue, 11 Oct 2016 10:42:55 +0000
-Subject: [PATCH v3 10/11] sparc/tracing: fix compat syscall handling
-Message-Id: <1476182576-15247-11-git-send-email-marcin.nowakowski@imgtec.com>
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Tue, 25 Oct 2016 09:03:13 +0000
+Subject: [GIT PULL v2 3/5] s390: make cpu_relax a barrier again
+Message-Id: <1477386195-32736-4-git-send-email-borntraeger@de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476182576-15247-1-git-send-email-marcin.nowakowski@imgtec.com>
-In-Reply-To: <1476182576-15247-1-git-send-email-marcin.nowakowski@imgtec.com>
+References: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
+In-Reply-To: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-api@vger.kernel.org, luto@amacapital.net, rostedt@goodmis.org, Marcin Nowakowski <marcin.nowakowski@imgtec.com>, Ingo Molnar <mingo@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: linux-arch@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, kvm@vger.kernel.org, Will Deacon <will.deacon@arm.com>, x86@kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Nicholas Piggin <npiggin@gmail.com>, Russell King <linux@armlinux.org.uk>, sparclinux@vger.kernel.org, Noam Camus <noamc@ezchip.com>, Catalin Marinas <catalin.marinas@arm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, xen-devel@lists.xenproject.org, virtualization@lists.linux-foundation.org, linuxppc-dev@lists.ozlabs.org, Ingo Molnar <mingo@kernel.org>
 
-Add missing arch code - arch_trace_is_compat_syscall and
-arch_syscall_addr
+stop_machine seemed to be the only important place for yielding during
+cpu_relax. This was fixed by using cpu_relax_yield. Therefore, we can
+now redefine cpu_relax to be a barrier instead on s390, making s390
+identical to all other architectures.
 
-Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
 ---
- arch/sparc/include/asm/ftrace.h | 10 ++++++++++
- arch/sparc/kernel/Makefile      |  1 +
- arch/sparc/kernel/ftrace.c      | 14 ++++++++++++++
- 3 files changed, 25 insertions(+)
+ arch/s390/include/asm/processor.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/ftrace.h b/arch/sparc/include/asm/ftrace.h
-index 62755a3..82e5269 100644
---- a/arch/sparc/include/asm/ftrace.h
-+++ b/arch/sparc/include/asm/ftrace.h
-@@ -6,6 +6,16 @@
- #define MCOUNT_INSN_SIZE	4 /* sizeof mcount call */
+diff --git a/arch/s390/include/asm/processor.h b/arch/s390/include/asm/processor.h
+index d05965b..5d262cf 100644
+--- a/arch/s390/include/asm/processor.h
++++ b/arch/s390/include/asm/processor.h
+@@ -236,7 +236,7 @@ static inline unsigned short stap(void)
+  */
+ void cpu_relax_yield(void);
  
- #ifndef __ASSEMBLY__
-+
-+#if defined(CONFIG_FTRACE_SYSCALLS) && defined(CONFIG_COMPAT)
-+#include <asm/compat.h>
-+
-+#define ARCH_COMPAT_SYSCALL_NUMBERS_OVERLAP 1
-+static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
-+{
-+	return in_compat_syscall();
-+}
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
- void _mcount(void);
- #endif
+-#define cpu_relax() cpu_relax_yield()
++#define cpu_relax() barrier()
+ #define cpu_relax_lowlatency()  barrier()
  
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index fa3c02d..7808084 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -93,6 +93,7 @@ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
- 
- obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
- obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
-+obj-$(CONFIG_FTRACE_SYSCALLS) += ftrace.o
- 
- obj-$(CONFIG_EARLYFB) += btext.o
- obj-$(CONFIG_STACKTRACE)     += stacktrace.o
-diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
-index 6bcff69..e76f012 100644
---- a/arch/sparc/kernel/ftrace.c
-+++ b/arch/sparc/kernel/ftrace.c
-@@ -145,3 +145,17 @@ unsigned long prepare_ftrace_return(unsigned long parent,
- 	return return_hooker;
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-+
-+#if (defined CONFIG_FTRACE_SYSCALLS) && (defined CONFIG_COMPAT)
-+extern const unsigned int sys_call_table[];
-+extern const unsigned int sys_call_table32[];
-+
-+unsigned long __init arch_syscall_addr(int nr, bool compat)
-+{
-+	if (compat)
-+		return (unsigned long)sys_call_table32[nr];
-+
-+	return (unsigned long)sys_call_table[nr];
-+}
-+
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
+ #define ECAG_CACHE_ATTRIBUTE	0
 -- 
-2.7.4
+2.5.5
 
