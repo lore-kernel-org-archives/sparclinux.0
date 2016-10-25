@@ -1,29 +1,33 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Tue, 25 Oct 2016 17:09:12 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 17:18:08 +0000
 Subject: Re: NMI watchdog: BUG: soft lockup
-Message-Id: <0C264FBF-2B0F-4203-840A-8CD3490C26FF@jrtc27.com>
+Message-Id: <20161025.131808.2057778566694340992.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 In-Reply-To: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> On 25 Oct 2016, at 18:04, David Miller <davem@davemloft.net> wrote:
-> 
-> From: James Clarke <jrtc27@jrtc27.com>
-> Date: Tue, 25 Oct 2016 16:59:04 +0100
-> 
->> That’s basically the same as my patch, except this potentially flushes things
->> outside [start, end) if they’re not on 2^22-byte boundaries.
-> 
-> Oh yes, I see, thanks for pointing that out.
-> 
-> We have to take the index into account for the purposes of virtual
-> address comparison.
-
-I don’t quite follow what you’re trying to say here? idx is only used to index the TSB.
-
-James
-
+RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFR1ZSwgMjUgT2N0
+IDIwMTYgMTg6MDk6MTIgKzAxMDANCg0KPj4gT24gMjUgT2N0IDIwMTYsIGF0IDE4OjA0LCBEYXZp
+ZCBNaWxsZXIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+IHdyb3RlOg0KPj4gDQo+PiBGcm9tOiBKYW1l
+cyBDbGFya2UgPGpydGMyN0BqcnRjMjcuY29tPg0KPj4gRGF0ZTogVHVlLCAyNSBPY3QgMjAxNiAx
+Njo1OTowNCArMDEwMA0KPj4gDQo+Pj4gVGhhdKJzIGJhc2ljYWxseSB0aGUgc2FtZSBhcyBteSBw
+YXRjaCwgZXhjZXB0IHRoaXMgcG90ZW50aWFsbHkgZmx1c2hlcyB0aGluZ3MNCj4+PiBvdXRzaWRl
+IFtzdGFydCwgZW5kKSBpZiB0aGV5onJlIG5vdCBvbiAyXjIyLWJ5dGUgYm91bmRhcmllcy4NCj4+
+IA0KPj4gT2ggeWVzLCBJIHNlZSwgdGhhbmtzIGZvciBwb2ludGluZyB0aGF0IG91dC4NCj4+IA0K
+Pj4gV2UgaGF2ZSB0byB0YWtlIHRoZSBpbmRleCBpbnRvIGFjY291bnQgZm9yIHRoZSBwdXJwb3Nl
+cyBvZiB2aXJ0dWFsDQo+PiBhZGRyZXNzIGNvbXBhcmlzb24uDQo+IA0KPiBJIGRvbqJ0IHF1aXRl
+IGZvbGxvdyB3aGF0IHlvdaJyZSB0cnlpbmcgdG8gc2F5IGhlcmU/IGlkeCBpcyBvbmx5IHVzZWQg
+dG8gaW5kZXggdGhlIFRTQi4NCg0KSXQgaXMgYWxzbyBob3cgYml0cyAiMTMtMjEiIG9mIHRoZSB2
+aXJ0dWFsIGFkZHJlc3MgYXJlIG1hdGNoZWQuDQoNClRoaW5rIGFib3V0IHdoYXQgaGFwcGVucyB3
+aGVuIGEgVFNCIGVudHJ5IGlzIGxvb2tlZCB1cC4NCg0KU2luY2UsIGJ5IHZpcnR1ZSBiZWluZyBp
+biBUU0IgZW50cnkgd2l0aCBpbmRleCBYIHRoZSB2aXJ0dWFsIGFkZHJlc3MNCmJpdHMgMTMtMjEg
+YXJlIGltcGxpZWQsIHRoZXkgZG9uJ3QgbmVlZCB0byBiZSBzdG9yZWQgaW4gdGhlIHRhZy4NCg0K
+U28gdGhlIGZ1bGwgdmlydHVhbCBhZGRyZXNzIGNvbXBhcmlzb24gaXMgc29tZXRoaW5nIGxpa2U6
+DQoNCgl1bnNpZ25lZCBsb25nIGNvbXBhcmUgPSAodGFnID4+IDIyKSA8PCAyMjsgLyogQ2xlYXIg
+Q09OVEVYVCBiaXRzICovDQoNCgljb21wYXJlIHw9ICh0c2JfaW5kZXggJiAobmVudHJpZXMgLSAx
+KSkgPDwgMTM7DQoNCglpZiAodmFkZHIgPT0gY29tcGFyZSkNCgkJZ290byBtYXRjaDsNCg0KVGhl
+IHN3YXBwZXIgVFNCIG9ubHkgc3RvcmVzIFBBR0VfU0laRSB0cmFuc2xhdGlvbnMuDQo
