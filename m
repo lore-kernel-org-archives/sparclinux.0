@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 17:04:41 +0000
+Date: Tue, 25 Oct 2016 17:06:12 +0000
 Subject: Re: NMI watchdog: BUG: soft lockup
-Message-Id: <20161025.130441.2089834501680444192.davem@davemloft.net>
+Message-Id: <20161025.130612.1887036473310407376.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 In-Reply-To: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
@@ -10,10 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFR1ZSwgMjUgT2N0
-IDIwMTYgMTY6NTk6MDQgKzAxMDANCg0KPiBUaGF0onMgYmFzaWNhbGx5IHRoZSBzYW1lIGFzIG15
-IHBhdGNoLCBleGNlcHQgdGhpcyBwb3RlbnRpYWxseSBmbHVzaGVzIHRoaW5ncw0KPiBvdXRzaWRl
-IFtzdGFydCwgZW5kKSBpZiB0aGV5onJlIG5vdCBvbiAyXjIyLWJ5dGUgYm91bmRhcmllcy4NCg0K
-T2ggeWVzLCBJIHNlZSwgdGhhbmtzIGZvciBwb2ludGluZyB0aGF0IG91dC4NCg0KV2UgaGF2ZSB0
-byB0YWtlIHRoZSBpbmRleCBpbnRvIGFjY291bnQgZm9yIHRoZSBwdXJwb3NlcyBvZiB2aXJ0dWFs
-DQphZGRyZXNzIGNvbXBhcmlzb24uDQo
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Tue, 25 Oct 2016 16:59:04 +0100
+
+> Can we do a similar thing for the TLB by iterating over all its entries? Surely
+> one of the ASIs lets you do that?
+
+Yes, you can di it using diagnostic accesses.
+
+But in my opinion for UltraSPARC-III/IV we should do an "all flush"
+and for sun4v do a context 0 flush when the range is huge.
+
+It's so much simpler, easier to audit and validate, and is probably
+cheaper in the end.
