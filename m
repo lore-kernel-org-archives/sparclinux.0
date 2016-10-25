@@ -1,52 +1,70 @@
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Date: Tue, 25 Oct 2016 09:03:12 +0000
-Subject: [GIT PULL v2 2/5] stop_machine: yield CPU during stop machine
-Message-Id: <1477386195-32736-3-git-send-email-borntraeger@de.ibm.com>
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Date: Tue, 25 Oct 2016 15:38:34 +0000
+Subject: [net-next PATCH 20/27] arch/sparc: Add option to skip DMA sync as a part of map and unmap
+Message-Id: <20161025153834.4815.28700.stgit@ahduyck-blue-test.jf.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
-In-Reply-To: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
+References: <20161025153220.4815.61239.stgit@ahduyck-blue-test.jf.intel.com>
+In-Reply-To: <20161025153220.4815.61239.stgit@ahduyck-blue-test.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-arch@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, kvm@vger.kernel.org, Will Deacon <will.deacon@arm.com>, x86@kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Nicholas Piggin <npiggin@gmail.com>, Russell King <linux@armlinux.org.uk>, sparclinux@vger.kernel.org, Noam Camus <noamc@ezchip.com>, Catalin Marinas <catalin.marinas@arm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, xen-devel@lists.xenproject.org, virtualization@lists.linux-foundation.org, linuxppc-dev@lists.ozlabs.org, Ingo Molnar <mingo@kernel.org>
+To: netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, davem@davemloft.net, brouer@redhat.com
 
-Some time ago commit 57f2ffe14fd125c2  ("s390: remove diag 44 calls
-from cpu_relax()") did stop cpu_relax on s390 yielding to the
-hypervisor.
+This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
+avoid invoking cache line invalidation if the driver will just handle it
+via a sync_for_cpu or sync_for_device call.
 
-As it turns out this made stop_machine run really slow on virtualized
-overcommited systems. For example the kprobes test during bootup took
-several seconds instead of just running unnoticed with large guests.
-
-Therefore, the yielding was reintroduced with commit 4d92f50249eb
-("s390: reintroduce diag 44 calls for cpu_relax()"), but in fact the
-stop machine code seems to be the only place where this yielding
-was really necessary. This place is probably the most important one
-as it makes all but one guest CPUs wait for one guest CPU.
-
-As we now have cpu_relax_yield, we can use this in multi_cpu_stop.
-For now lets only add it here. We can add it later in other places
-when necessary.
-
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
 ---
- kernel/stop_machine.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/kernel/iommu.c  |    4 ++--
+ arch/sparc/kernel/ioport.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/kernel/stop_machine.c b/kernel/stop_machine.c
-index ec9ab2f..1eb8266 100644
---- a/kernel/stop_machine.c
-+++ b/kernel/stop_machine.c
-@@ -194,7 +194,7 @@ static int multi_cpu_stop(void *data)
- 	/* Simple state machine */
- 	do {
- 		/* Chill out and ensure we re-read multi_stop_state. */
--		cpu_relax();
-+		cpu_relax_yield();
- 		if (msdata->state != curstate) {
- 			curstate = msdata->state;
- 			switch (curstate) {
--- 
-2.5.5
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5c615ab..8fda4e4 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -415,7 +415,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
+ 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
+ 
+ 	/* Step 1: Kick data out of streaming buffers if necessary. */
+-	if (strbuf->strbuf_enabled)
++	if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		strbuf_flush(strbuf, iommu, bus_addr, ctx,
+ 			     npages, direction);
+ 
+@@ -640,7 +640,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
+ 		base = iommu->page_table + entry;
+ 
+ 		dma_handle &= IO_PAGE_MASK;
+-		if (strbuf->strbuf_enabled)
++		if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 			strbuf_flush(strbuf, iommu, dma_handle, ctx,
+ 				     npages, direction);
+ 
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 2344103..6ffaec4 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -527,7 +527,7 @@ static dma_addr_t pci32_map_page(struct device *dev, struct page *page,
+ static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
+ 			     enum dma_data_direction dir, unsigned long attrs)
+ {
+-	if (dir != PCI_DMA_TODEVICE)
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		dma_make_coherent(ba, PAGE_ALIGN(size));
+ }
+ 
+@@ -572,7 +572,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
+ 	struct scatterlist *sg;
+ 	int n;
+ 
+-	if (dir != PCI_DMA_TODEVICE) {
++	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
+ 		for_each_sg(sgl, sg, nents, n) {
+ 			dma_make_coherent(sg_phys(sg), PAGE_ALIGN(sg->length));
+ 		}
 
