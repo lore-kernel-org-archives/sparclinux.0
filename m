@@ -1,54 +1,92 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Oct 2016 15:50:59 +0000
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Tue, 25 Oct 2016 15:59:04 +0000
 Subject: Re: NMI watchdog: BUG: soft lockup
-Message-Id: <20161025.115059.1745729890762996484.davem@davemloft.net>
+Message-Id: <7939EB66-BE99-4FD6-ACBF-33FBF6502F6B@jrtc27.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 In-Reply-To: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogRGF2aWQgTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KRGF0ZTogVHVlLCAyNSBP
-Y3QgMjAxNiAxMToyMjozMSAtMDQwMCAoRURUKQ0KDQo+IEZyb206IEphbWVzIENsYXJrZSA8anJ0
-YzI3QGpydGMyNy5jb20+DQo+IERhdGU6IFR1ZSwgMjUgT2N0IDIwMTYgMTY6MTE6NTIgKzAxMDAN
-Cj4gDQo+PiBZZXAsIHRoYXQgZml4IGlzIHN0aWxsIHRoZXJlLCBidXQgeW91IHdpbGwgbm90ZSB0
-aGF0IGVuZCAqaXMqIGFib3ZlIHN0YXJ0IGluDQo+PiB0aGUgY2FsbC4gU29tZXRoaW5nIGlzIGJl
-aW5nIGFsbG9jYXRlZCBhbmQgZnJlZWQgcmlnaHQgYXQgdGhlIGVuZCBvZiB0aGUgbWFsbG9jDQo+
-PiBhcmVhLCBzbyBpdKJzIGl0ZXJhdGluZyBvdmVyIGFsbW9zdCB0aGUgZW50aXJlIHRoaW5nLg0K
-PiANCj4gT2ssIGxldCBtZSB0aGluayBhYm91dCB0aGlzIHNvbWUgbW9yZS4NCg0KU28sIGZvciB0
-aGUgVFNCIHBhcnQgd2UgZG9uJ3QgbmVlZCB0byBkbyBhbnl0aGluZyBmYW5jeSwgc29tZXRoaW5n
-IGxpa2UNCnRoZSBwYXRjaCBiZWxvdyB3aWxsIHN1ZmZpY2UuDQoNCkFzIHBlciB0aGUgVExCIGZs
-dXNoIHRoYXQncyBhIGJpdCBtb3JlIGNvbXBsaWNhdGVkLg0KDQpGb3IgdGhlIG9sZGVyIGNoaXBz
-IHdlIG5lZWQgdG8gZG8gbW9yZSB3b3JrIGJlY2F1c2UgdGhleSB1bmZvcnR1bmF0ZWx5DQpkZWZp
-bmVkIHRoZSBjb250ZXh0IGZsdXNoIHRvIGV2ZW4gcmVtb3ZlIGxvY2tlZCBUTEIgZW50cmllcy4N
-Ck90aGVyd2lzZSB3ZSBjb3VsZCBzaW1wbHkgZG8gYSBudWNsZXVzIGNvbnRleHQgZmx1c2ggaWYg
-dGhlIHJhbmdlIGlzDQp0b28gbGFyZ2UuICBTbyB3ZSdsbCBoYXZlIHRvIHVzZSBkaWFnbm9zdGlj
-IGFjY2Vzc2VzIHRvIGltcGxlbWVudCB0aGUNCnNhbWUgZnVuY3Rpb25hbGl0eS4NCg0KVWx0cmFT
-UEFSQy1JSUkgYW5kIGxhdGVyIHByb3ZpZGUgbW9yZSB1c2FibGUgZmFjaWxpdGllcyBmb3IgdGhp
-cw0Kc2l0dWF0aW9uLiAgVWx0cmFTUEFSQy1JSUkvSVYgaGF2ZSBhICJmbHVzaCBhbGwiIHdoaWNo
-IHJlbW92ZXMgYWxsDQpub24tbG9ja2VkIFRMQiBlbnRyaWVzLiAgQW5kIGFsbCBvZiB0aGUgc3Vu
-NHYgY2hpcHMgaGF2ZSBhIG1vcmUNCnJlYXNvbmFibGUgY29udGV4dCBmbHVzaCwgd2hpY2ggZG9l
-cyBub3QgcmVtb3ZlICJwZXJtYW5lbnQiIGVudHJpZXMuDQoNCkknbGwgc3RhcnQgaGFja2luZyBz
-b21ldGhpbmcgdXAuDQoNCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL21tL3RzYi5jIGIvYXJjaC9z
-cGFyYy9tbS90c2IuYw0KaW5kZXggZjJiNzcxMS4uMWY2MzQxMSAxMDA2NDQNCi0tLSBhL2FyY2gv
-c3BhcmMvbW0vdHNiLmMNCisrKyBiL2FyY2gvc3BhcmMvbW0vdHNiLmMNCkBAIC0yNyw2ICsyNywy
-MCBAQCBzdGF0aWMgaW5saW5lIGludCB0YWdfY29tcGFyZSh1bnNpZ25lZCBsb25nIHRhZywgdW5z
-aWduZWQgbG9uZyB2YWRkcikNCiAJcmV0dXJuICh0YWcgPT0gKHZhZGRyID4+IDIyKSk7DQogfQ0K
-IA0KK3N0YXRpYyB2b2lkIGZsdXNoX3RzYl9rZXJuZWxfcmFuZ2Vfc2Nhbih1bnNpZ25lZCBsb25n
-IHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCkNCit7DQorCXVuc2lnbmVkIGxvbmcgaWR4Ow0KKw0K
-KwlzdGFydCA+PiAyMjsNCisJZW5kID4+IDIyOw0KKwlmb3IgKGlkeCA9IDA7IGlkeCA8IEtFUk5F
-TF9UU0JfTkVOVFJJRVM7IGlkeCsrKSB7DQorCQlzdHJ1Y3QgdHNiICplbnQgPSAmc3dhcHBlcl90
-c2JbaWR4XTsNCisNCisJCWlmIChlbnQtPnRhZyA+PSBzdGFydCAmJiBlbmQtPnRhZyA8IGVuZCkN
-CisJCQllbnQtPnRhZyA9ICgxVUwgPDwgVFNCX1RBR19JTlZBTElEX0JJVCk7DQorCX0NCit9DQor
-DQogLyogVFNCIGZsdXNoZXMgbmVlZCBvbmx5IG9jY3VyIG9uIHRoZSBwcm9jZXNzb3IgaW5pdGlh
-dGluZyB0aGUgYWRkcmVzcw0KICAqIHNwYWNlIG1vZGlmaWNhdGlvbiwgbm90IG9uIGVhY2ggY3B1
-IHRoZSBhZGRyZXNzIHNwYWNlIGhhcyBydW4gb24uDQogICogT25seSB0aGUgVExCIGZsdXNoIG5l
-ZWRzIHRoYXQgdHJlYXRtZW50Lg0KQEAgLTM2LDYgKzUwLDkgQEAgdm9pZCBmbHVzaF90c2Jfa2Vy
-bmVsX3JhbmdlKHVuc2lnbmVkIGxvbmcgc3RhcnQsIHVuc2lnbmVkIGxvbmcgZW5kKQ0KIHsNCiAJ
-dW5zaWduZWQgbG9uZyB2Ow0KIA0KKwlpZiAoKGVuZCAtIHN0YXJ0KSA+PiBQQUdFX1NISUZUID49
-IDIgKiBLRVJORUxfVFNCX05FTlRSSUVTKQ0KKwkJcmV0dXJuIGZsdXNoX3RzYl9rZXJuZWxfcmFu
-Z2Vfc2NhbihzdGFydCwgZW5kKTsNCisNCiAJZm9yICh2ID0gc3RhcnQ7IHYgPCBlbmQ7IHYgKz0g
-UEFHRV9TSVpFKSB7DQogCQl1bnNpZ25lZCBsb25nIGhhc2ggPSB0c2JfaGFzaCh2LCBQQUdFX1NI
-SUZULA0KIAkJCQkJICAgICAgS0VSTkVMX1RTQl9ORU5UUklFUyk7DQo
+> On 25 Oct 2016, at 16:50, David Miller <davem@davemloft.net> wrote:
+> 
+> From: David Miller <davem@davemloft.net>
+> Date: Tue, 25 Oct 2016 11:22:31 -0400 (EDT)
+> 
+>> From: James Clarke <jrtc27@jrtc27.com>
+>> Date: Tue, 25 Oct 2016 16:11:52 +0100
+>> 
+>>> Yep, that fix is still there, but you will note that end *is* above start in
+>>> the call. Something is being allocated and freed right at the end of the malloc
+>>> area, so it’s iterating over almost the entire thing.
+>> 
+>> Ok, let me think about this some more.
+> 
+> So, for the TSB part we don't need to do anything fancy, something like
+> the patch below will suffice.
+> 
+> As per the TLB flush that's a bit more complicated.
+> 
+> For the older chips we need to do more work because they unfortunately
+> defined the context flush to even remove locked TLB entries.
+> Otherwise we could simply do a nucleus context flush if the range is
+> too large.  So we'll have to use diagnostic accesses to implement the
+> same functionality.
+> 
+> UltraSPARC-III and later provide more usable facilities for this
+> situation.  UltraSPARC-III/IV have a "flush all" which removes all
+> non-locked TLB entries.  And all of the sun4v chips have a more
+> reasonable context flush, which does not remove "permanent" entries.
+> 
+> I'll start hacking something up.
+> 
+> diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+> index f2b7711..1f63411 100644
+> --- a/arch/sparc/mm/tsb.c
+> +++ b/arch/sparc/mm/tsb.c
+> @@ -27,6 +27,20 @@ static inline int tag_compare(unsigned long tag, unsigned long vaddr)
+> 	return (tag == (vaddr >> 22));
+> }
+> 
+> +static void flush_tsb_kernel_range_scan(unsigned long start, unsigned long end)
+> +{
+> +	unsigned long idx;
+> +
+> +	start >> 22;
+> +	end >> 22;
+> +	for (idx = 0; idx < KERNEL_TSB_NENTRIES; idx++) {
+> +		struct tsb *ent = &swapper_tsb[idx];
+> +
+> +		if (ent->tag >= start && end->tag < end)
+> +			ent->tag = (1UL << TSB_TAG_INVALID_BIT);
+> +	}
+> +}
+> +
+> /* TSB flushes need only occur on the processor initiating the address
+>  * space modification, not on each cpu the address space has run on.
+>  * Only the TLB flush needs that treatment.
+> @@ -36,6 +50,9 @@ void flush_tsb_kernel_range(unsigned long start, unsigned long end)
+> {
+> 	unsigned long v;
+> 
+> +	if ((end - start) >> PAGE_SHIFT >= 2 * KERNEL_TSB_NENTRIES)
+> +		return flush_tsb_kernel_range_scan(start, end);
+> +
+> 	for (v = start; v < end; v += PAGE_SIZE) {
+> 		unsigned long hash = tsb_hash(v, PAGE_SHIFT,
+> 					      KERNEL_TSB_NENTRIES);
+
+That’s basically the same as my patch, except this potentially flushes things
+outside [start, end) if they’re not on 2^22-byte boundaries. Of course, the
+performance hit of that may be better than my patch which also walks through
+pages up to the first 2^22-aligned address after start, and those after the
+last 2^22-aligned address before end, but won’t flush anything that’s outside
+the range.
+
+Can we do a similar thing for the TLB by iterating over all its entries? Surely
+one of the ASIs lets you do that?
+
+James
+
