@@ -1,33 +1,202 @@
-From: Jesper Nilsson <jesper.nilsson@axis.com>
-Date: Mon, 17 Oct 2016 09:23:52 +0000
-Subject: Re: [PATCH 10/10] mm: replace access_process_vm() write parameter with gup_flags
-Message-Id: <20161017092352.GH30704@axis.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 23:29:42 +0000
+Subject: [PATCH] sparc64: Fix illegal relative branches in hypervisor patched TLB code.
+Message-Id: <20161025.192942.710602177952900056.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-11-lstoakes@gmail.com>
-In-Reply-To: <20161013002020.3062-11-lstoakes@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: linux-mm@kvack.org, linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, x86@kernel.org, Hugh Dickins <hughd@google.com>, linux-media@vger.kernel.org, Rik van Riel <riel@redhat.com>, intel-gfx@lists.freedesktop.org, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, Linus Torvalds <torvalds@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Thu, Oct 13, 2016 at 01:20:20AM +0100, Lorenzo Stoakes wrote:
-> This patch removes the write parameter from access_process_vm() and replaces it
-> with a gup_flags parameter as use of this function previously _implied_
-> FOLL_FORCE, whereas after this patch callers explicitly pass this flag.
-> 
-> We make this explicit as use of FOLL_FORCE can result in surprising behaviour
-> (and hence bugs) within the mm subsystem.
-> 
-> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-> ---
->  arch/cris/arch-v32/kernel/ptrace.c |  4 ++--
 
-For the CRIS part:
+When we copy code over to patch another piece of code, we can only use
+PC-relative branches that target code within that piece of code.
 
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Such PC-relative branches cannot be made to external symbols because
+the patch moves the location of the code and thus modifies the
+relative address of external symbols.
 
-/^JN - Jesper Nilsson
+Use an absolute jmpl to fix this problem.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/ultra.S | 65 ++++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 14 deletions(-)
+
+diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
+index b4f4733..85de139 100644
+--- a/arch/sparc/mm/ultra.S
++++ b/arch/sparc/mm/ultra.S
+@@ -30,7 +30,7 @@
+ 	.text
+ 	.align		32
+ 	.globl		__flush_tlb_mm
+-__flush_tlb_mm:		/* 18 insns */
++__flush_tlb_mm:		/* 19 insns */
+ 	/* %o0=(ctx & TAG_CONTEXT_BITS), %o1=SECONDARY_CONTEXT */
+ 	ldxa		[%o1] ASI_DMMU, %g2
+ 	cmp		%g2, %o0
+@@ -81,7 +81,7 @@ __flush_tlb_page:	/* 22 insns */
+ 
+ 	.align		32
+ 	.globl		__flush_tlb_pending
+-__flush_tlb_pending:	/* 26 insns */
++__flush_tlb_pending:	/* 27 insns */
+ 	/* %o0 = context, %o1 = nr, %o2 = vaddrs[] */
+ 	rdpr		%pstate, %g7
+ 	sllx		%o1, 3, %o1
+@@ -113,7 +113,7 @@ __flush_tlb_pending:	/* 26 insns */
+ 
+ 	.align		32
+ 	.globl		__flush_tlb_kernel_range
+-__flush_tlb_kernel_range:	/* 16 insns */
++__flush_tlb_kernel_range:	/* 19 insns */
+ 	/* %o0=start, %o1=end */
+ 	cmp		%o0, %o1
+ 	be,pn		%xcc, 2f
+@@ -131,6 +131,9 @@ __flush_tlb_kernel_range:	/* 16 insns */
+ 	retl
+ 	 nop
+ 	nop
++	nop
++	nop
++	nop
+ 
+ __spitfire_flush_tlb_mm_slow:
+ 	rdpr		%pstate, %g1
+@@ -309,19 +312,28 @@ __hypervisor_tlb_tl0_error:
+ 	ret
+ 	 restore
+ 
+-__hypervisor_flush_tlb_mm: /* 10 insns */
++__hypervisor_flush_tlb_mm: /* 19 insns */
+ 	mov		%o0, %o2	/* ARG2: mmu context */
+ 	mov		0, %o0		/* ARG0: CPU lists unimplemented */
+ 	mov		0, %o1		/* ARG1: CPU lists unimplemented */
+ 	mov		HV_MMU_ALL, %o3	/* ARG3: flags */
+ 	mov		HV_FAST_MMU_DEMAP_CTX, %o5
+ 	ta		HV_FAST_TRAP
+-	brnz,pn		%o0, __hypervisor_tlb_tl0_error
++	brnz,pn		%o0, 1f
+ 	 mov		HV_FAST_MMU_DEMAP_CTX, %o1
+ 	retl
+ 	 nop
++1:	sethi		%hi(__hypervisor_tlb_tl0_error), %o5
++	jmpl		%o5 + %lo(__hypervisor_tlb_tl0_error), %g0
++	 nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
+ 
+-__hypervisor_flush_tlb_page: /* 11 insns */
++__hypervisor_flush_tlb_page: /* 22 insns */
+ 	/* %o0 = context, %o1 = vaddr */
+ 	mov		%o0, %g2
+ 	mov		%o1, %o0              /* ARG0: vaddr + IMMU-bit */
+@@ -330,10 +342,21 @@ __hypervisor_flush_tlb_page: /* 11 insns */
+ 	srlx		%o0, PAGE_SHIFT, %o0
+ 	sllx		%o0, PAGE_SHIFT, %o0
+ 	ta		HV_MMU_UNMAP_ADDR_TRAP
+-	brnz,pn		%o0, __hypervisor_tlb_tl0_error
++	brnz,pn		%o0, 1f
+ 	 mov		HV_MMU_UNMAP_ADDR_TRAP, %o1
+ 	retl
+ 	 nop
++1:	sethi		%hi(__hypervisor_tlb_tl0_error), %o2
++	jmpl		%o2 + %lo(__hypervisor_tlb_tl0_error), %g0
++	 nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
+ 
+ __hypervisor_flush_tlb_pending: /* 16 insns */
+ 	/* %o0 = context, %o1 = nr, %o2 = vaddrs[] */
+@@ -347,14 +370,25 @@ __hypervisor_flush_tlb_pending: /* 16 insns */
+ 	srlx		%o0, PAGE_SHIFT, %o0
+ 	sllx		%o0, PAGE_SHIFT, %o0
+ 	ta		HV_MMU_UNMAP_ADDR_TRAP
+-	brnz,pn		%o0, __hypervisor_tlb_tl0_error
++	brnz,pn		%o0, 1f
+ 	 mov		HV_MMU_UNMAP_ADDR_TRAP, %o1
+ 	brnz,pt		%g1, 1b
+ 	 nop
+ 	retl
+ 	 nop
++1:	sethi		%hi(__hypervisor_tlb_tl0_error), %o2
++	jmpl		%o2 + %lo(__hypervisor_tlb_tl0_error), %g0
++	 nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
++	nop
+ 
+-__hypervisor_flush_tlb_kernel_range: /* 16 insns */
++__hypervisor_flush_tlb_kernel_range: /* 19 insns */
+ 	/* %o0=start, %o1=end */
+ 	cmp		%o0, %o1
+ 	be,pn		%xcc, 2f
+@@ -366,12 +400,15 @@ __hypervisor_flush_tlb_kernel_range: /* 16 insns */
+ 	mov		0, %o1		/* ARG1: mmu context */
+ 	mov		HV_MMU_ALL, %o2	/* ARG2: flags */
+ 	ta		HV_MMU_UNMAP_ADDR_TRAP
+-	brnz,pn		%o0, __hypervisor_tlb_tl0_error
++	brnz,pn		%o0, 3f
+ 	 mov		HV_MMU_UNMAP_ADDR_TRAP, %o1
+ 	brnz,pt		%g2, 1b
+ 	 sub		%g2, %g3, %g2
+ 2:	retl
+ 	 nop
++3:	sethi		%hi(__hypervisor_tlb_tl0_error), %o2
++	jmpl		%o2 + %lo(__hypervisor_tlb_tl0_error), %g0
++	 nop
+ 
+ #ifdef DCACHE_ALIASING_POSSIBLE
+ 	/* XXX Niagara and friends have an 8K cache, so no aliasing is
+@@ -819,28 +856,28 @@ hypervisor_patch_cachetlbops:
+ 	sethi		%hi(__hypervisor_flush_tlb_mm), %o1
+ 	or		%o1, %lo(__hypervisor_flush_tlb_mm), %o1
+ 	call		tlb_patch_one
+-	 mov		10, %o2
++	 mov		19, %o2
+ 
+ 	sethi		%hi(__flush_tlb_page), %o0
+ 	or		%o0, %lo(__flush_tlb_page), %o0
+ 	sethi		%hi(__hypervisor_flush_tlb_page), %o1
+ 	or		%o1, %lo(__hypervisor_flush_tlb_page), %o1
+ 	call		tlb_patch_one
+-	 mov		11, %o2
++	 mov		22, %o2
+ 
+ 	sethi		%hi(__flush_tlb_pending), %o0
+ 	or		%o0, %lo(__flush_tlb_pending), %o0
+ 	sethi		%hi(__hypervisor_flush_tlb_pending), %o1
+ 	or		%o1, %lo(__hypervisor_flush_tlb_pending), %o1
+ 	call		tlb_patch_one
+-	 mov		16, %o2
++	 mov		27, %o2
+ 
+ 	sethi		%hi(__flush_tlb_kernel_range), %o0
+ 	or		%o0, %lo(__flush_tlb_kernel_range), %o0
+ 	sethi		%hi(__hypervisor_flush_tlb_kernel_range), %o1
+ 	or		%o1, %lo(__hypervisor_flush_tlb_kernel_range), %o1
+ 	call		tlb_patch_one
+-	 mov		16, %o2
++	 mov		19, %o2
+ 
+ #ifdef DCACHE_ALIASING_POSSIBLE
+ 	sethi		%hi(__flush_dcache_page), %o0
 -- 
-               Jesper Nilsson -- jesper.nilsson@axis.com
+2.1.2.532.g19b5d50
+
