@@ -1,114 +1,19 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Tue, 25 Oct 2016 15:11:52 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 25 Oct 2016 15:22:31 +0000
 Subject: Re: NMI watchdog: BUG: soft lockup
-Message-Id: <F154CB1B-9934-45AA-9DC7-AFEC23EE1992@jrtc27.com>
+Message-Id: <20161025.112231.1481615389292376921.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 In-Reply-To: <60822DF7-477D-433C-85AA-FE04D1D4B7B0@jrtc27.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> On 25 Oct 2016, at 16:07, David Miller <davem@davemloft.net> wrote:
->=20
-> From: James Clarke <jrtc27@jrtc27.com>
-> Date: Tue, 25 Oct 2016 14:15:26 +0100
->=20
->> I built a custom kernel with a single extra printk at the start of
->> flush_tsb_kernel_range which prints its arguments. I then had to wait fo=
-r it to
->> be hit, and when it was, I got the following:
->>=20
->> [5717559.949396] TSB: DEBUG flush_tsb_kernel_range start=3D0000000010006=
-000 end=3D00000000f0000000 PAGE_SIZE=3D2000
->> [5717560.062663] TSB: DEBUG flush_tsb_kernel_range start=3D0000000100000=
-000 end=3D0005ffffa2000000 PAGE_SIZE=3D2000
->=20
-> I thought I fixed this a very very long time ago:
->=20
-> commit 473ad7f4fb005d1bb727e4ef27d370d28703a062
-> Author: David S. Miller <davem@davemloft.net>
-> Date:   Sat Oct 4 21:05:14 2014 -0700
->=20
->    sparc64: Fix reversed start/end in flush_tlb_kernel_range()
->=20
->    When we have to split up a flush request into multiple pieces
->    (in order to avoid the firmware range) we don't specify the
->    arguments in the right order for the second piece.
->=20
->    Fix the order, or else we get hangs as the code tries to
->    flush "a lot" of entries and we get lockups like this:
->=20
->    [ 4422.981276] NMI watchdog: BUG: soft lockup - CPU#12 stuck for 23s! =
-[expect:117032]
->    [ 4422.996130] Modules linked in: ipv6 loop usb_storage igb ptp sg sr_=
-mod ehci_pci ehci_hcd pps_core n2_rng rng_core
->    [ 4423.016617] CPU: 12 PID: 117032 Comm: expect Not tainted 3.17.0-rc4=
-+ #1608
->    [ 4423.030331] task: fff8003cc730e220 ti: fff8003d99d54000 task.ti: ff=
-f8003d99d54000
->    [ 4423.045282] TSTATE: 0000000011001602 TPC: 00000000004521e8 TNPC: 00=
-000000004521ec Y: 00000000    Not tainted
->    [ 4423.064905] TPC: <__flush_tlb_kernel_range+0x28/0x40>
->    [ 4423.074964] g0: 000000000052fd10 g1: 00000001295a8000 g2: ffffff717=
-6ffc000 g3: 0000000000002000
->    [ 4423.092324] g4: fff8003cc730e220 g5: fff8003dfedcc000 g6: fff8003d9=
-9d54000 g7: 0000000000000006
->    [ 4423.109687] o0: 0000000000000000 o1: 0000000000000000 o2: 000000000=
-0000003 o3: 00000000f0000000
->    [ 4423.127058] o4: 0000000000000080 o5: 00000001295a8000 sp: fff8003d9=
-9d56d01 ret_pc: 000000000052ff54
->    [ 4423.145121] RPC: <__purge_vmap_area_lazy+0x314/0x3a0>
->    [ 4423.155185] l0: 0000000000000000 l1: 0000000000000000 l2: 000000000=
-0a38040 l3: 0000000000000000
->    [ 4423.172559] l4: fff8003dae8965e0 l5: ffffffffffffffff l6: 000000000=
-0000000 l7: 00000000f7e2b138
->    [ 4423.189913] i0: fff8003d99d576a0 i1: fff8003d99d576a8 i2: fff8003d9=
-9d575e8 i3: 0000000000000000
->    [ 4423.207284] i4: 0000000000008008 i5: fff8003d99d575c8 i6: fff8003d9=
-9d56df1 i7: 0000000000530c24
->    [ 4423.224640] I7: <free_vmap_area_noflush+0x64/0x80>
->    [ 4423.234193] Call Trace:
->    [ 4423.239051]  [0000000000530c24] free_vmap_area_noflush+0x64/0x80
->    [ 4423.251029]  [0000000000531a7c] remove_vm_area+0x5c/0x80
->    [ 4423.261628]  [0000000000531b80] __vunmap+0x20/0x120
->    [ 4423.271352]  [000000000071cf18] n_tty_close+0x18/0x40
->    [ 4423.281423]  [00000000007222b0] tty_ldisc_close+0x30/0x60
->    [ 4423.292183]  [00000000007225a4] tty_ldisc_reinit+0x24/0xa0
->    [ 4423.303120]  [0000000000722ab4] tty_ldisc_hangup+0xd4/0x1e0
->    [ 4423.314232]  [0000000000719aa0] __tty_hangup+0x280/0x3c0
->    [ 4423.324835]  [0000000000724cb4] pty_close+0x134/0x1a0
->    [ 4423.334905]  [000000000071aa24] tty_release+0x104/0x500
->    [ 4423.345316]  [00000000005511d0] __fput+0x90/0x1e0
->    [ 4423.354701]  [000000000047fa54] task_work_run+0x94/0xe0
->    [ 4423.365126]  [0000000000404b44] __handle_signal+0xc/0x2c
->=20
->    Fixes: 4ca9a23765da ("sparc64: Guard against flushing openfirmware map=
-pings.")
->    Signed-off-by: David S. Miller <davem@davemloft.net>
->=20
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index c8bccaf..bd08ed4 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -2837,8 +2837,8 @@ void flush_tlb_kernel_range(unsigned long start, un=
-signed long end)
-> 			do_flush_tlb_kernel_range(start, LOW_OBP_ADDRESS);
-> 		}
-> 		if (end > HI_OBP_ADDRESS) {
-> -			flush_tsb_kernel_range(end, HI_OBP_ADDRESS);
-> -			do_flush_tlb_kernel_range(end, HI_OBP_ADDRESS);
-> +			flush_tsb_kernel_range(HI_OBP_ADDRESS, end);
-> +			do_flush_tlb_kernel_range(HI_OBP_ADDRESS, end);
-> 		}
-> 	} else {
-> 		flush_tsb_kernel_range(start, end);
-
-Yep, that fix is still there, but you will note that end *is* above start in
-the call. Something is being allocated and freed right at the end of the ma=
-lloc
-area, so it=E2=80=99s iterating over almost the entire thing.
-
-James
-
+RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFR1ZSwgMjUgT2N0
+IDIwMTYgMTY6MTE6NTIgKzAxMDANCg0KPiBZZXAsIHRoYXQgZml4IGlzIHN0aWxsIHRoZXJlLCBi
+dXQgeW91IHdpbGwgbm90ZSB0aGF0IGVuZCAqaXMqIGFib3ZlIHN0YXJ0IGluDQo+IHRoZSBjYWxs
+LiBTb21ldGhpbmcgaXMgYmVpbmcgYWxsb2NhdGVkIGFuZCBmcmVlZCByaWdodCBhdCB0aGUgZW5k
+IG9mIHRoZSBtYWxsb2MNCj4gYXJlYSwgc28gaXSicyBpdGVyYXRpbmcgb3ZlciBhbG1vc3QgdGhl
+IGVudGlyZSB0aGluZy4NCg0KT2ssIGxldCBtZSB0aGluayBhYm91dCB0aGlzIHNvbWUgbW9yZS4N
+Cg=
