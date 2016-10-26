@@ -1,34 +1,28 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Wed, 26 Oct 2016 16:58:16 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 26 Oct 2016 17:09:02 +0000
 Subject: Re: [PATCH] sparc64: Handle extremely large kernel TSB range flushes sanely.
-Message-Id: <ED08EA5D-6934-4101-AA55-288DFA5B2D98@jrtc27.com>
+Message-Id: <20161026.130902.925225250469429514.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161025.224442.1417439049113609110.davem@davemloft.net>
 In-Reply-To: <20161025.224442.1417439049113609110.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> On 26 Oct 2016, at 16:54, David Miller <davem@davemloft.net> wrote:
->=20
-> From: James Clarke <jrtc27@jrtc27.com>
-> Date: Wed, 26 Oct 2016 09:28:05 +0100
->=20
->> Any progress on TLB flushing?
->=20
-> I was half-way through an implementation when I noticed that
-> hypervisor TLB flush handler relative branch bug I posted the
-> fix for last night.
-
-Yep, I saw that. Looks like you forgot to update the comment on
-__hypervisor_flush_tlb_pending; it still says 16 insns rather than 27.
-
-> I'll keep plugging away at it today.
-
-Great; let me know if you need a guinea pig, as it=E2=80=99s pretty easy fo=
-r me to
-reproduce.
-
-Thanks,
-James
+RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFdlZCwgMjYgT2N0
+IDIwMTYgMTc6NTg6MTYgKzAxMDANCg0KPj4gT24gMjYgT2N0IDIwMTYsIGF0IDE2OjU0LCBEYXZp
+ZCBNaWxsZXIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+IHdyb3RlOg0KPj4gDQo+PiBGcm9tOiBKYW1l
+cyBDbGFya2UgPGpydGMyN0BqcnRjMjcuY29tPg0KPj4gRGF0ZTogV2VkLCAyNiBPY3QgMjAxNiAw
+OToyODowNSArMDEwMA0KPj4gDQo+Pj4gQW55IHByb2dyZXNzIG9uIFRMQiBmbHVzaGluZz8NCj4+
+IA0KPj4gSSB3YXMgaGFsZi13YXkgdGhyb3VnaCBhbiBpbXBsZW1lbnRhdGlvbiB3aGVuIEkgbm90
+aWNlZCB0aGF0DQo+PiBoeXBlcnZpc29yIFRMQiBmbHVzaCBoYW5kbGVyIHJlbGF0aXZlIGJyYW5j
+aCBidWcgSSBwb3N0ZWQgdGhlDQo+PiBmaXggZm9yIGxhc3QgbmlnaHQuDQo+IA0KPiBZZXAsIEkg
+c2F3IHRoYXQuIExvb2tzIGxpa2UgeW91IGZvcmdvdCB0byB1cGRhdGUgdGhlIGNvbW1lbnQgb24N
+Cj4gX19oeXBlcnZpc29yX2ZsdXNoX3RsYl9wZW5kaW5nOyBpdCBzdGlsbCBzYXlzIDE2IGluc25z
+IHJhdGhlciB0aGFuIDI3Lg0KDQpGaXhlZCwgdGhhbmtzLg0KDQpBbmQgbm93IEkgbm90aWNlZCB0
+aGF0IHRoZSBjcm9zcy1jYWxsIGh5cGVydmlzb3IgdGxiIGZsdXNoIGFzc2VtYmxlcg0KaGFzIHRo
+ZSBidWcgYW5kIG5lZWRzIHRvIGJlIGZpeGVkIHRvby4uLg0KDQo+PiBJJ2xsIGtlZXAgcGx1Z2dp
+bmcgYXdheSBhdCBpdCB0b2RheS4NCj4gDQo+IEdyZWF0OyBsZXQgbWUga25vdyBpZiB5b3UgbmVl
+ZCBhIGd1aW5lYSBwaWcsIGFzIGl0onMgcHJldHR5IGVhc3kgZm9yIG1lIHRvDQo+IHJlcHJvZHVj
+ZS4NCg0KV2lsbCBkbywgd2hhdCBraW5kIG9mIGNwdXMgZG8geW91IGhhdmU/DQo
