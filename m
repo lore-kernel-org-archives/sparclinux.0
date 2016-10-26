@@ -1,28 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Oct 2016 17:09:02 +0000
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Wed, 26 Oct 2016 17:21:06 +0000
 Subject: Re: [PATCH] sparc64: Handle extremely large kernel TSB range flushes sanely.
-Message-Id: <20161026.130902.925225250469429514.davem@davemloft.net>
+Message-Id: <6EF334A5-D690-4076-ACD6-2C959B31AF80@jrtc27.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161025.224442.1417439049113609110.davem@davemloft.net>
 In-Reply-To: <20161025.224442.1417439049113609110.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFdlZCwgMjYgT2N0
-IDIwMTYgMTc6NTg6MTYgKzAxMDANCg0KPj4gT24gMjYgT2N0IDIwMTYsIGF0IDE2OjU0LCBEYXZp
-ZCBNaWxsZXIgPGRhdmVtQGRhdmVtbG9mdC5uZXQ+IHdyb3RlOg0KPj4gDQo+PiBGcm9tOiBKYW1l
-cyBDbGFya2UgPGpydGMyN0BqcnRjMjcuY29tPg0KPj4gRGF0ZTogV2VkLCAyNiBPY3QgMjAxNiAw
-OToyODowNSArMDEwMA0KPj4gDQo+Pj4gQW55IHByb2dyZXNzIG9uIFRMQiBmbHVzaGluZz8NCj4+
-IA0KPj4gSSB3YXMgaGFsZi13YXkgdGhyb3VnaCBhbiBpbXBsZW1lbnRhdGlvbiB3aGVuIEkgbm90
-aWNlZCB0aGF0DQo+PiBoeXBlcnZpc29yIFRMQiBmbHVzaCBoYW5kbGVyIHJlbGF0aXZlIGJyYW5j
-aCBidWcgSSBwb3N0ZWQgdGhlDQo+PiBmaXggZm9yIGxhc3QgbmlnaHQuDQo+IA0KPiBZZXAsIEkg
-c2F3IHRoYXQuIExvb2tzIGxpa2UgeW91IGZvcmdvdCB0byB1cGRhdGUgdGhlIGNvbW1lbnQgb24N
-Cj4gX19oeXBlcnZpc29yX2ZsdXNoX3RsYl9wZW5kaW5nOyBpdCBzdGlsbCBzYXlzIDE2IGluc25z
-IHJhdGhlciB0aGFuIDI3Lg0KDQpGaXhlZCwgdGhhbmtzLg0KDQpBbmQgbm93IEkgbm90aWNlZCB0
-aGF0IHRoZSBjcm9zcy1jYWxsIGh5cGVydmlzb3IgdGxiIGZsdXNoIGFzc2VtYmxlcg0KaGFzIHRo
-ZSBidWcgYW5kIG5lZWRzIHRvIGJlIGZpeGVkIHRvby4uLg0KDQo+PiBJJ2xsIGtlZXAgcGx1Z2dp
-bmcgYXdheSBhdCBpdCB0b2RheS4NCj4gDQo+IEdyZWF0OyBsZXQgbWUga25vdyBpZiB5b3UgbmVl
-ZCBhIGd1aW5lYSBwaWcsIGFzIGl0onMgcHJldHR5IGVhc3kgZm9yIG1lIHRvDQo+IHJlcHJvZHVj
-ZS4NCg0KV2lsbCBkbywgd2hhdCBraW5kIG9mIGNwdXMgZG8geW91IGhhdmU/DQo
+> On 26 Oct 2016, at 18:09, David Miller <davem@davemloft.net> wrote:
+>=20
+> From: James Clarke <jrtc27@jrtc27.com>
+> Date: Wed, 26 Oct 2016 17:58:16 +0100
+>=20
+>>> On 26 Oct 2016, at 16:54, David Miller <davem@davemloft.net> wrote:
+>>>=20
+>>> From: James Clarke <jrtc27@jrtc27.com>
+>>> Date: Wed, 26 Oct 2016 09:28:05 +0100
+>>>=20
+>>>> Any progress on TLB flushing?
+>>>=20
+>>> I'll keep plugging away at it today.
+>>=20
+>> Great; let me know if you need a guinea pig, as it=E2=80=99s pretty easy=
+ for me to
+>> reproduce.
+>=20
+> Will do, what kind of cpus do you have?
+
+* UltraSparc T5 (Niagara5)
+* UltraSparc T1 (Niagara)
+* UltraSPARC IIIi
+
+The IIIi seems to be down at the moment though.
+
+James
+
