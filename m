@@ -1,34 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 27 Oct 2016 15:51:04 +0000
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Thu, 27 Oct 2016 16:02:32 +0000
 Subject: Re: [PATCH] sparc64: Handle extremely large kernel TSB range flushes sanely.
-Message-Id: <20161027.115104.851057816320196956.davem@davemloft.net>
+Message-Id: <04353338-15CE-4427-A8AE-2CE2A6A04EF6@jrtc27.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161025.224442.1417439049113609110.davem@davemloft.net>
 In-Reply-To: <20161025.224442.1417439049113609110.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFRodSwgMjcgT2N0
-IDIwMTYgMDk6MjU6MzYgKzAxMDANCg0KPiBJonZlIHJ1biBpdCBvbiB0aGUgVDUgYW5kIGl0IHNl
-ZW1zIHRvIHdvcmsgd2l0aG91dCBsb2NrdXBzOg0KPiANCj4gWzU5NDgwOTAuOTg4ODIxXSB2bG5f
-aW5pdDogKnZtYXBfbGF6eV9uciBpcyAzMjc1NA0KPiBbNTk0ODA5MC45ODk5NDNdIHZsbl9pbml0
-OiBsYXp5X21heF9wYWdlcygpIGlzIDMyNzY4DQo+IFs1OTQ4MDkxLjE1NzM4MV0gVFNCW2luc21v
-ZDoyNjE4NzZdOiBERUJVRyBmbHVzaF90c2Jfa2VybmVsX3JhbmdlIHN0YXJ0PTAwMDAwMDAwMTAw
-MDYwMDAgZW5kPTAwMDAwMDAwZjAwMDAwMDAgUEFHRV9TSVpFPTIwMDANCj4gWzU5NDgwOTEuMTU3
-NTMwXSBUU0JbaW5zbW9kOjI2MTg3Nl06IERFQlVHIGZsdXNoX3RzYl9rZXJuZWxfcmFuZ2Ugc3Rh
-cnQ9MDAwMDAwMDEwMDAwMDAwMCBlbmQ9MDAwNWZmZmY4YzAwMDAwMCBQQUdFX1NJWkU9MjAwMA0K
-PiBbNTk0ODA5MS4xNTgyNDBdIHZsbl9pbml0OiB2bWFwX2xhenlfbnIgaXMgY2FlYjFjDQo+IFs1
-OTQ4MDkxLjE1ODI1Ml0gdmxuX2luaXQ6ICp2bWFwX2xhenlfbnIgaXMgMA0KPiBbNTk0ODA5MS4x
-NTkzMTFdIHZsbl9pbml0OiBsYXp5X21heF9wYWdlcygpIGlzIDMyNzY4DQo+IC4uLiBjb250aW51
-ZXMgb24gYXMgbm9ybWFsIC4uLg0KPiANCj4gKGFnYWluLCB0aGF0onMgbXkgZGVidWdnaW5nIG1v
-ZHVsZSB0byBzZWUgaG93IGNsb3NlIHRoZSBzeXN0ZW0gaXMgdG8gYSBmbHVzaCkNCj4gDQo+IEkg
-Y2FuJ3QgKHlldCkgdm91Y2ggZm9yIHRoZSBJSUlpLCBidXQgd2hlbiBpdCBjb21lcyBiYWNrIHVw
-IEmibGwgZ2l2ZSBpdCBhIGdvWzFdLg0KPiBJJ2xsIGFsc28gcHV0IGl0IG9uIHRoZSBUMSBhdCBz
-b21lIHBvaW50IHRvZGF5LCBidXQgaXQgKnNob3VsZCogYWxzbyB3b3JrIHNpbmNlDQo+IGl0J3Mg
-dXNpbmcgdGhlIHNhbWUgc3VuNHYvaHlwZXJ2aXNvciBpbXBsZW1lbnRhdGlvbiBhcyB0aGUgVDUu
-DQoNCkknbSBhYm91dCB0byB0ZXN0IGl0IG9uIG15IElJSWkgYW5kIHdpbGwgY29tbWl0IHRoaXMg
-aWYgaXQgc2VlbXMgdG8gd29yayBwcm9wZXJseS4NCg0KSSBndWVzcyB5b3UgaGF2ZSBubyBvcGlu
-aW9uIGFib3V0IHRoZSBjdXQtb2ZmIGNob29zZW4/IDotKQ0KDQpBbnl3YXlzLCB3ZSBjYW4gZmlu
-ZSB0dW5lIGl0IGxhdGVyLg0K
+> On 27 Oct 2016, at 16:51, David Miller <davem@davemloft.net> wrote:
+> 
+> From: James Clarke <jrtc27@jrtc27.com>
+> Date: Thu, 27 Oct 2016 09:25:36 +0100
+> 
+>> I’ve run it on the T5 and it seems to work without lockups:
+>> 
+>> [5948090.988821] vln_init: *vmap_lazy_nr is 32754
+>> [5948090.989943] vln_init: lazy_max_pages() is 32768
+>> [5948091.157381] TSB[insmod:261876]: DEBUG flush_tsb_kernel_range start=0000000010006000 end=00000000f0000000 PAGE_SIZE=2000
+>> [5948091.157530] TSB[insmod:261876]: DEBUG flush_tsb_kernel_range start=0000000100000000 end=0005ffff8c000000 PAGE_SIZE=2000
+>> [5948091.158240] vln_init: vmap_lazy_nr is caeb1c
+>> [5948091.158252] vln_init: *vmap_lazy_nr is 0
+>> [5948091.159311] vln_init: lazy_max_pages() is 32768
+>> ... continues on as normal ...
+>> 
+>> (again, that’s my debugging module to see how close the system is to a flush)
+>> 
+>> I can't (yet) vouch for the IIIi, but when it comes back up I’ll give it a go[1].
+>> I'll also put it on the T1 at some point today, but it *should* also work since
+>> it's using the same sun4v/hypervisor implementation as the T5.
+> 
+> I'm about to test it on my IIIi and will commit this if it seems to work properly.
+> 
+> I guess you have no opinion about the cut-off choosen? :-)
+> 
+> Anyways, we can fine tune it later.
+
+I was just testing it on the IIIi when I got this. Anyway, it seems to work fine.
+It hasn’t (yet) had one of the stupidly high allocations, but it did flush a block
+of 3658 pages just fine (assuming the flush actually worked). Similarly for the T1.
+
+The cut-off seems pretty arbitrary, and the only way to determine it properly would
+be benchmarking (or finding out what the relevant delays are). Given x86 uses 33,
+32 or 64 seem perfectly fine, but going into the hundreds doesn’t sound stupid
+either... For such small numbers it’s probably hardly going to matter.
+
+Tested-by: James Clarke <jrtc27@jrtc27.com>
+
+James
+
