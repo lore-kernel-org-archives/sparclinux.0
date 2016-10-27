@@ -1,29 +1,27 @@
-From: Jan Kara <jack@suse.cz>
-Date: Tue, 18 Oct 2016 12:43:05 +0000
-Subject: Re: [PATCH 01/10] mm: remove write/force parameters from __get_user_pages_locked()
-Message-Id: <20161018124305.GA29967@quack2.suse.cz>
+From: Allan Tsakuhhin <allan.tsakuhhin@gmail.com>
+Date: Thu, 27 Oct 2016 17:50:48 +0000
+Subject: Fwd: Fujitsu PrimePower 450 with SPARC64 V & Linux support
+Message-Id: <CAC=+HvYmY7sQ=MEf9eveKMqHrP8zKcmGS9ZE6uR9=7bneMeiqA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-2-lstoakes@gmail.com>
-In-Reply-To: <20161013002020.3062-2-lstoakes@gmail.com>
+References: <B4E4747C-3A32-435B-A882-F89338148733@gmail.com> <CAC=+HvZpz32O5oER7=bM84PQU3xgwJDTj4iuuYssy69pkNGGvQ@mail.gmail.com>
+In-Reply-To: <CAC=+HvZpz32O5oER7=bM84PQU3xgwJDTj4iuuYssy69pkNGGvQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, x86@kernel.org, Hugh Dickins <hughd@google.com>, linux-media@vger.kernel.org, Rik van Riel <riel@redhat.com>, intel-gfx@lists.freedesktop.org, adi-buildroot-devel@lists.sourceforge.net, ceph-devel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-cris-kernel@axis.com, Linus Torvalds <torvalds@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.orglin
+To: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mroos@linux.ee
 
-On Thu 13-10-16 01:20:11, Lorenzo Stoakes wrote:
-> This patch removes the write and force parameters from __get_user_pages_locked()
-> to make the use of FOLL_FORCE explicit in callers as use of this flag can result
-> in surprising behaviour (and hence bugs) within the mm subsystem.
-> 
-> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+I am trying to build Linux system on Fujitsu PrimePower 450 running by
+SPARC64 V CPUs. Does anyone have supportive materials (manuals,
+overviews, specs) about Fujitsu PP450 and SPARC64 V CPUs. Every kind
+of source material may be useful!
 
-Looks good. You can add:
+All I have found from Internet, there is no Linux support to SPARC64
+V. Persons, who have tried to get it work before, please give me some
+advice and let me know about your results.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+For now I have build a Linux kernel from SPARC Enterprise T2000 as a
+donor kernel and trying to get it work on SPARC64 V.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+
+Allan Tsakuhhin
