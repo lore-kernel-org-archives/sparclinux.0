@@ -1,85 +1,34 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Thu, 27 Oct 2016 08:25:36 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 27 Oct 2016 15:51:04 +0000
 Subject: Re: [PATCH] sparc64: Handle extremely large kernel TSB range flushes sanely.
-Message-Id: <94FE488D-75AB-4D1A-AD64-CB5B0ADF115E@jrtc27.com>
+Message-Id: <20161027.115104.851057816320196956.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161025.224442.1417439049113609110.davem@davemloft.net>
 In-Reply-To: <20161025.224442.1417439049113609110.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> On 27 Oct 2016, at 02:27, James Clarke <jrtc27@jrtc27.com> wrote:
-> 
->> On 26 Oct 2016, at 22:02, David Miller <davem@davemloft.net> wrote:
->> 
->> From: James Clarke <jrtc27@jrtc27.com>
->> Date: Wed, 26 Oct 2016 21:05:36 +0100
->> 
->>> Thanks for this, it's now compiling. I'll let you know if it works
->>> within the next 24 hours.
->> 
->> Thanks.
->> 
->>> Before I forget, what do you think about the following patch? I know
->>> Debian used to use the 64-bit kernel for a 32-bit sparc userland, and so
->>> "Architecture: sparc" was correct, but obviously sparc64 also exists. It
->>> seems more sane to make sparc64 default to "Architecture: sparc64", with
->>> sparc users needing to override this with KBUILD_DEBARCH if they want
->>> to, rather than providing a setup that's broken out of the box for
->>> sparc64 users.
->>> 
->>> From: James Clarke <jrtc27@jrtc27.com>
->>> Date: Wed, 26 Oct 2016 20:17:10 +0100
->>> Subject: [PATCH] builddeb: Add support for sparc64
->>> 
->>> Signed-off-by: James Clarke <jrtc27@jrtc27.com>
->> 
->> I don't know.
->> 
->> I still personally use a 32-bit userland on my sparc64 systems because
->> that is what performs the best and is what I will be using for as long
->> as I possibly can.
->> 
->> I've actually never used this target, is this for build the kernel or
->> userland components?
-> 
-> Yes, make pkg-deb builds kernel, firmware, headers and linux-libc packages.
-> By the way, the first build I made of 4.9 (using Debian’s 4.8 config as old
-> config) wouldn’t boot, since:
-> 
-> * sunvdc module needs _mcount
-> * sunvnet module needs _mcount and count_bits
-> * crc32c_sparc64 module needs _mcount and VISenter
-> [* raid6_pq module needs memcpy, though that’s just for a data partition]
-> 
-> The workaround is not to use CONFIG_MODVERSIONS, but this wasn’t at all clear
-> at first. This is because of d3867f0483, which moved these to being exported in
-> their .S.
-> 
-> Anyway, the new kernel is running now and being stress-tested.
-
-Hi David,
-I’ve run it on the T5 and it seems to work without lockups:
-
-[5948090.988821] vln_init: *vmap_lazy_nr is 32754
-[5948090.989943] vln_init: lazy_max_pages() is 32768
-[5948091.157381] TSB[insmod:261876]: DEBUG flush_tsb_kernel_range start=0000000010006000 end=00000000f0000000 PAGE_SIZE=2000
-[5948091.157530] TSB[insmod:261876]: DEBUG flush_tsb_kernel_range start=0000000100000000 end=0005ffff8c000000 PAGE_SIZE=2000
-[5948091.158240] vln_init: vmap_lazy_nr is caeb1c
-[5948091.158252] vln_init: *vmap_lazy_nr is 0
-[5948091.159311] vln_init: lazy_max_pages() is 32768
-... continues on as normal ...
-
-(again, that’s my debugging module to see how close the system is to a flush)
-
-I can't (yet) vouch for the IIIi, but when it comes back up I’ll give it a go[1].
-I'll also put it on the T1 at some point today, but it *should* also work since
-it's using the same sun4v/hypervisor implementation as the T5.
-
-Thanks,
-James
-
-[1] Not sure how long that will take...
-
+RnJvbTogSmFtZXMgQ2xhcmtlIDxqcnRjMjdAanJ0YzI3LmNvbT4NCkRhdGU6IFRodSwgMjcgT2N0
+IDIwMTYgMDk6MjU6MzYgKzAxMDANCg0KPiBJonZlIHJ1biBpdCBvbiB0aGUgVDUgYW5kIGl0IHNl
+ZW1zIHRvIHdvcmsgd2l0aG91dCBsb2NrdXBzOg0KPiANCj4gWzU5NDgwOTAuOTg4ODIxXSB2bG5f
+aW5pdDogKnZtYXBfbGF6eV9uciBpcyAzMjc1NA0KPiBbNTk0ODA5MC45ODk5NDNdIHZsbl9pbml0
+OiBsYXp5X21heF9wYWdlcygpIGlzIDMyNzY4DQo+IFs1OTQ4MDkxLjE1NzM4MV0gVFNCW2luc21v
+ZDoyNjE4NzZdOiBERUJVRyBmbHVzaF90c2Jfa2VybmVsX3JhbmdlIHN0YXJ0PTAwMDAwMDAwMTAw
+MDYwMDAgZW5kPTAwMDAwMDAwZjAwMDAwMDAgUEFHRV9TSVpFPTIwMDANCj4gWzU5NDgwOTEuMTU3
+NTMwXSBUU0JbaW5zbW9kOjI2MTg3Nl06IERFQlVHIGZsdXNoX3RzYl9rZXJuZWxfcmFuZ2Ugc3Rh
+cnQ9MDAwMDAwMDEwMDAwMDAwMCBlbmQ9MDAwNWZmZmY4YzAwMDAwMCBQQUdFX1NJWkU9MjAwMA0K
+PiBbNTk0ODA5MS4xNTgyNDBdIHZsbl9pbml0OiB2bWFwX2xhenlfbnIgaXMgY2FlYjFjDQo+IFs1
+OTQ4MDkxLjE1ODI1Ml0gdmxuX2luaXQ6ICp2bWFwX2xhenlfbnIgaXMgMA0KPiBbNTk0ODA5MS4x
+NTkzMTFdIHZsbl9pbml0OiBsYXp5X21heF9wYWdlcygpIGlzIDMyNzY4DQo+IC4uLiBjb250aW51
+ZXMgb24gYXMgbm9ybWFsIC4uLg0KPiANCj4gKGFnYWluLCB0aGF0onMgbXkgZGVidWdnaW5nIG1v
+ZHVsZSB0byBzZWUgaG93IGNsb3NlIHRoZSBzeXN0ZW0gaXMgdG8gYSBmbHVzaCkNCj4gDQo+IEkg
+Y2FuJ3QgKHlldCkgdm91Y2ggZm9yIHRoZSBJSUlpLCBidXQgd2hlbiBpdCBjb21lcyBiYWNrIHVw
+IEmibGwgZ2l2ZSBpdCBhIGdvWzFdLg0KPiBJJ2xsIGFsc28gcHV0IGl0IG9uIHRoZSBUMSBhdCBz
+b21lIHBvaW50IHRvZGF5LCBidXQgaXQgKnNob3VsZCogYWxzbyB3b3JrIHNpbmNlDQo+IGl0J3Mg
+dXNpbmcgdGhlIHNhbWUgc3VuNHYvaHlwZXJ2aXNvciBpbXBsZW1lbnRhdGlvbiBhcyB0aGUgVDUu
+DQoNCkknbSBhYm91dCB0byB0ZXN0IGl0IG9uIG15IElJSWkgYW5kIHdpbGwgY29tbWl0IHRoaXMg
+aWYgaXQgc2VlbXMgdG8gd29yayBwcm9wZXJseS4NCg0KSSBndWVzcyB5b3UgaGF2ZSBubyBvcGlu
+aW9uIGFib3V0IHRoZSBjdXQtb2ZmIGNob29zZW4/IDotKQ0KDQpBbnl3YXlzLCB3ZSBjYW4gZmlu
+ZSB0dW5lIGl0IGxhdGVyLg0K
