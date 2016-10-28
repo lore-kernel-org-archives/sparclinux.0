@@ -1,78 +1,77 @@
 From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Fri, 28 Oct 2016 17:12:42 +0000
-Subject: [PATCH v3 3/6] sparc64: Initialize iommu_map_table and iommu_pool
-Message-Id: <1477674765-22160-4-git-send-email-tushar.n.dave@oracle.com>
+Date: Fri, 28 Oct 2016 17:12:39 +0000
+Subject: [PATCH v3 0/6] sparc: Enable sun4v hypervisor PCI IOMMU v2 APIs and ATU
+Message-Id: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Like legacy IOMMU, use common iommu_map_table and iommu_pool for ATU.
-This change initializes iommu_map_table and iommu_pool for ATU.
+ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
+sun4v hypervisor PCI IOMMU v2 APIs.
 
-Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
-Reviewed-by: chris hyser <chris.hyser@oracle.com>
-Reviewed-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
----
- arch/sparc/include/asm/iommu_64.h |  2 ++
- arch/sparc/kernel/pci_sun4v.c     | 19 +++++++++++++++++++
- 2 files changed, 21 insertions(+)
+Current SPARC IOMMU supports only 32bit address ranges and one TSB
+per PCIe root complex that has a 2GB per root complex DVMA space
+limit. The limit has become a scalability bottleneck nowadays that
+a typical 10G/40G NIC can consume 500MB DVMA space per instance.
+When DVMA resource is exhausted, devices will not be usable
+since the driver can't allocate DVMA.
 
-diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
-index 93daa59..f24f356 100644
---- a/arch/sparc/include/asm/iommu_64.h
-+++ b/arch/sparc/include/asm/iommu_64.h
-@@ -45,8 +45,10 @@ struct atu_ranges {
- struct atu {
- 	struct	atu_ranges	*ranges;
- 	struct	atu_iotsb	*iotsb;
-+	struct	iommu_map_table	tbl;
- 	u64			base;
- 	u64			size;
-+	u64			dma_addr_mask;
- };
- 
- struct iommu {
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 2afb86c..242477c 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -644,6 +644,8 @@ static int pci_sun4v_atu_init(struct pci_pbm_info *pbm)
- 	struct atu *atu = pbm->iommu->atu;
- 	unsigned long err;
- 	const u64 *ranges;
-+	u64 map_size, num_iotte;
-+	u64 dma_mask;
- 	const u32 *page_size;
- 	int len;
- 
-@@ -682,6 +684,23 @@ static int pci_sun4v_atu_init(struct pci_pbm_info *pbm)
- 		return err;
- 	}
- 
-+	/* Create ATU iommu map.
-+	 * One bit represents one iotte in IOTSB table.
-+	 */
-+	dma_mask = (roundup_pow_of_two(atu->size) - 1UL);
-+	num_iotte = atu->size / IO_PAGE_SIZE;
-+	map_size = num_iotte / 8;
-+	atu->tbl.table_map_base = atu->base;
-+	atu->dma_addr_mask = dma_mask;
-+	atu->tbl.map = kzalloc(map_size, GFP_KERNEL);
-+	if (!atu->tbl.map)
-+		return -ENOMEM;
-+
-+	iommu_tbl_pool_init(&atu->tbl, num_iotte, IO_PAGE_SHIFT,
-+			    NULL, false /* no large_pool */,
-+			    0 /* default npools */,
-+			    false /* want span boundary checking */);
-+
- 	return 0;
- }
- 
+For example, we recently experienced legacy IOMMU limitation while
+using i40e driver in system with large number of CPUs (e.g. 128).
+Four ports of i40e, each request 128 QP (Queue Pairs). Each queue has
+512 (default) descriptors. So considering only RX queues (because RX
+premap DMA buffers), i40e takes 4*128*512 number of DMA entries in
+IOMMU table. Legacy IOMMU can have at max (2G/8K)- 1 entries available
+in table. So bringing up four instance of i40e alone saturate existing
+IOMMU resource.
+
+ATU removes bottleneck by allowing guest os to create IOTSB of size
+32G (or more) with 64bit address ranges available in ATU HW. 32G is
+more than enough DVMA space to be shared by all PCIe devices under
+root complex contrast to 2G space provided by legacy IOMMU.
+
+ATU allows PCIe devices to use 64bit DMA addressing. Devices
+which choose to use 32bit DMA mask will continue to work with the
+existing legacy IOMMU.
+
+The patch set is tested on sun4v (T1000, T2000, T3, T4, T5, T7, S7)
+and sun4u SPARC.
+
+Thanks.
+-Tushar
+
+v2->v3:
+- Patch #5 addresses comment by Joe Perches.
+ -- use %s, __func__ instead of embedding the function name.
+
+v1->v2:
+- Patch #2 addresses comments by Dave M.
+ -- use page allocator to allocate IOTSB.
+ -- use true/false with boolean variables.
+
+
+Dave Kleikamp (1):
+  sparc64: Add FORCE_MAX_ZONEORDER and default to 13
+
+Tushar Dave (5):
+  sparc64: Add ATU (new IOMMU) support
+  sparc64: Initialize iommu_map_table and iommu_pool
+  sparc64: Bind PCIe devices to use IOMMU v2 service
+  sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
+  sparc64: Enable 64-bit DMA
+
+ arch/sparc/Kconfig                  |  22 ++
+ arch/sparc/include/asm/hypervisor.h | 343 +++++++++++++++++++++++++++++
+ arch/sparc/include/asm/iommu_64.h   |  28 +++
+ arch/sparc/kernel/hvapi.c           |   1 +
+ arch/sparc/kernel/iommu.c           |   8 +-
+ arch/sparc/kernel/pci_sun4v.c       | 418 +++++++++++++++++++++++++++++++-----
+ arch/sparc/kernel/pci_sun4v.h       |  21 ++
+ arch/sparc/kernel/pci_sun4v_asm.S   |  68 ++++++
+ 8 files changed, 849 insertions(+), 60 deletions(-)
+
 -- 
 1.9.1
 
