@@ -1,45 +1,60 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Mon, 24 Oct 2016 19:24:31 +0000
-Subject: Re: [net-next PATCH RFC 19/26] arch/sparc: Add option to skip DMA sync as a part of map and unmap
-Message-Id: <CAKgT0Uc6_D-w2kUC2o_FKm-chCr1j+CkSe_wE-D8--gyrfyr0w@mail.gmail.com>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Fri, 28 Oct 2016 17:12:45 +0000
+Subject: [PATCH v3 6/6] sparc64: Enable 64-bit DMA
+Message-Id: <1477674765-22160-7-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161024115737.16276.71059.stgit@ahduyck-blue-test.jf.intel.com>
- <20161024120607.16276.5989.stgit@ahduyck-blue-test.jf.intel.com> <20161024.142730.1316656811538193943.davem@davemloft.net>
-In-Reply-To: <20161024.142730.1316656811538193943.davem@davemloft.net>
+References: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: "Duyck, Alexander H" <alexander.h.duyck@intel.com>, Netdev <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, sparclinux@vger.kernel.org, Jesper Dangaard Brouer <brouer@redhat.com>
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Oct 24, 2016 at 11:27 AM, David Miller <davem@davemloft.net> wrote:
-> From: Alexander Duyck <alexander.h.duyck@intel.com>
-> Date: Mon, 24 Oct 2016 08:06:07 -0400
->
->> This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
->> avoid invoking cache line invalidation if the driver will just handle it
->> via a sync_for_cpu or sync_for_device call.
->>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: sparclinux@vger.kernel.org
->> Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
->
-> This is fine for avoiding the flush for performance reasons, but the
-> chip isn't going to write anything back unless the device wrote into
-> the area.
+ATU 64bit addressing allows PCIe devices with 64bit DMA capabilities
+to use ATU for 64bit DMA.
 
-That is mostly what I am doing here.  The original implementation was
-mostly for performance.  I am trying to take the attribute that was
-already in place for ARM and apply it to all the other architectures.
-So what will be happening now is that we call the map function with
-this attribute set and then use the sync functions to map it to the
-device and then pull the mapping later.
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: chris hyser <chris.hyser@oracle.com>
+Acked-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+---
+ arch/sparc/Kconfig        | 4 ++++
+ arch/sparc/kernel/iommu.c | 8 ++++++--
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-The idea is that if Jesper does his page pool stuff it would be
-calling the map/unmap functions and then the drivers would be doing
-the sync_for_cpu/sync_for_device.  I want to make sure the map is
-cheap and we will have to call sync_for_cpu from the drivers anyway
-since there is no guarantee if we will have a new page or be reusing
-an existing one.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 5202eb4..60145c9 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -93,6 +93,10 @@ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+ 
++config ARCH_DMA_ADDR_T_64BIT
++	bool
++	default y if ARCH_ATU
++
+ config IOMMU_HELPER
+ 	bool
+ 	default y if SPARC64
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 5c615ab..852a329 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -760,8 +760,12 @@ int dma_supported(struct device *dev, u64 device_mask)
+ 	struct iommu *iommu = dev->archdata.iommu;
+ 	u64 dma_addr_mask = iommu->dma_addr_mask;
+ 
+-	if (device_mask >= (1UL << 32UL))
+-		return 0;
++	if (device_mask > DMA_BIT_MASK(32)) {
++		if (iommu->atu)
++			dma_addr_mask = iommu->atu->dma_addr_mask;
++		else
++			return 0;
++	}
+ 
+ 	if ((device_mask & dma_addr_mask) = dma_addr_mask)
+ 		return 1;
+-- 
+1.9.1
 
-- Alex
