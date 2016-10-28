@@ -1,85 +1,63 @@
-From: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Date: Fri, 14 Oct 2016 08:35:14 +0000
-Subject: [PATCH v4 11/12] sparc/tracing: fix compat syscall handling
-Message-Id: <1476434115-25428-13-git-send-email-marcin.nowakowski@imgtec.com>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Fri, 28 Oct 2016 00:23:27 +0000
+Subject: [PATCH v2 1/6] sparc64: Add FORCE_MAX_ZONEORDER and default to 13
+Message-Id: <1477614212-13466-2-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476434115-25428-1-git-send-email-marcin.nowakowski@imgtec.com>
-In-Reply-To: <1476434115-25428-1-git-send-email-marcin.nowakowski-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>
+References: <1477614212-13466-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1477614212-13466-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org, rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org, Marcin Nowakowski <marcin.nowakowski-1AXoQHu6uovQT0dZR+AlfA@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: davem@davemloft.net, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Add missing arch code - arch_trace_is_compat_syscall and
-arch_syscall_addr
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
 
-Signed-off-by: Marcin Nowakowski <marcin.nowakowski@imgtec.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
+This change allows ATU (new IOMMU) in SPARC systems to request
+large (32M) contiguous memory during boot for creating IOTSB backing
+store.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
 ---
- arch/sparc/include/asm/ftrace.h | 10 ++++++++++
- arch/sparc/kernel/Makefile      |  1 +
- arch/sparc/kernel/ftrace.c      | 14 ++++++++++++++
- 3 files changed, 25 insertions(+)
+ arch/sparc/Kconfig | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/arch/sparc/include/asm/ftrace.h b/arch/sparc/include/asm/ftrace.h
-index 62755a3..82e5269 100644
---- a/arch/sparc/include/asm/ftrace.h
-+++ b/arch/sparc/include/asm/ftrace.h
-@@ -6,6 +6,16 @@
- #define MCOUNT_INSN_SIZE	4 /* sizeof mcount call */
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index b23c76b..5202eb4 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -89,6 +89,10 @@ config ARCH_DEFCONFIG
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
  
- #ifndef __ASSEMBLY__
++config ARCH_ATU
++	bool
++	default y if SPARC64
 +
-+#if defined(CONFIG_FTRACE_SYSCALLS) && defined(CONFIG_COMPAT)
-+#include <asm/compat.h>
-+
-+#define ARCH_COMPAT_SYSCALL_NUMBERS_OVERLAP 1
-+static inline bool arch_trace_is_compat_syscall(struct pt_regs *regs)
-+{
-+	return in_compat_syscall();
-+}
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
- void _mcount(void);
- #endif
+ config IOMMU_HELPER
+ 	bool
+ 	default y if SPARC64
+@@ -304,6 +308,20 @@ config ARCH_SPARSEMEM_ENABLE
+ config ARCH_SPARSEMEM_DEFAULT
+ 	def_bool y if SPARC64
  
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index fa3c02d..7808084 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -93,6 +93,7 @@ obj-$(CONFIG_KGDB)        += kgdb_$(BITS).o
++config FORCE_MAX_ZONEORDER
++	int "Maximum zone order"
++	default "13"
++	help
++	  The kernel memory allocator divides physically contiguous memory
++	  blocks into "zones", where each zone is a power of two number of
++	  pages.  This option selects the largest power of two that the kernel
++	  keeps in the memory allocator.  If you need to allocate very large
++	  blocks of physically contiguous memory, then you may need to
++	  increase this value.
++
++	  This config option is actually maximum order plus one. For example,
++	  a value of 13 means that the largest free memory block is 2^12 pages.
++
+ source "mm/Kconfig"
  
- obj-$(CONFIG_DYNAMIC_FTRACE) += ftrace.o
- obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
-+obj-$(CONFIG_FTRACE_SYSCALLS) += ftrace.o
- 
- obj-$(CONFIG_EARLYFB) += btext.o
- obj-$(CONFIG_STACKTRACE)     += stacktrace.o
-diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
-index 6bcff69..e76f012 100644
---- a/arch/sparc/kernel/ftrace.c
-+++ b/arch/sparc/kernel/ftrace.c
-@@ -145,3 +145,17 @@ unsigned long prepare_ftrace_return(unsigned long parent,
- 	return return_hooker;
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-+
-+#if (defined CONFIG_FTRACE_SYSCALLS) && (defined CONFIG_COMPAT)
-+extern const unsigned int sys_call_table[];
-+extern const unsigned int sys_call_table32[];
-+
-+unsigned long __init arch_syscall_addr(int nr, bool compat)
-+{
-+	if (compat)
-+		return (unsigned long)sys_call_table32[nr];
-+
-+	return (unsigned long)sys_call_table[nr];
-+}
-+
-+#endif /* CONFIG_FTRACE_SYSCALLS && CONFIG_COMPAT */
+ if SPARC64
 -- 
-2.7.4
+1.9.1
 
