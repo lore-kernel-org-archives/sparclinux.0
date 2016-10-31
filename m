@@ -1,7 +1,7 @@
 From: Babu Moger <babu.moger@oracle.com>
-Date: Mon, 31 Oct 2016 21:26:49 +0000
+Date: Mon, 31 Oct 2016 21:30:59 +0000
 Subject: Re: [RFC PATCH 0/4] Clean up watchdog handlers
-Message-Id: <ca118f3f-75f9-365a-93c5-0b1771a022e3@oracle.com>
+Message-Id: <16049ab0-e309-8ea7-81d4-a855c666037a@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
  <20161031210056.GT35881@redhat.com>
@@ -44,12 +44,12 @@ On 10/31/2016 4:00 PM, Don Zickus wrote:
 > Though I don't think watchdog.c and watchdog_hld.c should have the same
 > header.  A good solution isn't coming to me right now.  I will try to run
 > some tests on this tomorrow.
+Don, Thanks for the feedback. Let me know if you run into problems with 
+your tests.
+I will start working on the comments.
+Thanks
+Babu
 
-    Don,  Thanks for the feedback.  Let me know if you into issues with 
-your tests. I will start working on the
-    review comments.
-
->
 >
 > Cheers,
 > Don
