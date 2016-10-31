@@ -1,7 +1,7 @@
 From: Don Zickus <dzickus@redhat.com>
-Date: Thu, 27 Oct 2016 14:13:02 +0000
+Date: Mon, 31 Oct 2016 21:00:57 +0000
 Subject: Re: [RFC PATCH 0/4] Clean up watchdog handlers
-Message-Id: <20161027141302.GS35881@redhat.com>
+Message-Id: <20161031210056.GT35881@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
 In-Reply-To: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
@@ -23,16 +23,30 @@ On Wed, Oct 26, 2016 at 09:02:19AM -0700, Babu Moger wrote:
 > Also provide an interface for architectures to implement their own
 > handlers. watchdog_nmi_enable and watchdog_nmi_disable will be defined
 > as weak such that architectures can override its definitions.
-
-Thanks for the patches Babu.  I will try to get to them today or tomorrow.
-
-Cheers,
-Don
-
 > 
 > Thanks to Don Zickus for his suggestions.
 > Here is the previous discussion
 > http://www.spinics.net/lists/sparclinux/msg16441.html
+
+Hi Babu,
+
+I finally got some cycles to poke at this today.  Good work.  A couple of
+suggestions.  For bisectability, I am thinking patch2 should be first and
+patch1 and patch3 should be combined.  Also watchdog_hld.c is going to need
+up top:
+
+#define pr_fmt(fmt) "NMI watchdog: " fmt
+
+otherwise the error messages miss the header.
+
+Though I don't think watchdog.c and watchdog_hld.c should have the same
+header.  A good solution isn't coming to me right now.  I will try to run
+some tests on this tomorrow.
+
+
+Cheers,
+Don
+
 > 
 > Babu Moger (4):
 >   watchdog: Remove hardlockup handler references
