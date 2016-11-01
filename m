@@ -1,24 +1,88 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 13 Nov 2016 17:27:03 +0000
-Subject: Re: [mm PATCH v3 17/23] arch/sparc: Add option to skip DMA sync as a part of map and unmap
-Message-Id: <20161113.122703.2122997256308305867.davem@davemloft.net>
+From: Don Zickus <dzickus@redhat.com>
+Date: Tue, 01 Nov 2016 13:20:11 +0000
+Subject: Re: [RFC PATCH 0/4] Clean up watchdog handlers
+Message-Id: <20161101132011.GW35881@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161110113027.76501.63030.stgit@ahduyck-blue-test.jf.intel.com>
-	<20161110113544.76501.40008.stgit@ahduyck-blue-test.jf.intel.com>
-In-Reply-To: <20161110113544.76501.40008.stgit@ahduyck-blue-test.jf.intel.com>
+References: <1477497743-15357-1-git-send-email-babu.moger@oracle.com>
+ <20161031210056.GT35881@redhat.com>
+ <16049ab0-e309-8ea7-81d4-a855c666037a@oracle.com>
+In-Reply-To: <16049ab0-e309-8ea7-81d4-a855c666037a@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: alexander.h.duyck@intel.com
-Cc: linux-mm@kvack.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Babu Moger <babu.moger@oracle.com>
+Cc: mingo@kernel.org, akpm@linux-foundation.org, ak@linux.intel.com, jkosina@suse.cz, baiyaowei@cmss.chinamobile.com, atomlin@redhat.com, uobergfe@redhat.com, tj@kernel.org, hidehiro.kawai.ez@hitachi.com, johunt@akamai.com, davem@davemloft.net, sparclinux@vger.kernel.org, bp@suse.de, bywxiaobai@163.com, cmetcalf@mellanox.com, keescook@chromium.org, ebiederm@xmission.com, huawei.libin@huawei.com, ralf@linux-mips.org, dvyukov@google.com, linux-kernel@vger.kernel.org, sam@ravnborg.org
 
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Date: Thu, 10 Nov 2016 06:35:45 -0500
-
-> This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-> avoid invoking cache line invalidation if the driver will just handle it
-> via a sync_for_cpu or sync_for_device call.
+On Mon, Oct 31, 2016 at 04:30:59PM -0500, Babu Moger wrote:
 > 
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+> On 10/31/2016 4:00 PM, Don Zickus wrote:
+> >On Wed, Oct 26, 2016 at 09:02:19AM -0700, Babu Moger wrote:
+> >>This is an attempt to cleanup watchdog handlers. Right now,
+> >>kernel/watchdog.c implements both softlockup and hardlockup detectors.
+> >>Softlockup code is generic. Hardlockup code is arch specific. Some
+> >>architectures don't use hardlockup detectors. They use their own watchdog
+> >>detectors. To make both these combination work, we have numerous #ifdefs
+> >>in kernel/watchdog.c.
+> >>
+> >>We are trying here to make these handlers independent of each other.
+> >>Also provide an interface for architectures to implement their own
+> >>handlers. watchdog_nmi_enable and watchdog_nmi_disable will be defined
+> >>as weak such that architectures can override its definitions.
+> >>
+> >>Thanks to Don Zickus for his suggestions.
+> >>Here is the previous discussion
+> >>http://www.spinics.net/lists/sparclinux/msg16441.html
+> >Hi Babu,
+> >
+> >I finally got some cycles to poke at this today.  Good work.  A couple of
+> >suggestions.  For bisectability, I am thinking patch2 should be first and
+> >patch1 and patch3 should be combined.  Also watchdog_hld.c is going to need
+> >up top:
+> >
+> >#define pr_fmt(fmt) "NMI watchdog: " fmt
+> >
+> >otherwise the error messages miss the header.
+> >
+> >Though I don't think watchdog.c and watchdog_hld.c should have the same
+> >header.  A good solution isn't coming to me right now.  I will try to run
+> >some tests on this tomorrow.
+> Don, Thanks for the feedback. Let me know if you run into problems with your
+> tests.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Hi Babu,
+
+My tests passed.  I just have to tweak the expected output lines as they
+constantly change. :-(
+
+I am going to play with different config options to see if things break from
+a compile perspective.
+
+> I will start working on the comments.
+
+Great.
+
+Cheers,
+Don
+
+> Thanks
+> Babu
+> 
+> >
+> >Cheers,
+> >Don
+> >
+> >>Babu Moger (4):
+> >>   watchdog: Remove hardlockup handler references
+> >>   watchdog: Move shared definitions to nmi.h
+> >>   watchdog: Move hardlockup detector in separate file
+> >>   sparc: Implement watchdog_nmi_enable and watchdog_nmi_disable
+> >>
+> >>  arch/sparc/kernel/nmi.c |   44 ++++++++-
+> >>  include/linux/nmi.h     |   19 ++++
+> >>  kernel/Makefile         |    1 +
+> >>  kernel/watchdog.c       |  276 ++---------------------------------------------
+> >>  kernel/watchdog_hld.c   |  238 ++++++++++++++++++++++++++++++++++++++++
+> >>  5 files changed, 312 insertions(+), 266 deletions(-)
+> >>  create mode 100644 kernel/watchdog_hld.c
+> >>
+> 
