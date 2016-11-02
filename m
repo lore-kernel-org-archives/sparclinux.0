@@ -1,27 +1,72 @@
-From: "Mr. Piyush Gupta" <dsbbank@zoho.com>
-Date: Thu, 24 Nov 2016 17:36:58 +0000
-Subject: GOOD DAY FRIEND
-Message-Id: <a7a9ae9053daad3fc7adae4db457011f@localhost>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 02 Nov 2016 16:36:33 +0000
+Subject: [PATCH RESEND v3 2/2] lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
+Message-Id: <1478104593-189775-3-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, peterz@infradead.org, akpm@linux-foundation.org
+Cc: keescook@chromium.org, mingo@kernel.org, paulmck@linux.vnet.ibm.com, dan.j.williams@intel.com, tj@kernel.org, jpoimboe@redhat.com, nikolay@cumulusnetworks.com, dvyukov@google.com, sam@ravnborg.org, shuah@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rob.gardner@oracle.com, babu.moger@oracle.com
 
+Reduce the size of data structure for lockdep entries by half if
+PROVE_LOCKING_SMALL if defined. This is used only for sparc.
 
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ kernel/locking/lockdep_internals.h |   20 +++++++++++++++++---
+ 1 files changed, 17 insertions(+), 3 deletions(-)
 
+diff --git a/kernel/locking/lockdep_internals.h b/kernel/locking/lockdep_internals.h
+index 51c4b24..c2b8849 100644
+--- a/kernel/locking/lockdep_internals.h
++++ b/kernel/locking/lockdep_internals.h
+@@ -46,6 +46,14 @@ enum {
+ 		(LOCKF_USED_IN_HARDIRQ_READ | LOCKF_USED_IN_SOFTIRQ_READ)
+ 
+ /*
++ * CONFIG_PROVE_LOCKING_SMALL is defined for sparc. Sparc requires .text,
++ * .data and .bss to fit in required 32MB limit for the kernel. With
++ * PROVE_LOCKING we could go over this limit and cause system boot-up problems.
++ * So, reduce the static allocations for lockdeps related structures so that
++ * everything fits in current required size limit.
++ */
++#ifdef CONFIG_PROVE_LOCKING_SMALL
++/*
+  * MAX_LOCKDEP_ENTRIES is the maximum number of lock dependencies
+  * we track.
+  *
+@@ -54,18 +62,24 @@ enum {
+  * table (if it's not there yet), and we check it for lock order
+  * conflicts and deadlocks.
+  */
++#define MAX_LOCKDEP_ENTRIES	16384UL
++#define MAX_LOCKDEP_CHAINS_BITS	15
++#define MAX_STACK_TRACE_ENTRIES	262144UL
++#else
+ #define MAX_LOCKDEP_ENTRIES	32768UL
+ 
+ #define MAX_LOCKDEP_CHAINS_BITS	16
+-#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
+-
+-#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
+ 
+ /*
+  * Stack-trace: tightly packed array of stack backtrace
+  * addresses. Protected by the hash_lock.
+  */
+ #define MAX_STACK_TRACE_ENTRIES	524288UL
++#endif
++
++#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
++
++#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
+ 
+ extern struct list_head all_lock_classes;
+ extern struct lock_chain lock_chains[];
 -- 
-Dear Friend,
+1.7.1
 
-Good Day, I am Mr. Piyush Gupta as a  (DBSHK) banker, I have funds worth 
-of $25.500,000.00 to secretly secure and transfer in to your account of 
-my late client who dead with next of kin, which i will like to invest in 
-profitable business in your country.
-
-Please if you are interested to help me without betrayed me, do and 
-write me for more details. Here is my Email: infopiyushg@gmail.com
-
-Regards,
-Mr. Piyush Gupta.
-(DBSHK)
-Hong Kong.
