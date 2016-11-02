@@ -1,7 +1,7 @@
 From: Babu Moger <babu.moger@oracle.com>
-Date: Wed, 02 Nov 2016 16:36:33 +0000
-Subject: [PATCH RESEND v3 2/2] lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
-Message-Id: <1478104593-189775-3-git-send-email-babu.moger@oracle.com>
+Date: Wed, 02 Nov 2016 16:36:32 +0000
+Subject: [PATCH RESEND v3 1/2] config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL for sparc
+Message-Id: <1478104593-189775-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
 In-Reply-To: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
@@ -11,62 +11,48 @@ Content-Transfer-Encoding: 7bit
 To: davem@davemloft.net, peterz@infradead.org, akpm@linux-foundation.org
 Cc: keescook@chromium.org, mingo@kernel.org, paulmck@linux.vnet.ibm.com, dan.j.williams@intel.com, tj@kernel.org, jpoimboe@redhat.com, nikolay@cumulusnetworks.com, dvyukov@google.com, sam@ravnborg.org, shuah@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rob.gardner@oracle.com, babu.moger@oracle.com
 
-Reduce the size of data structure for lockdep entries by half if
-PROVE_LOCKING_SMALL if defined. This is used only for sparc.
+This new config parameter limits the space used for "Lock debugging:
+prove locking correctness" by about 4MB. The current sparc systems have
+the limitation of 32MB size for kernel size including .text, .data and
+.bss sections. With PROVE_LOCKING feature, the kernel size could grow
+beyond this limit and causing system boot-up issues. With this option,
+kernel limits the size of the entries of lock_chains, stack_trace etc.,
+so that kernel fits in required size limit. This is not visible to user
+and only used for sparc.
 
 Signed-off-by: Babu Moger <babu.moger@oracle.com>
 Acked-by: Sam Ravnborg <sam@ravnborg.org>
 ---
- kernel/locking/lockdep_internals.h |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
+ arch/sparc/Kconfig |    1 +
+ lib/Kconfig.debug  |    3 +++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/kernel/locking/lockdep_internals.h b/kernel/locking/lockdep_internals.h
-index 51c4b24..c2b8849 100644
---- a/kernel/locking/lockdep_internals.h
-+++ b/kernel/locking/lockdep_internals.h
-@@ -46,6 +46,14 @@ enum {
- 		(LOCKF_USED_IN_HARDIRQ_READ | LOCKF_USED_IN_SOFTIRQ_READ)
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index b23c76b..a85e51d 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -43,6 +43,7 @@ config SPARC
+ 	select ARCH_HAS_SG_CHAIN
+ 	select CPU_NO_EFFICIENT_FFS
+ 	select HAVE_ARCH_HARDENED_USERCOPY
++	select PROVE_LOCKING_SMALL if PROVE_LOCKING
  
- /*
-+ * CONFIG_PROVE_LOCKING_SMALL is defined for sparc. Sparc requires .text,
-+ * .data and .bss to fit in required 32MB limit for the kernel. With
-+ * PROVE_LOCKING we could go over this limit and cause system boot-up problems.
-+ * So, reduce the static allocations for lockdeps related structures so that
-+ * everything fits in current required size limit.
-+ */
-+#ifdef CONFIG_PROVE_LOCKING_SMALL
-+/*
-  * MAX_LOCKDEP_ENTRIES is the maximum number of lock dependencies
-  * we track.
-  *
-@@ -54,18 +62,24 @@ enum {
-  * table (if it's not there yet), and we check it for lock order
-  * conflicts and deadlocks.
-  */
-+#define MAX_LOCKDEP_ENTRIES	16384UL
-+#define MAX_LOCKDEP_CHAINS_BITS	15
-+#define MAX_STACK_TRACE_ENTRIES	262144UL
-+#else
- #define MAX_LOCKDEP_ENTRIES	32768UL
+ config SPARC32
+ 	def_bool !64BIT
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index b01e547..a6c8db1 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -1085,6 +1085,9 @@ config PROVE_LOCKING
  
- #define MAX_LOCKDEP_CHAINS_BITS	16
--#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
--
--#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
+ 	 For more details, see Documentation/locking/lockdep-design.txt.
  
- /*
-  * Stack-trace: tightly packed array of stack backtrace
-  * addresses. Protected by the hash_lock.
-  */
- #define MAX_STACK_TRACE_ENTRIES	524288UL
-+#endif
++config PROVE_LOCKING_SMALL
++	bool
 +
-+#define MAX_LOCKDEP_CHAINS	(1UL << MAX_LOCKDEP_CHAINS_BITS)
-+
-+#define MAX_LOCKDEP_CHAIN_HLOCKS (MAX_LOCKDEP_CHAINS*5)
- 
- extern struct list_head all_lock_classes;
- extern struct lock_chain lock_chains[];
+ config LOCKDEP
+ 	bool
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
 -- 
 1.7.1
 
