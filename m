@@ -1,37 +1,52 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Thu, 10 Nov 2016 22:43:36 +0000
-Subject: [PATCH 4/4] Documentation/sparc: Steps for sending break on sunhv console
-Message-Id: <1478817816-98939-4-git-send-email-vijay.ac.kumar@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 02 Nov 2016 16:36:31 +0000
+Subject: [PATCH RESEND v3 0/2] Adjust lockdep static allocations for sparc
+Message-Id: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1478817816-98939-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1478817816-98939-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, sparclinux@vger.kernel.org
-Cc: karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, peterz@infradead.org, akpm@linux-foundation.org
+Cc: keescook@chromium.org, mingo@kernel.org, paulmck@linux.vnet.ibm.com, dan.j.williams@intel.com, tj@kernel.org, jpoimboe@redhat.com, nikolay@cumulusnetworks.com, dvyukov@google.com, sam@ravnborg.org, shuah@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rob.gardner@oracle.com, babu.moger@oracle.com
 
-Documented the steps for sending break on sunhv console.
+Looks like these patches are lost in the mix. Resending with following note.
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
----
- Documentation/sparc/console.txt |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+Dave, This requires your Ack as it touches sparc. Peter is waiting
+for your Ack to queue it. Here is our previous discussion.
+http://marc.info/?t7500486300001&r=1&w=2
 
-diff --git a/Documentation/sparc/console.txt b/Documentation/sparc/console.txt
-new file mode 100644
-index 0000000..ab55353
---- /dev/null
-+++ b/Documentation/sparc/console.txt
-@@ -0,0 +1,9 @@
-+Steps for sending 'break' on sunhv console:
-+=====================+
-+On Baremetal:
-+   1. press   Esc + 'B'
-+
-+On LDOM:
-+   1. press    Ctrl + ']'
-+   2. telnet> send  break	
--- 
-1.7.1
+These patches limit the static allocations for lockdep data structures
+used for debugging locking correctness. For sparc, all the kernel's code,
+data, and bss, must have locked translations in the TLB so that we don't
+get TLB misses on kernel code and data. Current sparc chips have 8 TLB
+entries available that may be locked down, and with a 4mb page size,
+this gives a maximum of 32MB. With PROVE_LOCKING we could go over this
+limit and cause system boot-up problems. These patches limit the static
+allocations so that everything fits in current required size limit.
+
+patch 1 : Adds new config parameter CONFIG_PROVE_LOCKING_SMALL
+Patch 2 : Adjusts the sizes based on the new config parameter
+
+v2-> v3:
+   Some more comments from Sam Ravnborg and Peter Zijlstra.
+   Defined PROVE_LOCKING_SMALL as invisible and moved the selection to
+   arch/sparc/Kconfig. 
+
+v1-> v2:
+   As suggested by Peter Zijlstra, keeping the default as is.
+   Introduced new config variable CONFIG_PROVE_LOCKING_SMALL
+   to handle sparc specific case.
+
+v0:
+   Initial revision.
+
+Babu Moger (2):
+  config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL
+    for sparc
+  lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
+
+ arch/sparc/Kconfig                 |    1 +
+ kernel/locking/lockdep_internals.h |   20 +++++++++++++++++---
+ lib/Kconfig.debug                  |    3 +++
+ 3 files changed, 21 insertions(+), 3 deletions(-)
 
