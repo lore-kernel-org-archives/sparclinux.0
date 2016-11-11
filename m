@@ -1,70 +1,37 @@
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Date: Wed, 02 Nov 2016 11:15:36 +0000
-Subject: [mm PATCH v2 20/26] arch/sparc: Add option to skip DMA sync as a part of map and unmap
-Message-Id: <20161102111532.79519.12125.stgit@ahduyck-blue-test.jf.intel.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Fri, 11 Nov 2016 18:11:59 +0000
+Subject: [PATCH v2 4/4] Documentation/sparc: Steps for sending break on sunhv console
+Message-Id: <1478887919-10361-5-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161102111031.79519.14741.stgit@ahduyck-blue-test.jf.intel.com>
-In-Reply-To: <20161102111031.79519.14741.stgit@ahduyck-blue-test.jf.intel.com>
+References: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
 
-This change allows us to pass DMA_ATTR_SKIP_CPU_SYNC which allows us to
-avoid invoking cache line invalidation if the driver will just handle it
-via a sync_for_cpu or sync_for_device call.
+Documented the steps for sending break on sunhv console.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/kernel/iommu.c  |    4 ++--
- arch/sparc/kernel/ioport.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ Documentation/sparc/console.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 5c615ab..8fda4e4 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -415,7 +415,7 @@ static void dma_4u_unmap_page(struct device *dev, dma_addr_t bus_addr,
- 		ctx = (iopte_val(*base) & IOPTE_CONTEXT) >> 47UL;
- 
- 	/* Step 1: Kick data out of streaming buffers if necessary. */
--	if (strbuf->strbuf_enabled)
-+	if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		strbuf_flush(strbuf, iommu, bus_addr, ctx,
- 			     npages, direction);
- 
-@@ -640,7 +640,7 @@ static void dma_4u_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 		base = iommu->page_table + entry;
- 
- 		dma_handle &= IO_PAGE_MASK;
--		if (strbuf->strbuf_enabled)
-+		if (strbuf->strbuf_enabled && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 			strbuf_flush(strbuf, iommu, dma_handle, ctx,
- 				     npages, direction);
- 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 2344103..6ffaec4 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -527,7 +527,7 @@ static dma_addr_t pci32_map_page(struct device *dev, struct page *page,
- static void pci32_unmap_page(struct device *dev, dma_addr_t ba, size_t size,
- 			     enum dma_data_direction dir, unsigned long attrs)
- {
--	if (dir != PCI_DMA_TODEVICE)
-+	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		dma_make_coherent(ba, PAGE_ALIGN(size));
- }
- 
-@@ -572,7 +572,7 @@ static void pci32_unmap_sg(struct device *dev, struct scatterlist *sgl,
- 	struct scatterlist *sg;
- 	int n;
- 
--	if (dir != PCI_DMA_TODEVICE) {
-+	if (dir != PCI_DMA_TODEVICE && !(attrs & DMA_ATTR_SKIP_CPU_SYNC)) {
- 		for_each_sg(sgl, sg, nents, n) {
- 			dma_make_coherent(sg_phys(sg), PAGE_ALIGN(sg->length));
- 		}
+diff --git a/Documentation/sparc/console.txt b/Documentation/sparc/console.txt
+new file mode 100644
+index 0000000..ab55353
+--- /dev/null
++++ b/Documentation/sparc/console.txt
+@@ -0,0 +1,9 @@
++Steps for sending 'break' on sunhv console:
++=====================+
++On Baremetal:
++   1. press   Esc + 'B'
++
++On LDOM:
++   1. press    Ctrl + ']'
++   2. telnet> send  break	
+-- 
+1.7.1
 
