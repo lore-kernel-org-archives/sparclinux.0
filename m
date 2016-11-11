@@ -1,38 +1,18 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Fri, 11 Nov 2016 12:38:52 +0000
-Subject: [PATCH 0/4] sparc64: Jump to boot prom from console on panic
-Message-Id: <1478867932-253886-1-git-send-email-vijay.ac.kumar@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 11 Nov 2016 17:44:50 +0000
+Subject: Re: [PATCH 0/4] sparc64: Jump to boot prom from console on panic
+Message-Id: <20161111.124450.1119304610318215471.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1478867932-253886-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1478867932-253886-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, sparclinux@vger.kernel.org
-Cc: karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
-
-Here is the cover posting for  the patches. I did not send cover patch initially
-as I thought that patch descriptions were self explanatory. But I agree, this would
-help  in overall understanding of the patch.
-
-Currently Stop-A (L1A) does not make the kernel switch to OBP on panic. This
-patchset addresses this issue. Also, now we can cause a jump to OBP by sending
-'break' twice from sunhv console. On bare metal, one can send a break by
-typing Esc + 'B' + Sysrq (or whatever). On LDOM, press Ctrl + ] in telnet,
-and then "send break" at the telnet prompt.
-
-      sparc64: Set cpu state to offline when stopped
-      sparc64: Migrate hvcons irq to panicked cpu
-      sparc64: Send break twice from console to return to boot prom
-      Documentation/sparc: Steps for sending break on sunhv console
-
- Documentation/sparc/console.txt |    9 +++++++++
- arch/sparc/include/asm/setup.h  |    1 +
- arch/sparc/kernel/smp_64.c      |    9 ++++++++-
- drivers/tty/serial/sunhv.c      |   12 +++++++++++-
- kernel/panic.c                  |    3 ++-
- 5 files changed, 31 insertions(+), 3 deletions(-)
- create mode 100644 Documentation/sparc/console.txt
+To: vijay.ac.kumar@oracle.com
+Cc: sparclinux@vger.kernel.org, karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
 
 
+You still have to post the complete series along with this cover
+letter, rather than just the cover letter by itself.
 
---
-1.7.1
+Please don't try to take short-cuts.
