@@ -1,36 +1,47 @@
-From: Felix R cox Jr <royce.cox.o@gmail.com>
-Date: Tue, 29 Nov 2016 08:46:39 +0000
-Subject: Re:kindly give me a run down on what it will take me to invest in your Country
-Message-Id: <CAF3bnrPbw2DfeP++ZQW=M040z9k92bVG0ikqfS+mBe42upJXvA@mail.gmail.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Fri, 11 Nov 2016 18:11:56 +0000
+Subject: [PATCH v2 1/4] sparc64: Set cpu state to offline when stopped
+Message-Id: <1478887919-10361-2-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, sparclinux@vger.kernel.org
+Cc: karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
 
+CPU needs to be marked offline before stopping it. When not marked
+offline, the xcall receives HV_EWOULDBLOCK and so assumes that not all
+CPUs received the message, and retries. After 10000 retries, it finally
+fails with fatal mondo timeout.
+
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/kernel/smp_64.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index d3035ba..14138ad 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1435,6 +1435,7 @@ void __irq_entry smp_receive_signal_client(int irq, struct pt_regs *regs)
+ 
+ static void stop_this_cpu(void *dummy)
+ {
++	set_cpu_online(smp_processor_id(), false);
+ 	prom_stopself();
+ }
+ 
+@@ -1446,6 +1447,8 @@ void smp_send_stop(void)
+ 		for_each_online_cpu(cpu) {
+ 			if (cpu = smp_processor_id())
+ 				continue;
++
++			set_cpu_online(cpu, false);
+ #ifdef CONFIG_SUN_LDOMS
+ 			if (ldom_domaining_enabled) {
+ 				unsigned long hv_err;
 -- 
-Hi,
+1.7.1
 
-Please do accept my apologies. I do not wish to invade your privacy, I
-had written an earlier email to you, but without a response, In my
-first email, I mentioned to you about my late client Dr Guard Roger
-Watson died 17th of March 2014.
-
-Since his death I have received several notifications from his Bank
-where he made a time deposit of ($7,500,000.00) the bank has asked me
-to provide his next of kin or any of his dependent relatives who can
-make claim to his funds for payment or it will be confiscated by the
-government.
-
-Since I could not locate any of his relatives, I have to contact you
-for this upon your response to me, I would give you the details and
-procedures for collecting the funds; I sincerely wait for your
-positive response. Note: this transaction is absolutely RISK-FREE and
-of NO ENCUMBRANCE.
-
-http://www.bbc.com/news/world-28354787 of the plane crash as a
-confirmation to my  proposal.
-
-https://www.scribd.com/doc/234458618/MH17-  Passengers-and-Crew-Manifest
-
-Thank you so much for your time.
