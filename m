@@ -1,151 +1,39 @@
-From: Thomas Tai <thomas.tai@oracle.com>
-Date: Thu, 03 Nov 2016 16:19:01 +0000
-Subject: [PATCH] sparc64: Fix find_node warning if numa node cannot be found
-Message-Id: <1478189941-97334-1-git-send-email-thomas.tai@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 11 Nov 2016 00:48:05 +0000
+Subject: Re: [PATCH] sparc64: Fix find_node warning if numa node cannot be found
+Message-Id: <20161110.194805.1837904915742771543.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1478189941-97334-1-git-send-email-thomas.tai@oracle.com>
+In-Reply-To: <1478189941-97334-1-git-send-email-thomas.tai@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-When booting up LDOM, find_node() warns that a physical address
-doesn't match a NUMA node.
+From: Thomas Tai <thomas.tai@oracle.com>
+Date: Thu,  3 Nov 2016 09:19:01 -0700
 
-WARNING: CPU: 0 PID: 0 at arch/sparc/mm/init_64.c:835
-find_node+0xf4/0x120 find_node: A physical address doesn't
-match a NUMA node rule. Some physical memory will be
-owned by node 0.Modules linked in:
+> When booting up LDOM, find_node() warns that a physical address
+> doesn't match a NUMA node.
+> 
+> WARNING: CPU: 0 PID: 0 at arch/sparc/mm/init_64.c:835
+> find_node+0xf4/0x120 find_node: A physical address doesn't
+> match a NUMA node rule. Some physical memory will be
+> owned by node 0.Modules linked in:
+ ...
+> It is because linux use an internal structure node_masks[] to
+> keep the best memory latency node only. However, LDOM mdesc can
+> contain single latency-group with multiple memory latency nodes.
+> 
+> If the address doesn't match the best latency node within
+> node_masks[], it should check for an alternative via mdesc.
+> The warning message should only be printed if the address
+> doesn't match any node_masks[] nor within mdesc. To minimize
+> the impact of searching mdesc every time, the last matched
+> mask and index is stored in a variable.
+> 
+> Signed-off-by: Thomas Tai <thomas.tai@oracle.com>
+> Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
+> Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 
-CPU: 0 PID: 0 Comm: swapper Not tainted 4.9.0-rc3 #4
-Call Trace:
- [0000000000468ba0] __warn+0xc0/0xe0
- [0000000000468c74] warn_slowpath_fmt+0x34/0x60
- [00000000004592f4] find_node+0xf4/0x120
- [0000000000dd0774] add_node_ranges+0x38/0xe4
- [0000000000dd0b1c] numa_parse_mdesc+0x268/0x2e4
- [0000000000dd0e9c] bootmem_init+0xb8/0x160
- [0000000000dd174c] paging_init+0x808/0x8fc
- [0000000000dcb0d0] setup_arch+0x2c8/0x2f0
- [0000000000dc68a0] start_kernel+0x48/0x424
- [0000000000dcb374] start_early_boot+0x27c/0x28c
- [0000000000a32c08] tlb_fixup_done+0x4c/0x64
- [0000000000027f08] 0x27f08
-
-It is because linux use an internal structure node_masks[] to
-keep the best memory latency node only. However, LDOM mdesc can
-contain single latency-group with multiple memory latency nodes.
-
-If the address doesn't match the best latency node within
-node_masks[], it should check for an alternative via mdesc.
-The warning message should only be printed if the address
-doesn't match any node_masks[] nor within mdesc. To minimize
-the impact of searching mdesc every time, the last matched
-mask and index is stored in a variable.
-
-Signed-off-by: Thomas Tai <thomas.tai@oracle.com>
-Reviewed-by: Chris Hyser <chris.hyser@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
----
- arch/sparc/mm/init_64.c |   65 ++++++++++++++++++++++++++++++++++++++++++++---
- 1 files changed, 61 insertions(+), 4 deletions(-)
-
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 439784b..068eb3d 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -802,6 +802,8 @@ struct mdesc_mblock {
- };
- static struct mdesc_mblock *mblocks;
- static int num_mblocks;
-+static int find_numa_node_for_addr(unsigned long pa,
-+				   struct node_mem_mask *pnode_mask);
- 
- static unsigned long ra_to_pa(unsigned long addr)
- {
-@@ -821,6 +823,9 @@ static unsigned long ra_to_pa(unsigned long addr)
- 
- static int find_node(unsigned long addr)
- {
-+	static bool search_mdesc = true;
-+	static struct node_mem_mask last_mem_mask = { ~0UL, ~0UL };
-+	static int last_index;
- 	int i;
- 
- 	addr = ra_to_pa(addr);
-@@ -830,10 +835,27 @@ static int find_node(unsigned long addr)
- 		if ((addr & p->mask) = p->val)
- 			return i;
- 	}
--	/* The following condition has been observed on LDOM guests.*/
--	WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node"
--		" rule. Some physical memory will be owned by node 0.");
--	return 0;
-+	/* The following condition has been observed on LDOM guests because
-+	 * node_masks only contains the best latency mask and value.
-+	 * LDOM guest's mdesc can contain a single latency group to
-+	 * cover multiple address range. Print warning message only if the
-+	 * address cannot be found in node_masks nor mdesc.
-+	 */
-+	if ((search_mdesc) &&
-+	    ((addr & last_mem_mask.mask) != last_mem_mask.val)) {
-+		/* find the available node in the mdesc */
-+		last_index = find_numa_node_for_addr(addr, &last_mem_mask);
-+		numadbg("find_node: latency group for address 0x%lx is %d\n",
-+			addr, last_index);
-+		if ((last_index < 0) || (last_index >= num_node_masks)) {
-+			/* WARN_ONCE() and use default group 0 */
-+			WARN_ONCE(1, "find_node: A physical address doesn't match a NUMA node rule. Some physical memory will be owned by node 0.");
-+			search_mdesc = false;
-+			last_index = 0;
-+		}
-+	}
-+
-+	return last_index;
- }
- 
- static u64 memblock_nid_range(u64 start, u64 end, int *nid)
-@@ -1160,6 +1182,41 @@ int __node_distance(int from, int to)
- 	return numa_latency[from][to];
- }
- 
-+static int find_numa_node_for_addr(unsigned long pa,
-+				   struct node_mem_mask *pnode_mask)
-+{
-+	struct mdesc_handle *md = mdesc_grab();
-+	u64 node, arc;
-+	int i = 0;
-+
-+	node = mdesc_node_by_name(md, MDESC_NODE_NULL, "latency-groups");
-+	if (node = MDESC_NODE_NULL)
-+		goto out;
-+
-+	mdesc_for_each_node_by_name(md, node, "group") {
-+		mdesc_for_each_arc(arc, md, node, MDESC_ARC_TYPE_FWD) {
-+			u64 target = mdesc_arc_target(md, arc);
-+			struct mdesc_mlgroup *m = find_mlgroup(target);
-+
-+			if (!m)
-+				continue;
-+			if ((pa & m->mask) = m->match) {
-+				if (pnode_mask) {
-+					pnode_mask->mask = m->mask;
-+					pnode_mask->val = m->match;
-+				}
-+				mdesc_release(md);
-+				return i;
-+			}
-+		}
-+		i++;
-+	}
-+
-+out:
-+	mdesc_release(md);
-+	return -1;
-+}
-+
- static int __init find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
- {
- 	int i;
--- 
-1.7.1
-
+Applied.
