@@ -1,89 +1,43 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Fri, 25 Nov 2016 21:11:10 +0000
-Subject: Re: [patch] sparc64: enable IRQs on error paths
-Message-Id: <20161125211110.GC28558@mwanda>
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+Date: Tue, 15 Nov 2016 12:30:30 +0000
+Subject: Re: [GIT PULL v2 1/5] processor.h: introduce cpu_relax_yield
+Message-Id: <20161115123029.GT1041@n2100.armlinux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161125111054.GE5938@mwanda>
-In-Reply-To: <20161125111054.GE5938@mwanda>
+References: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
+ <1477386195-32736-2-git-send-email-borntraeger@de.ibm.com>
+In-Reply-To: <1477386195-32736-2-git-send-email-borntraeger@de.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+To: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Noam Camus <noamc@ezchip.com>, sparclinux@vger.kernel.org, x86@kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, virtualization@lists.linux-foundation.org, xen-devel@lists.xenproject.org, kvm@vger.kernel.org
 
-On Fri, Nov 25, 2016 at 09:45:24PM +0100, Sam Ravnborg wrote:
-> Hi Dan.
-> 
-> On Fri, Nov 25, 2016 at 02:12:51PM +0300, Dan Carpenter wrote:
-> > There are several error paths where we should enable IRQs but we don't.
-> > 
-> > Fixes: bb620c3d3925 ("sparc: Make sparc64 use scalable lib/iommu-common.c functions")
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Please use a more descriptive subject such as:
-> sparc64: restore irq in error paths in iommu
->
+On Tue, Oct 25, 2016 at 11:03:11AM +0200, Christian Borntraeger wrote:
+> For spinning loops people do often use barrier() or cpu_relax().
+> For most architectures cpu_relax and barrier are the same, but on
+> some architectures cpu_relax can add some latency.
+> For example on power,sparc64 and arc, cpu_relax can shift the CPU
+> towards other hardware threads in an SMT environment.
+> On s390 cpu_relax does even more, it uses an hypercall to the
+> hypervisor to give up the timeslice.
+> In contrast to the SMT yielding this can result in larger latencies.
+> In some places this latency is unwanted, so another variant
+> "cpu_relax_lowlatency" was introduced. Before this is used in more
+> and more places, lets revert the logic and provide a cpu_relax_yield
+> that can be called in places where yielding is more important than
+> latency. By default this is the same as cpu_relax on all architectures.
 
-Is this really "in iommu"?
+Rather than having to update all these architectures in this way, can't
+we put in some linux/*.h header something like:
 
-> > ---
-> > Not tested.
-> > 
-> > diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-> > index 06981cc7..274df7a 100644
-> > --- a/arch/sparc/kernel/pci_sun4v.c
-> > +++ b/arch/sparc/kernel/pci_sun4v.c
-> > @@ -230,12 +230,16 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
-> >  
-> >  	for (n = 0; n < npages; n++) {
-> >  		long err = iommu_batch_add(first_page + (n * PAGE_SIZE), mask);
-> > -		if (unlikely(err < 0L))
-> > +		if (unlikely(err < 0L)) {
-> > +			local_irq_restore(flags);
-> >  			goto iommu_map_fail;
-> > +		}
-> >  	}
-> 
-> Locate all cleanup after the iommu_map_fail label.
-> 
-> As it is now the irq_restore is on the error site
-> and the free() is at the error label.
-> 
-> It is very confusing that half of the recovery is in one
-> place and the other in another place.
+#ifndef cpu_relax_yield
+#define cpu_relax_yield() cpu_relax()
+#endif
 
-My way is the correct, more elegant way.  When you're allocating things
-you do:
+so only those architectures that need to do something need to be
+modified?
 
-	a = alloc();
-	b = alloc();
-	c = alloc();
-
-	...
-
-	return 0;
-
-free_c:
-	free(c);
-free_b:
-	free(b);
-free_a:
-	free(a);
-
-	return ret;
-
-Those things build on each other.  We allocate and then free
-symetrically.  The locks don't build on each other, we take them and
-then release them as needed.  It's just chance that we are holding the
-locks for both "goto iommu_map_fail;" statements.  If we added to this
-function we would have to move the unlocks back out of the release
-path.
-
-The original code was written the way you suggest and it was too
-confusing so we introduced a bug.  It was *even commented* but it was
-still too confusing.  Best to keep all the locking together.
-
-To be honest, I don't care.  I'll send a v2.
-
-regards,
-dan carpenter
-
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
