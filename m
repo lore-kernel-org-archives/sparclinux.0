@@ -1,52 +1,125 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Wed, 02 Nov 2016 16:36:31 +0000
-Subject: [PATCH RESEND v3 0/2] Adjust lockdep static allocations for sparc
-Message-Id: <1478104593-189775-1-git-send-email-babu.moger@oracle.com>
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Tue, 15 Nov 2016 10:15:13 +0000
+Subject: Re: [GIT PULL v2 0/5] cpu_relax: drop lowlatency, introduce yield
+Message-Id: <75f6869e-a2a2-6394-aeda-a30d59b3baa1@de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
+In-Reply-To: <1477386195-32736-1-git-send-email-borntraeger@de.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, peterz@infradead.org, akpm@linux-foundation.org
-Cc: keescook@chromium.org, mingo@kernel.org, paulmck@linux.vnet.ibm.com, dan.j.williams@intel.com, tj@kernel.org, jpoimboe@redhat.com, nikolay@cumulusnetworks.com, dvyukov@google.com, sam@ravnborg.org, shuah@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, rob.gardner@oracle.com, babu.moger@oracle.com
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Heiko Carstens <heiko.carstens@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Noam Camus <noamc@ezchip.com>, sparclinux@vger.kernel.org, x86@kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Russell King <linux@armlinux.org.uk>, virtualization@lists.linux-foundation.org, xen-devel@lists.xenproject.org, kvm@vger.kernel.org
 
-Looks like these patches are lost in the mix. Resending with following note.
+On 10/25/2016 11:03 AM, Christian Borntraeger wrote:
+> Peter,
+> 
+> here is v2 with some improved patch descriptions and some fixes. The
+> previous version has survived one day of linux-next and I only changed
+> small parts.
+> So unless there is some other issue, feel free to pull (or to apply
+> the patches) to tip/locking.
+> 
+> The following changes since commit 07d9a380680d1c0eb51ef87ff2eab5c994949e69:
+> 
+>   Linux 4.9-rc2 (2016-10-23 17:10:14 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/borntraeger/linux.git  tags/cpurelax
+> 
+> for you to fetch changes up to dcc37f9044436438360402714b7544a8e8779b07:
+> 
+>   processor.h: remove cpu_relax_lowlatency (2016-10-25 09:49:57 +0200)
 
-Dave, This requires your Ack as it touches sparc. Peter is waiting
-for your Ack to queue it. Here is our previous discussion.
-http://marc.info/?t7500486300001&r=1&w=2
+Ping.
 
-These patches limit the static allocations for lockdep data structures
-used for debugging locking correctness. For sparc, all the kernel's code,
-data, and bss, must have locked translations in the TLB so that we don't
-get TLB misses on kernel code and data. Current sparc chips have 8 TLB
-entries available that may be locked down, and with a 4mb page size,
-this gives a maximum of 32MB. With PROVE_LOCKING we could go over this
-limit and cause system boot-up problems. These patches limit the static
-allocations so that everything fits in current required size limit.
+Peter, you had these patches in your
+https://git.kernel.org/cgit/linux/kernel/git/peterz/queue.git/
+repository, but now the patches are gone. 
+Any feedback?
 
-patch 1 : Adds new config parameter CONFIG_PROVE_LOCKING_SMALL
-Patch 2 : Adjusts the sizes based on the new config parameter
 
-v2-> v3:
-   Some more comments from Sam Ravnborg and Peter Zijlstra.
-   Defined PROVE_LOCKING_SMALL as invisible and moved the selection to
-   arch/sparc/Kconfig. 
 
-v1-> v2:
-   As suggested by Peter Zijlstra, keeping the default as is.
-   Introduced new config variable CONFIG_PROVE_LOCKING_SMALL
-   to handle sparc specific case.
-
-v0:
-   Initial revision.
-
-Babu Moger (2):
-  config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL
-    for sparc
-  lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
-
- arch/sparc/Kconfig                 |    1 +
- kernel/locking/lockdep_internals.h |   20 +++++++++++++++++---
- lib/Kconfig.debug                  |    3 +++
- 3 files changed, 21 insertions(+), 3 deletions(-)
+> 
+> ----------------------------------------------------------------
+> cpu_relax: drop lowlatency, introduce yield
+> 
+> For spinning loops people do often use barrier() or cpu_relax().
+> For most architectures cpu_relax and barrier are the same, but on
+> some architectures cpu_relax can add some latency.
+> For example on power,sparc64 and arc, cpu_relax can shift the CPU
+> towards other hardware threads in an SMT environment.
+> On s390 cpu_relax does even more, it uses an hypercall to the
+> hypervisor to give up the timeslice.
+> In contrast to the SMT yielding this can result in larger latencies.
+> In some places this latency is unwanted, so another variant
+> "cpu_relax_lowlatency" was introduced. Before this is used in more
+> and more places, lets revert the logic and provide a cpu_relax_yield
+> that can be called in places where yielding is more important than
+> latency. By default this is the same as cpu_relax on all architectures.
+> 
+> So my proposal boils down to:
+> - lowest latency: use barrier() or mb() if necessary
+> - low latency: use cpu_relax (e.g. might give up some cpu for the other
+>   _hardware_ threads)
+> - really give up CPU: use  cpu_relax_yield
+> 
+> PS: In the long run I would also try to provide for s390 something
+> like cpu_relax_yield_to with a cpu number (or just add that to
+> cpu_relax_yield), since a yield_to is always better than a yield as
+> long as we know the waiter.
+> 
+> ----------------------------------------------------------------
+> Christian Borntraeger (5):
+>       processor.h: introduce cpu_relax_yield
+>       stop_machine: yield CPU during stop machine
+>       s390: make cpu_relax a barrier again
+>       processor.h: Remove cpu_relax_lowlatency users
+>       processor.h: remove cpu_relax_lowlatency
+> 
+>  arch/alpha/include/asm/processor.h      | 2 +-
+>  arch/arc/include/asm/processor.h        | 4 ++--
+>  arch/arm/include/asm/processor.h        | 2 +-
+>  arch/arm64/include/asm/processor.h      | 2 +-
+>  arch/avr32/include/asm/processor.h      | 2 +-
+>  arch/blackfin/include/asm/processor.h   | 2 +-
+>  arch/c6x/include/asm/processor.h        | 2 +-
+>  arch/cris/include/asm/processor.h       | 2 +-
+>  arch/frv/include/asm/processor.h        | 2 +-
+>  arch/h8300/include/asm/processor.h      | 2 +-
+>  arch/hexagon/include/asm/processor.h    | 2 +-
+>  arch/ia64/include/asm/processor.h       | 2 +-
+>  arch/m32r/include/asm/processor.h       | 2 +-
+>  arch/m68k/include/asm/processor.h       | 2 +-
+>  arch/metag/include/asm/processor.h      | 2 +-
+>  arch/microblaze/include/asm/processor.h | 2 +-
+>  arch/mips/include/asm/processor.h       | 2 +-
+>  arch/mn10300/include/asm/processor.h    | 2 +-
+>  arch/nios2/include/asm/processor.h      | 2 +-
+>  arch/openrisc/include/asm/processor.h   | 2 +-
+>  arch/parisc/include/asm/processor.h     | 2 +-
+>  arch/powerpc/include/asm/processor.h    | 2 +-
+>  arch/s390/include/asm/processor.h       | 4 ++--
+>  arch/s390/kernel/processor.c            | 4 ++--
+>  arch/score/include/asm/processor.h      | 2 +-
+>  arch/sh/include/asm/processor.h         | 2 +-
+>  arch/sparc/include/asm/processor_32.h   | 2 +-
+>  arch/sparc/include/asm/processor_64.h   | 2 +-
+>  arch/tile/include/asm/processor.h       | 2 +-
+>  arch/unicore32/include/asm/processor.h  | 2 +-
+>  arch/x86/include/asm/processor.h        | 2 +-
+>  arch/x86/um/asm/processor.h             | 2 +-
+>  arch/xtensa/include/asm/processor.h     | 2 +-
+>  drivers/gpu/drm/i915/i915_gem_request.c | 2 +-
+>  drivers/vhost/net.c                     | 4 ++--
+>  kernel/locking/mcs_spinlock.h           | 4 ++--
+>  kernel/locking/mutex.c                  | 4 ++--
+>  kernel/locking/osq_lock.c               | 6 +++---
+>  kernel/locking/qrwlock.c                | 6 +++---
+>  kernel/locking/rwsem-xadd.c             | 4 ++--
+>  kernel/stop_machine.c                   | 2 +-
+>  lib/lockref.c                           | 2 +-
+>  42 files changed, 53 insertions(+), 53 deletions(-)
+> 
 
