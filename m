@@ -1,131 +1,467 @@
-From: <carlcole@nova.edu>
-Date: Thu, 27 Oct 2016 18:40:35 +0000
-Subject: 464807 sparclinux
-Message-Id: <147759363540.26040.4081572723858074884@asianet.co.th>
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Date: Wed, 16 Nov 2016 12:23:05 +0000
+Subject: [PATCH 1/1] sched: provide common cpu_relax_yield definition
+Message-Id: <1479298985-191589-1-git-send-email-borntraeger@de.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Russell King <linux@armlinux.org.uk>, Ingo Molnar <mingo@kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, xen-devel@lists.xenproject.org, kvm@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Noam Camus <noamc@ezchip.com>, linuxppc-dev@lists.ozlabs.org, Nicholas Piggin <npiggin@gmail.com>, sparclinux@vger.kernel.org, virtualization@lists.linux-foundation.org, Christian Borntraeger <borntraeger@de.ibm.com>
 
-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
-AAQAAAAAUEsFBgAAAAABAAEAUwAAAGsaAAAAAA=
+No need to duplicate the same define everywhere. Since
+the only user is stop-machine and the only provider is
+s390, we can use a default implementation of cpu_relax_yield
+in sched.h.
+
+Suggested-by: Russell King <linux@armlinux.org.uk>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+---
+ arch/alpha/include/asm/processor.h      | 1 -
+ arch/arc/include/asm/processor.h        | 3 ---
+ arch/arm/include/asm/processor.h        | 2 --
+ arch/arm64/include/asm/processor.h      | 2 --
+ arch/avr32/include/asm/processor.h      | 1 -
+ arch/blackfin/include/asm/processor.h   | 1 -
+ arch/c6x/include/asm/processor.h        | 1 -
+ arch/cris/include/asm/processor.h       | 1 -
+ arch/frv/include/asm/processor.h        | 1 -
+ arch/h8300/include/asm/processor.h      | 1 -
+ arch/hexagon/include/asm/processor.h    | 1 -
+ arch/ia64/include/asm/processor.h       | 1 -
+ arch/m32r/include/asm/processor.h       | 1 -
+ arch/m68k/include/asm/processor.h       | 1 -
+ arch/metag/include/asm/processor.h      | 1 -
+ arch/microblaze/include/asm/processor.h | 1 -
+ arch/mips/include/asm/processor.h       | 1 -
+ arch/mn10300/include/asm/processor.h    | 1 -
+ arch/nios2/include/asm/processor.h      | 1 -
+ arch/openrisc/include/asm/processor.h   | 1 -
+ arch/parisc/include/asm/processor.h     | 1 -
+ arch/powerpc/include/asm/processor.h    | 2 --
+ arch/s390/include/asm/processor.h       | 1 +
+ arch/score/include/asm/processor.h      | 1 -
+ arch/sh/include/asm/processor.h         | 1 -
+ arch/sparc/include/asm/processor_32.h   | 1 -
+ arch/sparc/include/asm/processor_64.h   | 1 -
+ arch/tile/include/asm/processor.h       | 2 --
+ arch/unicore32/include/asm/processor.h  | 1 -
+ arch/x86/include/asm/processor.h        | 2 --
+ arch/x86/um/asm/processor.h             | 1 -
+ arch/xtensa/include/asm/processor.h     | 1 -
+ include/linux/sched.h                   | 4 ++++
+ 33 files changed, 5 insertions(+), 38 deletions(-)
+
+diff --git a/arch/alpha/include/asm/processor.h b/arch/alpha/include/asm/processor.h
+index 31e8dbe..2fec2de 100644
+--- a/arch/alpha/include/asm/processor.h
++++ b/arch/alpha/include/asm/processor.h
+@@ -58,7 +58,6 @@ unsigned long get_wchan(struct task_struct *p);
+   ((tsk) = current ? rdusp() : task_thread_info(tsk)->pcb.usp)
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #define ARCH_HAS_PREFETCH
+ #define ARCH_HAS_PREFETCHW
+diff --git a/arch/arc/include/asm/processor.h b/arch/arc/include/asm/processor.h
+index d102a49..6e1242d 100644
+--- a/arch/arc/include/asm/processor.h
++++ b/arch/arc/include/asm/processor.h
+@@ -60,15 +60,12 @@ struct task_struct;
+ #ifndef CONFIG_EZNPS_MTM_EXT
+ 
+ #define cpu_relax()		barrier()
+-#define cpu_relax_yield()	cpu_relax()
+ 
+ #else
+ 
+ #define cpu_relax()     \
+ 	__asm__ __volatile__ (".word %0" : : "i"(CTOP_INST_SCHD_RW) : "memory")
+ 
+-#define cpu_relax_yield()	cpu_relax()
+-
+ #endif
+ 
+ #define copy_segments(tsk, mm)      do { } while (0)
+diff --git a/arch/arm/include/asm/processor.h b/arch/arm/include/asm/processor.h
+index 9e71c58b..c3d5fc1 100644
+--- a/arch/arm/include/asm/processor.h
++++ b/arch/arm/include/asm/processor.h
+@@ -82,8 +82,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define cpu_relax()			barrier()
+ #endif
+ 
+-#define cpu_relax_yield()  	              cpu_relax()
+-
+ #define task_pt_regs(p) \
+ 	((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
+ 
+diff --git a/arch/arm64/include/asm/processor.h b/arch/arm64/include/asm/processor.h
+index 6132f64..747c65a 100644
+--- a/arch/arm64/include/asm/processor.h
++++ b/arch/arm64/include/asm/processor.h
+@@ -149,8 +149,6 @@ static inline void cpu_relax(void)
+ 	asm volatile("yield" ::: "memory");
+ }
+ 
+-#define cpu_relax_yield()                     cpu_relax()
+-
+ /* Thread switching */
+ extern struct task_struct *cpu_switch_to(struct task_struct *prev,
+ 					 struct task_struct *next);
+diff --git a/arch/avr32/include/asm/processor.h b/arch/avr32/include/asm/processor.h
+index ee62365..972adcc 100644
+--- a/arch/avr32/include/asm/processor.h
++++ b/arch/avr32/include/asm/processor.h
+@@ -92,7 +92,6 @@ extern struct avr32_cpuinfo boot_cpu_data;
+ #define TASK_UNMAPPED_BASE	(PAGE_ALIGN(TASK_SIZE / 3))
+ 
+ #define cpu_relax()		barrier()
+-#define cpu_relax_yield()	cpu_relax()
+ #define cpu_sync_pipeline()	asm volatile("sub pc, -2" : : : "memory")
+ 
+ struct cpu_context {
+diff --git a/arch/blackfin/include/asm/processor.h b/arch/blackfin/include/asm/processor.h
+index 57acfb1..85d4af9 100644
+--- a/arch/blackfin/include/asm/processor.h
++++ b/arch/blackfin/include/asm/processor.h
+@@ -92,7 +92,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define	KSTK_ESP(tsk)	((tsk) = current ? rdusp() : (tsk)->thread.usp)
+ 
+ #define cpu_relax()    	smp_mb()
+-#define cpu_relax_yield()      cpu_relax()
+ 
+ /* Get the Silicon Revision of the chip */
+ static inline uint32_t __pure bfin_revid(void)
+diff --git a/arch/c6x/include/asm/processor.h b/arch/c6x/include/asm/processor.h
+index 1fd22e7..b9eb3da 100644
+--- a/arch/c6x/include/asm/processor.h
++++ b/arch/c6x/include/asm/processor.h
+@@ -121,7 +121,6 @@ extern unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_ESP(task)	(task_pt_regs(task)->sp)
+ 
+ #define cpu_relax()		do { } while (0)
+-#define cpu_relax_yield()             cpu_relax()
+ 
+ extern const struct seq_operations cpuinfo_op;
+ 
+diff --git a/arch/cris/include/asm/processor.h b/arch/cris/include/asm/processor.h
+index 1a57841..15b815d 100644
+--- a/arch/cris/include/asm/processor.h
++++ b/arch/cris/include/asm/processor.h
+@@ -63,7 +63,6 @@ static inline void release_thread(struct task_struct *dead_task)
+ #define init_stack      (init_thread_union.stack)
+ 
+ #define cpu_relax()     barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ void default_idle(void);
+ 
+diff --git a/arch/frv/include/asm/processor.h b/arch/frv/include/asm/processor.h
+index c1e5f2a..ddaeb9c 100644
+--- a/arch/frv/include/asm/processor.h
++++ b/arch/frv/include/asm/processor.h
+@@ -107,7 +107,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define	KSTK_ESP(tsk)	((tsk)->thread.frame0->sp)
+ 
+ #define cpu_relax() barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /* data cache prefetch */
+ #define ARCH_HAS_PREFETCH
+diff --git a/arch/h8300/include/asm/processor.h b/arch/h8300/include/asm/processor.h
+index 42d6053..65132d7 100644
+--- a/arch/h8300/include/asm/processor.h
++++ b/arch/h8300/include/asm/processor.h
+@@ -127,7 +127,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define	KSTK_ESP(tsk)	((tsk) = current ? rdusp() : (tsk)->thread.usp)
+ 
+ #define cpu_relax()    barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #define HARD_RESET_NOW() ({		\
+ 	local_irq_disable();		\
+diff --git a/arch/hexagon/include/asm/processor.h b/arch/hexagon/include/asm/processor.h
+index 5d694cc..45a8254 100644
+--- a/arch/hexagon/include/asm/processor.h
++++ b/arch/hexagon/include/asm/processor.h
+@@ -56,7 +56,6 @@ struct thread_struct {
+ }
+ 
+ #define cpu_relax() __vmyield()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /*
+  * Decides where the kernel will search for a free chunk of vm space during
+diff --git a/arch/ia64/include/asm/processor.h b/arch/ia64/include/asm/processor.h
+index 0c2c3b2..03911a3 100644
+--- a/arch/ia64/include/asm/processor.h
++++ b/arch/ia64/include/asm/processor.h
+@@ -547,7 +547,6 @@ ia64_eoi (void)
+ }
+ 
+ #define cpu_relax()	ia64_hint(ia64_hint_pause)
+-#define cpu_relax_yield() cpu_relax()
+ 
+ static inline int
+ ia64_get_irr(unsigned int vector)
+diff --git a/arch/m32r/include/asm/processor.h b/arch/m32r/include/asm/processor.h
+index 9b83a13..5767367 100644
+--- a/arch/m32r/include/asm/processor.h
++++ b/arch/m32r/include/asm/processor.h
+@@ -133,6 +133,5 @@ unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_ESP(tsk)  ((tsk)->thread.sp)
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #endif /* _ASM_M32R_PROCESSOR_H */
+diff --git a/arch/m68k/include/asm/processor.h b/arch/m68k/include/asm/processor.h
+index b0d0442..f5f790c 100644
+--- a/arch/m68k/include/asm/processor.h
++++ b/arch/m68k/include/asm/processor.h
+@@ -156,6 +156,5 @@ unsigned long get_wchan(struct task_struct *p);
+ #define task_pt_regs(tsk)	((struct pt_regs *) ((tsk)->thread.esp0))
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #endif
+diff --git a/arch/metag/include/asm/processor.h b/arch/metag/include/asm/processor.h
+index ee302a6..ec6a490 100644
+--- a/arch/metag/include/asm/processor.h
++++ b/arch/metag/include/asm/processor.h
+@@ -152,7 +152,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define user_stack_pointer(regs)        ((regs)->ctx.AX[0].U0)
+ 
+ #define cpu_relax()     barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ extern void setup_priv(void);
+ 
+diff --git a/arch/microblaze/include/asm/processor.h b/arch/microblaze/include/asm/processor.h
+index 08ec1f7..37ef196 100644
+--- a/arch/microblaze/include/asm/processor.h
++++ b/arch/microblaze/include/asm/processor.h
+@@ -22,7 +22,6 @@
+ extern const struct seq_operations cpuinfo_op;
+ 
+ # define cpu_relax()		barrier()
+-# define cpu_relax_yield() cpu_relax()
+ 
+ #define task_pt_regs(tsk) \
+ 		(((struct pt_regs *)(THREAD_SIZE + task_stack_page(tsk))) - 1)
+diff --git a/arch/mips/include/asm/processor.h b/arch/mips/include/asm/processor.h
+index 8ea95e7..95b8c47 100644
+--- a/arch/mips/include/asm/processor.h
++++ b/arch/mips/include/asm/processor.h
+@@ -389,7 +389,6 @@ unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_STATUS(tsk) (task_pt_regs(tsk)->cp0_status)
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /*
+  * Return_address is a replacement for __builtin_return_address(count)
+diff --git a/arch/mn10300/include/asm/processor.h b/arch/mn10300/include/asm/processor.h
+index d11397b..18e17ab 100644
+--- a/arch/mn10300/include/asm/processor.h
++++ b/arch/mn10300/include/asm/processor.h
+@@ -69,7 +69,6 @@ extern void print_cpu_info(struct mn10300_cpuinfo *);
+ extern void dodgy_tsc(void);
+ 
+ #define cpu_relax() barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /*
+  * User space process size: 1.75GB (default).
+diff --git a/arch/nios2/include/asm/processor.h b/arch/nios2/include/asm/processor.h
+index d32c176..3bbbc3d 100644
+--- a/arch/nios2/include/asm/processor.h
++++ b/arch/nios2/include/asm/processor.h
+@@ -88,7 +88,6 @@ extern unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_ESP(tsk)	((tsk)->thread.kregs->sp)
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+diff --git a/arch/openrisc/include/asm/processor.h b/arch/openrisc/include/asm/processor.h
+index 7f47fc7..a908e6c 100644
+--- a/arch/openrisc/include/asm/processor.h
++++ b/arch/openrisc/include/asm/processor.h
+@@ -92,7 +92,6 @@ extern unsigned long thread_saved_pc(struct task_struct *t);
+ #define init_stack      (init_thread_union.stack)
+ 
+ #define cpu_relax()     barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ #endif /* __ASSEMBLY__ */
+ #endif /* __ASM_OPENRISC_PROCESSOR_H */
+diff --git a/arch/parisc/include/asm/processor.h b/arch/parisc/include/asm/processor.h
+index a4a07f4..ca40741 100644
+--- a/arch/parisc/include/asm/processor.h
++++ b/arch/parisc/include/asm/processor.h
+@@ -309,7 +309,6 @@ extern unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_ESP(tsk)	((tsk)->thread.regs.gr[30])
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /*
+  * parisc_requires_coherency() is used to identify the combined VIPT/PIPT
+diff --git a/arch/powerpc/include/asm/processor.h b/arch/powerpc/include/asm/processor.h
+index 5684e68..dac83fc 100644
+--- a/arch/powerpc/include/asm/processor.h
++++ b/arch/powerpc/include/asm/processor.h
+@@ -404,8 +404,6 @@ static inline unsigned long __pack_fe01(unsigned int fpmode)
+ #define cpu_relax()	barrier()
+ #endif
+ 
+-#define cpu_relax_yield() cpu_relax()
+-
+ /* Check that a certain kernel stack pointer is valid in task_struct p */
+ int validate_sp(unsigned long sp, struct task_struct *p,
+                        unsigned long nbytes);
+diff --git a/arch/s390/include/asm/processor.h b/arch/s390/include/asm/processor.h
+index 17c001a..9eab1cb 100644
+--- a/arch/s390/include/asm/processor.h
++++ b/arch/s390/include/asm/processor.h
+@@ -234,6 +234,7 @@ static inline unsigned short stap(void)
+ /*
+  * Give up the time slice of the virtual PU.
+  */
++#define cpu_relax_yield cpu_relax_yield
+ void cpu_relax_yield(void);
+ 
+ #define cpu_relax() barrier()
+diff --git a/arch/score/include/asm/processor.h b/arch/score/include/asm/processor.h
+index a1e97c0..d9a922d 100644
+--- a/arch/score/include/asm/processor.h
++++ b/arch/score/include/asm/processor.h
+@@ -24,7 +24,6 @@ extern unsigned long get_wchan(struct task_struct *p);
+ #define current_text_addr() ({ __label__ _l; _l: &&_l; })
+ 
+ #define cpu_relax()		barrier()
+-#define cpu_relax_yield()	cpu_relax()
+ #define release_thread(thread)	do {} while (0)
+ 
+ /*
+diff --git a/arch/sh/include/asm/processor.h b/arch/sh/include/asm/processor.h
+index 9454ff1..5addd69 100644
+--- a/arch/sh/include/asm/processor.h
++++ b/arch/sh/include/asm/processor.h
+@@ -97,7 +97,6 @@ extern struct sh_cpuinfo cpu_data[];
+ 
+ #define cpu_sleep()	__asm__ __volatile__ ("sleep" : : : "memory")
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ void default_idle(void);
+ void stop_this_cpu(void *);
+diff --git a/arch/sparc/include/asm/processor_32.h b/arch/sparc/include/asm/processor_32.h
+index fc32b73..365d4cb 100644
+--- a/arch/sparc/include/asm/processor_32.h
++++ b/arch/sparc/include/asm/processor_32.h
+@@ -119,7 +119,6 @@ extern struct task_struct *last_task_used_math;
+ int do_mathemu(struct pt_regs *regs, struct task_struct *fpt);
+ 
+ #define cpu_relax()	barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ extern void (*sparc_idle)(void);
+ 
+diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
+index 12787df..6448cfc 100644
+--- a/arch/sparc/include/asm/processor_64.h
++++ b/arch/sparc/include/asm/processor_64.h
+@@ -216,7 +216,6 @@ unsigned long get_wchan(struct task_struct *task);
+ 				     "nop\n\t"				\
+ 				     ".previous"			\
+ 				     ::: "memory")
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /* Prefetch support.  This is tuned for UltraSPARC-III and later.
+  * UltraSPARC-I will treat these as nops, and UltraSPARC-II has
+diff --git a/arch/tile/include/asm/processor.h b/arch/tile/include/asm/processor.h
+index c1c228b..0bc9968 100644
+--- a/arch/tile/include/asm/processor.h
++++ b/arch/tile/include/asm/processor.h
+@@ -264,8 +264,6 @@ static inline void cpu_relax(void)
+ 	barrier();
+ }
+ 
+-#define cpu_relax_yield() cpu_relax()
+-
+ /* Info on this processor (see fs/proc/cpuinfo.c) */
+ struct seq_operations;
+ extern const struct seq_operations cpuinfo_op;
+diff --git a/arch/unicore32/include/asm/processor.h b/arch/unicore32/include/asm/processor.h
+index eeefe7c..4eaa421 100644
+--- a/arch/unicore32/include/asm/processor.h
++++ b/arch/unicore32/include/asm/processor.h
+@@ -71,7 +71,6 @@ extern void release_thread(struct task_struct *);
+ unsigned long get_wchan(struct task_struct *p);
+ 
+ #define cpu_relax()			barrier()
+-#define cpu_relax_yield()		cpu_relax()
+ 
+ #define task_pt_regs(p) \
+ 	((struct pt_regs *)(THREAD_START_SP + task_stack_page(p)) - 1)
+diff --git a/arch/x86/include/asm/processor.h b/arch/x86/include/asm/processor.h
+index 7513c99..c84605b 100644
+--- a/arch/x86/include/asm/processor.h
++++ b/arch/x86/include/asm/processor.h
+@@ -588,8 +588,6 @@ static __always_inline void cpu_relax(void)
+ 	rep_nop();
+ }
+ 
+-#define cpu_relax_yield() cpu_relax()
+-
+ /* Stop speculative execution and prefetching of modified code. */
+ static inline void sync_core(void)
+ {
+diff --git a/arch/x86/um/asm/processor.h b/arch/x86/um/asm/processor.h
+index b4bd63b..c77db22 100644
+--- a/arch/x86/um/asm/processor.h
++++ b/arch/x86/um/asm/processor.h
+@@ -26,7 +26,6 @@ static inline void rep_nop(void)
+ }
+ 
+ #define cpu_relax()		rep_nop()
+-#define cpu_relax_yield()	cpu_relax()
+ 
+ #define task_pt_regs(t) (&(t)->thread.regs)
+ 
+diff --git a/arch/xtensa/include/asm/processor.h b/arch/xtensa/include/asm/processor.h
+index 7d8d6be..86ffcd6 100644
+--- a/arch/xtensa/include/asm/processor.h
++++ b/arch/xtensa/include/asm/processor.h
+@@ -206,7 +206,6 @@ extern unsigned long get_wchan(struct task_struct *p);
+ #define KSTK_ESP(tsk)		(task_pt_regs(tsk)->areg[1])
+ 
+ #define cpu_relax()  barrier()
+-#define cpu_relax_yield() cpu_relax()
+ 
+ /* Special register access. */
+ 
+diff --git a/include/linux/sched.h b/include/linux/sched.h
+index 348f51b..c1aa3b0 100644
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -2444,6 +2444,10 @@ static inline void calc_load_enter_idle(void) { }
+ static inline void calc_load_exit_idle(void) { }
+ #endif /* CONFIG_NO_HZ_COMMON */
+ 
++#ifndef cpu_relax_yield
++#define cpu_relax_yield() cpu_relax()
++#endif
++
+ /*
+  * Do not use outside of architecture code which knows its limitations.
+  *
+-- 
+2.5.5
+
