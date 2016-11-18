@@ -1,45 +1,42 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Tue, 29 Nov 2016 11:09:18 +0000
-Subject: Re: Build regressions/improvements in v4.9-rc7
-Message-Id: <CADxRZqwuaHV0xzgs6zvWN+gQb80VPNn6F5JY2DkUoXQUT64AfA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 18 Nov 2016 19:34:07 +0000
+Subject: Re: [PATCH v3 0/2] Ajust lockdep static allocations for sparc
+Message-Id: <20161118.143407.750907377181864816.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1480343257-26723-1-git-send-email-geert@linux-m68k.org>
- <CAMuHMdXQ1--skMHOW1HLtCeeeGR4PqkYLHh8rVukPU=V8u4fQg@mail.gmail.com>
- <CADxRZqzUnJr-FavZkc6RypHk+A6yO2BLxqJHRtdKhBCbWBDYWw@mail.gmail.com> <20161128.154332.1749021881268024855.davem@davemloft.net>
-In-Reply-To: <20161128.154332.1749021881268024855.davem@davemloft.net>
+References: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1475004808-91920-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Sparc kernel list <sparclinux@vger.kernel.org>
+To: babu.moger@oracle.com
+Cc: peterz@infradead.org, mingo@redhat.com, akpm@linux-foundation.org, keescook@chromium.org, dan.j.williams@intel.com, aryabinin@virtuozzo.com, tj@kernel.org, sam@ravnborg.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, Nov 28, 2016 at 11:43 PM, David Miller <davem@davemloft.net> wrote:
-> From: Anatoly Pugachev <matorola@gmail.com>
-> Date: Mon, 28 Nov 2016 23:40:34 +0300
->
->> On Mon, Nov 28, 2016 at 5:29 PM, Geert Uytterhoeven
->> <geert@linux-m68k.org> wrote:
->>> On Mon, Nov 28, 2016 at 3:27 PM, Geert Uytterhoeven
->>> <geert@linux-m68k.org> wrote:
->>>> JFYI, when comparing v4.9-rc7[1] to v4.9-rc6[3], the summaries are:
->>>>   - build errors: +10/-4
->>>
->>>   + /home/kisskb/slave/src/drivers/scsi/qlogicpti.c: error: passing
->>> argument 3 of 'dma_alloc_coherent' from incompatible pointer type
->>> [-Werror=incompatible-pointer-types]:  => 813:9, 822:9
->>>   + /home/kisskb/slave/src/sound/sparc/dbri.c: error: passing argument
->>> 3 of 'dma_zalloc_coherent' from incompatible pointer type
->>> [-Werror=incompatible-pointer-types]:  => 2538:6
->>>
->>> sparc64-allmodconfig
->>>
->>>> [1] http://kisskb.ellerman.id.au/kisskb/head/e5517c2a5a49ed5e99047008629f1cd60246ea0e/ (all 267 configs)
->>>> [3] http://kisskb.ellerman.id.au/kisskb/head/9c763584b7c8911106bb77af7e648bef09af9d80/ (all 267 configs)
->>
->> I'm unable to compile kernel as well, bisected in between 4.9-rc7
->> (bad) and 4.9-rc6 (good):
->
-> We know about these problems and are working on it.
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 27 Sep 2016 12:33:26 -0700
 
-Latest git (v4.9-rc7-7-g88abd82) fixes kernel compile issue for me.
-Thanks.
+> These patches limit the static allocations for lockdep data structures
+> used for debugging locking correctness. For sparc, all the kernel's code,
+> data, and bss, must have locked translations in the TLB so that we don't
+> get TLB misses on kernel code and data. Current sparc chips have 8 TLB
+> entries available that may be locked down, and with a 4mb page size,
+> this gives a maximum of 32MB. With PROVE_LOCKING we could go over this
+> limit and cause system boot-up problems. These patches limit the static
+> allocations so that everything fits in current required size limit.
+> 
+> patch 1 : Adds new config parameter CONFIG_PROVE_LOCKING_SMALL
+> Patch 2 : Adjusts the sizes based on the new config parameter
+> 
+> v2-> v3:
+>    Some more comments from Sam Ravnborg and Peter Zijlstra.
+>    Defined PROVE_LOCKING_SMALL as invisible and moved the selection to
+>    arch/sparc/Kconfig. 
+> 
+> v1-> v2:
+>    As suggested by Peter Zijlstra, keeping the default as is.
+>    Introduced new config variable CONFIG_PROVE_LOCKING_SMALL
+>    to handle sparc specific case.
+> 
+> v0:
+>    Initial revision.
+
+Series applied, thanks.
