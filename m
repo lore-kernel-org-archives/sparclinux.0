@@ -1,36 +1,35 @@
-From: Geliang Tang <geliangtang@gmail.com>
-Date: Wed, 23 Nov 2016 15:06:05 +0000
-Subject: [PATCH] sparc: kernel: use builtin_platform_driver
-Message-Id: <c694385c83bb1cbe14029016702877962cecb61f.1479913528.git.geliangtang@gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Fri, 18 Nov 2016 19:29:42 +0000
+Subject: Re: [PATCH 1/2] sunqe: Fix compiler warnings
+Message-Id: <20161118.142942.620136274318885678.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1476737820-29584-1-git-send-email-tushar.n.dave@oracle.com>
+        <1476737820-29584-2-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1476737820-29584-2-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Geliang Tang <geliangtang@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: tushar.n.dave@oracle.com
+Cc: sparclinux@vger.kernel.org, chris.hyser@oracle.com, linux-kernel@vger.kernel.org
 
-Use builtin_platform_driver() helper to simplify the code.
-
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
----
- arch/sparc/kernel/power.c | 7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
-index 1836cb9..4b60f38 100644
---- a/arch/sparc/kernel/power.c
-+++ b/arch/sparc/kernel/power.c
-@@ -67,9 +67,4 @@ static struct platform_driver power_driver = {
- 	},
- };
- 
--static int __init power_init(void)
--{
--	return platform_driver_register(&power_driver);
--}
--
--device_initcall(power_init);
-+builtin_platform_driver(power_driver);
--- 
-2.9.3
-
+RnJvbTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCkRhdGU6IE1vbiwg
+MTcgT2N0IDIwMTYgMTM6NTY6NTkgLTA3MDANCg0KPiBzdW5xZSB1c2VzICdfX3UzMicgZm9yIGRt
+YSBoYW5kbGUgd2hpbGUgaW52b2tpbmcga2VybmVsIERNQSBBUElzLA0KPiBpbnN0ZWFkIG9mIHVz
+aW5nIGRtYV9hZGRyX3QuIFRoaXMgaGFzbid0IGNhdXNlZCBhbnkgJ2luY29tcGF0aWJsZQ0KPiBw
+b2ludGVyIHR5cGUnIHdhcm5pbmcgb24gU1BBUkMgYmVjYXVzZSB1bnRpbCBub3cgZG1hX2FkZHJf
+dCBpcyBvZg0KPiB0eXBlIHUzMi4gSG93ZXZlciwgcmVjZW50IGNoYW5nZXMgaW4gU1BBUkMgQVRV
+IChpb21tdSkgZW5hYmxlcyA2NGJpdA0KPiBETUEgYW5kIHRoZXJlZm9yZSBkbWFfYWRkcl90IGJl
+Y29tZXMgb2YgdHlwZSB1NjQuIFRoaXMgbWFrZXMNCj4gJ2luY29tcGF0aWJsZSBwb2ludGVyIHR5
+cGUnIHdhcm5pbmdzIGluZXZpdGFibGUuDQo+IA0KPiBlLmcuDQo+IGRyaXZlcnMvbmV0L2V0aGVy
+bmV0L3N1bi9zdW5xZS5jOiBJbiBmdW5jdGlvbiChcWVjX2V0aGVyX2luaXSiOg0KPiBkcml2ZXJz
+L25ldC9ldGhlcm5ldC9zdW4vc3VucWUuYzo4ODM6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQg
+MyBvZiChZG1hX2FsbG9jX2NvaGVyZW50oiBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUN
+Cj4gLi9pbmNsdWRlL2xpbnV4L2RtYS1tYXBwaW5nLmg6NDQ1OiBub3RlOiBleHBlY3RlZCChZG1h
+X2FkZHJfdCAqoiBidXQgYXJndW1lbnQgaXMgb2YgdHlwZSChX191MzIgKqINCj4gZHJpdmVycy9u
+ZXQvZXRoZXJuZXQvc3VuL3N1bnFlLmM6ODg1OiB3YXJuaW5nOiBwYXNzaW5nIGFyZ3VtZW50IDMg
+b2YgoWRtYV9hbGxvY19jb2hlcmVudKIgZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlDQo+
+IC4vaW5jbHVkZS9saW51eC9kbWEtbWFwcGluZy5oOjQ0NTogbm90ZTogZXhwZWN0ZWQgoWRtYV9h
+ZGRyX3QgKqIgYnV0IGFyZ3VtZW50IGlzIG9mIHR5cGUgoV9fdTMyICqiDQo+IA0KPiBUaGlzIHBh
+dGNoIHJlc29sdmVzIGFib3ZlIGNvbXBpbGVyIHdhcm5pbmdzLg0KPiANCj4gU2lnbmVkLW9mZi1i
+eTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCj4gUmV2aWV3ZWQtYnk6
+IGNocmlzIGh5c2VyIDxjaHJpcy5oeXNlckBvcmFjbGUuY29tPg0KDQpBcGxwaWVkLg0K
