@@ -1,48 +1,38 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Nov 2016 19:29:03 +0000
-Subject: Re: [PATCH v3 0/6] sparc: Enable sun4v hypervisor PCI IOMMU v2 APIs and ATU
-Message-Id: <20161118.142903.2292605042494367332.davem@davemloft.net>
+Date: Sun, 20 Nov 2016 21:29:32 +0000
+Subject: Re: [PATCH 3/3] rtc: sparc: make sun4v explicitly non-modular
+Message-Id: <20161120.162932.2149671663687873415.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1477674765-22160-1-git-send-email-tushar.n.dave@oracle.com>
+References: <20161031185527.20279-1-paul.gortmaker@windriver.com>
+	<20161031185527.20279-4-paul.gortmaker@windriver.com>
+In-Reply-To: <20161031185527.20279-4-paul.gortmaker@windriver.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tushar.n.dave@oracle.com
-Cc: chris.hyser@oracle.com, sowmini.varadhan@oracle.com, vgupta@synopsys.com, jroedel@suse.de, egtvedt@samfundet.no, robin.murphy@arm.com, m.szyprowski@samsung.com, krzk@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: paul.gortmaker@windriver.com
+Cc: linux-kernel@vger.kernel.org, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, sparclinux@vger.kernel.org, rtc-linux@googlegroups.com
 
-From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Fri, 28 Oct 2016 10:12:39 -0700
+From: Paul Gortmaker <paul.gortmaker@windriver.com>
+Date: Mon, 31 Oct 2016 14:55:27 -0400
 
-> ATU (Address Translation Unit) is a new IOMMU in SPARC supported with
-> sun4v hypervisor PCI IOMMU v2 APIs.
+> The Kconfig currently controlling compilation of this code is:
 > 
-> Current SPARC IOMMU supports only 32bit address ranges and one TSB
-> per PCIe root complex that has a 2GB per root complex DVMA space
-> limit. The limit has become a scalability bottleneck nowadays that
-> a typical 10G/40G NIC can consume 500MB DVMA space per instance.
-> When DVMA resource is exhausted, devices will not be usable
-> since the driver can't allocate DVMA.
+> drivers/rtc/Kconfig:config RTC_DRV_SUN4V
+> drivers/rtc/Kconfig:    bool "SUN4V Hypervisor RTC"
 > 
-> For example, we recently experienced legacy IOMMU limitation while
-> using i40e driver in system with large number of CPUs (e.g. 128).
-> Four ports of i40e, each request 128 QP (Queue Pairs). Each queue has
-> 512 (default) descriptors. So considering only RX queues (because RX
-> premap DMA buffers), i40e takes 4*128*512 number of DMA entries in
-> IOMMU table. Legacy IOMMU can have at max (2G/8K)- 1 entries available
-> in table. So bringing up four instance of i40e alone saturate existing
-> IOMMU resource.
+> ...meaning that it currently is not being built as a module by anyone.
 > 
-> ATU removes bottleneck by allowing guest os to create IOTSB of size
-> 32G (or more) with 64bit address ranges available in ATU HW. 32G is
-> more than enough DVMA space to be shared by all PCIe devices under
-> root complex contrast to 2G space provided by legacy IOMMU.
+> Lets remove the couple traces of modular infrastructure use, so that
+> when reading the driver there is no doubt it is builtin-only.
 > 
-> ATU allows PCIe devices to use 64bit DMA addressing. Devices
-> which choose to use 32bit DMA mask will continue to work with the
-> existing legacy IOMMU.
+> We delete the MODULE_LICENSE tag etc. since all that information
+> was (or is now) contained at the top of the file in the comments.
 > 
-> The patch set is tested on sun4v (T1000, T2000, T3, T4, T5, T7, S7)
-> and sun4u SPARC.
+> Cc: Alessandro Zummo <a.zummo@towertech.it>
+> Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+> Cc: rtc-linux@googlegroups.com
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-Series applied, thanks.
+Applied.
