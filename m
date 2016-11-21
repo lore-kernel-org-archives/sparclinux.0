@@ -1,108 +1,89 @@
-From: Daniel Hellstrom <daniel@gaisler.com>
-Date: Thu, 24 Nov 2016 13:33:31 +0000
-Subject: Re: [bug report] SPARC/LEON: added support for selecting Timer Core and Timer within core
-Message-Id: <88059740-864d-0a1c-9a1d-6e30ff430de3@gaisler.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 21 Nov 2016 18:41:31 +0000
+Subject: [GIT] Sparc
+Message-Id: <20161121.134131.1958084384811695201.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160713133816.GA8019@mwanda>
-In-Reply-To: <20160713133816.GA8019@mwanda>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello Dan,
 
-Thanks for your email. By reading the code I think "break" was not the=20
-intension, rather to restart from "do {" the timer instance "ampopts"=20
-property is 0. The purpose was to scan for the next GPTIMER instance,=20
-therefore nnp is set to np.
+1) With modern networking cards we can run out of 32-bit DMA space, so
+   support 64-bit DMA addressing when possible on sparc64.  From Dave
+   Tushar.
 
-Best Regards,
+2) Some signal frame validation checks are inverted on sparc32, fix from
+   Andreas Larsson.
 
-Daniel Hellstrom
-Software Section Head
-Cobham Gaisler
-T : +46 (0) 31 775 8657
-F : +46 (0) 31 421407
-daniel.hellstrom@gaisler.com
+3) Lockdep tables can get too large in some circumstances on sparc64,
+   add a way to adjust the size a bit.  From Babu Moger.
 
-Cobham Gaisler AB, Kungsgatan 12, SE-411 19, G=D6TEBORG, Sweden.
-+46 (0) 31 775 8650, www.cobham.com/gaisler
+4) Fix NUMA node probing on some sun4v systems, from Thomas Tai.
 
-Please consider the environment before printing this email
+Please pull, thanks a lot!
 
-This e-mail and any files transmitted with it ("E-mail") is intended solely=
- for the addressee(s) and may contain confidential and/or legally privilege=
-d information. If you are not the addressee(s), any disclosure,
-reproduction, copying, distribution or other use of the E-mail is prohibite=
-d. If you have received this E-mail in error, please delete it and notify t=
-he sender immediately via our switchboard or return e-mail.
+The following changes since commit 27bcd37e0240bbe33f0efe244b5aad52104115b3:
 
-Neither the company nor any subsidiary or affiliate or associated company n=
-or any individual sending this Email accepts any liability in respect of th=
-e content (including errors and omissions) nor shall this e-mail be deemed =
-to enter the company or any subsidiary or affiliate or associated company i=
-nto a contract or to create any legally binding obligations unless expressl=
-y agreed to in writing under separate cover and timeliness of the E-mail wh=
-ich arise as a result of transmission. If verification is required, please =
-request a hard copy version from the sender.
+  Merge tag 'sound-4.9-rc5' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound (2016-11-09 11:39:02 -0800)
 
-On 2016-11-24 13:19, Dan Carpenter wrote:
-> Hello Daniel Hellstrom,
->
-> The patch 2791c1a43900: "SPARC/LEON: added support for selecting
-> Timer Core and Timer within core" from Jan 4, 2011, leads to the
-> following static checker warning:
->
-> 	arch/sparc/kernel/leon_kernel.c:368 leon_init_timers()
-> 	warn: continue to end of do { ... } while(0); loop
->
-> arch/sparc/kernel/leon_kernel.c
->     350          /* Find GPTIMER Timer Registers base address otherwise b=
-ail out. */
->     351          nnp =3D rootnp;
->     352          do {
->     353                  np =3D of_find_node_by_name(nnp, "GAISLER_GPTIME=
-R");
->     354                  if (!np) {
->     355                          np =3D of_find_node_by_name(nnp, "01_011=
-");
->     356                          if (!np)
->     357                                  goto bad;
->     358                  }
->     359
->     360                  ampopts =3D 0;
->     361                  pp =3D of_find_property(np, "ampopts", &len);
->     362                  if (pp) {
->     363                          ampopts =3D *(int *)pp->value;
->     364                          if (ampopts =3D 0) {
->     365                                  /* Skip this instance, resource =
-already
->     366                                   * allocated by other OS */
->     367                                  nnp =3D np;
->     368                                  continue;
->
-> "continue" and "break" mean the same thing here.  Please use break, if
-> that's what was intended.
->
->     369                          }
->     370                  }
->     371
->     372                  /* Select Timer-Instance on Timer Core. Default =
-is zero */
->     373                  leon3_gptimer_idx =3D ampopts & 0x7;
->     374
->     375                  pp =3D of_find_property(np, "reg", &len);
->     376                  if (pp)
->     377                          leon3_gptimer_regs =3D *(struct leon3_gp=
-timer_regs_map **)
->     378                                                  pp->value;
->     379                  pp =3D of_find_property(np, "interrupts", &len);
->     380                  if (pp)
->     381                          leon3_gptimer_irq =3D *(unsigned int *)p=
-p->value;
->     382          } while (0);
->
-> regards,
-> dan carpenter
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 9dd35d6882a10629b95f2bc41a541740ef24c226:
+
+  sparc: drop duplicate header scatterlist.h (2016-11-19 10:43:07 -0500)
+
+----------------------------------------------------------------
+Andreas Larsson (1):
+      sparc32: Fix inverted invalid_frame_pointer checks on sigreturns
+
+Babu Moger (2):
+      config: Adding the new config parameter CONFIG_PROVE_LOCKING_SMALL for sparc
+      lockdep: Limit static allocations if PROVE_LOCKING_SMALL is defined
+
+Dave Kleikamp (1):
+      sparc64: Add FORCE_MAX_ZONEORDER and default to 13
+
+David S. Miller (2):
+      Merge branch 'sun4v-64bit-DMA'
+      Merge branch 'sparc-lockdep-small'
+
+Geliang Tang (1):
+      sparc: drop duplicate header scatterlist.h
+
+Thomas Tai (2):
+      sparc64: Fix find_node warning if numa node cannot be found
+      sparc64: fix compile warning section mismatch in find_node()
+
+Tushar Dave (7):
+      sparc64: Add ATU (new IOMMU) support
+      sparc64: Initialize iommu_map_table and iommu_pool
+      sparc64: Bind PCIe devices to use IOMMU v2 service
+      sparc64: Enable sun4v dma ops to use IOMMU v2 APIs
+      sparc64: Enable 64-bit DMA
+      sunqe: Fix compiler warnings
+      sunbmac: Fix compiler warning
+
+ arch/sparc/Kconfig                  |  23 +++++++++
+ arch/sparc/include/asm/hypervisor.h | 343 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/include/asm/iommu_64.h   |  28 ++++++++++
+ arch/sparc/kernel/hvapi.c           |   1 +
+ arch/sparc/kernel/iommu.c           |   8 ++-
+ arch/sparc/kernel/iommu_common.h    |   1 -
+ arch/sparc/kernel/pci_sun4v.c       | 418 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---------------------
+ arch/sparc/kernel/pci_sun4v.h       |  21 ++++++++
+ arch/sparc/kernel/pci_sun4v_asm.S   |  68 ++++++++++++++++++++++++
+ arch/sparc/kernel/signal_32.c       |   4 +-
+ arch/sparc/mm/init_64.c             |  71 ++++++++++++++++++++++---
+ drivers/net/ethernet/sun/sunbmac.c  |   5 +-
+ drivers/net/ethernet/sun/sunbmac.h  |   2 +-
+ drivers/net/ethernet/sun/sunqe.c    |  11 ++--
+ drivers/net/ethernet/sun/sunqe.h    |   4 +-
+ kernel/locking/lockdep_internals.h  |  20 ++++++--
+ lib/Kconfig.debug                   |   3 ++
+ 17 files changed, 948 insertions(+), 83 deletions(-)
