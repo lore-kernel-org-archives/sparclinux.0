@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 23 Nov 2016 15:33:36 +0000
+Date: Wed, 23 Nov 2016 15:42:12 +0000
 Subject: Re: 4.9.0-rc6-00086-g3b404a5 seems good on my sparc64 machines
-Message-Id: <alpine.LRH.2.20.1611231900320.13985@math.ut.ee>
+Message-Id: <alpine.LRH.2.20.1611231911120.13985@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <alpine.LRH.2.20.1611231248340.6788@math.ut.ee>
 In-Reply-To: <alpine.LRH.2.20.1611231248340.6788@math.ut.ee>
@@ -10,22 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> > U1 U2 x1 t1-105 t1-200 v100 v120 e250 e220r e420r v210 v240
-> > v440 v245 t1000 t2000 t5120
+> > I tried yesterdays git 4.9.0-rc6-00086-g3b404a5 on most of my sparc64 
+> > machines and found no new regressions. The tests were only simple bootup 
+> > tests so far (no dist-upgrade since my userspace is stuck in debian 
+> > unstable 2015).
 > 
-> I have an U1e which won't boot, I believe due to age (I haven't
-> investigated it yet, however it could be a dead motherboard which
-> would be sad) and a U5 which I've had no luck getting a working Linux
-> install running on. (mostly due to driver issues) Would either of
-> these, or any part of either be of any use to you? They're both in
-> Australia.
+> You should be able to dist-upgrade your 2015 unstable to a current version
+> of unstable without any bigger issues. You are effectively upgrading from
+> release to release+1 which is normally always supported.
 
-If you have 128M or 256M DIMMs for U5/U10, these would be useful (RAM in 
-my U5 is dying). Maybe also 64M or 128M DIMMs for U1/U1E (my U1E is 
-somewhat dead, I also suspect the mainboard). U1 is still alive and 
-kicking.
+There is no current version for debian sparc port AFAIK.
 
-I suspect anything else is not worth shipping.
+deb http://snapshot.debian.org/archive/debian/20150725T121538Z/ unstable main contrib non-free
+
+minus udev-related packages (downgraded to 218-8) is what I have running 
+on most of them.
+
+Debian-ports has sparc64 but so far I have understood that I can not 
+just "upgrade" a 32-bit userland sparc port to sparc64 port, but rather 
+do a clean install on another HDD for test.
+
+Or have I misunderstood something?
 
 -- 
 Meelis Roos (mroos@linux.ee)
