@@ -1,35 +1,25 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Date: Fri, 25 Nov 2016 21:15:37 +0000
-Subject: [patch] sparc64: restore irq in error paths in iommu
-Message-Id: <20161125211537.GA4131@mwanda>
+From: =?UTF-8?Q?Pan=C3=AD_KLeung?= <info@casnet.cz>
+Date: Wed, 23 Nov 2016 09:34:23 +0000
+Subject: dobry den!
+Message-Id: <5568431c01ae81b8540eca32e4b62ec5@localhost>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-There are some error paths where we should restore IRQs but we don't.
 
-Fixes: bb620c3d3925 ("sparc: Make sparc64 use scalable lib/iommu-common.c functions")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 06981cc7..7d23cad 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -242,6 +242,7 @@ static void *dma_4v_alloc_coherent(struct device *dev, size_t size,
- 	return ret;
- 
- iommu_map_fail:
-+	local_irq_restore(flags);
- 	iommu_tbl_range_free(tbl, *dma_addrp, npages, IOMMU_ERROR_CODE);
- 
- range_alloc_fail:
-@@ -414,6 +415,7 @@ static dma_addr_t dma_4v_map_page(struct device *dev, struct page *page,
- 	return DMA_ERROR_CODE;
- 
- iommu_map_fail:
-+	local_irq_restore(flags);
- 	iommu_tbl_range_free(tbl, bus_addr, npages, IOMMU_ERROR_CODE);
- 	return DMA_ERROR_CODE;
- }
+dobry den!
+
+jak se mas? pozornost prosim! K dispozici je oficialni vyhlídka bych 
+chtel mluvit o s vámi duverne.
+ 
+Vase rychle reakce tady na mem osobním soukromem e-mailu níze pro více 
+informací ocení.
+
+S pratelskym pozdravem,
+Pani Ko M. Leung
+email: kmaylng13@gmail.com
+Mistopredseda, Managing Director
+a vykonny reditel Chong Hing Bank Limited
