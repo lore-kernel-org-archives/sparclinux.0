@@ -1,32 +1,36 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 22 Nov 2016 08:43:37 +0000
-Subject: New Debian sparc installation images
-Message-Id: <7e1883ff-753d-f02a-b5f8-4b3ceec114d1@physik.fu-berlin.de>
+From: Geliang Tang <geliangtang@gmail.com>
+Date: Wed, 23 Nov 2016 15:06:05 +0000
+Subject: [PATCH] sparc: kernel: use builtin_platform_driver
+Message-Id: <c694385c83bb1cbe14029016702877962cecb61f.1479913528.git.geliangtang@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Geliang Tang <geliangtang@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
+Use builtin_platform_driver() helper to simplify the code.
 
-After a half year break, I have finally created new installer images for
-Debian sparc64. These are currently being uploaded to my Debian webspace
-and should be completely uploaded within the next minutes, see [1].
+Signed-off-by: Geliang Tang <geliangtang@gmail.com>
+---
+ arch/sparc/kernel/power.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-A quick and rough installation guide can be found in [2], please let
-us know if you encounter any issues or want to give feedback. These
-images have not been tested so far as I just generated them this
-night.
-
-Thanks,
-Adrian
-
-> [1] https://people.debian.org/~glaubitz/debian-cd/2016-11-22/
-> [2] https://lists.debian.org/debian-sparc/2016/06/msg00126.html
-
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index 1836cb9..4b60f38 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -67,9 +67,4 @@ static struct platform_driver power_driver = {
+ 	},
+ };
+ 
+-static int __init power_init(void)
+-{
+-	return platform_driver_register(&power_driver);
+-}
+-
+-device_initcall(power_init);
++builtin_platform_driver(power_driver);
 -- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+2.9.3
+
