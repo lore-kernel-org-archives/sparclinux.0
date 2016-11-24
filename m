@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 24 Nov 2016 18:05:35 +0000
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Thu, 24 Nov 2016 21:23:27 +0000
 Subject: Re: [PATCH] silo: Add 64-bit support
-Message-Id: <3599184D-62C3-4C55-B230-C81B57A05149@physik.fu-berlin.de>
+Message-Id: <20161124212327.m7klcua3z7tk3lws@raspberrypi-2.musicnaut.iki.fi>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161124173330.3087-1-glaubitz@physik.fu-berlin.de>
 In-Reply-To: <20161124173330.3087-1-glaubitz@physik.fu-berlin.de>
@@ -10,26 +10,32 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
-On Nov 24, 2016, at 6:43 PM, alexmcwhirter@triadic.us wrote:
-> 
->> On 2016-11-24 12:33, John Paul Adrian Glaubitz wrote:
->> Hi Dave!
->> As promised in another mail earlier today, here is the current patch
->> changes that we are currently using on top of silo HEAD to build
->> it as a 64-bit package in Debian unstable (sparc64).
->> The silo package has been shipped in Debian with 64-bit support for
->> a while now without any major issues for most people. So far, I
->> only know of two cases where people had issues but this seems to
->> affect Serengeti and Amazon machines only and not a result of this
->> particular patch.
->> Thanks,
->> Adrian
->>> [1] http://marc.info/?l=linux-sparc&m7363964605901&w=2
-> 
-> Just as a side note, i can personally verify that both Debian SILO and current SILO are broken on Serengeti / Amazon in the same way. 64 Bit patches make no absolutely difference here.
+On Thu, Nov 24, 2016 at 06:33:30PM +0100, John Paul Adrian Glaubitz wrote:
+> -# We want to force 32-bit builds
+> -CC=gcc -m32
+> +# We want to force 64-bit builds
+> +CC=gcc
+>  HOSTCC=gcc
+> -LD=ld -m elf32_sparc
+> +LD=ld -m elf64_sparc
 
-Thank you very much for confirming this! I was actually hoping for this exact statement!
+This breaks the native build on my Sun Ultra 5 with 32-bit userspace and GCC
+defaulting to ultrasparc:
 
-Thanks,
-Adrian
+$ make
+[...]
+make[1]: Entering directory '/home/aaro/silo/first'
+gcc -Os -Wall -I. -I../include -fomit-frame-pointer -fno-strict-aliasing -DSMALL_RELOC=0x280000 -DLARGE_RELOC=0x380000 -fno-stack-protector -c first.S -o first.o
+ld -m elf64_sparc -N -Ttext 0x4000 -o first first.o
+ld: sparc architecture of input file `first.o' is incompatible with sparc:v9 output
+Makefile:39: recipe for target 'first' failed
+make[1]: *** [first] Error 1
+make[1]: Leaving directory '/home/aaro/silo/first'
+Makefile:15: recipe for target 'all' failed
+make: *** [all] Error 1
+
+Also you broke the tilo build...
+
+A.
