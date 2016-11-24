@@ -1,85 +1,171 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 07 Nov 2016 12:11:22 +0000
-Subject: Re: git kernel (4.9.0-rc3) hard lockup on cpu
-Message-Id: <CADxRZqyq4gJ9M0HZ74tZG9bXjCBjOA=QmJ-8GUVhaz-ncmpLiw@mail.gmail.com>
+From: Tushar Dave <tushar.n.dave@oracle.com>
+Date: Thu, 24 Nov 2016 20:35:16 +0000
+Subject: [PATCH v3] dbri: Fix compiler warning
+Message-Id: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqxOUEaPExMNC9E5sUe777CxOsFmzmHC8EcwtHJO2OC5hQ@mail.gmail.com>
-In-Reply-To: <CADxRZqxOUEaPExMNC9E5sUe777CxOsFmzmHC8EcwtHJO2OC5hQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: perex@perex.cz, tiwai@suse.com, thomas.tai@oracle.com, alsa-devel@alsa-project.org, sparclinux@vger.kernel.org
 
-On Sun, Nov 6, 2016 at 2:56 PM, Anatoly Pugachev <matorola@gmail.com> wrote:
-> Hello!
->
-> We've got kernel cpu lockup after running for about 3.5 days
-> (machine/ldom is a buildd instance for debian ports for sparc64 arch).
->
-> Kernel is built from git 0c183d92b20b5c84ca655b45ef57b3318b83eb9e
->
-> Nov 06 13:17:34 landau kernel: Watchdog detected hard LOCKUP on cpu 1
-> Nov 06 13:17:34 landau kernel: ------------[ cut here ]------------
-> Nov 06 13:17:34 landau kernel: WARNING: CPU: 1 PID: 45713 at
-> arch/sparc/kernel/nmi.c:80 perfctr_irq+0x2ec/0x340
-> Nov 06 13:17:34 landau kernel: [478B blob data]
-> Nov 06 13:17:34 landau kernel: CPU: 1 PID: 45713 Comm: llvm-nm Not
-> tainted 4.9.0-rc3+ #1
-> Nov 06 13:17:34 landau kernel: Call Trace:
-> Nov 06 13:17:34 landau kernel:  [00000000004670a0] __warn+0xc0/0xe0
-> Nov 06 13:17:34 landau kernel:  [00000000004670f4] warn_slowpath_fmt+0x34/0x60
-> Nov 06 13:17:34 landau kernel:  [00000000009943ec] perfctr_irq+0x2ec/0x340
-> Nov 06 13:17:34 landau kernel:  [00000000004209f4] tl0_irq15+0x14/0x20
-> Nov 06 13:17:34 landau kernel:  [0000000000993afc]
-> _raw_spin_lock_irqsave+0x1c/0x40
-> Nov 06 13:17:34 landau kernel:  [000000000057cd08] pagevec_lru_move_fn+0x68/0xe0
-> Nov 06 13:17:34 landau kernel:  [000000000057e0f0] lru_add_drain_cpu+0x110/0x120
-> Nov 06 13:17:34 landau kernel:  [000000000057e38c] lru_add_drain+0xc/0x20
-> Nov 06 13:17:34 landau kernel:  [00000000005a8bb8] unmap_region+0x18/0xc0
-> Nov 06 13:17:34 landau kernel:  [00000000005aa7c4] do_munmap+0x1e4/0x380
-> Nov 06 13:17:34 landau kernel:  [00000000005ab9d0] mmap_region+0xf0/0x5a0
-> Nov 06 13:17:34 landau kernel:  [00000000005ac1f4] do_mmap+0x374/0x400
-> Nov 06 13:17:34 landau kernel:  [000000000058e1a0] vm_mmap_pgoff+0x60/0xa0
-> Nov 06 13:17:34 landau kernel:  [00000000005a9f64] SyS_mmap_pgoff+0xa4/0x240
-> Nov 06 13:17:34 landau kernel:  [000000000042efd4] SyS_mmap+0x54/0x80
-> Nov 06 13:17:34 landau kernel:  [00000000004061f4] linux_sparc_syscall+0x34/0x44
-> Nov 06 13:17:34 landau kernel: ---[ end trace 9fdbc358eb6eb335 ]---
+dbri uses 'u32' for dma handle while invoking kernel DMA APIs,
+instead of using dma_addr_t. This hasn't caused any 'incompatible
+pointer type' warning on SPARC because until now dma_addr_t is of
+type u32. However, recent changes in SPARC ATU (iommu) enabled 64bit
+DMA and therefore dma_addr_t became of type u64. This makes
+'incompatible pointer type' warnings inevitable.
 
-another one:
+e.g.
+sound/sparc/dbri.c: In function ‘snd_dbri_create’:
+sound/sparc/dbri.c:2538: warning: passing argument 3 of ‘dma_zalloc_coherent’ from incompatible pointer type
+./include/linux/dma-mapping.h:608: note: expected ‘dma_addr_t *’ but argument is of type ‘u32 *’
 
-Nov 07 09:01:32 landau: INFO: task kworker/42:2:239256 blocked for
-more than 120 seconds.
-Nov 07 09:01:32 landau:       Not tainted 4.9.0-rc3+ #1
-Nov 07 09:01:32 landau: "echo 0 >
-/proc/sys/kernel/hung_task_timeout_secs" disables this message.
-Nov 07 09:01:32 landau: kworker/42:2    D 0000000000992e70     0
-239256      2 0x07000000
-Nov 07 09:01:32 landau: Workqueue: cgroup_destroy css_free_work_fn
-Nov 07 09:01:32 landau: Call Trace:
-Nov 07 09:01:32 landau:  [0000000000990304] schedule+0x24/0xa0
-Nov 07 09:01:32 landau:  [0000000000992e70] schedule_timeout+0x210/0x360
-Nov 07 09:01:32 landau:  [0000000000990d74] wait_for_common+0x94/0x140
-Nov 07 09:01:32 landau:  [0000000000990e38] wait_for_completion+0x18/0x40
-Nov 07 09:01:32 landau:  [00000000004cefb4] _rcu_barrier+0x194/0x1e0
-Nov 07 09:01:32 landau:  [00000000004cf030] rcu_barrier+0x10/0x20
-Nov 07 09:01:32 landau:  [0000000000597734] release_caches+0x54/0x80
-Nov 07 09:01:32 landau:  [00000000005977f4] memcg_destroy_kmem_caches+0x94/0xe0
-Nov 07 09:01:32 landau:  [00000000005dbfe0] mem_cgroup_css_free+0xe0/0x140
-Nov 07 09:01:32 landau:  [00000000004fd9b4] css_free_work_fn+0x34/0x420
-Nov 07 09:01:32 landau:  [000000000048172c] process_one_work+0x16c/0x460
-Nov 07 09:01:32 landau:  [0000000000481b40] worker_thread+0x120/0x520
-Nov 07 09:01:32 landau:  [000000000048804c] kthread+0xac/0xe0
-Nov 07 09:01:32 landau:  [0000000000406044] ret_from_fork+0x1c/0x2c
-Nov 07 09:01:32 landau:  [0000000000000000]           (null)
-Nov 07 09:02:38 landau: Watchdog detected hard LOCKUP on cpu 25
-Nov 07 09:02:38 landau: ------------[ cut here ]------------
-Nov 07 09:02:38 landau: WARNING: CPU: 25 PID: 245304 at
-arch/sparc/kernel/nmi.c:80 perfctr_irq+0x2ec/0x340
-Nov 07 09:02:38 landau: [478B blob data]
-Nov 07 09:02:38 landau: CPU: 25 PID: 245304 Comm: cc1 Not tainted 4.9.0-rc3+ #1
-Nov 07 09:02:38 landau: Call Trace:
-Nov 07 09:02:38 landau:  [00000000004670a0] __warn+0xc0/0xe0
-Nov 07 09:02:38 landau:  [00000000004670f4] warn_slowpath_fmt+0x34/0x60
-Nov 07 09:02:38 landau:  [00000000009943ec] perfctr_irq+0x2ec/0x340
-Nov 07 09:02:38 landau:  [00000000004209f4] tl0_irq15+0x14/0x20
-Nov 07 09:02:38 landau: ---[ end trace ef8661be81a54612 ]---
+For the record, dbri(sbus) driver never executes on sun4v. Therefore
+even though 64bit DMA is enabled on SPARC, dbri continues to use
+legacy iommu that guarantees DMA address is always in 32bit range.
+
+This patch resolves above compiler warning.
+
+Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: thomas tai <thomas.tai@oracle.com>
+---
+v2->v3:
+- Use %pad to print dma_addr_t. Comment by Takashi Iwai.
+
+ sound/sparc/dbri.c | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/sound/sparc/dbri.c b/sound/sparc/dbri.c
+index 0190cb6..3fe4468 100644
+--- a/sound/sparc/dbri.c
++++ b/sound/sparc/dbri.c
+@@ -304,7 +304,7 @@ struct snd_dbri {
+ 	spinlock_t lock;
+ 
+ 	struct dbri_dma *dma;	/* Pointer to our DMA block */
+-	u32 dma_dvma;		/* DBRI visible DMA address */
++	dma_addr_t dma_dvma;	/* DBRI visible DMA address */
+ 
+ 	void __iomem *regs;	/* dbri HW regs */
+ 	int dbri_irqp;		/* intr queue pointer */
+@@ -657,12 +657,14 @@ static void dbri_cmdwait(struct snd_dbri *dbri)
+  */
+ static s32 *dbri_cmdlock(struct snd_dbri *dbri, int len)
+ {
++	u32 dvma_addr = (u32)dbri->dma_dvma;
++
+ 	/* Space for 2 WAIT cmds (replaced later by 1 JUMP cmd) */
+ 	len += 2;
+ 	spin_lock(&dbri->cmdlock);
+ 	if (dbri->cmdptr - dbri->dma->cmd + len < DBRI_NO_CMDS - 2)
+ 		return dbri->cmdptr + 2;
+-	else if (len < sbus_readl(dbri->regs + REG8) - dbri->dma_dvma)
++	else if (len < sbus_readl(dbri->regs + REG8) - dvma_addr)
+ 		return dbri->dma->cmd;
+ 	else
+ 		printk(KERN_ERR "DBRI: no space for commands.");
+@@ -680,6 +682,7 @@ static s32 *dbri_cmdlock(struct snd_dbri *dbri, int len)
+  */
+ static void dbri_cmdsend(struct snd_dbri *dbri, s32 *cmd, int len)
+ {
++	u32 dvma_addr = (u32)dbri->dma_dvma;
+ 	s32 tmp, addr;
+ 	static int wait_id = 0;
+ 
+@@ -689,7 +692,7 @@ static void dbri_cmdsend(struct snd_dbri *dbri, s32 *cmd, int len)
+ 	*(cmd+1) = DBRI_CMD(D_WAIT, 1, wait_id);
+ 
+ 	/* Replace the last command with JUMP */
+-	addr = dbri->dma_dvma + (cmd - len - dbri->dma->cmd) * sizeof(s32);
++	addr = dvma_addr + (cmd - len - dbri->dma->cmd) * sizeof(s32);
+ 	*(dbri->cmdptr+1) = addr;
+ 	*(dbri->cmdptr) = DBRI_CMD(D_JUMP, 0, 0);
+ 
+@@ -747,6 +750,7 @@ static void dbri_reset(struct snd_dbri *dbri)
+ /* Lock must not be held before calling this */
+ static void dbri_initialize(struct snd_dbri *dbri)
+ {
++	u32 dvma_addr = (u32)dbri->dma_dvma;
+ 	s32 *cmd;
+ 	u32 dma_addr;
+ 	unsigned long flags;
+@@ -764,7 +768,7 @@ static void dbri_initialize(struct snd_dbri *dbri)
+ 	/*
+ 	 * Initialize the interrupt ring buffer.
+ 	 */
+-	dma_addr = dbri->dma_dvma + dbri_dma_off(intr, 0);
++	dma_addr = dvma_addr + dbri_dma_off(intr, 0);
+ 	dbri->dma->intr[0] = dma_addr;
+ 	dbri->dbri_irqp = 1;
+ 	/*
+@@ -778,7 +782,7 @@ static void dbri_initialize(struct snd_dbri *dbri)
+ 	dbri->cmdptr = cmd;
+ 	*(cmd++) = DBRI_CMD(D_WAIT, 1, 0);
+ 	*(cmd++) = DBRI_CMD(D_WAIT, 1, 0);
+-	dma_addr = dbri->dma_dvma + dbri_dma_off(cmd, 0);
++	dma_addr = dvma_addr + dbri_dma_off(cmd, 0);
+ 	sbus_writel(dma_addr, dbri->regs + REG8);
+ 	spin_unlock(&dbri->cmdlock);
+ 
+@@ -1077,6 +1081,7 @@ static void recv_fixed(struct snd_dbri *dbri, int pipe, volatile __u32 *ptr)
+ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
+ {
+ 	struct dbri_streaminfo *info = &dbri->stream_info[streamno];
++	u32 dvma_addr = (u32)dbri->dma_dvma;
+ 	__u32 dvma_buffer;
+ 	int desc;
+ 	int len;
+@@ -1177,7 +1182,7 @@ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
+ 		else {
+ 			dbri->next_desc[last_desc] = desc;
+ 			dbri->dma->desc[last_desc].nda -			    dbri->dma_dvma + dbri_dma_off(desc, desc);
++			    dvma_addr + dbri_dma_off(desc, desc);
+ 		}
+ 
+ 		last_desc = desc;
+@@ -1192,7 +1197,7 @@ static int setup_descs(struct snd_dbri *dbri, int streamno, unsigned int period)
+ 	}
+ 
+ 	dbri->dma->desc[last_desc].nda -	    dbri->dma_dvma + dbri_dma_off(desc, first_desc);
++	    dvma_addr + dbri_dma_off(desc, first_desc);
+ 	dbri->next_desc[last_desc] = first_desc;
+ 	dbri->pipes[info->pipe].first_desc = first_desc;
+ 	dbri->pipes[info->pipe].desc = first_desc;
+@@ -1697,6 +1702,7 @@ calling dbri_process_interrupt_buffer(), which works even if the CPU's
+ static void xmit_descs(struct snd_dbri *dbri)
+ {
+ 	struct dbri_streaminfo *info;
++	u32 dvma_addr = (u32)dbri->dma_dvma;
+ 	s32 *cmd;
+ 	unsigned long flags;
+ 	int first_td;
+@@ -1718,7 +1724,7 @@ static void xmit_descs(struct snd_dbri *dbri)
+ 			*(cmd++) = DBRI_CMD(D_SDP, 0,
+ 					    dbri->pipes[info->pipe].sdp
+ 					    | D_SDP_P | D_SDP_EVERY | D_SDP_C);
+-			*(cmd++) = dbri->dma_dvma +
++			*(cmd++) = dvma_addr +
+ 				   dbri_dma_off(desc, first_td);
+ 			dbri_cmdsend(dbri, cmd, 2);
+ 
+@@ -1740,7 +1746,7 @@ static void xmit_descs(struct snd_dbri *dbri)
+ 			*(cmd++) = DBRI_CMD(D_SDP, 0,
+ 					    dbri->pipes[info->pipe].sdp
+ 					    | D_SDP_P | D_SDP_EVERY | D_SDP_C);
+-			*(cmd++) = dbri->dma_dvma +
++			*(cmd++) = dvma_addr +
+ 				   dbri_dma_off(desc, first_td);
+ 			dbri_cmdsend(dbri, cmd, 2);
+ 
+@@ -2539,7 +2545,7 @@ static int snd_dbri_create(struct snd_card *card,
+ 	if (!dbri->dma)
+ 		return -ENOMEM;
+ 
+-	dprintk(D_GEN, "DMA Cmd Block 0x%p (0x%08x)\n",
++	dprintk(D_GEN, "DMA Cmd Block 0x%p (%pad)\n",
+ 		dbri->dma, dbri->dma_dvma);
+ 
+ 	/* Map the registers into memory. */
+-- 
+1.9.1
+
