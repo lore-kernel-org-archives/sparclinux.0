@@ -1,77 +1,98 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 30 Nov 2016 23:18:46 +0000
-Subject: Re: next: Commit 'mm: Prevent __alloc_pages_nodemask() RCU CPU stall ...' causing hang on sparc32 qe
-Message-Id: <20161130231846.GB17244@roeck-us.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 25 Nov 2016 20:42:28 +0000
+Subject: Bisected: E3500 crash on boot just befoire v4.8
+Message-Id: <alpine.LRH.2.20.1611260012320.9292@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161129212308.GA12447@roeck-us.net>
- <20161130012817.GH3924@linux.vnet.ibm.com>
- <b96c1560-3f06-bb6d-717a-7a0f0c6e869a@roeck-us.net>
- <20161130070212.GM3924@linux.vnet.ibm.com>
- <929f6b29-461a-6e94-fcfd-710c3da789e9@roeck-us.net>
- <20161130120333.GQ3924@linux.vnet.ibm.com>
- <20161130192159.GB22216@roeck-us.net>
- <20161130210152.GL3924@linux.vnet.ibm.com>
-In-Reply-To: <20161130210152.GL3924@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-On Wed, Nov 30, 2016 at 01:01:52PM -0800, Paul E. McKenney wrote:
-> On Wed, Nov 30, 2016 at 11:21:59AM -0800, Guenter Roeck wrote:
-> > On Wed, Nov 30, 2016 at 04:03:33AM -0800, Paul E. McKenney wrote:
-> > > On Wed, Nov 30, 2016 at 02:52:11AM -0800, Guenter Roeck wrote:
-> > > > On 11/29/2016 11:02 PM, Paul E. McKenney wrote:
-> > > > >On Tue, Nov 29, 2016 at 08:32:51PM -0800, Guenter Roeck wrote:
-> > > > >>On 11/29/2016 05:28 PM, Paul E. McKenney wrote:
-> > > > >>>On Tue, Nov 29, 2016 at 01:23:08PM -0800, Guenter Roeck wrote:
-> > > > >>>>Hi Paul,
-> > > > >>>>
-> > > > >>>>most of my qemu tests for sparc32 targets started to fail in next-20161129.
-> > > > >>>>The problem is only seen in SMP builds; non-SMP builds are fine.
-> > > > >>>>Bisect points to commit 2d66cccd73436 ("mm: Prevent __alloc_pages_nodemask()
-> > > > >>>>RCU CPU stall warnings"); reverting that commit fixes the problem.
-> > > 
-> > > And I have dropped this patch.  Michal Hocko showed me the error of
-> > > my ways with this patch.
-> > > 
-> > 
-> > :-)
-> > 
-> > On another note, I still get RCU tracebacks in the s390 tests.
-> > 
-> > BUG: sleeping function called from invalid context at mm/page_alloc.c:3775
-> > 
-> > That is caused by 'rcu: Maintain special bits at bottom of ->dynticks counter';
-> > if I recall correctly we had discussed that earlier.
+> I (sort of) revived my E3500. TODC batteries are empty but I programmed 
+> new nvram contents and started it up. Last it ran probably 4.1, 4.2 had 
+> some blk-mq trouble. Updated to 4.9-rc6+git and got a boot crash.
+
+Finished bisecting. The bug crept in right before 4.8.0. E3500 has 
+sparse CPU numbering, maybe this was not considered in the patch?
+
+commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
+Author: Atish Patra <atish.patra@oracle.com>
+Date:   Thu Sep 15 14:54:40 2016 -0600
+
+    sparc64: Fix cpu_possible_mask if nr_cpus is set
+    
+    If kernel boot parameter nr_cpus is set, it should define the number
+    of CPUs that can ever be available in the system i.e.
+    cpu_possible_mask. setup_nr_cpu_ids() overrides the nr_cpu_ids based
+    on the cpu_possible_mask during kernel initialization. If
+    cpu_possible_mask is not set based on the nr_cpus value, earlier part
+    of the kernel would be initialized using nr_cpus value leading to a
+    kernel crash.
+    
+    Set cpu_possible_mask based on nr_cpus value. Thus setup_nr_cpu_ids()
+    becomes redundant and does not corrupt nr_cpu_ids value.
+    
+    Signed-off-by: Atish Patra <atish.patra@oracle.com>
+    Reviewed-by: Bob Picco <bob.picco@oracle.com>
+    Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+:040000 040000 cd7f09841a45d3187cebeafb48b5fe22c00688a7 5c3d6e50160bd00108ee95f40cdf83264e9f5139 M      arch
+
+
+> Unable to handle kernel NULL pointer dereference
+> tsk->{mm,active_mm}->context = 0000000000000000
+> tsk->{mm,active_mm}->pgd = fffff80000402000
+>               \|/ ____ \|/
+>               "@'/ .. \`@"
+>               /_| \__/ |_\
+>                  \__U_/
+> swapper(0): Oops [#1]
+> CPU: 6 PID: 0 Comm: swapper Not tainted 4.9.0-rc6-00124-gded9b5d #71
+> task: 0000000000a1ddc0 task.stack: 0000000000a0c000
+> TSTATE: 0000009980e01600 TPC: 00000000006c1f24 TNPC: 00000000006c1f28 Y: 00000016    Not tainted
+> TPC: <__list_add+0x4/0xe0>
+> g0: 000000000129e650 g1: 0000000000aa9f58 g2: 0000000000a574e0 g3: 000000000007e09f
+> g4: 0000000000a1ddc0 g5: 0000000000000000 g6: 0000000000a0c000 g7: 000000000007e09e
+> o0: 0000000000515f84 o1: fffff800ff3de000 o2: 000000000001e1c0 o3: 0000000000a0f968
+> o4: 0000000000000100 o5: 0000000000000200 sp: 0000000000a0f171 ret_pc: 00000000004a7d04
+> RPC: <trace_hardirqs_off+0x4/0x20>
+> l0: 000000000129ddb8 l1: 00000000009ad178 l2: 0000000000a32400 l3: 0000000000000001
+> l4: 0000000000a18338 l5: 0000000000000006 l6: 000000000129e000 l7: 000000000129e1d8
+> i0: 0000060001fe7ba0 i1: 0000000000aa9b70 i2: 0000000000000000 i3: 0000000000a1ddc0
+> i4: fffff800ff3de000 i5: 0000000000000000 i6: 0000000000a0f221 i7: 0000000000515ff0
+> I7: <free_hot_cold_page+0x130/0x1e0>
+> Call Trace:
+>  [0000000000515ff0] free_hot_cold_page+0x130/0x1e0
+>  [0000000000517f04] __free_pages+0x24/0x60
+>  [0000000000a6ece0] __free_pages_bootmem+0xb0/0xc0
+>  [0000000000a728f8] free_all_bootmem+0x11c/0x17c
+>  [0000000000a68794] mem_init+0x20/0xb0
+>  [0000000000a62818] start_kernel+0x208/0x41c
+>  [0000000000a640fc] start_early_boot+0x274/0x284
+>  [00000000008ca18c] tlb_fixup_done+0x4c/0x60
+>  [0000000000000000]           (null)
+> Disabling lock debugging due to kernel taint
+> Caller[0000000000515ff0]: free_hot_cold_page+0x130/0x1e0
+> Caller[0000000000517f04]: __free_pages+0x24/0x60
+> Caller[0000000000a6ece0]: __free_pages_bootmem+0xb0/0xc0
+> Caller[0000000000a728f8]: free_all_bootmem+0x11c/0x17c
+> Caller[0000000000a68794]: mem_init+0x20/0xb0
+> Caller[0000000000a62818]: start_kernel+0x208/0x41c
+> Caller[0000000000a640fc]: start_early_boot+0x274/0x284
+> Caller[00000000008ca18c]: tlb_fixup_done+0x4c/0x60
+> Caller[0000000000000000]:           (null)
+> Instruction DUMP: 900a20ff 
+>  01000000  9de3bf50 
+> <d85ea008> 80a30019 
+>  2268000b  d85e4000 
+>  11002751  15002751 
 > 
-> Indeed, I had missed a dyntick counter update back on Nov 11, which meant
-> that some of the code was still looking at the low-order bit instead of
-> the next bit up.  This is now fixed.
+> Kernel panic - not syncing: Attempted to kill the idle task!
+> Press Stop-A (L1-A) to return to the boot prom
+> ---[ end Kernel panic - not syncing: Attempted to kill the idle task!
 > 
-> So to get to the error message you call out above, I need to have improperly
-> left the system in bh state or left irqs disabled, while the system was
-> running normally without an oops.  I am having a hard time seeing how this
-> patch can do that.
-> 
-> I would be more suspicious of f2a471ffc8a8 ("rcu: Allow boot-time use
-> of cond_resched_rcu_qs()").
-> 
-> So you bisected or did a revert to work out which was the offending commit?
 > 
 
-My most recent bisect was with the November 10 image, so that would have missed
-any later fix. Comparing the log messages, the current message is indeed
-different. Sorry, I mixed that up; I just assumed that the problem would be
-the same without really checking. My bad.
-
-Bisect would be tricky, since the s390 image was broken for some time after
-November 10. The first time I have seen the above BUG: was with next-20161128
-(which is the first build after the crash was fixed). That version did not
-include f2a471ffc8a8, so that can not be the cause.
-
-I'll try to set up a bisect tonight, working around the crash problem.
-I'll let you know how it goes.
-
-Guenter
+-- 
+Meelis Roos (mroos@linux.ee)
