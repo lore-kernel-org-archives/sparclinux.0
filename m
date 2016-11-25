@@ -1,69 +1,54 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Fri, 25 Nov 2016 16:58:21 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 25 Nov 2016 17:03:10 +0000
 Subject: Re: [PATCH v3] dbri: Fix compiler warning
-Message-Id: <s5hy4075weq.wl-tiwai@suse.de>
+Message-Id: <20161125.120310.376952430424787326.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
-        <s5ha8cn9a9j.wl-tiwai@suse.de>
+References: <s5ha8cn9a9j.wl-tiwai@suse.de>
         <20161125.115447.967164976172058750.davem@davemloft.net>
-In-Reply-To: <20161125.115447.967164976172058750.davem@davemloft.net>
+        <s5hy4075weq.wl-tiwai@suse.de>
+In-Reply-To: <s5hy4075weq.wl-tiwai@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: tiwai@suse.de
 Cc: tushar.n.dave@oracle.com, alsa-devel@alsa-project.org, thomas.tai@oracle.com, perex@perex.cz, sparclinux@vger.kernel.org
 
-On Fri, 25 Nov 2016 17:54:47 +0100,
-David Miller wrote:
-> 
-> From: Takashi Iwai <tiwai@suse.de>
-> Date: Fri, 25 Nov 2016 10:30:48 +0100
-> 
-> > On Thu, 24 Nov 2016 21:35:16 +0100,
-> > Tushar Dave wrote:
-> >> 
-> >> dbri uses 'u32' for dma handle while invoking kernel DMA APIs,
-> >> instead of using dma_addr_t. This hasn't caused any 'incompatible
-> >> pointer type' warning on SPARC because until now dma_addr_t is of
-> >> type u32. However, recent changes in SPARC ATU (iommu) enabled 64bit
-> >> DMA and therefore dma_addr_t became of type u64. This makes
-> >> 'incompatible pointer type' warnings inevitable.
-> >> 
-> >> e.g.
-> >> sound/sparc/dbri.c: In function ‘snd_dbri_create’:
-> >> sound/sparc/dbri.c:2538: warning: passing argument 3 of ‘dma_zalloc_coherent’ from incompatible pointer type
-> >> ./include/linux/dma-mapping.h:608: note: expected ‘dma_addr_t *’ but argument is of type ‘u32 *’
-> >> 
-> >> For the record, dbri(sbus) driver never executes on sun4v. Therefore
-> >> even though 64bit DMA is enabled on SPARC, dbri continues to use
-> >> legacy iommu that guarantees DMA address is always in 32bit range.
-> >> 
-> >> This patch resolves above compiler warning.
-> >> 
-> >> Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
-> >> Reviewed-by: thomas tai <thomas.tai@oracle.com>
-> >> ---
-> >> v2->v3:
-> >> - Use %pad to print dma_addr_t. Comment by Takashi Iwai.
-> > 
-> > Applied now.  Thanks!
-> 
-> This patch is absolutely not appropriate for your tree Takashi.
-> 
-> It's for the sparc tree because that's where the dma_addr_t
-> type was changed from 32-bit to 64-bit on sparc64, which is
-> what caused this build warning.
-> 
-> Dave, please only send sparc specific driver patches to
-> sparclinux@vger.kernel.org in the future so we can avoid
-> this kind of problem.  The whole handling of the dma_addr_t
-> type change on sparc64 has been a real mess, quite honestly.
-
-Fair enough.  Could you take it through your tree?
-Feel free to take my ack:
-  Reviewed-by: Takashi Iwai <tiwai@suse.de>
-
-
-Thanks!
-
-Takashi
+RnJvbTogVGFrYXNoaSBJd2FpIDx0aXdhaUBzdXNlLmRlPg0KRGF0ZTogRnJpLCAyNSBOb3YgMjAx
+NiAxNzo1ODoyMSArMDEwMA0KDQo+IE9uIEZyaSwgMjUgTm92IDIwMTYgMTc6NTQ6NDcgKzAxMDAs
+DQo+IERhdmlkIE1pbGxlciB3cm90ZToNCj4+IA0KPj4gRnJvbTogVGFrYXNoaSBJd2FpIDx0aXdh
+aUBzdXNlLmRlPg0KPj4gRGF0ZTogRnJpLCAyNSBOb3YgMjAxNiAxMDozMDo0OCArMDEwMA0KPj4g
+DQo+PiA+IE9uIFRodSwgMjQgTm92IDIwMTYgMjE6MzU6MTYgKzAxMDAsDQo+PiA+IFR1c2hhciBE
+YXZlIHdyb3RlOg0KPj4gPj4gDQo+PiA+PiBkYnJpIHVzZXMgJ3UzMicgZm9yIGRtYSBoYW5kbGUg
+d2hpbGUgaW52b2tpbmcga2VybmVsIERNQSBBUElzLA0KPj4gPj4gaW5zdGVhZCBvZiB1c2luZyBk
+bWFfYWRkcl90LiBUaGlzIGhhc24ndCBjYXVzZWQgYW55ICdpbmNvbXBhdGlibGUNCj4+ID4+IHBv
+aW50ZXIgdHlwZScgd2FybmluZyBvbiBTUEFSQyBiZWNhdXNlIHVudGlsIG5vdyBkbWFfYWRkcl90
+IGlzIG9mDQo+PiA+PiB0eXBlIHUzMi4gSG93ZXZlciwgcmVjZW50IGNoYW5nZXMgaW4gU1BBUkMg
+QVRVIChpb21tdSkgZW5hYmxlZCA2NGJpdA0KPj4gPj4gRE1BIGFuZCB0aGVyZWZvcmUgZG1hX2Fk
+ZHJfdCBiZWNhbWUgb2YgdHlwZSB1NjQuIFRoaXMgbWFrZXMNCj4+ID4+ICdpbmNvbXBhdGlibGUg
+cG9pbnRlciB0eXBlJyB3YXJuaW5ncyBpbmV2aXRhYmxlLg0KPj4gPj4gDQo+PiA+PiBlLmcuDQo+
+PiA+PiBzb3VuZC9zcGFyYy9kYnJpLmM6IEluIGZ1bmN0aW9uIKFzbmRfZGJyaV9jcmVhdGWiOg0K
+Pj4gPj4gc291bmQvc3BhcmMvZGJyaS5jOjI1Mzg6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQg
+MyBvZiChZG1hX3phbGxvY19jb2hlcmVudKIgZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBl
+DQo+PiA+PiAuL2luY2x1ZGUvbGludXgvZG1hLW1hcHBpbmcuaDo2MDg6IG5vdGU6IGV4cGVjdGVk
+IKFkbWFfYWRkcl90ICqiIGJ1dCBhcmd1bWVudCBpcyBvZiB0eXBlIKF1MzIgKqINCj4+ID4+IA0K
+Pj4gPj4gRm9yIHRoZSByZWNvcmQsIGRicmkoc2J1cykgZHJpdmVyIG5ldmVyIGV4ZWN1dGVzIG9u
+IHN1bjR2LiBUaGVyZWZvcmUNCj4+ID4+IGV2ZW4gdGhvdWdoIDY0Yml0IERNQSBpcyBlbmFibGVk
+IG9uIFNQQVJDLCBkYnJpIGNvbnRpbnVlcyB0byB1c2UNCj4+ID4+IGxlZ2FjeSBpb21tdSB0aGF0
+IGd1YXJhbnRlZXMgRE1BIGFkZHJlc3MgaXMgYWx3YXlzIGluIDMyYml0IHJhbmdlLg0KPj4gPj4g
+DQo+PiA+PiBUaGlzIHBhdGNoIHJlc29sdmVzIGFib3ZlIGNvbXBpbGVyIHdhcm5pbmcuDQo+PiA+
+PiANCj4+ID4+IFNpZ25lZC1vZmYtYnk6IFR1c2hhciBEYXZlIDx0dXNoYXIubi5kYXZlQG9yYWNs
+ZS5jb20+DQo+PiA+PiBSZXZpZXdlZC1ieTogdGhvbWFzIHRhaSA8dGhvbWFzLnRhaUBvcmFjbGUu
+Y29tPg0KPj4gPj4gLS0tDQo+PiA+PiB2Mi0+djM6DQo+PiA+PiAtIFVzZSAlcGFkIHRvIHByaW50
+IGRtYV9hZGRyX3QuIENvbW1lbnQgYnkgVGFrYXNoaSBJd2FpLg0KPj4gPiANCj4+ID4gQXBwbGll
+ZCBub3cuICBUaGFua3MhDQo+PiANCj4+IFRoaXMgcGF0Y2ggaXMgYWJzb2x1dGVseSBub3QgYXBw
+cm9wcmlhdGUgZm9yIHlvdXIgdHJlZSBUYWthc2hpLg0KPj4gDQo+PiBJdCdzIGZvciB0aGUgc3Bh
+cmMgdHJlZSBiZWNhdXNlIHRoYXQncyB3aGVyZSB0aGUgZG1hX2FkZHJfdA0KPj4gdHlwZSB3YXMg
+Y2hhbmdlZCBmcm9tIDMyLWJpdCB0byA2NC1iaXQgb24gc3BhcmM2NCwgd2hpY2ggaXMNCj4+IHdo
+YXQgY2F1c2VkIHRoaXMgYnVpbGQgd2FybmluZy4NCj4+IA0KPj4gRGF2ZSwgcGxlYXNlIG9ubHkg
+c2VuZCBzcGFyYyBzcGVjaWZpYyBkcml2ZXIgcGF0Y2hlcyB0bw0KPj4gc3BhcmNsaW51eEB2Z2Vy
+Lmtlcm5lbC5vcmcgaW4gdGhlIGZ1dHVyZSBzbyB3ZSBjYW4gYXZvaWQNCj4+IHRoaXMga2luZCBv
+ZiBwcm9ibGVtLiAgVGhlIHdob2xlIGhhbmRsaW5nIG9mIHRoZSBkbWFfYWRkcl90DQo+PiB0eXBl
+IGNoYW5nZSBvbiBzcGFyYzY0IGhhcyBiZWVuIGEgcmVhbCBtZXNzLCBxdWl0ZSBob25lc3RseS4N
+Cj4gDQo+IEZhaXIgZW5vdWdoLiAgQ291bGQgeW91IHRha2UgaXQgdGhyb3VnaCB5b3VyIHRyZWU/
+DQo+IEZlZWwgZnJlZSB0byB0YWtlIG15IGFjazoNCj4gICBSZXZpZXdlZC1ieTogVGFrYXNoaSBJ
+d2FpIDx0aXdhaUBzdXNlLmRlPg0KDQpJIHdpbGwsIHRoYW5rIHlvdS4NCg=
