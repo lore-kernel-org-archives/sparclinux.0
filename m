@@ -1,44 +1,46 @@
-From: Takashi Iwai <tiwai@suse.de>
-Date: Fri, 25 Nov 2016 09:30:48 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 25 Nov 2016 16:54:47 +0000
 Subject: Re: [PATCH v3] dbri: Fix compiler warning
-Message-Id: <s5ha8cn9a9j.wl-tiwai@suse.de>
+Message-Id: <20161125.115447.967164976172058750.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
+        <s5ha8cn9a9j.wl-tiwai@suse.de>
+In-Reply-To: <s5ha8cn9a9j.wl-tiwai@suse.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Tushar Dave <tushar.n.dave@oracle.com>
-Cc: alsa-devel@alsa-project.org, thomas.tai@oracle.com, perex@perex.cz, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: tiwai@suse.de
+Cc: tushar.n.dave@oracle.com, alsa-devel@alsa-project.org, thomas.tai@oracle.com, perex@perex.cz, sparclinux@vger.kernel.org
 
-On Thu, 24 Nov 2016 21:35:16 +0100,
-Tushar Dave wrote:
-> 
-> dbri uses 'u32' for dma handle while invoking kernel DMA APIs,
-> instead of using dma_addr_t. This hasn't caused any 'incompatible
-> pointer type' warning on SPARC because until now dma_addr_t is of
-> type u32. However, recent changes in SPARC ATU (iommu) enabled 64bit
-> DMA and therefore dma_addr_t became of type u64. This makes
-> 'incompatible pointer type' warnings inevitable.
-> 
-> e.g.
-> sound/sparc/dbri.c: In function ‘snd_dbri_create’:
-> sound/sparc/dbri.c:2538: warning: passing argument 3 of ‘dma_zalloc_coherent’ from incompatible pointer type
-> ./include/linux/dma-mapping.h:608: note: expected ‘dma_addr_t *’ but argument is of type ‘u32 *’
-> 
-> For the record, dbri(sbus) driver never executes on sun4v. Therefore
-> even though 64bit DMA is enabled on SPARC, dbri continues to use
-> legacy iommu that guarantees DMA address is always in 32bit range.
-> 
-> This patch resolves above compiler warning.
-> 
-> Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
-> Reviewed-by: thomas tai <thomas.tai@oracle.com>
-> ---
-> v2->v3:
-> - Use %pad to print dma_addr_t. Comment by Takashi Iwai.
-
-Applied now.  Thanks!
-
-
-Takashi
+RnJvbTogVGFrYXNoaSBJd2FpIDx0aXdhaUBzdXNlLmRlPg0KRGF0ZTogRnJpLCAyNSBOb3YgMjAx
+NiAxMDozMDo0OCArMDEwMA0KDQo+IE9uIFRodSwgMjQgTm92IDIwMTYgMjE6MzU6MTYgKzAxMDAs
+DQo+IFR1c2hhciBEYXZlIHdyb3RlOg0KPj4gDQo+PiBkYnJpIHVzZXMgJ3UzMicgZm9yIGRtYSBo
+YW5kbGUgd2hpbGUgaW52b2tpbmcga2VybmVsIERNQSBBUElzLA0KPj4gaW5zdGVhZCBvZiB1c2lu
+ZyBkbWFfYWRkcl90LiBUaGlzIGhhc24ndCBjYXVzZWQgYW55ICdpbmNvbXBhdGlibGUNCj4+IHBv
+aW50ZXIgdHlwZScgd2FybmluZyBvbiBTUEFSQyBiZWNhdXNlIHVudGlsIG5vdyBkbWFfYWRkcl90
+IGlzIG9mDQo+PiB0eXBlIHUzMi4gSG93ZXZlciwgcmVjZW50IGNoYW5nZXMgaW4gU1BBUkMgQVRV
+IChpb21tdSkgZW5hYmxlZCA2NGJpdA0KPj4gRE1BIGFuZCB0aGVyZWZvcmUgZG1hX2FkZHJfdCBi
+ZWNhbWUgb2YgdHlwZSB1NjQuIFRoaXMgbWFrZXMNCj4+ICdpbmNvbXBhdGlibGUgcG9pbnRlciB0
+eXBlJyB3YXJuaW5ncyBpbmV2aXRhYmxlLg0KPj4gDQo+PiBlLmcuDQo+PiBzb3VuZC9zcGFyYy9k
+YnJpLmM6IEluIGZ1bmN0aW9uIKFzbmRfZGJyaV9jcmVhdGWiOg0KPj4gc291bmQvc3BhcmMvZGJy
+aS5jOjI1Mzg6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQgMyBvZiChZG1hX3phbGxvY19jb2hl
+cmVudKIgZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlDQo+PiAuL2luY2x1ZGUvbGludXgv
+ZG1hLW1hcHBpbmcuaDo2MDg6IG5vdGU6IGV4cGVjdGVkIKFkbWFfYWRkcl90ICqiIGJ1dCBhcmd1
+bWVudCBpcyBvZiB0eXBlIKF1MzIgKqINCj4+IA0KPj4gRm9yIHRoZSByZWNvcmQsIGRicmkoc2J1
+cykgZHJpdmVyIG5ldmVyIGV4ZWN1dGVzIG9uIHN1bjR2LiBUaGVyZWZvcmUNCj4+IGV2ZW4gdGhv
+dWdoIDY0Yml0IERNQSBpcyBlbmFibGVkIG9uIFNQQVJDLCBkYnJpIGNvbnRpbnVlcyB0byB1c2UN
+Cj4+IGxlZ2FjeSBpb21tdSB0aGF0IGd1YXJhbnRlZXMgRE1BIGFkZHJlc3MgaXMgYWx3YXlzIGlu
+IDMyYml0IHJhbmdlLg0KPj4gDQo+PiBUaGlzIHBhdGNoIHJlc29sdmVzIGFib3ZlIGNvbXBpbGVy
+IHdhcm5pbmcuDQo+PiANCj4+IFNpZ25lZC1vZmYtYnk6IFR1c2hhciBEYXZlIDx0dXNoYXIubi5k
+YXZlQG9yYWNsZS5jb20+DQo+PiBSZXZpZXdlZC1ieTogdGhvbWFzIHRhaSA8dGhvbWFzLnRhaUBv
+cmFjbGUuY29tPg0KPj4gLS0tDQo+PiB2Mi0+djM6DQo+PiAtIFVzZSAlcGFkIHRvIHByaW50IGRt
+YV9hZGRyX3QuIENvbW1lbnQgYnkgVGFrYXNoaSBJd2FpLg0KPiANCj4gQXBwbGllZCBub3cuICBU
+aGFua3MhDQoNClRoaXMgcGF0Y2ggaXMgYWJzb2x1dGVseSBub3QgYXBwcm9wcmlhdGUgZm9yIHlv
+dXIgdHJlZSBUYWthc2hpLg0KDQpJdCdzIGZvciB0aGUgc3BhcmMgdHJlZSBiZWNhdXNlIHRoYXQn
+cyB3aGVyZSB0aGUgZG1hX2FkZHJfdA0KdHlwZSB3YXMgY2hhbmdlZCBmcm9tIDMyLWJpdCB0byA2
+NC1iaXQgb24gc3BhcmM2NCwgd2hpY2ggaXMNCndoYXQgY2F1c2VkIHRoaXMgYnVpbGQgd2Fybmlu
+Zy4NCg0KRGF2ZSwgcGxlYXNlIG9ubHkgc2VuZCBzcGFyYyBzcGVjaWZpYyBkcml2ZXIgcGF0Y2hl
+cyB0bw0Kc3BhcmNsaW51eEB2Z2VyLmtlcm5lbC5vcmcgaW4gdGhlIGZ1dHVyZSBzbyB3ZSBjYW4g
+YXZvaWQNCnRoaXMga2luZCBvZiBwcm9ibGVtLiAgVGhlIHdob2xlIGhhbmRsaW5nIG9mIHRoZSBk
+bWFfYWRkcl90DQp0eXBlIGNoYW5nZSBvbiBzcGFyYzY0IGhhcyBiZWVuIGEgcmVhbCBtZXNzLCBx
+dWl0ZSBob25lc3RseS4NCg=
