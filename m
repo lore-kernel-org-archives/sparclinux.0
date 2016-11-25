@@ -1,34 +1,94 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 28 Nov 2016 20:55:37 +0000
-Subject: Re: [PATCH v3] dbri: Fix compiler warning
-Message-Id: <20161128.155537.1838307526305634016.davem@davemloft.net>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Fri, 25 Nov 2016 11:25:54 +0000
+Subject: [patch] sparc: leon: Fix a retry loop in leon_init_timers()
+Message-Id: <20161125112554.GG5938@mwanda>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1480019716-14225-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tushar.n.dave@oracle.com
-Cc: perex@perex.cz, tiwai@suse.com, thomas.tai@oracle.com, alsa-devel@alsa-project.org, sparclinux@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
 
-RnJvbTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCkRhdGU6IFRodSwg
-MjQgTm92IDIwMTYgMTI6MzU6MTYgLTA4MDANCg0KPiBkYnJpIHVzZXMgJ3UzMicgZm9yIGRtYSBo
-YW5kbGUgd2hpbGUgaW52b2tpbmcga2VybmVsIERNQSBBUElzLA0KPiBpbnN0ZWFkIG9mIHVzaW5n
-IGRtYV9hZGRyX3QuIFRoaXMgaGFzbid0IGNhdXNlZCBhbnkgJ2luY29tcGF0aWJsZQ0KPiBwb2lu
-dGVyIHR5cGUnIHdhcm5pbmcgb24gU1BBUkMgYmVjYXVzZSB1bnRpbCBub3cgZG1hX2FkZHJfdCBp
-cyBvZg0KPiB0eXBlIHUzMi4gSG93ZXZlciwgcmVjZW50IGNoYW5nZXMgaW4gU1BBUkMgQVRVIChp
-b21tdSkgZW5hYmxlZCA2NGJpdA0KPiBETUEgYW5kIHRoZXJlZm9yZSBkbWFfYWRkcl90IGJlY2Ft
-ZSBvZiB0eXBlIHU2NC4gVGhpcyBtYWtlcw0KPiAnaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZScg
-d2FybmluZ3MgaW5ldml0YWJsZS4NCj4gDQo+IGUuZy4NCj4gc291bmQvc3BhcmMvZGJyaS5jOiBJ
-biBmdW5jdGlvbiChc25kX2RicmlfY3JlYXRlojoNCj4gc291bmQvc3BhcmMvZGJyaS5jOjI1Mzg6
-IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQgMyBvZiChZG1hX3phbGxvY19jb2hlcmVudKIgZnJv
-bSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlDQo+IC4vaW5jbHVkZS9saW51eC9kbWEtbWFwcGlu
-Zy5oOjYwODogbm90ZTogZXhwZWN0ZWQgoWRtYV9hZGRyX3QgKqIgYnV0IGFyZ3VtZW50IGlzIG9m
-IHR5cGUgoXUzMiAqog0KPiANCj4gRm9yIHRoZSByZWNvcmQsIGRicmkoc2J1cykgZHJpdmVyIG5l
-dmVyIGV4ZWN1dGVzIG9uIHN1bjR2LiBUaGVyZWZvcmUNCj4gZXZlbiB0aG91Z2ggNjRiaXQgRE1B
-IGlzIGVuYWJsZWQgb24gU1BBUkMsIGRicmkgY29udGludWVzIHRvIHVzZQ0KPiBsZWdhY3kgaW9t
-bXUgdGhhdCBndWFyYW50ZWVzIERNQSBhZGRyZXNzIGlzIGFsd2F5cyBpbiAzMmJpdCByYW5nZS4N
-Cj4gDQo+IFRoaXMgcGF0Y2ggcmVzb2x2ZXMgYWJvdmUgY29tcGlsZXIgd2FybmluZy4NCj4gDQo+
-IFNpZ25lZC1vZmYtYnk6IFR1c2hhciBEYXZlIDx0dXNoYXIubi5kYXZlQG9yYWNsZS5jb20+DQo+
-IFJldmlld2VkLWJ5OiB0aG9tYXMgdGFpIDx0aG9tYXMudGFpQG9yYWNsZS5jb20+DQoNCkFwcGxp
-ZWQsIHRoYW5rcy4NCg=
+The original code causes a static checker warning because it has a
+continue inside a do { } while (0); loop.  In that context, a continue
+and a break are equivalent.  The intent was to go back to the start of
+the loop so the continue was a bug.
+
+I've added a retry label at the start and changed the continue to a goto
+retry.  Then I removed the do { } while (0) loop and pulled the code in
+one indent level.
+
+Fixes: 2791c1a43900 ("SPARC/LEON: added support for selecting Timer Core and Timer within core")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Not tested.
+
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 33cd171..afcdd5e 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -349,37 +349,37 @@ void __init leon_init_timers(void)
+ 
+ 	/* Find GPTIMER Timer Registers base address otherwise bail out. */
+ 	nnp = rootnp;
+-	do {
+-		np = of_find_node_by_name(nnp, "GAISLER_GPTIMER");
+-		if (!np) {
+-			np = of_find_node_by_name(nnp, "01_011");
+-			if (!np)
+-				goto bad;
+-		}
+ 
+-		ampopts = 0;
+-		pp = of_find_property(np, "ampopts", &len);
+-		if (pp) {
+-			ampopts = *(int *)pp->value;
+-			if (ampopts = 0) {
+-				/* Skip this instance, resource already
+-				 * allocated by other OS */
+-				nnp = np;
+-				continue;
+-			}
++retry:
++	np = of_find_node_by_name(nnp, "GAISLER_GPTIMER");
++	if (!np) {
++		np = of_find_node_by_name(nnp, "01_011");
++		if (!np)
++			goto bad;
++	}
++
++	ampopts = 0;
++	pp = of_find_property(np, "ampopts", &len);
++	if (pp) {
++		ampopts = *(int *)pp->value;
++		if (ampopts = 0) {
++			/* Skip this instance, resource already
++			 * allocated by other OS */
++			nnp = np;
++			goto retry;
+ 		}
++	}
++
++	/* Select Timer-Instance on Timer Core. Default is zero */
++	leon3_gptimer_idx = ampopts & 0x7;
+ 
+-		/* Select Timer-Instance on Timer Core. Default is zero */
+-		leon3_gptimer_idx = ampopts & 0x7;
+-
+-		pp = of_find_property(np, "reg", &len);
+-		if (pp)
+-			leon3_gptimer_regs = *(struct leon3_gptimer_regs_map **)
+-						pp->value;
+-		pp = of_find_property(np, "interrupts", &len);
+-		if (pp)
+-			leon3_gptimer_irq = *(unsigned int *)pp->value;
+-	} while (0);
++	pp = of_find_property(np, "reg", &len);
++	if (pp)
++		leon3_gptimer_regs = *(struct leon3_gptimer_regs_map **)
++					pp->value;
++	pp = of_find_property(np, "interrupts", &len);
++	if (pp)
++		leon3_gptimer_irq = *(unsigned int *)pp->value;
+ 
+ 	if (!(leon3_gptimer_regs && leon3_irqctrl_regs && leon3_gptimer_irq))
+ 		goto bad;
