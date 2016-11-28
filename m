@@ -1,59 +1,38 @@
-From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Thu, 24 Nov 2016 02:28:04 +0000
-Subject: [PATCH v2] qlogicpti: Fix compiler warnings
-Message-Id: <1479954484-1301-1-git-send-email-tushar.n.dave@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 28 Nov 2016 20:55:22 +0000
+Subject: Re: [PATCH v2] qlogicpti: Fix compiler warnings
+Message-Id: <20161128.155522.86308473181404365.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1479954484-1301-1-git-send-email-tushar.n.dave@oracle.com>
+In-Reply-To: <1479954484-1301-1-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, linux-scsi@vger.kernel.org, thomas.tai@oracle.com, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: tushar.n.dave@oracle.com
+Cc: jejb@linux.vnet.ibm.com, martin.petersen@oracle.com, linux-scsi@vger.kernel.org, thomas.tai@oracle.com, sparclinux@vger.kernel.org
 
-qlogicpti uses '__u32' for dma handle while invoking kernel DMA APIs,
-instead of using dma_addr_t. This hasn't caused any 'incompatible
-pointer type' warning on SPARC because until now dma_addr_t is of
-type u32. However, recent changes in SPARC ATU (iommu) enabled 64bit
-DMA and therefore dma_addr_t became of type u64. This makes
-'incompatible pointer type' warnings inevitable.
-
-e.g.
-drivers/scsi/qlogicpti.c: In function ‘qpti_map_queues’:
-drivers/scsi/qlogicpti.c:813: warning: passing argument 3 of ‘dma_alloc_coherent’ from incompatible pointer type
-./include/linux/dma-mapping.h:445: note: expected ‘dma_addr_t *’ but argument is of type ‘__u32 *’
-drivers/scsi/qlogicpti.c:822: warning: passing argument 3 of ‘dma_alloc_coherent’ from incompatible pointer type
-./include/linux/dma-mapping.h:445: note: expected ‘dma_addr_t *’ but argument is of type ‘__u32 *’
-
-For the record, qlogicpti never executes on sun4v. Therefore even
-though 64bit DMA is enabled on SPARC, qlogicpti continues to use
-legacy iommu that guarantees DMA address is always in 32bit range.
-
-This patch resolves aforementioned compiler warnings.
-
-Signed-off-by: Tushar Dave <tushar.n.dave@oracle.com>
-Reviewed-by: thomas tai <thomas.tai@oracle.com>
----
-
-v1->v2:
-- Addressed comments by James Bottomley.
-- commit message updated.
-
- drivers/scsi/qlogicpti.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/scsi/qlogicpti.h b/drivers/scsi/qlogicpti.h
-index 4377e87..892a0b0 100644
---- a/drivers/scsi/qlogicpti.h
-+++ b/drivers/scsi/qlogicpti.h
-@@ -356,8 +356,8 @@ struct qlogicpti {
- 
- 	/* The rest of the elements are unimportant for performance. */
- 	struct qlogicpti         *next;
--	__u32                     res_dvma;             /* Ptr to RESPONSE bufs (DVMA)*/
--	__u32                     req_dvma;             /* Ptr to REQUEST bufs (DVMA) */
-+	dma_addr_t                res_dvma;             /* Ptr to RESPONSE bufs (DVMA)*/
-+	dma_addr_t                req_dvma;             /* Ptr to REQUEST bufs (DVMA) */
- 	u_char	                  fware_majrev, fware_minrev, fware_micrev;
- 	struct Scsi_Host         *qhost;
- 	int                       qpti_id;
--- 
-1.9.1
-
+RnJvbTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCkRhdGU6IFdlZCwg
+MjMgTm92IDIwMTYgMTg6Mjg6MDQgLTA4MDANCg0KPiBxbG9naWNwdGkgdXNlcyAnX191MzInIGZv
+ciBkbWEgaGFuZGxlIHdoaWxlIGludm9raW5nIGtlcm5lbCBETUEgQVBJcywNCj4gaW5zdGVhZCBv
+ZiB1c2luZyBkbWFfYWRkcl90LiBUaGlzIGhhc24ndCBjYXVzZWQgYW55ICdpbmNvbXBhdGlibGUN
+Cj4gcG9pbnRlciB0eXBlJyB3YXJuaW5nIG9uIFNQQVJDIGJlY2F1c2UgdW50aWwgbm93IGRtYV9h
+ZGRyX3QgaXMgb2YNCj4gdHlwZSB1MzIuIEhvd2V2ZXIsIHJlY2VudCBjaGFuZ2VzIGluIFNQQVJD
+IEFUVSAoaW9tbXUpIGVuYWJsZWQgNjRiaXQNCj4gRE1BIGFuZCB0aGVyZWZvcmUgZG1hX2FkZHJf
+dCBiZWNhbWUgb2YgdHlwZSB1NjQuIFRoaXMgbWFrZXMNCj4gJ2luY29tcGF0aWJsZSBwb2ludGVy
+IHR5cGUnIHdhcm5pbmdzIGluZXZpdGFibGUuDQo+IA0KPiBlLmcuDQo+IGRyaXZlcnMvc2NzaS9x
+bG9naWNwdGkuYzogSW4gZnVuY3Rpb24goXFwdGlfbWFwX3F1ZXVlc6I6DQo+IGRyaXZlcnMvc2Nz
+aS9xbG9naWNwdGkuYzo4MTM6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQgMyBvZiChZG1hX2Fs
+bG9jX2NvaGVyZW50oiBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUNCj4gLi9pbmNsdWRl
+L2xpbnV4L2RtYS1tYXBwaW5nLmg6NDQ1OiBub3RlOiBleHBlY3RlZCChZG1hX2FkZHJfdCAqoiBi
+dXQgYXJndW1lbnQgaXMgb2YgdHlwZSChX191MzIgKqINCj4gZHJpdmVycy9zY3NpL3Fsb2dpY3B0
+aS5jOjgyMjogd2FybmluZzogcGFzc2luZyBhcmd1bWVudCAzIG9mIKFkbWFfYWxsb2NfY29oZXJl
+bnSiIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZQ0KPiAuL2luY2x1ZGUvbGludXgvZG1h
+LW1hcHBpbmcuaDo0NDU6IG5vdGU6IGV4cGVjdGVkIKFkbWFfYWRkcl90ICqiIGJ1dCBhcmd1bWVu
+dCBpcyBvZiB0eXBlIKFfX3UzMiAqog0KPiANCj4gRm9yIHRoZSByZWNvcmQsIHFsb2dpY3B0aSBu
+ZXZlciBleGVjdXRlcyBvbiBzdW40di4gVGhlcmVmb3JlIGV2ZW4NCj4gdGhvdWdoIDY0Yml0IERN
+QSBpcyBlbmFibGVkIG9uIFNQQVJDLCBxbG9naWNwdGkgY29udGludWVzIHRvIHVzZQ0KPiBsZWdh
+Y3kgaW9tbXUgdGhhdCBndWFyYW50ZWVzIERNQSBhZGRyZXNzIGlzIGFsd2F5cyBpbiAzMmJpdCBy
+YW5nZS4NCj4gDQo+IFRoaXMgcGF0Y2ggcmVzb2x2ZXMgYWZvcmVtZW50aW9uZWQgY29tcGlsZXIg
+d2FybmluZ3MuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBUdXNoYXIgRGF2ZSA8dHVzaGFyLm4uZGF2
+ZUBvcmFjbGUuY29tPg0KPiBSZXZpZXdlZC1ieTogdGhvbWFzIHRhaSA8dGhvbWFzLnRhaUBvcmFj
+bGUuY29tPg0KDQpBcHBsaWVkLg0K
