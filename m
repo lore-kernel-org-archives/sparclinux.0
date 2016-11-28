@@ -1,37 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Nov 2016 16:20:57 +0000
-Subject: Re: [PATCH v2] dbri: Fix compiler warning
-Message-Id: <20161124.112057.785317837336457718.davem@davemloft.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 28 Nov 2016 14:29:28 +0000
+Subject: Re: Build regressions/improvements in v4.9-rc7
+Message-Id: <CAMuHMdXQ1--skMHOW1HLtCeeeGR4PqkYLHh8rVukPU=V8u4fQg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1479957315-2517-1-git-send-email-tushar.n.dave@oracle.com>
- <s5hfumh9gpt.wl-tiwai@suse.de>
-In-Reply-To: <s5hfumh9gpt.wl-tiwai@suse.de>
+References: <1480343257-26723-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1480343257-26723-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tiwai@suse.de
-Cc: sparclinux@vger.kernel.org, alsa-devel@alsa-project.org, thomas.tai@oracle.com, tushar.n.dave@oracle.com
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>
 
-From: Takashi Iwai <tiwai@suse.de>
-Date: Thu, 24 Nov 2016 13:59:10 +0100
+On Mon, Nov 28, 2016 at 3:27 PM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> JFYI, when comparing v4.9-rc7[1] to v4.9-rc6[3], the summaries are:
+>   - build errors: +10/-4
 
-> On Thu, 24 Nov 2016 04:15:15 +0100,
-> Tushar Dave wrote:
->> 
->> @@ -2539,7 +2545,7 @@ static int snd_dbri_create(struct snd_card *card,
->>  	if (!dbri->dma)
->>  		return -ENOMEM;
->>  
->> -	dprintk(D_GEN, "DMA Cmd Block 0x%p (0x%08x)\n",
->> +	dprintk(D_GEN, "DMA Cmd Block 0x%p (0x%08llx)\n",
->>  		dbri->dma, dbri->dma_dvma);
-> 
-> Better to use %pad for dma_addr_t here.
-> If the config doesn't enable ATU, dma_addr_t would be still u32, and
-> your change will be buggy.
+  + /home/kisskb/slave/src/drivers/scsi/qlogicpti.c: error: passing
+argument 3 of 'dma_alloc_coherent' from incompatible pointer type
+[-Werror=incompatible-pointer-types]:  => 813:9, 822:9
+  + /home/kisskb/slave/src/sound/sparc/dbri.c: error: passing argument
+3 of 'dma_zalloc_coherent' from incompatible pointer type
+[-Werror=incompatible-pointer-types]:  => 2538:6
 
-dma_addr_t is unconditionally a 64-bit type on sparc64.
+sparc64-allmodconfig
 
-However, you are right in that on sparc32 it is still 32-bit.
+> [1] http://kisskb.ellerman.id.au/kisskb/head/e5517c2a5a49ed5e99047008629f1cd60246ea0e/ (all 267 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/head/9c763584b7c8911106bb77af7e648bef09af9d80/ (all 267 configs)
 
+Gr{oetje,eeting}s,
 
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
