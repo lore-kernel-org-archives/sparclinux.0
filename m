@@ -1,35 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 18 Nov 2016 19:29:42 +0000
-Subject: Re: [PATCH 1/2] sunqe: Fix compiler warnings
-Message-Id: <20161118.142942.620136274318885678.davem@davemloft.net>
+From: Felix R cox Jr <royce.cox.o@gmail.com>
+Date: Tue, 29 Nov 2016 08:46:39 +0000
+Subject: Re:kindly give me a run down on what it will take me to invest in your Country
+Message-Id: <CAF3bnrPbw2DfeP++ZQW=M040z9k92bVG0ikqfS+mBe42upJXvA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1476737820-29584-1-git-send-email-tushar.n.dave@oracle.com>
-        <1476737820-29584-2-git-send-email-tushar.n.dave@oracle.com>
-In-Reply-To: <1476737820-29584-2-git-send-email-tushar.n.dave@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: tushar.n.dave@oracle.com
-Cc: sparclinux@vger.kernel.org, chris.hyser@oracle.com, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-RnJvbTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCkRhdGU6IE1vbiwg
-MTcgT2N0IDIwMTYgMTM6NTY6NTkgLTA3MDANCg0KPiBzdW5xZSB1c2VzICdfX3UzMicgZm9yIGRt
-YSBoYW5kbGUgd2hpbGUgaW52b2tpbmcga2VybmVsIERNQSBBUElzLA0KPiBpbnN0ZWFkIG9mIHVz
-aW5nIGRtYV9hZGRyX3QuIFRoaXMgaGFzbid0IGNhdXNlZCBhbnkgJ2luY29tcGF0aWJsZQ0KPiBw
-b2ludGVyIHR5cGUnIHdhcm5pbmcgb24gU1BBUkMgYmVjYXVzZSB1bnRpbCBub3cgZG1hX2FkZHJf
-dCBpcyBvZg0KPiB0eXBlIHUzMi4gSG93ZXZlciwgcmVjZW50IGNoYW5nZXMgaW4gU1BBUkMgQVRV
-IChpb21tdSkgZW5hYmxlcyA2NGJpdA0KPiBETUEgYW5kIHRoZXJlZm9yZSBkbWFfYWRkcl90IGJl
-Y29tZXMgb2YgdHlwZSB1NjQuIFRoaXMgbWFrZXMNCj4gJ2luY29tcGF0aWJsZSBwb2ludGVyIHR5
-cGUnIHdhcm5pbmdzIGluZXZpdGFibGUuDQo+IA0KPiBlLmcuDQo+IGRyaXZlcnMvbmV0L2V0aGVy
-bmV0L3N1bi9zdW5xZS5jOiBJbiBmdW5jdGlvbiChcWVjX2V0aGVyX2luaXSiOg0KPiBkcml2ZXJz
-L25ldC9ldGhlcm5ldC9zdW4vc3VucWUuYzo4ODM6IHdhcm5pbmc6IHBhc3NpbmcgYXJndW1lbnQg
-MyBvZiChZG1hX2FsbG9jX2NvaGVyZW50oiBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUN
-Cj4gLi9pbmNsdWRlL2xpbnV4L2RtYS1tYXBwaW5nLmg6NDQ1OiBub3RlOiBleHBlY3RlZCChZG1h
-X2FkZHJfdCAqoiBidXQgYXJndW1lbnQgaXMgb2YgdHlwZSChX191MzIgKqINCj4gZHJpdmVycy9u
-ZXQvZXRoZXJuZXQvc3VuL3N1bnFlLmM6ODg1OiB3YXJuaW5nOiBwYXNzaW5nIGFyZ3VtZW50IDMg
-b2YgoWRtYV9hbGxvY19jb2hlcmVudKIgZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlDQo+
-IC4vaW5jbHVkZS9saW51eC9kbWEtbWFwcGluZy5oOjQ0NTogbm90ZTogZXhwZWN0ZWQgoWRtYV9h
-ZGRyX3QgKqIgYnV0IGFyZ3VtZW50IGlzIG9mIHR5cGUgoV9fdTMyICqiDQo+IA0KPiBUaGlzIHBh
-dGNoIHJlc29sdmVzIGFib3ZlIGNvbXBpbGVyIHdhcm5pbmdzLg0KPiANCj4gU2lnbmVkLW9mZi1i
-eTogVHVzaGFyIERhdmUgPHR1c2hhci5uLmRhdmVAb3JhY2xlLmNvbT4NCj4gUmV2aWV3ZWQtYnk6
-IGNocmlzIGh5c2VyIDxjaHJpcy5oeXNlckBvcmFjbGUuY29tPg0KDQpBcGxwaWVkLg0K
+-- 
+Hi,
+
+Please do accept my apologies. I do not wish to invade your privacy, I
+had written an earlier email to you, but without a response, In my
+first email, I mentioned to you about my late client Dr Guard Roger
+Watson died 17th of March 2014.
+
+Since his death I have received several notifications from his Bank
+where he made a time deposit of ($7,500,000.00) the bank has asked me
+to provide his next of kin or any of his dependent relatives who can
+make claim to his funds for payment or it will be confiscated by the
+government.
+
+Since I could not locate any of his relatives, I have to contact you
+for this upon your response to me, I would give you the details and
+procedures for collecting the funds; I sincerely wait for your
+positive response. Note: this transaction is absolutely RISK-FREE and
+of NO ENCUMBRANCE.
+
+http://www.bbc.com/news/world-28354787 of the plane crash as a
+confirmation to my  proposal.
+
+https://www.scribd.com/doc/234458618/MH17-  Passengers-and-Crew-Manifest
+
+Thank you so much for your time.
