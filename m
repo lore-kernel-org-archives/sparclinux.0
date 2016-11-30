@@ -1,62 +1,77 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Tue, 29 Nov 2016 21:23:08 +0000
-Subject: next: Commit 'mm: Prevent __alloc_pages_nodemask() RCU CPU stall ...' causing hang on sparc32 qemu
-Message-Id: <20161129212308.GA12447@roeck-us.net>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Wed, 30 Nov 2016 01:28:17 +0000
+Subject: Re: next: Commit 'mm: Prevent __alloc_pages_nodemask() RCU CPU stall ...' causing hang on sparc32 qe
+Message-Id: <20161130012817.GH3924@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20161129212308.GA12447@roeck-us.net>
+In-Reply-To: <20161129212308.GA12447@roeck-us.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Guenter Roeck <linux@roeck-us.net>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, davem@davemloft.net
 
-Hi Paul,
+On Tue, Nov 29, 2016 at 01:23:08PM -0800, Guenter Roeck wrote:
+> Hi Paul,
+> 
+> most of my qemu tests for sparc32 targets started to fail in next-20161129.
+> The problem is only seen in SMP builds; non-SMP builds are fine.
+> Bisect points to commit 2d66cccd73436 ("mm: Prevent __alloc_pages_nodemask()
+> RCU CPU stall warnings"); reverting that commit fixes the problem.
+> 
+> Test scripts are available at:
+> 	https://github.com/groeck/linux-build-test/tree/master/rootfs/sparc
+> Test results are at:
+> 	https://github.com/groeck/linux-build-test/tree/master/rootfs/sparc
+> 
+> Bisect log is attached.
+> 
+> Please let me know if there is anything I can do to help tracking down the
+> problem.
 
-most of my qemu tests for sparc32 targets started to fail in next-20161129.
-The problem is only seen in SMP builds; non-SMP builds are fine.
-Bisect points to commit 2d66cccd73436 ("mm: Prevent __alloc_pages_nodemask()
-RCU CPU stall warnings"); reverting that commit fixes the problem.
+Apologies!!!  Does the patch below help?
 
-Test scripts are available at:
-	https://github.com/groeck/linux-build-test/tree/master/rootfs/sparc
-Test results are at:
-	https://github.com/groeck/linux-build-test/tree/master/rootfs/sparc
+							Thanx, Paul
 
-Bisect log is attached.
+------------------------------------------------------------------------
 
-Please let me know if there is anything I can do to help tracking down the
-problem.
+commit 97708e737e2a55fed4bdbc005bf05ea909df6b73
+Author: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Date:   Tue Nov 29 11:06:05 2016 -0800
 
-Thanks,
-Guenter
+    rcu: Allow boot-time use of cond_resched_rcu_qs()
+    
+    The cond_resched_rcu_qs() macro is used to force RCU quiescent states into
+    long-running in-kernel loops.  However, some of these loops can execute
+    during early boot when interrupts are disabled, and during which time
+    it is therefore illegal to enter the scheduler.  This commit therefore
+    makes cond_resched_rcu_qs() be a no-op during early boot.
+    
+    Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
----
-# bad: [4030ddad30d69fa041f57a2b742d69889b91e93b] Add linux-next specific files for 20161129
-# good: [e5517c2a5a49ed5e99047008629f1cd60246ea0e] Linux 4.9-rc7
-git bisect start 'HEAD' 'v4.9-rc7'
-# good: [d129495078c343c047171844bfa9c3f81d69125c] next-20161128/crypto
-git bisect good d129495078c343c047171844bfa9c3f81d69125c
-# good: [64c09c8edb6b4ea872538acd144a72434ae20f07] Merge remote-tracking branch 'tip/auto-latest'
-git bisect good 64c09c8edb6b4ea872538acd144a72434ae20f07
-# good: [2d2139c5c746ec61024fdfa9c36e4e034bb18e59] Merge tag 'iio-for-4.10d' of git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio into staging-next
-git bisect good 2d2139c5c746ec61024fdfa9c36e4e034bb18e59
-# bad: [c927024badfb7d3835bed3c386011c9e2b5b28b8] Merge remote-tracking branch 'char-misc/char-misc-next'
-git bisect bad c927024badfb7d3835bed3c386011c9e2b5b28b8
-# bad: [72910000a4180a2f51f4d29308da6138da8e7229] Merge remote-tracking branch 'tty/tty-next'
-git bisect bad 72910000a4180a2f51f4d29308da6138da8e7229
-# bad: [cda711541e3b7a101f3e1ebe9f17e05c144976bd] Merge remote-tracking branch 'kvm-ppc-paulus/kvm-ppc-next'
-git bisect bad cda711541e3b7a101f3e1ebe9f17e05c144976bd
-# bad: [22fa38d8da8ca508c5630b6499acc088dde1dc89] Merge remote-tracking branch 'rcu/rcu/next'
-git bisect bad 22fa38d8da8ca508c5630b6499acc088dde1dc89
-# good: [0f5bacb434cae111078b89df1acaea738c712251] Merge remote-tracking branch 'irqchip/irqchip/for-next'
-git bisect good 0f5bacb434cae111078b89df1acaea738c712251
-# good: [80c099e11c191b0e3c1c7dac2d460cb12d0ea3c7] mm: Prevent shrink_node() RCU CPU stall warnings
-git bisect good 80c099e11c191b0e3c1c7dac2d460cb12d0ea3c7
-# good: [60c1afbf10528f646a6fcae1a2c404d216e594d5] selftests: ftrace: Add a testcase for function filter glob match
-git bisect good 60c1afbf10528f646a6fcae1a2c404d216e594d5
-# good: [9b5e3ff6b9baa77548c6cb832780162055733c67] stm dummy: Mark dummy_stm_packet() with notrace
-git bisect good 9b5e3ff6b9baa77548c6cb832780162055733c67
-# bad: [2d66cccd73436ac9985a08e5c2f82e4344f72264] mm: Prevent __alloc_pages_nodemask() RCU CPU stall warnings
-git bisect bad 2d66cccd73436ac9985a08e5c2f82e4344f72264
-# good: [34c53f5cd399801b083047cc9cf2ad3ed17c3144] mm: Prevent shrink_node_memcg() RCU CPU stall warnings
-git bisect good 34c53f5cd399801b083047cc9cf2ad3ed17c3144
-# first bad commit: [2d66cccd73436ac9985a08e5c2f82e4344f72264] mm: Prevent __alloc_pages_nodemask() RCU CPU stall warnings
+diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
+index 525ca34603b7..b6944cc19a07 100644
+--- a/include/linux/rcupdate.h
++++ b/include/linux/rcupdate.h
+@@ -423,7 +423,7 @@ extern struct srcu_struct tasks_rcu_exit_srcu;
+  */
+ #define cond_resched_rcu_qs() \
+ do { \
+-	if (!cond_resched()) \
++	if (!is_idle_task(current) && !cond_resched()) \
+ 		rcu_note_voluntary_context_switch(current); \
+ } while (0)
+ 
+diff --git a/include/linux/rcutiny.h b/include/linux/rcutiny.h
+index 7232d199a81c..20f5990deeee 100644
+--- a/include/linux/rcutiny.h
++++ b/include/linux/rcutiny.h
+@@ -228,6 +228,7 @@ static inline void exit_rcu(void)
+ extern int rcu_scheduler_active __read_mostly;
+ void rcu_scheduler_starting(void);
+ #else /* #ifdef CONFIG_DEBUG_LOCK_ALLOC */
++#define rcu_scheduler_active false
+ static inline void rcu_scheduler_starting(void)
+ {
+ }
+
