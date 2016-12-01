@@ -1,7 +1,7 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Thu, 01 Dec 2016 01:19:50 +0000
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 01 Dec 2016 06:56:57 +0000
 Subject: Re: next: Commit 'mm: Prevent __alloc_pages_nodemask() RCU CPU stall ...' causing hang on sparc32 qe
-Message-Id: <20161201011950.GX3924@linux.vnet.ibm.com>
+Message-Id: <20161201065657.GA4697@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161129212308.GA12447@roeck-us.net>
  <20161130012817.GH3924@linux.vnet.ibm.com>
@@ -12,71 +12,61 @@ References: <20161129212308.GA12447@roeck-us.net>
  <20161130192159.GB22216@roeck-us.net>
  <20161130210152.GL3924@linux.vnet.ibm.com>
  <20161130231846.GB17244@roeck-us.net>
-In-Reply-To: <20161130231846.GB17244@roeck-us.net>
+ <20161201011950.GX3924@linux.vnet.ibm.com>
+In-Reply-To: <20161201011950.GX3924@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, davem@davemloft.net
 
-On Wed, Nov 30, 2016 at 03:18:46PM -0800, Guenter Roeck wrote:
-> On Wed, Nov 30, 2016 at 01:01:52PM -0800, Paul E. McKenney wrote:
-> > On Wed, Nov 30, 2016 at 11:21:59AM -0800, Guenter Roeck wrote:
-> > > On Wed, Nov 30, 2016 at 04:03:33AM -0800, Paul E. McKenney wrote:
-> > > > On Wed, Nov 30, 2016 at 02:52:11AM -0800, Guenter Roeck wrote:
-> > > > > On 11/29/2016 11:02 PM, Paul E. McKenney wrote:
-> > > > > >On Tue, Nov 29, 2016 at 08:32:51PM -0800, Guenter Roeck wrote:
-> > > > > >>On 11/29/2016 05:28 PM, Paul E. McKenney wrote:
-> > > > > >>>On Tue, Nov 29, 2016 at 01:23:08PM -0800, Guenter Roeck wrote:
-> > > > > >>>>Hi Paul,
-> > > > > >>>>
-> > > > > >>>>most of my qemu tests for sparc32 targets started to fail in next-20161129.
-> > > > > >>>>The problem is only seen in SMP builds; non-SMP builds are fine.
-> > > > > >>>>Bisect points to commit 2d66cccd73436 ("mm: Prevent __alloc_pages_nodemask()
-> > > > > >>>>RCU CPU stall warnings"); reverting that commit fixes the problem.
+Hi Paul,
+
+On Wed, Nov 30, 2016 at 05:19:50PM -0800, Paul E. McKenney wrote:
+[ ... ]
+
 > > > > 
-> > > > And I have dropped this patch.  Michal Hocko showed me the error of
-> > > > my ways with this patch.
-> > > > 
-> > > 
-> > > :-)
-> > > 
-> > > On another note, I still get RCU tracebacks in the s390 tests.
-> > > 
-> > > BUG: sleeping function called from invalid context at mm/page_alloc.c:3775
-> > > 
-> > > That is caused by 'rcu: Maintain special bits at bottom of ->dynticks counter';
-> > > if I recall correctly we had discussed that earlier.
-> > 
-> > Indeed, I had missed a dyntick counter update back on Nov 11, which meant
-> > that some of the code was still looking at the low-order bit instead of
-> > the next bit up.  This is now fixed.
-> > 
-> > So to get to the error message you call out above, I need to have improperly
-> > left the system in bh state or left irqs disabled, while the system was
-> > running normally without an oops.  I am having a hard time seeing how this
-> > patch can do that.
-> > 
-> > I would be more suspicious of f2a471ffc8a8 ("rcu: Allow boot-time use
-> > of cond_resched_rcu_qs()").
-> > 
-> > So you bisected or did a revert to work out which was the offending commit?
-> > 
+> > > > BUG: sleeping function called from invalid context at mm/page_alloc.c:3775
+[ ... ]
 > 
-> My most recent bisect was with the November 10 image, so that would have missed
-> any later fix. Comparing the log messages, the current message is indeed
-> different. Sorry, I mixed that up; I just assumed that the problem would be
-> the same without really checking. My bad.
-> 
-> Bisect would be tricky, since the s390 image was broken for some time after
-> November 10. The first time I have seen the above BUG: was with next-20161128
-> (which is the first build after the crash was fixed). That version did not
-> include f2a471ffc8a8, so that can not be the cause.
-> 
-> I'll try to set up a bisect tonight, working around the crash problem.
-> I'll let you know how it goes.
+> Whew!  You had me going for a bit there.  ;-)
 
-Whew!  You had me going for a bit there.  ;-)
+Bisect results are here ... the culprit is, again, commit 2d66cccd73 ("mm:
+Prevent __alloc_pages_nodemask() RCU CPU stall warnings"), and reverting that
+patch fixes the problem. Good that you dropped it already :-).
 
-							Thanx, Paul
+Guenter
 
+---
+# bad: [59ab0083490c8a871b51e893bae5806e55901d7e] Add linux-next specific files for 20161130
+# good: [e5517c2a5a49ed5e99047008629f1cd60246ea0e] Linux 4.9-rc7
+git bisect start 'HEAD' 'v4.9-rc7'
+# good: [187f99e5c22bb3fab8b330f3ebbbd235d238f3f8] Merge remote-tracking branch 'crypto/master'
+git bisect good 187f99e5c22bb3fab8b330f3ebbbd235d238f3f8
+# good: [36126657c908e822523b8563f9b1512937c0f342] Merge remote-tracking branch 'tip/auto-latest'
+git bisect good 36126657c908e822523b8563f9b1512937c0f342
+# good: [2d2139c5c746ec61024fdfa9c36e4e034bb18e59] Merge tag 'iio-for-4.10d' of git://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio into staging-next
+git bisect good 2d2139c5c746ec61024fdfa9c36e4e034bb18e59
+# bad: [926a60551123048c589b45abee2a2ec4c924ab21] Merge remote-tracking branch 'extcon/extcon-next'
+git bisect bad 926a60551123048c589b45abee2a2ec4c924ab21
+# bad: [1541655795a90720b8a094c8cc39f582dec17398] Merge remote-tracking branch 'tty/tty-next'
+git bisect bad 1541655795a90720b8a094c8cc39f582dec17398
+# bad: [69a6720a1e54519d9bf8563764e9e93bf1bd6a84] Merge remote-tracking branch 'kvm-arm/next'
+git bisect bad 69a6720a1e54519d9bf8563764e9e93bf1bd6a84
+# good: [33b8b045b93f9104c61ecad1865af961b3bef03e] Merge remote-tracking branch 'ftrace/for-next'
+git bisect good 33b8b045b93f9104c61ecad1865af961b3bef03e
+# good: [8370c3d08bd98576d97514eca29970e03767a5d1] kvm: svm: Add kvm_fast_pio_in support
+git bisect good 8370c3d08bd98576d97514eca29970e03767a5d1
+# good: [0a895142323de3eebb0b753d3d8c0e768ff179d9] mm: Prevent shrink_node() RCU CPU stall warnings
+git bisect good 0a895142323de3eebb0b753d3d8c0e768ff179d9
+# bad: [f8045446ca778333e960dcb9e30a5858ff2b8c20] srcu: Force full grace-period ordering
+git bisect bad f8045446ca778333e960dcb9e30a5858ff2b8c20
+# good: [f660d64912ccadadcdce6dfb39eb06924dd93767] doc: Fix RCU requirements typos
+git bisect good f660d64912ccadadcdce6dfb39eb06924dd93767
+# good: [d2db185bfee894c573faebed93461e9938bdbb61] rcu: Remove short-term CPU kicking
+git bisect good d2db185bfee894c573faebed93461e9938bdbb61
+# bad: [2d66cccd73436ac9985a08e5c2f82e4344f72264] mm: Prevent __alloc_pages_nodemask() RCU CPU stall warnings
+git bisect bad 2d66cccd73436ac9985a08e5c2f82e4344f72264
+# good: [34c53f5cd399801b083047cc9cf2ad3ed17c3144] mm: Prevent shrink_node_memcg() RCU CPU stall warnings
+git bisect good 34c53f5cd399801b083047cc9cf2ad3ed17c3144
+# first bad commit: [2d66cccd73436ac9985a08e5c2f82e4344f72264] mm: Prevent __alloc_pages_nodemask() RCU CPU stall warnings
