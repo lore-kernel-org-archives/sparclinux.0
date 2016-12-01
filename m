@@ -1,26 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 21 Dec 2016 18:17:51 +0000
-Subject: Re: [RFC PATCH 04/14] sparc64: load shared id into context register 1
-Message-Id: <20161221181751.GE3311@ravnborg.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Thu, 01 Dec 2016 05:48:30 +0000
+Subject: [patch] dbri: move dereference after check for NULL
+Message-Id: <20161201054830.GA20077@mwanda>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
- <1481913337-9331-5-git-send-email-mike.kravetz@oracle.com>
- <20161217.221442.430708127662119954.davem@davemloft.net>
- <62091365-2797-ed99-847f-7281f4666633@oracle.com>
-In-Reply-To: <62091365-2797-ed99-847f-7281f4666633@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, bob.picco@oracle.com, nitin.m.gupta@oracle.com, vijay.ac.kumar@oracle.com, julian.calaby@gmail.com, adam.buchbinder@gmail.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, akpm@linux-foundation.org
+To: "David S. Miller" <davem@davemloft.net>, Tushar Dave <tushar.n.dave@oracle.com>
+Cc: Takashi Iwai <tiwai@suse.com>, Jaroslav Kysela <perex@perex.cz>, thomas tai <thomas.tai@oracle.com>, alsa-devel@alsa-project.org, sparclinux@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-Hi Mike.
+We accidentally introduced a dereference before the NULL check in
+xmit_descs() as part of silencing a GCC warning.
 
-> Or, perhaps we only enable
-> the shared context ID feature on processors which have the ability to work
-> around the backwards compatibility feature.
+Fixes: 16f46050e709 ("dbri: Fix compiler warning")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Goes into the sparc tree.
 
-Start out like this, and then see if it is really needed with the older processors.
-This should keep the code logic simpler - which is always good for this complicated stuff.
-
-	Sam
+diff --git a/sound/sparc/dbri.c b/sound/sparc/dbri.c
+index 3fe4468..52063b2 100644
+--- a/sound/sparc/dbri.c
++++ b/sound/sparc/dbri.c
+@@ -1702,7 +1702,7 @@ interrupts are disabled.
+ static void xmit_descs(struct snd_dbri *dbri)
+ {
+ 	struct dbri_streaminfo *info;
+-	u32 dvma_addr = (u32)dbri->dma_dvma;
++	u32 dvma_addr;
+ 	s32 *cmd;
+ 	unsigned long flags;
+ 	int first_td;
+@@ -1710,6 +1710,7 @@ static void xmit_descs(struct snd_dbri *dbri)
+ 	if (dbri = NULL)
+ 		return;		/* Disabled */
+ 
++	dvma_addr = (u32)dbri->dma_dvma;
+ 	info = &dbri->stream_info[DBRI_REC];
+ 	spin_lock_irqsave(&dbri->lock, flags);
+ 
