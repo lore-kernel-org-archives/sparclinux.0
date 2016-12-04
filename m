@@ -1,17 +1,16 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 12 Dec 2016 02:06:08 +0000
-Subject: Re: [PATCH V2 1/1] sparc64:Support User Probes for sparc
-Message-Id: <20161211.210608.1620963182797558429.davem@davemloft.net>
+From: David Michael Vislosky <hpowell@andrew.cmu.edu>
+Date: Sun, 04 Dec 2016 04:15:42 +0000
+Subject: =?utf-8?B?ZGlmZmVyZW50IHN0dWZm?=
+Message-Id: <00003a42deb4$def61226$cf1223f3$@andrew.cmu.edu>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Allen Pais <allen.pais@oracle.com>
-Date: Thu, 13 Oct 2016 10:06:13 +0530
+Dear! 
 
-> Signed-off-by: Eric Saint Etienne <eric.saint.etienne@oracle.com>
-> Signed-off-by: Allen Pais <allen.pais@oracle.com>
+I've found  a  lot of interesting stuff that you might like, just  take a look <http://super.thedeckla.com/e4zm/048>
 
-Applied.
+David Michael Vislosky
+
