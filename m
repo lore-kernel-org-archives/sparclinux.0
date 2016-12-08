@@ -1,227 +1,84 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri, 16 Dec 2016 18:35:31 +0000
-Subject: [RFC PATCH 08/14] sparc64: shared context tsb handling at context switch time
-Message-Id: <1481913337-9331-9-git-send-email-mike.kravetz@oracle.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Thu, 08 Dec 2016 18:11:51 +0000
+Subject: [PATCH] coredump: Ensure proper size of sparse core files
+Message-Id: <20161208181151.28127-1-dave.kleikamp@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
-In-Reply-To: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Kravetz <mike.kravetz@oracle.com>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: sparclinux@vger.kernel.org, Dave Kleikamp <dave.kleikamp@oracle.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-At context switch time, load the shared context TSB into the MMU (if
-applicable) and set up global state to include the TSB.
+If the last section of a core file ends with an unmapped or zero page,
+the size of the file does not correspond with the last dump_skip() call.
+gdb complains that the file is truncated and can be confusing to users.
 
-sun4v loads the address of base and huge page TSBs into scratchpad
-registers.  There is not an extra register for shared context TSB.
-So, use offset 0xd0 in the trap block.  This is TRAP_PER_CPU_TSB_HUGE,
-and is only used on sun4u.  We can then use this area for the shared
-context on sun4v.
+After all of the vma sections are written, make sure that the file size
+is no smaller than the current file position.
 
-With this commit, global state is set up for shared context TSB but
-still not used.
+This problem can be demonstrated with gdb's bigcore testcase on the
+sparc architecture.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
- arch/sparc/include/asm/mmu_context_64.h | 27 ++++++++++++++----
- arch/sparc/include/asm/trap_block.h     |  3 +-
- arch/sparc/kernel/head_64.S             |  2 +-
- arch/sparc/kernel/tsb.S                 | 50 +++++++++++++++++++++------------
- 4 files changed, 57 insertions(+), 25 deletions(-)
+ fs/binfmt_elf.c          |  1 +
+ fs/coredump.c            | 18 ++++++++++++++++++
+ include/linux/coredump.h |  1 +
+ 3 files changed, 20 insertions(+)
 
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 84268df..0dc95cb5 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -36,21 +36,38 @@ void destroy_context(struct mm_struct *mm);
- void __tsb_context_switch(unsigned long pgd_pa,
- 			  struct tsb_config *tsb_base,
- 			  struct tsb_config *tsb_huge,
-+			  struct tsb_config *tsb_huge_shared,
- 			  unsigned long tsb_descr_pa);
+diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
+index 2472af2..cfd724f 100644
+--- a/fs/binfmt_elf.c
++++ b/fs/binfmt_elf.c
+@@ -2296,6 +2296,7 @@ static int elf_core_dump(struct coredump_params *cprm)
+ 				goto end_coredump;
+ 		}
+ 	}
++	dump_truncate(cprm);
  
-+#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
- static inline void tsb_context_switch(struct mm_struct *mm)
- {
-+	/*
-+	 * The conditional for tsb_descr_pa handles shared context
-+	 * case where tsb_block[0] may not be used.
-+	 */
- 	__tsb_context_switch(__pa(mm->pgd),
- 			     &mm->context.tsb_block[MM_TSB_BASE],
--#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
- 			     (mm->context.tsb_block[MM_TSB_HUGE].tsb ?
- 			      &mm->context.tsb_block[MM_TSB_HUGE] :
--			      NULL)
-+			      NULL),
-+			     (mm->context.tsb_block[MM_TSB_HUGE_SHARED].tsb ?
-+			      &mm->context.tsb_block[MM_TSB_HUGE_SHARED] :
-+			      NULL),
-+			     (mm->context.tsb_block[0].tsb ?
-+			      __pa(&mm->context.tsb_descr[0]) :
-+			      __pa(&mm->context.tsb_descr[1])));
-+}
- #else
--			     NULL
--#endif
--			     , __pa(&mm->context.tsb_descr[MM_TSB_BASE]));
-+static inline void tsb_context_switch(struct mm_struct *mm)
-+{
-+	__tsb_context_switch(__pa(mm->pgd),
-+			     &mm->context.tsb_block[MM_TSB_BASE],
-+			     NULL,
-+			     NULL,
-+			     __pa(&mm->context.tsb_descr[MM_TSB_BASE]);
+ 	if (!elf_core_write_extra_data(cprm))
+ 		goto end_coredump;
+diff --git a/fs/coredump.c b/fs/coredump.c
+index eb9c92c..ecdb1e3 100644
+--- a/fs/coredump.c
++++ b/fs/coredump.c
+@@ -833,3 +833,21 @@ int dump_align(struct coredump_params *cprm, int align)
+ 	return mod ? dump_skip(cprm, align - mod) : 1;
  }
-+#endif
- 
- void tsb_grow(struct mm_struct *mm,
- 	      unsigned long tsb_index,
-diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
-index ec9c04d..e971785 100644
---- a/arch/sparc/include/asm/trap_block.h
-+++ b/arch/sparc/include/asm/trap_block.h
-@@ -96,7 +96,8 @@ extern struct sun4v_2insn_patch_entry __sun_m7_2insn_patch,
- #define TRAP_PER_CPU_FAULT_INFO		0x40
- #define TRAP_PER_CPU_CPU_MONDO_BLOCK_PA	0xc0
- #define TRAP_PER_CPU_CPU_LIST_PA	0xc8
--#define TRAP_PER_CPU_TSB_HUGE		0xd0
-+#define TRAP_PER_CPU_TSB_HUGE		0xd0	/* sun4u only */
-+#define TRAP_PER_CPU_TSB_HUGE_SHARED	0xd0	/* sun4v only */
- #define TRAP_PER_CPU_TSB_HUGE_TEMP	0xd8
- #define TRAP_PER_CPU_IRQ_WORKLIST_PA	0xe0
- #define TRAP_PER_CPU_CPU_MONDO_QMASK	0xe8
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 6aa3da1..0bf1e1f 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -875,7 +875,6 @@ sparc64_boot_end:
- #include "sun4v_tlb_miss.S"
- #include "sun4v_ivec.S"
- #include "ktlb.S"
--#include "tsb.S"
- 
- /*
-  * The following skip makes sure the trap table in ttable.S is aligned
-@@ -916,6 +915,7 @@ swapper_4m_tsb:
- 
- ! 0x0000000000428000
- 
-+#include "tsb.S"
- #include "systbls_64.S"
- 
- 	.data
-diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
-index d568c82..3ed3e7c 100644
---- a/arch/sparc/kernel/tsb.S
-+++ b/arch/sparc/kernel/tsb.S
-@@ -374,7 +374,8 @@ tsb_flush:
- 	 * %o0: page table physical address
- 	 * %o1:	TSB base config pointer
- 	 * %o2:	TSB huge config pointer, or NULL if none
--	 * %o3:	Hypervisor TSB descriptor physical address
-+	 * %o3: TSB huge shared config pointer, or NULL if none
-+	 * %o4: Hypervisor TSB descriptor physical address
- 	 *
- 	 * We have to run this whole thing with interrupts
- 	 * disabled so that the current cpu doesn't change
-@@ -387,6 +388,8 @@ __tsb_context_switch:
- 	rdpr	%pstate, %g1
- 	wrpr	%g1, PSTATE_IE, %pstate
- 
-+	mov	%o4, %g7
+ EXPORT_SYMBOL(dump_align);
 +
- 	TRAP_LOAD_TRAP_BLOCK(%g2, %g3)
- 
- 	stx	%o0, [%g2 + TRAP_PER_CPU_PGD_PADDR]
-@@ -397,13 +400,8 @@ __tsb_context_switch:
- 
- 	ldx	[%o2 + TSB_CONFIG_REG_VAL], %g3
- 
--1:	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE]
--
--	sethi	%hi(tlb_type), %g2
--	lduw	[%g2 + %lo(tlb_type)], %g2
--	cmp	%g2, 3
--	bne,pt	%icc, 50f
--	 nop
-+1:	IF_TLB_TYPE_NOT_HYPE(%o5, 50f)
-+	/* Only setup HV TSB descriptors on appropriate MMU */
- 
- 	/* Hypervisor TSB switch. */
- 	mov	SCRATCHPAD_UTSBREG1, %o5
-@@ -411,27 +409,43 @@ __tsb_context_switch:
- 	mov	SCRATCHPAD_UTSBREG2, %o5
- 	stxa	%g3, [%o5] ASI_SCRATCHPAD
- 
--	mov	2, %o0
-+	/* Start counting HV tsb descriptors. */
-+	mov	1, %o0				/* Always MM_TSB_BASE */
-+	cmp	%g3, -1				/* MM_TSB_HUGE ? */
-+	beq	%xcc, 2f
-+	 nop
-+	add	%o0, 1, %o0
-+2:
-+	brz,pt	%o3, 3f				/* MM_TSB_HUGE_SHARED ? */
-+	 mov	-1, %g3
-+	ldx	[%o3 + TSB_CONFIG_REG_VAL], %g3
-+3:
-+	/* Put Huge Shared TSB in trap block */
-+	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE_SHARED]
- 	cmp	%g3, -1
--	move	%xcc, 1, %o0
--
-+	beq	%xcc, 4f
-+	 nop
-+	add	%o0, 1, %o0
-+4:
- 	mov	HV_FAST_MMU_TSB_CTXNON0, %o5
--	mov	%o3, %o1
-+	mov	%g7, %o1
- 	ta	HV_FAST_TRAP
- 
- 	/* Finish up.  */
--	ba,pt	%xcc, 9f
-+	ba,pt	%xcc, 60f
- 	 nop
- 
- 	/* SUN4U TSB switch.  */
--50:	mov	TSB_REG, %o5
-+50:	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE]
++/*
++ * Insures that file size is big enough to contain the current file
++ * postion. This prevents gdb from complaining about a truncated file
++ * if the last "write" to the file was dump_skip.
++ */
++void dump_truncate(struct coredump_params *cprm)
++{
++	struct file *file = cprm->file;
++	loff_t offset;
 +
-+	mov	TSB_REG, %o5
- 	stxa	%o0, [%o5] ASI_DMMU
- 	membar	#Sync
- 	stxa	%o0, [%o5] ASI_IMMU
- 	membar	#Sync
- 
--2:	ldx	[%o1 + TSB_CONFIG_MAP_VADDR], %o4
--	brz	%o4, 9f
-+	ldx	[%o1 + TSB_CONFIG_MAP_VADDR], %o4
-+	brz	%o4, 60f
- 	 ldx	[%o1 + TSB_CONFIG_MAP_PTE], %o5
- 
- 	sethi	%hi(sparc64_highest_unlocked_tlb_ent), %g2
-@@ -443,7 +457,7 @@ __tsb_context_switch:
- 	stxa	%o5, [%g2] ASI_DTLB_DATA_ACCESS
- 	membar	#Sync
- 
--	brz,pt	%o2, 9f
-+	brz,pt	%o2, 60f
- 	 nop
- 
- 	ldx	[%o2 + TSB_CONFIG_MAP_VADDR], %o4
-@@ -455,7 +469,7 @@ __tsb_context_switch:
- 	stxa	%o5, [%g2] ASI_DTLB_DATA_ACCESS
- 	membar	#Sync
- 
--9:
-+60:
- 	wrpr	%g1, %pstate
- 
- 	retl
++	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
++		offset = file->f_op->llseek(file, 0, SEEK_CUR);
++		if (i_size_read(file->f_mapping->host) < offset)
++			do_truncate(file->f_path.dentry, offset, 0, file);
++	}
++}
++EXPORT_SYMBOL(dump_truncate);
+diff --git a/include/linux/coredump.h b/include/linux/coredump.h
+index d016a12..28ffa94 100644
+--- a/include/linux/coredump.h
++++ b/include/linux/coredump.h
+@@ -14,6 +14,7 @@ struct coredump_params;
+ extern int dump_skip(struct coredump_params *cprm, size_t nr);
+ extern int dump_emit(struct coredump_params *cprm, const void *addr, int nr);
+ extern int dump_align(struct coredump_params *cprm, int align);
++extern void dump_truncate(struct coredump_params *cprm);
+ #ifdef CONFIG_COREDUMP
+ extern void do_coredump(const siginfo_t *siginfo);
+ #else
 -- 
-2.7.4
+2.10.2
 
