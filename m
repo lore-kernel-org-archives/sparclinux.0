@@ -1,98 +1,46 @@
-From: Larry Bassel <larry.bassel@oracle.com>
-Date: Thu, 22 Dec 2016 17:29:35 +0000
-Subject: Re: [PATCH] sparc64: shut down to OBP correctly
-Message-Id: <20161222172934.GI28792@ubuette>
+From: Gonglei <arei.gonglei@huawei.com>
+Date: Thu, 08 Dec 2016 04:37:08 +0000
+Subject: [PATCH v6 1/2] sparc: fix a building error reported by kbuild
+Message-Id: <1481171829-116496-2-git-send-email-arei.gonglei@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1482340333-65764-1-git-send-email-larry.bassel@oracle.com>
-In-Reply-To: <1482340333-65764-1-git-send-email-larry.bassel@oracle.com>
+References: <1481171829-116496-1-git-send-email-arei.gonglei@huawei.com>
+In-Reply-To: <1481171829-116496-1-git-send-email-arei.gonglei@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, qemu-devel@nongnu.org, virtio-dev@lists.oasis-open.org, virtualization@lists.linux-foundation.org, linux-crypto@vger.kernel.org
+Cc: luonengjun@huawei.com, mst@redhat.com, stefanha@redhat.com, weidong.huang@huawei.com, wu.wubin@huawei.com, xin.zeng@intel.com, claudio.fontana@huawei.com, herbert@gondor.apana.org.au, pasic@linux.vnet.ibm.com, davem@davemloft.net, jianjay.zhou@huawei.com, hanweidong@huawei.com, arei.gonglei@hotmail.com, cornelia.huck@de.ibm.com, xuquan8@huawei.com, longpeng2@huawei.com, wanzongshun@huawei.com, Gonglei <arei.gonglei@huawei.com>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
 
-On 22 Dec 16 09:26, Alexandre Chartre wrote:
-> 
-> On 12/21/2016 09:15 PM, David Miller wrote:
-> >From: Larry Bassel <larry.bassel@oracle.com>
-> >Date: Wed, 21 Dec 2016 11:44:07 -0800
-> >
-> >>On 21 Dec 16 14:06, David Miller wrote:
-> >>>From: Larry Bassel <larry.bassel@oracle.com>
-> >>>Date: Wed, 21 Dec 2016 10:51:33 -0800
-> >>>
-> >>>>On 21 Dec 16 13:07, David Miller wrote:
-> >>>>>From: Larry Bassel <larry.bassel@oracle.com>
-> >>>>>Date: Wed, 21 Dec 2016 09:12:13 -0800
-> >>>>>
-> >>>>>>Orabug: 24789774
-> >>>>>>
-> >>>>>>The command "shutdown -h -H now" should shut down the system to
-> >>>>>>OBP, however the machine was incorrectly being powered off instead
-> >>>>>>(on both LDOM and bare metal).
-> >>>>>>
-> >>>>>>The "exit" command to the OBP must be run and then a hard
-> >>>>>>loop to prevent return to the kernel.
-> >>>>>>
-> >>>>>>Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
-> >>>>>
-> >>>>>On LDOM, once you boot past the early stages of the kernel, OBP is
-> >>>>>considered volatile and thus unusable.
-> >>>>
-> >>>>My code does work on an 4.9.0 LDOM (we get to the ok prompt). So you're saying
-> >>>>this was a "lucky accident" and there is no "clean" way of getting back to
-> >>>>the OBP when we are in a LDOM (i.e. all we can do is power off which is
-> >>>>what the current code does)?
-> >>>
-> >>>Yes, for a very long time the firmware/hypervisor engineers told me
-> >>>exactly this.
-> >>>
-> >>>>Unfortunately, the variable "ldom_domaining_enabled" is 1 even when
-> >>>>we are not in an LDOM (I just double checked this by printing
-> >>>>the value out as we shut down) and so the current code will power off in
-> >>>>the bare metal case as well. Is there is a good way of determining that
-> >>>>we are running on bare metal?
-> >>>
-> >>>Even for bare metal the condition holds.  As long as we use the interfaces
-> >>>guarded by ldom_domaining_enabled, the OBP is not reliably available after
-> >>>early boot.
-> >>
-> >>I'm not sure I understand this comment -- are you saying that if we are
-> >>bare metal (and somehow can know this), one still cannot call into the OBP?
-> >>There are other calls to the OBP (p1275_cmd_direct) in prom/misc_64.c, some
-> >>of which are not conditional on ldom_domaining_enabled (which means they
-> >>would be called even in the LDOM case).
-> >
-> >We have to unconditionally allow p1275_cmd_direct() for certain earlier
-> >boot calls.
-> >
-> >The problem, I was told, is that when you boot cpus into the machine using
-> >the LDOM cpu start hypercall, you can't use OBP.
-> >
-> >This is why we pull the entire device tree from OBP into the kernel on
-> >the boot processer very early in the boot.  That way we don't need to
-> >make OBP calls once we start booting up the non-boot cpus.
-> 
-> 
-> That's correct. The problem is that the OBP won't be aware of any configuration
-> change in the domain (like adding/removing cpu, memory or devices) and the OBP
-> won't update its device tree. So if you return to the OBP, the behavior is
-> unpredictable because the OBP might have outdated information.
-> 
-> For example, on Solaris, a shutdown/halt command won't directly return to the
-> OBP. Instead, it will reset the domain and stop at the OBP ok prompt after the
-> domain has been reset. This is done by setting the OBP reboot-command to "noop"
-> (to prevent an auto-boot after the reset) and then resetting the domain with
-> HV_MACH_SIR.
+>> arch/sparc/include/asm/topology_64.h:44:44:
+error: implicit declaration of function 'cpu_data'
+[-Werror=implicit-function-declaration]
 
-Thanks for mentioning this. I'm aware of what Solaris does and even have an
-earlier (on top of 4.6) version of this patch (which I never sent upstream)
-which did exactly that (and it worked).
+ #define topology_physical_package_id(cpu) (cpu_data(cpu).proc_id)
+                                               ^
+Let's include cpudata.h in topology_64.h.
 
-Is there a consensus that this approach is acceptable? If so, I'll clean up
-the earlier version, re-test it and then submit that as v3.
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Suggested-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Gonglei <arei.gonglei@huawei.com>
+---
+ arch/sparc/include/asm/topology_64.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-> 
-> 
-> alex.
+diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
+index 7b4898a..2255430 100644
+--- a/arch/sparc/include/asm/topology_64.h
++++ b/arch/sparc/include/asm/topology_64.h
+@@ -4,6 +4,7 @@
+ #ifdef CONFIG_NUMA
+ 
+ #include <asm/mmzone.h>
++#include <asm/cpudata.h>
+ 
+ static inline int cpu_to_node(int cpu)
+ {
+-- 
+1.8.3.1
 
-Larry
+
