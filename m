@@ -1,263 +1,115 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri, 16 Dec 2016 18:35:36 +0000
-Subject: [RFC PATCH 13/14] sparc64 mm: add shared context support to mmap() and shmat() APIs
-Message-Id: <1481913337-9331-14-git-send-email-mike.kravetz@oracle.com>
+From: tndave <tushar.n.dave@oracle.com>
+Date: Fri, 09 Dec 2016 01:16:08 +0000
+Subject: Re: [Intel-wired-lan] [RFC PATCH] i40e: enable PCIe relax ordering for SPARC
+Message-Id: <5b220dd9-113d-11de-bbd3-c144485c72d7@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
-In-Reply-To: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
+References: <1480957627-16825-1-git-send-email-tushar.n.dave@oracle.com>
+ <CAKgT0UcyRSub0NCi7oHX2Vf+N4vQxzwdWmcc+V+jOX_J=RYgfg@mail.gmail.com>
+ <ec140d5d-3eec-5fc6-6417-11bacc55b807@oracle.com>
+ <CAKgT0UfTP+BrvDBzUJAVr9-DRCKgM7T3aS=LgRic8UZz8x82eg@mail.gmail.com>
+ <063D6719AE5E284EB5DD2968C1650D6DB02382BD@AcuExch.aculab.com>
+ <CAKgT0Uf3aZBoziv7B0tFMovYe9JNWEYZAZhe9iof2XcuRJD+uw@mail.gmail.com>
+ <fc3fc99a-ff53-d895-ec06-56f9cf8a0d13@oracle.com>
+In-Reply-To: <fc3fc99a-ff53-d895-ec06-56f9cf8a0d13@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Kravetz <mike.kravetz@oracle.com>
+To: Alexander Duyck <alexander.duyck@gmail.com>, David Laight <David.Laight@aculab.com>
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>, intel-wired-lan <intel-wired-lan@lists.osuosl.org>, Netdev <netdev@vger.kernel.org>, sparclinux@vger.kernel.org
 
-Add new mmap(MAP_SHAREDCTX) and shm(SHM_SHAREDCTX) flags to specify
-desire for shared context mappings.  This only works on HUGETLB
-mappings.  In addition, the mappings must be SHARED and at a FIXED
-address otherwize EINVAL will be returned.
 
-Also, populate the sparc specific hooks to mmap and shmat that perform
-shared context processing.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
----
- arch/sparc/include/asm/hugetlb.h        |  4 +++
- arch/sparc/include/asm/mman.h           |  6 ++++
- arch/sparc/include/asm/mmu_context_64.h | 62 ++++++++++++++++++++++++++++++++-
- arch/sparc/include/uapi/asm/mman.h      |  1 +
- arch/sparc/kernel/sys_sparc_64.c        | 17 +++++++++
- arch/sparc/mm/init_64.c                 | 36 +++++++++++++++++++
- include/uapi/linux/shm.h                |  1 +
- 7 files changed, 126 insertions(+), 1 deletion(-)
+On 12/08/2016 04:45 PM, tndave wrote:
+>
+>
+> On 12/08/2016 08:05 AM, Alexander Duyck wrote:
+>> On Thu, Dec 8, 2016 at 2:43 AM, David Laight
+>> <David.Laight@aculab.com> wrote:
+>>> From: Alexander Duyck
+>>>> Sent: 06 December 2016 17:10
+>>> ...
+>>>> I was thinking about it and I realized we can probably simplify
+>>>> this even further.  In the case of most other architectures the
+>>>> DMA_ATTR_WEAK_ORDERING has no effect anyway.  So from what I can
+>>>> tell there is probably no reason not to just always pass that
+>>>> attribute with the DMA mappings.  From what I can tell the only
+>>>> other architecture that uses this is the PowerPC Cell
+>>>> architecture.
+>>>
+>>> And I should have read all the thread :-(
+>>>
+>>>> Also I was wondering if you actually needed to enable this
+>>>> attribute for both Rx and Tx buffers or just Rx buffers?  The
+>>>> patch that enabled DMA_ATTR_WEAK_ORDERING for Sparc64 seems to
+>>>> call out writes, but I didn't see anything about reads.  I'm just
+>>>> wondering if changing the code for Tx has any effect?  If not you
+>>>> could probably drop those changes and just focus on Rx.
+>>>
+>>> 'Weak ordering' only applies to PCIe read transfers, so can only
+>>> have an effect on descriptor reads and transmit buffer reads.
+>>>
+>>> Basically PCIe is a comms protocol and an endpoint (or the host)
+>>> can have multiple outstanding read requests (each of which might
+>>> generate multiple response messages. The responses for each request
+>>> must arrive in order, but responses for different requests can be
+>>> interleaved. Setting 'not weak ordering' lets the host interwork
+>>> with broken endpoints. (Or, like we did, you fix the fpga's PCIe
+>>> implementation.)
+>>
+>> I get the basics of relaxed ordering.  The question is how does the
+>> Sparc64 IOMMU translate DMA_ATTR_WEAK_ORDERING into relaxed ordering
+>> messages, and at what level the ordering is relaxed.  Odds are the
+>> wording in the description where this attribute was added to Sparc
+>> is just awkward, but I was wanting to verify if this only applies to
+>> writes, or also read completions.
+> In Sparc64, passing DMA_ATTR_WEAK_ORDERING in dma map/unmap only affects
+> PCIe root complex (Hostbridge). Using DMA_ATTR_WEAK_ORDERING, requested
+> DMA transaction can be relaxed ordered within the PCIe root complex.
+>
+> In Sparc64, memory writes can be held at PCIe root complex not letting
+> other memory writes to go through. By passing DMA_ATTR_WEAK_ORDERING in
+> dma map/unmap allows memory writes to bypass other memory writes in PCIe
+> root complex. (This applies to only PCIe root complex and does not
+> affect at any other level of PCIe hierarchy e.g. PCIe bridges et al.
+> Also the PCIe root complex when bypassing memory writes does follow PCIe
+> relax ordering rules as per PCIe specification.
+>
+> For reference [old but still relevant write-up]: PCI-Express Relaxed
+> Ordering and the Sun SPARC Enterprise M-class Servers
+> https://blogs.oracle.com/olympus/entry/relaxed_ordering
+>
+>>
+>>> In this case you need the reads of both transmit and receive rings
+>>> to 'overtake' reads of transmit data.
+>>
+>> Actually that isn't quite right.  With relaxed ordering completions
+>> and writes can pass each other if I recall correctly, but reads will
+>> always force all writes ahead of them to be completed before you can
+>> begin generating the read completions.
+> That is my understanding as well.
+>
+>>
+>>> I'm not at all clear how this 'flag' can be set on dma_map(). It is
+>>> a property of the PCIe subsystem.
+> Because in Sparc64, passing DMA_ATTR_WEAK_ORDERING flag in DMA map/unmap
+> adds an entry in IOMMU/ATU table so that an access to requested DMA
+> address from PCIe root complex can be relaxed ordered.
+>>
+>> That was where my original question on this came in.  We can do a
+>> blanket enable of relaxed ordering for Tx and Rx data buffers, but
+>> if we only need it on Rx then there isn't any need for us to make
+>> unnecessary changes.
+> I ran some quick test and it is likely that we don't need
+> DMA_ATTR_WEAK_ORDERING for any TX dma buffer (because in case of TX dma
+> buffers, its all memory reads from device).
+in above line , s/from/by
 
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index dcbf985..13157b3 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -78,4 +78,8 @@ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 			    unsigned long end, unsigned long floor,
- 			    unsigned long ceiling);
- 
-+#if defined(CONFIG_SHARED_MMU_CTX)
-+void huge_get_shared_ctx(struct mm_struct *mm, unsigned long addr);
-+#endif
-+
- #endif /* _ASM_SPARC64_HUGETLB_H */
-diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-index 59bb593..cbe384e 100644
---- a/arch/sparc/include/asm/mman.h
-+++ b/arch/sparc/include/asm/mman.h
-@@ -6,5 +6,11 @@
- #ifndef __ASSEMBLY__
- #define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
- int sparc_mmap_check(unsigned long addr, unsigned long len);
-+
-+#if defined(CONFIG_SHARED_MMU_CTX)
-+#define arch_shmat_check(file, shmflg, flags) \
-+				sparc_shmat_check(file, shmflg, flags)
-+int sparc_shmat_check(struct file *file, int shmflg, unsigned long *flags);
-+#endif
- #endif
- #endif /* __SPARC_MMAN_H__ */
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 46c2c7e..8ab05f2 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -7,7 +7,6 @@
- 
- #include <linux/spinlock.h>
- #include <asm/spitfire.h>
--#include <asm-generic/mm_hooks.h>
- 
- static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
- {
-@@ -24,6 +23,13 @@ void put_shared_context(struct mm_struct *mm);
- void set_mm_shared_ctx(struct mm_struct *mm, struct shared_mmu_ctx *ctx);
- void destroy_shared_context(struct mm_struct *mm);
- void set_vma_shared_ctx(struct vm_area_struct *vma);
-+void sparc64_exit_mmap(struct mm_struct *mm);
-+void sparc64_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
-+			unsigned long start, unsigned long end);
-+unsigned long sparc64_pre_mmap_flags(struct file *file, unsigned long flags,
-+					vm_flags_t *vm_flags);
-+void sparc64_post_mmap(struct mm_struct *mm, unsigned long addr,
-+					vm_flags_t vm_flags);
- #endif
- #ifdef CONFIG_SMP
- void smp_new_mmu_context_version(void);
-@@ -208,6 +214,60 @@ static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm
- 	spin_unlock_irqrestore(&mm->context.lock, flags);
- }
- 
-+#if defined(CONFIG_SHARED_MMU_CTX)
-+/*
-+ * mm_hooks only needed for CONFIG_SHARED_MMU_CTX
-+ */
-+static inline unsigned long arch_pre_mmap_flags(struct file *file,
-+						unsigned long flags,
-+						vm_flags_t *vm_flags)
-+{
-+	return sparc64_pre_mmap_flags(file, flags, vm_flags);
-+}
-+
-+static inline void arch_post_mmap(struct mm_struct *mm, unsigned long addr,
-+							vm_flags_t vm_flags)
-+{
-+	sparc64_post_mmap(mm, addr, vm_flags);
-+}
-+
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+	sparc64_exit_mmap(mm);
-+}
-+
-+static inline void arch_unmap(struct mm_struct *mm,
-+			struct vm_area_struct *vma,
-+			unsigned long start, unsigned long end)
-+{
-+	sparc64_unmap(mm, vma, start, end);
-+}
-+
-+static inline void arch_bprm_mm_init(struct mm_struct *mm,
-+				     struct vm_area_struct *vma)
-+{
-+}
-+
-+static inline bool arch_vma_access_permitted(struct vm_area_struct *vma,
-+		bool write, bool execute, bool foreign)
-+{
-+	/* by default, allow everything */
-+	return true;
-+}
-+
-+static inline bool arch_pte_access_permitted(pte_t pte, bool write)
-+{
-+	/* by default, allow everything */
-+	return true;
-+}
-+#else
-+#include <asm-generic/mm_hooks.h>
-+#endif
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC64_MMU_CONTEXT_H) */
-diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
-index 9765896..a52c6fe 100644
---- a/arch/sparc/include/uapi/asm/mman.h
-+++ b/arch/sparc/include/uapi/asm/mman.h
-@@ -23,6 +23,7 @@
- #define MAP_NONBLOCK	0x10000		/* do not block on IO */
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
-+#define	MAP_SHAREDCTX	0x80000		/* request shared cxt mapping */
- 
- 
- #endif /* _UAPI__SPARC_MMAN_H__ */
-diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
-index fe8b8ee..23fa538 100644
---- a/arch/sparc/kernel/sys_sparc_64.c
-+++ b/arch/sparc/kernel/sys_sparc_64.c
-@@ -25,6 +25,7 @@
- #include <linux/random.h>
- #include <linux/export.h>
- #include <linux/context_tracking.h>
-+#include <linux/hugetlb.h>
- 
- #include <asm/uaccess.h>
- #include <asm/utrap.h>
-@@ -444,6 +445,22 @@ int sparc_mmap_check(unsigned long addr, unsigned long len)
- 	return 0;
- }
- 
-+int sparc_shmat_check(struct file *file, int shmflg, unsigned long *flags)
-+{
-+	if (shmflg & SHM_SHAREDCTX) {
-+		if ((*flags & (MAP_SHARED | MAP_FIXED)) !+		    (unsigned long)(MAP_SHARED | MAP_FIXED))
-+			return -EINVAL;
-+
-+		if (!is_file_hugepages(file))
-+			return -EINVAL;
-+
-+		*flags |= MAP_SHAREDCTX;
-+	}
-+
-+	return 0;
-+}
-+
- /* Linux version of mmap */
- SYSCALL_DEFINE6(mmap, unsigned long, addr, unsigned long, len,
- 		unsigned long, prot, unsigned long, flags, unsigned long, fd,
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 25ad5bd..0637762 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -27,6 +27,7 @@
- #include <linux/memblock.h>
- #include <linux/mmzone.h>
- #include <linux/gfp.h>
-+#include <linux/mman.h>
- 
- #include <asm/head.h>
- #include <asm/page.h>
-@@ -832,6 +833,41 @@ void set_vma_shared_ctx(struct vm_area_struct *vma)
- 	atomic_inc(&mm->context.shared_ctx->refcount);
- 	vma->vm_shared_mmu_ctx.ctx = mm->context.shared_ctx;
- }
-+
-+unsigned long sparc64_pre_mmap_flags(struct file *file, unsigned long flags,
-+					vm_flags_t *vm_flags)
-+{
-+	if (flags & MAP_SHAREDCTX) {
-+		/* Must be a shared huge page mapping */
-+		if (!(flags & (MAP_SHARED | MAP_FIXED)))
-+			return -EINVAL;
-+		if (!(flags & MAP_HUGETLB)  &&
-+		    !(file && is_file_hugepages(file)))
-+			return -EINVAL;
-+
-+		*vm_flags |= VM_SHARED_CTX;
-+	}
-+
-+	return 0;
-+}
-+
-+void sparc64_post_mmap(struct mm_struct *mm, unsigned long addr,
-+							vm_flags_t vm_flags)
-+{
-+	if (vm_flags & VM_SHARED_CTX)
-+		huge_get_shared_ctx(mm, addr);
-+}
-+
-+void sparc64_exit_mmap(struct mm_struct *mm)
-+{
-+	put_shared_context(mm);
-+}
-+
-+void sparc64_unmap(struct mm_struct *mm, struct vm_area_struct *vma,
-+			unsigned long start, unsigned long end)
-+{
-+	put_shared_context(mm);
-+}
- #endif
- 
- static int numa_enabled = 1;
-diff --git a/include/uapi/linux/shm.h b/include/uapi/linux/shm.h
-index 1fbf24e..3373567 100644
---- a/include/uapi/linux/shm.h
-+++ b/include/uapi/linux/shm.h
-@@ -49,6 +49,7 @@ struct shmid_ds {
- #define	SHM_RND		020000	/* round attach address to SHMLBA boundary */
- #define	SHM_REMAP	040000	/* take-over region on attach */
- #define	SHM_EXEC	0100000	/* execution access */
-+#define	SHM_SHAREDCTX	0200000	/* share context (TLB entries) if possible */
- 
- /* super user shmctl commands */
- #define SHM_LOCK 	11
--- 
-2.7.4
++ cc sparclinux@vger.kernel.org
 
+-Tushar
+>
+> -Tushar
+>>
+>> - Alex
+>>
+>
