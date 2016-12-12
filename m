@@ -1,65 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 21 Dec 2016 18:13:46 +0000
-Subject: Re: [RFC PATCH 02/14] sparc64: add new fields to mmu context for shared context support
-Message-Id: <20161221181346.GC3311@ravnborg.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 12 Dec 2016 02:06:30 +0000
+Subject: Re: [PATCH v3] sparc64: Multi-page size support
+Message-Id: <20161211.210630.2011252691128570190.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
- <1481913337-9331-3-git-send-email-mike.kravetz@oracle.com>
- <20161217073813.GB23567@ravnborg.org>
- <a38312fe-27ed-56c6-862e-8bb53b929f2b@oracle.com>
-In-Reply-To: <a38312fe-27ed-56c6-862e-8bb53b929f2b@oracle.com>
+References: <1479852621-44453-1-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1479852621-44453-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>
+To: nitin.m.gupta@oracle.com
+Cc: mike.kravetz@oracle.com, akpm@linux-foundation.org, julian.calaby@gmail.com, hughd@google.com, adam.buchbinder@gmail.com, minchan@kernel.org, kirill.shutemov@linux.intel.com, sfr@canb.auug.org.au, paul.gortmaker@windriver.com, thomas.tai@oracle.com, chris.hyser@oracle.com, atish.patra@oracle.com, mhocko@suse.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Dec 18, 2016 at 03:45:31PM -0800, Mike Kravetz wrote:
-> On 12/16/2016 11:38 PM, Sam Ravnborg wrote:
-> > Hi Mike
-> > 
-> >> diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-> >> index b84be67..d031799 100644
-> >> --- a/arch/sparc/include/asm/mmu_context_64.h
-> >> +++ b/arch/sparc/include/asm/mmu_context_64.h
-> >> @@ -35,15 +35,15 @@ void __tsb_context_switch(unsigned long pgd_pa,
-> >>  static inline void tsb_context_switch(struct mm_struct *mm)
-> >>  {
-> >>  	__tsb_context_switch(__pa(mm->pgd),
-> >> -			     &mm->context.tsb_block[0],
-> >> +			     &mm->context.tsb_block[MM_TSB_BASE],
-> >>  #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
-> >> -			     (mm->context.tsb_block[1].tsb ?
-> >> -			      &mm->context.tsb_block[1] :
-> >> +			     (mm->context.tsb_block[MM_TSB_HUGE].tsb ?
-> >> +			      &mm->context.tsb_block[MM_TSB_HUGE] :
-> >>  			      NULL)
-> >>  #else
-> >>  			     NULL
-> >>  #endif
-> >> -			     , __pa(&mm->context.tsb_descr[0]));
-> >> +			     , __pa(&mm->context.tsb_descr[MM_TSB_BASE]));
-> >>  }
-> >>  
-> > This is a nice cleanup that has nothing to do with your series.
-> > Could you submit this as a separate patch so we can get it applied.
-> > 
-> > This is the only place left where the array index for tsb_block
-> > and tsb_descr uses hardcoded values. And it would be good to get
-> > rid of these.
-> 
-> Sure, I will submit a separate cleanup patch for this.
-> 
-> However, do note that in my series if CONFIG_SHARED_MMU_CTX is defined,
-> then MM_TSB_HUGE_SHARED is index 0, instead of MM_TSB_BASE being 0 in
-> the case where CONFIG_SHARED_MMU_CTX is not defined.  This may seem
-> 'strange' and the obvious question would be 'why not put CONFIG_SHARED_MMU_CTX
-> at the end of the existing array (index 2)?'.  The reason is that tsb_descr
-> array can not have any 'holes' when passed to the hypervisor.  Since there
-> will always be a MM_TSB_BASE tsb, with MM_TSB_HUGE_SHARED before and
-> MM_TSB_HUGE after MM_TSB_BASE, few tricks are necessary to ensure no holes
-> are in the array passed to the hypervisor.
-So this is the explanation for the strange changes of the constants.
-Add a similar explanation to the code to help the next reader.
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Tue, 22 Nov 2016 14:09:28 -0800
 
-	Sam
+> Add support for using multiple hugepage sizes simultaneously
+> on mainline. Currently, support for 256M has been added which
+> can be used along with 8M pages.
+> 
+> Page tables are set like this (e.g. for 256M page):
+>     VA + (8M * x) -> PA + (8M * x) (sz bit = 256M) where x in [0, 31]
+> 
+> and TSB is set similarly:
+>     VA + (4M * x) -> PA + (4M * x) (sz bit = 256M) where x in [0, 63]
+> 
+> - Testing
+> 
+> Tested on Sonoma (which supports 256M pages) by running stream
+> benchmark instances in parallel: one instance uses 8M pages and
+> another uses 256M pages, consuming 48G each.
+> 
+> Boot params used:
+> 
+> default_hugepagesz%6M hugepagesz%6M hugepages00 hugepagesz=8M
+> hugepages000
+> 
+> Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+
+Applied.
