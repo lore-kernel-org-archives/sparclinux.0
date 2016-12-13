@@ -1,44 +1,52 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Thu, 22 Dec 2016 02:38:02 +0000
-Subject: [PATCH v5 06/14] firmware/Makefile: force recompilation if makefile changes
-Message-Id: <20161222023811.21246-7-mcgrof@kernel.org>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Tue, 13 Dec 2016 00:12:40 +0000
+Subject: [PATCH net-next 22/27] net/bpf_jit: SPARC: split VLAN_PRESENT bit handling from VLAN_TCI
+Message-Id: <9c67fc2e501107c688f748405b412134fe5f87d9.1481586602.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
- <20161222023811.21246-1-mcgrof@kernel.org>
-In-Reply-To: <20161222023811.21246-1-mcgrof@kernel.org>
+References: <cover.1481586602.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1481586602.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, "open list:SPARC + UltraSPARC
+        sparc/sparc64" <sparclinux@vger.kernel.org>
 
-If you modify the target asm we currently do not force the
-recompilation of the firmware files. The target asm is in
-the firmware/Makefile, peg this file as a dependency to
-require re-compilation of firmware targets when the asm
-changes.
-
-v3: introduced in this series
-
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- firmware/Makefile | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/net/bpf_jit_comp.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/firmware/Makefile b/firmware/Makefile
-index e297e1b52636..fa3e81c2a97b 100644
---- a/firmware/Makefile
-+++ b/firmware/Makefile
-@@ -176,7 +176,8 @@ quiet_cmd_fwbin = MK_FW   $@
- wordsize_deps := $(wildcard include/config/64bit.h include/config/32bit.h \
- 		include/config/ppc32.h include/config/ppc64.h \
- 		include/config/superh32.h include/config/superh64.h \
--		include/config/x86_32.h include/config/x86_64.h)
-+		include/config/x86_32.h include/config/x86_64.h \
-+		firmware/Makefile)
- 
- $(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps)
- 	$(call cmd,fwbin,$(patsubst %.gen.S,%,$@))
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index a6d9204..61cc15d 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -601,15 +601,17 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 				emit_skb_load32(hash, r_A);
+ 				break;
+ 			case BPF_ANC | SKF_AD_VLAN_TAG:
+-			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
+ 				emit_skb_load16(vlan_tci, r_A);
+-				if (code != (BPF_ANC | SKF_AD_VLAN_TAG)) {
+-					emit_alu_K(SRL, 12);
+-					emit_andi(r_A, 1, r_A);
+-				} else {
+-					emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
+-					emit_and(r_A, r_TMP, r_A);
+-				}
++#ifdef VLAN_TAG_PRESENT
++				emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
++				emit_and(r_A, r_TMP, r_A);
++#endif
++				break;
++			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
++				__emit_skb_load8(__pkt_vlan_present_offset, r_A);
++				if (PKT_VLAN_PRESENT_BIT)
++					emit_alu_K(SRL, PKT_VLAN_PRESENT_BIT);
++				emit_andi(r_A, 1, r_A);
+ 				break;
+ 			case BPF_LD | BPF_W | BPF_LEN:
+ 				emit_skb_load32(len, r_A);
 -- 
-2.10.1
+2.10.2
 
