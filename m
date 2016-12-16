@@ -1,163 +1,227 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Thu, 22 Dec 2016 02:38:06 +0000
-Subject: [PATCH v5 10/14] dynamic_debug: port to use linker tables
-Message-Id: <20161222023811.21246-11-mcgrof@kernel.org>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Fri, 16 Dec 2016 18:35:31 +0000
+Subject: [RFC PATCH 08/14] sparc64: shared context tsb handling at context switch time
+Message-Id: <1481913337-9331-9-git-send-email-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
- <20161222023811.21246-1-mcgrof@kernel.org>
-In-Reply-To: <20161222023811.21246-1-mcgrof@kernel.org>
+References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
+In-Reply-To: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
+To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Kravetz <mike.kravetz@oracle.com>
 
-This removes the custom vmlinux.lds.h hacks and uses
-the generalized solution for .data entries.
+At context switch time, load the shared context TSB into the MMU (if
+applicable) and set up global state to include the TSB.
 
-There is much more potential for further fine tuning here
-in the future though. For instance, linker tables enable
-an extra postfix for order level annotations, this could
-easily be used as the KBUILD_MODNAME and with a bit of
-linker table changes we may be able to get a direct O(1)
-count of the entries for that KBUILD_MODNAME: it would
-just be a count on the number of entries for the given
-order level. This should help make dynamic_debug_init()
-cleaner and also reduce the amount of time it takes at
-boot time. Instead of iterating over each print until we
-have all for a KBUILD_MODNAME, we'd instead directly
-operate on each KBUILD_MODNAME directly. We can work on
-this later to make this change easier to review.
+sun4v loads the address of base and huge page TSBs into scratchpad
+registers.  There is not an extra register for shared context TSB.
+So, use offset 0xd0 in the trap block.  This is TRAP_PER_CPU_TSB_HUGE,
+and is only used on sun4u.  We can then use this area for the shared
+context on sun4v.
 
-Tested dynamic debug with dyndbg query and debugfs control
-and it works as expected, for both built-in code and modules.
+With this commit, global state is set up for shared context TSB but
+still not used.
 
-v5:
-
-o Use ..tbl instead of .tbl as suggested by Nicholas Piggin.
-  This is the typical way to avoid clash with compiler generated
-  section.
-
-o Replace section macros with section names,
-  use LINKTABLE_EMPTY(), LINKTABLE_START()
-
-v4: fix compilation on blackfin
-v3: added modular support
-v2: introduced this patch into the series
-
-Cc: Barry Song <barry.song@analog.com>
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: Steven Miao <realmz6@gmail.com>
-Cc: Michael Matz <matz@suse.de>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- include/asm-generic/vmlinux.lds.h |  4 ----
- include/linux/dynamic_debug.h     |  5 +++--
- lib/dynamic_debug.c               | 13 ++++++-------
- scripts/module-common.lds         |  1 +
- 4 files changed, 10 insertions(+), 13 deletions(-)
+ arch/sparc/include/asm/mmu_context_64.h | 27 ++++++++++++++----
+ arch/sparc/include/asm/trap_block.h     |  3 +-
+ arch/sparc/kernel/head_64.S             |  2 +-
+ arch/sparc/kernel/tsb.S                 | 50 +++++++++++++++++++++------------
+ 4 files changed, 57 insertions(+), 25 deletions(-)
 
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 887d844f0406..37b99537d5a9 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -216,10 +216,6 @@
- 	*(.data.unlikely)						\
- 	STRUCT_ALIGN();							\
- 	*(__tracepoints)						\
--	. = ALIGN(8);							\
--	VMLINUX_SYMBOL(__start___verbose) = .;                          \
--	KEEP(*(__verbose))                                              \
--	VMLINUX_SYMBOL(__stop___verbose) = .;				\
- 	LIKELY_PROFILE()		       				\
- 	BRANCH_PROFILE()						\
- 	TRACE_PRINTKS()							\
-diff --git a/include/linux/dynamic_debug.h b/include/linux/dynamic_debug.h
-index 546d68057e3b..a52618a77b09 100644
---- a/include/linux/dynamic_debug.h
-+++ b/include/linux/dynamic_debug.h
-@@ -4,6 +4,7 @@
- #if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
- #include <linux/jump_label.h>
- #endif
-+#include <linux/tables.h>
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 84268df..0dc95cb5 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -36,21 +36,38 @@ void destroy_context(struct mm_struct *mm);
+ void __tsb_context_switch(unsigned long pgd_pa,
+ 			  struct tsb_config *tsb_base,
+ 			  struct tsb_config *tsb_huge,
++			  struct tsb_config *tsb_huge_shared,
+ 			  unsigned long tsb_descr_pa);
+ 
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ static inline void tsb_context_switch(struct mm_struct *mm)
+ {
++	/*
++	 * The conditional for tsb_descr_pa handles shared context
++	 * case where tsb_block[0] may not be used.
++	 */
+ 	__tsb_context_switch(__pa(mm->pgd),
+ 			     &mm->context.tsb_block[MM_TSB_BASE],
+-#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 			     (mm->context.tsb_block[MM_TSB_HUGE].tsb ?
+ 			      &mm->context.tsb_block[MM_TSB_HUGE] :
+-			      NULL)
++			      NULL),
++			     (mm->context.tsb_block[MM_TSB_HUGE_SHARED].tsb ?
++			      &mm->context.tsb_block[MM_TSB_HUGE_SHARED] :
++			      NULL),
++			     (mm->context.tsb_block[0].tsb ?
++			      __pa(&mm->context.tsb_descr[0]) :
++			      __pa(&mm->context.tsb_descr[1])));
++}
+ #else
+-			     NULL
+-#endif
+-			     , __pa(&mm->context.tsb_descr[MM_TSB_BASE]));
++static inline void tsb_context_switch(struct mm_struct *mm)
++{
++	__tsb_context_switch(__pa(mm->pgd),
++			     &mm->context.tsb_block[MM_TSB_BASE],
++			     NULL,
++			     NULL,
++			     __pa(&mm->context.tsb_descr[MM_TSB_BASE]);
+ }
++#endif
+ 
+ void tsb_grow(struct mm_struct *mm,
+ 	      unsigned long tsb_index,
+diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
+index ec9c04d..e971785 100644
+--- a/arch/sparc/include/asm/trap_block.h
++++ b/arch/sparc/include/asm/trap_block.h
+@@ -96,7 +96,8 @@ extern struct sun4v_2insn_patch_entry __sun_m7_2insn_patch,
+ #define TRAP_PER_CPU_FAULT_INFO		0x40
+ #define TRAP_PER_CPU_CPU_MONDO_BLOCK_PA	0xc0
+ #define TRAP_PER_CPU_CPU_LIST_PA	0xc8
+-#define TRAP_PER_CPU_TSB_HUGE		0xd0
++#define TRAP_PER_CPU_TSB_HUGE		0xd0	/* sun4u only */
++#define TRAP_PER_CPU_TSB_HUGE_SHARED	0xd0	/* sun4v only */
+ #define TRAP_PER_CPU_TSB_HUGE_TEMP	0xd8
+ #define TRAP_PER_CPU_IRQ_WORKLIST_PA	0xe0
+ #define TRAP_PER_CPU_CPU_MONDO_QMASK	0xe8
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 6aa3da1..0bf1e1f 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -875,7 +875,6 @@ sparc64_boot_end:
+ #include "sun4v_tlb_miss.S"
+ #include "sun4v_ivec.S"
+ #include "ktlb.S"
+-#include "tsb.S"
  
  /*
-  * An instance of this structure is created in a special
-@@ -50,6 +51,7 @@ int ddebug_add_module(struct _ddebug *tab, unsigned int n,
- 				const char *modname);
+  * The following skip makes sure the trap table in ttable.S is aligned
+@@ -916,6 +915,7 @@ swapper_4m_tsb:
  
- #if defined(CONFIG_DYNAMIC_DEBUG)
-+DECLARE_LINKTABLE(struct _ddebug, __verbose);
- extern int ddebug_remove_module(const char *mod_name);
- extern __printf(2, 3)
- void __dynamic_pr_debug(struct _ddebug *descriptor, const char *fmt, ...);
-@@ -71,8 +73,7 @@ void __dynamic_netdev_dbg(struct _ddebug *descriptor,
- 			  const char *fmt, ...);
+ ! 0x0000000000428000
  
- #define DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, key, init)	\
--	static struct _ddebug  __aligned(8)			\
--	__attribute__((section("__verbose"))) name = {		\
-+	static LINKTABLE(__verbose, SECTION_ORDER_ANY) name = {	\
- 		.modname = KBUILD_MODNAME,			\
- 		.function = __func__,				\
- 		.filename = __FILE__,				\
-diff --git a/lib/dynamic_debug.c b/lib/dynamic_debug.c
-index da796e2dc4f5..23da6bcf2f95 100644
---- a/lib/dynamic_debug.c
-+++ b/lib/dynamic_debug.c
-@@ -37,8 +37,7 @@
- #include <linux/device.h>
- #include <linux/netdevice.h>
++#include "tsb.S"
+ #include "systbls_64.S"
  
--extern struct _ddebug __start___verbose[];
--extern struct _ddebug __stop___verbose[];
-+DEFINE_LINKTABLE(struct _ddebug, __verbose);
+ 	.data
+diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+index d568c82..3ed3e7c 100644
+--- a/arch/sparc/kernel/tsb.S
++++ b/arch/sparc/kernel/tsb.S
+@@ -374,7 +374,8 @@ tsb_flush:
+ 	 * %o0: page table physical address
+ 	 * %o1:	TSB base config pointer
+ 	 * %o2:	TSB huge config pointer, or NULL if none
+-	 * %o3:	Hypervisor TSB descriptor physical address
++	 * %o3: TSB huge shared config pointer, or NULL if none
++	 * %o4: Hypervisor TSB descriptor physical address
+ 	 *
+ 	 * We have to run this whole thing with interrupts
+ 	 * disabled so that the current cpu doesn't change
+@@ -387,6 +388,8 @@ __tsb_context_switch:
+ 	rdpr	%pstate, %g1
+ 	wrpr	%g1, PSTATE_IE, %pstate
  
- struct ddebug_table {
- 	struct list_head link;
-@@ -978,14 +977,14 @@ static int __init dynamic_debug_init(void)
- 	int n = 0, entries = 0, modct = 0;
- 	int verbose_bytes = 0;
++	mov	%o4, %g7
++
+ 	TRAP_LOAD_TRAP_BLOCK(%g2, %g3)
  
--	if (__start___verbose = __stop___verbose) {
--		pr_warn("_ddebug table is empty in a CONFIG_DYNAMIC_DEBUG build\n");
-+	if (LINKTABLE_EMPTY(__verbose)) {
-+		pr_warn("dynamic debug linker table empty on CONFIG_DYNAMIC_DEBUG build\n");
- 		return 1;
- 	}
--	iter = __start___verbose;
-+	iter = LINKTABLE_START(__verbose);
- 	modname = iter->modname;
- 	iter_start = iter;
--	for (; iter < __stop___verbose; iter++) {
-+	LINKTABLE_FOR_EACH(iter, __verbose) {
- 		entries++;
- 		verbose_bytes += strlen(iter->modname) + strlen(iter->function)
- 			+ strlen(iter->filename) + strlen(iter->format);
-@@ -1008,7 +1007,7 @@ static int __init dynamic_debug_init(void)
- 	ddebug_init_success = 1;
- 	vpr_info("%d modules, %d entries and %d bytes in ddebug tables, %d bytes in (readonly) verbose section\n",
- 		 modct, entries, (int)(modct * sizeof(struct ddebug_table)),
--		 verbose_bytes + (int)(__stop___verbose - __start___verbose));
-+		 verbose_bytes + (int)(LINKTABLE_SIZE(__verbose)));
+ 	stx	%o0, [%g2 + TRAP_PER_CPU_PGD_PADDR]
+@@ -397,13 +400,8 @@ __tsb_context_switch:
  
- 	/* apply ddebug_query boot param, dont unload tables on err */
- 	if (ddebug_setup_string[0] != '\0') {
-diff --git a/scripts/module-common.lds b/scripts/module-common.lds
-index db0e724556c5..25755d458f09 100644
---- a/scripts/module-common.lds
-+++ b/scripts/module-common.lds
-@@ -17,6 +17,7 @@ SECTIONS {
- 	__kcrctab_unused_gpl	0 : { *(SORT(___kcrctab_unused_gpl+*)) }
- 	__kcrctab_gpl_future	0 : { *(SORT(___kcrctab_gpl_future+*)) }
- 	__jump_table		0 : { *(SORT(.data..tbl.__jump_table.*)) }
-+	__verbose		0 : { *(SORT(.data..tbl.__verbose.*)) }
+ 	ldx	[%o2 + TSB_CONFIG_REG_VAL], %g3
  
- 	. = ALIGN(8);
- 	.init_array		0 : { *(SORT(.init_array.*)) *(.init_array) }
+-1:	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE]
+-
+-	sethi	%hi(tlb_type), %g2
+-	lduw	[%g2 + %lo(tlb_type)], %g2
+-	cmp	%g2, 3
+-	bne,pt	%icc, 50f
+-	 nop
++1:	IF_TLB_TYPE_NOT_HYPE(%o5, 50f)
++	/* Only setup HV TSB descriptors on appropriate MMU */
+ 
+ 	/* Hypervisor TSB switch. */
+ 	mov	SCRATCHPAD_UTSBREG1, %o5
+@@ -411,27 +409,43 @@ __tsb_context_switch:
+ 	mov	SCRATCHPAD_UTSBREG2, %o5
+ 	stxa	%g3, [%o5] ASI_SCRATCHPAD
+ 
+-	mov	2, %o0
++	/* Start counting HV tsb descriptors. */
++	mov	1, %o0				/* Always MM_TSB_BASE */
++	cmp	%g3, -1				/* MM_TSB_HUGE ? */
++	beq	%xcc, 2f
++	 nop
++	add	%o0, 1, %o0
++2:
++	brz,pt	%o3, 3f				/* MM_TSB_HUGE_SHARED ? */
++	 mov	-1, %g3
++	ldx	[%o3 + TSB_CONFIG_REG_VAL], %g3
++3:
++	/* Put Huge Shared TSB in trap block */
++	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE_SHARED]
+ 	cmp	%g3, -1
+-	move	%xcc, 1, %o0
+-
++	beq	%xcc, 4f
++	 nop
++	add	%o0, 1, %o0
++4:
+ 	mov	HV_FAST_MMU_TSB_CTXNON0, %o5
+-	mov	%o3, %o1
++	mov	%g7, %o1
+ 	ta	HV_FAST_TRAP
+ 
+ 	/* Finish up.  */
+-	ba,pt	%xcc, 9f
++	ba,pt	%xcc, 60f
+ 	 nop
+ 
+ 	/* SUN4U TSB switch.  */
+-50:	mov	TSB_REG, %o5
++50:	stx	%g3, [%g2 + TRAP_PER_CPU_TSB_HUGE]
++
++	mov	TSB_REG, %o5
+ 	stxa	%o0, [%o5] ASI_DMMU
+ 	membar	#Sync
+ 	stxa	%o0, [%o5] ASI_IMMU
+ 	membar	#Sync
+ 
+-2:	ldx	[%o1 + TSB_CONFIG_MAP_VADDR], %o4
+-	brz	%o4, 9f
++	ldx	[%o1 + TSB_CONFIG_MAP_VADDR], %o4
++	brz	%o4, 60f
+ 	 ldx	[%o1 + TSB_CONFIG_MAP_PTE], %o5
+ 
+ 	sethi	%hi(sparc64_highest_unlocked_tlb_ent), %g2
+@@ -443,7 +457,7 @@ __tsb_context_switch:
+ 	stxa	%o5, [%g2] ASI_DTLB_DATA_ACCESS
+ 	membar	#Sync
+ 
+-	brz,pt	%o2, 9f
++	brz,pt	%o2, 60f
+ 	 nop
+ 
+ 	ldx	[%o2 + TSB_CONFIG_MAP_VADDR], %o4
+@@ -455,7 +469,7 @@ __tsb_context_switch:
+ 	stxa	%o5, [%g2] ASI_DTLB_DATA_ACCESS
+ 	membar	#Sync
+ 
+-9:
++60:
+ 	wrpr	%g1, %pstate
+ 
+ 	retl
 -- 
-2.10.1
+2.7.4
 
