@@ -1,51 +1,59 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 01 Dec 2016 12:50:40 +0000
-Subject: Re: next: Commit 'mm: Prevent __alloc_pages_nodemask() RCU CPU stall ...' causing hang on sparc32 qe
-Message-Id: <d489c061-00ff-2b1c-cf96-c4cf1bb7b2b6@roeck-us.net>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Fri, 16 Dec 2016 18:35:28 +0000
+Subject: [RFC PATCH 05/14] sparc64: Add PAGE_SHR_CTX flag
+Message-Id: <1481913337-9331-6-git-send-email-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161130012817.GH3924@linux.vnet.ibm.com>
- <b96c1560-3f06-bb6d-717a-7a0f0c6e869a@roeck-us.net>
- <20161130070212.GM3924@linux.vnet.ibm.com>
- <929f6b29-461a-6e94-fcfd-710c3da789e9@roeck-us.net>
- <20161130120333.GQ3924@linux.vnet.ibm.com>
- <20161130192159.GB22216@roeck-us.net>
- <20161130210152.GL3924@linux.vnet.ibm.com>
- <20161130231846.GB17244@roeck-us.net>
- <20161201011950.GX3924@linux.vnet.ibm.com>
- <20161201065657.GA4697@roeck-us.net>
- <20161201123409.GA3924@linux.vnet.ibm.com>
-In-Reply-To: <20161201123409.GA3924@linux.vnet.ibm.com>
+References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
+In-Reply-To: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: paulmck@linux.vnet.ibm.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Kravetz <mike.kravetz@oracle.com>
 
-On 12/01/2016 04:34 AM, Paul E. McKenney wrote:
-> On Wed, Nov 30, 2016 at 10:56:57PM -0800, Guenter Roeck wrote:
->> Hi Paul,
->>
->> On Wed, Nov 30, 2016 at 05:19:50PM -0800, Paul E. McKenney wrote:
->> [ ... ]
->>
->>>>>>
->>>>>> BUG: sleeping function called from invalid context at mm/page_alloc.c:3775
->> [ ... ]
->>>
->>> Whew!  You had me going for a bit there.  ;-)
->>
->> Bisect results are here ... the culprit is, again, commit 2d66cccd73 ("mm:
->> Prevent __alloc_pages_nodemask() RCU CPU stall warnings"), and reverting that
->> patch fixes the problem. Good that you dropped it already :-).
->
-> "My work is done."  ;-)
->
-> And apologies for the hassle.  I have no idea what I was thinking when
-> I put the cond_resched_rcu_qs() there!
->
+This new page flag is used to identify pages which are associated with
+a shared context ID.  It is needed at page fault time when we only
+have access to the PTE and need to determine whether the associated
+TSB entry should be associated with the regular ot shared context TSB.
 
-No worries.
+A new helper routine is_sharedctx_pte() is also added.
 
-Cheers,
-Guenter
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ arch/sparc/include/asm/pgtable_64.h | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1fb317f..f2fd088 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -166,6 +166,7 @@ bool kern_addr_valid(unsigned long addr);
+ #define _PAGE_EXEC_4V	  _AC(0x0000000000000080,UL) /* Executable Page      */
+ #define _PAGE_W_4V	  _AC(0x0000000000000040,UL) /* Writable             */
+ #define _PAGE_SOFT_4V	  _AC(0x0000000000000030,UL) /* Software bits        */
++#define _PAGE_SHR_CTX_4V  _AC(0x0000000000000020,UL) /* Shared Context       */
+ #define _PAGE_PRESENT_4V  _AC(0x0000000000000010,UL) /* Present              */
+ #define _PAGE_RESV_4V	  _AC(0x0000000000000008,UL) /* Reserved             */
+ #define _PAGE_SZ16GB_4V	  _AC(0x0000000000000007,UL) /* 16GB Page            */
+@@ -426,6 +427,18 @@ static inline bool is_hugetlb_pte(pte_t pte)
+ }
+ #endif
+ 
++#if defined(CONFIG_SHARED_MMU_CTX)
++static inline bool is_sharedctx_pte(pte_t pte)
++{
++	return !!(pte_val(pte) & _PAGE_SHR_CTX_4V);
++}
++#else
++static inline bool is_sharedctx_pte(pte_t pte)
++{
++	return false;
++}
++#endif
++
+ static inline pte_t pte_mkdirty(pte_t pte)
+ {
+ 	unsigned long val = pte_val(pte), tmp;
+-- 
+2.7.4
 
