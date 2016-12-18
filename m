@@ -1,42 +1,36 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 17 Dec 2016 07:45:12 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 18 Dec 2016 03:14:42 +0000
 Subject: Re: [RFC PATCH 04/14] sparc64: load shared id into context register 1
-Message-Id: <20161217074512.GC23567@ravnborg.org>
+Message-Id: <20161217.221442.430708127662119954.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
- <1481913337-9331-5-git-send-email-mike.kravetz@oracle.com>
+	<1481913337-9331-5-git-send-email-mike.kravetz@oracle.com>
 In-Reply-To: <1481913337-9331-5-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, Bob Picco <bob.picco@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Julian Calaby <julian.calaby@gmail.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>
+To: mike.kravetz@oracle.com
+Cc: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, bob.picco@oracle.com, nitin.m.gupta@oracle.com, vijay.ac.kumar@oracle.com, julian.calaby@gmail.com, adam.buchbinder@gmail.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, akpm@linux-foundation.org
 
-Hi Mike
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Fri, 16 Dec 2016 10:35:27 -0800
 
-> diff --git a/arch/sparc/kernel/fpu_traps.S b/arch/sparc/kernel/fpu_traps.S
-> index 336d275..f85a034 100644
-> --- a/arch/sparc/kernel/fpu_traps.S
-> +++ b/arch/sparc/kernel/fpu_traps.S
-> @@ -73,6 +73,16 @@ do_fpdis:
->  	ldxa		[%g3] ASI_MMU, %g5
->  	.previous
->  
-> +661:	nop
-> +	nop
-> +	.section	.sun4v_2insn_patch, "ax"
-> +	.word		661b
-> +	mov		SECONDARY_CONTEXT_R1, %g3
-> +	ldxa		[%g3] ASI_MMU, %g4
-> +	.previous
-> +	/* Unnecessary on sun4u and pre-Niagara 2 sun4v */
-> +	mov		SECONDARY_CONTEXT, %g3
-> +
->  	sethi		%hi(sparc64_kern_sec_context), %g2
+> In current code, only context ID register 0 is set and used by the MMU.
+> On sun4v platforms that support MMU shared context, there is an additional
+> context ID register: specifically context register 1.  When searching
+> the TLB, the MMU will find a match if the virtual address matches and
+> the ID contained in context register 0 -OR- context register 1 matches.
+> 
+> Load the shared context ID into context ID register 1.  Care must be
+> taken to load register 1 after register 0, as loading register 0
+> overwrites both register 0 and 1.  Modify code loading register 0 to
+> also load register one if applicable.
+> 
+> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 
-You missed the second instruction to patch with here.
-This bug repeats itself further down.
+You can't make these register accesses if the feature isn't being
+used.
 
-Just noted while briefly reading the code - did not really follow the code.
-
-	Sam
+Considering the percentage of applications which will actually use
+this thing, incuring the overhead of even loading the shared context
+register is simply unacceptable.
