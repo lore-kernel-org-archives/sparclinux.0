@@ -1,32 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 18 Dec 2016 03:07:00 +0000
-Subject: Re: [RFC PATCH 03/14] sparc64: routines for basic mmu shared context structure management
-Message-Id: <20161217.220700.50846773009762926.davem@davemloft.net>
+From: Larry Bassel <larry.bassel@oracle.com>
+Date: Wed, 21 Dec 2016 17:17:14 +0000
+Subject: [PATCH v2] sparc64: shut down to OBP correctly
+Message-Id: <1482340634-65842-1-git-send-email-larry.bassel@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481913337-9331-1-git-send-email-mike.kravetz@oracle.com>
-	<1481913337-9331-4-git-send-email-mike.kravetz@oracle.com>
-In-Reply-To: <1481913337-9331-4-git-send-email-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mike.kravetz@oracle.com
-Cc: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, bob.picco@oracle.com, nitin.m.gupta@oracle.com, vijay.ac.kumar@oracle.com, julian.calaby@gmail.com, adam.buchbinder@gmail.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, akpm@linux-foundation.org
+To: sparclinux@vger.kernel.org
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri, 16 Dec 2016 10:35:26 -0800
+The command "shutdown -h -H now" should shut down the system to
+OBP, however the machine was incorrectly being powered off instead
+(on both LDOM and bare metal).
 
-> +void smp_flush_shared_tlb_mm(struct mm_struct *mm)
-> +{
-> +	u32 ctx = SHARED_CTX_HWBITS(mm->context);
-> +
-> +	(void)get_cpu();		/* prevent preemption */
+The "exit" command to the OBP must be run and then a hard
+loop to prevent return to the kernel.
 
-preempt_disable();
+Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
+---
+ arch/sparc/prom/misc_64.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
-> +
-> +	smp_cross_call(&xcall_flush_tlb_mm, ctx, 0, 0);
-> +	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
-> +
-> +	put_cpu();
+diff --git a/arch/sparc/prom/misc_64.c b/arch/sparc/prom/misc_64.c
+index 53a696d..aa80788 100644
+--- a/arch/sparc/prom/misc_64.c
++++ b/arch/sparc/prom/misc_64.c
+@@ -115,16 +115,11 @@ void notrace prom_halt(void)
+ {
+ 	unsigned long args[3];
+ 
+-#ifdef CONFIG_SUN_LDOMS
+-	if (ldom_domaining_enabled)
+-		ldom_power_off();
+-#endif
+-again:
+ 	args[0] = (unsigned long) "exit";
+ 	args[1] = 0;
+ 	args[2] = 0;
+ 	p1275_cmd_direct(args);
+-	goto again; /* PROM is out to get me -DaveM */
++	while (1);
+ }
+ 
+ void prom_halt_power_off(void)
+-- 
+1.7.1
 
-preempt_enable();
