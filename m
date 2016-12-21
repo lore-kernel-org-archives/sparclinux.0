@@ -1,71 +1,49 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Fri, 11 Nov 2016 18:11:58 +0000
-Subject: [PATCH v2 3/4] sparc64: Send break twice from console to return to boot prom
-Message-Id: <1478887919-10361-4-git-send-email-vijay.ac.kumar@oracle.com>
+From: Larry Bassel <larry.bassel@oracle.com>
+Date: Wed, 21 Dec 2016 17:12:13 +0000
+Subject: [PATCH] sparc64: shut down to OBP correctly
+Message-Id: <1482340333-65764-1-git-send-email-larry.bassel@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1478887919-10361-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, sparclinux@vger.kernel.org
-Cc: karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Now we can also jump to boot prom from sunhv console by sending
-break twice on console for both running and panicked kernel
-cases.
+Orabug: 24789774
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+The command "shutdown -h -H now" should shut down the system to
+OBP, however the machine was incorrectly being powered off instead
+(on both LDOM and bare metal).
+
+The "exit" command to the OBP must be run and then a hard
+loop to prevent return to the kernel.
+
+Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
 ---
- drivers/tty/serial/sunhv.c |    6 +++++-
- kernel/panic.c             |    3 ++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ arch/sparc/prom/misc_64.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
-index 59828d8..33c35b4 100644
---- a/drivers/tty/serial/sunhv.c
-+++ b/drivers/tty/serial/sunhv.c
-@@ -116,7 +116,7 @@ static int receive_chars_getchar(struct uart_port *port)
- 
- static int receive_chars_read(struct uart_port *port)
+diff --git a/arch/sparc/prom/misc_64.c b/arch/sparc/prom/misc_64.c
+index 53a696d..aa80788 100644
+--- a/arch/sparc/prom/misc_64.c
++++ b/arch/sparc/prom/misc_64.c
+@@ -115,16 +115,11 @@ void notrace prom_halt(void)
  {
--	int saw_console_brk = 0;
-+	static int saw_console_brk;
- 	int limit = 10000;
+ 	unsigned long args[3];
  
- 	while (limit-- > 0) {
-@@ -128,6 +128,9 @@ static int receive_chars_read(struct uart_port *port)
- 			bytes_read = 0;
+-#ifdef CONFIG_SUN_LDOMS
+-	if (ldom_domaining_enabled)
+-		ldom_power_off();
+-#endif
+-again:
+ 	args[0] = (unsigned long) "exit";
+ 	args[1] = 0;
+ 	args[2] = 0;
+ 	p1275_cmd_direct(args);
+-	goto again; /* PROM is out to get me -DaveM */
++	while (1);
+ }
  
- 			if (stat = CON_BREAK) {
-+				if (saw_console_brk)
-+					sun_do_break();
-+
- 				if (uart_handle_break(port))
- 					continue;
- 				saw_console_brk = 1;
-@@ -151,6 +154,7 @@ static int receive_chars_read(struct uart_port *port)
- 		if (port->sysrq != 0 &&  *con_read_page) {
- 			for (i = 0; i < bytes_read; i++)
- 				uart_handle_sysrq_char(port, con_read_page[i]);
-+			saw_console_brk = 0;
- 		}
- 
- 		if (port->state = NULL)
-diff --git a/kernel/panic.c b/kernel/panic.c
-index ca8cea1..4fe3b28 100644
---- a/kernel/panic.c
-+++ b/kernel/panic.c
-@@ -240,7 +240,8 @@ void panic(const char *fmt, ...)
- 		extern int stop_a_enabled;
- 		/* Make sure the user can actually press Stop-A (L1-A) */
- 		stop_a_enabled = 1;
--		pr_emerg("Press Stop-A (L1-A) to return to the boot prom\n");
-+		pr_emerg("Press Stop-A (L1-A) from sun keyboard or send break\n"
-+			 "twice on console to return to the boot prom\n");
- 	}
- #endif
- #if defined(CONFIG_S390)
+ void prom_halt_power_off(void)
 -- 
 1.7.1
 
