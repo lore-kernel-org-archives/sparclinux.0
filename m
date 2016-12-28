@@ -1,338 +1,88 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Thu, 22 Dec 2016 02:38:01 +0000
-Subject: [PATCH v5 05/14] kbuild: enable option to force compile force-obj-y and force-lib-y
-Message-Id: <20161222023811.21246-6-mcgrof@kernel.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 28 Dec 2016 20:27:00 +0000
+Subject: Bootup regression from srp_transport queuecommand() change...
+Message-Id: <20161228.152700.56383949697289644.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
- <20161222023811.21246-1-mcgrof@kernel.org>
-In-Reply-To: <20161222023811.21246-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
+To: bart.vanassche@sandisk.com
+Cc: linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jejb@linux.vnet.ibm.com, martin.petersen@oracle.com
 
-Linux provides a rich array of features, enabling each feature
-however increases the size of the kernel and there are many
-features which users often want disabled. The traditional
-solution to this problem is for each feature to have its own
-Kconfig symbol, followed by a series of #ifdef statements
-in C code and header files, allowing the feature to be compiled
-only when desirable. As the variability of Linux increases build
-tests can and are often done with random kernel configurations,
-allyesconfig, and allmodconfig to help find code issues. This
-however doesn't catch all errors and as a consequence code that
-is typically not enabled often can suffer from bit-rot over time.
 
-An alternative approach for subsystems, which refer to as the 'build-all
-link-selectively philosophy' is to keep the Kconfig symbols, replace
-the #ifdef approach by having each feature implemented it its own C file,
-and force compilation for all features to avoid the code bit-rot problem.
-With this strategy only features that are enabled via Kconfig get
-linked into the kernel, so the forced compilation has no size impact
-on the kernel. The practice of having each feature implemented in its own
-C file is already prevalent in many subsystems, however #ifdefs are still
-typically required during feature initialization. For instance in:
+Commit 669f044170d8933c3d66d231b69ea97cb8447338 ("scsi: srp_transport:
+Move queuecommand() wait code to SCSI core") causes my sparc64 T4-2
+machine to stop booting properly.
 
-  #ifdef CONFIG_FOO
-  foo_init();
-  #endif
+It gets past mounting root but then the disk seems to wedge and scsi
+command resets don't seem to improve the situation.
 
-We cannot remove the #ifdef and leave foo_init() as we'd either
-need to always enable the feature or add a respective #ifdef in a
-foo.h which makes foo_init() do nothing when CONFIG_FOO is disabled.
+The controller on this machine is an mpt2sas:
 
-Linker tables enable lifting the requirement to use of #ifdefs during
-initialization. With linker tables initialization sequences can instead
-be aggregated into a custom ELF section at link time, during run time
-the table can be iterated over and each init sequence enabled can be called.
-A feature's init routine is only added to a table when its respective
-Kconfig symbols has been enabled and therefore linked in. Linker tables
-enable subsystems to completely do away with #ifdefs if one is comfortable
-in accepting all subsystem's feature's structural size implications.
+[  988.085192] mpt3sas version 14.101.00.00 loaded
+[  988.094440] mpt2sas_cm0: 32 BIT PCI BUS DMA ADDRESSING SUPPORTED, total mem (265775888 kB)
+[  988.165492] mpt2sas_cm0: MSI-X vectors supported: 1, no of cores: 128, max_msix_vectors: -1
+[  988.182124] mpt2sas0-msix0: PCI-MSI-X enabled: IRQ 166
+[  988.192152] mpt2sas_cm0: iomem(0x0000084001200000), mapped(0x0000084001200000), size(16384)
+[  988.208816] mpt2sas_cm0: ioport(0x0000085100002000), size(256)
+[  988.305669] mpt2sas_cm0: Allocated physical memory: size(2324 kB)
+[  988.317563] mpt2sas_cm0: Current Controller Queue Depth(1529),Max Controller Queue Depth(1600)
+[  988.334753] mpt2sas_cm0: Scatter Gather Elements per IO(128)
+[  988.396240] mpt2sas_cm0: LSISAS2008: FWVersion(09.00.00.00), ChipRevision(0x03), BiosVersion(00.00.00.00)
+[  988.415087] mpt2sas_cm0: Protocol=(
+[  988.415089] Initiator
+[  988.422032] ,Target
+[  988.426532] ), 
+[  988.430707] Capabilities=(
+[  988.434167] Raid
+[  988.439558] ,TLR
+[  988.443212] ,EEDP
+[  988.446853] ,Snapshot Buffer
+[  988.450676] ,Diag Trace Buffer
+[  988.456409] ,Task Set Full
+[  988.462487] ,NCQ
+[  988.467874] )
+[  988.474803] scsi host0: Fusion MPT SAS Host
+[  988.484310] mpt2sas_cm0: sending port enable !!
+[  990.014651] mpt2sas_cm0: host_add: handle(0x0001), sas_addr(0x5080020000f7b908), phys(8)
+[  996.139132] mpt2sas_cm0: port enable: SUCCESS
+[  996.170653] scsi 0:0:0:0: Direct-Access     ATA      INTEL SSDSC2CW48 400i PQ: 0 ANSI: 5
+[  996.186607] scsi 0:0:0:0: SATA: handle(0x0009), sas_addr(0x4433221100000000), phy(0), device_name(0x517b5001f9f6b27f)
+[  996.207728] scsi 0:0:0:0: SATA: enclosure_logical_id(0x5080020000f7b908), slot(0)
+[  996.222818] scsi 0:0:0:0: atapi(n), ncq(y), asyn_notify(n), smart(y), fua(y), sw_preserve(y)
+[  996.344371] scsi 0:0:1:0: CD-ROM            TEAC     DV-W28SS-R       1.0C PQ: 0 ANSI: 0
+[  996.360272] scsi 0:0:1:0: SATA: handle(0x000a), sas_addr(0x4433221107000000), phy(7), device_name(0x0000000000000000)
+[  996.381442] scsi 0:0:1:0: SATA: enclosure_logical_id(0x5080020000f7b908), slot(7)
 
-Subsystems which want to follow the 'build-all link-selectively
-philosophy' still need a way to easily express and annotate that they
-wish for all code to always be compiled to help avoid code bit rot,
-as such two new targets force-obj-y and force-lib-y are provided to
-help with this. Its not fair to require everyone to force compilation
-of all features of a subsystem though, so as a compromise, the new
-targets only force compilation when CONFIG_BUILD_AVOID_BITROT is
-enabled.
+It was not easy to track this down.
 
-Only built-in features are supported at the moment. Module support
-is expected to be added after a generic solution to add linker
-tables to modules more easily is developed.
+Initial bisect hit the scsi-misc merge itself, bisecting within the
+merge doesn't find the commit mentioned above.
 
-v4: this patch was added to this series, it was split off from the
-    linker tables addition due to the confusion over the code bit
-    rot alternatives that are possible with linker tables.
+So I went throught the commits in the scsi-misc merge one by one,
+adding them on top of vanilla v4.9 until I hit the problem.
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
----
- Documentation/kbuild/makefiles.txt       | 36 ++++++++++++++++
- Documentation/sections/linker-tables.rst | 15 +++++++
- include/linux/tables.h                   | 71 ++++++++++++++++++++++++++++++++
- init/Kconfig                             | 22 ++++++++++
- scripts/Makefile.build                   |  7 ++--
- scripts/Makefile.clean                   |  2 +
- scripts/Makefile.lib                     | 11 +++++
- 7 files changed, 161 insertions(+), 3 deletions(-)
+This means the above commit doesn't introduce the regression in the
+context in which it was made.
 
-diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
-index 9b9c4797fc55..1af275cd4879 100644
---- a/Documentation/kbuild/makefiles.txt
-+++ b/Documentation/kbuild/makefiles.txt
-@@ -1090,6 +1090,42 @@ When kbuild executes, the following steps are followed (roughly):
- 	In this example, extra-y is used to list object files that
- 	shall be built, but shall not be linked as part of built-in.o.
- 
-+    force-obj-y force-lib-y
-+
-+	When CONFIG_BUILD_AVOID_BITROT is enabled using these targets for your
-+	kconfig symbols forces compilation of the associated objects if the
-+	kconfig's symbol's dependencies are met, the objects however are only
-+	linked into to the kernel if and only if the kconfig symbol was
-+	enabled. If CONFIG_BUILD_AVOID_BITROT is disabled the force-obj-y and
-+	force-lib-y targets are functionally equilvalent to obj-y and lib-y
-+	respectively.
-+
-+	Using force-obj-y and force-lib-y are part of a code architecture and
-+	build philosophy further enabled by linker tables, for more details
-+	refer to the documention in include/linux/tables.h, refer to the
-+	sections:
-+
-+		o The code bit-rot problem
-+		o The build-all selective-link philosophy
-+		o Avoiding the code bit-rot problem with linker tables
-+		o Linker table module support
-+
-+	Modules support is expected to be enhanced in the future, so for now
-+	only built-in features are supported.
-+
-+	Example use:
-+
-+		force-obj-$(CONFIG_FEATURE_FOO) += foo.o
-+
-+	An alternative to using force-obj-y, is to use extra-y followed by the
-+	respective obj-y:
-+
-+		extra-y += foo.o
-+		obj-$(CONFIG_FEATURE_FOO) += foo.o
-+
-+	Using force-obj-y and force-lib-y can be used to help annotate the
-+	targets follow the 'build-all selective-link philosophy' further
-+	enabled by linker tables.
- 
- --- 6.7 Commands useful for building a boot image
- 
-diff --git a/Documentation/sections/linker-tables.rst b/Documentation/sections/linker-tables.rst
-index 71704159e90e..a80f4dd94659 100644
---- a/Documentation/sections/linker-tables.rst
-+++ b/Documentation/sections/linker-tables.rst
-@@ -30,6 +30,21 @@ How linker tables simplify initialization code
- .. kernel-doc:: include/linux/tables.h
-    :doc: How linker tables simplify initialization code
- 
-+The code bit-rot problem
-+------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: The code bit-rot problem
-+
-+The build-all selective-link philosophy
-+---------------------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: The build-all selective-link philosophy
-+
-+Avoiding the code bit-rot problem with linker tables
-+----------------------------------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: Avoiding the code bit-rot problem with linker tables
-+
- Using linker tables in Linux
- ==============
- 
-diff --git a/include/linux/tables.h b/include/linux/tables.h
-index cc8fb1dcee47..fdadf794b63e 100644
---- a/include/linux/tables.h
-+++ b/include/linux/tables.h
-@@ -169,6 +169,77 @@
-  */
- 
- /**
-+ * DOC: The code bit-rot problem
-+ *
-+ * Linux provides a rich array of features, enabling each feature
-+ * however increases the size of the kernel and there are many
-+ * features which users often want disabled. The traditional
-+ * solution to this problem is for each feature to have its own
-+ * Kconfig symbol, followed by a series of #ifdef statements
-+ * in C code and header files, allowing the feature to be compiled
-+ * only when desirable. As the variability of Linux increases build
-+ * tests can and are often done with random kernel configurations,
-+ * allyesconfig, and allmodconfig to help find code issues. This
-+ * however doesn't catch all errors and as a consequence code that
-+ * is typically not enabled often can suffer from bit-rot over time.
-+ */
-+
-+/**
-+ * DOC: The build-all selective-link philosophy
-+ *
-+ * A code architecture philosophy to help avoid code bit-rot consists
-+ * of using Kconfig symbols for each subsystem feature, replace all #ifdefs
-+ * by instead having each feature implemented it its own C file, and force
-+ * compilation for all features. Only features that are enabled get linked in,
-+ * the forced compilation therefore has no size impact on the final result of
-+ * the kernel. The practice of having each feature implemented in its own C
-+ * file is already prevalent in many subsystems, however #ifdefs are still
-+ * typically required during feature initialization. For instance in::
-+ *
-+ *	#ifdef CONFIG_FOO
-+ *	foo_init();
-+ *	#endif
-+ *
-+ * We cannot remove the #ifdef and leave foo_init() as we'd either
-+ * need to always enable the feature or add a respective #ifdef in a
-+ * foo.h which makes foo_init() do nothing when ``CONFIG_FOO`` is disabled.
-+ */
-+
-+/**
-+ * DOC: Avoiding the code bit-rot problem with linker tables
-+ *
-+ * Linker tables can be used to further help avoid the code bit-rot problem
-+ * when embracing the 'build-all selective-link philosophy' by lifting the
-+ * requirement to use of #ifdefs during initialization. With linker tables
-+ * initialization sequences can be aggregated into a custom ELF section at
-+ * link time, during run time the table can be iterated over and each init
-+ * sequence enabled can be called. A feature's init routine is only added to a
-+ * table when its respective Kconfig symbols has been enabled and therefore
-+ * linked in. Linker tables enable subsystems to completely do away with
-+ * #ifdefs if one is comfortable in accepting all subsystem's feature's
-+ * structural size implications.
-+ *
-+ * To further help with this the Linux build system supports two special
-+ * targets, ``force-obj-y`` and ``force-lib-y``. A subsystem which wants to
-+ * follow the 'build-all selective-link philosophy' can use these targets for a
-+ * feature's kconfig symbol. Using these targets will always require
-+ * compilation of the kconfig's objects if the kconfig symbol's dependencies
-+ * are met but only link the objects into the kernel, and therefore enable the
-+ * feature, if and only if the kconfig symbol has been enabled.
-+ *
-+ * Not all users or build systems may want to opt-in to compile all objects
-+ * following the 'build-all selective-link philosophy', as such the targets
-+ * ``force-obj-y`` and ``force-lib-y`` only force compilation when the kconfig
-+ * symbol ``CONFIG_BUILD_AVOID_BITROT`` has been enabled. Disabling this feature
-+ * makes ``force-obj-y`` and ``force-lib-y`` functionally equivalent to
-+ * ``obj-y`` and ``lib-y`` respectively.
-+ *
-+ * Example use::
-+ *
-+ * 	force-obj-$(CONFIG_FEATURE_FOO) += foo.o
-+ */
-+
-+/**
-  * DOC: Linker table module support
-  *
-  * Modules can use linker tables, however the linker table definition
-diff --git a/init/Kconfig b/init/Kconfig
-index 223b734abccd..2faf4eee4c70 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -63,6 +63,28 @@ config CROSS_COMPILE
- 	  need to set this unless you want the configured kernel build
- 	  directory to select the cross-compiler automatically.
- 
-+config BUILD_AVOID_BITROT
-+	bool "Enable force building of force-obj-y and force-lib-y"
-+	default n
-+	help
-+	  When enabled objects under the force-obj-y and force-lib-y targets
-+	  using a Kconfig symbol will be forced to compile if the Kconfig
-+	  symbol's dependencies are met but only linked into the kernel if
-+	  the Kconfig symbol is enabled. If a Kconfig symbol on a force-obj-y
-+	  or force-lib-y target is disabled, it will be compiled but not linked
-+	  into the kernel.
-+
-+	  The force-obj-y and force-lib-y targets can be used by subsystems
-+	  which wish to want to follow the 'build-all selective-link philosophy'
-+	  documented under include/linux/tables.h.
-+
-+	  Say Y if you have a decent build machine and would like to help test
-+	  building code for more subsystems. Say N if you do you not have a
-+	  good build machine or only want to compile what you've enabled for
-+	  your kernel.
-+
-+	  Enabling this option never increases the size of your kernel.
-+
- config COMPILE_TEST
- 	bool "Compile also drivers which will not load"
- 	depends on !UML
-diff --git a/scripts/Makefile.build b/scripts/Makefile.build
-index eadcd4d359d9..c34af839d47c 100644
---- a/scripts/Makefile.build
-+++ b/scripts/Makefile.build
-@@ -92,7 +92,8 @@ modorder-target := $(obj)/modules.order
- 
- # We keep a list of all modules in $(MODVERDIR)
- 
--__build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y)) \
-+__build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y) \
-+				$(force-obj-y)) \
- 	 $(if $(KBUILD_MODULES),$(obj-m) $(modorder-target)) \
- 	 $(subdir-ym) $(always)
- 	@:
-@@ -392,8 +393,8 @@ endif
- $(obj)/%.o: $(src)/%.S $(objtool_obj) FORCE
- 	$(call if_changed_rule,as_o_S)
- 
--targets += $(real-objs-y) $(real-objs-m) $(lib-y)
--targets += $(extra-y) $(MAKECMDGOALS) $(always)
-+targets += $(real-objs-y) $(real-objs-m) $(lib-y) $(force-lib-y)
-+targets += $(extra-y) $(force-obj-y) $(MAKECMDGOALS) $(always)
- 
- # Linker scripts preprocessor (.lds.S -> .lds)
- # ---------------------------------------------------------------------------
-diff --git a/scripts/Makefile.clean b/scripts/Makefile.clean
-index 50616ea25131..2b54546237d6 100644
---- a/scripts/Makefile.clean
-+++ b/scripts/Makefile.clean
-@@ -36,6 +36,8 @@ subdir-ymn	:= $(addprefix $(obj)/,$(subdir-ymn))
- # directory
- 
- __clean-files	:= $(extra-y) $(extra-m) $(extra-)       \
-+		   $(force-obj-y) $(force-obj-m) $(force-obj-)       \
-+		   $(force-lib-y) $(force-lib-m) $(force-lib-)       \
- 		   $(always) $(targets) $(clean-files)   \
- 		   $(host-progs)                         \
- 		   $(hostprogs-y) $(hostprogs-m) $(hostprogs-) \
-diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 0a07f9014944..d1cb0cfdf1bf 100644
---- a/scripts/Makefile.lib
-+++ b/scripts/Makefile.lib
-@@ -12,6 +12,15 @@ export KBUILD_SUBDIR_CCFLAGS := $(KBUILD_SUBDIR_CCFLAGS) $(subdir-ccflags-y)
- # Figure out what we need to build from the various variables
- # ===================================== 
-+ifeq ($(CONFIG_BUILD_AVOID_BITROT),y)
-+extra-y += $(force-obj-) $(force-lib-)
-+endif
-+
-+obj-m += $(force-obj-m)
-+obj-y += $(force-obj-y)
-+lib-m += $(force-lib-m)
-+lib-y += $(force-lib-y)
-+
- # When an object is listed to be built compiled-in and modular,
- # only build the compiled-in version
- 
-@@ -72,6 +81,8 @@ real-objs-m := $(foreach m, $(obj-m), $(if $(strip $($(m:.o=-objs)) $($(m:.o=-y)
- # Add subdir path
- 
- extra-y		:= $(addprefix $(obj)/,$(extra-y))
-+force-obj-y		:= $(addprefix $(obj)/,$(force-obj-y))
-+force-obj-m		:= $(addprefix $(obj)/,$(force-obj-m))
- always		:= $(addprefix $(obj)/,$(always))
- targets		:= $(addprefix $(obj)/,$(targets))
- modorder	:= $(addprefix $(obj)/,$(modorder))
--- 
-2.10.1
+The commit message mentions blockability.  So I tried to look at
+mpt3sas driver changes that happened in mainline meanwhile.  And
+I came upon commit 18f6084a989ba1b38702f9af37a2e4049a924be6
+("scsi: mpt3sas: Fix secure erase premature termination")
+
+And this, indeed, adds a new call to scsi_internal_device_block()
+inside of the queuecommand() method of the mpt3sas driver.
+
+This seems to invalidate the analysis done in the commit message of
+669f044170d8933c3d66d231b69ea97cb8447338 ("scsi: srp_transport: Move
+queuecommand() wait code to SCSI core").
+
+I guess some userland information gathering tool, udev, or similar is
+doing the passthru ATA command to the devices behind my mpt2sas host,
+triggering the logic there to call scsi_internal_device_block().
+
+I'm happy to test any changes, and would really like to see this bug
+fixed.
+
+Thanks!
 
