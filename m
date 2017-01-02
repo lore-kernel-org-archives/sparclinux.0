@@ -1,44 +1,47 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Wed, 04 Jan 2017 01:22:39 +0000
-Subject: Re: [PATCH v4] sparc64: Multi-page size support
-Message-Id: <e9870606-812c-5efe-bc35-ea31fac303a6@oracle.com>
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Date: Mon, 02 Jan 2017 09:53:42 +0000
+Subject: Re: [RFC 1/4] mm: remove unused TASK_SIZE_OF()
+Message-Id: <20170102095342.GD30735@node.shutemov.name>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1481652247-12751-1-git-send-email-nitin.m.gupta@oracle.com>
- <20161227.123409.1061591712732030012.davem@davemloft.net>
-In-Reply-To: <20161227.123409.1061591712732030012.davem@davemloft.net>
+References: <20161230155634.8692-1-dsafonov@virtuozzo.com>
+ <20161230155634.8692-2-dsafonov@virtuozzo.com>
+In-Reply-To: <20161230155634.8692-2-dsafonov@virtuozzo.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: mike.kravetz@oracle.com, akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, julian.calaby@gmail.com, hughd@google.com, adam.buchbinder@gmail.com, minchan@kernel.org, sfr@canb.auug.org.au, paul.gortmaker@windriver.com, thomas.tai@oracle.com, chris.hyser@oracle.com, atish.patra@oracle.com, mhocko@suse.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-
-
-On 12/27/2016 09:34 AM, David Miller wrote:
-> From: Nitin Gupta <nitin.m.gupta@oracle.com>
-> Date: Tue, 13 Dec 2016 10:03:18 -0800
+On Fri, Dec 30, 2016 at 06:56:31PM +0300, Dmitry Safonov wrote:
+> All users of TASK_SIZE_OF(tsk) have migrated to mm->task_size or
+> TASK_SIZE_MAX since:
+> commit d696ca016d57 ("x86/fsgsbase/64: Use TASK_SIZE_MAX for
+> FSBASE/GSBASE upper limits"),
+> commit a06db751c321 ("pagemap: check permissions and capabilities at
+> open time"),
 > 
->> +static unsigned int sun4u_huge_tte_to_shift(pte_t entry)
->> +{
->> +	unsigned long tte_szbits = pte_val(entry) & _PAGE_SZALL_4V;
->> +	unsigned int shift;
->> +
->> +	switch (tte_szbits) {
->> +	case _PAGE_SZ256MB_4U:
->> +		shift = HPAGE_256MB_SHIFT;
->> +		break;
-> 
-> You added all the code necessary to do this on the sun4u chips that support
-> 256MB TTEs, so you might as well enable it in the initialization code.
-> 
-> I'm pretty sure this is an UltraSPARC-IV and later feature.
-> 
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Ralf Baechle <ralf@linux-mips.org>
+> Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+> Cc: Helge Deller <deller@gmx.de>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Paul Mackerras <paulus@samba.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-mips@linux-mips.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linuxppc-dev@lists.ozlabs.org
+> Cc: linux-s390@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
+> Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
 
-I added sun4u related changes just for completeness sake. I don't have
-access to a sun4u machine so can't be sure if sun4u would work.
-That's why that _PAGE_SZALL_4V typo escaped my notice.
+I've noticed this too.
 
-I will enable setup_hugepagesz() for non-hypervisor case and send a v5.
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 
-Thanks,
-Nitin
+-- 
+ Kirill A. Shutemov
