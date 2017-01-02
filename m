@@ -1,37 +1,46 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Date: Tue, 03 Jan 2017 20:52:38 +0000
-Subject: [PATCH net-next v2 18/27] net/skbuff: add macros for VLAN_PRESENT bit
-Message-Id: <719ecd1e2cb20316daf110de4dc865593c7bed9d.1483475202.git.mirq-linux@rere.qmqm.pl>
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date: Mon, 02 Jan 2017 06:57:13 +0000
+Subject: Re: [RFC 1/4] mm: remove unused TASK_SIZE_OF()
+Message-Id: <20170102065713.GB4779@osiris>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1483475202.git.mirq-linux@rere.qmqm.pl>
-In-Reply-To: <cover.1483475202.git.mirq-linux@rere.qmqm.pl>
+References: <20161230155634.8692-1-dsafonov@virtuozzo.com>
+ <20161230155634.8692-2-dsafonov@virtuozzo.com>
+In-Reply-To: <20161230155634.8692-2-dsafonov@virtuozzo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
----
- include/linux/skbuff.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+On Fri, Dec 30, 2016 at 06:56:31PM +0300, Dmitry Safonov wrote:
+> All users of TASK_SIZE_OF(tsk) have migrated to mm->task_size or
+> TASK_SIZE_MAX since:
+> commit d696ca016d57 ("x86/fsgsbase/64: Use TASK_SIZE_MAX for
+> FSBASE/GSBASE upper limits"),
+> commit a06db751c321 ("pagemap: check permissions and capabilities at
+> open time"),
+> 
+> Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
+> ---
+...
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index b53c0cfd417e..168c3e486bd4 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -768,6 +768,12 @@ struct sk_buff {
- 	__u32			priority;
- 	int			skb_iif;
- 	__u32			hash;
-+#define PKT_VLAN_PRESENT_BIT	4	// CFI (12-th bit) in TCI
-+#ifdef __BIG_ENDIAN
-+#define PKT_VLAN_PRESENT_OFFSET()	offsetof(struct sk_buff, vlan_tci)
-+#else
-+#define PKT_VLAN_PRESENT_OFFSET()	(offsetof(struct sk_buff, vlan_tci) + 1)
-+#endif
- 	__be16			vlan_proto;
- 	__u16			vlan_tci;
- #if defined(CONFIG_NET_RX_BUSY_POLL) || defined(CONFIG_XPS)
--- 
-2.11.0
+> diff --git a/arch/s390/include/asm/processor.h b/arch/s390/include/asm/processor.h
+> index 6bca916a5ba0..c53e8e2a51ac 100644
+> --- a/arch/s390/include/asm/processor.h
+> +++ b/arch/s390/include/asm/processor.h
+> @@ -89,10 +89,9 @@ extern void execve_tail(void);
+>   * User space process size: 2GB for 31 bit, 4TB or 8PT for 64 bit.
+>   */
+> 
+> -#define TASK_SIZE_OF(tsk)	((tsk)->mm->context.asce_limit)
+>  #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_31BIT) ? \
+>  					(1UL << 30) : (1UL << 41))
+> -#define TASK_SIZE		TASK_SIZE_OF(current)
+> +#define TASK_SIZE		(current->mm->context.asce_limit)
+>  #define TASK_MAX_SIZE		(1UL << 53)
+> 
+>  #define STACK_TOP		(1UL << (test_thread_flag(TIF_31BIT) ? 31:42))
+
+FWIW, for the s390 part:
+
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 
