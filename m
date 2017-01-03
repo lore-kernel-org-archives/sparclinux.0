@@ -1,50 +1,51 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Thu, 12 Jan 2017 18:52:46 +0000
-Subject: [PATCH 1/4] n2rng: limit error spewage when self-test fails
-Message-Id: <1484247169-245086-2-git-send-email-shannon.nelson@oracle.com>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Tue, 03 Jan 2017 20:52:39 +0000
+Subject: [PATCH net-next v2 22/27] net/bpf_jit: SPARC: split VLAN_PRESENT bit handling from VLAN_TCI
+Message-Id: <c341a65d02001380547aceb0fa3ba33881280646.1483475202.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1484247169-245086-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1484247169-245086-1-git-send-email-shannon.nelson@oracle.com>
+References: <cover.1483475202.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1483475202.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-crypto@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, herbert@gondor.apana.org.au, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-If the self-test fails, it probably won't actually suddenly
-start working.  Currently, this causes an endless spew of
-error messages on the console and in the logs, so this patch
-adds a limiter to the test.
-
-Reported-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- drivers/char/hw_random/n2-drv.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ arch/sparc/net/bpf_jit_comp.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/char/hw_random/n2-drv.c b/drivers/char/hw_random/n2-drv.c
-index 3b06c1d..102560f 100644
---- a/drivers/char/hw_random/n2-drv.c
-+++ b/drivers/char/hw_random/n2-drv.c
-@@ -589,6 +589,7 @@ static void n2rng_work(struct work_struct *work)
- {
- 	struct n2rng *np = container_of(work, struct n2rng, work.work);
- 	int err = 0;
-+	static int retries = 4;
- 
- 	if (!(np->flags & N2RNG_FLAG_CONTROL)) {
- 		err = n2rng_guest_check(np);
-@@ -606,7 +607,9 @@ static void n2rng_work(struct work_struct *work)
- 		dev_info(&np->op->dev, "RNG ready\n");
- 	}
- 
--	if (err && !(np->flags & N2RNG_FLAG_SHUTDOWN))
-+	if (--retries = 0)
-+		dev_err(&np->op->dev, "Self-test retries failed, RNG not ready\n");
-+	else if (err && !(np->flags & N2RNG_FLAG_SHUTDOWN))
- 		schedule_delayed_work(&np->work, HZ * 2);
- }
- 
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index a6d9204a6a0b..61cc15dc86f7 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -601,15 +601,17 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 				emit_skb_load32(hash, r_A);
+ 				break;
+ 			case BPF_ANC | SKF_AD_VLAN_TAG:
+-			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
+ 				emit_skb_load16(vlan_tci, r_A);
+-				if (code != (BPF_ANC | SKF_AD_VLAN_TAG)) {
+-					emit_alu_K(SRL, 12);
+-					emit_andi(r_A, 1, r_A);
+-				} else {
+-					emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
+-					emit_and(r_A, r_TMP, r_A);
+-				}
++#ifdef VLAN_TAG_PRESENT
++				emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
++				emit_and(r_A, r_TMP, r_A);
++#endif
++				break;
++			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
++				__emit_skb_load8(__pkt_vlan_present_offset, r_A);
++				if (PKT_VLAN_PRESENT_BIT)
++					emit_alu_K(SRL, PKT_VLAN_PRESENT_BIT);
++				emit_andi(r_A, 1, r_A);
+ 				break;
+ 			case BPF_LD | BPF_W | BPF_LEN:
+ 				emit_skb_load32(len, r_A);
 -- 
-1.7.1
+2.11.0
 
