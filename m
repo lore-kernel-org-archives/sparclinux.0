@@ -1,80 +1,65 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 18 Jan 2017 00:14:34 +0000
-Subject: Re: [PATCH v4 4/4] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <decf9145-5414-33fc-cf15-e4dc4f7ceae5@oracle.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Tue, 03 Jan 2017 21:25:28 +0000
+Subject: Re: [PATCH v5 04/14] tables.h: add linker table support
+Message-Id: <20170103212528.GE13946@wotan.suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1483999591.git.khalid.aziz@oracle.com>
- <cover.1483999591.git.khalid.aziz@oracle.com>
- <0c08eb00e5a9735d7d0bcbeaadeacaa761011aab.1483999591.git.khalid.aziz@oracle.com>
- <20170116.233924.374841184595409216.davem@davemloft.net>
-In-Reply-To: <20170116.233924.374841184595409216.davem@davemloft.net>
+References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
+ <20161222023811.21246-1-mcgrof@kernel.org>
+ <20161222023811.21246-5-mcgrof@kernel.org>
+ <1482415098.9552.123.camel@linux.intel.com>
+In-Reply-To: <1482415098.9552.123.camel@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, hpa@zytor.com
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com
 
-On 01/16/2017 09:39 PM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Wed, 11 Jan 2017 09:12:54 -0700
+On Thu, Dec 22, 2016 at 03:58:18PM +0200, Andy Shevchenko wrote:
+> On Wed, 2016-12-21 at 18:38 -0800, Luis R. Rodriguez wrote:
+> > +#define LINKTABLE_FOR_EACH(pointer, tbl)			=09
+>=20
+> Hmm... SOMEONE LIKES CAPITAL LETTERS FOR everything, right? :-)
 >
->> diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
->> index 8a6982d..68b03bf 100644
->> --- a/arch/sparc/kernel/mdesc.c
->> +++ b/arch/sparc/kernel/mdesc.c
->> @@ -20,6 +20,7 @@
->>  #include <asm/uaccess.h>
->>  #include <asm/oplib.h>
->>  #include <asm/smp.h>
->> +#include <asm/adi.h>
->>
->>  /* Unlike the OBP device tree, the machine description is a full-on
->>   * DAG.  An arbitrary number of ARCs are possible from one
->> @@ -1104,5 +1105,8 @@ void __init sun4v_mdesc_init(void)
->>
->>  	cur_mdesc = hp;
->>
->> +#ifdef CONFIG_SPARC64
->
-> mdesc.c is only built on sparc64, this ifdef is superfluous.
+> I would expect more standard linktable_for_each() macro
 
-Good point. I will fix it.
+hpa had recommended this, if he prefers a lower case I can change that
+but I really do consider this bikeshedding.
 
->
->> +/* Update the state of MCDPER register in current task's mm context before
->> + * dup so the dup'd task will inherit flags in this register correctly.
->> + * Current task may have updated flags since it started running.
->> + */
->> +int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
->> +{
->> +	if (adi_capable() && src->mm) {
->> +		register unsigned long tmp_mcdper;
->> +
->> +		__asm__ __volatile__(
->> +			".word 0x83438000\n\t"	/* rd %mcdper, %g1 */
->> +			"mov %%g1, %0\n\t"
->> +			: "=r" (tmp_mcdper)
->> +			:
->> +			: "g1");
->> +		src->mm->context.mcdper = tmp_mcdper;
->
-> I don't like the idea of duplicating 'mm' state using the task struct
-> copy.  Why do not the MM handling interfaces handle this properly?
->
-> Maybe it means you've abstracted the ADI register handling in the
-> wrong place.  Maybe it's a thread property which is "pushed" from
-> the MM context.
+> Same to the rest of similar macros.
 
-I see what you are saying. This code updates mm->context.mcdper for the 
-source thread with the current state of MCDPER since MCDPER can be 
-changed by a userspace process any time. When userspace changes MCDPER, 
-it is not saved into mm->context.mcdper until a context switch happens. 
-This means during the timeslice for a thread, its mm->context.mcdper may 
-not reflect the current value of MCDPER. Updating it ensures dup_mm() 
-will copy the real current value of MCDPER into the newly forked thread. 
-arch_dup_mmap() looks like a more appropriate place to do this. Do you 
-agree?
+Same answer here.
 
-Thanks,
-Khalid
+> > +/**
+> > + * LINKTABLE_RUN_ERR - run each linker table entry func and return
+> > error if any
+> > + *
+> > + * @tbl: linker table
+> > + * @func: structure name for the function name we want to call.
+> > + * @args...: arguments to pass to func
+> > + *
+> > + * Example usage::
+> > + *
+> > + *=A0=A0=A0unsigned int err =3D LINKTABLE_RUN_ERR(frobnicator_fns,
+> > some_run,);
+> > + */
+> > +#define LINKTABLE_RUN_ERR(tbl, func, args...)			=09
+> > \
+> > +({								=09
+> > \
+> > +	size_t i;						=09
+> > \
+> > +	int err =3D 0;						=09
+> > \
+> > +	for (i =3D 0; !err && i < LINKTABLE_SIZE(tbl); i++)	=09
+> > \
+> > +		err =3D (LINKTABLE_START(tbl)[i]).func (args);	=09
+>=20
+>=20
+> > \
+> > +		err;						=09
+>=20
+> Indentation here a bit confusing.
 
+Ah yes, good catch, fixed.
+
+  Luis
