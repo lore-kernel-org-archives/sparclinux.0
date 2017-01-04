@@ -1,25 +1,41 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Wed, 04 Jan 2017 23:50:29 +0000
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Wed, 04 Jan 2017 23:56:58 +0000
 Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <c483a325-d914-222f-f7ab-b3c19c5ff77b@linux.intel.com>
+Message-Id: <dcf106d7-2747-3131-ac8b-5e3d85145f4a@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
- <f7985965-3e33-4352-0ffb-97a5407f7acc@linux.intel.com>
- <f58e46c2-5ae6-8cff-3fde-f9ee1729fd71@oracle.com>
-In-Reply-To: <f58e46c2-5ae6-8cff-3fde-f9ee1729fd71@oracle.com>
+ <6fcaab9f-40fb-fdfb-2c7e-bf21a862ab7c@linux.intel.com>
+ <ae0b7d0b-54fa-fa93-3b50-d14ace1b16f5@oracle.com>
+ <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
+ <8612e7db-97c5-f757-0aae-24c3acedbc29@oracle.com>
+ <2c0502d0-20ef-44ac-db5b-7f651a70b978@linux.intel.com>
+In-Reply-To: <2c0502d0-20ef-44ac-db5b-7f651a70b978@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
-Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, x86@kernel.org, linux-mm@kva
+To: Dave Hansen <dave.hansen@linux.intel.com>, Khalid Aziz <khalid.aziz@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vger.kerne
 
-On 01/04/2017 03:46 PM, Khalid Aziz wrote:
->> It would also be really nice to see a high-level breakdown explaining
->> what you had to modify, especially since this affects all of the system
->> calls that take a PROT_* argument.  The sample code is nice, but it's no
->> substitute for writing it down.
-> 
-> I will expand the explanation in Documentation/sparc/adi.txt.
+On 01/04/2017 03:49 PM, Dave Hansen wrote:
+> On 01/04/2017 03:44 PM, Rob Gardner wrote:
+>> On 01/04/2017 03:40 PM, Dave Hansen wrote:
+>>> On 01/04/2017 03:35 PM, Rob Gardner wrote:
+>>>> Tags are not cleared at all when memory is freed, but rather, lazily
+>>>> (and automatically) cleared when memory is allocated.
+>>> What does "allocated" mean in this context?  Physical or virtual? What
+>>> does this do, for instance?
+>> The first time a virtual page is touched by a process after the malloc,
+>> the kernel does clear_user_page() or something similar, which zeroes the
+>> memory. At the same time, the memory tags are cleared.
+> OK, so the tags can't survive a MADV_FREE.  That's definitely something
+> for apps to understand that use MADV_FREE as a substitute for memset().
+> It also means that tags can't be set for physically unallocated memory.
+>
+> Neither of those are deal killers, but it would be nice to document it.
+>
+> How does this all work with large pages?
 
-I think (partially) duplicating that in a cover letter would also be
-nice.  The documentation is a bit buried in the 1,000 lines of code.
+It all works completely with large pages.
+
+Rob
+
