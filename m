@@ -1,38 +1,37 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Mon, 09 Jan 2017 14:58:26 +0000
-Subject: [PATCH v6 08/14] jump_label: move guard #endif down where it belongs
-Message-Id: <20170109145833.11502-9-mcgrof@kernel.org>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Wed, 04 Jan 2017 01:18:26 +0000
+Subject: [PATCH net-next 1/6] net/skbuff: add macros for VLAN_PRESENT bit
+Message-Id: <1ff3cba5536ca5a07f6496b9c80c646738956a8f.1483492355.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161222023811.21246-1-mcgrof@kernel.org>
- <20170109145833.11502-1-mcgrof@kernel.org>
-In-Reply-To: <20170109145833.11502-1-mcgrof@kernel.org>
+References: <cover.1483492355.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1483492355.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, joro@8bytes.org, x86@kernel.org, fontana@sharpeleven.org, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux@roeck-us.net, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: linux-arm-kernel@lists.infradead.org
 
-The ending header guard is misplaced. This has no
-functional change, this is just an eye-sore.
-
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- include/linux/jump_label.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/skbuff.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/include/linux/jump_label.h b/include/linux/jump_label.h
-index a0547c571800..b63d6b7b0db0 100644
---- a/include/linux/jump_label.h
-+++ b/include/linux/jump_label.h
-@@ -402,6 +402,6 @@ extern bool ____wrong_branch_error(void);
- #define static_branch_enable(x)		static_key_enable(&(x)->key)
- #define static_branch_disable(x)	static_key_disable(&(x)->key)
- 
--#endif	/* _LINUX_JUMP_LABEL_H */
--
- #endif /* __ASSEMBLY__ */
-+
-+#endif	/* _LINUX_JUMP_LABEL_H */
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index b53c0cfd417e..168c3e486bd4 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -768,6 +768,12 @@ struct sk_buff {
+ 	__u32			priority;
+ 	int			skb_iif;
+ 	__u32			hash;
++#define PKT_VLAN_PRESENT_BIT	4	// CFI (12-th bit) in TCI
++#ifdef __BIG_ENDIAN
++#define PKT_VLAN_PRESENT_OFFSET()	offsetof(struct sk_buff, vlan_tci)
++#else
++#define PKT_VLAN_PRESENT_OFFSET()	(offsetof(struct sk_buff, vlan_tci) + 1)
++#endif
+ 	__be16			vlan_proto;
+ 	__u16			vlan_tci;
+ #if defined(CONFIG_NET_RX_BUSY_POLL) || defined(CONFIG_XPS)
 -- 
 2.11.0
 
