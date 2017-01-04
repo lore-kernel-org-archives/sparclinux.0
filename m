@@ -1,29 +1,51 @@
-From: Mikulas Patocka <mpatocka@redhat.com>
-Date: Sat, 14 Jan 2017 19:52:22 +0000
-Subject: Re: [PATCH] sparc: Don't leak context bits into thread->fault_address
-Message-Id: <alpine.LRH.2.02.1701141451300.3387@file01.intranet.prod.int.rdu2.redhat.com>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Wed, 04 Jan 2017 01:18:27 +0000
+Subject: [PATCH net-next 5/6] net/bpf_jit: SPARC: split VLAN_PRESENT bit handling from VLAN_TCI
+Message-Id: <b4e1dcbeed867f958e90551263865d4eb046ae25.1483492355.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160727.175351.219584019615190125.davem@davemloft.net>
-In-Reply-To: <20160727.175351.219584019615190125.davem@davemloft.net>
+References: <cover.1483492355.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1483492355.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+---
+ arch/sparc/net/bpf_jit_comp.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
+diff --git a/arch/sparc/net/bpf_jit_comp.c b/arch/sparc/net/bpf_jit_comp.c
+index a6d9204a6a0b..61cc15dc86f7 100644
+--- a/arch/sparc/net/bpf_jit_comp.c
++++ b/arch/sparc/net/bpf_jit_comp.c
+@@ -601,15 +601,17 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 				emit_skb_load32(hash, r_A);
+ 				break;
+ 			case BPF_ANC | SKF_AD_VLAN_TAG:
+-			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
+ 				emit_skb_load16(vlan_tci, r_A);
+-				if (code != (BPF_ANC | SKF_AD_VLAN_TAG)) {
+-					emit_alu_K(SRL, 12);
+-					emit_andi(r_A, 1, r_A);
+-				} else {
+-					emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
+-					emit_and(r_A, r_TMP, r_A);
+-				}
++#ifdef VLAN_TAG_PRESENT
++				emit_loadimm(~VLAN_TAG_PRESENT, r_TMP);
++				emit_and(r_A, r_TMP, r_A);
++#endif
++				break;
++			case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
++				__emit_skb_load8(__pkt_vlan_present_offset, r_A);
++				if (PKT_VLAN_PRESENT_BIT)
++					emit_alu_K(SRL, PKT_VLAN_PRESENT_BIT);
++				emit_andi(r_A, 1, r_A);
+ 				break;
+ 			case BPF_LD | BPF_W | BPF_LEN:
+ 				emit_skb_load32(len, r_A);
+-- 
+2.11.0
 
-On Sun, 31 Jul 2016, David Miller wrote:
-
-> From: Mikulas Patocka <mpatocka@redhat.com>
->
-> > I've seen a message "BUG: non-zero nr_ptes on freeing mm: 1" twice on 
-> > sparc64, once on 4.4.13 and once on 4.4.16. I don't know how to reproduce 
-> > it. Do you have an idea what could be causing this bug?
-> 
-> People have been reporting this off and on for years, and sorry we don't
-> know what's causing it yet.
-
-I think it's caused by transparent hugepages. These errors (as well as 
-other memory management related crashes) went away when I disabled thp.
-
-Mikulas
