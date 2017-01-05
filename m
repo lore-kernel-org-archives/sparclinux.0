@@ -1,206 +1,663 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Sun, 15 Jan 2017 21:10:56 +0000
-Subject: [PATCH v7 13/14] kprobes: port blacklist kprobes to linker table
-Message-Id: <20170115211057.17167-14-mcgrof@kernel.org>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Thu, 05 Jan 2017 00:46:23 +0000
+Subject: [PATCH v5] sparc64: Multi-page size support
+Message-Id: <1483577240-129528-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109145833.11502-1-mcgrof@kernel.org>
- <20170115211057.17167-1-mcgrof@kernel.org>
-In-Reply-To: <20170115211057.17167-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, joro@8bytes.org, x86@kernel.org, fontana@sharpeleven.org, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux@roeck-us.net, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, konrad.wilk@oracle.com, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Julian Calaby <julian.calaby@gmail.com>, Hugh Dickins <hughd@google.com>, Adam Buchbinder <adam.buchbinder@gmail.com>, Minchan Kim <minchan@kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Paul Gortmaker <paul.gortmaker@windriver.com>, Thomas Tai <thomas.tai@oracle.com>, Chris Hyser <chris.hyser@oracle.com>, Atish Patra <atish.patra@oracle.com>, Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-kprobe makes use of two sections, the one dealing with the actual
-kprobes was recently ported using the standard section range API.
-The blacklist functionality of kprobes is still using a custom
-section and declaring its custom section using the linker script
-as follows:
+Add support for using multiple hugepage sizes simultaneously
+on mainline. Currently, support for 256M has been added which
+can be used along with 8M pages.
 
-type  Linux-section custom section name  begin                    end
-table .init.data    _kprobe_blacklist    __start_kprobe_blacklist __stop_kprobe_blacklist
+Page tables are set like this (e.g. for 256M page):
+    VA + (8M * x) -> PA + (8M * x) (sz bit = 256M) where x in [0, 31]
 
-This ports the _kprobe_blacklist custom section to the standard
-Linux linker table API allowing us remove all the custom blacklist
-kprobe section declarations from the linker script.
+and TSB is set similarly:
+    VA + (4M * x) -> PA + (4M * x) (sz bit = 256M) where x in [0, 63]
 
-This has been tested by trying to register a kprobe on a blacklisted
-symbol (these are declared with NOKPROBE_SYMBOL()), and confirms that
-this fails to work as expected. This was tested with:
+- Testing
 
- # insmod samples/kprobes/kprobe_example.ko symbol="get_kprobe"
+Tested on Sonoma (which supports 256M pages) by running stream
+benchmark instances in parallel: one instance uses 8M pages and
+another uses 256M pages, consuming 48G each.
 
-This fails to load as expected with:
+Boot params used:
 
-insmod: ERROR: could not insert module samples/kprobes/kprobe_example.ko: Invalid parameters
+default_hugepagesz%6M hugepagesz%6M hugepages00 hugepagesz=8M
+hugepages000
 
-v5: Use push_section_tbl() for _ASM_NOKPROBE() for x86, and
-    _ASM_NOKPROBE_SYMBOL() on powerpc
-v4: ported over _ASM_NOKPROBE_SYMBOL() on powerpc and
-    ASM_NOKPROBE() on x86
-v3: this patch was introduced in this series
-
-Acked-by: Masami Hiramatsu <mhiramat@kernel.org>
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- arch/powerpc/include/asm/ppc_asm.h |  4 ++--
- arch/x86/include/asm/asm.h         |  4 +++-
- include/asm-generic/kprobes.h      |  4 ++--
- include/asm-generic/vmlinux.lds.h  | 10 ----------
- include/linux/kprobes.h            |  2 ++
- kernel/kprobes.c                   | 11 ++++-------
- 6 files changed, 13 insertions(+), 22 deletions(-)
+Changelog v4 vs v5:
+ - Enable hugepage initialization on sun4u (this patch has been
+   tested only on sun4v).
+Changelog v3 vs v4:
+ - Remove incorrect WARN_ON in __flush_huge_tsb_one_entry()
 
-diff --git a/arch/powerpc/include/asm/ppc_asm.h b/arch/powerpc/include/asm/ppc_asm.h
-index 0846413b3a2e..20cd9c00eef5 100644
---- a/arch/powerpc/include/asm/ppc_asm.h
-+++ b/arch/powerpc/include/asm/ppc_asm.h
-@@ -9,7 +9,7 @@
- #include <asm/processor.h>
- #include <asm/ppc-opcode.h>
- #include <asm/firmware.h>
--#include <asm/ranges.h>
-+#include <asm/tables.h>
+Changelog v2 vs v3:
+ - Remove unused label in tsb.S (David)
+ - Order local variables from longest to shortest line (David)
+
+Changelog v1 vs v2:
+ - Fix warning due to unused __flush_huge_tsb_one() when
+   CONFIG_HUGETLB is not defined.
+---
+ arch/sparc/include/asm/page_64.h     |   3 +-
+ arch/sparc/include/asm/pgtable_64.h  |  23 +++--
+ arch/sparc/include/asm/tlbflush_64.h |   5 +-
+ arch/sparc/kernel/tsb.S              |  21 +----
+ arch/sparc/mm/hugetlbpage.c          | 160 +++++++++++++++++++++++++++++++----
+ arch/sparc/mm/init_64.c              |  42 ++++++++-
+ arch/sparc/mm/tlb.c                  |  17 ++--
+ arch/sparc/mm/tsb.c                  |  44 ++++++++--
+ 8 files changed, 253 insertions(+), 62 deletions(-)
+
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index c1263fc..d76f38d 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -17,7 +17,7 @@
  
- #ifdef __ASSEMBLY__
+ #define HPAGE_SHIFT		23
+ #define REAL_HPAGE_SHIFT	22
+-
++#define HPAGE_256MB_SHIFT	28
+ #define REAL_HPAGE_SIZE		(_AC(1,UL) << REAL_HPAGE_SHIFT)
  
-@@ -266,7 +266,7 @@ GLUE(.,name):
-  */
- #ifdef CONFIG_KPROBES
- #define _ASM_NOKPROBE_SYMBOL(entry)			\
--	.pushsection "_kprobe_blacklist","aw";		\
-+	push_section_tbl(.init.data, _kprobe_blacklist, any, aw); \
- 	PPC_LONG (entry) ;				\
- 	.popsection
- #else
-diff --git a/arch/x86/include/asm/asm.h b/arch/x86/include/asm/asm.h
-index 7acb51c49fec..48b1bc85c0e6 100644
---- a/arch/x86/include/asm/asm.h
-+++ b/arch/x86/include/asm/asm.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_X86_ASM_H
- #define _ASM_X86_ASM_H
- 
-+#include <asm/tables.h>
-+
- #ifdef __ASSEMBLY__
- # define __ASM_FORM(x)	x
- # define __ASM_FORM_RAW(x)     x
-@@ -74,7 +76,7 @@
- 	_ASM_EXTABLE_HANDLE(from, to, ex_handler_ext)
- 
- # define _ASM_NOKPROBE(entry)					\
--	.pushsection "_kprobe_blacklist","aw" ;			\
-+	push_section_tbl_any(.init.data, _kprobe_blacklist, aw);\
- 	_ASM_ALIGN ;						\
- 	_ASM_PTR (entry);					\
- 	.popsection
-diff --git a/include/asm-generic/kprobes.h b/include/asm-generic/kprobes.h
-index 02a26b975187..7d29a208390e 100644
---- a/include/asm-generic/kprobes.h
-+++ b/include/asm-generic/kprobes.h
-@@ -3,14 +3,14 @@
- 
- #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
- #ifdef CONFIG_KPROBES
-+#include <linux/tables.h>
- #include <asm/ranges.h>
- /*
-  * Blacklist ganerating macro. Specify functions which is not probed
-  * by using this macro.
-  */
- # define __NOKPROBE_SYMBOL(fname)				\
--static unsigned long __used					\
--	__attribute__((__section__("_kprobe_blacklist")))	\
-+static LINKTABLE_INIT_DATA(_kprobe_blacklist, all)		\
- 	_kbl_addr_##fname = (unsigned long)fname;
- # define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)
- /* Use this to forbid a kprobes attach on very low level functions */
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 499caf5b4361..9f062af1f728 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -114,15 +114,6 @@
- #define BRANCH_PROFILE()
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+@@ -26,6 +26,7 @@
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ #define REAL_HPAGE_PER_HPAGE	(_AC(1,UL) << (HPAGE_SHIFT - REAL_HPAGE_SHIFT))
++#define HUGE_MAX_HSTATE		2
  #endif
  
--#ifdef CONFIG_KPROBES
--#define KPROBE_BLACKLIST()	. = ALIGN(8);				      \
--				VMLINUX_SYMBOL(__start_kprobe_blacklist) = .; \
--				KEEP(*(_kprobe_blacklist))		      \
--				VMLINUX_SYMBOL(__stop_kprobe_blacklist) = .;
--#else
--#define KPROBE_BLACKLIST()
--#endif
--
- #ifdef CONFIG_EVENT_TRACING
- #define FTRACE_EVENTS()	. = ALIGN(8);					\
- 			VMLINUX_SYMBOL(__start_ftrace_events) = .;	\
-@@ -551,7 +542,6 @@
- 	*(.init.rodata)							\
- 	FTRACE_EVENTS()							\
- 	TRACE_SYSCALLS()						\
--	KPROBE_BLACKLIST()						\
- 	MEM_DISCARD(init.rodata)					\
- 	CLK_OF_TABLES()							\
- 	RESERVEDMEM_OF_TABLES()						\
-diff --git a/include/linux/kprobes.h b/include/linux/kprobes.h
-index 445cc6fe7afa..2707820cbb56 100644
---- a/include/linux/kprobes.h
-+++ b/include/linux/kprobes.h
-@@ -44,8 +44,10 @@
+ #ifndef __ASSEMBLY__
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 314b668..7932a4a 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -375,7 +375,10 @@ static inline pgprot_t pgprot_noncached(pgprot_t prot)
+ #define pgprot_noncached pgprot_noncached
  
- #ifdef CONFIG_KPROBES
- #include <linux/ranges.h>
-+#include <linux/tables.h>
- 
- DECLARE_SECTION_RANGE(kprobes);
-+DECLARE_LINKTABLE(unsigned long, _kprobe_blacklist);
- 
- /* kprobe_status settings */
- #define KPROBE_HIT_ACTIVE	0x00000001
-diff --git a/kernel/kprobes.c b/kernel/kprobes.c
-index 82191f328e21..9d102ac95256 100644
---- a/kernel/kprobes.c
-+++ b/kernel/kprobes.c
-@@ -2053,14 +2053,13 @@ NOKPROBE_SYMBOL(dump_kprobe);
-  * since a kprobe need not necessarily be at the beginning
-  * of a function.
-  */
--static int __init populate_kprobe_blacklist(unsigned long *start,
--					     unsigned long *end)
-+static int __init populate_kprobe_blacklist(void)
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static inline unsigned long __pte_huge_mask(void)
++extern pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
++				struct page *page, int writable);
++#define arch_make_huge_pte arch_make_huge_pte
++static inline unsigned long __pte_default_huge_mask(void)
  {
- 	unsigned long *iter;
- 	struct kprobe_blacklist_entry *ent;
- 	unsigned long entry, offset = 0, size = 0;
+ 	unsigned long mask;
  
--	for (iter = start; iter < end; iter++) {
-+	linktable_for_each(iter, _kprobe_blacklist) {
- 		entry = arch_deref_entry_point((void *)*iter);
+@@ -395,12 +398,14 @@ static inline unsigned long __pte_huge_mask(void)
  
- 		if (!kernel_text_address(entry) ||
-@@ -2125,8 +2124,7 @@ static struct notifier_block kprobe_module_nb = {
- };
+ static inline pte_t pte_mkhuge(pte_t pte)
+ {
+-	return __pte(pte_val(pte) | _PAGE_PMD_HUGE | __pte_huge_mask());
++	return __pte(pte_val(pte) | __pte_default_huge_mask());
+ }
  
- /* Markers of _kprobe_blacklist section */
--extern unsigned long __start_kprobe_blacklist[];
--extern unsigned long __stop_kprobe_blacklist[];
-+DEFINE_LINKTABLE_INIT_DATA(unsigned long, _kprobe_blacklist);
+-static inline bool is_hugetlb_pte(pte_t pte)
++static inline bool is_default_hugetlb_pte(pte_t pte)
+ {
+-	return !!(pte_val(pte) & __pte_huge_mask());
++	unsigned long mask = __pte_default_huge_mask();
++
++	return (pte_val(pte) & mask) = mask;
+ }
  
- /* Actual kprobes section range */
- DEFINE_SECTION_RANGE(kprobes, .text);
-@@ -2143,8 +2141,7 @@ static int __init init_kprobes(void)
- 		raw_spin_lock_init(&(kretprobe_table_locks[i].lock));
+ static inline bool is_hugetlb_pmd(pmd_t pmd)
+@@ -875,10 +880,12 @@ static inline unsigned long pud_pfn(pud_t pud)
+ 
+ /* Actual page table PTE updates.  */
+ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+-		   pte_t *ptep, pte_t orig, int fullmm);
++		   pte_t *ptep, pte_t orig, int fullmm,
++		   unsigned int hugepage_shift);
+ 
+ static void maybe_tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+-				pte_t *ptep, pte_t orig, int fullmm)
++				pte_t *ptep, pte_t orig, int fullmm,
++				unsigned int hugepage_shift)
+ {
+ 	/* It is more efficient to let flush_tlb_kernel_range()
+ 	 * handle init_mm tlb flushes.
+@@ -887,7 +894,7 @@ static void maybe_tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+ 	 *             and SUN4V pte layout, so this inline test is fine.
+ 	 */
+ 	if (likely(mm != &init_mm) && pte_accessible(mm, orig))
+-		tlb_batch_add(mm, vaddr, ptep, orig, fullmm);
++		tlb_batch_add(mm, vaddr, ptep, orig, fullmm, hugepage_shift);
+ }
+ 
+ #define __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
+@@ -906,7 +913,7 @@ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 	pte_t orig = *ptep;
+ 
+ 	*ptep = pte;
+-	maybe_tlb_batch_add(mm, addr, ptep, orig, fullmm);
++	maybe_tlb_batch_add(mm, addr, ptep, orig, fullmm, PAGE_SHIFT);
+ }
+ 
+ #define set_pte_at(mm,addr,ptep,pte)	\
+diff --git a/arch/sparc/include/asm/tlbflush_64.h b/arch/sparc/include/asm/tlbflush_64.h
+index a8e192e..54be88a 100644
+--- a/arch/sparc/include/asm/tlbflush_64.h
++++ b/arch/sparc/include/asm/tlbflush_64.h
+@@ -8,7 +8,7 @@
+ #define TLB_BATCH_NR	192
+ 
+ struct tlb_batch {
+-	bool huge;
++	unsigned int hugepage_shift;
+ 	struct mm_struct *mm;
+ 	unsigned long tlb_nr;
+ 	unsigned long active;
+@@ -17,7 +17,8 @@ struct tlb_batch {
+ 
+ void flush_tsb_kernel_range(unsigned long start, unsigned long end);
+ void flush_tsb_user(struct tlb_batch *tb);
+-void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr, bool huge);
++void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr,
++			 unsigned int hugepage_shift);
+ 
+ /* TLB flush operations. */
+ 
+diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+index d568c82..10689cf 100644
+--- a/arch/sparc/kernel/tsb.S
++++ b/arch/sparc/kernel/tsb.S
+@@ -117,26 +117,11 @@ tsb_miss_page_table_walk_sun4v_fastpath:
+ 	/* Valid PTE is now in %g5.  */
+ 
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-661:	sethi		%uhi(_PAGE_SZALL_4U), %g7
++	sethi		%uhi(_PAGE_PMD_HUGE), %g7
+ 	sllx		%g7, 32, %g7
+-	.section	.sun4v_2insn_patch, "ax"
+-	.word		661b
+-	mov		_PAGE_SZALL_4V, %g7
+-	nop
+-	.previous
+-
+-	and		%g5, %g7, %g2
+-
+-661:	sethi		%uhi(_PAGE_SZHUGE_4U), %g7
+-	sllx		%g7, 32, %g7
+-	.section	.sun4v_2insn_patch, "ax"
+-	.word		661b
+-	mov		_PAGE_SZHUGE_4V, %g7
+-	nop
+-	.previous
+ 
+-	cmp		%g2, %g7
+-	bne,pt		%xcc, 60f
++	andcc		%g5, %g7, %g0
++	be,pt		%xcc, 60f
+ 	 nop
+ 
+ 	/* It is a huge page, use huge page TSB entry address we
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index 988acc8..618a568 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -28,6 +28,7 @@ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
+ 							unsigned long pgoff,
+ 							unsigned long flags)
+ {
++	struct hstate *h = hstate_file(filp);
+ 	unsigned long task_size = TASK_SIZE;
+ 	struct vm_unmapped_area_info info;
+ 
+@@ -38,7 +39,7 @@ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *filp,
+ 	info.length = len;
+ 	info.low_limit = TASK_UNMAPPED_BASE;
+ 	info.high_limit = min(task_size, VA_EXCLUDE_START);
+-	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
+ 
+@@ -58,6 +59,7 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 				  const unsigned long pgoff,
+ 				  const unsigned long flags)
+ {
++	struct hstate *h = hstate_file(filp);
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr = addr0;
+ 	struct vm_unmapped_area_info info;
+@@ -69,7 +71,7 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 	info.length = len;
+ 	info.low_limit = PAGE_SIZE;
+ 	info.high_limit = mm->mmap_base;
+-	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
+ 
+@@ -94,6 +96,7 @@ unsigned long
+ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 		unsigned long len, unsigned long pgoff, unsigned long flags)
+ {
++	struct hstate *h = hstate_file(file);
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	unsigned long task_size = TASK_SIZE;
+@@ -101,7 +104,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 	if (test_thread_flag(TIF_32BIT))
+ 		task_size = STACK_TOP32;
+ 
+-	if (len & ~HPAGE_MASK)
++	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+ 	if (len > task_size)
+ 		return -ENOMEM;
+@@ -113,7 +116,7 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
  	}
  
--	err = populate_kprobe_blacklist(__start_kprobe_blacklist,
--					__stop_kprobe_blacklist);
-+	err = populate_kprobe_blacklist();
- 	if (err) {
- 		pr_err("kprobes: failed to populate blacklist: %d\n", err);
- 		pr_err("Please take care of using kprobes.\n");
+ 	if (addr) {
+-		addr = ALIGN(addr, HPAGE_SIZE);
++		addr = ALIGN(addr, huge_page_size(h));
+ 		vma = find_vma(mm, addr);
+ 		if (task_size - len >= addr &&
+ 		    (!vma || addr + len <= vma->vm_start))
+@@ -127,6 +130,112 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ 				pgoff, flags);
+ }
+ 
++static pte_t sun4u_hugepage_shift_to_tte(pte_t entry, unsigned int shift)
++{
++	return entry;
++}
++
++static pte_t sun4v_hugepage_shift_to_tte(pte_t entry, unsigned int shift)
++{
++	unsigned long hugepage_size = _PAGE_SZ4MB_4V;
++
++	pte_val(entry) = pte_val(entry) & ~_PAGE_SZALL_4V;
++
++	switch (shift) {
++	case HPAGE_256MB_SHIFT:
++		hugepage_size = _PAGE_SZ256MB_4V;
++		pte_val(entry) |= _PAGE_PMD_HUGE;
++		break;
++	case HPAGE_SHIFT:
++		pte_val(entry) |= _PAGE_PMD_HUGE;
++		break;
++	default:
++		WARN_ONCE(1, "unsupported hugepage shift=%u\n", shift);
++	}
++
++	pte_val(entry) = pte_val(entry) | hugepage_size;
++	return entry;
++}
++
++static pte_t hugepage_shift_to_tte(pte_t entry, unsigned int shift)
++{
++	if (tlb_type = hypervisor)
++		return sun4v_hugepage_shift_to_tte(entry, shift);
++	else
++		return sun4u_hugepage_shift_to_tte(entry, shift);
++}
++
++pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
++			 struct page *page, int writeable)
++{
++	unsigned int shift = huge_page_shift(hstate_vma(vma));
++
++	return hugepage_shift_to_tte(entry, shift);
++}
++
++static unsigned int sun4v_huge_tte_to_shift(pte_t entry)
++{
++	unsigned long tte_szbits = pte_val(entry) & _PAGE_SZALL_4V;
++	unsigned int shift;
++
++	switch (tte_szbits) {
++	case _PAGE_SZ256MB_4V:
++		shift = HPAGE_256MB_SHIFT;
++		break;
++	case _PAGE_SZ4MB_4V:
++		shift = REAL_HPAGE_SHIFT;
++		break;
++	default:
++		shift = PAGE_SHIFT;
++		break;
++	}
++	return shift;
++}
++
++static unsigned int sun4u_huge_tte_to_shift(pte_t entry)
++{
++	unsigned long tte_szbits = pte_val(entry) & _PAGE_SZALL_4U;
++	unsigned int shift;
++
++	switch (tte_szbits) {
++	case _PAGE_SZ256MB_4U:
++		shift = HPAGE_256MB_SHIFT;
++		break;
++	case _PAGE_SZ4MB_4U:
++		shift = REAL_HPAGE_SHIFT;
++		break;
++	default:
++		shift = PAGE_SHIFT;
++		break;
++	}
++	return shift;
++}
++
++static unsigned int huge_tte_to_shift(pte_t entry)
++{
++	unsigned long shift;
++
++	if (tlb_type = hypervisor)
++		shift = sun4v_huge_tte_to_shift(entry);
++	else
++		shift = sun4u_huge_tte_to_shift(entry);
++
++	if (shift = PAGE_SHIFT)
++		WARN_ONCE(1, "tto_to_shift: invalid hugepage tte=0x%lx\n",
++			  pte_val(entry));
++
++	return shift;
++}
++
++static unsigned long huge_tte_to_size(pte_t pte)
++{
++	unsigned long size = 1UL << huge_tte_to_shift(pte);
++
++	if (size = REAL_HPAGE_SIZE)
++		size = HPAGE_SIZE;
++	return size;
++}
++
+ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 			unsigned long addr, unsigned long sz)
+ {
+@@ -160,35 +269,54 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t entry)
+ {
++	unsigned int i, nptes, hugepage_shift;
++	unsigned long size;
+ 	pte_t orig;
+ 
++	size = huge_tte_to_size(entry);
++	nptes = size >> PMD_SHIFT;
++
+ 	if (!pte_present(*ptep) && pte_present(entry))
+-		mm->context.hugetlb_pte_count++;
++		mm->context.hugetlb_pte_count += nptes;
+ 
+-	addr &= HPAGE_MASK;
++	addr &= ~(size - 1);
+ 	orig = *ptep;
+-	*ptep = entry;
++	hugepage_shift = pte_none(orig) ? PAGE_SIZE : huge_tte_to_shift(orig);
+ 
+-	/* Issue TLB flush at REAL_HPAGE_SIZE boundaries */
+-	maybe_tlb_batch_add(mm, addr, ptep, orig, 0);
+-	maybe_tlb_batch_add(mm, addr + REAL_HPAGE_SIZE, ptep, orig, 0);
++	for (i = 0; i < nptes; i++)
++		ptep[i] = __pte(pte_val(entry) + (i << PMD_SHIFT));
++
++	maybe_tlb_batch_add(mm, addr, ptep, orig, 0, hugepage_shift);
++	/* An HPAGE_SIZE'ed page is composed of two REAL_HPAGE_SIZE'ed pages */
++	if (size = HPAGE_SIZE)
++		maybe_tlb_batch_add(mm, addr + REAL_HPAGE_SIZE, ptep, orig, 0,
++				    hugepage_shift);
+ }
+ 
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep)
+ {
++	unsigned int i, nptes, hugepage_shift;
++	unsigned long size;
+ 	pte_t entry;
+ 
+ 	entry = *ptep;
++	size = huge_tte_to_size(entry);
++	nptes = size >> PMD_SHIFT;
++	hugepage_shift = pte_none(entry) ? PAGE_SIZE : huge_tte_to_shift(entry);
++
+ 	if (pte_present(entry))
+-		mm->context.hugetlb_pte_count--;
++		mm->context.hugetlb_pte_count -= nptes;
+ 
+-	addr &= HPAGE_MASK;
+-	*ptep = __pte(0UL);
++	addr &= ~(size - 1);
++	for (i = 0; i < nptes; i++)
++		ptep[i] = __pte(0UL);
+ 
+-	/* Issue TLB flush at REAL_HPAGE_SIZE boundaries */
+-	maybe_tlb_batch_add(mm, addr, ptep, entry, 0);
+-	maybe_tlb_batch_add(mm, addr + REAL_HPAGE_SIZE, ptep, entry, 0);
++	maybe_tlb_batch_add(mm, addr, ptep, entry, 0, hugepage_shift);
++	/* An HPAGE_SIZE'ed page is composed of two REAL_HPAGE_SIZE'ed pages */
++	if (size = HPAGE_SIZE)
++		maybe_tlb_batch_add(mm, addr + REAL_HPAGE_SIZE, ptep, entry, 0,
++				    hugepage_shift);
+ 
+ 	return entry;
+ }
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 5d2f915..7ed3975 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -324,6 +324,46 @@ static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_inde
+ 	tsb_insert(tsb, tag, tte);
+ }
+ 
++#ifdef CONFIG_HUGETLB_PAGE
++static int __init setup_hugepagesz(char *string)
++{
++	unsigned long long hugepage_size;
++	unsigned int hugepage_shift;
++	unsigned short hv_pgsz_idx;
++	unsigned int hv_pgsz_mask;
++	int rc = 0;
++
++	hugepage_size = memparse(string, &string);
++	hugepage_shift = ilog2(hugepage_size);
++
++	switch (hugepage_shift) {
++	case HPAGE_256MB_SHIFT:
++		hv_pgsz_mask = HV_PGSZ_MASK_256MB;
++		hv_pgsz_idx = HV_PGSZ_IDX_256MB;
++		break;
++	case HPAGE_SHIFT:
++		hv_pgsz_mask = HV_PGSZ_MASK_4MB;
++		hv_pgsz_idx = HV_PGSZ_IDX_4MB;
++		break;
++	default:
++		hv_pgsz_mask = 0;
++	}
++
++	if ((hv_pgsz_mask & cpu_pgsz_mask) = 0U) {
++		pr_warn("hugepagesz=%llu not supported by MMU.\n",
++			hugepage_size);
++		goto out;
++	}
++
++	hugetlb_add_hstate(hugepage_shift - PAGE_SHIFT);
++	rc = 1;
++
++out:
++	return rc;
++}
++__setup("hugepagesz=", setup_hugepagesz);
++#endif	/* CONFIG_HUGETLB_PAGE */
++
+ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
+ {
+ 	struct mm_struct *mm;
+@@ -347,7 +387,7 @@ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *
+ 
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	if ((mm->context.hugetlb_pte_count || mm->context.thp_pte_count) &&
+-	    is_hugetlb_pte(pte)) {
++	    is_hugetlb_pmd(__pmd(pte_val(pte)))) {
+ 		/* We are fabricating 8MB pages using 4MB real hw pages.  */
+ 		pte_val(pte) |= (address & (1UL << REAL_HPAGE_SHIFT));
+ 		__update_mmu_tsb_insert(mm, MM_TSB_HUGE, REAL_HPAGE_SHIFT,
+diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
+index c56a195..afda3bb 100644
+--- a/arch/sparc/mm/tlb.c
++++ b/arch/sparc/mm/tlb.c
+@@ -67,7 +67,7 @@ void arch_leave_lazy_mmu_mode(void)
+ }
+ 
+ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+-			      bool exec, bool huge)
++			      bool exec, unsigned int hugepage_shift)
+ {
+ 	struct tlb_batch *tb = &get_cpu_var(tlb_batch);
+ 	unsigned long nr;
+@@ -84,19 +84,19 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ 	}
+ 
+ 	if (!tb->active) {
+-		flush_tsb_user_page(mm, vaddr, huge);
++		flush_tsb_user_page(mm, vaddr, hugepage_shift);
+ 		global_flush_tlb_page(mm, vaddr);
+ 		goto out;
+ 	}
+ 
+ 	if (nr = 0) {
+ 		tb->mm = mm;
+-		tb->huge = huge;
++		tb->hugepage_shift = hugepage_shift;
+ 	}
+ 
+-	if (tb->huge != huge) {
++	if (tb->hugepage_shift != hugepage_shift) {
+ 		flush_tlb_pending();
+-		tb->huge = huge;
++		tb->hugepage_shift = hugepage_shift;
+ 		nr = 0;
+ 	}
+ 
+@@ -110,10 +110,9 @@ static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
+ }
+ 
+ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+-		   pte_t *ptep, pte_t orig, int fullmm)
++		   pte_t *ptep, pte_t orig, int fullmm,
++		   unsigned int hugepage_shift)
+ {
+-	bool huge = is_hugetlb_pte(orig);
+-
+ 	if (tlb_type != hypervisor &&
+ 	    pte_dirty(orig)) {
+ 		unsigned long paddr, pfn = pte_pfn(orig);
+@@ -139,7 +138,7 @@ void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+ 
+ no_cache_flush:
+ 	if (!fullmm)
+-		tlb_batch_add_one(mm, vaddr, pte_exec(orig), huge);
++		tlb_batch_add_one(mm, vaddr, pte_exec(orig), hugepage_shift);
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+index e20fbba..22cb41f 100644
+--- a/arch/sparc/mm/tsb.c
++++ b/arch/sparc/mm/tsb.c
+@@ -86,6 +86,33 @@ static void __flush_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
+ 		__flush_tsb_one_entry(tsb, tb->vaddrs[i], hash_shift, nentries);
+ }
+ 
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
++static void __flush_huge_tsb_one_entry(unsigned long tsb, unsigned long v,
++				       unsigned long hash_shift,
++				       unsigned long nentries,
++				       unsigned int hugepage_shift)
++{
++	unsigned int hpage_entries;
++	unsigned int i;
++
++	hpage_entries = 1 << (hugepage_shift - REAL_HPAGE_SHIFT);
++	for (i = 0; i < hpage_entries; i++)
++		__flush_tsb_one_entry(tsb, v + i * REAL_HPAGE_SHIFT, hash_shift,
++				      nentries);
++}
++
++static void __flush_huge_tsb_one(struct tlb_batch *tb, unsigned long hash_shift,
++				 unsigned long tsb, unsigned long nentries,
++				 unsigned int hugepage_shift)
++{
++	unsigned long i;
++
++	for (i = 0; i < tb->tlb_nr; i++)
++		__flush_huge_tsb_one_entry(tsb, tb->vaddrs[i], hash_shift,
++					   nentries, hugepage_shift);
++}
++#endif
++
+ void flush_tsb_user(struct tlb_batch *tb)
+ {
+ 	struct mm_struct *mm = tb->mm;
+@@ -93,7 +120,7 @@ void flush_tsb_user(struct tlb_batch *tb)
+ 
+ 	spin_lock_irqsave(&mm->context.lock, flags);
+ 
+-	if (!tb->huge) {
++	if (tb->hugepage_shift = PAGE_SHIFT) {
+ 		base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
+ 		nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
+ 		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
+@@ -101,24 +128,26 @@ void flush_tsb_user(struct tlb_batch *tb)
+ 		__flush_tsb_one(tb, PAGE_SHIFT, base, nentries);
+ 	}
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-	if (tb->huge && mm->context.tsb_block[MM_TSB_HUGE].tsb) {
++	else if (mm->context.tsb_block[MM_TSB_HUGE].tsb) {
+ 		base = (unsigned long) mm->context.tsb_block[MM_TSB_HUGE].tsb;
+ 		nentries = mm->context.tsb_block[MM_TSB_HUGE].tsb_nentries;
+ 		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
+ 			base = __pa(base);
+-		__flush_tsb_one(tb, REAL_HPAGE_SHIFT, base, nentries);
++		__flush_huge_tsb_one(tb, REAL_HPAGE_SHIFT, base, nentries,
++				     tb->hugepage_shift);
+ 	}
+ #endif
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+-void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr, bool huge)
++void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr,
++			 unsigned int hugepage_shift)
+ {
+ 	unsigned long nentries, base, flags;
+ 
+ 	spin_lock_irqsave(&mm->context.lock, flags);
+ 
+-	if (!huge) {
++	if (hugepage_shift = PAGE_SHIFT) {
+ 		base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
+ 		nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
+ 		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
+@@ -126,12 +155,13 @@ void flush_tsb_user_page(struct mm_struct *mm, unsigned long vaddr, bool huge)
+ 		__flush_tsb_one_entry(base, vaddr, PAGE_SHIFT, nentries);
+ 	}
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-	if (huge && mm->context.tsb_block[MM_TSB_HUGE].tsb) {
++	else if (mm->context.tsb_block[MM_TSB_HUGE].tsb) {
+ 		base = (unsigned long) mm->context.tsb_block[MM_TSB_HUGE].tsb;
+ 		nentries = mm->context.tsb_block[MM_TSB_HUGE].tsb_nentries;
+ 		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
+ 			base = __pa(base);
+-		__flush_tsb_one_entry(base, vaddr, REAL_HPAGE_SHIFT, nentries);
++		__flush_huge_tsb_one_entry(base, vaddr, REAL_HPAGE_SHIFT,
++					   nentries, hugepage_shift);
+ 	}
+ #endif
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
 -- 
-2.11.0
+2.9.2
 
