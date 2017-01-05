@@ -1,86 +1,96 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 31 Jan 2017 23:38:49 +0000
-Subject: Re: [PATCH v5 4/4] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <6c514e7e-338a-f1cd-140d-d4980ea6ac0f@oracle.com>
+From: Larry Bassel <larry.bassel@oracle.com>
+Date: Thu, 05 Jan 2017 17:23:33 +0000
+Subject: [PATCH v4] sparc64: shut down to OBP correctly
+Message-Id: <1483637013-52889-1-git-send-email-larry.bassel@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1485362562.git.khalid.aziz@oracle.com>
- <cover.1485362562.git.khalid.aziz@oracle.com>
- <0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
- <20170130.171531.1973857503703372714.davem@davemloft.net>
-In-Reply-To: <20170130.171531.1973857503703372714.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
+To: sparclinux@vger.kernel.org
 
-On 01/30/2017 03:15 PM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Wed, 25 Jan 2017 12:57:16 -0700
->
->> +static inline void enable_adi(void)
->> +{
->  ...
->> +	__asm__ __volatile__(
->> +		"rdpr %%pstate, %%g1\n\t"
->> +		"or %%g1, %0, %%g1\n\t"
->> +		"wrpr %%g1, %%g0, %%pstate\n\t"
->> +		".word 0x83438000\n\t"	/* rd %mcdper, %g1 */
->> +		".word 0xaf900001\n\t"	/* wrpr  %g0, %g1, %pmcdper */
->> +		:
->> +		: "i" (PSTATE_MCDE)
->> +		: "g1");
->> +}
->
-> This is _crazy_ expensive.
->
-> This is 4 privileged register operations, every single one incurs a full
-> pipline flush and virtual cpu thread yield.
->
-> And we do this around _every_ single userspace access from the kernel
-> when the thread has ADI enabled.
+The command "shutdown -h -H now" should shut the system down to the
+OBP, however the machine was being powered off in the LDOM case.
 
-Hi Dave,
+In the LDOM case, the "reboot-command" variable must be set to
+the string "noop" and then ldom_reboot() must be called.
+This will make the OBP ignore the setting of "auto-boot?" after it
+completes the reset. This causes the system to stop at the ok prompt.
 
-Thanks for the feedback. This is very helpful. I checked and it indeed 
-can cost 50+ cycles even on M7 processor for PSTATE accesses.
+Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
+---
+ arch/sparc/include/asm/ldc.h |    2 +-
+ arch/sparc/kernel/ds.c       |    6 +++---
+ arch/sparc/prom/misc_64.c    |   12 ++++++++++--
+ 3 files changed, 14 insertions(+), 6 deletions(-)
 
->
-> I think if the kernel manages the ADI metadata properly, you can get rid
-> of all of this.
->
-> On etrap, you change ESTATE_PSTATE{1,2} to have the MCDE bit enabled.
-> Then the kernel always runs with ADI enabled.
-
-Running the kernel with PSTATE.mcde=1 can possibly be problematic as we 
-had discussed earlier in this thread where keeping PSTATE.mcde enabled 
-might mean kernel having to keep track of which pages still have tags 
-set on them or flush tags on every page on free. I will go through the 
-code again to see if it PSTATE.mcde can be turned on in kernel all the 
-time, which might be the case if we can ensure kernel accesses pages 
-with TTE.mcd cleared.
-
->
-> Furthermore, since the %mcdper register should be set to whatever the
-> current task has asked for, you should be able to avoid touching it
-> as well assuming that traps do not change %mcdper's value.
-
-When running in privileged mode, it is the value of %pmcdper that 
-matter, not %mcdper, hence I added code to sync %pmcdper with %mcdper 
-when entering privileged mode. Nevertheless, one of the HW designers has 
-suggested I might be able to get away without having to futz with 
-%pmcdper by using membar before exiting privileged mode which might 
-still get me the same effect I am looking for without the cost.
-
---
-Khalid
-
->
-> Then you don't need to do anything special during userspace accesses
-> which seems to be the way this was designed to be used.
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/arch/sparc/include/asm/ldc.h b/arch/sparc/include/asm/ldc.h
+index 6e9004a..a96a849 100644
+--- a/arch/sparc/include/asm/ldc.h
++++ b/arch/sparc/include/asm/ldc.h
+@@ -5,7 +5,7 @@
+ 
+ extern int ldom_domaining_enabled;
+ void ldom_set_var(const char *var, const char *value);
+-void ldom_reboot(const char *boot_command);
++extern void ldom_reboot(const char *boot_command, bool prepend_boot);
+ void ldom_power_off(void);
+ 
+ /* The event handler will be evoked when link state changes
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index f87a55d..723167a 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -841,7 +841,7 @@ void ldom_set_var(const char *var, const char *value)
+ static char full_boot_str[256] __attribute__((aligned(32)));
+ static int reboot_data_supported;
+ 
+-void ldom_reboot(const char *boot_command)
++void ldom_reboot(const char *boot_command, bool prepend_boot)
+ {
+ 	/* Don't bother with any of this if the boot_command
+ 	 * is empty.
+@@ -849,8 +849,8 @@ void ldom_reboot(const char *boot_command)
+ 	if (boot_command && strlen(boot_command)) {
+ 		unsigned long len;
+ 
+-		snprintf(full_boot_str, sizeof(full_boot_str), "boot %s",
+-			 boot_command);
++		snprintf(full_boot_str, sizeof(full_boot_str), "%s%s",
++			 prepend_boot ? "boot " : "", boot_command);
+ 		len = strlen(full_boot_str);
+ 
+ 		if (reboot_data_supported) {
+diff --git a/arch/sparc/prom/misc_64.c b/arch/sparc/prom/misc_64.c
+index 53a696d..7efe361 100644
+--- a/arch/sparc/prom/misc_64.c
++++ b/arch/sparc/prom/misc_64.c
+@@ -54,7 +54,7 @@ void prom_reboot(const char *bcommand)
+ 
+ #ifdef CONFIG_SUN_LDOMS
+ 	if (ldom_domaining_enabled)
+-		ldom_reboot(bcommand);
++		ldom_reboot(bcommand, true);
+ #endif
+ 	args[0] = (unsigned long) "boot";
+ 	args[1] = 1;
+@@ -116,8 +116,16 @@ void notrace prom_halt(void)
+ 	unsigned long args[3];
+ 
+ #ifdef CONFIG_SUN_LDOMS
++	/*
++	* By storing a no-op command
++	* in the 'reboot-command' variable we cause OBP
++	* to ignore the setting of 'auto-boot?' after
++	* it completes the reset.  This causes the system
++	* to stop at the ok prompt.
++	*/
++
+ 	if (ldom_domaining_enabled)
+-		ldom_power_off();
++		ldom_reboot("noop", false);
+ #endif
+ again:
+ 	args[0] = (unsigned long) "exit";
+-- 
+1.7.1
 
