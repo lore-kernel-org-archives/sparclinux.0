@@ -1,94 +1,46 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 05 Jan 2017 15:13:31 +0000
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Thu, 05 Jan 2017 19:22:33 +0000
 Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <e808bcce-3357-9df9-2032-442d6b59798a@oracle.com>
+Message-Id: <75c31c99-cff7-72dc-f593-012fe5acd405@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
- <fc6696de-34d7-e4ce-2b39-f788ba22843e@redhat.com>
-In-Reply-To: <fc6696de-34d7-e4ce-2b39-f788ba22843e@redhat.com>
+ <6fcaab9f-40fb-fdfb-2c7e-bf21a862ab7c@linux.intel.com>
+ <ae0b7d0b-54fa-fa93-3b50-d14ace1b16f5@oracle.com>
+ <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
+ <8612e7db-97c5-f757-0aae-24c3acedbc29@oracle.com>
+ <2c0502d0-20ef-44ac-db5b-7f651a70b978@linux.intel.com>
+ <ba9c4de2-cec1-1c88-82c9-24a524eb7948@oracle.com>
+ <db31d324-a1ae-7450-0e54-ad98da205773@linux.intel.com>
+ <5a0270ea-b29a-0751-a27f-2412a8588561@oracle.com>
+ <7532a1d6-6562-b10b-dacd-931cb2a9e536@linux.intel.com>
+ <92d55a69-b400-8461-53a1-d505de089700@oracle.com>
+In-Reply-To: <92d55a69-b400-8461-53a1-d505de089700@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jerome Marchand <jmarchan@redhat.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
-Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vg
+To: Khalid Aziz <khalid.aziz@oracle.com>, Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, x86@kernel.org, linux-mm@kva
 
-On 01/05/2017 02:37 AM, Jerome Marchand wrote:
-> On 01/04/2017 11:46 PM, Khalid Aziz wrote:
->> ADI is a new feature supported on sparc M7 and newer processors to allow
->> hardware to catch rogue accesses to memory. ADI is supported for data
->> fetches only and not instruction fetches. An app can enable ADI on its
->> data pages, set version tags on them and use versioned addresses to
->> access the data pages. Upper bits of the address contain the version
->> tag. On M7 processors, upper four bits (bits 63-60) contain the version
->> tag. If a rogue app attempts to access ADI enabled data pages, its
->> access is blocked and processor generates an exception.
->>
->> This patch extends mprotect to enable ADI (TSTATE.mcde), enable/disable
->> MCD (Memory Corruption Detection) on selected memory ranges, enable
->> TTE.mcd in PTEs, return ADI parameters to userspace and save/restore ADI
->> version tags on page swap out/in.  It also adds handlers for all traps
->> related to MCD. ADI is not enabled by default for any task. A task must
->> explicitly enable ADI on a memory range and set version tag for ADI to
->> be effective for the task.
->>
->> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
->> Cc: Khalid Aziz <khalid@gonehiking.org>
->> ---
->> v2:
->> 	- Fixed a build error
->>
->> v3:
->> 	- Removed CONFIG_SPARC_ADI
->> 	- Replaced prctl commands with mprotect
->> 	- Added auxiliary vectors for ADI parameters
->> 	- Enabled ADI for swappable pages
->>
->>  Documentation/sparc/adi.txt             | 239 ++++++++++++++++++++++++++++++++
->>  arch/sparc/include/asm/adi.h            |   6 +
->>  arch/sparc/include/asm/adi_64.h         |  46 ++++++
->>  arch/sparc/include/asm/elf_64.h         |   8 ++
->>  arch/sparc/include/asm/hugetlb.h        |  13 ++
->>  arch/sparc/include/asm/hypervisor.h     |   2 +
->>  arch/sparc/include/asm/mman.h           |  40 +++++-
->>  arch/sparc/include/asm/mmu_64.h         |   2 +
->>  arch/sparc/include/asm/mmu_context_64.h |  32 +++++
->>  arch/sparc/include/asm/pgtable_64.h     |  97 ++++++++++++-
->>  arch/sparc/include/asm/ttable.h         |  10 ++
->>  arch/sparc/include/asm/uaccess_64.h     | 120 +++++++++++++++-
->>  arch/sparc/include/uapi/asm/asi.h       |   5 +
->>  arch/sparc/include/uapi/asm/auxvec.h    |   8 ++
->>  arch/sparc/include/uapi/asm/mman.h      |   2 +
->>  arch/sparc/include/uapi/asm/pstate.h    |  10 ++
->>  arch/sparc/kernel/Makefile              |   1 +
->>  arch/sparc/kernel/adi_64.c              |  93 +++++++++++++
->>  arch/sparc/kernel/entry.h               |   3 +
->>  arch/sparc/kernel/head_64.S             |   1 +
->>  arch/sparc/kernel/mdesc.c               |   4 +
->>  arch/sparc/kernel/process_64.c          |  21 +++
->>  arch/sparc/kernel/sun4v_mcd.S           |  16 +++
->>  arch/sparc/kernel/traps_64.c            | 142 ++++++++++++++++++-
->>  arch/sparc/kernel/ttable_64.S           |   6 +-
->>  arch/sparc/mm/gup.c                     |  37 +++++
->>  arch/sparc/mm/tlb.c                     |  28 ++++
->>  arch/x86/kernel/signal_compat.c         |   2 +-
->>  include/asm-generic/pgtable.h           |   5 +
->>  include/linux/mm.h                      |   2 +
->>  include/uapi/asm-generic/siginfo.h      |   5 +-
->>  mm/memory.c                             |   2 +-
->>  mm/rmap.c                               |   4 +-
->
-> I haven't actually reviewed the code and looked at why you need
-> set_swp_pte_at() function, but the code that add the generic version of
-> this function need to be separated from the rest of the patch. Also,
-> given the size of this patch, I suspect the rest also need to be broken
-> into more patches.
->
-> Jerome
->
+On 01/04/2017 04:26 PM, Khalid Aziz wrote:
+...
+> No, we do not have space to stuff PAGE_SIZE/64 version tags in swap pte.
+> There is enough space for just one tag per page. DaveM had suggested
+> doing this since the usual case is for a task to set one tag per page
+> even though MMU does not require it. I have implemented this as first
+> pass to start a discussion and get feedback on whether rest of the
+> swapping implementation and other changes look right, hence the patch is
+> "RFC". If this all looks good, I can expand swapping support in a
+> subsequent patch or iteration of this patch to allocate space in
+> mm_context_t possibly to store per cacheline tags. I am open to any
+> other ideas on storing this larger number of version tags.
 
-Sure, I can do that. Code to add new signal codes can be one patch, 
-generic changes to swap infrastructure can be another and I can look for 
-logical breaks for the rest of the sparc specific code.
+FWIW, This is the kind of thing that would be really useful to point out
+to reviewers instead of requiring them to ferret it out of the code.  It
+has huge implications for how applications use this feature.
 
---
-Khalid
+As for where to store the tags...  It's potentially a *lot* of data, so
+I think it'll be a pain any way you do it.
+
+If you, instead, can live with doing things on a PAGE_SIZE granularity
+like pkeys does, you could just store it in the VMA and have the kernel
+tag the data at the same time it zeroes the pages.
