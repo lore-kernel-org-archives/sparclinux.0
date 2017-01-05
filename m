@@ -1,54 +1,143 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 05 Jan 2017 00:26:08 +0000
+From: Jerome Marchand <jmarchan@redhat.com>
+Date: Thu, 05 Jan 2017 09:37:54 +0000
 Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <92d55a69-b400-8461-53a1-d505de089700@oracle.com>
+Message-Id: <fc6696de-34d7-e4ce-2b39-f788ba22843e@redhat.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="sohvc9WI75EfSsNXpXQdmT2AlG3UVldN7"
 List-Id: <sparclinux.vger.kernel.org>
 References: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
- <6fcaab9f-40fb-fdfb-2c7e-bf21a862ab7c@linux.intel.com>
- <ae0b7d0b-54fa-fa93-3b50-d14ace1b16f5@oracle.com>
- <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
- <8612e7db-97c5-f757-0aae-24c3acedbc29@oracle.com>
- <2c0502d0-20ef-44ac-db5b-7f651a70b978@linux.intel.com>
- <ba9c4de2-cec1-1c88-82c9-24a524eb7948@oracle.com>
- <db31d324-a1ae-7450-0e54-ad98da205773@linux.intel.com>
- <5a0270ea-b29a-0751-a27f-2412a8588561@oracle.com>
- <7532a1d6-6562-b10b-dacd-931cb2a9e536@linux.intel.com>
-In-Reply-To: <7532a1d6-6562-b10b-dacd-931cb2a9e536@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Dave Hansen <dave.hansen@linux.intel.com>, Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
-Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vger.kerne
+In-Reply-To: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
+To: Khalid Aziz <khalid.aziz@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vg
 
-On 01/04/2017 05:14 PM, Dave Hansen wrote:
-> On 01/04/2017 04:05 PM, Rob Gardner wrote:
->>> What if two different small pages have different tags and khugepaged
->>> comes along and tries to collapse them?  Will the page be split if a
->>> user attempts to set two different tags inside two different small-page
->>> portions of a single THP?
->>
->> The MCD tags operate at a resolution of cache lines (64 bytes). Page
->> sizes don't matter except that each virtual page must have a bit set in
->> its TTE to allow MCD to be enabled on the page. Any page can have many
->> different tags, one for each cache line.
->
-> Is an "MCD tag" the same thing as a "ADI version tag"?
->
-> The thing that confused me here is that we're taking an entire page of
-> "ADI version tags" and stuffing them into a swap pte (in
-> set_swp_pte_at()).  Do we somehow have enough space in a swap pte on
-> sparc to fit PAGE_SIZE/64 "ADI version tag"s in there?
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--sohvc9WI75EfSsNXpXQdmT2AlG3UVldN7
+Content-Type: multipart/mixed; boundary="AwKJ5KgT36TUmAJ2vEHPPTerIT0EXBbgB";
+ protected-headers="v1"
+From: Jerome Marchand <jmarchan@redhat.com>
+To: Khalid Aziz <khalid.aziz@oracle.com>, davem@davemloft.net,
+ corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com,
+ chris.hyser@oracle.com, tushar.n.dave@oracle.com,
+ sowmini.varadhan@oracle.com, mike.kravetz@oracle.com,
+ adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com,
+ kirill.shutemov@linux.intel.com, keescook@chromium.org,
+ allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com,
+ joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com,
+ paul.gortmaker@windriver.com, mhocko@suse.com, dave.hansen@linux.intel.com,
+ lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz,
+ tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com,
+ iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com,
+ hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+ linux-arch@vger.kernel.org, x86@kernel.org, linux-mm@kvack.org,
+ Khalid Aziz <khalid@gonehiking.org>
+Message-ID: <fc6696de-34d7-e4ce-2b39-f788ba22843e@redhat.com>
+Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data
+ Integrity (ADI)
+References: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
+In-Reply-To: <1483569999-13543-1-git-send-email-khalid.aziz@oracle.com>
 
-No, we do not have space to stuff PAGE_SIZE/64 version tags in swap pte. 
-There is enough space for just one tag per page. DaveM had suggested 
-doing this since the usual case is for a task to set one tag per page 
-even though MMU does not require it. I have implemented this as first 
-pass to start a discussion and get feedback on whether rest of the 
-swapping implementation and other changes look right, hence the patch is 
-"RFC". If this all looks good, I can expand swapping support in a 
-subsequent patch or iteration of this patch to allocate space in 
-mm_context_t possibly to store per cacheline tags. I am open to any 
-other ideas on storing this larger number of version tags.
+--AwKJ5KgT36TUmAJ2vEHPPTerIT0EXBbgB
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Khalid
+On 01/04/2017 11:46 PM, Khalid Aziz wrote:
+> ADI is a new feature supported on sparc M7 and newer processors to allo=
+w
+> hardware to catch rogue accesses to memory. ADI is supported for data
+> fetches only and not instruction fetches. An app can enable ADI on its
+> data pages, set version tags on them and use versioned addresses to
+> access the data pages. Upper bits of the address contain the version
+> tag. On M7 processors, upper four bits (bits 63-60) contain the version=
+
+> tag. If a rogue app attempts to access ADI enabled data pages, its
+> access is blocked and processor generates an exception.
+>=20
+> This patch extends mprotect to enable ADI (TSTATE.mcde), enable/disable=
+
+> MCD (Memory Corruption Detection) on selected memory ranges, enable
+> TTE.mcd in PTEs, return ADI parameters to userspace and save/restore AD=
+I
+> version tags on page swap out/in.  It also adds handlers for all traps
+> related to MCD. ADI is not enabled by default for any task. A task must=
+
+> explicitly enable ADI on a memory range and set version tag for ADI to
+> be effective for the task.
+>=20
+> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+> Cc: Khalid Aziz <khalid@gonehiking.org>
+> ---
+> v2:
+> 	- Fixed a build error
+>=20
+> v3:
+> 	- Removed CONFIG_SPARC_ADI
+> 	- Replaced prctl commands with mprotect
+> 	- Added auxiliary vectors for ADI parameters
+> 	- Enabled ADI for swappable pages
+>=20
+>  Documentation/sparc/adi.txt             | 239 ++++++++++++++++++++++++=
+++++++++
+>  arch/sparc/include/asm/adi.h            |   6 +
+>  arch/sparc/include/asm/adi_64.h         |  46 ++++++
+>  arch/sparc/include/asm/elf_64.h         |   8 ++
+>  arch/sparc/include/asm/hugetlb.h        |  13 ++
+>  arch/sparc/include/asm/hypervisor.h     |   2 +
+>  arch/sparc/include/asm/mman.h           |  40 +++++-
+>  arch/sparc/include/asm/mmu_64.h         |   2 +
+>  arch/sparc/include/asm/mmu_context_64.h |  32 +++++
+>  arch/sparc/include/asm/pgtable_64.h     |  97 ++++++++++++-
+>  arch/sparc/include/asm/ttable.h         |  10 ++
+>  arch/sparc/include/asm/uaccess_64.h     | 120 +++++++++++++++-
+>  arch/sparc/include/uapi/asm/asi.h       |   5 +
+>  arch/sparc/include/uapi/asm/auxvec.h    |   8 ++
+>  arch/sparc/include/uapi/asm/mman.h      |   2 +
+>  arch/sparc/include/uapi/asm/pstate.h    |  10 ++
+>  arch/sparc/kernel/Makefile              |   1 +
+>  arch/sparc/kernel/adi_64.c              |  93 +++++++++++++
+>  arch/sparc/kernel/entry.h               |   3 +
+>  arch/sparc/kernel/head_64.S             |   1 +
+>  arch/sparc/kernel/mdesc.c               |   4 +
+>  arch/sparc/kernel/process_64.c          |  21 +++
+>  arch/sparc/kernel/sun4v_mcd.S           |  16 +++
+>  arch/sparc/kernel/traps_64.c            | 142 ++++++++++++++++++-
+>  arch/sparc/kernel/ttable_64.S           |   6 +-
+>  arch/sparc/mm/gup.c                     |  37 +++++
+>  arch/sparc/mm/tlb.c                     |  28 ++++
+>  arch/x86/kernel/signal_compat.c         |   2 +-
+>  include/asm-generic/pgtable.h           |   5 +
+>  include/linux/mm.h                      |   2 +
+>  include/uapi/asm-generic/siginfo.h      |   5 +-
+>  mm/memory.c                             |   2 +-
+>  mm/rmap.c                               |   4 +-
+
+I haven't actually reviewed the code and looked at why you need
+set_swp_pte_at() function, but the code that add the generic version of
+this function need to be separated from the rest of the patch. Also,
+given the size of this patch, I suspect the rest also need to be broken
+into more patches.
+
+Jerome
+
+
+--AwKJ5KgT36TUmAJ2vEHPPTerIT0EXBbgB--
+
+--sohvc9WI75EfSsNXpXQdmT2AlG3UVldN7
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJYbhPyAAoJEHTzHJCtsuoCRbsH/2g2oUJ5VzNQAlk9RV46wAJa
+pJZwWhC7GSVKmbBF5zA2FvPHd4zIoWwnVQuKXdTDTKSX7o/Thm0QqqZOTm0Y1YKB
+qAviSK/cgvothZOlDozE5bjHkHk6PLpzBYiZfdOkFfFSljleKWXcVjNfkNT2RaHq
+G6SYcUkwKA2xGJ+TAeWAAlh7QOO7brI51ZIhd7QgMK8weKWzuMnlesumnYHEBJP5
+mcT/K0TCFzplC7kHzhXZPkMa7i5zJQcdidxFOya+61VsF+NWX/1Cz6T2o3ZABRLW
+192NW6KYkLAkT3eHWNB1zI4Ukg9dBL6it3SzJ2KSVlt8/rT2B//JKjn7rfeaSRI=
+=lvlT
+-----END PGP SIGNATURE-----
+
+--sohvc9WI75EfSsNXpXQdmT2AlG3UVldN7--
