@@ -1,21 +1,30 @@
-From: David Miller <davem@redhat.com>
-Date: Fri, 06 Jan 2017 16:25:25 +0000
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Fri, 06 Jan 2017 16:55:03 +0000
 Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <20170106.112525.2194459503197293118.davem@redhat.com>
+Message-Id: <b761e7a9-6f64-e8cb-334a-a49528e95cdf@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ac86aa55-964d-56a1-1381-c208de78b24e@oracle.com>
-        <f33f2c3c-4ec5-423c-5d13-a4b9ab8f7a95@linux.intel.com>
-        <cae91a3b-27f2-4008-539e-153d66fc03ae@oracle.com>
+References: <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
+ <8612e7db-97c5-f757-0aae-24c3acedbc29@oracle.com>
+ <2c0502d0-20ef-44ac-db5b-7f651a70b978@linux.intel.com>
+ <ba9c4de2-cec1-1c88-82c9-24a524eb7948@oracle.com>
+ <db31d324-a1ae-7450-0e54-ad98da205773@linux.intel.com>
+ <5a0270ea-b29a-0751-a27f-2412a8588561@oracle.com>
+ <7532a1d6-6562-b10b-dacd-931cb2a9e536@linux.intel.com>
+ <92d55a69-b400-8461-53a1-d505de089700@oracle.com>
+ <75c31c99-cff7-72dc-f593-012fe5acd405@linux.intel.com>
+ <7fbc4ca1-22ef-8ef5-5c1b-dd075852e512@oracle.com>
+ <20170106091934.GF5556@dhcp22.suse.cz>
+ <ac86aa55-964d-56a1-1381-c208de78b24e@oracle.com>
+ <f33f2c3c-4ec5-423c-5d13-a4b9ab8f7a95@linux.intel.com>
+ <cae91a3b-27f2-4008-539e-153d66fc03ae@oracle.com>
 In-Reply-To: <cae91a3b-27f2-4008-539e-153d66fc03ae@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: dave.hansen@linux.intel.com, mhocko@kernel.org, rob.gardner@oracle.com, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org, hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingular
+To: Khalid Aziz <khalid.aziz@oracle.com>, Michal Hocko <mhocko@kernel.org>
+Cc: Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org, hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdav
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Fri, 6 Jan 2017 09:22:13 -0700
-
+On 01/06/2017 08:22 AM, Khalid Aziz wrote:
 > On 01/06/2017 08:36 AM, Dave Hansen wrote:
 >> On 01/06/2017 07:32 AM, Khalid Aziz wrote:
 >>> I agree with you on simplicity first. Subpage granularity is complex,
@@ -30,13 +39,14 @@ Date: Fri, 6 Jan 2017 09:22:13 -0700
 > 
 > You are right. Page migration can invalidate subpage granularity even
 > for locked pages. Is it possible to use cpusets to keep a task and its
-> memory locked on a single node? Just wondering if there are limited
-> cases where subpage granularity could work without supporting subpage
-> granularity for tags in swap. It still sounds like the right thing to
-> do is to get a reliable implementation in place with page size
-> granularity and then add the complexity of subpage granularity.
+> memory locked on a single node?
 
-It sounds to me, in all of this, that if the kernel manages the
-movement of the pages, it thus must handle making sure the tags move
-around with that page as well.
+It's going to be hard to impossible to guarantee.  mlock() doesn't
+guarantee that things won't change physical addresses.  You'd have to
+change that guarantee or chase all the things in the kernel that might
+change physical addresses (compaction, ksm, etc...).
+
+Actually, that reminds me...  How does your code interface with ksm?  Or
+is there no interaction needed since you're always working on virtual
+addresses?
 
