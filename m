@@ -1,7 +1,7 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Fri, 06 Jan 2017 15:36:53 +0000
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 06 Jan 2017 16:22:13 +0000
 Subject: Re: [RFC PATCH v3] sparc64: Add support for Application Data Integrity (ADI)
-Message-Id: <f33f2c3c-4ec5-423c-5d13-a4b9ab8f7a95@linux.intel.com>
+Message-Id: <cae91a3b-27f2-4008-539e-153d66fc03ae@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
  <8612e7db-97c5-f757-0aae-24c3acedbc29@oracle.com>
@@ -15,19 +15,33 @@ References: <d234fb8b-965f-d966-46fe-965478fdf7cb@linux.intel.com>
  <7fbc4ca1-22ef-8ef5-5c1b-dd075852e512@oracle.com>
  <20170106091934.GF5556@dhcp22.suse.cz>
  <ac86aa55-964d-56a1-1381-c208de78b24e@oracle.com>
-In-Reply-To: <ac86aa55-964d-56a1-1381-c208de78b24e@oracle.com>
+ <f33f2c3c-4ec5-423c-5d13-a4b9ab8f7a95@linux.intel.com>
+In-Reply-To: <f33f2c3c-4ec5-423c-5d13-a4b9ab8f7a95@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>, Michal Hocko <mhocko@kernel.org>
-Cc: Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org, hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vg
+To: Dave Hansen <dave.hansen@linux.intel.com>, Michal Hocko <mhocko@kernel.org>
+Cc: Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org, hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev
 
-On 01/06/2017 07:32 AM, Khalid Aziz wrote:
-> I agree with you on simplicity first. Subpage granularity is complex,
-> but the architecture allows for subpage granularity. Maybe the right
-> approach is to support this at page granularity first for swappable
-> pages and then expand to subpage granularity in a subsequent patch?
-> Pages locked in memory can already use subpage granularity with my patch.
+On 01/06/2017 08:36 AM, Dave Hansen wrote:
+> On 01/06/2017 07:32 AM, Khalid Aziz wrote:
+>> I agree with you on simplicity first. Subpage granularity is complex,
+>> but the architecture allows for subpage granularity. Maybe the right
+>> approach is to support this at page granularity first for swappable
+>> pages and then expand to subpage granularity in a subsequent patch?
+>> Pages locked in memory can already use subpage granularity with my patch.
+>
+> What do you mean by "locked in memory"?  mlock()'d memory can still be
+> migrated around and still requires "swap" ptes, for instance.
 
-What do you mean by "locked in memory"?  mlock()'d memory can still be
-migrated around and still requires "swap" ptes, for instance.
+You are right. Page migration can invalidate subpage granularity even 
+for locked pages. Is it possible to use cpusets to keep a task and its 
+memory locked on a single node? Just wondering if there are limited 
+cases where subpage granularity could work without supporting subpage 
+granularity for tags in swap. It still sounds like the right thing to do 
+is to get a reliable implementation in place with page size granularity 
+and then add the complexity of subpage granularity.
+
+Thanks,
+Khalid
+
