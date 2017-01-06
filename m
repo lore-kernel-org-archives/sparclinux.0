@@ -1,46 +1,55 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Date: Mon, 09 Jan 2017 12:00:04 +0000
-Subject: Re: [PATCH v2 1/7] arm: put types.h in uapi
-Message-Id: <20170109120004.GV14217@n2100.armlinux.org.uk>
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Date: Fri, 06 Jan 2017 19:38:59 +0000
+Subject: [PATCH 1/2] sparc64: Don't panic on user mode non-resumable errors
+Message-Id: <1483731540-8055-2-git-send-email-Liam.Howlett@Oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com>
- <1483695839-18660-2-git-send-email-nicolas.dichtel@6wind.com>
- <1990589.0aJHWbJK4F@wuerfel>
-In-Reply-To: <1990589.0aJHWbJK4F@wuerfel>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linuxppc-dev@lists.ozlabs.org, linux-kbuild@vger.kernel.org, linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, coreteam@netfilter.org, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68
+To: sparclinux@vger.kernel.org
 
-On Mon, Jan 09, 2017 at 12:33:02PM +0100, Arnd Bergmann wrote:
-> On Friday, January 6, 2017 10:43:53 AM CET Nicolas Dichtel wrote:
-> > 
-> > diff --git a/arch/arm/include/asm/types.h b/arch/arm/include/asm/types.h
-> > index a53cdb8f068c..c48fee3d7b3b 100644
-> > --- a/arch/arm/include/asm/types.h
-> > +++ b/arch/arm/include/asm/types.h
-> > @@ -1,40 +1,6 @@
-> >  #ifndef _ASM_TYPES_H
-> >  #define _ASM_TYPES_H
-> >  
-> > -#include <asm-generic/int-ll64.h>
-> ...
-> > -#define __UINTPTR_TYPE__       unsigned long
-> > -#endif
-> > +#include <uapi/asm/types.h>
-> >  
-> >  #endif /* _ASM_TYPES_H */
-> > 
-> 
-> Moving the file is correct as far as I can tell, but the extra
-> #include is not necessary here, as the kernel will automatically
-> search both arch/arm/include/ and arch/arm/include/uapi/.
+Send a SIGBUS to the offending process on all userspace non-resumable
+traps.  This prevents userspace applications from creating a kernel
+panic.  The siginfo will return the code BUS_ADRERR and a valid address
+if possible.
 
-Indeed, I'd like to see the include/asm file gone.
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+---
+ arch/sparc/kernel/traps_64.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 496fa92..3a0c153 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2075,6 +2075,27 @@ void sun4v_nonresum_error(struct pt_regs *regs, unsigned long offset)
+ 
+ 	put_cpu();
+ 
++	if (!(regs->tstate & TSTATE_PRIV)) {
++		/* DON'T PANIC.  This error was from userspace. */
++		siginfo_t info;
++		unsigned int insn;
++
++		info.si_signo = SIGBUS;
++		info.si_code = BUS_ADRERR;
++		info.si_errno = 0;
++		info.si_trapno = 0;
++		info.si_addr = 0;
++
++		if (!copy_from_user(&insn, (void __user *)regs->tpc, 4)) {
++			info.si_addr = (void __user *)
++				compute_effective_address(regs, insn,
++						(insn >> 25) & 0x1f);
++		}
++
++		force_sig_info(SIGBUS, &info, current);
++		return;
++	}
++
+ #ifdef CONFIG_PCI
+ 	/* Check for the special PCI poke sequence. */
+ 	if (pci_poke_in_progress && pci_poke_cpu = cpu) {
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.1.4
+
