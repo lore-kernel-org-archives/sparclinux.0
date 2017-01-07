@@ -1,7 +1,7 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Sat, 07 Jan 2017 12:51:04 +0000
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Date: Sat, 07 Jan 2017 13:30:36 +0000
 Subject: Re: console noise after commit c1e9b3b0eea
-Message-Id: <CADxRZqxRT8SH=VHJSZi66Nonx+SrU2VsY_u2dSPDJrUuU7E+uQ@mail.gmail.com>
+Message-Id: <20170107133036.GC10956@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160419223325.GA15852@oracle.com>
 In-Reply-To: <20160419223325.GA15852@oracle.com>
@@ -10,27 +10,30 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Wed, Apr 20, 2016 at 1:33 AM, Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
->
-> Hi Anatoly,
->
-> after commit c1e9b3b0eea1 ("hwrng: n2 - Attach on T5/M5, T7/M7 SPARC CPUs")
-> I get a *lot* of console noise on my T5-2, of the form:
->
-> n2rng f028f21c: Selftest failed on unit 0
-> n2rng f028f21c: Test buffer slot 0 [0x0000000000000000]
-> n2rng f028f21c: Test buffer slot 1 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 2 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 3 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 4 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 5 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 6 [0xe63f56d6a22eb116]
-> n2rng f028f21c: Test buffer slot 7 [0xe63f56d6a22eb116]
+On (01/07/17 15:51), Anatoly Pugachev wrote:
+> Sowmini ,
+> 
+> what is your linux sysctl value for kernel.printk ?
+> 
+> mine is :
+> kernel.printk = 7       4       1       7
 
-Sowmini ,
+I also have that:
+# cat /proc/sys/kernel/printk
+7       4       1       7
 
-what is your linux sysctl value for kernel.printk ?
+But that's not the point- I have different levels of printks
+at various times to help me debug things at verious levels,
+(as our customers do) and this noise is a hindrance.
+We should really be getting to the bottom of this, and 
+solving the real issue here.
 
-mine is :
-kernel.printk = 7       4       1       7
+I think Shannon has made some good pregress with this, he 
+should be sharing it on the list soon.
+
+(suppressing the printk is like asking me to remove the
+batteries from my fire-alarm- that's not the answer)
+
+--Sowmini
+
+
