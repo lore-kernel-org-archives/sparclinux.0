@@ -1,37 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 17 Jan 2017 03:26:38 +0000
-Subject: Re: [PATCH v2 2/2] sparc64: Handle PIO & MEM non-resumable errors.
-Message-Id: <20170116.222638.1303554288572754989.davem@davemloft.net>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Sat, 07 Jan 2017 12:51:04 +0000
+Subject: Re: console noise after commit c1e9b3b0eea
+Message-Id: <CADxRZqxRT8SH=VHJSZi66Nonx+SrU2VsY_u2dSPDJrUuU7E+uQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1484590334-15668-3-git-send-email-Liam.Howlett@Oracle.com>
-In-Reply-To: <1484590334-15668-3-git-send-email-Liam.Howlett@Oracle.com>
+References: <20160419223325.GA15852@oracle.com>
+In-Reply-To: <20160419223325.GA15852@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Date: Mon, 16 Jan 2017 13:12:14 -0500
+On Wed, Apr 20, 2016 at 1:33 AM, Sowmini Varadhan
+<sowmini.varadhan@oracle.com> wrote:
+>
+> Hi Anatoly,
+>
+> after commit c1e9b3b0eea1 ("hwrng: n2 - Attach on T5/M5, T7/M7 SPARC CPUs")
+> I get a *lot* of console noise on my T5-2, of the form:
+>
+> n2rng f028f21c: Selftest failed on unit 0
+> n2rng f028f21c: Test buffer slot 0 [0x0000000000000000]
+> n2rng f028f21c: Test buffer slot 1 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 2 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 3 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 4 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 5 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 6 [0xe63f56d6a22eb116]
+> n2rng f028f21c: Test buffer slot 7 [0xe63f56d6a22eb116]
 
-> +		return compute_effective_address(regs, insn, (insn >> 25) &
-> +				0x1f);
+Sowmini ,
 
-Please do not split up an expression as an argument over multiple lines.
+what is your linux sysctl value for kernel.printk ?
 
-Also, when a call spans multiple lines, the second and subsequent lines
-must start precisely at the first column after the openning parenthesis
-of the first line.
-
-> +			unsigned long page_cnt = DIV_ROUND_UP(ent->err_size,
-> +							      PAGE_SIZE);
-> +
-> +
-> +			/* Break the unfortunate news. */
-
-No need for two empty line there, one is enough.
-
-Otherwise this looks good.
-
-Please fix this up and resubmit the entire series.
-
-Thanks.
+mine is :
+kernel.printk = 7       4       1       7
