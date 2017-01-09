@@ -1,2708 +1,3926 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Date: Fri, 13 Jan 2017 10:46:45 +0000
-Subject: [PATCH v3 7/8] uapi: export all headers under uapi directories
-Message-Id: <1484304406-10820-8-git-send-email-nicolas.dichtel@6wind.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Mon, 09 Jan 2017 15:02:49 +0000
+Subject: [PATCH v3 6/6] tools: add userspace linker table sandbox
+Message-Id: <20170109150249.11667-7-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+References: <20161222023958.21306-1-mcgrof@kernel.org>
+ <20170109150249.11667-1-mcgrof@kernel.org>
+In-Reply-To: <20170109150249.11667-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arnd@arndb.de
-Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, daniel.vetter@ffwll.ch, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, linux@armlinux.org.uk, hch@infradead.org, coreteam@netfilter.org, msalter@redhat.com, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org
+To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
 
-Regularly, when a new header is created in include/uapi/, the developer
-forgets to add it in the corresponding Kbuild file. This error is usually
-detected after the release is out.
+Add a userspace sandbox to allow easy experimentation and
+test extensions with linker tables, section ranges and the
+new section core definitions.
 
-In fact, all headers under uapi directories should be exported, thus it's
-useless to have an exhaustive list.
+The userspace sandbox tries to mimic the Linux kernel development
+flow as much as possible, it however relies on and uses libc. Support
+is currently only provided to x86_64.
 
-After this patch, the following files, which were not exported, are now
-exported (with make headers_install_all):
-asm-unicore32/shmparam.h
-asm-unicore32/ucontext.h
-asm-hexagon/shmparam.h
-asm-mips/ucontext.h
-asm-mips/hwcap.h
-asm-mips/reg.h
-drm/vgem_drm.h
-drm/armada_drm.h
-drm/omap_drm.h
-drm/etnaviv_drm.h
-asm-tile/shmparam.h
-asm-blackfin/shmparam.h
-asm-blackfin/ucontext.h
-asm-powerpc/perf_regs.h
-rdma/qedr-abi.h
-asm-parisc/kvm_para.h
-asm-openrisc/shmparam.h
-.install
-asm-nios2/kvm_para.h
-asm-nios2/ucontext.h
-asm-sh/kvm_para.h
-asm-sh/ucontext.h
-asm-xtensa/kvm_para.h
-asm-avr32/kvm_para.h
-asm-m32r/kvm_para.h
-asm-h8300/shmparam.h
-asm-h8300/ucontext.h
-asm-metag/kvm_para.h
-asm-metag/shmparam.h
-asm-metag/ucontext.h
-asm-m68k/kvm_para.h
-asm-m68k/shmparam.h
-linux/bcache.h
-linux/kvm.h
-linux/kvm_para.h
-linux/kfd_ioctl.h
-linux/cryptouser.h
-linux/kcm.h
-linux/kcov.h
-linux/seg6_iptunnel.h
-linux/stm.h
-linux/genwqe
-linux/genwqe/.install
-linux/genwqe/genwqe_card.h
-linux/genwqe/..install.cmd
-linux/seg6.h
-linux/cifs
-linux/cifs/.install
-linux/cifs/cifs_mount.h
-linux/cifs/..install.cmd
-linux/auto_dev-ioctl.h
-linux/userio.h
-linux/pr.h
-linux/wil6210_uapi.h
-linux/a.out.h
-linux/nilfs2_ondisk.h
-linux/hash_info.h
-linux/seg6_genl.h
-linux/seg6_hmac.h
-linux/batman_adv.h
-linux/nsfs.h
-linux/qrtr.h
-linux/btrfs_tree.h
-linux/coresight-stm.h
-linux/dma-buf.h
-linux/module.h
-linux/lightnvm.h
-linux/nilfs2_api.h
-asm-cris/kvm_para.h
-asm-arc/kvm_para.h
-asm-arc/ucontext.h
-..install.cmd
-asm-c6x/shmparam.h
-asm-c6x/ucontext.h
+Demo run:
 
-Thanks to Julien Floret <julien.floret@6wind.com> for the tip to get all
-subdirs with a pure makefile command.
+cd tools/linker-tables
+make clean; make;
+./demo
+Initializing x86 bare metal world
+x86-init: Number of init entries: 8
+Initializing memory ...
+Completed initializing memory !
+Initializing pci ...
+PCI fixup size: 1
+Demo: Using LINKTABLE_FOR_EACH
+foo_fixup
+Demo: Using LINKTABLE_RUN_ALL
+foo_fixup
+Completed initializing pci !
+Number of init entries: 1
+Initializing kprobes ...
+= OK: test_kprobe_0001 within range!
+= OK: test_kprobe_0002 not in range as expected!
+Completed initializing kprobes !
+Initializing kasan ...
+Early init for Kasan...
+Completed initializing kasan !
+Initializing beta ...
+Completed initializing beta !
+Initializing alpha ...
+Completed initializing alpha !
+Booting bare metal
+Calling start_kernel()...
+ACME: Initializing ...
+ACME: Finished init ... !
+Synthetics: synth_init_or(2) returns: 0xDEADBEEF
+Synthetics: ps_shr(0xDEADBEEF, get_demo_shr) returns: 0x0000DEAD
 
-For the record, note that exported files for asm directories are a mix of
-files listed by:
- - include/uapi/asm-generic/Kbuild.asm;
- - arch/<arch>/include/uapi/asm/Kbuild;
- - arch/<arch>/include/asm/Kbuild.
+v6: rename table macros as suggested by Andy Shevchenko
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
-Acked-by: Mark Salter <msalter@redhat.com>
+v5:
+
+o Use ..rng.* instead of .rng.* as suggested by Nicholas Piggin.
+  This is the typical way to avoid clashes with compiler generated
+  sections.
+
+o moves tools/include/linux/printk.h to tools
+  linker-table/include/linux/printk.h -- we cannot generalize this
+  just yet, more work is needed in terms of providing a namespace for
+  headers for types of ports of kernel functionality to userspace.
+
+o Adjust code according to the latest discussions for the linker
+  tables API (section name macros are now gone).
+
+o Give CONFIG_HAVE_ARCH_PS_CONST for x86 another good 'ol college try,
+  still fails, but this is just a demo anyway. We can amend and fix
+  make this more optimized for x86 later. Thanks Boris!
+
+v4: this patch is new in this series -- added to the kenrel as
+    suggested by Boris, as otherwise it'd be really hard to keep
+    an external userspace repository in sync.
+
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: David Ahern <dsahern@gmail.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Wang Nan <wangnan0@huawei.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- Documentation/kbuild/makefiles.txt          |  55 ++--
- arch/alpha/include/uapi/asm/Kbuild          |  41 ---
- arch/arc/include/uapi/asm/Kbuild            |   3 -
- arch/arm/include/uapi/asm/Kbuild            |  17 -
- arch/arm64/include/uapi/asm/Kbuild          |  18 --
- arch/avr32/include/uapi/asm/Kbuild          |  20 --
- arch/blackfin/include/uapi/asm/Kbuild       |  17 -
- arch/c6x/include/uapi/asm/Kbuild            |   8 -
- arch/cris/include/uapi/arch-v10/arch/Kbuild |   5 -
- arch/cris/include/uapi/arch-v32/arch/Kbuild |   3 -
- arch/cris/include/uapi/asm/Kbuild           |  43 +--
- arch/frv/include/uapi/asm/Kbuild            |  33 --
- arch/h8300/include/uapi/asm/Kbuild          |  28 --
- arch/hexagon/include/asm/Kbuild             |   3 -
- arch/hexagon/include/uapi/asm/Kbuild        |  13 -
- arch/ia64/include/uapi/asm/Kbuild           |  45 ---
- arch/m32r/include/uapi/asm/Kbuild           |  31 --
- arch/m68k/include/uapi/asm/Kbuild           |  24 --
- arch/metag/include/uapi/asm/Kbuild          |   8 -
- arch/microblaze/include/uapi/asm/Kbuild     |  32 --
- arch/mips/include/uapi/asm/Kbuild           |  37 ---
- arch/mn10300/include/uapi/asm/Kbuild        |  32 --
- arch/nios2/include/uapi/asm/Kbuild          |   3 +-
- arch/openrisc/include/asm/Kbuild            |   3 -
- arch/openrisc/include/uapi/asm/Kbuild       |   8 -
- arch/parisc/include/uapi/asm/Kbuild         |  28 --
- arch/powerpc/include/uapi/asm/Kbuild        |  45 ---
- arch/s390/include/uapi/asm/Kbuild           |  52 ---
- arch/score/include/asm/Kbuild               |   4 -
- arch/score/include/uapi/asm/Kbuild          |  32 --
- arch/sh/include/uapi/asm/Kbuild             |  23 --
- arch/sparc/include/uapi/asm/Kbuild          |  48 ---
- arch/tile/include/asm/Kbuild                |   3 -
- arch/tile/include/uapi/arch/Kbuild          |  17 -
- arch/tile/include/uapi/asm/Kbuild           |  19 +-
- arch/unicore32/include/uapi/asm/Kbuild      |   6 -
- arch/x86/include/uapi/asm/Kbuild            |  58 ----
- arch/xtensa/include/uapi/asm/Kbuild         |  23 --
- include/Kbuild                              |   2 -
- include/asm-generic/Kbuild.asm              |   1 -
- include/scsi/fc/Kbuild                      |   0
- include/uapi/Kbuild                         |  15 -
- include/uapi/asm-generic/Kbuild             |  36 ---
- include/uapi/asm-generic/Kbuild.asm         |  62 ++--
- include/uapi/drm/Kbuild                     |  22 --
- include/uapi/linux/Kbuild                   | 483 ----------------------------
- include/uapi/linux/android/Kbuild           |   2 -
- include/uapi/linux/byteorder/Kbuild         |   3 -
- include/uapi/linux/caif/Kbuild              |   3 -
- include/uapi/linux/can/Kbuild               |   6 -
- include/uapi/linux/dvb/Kbuild               |   9 -
- include/uapi/linux/hdlc/Kbuild              |   2 -
- include/uapi/linux/hsi/Kbuild               |   2 -
- include/uapi/linux/iio/Kbuild               |   3 -
- include/uapi/linux/isdn/Kbuild              |   2 -
- include/uapi/linux/mmc/Kbuild               |   2 -
- include/uapi/linux/netfilter/Kbuild         |  89 -----
- include/uapi/linux/netfilter/ipset/Kbuild   |   5 -
- include/uapi/linux/netfilter_arp/Kbuild     |   3 -
- include/uapi/linux/netfilter_bridge/Kbuild  |  18 --
- include/uapi/linux/netfilter_ipv4/Kbuild    |  10 -
- include/uapi/linux/netfilter_ipv6/Kbuild    |  13 -
- include/uapi/linux/nfsd/Kbuild              |   6 -
- include/uapi/linux/raid/Kbuild              |   3 -
- include/uapi/linux/spi/Kbuild               |   2 -
- include/uapi/linux/sunrpc/Kbuild            |   2 -
- include/uapi/linux/tc_act/Kbuild            |  15 -
- include/uapi/linux/tc_ematch/Kbuild         |   5 -
- include/uapi/linux/usb/Kbuild               |  12 -
- include/uapi/linux/wimax/Kbuild             |   2 -
- include/uapi/misc/Kbuild                    |   2 -
- include/uapi/mtd/Kbuild                     |   6 -
- include/uapi/rdma/Kbuild                    |  18 --
- include/uapi/rdma/hfi/Kbuild                |   2 -
- include/uapi/scsi/Kbuild                    |   6 -
- include/uapi/scsi/fc/Kbuild                 |   5 -
- include/uapi/sound/Kbuild                   |  16 -
- include/uapi/video/Kbuild                   |   4 -
- include/uapi/xen/Kbuild                     |   5 -
- include/video/Kbuild                        |   0
- scripts/Makefile.headersinst                |  45 +--
- 81 files changed, 92 insertions(+), 1745 deletions(-)
- delete mode 100644 arch/cris/include/uapi/arch-v10/arch/Kbuild
- delete mode 100644 arch/cris/include/uapi/arch-v32/arch/Kbuild
- delete mode 100644 arch/tile/include/uapi/arch/Kbuild
- delete mode 100644 include/Kbuild
- delete mode 100644 include/asm-generic/Kbuild.asm
- delete mode 100644 include/scsi/fc/Kbuild
- delete mode 100644 include/uapi/Kbuild
- delete mode 100644 include/uapi/asm-generic/Kbuild
- delete mode 100644 include/uapi/drm/Kbuild
- delete mode 100644 include/uapi/linux/Kbuild
- delete mode 100644 include/uapi/linux/android/Kbuild
- delete mode 100644 include/uapi/linux/byteorder/Kbuild
- delete mode 100644 include/uapi/linux/caif/Kbuild
- delete mode 100644 include/uapi/linux/can/Kbuild
- delete mode 100644 include/uapi/linux/dvb/Kbuild
- delete mode 100644 include/uapi/linux/hdlc/Kbuild
- delete mode 100644 include/uapi/linux/hsi/Kbuild
- delete mode 100644 include/uapi/linux/iio/Kbuild
- delete mode 100644 include/uapi/linux/isdn/Kbuild
- delete mode 100644 include/uapi/linux/mmc/Kbuild
- delete mode 100644 include/uapi/linux/netfilter/Kbuild
- delete mode 100644 include/uapi/linux/netfilter/ipset/Kbuild
- delete mode 100644 include/uapi/linux/netfilter_arp/Kbuild
- delete mode 100644 include/uapi/linux/netfilter_bridge/Kbuild
- delete mode 100644 include/uapi/linux/netfilter_ipv4/Kbuild
- delete mode 100644 include/uapi/linux/netfilter_ipv6/Kbuild
- delete mode 100644 include/uapi/linux/nfsd/Kbuild
- delete mode 100644 include/uapi/linux/raid/Kbuild
- delete mode 100644 include/uapi/linux/spi/Kbuild
- delete mode 100644 include/uapi/linux/sunrpc/Kbuild
- delete mode 100644 include/uapi/linux/tc_act/Kbuild
- delete mode 100644 include/uapi/linux/tc_ematch/Kbuild
- delete mode 100644 include/uapi/linux/usb/Kbuild
- delete mode 100644 include/uapi/linux/wimax/Kbuild
- delete mode 100644 include/uapi/misc/Kbuild
- delete mode 100644 include/uapi/mtd/Kbuild
- delete mode 100644 include/uapi/rdma/Kbuild
- delete mode 100644 include/uapi/rdma/hfi/Kbuild
- delete mode 100644 include/uapi/scsi/Kbuild
- delete mode 100644 include/uapi/scsi/fc/Kbuild
- delete mode 100644 include/uapi/sound/Kbuild
- delete mode 100644 include/uapi/video/Kbuild
- delete mode 100644 include/uapi/xen/Kbuild
- delete mode 100644 include/video/Kbuild
+ Documentation/sections/linker-tables.rst           |   4 +-
+ MAINTAINERS                                        |   1 +
+ include/linux/tables.h                             |   5 +-
+ tools/Makefile                                     |   3 +-
+ .../arch/x86/include/generated/asm/section-core.h  |   1 +
+ tools/arch/x86/include/generated/ranges.h          |   1 +
+ tools/arch/x86/include/generated/tables.h          |   1 +
+ tools/include/asm-generic/ranges.h                 |  93 +++
+ tools/include/asm-generic/section-core.h           | 348 +++++++++++
+ tools/include/asm-generic/tables.h                 |  48 ++
+ tools/include/linux/ranges.h                       | 183 ++++++
+ tools/include/linux/sections.h                     |  87 +++
+ tools/include/linux/string.h                       |   1 +
+ tools/include/linux/tables.h                       | 684 +++++++++++++++++++++
+ tools/linker-tables/.gitignore                     |   2 +
+ tools/linker-tables/Makefile                       | 184 ++++++
+ tools/linker-tables/README                         | 114 ++++
+ tools/linker-tables/arch/x86/include/asm/asm.h     |  17 +
+ tools/linker-tables/arch/x86/include/asm/boot.h    |   1 +
+ .../linker-tables/arch/x86/include/asm/bootparam.h |  32 +
+ tools/linker-tables/arch/x86/include/asm/kprobes.h |   7 +
+ .../linker-tables/arch/x86/include/asm/ps_const.h  |  23 +
+ tools/linker-tables/arch/x86/include/asm/ranges.h  |   6 +
+ .../arch/x86/include/asm/section-core.h            |   1 +
+ tools/linker-tables/arch/x86/include/asm/setup.h   |   6 +
+ tools/linker-tables/arch/x86/include/asm/tables.h  |   6 +
+ tools/linker-tables/arch/x86/include/asm/x86.h     |   4 +
+ .../arch/x86/include/asm/x86_init_fn.h             | 169 +++++
+ tools/linker-tables/arch/x86/kernel/alpha.c        |   9 +
+ tools/linker-tables/arch/x86/kernel/alternative.c  |  31 +
+ tools/linker-tables/arch/x86/kernel/beta.c         |   9 +
+ tools/linker-tables/arch/x86/kernel/head64.c       |  58 ++
+ tools/linker-tables/arch/x86/kernel/init.c         |  42 ++
+ tools/linker-tables/arch/x86/kernel/kasan.c        |  10 +
+ tools/linker-tables/arch/x86/kernel/kprobes.c      |  51 ++
+ tools/linker-tables/arch/x86/kernel/vmlinux.lds.S  | 277 +++++++++
+ tools/linker-tables/arch/x86/mm/init.c             |  10 +
+ tools/linker-tables/arch/x86/xen/init.c            |  13 +
+ tools/linker-tables/drivers/acme.c                 |  32 +
+ tools/linker-tables/drivers/synth/common.c         |  16 +
+ tools/linker-tables/drivers/synth/common.h         |   2 +
+ tools/linker-tables/drivers/synth/main.c           |  35 ++
+ tools/linker-tables/drivers/synth/or.S             |  39 ++
+ tools/linker-tables/drivers/synth/synth.h          |   2 +
+ tools/linker-tables/drivers/xen-driver.c           |  11 +
+ .../include/asm-generic/arch_init_fn.h             |  50 ++
+ tools/linker-tables/include/asm-generic/kprobes.h  |  26 +
+ tools/linker-tables/include/linux/bitops.h         |   6 +
+ tools/linker-tables/include/linux/init.h           |  40 ++
+ tools/linker-tables/include/linux/kasan.h          |   5 +
+ tools/linker-tables/include/linux/kernel.h         |   2 +
+ tools/linker-tables/include/linux/kprobes.h        |  11 +
+ tools/linker-tables/include/linux/module.h         |  14 +
+ tools/linker-tables/include/linux/mutex.h          |  17 +
+ tools/linker-tables/include/linux/pci.h            |   7 +
+ tools/linker-tables/include/linux/printk.h         |  26 +
+ tools/linker-tables/include/linux/ps_const.h       |  46 ++
+ tools/linker-tables/include/linux/sched.h          |   9 +
+ tools/linker-tables/include/linux/spinlock.h       |  13 +
+ tools/linker-tables/include/linux/start_kernel.h   |   1 +
+ tools/linker-tables/include/linux/types.h          |  13 +
+ tools/linker-tables/include/linux/workqueue.h      |  51 ++
+ tools/linker-tables/include/xen/xen.h              |   4 +
+ tools/linker-tables/kernel/locking/mutex.c         |  28 +
+ tools/linker-tables/kernel/locking/spinlock.c      |  26 +
+ tools/linker-tables/kernel/main.c                  |  32 +
+ tools/linker-tables/kernel/workqueue.c             |  43 ++
+ tools/linker-tables/lib/string.c                   |  26 +
+ tools/linker-tables/main.c                         |  20 +
+ tools/linker-tables/pci-quirks.c                   |  13 +
+ tools/linker-tables/pci.c                          |  29 +
+ 71 files changed, 3232 insertions(+), 5 deletions(-)
+ create mode 100644 tools/arch/x86/include/generated/asm/section-core.h
+ create mode 100644 tools/arch/x86/include/generated/ranges.h
+ create mode 100644 tools/arch/x86/include/generated/tables.h
+ create mode 100644 tools/include/asm-generic/ranges.h
+ create mode 100644 tools/include/asm-generic/section-core.h
+ create mode 100644 tools/include/asm-generic/tables.h
+ create mode 100644 tools/include/linux/ranges.h
+ create mode 100644 tools/include/linux/sections.h
+ create mode 100644 tools/include/linux/tables.h
+ create mode 100644 tools/linker-tables/.gitignore
+ create mode 100644 tools/linker-tables/Makefile
+ create mode 100644 tools/linker-tables/README
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/asm.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/boot.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/bootparam.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/kprobes.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/ps_const.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/ranges.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/section-core.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/setup.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/tables.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/x86.h
+ create mode 100644 tools/linker-tables/arch/x86/include/asm/x86_init_fn.h
+ create mode 100644 tools/linker-tables/arch/x86/kernel/alpha.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/alternative.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/beta.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/head64.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/init.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/kasan.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/kprobes.c
+ create mode 100644 tools/linker-tables/arch/x86/kernel/vmlinux.lds.S
+ create mode 100644 tools/linker-tables/arch/x86/mm/init.c
+ create mode 100644 tools/linker-tables/arch/x86/xen/init.c
+ create mode 100644 tools/linker-tables/drivers/acme.c
+ create mode 100644 tools/linker-tables/drivers/synth/common.c
+ create mode 100644 tools/linker-tables/drivers/synth/common.h
+ create mode 100644 tools/linker-tables/drivers/synth/main.c
+ create mode 100644 tools/linker-tables/drivers/synth/or.S
+ create mode 100644 tools/linker-tables/drivers/synth/synth.h
+ create mode 100644 tools/linker-tables/drivers/xen-driver.c
+ create mode 100644 tools/linker-tables/include/asm-generic/arch_init_fn.h
+ create mode 100644 tools/linker-tables/include/asm-generic/kprobes.h
+ create mode 100644 tools/linker-tables/include/linux/bitops.h
+ create mode 100644 tools/linker-tables/include/linux/init.h
+ create mode 100644 tools/linker-tables/include/linux/kasan.h
+ create mode 100644 tools/linker-tables/include/linux/kernel.h
+ create mode 100644 tools/linker-tables/include/linux/kprobes.h
+ create mode 100644 tools/linker-tables/include/linux/module.h
+ create mode 100644 tools/linker-tables/include/linux/mutex.h
+ create mode 100644 tools/linker-tables/include/linux/pci.h
+ create mode 100644 tools/linker-tables/include/linux/printk.h
+ create mode 100644 tools/linker-tables/include/linux/ps_const.h
+ create mode 100644 tools/linker-tables/include/linux/sched.h
+ create mode 100644 tools/linker-tables/include/linux/spinlock.h
+ create mode 100644 tools/linker-tables/include/linux/start_kernel.h
+ create mode 100644 tools/linker-tables/include/linux/types.h
+ create mode 100644 tools/linker-tables/include/linux/workqueue.h
+ create mode 100644 tools/linker-tables/include/xen/xen.h
+ create mode 100644 tools/linker-tables/kernel/locking/mutex.c
+ create mode 100644 tools/linker-tables/kernel/locking/spinlock.c
+ create mode 100644 tools/linker-tables/kernel/main.c
+ create mode 100644 tools/linker-tables/kernel/workqueue.c
+ create mode 100644 tools/linker-tables/lib/string.c
+ create mode 100644 tools/linker-tables/main.c
+ create mode 100644 tools/linker-tables/pci-quirks.c
+ create mode 100644 tools/linker-tables/pci.c
 
-diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
-index 37b525d329ae..51c072049e45 100644
---- a/Documentation/kbuild/makefiles.txt
-+++ b/Documentation/kbuild/makefiles.txt
-@@ -44,10 +44,11 @@ This document describes the Linux kernel Makefiles.
- 	   --- 6.11 Post-link pass
+diff --git a/Documentation/sections/linker-tables.rst b/Documentation/sections/linker-tables.rst
+index bc2d9f46cde6..2f2bb1fc0798 100644
+--- a/Documentation/sections/linker-tables.rst
++++ b/Documentation/sections/linker-tables.rst
+@@ -11,11 +11,11 @@ About Linker tables
+ .. kernel-doc:: include/linux/tables.h
+    :doc: Introduction
  
- 	== 7 Kbuild syntax for exported headers
--		--- 7.1 header-y
-+		--- 7.1 mandatory-y
- 		--- 7.2 genhdr-y
- 		--- 7.3 generic-y
- 		--- 7.4 generated-y
-+		--- 7.5 subdir-y
+-Linker table provenance
++Linker table provenance and userspace testing
+ ---------------------------------------------
  
- 	== 8 Kbuild Variables
- 	== 9 Makefile language
-@@ -1235,7 +1236,7 @@ When kbuild executes, the following steps are followed (roughly):
- 	that may be shared between individual architectures.
- 	The recommended approach how to use a generic header file is
- 	to list the file in the Kbuild file.
--	See "7.4 generic-y" for further info on syntax etc.
-+	See "7.3 generic-y" for further info on syntax etc.
+ .. kernel-doc:: include/linux/tables.h
+-   :doc: Linker table provenance
++   :doc: Linker table provenance and userspace testing
  
- --- 6.11 Post-link pass
+ Benefits of using Linker tables
+ ===============diff --git a/MAINTAINERS b/MAINTAINERS
+index bbf519da3a78..30105cd3edaf 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5415,6 +5415,7 @@ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ F:	include/asm-generic/tables.h
+ F:	include/linux/tables.h
++F:	tools/linker-tables/
+ F:	Documentation/sections/linker-tables.rst
  
-@@ -1262,37 +1263,33 @@ The pre-processing does:
- - drop include of compiler.h
- - drop all sections that are kernel internal (guarded by ifdef __KERNEL__)
+ GENERIC PHY FRAMEWORK
+diff --git a/include/linux/tables.h b/include/linux/tables.h
+index 70a41edfa127..64b864949a02 100644
+--- a/include/linux/tables.h
++++ b/include/linux/tables.h
+@@ -35,12 +35,13 @@
+  */
  
--Each relevant directory contains a file name "Kbuild" which specifies the
--headers to be exported.
--See subsequent chapter for the syntax of the Kbuild file.
-+All headers under include/uapi/, include/generated/uapi/,
-+arch/<arch>/include/uapi/asm/ and arch/<arch>/include/generated/uapi/asm/
-+are exported.
+ /**
+- * DOC: Linker table provenance
++ * DOC: Linker table provenance and userspace testing
+  *
+  * The Linux implementation of linker tables was inspired by the iPXE linker
+  * table's solution (iPXE commit 67a10ef000cb7 "[contrib] Add rom-o-matic to
+  * contrib "[0]).  To see how this code evolved refer to the out of tree
+- * userspace linker-table tree [1].
++ * userspace linker-table tree [1]. Linux has a similar userspace application
++ * in tools/linker-tables/ to help more easily test adding new extensions.
+  *
+  * Contrary to iPXE's solution which strives to force compilation of
+  * everything using linker tables, Linux's solution allows for developers to be
+diff --git a/tools/Makefile b/tools/Makefile
+index 00caacd3ed92..ecb2e651c930 100644
+--- a/tools/Makefile
++++ b/tools/Makefile
+@@ -19,6 +19,7 @@ help:
+ 	@echo '  kvm_stat               - top-like utility for displaying kvm statistics'
+ 	@echo '  leds                   - LEDs  tools'
+ 	@echo '  lguest                 - a minimal 32-bit x86 hypervisor'
++	@echo '  linker-tables		- userspace liker table sandbox and related tools'
+ 	@echo '  net                    - misc networking tools'
+ 	@echo '  perf                   - Linux performance measurement and analysis tool'
+ 	@echo '  selftests              - various kernel selftests'
+@@ -86,7 +87,7 @@ tmon: FORCE
+ freefall: FORCE
+ 	$(call descend,laptop/$@)
  
--	--- 7.1 header-y
-+A Kbuild file may be defined under arch/<arch>/include/uapi/asm/ and
-+arch/<arch>/include/asm/ to list asm files coming from asm-generic.
-+See subsequent chapter for the syntax of the Kbuild file.
- 
--	header-y specifies header files to be exported.
-+	--- 7.1 mandatory-y
- 
--		Example:
--			#include/linux/Kbuild
--			header-y += usb/
--			header-y += aio_abi.h
-+	mandatory-y is essentially used by include/uapi/asm-generic/Kbuild.asm
-+	to define the minimun set of headers that must be exported in
-+	include/asm.
- 
--	The convention is to list one file per line and
-+	The convention is to list one subdir per line and
- 	preferably in alphabetic order.
- 
--	header-y also specifies which subdirectories to visit.
--	A subdirectory is identified by a trailing '/' which
--	can be seen in the example above for the usb subdirectory.
--
--	Subdirectories are visited before their parent directories.
--
- 	--- 7.2 genhdr-y
- 
--	genhdr-y specifies generated files to be exported.
--	Generated files are special as they need to be looked
--	up in another directory when doing 'make O=...' builds.
-+	genhdr-y specifies asm files to be generated.
- 
- 		Example:
--			#include/linux/Kbuild
--			genhdr-y += version.h
-+			#arch/x86/include/uapi/asm/Kbuild
-+			genhdr-y += unistd_32.h
-+			genhdr-y += unistd_64.h
-+			genhdr-y += unistd_x32.h
+-all: acpi cgroup cpupower gpio hv firewire lguest \
++all: acpi cgroup cpupower gpio hv firewire lguest linker-tables \
+ 		perf selftests turbostat usb \
+ 		virtio vm net x86_energy_perf_policy \
+ 		tmon freefall objtool
+diff --git a/tools/arch/x86/include/generated/asm/section-core.h b/tools/arch/x86/include/generated/asm/section-core.h
+new file mode 100644
+index 000000000000..06be2b1c424f
+--- /dev/null
++++ b/tools/arch/x86/include/generated/asm/section-core.h
+@@ -0,0 +1 @@
++#include <asm-generic/section-core.h>
+diff --git a/tools/arch/x86/include/generated/ranges.h b/tools/arch/x86/include/generated/ranges.h
+new file mode 100644
+index 000000000000..dac1a9a11367
+--- /dev/null
++++ b/tools/arch/x86/include/generated/ranges.h
+@@ -0,0 +1 @@
++#include <asm-generic/ranges.h>
+diff --git a/tools/arch/x86/include/generated/tables.h b/tools/arch/x86/include/generated/tables.h
+new file mode 100644
+index 000000000000..d437818275c5
+--- /dev/null
++++ b/tools/arch/x86/include/generated/tables.h
+@@ -0,0 +1 @@
++#include <asm-generic/tables.h>
+diff --git a/tools/include/asm-generic/ranges.h b/tools/include/asm-generic/ranges.h
+new file mode 100644
+index 000000000000..75c196864f45
+--- /dev/null
++++ b/tools/include/asm-generic/ranges.h
+@@ -0,0 +1,93 @@
++#ifndef _ASM_GENERIC_RANGES_H_
++#define _ASM_GENERIC_RANGES_H_
++/*
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++#include <asm/section-core.h>
 +
- 
- 	--- 7.3 generic-y
- 
-@@ -1334,6 +1331,18 @@ See subsequent chapter for the syntax of the Kbuild file.
- 			#arch/x86/include/asm/Kbuild
- 			generated-y += syscalls_32.h
- 
-+	--- 7.5 subdir-y
++#ifndef set_section_rng
++# define set_section_rng(section, name, flags)				\
++	 set_section_core(section, rng, name,				\
++			  any, flags)
++#endif
 +
-+	subdir-y may be used to specify a subdirectory to be exported.
++#ifndef set_section_rng_type
++# define set_section_rng_type(section, name, flags, type)		\
++	 set_section_core_type(section, rng, name,			\
++			       any, flags, type)
++#endif
 +
-+		Example:
-+			#arch/cris/include/uapi/asm/Kbuild
-+			subdir-y += ../arch-v10/arch/
-+			subdir-y += ../arch-v32/arch/
++#ifndef set_section_rng_level
++# define set_section_rng_level(section, name, level, flags)		\
++	 set_section_core(section, rng, name, level, flags)
++#endif
 +
-+	The convention is to list one subdir per line and
-+	preferably in alphabetic order.
++#ifndef push_section_rng
++# define push_section_rng(section, name, flags)				\
++	 push_section_core(section, rng, name,				\
++			   any, flags)
++#endif
 +
- == 8 Kbuild Variables
- 
- The top Makefile exports the following variables:
-diff --git a/arch/alpha/include/uapi/asm/Kbuild b/arch/alpha/include/uapi/asm/Kbuild
-index d96f2ef5b639..b15bf6bc0e94 100644
---- a/arch/alpha/include/uapi/asm/Kbuild
-+++ b/arch/alpha/include/uapi/asm/Kbuild
-@@ -1,43 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += a.out.h
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += compiler.h
--header-y += console.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += fpu.h
--header-y += gentrap.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += pal.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += reg.h
--header-y += regdef.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += sysinfo.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/arc/include/uapi/asm/Kbuild b/arch/arc/include/uapi/asm/Kbuild
-index f50d02df78d5..b15bf6bc0e94 100644
---- a/arch/arc/include/uapi/asm/Kbuild
-+++ b/arch/arc/include/uapi/asm/Kbuild
-@@ -1,5 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--header-y += elf.h
--header-y += page.h
--header-y += cachectl.h
-diff --git a/arch/arm/include/uapi/asm/Kbuild b/arch/arm/include/uapi/asm/Kbuild
-index 46a76cd6acb6..607f702c2d62 100644
---- a/arch/arm/include/uapi/asm/Kbuild
-+++ b/arch/arm/include/uapi/asm/Kbuild
-@@ -1,23 +1,6 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += auxvec.h
--header-y += byteorder.h
--header-y += fcntl.h
--header-y += hwcap.h
--header-y += ioctls.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += perf_regs.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += unistd.h
- genhdr-y += unistd-common.h
- genhdr-y += unistd-oabi.h
- genhdr-y += unistd-eabi.h
-diff --git a/arch/arm64/include/uapi/asm/Kbuild b/arch/arm64/include/uapi/asm/Kbuild
-index 825b0fe51c2b..13a97aa2285f 100644
---- a/arch/arm64/include/uapi/asm/Kbuild
-+++ b/arch/arm64/include/uapi/asm/Kbuild
-@@ -2,21 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += kvm_para.h
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += fcntl.h
--header-y += hwcap.h
--header-y += kvm_para.h
--header-y += perf_regs.h
--header-y += param.h
--header-y += ptrace.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += stat.h
--header-y += statfs.h
--header-y += ucontext.h
--header-y += unistd.h
-diff --git a/arch/avr32/include/uapi/asm/Kbuild b/arch/avr32/include/uapi/asm/Kbuild
-index 08d8a3d76ea8..610395083364 100644
---- a/arch/avr32/include/uapi/asm/Kbuild
-+++ b/arch/avr32/include/uapi/asm/Kbuild
-@@ -1,26 +1,6 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += auxvec.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
- generic-y += bitsperlong.h
- generic-y += errno.h
- generic-y += fcntl.h
-diff --git a/arch/blackfin/include/uapi/asm/Kbuild b/arch/blackfin/include/uapi/asm/Kbuild
-index 0bd28f77abc3..b15bf6bc0e94 100644
---- a/arch/blackfin/include/uapi/asm/Kbuild
-+++ b/arch/blackfin/include/uapi/asm/Kbuild
-@@ -1,19 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += bfin_sport.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += fcntl.h
--header-y += fixed_code.h
--header-y += ioctls.h
--header-y += kvm_para.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += stat.h
--header-y += swab.h
--header-y += unistd.h
-diff --git a/arch/c6x/include/uapi/asm/Kbuild b/arch/c6x/include/uapi/asm/Kbuild
-index e9bc2b2b8147..13a97aa2285f 100644
---- a/arch/c6x/include/uapi/asm/Kbuild
-+++ b/arch/c6x/include/uapi/asm/Kbuild
-@@ -2,11 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += kvm_para.h
--
--header-y += byteorder.h
--header-y += kvm_para.h
--header-y += ptrace.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += swab.h
--header-y += unistd.h
-diff --git a/arch/cris/include/uapi/arch-v10/arch/Kbuild b/arch/cris/include/uapi/arch-v10/arch/Kbuild
-deleted file mode 100644
-index 9048c87a782b..000000000000
---- a/arch/cris/include/uapi/arch-v10/arch/Kbuild
-+++ /dev/null
-@@ -1,5 +0,0 @@
--# UAPI Header export list
--header-y += sv_addr.agh
--header-y += sv_addr_ag.h
--header-y += svinto.h
--header-y += user.h
-diff --git a/arch/cris/include/uapi/arch-v32/arch/Kbuild b/arch/cris/include/uapi/arch-v32/arch/Kbuild
-deleted file mode 100644
-index 59efffd16b61..000000000000
---- a/arch/cris/include/uapi/arch-v32/arch/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += cryptocop.h
--header-y += user.h
-diff --git a/arch/cris/include/uapi/asm/Kbuild b/arch/cris/include/uapi/asm/Kbuild
-index d5564a0ae66a..d0c5471856e0 100644
---- a/arch/cris/include/uapi/asm/Kbuild
-+++ b/arch/cris/include/uapi/asm/Kbuild
-@@ -1,44 +1,5 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += ../arch-v10/arch/
--header-y += ../arch-v32/arch/
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += elf.h
--header-y += elf_v10.h
--header-y += elf_v32.h
--header-y += errno.h
--header-y += ethernet.h
--header-y += etraxgpio.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += ptrace_v10.h
--header-y += ptrace_v32.h
--header-y += resource.h
--header-y += rs485.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += sync_serial.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-+subdir-y += ../arch-v10/arch/
-+subdir-y += ../arch-v32/arch/
-diff --git a/arch/frv/include/uapi/asm/Kbuild b/arch/frv/include/uapi/asm/Kbuild
-index 42a2b33461c0..b15bf6bc0e94 100644
---- a/arch/frv/include/uapi/asm/Kbuild
-+++ b/arch/frv/include/uapi/asm/Kbuild
-@@ -1,35 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += registers.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/h8300/include/uapi/asm/Kbuild b/arch/h8300/include/uapi/asm/Kbuild
-index fb6101a5d4f1..b15bf6bc0e94 100644
---- a/arch/h8300/include/uapi/asm/Kbuild
-+++ b/arch/h8300/include/uapi/asm/Kbuild
-@@ -1,30 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += siginfo.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/hexagon/include/asm/Kbuild b/arch/hexagon/include/asm/Kbuild
-index db8ddabc6bd2..f3b1ceb5c1e4 100644
---- a/arch/hexagon/include/asm/Kbuild
-+++ b/arch/hexagon/include/asm/Kbuild
-@@ -1,6 +1,3 @@
--
--header-y += ucontext.h
--
- generic-y += auxvec.h
- generic-y += barrier.h
- generic-y += bug.h
-diff --git a/arch/hexagon/include/uapi/asm/Kbuild b/arch/hexagon/include/uapi/asm/Kbuild
-index c31706c38631..b15bf6bc0e94 100644
---- a/arch/hexagon/include/uapi/asm/Kbuild
-+++ b/arch/hexagon/include/uapi/asm/Kbuild
-@@ -1,15 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += kvm_para.h
--header-y += param.h
--header-y += ptrace.h
--header-y += registers.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += swab.h
--header-y += unistd.h
--header-y += user.h
-diff --git a/arch/ia64/include/uapi/asm/Kbuild b/arch/ia64/include/uapi/asm/Kbuild
-index 891002bbb995..13a97aa2285f 100644
---- a/arch/ia64/include/uapi/asm/Kbuild
-+++ b/arch/ia64/include/uapi/asm/Kbuild
-@@ -2,48 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += kvm_para.h
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += break.h
--header-y += byteorder.h
--header-y += cmpxchg.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += fpu.h
--header-y += gcc_intrin.h
--header-y += ia64regs.h
--header-y += intel_intrin.h
--header-y += intrinsics.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += perfmon.h
--header-y += perfmon_default_smpl.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += ptrace_offsets.h
--header-y += resource.h
--header-y += rse.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += ucontext.h
--header-y += unistd.h
--header-y += ustack.h
-diff --git a/arch/m32r/include/uapi/asm/Kbuild b/arch/m32r/include/uapi/asm/Kbuild
-index 43937a61d6cf..b15bf6bc0e94 100644
---- a/arch/m32r/include/uapi/asm/Kbuild
-+++ b/arch/m32r/include/uapi/asm/Kbuild
-@@ -1,33 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/m68k/include/uapi/asm/Kbuild b/arch/m68k/include/uapi/asm/Kbuild
-index 6a2d257bdfb2..64368077235a 100644
---- a/arch/m68k/include/uapi/asm/Kbuild
-+++ b/arch/m68k/include/uapi/asm/Kbuild
-@@ -9,27 +9,3 @@ generic-y += socket.h
- generic-y += sockios.h
- generic-y += termbits.h
- generic-y += termios.h
--
--header-y += a.out.h
--header-y += bootinfo.h
--header-y += bootinfo-amiga.h
--header-y += bootinfo-apollo.h
--header-y += bootinfo-atari.h
--header-y += bootinfo-hp300.h
--header-y += bootinfo-mac.h
--header-y += bootinfo-q40.h
--header-y += bootinfo-vme.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += fcntl.h
--header-y += ioctls.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += stat.h
--header-y += swab.h
--header-y += unistd.h
-diff --git a/arch/metag/include/uapi/asm/Kbuild b/arch/metag/include/uapi/asm/Kbuild
-index ab78be2b6eb0..b29731ebd7a9 100644
---- a/arch/metag/include/uapi/asm/Kbuild
-+++ b/arch/metag/include/uapi/asm/Kbuild
-@@ -1,14 +1,6 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += byteorder.h
--header-y += ech.h
--header-y += ptrace.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += swab.h
--header-y += unistd.h
--
- generic-y += mman.h
- generic-y += resource.h
- generic-y += setup.h
-diff --git a/arch/microblaze/include/uapi/asm/Kbuild b/arch/microblaze/include/uapi/asm/Kbuild
-index 1aac99f87df1..2178c78c7c1a 100644
---- a/arch/microblaze/include/uapi/asm/Kbuild
-+++ b/arch/microblaze/include/uapi/asm/Kbuild
-@@ -2,35 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += types.h
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += elf.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += unistd.h
-diff --git a/arch/mips/include/uapi/asm/Kbuild b/arch/mips/include/uapi/asm/Kbuild
-index f2cf41461146..a0266feba9e6 100644
---- a/arch/mips/include/uapi/asm/Kbuild
-+++ b/arch/mips/include/uapi/asm/Kbuild
-@@ -2,40 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += ipcbuf.h
--
--header-y += auxvec.h
--header-y += bitfield.h
--header-y += bitsperlong.h
--header-y += break.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += inst.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += sgidefs.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += sysmips.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/mn10300/include/uapi/asm/Kbuild b/arch/mn10300/include/uapi/asm/Kbuild
-index 040178cdb3eb..b15bf6bc0e94 100644
---- a/arch/mn10300/include/uapi/asm/Kbuild
-+++ b/arch/mn10300/include/uapi/asm/Kbuild
-@@ -1,34 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/nios2/include/uapi/asm/Kbuild b/arch/nios2/include/uapi/asm/Kbuild
-index 69c965304146..374bd123329f 100644
---- a/arch/nios2/include/uapi/asm/Kbuild
-+++ b/arch/nios2/include/uapi/asm/Kbuild
-@@ -1,6 +1,5 @@
-+# UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += elf.h
--
- generic-y += setup.h
- generic-y += ucontext.h
-diff --git a/arch/openrisc/include/asm/Kbuild b/arch/openrisc/include/asm/Kbuild
-index 2832f031fb11..561915716fd9 100644
---- a/arch/openrisc/include/asm/Kbuild
-+++ b/arch/openrisc/include/asm/Kbuild
-@@ -1,6 +1,3 @@
--
--header-y += ucontext.h
--
- generic-y += atomic.h
- generic-y += auxvec.h
- generic-y += barrier.h
-diff --git a/arch/openrisc/include/uapi/asm/Kbuild b/arch/openrisc/include/uapi/asm/Kbuild
-index 80761eb82b5f..b15bf6bc0e94 100644
---- a/arch/openrisc/include/uapi/asm/Kbuild
-+++ b/arch/openrisc/include/uapi/asm/Kbuild
-@@ -1,10 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += byteorder.h
--header-y += elf.h
--header-y += kvm_para.h
--header-y += param.h
--header-y += ptrace.h
--header-y += sigcontext.h
--header-y += unistd.h
-diff --git a/arch/parisc/include/uapi/asm/Kbuild b/arch/parisc/include/uapi/asm/Kbuild
-index 348356c99514..3971c60a7e7f 100644
---- a/arch/parisc/include/uapi/asm/Kbuild
-+++ b/arch/parisc/include/uapi/asm/Kbuild
-@@ -2,31 +2,3 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += resource.h
--
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += pdc.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/powerpc/include/uapi/asm/Kbuild b/arch/powerpc/include/uapi/asm/Kbuild
-index dab3717e3ea0..b15bf6bc0e94 100644
---- a/arch/powerpc/include/uapi/asm/Kbuild
-+++ b/arch/powerpc/include/uapi/asm/Kbuild
-@@ -1,47 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += bootx.h
--header-y += byteorder.h
--header-y += cputable.h
--header-y += eeh.h
--header-y += elf.h
--header-y += epapr_hcalls.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += nvram.h
--header-y += opal-prd.h
--header-y += param.h
--header-y += perf_event.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ps3fb.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += spu_info.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += tm.h
--header-y += types.h
--header-y += ucontext.h
--header-y += unistd.h
-diff --git a/arch/s390/include/uapi/asm/Kbuild b/arch/s390/include/uapi/asm/Kbuild
-index bf736e764cb4..b15bf6bc0e94 100644
---- a/arch/s390/include/uapi/asm/Kbuild
-+++ b/arch/s390/include/uapi/asm/Kbuild
-@@ -1,54 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += chpid.h
--header-y += chsc.h
--header-y += clp.h
--header-y += cmb.h
--header-y += dasd.h
--header-y += debug.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += hypfs.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm.h
--header-y += kvm_para.h
--header-y += kvm_perf.h
--header-y += kvm_virtio.h
--header-y += mman.h
--header-y += monwriter.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += qeth.h
--header-y += resource.h
--header-y += schid.h
--header-y += sclp_ctl.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sie.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += tape390.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += ucontext.h
--header-y += unistd.h
--header-y += virtio-ccw.h
--header-y += vtoc.h
--header-y += zcrypt.h
-diff --git a/arch/score/include/asm/Kbuild b/arch/score/include/asm/Kbuild
-index a05218ff3fe4..128ca7ec0220 100644
---- a/arch/score/include/asm/Kbuild
-+++ b/arch/score/include/asm/Kbuild
-@@ -1,7 +1,3 @@
--
--header-y +-
--
- generic-y += barrier.h
- generic-y += clkdev.h
- generic-y += cputime.h
-diff --git a/arch/score/include/uapi/asm/Kbuild b/arch/score/include/uapi/asm/Kbuild
-index 040178cdb3eb..b15bf6bc0e94 100644
---- a/arch/score/include/uapi/asm/Kbuild
-+++ b/arch/score/include/uapi/asm/Kbuild
-@@ -1,34 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/arch/sh/include/uapi/asm/Kbuild b/arch/sh/include/uapi/asm/Kbuild
-index 60613ae78513..b15bf6bc0e94 100644
---- a/arch/sh/include/uapi/asm/Kbuild
-+++ b/arch/sh/include/uapi/asm/Kbuild
-@@ -1,25 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += cpu-features.h
--header-y += hw_breakpoint.h
--header-y += ioctls.h
--header-y += posix_types.h
--header-y += posix_types_32.h
--header-y += posix_types_64.h
--header-y += ptrace.h
--header-y += ptrace_32.h
--header-y += ptrace_64.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += sockios.h
--header-y += stat.h
--header-y += swab.h
--header-y += types.h
--header-y += unistd.h
--header-y += unistd_32.h
--header-y += unistd_64.h
-diff --git a/arch/sparc/include/uapi/asm/Kbuild b/arch/sparc/include/uapi/asm/Kbuild
-index b5843ee09fb5..b15bf6bc0e94 100644
---- a/arch/sparc/include/uapi/asm/Kbuild
-+++ b/arch/sparc/include/uapi/asm/Kbuild
-@@ -1,50 +1,2 @@
- # UAPI Header export list
--# User exported sparc header files
--
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += apc.h
--header-y += asi.h
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += display7seg.h
--header-y += envctrl.h
--header-y += errno.h
--header-y += fbio.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += jsflash.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += openpromio.h
--header-y += param.h
--header-y += perfctr.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += psr.h
--header-y += psrcompat.h
--header-y += pstate.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += traps.h
--header-y += uctx.h
--header-y += unistd.h
--header-y += utrap.h
--header-y += watchdog.h
-diff --git a/arch/tile/include/asm/Kbuild b/arch/tile/include/asm/Kbuild
-index 2d1f5638974c..057eaa533877 100644
---- a/arch/tile/include/asm/Kbuild
-+++ b/arch/tile/include/asm/Kbuild
-@@ -1,6 +1,3 @@
--
--header-y += ../arch/
--
- generic-y += bug.h
- generic-y += bugs.h
- generic-y += clkdev.h
-diff --git a/arch/tile/include/uapi/arch/Kbuild b/arch/tile/include/uapi/arch/Kbuild
-deleted file mode 100644
-index 97dfbecec6b6..000000000000
---- a/arch/tile/include/uapi/arch/Kbuild
-+++ /dev/null
-@@ -1,17 +0,0 @@
--# UAPI Header export list
--header-y += abi.h
--header-y += chip.h
--header-y += chip_tilegx.h
--header-y += chip_tilepro.h
--header-y += icache.h
--header-y += interrupts.h
--header-y += interrupts_32.h
--header-y += interrupts_64.h
--header-y += opcode.h
--header-y += opcode_tilegx.h
--header-y += opcode_tilepro.h
--header-y += sim.h
--header-y += sim_def.h
--header-y += spr_def.h
--header-y += spr_def_32.h
--header-y += spr_def_64.h
-diff --git a/arch/tile/include/uapi/asm/Kbuild b/arch/tile/include/uapi/asm/Kbuild
-index c20db8e428bf..e0a50111e07f 100644
---- a/arch/tile/include/uapi/asm/Kbuild
-+++ b/arch/tile/include/uapi/asm/Kbuild
-@@ -1,21 +1,6 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
- 
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += cachectl.h
--header-y += hardwall.h
--header-y += kvm_para.h
--header-y += mman.h
--header-y += ptrace.h
--header-y += setup.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += stat.h
--header-y += swab.h
--header-y += ucontext.h
--header-y += unistd.h
--
- generic-y += ucontext.h
++#ifndef push_section_rng_level
++# define push_section_rng_level(section, name, level, flags)		\
++	 push_section_core(section, rng, name,				\
++			   level, flags)
++#endif
 +
-+subdir-y += ../arch
-diff --git a/arch/unicore32/include/uapi/asm/Kbuild b/arch/unicore32/include/uapi/asm/Kbuild
-index 0514d7ad6855..13a97aa2285f 100644
---- a/arch/unicore32/include/uapi/asm/Kbuild
-+++ b/arch/unicore32/include/uapi/asm/Kbuild
-@@ -1,10 +1,4 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
++#ifndef __ASSEMBLY__
++/**
++ * __LINUX_RANGE - short hand association into a section range
++ *
++ * @section: ELF section name to place section range into
++ * @name: section range name
++ *
++ * This helper can be used by subsystems to define their own subsystem
++ * specific helpers to easily associate a piece of code being defined to a
++ * section range.
++ */
++#define __LINUX_RANGE(section, name)					\
++	__attribute__((__section__(#section "..rng.name.any")))
++
++/**
++ * __LINUX_RANGE_ORDER - short hand association into a section range of order
++ *
++ * @section: ELF section name to place section range into
++ * @name: section range name
++ * @level: order level, a number. The order level gets tucked into the
++ *	section as a postfix string. Order levels are sorted using
++ * 	binutils SORT(), the number is sorted as a string, as such be
++ * 	sure to fill with zeroes any empty digits. For instance if you are
++ * 	using 3 levels of digits for order levels, use 001 for the first entry,
++ * 	0002 for the second, 999 for the last entry. You can use however many
++ * 	digits you need.
++ *
++ * This helper can be used by subsystems to define their own subsystem specific
++ * helpers to easily associate a piece of code being defined to a section range
++ * with an associated specific order level. The order level provides the
++ * ability for explicit user ordering of code. Sorting takes place at link
++ * time, after compilation.
++ */
++#define __LINUX_RANGE_ORDER(section, name, level)			\
++	__attribute__((__section__(#section "..rng.name." #level)))
++
++#endif /* __ASSEMBLY__ */
++
++#ifdef __ASSEMBLER__
++
++#ifndef DEFINE_SECTION_RANGE
++#define DEFINE_SECTION_RANGE(section, name)				\
++  push_section_rng_level(section, name,,) ;				\
++  .globl name ;								\
++name: ;									\
++  .popsection								\
++									\
++  push_section_rng_level(section, name, ~,) ;				\
++  .popsection
++#endif
++#endif /* __ASSEMBLER__ */
++
++#endif /* _ASM_GENERIC_RANGES_H_ */
+diff --git a/tools/include/asm-generic/section-core.h b/tools/include/asm-generic/section-core.h
+new file mode 100644
+index 000000000000..65fb076765f8
+--- /dev/null
++++ b/tools/include/asm-generic/section-core.h
+@@ -0,0 +1,348 @@
++#ifndef _ASM_GENERIC_SECTION_CORE_H_
++#define _ASM_GENERIC_SECTION_CORE_H_
++/*
++ * Linux section core definitions
++ *
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++
++/**
++ * DOC: Linux ELF program specific sections
++ *
++ * Linux makes extensive use of ``SHT_PROGBITS`` to both extend use and
++ * definition of *Special ELF Sections* (`gabi4 ch4`_) and to define its own
++ * sections. This chaper is dedicated to documenting Linux program specific
++ * sections and helpers available to make use of these easier to implement and
++ * use.
++ *
++ * .. _gabi4 ch4: https://refspecs.linuxbase.org/elf/gabi4+/ch4.sheader.html#special_sections
++ */
++
++/**
++ * DOC: Linux linker script
++ *
++ * Linux uses a custom linker script to build the vmlinux binary, it uses it to
++ * strategically place and define Linux ELF sections.  Each architecture needs
++ * to implement its own linker script, it is expected to reside in
++ * ``arch/$(ARCH)/kernel/vmlinux.lds.S``.  Architecture Linux linker scripts in
++ * turn include and use definitions from ``include/asm-generic/vmlinux.lds.h``,
++ * as well as some helpers documented in this chapter.
++ *
++ * In assembly it is common practice to use dots (``.``) in labels to avoid
++ * clashes with C symbols. Similarly, a dot (``.``) can be part of a section
++ * name but not a C symbol. Historically then, two dots are used (``..``)
++ * have been used in linker scripts when adding program specific sections
++ * when there are concerns to avoid clashes with compiler generated sections.
++ */
++
++/**
++ * DOC: Memory protection
++ *
++ * Linux allows architectures which support memory protection features to
++ * take advantage of them by letting architectures define and enable
++ * ``CONFIG_DEBUG_RODATA`` and implement a mark_rodata_ro() call.
++ * mark_rodata_ro() can be used for instance to mark specific sections as
++ * read-only or non-executable.
++ *
++ * Linux typically follows a convention to have the .rodata ELF section follow
++ * after the .text ELF section, it does this to help architectures which
++ * support memory protection to mark both .text and .rodata as read-only in
++ * one shot.
++ *
++ * For more details refer to mark_rodata_ro().
++ */
++
++/**
++ * DOC: .rodata
++ *
++ * ELF section used for data which must be protected from write access.
++ */
++
++/**
++ * DOC: .text
++ *
++ * ELF section name used for code (functions) used during regular
++ * kernel run time.
++ */
++
++/**
++ * DOC: .data
++ *
++ * ELF section used for read-write data.
++ */
++
++/**
++ * DOC: Linux init sections
++ *
++ * These sections are used for code and data structures used during boot or
++ * module initialization. On architectures that support it (x86, x86_64), all
++ * this code is freed up by the kernel right before the fist userspace init
++ * process is called when built-in to the kernel, and if modular it is freed
++ * after module initialization. Since the code is freed so early, in theory
++ * there should be no races against freeing this code with other CPUs. Init
++ * section code and data structures should never be exported with
++ * EXPORT_SYMBOL*() as the code will quickly become unavailable to the kernel
++ * after bootup.
++ */
++
++/**
++ * DOC: .init.text
++ *
++ * ELF section for code (functions) used only during boot or driver
++ * initialization.
++ *
++ */
++
++/**
++ * DOC: .init.data
++ *
++ * ELF section used for data structures used only during boot or driver
++ * initialization.
++ */
++
++/**
++ * DOC: .init.rodata
++ *
++ * ELF section used for read-only code (functions) used only during boot
++ * or driver initialization.
++ */
++
++/**
++ * DOC: .initcall
++ *
++ * ELF section used for subsystem init calls. There are init levels
++ * representing different functionality in the kernel. For more details
++ * refer to __define_initcall().
++ */
++
++/**
++ * DOC: Linux exit sections
++ *
++ * These sections are used to declare a functions and data structures which
++ * are only required on exit, the function or data structure will be dropped
++ * if the code declaring this section is not compiled as a module on
++ * architectures that support this (x86, x86_64). There is no special case
++ * handling for this code when built-in to the kernel.
++ */
++
++/**
++ * DOC: .exit.text
++ *
++ * ELF section used to for code (functions) used only during module unload.
++ */
++
++/**
++ * DOC: .exit.data
++ *
++ * ELF section used to for data structures used only during module
++ * unload.
++ */
++
++/**
++ * DOC: .exitcall.exit
++ *
++ * ELF section used for exit routines, order is important and maintained by
++ * link order.
++ */
++
++/**
++ * DOC: Linux references to init sections
++ *
++ * These sections are used to teach modpost to not warn about possible
++ * misuses of init section code from other sections. If you use this
++ * your use case should document why you are certain such use of init
++ * sectioned code is valid. For more details refer to ``include/linux/init.h``
++ * ``__ref``, ``__refdata``, and ``__refconst`` documentation.
++ */
++
++/**
++ * DOC: .ref.text
++ *
++ * ELF section used to annotate code (functions) which has been vetteed as
++ * valid for its reference or use of other code (functions) or data structures
++ * which are part of the init sections.
++ */
++
++/**
++ * DOC: .ref.data
++ *
++ * ELF section used for data structures which have been vetteed for its
++ * reference or use of other code (functions) or data structures part of the
++ * init sections.
++ */
++
++/**
++ * DOC: .ref.rodata
++ *
++ * ELF section used to annotate const code (functions) const data structures
++ * which has been vetteed for its reference or use of other code (functions)
++ * or data structures part of the init sections.
++ */
++
++/**
++ * DOC: Linux section ordering
++ *
++ * Linux may use binutils linker-script 'SORT()' on sections to sort Linux
++ * sections alpha numerically. Linux has historically used 'SORT()' in
++ * ``include/asm-generic/vmlinux.lds.h``, its a well established practice. If
++ * 'SORT()' is used on a section one can provide ordering using a postfix on
++ * each section entry added. For instance if a linker script uses::
++ *
++ *    SORT(.foo.*)
++ *
++ * one can then add entries with explicit ordering using numeric postfixes for
++ * each entry, we refer to these as 'order levels'. Since 'SORT()' sorts alpha
++ * numerically a specific series set of digits must be agreed a-priori which
++ * would give also an idea of the max expected number of entries added to a
++ * section. For instance, if you expect a maximum of 999 entries you can use
++ * 3 digits for a section order level. If you wanted an entry to be ordered
++ * first you could use the postfix '000', if you wanted an entry to follow this
++ * you could use '001', and so on. We could for instance have::
++ *
++ *    .foo.000
++ *    .foo.001
++ *    .foo.002
++ *
++ * Often times one may want the option to specify no order is required for
++ * certain elements added to a section which does use 'SORT()' on the linker
++ * script. You can use any arbitrary string value to to specify no order is
++ * used, so long as its used consistantly. For instance, one possibility is to
++ * use the 'any' postfix.  All entries on the section would then have no
++ * specific ordering::
++ *
++ *    .foo.any
++ *    .foo.any
++ *    .foo.any
++ *
++ * To help establish a convention we reserve the special name 'any' for this
++ * purpose. Developers can use and expect the 'any' postfix string on sections
++ * as a helper to annotate section ordering at link time is not relevant
++ * for entries on a section.
++ */
++
++/* Can be used on foo.S for instance */
++#ifndef __set_section_core_type
++# define __set_section_core_type(___section, ___core, ___name,		\
++				 ___level, ___flags, ___type)		\
++	.section ___section..___core.___name.___level, ___flags, ___type
++#endif
++
++#ifndef __set_section_core
++# define __set_section_core(___section, ___core, ___name, ___level, ___flags) \
++	.section ___section..___core.___name.___level, ___flags
++#endif
++
++#ifndef __push_section_core
++# define __push_section_core(__section, __core, __name, __level, __flags) \
++	.pushsection __section..__core.__name.__level, __flags
++#endif
++
++#ifdef __KERNEL__
++#include <linux/stringify.h>
++#endif
++
++#if defined(__ASSEMBLER__) || defined(__ASSEMBLY__)
++
++# ifndef LINKER_SCRIPT
++
++#  ifndef push_section_core
++#   define push_section_core(__section, __core, __name, __level, __flags) \
++	 __push_section_core(__section, __core, __name,			  \
++			     __level, __stringify(__flags))
++#  endif
++
++#  ifndef set_section_core
++#   define set_section_core(__section, __core, __name,			\
++			    __level, __flags)				\
++	__set_section_core(__section, __core, __name,			\
++			   __level, __stringify(__flags))
++#  endif
++
++#  ifndef set_section_core_type
++#   define set_section_core_type(__section, __core, __name,		\
++				 __level, __flags, __type)		\
++	__set_section_core_type(__section, __core, __name, __level,	\
++				__stringify(__flags), __type)
++#  endif
++
++# endif /* LINKER_SCRIPT */
++#else /* defined(__ASSEMBLER__) || defined(__ASSEMBLY__) */
++
++/*
++ * As per gcc's documentation a common asm separator is a new line followed
++ * by tab [0], it however seems possible to also just use a newline as its
++ * the most commonly empirically observed semantic and folks seem to agree
++ * this even works on S390. In case your architecture disagrees you may
++ * override this and define your own and keep the rest of the macros.
++ *
++ * [0] https://gcc.gnu.org/onlinedocs/gcc/Basic-Asm.html#Basic-Asm
++ */
++# ifndef ASM_CMD_SEP
++#  define ASM_CMD_SEP	"\n"
++# endif
++
++# ifndef set_section_core
++#  define set_section_core(__section, __core, __name, __level, __flags)	\
++	__stringify(__set_section_core_type(__section, __core, __name,	\
++					    __level, __stringify(__flags))) \
++	ASM_CMD_SEP
++# endif
++
++/*
++ * Some architectures (arm, and avr32 are two examples on kprobes) seem
++ * currently explicitly specify the type [0] -- this can be any of the
++ * optional constants on ELF:
++ *
++ * @progbits - section contains data
++ * @nobits - section does not contain data (i.e., section only occupies space)
++ * @note - section contains data which is used by things other than the program
++ * @init_array - section contains an array of pointers to init functions
++ * @fini_array - section contains an array of pointers to finish functions
++ * @preinit_array - section contains an array of pointers to pre-init functions
++ *
++ * ARM requires % instead of @.
++ *
++ * At least as per nasm (x86/x86_64 only), in the absence of qualifiers the
++ * defaults are as follows:
++ *
++ * section .text    progbits  alloc   exec    nowrite  align
++ * section .rodata  progbits  alloc   noexec  nowrite  align=4
++ * section .lrodata progbits  alloc   noexec  nowrite  align=4
++ * section .data    progbits  alloc   noexec  write    align=4
++ * section .ldata   progbits  alloc   noexec  write    align=4
++ * section .bss     nobits    alloc   noexec  write    align=4
++ * section .lbss    nobits    alloc   noexec  write    align=4
++ * section .tdata   progbits  alloc   noexec  write    align=4    tls
++ * section .tbss    nobits    alloc   noexec  write    align=4    tls
++ * section .comment progbits  noalloc noexec  nowrite  align=1
++ * section other    progbits  alloc   noexec  nowrite  align=1
++ *
++ * gas should have sensible defaults for architectures...
++ *
++ * [0] http://www.nasm.us/doc/nasmdoc7.html
++ */
++# ifndef set_section_core_type
++#  define set_section_core_type(__section, __core, __name, __level,	\
++				__flags, __type)			\
++	__stringify(__set_section_core_type(__section, __core,		\
++					    __name, __level,		\
++					    __stringify(__flags),	\
++					    __type))			\
++	ASM_CMD_SEP
++# endif
++
++# ifndef push_section_core
++#  define push_section_core(__section, __core, __name,			\
++			    __level, __flags)				\
++	__stringify(__push_section_core(__section, __core,		\
++					__name,	__level,		\
++					__stringify(__flags)))		\
++	ASM_CMD_SEP
++# endif
++
++#endif /* defined(__ASSEMBLER__) || defined(__ASSEMBLY__) */
++#endif /* _ASM_GENERIC_SECTION_CORE_H_ */
+diff --git a/tools/include/asm-generic/tables.h b/tools/include/asm-generic/tables.h
+new file mode 100644
+index 000000000000..16ef40d145fb
+--- /dev/null
++++ b/tools/include/asm-generic/tables.h
+@@ -0,0 +1,48 @@
++#ifndef _ASM_GENERIC_TABLES_H_
++#define _ASM_GENERIC_TABLES_H_
++/*
++ * Linux linker tables
++ *
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++#include <asm/section-core.h>
++
++#define SECTION_TBL(section, name, level)	section..tbl.name.level
++
++/* Some toolchains are buggy, let them override */
++#ifndef SECTION_TBL_RO
++# define SECTION_TBL_RO	.rodata
++#endif
++
++#define SECTION_TBL_RO_STR __stringify(SECTION_TBL_RO)
++
++#ifndef set_section_tbl
++# define set_section_tbl(section, name, level, flags)			\
++	 set_section_core(section, tbl, name, level, flags)
++#endif
++
++#ifndef set_section_tbl_any
++# define set_section_tbl_any(section, name, flags)				\
++	 set_section_core(section, tbl, name, any, flags)
++#endif
++
++#ifndef set_section_tbl_type
++# define set_section_tbl_type(section, name, level, flags, type)		\
++	 set_section_core_type(section, tbl, name, level, flags, type)
++#endif
++
++#ifndef push_section_tbl
++# define push_section_tbl(section, name, level, flags)			\
++	 push_section_core(section, tbl, name, level, flags)
++#endif
++
++#ifndef push_section_tbl_any
++# define push_section_tbl_any(section, name, flags)			\
++	 push_section_core(section, tbl, name, any, flags)
++#endif
++
++#endif /* _ASM_GENERIC_TABLES_H_ */
+diff --git a/tools/include/linux/ranges.h b/tools/include/linux/ranges.h
+new file mode 100644
+index 000000000000..1e64674f6d7d
+--- /dev/null
++++ b/tools/include/linux/ranges.h
+@@ -0,0 +1,183 @@
++#ifndef _LINUX_RANGES_H
++#define _LINUX_RANGES_H
++/*
++ * Linux section ranges
++ *
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++#include <linux/sections.h>
++#include <asm/ranges.h>
++
++#ifndef __ASSEMBLY__
++
++/**
++ * DOC: Introduction
++ *
++ * A section ranges consists of explicitly annotated series executable code
++ * stitched together for the purpose of selective placement into standard or
++ * architecture specific ELF sections. What ELF section is used is utility
++ * specific. Linux has historically implicitly used section ranges, however
++ * they were all built in an adhoc manner and typically required linker script
++ * modifications per architecture. The section range API allows adding new
++ * bundles of stiched executable code into custom ELF sections by only
++ * modifying C or asm code in an architecture agnostic form.
++ *
++ * This documents the set of helpers available to declare, and define section
++ * ranges and associate each section range to a specific Linux ELF section.
++ */
++
++/**
++ * DOC: Section range module support
++ *
++ * Modules can use section ranges, however the section range definition must be
++ * built-in to the kernel. That is, the code that implements
++ * DEFINE_SECTION_RANGE() must be built-in, and modular code cannot add more
++ * items in to the section range (with __LINUX_RANGE() or
++ * __LINUX_RANGE_ORDER()), unless kernel/module.c find_module_sections() and
++ * module-common.lds.S are updated accordingly with a respective module
++ * notifier to account for updates. This restriction may be enhanced in the
++ * future.
++ */
++
++/**
++ * DOC: Section range helpers
++ *
++ * These are helpers for section ranges.
++ */
++
++/**
++ * SECTION_RANGE_START - get address of start of section range
++ *
++ * @name: name of the section range
++ *
++ * This gives you the start address of the section range.
++ * This should give you the address of the first entry.
++ *
++ */
++#define SECTION_RANGE_START(name)	LINUX_SECTION_START(name)
++
++/**
++ * SECTION_RANGE_END - get address of end of the section range
++ *
++ * @name: name of the section range
++ *
++ * This gives you the end address of the linker table.
++ * This will match the start address if the linker table
++ * is empty.
++ */
++#define SECTION_RANGE_END(name)		LINUX_SECTION_END(name)
++
++/**
++ * SECTION_RANGE_SIZE - get number of entries in the section range
++ *
++ * @name: name of the section range
++ *
++ * This gives you the number of entries in the section range.
++ * Example usage:
++ *
++ *   unsigned int num_ents = LINKTABLE_SIZE(some_fns);
++ */
++#define SECTION_RANGE_SIZE(name)					\
++	((SECTION_RANGE_END(name)) - (SECTION_RANGE_START(name)))
++
++/**
++ * SECTION_RANGE_EMPTY - check if section range has no entries
++ *
++ * @name: name of the section range
++ *
++ * Returns true if the section range is emtpy.
++ *
++ *   bool is_empty = LINKTABLE_EMPTY(some_fns);
++ */
++#define SECTION_RANGE_EMPTY(name)	(SECTION_RANGE_SIZE(name) = 0)
++
++/**
++ * SECTION_RANGE_ADDR_WITHIN - returns true if address is in the section range
++ *
++ * @name: name of the section range
++ * @addr: address to query for
++ *
++ * Returns true if the address is in the section range.
++ */
++#define SECTION_RANGE_ADDR_WITHIN(name, addr)				\
++	 (addr >= (unsigned long) SECTION_RANGE_START(name) &&		\
++          addr < (unsigned long) SECTION_RANGE_END(name))
++
++/**
++ * SECTION_RANGE_ALIGNMENT - get the alignment of the section range
++ *
++ * @name: name of linker table
++ *
++ * Gives you the alignment for the section range.
++ */
++#define SECTION_RANGE_ALIGNMENT(name)	LINUX_SECTION_ALIGNMENT(name)
++
++/**
++ * DECLARE_SECTION_RANGE - Declares a section range
++ *
++ * @name: section range name
++ *
++ * Declares a section range to help code access the range. Typically if
++ * a subsystems needs code to have direct access to the section range the
++ * subsystem's header file would declare the section range. Care should be
++ * taken to only declare the section range in a header file if access to it
++ * is truly needed outside of the code defining it. You typically would
++ * rather instead provide helpers which access the section range with special
++ * code on behalf of the caller.
++ */
++#define DECLARE_SECTION_RANGE(name)					\
++	DECLARE_LINUX_SECTION_RO(char, name)
++
++/**
++ * __SECTION_RANGE_BEGIN - Constructs the beginning of a section range
++ *
++ * @name: section range name
++ * @__section: ELF section to place section range into
++ *
++ * Constructs the beginning of a section range. You will typically not need
++ * to use this directly.
++ */
++#define __SECTION_RANGE_BEGIN(name, __section)				\
++	const __typeof__(SECTION_RANGE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(SECTION_RANGE_ALIGNMENT(name)),\
++			     section(#__section "..rng.name.")))
++
++/**
++ * __SECTION_RANGE_END - Constructs the end of a section range
++ *
++ * @name: section range name
++ * @__section: ELF section to place section range into
++ *
++ * Constructs the end of a section range. You will typically not need
++ * to use this directly.
++ */
++#define __SECTION_RANGE_END(name, __section)				\
++	const __typeof__(SECTION_RANGE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(SECTION_RANGE_ALIGNMENT(name)),\
++			     section(#__section "..rng.name.~")))
++
++/**
++ * DEFINE_SECTION_RANGE - Defines a section range
++ *
++ * @name: section range name
++ * @section: ELF section name to place section range into
++ *
++ * Defines a section range, used for executable code. Section ranges are
++ * defined in the code that takes ownership and makes use of the section
++ * range.
++ */
++#define DEFINE_SECTION_RANGE(name, section)				\
++	DECLARE_LINUX_SECTION_RO(char, name);				\
++	__SECTION_RANGE_BEGIN(name, section) SECTION_RANGE_START(name)[0] = {};\
++	__SECTION_RANGE_END(name, section) SECTION_RANGE_END(name)[0] = {}
++
++#endif /* __ASSEMBLY__ */
++
++#endif /* _LINUX_RANGES_H */
+diff --git a/tools/include/linux/sections.h b/tools/include/linux/sections.h
+new file mode 100644
+index 000000000000..6771c727bcd1
+--- /dev/null
++++ b/tools/include/linux/sections.h
+@@ -0,0 +1,87 @@
++#ifndef _LINUX_SECTIONS_H
++#define _LINUX_SECTIONS_H
++/*
++ * Linux de-facto sections
++ *
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++
++#include <asm/section-core.h>
++#include <linux/export.h>
++
++#ifndef __ASSEMBLY__
++
++/**
++ * DOC: Introduction
++ *
++ * Linux defines a set of common helpers which can be used to against its use
++ * of standard or custom Linux sections, this section is dedicated to these
++ * helpers.
++ */
++
++/**
++ * LINUX_SECTION_ALIGNMENT - get section alignment
++ *
++ * @name: section name
++ *
++ * Gives you the alignment for the section.
++ */
++#define LINUX_SECTION_ALIGNMENT(name)	__alignof__(*VMLINUX_SYMBOL(name))
++
++/**
++ * LINUX_SECTION_START - get address of start of section
++ *
++ * @name: section name
++ *
++ * This gives you the start address of the section.
++ * This should give you the address of the first entry.
++ *
++ */
++#define LINUX_SECTION_START(name)	VMLINUX_SYMBOL(name)
++
++/**
++ * LINUX_SECTION_END - get address of end of the section
++ *
++ * @name: section name
++ *
++ * This gives you the end address of the section.
++ * This should give you the address of the end of the
++ * section. This will match the start address if the
++ * section is empty.
++ */
++#define LINUX_SECTION_END(name)	VMLINUX_SYMBOL(name##__end)
++
++/**
++ * DECLARE_LINUX_SECTION - Declares a custom Linux section
++ *
++ * @type: type of custom Linux section
++ * @name: custom section name
++ *
++ * Declares a read-write custom Linux section
++ */
++#define DECLARE_LINUX_SECTION(type, name)				\
++	 extern type VMLINUX_SYMBOL(name)[], \
++		     VMLINUX_SYMBOL(name##__end)[]
++
++/**
++ * DECLARE_LINUX_SECTION_RO - Declares a read-only custom Linux section
++ *
++ * @type: type of custom Linux section
++ * @name: custom section name
++ *
++ * Declares a read-only custom Linux section
++ */
++#define DECLARE_LINUX_SECTION_RO(type, name)				\
++	 extern const type VMLINUX_SYMBOL(name)[],			\
++			   VMLINUX_SYMBOL(name##__end)[]
++
++#define __SECTION_CORE(section, core, name, level)			\
++	#section ".." #core "." #name "." #level
++
++#endif /* __ASSEMBLY__ */
++
++#endif /* _LINUX_SECTIONS_H */
+diff --git a/tools/include/linux/string.h b/tools/include/linux/string.h
+index f436d2420a18..a6b12564bbd9 100644
+--- a/tools/include/linux/string.h
++++ b/tools/include/linux/string.h
+@@ -3,6 +3,7 @@
  
--header-y += byteorder.h
--header-y += kvm_para.h
--header-y += ptrace.h
--header-y += sigcontext.h
--header-y += unistd.h
--
- generic-y += kvm_para.h
-diff --git a/arch/x86/include/uapi/asm/Kbuild b/arch/x86/include/uapi/asm/Kbuild
-index 1c532b3f18ea..83b6e9a0dce4 100644
---- a/arch/x86/include/uapi/asm/Kbuild
-+++ b/arch/x86/include/uapi/asm/Kbuild
-@@ -4,61 +4,3 @@ include include/uapi/asm-generic/Kbuild.asm
- genhdr-y += unistd_32.h
- genhdr-y += unistd_64.h
- genhdr-y += unistd_x32.h
--header-y += a.out.h
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += boot.h
--header-y += bootparam.h
--header-y += byteorder.h
--header-y += debugreg.h
--header-y += e820.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += hw_breakpoint.h
--header-y += hyperv.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += ist.h
--header-y += kvm.h
--header-y += kvm_para.h
--header-y += kvm_perf.h
--header-y += ldt.h
--header-y += mce.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += msr.h
--header-y += mtrr.h
--header-y += param.h
--header-y += perf_regs.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += posix_types_32.h
--header-y += posix_types_64.h
--header-y += posix_types_x32.h
--header-y += prctl.h
--header-y += processor-flags.h
--header-y += ptrace-abi.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += sigcontext32.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += svm.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += ucontext.h
--header-y += unistd.h
--header-y += vm86.h
--header-y += vmx.h
--header-y += vsyscall.h
-diff --git a/arch/xtensa/include/uapi/asm/Kbuild b/arch/xtensa/include/uapi/asm/Kbuild
-index 56aad54e7fb7..b15bf6bc0e94 100644
---- a/arch/xtensa/include/uapi/asm/Kbuild
-+++ b/arch/xtensa/include/uapi/asm/Kbuild
-@@ -1,25 +1,2 @@
- # UAPI Header export list
- include include/uapi/asm-generic/Kbuild.asm
--
--header-y += auxvec.h
--header-y += byteorder.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += swab.h
--header-y += termbits.h
--header-y += types.h
--header-y += unistd.h
-diff --git a/include/Kbuild b/include/Kbuild
-deleted file mode 100644
-index bab1145bc7a7..000000000000
---- a/include/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# Top-level Makefile calls into asm-$(ARCH)
--# List only non-arch directories below
-diff --git a/include/asm-generic/Kbuild.asm b/include/asm-generic/Kbuild.asm
-deleted file mode 100644
-index d2ee86b4c091..000000000000
---- a/include/asm-generic/Kbuild.asm
-+++ /dev/null
-@@ -1 +0,0 @@
--include include/uapi/asm-generic/Kbuild.asm
-diff --git a/include/scsi/fc/Kbuild b/include/scsi/fc/Kbuild
-deleted file mode 100644
-index e69de29bb2d1..000000000000
-diff --git a/include/uapi/Kbuild b/include/uapi/Kbuild
-deleted file mode 100644
-index 245aa6e05e6a..000000000000
---- a/include/uapi/Kbuild
-+++ /dev/null
-@@ -1,15 +0,0 @@
--# UAPI Header export list
--# Top-level Makefile calls into asm-$(ARCH)
--# List only non-arch directories below
--
--
--header-y += asm-generic/
--header-y += linux/
--header-y += sound/
--header-y += mtd/
--header-y += rdma/
--header-y += video/
--header-y += drm/
--header-y += xen/
--header-y += scsi/
--header-y += misc/
-diff --git a/include/uapi/asm-generic/Kbuild b/include/uapi/asm-generic/Kbuild
-deleted file mode 100644
-index b73de7bb7a62..000000000000
---- a/include/uapi/asm-generic/Kbuild
-+++ /dev/null
-@@ -1,36 +0,0 @@
--# UAPI Header export list
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += errno-base.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += int-l64.h
--header-y += int-ll64.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += kvm_para.h
--header-y += mman-common.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += shmparam.h
--header-y += siginfo.h
--header-y += signal-defs.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += ucontext.h
--header-y += unistd.h
-diff --git a/include/uapi/asm-generic/Kbuild.asm b/include/uapi/asm-generic/Kbuild.asm
-index fcd50b759217..8e6b335664f2 100644
---- a/include/uapi/asm-generic/Kbuild.asm
-+++ b/include/uapi/asm-generic/Kbuild.asm
-@@ -8,38 +8,38 @@ opt-header += a.out.h
- #
- # Headers that are mandatory in usr/include/asm/
- #
--header-y += auxvec.h
--header-y += bitsperlong.h
--header-y += byteorder.h
--header-y += errno.h
--header-y += fcntl.h
--header-y += ioctl.h
--header-y += ioctls.h
--header-y += ipcbuf.h
--header-y += mman.h
--header-y += msgbuf.h
--header-y += param.h
--header-y += poll.h
--header-y += posix_types.h
--header-y += ptrace.h
--header-y += resource.h
--header-y += sembuf.h
--header-y += setup.h
--header-y += shmbuf.h
--header-y += sigcontext.h
--header-y += siginfo.h
--header-y += signal.h
--header-y += socket.h
--header-y += sockios.h
--header-y += stat.h
--header-y += statfs.h
--header-y += swab.h
--header-y += termbits.h
--header-y += termios.h
--header-y += types.h
--header-y += unistd.h
-+mandatory-y += auxvec.h
-+mandatory-y += bitsperlong.h
-+mandatory-y += byteorder.h
-+mandatory-y += errno.h
-+mandatory-y += fcntl.h
-+mandatory-y += ioctl.h
-+mandatory-y += ioctls.h
-+mandatory-y += ipcbuf.h
-+mandatory-y += mman.h
-+mandatory-y += msgbuf.h
-+mandatory-y += param.h
-+mandatory-y += poll.h
-+mandatory-y += posix_types.h
-+mandatory-y += ptrace.h
-+mandatory-y += resource.h
-+mandatory-y += sembuf.h
-+mandatory-y += setup.h
-+mandatory-y += shmbuf.h
-+mandatory-y += sigcontext.h
-+mandatory-y += siginfo.h
-+mandatory-y += signal.h
-+mandatory-y += socket.h
-+mandatory-y += sockios.h
-+mandatory-y += stat.h
-+mandatory-y += statfs.h
-+mandatory-y += swab.h
-+mandatory-y += termbits.h
-+mandatory-y += termios.h
-+mandatory-y += types.h
-+mandatory-y += unistd.h
  
--header-y += $(foreach hdr,$(opt-header), \
-+mandatory-y += $(foreach hdr,$(opt-header), \
- 	      $(if \
- 		$(wildcard \
- 			$(srctree)/arch/$(SRCARCH)/include/uapi/asm/$(hdr) \
-diff --git a/include/uapi/drm/Kbuild b/include/uapi/drm/Kbuild
-deleted file mode 100644
-index 9355dd8eff3b..000000000000
---- a/include/uapi/drm/Kbuild
-+++ /dev/null
-@@ -1,22 +0,0 @@
--# UAPI Header export list
--header-y += drm.h
--header-y += drm_fourcc.h
--header-y += drm_mode.h
--header-y += drm_sarea.h
--header-y += amdgpu_drm.h
--header-y += exynos_drm.h
--header-y += i810_drm.h
--header-y += i915_drm.h
--header-y += mga_drm.h
--header-y += nouveau_drm.h
--header-y += qxl_drm.h
--header-y += r128_drm.h
--header-y += radeon_drm.h
--header-y += savage_drm.h
--header-y += sis_drm.h
--header-y += tegra_drm.h
--header-y += via_drm.h
--header-y += vmwgfx_drm.h
--header-y += msm_drm.h
--header-y += vc4_drm.h
--header-y += virtgpu_drm.h
-diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
-deleted file mode 100644
-index f330ba4547cf..000000000000
---- a/include/uapi/linux/Kbuild
-+++ /dev/null
-@@ -1,483 +0,0 @@
--# UAPI Header export list
--header-y += android/
--header-y += byteorder/
--header-y += can/
--header-y += caif/
--header-y += dvb/
--header-y += hdlc/
--header-y += hsi/
--header-y += iio/
--header-y += isdn/
--header-y += mmc/
--header-y += nfsd/
--header-y += raid/
--header-y += spi/
--header-y += sunrpc/
--header-y += tc_act/
--header-y += tc_ematch/
--header-y += netfilter/
--header-y += netfilter_arp/
--header-y += netfilter_bridge/
--header-y += netfilter_ipv4/
--header-y += netfilter_ipv6/
--header-y += usb/
--header-y += wimax/
--
--genhdr-y += version.h
--
--ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/a.out.h \
--		  $(srctree)/arch/$(SRCARCH)/include/asm/a.out.h),)
--header-y += a.out.h
--endif
--
--header-y += acct.h
--header-y += adb.h
--header-y += adfs_fs.h
--header-y += affs_hardblocks.h
--header-y += agpgart.h
--header-y += aio_abi.h
--header-y += am437x-vpfe.h
--header-y += apm_bios.h
--header-y += arcfb.h
--header-y += atalk.h
--header-y += atmapi.h
--header-y += atmarp.h
--header-y += atmbr2684.h
--header-y += atmclip.h
--header-y += atmdev.h
--header-y += atm_eni.h
--header-y += atm.h
--header-y += atm_he.h
--header-y += atm_idt77105.h
--header-y += atmioc.h
--header-y += atmlec.h
--header-y += atmmpc.h
--header-y += atm_nicstar.h
--header-y += atmppp.h
--header-y += atmsap.h
--header-y += atmsvc.h
--header-y += atm_tcp.h
--header-y += atm_zatm.h
--header-y += audit.h
--header-y += auto_fs4.h
--header-y += auto_fs.h
--header-y += auxvec.h
--header-y += ax25.h
--header-y += b1lli.h
--header-y += baycom.h
--header-y += bcm933xx_hcs.h
--header-y += bfs_fs.h
--header-y += binfmts.h
--header-y += blkpg.h
--header-y += blktrace_api.h
--header-y += blkzoned.h
--header-y += bpf_common.h
--header-y += bpf_perf_event.h
--header-y += bpf.h
--header-y += bpqether.h
--header-y += bsg.h
--header-y += bt-bmc.h
--header-y += btrfs.h
--header-y += can.h
--header-y += capability.h
--header-y += capi.h
--header-y += cciss_defs.h
--header-y += cciss_ioctl.h
--header-y += cdrom.h
--header-y += cec.h
--header-y += cec-funcs.h
--header-y += cgroupstats.h
--header-y += chio.h
--header-y += cm4000_cs.h
--header-y += cn_proc.h
--header-y += coda.h
--header-y += coda_psdev.h
--header-y += coff.h
--header-y += connector.h
--header-y += const.h
--header-y += cramfs_fs.h
--header-y += cuda.h
--header-y += cyclades.h
--header-y += cycx_cfm.h
--header-y += dcbnl.h
--header-y += dccp.h
--header-y += devlink.h
--header-y += dlmconstants.h
--header-y += dlm_device.h
--header-y += dlm.h
--header-y += dlm_netlink.h
--header-y += dlm_plock.h
--header-y += dm-ioctl.h
--header-y += dm-log-userspace.h
--header-y += dn.h
--header-y += dqblk_xfs.h
--header-y += edd.h
--header-y += efs_fs_sb.h
--header-y += elfcore.h
--header-y += elf-em.h
--header-y += elf-fdpic.h
--header-y += elf.h
--header-y += errno.h
--header-y += errqueue.h
--header-y += ethtool.h
--header-y += eventpoll.h
--header-y += fadvise.h
--header-y += falloc.h
--header-y += fanotify.h
--header-y += fb.h
--header-y += fcntl.h
--header-y += fd.h
--header-y += fdreg.h
--header-y += fib_rules.h
--header-y += fiemap.h
--header-y += filter.h
--header-y += firewire-cdev.h
--header-y += firewire-constants.h
--header-y += flat.h
--header-y += fou.h
--header-y += fs.h
--header-y += fsl_hypervisor.h
--header-y += fuse.h
--header-y += futex.h
--header-y += gameport.h
--header-y += genetlink.h
--header-y += gen_stats.h
--header-y += gfs2_ondisk.h
--header-y += gigaset_dev.h
--header-y += gpio.h
--header-y += gsmmux.h
--header-y += gtp.h
--header-y += hdlcdrv.h
--header-y += hdlc.h
--header-y += hdreg.h
--header-y += hiddev.h
--header-y += hid.h
--header-y += hidraw.h
--header-y += hpet.h
--header-y += hsr_netlink.h
--header-y += hyperv.h
--header-y += hysdn_if.h
--header-y += i2c-dev.h
--header-y += i2c.h
--header-y += i2o-dev.h
--header-y += i8k.h
--header-y += icmp.h
--header-y += icmpv6.h
--header-y += if_addr.h
--header-y += if_addrlabel.h
--header-y += if_alg.h
--header-y += if_arcnet.h
--header-y += if_arp.h
--header-y += if_bonding.h
--header-y += if_bridge.h
--header-y += if_cablemodem.h
--header-y += if_eql.h
--header-y += if_ether.h
--header-y += if_fc.h
--header-y += if_fddi.h
--header-y += if_frad.h
--header-y += if.h
--header-y += if_hippi.h
--header-y += if_infiniband.h
--header-y += if_link.h
--header-y += if_ltalk.h
--header-y += if_macsec.h
--header-y += if_packet.h
--header-y += if_phonet.h
--header-y += if_plip.h
--header-y += if_ppp.h
--header-y += if_pppol2tp.h
--header-y += if_pppox.h
--header-y += if_slip.h
--header-y += if_team.h
--header-y += if_tun.h
--header-y += if_tunnel.h
--header-y += if_vlan.h
--header-y += if_x25.h
--header-y += igmp.h
--header-y += ila.h
--header-y += in6.h
--header-y += inet_diag.h
--header-y += in.h
--header-y += inotify.h
--header-y += input.h
--header-y += input-event-codes.h
--header-y += in_route.h
--header-y += ioctl.h
--header-y += ip6_tunnel.h
--header-y += ipc.h
--header-y += ip.h
--header-y += ipmi.h
--header-y += ipmi_msgdefs.h
--header-y += ipsec.h
--header-y += ipv6.h
--header-y += ipv6_route.h
--header-y += ip_vs.h
--header-y += ipx.h
--header-y += irda.h
--header-y += irqnr.h
--header-y += isdn_divertif.h
--header-y += isdn.h
--header-y += isdnif.h
--header-y += isdn_ppp.h
--header-y += iso_fs.h
--header-y += ivtvfb.h
--header-y += ivtv.h
--header-y += ixjuser.h
--header-y += jffs2.h
--header-y += joystick.h
--header-y += kcmp.h
--header-y += kdev_t.h
--header-y += kd.h
--header-y += kernelcapi.h
--header-y += kernel.h
--header-y += kernel-page-flags.h
--header-y += kexec.h
--header-y += keyboard.h
--header-y += keyctl.h
--
--ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/kvm.h \
--		  $(srctree)/arch/$(SRCARCH)/include/asm/kvm.h),)
--header-y += kvm.h
--endif
--
--
--ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/kvm_para.h \
--		  $(srctree)/arch/$(SRCARCH)/include/asm/kvm_para.h),)
--header-y += kvm_para.h
--endif
--
--header-y += hw_breakpoint.h
--header-y += l2tp.h
--header-y += libc-compat.h
--header-y += lirc.h
--header-y += limits.h
--header-y += llc.h
--header-y += loop.h
--header-y += lp.h
--header-y += lwtunnel.h
--header-y += magic.h
--header-y += major.h
--header-y += map_to_7segment.h
--header-y += matroxfb.h
--header-y += mdio.h
--header-y += media.h
--header-y += media-bus-format.h
--header-y += mei.h
--header-y += membarrier.h
--header-y += memfd.h
--header-y += mempolicy.h
--header-y += meye.h
--header-y += mic_common.h
--header-y += mic_ioctl.h
--header-y += mii.h
--header-y += minix_fs.h
--header-y += mman.h
--header-y += mmtimer.h
--header-y += mpls.h
--header-y += mpls_iptunnel.h
--header-y += mqueue.h
--header-y += mroute6.h
--header-y += mroute.h
--header-y += msdos_fs.h
--header-y += msg.h
--header-y += mtio.h
--header-y += nbd.h
--header-y += ncp_fs.h
--header-y += ncp.h
--header-y += ncp_mount.h
--header-y += ncp_no.h
--header-y += ndctl.h
--header-y += neighbour.h
--header-y += netconf.h
--header-y += netdevice.h
--header-y += net_dropmon.h
--header-y += netfilter_arp.h
--header-y += netfilter_bridge.h
--header-y += netfilter_decnet.h
--header-y += netfilter.h
--header-y += netfilter_ipv4.h
--header-y += netfilter_ipv6.h
--header-y += net.h
--header-y += netlink_diag.h
--header-y += netlink.h
--header-y += netrom.h
--header-y += net_namespace.h
--header-y += net_tstamp.h
--header-y += nfc.h
--header-y += nfs2.h
--header-y += nfs3.h
--header-y += nfs4.h
--header-y += nfs4_mount.h
--header-y += nfsacl.h
--header-y += nfs_fs.h
--header-y += nfs.h
--header-y += nfs_idmap.h
--header-y += nfs_mount.h
--header-y += nl80211.h
--header-y += n_r3964.h
--header-y += nubus.h
--header-y += nvme_ioctl.h
--header-y += nvram.h
--header-y += omap3isp.h
--header-y += omapfb.h
--header-y += oom.h
--header-y += openvswitch.h
--header-y += packet_diag.h
--header-y += param.h
--header-y += parport.h
--header-y += patchkey.h
--header-y += pci.h
--header-y += pci_regs.h
--header-y += perf_event.h
--header-y += personality.h
--header-y += pfkeyv2.h
--header-y += pg.h
--header-y += phantom.h
--header-y += phonet.h
--header-y += pktcdvd.h
--header-y += pkt_cls.h
--header-y += pkt_sched.h
--header-y += pmu.h
--header-y += poll.h
--header-y += posix_acl.h
--header-y += posix_acl_xattr.h
--header-y += posix_types.h
--header-y += ppdev.h
--header-y += ppp-comp.h
--header-y += ppp_defs.h
--header-y += ppp-ioctl.h
--header-y += pps.h
--header-y += prctl.h
--header-y += psci.h
--header-y += ptp_clock.h
--header-y += ptrace.h
--header-y += qnx4_fs.h
--header-y += qnxtypes.h
--header-y += quota.h
--header-y += radeonfb.h
--header-y += random.h
--header-y += raw.h
--header-y += rds.h
--header-y += reboot.h
--header-y += reiserfs_fs.h
--header-y += reiserfs_xattr.h
--header-y += resource.h
--header-y += rfkill.h
--header-y += rio_cm_cdev.h
--header-y += rio_mport_cdev.h
--header-y += romfs_fs.h
--header-y += rose.h
--header-y += route.h
--header-y += rtc.h
--header-y += rtnetlink.h
--header-y += scc.h
--header-y += sched.h
--header-y += scif_ioctl.h
--header-y += screen_info.h
--header-y += sctp.h
--header-y += sdla.h
--header-y += seccomp.h
--header-y += securebits.h
--header-y += selinux_netlink.h
--header-y += sem.h
--header-y += serial_core.h
--header-y += serial.h
--header-y += serial_reg.h
--header-y += serio.h
--header-y += shm.h
--header-y += signalfd.h
--header-y += signal.h
--header-y += smiapp.h
--header-y += snmp.h
--header-y += sock_diag.h
--header-y += socket.h
--header-y += sockios.h
--header-y += sonet.h
--header-y += sonypi.h
--header-y += soundcard.h
--header-y += sound.h
--header-y += stat.h
--header-y += stddef.h
--header-y += string.h
--header-y += suspend_ioctls.h
--header-y += swab.h
--header-y += synclink.h
--header-y += sync_file.h
--header-y += sysctl.h
--header-y += sysinfo.h
--header-y += target_core_user.h
--header-y += taskstats.h
--header-y += tcp.h
--header-y += tcp_metrics.h
--header-y += telephony.h
--header-y += termios.h
--header-y += thermal.h
--header-y += time.h
--header-y += timerfd.h
--header-y += times.h
--header-y += timex.h
--header-y += tiocl.h
--header-y += tipc_config.h
--header-y += tipc_netlink.h
--header-y += tipc.h
--header-y += toshiba.h
--header-y += tty_flags.h
--header-y += tty.h
--header-y += types.h
--header-y += udf_fs_i.h
--header-y += udp.h
--header-y += uhid.h
--header-y += uinput.h
--header-y += uio.h
--header-y += uleds.h
--header-y += ultrasound.h
--header-y += un.h
--header-y += unistd.h
--header-y += unix_diag.h
--header-y += usbdevice_fs.h
--header-y += usbip.h
--header-y += utime.h
--header-y += utsname.h
--header-y += uuid.h
--header-y += uvcvideo.h
--header-y += v4l2-common.h
--header-y += v4l2-controls.h
--header-y += v4l2-dv-timings.h
--header-y += v4l2-mediabus.h
--header-y += v4l2-subdev.h
--header-y += veth.h
--header-y += vfio.h
--header-y += vhost.h
--header-y += videodev2.h
--header-y += virtio_9p.h
--header-y += virtio_balloon.h
--header-y += virtio_blk.h
--header-y += virtio_config.h
--header-y += virtio_console.h
--header-y += virtio_gpu.h
--header-y += virtio_ids.h
--header-y += virtio_input.h
--header-y += virtio_net.h
--header-y += virtio_pci.h
--header-y += virtio_ring.h
--header-y += virtio_rng.h
--header-y += virtio_scsi.h
--header-y += virtio_types.h
--header-y += virtio_vsock.h
--header-y += virtio_crypto.h
--header-y += vm_sockets.h
--header-y += vt.h
--header-y += vtpm_proxy.h
--header-y += wait.h
--header-y += wanrouter.h
--header-y += watchdog.h
--header-y += wimax.h
--header-y += wireless.h
--header-y += x25.h
--header-y += xattr.h
--header-y += xfrm.h
--header-y += xilinx-v4l2-controls.h
--header-y += zorro.h
--header-y += zorro_ids.h
--header-y += userfaultfd.h
-diff --git a/include/uapi/linux/android/Kbuild b/include/uapi/linux/android/Kbuild
-deleted file mode 100644
-index ca011eec252a..000000000000
---- a/include/uapi/linux/android/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += binder.h
-diff --git a/include/uapi/linux/byteorder/Kbuild b/include/uapi/linux/byteorder/Kbuild
-deleted file mode 100644
-index 619225b9ff2e..000000000000
---- a/include/uapi/linux/byteorder/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += big_endian.h
--header-y += little_endian.h
-diff --git a/include/uapi/linux/caif/Kbuild b/include/uapi/linux/caif/Kbuild
-deleted file mode 100644
-index 43396612d3a3..000000000000
---- a/include/uapi/linux/caif/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += caif_socket.h
--header-y += if_caif.h
-diff --git a/include/uapi/linux/can/Kbuild b/include/uapi/linux/can/Kbuild
-deleted file mode 100644
-index 21c91bf25a29..000000000000
---- a/include/uapi/linux/can/Kbuild
-+++ /dev/null
-@@ -1,6 +0,0 @@
--# UAPI Header export list
--header-y += bcm.h
--header-y += error.h
--header-y += gw.h
--header-y += netlink.h
--header-y += raw.h
-diff --git a/include/uapi/linux/dvb/Kbuild b/include/uapi/linux/dvb/Kbuild
-deleted file mode 100644
-index d40942cfc627..000000000000
---- a/include/uapi/linux/dvb/Kbuild
-+++ /dev/null
-@@ -1,9 +0,0 @@
--# UAPI Header export list
--header-y += audio.h
--header-y += ca.h
--header-y += dmx.h
--header-y += frontend.h
--header-y += net.h
--header-y += osd.h
--header-y += version.h
--header-y += video.h
-diff --git a/include/uapi/linux/hdlc/Kbuild b/include/uapi/linux/hdlc/Kbuild
-deleted file mode 100644
-index 8c1d2cb75e33..000000000000
---- a/include/uapi/linux/hdlc/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += ioctl.h
-diff --git a/include/uapi/linux/hsi/Kbuild b/include/uapi/linux/hsi/Kbuild
-deleted file mode 100644
-index a16a00544258..000000000000
---- a/include/uapi/linux/hsi/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += hsi_char.h cs-protocol.h
-diff --git a/include/uapi/linux/iio/Kbuild b/include/uapi/linux/iio/Kbuild
-deleted file mode 100644
-index 86f76d84c44f..000000000000
---- a/include/uapi/linux/iio/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += events.h
--header-y += types.h
-diff --git a/include/uapi/linux/isdn/Kbuild b/include/uapi/linux/isdn/Kbuild
-deleted file mode 100644
-index 89e52850bf29..000000000000
---- a/include/uapi/linux/isdn/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += capicmd.h
-diff --git a/include/uapi/linux/mmc/Kbuild b/include/uapi/linux/mmc/Kbuild
-deleted file mode 100644
-index 8c1d2cb75e33..000000000000
---- a/include/uapi/linux/mmc/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += ioctl.h
-diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-deleted file mode 100644
-index 03f194aeadc5..000000000000
---- a/include/uapi/linux/netfilter/Kbuild
-+++ /dev/null
-@@ -1,89 +0,0 @@
--# UAPI Header export list
--header-y += ipset/
--header-y += nf_conntrack_common.h
--header-y += nf_conntrack_ftp.h
--header-y += nf_conntrack_sctp.h
--header-y += nf_conntrack_tcp.h
--header-y += nf_conntrack_tuple_common.h
--header-y += nf_log.h
--header-y += nf_tables.h
--header-y += nf_tables_compat.h
--header-y += nf_nat.h
--header-y += nfnetlink.h
--header-y += nfnetlink_acct.h
--header-y += nfnetlink_compat.h
--header-y += nfnetlink_conntrack.h
--header-y += nfnetlink_cthelper.h
--header-y += nfnetlink_cttimeout.h
--header-y += nfnetlink_log.h
--header-y += nfnetlink_queue.h
--header-y += x_tables.h
--header-y += xt_AUDIT.h
--header-y += xt_CHECKSUM.h
--header-y += xt_CLASSIFY.h
--header-y += xt_CONNMARK.h
--header-y += xt_CONNSECMARK.h
--header-y += xt_CT.h
--header-y += xt_DSCP.h
--header-y += xt_HMARK.h
--header-y += xt_IDLETIMER.h
--header-y += xt_LED.h
--header-y += xt_LOG.h
--header-y += xt_MARK.h
--header-y += xt_NFLOG.h
--header-y += xt_NFQUEUE.h
--header-y += xt_RATEEST.h
--header-y += xt_SECMARK.h
--header-y += xt_SYNPROXY.h
--header-y += xt_TCPMSS.h
--header-y += xt_TCPOPTSTRIP.h
--header-y += xt_TEE.h
--header-y += xt_TPROXY.h
--header-y += xt_addrtype.h
--header-y += xt_bpf.h
--header-y += xt_cgroup.h
--header-y += xt_cluster.h
--header-y += xt_comment.h
--header-y += xt_connbytes.h
--header-y += xt_connlabel.h
--header-y += xt_connlimit.h
--header-y += xt_connmark.h
--header-y += xt_conntrack.h
--header-y += xt_cpu.h
--header-y += xt_dccp.h
--header-y += xt_devgroup.h
--header-y += xt_dscp.h
--header-y += xt_ecn.h
--header-y += xt_esp.h
--header-y += xt_hashlimit.h
--header-y += xt_helper.h
--header-y += xt_ipcomp.h
--header-y += xt_iprange.h
--header-y += xt_ipvs.h
--header-y += xt_l2tp.h
--header-y += xt_length.h
--header-y += xt_limit.h
--header-y += xt_mac.h
--header-y += xt_mark.h
--header-y += xt_multiport.h
--header-y += xt_nfacct.h
--header-y += xt_osf.h
--header-y += xt_owner.h
--header-y += xt_physdev.h
--header-y += xt_pkttype.h
--header-y += xt_policy.h
--header-y += xt_quota.h
--header-y += xt_rateest.h
--header-y += xt_realm.h
--header-y += xt_recent.h
--header-y += xt_rpfilter.h
--header-y += xt_sctp.h
--header-y += xt_set.h
--header-y += xt_socket.h
--header-y += xt_state.h
--header-y += xt_statistic.h
--header-y += xt_string.h
--header-y += xt_tcpmss.h
--header-y += xt_tcpudp.h
--header-y += xt_time.h
--header-y += xt_u32.h
-diff --git a/include/uapi/linux/netfilter/ipset/Kbuild b/include/uapi/linux/netfilter/ipset/Kbuild
-deleted file mode 100644
-index d2680423d9ab..000000000000
---- a/include/uapi/linux/netfilter/ipset/Kbuild
-+++ /dev/null
-@@ -1,5 +0,0 @@
--# UAPI Header export list
--header-y += ip_set.h
--header-y += ip_set_bitmap.h
--header-y += ip_set_hash.h
--header-y += ip_set_list.h
-diff --git a/include/uapi/linux/netfilter_arp/Kbuild b/include/uapi/linux/netfilter_arp/Kbuild
-deleted file mode 100644
-index 62d5637cc0ac..000000000000
---- a/include/uapi/linux/netfilter_arp/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += arp_tables.h
--header-y += arpt_mangle.h
-diff --git a/include/uapi/linux/netfilter_bridge/Kbuild b/include/uapi/linux/netfilter_bridge/Kbuild
-deleted file mode 100644
-index 0fbad8ef96de..000000000000
---- a/include/uapi/linux/netfilter_bridge/Kbuild
-+++ /dev/null
-@@ -1,18 +0,0 @@
--# UAPI Header export list
--header-y += ebt_802_3.h
--header-y += ebt_among.h
--header-y += ebt_arp.h
--header-y += ebt_arpreply.h
--header-y += ebt_ip.h
--header-y += ebt_ip6.h
--header-y += ebt_limit.h
--header-y += ebt_log.h
--header-y += ebt_mark_m.h
--header-y += ebt_mark_t.h
--header-y += ebt_nat.h
--header-y += ebt_nflog.h
--header-y += ebt_pkttype.h
--header-y += ebt_redirect.h
--header-y += ebt_stp.h
--header-y += ebt_vlan.h
--header-y += ebtables.h
-diff --git a/include/uapi/linux/netfilter_ipv4/Kbuild b/include/uapi/linux/netfilter_ipv4/Kbuild
-deleted file mode 100644
-index ecb291df390e..000000000000
---- a/include/uapi/linux/netfilter_ipv4/Kbuild
-+++ /dev/null
-@@ -1,10 +0,0 @@
--# UAPI Header export list
--header-y += ip_tables.h
--header-y += ipt_CLUSTERIP.h
--header-y += ipt_ECN.h
--header-y += ipt_LOG.h
--header-y += ipt_REJECT.h
--header-y += ipt_TTL.h
--header-y += ipt_ah.h
--header-y += ipt_ecn.h
--header-y += ipt_ttl.h
-diff --git a/include/uapi/linux/netfilter_ipv6/Kbuild b/include/uapi/linux/netfilter_ipv6/Kbuild
-deleted file mode 100644
-index 75a668ca2353..000000000000
---- a/include/uapi/linux/netfilter_ipv6/Kbuild
-+++ /dev/null
-@@ -1,13 +0,0 @@
--# UAPI Header export list
--header-y += ip6_tables.h
--header-y += ip6t_HL.h
--header-y += ip6t_LOG.h
--header-y += ip6t_NPT.h
--header-y += ip6t_REJECT.h
--header-y += ip6t_ah.h
--header-y += ip6t_frag.h
--header-y += ip6t_hl.h
--header-y += ip6t_ipv6header.h
--header-y += ip6t_mh.h
--header-y += ip6t_opts.h
--header-y += ip6t_rt.h
-diff --git a/include/uapi/linux/nfsd/Kbuild b/include/uapi/linux/nfsd/Kbuild
-deleted file mode 100644
-index c11bc404053c..000000000000
---- a/include/uapi/linux/nfsd/Kbuild
-+++ /dev/null
-@@ -1,6 +0,0 @@
--# UAPI Header export list
--header-y += cld.h
--header-y += debug.h
--header-y += export.h
--header-y += nfsfh.h
--header-y += stats.h
-diff --git a/include/uapi/linux/raid/Kbuild b/include/uapi/linux/raid/Kbuild
-deleted file mode 100644
-index e2c3d25405d7..000000000000
---- a/include/uapi/linux/raid/Kbuild
-+++ /dev/null
-@@ -1,3 +0,0 @@
--# UAPI Header export list
--header-y += md_p.h
--header-y += md_u.h
-diff --git a/include/uapi/linux/spi/Kbuild b/include/uapi/linux/spi/Kbuild
-deleted file mode 100644
-index 0cc747eff165..000000000000
---- a/include/uapi/linux/spi/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += spidev.h
-diff --git a/include/uapi/linux/sunrpc/Kbuild b/include/uapi/linux/sunrpc/Kbuild
-deleted file mode 100644
-index 8e02e47c20fb..000000000000
---- a/include/uapi/linux/sunrpc/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += debug.h
-diff --git a/include/uapi/linux/tc_act/Kbuild b/include/uapi/linux/tc_act/Kbuild
-deleted file mode 100644
-index e3db7403296f..000000000000
---- a/include/uapi/linux/tc_act/Kbuild
-+++ /dev/null
-@@ -1,15 +0,0 @@
--# UAPI Header export list
--header-y += tc_csum.h
--header-y += tc_defact.h
--header-y += tc_gact.h
--header-y += tc_ipt.h
--header-y += tc_mirred.h
--header-y += tc_nat.h
--header-y += tc_pedit.h
--header-y += tc_skbedit.h
--header-y += tc_vlan.h
--header-y += tc_bpf.h
--header-y += tc_connmark.h
--header-y += tc_ife.h
--header-y += tc_tunnel_key.h
--header-y += tc_skbmod.h
-diff --git a/include/uapi/linux/tc_ematch/Kbuild b/include/uapi/linux/tc_ematch/Kbuild
-deleted file mode 100644
-index 53fca3925535..000000000000
---- a/include/uapi/linux/tc_ematch/Kbuild
-+++ /dev/null
-@@ -1,5 +0,0 @@
--# UAPI Header export list
--header-y += tc_em_cmp.h
--header-y += tc_em_meta.h
--header-y += tc_em_nbyte.h
--header-y += tc_em_text.h
-diff --git a/include/uapi/linux/usb/Kbuild b/include/uapi/linux/usb/Kbuild
-deleted file mode 100644
-index 4cc4d6e7e523..000000000000
---- a/include/uapi/linux/usb/Kbuild
-+++ /dev/null
-@@ -1,12 +0,0 @@
--# UAPI Header export list
--header-y += audio.h
--header-y += cdc.h
--header-y += cdc-wdm.h
--header-y += ch11.h
--header-y += ch9.h
--header-y += functionfs.h
--header-y += g_printer.h
--header-y += gadgetfs.h
--header-y += midi.h
--header-y += tmc.h
--header-y += video.h
-diff --git a/include/uapi/linux/wimax/Kbuild b/include/uapi/linux/wimax/Kbuild
-deleted file mode 100644
-index 1c97be49971f..000000000000
---- a/include/uapi/linux/wimax/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += i2400m.h
-diff --git a/include/uapi/misc/Kbuild b/include/uapi/misc/Kbuild
-deleted file mode 100644
-index e96cae7d58c9..000000000000
---- a/include/uapi/misc/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# misc Header export list
--header-y += cxl.h
-diff --git a/include/uapi/mtd/Kbuild b/include/uapi/mtd/Kbuild
-deleted file mode 100644
-index 5a691e10cd0e..000000000000
---- a/include/uapi/mtd/Kbuild
-+++ /dev/null
-@@ -1,6 +0,0 @@
--# UAPI Header export list
--header-y += inftl-user.h
--header-y += mtd-abi.h
--header-y += mtd-user.h
--header-y += nftl-user.h
--header-y += ubi-user.h
-diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
-deleted file mode 100644
-index 82bdf5626859..000000000000
---- a/include/uapi/rdma/Kbuild
-+++ /dev/null
-@@ -1,18 +0,0 @@
--# UAPI Header export list
--header-y += ib_user_cm.h
--header-y += ib_user_mad.h
--header-y += ib_user_sa.h
--header-y += ib_user_verbs.h
--header-y += rdma_netlink.h
--header-y += rdma_user_cm.h
--header-y += hfi/
--header-y += rdma_user_rxe.h
--header-y += cxgb3-abi.h
--header-y += cxgb4-abi.h
--header-y += mlx4-abi.h
--header-y += mlx5-abi.h
--header-y += mthca-abi.h
--header-y += nes-abi.h
--header-y += ocrdma-abi.h
--header-y += hns-abi.h
--header-y += vmw_pvrdma-abi.h
-diff --git a/include/uapi/rdma/hfi/Kbuild b/include/uapi/rdma/hfi/Kbuild
-deleted file mode 100644
-index ef23c294fc71..000000000000
---- a/include/uapi/rdma/hfi/Kbuild
-+++ /dev/null
-@@ -1,2 +0,0 @@
--# UAPI Header export list
--header-y += hfi1_user.h
-diff --git a/include/uapi/scsi/Kbuild b/include/uapi/scsi/Kbuild
-deleted file mode 100644
-index d791e0ad509d..000000000000
---- a/include/uapi/scsi/Kbuild
-+++ /dev/null
-@@ -1,6 +0,0 @@
--# UAPI Header export list
--header-y += fc/
--header-y += scsi_bsg_fc.h
--header-y += scsi_netlink.h
--header-y += scsi_netlink_fc.h
--header-y += cxlflash_ioctl.h
-diff --git a/include/uapi/scsi/fc/Kbuild b/include/uapi/scsi/fc/Kbuild
-deleted file mode 100644
-index 5ead9fac265c..000000000000
---- a/include/uapi/scsi/fc/Kbuild
-+++ /dev/null
-@@ -1,5 +0,0 @@
--# UAPI Header export list
--header-y += fc_els.h
--header-y += fc_fs.h
--header-y += fc_gs.h
--header-y += fc_ns.h
-diff --git a/include/uapi/sound/Kbuild b/include/uapi/sound/Kbuild
-deleted file mode 100644
-index 9578d8bdbf31..000000000000
---- a/include/uapi/sound/Kbuild
-+++ /dev/null
-@@ -1,16 +0,0 @@
--# UAPI Header export list
--header-y += asequencer.h
--header-y += asoc.h
--header-y += asound.h
--header-y += asound_fm.h
--header-y += compress_offload.h
--header-y += compress_params.h
--header-y += emu10k1.h
--header-y += firewire.h
--header-y += hdsp.h
--header-y += hdspm.h
--header-y += sb16_csp.h
--header-y += sfnt_info.h
--header-y += tlv.h
--header-y += usb_stream.h
--header-y += snd_sst_tokens.h
-diff --git a/include/uapi/video/Kbuild b/include/uapi/video/Kbuild
-deleted file mode 100644
-index ac7203bb32cc..000000000000
---- a/include/uapi/video/Kbuild
-+++ /dev/null
-@@ -1,4 +0,0 @@
--# UAPI Header export list
--header-y += edid.h
--header-y += sisfb.h
--header-y += uvesafb.h
-diff --git a/include/uapi/xen/Kbuild b/include/uapi/xen/Kbuild
-deleted file mode 100644
-index 5c459628e8c7..000000000000
---- a/include/uapi/xen/Kbuild
-+++ /dev/null
-@@ -1,5 +0,0 @@
--# UAPI Header export list
--header-y += evtchn.h
--header-y += gntalloc.h
--header-y += gntdev.h
--header-y += privcmd.h
-diff --git a/include/video/Kbuild b/include/video/Kbuild
-deleted file mode 100644
-index e69de29bb2d1..000000000000
-diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
-index 876b42cfede4..16ac3e71050e 100644
---- a/scripts/Makefile.headersinst
-+++ b/scripts/Makefile.headersinst
-@@ -1,17 +1,19 @@
- # =====================================
- # Installing headers
- #
--# header-y  - list files to be installed. They are preprocessed
--#             to remove __KERNEL__ section of the file
--# genhdr-y  - Same as header-y but in a generated/ directory
-+# All headers under include/uapi, include/generated/uapi,
-+# arch/<arch>/include/uapi/asm and arch/<arch>/include/generated/uapi/asm are
-+# exported.
-+# They are preprocessed to remove __KERNEL__ section of the file.
- #
- # =====================================
+ #include <linux/types.h>	/* for size_t */
++#include <string.h>
  
- # generated header directory
- gen := $(if $(gen),$(gen),$(subst include/,include/generated/,$(obj)))
+ void *memdup(const void *src, size_t len);
  
-+# Kbuild file is optional
- kbuild-file := $(srctree)/$(obj)/Kbuild
--include $(kbuild-file)
-+-include $(kbuild-file)
- 
- # called may set destination dir (when installing to asm/)
- _dst := $(if $(dst),$(dst),$(obj))
-@@ -25,9 +27,12 @@ include scripts/Kbuild.include
- 
- installdir    := $(INSTALL_HDR_PATH)/$(subst uapi/,,$(_dst))
- 
--header-y      := $(sort $(header-y))
--subdirs       := $(patsubst %/,%,$(filter %/, $(header-y)))
--header-y      := $(filter-out %/, $(header-y))
-+subdirs       := $(patsubst $(srctree)/$(obj)/%/.,%,$(wildcard $(srctree)/$(obj)/*/.))
-+subdirs       += $(subdir-y)
-+header-files  := $(notdir $(wildcard $(srctree)/$(obj)/*.h))
-+header-files  += $(notdir $(wildcard $(srctree)/$(obj)/*.agh))
-+genhdr-files  := $(notdir $(wildcard $(srctree)/$(gen)/*.h))
-+genhdr-files  := $(filter-out $(header-files), $(genhdr-files))
- 
- # files used to track state of install/check
- install-file  := $(installdir)/.install
-@@ -35,25 +40,23 @@ check-file    := $(installdir)/.check
- 
- # generic-y list all files an architecture uses from asm-generic
- # Use this to build a list of headers which require a wrapper
--wrapper-files := $(filter $(header-y), $(generic-y))
-+generic-files := $(notdir $(wildcard $(srctree)/include/uapi/asm-generic/*.h))
-+wrapper-files := $(filter $(generic-files), $(generic-y))
-+wrapper-files := $(filter-out $(header-files), $(wrapper-files))
- 
- srcdir        := $(srctree)/$(obj)
- gendir        := $(objtree)/$(gen)
- 
- # all headers files for this dir
--header-y      := $(filter-out $(generic-y), $(header-y))
--all-files     := $(header-y) $(genhdr-y) $(wrapper-files)
-+all-files     := $(header-files) $(genhdr-files) $(wrapper-files)
- output-files  := $(addprefix $(installdir)/, $(all-files))
- 
--# Check that all expected files exist
--$(foreach hdr, $(header-y), \
--  $(if $(wildcard $(srcdir)/$(hdr)),, \
--       $(error Missing UAPI file $(srcdir)/$(hdr)) \
--   ))
--$(foreach hdr, $(genhdr-y), \
--  $(if	$(wildcard $(gendir)/$(hdr)),, \
--       $(error Missing generated UAPI file $(gendir)/$(hdr)) \
--  ))
-+ifneq ($(mandatory-y),)
-+missing       := $(filter-out $(all-files),$(mandatory-y))
-+ifneq ($(missing),)
-+$(error Some mandatory headers ($(missing)) are missing in $(obj))
+diff --git a/tools/include/linux/tables.h b/tools/include/linux/tables.h
+new file mode 100644
+index 000000000000..64b864949a02
+--- /dev/null
++++ b/tools/include/linux/tables.h
+@@ -0,0 +1,684 @@
++#ifndef _LINUX_LINKER_TABLES_H
++#define _LINUX_LINKER_TABLES_H
++/*
++ * Linux linker tables
++ *
++ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of copyleft-next (version 0.3.1 or later) as published
++ * at http://copyleft-next.org/.
++ */
++#include <linux/export.h>
++#include <linux/sections.h>
++#include <asm/tables.h>
++
++#ifndef __ASSEMBLY__
++
++/**
++ * DOC: Introduction
++ *
++ * A linker table is a data structure that is stitched together from items in
++ * multiple object files for the purpose of selective placement into standard
++ * or architecture specific ELF sections. What section is used is utility
++ * specific. Linux has historically implicitly used linker tables, however they
++ * were all built in an adhoc manner which requires linker script modifications
++ * per architecture. The linker table API provides a general facility so that
++ * data structures can be stitched together and placed into Linux ELF sections
++ * by only changing C or asm code in an architecture agnostic form.
++ *
++ * Linker tables help you group together related data and code in an efficient
++ * way. Linker tables can be used to help simplify init sequences, they
++ * enable linker build time selective sorting (disabled options get ignored),
++ * and can optionally also be used to help you avoid code bit-rot due to
++ * overuse of #ifdef.
++ */
++
++/**
++ * DOC: Linker table provenance and userspace testing
++ *
++ * The Linux implementation of linker tables was inspired by the iPXE linker
++ * table's solution (iPXE commit 67a10ef000cb7 "[contrib] Add rom-o-matic to
++ * contrib "[0]).  To see how this code evolved refer to the out of tree
++ * userspace linker-table tree [1]. Linux has a similar userspace application
++ * in tools/linker-tables/ to help more easily test adding new extensions.
++ *
++ * Contrary to iPXE's solution which strives to force compilation of
++ * everything using linker tables, Linux's solution allows for developers to be
++ * selective over where one wishes to force compilation, this then is just an
++ * optional feature for the Linux linker table solution. The main advantages
++ * of using linker-tables then are:
++ *
++ *  - Avoiding modifying architecture linker scripts
++ *  - Simplifying initialization code
++ *  - Avoiding the code bit-rot problem
++ *
++ * [0] git://git.ipxe.org/ipxe.git
++ *
++ * [1] https://git.kernel.org/cgit/linux/kernel/git/mcgrof/linker-tables.git/
++ */
++
++/**
++ * DOC: Avoids modifying architecture linker scripts
++ *
++ * Linker tables enable you to avoid modifying architecture linker scripts
++ * since it has its has extended each core Linux section with a respective
++ * linker table entry in `include/asm-generic/vmlinux.lds.h`. When you add new
++ * linker table entry you aggregate them `into` the existing linker table core
++ * section.
++ */
++
++/**
++ * DOC: How linker tables simplify initialization code
++ *
++ * Traditionally, we would implement features in C code as follows:
++ *
++ *  foo_init();
++ *
++ * You'd then have a foo.h which would have::
++ *
++ *  #ifndef CONFIG_FOO
++ *  static inline void foo_init(void) { }
++ *  #endif
++ *
++ * With linker tables this is no longer necessary as your init routines would
++ * be implicit, you'd instead call:
++ *
++ *  call_init_fns();
++ *
++ * call_init_fns() would call all functions present in your init table and if
++ * and only if foo.o gets linked in, then its initialisation function will be
++ * called.
++ *
++ * The linker script takes care of assembling the tables for us. All of our
++ * table sections have names of the format `SECTION_NAME..tbl.NAME.N`. Here
++ * `SECTION_NAME` is one of the standard sections in::
++ *
++ *   include/asm-generic/section-core.h
++ *
++ * and `NAME` designates the specific use case for the linker table, the table.
++ * `N` is a digit used to help sort entries in the section. `N=` (empty string)
++ * is reserved for the symbol indicating `table start`, and `N=~` is reserved
++ * for the symbol indicating `table end`. In order for the call_init_fns() to
++ * work behind the scenes the custom linker script would need to define the
++ * beginning of the table, the end of the table, and in between it should use
++ * ``SORT()`` to give order to the section. Typically this would require custom
++ * linker script modifications however since linker table are already defined
++ * in ``include/asm-generic/vmlinux.lds.h`` as documented above each new linker
++ * table definition added in C code folds into the respective core Linux
++ * section linker table.
++ *
++ * This is also done to support all architectures.  All that is needed then is
++ * to ensure a respective common linker table entry is added to the shared
++ * ``include/asm-generic/vmlinux.lds.h``.  There should be a respective::
++ *
++ *  *(SORT(.foo..tbl.*))
++ *
++ * entry for each type of supported section there. If your `SECTION_NAME`
++ * is not yet supported, consider adding support for it.
++ *
++ * Linker tables support ordering entries, it does this using a digit which
++ * is eventually added as a postfix to a section entry name, we refer to this
++ * as the linker table ``order-level``. If order is not important to your
++ * linker table entry you can use the special ``SECTION_ORDER_ANY``. After
++ * ``order-level``, the next contributing factor to order is the order of the
++ * code in the C file, and the order of the objects in the Makefile. Using an
++ * ``order-level`` then should not really be needed in most cases, its use
++ * however enables to compartamentalize code into tables where ordering through
++ * C file or through the Makefile would otherwise be very difficult or if one
++ * wanted to enable very specific initialization semantics.
++ *
++ * As an example, suppose that we want to create a "frobnicator"
++ * feature framework, and allow for several independent modules to
++ * provide frobnicating services. Then we would create a frob.h
++ * header file containing e.g.::
++ *
++ *	struct frobnicator {
++ *		const char *name;
++ *		void (*frob) (void);
++ *	};
++ *
++ *	DECLARE_LINKTABLE(struct frobnicator, frobnicator_fns);
++ *
++ * Any module providing frobnicating services would look something
++ * like::
++ *
++ *	#include "frob.h"
++ *
++ *	static void my_frob(void) {
++ *		... Do my frobnicating
++ *	}
++ *
++ *	LINKTABLE_INIT_DATA(frobnicator_fns, all) my_frobnicator = {
++ *		.name = "my_frob",
++ *		.frob = my_frob,
++ *	};
++ *
++ * The central frobnicator code, say in frob.c, would use the frobnicating
++ * modules as follows::
++ *
++ *	#include "frob.h"
++ *
++ *	void frob_all(void) {
++ *		struct frobnicator *f;
++ *
++ *		linktable_for_each(f, frobnicator_fns) {
++ *			pr_info("Calling frobnicator %s\n", frob->name);
++ *			f->frob();
++ *		}
++ *	}
++ */
++
++/**
++ * DOC: The code bit-rot problem
++ *
++ * Linux provides a rich array of features, enabling each feature
++ * however increases the size of the kernel and there are many
++ * features which users often want disabled. The traditional
++ * solution to this problem is for each feature to have its own
++ * Kconfig symbol, followed by a series of #ifdef statements
++ * in C code and header files, allowing the feature to be compiled
++ * only when desirable. As the variability of Linux increases build
++ * tests can and are often done with random kernel configurations,
++ * allyesconfig, and allmodconfig to help find code issues. This
++ * however doesn't catch all errors and as a consequence code that
++ * is typically not enabled often can suffer from bit-rot over time.
++ */
++
++/**
++ * DOC: The build-all selective-link philosophy
++ *
++ * A code architecture philosophy to help avoid code bit-rot consists
++ * of using Kconfig symbols for each subsystem feature, replace all #ifdefs
++ * by instead having each feature implemented it its own C file, and force
++ * compilation for all features. Only features that are enabled get linked in,
++ * the forced compilation therefore has no size impact on the final result of
++ * the kernel. The practice of having each feature implemented in its own C
++ * file is already prevalent in many subsystems, however #ifdefs are still
++ * typically required during feature initialization. For instance in::
++ *
++ *	#ifdef CONFIG_FOO
++ *	foo_init();
++ *	#endif
++ *
++ * We cannot remove the #ifdef and leave foo_init() as we'd either
++ * need to always enable the feature or add a respective #ifdef in a
++ * foo.h which makes foo_init() do nothing when ``CONFIG_FOO`` is disabled.
++ */
++
++/**
++ * DOC: Avoiding the code bit-rot problem with linker tables
++ *
++ * Linker tables can be used to further help avoid the code bit-rot problem
++ * when embracing the 'build-all selective-link philosophy' by lifting the
++ * requirement to use of #ifdefs during initialization. With linker tables
++ * initialization sequences can be aggregated into a custom ELF section at
++ * link time, during run time the table can be iterated over and each init
++ * sequence enabled can be called. A feature's init routine is only added to a
++ * table when its respective Kconfig symbols has been enabled and therefore
++ * linked in. Linker tables enable subsystems to completely do away with
++ * #ifdefs if one is comfortable in accepting all subsystem's feature's
++ * structural size implications.
++ *
++ * To further help with this the Linux build system supports two special
++ * targets, ``force-obj-y`` and ``force-lib-y``. A subsystem which wants to
++ * follow the 'build-all selective-link philosophy' can use these targets for a
++ * feature's kconfig symbol. Using these targets will always require
++ * compilation of the kconfig's objects if the kconfig symbol's dependencies
++ * are met but only link the objects into the kernel, and therefore enable the
++ * feature, if and only if the kconfig symbol has been enabled.
++ *
++ * Not all users or build systems may want to opt-in to compile all objects
++ * following the 'build-all selective-link philosophy', as such the targets
++ * ``force-obj-y`` and ``force-lib-y`` only force compilation when the kconfig
++ * symbol ``CONFIG_BUILD_AVOID_BITROT`` has been enabled. Disabling this feature
++ * makes ``force-obj-y`` and ``force-lib-y`` functionally equivalent to
++ * ``obj-y`` and ``lib-y`` respectively.
++ *
++ * Example use::
++ *
++ * 	force-obj-$(CONFIG_FEATURE_FOO) += foo.o
++ */
++
++/**
++ * DOC: Linker table module support
++ *
++ * Modules can use linker tables, however the linker table definition
++ * must be built-in to the kernel. That is, the code that implements
++ * ``DEFINE_LINKTABLE*()`` must be built-in, and modular code cannot add
++ * more items in to the table, unless ``kernel/module.c`` find_module_sections()
++ * and module-common.lds.S are updated accordingly with a respective
++ * module notifier to account for updates. This restriction may be enhanced
++ * in the future.
++ */
++
++/**
++ * DOC: Linker table helpers
++ *
++ * These are helpers for linker tables.
++ */
++
++/**
++ * LINKTABLE_START - get address of start of linker table
++ *
++ * @name: name of the linker table
++ *
++ * This gives you the start address of the linker table.
++ * This should give you the address of the first entry.
++ *
++ */
++#define LINKTABLE_START(name)	LINUX_SECTION_START(name)
++
++/**
++ * LINKTABLE_END - get address of end of the linker table
++ *
++ * @name: name of the linker table
++ *
++ * This gives you the end address of the linker table.
++ * This will match the start address if the linker table
++ * is empty.
++ */
++#define LINKTABLE_END(name)	LINUX_SECTION_END(name)
++
++/**
++ * LINKTABLE_SIZE - get number of entries in the linker table
++ *
++ * @name: name of the linker table
++ *
++ * This gives you the number of entries in the linker table.
++ * Example usage:
++ *
++ *   unsigned int num_frobs = LINKTABLE_SIZE(frobnicator_fns);
++ */
++#define LINKTABLE_SIZE(name)					\
++	((LINKTABLE_END(name)) - (LINKTABLE_START(name)))
++
++/**
++ * LINKTABLE_EMPTY - check if linker table has no entries
++ *
++ * @name: name of linker table
++ *
++ * Returns true if the linker table is emtpy.
++ *
++ *   bool is_empty = LINKTABLE_EMPTY(frobnicator_fns);
++ */
++#define LINKTABLE_EMPTY(name)	(LINKTABLE_SIZE(name) = 0)
++
++/**
++ * LINKTABLE_ADDR_WITHIN - returns true if address is in the linker table
++ *
++ * @name: name of the linker table
++ * @addr: address to query for
++ *
++ * Returns true if the address is part of the linker table.
++ */
++#define LINKTABLE_ADDR_WITHIN(name, addr)				\
++	 (addr >= (unsigned long) LINKTABLE_START(name) &&		\
++          addr < (unsigned long) LINKTABLE_END(name))
++
++/**
++ * LINKTABLE_ALIGNMENT - get the alignment of the linker table
++ *
++ * @name: name of linker table
++ *
++ * Gives you the alignment for the linker table.
++ */
++#define LINKTABLE_ALIGNMENT(name)	LINUX_SECTION_ALIGNMENT(name)
++
++/**
++ * DOC: Constructing linker tables
++ *
++ * Linker tables constructors are used to build an entry into a linker table.
++ * Linker table constructors exist for each type of supported section.
++ *
++ * You have weak and regular type of link table entry constructors.
++ */
++
++/**
++ * DOC: Weak linker tables constructors
++ *
++ * The weak attribute is desirable if you want an entry you can replace at
++ * link time. A very special use case for linker tables is the first entry.
++ * A weak attribute is used for the first entry to ensure that this entry's
++ * address matches the end address of the table when the linker table is
++ * emtpy, but will also point to the first real entry of the table once not
++ * empty. When the first entry is linked in, it takes place of the first entry.
++ */
++
++/**
++ * LINKTABLE_WEAK - Constructs a weak linker table entry for data
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Constructs a weak linker table for data.
++ */
++#define LINKTABLE_WEAK(name, level)					\
++	      __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".data..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_TEXT_WEAK - Constructs a weak linker table entry for execution
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Constructs a weak linker table for code execution. These will be
++ * read-only.
++ */
++#define LINKTABLE_TEXT_WEAK(name, level)				\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".text..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_RO_WEAK - Constructs a weak read-only linker table entry
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Constructs a weak linker table which only requires read-only access.
++ */
++#define LINKTABLE_RO_WEAK(name, level)					\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(SECTION_TBL_RO_STR "..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_INIT_WEAK - Constructs a weak linker table entry for init code
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Constructs a weak linker table for execution. use at init.
++ */
++#define LINKTABLE_INIT_WEAK(name, level)				\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".init.text..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_INIT_DATA_WEAK - Constructs a weak linker table entry for initdata
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Constructs a weak linker table for data during init.
++ */
++#define LINKTABLE_INIT_DATA_WEAK(name, level)				\
++	      __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     weak,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".init.data..tbl." #name "." #level)))
++
++/**
++ * DOC: Regular linker linker table constructors
++ *
++ * Regular constructors are expected to be used for valid linker table entries.
++ * Valid uses of weak entries other than the beginning and is currently
++ * untested but should in theory work.
++ */
++
++/**
++ * LINKTABLE - Declares a data linker table entry
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Declares a data linker table entry. These are read-write.
++ */
++#define LINKTABLE(name, level)						\
++	      __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".data..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_TEXT - Declares a linker table entry for execution
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Declares a linker table to be used for execution.
++ */
++#define LINKTABLE_TEXT(name, level)					\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".text..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_RO - Declares a read-only linker table entry.
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Declares a linker table which only requires read-only access. Contrary
++ * to LINKTABLE_RO_WEAK() which uses SECTION_RODATA this helper uses the
++ * section SECTION_TBL_RO here due to possible toolchains bug on some
++ * architectures, for instance the c6x architicture stuffs non-weak data
++ * into different sections other than the one intended.
++ */
++#define LINKTABLE_RO(name, level)					\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(SECTION_TBL_RO_STR "..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_INIT - Declares a linker table entry to be used on init.
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Declares a linker table entry for execution use during init.
++ */
++#define LINKTABLE_INIT(name, level)					\
++	const __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".init.text..tbl." #name "." #level)))
++
++/**
++ * LINKTABLE_INIT_DATA - Declares a linker table entry to be used on init data.
++ *
++ * @name: linker table name
++ * @level: order level
++ *
++ * Declares a linker table entry for data during init.
++ */
++#define LINKTABLE_INIT_DATA(name, level)				\
++	      __typeof__(LINKTABLE_START(name)[0])			\
++	      __attribute__((used,					\
++			     __aligned__(LINKTABLE_ALIGNMENT(name)),	\
++			     section(".init.data..tbl." #name "." #level)))
++
++/**
++ * DOC: Declaring Linker tables
++ *
++ * Declarers are used to help code access the linker tables. Typically
++ * header files for subsystems would declare the linker tables to enable
++ * easy access to add new entries, and to iterate over the list of table.
++ * There are only two declarers needed given that the section association
++ * is done by the definition of the linker table using ``DEFINE_LINKTABLE*()``
++ * helpers.
++ */
++
++
++/**
++ * DECLARE_LINKTABLE - Declares a data linker table entry
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Declares a data linker table entry.
++ */
++#define DECLARE_LINKTABLE(type, name)					\
++	DECLARE_LINUX_SECTION(type, name)
++
++/**
++ * DECLARE_LINKTABLE_RO - Declares a read-only linker table entry
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Declares a read-only linker table entry.
++ */
++#define DECLARE_LINKTABLE_RO(type, name)				\
++	DECLARE_LINUX_SECTION_RO(type, name)
++
++/**
++ * DOC: Defining Linker tables
++ *
++ * Linker tables are defined in the code that takes ownership over
++ * the linker table. This is typically done in the same code that is in
++ * charge of iterating over the linker table as well.
++ */
++
++/**
++ * DEFINE_LINKTABLE - Defines a linker table for data
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Defines a linker table which used for data.
++ */
++#define DEFINE_LINKTABLE(type, name)					\
++	DECLARE_LINKTABLE(type, name);					\
++	LINKTABLE_WEAK(name,) LINKTABLE_START(name)[0] = {};		\
++	LINKTABLE(name, ~) LINKTABLE_END(name)[0] = {}
++
++/**
++ * DEFINE_LINKTABLE_TEXT - Declares linker table entry for exectuion
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Declares a linker table entry for execution.
++ */
++#define DEFINE_LINKTABLE_TEXT(type, name)				\
++	DECLARE_LINKTABLE_RO(type, name);				\
++	LINKTABLE_TEXT_WEAK(name,) LINKTABLE_START(name)[0] = {};	\
++	LINKTABLE_TEXT(name, ~) LINKTABLE_END(name)[0] = {}
++
++/**
++ * DEFINE_LINKTABLE_RO - Defines a read-only linker table
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Defines a linker table which we know only requires read-only access.
++ */
++#define DEFINE_LINKTABLE_RO(type, name)					\
++	DECLARE_LINKTABLE_RO(type, name);				\
++	LINKTABLE_RO_WEAK(name,) LINKTABLE_START(name)[0] = {};		\
++	LINKTABLE_RO(name, ~) LINKTABLE_END(name)[0] = {}
++
++/**
++ * DEFINE_LINKTABLE_INIT - Defines an init time linker table for execution
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Defines a linker table. If you are adding a new type you should
++ * enable ``CONFIG_DEBUG_SECTION_MISMATCH`` and ensure routines that make
++ * use of the linker tables get a respective __ref tag.
++ */
++#define DEFINE_LINKTABLE_INIT(type, name)				\
++	DECLARE_LINKTABLE_RO(type, name);				\
++	LINKTABLE_INIT_WEAK(name,) LINKTABLE_START(name)[0] = {};	\
++	LINKTABLE_INIT(name, ~) LINKTABLE_END(name)[0] = {}
++
++/**
++ * DEFINE_LINKTABLE_INIT_DATA - Defines an init time linker table for data
++ *
++ * @type: data type
++ * @name: table name
++ *
++ * Defines a linker table for init data. If you are adding a new type you
++ * should enable ``CONFIG_DEBUG_SECTION_MISMATCH`` and ensure routines that
++ * make use of the linker tables get a respective __ref tag.
++ */
++#define DEFINE_LINKTABLE_INIT_DATA(type, name)				\
++	DECLARE_LINKTABLE(type, name);					\
++	LINKTABLE_INIT_DATA_WEAK(name,) LINKTABLE_START(name)[0] = {};	\
++	LINKTABLE_INIT_DATA(name, ~) LINKTABLE_END(name)[0] = {}
++
++/**
++ * DOC: Iterating over Linker tables
++ *
++ * To make use of the linker tables you want to be able to iterate over
++ * them. This section documents the different iterators available.
++ */
++
++/**
++ * linktable_for_each - iterate through all entries within a linker table
++ *
++ * @pointer: entry pointer
++ * @tbl: linker table
++ *
++ * Example usage::
++ *
++ *   struct frobnicator *frob;
++ *
++ *   linktable_for_each(frob, frobnicator_fns) {
++ *     ...
++ *   }
++ */
++
++#define linktable_for_each(pointer, tbl)				\
++	for (pointer = LINKTABLE_START(tbl);				\
++	     pointer < LINKTABLE_END(tbl);				\
++	     pointer++)
++
++/**
++ * linktable_run_all - iterate and run through all entries on a linker table
++ *
++ * @tbl: linker table
++ * @func: structure name for the function name we want to call.
++ * @args...: arguments to pass to func
++ *
++ * Example usage::
++ *
++ *   linktable_run_all(frobnicator_fns, some_run,);
++ */
++#define linktable_run_all(tbl, func, args...)				\
++do {									\
++	size_t i;							\
++	for (i = 0; i < LINKTABLE_SIZE(tbl); i++)			\
++		(LINKTABLE_START(tbl)[i]).func (args);			\
++} while (0)
++
++/**
++ * linktable_run_err - run each linker table entry func and return error if any
++ *
++ * @tbl: linker table
++ * @func: structure name for the function name we want to call.
++ * @args...: arguments to pass to func
++ *
++ * Example usage::
++ *
++ *   unsigned int err = linktable_run_err(frobnicator_fns, some_run,);
++ */
++#define linktable_run_err(tbl, func, args...)				\
++({									\
++	size_t i;							\
++	int err = 0;							\
++	for (i = 0; !err && i < LINKTABLE_SIZE(tbl); i++)		\
++		err = (LINKTABLE_START(tbl)[i]).func (args);		\
++	err;								\
++})
++
++#endif /* __ASSEMBLY__ */
++
++#endif /* _LINUX_LINKER_TABLES_H */
+diff --git a/tools/linker-tables/.gitignore b/tools/linker-tables/.gitignore
+new file mode 100644
+index 000000000000..8275b0c55385
+--- /dev/null
++++ b/tools/linker-tables/.gitignore
+@@ -0,0 +1,2 @@
++arch/x86/kernel/vmlinux.lds
++demo
+diff --git a/tools/linker-tables/Makefile b/tools/linker-tables/Makefile
+new file mode 100644
+index 000000000000..9d4e6fb0d176
+--- /dev/null
++++ b/tools/linker-tables/Makefile
+@@ -0,0 +1,184 @@
++include ../scripts/Makefile.include
++
++all:
++
++include ../scripts/utilities.mak
++
++MAKEFLAGS += --no-print-directory
++
++unexport LC_ALL
++LC_COLLATE=C
++LC_NUMERIC=C
++export LC_COLLATE LC_NUMERIC
++
++ifeq ($(srctree),)
++	srctree := $(patsubst %/,%,$(dir $(shell pwd)))
++srctree := $(patsubst %/,%,$(dir $(srctree)))
++#$(info Determined 'srctree' to be $(srctree))
 +endif
++
++ifneq ($(objtree),)
++#$(info Determined 'objtree' to be $(objtree))
 +endif
- 
- # Work out what needs to be removed
- oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
-@@ -67,8 +70,8 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
- quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
-                             file$(if $(word 2, $(all-files)),s))
-       cmd_install = \
--        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-y); \
--        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-y); \
-+        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-files); \
-+        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-files); \
-         for F in $(wrapper-files); do                                   \
-                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
-         done;                                                           \
++
++ifneq ($(OUTPUT),)
++#$(info Determined 'OUTPUT' to be $(OUTPUT))
++# Adding $(OUTPUT) as a directory to look for source files,
++# because use generated output files as sources dependency
++# for flex/bison parsers.
++VPATH += $(OUTPUT)
++export VPATH
++endif
++
++export srctree OUTPUT RM CC LD AR CFLAGS V BISON FLEX AWK
++include $(srctree)/tools/build/Makefile.include
++
++ifeq ($(V),1)
++	Q+	NQ=@true
++else
++	Q=@
++	NQ=@echo
++endif
++
++MAKEFLAGS += -r
++
++define allow-override
++  $(if $(or $(findstring environment,$(origin $(1))),\
++            $(findstring command line,$(origin $(1)))),,\
++    $(eval $(1) = $(2)))
++endef
++
++# Allow setting CC and AR and LD, or setting CROSS_COMPILE as a prefix.
++$(call allow-override,CC,$(CROSS_COMPILE)gcc)
++$(call allow-override,AR,$(CROSS_COMPILE)ar)
++$(call allow-override,LD,$(CROSS_COMPILE)ld)
++
++LD += $(EXTRA_LDFLAGS)
++
++include $(srctree)/tools/scripts/Makefile.arch
++
++# Refer to README to learn how to support your architecture
++SUPPORTED_ARCHS = x86
++
++ifeq ($(filter $(ARCH),$(SUPPORTED_ARCHS)),)
++$(error Unsupported arch: $(ARCH))
++endif
++
++CFLAGS += -O2 -g
++CFLAGS += -std=gnu99 -Wall -Werror
++CFLAGS += -lpthread
++CFLAGS += -DCONFIG_KPROBES
++
++# We confine the includes used below to those we know are safe
++# for this type of hack.
++CFLAGS += -D__KERNEL__
++
++# CFLAGS += -DCONFIG_HAVE_ARCH_PS_CONST
++INCLUDES = \
++	   -I include/ \
++	   -I arch/$(ARCH)/include/ \
++	   -I ../include/ \
++	   -I ../arch/$(ARCH)/include/ \
++	   -I ../arch/$(ARCH)/include/generated/
++
++CFLAGS += $(INCLUDES)
++CFLAGS +=-Wl,-Tarch/$(ARCH)/kernel/vmlinux.lds
++
++HEADERS = \
++	  ../../include/asm-generic/section-core.h \
++	  ../../include/asm-generic/ranges.h \
++	  ../../include/asm-generic/tables.h \
++	  ../../include/linux/sections.h \
++	  ../../include/linux/ranges.h \
++	  ../../include/linux/tables.h
++
++__check_headers: $(HEADERS)
++	@$(foreach h, $(HEADERS), \
++		(test -f $(h) && ( \
++			(diff -B $(subst ../,../,$(h)) $(h) >/dev/null) \
++			|| echo "Warning: $(subst ../../,tools/,$(h)) differs from kernel" >&2 ) || true);)
++
++$(OUTPUT)arch/$(ARCH)/kernel/vmlinux.lds: arch/$(ARCH)/kernel/vmlinux.lds.S
++	$(NQ) '  LD  ' $@
++	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -E -P \
++		-D__ASSEMBLY__ -DLINKER_SCRIPT -o $@ $<
++
++# Note, we use obj-y as a convenience factor, the cmd build
++# stuff doesn't allow this magic, it resolves our depds but
++# we still need to provide a series of targets for our objects.
++# We stick to the convenient shorthand we're used to in the
++# kernel. The final object resolution build stuff is handled
++# by tool_target_obj and its caller below. This also enables
++# OUTPUT=foo-path support so you can build externally.
++obj-y += \
++	arch/$(ARCH)/kernel/head64.o \
++	arch/$(ARCH)/mm/init.o \
++	kernel/locking/mutex.o \
++	kernel/locking/spinlock.o \
++	kernel/workqueue.o \
++	kernel/main.o \
++	pci.o \
++	lib/string.o \
++	pci-quirks.o \
++	drivers/acme.o \
++	drivers/synth/main.o \
++	drivers/synth/common.o \
++	drivers/synth/or.s \
++	main.o
++
++ifeq ($(ARCH),x86)
++obj-y += \
++	arch/$(ARCH)/kernel/alternative.o \
++	arch/$(ARCH)/kernel/init.o \
++	arch/$(ARCH)/kernel/kprobes.o \
++	arch/$(ARCH)/kernel/kasan.o \
++	arch/$(ARCH)/kernel/beta.o \
++	arch/$(ARCH)/kernel/alpha.o \
++	arch/$(ARCH)/xen/init.o	\
++	drivers/xen-driver.o
++endif
++
++obj-y-out = $(patsubst %,$(OUTPUT)%,$(obj-y))
++
++__build-dir = $(subst $(OUTPUT),,$(dir $1))
++build-dir   = $(if $(__build-dir),$(__build-dir),.)
++
++build := -f $(srctree)/tools/build/Makefile.build dir=$(build-dir)
++
++define tool_target_obj
++$(1): $(subst .s,.S,$(subst .o,.c,$(patsubst $(OUTPUT)%,%,$(1))))
++	$(Q)$(MAKE) $(build) obj=$(1)
++endef
++
++$(foreach tool_obj, $(obj-y-out), \
++	$(eval $(call tool_target_obj, $(tool_obj))))
++
++$(OUTPUT)demo: $(obj-y-out)
++	$(NQ) '  CC  ' $@
++	$(Q)$(CC) $(obj-y-out) -o $@ $(CPPFLAGS) $(CFLAGS)
++
++CHECK_HEADERS := __check_headers
++PHONY += $(CHECK_HEADERS)
++
++CMD_TARGETS = $(OUTPUT)arch/$(ARCH)/kernel/vmlinux.lds $(OUTPUT)demo
++TARGETS = $(CMD_TARGETS)
++
++all: $(CHECK_HEADERS) all_cmd
++
++all_cmd: $(CMD_TARGETS)
++
++ifeq ($(OUTPUT),)
++clean_dir = ./
++else
++clean_dir = $(OUTPUT)
++endif
++
++clean::
++	$(NQ)  '  CLEAN deps'
++	$(Q)find $(clean_dir) -name \*.o \
++		-o -name \*.s \
++		-o -name \*.o.d \
++		-o -name \*.o.cmd | xargs rm -f
++	$(NQ)  '  CLEAN targets'
++	$(Q)$(foreach f, $(CMD_TARGETS), rm -f $(f);)
+diff --git a/tools/linker-tables/README b/tools/linker-tables/README
+new file mode 100644
+index 000000000000..729241f9e4c4
+--- /dev/null
++++ b/tools/linker-tables/README
+@@ -0,0 +1,114 @@
++Linux linker table userspace sandbox
++==================
++
++This is a userspace sandbox to allow easy experimentation and
++test extensions with linker tables. It tries to mimic the Linux
++kernel development flow as much as possible, it however relies
++on and uses libc and is nothing but a simple stupid userspace
++application demo.
++
++You can use the sandbox to modify the kernel's linker table
++solution or add use it in creative ways without having to run
++qemu with a real kernel or user mode linux. You can simply try
++to extend this sandbox as you would for a regular userspace
++application.
++
++History
++===+
++This was hacked on first in an external repository, that tree has
++the full set of history of how this work came about. Refer to that
++tree for more details if you are interested in the logic used for
++a lot of decisions made for linker tables:
++
++https://git.kernel.org/cgit/linux/kernel/git/mcgrof/linker-tables.git/
++
++This tree is discontinued now in favor of an upstream solution which
++is kept in sync with the kernel.
++
++Compile
++===+
++Run:
++	make
++
++Clean:
++	make clean
++
++If you need to get object files outside of the source tree:
++
++	make OUTPUT=/tmp/path/
++	make OUTPUT=/tmp/path/ clean
++
++Supported architectures
++===========+
++x86_64
++
++Currently only x86_64 is supported for the demo. It should be
++relatively easy to add more. To add a new architecture you need
++a toolchain available with libc. You then need to generate a
++respective base template custom linker script for userspace
++as is provided on x86 in arch/x86/kernel/vmlinux.lds.S.
++
++A respective architecture tools/arch/$(ARCH)/include/* file for
++each section-core.h, ranges.h, tables.h will need to be provided
++as well. If your architecture's file is generated copy the generated
++file over.
++
++x86 Simulated boots
++=========+
++This programs simulates boot on both bare metal and with the
++Xen PV entry on x86.
++
++Emulate bare metal boot:
++
++./demo
++
++Emulate Xen boot (x86):
++
++./demo -x
++
++Testing new features
++==========
++
++A copy of each kernel header file is maintained in tools/include/,
++as well as a respective generated asm file for each sandbox supported
++architecture. This sandbox has a built in checker for when these files
++get out of sync.
++
++If testing new extensions on the files:
++
++  o section-core
++  o ranges.h
++  o tables.h
++
++You'll want to copy them into tools as well. If you are working on
++using these files you can work within the current directory's namespace,
++including its own set of header files, so tools/linker-tables/include/ and
++each respective tools/linker-tables/arch/$(ARCH)/include/asm/.
++
++Features evaluation
++=========+
++This lists features currently being evaluated in the sandbox, not yet
++present upstream. These make use of the existing set of header files
++without modification.
++
++ o Demo use of initialization on for x86, refer to arch/x86/kernel/init.c
++
++ o Demo use of porting the kernel's init call levels to linker tables, refer
++   to the init_calls linker table use on kernel/main.c
++
++ o Demo use of an asm-generic architecture init family, which could potentially
++   be used to help share initialization sequences on simple architectures.
++   Refer to include/asm-generic/arch_init_fn.h
++
++ o Building synthetic routines with the option to provide enhancements
++   per architecture in asm, refer to drivers/synth/or.S and its use on
++   synth_init_or().
++
++ o User of linker tables for alternatives with consts - refer to
++   use of the ps_set_const_table linker table and its use in
++   arch/x86/kernel/alternative.c
+diff --git a/tools/linker-tables/arch/x86/include/asm/asm.h b/tools/linker-tables/arch/x86/include/asm/asm.h
+new file mode 100644
+index 000000000000..155a52920dfb
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/asm.h
+@@ -0,0 +1,17 @@
++#ifndef _ASM_X86_ASM_H
++
++#ifdef __ASSEMBLY__
++# define __ASM_FORM(x)	x
++# define __ASM_FORM_RAW(x)     x
++# define __ASM_FORM_COMMA(x) x,
++#else
++# define __ASM_FORM(x)	" " #x " "
++# define __ASM_FORM_RAW(x)     #x
++# define __ASM_FORM_COMMA(x) " " #x ","
++#endif
++
++# define __ASM_SEL(a,b) __ASM_FORM(b)
++# define __ASM_SEL_RAW(a,b) __ASM_FORM_RAW(b)
++#define _ASM_PTR	__ASM_SEL(.long, .quad)
++
++#endif /* _ASM_X86_ASM_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/boot.h b/tools/linker-tables/arch/x86/include/asm/boot.h
+new file mode 100644
+index 000000000000..af91b94ad5a6
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/boot.h
+@@ -0,0 +1 @@
++extern struct boot_params boot_params;
+diff --git a/tools/linker-tables/arch/x86/include/asm/bootparam.h b/tools/linker-tables/arch/x86/include/asm/bootparam.h
+new file mode 100644
+index 000000000000..a7ef34216f7f
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/bootparam.h
+@@ -0,0 +1,32 @@
++#ifndef __BOOTPARAM_H
++#define __BOOTPARAM_H
++
++#include <linux/types.h>
++
++struct setup_header {
++	__u32 hardware_subarch;
++} __attribute__((packed));
++
++struct boot_params {
++	struct setup_header hdr;
++} __attribute__((packed));
++
++enum {
++	X86_SUBARCH_PC = 0,
++	X86_SUBARCH_LGUEST,
++	X86_SUBARCH_XEN,
++	X86_SUBARCH_INTEL_MID,
++	X86_SUBARCH_CE4100,
++	X86_NR_SUBARCHS,
++};
++
++#define X86_SUBARCH_ALL_SUBARCHS 	\
++	(				\
++	BIT(X86_SUBARCH_PC) |		\
++	BIT(X86_SUBARCH_LGUEST) |	\
++	BIT(X86_SUBARCH_XEN) |		\
++	BIT(X86_SUBARCH_INTEL_MID) |	\
++	BIT(X86_SUBARCH_CE4100)		\
++	)
++
++#endif /* __BOOTPARAM_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/kprobes.h b/tools/linker-tables/arch/x86/include/asm/kprobes.h
+new file mode 100644
+index 000000000000..f702fc359efe
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/kprobes.h
+@@ -0,0 +1,7 @@
++#ifndef _SANDBOX_ASM_X86_KPROBES_H
++#define _SANDBOX_ASM_X86_KPROBES_H
++
++/* This is all we need for the demo */
++#include <asm-generic/kprobes.h>
++
++#endif /* _SANDBOX_ASM_X86_KPROBES_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/ps_const.h b/tools/linker-tables/arch/x86/include/asm/ps_const.h
+new file mode 100644
+index 000000000000..3847f03fca92
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/ps_const.h
+@@ -0,0 +1,23 @@
++#ifndef __X86_PS_CONST
++#define __X86_PS_CONST
++
++#include <linux/stringify.h>
++#include <linux/tables.h>
++#include <asm/asm.h>
++
++#define ps_shr(in, _func)						\
++({									\
++	 __typeof__(in) _count;						\
++									\
++	asm volatile(							\
++		"shr %P[_in],%[_count]\n"				\
++		"1:\n"							\
++		push_section_tbl(.init.data, ps_set_const_table, 01,)	\
++		_ASM_PTR "1b-1, %P2, %P3\n"				\
++		".popsection\n"						\
++		: [_count] "=g" (_count)				\
++		: [_in] "i" (in), "i" (SET_CONST_U8), "i" (_func));	\
++	(_count);							\
++})
++
++#endif /* __X86_PS_CONST */
+diff --git a/tools/linker-tables/arch/x86/include/asm/ranges.h b/tools/linker-tables/arch/x86/include/asm/ranges.h
+new file mode 100644
+index 000000000000..823789d2b010
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/ranges.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_X86_RANGES_H
++#define _ASM_X86_RANGES_H
++
++#include <asm-generic/ranges.h>
++
++#endif  /* _ASM_X86_RANGES_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/section-core.h b/tools/linker-tables/arch/x86/include/asm/section-core.h
+new file mode 100644
+index 000000000000..06be2b1c424f
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/section-core.h
+@@ -0,0 +1 @@
++#include <asm-generic/section-core.h>
+diff --git a/tools/linker-tables/arch/x86/include/asm/setup.h b/tools/linker-tables/arch/x86/include/asm/setup.h
+new file mode 100644
+index 000000000000..366c36bd2910
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/setup.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_X86_USER_SETUP_H
++#define __LINUX_X86_USER_SETUP_H
++
++/* I'm lazy */
++
++#endif /* __LINUX_X86_USER_SETUP_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/tables.h b/tools/linker-tables/arch/x86/include/asm/tables.h
+new file mode 100644
+index 000000000000..797df3407ee1
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/tables.h
+@@ -0,0 +1,6 @@
++#ifndef _ASM_X86_TABLES_H
++#define _ASM_X86_TABLES_H
++
++#include <asm-generic/tables.h>
++
++#endif  /* _ASM_X86_RANGES_H */
+diff --git a/tools/linker-tables/arch/x86/include/asm/x86.h b/tools/linker-tables/arch/x86/include/asm/x86.h
+new file mode 100644
+index 000000000000..680c1141e0de
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/x86.h
+@@ -0,0 +1,4 @@
++int startup_64(void);
++int x86_64_start_reservations(void);
++void setup_arch(void);
++void late_init(void);
+diff --git a/tools/linker-tables/arch/x86/include/asm/x86_init_fn.h b/tools/linker-tables/arch/x86/include/asm/x86_init_fn.h
+new file mode 100644
+index 000000000000..afece8ce6dd4
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/include/asm/x86_init_fn.h
+@@ -0,0 +1,169 @@
++#ifndef __X86_INIT_TABLES_H
++#define __X86_INIT_TABLES_H
++
++#include <linux/types.h>
++#include <linux/tables.h>
++
++#include <linux/init.h>
++#include <linux/bitops.h>
++#include <asm/bootparam.h>
++
++/**
++ * struct x86_init_fn - x86 generic kernel init call
++ *
++ * Linux x86 features vary in complexity, features may require work done at
++ * different levels of the full x86 init sequence. Today there are also two
++ * different possible entry points for Linux on x86, one for bare metal, KVM
++ * and Xen HVM, and another for Xen PV guests / dom0.  Assuming a bootloader
++ * has set up 64-bit mode, roughly the x86 init sequence follows this path:
++ *
++ * Bare metal, KVM, Xen HVM                      Xen PV / dom0
++ *       startup_64()                             startup_xen()
++ *              \                                     /
++ *      x86_64_start_kernel()                 xen_start_kernel()
++ *                           \               /
++ *                      x86_64_start_reservations()
++ *                                   |
++ *                              start_kernel()
++ *                              [   ...        ]
++ *                              [ setup_arch() ]
++ *                              [   ...        ]
++ *                                  init
++ *
++ * x86_64_start_kernel() and xen_start_kernel() are the respective first C code
++ * entry starting points. The different entry points exist to enable Xen to
++ * skip a lot of hardware setup already done and managed on behalf of the
++ * hypervisor, we refer to this as "paravirtualization yielding". The different
++ * levels of init calls on the x86 init sequence exist to account for these
++ * slight differences and requirements. These different entry points also share
++ * a common entry x86 specific path, x86_64_start_reservations().
++ *
++ * A generic x86 feature can have different initialization calls, one on each
++ * of the different main x86 init sequences, but must also address both entry
++ * points in order to work properly across the board on all supported x86
++ * subarchitectures. Since x86 features can also have dependencies on other
++ * setup code or features, x86 features can at times be subordinate to other
++ * x86 features, or conditions. struct x86_init_fn enables feature developers
++ * to annotate dependency relationships to ensure subsequent init calls only
++ * run once a subordinate's dependencies have run. When needed custom
++ * dependency requirements can also be spelled out through a custom dependency
++ * checker. In order to account for the dual entry point nature of x86-64 Linux
++ * for "paravirtualization yielding" and to make annotations for support for
++ * these explicit each struct x86_init_fn must specify supported
++ * subarchitectures. The earliest x86-64 code can read the subarchitecture
++ * though is after load_idt(), as such the earliest we can currently rely on
++ * subarchitecture for semantics and a common init sequences is on the shared
++ * common x86_64_start_reservations().  Each struct x86_init_fn is associated
++ * with a specific special link order number which has been careflly thought
++ * out by x86 maintainers. You should pick a link order level associated with
++ * the specific directory your code lies in, a respective macro is used to
++ * build association to a link oder with a routine, you should use one of the
++ * provided x86_init_*() macros. You should not use __x86_init() directly.
++ *
++ * x86_init_fn enables strong semantics and dependencies to be defined and
++ * implemented on the full x86 initialization sequence.
++ *
++ * @supp_hardware_subarch: must be set, it represents the bitmask of supported
++ *	subarchitectures.  We require each struct x86_init_fn to have this set
++ *	to require developer considerations for each supported x86
++ *	subarchitecture and to build strong annotations of different possible
++ *	run time states particularly in consideration for the two main
++ *	different entry points for x86 Linux, to account for paravirtualization
++ *	yielding.
++ *
++ *	The subarchitecture is read by the kernel at early boot from the
++ *	struct boot_params hardware_subarch. Support for the subarchitecture
++ *	exists as of x86 boot protocol 2.07. The bootloader would have set up
++ *	the respective hardware_subarch on the boot sector as per
++ *	Documentation/x86/boot.txt.
++ *
++ *	What x86 entry point is used is determined at run time by the
++ *	bootloader. Linux pv_ops was designed to help enable to build one Linux
++ *	binary to support bare metal and different hypervisors.  pv_ops setup
++ *	code however is limited in that all pv_ops setup code is run late in
++ *	the x86 init sequence, during setup_arch(). In fact cpu_has_hypervisor
++ *	only works after early_cpu_init() during setup_arch(). If an x86
++ *	feature requires an earlier determination of what hypervisor was used,
++ *	or if it needs to annotate only support for certain hypervisors, the
++ *	x86 hardware_subarch should be set by the bootloader and
++ *	@supp_hardware_subarch set by the x86 feature. Using hardware_subarch
++ *	enables x86 features to fill the semantic gap between the Linux x86
++ *	entry point used and what pv_ops has to offer through a hypervisor
++ *	agnostic mechanism.
++ *
++ *	Each supported subarchitecture is set using the respective
++ *	X86_SUBARCH_* as a bit in the bitmask. For instance if a feature
++ *	is supported on PC and Xen subarchitectures only you would set this
++ *	bitmask to:
++ *
++ *		BIT(X86_SUBARCH_PC) |
++ *		BIT(X86_SUBARCH_XEN);
++ *
++ * @early_init: required, routine which will run in x86_64_start_reservations()
++ *	after we ensure boot_params.hdr.hardware_subarch is accessible and
++ *	properly set. Memory is not yet available. This the earliest we can
++ *	currently define a common shared callback since all callbacks need to
++ *	check for boot_params.hdr.hardware_subarch and this becomes accessible
++ *	on x86-64 until after load_idt().
++ */
++struct x86_init_fn {
++	__u32 supp_hardware_subarch;
++	void (*early_init)(void);
++};
++
++DECLARE_LINKTABLE(struct x86_init_fn, x86_init_fns);
++
++/* Init order levels, we can start at 0000 but reserve 0000-0999 for now */
++
++/*
++ * X86_INIT_ORDER_EARLY - early kernel init code
++ *
++ * This consists of the first parts of the Linux kernel executed.
++ */
++#define X86_INIT_ORDER_EARLY	1000
++
++/* X86_INIT_ORDER_PLATFORM - platform kernel code
++ *
++ * Code the kernel needs to initialize under arch/x86/platform/
++ * early in boot.
++ */
++#define X86_INIT_ORDER_PLATFORM	3000
++
++#define __x86_init(__level,						\
++		   __supp_hardware_subarch,				\
++		   __early_init)					\
++	static LINKTABLE_INIT_DATA(x86_init_fns, __level)		\
++	__x86_init_fn_##__early_init = {				\
++		.supp_hardware_subarch = __supp_hardware_subarch,	\
++		.early_init = __early_init,				\
++	};
++
++#define x86_init_early(__supp_hardware_subarch,				\
++		       __early_init)					\
++	__x86_init(X86_INIT_ORDER_EARLY, __supp_hardware_subarch,	\
++		   __early_init);
++
++#define x86_init_platform(__supp_hardware_subarch,			\
++		       __early_init)					\
++	__x86_init(__name, X86_INIT_ORDER_PLATFORM, __supp_hardware_subarch,\
++		   __early_init);
++
++#define x86_init_early_all(__early_init)				\
++	x86_init_early(X86_SUBARCH_ALL_SUBARCHS,			\
++		       __early_init);
++
++#define x86_init_early_pc(__early_init)					\
++	x86_init_early(BIT(X86_SUBARCH_PC),				\
++		       __early_init);
++
++#define x86_init_early_xen(__early_init)				\
++	x86_init_early(BIT(X86_SUBARCH_XEN),				\
++		       __early_init);
++/**
++ * x86_init_fn_early_init: call all early_init() callbacks
++ *
++ * This calls all early_init() callbacks on the x86_init_fns linker table.
++ */
++void x86_init_fn_early_init(void);
++
++#endif /* __X86_INIT_TABLES_H */
+diff --git a/tools/linker-tables/arch/x86/kernel/alpha.c b/tools/linker-tables/arch/x86/kernel/alpha.c
+new file mode 100644
+index 000000000000..0f9d45734c33
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/alpha.c
+@@ -0,0 +1,9 @@
++#include <linux/kernel.h>
++#include <asm/x86_init_fn.h>
++
++static void early_init_alpha(void) {
++	pr_info("Initializing alpha ...\n");
++	pr_info("Completed initializing alpha !\n");
++}
++
++x86_init_early_pc(early_init_alpha);
+diff --git a/tools/linker-tables/arch/x86/kernel/alternative.c b/tools/linker-tables/arch/x86/kernel/alternative.c
+new file mode 100644
+index 000000000000..8e2495669c92
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/alternative.c
+@@ -0,0 +1,31 @@
++#include <asm/x86_init_fn.h>
++
++#include <linux/kernel.h>
++#include <linux/ps_const.h>
++
++void apply_alternatives_linker_tables(void)
++{
++	unsigned int num_consts = LINKTABLE_SIZE(ps_set_const_table);
++	struct ps_set_const *ps_const;
++
++	if (!num_consts)
++		return;
++
++	pr_debug("Number of init entries: %d\n", num_consts);
++
++	linktable_for_each(ps_const, ps_set_const_table) {
++		switch(ps_const->type) {
++		case SET_CONST_U8:
++			*ps_const->count = (__u8) ps_const->func();
++			break;
++		case SET_CONST_U16:
++			*ps_const->count = (__u16) ps_const->func();
++			break;
++		case SET_CONST_U32:
++			*ps_const->count = (__u16) ps_const->func();
++			break;
++		}
++	}
++}
++
++x86_init_early_pc(apply_alternatives_linker_tables);
+diff --git a/tools/linker-tables/arch/x86/kernel/beta.c b/tools/linker-tables/arch/x86/kernel/beta.c
+new file mode 100644
+index 000000000000..2bdbf49d4731
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/beta.c
+@@ -0,0 +1,9 @@
++#include <linux/kernel.h>
++#include <asm/x86_init_fn.h>
++
++static void early_init_beta(void) {
++	pr_info("Initializing beta ...\n");
++	pr_info("Completed initializing beta !\n");
++}
++
++x86_init_early_pc(early_init_beta);
+diff --git a/tools/linker-tables/arch/x86/kernel/head64.c b/tools/linker-tables/arch/x86/kernel/head64.c
+new file mode 100644
+index 000000000000..d14dcdfd0ea9
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/head64.c
+@@ -0,0 +1,58 @@
++#include <linux/kernel.h>
++#include <linux/tables.h>
++
++#include <asm/x86_init_fn.h>
++#include <asm/boot.h>
++#include <asm/bootparam.h>
++
++#include <linux/start_kernel.h>
++#include <linux/kasan.h>
++
++void x86_64_start_reservations(void)
++{
++	switch (boot_params.hdr.hardware_subarch) {
++	case X86_SUBARCH_PC:
++		pr_info("Booting bare metal\n");
++		break;
++	case X86_SUBARCH_LGUEST:
++		pr_info("Booting lguest not supported\n");
++		BUG();
++	case X86_SUBARCH_XEN:
++		pr_info("Booting a Xen guest\n");
++		break;
++	case X86_SUBARCH_INTEL_MID:
++		pr_info("Booting Intel MID not supported\n");
++		BUG();
++	case X86_SUBARCH_CE4100:
++		pr_info("Booting Intel CE4100 not supported\n");
++		BUG();
++	default:
++		pr_info("Booting sunsupported x86 hardware subarch\n");
++		BUG();
++	}
++
++	start_kernel();
++}
++
++static void x86_64_start_kernel(void)
++{
++	x86_init_fn_early_init();
++
++	x86_64_start_reservations();
++}
++
++void startup_64(void)
++{
++	pr_info("Initializing x86 bare metal world\n");
++	x86_64_start_kernel();
++}
++
++void setup_arch(void)
++{
++	/* TODO: x86_init_fn_setup_arch(); */
++}
++
++void late_init(void)
++{
++	/* TODO: x86_init_fn_late_init(); */
++}
+diff --git a/tools/linker-tables/arch/x86/kernel/init.c b/tools/linker-tables/arch/x86/kernel/init.c
+new file mode 100644
+index 000000000000..1eed92d1acb2
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/init.c
+@@ -0,0 +1,42 @@
++#define pr_fmt(fmt) "x86-init: " fmt
++
++#include <linux/bug.h>
++#include <linux/kernel.h>
++
++#include <asm/x86_init_fn.h>
++#include <asm/bootparam.h>
++#include <asm/boot.h>
++#include <asm/setup.h>
++
++DEFINE_LINKTABLE_INIT_DATA(struct x86_init_fn, x86_init_fns);
++
++static bool x86_init_fn_supports_subarch(struct x86_init_fn *fn)
++{
++	if (!fn->supp_hardware_subarch) {
++		//pr_err("Init sequence fails to declares any supported subarchs: %pF\n", fn->early_init);
++		WARN_ON(1);
++	}
++	if (BIT(boot_params.hdr.hardware_subarch) & fn->supp_hardware_subarch)
++		return true;
++	return false;
++}
++
++void __ref x86_init_fn_early_init(void)
++{
++	struct x86_init_fn *init_fn;
++	unsigned int num_inits = LINKTABLE_SIZE(x86_init_fns);
++
++	if (!num_inits)
++		return;
++
++	pr_debug("Number of init entries: %d\n", num_inits);
++
++	linktable_for_each(init_fn, x86_init_fns) {
++		if (!x86_init_fn_supports_subarch(init_fn))
++			continue;
++
++		//pr_debug("Running early init %pF ...\n", init_fn->early_init);
++		init_fn->early_init();
++		//pr_debug("Completed early init %pF\n", init_fn->early_init);
++	}
++}
+diff --git a/tools/linker-tables/arch/x86/kernel/kasan.c b/tools/linker-tables/arch/x86/kernel/kasan.c
+new file mode 100644
+index 000000000000..c0120676eb9c
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/kasan.c
+@@ -0,0 +1,10 @@
++#include <linux/kernel.h>
++#include <asm/x86_init_fn.h>
++
++void kasan_early_init(void) {
++	pr_info("Initializing kasan ...\n");
++	pr_info("Early init for Kasan...\n");
++	pr_info("Completed initializing kasan !\n");
++}
++
++x86_init_early_pc(kasan_early_init);
+diff --git a/tools/linker-tables/arch/x86/kernel/kprobes.c b/tools/linker-tables/arch/x86/kernel/kprobes.c
+new file mode 100644
+index 000000000000..c4e42beae55b
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/kprobes.c
+@@ -0,0 +1,51 @@
++#include <linux/kernel.h>
++#include <linux/tables.h>
++#include <asm/x86_init_fn.h>
++#include <linux/ranges.h>
++#include <linux/kprobes.h>
++
++DEFINE_SECTION_RANGE(kprobes, .text);
++
++void __kprobes test_kprobe_0001(void)
++{
++	pr_info("test_kprobe\n");
++}
++
++void test_kprobe_0002(void)
++{
++	pr_info("test_kprobe\n");
++}
++
++void test_kprobe_addr(const char *test, unsigned long addr, bool should_match)
++{
++	if (SECTION_RANGE_ADDR_WITHIN(kprobes, addr))
++		if (should_match)
++			pr_info("= OK: %s within range!\n", test);
++		else
++			pr_info("= FAIL: %s should not be in range...\n",
++				test);
++	else
++		if (should_match)
++			pr_info("= FAIL: %s should be in range...\n", test);
++		else
++			pr_info("= OK: %s not in range as expected!\n", test);
++}
++
++void early_init_kprobes(void)
++{
++	unsigned long addr;
++
++	pr_info("Initializing kprobes ...\n");
++
++	addr = (unsigned long) &test_kprobe_0001;
++
++	test_kprobe_addr("test_kprobe_0001", addr, true);
++
++	addr = (unsigned long) &test_kprobe_0002;
++
++	test_kprobe_addr("test_kprobe_0002", addr, false);
++
++	pr_info("Completed initializing kprobes !\n");
++}
++
++x86_init_early_all(early_init_kprobes);
+diff --git a/tools/linker-tables/arch/x86/kernel/vmlinux.lds.S b/tools/linker-tables/arch/x86/kernel/vmlinux.lds.S
+new file mode 100644
+index 000000000000..783735fb897a
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/kernel/vmlinux.lds.S
+@@ -0,0 +1,277 @@
++/* Script for -z combreloc: combine and sort reloc sections */
++/* Copyright (C) 2014 Free Software Foundation, Inc.
++   Copying and distribution of this script, with or without modification,
++   are permitted in any medium without royalty provided the copyright
++   notice and this notice are preserved.  */
++
++#include <asm/section-core.h>
++#include <asm/ranges.h>
++#include <asm/tables.h>
++
++OUTPUT_FORMAT("elf64-x86-64", "elf64-x86-64",
++	      "elf64-x86-64")
++OUTPUT_ARCH(i386:x86-64)
++ENTRY(_start)
++SECTIONS
++{
++  /* Read-only sections, merged into text segment: */
++  PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x400000)); . = SEGMENT_START("text-segment", 0x400000) + SIZEOF_HEADERS;
++  .interp         : { *(.interp) }
++  .note.gnu.build-id : { *(.note.gnu.build-id) }
++  .hash           : { *(.hash) }
++  .gnu.hash       : { *(.gnu.hash) }
++  .dynsym         : { *(.dynsym) }
++  .dynstr         : { *(.dynstr) }
++  .gnu.version    : { *(.gnu.version) }
++  .gnu.version_d  : { *(.gnu.version_d) }
++  .gnu.version_r  : { *(.gnu.version_r) }
++  .rela.dyn       :
++    {
++      *(.rela.init)
++      *(.rela.text .rela.text.* .rela.gnu.linkonce.t.*)
++      *(.rela.fini)
++      *(.rela.rodata .rela.rodata.* .rela.gnu.linkonce.r.*)
++      *(.rela.data .rela.data.* .rela.gnu.linkonce.d.*)
++      *(.rela.tdata .rela.tdata.* .rela.gnu.linkonce.td.*)
++      *(.rela.tbss .rela.tbss.* .rela.gnu.linkonce.tb.*)
++      *(.rela.ctors)
++      *(.rela.dtors)
++      *(.rela.got)
++      *(.rela.bss .rela.bss.* .rela.gnu.linkonce.b.*)
++      *(.rela.ldata .rela.ldata.* .rela.gnu.linkonce.l.*)
++      *(.rela.lbss .rela.lbss.* .rela.gnu.linkonce.lb.*)
++      *(.rela.lrodata .rela.lrodata.* .rela.gnu.linkonce.lr.*)
++      *(.rela.ifunc)
++    }
++  .rela.plt       :
++    {
++      *(.rela.plt)
++      PROVIDE_HIDDEN (__rela_iplt_start = .);
++      *(.rela.iplt)
++      PROVIDE_HIDDEN (__rela_iplt_end = .);
++    }
++  .init           :
++  {
++    KEEP (*(SORT_NONE(.init)))
++  }
++  .plt            : { *(.plt) *(.iplt) }
++  .plt.bnd        : { *(.plt.bnd) }
++  .text           :
++  {
++    *(.text.unlikely .text.*_unlikely .text.unlikely.*)
++    *(.text.exit .text.exit.*)
++    *(.text.startup .text.startup.*)
++    *(.text.hot .text.hot.*)
++
++    *(SORT(.text..rng.*))
++    *(SORT(.text..tbl.*))
++
++    *(SORT(.init.text..rng.*))
++    *(SORT(.init.text..tbl.*))
++
++    *(SORT(.initcall..rng.*))
++    *(SORT(.initcall..tbl.*))
++
++    *(SORT(.exit.text..rng.*))
++    *(SORT(.exit.text..tbl.*))
++
++    *(SORT(.exitcall.exit..rng.*))
++    *(SORT(.exitcall.exit..tbl.*))
++
++    *(.text .stub .text.* .gnu.linkonce.t.*)
++    /* .gnu.warning sections are handled specially by elf32.em.  */
++    *(.gnu.warning)
++  }
++  .fini           :
++  {
++    KEEP (*(SORT_NONE(.fini)))
++  }
++  PROVIDE (__etext = .);
++  PROVIDE (_etext = .);
++  PROVIDE (etext = .);
++  .rodata         :
++  {
++	*(.rodata)
++
++	*(SORT(.rodata.*))
++
++	*(SORT(.rodata..rng.*))
++	*(SORT(.rodata..tbl.*))
++
++	*(SORT(.init.rodata..rng.*))
++	*(SORT(.init.rodata..tbl.*))
++
++	*(SORT(.ref.rodata..rng.*))
++	*(SORT(.ref.rodata..tbl.*))
++
++	*(.gnu.linkonce.r.*)
++  }
++  .rodata1        : { *(.rodata1) }
++  .eh_frame_hdr : { *(.eh_frame_hdr) }
++  .eh_frame       : ONLY_IF_RO { KEEP (*(.eh_frame)) }
++  .gcc_except_table   : ONLY_IF_RO { *(.gcc_except_table
++  .gcc_except_table.*) }
++  /* These sections are generated by the Sun/Oracle C++ compiler.  */
++  .exception_ranges   : ONLY_IF_RO { *(.exception_ranges
++  .exception_ranges*) }
++  /* Adjust the address for the data segment.  We want to adjust up to
++     the same address within the page on the next page up.  */
++  . = ALIGN (CONSTANT (MAXPAGESIZE)) - ((CONSTANT (MAXPAGESIZE) - .) & (CONSTANT (MAXPAGESIZE) - 1)); . = DATA_SEGMENT_ALIGN (CONSTANT (MAXPAGESIZE), CONSTANT (COMMONPAGESIZE));
++  /* Exception handling  */
++  .eh_frame       : ONLY_IF_RW { KEEP (*(.eh_frame)) }
++  .gcc_except_table   : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }
++  .exception_ranges   : ONLY_IF_RW { *(.exception_ranges .exception_ranges*) }
++  /* Thread Local Storage sections  */
++  .tdata	  : { *(.tdata .tdata.* .gnu.linkonce.td.*) }
++  .tbss		  : { *(.tbss .tbss.* .gnu.linkonce.tb.*) *(.tcommon) }
++  .preinit_array     :
++  {
++    PROVIDE_HIDDEN (__preinit_array_start = .);
++    KEEP (*(.preinit_array))
++    PROVIDE_HIDDEN (__preinit_array_end = .);
++  }
++  .init_array     :
++  {
++    PROVIDE_HIDDEN (__init_array_start = .);
++    KEEP (*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
++    KEEP (*(.init_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .ctors))
++    PROVIDE_HIDDEN (__init_array_end = .);
++  }
++  .fini_array     :
++  {
++    PROVIDE_HIDDEN (__fini_array_start = .);
++    KEEP (*(SORT_BY_INIT_PRIORITY(.fini_array.*) SORT_BY_INIT_PRIORITY(.dtors.*)))
++    KEEP (*(.fini_array EXCLUDE_FILE (*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o ) .dtors))
++    PROVIDE_HIDDEN (__fini_array_end = .);
++  }
++  .ctors          :
++  {
++    /* gcc uses crtbegin.o to find the start of
++       the constructors, so we make sure it is
++       first.  Because this is a wildcard, it
++       doesn't matter if the user does not
++       actually link against crtbegin.o; the
++       linker won't look for a file to match a
++       wildcard.  The wildcard also means that it
++       doesn't matter which directory crtbegin.o
++       is in.  */
++    KEEP (*crtbegin.o(.ctors))
++    KEEP (*crtbegin?.o(.ctors))
++    /* We don't want to include the .ctor section from
++       the crtend.o file until after the sorted ctors.
++       The .ctor section from the crtend file contains the
++       end of ctors marker and it must be last */
++    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .ctors))
++    KEEP (*(SORT(.ctors.*)))
++    KEEP (*(.ctors))
++  }
++  .dtors          :
++  {
++    KEEP (*crtbegin.o(.dtors))
++    KEEP (*crtbegin?.o(.dtors))
++    KEEP (*(EXCLUDE_FILE (*crtend.o *crtend?.o ) .dtors))
++    KEEP (*(SORT(.dtors.*)))
++    KEEP (*(.dtors))
++  }
++  .jcr            : { KEEP (*(.jcr)) }
++  .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }
++  .dynamic        : { *(.dynamic) }
++  .got            : { *(.got) *(.igot) }
++  . = DATA_SEGMENT_RELRO_END (SIZEOF (.got.plt) >= 24 ? 24 : 0, .);
++  .got.plt        : { *(.got.plt)  *(.igot.plt) }
++  .data           :
++  {
++    *(.data .data.* .gnu.linkonce.d.*)
++
++    *(SORT(.data..rng.*))
++    *(SORT(.data..tbl.*))
++
++    *(SORT(.init.data..rng.*))
++    *(SORT(.init.data..tbl.*))
++
++    *(SORT(.ref.rodata..rng.*))
++    *(SORT(.ref.rodata..tbl.*))
++
++    *(SORT(.exit.data..rng.*))
++    *(SORT(.exit.data..tbl.*))
++
++    SORT(CONSTRUCTORS)
++  }
++  .data1          : { *(.data1) }
++  _edata = .; PROVIDE (edata = .);
++  . = .;
++
++  __bss_start = .;
++  .bss            :
++  {
++   *(.dynbss)
++   *(.bss .bss.* .gnu.linkonce.b.*)
++   *(COMMON)
++   /* Align here to ensure that the .bss section occupies space up to
++      _end.  Align after .bss to ensure correct alignment even if the
++      .bss section disappears because there are no input sections.
++      FIXME: Why do we need it? When there is no .bss section, we don't
++      pad the .data section.  */
++   . = ALIGN(. != 0 ? 64 / 8 : 1);
++  }
++  .lbss   :
++  {
++    *(.dynlbss)
++    *(.lbss .lbss.* .gnu.linkonce.lb.*)
++    *(LARGE_COMMON)
++  }
++  . = ALIGN(64 / 8);
++  . = SEGMENT_START("ldata-segment", .);
++  .lrodata   ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1)) :
++  {
++    *(.lrodata .lrodata.* .gnu.linkonce.lr.*)
++  }
++  .ldata   ALIGN(CONSTANT (MAXPAGESIZE)) + (. & (CONSTANT (MAXPAGESIZE) - 1)) :
++  {
++    *(.ldata .ldata.* .gnu.linkonce.l.*)
++    . = ALIGN(. != 0 ? 64 / 8 : 1);
++  }
++  . = ALIGN(64 / 8);
++  _end = .; PROVIDE (end = .);
++  . = DATA_SEGMENT_END (.);
++  /* Stabs debugging sections.  */
++  .stab          0 : { *(.stab) }
++  .stabstr       0 : { *(.stabstr) }
++  .stab.excl     0 : { *(.stab.excl) }
++  .stab.exclstr  0 : { *(.stab.exclstr) }
++  .stab.index    0 : { *(.stab.index) }
++  .stab.indexstr 0 : { *(.stab.indexstr) }
++  .comment       0 : { *(.comment) }
++  /* DWARF debug sections.
++     Symbols in the DWARF debugging sections are relative to the beginning
++     of the section so we begin them at 0.  */
++  /* DWARF 1 */
++  .debug          0 : { *(.debug) }
++  .line           0 : { *(.line) }
++  /* GNU DWARF 1 extensions */
++  .debug_srcinfo  0 : { *(.debug_srcinfo) }
++  .debug_sfnames  0 : { *(.debug_sfnames) }
++  /* DWARF 1.1 and DWARF 2 */
++  .debug_aranges  0 : { *(.debug_aranges) }
++  .debug_pubnames 0 : { *(.debug_pubnames) }
++  /* DWARF 2 */
++  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }
++  .debug_abbrev   0 : { *(.debug_abbrev) }
++  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end ) }
++  .debug_frame    0 : { *(.debug_frame) }
++  .debug_str      0 : { *(.debug_str) }
++  .debug_loc      0 : { *(.debug_loc) }
++  .debug_macinfo  0 : { *(.debug_macinfo) }
++  /* SGI/MIPS DWARF 2 extensions */
++  .debug_weaknames 0 : { *(.debug_weaknames) }
++  .debug_funcnames 0 : { *(.debug_funcnames) }
++  .debug_typenames 0 : { *(.debug_typenames) }
++  .debug_varnames  0 : { *(.debug_varnames) }
++  /* DWARF 3 */
++  .debug_pubtypes 0 : { *(.debug_pubtypes) }
++  .debug_ranges   0 : { *(.debug_ranges) }
++  /* DWARF Extension.  */
++  .debug_macro    0 : { *(.debug_macro) }
++  .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
++  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
++}
+diff --git a/tools/linker-tables/arch/x86/mm/init.c b/tools/linker-tables/arch/x86/mm/init.c
+new file mode 100644
+index 000000000000..dbf1a85a4043
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/mm/init.c
+@@ -0,0 +1,10 @@
++#include <linux/kernel.h>
++#include <asm/x86_init_fn.h>
++
++static void early_init_memory(void) {
++	pr_info("Initializing memory ...\n");
++	sleep(1);
++	pr_info("Completed initializing memory !\n");
++}
++
++x86_init_early_all(early_init_memory);
+diff --git a/tools/linker-tables/arch/x86/xen/init.c b/tools/linker-tables/arch/x86/xen/init.c
+new file mode 100644
+index 000000000000..40ad493daee8
+--- /dev/null
++++ b/tools/linker-tables/arch/x86/xen/init.c
+@@ -0,0 +1,13 @@
++#include <linux/kernel.h>
++#include <linux/tables.h>
++#include <asm/x86_init_fn.h>
++#include <asm/x86.h>
++
++void startup_xen(void)
++{
++	pr_info("Initializing Xen guest\n");
++
++	x86_init_fn_early_init();
++
++	x86_64_start_reservations();
++}
+diff --git a/tools/linker-tables/drivers/acme.c b/tools/linker-tables/drivers/acme.c
+new file mode 100644
+index 000000000000..dd321686dd49
+--- /dev/null
++++ b/tools/linker-tables/drivers/acme.c
+@@ -0,0 +1,32 @@
++#define pr_fmt(fmt) "ACME: " fmt
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/workqueue.h>
++
++void *acme_todo(void *arg);
++static DECLARE_WORK(acme_work, acme_todo);
++
++void *acme_todo(void *arg)
++{
++	pr_info("Running scheduled work\n");
++	pthread_exit(NULL);
++}
++
++static int acme_init_driver(void) {
++	pr_info("Initializing ...\n");
++	sleep(2);
++	pr_info("Finished init ... !\n");
++
++	init_work(&acme_work);
++	schedule_work(&acme_work);
++
++	return 0;
++}
++module_init(acme_init_driver);
++
++static void acme_exit(void)
++{
++	cancel_work_sync(&acme_work);
++};
++module_exit(acme_exit);
+diff --git a/tools/linker-tables/drivers/synth/common.c b/tools/linker-tables/drivers/synth/common.c
+new file mode 100644
+index 000000000000..b44d9fcc7a9b
+--- /dev/null
++++ b/tools/linker-tables/drivers/synth/common.c
+@@ -0,0 +1,16 @@
++int demo_or_1(int arg)
++{
++	switch (arg) {
++	case 1:
++		return 0xDEA00000;
++	case 2:
++		return 0X000D0000;
++	default:
++		return arg * 2;
++	}
++}
++
++int demo_or_2(void)
++{
++	return 0x0000BEEF;
++}
+diff --git a/tools/linker-tables/drivers/synth/common.h b/tools/linker-tables/drivers/synth/common.h
+new file mode 100644
+index 000000000000..92827004f532
+--- /dev/null
++++ b/tools/linker-tables/drivers/synth/common.h
+@@ -0,0 +1,2 @@
++int demo_or_1(int arg);
++int demo_or_2(void);
+diff --git a/tools/linker-tables/drivers/synth/main.c b/tools/linker-tables/drivers/synth/main.c
+new file mode 100644
+index 000000000000..555cf97a5cbb
+--- /dev/null
++++ b/tools/linker-tables/drivers/synth/main.c
+@@ -0,0 +1,35 @@
++#define pr_fmt(fmt) "Synthetics: " fmt
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/ps_const.h>
++
++#include "common.h"
++#include "synth.h"
++
++DEFINE_LINKTABLE_INIT_DATA(struct ps_set_const, ps_set_const_table);
++
++unsigned int get_demo_shr(void)
++{
++	return 16;
++}
++
++static int synth_init(void)
++{
++	int synth_or;
++	int val = 2;
++	const unsigned int reg =  ps_shr(0xDEADBEEF, get_demo_shr);
++
++	synth_or = synth_init_or(val);
++	pr_info("synth_init_or(%d) returns: 0x%08X\n", val, synth_or);
++
++	pr_info("ps_shr(0x%08X, get_demo_shr) returns: 0x%08X\n", 0xDEADBEEF, reg);
++
++	return 0;
++}
++module_init(synth_init);
++
++static void synth_exit(void)
++{
++}
++module_exit(synth_exit);
+diff --git a/tools/linker-tables/drivers/synth/or.S b/tools/linker-tables/drivers/synth/or.S
+new file mode 100644
+index 000000000000..deb963fdae33
+--- /dev/null
++++ b/tools/linker-tables/drivers/synth/or.S
+@@ -0,0 +1,39 @@
++#include <asm/ranges.h>
++
++	DEFINE_SECTION_RANGE(.text, synth_init_or)
++
++	push_section_rng_level(.text, synth_init_or, "01", )
++	/* err = 0; */
++	pushq %rbp
++	movq %rsp,%rbp
++	pushq %rbx
++	xorq %rbx,%rbx
++	.popsection
++
++	push_section_rng_level(.text, synth_init_or, "99", )
++	/* return err; */
++	movq %rbx,%rax
++	popq %rbx
++	popq %rbp
++	retq
++	.popsection
++
++	push_section_rng_level(.text, synth_init_or, "50", )
++	/* err |= demo_or_1(1); */
++	movl $1,%edi
++	call demo_or_1
++	orq %rax,%rbx
++	.popsection
++
++	push_section_rng_level(.text, synth_init_or, "50", )
++	/* err |= demo_or_1(2); */
++	movl $2,%edi
++	call demo_or_1
++	orq %rax,%rbx
++	.popsection
++
++	push_section_rng_level(.text, synth_init_or, "50", )
++	/* err |= demo_or_2(); */
++	call demo_or_2
++	orq %rax,%rbx
++	.popsection
+diff --git a/tools/linker-tables/drivers/synth/synth.h b/tools/linker-tables/drivers/synth/synth.h
+new file mode 100644
+index 000000000000..abbb9afac374
+--- /dev/null
++++ b/tools/linker-tables/drivers/synth/synth.h
+@@ -0,0 +1,2 @@
++/* Synthetic demos go here */
++int synth_init_or(int arg);
+diff --git a/tools/linker-tables/drivers/xen-driver.c b/tools/linker-tables/drivers/xen-driver.c
+new file mode 100644
+index 000000000000..79d229f72818
+--- /dev/null
++++ b/tools/linker-tables/drivers/xen-driver.c
+@@ -0,0 +1,11 @@
++#include <asm/x86_init_fn.h>
++#include <linux/kernel.h>
++#include <linux/pci.h>
++#include <xen/xen.h>
++
++static void early_xen_init_driver(void) {
++	pr_info("Initializing xen driver\n");
++	sleep(2);
++}
++
++x86_init_early_xen(early_xen_init_driver);
+diff --git a/tools/linker-tables/include/asm-generic/arch_init_fn.h b/tools/linker-tables/include/asm-generic/arch_init_fn.h
+new file mode 100644
+index 000000000000..61a04a50b453
+--- /dev/null
++++ b/tools/linker-tables/include/asm-generic/arch_init_fn.h
+@@ -0,0 +1,50 @@
++#ifndef __ARCH_INIT_TABLES_H
++#define __ARCH_INIT_TABLES_H
++
++#include <linux/types.h>
++#include <linux/tables.h>
++#include <linux/init.h>
++
++/**
++ * struct arch_init_fn - architecture-generic kernel init call
++ *
++ * Architectures must initialize a series of things prior to handing off
++ * control to the kernel. This structure can be used if the architecture is
++ * simple and it just needs a basic set of calls on its way up.
++ *
++ * @early_init: required, routine which will run in startup_64(). Memory is
++ * 	not yet available.
++ */
++struct arch_init_fn {
++	void (*early_init)(void);
++};
++
++DECLARE_LINKTABLE(struct arch_init_fn, arch_init_fns);
++
++/* Init order levels, we can start at 0000 but reserve 0000-0999 for now */
++
++/*
++ * ARCH_INIT_ORDER_EARLY - early kernel init code
++ *
++ * This consists of the first parts of the Linux kernel executed.
++ */
++#define ARCH_INIT_ORDER_EARLY	1000
++
++#define __arch_init(__level,						\
++		    __early_init)					\
++	static LINKTABLE_INIT_DATA(arch_init_fns, __level)		\
++	__arch_init_fn_##__early_init = {				\
++		.early_init = __early_init,				\
++	}
++
++#define arch_init_early(__early_init)					\
++	__arch_init(ARCH_INIT_ORDER_EARLY, __early_init)
++
++/**
++ * arch_init_fn_early_init: call all early_init() callbacks
++ *
++ * This calls all early_init() callbacks on the arch_init_fns linker table.
++ */
++void arch_init_fn_early_init(void);
++
++#endif /* __ARCH_INIT_TABLES_H */
+diff --git a/tools/linker-tables/include/asm-generic/kprobes.h b/tools/linker-tables/include/asm-generic/kprobes.h
+new file mode 100644
+index 000000000000..839d2eb464d3
+--- /dev/null
++++ b/tools/linker-tables/include/asm-generic/kprobes.h
+@@ -0,0 +1,26 @@
++#ifndef _SANDBOX_ASM_GENERIC_KPROBES_H
++#define _SANDBOX_ASM_GENERIC_KPROBES_H
++
++#if defined(__KERNEL__) && !defined(__ASSEMBLY__)
++#ifdef CONFIG_KPROBES
++#include <linux/tables.h>
++#include <asm/ranges.h>
++/*
++ * Blacklist ganerating macro. Specify functions which is not probed
++ * by using this macro.
++ */
++# define __NOKPROBE_SYMBOL(fname)				\
++static LINKTABLE_INIT_DATA(_kprobe_blacklist, all)		\
++	_kbl_addr_##fname = (unsigned long)fname;
++# define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)
++/* Use this to forbid a kprobes attach on very low level functions */
++# define __kprobes	__LINUX_RANGE(.text, kprobes)
++# define nokprobe_inline	__always_inline
++#else
++# define NOKPROBE_SYMBOL(fname)
++# define __kprobes
++# define nokprobe_inline	inline
++#endif
++#endif /* defined(__KERNEL__) && !defined(__ASSEMBLY__) */
++
++#endif /* _SANDBOX_ASM_GENERIC_KPROBES_H */
+diff --git a/tools/linker-tables/include/linux/bitops.h b/tools/linker-tables/include/linux/bitops.h
+new file mode 100644
+index 000000000000..2960e8089ebc
+--- /dev/null
++++ b/tools/linker-tables/include/linux/bitops.h
+@@ -0,0 +1,6 @@
++#ifndef _LINUX_BITOPS_H
++#define _LINUX_BITOPS_H
++
++#define BIT(nr)		(1UL << (nr))
++
++#endif /* _LINUX_BITOPS_H */
+diff --git a/tools/linker-tables/include/linux/init.h b/tools/linker-tables/include/linux/init.h
+new file mode 100644
+index 000000000000..2691c3697f48
+--- /dev/null
++++ b/tools/linker-tables/include/linux/init.h
+@@ -0,0 +1,40 @@
++#ifndef _SANDBOX_LINUX_INIT_H
++#define _SANDBOX_LINUX_INIT_H
++
++#include_next <linux/init.h>
++#include <linux/types.h>
++#include <linux/sections.h>
++
++#define __init	__section(.init.text)
++#define __exit	__section(.exit.text)
++
++#ifndef __ASSEMBLY__
++#include <linux/tables.h>
++typedef int (*initcall_t)(void);
++typedef void (*exitcall_t)(void);
++
++DECLARE_LINKTABLE(initcall_t, init_calls);
++DECLARE_LINKTABLE(exitcall_t, exit_calls);
++
++#define __define_initcall(fn, id)					\
++	static LINKTABLE_INIT_DATA(init_calls, id)			\
++	__initcall_##fn##id = fn
++
++#define pure_initcall(fn)			__define_initcall(fn, 0)
++#define core_initcall(fn)			__define_initcall(fn, 1)
++#define postcore_initcall(fn)			__define_initcall(fn, 2)
++#define arch_initcall(fn)			__define_initcall(fn, 3)
++#define subsys_initcall(fn)			__define_initcall(fn, 4)
++#define fs_initcall(fn)				__define_initcall(fn, 5)
++#define device_initcall(fn)			__define_initcall(fn, 6)
++#define late_initcall(fn)			__define_initcall(fn, 7)
++
++#define __initcall(fn)				device_initcall(fn)
++
++#define __exitcall(fn)							\
++	static LINKTABLE_INIT_DATA(exit_calls, any)			\
++	__exitcall_##fn = fn;
++
++#endif
++
++#endif /* _SANDBOX_LINUX_INIT_H */
+diff --git a/tools/linker-tables/include/linux/kasan.h b/tools/linker-tables/include/linux/kasan.h
+new file mode 100644
+index 000000000000..41791187854e
+--- /dev/null
++++ b/tools/linker-tables/include/linux/kasan.h
+@@ -0,0 +1,5 @@
++#include <linux/types.h>
++
++void kasan_early_init(void);
++int kasan_init(void);
++bool is_kasan_setup(void);
+diff --git a/tools/linker-tables/include/linux/kernel.h b/tools/linker-tables/include/linux/kernel.h
+new file mode 100644
+index 000000000000..e2857c0b5b11
+--- /dev/null
++++ b/tools/linker-tables/include/linux/kernel.h
+@@ -0,0 +1,2 @@
++#include_next <linux/kernel.h>
++#include <linux/printk.h>
+diff --git a/tools/linker-tables/include/linux/kprobes.h b/tools/linker-tables/include/linux/kprobes.h
+new file mode 100644
+index 000000000000..ecd5a0a69ae6
+--- /dev/null
++++ b/tools/linker-tables/include/linux/kprobes.h
+@@ -0,0 +1,11 @@
++#ifndef _SANDBOX_LINUX_KPROBES_H
++#define _SANDBOX_LINUX_KPROBES_H
++
++#include <asm/kprobes.h>
++#include <linux/ranges.h>
++
++#ifdef CONFIG_KPROBES
++DECLARE_SECTION_RANGE(kprobes);
++#endif
++
++#endif /* _SANDBOX_LINUX_KPROBES_H */
+diff --git a/tools/linker-tables/include/linux/module.h b/tools/linker-tables/include/linux/module.h
+new file mode 100644
+index 000000000000..b59e55f3f04e
+--- /dev/null
++++ b/tools/linker-tables/include/linux/module.h
+@@ -0,0 +1,14 @@
++#ifndef _LINUX_MODULE_H
++#define _LINUX_MODULE_H
++
++#include <linux/init.h>
++
++#define module_init(x)  __initcall(x);
++#define module_exit(x)  __exitcall(x);
++
++struct module {
++	int (*init)(void);
++	void (*exit)(void);
++};
++
++#endif /* _LINUX_MODULE_H */
+diff --git a/tools/linker-tables/include/linux/mutex.h b/tools/linker-tables/include/linux/mutex.h
+new file mode 100644
+index 000000000000..a74f951ceb42
+--- /dev/null
++++ b/tools/linker-tables/include/linux/mutex.h
+@@ -0,0 +1,17 @@
++#ifndef __LINUX_MUTEX_H
++#define __LINUX_MUTEX_H
++
++#include <sys/types.h>
++#include <linux/sched.h>
++#include <pthread.h>
++
++struct mutex {
++	pthread_mutex_t lock;
++};
++
++void mutex_init(struct mutex *lock);
++void mutex_destroy(struct mutex *lock);
++void mutex_lock(struct mutex *lock);
++void mutex_unlock(struct mutex *lock);
++
++#endif /* __LINUX_MUTEX_H */
+diff --git a/tools/linker-tables/include/linux/pci.h b/tools/linker-tables/include/linux/pci.h
+new file mode 100644
+index 000000000000..8518c46631f7
+--- /dev/null
++++ b/tools/linker-tables/include/linux/pci.h
+@@ -0,0 +1,7 @@
++#include <linux/types.h>
++
++struct pci_fixup {
++	void (*hook)(void);
++};
++
++bool detect_pci(void);
+diff --git a/tools/linker-tables/include/linux/printk.h b/tools/linker-tables/include/linux/printk.h
+new file mode 100644
+index 000000000000..dc137d3421e8
+--- /dev/null
++++ b/tools/linker-tables/include/linux/printk.h
+@@ -0,0 +1,26 @@
++#ifndef _SANDBOX_KERNEL_PRINTK
++#define _SANDBOX_KERNEL_PRINTK
++
++#ifdef __KERNEL__
++
++#include <stdio.h>
++
++#ifndef pr_fmt
++#define pr_fmt(fmt)	fmt
++#endif
++
++#ifndef pr_info
++#define pr_info(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++#endif
++
++#ifndef pr_err
++#define pr_err(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++#endif
++
++#ifndef pr_debug
++#define pr_debug(fmt, ...)	printf(pr_fmt(fmt), ##__VA_ARGS__)
++#endif
++
++#endif /* __KERNEL__ */
++
++#endif /* _SANDBOX_KERNEL_PRINTK */
+diff --git a/tools/linker-tables/include/linux/ps_const.h b/tools/linker-tables/include/linux/ps_const.h
+new file mode 100644
+index 000000000000..5eab3a124e00
+--- /dev/null
++++ b/tools/linker-tables/include/linux/ps_const.h
+@@ -0,0 +1,46 @@
++#ifndef __PS_CONST
++#define __PS_CONST
++
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/tables.h>
++
++/* Helpers for partially static settings */
++
++enum ps_static_type {
++	SET_CONST_U8 = 0,
++	SET_CONST_U16,
++	SET_CONST_U32,
++};
++
++struct ps_set_const {
++	unsigned int *count;
++	enum ps_static_type type;
++	unsigned int (*func)(void);
++};
++
++DECLARE_LINKTABLE(struct ps_set_const, ps_set_const_table);
++
++#ifdef CONFIG_HAVE_ARCH_PS_CONST
++#include <asm/ps_const.h>
++#endif
++
++/*
++ * ps_ stands for "partially static", so we "partialloy static shift right"
++ * You can optimize this for your architecture.
++ *
++ * ps_shr(unsigned int in, unsigned char (*func)(void))
++ */
++#ifndef ps_shr
++#define ps_shr(_in, _func)						\
++({									\
++	static unsigned int _count;					\
++	static LINKTABLE_INIT_DATA(ps_set_const_table, 01)		\
++		__ps_shr##__func =					\
++		{ &_count, SET_CONST_U8, (_func) };			\
++									\
++	(_in) >> _count;						\
++})
++#endif /* ps_shr */
++
++#endif /* __PS_CONST */
+diff --git a/tools/linker-tables/include/linux/sched.h b/tools/linker-tables/include/linux/sched.h
+new file mode 100644
+index 000000000000..0fe3526e88bf
+--- /dev/null
++++ b/tools/linker-tables/include/linux/sched.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_SCHED_H
++#define _LINUX_SCHED_H
++
++#include <linux/ranges.h>
++
++DECLARE_SECTION_RANGE(sched_text);
++#define __sched		__LINUX_RANGE(.text, sched_text)
++
++#endif /* _LINUX_SCHED_H */
+diff --git a/tools/linker-tables/include/linux/spinlock.h b/tools/linker-tables/include/linux/spinlock.h
+new file mode 100644
+index 000000000000..e62bc3bc5e6a
+--- /dev/null
++++ b/tools/linker-tables/include/linux/spinlock.h
+@@ -0,0 +1,13 @@
++#ifndef __LINUX_SPINLOCK_H
++#define __LINUX_SPINLOCK_H
++
++#include <pthread.h>
++
++#define spinlock_t pthread_spinlock_t
++
++void spin_lock_init(spinlock_t *lock);
++void spin_lock_destroy(spinlock_t *lock);
++void spin_lock(spinlock_t *lock);
++void spin_unlock(spinlock_t *lock);
++
++#endif /* __LINUX_SPINLOCK_H */
+diff --git a/tools/linker-tables/include/linux/start_kernel.h b/tools/linker-tables/include/linux/start_kernel.h
+new file mode 100644
+index 000000000000..5c2cb9a5cb0c
+--- /dev/null
++++ b/tools/linker-tables/include/linux/start_kernel.h
+@@ -0,0 +1 @@
++int start_kernel(void);
+diff --git a/tools/linker-tables/include/linux/types.h b/tools/linker-tables/include/linux/types.h
+new file mode 100644
+index 000000000000..3fc87b2c84e2
+--- /dev/null
++++ b/tools/linker-tables/include/linux/types.h
+@@ -0,0 +1,13 @@
++#ifndef __LINUX_USER_TYPES_H
++#define __LINUX_USER_TYPES_H
++
++#include <stdbool.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <stdlib.h>
++
++typedef unsigned char __u8;
++typedef unsigned short __u16;
++typedef unsigned int __u32;
++
++#endif /* __LINUX_USER_TYPES_H */
+diff --git a/tools/linker-tables/include/linux/workqueue.h b/tools/linker-tables/include/linux/workqueue.h
+new file mode 100644
+index 000000000000..69e1c6de5051
+--- /dev/null
++++ b/tools/linker-tables/include/linux/workqueue.h
+@@ -0,0 +1,51 @@
++#ifndef _LINUX_WORKQUEUE_H
++#define _LINUX_WORKQUEUE_H
++
++#include <linux/kernel.h>
++#include <linux/mutex.h>
++#include <linux/types.h>
++#include <pthread.h>
++
++struct work {
++	bool ready;
++
++	pthread_t thread;
++	struct mutex mutex;
++	pthread_cond_t cond;
++
++	void *arg;
++	void *(*work_cb)(void *arg);
++};
++
++#define DECLARE_WORK(_w, _w_cb) \
++struct work _w = { \
++	.work_cb = _w_cb, \
++	.arg = NULL, \
++};
++
++extern void *run_work(void *arg);
++
++static inline void init_work(struct work *w)
++{
++	w->ready = false;
++
++	mutex_init(&w->mutex);
++	pthread_cond_init(&w->cond, NULL);
++
++	pthread_create(&w->thread, NULL, run_work, (void *) w);
++
++	while (1) {
++		mutex_lock(&w->mutex);
++		if (w->ready) {
++			pthread_mutex_unlock(&w->mutex.lock);
++			break;
++		}
++		mutex_unlock(&w->mutex);
++	}
++}
++
++void schedule_work(struct work *w);
++void cancel_work_sync(struct work *w);
++void init_work(struct work *w);
++
++#endif /* _LINUX_WORKQUEUE_H */
+diff --git a/tools/linker-tables/include/xen/xen.h b/tools/linker-tables/include/xen/xen.h
+new file mode 100644
+index 000000000000..782c799a0064
+--- /dev/null
++++ b/tools/linker-tables/include/xen/xen.h
+@@ -0,0 +1,4 @@
++#include <linux/types.h>
++
++bool booting_xen(void);
++int startup_xen(void);
+diff --git a/tools/linker-tables/kernel/locking/mutex.c b/tools/linker-tables/kernel/locking/mutex.c
+new file mode 100644
+index 000000000000..950e4a18461e
+--- /dev/null
++++ b/tools/linker-tables/kernel/locking/mutex.c
+@@ -0,0 +1,28 @@
++#include <linux/kernel.h>
++#include <linux/mutex.h>
++
++DEFINE_SECTION_RANGE(sched_text, .text);
++
++void __sched mutex_init(struct mutex *lock)
++{
++	int r;
++
++	r = pthread_mutex_init(&lock->lock, NULL);
++	if (r)
++		BUG_ON(r);
++}
++
++void __sched mutex_destroy(struct mutex *lock)
++{
++	pthread_mutex_destroy(&lock->lock);
++}
++
++void __sched mutex_lock(struct mutex *lock)
++{
++	pthread_mutex_lock(&lock->lock);
++}
++
++void __sched mutex_unlock(struct mutex *lock)
++{
++	pthread_mutex_unlock(&lock->lock);
++}
+diff --git a/tools/linker-tables/kernel/locking/spinlock.c b/tools/linker-tables/kernel/locking/spinlock.c
+new file mode 100644
+index 000000000000..5be2bc7cdece
+--- /dev/null
++++ b/tools/linker-tables/kernel/locking/spinlock.c
+@@ -0,0 +1,26 @@
++#include <linux/kernel.h>
++#include <linux/spinlock.h>
++
++void spin_lock_init(spinlock_t *lock)
++{
++	int r;
++
++	r = pthread_spin_init(lock, PTHREAD_PROCESS_SHARED);
++	if (r)
++		BUG_ON(r);
++}
++
++void spin_lock_destroy(spinlock_t *lock)
++{
++	pthread_spin_destroy(lock);
++}
++
++void spin_lock(spinlock_t *lock)
++{
++	pthread_spin_lock(lock);
++}
++
++void spin_unlock(spinlock_t *lock)
++{
++	pthread_spin_unlock(lock);
++}
+diff --git a/tools/linker-tables/kernel/main.c b/tools/linker-tables/kernel/main.c
+new file mode 100644
+index 000000000000..ad7a19c038bf
+--- /dev/null
++++ b/tools/linker-tables/kernel/main.c
+@@ -0,0 +1,32 @@
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <asm/x86_init_fn.h>
++#include <asm/x86.h>
++
++DEFINE_LINKTABLE_INIT_DATA(initcall_t, init_calls);
++
++int do_one_initcall(initcall_t fn)
++{
++	int ret;
++
++	ret = fn();
++
++	return ret;
++}
++
++static void do_initcalls(void)
++{
++	initcall_t *fn;
++
++	 linktable_for_each(fn, init_calls)
++		 do_one_initcall(*fn);
++}
++
++void start_kernel(void)
++{
++	pr_info("Calling start_kernel()...\n");
++
++	setup_arch();
++	late_init();
++	do_initcalls();
++}
+diff --git a/tools/linker-tables/kernel/workqueue.c b/tools/linker-tables/kernel/workqueue.c
+new file mode 100644
+index 000000000000..5ba73c7e7c8b
+--- /dev/null
++++ b/tools/linker-tables/kernel/workqueue.c
+@@ -0,0 +1,43 @@
++#include <errno.h>
++#include <string.h>
++#include <stdio.h>
++
++#include <linux/workqueue.h>
++#include <linux/kernel.h>
++
++void schedule_work(struct work *w)
++{
++	mutex_lock(&w->mutex);
++	pthread_cond_signal(&w->cond);
++	mutex_unlock(&w->mutex);
++}
++
++void cancel_work_sync(struct work *w)
++{
++	pthread_exit(NULL);
++}
++
++void *run_work(void *arg)
++{
++	struct work *w;
++	int r;
++
++	w = (struct work *) arg;
++
++	mutex_lock(&w->mutex);
++
++	while (true) {
++		if (!w->ready)
++			w->ready = true;
++		r = pthread_cond_wait(&w->cond, &w->mutex.lock);
++		if (r != 0) {
++			printf("(%s)\n", strerror(r));
++			BUG_ON(r);
++		}
++		w->work_cb(w->arg);
++	}
++
++	mutex_unlock(&w->mutex);
++
++	pthread_exit(NULL);
++}
+diff --git a/tools/linker-tables/lib/string.c b/tools/linker-tables/lib/string.c
+new file mode 100644
+index 000000000000..95631c742f1d
+--- /dev/null
++++ b/tools/linker-tables/lib/string.c
+@@ -0,0 +1,26 @@
++/*
++ *  linux/lib/string.c
++ *
++ *  Copyright (C) 1991, 1992  Linus Torvalds
++ *
++ *  Licensed under GPLv2 - taken from linux-next next-20160803
++ */
++
++#include <linux/kernel.h>
++
++/**
++ * memset - Fill a region of memory with the given value
++ * @s: Pointer to the start of the area.
++ * @c: The byte to fill the area with
++ * @count: The size of the area.
++ *
++ * Do not use memset() to access IO space, use memset_io() instead.
++ */
++void *memset(void *s, int c, size_t count)
++{
++	char *xs = s;
++
++	while (count--)
++		*xs++ = c;
++	return s;
++}
+diff --git a/tools/linker-tables/main.c b/tools/linker-tables/main.c
+new file mode 100644
+index 000000000000..c0b1f4c95112
+--- /dev/null
++++ b/tools/linker-tables/main.c
+@@ -0,0 +1,20 @@
++#include <linux/string.h>
++#include <xen/xen.h>
++#include <asm/x86.h>
++#include <asm/bootparam.h>
++
++struct boot_params boot_params __attribute__((aligned(16)));
++
++int main(int arg, char *argc[])
++{
++	memset(&boot_params, 0, sizeof(struct boot_params));
++
++	if (arg <= 1)
++		startup_64();
++	else {
++		boot_params.hdr.hardware_subarch = X86_SUBARCH_XEN;
++		startup_xen();
++	}
++
++	return 0;
++}
+diff --git a/tools/linker-tables/pci-quirks.c b/tools/linker-tables/pci-quirks.c
+new file mode 100644
+index 000000000000..2cd1116dd0fc
+--- /dev/null
++++ b/tools/linker-tables/pci-quirks.c
+@@ -0,0 +1,13 @@
++#include <linux/kernel.h>
++#include <linux/tables.h>
++#include <linux/pci.h>
++
++DEFINE_LINKTABLE_RO(struct pci_fixup, pci_fixup_early);
++
++static void foo_fixup(void) {
++	pr_info("foo_fixup\n");
++};
++
++LINKTABLE_RO(pci_fixup_early, 50) quirk_foo = {
++	.hook = foo_fixup,
++};
+diff --git a/tools/linker-tables/pci.c b/tools/linker-tables/pci.c
+new file mode 100644
+index 000000000000..7a822c11d9f0
+--- /dev/null
++++ b/tools/linker-tables/pci.c
+@@ -0,0 +1,29 @@
++#include <linux/kernel.h>
++#include <linux/tables.h>
++#include <asm/x86_init_fn.h>
++#include <asm/bootparam.h>
++#include <linux/pci.h>
++
++DECLARE_LINKTABLE(struct pci_fixup, pci_fixup_early);
++
++void early_init_pci(void) {
++
++	const struct pci_fixup *fixup;
++	unsigned int tbl_size = LINKTABLE_SIZE(pci_fixup_early);
++
++	pr_info("Initializing pci ...\n");
++
++	pr_info("PCI fixup size: %d\n", tbl_size);
++
++	sleep(1);
++	pr_info("Demo: Using linktable_for_each\n");
++	linktable_for_each(fixup, pci_fixup_early)
++		fixup->hook();
++
++	pr_info("Demo: Using linktable_run_all\n");
++	linktable_run_all(pci_fixup_early, hook,);
++
++	pr_info("Completed initializing pci !\n");
++}
++
++x86_init_early_all(early_init_pci);
 -- 
-2.8.1
+2.11.0
 
