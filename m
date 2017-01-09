@@ -1,7 +1,7 @@
 From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Mon, 09 Jan 2017 14:58:23 +0000
-Subject: [PATCH v6 05/14] kbuild: enable option to force compile force-obj-y and force-lib-y
-Message-Id: <20170109145833.11502-6-mcgrof@kernel.org>
+Date: Mon, 09 Jan 2017 14:58:30 +0000
+Subject: [PATCH v6 12/14] kprobes: port .kprobes.text to section range
+Message-Id: <20170109145833.11502-13-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20161222023811.21246-1-mcgrof@kernel.org>
  <20170109145833.11502-1-mcgrof@kernel.org>
@@ -12,327 +12,823 @@ Content-Transfer-Encoding: 7bit
 To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
 Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, joro@8bytes.org, x86@kernel.org, fontana@sharpeleven.org, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux@roeck-us.net, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org
 
-Linux provides a rich array of features, enabling each feature
-however increases the size of the kernel and there are many
-features which users often want disabled. The traditional
-solution to this problem is for each feature to have its own
-Kconfig symbol, followed by a series of #ifdef statements
-in C code and header files, allowing the feature to be compiled
-only when desirable. As the variability of Linux increases build
-tests can and are often done with random kernel configurations,
-allyesconfig, and allmodconfig to help find code issues. This
-however doesn't catch all errors and as a consequence code that
-is typically not enabled often can suffer from bit-rot over time.
+kprobe makes use of two custom sections, each custom section
+is folded into one of the standard Linux sections types as follows,
+it currently relies on the linker script to fold the custom section
+onto the respective Linux section:
 
-An alternative approach for subsystems, which refer to as the 'build-all
-link-selectively philosophy' is to keep the Kconfig symbols, replace
-the #ifdef approach by having each feature implemented it its own C file,
-and force compilation for all features to avoid the code bit-rot problem.
-With this strategy only features that are enabled via Kconfig get
-linked into the kernel, so the forced compilation has no size impact
-on the kernel. The practice of having each feature implemented in its own
-C file is already prevalent in many subsystems, however #ifdefs are still
-typically required during feature initialization. For instance in:
+type  Linux-section custom section name  begin                    end
+table .init.data    _kprobe_blacklist    __start_kprobe_blacklist __stop_kprobe_blacklist
+range .text         .kprobes.text        __kprobes_text_start     __kprobes_text_end
 
-  #ifdef CONFIG_FOO
-  foo_init();
-  #endif
+This ports the .kprobes.text custom section to the standard
+Linux ranges API allowing us remove all the custom kprobe section
+declarations from the linker script.
 
-We cannot remove the #ifdef and leave foo_init() as we'd either
-need to always enable the feature or add a respective #ifdef in a
-foo.h which makes foo_init() do nothing when CONFIG_FOO is disabled.
+Tested with CONFIG_KPROBES_SANITY_TEST, it passes with:
 
-Linker tables enable lifting the requirement to use of #ifdefs during
-initialization. With linker tables initialization sequences can instead
-be aggregated into a custom ELF section at link time, during run time
-the table can be iterated over and each init sequence enabled can be called.
-A feature's init routine is only added to a table when its respective
-Kconfig symbols has been enabled and therefore linked in. Linker tables
-enable subsystems to completely do away with #ifdefs if one is comfortable
-in accepting all subsystem's feature's structural size implications.
+Kprobe smoke test: started
+Kprobe smoke test: passed successfully
 
-Subsystems which want to follow the 'build-all link-selectively
-philosophy' still need a way to easily express and annotate that they
-wish for all code to always be compiled to help avoid code bit rot,
-as such two new targets force-obj-y and force-lib-y are provided to
-help with this. Its not fair to require everyone to force compilation
-of all features of a subsystem though, so as a compromise, the new
-targets only force compilation when CONFIG_BUILD_AVOID_BITROT is
-enabled.
+Then tested CONFIG_SAMPLE_KPROBES on do_fork, and the kprobe bites
+and kicks as expected.
 
-Only built-in features are supported at the moment. Module support
-is expected to be added after a generic solution to add linker
-tables to modules more easily is developed.
+Also ran ./ftracetest with no issues:
 
-v4: this patch was added to this series, it was split off from the
-    linker tables addition due to the confusion over the code bit
-    rot alternatives that are possible with linker tables.
+sudo ./ftracetest
+== Ftrace unit tests =[1] Basic trace file check	[PASS]
+[2] Basic test for tracers	[PASS]
+[3] Basic trace clock test	[PASS]
+[4] Basic event tracing check	[PASS]
+[5] event tracing - enable/disable with event level files	[PASS]
+[6] event tracing - restricts events based on pid	[PASS]
+[7] event tracing - enable/disable with subsystem level files	[PASS]
+[8] event tracing - enable/disable with top level files	[PASS]
+[9] ftrace - function graph filters with stack tracer	[PASS]
+[10] ftrace - function graph filters	[PASS]
+[11] ftrace - function glob filters	[PASS]
+[12] ftrace - function profiler with function tracing	[PASS]
+[13] Test creation and deletion of trace instances while setting an event	[PASS]
+[14] Test creation and deletion of trace instances	[PASS]
+[15] Kprobe dynamic event - adding and removing	[PASS]
+[16] Kprobe dynamic event - busy event check	[PASS]
+[17] Kprobe dynamic event with arguments	[PASS]
+[18] Kprobes event arguments with types	[PASS]
+[19] Kprobe dynamic event with function tracer	[PASS]
+[20] Kretprobe dynamic event with arguments	[PASS]
+[21] event trigger - test event enable/disable trigger	[PASS]
+[22] event trigger - test trigger filter	[PASS]
+[23] event trigger - test histogram modifiers	[PASS]
+[24] event trigger - test histogram trigger	[PASS]
+[25] event trigger - test multiple histogram triggers	[PASS]
+[26] event trigger - test snapshot-trigger	[PASS]
+[27] event trigger - test stacktrace-trigger	[PASS]
+[28] event trigger - test traceon/off trigger	[PASS]
+
+v5:
+
+o Use ..rng.* instead of .rng.* as suggested by Nicholas Piggin.
+  This is the typical way to avoid clash with compiler generated
+  section.
+
+o Replace section macros with section names
+
+v4:
+
+o arm64 build fixes with allmodconfig
+
+o build fix suggested for avr32 with allnoconfig, otherwise we end up with:
+
+arch/avr32/kernel/built-in.o: In function `save_full_context_ex':
+(.ex.text+0x1c4): relocation truncated to fit: R_AVR32_16N_PCREL against
+symbol `debug_trampoline' defined in .text.rng.kprobes.any section in
+arch/avr32/kernel/built-in.o
+arch/avr32/kernel/built-in.o: In function `debug_exit_work':
+(.text.rng.kprobes.any+0xa8): relocation truncated to fit:
+R_AVR32_16N_PCREL against `.ex.text'+3aa
+make: *** [Makefile:953: vmlinux] Error 1
+
+o open-code section use on scripts/ code -- folks to prefer the
+  simplicity over dealing with having more tool code access kernel
+  headers.
+
+o NOPE: include #include <asm-generic/ranges.h> on compiler.h -- solves
+  a few 0-day compilation issues
+
+v3:
+
+o after v2 arch/arm/kernel/vmlinux-xip.lds.S got kprobe support,
+  this just removes the custom linker script reference to kprobes as
+  that is no longer needed with linker tables.
+
+o split kprobe linker table and kprobe section ranges use into
+  two separate patches. This should make it easier to review and
+  also demos both distinct use types, one a linker table another
+  a simple section range.
+
+v2: introduced this patch in this series
 
 Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- Documentation/kbuild/makefiles.txt       | 36 ++++++++++++++++
- Documentation/sections/linker-tables.rst | 15 +++++++
- include/linux/tables.h                   | 71 ++++++++++++++++++++++++++++++++
- init/Kconfig                             | 22 ++++++++++
- scripts/Makefile.build                   |  7 ++--
- scripts/Makefile.clean                   |  2 +
- scripts/Makefile.lib                     | 11 +++++
- 7 files changed, 161 insertions(+), 3 deletions(-)
+ arch/arc/kernel/vmlinux.lds.S        |  1 -
+ arch/arm/kernel/entry-armv.S         |  3 ++-
+ arch/arm/kernel/vmlinux-xip.lds.S    |  1 -
+ arch/arm/kernel/vmlinux.lds.S        |  1 -
+ arch/arm64/kernel/armv8_deprecated.c |  1 +
+ arch/arm64/kernel/probes/kprobes.c   |  4 ++--
+ arch/arm64/kernel/vmlinux.lds.S      |  1 -
+ arch/avr32/kernel/entry-avr32b.S     | 13 +++++++++++--
+ arch/avr32/kernel/vmlinux.lds.S      |  1 -
+ arch/blackfin/kernel/vmlinux.lds.S   |  1 -
+ arch/c6x/kernel/vmlinux.lds.S        |  1 -
+ arch/hexagon/kernel/vmlinux.lds.S    |  1 -
+ arch/ia64/kernel/jprobes.S           |  3 ++-
+ arch/ia64/kernel/vmlinux.lds.S       |  1 -
+ arch/ia64/lib/flush.S                |  6 +++---
+ arch/metag/kernel/vmlinux.lds.S      |  1 -
+ arch/microblaze/kernel/vmlinux.lds.S |  1 -
+ arch/mips/kernel/vmlinux.lds.S       |  1 -
+ arch/mn10300/kernel/vmlinux.lds.S    |  1 -
+ arch/nios2/kernel/vmlinux.lds.S      |  1 -
+ arch/openrisc/kernel/vmlinux.lds.S   |  1 -
+ arch/parisc/kernel/vmlinux.lds.S     |  1 -
+ arch/powerpc/include/asm/ppc_asm.h   |  1 +
+ arch/powerpc/kernel/vmlinux.lds.S    |  1 -
+ arch/s390/kernel/entry.S             |  5 +++--
+ arch/s390/kernel/kprobes.c           |  6 +++---
+ arch/s390/kernel/mcount.S            |  3 ++-
+ arch/s390/kernel/vmlinux.lds.S       |  1 -
+ arch/score/kernel/vmlinux.lds.S      |  1 -
+ arch/sh/kernel/vmlinux.lds.S         |  1 -
+ arch/sparc/kernel/vmlinux.lds.S      |  1 -
+ arch/sparc/mm/ultra.S                |  3 ++-
+ arch/tile/kernel/vmlinux.lds.S       |  1 -
+ arch/x86/kernel/kprobes/core.c       | 11 +++++------
+ arch/x86/kernel/vmlinux.lds.S        |  1 -
+ include/asm-generic/kprobes.h        |  3 ++-
+ include/asm-generic/sections.h       |  2 --
+ include/asm-generic/vmlinux.lds.h    |  2 +-
+ include/linux/kprobes.h              |  3 +++
+ kernel/kprobes.c                     |  6 ++++--
+ scripts/mod/modpost.c                |  2 +-
+ scripts/recordmcount.c               |  2 +-
+ scripts/recordmcount.pl              |  2 +-
+ 43 files changed, 50 insertions(+), 54 deletions(-)
 
-diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
-index 9b9c4797fc55..1af275cd4879 100644
---- a/Documentation/kbuild/makefiles.txt
-+++ b/Documentation/kbuild/makefiles.txt
-@@ -1090,6 +1090,42 @@ When kbuild executes, the following steps are followed (roughly):
- 	In this example, extra-y is used to list object files that
- 	shall be built, but shall not be linked as part of built-in.o.
+diff --git a/arch/arc/kernel/vmlinux.lds.S b/arch/arc/kernel/vmlinux.lds.S
+index f35ed578e007..dd05c86eb96e 100644
+--- a/arch/arc/kernel/vmlinux.lds.S
++++ b/arch/arc/kernel/vmlinux.lds.S
+@@ -91,7 +91,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		*(.fixup)
+ 		*(.gnu.warning)
+ 	}
+diff --git a/arch/arm/kernel/entry-armv.S b/arch/arm/kernel/entry-armv.S
+index 9f157e7c51e7..c455b491b6d3 100644
+--- a/arch/arm/kernel/entry-armv.S
++++ b/arch/arm/kernel/entry-armv.S
+@@ -34,6 +34,7 @@
+ #include "entry-header.S"
+ #include <asm/entry-macro-multi.S>
+ #include <asm/probes.h>
++#include <asm/ranges.h>
  
-+    force-obj-y force-lib-y
-+
-+	When CONFIG_BUILD_AVOID_BITROT is enabled using these targets for your
-+	kconfig symbols forces compilation of the associated objects if the
-+	kconfig's symbol's dependencies are met, the objects however are only
-+	linked into to the kernel if and only if the kconfig symbol was
-+	enabled. If CONFIG_BUILD_AVOID_BITROT is disabled the force-obj-y and
-+	force-lib-y targets are functionally equilvalent to obj-y and lib-y
-+	respectively.
-+
-+	Using force-obj-y and force-lib-y are part of a code architecture and
-+	build philosophy further enabled by linker tables, for more details
-+	refer to the documention in include/linux/tables.h, refer to the
-+	sections:
-+
-+		o The code bit-rot problem
-+		o The build-all selective-link philosophy
-+		o Avoiding the code bit-rot problem with linker tables
-+		o Linker table module support
-+
-+	Modules support is expected to be enhanced in the future, so for now
-+	only built-in features are supported.
-+
-+	Example use:
-+
-+		force-obj-$(CONFIG_FEATURE_FOO) += foo.o
-+
-+	An alternative to using force-obj-y, is to use extra-y followed by the
-+	respective obj-y:
-+
-+		extra-y += foo.o
-+		obj-$(CONFIG_FEATURE_FOO) += foo.o
-+
-+	Using force-obj-y and force-lib-y can be used to help annotate the
-+	targets follow the 'build-all selective-link philosophy' further
-+	enabled by linker tables.
+ /*
+  * Interrupt handling.
+@@ -83,7 +84,7 @@
+ 	.endm
  
- --- 6.7 Commands useful for building a boot image
+ #ifdef CONFIG_KPROBES
+-	.section	.kprobes.text,"ax",%progbits
++	set_section_rng_type(.text, kprobes, ax, %progbits)
+ #else
+ 	.text
+ #endif
+diff --git a/arch/arm/kernel/vmlinux-xip.lds.S b/arch/arm/kernel/vmlinux-xip.lds.S
+index 37b2a11af345..1a84f84b8165 100644
+--- a/arch/arm/kernel/vmlinux-xip.lds.S
++++ b/arch/arm/kernel/vmlinux-xip.lds.S
+@@ -103,7 +103,6 @@ SECTIONS
+ 			SCHED_TEXT
+ 			CPUIDLE_TEXT
+ 			LOCK_TEXT
+-			KPROBES_TEXT
+ 			*(.gnu.warning)
+ 			*(.glue_7)
+ 			*(.glue_7t)
+diff --git a/arch/arm/kernel/vmlinux.lds.S b/arch/arm/kernel/vmlinux.lds.S
+index f7f55df0bf7b..1e278e6c3506 100644
+--- a/arch/arm/kernel/vmlinux.lds.S
++++ b/arch/arm/kernel/vmlinux.lds.S
+@@ -114,7 +114,6 @@ SECTIONS
+ 			CPUIDLE_TEXT
+ 			LOCK_TEXT
+ 			HYPERVISOR_TEXT
+-			KPROBES_TEXT
+ 			*(.gnu.warning)
+ 			*(.glue_7)
+ 			*(.glue_7t)
+diff --git a/arch/arm64/kernel/armv8_deprecated.c b/arch/arm64/kernel/armv8_deprecated.c
+index ecf9298a12d4..35574b9fe6d4 100644
+--- a/arch/arm64/kernel/armv8_deprecated.c
++++ b/arch/arm64/kernel/armv8_deprecated.c
+@@ -21,6 +21,7 @@
+ #include <asm/traps.h>
+ #include <linux/uaccess.h>
+ #include <asm/cpufeature.h>
++#include <asm/kprobes.h>
  
-diff --git a/Documentation/sections/linker-tables.rst b/Documentation/sections/linker-tables.rst
-index 780a292d2d00..bc2d9f46cde6 100644
---- a/Documentation/sections/linker-tables.rst
-+++ b/Documentation/sections/linker-tables.rst
-@@ -30,6 +30,21 @@ How linker tables simplify initialization code
- .. kernel-doc:: include/linux/tables.h
-    :doc: How linker tables simplify initialization code
+ #define CREATE_TRACE_POINTS
+ #include "trace-events-emulation.h"
+diff --git a/arch/arm64/kernel/probes/kprobes.c b/arch/arm64/kernel/probes/kprobes.c
+index f0593c92279b..ec288dd165cb 100644
+--- a/arch/arm64/kernel/probes/kprobes.c
++++ b/arch/arm64/kernel/probes/kprobes.c
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/stop_machine.h>
+ #include <linux/stringify.h>
++#include <linux/ranges.h>
+ #include <asm/traps.h>
+ #include <asm/ptrace.h>
+ #include <asm/cacheflush.h>
+@@ -540,8 +541,7 @@ int __kprobes longjmp_break_handler(struct kprobe *p, struct pt_regs *regs)
  
-+The code bit-rot problem
-+------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: The code bit-rot problem
-+
-+The build-all selective-link philosophy
-+---------------------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: The build-all selective-link philosophy
-+
-+Avoiding the code bit-rot problem with linker tables
-+----------------------------------------------------
-+.. kernel-doc:: include/linux/tables.h
-+   :doc: Avoiding the code bit-rot problem with linker tables
-+
- Using linker tables in Linux
- ==============
+ bool arch_within_kprobe_blacklist(unsigned long addr)
+ {
+-	if ((addr >= (unsigned long)__kprobes_text_start &&
+-	    addr < (unsigned long)__kprobes_text_end) ||
++	if (SECTION_RANGE_ADDR_WITHIN(kprobes, addr) ||
+ 	    (addr >= (unsigned long)__entry_text_start &&
+ 	    addr < (unsigned long)__entry_text_end) ||
+ 	    (addr >= (unsigned long)__idmap_text_start &&
+diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
+index b8deffa9e1bf..c68e5d528706 100644
+--- a/arch/arm64/kernel/vmlinux.lds.S
++++ b/arch/arm64/kernel/vmlinux.lds.S
+@@ -124,7 +124,6 @@ SECTIONS
+ 			SCHED_TEXT
+ 			CPUIDLE_TEXT
+ 			LOCK_TEXT
+-			KPROBES_TEXT
+ 			HYPERVISOR_TEXT
+ 			IDMAP_TEXT
+ 			HIBERNATE_TEXT
+diff --git a/arch/avr32/kernel/entry-avr32b.S b/arch/avr32/kernel/entry-avr32b.S
+index 7301f4806bbe..7b2a5c5ef047 100644
+--- a/arch/avr32/kernel/entry-avr32b.S
++++ b/arch/avr32/kernel/entry-avr32b.S
+@@ -23,6 +23,7 @@
+ #include <asm/sysreg.h>
+ #include <asm/thread_info.h>
+ #include <asm/unistd.h>
++#include <asm/ranges.h>
  
-diff --git a/include/linux/tables.h b/include/linux/tables.h
-index 1a1838d51951..70a41edfa127 100644
---- a/include/linux/tables.h
-+++ b/include/linux/tables.h
-@@ -169,6 +169,77 @@
+ #ifdef CONFIG_PREEMPT
+ # define preempt_stop		mask_interrupts
+@@ -605,7 +606,11 @@ fault_exit_work:
+ 	brcc	fault_resume_user
+ 	rjmp	enter_monitor_mode
+ 
+-	.section .kprobes.text, "ax", @progbits
++#ifdef CONFIG_KPROBES
++	set_section_rng_type(.text, kprobes, ax, @progbits)
++#else
++	.text
++#endif
+ 	.type	handle_debug, @function
+ handle_debug:
+ 	sub	sp, 4		/* r12_orig */
+@@ -826,7 +831,11 @@ irq_level\level:
+ 	IRQ_LEVEL 2
+ 	IRQ_LEVEL 3
+ 
+-	.section .kprobes.text, "ax", @progbits
++#ifdef CONFIG_KPROBES
++	set_section_rng_type(.text, kprobes, ax, @progbits)
++#else
++	.text
++#endif
+ 	.type	enter_monitor_mode, @function
+ enter_monitor_mode:
+ 	/*
+diff --git a/arch/avr32/kernel/vmlinux.lds.S b/arch/avr32/kernel/vmlinux.lds.S
+index 17f2730eb497..04627a9c178e 100644
+--- a/arch/avr32/kernel/vmlinux.lds.S
++++ b/arch/avr32/kernel/vmlinux.lds.S
+@@ -49,7 +49,6 @@ SECTIONS
+ 		_stext = .;
+ 		*(.ex.text)
+ 		*(.irq.text)
+-		KPROBES_TEXT
+ 		TEXT_TEXT
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+diff --git a/arch/blackfin/kernel/vmlinux.lds.S b/arch/blackfin/kernel/vmlinux.lds.S
+index 68069a120055..93220ff65014 100644
+--- a/arch/blackfin/kernel/vmlinux.lds.S
++++ b/arch/blackfin/kernel/vmlinux.lds.S
+@@ -37,7 +37,6 @@ SECTIONS
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+-		KPROBES_TEXT
+ #ifdef CONFIG_ROMKERNEL
+ 		__sinittext = .;
+ 		INIT_TEXT
+diff --git a/arch/c6x/kernel/vmlinux.lds.S b/arch/c6x/kernel/vmlinux.lds.S
+index a1a5c166bc9b..a41d43b8254b 100644
+--- a/arch/c6x/kernel/vmlinux.lds.S
++++ b/arch/c6x/kernel/vmlinux.lds.S
+@@ -74,7 +74,6 @@ SECTIONS
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+-		KPROBES_TEXT
+ 		*(.fixup)
+ 		*(.gnu.warning)
+ 	}
+diff --git a/arch/hexagon/kernel/vmlinux.lds.S b/arch/hexagon/kernel/vmlinux.lds.S
+index ec87e67feb19..7e6f68584b55 100644
+--- a/arch/hexagon/kernel/vmlinux.lds.S
++++ b/arch/hexagon/kernel/vmlinux.lds.S
+@@ -52,7 +52,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		*(.fixup)
+ 	}
+ 	_etext = .;
+diff --git a/arch/ia64/kernel/jprobes.S b/arch/ia64/kernel/jprobes.S
+index f69389c7be1d..71adc7132e22 100644
+--- a/arch/ia64/kernel/jprobes.S
++++ b/arch/ia64/kernel/jprobes.S
+@@ -46,11 +46,12 @@
   */
+ #include <asm/asmmacro.h>
+ #include <asm/break.h>
++#include <asm/ranges.h>
  
- /**
-+ * DOC: The code bit-rot problem
-+ *
-+ * Linux provides a rich array of features, enabling each feature
-+ * however increases the size of the kernel and there are many
-+ * features which users often want disabled. The traditional
-+ * solution to this problem is for each feature to have its own
-+ * Kconfig symbol, followed by a series of #ifdef statements
-+ * in C code and header files, allowing the feature to be compiled
-+ * only when desirable. As the variability of Linux increases build
-+ * tests can and are often done with random kernel configurations,
-+ * allyesconfig, and allmodconfig to help find code issues. This
-+ * however doesn't catch all errors and as a consequence code that
-+ * is typically not enabled often can suffer from bit-rot over time.
-+ */
-+
-+/**
-+ * DOC: The build-all selective-link philosophy
-+ *
-+ * A code architecture philosophy to help avoid code bit-rot consists
-+ * of using Kconfig symbols for each subsystem feature, replace all #ifdefs
-+ * by instead having each feature implemented it its own C file, and force
-+ * compilation for all features. Only features that are enabled get linked in,
-+ * the forced compilation therefore has no size impact on the final result of
-+ * the kernel. The practice of having each feature implemented in its own C
-+ * file is already prevalent in many subsystems, however #ifdefs are still
-+ * typically required during feature initialization. For instance in::
-+ *
-+ *	#ifdef CONFIG_FOO
-+ *	foo_init();
-+ *	#endif
-+ *
-+ * We cannot remove the #ifdef and leave foo_init() as we'd either
-+ * need to always enable the feature or add a respective #ifdef in a
-+ * foo.h which makes foo_init() do nothing when ``CONFIG_FOO`` is disabled.
-+ */
-+
-+/**
-+ * DOC: Avoiding the code bit-rot problem with linker tables
-+ *
-+ * Linker tables can be used to further help avoid the code bit-rot problem
-+ * when embracing the 'build-all selective-link philosophy' by lifting the
-+ * requirement to use of #ifdefs during initialization. With linker tables
-+ * initialization sequences can be aggregated into a custom ELF section at
-+ * link time, during run time the table can be iterated over and each init
-+ * sequence enabled can be called. A feature's init routine is only added to a
-+ * table when its respective Kconfig symbols has been enabled and therefore
-+ * linked in. Linker tables enable subsystems to completely do away with
-+ * #ifdefs if one is comfortable in accepting all subsystem's feature's
-+ * structural size implications.
-+ *
-+ * To further help with this the Linux build system supports two special
-+ * targets, ``force-obj-y`` and ``force-lib-y``. A subsystem which wants to
-+ * follow the 'build-all selective-link philosophy' can use these targets for a
-+ * feature's kconfig symbol. Using these targets will always require
-+ * compilation of the kconfig's objects if the kconfig symbol's dependencies
-+ * are met but only link the objects into the kernel, and therefore enable the
-+ * feature, if and only if the kconfig symbol has been enabled.
-+ *
-+ * Not all users or build systems may want to opt-in to compile all objects
-+ * following the 'build-all selective-link philosophy', as such the targets
-+ * ``force-obj-y`` and ``force-lib-y`` only force compilation when the kconfig
-+ * symbol ``CONFIG_BUILD_AVOID_BITROT`` has been enabled. Disabling this feature
-+ * makes ``force-obj-y`` and ``force-lib-y`` functionally equivalent to
-+ * ``obj-y`` and ``lib-y`` respectively.
-+ *
-+ * Example use::
-+ *
-+ * 	force-obj-$(CONFIG_FEATURE_FOO) += foo.o
-+ */
-+
-+/**
-  * DOC: Linker table module support
-  *
-  * Modules can use linker tables, however the linker table definition
-diff --git a/init/Kconfig b/init/Kconfig
-index d0caacb4bc14..ce934ea6a7f1 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -63,6 +63,28 @@ config CROSS_COMPILE
- 	  need to set this unless you want the configured kernel build
- 	  directory to select the cross-compiler automatically.
+ 	/*
+ 	 * void jprobe_break(void)
+ 	 */
+-	.section .kprobes.text, "ax"
++	set_section_rng(.text, kprobes, ax)
+ ENTRY(jprobe_break)
+ 	break.m __IA64_BREAK_JPROBE
+ END(jprobe_break)
+diff --git a/arch/ia64/kernel/vmlinux.lds.S b/arch/ia64/kernel/vmlinux.lds.S
+index f89d20c97412..3ff6edf913d2 100644
+--- a/arch/ia64/kernel/vmlinux.lds.S
++++ b/arch/ia64/kernel/vmlinux.lds.S
+@@ -48,7 +48,6 @@ SECTIONS {
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		*(.gnu.linkonce.t*)
+ 	}
  
-+config BUILD_AVOID_BITROT
-+	bool "Enable force building of force-obj-y and force-lib-y"
-+	default n
-+	help
-+	  When enabled objects under the force-obj-y and force-lib-y targets
-+	  using a Kconfig symbol will be forced to compile if the Kconfig
-+	  symbol's dependencies are met but only linked into the kernel if
-+	  the Kconfig symbol is enabled. If a Kconfig symbol on a force-obj-y
-+	  or force-lib-y target is disabled, it will be compiled but not linked
-+	  into the kernel.
+diff --git a/arch/ia64/lib/flush.S b/arch/ia64/lib/flush.S
+index 9a5a2f9fad13..dec1b180d618 100644
+--- a/arch/ia64/lib/flush.S
++++ b/arch/ia64/lib/flush.S
+@@ -9,7 +9,7 @@
+ 
+ #include <asm/asmmacro.h>
+ #include <asm/export.h>
+-
++#include <asm/ranges.h>
+ 
+ 	/*
+ 	 * flush_icache_range(start,end)
+@@ -21,7 +21,7 @@
+ 	 *
+ 	 *	Note: "in0" and "in1" are preserved for debugging purposes.
+ 	 */
+-	.section .kprobes.text,"ax"
++	set_section_rng(.text, kprobes, ax)
+ GLOBAL_ENTRY(flush_icache_range)
+ 
+ 	.prologue
+@@ -74,7 +74,7 @@ EXPORT_SYMBOL_GPL(flush_icache_range)
+ 	 *
+ 	 *	Note: "in0" and "in1" are preserved for debugging purposes.
+ 	 */
+-	.section .kprobes.text,"ax"
++	set_section_rng(.text, kprobes, ax)
+ GLOBAL_ENTRY(clflush_cache_range)
+ 
+ 	.prologue
+diff --git a/arch/metag/kernel/vmlinux.lds.S b/arch/metag/kernel/vmlinux.lds.S
+index e6c700eaf207..b18386d2250f 100644
+--- a/arch/metag/kernel/vmlinux.lds.S
++++ b/arch/metag/kernel/vmlinux.lds.S
+@@ -23,7 +23,6 @@ SECTIONS
+ 	SCHED_TEXT
+ 	CPUIDLE_TEXT
+ 	LOCK_TEXT
+-	KPROBES_TEXT
+ 	IRQENTRY_TEXT
+ 	SOFTIRQENTRY_TEXT
+ 	*(.text.*)
+diff --git a/arch/microblaze/kernel/vmlinux.lds.S b/arch/microblaze/kernel/vmlinux.lds.S
+index 289d0e7f3e3a..aadee2229ac6 100644
+--- a/arch/microblaze/kernel/vmlinux.lds.S
++++ b/arch/microblaze/kernel/vmlinux.lds.S
+@@ -35,7 +35,6 @@ SECTIONS {
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		. = ALIGN (4) ;
+diff --git a/arch/mips/kernel/vmlinux.lds.S b/arch/mips/kernel/vmlinux.lds.S
+index f0a0e6d62be3..44e21812c544 100644
+--- a/arch/mips/kernel/vmlinux.lds.S
++++ b/arch/mips/kernel/vmlinux.lds.S
+@@ -57,7 +57,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		*(.text.*)
+diff --git a/arch/mn10300/kernel/vmlinux.lds.S b/arch/mn10300/kernel/vmlinux.lds.S
+index 2d5f1c3f1afb..552ef00a3da5 100644
+--- a/arch/mn10300/kernel/vmlinux.lds.S
++++ b/arch/mn10300/kernel/vmlinux.lds.S
+@@ -32,7 +32,6 @@ SECTIONS
+ 	SCHED_TEXT
+ 	CPUIDLE_TEXT
+ 	LOCK_TEXT
+-	KPROBES_TEXT
+ 	*(.fixup)
+ 	*(.gnu.warning)
+ 	} = 0xcb
+diff --git a/arch/nios2/kernel/vmlinux.lds.S b/arch/nios2/kernel/vmlinux.lds.S
+index 6a8045bb1a77..aae4a00c4056 100644
+--- a/arch/nios2/kernel/vmlinux.lds.S
++++ b/arch/nios2/kernel/vmlinux.lds.S
+@@ -41,7 +41,6 @@ SECTIONS
+ 		LOCK_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+-		KPROBES_TEXT
+ 	} =0
+ 	_etext = .;
+ 
+diff --git a/arch/openrisc/kernel/vmlinux.lds.S b/arch/openrisc/kernel/vmlinux.lds.S
+index 00ddb7804be4..8ade6ccca6ac 100644
+--- a/arch/openrisc/kernel/vmlinux.lds.S
++++ b/arch/openrisc/kernel/vmlinux.lds.S
+@@ -57,7 +57,6 @@ SECTIONS
+ 	  SCHED_TEXT
+ 	  CPUIDLE_TEXT
+ 	  LOCK_TEXT
+-	  KPROBES_TEXT
+ 	  IRQENTRY_TEXT
+ 	  SOFTIRQENTRY_TEXT
+ 	  *(.fixup)
+diff --git a/arch/parisc/kernel/vmlinux.lds.S b/arch/parisc/kernel/vmlinux.lds.S
+index 3d6ef1b29c6a..edbd6d9487dc 100644
+--- a/arch/parisc/kernel/vmlinux.lds.S
++++ b/arch/parisc/kernel/vmlinux.lds.S
+@@ -71,7 +71,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		*(.text.do_softirq)
+diff --git a/arch/powerpc/include/asm/ppc_asm.h b/arch/powerpc/include/asm/ppc_asm.h
+index 025833b8df9f..0846413b3a2e 100644
+--- a/arch/powerpc/include/asm/ppc_asm.h
++++ b/arch/powerpc/include/asm/ppc_asm.h
+@@ -9,6 +9,7 @@
+ #include <asm/processor.h>
+ #include <asm/ppc-opcode.h>
+ #include <asm/firmware.h>
++#include <asm/ranges.h>
+ 
+ #ifdef __ASSEMBLY__
+ 
+diff --git a/arch/powerpc/kernel/vmlinux.lds.S b/arch/powerpc/kernel/vmlinux.lds.S
+index 8cd940c72895..2285664abb52 100644
+--- a/arch/powerpc/kernel/vmlinux.lds.S
++++ b/arch/powerpc/kernel/vmlinux.lds.S
+@@ -112,7 +112,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		MEM_KEEP(init.text)
+diff --git a/arch/s390/kernel/entry.S b/arch/s390/kernel/entry.S
+index 97298c58b2be..847e2e1df89c 100644
+--- a/arch/s390/kernel/entry.S
++++ b/arch/s390/kernel/entry.S
+@@ -24,6 +24,7 @@
+ #include <asm/setup.h>
+ #include <asm/nmi.h>
+ #include <asm/export.h>
++#include <asm/ranges.h>
+ 
+ __PT_R0      =	__PT_GPRS
+ __PT_R1      =	__PT_GPRS + 8
+@@ -169,7 +170,7 @@ _PIF_WORK	= (_PIF_PER_TRAP)
+ 		tm	off+\addr, \mask
+ 	.endm
+ 
+-	.section .kprobes.text, "ax"
++	set_section_rng(.text, kprobes, ax)
+ .Ldummy:
+ 	/*
+ 	 * This nop exists only in order to avoid that __switch_to starts at
+@@ -986,7 +987,7 @@ ENTRY(restart_int_handler)
+ 	brc	2,2b
+ 3:	j	3b
+ 
+-	.section .kprobes.text, "ax"
++	set_section_rng(.text, kprobes, ax)
+ 
+ #ifdef CONFIG_CHECK_STACK
+ /*
+diff --git a/arch/s390/kernel/kprobes.c b/arch/s390/kernel/kprobes.c
+index 84e0557b16fe..94a4918b5968 100644
+--- a/arch/s390/kernel/kprobes.c
++++ b/arch/s390/kernel/kprobes.c
+@@ -289,9 +289,9 @@ static void kprobe_reenter_check(struct kprobe_ctlblk *kcb, struct kprobe *p)
+ 	case KPROBE_REENTER:
+ 	default:
+ 		/*
+-		 * A kprobe on the code path to single step an instruction
+-		 * is a BUG. The code path resides in the .kprobes.text
+-		 * section and is executed with interrupts disabled.
++		 * A kprobe on the code path to single step an instruction is a
++		 * BUG. The code path resides in the kprobes section range and
++		 * is executed with interrupts disabled.
+ 		 */
+ 		printk(KERN_EMERG "Invalid kprobe detected at %p.\n", p->addr);
+ 		dump_kprobe(p);
+diff --git a/arch/s390/kernel/mcount.S b/arch/s390/kernel/mcount.S
+index 9a17e4475d27..9d76056609f7 100644
+--- a/arch/s390/kernel/mcount.S
++++ b/arch/s390/kernel/mcount.S
+@@ -10,8 +10,9 @@
+ #include <asm/ftrace.h>
+ #include <asm/ptrace.h>
+ #include <asm/export.h>
++#include <asm/ranges.h>
+ 
+-	.section .kprobes.text, "ax"
++	set_section_rng(.text, kprobes, ax)
+ 
+ ENTRY(ftrace_stub)
+ 	br	%r14
+diff --git a/arch/s390/kernel/vmlinux.lds.S b/arch/s390/kernel/vmlinux.lds.S
+index 3667d20e997f..b2df6d9bab09 100644
+--- a/arch/s390/kernel/vmlinux.lds.S
++++ b/arch/s390/kernel/vmlinux.lds.S
+@@ -37,7 +37,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		*(.fixup)
+diff --git a/arch/score/kernel/vmlinux.lds.S b/arch/score/kernel/vmlinux.lds.S
+index 4117890b1db1..a8b14f3ed474 100644
+--- a/arch/score/kernel/vmlinux.lds.S
++++ b/arch/score/kernel/vmlinux.lds.S
+@@ -42,7 +42,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		*(.text.*)
+ 		*(.fixup)
+ 		. = ALIGN (4) ;
+diff --git a/arch/sh/kernel/vmlinux.lds.S b/arch/sh/kernel/vmlinux.lds.S
+index 5b9a3cc90c58..58d9ba796f7a 100644
+--- a/arch/sh/kernel/vmlinux.lds.S
++++ b/arch/sh/kernel/vmlinux.lds.S
+@@ -38,7 +38,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		*(.fixup)
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index 572db686f845..0ee41b0071e5 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -51,7 +51,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+ 		*(.gnu.warning)
+diff --git a/arch/sparc/mm/ultra.S b/arch/sparc/mm/ultra.S
+index 5d2fd6cd3189..ee9f648549c0 100644
+--- a/arch/sparc/mm/ultra.S
++++ b/arch/sparc/mm/ultra.S
+@@ -16,6 +16,7 @@
+ #include <asm/cacheflush.h>
+ #include <asm/hypervisor.h>
+ #include <asm/cpudata.h>
++#include <asm/ranges.h>
+ 
+ 	/* Basically, most of the Spitfire vs. Cheetah madness
+ 	 * has to do with the fact that Cheetah does not support
+@@ -185,7 +186,7 @@ __spitfire_flush_tlb_mm_slow:
+ /*
+  * The following code flushes one page_size worth.
+  */
+-	.section .kprobes.text, "ax"
++	set_section_rng(.text, kprobes, ax)
+ 	.align		32
+ 	.globl		__flush_icache_page
+ __flush_icache_page:	/* %o0 = phys_page */
+diff --git a/arch/tile/kernel/vmlinux.lds.S b/arch/tile/kernel/vmlinux.lds.S
+index e1baf094fba4..85d03ce6c0a0 100644
+--- a/arch/tile/kernel/vmlinux.lds.S
++++ b/arch/tile/kernel/vmlinux.lds.S
+@@ -44,7 +44,6 @@ SECTIONS
+     SCHED_TEXT
+     CPUIDLE_TEXT
+     LOCK_TEXT
+-    KPROBES_TEXT
+     IRQENTRY_TEXT
+     SOFTIRQENTRY_TEXT
+     __fix_text_end = .;   /* tile-cpack won't rearrange before this */
+diff --git a/arch/x86/kernel/kprobes/core.c b/arch/x86/kernel/kprobes/core.c
+index eb3509338ae0..95e4b172e923 100644
+--- a/arch/x86/kernel/kprobes/core.c
++++ b/arch/x86/kernel/kprobes/core.c
+@@ -580,9 +580,9 @@ static int reenter_kprobe(struct kprobe *p, struct pt_regs *regs,
+ 	case KPROBE_REENTER:
+ 		/* A probe has been hit in the codepath leading up to, or just
+ 		 * after, single-stepping of a probed instruction. This entire
+-		 * codepath should strictly reside in .kprobes.text section.
+-		 * Raise a BUG or we'll continue in an endless reentering loop
+-		 * and eventually a stack overflow.
++		 * codepath should strictly reside in the kprobes section
++		 * range. Raise a BUG or we'll continue in an endless
++		 * reentering loop and eventually a stack overflow.
+ 		 */
+ 		printk(KERN_WARNING "Unrecoverable kprobe detected at %p.\n",
+ 		       p->addr);
+@@ -1133,10 +1133,9 @@ NOKPROBE_SYMBOL(longjmp_break_handler);
+ 
+ bool arch_within_kprobe_blacklist(unsigned long addr)
+ {
+-	return  (addr >= (unsigned long)__kprobes_text_start &&
+-		 addr < (unsigned long)__kprobes_text_end) ||
++	return  (SECTION_RANGE_ADDR_WITHIN(kprobes, addr) ||
+ 		(addr >= (unsigned long)__entry_text_start &&
+-		 addr < (unsigned long)__entry_text_end);
++		 addr < (unsigned long)__entry_text_end));
+ }
+ 
+ int __init arch_init_kprobes(void)
+diff --git a/arch/x86/kernel/vmlinux.lds.S b/arch/x86/kernel/vmlinux.lds.S
+index e79f15f108a8..4c16fadb9ac6 100644
+--- a/arch/x86/kernel/vmlinux.lds.S
++++ b/arch/x86/kernel/vmlinux.lds.S
+@@ -99,7 +99,6 @@ SECTIONS
+ 		SCHED_TEXT
+ 		CPUIDLE_TEXT
+ 		LOCK_TEXT
+-		KPROBES_TEXT
+ 		ENTRY_TEXT
+ 		IRQENTRY_TEXT
+ 		SOFTIRQENTRY_TEXT
+diff --git a/include/asm-generic/kprobes.h b/include/asm-generic/kprobes.h
+index 57af9f21d148..02a26b975187 100644
+--- a/include/asm-generic/kprobes.h
++++ b/include/asm-generic/kprobes.h
+@@ -3,6 +3,7 @@
+ 
+ #if defined(__KERNEL__) && !defined(__ASSEMBLY__)
+ #ifdef CONFIG_KPROBES
++#include <asm/ranges.h>
+ /*
+  * Blacklist ganerating macro. Specify functions which is not probed
+  * by using this macro.
+@@ -13,7 +14,7 @@ static unsigned long __used					\
+ 	_kbl_addr_##fname = (unsigned long)fname;
+ # define NOKPROBE_SYMBOL(fname)	__NOKPROBE_SYMBOL(fname)
+ /* Use this to forbid a kprobes attach on very low level functions */
+-# define __kprobes	__attribute__((__section__(".kprobes.text")))
++# define __kprobes	__LINUX_RANGE(.text, kprobes)
+ # define nokprobe_inline	__always_inline
+ #else
+ # define NOKPROBE_SYMBOL(fname)
+diff --git a/include/asm-generic/sections.h b/include/asm-generic/sections.h
+index b145ae8d9cbe..f3340f2772bb 100644
+--- a/include/asm-generic/sections.h
++++ b/include/asm-generic/sections.h
+@@ -26,7 +26,6 @@
+  * Following global variables are optional and may be unavailable on some
+  * architectures and/or kernel configurations.
+  *	_text, _data
+- *	__kprobes_text_start, __kprobes_text_end
+  *	__entry_text_start, __entry_text_end
+  *	__ctors_start, __ctors_end
+  */
+@@ -38,7 +37,6 @@ extern char _sinittext[], _einittext[];
+ extern char __start_data_ro_after_init[], __end_data_ro_after_init[];
+ extern char _end[];
+ extern char __per_cpu_load[], __per_cpu_start[], __per_cpu_end[];
+-extern char __kprobes_text_start[], __kprobes_text_end[];
+ extern char __entry_text_start[], __entry_text_end[];
+ extern char __start_rodata[], __end_rodata[];
+ 
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index 37b99537d5a9..499caf5b4361 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -471,7 +471,7 @@
+ #define KPROBES_TEXT							\
+ 		ALIGN_FUNCTION();					\
+ 		VMLINUX_SYMBOL(__kprobes_text_start) = .;		\
+-		*(.kprobes.text)					\
++		*(.text..rng.kprobes.any)				\
+ 		VMLINUX_SYMBOL(__kprobes_text_end) = .;
+ 
+ #define ENTRY_TEXT							\
+diff --git a/include/linux/kprobes.h b/include/linux/kprobes.h
+index 985ed79ef431..445cc6fe7afa 100644
+--- a/include/linux/kprobes.h
++++ b/include/linux/kprobes.h
+@@ -43,6 +43,9 @@
+ #include <asm/kprobes.h>
+ 
+ #ifdef CONFIG_KPROBES
++#include <linux/ranges.h>
 +
-+	  The force-obj-y and force-lib-y targets can be used by subsystems
-+	  which wish to want to follow the 'build-all selective-link philosophy'
-+	  documented under include/linux/tables.h.
++DECLARE_SECTION_RANGE(kprobes);
+ 
+ /* kprobe_status settings */
+ #define KPROBE_HIT_ACTIVE	0x00000001
+diff --git a/kernel/kprobes.c b/kernel/kprobes.c
+index 43460104f119..82191f328e21 100644
+--- a/kernel/kprobes.c
++++ b/kernel/kprobes.c
+@@ -1328,8 +1328,7 @@ static int register_aggr_kprobe(struct kprobe *orig_p, struct kprobe *p)
+ bool __weak arch_within_kprobe_blacklist(unsigned long addr)
+ {
+ 	/* The __kprobes marked functions and entry code must not be probed */
+-	return addr >= (unsigned long)__kprobes_text_start &&
+-	       addr < (unsigned long)__kprobes_text_end;
++	return SECTION_RANGE_ADDR_WITHIN(kprobes, addr);
+ }
+ 
+ bool within_kprobe_blacklist(unsigned long addr)
+@@ -2129,6 +2128,9 @@ static struct notifier_block kprobe_module_nb = {
+ extern unsigned long __start_kprobe_blacklist[];
+ extern unsigned long __stop_kprobe_blacklist[];
+ 
++/* Actual kprobes section range */
++DEFINE_SECTION_RANGE(kprobes, .text);
 +
-+	  Say Y if you have a decent build machine and would like to help test
-+	  building code for more subsystems. Say N if you do you not have a
-+	  good build machine or only want to compile what you've enabled for
-+	  your kernel.
-+
-+	  Enabling this option never increases the size of your kernel.
-+
- config COMPILE_TEST
- 	bool "Compile also drivers which will not load"
- 	depends on !UML
-diff --git a/scripts/Makefile.build b/scripts/Makefile.build
-index eadcd4d359d9..c34af839d47c 100644
---- a/scripts/Makefile.build
-+++ b/scripts/Makefile.build
-@@ -92,7 +92,8 @@ modorder-target := $(obj)/modules.order
+ static int __init init_kprobes(void)
+ {
+ 	int i, err = 0;
+diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
+index 29c89a6bad3d..2b442234c69b 100644
+--- a/scripts/mod/modpost.c
++++ b/scripts/mod/modpost.c
+@@ -894,7 +894,7 @@ static void check_section(const char *modname, struct elf_info *elf,
  
- # We keep a list of all modules in $(MODVERDIR)
- 
--__build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y)) \
-+__build: $(if $(KBUILD_BUILTIN),$(builtin-target) $(lib-target) $(extra-y) \
-+				$(force-obj-y)) \
- 	 $(if $(KBUILD_MODULES),$(obj-m) $(modorder-target)) \
- 	 $(subdir-ym) $(always)
- 	@:
-@@ -392,8 +393,8 @@ endif
- $(obj)/%.o: $(src)/%.S $(objtool_obj) FORCE
- 	$(call if_changed_rule,as_o_S)
- 
--targets += $(real-objs-y) $(real-objs-m) $(lib-y)
--targets += $(extra-y) $(MAKECMDGOALS) $(always)
-+targets += $(real-objs-y) $(real-objs-m) $(lib-y) $(force-lib-y)
-+targets += $(extra-y) $(force-obj-y) $(MAKECMDGOALS) $(always)
- 
- # Linker scripts preprocessor (.lds.S -> .lds)
- # ---------------------------------------------------------------------------
-diff --git a/scripts/Makefile.clean b/scripts/Makefile.clean
-index 50616ea25131..2b54546237d6 100644
---- a/scripts/Makefile.clean
-+++ b/scripts/Makefile.clean
-@@ -36,6 +36,8 @@ subdir-ymn	:= $(addprefix $(obj)/,$(subdir-ymn))
- # directory
- 
- __clean-files	:= $(extra-y) $(extra-m) $(extra-)       \
-+		   $(force-obj-y) $(force-obj-m) $(force-obj-)       \
-+		   $(force-lib-y) $(force-lib-m) $(force-lib-)       \
- 		   $(always) $(targets) $(clean-files)   \
- 		   $(host-progs)                         \
- 		   $(hostprogs-y) $(hostprogs-m) $(hostprogs-) \
-diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
-index 0a07f9014944..d1cb0cfdf1bf 100644
---- a/scripts/Makefile.lib
-+++ b/scripts/Makefile.lib
-@@ -12,6 +12,15 @@ export KBUILD_SUBDIR_CCFLAGS := $(KBUILD_SUBDIR_CCFLAGS) $(subdir-ccflags-y)
- # Figure out what we need to build from the various variables
- # ===================================== 
-+ifeq ($(CONFIG_BUILD_AVOID_BITROT),y)
-+extra-y += $(force-obj-) $(force-lib-)
-+endif
-+
-+obj-m += $(force-obj-m)
-+obj-y += $(force-obj-y)
-+lib-m += $(force-lib-m)
-+lib-y += $(force-lib-y)
-+
- # When an object is listed to be built compiled-in and modular,
- # only build the compiled-in version
- 
-@@ -72,6 +81,8 @@ real-objs-m := $(foreach m, $(obj-m), $(if $(strip $($(m:.o=-objs)) $($(m:.o=-y)
- # Add subdir path
- 
- extra-y		:= $(addprefix $(obj)/,$(extra-y))
-+force-obj-y		:= $(addprefix $(obj)/,$(force-obj-y))
-+force-obj-m		:= $(addprefix $(obj)/,$(force-obj-m))
- always		:= $(addprefix $(obj)/,$(always))
- targets		:= $(addprefix $(obj)/,$(targets))
- modorder	:= $(addprefix $(obj)/,$(modorder))
+ #define DATA_SECTIONS ".data", ".data.rel"
+ #define TEXT_SECTIONS ".text", ".text.unlikely", ".sched.text", \
+-		".kprobes.text", ".cpuidle.text"
++		".text..rng.kprobes.any", ".cpuidle.text"
+ #define OTHER_TEXT_SECTIONS ".ref.text", ".head.text", ".spinlock.text", \
+ 		".fixup", ".entry.text", ".exception.text", ".text.*", \
+ 		".coldtext"
+diff --git a/scripts/recordmcount.c b/scripts/recordmcount.c
+index aeb34223167c..6e95f3f87db1 100644
+--- a/scripts/recordmcount.c
++++ b/scripts/recordmcount.c
+@@ -417,7 +417,7 @@ is_mcounted_section_name(char const *const txtname)
+ 		strcmp(".spinlock.text", txtname) = 0 ||
+ 		strcmp(".irqentry.text", txtname) = 0 ||
+ 		strcmp(".softirqentry.text", txtname) = 0 ||
+-		strcmp(".kprobes.text", txtname) = 0 ||
++		strcmp(".text..rng.kprobes.any", txtname) = 0 ||
+ 		strcmp(".cpuidle.text", txtname) = 0 ||
+ 		strcmp(".text.unlikely", txtname) = 0;
+ }
+diff --git a/scripts/recordmcount.pl b/scripts/recordmcount.pl
+index 0b6002b36f20..15e2fa37c489 100755
+--- a/scripts/recordmcount.pl
++++ b/scripts/recordmcount.pl
+@@ -135,7 +135,7 @@ my %text_sections = (
+      ".spinlock.text" => 1,
+      ".irqentry.text" => 1,
+      ".softirqentry.text" => 1,
+-     ".kprobes.text" => 1,
++     ".text..rng.kprobes.any" => 1,
+      ".cpuidle.text" => 1,
+      ".text.unlikely" => 1,
+ );
 -- 
 2.11.0
 
