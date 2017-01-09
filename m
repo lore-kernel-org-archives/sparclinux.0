@@ -1,67 +1,57 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Date: Fri, 13 Jan 2017 10:46:40 +0000
-Subject: [PATCH v3 2/8] h8300: put bitsperlong.h in uapi
-Message-Id: <1484304406-10820-3-git-send-email-nicolas.dichtel@6wind.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Mon, 09 Jan 2017 15:02:47 +0000
+Subject: [PATCH v3 4/6] tools: expand export.h with VMLINUX_SYMBOL()
+Message-Id: <20170109150249.11667-5-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+References: <20161222023958.21306-1-mcgrof@kernel.org>
+ <20170109150249.11667-1-mcgrof@kernel.org>
+In-Reply-To: <20170109150249.11667-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arnd@arndb.de
-Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.
+To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
 
-This header file is exported, thus move it to uapi.
+This will be used later by the linker-table userspace sandbox.
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
 ---
- arch/h8300/include/asm/bitsperlong.h      | 14 --------------
- arch/h8300/include/uapi/asm/bitsperlong.h | 14 ++++++++++++++
- 2 files changed, 14 insertions(+), 14 deletions(-)
- delete mode 100644 arch/h8300/include/asm/bitsperlong.h
- create mode 100644 arch/h8300/include/uapi/asm/bitsperlong.h
+ tools/include/linux/export.h | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/arch/h8300/include/asm/bitsperlong.h b/arch/h8300/include/asm/bitsperlong.h
-deleted file mode 100644
-index e140e46729ac..000000000000
---- a/arch/h8300/include/asm/bitsperlong.h
-+++ /dev/null
-@@ -1,14 +0,0 @@
--#ifndef __ASM_H8300_BITS_PER_LONG
--#define __ASM_H8300_BITS_PER_LONG
--
--#include <asm-generic/bitsperlong.h>
--
--#if !defined(__ASSEMBLY__)
--/* h8300-unknown-linux required long */
--#define __kernel_size_t __kernel_size_t
--typedef unsigned long	__kernel_size_t;
--typedef long		__kernel_ssize_t;
--typedef long		__kernel_ptrdiff_t;
--#endif
--
--#endif /* __ASM_H8300_BITS_PER_LONG */
-diff --git a/arch/h8300/include/uapi/asm/bitsperlong.h b/arch/h8300/include/uapi/asm/bitsperlong.h
-new file mode 100644
-index 000000000000..e56cf72369b6
---- /dev/null
-+++ b/arch/h8300/include/uapi/asm/bitsperlong.h
-@@ -0,0 +1,14 @@
-+#ifndef _UAPI_ASM_H8300_BITS_PER_LONG
-+#define _UAPI_ASM_H8300_BITS_PER_LONG
+diff --git a/tools/include/linux/export.h b/tools/include/linux/export.h
+index d07e586b9ba0..cb7d6b490e08 100644
+--- a/tools/include/linux/export.h
++++ b/tools/include/linux/export.h
+@@ -1,6 +1,28 @@
+ #ifndef _TOOLS_LINUX_EXPORT_H_
+ #define _TOOLS_LINUX_EXPORT_H_
+ 
++/*
++ * Export symbols from the kernel to modules.  Forked from module.h
++ * to reduce the amount of pointless cruft we feed to gcc when only
++ * exporting a simple symbol or two.
++ *
++ * Try not to add #includes here.  It slows compilation and makes kernel
++ * hackers place grumpy comments in header files.
++ */
 +
-+#include <asm-generic/bitsperlong.h>
-+
-+#if !defined(__ASSEMBLY__)
-+/* h8300-unknown-linux required long */
-+#define __kernel_size_t __kernel_size_t
-+typedef unsigned long	__kernel_size_t;
-+typedef long		__kernel_ssize_t;
-+typedef long		__kernel_ptrdiff_t;
++/* Some toolchains use a `_' prefix for all user symbols. */
++#ifdef CONFIG_HAVE_UNDERSCORE_SYMBOL_PREFIX
++#define __VMLINUX_SYMBOL(x) _##x
++#define __VMLINUX_SYMBOL_STR(x) "_" #x
++#else
++#define __VMLINUX_SYMBOL(x) x
++#define __VMLINUX_SYMBOL_STR(x) #x
 +#endif
 +
-+#endif /* _UAPI_ASM_H8300_BITS_PER_LONG */
++/* Indirect, so macros are expanded before pasting. */
++#define VMLINUX_SYMBOL(x) __VMLINUX_SYMBOL(x)
++#define VMLINUX_SYMBOL_STR(x) __VMLINUX_SYMBOL_STR(x)
++
+ #define EXPORT_SYMBOL(sym)
+ #define EXPORT_SYMBOL_GPL(sym)
+ #define EXPORT_SYMBOL_GPL_FUTURE(sym)
 -- 
-2.8.1
+2.11.0
 
