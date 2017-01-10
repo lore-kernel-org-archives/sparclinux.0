@@ -1,36 +1,38 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 19 Jan 2017 11:01:35 +0000
-Subject: Re: [PATCH v4 1/6] tools: add a userspace tools bug.h
-Message-Id: <20170119110135.GA28024@kroah.com>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Tue, 10 Jan 2017 17:57:56 +0000
+Subject: [PATCH] sparc: Fixed typo in sstate.c. Replaced panicing with panicking
+Message-Id: <1484071076-18359-1-git-send-email-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109150249.11667-1-mcgrof@kernel.org>
- <20170115211215.17216-1-mcgrof@kernel.org>
- <20170115211215.17216-2-mcgrof@kernel.org>
-In-Reply-To: <20170115211215.17216-2-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org
+To: sparclinux@vger.kernel.org
 
-On Sun, Jan 15, 2017 at 01:12:10PM -0800, Luis R. Rodriguez wrote:
-> This will be used later by the userspace linker-tables sandbox.
+Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
+---
+ arch/sparc/kernel/sstate.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-What is that?
+diff --git a/arch/sparc/kernel/sstate.c b/arch/sparc/kernel/sstate.c
+index c59af54..3caed40 100644
+--- a/arch/sparc/kernel/sstate.c
++++ b/arch/sparc/kernel/sstate.c
+@@ -43,8 +43,8 @@ static const char poweroff_msg[32] __attribute__((aligned(32)))  	"Linux powering off";
+ static const char rebooting_msg[32] __attribute__((aligned(32)))  	"Linux rebooting";
+-static const char panicing_msg[32] __attribute__((aligned(32))) -	"Linux panicing";
++static const char panicking_msg[32] __attribute__((aligned(32))) +	"Linux panicking";
+ 
+ static int sstate_reboot_call(struct notifier_block *np, unsigned long type, void *_unused)
+ {
+@@ -76,7 +76,7 @@ static struct notifier_block sstate_reboot_notifier = {
+ 
+ static int sstate_panic_event(struct notifier_block *n, unsigned long event, void *ptr)
+ {
+-	do_set_sstate(HV_SOFT_STATE_TRANSITION, panicing_msg);
++	do_set_sstate(HV_SOFT_STATE_TRANSITION, panicking_msg);
+ 
+ 	return NOTIFY_DONE;
+ }
+-- 
+2.7.4
 
-> As a convenience, include bug.h on kernel.h -- this is not done
-> on upstream kernel.h, however most header files do include bug.h
-> eventually, if we were to only add the ones that need it we'd
-> need to copy a lot of headers to tools for the only purpose of
-> includeing bug.h.
-
-I can't parse this sentance at all, please simplify or clarify or
-something so that I understand what is going on here.
-
-> This simplifies that.
-
-What is "that"?  You can't do that for such a complex previous sentence.
-
-thanks,
-
-greg k-h
