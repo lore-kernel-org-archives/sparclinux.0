@@ -1,55 +1,50 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Tue, 03 Jan 2017 21:27:44 +0000
-Subject: Re: [PATCH v5 09/14] jump_label: port __jump_table to linker tables
-Message-Id: <20170103212744.GF13946@wotan.suse.de>
+From: Greg KH <gregkh@linuxfoundation.org>
+Date: Tue, 10 Jan 2017 17:37:41 +0000
+Subject: Re: [PATCH] sbus: char: Move D7S_MINOR to include/linux/miscdevice.h
+Message-Id: <20170110173741.GC1340@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1471642454-5679-1-git-send-email-mcgrof@kernel.org>
- <20161222023811.21246-1-mcgrof@kernel.org>
- <20161222023811.21246-10-mcgrof@kernel.org>
- <1482415702.9552.125.camel@linux.intel.com>
-In-Reply-To: <1482415702.9552.125.camel@linux.intel.com>
+References: <20161215194703.11195-1-clabbe.montjoie@gmail.com>
+In-Reply-To: <20161215194703.11195-1-clabbe.montjoie@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: gnomes@lxorguk.ukuu.org.uk, dalias@libc.org, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, heiko.carstens@de.ibm.com, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, mpe@ellerman.id.au, hpa@zytor.com, masami.hiramatsu.pt@hitachi.com, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, sparclinux@vger.kernel.org, xen-devel@lists.xensource.com, linux@arm.linux.org.uk, linux-sh@vger.kernel.org, will.deacon@arm.com, korea.drzix@gmail.com, x86@kernel.org, anil.s.keshavamurthy@intel.com, fontana@sharpeleven.org, mingo@redhat.com, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux@roeck-us.net, david.vrabel@citrix.com, linux-xte
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Corentin Labbe <clabbe.montjoie@gmail.com>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, arnd@arndb.de, linux-kernel@vger.kernel.org
 
-On Thu, Dec 22, 2016 at 04:08:22PM +0200, Andy Shevchenko wrote:
-> On Wed, 2016-12-21 at 18:38 -0800, Luis R. Rodriguez wrote:
-> > Move the __jump_table from the a custom section solution
-> > to a generic solution, this avoiding extra vmlinux.lds.h
-> > customizations.
-> >=20
-> > This also demos the use of the .data linker table and of
-> > the shared asm call push_section_tbl().
-> >=20
->=20
-> > =A0{
-> > =A0	asm_volatile_goto("1:\n\t"
-> > =A0		=A0WASM(nop) "\n\t"
-> > -		=A0".pushsection __jump_table,=A0=A0\"aw\"\n\t"
-> > +		=A0push_section_tbl_any(.data, __jump_table, aw)
-> > =A0		=A0".word 1b, %l[l_yes], %c0\n\t"
-> > =A0		=A0".popsection\n\t"
-> > =A0		=A0: :=A0=A0"i" (&((char *)key)[branch]) :=A0=A0: l_yes);
-> > @@ -26,7 +28,7 @@ static __always_inline bool
-> > arch_static_branch_jump(struct static_key *key, bool
-> > =A0{
-> > =A0	asm_volatile_goto("1:\n\t"
-> > =A0		=A0WASM(b) " %l[l_yes]\n\t"
-> > -		=A0".pushsection __jump_table,=A0=A0\"aw\"\n\t"
-> > +		=A0push_section_tbl_any(.data, __jump_table, aw)
-> > =A0		=A0".word 1b, %l[l_yes], %c0\n\t"
-> > =A0		=A0".popsection\n\t"
->=20
-> Does it make sense to introduce something like
->=20
-> #define pop_section_tbl ".popsection\n\t"
-> #define pop_section_tbl_any pop_section_tbl
+On Thu, Dec 15, 2016 at 08:47:03PM +0100, Corentin Labbe wrote:
+> This patch move the define for D7S_MINOR to include/linux/miscdevice.h.
+> It's better that all minor number are in the same place.
+> 
+> Signed-off-by: Corentin Labbe <clabbe.montjoie@gmail.com>
+> ---
+>  drivers/sbus/char/display7seg.c | 1 -
+>  include/linux/miscdevice.h      | 1 +
+>  2 files changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+> index 33fbe82..48a5df0 100644
+> --- a/drivers/sbus/char/display7seg.c
+> +++ b/drivers/sbus/char/display7seg.c
+> @@ -22,7 +22,6 @@
+>  
+>  #include <asm/display7seg.h>
+>  
+> -#define D7S_MINOR	193
+>  #define DRIVER_NAME	"d7s"
+>  #define PFX		DRIVER_NAME ": "
+>  
+> diff --git a/include/linux/miscdevice.h b/include/linux/miscdevice.h
+> index 5385d95..b1ba37aef 100644
+> --- a/include/linux/miscdevice.h
+> +++ b/include/linux/miscdevice.h
+> @@ -33,6 +33,7 @@
+>  #define I2O_MINOR		166
+>  #define HWRNG_MINOR		183
+>  #define MICROCODE_MINOR		184
+> +#define D7S_MINOR		193
+>  #define VFIO_MINOR		196
+>  #define TUN_MINOR		200
+>  #define CUSE_MINOR		203
+> -- 
 
-Absolutely ! However this would be an evolution, and I would much
-prefer to add this later as an atomic step later to enable other
-users to also be using this shared macro. I did not have an immediate
-need for a pop_section_tbl() macro as its not section specific.
-
-  Luis
+Doesn't apply to my tree :(
