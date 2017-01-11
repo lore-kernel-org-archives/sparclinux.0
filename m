@@ -1,123 +1,176 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 19 Jan 2017 11:24:11 +0000
-Subject: Re: [PATCH v7 09/14] jump_label: port __jump_table to linker tables
-Message-Id: <20170119112411.GN28024@kroah.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 11 Jan 2017 16:12:50 +0000
+Subject: [PATCH v4 0/4] Application Data Integrity feature introduced by SPARC M7
+Message-Id: <cover.1483999591.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109145833.11502-1-mcgrof@kernel.org>
- <20170115211057.17167-1-mcgrof@kernel.org>
- <20170115211057.17167-10-mcgrof@kernel.org>
-In-Reply-To: <20170115211057.17167-10-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: gnomes@lxorguk.ukuu.org.uk, dalias@libc.org, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, heiko.carstens@de.ibm.com, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, mpe@ellerman.id.au, hpa@zytor.com, masami.hiramatsu.pt@hitachi.com, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, sparclinux@vger.kernel.org, xen-devel@lists.xensource.com, linux@arm.linux.org.uk, linux-sh@vger.kernel.org, will.deacon@arm.com, korea.drzix@gmail.com, x86@kernel.org, anil.s.keshavamurthy@intel.com, fontana@sharpeleven.org, mingo@redhat.com, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, bp@suse.de, linux@roeck-us.net, david.vrabel@citrix.com, linux-xtensa@linux
+To: davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, dave.hansen@linux.intel.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.orgn
 
-On Sun, Jan 15, 2017 at 01:10:52PM -0800, Luis R. Rodriguez wrote:
-> Move the __jump_table from the a custom section solution
-> to a generic solution, this avoiding extra vmlinux.lds.h
-> customizations.
-> 
-> This also demos the use of the .data linker table and of
-> the shared asm call push_section_tbl().
-> 
-> Built-in kernel functionality was tested with CONFIG_STATIC_KEYS_SELFTEST.
-> Moduler  kernel functionality was tested with CONFIG_TEST_STATIC_KEYS.
-> Both work as expected.
-> 
-> Since __jump_table sections are also supported per
-> module this also required expanding module-common.lds.S
-> to capture and fold all .data.tlb.__jump_table.* onto
-> the the section __jump_table -- in this case for modules
-> need to keep a reference in place, given the alternative
-> is to use DEFINE_LINKTABLE(struct jump_entry, __jump_table)
-> per module -- and later through macro hacks instantiate
-> the jump entries per module upon init. This is doable but
-> we'd loose out on the sorting of the table using the
-> linker, to sort we'd always still need to expand the
-> module common linker script. An alternative mechanism
-> is possible which would make these custom module sections
-> extensions dynamic without requiring manual changes, this
-> however is best done later through a separate evolution
-> once linker tables are in place.
-> 
-> A careful reviewer may note that some architectures use
-> "\n\t" to separate asm code, while others just use a new line.
-> Upon review last time it was deemed reasonable to for all
-> architectures to just use "\n", this is defined as ASM_CMD_SEP,
-> and if an architecture needs to override they can do so on their
-> architecture sections.h prior to including asm-generic/sections.h
-> 
-> v6: rename table macro as suggested by Andy Shevchenko
-> 
-> v5:
-> 
-> o Use ..tbl instead of .tbl as suggested by Nicholas Piggin.
->   This is the typical way to avoid clash with compiler generated
->   section.
-> 
-> o Replace section macros with section names
-> 
-> o Use LINKTABLE_START() and LINKTABLE_END()
-> 
-> o fixed tile jump label port -- tile got jump label support as of
->   commit 65a792e84f25d1 ("tile/jump_label: add jump label support
->   for TILE-Gx"), as such we just needed to adjust the asm to account
->   for the new linker table API use. This commit was merged as of v4.5-rc1.
-> 
-> v4:
-> 
-> o Some architectures allow linker scripts to follow including header
->   files, some others do not, so if you need a helper on a linker script
->   you need to explicitly include it. So for instance although
->   scripts/module-common.lds.S includes <asm/tables.h> and this file
->   includes <asm/section-core.h>, you still need to explicitly
->   include it on the linker script. This issue is present on ARM.
-> 
-> o as per Josh Poimboeuf open code the section table name instead
->   of including the kernel section headers, the simplicity and
->   independence from the kernel is preferred.
-> 
-> v3:
-> 
-> o More elaborate tests performed
-> o first modular support use case, module tested was
->   CONFIG_TEST_STATIC_KEYS (lib/test_static_keys.ko), this
->   required us to extend module-common.lds.S
-> o use generic push_section_tbl_any() for all architectures
-> o Makes use of ASM_CMD_SEP to enable architectures to override later
->   if needed
-> o guard tables.h inclusion and table definition with __KERNEL__
-> 
-> v2: introduced in this series
-> 
-> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-> ---
->  arch/arm/include/asm/jump_label.h     |  6 ++++--
->  arch/arm64/include/asm/jump_label.h   |  6 ++++--
->  arch/mips/include/asm/jump_label.h    |  6 ++++--
->  arch/powerpc/include/asm/jump_label.h |  8 +++++---
->  arch/s390/include/asm/jump_label.h    |  6 ++++--
->  arch/sparc/include/asm/jump_label.h   |  6 ++++--
->  arch/tile/include/asm/jump_label.h    |  5 +++--
->  arch/x86/include/asm/jump_label.h     | 10 ++++++----
->  include/asm-generic/vmlinux.lds.h     |  5 -----
->  include/linux/jump_label.h            |  4 ++--
->  kernel/jump_label.c                   | 17 ++++++++++-------
->  scripts/module-common.lds             |  1 +
->  tools/objtool/special.c               |  2 +-
->  13 files changed, 48 insertions(+), 34 deletions(-)
+SPARC M7 processor adds additional metadata for memory address space
+that can be used to secure access to regions of memory. This additional
+metadata is implemented as a 4-bit tag attached to each cacheline size
+block of memory. A task can set a tag on any number of such blocks.
+Access to such block is granted only if the virtual address used to
+access that block of memory has the tag encoded in the uppermost 4 bits
+of VA. Any mismatch between tag encoded in VA and tag set on the memory
+block results in a trap. Tags are verified in the VA presented to the
+MMU and tags are associated with the physical page VA maps on to. If a
+memory page is swapped out and page frame gets reused for another task,
+the tags are lost and hence must be saved when swapping or migrating the
+page.
 
-meta-comment.  This new infrastructure doesn't seem to save any code
-when you need to have a new "link table".  Yes, the macros seem a bit
-nicer, but it feels like unneeded churn.  I haven't seen any patches in
-this series that makes me go "oh yeah, now I see why he did this work,
-it's so much simpler and easy to understand now!"
+A userspace task enables ADI through mprotect(). This patch series adds
+a page protection bit PROT_ADI and a corresponding VMA flag
+VM_SPARC_ADI. VM_SPARC_ADI is used to trigger setting TTE.mcd bit in the
+sparc pte that enables ADI checking on the corresponding page. MMU
+validates the tag embedded in VA for every page that has TTE.mcd bit set
+in its pte. After enabling ADI on a memory range, the userspace task can
+set ADI version tags using stxa instruction with ASI_MCD_PRIMARY or
+ASI_MCD_ST_BLKINIT_PRIMARY ASI.
 
-What am I missing?  What wonderful new things are going to happen, or
-where is the code savings going to come from with this series to justify
-all of the work to create and review this?
+Once userspace task calls mprotect() with PROT_ADI, kernel takes
+following overall steps:
 
-thanks,
+1. Find the VMAs covering the address range passed in to mprotect and
+set VM_SPARC_ADI flag. If address range covers a subset of a VMA, the
+VMA will be split.
 
-greg k-h
+2. When a page is allocated for a VA and the VMA covering this VA has
+VM_SPARC_ADI flag set, set the TTE.mcd bit so MMU will check the
+vwersion tag.
+
+3. Userspace can now set version tags on the memory it has enabled ADI
+on. Userspace accesses ADI enabled memory using a virtual address that
+has the version tag embedded in the high bits. MMU validates this
+version tag against the actual tag set on the memory. If tag matches,
+MMU performs the VA->PA translation and access is granted. If there is
+a mismatch, hypervisor sends a data access exception or precise memory
+corruption detected exception depending upon whether precise exceptions
+are enabled or not (controlled by MCDPERR register). Kernel sends
+SIGSEGV to the task with appropriate si_code.
+
+4. If a page is being swapped out or migrated, kernel builds a swap pte
+for the page. If the page is ADI enabled and has version tags set on it,
+set_swp_pte_at() function introduced by this patch series allows kernel
+to save the version tags. set_swp_pte_at() replaces the calls to
+set_pte_at() in functions that unmap and map a page. On architectures
+that do not require special handling on a page being swapped,
+set_swp_pte_at() defaults to set_pte_at(). In this initial
+implementation, kernel supports saving one version tag per page and top
+bits of swap offset in swap pte are used to store the tag.
+
+5. When the page is swapped back in or reinstantiated after migration,
+set_swp_pte_at() function allows kernel to restore the version tags on
+the new physical page by retrieving the original tag from swap offset in
+swap pte.
+
+User task can disable ADI by calling mprotect() again on the memory
+range with PROT_ADI bit unset. Kernel clears the VM_SPARC_ADI flag in
+VMAs, merges adjacent VMAs if necessary, and clears TTE.mcd bit in the
+corresponding ptes.
+
+IOMMU does not support ADI checking. Any version tags
+embedded in the top bits of VA meant for IOMMU, are cleared and replaced
+with sign extension of the first non-version tag bit (bit 59 for SPARC
+M7) for IOMMU addresses.
+
+This patch series adds support for this feature in 4 patches:
+
+Patch 1/4
+  Tag mismatch on access by a task results in a trap from hypervisor as
+  data access exception or a precide memory corruption detected
+  exception. As part of handling these exceptions, kernel sends a
+  SIGSEGV to user process with special si_code to indicate which fault
+  occurred. This patch adds three new si_codes to differentiate between
+  various mismatch errors.
+
+Patch 2/4
+  When a page is swapped or migrated, metadata associated with the page
+  must be saved so it can be restored later. This patch adds a new
+  function that saves/restores this metadata when updating pte upon a
+  swap/migration.
+
+Patch 3/4
+  SPARC M7 processor adds new fields to control registers to support ADI
+  feature. It also adds a new exception for precise traps on tag
+  mismatch. This patch adds definitions for the new control register
+  fields, new ASIs for ADI and an exception handler for the precise trap
+  on tag mismatch.
+
+Patch 4/4
+  This patch adds support for a user space task to enable ADI and enable
+  tag checking for subsets of its address space. As part of enabling
+  this feature, this patch also extends exception handlers to handler
+  tag mismatch exceptions, adds code to save and restore tags on page
+  swap and migration, and adds code to return ADI parameters to
+  userspace.
+
+
+Testing:
+
+- All functionality was tested with 8K normal pages as well as hugepages
+  using malloc, mmap and shm.
+- Multiple long duration stress tests were run using hugepages over 2+
+  months. Normal pages were tested with shorter duration stress tests.
+- Tested swapping with malloc and shm by reducing max memory and
+  allocating three times the available system memory by active processes
+  using ADI on allocated memory. Ran through multiple hour long runs of
+  this test.
+- Tested page migration with malloc and shm by migrating data pages of
+  active ADI test process using migratepages, back and forth between two
+  nodes every few seconds over an hour long run. Verified page migration
+  through /proc/<pid>/numa_maps.
+
+---
+Khalid Aziz (4):
+  signals, sparc: Add signal codes for ADI violations
+  mm: Add function to support extra actions on swap in/out
+  sparc64: Add support for ADI register fields, ASIs and traps
+  sparc64: Add support for ADI (Application Data Integrity)
+
+ Documentation/sparc/adi.txt             | 288 ++++++++++++++++++++++++++++++++
+ arch/sparc/include/asm/adi.h            |   6 +
+ arch/sparc/include/asm/adi_64.h         |  46 +++++
+ arch/sparc/include/asm/elf_64.h         |   8 +
+ arch/sparc/include/asm/hugetlb.h        |  13 ++
+ arch/sparc/include/asm/hypervisor.h     |   2 +
+ arch/sparc/include/asm/mman.h           |  40 ++++-
+ arch/sparc/include/asm/mmu_64.h         |   2 +
+ arch/sparc/include/asm/mmu_context_64.h |  32 ++++
+ arch/sparc/include/asm/pgtable_64.h     |  96 ++++++++++-
+ arch/sparc/include/asm/ttable.h         |  10 ++
+ arch/sparc/include/asm/uaccess_64.h     | 120 ++++++++++++-
+ arch/sparc/include/uapi/asm/asi.h       |   5 +
+ arch/sparc/include/uapi/asm/auxvec.h    |   8 +
+ arch/sparc/include/uapi/asm/mman.h      |   2 +
+ arch/sparc/include/uapi/asm/pstate.h    |  10 ++
+ arch/sparc/kernel/Makefile              |   1 +
+ arch/sparc/kernel/adi_64.c              |  93 +++++++++++
+ arch/sparc/kernel/entry.h               |   3 +
+ arch/sparc/kernel/head_64.S             |   1 +
+ arch/sparc/kernel/mdesc.c               |   4 +
+ arch/sparc/kernel/process_64.c          |  21 +++
+ arch/sparc/kernel/sun4v_mcd.S           |  16 ++
+ arch/sparc/kernel/traps_64.c            | 142 +++++++++++++++-
+ arch/sparc/kernel/ttable_64.S           |   6 +-
+ arch/sparc/mm/gup.c                     |  37 ++++
+ arch/sparc/mm/tlb.c                     |  28 ++++
+ arch/x86/kernel/signal_compat.c         |   2 +-
+ include/asm-generic/pgtable.h           |   5 +
+ include/linux/mm.h                      |   2 +
+ include/uapi/asm-generic/siginfo.h      |   5 +-
+ mm/memory.c                             |   2 +-
+ mm/rmap.c                               |   4 +-
+ 33 files changed, 1041 insertions(+), 19 deletions(-)
+ create mode 100644 Documentation/sparc/adi.txt
+ create mode 100644 arch/sparc/include/asm/adi.h
+ create mode 100644 arch/sparc/include/asm/adi_64.h
+ create mode 100644 arch/sparc/kernel/adi_64.c
+ create mode 100644 arch/sparc/kernel/sun4v_mcd.S
+
+-- 
+2.7.4
+
