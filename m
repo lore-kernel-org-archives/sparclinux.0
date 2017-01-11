@@ -1,48 +1,84 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 19 Jan 2017 11:04:08 +0000
-Subject: Re: [PATCH v4 4/6] tools: expand export.h with VMLINUX_SYMBOL()
-Message-Id: <20170119110408.GE28024@kroah.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 11 Jan 2017 16:12:52 +0000
+Subject: [PATCH v4 2/4] mm: Add function to support extra actions on swap in/out
+Message-Id: <c24c7a844c61d6f8d57dd3791ad7ab5f05305c6b.1483999591.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109150249.11667-1-mcgrof@kernel.org>
- <20170115211215.17216-1-mcgrof@kernel.org>
- <20170115211215.17216-5-mcgrof@kernel.org>
-In-Reply-To: <20170115211215.17216-5-mcgrof@kernel.org>
+References: <cover.1483999591.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1483999591.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org
+To: akpm@linux-foundation.org, davem@davemloft.net, arnd@arndb.de
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, jmarchan@redhat.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-On Sun, Jan 15, 2017 at 01:12:13PM -0800, Luis R. Rodriguez wrote:
-> This will be used later by the linker-table userspace sandbox.
-> 
-> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-> ---
->  tools/include/linux/export.h | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/tools/include/linux/export.h b/tools/include/linux/export.h
-> index d07e586b9ba0..cb7d6b490e08 100644
-> --- a/tools/include/linux/export.h
-> +++ b/tools/include/linux/export.h
-> @@ -1,6 +1,28 @@
->  #ifndef _TOOLS_LINUX_EXPORT_H_
->  #define _TOOLS_LINUX_EXPORT_H_
->  
-> +/*
-> + * Export symbols from the kernel to modules.  Forked from module.h
-> + * to reduce the amount of pointless cruft we feed to gcc when only
-> + * exporting a simple symbol or two.
+If a processor supports special metadata for a page, for example ADI
+version tags on SPARC M7, this metadata must be saved when the page is
+swapped out. The same metadata must be restored when the page is swapped
+back in. This patch adds a new function, set_swp_pte_at(), to set pte
+upon a swap in/out of page that allows kernel to take special action
+like saving and restoring version tags after or before setting a new pte
+or saving a swap pte. For architectures that do not need to take special
+action on page swap, this function defaults to set_pte_at().
 
-You copied it, yet did not remove it from the original?
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+ include/asm-generic/pgtable.h | 5 +++++
+ mm/memory.c                   | 2 +-
+ mm/rmap.c                     | 4 ++--
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-> + *
-> + * Try not to add #includes here.  It slows compilation and makes kernel
-> + * hackers place grumpy comments in header files.
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index c4f8fd2..5043e5a 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -294,6 +294,11 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
+ # define pte_accessible(mm, pte)	((void)(pte), 1)
+ #endif
+ 
++#ifndef set_swp_pte_at
++#define set_swp_pte_at(mm, addr, ptep, pte, oldpte)	\
++		set_pte_at(mm, addr, ptep, pte)
++#endif
++
+ #ifndef flush_tlb_fix_spurious_fault
+ #define flush_tlb_fix_spurious_fault(vma, address) flush_tlb_page(vma, address)
+ #endif
+diff --git a/mm/memory.c b/mm/memory.c
+index e18c57b..1cc3b55 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2642,7 +2642,7 @@ int do_swap_page(struct fault_env *fe, pte_t orig_pte)
+ 	flush_icache_page(vma, page);
+ 	if (pte_swp_soft_dirty(orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+-	set_pte_at(vma->vm_mm, fe->address, fe->pte, pte);
++	set_swp_pte_at(vma->vm_mm, fe->address, fe->pte, pte, orig_pte);
+ 	if (page = swapcache) {
+ 		do_page_add_anon_rmap(page, vma, fe->address, exclusive);
+ 		mem_cgroup_commit_charge(page, memcg, true, false);
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 1ef3640..d58cb94 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -1539,7 +1539,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 		swp_pte = swp_entry_to_pte(entry);
+ 		if (pte_soft_dirty(pteval))
+ 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-		set_pte_at(mm, address, pte, swp_pte);
++		set_swp_pte_at(mm, address, pte, swp_pte, pteval);
+ 	} else if (PageAnon(page)) {
+ 		swp_entry_t entry = { .val = page_private(page) };
+ 		pte_t swp_pte;
+@@ -1572,7 +1572,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 		swp_pte = swp_entry_to_pte(entry);
+ 		if (pte_soft_dirty(pteval))
+ 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
+-		set_pte_at(mm, address, pte, swp_pte);
++		set_swp_pte_at(mm, address, pte, swp_pte, pteval);
+ 	} else
+ 		dec_mm_counter(mm, mm_counter_file(page));
+ 
+-- 
+2.7.4
 
-Define "slows" please.  I doubt it is measurable, and so, why even
-mention it here?
-
-thanks,
-
-greg k-h
