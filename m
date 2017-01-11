@@ -1,41 +1,85 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 19 Jan 2017 11:20:17 +0000
-Subject: Re: [PATCH v7 08/14] jump_label: move guard #endif down where it belongs
-Message-Id: <20170119112017.GM28024@kroah.com>
+From: Dave Kleikamp <dave.kleikamp@oracle.com>
+Date: Wed, 11 Jan 2017 19:25:00 +0000
+Subject: [PATCH RESEND] coredump: Ensure proper size of sparse core files
+Message-Id: <32910821-8b16-1107-20de-b34d029b3e9a@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109145833.11502-1-mcgrof@kernel.org>
- <20170115211057.17167-1-mcgrof@kernel.org>
- <20170115211057.17167-9-mcgrof@kernel.org>
-In-Reply-To: <20170115211057.17167-9-mcgrof@kernel.org>
+References: <20161208181151.28127-1-dave.kleikamp@oracle.com>
+In-Reply-To: <20161208181151.28127-1-dave.kleikamp@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Jan 15, 2017 at 01:10:51PM -0800, Luis R. Rodriguez wrote:
-> The ending header guard is misplaced. This has no
-> functional change, this is just an eye-sore.
-> 
-> Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
-> ---
->  include/linux/jump_label.h | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/linux/jump_label.h b/include/linux/jump_label.h
-> index a0547c571800..b63d6b7b0db0 100644
-> --- a/include/linux/jump_label.h
-> +++ b/include/linux/jump_label.h
-> @@ -402,6 +402,6 @@ extern bool ____wrong_branch_error(void);
->  #define static_branch_enable(x)		static_key_enable(&(x)->key)
->  #define static_branch_disable(x)	static_key_disable(&(x)->key)
->  
-> -#endif	/* _LINUX_JUMP_LABEL_H */
-> -
->  #endif /* __ASSEMBLY__ */
-> +
-> +#endif	/* _LINUX_JUMP_LABEL_H */
-> -- 
-> 2.11.0
+If the last section of a core file ends with an unmapped or zero page,
+the size of the file does not correspond with the last dump_skip() call.
+gdb complains that the file is truncated and can be confusing to users.
 
-Why is this in this patch series?
+After all of the vma sections are written, make sure that the file size
+is no smaller than the current file position.
+
+This problem can be demonstrated with gdb's bigcore testcase on the
+sparc architecture.
+
+Signed-off-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ fs/binfmt_elf.c          |  1 +
+ fs/coredump.c            | 18 ++++++++++++++++++
+ include/linux/coredump.h |  1 +
+ 3 files changed, 20 insertions(+)
+
+diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
+index 29a02daf08a9..422370293cfd 100644
+--- a/fs/binfmt_elf.c
++++ b/fs/binfmt_elf.c
+@@ -2298,6 +2298,7 @@ static int elf_core_dump(struct coredump_params *cprm)
+ 				goto end_coredump;
+ 		}
+ 	}
++	dump_truncate(cprm);
+ 
+ 	if (!elf_core_write_extra_data(cprm))
+ 		goto end_coredump;
+diff --git a/fs/coredump.c b/fs/coredump.c
+index e525b6017cdf..ae6b05629ca1 100644
+--- a/fs/coredump.c
++++ b/fs/coredump.c
+@@ -833,3 +833,21 @@ int dump_align(struct coredump_params *cprm, int align)
+ 	return mod ? dump_skip(cprm, align - mod) : 1;
+ }
+ EXPORT_SYMBOL(dump_align);
++
++/*
++ * Ensures that file size is big enough to contain the current file
++ * postion. This prevents gdb from complaining about a truncated file
++ * if the last "write" to the file was dump_skip.
++ */
++void dump_truncate(struct coredump_params *cprm)
++{
++	struct file *file = cprm->file;
++	loff_t offset;
++
++	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
++		offset = file->f_op->llseek(file, 0, SEEK_CUR);
++		if (i_size_read(file->f_mapping->host) < offset)
++			do_truncate(file->f_path.dentry, offset, 0, file);
++	}
++}
++EXPORT_SYMBOL(dump_truncate);
+diff --git a/include/linux/coredump.h b/include/linux/coredump.h
+index d016a121a8c4..28ffa94aed6b 100644
+--- a/include/linux/coredump.h
++++ b/include/linux/coredump.h
+@@ -14,6 +14,7 @@ struct coredump_params;
+ extern int dump_skip(struct coredump_params *cprm, size_t nr);
+ extern int dump_emit(struct coredump_params *cprm, const void *addr, int nr);
+ extern int dump_align(struct coredump_params *cprm, int align);
++extern void dump_truncate(struct coredump_params *cprm);
+ #ifdef CONFIG_COREDUMP
+ extern void do_coredump(const siginfo_t *siginfo);
+ #else
+-- 
+2.11.0
