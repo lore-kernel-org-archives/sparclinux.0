@@ -1,26 +1,45 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Fri, 06 Jan 2017 20:50:34 +0000
-Subject: Re: [PATCH v2 4/7] x86: put msr-index.h in uapi
-Message-Id: <CAHp75VdDfopdSy-7oy87ZeosDB9+FN4zFBhErPWLQB7tH81zTw@mail.gmail.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Thu, 12 Jan 2017 19:59:17 +0000
+Subject: [PATCH] tcp: fix tcp_fastopen unaligned access complaints on sparc
+Message-Id: <1484251157-245538-1-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <bf83da6b-01ef-bf44-b3e1-ca6fc5636818@6wind.com>
- <1483695839-18660-1-git-send-email-nicolas.dichtel@6wind.com> <1483695839-18660-5-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1483695839-18660-5-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, mmarek@suse.com, linux-kbuild@vger.kernel.org, Linux Documentation List <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, Cris <linux-cris-kernel@axis.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, LINUX
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-On Fri, Jan 6, 2017 at 11:43 AM, Nicolas Dichtel
-<nicolas.dichtel@6wind.com> wrote:
-> This header file is exported, thus move it to uapi.
+Fix up a data alignment issue on sparc by swapping the order
+of the cookie byte array field with the length field in
+struct tcp_fastopen_cookie
 
-Just hint for the future:
--M (move)
--C (copy)
--D (delete) [though this is NOT for applying]
+This addresses log complaints like these:
+    log_unaligned: 113 callbacks suppressed
+    Kernel unaligned access at TPC[976490] tcp_try_fastopen+0x2d0/0x360
+    Kernel unaligned access at TPC[9764ac] tcp_try_fastopen+0x2ec/0x360
+    Kernel unaligned access at TPC[9764c8] tcp_try_fastopen+0x308/0x360
+    Kernel unaligned access at TPC[9764e4] tcp_try_fastopen+0x324/0x360
+    Kernel unaligned access at TPC[976490] tcp_try_fastopen+0x2d0/0x360
 
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ include/linux/tcp.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/tcp.h b/include/linux/tcp.h
+index fc5848d..95cda75 100644
+--- a/include/linux/tcp.h
++++ b/include/linux/tcp.h
+@@ -62,8 +62,8 @@ static inline unsigned int tcp_optlen(const struct sk_buff *skb)
+ 
+ /* TCP Fast Open Cookie as stored in memory */
+ struct tcp_fastopen_cookie {
+-	s8	len;
+ 	u8	val[TCP_FASTOPEN_COOKIE_MAX];
++	s8	len;
+ 	bool	exp;	/* In RFC6994 experimental option format */
+ };
+ 
 -- 
-With Best Regards,
-Andy Shevchenko
+1.7.1
+
