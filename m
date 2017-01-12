@@ -1,35 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 12 Jan 2017 21:58:50 +0000
-Subject: Re: [PATCH] tcp: fix tcp_fastopen unaligned access complaints on sparc
-Message-Id: <20170112.165850.1803282665815813853.davem@davemloft.net>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Thu, 12 Jan 2017 18:52:45 +0000
+Subject: [PATCH 0/4] n2rng: add support for m5/m7 rng register layout
+Message-Id: <1484247169-245086-1-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1484256990.13165.6.camel@edumazet-glaptop3.roam.corp.google.com>
-        <20170112.164731.720625943370044951.davem@davemloft.net>
-        <a24f1f0e-457b-0316-b545-fe1362bd7dbe@oracle.com>
-In-Reply-To: <a24f1f0e-457b-0316-b545-fe1362bd7dbe@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: shannon.nelson@oracle.com
-Cc: eric.dumazet@gmail.com, rob.gardner@oracle.com, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, herbert@gondor.apana.org.au, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Thu, 12 Jan 2017 13:58:10 -0800
+Commit c1e9b3b0eea1 ("hwrng: n2 - Attach on T5/M5, T7/M7 SPARC CPUs")
+added config strings to enable the random number generator in the sparc
+m5 and m7 platforms.  This worked fine for client LDoms, but not for the
+primary LDom, or running on bare metal, because the actual rng hardware
+layout changed and self-test would now fail, continually spewing error
+messages on the console.
 
-> 
-> 
-> On 1/12/2017 1:47 PM, David Miller wrote:
->> From: Eric Dumazet <eric.dumazet@gmail.com>
->> Date: Thu, 12 Jan 2017 13:36:30 -0800
->>
->>> val should be an union, so that proper alignment is enforced by one
->>> member.
->>
->> Sure, annotating the type so that it is aligned correctly makes
->> sense.
->>
-> 
-> ... and we should change the offending pointer assignment as well.  I
-> can use this and respin a v2 if we're happy with this solution.
+This patch series adds correct support for the new rng register layout,
+and adds a limiter to the spewing of error messages.
 
-I am.
+Orabug: 25127795
+
+Shannon Nelson (4):
+  n2rng: limit error spewage when self-test fails
+  n2rng: add device data descriptions
+  n2rng: support new hardware register layout
+  n2rng: update version info
+
+ drivers/char/hw_random/n2-drv.c |  204 +++++++++++++++++++++++++++++----------
+ drivers/char/hw_random/n2rng.h  |   51 ++++++++--
+ 2 files changed, 196 insertions(+), 59 deletions(-)
+
