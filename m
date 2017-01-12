@@ -1,46 +1,48 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Mon, 09 Jan 2017 14:58:20 +0000
-Subject: [PATCH v6 02/14] xtensa: skip adding literal when SORT() is used
-Message-Id: <20170109145833.11502-3-mcgrof@kernel.org>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Thu, 12 Jan 2017 18:52:49 +0000
+Subject: [PATCH 4/4] n2rng: update version info
+Message-Id: <1484247169-245086-5-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20161222023811.21246-1-mcgrof@kernel.org>
- <20170109145833.11502-1-mcgrof@kernel.org>
-In-Reply-To: <20170109145833.11502-1-mcgrof@kernel.org>
+References: <1484247169-245086-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1484247169-245086-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, bp@alien8.de, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: gnomes@lxorguk.ukuu.org.uk, linux-ia64@vger.kernel.org, jkosina@suse.cz, benh@kernel.crashing.org, ming.lei@canonical.com, linux@rasmusvillemoes.dk, platform-driver-x86@vger.kernel.org, James.Bottomley@HansenPartnership.com, paul.gortmaker@windriver.com, paulus@samba.org, sparclinux@vger.kernel.org, wangnan0@huawei.com, mchehab@osg.samsung.com, linux-arch@vger.kernel.org, markus.heiser@darmarit.de, xen-devel@lists.xensource.com, msalter@redhat.com, linux-sh@vger.kernel.org, mpe@ellerman.id.au, joro@8bytes.org, x86@kernel.org, fontana@sharpeleven.org, dsahern@gmail.com, linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, dvhart@infradead.org, dwmw2@infradead.org, linux@roeck-us.net, linux-xtensa@linux-xtensa.org, pali.rohar@gmail.com, keescook@chromium.org, arnd@arndb.de, jani.nikula@intel.com, will.deacon@arm.com, rusty@rustcorp.com.au, rostedt@goodmis.org
+To: linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, herbert@gondor.apana.org.au, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-When SORT(foo.*) is used the current sed replacements add
-SORT(foo.literal foo.*), this breaks linking. Avoid adding
-literals for SORT globs, if needed, these need to be added
-manually.
-
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/xtensa/kernel/Makefile | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/hw_random/n2-drv.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/xtensa/kernel/Makefile b/arch/xtensa/kernel/Makefile
-index 264fb89c444e..ccedd016a8e0 100644
---- a/arch/xtensa/kernel/Makefile
-+++ b/arch/xtensa/kernel/Makefile
-@@ -30,10 +30,10 @@ AFLAGS_mxhead.o += -mtext-section-literals
- #
- # Replicate rules in scripts/Makefile.build
+diff --git a/drivers/char/hw_random/n2-drv.c b/drivers/char/hw_random/n2-drv.c
+index f0bd5ee..31cbdbb 100644
+--- a/drivers/char/hw_random/n2-drv.c
++++ b/drivers/char/hw_random/n2-drv.c
+@@ -21,11 +21,11 @@
  
--sed-y = -e ':a; s/\*(\([^)]*\)\.text\.unlikely/*(\1.literal.unlikely .{text}.unlikely/; ta; ' \
--	-e ':b; s/\*(\([^)]*\)\.text\(\.[a-z]*\)/*(\1.{text}\2.literal .{text}\2/; tb; ' \
--	-e ':c; s/\*(\([^)]*\)\(\.[a-z]*it\|\.ref\)\.text/*(\1\2.literal \2.{text}/; tc; ' \
--	-e ':d; s/\*(\([^)]\+ \|\)\.text/*(\1.literal .{text}/; td; ' \
-+sed-y = -e ':a; s/\*(\([^)SORT]*\)\.text\.unlikely/*(\1.literal.unlikely .{text}.unlikely/; ta; ' \
-+	-e ':b; s/\*(\([^)SORT]*\)\.text\(\.[a-z]*\)/*(\1.{text}\2.literal .{text}\2/; tb; ' \
-+	-e ':c; s/\*(\([^SORT)]*\)\(\.[a-z]*it\|\.ref\)\.text/*(\1\2.literal \2.{text}/; tc; ' \
-+	-e ':d; s/\*(\([^SORT)]\+ \|\)\.text/*(\1.literal .{text}/; td; ' \
- 	-e 's/\.{text}/.text/g'
+ #define DRV_MODULE_NAME		"n2rng"
+ #define PFX DRV_MODULE_NAME	": "
+-#define DRV_MODULE_VERSION	"0.2"
+-#define DRV_MODULE_RELDATE	"July 27, 2011"
++#define DRV_MODULE_VERSION	"0.3"
++#define DRV_MODULE_RELDATE	"Jan 7, 2017"
  
- quiet_cmd__cpp_lds_S = LDS     $@
+ static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
++	DRV_MODULE_NAME " v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+ 
+ MODULE_AUTHOR("David S. Miller (davem@davemloft.net)");
+ MODULE_DESCRIPTION("Niagara2 RNG driver");
+@@ -765,7 +765,7 @@ static int n2rng_probe(struct platform_device *op)
+ 		  "multi-unit-capable" : "single-unit"),
+ 		 np->num_units);
+ 
+-	np->hwrng.name = "n2rng";
++	np->hwrng.name = DRV_MODULE_NAME;
+ 	np->hwrng.data_read = n2rng_data_read;
+ 	np->hwrng.priv = (unsigned long) np;
+ 
 -- 
-2.11.0
+1.7.1
 
