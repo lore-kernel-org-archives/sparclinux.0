@@ -1,7 +1,7 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Date: Thu, 12 Jan 2017 17:53:24 +0000
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 13 Jan 2017 00:22:26 +0000
 Subject: Re: [PATCH v4 0/4] Application Data Integrity feature introduced by SPARC M7
-Message-Id: <b0a6341d-fb85-9f50-4803-304f3e28b4ab@linux.intel.com>
+Message-Id: <ae1662fa-4e51-d92d-7f19-403c92406194@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1483999591.git.khalid.aziz@oracle.com>
  <621cfed0-3e56-13e6-689a-0637bce164fe@linux.intel.com>
@@ -12,57 +12,78 @@ References: <cover.1483999591.git.khalid.aziz@oracle.com>
  <5d28f71e-1ad2-b2f9-1174-ea4eb6399d23@oracle.com>
  <a7ab2796-d777-df7b-2372-2d76f2906ead@linux.intel.com>
  <b480fdcc-e08a-eea7-9bac-12bc236422c6@oracle.com>
-In-Reply-To: <b480fdcc-e08a-eea7-9bac-12bc236422c6@oracle.com>
+ <b0a6341d-fb85-9f50-4803-304f3e28b4ab@linux.intel.com>
+In-Reply-To: <b0a6341d-fb85-9f50-4803-304f3e28b4ab@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
+To: Dave Hansen <dave.hansen@linux.intel.com>, davem@davemloft.net, corbet@lwn.net, arnd@arndb.de, akpm@linux-foundation.org
 Cc: hpa@zytor.com, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mike.kravetz@oracle.com, adam.buchbinder@gmail.com, minchan@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, keescook@chromium.org, allen.pais@oracle.com, aryabinin@virtuozzo.com, atish.patra@oracle.com, joe@perches.com, pmladek@suse.com, jslaby@suse.cz, cmetcalf@mellanox.com, paul.gortmaker@windriver.com, mhocko@suse.com, jmarchan@redhat.com, lstoakes@gmail.com, 0x7f454c46@gmail.com, vbabka@suse.cz, tglx@linutronix.de, mingo@redhat.com, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, vdavydov.dev@gmail.com, hannes@cmpxchg.org, namit@vmware.com, linux-doc@vger.kernel.org, linux-kernel@vger.kerne
 
-On 01/12/2017 08:50 AM, Khalid Aziz wrote:
-> 2. Any shared page that has ADI protection enabled on it, must stay ADI
-> protected across all processes sharing it.
+On 01/12/2017 10:53 AM, Dave Hansen wrote:
+> On 01/12/2017 08:50 AM, Khalid Aziz wrote:
+>> 2. Any shared page that has ADI protection enabled on it, must stay ADI
+>> protected across all processes sharing it.
+>
+> Is that true?
+>
+> What happens if a page with ADI tags set is accessed via a PTE without
+> the ADI enablement bit set?
 
-Is that true?
+ADI protection applies across all processes in terms of all of them must 
+use the same tag to access the shared memory, but if a process accesses 
+a shared page with TTE.mcde bit cleared, access will be granted.
 
-What happens if a page with ADI tags set is accessed via a PTE without
-the ADI enablement bit set?
+>
+>> COW creates an intersection of the two. It creates a new copy of the
+>> shared data. It is a new data page and hence the process creating it
+>> must be the one responsible for enabling ADI protection on it.
+>
+> Do you mean that the application must be responsible?  Or the kernel
+> running in the context of the new process must be responsible?
+>
+>> It is also a copy of what was ADI protected data, so should it
+>> inherit the protection instead?
+>
+> I think the COW'd copy must inherit the VMA bit, the PTE bits, and the
+> tags on the cachelines.
+>
+>> I misspoke earlier. I had misinterpreted the results of test I ran.
+>> Changing the tag on shared memory is allowed by memory controller. The
+>> requirement is every one sharing the page must switch to the new tag or
+>> else they get SIGSEGV.
+>
+> I asked this in the last mail, but I guess I'll ask it again.  Please
+> answer this directly.
+>
+> If we require that everyone coordinate their tags on the backing
+> physical memory, and we allow a lower-privileged program to access the
+> same data as a more-privileged one, then the lower-privilege app can
+> cause arbitrary crashes in the privileged application.
+>
+> For instance, say sudo mmap()'s /etc/passwd and uses ADI tags to protect
+> the mapping.  Couldn't any other app in the system prevent sudo from
+> working?
+>
+> How can we *EVER* allow tags to be set on non-writable mappings?
 
-> COW creates an intersection of the two. It creates a new copy of the
-> shared data. It is a new data page and hence the process creating it
-> must be the one responsible for enabling ADI protection on it.
+I understand your quetion better now. That is a very valid concern. 
+Using ADI tags to prevent an unauthorized process from just reading data 
+in memory, say an in-memory copy of database, is one of the use cases 
+for ADI. This means there is a reasonable case to allow enabling ADI and 
+setting tags even on non-writable mappings. On the other hand, if an 
+unauthorized process manages to map the right memory pages in its 
+address space, it can read them any way by not setting TTE.mcd.
 
-Do you mean that the application must be responsible?  Or the kernel
-running in the context of the new process must be responsible?
+Userspace app can set tag on any memory it has mapped in without 
+requiring assistance from kernel. Can this problem be solved by not 
+allowing setting TTE.mcd on non-writable mappings? Doesn't the same 
+problem occur on writable mappings? If a privileged process mmap()'s a 
+writable file with MAP_SHARED, enables ADI and sets tag on the mmap'd 
+memory region, then another lower privilege process mmap's the same file 
+writable (assuming file permissions allow it to), enables ADI and sets a 
+different tag on it, the privileged process would get SIGSEGV when it 
+tries to access the mmap'd file. Right?
 
-> It is also a copy of what was ADI protected data, so should it
-> inherit the protection instead?
-
-I think the COW'd copy must inherit the VMA bit, the PTE bits, and the
-tags on the cachelines.
-
-> I misspoke earlier. I had misinterpreted the results of test I ran.
-> Changing the tag on shared memory is allowed by memory controller. The
-> requirement is every one sharing the page must switch to the new tag or
-> else they get SIGSEGV.
-
-I asked this in the last mail, but I guess I'll ask it again.  Please
-answer this directly.
-
-If we require that everyone coordinate their tags on the backing
-physical memory, and we allow a lower-privileged program to access the
-same data as a more-privileged one, then the lower-privilege app can
-cause arbitrary crashes in the privileged application.
-
-For instance, say sudo mmap()'s /etc/passwd and uses ADI tags to protect
-the mapping.  Couldn't any other app in the system prevent sudo from
-working?
-
-How can we *EVER* allow tags to be set on non-writable mappings?
-
-> I am inclined to suggest we copy the tags to the new data page on COW
-> and that will continue to enforce ADI on the COW'd pages even though
-> COW'd pages are new data pages. This is the logically consistent
-> behavior. Does that make sense?
-
-Yes, I think this is what you have to do.
+Thanks,
+Khalid
