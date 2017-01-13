@@ -1,1148 +1,2708 @@
-From: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Date: Sun, 15 Jan 2017 21:10:57 +0000
-Subject: [PATCH v7 14/14] lib: add linker tables test driver
-Message-Id: <20170115211057.17167-15-mcgrof@kernel.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Date: Fri, 13 Jan 2017 10:46:45 +0000
+Subject: [PATCH v3 7/8] uapi: export all headers under uapi directories
+Message-Id: <1484304406-10820-8-git-send-email-nicolas.dichtel@6wind.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109145833.11502-1-mcgrof@kernel.org>
- <20170115211057.17167-1-mcgrof@kernel.org>
-In-Reply-To: <20170115211057.17167-1-mcgrof@kernel.org>
+References: <3131144.4Ej3KFWRbz@wuerfel>
+ <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
-Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: arnd@arndb.de
+Cc: linux-mips@linux-mips.org, alsa-devel@alsa-project.org, linux-ia64@vger.kernel.org, linux-doc@vger.kernel.org, airlied@linux.ie, daniel.vetter@ffwll.ch, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-am33-list@redhat.com, linux-c6x-dev@linux-c6x.org, linux-rdma@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, linux@armlinux.org.uk, hch@infradead.org, coreteam@netfilter.org, msalter@redhat.com, fcoe-devel@open-fcoe.org, xen-devel@lists.xenproject.org, linux-snps-arc@lists.infradead.org, linux-media@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, linux-kbuild@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-raid@vger.kernel.org, linux-m68k@lists.linux-m68k.org
 
-Add a test drivers for linker tables.
+Regularly, when a new header is created in include/uapi/, the developer
+forgets to add it in the corresponding Kbuild file. This error is usually
+detected after the release is out.
 
-v7: address ./scripts/checkpatch.pl --codespell issues
-v6: rename table macro as suggested by Andy Shevchenko
-v5: added this commit for the first time in this series.
+In fact, all headers under uapi directories should be exported, thus it's
+useless to have an exhaustive list.
 
-Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+After this patch, the following files, which were not exported, are now
+exported (with make headers_install_all):
+asm-unicore32/shmparam.h
+asm-unicore32/ucontext.h
+asm-hexagon/shmparam.h
+asm-mips/ucontext.h
+asm-mips/hwcap.h
+asm-mips/reg.h
+drm/vgem_drm.h
+drm/armada_drm.h
+drm/omap_drm.h
+drm/etnaviv_drm.h
+asm-tile/shmparam.h
+asm-blackfin/shmparam.h
+asm-blackfin/ucontext.h
+asm-powerpc/perf_regs.h
+rdma/qedr-abi.h
+asm-parisc/kvm_para.h
+asm-openrisc/shmparam.h
+.install
+asm-nios2/kvm_para.h
+asm-nios2/ucontext.h
+asm-sh/kvm_para.h
+asm-sh/ucontext.h
+asm-xtensa/kvm_para.h
+asm-avr32/kvm_para.h
+asm-m32r/kvm_para.h
+asm-h8300/shmparam.h
+asm-h8300/ucontext.h
+asm-metag/kvm_para.h
+asm-metag/shmparam.h
+asm-metag/ucontext.h
+asm-m68k/kvm_para.h
+asm-m68k/shmparam.h
+linux/bcache.h
+linux/kvm.h
+linux/kvm_para.h
+linux/kfd_ioctl.h
+linux/cryptouser.h
+linux/kcm.h
+linux/kcov.h
+linux/seg6_iptunnel.h
+linux/stm.h
+linux/genwqe
+linux/genwqe/.install
+linux/genwqe/genwqe_card.h
+linux/genwqe/..install.cmd
+linux/seg6.h
+linux/cifs
+linux/cifs/.install
+linux/cifs/cifs_mount.h
+linux/cifs/..install.cmd
+linux/auto_dev-ioctl.h
+linux/userio.h
+linux/pr.h
+linux/wil6210_uapi.h
+linux/a.out.h
+linux/nilfs2_ondisk.h
+linux/hash_info.h
+linux/seg6_genl.h
+linux/seg6_hmac.h
+linux/batman_adv.h
+linux/nsfs.h
+linux/qrtr.h
+linux/btrfs_tree.h
+linux/coresight-stm.h
+linux/dma-buf.h
+linux/module.h
+linux/lightnvm.h
+linux/nilfs2_api.h
+asm-cris/kvm_para.h
+asm-arc/kvm_para.h
+asm-arc/ucontext.h
+..install.cmd
+asm-c6x/shmparam.h
+asm-c6x/ucontext.h
+
+Thanks to Julien Floret <julien.floret@6wind.com> for the tip to get all
+subdirs with a pure makefile command.
+
+For the record, note that exported files for asm directories are a mix of
+files listed by:
+ - include/uapi/asm-generic/Kbuild.asm;
+ - arch/<arch>/include/uapi/asm/Kbuild;
+ - arch/<arch>/include/asm/Kbuild.
+
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+Acked-by: Mark Salter <msalter@redhat.com>
 ---
- lib/Kconfig.debug                        |   6 +
- lib/Makefile                             |   1 +
- lib/test_linktables/Makefile             |  13 +
- lib/test_linktables/test-linktables-00.c |  27 ++
- lib/test_linktables/test-linktables-01.c |  27 ++
- lib/test_linktables/test-linktables-02.c |  27 ++
- lib/test_linktables/test-linktables-03.c |  27 ++
- lib/test_linktables/test-linktables-04.c |  27 ++
- lib/test_linktables/test-linktables.c    | 801 +++++++++++++++++++++++++++=
-++++
- lib/test_linktables/test-linktables.h    |  48 ++
- 10 files changed, 1004 insertions(+)
- create mode 100644 lib/test_linktables/Makefile
- create mode 100644 lib/test_linktables/test-linktables-00.c
- create mode 100644 lib/test_linktables/test-linktables-01.c
- create mode 100644 lib/test_linktables/test-linktables-02.c
- create mode 100644 lib/test_linktables/test-linktables-03.c
- create mode 100644 lib/test_linktables/test-linktables-04.c
- create mode 100644 lib/test_linktables/test-linktables.c
- create mode 100644 lib/test_linktables/test-linktables.h
+ Documentation/kbuild/makefiles.txt          |  55 ++--
+ arch/alpha/include/uapi/asm/Kbuild          |  41 ---
+ arch/arc/include/uapi/asm/Kbuild            |   3 -
+ arch/arm/include/uapi/asm/Kbuild            |  17 -
+ arch/arm64/include/uapi/asm/Kbuild          |  18 --
+ arch/avr32/include/uapi/asm/Kbuild          |  20 --
+ arch/blackfin/include/uapi/asm/Kbuild       |  17 -
+ arch/c6x/include/uapi/asm/Kbuild            |   8 -
+ arch/cris/include/uapi/arch-v10/arch/Kbuild |   5 -
+ arch/cris/include/uapi/arch-v32/arch/Kbuild |   3 -
+ arch/cris/include/uapi/asm/Kbuild           |  43 +--
+ arch/frv/include/uapi/asm/Kbuild            |  33 --
+ arch/h8300/include/uapi/asm/Kbuild          |  28 --
+ arch/hexagon/include/asm/Kbuild             |   3 -
+ arch/hexagon/include/uapi/asm/Kbuild        |  13 -
+ arch/ia64/include/uapi/asm/Kbuild           |  45 ---
+ arch/m32r/include/uapi/asm/Kbuild           |  31 --
+ arch/m68k/include/uapi/asm/Kbuild           |  24 --
+ arch/metag/include/uapi/asm/Kbuild          |   8 -
+ arch/microblaze/include/uapi/asm/Kbuild     |  32 --
+ arch/mips/include/uapi/asm/Kbuild           |  37 ---
+ arch/mn10300/include/uapi/asm/Kbuild        |  32 --
+ arch/nios2/include/uapi/asm/Kbuild          |   3 +-
+ arch/openrisc/include/asm/Kbuild            |   3 -
+ arch/openrisc/include/uapi/asm/Kbuild       |   8 -
+ arch/parisc/include/uapi/asm/Kbuild         |  28 --
+ arch/powerpc/include/uapi/asm/Kbuild        |  45 ---
+ arch/s390/include/uapi/asm/Kbuild           |  52 ---
+ arch/score/include/asm/Kbuild               |   4 -
+ arch/score/include/uapi/asm/Kbuild          |  32 --
+ arch/sh/include/uapi/asm/Kbuild             |  23 --
+ arch/sparc/include/uapi/asm/Kbuild          |  48 ---
+ arch/tile/include/asm/Kbuild                |   3 -
+ arch/tile/include/uapi/arch/Kbuild          |  17 -
+ arch/tile/include/uapi/asm/Kbuild           |  19 +-
+ arch/unicore32/include/uapi/asm/Kbuild      |   6 -
+ arch/x86/include/uapi/asm/Kbuild            |  58 ----
+ arch/xtensa/include/uapi/asm/Kbuild         |  23 --
+ include/Kbuild                              |   2 -
+ include/asm-generic/Kbuild.asm              |   1 -
+ include/scsi/fc/Kbuild                      |   0
+ include/uapi/Kbuild                         |  15 -
+ include/uapi/asm-generic/Kbuild             |  36 ---
+ include/uapi/asm-generic/Kbuild.asm         |  62 ++--
+ include/uapi/drm/Kbuild                     |  22 --
+ include/uapi/linux/Kbuild                   | 483 ----------------------------
+ include/uapi/linux/android/Kbuild           |   2 -
+ include/uapi/linux/byteorder/Kbuild         |   3 -
+ include/uapi/linux/caif/Kbuild              |   3 -
+ include/uapi/linux/can/Kbuild               |   6 -
+ include/uapi/linux/dvb/Kbuild               |   9 -
+ include/uapi/linux/hdlc/Kbuild              |   2 -
+ include/uapi/linux/hsi/Kbuild               |   2 -
+ include/uapi/linux/iio/Kbuild               |   3 -
+ include/uapi/linux/isdn/Kbuild              |   2 -
+ include/uapi/linux/mmc/Kbuild               |   2 -
+ include/uapi/linux/netfilter/Kbuild         |  89 -----
+ include/uapi/linux/netfilter/ipset/Kbuild   |   5 -
+ include/uapi/linux/netfilter_arp/Kbuild     |   3 -
+ include/uapi/linux/netfilter_bridge/Kbuild  |  18 --
+ include/uapi/linux/netfilter_ipv4/Kbuild    |  10 -
+ include/uapi/linux/netfilter_ipv6/Kbuild    |  13 -
+ include/uapi/linux/nfsd/Kbuild              |   6 -
+ include/uapi/linux/raid/Kbuild              |   3 -
+ include/uapi/linux/spi/Kbuild               |   2 -
+ include/uapi/linux/sunrpc/Kbuild            |   2 -
+ include/uapi/linux/tc_act/Kbuild            |  15 -
+ include/uapi/linux/tc_ematch/Kbuild         |   5 -
+ include/uapi/linux/usb/Kbuild               |  12 -
+ include/uapi/linux/wimax/Kbuild             |   2 -
+ include/uapi/misc/Kbuild                    |   2 -
+ include/uapi/mtd/Kbuild                     |   6 -
+ include/uapi/rdma/Kbuild                    |  18 --
+ include/uapi/rdma/hfi/Kbuild                |   2 -
+ include/uapi/scsi/Kbuild                    |   6 -
+ include/uapi/scsi/fc/Kbuild                 |   5 -
+ include/uapi/sound/Kbuild                   |  16 -
+ include/uapi/video/Kbuild                   |   4 -
+ include/uapi/xen/Kbuild                     |   5 -
+ include/video/Kbuild                        |   0
+ scripts/Makefile.headersinst                |  45 +--
+ 81 files changed, 92 insertions(+), 1745 deletions(-)
+ delete mode 100644 arch/cris/include/uapi/arch-v10/arch/Kbuild
+ delete mode 100644 arch/cris/include/uapi/arch-v32/arch/Kbuild
+ delete mode 100644 arch/tile/include/uapi/arch/Kbuild
+ delete mode 100644 include/Kbuild
+ delete mode 100644 include/asm-generic/Kbuild.asm
+ delete mode 100644 include/scsi/fc/Kbuild
+ delete mode 100644 include/uapi/Kbuild
+ delete mode 100644 include/uapi/asm-generic/Kbuild
+ delete mode 100644 include/uapi/drm/Kbuild
+ delete mode 100644 include/uapi/linux/Kbuild
+ delete mode 100644 include/uapi/linux/android/Kbuild
+ delete mode 100644 include/uapi/linux/byteorder/Kbuild
+ delete mode 100644 include/uapi/linux/caif/Kbuild
+ delete mode 100644 include/uapi/linux/can/Kbuild
+ delete mode 100644 include/uapi/linux/dvb/Kbuild
+ delete mode 100644 include/uapi/linux/hdlc/Kbuild
+ delete mode 100644 include/uapi/linux/hsi/Kbuild
+ delete mode 100644 include/uapi/linux/iio/Kbuild
+ delete mode 100644 include/uapi/linux/isdn/Kbuild
+ delete mode 100644 include/uapi/linux/mmc/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter/ipset/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter_arp/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter_bridge/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter_ipv4/Kbuild
+ delete mode 100644 include/uapi/linux/netfilter_ipv6/Kbuild
+ delete mode 100644 include/uapi/linux/nfsd/Kbuild
+ delete mode 100644 include/uapi/linux/raid/Kbuild
+ delete mode 100644 include/uapi/linux/spi/Kbuild
+ delete mode 100644 include/uapi/linux/sunrpc/Kbuild
+ delete mode 100644 include/uapi/linux/tc_act/Kbuild
+ delete mode 100644 include/uapi/linux/tc_ematch/Kbuild
+ delete mode 100644 include/uapi/linux/usb/Kbuild
+ delete mode 100644 include/uapi/linux/wimax/Kbuild
+ delete mode 100644 include/uapi/misc/Kbuild
+ delete mode 100644 include/uapi/mtd/Kbuild
+ delete mode 100644 include/uapi/rdma/Kbuild
+ delete mode 100644 include/uapi/rdma/hfi/Kbuild
+ delete mode 100644 include/uapi/scsi/Kbuild
+ delete mode 100644 include/uapi/scsi/fc/Kbuild
+ delete mode 100644 include/uapi/sound/Kbuild
+ delete mode 100644 include/uapi/video/Kbuild
+ delete mode 100644 include/uapi/xen/Kbuild
+ delete mode 100644 include/video/Kbuild
 
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index 643bce5a5b02..dbbcbb16951d 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1839,6 +1839,12 @@ config TEST_HASH
- 	  This is intended to help people writing architecture-specific
- 	  optimized versions.  If unsure, say N.
-=20
-+config TEST_LINKTABLES
-+	bool "Test linker table functionality"
-+	default n
-+	help
-+	  Enable this option to test the kernel's linker table functionality.
-+
- endmenu # runtime tests
-=20
- config PROVIDE_OHCI1394_DMA_INIT
-diff --git a/lib/Makefile b/lib/Makefile
-index f5e72a728285..899b2f363ef1 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_TEST_STATIC_KEYS) +=3D test_static_key_base.o
- obj-$(CONFIG_TEST_PRINTF) +=3D test_printf.o
- obj-$(CONFIG_TEST_BITMAP) +=3D test_bitmap.o
- obj-$(CONFIG_TEST_UUID) +=3D test_uuid.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test_linktables/
-=20
- ifeq ($(CONFIG_DEBUG_KOBJECT),y)
- CFLAGS_kobject.o +=3D -DDEBUG
-diff --git a/lib/test_linktables/Makefile b/lib/test_linktables/Makefile
-new file mode 100644
-index 000000000000..a1a67d7fd57a
---- /dev/null
-+++ b/lib/test_linktables/Makefile
-@@ -0,0 +1,13 @@
-+__LINKTABLE_TESTS :=3D $(shell find ./ -name test-linktables-\*.c | wc -l)
-+ccflags-y +=3D -D__LINKTABLE_TESTS=3D$(__LINKTABLE_TESTS)
-+
-+# Keep these disorganized, if linker tables did not work then
-+# things would not be ordered for us automatically at link time.
-+# Linker tables grants us the ability to be explicit about
-+# order.
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables-04.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables-02.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables-01.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables-03.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables-00.o
-+obj-$(CONFIG_TEST_LINKTABLES) +=3D test-linktables.o
-diff --git a/lib/test_linktables/test-linktables-00.c b/lib/test_linktables=
-/test-linktables-00.c
-new file mode 100644
-index 000000000000..ea162bd69179
---- /dev/null
-+++ b/lib/test_linktables/test-linktables-00.c
-@@ -0,0 +1,27 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+
-+#include "test-linktables.h"
-+
-+static int __init test_linktable_00_init(int input)
-+{
-+	return 0 * input;
-+}
-+
-+static int __initdata test_linktable_00_init_data(int input)
-+{
-+	return 0 * input;
-+}
-+
-+static int test_linktable_00(int input)
-+{
-+	return 0 * input;
-+}
-+
-+test_linktable_init_data(00, test_linktable_00_init_data); /* .init.data */
-+test_linktable_init_text(00, test_linktable_00_init); /* .init.text */
-+test_linktable(00, test_linktable_00); /* .data */
-+test_linktable_text(00, test_linktable_00); /* .text */
-+test_linktable_rodata(00, test_linktable_00); /* .rodata */
-diff --git a/lib/test_linktables/test-linktables-01.c b/lib/test_linktables=
-/test-linktables-01.c
-new file mode 100644
-index 000000000000..39578990fd59
---- /dev/null
-+++ b/lib/test_linktables/test-linktables-01.c
-@@ -0,0 +1,27 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+
-+#include "test-linktables.h"
-+
-+static int __init test_linktable_01_init(int input)
-+{
-+	return 1 * input;
-+}
-+
-+static int __initdata test_linktable_01_init_data(int input)
-+{
-+	return 1 * input;
-+}
-+
-+static int test_linktable_01(int input)
-+{
-+	return 1 * input;
-+}
-+
-+test_linktable_init_data(01, test_linktable_01_init_data); /* .init.data */
-+test_linktable_init_text(01, test_linktable_01_init); /* .init.text */
-+test_linktable(01, test_linktable_01); /* .data */
-+test_linktable_text(01, test_linktable_01); /* .text */
-+test_linktable_rodata(01, test_linktable_01); /* .rodata */
-diff --git a/lib/test_linktables/test-linktables-02.c b/lib/test_linktables=
-/test-linktables-02.c
-new file mode 100644
-index 000000000000..7f4b34240ecb
---- /dev/null
-+++ b/lib/test_linktables/test-linktables-02.c
-@@ -0,0 +1,27 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+
-+#include "test-linktables.h"
-+
-+static int __init test_linktable_02_init(int input)
-+{
-+	return 2 * input;
-+}
-+
-+static int __initdata test_linktable_02_init_data(int input)
-+{
-+	return 2 * input;
-+}
-+
-+static int test_linktable_02(int input)
-+{
-+	return 2 * input;
-+}
-+
-+test_linktable_init_data(02, test_linktable_02_init_data); /* .init.data */
-+test_linktable_init_text(02, test_linktable_02_init); /* .init.text */
-+test_linktable(02, test_linktable_02); /* .data */
-+test_linktable_text(02, test_linktable_02); /* .text */
-+test_linktable_rodata(02, test_linktable_02); /* .rodata */
-diff --git a/lib/test_linktables/test-linktables-03.c b/lib/test_linktables=
-/test-linktables-03.c
-new file mode 100644
-index 000000000000..47ca77e30c24
---- /dev/null
-+++ b/lib/test_linktables/test-linktables-03.c
-@@ -0,0 +1,27 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+
-+#include "test-linktables.h"
-+
-+static int __init test_linktable_03_init(int input)
-+{
-+	return 3 * input;
-+}
-+
-+static int __initdata test_linktable_03_init_data(int input)
-+{
-+	return 3 * input;
-+}
-+
-+static int test_linktable_03(int input)
-+{
-+	return 3 * input;
-+}
-+
-+test_linktable_init_data(03, test_linktable_03_init_data); /* .init.data */
-+test_linktable_init_text(03, test_linktable_03_init); /* .init.text */
-+test_linktable(03, test_linktable_03); /* .data */
-+test_linktable_text(03, test_linktable_03); /* .text */
-+test_linktable_rodata(03, test_linktable_03); /* .rodata */
-diff --git a/lib/test_linktables/test-linktables-04.c b/lib/test_linktables=
-/test-linktables-04.c
-new file mode 100644
-index 000000000000..4123e0e16715
---- /dev/null
-+++ b/lib/test_linktables/test-linktables-04.c
-@@ -0,0 +1,27 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+
-+#include "test-linktables.h"
-+
-+static int __init test_linktable_04_init(int input)
-+{
-+	return 4 * input;
-+}
-+
-+static int __initdata test_linktable_04_init_data(int input)
-+{
-+	return 4 * input;
-+}
-+
-+static int test_linktable_04(int input)
-+{
-+	return 4 * input;
-+}
-+
-+test_linktable_init_data(04, test_linktable_04_init_data); /* .init.data */
-+test_linktable_init_text(04, test_linktable_04_init); /* .init.text */
-+test_linktable(04, test_linktable_04); /* .data */
-+test_linktable_text(04, test_linktable_04); /* .text */
-+test_linktable_rodata(04, test_linktable_04); /* .rodata */
-diff --git a/lib/test_linktables/test-linktables.c b/lib/test_linktables/te=
-st-linktables.c
-new file mode 100644
-index 000000000000..77029c346294
---- /dev/null
-+++ b/lib/test_linktables/test-linktables.c
-@@ -0,0 +1,801 @@
-+/*
-+ * Linker table test driver
-+ *
-+ * Copyright (C) 2016 Luis R. Rodriguez <mcgrof@kernel.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of copyleft-next (version 0.3.1 or later) as published
-+ * at http://copyleft-next.org/.
-+ */
-+
-+/*
-+ * This driver provides an interface to trigger and test the linker table =
-API
-+ * through a series of configurations and a few triggers. This driver
-+ * must be built-in as linker tables currently lack generalized modular
-+ * support -- additional work is required on each module right now if you
-+ * want to use linker tables, in the future we may make this much easier.
-+ * For now just build this into your kernel.
-+ *
-+ * echo -n .text > /sys/devices/virtual/misc/test_linktable/config_section=
-_name
-+ * echo -n 3 > /sys/devices/virtual/misc/test_linktable/config_input
-+ * echo 1 > /sys/devices/virtual/misc/test_linktable/trigger_config
-+ * cat /sys/devices/virtual/misc/test_linktable/test_result
-+ * 30
-+ *
-+ * echo -n .data > /sys/devices/virtual/misc/test_linktable/config_section=
-_name
-+ * echo -n .text > /sys/devices/virtual/misc/test_linktable/config_section=
-_name
-+ * echo -n .rodata > /sys/devices/virtual/misc/test_linktable/config_secti=
-on_name
-+ *
-+ * To check the configuration:
-+ *
-+ * cat /sys/devices/virtual/misc/test_linktable/config
-+ *
-+ * NUM_TESTS
-+ *    =E2=88=91        test(n, input)
-+ *   n=3D0
-+ *
-+ * Each linker table entry on each section has a series of entries. Each e=
-ntry
-+ * has a function which just multiplies the test case number by input valu=
-e.
-+ *
-+ * ...
-+ * test-linktables-03.c multiplies (3 * input)
-+ * test-linktables-04.c multiplies (4 * input)
-+ * ...
-+ *
-+ * A full run on a section produces the sum of these values. So with input=
- set
-+ * to 3 we have:
-+ *
-+ * (0 * 3) + (1 * 3) + (2 * 3) + (3 * 3) + (4 * 3)
-+ *    0    +    3    +    6    +   9     +  12
-+ *                    30
-+ *
-+ * This is nothing important, its just a basic test. We had to pick someth=
-ing.
-+ * Other than the above tests, this also demos and shows proper const use =
-on
-+ * all sections which we need as read-only: .text, .init.text, .rodata.
-+ * Furthermore it does a silly write test to ensure write works on .data a=
-nd
-+ * init.data. Since the read-only sections use const we obviously are forc=
-ed
-+ * by the compiler to not be able to write to these sections.
-+ *
-+ * One of the more important items, the order, is tested. We could develop
-+ * a fancy simple math algorithm that depends on order for correctness but
-+ * instead we just annotate the expected order as we run. If the order lis=
-ted
-+ * on test->expected does not match with the actual order a routine was run
-+ * in then we fail and complain.
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/tables.h>
-+#include <linux/printk.h>
-+#include <linux/module.h>
-+#include <linux/miscdevice.h>
-+#include <linux/vmalloc.h>
-+#include <linux/slab.h>
-+
-+#include "test-linktables.h"
-+
-+#define NUM_TESTS __LINKTABLE_TESTS
-+
-+struct linktable_test_device *__test_dev;
-+static bool init_completed;
-+
-+static const char *test_dev_name =3D "test_linktable";
-+
-+/*
-+ * Used for the default test to start configuration with if we reset the
-+ * test from scratch. Don't use .init.* sections given we can only test
-+ * these on init, when init_completed is true we can't .init.* section
-+ * code anymore.
-+ */
-+#define TEST_SECTION_START ".data"
-+
-+DEFINE_LINKTABLE(struct test_linktable, test_fns_data);
-+DEFINE_LINKTABLE_TEXT(struct test_linktable, test_fns_text);
-+DEFINE_LINKTABLE_RO(struct test_linktable, test_fns_rodata);
-+DEFINE_LINKTABLE_INIT(struct test_linktable, test_fns_init_text);
-+DEFINE_LINKTABLE_INIT_DATA(struct test_linktable, test_fns_init_data);
-+
-+struct test_config {
-+	char *section_name;
-+	int input;
-+	int test_result;
-+};
-+
-+/**
-+ * linktable_test_device - test device to help test linker tables
-+ *
-+ * @dev_idx: unique ID for test device
-+ * @misc_dev: we use a misc device under the hood
-+ * @dev: pointer to misc_dev's own struct device
-+ * @config_mutex: protects configuration of test
-+ * @trigger_mutex: the test trigger can only be fired once at a time
-+ */
-+struct linktable_test_device {
-+	struct test_config config;
-+	struct miscdevice misc_dev;
-+	struct device *dev;
-+	struct mutex config_mutex;
-+	struct mutex trigger_mutex;
-+	unsigned int num_called;
-+};
-+
-+/**
-+ * enum linktable_test_case - linker table test case
-+ *
-+ * @TEST_LINKTABLE_INIT: tests .init.text (this is all const)
-+ * @TEST_LINKTABLE_INIT_DATA: tests .init.data
-+ * @TEST_LINKTABLE: tests .data
-+ * @TEST_LINKTABLE_TEXT: tests .text (this is all const)
-+ * @TEST_LINKTABLE_RO: tests .rodata (this is all const)
-+ */
-+enum linktable_test_case {
-+	__TEST_LINKTABLE_INVALID =3D 0,
-+
-+	TEST_LINKTABLE_INIT,
-+	TEST_LINKTABLE_INIT_DATA,
-+	TEST_LINKTABLE,
-+	TEST_LINKTABLE_TEXT,
-+	TEST_LINKTABLE_RO,
-+};
-+
-+static struct miscdevice *dev_to_misc_dev(struct device *dev)
-+{
-+	return dev_get_drvdata(dev);
-+}
-+
-+static
-+struct linktable_test_device *misc_dev_to_test_dev(struct miscdevice *misc=
-_dev)
-+{
-+	return container_of(misc_dev, struct linktable_test_device, misc_dev);
-+}
-+
-+static struct linktable_test_device *dev_to_test_dev(struct device *dev)
-+{
-+	struct miscdevice *misc_dev;
-+
-+	misc_dev =3D dev_to_misc_dev(dev);
-+
-+	return misc_dev_to_test_dev(misc_dev);
-+}
-+
-+static ssize_t config_show(struct device *dev,
-+			   struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+	int len =3D 0;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+
-+	len +=3D snprintf(buf, PAGE_SIZE,
-+			"Custom trigger configuration for: %s\n",
-+			dev_name(dev));
-+
-+	if (config->section_name)
-+		len +=3D snprintf(buf+len, PAGE_SIZE,
-+				"section name:\t%s\n",
-+				config->section_name);
-+	else
-+		len +=3D snprintf(buf+len, PAGE_SIZE,
-+				"default name:\tEMTPY\n");
-+
-+	mutex_unlock(&test_dev->config_mutex);
-+
-+	return len;
-+}
-+static DEVICE_ATTR_RO(config);
-+
-+static int write_test(struct test_linktable *test, int write_val)
-+{
-+	test->write_test =3D write_val;
-+	if (test->write_test !=3D write_val) {
-+		pr_warn("Write test failed\n");
-+		return -EPERM;
-+	}
-+	return 0;
-+}
-+
-+static int __test_linktable(struct linktable_test_device *test_dev,
-+			    struct test_linktable *test)
-+{
-+	struct test_config *config =3D &test_dev->config;
-+	int rc;
-+
-+	if (test->expected !=3D test_dev->num_called) {
-+		pr_warn("test routine ID %d called on order %d\n",
-+			test->expected, test_dev->num_called);
-+		return -EINVAL;
-+	}
-+
-+	rc =3D write_test(test, test->expected+1);
-+	if (rc)
-+		return rc;
-+
-+	rc =3D test->op(config->input);
-+	test_dev->num_called++;
-+
-+	return rc;
-+}
-+
-+static int __test_linktable_ro(struct linktable_test_device *test_dev,
-+			       const struct test_linktable *test)
-+{
-+	struct test_config *config =3D &test_dev->config;
-+	int rc;
-+
-+	if (test->expected !=3D test_dev->num_called) {
-+		pr_info("test routine ID %d called on order %d\n",
-+			test->expected, test_dev->num_called);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Note, compiler would complain if we tried write_test() so
-+	 * no need to test that.
-+	 */
-+
-+	rc =3D test->op(config->input);
-+	test_dev->num_called++;
-+
-+	return rc;
-+}
-+
-+static enum linktable_test_case get_test_case(const char *section_name)
-+{
-+	if (strcmp(".init.text", section_name) =3D 0)
-+		return TEST_LINKTABLE_INIT;
-+	if (strcmp(".init.data", section_name) =3D 0)
-+		return TEST_LINKTABLE_INIT_DATA;
-+	if (strcmp(".data", section_name) =3D 0)
-+		return TEST_LINKTABLE;
-+	if (strcmp(".text", section_name) =3D 0)
-+		return TEST_LINKTABLE_TEXT;
-+	if (strcmp(".rodata", section_name) =3D 0)
-+		return TEST_LINKTABLE_TEXT;
-+
-+	return __TEST_LINKTABLE_INVALID;
-+}
-+
-+static int __run_sanity_test(struct linktable_test_device *test_dev,
-+			     int num_entries)
-+{
-+	if (!num_entries) {
-+		pr_warn("no tests -- this is invalid\n");
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("number of tests: %d\n", num_entries);
-+
-+	if (num_entries !=3D NUM_TESTS) {
-+		pr_warn("expected: %d test\n", NUM_TESTS);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init run_init_text_test(struct linktable_test_device *test_de=
-v)
-+{
-+	int ret, total =3D 0;
-+	const struct test_linktable *test;
-+	unsigned int num_entries =3D LINKTABLE_SIZE(test_fns_init_text);
-+
-+	ret =3D __run_sanity_test(test_dev, num_entries);
-+	if (ret)
-+		return ret;
-+
-+	linktable_for_each(test, test_fns_init_text)
-+		total +=3D __test_linktable_ro(test_dev, test);
-+
-+	return total;
-+}
-+
-+static int __init run_init_data_test(struct linktable_test_device *test_de=
-v)
-+{
-+	int ret, total =3D 0;
-+	struct test_linktable *test;
-+	unsigned int num_entries =3D LINKTABLE_SIZE(test_fns_init_data);
-+
-+	ret =3D __run_sanity_test(test_dev, num_entries);
-+	if (ret)
-+		return ret;
-+
-+	linktable_for_each(test, test_fns_init_data)
-+		total +=3D __test_linktable(test_dev, test);
-+
-+	return total;
-+}
-+
-+static int run_data_test(struct linktable_test_device *test_dev)
-+{
-+	int ret, total =3D 0;
-+	struct test_linktable *test;
-+	unsigned int num_entries =3D LINKTABLE_SIZE(test_fns_data);
-+
-+	ret =3D __run_sanity_test(test_dev, num_entries);
-+	if (ret)
-+		return ret;
-+
-+	linktable_for_each(test, test_fns_data)
-+		total +=3D __test_linktable(test_dev, test);
-+
-+	return total;
-+}
-+
-+static int run_text_test(struct linktable_test_device *test_dev)
-+{
-+	int ret, total =3D 0;
-+	const struct test_linktable *test;
-+	unsigned int num_entries =3D LINKTABLE_SIZE(test_fns_text);
-+
-+	ret =3D __run_sanity_test(test_dev, num_entries);
-+	if (ret)
-+		return ret;
-+
-+	linktable_for_each(test, test_fns_text)
-+		total +=3D __test_linktable_ro(test_dev, test);
-+
-+	return total;
-+}
-+
-+static int run_rodata_test(struct linktable_test_device *test_dev)
-+{
-+	int ret, total =3D 0;
-+	const struct test_linktable *test;
-+	unsigned int num_entries =3D LINKTABLE_SIZE(test_fns_rodata);
-+
-+	ret =3D __run_sanity_test(test_dev, num_entries);
-+	if (ret)
-+		return ret;
-+
-+	linktable_for_each(test, test_fns_rodata)
-+		total +=3D __test_linktable_ro(test_dev, test);
-+
-+	return total;
-+}
-+
-+static int __ref __trigger_config_run(struct linktable_test_device *test_d=
-ev)
-+{
-+	enum linktable_test_case test_case;
-+	struct test_config *config =3D &test_dev->config;
-+
-+	test_dev->num_called =3D 0;
-+	test_case =3D get_test_case(config->section_name);
-+
-+	switch (test_case) {
-+	case TEST_LINKTABLE_INIT:
-+		if (!init_completed)
-+			return run_init_text_test(test_dev);
-+		else
-+			return -EACCES;
-+	case TEST_LINKTABLE_INIT_DATA:
-+		if (!init_completed)
-+			return run_init_data_test(test_dev);
-+		else
-+			return -EACCES;
-+	case TEST_LINKTABLE:
-+		return run_data_test(test_dev);
-+	case TEST_LINKTABLE_TEXT:
-+		return run_text_test(test_dev);
-+	case TEST_LINKTABLE_RO:
-+		return run_rodata_test(test_dev);
-+	default:
-+		pr_warn("Invalid test case requested: %s\n",
-+			config->section_name);
-+		return -EINVAL;
-+	}
-+}
-+
-+static int trigger_config_run(struct linktable_test_device *test_dev)
-+{
-+	struct test_config *config =3D &test_dev->config;
-+	int rc;
-+
-+	mutex_lock(&test_dev->trigger_mutex);
-+	mutex_lock(&test_dev->config_mutex);
-+
-+	pr_debug("running test on '%s'\n", config->section_name);
-+
-+	rc =3D __trigger_config_run(test_dev);
-+
-+	config->test_result =3D rc;
-+	pr_debug("result: %d\n", rc);
-+
-+	if (rc < 0) {
-+		rc =3D -EINVAL;
-+		goto out;
-+	}
-+
-+	rc =3D 0;
-+
-+out:
-+	mutex_unlock(&test_dev->config_mutex);
-+	mutex_unlock(&test_dev->trigger_mutex);
-+
-+	return rc;
-+}
-+
-+static ssize_t
-+trigger_config_store(struct device *dev,
-+		     struct device_attribute *attr,
-+		     const char *buf, size_t count)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	int rc;
-+
-+	rc =3D trigger_config_run(test_dev);
-+	if (rc)
-+		goto out;
-+
-+	rc =3D count;
-+out:
-+	return rc;
-+}
-+static DEVICE_ATTR_WO(trigger_config);
-+
-+/*
-+ * XXX: move to kstrncpy() once merged.
-+ *
-+ * Users should use kfree_const() when freeing these.
-+ */
-+static int __kstrncpy(char **dst, const char *name, size_t count, gfp_t gf=
-p)
-+{
-+	*dst =3D kstrndup(name, count, gfp);
-+	if (!*dst)
-+		return -ENOSPC;
-+	return count;
-+}
-+
-+static int config_copy_section_name(struct test_config *config,
-+				    const char *name,
-+				    size_t count)
-+{
-+	return __kstrncpy(&config->section_name, name, count, GFP_KERNEL);
-+}
-+
-+static void __linktable_config_free(struct test_config *config)
-+{
-+	kfree_const(config->section_name);
-+	config->section_name =3D NULL;
-+}
-+
-+static void linktable_config_free(struct linktable_test_device *test_dev)
-+{
-+	struct test_config *config =3D &test_dev->config;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+	__linktable_config_free(config);
-+	mutex_unlock(&test_dev->config_mutex);
-+}
-+
-+static ssize_t config_section_name_store(struct device *dev,
-+					 struct device_attribute *attr,
-+					 const char *buf, size_t count)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+	int rc;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+	rc =3D config_copy_section_name(config, buf, count);
-+	mutex_unlock(&test_dev->config_mutex);
-+
-+	return rc;
-+}
-+
-+/*
-+ * As per sysfs_kf_seq_show() the buf is max PAGE_SIZE.
-+ */
-+static ssize_t config_test_show_str(struct mutex *config_mutex,
-+				    char *dst,
-+				    char *src)
-+{
-+	int len;
-+
-+	mutex_lock(config_mutex);
-+	len =3D snprintf(dst, PAGE_SIZE, "%s\n", src);
-+	mutex_unlock(config_mutex);
-+
-+	return len;
-+}
-+
-+static ssize_t config_section_name_show(struct device *dev,
-+					struct device_attribute *attr,
-+					char *buf)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+
-+	return config_test_show_str(&test_dev->config_mutex, buf,
-+				    config->section_name);
-+}
-+static DEVICE_ATTR(config_section_name, 0644, config_section_name_show,
-+		   config_section_name_store);
-+
-+static int trigger_config_run_named(struct linktable_test_device *test_dev,
-+				    const char *section_name)
-+{
-+	int copied;
-+	struct test_config *config =3D &test_dev->config;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+	copied =3D config_copy_section_name(config, section_name,
-+					  strlen(section_name));
-+	mutex_unlock(&test_dev->config_mutex);
-+
-+	if (copied <=3D 0 || copied !=3D strlen(section_name))
-+		return -EINVAL;
-+
-+	return trigger_config_run(test_dev);
-+}
-+
-+static int __linktable_config_init(struct test_config *config)
-+{
-+	int ret;
-+
-+	ret =3D config_copy_section_name(config, TEST_SECTION_START,
-+				       strlen(TEST_SECTION_START));
-+	if (ret < 0)
-+		goto out;
-+
-+	config->input =3D 3;
-+	config->test_result =3D 0;
-+
-+out:
-+	return ret;
-+}
-+
-+static ssize_t reset_store(struct device *dev,
-+			   struct device_attribute *attr,
-+			   const char *buf, size_t count)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+	int ret;
-+
-+	mutex_lock(&test_dev->trigger_mutex);
-+	mutex_lock(&test_dev->config_mutex);
-+
-+	__linktable_config_free(config);
-+
-+	ret =3D __linktable_config_init(config);
-+	if (ret < 0) {
-+		ret =3D -ENOMEM;
-+		dev_err(dev, "could not alloc settings for config trigger: %d\n",
-+		       ret);
-+		goto out;
-+	}
-+
-+	dev_info(dev, "reset\n");
-+	ret =3D count;
-+
-+out:
-+	mutex_unlock(&test_dev->config_mutex);
-+	mutex_unlock(&test_dev->trigger_mutex);
-+
-+	return ret;
-+}
-+static DEVICE_ATTR_WO(reset);
-+
-+static int test_dev_config_update_int(struct linktable_test_device *test_d=
-ev,
-+				      const char *buf, size_t size,
-+				      int *config)
-+{
-+	long new;
-+	int ret;
-+
-+	ret =3D kstrtol(buf, 10, &new);
-+		return ret;
-+	if (new > INT_MAX || new < INT_MIN)
-+		return -EINVAL;
-+	mutex_lock(&test_dev->config_mutex);
-+	*config =3D new;
-+	mutex_unlock(&test_dev->config_mutex);
-+	/* Always return full write size even if we didn't consume all */
-+	return size;
-+}
-+
-+static ssize_t test_dev_config_show_int(struct linktable_test_device *test=
-_dev,
-+					char *buf,
-+					int config)
-+{
-+	int val;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+	val =3D config;
-+	mutex_unlock(&test_dev->config_mutex);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", val);
-+}
-+
-+static ssize_t test_result_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t count)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+
-+	return test_dev_config_update_int(test_dev, buf, count,
-+					  &config->test_result);
-+}
-+
-+static ssize_t config_input_store(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+
-+	return test_dev_config_update_int(test_dev, buf, count,
-+					  &config->input);
-+}
-+
-+static ssize_t config_input_show(struct device *dev,
-+				 struct device_attribute *attr,
-+				 char *buf)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+
-+	return test_dev_config_show_int(test_dev, buf, config->input);
-+}
-+static DEVICE_ATTR(config_input, 0644, config_input_show, config_input_sto=
-re);
-+
-+static ssize_t test_result_show(struct device *dev,
-+				struct device_attribute *attr,
-+				char *buf)
-+{
-+	struct linktable_test_device *test_dev =3D dev_to_test_dev(dev);
-+	struct test_config *config =3D &test_dev->config;
-+
-+	return test_dev_config_show_int(test_dev, buf, config->test_result);
-+}
-+static DEVICE_ATTR(test_result, 0644, test_result_show, test_result_store);
-+
-+#define LINKTABLE_DEV_ATTR(name)		&dev_attr_##name.attr
-+
-+static struct attribute *test_dev_attrs[] =3D {
-+	LINKTABLE_DEV_ATTR(trigger_config),
-+	LINKTABLE_DEV_ATTR(config),
-+	LINKTABLE_DEV_ATTR(reset),
-+
-+	LINKTABLE_DEV_ATTR(config_section_name),
-+	LINKTABLE_DEV_ATTR(config_input),
-+	LINKTABLE_DEV_ATTR(test_result),
-+
-+	NULL,
-+};
-+
-+ATTRIBUTE_GROUPS(test_dev);
-+
-+static int linktable_config_init(struct linktable_test_device *test_dev)
-+{
-+	struct test_config *config =3D &test_dev->config;
-+	int ret;
-+
-+	mutex_lock(&test_dev->config_mutex);
-+	ret =3D __linktable_config_init(config);
-+	mutex_unlock(&test_dev->config_mutex);
-+
-+	return ret;
-+}
-+
-+static struct linktable_test_device *alloc_test_dev_linktable(void)
-+{
-+	int rc;
-+	struct linktable_test_device *test_dev;
-+	struct miscdevice *misc_dev;
-+
-+	test_dev =3D vmalloc(sizeof(struct linktable_test_device));
-+	if (!test_dev)
-+		goto err_out;
-+
-+	memset(test_dev, 0, sizeof(struct linktable_test_device));
-+
-+	mutex_init(&test_dev->config_mutex);
-+	mutex_init(&test_dev->trigger_mutex);
-+
-+	rc =3D linktable_config_init(test_dev);
-+	if (rc < 0) {
-+		pr_err("Cannot alloc linktable_config_init()\n");
-+		goto err_out_free;
-+	}
-+
-+	misc_dev =3D &test_dev->misc_dev;
-+
-+	misc_dev->minor =3D MISC_DYNAMIC_MINOR;
-+	misc_dev->name =3D test_dev_name;
-+	misc_dev->groups =3D test_dev_groups;
-+
-+	return test_dev;
-+
-+err_out_free:
-+	kfree(test_dev);
-+err_out:
-+	return NULL;
-+}
-+
-+static void free_test_dev_linktable(struct linktable_test_device *test_dev)
-+{
-+	test_dev->misc_dev.name =3D NULL;
-+	vfree(test_dev);
-+	test_dev =3D NULL;
-+	linktable_config_free(test_dev);
-+}
-+
-+static struct linktable_test_device *register_test_dev_linktable(void)
-+{
-+	struct linktable_test_device *test_dev =3D NULL;
-+	int rc;
-+
-+	test_dev =3D alloc_test_dev_linktable();
-+	if (!test_dev)
-+		return NULL;
-+
-+	rc =3D misc_register(&test_dev->misc_dev);
-+	if (rc) {
-+		pr_err("could not register misc device: %d\n", rc);
-+		free_test_dev_linktable(test_dev);
-+		return NULL;
-+	}
-+
-+	test_dev->dev =3D test_dev->misc_dev.this_device;
-+	dev_dbg(test_dev->dev, "interface ready\n");
-+
-+	return test_dev;
-+}
-+
-+static int __init test_linktable_init(void)
-+{
-+	struct linktable_test_device *test_dev;
-+	int rc;
-+
-+	test_dev =3D register_test_dev_linktable();
-+	if (!test_dev) {
-+		pr_err("Cannot add test linktable device\n");
-+		return -ENODEV;
-+	}
-+
-+	rc =3D trigger_config_run_named(test_dev, ".init.text");
-+	if (WARN_ON(rc))
-+		return rc;
-+	rc =3D trigger_config_run_named(test_dev, ".init.data");
-+	if (WARN_ON(rc))
-+		return rc;
-+
-+	init_completed =3D true;
-+
-+	rc =3D trigger_config_run_named(test_dev, ".data");
-+	if (WARN_ON(rc))
-+		return rc;
-+	rc =3D trigger_config_run_named(test_dev, ".text");
-+	if (WARN_ON(rc))
-+		return rc;
-+	rc =3D trigger_config_run_named(test_dev, ".rodata");
-+	if (WARN_ON(rc))
-+		return rc;
-+
-+	pr_info("linker table tests: OK!\n");
-+
-+	return 0;
-+}
-+late_initcall(test_linktable_init);
-+
-+static
-+void unregister_test_dev_linktable(struct linktable_test_device *test_dev)
-+{
-+	dev_info(test_dev->dev, "removing interface\n");
-+	misc_deregister(&test_dev->misc_dev);
-+	free_test_dev_linktable(test_dev);
-+}
-+
-+static void __exit test_linktable_exit(void)
-+{
-+	struct linktable_test_device *test_dev =3D __test_dev;
-+
-+	unregister_test_dev_linktable(test_dev);
-+}
-+module_exit(test_linktable_exit);
-+
-+MODULE_AUTHOR("Luis R. Rodriguez <mcgrof@kernel.org>");
-+MODULE_LICENSE("GPL");
-diff --git a/lib/test_linktables/test-linktables.h b/lib/test_linktables/te=
-st-linktables.h
-new file mode 100644
-index 000000000000..c9c9d5c87263
---- /dev/null
-+++ b/lib/test_linktables/test-linktables.h
-@@ -0,0 +1,48 @@
-+#include <linux/tables.h>
-+
-+struct test_linktable {
-+	int expected;
-+	int write_test;
-+	int (*op)(int input_digit);
-+};
-+
-+#define test_linktable_init_text(__level, __op)				\
-+	static LINKTABLE_INIT(test_fns_init_text, __level)		\
-+	__test_fn_init_text_##__op =3D {					\
-+		.expected =3D __level,					\
-+		.op =3D __op,						\
-+};
-+
-+#define test_linktable_init_data(__level, __op)				\
-+	static LINKTABLE_INIT_DATA(test_fns_init_data, __level)		\
-+	__test_fn_init_data_##__op =3D {					\
-+		.expected =3D __level,					\
-+		.op =3D __op,						\
-+};
-+
-+#define test_linktable(__level, __op)					\
-+	static LINKTABLE(test_fns_data, __level)			\
-+	__test_fn_data_##__op =3D {					\
-+		.expected =3D __level,					\
-+		.op =3D __op,						\
-+};
-+
-+#define test_linktable_text(__level, __op)				\
-+	static LINKTABLE_TEXT(test_fns_text, __level)			\
-+	__test_fn_text_##__op =3D {					\
-+		.expected =3D __level,					\
-+		.op =3D __op,						\
-+};
-+
-+#define test_linktable_rodata(__level, __op)				\
-+	static LINKTABLE_RO(test_fns_rodata, __level)			\
-+	__test_fn_rodata_##__op =3D {					\
-+		.expected =3D __level,					\
-+		.op =3D __op,						\
-+};
-+
-+DECLARE_LINKTABLE_RO(struct test_linktable, test_fns_init_text);
-+DECLARE_LINKTABLE(struct test_linktable, test_fns_init_data);
-+DECLARE_LINKTABLE(struct test_linktable, test_fns_data);
-+DECLARE_LINKTABLE_RO(struct test_linktable, test_fns_text);
-+DECLARE_LINKTABLE_RO(struct test_linktable, test_fns_rodata);
---=20
-2.11.0
+diff --git a/Documentation/kbuild/makefiles.txt b/Documentation/kbuild/makefiles.txt
+index 37b525d329ae..51c072049e45 100644
+--- a/Documentation/kbuild/makefiles.txt
++++ b/Documentation/kbuild/makefiles.txt
+@@ -44,10 +44,11 @@ This document describes the Linux kernel Makefiles.
+ 	   --- 6.11 Post-link pass
+ 
+ 	== 7 Kbuild syntax for exported headers
+-		--- 7.1 header-y
++		--- 7.1 mandatory-y
+ 		--- 7.2 genhdr-y
+ 		--- 7.3 generic-y
+ 		--- 7.4 generated-y
++		--- 7.5 subdir-y
+ 
+ 	== 8 Kbuild Variables
+ 	== 9 Makefile language
+@@ -1235,7 +1236,7 @@ When kbuild executes, the following steps are followed (roughly):
+ 	that may be shared between individual architectures.
+ 	The recommended approach how to use a generic header file is
+ 	to list the file in the Kbuild file.
+-	See "7.4 generic-y" for further info on syntax etc.
++	See "7.3 generic-y" for further info on syntax etc.
+ 
+ --- 6.11 Post-link pass
+ 
+@@ -1262,37 +1263,33 @@ The pre-processing does:
+ - drop include of compiler.h
+ - drop all sections that are kernel internal (guarded by ifdef __KERNEL__)
+ 
+-Each relevant directory contains a file name "Kbuild" which specifies the
+-headers to be exported.
+-See subsequent chapter for the syntax of the Kbuild file.
++All headers under include/uapi/, include/generated/uapi/,
++arch/<arch>/include/uapi/asm/ and arch/<arch>/include/generated/uapi/asm/
++are exported.
+ 
+-	--- 7.1 header-y
++A Kbuild file may be defined under arch/<arch>/include/uapi/asm/ and
++arch/<arch>/include/asm/ to list asm files coming from asm-generic.
++See subsequent chapter for the syntax of the Kbuild file.
+ 
+-	header-y specifies header files to be exported.
++	--- 7.1 mandatory-y
+ 
+-		Example:
+-			#include/linux/Kbuild
+-			header-y += usb/
+-			header-y += aio_abi.h
++	mandatory-y is essentially used by include/uapi/asm-generic/Kbuild.asm
++	to define the minimun set of headers that must be exported in
++	include/asm.
+ 
+-	The convention is to list one file per line and
++	The convention is to list one subdir per line and
+ 	preferably in alphabetic order.
+ 
+-	header-y also specifies which subdirectories to visit.
+-	A subdirectory is identified by a trailing '/' which
+-	can be seen in the example above for the usb subdirectory.
+-
+-	Subdirectories are visited before their parent directories.
+-
+ 	--- 7.2 genhdr-y
+ 
+-	genhdr-y specifies generated files to be exported.
+-	Generated files are special as they need to be looked
+-	up in another directory when doing 'make O=...' builds.
++	genhdr-y specifies asm files to be generated.
+ 
+ 		Example:
+-			#include/linux/Kbuild
+-			genhdr-y += version.h
++			#arch/x86/include/uapi/asm/Kbuild
++			genhdr-y += unistd_32.h
++			genhdr-y += unistd_64.h
++			genhdr-y += unistd_x32.h
++
+ 
+ 	--- 7.3 generic-y
+ 
+@@ -1334,6 +1331,18 @@ See subsequent chapter for the syntax of the Kbuild file.
+ 			#arch/x86/include/asm/Kbuild
+ 			generated-y += syscalls_32.h
+ 
++	--- 7.5 subdir-y
++
++	subdir-y may be used to specify a subdirectory to be exported.
++
++		Example:
++			#arch/cris/include/uapi/asm/Kbuild
++			subdir-y += ../arch-v10/arch/
++			subdir-y += ../arch-v32/arch/
++
++	The convention is to list one subdir per line and
++	preferably in alphabetic order.
++
+ == 8 Kbuild Variables
+ 
+ The top Makefile exports the following variables:
+diff --git a/arch/alpha/include/uapi/asm/Kbuild b/arch/alpha/include/uapi/asm/Kbuild
+index d96f2ef5b639..b15bf6bc0e94 100644
+--- a/arch/alpha/include/uapi/asm/Kbuild
++++ b/arch/alpha/include/uapi/asm/Kbuild
+@@ -1,43 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += a.out.h
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += compiler.h
+-header-y += console.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += fpu.h
+-header-y += gentrap.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += pal.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += reg.h
+-header-y += regdef.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += sysinfo.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/arc/include/uapi/asm/Kbuild b/arch/arc/include/uapi/asm/Kbuild
+index f50d02df78d5..b15bf6bc0e94 100644
+--- a/arch/arc/include/uapi/asm/Kbuild
++++ b/arch/arc/include/uapi/asm/Kbuild
+@@ -1,5 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-header-y += elf.h
+-header-y += page.h
+-header-y += cachectl.h
+diff --git a/arch/arm/include/uapi/asm/Kbuild b/arch/arm/include/uapi/asm/Kbuild
+index 46a76cd6acb6..607f702c2d62 100644
+--- a/arch/arm/include/uapi/asm/Kbuild
++++ b/arch/arm/include/uapi/asm/Kbuild
+@@ -1,23 +1,6 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += auxvec.h
+-header-y += byteorder.h
+-header-y += fcntl.h
+-header-y += hwcap.h
+-header-y += ioctls.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += perf_regs.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += unistd.h
+ genhdr-y += unistd-common.h
+ genhdr-y += unistd-oabi.h
+ genhdr-y += unistd-eabi.h
+diff --git a/arch/arm64/include/uapi/asm/Kbuild b/arch/arm64/include/uapi/asm/Kbuild
+index 825b0fe51c2b..13a97aa2285f 100644
+--- a/arch/arm64/include/uapi/asm/Kbuild
++++ b/arch/arm64/include/uapi/asm/Kbuild
+@@ -2,21 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += kvm_para.h
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += fcntl.h
+-header-y += hwcap.h
+-header-y += kvm_para.h
+-header-y += perf_regs.h
+-header-y += param.h
+-header-y += ptrace.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += ucontext.h
+-header-y += unistd.h
+diff --git a/arch/avr32/include/uapi/asm/Kbuild b/arch/avr32/include/uapi/asm/Kbuild
+index 08d8a3d76ea8..610395083364 100644
+--- a/arch/avr32/include/uapi/asm/Kbuild
++++ b/arch/avr32/include/uapi/asm/Kbuild
+@@ -1,26 +1,6 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += auxvec.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+ generic-y += bitsperlong.h
+ generic-y += errno.h
+ generic-y += fcntl.h
+diff --git a/arch/blackfin/include/uapi/asm/Kbuild b/arch/blackfin/include/uapi/asm/Kbuild
+index 0bd28f77abc3..b15bf6bc0e94 100644
+--- a/arch/blackfin/include/uapi/asm/Kbuild
++++ b/arch/blackfin/include/uapi/asm/Kbuild
+@@ -1,19 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += bfin_sport.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += fcntl.h
+-header-y += fixed_code.h
+-header-y += ioctls.h
+-header-y += kvm_para.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += unistd.h
+diff --git a/arch/c6x/include/uapi/asm/Kbuild b/arch/c6x/include/uapi/asm/Kbuild
+index e9bc2b2b8147..13a97aa2285f 100644
+--- a/arch/c6x/include/uapi/asm/Kbuild
++++ b/arch/c6x/include/uapi/asm/Kbuild
+@@ -2,11 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += kvm_para.h
+-
+-header-y += byteorder.h
+-header-y += kvm_para.h
+-header-y += ptrace.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += swab.h
+-header-y += unistd.h
+diff --git a/arch/cris/include/uapi/arch-v10/arch/Kbuild b/arch/cris/include/uapi/arch-v10/arch/Kbuild
+deleted file mode 100644
+index 9048c87a782b..000000000000
+--- a/arch/cris/include/uapi/arch-v10/arch/Kbuild
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# UAPI Header export list
+-header-y += sv_addr.agh
+-header-y += sv_addr_ag.h
+-header-y += svinto.h
+-header-y += user.h
+diff --git a/arch/cris/include/uapi/arch-v32/arch/Kbuild b/arch/cris/include/uapi/arch-v32/arch/Kbuild
+deleted file mode 100644
+index 59efffd16b61..000000000000
+--- a/arch/cris/include/uapi/arch-v32/arch/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += cryptocop.h
+-header-y += user.h
+diff --git a/arch/cris/include/uapi/asm/Kbuild b/arch/cris/include/uapi/asm/Kbuild
+index d5564a0ae66a..d0c5471856e0 100644
+--- a/arch/cris/include/uapi/asm/Kbuild
++++ b/arch/cris/include/uapi/asm/Kbuild
+@@ -1,44 +1,5 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += ../arch-v10/arch/
+-header-y += ../arch-v32/arch/
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += elf.h
+-header-y += elf_v10.h
+-header-y += elf_v32.h
+-header-y += errno.h
+-header-y += ethernet.h
+-header-y += etraxgpio.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += ptrace_v10.h
+-header-y += ptrace_v32.h
+-header-y += resource.h
+-header-y += rs485.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += sync_serial.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
++subdir-y += ../arch-v10/arch/
++subdir-y += ../arch-v32/arch/
+diff --git a/arch/frv/include/uapi/asm/Kbuild b/arch/frv/include/uapi/asm/Kbuild
+index 42a2b33461c0..b15bf6bc0e94 100644
+--- a/arch/frv/include/uapi/asm/Kbuild
++++ b/arch/frv/include/uapi/asm/Kbuild
+@@ -1,35 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += registers.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/h8300/include/uapi/asm/Kbuild b/arch/h8300/include/uapi/asm/Kbuild
+index fb6101a5d4f1..b15bf6bc0e94 100644
+--- a/arch/h8300/include/uapi/asm/Kbuild
++++ b/arch/h8300/include/uapi/asm/Kbuild
+@@ -1,30 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += siginfo.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/hexagon/include/asm/Kbuild b/arch/hexagon/include/asm/Kbuild
+index db8ddabc6bd2..f3b1ceb5c1e4 100644
+--- a/arch/hexagon/include/asm/Kbuild
++++ b/arch/hexagon/include/asm/Kbuild
+@@ -1,6 +1,3 @@
+-
+-header-y += ucontext.h
+-
+ generic-y += auxvec.h
+ generic-y += barrier.h
+ generic-y += bug.h
+diff --git a/arch/hexagon/include/uapi/asm/Kbuild b/arch/hexagon/include/uapi/asm/Kbuild
+index c31706c38631..b15bf6bc0e94 100644
+--- a/arch/hexagon/include/uapi/asm/Kbuild
++++ b/arch/hexagon/include/uapi/asm/Kbuild
+@@ -1,15 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += kvm_para.h
+-header-y += param.h
+-header-y += ptrace.h
+-header-y += registers.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += swab.h
+-header-y += unistd.h
+-header-y += user.h
+diff --git a/arch/ia64/include/uapi/asm/Kbuild b/arch/ia64/include/uapi/asm/Kbuild
+index 891002bbb995..13a97aa2285f 100644
+--- a/arch/ia64/include/uapi/asm/Kbuild
++++ b/arch/ia64/include/uapi/asm/Kbuild
+@@ -2,48 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += kvm_para.h
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += break.h
+-header-y += byteorder.h
+-header-y += cmpxchg.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += fpu.h
+-header-y += gcc_intrin.h
+-header-y += ia64regs.h
+-header-y += intel_intrin.h
+-header-y += intrinsics.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += perfmon.h
+-header-y += perfmon_default_smpl.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += ptrace_offsets.h
+-header-y += resource.h
+-header-y += rse.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += ucontext.h
+-header-y += unistd.h
+-header-y += ustack.h
+diff --git a/arch/m32r/include/uapi/asm/Kbuild b/arch/m32r/include/uapi/asm/Kbuild
+index 43937a61d6cf..b15bf6bc0e94 100644
+--- a/arch/m32r/include/uapi/asm/Kbuild
++++ b/arch/m32r/include/uapi/asm/Kbuild
+@@ -1,33 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/m68k/include/uapi/asm/Kbuild b/arch/m68k/include/uapi/asm/Kbuild
+index 6a2d257bdfb2..64368077235a 100644
+--- a/arch/m68k/include/uapi/asm/Kbuild
++++ b/arch/m68k/include/uapi/asm/Kbuild
+@@ -9,27 +9,3 @@ generic-y += socket.h
+ generic-y += sockios.h
+ generic-y += termbits.h
+ generic-y += termios.h
+-
+-header-y += a.out.h
+-header-y += bootinfo.h
+-header-y += bootinfo-amiga.h
+-header-y += bootinfo-apollo.h
+-header-y += bootinfo-atari.h
+-header-y += bootinfo-hp300.h
+-header-y += bootinfo-mac.h
+-header-y += bootinfo-q40.h
+-header-y += bootinfo-vme.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += fcntl.h
+-header-y += ioctls.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += unistd.h
+diff --git a/arch/metag/include/uapi/asm/Kbuild b/arch/metag/include/uapi/asm/Kbuild
+index ab78be2b6eb0..b29731ebd7a9 100644
+--- a/arch/metag/include/uapi/asm/Kbuild
++++ b/arch/metag/include/uapi/asm/Kbuild
+@@ -1,14 +1,6 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += byteorder.h
+-header-y += ech.h
+-header-y += ptrace.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += swab.h
+-header-y += unistd.h
+-
+ generic-y += mman.h
+ generic-y += resource.h
+ generic-y += setup.h
+diff --git a/arch/microblaze/include/uapi/asm/Kbuild b/arch/microblaze/include/uapi/asm/Kbuild
+index 1aac99f87df1..2178c78c7c1a 100644
+--- a/arch/microblaze/include/uapi/asm/Kbuild
++++ b/arch/microblaze/include/uapi/asm/Kbuild
+@@ -2,35 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += types.h
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += elf.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += unistd.h
+diff --git a/arch/mips/include/uapi/asm/Kbuild b/arch/mips/include/uapi/asm/Kbuild
+index f2cf41461146..a0266feba9e6 100644
+--- a/arch/mips/include/uapi/asm/Kbuild
++++ b/arch/mips/include/uapi/asm/Kbuild
+@@ -2,40 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += ipcbuf.h
+-
+-header-y += auxvec.h
+-header-y += bitfield.h
+-header-y += bitsperlong.h
+-header-y += break.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += inst.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += sgidefs.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += sysmips.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/mn10300/include/uapi/asm/Kbuild b/arch/mn10300/include/uapi/asm/Kbuild
+index 040178cdb3eb..b15bf6bc0e94 100644
+--- a/arch/mn10300/include/uapi/asm/Kbuild
++++ b/arch/mn10300/include/uapi/asm/Kbuild
+@@ -1,34 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/nios2/include/uapi/asm/Kbuild b/arch/nios2/include/uapi/asm/Kbuild
+index 69c965304146..374bd123329f 100644
+--- a/arch/nios2/include/uapi/asm/Kbuild
++++ b/arch/nios2/include/uapi/asm/Kbuild
+@@ -1,6 +1,5 @@
++# UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += elf.h
+-
+ generic-y += setup.h
+ generic-y += ucontext.h
+diff --git a/arch/openrisc/include/asm/Kbuild b/arch/openrisc/include/asm/Kbuild
+index 2832f031fb11..561915716fd9 100644
+--- a/arch/openrisc/include/asm/Kbuild
++++ b/arch/openrisc/include/asm/Kbuild
+@@ -1,6 +1,3 @@
+-
+-header-y += ucontext.h
+-
+ generic-y += atomic.h
+ generic-y += auxvec.h
+ generic-y += barrier.h
+diff --git a/arch/openrisc/include/uapi/asm/Kbuild b/arch/openrisc/include/uapi/asm/Kbuild
+index 80761eb82b5f..b15bf6bc0e94 100644
+--- a/arch/openrisc/include/uapi/asm/Kbuild
++++ b/arch/openrisc/include/uapi/asm/Kbuild
+@@ -1,10 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += byteorder.h
+-header-y += elf.h
+-header-y += kvm_para.h
+-header-y += param.h
+-header-y += ptrace.h
+-header-y += sigcontext.h
+-header-y += unistd.h
+diff --git a/arch/parisc/include/uapi/asm/Kbuild b/arch/parisc/include/uapi/asm/Kbuild
+index 348356c99514..3971c60a7e7f 100644
+--- a/arch/parisc/include/uapi/asm/Kbuild
++++ b/arch/parisc/include/uapi/asm/Kbuild
+@@ -2,31 +2,3 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += resource.h
+-
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += pdc.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/powerpc/include/uapi/asm/Kbuild b/arch/powerpc/include/uapi/asm/Kbuild
+index dab3717e3ea0..b15bf6bc0e94 100644
+--- a/arch/powerpc/include/uapi/asm/Kbuild
++++ b/arch/powerpc/include/uapi/asm/Kbuild
+@@ -1,47 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += bootx.h
+-header-y += byteorder.h
+-header-y += cputable.h
+-header-y += eeh.h
+-header-y += elf.h
+-header-y += epapr_hcalls.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += nvram.h
+-header-y += opal-prd.h
+-header-y += param.h
+-header-y += perf_event.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ps3fb.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += spu_info.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += tm.h
+-header-y += types.h
+-header-y += ucontext.h
+-header-y += unistd.h
+diff --git a/arch/s390/include/uapi/asm/Kbuild b/arch/s390/include/uapi/asm/Kbuild
+index bf736e764cb4..b15bf6bc0e94 100644
+--- a/arch/s390/include/uapi/asm/Kbuild
++++ b/arch/s390/include/uapi/asm/Kbuild
+@@ -1,54 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += chpid.h
+-header-y += chsc.h
+-header-y += clp.h
+-header-y += cmb.h
+-header-y += dasd.h
+-header-y += debug.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += hypfs.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm.h
+-header-y += kvm_para.h
+-header-y += kvm_perf.h
+-header-y += kvm_virtio.h
+-header-y += mman.h
+-header-y += monwriter.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += qeth.h
+-header-y += resource.h
+-header-y += schid.h
+-header-y += sclp_ctl.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sie.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += tape390.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += ucontext.h
+-header-y += unistd.h
+-header-y += virtio-ccw.h
+-header-y += vtoc.h
+-header-y += zcrypt.h
+diff --git a/arch/score/include/asm/Kbuild b/arch/score/include/asm/Kbuild
+index a05218ff3fe4..128ca7ec0220 100644
+--- a/arch/score/include/asm/Kbuild
++++ b/arch/score/include/asm/Kbuild
+@@ -1,7 +1,3 @@
+-
+-header-y +-
+-
+ generic-y += barrier.h
+ generic-y += clkdev.h
+ generic-y += cputime.h
+diff --git a/arch/score/include/uapi/asm/Kbuild b/arch/score/include/uapi/asm/Kbuild
+index 040178cdb3eb..b15bf6bc0e94 100644
+--- a/arch/score/include/uapi/asm/Kbuild
++++ b/arch/score/include/uapi/asm/Kbuild
+@@ -1,34 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/arch/sh/include/uapi/asm/Kbuild b/arch/sh/include/uapi/asm/Kbuild
+index 60613ae78513..b15bf6bc0e94 100644
+--- a/arch/sh/include/uapi/asm/Kbuild
++++ b/arch/sh/include/uapi/asm/Kbuild
+@@ -1,25 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += cpu-features.h
+-header-y += hw_breakpoint.h
+-header-y += ioctls.h
+-header-y += posix_types.h
+-header-y += posix_types_32.h
+-header-y += posix_types_64.h
+-header-y += ptrace.h
+-header-y += ptrace_32.h
+-header-y += ptrace_64.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += types.h
+-header-y += unistd.h
+-header-y += unistd_32.h
+-header-y += unistd_64.h
+diff --git a/arch/sparc/include/uapi/asm/Kbuild b/arch/sparc/include/uapi/asm/Kbuild
+index b5843ee09fb5..b15bf6bc0e94 100644
+--- a/arch/sparc/include/uapi/asm/Kbuild
++++ b/arch/sparc/include/uapi/asm/Kbuild
+@@ -1,50 +1,2 @@
+ # UAPI Header export list
+-# User exported sparc header files
+-
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += apc.h
+-header-y += asi.h
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += display7seg.h
+-header-y += envctrl.h
+-header-y += errno.h
+-header-y += fbio.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += jsflash.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += openpromio.h
+-header-y += param.h
+-header-y += perfctr.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += psr.h
+-header-y += psrcompat.h
+-header-y += pstate.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += traps.h
+-header-y += uctx.h
+-header-y += unistd.h
+-header-y += utrap.h
+-header-y += watchdog.h
+diff --git a/arch/tile/include/asm/Kbuild b/arch/tile/include/asm/Kbuild
+index 2d1f5638974c..057eaa533877 100644
+--- a/arch/tile/include/asm/Kbuild
++++ b/arch/tile/include/asm/Kbuild
+@@ -1,6 +1,3 @@
+-
+-header-y += ../arch/
+-
+ generic-y += bug.h
+ generic-y += bugs.h
+ generic-y += clkdev.h
+diff --git a/arch/tile/include/uapi/arch/Kbuild b/arch/tile/include/uapi/arch/Kbuild
+deleted file mode 100644
+index 97dfbecec6b6..000000000000
+--- a/arch/tile/include/uapi/arch/Kbuild
++++ /dev/null
+@@ -1,17 +0,0 @@
+-# UAPI Header export list
+-header-y += abi.h
+-header-y += chip.h
+-header-y += chip_tilegx.h
+-header-y += chip_tilepro.h
+-header-y += icache.h
+-header-y += interrupts.h
+-header-y += interrupts_32.h
+-header-y += interrupts_64.h
+-header-y += opcode.h
+-header-y += opcode_tilegx.h
+-header-y += opcode_tilepro.h
+-header-y += sim.h
+-header-y += sim_def.h
+-header-y += spr_def.h
+-header-y += spr_def_32.h
+-header-y += spr_def_64.h
+diff --git a/arch/tile/include/uapi/asm/Kbuild b/arch/tile/include/uapi/asm/Kbuild
+index c20db8e428bf..e0a50111e07f 100644
+--- a/arch/tile/include/uapi/asm/Kbuild
++++ b/arch/tile/include/uapi/asm/Kbuild
+@@ -1,21 +1,6 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += cachectl.h
+-header-y += hardwall.h
+-header-y += kvm_para.h
+-header-y += mman.h
+-header-y += ptrace.h
+-header-y += setup.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += ucontext.h
+-header-y += unistd.h
+-
+ generic-y += ucontext.h
++
++subdir-y += ../arch
+diff --git a/arch/unicore32/include/uapi/asm/Kbuild b/arch/unicore32/include/uapi/asm/Kbuild
+index 0514d7ad6855..13a97aa2285f 100644
+--- a/arch/unicore32/include/uapi/asm/Kbuild
++++ b/arch/unicore32/include/uapi/asm/Kbuild
+@@ -1,10 +1,4 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+-header-y += byteorder.h
+-header-y += kvm_para.h
+-header-y += ptrace.h
+-header-y += sigcontext.h
+-header-y += unistd.h
+-
+ generic-y += kvm_para.h
+diff --git a/arch/x86/include/uapi/asm/Kbuild b/arch/x86/include/uapi/asm/Kbuild
+index 1c532b3f18ea..83b6e9a0dce4 100644
+--- a/arch/x86/include/uapi/asm/Kbuild
++++ b/arch/x86/include/uapi/asm/Kbuild
+@@ -4,61 +4,3 @@ include include/uapi/asm-generic/Kbuild.asm
+ genhdr-y += unistd_32.h
+ genhdr-y += unistd_64.h
+ genhdr-y += unistd_x32.h
+-header-y += a.out.h
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += boot.h
+-header-y += bootparam.h
+-header-y += byteorder.h
+-header-y += debugreg.h
+-header-y += e820.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += hw_breakpoint.h
+-header-y += hyperv.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += ist.h
+-header-y += kvm.h
+-header-y += kvm_para.h
+-header-y += kvm_perf.h
+-header-y += ldt.h
+-header-y += mce.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += msr.h
+-header-y += mtrr.h
+-header-y += param.h
+-header-y += perf_regs.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += posix_types_32.h
+-header-y += posix_types_64.h
+-header-y += posix_types_x32.h
+-header-y += prctl.h
+-header-y += processor-flags.h
+-header-y += ptrace-abi.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += sigcontext32.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += svm.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += ucontext.h
+-header-y += unistd.h
+-header-y += vm86.h
+-header-y += vmx.h
+-header-y += vsyscall.h
+diff --git a/arch/xtensa/include/uapi/asm/Kbuild b/arch/xtensa/include/uapi/asm/Kbuild
+index 56aad54e7fb7..b15bf6bc0e94 100644
+--- a/arch/xtensa/include/uapi/asm/Kbuild
++++ b/arch/xtensa/include/uapi/asm/Kbuild
+@@ -1,25 +1,2 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
+-
+-header-y += auxvec.h
+-header-y += byteorder.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += types.h
+-header-y += unistd.h
+diff --git a/include/Kbuild b/include/Kbuild
+deleted file mode 100644
+index bab1145bc7a7..000000000000
+--- a/include/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# Top-level Makefile calls into asm-$(ARCH)
+-# List only non-arch directories below
+diff --git a/include/asm-generic/Kbuild.asm b/include/asm-generic/Kbuild.asm
+deleted file mode 100644
+index d2ee86b4c091..000000000000
+--- a/include/asm-generic/Kbuild.asm
++++ /dev/null
+@@ -1 +0,0 @@
+-include include/uapi/asm-generic/Kbuild.asm
+diff --git a/include/scsi/fc/Kbuild b/include/scsi/fc/Kbuild
+deleted file mode 100644
+index e69de29bb2d1..000000000000
+diff --git a/include/uapi/Kbuild b/include/uapi/Kbuild
+deleted file mode 100644
+index 245aa6e05e6a..000000000000
+--- a/include/uapi/Kbuild
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# UAPI Header export list
+-# Top-level Makefile calls into asm-$(ARCH)
+-# List only non-arch directories below
+-
+-
+-header-y += asm-generic/
+-header-y += linux/
+-header-y += sound/
+-header-y += mtd/
+-header-y += rdma/
+-header-y += video/
+-header-y += drm/
+-header-y += xen/
+-header-y += scsi/
+-header-y += misc/
+diff --git a/include/uapi/asm-generic/Kbuild b/include/uapi/asm-generic/Kbuild
+deleted file mode 100644
+index b73de7bb7a62..000000000000
+--- a/include/uapi/asm-generic/Kbuild
++++ /dev/null
+@@ -1,36 +0,0 @@
+-# UAPI Header export list
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += errno-base.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += int-l64.h
+-header-y += int-ll64.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += kvm_para.h
+-header-y += mman-common.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += shmparam.h
+-header-y += siginfo.h
+-header-y += signal-defs.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += ucontext.h
+-header-y += unistd.h
+diff --git a/include/uapi/asm-generic/Kbuild.asm b/include/uapi/asm-generic/Kbuild.asm
+index fcd50b759217..8e6b335664f2 100644
+--- a/include/uapi/asm-generic/Kbuild.asm
++++ b/include/uapi/asm-generic/Kbuild.asm
+@@ -8,38 +8,38 @@ opt-header += a.out.h
+ #
+ # Headers that are mandatory in usr/include/asm/
+ #
+-header-y += auxvec.h
+-header-y += bitsperlong.h
+-header-y += byteorder.h
+-header-y += errno.h
+-header-y += fcntl.h
+-header-y += ioctl.h
+-header-y += ioctls.h
+-header-y += ipcbuf.h
+-header-y += mman.h
+-header-y += msgbuf.h
+-header-y += param.h
+-header-y += poll.h
+-header-y += posix_types.h
+-header-y += ptrace.h
+-header-y += resource.h
+-header-y += sembuf.h
+-header-y += setup.h
+-header-y += shmbuf.h
+-header-y += sigcontext.h
+-header-y += siginfo.h
+-header-y += signal.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += stat.h
+-header-y += statfs.h
+-header-y += swab.h
+-header-y += termbits.h
+-header-y += termios.h
+-header-y += types.h
+-header-y += unistd.h
++mandatory-y += auxvec.h
++mandatory-y += bitsperlong.h
++mandatory-y += byteorder.h
++mandatory-y += errno.h
++mandatory-y += fcntl.h
++mandatory-y += ioctl.h
++mandatory-y += ioctls.h
++mandatory-y += ipcbuf.h
++mandatory-y += mman.h
++mandatory-y += msgbuf.h
++mandatory-y += param.h
++mandatory-y += poll.h
++mandatory-y += posix_types.h
++mandatory-y += ptrace.h
++mandatory-y += resource.h
++mandatory-y += sembuf.h
++mandatory-y += setup.h
++mandatory-y += shmbuf.h
++mandatory-y += sigcontext.h
++mandatory-y += siginfo.h
++mandatory-y += signal.h
++mandatory-y += socket.h
++mandatory-y += sockios.h
++mandatory-y += stat.h
++mandatory-y += statfs.h
++mandatory-y += swab.h
++mandatory-y += termbits.h
++mandatory-y += termios.h
++mandatory-y += types.h
++mandatory-y += unistd.h
+ 
+-header-y += $(foreach hdr,$(opt-header), \
++mandatory-y += $(foreach hdr,$(opt-header), \
+ 	      $(if \
+ 		$(wildcard \
+ 			$(srctree)/arch/$(SRCARCH)/include/uapi/asm/$(hdr) \
+diff --git a/include/uapi/drm/Kbuild b/include/uapi/drm/Kbuild
+deleted file mode 100644
+index 9355dd8eff3b..000000000000
+--- a/include/uapi/drm/Kbuild
++++ /dev/null
+@@ -1,22 +0,0 @@
+-# UAPI Header export list
+-header-y += drm.h
+-header-y += drm_fourcc.h
+-header-y += drm_mode.h
+-header-y += drm_sarea.h
+-header-y += amdgpu_drm.h
+-header-y += exynos_drm.h
+-header-y += i810_drm.h
+-header-y += i915_drm.h
+-header-y += mga_drm.h
+-header-y += nouveau_drm.h
+-header-y += qxl_drm.h
+-header-y += r128_drm.h
+-header-y += radeon_drm.h
+-header-y += savage_drm.h
+-header-y += sis_drm.h
+-header-y += tegra_drm.h
+-header-y += via_drm.h
+-header-y += vmwgfx_drm.h
+-header-y += msm_drm.h
+-header-y += vc4_drm.h
+-header-y += virtgpu_drm.h
+diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+deleted file mode 100644
+index f330ba4547cf..000000000000
+--- a/include/uapi/linux/Kbuild
++++ /dev/null
+@@ -1,483 +0,0 @@
+-# UAPI Header export list
+-header-y += android/
+-header-y += byteorder/
+-header-y += can/
+-header-y += caif/
+-header-y += dvb/
+-header-y += hdlc/
+-header-y += hsi/
+-header-y += iio/
+-header-y += isdn/
+-header-y += mmc/
+-header-y += nfsd/
+-header-y += raid/
+-header-y += spi/
+-header-y += sunrpc/
+-header-y += tc_act/
+-header-y += tc_ematch/
+-header-y += netfilter/
+-header-y += netfilter_arp/
+-header-y += netfilter_bridge/
+-header-y += netfilter_ipv4/
+-header-y += netfilter_ipv6/
+-header-y += usb/
+-header-y += wimax/
+-
+-genhdr-y += version.h
+-
+-ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/a.out.h \
+-		  $(srctree)/arch/$(SRCARCH)/include/asm/a.out.h),)
+-header-y += a.out.h
+-endif
+-
+-header-y += acct.h
+-header-y += adb.h
+-header-y += adfs_fs.h
+-header-y += affs_hardblocks.h
+-header-y += agpgart.h
+-header-y += aio_abi.h
+-header-y += am437x-vpfe.h
+-header-y += apm_bios.h
+-header-y += arcfb.h
+-header-y += atalk.h
+-header-y += atmapi.h
+-header-y += atmarp.h
+-header-y += atmbr2684.h
+-header-y += atmclip.h
+-header-y += atmdev.h
+-header-y += atm_eni.h
+-header-y += atm.h
+-header-y += atm_he.h
+-header-y += atm_idt77105.h
+-header-y += atmioc.h
+-header-y += atmlec.h
+-header-y += atmmpc.h
+-header-y += atm_nicstar.h
+-header-y += atmppp.h
+-header-y += atmsap.h
+-header-y += atmsvc.h
+-header-y += atm_tcp.h
+-header-y += atm_zatm.h
+-header-y += audit.h
+-header-y += auto_fs4.h
+-header-y += auto_fs.h
+-header-y += auxvec.h
+-header-y += ax25.h
+-header-y += b1lli.h
+-header-y += baycom.h
+-header-y += bcm933xx_hcs.h
+-header-y += bfs_fs.h
+-header-y += binfmts.h
+-header-y += blkpg.h
+-header-y += blktrace_api.h
+-header-y += blkzoned.h
+-header-y += bpf_common.h
+-header-y += bpf_perf_event.h
+-header-y += bpf.h
+-header-y += bpqether.h
+-header-y += bsg.h
+-header-y += bt-bmc.h
+-header-y += btrfs.h
+-header-y += can.h
+-header-y += capability.h
+-header-y += capi.h
+-header-y += cciss_defs.h
+-header-y += cciss_ioctl.h
+-header-y += cdrom.h
+-header-y += cec.h
+-header-y += cec-funcs.h
+-header-y += cgroupstats.h
+-header-y += chio.h
+-header-y += cm4000_cs.h
+-header-y += cn_proc.h
+-header-y += coda.h
+-header-y += coda_psdev.h
+-header-y += coff.h
+-header-y += connector.h
+-header-y += const.h
+-header-y += cramfs_fs.h
+-header-y += cuda.h
+-header-y += cyclades.h
+-header-y += cycx_cfm.h
+-header-y += dcbnl.h
+-header-y += dccp.h
+-header-y += devlink.h
+-header-y += dlmconstants.h
+-header-y += dlm_device.h
+-header-y += dlm.h
+-header-y += dlm_netlink.h
+-header-y += dlm_plock.h
+-header-y += dm-ioctl.h
+-header-y += dm-log-userspace.h
+-header-y += dn.h
+-header-y += dqblk_xfs.h
+-header-y += edd.h
+-header-y += efs_fs_sb.h
+-header-y += elfcore.h
+-header-y += elf-em.h
+-header-y += elf-fdpic.h
+-header-y += elf.h
+-header-y += errno.h
+-header-y += errqueue.h
+-header-y += ethtool.h
+-header-y += eventpoll.h
+-header-y += fadvise.h
+-header-y += falloc.h
+-header-y += fanotify.h
+-header-y += fb.h
+-header-y += fcntl.h
+-header-y += fd.h
+-header-y += fdreg.h
+-header-y += fib_rules.h
+-header-y += fiemap.h
+-header-y += filter.h
+-header-y += firewire-cdev.h
+-header-y += firewire-constants.h
+-header-y += flat.h
+-header-y += fou.h
+-header-y += fs.h
+-header-y += fsl_hypervisor.h
+-header-y += fuse.h
+-header-y += futex.h
+-header-y += gameport.h
+-header-y += genetlink.h
+-header-y += gen_stats.h
+-header-y += gfs2_ondisk.h
+-header-y += gigaset_dev.h
+-header-y += gpio.h
+-header-y += gsmmux.h
+-header-y += gtp.h
+-header-y += hdlcdrv.h
+-header-y += hdlc.h
+-header-y += hdreg.h
+-header-y += hiddev.h
+-header-y += hid.h
+-header-y += hidraw.h
+-header-y += hpet.h
+-header-y += hsr_netlink.h
+-header-y += hyperv.h
+-header-y += hysdn_if.h
+-header-y += i2c-dev.h
+-header-y += i2c.h
+-header-y += i2o-dev.h
+-header-y += i8k.h
+-header-y += icmp.h
+-header-y += icmpv6.h
+-header-y += if_addr.h
+-header-y += if_addrlabel.h
+-header-y += if_alg.h
+-header-y += if_arcnet.h
+-header-y += if_arp.h
+-header-y += if_bonding.h
+-header-y += if_bridge.h
+-header-y += if_cablemodem.h
+-header-y += if_eql.h
+-header-y += if_ether.h
+-header-y += if_fc.h
+-header-y += if_fddi.h
+-header-y += if_frad.h
+-header-y += if.h
+-header-y += if_hippi.h
+-header-y += if_infiniband.h
+-header-y += if_link.h
+-header-y += if_ltalk.h
+-header-y += if_macsec.h
+-header-y += if_packet.h
+-header-y += if_phonet.h
+-header-y += if_plip.h
+-header-y += if_ppp.h
+-header-y += if_pppol2tp.h
+-header-y += if_pppox.h
+-header-y += if_slip.h
+-header-y += if_team.h
+-header-y += if_tun.h
+-header-y += if_tunnel.h
+-header-y += if_vlan.h
+-header-y += if_x25.h
+-header-y += igmp.h
+-header-y += ila.h
+-header-y += in6.h
+-header-y += inet_diag.h
+-header-y += in.h
+-header-y += inotify.h
+-header-y += input.h
+-header-y += input-event-codes.h
+-header-y += in_route.h
+-header-y += ioctl.h
+-header-y += ip6_tunnel.h
+-header-y += ipc.h
+-header-y += ip.h
+-header-y += ipmi.h
+-header-y += ipmi_msgdefs.h
+-header-y += ipsec.h
+-header-y += ipv6.h
+-header-y += ipv6_route.h
+-header-y += ip_vs.h
+-header-y += ipx.h
+-header-y += irda.h
+-header-y += irqnr.h
+-header-y += isdn_divertif.h
+-header-y += isdn.h
+-header-y += isdnif.h
+-header-y += isdn_ppp.h
+-header-y += iso_fs.h
+-header-y += ivtvfb.h
+-header-y += ivtv.h
+-header-y += ixjuser.h
+-header-y += jffs2.h
+-header-y += joystick.h
+-header-y += kcmp.h
+-header-y += kdev_t.h
+-header-y += kd.h
+-header-y += kernelcapi.h
+-header-y += kernel.h
+-header-y += kernel-page-flags.h
+-header-y += kexec.h
+-header-y += keyboard.h
+-header-y += keyctl.h
+-
+-ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/kvm.h \
+-		  $(srctree)/arch/$(SRCARCH)/include/asm/kvm.h),)
+-header-y += kvm.h
+-endif
+-
+-
+-ifneq ($(wildcard $(srctree)/arch/$(SRCARCH)/include/uapi/asm/kvm_para.h \
+-		  $(srctree)/arch/$(SRCARCH)/include/asm/kvm_para.h),)
+-header-y += kvm_para.h
+-endif
+-
+-header-y += hw_breakpoint.h
+-header-y += l2tp.h
+-header-y += libc-compat.h
+-header-y += lirc.h
+-header-y += limits.h
+-header-y += llc.h
+-header-y += loop.h
+-header-y += lp.h
+-header-y += lwtunnel.h
+-header-y += magic.h
+-header-y += major.h
+-header-y += map_to_7segment.h
+-header-y += matroxfb.h
+-header-y += mdio.h
+-header-y += media.h
+-header-y += media-bus-format.h
+-header-y += mei.h
+-header-y += membarrier.h
+-header-y += memfd.h
+-header-y += mempolicy.h
+-header-y += meye.h
+-header-y += mic_common.h
+-header-y += mic_ioctl.h
+-header-y += mii.h
+-header-y += minix_fs.h
+-header-y += mman.h
+-header-y += mmtimer.h
+-header-y += mpls.h
+-header-y += mpls_iptunnel.h
+-header-y += mqueue.h
+-header-y += mroute6.h
+-header-y += mroute.h
+-header-y += msdos_fs.h
+-header-y += msg.h
+-header-y += mtio.h
+-header-y += nbd.h
+-header-y += ncp_fs.h
+-header-y += ncp.h
+-header-y += ncp_mount.h
+-header-y += ncp_no.h
+-header-y += ndctl.h
+-header-y += neighbour.h
+-header-y += netconf.h
+-header-y += netdevice.h
+-header-y += net_dropmon.h
+-header-y += netfilter_arp.h
+-header-y += netfilter_bridge.h
+-header-y += netfilter_decnet.h
+-header-y += netfilter.h
+-header-y += netfilter_ipv4.h
+-header-y += netfilter_ipv6.h
+-header-y += net.h
+-header-y += netlink_diag.h
+-header-y += netlink.h
+-header-y += netrom.h
+-header-y += net_namespace.h
+-header-y += net_tstamp.h
+-header-y += nfc.h
+-header-y += nfs2.h
+-header-y += nfs3.h
+-header-y += nfs4.h
+-header-y += nfs4_mount.h
+-header-y += nfsacl.h
+-header-y += nfs_fs.h
+-header-y += nfs.h
+-header-y += nfs_idmap.h
+-header-y += nfs_mount.h
+-header-y += nl80211.h
+-header-y += n_r3964.h
+-header-y += nubus.h
+-header-y += nvme_ioctl.h
+-header-y += nvram.h
+-header-y += omap3isp.h
+-header-y += omapfb.h
+-header-y += oom.h
+-header-y += openvswitch.h
+-header-y += packet_diag.h
+-header-y += param.h
+-header-y += parport.h
+-header-y += patchkey.h
+-header-y += pci.h
+-header-y += pci_regs.h
+-header-y += perf_event.h
+-header-y += personality.h
+-header-y += pfkeyv2.h
+-header-y += pg.h
+-header-y += phantom.h
+-header-y += phonet.h
+-header-y += pktcdvd.h
+-header-y += pkt_cls.h
+-header-y += pkt_sched.h
+-header-y += pmu.h
+-header-y += poll.h
+-header-y += posix_acl.h
+-header-y += posix_acl_xattr.h
+-header-y += posix_types.h
+-header-y += ppdev.h
+-header-y += ppp-comp.h
+-header-y += ppp_defs.h
+-header-y += ppp-ioctl.h
+-header-y += pps.h
+-header-y += prctl.h
+-header-y += psci.h
+-header-y += ptp_clock.h
+-header-y += ptrace.h
+-header-y += qnx4_fs.h
+-header-y += qnxtypes.h
+-header-y += quota.h
+-header-y += radeonfb.h
+-header-y += random.h
+-header-y += raw.h
+-header-y += rds.h
+-header-y += reboot.h
+-header-y += reiserfs_fs.h
+-header-y += reiserfs_xattr.h
+-header-y += resource.h
+-header-y += rfkill.h
+-header-y += rio_cm_cdev.h
+-header-y += rio_mport_cdev.h
+-header-y += romfs_fs.h
+-header-y += rose.h
+-header-y += route.h
+-header-y += rtc.h
+-header-y += rtnetlink.h
+-header-y += scc.h
+-header-y += sched.h
+-header-y += scif_ioctl.h
+-header-y += screen_info.h
+-header-y += sctp.h
+-header-y += sdla.h
+-header-y += seccomp.h
+-header-y += securebits.h
+-header-y += selinux_netlink.h
+-header-y += sem.h
+-header-y += serial_core.h
+-header-y += serial.h
+-header-y += serial_reg.h
+-header-y += serio.h
+-header-y += shm.h
+-header-y += signalfd.h
+-header-y += signal.h
+-header-y += smiapp.h
+-header-y += snmp.h
+-header-y += sock_diag.h
+-header-y += socket.h
+-header-y += sockios.h
+-header-y += sonet.h
+-header-y += sonypi.h
+-header-y += soundcard.h
+-header-y += sound.h
+-header-y += stat.h
+-header-y += stddef.h
+-header-y += string.h
+-header-y += suspend_ioctls.h
+-header-y += swab.h
+-header-y += synclink.h
+-header-y += sync_file.h
+-header-y += sysctl.h
+-header-y += sysinfo.h
+-header-y += target_core_user.h
+-header-y += taskstats.h
+-header-y += tcp.h
+-header-y += tcp_metrics.h
+-header-y += telephony.h
+-header-y += termios.h
+-header-y += thermal.h
+-header-y += time.h
+-header-y += timerfd.h
+-header-y += times.h
+-header-y += timex.h
+-header-y += tiocl.h
+-header-y += tipc_config.h
+-header-y += tipc_netlink.h
+-header-y += tipc.h
+-header-y += toshiba.h
+-header-y += tty_flags.h
+-header-y += tty.h
+-header-y += types.h
+-header-y += udf_fs_i.h
+-header-y += udp.h
+-header-y += uhid.h
+-header-y += uinput.h
+-header-y += uio.h
+-header-y += uleds.h
+-header-y += ultrasound.h
+-header-y += un.h
+-header-y += unistd.h
+-header-y += unix_diag.h
+-header-y += usbdevice_fs.h
+-header-y += usbip.h
+-header-y += utime.h
+-header-y += utsname.h
+-header-y += uuid.h
+-header-y += uvcvideo.h
+-header-y += v4l2-common.h
+-header-y += v4l2-controls.h
+-header-y += v4l2-dv-timings.h
+-header-y += v4l2-mediabus.h
+-header-y += v4l2-subdev.h
+-header-y += veth.h
+-header-y += vfio.h
+-header-y += vhost.h
+-header-y += videodev2.h
+-header-y += virtio_9p.h
+-header-y += virtio_balloon.h
+-header-y += virtio_blk.h
+-header-y += virtio_config.h
+-header-y += virtio_console.h
+-header-y += virtio_gpu.h
+-header-y += virtio_ids.h
+-header-y += virtio_input.h
+-header-y += virtio_net.h
+-header-y += virtio_pci.h
+-header-y += virtio_ring.h
+-header-y += virtio_rng.h
+-header-y += virtio_scsi.h
+-header-y += virtio_types.h
+-header-y += virtio_vsock.h
+-header-y += virtio_crypto.h
+-header-y += vm_sockets.h
+-header-y += vt.h
+-header-y += vtpm_proxy.h
+-header-y += wait.h
+-header-y += wanrouter.h
+-header-y += watchdog.h
+-header-y += wimax.h
+-header-y += wireless.h
+-header-y += x25.h
+-header-y += xattr.h
+-header-y += xfrm.h
+-header-y += xilinx-v4l2-controls.h
+-header-y += zorro.h
+-header-y += zorro_ids.h
+-header-y += userfaultfd.h
+diff --git a/include/uapi/linux/android/Kbuild b/include/uapi/linux/android/Kbuild
+deleted file mode 100644
+index ca011eec252a..000000000000
+--- a/include/uapi/linux/android/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += binder.h
+diff --git a/include/uapi/linux/byteorder/Kbuild b/include/uapi/linux/byteorder/Kbuild
+deleted file mode 100644
+index 619225b9ff2e..000000000000
+--- a/include/uapi/linux/byteorder/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += big_endian.h
+-header-y += little_endian.h
+diff --git a/include/uapi/linux/caif/Kbuild b/include/uapi/linux/caif/Kbuild
+deleted file mode 100644
+index 43396612d3a3..000000000000
+--- a/include/uapi/linux/caif/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += caif_socket.h
+-header-y += if_caif.h
+diff --git a/include/uapi/linux/can/Kbuild b/include/uapi/linux/can/Kbuild
+deleted file mode 100644
+index 21c91bf25a29..000000000000
+--- a/include/uapi/linux/can/Kbuild
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# UAPI Header export list
+-header-y += bcm.h
+-header-y += error.h
+-header-y += gw.h
+-header-y += netlink.h
+-header-y += raw.h
+diff --git a/include/uapi/linux/dvb/Kbuild b/include/uapi/linux/dvb/Kbuild
+deleted file mode 100644
+index d40942cfc627..000000000000
+--- a/include/uapi/linux/dvb/Kbuild
++++ /dev/null
+@@ -1,9 +0,0 @@
+-# UAPI Header export list
+-header-y += audio.h
+-header-y += ca.h
+-header-y += dmx.h
+-header-y += frontend.h
+-header-y += net.h
+-header-y += osd.h
+-header-y += version.h
+-header-y += video.h
+diff --git a/include/uapi/linux/hdlc/Kbuild b/include/uapi/linux/hdlc/Kbuild
+deleted file mode 100644
+index 8c1d2cb75e33..000000000000
+--- a/include/uapi/linux/hdlc/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += ioctl.h
+diff --git a/include/uapi/linux/hsi/Kbuild b/include/uapi/linux/hsi/Kbuild
+deleted file mode 100644
+index a16a00544258..000000000000
+--- a/include/uapi/linux/hsi/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += hsi_char.h cs-protocol.h
+diff --git a/include/uapi/linux/iio/Kbuild b/include/uapi/linux/iio/Kbuild
+deleted file mode 100644
+index 86f76d84c44f..000000000000
+--- a/include/uapi/linux/iio/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += events.h
+-header-y += types.h
+diff --git a/include/uapi/linux/isdn/Kbuild b/include/uapi/linux/isdn/Kbuild
+deleted file mode 100644
+index 89e52850bf29..000000000000
+--- a/include/uapi/linux/isdn/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += capicmd.h
+diff --git a/include/uapi/linux/mmc/Kbuild b/include/uapi/linux/mmc/Kbuild
+deleted file mode 100644
+index 8c1d2cb75e33..000000000000
+--- a/include/uapi/linux/mmc/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += ioctl.h
+diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
+deleted file mode 100644
+index 03f194aeadc5..000000000000
+--- a/include/uapi/linux/netfilter/Kbuild
++++ /dev/null
+@@ -1,89 +0,0 @@
+-# UAPI Header export list
+-header-y += ipset/
+-header-y += nf_conntrack_common.h
+-header-y += nf_conntrack_ftp.h
+-header-y += nf_conntrack_sctp.h
+-header-y += nf_conntrack_tcp.h
+-header-y += nf_conntrack_tuple_common.h
+-header-y += nf_log.h
+-header-y += nf_tables.h
+-header-y += nf_tables_compat.h
+-header-y += nf_nat.h
+-header-y += nfnetlink.h
+-header-y += nfnetlink_acct.h
+-header-y += nfnetlink_compat.h
+-header-y += nfnetlink_conntrack.h
+-header-y += nfnetlink_cthelper.h
+-header-y += nfnetlink_cttimeout.h
+-header-y += nfnetlink_log.h
+-header-y += nfnetlink_queue.h
+-header-y += x_tables.h
+-header-y += xt_AUDIT.h
+-header-y += xt_CHECKSUM.h
+-header-y += xt_CLASSIFY.h
+-header-y += xt_CONNMARK.h
+-header-y += xt_CONNSECMARK.h
+-header-y += xt_CT.h
+-header-y += xt_DSCP.h
+-header-y += xt_HMARK.h
+-header-y += xt_IDLETIMER.h
+-header-y += xt_LED.h
+-header-y += xt_LOG.h
+-header-y += xt_MARK.h
+-header-y += xt_NFLOG.h
+-header-y += xt_NFQUEUE.h
+-header-y += xt_RATEEST.h
+-header-y += xt_SECMARK.h
+-header-y += xt_SYNPROXY.h
+-header-y += xt_TCPMSS.h
+-header-y += xt_TCPOPTSTRIP.h
+-header-y += xt_TEE.h
+-header-y += xt_TPROXY.h
+-header-y += xt_addrtype.h
+-header-y += xt_bpf.h
+-header-y += xt_cgroup.h
+-header-y += xt_cluster.h
+-header-y += xt_comment.h
+-header-y += xt_connbytes.h
+-header-y += xt_connlabel.h
+-header-y += xt_connlimit.h
+-header-y += xt_connmark.h
+-header-y += xt_conntrack.h
+-header-y += xt_cpu.h
+-header-y += xt_dccp.h
+-header-y += xt_devgroup.h
+-header-y += xt_dscp.h
+-header-y += xt_ecn.h
+-header-y += xt_esp.h
+-header-y += xt_hashlimit.h
+-header-y += xt_helper.h
+-header-y += xt_ipcomp.h
+-header-y += xt_iprange.h
+-header-y += xt_ipvs.h
+-header-y += xt_l2tp.h
+-header-y += xt_length.h
+-header-y += xt_limit.h
+-header-y += xt_mac.h
+-header-y += xt_mark.h
+-header-y += xt_multiport.h
+-header-y += xt_nfacct.h
+-header-y += xt_osf.h
+-header-y += xt_owner.h
+-header-y += xt_physdev.h
+-header-y += xt_pkttype.h
+-header-y += xt_policy.h
+-header-y += xt_quota.h
+-header-y += xt_rateest.h
+-header-y += xt_realm.h
+-header-y += xt_recent.h
+-header-y += xt_rpfilter.h
+-header-y += xt_sctp.h
+-header-y += xt_set.h
+-header-y += xt_socket.h
+-header-y += xt_state.h
+-header-y += xt_statistic.h
+-header-y += xt_string.h
+-header-y += xt_tcpmss.h
+-header-y += xt_tcpudp.h
+-header-y += xt_time.h
+-header-y += xt_u32.h
+diff --git a/include/uapi/linux/netfilter/ipset/Kbuild b/include/uapi/linux/netfilter/ipset/Kbuild
+deleted file mode 100644
+index d2680423d9ab..000000000000
+--- a/include/uapi/linux/netfilter/ipset/Kbuild
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# UAPI Header export list
+-header-y += ip_set.h
+-header-y += ip_set_bitmap.h
+-header-y += ip_set_hash.h
+-header-y += ip_set_list.h
+diff --git a/include/uapi/linux/netfilter_arp/Kbuild b/include/uapi/linux/netfilter_arp/Kbuild
+deleted file mode 100644
+index 62d5637cc0ac..000000000000
+--- a/include/uapi/linux/netfilter_arp/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += arp_tables.h
+-header-y += arpt_mangle.h
+diff --git a/include/uapi/linux/netfilter_bridge/Kbuild b/include/uapi/linux/netfilter_bridge/Kbuild
+deleted file mode 100644
+index 0fbad8ef96de..000000000000
+--- a/include/uapi/linux/netfilter_bridge/Kbuild
++++ /dev/null
+@@ -1,18 +0,0 @@
+-# UAPI Header export list
+-header-y += ebt_802_3.h
+-header-y += ebt_among.h
+-header-y += ebt_arp.h
+-header-y += ebt_arpreply.h
+-header-y += ebt_ip.h
+-header-y += ebt_ip6.h
+-header-y += ebt_limit.h
+-header-y += ebt_log.h
+-header-y += ebt_mark_m.h
+-header-y += ebt_mark_t.h
+-header-y += ebt_nat.h
+-header-y += ebt_nflog.h
+-header-y += ebt_pkttype.h
+-header-y += ebt_redirect.h
+-header-y += ebt_stp.h
+-header-y += ebt_vlan.h
+-header-y += ebtables.h
+diff --git a/include/uapi/linux/netfilter_ipv4/Kbuild b/include/uapi/linux/netfilter_ipv4/Kbuild
+deleted file mode 100644
+index ecb291df390e..000000000000
+--- a/include/uapi/linux/netfilter_ipv4/Kbuild
++++ /dev/null
+@@ -1,10 +0,0 @@
+-# UAPI Header export list
+-header-y += ip_tables.h
+-header-y += ipt_CLUSTERIP.h
+-header-y += ipt_ECN.h
+-header-y += ipt_LOG.h
+-header-y += ipt_REJECT.h
+-header-y += ipt_TTL.h
+-header-y += ipt_ah.h
+-header-y += ipt_ecn.h
+-header-y += ipt_ttl.h
+diff --git a/include/uapi/linux/netfilter_ipv6/Kbuild b/include/uapi/linux/netfilter_ipv6/Kbuild
+deleted file mode 100644
+index 75a668ca2353..000000000000
+--- a/include/uapi/linux/netfilter_ipv6/Kbuild
++++ /dev/null
+@@ -1,13 +0,0 @@
+-# UAPI Header export list
+-header-y += ip6_tables.h
+-header-y += ip6t_HL.h
+-header-y += ip6t_LOG.h
+-header-y += ip6t_NPT.h
+-header-y += ip6t_REJECT.h
+-header-y += ip6t_ah.h
+-header-y += ip6t_frag.h
+-header-y += ip6t_hl.h
+-header-y += ip6t_ipv6header.h
+-header-y += ip6t_mh.h
+-header-y += ip6t_opts.h
+-header-y += ip6t_rt.h
+diff --git a/include/uapi/linux/nfsd/Kbuild b/include/uapi/linux/nfsd/Kbuild
+deleted file mode 100644
+index c11bc404053c..000000000000
+--- a/include/uapi/linux/nfsd/Kbuild
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# UAPI Header export list
+-header-y += cld.h
+-header-y += debug.h
+-header-y += export.h
+-header-y += nfsfh.h
+-header-y += stats.h
+diff --git a/include/uapi/linux/raid/Kbuild b/include/uapi/linux/raid/Kbuild
+deleted file mode 100644
+index e2c3d25405d7..000000000000
+--- a/include/uapi/linux/raid/Kbuild
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# UAPI Header export list
+-header-y += md_p.h
+-header-y += md_u.h
+diff --git a/include/uapi/linux/spi/Kbuild b/include/uapi/linux/spi/Kbuild
+deleted file mode 100644
+index 0cc747eff165..000000000000
+--- a/include/uapi/linux/spi/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += spidev.h
+diff --git a/include/uapi/linux/sunrpc/Kbuild b/include/uapi/linux/sunrpc/Kbuild
+deleted file mode 100644
+index 8e02e47c20fb..000000000000
+--- a/include/uapi/linux/sunrpc/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += debug.h
+diff --git a/include/uapi/linux/tc_act/Kbuild b/include/uapi/linux/tc_act/Kbuild
+deleted file mode 100644
+index e3db7403296f..000000000000
+--- a/include/uapi/linux/tc_act/Kbuild
++++ /dev/null
+@@ -1,15 +0,0 @@
+-# UAPI Header export list
+-header-y += tc_csum.h
+-header-y += tc_defact.h
+-header-y += tc_gact.h
+-header-y += tc_ipt.h
+-header-y += tc_mirred.h
+-header-y += tc_nat.h
+-header-y += tc_pedit.h
+-header-y += tc_skbedit.h
+-header-y += tc_vlan.h
+-header-y += tc_bpf.h
+-header-y += tc_connmark.h
+-header-y += tc_ife.h
+-header-y += tc_tunnel_key.h
+-header-y += tc_skbmod.h
+diff --git a/include/uapi/linux/tc_ematch/Kbuild b/include/uapi/linux/tc_ematch/Kbuild
+deleted file mode 100644
+index 53fca3925535..000000000000
+--- a/include/uapi/linux/tc_ematch/Kbuild
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# UAPI Header export list
+-header-y += tc_em_cmp.h
+-header-y += tc_em_meta.h
+-header-y += tc_em_nbyte.h
+-header-y += tc_em_text.h
+diff --git a/include/uapi/linux/usb/Kbuild b/include/uapi/linux/usb/Kbuild
+deleted file mode 100644
+index 4cc4d6e7e523..000000000000
+--- a/include/uapi/linux/usb/Kbuild
++++ /dev/null
+@@ -1,12 +0,0 @@
+-# UAPI Header export list
+-header-y += audio.h
+-header-y += cdc.h
+-header-y += cdc-wdm.h
+-header-y += ch11.h
+-header-y += ch9.h
+-header-y += functionfs.h
+-header-y += g_printer.h
+-header-y += gadgetfs.h
+-header-y += midi.h
+-header-y += tmc.h
+-header-y += video.h
+diff --git a/include/uapi/linux/wimax/Kbuild b/include/uapi/linux/wimax/Kbuild
+deleted file mode 100644
+index 1c97be49971f..000000000000
+--- a/include/uapi/linux/wimax/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += i2400m.h
+diff --git a/include/uapi/misc/Kbuild b/include/uapi/misc/Kbuild
+deleted file mode 100644
+index e96cae7d58c9..000000000000
+--- a/include/uapi/misc/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# misc Header export list
+-header-y += cxl.h
+diff --git a/include/uapi/mtd/Kbuild b/include/uapi/mtd/Kbuild
+deleted file mode 100644
+index 5a691e10cd0e..000000000000
+--- a/include/uapi/mtd/Kbuild
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# UAPI Header export list
+-header-y += inftl-user.h
+-header-y += mtd-abi.h
+-header-y += mtd-user.h
+-header-y += nftl-user.h
+-header-y += ubi-user.h
+diff --git a/include/uapi/rdma/Kbuild b/include/uapi/rdma/Kbuild
+deleted file mode 100644
+index 82bdf5626859..000000000000
+--- a/include/uapi/rdma/Kbuild
++++ /dev/null
+@@ -1,18 +0,0 @@
+-# UAPI Header export list
+-header-y += ib_user_cm.h
+-header-y += ib_user_mad.h
+-header-y += ib_user_sa.h
+-header-y += ib_user_verbs.h
+-header-y += rdma_netlink.h
+-header-y += rdma_user_cm.h
+-header-y += hfi/
+-header-y += rdma_user_rxe.h
+-header-y += cxgb3-abi.h
+-header-y += cxgb4-abi.h
+-header-y += mlx4-abi.h
+-header-y += mlx5-abi.h
+-header-y += mthca-abi.h
+-header-y += nes-abi.h
+-header-y += ocrdma-abi.h
+-header-y += hns-abi.h
+-header-y += vmw_pvrdma-abi.h
+diff --git a/include/uapi/rdma/hfi/Kbuild b/include/uapi/rdma/hfi/Kbuild
+deleted file mode 100644
+index ef23c294fc71..000000000000
+--- a/include/uapi/rdma/hfi/Kbuild
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# UAPI Header export list
+-header-y += hfi1_user.h
+diff --git a/include/uapi/scsi/Kbuild b/include/uapi/scsi/Kbuild
+deleted file mode 100644
+index d791e0ad509d..000000000000
+--- a/include/uapi/scsi/Kbuild
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# UAPI Header export list
+-header-y += fc/
+-header-y += scsi_bsg_fc.h
+-header-y += scsi_netlink.h
+-header-y += scsi_netlink_fc.h
+-header-y += cxlflash_ioctl.h
+diff --git a/include/uapi/scsi/fc/Kbuild b/include/uapi/scsi/fc/Kbuild
+deleted file mode 100644
+index 5ead9fac265c..000000000000
+--- a/include/uapi/scsi/fc/Kbuild
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# UAPI Header export list
+-header-y += fc_els.h
+-header-y += fc_fs.h
+-header-y += fc_gs.h
+-header-y += fc_ns.h
+diff --git a/include/uapi/sound/Kbuild b/include/uapi/sound/Kbuild
+deleted file mode 100644
+index 9578d8bdbf31..000000000000
+--- a/include/uapi/sound/Kbuild
++++ /dev/null
+@@ -1,16 +0,0 @@
+-# UAPI Header export list
+-header-y += asequencer.h
+-header-y += asoc.h
+-header-y += asound.h
+-header-y += asound_fm.h
+-header-y += compress_offload.h
+-header-y += compress_params.h
+-header-y += emu10k1.h
+-header-y += firewire.h
+-header-y += hdsp.h
+-header-y += hdspm.h
+-header-y += sb16_csp.h
+-header-y += sfnt_info.h
+-header-y += tlv.h
+-header-y += usb_stream.h
+-header-y += snd_sst_tokens.h
+diff --git a/include/uapi/video/Kbuild b/include/uapi/video/Kbuild
+deleted file mode 100644
+index ac7203bb32cc..000000000000
+--- a/include/uapi/video/Kbuild
++++ /dev/null
+@@ -1,4 +0,0 @@
+-# UAPI Header export list
+-header-y += edid.h
+-header-y += sisfb.h
+-header-y += uvesafb.h
+diff --git a/include/uapi/xen/Kbuild b/include/uapi/xen/Kbuild
+deleted file mode 100644
+index 5c459628e8c7..000000000000
+--- a/include/uapi/xen/Kbuild
++++ /dev/null
+@@ -1,5 +0,0 @@
+-# UAPI Header export list
+-header-y += evtchn.h
+-header-y += gntalloc.h
+-header-y += gntdev.h
+-header-y += privcmd.h
+diff --git a/include/video/Kbuild b/include/video/Kbuild
+deleted file mode 100644
+index e69de29bb2d1..000000000000
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index 876b42cfede4..16ac3e71050e 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -1,17 +1,19 @@
+ # =====================================
+ # Installing headers
+ #
+-# header-y  - list files to be installed. They are preprocessed
+-#             to remove __KERNEL__ section of the file
+-# genhdr-y  - Same as header-y but in a generated/ directory
++# All headers under include/uapi, include/generated/uapi,
++# arch/<arch>/include/uapi/asm and arch/<arch>/include/generated/uapi/asm are
++# exported.
++# They are preprocessed to remove __KERNEL__ section of the file.
+ #
+ # =====================================
+ 
+ # generated header directory
+ gen := $(if $(gen),$(gen),$(subst include/,include/generated/,$(obj)))
+ 
++# Kbuild file is optional
+ kbuild-file := $(srctree)/$(obj)/Kbuild
+-include $(kbuild-file)
++-include $(kbuild-file)
+ 
+ # called may set destination dir (when installing to asm/)
+ _dst := $(if $(dst),$(dst),$(obj))
+@@ -25,9 +27,12 @@ include scripts/Kbuild.include
+ 
+ installdir    := $(INSTALL_HDR_PATH)/$(subst uapi/,,$(_dst))
+ 
+-header-y      := $(sort $(header-y))
+-subdirs       := $(patsubst %/,%,$(filter %/, $(header-y)))
+-header-y      := $(filter-out %/, $(header-y))
++subdirs       := $(patsubst $(srctree)/$(obj)/%/.,%,$(wildcard $(srctree)/$(obj)/*/.))
++subdirs       += $(subdir-y)
++header-files  := $(notdir $(wildcard $(srctree)/$(obj)/*.h))
++header-files  += $(notdir $(wildcard $(srctree)/$(obj)/*.agh))
++genhdr-files  := $(notdir $(wildcard $(srctree)/$(gen)/*.h))
++genhdr-files  := $(filter-out $(header-files), $(genhdr-files))
+ 
+ # files used to track state of install/check
+ install-file  := $(installdir)/.install
+@@ -35,25 +40,23 @@ check-file    := $(installdir)/.check
+ 
+ # generic-y list all files an architecture uses from asm-generic
+ # Use this to build a list of headers which require a wrapper
+-wrapper-files := $(filter $(header-y), $(generic-y))
++generic-files := $(notdir $(wildcard $(srctree)/include/uapi/asm-generic/*.h))
++wrapper-files := $(filter $(generic-files), $(generic-y))
++wrapper-files := $(filter-out $(header-files), $(wrapper-files))
+ 
+ srcdir        := $(srctree)/$(obj)
+ gendir        := $(objtree)/$(gen)
+ 
+ # all headers files for this dir
+-header-y      := $(filter-out $(generic-y), $(header-y))
+-all-files     := $(header-y) $(genhdr-y) $(wrapper-files)
++all-files     := $(header-files) $(genhdr-files) $(wrapper-files)
+ output-files  := $(addprefix $(installdir)/, $(all-files))
+ 
+-# Check that all expected files exist
+-$(foreach hdr, $(header-y), \
+-  $(if $(wildcard $(srcdir)/$(hdr)),, \
+-       $(error Missing UAPI file $(srcdir)/$(hdr)) \
+-   ))
+-$(foreach hdr, $(genhdr-y), \
+-  $(if	$(wildcard $(gendir)/$(hdr)),, \
+-       $(error Missing generated UAPI file $(gendir)/$(hdr)) \
+-  ))
++ifneq ($(mandatory-y),)
++missing       := $(filter-out $(all-files),$(mandatory-y))
++ifneq ($(missing),)
++$(error Some mandatory headers ($(missing)) are missing in $(obj))
++endif
++endif
+ 
+ # Work out what needs to be removed
+ oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
+@@ -67,8 +70,8 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
+ quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
+                             file$(if $(word 2, $(all-files)),s))
+       cmd_install = \
+-        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-y); \
+-        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-y); \
++        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-files); \
++        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-files); \
+         for F in $(wrapper-files); do                                   \
+                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
+         done;                                                           \
+-- 
+2.8.1
 
