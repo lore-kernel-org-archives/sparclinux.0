@@ -1,15 +1,85 @@
-From: "Dr. David White" <"wd."@eagle.ocn.ne.jp>
-Date: Mon, 02 Jan 2017 17:55:43 +0000
-Subject: Urgent Please;;
-Message-Id: <581334753.116393405.1483379743285.JavaMail.root@eagle.ocn.ne.jp>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Date: Fri, 13 Jan 2017 10:46:43 +0000
+Subject: [PATCH v3 5/8] Makefile.headersinst: cleanup input files
+Message-Id: <1484304406-10820-6-git-send-email-nicolas.dichtel@6wind.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <3131144.4Ej3KFWRbz@wuerfel>
+ <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: arnd@arndb.de
+Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.
 
-Dear,
-With due respect to your person and much sincerity of purpose. I have a business proposal which I will like to handle with you and $14.5 Million USD is involve. But be rest assured that everything is legal and risk free as I have concluded all the arrangements and the legal papers that will back the transaction up. Kindly indicate your interest as to enable me tell you more detail of the proposal. Waiting for your urgent response.
+After the last four patches, all exported headers are under uapi/, thus
+input-files2 are not needed anymore.
+The side effect is that input-files1-name is exactly header-y.
 
-Yours Faithfully,
-Dr. David White
+Note also that input-files3-name is genhdr-y.
+
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ scripts/Makefile.headersinst | 34 +++++++++++-----------------------
+ 1 file changed, 11 insertions(+), 23 deletions(-)
+
+diff --git a/scripts/Makefile.headersinst b/scripts/Makefile.headersinst
+index 1106d6ca3a38..3e20d03432d2 100644
+--- a/scripts/Makefile.headersinst
++++ b/scripts/Makefile.headersinst
+@@ -40,31 +40,20 @@ wrapper-files := $(filter $(header-y), $(generic-y))
+ srcdir        := $(srctree)/$(obj)
+ gendir        := $(objtree)/$(gen)
+ 
+-oldsrcdir     := $(srctree)/$(subst /uapi,,$(obj))
+-
+ # all headers files for this dir
+ header-y      := $(filter-out $(generic-y), $(header-y))
+ all-files     := $(header-y) $(genhdr-y) $(wrapper-files)
+ output-files  := $(addprefix $(installdir)/, $(all-files))
+ 
+-input-files1  := $(foreach hdr, $(header-y), \
+-		   $(if $(wildcard $(srcdir)/$(hdr)), \
+-			$(wildcard $(srcdir)/$(hdr))) \
+-		   )
+-input-files1-name := $(notdir $(input-files1))
+-input-files2  := $(foreach hdr, $(header-y), \
+-		   $(if  $(wildcard $(srcdir)/$(hdr)),, \
+-			$(if $(wildcard $(oldsrcdir)/$(hdr)), \
+-				$(wildcard $(oldsrcdir)/$(hdr)), \
+-				$(error Missing UAPI file $(srcdir)/$(hdr))) \
+-		   ))
+-input-files2-name := $(notdir $(input-files2))
+-input-files3  := $(foreach hdr, $(genhdr-y), \
+-		   $(if	$(wildcard $(gendir)/$(hdr)), \
+-			$(wildcard $(gendir)/$(hdr)), \
+-			$(error Missing generated UAPI file $(gendir)/$(hdr)) \
+-		   ))
+-input-files3-name := $(notdir $(input-files3))
++# Check that all expected files exist
++$(foreach hdr, $(header-y), \
++  $(if $(wildcard $(srcdir)/$(hdr)),, \
++       $(error Missing UAPI file $(srcdir)/$(hdr)) \
++   ))
++$(foreach hdr, $(genhdr-y), \
++  $(if	$(wildcard $(gendir)/$(hdr)),, \
++       $(error Missing generated UAPI file $(gendir)/$(hdr)) \
++  ))
+ 
+ # Work out what needs to be removed
+ oldheaders    := $(patsubst $(installdir)/%,%,$(wildcard $(installdir)/*.h))
+@@ -78,9 +67,8 @@ printdir = $(patsubst $(INSTALL_HDR_PATH)/%/,%,$(dir $@))
+ quiet_cmd_install = INSTALL $(printdir) ($(words $(all-files))\
+                             file$(if $(word 2, $(all-files)),s))
+       cmd_install = \
+-        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(input-files1-name); \
+-        $(CONFIG_SHELL) $< $(installdir) $(oldsrcdir) $(input-files2-name); \
+-        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(input-files3-name); \
++        $(CONFIG_SHELL) $< $(installdir) $(srcdir) $(header-y); \
++        $(CONFIG_SHELL) $< $(installdir) $(gendir) $(genhdr-y); \
+         for F in $(wrapper-files); do                                   \
+                 echo "\#include <asm-generic/$$F>" > $(installdir)/$$F;    \
+         done;                                                           \
+-- 
+2.8.1
+
