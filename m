@@ -1,65 +1,35 @@
-From: Shannon Nelson <shannon.lee.nelson@gmail.com>
-Date: Mon, 09 Jan 2017 22:50:19 +0000
-Subject: Re: console noise after commit c1e9b3b0eea
-Message-Id: <CAP-MU4PhQoWsdCLX-D40Fi1Vs5win=SqYv16GJ_y+GSRMETL1w@mail.gmail.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Date: Fri, 13 Jan 2017 10:46:41 +0000
+Subject: [PATCH v3 3/8] nios2: put setup.h in uapi
+Message-Id: <1484304406-10820-4-git-send-email-nicolas.dichtel@6wind.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20160419223325.GA15852@oracle.com>
-In-Reply-To: <20160419223325.GA15852@oracle.com>
+References: <3131144.4Ej3KFWRbz@wuerfel>
+ <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
+In-Reply-To: <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: arnd@arndb.de
+Cc: mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.
 
-The real issue here is that a hardware feature was enabled but
-probably only tested in the LDom, not on the actual hardware.  The
-self-test code is only used when running in the primary LDom, or on
-the bare hardware with no ldm running; the self-test code is not used
-in the client LDom.  The newer hardware has a different register
-layout, thus the self-test fails and reschedules itself to test again
-in 2 seconds, and never gives up.
+This header file is exported, but from a userland pov, it's just a wrapper
+to asm-generic/setup.h.
 
-I'm cleaning up and testing a set of patches that disables the
-self-test loop after a few failures to stop the logfile spewage, and
-uses the correct register layout on the new hardware.
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ arch/nios2/include/uapi/asm/Kbuild | 1 +
+ 1 file changed, 1 insertion(+)
 
-sln
-
-On Sat, Jan 7, 2017 at 5:30 AM, Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
-> On (01/07/17 15:51), Anatoly Pugachev wrote:
->> Sowmini ,
->>
->> what is your linux sysctl value for kernel.printk ?
->>
->> mine is :
->> kernel.printk = 7       4       1       7
->
-> I also have that:
-> # cat /proc/sys/kernel/printk
-> 7       4       1       7
->
-> But that's not the point- I have different levels of printks
-> at various times to help me debug things at verious levels,
-> (as our customers do) and this noise is a hindrance.
-> We should really be getting to the bottom of this, and
-> solving the real issue here.
->
-> I think Shannon has made some good pregress with this, he
-> should be sharing it on the list soon.
->
-> (suppressing the printk is like asking me to remove the
-> batteries from my fire-alarm- that's not the answer)
->
-> --Sowmini
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/arch/nios2/include/uapi/asm/Kbuild b/arch/nios2/include/uapi/asm/Kbuild
+index e0bb972a50d7..69c965304146 100644
+--- a/arch/nios2/include/uapi/asm/Kbuild
++++ b/arch/nios2/include/uapi/asm/Kbuild
+@@ -2,4 +2,5 @@ include include/uapi/asm-generic/Kbuild.asm
+ 
+ header-y += elf.h
+ 
++generic-y += setup.h
+ generic-y += ucontext.h
 -- 
-=======================
-Mr. Shannon Nelson         Parents can't afford to be squeamish.
+2.8.1
+
