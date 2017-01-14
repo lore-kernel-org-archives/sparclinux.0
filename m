@@ -1,22 +1,60 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Date: Fri, 13 Jan 2017 10:55:50 +0000
-Subject: Re: [PATCH v3 3/8] nios2: put setup.h in uapi
-Message-Id: <20170113105550.GD1201@distanz.ch>
+From: Bhumika Goyal <bhumirks@gmail.com>
+Date: Sat, 14 Jan 2017 12:43:54 +0000
+Subject: [PATCH] sparc32: mm: srmmu: add __ro_after_init to sparc32_cachetlb_ops structures
+Message-Id: <1484397114-7705-1-git-send-email-bhumirks@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <3131144.4Ej3KFWRbz@wuerfel>
- <1484304406-10820-1-git-send-email-nicolas.dichtel@6wind.com>
- <1484304406-10820-4-git-send-email-nicolas.dichtel@6wind.com>
-In-Reply-To: <1484304406-10820-4-git-send-email-nicolas.dichtel@6wind.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Cc: arnd@arndb.de, mmarek@suse.com, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-am33-list@redhat.com, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.orglinux-ar
+To: julia.lawall@lip6.fr, davem@davemloft.net, sparclinux@vger.kernel.org, keescook@chromium.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
 
-On 2017-01-13 at 11:46:41 +0100, Nicolas Dichtel <nicolas.dichtel@6wind.com> wrote:
-> This header file is exported, but from a userland pov, it's just a wrapper
-> to asm-generic/setup.h.
-> 
-> Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+The objects viking_ops, viking_sun4d_smp_ops and smp_cachetlb_ops of
+type sparc32_cachetlb_ops are not modified anywhere after getting modified 
+in the init functions. Inside init their reference is also stored in a
+pointer of type const struct sparc32_cachetlb_ops *. So these structures 
+are never modified after init, therefore add __ro_after to the declaration 
+of these structures.
 
-Reviewed-by: Tobias Klauser <tklauser@distanz.ch>
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+Instead of using __ro_after_init for the viking_* structures, should I 
+use const by making two copies of these structures with different field values? 
+
+ arch/sparc/mm/srmmu.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index c7f2a52..def82f6 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1444,7 +1444,7 @@ static void poke_viking(void)
+ 	srmmu_set_mmureg(mreg);
+ }
+ 
+-static struct sparc32_cachetlb_ops viking_ops = {
++static struct sparc32_cachetlb_ops viking_ops __ro_after_init = {
+ 	.cache_all	= viking_flush_cache_all,
+ 	.cache_mm	= viking_flush_cache_mm,
+ 	.cache_page	= viking_flush_cache_page,
+@@ -1475,7 +1475,7 @@ static void poke_viking(void)
+  * flushes going at once will require SMP locking anyways so there's
+  * no real value in trying any harder than this.
+  */
+-static struct sparc32_cachetlb_ops viking_sun4d_smp_ops = {
++static struct sparc32_cachetlb_ops viking_sun4d_smp_ops __ro_after_init = {
+ 	.cache_all	= viking_flush_cache_all,
+ 	.cache_mm	= viking_flush_cache_mm,
+ 	.cache_page	= viking_flush_cache_page,
+@@ -1759,7 +1759,7 @@ static void smp_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
+ 	local_ops->sig_insns(mm, insn_addr);
+ }
+ 
+-static struct sparc32_cachetlb_ops smp_cachetlb_ops = {
++static struct sparc32_cachetlb_ops smp_cachetlb_ops __ro_after_init = {
+ 	.cache_all	= smp_flush_cache_all,
+ 	.cache_mm	= smp_flush_cache_mm,
+ 	.cache_page	= smp_flush_cache_page,
+-- 
+1.9.1
+
