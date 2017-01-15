@@ -1,78 +1,42 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 11 Jan 2017 17:15:27 +0000
-Subject: Re: [PATCH v4 2/4] mm: Add function to support extra actions on swap in/out
-Message-Id: <c5469ff4-1ed8-e545-069d-3c2d48c9a4e0@oracle.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Sun, 15 Jan 2017 21:12:11 +0000
+Subject: [PATCH v4 2/6] tools: add init.h for tools
+Message-Id: <20170115211215.17216-3-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1483999591.git.khalid.aziz@oracle.com>
- <c24c7a844c61d6f8d57dd3791ad7ab5f05305c6b.1483999591.git.khalid.aziz@oracle.com>
- <b31a3aef-26d9-6d3a-109b-c8453a3a2aef@linux.intel.com>
-In-Reply-To: <b31a3aef-26d9-6d3a-109b-c8453a3a2aef@linux.intel.com>
+References: <20170109150249.11667-1-mcgrof@kernel.org>
+ <20170115211215.17216-1-mcgrof@kernel.org>
+In-Reply-To: <20170115211215.17216-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dave Hansen <dave.hansen@linux.intel.com>, akpm@linux-foundation.org, davem@davemloft.net, arnd@arndb.de
-Cc: kirill.shutemov@linux.intel.com, mhocko@suse.com, jmarchan@redhat.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
 
-On 01/11/2017 09:56 AM, Dave Hansen wrote:
-> On 01/11/2017 08:12 AM, Khalid Aziz wrote:
->> +#ifndef set_swp_pte_at
->> +#define set_swp_pte_at(mm, addr, ptep, pte, oldpte)	\
->> +		set_pte_at(mm, addr, ptep, pte)
->> +#endif
->
-> BTW, thanks for the *much* improved description of the series.  This is
-> way easier to understand.
+Start off with just __ref -- we enalbe you to override, if you do
+that then you can define your own. The way you'd use this, if you
+do override, is define your own __ref and then use include_next.
 
-Your feedback was very helpful in getting me there.
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ tools/include/linux/init.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+ create mode 100644 tools/include/linux/init.h
 
->
-> I really don't think this is the interface we want, though.
-> set_swp_pte_at() is really doing *two* things:
-> 1. Detecting _PAGE_MCD_4V and squirreling the MCD data away at swap-out
-> 2. Reading back in the MCD data at swap-on
->
-> You're effectively using (!pte_none(pte) && !pte_present(pte)) to
-> determine whether you're at swap in or swap out time.  That's goofy, IMNHO.
->
-> It isn't obvious from the context, but this hunk is creating a migration
-> PTE.  Why is ADI tag manipulation needed?  We're just changing the
-> physical address of the underlying memory, but neither the
-> application-visible contents nor the tags are changing.
-
-Memory controller associates tags with physical memory. MMU verifies 
-these tags against the tag embedded in VA. If physical memory is moved, 
-tags must move with it.
-
->
->> @@ -1539,7 +1539,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
->>  		swp_pte = swp_entry_to_pte(entry);
->>  		if (pte_soft_dirty(pteval))
->>  			swp_pte = pte_swp_mksoft_dirty(swp_pte);
->> -		set_pte_at(mm, address, pte, swp_pte);
->> +		set_swp_pte_at(mm, address, pte, swp_pte, pteval);
->>  	} else if (PageAnon(page)) {
->>  		swp_entry_t entry = { .val = page_private(page) };
->>  		pte_t swp_pte;
->
-> Which means you're down to a single call that does swap-out, and a
-> single call that does swap-in.  There's no reason to hide all your code
-> behind set_pte_at().
->
-> Just add a new arch-specific call that takes the VMA and the swap PTE
-> and stores the ADI bit in there, here:
->
->> @@ -1572,7 +1572,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
->>  		swp_pte = swp_entry_to_pte(entry);
->>  		if (pte_soft_dirty(pteval))
->>  			swp_pte = pte_swp_mksoft_dirty(swp_pte);
->> -		set_pte_at(mm, address, pte, swp_pte);
->> +		set_swp_pte_at(mm, address, pte, swp_pte, pteval);
->>  	} else
->
-> and in do_swap_page(), do the opposite with a second, new call.
-
-That does sound simpler. I will give it more thought.
-
-Thanks,
-Khalid
+diff --git a/tools/include/linux/init.h b/tools/include/linux/init.h
+new file mode 100644
+index 000000000000..6d970a360a05
+--- /dev/null
++++ b/tools/include/linux/init.h
+@@ -0,0 +1,9 @@
++#ifndef _TOOLS_LINUX_INIT_H
++#define _TOOLS_LINUX_INIT_H
++
++/* this means you can add your own to fit you own userspace needs */
++#ifndef __ref
++#define __ref
++#endif
++
++#endif /* _TOOLS_LINUX_INIT_H */
+-- 
+2.11.0
 
