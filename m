@@ -1,29 +1,44 @@
-From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Tue, 24 Jan 2017 15:35:40 +0000
-Subject: Re: Booting qla2x00_mailbox_command+0x8ac/0xec0
-Message-Id: <1485272140.5284.3.camel@xs4all.nl>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Sun, 15 Jan 2017 21:10:49 +0000
+Subject: [PATCH v7 06/14] firmware/Makefile: force recompilation if makefile changes
+Message-Id: <20170115211057.17167-7-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1485045213.3904.4.camel@xs4all.nl>
-         <20170123153814.pp4oec3ynssvzlly@oracle.com>
-         <1485192462.8703.2.camel@xs4all.nl>
-In-Reply-To: <1485192462.8703.2.camel@xs4all.nl>
+References: <20170109145833.11502-1-mcgrof@kernel.org>
+ <20170115211057.17167-1-mcgrof@kernel.org>
+In-Reply-To: <20170115211057.17167-1-mcgrof@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Scsi list <linux-scsi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
 
-Dear Team,
+If you modify the target asm we currently do not force the
+recompilation of the firmware files. The target asm is in
+the firmware/Makefile, peg this file as a dependency to
+require re-compilation of firmware targets when the asm
+changes.
 
-On Mon, 2017-01-23 at 18:27 +0100, Frans van Berckel wrote:
->=20
-> If someone could dig into trap_64 in cheetah_deferred_handler? I am
-> able to install=C2=A0the dbgsym of the linux-image package and set debug
-> on.
->=20
-> That will be in the next e-mail if it does what we are looking for.
+v3: introduced in this series
 
-It looks the Debug kernel by Debian is to big to load by Silo.
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ firmware/Makefile | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks,
+diff --git a/firmware/Makefile b/firmware/Makefile
+index e297e1b52636..fa3e81c2a97b 100644
+--- a/firmware/Makefile
++++ b/firmware/Makefile
+@@ -176,7 +176,8 @@ quiet_cmd_fwbin = MK_FW   $@
+ wordsize_deps := $(wildcard include/config/64bit.h include/config/32bit.h \
+ 		include/config/ppc32.h include/config/ppc64.h \
+ 		include/config/superh32.h include/config/superh64.h \
+-		include/config/x86_32.h include/config/x86_64.h)
++		include/config/x86_32.h include/config/x86_64.h \
++		firmware/Makefile)
+ 
+ $(patsubst %,$(obj)/%.gen.S, $(fw-shipped-y)): %: $(wordsize_deps)
+ 	$(call cmd,fwbin,$(patsubst %.gen.S,%,$@))
+-- 
+2.11.0
 
-Frans van Berckel
