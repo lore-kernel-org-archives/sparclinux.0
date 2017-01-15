@@ -1,44 +1,45 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 19 Jan 2017 11:13:22 +0000
-Subject: Re: [PATCH v7 04/14] tables.h: add linker table support
-Message-Id: <20170119111322.GJ28024@kroah.com>
+From: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Date: Sun, 15 Jan 2017 21:12:12 +0000
+Subject: [PATCH v4 3/6] tools: add __used and enable to override
+Message-Id: <20170115211215.17216-4-mcgrof@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170109145833.11502-1-mcgrof@kernel.org>
- <20170115211057.17167-1-mcgrof@kernel.org>
- <20170115211057.17167-5-mcgrof@kernel.org>
-In-Reply-To: <20170115211057.17167-5-mcgrof@kernel.org>
+References: <20170109150249.11667-1-mcgrof@kernel.org>
+ <20170115211215.17216-1-mcgrof@kernel.org>
+In-Reply-To: <20170115211215.17216-1-mcgrof@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk, x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org
+To: bp@alien8.de, bp@suse.de, hpa@zytor.com, acme@redhat.com, tglx@linutronix.de, mingo@redhat.com, jpoimboe@redhat.com, npiggin@gmail.com, mhiramat@kernel.org, masami.hiramatsu.pt@hitachi.com, jbaron@akamai.com, heiko.carstens@de.ibm.com, ananth@linux.vnet.ibm.com, anil.s.keshavamurthy@intel.com, davem@davemloft.net, realmz6@gmail.com, dalias@libc.org, linux@arm.linux.org.uk
+Cc: x86@kernel.org, luto@amacapital.net, keescook@chromium.org, linux@roeck-us.net, torvalds@linux-foundation.org, gregkh@linuxfoundation.org, rusty@rustcorp.com.au, gnomes@lxorguk.ukuu.org.uk, alan@linux.intel.com, dwmw2@infradead.org, arnd@arndb.de, ming.lei@canonical.com, linux-arch@vger.kernel.org, benh@kernel.crashing.org, pebolle@tiscali.nl, fontana@sharpeleven.org, david.vrabel@citrix.com, konrad.wilk@oracle.com, mcb30@ipxe.org, jgross@suse.com, andrew.cooper3@citrix.com, andriy.shevchenko@linux.intel.com, paul.gortmaker@windriver.com, xen-devel@lists.xensource.com, ak@linux.intel.com, pali.rohar@gmail.com, dvhart@infradead.org, platform-driver-x86@vger.kernel.org, mmarek@suse.com, linux@rasmusvillemoes.dk, jkosina@suse.cz, korea.drzix@gmail.com, linux-kbuild@vger.kernel
 
-On Sun, Jan 15, 2017 at 01:10:47PM -0800, Luis R. Rodriguez wrote:
-> A linker table is a data structure that is stitched together from items
-> in multiple object files. Linux has historically implicitly used linker
-> tables for ages, however they were all built in an adhoc manner which
-> requires linker script modifications, per architecture. This adds a
-> general linker table solution so that a new linker table can be
-> implemented by changing C code only. The Linux linker table was
-> inspired by Michael Brown's iPXE's linker table solution, it has been
-> been completely re-written and adapted for integration and use on Linux.
+This adds __used, to be used later in the userspace linker-tables
+sandbox. If any userspace applicaiton wants to override they can
+add their own definition and then use include_next.
 
-Ok, I understand that, but then you say:
+This definition should probably suffice for most uses cases though.
 
-> The same philosophy is borrowed, extended and further simplified:
+Signed-off-by: Luis R. Rodriguez <mcgrof@kernel.org>
+---
+ tools/include/linux/compiler.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-This line made no sense :(
+diff --git a/tools/include/linux/compiler.h b/tools/include/linux/compiler.h
+index e33fc1df3935..556c991de212 100644
+--- a/tools/include/linux/compiler.h
++++ b/tools/include/linux/compiler.h
+@@ -5,6 +5,12 @@
+ /* The "volatile" is due to gcc bugs */
+ #define barrier() __asm__ __volatile__("": : :"memory")
+ 
++
++/* You can override as you see fit on your userspace tool */
++#ifndef __used
++#define __used          __attribute__((__used__))
++#endif
++
+ #ifndef __always_inline
+ # define __always_inline	inline __attribute__((always_inline))
+ #endif
+-- 
+2.11.0
 
-> Linker tables enable an extremely light weight linker build time
-> solution for feature ordering and selection, this can help to both
-> simplify init sequences in a generic fashion and helps avoiding code
-> bit-rotting when desirable. Further changes will be added later
-> which will make more evident how code bit rot can be avoided using
-> linker tables.
-
-I have no idea why this is needed, nor what it means.  I fail to
-understand the bit-rot reference.
-
-thanks,
-
-greg k-h
