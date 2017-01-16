@@ -1,74 +1,42 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Wed, 04 Jan 2017 22:28:04 +0000
-Subject: [PATCH] sysrq: Reset the watchdog timers while displaying high-resolution timers
-Message-Id: <1483568884-29109-1-git-send-email-tom.hromatka@oracle.com>
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Date: Mon, 16 Jan 2017 18:12:13 +0000
+Subject: [PATCH v2 1/2] sparc64: Zero pages on allocation for mondo and error queues.
+Message-Id: <1484590334-15668-2-git-send-email-Liam.Howlett@Oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, john.stultz@linaro.org, sparclinux@vger.kernel.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-On systems with a large number of CPUs, running sysrq-<q> can cause
-watchdog timeouts.  There are two slow sections of code in the sysrq-<q>
-path in timer_list.c.
+Error queues use a non-zero first word to detect if the queues are full.
+Using pages that have not been zeroed may result in false positive
+overflow events.  These queues are set up once during boot so zeroing
+all mondo and error queue pages is safe.
 
-1. print_active_timers() - This function is called by print_cpu() and
-   contains a slow goto loop.  On a machine with hundreds of CPUs, this
-   loop took approximately 100ms for the first CPU in a NUMA node.
-   (Subsequent CPUs in the same node ran much quicker.)  The total time
-   to print all of the CPUs is ultimately long enough to trigger the
-   soft lockup watchdog.
+Note that the false positive overflow does not always occur because the
+page allocation for these queues is so early in the boot cycle that
+higher number CPUs get fresh pages.  It is only when traps are serviced
+with lower number CPUs who were given already used pages that this issue
+is exposed.
 
-2. print_tickdevice() - This function outputs a large amount of textual
-   information.  This function also took approximately 100ms per CPU.
-
-Since sysrq-<q> is not a performance critical path, there should be no
-harm in touching the nmi watchdog in both slow sections above.  Touching
-it in just one location was insufficient on systems with hundreds of
-CPUs as occasional timeouts were still observed during testing.
-
-This issue was observed on an Oracle T7 machine with 128 CPUs, but I
-anticipate it may affect other systems with similarly large numbers of
-CPUs.
-
-Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
-Reviewed-by: Rob Gardner <rob.gardner@oracle.com>
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 ---
- kernel/time/timer_list.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/sparc/kernel/irq_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/kernel/time/timer_list.c b/kernel/time/timer_list.c
-index afe6cd1..f8dd5e2 100644
---- a/kernel/time/timer_list.c
-+++ b/kernel/time/timer_list.c
-@@ -16,6 +16,7 @@
- #include <linux/sched.h>
- #include <linux/seq_file.h>
- #include <linux/kallsyms.h>
-+#include <linux/nmi.h>
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 34a7930..baed4cd 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -1021,7 +1021,7 @@ static void __init alloc_one_queue(unsigned long *pa_ptr, unsigned long qmask)
+ 	unsigned long order = get_order(size);
+ 	unsigned long p;
  
- #include <linux/uaccess.h>
- 
-@@ -96,6 +97,9 @@ print_active_timers(struct seq_file *m, struct hrtimer_clock_base *base,
- 
- next_one:
- 	i = 0;
-+
-+	touch_nmi_watchdog();
-+
- 	raw_spin_lock_irqsave(&base->cpu_base->lock, flags);
- 
- 	curr = timerqueue_getnext(&base->active);
-@@ -207,6 +211,8 @@ print_tickdevice(struct seq_file *m, struct tick_device *td, int cpu)
- {
- 	struct clock_event_device *dev = td->evtdev;
- 
-+	touch_nmi_watchdog();
-+
- 	SEQ_printf(m, "Tick Device: mode:     %d\n", td->mode);
- 	if (cpu < 0)
- 		SEQ_printf(m, "Broadcast device\n");
+-	p = __get_free_pages(GFP_KERNEL, order);
++	p = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+ 	if (!p) {
+ 		prom_printf("SUN4V: Error, cannot allocate queue.\n");
+ 		prom_halt();
 -- 
-2.7.4
+2.1.4
 
