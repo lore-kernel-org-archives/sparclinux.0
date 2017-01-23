@@ -1,42 +1,45 @@
-From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
-Date: Tue, 17 Jan 2017 15:59:02 +0000
-Subject: [PATCH v3 1/2] sparc64: Zero pages on allocation for mondo and error queues.
-Message-Id: <1484668743-9205-2-git-send-email-Liam.Howlett@Oracle.com>
+From: Issouf Abdoul <iamdirector03@gmail.com>
+Date: Mon, 23 Jan 2017 02:18:29 +0000
+Subject: HELP ME PLEASE
+Message-Id: <CAFDGhRzdapkhDRSd3rxM=oPWfqkmZDpa54sk4YTmrxbeggaXKA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
-Error queues use a non-zero first word to detect if the queues are full.
-Using pages that have not been zeroed may result in false positive
-overflow events.  These queues are set up once during boot so zeroing
-all mondo and error queue pages is safe.
+ HELP ME PLEASE
+Dear  Friend
 
-Note that the false positive overflow does not always occur because the
-page allocation for these queues is so early in the boot cycle that
-higher number CPUs get fresh pages.  It is only when traps are serviced
-with lower number CPUs who were given already used pages that this issue
-is exposed.
+I am Mr. Abdoul Issouf ,I work for BOA bank Ouagadougou Burkina Faso.
+I have a business proposal which concerns the transfer of  $13.5
+Million USD,  into a foreign account. Everything about this
+transaction shall be legally done without any problem.  If you are
+interested to help me, I will give you more details as soon as I
+receive your positive response. You will be entitled to 40%, 60% will
+be for me,. If you are willing to work with me, send me immediately
+the information listed bellow.
 
-Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
----
- arch/sparc/kernel/irq_64.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+If you are willing to work with me, Kindly respond to my proposal via
+my private email address for security and confidential reasons
+(mrissouf1@gmail.com )
 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 34a7930..baed4cd 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -1021,7 +1021,7 @@ static void __init alloc_one_queue(unsigned long *pa_ptr, unsigned long qmask)
- 	unsigned long order = get_order(size);
- 	unsigned long p;
- 
--	p = __get_free_pages(GFP_KERNEL, order);
-+	p = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
- 	if (!p) {
- 		prom_printf("SUN4V: Error, cannot allocate queue.\n");
- 		prom_halt();
--- 
-2.1.4
+Name…………………..
 
+Nationality……………..
+
+Age……………………..
+
+Sex........................... ..
+
+Occupation……………..
+
+Home Telephone...............
+
+Private Telephone…………....
+
+Address………………………………
+
+THANKS
+
+MR.ABDOUL ISSOUF
