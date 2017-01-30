@@ -1,75 +1,52 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 25 Jan 2017 22:57:36 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 30 Jan 2017 22:15:31 +0000
 Subject: Re: [PATCH v5 4/4] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <97f5ad25-432c-f536-d2af-681288b7cca1@oracle.com>
+Message-Id: <20170130.171531.1973857503703372714.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1485362562.git.khalid.aziz@oracle.com>
- <0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
- <154bc417-6333-f9ac-653b-9ed280f08450@oracle.com>
- <f5d8c6c8-07cd-3a28-f457-f965eea5495d@oracle.com>
- <19f33a99-e719-a2a5-4330-390ed7755315@oracle.com>
-In-Reply-To: <19f33a99-e719-a2a5-4330-390ed7755315@oracle.com>
+	<cover.1485362562.git.khalid.aziz@oracle.com>
+	<0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
+In-Reply-To: <0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rob Gardner <rob.gardner@oracle.com>, davem@davemloft.net, corbet@lwn.net
-Cc: viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
+To: khalid.aziz@oracle.com
+Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
 
-On 01/25/2017 03:50 PM, Rob Gardner wrote:
-> On 01/25/2017 03:20 PM, Khalid Aziz wrote:
->> On 01/25/2017 03:00 PM, Rob Gardner wrote:
->>> On 01/25/2017 12:57 PM, Khalid Aziz wrote:
->>>>
->>>> @@ -157,6 +158,24 @@ int __get_user_pages_fast(unsigned long start,
->>>> int nr_pages, int write,
->>>>       pgd_t *pgdp;
->>>>       int nr = 0;
->>>>   +#ifdef CONFIG_SPARC64
->>>> +    if (adi_capable()) {
->>>> +        long addr = start;
->>>> +
->>>> +        /* If userspace has passed a versioned address, kernel
->>>> +         * will not find it in the VMAs since it does not store
->>>> +         * the version tags in the list of VMAs. Storing version
->>>> +         * tags in list of VMAs is impractical since they can be
->>>> +         * changed any time from userspace without dropping into
->>>> +         * kernel. Any address search in VMAs will be done with
->>>> +         * non-versioned addresses. Ensure the ADI version bits
->>>> +         * are dropped here by sign extending the last bit before
->>>> +         * ADI bits. IOMMU does not implement version tags.
->>>> +         */
->>>> +        addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
->>>
->>>
->>> So you are depending on the sign extension to clear the ADI bits... but
->>> this only happens if there is a zero in that "last bit before ADI bits".
->>> If the last bit is a 1, then the ADI bits will be set instead of
->>> cleared.  That seems like an unintended consequence given the comment. I
->>> am aware of the value of adi_nbits() and of the number of valid bits in
->>> a virtual address on the M7 processor, but wouldn't using 'unsigned
->>> long' for everything here guarantee the ADI bits get cleared regardless
->>> of the state of the last non-adi bit?
->>
->> Sign extension is the right thing to do. MMU considers values of 0 and
->> 15 for bits 63-60 to be untagged addresses and expects bit 59 to be
->> sign-extended for untagged virtual addresses. The code I added is
->> explicitly meant to sign-extend, not zero out the top 4 bits.
->
-> OK, that wasn't perfectly clear from the comment, which said "version
-> bits are dropped".
->
-> So sign extending will produce an address that the MMU can use, but will
-> it produce an address that will allow a successful search in the page
-> tables? ie, was this same sign extending done when first handing out
-> that virtual address to the user?
->
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 25 Jan 2017 12:57:16 -0700
 
-Yes to both your questions. When virtual addresses are handed out, the 
-last implemented virtual address bit is sign-extended. Sign-extending 
-when dropping version bits preserves that original sign-extension. This 
-is why MMU considers tag values of 0 as well as 15 to be invalid because 
-they both represent sign-extension of the last implemented virtual address.
+> +static inline void enable_adi(void)
+> +{
+ ...
+> +	__asm__ __volatile__(
+> +		"rdpr %%pstate, %%g1\n\t"
+> +		"or %%g1, %0, %%g1\n\t"
+> +		"wrpr %%g1, %%g0, %%pstate\n\t"
+> +		".word 0x83438000\n\t"	/* rd %mcdper, %g1 */
+> +		".word 0xaf900001\n\t"	/* wrpr  %g0, %g1, %pmcdper */
+> +		:
+> +		: "i" (PSTATE_MCDE)
+> +		: "g1");
+> +}
 
---
-Khalid
+This is _crazy_ expensive.
 
+This is 4 privileged register operations, every single one incurs a full
+pipline flush and virtual cpu thread yield.
+
+And we do this around _every_ single userspace access from the kernel
+when the thread has ADI enabled.
+
+I think if the kernel manages the ADI metadata properly, you can get rid
+of all of this.
+
+On etrap, you change ESTATE_PSTATE{1,2} to have the MCDE bit enabled.
+Then the kernel always runs with ADI enabled.
+
+Furthermore, since the %mcdper register should be set to whatever the
+current task has asked for, you should be able to avoid touching it
+as well assuming that traps do not change %mcdper's value.
+
+Then you don't need to do anything special during userspace accesses
+which seems to be the way this was designed to be used.
