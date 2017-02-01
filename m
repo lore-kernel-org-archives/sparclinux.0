@@ -1,37 +1,36 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 10 Feb 2017 17:38:21 +0000
-Subject: [PATCH v3 net-next 5/9] sunvnet: add memory barrier before check for tx enable
-Message-Id: <1486748305-240339-6-git-send-email-shannon.nelson@oracle.com>
+From: Bob Picco <bob.picco@oracle.com>
+Date: Wed, 01 Feb 2017 12:38:23 +0000
+Subject: [PATCH 3/3] sparc64: increase FORCE_MAX_ZONEORDER to 16
+Message-Id: <20170201123823.6273-4-bob.picco@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: sparclinux@vger.kernel.org
 
-In order to allow the underlying LDC and outstanding memory operations
-to potentially catch up with the driver's Tx requests, add a memory
-barrier before checking again for available tx descriptors.
+From: bob picco <bob.picco@oracle.com>
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+This change enables large tsb sizes of up to 256MB. The performance
+improvement is substantial for those programs with an enormous tsb rss.
+
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/sparc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 624ad65..05fe85f 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -1429,6 +1429,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
- 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
- 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
- 		netif_tx_stop_queue(txq);
-+		smp_rmb();
- 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
- 			netif_tx_wake_queue(txq);
- 	}
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index cf4034c66362..55976119c7ca 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -318,7 +318,7 @@ config ARCH_SPARSEMEM_DEFAULT
+ 
+ config FORCE_MAX_ZONEORDER
+ 	int "Maximum zone order"
+-	default "13"
++	default "16"
+ 	help
+ 	  The kernel memory allocator divides physically contiguous memory
+ 	  blocks into "zones", where each zone is a power of two number of
 -- 
-1.7.1
+2.11.0
 
