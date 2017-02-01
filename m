@@ -1,26 +1,39 @@
-From: Anton Blanchard <anton@samba.org>
-Date: Thu, 16 Feb 2017 05:59:54 +0000
-Subject: Re: [PATCH] perf: Fix CONFIG_KPROBE_EVENTS and CONFIG_UPROBE_EVENTS typos
-Message-Id: <20170216165954.7cdc23e3@kryten>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 01 Feb 2017 17:18:32 +0000
+Subject: Re: [PATCH v5 4/4] sparc64: Add support for ADI (Application Data Integrity)
+Message-Id: <20170201.121832.1810577893703014061.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170212211449.25976-1-anton@ozlabs.org>
-        <20170213065152.GA30715@gmail.com>
-In-Reply-To: <20170213065152.GA30715@gmail.com>
+References: <0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
+	<20170130.171531.1973857503703372714.davem@davemloft.net>
+	<6c514e7e-338a-f1cd-140d-d4980ea6ac0f@oracle.com>
+In-Reply-To: <6c514e7e-338a-f1cd-140d-d4980ea6ac0f@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@kernel.org>
-Cc: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: khalid.aziz@oracle.com
+Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
 
-Hi Ingo,
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Tue, 31 Jan 2017 16:38:49 -0700
 
-> So the names should be fixed, it should be CONFIG_UPROBE_EVENTS and 
-> CONFIG_KPROBE_EVENTS throughout the code. It's CONFIG_PERF_EVENTS and 
-> CONFIG_PROBE_EVENTS after all and lives in kernel/events/ - all
-> plural.
+> Thanks for the feedback. This is very helpful. I checked and it indeed
+> can cost 50+ cycles even on M7 processor for PSTATE accesses.
+
+Consider how many bytes can be copied in 50+ cycles :-)
+
+>> On etrap, you change ESTATE_PSTATE{1,2} to have the MCDE bit enabled.
+>> Then the kernel always runs with ADI enabled.
 > 
-> I didn't notice the misnomer when merging these bits.
+> Running the kernel with PSTATE.mcde=1 can possibly be problematic as
+> we had discussed earlier in this thread where keeping PSTATE.mcde
+> enabled might mean kernel having to keep track of which pages still
+> have tags set on them or flush tags on every page on free. I will go
+> through the code again to see if it PSTATE.mcde can be turned on in
+> kernel all the time, which might be the case if we can ensure kernel
+> accesses pages with TTE.mcd cleared.
 
-Ok, patch to follow.
+If we can clear the tags properly on page release when the page was
+used for ADI, it can work.
 
-Anton
+One way would be to track the state in the page struct somehow, and
+in arch_alloc_page() clear the tags if necessary.
