@@ -1,49 +1,93 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Wed, 08 Feb 2017 21:50:27 +0000
-Subject: Re: [PATCH v2 net-next 1/9] sunvnet: make sunvnet common code dynamically loadable
-Message-Id: <ad857b9d-7f8b-cf65-5f1c-5d66b4cf60b9@oracle.com>
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Date: Wed, 01 Feb 2017 19:09:26 +0000
+Subject: [PATCH] sunvdc: Add support for setting physical sector size
+Message-Id: <1485976166-31220-1-git-send-email-Liam.Howlett@Oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
- <1486505582-76823-2-git-send-email-shannon.nelson@oracle.com>
- <20170208.142918.491209108288972402.davem@davemloft.net>
-In-Reply-To: <20170208.142918.491209108288972402.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 2/8/2017 11:29 AM, David Miller wrote:
-> From: Shannon Nelson <shannon.nelson@oracle.com>
-> Date: Tue,  7 Feb 2017 14:12:54 -0800
->
->> +static int __init sunvnet_common_init(void)
->> +{
->> +	pr_info("%s\n", version);
->> +	return 0;
->> +}
->> +module_init(sunvnet_common_init);
->> +
->> +static void __exit sunvnet_common_exit(void)
->> +{
->> +	/* Empty function, just here to fill the exit function pointer
->> +	 * slot.  In some combinations of older gcc and newer kernel,
->> +	 * leaving this undefined results in the kernel marking it as a
->> +	 * permanent module; it will show up in lsmod output as [permanent]
->> +	 * and not be unloadable.
->> +	 */
->> +}
->> +module_exit(sunvnet_common_exit);
->> +
->
-> This module is just providing infrastructure for other modules.
->
-> So skip the init function, and that way you don't need the exit
-> function either.
->
-> The kernel log message when the real sunvnet driver loads is
-> sufficient, you don't need one here.
->
+Physical sector size is supported in v1.2 of the vDisk protocol and
+should be set if available.  If protocol version 1.2 is used and the
+physical disk size is unavailable, then the disk is considered busy.
 
-Sure - thanks,
-sln
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+---
+ drivers/block/sunvdc.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index cab1573..3f3a3ab 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -34,6 +34,7 @@ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_MODULE_VERSION);
+ 
+ #define VDC_TX_RING_SIZE	512
++#define VDC_DEFAULT_BLK_SIZE	512
+ 
+ #define WAITING_FOR_LINK_UP	0x01
+ #define WAITING_FOR_TX_SPACE	0x02
+@@ -73,6 +74,7 @@ struct vdc_port {
+ 	u32			vdisk_size;
+ 	u8			vdisk_type;
+ 	u8			vdisk_mtype;
++	u32			vdisk_phys_blksz;
+ 
+ 	char			disk_name[32];
+ };
+@@ -88,6 +90,7 @@ static inline struct vdc_port *to_vdc_port(struct vio_driver_state *vio)
+ 
+ /* Ordered from largest major to lowest */
+ static struct vio_version vdc_versions[] = {
++	{ .major = 1, .minor = 2 },
+ 	{ .major = 1, .minor = 1 },
+ 	{ .major = 1, .minor = 0 },
+ };
+@@ -271,6 +274,11 @@ static int vdc_handle_attr(struct vio_driver_state *vio, void *arg)
+ 		if (pkt->max_xfer_size < port->max_xfer_size)
+ 			port->max_xfer_size = pkt->max_xfer_size;
+ 		port->vdisk_block_size = pkt->vdisk_block_size;
++
++		port->vdisk_phys_blksz = VDC_DEFAULT_BLK_SIZE;
++		if (vdc_version_supported(port, 1, 2))
++			port->vdisk_phys_blksz = pkt->phys_block_size;
++
+ 		return 0;
+ 	} else {
+ 		printk(KERN_ERR PFX "%s: Attribute NACK\n", vio->name);
+@@ -754,6 +762,12 @@ static int probe_disk(struct vdc_port *port)
+ 	if (err)
+ 		return err;
+ 
++	/* Using version 1.2 means vdisk_phys_blksz should be set unless the
++	 * disk is reserved by another system.
++	 */
++	if (vdc_version_supported(port, 1, 2) && !port->vdisk_phys_blksz)
++		return -ENODEV;
++
+ 	if (vdc_version_supported(port, 1, 1)) {
+ 		/* vdisk_size should be set during the handshake, if it wasn't
+ 		 * then the underlying disk is reserved by another system
+@@ -829,6 +843,8 @@ static int probe_disk(struct vdc_port *port)
+ 		}
+ 	}
+ 
++	blk_queue_physical_block_size(q, port->vdisk_phys_blksz);
++
+ 	pr_info(PFX "%s: %u sectors (%u MB) protocol %d.%d\n",
+ 	       g->disk_name,
+ 	       port->vdisk_size, (port->vdisk_size >> (20 - 9)),
+@@ -910,7 +926,7 @@ static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	if (err)
+ 		goto err_out_free_port;
+ 
+-	port->vdisk_block_size = 512;
++	port->vdisk_block_size = VDC_DEFAULT_BLK_SIZE;
+ 	port->max_xfer_size = ((128 * 1024) / port->vdisk_block_size);
+ 	port->ring_cookies = ((port->max_xfer_size *
+ 			       port->vdisk_block_size) / PAGE_SIZE) + 2;
+-- 
+2.1.4
+
