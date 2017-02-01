@@ -1,70 +1,37 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 03 Feb 2017 17:42:34 +0000
-Subject: [PATCH net-next 8/9] ldmvsw: update and simplify version string
-Message-Id: <1486143755-192532-9-git-send-email-shannon.nelson@oracle.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Wed, 01 Feb 2017 19:34:40 +0000
+Subject: [PATCH v3 4/4] Documentation/sparc: Steps for sending break on sunhv console
+Message-Id: <1485977680-203775-5-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+References: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org, vijay.ac.kumar@oracle.com
 
-New version and simplify the print code.
+Documented the steps for sending break on sunhv console.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- drivers/net/ethernet/sun/ldmvsw.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ Documentation/sparc/console.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
-index 7c5dab4..552c0a9 100644
---- a/drivers/net/ethernet/sun/ldmvsw.c
-+++ b/drivers/net/ethernet/sun/ldmvsw.c
-@@ -42,11 +42,11 @@
- static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
- 
- #define DRV_MODULE_NAME		"ldmvsw"
--#define DRV_MODULE_VERSION	"1.0"
--#define DRV_MODULE_RELDATE	"Jan 15, 2016"
-+#define DRV_MODULE_VERSION	"1.1"
-+#define DRV_MODULE_RELDATE	"February 3, 2017"
- 
- static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
-+	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
- MODULE_AUTHOR("Oracle");
- MODULE_DESCRIPTION("Sun4v LDOM Virtual Switch Driver");
- MODULE_LICENSE("GPL");
-@@ -320,11 +320,6 @@ static struct vio_driver_ops vsw_vio_ops = {
- 	.handshake_complete	= sunvnet_handshake_complete_common,
- };
- 
--static void print_version(void)
--{
--	printk_once(KERN_INFO "%s", version);
--}
--
- static const char *remote_macaddr_prop = "remote-mac-address";
- static const char *id_prop = "id";
- 
-@@ -341,8 +336,6 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	u64 handle;
- 	u64 node;
- 
--	print_version();
--
- 	hp = mdesc_grab();
- 
- 	node = vio_vdev_node(hp, vdev);
-@@ -527,6 +520,7 @@ static struct vio_driver vsw_port_driver = {
- 
- static int __init vsw_init(void)
- {
-+	pr_info("%s\n", version);
- 	return vio_register_driver(&vsw_port_driver);
- }
- 
+diff --git a/Documentation/sparc/console.txt b/Documentation/sparc/console.txt
+new file mode 100644
+index 0000000..5aa735a
+--- /dev/null
++++ b/Documentation/sparc/console.txt
+@@ -0,0 +1,9 @@
++Steps for sending 'break' on sunhv console:
++=====================+
++On Baremetal:
++   1. press   Esc + 'B'
++
++On LDOM:
++   1. press    Ctrl + ']'
++   2. telnet> send  break
 -- 
 1.7.1
 
