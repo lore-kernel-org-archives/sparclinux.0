@@ -1,36 +1,61 @@
-From: Bob Picco <bob.picco@oracle.com>
-Date: Wed, 01 Feb 2017 12:38:23 +0000
-Subject: [PATCH 3/3] sparc64: increase FORCE_MAX_ZONEORDER to 16
-Message-Id: <20170201123823.6273-4-bob.picco@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Fri, 03 Feb 2017 17:42:33 +0000
+Subject: [PATCH net-next 7/9] sunvnet: remove extra rcu_read_unlocks
+Message-Id: <1486143755-192532-8-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-From: bob picco <bob.picco@oracle.com>
+The RCU read lock is grabbed first thing in sunvnet_start_xmit_common()
+so it always needs to be released.  This removes the conditional release
+in the dropped packet error path and removes a couple of superfluous
+calls in the middle of the code.
 
-This change enables large tsb sizes of up to 256MB. The performance
-improvement is substantial for those programs with an enormous tsb rss.
-
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
+Reported-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/sun/sunvnet_common.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index cf4034c66362..55976119c7ca 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -318,7 +318,7 @@ config ARCH_SPARSEMEM_DEFAULT
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 160b35a..a479a58 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1279,10 +1279,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
  
- config FORCE_MAX_ZONEORDER
- 	int "Maximum zone order"
--	default "13"
-+	default "16"
- 	help
- 	  The kernel memory allocator divides physically contiguous memory
- 	  blocks into "zones", where each zone is a power of two number of
+ 	rcu_read_lock();
+ 	port = vnet_tx_port(skb, dev);
+-	if (unlikely(!port)) {
+-		rcu_read_unlock();
++	if (unlikely(!port))
+ 		goto out_dropped;
+-	}
+ 
+ 	if (skb_is_gso(skb) && skb->len > port->tsolen) {
+ 		err = vnet_handle_offloads(port, skb, vnet_tx_port);
+@@ -1307,7 +1305,6 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 			fl4.saddr = ip_hdr(skb)->saddr;
+ 
+ 			rt = ip_route_output_key(dev_net(dev), &fl4);
+-			rcu_read_unlock();
+ 			if (!IS_ERR(rt)) {
+ 				skb_dst_set(skb, &rt->dst);
+ 				icmp_send(skb, ICMP_DEST_UNREACH,
+@@ -1481,8 +1478,7 @@ out_dropped:
+ 				jiffies + VNET_CLEAN_TIMEOUT);
+ 	else if (port)
+ 		del_timer(&port->clean_timer);
+-	if (port)
+-		rcu_read_unlock();
++	rcu_read_unlock();
+ 	if (skb)
+ 		dev_kfree_skb(skb);
+ 	vnet_free_skbs(freeskbs);
 -- 
-2.11.0
+1.7.1
 
