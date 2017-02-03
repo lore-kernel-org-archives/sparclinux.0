@@ -1,7 +1,7 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 03 Feb 2017 17:42:32 +0000
-Subject: [PATCH net-next 6/9] sunvnet: straighten up message event handling logic
-Message-Id: <1486143755-192532-7-git-send-email-shannon.nelson@oracle.com>
+Date: Fri, 03 Feb 2017 17:42:29 +0000
+Subject: [PATCH net-next 3/9] sunvnet: update version and version printing
+Message-Id: <1486143755-192532-4-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
@@ -11,132 +11,62 @@ Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-The use of gotos for handling the incoming events made this code
-harder to read and support than it should be.  This patch straightens
-out and clears up the logic.
+There have been several changes since the first version of this code, so
+we bump the version number.  While we're at it, we can simplify the
+version printing a bit and drop a couple lines of code.
 
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |   94 ++++++++++++++---------------
- 1 files changed, 45 insertions(+), 49 deletions(-)
+ drivers/net/ethernet/sun/sunvnet.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 98e758e..160b35a 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -764,41 +764,37 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
- 	struct vio_driver_state *vio = &port->vio;
- 	int tx_wakeup, err;
- 	int npkts = 0;
--	int event = (port->rx_event & LDC_EVENT_RESET);
--
--ldc_ctrl:
--	if (unlikely(event = LDC_EVENT_RESET ||
--		     event = LDC_EVENT_UP)) {
--		vio_link_state_change(vio, event);
--
--		if (event = LDC_EVENT_RESET) {
--			vnet_port_reset(port);
--			vio_port_up(vio);
--
--			/* If the device is running but its tx queue was
--			 * stopped (due to flow control), restart it.
--			 * This is necessary since vnet_port_reset()
--			 * clears the tx drings and thus we may never get
--			 * back a VIO_TYPE_DATA ACK packet - which is
--			 * the normal mechanism to restart the tx queue.
--			 */
--			if (netif_running(dev))
--				maybe_tx_wakeup(port);
--		}
-+
-+	/* we don't expect any other bits */
-+	BUG_ON(port->rx_event & ~(LDC_EVENT_DATA_READY |
-+				  LDC_EVENT_RESET |
-+				  LDC_EVENT_UP));
-+
-+	/* RESET takes precedent over any other event */
-+	if (port->rx_event & LDC_EVENT_RESET) {
-+		vio_link_state_change(vio, LDC_EVENT_RESET);
-+		vnet_port_reset(port);
-+		vio_port_up(vio);
-+
-+		/* If the device is running but its tx queue was
-+		 * stopped (due to flow control), restart it.
-+		 * This is necessary since vnet_port_reset()
-+		 * clears the tx drings and thus we may never get
-+		 * back a VIO_TYPE_DATA ACK packet - which is
-+		 * the normal mechanism to restart the tx queue.
-+		 */
-+		if (netif_running(dev))
-+			maybe_tx_wakeup(port);
-+
- 		port->rx_event = 0;
- 		return 0;
- 	}
--	/* We may have multiple LDC events in rx_event. Unroll send_events() */
--	event = (port->rx_event & LDC_EVENT_UP);
--	port->rx_event &= ~(LDC_EVENT_RESET | LDC_EVENT_UP);
--	if (event = LDC_EVENT_UP)
--		goto ldc_ctrl;
--	event = port->rx_event;
--	if (!(event & LDC_EVENT_DATA_READY))
--		return 0;
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 38d0e42..883525a 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -38,11 +38,11 @@
+ #define VNET_TX_TIMEOUT			(5 * HZ)
  
--	/* we dont expect any other bits than RESET, UP, DATA_READY */
--	BUG_ON(event != LDC_EVENT_DATA_READY);
-+	if (port->rx_event & LDC_EVENT_UP) {
-+		vio_link_state_change(vio, LDC_EVENT_UP);
-+		port->rx_event = 0;
-+		return 0;
-+	}
+ #define DRV_MODULE_NAME		"sunvnet"
+-#define DRV_MODULE_VERSION	"1.0"
+-#define DRV_MODULE_RELDATE	"June 25, 2007"
++#define DRV_MODULE_VERSION	"2.0"
++#define DRV_MODULE_RELDATE	"February 3, 2017"
  
- 	err = 0;
- 	tx_wakeup = 0;
-@@ -821,25 +817,25 @@ ldc_ctrl:
- 			pkt->start_idx = vio_dring_next(dr,
- 							port->napi_stop_idx);
- 			pkt->end_idx = -1;
--			goto napi_resume;
--		}
--		err = ldc_read(vio->lp, &msgbuf, sizeof(msgbuf));
--		if (unlikely(err < 0)) {
--			if (err = -ECONNRESET)
--				vio_conn_reset(vio);
--			break;
-+		} else {
-+			err = ldc_read(vio->lp, &msgbuf, sizeof(msgbuf));
-+			if (unlikely(err < 0)) {
-+				if (err = -ECONNRESET)
-+					vio_conn_reset(vio);
-+				break;
-+			}
-+			if (err = 0)
-+				break;
-+			viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
-+			       msgbuf.tag.type,
-+			       msgbuf.tag.stype,
-+			       msgbuf.tag.stype_env,
-+			       msgbuf.tag.sid);
-+			err = vio_validate_sid(vio, &msgbuf.tag);
-+			if (err < 0)
-+				break;
- 		}
--		if (err = 0)
--			break;
--		viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
--		       msgbuf.tag.type,
--		       msgbuf.tag.stype,
--		       msgbuf.tag.stype_env,
--		       msgbuf.tag.sid);
--		err = vio_validate_sid(vio, &msgbuf.tag);
--		if (err < 0)
--			break;
--napi_resume:
-+
- 		if (likely(msgbuf.tag.type = VIO_TYPE_DATA)) {
- 			if (msgbuf.tag.stype = VIO_SUBTYPE_INFO) {
- 				if (!sunvnet_port_is_up_common(port)) {
+ static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
++	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
+ MODULE_AUTHOR("David S. Miller (davem@davemloft.net)");
+ MODULE_DESCRIPTION("Sun LDOM virtual network driver");
+ MODULE_LICENSE("GPL");
+@@ -300,11 +300,6 @@ static struct vio_driver_ops vnet_vio_ops = {
+ 	.handshake_complete	= sunvnet_handshake_complete_common,
+ };
+ 
+-static void print_version(void)
+-{
+-	printk_once(KERN_INFO "%s", version);
+-}
+-
+ const char *remote_macaddr_prop = "remote-mac-address";
+ 
+ static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+@@ -317,8 +312,6 @@ static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	int len, i, err, switch_port;
+ 	u64 node;
+ 
+-	print_version();
+-
+ 	hp = mdesc_grab();
+ 
+ 	node = vio_vdev_node(hp, vdev);
+@@ -453,6 +446,7 @@ static struct vio_driver vnet_port_driver = {
+ 
+ static int __init vnet_init(void)
+ {
++	pr_info("%s\n", version);
+ 	return vio_register_driver(&vnet_port_driver);
+ }
+ 
 -- 
 1.7.1
 
