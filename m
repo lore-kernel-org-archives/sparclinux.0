@@ -1,37 +1,70 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 13 Feb 2017 18:57:00 +0000
-Subject: [PATCH v4 net-next 4/8] sunvnet: add memory barrier before check for tx enable
-Message-Id: <1487012224-403399-5-git-send-email-shannon.nelson@oracle.com>
+Date: Fri, 03 Feb 2017 17:42:34 +0000
+Subject: [PATCH net-next 8/9] ldmvsw: update and simplify version string
+Message-Id: <1486143755-192532-9-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-In order to allow the underlying LDC and outstanding memory operations
-to potentially catch up with the driver's Tx requests, add a memory
-barrier before checking again for available tx descriptors.
+New version and simplify the print code.
 
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 0f940f0..623363b 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -1427,6 +1427,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
- 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
- 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
- 		netif_tx_stop_queue(txq);
-+		smp_rmb();
- 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
- 			netif_tx_wake_queue(txq);
- 	}
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 7c5dab4..552c0a9 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -42,11 +42,11 @@
+ static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+ 
+ #define DRV_MODULE_NAME		"ldmvsw"
+-#define DRV_MODULE_VERSION	"1.0"
+-#define DRV_MODULE_RELDATE	"Jan 15, 2016"
++#define DRV_MODULE_VERSION	"1.1"
++#define DRV_MODULE_RELDATE	"February 3, 2017"
+ 
+ static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
++	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
+ MODULE_AUTHOR("Oracle");
+ MODULE_DESCRIPTION("Sun4v LDOM Virtual Switch Driver");
+ MODULE_LICENSE("GPL");
+@@ -320,11 +320,6 @@ static struct vio_driver_ops vsw_vio_ops = {
+ 	.handshake_complete	= sunvnet_handshake_complete_common,
+ };
+ 
+-static void print_version(void)
+-{
+-	printk_once(KERN_INFO "%s", version);
+-}
+-
+ static const char *remote_macaddr_prop = "remote-mac-address";
+ static const char *id_prop = "id";
+ 
+@@ -341,8 +336,6 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	u64 handle;
+ 	u64 node;
+ 
+-	print_version();
+-
+ 	hp = mdesc_grab();
+ 
+ 	node = vio_vdev_node(hp, vdev);
+@@ -527,6 +520,7 @@ static struct vio_driver vsw_port_driver = {
+ 
+ static int __init vsw_init(void)
+ {
++	pr_info("%s\n", version);
+ 	return vio_register_driver(&vsw_port_driver);
+ }
+ 
 -- 
 1.7.1
 
