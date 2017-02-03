@@ -1,70 +1,197 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 13 Feb 2017 18:57:03 +0000
-Subject: [PATCH v4 net-next 7/8] ldmvsw: update and simplify version string
-Message-Id: <1487012224-403399-8-git-send-email-shannon.nelson@oracle.com>
+Date: Fri, 03 Feb 2017 17:42:30 +0000
+Subject: [PATCH net-next 4/9] sunvnet: add driver stats for ethtool support
+Message-Id: <1486143755-192532-5-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-New version and simplify the print code.
+Since we're collecting some stats in the driver code, let's support use
+of the ethtool driver stats facility in both sunvnet and ldmvsw.
 
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/ldmvsw.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c         |   63 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/sun/sunvnet.c        |   63 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/sun/sunvnet_common.c |    2 +
+ 3 files changed, 128 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
-index 335b876..f0fe6cf 100644
+index bf5818a..7c5dab4 100644
 --- a/drivers/net/ethernet/sun/ldmvsw.c
 +++ b/drivers/net/ethernet/sun/ldmvsw.c
-@@ -41,11 +41,11 @@
- static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
- 
- #define DRV_MODULE_NAME		"ldmvsw"
--#define DRV_MODULE_VERSION	"1.0"
--#define DRV_MODULE_RELDATE	"Jan 15, 2016"
-+#define DRV_MODULE_VERSION	"1.1"
-+#define DRV_MODULE_RELDATE	"February 3, 2017"
- 
- static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
-+	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
- MODULE_AUTHOR("Oracle");
- MODULE_DESCRIPTION("Sun4v LDOM Virtual Switch Driver");
- MODULE_LICENSE("GPL");
-@@ -259,11 +259,6 @@ static void vsw_poll_controller(struct net_device *dev)
- 	.handshake_complete	= sunvnet_handshake_complete_common,
- };
- 
--static void print_version(void)
--{
--	printk_once(KERN_INFO "%s", version);
--}
--
- static const char *remote_macaddr_prop = "remote-mac-address";
- static const char *id_prop = "id";
- 
-@@ -279,8 +274,6 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	const u64 *port_id;
- 	u64 handle;
- 
--	print_version();
--
- 	hp = mdesc_grab();
- 
- 	rmac = mdesc_get_property(hp, vdev->mp, remote_macaddr_prop, &len);
-@@ -457,6 +450,7 @@ static void vsw_cleanup(void)
- 
- static int __init vsw_init(void)
- {
-+	pr_info("%s\n", version);
- 	return vio_register_driver(&vsw_port_driver);
+@@ -81,11 +81,74 @@ static void vsw_set_msglevel(struct net_device *dev, u32 value)
+ 	port->vp->msg_enable = value;
  }
  
++static const struct {
++	const char string[ETH_GSTRING_LEN];
++} ethtool_stats_keys[] = {
++	{ "rx_packets" },
++	{ "tx_packets" },
++	{ "rx_bytes" },
++	{ "tx_bytes" },
++	{ "rx_errors" },
++	{ "tx_errors" },
++	{ "rx_dropped" },
++	{ "tx_dropped" },
++	{ "multicast" },
++	{ "rx_length_errors" },
++	{ "rx_frame_errors" },
++	{ "rx_missed_errors" },
++	{ "tx_carrier_errors" },
++};
++
++static int vsw_get_sset_count(struct net_device *dev, int sset)
++{
++	switch (sset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(ethtool_stats_keys);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static void vsw_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
++{
++	switch (stringset) {
++	case ETH_SS_STATS:
++		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
++		break;
++	default:
++		WARN_ON(1);
++		break;
++	}
++}
++
++static void vsw_get_ethtool_stats(struct net_device *dev,
++				  struct ethtool_stats *estats, u64 *data)
++{
++	int i = 0;
++
++	data[i++] = dev->stats.rx_packets;
++	data[i++] = dev->stats.tx_packets;
++	data[i++] = dev->stats.rx_bytes;
++	data[i++] = dev->stats.tx_bytes;
++	data[i++] = dev->stats.rx_errors;
++	data[i++] = dev->stats.tx_errors;
++	data[i++] = dev->stats.rx_dropped;
++	data[i++] = dev->stats.tx_dropped;
++	data[i++] = dev->stats.multicast;
++	data[i++] = dev->stats.rx_length_errors;
++	data[i++] = dev->stats.rx_frame_errors;
++	data[i++] = dev->stats.rx_missed_errors;
++	data[i++] = dev->stats.tx_carrier_errors;
++}
++
+ static const struct ethtool_ops vsw_ethtool_ops = {
+ 	.get_drvinfo		= vsw_get_drvinfo,
+ 	.get_msglevel		= vsw_get_msglevel,
+ 	.set_msglevel		= vsw_set_msglevel,
+ 	.get_link		= ethtool_op_get_link,
++	.get_sset_count		= vsw_get_sset_count,
++	.get_strings		= vsw_get_strings,
++	.get_ethtool_stats	= vsw_get_ethtool_stats,
+ };
+ 
+ static LIST_HEAD(vnet_list);
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 883525a..9e385d1 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -77,11 +77,74 @@ static void vnet_set_msglevel(struct net_device *dev, u32 value)
+ 	vp->msg_enable = value;
+ }
+ 
++static const struct {
++	const char string[ETH_GSTRING_LEN];
++} ethtool_stats_keys[] = {
++	{ "rx_packets" },
++	{ "tx_packets" },
++	{ "rx_bytes" },
++	{ "tx_bytes" },
++	{ "rx_errors" },
++	{ "tx_errors" },
++	{ "rx_dropped" },
++	{ "tx_dropped" },
++	{ "multicast" },
++	{ "rx_length_errors" },
++	{ "rx_frame_errors" },
++	{ "rx_missed_errors" },
++	{ "tx_carrier_errors" },
++};
++
++static int vnet_get_sset_count(struct net_device *dev, int sset)
++{
++	switch (sset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(ethtool_stats_keys);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static void vnet_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
++{
++	switch (stringset) {
++	case ETH_SS_STATS:
++		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
++		break;
++	default:
++		WARN_ON(1);
++		break;
++	}
++}
++
++static void vnet_get_ethtool_stats(struct net_device *dev,
++				   struct ethtool_stats *estats, u64 *data)
++{
++	int i = 0;
++
++	data[i++] = dev->stats.rx_packets;
++	data[i++] = dev->stats.tx_packets;
++	data[i++] = dev->stats.rx_bytes;
++	data[i++] = dev->stats.tx_bytes;
++	data[i++] = dev->stats.rx_errors;
++	data[i++] = dev->stats.tx_errors;
++	data[i++] = dev->stats.rx_dropped;
++	data[i++] = dev->stats.tx_dropped;
++	data[i++] = dev->stats.multicast;
++	data[i++] = dev->stats.rx_length_errors;
++	data[i++] = dev->stats.rx_frame_errors;
++	data[i++] = dev->stats.rx_missed_errors;
++	data[i++] = dev->stats.tx_carrier_errors;
++}
++
+ static const struct ethtool_ops vnet_ethtool_ops = {
+ 	.get_drvinfo		= vnet_get_drvinfo,
+ 	.get_msglevel		= vnet_get_msglevel,
+ 	.set_msglevel		= vnet_set_msglevel,
+ 	.get_link		= ethtool_op_get_link,
++	.get_sset_count		= vnet_get_sset_count,
++	.get_strings		= vnet_get_strings,
++	.get_ethtool_stats	= vnet_get_ethtool_stats,
+ };
+ 
+ static LIST_HEAD(vnet_list);
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 63e3cec..5d0d386 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -433,6 +433,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
+ 
+ 	skb->ip_summed = port->switch_port ? CHECKSUM_NONE : CHECKSUM_PARTIAL;
+ 
++	if (unlikely(is_multicast_ether_addr(eth_hdr(skb)->h_dest)))
++		dev->stats.multicast++;
+ 	dev->stats.rx_packets++;
+ 	dev->stats.rx_bytes += len;
+ 	napi_gro_receive(&port->napi, skb);
 -- 
 1.7.1
 
