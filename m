@@ -1,95 +1,37 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 28 Feb 2017 18:35:21 +0000
-Subject: [PATCH v6 2/4] mm: Add functions to support extra actions on swap in/out
-Message-Id: <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Fri, 03 Feb 2017 17:42:31 +0000
+Subject: [PATCH net-next 5/9] sunvnet: add memory barrier before check for tx enable
+Message-Id: <1486143755-192532-6-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1488232591.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1488232591.git.khalid.aziz@oracle.com>
+References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, davem@davemloft.net, arnd@arndb.de
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, jmarchan@redhat.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-If a processor supports special metadata for a page, for example ADI
-version tags on SPARC M7, this metadata must be saved when the page is
-swapped out. The same metadata must be restored when the page is swapped
-back in. This patch adds two new architecture specific functions -
-arch_do_swap_page() to be called when a page is swapped in,
-arch_unmap_one() to be called when a page is being unmapped for swap
-out.
+In order to allow the underlying LDC and outstanding memory operations
+to potentially catch up with the driver's Tx requests, add a memory
+barrier before checking again for available tx descriptors.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
-v5:
-	- Replaced set_swp_pte() function with new architecture
-	  functions arch_do_swap_page() and arch_unmap_one()
+ drivers/net/ethernet/sun/sunvnet_common.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
- include/asm-generic/pgtable.h | 16 ++++++++++++++++
- mm/memory.c                   |  1 +
- mm/rmap.c                     |  2 ++
- 3 files changed, 19 insertions(+)
-
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 18af2bc..5764d8f 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -282,6 +282,22 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
- 
-+#ifndef __HAVE_ARCH_DO_SWAP_PAGE
-+static inline void arch_do_swap_page(struct mm_struct *mm, unsigned long addr,
-+				     pte_t pte, pte_t orig_pte)
-+{
-+
-+}
-+#endif
-+
-+#ifndef __HAVE_ARCH_UNMAP_ONE
-+static inline void arch_unmap_one(struct mm_struct *mm, unsigned long addr,
-+				  pte_t pte, pte_t orig_pte)
-+{
-+
-+}
-+#endif
-+
- #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
- #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
- #endif
-diff --git a/mm/memory.c b/mm/memory.c
-index 6bf2b47..b086c76 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -2658,6 +2658,7 @@ int do_swap_page(struct vm_fault *vmf)
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
-+	arch_do_swap_page(vma->vm_mm, vmf->address, pte, vmf->orig_pte);
- 	vmf->orig_pte = pte;
- 	if (page = swapcache) {
- 		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
-diff --git a/mm/rmap.c b/mm/rmap.c
-index 91619fd..192c41a 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -1538,6 +1538,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 		swp_pte = swp_entry_to_pte(entry);
- 		if (pte_soft_dirty(pteval))
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+		arch_unmap_one(mm, address, swp_pte, pteval);
- 		set_pte_at(mm, address, pte, swp_pte);
- 	} else if (PageAnon(page)) {
- 		swp_entry_t entry = { .val = page_private(page) };
-@@ -1571,6 +1572,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 		swp_pte = swp_entry_to_pte(entry);
- 		if (pte_soft_dirty(pteval))
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+		arch_unmap_one(mm, address, swp_pte, pteval);
- 		set_pte_at(mm, address, pte, swp_pte);
- 	} else
- 		dec_mm_counter(mm, mm_counter_file(page));
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 5d0d386..98e758e 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1467,6 +1467,7 @@ ldc_start_done:
+ 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
+ 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+ 		netif_tx_stop_queue(txq);
++		dma_wmb();
+ 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
+ 			netif_tx_wake_queue(txq);
+ 	}
 -- 
-2.7.4
+1.7.1
 
