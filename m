@@ -1,37 +1,43 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 03 Feb 2017 17:42:31 +0000
-Subject: [PATCH net-next 5/9] sunvnet: add memory barrier before check for tx enable
-Message-Id: <1486143755-192532-6-git-send-email-shannon.nelson@oracle.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Fri, 03 Feb 2017 17:56:25 +0000
+Subject: Re: [PATCH net-next 5/9] sunvnet: add memory barrier before check for tx enable
+Message-Id: <1486144585.21871.92.camel@edumazet-glaptop3.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+         <1486143755-192532-6-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486143755-192532-6-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: Shannon Nelson <shannon.nelson@oracle.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In order to allow the underlying LDC and outstanding memory operations
-to potentially catch up with the driver's Tx requests, add a memory
-barrier before checking again for available tx descriptors.
+On Fri, 2017-02-03 at 09:42 -0800, Shannon Nelson wrote:
+> In order to allow the underlying LDC and outstanding memory operations
+> to potentially catch up with the driver's Tx requests, add a memory
+> barrier before checking again for available tx descriptors.
+> 
+> Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+> ---
+>  drivers/net/ethernet/sun/sunvnet_common.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+> index 5d0d386..98e758e 100644
+> --- a/drivers/net/ethernet/sun/sunvnet_common.c
+> +++ b/drivers/net/ethernet/sun/sunvnet_common.c
+> @@ -1467,6 +1467,7 @@ ldc_start_done:
+>  	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
+>  	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+>  		netif_tx_stop_queue(txq);
+> +		dma_wmb();
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- drivers/net/ethernet/sun/sunvnet_common.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+This does not look right.
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 5d0d386..98e758e 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -1467,6 +1467,7 @@ ldc_start_done:
- 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
- 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
- 		netif_tx_stop_queue(txq);
-+		dma_wmb();
- 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
- 			netif_tx_wake_queue(txq);
- 	}
--- 
-1.7.1
+I believe you need smp_rmb() here.
+
+>  		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
+>  			netif_tx_wake_queue(txq);
+>  	}
+
 
