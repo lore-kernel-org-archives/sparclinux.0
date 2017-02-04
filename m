@@ -1,39 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 01 Feb 2017 17:18:32 +0000
-Subject: Re: [PATCH v5 4/4] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <20170201.121832.1810577893703014061.davem@davemloft.net>
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Sat, 04 Feb 2017 16:32:22 +0000
+Subject: [PATCH] sparc: topology_64.h: Fix condition for including cpudata.h
+Message-Id: <20170204163222.GT3442@decadent.org.uk>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Q43QQdzFtqSKgsg+"
 List-Id: <sparclinux.vger.kernel.org>
-References: <0b6865aabc010ee3a7ea956a70447abbab53ea70.1485362562.git.khalid.aziz@oracle.com>
-	<20170130.171531.1973857503703372714.davem@davemloft.net>
-	<6c514e7e-338a-f1cd-140d-d4980ea6ac0f@oracle.com>
-In-Reply-To: <6c514e7e-338a-f1cd-140d-d4980ea6ac0f@oracle.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, keescook@chromium.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
+To: sparclinux@vger.kernel.org
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 31 Jan 2017 16:38:49 -0700
 
-> Thanks for the feedback. This is very helpful. I checked and it indeed
-> can cost 50+ cycles even on M7 processor for PSTATE accesses.
+--Q43QQdzFtqSKgsg+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Consider how many bytes can be copied in 50+ cycles :-)
+We currently define macros referring to cpu_data if CONFIG_SMP is
+defined, but only include the declaration if CONFIG_NUMA is defined.
 
->> On etrap, you change ESTATE_PSTATE{1,2} to have the MCDE bit enabled.
->> Then the kernel always runs with ADI enabled.
-> 
-> Running the kernel with PSTATE.mcde=1 can possibly be problematic as
-> we had discussed earlier in this thread where keeping PSTATE.mcde
-> enabled might mean kernel having to keep track of which pages still
-> have tags set on them or flush tags on every page on free. I will go
-> through the code again to see if it PSTATE.mcde can be turned on in
-> kernel all the time, which might be the case if we can ensure kernel
-> accesses pages with TTE.mcd cleared.
+Fixes: 541cc39433a8 ("sparc: fix a building error reported by kbuild")
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+---
+--- a/arch/sparc/include/asm/topology_64.h
++++ b/arch/sparc/include/asm/topology_64.h
+@@ -4,7 +4,6 @@
+ #ifdef CONFIG_NUMA
+=20
+ #include <asm/mmzone.h>
+-#include <asm/cpudata.h>
+=20
+ static inline int cpu_to_node(int cpu)
+ {
+@@ -42,6 +41,9 @@ int __node_distance(int, int);
+ #endif /* !(CONFIG_NUMA) */
+=20
+ #ifdef CONFIG_SMP
++
++#include <asm/cpudata.h>
++
+ #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
+ #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
+ #define topology_core_cpumask(cpu)		(&cpu_core_sib_map[cpu])
 
-If we can clear the tags properly on page release when the page was
-used for ADI, it can work.
+--Q43QQdzFtqSKgsg+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-One way would be to track the state in the page struct somehow, and
-in arch_alloc_page() clear the tags if necessary.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIVAwUBWJYCFue/yOyVhhEJAQqwtQ//dGqVYE63oBNg5HjlyBOEsQfmdr/viwTf
+yjRJ6kpfi7LgEs7Q+T2nWfRRgTZYvNXYjxxDEeYhLyLJifKrB9CdqVTdcaSejygf
+43XYWHct4R2LLxs5+MFZ/T3bRxS7rMoyb9Bw7rSx8ISgGKMd8MfQ2YdPDJXcPvLs
+YUKSNm/+ysqC5mI17/zR8zIunyOeOj9GiRRsFGeCMOBuglfyztSugNftCfZEy1Li
+e9c64dRY9wK3Qma3Ds8FuYl9Zk5AIw1w2X8Ok1EsBd6UaUtjEjTKGOViREKWgWfF
+KzEf5Sn8vNqQj7ZdYfq/2otnw/HEuHvjeDRTFhkCNCDt78QImeZV9J1qygKGHDrE
+VyBcx8Afs7D+YsIAoVjEtA49AkDriuQRfqTW38OubwZpTOkluWlyRd0tdw7H06YD
+zppQoXqrwD0cSx0c3gjVGk/sBWHkFA0lOgn9M2bceldu9CIaf/eaiiNZfN3Yom6g
+vK051EY7az2fhDtCt2EVHMNoog4QtuodgBi0PfZhzhlcoRkALGZISMlIkWiplOvN
++DREqpWmPpaoIDl27B8uvYCnixh+CEgXW5a/QJlEdtRqni5knqZcmp5+slITQoz7
+GSJbCf5AO81L+f+DnH97pUSXdmZ71jQSSjqOzSLj2aYjdBXUFZxVetlGD4QhvSOc
+OLUQkc729Pg=
+=p/gh
+-----END PGP SIGNATURE-----
+
+--Q43QQdzFtqSKgsg+--
