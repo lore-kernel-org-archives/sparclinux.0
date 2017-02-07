@@ -1,76 +1,69 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 13 Feb 2017 18:56:57 +0000
-Subject: [PATCH v4 net-next 1/8] sunvnet: make sunvnet common code dynamically loadable
-Message-Id: <1487012224-403399-2-git-send-email-shannon.nelson@oracle.com>
+Date: Tue, 07 Feb 2017 22:13:01 +0000
+Subject: [PATCH v2 net-next 8/9] ldmvsw: update and simplify version string
+Message-Id: <1486505582-76823-9-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-When the sunvnet_common code was split out for use by both sunvnet
-and the newer ldmvsw, it was made into a static kernel library, which
-limits the usefulness of sunvnet and ldmvsw as loadables, since most
-of the real work is being done in the shared code.  Also, this is
-simply dead code in kernels that aren't running the LDoms.
-
-This patch makes the sunvnet_common into a dynamically loadable
-module and makes sunvnet and ldmvsw dependent on sunvnet_common.
+New version and simplify the print code.
 
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/Kconfig          |    8 ++++++--
- drivers/net/ethernet/sun/sunvnet_common.c |    5 +++++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c |   14 ++++----------
+ 1 files changed, 4 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/Kconfig b/drivers/net/ethernet/sun/Kconfig
-index a4b40e3..b2caf51 100644
---- a/drivers/net/ethernet/sun/Kconfig
-+++ b/drivers/net/ethernet/sun/Kconfig
-@@ -70,19 +70,23 @@ config CASSINI
- 	  <http://docs.oracle.com/cd/E19113-01/giga.ether.pci/817-4341-10/817-4341-10.pdf>.
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 3999fb7..3ef5c08 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -41,11 +41,11 @@
+ static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
  
- config SUNVNET_COMMON
--	bool
-+	tristate "Common routines to support Sun Virtual Networking"
- 	depends on SUN_LDOMS
--	default y if SUN_LDOMS
-+	default m
+ #define DRV_MODULE_NAME		"ldmvsw"
+-#define DRV_MODULE_VERSION	"1.0"
+-#define DRV_MODULE_RELDATE	"Jan 15, 2016"
++#define DRV_MODULE_VERSION	"1.1"
++#define DRV_MODULE_RELDATE	"February 3, 2017"
  
- config SUNVNET
- 	tristate "Sun Virtual Network support"
-+	default m
- 	depends on SUN_LDOMS
-+	depends on SUNVNET_COMMON
- 	---help---
- 	  Support for virtual network devices under Sun Logical Domains.
+ static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
++	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
+ MODULE_AUTHOR("Oracle");
+ MODULE_DESCRIPTION("Sun4v LDOM Virtual Switch Driver");
+ MODULE_LICENSE("GPL");
+@@ -322,11 +322,6 @@ static void vsw_poll_controller(struct net_device *dev)
+ 	.handshake_complete	= sunvnet_handshake_complete_common,
+ };
  
- config LDMVSW
- 	tristate "Sun4v LDoms Virtual Switch support"
-+	default m
- 	depends on SUN_LDOMS
-+	depends on SUNVNET_COMMON
- 	---help---
- 	  Support for virtual switch devices under Sun4v Logical Domains.
- 	  This driver adds a network interface for every vsw-port node
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 191c8ad..c71f000 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -37,6 +37,11 @@
-  */
- #define	VNET_MAX_RETRIES	10
+-static void print_version(void)
+-{
+-	printk_once(KERN_INFO "%s", version);
+-}
+-
+ static const char *remote_macaddr_prop = "remote-mac-address";
+ static const char *id_prop = "id";
  
-+MODULE_AUTHOR("David S. Miller (davem@davemloft.net)");
-+MODULE_DESCRIPTION("Sun LDOM virtual network support library");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION("1.1");
-+
- static int __vnet_tx_trigger(struct vnet_port *port, u32 start);
- static void vnet_port_reset(struct vnet_port *port);
+@@ -342,8 +337,6 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	const u64 *port_id;
+ 	u64 handle;
+ 
+-	print_version();
+-
+ 	hp = mdesc_grab();
+ 
+ 	rmac = mdesc_get_property(hp, vdev->mp, remote_macaddr_prop, &len);
+@@ -520,6 +513,7 @@ static void vsw_cleanup(void)
+ 
+ static int __init vsw_init(void)
+ {
++	pr_info("%s\n", version);
+ 	return vio_register_driver(&vsw_port_driver);
+ }
  
 -- 
 1.7.1
