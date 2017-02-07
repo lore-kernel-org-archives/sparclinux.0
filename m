@@ -1,24 +1,61 @@
-From: investmessage <info@netyx.cz>
-Date: Fri, 03 Feb 2017 14:47:45 +0000
-Subject: vase zprava
-Message-Id: <b922402f874a64d28c1c8314eb084f84@localhost>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Tue, 07 Feb 2017 22:13:00 +0000
+Subject: [PATCH v2 net-next 7/9] sunvnet: remove extra rcu_read_unlocks
+Message-Id: <1486505582-76823-8-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
+The RCU read lock is grabbed first thing in sunvnet_start_xmit_common()
+so it always needs to be released.  This removes the conditional release
+in the dropped packet error path and removes a couple of superfluous
+calls in the middle of the code.
 
+Reported-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-Ahoj,
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index d2aed2c..9384db0 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1279,10 +1279,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 
+ 	rcu_read_lock();
+ 	port = vnet_tx_port(skb, dev);
+-	if (unlikely(!port)) {
+-		rcu_read_unlock();
++	if (unlikely(!port))
+ 		goto out_dropped;
+-	}
+ 
+ 	if (skb_is_gso(skb) && skb->len > port->tsolen) {
+ 		err = vnet_handle_offloads(port, skb, vnet_tx_port);
+@@ -1307,7 +1305,6 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 			fl4.saddr = ip_hdr(skb)->saddr;
+ 
+ 			rt = ip_route_output_key(dev_net(dev), &fl4);
+-			rcu_read_unlock();
+ 			if (!IS_ERR(rt)) {
+ 				skb_dst_set(skb, &rt->dst);
+ 				icmp_send(skb, ICMP_DEST_UNREACH,
+@@ -1467,8 +1464,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 				jiffies + VNET_CLEAN_TIMEOUT);
+ 	else if (port)
+ 		del_timer(&port->clean_timer);
+-	if (port)
+-		rcu_read_unlock();
++	rcu_read_unlock();
+ 	if (skb)
+ 		dev_kfree_skb(skb);
+ 	vnet_free_skbs(freeskbs);
+-- 
+1.7.1
 
-Jsem zastupce investianaho zajmu o zajem zahranicnich investic 
-zahrnujici velky objem financnich prostredku, u nichz se snazime svou 
-ucast jako v zamori zastupce. Muj klient, ktery je rodak z Thajska, má 
-nejake penize ze svych obchodnich uspor chce investovat na zaklade 
-kvalifikovanych zahranicních partnerství legitimní transakce. uvedte, o 
-rychlou odpoved, pokud mate zajem, takze ja vam muze poskytnout dalsi 
-podrobnosti spoluprace.
-
-S pozdravem,
-E-mail: dngsn113@gmail.com
