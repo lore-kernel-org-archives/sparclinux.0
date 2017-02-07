@@ -1,51 +1,142 @@
-From: Joe Perches <joe@perches.com>
-Date: Thu, 23 Feb 2017 17:53:41 +0000
-Subject: Re: [PATCH 00/35] treewide trivial patches converting pr_warning to pr_warn
-Message-Id: <1487872421.14159.38.camel@perches.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Tue, 07 Feb 2017 22:12:59 +0000
+Subject: [PATCH v2 net-next 6/9] sunvnet: straighten up message event handling logic
+Message-Id: <1486505582-76823-7-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1487314666.git.joe@perches.com>
- <CAL_JsqLTaq-QLTqfyDO8EVJYpgeUx1e4J0Fo2NvfFWqVoiVedQ@mail.gmail.com>
- <1487870304.14159.29.camel@perches.com>
- <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
-In-Reply-To: <CACvgo50LUm5VSn_F=Dh8kL5zCPpCQDoCyUEL=Z+=1+6hJpfTaw@mail.gmail.com>
+References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, linux-ia64@vger.kernel.org, SH-Linux <linux-sh@vger.kernel.org>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, ML nouveau <nouveau@lists.freedesktop.org>, Linux-ALSA <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, "open list:VIRTIO GPU DRIVER" <virtualization@lists.linux-foundation.org>, "linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, sparclinux@vger.kernel.org, drbd-dev@lists.linbit.com, Rob Herring <robh@kernel.org>, linux-omap <linux-omap@vger.kernel.org>, linux-scsi@vger.kernel.org, Richard Weinberger <richard@nod.at>, tboot-devel@lists.sourceforge.net, amd-gfx mailing list <amd-gfx@lists.freedesktop.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, sfi-devel@simplefirmware.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-On Thu, 2017-02-23 at 17:41 +0000, Emil Velikov wrote:
-> On 23 February 2017 at 17:18, Joe Perches <joe@perches.com> wrote:
-> > On Thu, 2017-02-23 at 09:28 -0600, Rob Herring wrote:
-> > > On Fri, Feb 17, 2017 at 1:11 AM, Joe Perches <joe@perches.com> wrote:
-> > > > There are ~4300 uses of pr_warn and ~250 uses of the older
-> > > > pr_warning in the kernel source tree.
-> > > > 
-> > > > Make the use of pr_warn consistent across all kernel files.
-> > > > 
-> > > > This excludes all files in tools/ as there is a separate
-> > > > define pr_warning for that directory tree and pr_warn is
-> > > > not used in tools/.
-> > > > 
-> > > > Done with 'sed s/\bpr_warning\b/pr_warn/' and some emacsing.
-> > 
-> > []
-> > > Where's the removal of pr_warning so we don't have more sneak in?
-> > 
-> > After all of these actually get applied,
-> > and maybe a cycle or two later, one would
-> > get sent.
-> > 
-> 
-> By which point you'll get a few reincarnation of it. So you'll have to
-> do the same exercise again :-(
+The use of gotos for handling the incoming events made this code
+harder to read and support than it should be.  This patch straightens
+out and clears up the logic.
 
-Maybe to one or two files.  Not a big deal.
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |   94 ++++++++++++++---------------
+ 1 files changed, 45 insertions(+), 49 deletions(-)
 
-> I guess the question is - are you expecting to get the series merged
-> all together/via one tree ?
-
-No.  The only person that could do that effectively is Linus.
-
-> If not, your plan is perfectly reasonable.
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 6cb625a..d2aed2c 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -764,41 +764,37 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
+ 	struct vio_driver_state *vio = &port->vio;
+ 	int tx_wakeup, err;
+ 	int npkts = 0;
+-	int event = (port->rx_event & LDC_EVENT_RESET);
+-
+-ldc_ctrl:
+-	if (unlikely(event = LDC_EVENT_RESET ||
+-		     event = LDC_EVENT_UP)) {
+-		vio_link_state_change(vio, event);
+-
+-		if (event = LDC_EVENT_RESET) {
+-			vnet_port_reset(port);
+-			vio_port_up(vio);
+-
+-			/* If the device is running but its tx queue was
+-			 * stopped (due to flow control), restart it.
+-			 * This is necessary since vnet_port_reset()
+-			 * clears the tx drings and thus we may never get
+-			 * back a VIO_TYPE_DATA ACK packet - which is
+-			 * the normal mechanism to restart the tx queue.
+-			 */
+-			if (netif_running(dev))
+-				maybe_tx_wakeup(port);
+-		}
++
++	/* we don't expect any other bits */
++	BUG_ON(port->rx_event & ~(LDC_EVENT_DATA_READY |
++				  LDC_EVENT_RESET |
++				  LDC_EVENT_UP));
++
++	/* RESET takes precedent over any other event */
++	if (port->rx_event & LDC_EVENT_RESET) {
++		vio_link_state_change(vio, LDC_EVENT_RESET);
++		vnet_port_reset(port);
++		vio_port_up(vio);
++
++		/* If the device is running but its tx queue was
++		 * stopped (due to flow control), restart it.
++		 * This is necessary since vnet_port_reset()
++		 * clears the tx drings and thus we may never get
++		 * back a VIO_TYPE_DATA ACK packet - which is
++		 * the normal mechanism to restart the tx queue.
++		 */
++		if (netif_running(dev))
++			maybe_tx_wakeup(port);
++
+ 		port->rx_event = 0;
+ 		return 0;
+ 	}
+-	/* We may have multiple LDC events in rx_event. Unroll send_events() */
+-	event = (port->rx_event & LDC_EVENT_UP);
+-	port->rx_event &= ~(LDC_EVENT_RESET | LDC_EVENT_UP);
+-	if (event = LDC_EVENT_UP)
+-		goto ldc_ctrl;
+-	event = port->rx_event;
+-	if (!(event & LDC_EVENT_DATA_READY))
+-		return 0;
+ 
+-	/* we dont expect any other bits than RESET, UP, DATA_READY */
+-	BUG_ON(event != LDC_EVENT_DATA_READY);
++	if (port->rx_event & LDC_EVENT_UP) {
++		vio_link_state_change(vio, LDC_EVENT_UP);
++		port->rx_event = 0;
++		return 0;
++	}
+ 
+ 	err = 0;
+ 	tx_wakeup = 0;
+@@ -821,25 +817,25 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
+ 			pkt->start_idx = vio_dring_next(dr,
+ 							port->napi_stop_idx);
+ 			pkt->end_idx = -1;
+-			goto napi_resume;
+-		}
+-		err = ldc_read(vio->lp, &msgbuf, sizeof(msgbuf));
+-		if (unlikely(err < 0)) {
+-			if (err = -ECONNRESET)
+-				vio_conn_reset(vio);
+-			break;
++		} else {
++			err = ldc_read(vio->lp, &msgbuf, sizeof(msgbuf));
++			if (unlikely(err < 0)) {
++				if (err = -ECONNRESET)
++					vio_conn_reset(vio);
++				break;
++			}
++			if (err = 0)
++				break;
++			viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
++			       msgbuf.tag.type,
++			       msgbuf.tag.stype,
++			       msgbuf.tag.stype_env,
++			       msgbuf.tag.sid);
++			err = vio_validate_sid(vio, &msgbuf.tag);
++			if (err < 0)
++				break;
+ 		}
+-		if (err = 0)
+-			break;
+-		viodbg(DATA, "TAG [%02x:%02x:%04x:%08x]\n",
+-		       msgbuf.tag.type,
+-		       msgbuf.tag.stype,
+-		       msgbuf.tag.stype_env,
+-		       msgbuf.tag.sid);
+-		err = vio_validate_sid(vio, &msgbuf.tag);
+-		if (err < 0)
+-			break;
+-napi_resume:
++
+ 		if (likely(msgbuf.tag.type = VIO_TYPE_DATA)) {
+ 			if (msgbuf.tag.stype = VIO_SUBTYPE_INFO) {
+ 				if (!sunvnet_port_is_up_common(port)) {
+-- 
+1.7.1
 
