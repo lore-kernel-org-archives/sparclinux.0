@@ -1,76 +1,37 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 07 Feb 2017 22:13:02 +0000
-Subject: [PATCH v2 net-next 9/9] ldmvsw: disable tso and gso for bridge operations
-Message-Id: <1486505582-76823-10-git-send-email-shannon.nelson@oracle.com>
+Date: Fri, 10 Feb 2017 17:38:21 +0000
+Subject: [PATCH v3 net-next 5/9] sunvnet: add memory barrier before check for tx enable
+Message-Id: <1486748305-240339-6-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
+References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-The ldmvsw driver is specifically for supporting the ldom virtual
-networking by running in the primary ldom and using the LDC to connect
-the remaining ldoms to the outside world via a bridge.  With TSO and GSO
-supported while connected the bridge, things tend to misbehave as seen
-in our case by delayed packets, enough to begin triggering retransmits
-and affecting overall throughput.  By turning off advertised support for
-TSO and GSO we restore stable traffic flow through the bridge.
-
-Orabug: 23293104
+In order to allow the underlying LDC and outstanding memory operations
+to potentially catch up with the driver's Tx requests, add a memory
+barrier before checking again for available tx descriptors.
 
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/ldmvsw.c         |    5 ++---
- drivers/net/ethernet/sun/sunvnet_common.c |    3 ++-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/sun/sunvnet_common.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
-index 3ef5c08..8e1ecfb 100644
---- a/drivers/net/ethernet/sun/ldmvsw.c
-+++ b/drivers/net/ethernet/sun/ldmvsw.c
-@@ -297,8 +297,7 @@ static void vsw_poll_controller(struct net_device *dev)
- 	dev->ethtool_ops = &vsw_ethtool_ops;
- 	dev->watchdog_timeo = VSW_TX_TIMEOUT;
- 
--	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_GSO_SOFTWARE |
--			   NETIF_F_HW_CSUM | NETIF_F_SG;
-+	dev->hw_features = NETIF_F_HW_CSUM | NETIF_F_SG;
- 	dev->features = dev->hw_features;
- 
- 	/* MTU range: 68 - 65535 */
-@@ -383,7 +382,7 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	port->vp = vp;
- 	port->dev = dev;
- 	port->switch_port = 1;
--	port->tso = true;
-+	port->tso = false; /* no tso in vsw, misbehaves in bridge */
- 	port->tsolen = 0;
- 
- 	/* Mark the port as belonging to ldmvsw which directs the
 diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 9384db0..1a9bc56 100644
+index 624ad65..05fe85f 100644
 --- a/drivers/net/ethernet/sun/sunvnet_common.c
 +++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -210,6 +210,7 @@ static int handle_attr_info(struct vio_driver_state *vio,
- 	} else {
- 		pkt->cflags &= ~VNET_LSO_IPV4_CAPAB;
- 		pkt->ipv4_lso_maxlen = 0;
-+		port->tsolen = 0;
+@@ -1429,6 +1429,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
+ 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+ 		netif_tx_stop_queue(txq);
++		smp_rmb();
+ 		if (vnet_tx_dring_avail(dr) > VNET_TX_WAKEUP_THRESH(dr))
+ 			netif_tx_wake_queue(txq);
  	}
- 
- 	/* for version >= 1.6, ACK packet mode we support */
-@@ -1661,7 +1662,7 @@ static void vnet_port_reset(struct vnet_port *port)
- 	del_timer(&port->clean_timer);
- 	sunvnet_port_free_tx_bufs_common(port);
- 	port->rmtu = 0;
--	port->tso = true;
-+	port->tso = (port->vsw = 0);  /* no tso in vsw, misbehaves in bridge */
- 	port->tsolen = 0;
- }
- 
 -- 
 1.7.1
 
