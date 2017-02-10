@@ -1,40 +1,61 @@
-From: Elena Reshetova <elena.reshetova@intel.com>
-Date: Mon, 20 Feb 2017 11:06:17 +0000
-Subject: [PATCH 0/4] arch subsystem refcounter conversions
-Message-Id: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Fri, 10 Feb 2017 17:38:23 +0000
+Subject: [PATCH v3 net-next 7/9] sunvnet: remove extra rcu_read_unlocks
+Message-Id: <1486748305-240339-8-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, peterz@infradead.org, gregkh@linuxfoundation.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, tony.luck@intel.com, hpa@zytor.com, Elena Reshetova <elena.reshetova@intel.com>
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-Now when new refcount_t type and API are finally merged
-(see include/linux/refcount.h), the following
-patches convert various refcounters in the arch susystem from atomic_t
-to refcount_t. By doing this we prevent intentional or accidental
-underflows or overflows that can led to use-after-free vulnerabilities.
+The RCU read lock is grabbed first thing in sunvnet_start_xmit_common()
+so it always needs to be released.  This removes the conditional release
+in the dropped packet error path and removes a couple of superfluous
+calls in the middle of the code.
 
-The below patches are fully independent and can be cherry-picked separately.
-Since we convert all kernel subsystems in the same fashion, resulting
-in about 300 patches, we have to group them for sending at least in some
-fashion to be manageable. Please excuse the long cc list.
+Reported-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-Elena Reshetova (4):
-  s390: convert debug_info.ref_count from atomic_t to refcount_t
-  x86: convert threshold_bank.cpus from atomic_t to refcount_t
-  sparc: convert mdesc_handle.refcnt from atomic_t to refcount_t
-  kvm: convert kvm.users_count from atomic_t to refcount_t
-
- arch/s390/include/asm/debug.h        |  3 ++-
- arch/s390/kernel/debug.c             |  8 ++++----
- arch/sparc/kernel/mdesc.c            | 17 +++++++++--------
- arch/x86/include/asm/amd_nb.h        |  3 ++-
- arch/x86/kernel/cpu/mcheck/mce_amd.c |  6 +++---
- include/linux/kvm_host.h             |  3 ++-
- virt/kvm/kvm_main.c                  |  8 ++++----
- 7 files changed, 26 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index e54bc95..64671f0 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1255,10 +1255,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 
+ 	rcu_read_lock();
+ 	port = vnet_tx_port(skb, dev);
+-	if (unlikely(!port)) {
+-		rcu_read_unlock();
++	if (unlikely(!port))
+ 		goto out_dropped;
+-	}
+ 
+ 	if (skb_is_gso(skb) && skb->len > port->tsolen) {
+ 		err = vnet_handle_offloads(port, skb, vnet_tx_port);
+@@ -1283,7 +1281,6 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 			fl4.saddr = ip_hdr(skb)->saddr;
+ 
+ 			rt = ip_route_output_key(dev_net(dev), &fl4);
+-			rcu_read_unlock();
+ 			if (!IS_ERR(rt)) {
+ 				skb_dst_set(skb, &rt->dst);
+ 				icmp_send(skb, ICMP_DEST_UNREACH,
+@@ -1443,8 +1440,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 				jiffies + VNET_CLEAN_TIMEOUT);
+ 	else if (port)
+ 		del_timer(&port->clean_timer);
+-	if (port)
+-		rcu_read_unlock();
++	rcu_read_unlock();
+ 	if (skb)
+ 		dev_kfree_skb(skb);
+ 	vnet_free_skbs(freeskbs);
 -- 
-2.7.4
+1.7.1
 
