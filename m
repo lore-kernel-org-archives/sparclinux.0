@@ -1,247 +1,76 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 28 Feb 2017 14:55:46 +0000
-Subject: [PATCH v1 3/3] mm: Updated callers to use HASH_ZERO flag
-Message-Id: <1488293746-965735-4-git-send-email-pasha.tatashin@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Fri, 10 Feb 2017 17:38:25 +0000
+Subject: [PATCH v3 net-next 9/9] ldmvsw: disable tso and gso for bridge operations
+Message-Id: <1486748305-240339-10-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1488293746-965735-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1488293746-965735-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, sparclinux@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-Update dcache, inode, pid, mountpoint, and mount hash tables to use
-HASH_ZERO, and remove initialization after allocations.
-In case of places where HASH_EARLY was used such as in __pv_init_lock_hash
-the zeroed hash table was already assumed, because memblock zeroes the
-memory.
+The ldmvsw driver is specifically for supporting the ldom virtual
+networking by running in the primary ldom and using the LDC to connect
+the remaining ldoms to the outside world via a bridge.  With TSO and GSO
+supported while connected the bridge, things tend to misbehave as seen
+in our case by delayed packets, enough to begin triggering retransmits
+and affecting overall throughput.  By turning off advertised support for
+TSO and GSO we restore stable traffic flow through the bridge.
 
-CPU: SPARC M6, Memory: 7T
-Before fix:
-Dentry cache hash table entries: 1073741824
-Inode-cache hash table entries: 536870912
-Mount-cache hash table entries: 16777216
-Mountpoint-cache hash table entries: 16777216
-ftrace: allocating 20414 entries in 40 pages
-Total time: 11.798s
+Orabug: 23293104
 
-After fix:
-Dentry cache hash table entries: 1073741824
-Inode-cache hash table entries: 536870912
-Mount-cache hash table entries: 16777216
-Mountpoint-cache hash table entries: 16777216
-ftrace: allocating 20414 entries in 40 pages
-Total time: 3.198s
-
-CPU: Intel Xeon E5-2630, Memory: 2.2T:
-Before fix:
-Dentry cache hash table entries: 536870912
-Inode-cache hash table entries: 268435456
-Mount-cache hash table entries: 8388608
-Mountpoint-cache hash table entries: 8388608
-CPU: Physical Processor ID: 0
-Total time: 3.245s
-
-After fix:
-Dentry cache hash table entries: 536870912
-Inode-cache hash table entries: 268435456
-Mount-cache hash table entries: 8388608
-Mountpoint-cache hash table entries: 8388608
-CPU: Physical Processor ID: 0
-Total time: 3.244s
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- fs/dcache.c                         |   18 ++++--------------
- fs/inode.c                          |   14 ++------------
- fs/namespace.c                      |   10 ++--------
- kernel/locking/qspinlock_paravirt.h |    3 ++-
- kernel/pid.c                        |    7 ++-----
- 5 files changed, 12 insertions(+), 40 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c         |    5 ++---
+ drivers/net/ethernet/sun/sunvnet_common.c |    3 ++-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/fs/dcache.c b/fs/dcache.c
-index 95d71ed..363502f 100644
---- a/fs/dcache.c
-+++ b/fs/dcache.c
-@@ -3548,8 +3548,6 @@ static int __init set_dhash_entries(char *str)
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 3ef5c08..8e1ecfb 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -297,8 +297,7 @@ static void vsw_poll_controller(struct net_device *dev)
+ 	dev->ethtool_ops = &vsw_ethtool_ops;
+ 	dev->watchdog_timeo = VSW_TX_TIMEOUT;
  
- static void __init dcache_init_early(void)
- {
--	unsigned int loop;
--
- 	/* If hashes are distributed across NUMA nodes, defer
- 	 * hash allocation until vmalloc space is available.
- 	 */
-@@ -3561,24 +3559,19 @@ static void __init dcache_init_early(void)
- 					sizeof(struct hlist_bl_head),
- 					dhash_entries,
- 					13,
--					HASH_EARLY,
-+					HASH_EARLY | HASH_ZERO,
- 					&d_hash_shift,
- 					&d_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << d_hash_shift); loop++)
--		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
+-	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_GSO_SOFTWARE |
+-			   NETIF_F_HW_CSUM | NETIF_F_SG;
++	dev->hw_features = NETIF_F_HW_CSUM | NETIF_F_SG;
+ 	dev->features = dev->hw_features;
+ 
+ 	/* MTU range: 68 - 65535 */
+@@ -383,7 +382,7 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	port->vp = vp;
+ 	port->dev = dev;
+ 	port->switch_port = 1;
+-	port->tso = true;
++	port->tso = false; /* no tso in vsw, misbehaves in bridge */
+ 	port->tsolen = 0;
+ 
+ 	/* Mark the port as belonging to ldmvsw which directs the
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 64671f0..19b8d29 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -186,6 +186,7 @@ static int handle_attr_info(struct vio_driver_state *vio,
+ 	} else {
+ 		pkt->cflags &= ~VNET_LSO_IPV4_CAPAB;
+ 		pkt->ipv4_lso_maxlen = 0;
++		port->tsolen = 0;
+ 	}
+ 
+ 	/* for version >= 1.6, ACK packet mode we support */
+@@ -1637,7 +1638,7 @@ static void vnet_port_reset(struct vnet_port *port)
+ 	del_timer(&port->clean_timer);
+ 	sunvnet_port_free_tx_bufs_common(port);
+ 	port->rmtu = 0;
+-	port->tso = true;
++	port->tso = (port->vsw = 0);  /* no tso in vsw, misbehaves in bridge */
+ 	port->tsolen = 0;
  }
  
- static void __init dcache_init(void)
- {
--	unsigned int loop;
--
--	/* 
-+	/*
- 	 * A constructor could be added for stable state like the lists,
- 	 * but it is probably not worth it because of the cache nature
--	 * of the dcache. 
-+	 * of the dcache.
- 	 */
- 	dentry_cache = KMEM_CACHE(dentry,
- 		SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD|SLAB_ACCOUNT);
-@@ -3592,14 +3585,11 @@ static void __init dcache_init(void)
- 					sizeof(struct hlist_bl_head),
- 					dhash_entries,
- 					13,
--					0,
-+					HASH_ZERO,
- 					&d_hash_shift,
- 					&d_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << d_hash_shift); loop++)
--		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
- }
- 
- /* SLAB cache for __getname() consumers */
-diff --git a/fs/inode.c b/fs/inode.c
-index 88110fd..1b15a7c 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1916,8 +1916,6 @@ static int __init set_ihash_entries(char *str)
-  */
- void __init inode_init_early(void)
- {
--	unsigned int loop;
--
- 	/* If hashes are distributed across NUMA nodes, defer
- 	 * hash allocation until vmalloc space is available.
- 	 */
-@@ -1929,20 +1927,15 @@ void __init inode_init_early(void)
- 					sizeof(struct hlist_head),
- 					ihash_entries,
- 					14,
--					HASH_EARLY,
-+					HASH_EARLY | HASH_ZERO,
- 					&i_hash_shift,
- 					&i_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << i_hash_shift); loop++)
--		INIT_HLIST_HEAD(&inode_hashtable[loop]);
- }
- 
- void __init inode_init(void)
- {
--	unsigned int loop;
--
- 	/* inode slab cache */
- 	inode_cachep = kmem_cache_create("inode_cache",
- 					 sizeof(struct inode),
-@@ -1960,14 +1953,11 @@ void __init inode_init(void)
- 					sizeof(struct hlist_head),
- 					ihash_entries,
- 					14,
--					0,
-+					HASH_ZERO,
- 					&i_hash_shift,
- 					&i_hash_mask,
- 					0,
- 					0);
--
--	for (loop = 0; loop < (1U << i_hash_shift); loop++)
--		INIT_HLIST_HEAD(&inode_hashtable[loop]);
- }
- 
- void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
-diff --git a/fs/namespace.c b/fs/namespace.c
-index 8bfad42..275e6e2 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -3238,7 +3238,6 @@ static void __init init_mount_tree(void)
- 
- void __init mnt_init(void)
- {
--	unsigned u;
- 	int err;
- 
- 	mnt_cache = kmem_cache_create("mnt_cache", sizeof(struct mount),
-@@ -3247,22 +3246,17 @@ void __init mnt_init(void)
- 	mount_hashtable = alloc_large_system_hash("Mount-cache",
- 				sizeof(struct hlist_head),
- 				mhash_entries, 19,
--				0,
-+				HASH_ZERO,
- 				&m_hash_shift, &m_hash_mask, 0, 0);
- 	mountpoint_hashtable = alloc_large_system_hash("Mountpoint-cache",
- 				sizeof(struct hlist_head),
- 				mphash_entries, 19,
--				0,
-+				HASH_ZERO,
- 				&mp_hash_shift, &mp_hash_mask, 0, 0);
- 
- 	if (!mount_hashtable || !mountpoint_hashtable)
- 		panic("Failed to allocate mount hash table\n");
- 
--	for (u = 0; u <= m_hash_mask; u++)
--		INIT_HLIST_HEAD(&mount_hashtable[u]);
--	for (u = 0; u <= mp_hash_mask; u++)
--		INIT_HLIST_HEAD(&mountpoint_hashtable[u]);
--
- 	kernfs_init();
- 
- 	err = sysfs_init();
-diff --git a/kernel/locking/qspinlock_paravirt.h b/kernel/locking/qspinlock_paravirt.h
-index e6b2f7a..4ccfcaa 100644
---- a/kernel/locking/qspinlock_paravirt.h
-+++ b/kernel/locking/qspinlock_paravirt.h
-@@ -193,7 +193,8 @@ void __init __pv_init_lock_hash(void)
- 	 */
- 	pv_lock_hash = alloc_large_system_hash("PV qspinlock",
- 					       sizeof(struct pv_hash_entry),
--					       pv_hash_size, 0, HASH_EARLY,
-+					       pv_hash_size, 0,
-+					       HASH_EARLY | HASH_ZERO,
- 					       &pv_lock_hash_bits, NULL,
- 					       pv_hash_size, pv_hash_size);
- }
-diff --git a/kernel/pid.c b/kernel/pid.c
-index 0291804..013e023 100644
---- a/kernel/pid.c
-+++ b/kernel/pid.c
-@@ -572,16 +572,13 @@ struct pid *find_ge_pid(int nr, struct pid_namespace *ns)
-  */
- void __init pidhash_init(void)
- {
--	unsigned int i, pidhash_size;
-+	unsigned int pidhash_size;
- 
- 	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
--					   HASH_EARLY | HASH_SMALL,
-+					   HASH_EARLY | HASH_SMALL | HASH_ZERO,
- 					   &pidhash_shift, NULL,
- 					   0, 4096);
- 	pidhash_size = 1U << pidhash_shift;
--
--	for (i = 0; i < pidhash_size; i++)
--		INIT_HLIST_HEAD(&pid_hash[i]);
- }
- 
- void __init pidmap_init(void)
 -- 
 1.7.1
 
