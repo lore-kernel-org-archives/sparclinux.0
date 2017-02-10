@@ -1,59 +1,197 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 13 Feb 2017 17:16:08 +0000
-Subject: Re: [PATCH v3 net-next 1/9] sunvnet: make sunvnet common code dynamically loadable
-Message-Id: <cdc2ede8-5590-e8a2-00bf-d434bbe617a6@oracle.com>
+Date: Fri, 10 Feb 2017 17:38:20 +0000
+Subject: [PATCH v3 net-next 4/9] sunvnet: add driver stats for ethtool support
+Message-Id: <1486748305-240339-5-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
- <1486748305-240339-2-git-send-email-shannon.nelson@oracle.com>
- <d4146a2e-2fc2-3c48-fedf-9f42b52800a0@cogentembedded.com>
-In-Reply-To: <d4146a2e-2fc2-3c48-fedf-9f42b52800a0@cogentembedded.com>
+In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-On 2/12/2017 3:16 AM, Sergei Shtylyov wrote:
-> Hello!
->
-> On 2/10/2017 8:38 PM, Shannon Nelson wrote:
->
->> When the sunvnet_common code was split out for use by both sunvnet
->> and the newer ldmvsw, it was made into a static kernel library, which
->> limits the usefulness of sunvnet and ldmvsw as loadables, since most
->> of the real work is being done in the shared code.  Also, this is
->> simply dead code in kernels that aren't running the LDoms.
->>
->> This patch makes the sunvnet_common into a dynamically loadable
->> module and makes sunvnet and ldmvsw dependent on sunvnet_common.
->>
->> Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
->> ---
->>  drivers/net/ethernet/sun/Kconfig          |    8 ++++++--
->>  drivers/net/ethernet/sun/sunvnet_common.c |    5 +++++
->>  2 files changed, 11 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/sun/Kconfig
->> b/drivers/net/ethernet/sun/Kconfig
->> index a4b40e3..a7d91da 100644
->> --- a/drivers/net/ethernet/sun/Kconfig
->> +++ b/drivers/net/ethernet/sun/Kconfig
->> @@ -70,19 +70,23 @@ config CASSINI
->>
->> <http://docs.oracle.com/cd/E19113-01/giga.ether.pci/817-4341-10/817-4341-10.pdf>.
->>
->>
->>  config SUNVNET_COMMON
->> -    bool
->> +    tristate "Common routines to support Sun Virtual Networking"
->>      depends on SUN_LDOMS
->> -    default y if SUN_LDOMS
->> +    default m if SUN_LDOMS
->
->    Sounds tautological... maybe just "default m"?
+Since we're collecting some stats in the driver code, let's support use
+of the ethtool driver stats facility in both sunvnet and ldmvsw.
 
-Yep, that can be tightened up.
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/ldmvsw.c         |   63 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/sun/sunvnet.c        |   63 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/sun/sunvnet_common.c |    2 +
+ 3 files changed, 128 insertions(+), 0 deletions(-)
 
-Thanks,
-sln
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 335b876..3999fb7 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -80,11 +80,74 @@ static void vsw_set_msglevel(struct net_device *dev, u32 value)
+ 	port->vp->msg_enable = value;
+ }
+ 
++static const struct {
++	const char string[ETH_GSTRING_LEN];
++} ethtool_stats_keys[] = {
++	{ "rx_packets" },
++	{ "tx_packets" },
++	{ "rx_bytes" },
++	{ "tx_bytes" },
++	{ "rx_errors" },
++	{ "tx_errors" },
++	{ "rx_dropped" },
++	{ "tx_dropped" },
++	{ "multicast" },
++	{ "rx_length_errors" },
++	{ "rx_frame_errors" },
++	{ "rx_missed_errors" },
++	{ "tx_carrier_errors" },
++};
++
++static int vsw_get_sset_count(struct net_device *dev, int sset)
++{
++	switch (sset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(ethtool_stats_keys);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static void vsw_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
++{
++	switch (stringset) {
++	case ETH_SS_STATS:
++		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
++		break;
++	default:
++		WARN_ON(1);
++		break;
++	}
++}
++
++static void vsw_get_ethtool_stats(struct net_device *dev,
++				  struct ethtool_stats *estats, u64 *data)
++{
++	int i = 0;
++
++	data[i++] = dev->stats.rx_packets;
++	data[i++] = dev->stats.tx_packets;
++	data[i++] = dev->stats.rx_bytes;
++	data[i++] = dev->stats.tx_bytes;
++	data[i++] = dev->stats.rx_errors;
++	data[i++] = dev->stats.tx_errors;
++	data[i++] = dev->stats.rx_dropped;
++	data[i++] = dev->stats.tx_dropped;
++	data[i++] = dev->stats.multicast;
++	data[i++] = dev->stats.rx_length_errors;
++	data[i++] = dev->stats.rx_frame_errors;
++	data[i++] = dev->stats.rx_missed_errors;
++	data[i++] = dev->stats.tx_carrier_errors;
++}
++
+ static const struct ethtool_ops vsw_ethtool_ops = {
+ 	.get_drvinfo		= vsw_get_drvinfo,
+ 	.get_msglevel		= vsw_get_msglevel,
+ 	.set_msglevel		= vsw_set_msglevel,
+ 	.get_link		= ethtool_op_get_link,
++	.get_sset_count		= vsw_get_sset_count,
++	.get_strings		= vsw_get_strings,
++	.get_ethtool_stats	= vsw_get_ethtool_stats,
+ };
+ 
+ static LIST_HEAD(vnet_list);
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 4cc2571..e225b27 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -77,11 +77,74 @@ static void vnet_set_msglevel(struct net_device *dev, u32 value)
+ 	vp->msg_enable = value;
+ }
+ 
++static const struct {
++	const char string[ETH_GSTRING_LEN];
++} ethtool_stats_keys[] = {
++	{ "rx_packets" },
++	{ "tx_packets" },
++	{ "rx_bytes" },
++	{ "tx_bytes" },
++	{ "rx_errors" },
++	{ "tx_errors" },
++	{ "rx_dropped" },
++	{ "tx_dropped" },
++	{ "multicast" },
++	{ "rx_length_errors" },
++	{ "rx_frame_errors" },
++	{ "rx_missed_errors" },
++	{ "tx_carrier_errors" },
++};
++
++static int vnet_get_sset_count(struct net_device *dev, int sset)
++{
++	switch (sset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(ethtool_stats_keys);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
++
++static void vnet_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
++{
++	switch (stringset) {
++	case ETH_SS_STATS:
++		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
++		break;
++	default:
++		WARN_ON(1);
++		break;
++	}
++}
++
++static void vnet_get_ethtool_stats(struct net_device *dev,
++				   struct ethtool_stats *estats, u64 *data)
++{
++	int i = 0;
++
++	data[i++] = dev->stats.rx_packets;
++	data[i++] = dev->stats.tx_packets;
++	data[i++] = dev->stats.rx_bytes;
++	data[i++] = dev->stats.tx_bytes;
++	data[i++] = dev->stats.rx_errors;
++	data[i++] = dev->stats.tx_errors;
++	data[i++] = dev->stats.rx_dropped;
++	data[i++] = dev->stats.tx_dropped;
++	data[i++] = dev->stats.multicast;
++	data[i++] = dev->stats.rx_length_errors;
++	data[i++] = dev->stats.rx_frame_errors;
++	data[i++] = dev->stats.rx_missed_errors;
++	data[i++] = dev->stats.tx_carrier_errors;
++}
++
+ static const struct ethtool_ops vnet_ethtool_ops = {
+ 	.get_drvinfo		= vnet_get_drvinfo,
+ 	.get_msglevel		= vnet_get_msglevel,
+ 	.set_msglevel		= vnet_set_msglevel,
+ 	.get_link		= ethtool_op_get_link,
++	.get_sset_count		= vnet_get_sset_count,
++	.get_strings		= vnet_get_strings,
++	.get_ethtool_stats	= vnet_get_ethtool_stats,
+ };
+ 
+ static LIST_HEAD(vnet_list);
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 0f940f0..624ad65 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -409,6 +409,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
+ 
+ 	skb->ip_summed = port->switch_port ? CHECKSUM_NONE : CHECKSUM_PARTIAL;
+ 
++	if (unlikely(is_multicast_ether_addr(eth_hdr(skb)->h_dest)))
++		dev->stats.multicast++;
+ 	dev->stats.rx_packets++;
+ 	dev->stats.rx_bytes += len;
+ 	napi_gro_receive(&port->napi, skb);
+-- 
+1.7.1
 
