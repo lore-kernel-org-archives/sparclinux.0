@@ -1,21 +1,48 @@
-From: Miss Marbell <spdr3re9@friend.ocn.ne.jp>
-Date: Wed, 01 Feb 2017 08:23:30 +0000
-Subject: =?utf-8?Q?Bitte_kontaktieren_Sie_mich_f=C3=BCr_weitere_Details!?=
-Message-Id: <524977160.132179282.1485937410146.JavaMail.root@friend.ocn.ne.jp>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Fri, 10 Feb 2017 17:38:18 +0000
+Subject: [PATCH v3 net-next 2/9] sunvnet: remove unused variable in maybe_tx_wakeup
+Message-Id: <1486748305-240339-3-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Sowmini Varadhan <sowmini.varadhan@oracle.com>, Shannon Nelson <shannon.nelson@oracle.com>
 
-Sehr geehrte Damen und Herren,
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 
-Ich brauche Ihre Unterstützung in Ihrem Land zu verlagern und zu investieren.Ich bitte Sie um Hilfe, weil ich nicht das Wissen über
-Geschäft und die Regeln, die Ihr Land für eine sichere Investition führen.
+The vio_dring_state *dr variable is unused in maybe_tx_wakeup().
+As the comments indicate, we call maybe_tx_wakeup() whenever we
+get a STOPPED LDC message on the port. If the queue is stopped,
+we want to wake it up so that we will send another START message
+at the next TX and trigger the consumer to drain the dring.
 
-Werden Sie versprechen, mit mir aufrichtig zu sein?
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-Bitte kontaktieren Sie mich für weitere Details!
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index c71f000..0f940f0 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -719,12 +719,8 @@ static void maybe_tx_wakeup(struct vnet_port *port)
+ 	txq = netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
+ 				  port->q_index);
+ 	__netif_tx_lock(txq, smp_processor_id());
+-	if (likely(netif_tx_queue_stopped(txq))) {
+-		struct vio_dring_state *dr;
+-
+-		dr = &port->vio.drings[VIO_DRIVER_TX_RING];
++	if (likely(netif_tx_queue_stopped(txq)))
+ 		netif_tx_wake_queue(txq);
+-	}
+ 	__netif_tx_unlock(txq);
+ }
+ 
+-- 
+1.7.1
 
-Mit freundlichen Grüßen,
-Fräulein Marbell.
