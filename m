@@ -1,46 +1,65 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 13 Feb 2017 19:18:12 +0000
-Subject: Re: [PATCH v4 net-next 5/8] sunvnet: straighten up message event handling logic
-Message-Id: <073f1737-3990-1a69-fc31-ed86c8fd64bd@oracle.com>
+From: Anton Blanchard <anton@ozlabs.org>
+Date: Sun, 12 Feb 2017 21:14:49 +0000
+Subject: [PATCH] perf: Fix CONFIG_KPROBE_EVENTS and CONFIG_UPROBE_EVENTS typos
+Message-Id: <20170212211449.25976-1-anton@ozlabs.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
- <1487012224-403399-6-git-send-email-shannon.nelson@oracle.com>
- <1487012802.6214.3.camel@perches.com>
-In-Reply-To: <1487012802.6214.3.camel@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Joe Perches <joe@perches.com>, netdev@vger.kernel.org, davem@davemloft.net
+To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 2/13/2017 11:06 AM, Joe Perches wrote:
-> On Mon, 2017-02-13 at 10:57 -0800, Shannon Nelson wrote:
->> The use of gotos for handling the incoming events made this code
->> harder to read and support than it should be.  This patch straightens
->> out and clears up the logic.
->>
->> Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
->> ---
->>  drivers/net/ethernet/sun/sunvnet_common.c |   94 ++++++++++++++---------------
->>  1 files changed, 45 insertions(+), 49 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-> []
->> @@ -738,41 +738,37 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
-> []
->> +	/* we don't expect any other bits */
->> +	BUG_ON(port->rx_event & ~(LDC_EVENT_DATA_READY |
->> +				  LDC_EVENT_RESET |
->> +				  LDC_EVENT_UP));
->
-> Is it really necessary to use BUG_ON here?
->
+From: Anton Blanchard <anton@samba.org>
 
-I'm carrying this from the original code because we want to know asap if 
-we have a low level protocol issue.  It should never happen in the 
-field, but we want to notice it as soon as we can when doing development 
-and testing.  In this patch I've simply made it more obvious and up 
-front that we're doing this test rather than having it buried in the 
-logic a few lines further down.
+Fix some incorrect Kconfig options, they should be CONFIG_KPROBE_EVENT
+and CONFIG_UPROBE_EVENT.
 
-sln
+Signed-off-by: Anton Blanchard <anton@samba.org>
+---
+ arch/sparc/configs/sparc64_defconfig | 2 +-
+ tools/perf/util/probe-file.c         | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index b2e650d..f912fd1 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -213,7 +213,7 @@ CONFIG_SCHEDSTATS=y
+ # CONFIG_RCU_CPU_STALL_DETECTOR is not set
+ CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+-CONFIG_UPROBE_EVENTS=y
++CONFIG_UPROBE_EVENT=y
+ CONFIG_KEYS=y
+ CONFIG_CRYPTO_NULL=m
+ CONFIG_CRYPTO_TEST=m
+diff --git a/tools/perf/util/probe-file.c b/tools/perf/util/probe-file.c
+index 436b647..6c74391 100644
+--- a/tools/perf/util/probe-file.c
++++ b/tools/perf/util/probe-file.c
+@@ -38,9 +38,9 @@ static void print_open_warning(int err, bool uprobe)
+ 		const char *config;
+ 
+ 		if (uprobe)
+-			config = "CONFIG_UPROBE_EVENTS";
++			config = "CONFIG_UPROBE_EVENT";
+ 		else
+-			config = "CONFIG_KPROBE_EVENTS";
++			config = "CONFIG_KPROBE_EVENT";
+ 
+ 		pr_warning("%cprobe_events file does not exist"
+ 			   " - please rebuild kernel with %s.\n",
+@@ -59,8 +59,8 @@ static void print_both_open_warning(int kerr, int uerr)
+ 	if (kerr = -ENOTSUP && uerr = -ENOTSUP)
+ 		pr_warning("Tracefs or debugfs is not mounted.\n");
+ 	else if (kerr = -ENOENT && uerr = -ENOENT)
+-		pr_warning("Please rebuild kernel with CONFIG_KPROBE_EVENTS "
+-			   "or/and CONFIG_UPROBE_EVENTS.\n");
++		pr_warning("Please rebuild kernel with CONFIG_KPROBE_EVENT "
++			   "or/and CONFIG_UPROBE_EVENT.\n");
+ 	else {
+ 		char sbuf[STRERR_BUFSIZE];
+ 		pr_warning("Failed to open kprobe events: %s.\n",
+-- 
+2.9.3
+
