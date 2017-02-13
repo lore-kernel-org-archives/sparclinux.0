@@ -1,34 +1,61 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 03 Feb 2017 17:42:26 +0000
-Subject: [PATCH net-next 0/9] sunvnet driver updates
-Message-Id: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
+Date: Mon, 13 Feb 2017 18:57:02 +0000
+Subject: [PATCH v4 net-next 6/8] sunvnet: remove extra rcu_read_unlocks
+Message-Id: <1487012224-403399-7-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-The sunvnet ldom virtual network driver was due for some updates and
-a bugfix or two.  These patches address a few items left over from
-last year's make-over.
+The RCU read lock is grabbed first thing in sunvnet_start_xmit_common()
+so it always needs to be released.  This removes the conditional release
+in the dropped packet error path and removes a couple of superfluous
+calls in the middle of the code.
 
-Shannon Nelson (8):
-  sunvnet: make sunvnet common code dynamically loadable
-  sunvnet: update version and version printing
-  sunvnet: add driver stats for ethtool support
-  sunvnet: add memory barrier before check for tx enable
-  sunvnet: straighten up message event handling logic
-  sunvnet: remove extra rcu_read_unlocks
-  ldmvsw: update and simplify version string
-  ldmvsw: disable tso and gso for bridge operations
+Reported-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-Sowmini Varadhan (1):
-  sunvnet: remove unused variable in maybe_tx_wakeup
-
- drivers/net/ethernet/sun/Kconfig          |    9 +-
- drivers/net/ethernet/sun/ldmvsw.c         |   82 ++++++++++++++---
- drivers/net/ethernet/sun/sunvnet.c        |   77 ++++++++++++++--
- drivers/net/ethernet/sun/sunvnet_common.c |  143 ++++++++++++++++------------
- 4 files changed, 224 insertions(+), 87 deletions(-)
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index d124bde..65f7038 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1253,10 +1253,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 
+ 	rcu_read_lock();
+ 	port = vnet_tx_port(skb, dev);
+-	if (unlikely(!port)) {
+-		rcu_read_unlock();
++	if (unlikely(!port))
+ 		goto out_dropped;
+-	}
+ 
+ 	if (skb_is_gso(skb) && skb->len > port->tsolen) {
+ 		err = vnet_handle_offloads(port, skb, vnet_tx_port);
+@@ -1281,7 +1279,6 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 			fl4.saddr = ip_hdr(skb)->saddr;
+ 
+ 			rt = ip_route_output_key(dev_net(dev), &fl4);
+-			rcu_read_unlock();
+ 			if (!IS_ERR(rt)) {
+ 				skb_dst_set(skb, &rt->dst);
+ 				icmp_send(skb, ICMP_DEST_UNREACH,
+@@ -1441,8 +1438,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 				jiffies + VNET_CLEAN_TIMEOUT);
+ 	else if (port)
+ 		del_timer(&port->clean_timer);
+-	if (port)
+-		rcu_read_unlock();
++	rcu_read_unlock();
+ 	if (skb)
+ 		dev_kfree_skb(skb);
+ 	vnet_free_skbs(freeskbs);
+-- 
+1.7.1
 
