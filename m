@@ -1,47 +1,48 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 01 Feb 2017 19:34:37 +0000
-Subject: [PATCH v3 1/4] sparc64: Set cpu state to offline when stopped
-Message-Id: <1485977680-203775-2-git-send-email-vijay.ac.kumar@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 13 Feb 2017 18:56:58 +0000
+Subject: [PATCH v4 net-next 2/8] sunvnet: remove unused variable in maybe_tx_wakeup
+Message-Id: <1487012224-403399-3-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org, vijay.ac.kumar@oracle.com
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Sowmini Varadhan <sowmini.varadhan@oracle.com>, Shannon Nelson <shannon.nelson@oracle.com>
 
-CPU needs to be marked offline before stopping it. When not marked
-offline, the xcall receives HV_EWOULDBLOCK and so assumes that not all
-CPUs received the message, and retries. After 10000 retries, it finally
-fails with fatal mondo timeout.
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+The vio_dring_state *dr variable is unused in maybe_tx_wakeup().
+As the comments indicate, we call maybe_tx_wakeup() whenever we
+get a STOPPED LDC message on the port. If the queue is stopped,
+we want to wake it up so that we will send another START message
+at the next TX and trigger the consumer to drain the dring.
+
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/kernel/smp_64.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/sun/sunvnet_common.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 0ce347f..712bf1b 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1443,6 +1443,7 @@ void __irq_entry smp_receive_signal_client(int irq, struct pt_regs *regs)
- 
- static void stop_this_cpu(void *dummy)
- {
-+	set_cpu_online(smp_processor_id(), false);
- 	prom_stopself();
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index c71f000..0f940f0 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -719,12 +719,8 @@ static void maybe_tx_wakeup(struct vnet_port *port)
+ 	txq = netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
+ 				  port->q_index);
+ 	__netif_tx_lock(txq, smp_processor_id());
+-	if (likely(netif_tx_queue_stopped(txq))) {
+-		struct vio_dring_state *dr;
+-
+-		dr = &port->vio.drings[VIO_DRIVER_TX_RING];
++	if (likely(netif_tx_queue_stopped(txq)))
+ 		netif_tx_wake_queue(txq);
+-	}
+ 	__netif_tx_unlock(txq);
  }
  
-@@ -1454,6 +1455,8 @@ void smp_send_stop(void)
- 		for_each_online_cpu(cpu) {
- 			if (cpu = smp_processor_id())
- 				continue;
-+
-+			set_cpu_online(cpu, false);
- #ifdef CONFIG_SUN_LDOMS
- 			if (ldom_domaining_enabled) {
- 				unsigned long hv_err;
 -- 
 1.7.1
 
