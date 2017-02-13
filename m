@@ -1,61 +1,77 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 07 Feb 2017 22:13:00 +0000
-Subject: [PATCH v2 net-next 7/9] sunvnet: remove extra rcu_read_unlocks
-Message-Id: <1486505582-76823-8-git-send-email-shannon.nelson@oracle.com>
+Date: Mon, 13 Feb 2017 18:56:57 +0000
+Subject: [PATCH v4 net-next 1/8] sunvnet: make sunvnet common code dynamically loadable
+Message-Id: <1487012224-403399-2-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486505582-76823-1-git-send-email-shannon.nelson@oracle.com>
+References: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1487012224-403399-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: netdev@vger.kernel.org, davem@davemloft.net
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-The RCU read lock is grabbed first thing in sunvnet_start_xmit_common()
-so it always needs to be released.  This removes the conditional release
-in the dropped packet error path and removes a couple of superfluous
-calls in the middle of the code.
+When the sunvnet_common code was split out for use by both sunvnet
+and the newer ldmvsw, it was made into a static kernel library, which
+limits the usefulness of sunvnet and ldmvsw as loadables, since most
+of the real work is being done in the shared code.  Also, this is
+simply dead code in kernels that aren't running the LDoms.
 
-Reported-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+This patch makes the sunvnet_common into a dynamically loadable
+module and makes sunvnet and ldmvsw dependent on sunvnet_common.
+
 Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/sun/Kconfig          |    8 ++++++--
+ drivers/net/ethernet/sun/sunvnet_common.c |    5 +++++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/net/ethernet/sun/Kconfig b/drivers/net/ethernet/sun/Kconfig
+index a4b40e3..b2caf51 100644
+--- a/drivers/net/ethernet/sun/Kconfig
++++ b/drivers/net/ethernet/sun/Kconfig
+@@ -70,19 +70,23 @@ config CASSINI
+ 	  <http://docs.oracle.com/cd/E19113-01/giga.ether.pci/817-4341-10/817-4341-10.pdf>.
+ 
+ config SUNVNET_COMMON
+-	bool
++	tristate "Common routines to support Sun Virtual Networking"
+ 	depends on SUN_LDOMS
+-	default y if SUN_LDOMS
++	default m
+ 
+ config SUNVNET
+ 	tristate "Sun Virtual Network support"
++	default m
+ 	depends on SUN_LDOMS
++	depends on SUNVNET_COMMON
+ 	---help---
+ 	  Support for virtual network devices under Sun Logical Domains.
+ 
+ config LDMVSW
+ 	tristate "Sun4v LDoms Virtual Switch support"
++	default m
+ 	depends on SUN_LDOMS
++	depends on SUNVNET_COMMON
+ 	---help---
+ 	  Support for virtual switch devices under Sun4v Logical Domains.
+ 	  This driver adds a network interface for every vsw-port node
 diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index d2aed2c..9384db0 100644
+index 191c8ad..c71f000 100644
 --- a/drivers/net/ethernet/sun/sunvnet_common.c
 +++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -1279,10 +1279,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+@@ -37,6 +37,11 @@
+  */
+ #define	VNET_MAX_RETRIES	10
  
- 	rcu_read_lock();
- 	port = vnet_tx_port(skb, dev);
--	if (unlikely(!port)) {
--		rcu_read_unlock();
-+	if (unlikely(!port))
- 		goto out_dropped;
--	}
++MODULE_AUTHOR("David S. Miller (davem@davemloft.net)");
++MODULE_DESCRIPTION("Sun LDOM virtual network support library");
++MODULE_LICENSE("GPL");
++MODULE_VERSION("1.1");
++
+ static int __vnet_tx_trigger(struct vnet_port *port, u32 start);
+ static void vnet_port_reset(struct vnet_port *port);
  
- 	if (skb_is_gso(skb) && skb->len > port->tsolen) {
- 		err = vnet_handle_offloads(port, skb, vnet_tx_port);
-@@ -1307,7 +1305,6 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
- 			fl4.saddr = ip_hdr(skb)->saddr;
- 
- 			rt = ip_route_output_key(dev_net(dev), &fl4);
--			rcu_read_unlock();
- 			if (!IS_ERR(rt)) {
- 				skb_dst_set(skb, &rt->dst);
- 				icmp_send(skb, ICMP_DEST_UNREACH,
-@@ -1467,8 +1464,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
- 				jiffies + VNET_CLEAN_TIMEOUT);
- 	else if (port)
- 		del_timer(&port->clean_timer);
--	if (port)
--		rcu_read_unlock();
-+	rcu_read_unlock();
- 	if (skb)
- 		dev_kfree_skb(skb);
- 	vnet_free_skbs(freeskbs);
 -- 
 1.7.1
 
