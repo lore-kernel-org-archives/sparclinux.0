@@ -1,36 +1,26 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Mon, 13 Feb 2017 06:51:52 +0000
+From: Anton Blanchard <anton@samba.org>
+Date: Thu, 16 Feb 2017 05:59:54 +0000
 Subject: Re: [PATCH] perf: Fix CONFIG_KPROBE_EVENTS and CONFIG_UPROBE_EVENTS typos
-Message-Id: <20170213065152.GA30715@gmail.com>
+Message-Id: <20170216165954.7cdc23e3@kryten>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170212211449.25976-1-anton@ozlabs.org>
-In-Reply-To: <20170212211449.25976-1-anton@ozlabs.org>
+        <20170213065152.GA30715@gmail.com>
+In-Reply-To: <20170213065152.GA30715@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anton Blanchard <anton@ozlabs.org>
+To: Ingo Molnar <mingo@kernel.org>
 Cc: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi Ingo,
 
-* Anton Blanchard <anton@ozlabs.org> wrote:
-
-> From: Anton Blanchard <anton@samba.org>
+> So the names should be fixed, it should be CONFIG_UPROBE_EVENTS and 
+> CONFIG_KPROBE_EVENTS throughout the code. It's CONFIG_PERF_EVENTS and 
+> CONFIG_PROBE_EVENTS after all and lives in kernel/events/ - all
+> plural.
 > 
-> Fix some incorrect Kconfig options, they should be CONFIG_KPROBE_EVENT
-> and CONFIG_UPROBE_EVENT.
-> 
-> Signed-off-by: Anton Blanchard <anton@samba.org>
-> ---
->  arch/sparc/configs/sparc64_defconfig | 2 +-
->  tools/perf/util/probe-file.c         | 8 ++++----
->  2 files changed, 5 insertions(+), 5 deletions(-)
+> I didn't notice the misnomer when merging these bits.
 
-So the names should be fixed, it should be CONFIG_UPROBE_EVENTS and 
-CONFIG_KPROBE_EVENTS throughout the code. It's CONFIG_PERF_EVENTS and 
-CONFIG_PROBE_EVENTS after all and lives in kernel/events/ - all plural.
+Ok, patch to follow.
 
-I didn't notice the misnomer when merging these bits.
-
-Thanks,
-
-	Ingo
+Anton
