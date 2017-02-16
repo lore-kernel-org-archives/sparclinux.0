@@ -1,286 +1,240 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 28 Feb 2017 18:35:22 +0000
-Subject: [PATCH v6 3/4] sparc64: Add support for ADI register fields, ASIs and traps
-Message-Id: <75a55f3c45d342c657c7ea6c87f9ff8fbf8a3dd2.1488232597.git.khalid.aziz@oracle.com>
+From: Anton Blanchard <anton@ozlabs.org>
+Date: Thu, 16 Feb 2017 06:00:50 +0000
+Subject: [PATCH] perf: Rename CONFIG_[UK]PROBE_EVENT to CONFIG_[UK]PROBE_EVENTS
+Message-Id: <20170216060050.20866-1-anton@ozlabs.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1488232591.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1488232591.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, chris.hyser@oracle.com, sowmini.varadhan@oracle.com, tushar.n.dave@oracle.com, akpm@linux-foundation.org, nitin.m.gupta@oracle.com, gerald.schaefer@de.ibm.com, hughd@google.com, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, minchan@kernel.org, allen.pais@oracle.com, viro@zeniv.linux.org.uk, aryabinin@virtuozzo.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-SPARC M7 processor adds new control register fields, ASIs and a new
-trap to support the ADI (Application Data Integrity) feature. This
-patch adds definitions for these register fields, ASIs and a handler
-for the new precise memory corruption detected trap.
+From: Anton Blanchard <anton@samba.org>
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+We have uses of CONFIG_UPROBE_EVENT and CONFIG_KPROBE_EVENT as
+well as CONFIG_UPROBE_EVENTS and CONFIG_KPROBE_EVENTS. Consistently
+use the plurals.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
 ---
-v6:
-	- Added a missing nop in the delay slot in sun4v_mcd_detect_precise
+ Documentation/trace/kprobetrace.txt         |  2 +-
+ Documentation/trace/uprobetracer.txt        |  2 +-
+ arch/powerpc/configs/85xx/kmp204x_defconfig |  2 +-
+ arch/s390/configs/default_defconfig         |  2 +-
+ arch/s390/configs/gcov_defconfig            |  2 +-
+ arch/s390/configs/performance_defconfig     |  2 +-
+ arch/s390/defconfig                         |  2 +-
+ kernel/trace/Kconfig                        |  6 +++---
+ kernel/trace/Makefile                       |  4 ++--
+ kernel/trace/trace.c                        | 10 +++++-----
+ kernel/trace/trace_probe.h                  |  4 ++--
+ 11 files changed, 19 insertions(+), 19 deletions(-)
 
-v5:
-	- Fixed indentation issues in assembly code
-
-v4:
-	- Broke patch up into smaller patches
-
-v3:
-	- Removed CONFIG_SPARC_ADI
-	- Replaced prctl commands with mprotect
-	- Added auxiliary vectors for ADI parameters
-	- Enabled ADI for swappable pages
-
-v2:
-	- Fixed a build error
-
- arch/sparc/include/asm/hypervisor.h  |  2 ++
- arch/sparc/include/asm/pgtable_64.h  |  2 ++
- arch/sparc/include/asm/ttable.h      | 10 +++++++
- arch/sparc/include/uapi/asm/asi.h    |  5 ++++
- arch/sparc/include/uapi/asm/pstate.h | 10 +++++++
- arch/sparc/kernel/entry.h            |  3 ++
- arch/sparc/kernel/head_64.S          |  1 +
- arch/sparc/kernel/sun4v_mcd.S        | 17 ++++++++++++
- arch/sparc/kernel/traps_64.c         | 54 ++++++++++++++++++++++++++++++++++++
- arch/sparc/kernel/ttable_64.S        |  6 ++--
- 10 files changed, 108 insertions(+), 2 deletions(-)
- create mode 100644 arch/sparc/kernel/sun4v_mcd.S
-
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index 73cb897..31782f7 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -547,6 +547,8 @@ struct hv_fault_status {
- #define HV_FAULT_TYPE_RESV1	13
- #define HV_FAULT_TYPE_UNALIGNED	14
- #define HV_FAULT_TYPE_INV_PGSZ	15
-+#define HV_FAULT_TYPE_MCD	17
-+#define HV_FAULT_TYPE_MCD_DIS	18
- /* Values 16 --> -2 are reserved.  */
- #define HV_FAULT_TYPE_MULTIPLE	-1
- 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 314b668..569768d 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -162,6 +162,8 @@ bool kern_addr_valid(unsigned long addr);
- #define _PAGE_E_4V	  _AC(0x0000000000000800,UL) /* side-Effect          */
- #define _PAGE_CP_4V	  _AC(0x0000000000000400,UL) /* Cacheable in P-Cache */
- #define _PAGE_CV_4V	  _AC(0x0000000000000200,UL) /* Cacheable in V-Cache */
-+/* Bit 9 is used to enable MCD corruption detection instead on M7 */
-+#define _PAGE_MCD_4V      _AC(0x0000000000000200,UL) /* Memory Corruption    */
- #define _PAGE_P_4V	  _AC(0x0000000000000100,UL) /* Privileged Page      */
- #define _PAGE_EXEC_4V	  _AC(0x0000000000000080,UL) /* Executable Page      */
- #define _PAGE_W_4V	  _AC(0x0000000000000040,UL) /* Writable             */
-diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
-index 82e7df2..d6510ab 100644
---- a/arch/sparc/include/asm/ttable.h
-+++ b/arch/sparc/include/asm/ttable.h
-@@ -218,6 +218,16 @@
- 	nop;						\
- 	nop;
- 
-+#define SUN4V_MCD_PRECISE				\
-+	ldxa	[%g0] ASI_SCRATCHPAD, %g2;		\
-+	ldx	[%g2 + HV_FAULT_D_ADDR_OFFSET], %g4;	\
-+	ldx	[%g2 + HV_FAULT_D_CTX_OFFSET], %g5;	\
-+	ba,pt	%xcc, etrap;				\
-+	 rd	%pc, %g7;				\
-+	ba,pt	%xcc, sun4v_mcd_detect_precise;		\
-+	 nop;						\
-+	nop;
-+
- /* Before touching these macros, you owe it to yourself to go and
-  * see how arch/sparc64/kernel/winfixup.S works... -DaveM
-  *
-diff --git a/arch/sparc/include/uapi/asm/asi.h b/arch/sparc/include/uapi/asm/asi.h
-index 7ad7203d..2bcdaa5 100644
---- a/arch/sparc/include/uapi/asm/asi.h
-+++ b/arch/sparc/include/uapi/asm/asi.h
-@@ -144,6 +144,8 @@
-  * ASIs, "(4V)" designates SUN4V specific ASIs.  "(NG4)" designates SPARC-T4
-  * and later ASIs.
-  */
-+#define ASI_MCD_PRIV_PRIMARY	0x02 /* (NG7) Privileged MCD version VA	*/
-+#define ASI_MCD_REAL		0x05 /* (NG7) Privileged MCD version PA	*/
- #define ASI_PHYS_USE_EC		0x14 /* PADDR, E-cachable		*/
- #define ASI_PHYS_BYPASS_EC_E	0x15 /* PADDR, E-bit			*/
- #define ASI_BLK_AIUP_4V		0x16 /* (4V) Prim, user, block ld/st	*/
-@@ -244,6 +246,9 @@
- #define ASI_UDBL_CONTROL_R	0x7f /* External UDB control regs rd low*/
- #define ASI_INTR_R		0x7f /* IRQ vector dispatch read	*/
- #define ASI_INTR_DATAN_R	0x7f /* (III) In irq vector data reg N	*/
-+#define ASI_MCD_PRIMARY		0x90 /* (NG7) MCD version load/store	*/
-+#define ASI_MCD_ST_BLKINIT_PRIMARY	\
-+				0x92 /* (NG7) MCD store BLKINIT primary	*/
- #define ASI_PIC			0xb0 /* (NG4) PIC registers		*/
- #define ASI_PST8_P		0xc0 /* Primary, 8 8-bit, partial	*/
- #define ASI_PST8_S		0xc1 /* Secondary, 8 8-bit, partial	*/
-diff --git a/arch/sparc/include/uapi/asm/pstate.h b/arch/sparc/include/uapi/asm/pstate.h
-index cf832e1..d0521db 100644
---- a/arch/sparc/include/uapi/asm/pstate.h
-+++ b/arch/sparc/include/uapi/asm/pstate.h
-@@ -10,7 +10,12 @@
-  * -----------------------------------------------------------------------
-  *  63  12  11   10    9     8    7   6   5     4     3     2     1    0
-  */
-+/* IG on V9 conflicts with MCDE on M7. PSTATE_MCDE will only be used on
-+ * processors that support ADI which do not use IG, hence there is no
-+ * functional conflict
-+ */
- #define PSTATE_IG   _AC(0x0000000000000800,UL) /* Interrupt Globals.	*/
-+#define PSTATE_MCDE _AC(0x0000000000000800,UL) /* MCD Enable		*/
- #define PSTATE_MG   _AC(0x0000000000000400,UL) /* MMU Globals.		*/
- #define PSTATE_CLE  _AC(0x0000000000000200,UL) /* Current Little Endian.*/
- #define PSTATE_TLE  _AC(0x0000000000000100,UL) /* Trap Little Endian.	*/
-@@ -47,7 +52,12 @@
- #define TSTATE_ASI	_AC(0x00000000ff000000,UL) /* AddrSpace ID.	*/
- #define TSTATE_PIL	_AC(0x0000000000f00000,UL) /* %pil (Linux traps)*/
- #define TSTATE_PSTATE	_AC(0x00000000000fff00,UL) /* PSTATE.		*/
-+/* IG on V9 conflicts with MCDE on M7. TSTATE_MCDE will only be used on
-+ * processors that support ADI which do not support IG, hence there is
-+ * no functional conflict
-+ */
- #define TSTATE_IG	_AC(0x0000000000080000,UL) /* Interrupt Globals.*/
-+#define TSTATE_MCDE	_AC(0x0000000000080000,UL) /* MCD enable.       */
- #define TSTATE_MG	_AC(0x0000000000040000,UL) /* MMU Globals.	*/
- #define TSTATE_CLE	_AC(0x0000000000020000,UL) /* CurrLittleEndian.	*/
- #define TSTATE_TLE	_AC(0x0000000000010000,UL) /* TrapLittleEndian.	*/
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index 0f67942..2078468 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -159,6 +159,9 @@ void sun4v_resum_overflow(struct pt_regs *regs);
- void sun4v_nonresum_error(struct pt_regs *regs,
- 			  unsigned long offset);
- void sun4v_nonresum_overflow(struct pt_regs *regs);
-+void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs,
-+				      unsigned long addr,
-+				      unsigned long context);
- 
- extern unsigned long sun4v_err_itlb_vaddr;
- extern unsigned long sun4v_err_itlb_ctx;
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 6aa3da1..818f869 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -873,6 +873,7 @@ sparc64_boot_end:
- #include "helpers.S"
- #include "hvcalls.S"
- #include "sun4v_tlb_miss.S"
-+#include "sun4v_mcd.S"
- #include "sun4v_ivec.S"
- #include "ktlb.S"
- #include "tsb.S"
-diff --git a/arch/sparc/kernel/sun4v_mcd.S b/arch/sparc/kernel/sun4v_mcd.S
-new file mode 100644
-index 0000000..92afb62
---- /dev/null
-+++ b/arch/sparc/kernel/sun4v_mcd.S
-@@ -0,0 +1,17 @@
-+/* sun4v_mcd.S: Sun4v memory corruption detected precise exception handler
-+ *
-+ * Copyright (C) 2015 Bob Picco <bob.picco@oracle.com>
-+ * Copyright (C) 2015 Khalid Aziz <khalid.aziz@oracle.com>
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.
-+ */
-+	.text
-+	.align 32
-+
-+sun4v_mcd_detect_precise:
-+	mov	%l4, %o1
-+	mov 	%l5, %o2
-+	call	sun4v_mem_corrupt_detect_precise
-+	 add	%sp, PTREGS_OFF, %o0
-+	ba,a,pt	%xcc, rtrap
-+	 nop
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index dfc97a4..a9a71d5 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2604,6 +2604,60 @@ void sun4v_do_mna(struct pt_regs *regs, unsigned long addr, unsigned long type_c
- 	force_sig_info(SIGBUS, &info, current);
- }
- 
-+/* sun4v_mem_corrupt_detect_precise() - Handle precise exception on an ADI
-+ * tag mismatch.
-+ *
-+ * ADI version tag mismatch on a load from memory always results in a
-+ * precise exception. Tag mismatch on a store to memory will result in
-+ * precise exception if MCDPER or PMCDPER is set to 1.
-+ */
-+void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs, unsigned long addr,
-+				      unsigned long context)
-+{
-+	siginfo_t info;
-+
-+	if (notify_die(DIE_TRAP, "memory corruption precise exception", regs,
-+		       0, 0x8, SIGSEGV) = NOTIFY_STOP)
-+		return;
-+
-+	if (regs->tstate & TSTATE_PRIV) {
-+		/* MCD exception could happen because the task was running
-+		 * a system call with MCD enabled and passed a non-versioned
-+		 * pointer or pointer with bad version tag to  the system
-+		 * call.
-+		 */
-+		const struct exception_table_entry *entry;
-+
-+		entry = search_exception_tables(regs->tpc);
-+		if (entry) {
-+			/* Looks like a bad syscall parameter */
-+#ifdef DEBUG_EXCEPTIONS
-+			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
-+				 regs->tpc);
-+			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
-+				 regs->tpc, entry->fixup);
-+#endif
-+			regs->tpc = entry->fixup;
-+			regs->tnpc = regs->tpc + 4;
-+			return;
-+		}
-+		pr_emerg("sun4v_mem_corrupt_detect_precise: ADDR[%016lx] "
-+			"CTX[%lx], going.\n", addr, context);
-+		die_if_kernel("MCD precise", regs);
-+	}
-+
-+	if (test_thread_flag(TIF_32BIT)) {
-+		regs->tpc &= 0xffffffff;
-+		regs->tnpc &= 0xffffffff;
-+	}
-+	info.si_signo = SIGSEGV;
-+	info.si_code = SEGV_ADIPERR;
-+	info.si_errno = 0;
-+	info.si_addr = (void __user *) addr;
-+	info.si_trapno = 0;
-+	force_sig_info(SIGSEGV, &info, current);
-+}
-+
- void do_privop(struct pt_regs *regs)
+diff --git a/Documentation/trace/kprobetrace.txt b/Documentation/trace/kpro=
+betrace.txt
+index e4991fb..41ef9d8 100644
+--- a/Documentation/trace/kprobetrace.txt
++++ b/Documentation/trace/kprobetrace.txt
+@@ -12,7 +12,7 @@ kprobes can probe (this means, all functions body except =
+for __kprobes
+ functions). Unlike the Tracepoint based event, this can be added and remov=
+ed
+ dynamically, on the fly.
+=20
+-To enable this feature, build your kernel with CONFIG_KPROBE_EVENT=3Dy.
++To enable this feature, build your kernel with CONFIG_KPROBE_EVENTS=3Dy.
+=20
+ Similar to the events tracer, this doesn't need to be activated via
+ current_tracer. Instead of that, add probe points via
+diff --git a/Documentation/trace/uprobetracer.txt b/Documentation/trace/upr=
+obetracer.txt
+index fa7b680..bf526a7c 100644
+--- a/Documentation/trace/uprobetracer.txt
++++ b/Documentation/trace/uprobetracer.txt
+@@ -7,7 +7,7 @@
+ Overview
+ --------
+ Uprobe based trace events are similar to kprobe based trace events.
+-To enable this feature, build your kernel with CONFIG_UPROBE_EVENT=3Dy.
++To enable this feature, build your kernel with CONFIG_UPROBE_EVENTS=3Dy.
+=20
+ Similar to the kprobe-event tracer, this doesn't need to be activated via
+ current_tracer. Instead of that, add probe points via
+diff --git a/arch/powerpc/configs/85xx/kmp204x_defconfig b/arch/powerpc/con=
+figs/85xx/kmp204x_defconfig
+index aaaaa60..34a4da2 100644
+--- a/arch/powerpc/configs/85xx/kmp204x_defconfig
++++ b/arch/powerpc/configs/85xx/kmp204x_defconfig
+@@ -210,7 +210,7 @@ CONFIG_DEBUG_SHIRQ=3Dy
+ CONFIG_DETECT_HUNG_TASK=3Dy
+ CONFIG_SCHEDSTATS=3Dy
+ CONFIG_RCU_TRACE=3Dy
+-CONFIG_UPROBE_EVENT=3Dy
++CONFIG_UPROBE_EVENTS=3Dy
+ CONFIG_CRYPTO_NULL=3Dy
+ CONFIG_CRYPTO_PCBC=3Dm
+ CONFIG_CRYPTO_MD4=3Dy
+diff --git a/arch/s390/configs/default_defconfig b/arch/s390/configs/defaul=
+t_defconfig
+index e0097536..53d7cbb 100644
+--- a/arch/s390/configs/default_defconfig
++++ b/arch/s390/configs/default_defconfig
+@@ -609,7 +609,7 @@ CONFIG_SCHED_TRACER=3Dy
+ CONFIG_FTRACE_SYSCALLS=3Dy
+ CONFIG_STACK_TRACER=3Dy
+ CONFIG_BLK_DEV_IO_TRACE=3Dy
+-CONFIG_UPROBE_EVENT=3Dy
++CONFIG_UPROBE_EVENTS=3Dy
+ CONFIG_FUNCTION_PROFILER=3Dy
+ CONFIG_HIST_TRIGGERS=3Dy
+ CONFIG_TRACE_ENUM_MAP_FILE=3Dy
+diff --git a/arch/s390/configs/gcov_defconfig b/arch/s390/configs/gcov_defc=
+onfig
+index f05d2d6..0de46cc 100644
+--- a/arch/s390/configs/gcov_defconfig
++++ b/arch/s390/configs/gcov_defconfig
+@@ -560,7 +560,7 @@ CONFIG_SCHED_TRACER=3Dy
+ CONFIG_FTRACE_SYSCALLS=3Dy
+ CONFIG_STACK_TRACER=3Dy
+ CONFIG_BLK_DEV_IO_TRACE=3Dy
+-CONFIG_UPROBE_EVENT=3Dy
++CONFIG_UPROBE_EVENTS=3Dy
+ CONFIG_FUNCTION_PROFILER=3Dy
+ CONFIG_HIST_TRIGGERS=3Dy
+ CONFIG_TRACE_ENUM_MAP_FILE=3Dy
+diff --git a/arch/s390/configs/performance_defconfig b/arch/s390/configs/pe=
+rformance_defconfig
+index 2cf8734..e77f0dc 100644
+--- a/arch/s390/configs/performance_defconfig
++++ b/arch/s390/configs/performance_defconfig
+@@ -558,7 +558,7 @@ CONFIG_SCHED_TRACER=3Dy
+ CONFIG_FTRACE_SYSCALLS=3Dy
+ CONFIG_STACK_TRACER=3Dy
+ CONFIG_BLK_DEV_IO_TRACE=3Dy
+-CONFIG_UPROBE_EVENT=3Dy
++CONFIG_UPROBE_EVENTS=3Dy
+ CONFIG_FUNCTION_PROFILER=3Dy
+ CONFIG_HIST_TRIGGERS=3Dy
+ CONFIG_TRACE_ENUM_MAP_FILE=3Dy
+diff --git a/arch/s390/defconfig b/arch/s390/defconfig
+index d00e368..0732a7f 100644
+--- a/arch/s390/defconfig
++++ b/arch/s390/defconfig
+@@ -179,7 +179,7 @@ CONFIG_FTRACE_SYSCALLS=3Dy
+ CONFIG_TRACER_SNAPSHOT_PER_CPU_SWAP=3Dy
+ CONFIG_STACK_TRACER=3Dy
+ CONFIG_BLK_DEV_IO_TRACE=3Dy
+-CONFIG_UPROBE_EVENT=3Dy
++CONFIG_UPROBE_EVENTS=3Dy
+ CONFIG_FUNCTION_PROFILER=3Dy
+ CONFIG_TRACE_ENUM_MAP_FILE=3Dy
+ CONFIG_KPROBES_SANITY_TEST=3Dy
+diff --git a/kernel/trace/Kconfig b/kernel/trace/Kconfig
+index d503800..d4a06e7 100644
+--- a/kernel/trace/Kconfig
++++ b/kernel/trace/Kconfig
+@@ -429,7 +429,7 @@ config BLK_DEV_IO_TRACE
+=20
+ 	  If unsure, say N.
+=20
+-config KPROBE_EVENT
++config KPROBE_EVENTS
+ 	depends on KPROBES
+ 	depends on HAVE_REGS_AND_STACK_ACCESS_API
+ 	bool "Enable kprobes-based dynamic events"
+@@ -447,7 +447,7 @@ config KPROBE_EVENT
+ 	  This option is also required by perf-probe subcommand of perf tools.
+ 	  If you want to use perf tools, this option is strongly recommended.
+=20
+-config UPROBE_EVENT
++config UPROBE_EVENTS
+ 	bool "Enable uprobes-based dynamic events"
+ 	depends on ARCH_SUPPORTS_UPROBES
+ 	depends on MMU
+@@ -466,7 +466,7 @@ config UPROBE_EVENT
+=20
+ config BPF_EVENTS
+ 	depends on BPF_SYSCALL
+-	depends on (KPROBE_EVENT || UPROBE_EVENT) && PERF_EVENTS
++	depends on (KPROBE_EVENTS || UPROBE_EVENTS) && PERF_EVENTS
+ 	bool
+ 	default y
+ 	help
+diff --git a/kernel/trace/Makefile b/kernel/trace/Makefile
+index e579808..90f2701 100644
+--- a/kernel/trace/Makefile
++++ b/kernel/trace/Makefile
+@@ -57,7 +57,7 @@ obj-$(CONFIG_EVENT_TRACING) +=3D trace_events_filter.o
+ obj-$(CONFIG_EVENT_TRACING) +=3D trace_events_trigger.o
+ obj-$(CONFIG_HIST_TRIGGERS) +=3D trace_events_hist.o
+ obj-$(CONFIG_BPF_EVENTS) +=3D bpf_trace.o
+-obj-$(CONFIG_KPROBE_EVENT) +=3D trace_kprobe.o
++obj-$(CONFIG_KPROBE_EVENTS) +=3D trace_kprobe.o
+ obj-$(CONFIG_TRACEPOINTS) +=3D power-traces.o
+ ifeq ($(CONFIG_PM),y)
+ obj-$(CONFIG_TRACEPOINTS) +=3D rpm-traces.o
+@@ -66,7 +66,7 @@ ifeq ($(CONFIG_TRACING),y)
+ obj-$(CONFIG_KGDB_KDB) +=3D trace_kdb.o
+ endif
+ obj-$(CONFIG_PROBE_EVENTS) +=3D trace_probe.o
+-obj-$(CONFIG_UPROBE_EVENT) +=3D trace_uprobe.o
++obj-$(CONFIG_UPROBE_EVENTS) +=3D trace_uprobe.o
+=20
+ obj-$(CONFIG_TRACEPOINT_BENCHMARK) +=3D trace_benchmark.o
+=20
+diff --git a/kernel/trace/trace.c b/kernel/trace/trace.c
+index d744978..9a8b415 100644
+--- a/kernel/trace/trace.c
++++ b/kernel/trace/trace.c
+@@ -4348,22 +4348,22 @@ static const char readme_msg[]  	"\t\t\t  traces\n"
+ #endif
+ #endif /* CONFIG_STACK_TRACER */
+-#ifdef CONFIG_KPROBE_EVENT
++#ifdef CONFIG_KPROBE_EVENTS
+ 	"  kprobe_events\t\t- Add/remove/show the kernel dynamic events\n"
+ 	"\t\t\t  Write into this file to define/undefine new trace events.\n"
+ #endif
+-#ifdef CONFIG_UPROBE_EVENT
++#ifdef CONFIG_UPROBE_EVENTS
+ 	"  uprobe_events\t\t- Add/remove/show the userspace dynamic events\n"
+ 	"\t\t\t  Write into this file to define/undefine new trace events.\n"
+ #endif
+-#if defined(CONFIG_KPROBE_EVENT) || defined(CONFIG_UPROBE_EVENT)
++#if defined(CONFIG_KPROBE_EVENTS) || defined(CONFIG_UPROBE_EVENTS)
+ 	"\t  accepts: event-definitions (one definition per line)\n"
+ 	"\t   Format: p|r[:[<group>/]<event>] <place> [<args>]\n"
+ 	"\t           -:[<group>/]<event>\n"
+-#ifdef CONFIG_KPROBE_EVENT
++#ifdef CONFIG_KPROBE_EVENTS
+ 	"\t    place: [<module>:]<symbol>[+<offset>]|<memaddr>\n"
+ #endif
+-#ifdef CONFIG_UPROBE_EVENT
++#ifdef CONFIG_UPROBE_EVENTS
+ 	"\t    place: <path>:<offset>\n"
+ #endif
+ 	"\t     args: <name>=FEtcharg[:type]\n"
+diff --git a/kernel/trace/trace_probe.h b/kernel/trace/trace_probe.h
+index 0c0ae54..903273c 100644
+--- a/kernel/trace/trace_probe.h
++++ b/kernel/trace/trace_probe.h
+@@ -248,7 +248,7 @@ ASSIGN_FETCH_FUNC(file_offset, ftype),			\
+ #define FETCH_TYPE_STRING	0
+ #define FETCH_TYPE_STRSIZE	1
+=20
+-#ifdef CONFIG_KPROBE_EVENT
++#ifdef CONFIG_KPROBE_EVENTS
+ struct symbol_cache;
+ unsigned long update_symbol_cache(struct symbol_cache *sc);
+ void free_symbol_cache(struct symbol_cache *sc);
+@@ -278,7 +278,7 @@ alloc_symbol_cache(const char *sym, long offset)
  {
- 	enum ctx_state prev_state = exception_enter();
-diff --git a/arch/sparc/kernel/ttable_64.S b/arch/sparc/kernel/ttable_64.S
-index 7bd8f65..37dea19 100644
---- a/arch/sparc/kernel/ttable_64.S
-+++ b/arch/sparc/kernel/ttable_64.S
-@@ -25,8 +25,10 @@ tl0_ill:	membar #Sync
- 		TRAP_7INSNS(do_illegal_instruction)
- tl0_privop:	TRAP(do_privop)
- tl0_resv012:	BTRAP(0x12) BTRAP(0x13) BTRAP(0x14) BTRAP(0x15) BTRAP(0x16) BTRAP(0x17)
--tl0_resv018:	BTRAP(0x18) BTRAP(0x19) BTRAP(0x1a) BTRAP(0x1b) BTRAP(0x1c) BTRAP(0x1d)
--tl0_resv01e:	BTRAP(0x1e) BTRAP(0x1f)
-+tl0_resv018:	BTRAP(0x18) BTRAP(0x19)
-+tl0_mcd:	SUN4V_MCD_PRECISE
-+tl0_resv01b:	BTRAP(0x1b)
-+tl0_resv01c:	BTRAP(0x1c) BTRAP(0x1d)	BTRAP(0x1e) BTRAP(0x1f)
- tl0_fpdis:	TRAP_NOSAVE(do_fpdis)
- tl0_fpieee:	TRAP_SAVEFPU(do_fpieee)
- tl0_fpother:	TRAP_NOSAVE(do_fpother_check_fitos)
--- 
-2.7.4
+ 	return NULL;
+ }
+-#endif /* CONFIG_KPROBE_EVENT */
++#endif /* CONFIG_KPROBE_EVENTS */
+=20
+ struct probe_arg {
+ 	struct fetch_param	fetch;
+--=20
+2.9.3
 
