@@ -1,72 +1,40 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 03 Feb 2017 17:42:29 +0000
-Subject: [PATCH net-next 3/9] sunvnet: update version and version printing
-Message-Id: <1486143755-192532-4-git-send-email-shannon.nelson@oracle.com>
+From: Elena Reshetova <elena.reshetova@intel.com>
+Date: Mon, 20 Feb 2017 11:06:17 +0000
+Subject: [PATCH 0/4] arch subsystem refcounter conversions
+Message-Id: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486143755-192532-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-edac@vger.kernel.org, x86@kernel.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, peterz@infradead.org, gregkh@linuxfoundation.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, tony.luck@intel.com, hpa@zytor.com, Elena Reshetova <elena.reshetova@intel.com>
 
-There have been several changes since the first version of this code, so
-we bump the version number.  While we're at it, we can simplify the
-version printing a bit and drop a couple lines of code.
+Now when new refcount_t type and API are finally merged
+(see include/linux/refcount.h), the following
+patches convert various refcounters in the arch susystem from atomic_t
+to refcount_t. By doing this we prevent intentional or accidental
+underflows or overflows that can led to use-after-free vulnerabilities.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- drivers/net/ethernet/sun/sunvnet.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+The below patches are fully independent and can be cherry-picked separately.
+Since we convert all kernel subsystems in the same fashion, resulting
+in about 300 patches, we have to group them for sending at least in some
+fashion to be manageable. Please excuse the long cc list.
 
-diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
-index 38d0e42..883525a 100644
---- a/drivers/net/ethernet/sun/sunvnet.c
-+++ b/drivers/net/ethernet/sun/sunvnet.c
-@@ -38,11 +38,11 @@
- #define VNET_TX_TIMEOUT			(5 * HZ)
- 
- #define DRV_MODULE_NAME		"sunvnet"
--#define DRV_MODULE_VERSION	"1.0"
--#define DRV_MODULE_RELDATE	"June 25, 2007"
-+#define DRV_MODULE_VERSION	"2.0"
-+#define DRV_MODULE_RELDATE	"February 3, 2017"
- 
- static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
-+	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
- MODULE_AUTHOR("David S. Miller (davem@davemloft.net)");
- MODULE_DESCRIPTION("Sun LDOM virtual network driver");
- MODULE_LICENSE("GPL");
-@@ -300,11 +300,6 @@ static struct vio_driver_ops vnet_vio_ops = {
- 	.handshake_complete	= sunvnet_handshake_complete_common,
- };
- 
--static void print_version(void)
--{
--	printk_once(KERN_INFO "%s", version);
--}
--
- const char *remote_macaddr_prop = "remote-mac-address";
- 
- static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
-@@ -317,8 +312,6 @@ static int vnet_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	int len, i, err, switch_port;
- 	u64 node;
- 
--	print_version();
--
- 	hp = mdesc_grab();
- 
- 	node = vio_vdev_node(hp, vdev);
-@@ -453,6 +446,7 @@ static struct vio_driver vnet_port_driver = {
- 
- static int __init vnet_init(void)
- {
-+	pr_info("%s\n", version);
- 	return vio_register_driver(&vnet_port_driver);
- }
- 
+Elena Reshetova (4):
+  s390: convert debug_info.ref_count from atomic_t to refcount_t
+  x86: convert threshold_bank.cpus from atomic_t to refcount_t
+  sparc: convert mdesc_handle.refcnt from atomic_t to refcount_t
+  kvm: convert kvm.users_count from atomic_t to refcount_t
+
+ arch/s390/include/asm/debug.h        |  3 ++-
+ arch/s390/kernel/debug.c             |  8 ++++----
+ arch/sparc/kernel/mdesc.c            | 17 +++++++++--------
+ arch/x86/include/asm/amd_nb.h        |  3 ++-
+ arch/x86/kernel/cpu/mcheck/mce_amd.c |  6 +++---
+ include/linux/kvm_host.h             |  3 ++-
+ virt/kvm/kvm_main.c                  |  8 ++++----
+ 7 files changed, 26 insertions(+), 22 deletions(-)
+
 -- 
-1.7.1
+2.7.4
 
