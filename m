@@ -1,95 +1,67 @@
-From: Paolo Bonzini <pbonzini@redhat.com>
-Date: Mon, 20 Feb 2017 11:37:15 +0000
-Subject: Re: [PATCH 4/4] kvm: convert kvm.users_count from atomic_t to refcount_t
-Message-Id: <220f229f-0e3e-2a72-62c1-1677021c3987@redhat.com>
+From: "Reshetova, Elena" <elena.reshetova@intel.com>
+Date: Mon, 20 Feb 2017 12:22:35 +0000
+Subject: RE: [PATCH 4/4] kvm: convert kvm.users_count from atomic_t to refcount_t
+Message-Id: <2236FBA76BA1254E88B949DDB74E612B41C4D934@IRSMSX102.ger.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
  <1487588781-15123-5-git-send-email-elena.reshetova@intel.com>
-In-Reply-To: <1487588781-15123-5-git-send-email-elena.reshetova@intel.com>
+ <220f229f-0e3e-2a72-62c1-1677021c3987@redhat.com>
+In-Reply-To: <220f229f-0e3e-2a72-62c1-1677021c3987@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Elena Reshetova <elena.reshetova@intel.com>, linux-kernel@vger.kernel.org
-Cc: linux-edac@vger.kernel.org, x86@kernel.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, peterz@infradead.org, gregkh@linuxfoundation.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, tony.luck@intel.com, hpa@zytor.com, Hans Liljestrand <ishkamiel@gmail.com>, Kees Cook <keescook@chromium.org>, David Windsor <dwindsor@gmail.com>
+To: Paolo Bonzini <pbonzini@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "davem@davemloft.net" <davem@davemloft.net>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "Luck, Tony" <tony.luck@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, Hans Liljestrand <ishkamiel@gmail.com>, Kees Cook <keescook@chromium.org>, David Windsor <dwindsor@gmail.com>
 
-On 20/02/2017 12:06, Elena Reshetova wrote:
-> refcount_t type and corresponding API should be
-> used instead of atomic_t when the variable is used as
-> a reference counter. This allows to avoid accidental
-> refcounter overflows that might lead to use-after-free
-> situations.
-> 
-> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> Signed-off-by: David Windsor <dwindsor@gmail.com>
-
-Looks good, will apply after the merge window.
-
-Paolo
-
-> ---
->  include/linux/kvm_host.h | 3 ++-
->  virt/kvm/kvm_main.c      | 8 ++++----
->  2 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
-> index cda457b..7fa05a5 100644
-> --- a/include/linux/kvm_host.h
-> +++ b/include/linux/kvm_host.h
-> @@ -26,6 +26,7 @@
->  #include <linux/context_tracking.h>
->  #include <linux/irqbypass.h>
->  #include <linux/swait.h>
-> +#include <linux/refcount.h>
->  #include <asm/signal.h>
->  
->  #include <linux/kvm.h>
-> @@ -402,7 +403,7 @@ struct kvm {
->  #endif
->  	struct kvm_vm_stat stat;
->  	struct kvm_arch arch;
-> -	atomic_t users_count;
-> +	refcount_t users_count;
->  #ifdef KVM_COALESCED_MMIO_PAGE_OFFSET
->  	struct kvm_coalesced_mmio_ring *coalesced_mmio_ring;
->  	spinlock_t ring_lock;
-> diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-> index dcd1c12..6ae5775 100644
-> --- a/virt/kvm/kvm_main.c
-> +++ b/virt/kvm/kvm_main.c
-> @@ -622,7 +622,7 @@ static struct kvm *kvm_create_vm(unsigned long type)
->  	mutex_init(&kvm->lock);
->  	mutex_init(&kvm->irq_lock);
->  	mutex_init(&kvm->slots_lock);
-> -	atomic_set(&kvm->users_count, 1);
-> +	refcount_set(&kvm->users_count, 1);
->  	INIT_LIST_HEAD(&kvm->devices);
->  
->  	r = kvm_arch_init_vm(kvm, type);
-> @@ -745,13 +745,13 @@ static void kvm_destroy_vm(struct kvm *kvm)
->  
->  void kvm_get_kvm(struct kvm *kvm)
->  {
-> -	atomic_inc(&kvm->users_count);
-> +	refcount_inc(&kvm->users_count);
->  }
->  EXPORT_SYMBOL_GPL(kvm_get_kvm);
->  
->  void kvm_put_kvm(struct kvm *kvm)
->  {
-> -	if (atomic_dec_and_test(&kvm->users_count))
-> +	if (refcount_dec_and_test(&kvm->users_count))
->  		kvm_destroy_vm(kvm);
->  }
->  EXPORT_SYMBOL_GPL(kvm_put_kvm);
-> @@ -3640,7 +3640,7 @@ static int kvm_debugfs_open(struct inode *inode, struct file *file,
->  	 * To avoid the race between open and the removal of the debugfs
->  	 * directory we test against the users count.
->  	 */
-> -	if (!atomic_add_unless(&stat_data->kvm->users_count, 1, 0))
-> +	if (!refcount_inc_not_zero(&stat_data->kvm->users_count))
->  		return -ENOENT;
->  
->  	if (simple_attr_open(inode, file, get, set, fmt)) {
-> 
+PiBPbiAyMC8wMi8yMDE3IDEyOjA2LCBFbGVuYSBSZXNoZXRvdmEgd3JvdGU6DQo+ID4gcmVmY291
+bnRfdCB0eXBlIGFuZCBjb3JyZXNwb25kaW5nIEFQSSBzaG91bGQgYmUNCj4gPiB1c2VkIGluc3Rl
+YWQgb2YgYXRvbWljX3Qgd2hlbiB0aGUgdmFyaWFibGUgaXMgdXNlZCBhcw0KPiA+IGEgcmVmZXJl
+bmNlIGNvdW50ZXIuIFRoaXMgYWxsb3dzIHRvIGF2b2lkIGFjY2lkZW50YWwNCj4gPiByZWZjb3Vu
+dGVyIG92ZXJmbG93cyB0aGF0IG1pZ2h0IGxlYWQgdG8gdXNlLWFmdGVyLWZyZWUNCj4gPiBzaXR1
+YXRpb25zLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogRWxlbmEgUmVzaGV0b3ZhIDxlbGVuYS5y
+ZXNoZXRvdmFAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEhhbnMgTGlsamVzdHJhbmQg
+PGlzaGthbWllbEBnbWFpbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogS2VlcyBDb29rIDxrZWVz
+Y29va0BjaHJvbWl1bS5vcmc+DQo+ID4gU2lnbmVkLW9mZi1ieTogRGF2aWQgV2luZHNvciA8ZHdp
+bmRzb3JAZ21haWwuY29tPg0KPiANCj4gTG9va3MgZ29vZCwgd2lsbCBhcHBseSBhZnRlciB0aGUg
+bWVyZ2Ugd2luZG93Lg0KPiANCj4gUGFvbG8NCg0KVGhhbmsgeW91IHZlcnkgbXVjaCENCg0KQmVz
+dCBSZWdhcmRzLA0KRWxlbmEuDQoNCj4gDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvbGludXgva3Zt
+X2hvc3QuaCB8IDMgKystDQo+ID4gIHZpcnQva3ZtL2t2bV9tYWluLmMgICAgICB8IDggKysrKy0t
+LS0NCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0p
+DQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9rdm1faG9zdC5oIGIvaW5jbHVk
+ZS9saW51eC9rdm1faG9zdC5oDQo+ID4gaW5kZXggY2RhNDU3Yi4uN2ZhMDVhNSAxMDA2NDQNCj4g
+PiAtLS0gYS9pbmNsdWRlL2xpbnV4L2t2bV9ob3N0LmgNCj4gPiArKysgYi9pbmNsdWRlL2xpbnV4
+L2t2bV9ob3N0LmgNCj4gPiBAQCAtMjYsNiArMjYsNyBAQA0KPiA+ICAjaW5jbHVkZSA8bGludXgv
+Y29udGV4dF90cmFja2luZy5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvaXJxYnlwYXNzLmg+DQo+
+ID4gICNpbmNsdWRlIDxsaW51eC9zd2FpdC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvcmVmY291
+bnQuaD4NCj4gPiAgI2luY2x1ZGUgPGFzbS9zaWduYWwuaD4NCj4gPg0KPiA+ICAjaW5jbHVkZSA8
+bGludXgva3ZtLmg+DQo+ID4gQEAgLTQwMiw3ICs0MDMsNyBAQCBzdHJ1Y3Qga3ZtIHsNCj4gPiAg
+I2VuZGlmDQo+ID4gIAlzdHJ1Y3Qga3ZtX3ZtX3N0YXQgc3RhdDsNCj4gPiAgCXN0cnVjdCBrdm1f
+YXJjaCBhcmNoOw0KPiA+IC0JYXRvbWljX3QgdXNlcnNfY291bnQ7DQo+ID4gKwlyZWZjb3VudF90
+IHVzZXJzX2NvdW50Ow0KPiA+ICAjaWZkZWYgS1ZNX0NPQUxFU0NFRF9NTUlPX1BBR0VfT0ZGU0VU
+DQo+ID4gIAlzdHJ1Y3Qga3ZtX2NvYWxlc2NlZF9tbWlvX3JpbmcgKmNvYWxlc2NlZF9tbWlvX3Jp
+bmc7DQo+ID4gIAlzcGlubG9ja190IHJpbmdfbG9jazsNCj4gPiBkaWZmIC0tZ2l0IGEvdmlydC9r
+dm0va3ZtX21haW4uYyBiL3ZpcnQva3ZtL2t2bV9tYWluLmMNCj4gPiBpbmRleCBkY2QxYzEyLi42
+YWU1Nzc1IDEwMDY0NA0KPiA+IC0tLSBhL3ZpcnQva3ZtL2t2bV9tYWluLmMNCj4gPiArKysgYi92
+aXJ0L2t2bS9rdm1fbWFpbi5jDQo+ID4gQEAgLTYyMiw3ICs2MjIsNyBAQCBzdGF0aWMgc3RydWN0
+IGt2bSAqa3ZtX2NyZWF0ZV92bSh1bnNpZ25lZCBsb25nIHR5cGUpDQo+ID4gIAltdXRleF9pbml0
+KCZrdm0tPmxvY2spOw0KPiA+ICAJbXV0ZXhfaW5pdCgma3ZtLT5pcnFfbG9jayk7DQo+ID4gIAlt
+dXRleF9pbml0KCZrdm0tPnNsb3RzX2xvY2spOw0KPiA+IC0JYXRvbWljX3NldCgma3ZtLT51c2Vy
+c19jb3VudCwgMSk7DQo+ID4gKwlyZWZjb3VudF9zZXQoJmt2bS0+dXNlcnNfY291bnQsIDEpOw0K
+PiA+ICAJSU5JVF9MSVNUX0hFQUQoJmt2bS0+ZGV2aWNlcyk7DQo+ID4NCj4gPiAgCXIgPSBrdm1f
+YXJjaF9pbml0X3ZtKGt2bSwgdHlwZSk7DQo+ID4gQEAgLTc0NSwxMyArNzQ1LDEzIEBAIHN0YXRp
+YyB2b2lkIGt2bV9kZXN0cm95X3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPg0KPiA+ICB2b2lkIGt2
+bV9nZXRfa3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPiAgew0KPiA+IC0JYXRvbWljX2luYygma3Zt
+LT51c2Vyc19jb3VudCk7DQo+ID4gKwlyZWZjb3VudF9pbmMoJmt2bS0+dXNlcnNfY291bnQpOw0K
+PiA+ICB9DQo+ID4gIEVYUE9SVF9TWU1CT0xfR1BMKGt2bV9nZXRfa3ZtKTsNCj4gPg0KPiA+ICB2
+b2lkIGt2bV9wdXRfa3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPiAgew0KPiA+IC0JaWYgKGF0b21p
+Y19kZWNfYW5kX3Rlc3QoJmt2bS0+dXNlcnNfY291bnQpKQ0KPiA+ICsJaWYgKHJlZmNvdW50X2Rl
+Y19hbmRfdGVzdCgma3ZtLT51c2Vyc19jb3VudCkpDQo+ID4gIAkJa3ZtX2Rlc3Ryb3lfdm0oa3Zt
+KTsNCj4gPiAgfQ0KPiA+ICBFWFBPUlRfU1lNQk9MX0dQTChrdm1fcHV0X2t2bSk7DQo+ID4gQEAg
+LTM2NDAsNyArMzY0MCw3IEBAIHN0YXRpYyBpbnQga3ZtX2RlYnVnZnNfb3BlbihzdHJ1Y3QgaW5v
+ZGUgKmlub2RlLA0KPiBzdHJ1Y3QgZmlsZSAqZmlsZSwNCj4gPiAgCSAqIFRvIGF2b2lkIHRoZSBy
+YWNlIGJldHdlZW4gb3BlbiBhbmQgdGhlIHJlbW92YWwgb2YgdGhlIGRlYnVnZnMNCj4gPiAgCSAq
+IGRpcmVjdG9yeSB3ZSB0ZXN0IGFnYWluc3QgdGhlIHVzZXJzIGNvdW50Lg0KPiA+ICAJICovDQo+
+ID4gLQlpZiAoIWF0b21pY19hZGRfdW5sZXNzKCZzdGF0X2RhdGEtPmt2bS0+dXNlcnNfY291bnQs
+IDEsIDApKQ0KPiA+ICsJaWYgKCFyZWZjb3VudF9pbmNfbm90X3plcm8oJnN0YXRfZGF0YS0+a3Zt
+LT51c2Vyc19jb3VudCkpDQo+ID4gIAkJcmV0dXJuIC1FTk9FTlQ7DQo+ID4NCj4gPiAgCWlmIChz
+aW1wbGVfYXR0cl9vcGVuKGlub2RlLCBmaWxlLCBnZXQsIHNldCwgZm10KSkgew0KPiA+DQo
