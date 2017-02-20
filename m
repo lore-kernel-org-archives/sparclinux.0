@@ -1,61 +1,90 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Tue, 28 Feb 2017 19:58:24 +0000
-Subject: Re: [PATCH v1 1/3] sparc64: NG4 memset/memcpy 32 bits overflow
-Message-Id: <20170228195824.GG16328@bombadil.infradead.org>
+From: Elena Reshetova <elena.reshetova@intel.com>
+Date: Mon, 20 Feb 2017 11:06:21 +0000
+Subject: [PATCH 4/4] kvm: convert kvm.users_count from atomic_t to refcount_t
+Message-Id: <1487588781-15123-5-git-send-email-elena.reshetova@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1488293746-965735-1-git-send-email-pasha.tatashin@oracle.com>
- <1488293746-965735-2-git-send-email-pasha.tatashin@oracle.com>
- <20170228.101218.983689349992464602.davem@davemloft.net>
- <e196c73e-937c-50fa-ed19-a10372548fb7@oracle.com>
- <20170228185914.GF16328@bombadil.infradead.org>
- <a3a3a887-c7be-eb31-b73f-e179162fde93@oracle.com>
-In-Reply-To: <a3a3a887-c7be-eb31-b73f-e179162fde93@oracle.com>
+References: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pasha Tatashin <pasha.tatashin@oracle.com>
-Cc: David Miller <davem@davemloft.net>, linux-mm@kvack.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-edac@vger.kernel.org, x86@kernel.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, kvm@vger.kernel.org, peterz@infradead.org, gregkh@linuxfoundation.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, tony.luck@intel.com, hpa@zytor.com, Elena Reshetova <elena.reshetova@intel.com>, Hans Liljestrand <ishkamiel@gmail.com>, Kees Cook <keescook@chromium.org>, David Windsor <dwindsor@gmail.com>
 
-On Tue, Feb 28, 2017 at 02:34:17PM -0500, Pasha Tatashin wrote:
-> Hi Matthew,
-> 
-> Thank you for your comments, my replies below:
-> 
-> On 02/28/2017 01:59 PM, Matthew Wilcox wrote:
-> > ... what algorithms are deemed "inefficient" when they take a break every
-> > 2 billion bytes to, ohidon'tknow, check to see that a higher priority
-> > process doesn't want the CPU?
-> 
-> I do not see that NG4memcpy() is disabling interrupts so there should not be
-> any issues with letting higher priority processes to interrupt and do their
-> work. And, as I said my point was mostly for consideration, I will revert
-> that bound check in NG4memcpy() to the 2G limit.
+refcount_t type and corresponding API should be
+used instead of atomic_t when the variable is used as
+a reference counter. This allows to avoid accidental
+refcounter overflows that might lead to use-after-free
+situations.
 
-That's not how it works in Linux.  Unless you've configured your kernel
-with PREEMPT, threads are not preempted while they're inside the kernel.
-See cond_resched() in include/linux/sched.h.
+Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+Signed-off-by: Hans Liljestrand <ishkamiel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: David Windsor <dwindsor@gmail.com>
+---
+ include/linux/kvm_host.h | 3 ++-
+ virt/kvm/kvm_main.c      | 8 ++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-> > Right, so suppose you're copying half the memory to the other half of
-> > memory.  Let's suppose it takes a hundred extra instructions every 2GB to
-> > check that nobody else wants the CPU and dive back into the memcpy code.
-> > That's 800,000 additional instructions.  Which even on a SPARC CPU is
-> > going to execute in less than 0.001 second.  CPU memory bandwidth is
-> > on the order of 100GB/s, so the overall memcpy is going to take about
-> > 160 seconds.
-> 
-> Sure, the computational overhead is minimal, but still adding and
-> maintaining extra code to break-up a single memcpy() has its cost. For
-> example: as far I as can tell x86 and powerpc memcpy()s do not have this
-> limit, which means that an author of a driver would have to explicitly
-> divide memcpy()s into 2G chunks only to work on SPARC (and know about this
-> limit too!). If there is a driver that has a memory proportional data
-> structure it is possible it will panic the kernel once such driver is
-> attached on a larger memory machine.
-
-Ah, now that is a good point.  We should insert such a limit into all
-the architectural memcpy() implementations and the default implementation
-in lib/.  This should not affect any drivers; it is almost impossible to
-allocate 2GB of memory.  kmalloc won't do it, alloc_pages won't do it.
-vmalloc will do it (maybe it shouldn't?) but I have a hard time thinking
-of a good reason for a driver to allocate that much memory.
+diff --git a/include/linux/kvm_host.h b/include/linux/kvm_host.h
+index cda457b..7fa05a5 100644
+--- a/include/linux/kvm_host.h
++++ b/include/linux/kvm_host.h
+@@ -26,6 +26,7 @@
+ #include <linux/context_tracking.h>
+ #include <linux/irqbypass.h>
+ #include <linux/swait.h>
++#include <linux/refcount.h>
+ #include <asm/signal.h>
+ 
+ #include <linux/kvm.h>
+@@ -402,7 +403,7 @@ struct kvm {
+ #endif
+ 	struct kvm_vm_stat stat;
+ 	struct kvm_arch arch;
+-	atomic_t users_count;
++	refcount_t users_count;
+ #ifdef KVM_COALESCED_MMIO_PAGE_OFFSET
+ 	struct kvm_coalesced_mmio_ring *coalesced_mmio_ring;
+ 	spinlock_t ring_lock;
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index dcd1c12..6ae5775 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -622,7 +622,7 @@ static struct kvm *kvm_create_vm(unsigned long type)
+ 	mutex_init(&kvm->lock);
+ 	mutex_init(&kvm->irq_lock);
+ 	mutex_init(&kvm->slots_lock);
+-	atomic_set(&kvm->users_count, 1);
++	refcount_set(&kvm->users_count, 1);
+ 	INIT_LIST_HEAD(&kvm->devices);
+ 
+ 	r = kvm_arch_init_vm(kvm, type);
+@@ -745,13 +745,13 @@ static void kvm_destroy_vm(struct kvm *kvm)
+ 
+ void kvm_get_kvm(struct kvm *kvm)
+ {
+-	atomic_inc(&kvm->users_count);
++	refcount_inc(&kvm->users_count);
+ }
+ EXPORT_SYMBOL_GPL(kvm_get_kvm);
+ 
+ void kvm_put_kvm(struct kvm *kvm)
+ {
+-	if (atomic_dec_and_test(&kvm->users_count))
++	if (refcount_dec_and_test(&kvm->users_count))
+ 		kvm_destroy_vm(kvm);
+ }
+ EXPORT_SYMBOL_GPL(kvm_put_kvm);
+@@ -3640,7 +3640,7 @@ static int kvm_debugfs_open(struct inode *inode, struct file *file,
+ 	 * To avoid the race between open and the removal of the debugfs
+ 	 * directory we test against the users count.
+ 	 */
+-	if (!atomic_add_unless(&stat_data->kvm->users_count, 1, 0))
++	if (!refcount_inc_not_zero(&stat_data->kvm->users_count))
+ 		return -ENOENT;
+ 
+ 	if (simple_attr_open(inode, file, get, set, fmt)) {
+-- 
+2.7.4
 
