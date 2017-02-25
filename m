@@ -1,13 +1,18 @@
-From: sa.lampung@assarent.co.id
-Date: Mon, 20 Feb 2017 11:52:39 +0000
-Subject: my subject
-Message-Id: <20170220115303.BA1565C5441@zimbra.assarent.co.id>
+From: "Mr.Andreas Bauer" <camila@inf.ufpr.br>
+Date: Sat, 25 Feb 2017 21:22:15 +0000
+Subject: RE...
+Message-Id: <20170225211026.7142C9C51E2@urquell.c3sl.ufpr.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Greetings To You,
+Good Day,
 
-I'm Nancy Viola, the winner of the $169 Million Mega Millions Jackpot in the January 8, 2016 Mega Millions drawing, My jackpot was a gift from God to me hence my Entire family has AGREED to do this. My Family is donating $1,000,000.00 USD to you contact me via my email nancyvee80@mail.com
+Based on our investigation of your payment, we want to find out if you're still alive or did you sign any deed of assignment with (Mrs. Sarah Johnson) to receive your fund worth of US$7.5M, reply to us with the following details, Your Name: ,Your Address ,Your Age/Sex,Your Mobile No: to email: imforangisation1@gmail.com OR CALL +91-9643906063
+ 
+Yours Sincerely,
+Mr.Andreas Bauer.
+International Monetary Funds Agent
+Tel:+91-9643906063
