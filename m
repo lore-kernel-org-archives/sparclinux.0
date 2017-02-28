@@ -1,82 +1,247 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 01 Feb 2017 19:34:38 +0000
-Subject: [PATCH v3 2/4] sparc64: Migrate hvcons irq to panicked cpu
-Message-Id: <1485977680-203775-3-git-send-email-vijay.ac.kumar@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 28 Feb 2017 14:55:46 +0000
+Subject: [PATCH v1 3/3] mm: Updated callers to use HASH_ZERO flag
+Message-Id: <1488293746-965735-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1485977680-203775-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <1488293746-965735-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1488293746-965735-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, karl.volz@oracle.com, rob.gardner@oracle.com, linux-kernel@vger.kernel.org, vijay.ac.kumar@oracle.com
+To: linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-On panic, all other CPUs are stopped except the one which had
-hit panic. To keep console alive, we need to migrate hvcons irq
-to panicked CPU.
+Update dcache, inode, pid, mountpoint, and mount hash tables to use
+HASH_ZERO, and remove initialization after allocations.
+In case of places where HASH_EARLY was used such as in __pv_init_lock_hash
+the zeroed hash table was already assumed, because memblock zeroes the
+memory.
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+CPU: SPARC M6, Memory: 7T
+Before fix:
+Dentry cache hash table entries: 1073741824
+Inode-cache hash table entries: 536870912
+Mount-cache hash table entries: 16777216
+Mountpoint-cache hash table entries: 16777216
+ftrace: allocating 20414 entries in 40 pages
+Total time: 11.798s
+
+After fix:
+Dentry cache hash table entries: 1073741824
+Inode-cache hash table entries: 536870912
+Mount-cache hash table entries: 16777216
+Mountpoint-cache hash table entries: 16777216
+ftrace: allocating 20414 entries in 40 pages
+Total time: 3.198s
+
+CPU: Intel Xeon E5-2630, Memory: 2.2T:
+Before fix:
+Dentry cache hash table entries: 536870912
+Inode-cache hash table entries: 268435456
+Mount-cache hash table entries: 8388608
+Mountpoint-cache hash table entries: 8388608
+CPU: Physical Processor ID: 0
+Total time: 3.245s
+
+After fix:
+Dentry cache hash table entries: 536870912
+Inode-cache hash table entries: 268435456
+Mount-cache hash table entries: 8388608
+Mountpoint-cache hash table entries: 8388608
+CPU: Physical Processor ID: 0
+Total time: 3.244s
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
 ---
-v2->v3: Added SERIAL_SUNHV conditional group for
-        sunhv_migrate_hvcons_irq().
----
- arch/sparc/include/asm/setup.h |    5 ++++-
- arch/sparc/kernel/smp_64.c     |    6 +++++-
- drivers/tty/serial/sunhv.c     |    6 ++++++
- 3 files changed, 15 insertions(+), 2 deletions(-)
+ fs/dcache.c                         |   18 ++++--------------
+ fs/inode.c                          |   14 ++------------
+ fs/namespace.c                      |   10 ++--------
+ kernel/locking/qspinlock_paravirt.h |    3 ++-
+ kernel/pid.c                        |    7 ++-----
+ 5 files changed, 12 insertions(+), 40 deletions(-)
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index 29d64b1..478bf6b 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -59,8 +59,11 @@ static inline int con_is_present(void)
- extern atomic_t dcpage_flushes_xcall;
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 95d71ed..363502f 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -3548,8 +3548,6 @@ static int __init set_dhash_entries(char *str)
  
- extern int sysctl_tsb_ratio;
--#endif
+ static void __init dcache_init_early(void)
+ {
+-	unsigned int loop;
+-
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+ 	 */
+@@ -3561,24 +3559,19 @@ static void __init dcache_init_early(void)
+ 					sizeof(struct hlist_bl_head),
+ 					dhash_entries,
+ 					13,
+-					HASH_EARLY,
++					HASH_EARLY | HASH_ZERO,
+ 					&d_hash_shift,
+ 					&d_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+-		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
+ }
  
-+#ifdef CONFIG_SERIAL_SUNHV
-+void sunhv_migrate_hvcons_irq(int cpu);
-+#endif
-+#endif
- void sun_do_break(void);
- extern int stop_a_enabled;
- extern int scons_pwroff;
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 712bf1b..90a02cb 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1452,8 +1452,12 @@ void smp_send_stop(void)
- 	int cpu;
+ static void __init dcache_init(void)
+ {
+-	unsigned int loop;
+-
+-	/* 
++	/*
+ 	 * A constructor could be added for stable state like the lists,
+ 	 * but it is probably not worth it because of the cache nature
+-	 * of the dcache. 
++	 * of the dcache.
+ 	 */
+ 	dentry_cache = KMEM_CACHE(dentry,
+ 		SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD|SLAB_ACCOUNT);
+@@ -3592,14 +3585,11 @@ static void __init dcache_init(void)
+ 					sizeof(struct hlist_bl_head),
+ 					dhash_entries,
+ 					13,
+-					0,
++					HASH_ZERO,
+ 					&d_hash_shift,
+ 					&d_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+-		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
+ }
  
- 	if (tlb_type = hypervisor) {
-+		int this_cpu = smp_processor_id();
-+#ifdef CONFIG_SERIAL_SUNHV
-+		sunhv_migrate_hvcons_irq(this_cpu);
-+#endif
- 		for_each_online_cpu(cpu) {
--			if (cpu = smp_processor_id())
-+			if (cpu = this_cpu)
- 				continue;
+ /* SLAB cache for __getname() consumers */
+diff --git a/fs/inode.c b/fs/inode.c
+index 88110fd..1b15a7c 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1916,8 +1916,6 @@ static int __init set_ihash_entries(char *str)
+  */
+ void __init inode_init_early(void)
+ {
+-	unsigned int loop;
+-
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+ 	 */
+@@ -1929,20 +1927,15 @@ void __init inode_init_early(void)
+ 					sizeof(struct hlist_head),
+ 					ihash_entries,
+ 					14,
+-					HASH_EARLY,
++					HASH_EARLY | HASH_ZERO,
+ 					&i_hash_shift,
+ 					&i_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+-		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
  
- 			set_cpu_online(cpu, false);
-diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
-index 99ef5c6..039ae05 100644
---- a/drivers/tty/serial/sunhv.c
-+++ b/drivers/tty/serial/sunhv.c
-@@ -398,6 +398,12 @@ static int sunhv_verify_port(struct uart_port *port, struct serial_struct *ser)
+ void __init inode_init(void)
+ {
+-	unsigned int loop;
+-
+ 	/* inode slab cache */
+ 	inode_cachep = kmem_cache_create("inode_cache",
+ 					 sizeof(struct inode),
+@@ -1960,14 +1953,11 @@ void __init inode_init(void)
+ 					sizeof(struct hlist_head),
+ 					ihash_entries,
+ 					14,
+-					0,
++					HASH_ZERO,
+ 					&i_hash_shift,
+ 					&i_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+-		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
  
- static struct uart_port *sunhv_port;
+ void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 8bfad42..275e6e2 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -3238,7 +3238,6 @@ static void __init init_mount_tree(void)
  
-+void sunhv_migrate_hvcons_irq(int cpu)
-+{
-+	/* Migrate hvcons irq to param cpu */
-+	irq_force_affinity(sunhv_port->irq, cpumask_of(cpu));
-+}
-+
- /* Copy 's' into the con_write_page, decoding "\n" into
-  * "\r\n" along the way.  We have to return two lengths
-  * because the caller needs to know how much to advance
+ void __init mnt_init(void)
+ {
+-	unsigned u;
+ 	int err;
+ 
+ 	mnt_cache = kmem_cache_create("mnt_cache", sizeof(struct mount),
+@@ -3247,22 +3246,17 @@ void __init mnt_init(void)
+ 	mount_hashtable = alloc_large_system_hash("Mount-cache",
+ 				sizeof(struct hlist_head),
+ 				mhash_entries, 19,
+-				0,
++				HASH_ZERO,
+ 				&m_hash_shift, &m_hash_mask, 0, 0);
+ 	mountpoint_hashtable = alloc_large_system_hash("Mountpoint-cache",
+ 				sizeof(struct hlist_head),
+ 				mphash_entries, 19,
+-				0,
++				HASH_ZERO,
+ 				&mp_hash_shift, &mp_hash_mask, 0, 0);
+ 
+ 	if (!mount_hashtable || !mountpoint_hashtable)
+ 		panic("Failed to allocate mount hash table\n");
+ 
+-	for (u = 0; u <= m_hash_mask; u++)
+-		INIT_HLIST_HEAD(&mount_hashtable[u]);
+-	for (u = 0; u <= mp_hash_mask; u++)
+-		INIT_HLIST_HEAD(&mountpoint_hashtable[u]);
+-
+ 	kernfs_init();
+ 
+ 	err = sysfs_init();
+diff --git a/kernel/locking/qspinlock_paravirt.h b/kernel/locking/qspinlock_paravirt.h
+index e6b2f7a..4ccfcaa 100644
+--- a/kernel/locking/qspinlock_paravirt.h
++++ b/kernel/locking/qspinlock_paravirt.h
+@@ -193,7 +193,8 @@ void __init __pv_init_lock_hash(void)
+ 	 */
+ 	pv_lock_hash = alloc_large_system_hash("PV qspinlock",
+ 					       sizeof(struct pv_hash_entry),
+-					       pv_hash_size, 0, HASH_EARLY,
++					       pv_hash_size, 0,
++					       HASH_EARLY | HASH_ZERO,
+ 					       &pv_lock_hash_bits, NULL,
+ 					       pv_hash_size, pv_hash_size);
+ }
+diff --git a/kernel/pid.c b/kernel/pid.c
+index 0291804..013e023 100644
+--- a/kernel/pid.c
++++ b/kernel/pid.c
+@@ -572,16 +572,13 @@ struct pid *find_ge_pid(int nr, struct pid_namespace *ns)
+  */
+ void __init pidhash_init(void)
+ {
+-	unsigned int i, pidhash_size;
++	unsigned int pidhash_size;
+ 
+ 	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
+-					   HASH_EARLY | HASH_SMALL,
++					   HASH_EARLY | HASH_SMALL | HASH_ZERO,
+ 					   &pidhash_shift, NULL,
+ 					   0, 4096);
+ 	pidhash_size = 1U << pidhash_shift;
+-
+-	for (i = 0; i < pidhash_size; i++)
+-		INIT_HLIST_HEAD(&pid_hash[i]);
+ }
+ 
+ void __init pidmap_init(void)
 -- 
 1.7.1
 
