@@ -1,70 +1,66 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Fri, 10 Feb 2017 17:38:24 +0000
-Subject: [PATCH v3 net-next 8/9] ldmvsw: update and simplify version string
-Message-Id: <1486748305-240339-9-git-send-email-shannon.nelson@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Tue, 28 Feb 2017 18:35:20 +0000
+Subject: [PATCH v6 1/4] signals, sparc: Add signal codes for ADI violations
+Message-Id: <ffb01067b3829adb7752347dc4674730cd0820d8.1488232597.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1486748305-240339-1-git-send-email-shannon.nelson@oracle.com>
+References: <cover.1488232591.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1488232591.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: arnd@arndb.de, davem@davemloft.net
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, hpa@zytor.com, 0x7f454c46@gmail.com, dave.hansen@linux.intel.com, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-New version and simplify the print code.
+SPARC M7 processor introduces a new feature - Application Data
+Integrity (ADI). ADI allows MMU to  catch rogue accesses to memory.
+When a rogue access occurs, MMU blocks the access and raises an
+exception. In response to the exception, kernel sends the offending
+task a SIGSEGV with si_code that indicates the nature of exception.
+This patch adds three new signal codes specific to ADI feature:
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+1. ADI is not enabled for the address and task attempted to access
+   memory using ADI
+2. Task attempted to access memory using wrong ADI tag and caused
+   a deferred exception.
+3. Task attempted to access memory using wrong ADI tag and caused
+   a precise exception.
+
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
 ---
- drivers/net/ethernet/sun/ldmvsw.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ arch/x86/kernel/signal_compat.c    | 2 +-
+ include/uapi/asm-generic/siginfo.h | 5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
-index 3999fb7..3ef5c08 100644
---- a/drivers/net/ethernet/sun/ldmvsw.c
-+++ b/drivers/net/ethernet/sun/ldmvsw.c
-@@ -41,11 +41,11 @@
- static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
+index ec1f756..d1e860c 100644
+--- a/arch/x86/kernel/signal_compat.c
++++ b/arch/x86/kernel/signal_compat.c
+@@ -26,7 +26,7 @@ static inline void signal_compat_build_tests(void)
+ 	 */
+ 	BUILD_BUG_ON(NSIGILL  != 8);
+ 	BUILD_BUG_ON(NSIGFPE  != 8);
+-	BUILD_BUG_ON(NSIGSEGV != 4);
++	BUILD_BUG_ON(NSIGSEGV != 7);
+ 	BUILD_BUG_ON(NSIGBUS  != 5);
+ 	BUILD_BUG_ON(NSIGTRAP != 4);
+ 	BUILD_BUG_ON(NSIGCHLD != 6);
+diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
+index 1abaf62..2446864 100644
+--- a/include/uapi/asm-generic/siginfo.h
++++ b/include/uapi/asm-generic/siginfo.h
+@@ -213,7 +213,10 @@ typedef struct siginfo {
+ #define SEGV_ACCERR	(__SI_FAULT|2)	/* invalid permissions for mapped object */
+ #define SEGV_BNDERR	(__SI_FAULT|3)  /* failed address bound checks */
+ #define SEGV_PKUERR	(__SI_FAULT|4)  /* failed protection key checks */
+-#define NSIGSEGV	4
++#define SEGV_ACCADI	(__SI_FAULT|5)	/* ADI not enabled for mapped object */
++#define SEGV_ADIDERR	(__SI_FAULT|6)	/* Disrupting MCD error */
++#define SEGV_ADIPERR	(__SI_FAULT|7)	/* Precise MCD exception */
++#define NSIGSEGV	7
  
- #define DRV_MODULE_NAME		"ldmvsw"
--#define DRV_MODULE_VERSION	"1.0"
--#define DRV_MODULE_RELDATE	"Jan 15, 2016"
-+#define DRV_MODULE_VERSION	"1.1"
-+#define DRV_MODULE_RELDATE	"February 3, 2017"
- 
- static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
-+	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
- MODULE_AUTHOR("Oracle");
- MODULE_DESCRIPTION("Sun4v LDOM Virtual Switch Driver");
- MODULE_LICENSE("GPL");
-@@ -322,11 +322,6 @@ static void vsw_poll_controller(struct net_device *dev)
- 	.handshake_complete	= sunvnet_handshake_complete_common,
- };
- 
--static void print_version(void)
--{
--	printk_once(KERN_INFO "%s", version);
--}
--
- static const char *remote_macaddr_prop = "remote-mac-address";
- static const char *id_prop = "id";
- 
-@@ -342,8 +337,6 @@ static int vsw_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	const u64 *port_id;
- 	u64 handle;
- 
--	print_version();
--
- 	hp = mdesc_grab();
- 
- 	rmac = mdesc_get_property(hp, vdev->mp, remote_macaddr_prop, &len);
-@@ -520,6 +513,7 @@ static void vsw_cleanup(void)
- 
- static int __init vsw_init(void)
- {
-+	pr_info("%s\n", version);
- 	return vio_register_driver(&vsw_port_driver);
- }
- 
+ /*
+  * SIGBUS si_codes
 -- 
-1.7.1
+2.7.4
 
