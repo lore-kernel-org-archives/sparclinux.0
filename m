@@ -1,67 +1,1257 @@
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-Date: Mon, 20 Feb 2017 12:22:35 +0000
-Subject: RE: [PATCH 4/4] kvm: convert kvm.users_count from atomic_t to refcount_t
-Message-Id: <2236FBA76BA1254E88B949DDB74E612B41C4D934@IRSMSX102.ger.corp.intel.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Tue, 28 Feb 2017 18:35:23 +0000
+Subject: [PATCH v6 4/4] sparc64: Add support for ADI (Application Data Integrity)
+Message-Id: <85d8a35b577915945703ff84cec6f7f4d85ec214.1488232598.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1487588781-15123-1-git-send-email-elena.reshetova@intel.com>
- <1487588781-15123-5-git-send-email-elena.reshetova@intel.com>
- <220f229f-0e3e-2a72-62c1-1677021c3987@redhat.com>
-In-Reply-To: <220f229f-0e3e-2a72-62c1-1677021c3987@redhat.com>
+References: <cover.1488232591.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1488232591.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paolo Bonzini <pbonzini@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "davem@davemloft.net" <davem@davemloft.net>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "Luck, Tony" <tony.luck@intel.com>, "hpa@zytor.com" <hpa@zytor.com>, Hans Liljestrand <ishkamiel@gmail.com>, Kees Cook <keescook@chromium.org>, David Windsor <dwindsor@gmail.com>
+To: davem@davemloft.net, corbet@lwn.net
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
 
-PiBPbiAyMC8wMi8yMDE3IDEyOjA2LCBFbGVuYSBSZXNoZXRvdmEgd3JvdGU6DQo+ID4gcmVmY291
-bnRfdCB0eXBlIGFuZCBjb3JyZXNwb25kaW5nIEFQSSBzaG91bGQgYmUNCj4gPiB1c2VkIGluc3Rl
-YWQgb2YgYXRvbWljX3Qgd2hlbiB0aGUgdmFyaWFibGUgaXMgdXNlZCBhcw0KPiA+IGEgcmVmZXJl
-bmNlIGNvdW50ZXIuIFRoaXMgYWxsb3dzIHRvIGF2b2lkIGFjY2lkZW50YWwNCj4gPiByZWZjb3Vu
-dGVyIG92ZXJmbG93cyB0aGF0IG1pZ2h0IGxlYWQgdG8gdXNlLWFmdGVyLWZyZWUNCj4gPiBzaXR1
-YXRpb25zLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTogRWxlbmEgUmVzaGV0b3ZhIDxlbGVuYS5y
-ZXNoZXRvdmFAaW50ZWwuY29tPg0KPiA+IFNpZ25lZC1vZmYtYnk6IEhhbnMgTGlsamVzdHJhbmQg
-PGlzaGthbWllbEBnbWFpbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogS2VlcyBDb29rIDxrZWVz
-Y29va0BjaHJvbWl1bS5vcmc+DQo+ID4gU2lnbmVkLW9mZi1ieTogRGF2aWQgV2luZHNvciA8ZHdp
-bmRzb3JAZ21haWwuY29tPg0KPiANCj4gTG9va3MgZ29vZCwgd2lsbCBhcHBseSBhZnRlciB0aGUg
-bWVyZ2Ugd2luZG93Lg0KPiANCj4gUGFvbG8NCg0KVGhhbmsgeW91IHZlcnkgbXVjaCENCg0KQmVz
-dCBSZWdhcmRzLA0KRWxlbmEuDQoNCj4gDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvbGludXgva3Zt
-X2hvc3QuaCB8IDMgKystDQo+ID4gIHZpcnQva3ZtL2t2bV9tYWluLmMgICAgICB8IDggKysrKy0t
-LS0NCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0p
-DQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9rdm1faG9zdC5oIGIvaW5jbHVk
-ZS9saW51eC9rdm1faG9zdC5oDQo+ID4gaW5kZXggY2RhNDU3Yi4uN2ZhMDVhNSAxMDA2NDQNCj4g
-PiAtLS0gYS9pbmNsdWRlL2xpbnV4L2t2bV9ob3N0LmgNCj4gPiArKysgYi9pbmNsdWRlL2xpbnV4
-L2t2bV9ob3N0LmgNCj4gPiBAQCAtMjYsNiArMjYsNyBAQA0KPiA+ICAjaW5jbHVkZSA8bGludXgv
-Y29udGV4dF90cmFja2luZy5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvaXJxYnlwYXNzLmg+DQo+
-ID4gICNpbmNsdWRlIDxsaW51eC9zd2FpdC5oPg0KPiA+ICsjaW5jbHVkZSA8bGludXgvcmVmY291
-bnQuaD4NCj4gPiAgI2luY2x1ZGUgPGFzbS9zaWduYWwuaD4NCj4gPg0KPiA+ICAjaW5jbHVkZSA8
-bGludXgva3ZtLmg+DQo+ID4gQEAgLTQwMiw3ICs0MDMsNyBAQCBzdHJ1Y3Qga3ZtIHsNCj4gPiAg
-I2VuZGlmDQo+ID4gIAlzdHJ1Y3Qga3ZtX3ZtX3N0YXQgc3RhdDsNCj4gPiAgCXN0cnVjdCBrdm1f
-YXJjaCBhcmNoOw0KPiA+IC0JYXRvbWljX3QgdXNlcnNfY291bnQ7DQo+ID4gKwlyZWZjb3VudF90
-IHVzZXJzX2NvdW50Ow0KPiA+ICAjaWZkZWYgS1ZNX0NPQUxFU0NFRF9NTUlPX1BBR0VfT0ZGU0VU
-DQo+ID4gIAlzdHJ1Y3Qga3ZtX2NvYWxlc2NlZF9tbWlvX3JpbmcgKmNvYWxlc2NlZF9tbWlvX3Jp
-bmc7DQo+ID4gIAlzcGlubG9ja190IHJpbmdfbG9jazsNCj4gPiBkaWZmIC0tZ2l0IGEvdmlydC9r
-dm0va3ZtX21haW4uYyBiL3ZpcnQva3ZtL2t2bV9tYWluLmMNCj4gPiBpbmRleCBkY2QxYzEyLi42
-YWU1Nzc1IDEwMDY0NA0KPiA+IC0tLSBhL3ZpcnQva3ZtL2t2bV9tYWluLmMNCj4gPiArKysgYi92
-aXJ0L2t2bS9rdm1fbWFpbi5jDQo+ID4gQEAgLTYyMiw3ICs2MjIsNyBAQCBzdGF0aWMgc3RydWN0
-IGt2bSAqa3ZtX2NyZWF0ZV92bSh1bnNpZ25lZCBsb25nIHR5cGUpDQo+ID4gIAltdXRleF9pbml0
-KCZrdm0tPmxvY2spOw0KPiA+ICAJbXV0ZXhfaW5pdCgma3ZtLT5pcnFfbG9jayk7DQo+ID4gIAlt
-dXRleF9pbml0KCZrdm0tPnNsb3RzX2xvY2spOw0KPiA+IC0JYXRvbWljX3NldCgma3ZtLT51c2Vy
-c19jb3VudCwgMSk7DQo+ID4gKwlyZWZjb3VudF9zZXQoJmt2bS0+dXNlcnNfY291bnQsIDEpOw0K
-PiA+ICAJSU5JVF9MSVNUX0hFQUQoJmt2bS0+ZGV2aWNlcyk7DQo+ID4NCj4gPiAgCXIgPSBrdm1f
-YXJjaF9pbml0X3ZtKGt2bSwgdHlwZSk7DQo+ID4gQEAgLTc0NSwxMyArNzQ1LDEzIEBAIHN0YXRp
-YyB2b2lkIGt2bV9kZXN0cm95X3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPg0KPiA+ICB2b2lkIGt2
-bV9nZXRfa3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPiAgew0KPiA+IC0JYXRvbWljX2luYygma3Zt
-LT51c2Vyc19jb3VudCk7DQo+ID4gKwlyZWZjb3VudF9pbmMoJmt2bS0+dXNlcnNfY291bnQpOw0K
-PiA+ICB9DQo+ID4gIEVYUE9SVF9TWU1CT0xfR1BMKGt2bV9nZXRfa3ZtKTsNCj4gPg0KPiA+ICB2
-b2lkIGt2bV9wdXRfa3ZtKHN0cnVjdCBrdm0gKmt2bSkNCj4gPiAgew0KPiA+IC0JaWYgKGF0b21p
-Y19kZWNfYW5kX3Rlc3QoJmt2bS0+dXNlcnNfY291bnQpKQ0KPiA+ICsJaWYgKHJlZmNvdW50X2Rl
-Y19hbmRfdGVzdCgma3ZtLT51c2Vyc19jb3VudCkpDQo+ID4gIAkJa3ZtX2Rlc3Ryb3lfdm0oa3Zt
-KTsNCj4gPiAgfQ0KPiA+ICBFWFBPUlRfU1lNQk9MX0dQTChrdm1fcHV0X2t2bSk7DQo+ID4gQEAg
-LTM2NDAsNyArMzY0MCw3IEBAIHN0YXRpYyBpbnQga3ZtX2RlYnVnZnNfb3BlbihzdHJ1Y3QgaW5v
-ZGUgKmlub2RlLA0KPiBzdHJ1Y3QgZmlsZSAqZmlsZSwNCj4gPiAgCSAqIFRvIGF2b2lkIHRoZSBy
-YWNlIGJldHdlZW4gb3BlbiBhbmQgdGhlIHJlbW92YWwgb2YgdGhlIGRlYnVnZnMNCj4gPiAgCSAq
-IGRpcmVjdG9yeSB3ZSB0ZXN0IGFnYWluc3QgdGhlIHVzZXJzIGNvdW50Lg0KPiA+ICAJICovDQo+
-ID4gLQlpZiAoIWF0b21pY19hZGRfdW5sZXNzKCZzdGF0X2RhdGEtPmt2bS0+dXNlcnNfY291bnQs
-IDEsIDApKQ0KPiA+ICsJaWYgKCFyZWZjb3VudF9pbmNfbm90X3plcm8oJnN0YXRfZGF0YS0+a3Zt
-LT51c2Vyc19jb3VudCkpDQo+ID4gIAkJcmV0dXJuIC1FTk9FTlQ7DQo+ID4NCj4gPiAgCWlmIChz
-aW1wbGVfYXR0cl9vcGVuKGlub2RlLCBmaWxlLCBnZXQsIHNldCwgZm10KSkgew0KPiA+DQo
+ADI is a new feature supported on SPARC M7 and newer processors to allow
+hardware to catch rogue accesses to memory. ADI is supported for data
+fetches only and not instruction fetches. An app can enable ADI on its
+data pages, set version tags on them and use versioned addresses to
+access the data pages. Upper bits of the address contain the version
+tag. On M7 processors, upper four bits (bits 63-60) contain the version
+tag. If a rogue app attempts to access ADI enabled data pages, its
+access is blocked and processor generates an exception. Please see
+Documentation/sparc/adi.txt for further details.
+
+This patch extends mprotect to enable ADI (TSTATE.mcde), enable/disable
+MCD (Memory Corruption Detection) on selected memory ranges, enable
+TTE.mcd in PTEs, return ADI parameters to userspace and save/restore ADI
+version tags on page swap out/in or migration. It also adds handlers for
+traps related to MCD. ADI is not enabled by default for any task. A task
+must explicitly enable ADI on a memory range and set version tag for ADI
+to be effective for the task.
+
+This initial implementation supports saving and restoring one tag per
+page. A page must use same version tag across the entire page for the
+tag to survive swap and migration. Swap swupport infrastructure in this
+patch allows for this capability to be expanded to store/restore more
+than one tag per page in future.
+
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+v6:
+	- Eliminated instructions to read and write PSTATE as well as
+	  MCDPER and PMCDPER on every access to userspace addresses
+	  by setting PSTATE and PMCDPER correctly upon entry into
+	  kernel. PSTATE.mcde and PMCDPER are set upon entry into
+	  kernel when running on an M7 processor. PSTATE.mcde being
+	  set only affects memory accesses that have TTE.mcd set.
+	  PMCDPER being set only affects writes to memory addresses
+	  that have TTE.mcd set. This ensures any faults caused by
+	  ADI tag mismatch on a write are exposed before kernel returns
+	  to userspace.
+
+v5:
+	- Fixed indentation issues and instrcuctions in assembly code
+	- Removed CONFIG_SPARC64 from mdesc.c
+	- Changed to maintain state of MCDPER register in thread info
+	  flags as opposed to in mm context. MCDPER is a per-thread
+	  state and belongs in thread info flag as opposed to mm context
+	  which is shared across threads. Added comments to clarify this
+	  is a lazily maintained state and must be updated on context
+	  switch and copy_process()
+	- Updated code to use the new arch_do_swap_page() and
+	  arch_unmap_one() functions
+
+v4:
+	- Broke patch up into smaller patches
+
+v3:
+	- Removed CONFIG_SPARC_ADI
+	- Replaced prctl commands with mprotect
+	- Added auxiliary vectors for ADI parameters
+	- Enabled ADI for swappable pages
+
+v2:
+	- Fixed a build error
+
+ Documentation/sparc/adi.txt             | 292 ++++++++++++++++++++++++++++++++
+ arch/sparc/include/asm/adi.h            |   6 +
+ arch/sparc/include/asm/adi_64.h         |  46 +++++
+ arch/sparc/include/asm/elf_64.h         |   8 +
+ arch/sparc/include/asm/hugetlb.h        |  13 ++
+ arch/sparc/include/asm/mman.h           |  40 ++++-
+ arch/sparc/include/asm/mmu_64.h         |   1 +
+ arch/sparc/include/asm/mmu_context_64.h |  42 +++++
+ arch/sparc/include/asm/pgtable_64.h     |  85 +++++++++-
+ arch/sparc/include/asm/thread_info_64.h |   2 +-
+ arch/sparc/include/asm/trap_block.h     |   2 +
+ arch/sparc/include/uapi/asm/auxvec.h    |   8 +
+ arch/sparc/include/uapi/asm/mman.h      |   2 +
+ arch/sparc/kernel/Makefile              |   1 +
+ arch/sparc/kernel/adi_64.c              |  93 ++++++++++
+ arch/sparc/kernel/etrap_64.S            |  28 ++-
+ arch/sparc/kernel/mdesc.c               |   2 +
+ arch/sparc/kernel/process_64.c          |  25 +++
+ arch/sparc/kernel/setup_64.c            |  11 +-
+ arch/sparc/kernel/traps_64.c            |  83 ++++++++-
+ arch/sparc/kernel/vmlinux.lds.S         |   5 +
+ arch/sparc/mm/gup.c                     |  37 ++++
+ include/linux/mm.h                      |   2 +
+ 23 files changed, 825 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/sparc/adi.txt
+ create mode 100644 arch/sparc/include/asm/adi.h
+ create mode 100644 arch/sparc/include/asm/adi_64.h
+ create mode 100644 arch/sparc/kernel/adi_64.c
+
+diff --git a/Documentation/sparc/adi.txt b/Documentation/sparc/adi.txt
+new file mode 100644
+index 0000000..93fb97e
+--- /dev/null
++++ b/Documentation/sparc/adi.txt
+@@ -0,0 +1,292 @@
++Application Data Integrity (ADI)
++================
++
++SPARC M7 processor adds the Application Data Integrity (ADI) feature.
++ADI allows a task to set version tags on any subset of its address
++space. Once ADI is enabled and version tags are set for ranges of
++address space of a task, the processor will compare the tag in pointers
++to memory in these ranges to the version set by the application
++previously. Access to memory is granted only if the tag in given
++pointer matches the tag set by the application. In case of mismatch,
++processor raises an exception.
++
++Following steps must be taken by a task to enable ADI fully:
++
++1. Set the user mode PSTATE.mcde bit. This acts as master switch for
++   the task's entire address space to enable/disable ADI for the task.
++
++2. Set TTE.mcd bit on any TLB entries that correspond to the range of
++   addresses ADI is being enabled on. MMU checks the version tag only
++   on the pages that have TTE.mcd bit set.
++
++3. Set the version tag for virtual addresses using stxa instruction
++   and one of the MCD specific ASIs. Each stxa instruction sets the
++   given tag for one ADI block size number of bytes. This step must
++   be repeated for entire page to set tags for entire page.
++
++ADI block size for the platform is provided by the hypervisor to the
++kernel in machine description tables. Hypervisor also provides the
++number of top bits in the virtual address that specify the version tag.
++Once version tag has been set for a memory location, the tag is stored
++in the physical memory and the same tag must be present in the ADI
++version tag bits of the virtual address being presented to the MMU. For
++example on SPARC M7 processor, MMU uses bits 63-60 for version tags and
++ADI block size is same as cacheline size which is 64 bytes. A task that
++sets ADI version to say 10 on a range of memory, must access that memory
++using virtual addresses that contain 0xa in bits 63-60.
++
++ADI is enabled on a set of pages using mprotect() with PROT_ADI flag.
++When ADI is enabled on a set of pages by a task for the first time,
++kernel sets the PSTATE.mcde bit fot the task. Version tags for memory
++addresses are set with an stxa instruction on the addresses using
++ASI_MCD_PRIMARY or ASI_MCD_ST_BLKINIT_PRIMARY. ADI block size is
++provided by the hypervisor to the kernel.  Kernel returns the value of
++ADI block size to userspace using auxiliary vector along with other ADI
++info. Following auxiliary vectors are provided by the kernel:
++
++	AT_ADI_BLKSZ	ADI block size. This is the granularity and
++			alignment, in bytes, of ADI versioning.
++	AT_ADI_NBITS	Number of ADI version bits in the VA
++	AT_ADI_UEONADI	If there is an uncorrectable error in array
++			of versions maintained for cachelines, ADI
++			version of memory affected by this error
++			will be forced to this value when cachelines
++			are flushed. This may not be supported on
++			all platforms.
++
++
++IMPORTANT NOTES:
++
++- Version tag values of 0x0 and 0xf are reserved.
++
++- Version tags are set on virtual addresses from userspace even though
++  tags are stored in physical memory. Tags are set on a physical page
++  after it has been allocated to a task and a pte has been created for
++  it.
++
++- When a task frees a memory page it had set version tags on, the page
++  goes back to free page pool. When this page is re-allocated to a task,
++  kernel clears the page using block initialization ASI which clears the
++  version tags as well for the page. If a page allocated to a task is
++  freed and allocated back to the same task, old version tags set by the
++  task on that page will no longer be present.
++
++- Kernel does not set any tags for user pages and it is entirely a
++  task's responsibility to set any version tags. Kernel does ensure the
++  version tags are preserved if a page is swapped out to the disk and
++  swapped back in. It also preserves that version tags if a page is
++  migrated.
++
++- Initial implementation assumes a single page uses exact same version
++  tag for the entire page. Kernel saves the version tag for only the
++  first byte when swapping or migrating a page and restores that tag to
++  the entire page after swapping in or migrating the page. Future
++  implementations may expand kernel's capability to store/restore more
++  than one tag per page.
++
++- ADI works for any size pages. A userspace task need not be aware of
++  page size when using ADI. It can simply select a virtual address
++  range, enable ADI on the range using mprotect() and set version tags
++  for the entire range. mprotect() ensures range is aligned to page size
++  and is a multiple of page size.
++
++
++
++ADI related traps
++-----------------
++
++With ADI enabled, following new traps may occur:
++
++Disrupting memory corruption
++
++	When a store accesses a memory localtion that has TTE.mcd=1,
++	the task is running with ADI enabled (PSTATE.mcde=1), and the ADI
++	tag in the address used (bits 63:60) does not match the tag set on
++	the corresponding cacheline, a memory corruption trap occurs. By
++	default, it is a disrupting trap and is sent to the hypervisor
++	first. Hypervisor creates a sun4v error report and sends a
++	resumable error (TT=0x7e) trap to the kernel. The kernel sends
++	a SIGSEGV to the task that resulted in this trap with the following
++	info:
++
++		siginfo.si_signo = SIGSEGV;
++		siginfo.errno = 0;
++		siginfo.si_code = SEGV_ADIDERR;
++		siginfo.si_addr = addr; /* PC where first mismatch occurred */
++		siginfo.si_trapno = 0;
++
++
++Precise memory corruption
++
++	When a store accesses a memory location that has TTE.mcd=1,
++	the task is running with ADI enabled (PSTATE.mcde=1), and the ADI
++	tag in the address used (bits 63:60) does not match the tag set on
++	the corresponding cacheline, a memory corruption trap occurs. If
++	MCD precise exception is enabled (MCDPERR=1), a precise
++	exception is sent to the kernel with TT=0x1a. The kernel sends
++	a SIGSEGV to the task that resulted in this trap with the following
++	info:
++
++		siginfo.si_signo = SIGSEGV;
++		siginfo.errno = 0;
++		siginfo.si_code = SEGV_ADIPERR;
++		siginfo.si_addr = addr;	/* address that caused trap */
++		siginfo.si_trapno = 0;
++
++	NOTE: ADI tag mismatch on a load always results in precise trap.
++
++
++MCD disabled
++
++	When a task has not enabled ADI and attempts to set ADI version
++	on a memory address, processor sends an MCD disabled trap. This
++	trap is handled by hypervisor first and the hypervisor vectors this
++	trap through to the kernel as Data Access Exception trap with
++	fault type set to 0xa (invalid ASI). When this occurs, the kernel
++	sends the task SIGSEGV signal with following info:
++
++		siginfo.si_signo = SIGSEGV;
++		siginfo.errno = 0;
++		siginfo.si_code = SEGV_ACCADI;
++		siginfo.si_addr = addr;	/* address that caused trap */
++		siginfo.si_trapno = 0;
++
++
++Sample program to use ADI
++-------------------------
++
++Following sample program is meant to illustrate how to use the ADI
++functionality.
++
++#include <unistd.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <elf.h>
++#include <sys/ipc.h>
++#include <sys/shm.h>
++#include <sys/mman.h>
++#include <asm/asi.h>
++
++#ifndef AT_ADI_BLKSZ
++#define AT_ADI_BLKSZ	34
++#endif
++#ifndef AT_ADI_NBITS
++#define AT_ADI_NBITS	35
++#endif
++#ifndef AT_ADI_UEONADI
++#define AT_ADI_UEONADI	36
++#endif
++
++#ifndef PROT_ADI
++#define PROT_ADI	0x10
++#endif
++
++#define BUFFER_SIZE     32*1024*1024UL
++
++main(int argc, char* argv[], char* envp[])
++{
++        unsigned long i, mcde, adi_blksz, adi_nbits, adi_ueonadi;
++        char *shmaddr, *tmp_addr, *end, *veraddr, *clraddr;
++        int shmid, version;
++	Elf64_auxv_t *auxv;
++
++	adi_blksz = 0;
++
++	while(*envp++ != NULL);
++	for (auxv = (Elf64_auxv_t *)envp; auxv->a_type != AT_NULL; auxv++) {
++		switch (auxv->a_type) {
++		case AT_ADI_BLKSZ:
++			adi_blksz = auxv->a_un.a_val;
++			break;
++		case AT_ADI_NBITS:
++			adi_nbits = auxv->a_un.a_val;
++			break;
++		case AT_ADI_UEONADI:
++			adi_ueonadi = auxv->a_un.a_val;
++			break;
++		}
++	}
++	if (adi_blksz = 0) {
++		fprintf(stderr, "Oops! ADI is not supported\n");
++		exit(1);
++	}
++
++	printf("ADI capabilities:\n");
++	printf("\tBlock size = %ld\n", adi_blksz);
++	printf("\tNumber of bits = %ld\n", adi_nbits);
++	printf("\tUE on ADI error = %ld\n", adi_ueonadi);
++
++        if ((shmid = shmget(2, BUFFER_SIZE,
++                                IPC_CREAT | SHM_R | SHM_W)) < 0) {
++                perror("shmget failed");
++                exit(1);
++        }
++
++        shmaddr = shmat(shmid, NULL, 0);
++        if (shmaddr = (char *)-1) {
++                perror("shm attach failed");
++                shmctl(shmid, IPC_RMID, NULL);
++                exit(1);
++        }
++
++	if (mprotect(shmaddr, BUFFER_SIZE, PROT_READ|PROT_WRITE|PROT_ADI)) {
++		perror("mprotect failed");
++		goto err_out;
++	}
++
++        /* Set the ADI version tag on the shm segment
++         */
++        version = 10;
++        tmp_addr = shmaddr;
++        end = shmaddr + BUFFER_SIZE;
++        while (tmp_addr < end) {
++                asm volatile(
++                        "stxa %1, [%0]0x90\n\t"
++                        :
++                        : "r" (tmp_addr), "r" (version));
++                tmp_addr += adi_blksz;
++        }
++	asm volatile("membar #Sync\n\t");
++
++        /* Create a versioned address from the normal address by placing
++	 * version tag in the upper adi_nbits bits
++         */
++        tmp_addr = (void *) ((unsigned long)shmaddr << adi_nbits);
++        tmp_addr = (void *) ((unsigned long)tmp_addr >> adi_nbits);
++        veraddr = (void *) (((unsigned long)version << (64-adi_nbits))
++                        | (unsigned long)tmp_addr);
++
++        printf("Starting the writes:\n");
++        for (i = 0; i < BUFFER_SIZE; i++) {
++                veraddr[i] = (char)(i);
++                if (!(i % (1024 * 1024)))
++                        printf(".");
++        }
++        printf("\n");
++
++        printf("Verifying data...");
++	fflush(stdout);
++        for (i = 0; i < BUFFER_SIZE; i++)
++                if (veraddr[i] != (char)i)
++                        printf("\nIndex %lu mismatched\n", i);
++        printf("Done.\n");
++
++        /* Disable ADI and clean up
++         */
++	if (mprotect(shmaddr, BUFFER_SIZE, PROT_READ|PROT_WRITE)) {
++		perror("mprotect failed");
++		goto err_out;
++	}
++
++        if (shmdt((const void *)shmaddr) != 0)
++                perror("Detach failure");
++        shmctl(shmid, IPC_RMID, NULL);
++
++        exit(0);
++
++err_out:
++        if (shmdt((const void *)shmaddr) != 0)
++                perror("Detach failure");
++        shmctl(shmid, IPC_RMID, NULL);
++        exit(1);
++}
+diff --git a/arch/sparc/include/asm/adi.h b/arch/sparc/include/asm/adi.h
+new file mode 100644
+index 0000000..acad0d0
+--- /dev/null
++++ b/arch/sparc/include/asm/adi.h
+@@ -0,0 +1,6 @@
++#ifndef ___ASM_SPARC_ADI_H
++#define ___ASM_SPARC_ADI_H
++#if defined(__sparc__) && defined(__arch64__)
++#include <asm/adi_64.h>
++#endif
++#endif
+diff --git a/arch/sparc/include/asm/adi_64.h b/arch/sparc/include/asm/adi_64.h
+new file mode 100644
+index 0000000..24fe52f
+--- /dev/null
++++ b/arch/sparc/include/asm/adi_64.h
+@@ -0,0 +1,46 @@
++/* adi_64.h: ADI related data structures
++ *
++ * Copyright (C) 2016 Khalid Aziz (khalid.aziz@oracle.com)
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
++#ifndef __ASM_SPARC64_ADI_H
++#define __ASM_SPARC64_ADI_H
++
++#include <linux/types.h>
++
++#ifndef __ASSEMBLY__
++
++struct adi_caps {
++	__u64 blksz;
++	__u64 nbits;
++	__u64 ue_on_adi;
++};
++
++struct adi_config {
++	bool enabled;
++	struct adi_caps caps;
++};
++
++extern struct adi_config adi_state;
++
++extern void mdesc_adi_init(void);
++
++static inline bool adi_capable(void)
++{
++	return adi_state.enabled;
++}
++
++static inline unsigned long adi_blksize(void)
++{
++	return adi_state.caps.blksz;
++}
++
++static inline unsigned long adi_nbits(void)
++{
++	return adi_state.caps.nbits;
++}
++
++#endif	/* __ASSEMBLY__ */
++
++#endif	/* !(__ASM_SPARC64_ADI_H) */
+diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
+index 3f2d403..cf00fbc 100644
+--- a/arch/sparc/include/asm/elf_64.h
++++ b/arch/sparc/include/asm/elf_64.h
+@@ -210,4 +210,12 @@ do {	if ((ex).e_ident[EI_CLASS] = ELFCLASS32)	\
+ 			(current->personality & (~PER_MASK)));	\
+ } while (0)
+ 
++#define ARCH_DLINFO						\
++do {								\
++	extern struct adi_config adi_state;			\
++	NEW_AUX_ENT(AT_ADI_BLKSZ, adi_state.caps.blksz);	\
++	NEW_AUX_ENT(AT_ADI_NBITS, adi_state.caps.nbits);	\
++	NEW_AUX_ENT(AT_ADI_UEONADI, adi_state.caps.ue_on_adi);	\
++} while (0)
++
+ #endif /* !(__ASM_SPARC64_ELF_H) */
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index dcbf985..ac2fe18 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -77,5 +77,18 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
+ 			    unsigned long end, unsigned long floor,
+ 			    unsigned long ceiling);
++#ifdef CONFIG_SPARC64
++static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
++			 struct page *page, int writeable)
++{
++	/* If this vma has ADI enabled on it, turn on TTE.mcd
++	 */
++	if (vma->vm_flags & VM_SPARC_ADI)
++		return pte_mkmcd(entry);
++	else
++		return pte_mknotmcd(entry);
++}
++#define arch_make_huge_pte arch_make_huge_pte
++#endif
+ 
+ #endif /* _ASM_SPARC64_HUGETLB_H */
+diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
+index 59bb593..95d3abc 100644
+--- a/arch/sparc/include/asm/mman.h
++++ b/arch/sparc/include/asm/mman.h
+@@ -6,5 +6,43 @@
+ #ifndef __ASSEMBLY__
+ #define arch_mmap_check(addr,len,flags)	sparc_mmap_check(addr,len)
+ int sparc_mmap_check(unsigned long addr, unsigned long len);
+-#endif
++
++#ifdef CONFIG_SPARC64
++#include <asm/adi_64.h>
++
++#define arch_calc_vm_prot_bits(prot, pkey) sparc_calc_vm_prot_bits(prot)
++static inline unsigned long sparc_calc_vm_prot_bits(unsigned long prot)
++{
++	if (prot & PROT_ADI) {
++		struct pt_regs *regs;
++
++		if (!current->mm->context.adi) {
++			regs = task_pt_regs(current);
++			regs->tstate |= TSTATE_MCDE;
++			current->mm->context.adi = true;
++		}
++		return VM_SPARC_ADI;
++	} else {
++		return 0;
++	}
++}
++
++#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
++static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
++{
++	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
++}
++
++#define arch_validate_prot(prot) sparc_validate_prot(prot)
++static inline int sparc_validate_prot(unsigned long prot)
++{
++	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
++		return 0;
++	if ((prot & PROT_ADI) && !adi_capable())
++		return 0;
++	return 1;
++}
++#endif /* CONFIG_SPARC64 */
++
++#endif /* __ASSEMBLY__ */
+ #endif /* __SPARC_MMAN_H__ */
+diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
+index f7de0db..e1d30ac 100644
+--- a/arch/sparc/include/asm/mmu_64.h
++++ b/arch/sparc/include/asm/mmu_64.h
+@@ -96,6 +96,7 @@ typedef struct {
+ 	unsigned long		thp_pte_count;
+ 	struct tsb_config	tsb_block[MM_NUM_TSBS];
+ 	struct hv_tsb_descr	tsb_descr[MM_NUM_TSBS];
++	bool			adi;
+ } mm_context_t;
+ 
+ #endif /* !__ASSEMBLY__ */
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index d031799..358a3ae 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -7,6 +7,7 @@
+ 
+ #include <linux/spinlock.h>
+ #include <asm/spitfire.h>
++#include <asm/adi_64.h>
+ #include <asm-generic/mm_hooks.h>
+ 
+ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+@@ -151,6 +152,47 @@ static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
++#define  __HAVE_ARCH_START_CONTEXT_SWITCH
++static inline void arch_start_context_switch(struct task_struct *prev)
++{
++	/* Save the current state of MCDPER register for the process we are
++	 * switching from
++	 */
++	if (adi_capable()) {
++		register unsigned long tmp_mcdper;
++
++		__asm__ __volatile__(
++			".word 0x83438000\n\t"	/* rd  %mcdper, %g1 */
++			"mov %%g1, %0\n\t"
++			: "=r" (tmp_mcdper)
++			:
++			: "g1");
++		if (tmp_mcdper)
++			set_tsk_thread_flag(prev, TIF_MCDPER);
++		else
++			clear_tsk_thread_flag(prev, TIF_MCDPER);
++	}
++}
++
++#define finish_arch_post_lock_switch	finish_arch_post_lock_switch
++static inline void finish_arch_post_lock_switch(void)
++{
++	/* Restore the state of MCDPER register for the new process
++	 * just switched to.
++	 */
++	if (adi_capable()) {
++		register unsigned long tmp_mcdper;
++
++		tmp_mcdper = test_thread_flag(TIF_MCDPER);
++		__asm__ __volatile__(
++			"mov %0, %%g1\n\t"
++			".word 0x9d800001\n\t"	/* wr %g0, %g1, %mcdper" */
++			:
++			: "ir" (tmp_mcdper)
++			: "g1");
++	}
++}
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(__SPARC64_MMU_CONTEXT_H) */
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 569768d..b0b9824 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -17,6 +17,7 @@
+ #include <asm/types.h>
+ #include <asm/spitfire.h>
+ #include <asm/asi.h>
++#include <asm/adi.h>
+ #include <asm/page.h>
+ #include <asm/processor.h>
+ 
+@@ -564,6 +565,18 @@ static inline pte_t pte_mkspecial(pte_t pte)
+ 	return pte;
+ }
+ 
++static inline pte_t pte_mkmcd(pte_t pte)
++{
++	pte_val(pte) |= _PAGE_MCD_4V;
++	return pte;
++}
++
++static inline pte_t pte_mknotmcd(pte_t pte)
++{
++	pte_val(pte) &= ~_PAGE_MCD_4V;
++	return pte;
++}
++
+ static inline unsigned long pte_young(pte_t pte)
+ {
+ 	unsigned long mask;
+@@ -964,9 +977,14 @@ void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
+ #endif
+ 
+-/* Encode and de-code a swap entry */
++/* Encode and de-code a swap entry. Upper bits of offset are used to
++ * store the ADI version tag for pages that have ADI enabled and tags set
++ */
+ #define __swp_type(entry)	(((entry).val >> PAGE_SHIFT) & 0xffUL)
+-#define __swp_offset(entry)	((entry).val >> (PAGE_SHIFT + 8UL))
++#define __swp_offset(entry)		\
++	((((entry).val << adi_nbits()) >> adi_nbits()) >> (PAGE_SHIFT + 8UL))
++#define __swp_aditag(entry)		\
++	((entry).val >> (sizeof(unsigned long)-adi_nbits()))
+ #define __swp_entry(type, offset)	\
+ 	( (swp_entry_t) \
+ 	  { \
+@@ -989,6 +1007,69 @@ int page_in_phys_avail(unsigned long paddr);
+ int remap_pfn_range(struct vm_area_struct *, unsigned long, unsigned long,
+ 		    unsigned long, pgprot_t);
+ 
++#define __HAVE_ARCH_DO_SWAP_PAGE
++static inline void arch_do_swap_page(struct mm_struct *mm, unsigned long addr,
++				     pte_t pte, pte_t oldpte)
++{
++	if (pte_val(pte) & _PAGE_MCD_4V) {
++		swp_entry_t tmp;
++		pgoff_t swap_off;
++		unsigned long swap_type, version;
++
++		/* Check if the swapped out page has an ADI version
++		 * saved in the swap offset. If yes, restore
++		 * version tag to the newly allocated page
++		 */
++		tmp = __pte_to_swp_entry(oldpte);
++		swap_off = __swp_offset(tmp);
++		swap_type = __swp_type(tmp);
++		version = __swp_aditag(tmp);
++		if (version) {
++			unsigned long i, paddr;
++
++			paddr = pte_val(pte) & _PAGE_PADDR_4V;
++			for (i = paddr; i < (paddr+PAGE_SIZE);
++					i += adi_blksize())
++				asm volatile("stxa %0, [%1] %2\n\t"
++					:
++					: "r" (version), "r" (i),
++					  "i" (ASI_MCD_REAL));
++		}
++	}
++}
++
++#define __HAVE_ARCH_UNMAP_ONE
++static inline void arch_unmap_one(struct mm_struct *mm, unsigned long addr,
++				  pte_t pte, pte_t oldpte)
++{
++	if (pte_val(oldpte) & _PAGE_MCD_4V) {
++		unsigned long version, paddr;
++
++		paddr = pte_val(oldpte) & _PAGE_PADDR_4V;
++		asm volatile("ldxa [%1] %2, %0\n\t"
++			     : "=r" (version)
++			     : "r" (paddr), "i" (ASI_MCD_REAL));
++		if (version) {
++			swp_entry_t tmp;
++			pgoff_t swap_off;
++			unsigned long swap_type, shift_size;
++
++			/* Save ADI version tag in the top bits
++			 * of swap offset
++			 */
++			tmp = __pte_to_swp_entry(pte);
++			swap_off = __swp_offset(tmp);
++			swap_type = __swp_type(tmp);
++			shift_size = PAGE_SHIFT + 8UL + adi_nbits();
++			swap_off = (swap_off << shift_size)>>shift_size;
++			swap_off = (version << (sizeof(unsigned long) -
++					        shift_size)) | swap_off;
++			tmp = __swp_entry(swap_type, swap_off);
++			pte = __swp_entry_to_pte(tmp);
++		}
++	}
++}
++
+ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
+ 				     unsigned long from, unsigned long pfn,
+ 				     unsigned long size, pgprot_t prot)
+diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+index 38a24f2..9c04acb 100644
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -190,7 +190,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
+  *       in using in assembly, else we can't use the mask as
+  *       an immediate value in instructions such as andcc.
+  */
+-/* flag bit 12 is available */
++#define TIF_MCDPER		12	/* Precise MCD exception */
+ #define TIF_MEMDIE		13	/* is terminating due to OOM killer */
+ #define TIF_POLLING_NRFLAG	14
+ 
+diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
+index ec9c04d..b283e94 100644
+--- a/arch/sparc/include/asm/trap_block.h
++++ b/arch/sparc/include/asm/trap_block.h
+@@ -72,6 +72,8 @@ struct sun4v_1insn_patch_entry {
+ };
+ extern struct sun4v_1insn_patch_entry __sun4v_1insn_patch,
+ 	__sun4v_1insn_patch_end;
++extern struct sun4v_1insn_patch_entry __sun_m7_1insn_patch,
++	__sun_m7_1insn_patch_end;
+ 
+ struct sun4v_2insn_patch_entry {
+ 	unsigned int	addr;
+diff --git a/arch/sparc/include/uapi/asm/auxvec.h b/arch/sparc/include/uapi/asm/auxvec.h
+index ad6f360..6fe1249 100644
+--- a/arch/sparc/include/uapi/asm/auxvec.h
++++ b/arch/sparc/include/uapi/asm/auxvec.h
+@@ -1,4 +1,12 @@
+ #ifndef __ASMSPARC_AUXVEC_H
+ #define __ASMSPARC_AUXVEC_H
+ 
++#ifdef CONFIG_SPARC64
++#define AT_ADI_BLKSZ	34
++#define AT_ADI_NBITS	35
++#define AT_ADI_UEONADI	36
++
++#define AT_VECTOR_SIZE_ARCH	3
++#endif
++
+ #endif /* !(__ASMSPARC_AUXVEC_H) */
+diff --git a/arch/sparc/include/uapi/asm/mman.h b/arch/sparc/include/uapi/asm/mman.h
+index 9765896..a72c033 100644
+--- a/arch/sparc/include/uapi/asm/mman.h
++++ b/arch/sparc/include/uapi/asm/mman.h
+@@ -5,6 +5,8 @@
+ 
+ /* SunOS'ified... */
+ 
++#define PROT_ADI	0x10		/* ADI enabled */
++
+ #define MAP_RENAME      MAP_ANONYMOUS   /* In SunOS terminology */
+ #define MAP_NORESERVE   0x40            /* don't reserve swap pages */
+ #define MAP_INHERIT     0x80            /* SunOS doesn't do this, but... */
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index aac6098..8149e17 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -67,6 +67,7 @@ obj-$(CONFIG_SPARC64)   += visemul.o
+ obj-$(CONFIG_SPARC64)   += hvapi.o
+ obj-$(CONFIG_SPARC64)   += sstate.o
+ obj-$(CONFIG_SPARC64)   += mdesc.o
++obj-$(CONFIG_SPARC64)   += adi_64.o
+ obj-$(CONFIG_SPARC64)	+= pcr.o
+ obj-$(CONFIG_SPARC64)	+= nmi.o
+ obj-$(CONFIG_SPARC64_SMP) += cpumap.o
+diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
+new file mode 100644
+index 0000000..aba1960
+--- /dev/null
++++ b/arch/sparc/kernel/adi_64.c
+@@ -0,0 +1,93 @@
++/* adi_64.c: support for ADI (Application Data Integrity) feature on
++ * sparc m7 and newer processors. This feature is also known as
++ * SSM (Silicon Secured Memory).
++ *
++ * Copyright (C) 2016 Khalid Aziz (khalid.aziz@oracle.com)
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
++#include <linux/init.h>
++#include <asm/mdesc.h>
++#include <asm/adi_64.h>
++
++struct adi_config adi_state;
++
++/* mdesc_adi_init() : Parse machine description provided by the
++ *	hypervisor to detect ADI capabilities
++ *
++ * Hypervisor reports ADI capabilities of platform in "hwcap-list" property
++ * for "cpu" node. If the platform supports ADI, "hwcap-list" property
++ * contains the keyword "adp". If the platform supports ADI, "platform"
++ * node will contain "adp-blksz", "adp-nbits" and "ue-on-adp" properties
++ * to describe the ADI capabilities.
++ */
++void __init mdesc_adi_init(void)
++{
++	struct mdesc_handle *hp = mdesc_grab();
++	const char *prop;
++	u64 pn, *val;
++	int len;
++
++	if (!hp)
++		goto adi_not_found;
++
++	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "cpu");
++	if (pn = MDESC_NODE_NULL)
++		goto adi_not_found;
++
++	prop = mdesc_get_property(hp, pn, "hwcap-list", &len);
++	if (!prop)
++		goto adi_not_found;
++
++	/*
++	 * Look for "adp" keyword in hwcap-list which would indicate
++	 * ADI support
++	 */
++	adi_state.enabled = false;
++	while (len) {
++		int plen;
++
++		if (!strcmp(prop, "adp")) {
++			adi_state.enabled = true;
++			break;
++		}
++
++		plen = strlen(prop) + 1;
++		prop += plen;
++		len -= plen;
++	}
++
++	if (!adi_state.enabled)
++		goto adi_not_found;
++
++	/* Find the ADI properties in "platform" node. If all ADI
++	 * properties are not found, ADI support is incomplete and
++	 * do not enable ADI in the kernel.
++	 */
++	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "platform");
++	if (pn = MDESC_NODE_NULL)
++		goto adi_not_found;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "adp-blksz", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.blksz = *val;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "adp-nbits", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.nbits = *val;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "ue-on-adp", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.ue_on_adi = *val;
++
++	mdesc_release(hp);
++	return;
++
++adi_not_found:
++	adi_state.enabled = false;
++	if (hp)
++		mdesc_release(hp);
++}
+diff --git a/arch/sparc/kernel/etrap_64.S b/arch/sparc/kernel/etrap_64.S
+index 1276ca2..7be33bf 100644
+--- a/arch/sparc/kernel/etrap_64.S
++++ b/arch/sparc/kernel/etrap_64.S
+@@ -132,7 +132,33 @@ etrap_save:	save	%g2, -STACK_BIAS, %sp
+ 		stx	%g6, [%sp + PTREGS_OFF + PT_V9_G6]
+ 		stx	%g7, [%sp + PTREGS_OFF + PT_V9_G7]
+ 		or	%l7, %l0, %l7
+-		sethi	%hi(TSTATE_TSO | TSTATE_PEF), %l0
++661:		sethi	%hi(TSTATE_TSO | TSTATE_PEF), %l0
++		/*
++		 * If userspace is using ADI, it could potentially pass
++		 * a pointer with version tag embedded in it. To maintain
++		 * the ADI security, we must enable PSTATE.mcde. Userspace
++		 * would have already set TTE.mcd in an earlier call to
++		 * kernel and set the version tag for the address being
++		 * dereferenced. Setting PSTATE.mcde would ensure any
++		 * access to userspace data through a system call honors
++		 * ADI and does not allow a rogue app to bypass ADI by
++		 * using system calls. Setting PSTATE.mcde only affects
++		 * accesses to virtual addresses that have TTE.mcd set.
++		 * Set PMCDPER to ensure any exceptions caused by ADI
++		 * version tag mismatch are exposed before system call
++		 * returns to userspace. Setting PMCDPER affects only
++		 * writes to virtual addresses that have TTE.mcd set and
++		 * have a version tag set as well.
++		 */
++		.section .sun_m7_1insn_patch, "ax"
++		.word	661b
++		sethi	%hi(TSTATE_TSO | TSTATE_PEF | TSTATE_MCDE), %l0
++		.previous
++661:		nop
++		.section .sun_m7_1insn_patch, "ax"
++		.word	661b
++		.word 0xaf902001	/* wrpr %g0, 1, %pmcdper */
++		.previous
+ 		or	%l7, %l0, %l7
+ 		wrpr	%l2, %tnpc
+ 		wrpr	%l7, (TSTATE_PRIV | TSTATE_IE), %tstate
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index c0765bb..50b8bfb 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -20,6 +20,7 @@
+ #include <linux/uaccess.h>
+ #include <asm/oplib.h>
+ #include <asm/smp.h>
++#include <asm/adi.h>
+ 
+ /* Unlike the OBP device tree, the machine description is a full-on
+  * DAG.  An arbitrary number of ARCs are possible from one
+@@ -1104,5 +1105,6 @@ void __init sun4v_mdesc_init(void)
+ 
+ 	cur_mdesc = hp;
+ 
++	mdesc_adi_init();
+ 	report_platform_properties();
+ }
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index d249ca1..c04ef3e 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -680,6 +680,31 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
+ 	return 0;
+ }
+ 
++/* TIF_MCDPER in thread info flags for current task is updated lazily upon
++ * a context switch. Update the this flag in current task's thread flags
++ * before dup so the dup'd task will inherit the current TIF_MCDPER flag.
++ */
++int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
++{
++	if (adi_capable()) {
++		register unsigned long tmp_mcdper;
++
++		__asm__ __volatile__(
++			".word 0x83438000\n\t"	/* rd  %mcdper, %g1 */
++			"mov %%g1, %0\n\t"
++			: "=r" (tmp_mcdper)
++			:
++			: "g1");
++		if (tmp_mcdper)
++			set_thread_flag(TIF_MCDPER);
++		else
++			clear_thread_flag(TIF_MCDPER);
++	}
++
++	*dst = *src;
++	return 0;
++}
++
+ typedef struct {
+ 	union {
+ 		unsigned int	pr_regs[32];
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 6b7331d..fafdd35 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -240,6 +240,12 @@ void sun4v_patch_1insn_range(struct sun4v_1insn_patch_entry *start,
+ 	}
+ }
+ 
++void sun_m7_patch_1insn_range(struct sun4v_1insn_patch_entry *start,
++			     struct sun4v_1insn_patch_entry *end)
++{
++	sun4v_patch_1insn_range(start, end);
++}
++
+ void sun4v_patch_2insn_range(struct sun4v_2insn_patch_entry *start,
+ 			     struct sun4v_2insn_patch_entry *end)
+ {
+@@ -289,9 +295,12 @@ static void __init sun4v_patch(void)
+ 	sun4v_patch_2insn_range(&__sun4v_2insn_patch,
+ 				&__sun4v_2insn_patch_end);
+ 	if (sun4v_chip_type = SUN4V_CHIP_SPARC_M7 ||
+-	    sun4v_chip_type = SUN4V_CHIP_SPARC_SN)
++	    sun4v_chip_type = SUN4V_CHIP_SPARC_SN) {
++		sun_m7_patch_1insn_range(&__sun_m7_1insn_patch,
++					 &__sun_m7_1insn_patch_end);
+ 		sun_m7_patch_2insn_range(&__sun_m7_2insn_patch,
+ 					 &__sun_m7_2insn_patch_end);
++		}
+ 
+ 	sun4v_hvapi_init();
+ }
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index a9a71d5..64fd221 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -44,6 +44,7 @@
+ #include <asm/memctrl.h>
+ #include <asm/cacheflush.h>
+ #include <asm/setup.h>
++#include <asm/adi_64.h>
+ 
+ #include "entry.h"
+ #include "kernel.h"
+@@ -351,12 +352,31 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
+ 		regs->tpc &= 0xffffffff;
+ 		regs->tnpc &= 0xffffffff;
+ 	}
+-	info.si_signo = SIGSEGV;
++
++	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
++	 * is vectored thorugh data access exception trap with fault type
++	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap
++	 */
+ 	info.si_errno = 0;
+-	info.si_code = SEGV_MAPERR;
+ 	info.si_addr = (void __user *) addr;
+ 	info.si_trapno = 0;
+-	force_sig_info(SIGSEGV, &info, current);
++	switch (type) {
++	case HV_FAULT_TYPE_INV_ASI:
++		info.si_signo = SIGILL;
++		info.si_code = ILL_ILLADR;
++		force_sig_info(SIGILL, &info, current);
++		break;
++	case HV_FAULT_TYPE_MCD_DIS:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_ACCADI;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	default:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_MAPERR;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	}
+ }
+ 
+ void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
+@@ -1801,6 +1821,7 @@ struct sun4v_error_entry {
+ #define SUN4V_ERR_ATTRS_ASI		0x00000080
+ #define SUN4V_ERR_ATTRS_PRIV_REG	0x00000100
+ #define SUN4V_ERR_ATTRS_SPSTATE_MSK	0x00000600
++#define SUN4V_ERR_ATTRS_MCD		0x00000800
+ #define SUN4V_ERR_ATTRS_SPSTATE_SHFT	9
+ #define SUN4V_ERR_ATTRS_MODE_MSK	0x03000000
+ #define SUN4V_ERR_ATTRS_MODE_SHFT	24
+@@ -1998,6 +2019,54 @@ static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
+ 	}
+ }
+ 
++/* Handle memory corruption detected error which is vectored in
++ * through resumable error trap.
++ */
++void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
++{
++	siginfo_t info;
++
++	if (notify_die(DIE_TRAP, "MCD error", regs,
++		       0, 0x34, SIGSEGV) = NOTIFY_STOP)
++		return;
++
++	if (regs->tstate & TSTATE_PRIV) {
++		/* MCD exception could happen because the task was running
++		 * a system call with MCD enabled and passed a non-versioned
++		 * pointer or pointer with bad version tag to  the system
++		 * call. In such cases, hypervisor places the address of
++		 * offending instruction in the resumable error report. This
++		 * is a deferred error, so the read/write that caused the trap
++		 * was potentially retired long time back and we may have
++		 * no choice but to send SIGSEGV to the process.
++		 */
++		const struct exception_table_entry *entry;
++
++		entry = search_exception_tables(regs->tpc);
++		if (entry) {
++			/* Looks like a bad syscall parameter */
++#ifdef DEBUG_EXCEPTIONS
++			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
++				 regs->tpc);
++			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
++				 ent.err_raddr, entry->fixup);
++#endif
++			regs->tpc = entry->fixup;
++			regs->tnpc = regs->tpc + 4;
++			return;
++		}
++	}
++
++	/* Send SIGSEGV to the userspace process with the right code
++	 */
++	info.si_signo = SIGSEGV;
++	info.si_errno = 0;
++	info.si_code = SEGV_ADIDERR;
++	info.si_addr = (void __user *)ent.err_raddr;
++	info.si_trapno = 0;
++	force_sig_info(SIGSEGV, &info, current);
++}
++
+ /* We run with %pil set to PIL_NORMAL_MAX and PSTATE_IE enabled in %pstate.
+  * Log the event and clear the first word of the entry.
+  */
+@@ -2035,6 +2104,14 @@ void sun4v_resum_error(struct pt_regs *regs, unsigned long offset)
+ 		goto out;
+ 	}
+ 
++	/* If this is a memory corruption detected error, call the
++	 * handler
++	 */
++	if (local_copy.err_attrs & SUN4V_ERR_ATTRS_MCD) {
++		do_mcd_err(regs, local_copy);
++		return;
++	}
++
+ 	sun4v_log_error(regs, &local_copy, cpu,
+ 			KERN_ERR "RESUMABLE ERROR",
+ 			&sun4v_resum_oflow_cnt);
+diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
+index 572db68..20a7068 100644
+--- a/arch/sparc/kernel/vmlinux.lds.S
++++ b/arch/sparc/kernel/vmlinux.lds.S
+@@ -144,6 +144,11 @@ SECTIONS
+ 		*(.pause_3insn_patch)
+ 		__pause_3insn_patch_end = .;
+ 	}
++	.sun_m7_1insn_patch : {
++		__sun_m7_1insn_patch = .;
++		*(.sun_m7_1insn_patch)
++		__sun_m7_1insn_patch_end = .;
++	}
+ 	.sun_m7_2insn_patch : {
+ 		__sun_m7_2insn_patch = .;
+ 		*(.sun_m7_2insn_patch)
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index cd0e32b..579f7ae 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -11,6 +11,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/rwsem.h>
+ #include <asm/pgtable.h>
++#include <asm/adi.h>
+ 
+ /*
+  * The performance critical leaf functions are made noinline otherwise gcc
+@@ -157,6 +158,24 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	pgd_t *pgdp;
+ 	int nr = 0;
+ 
++#ifdef CONFIG_SPARC64
++	if (adi_capable()) {
++		long addr = start;
++
++		/* If userspace has passed a versioned address, kernel
++		 * will not find it in the VMAs since it does not store
++		 * the version tags in the list of VMAs. Storing version
++		 * tags in list of VMAs is impractical since they can be
++		 * changed any time from userspace without dropping into
++		 * kernel. Any address search in VMAs will be done with
++		 * non-versioned addresses. Ensure the ADI version bits
++		 * are dropped here by sign extending the last bit before
++		 * ADI bits. IOMMU does not implement version tags.
++		 */
++		addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
++		start = addr;
++	}
++#endif
+ 	start &= PAGE_MASK;
+ 	addr = start;
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+@@ -187,6 +206,24 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	pgd_t *pgdp;
+ 	int nr = 0;
+ 
++#ifdef CONFIG_SPARC64
++	if (adi_capable()) {
++		long addr = start;
++
++		/* If userspace has passed a versioned address, kernel
++		 * will not find it in the VMAs since it does not store
++		 * the version tags in the list of VMAs. Storing version
++		 * tags in list of VMAs is impractical since they can be
++		 * changed any time from userspace without dropping into
++		 * kernel. Any address search in VMAs will be done with
++		 * non-versioned addresses. Ensure the ADI version bits
++		 * are dropped here by sign extending the last bit before
++		 * ADI bits. IOMMU does not implements version tags,
++		 */
++		addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
++		start = addr;
++	}
++#endif
+ 	start &= PAGE_MASK;
+ 	addr = start;
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index b84615b..4eaf202 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -225,6 +225,8 @@ extern unsigned int kobjsize(const void *objp);
+ # define VM_GROWSUP	VM_ARCH_1
+ #elif defined(CONFIG_IA64)
+ # define VM_GROWSUP	VM_ARCH_1
++#elif defined(CONFIG_SPARC64)
++# define VM_SPARC_ADI	VM_ARCH_1	/* Uses ADI tag for access control */
+ #elif !defined(CONFIG_MMU)
+ # define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
+ #endif
+-- 
+2.7.4
+
