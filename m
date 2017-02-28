@@ -1,48 +1,95 @@
-From: Bob Picco <bob.picco@oracle.com>
-Date: Wed, 01 Feb 2017 19:36:05 +0000
-Subject: Re: [PATCH 1/3] sparc64: make tsb pointer computation symbolic
-Message-Id: <20170201193605.GF8495@zareason>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Tue, 28 Feb 2017 18:35:21 +0000
+Subject: [PATCH v6 2/4] mm: Add functions to support extra actions on swap in/out
+Message-Id: <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170201123823.6273-2-bob.picco@oracle.com>
-In-Reply-To: <20170201123823.6273-2-bob.picco@oracle.com>
+References: <cover.1488232591.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1488232591.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, arnd@arndb.de
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, jmarchan@redhat.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-Hi Sam,
-Sam Ravnborg wrote:	[Wed Feb 01 2017, 11:30:18AM EST]
-> Hi Bob.
-> 
-> Nit pick below.
-> 
-> 
-> On Wed, Feb 01, 2017 at 07:38:21AM -0500, Bob Picco wrote:
-> > From: bob picco <bob.picco@oracle.com>
-> > 
-> > Define some symbolic names for tsb/tlb miss trap tsb pointer computation.
-> > 
-> > Signed-off-by: Bob Picco <bob.picco@oracle.com>
-> > ---
-> >  arch/sparc/include/asm/spitfire.h  |  5 +++++
-> >  arch/sparc/kernel/sun4v_tlb_miss.S | 24 ++++++++++++------------
-> >  2 files changed, 17 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/arch/sparc/include/asm/spitfire.h b/arch/sparc/include/asm/spitfire.h
-> > index 1d8321c827a8..1852a8618001 100644
-> > --- a/arch/sparc/include/asm/spitfire.h
-> > +++ b/arch/sparc/include/asm/spitfire.h
-> > @@ -37,6 +37,11 @@
-> >  #define SPITFIRE_HIGHEST_LOCKED_TLBENT	(64 - 1)
-> >  #define CHEETAH_HIGHEST_LOCKED_TLBENT	(16 - 1)
-> >  
-> > +#define HV_TSB_SIZE_BASE	0x200	/* 512 TTE-s minimum.		*/
-> > +#define	HV_TSB_SIZE_BASE_SHIFT	0x09	/* Shift of minimum tsb size.	*/
-> > +#define	HV_TSB_SIZE_MASK	0x07	/* Size encoding of tsb.	*/
-> > +#define	HV_TSB_TTE_SIZE_SHIFT	0x04	/* Sixteen byte tte size.	*/
-> If you end up respinning the pacthes please replace the tab after "define" with a space
-Will do and thanx.
+If a processor supports special metadata for a page, for example ADI
+version tags on SPARC M7, this metadata must be saved when the page is
+swapped out. The same metadata must be restored when the page is swapped
+back in. This patch adds two new architecture specific functions -
+arch_do_swap_page() to be called when a page is swapped in,
+arch_unmap_one() to be called when a page is being unmapped for swap
+out.
 
-bob
-> 
-> 	Sam
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+v5:
+	- Replaced set_swp_pte() function with new architecture
+	  functions arch_do_swap_page() and arch_unmap_one()
+
+ include/asm-generic/pgtable.h | 16 ++++++++++++++++
+ mm/memory.c                   |  1 +
+ mm/rmap.c                     |  2 ++
+ 3 files changed, 19 insertions(+)
+
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 18af2bc..5764d8f 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -282,6 +282,22 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_b)
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
+ 
++#ifndef __HAVE_ARCH_DO_SWAP_PAGE
++static inline void arch_do_swap_page(struct mm_struct *mm, unsigned long addr,
++				     pte_t pte, pte_t orig_pte)
++{
++
++}
++#endif
++
++#ifndef __HAVE_ARCH_UNMAP_ONE
++static inline void arch_unmap_one(struct mm_struct *mm, unsigned long addr,
++				  pte_t pte, pte_t orig_pte)
++{
++
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
+ #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
+ #endif
+diff --git a/mm/memory.c b/mm/memory.c
+index 6bf2b47..b086c76 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2658,6 +2658,7 @@ int do_swap_page(struct vm_fault *vmf)
+ 	if (pte_swp_soft_dirty(vmf->orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+ 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
++	arch_do_swap_page(vma->vm_mm, vmf->address, pte, vmf->orig_pte);
+ 	vmf->orig_pte = pte;
+ 	if (page = swapcache) {
+ 		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 91619fd..192c41a 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -1538,6 +1538,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 		swp_pte = swp_entry_to_pte(entry);
+ 		if (pte_soft_dirty(pteval))
+ 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
++		arch_unmap_one(mm, address, swp_pte, pteval);
+ 		set_pte_at(mm, address, pte, swp_pte);
+ 	} else if (PageAnon(page)) {
+ 		swp_entry_t entry = { .val = page_private(page) };
+@@ -1571,6 +1572,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 		swp_pte = swp_entry_to_pte(entry);
+ 		if (pte_soft_dirty(pteval))
+ 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
++		arch_unmap_one(mm, address, swp_pte, pteval);
+ 		set_pte_at(mm, address, pte, swp_pte);
+ 	} else
+ 		dec_mm_counter(mm, mm_counter_file(page));
+-- 
+2.7.4
+
