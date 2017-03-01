@@ -1,249 +1,82 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Wed, 29 Mar 2017 21:51:43 +0000
-Subject: [PATCH 2/5] sparc64: enhance ldc_abort to print message
-Message-Id: <00fe828f520f2e7a9ff71ce2e76414e83124a5ad.1490823535.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 01 Mar 2017 00:14:42 +0000
+Subject: [PATCH v2 2/3] mm: Zeroing hash tables in allocator
+Message-Id: <1488327283-177710-3-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1488327283-177710-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1488327283-177710-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-Enhance ldc_abort to accept a message to be printed when it is called. Add
-a macro, LDC_ABORT, to print info. about the function that calls ldc_abort.
+Add a new flag HASH_ZERO which when provided grantees that the hash table
+that is returned by alloc_large_system_hash() is zeroed.  In most cases
+that is what is needed by the caller. Use page level allocator's __GFP_ZERO
+flags to zero the memory. It is using memset() which is efficient method to
+zero memory and is optimized for most platforms.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |   53 ++++++++++++++++++++++++----------------------
- 1 files changed, 28 insertions(+), 25 deletions(-)
+ include/linux/bootmem.h |    1 +
+ mm/page_alloc.c         |   12 +++++++++---
+ 2 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 6e28a3b..e589090 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -177,6 +177,8 @@ struct ldc_channel {
- 		printk(KERN_INFO PFX "ID[%lu] " f, lp->id, ## a); \
- } while (0)
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index 962164d..e223d91 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -358,6 +358,7 @@ static inline void __init memblock_free_late(
+ #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
+ #define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
+ 					 * shift passed via *_hash_shift */
++#define HASH_ZERO	0x00000004	/* Zero allocated hash table */
  
-+#define	LDC_ABORT(lp)	ldc_abort((lp), __func__)
-+
- static const char *state_to_str(u8 state)
- {
- 	switch (state) {
-@@ -506,11 +508,12 @@ static int send_data_nack(struct ldc_channel *lp, struct ldc_packet *data_pkt)
- 	return err;
- }
+ /* Only NUMA needs hash distribution. 64bit NUMA architectures have
+  * sufficient vmalloc space.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index a7a6aac..1b0f7a4 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7142,6 +7142,7 @@ static unsigned long __init arch_reserved_kernel_pages(void)
+ 	unsigned long long max = high_limit;
+ 	unsigned long log2qty, size;
+ 	void *table = NULL;
++	gfp_t gfp_flags;
  
--static int ldc_abort(struct ldc_channel *lp)
-+static int ldc_abort(struct ldc_channel *lp, const char *msg)
- {
- 	unsigned long hv_err;
+ 	/* allow the kernel cmdline to have a say */
+ 	if (!numentries) {
+@@ -7186,12 +7187,17 @@ static unsigned long __init arch_reserved_kernel_pages(void)
  
--	ldcdbg(STATE, "ABORT\n");
-+	ldcdbg(STATE, "ABORT[%s]\n", msg);
-+	ldc_print(lp);
+ 	log2qty = ilog2(numentries);
  
- 	/* We report but do not act upon the hypervisor errors because
- 	 * there really isn't much we can do if they fail at this point.
-@@ -595,7 +598,7 @@ static int process_ver_info(struct ldc_channel *lp, struct ldc_version *vp)
++	/*
++	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
++	 * currently not used when HASH_EARLY is specified.
++	 */
++	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
+ 	do {
+ 		size = bucketsize << log2qty;
+ 		if (flags & HASH_EARLY)
+ 			table = memblock_virt_alloc_nopanic(size, 0);
+ 		else if (hashdist)
+-			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
++			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
+ 		else {
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
+@@ -7199,8 +7205,8 @@ static unsigned long __init arch_reserved_kernel_pages(void)
+ 			 * alloc_pages_exact() automatically does
+ 			 */
+ 			if (get_order(size) < MAX_ORDER) {
+-				table = alloc_pages_exact(size, GFP_ATOMIC);
+-				kmemleak_alloc(table, size, 1, GFP_ATOMIC);
++				table = alloc_pages_exact(size, gfp_flags);
++				kmemleak_alloc(table, size, 1, gfp_flags);
+ 			}
  		}
- 	}
- 	if (err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -608,13 +611,13 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
- 	if (lp->hs_state = LDC_HS_GOTVERS) {
- 		if (lp->ver.major != vp->major ||
- 		    lp->ver.minor != vp->minor)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	} else {
- 		lp->ver = *vp;
- 		lp->hs_state = LDC_HS_GOTVERS;
- 	}
- 	if (send_rts(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	return 0;
- }
- 
-@@ -625,17 +628,17 @@ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
- 	unsigned long new_tail;
- 
- 	if (vp->major = 0 && vp->minor = 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	vap = find_by_major(vp->major);
- 	if (!vap)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
- 					   vap, sizeof(*vap),
- 					   &new_tail);
- 	if (!p)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return send_tx_packet(lp, p, new_tail);
- }
-@@ -658,7 +661,7 @@ static int process_version(struct ldc_channel *lp,
- 		return process_ver_nack(lp, vp);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
-@@ -671,13 +674,13 @@ static int process_rts(struct ldc_channel *lp,
- 	if (p->stype     != LDC_INFO	   ||
- 	    lp->hs_state != LDC_HS_GOTVERS ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->rcv_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_SENTRTR;
- 	if (send_rtr(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -690,7 +693,7 @@ static int process_rtr(struct ldc_channel *lp,
- 
- 	if (p->stype     != LDC_INFO ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_COMPLETE;
-@@ -713,7 +716,7 @@ static int process_rdx(struct ldc_channel *lp,
- 
- 	if (p->stype != LDC_INFO ||
- 	    !(rx_seq_ok(lp, p->seqid)))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rcv_nxt = p->seqid;
- 
-@@ -740,14 +743,14 @@ static int process_control_frame(struct ldc_channel *lp,
- 		return process_rdx(lp, p);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
- static int process_error_frame(struct ldc_channel *lp,
- 			       struct ldc_packet *p)
- {
--	return ldc_abort(lp);
-+	return LDC_ABORT(lp);
- }
- 
- static int process_data_ack(struct ldc_channel *lp,
-@@ -766,7 +769,7 @@ static int process_data_ack(struct ldc_channel *lp,
- 			return 0;
- 		}
- 		if (head = lp->tx_tail)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	}
- 
- 	return 0;
-@@ -903,7 +906,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 			break;
- 
- 		default:
--			err = ldc_abort(lp);
-+			err = LDC_ABORT(lp);
- 			break;
- 		}
- 
-@@ -918,7 +921,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 
- 		err = __set_rx_head(lp, new);
- 		if (err < 0) {
--			(void) ldc_abort(lp);
-+			(void) LDC_ABORT(lp);
- 			break;
- 		}
- 		if (lp->hs_state = LDC_HS_COMPLETE)
-@@ -1542,7 +1545,7 @@ static int read_raw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1585,7 +1588,7 @@ static int write_nonraw(struct ldc_channel *lp, const void *buf,
- 		return -EBUSY;
- 
- 	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (!tx_has_space_for(lp, size))
- 		return -EAGAIN;
-@@ -1653,7 +1656,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
- 
- 	err = ldc_rx_reset(lp);
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1666,7 +1669,7 @@ static int data_ack_nack(struct ldc_channel *lp, struct ldc_packet *p)
- 			return err;
- 	}
- 	if (p->stype & LDC_NACK)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1686,7 +1689,7 @@ static int rx_data_wait(struct ldc_channel *lp, unsigned long cur_head)
- 						&lp->rx_tail,
- 						&lp->chan_state);
- 		if (hv_err)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 
- 		if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 		    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1709,7 +1712,7 @@ static int rx_set_head(struct ldc_channel *lp, unsigned long head)
- 	int err = __set_rx_head(lp, head);
- 
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rx_head = head;
- 	return 0;
-@@ -1748,7 +1751,7 @@ static int read_nonraw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
+ 	} while (!table && size > PAGE_SIZE && --log2qty);
 -- 
 1.7.1
 
