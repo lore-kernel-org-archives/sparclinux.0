@@ -1,43 +1,139 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 28 Mar 2017 04:47:28 +0000
-Subject: Re: [PATCH v2 0/4] Improved logging
-Message-Id: <20170327.214728.1973448231414057241.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 01 Mar 2017 00:14:41 +0000
+Subject: [PATCH v2 1/3] sparc64: NG4 memset 32 bits overflow
+Message-Id: <1488327283-177710-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1489423479-654395-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1489423479-654395-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1488327283-177710-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1488327283-177710-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, sparclinux@vger.kernel.org
 
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 13 Mar 2017 12:44:35 -0400
+Early in boot Linux patches memset and memcpy to branch to platform
+optimized versions of these routines. The NG4 (Niagra 4) versions are
+currently used on  all platforms starting from T4. Recently, there were M7
+optimized routines added into UEK4 but not into mainline yet. So, even with
+M7 optimized routines NG4 are still going to be used on T4, T5, M5, and M6
+processors.
 
-> Changes from v1 - v2:
-> Two small nits:
-> - "Reviewed-by" is fixed in two patches,
-> - Fixed comment before __weak plat_unregister_bootcon(): of -> if.
-> 
-> This patch set does the following improvements:
-> 1. Get time stamps available early in boot
-> 2. Removes duplicated output on console during boot
-> 3. Removes a dead zone, where after tty0 nothing is printed until
->    ttyHV is regested; and even if we panic no messages are printed.
-> 
-> Here is example base output:
-> https://hastebin.com/obofesaqek.vbs
-> 
-> Fixed output:
-> https://hastebin.com/ipoxodobaq.vbs
+While investigating how to improve initialization time of dentry_hashtable
+which is 8G long on M6 ldom with 7T of main memory, I noticed that memset()
+does not reset all the memory in this array, after studying the code, I
+realized that NG4memset() branches use %icc register instead of %xcc to
+check compare, so if value of length is over 32-bit long, which is true for
+8G array, these routines fail to work properly.
 
-You really need to generalize this, so that it doesn't only just work
-with the hypervisor console, but rather with any console device we
-support whatsoever.
+The fix is to replace all %icc with %xcc in these routines. (Alternative is
+to use %ncc, but this is misleading, as the code already has sparcv9 only
+instructions, and cannot be compiled on 32-bit).
 
-I bet if you did that, the hook wouldn't even be needed.
+This is important to fix this bug, because even older T4-4 can have 2T of
+memory, and there are large memory proportional data structures in kernel
+which can be larger than 4G in size. The failing of memset() is silent and
+corruption is hard to detect.
 
-If you need to keep the hook, you have to declare it in some common
-kernel header file.  If you built with extra warnings or with sparse
-it would have warned about this (globally visible function with no
-previous declaration seen).
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
+---
+ arch/sparc/lib/NG4memset.S |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/arch/sparc/lib/NG4memset.S b/arch/sparc/lib/NG4memset.S
+index 41da4bd..e7c2e70 100644
+--- a/arch/sparc/lib/NG4memset.S
++++ b/arch/sparc/lib/NG4memset.S
+@@ -13,14 +13,14 @@
+ 	.globl		NG4memset
+ NG4memset:
+ 	andcc		%o1, 0xff, %o4
+-	be,pt		%icc, 1f
++	be,pt		%xcc, 1f
+ 	 mov		%o2, %o1
+ 	sllx		%o4, 8, %g1
+ 	or		%g1, %o4, %o2
+ 	sllx		%o2, 16, %g1
+ 	or		%g1, %o2, %o2
+ 	sllx		%o2, 32, %g1
+-	ba,pt		%icc, 1f
++	ba,pt		%xcc, 1f
+ 	 or		%g1, %o2, %o4
+ 	.size		NG4memset,.-NG4memset
+ 
+@@ -29,7 +29,7 @@ NG4memset:
+ NG4bzero:
+ 	clr		%o4
+ 1:	cmp		%o1, 16
+-	ble		%icc, .Ltiny
++	ble		%xcc, .Ltiny
+ 	 mov		%o0, %o3
+ 	sub		%g0, %o0, %g1
+ 	and		%g1, 0x7, %g1
+@@ -37,7 +37,7 @@ NG4bzero:
+ 	 sub		%o1, %g1, %o1
+ 1:	stb		%o4, [%o0 + 0x00]
+ 	subcc		%g1, 1, %g1
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 1, %o0
+ .Laligned8:
+ 	cmp		%o1, 64 + (64 - 8)
+@@ -48,7 +48,7 @@ NG4bzero:
+ 	 sub		%o1, %g1, %o1
+ 1:	stx		%o4, [%o0 + 0x00]
+ 	subcc		%g1, 8, %g1
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 0x8, %o0
+ .Laligned64:
+ 	andn		%o1, 64 - 1, %g1
+@@ -58,30 +58,30 @@ NG4bzero:
+ 1:	stxa		%o4, [%o0 + %g0] ASI_BLK_INIT_QUAD_LDD_P
+ 	subcc		%g1, 0x40, %g1
+ 	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 0x40, %o0
+ .Lpostloop:
+ 	cmp		%o1, 8
+-	bl,pn		%icc, .Ltiny
++	bl,pn		%xcc, .Ltiny
+ 	 membar		#StoreStore|#StoreLoad
+ .Lmedium:
+ 	andn		%o1, 0x7, %g1
+ 	sub		%o1, %g1, %o1
+ 1:	stx		%o4, [%o0 + 0x00]
+ 	subcc		%g1, 0x8, %g1
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 0x08, %o0
+ 	andcc		%o1, 0x4, %g1
+-	be,pt		%icc, .Ltiny
++	be,pt		%xcc, .Ltiny
+ 	 sub		%o1, %g1, %o1
+ 	stw		%o4, [%o0 + 0x00]
+ 	add		%o0, 0x4, %o0
+ .Ltiny:
+ 	cmp		%o1, 0
+-	be,pn		%icc, .Lexit
++	be,pn		%xcc, .Lexit
+ 1:	 subcc		%o1, 1, %o1
+ 	stb		%o4, [%o0 + 0x00]
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 1, %o0
+ .Lexit:
+ 	retl
+@@ -99,7 +99,7 @@ NG4bzero:
+ 	stxa		%o4, [%o0 + %g2] ASI_BLK_INIT_QUAD_LDD_P
+ 	stxa		%o4, [%o0 + %g3] ASI_BLK_INIT_QUAD_LDD_P
+ 	stxa		%o4, [%o0 + %o5] ASI_BLK_INIT_QUAD_LDD_P
+-	bne,pt		%icc, 1b
++	bne,pt		%xcc, 1b
+ 	 add		%o0, 0x30, %o0
+-	ba,a,pt		%icc, .Lpostloop
++	ba,a,pt		%xcc, .Lpostloop
+ 	.size		NG4bzero,.-NG4bzero
+-- 
+1.7.1
 
