@@ -1,139 +1,247 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 24 Mar 2017 19:19:49 +0000
-Subject: [v2 2/5] mm: defining memblock_virt_alloc_try_nid_raw
-Message-Id: <1490383192-981017-3-git-send-email-pasha.tatashin@oracle.com>
+Date: Thu, 02 Mar 2017 05:33:44 +0000
+Subject: [PATCH v3 3/4] mm: Updated callers to use HASH_ZERO flag
+Message-Id: <1488432825-92126-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1488432825-92126-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1488432825-92126-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
+To: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org
 
-A new version of memblock_virt_alloc_* allocations:
-- Does not zero the allocated memory
-- Does not panic if request cannot be satisfied
+Update dcache, inode, pid, mountpoint, and mount hash tables to use
+HASH_ZERO, and remove initialization after allocations.
+In case of places where HASH_EARLY was used such as in __pv_init_lock_hash
+the zeroed hash table was already assumed, because memblock zeroes the
+memory.
+
+CPU: SPARC M6, Memory: 7T
+Before fix:
+Dentry cache hash table entries: 1073741824
+Inode-cache hash table entries: 536870912
+Mount-cache hash table entries: 16777216
+Mountpoint-cache hash table entries: 16777216
+ftrace: allocating 20414 entries in 40 pages
+Total time: 11.798s
+
+After fix:
+Dentry cache hash table entries: 1073741824
+Inode-cache hash table entries: 536870912
+Mount-cache hash table entries: 16777216
+Mountpoint-cache hash table entries: 16777216
+ftrace: allocating 20414 entries in 40 pages
+Total time: 3.198s
+
+CPU: Intel Xeon E5-2630, Memory: 2.2T:
+Before fix:
+Dentry cache hash table entries: 536870912
+Inode-cache hash table entries: 268435456
+Mount-cache hash table entries: 8388608
+Mountpoint-cache hash table entries: 8388608
+CPU: Physical Processor ID: 0
+Total time: 3.245s
+
+After fix:
+Dentry cache hash table entries: 536870912
+Inode-cache hash table entries: 268435456
+Mount-cache hash table entries: 8388608
+Mountpoint-cache hash table entries: 8388608
+CPU: Physical Processor ID: 0
+Total time: 3.244s
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
 ---
- include/linux/bootmem.h |    3 +++
- mm/memblock.c           |   46 +++++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 42 insertions(+), 7 deletions(-)
+ fs/dcache.c                         |   18 ++++--------------
+ fs/inode.c                          |   14 ++------------
+ fs/namespace.c                      |   10 ++--------
+ kernel/locking/qspinlock_paravirt.h |    3 ++-
+ kernel/pid.c                        |    7 ++-----
+ 5 files changed, 12 insertions(+), 40 deletions(-)
 
-diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
-index dbaf312..b61ea10 100644
---- a/include/linux/bootmem.h
-+++ b/include/linux/bootmem.h
-@@ -160,6 +160,9 @@ extern int reserve_bootmem_node(pg_data_t *pgdat,
- #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 95d71ed..363502f 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -3548,8 +3548,6 @@ static int __init set_dhash_entries(char *str)
  
- /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
-+void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
-+				      phys_addr_t min_addr,
-+				      phys_addr_t max_addr, int nid);
- void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
- 		phys_addr_t align, phys_addr_t min_addr,
- 		phys_addr_t max_addr, int nid);
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 696f06d..7fdc555 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1271,7 +1271,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- static void * __init memblock_virt_alloc_internal(
- 				phys_addr_t size, phys_addr_t align,
- 				phys_addr_t min_addr, phys_addr_t max_addr,
--				int nid)
-+				int nid, bool zero)
+ static void __init dcache_init_early(void)
  {
- 	phys_addr_t alloc;
- 	void *ptr;
-@@ -1322,7 +1322,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 	return NULL;
- done:
- 	ptr = phys_to_virt(alloc);
--	memset(ptr, 0, size);
-+	if (zero)
-+		memset(ptr, 0, size);
- 
- 	/*
- 	 * The min_count is set to 0 so that bootmem allocated blocks
-@@ -1336,6 +1337,37 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+-	unsigned int loop;
+-
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+ 	 */
+@@ -3561,24 +3559,19 @@ static void __init dcache_init_early(void)
+ 					sizeof(struct hlist_bl_head),
+ 					dhash_entries,
+ 					13,
+-					HASH_EARLY,
++					HASH_EARLY | HASH_ZERO,
+ 					&d_hash_shift,
+ 					&d_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+-		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
  }
  
- /**
-+ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
-+ * memory and without panicking
-+ * @size: size of memory block to be allocated in bytes
-+ * @align: alignment of the region and block's size
-+ * @min_addr: the lower bound of the memory region from where the allocation
-+ *	  is preferred (phys address)
-+ * @max_addr: the upper bound of the memory region from where the allocation
-+ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
-+ *	      allocate only from memory limited by memblock.current_limit value
-+ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ *
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. Does not zero allocated memory, does not panic if request
-+ * cannot be satisfied.
-+ *
-+ * RETURNS:
-+ * Virtual address of allocated memory block on success, NULL on failure.
-+ */
-+void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr,
-+			int nid)
-+{
-+	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
-+		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-+		     (u64)max_addr, (void *)_RET_IP_);
-+	return memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid, false);
-+}
-+
-+/**
-  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
-  * @size: size of memory block to be allocated in bytes
-  * @align: alignment of the region and block's size
-@@ -1346,8 +1378,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
-- * additional debug information (including caller info), if enabled.
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. This function zeroes the allocated memory.
-  *
-  * RETURNS:
-  * Virtual address of allocated memory block on success, NULL on failure.
-@@ -1361,7 +1393,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	return memblock_virt_alloc_internal(size, align, min_addr,
--					     max_addr, nid);
-+					     max_addr, nid, true);
+ static void __init dcache_init(void)
+ {
+-	unsigned int loop;
+-
+-	/* 
++	/*
+ 	 * A constructor could be added for stable state like the lists,
+ 	 * but it is probably not worth it because of the cache nature
+-	 * of the dcache. 
++	 * of the dcache.
+ 	 */
+ 	dentry_cache = KMEM_CACHE(dentry,
+ 		SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|SLAB_MEM_SPREAD|SLAB_ACCOUNT);
+@@ -3592,14 +3585,11 @@ static void __init dcache_init(void)
+ 					sizeof(struct hlist_bl_head),
+ 					dhash_entries,
+ 					13,
+-					0,
++					HASH_ZERO,
+ 					&d_hash_shift,
+ 					&d_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << d_hash_shift); loop++)
+-		INIT_HLIST_BL_HEAD(dentry_hashtable + loop);
  }
  
- /**
-@@ -1375,7 +1407,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
-+ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
-  * which provides debug information (including caller info), if enabled,
-  * and panics if the request can not be satisfied.
-  *
-@@ -1393,7 +1425,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	ptr = memblock_virt_alloc_internal(size, align,
--					   min_addr, max_addr, nid);
-+					   min_addr, max_addr, nid, true);
- 	if (ptr)
- 		return ptr;
+ /* SLAB cache for __getname() consumers */
+diff --git a/fs/inode.c b/fs/inode.c
+index 88110fd..1b15a7c 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1916,8 +1916,6 @@ static int __init set_ihash_entries(char *str)
+  */
+ void __init inode_init_early(void)
+ {
+-	unsigned int loop;
+-
+ 	/* If hashes are distributed across NUMA nodes, defer
+ 	 * hash allocation until vmalloc space is available.
+ 	 */
+@@ -1929,20 +1927,15 @@ void __init inode_init_early(void)
+ 					sizeof(struct hlist_head),
+ 					ihash_entries,
+ 					14,
+-					HASH_EARLY,
++					HASH_EARLY | HASH_ZERO,
+ 					&i_hash_shift,
+ 					&i_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+-		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
  
+ void __init inode_init(void)
+ {
+-	unsigned int loop;
+-
+ 	/* inode slab cache */
+ 	inode_cachep = kmem_cache_create("inode_cache",
+ 					 sizeof(struct inode),
+@@ -1960,14 +1953,11 @@ void __init inode_init(void)
+ 					sizeof(struct hlist_head),
+ 					ihash_entries,
+ 					14,
+-					0,
++					HASH_ZERO,
+ 					&i_hash_shift,
+ 					&i_hash_mask,
+ 					0,
+ 					0);
+-
+-	for (loop = 0; loop < (1U << i_hash_shift); loop++)
+-		INIT_HLIST_HEAD(&inode_hashtable[loop]);
+ }
+ 
+ void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 8bfad42..275e6e2 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -3238,7 +3238,6 @@ static void __init init_mount_tree(void)
+ 
+ void __init mnt_init(void)
+ {
+-	unsigned u;
+ 	int err;
+ 
+ 	mnt_cache = kmem_cache_create("mnt_cache", sizeof(struct mount),
+@@ -3247,22 +3246,17 @@ void __init mnt_init(void)
+ 	mount_hashtable = alloc_large_system_hash("Mount-cache",
+ 				sizeof(struct hlist_head),
+ 				mhash_entries, 19,
+-				0,
++				HASH_ZERO,
+ 				&m_hash_shift, &m_hash_mask, 0, 0);
+ 	mountpoint_hashtable = alloc_large_system_hash("Mountpoint-cache",
+ 				sizeof(struct hlist_head),
+ 				mphash_entries, 19,
+-				0,
++				HASH_ZERO,
+ 				&mp_hash_shift, &mp_hash_mask, 0, 0);
+ 
+ 	if (!mount_hashtable || !mountpoint_hashtable)
+ 		panic("Failed to allocate mount hash table\n");
+ 
+-	for (u = 0; u <= m_hash_mask; u++)
+-		INIT_HLIST_HEAD(&mount_hashtable[u]);
+-	for (u = 0; u <= mp_hash_mask; u++)
+-		INIT_HLIST_HEAD(&mountpoint_hashtable[u]);
+-
+ 	kernfs_init();
+ 
+ 	err = sysfs_init();
+diff --git a/kernel/locking/qspinlock_paravirt.h b/kernel/locking/qspinlock_paravirt.h
+index e6b2f7a..4ccfcaa 100644
+--- a/kernel/locking/qspinlock_paravirt.h
++++ b/kernel/locking/qspinlock_paravirt.h
+@@ -193,7 +193,8 @@ void __init __pv_init_lock_hash(void)
+ 	 */
+ 	pv_lock_hash = alloc_large_system_hash("PV qspinlock",
+ 					       sizeof(struct pv_hash_entry),
+-					       pv_hash_size, 0, HASH_EARLY,
++					       pv_hash_size, 0,
++					       HASH_EARLY | HASH_ZERO,
+ 					       &pv_lock_hash_bits, NULL,
+ 					       pv_hash_size, pv_hash_size);
+ }
+diff --git a/kernel/pid.c b/kernel/pid.c
+index 0291804..013e023 100644
+--- a/kernel/pid.c
++++ b/kernel/pid.c
+@@ -572,16 +572,13 @@ struct pid *find_ge_pid(int nr, struct pid_namespace *ns)
+  */
+ void __init pidhash_init(void)
+ {
+-	unsigned int i, pidhash_size;
++	unsigned int pidhash_size;
+ 
+ 	pid_hash = alloc_large_system_hash("PID", sizeof(*pid_hash), 0, 18,
+-					   HASH_EARLY | HASH_SMALL,
++					   HASH_EARLY | HASH_SMALL | HASH_ZERO,
+ 					   &pidhash_shift, NULL,
+ 					   0, 4096);
+ 	pidhash_size = 1U << pidhash_shift;
+-
+-	for (i = 0; i < pidhash_size; i++)
+-		INIT_HLIST_HEAD(&pid_hash[i]);
+ }
+ 
+ void __init pidmap_init(void)
 -- 
 1.7.1
 
