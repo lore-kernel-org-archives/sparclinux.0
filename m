@@ -1,158 +1,232 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 13 Mar 2017 16:44:36 +0000
-Subject: [PATCH v2 1/4] sparc64: initialize time early
-Message-Id: <1489423479-654395-2-git-send-email-pasha.tatashin@oracle.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Thu, 02 Mar 2017 00:22:28 +0000
+Subject: [PATCH 2/3] uapi: fix asm/sembuf.h userspace compilation errors
+Message-Id: <20170302002228.GB27132@altlinux.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <CAK8P3a3Ptm68i43BT5+kWptDw1koPwexpuFwH3-1naj_xi+arQ@mail.gmail.com>
+In-Reply-To: <CAK8P3a3Ptm68i43BT5+kWptDw1koPwexpuFwH3-1naj_xi+arQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ralf Baechle <ralf@linux-mips.org>, David Howells <dhowells@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>
 
-In Linux it is possible to configure printk() to output timestamp next to
-every line. This is very useful to determine the slow parts of the boot
-process, and also to avoid regressions, as boot time is visiable to
-everyone.
+Include <asm/ipcbuf.h> to fix asm/sembuf.h userspace compilation errors
+like this:
 
-Also, there are scripts that change these time stamps to intervals.
+/usr/include/asm/sembuf.h:14:20: error: field 'sem_perm' has incomplete type
+  struct ipc64_perm sem_perm; /* permissions .. see ipc.h */
+/usr/include/asm/sembuf.h:15:2: error: unknown type name '__kernel_time_t'
+  __kernel_time_t sem_otime; /* last semop time */
+/usr/include/asm/sembuf.h:16:2: error: unknown type name '__kernel_ulong_t'
+  __kernel_ulong_t __unused1;
+/usr/include/asm/sembuf.h:17:2: error: unknown type name '__kernel_time_t'
+  __kernel_time_t sem_ctime; /* last change time */
+/usr/include/asm/sembuf.h:18:2: error: unknown type name '__kernel_ulong_t'
+  __kernel_ulong_t __unused2;
+/usr/include/asm/sembuf.h:19:2: error: unknown type name '__kernel_ulong_t'
+  __kernel_ulong_t sem_nsems; /* no. of semaphores in array */
+/usr/include/asm/sembuf.h:20:2: error: unknown type name '__kernel_ulong_t'
+  __kernel_ulong_t __unused3;
+/usr/include/asm/sembuf.h:21:2: error: unknown type name '__kernel_ulong_t'
+  __kernel_ulong_t __unused4;
 
-However, on larger machines these timestamps start appearing many seconds,
-and even minutes into the boot process. This patch gets stick-frequency
-property early from OpenBoot, and uses its value to initialize time stamps
-before the first printk() messages are printed.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
 ---
- arch/sparc/kernel/kernel.h   |    3 ++
- arch/sparc/kernel/setup_64.c |    1 +
- arch/sparc/kernel/time_64.c  |   60 ++++++++++++++++++++++++++---------------
- 3 files changed, 42 insertions(+), 22 deletions(-)
+ include/uapi/asm-generic/sembuf.h      | 1 +
+ arch/alpha/include/uapi/asm/sembuf.h   | 2 ++
+ arch/avr32/include/uapi/asm/sembuf.h   | 2 ++
+ arch/frv/include/uapi/asm/sembuf.h     | 2 ++
+ arch/ia64/include/uapi/asm/sembuf.h    | 2 ++
+ arch/m32r/include/uapi/asm/sembuf.h    | 2 ++
+ arch/mips/include/uapi/asm/sembuf.h    | 2 ++
+ arch/mn10300/include/uapi/asm/sembuf.h | 2 ++
+ arch/parisc/include/uapi/asm/sembuf.h  | 1 +
+ arch/powerpc/include/uapi/asm/sembuf.h | 2 ++
+ arch/s390/include/uapi/asm/sembuf.h    | 2 ++
+ arch/sparc/include/uapi/asm/sembuf.h   | 2 ++
+ arch/x86/include/uapi/asm/sembuf.h     | 2 ++
+ arch/xtensa/include/uapi/asm/sembuf.h  | 1 +
+ 14 files changed, 25 insertions(+)
 
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index c980455..275973b 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -53,6 +53,9 @@ static inline unsigned long kimage_addr_to_ra(const void *p)
- void do_signal32(struct pt_regs * regs);
- asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
+diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
+index 4cb2c13..1d910d7 100644
+--- a/include/uapi/asm-generic/sembuf.h
++++ b/include/uapi/asm-generic/sembuf.h
+@@ -1,6 +1,7 @@
+ #ifndef __ASM_GENERIC_SEMBUF_H
+ #define __ASM_GENERIC_SEMBUF_H
  
-+/* time_64.c */
-+void __init time_init_early(void);
++#include <asm/ipcbuf.h>
+ #include <asm/bitsperlong.h>
+ 
+ /*
+diff --git a/arch/alpha/include/uapi/asm/sembuf.h b/arch/alpha/include/uapi/asm/sembuf.h
+index 7b38b15..b6bdd5f 100644
+--- a/arch/alpha/include/uapi/asm/sembuf.h
++++ b/arch/alpha/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ALPHA_SEMBUF_H
+ #define _ALPHA_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
 +
- /* compat_audit.c */
- extern unsigned int sparc32_dir_class[];
- extern unsigned int sparc32_chattr_class[];
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 6b7331d..f20d394 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -365,6 +365,7 @@ void __init start_early_boot(void)
- 	}
- 	current_thread_info()->cpu = cpu;
+ /* 
+  * The semid64_ds structure for alpha architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/avr32/include/uapi/asm/sembuf.h b/arch/avr32/include/uapi/asm/sembuf.h
+index 6c6f7cf..ec4ddd6 100644
+--- a/arch/avr32/include/uapi/asm/sembuf.h
++++ b/arch/avr32/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _UAPI__ASM_AVR32_SEMBUF_H
+ #define _UAPI__ASM_AVR32_SEMBUF_H
  
-+	time_init_early();
- 	prom_init_report();
- 	start_kernel();
- }
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 12a6d35..8334042 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -49,6 +49,7 @@
- #include <asm/irq_regs.h>
- 
- #include "entry.h"
-+#include "kernel.h"
- 
- DEFINE_SPINLOCK(rtc_lock);
- 
-@@ -177,6 +178,8 @@ static unsigned long tick_add_tick(unsigned long adj)
- struct sparc64_tick_ops *tick_ops __read_mostly = &tick_operations;
- EXPORT_SYMBOL(tick_ops);
- 
-+static unsigned long stick_frequency;
++#include <asm/ipcbuf.h>
 +
- static void stick_disable_irq(void)
- {
- 	__asm__ __volatile__(
-@@ -583,30 +586,25 @@ static int __init clock_init(void)
- fs_initcall(clock_init);
+ /*
+ * The semid64_ds structure for AVR32 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/frv/include/uapi/asm/sembuf.h b/arch/frv/include/uapi/asm/sembuf.h
+index 164b127..0d73641 100644
+--- a/arch/frv/include/uapi/asm/sembuf.h
++++ b/arch/frv/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_SEMBUF_H
+ #define _ASM_SEMBUF_H
  
- /* This is gets the master TICK_INT timer going. */
--static unsigned long sparc64_init_timers(void)
-+static unsigned long sparc64_init_timers_spitfire(void)
- {
- 	struct device_node *dp;
- 	unsigned long freq;
-+	unsigned long ver, manuf, impl;
- 
- 	dp = of_find_node_by_path("/");
--	if (tlb_type = spitfire) {
--		unsigned long ver, manuf, impl;
--
--		__asm__ __volatile__ ("rdpr %%ver, %0"
--				      : "=&r" (ver));
--		manuf = ((ver >> 48) & 0xffff);
--		impl = ((ver >> 32) & 0xffff);
--		if (manuf = 0x17 && impl = 0x13) {
--			/* Hummingbird, aka Ultra-IIe */
--			tick_ops = &hbtick_operations;
--			freq = of_getintprop_default(dp, "stick-frequency", 0);
--		} else {
--			tick_ops = &tick_operations;
--			freq = local_cpu_data().clock_tick;
--		}
--	} else {
--		tick_ops = &stick_operations;
++#include <asm/ipcbuf.h>
 +
-+	__asm__ __volatile__ ("rdpr %%ver, %0"
-+			      : "=&r" (ver));
-+	manuf = ((ver >> 48) & 0xffff);
-+	impl = ((ver >> 32) & 0xffff);
-+	if (manuf = 0x17 && impl = 0x13) {
-+		/* Hummingbird, aka Ultra-IIe */
-+		tick_ops = &hbtick_operations;
- 		freq = of_getintprop_default(dp, "stick-frequency", 0);
-+	} else {
-+		tick_ops = &tick_operations;
-+		freq = local_cpu_data().clock_tick;
- 	}
+ /*
+  * The semid64_ds structure for FR-V architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/ia64/include/uapi/asm/sembuf.h b/arch/ia64/include/uapi/asm/sembuf.h
+index 1340fbc..2e218b0 100644
+--- a/arch/ia64/include/uapi/asm/sembuf.h
++++ b/arch/ia64/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_IA64_SEMBUF_H
+ #define _ASM_IA64_SEMBUF_H
  
- 	return freq;
-@@ -775,14 +773,32 @@ static u64 clocksource_tick_read(struct clocksource *cs)
- 	return tick_ops->get_tick();
- }
- 
-+void __init time_init_early(void)
-+{
-+	if (tlb_type = spitfire)
-+		return;
++#include <asm/ipcbuf.h>
 +
-+	stick_frequency = prom_getint(prom_root_node, "stick-frequency");
-+	tick_ops = &stick_operations;
-+	timer_ticks_per_nsec_quotient +		clocksource_hz2mult(stick_frequency,
-+				    SPARC64_NSEC_PER_CYC_SHIFT);
-+}
+ /*
+  * The semid64_ds structure for IA-64 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/m32r/include/uapi/asm/sembuf.h b/arch/m32r/include/uapi/asm/sembuf.h
+index c9873d6..58ad1f8 100644
+--- a/arch/m32r/include/uapi/asm/sembuf.h
++++ b/arch/m32r/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_M32R_SEMBUF_H
+ #define _ASM_M32R_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
 +
- void __init time_init(void)
- {
--	unsigned long freq = sparc64_init_timers();
-+	unsigned long freq;
+ /*
+  * The semid64_ds structure for m32r architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/mips/include/uapi/asm/sembuf.h b/arch/mips/include/uapi/asm/sembuf.h
+index e1085ac..a55ab3c 100644
+--- a/arch/mips/include/uapi/asm/sembuf.h
++++ b/arch/mips/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_SEMBUF_H
+ #define _ASM_SEMBUF_H
  
--	tb_ticks_per_usec = freq / USEC_PER_SEC;
-+	if (tlb_type = spitfire) {
-+		stick_frequency = sparc64_init_timers_spitfire();
- 
--	timer_ticks_per_nsec_quotient -		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
-+		timer_ticks_per_nsec_quotient +			clocksource_hz2mult(stick_frequency,
-+					    SPARC64_NSEC_PER_CYC_SHIFT);
-+	}
-+	freq = stick_frequency;
++#include <asm/ipcbuf.h>
 +
-+	tb_ticks_per_usec = freq / USEC_PER_SEC;
+ /*
+  * The semid64_ds structure for the MIPS architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/mn10300/include/uapi/asm/sembuf.h b/arch/mn10300/include/uapi/asm/sembuf.h
+index 301f3f9..3529f55 100644
+--- a/arch/mn10300/include/uapi/asm/sembuf.h
++++ b/arch/mn10300/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_SEMBUF_H
+ #define _ASM_SEMBUF_H
  
- 	clocksource_tick.name = tick_ops->name;
- 	clocksource_tick.read = clocksource_tick_read;
++#include <asm/ipcbuf.h>
++
+ /*
+  * The semid64_ds structure for MN10300 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/parisc/include/uapi/asm/sembuf.h b/arch/parisc/include/uapi/asm/sembuf.h
+index c20971b..cff5e43 100644
+--- a/arch/parisc/include/uapi/asm/sembuf.h
++++ b/arch/parisc/include/uapi/asm/sembuf.h
+@@ -1,6 +1,7 @@
+ #ifndef _PARISC_SEMBUF_H
+ #define _PARISC_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
+ #include <asm/bitsperlong.h>
+ 
+ /* 
+diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
+index 99a4193..d001c0a 100644
+--- a/arch/powerpc/include/uapi/asm/sembuf.h
++++ b/arch/powerpc/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_POWERPC_SEMBUF_H
+ #define _ASM_POWERPC_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
++
+ /*
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+diff --git a/arch/s390/include/uapi/asm/sembuf.h b/arch/s390/include/uapi/asm/sembuf.h
+index 32626b0..734c9de 100644
+--- a/arch/s390/include/uapi/asm/sembuf.h
++++ b/arch/s390/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _S390_SEMBUF_H
+ #define _S390_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
++
+ /* 
+  * The semid64_ds structure for S/390 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
+index faee1be..28f7060 100644
+--- a/arch/sparc/include/uapi/asm/sembuf.h
++++ b/arch/sparc/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _SPARC_SEMBUF_H
+ #define _SPARC_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
++
+ /*
+  * The semid64_ds structure for sparc architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/x86/include/uapi/asm/sembuf.h b/arch/x86/include/uapi/asm/sembuf.h
+index cc2d6a3..d88cc89 100644
+--- a/arch/x86/include/uapi/asm/sembuf.h
++++ b/arch/x86/include/uapi/asm/sembuf.h
+@@ -1,6 +1,8 @@
+ #ifndef _ASM_X86_SEMBUF_H
+ #define _ASM_X86_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
++
+ /*
+  * The semid64_ds structure for x86 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
+index c158704..2494c41 100644
+--- a/arch/xtensa/include/uapi/asm/sembuf.h
++++ b/arch/xtensa/include/uapi/asm/sembuf.h
+@@ -21,6 +21,7 @@
+ #ifndef _XTENSA_SEMBUF_H
+ #define _XTENSA_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
+ #include <asm/byteorder.h>
+ 
+ struct semid64_ds {
 -- 
-1.7.1
-
+ldv
