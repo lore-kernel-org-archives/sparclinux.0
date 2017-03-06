@@ -1,232 +1,232 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Date: Thu, 02 Mar 2017 00:22:28 +0000
-Subject: [PATCH 2/3] uapi: fix asm/sembuf.h userspace compilation errors
-Message-Id: <20170302002228.GB27132@altlinux.org>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 06 Mar 2017 23:15:29 +0000
+Subject: [PATCH net-next 2/5] sunvnet: add stats to track ldom to ldom packets and bytes
+Message-Id: <1488842132-512058-3-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a3Ptm68i43BT5+kWptDw1koPwexpuFwH3-1naj_xi+arQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a3Ptm68i43BT5+kWptDw1koPwexpuFwH3-1naj_xi+arQ@mail.gmail.com>
+References: <1488842132-512058-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1488842132-512058-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>, Hans-Christian Egtvedt <egtvedt@samfundet.no>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ralf Baechle <ralf@linux-mips.org>, David Howells <dhowells@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-Include <asm/ipcbuf.h> to fix asm/sembuf.h userspace compilation errors
-like this:
+In this driver, there is a "port" created for the connection to each of
+the other ldoms; a netdev queue is mapped to each port, and they are
+collected under a single netdev.  The generic netdev statistics show
+us all the traffic in and out of our network device, but don't show
+individual queue/port stats.  This patch breaks out the traffic counts
+for the individual ports and gives us a little view into the state of
+those connections.
 
-/usr/include/asm/sembuf.h:14:20: error: field 'sem_perm' has incomplete type
-  struct ipc64_perm sem_perm; /* permissions .. see ipc.h */
-/usr/include/asm/sembuf.h:15:2: error: unknown type name '__kernel_time_t'
-  __kernel_time_t sem_otime; /* last semop time */
-/usr/include/asm/sembuf.h:16:2: error: unknown type name '__kernel_ulong_t'
-  __kernel_ulong_t __unused1;
-/usr/include/asm/sembuf.h:17:2: error: unknown type name '__kernel_time_t'
-  __kernel_time_t sem_ctime; /* last change time */
-/usr/include/asm/sembuf.h:18:2: error: unknown type name '__kernel_ulong_t'
-  __kernel_ulong_t __unused2;
-/usr/include/asm/sembuf.h:19:2: error: unknown type name '__kernel_ulong_t'
-  __kernel_ulong_t sem_nsems; /* no. of semaphores in array */
-/usr/include/asm/sembuf.h:20:2: error: unknown type name '__kernel_ulong_t'
-  __kernel_ulong_t __unused3;
-/usr/include/asm/sembuf.h:21:2: error: unknown type name '__kernel_ulong_t'
-  __kernel_ulong_t __unused4;
-
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/uapi/asm-generic/sembuf.h      | 1 +
- arch/alpha/include/uapi/asm/sembuf.h   | 2 ++
- arch/avr32/include/uapi/asm/sembuf.h   | 2 ++
- arch/frv/include/uapi/asm/sembuf.h     | 2 ++
- arch/ia64/include/uapi/asm/sembuf.h    | 2 ++
- arch/m32r/include/uapi/asm/sembuf.h    | 2 ++
- arch/mips/include/uapi/asm/sembuf.h    | 2 ++
- arch/mn10300/include/uapi/asm/sembuf.h | 2 ++
- arch/parisc/include/uapi/asm/sembuf.h  | 1 +
- arch/powerpc/include/uapi/asm/sembuf.h | 2 ++
- arch/s390/include/uapi/asm/sembuf.h    | 2 ++
- arch/sparc/include/uapi/asm/sembuf.h   | 2 ++
- arch/x86/include/uapi/asm/sembuf.h     | 2 ++
- arch/xtensa/include/uapi/asm/sembuf.h  | 1 +
- 14 files changed, 25 insertions(+)
+ drivers/net/ethernet/sun/sunvnet.c        |  114 +++++++++++++++++++++++++++++
+ drivers/net/ethernet/sun/sunvnet_common.c |    6 ++
+ drivers/net/ethernet/sun/sunvnet_common.h |   15 ++++
+ 3 files changed, 135 insertions(+), 0 deletions(-)
 
-diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
-index 4cb2c13..1d910d7 100644
---- a/include/uapi/asm-generic/sembuf.h
-+++ b/include/uapi/asm-generic/sembuf.h
-@@ -1,6 +1,7 @@
- #ifndef __ASM_GENERIC_SEMBUF_H
- #define __ASM_GENERIC_SEMBUF_H
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 4cc2571..80de4fa 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -77,11 +77,125 @@ static void vnet_set_msglevel(struct net_device *dev, u32 value)
+ 	vp->msg_enable = value;
+ }
  
-+#include <asm/ipcbuf.h>
- #include <asm/bitsperlong.h>
- 
- /*
-diff --git a/arch/alpha/include/uapi/asm/sembuf.h b/arch/alpha/include/uapi/asm/sembuf.h
-index 7b38b15..b6bdd5f 100644
---- a/arch/alpha/include/uapi/asm/sembuf.h
-+++ b/arch/alpha/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ALPHA_SEMBUF_H
- #define _ALPHA_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++static const struct {
++	const char string[ETH_GSTRING_LEN];
++} ethtool_stats_keys[] = {
++	{ "rx_packets" },
++	{ "tx_packets" },
++	{ "rx_bytes" },
++	{ "tx_bytes" },
++	{ "rx_errors" },
++	{ "tx_errors" },
++	{ "rx_dropped" },
++	{ "tx_dropped" },
++	{ "multicast" },
++	{ "rx_length_errors" },
++	{ "rx_frame_errors" },
++	{ "rx_missed_errors" },
++	{ "tx_carrier_errors" },
++	{ "nports" },
++};
 +
- /* 
-  * The semid64_ds structure for alpha architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/avr32/include/uapi/asm/sembuf.h b/arch/avr32/include/uapi/asm/sembuf.h
-index 6c6f7cf..ec4ddd6 100644
---- a/arch/avr32/include/uapi/asm/sembuf.h
-+++ b/arch/avr32/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _UAPI__ASM_AVR32_SEMBUF_H
- #define _UAPI__ASM_AVR32_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++static int vnet_get_sset_count(struct net_device *dev, int sset)
++{
++	struct vnet *vp = (struct vnet *)netdev_priv(dev);
 +
- /*
- * The semid64_ds structure for AVR32 architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/frv/include/uapi/asm/sembuf.h b/arch/frv/include/uapi/asm/sembuf.h
-index 164b127..0d73641 100644
---- a/arch/frv/include/uapi/asm/sembuf.h
-+++ b/arch/frv/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_SEMBUF_H
- #define _ASM_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++	switch (sset) {
++	case ETH_SS_STATS:
++		return ARRAY_SIZE(ethtool_stats_keys)
++			+ (NUM_VNET_PORT_STATS * vp->nports);
++	default:
++		return -EOPNOTSUPP;
++	}
++}
 +
- /*
-  * The semid64_ds structure for FR-V architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/ia64/include/uapi/asm/sembuf.h b/arch/ia64/include/uapi/asm/sembuf.h
-index 1340fbc..2e218b0 100644
---- a/arch/ia64/include/uapi/asm/sembuf.h
-+++ b/arch/ia64/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_IA64_SEMBUF_H
- #define _ASM_IA64_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++static void vnet_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
++{
++	struct vnet *vp = (struct vnet *)netdev_priv(dev);
++	struct vnet_port *port;
++	char *p = (char *)buf;
 +
- /*
-  * The semid64_ds structure for IA-64 architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/m32r/include/uapi/asm/sembuf.h b/arch/m32r/include/uapi/asm/sembuf.h
-index c9873d6..58ad1f8 100644
---- a/arch/m32r/include/uapi/asm/sembuf.h
-+++ b/arch/m32r/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_M32R_SEMBUF_H
- #define _ASM_M32R_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++	switch (stringset) {
++	case ETH_SS_STATS:
++		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
++		p += sizeof(ethtool_stats_keys);
 +
- /*
-  * The semid64_ds structure for m32r architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/mips/include/uapi/asm/sembuf.h b/arch/mips/include/uapi/asm/sembuf.h
-index e1085ac..a55ab3c 100644
---- a/arch/mips/include/uapi/asm/sembuf.h
-+++ b/arch/mips/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_SEMBUF_H
- #define _ASM_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++		rcu_read_lock();
++		list_for_each_entry_rcu(port, &vp->port_list, list) {
++			snprintf(p, ETH_GSTRING_LEN, "p%u.%s-%pM",
++				 port->q_index, port->switch_port ? "s" : "q",
++				 port->raddr);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.rx_packets",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.tx_packets",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.rx_bytes",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.tx_bytes",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.event_up",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++			snprintf(p, ETH_GSTRING_LEN, "p%u.event_reset",
++				 port->q_index);
++			p += ETH_GSTRING_LEN;
++		}
++		rcu_read_unlock();
++		break;
++	default:
++		WARN_ON(1);
++		break;
++	}
++}
 +
- /*
-  * The semid64_ds structure for the MIPS architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/mn10300/include/uapi/asm/sembuf.h b/arch/mn10300/include/uapi/asm/sembuf.h
-index 301f3f9..3529f55 100644
---- a/arch/mn10300/include/uapi/asm/sembuf.h
-+++ b/arch/mn10300/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_SEMBUF_H
- #define _ASM_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++static void vnet_get_ethtool_stats(struct net_device *dev,
++				   struct ethtool_stats *estats, u64 *data)
++{
++	struct vnet *vp = (struct vnet *)netdev_priv(dev);
++	struct vnet_port *port;
++	int i = 0;
 +
- /*
-  * The semid64_ds structure for MN10300 architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/parisc/include/uapi/asm/sembuf.h b/arch/parisc/include/uapi/asm/sembuf.h
-index c20971b..cff5e43 100644
---- a/arch/parisc/include/uapi/asm/sembuf.h
-+++ b/arch/parisc/include/uapi/asm/sembuf.h
-@@ -1,6 +1,7 @@
- #ifndef _PARISC_SEMBUF_H
- #define _PARISC_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
- #include <asm/bitsperlong.h>
- 
- /* 
-diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
-index 99a4193..d001c0a 100644
---- a/arch/powerpc/include/uapi/asm/sembuf.h
-+++ b/arch/powerpc/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_POWERPC_SEMBUF_H
- #define _ASM_POWERPC_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++	data[i++] = dev->stats.rx_packets;
++	data[i++] = dev->stats.tx_packets;
++	data[i++] = dev->stats.rx_bytes;
++	data[i++] = dev->stats.tx_bytes;
++	data[i++] = dev->stats.rx_errors;
++	data[i++] = dev->stats.tx_errors;
++	data[i++] = dev->stats.rx_dropped;
++	data[i++] = dev->stats.tx_dropped;
++	data[i++] = dev->stats.multicast;
++	data[i++] = dev->stats.rx_length_errors;
++	data[i++] = dev->stats.rx_frame_errors;
++	data[i++] = dev->stats.rx_missed_errors;
++	data[i++] = dev->stats.tx_carrier_errors;
++	data[i++] = vp->nports;
 +
- /*
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-diff --git a/arch/s390/include/uapi/asm/sembuf.h b/arch/s390/include/uapi/asm/sembuf.h
-index 32626b0..734c9de 100644
---- a/arch/s390/include/uapi/asm/sembuf.h
-+++ b/arch/s390/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _S390_SEMBUF_H
- #define _S390_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++	rcu_read_lock();
++	list_for_each_entry_rcu(port, &vp->port_list, list) {
++		data[i++] = port->q_index;
++		data[i++] = port->stats.rx_packets;
++		data[i++] = port->stats.tx_packets;
++		data[i++] = port->stats.rx_bytes;
++		data[i++] = port->stats.tx_bytes;
++		data[i++] = port->stats.event_up;
++		data[i++] = port->stats.event_reset;
++	}
++	rcu_read_unlock();
++}
 +
- /* 
-  * The semid64_ds structure for S/390 architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
-index faee1be..28f7060 100644
---- a/arch/sparc/include/uapi/asm/sembuf.h
-+++ b/arch/sparc/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _SPARC_SEMBUF_H
- #define _SPARC_SEMBUF_H
+ static const struct ethtool_ops vnet_ethtool_ops = {
+ 	.get_drvinfo		= vnet_get_drvinfo,
+ 	.get_msglevel		= vnet_get_msglevel,
+ 	.set_msglevel		= vnet_set_msglevel,
+ 	.get_link		= ethtool_op_get_link,
++	.get_sset_count		= vnet_get_sset_count,
++	.get_strings		= vnet_get_strings,
++	.get_ethtool_stats	= vnet_get_ethtool_stats,
+ };
  
-+#include <asm/ipcbuf.h>
+ static LIST_HEAD(vnet_list);
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index bba0691..a8e7506 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -412,6 +412,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
+ 
+ 	dev->stats.rx_packets++;
+ 	dev->stats.rx_bytes += len;
++	port->stats.rx_packets++;
++	port->stats.rx_bytes += len;
+ 	napi_gro_receive(&port->napi, skb);
+ 	return 0;
+ 
+@@ -769,6 +771,7 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
+ 			maybe_tx_wakeup(port);
+ 
+ 		port->rx_event = 0;
++		port->stats.event_reset++;
+ 		return 0;
+ 	}
+ 
+@@ -782,6 +785,7 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
+ 
+ 		vio_link_state_change(vio, LDC_EVENT_UP);
+ 		port->rx_event = 0;
++		port->stats.event_up++;
+ 		return 0;
+ 	}
+ 
+@@ -1431,6 +1435,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ 
+ 	dev->stats.tx_packets++;
+ 	dev->stats.tx_bytes += port->tx_bufs[txi].skb->len;
++	port->stats.tx_packets++;
++	port->stats.tx_bytes += port->tx_bufs[txi].skb->len;
+ 
+ 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
+ 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.h b/drivers/net/ethernet/sun/sunvnet_common.h
+index ce5c824..006eaf8 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.h
++++ b/drivers/net/ethernet/sun/sunvnet_common.h
+@@ -35,6 +35,19 @@ struct vnet_tx_entry {
+ 
+ struct vnet;
+ 
++struct vnet_port_stats {
++	/* keep them all the same size */
++	u32 rx_bytes;
++	u32 tx_bytes;
++	u32 rx_packets;
++	u32 tx_packets;
++	u32 event_up;
++	u32 event_reset;
++	u32 q_placeholder;
++};
 +
- /*
-  * The semid64_ds structure for sparc architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/x86/include/uapi/asm/sembuf.h b/arch/x86/include/uapi/asm/sembuf.h
-index cc2d6a3..d88cc89 100644
---- a/arch/x86/include/uapi/asm/sembuf.h
-+++ b/arch/x86/include/uapi/asm/sembuf.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_X86_SEMBUF_H
- #define _ASM_X86_SEMBUF_H
- 
-+#include <asm/ipcbuf.h>
++#define NUM_VNET_PORT_STATS  (sizeof(struct vnet_port_stats) / sizeof(u32))
 +
- /*
-  * The semid64_ds structure for x86 architecture.
-  * Note extra padding because this structure is passed back and forth
-diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
-index c158704..2494c41 100644
---- a/arch/xtensa/include/uapi/asm/sembuf.h
-+++ b/arch/xtensa/include/uapi/asm/sembuf.h
-@@ -21,6 +21,7 @@
- #ifndef _XTENSA_SEMBUF_H
- #define _XTENSA_SEMBUF_H
+ /* Structure to describe a vnet-port or vsw-port in the MD.
+  * If the vsw bit is set, this structure represents a vswitch
+  * port, and the net_device can be found from ->dev. If the
+@@ -44,6 +57,8 @@ struct vnet_tx_entry {
+ struct vnet_port {
+ 	struct vio_driver_state	vio;
  
-+#include <asm/ipcbuf.h>
- #include <asm/byteorder.h>
- 
- struct semid64_ds {
++	struct vnet_port_stats stats;
++
+ 	struct hlist_node	hash;
+ 	u8			raddr[ETH_ALEN];
+ 	unsigned		switch_port:1;
 -- 
-ldv
+1.7.1
+
