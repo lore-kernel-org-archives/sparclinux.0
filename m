@@ -1,36 +1,136 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Mon, 06 Mar 2017 23:15:31 +0000
-Subject: [PATCH net-next 4/5] sunvnet: count multicast packets
-Message-Id: <1488842132-512058-5-git-send-email-shannon.nelson@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 07 Mar 2017 22:28:39 +0000
+Subject: [PATCH v1 4/4] sparc64: stop duplicating boot messages
+Message-Id: <1488925719-647821-5-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1488842132-512058-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1488842132-512058-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: sparclinux@vger.kernel.org
 
-Make sure multicast packets get counted in the device.
+Boot messages are duplicated on console when ttvHV0 is enabled.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+The reason for this issue is that on sun4v we have three consoles during
+boot:
+
+1 OpenBoot: earlyprom0
+2 VT: tty0
+3 Hypervisor: ttyHV0
+
+After we enable tty0 we disable earlyprom0 console, but we do not duplicate
+the messages that were already printed because tty0 uses a different
+output. In fact, until we register ttyHV0 nothing new appears on the
+screen, so if we panic during this interval (which is quite long), we do
+not have any information about the panic.
+
+The fix is to unregister boot console only when ttyHV is registered, also,
+since OpenBoot can modify the output device (using output-device variable),
+we must check that the output-device was virtual-console, which uses the
+same output method as the hypervisor.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/setup.h |    1 +
+ arch/sparc/kernel/setup_64.c   |   62 ++++++++++++++++++++++++++++++++++++++++
+ drivers/tty/serial/sunhv.c     |    2 +-
+ 3 files changed, 64 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 8afc659..7eb53af 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -410,6 +410,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 7cf712f..589a7ef 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -62,6 +62,7 @@ static inline int con_is_present(void)
  
- 	skb->ip_summed = port->switch_port ? CHECKSUM_NONE : CHECKSUM_PARTIAL;
+ #ifdef CONFIG_SERIAL_SUNHV
+ void sunhv_migrate_hvcons_irq(int cpu);
++#define SUNHV_CONSOLE_NAME	"ttyHV"
+ #endif
+ #endif
+ void sun_do_break(void);
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 446abe2..16fb157 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -695,3 +695,65 @@ void sun_do_break(void)
  
-+	if (unlikely(is_multicast_ether_addr(eth_hdr(skb)->h_dest)))
-+		dev->stats.multicast++;
- 	dev->stats.rx_packets++;
- 	dev->stats.rx_bytes += len;
- 	port->stats.rx_packets++;
+ int stop_a_enabled = 1;
+ EXPORT_SYMBOL(stop_a_enabled);
++
++#ifdef CONFIG_SERIAL_SUNHV
++
++/*
++ * Unregister boot console (prom_early_console), only when ttyHV console is
++ * registered. But, only if prom_early_console is using "virtual-console"
++ * output device, as that means it is the same device that ttyHV is using.
++ */
++bool plat_unregister_bootcon(struct console *newcon, struct console *bcon)
++{
++	bool unreg = bcon &&
++		(newcon->flags & (CON_CONSDEV | CON_BOOT)) = CON_CONSDEV;
++	static enum {
++		FIRST_TIME = 0, /* first time here */
++		NOT_VC,		/* output device is not 'virtual-console' */
++		VC,		/* output device is 'virtual-console' */
++		HV		/* ttyHV is registered */
++	} virt_con = FIRST_TIME;
++
++	if (tlb_type != hypervisor)
++		return unreg;
++
++	if (&prom_early_console = newcon)
++		return false;
++
++	/*
++	 * read output-device property value from /options, the default value
++	 * is virtual-console, which means send output to ILOM, or the same
++	 * device that hypervisor is using.
++	 */
++	if (virt_con = FIRST_TIME) {
++		char *output_dev_name = NULL;
++		struct device_node *dp;
++		int len;
++
++		virt_con = NOT_VC;
++		dp = of_find_node_by_path("/options");
++		if (dp)
++			output_dev_name = (char *)of_get_property(dp,
++				"output-device", &len);
++
++		if (output_dev_name)
++			if (!strncmp("virtual-console", output_dev_name, len))
++				virt_con = VC;
++	}
++
++	if (virt_con = NOT_VC || virt_con = HV)
++		return unreg;
++
++	if (!strcmp(newcon->name, SUNHV_CONSOLE_NAME)) {
++		virt_con = HV;
++		/*
++		 * We know ttyHV and prom_early_console are using the same
++		 * output device, do not print everything out again
++		 */
++		newcon->flags &= ~CON_PRINTBUFFER;
++		return true;
++	}
++
++	return false;
++}
++#endif
+diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+index 46e4689..178b1f3 100644
+--- a/drivers/tty/serial/sunhv.c
++++ b/drivers/tty/serial/sunhv.c
+@@ -512,7 +512,7 @@ static void sunhv_console_write_bychar(struct console *con, const char *s, unsig
+ }
+ 
+ static struct console sunhv_console = {
+-	.name	=	"ttyHV",
++	.name	=	SUNHV_CONSOLE_NAME,
+ 	.write	=	sunhv_console_write_bychar,
+ 	.device	=	uart_console_device,
+ 	.flags	=	CON_PRINTBUFFER,
 -- 
 1.7.1
 
