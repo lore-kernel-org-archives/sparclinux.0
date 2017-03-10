@@ -1,46 +1,43 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Wed, 29 Mar 2017 21:51:41 +0000
-Subject: [PATCH 0/5] LDC changes for porting VCC driver into upstream kernel
-Message-Id: <cover.1490823535.git.jag.raman@oracle.com>
+From: Bob Picco <bob.picco@oracle.com>
+Date: Fri, 10 Mar 2017 19:31:19 +0000
+Subject: [PATCH] sparc64: kern_addr_valid regression
+Message-Id: <20170310193119.18768-1-bob.picco@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This set of patches is part of an effort to port VCC (Virtual Channel
-Concentrator) and VDS (Virtual Disk Server) kernel modules from UEK4
-(Unbreakable Enterprise Kernel 4) to the upstream kernel. UEK4 is
-one of the kernels used to develop Oracle's virtualization solutions.
+From: bob picco <bob.picco@oracle.com>
 
-The virtualization solutions typically involve the formation of domains,
-with one of them (primary domain) managing the other ones (guest
-domains). Each domain typically runs an OS.
+I encountered this bug when using /proc/kcore to examine the kernel. Plus a
+coworker inquired about debugging tools. We computed pa but did
+not use it during the maximum physical address bits test. Instead we used
+the identity mapped virtual address which will always fail this test.
 
-VCC & VDS enable the virtualization of serial console and storage
-respectively, on SPARC processors. VCC provides access to the guest
-domain's serial console. VDS provides the ability to allocate storage to
-the guest domain.
+I believe the defect came in here:
+[bpicco@zareason linus.git]$ git describe --contains bb4e6e85daa52
+v3.18-rc1~87^2~4
+.
 
-Both VCC & VDS depend on some core functionalities in the linux kernel for
-SPARC. The functionalities include LDC (Logical Domain Channels),
-MDESC (Machine Descriptor) and VIO (Virtual IO protocol).
+Signed-off-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In order for VCC & VDS to be ported over to the kernel upstream, it
-requires that gaps in these core functionalities, between UEK4 &
-upstream, be bridged.
-
-This set of patches focusses on bridging gaps in LDC functionality.
-Changes to MDESC, VIO and ultimately VCC & VDS would follow.
-
-Jag Raman (5):
-  sparc64: expand LDC interface
-  sparc64: enhance ldc_abort to print message
-  sparc64: ensure LDC channel is ready before communication
-  sparc64: skip control packet while processing LDC RX queue
-  sparc64: print debug messages when reading from LDC channel
-
- arch/sparc/include/asm/ldc.h |   13 +++
- arch/sparc/kernel/ldc.c      |  178 ++++++++++++++++++++++++++++++++----------
- 2 files changed, 148 insertions(+), 43 deletions(-)
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 5d2f91511c60..47ecac5106d3 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1495,7 +1495,7 @@ bool kern_addr_valid(unsigned long addr)
+ 	if ((long)addr < 0L) {
+ 		unsigned long pa = __pa(addr);
+ 
+-		if ((addr >> max_phys_bits) != 0UL)
++		if ((pa >> max_phys_bits) != 0UL)
+ 			return false;
+ 
+ 		return pfn_valid(pa >> PAGE_SHIFT);
+-- 
+2.11.0
 
