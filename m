@@ -1,63 +1,65 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 24 Mar 2017 19:19:51 +0000
-Subject: [v2 4/5] mm: zero struct pages during initialization
-Message-Id: <1490383192-981017-5-git-send-email-pasha.tatashin@oracle.com>
+Date: Mon, 13 Mar 2017 16:44:38 +0000
+Subject: [PATCH v2 3/4] sparc64: remove trailing white spaces
+Message-Id: <1489423479-654395-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
+To: sparclinux@vger.kernel.org
 
-When deferred struct page initialization is enabled, do not expect that
-the memory that was allocated for struct pages was zeroed by the
-allocator. Zero it when "struct pages" are initialized.
-
-Also, a defined boolean VMEMMAP_ZERO is provided to tell platforms whether
-they should zero memory or can deffer it.
+A few changes that were reported by checkpatch, removed all trailing white
+spaces in these two files.
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/linux/mm.h |    9 +++++++++
- mm/page_alloc.c    |    3 +++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/setup.h |    2 +-
+ arch/sparc/kernel/setup_64.c   |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 54df194..eb052f6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2427,6 +2427,15 @@ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- #ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end);
- #endif
-+/*
-+ * Don't zero "struct page"es during early boot, and zero only when they are
-+ * initialized in parallel.
-+ */
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+#define VMEMMAP_ZERO	false
-+#else
-+#define VMEMMAP_ZERO	true
-+#endif
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long size);
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 478bf6b..7cf712f 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -1,5 +1,5 @@
+ /*
+- *	Just a place holder. 
++ *	Just a place holder.
+  */
+ #ifndef _SPARC_SETUP_H
+ #define _SPARC_SETUP_H
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index f20d394..446abe2 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -95,7 +95,7 @@ struct screen_info screen_info = {
+ 	.index =	-1,
+ };
  
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index f202f8b..02945e4 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1168,6 +1168,9 @@ static void free_one_page(struct zone *zone,
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+	memset(page, 0, sizeof(struct page));
-+#endif
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
+-/* 
++/*
+  * Process kernel command line switches that are specific to the
+  * SPARC or that require special low-level processing.
+  */
+@@ -640,7 +640,7 @@ void __init setup_arch(char **cmdline_p)
+ #ifdef CONFIG_BLK_DEV_RAM
+ 	rd_image_start = ram_flags & RAMDISK_IMAGE_START_MASK;
+ 	rd_prompt = ((ram_flags & RAMDISK_PROMPT_FLAG) != 0);
+-	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);	
++	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);
+ #endif
+ 
+ 	task_thread_info(&init_task)->kregs = &fake_swapper_regs;
+@@ -649,7 +649,7 @@ void __init setup_arch(char **cmdline_p)
+ 	if (!ic_set_manually) {
+ 		phandle chosen = prom_finddevice("/chosen");
+ 		u32 cl, sv, gw;
+-		
++
+ 		cl = prom_getintdefault (chosen, "client-ip", 0);
+ 		sv = prom_getintdefault (chosen, "server-ip", 0);
+ 		gw = prom_getintdefault (chosen, "gateway-ip", 0);
 -- 
 1.7.1
 
