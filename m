@@ -1,104 +1,41 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 07 Mar 2017 15:39:38 +0000
-Subject: Re: [PATCH v6 4/4] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <0dc0280e-4d3c-961b-0d2b-bfd099b8d8cd@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 13 Mar 2017 16:44:35 +0000
+Subject: [PATCH v2 0/4] Improved logging
+Message-Id: <1489423479-654395-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1488232591.git.khalid.aziz@oracle.com>
- <cover.1488232591.git.khalid.aziz@oracle.com>
- <85d8a35b577915945703ff84cec6f7f4d85ec214.1488232598.git.khalid.aziz@oracle.com>
- <AA645D3A-5FB0-4768-977F-D0725AE5CEC7@oracle.com>
- <f57a7108-188b-7b77-1a47-52fac5f3aed7@oracle.com>
- <C9588390-704B-452D-BB52-FBF2EF892DBB@oracle.com>
-In-Reply-To: <C9588390-704B-452D-BB52-FBF2EF892DBB@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anthony Yznaga <anthony.yznaga@oracle.com>, davem@davemloft.net
-Cc: corbet@lwn.net, viro@zeniv.linux.org.uk, nitin.m.gupta@oracle.com, mike.kravetz@oracle.com, akpm@linux-foundation.org, mingo@kernel.org, kirill.shutemov@linux.intel.com, adam.buchbinder@gmail.com, hughd@google.com, minchan@kernel.org, chris.hyser@oracle.com, atish.patra@oracle.com, cmetcalf@mellanox.com, atomlin@redhat.com, jslaby@suse.cz, joe@perches.com, paul.gortmaker@windriver.com, mhocko@suse.com, lstoakes@gmail.com, jack@suse.cz, dave.hansen@linux.intel.com, vbabka@suse.cz, dan.j.williams@intel.com, iamjoonsoo.kim@lge.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
+To: sparclinux@vger.kernel.org
 
-On 03/06/2017 06:25 PM, Anthony Yznaga wrote:
-> 
->> On Mar 6, 2017, at 4:31 PM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
->>
->> On 03/06/2017 05:13 PM, Anthony Yznaga wrote:
->>>
->>>> On Feb 28, 2017, at 10:35 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
->>>>
->>>> diff --git a/arch/sparc/kernel/etrap_64.S b/arch/sparc/kernel/etrap_64.S
->>>> index 1276ca2..7be33bf 100644
->>>> --- a/arch/sparc/kernel/etrap_64.S
->>>> +++ b/arch/sparc/kernel/etrap_64.S
->>>> @@ -132,7 +132,33 @@ etrap_save:	save	%g2, -STACK_BIAS, %sp
->>>> 		stx	%g6, [%sp + PTREGS_OFF + PT_V9_G6]
->>>> 		stx	%g7, [%sp + PTREGS_OFF + PT_V9_G7]
->>>> 		or	%l7, %l0, %l7
->>>> -		sethi	%hi(TSTATE_TSO | TSTATE_PEF), %l0
->>>> +661:		sethi	%hi(TSTATE_TSO | TSTATE_PEF), %l0
->>>> +		/*
->>>> +		 * If userspace is using ADI, it could potentially pass
->>>> +		 * a pointer with version tag embedded in it. To maintain
->>>> +		 * the ADI security, we must enable PSTATE.mcde. Userspace
->>>> +		 * would have already set TTE.mcd in an earlier call to
->>>> +		 * kernel and set the version tag for the address being
->>>> +		 * dereferenced. Setting PSTATE.mcde would ensure any
->>>> +		 * access to userspace data through a system call honors
->>>> +		 * ADI and does not allow a rogue app to bypass ADI by
->>>> +		 * using system calls. Setting PSTATE.mcde only affects
->>>> +		 * accesses to virtual addresses that have TTE.mcd set.
->>>> +		 * Set PMCDPER to ensure any exceptions caused by ADI
->>>> +		 * version tag mismatch are exposed before system call
->>>> +		 * returns to userspace. Setting PMCDPER affects only
->>>> +		 * writes to virtual addresses that have TTE.mcd set and
->>>> +		 * have a version tag set as well.
->>>> +		 */
->>>> +		.section .sun_m7_1insn_patch, "ax"
->>>> +		.word	661b
->>>> +		sethi	%hi(TSTATE_TSO | TSTATE_PEF | TSTATE_MCDE), %l0
->>>> +		.previous
->>>> +661:		nop
->>>> +		.section .sun_m7_1insn_patch, "ax"
->>>> +		.word	661b
->>>> +		.word 0xaf902001	/* wrpr %g0, 1, %pmcdper */
->>>
->>> Since PMCDPER is never cleared, setting it here is quickly going to set it on all CPUs and then become an expensive "nop" that burns ~50 cycles each time through etrap.  Consider setting it at boot time and when a CPU is DR'd into the system.
->>>
->>> Anthony
->>>
->>
->> I considered that possibility. What made me uncomfortable with that is there is no way to prevent a driver/module or future code elsewhere in kernel from clearing PMCDPER with possibly good reason. If that were to happen, setting PMCDPER here ensures kernel will always see consistent behavior with system calls. It does come at a cost. Is that cost unacceptable to ensure consistent behavior?
-> 
-> Aren't you still at risk if the thread relinquishes the CPU while in the kernel and is then rescheduled on a CPU where PMCDPER has erroneously been left cleared?  You may need to save and restore PMCDPER as well as MCDPER on context switch, but I don't know if that will cover you completely.
-> 
+Changes from v1 - v2:
+Two small nits:
+- "Reviewed-by" is fixed in two patches,
+- Fixed comment before __weak plat_unregister_bootcon(): of -> if.
 
-You mean something like this?
+This patch set does the following improvements:
+1. Get time stamps available early in boot
+2. Removes duplicated output on console during boot
+3. Removes a dead zone, where after tty0 nothing is printed until
+   ttyHV is regested; and even if we panic no messages are printed.
 
---- arch/sparc/include/asm/mmu_context_64.h	2017-03-03 14:05:30.398573081 -0700
-+++ /tmp/mmu_context_64.h	2017-03-07 08:26:20.582124798 -0700
-@@ -193,6 +193,7 @@
- 		__asm__ __volatile__(
- 			"mov %0, %%g1\n\t"
- 			".word 0x9d800001\n\t"	/* wr %g0, %g1, %mcdper" */
-+			".word 0xaf902001\n\t"	/* wrpr %g0, 1, %pmcdper */
- 			:
- 			: "ir" (tmp_mcdper)
- 			: "g1");
+Here is example base output:
+https://hastebin.com/obofesaqek.vbs
 
-> Alternatively you can avoid problems from buggy code and avoid the performance hit when storing to ADI enabled memory with precise mode enabled (e.g. when reading from a file into an ADI-enabled buffer) by handling disrupting mismatches that happen in copy_to_user() or put_user().  That does require adding error barriers and appropriate exception table entries, though, to deal with the nature of disrupting exceptions.
-> 
+Fixed output:
+https://hastebin.com/ipoxodobaq.vbs
 
-put_user() can be called for writing just one word of data to the userspace
-and memory barrier for that is as expensive as running with the worst case 
-with PMCDPER set. PMCDPER being set only affects writes to ADI-enabled
-userpsace VAs while barrier affects every write. A memory barrier before
-we return from kernel can ensure any exceptions due to userspace memory
-access are exposed while we are still in the kernel but the cost is high
-and it affects writes to non-ADI enabled memory as well. Doing this for
-copy_to_user() makes more sense due to larger number of writes. I still
-think it is more effective to run in the kernel with PMCDPER set, and
-clear it in NG4copy_to_user() for the larger number of copies. Clearing
-can be done conditionally if any of the memory kernel is about to write
-to is ADI enabled. This can be done as a separate optimization patch if
-it makes sense. This does add more code to NG4copy_to_user(). Thoughts?
+Pavel Tatashin (4):
+  sparc64: initialize time early
+  sparc64: allow platforms to say when to unload boot console
+  sparc64: remove trailing white spaces
+  sparc64: stop duplicating boot messages
 
-Thanks,
-Khalid
+ arch/sparc/include/asm/setup.h |    3 +-
+ arch/sparc/kernel/kernel.h     |    3 ++
+ arch/sparc/kernel/setup_64.c   |   69 ++++++++++++++++++++++++++++++++++++++--
+ arch/sparc/kernel/time_64.c    |   60 ++++++++++++++++++++++-------------
+ drivers/tty/serial/sunhv.c     |    2 +-
+ kernel/printk/printk.c         |   17 ++++++++--
+ 6 files changed, 124 insertions(+), 30 deletions(-)
+
