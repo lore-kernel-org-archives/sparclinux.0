@@ -1,65 +1,158 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Fri, 24 Mar 2017 16:13:17 +0000
-Subject: [PATCH v3 6/7] sym53c8xx_2: Convert to use memset32
-Message-Id: <20170324161318.18718-7-willy@infradead.org>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 13 Mar 2017 16:44:36 +0000
+Subject: [PATCH v2 1/4] sparc64: initialize time early
+Message-Id: <1489423479-654395-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170324161318.18718-1-willy@infradead.org>
-In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, Minchan Kim <minchan@kernel.org>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
+In Linux it is possible to configure printk() to output timestamp next to
+every line. This is very useful to determine the slow parts of the boot
+process, and also to avoid regressions, as boot time is visiable to
+everyone.
 
-memset32() can be used to initialise these three arrays.  Minor code
-footprint reduction.
+Also, there are scripts that change these time stamps to intervals.
 
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+However, on larger machines these timestamps start appearing many seconds,
+and even minutes into the boot process. This patch gets stick-frequency
+property early from OpenBoot, and uses its value to initialize time stamps
+before the first printk() messages are printed.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/scsi/sym53c8xx_2/sym_hipd.c | 11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/kernel.h   |    3 ++
+ arch/sparc/kernel/setup_64.c |    1 +
+ arch/sparc/kernel/time_64.c  |   60 ++++++++++++++++++++++++++---------------
+ 3 files changed, 42 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/scsi/sym53c8xx_2/sym_hipd.c b/drivers/scsi/sym53c8xx_2/sym_hipd.c
-index 6b349e301869..b886b10e3499 100644
---- a/drivers/scsi/sym53c8xx_2/sym_hipd.c
-+++ b/drivers/scsi/sym53c8xx_2/sym_hipd.c
-@@ -4985,13 +4985,10 @@ struct sym_lcb *sym_alloc_lcb (struct sym_hcb *np, u_char tn, u_char ln)
- 	 *  Compute the bus address of this table.
- 	 */
- 	if (ln && !tp->luntbl) {
--		int i;
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index c980455..275973b 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -53,6 +53,9 @@ static inline unsigned long kimage_addr_to_ra(const void *p)
+ void do_signal32(struct pt_regs * regs);
+ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp);
+ 
++/* time_64.c */
++void __init time_init_early(void);
++
+ /* compat_audit.c */
+ extern unsigned int sparc32_dir_class[];
+ extern unsigned int sparc32_chattr_class[];
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 6b7331d..f20d394 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -365,6 +365,7 @@ void __init start_early_boot(void)
+ 	}
+ 	current_thread_info()->cpu = cpu;
+ 
++	time_init_early();
+ 	prom_init_report();
+ 	start_kernel();
+ }
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 12a6d35..8334042 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -49,6 +49,7 @@
+ #include <asm/irq_regs.h>
+ 
+ #include "entry.h"
++#include "kernel.h"
+ 
+ DEFINE_SPINLOCK(rtc_lock);
+ 
+@@ -177,6 +178,8 @@ static unsigned long tick_add_tick(unsigned long adj)
+ struct sparc64_tick_ops *tick_ops __read_mostly = &tick_operations;
+ EXPORT_SYMBOL(tick_ops);
+ 
++static unsigned long stick_frequency;
++
+ static void stick_disable_irq(void)
+ {
+ 	__asm__ __volatile__(
+@@ -583,30 +586,25 @@ static int __init clock_init(void)
+ fs_initcall(clock_init);
+ 
+ /* This is gets the master TICK_INT timer going. */
+-static unsigned long sparc64_init_timers(void)
++static unsigned long sparc64_init_timers_spitfire(void)
+ {
+ 	struct device_node *dp;
+ 	unsigned long freq;
++	unsigned long ver, manuf, impl;
+ 
+ 	dp = of_find_node_by_path("/");
+-	if (tlb_type = spitfire) {
+-		unsigned long ver, manuf, impl;
 -
- 		tp->luntbl = sym_calloc_dma(256, "LUNTBL");
- 		if (!tp->luntbl)
- 			goto fail;
--		for (i = 0 ; i < 64 ; i++)
--			tp->luntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
-+		memset32(tp->luntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
- 		tp->head.luntbl_sa = cpu_to_scr(vtobus(tp->luntbl));
+-		__asm__ __volatile__ ("rdpr %%ver, %0"
+-				      : "=&r" (ver));
+-		manuf = ((ver >> 48) & 0xffff);
+-		impl = ((ver >> 32) & 0xffff);
+-		if (manuf = 0x17 && impl = 0x13) {
+-			/* Hummingbird, aka Ultra-IIe */
+-			tick_ops = &hbtick_operations;
+-			freq = of_getintprop_default(dp, "stick-frequency", 0);
+-		} else {
+-			tick_ops = &tick_operations;
+-			freq = local_cpu_data().clock_tick;
+-		}
+-	} else {
+-		tick_ops = &stick_operations;
++
++	__asm__ __volatile__ ("rdpr %%ver, %0"
++			      : "=&r" (ver));
++	manuf = ((ver >> 48) & 0xffff);
++	impl = ((ver >> 32) & 0xffff);
++	if (manuf = 0x17 && impl = 0x13) {
++		/* Hummingbird, aka Ultra-IIe */
++		tick_ops = &hbtick_operations;
+ 		freq = of_getintprop_default(dp, "stick-frequency", 0);
++	} else {
++		tick_ops = &tick_operations;
++		freq = local_cpu_data().clock_tick;
  	}
  
-@@ -5077,8 +5074,7 @@ static void sym_alloc_lcb_tags (struct sym_hcb *np, u_char tn, u_char ln)
- 	/*
- 	 *  Initialize the task table with invalid entries.
- 	 */
--	for (i = 0 ; i < SYM_CONF_MAX_TASK ; i++)
--		lp->itlq_tbl[i] = cpu_to_scr(np->notask_ba);
-+	memset32(lp->itlq_tbl, cpu_to_scr(np->notask_ba), SYM_CONF_MAX_TASK);
+ 	return freq;
+@@ -775,14 +773,32 @@ static u64 clocksource_tick_read(struct clocksource *cs)
+ 	return tick_ops->get_tick();
+ }
  
- 	/*
- 	 *  Fill up the tag buffer with tag numbers.
-@@ -5764,8 +5760,7 @@ int sym_hcb_attach(struct Scsi_Host *shost, struct sym_fw *fw, struct sym_nvram
- 		goto attach_failed;
++void __init time_init_early(void)
++{
++	if (tlb_type = spitfire)
++		return;
++
++	stick_frequency = prom_getint(prom_root_node, "stick-frequency");
++	tick_ops = &stick_operations;
++	timer_ticks_per_nsec_quotient +		clocksource_hz2mult(stick_frequency,
++				    SPARC64_NSEC_PER_CYC_SHIFT);
++}
++
+ void __init time_init(void)
+ {
+-	unsigned long freq = sparc64_init_timers();
++	unsigned long freq;
  
- 	np->badlun_sa = cpu_to_scr(SCRIPTB_BA(np, resel_bad_lun));
--	for (i = 0 ; i < 64 ; i++)	/* 64 luns/target, no less */
--		np->badluntbl[i] = cpu_to_scr(vtobus(&np->badlun_sa));
-+	memset32(np->badluntbl, cpu_to_scr(vtobus(&np->badlun_sa)), 64);
+-	tb_ticks_per_usec = freq / USEC_PER_SEC;
++	if (tlb_type = spitfire) {
++		stick_frequency = sparc64_init_timers_spitfire();
  
- 	/*
- 	 *  Prepare the bus address array that contains the bus 
+-	timer_ticks_per_nsec_quotient -		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
++		timer_ticks_per_nsec_quotient +			clocksource_hz2mult(stick_frequency,
++					    SPARC64_NSEC_PER_CYC_SHIFT);
++	}
++	freq = stick_frequency;
++
++	tb_ticks_per_usec = freq / USEC_PER_SEC;
+ 
+ 	clocksource_tick.name = tick_ops->name;
+ 	clocksource_tick.read = clocksource_tick_read;
 -- 
-2.11.0
+1.7.1
 
