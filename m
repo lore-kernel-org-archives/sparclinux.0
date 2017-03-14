@@ -1,73 +1,99 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Fri, 24 Mar 2017 16:13:11 +0000
-Subject: [PATCH v3 0/7] Add memsetN functions
-Message-Id: <20170324161318.18718-1-willy@infradead.org>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Tue, 14 Mar 2017 17:24:41 +0000
+Subject: [PATCH v2 net-next 3/5] sunvnet: track port queues correctly
+Message-Id: <1489512283-422140-4-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Minchan Kim <minchan@kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
+Track our used and unused queue indexies correctly.  Otherwise, as ports
+dropped out and returned, they all eventually ended up with the same
+queue index.
 
-zram was recently enhanced to support compressing pages with a repeating
-pattern up to the size of an unsigned long.  As part of the discussion,
-we noted it would be nice if architectures had optimised routines
-to fill regions of memory with patterns larger than those contained
-in a single byte.  Our suspicions were right; the x86 version offers
-approximately a 7% performance improvement over the C implementation.
+Orabug: 25190537
 
-The generic memfill() function is part of Lars Wirzenius' publib,
-but it doesn't offer the most convenient interface.  I chose to add
-five more-specific functions as part of this patchset -- memset16(),
-memset32(), memset64(), memset_l() (long) and memset_p() (pointer).
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/sunvnet_common.c |   24 ++++++++++++++++++++----
+ drivers/net/ethernet/sun/sunvnet_common.h |   11 ++---------
+ 2 files changed, 22 insertions(+), 13 deletions(-)
 
-It would be nice to have some more architectures implement optimised
-memsetN calls.  It would also be nice to find more places in the kernel
-which could benefit from calling these functions.  Maybe a coccinelle
-script could be written to find such places?  We're looking for loops
-over an array where the value being stored into the array does not depend
-on the iteration variable.
-
-Since v1 of the patchset, I stumbled on Alpha's memsetw() which
-caused me to add memset16() to complete the set.  I removed the
-'__HAVE_ARCH_MEMSET_PLUS' preprocessor symbol in favour of separate
-MEMSET16 MEMSET32 and MEMSET64 symbols.  I also reviewed the scr_mem*w()
-usages across the different architectures and implemented some obvious
-missing optimisations.  Alpha is still missing scr_memmovew() as it
-would be non-trivial to write.
-
-Russell's review on patch 2 only applies to the memset32/memset64
-implementation.  The memset16 is unreviewed (and, indeed, untested)
-to date.
-
-Matthew Wilcox (7):
-  Add multibyte memset functions
-  ARM: Implement memset16, memset32 & memset64
-  x86: Implement memset16, memset32 & memset64
-  alpha: Add support for memset16
-  zram: Convert to using memset_l
-  sym53c8xx_2: Convert to use memset32
-  vga: Optimise console scrolling
-
- arch/alpha/include/asm/string.h     | 15 ++++----
- arch/alpha/include/asm/vga.h        |  2 +-
- arch/alpha/lib/memset.S             | 10 +++---
- arch/arm/include/asm/string.h       | 21 ++++++++++++
- arch/arm/kernel/armksyms.c          |  3 ++
- arch/arm/lib/memset.S               | 44 +++++++++++++++++++-----
- arch/mips/include/asm/vga.h         |  6 ++++
- arch/powerpc/include/asm/vga.h      |  8 +++++
- arch/sparc/include/asm/vga.h        | 24 +++++++++++++
- arch/x86/include/asm/string_32.h    | 24 +++++++++++++
- arch/x86/include/asm/string_64.h    | 36 ++++++++++++++++++++
- drivers/block/zram/zram_drv.c       | 15 ++------
- drivers/scsi/sym53c8xx_2/sym_hipd.c | 11 ++----
- include/linux/string.h              | 30 ++++++++++++++++
- include/linux/vt_buffer.h           | 12 +++++++
- lib/string.c                        | 68 +++++++++++++++++++++++++++++++++++++
- 16 files changed, 287 insertions(+), 42 deletions(-)
-
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index d3dc8ed..5e1d016 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1728,11 +1728,25 @@ void sunvnet_poll_controller_common(struct net_device *dev, struct vnet *vp)
+ void sunvnet_port_add_txq_common(struct vnet_port *port)
+ {
+ 	struct vnet *vp = port->vp;
+-	int n;
++	int smallest = 0;
++	int i;
++
++	/* find the first least-used q
++	 * When there are more ldoms than q's, we start to
++	 * double up on ports per queue.
++	 */
++	for (i = 0; i < VNET_MAX_TXQS; i++) {
++		if (vp->q_used[i] = 0) {
++			smallest = i;
++			break;
++		}
++		if (vp->q_used[i] < vp->q_used[smallest])
++			smallest = i;
++	}
+ 
+-	n = vp->nports++;
+-	n = n & (VNET_MAX_TXQS - 1);
+-	port->q_index = n;
++	vp->nports++;
++	vp->q_used[smallest]++;
++	port->q_index = smallest;
+ 	netif_tx_wake_queue(netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
+ 						port->q_index));
+ }
+@@ -1743,5 +1757,7 @@ void sunvnet_port_rm_txq_common(struct vnet_port *port)
+ 	port->vp->nports--;
+ 	netif_tx_stop_queue(netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
+ 						port->q_index));
++	port->vp->q_used[port->q_index]--;
++	port->q_index = 0;
+ }
+ EXPORT_SYMBOL_GPL(sunvnet_port_rm_txq_common);
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.h b/drivers/net/ethernet/sun/sunvnet_common.h
+index c0fac03..b20d6fa 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.h
++++ b/drivers/net/ethernet/sun/sunvnet_common.h
+@@ -112,22 +112,15 @@ struct vnet_mcast_entry {
+ };
+ 
+ struct vnet {
+-	/* Protects port_list and port_hash.  */
+-	spinlock_t		lock;
+-
++	spinlock_t		lock; /* Protects port_list and port_hash.  */
+ 	struct net_device	*dev;
+-
+ 	u32			msg_enable;
+-
++	u8			q_used[VNET_MAX_TXQS];
+ 	struct list_head	port_list;
+-
+ 	struct hlist_head	port_hash[VNET_PORT_HASH_SIZE];
+-
+ 	struct vnet_mcast_entry	*mcast_list;
+-
+ 	struct list_head	list;
+ 	u64			local_mac;
+-
+ 	int			nports;
+ };
+ 
 -- 
-2.11.0
+1.7.1
+
