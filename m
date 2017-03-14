@@ -1,35 +1,29 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 07 Mar 2017 22:28:35 +0000
-Subject: [PATCH v1 0/4] Improved logging
-Message-Id: <1488925719-647821-1-git-send-email-pasha.tatashin@oracle.com>
+From: Mr Harrison Ray Martin <"WWW."@wine.ocn.ne.jp>
+Date: Tue, 14 Mar 2017 17:21:24 +0000
+Subject: You got my two emails???
+Message-Id: <373293934.2511281.1489512084972.JavaMail.root@wine.ocn.ne.jp>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="iso-2022-jp"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-This patch set does the following improvements:
-1. Get time stamps available early in boot
-2. Removes duplicated output on console during boot
-3. Removes a dead zone, where after tty0 nothing is printed until
-   ttyHV is regested; and even if we panic no messages are printed.
 
-Here is example base output:
-https://hastebin.com/obofesaqek.vbs
 
-Fixed output:
-https://hastebin.com/ipoxodobaq.vbs
+Greetings from me.
 
-Pavel Tatashin (4):
-  sparc64: initialize time early
-  sparc64: allow platforms to say when to unload boot console
-  sparc64: remove trailing white spaces
-  sparc64: stop duplicating boot messages
+Please I sincerely apologize if this email violates your privacy. I have to do this because it is extremely important and a life time opportunity that cannot be missed.
 
- arch/sparc/include/asm/setup.h |    3 +-
- arch/sparc/kernel/kernel.h     |    3 ++
- arch/sparc/kernel/setup_64.c   |   69 ++++++++++++++++++++++++++++++++++++++--
- arch/sparc/kernel/time_64.c    |   60 ++++++++++++++++++++++-------------
- drivers/tty/serial/sunhv.c     |    2 +-
- kernel/printk/printk.c         |   17 ++++++++--
- 6 files changed, 124 insertions(+), 30 deletions(-)
+I am a claims agent to one of the reputable lotto firms in Europe with branches in Africa. One Mr Abelardo Cuellar who won huge amount in our recent draw is seriously sick and was told that he has few weeks to live so his wife and only daughter became so devastated that they told us that they are no more interested in the money claiming that the man’s life is all that matters to them not money.
+
+
+I write to ask if you can agree to receive it and we will share. As the claims manager I can handle this perfectly without any hassles.
+
+l explain more when I get your reply.
+
+PLEASE REPLY TO:  mycontactss@yandex.com
+
+Cordially
+
+Mr Harrison Ray Martin
+
