@@ -1,38 +1,27 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 14 Mar 2017 17:24:42 +0000
-Subject: [PATCH v2 net-next 4/5] sunvnet: count multicast packets
-Message-Id: <1489512283-422140-5-git-send-email-shannon.nelson@oracle.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Date: Wed, 15 Mar 2017 08:50:05 +0000
+Subject: RE: [PATCH v2 net-next 4/5] sunvnet: count multicast packets
+Message-Id: <063D6719AE5E284EB5DD2968C1650D6DCFFB12CF@AcuExch.aculab.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
+ <1489512283-422140-5-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1489512283-422140-5-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: 'Shannon Nelson' <shannon.nelson@oracle.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Make sure multicast packets get counted in the device.
+From: Shannon Nelson
+> Sent: 14 March 2017 17:25
+...
+> +	if (unlikely(is_multicast_ether_addr(eth_hdr(skb)->h_dest)))
+> +		dev->stats.multicast++;
 
-Orabug: 25190537
+I'd guess that:
+	dev->stats.multicast += is_multicast_ether_addr(eth_hdr(skb)->h_dest);
+generates faster code.
+Especially if is_multicast_ether_addr(x) is (*x >> 7).
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- drivers/net/ethernet/sun/sunvnet_common.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 5e1d016..0c35a9a 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -409,6 +409,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
- 
- 	skb->ip_summed = port->switch_port ? CHECKSUM_NONE : CHECKSUM_PARTIAL;
- 
-+	if (unlikely(is_multicast_ether_addr(eth_hdr(skb)->h_dest)))
-+		dev->stats.multicast++;
- 	dev->stats.rx_packets++;
- 	dev->stats.rx_bytes += len;
- 	port->stats.rx_packets++;
--- 
-1.7.1
+	David
 
