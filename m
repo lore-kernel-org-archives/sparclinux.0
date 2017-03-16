@@ -1,45 +1,66 @@
-From: Arnaldo Carvalho de Melo <acme@kernel.org>
-Date: Thu, 16 Mar 2017 12:31:54 +0000
-Subject: Re: change uprobe_events default ? Was: [PATCH] perf: Rename CONFIG_[UK]PROBE_EVENT to CONFIG_[UK]PR
-Message-Id: <20170316123154.GT12825@kernel.org>
+From: Larry Bassel <larry.bassel@oracle.com>
+Date: Thu, 16 Mar 2017 16:45:29 +0000
+Subject: Re: [PATCH v4] sparc64: shut down to OBP correctly
+Message-Id: <20170316164528.GA5226@ubuette>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170216060050.20866-1-anton@ozlabs.org>
- <20170316005817.GA6805@ast-mbp.thefacebook.com>
- <20170316010651.GP12825@kernel.org>
- <20170316064055.GA7130@gmail.com>
-In-Reply-To: <20170316064055.GA7130@gmail.com>
+References: <1483637013-52889-1-git-send-email-larry.bassel@oracle.com>
+In-Reply-To: <1483637013-52889-1-git-send-email-larry.bassel@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ingo Molnar <mingo@kernel.org>
-Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>, Anton Blanchard <anton@ozlabs.org>, David Miller <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Hemant Kumar <hemant@linux.vnet.ibm.com>, Masami Hiramatsu <mhiramat@kernel.org>, Steven Rostedt <rostedt@goodmis.org>, Srikar Dronamraju <srikar@linux.vnet.ibm.com>, Wang Nan <wangnan0@huawei.com>, Namhyung Kim <namhyung@kernel.org>, David Ahern <dsahern@gmail.com>, Jiri Olsa <jolsa@kernel.org>, alexander.shishkin@linux.intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Em Thu, Mar 16, 2017 at 07:40:55AM +0100, Ingo Molnar escreveu:
+On 30 Jan 17 17:23, David Miller wrote:
+> From: Larry Bassel <larry.bassel@oracle.com>
+> Date: Thu,  5 Jan 2017 09:23:33 -0800
 > 
-> * Arnaldo Carvalho de Melo <acme@kernel.org> wrote:
-> 
-> > Added more people to the CC list.
+> > The command "shutdown -h -H now" should shut the system down to the
+> > OBP, however the machine was being powered off in the LDOM case.
 > > 
-> > Em Wed, Mar 15, 2017 at 05:58:19PM -0700, Alexei Starovoitov escreveu:
-> > > On Thu, Feb 16, 2017 at 05:00:50PM +1100, Anton Blanchard wrote:
-> > > > We have uses of CONFIG_UPROBE_EVENT and CONFIG_KPROBE_EVENT as
-> > > > well as CONFIG_UPROBE_EVENTS and CONFIG_KPROBE_EVENTS. Consistently
-> > > > use the plurals.
-> >  
-> > > this rename made me notice that UPROBE_EVENTS still defaults to 'n'.
-> > > this is key feature that all distros enable, so having default 'n'
-> > > is kinda saying that it's not something that should be turned on
-> > > or used widely. which is obviously not the case.
-> > > imo it's time to change it to 'y'.
-> > > Thoughts?
+> > In the LDOM case, the "reboot-command" variable must be set to
+> > the string "noop" and then ldom_reboot() must be called.
+> > This will make the OBP ignore the setting of "auto-boot?" after it
+> > completes the reset. This causes the system to stop at the ok prompt.
 > > 
-> > Agreed, I also found it strange that it was disabled by default when I
-> > recently did a 'make oldconfig' :-\
+> > Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
 > 
-> Agreed, someone please send a patch (or feel free to include it in the perf 
-> tooling tree) to switch the default around.
+> This really doesn't make any sense.
+> 
+> The purpose of shutting down to the "OK" prompt is to inspect the
+> system state using OBP commands from the context of the currently
+> running kernel boot.
+> 
+> If you allow the software reset to happen and then force a stop at the
+> "OK" prompt, the intention of the facility has been completely
+> compromised so this is pointless.
+> 
+> User's who want the behavior you mention can get it by setting the
+> reboot-command variable from userspace using the 'eeprom' or similar
+> commands, and then simply reboot.
+> 
+> I am not applying this patch, sorry.
 
-Ok, will collect the agreements as Acked-by tags and put it in
-perf/core.
+My apologies for the delayed response.
 
-- Arnaldo
+I've gotten feedback from several Oracle people (copied on this
+email) that my explanation for why this patch is useful is incomplete:
+
+1. The variable "reboot-command" isn't one of the usual nvram variables,
+it's magic and expected to be used for purposes like this (as Solaris
+already does). It's not like "boot-device" which sets a permanent default.
+It's cleared when it's used by OpenBoot.
+
+2. It's how you can reboot to an alternate kernel once or reboot from
+an alternate boot device once, without changing the permanent default.
+
+I'd appreciate it if you'd reconsider accepting this patch.
+
+Thanks.
+
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Larry
