@@ -1,166 +1,69 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Fri, 24 Mar 2017 16:13:13 +0000
-Subject: [PATCH v3 2/7] ARM: Implement memset16, memset32 & memset64
-Message-Id: <20170324161318.18718-3-willy@infradead.org>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 23 Mar 2017 22:56:31 +0000
+Subject: [v1 5/5] mm: teach platforms not to zero struct pages memory
+Message-Id: <1490310113-824438-6-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170324161318.18718-1-willy@infradead.org>
-In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
+References: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, Minchan Kim <minchan@kernel.org>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.or
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
+If we are using deferred struct page initialization feature, most of
+"struct page"es are getting initialized after other CPUs are started, and
+hence we are benefiting from doing this job in parallel. However, we are
+still zeroing all the memory that is allocated for "struct pages" using the
+boot CPU.  This patch solves this problem, by deferring zeroing "struct
+pages" to only when they are initialized.
 
-ARM is only 32-bit, so it doesn't really need a memset64, but it was
-essentially free to add it to the existing implementation.
-
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-Reviewed-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/arm/include/asm/string.h | 21 +++++++++++++++++++++
- arch/arm/kernel/armksyms.c    |  3 +++
- arch/arm/lib/memset.S         | 44 ++++++++++++++++++++++++++++++++++---------
- 3 files changed, 59 insertions(+), 9 deletions(-)
+ arch/powerpc/mm/init_64.c |    2 +-
+ arch/sparc/mm/init_64.c   |    2 +-
+ arch/x86/mm/init_64.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/include/asm/string.h b/arch/arm/include/asm/string.h
-index cf4f3aad0fc1..bc7a1be7a76a 100644
---- a/arch/arm/include/asm/string.h
-+++ b/arch/arm/include/asm/string.h
-@@ -24,6 +24,27 @@ extern void * memchr(const void *, int, __kernel_size_t);
- #define __HAVE_ARCH_MEMSET
- extern void * memset(void *, int, __kernel_size_t);
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index eb4c270..24faf2d 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -181,7 +181,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ 		if (vmemmap_populated(start, page_size))
+ 			continue;
  
-+#define __HAVE_ARCH_MEMSET16
-+extern void *__memset16(uint16_t *, uint16_t v, __kernel_size_t);
-+static inline void *memset16(uint16_t *p, uint16_t v, __kernel_size_t n)
-+{
-+	return __memset16(p, v, n * 2);
-+}
-+
-+#define __HAVE_ARCH_MEMSET32
-+extern void *__memset32(uint32_t *, uint32_t v, __kernel_size_t);
-+static inline void *memset32(uint32_t *p, uint32_t v, __kernel_size_t n)
-+{
-+	return __memset32(p, v, n * 4);
-+}
-+
-+#define __HAVE_ARCH_MEMSET64
-+extern void *__memset64(uint64_t *, uint32_t low, __kernel_size_t, uint32_t hi);
-+static inline void *memset64(uint64_t *p, uint64_t v, __kernel_size_t n)
-+{
-+	return __memset64(p, v, n * 8, v >> 32);
-+}
-+
- extern void __memzero(void *ptr, __kernel_size_t n);
+-		p = vmemmap_alloc_block(page_size, node, true);
++		p = vmemmap_alloc_block(page_size, node, VMEMMAP_ZERO);
+ 		if (!p)
+ 			return -ENOMEM;
  
- #define memset(p,v,n)							\
-diff --git a/arch/arm/kernel/armksyms.c b/arch/arm/kernel/armksyms.c
-index 8e8d20cdbce7..633341ed0713 100644
---- a/arch/arm/kernel/armksyms.c
-+++ b/arch/arm/kernel/armksyms.c
-@@ -87,6 +87,9 @@ EXPORT_SYMBOL(__raw_writesl);
- EXPORT_SYMBOL(strchr);
- EXPORT_SYMBOL(strrchr);
- EXPORT_SYMBOL(memset);
-+EXPORT_SYMBOL(__memset16);
-+EXPORT_SYMBOL(__memset32);
-+EXPORT_SYMBOL(__memset64);
- EXPORT_SYMBOL(memcpy);
- EXPORT_SYMBOL(memmove);
- EXPORT_SYMBOL(memchr);
-diff --git a/arch/arm/lib/memset.S b/arch/arm/lib/memset.S
-index 3c65e3bd790f..9adc9bdf3ffb 100644
---- a/arch/arm/lib/memset.S
-+++ b/arch/arm/lib/memset.S
-@@ -21,14 +21,14 @@ ENTRY(memset)
- UNWIND( .fnstart         )
- 	ands	r3, r0, #3		@ 1 unaligned?
- 	mov	ip, r0			@ preserve r0 as return value
-+	orr	r1, r1, r1, lsl #8
- 	bne	6f			@ 1
- /*
-  * we know that the pointer in ip is aligned to a word boundary.
-  */
--1:	orr	r1, r1, r1, lsl #8
--	orr	r1, r1, r1, lsl #16
-+1:	orr	r1, r1, r1, lsl #16
- 	mov	r3, r1
--	cmp	r2, #16
-+7:	cmp	r2, #16
- 	blt	4f
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index d91e462..280834e 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2542,7 +2542,7 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node,
+-							  true);
++							  VMEMMAP_ZERO);
  
- #if ! CALGN(1)+0
-@@ -41,7 +41,7 @@ UNWIND( .fnend              )
- UNWIND( .fnstart            )
- UNWIND( .save {r8, lr}      )
- 	mov	r8, r1
--	mov	lr, r1
-+	mov	lr, r3
+ 			if (!block)
+ 				return -ENOMEM;
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 46101b6..9d8c72c 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1177,7 +1177,7 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
+ 			void *p;
  
- 2:	subs	r2, r2, #64
- 	stmgeia	ip!, {r1, r3, r8, lr}	@ 64 bytes at a time.
-@@ -73,11 +73,11 @@ UNWIND( .fnend                 )
- UNWIND( .fnstart               )
- UNWIND( .save {r4-r8, lr}      )
- 	mov	r4, r1
--	mov	r5, r1
-+	mov	r5, r3
- 	mov	r6, r1
--	mov	r7, r1
-+	mov	r7, r3
- 	mov	r8, r1
--	mov	lr, r1
-+	mov	lr, r3
+ 			p = __vmemmap_alloc_block_buf(PMD_SIZE, node, altmap,
+-						      true);
++						      VMEMMAP_ZERO);
+ 			if (p) {
+ 				pte_t entry;
  
- 	cmp	r2, #96
- 	tstgt	ip, #31
-@@ -114,12 +114,13 @@ UNWIND( .fnstart            )
- 	tst	r2, #4
- 	strne	r1, [ip], #4
- /*
-- * When we get here, we've got less than 4 bytes to zero.  We
-+ * When we get here, we've got less than 4 bytes to set.  We
-  * may have an unaligned pointer as well.
-  */
- 5:	tst	r2, #2
-+	movne	r3, r1, lsr #8		@ the top half of a 16-bit pattern
- 	strneb	r1, [ip], #1
--	strneb	r1, [ip], #1
-+	strneb	r3, [ip], #1
- 	tst	r2, #1
- 	strneb	r1, [ip], #1
- 	ret	lr
-@@ -135,3 +136,28 @@ UNWIND( .fnstart            )
- UNWIND( .fnend   )
- ENDPROC(memset)
- ENDPROC(mmioset)
-+
-+ENTRY(__memset16)
-+UNWIND( .fnstart         )
-+	tst	r0, #2			@ pointer unaligned?
-+	mov	ip, r0			@ preserve r0 as return value
-+	beq	1b			@ jump into the middle of memset
-+	subs	r2, r2, #2		@ cope with n = 0
-+	movge	r3, r1, lsr #8		@ r3 = r1 >> 8
-+	strgeb	r1, [ip], #1		@ *ip = r1
-+	strgeb	r3, [ip], #1		@ *ip = r3
-+	bgt	1b			@ back into memset if n > 0
-+	ret	lr			@ otherwise return
-+UNWIND( .fnend   )
-+ENDPROC(__memset16)
-+ENTRY(__memset32)
-+UNWIND( .fnstart         )
-+	mov	r3, r1			@ copy r1 to r3 and fall into memset64
-+UNWIND( .fnend   )
-+ENDPROC(__memset32)
-+ENTRY(__memset64)
-+UNWIND( .fnstart         )
-+	mov	ip, r0			@ preserve r0 as return value
-+	b	7b			@ jump into the middle of memset
-+UNWIND( .fnend   )
-+ENDPROC(__memset64)
 -- 
-2.11.0
+1.7.1
 
