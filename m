@@ -1,72 +1,47 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 07 Mar 2017 02:08:38 +0000
-Subject: Re: [PATCH net-next 1/5] ldmvsw: better use of link up and down on ldom vswitch
-Message-Id: <d80842d1-80d4-5a86-9620-495962bedf73@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 23 Mar 2017 22:55:39 +0000
+Subject: [v1 0/5] parallelized "struct page" zeroing
+Message-Id: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1488842132-512058-1-git-send-email-shannon.nelson@oracle.com>
- <1488842132-512058-2-git-send-email-shannon.nelson@oracle.com>
- <a4a24493-913a-dd97-44cb-60ae6ef495d7@gmail.com>
-In-Reply-To: <a4a24493-913a-dd97-44cb-60ae6ef495d7@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Florian Fainelli <f.fainelli@gmail.com>, netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.or
+
+When deferred struct page initialization feature is enabled, we get a
+performance gain of initializing vmemmap in parallel after other CPUs are
+started. However, we still zero the memory for vmemmap using one boot CPU.
+This patch-set fixes the memset-zeroing limitation by deferring it as well.
+
+Here is example performance gain on SPARC with 32T:
+base
+https://hastebin.com/ozanelatat.go
+
+fix
+https://hastebin.com/utonawukof.go
+
+As you can see without the fix it takes: 97.89s to boot
+With the fix it takes: 46.91 to boot.
+
+On x86 time saving is going to be even greater (proportionally to memory size)
+because there are twice as many "struct page"es for the same amount of memory,
+as base pages are twice smaller.
 
 
+Pavel Tatashin (5):
+  sparc64: simplify vmemmap_populate
+  mm: defining memblock_virt_alloc_try_nid_raw
+  mm: add "zero" argument to vmemmap allocators
+  mm: zero struct pages during initialization
+  mm: teach platforms not to zero struct pages memory
 
-On 3/6/2017 3:53 PM, Florian Fainelli wrote:
-> On 03/06/2017 03:15 PM, Shannon Nelson wrote:
->> When an ldom VM is bound, the network vswitch infrastructure is set up for
->> it, but was being forced 'UP' by the userland switch configuration script.
->> When 'UP' but not actually connected to a running VM, the ipv6 neighbor
->> probes fail (not a horrible thing) and start cluttering up the kernel logs.
->> Funny thing: these are debug messages that never actually show up, but
->> we do see the net_ratelimited messages that say N callbacks were
->> suppressed.
->>
->> This patch defers the netif_carrier_on() until an actual link has been
->> established with the VM, as indicated by receiving an LDC_EVENT_UP from
->> the underlying LDC protocol.  Similarly, we take the link down when we
->> see the LDC_EVENT_RESET.
->>
->> Orabug: 25525312
->>
->> Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
->> ---
->>  drivers/net/ethernet/sun/ldmvsw.c         |   10 +++++++---
->>  drivers/net/ethernet/sun/sunvnet_common.c |   14 ++++++++++++++
->>  2 files changed, 21 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
->> index 89952de..c6f6d59 100644
->> --- a/drivers/net/ethernet/sun/ldmvsw.c
->> +++ b/drivers/net/ethernet/sun/ldmvsw.c
->> @@ -41,8 +41,8 @@
->>  static u8 vsw_port_hwaddr[ETH_ALEN] = {0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
->>
->>  #define DRV_MODULE_NAME		"ldmvsw"
->> -#define DRV_MODULE_VERSION	"1.1"
->> -#define DRV_MODULE_RELDATE	"February 3, 2017"
->> +#define DRV_MODULE_VERSION	"1.2"
->> +#define DRV_MODULE_RELDATE	"March 4, 2017"
->>
->>  static char version[] >>  	DRV_MODULE_NAME " " DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
->> @@ -133,7 +133,6 @@ static void vsw_poll_controller(struct net_device *dev)
->>  #endif
->>
->>  static const struct net_device_ops vsw_ops = {
->> -	.ndo_open		= sunvnet_open_common,
->
-> Is this change intentional? It was not entirely obvious where you would
-> be setting ::ndo_open in other places.
-
-Yes, it is correct.  It does look a bit odd, but nearly all the work is 
-done in the _probe(), and now the carrier_on happens a little later when 
-the LDC_EVENT_UP is received, so there's no longer a need for the 
-_open() call.
-
-sln
-
-
->
+ arch/powerpc/mm/init_64.c |    4 +-
+ arch/s390/mm/vmem.c       |    5 ++-
+ arch/sparc/mm/init_64.c   |   26 +++++++----------------
+ arch/x86/mm/init_64.c     |    3 +-
+ include/linux/bootmem.h   |    3 ++
+ include/linux/mm.h        |   15 +++++++++++--
+ mm/memblock.c             |   46 ++++++++++++++++++++++++++++++++++++------
+ mm/page_alloc.c           |    3 ++
+ mm/sparse-vmemmap.c       |   48 +++++++++++++++++++++++++++++---------------
+ 9 files changed, 103 insertions(+), 50 deletions(-)
