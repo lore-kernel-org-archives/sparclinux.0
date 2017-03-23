@@ -1,49 +1,63 @@
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Date: Fri, 24 Mar 2017 09:35:55 +0000
-Subject: Re: [v1 0/5] parallelized "struct page" zeroing
-Message-Id: <20170324093555.GB5891@osiris>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 23 Mar 2017 22:55:46 +0000
+Subject: [v1 4/5] mm: zero struct pages during initialization
+Message-Id: <1490310113-824438-5-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
- <341568c3-0473-860f-aa20-63723aa40b87@de.ibm.com>
-In-Reply-To: <341568c3-0473-860f-aa20-63723aa40b87@de.ibm.com>
+In-Reply-To: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390 <linux-s390@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.or
 
-On Fri, Mar 24, 2017 at 09:51:09AM +0100, Christian Borntraeger wrote:
-> On 03/24/2017 12:01 AM, Pavel Tatashin wrote:
-> > When deferred struct page initialization feature is enabled, we get a
-> > performance gain of initializing vmemmap in parallel after other CPUs are
-> > started. However, we still zero the memory for vmemmap using one boot CPU.
-> > This patch-set fixes the memset-zeroing limitation by deferring it as well.
-> > 
-> > Here is example performance gain on SPARC with 32T:
-> > base
-> > https://hastebin.com/ozanelatat.go
-> > 
-> > fix
-> > https://hastebin.com/utonawukof.go
-> > 
-> > As you can see without the fix it takes: 97.89s to boot
-> > With the fix it takes: 46.91 to boot.
-> > 
-> > On x86 time saving is going to be even greater (proportionally to memory size)
-> > because there are twice as many "struct page"es for the same amount of memory,
-> > as base pages are twice smaller.
-> 
-> Fixing the linux-s390 mailing list email.
-> This might be useful for s390 as well.
+When deferred struct page initialization is enabled, do not expect that
+the memory that was allocated for struct pages was zeroed by the
+allocator. Zero it when "struct pages" are initialized.
 
-Unfortunately only for the fake numa case, since as far as I understand it,
-parallelization happens only on a node granularity. And since we are
-usually only having one node...
+Also, a defined boolean VMEMMAP_ZERO is provided to tell platforms whether
+they should zero memory or can deffer it.
 
-But anyway, it won't hurt to set ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT on
-s390 also. I'll do some testing and then we'll see.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ include/linux/mm.h |    9 +++++++++
+ mm/page_alloc.c    |    3 +++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-Pavel, could you please change your patch 5 so it also converts the s390
-call sites of vmemmap_alloc_block() so they use VMEMMAP_ZERO instead of
-'true' as argument?
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 54df194..eb052f6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2427,6 +2427,15 @@ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ void vmemmap_free(unsigned long start, unsigned long end);
+ #endif
++/*
++ * Don't zero "struct page"es during early boot, and zero only when they are
++ * initialized in parallel.
++ */
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++#define VMEMMAP_ZERO	false
++#else
++#define VMEMMAP_ZERO	true
++#endif
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long size);
+ 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index f202f8b..02945e4 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1168,6 +1168,9 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++	memset(page, 0, sizeof(struct page));
++#endif
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+-- 
+1.7.1
 
