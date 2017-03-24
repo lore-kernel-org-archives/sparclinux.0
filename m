@@ -1,36 +1,63 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 27 Mar 2017 07:49:51 +0000
-Subject: Re: Build regressions/improvements in v4.11-rc4
-Message-Id: <CAMuHMdUoe1ksQFtNFnqWm+TASEX0kTMhTQ6UMZ7+fyGskqg3YQ@mail.gmail.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 24 Mar 2017 19:19:51 +0000
+Subject: [v2 4/5] mm: zero struct pages during initialization
+Message-Id: <1490383192-981017-5-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490600680-26426-1-git-send-email-geert@linux-m68k.org>
-In-Reply-To: <1490600680-26426-1-git-send-email-geert@linux-m68k.org>
+References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
 
-On Mon, Mar 27, 2017 at 9:44 AM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> JFYI, when comparing v4.11-rc4[1] to v4.11-rc3[3], the summaries are:
->   - build errors: +2/-1
+When deferred struct page initialization is enabled, do not expect that
+the memory that was allocated for struct pages was zeroed by the
+allocator. Zero it when "struct pages" are initialized.
 
-  + error: "vac_cache_size" [drivers/infiniband/sw/rxe/rdma_rxe.ko]
-undefined!:  => N/A
+Also, a defined boolean VMEMMAP_ZERO is provided to tell platforms whether
+they should zero memory or can deffer it.
 
-sparc64/sparc-allmodconfig
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ include/linux/mm.h |    9 +++++++++
+ mm/page_alloc.c    |    3 +++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-> [1] http://kisskb.ellerman.id.au/kisskb/head/c02ed2e75ef4c74e41e421acb4ef1494671585e8/ (all 266 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/head/97da3854c526d3a6ee05c849c96e48d21527606c/ (all 266 configs)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 54df194..eb052f6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2427,6 +2427,15 @@ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ void vmemmap_free(unsigned long start, unsigned long end);
+ #endif
++/*
++ * Don't zero "struct page"es during early boot, and zero only when they are
++ * initialized in parallel.
++ */
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++#define VMEMMAP_ZERO	false
++#else
++#define VMEMMAP_ZERO	true
++#endif
+ void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
+ 				  unsigned long size);
+ 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index f202f8b..02945e4 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1168,6 +1168,9 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++	memset(page, 0, sizeof(struct page));
++#endif
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+-- 
+1.7.1
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
