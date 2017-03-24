@@ -1,150 +1,139 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Fri, 24 Mar 2017 16:13:12 +0000
-Subject: [PATCH v3 1/7] Add multibyte memset functions
-Message-Id: <20170324161318.18718-2-willy@infradead.org>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 24 Mar 2017 19:19:49 +0000
+Subject: [v2 2/5] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <1490383192-981017-3-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170324161318.18718-1-willy@infradead.org>
-In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
+References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Minchan Kim <minchan@kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
 
-From: Matthew Wilcox <mawilcox@microsoft.com>
+A new version of memblock_virt_alloc_* allocations:
+- Does not zero the allocated memory
+- Does not panic if request cannot be satisfied
 
-memset16(), memset32() and memset64() are like memset(), but allow the
-caller to fill the destination with a multibyte pattern.  memset_l()
-and memset_p() allow the caller to use unsigned long and pointer
-values respectively.  memset64() is currently only available on 64-bit
-architectures.
-
-Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/linux/string.h | 30 ++++++++++++++++++++++
- lib/string.c           | 68 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 98 insertions(+)
+ include/linux/bootmem.h |    3 +++
+ mm/memblock.c           |   46 +++++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 42 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 26b6f6a66f83..b376875b650c 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -99,6 +99,36 @@ extern __kernel_size_t strcspn(const char *,const char *);
- #ifndef __HAVE_ARCH_MEMSET
- extern void * memset(void *,int,__kernel_size_t);
- #endif
-+
-+#ifndef __HAVE_ARCH_MEMSET16
-+extern void *memset16(uint16_t *, uint16_t, __kernel_size_t);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET32
-+extern void *memset32(uint32_t *, uint32_t, __kernel_size_t);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET64
-+extern void *memset64(uint64_t *, uint64_t, __kernel_size_t);
-+#endif
-+
-+static inline void *memset_l(unsigned long *p, unsigned long v,
-+		__kernel_size_t n)
-+{
-+	if (BITS_PER_LONG = 32)
-+		return memset32((uint32_t *)p, v, n);
-+	else
-+		return memset64((uint64_t *)p, v, n);
-+}
-+
-+static inline void *memset_p(void **p, void *v, __kernel_size_t n)
-+{
-+	if (BITS_PER_LONG = 32)
-+		return memset32((uint32_t *)p, (uintptr_t)v, n);
-+	else
-+		return memset64((uint64_t *)p, (uintptr_t)v, n);
-+}
-+
- #ifndef __HAVE_ARCH_MEMCPY
- extern void * memcpy(void *,const void *,__kernel_size_t);
- #endif
-diff --git a/lib/string.c b/lib/string.c
-index ed83562a53ae..f18ba402e503 100644
---- a/lib/string.c
-+++ b/lib/string.c
-@@ -697,6 +697,74 @@ void memzero_explicit(void *s, size_t count)
- }
- EXPORT_SYMBOL(memzero_explicit);
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index dbaf312..b61ea10 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -160,6 +160,9 @@ extern int reserve_bootmem_node(pg_data_t *pgdat,
+ #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
  
-+#ifndef __HAVE_ARCH_MEMSET16
-+/**
-+ * memset16() - Fill a memory area with a uint16_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint16_t instead
-+ * of a byte.  Remember that @count is the number of uint16_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset16(uint16_t *s, uint16_t v, size_t count)
-+{
-+	uint16_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset16);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET32
-+/**
-+ * memset32() - Fill a memory area with a uint32_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint32_t instead
-+ * of a byte.  Remember that @count is the number of uint32_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset32(uint32_t *s, uint32_t v, size_t count)
-+{
-+	uint32_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset32);
-+#endif
-+
-+#ifndef __HAVE_ARCH_MEMSET64
-+#if BITS_PER_LONG > 32
-+/**
-+ * memset64() - Fill a memory area with a uint64_t
-+ * @s: Pointer to the start of the area.
-+ * @v: The value to fill the area with
-+ * @count: The number of values to store
-+ *
-+ * Differs from memset() in that it fills with a uint64_t instead
-+ * of a byte.  Remember that @count is the number of uint64_ts to
-+ * store, not the number of bytes.
-+ */
-+void *memset64(uint64_t *s, uint64_t v, size_t count)
-+{
-+	uint64_t *xs = s;
-+
-+	while (count--)
-+		*xs++ = v;
-+	return s;
-+}
-+EXPORT_SYMBOL(memset64);
-+#endif
-+#endif
-+
- #ifndef __HAVE_ARCH_MEMCPY
+ /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
++void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
++				      phys_addr_t min_addr,
++				      phys_addr_t max_addr, int nid);
+ void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
+ 		phys_addr_t align, phys_addr_t min_addr,
+ 		phys_addr_t max_addr, int nid);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 696f06d..7fdc555 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1271,7 +1271,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+ static void * __init memblock_virt_alloc_internal(
+ 				phys_addr_t size, phys_addr_t align,
+ 				phys_addr_t min_addr, phys_addr_t max_addr,
+-				int nid)
++				int nid, bool zero)
+ {
+ 	phys_addr_t alloc;
+ 	void *ptr;
+@@ -1322,7 +1322,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+ 	return NULL;
+ done:
+ 	ptr = phys_to_virt(alloc);
+-	memset(ptr, 0, size);
++	if (zero)
++		memset(ptr, 0, size);
+ 
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+@@ -1336,6 +1337,37 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+ }
+ 
  /**
-  * memcpy - Copy one area of memory to another
++ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
++ * memory and without panicking
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @min_addr: the lower bound of the memory region from where the allocation
++ *	  is preferred (phys address)
++ * @max_addr: the upper bound of the memory region from where the allocation
++ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
++ *	      allocate only from memory limited by memblock.current_limit value
++ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
++ *
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. Does not zero allocated memory, does not panic if request
++ * cannot be satisfied.
++ *
++ * RETURNS:
++ * Virtual address of allocated memory block on success, NULL on failure.
++ */
++void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr,
++			int nid)
++{
++	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
++		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
++		     (u64)max_addr, (void *)_RET_IP_);
++	return memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid, false);
++}
++
++/**
+  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
+  * @size: size of memory block to be allocated in bytes
+  * @align: alignment of the region and block's size
+@@ -1346,8 +1378,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
+- * additional debug information (including caller info), if enabled.
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. This function zeroes the allocated memory.
+  *
+  * RETURNS:
+  * Virtual address of allocated memory block on success, NULL on failure.
+@@ -1361,7 +1393,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	return memblock_virt_alloc_internal(size, align, min_addr,
+-					     max_addr, nid);
++					     max_addr, nid, true);
+ }
+ 
+ /**
+@@ -1375,7 +1407,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
++ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
+  * which provides debug information (including caller info), if enabled,
+  * and panics if the request can not be satisfied.
+  *
+@@ -1393,7 +1425,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	ptr = memblock_virt_alloc_internal(size, align,
+-					   min_addr, max_addr, nid);
++					   min_addr, max_addr, nid, true);
+ 	if (ptr)
+ 		return ptr;
+ 
 -- 
-2.11.0
+1.7.1
 
