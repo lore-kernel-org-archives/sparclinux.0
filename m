@@ -1,157 +1,68 @@
-From: Jerome Marchand <jmarchan@redhat.com>
-Date: Wed, 01 Mar 2017 09:24:50 +0000
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Fri, 24 Mar 2017 18:45:55 +0000
 Subject: Re: [PATCH v6 2/4] mm: Add functions to support extra actions on swap in/out
-Message-Id: <b8aae071-12ad-52ee-d97f-b273ae7c8838@redhat.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="3fdK7FiognWmN71ecarFblO7MOkPHav81"
+Message-Id: <8665482b-f808-e995-cda1-99011be6ee34@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1488232591.git.khalid.aziz@oracle.com>
  <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
 In-Reply-To: <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org, davem@davemloft.net, arnd@arndb.de
-Cc: kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, dave.hansen@linux.intel.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+Cc: kirill.shutemov@linux.intel.com, mhocko@suse.com, jmarchan@redhat.com, vbabka@suse.cz, dan.j.williams@intel.com, lstoakes@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com, vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---3fdK7FiognWmN71ecarFblO7MOkPHav81
-Content-Type: multipart/mixed; boundary="wQcfFPeJenbmiIFrbJVXaBVSD47eJjtBm";
- protected-headers="v1"
-From: Jerome Marchand <jmarchan@redhat.com>
-To: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org,
- davem@davemloft.net, arnd@arndb.de
-Cc: kirill.shutemov@linux.intel.com, mhocko@suse.com, vbabka@suse.cz,
- dan.j.williams@intel.com, lstoakes@gmail.com, dave.hansen@linux.intel.com,
- hannes@cmpxchg.org, mgorman@suse.de, hughd@google.com,
- vdavydov.dev@gmail.com, minchan@kernel.org, namit@vmware.com,
- linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-mm@kvack.org, sparclinux@vger.kernel.org,
- Khalid Aziz <khalid@gonehiking.org>
-Message-ID: <b8aae071-12ad-52ee-d97f-b273ae7c8838@redhat.com>
-Subject: Re: [PATCH v6 2/4] mm: Add functions to support extra actions on swap
- in/out
-References: <cover.1488232591.git.khalid.aziz@oracle.com>
- <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
-In-Reply-To: <4c4da87ff45b98e236cdfef66055b876074dabfb.1488232597.git.khalid.aziz@oracle.com>
-
---wQcfFPeJenbmiIFrbJVXaBVSD47eJjtBm
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-On 02/28/2017 07:35 PM, Khalid Aziz wrote:
-> If a processor supports special metadata for a page, for example ADI
-> version tags on SPARC M7, this metadata must be saved when the page is
-> swapped out. The same metadata must be restored when the page is swappe=
-d
-> back in. This patch adds two new architecture specific functions -
-> arch_do_swap_page() to be called when a page is swapped in,
-> arch_unmap_one() to be called when a page is being unmapped for swap
-> out.
->=20
-> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-> Cc: Khalid Aziz <khalid@gonehiking.org>
-
-This looks much better than your original version.
-
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-
-Thanks,
-Jerome
-
-> ---
-> v5:
-> 	- Replaced set_swp_pte() function with new architecture
-> 	  functions arch_do_swap_page() and arch_unmap_one()
->=20
->  include/asm-generic/pgtable.h | 16 ++++++++++++++++
->  mm/memory.c                   |  1 +
->  mm/rmap.c                     |  2 ++
->  3 files changed, 19 insertions(+)
->=20
-> diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtabl=
-e.h
-> index 18af2bc..5764d8f 100644
-> --- a/include/asm-generic/pgtable.h
-> +++ b/include/asm-generic/pgtable.h
-> @@ -282,6 +282,22 @@ static inline int pmd_same(pmd_t pmd_a, pmd_t pmd_=
-b)
->  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
->  #endif
-> =20
-> +#ifndef __HAVE_ARCH_DO_SWAP_PAGE
-> +static inline void arch_do_swap_page(struct mm_struct *mm, unsigned lo=
-ng addr,
-> +				     pte_t pte, pte_t orig_pte)
-> +{
-> +
-> +}
-> +#endif
-> +
-> +#ifndef __HAVE_ARCH_UNMAP_ONE
-> +static inline void arch_unmap_one(struct mm_struct *mm, unsigned long =
-addr,
-> +				  pte_t pte, pte_t orig_pte)
-> +{
-> +
-> +}
-> +#endif
-> +
->  #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
->  #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
->  #endif
+On 02/28/2017 10:35 AM, Khalid Aziz wrote:
 > diff --git a/mm/memory.c b/mm/memory.c
 > index 6bf2b47..b086c76 100644
 > --- a/mm/memory.c
 > +++ b/mm/memory.c
 > @@ -2658,6 +2658,7 @@ int do_swap_page(struct vm_fault *vmf)
 >  	if (pte_swp_soft_dirty(vmf->orig_pte))
->  		pte =3D pte_mksoft_dirty(pte);
+>  		pte = pte_mksoft_dirty(pte);
 >  	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
 > +	arch_do_swap_page(vma->vm_mm, vmf->address, pte, vmf->orig_pte);
->  	vmf->orig_pte =3D pte;
->  	if (page =3D=3D swapcache) {
+>  	vmf->orig_pte = pte;
+>  	if (page = swapcache) {
 >  		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
 > diff --git a/mm/rmap.c b/mm/rmap.c
 > index 91619fd..192c41a 100644
 > --- a/mm/rmap.c
 > +++ b/mm/rmap.c
-> @@ -1538,6 +1538,7 @@ static int try_to_unmap_one(struct page *page, st=
-ruct vm_area_struct *vma,
->  		swp_pte =3D swp_entry_to_pte(entry);
+> @@ -1538,6 +1538,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+>  		swp_pte = swp_entry_to_pte(entry);
 >  		if (pte_soft_dirty(pteval))
->  			swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
+>  			swp_pte = pte_swp_mksoft_dirty(swp_pte);
 > +		arch_unmap_one(mm, address, swp_pte, pteval);
 >  		set_pte_at(mm, address, pte, swp_pte);
 >  	} else if (PageAnon(page)) {
->  		swp_entry_t entry =3D { .val =3D page_private(page) };
-> @@ -1571,6 +1572,7 @@ static int try_to_unmap_one(struct page *page, st=
-ruct vm_area_struct *vma,
->  		swp_pte =3D swp_entry_to_pte(entry);
+>  		swp_entry_t entry = { .val = page_private(page) };
+> @@ -1571,6 +1572,7 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+>  		swp_pte = swp_entry_to_pte(entry);
 >  		if (pte_soft_dirty(pteval))
->  			swp_pte =3D pte_swp_mksoft_dirty(swp_pte);
+>  			swp_pte = pte_swp_mksoft_dirty(swp_pte);
 > +		arch_unmap_one(mm, address, swp_pte, pteval);
 >  		set_pte_at(mm, address, pte, swp_pte);
 >  	} else
 >  		dec_mm_counter(mm, mm_counter_file(page));
->=20
 
+From a core VM perspective, I'm fine with these hooks.  It's minimally
+invasive.  It is missing some explanation in the *code* of why sparc is
+doing this and when/why other architectures might want to use these
+hooks.  I think that would be awfully nice.
 
+I still think the _current_ SPARC implementation of these hooks is
+pretty broken because it doesn't allow more than one ADI tag within a
+given page.  But, fixing that is confined to sparc code and shouldn't
+affect the core VM or these hooks.
 
---wQcfFPeJenbmiIFrbJVXaBVSD47eJjtBm--
+I suspect these hooks are still quite incomplete.  For instance, I do
+not think KSM goes through these paths.  Couldn't a process *lose* its
+ADI tags when KSM merges an underlying physical page?
 
---3fdK7FiognWmN71ecarFblO7MOkPHav81
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+I think you need to resolve your outstanding issues (from your 0/4
+patch) before anyone can really ack these.  I suspect solving your
+issues will change the number and placement of these hooks.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJYtpNiAAoJEHTzHJCtsuoCKRQH/jKRGrEsuxwR1cB6lW3R6o0g
-TTprDDeNtwawyJFR9fO51Rcv1Y/3JXV3As8pG+jzeSOU+S8EISnRgTE3BDRYDexG
-eA7V/B0pQn0Kkrt7QwdA6bTzZ+MWPpvvWE2x9JcIFGDIGpexwVRlJL4FRy97q7Q2
-NgK2V+pSaUayRdWsLHY9yfeoE7ngemRO+O6Z6VGU8ipZAGnqQQCccQKfhf3BaP70
-cade6iFSLOUOAseE/Czn3Us69QU4g5pFczHFJb1bpQdcEFT9EiRgNJqZQvnJT6ml
-2EPXHwNzQhn+P5lgQjBGu0l+MHI42/YPUB1bAKAeBtUzK7UkotzHYOLnsk35TnU=
-=ec1Z
------END PGP SIGNATURE-----
-
---3fdK7FiognWmN71ecarFblO7MOkPHav81--
+There is no mention in these patches of the effectively reduced virtual
+address space.  Why?
