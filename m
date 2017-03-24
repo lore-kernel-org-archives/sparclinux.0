@@ -1,62 +1,110 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 31 Mar 2017 03:34:55 +0000
-Subject: Re: tlb_batch_add_one()
-Message-Id: <20170330.203455.460688401687414609.davem@davemloft.net>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Fri, 24 Mar 2017 16:13:14 +0000
+Subject: [PATCH v3 3/7] x86: Implement memset16, memset32 & memset64
+Message-Id: <20170324161318.18718-4-willy@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170328.175226.210187301635964014.davem@davemloft.net>
-In-Reply-To: <20170328.175226.210187301635964014.davem@davemloft.net>
+References: <20170324161318.18718-1-willy@infradead.org>
+In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Minchan Kim <minchan@kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>
 
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Thu, 30 Mar 2017 20:12:03 -0700
+From: Matthew Wilcox <mawilcox@microsoft.com>
 
-> On 3/30/17 7:57 PM, David Miller wrote:
->> From: Nitin Gupta <nitin.m.gupta@oracle.com>
->> Date: Thu, 30 Mar 2017 17:42:51 -0700
->> 
->>> diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
->>> index 0a04811..bedf08b 100644
->>> --- a/arch/sparc/mm/tsb.c
->>> +++ b/arch/sparc/mm/tsb.c
->>> @@ -122,7 +122,7 @@ void flush_tsb_user(struct tlb_batch *tb)
->>>
->>>  	spin_lock_irqsave(&mm->context.lock, flags);
->>>
->>> -	if (tb->hugepage_shift < HPAGE_SHIFT) {
->>> +	if (tb->hugepage_shift < REAL_HPAGE_SHIFT) {
->>>  		base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
->>>  		nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
->>>  		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
->>> @@ -155,7 +155,7 @@ void flush_tsb_user_page(struct mm_struct *mm,
->>> unsigned long vaddr,
->>>
->>>  	spin_lock_irqsave(&mm->context.lock, flags);
->>>
->>> -	if (hugepage_shift < HPAGE_SHIFT) {
->>> +	if (hugepage_shift < REAL_HPAGE_SHIFT) {
->>>  		base = (unsigned long) mm->context.tsb_block[MM_TSB_BASE].tsb;
->>>  		nentries = mm->context.tsb_block[MM_TSB_BASE].tsb_nentries;
->>>  		if (tlb_type = cheetah_plus || tlb_type = hypervisor)
->>> -- 
->> 
->> I think if we do it like this, it will only flush one half of the huge
->> page.
->>
-> 
-> Flushing only half the 8M page is the intended behavior: after the
-> initial allocation of 8M hugepage, the page is handled exactly as if two
-> independent 4M hugepages were allocated (that happen to be physically
-> contiguous). So, for each 4M chunk, flushing from TLB and TSB is done
-> independently. For instance, in set_huge_pte_at() we added special case
-> for (size = HPAGE_SIZE) to flush the "second half" of 8M page.
-> Similarly in huge_ptep_get_and_clear() and in set_pmd_at().
+These are single instructions on x86.  There's no 64-bit instruction
+for x86-32, but we don't yet have any user for memset64() on 32-bit
+architectures, so don't bother to implement it.
 
-Indeed, the set_pmd_at() code path does the same thing.
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+---
+ arch/x86/include/asm/string_32.h | 24 ++++++++++++++++++++++++
+ arch/x86/include/asm/string_64.h | 36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+)
 
-Ok so your patch is more correct.
+diff --git a/arch/x86/include/asm/string_32.h b/arch/x86/include/asm/string_32.h
+index 3d3e8353ee5c..84da91fe13ac 100644
+--- a/arch/x86/include/asm/string_32.h
++++ b/arch/x86/include/asm/string_32.h
+@@ -331,6 +331,30 @@ void *__constant_c_and_count_memset(void *s, unsigned long pattern,
+ 	 : __memset((s), (c), (count)))
+ #endif
+ 
++#define __HAVE_ARCH_MEMSET16
++static inline void *memset16(uint16_t *s, uint16_t v, size_t n)
++{
++	int d0, d1;
++	asm volatile("rep\n\t"
++		     "stosw"
++		     : "=&c" (d0), "=&D" (d1)
++		     : "a" (v), "1" (s), "0" (n)
++		     : "memory");
++	return s;
++}
++
++#define __HAVE_ARCH_MEMSET_32
++static inline void *memset32(uint32_t *s, uint32_t v, size_t n)
++{
++	int d0, d1;
++	asm volatile("rep\n\t"
++		     "stosl"
++		     : "=&c" (d0), "=&D" (d1)
++		     : "a" (v), "1" (s), "0" (n)
++		     : "memory");
++	return s;
++}
++
+ /*
+  * find the first occurrence of byte 'c', or 1 past the area if none
+  */
+diff --git a/arch/x86/include/asm/string_64.h b/arch/x86/include/asm/string_64.h
+index a164862d77e3..71c5e860c7da 100644
+--- a/arch/x86/include/asm/string_64.h
++++ b/arch/x86/include/asm/string_64.h
+@@ -56,6 +56,42 @@ extern void *__memcpy(void *to, const void *from, size_t len);
+ void *memset(void *s, int c, size_t n);
+ void *__memset(void *s, int c, size_t n);
+ 
++#define __HAVE_ARCH_MEMSET16
++static inline void *memset16(uint16_t *s, uint16_t v, size_t n)
++{
++	long d0, d1;
++	asm volatile("rep\n\t"
++		     "stosw"
++		     : "=&c" (d0), "=&D" (d1)
++		     : "a" (v), "1" (s), "0" (n)
++		     : "memory");
++	return s;
++}
++
++#define __HAVE_ARCH_MEMSET32
++static inline void *memset32(uint32_t *s, uint32_t v, size_t n)
++{
++	long d0, d1;
++	asm volatile("rep\n\t"
++		     "stosl"
++		     : "=&c" (d0), "=&D" (d1)
++		     : "a" (v), "1" (s), "0" (n)
++		     : "memory");
++	return s;
++}
++
++#define __HAVE_ARCH_MEMSET64
++static inline void *memset64(uint64_t *s, uint64_t v, size_t n)
++{
++	long d0, d1;
++	asm volatile("rep\n\t"
++		     "stosq"
++		     : "=&c" (d0), "=&D" (d1)
++		     : "a" (v), "1" (s), "0" (n)
++		     : "memory");
++	return s;
++}
++
+ #define __HAVE_ARCH_MEMMOVE
+ void *memmove(void *dest, const void *src, size_t count);
+ void *__memmove(void *dest, const void *src, size_t count);
+-- 
+2.11.0
 
-Please submit it formally with a proper commit log message and
-signoff, thanks!
