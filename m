@@ -1,78 +1,83 @@
-From: Alexandre Chartre <alexandre.chartre@oracle.com>
-Date: Thu, 16 Mar 2017 18:15:26 +0000
-Subject: Re: [PATCH v4] sparc64: shut down to OBP correctly
-Message-Id: <c2d727d7-e08b-235a-40b4-12f547887ced@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 24 Mar 2017 19:19:52 +0000
+Subject: [v2 5/5] mm: teach platforms not to zero struct pages memory
+Message-Id: <1490383192-981017-6-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1483637013-52889-1-git-send-email-larry.bassel@oracle.com>
-In-Reply-To: <1483637013-52889-1-git-send-email-larry.bassel@oracle.com>
+References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
 
+If we are using deferred struct page initialization feature, most of
+"struct page"es are getting initialized after other CPUs are started, and
+hence we are benefiting from doing this job in parallel. However, we are
+still zeroing all the memory that is allocated for "struct pages" using the
+boot CPU.  This patch solves this problem, by deferring zeroing "struct
+pages" to only when they are initialized.
 
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ arch/powerpc/mm/init_64.c |    2 +-
+ arch/s390/mm/vmem.c       |    2 +-
+ arch/sparc/mm/init_64.c   |    2 +-
+ arch/x86/mm/init_64.c     |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-On 03/16/2017 05:45 PM, Larry Bassel wrote:
-> On 30 Jan 17 17:23, David Miller wrote:
->> From: Larry Bassel <larry.bassel@oracle.com>
->> Date: Thu,  5 Jan 2017 09:23:33 -0800
->>
->>> The command "shutdown -h -H now" should shut the system down to the
->>> OBP, however the machine was being powered off in the LDOM case.
->>>
->>> In the LDOM case, the "reboot-command" variable must be set to
->>> the string "noop" and then ldom_reboot() must be called.
->>> This will make the OBP ignore the setting of "auto-boot?" after it
->>> completes the reset. This causes the system to stop at the ok prompt.
->>>
->>> Signed-off-by: Larry Bassel <larry.bassel@oracle.com>
->>
->> This really doesn't make any sense.
->>
->> The purpose of shutting down to the "OK" prompt is to inspect the
->> system state using OBP commands from the context of the currently
->> running kernel boot.
->>
->> If you allow the software reset to happen and then force a stop at the
->> "OK" prompt, the intention of the facility has been completely
->> compromised so this is pointless.
->>
->> User's who want the behavior you mention can get it by setting the
->> reboot-command variable from userspace using the 'eeprom' or similar
->> commands, and then simply reboot.
->>
->> I am not applying this patch, sorry.
->
-> My apologies for the delayed response.
->
-> I've gotten feedback from several Oracle people (copied on this
-> email) that my explanation for why this patch is useful is incomplete:
->
-> 1. The variable "reboot-command" isn't one of the usual nvram variables,
-> it's magic and expected to be used for purposes like this (as Solaris
-> already does). It's not like "boot-device" which sets a permanent default.
-> It's cleared when it's used by OpenBoot.
->
-> 2. It's how you can reboot to an alternate kernel once or reboot from
-> an alternate boot device once, without changing the permanent default.
->
-> I'd appreciate it if you'd reconsider accepting this patch.
->
+diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+index eb4c270..24faf2d 100644
+--- a/arch/powerpc/mm/init_64.c
++++ b/arch/powerpc/mm/init_64.c
+@@ -181,7 +181,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ 		if (vmemmap_populated(start, page_size))
+ 			continue;
+ 
+-		p = vmemmap_alloc_block(page_size, node, true);
++		p = vmemmap_alloc_block(page_size, node, VMEMMAP_ZERO);
+ 		if (!p)
+ 			return -ENOMEM;
+ 
+diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+index 9c75214..ffe9ba1 100644
+--- a/arch/s390/mm/vmem.c
++++ b/arch/s390/mm/vmem.c
+@@ -252,7 +252,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+ 				void *new_page;
+ 
+ 				new_page = vmemmap_alloc_block(PMD_SIZE, node,
+-							       true);
++							       VMEMMAP_ZERO);
+ 				if (!new_page)
+ 					goto out;
+ 				pmd_val(*pm_dir) = __pa(new_page) | sgt_prot;
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index d91e462..280834e 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2542,7 +2542,7 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node,
+-							  true);
++							  VMEMMAP_ZERO);
+ 
+ 			if (!block)
+ 				return -ENOMEM;
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 46101b6..9d8c72c 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1177,7 +1177,7 @@ static int __meminit vmemmap_populate_hugepages(unsigned long start,
+ 			void *p;
+ 
+ 			p = __vmemmap_alloc_block_buf(PMD_SIZE, node, altmap,
+-						      true);
++						      VMEMMAP_ZERO);
+ 			if (p) {
+ 				pte_t entry;
+ 
+-- 
+1.7.1
 
-Another important point is that you shouldn't re-enter the OBP after the
-OS was booted.
-
-After the OS is booted, the configuration of a domain can be dynamically
-changed by adding/removing resources (in particular cpu/memory). However,
-the OBP won't be aware of any of these changes. So if you return to the
-OBP, the OBP might have an inaccurate knowledge of the configuration, and
-you can have unpredictable behavior.
-
-That's precisely why Solaris actually removes the OBP right after Solaris
-takes control, and effectively prevents returning to the OBP.
-
-So it makes sense to reset the domain before returning to the OBP.
-
-Rgds,
-
-alex.
