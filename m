@@ -1,29 +1,150 @@
-From: Mr Harrison Ray Martin <"WWW."@wine.ocn.ne.jp>
-Date: Tue, 14 Mar 2017 17:21:24 +0000
-Subject: You got my two emails???
-Message-Id: <373293934.2511281.1489512084972.JavaMail.root@wine.ocn.ne.jp>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Fri, 24 Mar 2017 16:13:12 +0000
+Subject: [PATCH v3 1/7] Add multibyte memset functions
+Message-Id: <20170324161318.18718-2-willy@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20170324161318.18718-1-willy@infradead.org>
+In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Minchan Kim <minchan@kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>
 
+From: Matthew Wilcox <mawilcox@microsoft.com>
 
+memset16(), memset32() and memset64() are like memset(), but allow the
+caller to fill the destination with a multibyte pattern.  memset_l()
+and memset_p() allow the caller to use unsigned long and pointer
+values respectively.  memset64() is currently only available on 64-bit
+architectures.
 
-Greetings from me.
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+---
+ include/linux/string.h | 30 ++++++++++++++++++++++
+ lib/string.c           | 68 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 98 insertions(+)
 
-Please I sincerely apologize if this email violates your privacy. I have to do this because it is extremely important and a life time opportunity that cannot be missed.
-
-I am a claims agent to one of the reputable lotto firms in Europe with branches in Africa. One Mr Abelardo Cuellar who won huge amount in our recent draw is seriously sick and was told that he has few weeks to live so his wife and only daughter became so devastated that they told us that they are no more interested in the money claiming that the man’s life is all that matters to them not money.
-
-
-I write to ask if you can agree to receive it and we will share. As the claims manager I can handle this perfectly without any hassles.
-
-l explain more when I get your reply.
-
-PLEASE REPLY TO:  mycontactss@yandex.com
-
-Cordially
-
-Mr Harrison Ray Martin
+diff --git a/include/linux/string.h b/include/linux/string.h
+index 26b6f6a66f83..b376875b650c 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -99,6 +99,36 @@ extern __kernel_size_t strcspn(const char *,const char *);
+ #ifndef __HAVE_ARCH_MEMSET
+ extern void * memset(void *,int,__kernel_size_t);
+ #endif
++
++#ifndef __HAVE_ARCH_MEMSET16
++extern void *memset16(uint16_t *, uint16_t, __kernel_size_t);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET32
++extern void *memset32(uint32_t *, uint32_t, __kernel_size_t);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET64
++extern void *memset64(uint64_t *, uint64_t, __kernel_size_t);
++#endif
++
++static inline void *memset_l(unsigned long *p, unsigned long v,
++		__kernel_size_t n)
++{
++	if (BITS_PER_LONG = 32)
++		return memset32((uint32_t *)p, v, n);
++	else
++		return memset64((uint64_t *)p, v, n);
++}
++
++static inline void *memset_p(void **p, void *v, __kernel_size_t n)
++{
++	if (BITS_PER_LONG = 32)
++		return memset32((uint32_t *)p, (uintptr_t)v, n);
++	else
++		return memset64((uint64_t *)p, (uintptr_t)v, n);
++}
++
+ #ifndef __HAVE_ARCH_MEMCPY
+ extern void * memcpy(void *,const void *,__kernel_size_t);
+ #endif
+diff --git a/lib/string.c b/lib/string.c
+index ed83562a53ae..f18ba402e503 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -697,6 +697,74 @@ void memzero_explicit(void *s, size_t count)
+ }
+ EXPORT_SYMBOL(memzero_explicit);
+ 
++#ifndef __HAVE_ARCH_MEMSET16
++/**
++ * memset16() - Fill a memory area with a uint16_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint16_t instead
++ * of a byte.  Remember that @count is the number of uint16_ts to
++ * store, not the number of bytes.
++ */
++void *memset16(uint16_t *s, uint16_t v, size_t count)
++{
++	uint16_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset16);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET32
++/**
++ * memset32() - Fill a memory area with a uint32_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint32_t instead
++ * of a byte.  Remember that @count is the number of uint32_ts to
++ * store, not the number of bytes.
++ */
++void *memset32(uint32_t *s, uint32_t v, size_t count)
++{
++	uint32_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset32);
++#endif
++
++#ifndef __HAVE_ARCH_MEMSET64
++#if BITS_PER_LONG > 32
++/**
++ * memset64() - Fill a memory area with a uint64_t
++ * @s: Pointer to the start of the area.
++ * @v: The value to fill the area with
++ * @count: The number of values to store
++ *
++ * Differs from memset() in that it fills with a uint64_t instead
++ * of a byte.  Remember that @count is the number of uint64_ts to
++ * store, not the number of bytes.
++ */
++void *memset64(uint64_t *s, uint64_t v, size_t count)
++{
++	uint64_t *xs = s;
++
++	while (count--)
++		*xs++ = v;
++	return s;
++}
++EXPORT_SYMBOL(memset64);
++#endif
++#endif
++
+ #ifndef __HAVE_ARCH_MEMCPY
+ /**
+  * memcpy - Copy one area of memory to another
+-- 
+2.11.0
 
