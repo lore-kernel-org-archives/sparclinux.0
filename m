@@ -1,139 +1,65 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 23 Mar 2017 22:56:52 +0000
-Subject: [v1 2/5] mm: defining memblock_virt_alloc_try_nid_raw
-Message-Id: <1490310113-824438-3-git-send-email-pasha.tatashin@oracle.com>
+Date: Fri, 24 Mar 2017 19:19:48 +0000
+Subject: [v2 1/5] sparc64: simplify vmemmap_populate
+Message-Id: <1490383192-981017-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.or
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net, willy@infradead.org
 
-A new version of memblock_virt_alloc_* allocations:
-- Does not zero the allocated memory
-- Does not panic if request cannot be satisfied
+Remove duplicating code, by using common functions
+vmemmap_pud_populate and vmemmap_pgd_populate functions.
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/linux/bootmem.h |    3 +++
- mm/memblock.c           |   46 +++++++++++++++++++++++++++++++++++++++-------
- 2 files changed, 42 insertions(+), 7 deletions(-)
+ arch/sparc/mm/init_64.c |   23 ++++++-----------------
+ 1 files changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
-index dbaf312..b61ea10 100644
---- a/include/linux/bootmem.h
-+++ b/include/linux/bootmem.h
-@@ -160,6 +160,9 @@ extern int reserve_bootmem_node(pg_data_t *pgdat,
- #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 2c0cb2a..01eccab 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2526,30 +2526,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 	vstart = vstart & PMD_MASK;
+ 	vend = ALIGN(vend, PMD_SIZE);
+ 	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = pgd_offset_k(vstart);
++		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+ 		unsigned long pte;
+ 		pud_t *pud;
+ 		pmd_t *pmd;
  
- /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
-+void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
-+				      phys_addr_t min_addr,
-+				      phys_addr_t max_addr, int nid);
- void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
- 		phys_addr_t align, phys_addr_t min_addr,
- 		phys_addr_t max_addr, int nid);
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 696f06d..7fdc555 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1271,7 +1271,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- static void * __init memblock_virt_alloc_internal(
- 				phys_addr_t size, phys_addr_t align,
- 				phys_addr_t min_addr, phys_addr_t max_addr,
--				int nid)
-+				int nid, bool zero)
- {
- 	phys_addr_t alloc;
- 	void *ptr;
-@@ -1322,7 +1322,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 	return NULL;
- done:
- 	ptr = phys_to_virt(alloc);
--	memset(ptr, 0, size);
-+	if (zero)
-+		memset(ptr, 0, size);
+-		if (pgd_none(*pgd)) {
+-			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
++		if (!pgd)
++			return -ENOMEM;
  
- 	/*
- 	 * The min_count is set to 0 so that bootmem allocated blocks
-@@ -1336,6 +1337,37 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- }
+-			if (!new)
+-				return -ENOMEM;
+-			pgd_populate(&init_mm, pgd, new);
+-		}
+-
+-		pud = pud_offset(pgd, vstart);
+-		if (pud_none(*pud)) {
+-			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
+-
+-			if (!new)
+-				return -ENOMEM;
+-			pud_populate(&init_mm, pud, new);
+-		}
++		pud = vmemmap_pud_populate(pgd, vstart, node);
++		if (!pud)
++			return -ENOMEM;
  
- /**
-+ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
-+ * memory and without panicking
-+ * @size: size of memory block to be allocated in bytes
-+ * @align: alignment of the region and block's size
-+ * @min_addr: the lower bound of the memory region from where the allocation
-+ *	  is preferred (phys address)
-+ * @max_addr: the upper bound of the memory region from where the allocation
-+ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
-+ *	      allocate only from memory limited by memblock.current_limit value
-+ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ *
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. Does not zero allocated memory, does not panic if request
-+ * cannot be satisfied.
-+ *
-+ * RETURNS:
-+ * Virtual address of allocated memory block on success, NULL on failure.
-+ */
-+void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr,
-+			int nid)
-+{
-+	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
-+		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-+		     (u64)max_addr, (void *)_RET_IP_);
-+	return memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid, false);
-+}
-+
-+/**
-  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
-  * @size: size of memory block to be allocated in bytes
-  * @align: alignment of the region and block's size
-@@ -1346,8 +1378,8 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
-- * additional debug information (including caller info), if enabled.
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. This function zeroes the allocated memory.
-  *
-  * RETURNS:
-  * Virtual address of allocated memory block on success, NULL on failure.
-@@ -1361,7 +1393,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	return memblock_virt_alloc_internal(size, align, min_addr,
--					     max_addr, nid);
-+					     max_addr, nid, true);
- }
- 
- /**
-@@ -1375,7 +1407,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
-+ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
-  * which provides debug information (including caller info), if enabled,
-  * and panics if the request can not be satisfied.
-  *
-@@ -1393,7 +1425,7 @@ phys_addr_t __init memblock_alloc_try_nid(phys_addr_t size, phys_addr_t align, i
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	ptr = memblock_virt_alloc_internal(size, align,
--					   min_addr, max_addr, nid);
-+					   min_addr, max_addr, nid, true);
- 	if (ptr)
- 		return ptr;
- 
+ 		pmd = pmd_offset(pud, vstart);
+-
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
 -- 
 1.7.1
 
