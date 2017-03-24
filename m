@@ -1,243 +1,166 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 14 Mar 2017 17:24:40 +0000
-Subject: [PATCH v2 net-next 2/5] sunvnet: add stats to track ldom to ldom packets and bytes
-Message-Id: <1489512283-422140-3-git-send-email-shannon.nelson@oracle.com>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Fri, 24 Mar 2017 16:13:13 +0000
+Subject: [PATCH v3 2/7] ARM: Implement memset16, memset32 & memset64
+Message-Id: <20170324161318.18718-3-willy@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
+References: <20170324161318.18718-1-willy@infradead.org>
+In-Reply-To: <20170324161318.18718-1-willy@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, x86@kernel.org, Minchan Kim <minchan@kernel.org>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-In this driver, there is a "port" created for the connection to each of
-the other ldoms; a netdev queue is mapped to each port, and they are
-collected under a single netdev.  The generic netdev statistics show
-us all the traffic in and out of our network device, but don't show
-individual queue/port stats.  This patch breaks out the traffic counts
-for the individual ports and gives us a little view into the state of
-those connections.
+From: Matthew Wilcox <mawilcox@microsoft.com>
 
-Orabug: 25190537
+ARM is only 32-bit, so it doesn't really need a memset64, but it was
+essentially free to add it to the existing implementation.
 
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
+Reviewed-by: Russell King <rmk+kernel@armlinux.org.uk>
 ---
- drivers/net/ethernet/sun/sunvnet.c        |  116 ++++++++++++++++++++++++++++-
- drivers/net/ethernet/sun/sunvnet_common.c |    6 ++
- drivers/net/ethernet/sun/sunvnet_common.h |   15 ++++
- 3 files changed, 136 insertions(+), 1 deletions(-)
+ arch/arm/include/asm/string.h | 21 +++++++++++++++++++++
+ arch/arm/kernel/armksyms.c    |  3 +++
+ arch/arm/lib/memset.S         | 44 ++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 59 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
-index 4cc2571..7543bdd 100644
---- a/drivers/net/ethernet/sun/sunvnet.c
-+++ b/drivers/net/ethernet/sun/sunvnet.c
-@@ -1,7 +1,7 @@
- /* sunvnet.c: Sun LDOM Virtual Network Driver.
-  *
-  * Copyright (C) 2007, 2008 David S. Miller <davem@davemloft.net>
-- * Copyright (C) 2016 Oracle. All rights reserved.
-+ * Copyright (C) 2016-2017 Oracle. All rights reserved.
+diff --git a/arch/arm/include/asm/string.h b/arch/arm/include/asm/string.h
+index cf4f3aad0fc1..bc7a1be7a76a 100644
+--- a/arch/arm/include/asm/string.h
++++ b/arch/arm/include/asm/string.h
+@@ -24,6 +24,27 @@ extern void * memchr(const void *, int, __kernel_size_t);
+ #define __HAVE_ARCH_MEMSET
+ extern void * memset(void *, int, __kernel_size_t);
+ 
++#define __HAVE_ARCH_MEMSET16
++extern void *__memset16(uint16_t *, uint16_t v, __kernel_size_t);
++static inline void *memset16(uint16_t *p, uint16_t v, __kernel_size_t n)
++{
++	return __memset16(p, v, n * 2);
++}
++
++#define __HAVE_ARCH_MEMSET32
++extern void *__memset32(uint32_t *, uint32_t v, __kernel_size_t);
++static inline void *memset32(uint32_t *p, uint32_t v, __kernel_size_t n)
++{
++	return __memset32(p, v, n * 4);
++}
++
++#define __HAVE_ARCH_MEMSET64
++extern void *__memset64(uint64_t *, uint32_t low, __kernel_size_t, uint32_t hi);
++static inline void *memset64(uint64_t *p, uint64_t v, __kernel_size_t n)
++{
++	return __memset64(p, v, n * 8, v >> 32);
++}
++
+ extern void __memzero(void *ptr, __kernel_size_t n);
+ 
+ #define memset(p,v,n)							\
+diff --git a/arch/arm/kernel/armksyms.c b/arch/arm/kernel/armksyms.c
+index 8e8d20cdbce7..633341ed0713 100644
+--- a/arch/arm/kernel/armksyms.c
++++ b/arch/arm/kernel/armksyms.c
+@@ -87,6 +87,9 @@ EXPORT_SYMBOL(__raw_writesl);
+ EXPORT_SYMBOL(strchr);
+ EXPORT_SYMBOL(strrchr);
+ EXPORT_SYMBOL(memset);
++EXPORT_SYMBOL(__memset16);
++EXPORT_SYMBOL(__memset32);
++EXPORT_SYMBOL(__memset64);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(memmove);
+ EXPORT_SYMBOL(memchr);
+diff --git a/arch/arm/lib/memset.S b/arch/arm/lib/memset.S
+index 3c65e3bd790f..9adc9bdf3ffb 100644
+--- a/arch/arm/lib/memset.S
++++ b/arch/arm/lib/memset.S
+@@ -21,14 +21,14 @@ ENTRY(memset)
+ UNWIND( .fnstart         )
+ 	ands	r3, r0, #3		@ 1 unaligned?
+ 	mov	ip, r0			@ preserve r0 as return value
++	orr	r1, r1, r1, lsl #8
+ 	bne	6f			@ 1
+ /*
+  * we know that the pointer in ip is aligned to a word boundary.
   */
+-1:	orr	r1, r1, r1, lsl #8
+-	orr	r1, r1, r1, lsl #16
++1:	orr	r1, r1, r1, lsl #16
+ 	mov	r3, r1
+-	cmp	r2, #16
++7:	cmp	r2, #16
+ 	blt	4f
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-@@ -77,11 +77,125 @@ static void vnet_set_msglevel(struct net_device *dev, u32 value)
- 	vp->msg_enable = value;
- }
+ #if ! CALGN(1)+0
+@@ -41,7 +41,7 @@ UNWIND( .fnend              )
+ UNWIND( .fnstart            )
+ UNWIND( .save {r8, lr}      )
+ 	mov	r8, r1
+-	mov	lr, r1
++	mov	lr, r3
  
-+static const struct {
-+	const char string[ETH_GSTRING_LEN];
-+} ethtool_stats_keys[] = {
-+	{ "rx_packets" },
-+	{ "tx_packets" },
-+	{ "rx_bytes" },
-+	{ "tx_bytes" },
-+	{ "rx_errors" },
-+	{ "tx_errors" },
-+	{ "rx_dropped" },
-+	{ "tx_dropped" },
-+	{ "multicast" },
-+	{ "rx_length_errors" },
-+	{ "rx_frame_errors" },
-+	{ "rx_missed_errors" },
-+	{ "tx_carrier_errors" },
-+	{ "nports" },
-+};
+ 2:	subs	r2, r2, #64
+ 	stmgeia	ip!, {r1, r3, r8, lr}	@ 64 bytes at a time.
+@@ -73,11 +73,11 @@ UNWIND( .fnend                 )
+ UNWIND( .fnstart               )
+ UNWIND( .save {r4-r8, lr}      )
+ 	mov	r4, r1
+-	mov	r5, r1
++	mov	r5, r3
+ 	mov	r6, r1
+-	mov	r7, r1
++	mov	r7, r3
+ 	mov	r8, r1
+-	mov	lr, r1
++	mov	lr, r3
+ 
+ 	cmp	r2, #96
+ 	tstgt	ip, #31
+@@ -114,12 +114,13 @@ UNWIND( .fnstart            )
+ 	tst	r2, #4
+ 	strne	r1, [ip], #4
+ /*
+- * When we get here, we've got less than 4 bytes to zero.  We
++ * When we get here, we've got less than 4 bytes to set.  We
+  * may have an unaligned pointer as well.
+  */
+ 5:	tst	r2, #2
++	movne	r3, r1, lsr #8		@ the top half of a 16-bit pattern
+ 	strneb	r1, [ip], #1
+-	strneb	r1, [ip], #1
++	strneb	r3, [ip], #1
+ 	tst	r2, #1
+ 	strneb	r1, [ip], #1
+ 	ret	lr
+@@ -135,3 +136,28 @@ UNWIND( .fnstart            )
+ UNWIND( .fnend   )
+ ENDPROC(memset)
+ ENDPROC(mmioset)
 +
-+static int vnet_get_sset_count(struct net_device *dev, int sset)
-+{
-+	struct vnet *vp = (struct vnet *)netdev_priv(dev);
-+
-+	switch (sset) {
-+	case ETH_SS_STATS:
-+		return ARRAY_SIZE(ethtool_stats_keys)
-+			+ (NUM_VNET_PORT_STATS * vp->nports);
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+}
-+
-+static void vnet_get_strings(struct net_device *dev, u32 stringset, u8 *buf)
-+{
-+	struct vnet *vp = (struct vnet *)netdev_priv(dev);
-+	struct vnet_port *port;
-+	char *p = (char *)buf;
-+
-+	switch (stringset) {
-+	case ETH_SS_STATS:
-+		memcpy(buf, &ethtool_stats_keys, sizeof(ethtool_stats_keys));
-+		p += sizeof(ethtool_stats_keys);
-+
-+		rcu_read_lock();
-+		list_for_each_entry_rcu(port, &vp->port_list, list) {
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.%s-%pM",
-+				 port->q_index, port->switch_port ? "s" : "q",
-+				 port->raddr);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.rx_packets",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.tx_packets",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.rx_bytes",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.tx_bytes",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.event_up",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+			snprintf(p, ETH_GSTRING_LEN, "p%u.event_reset",
-+				 port->q_index);
-+			p += ETH_GSTRING_LEN;
-+		}
-+		rcu_read_unlock();
-+		break;
-+	default:
-+		WARN_ON(1);
-+		break;
-+	}
-+}
-+
-+static void vnet_get_ethtool_stats(struct net_device *dev,
-+				   struct ethtool_stats *estats, u64 *data)
-+{
-+	struct vnet *vp = (struct vnet *)netdev_priv(dev);
-+	struct vnet_port *port;
-+	int i = 0;
-+
-+	data[i++] = dev->stats.rx_packets;
-+	data[i++] = dev->stats.tx_packets;
-+	data[i++] = dev->stats.rx_bytes;
-+	data[i++] = dev->stats.tx_bytes;
-+	data[i++] = dev->stats.rx_errors;
-+	data[i++] = dev->stats.tx_errors;
-+	data[i++] = dev->stats.rx_dropped;
-+	data[i++] = dev->stats.tx_dropped;
-+	data[i++] = dev->stats.multicast;
-+	data[i++] = dev->stats.rx_length_errors;
-+	data[i++] = dev->stats.rx_frame_errors;
-+	data[i++] = dev->stats.rx_missed_errors;
-+	data[i++] = dev->stats.tx_carrier_errors;
-+	data[i++] = vp->nports;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(port, &vp->port_list, list) {
-+		data[i++] = port->q_index;
-+		data[i++] = port->stats.rx_packets;
-+		data[i++] = port->stats.tx_packets;
-+		data[i++] = port->stats.rx_bytes;
-+		data[i++] = port->stats.tx_bytes;
-+		data[i++] = port->stats.event_up;
-+		data[i++] = port->stats.event_reset;
-+	}
-+	rcu_read_unlock();
-+}
-+
- static const struct ethtool_ops vnet_ethtool_ops = {
- 	.get_drvinfo		= vnet_get_drvinfo,
- 	.get_msglevel		= vnet_get_msglevel,
- 	.set_msglevel		= vnet_set_msglevel,
- 	.get_link		= ethtool_op_get_link,
-+	.get_sset_count		= vnet_get_sset_count,
-+	.get_strings		= vnet_get_strings,
-+	.get_ethtool_stats	= vnet_get_ethtool_stats,
- };
- 
- static LIST_HEAD(vnet_list);
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 1a65892..d3dc8ed 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -411,6 +411,8 @@ static int vnet_rx_one(struct vnet_port *port, struct vio_net_desc *desc)
- 
- 	dev->stats.rx_packets++;
- 	dev->stats.rx_bytes += len;
-+	port->stats.rx_packets++;
-+	port->stats.rx_bytes += len;
- 	napi_gro_receive(&port->napi, skb);
- 	return 0;
- 
-@@ -768,6 +770,7 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
- 			maybe_tx_wakeup(port);
- 
- 		port->rx_event = 0;
-+		port->stats.event_reset++;
- 		return 0;
- 	}
- 
-@@ -781,6 +784,7 @@ static int vnet_event_napi(struct vnet_port *port, int budget)
- 
- 		vio_link_state_change(vio, LDC_EVENT_UP);
- 		port->rx_event = 0;
-+		port->stats.event_up++;
- 		return 0;
- 	}
- 
-@@ -1430,6 +1434,8 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
- 
- 	dev->stats.tx_packets++;
- 	dev->stats.tx_bytes += port->tx_bufs[txi].skb->len;
-+	port->stats.tx_packets++;
-+	port->stats.tx_bytes += port->tx_bufs[txi].skb->len;
- 
- 	dr->prod = (dr->prod + 1) & (VNET_TX_RING_SIZE - 1);
- 	if (unlikely(vnet_tx_dring_avail(dr) < 1)) {
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.h b/drivers/net/ethernet/sun/sunvnet_common.h
-index b21ef47..c0fac03 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.h
-+++ b/drivers/net/ethernet/sun/sunvnet_common.h
-@@ -35,6 +35,19 @@ struct vnet_tx_entry {
- 
- struct vnet;
- 
-+struct vnet_port_stats {
-+	/* keep them all the same size */
-+	u32 rx_bytes;
-+	u32 tx_bytes;
-+	u32 rx_packets;
-+	u32 tx_packets;
-+	u32 event_up;
-+	u32 event_reset;
-+	u32 q_placeholder;
-+};
-+
-+#define NUM_VNET_PORT_STATS  (sizeof(struct vnet_port_stats) / sizeof(u32))
-+
- /* Structure to describe a vnet-port or vsw-port in the MD.
-  * If the vsw bit is set, this structure represents a vswitch
-  * port, and the net_device can be found from ->dev. If the
-@@ -44,6 +57,8 @@ struct vnet_tx_entry {
- struct vnet_port {
- 	struct vio_driver_state	vio;
- 
-+	struct vnet_port_stats stats;
-+
- 	struct hlist_node	hash;
- 	u8			raddr[ETH_ALEN];
- 	unsigned		switch_port:1;
++ENTRY(__memset16)
++UNWIND( .fnstart         )
++	tst	r0, #2			@ pointer unaligned?
++	mov	ip, r0			@ preserve r0 as return value
++	beq	1b			@ jump into the middle of memset
++	subs	r2, r2, #2		@ cope with n = 0
++	movge	r3, r1, lsr #8		@ r3 = r1 >> 8
++	strgeb	r1, [ip], #1		@ *ip = r1
++	strgeb	r3, [ip], #1		@ *ip = r3
++	bgt	1b			@ back into memset if n > 0
++	ret	lr			@ otherwise return
++UNWIND( .fnend   )
++ENDPROC(__memset16)
++ENTRY(__memset32)
++UNWIND( .fnstart         )
++	mov	r3, r1			@ copy r1 to r3 and fall into memset64
++UNWIND( .fnend   )
++ENDPROC(__memset32)
++ENTRY(__memset64)
++UNWIND( .fnstart         )
++	mov	ip, r0			@ preserve r0 as return value
++	b	7b			@ jump into the middle of memset
++UNWIND( .fnend   )
++ENDPROC(__memset64)
 -- 
-1.7.1
+2.11.0
 
