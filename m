@@ -1,61 +1,205 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Tue, 14 Mar 2017 17:24:43 +0000
-Subject: [PATCH v2 net-next 5/5] sunvnet: xoff not needed when removing port link
-Message-Id: <1489512283-422140-6-git-send-email-shannon.nelson@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Wed, 29 Mar 2017 21:51:42 +0000
+Subject: [PATCH 1/5] sparc64: expand LDC interface
+Message-Id: <21bdb86a1b8bd602b635ed44fca7522476313bff.1490823535.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
-In-Reply-To: <1489512283-422140-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
+To: sparclinux@vger.kernel.org
 
-The sunvnet netdev is connected to the controlling ldom's vswitch
-for network bridging.  However, for higher performance between ldoms,
-there also is a channel between each client ldom.  These connections are
-represented in the sunvnet driver by a queue for each ldom.  The driver
-uses select_queue to tell the stack which queue to use by tracking the mac
-addresses on the other end of each port.  When a connected ldom shuts down,
-the driver receives an LDC_EVENT_RESET and the port is removed from the
-driver, thus a queue with no ldom on the other end will never be selected
-for Tx.
+Add the following LDC APIs which are planned to be used by
+LDC clients in the future:
+- ldc_set_state: Sets given LDC channel to given state
+- ldc_mode: Returns the mode of given LDC channel
+- ldc_print: Prints info about given LDC channel
+- ldc_rx_reset: Reset the RX queue of given LDC channel
+- ldc_enable_hv_intr: Enable HV interrupt for the device associated with
+  given LDC channel
+- ldc_disable_hv_intr: Disable HV interrupt for the device associated with
+  given LDC channel
 
-The driver was trying to reinforce the "don't use this queue" notion with
-netif_tx_stop_queue() and netif_tx_wake_queue(), which really should only
-be used to signal a Tx queue is full (aka XOFF).  This misuse of queue
-state resulted in NETDEV WATCHDOG messages and lots of unnecessary calls
-into the driver's tx_timeout handler.  Simply removing these takes care
-of the problem.
-
-Orabug: 25190537
-
-Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 ---
- drivers/net/ethernet/sun/sunvnet_common.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/ldc.h |   13 +++++++
+ arch/sparc/kernel/ldc.c      |   83 ++++++++++++++++++++++++++++++++++++------
+ 2 files changed, 84 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
-index 0c35a9a..7febfb6 100644
---- a/drivers/net/ethernet/sun/sunvnet_common.c
-+++ b/drivers/net/ethernet/sun/sunvnet_common.c
-@@ -1749,16 +1749,12 @@ void sunvnet_port_add_txq_common(struct vnet_port *port)
- 	vp->nports++;
- 	vp->q_used[smallest]++;
- 	port->q_index = smallest;
--	netif_tx_wake_queue(netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
--						port->q_index));
- }
- EXPORT_SYMBOL_GPL(sunvnet_port_add_txq_common);
+diff --git a/arch/sparc/include/asm/ldc.h b/arch/sparc/include/asm/ldc.h
+index 6e9004a..e7be6c3 100644
+--- a/arch/sparc/include/asm/ldc.h
++++ b/arch/sparc/include/asm/ldc.h
+@@ -24,6 +24,9 @@ struct ldc_channel_config {
+ 	u32			mtu;
+ 	unsigned int		rx_irq;
+ 	unsigned int		tx_irq;
++	u64			rx_ino;
++	u64			tx_ino;
++	u64			dev_handle;
+ 	u8			mode;
+ #define LDC_MODE_RAW		0x00
+ #define LDC_MODE_UNRELIABLE	0x01
+@@ -48,6 +51,8 @@ struct ldc_channel_config {
+ #define LDC_STATE_READY		0x03
+ #define LDC_STATE_CONNECTED	0x04
  
- void sunvnet_port_rm_txq_common(struct vnet_port *port)
- {
- 	port->vp->nports--;
--	netif_tx_stop_queue(netdev_get_tx_queue(VNET_PORT_TO_NET_DEVICE(port),
--						port->q_index));
- 	port->vp->q_used[port->q_index]--;
- 	port->q_index = 0;
++#define	LDC_PACKET_SIZE		64
++
+ struct ldc_channel;
+ 
+ /* Allocate state for a channel.  */
+@@ -72,6 +77,10 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ int ldc_disconnect(struct ldc_channel *lp);
+ 
+ int ldc_state(struct ldc_channel *lp);
++void ldc_set_state(struct ldc_channel *lp, u8 state);
++int ldc_mode(struct ldc_channel *lp);
++void ldc_print(struct ldc_channel *lp);
++int ldc_rx_reset(struct ldc_channel *lp);
+ 
+ /* Read and write operations.  Only valid when the link is up.  */
+ int ldc_write(struct ldc_channel *lp, const void *buf,
+@@ -137,4 +146,8 @@ void ldc_free_exp_dring(struct ldc_channel *lp, void *buf,
+ 		        unsigned int len,
+ 		        struct ldc_trans_cookie *cookies, int ncookies);
+ 
++void ldc_enable_hv_intr(struct ldc_channel *lp);
++
++void ldc_disable_hv_intr(struct ldc_channel *lp);
++
+ #endif /* _SPARC64_LDC_H */
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 59d5038..6e28a3b 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -34,7 +34,6 @@
+ 
+ static char version[]  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+-#define LDC_PACKET_SIZE		64
+ 
+ /* Packet header layout for unreliable and reliable mode frames.
+  * When in RAW mode, packets are simply straight 64-byte payloads
+@@ -196,15 +195,6 @@ struct ldc_channel {
+ 	}
  }
+ 
+-static void ldc_set_state(struct ldc_channel *lp, u8 state)
+-{
+-	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
+-	       state_to_str(lp->state),
+-	       state_to_str(state));
+-
+-	lp->state = state;
+-}
+-
+ static unsigned long __advance(unsigned long off, unsigned long num_entries)
+ {
+ 	off += LDC_PACKET_SIZE;
+@@ -782,6 +772,39 @@ static int process_data_ack(struct ldc_channel *lp,
+ 	return 0;
+ }
+ 
++void ldc_enable_hv_intr(struct ldc_channel *lp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&lp->lock, flags);
++
++	ldcdbg(RX, "%s: dh=%llu, ino=%llu\n", __func__,
++		lp->cfg.dev_handle, lp->cfg.rx_ino);
++	sun4v_vintr_set_valid(lp->cfg.dev_handle, lp->cfg.rx_ino,
++		HV_INTR_ENABLED);
++
++	spin_unlock_irqrestore(&lp->lock, flags);
++
++}
++EXPORT_SYMBOL(ldc_enable_hv_intr);
++
++
++void ldc_disable_hv_intr(struct ldc_channel *lp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&lp->lock, flags);
++
++	ldcdbg(RX, "%s: dh=%llu, ino=%llu\n", __func__,
++		lp->cfg.dev_handle, lp->cfg.rx_ino);
++	sun4v_vintr_set_valid(lp->cfg.dev_handle, lp->cfg.rx_ino,
++		HV_INTR_DISABLED);
++
++	spin_unlock_irqrestore(&lp->lock, flags);
++
++}
++EXPORT_SYMBOL(ldc_disable_hv_intr);
++
+ static void send_events(struct ldc_channel *lp, unsigned int event_mask)
+ {
+ 	if (event_mask & LDC_EVENT_RESET)
+@@ -829,7 +852,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 	 * everything.
+ 	 */
+ 	if (lp->flags & LDC_FLAG_RESET) {
+-		(void) __set_rx_head(lp, lp->rx_tail);
++		(void) ldc_rx_reset(lp);
+ 		goto out;
+ 	}
+ 
+@@ -1447,6 +1470,42 @@ int ldc_state(struct ldc_channel *lp)
+ }
+ EXPORT_SYMBOL(ldc_state);
+ 
++void ldc_set_state(struct ldc_channel *lp, u8 state)
++{
++	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
++		state_to_str(lp->state),
++		state_to_str(state));
++
++	lp->state = state;
++}
++EXPORT_SYMBOL(ldc_set_state);
++
++int ldc_mode(struct ldc_channel *lp)
++{
++	return lp->cfg.mode;
++}
++EXPORT_SYMBOL(ldc_mode);
++
++int ldc_rx_reset(struct ldc_channel *lp)
++{
++	return __set_rx_head(lp, lp->rx_tail);
++}
++EXPORT_SYMBOL(ldc_rx_reset);
++
++void ldc_print(struct ldc_channel *lp)
++{
++	pr_info("%s: id=0x%lx flags=0x%x state=%s cstate=0x%lx hsstate=0x%x\n"
++		"\trx_h=0x%lx rx_t=0x%lx rx_n=%ld\n"
++		"\ttx_h=0x%lx tx_t=0x%lx tx_n=%ld\n"
++		"\trcv_nxt=%u snd_nxt=%u\n",
++	__func__, lp->id, lp->flags, state_to_str(lp->state),
++	lp->chan_state, lp->hs_state,
++	lp->rx_head, lp->rx_tail, lp->rx_num_entries,
++	lp->tx_head, lp->tx_tail, lp->tx_num_entries,
++	lp->rcv_nxt, lp->snd_nxt);
++}
++EXPORT_SYMBOL(ldc_print);
++
+ static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
+ {
+ 	struct ldc_packet *p;
+@@ -1592,7 +1651,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
+ 	if (err)
+ 		return err;
+ 
+-	err = __set_rx_head(lp, lp->rx_tail);
++	err = ldc_rx_reset(lp);
+ 	if (err < 0)
+ 		return ldc_abort(lp);
+ 
 -- 
 1.7.1
 
