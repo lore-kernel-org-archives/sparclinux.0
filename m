@@ -1,63 +1,84 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 23 Mar 2017 22:55:46 +0000
-Subject: [v1 4/5] mm: zero struct pages during initialization
-Message-Id: <1490310113-824438-5-git-send-email-pasha.tatashin@oracle.com>
+From: Nicolai Stange <nicstange@gmail.com>
+Date: Thu, 30 Mar 2017 19:56:47 +0000
+Subject: [PATCH] sparc/time: set ->min_delta_ticks and ->max_delta_ticks
+Message-Id: <20170330195647.7668-1-nicstange@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1490310113-824438-1-git-send-email-pasha.tatashin@oracle.com>
+References: <20170326134403.16226-1-nicstange@gmail.com>
+In-Reply-To: <20170326134403.16226-1-nicstange@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.or
+To: "David S. Miller" <davem@davemloft.net>
+Cc: John Stultz <john.stultz@linaro.org>, linux-kernel@vger.kernel.org, Nicolai Stange <nicstange@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, sparclinux@vger.kernel.org
 
-When deferred struct page initialization is enabled, do not expect that
-the memory that was allocated for struct pages was zeroed by the
-allocator. Zero it when "struct pages" are initialized.
+In preparation for making the clockevents core NTP correction aware,
+all clockevent device drivers must set ->min_delta_ticks and
+->max_delta_ticks rather than ->min_delta_ns and ->max_delta_ns: a
+clockevent device's rate is going to change dynamically and thus, the
+ratio of ns to ticks ceases to stay invariant.
 
-Also, a defined boolean VMEMMAP_ZERO is provided to tell platforms whether
-they should zero memory or can deffer it.
+Make the sparc arch's clockevent drivers initialize these fields properly.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+This patch alone doesn't introduce any change in functionality as the
+clockevents core still looks exclusively at the (untouched) ->min_delta_ns
+and ->max_delta_ns. As soon as this has changed, a followup patch will
+purge the initialization of ->min_delta_ns and ->max_delta_ns from these
+drivers.
+
+Signed-off-by: Nicolai Stange <nicstange@gmail.com>
 ---
- include/linux/mm.h |    9 +++++++++
- mm/page_alloc.c    |    3 +++
- 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 54df194..eb052f6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2427,6 +2427,15 @@ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- #ifdef CONFIG_MEMORY_HOTPLUG
- void vmemmap_free(unsigned long start, unsigned long end);
- #endif
-+/*
-+ * Don't zero "struct page"es during early boot, and zero only when they are
-+ * initialized in parallel.
-+ */
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+#define VMEMMAP_ZERO	false
-+#else
-+#define VMEMMAP_ZERO	true
-+#endif
- void register_page_bootmem_memmap(unsigned long section_nr, struct page *map,
- 				  unsigned long size);
+Notes:
+    This prerequisite patch is part of a larger effort to feed NTP
+    corrections into the clockevent devices' frequencies and thus
+    avoiding their notion of time to diverge from the system's
+    one. If you're interested, the current state of the whole series
+    can be found at [1].
+    
+    If you haven't got any objections and these prerequisites get
+    merged by 4.12 everywhere, I'll proceed with the remainder of
+    this series in 4.13.
+    
+    Applicable to next-20170324 as well as to John' Stultz tree [2].
+    
+    [1]
+      git://nicst.de/linux.git cev-freq-adj.v10.fortglx-4.12-time
+      https://nicst.de/git/?p=linux.git;a=shortlog;h=refs/heads/cev-freq-adj.v10.fortglx-4.12-time
+    
+    [2]
+      https://git.linaro.org/people/john.stultz/linux.git fortglx/4.12/time
+
+ arch/sparc/kernel/time_32.c | 2 ++
+ arch/sparc/kernel/time_64.c | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
+index 244062bdaa56..9f575dfc2e41 100644
+--- a/arch/sparc/kernel/time_32.c
++++ b/arch/sparc/kernel/time_32.c
+@@ -228,7 +228,9 @@ void register_percpu_ce(int cpu)
+ 	ce->mult           = div_sc(sparc_config.clock_rate, NSEC_PER_SEC,
+ 	                            ce->shift);
+ 	ce->max_delta_ns   = clockevent_delta2ns(sparc_config.clock_rate, ce);
++	ce->max_delta_ticks = (unsigned long)sparc_config.clock_rate;
+ 	ce->min_delta_ns   = clockevent_delta2ns(100, ce);
++	ce->min_delta_ticks = 100;
  
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index f202f8b..02945e4 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1168,6 +1168,9 @@ static void free_one_page(struct zone *zone,
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+	memset(page, 0, sizeof(struct page));
-+#endif
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
+ 	clockevents_register_device(ce);
+ }
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 12a6d3555cb8..98d05de8da66 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -796,8 +796,10 @@ void __init time_init(void)
+ 
+ 	sparc64_clockevent.max_delta_ns  		clockevent_delta2ns(0x7fffffffffffffffUL, &sparc64_clockevent);
++	sparc64_clockevent.max_delta_ticks = 0x7fffffffffffffffUL;
+ 	sparc64_clockevent.min_delta_ns  		clockevent_delta2ns(0xF, &sparc64_clockevent);
++	sparc64_clockevent.min_delta_ticks = 0xF;
+ 
+ 	printk("clockevent: mult[%x] shift[%d]\n",
+ 	       sparc64_clockevent.mult, sparc64_clockevent.shift);
 -- 
-1.7.1
+2.12.0
 
