@@ -1,65 +1,61 @@
-From: kbuild test robot <lkp@intel.com>
-Date: Thu, 30 Mar 2017 12:18:00 +0000
+From: Theodore Ts'o <tytso@mit.edu>
+Date: Thu, 30 Mar 2017 14:11:53 +0000
 Subject: Re: [PATCH] serial: Do not treat the IIR register as a bitfield
-Message-Id: <201703302036.mn7yu2Zn%fengguang.wu@intel.com>
+Message-Id: <20170330141153.mvxa6iqj72hnhlu3@thunk.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170329184431.6226-1-oliver@schinagl.nl>
-In-Reply-To: <20170329184431.6226-1-oliver@schinagl.nl>
+ <6be65e8b-eea4-08ed-0b30-5c0608764a83@ti.com>
+ <D694FA74-1F31-4B57-8858-2DBE8DE57D45@schinagl.nl>
+In-Reply-To: <D694FA74-1F31-4B57-8858-2DBE8DE57D45@schinagl.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: Vignesh R <vigneshr@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Laxman Dewangan <ldewangan@nvidia.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, Alexandre Courbot <gnurou@gmail.com>, "David S . Miller" <davem@davemloft.net>, "dev@linux-sunxi.org" <dev@linux-sunxi.org>, Ed Blake <ed.blake@imgtec.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Alexander Sverdlin <alexander.sverdlin@nokia.com>, Yegor Yefremov <yegorslists@googlemail.com>, Wan Ahmad Zainie <wan.ahmad.zainie.wan.mohamad@intel.com>, Kefeng Wang <wangkefeng.wang@huawei.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Heiko Stuebner <heiko@sntech.de>, Jason Uy <jason.uy@broadcom.com>
 
-Hi Olliver,
+While you're fixing this, there's a bug in samples/vfio-mdev/mtty.c:
 
-[auto build test WARNING on tty/tty-testing]
-[also build test WARNING on v4.11-rc4 next-20170330]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+		u8 ier = mdev_state->s[index].uart_reg[UART_IER];
+		*buf = 0;
 
-url:    https://github.com/0day-ci/linux/commits/Olliver-Schinagl/serial-Do-not-treat-the-IIR-register-as-a-bitfield/20170330-165826
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git tty-testing
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+		mutex_lock(&mdev_state->rxtx_lock);
+		/* Interrupt priority 1: Parity, overrun, framing or break */
+		if ((ier & UART_IER_RLSI) && mdev_state->s[index].overrun)
+			*buf |= UART_IIR_RLSI;
 
+		/* Interrupt priority 2: Fifo trigger level reached */
+		if ((ier & UART_IER_RDI) &&
+		    (mdev_state->s[index].rxtx.count =
+		      mdev_state->s[index].intr_trigger_level))
+			*buf |= UART_IIR_RDI;
 
-sparse warnings: (new ones prefixed by >>)
+		/* Interrupt priotiry 3: transmitter holding register empty */
+		if ((ier & UART_IER_THRI) &&
+		    (mdev_state->s[index].rxtx.head =
+				mdev_state->s[index].rxtx.tail))
+			*buf |= UART_IIR_THRI;
 
-   include/linux/compiler.h:264:8: sparse: attribute 'no_sanitize_address': unknown attribute
-   drivers/staging/media/lirc/lirc_sir.c:285:44: sparse: undefined identifier 'UART_IIR_ID'
-   drivers/staging/media/lirc/lirc_sir.c:286:29: sparse: undefined identifier 'UART_IIR_ID'
->> drivers/staging/media/lirc/lirc_sir.c:287:22: sparse: incompatible types for 'case' statement
-   drivers/staging/media/lirc/lirc_sir.c:290:22: sparse: incompatible types for 'case' statement
-   drivers/staging/media/lirc/lirc_sir.c:293:22: sparse: incompatible types for 'case' statement
-   drivers/staging/media/lirc/lirc_sir.c:299:22: sparse: incompatible types for 'case' statement
-   drivers/staging/media/lirc/lirc_sir.c: In function 'sir_interrupt':
-   drivers/staging/media/lirc/lirc_sir.c:285:37: error: 'UART_IIR_ID' undeclared (first use in this function)
-     while ((iir = inb(io + UART_IIR) & UART_IIR_ID)) {
-                                        ^~~~~~~~~~~
-   drivers/staging/media/lirc/lirc_sir.c:285:37: note: each undeclared identifier is reported only once for each function it appears in
+		/* Interrupt priotiry 4: Modem status: CTS, DSR, RI or DCD  */
+		if ((ier & UART_IER_MSI) &&
+		    (mdev_state->s[index].uart_reg[UART_MCR] &
+				 (UART_MCR_RTS | UART_MCR_DTR)))
+			*buf |= UART_IIR_MSI;
 
-vim +/case +287 drivers/staging/media/lirc/lirc_sir.c
+		/* bit0: 0=> interrupt pending, 1=> no interrupt is pending */
+		if (*buf = 0)
+			*buf = UART_IIR_NO_INT;
 
-34668350 drivers/staging/media/lirc/lirc_sir.c Ksenija Stanojevic 2015-05-22  279  	ktime_t curr_time;
-34668350 drivers/staging/media/lirc/lirc_sir.c Ksenija Stanojevic 2015-05-22  280  	static unsigned long delt;
-34668350 drivers/staging/media/lirc/lirc_sir.c Ksenija Stanojevic 2015-05-22  281  	unsigned long deltintr;
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  282  	unsigned long flags;
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  283  	int iir, lsr;
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  284  
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26 @285  	while ((iir = inb(io + UART_IIR) & UART_IIR_ID)) {
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  286  		switch (iir&UART_IIR_ID) { /* FIXME toto treba preriedit */
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26 @287  		case UART_IIR_MSI:
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  288  			(void) inb(io + UART_MSR);
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  289  			break;
-404f3e95 drivers/staging/lirc/lirc_sir.c       Jarod Wilson       2010-07-26  290  		case UART_IIR_RLSI:
+It's treating the UART_IIR_* fields as a bitmask which is bad enough,
+but in the "Interrupt priority 4" case, UART_IIR_MSI is zero, so 
+"*buf |= UART_IIR_MSI" is a no-op.   And in the case where the modem
+status interrupt is the only thing set, *buf will be 0, and UART_IIR_NO_INT
+gets set erroneously.
 
-:::::: The code at line 287 was first introduced by commit
-:::::: 404f3e956bc7ab03ac604fabf136e69607315f60 V4L/DVB: staging/lirc: add lirc_sir driver
+So this is another example of the bug of trying to treat the
+UART_IIR_* fields as a bitmask....
 
-:::::: TO: Jarod Wilson <jarod@redhat.com>
-:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Yes, it's only sample code, but best fix it now before it gets copied
+elsewhere and metastisizes.   :-)
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+							- Ted
+							
