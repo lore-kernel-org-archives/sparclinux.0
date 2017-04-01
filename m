@@ -1,23 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 25 Apr 2017 03:28:02 +0000
-Subject: Re: [PATCH net-next] sparc64: Improve 64-bit constant loading in eBPF JIT.
-Message-Id: <20170424.232802.2056583278183102508.davem@davemloft.net>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 01 Apr 2017 20:47:44 +0000
+Subject: [PATCH] sparc32: Export vac_cache_size to fix build error
+Message-Id: <1491079664-12615-1-git-send-email-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170424.225334.898469015162314835.davem@davemloft.net>
-        <74973b5c-5380-b27b-3cf6-7b1444cade02@fb.com>
-In-Reply-To: <74973b5c-5380-b27b-3cf6-7b1444cade02@fb.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ast@fb.com
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org, daniel@iogearbox.net
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Doug Ledford <dledford@redhat.com>
 
-From: Alexei Starovoitov <ast@fb.com>
-Date: Mon, 24 Apr 2017 20:18:56 -0700
+sparc32:allmodconfig fails to build with the following error.
 
-> all gcc-ism actually gives confidence that most likely
-> it's all good and battle proven logic :)
+ERROR: "vac_cache_size" [drivers/infiniband/sw/rxe/rdma_rxe.ko] undefined!
 
-Yes, this is old code written 15 years ago :)
+Fixes: cb8864559631 ("infiniband: Fix alignment of mmap cookies ...")
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ arch/sparc/mm/srmmu.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-I'll fix up the spaces.
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index def82f6d626f..8e76ebba2986 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -54,6 +54,7 @@
+ enum mbus_module srmmu_modtype;
+ static unsigned int hwbug_bitmask;
+ int vac_cache_size;
++EXPORT_SYMBOL(vac_cache_size);
+ int vac_line_size;
+ 
+ extern struct resource sparc_iomap;
+-- 
+2.7.4
+
