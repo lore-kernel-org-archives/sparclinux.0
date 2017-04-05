@@ -1,82 +1,64 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 02 Mar 2017 05:33:43 +0000
-Subject: [PATCH v3 2/4] mm: Zeroing hash tables in allocator
-Message-Id: <1488432825-92126-3-git-send-email-pasha.tatashin@oracle.com>
+From: Mathias Krause <minipli@googlemail.com>
+Date: Wed, 05 Apr 2017 19:24:20 +0000
+Subject: [PATCH v2] sparc: remove unused wp_works_ok macro
+Message-Id: <1491420260-32213-1-git-send-email-minipli@googlemail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1488432825-92126-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1488432825-92126-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, Mathias Krause <minipli@googlemail.com>, sparclinux@vger.kernel.org
 
-Add a new flag HASH_ZERO which when provided grantees that the hash table
-that is returned by alloc_large_system_hash() is zeroed.  In most cases
-that is what is needed by the caller. Use page level allocator's __GFP_ZERO
-flags to zero the memory. It is using memset() which is efficient method to
-zero memory and is optimized for most platforms.
+It's unused for ages, used to be required for ksyms.c back in the v1.1
+times.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Mathias Krause <minipli@googlemail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
- include/linux/bootmem.h |    1 +
- mm/page_alloc.c         |   12 +++++++++---
- 2 files changed, 10 insertions(+), 3 deletions(-)
+Hi Dave,
 
-diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
-index 962164d..e223d91 100644
---- a/include/linux/bootmem.h
-+++ b/include/linux/bootmem.h
-@@ -358,6 +358,7 @@ static inline void __init memblock_free_late(
- #define HASH_EARLY	0x00000001	/* Allocating during early boot? */
- #define HASH_SMALL	0x00000002	/* sub-page allocation allowed, min
- 					 * shift passed via *_hash_shift */
-+#define HASH_ZERO	0x00000004	/* Zero allocated hash table */
+same patch as v1 but as the tip folks took only the x86 parts, I think,
+this one should go through the SPARC tree.
+
+Cheers,
+Mathias
+
+ arch/sparc/include/asm/processor_32.h |    6 ------
+ arch/sparc/include/asm/processor_64.h |    4 ----
+ 2 files changed, 10 deletions(-)
+
+diff --git a/arch/sparc/include/asm/processor_32.h b/arch/sparc/include/asm/processor_32.h
+index 365d4cb267b4..dd27159819eb 100644
+--- a/arch/sparc/include/asm/processor_32.h
++++ b/arch/sparc/include/asm/processor_32.h
+@@ -18,12 +18,6 @@
+ #include <asm/signal.h>
+ #include <asm/page.h>
  
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index a7a6aac..1b0f7a4 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7142,6 +7142,7 @@ static unsigned long __init arch_reserved_kernel_pages(void)
- 	unsigned long long max = high_limit;
- 	unsigned long log2qty, size;
- 	void *table = NULL;
-+	gfp_t gfp_flags;
+-/*
+- * The sparc has no problems with write protection
+- */
+-#define wp_works_ok 1
+-#define wp_works_ok__is_a_macro /* for versions in ksyms.c */
+-
+ /* Whee, this is STACK_TOP + PAGE_SIZE and the lowest kernel address too...
+  * That one page is used to protect kernel from intruders, so that
+  * we can make our access_ok test faster
+diff --git a/arch/sparc/include/asm/processor_64.h b/arch/sparc/include/asm/processor_64.h
+index 6448cfc8292f..b58ee9018433 100644
+--- a/arch/sparc/include/asm/processor_64.h
++++ b/arch/sparc/include/asm/processor_64.h
+@@ -18,10 +18,6 @@
+ #include <asm/ptrace.h>
+ #include <asm/page.h>
  
- 	/* allow the kernel cmdline to have a say */
- 	if (!numentries) {
-@@ -7186,12 +7187,17 @@ static unsigned long __init arch_reserved_kernel_pages(void)
- 
- 	log2qty = ilog2(numentries);
- 
-+	/*
-+	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
-+	 * currently not used when HASH_EARLY is specified.
-+	 */
-+	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
- 	do {
- 		size = bucketsize << log2qty;
- 		if (flags & HASH_EARLY)
- 			table = memblock_virt_alloc_nopanic(size, 0);
- 		else if (hashdist)
--			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
-+			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
- 		else {
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
-@@ -7199,8 +7205,8 @@ static unsigned long __init arch_reserved_kernel_pages(void)
- 			 * alloc_pages_exact() automatically does
- 			 */
- 			if (get_order(size) < MAX_ORDER) {
--				table = alloc_pages_exact(size, GFP_ATOMIC);
--				kmemleak_alloc(table, size, 1, GFP_ATOMIC);
-+				table = alloc_pages_exact(size, gfp_flags);
-+				kmemleak_alloc(table, size, 1, gfp_flags);
- 			}
- 		}
- 	} while (!table && size > PAGE_SIZE && --log2qty);
+-/* The sparc has no problems with write protection */
+-#define wp_works_ok 1
+-#define wp_works_ok__is_a_macro /* for versions in ksyms.c */
+-
+ /*
+  * User lives in his very own context, and cannot reference us. Note
+  * that TASK_SIZE is a misnomer, it really gives maximum user virtual
 -- 
-1.7.1
+1.7.10.4
 
