@@ -1,29 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Apr 2017 01:19:37 +0000
-Subject: Re: [PATCH RFC] sparc64: eBPF JIT
-Message-Id: <20170421.211937.393214469332032143.davem@davemloft.net>
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Date: Fri, 07 Apr 2017 06:27:23 +0000
+Subject: Re: [v2 5/5] mm: teach platforms not to zero struct pages memory
+Message-Id: <87bms8rbes.fsf@skywalker.in.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170418054444.GA36377@ast-mbp.thefacebook.com>
-        <20170418.143732.1494140903085244508.davem@davemloft.net>
-        <20170418225707.GA65449@ast-mbp.thefacebook.com>
-In-Reply-To: <20170418225707.GA65449@ast-mbp.thefacebook.com>
+References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com> <1490383192-981017-6-git-send-email-pasha.tatashin@oracle.com> <20170327060032.GB5092@osiris>
+In-Reply-To: <20170327060032.GB5092@osiris>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: alexei.starovoitov@gmail.com
-Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net
+To: Heiko Carstens <heiko.carstens@de.ibm.com>, Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, davem@davemloft.net, willy@infradead.org
 
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Tue, 18 Apr 2017 15:57:09 -0700
+Heiko Carstens <heiko.carstens@de.ibm.com> writes:
 
-> Alternative idea: can the above
-> 'add FP, STACK_BIAS, one_of_local_regs' be done once in prologue
-> and that register used as substitue for R10 ?
+> On Fri, Mar 24, 2017 at 03:19:52PM -0400, Pavel Tatashin wrote:
+>> If we are using deferred struct page initialization feature, most of
+>> "struct page"es are getting initialized after other CPUs are started, and
+>> hence we are benefiting from doing this job in parallel. However, we are
+>> still zeroing all the memory that is allocated for "struct pages" using the
+>> boot CPU.  This patch solves this problem, by deferring zeroing "struct
+>> pages" to only when they are initialized.
+>> 
+>> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+>> Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+>> ---
+>>  arch/powerpc/mm/init_64.c |    2 +-
+>>  arch/s390/mm/vmem.c       |    2 +-
+>>  arch/sparc/mm/init_64.c   |    2 +-
+>>  arch/x86/mm/init_64.c     |    2 +-
+>>  4 files changed, 4 insertions(+), 4 deletions(-)
+>> 
+>> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
+>> index eb4c270..24faf2d 100644
+>> --- a/arch/powerpc/mm/init_64.c
+>> +++ b/arch/powerpc/mm/init_64.c
+>> @@ -181,7 +181,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+>>  		if (vmemmap_populated(start, page_size))
+>>  			continue;
+>> 
+>> -		p = vmemmap_alloc_block(page_size, node, true);
+>> +		p = vmemmap_alloc_block(page_size, node, VMEMMAP_ZERO);
+>>  		if (!p)
+>>  			return -ENOMEM;
+>> 
+>> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
+>> index 9c75214..ffe9ba1 100644
+>> --- a/arch/s390/mm/vmem.c
+>> +++ b/arch/s390/mm/vmem.c
+>> @@ -252,7 +252,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
+>>  				void *new_page;
+>> 
+>>  				new_page = vmemmap_alloc_block(PMD_SIZE, node,
+>> -							       true);
+>> +							       VMEMMAP_ZERO);
+>>  				if (!new_page)
+>>  					goto out;
+>>  				pmd_val(*pm_dir) = __pa(new_page) | sgt_prot;
+>
+> s390 has two call sites that need to be converted, like you did in one of
+> your previous patches. The same seems to be true for powerpc, unless there
+> is a reason to not convert them?
+>
 
-After much consideration I think this is what I'm going to end up
-doing, I should have listened to you from the beginning :-)
+vmemmap_list_alloc is not really struct page allocation right ? We are
+just allocating memory to be used as vmemmmap_backing. But considering
+we are updating all the three elements of the sturct, we can avoid that
+memset . But instead of VMEMMAP_ZERO we can just pass false in that case
+?
 
-It will simplify the JIT significantly.
+-aneesh
 
-Now I will just have to completely trust that the verifier has audited
-all the FP accesses properly. :-)
