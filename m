@@ -1,7 +1,7 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Mon, 10 Apr 2017 17:18:39 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 10 Apr 2017 19:23:07 +0000
 Subject: Re: [PATCH 0/5] LDC changes for porting VCC driver into upstream kernel
-Message-Id: <95056771-7a26-a87c-e71a-bec039e36d3f@oracle.com>
+Message-Id: <20170410.152307.672700553725193472.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1490823535.git.jag.raman@oracle.com>
 In-Reply-To: <cover.1490823535.git.jag.raman@oracle.com>
@@ -10,46 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ping?
+From: Jag Raman <jag.raman@oracle.com>
+Date: Mon, 10 Apr 2017 13:18:39 -0400
 
-On 3/29/2017 5:51 PM, Jag Raman wrote:
-> This set of patches is part of an effort to port VCC (Virtual Channel
-> Concentrator) and VDS (Virtual Disk Server) kernel modules from UEK4
-> (Unbreakable Enterprise Kernel 4) to the upstream kernel. UEK4 is
-> one of the kernels used to develop Oracle's virtualization solutions.
->
-> The virtualization solutions typically involve the formation of domains,
-> with one of them (primary domain) managing the other ones (guest
-> domains). Each domain typically runs an OS.
->
-> VCC & VDS enable the virtualization of serial console and storage
-> respectively, on SPARC processors. VCC provides access to the guest
-> domain's serial console. VDS provides the ability to allocate storage to
-> the guest domain.
->
-> Both VCC & VDS depend on some core functionalities in the linux kernel for
-> SPARC. The functionalities include LDC (Logical Domain Channels),
-> MDESC (Machine Descriptor) and VIO (Virtual IO protocol).
->
-> In order for VCC & VDS to be ported over to the kernel upstream, it
-> requires that gaps in these core functionalities, between UEK4 &
-> upstream, be bridged.
->
-> This set of patches focusses on bridging gaps in LDC functionality.
-> Changes to MDESC, VIO and ultimately VCC & VDS would follow.
->
-> Jag Raman (5):
->    sparc64: expand LDC interface
->    sparc64: enhance ldc_abort to print message
->    sparc64: ensure LDC channel is ready before communication
->    sparc64: skip control packet while processing LDC RX queue
->    sparc64: print debug messages when reading from LDC channel
->
->   arch/sparc/include/asm/ldc.h |   13 +++
->   arch/sparc/kernel/ldc.c      |  178 ++++++++++++++++++++++++++++++++----------
->   2 files changed, 148 insertions(+), 43 deletions(-)
->
+> Ping?
 
--- 
-Jag
-
+Sorry I've been busy at a conference over the past week or so, I'll
+try to get to reviewing these changes soon.
