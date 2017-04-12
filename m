@@ -1,51 +1,88 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 22 Apr 2017 18:27:22 +0000
-Subject: Re: [PATCH 2/2] sparc64: Add eBPF JIT.
-Message-Id: <20170422.142722.2115566524446267818.davem@davemloft.net>
+From: Pasha Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 12 Apr 2017 17:55:35 +0000
+Subject: Re: [PATCH v2 0/4] Improved logging
+Message-Id: <e2849e48-1167-84aa-9648-5e2c356aacf7@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170421.201711.317784995765325131.davem@davemloft.net>
-        <20170422153233.GA47144@ast-mbp.thefacebook.com>
-In-Reply-To: <20170422153233.GA47144@ast-mbp.thefacebook.com>
+References: <1489423479-654395-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1489423479-654395-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: alexei.starovoitov@gmail.com
-Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net
+To: sparclinux@vger.kernel.org
 
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Sat, 22 Apr 2017 08:32:35 -0700
-
-> On Fri, Apr 21, 2017 at 08:17:11PM -0700, David Miller wrote:
->> 
->> This is an eBPF JIT for sparc64.  All major features are supported.
->> 
->> All tests under tools/testing/selftests/bpf/ pass.
->> 
->> Signed-off-by: David S. Miller <davem@davemloft.net>
-> ...
->> +	/* tail call */
->> +	case BPF_JMP | BPF_CALL |BPF_X:
->> +		emit_tail_call(ctx);
->> +
+> You really need to generalize this, so that it doesn't only just work
+> with the hypervisor console, but rather with any console device we
+> support whatsoever.
 > 
-> I think 'break;' is missing here.
-
-Good catch, I'll fix that.
-
-> When tail_call's target program is null the current program should
-> continue instead of aborting.
-> Like in our current ddos+lb setup the program looks like:
->  bpf_tail_call(ctx, &prog_array, 1);
->  bpf_tail_call(ctx, &prog_array, 2);
->  bpf_tail_call(ctx, &prog_array, 3);
->  return XDP_DROP;
+> I bet if you did that, the hook wouldn't even be needed.
 > 
-> this way it will jump into the program that is installed in slot 1.
-> If it's empty, it will try slot 2...
-> If no programs installed it will drop the packet.
+> If you need to keep the hook, you have to declare it in some common
+> kernel header file.  If you built with extra warnings or with sparse
+> it would have warned about this (globally visible function with no
+> previous declaration seen).
+> 
 
-Yes, with the break; fixed above that's what the sparc64 JIT will
-end up doing.  If any of the tests don't pass in emit_tail_call()
-we branch to the end of the emit_tail_call() sequence.
+Hi Dave,
 
-Thanks.
+Thank you for the review, I will fix the missing declaration.
+
+I have thought about this new hook problem, and do not really see a 
+clean way to do what plat_unregister_bootcon() is doing in the common code.
+
+The main reason is that this function is doing very SPARC specific 
+checking of where OpenBoot (boot console) is outputing, and if the 
+device matches the virtual-console, only than we are waiting for ttyHV 
+to replace the boot console.
+
+We could add a new console flag, and move the logic from 
+plat_unregister_bootcon() into ttyHV, but that would add unnecessary 
+OpenBoot code into ttyHV driver. It is really, better to keep it in the 
+sparc startup code instead.
+
+Also, it appears, that boot to normal console switch works well for all 
+other platforms, and only on sun4v sparc where we have this extra 
+hypervisor console which is loaded later in boot we have this 
+duplicating messages, and dead time problems.
+
+---
+
+Unrelated to the above problem, but related to this patchset:
+
+As part of [v2,1/4] sparc64: initialize time early, I am also thinking 
+to add timer_offset, so sched_clock() would start from 0, as it does on 
+most of other platforms.
+
+It means one extra load on every sched_clock() call, we would still be 
+far better, than what x86 is doing on every sched_clock().
+
+If you are concerned about this extra load, I could mitigate it on newer 
+platforms by adding a static branch for cases where stick increments 
+every nanosecond, defined in Oracle SPARC Architecture 2011.
+
+sched_clock() would look something like this:
+
+unsigned long long sched_clock(void)
+{
+
+         if (static_branch_likely(&__nanosec_stick)) {
+		return stick_get_tick() - timer_offset;
+	} else {
+		unsigned long ticks = tick_ops->get_tick();
+
+		return ((ticks * timer_ticks_per_nsec_quotient)
+			>> SPARC64_NSEC_PER_CYC_SHIFT) - timer_offset;
+	}
+}
+
+This would save function pointer load, multiplication, and also 
+timer_ticks_per_nsec_quotient load. Initially __nanosec_stick would be 
+false, so early time stamps would work, but later during clock_init() 
+changed to true if freq = 1Ghz, and get_tick = stick_get_tick().
+
+Also, should not we replace shift and multiplication with:
+mul_u64_u32_shr(ticks, timer_ticks_per_nsec_quotient,
+SPARC64_NSEC_PER_CYC_SHIFT); to avoid possible overflow? I could do that 
+as well.
+
+Thank you,
+Pasha
