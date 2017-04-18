@@ -1,108 +1,91 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date: Mon, 17 Apr 2017 23:27:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 18 Apr 2017 01:12:45 +0000
 Subject: Re: [PATCH RFC] sparc64: eBPF JIT
-Message-Id: <20170417232740.GB96258@ast-mbp.thefacebook.com>
+Message-Id: <20170417.181245.1402412750148031248.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170416.233825.1748421481008153466.davem@davemloft.net>
-In-Reply-To: <20170416.233825.1748421481008153466.davem@davemloft.net>
+        <20170417232740.GB96258@ast-mbp.thefacebook.com>
+In-Reply-To: <20170417232740.GB96258@ast-mbp.thefacebook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: alexei.starovoitov@gmail.com
 Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org, ast@kernel.org, daniel@iogearbox.net
 
-On Sun, Apr 16, 2017 at 11:38:25PM -0400, David Miller wrote:
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date: Mon, 17 Apr 2017 16:27:42 -0700
+
+> On Sun, Apr 16, 2017 at 11:38:25PM -0400, David Miller wrote:
+>> +static void build_prologue(struct jit_ctx *ctx)
+>> +{
+>> +	s32 stack_needed = 176;
+>> +
+>> +	if (ctx->saw_frame_pointer)
+>> +		stack_needed += MAX_BPF_STACK;
+>> +
+>> +	/* save %sp, -176, %sp */
+>> +	emit(SAVE | IMMED | RS1(SP) | S13(-stack_needed) | RD(SP), ctx);
+>> +
+>> +	if (ctx->saw_ld_abs_ind) {
+>> +		load_skb_regs(ctx, bpf2sparc[BPF_REG_1]);
+>> +	} else {
+>> +		emit_nop(ctx);
+>> +		emit_nop(ctx);
+>> +		emit_nop(ctx);
+>> +		emit_nop(ctx);
 > 
-> There are a bunch of things I want to do still, and I know that I have
-> to attend to sparc32 more cleanly, but I wanted to post this now that
-> I have it passing the BPF testsuite completely:
+> why 4 nops? to keep prologue size constant w/ and w/o caching ?
+> does it help somehow? I'm assuming that's prep for next step
+> of tail_call.
+
+I need to make some adjustments to how the branch offsets are done
+if the prologue is variable size.  Simply an implementation issue,
+which I intend to fix, nothing more.
+
 > 
-> [24174.315421] test_bpf: Summary: 305 PASSED, 0 FAILED, [297/297 JIT'ed]
+>> +	if (insn->src_reg = BPF_REG_FP || insn->dst_reg = BPF_REG_FP) {
+>> +		ctx->saw_frame_pointer = true;
+>> +		if (BPF_CLASS(code) = BPF_ALU ||
+>> +		    BPF_CLASS(code) = BPF_ALU64) {
+>> +			pr_err_once("ALU op on FP not supported by JIT\n");
+>> +			return -EINVAL;
+> 
+> That should be fine. The verifier checks for that:
+>   /* check whether register used as dest operand can be written to */
+>   if (regno = BPF_REG_FP) {
+>           verbose("frame pointer is read only\n");
+>           return -EACCES;
+>   }
 
-Nice!
+I need to trap it as a source as well, because if that is allowed then
+I have to add special handling to every ALU operation we allow.
 
-> +static void build_prologue(struct jit_ctx *ctx)
-> +{
-> +	s32 stack_needed = 176;
-> +
-> +	if (ctx->saw_frame_pointer)
-> +		stack_needed += MAX_BPF_STACK;
-> +
-> +	/* save %sp, -176, %sp */
-> +	emit(SAVE | IMMED | RS1(SP) | S13(-stack_needed) | RD(SP), ctx);
-> +
-> +	if (ctx->saw_ld_abs_ind) {
-> +		load_skb_regs(ctx, bpf2sparc[BPF_REG_1]);
-> +	} else {
-> +		emit_nop(ctx);
-> +		emit_nop(ctx);
-> +		emit_nop(ctx);
-> +		emit_nop(ctx);
+The reason is that the sparc64 stack is biased by 2047 bytes.  So
+I have to adjust every FP relative reference to include that 2047
+bias.
 
-why 4 nops? to keep prologue size constant w/ and w/o caching ?
-does it help somehow? I'm assuming that's prep for next step
-of tail_call.
+Can LLVM and CLANG emit arithmetic operations with FP as source?
 
-> +	if (insn->src_reg = BPF_REG_FP || insn->dst_reg = BPF_REG_FP) {
-> +		ctx->saw_frame_pointer = true;
-> +		if (BPF_CLASS(code) = BPF_ALU ||
-> +		    BPF_CLASS(code) = BPF_ALU64) {
-> +			pr_err_once("ALU op on FP not supported by JIT\n");
-> +			return -EINVAL;
+>> +	/* dst = imm64 */
+>> +	case BPF_LD | BPF_IMM | BPF_DW:
+>> +	{
+>> +		const struct bpf_insn insn1 = insn[1];
+>> +		u64 imm64;
+>> +
+>> +		if (insn1.code != 0 || insn1.src_reg != 0 ||
+>> +		    insn1.dst_reg != 0 || insn1.off != 0) {
+>> +			/* Note: verifier in BPF core must catch invalid
+>> +			 * instructions.
+>> +			 */
+>> +			pr_err_once("Invalid BPF_LD_IMM64 instruction\n");
+>> +			return -EINVAL;
+> 
+> verifier should catch that too, but extra check doesn't hurt.
 
-That should be fine. The verifier checks for that:
-  /* check whether register used as dest operand can be written to */
-  if (regno = BPF_REG_FP) {
-          verbose("frame pointer is read only\n");
-          return -EACCES;
-  }
+I just copied from anoter JIT, I can remove it.
 
-> +	/* dst = imm64 */
-> +	case BPF_LD | BPF_IMM | BPF_DW:
-> +	{
-> +		const struct bpf_insn insn1 = insn[1];
-> +		u64 imm64;
-> +
-> +		if (insn1.code != 0 || insn1.src_reg != 0 ||
-> +		    insn1.dst_reg != 0 || insn1.off != 0) {
-> +			/* Note: verifier in BPF core must catch invalid
-> +			 * instructions.
-> +			 */
-> +			pr_err_once("Invalid BPF_LD_IMM64 instruction\n");
-> +			return -EINVAL;
+> all looks great to me.
 
-verifier should catch that too, but extra check doesn't hurt.
+Thanks for reviewing.
 
-> +	/* STX XADD: lock *(u32 *)(dst + off) += src */
-> +	case BPF_STX | BPF_XADD | BPF_W: {
-> +		const u8 tmp = bpf2sparc[TMP_REG_1];
-> +		const u8 tmp2 = bpf2sparc[TMP_REG_2];
-> +		const u8 tmp3 = bpf2sparc[TMP_REG_3];
-> +		s32 real_off = off;
-> +
-> +		ctx->tmp_1_used = true;
-> +		ctx->tmp_2_used = true;
-> +		ctx->tmp_3_used = true;
-> +		if (dst = FP)
-> +			real_off += STACK_BIAS;
-> +		emit_loadimm(real_off, tmp, ctx);
-> +		emit_alu3(ADD, dst, tmp, tmp, ctx);
-> +
-> +		emit(LD32 | RS1(tmp) | RS2(G0) | RD(tmp2), ctx);
-> +		emit_alu3(ADD, tmp2, src, tmp3, ctx);
-> +		emit(CAS | ASI(ASI_P) | RS1(tmp) | RS2(tmp2) | RD(tmp3), ctx);
-> +		emit_cmp(tmp2, tmp3, ctx);
-> +		emit_branch(BNE, 4, 0, ctx);
-> +		emit_nop(ctx);
-
-loops in bpf code! run for your life ;)
-
-> +	if (bpf_jit_enable > 1)
-> +		bpf_jit_dump(prog->len, image_size, 2, ctx.image);
-> +	bpf_flush_icache(ctx.image, ctx.image + image_size);
-> +
-> +	bpf_jit_binary_lock_ro(header);
-
-all looks great to me.
-Thanks!
-
+> 
