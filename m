@@ -1,72 +1,105 @@
-From: Theodore Ts'o <tytso@mit.edu>
-Date: Mon, 24 Apr 2017 04:05:48 +0000
-Subject: Re: [sparc64] ext4 TPC and call trace (process blocked/stuck) on git kernel 4.8.0-rc3+
-Message-Id: <20170424040548.hbawisk25tprbyhp@thunk.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Wed, 19 Apr 2017 17:13:41 +0000
+Subject: Re: [PATCH v5 1/4] printk/nmi: generic solution for safe printk in NMI
+Message-Id: <20170419131341.76bc7634@gandalf.local.home>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqyE2HjaXzbv-9ovJM=G18C28tr7pEL8RsUx+9o870jqBg@mail.gmail.com>
- <CADxRZqwMhCe4OrGxSiON=wHg-+hGahiR5rfof8bHZWVUSVW-EA@mail.gmail.com>
-In-Reply-To: <CADxRZqwMhCe4OrGxSiON=wHg-+hGahiR5rfof8bHZWVUSVW-EA@mail.gmail.com>
+References: <1461239325-22779-1-git-send-email-pmladek@suse.com>
+ <1461239325-22779-2-git-send-email-pmladek@suse.com>
+In-Reply-To: <1461239325-22779-2-git-send-email-pmladek@suse.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Anatoly Pugachev <matorola@gmail.com>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, linux-ext4@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 21, 2017 at 07:38:50PM +0300, Anatoly Pugachev wrote:
-> On Wed, Aug 24, 2016 at 11:13 AM, Anatoly Pugachev <matorola@gmail.com> wrote:
-> > Hello!
-> >
-> > Running fstests (xfstests) suite on sparc64 debian sid/unstable with
-> > linux kernel 4.8.0-rc3+ , I'm getting the following call trace and TPC
-> > on server console and system logs:
-> 
-> 
-> got another hung task (sys)log, but not with xfstests and with some
-> debug (kernel locks) output (kernel is 4.10.0-git-something). Can
-> someone knowing kernel have a look and maybe spot something. If not,
-> thanks anyway and machine still works. Thanks!
+On Thu, 21 Apr 2016 13:48:42 +0200
+Petr Mladek <pmladek@suse.com> wrote:
 
-When you say that the system still works, I assume that means that
-writes to root file system (or what ever file system syslog was trying
-to log to, typically /var/log) are still succeeding?
+> printk() takes some locks and could not be used a safe way in NMI context.
 
-These messages are soft lockup messages, and doesn't necessarily means
-that the system was locked up forever:
+I just found a problem with this solution. It kills ftrace dumps from
+NMI context :-(
 
-> Apr 19 19:30:43 landau kernel: INFO: task ostree:107749 blocked for
-> more than 120 seconds.
+[ 1295.168495]    <...>-67423  10dNh1 382171111us : do_raw_spin_lock <-_raw=
+_spin_lock
+[ 1295.168495]    <...>-67423  10dNh1 382171111us : sched_stat_runtime: com=
+m=CC1 pidg423 runtime=96858 [ns] vruntime=11924198270 [ns]
+[ 1295.168496]    <...>-67423  10dNh1 382171111us : lock_acquire: ffffffff8=
+1c5c940 read rcu_read_lock
+[ 1295.168497]
+[ 1295.168498] Lost 4890096 message(s)!
+[ 1296.805063] ---[ end Kernel panic - not syncing: Hard LOCKUP
+[ 1296.811553] unchecked MSR access error: WRMSR to 0x83f (tried to write 0=
+x00000000000000f6) at rIP: 0xffffffff81046fc7 (native_apic_msr_write+0x27/0=
+x40)
+[ 1296.811553] Call Trace:
+[ 1296.811553]  <NMI>
 
-It could just mean that a "sync" command took longer than two minutes
-to complete.
+I was hoping to see a cause of a hard lockup by enabling
+ftrace_dump_on_oops. But as NMIs now have a very small buffer that
+gets flushed, we need to find a new way to print out the full ftrace
+buffer over serial.
 
-> Apr 19 19:30:43 landau kernel:       Tainted: G        W
-> 4.10.0-10531-g86292b33d4b7 #77
-> Apr 19 19:30:43 landau kernel: "echo 0 >
-> /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> Apr 19 19:30:43 landau kernel: ostree          D    0 107749  92509
-> 0x208000103000000
-> Apr 19 19:30:43 landau kernel: Call Trace:
-> Apr 19 19:30:43 landau kernel:  [0000000000a8e790] schedule+0x30/0xc0
-> Apr 19 19:30:43 landau kernel:  [0000000000681798]
-> wb_wait_for_completion+0x58/0xa0
-> Apr 19 19:30:43 landau kernel:  [0000000000682048]
-> __writeback_inodes_sb_nr+0x88/0xc0
-> Apr 19 19:30:43 landau kernel:  [00000000006820e0] writeback_inodes_sb+0x20/0x40
-> Apr 19 19:30:43 landau kernel:  [000000000068a5f4] sync_filesystem+0x34/0xc0
-> Apr 19 19:30:43 landau kernel:  [000000000068a7f8] SyS_syncfs+0x38/0x80
-> Apr 19 19:30:43 landau kernel:  [0000000000406234] linux_sparc_syscall+0x34/0x44
+Thoughts?
 
 
-Without any more details about the system, its workload, whether or
-not the system really was hung forever, or it was functioning normally
-when you discovered it, it's hard to really say much else given the
-lack of information in your e-mail.
+-- Steve
 
-Also note that this stack trace has nothing to do with the e-mail
-thread from last August which you replied to.  At first I thought
-there was a connection, which confused me as I tried to look at the
-very small amount of information in your bug report.
 
-Cheers,
-
-					- Ted
+>=20
+> The chance of a deadlock is real especially when printing stacks from all
+> CPUs.  This particular problem has been addressed on x86 by the commit
+> a9edc8809328 ("x86/nmi: Perform a safe NMI stack trace on all CPUs").
+>=20
+> The patchset brings two big advantages.  First, it makes the NMI
+> backtraces safe on all architectures for free.  Second, it makes all NMI
+> messages almost safe on all architectures (the temporary buffer is
+> limited.  We still should keep the number of messages in NMI context at
+> minimum).
+>=20
+> Note that there already are several messages printed in NMI context:
+> WARN_ON(in_nmi()), BUG_ON(in_nmi()), anything being printed out from MCE
+> handlers.  These are not easy to avoid.
+>=20
+> This patch reuses most of the code and makes it generic.  It is useful for
+> all messages and architectures that support NMI.
+>=20
+> The alternative printk_func is set when entering and is reseted when
+> leaving NMI context.  It queues IRQ work to copy the messages into the
+> main ring buffer in a safe context.
+>=20
+> __printk_nmi_flush() copies all available messages and reset the buffer.
+> Then we could use a simple cmpxchg operations to get synchronized with
+> writers.  There is also used a spinlock to get synchronized with other
+> flushers.
+>=20
+> We do not longer use seq_buf because it depends on external lock.  It
+> would be hard to make all supported operations safe for a lockless use.
+> It would be confusing and error prone to make only some operations safe.
+>=20
+> The code is put into separate printk/nmi.c as suggested by Steven Rostedt.
+> It needs a per-CPU buffer and is compiled only on architectures that call
+> nmi_enter().  This is achieved by the new HAVE_NMI Kconfig flag.
+>=20
+> The are MN10300 and Xtensa architectures.  We need to clean up NMI
+> handling there first.  Let's do it separately.
+>=20
+> The patch is heavily based on the draft from Peter Zijlstra, see
+> https://lkml.org/lkml/2015/6/10/327
+>=20
+> [arnd@arndb.de: printk-nmi: use %zu format string for size_t]
+> [akpm@linux-foundation.org: min_t->min - all types are size_t here]
+> Signed-off-by: Petr Mladek <pmladek@suse.com>
+> Suggested-by: Peter Zijlstra <peterz@infradead.org>
+> Suggested-by: Steven Rostedt <rostedt@goodmis.org>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+> Cc: Daniel Thompson <daniel.thompson@linaro.org>
+> Cc: Jiri Kosina <jkosina@suse.com>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ralf Baechle <ralf@linux-mips.org>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+> Cc: David Miller <davem@davemloft.net>
+> Cc: Daniel Thompson <daniel.thompson@linaro.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
