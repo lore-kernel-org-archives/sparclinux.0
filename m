@@ -1,8 +1,10 @@
 From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Date: Wed, 19 Apr 2017 15:04:33 +0000
+Date: Wed, 19 Apr 2017 15:19:07 +0000
 Subject: Panic enabling bochs_drm on qemu-system-sparc64 (sun4u)
-Message-Id: <50fde122-c0ab-4b0e-2cc7-4fd4d0051c3e@ilande.co.uk>
+Message-Id: <d2aaea04-7477-c048-5758-5fe7507c491a@ilande.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
+References: <50fde122-c0ab-4b0e-2cc7-4fd4d0051c3e@ilande.co.uk>
+In-Reply-To: <50fde122-c0ab-4b0e-2cc7-4fd4d0051c3e@ilande.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
