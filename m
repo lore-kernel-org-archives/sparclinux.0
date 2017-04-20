@@ -1,7 +1,7 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Wed, 19 Apr 2017 17:21:39 +0000
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Date: Thu, 20 Apr 2017 03:31:12 +0000
 Subject: Re: [PATCH v5 1/4] printk/nmi: generic solution for safe printk in NMI
-Message-Id: <20170419172139.hipylcdsarhvnsby@hirez.programming.kicks-ass.net>
+Message-Id: <20170420033112.GB542@jagdpanzerIV.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1461239325-22779-1-git-send-email-pmladek@suse.com>
  <1461239325-22779-2-git-send-email-pmladek@suse.com>
@@ -12,10 +12,9 @@ Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 19, 2017 at 01:13:41PM -0400, Steven Rostedt wrote:
-> On Thu, 21 Apr 2016 13:48:42 +0200
-> Petr Mladek <pmladek@suse.com> wrote:
->=20
+Hello Steven,
+
+On (04/19/17 13:13), Steven Rostedt wrote:
 > > printk() takes some locks and could not be used a safe way in NMI conte=
 xt.
 >=20
@@ -44,4 +43,54 @@ f81c5c940 read rcu_read_lock
 >=20
 > Thoughts?
 
-early_printk ;-)
+hmmm... a really tough one.
+
+well, someone has to say this:
+ the simplest thing is to have a bigger PRINTK_SAFE_LOG_BUF_SHIFT value :)
+
+
+just thinking (well, sort of) out loud. the problem is that we can't tell if
+we already hold any printk related locks ("printk related locks" is not even
+well defined term). so printk from NMI can deadlock or it can be OK, we
+never know. but looking and vprintk_emit() and console_unlock() it seems th=
+at
+we have some sort of a hint now, which is this_cpu_read(printk_context) - if
+we are not in printk_safe context then we can say that _probably_ (and that=
+'s
+a Russian roulette) doing "normal" printk() will work. that is a *very-very*
+risky (and admittedly dumb) thing to assume, so we will move in a slightly
+different direction. checking this_cpu_read(printk_context) only assures us
+that we don't hold `logbuf_lock' on this CPU. and that is sort of something,
+at least we can be sure that doing printk_deferred() from this CPU is safe.
+printk_deferred() means that your NMI messages will end up in the logbuf,
+which is a) bigger in size than per-CPU buffer and b) some other CPU can
+immediately print those messages (hopefully).
+
+we also switch to printk_safe mode for call_console_drivers() in
+console_unlock(). but we can't make any solid assumptions there - serial
+console lock can already be acquired, we don't have any markers for that.
+it may be reasonable to assume that if we are not in printk_safe mode on
+this CPU then serial console is not locked from this CPU, but there is
+nothing that can assure us.
+
+so at the moment what I can think of is something like
+
+  -- check this_cpu_read(printk_context) in NMI prink
+
+	-- if we are NOT in printk_safe on this CPU, then do printk_deferred()
+	   and bypass `nmi_print_seq' buffer
+
+	-- if we are in printk_safe
+	  -- well... bad luck... have a bigger buffer.
+
+		.... or there are some other options here, but I'd prefer
+		not to list them, because people will hate me :)
+
+
+so this shifts the purpose of `nmi_print_seq' buffer: use it only when
+you can't use logbuf. otherwise, do printk_deferred().
+
+
+need to think more.
+
+	-ss
