@@ -1,72 +1,159 @@
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Date: Fri, 07 Apr 2017 06:27:23 +0000
-Subject: Re: [v2 5/5] mm: teach platforms not to zero struct pages memory
-Message-Id: <87bms8rbes.fsf@skywalker.in.ibm.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Fri, 21 Apr 2017 16:38:50 +0000
+Subject: Re: [sparc64] ext4 TPC and call trace (process blocked/stuck) on git kernel 4.8.0-rc3+
+Message-Id: <CADxRZqwMhCe4OrGxSiON=wHg-+hGahiR5rfof8bHZWVUSVW-EA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com> <1490383192-981017-6-git-send-email-pasha.tatashin@oracle.com> <20170327060032.GB5092@osiris>
-In-Reply-To: <20170327060032.GB5092@osiris>
+References: <CADxRZqyE2HjaXzbv-9ovJM=G18C28tr7pEL8RsUx+9o870jqBg@mail.gmail.com>
+In-Reply-To: <CADxRZqyE2HjaXzbv-9ovJM=G18C28tr7pEL8RsUx+9o870jqBg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Heiko Carstens <heiko.carstens@de.ibm.com>, Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, davem@davemloft.net, willy@infradead.org
+To: Sparc kernel list <sparclinux@vger.kernel.org>
+Cc: linux-ext4@vger.kernel.org
 
-Heiko Carstens <heiko.carstens@de.ibm.com> writes:
-
-> On Fri, Mar 24, 2017 at 03:19:52PM -0400, Pavel Tatashin wrote:
->> If we are using deferred struct page initialization feature, most of
->> "struct page"es are getting initialized after other CPUs are started, and
->> hence we are benefiting from doing this job in parallel. However, we are
->> still zeroing all the memory that is allocated for "struct pages" using the
->> boot CPU.  This patch solves this problem, by deferring zeroing "struct
->> pages" to only when they are initialized.
->> 
->> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
->> Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
->> ---
->>  arch/powerpc/mm/init_64.c |    2 +-
->>  arch/s390/mm/vmem.c       |    2 +-
->>  arch/sparc/mm/init_64.c   |    2 +-
->>  arch/x86/mm/init_64.c     |    2 +-
->>  4 files changed, 4 insertions(+), 4 deletions(-)
->> 
->> diff --git a/arch/powerpc/mm/init_64.c b/arch/powerpc/mm/init_64.c
->> index eb4c270..24faf2d 100644
->> --- a/arch/powerpc/mm/init_64.c
->> +++ b/arch/powerpc/mm/init_64.c
->> @@ -181,7 +181,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
->>  		if (vmemmap_populated(start, page_size))
->>  			continue;
->> 
->> -		p = vmemmap_alloc_block(page_size, node, true);
->> +		p = vmemmap_alloc_block(page_size, node, VMEMMAP_ZERO);
->>  		if (!p)
->>  			return -ENOMEM;
->> 
->> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
->> index 9c75214..ffe9ba1 100644
->> --- a/arch/s390/mm/vmem.c
->> +++ b/arch/s390/mm/vmem.c
->> @@ -252,7 +252,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
->>  				void *new_page;
->> 
->>  				new_page = vmemmap_alloc_block(PMD_SIZE, node,
->> -							       true);
->> +							       VMEMMAP_ZERO);
->>  				if (!new_page)
->>  					goto out;
->>  				pmd_val(*pm_dir) = __pa(new_page) | sgt_prot;
+On Wed, Aug 24, 2016 at 11:13 AM, Anatoly Pugachev <matorola@gmail.com> wrote:
+> Hello!
 >
-> s390 has two call sites that need to be converted, like you did in one of
-> your previous patches. The same seems to be true for powerpc, unless there
-> is a reason to not convert them?
->
+> Running fstests (xfstests) suite on sparc64 debian sid/unstable with
+> linux kernel 4.8.0-rc3+ , I'm getting the following call trace and TPC
+> on server console and system logs:
 
-vmemmap_list_alloc is not really struct page allocation right ? We are
-just allocating memory to be used as vmemmmap_backing. But considering
-we are updating all the three elements of the sturct, we can avoid that
-memset . But instead of VMEMMAP_ZERO we can just pass false in that case
-?
 
--aneesh
+got another hung task (sys)log, but not with xfstests and with some
+debug (kernel locks) output (kernel is 4.10.0-git-something). Can
+someone knowing kernel have a look and maybe spot something. If not,
+thanks anyway and machine still works. Thanks!
 
+Apr 19 19:30:43 landau kernel: INFO: task ostree:107749 blocked for
+more than 120 seconds.
+Apr 19 19:30:43 landau kernel:       Tainted: G        W
+4.10.0-10531-g86292b33d4b7 #77
+Apr 19 19:30:43 landau kernel: "echo 0 >
+/proc/sys/kernel/hung_task_timeout_secs" disables this message.
+Apr 19 19:30:43 landau kernel: ostree          D    0 107749  92509
+0x208000103000000
+Apr 19 19:30:43 landau kernel: Call Trace:
+Apr 19 19:30:43 landau kernel:  [0000000000a8e790] schedule+0x30/0xc0
+Apr 19 19:30:43 landau kernel:  [0000000000681798]
+wb_wait_for_completion+0x58/0xa0
+Apr 19 19:30:43 landau kernel:  [0000000000682048]
+__writeback_inodes_sb_nr+0x88/0xc0
+Apr 19 19:30:43 landau kernel:  [00000000006820e0] writeback_inodes_sb+0x20/0x40
+Apr 19 19:30:43 landau kernel:  [000000000068a5f4] sync_filesystem+0x34/0xc0
+Apr 19 19:30:43 landau kernel:  [000000000068a7f8] SyS_syncfs+0x38/0x80
+Apr 19 19:30:43 landau kernel:  [0000000000406234] linux_sparc_syscall+0x34/0x44
+Apr 19 19:30:43 landau kernel:
+                               Showing all locks held in the system:
+Apr 19 19:30:43 landau kernel: 2 locks held by khungtaskd/784:
+Apr 19 19:30:43 landau kernel:  #0:  (rcu_read_lock){......}, at:
+[<000000000054eb80>] watchdog+0x240/0x7e0
+Apr 19 19:30:43 landau kernel:  #1:  (tasklist_lock){.+.+..}, at:
+[<00000000004d2d04>] debug_show_all_locks+0x64/0x1c0
+Apr 19 19:30:43 landau kernel: 1 lock held by in:imklog/1484:
+Apr 19 19:30:43 landau kernel:  #0:  (&f->f_pos_lock){+.+.+.}, at:
+[<000000000066f8ac>] __fdget_pos+0x4c/0x60
+Apr 19 19:30:43 landau kernel: 5 locks held by kworker/u512:0/91935:
+Apr 19 19:30:43 landau kernel:  #0:  ("writeback"){.+.+.+}, at:
+[<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 19:30:43 landau kernel:  #1:  ((&(&wb->dwork)->work)){+.+.+.},
+at: [<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 19:30:43 landau kernel:  #2:
+(&sbi->s_journal_flag_rwsem){.+.+.+}, at: [<00000000005c99ac>]
+do_writepages+0x2c/0x60
+Apr 19 19:30:43 landau kernel:  #3:  (jbd2_handle){++++..}, at:
+[<00000000101647c8>] start_this_handle+0x108/0x3e0 [jbd2]
+Apr 19 19:30:43 landau kernel:  #4:  (&ei->i_data_sem){++++..}, at:
+[<000000001019fb38>] ext4_map_blocks+0x138/0x6a0 [ext4]
+Apr 19 19:30:43 landau kernel: 1 lock held by ostree/107749:
+Apr 19 19:30:43 landau kernel:  #0:  (&type->s_umount_key#29){++++++},
+at: [<000000000068a7f0>] SyS_syncfs+0x30/0x80
+Apr 19 19:30:43 landau kernel:
+Apr 19 19:30:43 landau kernel: ======================Apr 19 20:27:06 landau kernel: INFO: task ostree:73769 blocked for
+more than 120 seconds.
+Apr 19 20:27:06 landau kernel:       Tainted: G        W
+4.10.0-10531-g86292b33d4b7 #77
+Apr 19 20:27:06 landau kernel: "echo 0 >
+/proc/sys/kernel/hung_task_timeout_secs" disables this message.
+Apr 19 20:27:06 landau kernel: ostree          D    0 73769  58526
+0x208000100000000
+Apr 19 20:27:06 landau kernel: Call Trace:
+Apr 19 20:27:06 landau kernel:  [0000000000a8e790] schedule+0x30/0xc0
+Apr 19 20:27:06 landau kernel:  [0000000000681798]
+wb_wait_for_completion+0x58/0xa0
+Apr 19 20:27:06 landau kernel:  [0000000000682048]
+__writeback_inodes_sb_nr+0x88/0xc0
+Apr 19 20:27:06 landau kernel:  [00000000006820e0] writeback_inodes_sb+0x20/0x40
+Apr 19 20:27:06 landau kernel:  [000000000068a5f4] sync_filesystem+0x34/0xc0
+Apr 19 20:27:06 landau kernel:  [000000000068a7f8] SyS_syncfs+0x38/0x80
+Apr 19 20:27:06 landau kernel:  [0000000000406234] linux_sparc_syscall+0x34/0x44
+Apr 19 20:27:06 landau kernel:
+                               Showing all locks held in the system:
+Apr 19 20:27:06 landau kernel: 2 locks held by khungtaskd/784:
+Apr 19 20:27:06 landau kernel:  #0:  (rcu_read_lock){......}, at:
+[<000000000054eb80>] watchdog+0x240/0x7e0
+Apr 19 20:27:06 landau kernel:  #1:  (tasklist_lock){.+.+..}, at:
+[<00000000004d2d04>] debug_show_all_locks+0x64/0x1c0
+Apr 19 20:27:06 landau kernel: 1 lock held by in:imklog/1484:
+Apr 19 20:27:06 landau kernel:  #0:  (&f->f_pos_lock){+.+.+.}, at:
+[<000000000066f8ac>] __fdget_pos+0x4c/0x60
+Apr 19 20:27:06 landau kernel: 5 locks held by kworker/u512:3/46184:
+Apr 19 20:27:06 landau kernel:  #0:  ("writeback"){.+.+.+}, at:
+[<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 20:27:06 landau kernel:  #1:  ((&(&wb->dwork)->work)){+.+.+.},
+at: [<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 20:27:06 landau kernel:  #2:
+(&sbi->s_journal_flag_rwsem){.+.+.+}, at: [<00000000005c99ac>]
+do_writepages+0x2c/0x60
+Apr 19 20:27:06 landau kernel:  #3:  (jbd2_handle){++++..}, at:
+[<00000000101647c8>] start_this_handle+0x108/0x3e0 [jbd2]
+Apr 19 20:27:06 landau kernel:  #4:  (&ei->i_data_sem){++++..}, at:
+[<000000001019fb38>] ext4_map_blocks+0x138/0x6a0 [ext4]
+Apr 19 20:27:06 landau kernel: 1 lock held by ostree/73769:
+Apr 19 20:27:06 landau kernel:  #0:  (&type->s_umount_key#29){++++++},
+at: [<000000000068a7f0>] SyS_syncfs+0x30/0x80
+Apr 19 20:27:06 landau kernel:
+Apr 19 20:27:06 landau kernel: ======================Apr 19 20:45:14 landau kernel: INFO: task ostree:146257 blocked for
+more than 120 seconds.
+Apr 19 20:45:14 landau kernel:       Tainted: G        W
+4.10.0-10531-g86292b33d4b7 #77
+Apr 19 20:45:14 landau kernel: "echo 0 >
+/proc/sys/kernel/hung_task_timeout_secs" disables this message.
+Apr 19 20:45:14 landau kernel: ostree          D    0 146257 131005
+0x208000100000000
+Apr 19 20:45:14 landau kernel: Call Trace:
+Apr 19 20:45:14 landau kernel:  [0000000000a8e790] schedule+0x30/0xc0
+Apr 19 20:45:14 landau kernel:  [0000000000681798]
+wb_wait_for_completion+0x58/0xa0
+Apr 19 20:45:14 landau kernel:  [0000000000682048]
+__writeback_inodes_sb_nr+0x88/0xc0
+Apr 19 20:45:14 landau kernel:  [00000000006820e0] writeback_inodes_sb+0x20/0x40
+Apr 19 20:45:14 landau kernel:  [000000000068a5f4] sync_filesystem+0x34/0xc0
+Apr 19 20:45:14 landau kernel:  [000000000068a7f8] SyS_syncfs+0x38/0x80
+Apr 19 20:45:14 landau kernel:  [0000000000406234] linux_sparc_syscall+0x34/0x44
+Apr 19 20:45:14 landau kernel:
+                               Showing all locks held in the system:
+Apr 19 20:45:14 landau kernel: 2 locks held by khungtaskd/784:
+Apr 19 20:45:14 landau kernel:  #0:  (rcu_read_lock){......}, at:
+[<000000000054eb80>] watchdog+0x240/0x7e0
+Apr 19 20:45:14 landau kernel:  #1:  (tasklist_lock){.+.+..}, at:
+[<00000000004d2d04>] debug_show_all_locks+0x64/0x1c0
+Apr 19 20:45:14 landau kernel: 1 lock held by in:imklog/1484:
+Apr 19 20:45:14 landau kernel:  #0:  (&f->f_pos_lock){+.+.+.}, at:
+[<000000000066f8ac>] __fdget_pos+0x4c/0x60
+Apr 19 20:45:14 landau kernel: 5 locks held by kworker/u512:0/130949:
+Apr 19 20:45:14 landau kernel:  #0:  ("writeback"){.+.+.+}, at:
+[<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 20:45:14 landau kernel:  #1:  ((&(&wb->dwork)->work)){+.+.+.},
+at: [<000000000048a5b4>] process_one_work+0x174/0x840
+Apr 19 20:45:14 landau kernel:  #2:
+(&sbi->s_journal_flag_rwsem){.+.+.+}, at: [<00000000005c99ac>]
+do_writepages+0x2c/0x60
+Apr 19 20:45:14 landau kernel:  #3:  (jbd2_handle){++++..}, at:
+[<00000000101647c8>] start_this_handle+0x108/0x3e0 [jbd2]
+Apr 19 20:45:14 landau kernel:  #4:  (&ei->i_data_sem){++++..}, at:
+[<000000001019fb38>] ext4_map_blocks+0x138/0x6a0 [ext4]
+Apr 19 20:45:14 landau kernel: 1 lock held by ostree/146257:
+Apr 19 20:45:14 landau kernel:  #0:  (&type->s_umount_key#29){++++++},
+at: [<000000000068a7f0>] SyS_syncfs+0x30/0x80
+Apr 19 20:45:14 landau kernel:
+Apr 19 20:45:14 landau kernel: ======================
