@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 24 Apr 2017 00:24:26 +0000
-Subject: [PATCH] sparc64: Fill in rest of HAVE_REGS_AND_STACK_ACCESS_API
-Message-Id: <20170423.172426.1562412223042437061.davem@davemloft.net>
+Date: Mon, 24 Apr 2017 01:31:33 +0000
+Subject: [PATCH] sparc: Update syscall tables.
+Message-Id: <20170423.183133.1610924497792806038.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,85 +9,69 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-This lets us enable KPROBE_EVENTS.
+Hook up statx.
+
+Ignore pkeys system calls, we don't have protection keeys
+on SPARC.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/Kconfig              |  1 +
- arch/sparc/include/asm/ptrace.h |  3 ++-
- arch/sparc/kernel/ptrace_64.c   | 36 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 39 insertions(+), 1 deletion(-)
+ arch/sparc/include/uapi/asm/unistd.h | 8 +++++++-
+ arch/sparc/kernel/systbls_32.S       | 1 +
+ arch/sparc/kernel/systbls_64.S       | 2 ++
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a59deae..3db2543 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -82,6 +82,7 @@ config SPARC64
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select HAVE_NMI
-+	select HAVE_REGS_AND_STACK_ACCESS_API
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 36eee81..ae77df7 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -425,8 +425,9 @@
+ #define __NR_copy_file_range	357
+ #define __NR_preadv2		358
+ #define __NR_pwritev2		359
++#define __NR_statx		360
  
- config ARCH_DEFCONFIG
- 	string
-diff --git a/arch/sparc/include/asm/ptrace.h b/arch/sparc/include/asm/ptrace.h
-index ca57f08..d73428e 100644
---- a/arch/sparc/include/asm/ptrace.h
-+++ b/arch/sparc/include/asm/ptrace.h
-@@ -83,7 +83,8 @@ unsigned long profile_pc(struct pt_regs *);
+-#define NR_syscalls		360
++#define NR_syscalls		361
  
- #define MAX_REG_OFFSET (offsetof(struct pt_regs, magic))
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+@@ -442,4 +443,9 @@
+ #define __IGNORE_getresgid
+ #endif
  
--extern int regs_query_register_offset(const char *name);
-+int regs_query_register_offset(const char *name);
-+unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs, unsigned int n);
- 
- /**
-  * regs_get_register() - get register value from its offset
-diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
-index fc5124c..e1d965e 100644
---- a/arch/sparc/kernel/ptrace_64.c
-+++ b/arch/sparc/kernel/ptrace_64.c
-@@ -1162,3 +1162,39 @@ int regs_query_register_offset(const char *name)
- 			return roff->offset;
- 	return -EINVAL;
- }
++/* Sparc doesn't have protection keys. */
++#define __IGNORE_pkey_mprotect
++#define __IGNORE_pkey_alloc
++#define __IGNORE_pkey_free
 +
-+/**
-+ * regs_within_kernel_stack() - check the address in the stack
-+ * @regs:	pt_regs which contains kernel stack pointer.
-+ * @addr:	address which is checked.
-+ *
-+ * regs_within_kernel_stack() checks @addr is within the kernel stack page(s).
-+ * If @addr is within the kernel stack, it returns true. If not, returns false.
-+ */
-+static inline int regs_within_kernel_stack(struct pt_regs *regs,
-+					   unsigned long addr)
-+{
-+	unsigned long ksp = kernel_stack_pointer(regs) + STACK_BIAS;
-+	return ((addr & ~(THREAD_SIZE - 1))  =
-+		(ksp & ~(THREAD_SIZE - 1)));
-+}
-+
-+/**
-+ * regs_get_kernel_stack_nth() - get Nth entry of the stack
-+ * @regs:	pt_regs which contains kernel stack pointer.
-+ * @n:		stack entry number.
-+ *
-+ * regs_get_kernel_stack_nth() returns @n th entry of the kernel stack which
-+ * is specified by @regs. If the @n th entry is NOT in the kernel stack,
-+ * this returns 0.
-+ */
-+unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs, unsigned int n)
-+{
-+	unsigned long ksp = kernel_stack_pointer(regs) + STACK_BIAS;
-+	unsigned long *addr = (unsigned long *)ksp;
-+	addr += n;
-+	if (regs_within_kernel_stack(regs, (unsigned long)addr))
-+		return *addr;
-+	else
-+		return 0;
-+}
+ #endif /* _UAPI_SPARC_UNISTD_H */
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index eac7f0d..5253e89 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -89,3 +89,4 @@ sys_call_table:
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ /*355*/	.long sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
++/*360*/	.long sys_statx
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index b0f17ff..82339f6 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -90,6 +90,7 @@ sys_call_table32:
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ 	.word compat_sys_setsockopt, sys_mlock2, sys_copy_file_range, compat_sys_preadv2, compat_sys_pwritev2
++/*360*/	.word sys_statx
+ 
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -171,3 +172,4 @@ sys_call_table:
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ 	.word sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
++/*360*/	.word sys_statx
 -- 
 2.1.2.532.g19b5d50
 
