@@ -1,43 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Apr 2017 19:22:15 +0000
-Subject: [GIT] Sparc
-Message-Id: <20170426.152215.1066522348346001732.davem@davemloft.net>
+From: "Ms. Katherine" <ulia@distral.ro>
+Date: Mon, 24 Apr 2017 19:10:04 +0000
+Subject: EXTREMELY IMPORTANT
+Message-Id: <20170424191009.6358B51B3F12@mail.distral.ro>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
+
+Dear Beloved, Sorry for the inconvenience, I am getting in touch with you r=
+egarding an extremely important and urgent matter, Please I need your urgen=
+t assistance and idea to finish up a project (Orphanage Home) Due to my hea=
+lth condition, Everything is available to finish up the project, All I need=
+ is your idea and trust.
+
+Sehr geehrte Geliebte, traurig f=FCr die Unannehmlichkeiten, ich bin in Kon=
+takt mit Ihnen =FCber eine =E4u=DFerst wichtige und dringende Angelegenheit=
+, Bitte brauche ich Ihre dringende Hilfe und Idee, um ein Projekt zu beende=
+n (Orphanage Home) Wegen meines Gesundheitszustandes ist alles verf=FCgbar =
+Beenden Sie das Projekt, Alles was ich brauche ist Ihre Idee und Vertrauen.
+
+Please contact me for more details.
+Contact Email: kathrynnmison@gmail.com
+
+Thanks
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
 
-I didn't want the release to go out without the statx system call properly
-hooked up.
+--=20
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-Please pull, thanks!
-
-The following changes since commit 5a7ad1146caa895ad718a534399e38bd2ba721b7:
-
-  Linux 4.11-rc8 (2017-04-23 16:53:00 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to f6ebf0bb1a983a7b60a26acf282975b5da5b3202:
-
-  sparc: Update syscall tables. (2017-04-23 18:28:55 -0700)
-
-----------------------------------------------------------------
-David S. Miller (2):
-      sparc64: Fill in rest of HAVE_REGS_AND_STACK_ACCESS_API
-      sparc: Update syscall tables.
-
- arch/sparc/Kconfig                   |  1 +
- arch/sparc/include/asm/ptrace.h      |  3 ++-
- arch/sparc/include/uapi/asm/unistd.h |  8 +++++++-
- arch/sparc/kernel/ptrace_64.c        | 36 ++++++++++++++++++++++++++++++++++++
- arch/sparc/kernel/systbls_32.S       |  1 +
- arch/sparc/kernel/systbls_64.S       |  2 ++
- 6 files changed, 49 insertions(+), 2 deletions(-)
