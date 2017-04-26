@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 18 Apr 2017 20:20:25 +0000
+Date: Wed, 26 Apr 2017 19:22:15 +0000
 Subject: [GIT] Sparc
-Message-Id: <20170418.162025.1958583978696749137.davem@davemloft.net>
+Message-Id: <20170426.152215.1066522348346001732.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,32 +12,32 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these two Sparc bug fixes from Daniel Jordan
-and Nitin Gupta.
+I didn't want the release to go out without the statx system call properly
+hooked up.
 
-Thanks a lot!
+Please pull, thanks!
 
-The following changes since commit fb5e2154b764812705dce84881319471d27606fb:
+The following changes since commit 5a7ad1146caa895ad718a534399e38bd2ba721b7:
 
-  Merge tag 'trace-v4.11-rc5-4' of git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-trace (2017-04-18 10:19:47 -0700)
+  Linux 4.11-rc8 (2017-04-23 16:53:00 -0700)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
-for you to fetch changes up to 544f8f935863c5a9ca3e34306ea3316095e7b7bf:
+for you to fetch changes up to f6ebf0bb1a983a7b60a26acf282975b5da5b3202:
 
-  sparc64: Fix hugepage page table free (2017-04-18 13:11:07 -0700)
+  sparc: Update syscall tables. (2017-04-23 18:28:55 -0700)
 
 ----------------------------------------------------------------
-Daniel Jordan (1):
-      sparc64: Use LOCKDEP_SMALL, not PROVE_LOCKING_SMALL
+David S. Miller (2):
+      sparc64: Fill in rest of HAVE_REGS_AND_STACK_ACCESS_API
+      sparc: Update syscall tables.
 
-Nitin Gupta (1):
-      sparc64: Fix hugepage page table free
-
- arch/sparc/Kconfig                 |  2 +-
- arch/sparc/mm/hugetlbpage.c        | 16 ++++++++++++++++
- kernel/locking/lockdep_internals.h |  6 +++---
- lib/Kconfig.debug                  |  6 +++---
- 4 files changed, 23 insertions(+), 7 deletions(-)
+ arch/sparc/Kconfig                   |  1 +
+ arch/sparc/include/asm/ptrace.h      |  3 ++-
+ arch/sparc/include/uapi/asm/unistd.h |  8 +++++++-
+ arch/sparc/kernel/ptrace_64.c        | 36 ++++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/systbls_32.S       |  1 +
+ arch/sparc/kernel/systbls_64.S       |  2 ++
+ 6 files changed, 49 insertions(+), 2 deletions(-)
