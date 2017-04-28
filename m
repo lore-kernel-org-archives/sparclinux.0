@@ -1,7 +1,7 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Thu, 27 Apr 2017 16:14:58 +0000
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Date: Fri, 28 Apr 2017 01:25:30 +0000
 Subject: Re: [PATCH v5 1/4] printk/nmi: generic solution for safe printk in NMI
-Message-Id: <20170427121458.2be577cc@gandalf.local.home>
+Message-Id: <20170428012530.GA383@jagdpanzerIV.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1461239325-22779-1-git-send-email-pmladek@suse.com>
  <1461239325-22779-2-git-send-email-pmladek@suse.com>
@@ -14,51 +14,48 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Thu, 20 Apr 2017 15:11:54 +0200
-Petr Mladek <pmladek@suse.com> wrote:
+
+On (04/20/17 15:11), Petr Mladek wrote:
+[..]
+>  void printk_nmi_enter(void)
+>  {
+> -	this_cpu_or(printk_context, PRINTK_NMI_CONTEXT_MASK);
+> +	/*
+> +	 * The size of the extra per-CPU buffer is limited. Use it
+> +	 * only when really needed.
+> +	 */
+> +	if (this_cpu_read(printk_context) & PRINTK_SAFE_CONTEXT_MASK ||
+> +	    raw_spin_is_locked(&logbuf_lock)) {
+
+can we please have && here?
 
 
+[..]
+> diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
+> index 4e8a30d1c22f..0bc0a3535a8a 100644
+> --- a/lib/nmi_backtrace.c
+> +++ b/lib/nmi_backtrace.c
+> @@ -86,9 +86,11 @@ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
+>  
+>  bool nmi_cpu_backtrace(struct pt_regs *regs)
+>  {
+> +	static arch_spinlock_t lock = __ARCH_SPIN_LOCK_UNLOCKED;
+>  	int cpu = smp_processor_id();
+>  
+>  	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
+> +		arch_spin_lock(&lock);
+>  		if (regs && cpu_in_idle(instruction_pointer(regs))) {
+>  			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
+>  				cpu, instruction_pointer(regs));
+> @@ -99,6 +101,7 @@ bool nmi_cpu_backtrace(struct pt_regs *regs)
+>  			else
+>  				dump_stack();
+>  		}
+> +		arch_spin_unlock(&lock);
+>  		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
+>  		return true;
+>  	}
 
-> 
-> >From c530d9dee91c74db5e6a198479e2e63b24cb84a2 Mon Sep 17 00:00:00 2001  
-> From: Petr Mladek <pmladek@suse.com>
-> Date: Thu, 20 Apr 2017 10:52:31 +0200
-> Subject: [PATCH] printk: Use the main logbuf in NMI when logbuf_lock is
->  available
+can the nmi_backtrace part be a patch on its own?
 
-I tried this patch. It's better because I get the end of the trace, but
-I do lose the beginning of it:
-
-** 196358 printk messages dropped ** [  102.321182]     perf-5981    0.... 12983650us : d_path <-seq_path
-
-The way I tested it was by adding this:
-
-Index: linux-trace.git/kernel/trace/trace_functions.c
-=================================--- linux-trace.git.orig/kernel/trace/trace_functions.c
-+++ linux-trace.git/kernel/trace/trace_functions.c
-@@ -469,8 +469,11 @@ ftrace_cpudump_probe(unsigned long ip, u
- 		     struct trace_array *tr, struct ftrace_probe_ops *ops,
- 		     void *data)
- {
--	if (update_count(ops, ip, data))
--		ftrace_dump(DUMP_ORIG);
-+	char *killer = NULL;
-+
-+	panic_on_oops = 1;	/* force panic */
-+	wmb();
-+	*killer = 1;
- }
- 
- static int
-
-
-Then doing the following:
-
-# echo 1 > /proc/sys/kernel/ftrace_dump_on_oops 
-# trace-cmd start -p function
-# echo nmi_handle:cpudump > /debug/tracing/set_ftrace_filter
-# perf record -c 100 -a sleep 1
-
-And that triggers the crash.
-
--- Steve
+	-ss
