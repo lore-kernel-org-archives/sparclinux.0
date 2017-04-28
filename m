@@ -1,61 +1,34 @@
 From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Date: Fri, 28 Apr 2017 01:25:30 +0000
+Date: Fri, 28 Apr 2017 01:35:32 +0000
 Subject: Re: [PATCH v5 1/4] printk/nmi: generic solution for safe printk in NMI
-Message-Id: <20170428012530.GA383@jagdpanzerIV.localdomain>
+Message-Id: <20170428013532.GB383@jagdpanzerIV.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1461239325-22779-1-git-send-email-pmladek@suse.com>
  <1461239325-22779-2-git-send-email-pmladek@suse.com>
  <20170419131341.76bc7634@gandalf.local.home>
  <20170420033112.GB542@jagdpanzerIV.localdomain>
  <20170420131154.GL3452@pathway.suse.cz>
-In-Reply-To: <20170420131154.GL3452@pathway.suse.cz>
+ <20170427121458.2be577cc@gandalf.local.home>
+In-Reply-To: <20170427121458.2be577cc@gandalf.local.home>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-
-On (04/20/17 15:11), Petr Mladek wrote:
+On (04/27/17 12:14), Steven Rostedt wrote:
 [..]
->  void printk_nmi_enter(void)
->  {
-> -	this_cpu_or(printk_context, PRINTK_NMI_CONTEXT_MASK);
-> +	/*
-> +	 * The size of the extra per-CPU buffer is limited. Use it
-> +	 * only when really needed.
-> +	 */
-> +	if (this_cpu_read(printk_context) & PRINTK_SAFE_CONTEXT_MASK ||
-> +	    raw_spin_is_locked(&logbuf_lock)) {
+> I tried this patch. It's better because I get the end of the trace, but
+> I do lose the beginning of it:
+> 
+> ** 196358 printk messages dropped ** [  102.321182]     perf-5981    0.... 12983650us : d_path <-seq_path
 
-can we please have && here?
+many thanks!
 
-
-[..]
-> diff --git a/lib/nmi_backtrace.c b/lib/nmi_backtrace.c
-> index 4e8a30d1c22f..0bc0a3535a8a 100644
-> --- a/lib/nmi_backtrace.c
-> +++ b/lib/nmi_backtrace.c
-> @@ -86,9 +86,11 @@ void nmi_trigger_cpumask_backtrace(const cpumask_t *mask,
->  
->  bool nmi_cpu_backtrace(struct pt_regs *regs)
->  {
-> +	static arch_spinlock_t lock = __ARCH_SPIN_LOCK_UNLOCKED;
->  	int cpu = smp_processor_id();
->  
->  	if (cpumask_test_cpu(cpu, to_cpumask(backtrace_mask))) {
-> +		arch_spin_lock(&lock);
->  		if (regs && cpu_in_idle(instruction_pointer(regs))) {
->  			pr_warn("NMI backtrace for cpu %d skipped: idling at pc %#lx\n",
->  				cpu, instruction_pointer(regs));
-> @@ -99,6 +101,7 @@ bool nmi_cpu_backtrace(struct pt_regs *regs)
->  			else
->  				dump_stack();
->  		}
-> +		arch_spin_unlock(&lock);
->  		cpumask_clear_cpu(cpu, to_cpumask(backtrace_mask));
->  		return true;
->  	}
-
-can the nmi_backtrace part be a patch on its own?
+so we now drop messages from logbuf, not from per-CPU buffers. that
+"queue printk_deferred irq_work on every online CPU when we bypass per-CPU
+buffers from NMI" idea *probably* might help here - we need someone to emit
+messages from the logbuf while we printk from NMI. there is still a
+possibility that we can drop messages, though, since log_store() from NMI
+CPU can be much-much faster than call_console_drivers() on other CPU.
 
 	-ss
