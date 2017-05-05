@@ -1,82 +1,40 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 12 May 2017 01:30:51 +0000
-Subject: [PATCH v2 3/5] sparc64: ensure LDC channel is ready before communication
-Message-Id: <a2b6d2afeea2b4043344d1a9eae1087168186daf.1494551284.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 05 May 2017 17:03:11 +0000
+Subject: [v3 4/9] mm: do not zero vmemmap_buf
+Message-Id: <1494003796-748672-5-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
 
-Ensure that LDC channel is up before writing to it, in RAW mode. Generate
-event to bring the LDC channel up, if it's not up already.
+alloc_block_buf() can either use external allocator by calling
+vmemmap_alloc_block() or when available use pre-allocated vmemmap_buf
+to do allocation. In either case, alloc_block_buf() knows when to zero
+memory based on the "zero" argument.  This is why it is not needed to
+zero vmemmap_buf beforehand. Let clients of alloc_block_buf() to
+decide whether that is needed.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |   30 +++++++++++++++++++++++++-----
- 1 files changed, 25 insertions(+), 5 deletions(-)
+ mm/sparse-vmemmap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 5404e70..0a46d19 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -844,9 +844,14 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 		lp->hs_state = LDC_HS_COMPLETE;
- 		ldc_set_state(lp, LDC_STATE_CONNECTED);
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index 5d255b0..1e9508b 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -305,7 +305,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
  
--		event_mask |= LDC_EVENT_UP;
--
--		orig_state = lp->chan_state;
-+		/*
-+		 * Generate an LDC_EVENT_UP event if the channel
-+		 * was not already up.
-+		 */
-+		if (orig_state != LDC_CHANNEL_UP) {
-+			event_mask |= LDC_EVENT_UP;
-+			orig_state = lp->chan_state;
-+		}
- 	}
+ 	size = ALIGN(size, PMD_SIZE);
+ 	vmemmap_buf_start = __earlyonly_bootmem_alloc(nodeid, size
+-			* map_count, PMD_SIZE, __pa(MAX_DMA_ADDRESS), true);
++			* map_count, PMD_SIZE, __pa(MAX_DMA_ADDRESS), false);
  
- 	/* If we are in reset state, flush the RX queue and ignore
-@@ -960,7 +965,14 @@ static irqreturn_t ldc_tx(int irq, void *dev_id)
- 		lp->hs_state = LDC_HS_COMPLETE;
- 		ldc_set_state(lp, LDC_STATE_CONNECTED);
- 
--		event_mask |= LDC_EVENT_UP;
-+		/*
-+		 * Generate an LDC_EVENT_UP event if the channel
-+		 * was not already up.
-+		 */
-+		if (orig_state != LDC_CHANNEL_UP) {
-+			event_mask |= LDC_EVENT_UP;
-+			orig_state = lp->chan_state;
-+		}
- 	}
- 
- 	spin_unlock_irqrestore(&lp->lock, flags);
-@@ -1510,9 +1522,17 @@ void ldc_print(struct ldc_channel *lp)
- static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
- {
- 	struct ldc_packet *p;
--	unsigned long new_tail;
-+	unsigned long new_tail, hv_err;
- 	int err;
- 
-+	hv_err = sun4v_ldc_tx_get_state(lp->id, &lp->tx_head, &lp->tx_tail,
-+					&lp->chan_state);
-+	if (unlikely(hv_err))
-+		return -EBUSY;
-+
-+	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
-+		return LDC_ABORT(lp);
-+
- 	if (size > LDC_PACKET_SIZE)
- 		return -EMSGSIZE;
- 
+ 	if (vmemmap_buf_start) {
+ 		vmemmap_buf = vmemmap_buf_start;
 -- 
 1.7.1
 
