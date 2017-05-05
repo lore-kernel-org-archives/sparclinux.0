@@ -1,249 +1,83 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 25 May 2017 14:25:55 +0000
-Subject: [PATCH v3 2/5] sparc64: enhance ldc_abort to print message
-Message-Id: <d30ecb4eb8f29110f645ac2de68781e05bd8e948.1495721691.git.jag.raman@oracle.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Fri, 05 May 2017 13:34:39 +0000
+Subject: Re: [PATCH 04/13] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
+Message-Id: <20170505133439.GE9648@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20170421050500.13957-1-yinghai@kernel.org>
+ <20170421050500.13957-5-yinghai@kernel.org>
+In-Reply-To: <20170421050500.13957-5-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Yinghai Lu <yinghai@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Enhance ldc_abort to accept a message to be printed when it is called. Add
-a macro, LDC_ABORT, to print info. about the function that calls ldc_abort.
+On Thu, Apr 20, 2017 at 10:04:51PM -0700, Yinghai Lu wrote:
+> For device resource with PREF bit setting under bridge 64-bit pref resour=
+ce,
+> we need to make sure only set PREF for 64bit resource.
+>=20
+> so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
----
- arch/sparc/kernel/ldc.c |   53 ++++++++++++++++++++++++----------------------
- 1 files changed, 28 insertions(+), 25 deletions(-)
+s/IORESOUCE_MEM_64/IORESOURCE_MEM_64/
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 46e9da5..931bb63 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -177,6 +177,8 @@ struct ldc_channel {
- 		printk(KERN_INFO PFX "ID[%lu] " f, lp->id, ## a); \
- } while (0)
- 
-+#define	LDC_ABORT(lp)	ldc_abort((lp), __func__)
-+
- static const char *state_to_str(u8 state)
- {
- 	switch (state) {
-@@ -506,11 +508,12 @@ static int send_data_nack(struct ldc_channel *lp, struct ldc_packet *data_pkt)
- 	return err;
- }
- 
--static int ldc_abort(struct ldc_channel *lp)
-+static int ldc_abort(struct ldc_channel *lp, const char *msg)
- {
- 	unsigned long hv_err;
- 
--	ldcdbg(STATE, "ABORT\n");
-+	ldcdbg(STATE, "ABORT[%s]\n", msg);
-+	ldc_print(lp);
- 
- 	/* We report but do not act upon the hypervisor errors because
- 	 * there really isn't much we can do if they fail at this point.
-@@ -595,7 +598,7 @@ static int process_ver_info(struct ldc_channel *lp, struct ldc_version *vp)
- 		}
- 	}
- 	if (err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -608,13 +611,13 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
- 	if (lp->hs_state = LDC_HS_GOTVERS) {
- 		if (lp->ver.major != vp->major ||
- 		    lp->ver.minor != vp->minor)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	} else {
- 		lp->ver = *vp;
- 		lp->hs_state = LDC_HS_GOTVERS;
- 	}
- 	if (send_rts(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	return 0;
- }
- 
-@@ -625,17 +628,17 @@ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
- 	unsigned long new_tail;
- 
- 	if (vp->major = 0 && vp->minor = 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	vap = find_by_major(vp->major);
- 	if (!vap)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
- 					   vap, sizeof(*vap),
- 					   &new_tail);
- 	if (!p)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return send_tx_packet(lp, p, new_tail);
- }
-@@ -658,7 +661,7 @@ static int process_version(struct ldc_channel *lp,
- 		return process_ver_nack(lp, vp);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
-@@ -671,13 +674,13 @@ static int process_rts(struct ldc_channel *lp,
- 	if (p->stype     != LDC_INFO	   ||
- 	    lp->hs_state != LDC_HS_GOTVERS ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->rcv_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_SENTRTR;
- 	if (send_rtr(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -690,7 +693,7 @@ static int process_rtr(struct ldc_channel *lp,
- 
- 	if (p->stype     != LDC_INFO ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_COMPLETE;
-@@ -713,7 +716,7 @@ static int process_rdx(struct ldc_channel *lp,
- 
- 	if (p->stype != LDC_INFO ||
- 	    !(rx_seq_ok(lp, p->seqid)))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rcv_nxt = p->seqid;
- 
-@@ -740,14 +743,14 @@ static int process_control_frame(struct ldc_channel *lp,
- 		return process_rdx(lp, p);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
- static int process_error_frame(struct ldc_channel *lp,
- 			       struct ldc_packet *p)
- {
--	return ldc_abort(lp);
-+	return LDC_ABORT(lp);
- }
- 
- static int process_data_ack(struct ldc_channel *lp,
-@@ -766,7 +769,7 @@ static int process_data_ack(struct ldc_channel *lp,
- 			return 0;
- 		}
- 		if (head = lp->tx_tail)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	}
- 
- 	return 0;
-@@ -870,7 +873,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 			break;
- 
- 		default:
--			err = ldc_abort(lp);
-+			err = LDC_ABORT(lp);
- 			break;
- 		}
- 
-@@ -885,7 +888,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 
- 		err = __set_rx_head(lp, new);
- 		if (err < 0) {
--			(void) ldc_abort(lp);
-+			(void) LDC_ABORT(lp);
- 			break;
- 		}
- 		if (lp->hs_state = LDC_HS_COMPLETE)
-@@ -1509,7 +1512,7 @@ static int read_raw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1552,7 +1555,7 @@ static int write_nonraw(struct ldc_channel *lp, const void *buf,
- 		return -EBUSY;
- 
- 	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (!tx_has_space_for(lp, size))
- 		return -EAGAIN;
-@@ -1620,7 +1623,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
- 
- 	err = ldc_rx_reset(lp);
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1633,7 +1636,7 @@ static int data_ack_nack(struct ldc_channel *lp, struct ldc_packet *p)
- 			return err;
- 	}
- 	if (p->stype & LDC_NACK)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1653,7 +1656,7 @@ static int rx_data_wait(struct ldc_channel *lp, unsigned long cur_head)
- 						&lp->rx_tail,
- 						&lp->chan_state);
- 		if (hv_err)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 
- 		if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 		    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1676,7 +1679,7 @@ static int rx_set_head(struct ldc_channel *lp, unsigned long head)
- 	int err = __set_rx_head(lp, head);
- 
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rx_head = head;
- 	return 0;
-@@ -1715,7 +1718,7 @@ static int read_nonraw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
--- 
-1.7.1
+This misspelling occurs three times in the series; please fix them all.
 
+> resource flags parsing.
+>=20
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
+> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+> Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
+> ---
+>  arch/sparc/kernel/of_device_32.c | 5 +++--
+>  arch/sparc/kernel/of_device_64.c | 5 +++--
+>  2 files changed, 6 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_devi=
+ce_32.c
+> index 185aa96..3e9f273 100644
+> --- a/arch/sparc/kernel/of_device_32.c
+> +++ b/arch/sparc/kernel/of_device_32.c
+> @@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
+addr, unsigned long flags)
+>  	case 0x01:
+>  		flags |=3D IORESOURCE_IO;
+>  		break;
+> -
+>  	case 0x02: /* 32 bits */
+> -	case 0x03: /* 64 bits */
+>  		flags |=3D IORESOURCE_MEM;
+>  		break;
+> +	case 0x03: /* 64 bits */
+> +		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
+> +		break;
+>  	}
+>  	if (w & 0x40000000)
+>  		flags |=3D IORESOURCE_PREFETCH;
+> diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_devi=
+ce_64.c
+> index 7bbdc26..defee61 100644
+> --- a/arch/sparc/kernel/of_device_64.c
+> +++ b/arch/sparc/kernel/of_device_64.c
+> @@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32=
+ *addr, unsigned long flags)
+>  	case 0x01:
+>  		flags |=3D IORESOURCE_IO;
+>  		break;
+> -
+>  	case 0x02: /* 32 bits */
+> -	case 0x03: /* 64 bits */
+>  		flags |=3D IORESOURCE_MEM;
+>  		break;
+> +	case 0x03: /* 64 bits */
+> +		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
+> +		break;
+>  	}
+>  	if (w & 0x40000000)
+>  		flags |=3D IORESOURCE_PREFETCH;
+> --=20
+> 2.9.3
+>=20
