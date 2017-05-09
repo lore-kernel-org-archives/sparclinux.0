@@ -1,60 +1,74 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 16 May 2017 00:33:29 +0000
-Subject: Re: [v3 9/9] s390: teach platforms not to zero struct pages memory
-Message-Id: <a3a14b28-8389-33e4-3a84-e4db4bfdd17e@oracle.com>
+From: Dave Aldridge <david.j.aldridge@oracle.com>
+Date: Tue, 09 May 2017 08:57:35 +0000
+Subject: [PATCH] sparc64: fix fault handling in NGbzero.S and GENbzero.S
+Message-Id: <1494320255-406137-1-git-send-email-david.j.aldridge@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
- <1494003796-748672-10-git-send-email-pasha.tatashin@oracle.com>
- <20170508113624.GA4876@osiris>
- <0669a945-4540-096e-799a-2d2b3c18abaa@oracle.com>
- <20170515231716.GA3314@osiris>
-In-Reply-To: <20170515231716.GA3314@osiris>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Ah OK, I will include the change.
+When any of the functions contained in NGbzero.S and GENbzero.S
+vector through *bzero_from_clear_user, we may end up taking a
+fault when executing one of the store alternate address space
+instructions. If this happens, the exception handler does not
+restore the %asi register.
 
-Thank you,
-Pasha
+This commit fixes the issue by introducing a new exception
+handler that ensures the %asi register is restored when
+a fault is handled.
 
-On 05/15/2017 07:17 PM, Heiko Carstens wrote:
-> Hello Pasha,
-> 
->> Thank you for looking at this patch. I am worried to make the proposed
->> change, because, as I understand in this case we allocate memory not for
->> "struct page"s but for table that hold them. So, we will change the behavior
->> from the current one, where this table is allocated zeroed, but now it won't
->> be zeroed.
-> 
-> The page table, if needed, is allocated and populated a couple of lines
-> above. See the vmem_pte_alloc() call. So my request to include the hunk
-> below is still valid ;)
-> 
->>> If you add the hunk below then this is
->>>
->>> Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
->>>
->>> diff --git a/arch/s390/mm/vmem.c b/arch/s390/mm/vmem.c
->>> index ffe9ba1aec8b..bf88a8b9c24d 100644
->>> --- a/arch/s390/mm/vmem.c
->>> +++ b/arch/s390/mm/vmem.c
->>> @@ -272,7 +272,7 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
->>>   		if (pte_none(*pt_dir)) {
->>>   			void *new_page;
->>> -			new_page = vmemmap_alloc_block(PAGE_SIZE, node, true);
->>> +			new_page = vmemmap_alloc_block(PAGE_SIZE, node, VMEMMAP_ZERO);
->>>   			if (!new_page)
->>>   				goto out;
->>>   			pte_val(*pt_dir) = __pa(new_page) | pgt_prot;
->>>
->>
-> 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> 
+Orabug: 25577560
+
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+Reviewed-by: Rob Gardner <rob.gardner@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
+---
+ arch/sparc/kernel/head_64.S |    6 ++++++
+ arch/sparc/lib/GENbzero.S   |    2 +-
+ arch/sparc/lib/NGbzero.S    |    2 +-
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 4410119..41a4073 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -939,3 +939,9 @@ ENTRY(__retl_o1)
+ 	retl
+ 	 mov	%o1, %o0
+ ENDPROC(__retl_o1)
++
++ENTRY(__retl_o1_asi)
++	wr      %o5, 0x0, %asi
++	retl
++	 mov    %o1, %o0
++ENDPROC(__retl_o1_asi)
+diff --git a/arch/sparc/lib/GENbzero.S b/arch/sparc/lib/GENbzero.S
+index 8e7a843..2fbf629 100644
+--- a/arch/sparc/lib/GENbzero.S
++++ b/arch/sparc/lib/GENbzero.S
+@@ -8,7 +8,7 @@
+ 98:	x,y;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_o1;	\
++	.word 98b, __retl_o1_asi;\
+ 	.text;			\
+ 	.align 4;
+ 
+diff --git a/arch/sparc/lib/NGbzero.S b/arch/sparc/lib/NGbzero.S
+index beab29b..33053bd 100644
+--- a/arch/sparc/lib/NGbzero.S
++++ b/arch/sparc/lib/NGbzero.S
+@@ -8,7 +8,7 @@
+ 98:	x,y;			\
+ 	.section __ex_table,"a";\
+ 	.align 4;		\
+-	.word 98b, __retl_o1;	\
++	.word 98b, __retl_o1_asi;\
+ 	.text;			\
+ 	.align 4;
+ 
+-- 
+1.7.1
+
