@@ -1,62 +1,160 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 03 May 2017 15:05:45 +0000
-Subject: Re: [v2 3/5] mm: add "zero" argument to vmemmap allocators
-Message-Id: <3921e0c8-2c18-60e9-cc99-78dbed2dce90@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Wed, 10 May 2017 01:30:12 +0000
+Subject: [PATCH v2 net-next] bnxt: add dma mapping attributes
+Message-Id: <1494379812-282087-1-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1490383192-981017-1-git-send-email-pasha.tatashin@oracle.com>
- <1490383192-981017-4-git-send-email-pasha.tatashin@oracle.com>
- <20170503.103428.1598887340082574002.davem@davemloft.net>
-In-Reply-To: <20170503.103428.1598887340082574002.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, willy@infradead.org
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, michael.chan@broadcom.com, Shannon Nelson <shannon.nelson@oracle.com>
 
-Hi Dave,
+On the SPARC platform we need to use the DMA_ATTR_WEAK_ORDERING attribute
+in our Rx path dma mapping in order to get the expected performance out
+of the receive path.  Adding it to the Tx path has little effect, so
+that's not a part of this patch.
 
-Thank you for the review. I will address your comment and update patchset..
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Tushar Dave <tushar.n.dave@oracle.com>
+Reviewed-by: Tom Saeger <tom.saeger@oracle.com>
+---
+v2: simplify by getting rid of the driver-specific ifdef and define
 
-Pasha
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c |   56 +++++++++++++++++-----------
+ 1 files changed, 34 insertions(+), 22 deletions(-)
 
-On 05/03/2017 10:34 AM, David Miller wrote:
-> From: Pavel Tatashin <pasha.tatashin@oracle.com>
-> Date: Fri, 24 Mar 2017 15:19:50 -0400
-> 
->> Allow clients to request non-zeroed memory from vmemmap allocator.
->> The following two public function have a new boolean argument called zero:
->>
->> __vmemmap_alloc_block_buf()
->> vmemmap_alloc_block()
->>
->> When zero is true, memory that is allocated by memblock allocator is zeroed
->> (the current behavior), when argument is false, the memory is not zeroed.
->>
->> This change allows for optimizations where client knows when it is better
->> to zero memory: may be later when other CPUs are started, or may be client
->> is going to set every byte in the allocated memory, so no need to zero
->> memory beforehand.
->>
->> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
->> Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-> 
-> I think when you add a new argument that can adjust behavior, you
-> should add the new argument but retain exactly the current behavior in
-> the existing calls.
-> 
-> Then later you can piece by piece change behavior, and document properly
-> in the commit message what is happening and why the transformation is
-> legal.
-> 
-> Here, you are adding the new boolean to __earlyonly_bootmem_alloc() and
-> then making sparse_mem_maps_populate_node() pass false, which changes
-> behavior such that it doesn't get zero'd memory any more.
-> 
-> Please make one change at a time.  Otherwise review and bisection is
-> going to be difficult.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 1f1e54b..687f852 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -582,7 +582,8 @@ static void bnxt_tx_int(struct bnxt *bp, struct bnxt_napi *bnapi, int nr_pkts)
+ 	if (!page)
+ 		return NULL;
+ 
+-	*mapping = dma_map_page(dev, page, 0, PAGE_SIZE, bp->rx_dir);
++	*mapping = dma_map_page_attrs(dev, page, 0, PAGE_SIZE, bp->rx_dir,
++				      DMA_ATTR_WEAK_ORDERING);
+ 	if (dma_mapping_error(dev, *mapping)) {
+ 		__free_page(page);
+ 		return NULL;
+@@ -601,8 +602,9 @@ static void bnxt_tx_int(struct bnxt *bp, struct bnxt_napi *bnapi, int nr_pkts)
+ 	if (!data)
+ 		return NULL;
+ 
+-	*mapping = dma_map_single(&pdev->dev, data + bp->rx_dma_offset,
+-				  bp->rx_buf_use_size, bp->rx_dir);
++	*mapping = dma_map_single_attrs(&pdev->dev, data + bp->rx_dma_offset,
++					bp->rx_buf_use_size, bp->rx_dir,
++					DMA_ATTR_WEAK_ORDERING);
+ 
+ 	if (dma_mapping_error(&pdev->dev, *mapping)) {
+ 		kfree(data);
+@@ -705,8 +707,9 @@ static inline int bnxt_alloc_rx_page(struct bnxt *bp,
+ 			return -ENOMEM;
+ 	}
+ 
+-	mapping = dma_map_page(&pdev->dev, page, offset, BNXT_RX_PAGE_SIZE,
+-			       PCI_DMA_FROMDEVICE);
++	mapping = dma_map_page_attrs(&pdev->dev, page, offset,
++				     BNXT_RX_PAGE_SIZE, PCI_DMA_FROMDEVICE,
++				     DMA_ATTR_WEAK_ORDERING);
+ 	if (dma_mapping_error(&pdev->dev, mapping)) {
+ 		__free_page(page);
+ 		return -EIO;
+@@ -799,7 +802,8 @@ static void bnxt_reuse_rx_agg_bufs(struct bnxt_napi *bnapi, u16 cp_cons,
+ 		return NULL;
+ 	}
+ 	dma_addr -= bp->rx_dma_offset;
+-	dma_unmap_page(&bp->pdev->dev, dma_addr, PAGE_SIZE, bp->rx_dir);
++	dma_unmap_page_attrs(&bp->pdev->dev, dma_addr, PAGE_SIZE, bp->rx_dir,
++			     DMA_ATTR_WEAK_ORDERING);
+ 
+ 	if (unlikely(!payload))
+ 		payload = eth_get_headlen(data_ptr, len);
+@@ -841,8 +845,8 @@ static void bnxt_reuse_rx_agg_bufs(struct bnxt_napi *bnapi, u16 cp_cons,
+ 	}
+ 
+ 	skb = build_skb(data, 0);
+-	dma_unmap_single(&bp->pdev->dev, dma_addr, bp->rx_buf_use_size,
+-			 bp->rx_dir);
++	dma_unmap_single_attrs(&bp->pdev->dev, dma_addr, bp->rx_buf_use_size,
++			       bp->rx_dir, DMA_ATTR_WEAK_ORDERING);
+ 	if (!skb) {
+ 		kfree(data);
+ 		return NULL;
+@@ -909,8 +913,9 @@ static void bnxt_reuse_rx_agg_bufs(struct bnxt_napi *bnapi, u16 cp_cons,
+ 			return NULL;
+ 		}
+ 
+-		dma_unmap_page(&pdev->dev, mapping, BNXT_RX_PAGE_SIZE,
+-			       PCI_DMA_FROMDEVICE);
++		dma_unmap_page_attrs(&pdev->dev, mapping, BNXT_RX_PAGE_SIZE,
++				     PCI_DMA_FROMDEVICE,
++				     DMA_ATTR_WEAK_ORDERING);
+ 
+ 		skb->data_len += frag_len;
+ 		skb->len += frag_len;
+@@ -1329,8 +1334,9 @@ static void bnxt_abort_tpa(struct bnxt *bp, struct bnxt_napi *bnapi,
+ 		tpa_info->mapping = new_mapping;
+ 
+ 		skb = build_skb(data, 0);
+-		dma_unmap_single(&bp->pdev->dev, mapping, bp->rx_buf_use_size,
+-				 bp->rx_dir);
++		dma_unmap_single_attrs(&bp->pdev->dev, mapping,
++				       bp->rx_buf_use_size, bp->rx_dir,
++				       DMA_ATTR_WEAK_ORDERING);
+ 
+ 		if (!skb) {
+ 			kfree(data);
+@@ -1971,9 +1977,11 @@ static void bnxt_free_rx_skbs(struct bnxt *bp)
+ 				if (!data)
+ 					continue;
+ 
+-				dma_unmap_single(&pdev->dev, tpa_info->mapping,
+-						 bp->rx_buf_use_size,
+-						 bp->rx_dir);
++				dma_unmap_single_attrs(&pdev->dev,
++						       tpa_info->mapping,
++						       bp->rx_buf_use_size,
++						       bp->rx_dir,
++						       DMA_ATTR_WEAK_ORDERING);
+ 
+ 				tpa_info->data = NULL;
+ 
+@@ -1993,13 +2001,15 @@ static void bnxt_free_rx_skbs(struct bnxt *bp)
+ 
+ 			if (BNXT_RX_PAGE_MODE(bp)) {
+ 				mapping -= bp->rx_dma_offset;
+-				dma_unmap_page(&pdev->dev, mapping,
+-					       PAGE_SIZE, bp->rx_dir);
++				dma_unmap_page_attrs(&pdev->dev, mapping,
++						     PAGE_SIZE, bp->rx_dir,
++						     DMA_ATTR_WEAK_ORDERING);
+ 				__free_page(data);
+ 			} else {
+-				dma_unmap_single(&pdev->dev, mapping,
+-						 bp->rx_buf_use_size,
+-						 bp->rx_dir);
++				dma_unmap_single_attrs(&pdev->dev, mapping,
++						       bp->rx_buf_use_size,
++						       bp->rx_dir,
++						       DMA_ATTR_WEAK_ORDERING);
+ 				kfree(data);
+ 			}
+ 		}
+@@ -2012,8 +2022,10 @@ static void bnxt_free_rx_skbs(struct bnxt *bp)
+ 			if (!page)
+ 				continue;
+ 
+-			dma_unmap_page(&pdev->dev, rx_agg_buf->mapping,
+-				       BNXT_RX_PAGE_SIZE, PCI_DMA_FROMDEVICE);
++			dma_unmap_page_attrs(&pdev->dev, rx_agg_buf->mapping,
++					     BNXT_RX_PAGE_SIZE,
++					     PCI_DMA_FROMDEVICE,
++					     DMA_ATTR_WEAK_ORDERING);
+ 
+ 			rx_agg_buf->page = NULL;
+ 			__clear_bit(j, rxr->rx_agg_bmap);
+-- 
+1.7.1
+
