@@ -1,44 +1,191 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 31 May 2017 16:49:16 +0000
-Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <20170531.124916.1406665885250072302.davem@davemloft.net>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 12 May 2017 01:30:49 +0000
+Subject: [PATCH v2 1/5] sparc64: expand LDC interface
+Message-Id: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170531.115335.213691069712156732.davem@davemloft.net>
-        <ccdf645b-e22f-ef71-53df-993cc45869c0@sandeen.net>
-        <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
-In-Reply-To: <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sandeen@sandeen.net
-Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Eric Sandeen <sandeen@sandeen.net>
-Date: Wed, 31 May 2017 11:31:10 -0500
+Add the following LDC APIs which are planned to be used by
+LDC clients in the future:
+- ldc_set_state: Sets given LDC channel to given state
+- ldc_mode: Returns the mode of given LDC channel
+- ldc_print: Prints info about given LDC channel
+- ldc_rx_reset: Reset the RX queue of given LDC channel
+- ldc_enable_hv_intr: Enable HV interrupt for the given LDC channel
+- ldc_disable_hv_intr: Disable HV interrupt for the given LDC channel
 
-> On 5/31/17 11:19 AM, Eric Sandeen wrote:
->> On 5/31/17 10:53 AM, David Miller wrote:
->>> From: Anatoly Pugachev <matorola@gmail.com>
->>> Date: Wed, 31 May 2017 14:56:52 +0300
->>>
->>>> While debugging occasional crc32c checksum errors with xfs disk reads on
->>>> sparc64 (T5 [sun4v] 3.6 GHz CPU ldom, debian unstable/sid), Eric have found
->>>> that crc32c sometimes returns wrong checksum for data. Eric made a simple
->>>> test kernel module (included), which produce the following results on my
->>>> sparc64 machines:
->> 
->> cc: linux-xfs, because this problem cropped up on xfs/sparc.
-> 
-> FWIW, the testcase (module which does
-> 
-> 	crc = crc32c(CRC_SEED, data, 512);
-> 
-> 1 million times in a loop on the same data, and printk's if
-> the result ever changes) does not fail on x86_64 or ARM
-> (well, not after a gcc bug was fixed on ARM ...)
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+---
+ arch/sparc/include/asm/ldc.h |   10 +++++
+ arch/sparc/kernel/ldc.c      |   81 +++++++++++++++++++++++++++++++++++------
+ 2 files changed, 79 insertions(+), 12 deletions(-)
 
-Is the machine doing things that would cause crc32c() operations in
-interrupts (SCTP protocol traffic) or on other cpus?
+diff --git a/arch/sparc/include/asm/ldc.h b/arch/sparc/include/asm/ldc.h
+index 6e9004a..56dc019 100644
+--- a/arch/sparc/include/asm/ldc.h
++++ b/arch/sparc/include/asm/ldc.h
+@@ -48,6 +48,8 @@ struct ldc_channel_config {
+ #define LDC_STATE_READY		0x03
+ #define LDC_STATE_CONNECTED	0x04
+ 
++#define	LDC_PACKET_SIZE		64
++
+ struct ldc_channel;
+ 
+ /* Allocate state for a channel.  */
+@@ -72,6 +74,10 @@ struct ldc_channel *ldc_alloc(unsigned long id,
+ int ldc_disconnect(struct ldc_channel *lp);
+ 
+ int ldc_state(struct ldc_channel *lp);
++void ldc_set_state(struct ldc_channel *lp, u8 state);
++int ldc_mode(struct ldc_channel *lp);
++void ldc_print(struct ldc_channel *lp);
++int ldc_rx_reset(struct ldc_channel *lp);
+ 
+ /* Read and write operations.  Only valid when the link is up.  */
+ int ldc_write(struct ldc_channel *lp, const void *buf,
+@@ -137,4 +143,8 @@ void ldc_free_exp_dring(struct ldc_channel *lp, void *buf,
+ 		        unsigned int len,
+ 		        struct ldc_trans_cookie *cookies, int ncookies);
+ 
++void ldc_enable_hv_intr(struct ldc_channel *lp);
++
++void ldc_disable_hv_intr(struct ldc_channel *lp);
++
+ #endif /* _SPARC64_LDC_H */
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 59d5038..cf62838 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -34,7 +34,6 @@
+ 
+ static char version[]  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
+-#define LDC_PACKET_SIZE		64
+ 
+ /* Packet header layout for unreliable and reliable mode frames.
+  * When in RAW mode, packets are simply straight 64-byte payloads
+@@ -196,15 +195,6 @@ struct ldc_channel {
+ 	}
+ }
+ 
+-static void ldc_set_state(struct ldc_channel *lp, u8 state)
+-{
+-	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
+-	       state_to_str(lp->state),
+-	       state_to_str(state));
+-
+-	lp->state = state;
+-}
+-
+ static unsigned long __advance(unsigned long off, unsigned long num_entries)
+ {
+ 	off += LDC_PACKET_SIZE;
+@@ -782,6 +772,37 @@ static int process_data_ack(struct ldc_channel *lp,
+ 	return 0;
+ }
+ 
++void ldc_enable_hv_intr(struct ldc_channel *lp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&lp->lock, flags);
++
++	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
++
++	enable_irq(lp->cfg.rx_irq);
++
++	spin_unlock_irqrestore(&lp->lock, flags);
++
++}
++EXPORT_SYMBOL(ldc_enable_hv_intr);
++
++
++void ldc_disable_hv_intr(struct ldc_channel *lp)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&lp->lock, flags);
++
++	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
++
++	disable_irq_nosync(lp->cfg.rx_irq);
++
++	spin_unlock_irqrestore(&lp->lock, flags);
++
++}
++EXPORT_SYMBOL(ldc_disable_hv_intr);
++
+ static void send_events(struct ldc_channel *lp, unsigned int event_mask)
+ {
+ 	if (event_mask & LDC_EVENT_RESET)
+@@ -829,7 +850,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 	 * everything.
+ 	 */
+ 	if (lp->flags & LDC_FLAG_RESET) {
+-		(void) __set_rx_head(lp, lp->rx_tail);
++		(void) ldc_rx_reset(lp);
+ 		goto out;
+ 	}
+ 
+@@ -1447,6 +1468,42 @@ int ldc_state(struct ldc_channel *lp)
+ }
+ EXPORT_SYMBOL(ldc_state);
+ 
++void ldc_set_state(struct ldc_channel *lp, u8 state)
++{
++	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
++		state_to_str(lp->state),
++		state_to_str(state));
++
++	lp->state = state;
++}
++EXPORT_SYMBOL(ldc_set_state);
++
++int ldc_mode(struct ldc_channel *lp)
++{
++	return lp->cfg.mode;
++}
++EXPORT_SYMBOL(ldc_mode);
++
++int ldc_rx_reset(struct ldc_channel *lp)
++{
++	return __set_rx_head(lp, lp->rx_tail);
++}
++EXPORT_SYMBOL(ldc_rx_reset);
++
++void ldc_print(struct ldc_channel *lp)
++{
++	pr_info("%s: id=0x%lx flags=0x%x state=%s cstate=0x%lx hsstate=0x%x\n"
++		"\trx_h=0x%lx rx_t=0x%lx rx_n=%ld\n"
++		"\ttx_h=0x%lx tx_t=0x%lx tx_n=%ld\n"
++		"\trcv_nxt=%u snd_nxt=%u\n",
++	__func__, lp->id, lp->flags, state_to_str(lp->state),
++	lp->chan_state, lp->hs_state,
++	lp->rx_head, lp->rx_tail, lp->rx_num_entries,
++	lp->tx_head, lp->tx_tail, lp->tx_num_entries,
++	lp->rcv_nxt, lp->snd_nxt);
++}
++EXPORT_SYMBOL(ldc_print);
++
+ static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
+ {
+ 	struct ldc_packet *p;
+@@ -1592,7 +1649,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
+ 	if (err)
+ 		return err;
+ 
+-	err = __set_rx_head(lp, lp->rx_tail);
++	err = ldc_rx_reset(lp);
+ 	if (err < 0)
+ 		return ldc_abort(lp);
+ 
+-- 
+1.7.1
 
-That's the danger in comparing other machines, the context and what's
-running on them is different.
