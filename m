@@ -1,66 +1,249 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 19 May 2017 00:36:04 +0000
-Subject: [PATCH 0/6] Enable queued rwlock and queued spinlock for SPARC
-Message-Id: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 12 May 2017 01:30:50 +0000
+Subject: [PATCH v2 2/5] sparc64: enhance ldc_abort to print message
+Message-Id: <ce3300ab676f3f45e9e17220f97f1832558646da.1494551284.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
-Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-This series of patches enables queued rwlock and queued spinlock support
-for SPARC. These features were introduced some time ago in upstream.
-Here are some of the earlier discussions.
-https://lwn.net/Articles/572765/
-https://lwn.net/Articles/582200/
-https://lwn.net/Articles/561775/
-https://lwn.net/Articles/590243/
+Enhance ldc_abort to accept a message to be printed when it is called. Add
+a macro, LDC_ABORT, to print info. about the function that calls ldc_abort.
 
-Tests: Ran AIM7 benchmark to verify the performance on various workloads.
-https://github.com/davidlohr/areaim. Same benchmark was used when this
-feature was introduced and enabled on x86. Here are the test results.
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+---
+ arch/sparc/kernel/ldc.c |   53 ++++++++++++++++++++++++----------------------
+ 1 files changed, 28 insertions(+), 25 deletions(-)
 
-Kernel				4.11.0-rc6     4.11.0-rc6 + 	Change
-				baseline	queued locks
-			      (Avg No.of jobs) (Avg No.of jobs)
-Workload
-High systime 10-100 user	 17290.48	 17295.18	+0.02
-High systime 200-1000 users	109814.95	110248.87	+0.39
-High systime 1200-2000 users	107912.40	127923.16	+18.54
-
-Disk IO 10-100 users		168910.16	158834.17	-5.96
-Disk IO 200-1000 users		242781.74	281285.80	+15.85
-Disk IO 1200-2000 users		228518.23	218421.23	-4.41
-
-Disk IO 10-100 users		183933.77	207928.67	+13.04
-Disk IO 200-1000 users		491981.56	500162.33	+1.66
-Disk IO 1200-2000 users		463395.66	467312.70	+0.84
-
-fserver 10-100 users		254177.53	270283.08	+6.33
-fserver IO 200-1000 users	269017.35	324812.2	+20.74
-fserver IO 1200-2000 users	229538.87	284713.77	+24.03
-
-Disk I/O results are little bit in negative territory. But majority of the 
-performance changes are in positive and it is significant in some cases.
-
-Babu Moger (6):
-  kernel/locking: Fix compile error with qrwlock.c
-  arch/sparc: Define config parameter CPU_BIG_ENDIAN
-  arch/sparc: Introduce cmpxchg_u8 SPARC
-  arch/sparc: Enable queued rwlocks for SPARC
-  arch/sparc: Introduce xchg16 for SPARC
-  arch/sparc: Enable queued spinlock support for SPARC
-
- arch/sparc/Kconfig                      |    6 +++
- arch/sparc/include/asm/cmpxchg_64.h     |   76 +++++++++++++++++++++++++++----
- arch/sparc/include/asm/qrwlock.h        |    7 +++
- arch/sparc/include/asm/qspinlock.h      |    7 +++
- arch/sparc/include/asm/spinlock_64.h    |   13 ++++-
- arch/sparc/include/asm/spinlock_types.h |   10 ++++-
- include/asm-generic/qrwlock_types.h     |    6 +-
- kernel/locking/qrwlock.c                |    1 +
- 8 files changed, 110 insertions(+), 16 deletions(-)
- create mode 100644 arch/sparc/include/asm/qrwlock.h
- create mode 100644 arch/sparc/include/asm/qspinlock.h
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index cf62838..5404e70 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -177,6 +177,8 @@ struct ldc_channel {
+ 		printk(KERN_INFO PFX "ID[%lu] " f, lp->id, ## a); \
+ } while (0)
+ 
++#define	LDC_ABORT(lp)	ldc_abort((lp), __func__)
++
+ static const char *state_to_str(u8 state)
+ {
+ 	switch (state) {
+@@ -506,11 +508,12 @@ static int send_data_nack(struct ldc_channel *lp, struct ldc_packet *data_pkt)
+ 	return err;
+ }
+ 
+-static int ldc_abort(struct ldc_channel *lp)
++static int ldc_abort(struct ldc_channel *lp, const char *msg)
+ {
+ 	unsigned long hv_err;
+ 
+-	ldcdbg(STATE, "ABORT\n");
++	ldcdbg(STATE, "ABORT[%s]\n", msg);
++	ldc_print(lp);
+ 
+ 	/* We report but do not act upon the hypervisor errors because
+ 	 * there really isn't much we can do if they fail at this point.
+@@ -595,7 +598,7 @@ static int process_ver_info(struct ldc_channel *lp, struct ldc_version *vp)
+ 		}
+ 	}
+ 	if (err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -608,13 +611,13 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
+ 	if (lp->hs_state = LDC_HS_GOTVERS) {
+ 		if (lp->ver.major != vp->major ||
+ 		    lp->ver.minor != vp->minor)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 	} else {
+ 		lp->ver = *vp;
+ 		lp->hs_state = LDC_HS_GOTVERS;
+ 	}
+ 	if (send_rts(lp))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	return 0;
+ }
+ 
+@@ -625,17 +628,17 @@ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
+ 	unsigned long new_tail;
+ 
+ 	if (vp->major = 0 && vp->minor = 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	vap = find_by_major(vp->major);
+ 	if (!vap)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
+ 					   vap, sizeof(*vap),
+ 					   &new_tail);
+ 	if (!p)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return send_tx_packet(lp, p, new_tail);
+ }
+@@ -658,7 +661,7 @@ static int process_version(struct ldc_channel *lp,
+ 		return process_ver_nack(lp, vp);
+ 
+ 	default:
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	}
+ }
+ 
+@@ -671,13 +674,13 @@ static int process_rts(struct ldc_channel *lp,
+ 	if (p->stype     != LDC_INFO	   ||
+ 	    lp->hs_state != LDC_HS_GOTVERS ||
+ 	    p->env       != lp->cfg.mode)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->snd_nxt = p->seqid;
+ 	lp->rcv_nxt = p->seqid;
+ 	lp->hs_state = LDC_HS_SENTRTR;
+ 	if (send_rtr(lp))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -690,7 +693,7 @@ static int process_rtr(struct ldc_channel *lp,
+ 
+ 	if (p->stype     != LDC_INFO ||
+ 	    p->env       != lp->cfg.mode)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->snd_nxt = p->seqid;
+ 	lp->hs_state = LDC_HS_COMPLETE;
+@@ -713,7 +716,7 @@ static int process_rdx(struct ldc_channel *lp,
+ 
+ 	if (p->stype != LDC_INFO ||
+ 	    !(rx_seq_ok(lp, p->seqid)))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->rcv_nxt = p->seqid;
+ 
+@@ -740,14 +743,14 @@ static int process_control_frame(struct ldc_channel *lp,
+ 		return process_rdx(lp, p);
+ 
+ 	default:
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	}
+ }
+ 
+ static int process_error_frame(struct ldc_channel *lp,
+ 			       struct ldc_packet *p)
+ {
+-	return ldc_abort(lp);
++	return LDC_ABORT(lp);
+ }
+ 
+ static int process_data_ack(struct ldc_channel *lp,
+@@ -766,7 +769,7 @@ static int process_data_ack(struct ldc_channel *lp,
+ 			return 0;
+ 		}
+ 		if (head = lp->tx_tail)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 	}
+ 
+ 	return 0;
+@@ -901,7 +904,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 			break;
+ 
+ 		default:
+-			err = ldc_abort(lp);
++			err = LDC_ABORT(lp);
+ 			break;
+ 		}
+ 
+@@ -916,7 +919,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 
+ 		err = __set_rx_head(lp, new);
+ 		if (err < 0) {
+-			(void) ldc_abort(lp);
++			(void) LDC_ABORT(lp);
+ 			break;
+ 		}
+ 		if (lp->hs_state = LDC_HS_COMPLETE)
+@@ -1540,7 +1543,7 @@ static int read_raw(struct ldc_channel *lp, void *buf, unsigned int size)
+ 					&lp->rx_tail,
+ 					&lp->chan_state);
+ 	if (hv_err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 	    lp->chan_state = LDC_CHANNEL_RESETTING)
+@@ -1583,7 +1586,7 @@ static int write_nonraw(struct ldc_channel *lp, const void *buf,
+ 		return -EBUSY;
+ 
+ 	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (!tx_has_space_for(lp, size))
+ 		return -EAGAIN;
+@@ -1651,7 +1654,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
+ 
+ 	err = ldc_rx_reset(lp);
+ 	if (err < 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -1664,7 +1667,7 @@ static int data_ack_nack(struct ldc_channel *lp, struct ldc_packet *p)
+ 			return err;
+ 	}
+ 	if (p->stype & LDC_NACK)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -1684,7 +1687,7 @@ static int rx_data_wait(struct ldc_channel *lp, unsigned long cur_head)
+ 						&lp->rx_tail,
+ 						&lp->chan_state);
+ 		if (hv_err)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 
+ 		if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 		    lp->chan_state = LDC_CHANNEL_RESETTING)
+@@ -1707,7 +1710,7 @@ static int rx_set_head(struct ldc_channel *lp, unsigned long head)
+ 	int err = __set_rx_head(lp, head);
+ 
+ 	if (err < 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->rx_head = head;
+ 	return 0;
+@@ -1746,7 +1749,7 @@ static int read_nonraw(struct ldc_channel *lp, void *buf, unsigned int size)
+ 					&lp->rx_tail,
+ 					&lp->chan_state);
+ 	if (hv_err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 	    lp->chan_state = LDC_CHANNEL_RESETTING)
+-- 
+1.7.1
 
