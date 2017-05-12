@@ -1,41 +1,26 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 05 May 2017 17:03:13 +0000
-Subject: [v3 6/9] sparc64: teach sparc not to zero struct pages memory
-Message-Id: <1494003796-748672-7-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 12 May 2017 01:30:48 +0000
+Subject: [PATCH v2 0/5] LDC changes for porting VCC driver into upstream kernel
+Message-Id: <cover.1494551284.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-If we are using deferred struct page initialization feature, most of
-"struct page"es are getting initialized after other CPUs are started, and
-hence we are benefiting from doing this job in parallel. However, we are
-still zeroing all the memory that is allocated for "struct pages" using the
-boot CPU.  This patch solves this problem, by deferring zeroing "struct
-pages" to only when they are initialized on SPARC.
+Version 2 of patch-set to enable LDC to support VCC driver. Version 2 addresses
+the following changes suggested by Dave Miller
+Patch 1/5: enable_irq()/disable_irq() used to enable/disable HV interrupts
+Patch 4/5: Commit message adds more detail to justify the change
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- arch/sparc/mm/init_64.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Jag Raman (5):
+  sparc64: expand LDC interface
+  sparc64: enhance ldc_abort to print message
+  sparc64: ensure LDC channel is ready before communication
+  sparc64: ldc abort during vds iso boot
+  sparc64: print debug messages when reading from LDC channel
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index c72d070..dae040c 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2546,7 +2546,7 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
- 		pte = pmd_val(*pmd);
- 		if (!(pte & _PAGE_VALID)) {
- 			void *block = vmemmap_alloc_block(PMD_SIZE, node,
--							  true);
-+							  VMEMMAP_ZERO);
- 
- 			if (!block)
- 				return -ENOMEM;
--- 
-1.7.1
+ arch/sparc/include/asm/ldc.h |   10 +++
+ arch/sparc/kernel/ldc.c      |  176 +++++++++++++++++++++++++++++++----------
+ 2 files changed, 143 insertions(+), 43 deletions(-)
 
