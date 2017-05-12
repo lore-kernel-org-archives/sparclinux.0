@@ -1,65 +1,47 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 05 May 2017 17:03:08 +0000
-Subject: [v3 1/9] sparc64: simplify vmemmap_populate
-Message-Id: <1494003796-748672-2-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 12 May 2017 01:30:53 +0000
+Subject: [PATCH v2 5/5] sparc64: print debug messages when reading from LDC channel
+Message-Id: <e68259d693d5cec9ab87fc57b07020bc918cce2d.1494551284.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Remove duplicating code, by using common functions
-vmemmap_pud_populate and vmemmap_pgd_populate functions.
+Print debug messages when reading from given LDC channel.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 ---
- arch/sparc/mm/init_64.c |   23 ++++++-----------------
- 1 files changed, 6 insertions(+), 17 deletions(-)
+ arch/sparc/kernel/ldc.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 0cda653..14cc1fc 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2530,30 +2530,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
- 	vstart = vstart & PMD_MASK;
- 	vend = ALIGN(vend, PMD_SIZE);
- 	for (; vstart < vend; vstart += PMD_SIZE) {
--		pgd_t *pgd = pgd_offset_k(vstart);
-+		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
- 		unsigned long pte;
- 		pud_t *pud;
- 		pmd_t *pmd;
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index f53f672..1471d57 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1985,6 +1985,8 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
+ 	unsigned long flags;
+ 	int err;
  
--		if (pgd_none(*pgd)) {
--			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
-+		if (!pgd)
-+			return -ENOMEM;
++	ldcdbg(RX, "%s: entered size=%d\n", __func__, size);
++
+ 	if (!buf)
+ 		return -EINVAL;
  
--			if (!new)
--				return -ENOMEM;
--			pgd_populate(&init_mm, pgd, new);
--		}
--
--		pud = pud_offset(pgd, vstart);
--		if (pud_none(*pud)) {
--			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
--
--			if (!new)
--				return -ENOMEM;
--			pud_populate(&init_mm, pud, new);
--		}
-+		pud = vmemmap_pud_populate(pgd, vstart, node);
-+		if (!pud)
-+			return -ENOMEM;
+@@ -2000,6 +2002,9 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
  
- 		pmd = pmd_offset(pud, vstart);
--
- 		pte = pmd_val(*pmd);
- 		if (!(pte & _PAGE_VALID)) {
- 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+ 	spin_unlock_irqrestore(&lp->lock, flags);
+ 
++	ldcdbg(RX, "%s: mode=%d, head=%lu, tail=%lu rv=%d\n", __func__,
++	       lp->cfg.mode, lp->rx_head, lp->rx_tail, err);
++
+ 	return err;
+ }
+ EXPORT_SYMBOL(ldc_read);
 -- 
 1.7.1
 
