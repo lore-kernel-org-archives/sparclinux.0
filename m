@@ -1,22 +1,24 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 25 May 2017 19:18:57 +0000
-Subject: Re: [PATCH v4 0/7] Enable queued rwlock and queued spinlock for SPARC
-Message-Id: <20170525.151857.1037705639569909590.davem@davemloft.net>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 15 May 2017 17:51:06 +0000
+Subject: [PATCH net-next 0/2] ldmvsw: port removal stability
+Message-Id: <1494870668-65047-1-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: babu.moger@oracle.com
-Cc: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-From: Babu Moger <babu.moger@oracle.com>
-Date: Wed, 24 May 2017 17:55:08 -0600
+Under heavy reboot stress testing we found a couple of timing issues
+when removing the device that could cause the kernel great heartburn,
+addressed by these two patches.
 
-> This series of patches enables queued rwlock and queued spinlock support
-> for SPARC. These features were introduced some time ago in upstream.
+Shannon Nelson (1):
+  ldmvsw: stop the clean timer at beginning of remove
 
-Looks great, all applied to sparc-next.
+Thomas Tai (1):
+  ldmvsw: unregistering netdev before disable hardware
 
-Thanks!
+ drivers/net/ethernet/sun/ldmvsw.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
