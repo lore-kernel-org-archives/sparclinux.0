@@ -1,40 +1,46 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 05 May 2017 17:03:11 +0000
-Subject: [v3 4/9] mm: do not zero vmemmap_buf
-Message-Id: <1494003796-748672-5-git-send-email-pasha.tatashin@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 15 May 2017 17:51:08 +0000
+Subject: [PATCH net-next 2/2] ldmvsw: stop the clean timer at beginning of remove
+Message-Id: <1494870668-65047-3-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1494870668-65047-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1494870668-65047-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, Shannon Nelson <shannon.nelson@oracle.com>
 
-alloc_block_buf() can either use external allocator by calling
-vmemmap_alloc_block() or when available use pre-allocated vmemmap_buf
-to do allocation. In either case, alloc_block_buf() knows when to zero
-memory based on the "zero" argument.  This is why it is not needed to
-zero vmemmap_buf beforehand. Let clients of alloc_block_buf() to
-decide whether that is needed.
+Stop the clean timer earlier to be sure there's no asynchronous
+interference while stopping the port.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Orabug: 25748241
+
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- mm/sparse-vmemmap.c |    2 +-
+ drivers/net/ethernet/sun/ldmvsw.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index 5d255b0..1e9508b 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -305,7 +305,7 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 309747c..5b56c24 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -411,6 +411,7 @@ static int vsw_port_remove(struct vio_dev *vdev)
  
- 	size = ALIGN(size, PMD_SIZE);
- 	vmemmap_buf_start = __earlyonly_bootmem_alloc(nodeid, size
--			* map_count, PMD_SIZE, __pa(MAX_DMA_ADDRESS), true);
-+			* map_count, PMD_SIZE, __pa(MAX_DMA_ADDRESS), false);
+ 	if (port) {
+ 		del_timer_sync(&port->vio.timer);
++		del_timer_sync(&port->clean_timer);
  
- 	if (vmemmap_buf_start) {
- 		vmemmap_buf = vmemmap_buf_start;
+ 		napi_disable(&port->napi);
+ 		unregister_netdev(port->dev);
+@@ -418,7 +419,6 @@ static int vsw_port_remove(struct vio_dev *vdev)
+ 		list_del_rcu(&port->list);
+ 
+ 		synchronize_rcu();
+-		del_timer_sync(&port->clean_timer);
+ 		spin_lock_irqsave(&port->vp->lock, flags);
+ 		sunvnet_port_rm_txq_common(port);
+ 		spin_unlock_irqrestore(&port->vp->lock, flags);
 -- 
 1.7.1
 
