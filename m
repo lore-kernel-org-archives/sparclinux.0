@@ -1,63 +1,54 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 31 May 2017 15:25:22 +0000
-Subject: [v1 3/6] sparc64: redefine first version
-Message-Id: <1496244325-180257-4-git-send-email-pasha.tatashin@oracle.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 15 May 2017 17:51:07 +0000
+Subject: [PATCH net-next 1/2] ldmvsw: unregistering netdev before disable hardware
+Message-Id: <1494870668-65047-2-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1494870668-65047-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1494870668-65047-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, Thomas Tai <thomas.tai@oracle.com>, Shannon Nelson <shannon.nelson@oracle.com>
 
-CTX_FIRST_VERSION defines the first context version, but also it defines
-first context. This patch redefines it to only include the first context
-version.
+From: Thomas Tai <thomas.tai@oracle.com>
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+When running LDom binding/unbinding test, kernel may panic
+in ldmvsw_open(). It is more likely that because we're removing
+the ldc connection before unregistering the netdev in vsw_port_remove(),
+we set up a window of time where one process could be removing the
+device while another trying to UP the device. This also sometimes causes
+vio handshake error due to opening a device without closing it completely.
+We should unregister the netdev before we disable the "hardware".
+
+Orabug: 25980913, 25925306
+
+Signed-off-by: Thomas Tai <thomas.tai@oracle.com>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/include/asm/mmu_64.h |    2 +-
- arch/sparc/mm/init_64.c         |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-index f7de0db..83b36a5 100644
---- a/arch/sparc/include/asm/mmu_64.h
-+++ b/arch/sparc/include/asm/mmu_64.h
-@@ -52,7 +52,7 @@
- #define CTX_NR_MASK		TAG_CONTEXT_BITS
- #define CTX_HW_MASK		(CTX_NR_MASK | CTX_PGSZ_MASK)
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 5a90fed..309747c 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -413,6 +413,7 @@ static int vsw_port_remove(struct vio_dev *vdev)
+ 		del_timer_sync(&port->vio.timer);
  
--#define CTX_FIRST_VERSION	((_AC(1,UL) << CTX_VERSION_SHIFT) + _AC(1,UL))
-+#define CTX_FIRST_VERSION	BIT(CTX_VERSION_SHIFT)
- #define CTX_VALID(__ctx)	\
- 	 (!(((__ctx.sparc64_ctx_val) ^ tlb_context_cache) & CTX_VERSION_MASK))
- #define CTX_HWBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_HW_MASK)
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index e679b14..18f958b 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -706,7 +706,7 @@ void __flush_dcache_range(unsigned long start, unsigned long end)
+ 		napi_disable(&port->napi);
++		unregister_netdev(port->dev);
  
- /* get_new_mmu_context() uses "cache + 1".  */
- DEFINE_SPINLOCK(ctx_alloc_lock);
--unsigned long tlb_context_cache = CTX_FIRST_VERSION - 1;
-+unsigned long tlb_context_cache = CTX_FIRST_VERSION;
- #define MAX_CTX_NR	(1UL << CTX_NR_BITS)
- #define CTX_BMAP_SLOTS	BITS_TO_LONGS(MAX_CTX_NR)
- DECLARE_BITMAP(mmu_context_bmap, MAX_CTX_NR);
-@@ -737,9 +737,9 @@ void get_new_mmu_context(struct mm_struct *mm)
- 		if (new_ctx >= ctx) {
- 			int i;
- 			new_ctx = (tlb_context_cache & CTX_VERSION_MASK) +
--				CTX_FIRST_VERSION;
-+				CTX_FIRST_VERSION + 1;
- 			if (new_ctx = 1)
--				new_ctx = CTX_FIRST_VERSION;
-+				new_ctx = CTX_FIRST_VERSION + 1;
+ 		list_del_rcu(&port->list);
  
- 			/* Don't call memset, for 16 entries that's just
- 			 * plain silly...
+@@ -427,7 +428,6 @@ static int vsw_port_remove(struct vio_dev *vdev)
+ 
+ 		dev_set_drvdata(&vdev->dev, NULL);
+ 
+-		unregister_netdev(port->dev);
+ 		free_netdev(port->dev);
+ 	}
+ 
 -- 
 1.7.1
 
