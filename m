@@ -1,36 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 12 May 2017 17:37:42 +0000
+From: Pasha Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 15 May 2017 18:12:10 +0000
 Subject: Re: [v3 0/9] parallelized "struct page" zeroing
-Message-Id: <20170512.133742.2144484253675877904.davem@davemloft.net>
+Message-Id: <e19b241d-be27-3c9a-8984-2fb20211e2e1@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <65b8a658-76d1-0617-ece8-ff7a3c1c4046@oracle.com>
-	<20170512.125708.475573831936972365.davem@davemloft.net>
-	<6da8d4a6-3332-8331-c329-b05efd88a70d@oracle.com>
-In-Reply-To: <6da8d4a6-3332-8331-c329-b05efd88a70d@oracle.com>
+References: <1494003796-748672-1-git-send-email-pasha.tatashin@oracle.com>
+ <20170509181234.GA4397@dhcp22.suse.cz>
+In-Reply-To: <20170509181234.GA4397@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: pasha.tatashin@oracle.com
-Cc: mhocko@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com
+To: Michal Hocko <mhocko@kernel.org>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
 
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 12 May 2017 13:24:52 -0400
+Hi Michal,
 
-> Right now it is larger, but what I suggested is to add a new optimized
-> routine just for this case, which would do STBI for 64-bytes but
-> without membar (do membar at the end of memmap_init_zone() and
-> deferred_init_memmap()
-> 
-> #define struct_page_clear(page)                                 \
->         __asm__ __volatile__(                                   \
->         "stxa   %%g0, [%0]%2\n"                                 \
->         "stxa   %%xg0, [%0 + %1]%2\n"                           \
->         : /* No output */                                       \
->         : "r" (page), "r" (0x20), "i"(ASI_BLK_INIT_QUAD_LDD_P))
-> 
-> And insert it into __init_single_page() instead of memset()
-> 
-> The final result is 4.01s/T which is even faster compared to current
-> 4.97s/T
+After looking at your suggested memblock_virt_alloc_core() change again, 
+I decided to keep what I have. I do not want to inline 
+memblock_virt_alloc_internal(), because it is not a performance critical 
+path, and by inlining it we will unnecessarily increase the text size on 
+all platforms.
 
-Ok, indeed, that would work.
+Also, because it will be very hard to make sure that no platform 
+regresses by making memset() default in _memblock_virt_alloc_core() (as 
+I already showed last week at least sun4v SPARC64 will require special 
+changes in order for this to work), I decided to make it available only 
+for "deferred struct page init" case. As, what is already in the patch.
+
+I am working on testing to make sure we do not need to double zero in 
+the two cases that you found: sparsemem, and mem hotplug. Please let me 
+know if you have any more comments, or if I can send new patches out 
+when they are ready.
+
+Thank you,
+Pasha
