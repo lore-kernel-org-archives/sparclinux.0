@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 09 May 2017 20:04:14 +0000
+Date: Thu, 18 May 2017 18:03:30 +0000
 Subject: [GIT] Sparc
-Message-Id: <20170509.160414.1587011096608664845.davem@davemloft.net>
+Message-Id: <20170518.140330.400029734994473855.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,38 +12,35 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull in these sparc changes, including a bug fix
-for handling exceptions during bzero on some sparc64
-cpus.
+Please pull in these three sparc bug fixes.
 
-Thanks!
+Thank you.
 
-The following changes since commit 89c9fea3c8034cdb2fd745f551cde0b507fd6893:
+The following changes since commit b23afd384801711ab6dbccd259cc14cb09a1dcaf:
 
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial (2017-05-02 19:09:35 -0700)
+  Merge tag 'pstore-v4.12-rc2' of git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux (2017-05-16 13:29:07 -0700)
 
 are available in the git repository at:
 
   git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
-for you to fetch changes up to 3c7f62212018b904ae17f5636ead18a4dca3a88f:
+for you to fetch changes up to 48078d2dac0a26f84f5f3ec704f24f7c832cce14:
 
-  sparc64: fix fault handling in NGbzero.S and GENbzero.S (2017-05-09 12:16:25 -0700)
+  sparc/ftrace: Fix ftrace graph time measurement (2017-05-17 12:07:47 -0700)
 
 ----------------------------------------------------------------
-Dave Aldridge (1):
-      sparc64: fix fault handling in NGbzero.S and GENbzero.S
+Liam R. Howlett (1):
+      sparc/ftrace: Fix ftrace graph time measurement
 
-David S. Miller (1):
-      sparc: Remove redundant tests in boot_flags_init().
+Nitin Gupta (1):
+      sparc64: Fix mapping of 64k pages with MAP_FIXED
 
-Geliang Tang (1):
-      sparc: use memdup_user_nul in sun4m LED driver
+Orlando Arias (1):
+      sparc: Fix -Wstringop-overflow warning
 
- arch/sparc/kernel/head_64.S  |  6 ++++++
- arch/sparc/kernel/led.c      | 13 +++----------
- arch/sparc/kernel/setup_32.c |  2 +-
- arch/sparc/kernel/setup_64.c |  2 +-
- arch/sparc/lib/GENbzero.S    |  2 +-
- arch/sparc/lib/NGbzero.S     |  2 +-
- 6 files changed, 13 insertions(+), 14 deletions(-)
+ arch/sparc/include/asm/hugetlb.h    |  6 ++++--
+ arch/sparc/include/asm/pgtable_32.h |  4 ++--
+ arch/sparc/include/asm/setup.h      |  2 +-
+ arch/sparc/kernel/ftrace.c          | 13 ++++++-------
+ arch/sparc/mm/init_32.c             |  2 +-
+ 5 files changed, 14 insertions(+), 13 deletions(-)
