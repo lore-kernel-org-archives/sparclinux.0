@@ -1,45 +1,52 @@
 From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 19 May 2017 16:37:06 +0000
-Subject: Re: [PATCH 6/6] arch/sparc: Enable queued spinlock support for SPARC
-Message-Id: <8e402c6d-7912-afb0-7be7-76dd9b06cf57@oracle.com>
+Date: Fri, 19 May 2017 00:36:06 +0000
+Subject: [PATCH 2/6] arch/sparc: Define config parameter CPU_BIG_ENDIAN
+Message-Id: <1495154170-854693-3-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
- <1495154170-854693-7-git-send-email-babu.moger@oracle.com>
- <20170518.223220.105988940116687879.davem@davemloft.net>
-In-Reply-To: <20170518.223220.105988940116687879.davem@davemloft.net>
+In-Reply-To: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
+Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
+Found this problem while enabling queued rwlock on SPARC.
+The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
+specific byte in qrwlock structure. Without this parameter,
+we clear the wrong byte. Here is the code.
 
-On 5/18/2017 9:32 PM, David Miller wrote:
-> From: Babu Moger <babu.moger@oracle.com>
-> Date: Thu, 18 May 2017 18:36:10 -0600
->
->> @@ -83,6 +83,7 @@ config SPARC64
->>   	select ARCH_SUPPORTS_ATOMIC_RMW
->>   	select HAVE_NMI
->>   	select ARCH_USE_QUEUED_RWLOCKS
->> +	select ARCH_USE_QUEUED_SPINLOCKS
->>   
->>   config ARCH_DEFCONFIG
->>   	string
-> Like the queued spinlock enabling patch, if this will be on
-> all the time for SPARC64 then:
->
->> diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
->> index 562dbd8..e2044e3 100644
->> --- a/arch/sparc/include/asm/spinlock_64.h
->> +++ b/arch/sparc/include/asm/spinlock_64.h
->> @@ -11,6 +11,9 @@
->>   #include <asm/processor.h>
->>   #include <asm/barrier.h>
->>   
->> +#ifdef CONFIG_QUEUED_SPINLOCKS
->> +#include <asm/qspinlock.h>
->> +#else
-> This ifdef doesn't make any sense, by definition it will always be on.
+static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+ {
+	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+ }
 
-Ok. Will do. thanks
+Define CPU_BIG_ENDIAN for SPARC to fix it.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/Kconfig |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a2ad946..8787fc4 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -91,6 +91,10 @@ config ARCH_DEFCONFIG
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+=20
++config CPU_BIG_ENDIAN
++	bool
++	default y if SPARC64
++
+ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+--=20
+1.7.1
+
