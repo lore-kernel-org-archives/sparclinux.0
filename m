@@ -1,17 +1,52 @@
-From: "Mr.Simon Gaston" <hugo@globalfrutas.com.br>
-Date: Sun, 28 May 2017 06:34:19 +0000
-Subject: Parthership
-Message-Id: <20170528063937.9787326DAC@server2.globalfrutas.com.br>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Sat, 20 May 2017 00:16:57 +0000
+Subject: [PATCH v2 3/7] arch/sparc: Define config parameter CPU_BIG_ENDIAN
+Message-Id: <1495239421-441642-4-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
+Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-Hello Good morning
- 
-Please I need your help in claiming an abandoned fund I discovered in our Bank.The account is dormant and non operational for 12 calendar years.We stand to gain immensely on the successful completion of this mutual undertaking. I have a business opportunity that Guarantee's you 30% of ($3.5 Million USD Do get back to me for more information on this subject matter.
- 
-Thanks in anticipation for your response.
- 
-Mr.Simon Gaston Seiku
+Found this problem while enabling queued rwlock on SPARC.
+The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
+specific byte in qrwlock structure. Without this parameter,
+we clear the wrong byte. Here is the code.
+
+static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+ {
+	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+ }
+
+Define CPU_BIG_ENDIAN for SPARC to fix it.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/Kconfig |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a2ad946..0f5813b 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -91,6 +91,10 @@ config ARCH_DEFCONFIG
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+=20
++config CPU_BIG_ENDIAN
++	bool
++	default y if SPARC
++
+ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+--=20
+1.7.1
+
