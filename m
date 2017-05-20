@@ -1,10 +1,10 @@
 From: Babu Moger <babu.moger@oracle.com>
-Date: Tue, 23 May 2017 21:45:55 +0000
-Subject: [PATCH v3 4/7] arch/sparc: Introduce cmpxchg_u8 SPARC
-Message-Id: <1495575958-1022566-5-git-send-email-babu.moger@oracle.com>
+Date: Sat, 20 May 2017 00:16:58 +0000
+Subject: [PATCH v2 4/7] arch/sparc: Introduce cmpxchg_u8 SPARC
+Message-Id: <1495239421-441642-5-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
+References: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
