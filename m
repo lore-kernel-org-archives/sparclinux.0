@@ -1,191 +1,61 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 12 May 2017 01:30:49 +0000
-Subject: [PATCH v2 1/5] sparc64: expand LDC interface
-Message-Id: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 22 May 2017 19:09:26 +0000
+Subject: Re: [PATCH v2 1/5] sparc64: expand LDC interface
+Message-Id: <20170522.150926.2055036314183378142.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
+In-Reply-To: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add the following LDC APIs which are planned to be used by
-LDC clients in the future:
-- ldc_set_state: Sets given LDC channel to given state
-- ldc_mode: Returns the mode of given LDC channel
-- ldc_print: Prints info about given LDC channel
-- ldc_rx_reset: Reset the RX queue of given LDC channel
-- ldc_enable_hv_intr: Enable HV interrupt for the given LDC channel
-- ldc_disable_hv_intr: Disable HV interrupt for the given LDC channel
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 11 May 2017 21:30:49 -0400
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
----
- arch/sparc/include/asm/ldc.h |   10 +++++
- arch/sparc/kernel/ldc.c      |   81 +++++++++++++++++++++++++++++++++++------
- 2 files changed, 79 insertions(+), 12 deletions(-)
+> @@ -782,6 +772,37 @@ static int process_data_ack(struct ldc_channel *lp,
+>  	return 0;
+>  }
+>  
+> +void ldc_enable_hv_intr(struct ldc_channel *lp)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&lp->lock, flags);
+> +
+> +	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
+> +
+> +	enable_irq(lp->cfg.rx_irq);
+> +
+> +	spin_unlock_irqrestore(&lp->lock, flags);
+> +
+> +}
+> +EXPORT_SYMBOL(ldc_enable_hv_intr);
 
-diff --git a/arch/sparc/include/asm/ldc.h b/arch/sparc/include/asm/ldc.h
-index 6e9004a..56dc019 100644
---- a/arch/sparc/include/asm/ldc.h
-+++ b/arch/sparc/include/asm/ldc.h
-@@ -48,6 +48,8 @@ struct ldc_channel_config {
- #define LDC_STATE_READY		0x03
- #define LDC_STATE_CONNECTED	0x04
- 
-+#define	LDC_PACKET_SIZE		64
-+
- struct ldc_channel;
- 
- /* Allocate state for a channel.  */
-@@ -72,6 +74,10 @@ struct ldc_channel *ldc_alloc(unsigned long id,
- int ldc_disconnect(struct ldc_channel *lp);
- 
- int ldc_state(struct ldc_channel *lp);
-+void ldc_set_state(struct ldc_channel *lp, u8 state);
-+int ldc_mode(struct ldc_channel *lp);
-+void ldc_print(struct ldc_channel *lp);
-+int ldc_rx_reset(struct ldc_channel *lp);
- 
- /* Read and write operations.  Only valid when the link is up.  */
- int ldc_write(struct ldc_channel *lp, const void *buf,
-@@ -137,4 +143,8 @@ void ldc_free_exp_dring(struct ldc_channel *lp, void *buf,
- 		        unsigned int len,
- 		        struct ldc_trans_cookie *cookies, int ncookies);
- 
-+void ldc_enable_hv_intr(struct ldc_channel *lp);
-+
-+void ldc_disable_hv_intr(struct ldc_channel *lp);
-+
- #endif /* _SPARC64_LDC_H */
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 59d5038..cf62838 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -34,7 +34,6 @@
- 
- static char version[]  	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")\n";
--#define LDC_PACKET_SIZE		64
- 
- /* Packet header layout for unreliable and reliable mode frames.
-  * When in RAW mode, packets are simply straight 64-byte payloads
-@@ -196,15 +195,6 @@ struct ldc_channel {
- 	}
- }
- 
--static void ldc_set_state(struct ldc_channel *lp, u8 state)
--{
--	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
--	       state_to_str(lp->state),
--	       state_to_str(state));
--
--	lp->state = state;
--}
--
- static unsigned long __advance(unsigned long off, unsigned long num_entries)
- {
- 	off += LDC_PACKET_SIZE;
-@@ -782,6 +772,37 @@ static int process_data_ack(struct ldc_channel *lp,
- 	return 0;
- }
- 
-+void ldc_enable_hv_intr(struct ldc_channel *lp)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&lp->lock, flags);
-+
-+	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
-+
-+	enable_irq(lp->cfg.rx_irq);
-+
-+	spin_unlock_irqrestore(&lp->lock, flags);
-+
-+}
-+EXPORT_SYMBOL(ldc_enable_hv_intr);
-+
-+
-+void ldc_disable_hv_intr(struct ldc_channel *lp)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&lp->lock, flags);
-+
-+	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
-+
-+	disable_irq_nosync(lp->cfg.rx_irq);
-+
-+	spin_unlock_irqrestore(&lp->lock, flags);
-+
-+}
-+EXPORT_SYMBOL(ldc_disable_hv_intr);
-+
- static void send_events(struct ldc_channel *lp, unsigned int event_mask)
- {
- 	if (event_mask & LDC_EVENT_RESET)
-@@ -829,7 +850,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 	 * everything.
- 	 */
- 	if (lp->flags & LDC_FLAG_RESET) {
--		(void) __set_rx_head(lp, lp->rx_tail);
-+		(void) ldc_rx_reset(lp);
- 		goto out;
- 	}
- 
-@@ -1447,6 +1468,42 @@ int ldc_state(struct ldc_channel *lp)
- }
- EXPORT_SYMBOL(ldc_state);
- 
-+void ldc_set_state(struct ldc_channel *lp, u8 state)
-+{
-+	ldcdbg(STATE, "STATE (%s) --> (%s)\n",
-+		state_to_str(lp->state),
-+		state_to_str(state));
-+
-+	lp->state = state;
-+}
-+EXPORT_SYMBOL(ldc_set_state);
-+
-+int ldc_mode(struct ldc_channel *lp)
-+{
-+	return lp->cfg.mode;
-+}
-+EXPORT_SYMBOL(ldc_mode);
-+
-+int ldc_rx_reset(struct ldc_channel *lp)
-+{
-+	return __set_rx_head(lp, lp->rx_tail);
-+}
-+EXPORT_SYMBOL(ldc_rx_reset);
-+
-+void ldc_print(struct ldc_channel *lp)
-+{
-+	pr_info("%s: id=0x%lx flags=0x%x state=%s cstate=0x%lx hsstate=0x%x\n"
-+		"\trx_h=0x%lx rx_t=0x%lx rx_n=%ld\n"
-+		"\ttx_h=0x%lx tx_t=0x%lx tx_n=%ld\n"
-+		"\trcv_nxt=%u snd_nxt=%u\n",
-+	__func__, lp->id, lp->flags, state_to_str(lp->state),
-+	lp->chan_state, lp->hs_state,
-+	lp->rx_head, lp->rx_tail, lp->rx_num_entries,
-+	lp->tx_head, lp->tx_tail, lp->tx_num_entries,
-+	lp->rcv_nxt, lp->snd_nxt);
-+}
-+EXPORT_SYMBOL(ldc_print);
-+
- static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
- {
- 	struct ldc_packet *p;
-@@ -1592,7 +1649,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
- 	if (err)
- 		return err;
- 
--	err = __set_rx_head(lp, lp->rx_tail);
-+	err = ldc_rx_reset(lp);
- 	if (err < 0)
- 		return ldc_abort(lp);
- 
--- 
-1.7.1
+I explicitly asked that these interfaces be removed:
 
+	http://marc.info/?l=linux-sparc&m9382227618761&w=2
+
+I want the drivers themselves to call {enable,disable}_irq() directly
+just like any other standard Linux driver.  I don't want to see
+arbitrary wrappers like this, they are not needed and make the
+code harder rather than easier to understand.
+
+Furthermore, there is no reason to take the LP lock.
+
+If such synchronization is necessary, there is a high order much
+larger problem that needs to be solved.  The IRQ value should be
+obtained at LDC channel creation time, and never change ever
+again afterwards.
+
+So there is abolutely no gain by adding synchronization across
+only the {enable,disable}_irq() call.
+
+So once again, remove these helpers completely and just call
+enable_irq() and disable_irq() directly from the drivers just like any
+other standard Linux driver does.
+
+If you ignore this feedback one more time, I will probably stop
+reviewing this patch series.  I am giving you fair warning.
+
+Thank you.
