@@ -1,78 +1,52 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Sat, 20 May 2017 00:16:55 +0000
-Subject: [PATCH v2 1/7] kernel/locking: Fix compile error with qrwlock.c
-Message-Id: <1495239421-441642-2-git-send-email-babu.moger@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 22 May 2017 19:03:28 +0000
+Subject: Re: [PATCH v2 1/7] kernel/locking: Fix compile error with qrwlock.c
+Message-Id: <20170522.150328.1597262115447284483.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
+        <1495239421-441642-2-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495239421-441642-2-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
-Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+To: babu.moger@oracle.com
+Cc: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-Some architectures use the following guard in include file
- "asm/spinlock_types.h" to discourage including the file directly.
+From: Babu Moger <babu.moger@oracle.com>
+Date: Fri, 19 May 2017 18:16:55 -0600
 
-Saw these compile errors on SPARC when queued rwlock feature is enabled.
+> Some architectures use the following guard in include file
+>  "asm/spinlock_types.h" to discourage including the file directly.
+>=20
+> Saw these compile errors on SPARC when queued rwlock feature is enabled.
+>=20
+>   CC      kernel/locking/qrwlock.o
+> In file included from ./include/asm-generic/qrwlock_types.h:5,
+>                  from ./arch/sparc/include/asm/qrwlock.h:4,
+>                  from kernel/locking/qrwlock.c:24:
+> ./arch/sparc/include/asm/spinlock_types.h:5:3: error:
+>         #error "please don't include this file directly"
+>=20
+> Re-arrange the includes in qrwlock_types.h and include spinlock.h
+> in qrwlock.c to fix it.
+>=20
+> Also will be removing this stanza from SPARC. Stay tuned.
+>=20
+> Signed-off-by: Babu Moger <babu.moger@oracle.com>
+> Reviewed-by: H=E5kon Bugge <haakon.bugge@oracle.com>
+> Reviewed-by: Jane Chu <jane.chu@oracle.com>
+> Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+> Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 
-  CC      kernel/locking/qrwlock.o
-In file included from ./include/asm-generic/qrwlock_types.h:5,
-                 from ./arch/sparc/include/asm/qrwlock.h:4,
-                 from kernel/locking/qrwlock.c:24:
-./arch/sparc/include/asm/spinlock_types.h:5:3: error:
-        #error "please don't include this file directly"
+In my feedback I said to remove that check from
+sparc's asm/spinlock_types.h header.
 
-Re-arrange the includes in qrwlock_types.h and include spinlock.h
-in qrwlock.c to fix it.
+Which you do in patch #2
 
-Also will be removing this stanza from SPARC. Stay tuned.
+But that means this patch #1 here is no longer necessary, since we
+conform to the hearder scheme used by other architectures using queued
+locks.
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
----
- include/asm-generic/qrwlock_types.h |    6 +++---
- kernel/locking/qrwlock.c            |    1 +
- 2 files changed, 4 insertions(+), 3 deletions(-)
+So please remove this patch from the series.
 
-diff --git a/include/asm-generic/qrwlock_types.h b/include/asm-generic/qrwl=
-ock_types.h
-index 0abc6b6..3988c7d 100644
---- a/include/asm-generic/qrwlock_types.h
-+++ b/include/asm-generic/qrwlock_types.h
-@@ -1,9 +1,6 @@
- #ifndef __ASM_GENERIC_QRWLOCK_TYPES_H
- #define __ASM_GENERIC_QRWLOCK_TYPES_H
-=20
--#include <linux/types.h>
--#include <asm/spinlock_types.h>
--
- /*
-  * The queue read/write lock data structure
-  */
-@@ -18,4 +15,7 @@
- 	.wait_lock =3D __ARCH_SPIN_LOCK_UNLOCKED,	\
- }
-=20
-+#include <linux/types.h>
-+#include <linux/spinlock_types.h>
-+
- #endif /* __ASM_GENERIC_QRWLOCK_TYPES_H */
-diff --git a/kernel/locking/qrwlock.c b/kernel/locking/qrwlock.c
-index cc3ed0c..2655f26 100644
---- a/kernel/locking/qrwlock.c
-+++ b/kernel/locking/qrwlock.c
-@@ -20,6 +20,7 @@
- #include <linux/cpumask.h>
- #include <linux/percpu.h>
- #include <linux/hardirq.h>
-+#include <linux/spinlock.h>
- #include <asm/qrwlock.h>
-=20
- /*
---=20
-1.7.1
-
+Thank you.
