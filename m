@@ -1,10 +1,10 @@
 From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 19 May 2017 00:36:09 +0000
-Subject: [PATCH 5/6] arch/sparc: Introduce xchg16 for SPARC
-Message-Id: <1495154170-854693-6-git-send-email-babu.moger@oracle.com>
+Date: Tue, 23 May 2017 21:45:57 +0000
+Subject: [PATCH v3 6/7] arch/sparc: Introduce xchg16 for SPARC
+Message-Id: <1495575958-1022566-7-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
+References: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -31,7 +31,7 @@ Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 
 diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/c=
 mpxchg_64.h
-index 65bfae0..a6c9fe3 100644
+index 000f7d7..4028f4f 100644
 --- a/arch/sparc/include/asm/cmpxchg_64.h
 +++ b/arch/sparc/include/asm/cmpxchg_64.h
 @@ -6,6 +6,17 @@
@@ -64,7 +64,7 @@ d long *m, unsigned long=20
 + * The XOR is handy for reversing the bits for big-endian byte order.
 + */
 +static inline unsigned long
-+xchg16(__volatile__ unsigned short *m, unsigned int val)
++xchg16(__volatile__ unsigned short *m, unsigned short val)
 +{
 +	unsigned long maddr =3D (unsigned long)m;
 +	int bit_shift =3D (((unsigned long)m & 2) ^ 2) << 3;
