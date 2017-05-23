@@ -1,148 +1,54 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Mon, 29 May 2017 16:54:19 +0000
-Subject: [PATCH 2/2] sparc: Machine description indices can vary
-Message-Id: <20170529165419.19121-2-jrtc27@jrtc27.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Tue, 23 May 2017 21:45:52 +0000
+Subject: [PATCH v3 1/7] arch/sparc: Remove the check #ifndef __LINUX_SPINLOCK_TYPES_H
+Message-Id: <1495575958-1022566-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495575958-1022566-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
+Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-VIO devices were being looked up by their index in the machine
-description node block, but this often varies over time as devices are
-added and removed. Instead, store the ID and look up using the type,
-config handle and ID.
+Saw these compile errors on SPARC when queued rwlock feature is enabled.
 
-Signed-off-by: James Clarke <jrtc27@jrtc27.com>
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id2541
+   CC      kernel/locking/qrwlock.o
+In file included from ./include/asm-generic/qrwlock_types.h:5,
+                  from ./arch/sparc/include/asm/qrwlock.h:4,
+                  from kernel/locking/qrwlock.c:24:
+./arch/sparc/include/asm/spinlock_types.h:5:3: error:
+         #error "please don't include this file directly"
+
+SPARC has this guard which causes compile error when spinlock_types.h
+is included directly.
+@ifndef __LINUX_SPINLOCK_TYPES_H
+@ error "please don't include this file directly"
+@endif
+
+Remove this un-necessary "ifndef __LINUX_SPINLOCK_TYPES_H" stanza from SPARC.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Suggested-by: David Miller <davem@davemloft.net>
 ---
- arch/sparc/include/asm/vio.h |  1 +
- arch/sparc/kernel/vio.c      | 68 +++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 65 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/spinlock_types.h |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
-index 8174f6cdbbbb..9dca7a892978 100644
---- a/arch/sparc/include/asm/vio.h
-+++ b/arch/sparc/include/asm/vio.h
-@@ -327,6 +327,7 @@ struct vio_dev {
- 	int			compat_len;
+diff --git a/arch/sparc/include/asm/spinlock_types.h b/arch/sparc/include/asm/spinlock_types.h
+index 9c454fd..019c085 100644
+--- a/arch/sparc/include/asm/spinlock_types.h
++++ b/arch/sparc/include/asm/spinlock_types.h
+@@ -1,10 +1,6 @@
+ #ifndef __SPARC_SPINLOCK_TYPES_H
+ #define __SPARC_SPINLOCK_TYPES_H
  
- 	u64			dev_no;
-+	u64			id;
- 
- 	unsigned long		channel_id;
- 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index 4da8db27fbf2..4413c850eaba 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -302,13 +302,16 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 	if (!id) {
- 		dev_set_name(&vdev->dev, "%s", bus_id_name);
- 		vdev->dev_no = ~(u64)0;
-+		vdev->id = ~(u64)0;
- 	} else if (!cfg_handle) {
- 		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
- 		vdev->dev_no = *id;
-+		vdev->id = ~(u64)0;
- 	} else {
- 		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
- 			     *cfg_handle, *id);
- 		vdev->dev_no = *cfg_handle;
-+		vdev->id = *id;
- 	}
- 
- 	vdev->dev.parent = parent;
-@@ -351,21 +354,68 @@ static void vio_add(struct mdesc_handle *hp, u64 node)
- 	(void) vio_create_one(hp, node, &root_vdev->dev);
- }
- 
-+struct vio_md_node_query {
-+	const char *type;
-+	u64 dev_no;
-+	u64 id;
-+};
-+
- static int vio_md_node_match(struct device *dev, void *arg)
- {
-+	struct vio_md_node_query *query = (struct vio_md_node_query *) arg;
- 	struct vio_dev *vdev = to_vio_dev(dev);
- 
--	if (vdev->mp = (u64) arg)
--		return 1;
-+	if (vdev->dev_no != query->dev_no)
-+		return 0;
-+	if (vdev->id != query->id)
-+		return 0;
-+	if (strcmp(vdev->type, query->type))
-+		return 0;
- 
--	return 0;
-+	return 1;
- }
- 
- static void vio_remove(struct mdesc_handle *hp, u64 node)
- {
-+	const char *type;
-+	const u64 *id, *cfg_handle;
-+	u64 a;
-+	struct vio_md_node_query query;
- 	struct device *dev;
- 
--	dev = device_find_child(&root_vdev->dev, (void *) node,
-+	type = mdesc_get_property(hp, node, "device-type", NULL);
-+	if (!type) {
-+		type = mdesc_get_property(hp, node, "name", NULL);
-+		if (!type)
-+			type = mdesc_node_name(hp, node);
-+	}
-+
-+	query.type = type;
-+
-+	id = mdesc_get_property(hp, node, "id", NULL);
-+	cfg_handle = NULL;
-+	mdesc_for_each_arc(a, hp, node, MDESC_ARC_TYPE_BACK) {
-+		u64 target;
-+
-+		target = mdesc_arc_target(hp, a);
-+		cfg_handle = mdesc_get_property(hp, target,
-+					"cfg-handle", NULL);
-+		if (cfg_handle)
-+			break;
-+	}
-+
-+	if (!id) {
-+		query.dev_no = ~(u64)0;
-+		query.id = ~(u64)0;
-+	} else if (!cfg_handle) {
-+		query.dev_no = *id;
-+		query.id = ~(u64)0;
-+	} else {
-+		query.dev_no = *cfg_handle;
-+		query.id = *id;
-+	}
-+
-+	dev = device_find_child(&root_vdev->dev, &query,
- 				vio_md_node_match);
- 	if (dev) {
- 		struct vio_dev *vdev = to_vio_dev(dev);
-@@ -378,6 +428,16 @@ static void vio_remove(struct mdesc_handle *hp, u64 node)
- 					  &dev_attr_obppath.attr);
- 
- 		put_device(dev);
-+	} else {
-+		if (!id)
-+			printk(KERN_ERR "VIO: Removed unknown %s node.\n",
-+			       type);
-+		else if (!cfg_handle)
-+			printk(KERN_ERR "VIO: Removed unknown %s node %llu.\n",
-+			       type, *id);
-+		else
-+			printk(KERN_ERR "VIO: Removed unknown %s node %llu-%llu.\n",
-+			       type, *cfg_handle, *id);
- 	}
- }
- 
+-#ifndef __LINUX_SPINLOCK_TYPES_H
+-# error "please don't include this file directly"
+-#endif
+-
+ typedef struct {
+ 	volatile unsigned char lock;
+ } arch_spinlock_t;
 -- 
-2.11.0
+1.7.1
 
