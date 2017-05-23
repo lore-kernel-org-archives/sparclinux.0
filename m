@@ -1,181 +1,458 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 31 May 2017 15:25:24 +0000
-Subject: [v1 5/6] sparc64: new context wrap
-Message-Id: <1496244325-180257-6-git-send-email-pasha.tatashin@oracle.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Tue, 23 May 2017 22:05:40 +0000
+Subject: [PATCH 1/7] lib: Add shared copies of some GCC library routines
+Message-Id: <20170523220546.16758-2-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20170523220546.16758-1-palmer@dabbelt.com>
+In-Reply-To: <20170523220546.16758-1-palmer@dabbelt.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 
-The current wrap implementation has a race issue: it is called outside of
-the ctx_alloc_lock, and also does not wait for all CPUs to complete the
-wrap.  This means that a thread can get a new context with a new version
-and another thread might still be running with the same context. The
-problem is especially severe on CPUs with shared TLBs, like sun4v. I used
-the following test to very quickly reproduce the problem:
-- start over 8K processes (must be more than context IDs)
-- write and read values at a  memory location in every process.
+Many ports (m32r, microblaze, mips, parisc, score, and sparc) use
+functionally identical copies of various GCC library routine files,
+which came up as we were submitting the RISC-V port (which also uses
+some of these).
 
-Very quickly memory corruptions start happening, and what we read back
-does not equal what we wrote.
+This patch adds a new copy of these library routine files, which are
+functionally identical to the various other copies.  These are
+availiable via Kconfig as CONFIG_LIB_$ROUTINE, which currently isn't
+used anywhere.
 
-Several approaches were explored before settling on this one:
-
-Approach 1:
-Move smp_new_mmu_context_version() inside ctx_alloc_lock, and wait for
-every process to complete the wrap. (Note: every CPU must WAIT before
-leaving smp_new_mmu_context_version_client() until every one arrives).
-
-This approach ends up with deadlocks, as some threads own locks which other
-threads are waiting for, and they never receive softint until these threads
-exit smp_new_mmu_context_version_client(). Since we do not allow the exit,
-deadlock happens.
-
-Approach 2:
-Handle wrap right during mondo interrupt. Use etrap/rtrap to enter into
-into C code, and issue new versions to every CPU.
-This approach adds some overhead to runtime: in switch_mm() we must add
-some checks to make sure that versions have not changed due to wrap while
-we were loading the new secondary context. (could be protected by PSTATE_IE
-but that degrades performance as on M7 and older CPUs as it takes 50 cycles
-for each access). Also, we still need a global per-cpu array of MMs to know
-where we need to load new contexts, otherwise we can change context to a
-thread that is going way (if we received mondo between switch_mm() and
-switch_to() time). Finally, there are some issues with window registers in
-rtrap() when context IDs are changed during CPU mondo time.
-
-The approach in this patch is the simplest and has almost no impact on
-runtime.  We use the array with mm's where last secondary contexts were
-loaded onto CPUs and bump their versions to the new generation without
-changing context IDs. If a new process comes in to get a context ID, it
-will go through get_new_mmu_context() because of version mismatch. But the
-running processes do not need to be interrupted. And wrap is quicker as we
-do not need to xcall and wait for everyone to receive and complete wrap.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
 ---
- arch/sparc/mm/init_64.c |   81 +++++++++++++++++++++++++++++++---------------
- 1 files changed, 54 insertions(+), 27 deletions(-)
+ include/lib/libgcc.h | 44 ++++++++++++++++++++++++++++++++
+ lib/Kconfig          | 18 +++++++++++++
+ lib/Makefile         |  8 ++++++
+ lib/ashldi3.c        | 45 ++++++++++++++++++++++++++++++++
+ lib/ashrdi3.c        | 46 +++++++++++++++++++++++++++++++++
+ lib/cmpdi2.c         | 42 ++++++++++++++++++++++++++++++
+ lib/lshrdi3.c        | 45 ++++++++++++++++++++++++++++++++
+ lib/muldi3.c         | 72 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ lib/ucmpdi2.c        | 35 +++++++++++++++++++++++++
+ 9 files changed, 355 insertions(+)
+ create mode 100644 include/lib/libgcc.h
+ create mode 100644 lib/ashldi3.c
+ create mode 100644 lib/ashrdi3.c
+ create mode 100644 lib/cmpdi2.c
+ create mode 100644 lib/lshrdi3.c
+ create mode 100644 lib/muldi3.c
+ create mode 100644 lib/ucmpdi2.c
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 5b4f030..bfb7672 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -712,6 +712,53 @@ void __flush_dcache_range(unsigned long start, unsigned long end)
- DECLARE_BITMAP(mmu_context_bmap, MAX_CTX_NR);
- DEFINE_PER_CPU(struct mm_struct *, per_cpu_secondary_mm) = {0};
+diff --git a/include/lib/libgcc.h b/include/lib/libgcc.h
+new file mode 100644
+index 000000000000..a5397e34e005
+--- /dev/null
++++ b/include/lib/libgcc.h
+@@ -0,0 +1,44 @@
++/*
++ * include/lib/libgcc.h
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++
++#ifndef __LIB_LIBGCC_H
++#define __LIB_LIBGCC_H
++
++#include <asm/byteorder.h>
++
++typedef int word_type __attribute__ ((mode (__word__)));
++
++#ifdef __BIG_ENDIAN
++struct DWstruct {
++	int high, low;
++};
++#elif defined(__LITTLE_ENDIAN)
++struct DWstruct {
++	int low, high;
++};
++#else
++#error I feel sick.
++#endif
++
++typedef union {
++	struct DWstruct s;
++	long long ll;
++} DWunion;
++
++#endif /* __ASM_LIBGCC_H */
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 0c8b78a9ae2e..24c08ae53c20 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -565,3 +565,21 @@ config PRIME_NUMBERS
+ 	tristate
  
-+static void mmu_context_wrap(void)
+ endmenu
++
++config LIB_ASHLDI3
++	def_bool n
++
++config LIB_ASHRDI3
++	def_bool n
++
++config LIB_LSHRDI3
++	def_bool n
++
++config LIB_MULDI3
++	def_bool n
++
++config LIB_CMPDI2
++	def_bool n
++
++config LIB_UCMPDI2
++	def_bool n
+diff --git a/lib/Makefile b/lib/Makefile
+index 0166fbc0fa81..d111c6d9224a 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -243,3 +243,11 @@ UBSAN_SANITIZE_ubsan.o := n
+ obj-$(CONFIG_SBITMAP) += sbitmap.o
+ 
+ obj-$(CONFIG_PARMAN) += parman.o
++
++# GCC library routines
++obj-$(CONFIG_LIB_ASHLDI3) += ashldi3.o
++obj-$(CONFIG_LIB_ASHRDI3) += ashrdi3.o
++obj-$(CONFIG_LIB_LSHRDI3) += lshrdi3.o
++obj-$(CONFIG_LIB_MULDI3) += multi3.o
++obj-$(CONFIG_LIB_CMPDI2) += cmpdi2.o
++obj-$(CONFIG_LIB_UCMPDI2) += ucmpdi2.o
+diff --git a/lib/ashldi3.c b/lib/ashldi3.c
+new file mode 100644
+index 000000000000..5a4c731546b0
+--- /dev/null
++++ b/lib/ashldi3.c
+@@ -0,0 +1,45 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++
++#include <linux/export.h>
++
++#include <lib/libgcc.h>
++
++long long __ashldi3(long long u, word_type b)
 +{
-+	unsigned long old_ver = tlb_context_cache & CTX_VERSION_MASK;
-+	unsigned long new_ver, new_ctx, old_ctx;
-+	struct mm_struct *mm;
-+	int cpu;
++	DWunion uu, w;
++	word_type bm;
 +
-+	bitmap_zero(mmu_context_bmap, 1 << CTX_NR_BITS);
++	if (b = 0)
++		return u;
 +
-+	/* Reserve kernel context */
-+	set_bit(0, mmu_context_bmap);
++	uu.ll = u;
++	bm = 32 - b;
 +
-+	new_ver = (tlb_context_cache & CTX_VERSION_MASK) + CTX_FIRST_VERSION;
-+	if (unlikely(new_ver = 0))
-+		new_ver = CTX_FIRST_VERSION;
-+	tlb_context_cache = new_ver;
++	if (bm <= 0) {
++		w.s.low = 0;
++		w.s.high = (unsigned int) uu.s.low << -bm;
++	} else {
++		const unsigned int carries = (unsigned int) uu.s.low >> bm;
 +
-+	/*
-+	 * Make sure that any new mm that are added into per_cpu_secondary_mm,
-+	 * are going to go through get_new_mmu_context() path.
-+	 */
-+	mb();
-+
-+	/*
-+	 * Updated versions to current on those CPUs that had valid secondary
-+	 * contexts
-+	 */
-+	for_each_online_cpu(cpu) {
-+		/*
-+		 * If a new mm is stored after we took this mm from the array,
-+		 * it will go into get_new_mmu_context() path, because we
-+		 * already bumped the version in tlb_context_cache.
-+		 */
-+		mm = per_cpu(per_cpu_secondary_mm, cpu);
-+
-+		if (unlikely(!mm || mm = &init_mm))
-+			continue;
-+
-+		old_ctx = mm->context.sparc64_ctx_val;
-+		if (likely((old_ctx & CTX_VERSION_MASK) = old_ver)) {
-+			new_ctx = (old_ctx & ~CTX_VERSION_MASK) | new_ver;
-+			set_bit(new_ctx & CTX_NR_MASK, mmu_context_bmap);
-+			mm->context.sparc64_ctx_val = new_ctx;
-+		}
++		w.s.low = (unsigned int) uu.s.low << b;
++		w.s.high = ((unsigned int) uu.s.high << b) | carries;
 +	}
-+}
 +
- /* Caller does TLB context flushing on local CPU if necessary.
-  * The caller also ensures that CTX_VALID(mm->context) is false.
-  *
-@@ -726,50 +773,30 @@ void get_new_mmu_context(struct mm_struct *mm)
- {
- 	unsigned long ctx, new_ctx;
- 	unsigned long orig_pgsz_bits;
--	int new_version;
- 
- 	spin_lock(&ctx_alloc_lock);
-+retry:
-+	/* wrap might have happened, test again if our context became valid */
-+	if (unlikely(CTX_VALID(mm->context)))
-+		goto out;
- 	orig_pgsz_bits = (mm->context.sparc64_ctx_val & CTX_PGSZ_MASK);
- 	ctx = (tlb_context_cache + 1) & CTX_NR_MASK;
- 	new_ctx = find_next_zero_bit(mmu_context_bmap, 1 << CTX_NR_BITS, ctx);
--	new_version = 0;
- 	if (new_ctx >= (1 << CTX_NR_BITS)) {
- 		new_ctx = find_next_zero_bit(mmu_context_bmap, ctx, 1);
- 		if (new_ctx >= ctx) {
--			int i;
--			new_ctx = (tlb_context_cache & CTX_VERSION_MASK) +
--				CTX_FIRST_VERSION + 1;
--			if (new_ctx = 1)
--				new_ctx = CTX_FIRST_VERSION + 1;
--
--			/* Don't call memset, for 16 entries that's just
--			 * plain silly...
--			 */
--			mmu_context_bmap[0] = 3;
--			mmu_context_bmap[1] = 0;
--			mmu_context_bmap[2] = 0;
--			mmu_context_bmap[3] = 0;
--			for (i = 4; i < CTX_BMAP_SLOTS; i += 4) {
--				mmu_context_bmap[i + 0] = 0;
--				mmu_context_bmap[i + 1] = 0;
--				mmu_context_bmap[i + 2] = 0;
--				mmu_context_bmap[i + 3] = 0;
--			}
--			new_version = 1;
--			goto out;
-+			mmu_context_wrap();
-+			goto retry;
- 		}
- 	}
- 	if (mm->context.sparc64_ctx_val)
- 		cpumask_clear(mm_cpumask(mm));
- 	mmu_context_bmap[new_ctx>>6] |= (1UL << (new_ctx & 63));
- 	new_ctx |= (tlb_context_cache & CTX_VERSION_MASK);
--out:
- 	tlb_context_cache = new_ctx;
- 	mm->context.sparc64_ctx_val = new_ctx | orig_pgsz_bits;
-+out:
- 	spin_unlock(&ctx_alloc_lock);
--
--	if (unlikely(new_version))
--		smp_new_mmu_context_version();
- }
- 
- static int numa_enabled = 1;
++	return w.ll;
++}
++EXPORT_SYMBOL(__ashldi3);
+diff --git a/lib/ashrdi3.c b/lib/ashrdi3.c
+new file mode 100644
+index 000000000000..31b34ca7252c
+--- /dev/null
++++ b/lib/ashrdi3.c
+@@ -0,0 +1,46 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++#include <linux/export.h>
++
++#include <lib/libgcc.h>
++
++long long __ashrdi3(long long u, word_type b)
++{
++	DWunion uu, w;
++	word_type bm;
++
++	if (b = 0)
++		return u;
++
++	uu.ll = u;
++	bm = 32 - b;
++
++	if (bm <= 0) {
++		/* w.s.high = 1..1 or 0..0 */
++		w.s.high +		    uu.s.high >> 31;
++		w.s.low = uu.s.high >> -bm;
++	} else {
++		const unsigned int carries = (unsigned int) uu.s.high << bm;
++
++		w.s.high = uu.s.high >> b;
++		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
++	}
++
++	return w.ll;
++}
++EXPORT_SYMBOL(__ashrdi3);
+diff --git a/lib/cmpdi2.c b/lib/cmpdi2.c
+new file mode 100644
+index 000000000000..a0d7701d9386
+--- /dev/null
++++ b/lib/cmpdi2.c
+@@ -0,0 +1,42 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++#include <linux/export.h>
++
++#include <lib/libgcc.h>
++
++word_type __cmpdi2(long long a, long long b)
++{
++	const DWunion au = {
++		.ll = a
++	};
++	const DWunion bu = {
++		.ll = b
++	};
++
++	if (au.s.high < bu.s.high)
++		return 0;
++	else if (au.s.high > bu.s.high)
++		return 2;
++
++	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
++		return 0;
++	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
++		return 2;
++
++	return 1;
++}
++EXPORT_SYMBOL(__cmpdi2);
+diff --git a/lib/lshrdi3.c b/lib/lshrdi3.c
+new file mode 100644
+index 000000000000..c5a5c23b2e92
+--- /dev/null
++++ b/lib/lshrdi3.c
+@@ -0,0 +1,45 @@
++/*
++ * lib/lshrdi3.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++#include <linux/module.h>
++#include <lib/libgcc.h>
++
++long long __lshrdi3(long long u, word_type b)
++{
++	DWunion uu, w;
++	word_type bm;
++
++	if (b = 0)
++		return u;
++
++	uu.ll = u;
++	bm = 32 - b;
++
++	if (bm <= 0) {
++		w.s.high = 0;
++		w.s.low = (unsigned int) uu.s.high >> -bm;
++	} else {
++		const unsigned int carries = (unsigned int) uu.s.high << bm;
++
++		w.s.high = (unsigned int) uu.s.high >> b;
++		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
++	}
++
++	return w.ll;
++}
++EXPORT_SYMBOL(__lshrdi3);
+diff --git a/lib/muldi3.c b/lib/muldi3.c
+new file mode 100644
+index 000000000000..b361dca557af
+--- /dev/null
++++ b/lib/muldi3.c
+@@ -0,0 +1,72 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++#include <linux/export.h>
++#include <lib/libgcc.h>
++
++#define W_TYPE_SIZE 32
++
++#define __ll_B ((unsigned long) 1 << (W_TYPE_SIZE / 2))
++#define __ll_lowpart(t) ((unsigned long) (t) & (__ll_B - 1))
++#define __ll_highpart(t) ((unsigned long) (t) >> (W_TYPE_SIZE / 2))
++
++/* If we still don't have umul_ppmm, define it using plain C.  */
++#if !defined(umul_ppmm)
++#define umul_ppmm(w1, w0, u, v)						\
++	do {								\
++		unsigned long __x0, __x1, __x2, __x3;			\
++		unsigned short __ul, __vl, __uh, __vh;			\
++									\
++		__ul = __ll_lowpart(u);					\
++		__uh = __ll_highpart(u);				\
++		__vl = __ll_lowpart(v);					\
++		__vh = __ll_highpart(v);				\
++									\
++		__x0 = (unsigned long) __ul * __vl;			\
++		__x1 = (unsigned long) __ul * __vh;			\
++		__x2 = (unsigned long) __uh * __vl;			\
++		__x3 = (unsigned long) __uh * __vh;			\
++									\
++		__x1 += __ll_highpart(__x0); /* this can't give carry */\
++		__x1 += __x2; /* but this indeed can */			\
++		if (__x1 < __x2) /* did we get it? */			\
++		__x3 += __ll_B; /* yes, add it in the proper pos */	\
++									\
++		(w1) = __x3 + __ll_highpart(__x1);			\
++		(w0) = __ll_lowpart(__x1) * __ll_B + __ll_lowpart(__x0);\
++	} while (0)
++#endif
++
++#if !defined(__umulsidi3)
++#define __umulsidi3(u, v) ({				\
++	DWunion __w;					\
++	umul_ppmm(__w.s.high, __w.s.low, u, v);		\
++	__w.ll;						\
++	})
++#endif
++
++long long __muldi3(long long u, long long v)
++{
++	const DWunion uu = {.ll = u};
++	const DWunion vv = {.ll = v};
++	DWunion w = {.ll = __umulsidi3(uu.s.low, vv.s.low)};
++
++	w.s.high += ((unsigned long) uu.s.low * (unsigned long) vv.s.high
++		+ (unsigned long) uu.s.high * (unsigned long) vv.s.low);
++
++	return w.ll;
++}
++EXPORT_SYMBOL(__muldi3);
+diff --git a/lib/ucmpdi2.c b/lib/ucmpdi2.c
+new file mode 100644
+index 000000000000..49a53505c8e3
+--- /dev/null
++++ b/lib/ucmpdi2.c
+@@ -0,0 +1,35 @@
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see the file COPYING, or write
++ * to the Free Software Foundation, Inc.
++ */
++
++#include <linux/module.h>
++#include <lib/libgcc.h>
++
++word_type __ucmpdi2(unsigned long long a, unsigned long long b)
++{
++	const DWunion au = {.ll = a};
++	const DWunion bu = {.ll = b};
++
++	if ((unsigned int) au.s.high < (unsigned int) bu.s.high)
++		return 0;
++	else if ((unsigned int) au.s.high > (unsigned int) bu.s.high)
++		return 2;
++	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
++		return 0;
++	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
++		return 2;
++	return 1;
++}
++EXPORT_SYMBOL(__ucmpdi2);
 -- 
-1.7.1
+2.13.0
 
