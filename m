@@ -1,27 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 May 2017 18:51:04 +0000
-Subject: Re: [PATCH] arch/sparc: increase CONFIG_NODES_SHIFT on SPARC64 to 5
-Message-Id: <20170526.145104.737140786434451704.davem@davemloft.net>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Tue, 23 May 2017 22:05:39 +0000
+Subject: Unify the various copies of libgcc into lib
+Message-Id: <20170523220546.16758-1-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495741880-893167-1-git-send-email-jane.chu@oracle.com>
-In-Reply-To: <1495741880-893167-1-git-send-email-jane.chu@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jane.chu@oracle.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-From: Jane Chu <jane.chu@oracle.com>
-Date: Thu, 25 May 2017 13:51:20 -0600
+I'm in the process of submitting the RISC-V Linux port, and someone noticed
+that we were adding copies of some libgcc emulation routines that were the same
+as some of the other ports.  This prompted me to go through and check all the
+ports for libgcc.h and to merge the versions that were functionally identical.
 
-> SPARC M6-32 platform has (2^5) NUMA nodes, so need to bump up the
-> CONFIG_NODES_SHIFT to 5.
-> 
-> Orabug: 25577754
-> 
-> Signed-off-by: Jane Chu <jane.chu@oracle.com>
-> 
-> Reviewed-by: Bob Picco <bob.picco@oracle.com>
-> Reviewed-by: Atish Patra <atish.patra@oracle.com>
+The only difference in libgcc.h was that there was a #define for little vs big
+endian.  The differences in the emulation routines were all just whitespace.
 
-This looks fine, applied, thanks.
+This patch set comes in two parts:
+
+ * Patch 1 adds new copies of all the C files copied from libgcc, as well as
+   moving libgcc.h to include/lib (that's a new folder, which probably means
+   it's the wrong place to put it, but I couldn't find anything better).  There
+   are Kconfig entries for each of these library functions so architectures can
+   select them one at a time.
+
+ * The rest of the patches convert each architecture over to the new system.
+
+Unless I screwed something up, this patch set shouldn't actually change any
+functionality.  Unfortunately I don't actually have all these cross compilers
+setup so I can't actually test any of this, but I did convert the RISC-V port
+over to using this system and it appears to be OK there so at least this isn't
+completely broken.
+
