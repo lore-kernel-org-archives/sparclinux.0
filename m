@@ -1,249 +1,234 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 12 May 2017 01:30:50 +0000
-Subject: [PATCH v2 2/5] sparc64: enhance ldc_abort to print message
-Message-Id: <ce3300ab676f3f45e9e17220f97f1832558646da.1494551284.git.jag.raman@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 24 May 2017 23:55:13 +0000
+Subject: [PATCH v4 5/7] arch/sparc: Enable queued rwlocks for SPARC
+Message-Id: <1495670115-63960-6-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, davem@davemloft.net
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com
 
-Enhance ldc_abort to accept a message to be printed when it is called. Add
-a macro, LDC_ABORT, to print info. about the function that calls ldc_abort.
+Enable queued rwlocks for SPARC. Here are the discussions on this feature
+when this was introduced.
+https://lwn.net/Articles/572765/
+https://lwn.net/Articles/582200/
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Cleaned-up the arch_read_xxx and arch_write_xxx definitions in spinlock_64.=
+h.
+These routines are replaced by the functions in include/asm-generic/qrwlock=
+.h
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |   53 ++++++++++++++++++++++++----------------------
- 1 files changed, 28 insertions(+), 25 deletions(-)
+ arch/sparc/Kconfig                      |    1 +
+ arch/sparc/include/asm/qrwlock.h        |    7 ++
+ arch/sparc/include/asm/spinlock_64.h    |  124 +--------------------------=
+----
+ arch/sparc/include/asm/spinlock_types.h |    5 +-
+ 4 files changed, 13 insertions(+), 124 deletions(-)
+ create mode 100644 arch/sparc/include/asm/qrwlock.h
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index cf62838..5404e70 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -177,6 +177,8 @@ struct ldc_channel {
- 		printk(KERN_INFO PFX "ID[%lu] " f, lp->id, ## a); \
- } while (0)
- 
-+#define	LDC_ABORT(lp)	ldc_abort((lp), __func__)
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 0d9dc49..c3a147c 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -83,6 +83,7 @@ config SPARC64
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select HAVE_NMI
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
++	select ARCH_USE_QUEUED_RWLOCKS
+=20
+ config ARCH_DEFCONFIG
+ 	string
+diff --git a/arch/sparc/include/asm/qrwlock.h b/arch/sparc/include/asm/qrwl=
+ock.h
+new file mode 100644
+index 0000000..d68a4b1
+--- /dev/null
++++ b/arch/sparc/include/asm/qrwlock.h
+@@ -0,0 +1,7 @@
++#ifndef _ASM_SPARC_QRWLOCK_H
++#define _ASM_SPARC_QRWLOCK_H
 +
- static const char *state_to_str(u8 state)
- {
- 	switch (state) {
-@@ -506,11 +508,12 @@ static int send_data_nack(struct ldc_channel *lp, struct ldc_packet *data_pkt)
- 	return err;
++#include <asm-generic/qrwlock_types.h>
++#include <asm-generic/qrwlock.h>
++
++#endif /* _ASM_SPARC_QRWLOCK_H */
+diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/=
+spinlock_64.h
+index 07c9f2e..8901c2d 100644
+--- a/arch/sparc/include/asm/spinlock_64.h
++++ b/arch/sparc/include/asm/spinlock_64.h
+@@ -10,6 +10,7 @@
+=20
+ #include <asm/processor.h>
+ #include <asm/barrier.h>
++#include <asm/qrwlock.h>
+=20
+ /* To get debugging spinlocks which detect and catch
+  * deadlock situations, set CONFIG_DEBUG_SPINLOCK
+@@ -94,132 +95,9 @@ static inline void arch_spin_lock_flags(arch_spinlock_t=
+ *lock, unsigned long fla
+ 	: "memory");
  }
- 
--static int ldc_abort(struct ldc_channel *lp)
-+static int ldc_abort(struct ldc_channel *lp, const char *msg)
- {
- 	unsigned long hv_err;
- 
--	ldcdbg(STATE, "ABORT\n");
-+	ldcdbg(STATE, "ABORT[%s]\n", msg);
-+	ldc_print(lp);
- 
- 	/* We report but do not act upon the hypervisor errors because
- 	 * there really isn't much we can do if they fail at this point.
-@@ -595,7 +598,7 @@ static int process_ver_info(struct ldc_channel *lp, struct ldc_version *vp)
- 		}
- 	}
- 	if (err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -608,13 +611,13 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
- 	if (lp->hs_state = LDC_HS_GOTVERS) {
- 		if (lp->ver.major != vp->major ||
- 		    lp->ver.minor != vp->minor)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	} else {
- 		lp->ver = *vp;
- 		lp->hs_state = LDC_HS_GOTVERS;
- 	}
- 	if (send_rts(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	return 0;
- }
- 
-@@ -625,17 +628,17 @@ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
- 	unsigned long new_tail;
- 
- 	if (vp->major = 0 && vp->minor = 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	vap = find_by_major(vp->major);
- 	if (!vap)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
- 					   vap, sizeof(*vap),
- 					   &new_tail);
- 	if (!p)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return send_tx_packet(lp, p, new_tail);
- }
-@@ -658,7 +661,7 @@ static int process_version(struct ldc_channel *lp,
- 		return process_ver_nack(lp, vp);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
-@@ -671,13 +674,13 @@ static int process_rts(struct ldc_channel *lp,
- 	if (p->stype     != LDC_INFO	   ||
- 	    lp->hs_state != LDC_HS_GOTVERS ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->rcv_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_SENTRTR;
- 	if (send_rtr(lp))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -690,7 +693,7 @@ static int process_rtr(struct ldc_channel *lp,
- 
- 	if (p->stype     != LDC_INFO ||
- 	    p->env       != lp->cfg.mode)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->snd_nxt = p->seqid;
- 	lp->hs_state = LDC_HS_COMPLETE;
-@@ -713,7 +716,7 @@ static int process_rdx(struct ldc_channel *lp,
- 
- 	if (p->stype != LDC_INFO ||
- 	    !(rx_seq_ok(lp, p->seqid)))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rcv_nxt = p->seqid;
- 
-@@ -740,14 +743,14 @@ static int process_control_frame(struct ldc_channel *lp,
- 		return process_rdx(lp, p);
- 
- 	default:
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 	}
- }
- 
- static int process_error_frame(struct ldc_channel *lp,
- 			       struct ldc_packet *p)
- {
--	return ldc_abort(lp);
-+	return LDC_ABORT(lp);
- }
- 
- static int process_data_ack(struct ldc_channel *lp,
-@@ -766,7 +769,7 @@ static int process_data_ack(struct ldc_channel *lp,
- 			return 0;
- 		}
- 		if (head = lp->tx_tail)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 	}
- 
- 	return 0;
-@@ -901,7 +904,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 			break;
- 
- 		default:
--			err = ldc_abort(lp);
-+			err = LDC_ABORT(lp);
- 			break;
- 		}
- 
-@@ -916,7 +919,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 
- 		err = __set_rx_head(lp, new);
- 		if (err < 0) {
--			(void) ldc_abort(lp);
-+			(void) LDC_ABORT(lp);
- 			break;
- 		}
- 		if (lp->hs_state = LDC_HS_COMPLETE)
-@@ -1540,7 +1543,7 @@ static int read_raw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1583,7 +1586,7 @@ static int write_nonraw(struct ldc_channel *lp, const void *buf,
- 		return -EBUSY;
- 
- 	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (!tx_has_space_for(lp, size))
- 		return -EAGAIN;
-@@ -1651,7 +1654,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
- 
- 	err = ldc_rx_reset(lp);
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1664,7 +1667,7 @@ static int data_ack_nack(struct ldc_channel *lp, struct ldc_packet *p)
- 			return err;
- 	}
- 	if (p->stype & LDC_NACK)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	return 0;
- }
-@@ -1684,7 +1687,7 @@ static int rx_data_wait(struct ldc_channel *lp, unsigned long cur_head)
- 						&lp->rx_tail,
- 						&lp->chan_state);
- 		if (hv_err)
--			return ldc_abort(lp);
-+			return LDC_ABORT(lp);
- 
- 		if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 		    lp->chan_state = LDC_CHANNEL_RESETTING)
-@@ -1707,7 +1710,7 @@ static int rx_set_head(struct ldc_channel *lp, unsigned long head)
- 	int err = __set_rx_head(lp, head);
- 
- 	if (err < 0)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	lp->rx_head = head;
- 	return 0;
-@@ -1746,7 +1749,7 @@ static int read_nonraw(struct ldc_channel *lp, void *buf, unsigned int size)
- 					&lp->rx_tail,
- 					&lp->chan_state);
- 	if (hv_err)
--		return ldc_abort(lp);
-+		return LDC_ABORT(lp);
- 
- 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
- 	    lp->chan_state = LDC_CHANNEL_RESETTING)
--- 
+=20
+-/* Multi-reader locks, these are much saner than the 32-bit Sparc ones... =
+*/
+-
+-static inline void arch_read_lock(arch_rwlock_t *lock)
+-{
+-	unsigned long tmp1, tmp2;
+-
+-	__asm__ __volatile__ (
+-"1:	ldsw		[%2], %0\n"
+-"	brlz,pn		%0, 2f\n"
+-"4:	 add		%0, 1, %1\n"
+-"	cas		[%2], %0, %1\n"
+-"	cmp		%0, %1\n"
+-"	bne,pn		%%icc, 1b\n"
+-"	 nop\n"
+-"	.subsection	2\n"
+-"2:	ldsw		[%2], %0\n"
+-"	brlz,pt		%0, 2b\n"
+-"	 nop\n"
+-"	ba,a,pt		%%xcc, 4b\n"
+-"	.previous"
+-	: "=3D&r" (tmp1), "=3D&r" (tmp2)
+-	: "r" (lock)
+-	: "memory");
+-}
+-
+-static inline int arch_read_trylock(arch_rwlock_t *lock)
+-{
+-	int tmp1, tmp2;
+-
+-	__asm__ __volatile__ (
+-"1:	ldsw		[%2], %0\n"
+-"	brlz,a,pn	%0, 2f\n"
+-"	 mov		0, %0\n"
+-"	add		%0, 1, %1\n"
+-"	cas		[%2], %0, %1\n"
+-"	cmp		%0, %1\n"
+-"	bne,pn		%%icc, 1b\n"
+-"	 mov		1, %0\n"
+-"2:"
+-	: "=3D&r" (tmp1), "=3D&r" (tmp2)
+-	: "r" (lock)
+-	: "memory");
+-
+-	return tmp1;
+-}
+-
+-static inline void arch_read_unlock(arch_rwlock_t *lock)
+-{
+-	unsigned long tmp1, tmp2;
+-
+-	__asm__ __volatile__(
+-"1:	lduw	[%2], %0\n"
+-"	sub	%0, 1, %1\n"
+-"	cas	[%2], %0, %1\n"
+-"	cmp	%0, %1\n"
+-"	bne,pn	%%xcc, 1b\n"
+-"	 nop"
+-	: "=3D&r" (tmp1), "=3D&r" (tmp2)
+-	: "r" (lock)
+-	: "memory");
+-}
+-
+-static inline void arch_write_lock(arch_rwlock_t *lock)
+-{
+-	unsigned long mask, tmp1, tmp2;
+-
+-	mask =3D 0x80000000UL;
+-
+-	__asm__ __volatile__(
+-"1:	lduw		[%2], %0\n"
+-"	brnz,pn		%0, 2f\n"
+-"4:	 or		%0, %3, %1\n"
+-"	cas		[%2], %0, %1\n"
+-"	cmp		%0, %1\n"
+-"	bne,pn		%%icc, 1b\n"
+-"	 nop\n"
+-"	.subsection	2\n"
+-"2:	lduw		[%2], %0\n"
+-"	brnz,pt		%0, 2b\n"
+-"	 nop\n"
+-"	ba,a,pt		%%xcc, 4b\n"
+-"	.previous"
+-	: "=3D&r" (tmp1), "=3D&r" (tmp2)
+-	: "r" (lock), "r" (mask)
+-	: "memory");
+-}
+-
+-static inline void arch_write_unlock(arch_rwlock_t *lock)
+-{
+-	__asm__ __volatile__(
+-"	stw		%%g0, [%0]"
+-	: /* no outputs */
+-	: "r" (lock)
+-	: "memory");
+-}
+-
+-static inline int arch_write_trylock(arch_rwlock_t *lock)
+-{
+-	unsigned long mask, tmp1, tmp2, result;
+-
+-	mask =3D 0x80000000UL;
+-
+-	__asm__ __volatile__(
+-"	mov		0, %2\n"
+-"1:	lduw		[%3], %0\n"
+-"	brnz,pn		%0, 2f\n"
+-"	 or		%0, %4, %1\n"
+-"	cas		[%3], %0, %1\n"
+-"	cmp		%0, %1\n"
+-"	bne,pn		%%icc, 1b\n"
+-"	 nop\n"
+-"	mov		1, %2\n"
+-"2:"
+-	: "=3D&r" (tmp1), "=3D&r" (tmp2), "=3D&r" (result)
+-	: "r" (lock), "r" (mask)
+-	: "memory");
+-
+-	return result;
+-}
+-
+ #define arch_read_lock_flags(p, f) arch_read_lock(p)
+ #define arch_write_lock_flags(p, f) arch_write_lock(p)
+=20
+-#define arch_read_can_lock(rw)		(!((rw)->lock & 0x80000000UL))
+-#define arch_write_can_lock(rw)	(!(rw)->lock)
+-
+ #define arch_spin_relax(lock)	cpu_relax()
+ #define arch_read_relax(lock)	cpu_relax()
+ #define arch_write_relax(lock)	cpu_relax()
+diff --git a/arch/sparc/include/asm/spinlock_types.h b/arch/sparc/include/a=
+sm/spinlock_types.h
+index 019c085..64fce21 100644
+--- a/arch/sparc/include/asm/spinlock_types.h
++++ b/arch/sparc/include/asm/spinlock_types.h
+@@ -7,10 +7,13 @@
+=20
+ #define __ARCH_SPIN_LOCK_UNLOCKED	{ 0 }
+=20
++#ifdef CONFIG_QUEUED_RWLOCKS
++#include <asm-generic/qrwlock_types.h>
++#else
+ typedef struct {
+ 	volatile unsigned int lock;
+ } arch_rwlock_t;
+=20
+ #define __ARCH_RW_LOCK_UNLOCKED		{ 0 }
+-
++#endif /* CONFIG_QUEUED_RWLOCKS */
+ #endif
+--=20
 1.7.1
 
