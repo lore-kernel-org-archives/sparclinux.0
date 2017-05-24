@@ -1,7 +1,7 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 24 May 2017 09:21:22 +0000
+From: David Howells <dhowells@redhat.com>
+Date: Wed, 24 May 2017 13:49:24 +0000
 Subject: Re: Unify the various copies of libgcc into lib
-Message-Id: <CAMuHMdUP2RbjV+09UGkzjJcRrsoyy9F6XT8fbCPEd0mQCDFvFw@mail.gmail.com>
+Message-Id: <23396.1495633764@warthog.procyon.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170523220546.16758-1-palmer@dabbelt.com>
 In-Reply-To: <20170523220546.16758-1-palmer@dabbelt.com>
@@ -9,55 +9,45 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Chen Liqin <liqin.linux@gmail.com>, Lennox Wu <lennox.wu@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>
+Cc: dhowells@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-Hi Palmer,
+Palmer Dabbelt <palmer@dabbelt.com> wrote:
 
-On Wed, May 24, 2017 at 12:05 AM, Palmer Dabbelt <palmer@dabbelt.com> wrote:
-> I'm in the process of submitting the RISC-V Linux port, and someone noticed
-> that we were adding copies of some libgcc emulation routines that were the same
-> as some of the other ports.  This prompted me to go through and check all the
-> ports for libgcc.h and to merge the versions that were functionally identical.
->
-> The only difference in libgcc.h was that there was a #define for little vs big
-> endian.  The differences in the emulation routines were all just whitespace.
->
-> This patch set comes in two parts:
->
->  * Patch 1 adds new copies of all the C files copied from libgcc, as well as
->    moving libgcc.h to include/lib (that's a new folder, which probably means
->    it's the wrong place to put it, but I couldn't find anything better).  There
->    are Kconfig entries for each of these library functions so architectures can
->    select them one at a time.
+> ... Unfortunately I don't actually have all these cross compilers setup...
 
-I would call the Kconfig symbols GENERIC_* instead of LIB_*, for consistency
-with other generic implementations.
+If you have Fedora, you have the following available as standard RPMs:
 
->  * The rest of the patches convert each architecture over to the new system.
+	gcc-aarch64-linux-gnu
+	gcc-alpha-linux-gnu
+	gcc-arm-linux-gnu
+	gcc-avr32-linux-gnu
+	gcc-bfin-linux-gnu
+	gcc-c6x-linux-gnu
+	gcc-cris-linux-gnu
+	gcc-frv-linux-gnu
+	gcc-h8300-linux-gnu
+	gcc-hppa-linux-gnu
+	gcc-hppa64-linux-gnu
+	gcc-ia64-linux-gnu
+	gcc-m32r-linux-gnu
+	gcc-m68k-linux-gnu
+	gcc-microblaze-linux-gnu
+	gcc-mips64-linux-gnu
+	gcc-mn10300-linux-gnu
+	gcc-nios2-linux-gnu
+	gcc-powerpc64-linux-gnu
+	gcc-ppc64-linux-gnu
+	gcc-s390x-linux-gnu
+	gcc-sh-linux-gnu
+	gcc-sparc64-linux-gnu
+	gcc-tile-linux-gnu
+	gcc-xtensa-linux-gnu
 
-Thanks! For all but "[PATCH 4/7] mips: ...":
+They're built from the same sources as the gcc rpm (and the matching binutils
+cross rpms are built from the same sources as the binutils rpm) - it's only
+the spec file that's different, and they lag a bit behind the core
+gcc/binutils as they only get updated after those change.
 
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+So in Fedora 25 these are all gcc-6 and in Fedora 26 they're all gcc-7.
 
-> Unless I screwed something up, this patch set shouldn't actually change any
-> functionality.  Unfortunately I don't actually have all these cross compilers
-> setup so I can't actually test any of this, but I did convert the RISC-V port
-> over to using this system and it appears to be OK there so at least this isn't
-> completely broken.
-
-https://www.kernel.org/pub/tools/crosstool/
-
-BTW, blackfin, h8300, m68k, and parisc have their own implementations, too.
-They look different, but I believe their functionality is identical.
-They can be converted later, though.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+David
