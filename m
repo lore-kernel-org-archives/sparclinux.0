@@ -1,53 +1,38 @@
-From: David Howells <dhowells@redhat.com>
-Date: Wed, 24 May 2017 13:49:24 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 24 May 2017 13:59:50 +0000
 Subject: Re: Unify the various copies of libgcc into lib
-Message-Id: <23396.1495633764@warthog.procyon.org.uk>
+Message-Id: <20170524135950.GB4230@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170523220546.16758-1-palmer@dabbelt.com>
-In-Reply-To: <20170523220546.16758-1-palmer@dabbelt.com>
+ <23396.1495633764@warthog.procyon.org.uk>
+In-Reply-To: <23396.1495633764@warthog.procyon.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: dhowells@redhat.com, monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+To: David Howells <dhowells@redhat.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>, monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-Palmer Dabbelt <palmer@dabbelt.com> wrote:
+On Wed, May 24, 2017 at 02:49:24PM +0100, David Howells wrote:
+> Palmer Dabbelt <palmer@dabbelt.com> wrote:
+> 
+> > ... Unfortunately I don't actually have all these cross compilers setup...
+> 
+> If you have Fedora, you have the following available as standard
+> RPMs:
 
-> ... Unfortunately I don't actually have all these cross compilers setup...
+And if you need more than just the cross-compilers (e.g. libraries for
+the target architecture), I recommend a Debian Stretch or newer.
 
-If you have Fedora, you have the following available as standard RPMs:
+Debian's Multi-Arch allows one to install libraries for the target
+system onto your build system. I have used that extensively in the
+past, for example to bootstrap GHC for various architectures [1].
 
-	gcc-aarch64-linux-gnu
-	gcc-alpha-linux-gnu
-	gcc-arm-linux-gnu
-	gcc-avr32-linux-gnu
-	gcc-bfin-linux-gnu
-	gcc-c6x-linux-gnu
-	gcc-cris-linux-gnu
-	gcc-frv-linux-gnu
-	gcc-h8300-linux-gnu
-	gcc-hppa-linux-gnu
-	gcc-hppa64-linux-gnu
-	gcc-ia64-linux-gnu
-	gcc-m32r-linux-gnu
-	gcc-m68k-linux-gnu
-	gcc-microblaze-linux-gnu
-	gcc-mips64-linux-gnu
-	gcc-mn10300-linux-gnu
-	gcc-nios2-linux-gnu
-	gcc-powerpc64-linux-gnu
-	gcc-ppc64-linux-gnu
-	gcc-s390x-linux-gnu
-	gcc-sh-linux-gnu
-	gcc-sparc64-linux-gnu
-	gcc-tile-linux-gnu
-	gcc-xtensa-linux-gnu
+Adrian
 
-They're built from the same sources as the gcc rpm (and the matching binutils
-cross rpms are built from the same sources as the binutils rpm) - it's only
-the spec file that's different, and they lag a bit behind the core
-gcc/binutils as they only get updated after those change.
+> [1] https://wiki.debian.org/PortsDocs/BootstrappingGHC
 
-So in Fedora 25 these are all gcc-6 and in Fedora 26 they're all gcc-7.
-
-David
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
