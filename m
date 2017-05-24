@@ -1,76 +1,92 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Mon, 22 May 2017 19:15:03 +0000
-Subject: Re: [PATCH v2 1/5] sparc64: expand LDC interface
-Message-Id: <42132591-03dd-7331-2eec-1c74b1ea3028@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 24 May 2017 23:55:08 +0000
+Subject: [PATCH v4 0/7] Enable queued rwlock and queued spinlock for SPARC
+Message-Id: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
-In-Reply-To: <eab89ee967ae1d94dff180eb30cc07e5a9cc1345.1494551284.git.jag.raman@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, davem@davemloft.net
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com
 
+This series of patches enables queued rwlock and queued spinlock support
+for SPARC. These features were introduced some time ago in upstream.
+Here are some of the earlier discussions.
+https://lwn.net/Articles/572765/
+https://lwn.net/Articles/582200/
+https://lwn.net/Articles/561775/
+https://lwn.net/Articles/590243/
 
+Tests: Ran AIM7 benchmark to verify the performance on various workloads.
+https://github.com/davidlohr/areaim. Same benchmark was used when this
+feature was introduced and enabled on x86. Here are the test results.
 
-On 5/22/2017 3:09 PM, David Miller wrote:
-> From: Jag Raman <jag.raman@oracle.com>
-> Date: Thu, 11 May 2017 21:30:49 -0400
->
->> @@ -782,6 +772,37 @@ static int process_data_ack(struct ldc_channel *lp,
->>   	return 0;
->>   }
->>   
->> +void ldc_enable_hv_intr(struct ldc_channel *lp)
->> +{
->> +	unsigned long flags;
->> +
->> +	spin_lock_irqsave(&lp->lock, flags);
->> +
->> +	ldcdbg(RX, "%s: channel id=%lu\n", __func__, lp->id);
->> +
->> +	enable_irq(lp->cfg.rx_irq);
->> +
->> +	spin_unlock_irqrestore(&lp->lock, flags);
->> +
->> +}
->> +EXPORT_SYMBOL(ldc_enable_hv_intr);
-> I explicitly asked that these interfaces be removed:
->
-> 	http://marc.info/?l=linux-sparc&m9382227618761&w=2
->
-> I want the drivers themselves to call {enable,disable}_irq() directly
-> just like any other standard Linux driver.  I don't want to see
-> arbitrary wrappers like this, they are not needed and make the
-> code harder rather than easier to understand.
->
-> Furthermore, there is no reason to take the LP lock.
->
-> If such synchronization is necessary, there is a high order much
-> larger problem that needs to be solved.  The IRQ value should be
-> obtained at LDC channel creation time, and never change ever
-> again afterwards.
->
-> So there is abolutely no gain by adding synchronization across
-> only the {enable,disable}_irq() call.
->
-> So once again, remove these helpers completely and just call
-> enable_irq() and disable_irq() directly from the drivers just like any
-> other standard Linux driver does.
->
-> If you ignore this feedback one more time, I will probably stop
-> reviewing this patch series.  I am giving you fair warning.
-Hi Dave,
+Kernel				4.11.0-rc6     4.11.0-rc6 + 	Change
+				baseline	queued locks
+			      (Avg No.of jobs) (Avg No.of jobs)
+Workload
+High systime 10-100 user	 17290.48	 17295.18	+0.02
+High systime 200-1000 users	109814.95	110248.87	+0.39
+High systime 1200-2000 users	107912.40	127923.16	+18.54
 
-Sorry about that, I thought you asked to remove sun4v API and replace 
-with {enable,disable}_irq(). My bad.
+Disk IO 10-100 users		168910.16	158834.17	-5.96
+Disk IO 200-1000 users		242781.74	281285.80	+15.85
+Disk IO 1200-2000 users		228518.23	218421.23	-4.41
 
-I'll go ahead and make the changes as you suggested.
+Disk IO 10-100 users		183933.77	207928.67	+13.04
+Disk IO 200-1000 users		491981.56	500162.33	+1.66
+Disk IO 1200-2000 users		463395.66	467312.70	+0.84
 
---
-Jag
->
-> Thank you.
+fserver 10-100 users		254177.53	270283.08	+6.33
+fserver IO 200-1000 users	269017.35	324812.2	+20.74
+fserver IO 1200-2000 users	229538.87	284713.77	+24.03
 
--- 
-Jag
+Disk I/O results are little bit in negative territory. But majority of the 
+performance changes are in positive and it is significant in some cases.
+
+Changes:
+v3 -> v4:
+ 1. Took care of Geert Uytterhoeven's comment about patch #3(def_bool y)
+ 2. Working on separate patch sets to define CPU_BIG_ENDIAN for all the 
+    default big endian architectures based on feedback from Geert and Arnd.
+
+v2 -> v3:
+ 1. Rebased the patches on top of 4.12-rc2.
+ 2. Re-ordered the patch #1 and patch #2. That is the same order I have seen 
+    the issues. So, it should be addressed in the same order. Patch #1 removes
+    the check __LINUX_SPINLOCK_TYPES_H. Patch #2 addreses the compile error
+    with qrwlock.c. This addresses the comments from Dave Miller on v2.
+
+v1 -> v2:
+Addressed the comments from David Miller.
+1. Added CPU_BIG_ENDIAN for all SPARC
+2. Removed #ifndef __LINUX_SPINLOCK_TYPES_H guard from spinlock_types.h
+3. Removed check for CONFIG_QUEUED_RWLOCKS in SPARC64 as it is the 
+   default definition for SPARC64 now. Cleaned-up the previous arch_read_xxx
+   and arch_write_xxx definitions as it is defined now in qrwlock.h.
+4. Removed check for CONFIG_QUEUED_SPINLOCKS in SPARC64 as it is the default
+   definition now for SPARC64 now. Cleaned-up the previous arch_spin_xxx
+   definitions as it is defined in qspinlock.h. 
+
+v1: Initial version
+
+Babu Moger (7):
+  arch/sparc: Remove the check #ifndef __LINUX_SPINLOCK_TYPES_H
+  kernel/locking: Fix compile error with qrwlock.c
+  arch/sparc: Define config parameter CPU_BIG_ENDIAN
+  arch/sparc: Introduce cmpxchg_u8 SPARC
+  arch/sparc: Enable queued rwlocks for SPARC
+  arch/sparc: Introduce xchg16 for SPARC
+  arch/sparc: Enable queued spinlock support for SPARC
+
+ arch/sparc/Kconfig                      |    5 +
+ arch/sparc/include/asm/cmpxchg_64.h     |   76 ++++++++++--
+ arch/sparc/include/asm/qrwlock.h        |    7 +
+ arch/sparc/include/asm/qspinlock.h      |    7 +
+ arch/sparc/include/asm/spinlock_64.h    |  208 +------------------------------
+ arch/sparc/include/asm/spinlock_types.h |   12 ++-
+ kernel/locking/qrwlock.c                |    1 +
+ 7 files changed, 97 insertions(+), 219 deletions(-)
+ create mode 100644 arch/sparc/include/asm/qrwlock.h
+ create mode 100644 arch/sparc/include/asm/qspinlock.h
 
