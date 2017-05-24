@@ -1,45 +1,85 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 31 May 2017 15:25:20 +0000
-Subject: [v1 1/6] sparc64: reset mm cpumask after wrap
-Message-Id: <1496244325-180257-2-git-send-email-pasha.tatashin@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Wed, 24 May 2017 23:55:12 +0000
+Subject: [PATCH v4 4/7] arch/sparc: Introduce cmpxchg_u8 SPARC
+Message-Id: <1495670115-63960-5-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1495670115-63960-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: peterz@infradead.org, mingo@redhat.com, arnd@arndb.de, davem@davemloft.net
+Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com
 
-After a wrap (getting a new context version) a process must get a new
-context id, which means that we would need to flush the context id from
-the TLB before running for the first time with this ID on every CPU. But,
-we use mm_cpumask to determine if this process has been running on this CPU
-before, and this mask is not reset after a wrap. So, there are two possible
-fixes for this issue:
+SPARC supports 32 bit and 64 bit cmpxchg right now. Add support
+for 8 bit (1 byte) cmpxchg. This is required to support queued
+rwlocks feature  which uses 1 byte cmpxchg.
 
-1. Clear mm cpumask whenever mm gets a new context id
-2. Unconditionally flush context every time process is running on a CPU
+The function __cmpxchg_u8 here uses the 4 byte cas instruction with a
+byte manipulation to achieve 1 byte cmpxchg.
 
-This patch implements the first solution
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/mm/init_64.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/cmpxchg_64.h |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 0cda653..e679b14 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -758,6 +758,8 @@ void get_new_mmu_context(struct mm_struct *mm)
- 			goto out;
- 		}
- 	}
-+	if (mm->context.sparc64_ctx_val)
-+		cpumask_clear(mm_cpumask(mm));
- 	mmu_context_bmap[new_ctx>>6] |= (1UL << (new_ctx & 63));
- 	new_ctx |= (tlb_context_cache & CTX_VERSION_MASK);
- out:
--- 
+diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/c=
+mpxchg_64.h
+index faa2f61..000f7d7 100644
+--- a/arch/sparc/include/asm/cmpxchg_64.h
++++ b/arch/sparc/include/asm/cmpxchg_64.h
+@@ -87,6 +87,33 @@ static inline unsigned long __xchg(unsigned long x, __vo=
+latile__ void * ptr,
+ 	return new;
+ }
+=20
++/*
++ * Use 4 byte cas instruction to achieve 1 byte cmpxchg. Main logic
++ * here is to get the bit shift of the byte we are interested in.
++ * The XOR is handy for reversing the bits for big-endian byte order
++ */
++static inline unsigned long
++__cmpxchg_u8(volatile unsigned char *m, unsigned char old, unsigned char n=
+ew)
++{
++	unsigned long maddr =3D (unsigned long)m;
++	int bit_shift =3D (((unsigned long)m & 3) ^ 3) << 3;
++	unsigned int mask =3D 0xff << bit_shift;
++	unsigned int *ptr =3D (unsigned int *) (maddr & ~3);
++	unsigned int old32, new32, load;
++	unsigned int load32 =3D *ptr;
++
++	do {
++		new32 =3D (load32 & ~mask) | (new << bit_shift);
++		old32 =3D (load32 & ~mask) | (old << bit_shift);
++		load32 =3D __cmpxchg_u32(ptr, old32, new32);
++		if (load32 =3D old32)
++			return old;
++		load =3D (load32 & mask) >> bit_shift;
++	} while (load =3D old);
++
++	return load;
++}
++
+ /* This function doesn't exist, so you'll get a linker error
+    if something tries to do an invalid cmpxchg().  */
+ void __cmpxchg_called_with_bad_pointer(void);
+@@ -95,6 +122,8 @@ static inline unsigned long __xchg(unsigned long x, __vo=
+latile__ void * ptr,
+ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int si=
+ze)
+ {
+ 	switch (size) {
++		case 1:
++			return __cmpxchg_u8(ptr, old, new);
+ 		case 4:
+ 			return __cmpxchg_u32(ptr, old, new);
+ 		case 8:
+--=20
 1.7.1
 
