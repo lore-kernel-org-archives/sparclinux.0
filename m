@@ -1,117 +1,249 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Sat, 20 May 2017 00:17:00 +0000
-Subject: [PATCH v2 6/7] arch/sparc: Introduce xchg16 for SPARC
-Message-Id: <1495239421-441642-7-git-send-email-babu.moger@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 25 May 2017 14:25:55 +0000
+Subject: [PATCH v3 2/5] sparc64: enhance ldc_abort to print message
+Message-Id: <d30ecb4eb8f29110f645ac2de68781e05bd8e948.1495721691.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495239421-441642-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
-Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-SPARC supports 32 bit and 64 bit xchg right now. Add the support
-for 16 bit (2 byte) xchg. This is required to support queued spinlock
-feature which uses 2 byte xchg. This is achieved using 4 byte cas
-instructions with byte manipulations.
+Enhance ldc_abort to accept a message to be printed when it is called. Add
+a macro, LDC_ABORT, to print info. about the function that calls ldc_abort.
 
-Also re-arranged the code to call __cmpxchg_u32 inside xchg16.
-
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 ---
- arch/sparc/include/asm/cmpxchg_64.h |   49 +++++++++++++++++++++++++++----=
----
- 1 files changed, 39 insertions(+), 10 deletions(-)
+ arch/sparc/kernel/ldc.c |   53 ++++++++++++++++++++++++----------------------
+ 1 files changed, 28 insertions(+), 25 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/c=
-mpxchg_64.h
-index 000f7d7..4028f4f 100644
---- a/arch/sparc/include/asm/cmpxchg_64.h
-+++ b/arch/sparc/include/asm/cmpxchg_64.h
-@@ -6,6 +6,17 @@
- #ifndef __ARCH_SPARC64_CMPXCHG__
- #define __ARCH_SPARC64_CMPXCHG__
-=20
-+static inline unsigned long
-+__cmpxchg_u32(volatile int *m, int old, int new)
-+{
-+	__asm__ __volatile__("cas [%2], %3, %0"
-+			     : "=3D&r" (new)
-+			     : "0" (new), "r" (m), "r" (old)
-+			     : "memory");
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 46e9da5..931bb63 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -177,6 +177,8 @@ struct ldc_channel {
+ 		printk(KERN_INFO PFX "ID[%lu] " f, lp->id, ## a); \
+ } while (0)
+ 
++#define	LDC_ABORT(lp)	ldc_abort((lp), __func__)
 +
-+	return new;
-+}
-+
- static inline unsigned long xchg32(__volatile__ unsigned int *m, unsigned =
-int val)
+ static const char *state_to_str(u8 state)
  {
- 	unsigned long tmp1, tmp2;
-@@ -44,10 +55,38 @@ static inline unsigned long xchg64(__volatile__ unsigne=
-d long *m, unsigned long=20
-=20
- void __xchg_called_with_bad_pointer(void);
-=20
-+/*
-+ * Use 4 byte cas instruction to achieve 2 byte xchg. Main logic
-+ * here is to get the bit shift of the byte we are interested in.
-+ * The XOR is handy for reversing the bits for big-endian byte order.
-+ */
-+static inline unsigned long
-+xchg16(__volatile__ unsigned short *m, unsigned short val)
-+{
-+	unsigned long maddr =3D (unsigned long)m;
-+	int bit_shift =3D (((unsigned long)m & 2) ^ 2) << 3;
-+	unsigned int mask =3D 0xffff << bit_shift;
-+	unsigned int *ptr =3D (unsigned int  *) (maddr & ~2);
-+	unsigned int old32, new32, load32;
-+
-+	/* Read the old value */
-+	load32 =3D *ptr;
-+
-+	do {
-+		old32 =3D load32;
-+		new32 =3D (load32 & (~mask)) | val << bit_shift;
-+		load32 =3D __cmpxchg_u32(ptr, old32, new32);
-+	} while (load32 !=3D old32);
-+
-+	return (load32 & mask) >> bit_shift;
-+}
-+
- static inline unsigned long __xchg(unsigned long x, __volatile__ void * pt=
-r,
- 				       int size)
+ 	switch (state) {
+@@ -506,11 +508,12 @@ static int send_data_nack(struct ldc_channel *lp, struct ldc_packet *data_pkt)
+ 	return err;
+ }
+ 
+-static int ldc_abort(struct ldc_channel *lp)
++static int ldc_abort(struct ldc_channel *lp, const char *msg)
  {
- 	switch (size) {
-+	case 2:
-+		return xchg16(ptr, x);
- 	case 4:
- 		return xchg32(ptr, x);
- 	case 8:
-@@ -65,16 +104,6 @@ static inline unsigned long __xchg(unsigned long x, __v=
-olatile__ void * ptr,
-=20
- #include <asm-generic/cmpxchg-local.h>
-=20
--static inline unsigned long
--__cmpxchg_u32(volatile int *m, int old, int new)
--{
--	__asm__ __volatile__("cas [%2], %3, %0"
--			     : "=3D&r" (new)
--			     : "0" (new), "r" (m), "r" (old)
--			     : "memory");
--
--	return new;
--}
-=20
- static inline unsigned long
- __cmpxchg_u64(volatile long *m, unsigned long old, unsigned long new)
---=20
+ 	unsigned long hv_err;
+ 
+-	ldcdbg(STATE, "ABORT\n");
++	ldcdbg(STATE, "ABORT[%s]\n", msg);
++	ldc_print(lp);
+ 
+ 	/* We report but do not act upon the hypervisor errors because
+ 	 * there really isn't much we can do if they fail at this point.
+@@ -595,7 +598,7 @@ static int process_ver_info(struct ldc_channel *lp, struct ldc_version *vp)
+ 		}
+ 	}
+ 	if (err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -608,13 +611,13 @@ static int process_ver_ack(struct ldc_channel *lp, struct ldc_version *vp)
+ 	if (lp->hs_state = LDC_HS_GOTVERS) {
+ 		if (lp->ver.major != vp->major ||
+ 		    lp->ver.minor != vp->minor)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 	} else {
+ 		lp->ver = *vp;
+ 		lp->hs_state = LDC_HS_GOTVERS;
+ 	}
+ 	if (send_rts(lp))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	return 0;
+ }
+ 
+@@ -625,17 +628,17 @@ static int process_ver_nack(struct ldc_channel *lp, struct ldc_version *vp)
+ 	unsigned long new_tail;
+ 
+ 	if (vp->major = 0 && vp->minor = 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	vap = find_by_major(vp->major);
+ 	if (!vap)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	p = handshake_compose_ctrl(lp, LDC_INFO, LDC_VERS,
+ 					   vap, sizeof(*vap),
+ 					   &new_tail);
+ 	if (!p)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return send_tx_packet(lp, p, new_tail);
+ }
+@@ -658,7 +661,7 @@ static int process_version(struct ldc_channel *lp,
+ 		return process_ver_nack(lp, vp);
+ 
+ 	default:
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	}
+ }
+ 
+@@ -671,13 +674,13 @@ static int process_rts(struct ldc_channel *lp,
+ 	if (p->stype     != LDC_INFO	   ||
+ 	    lp->hs_state != LDC_HS_GOTVERS ||
+ 	    p->env       != lp->cfg.mode)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->snd_nxt = p->seqid;
+ 	lp->rcv_nxt = p->seqid;
+ 	lp->hs_state = LDC_HS_SENTRTR;
+ 	if (send_rtr(lp))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -690,7 +693,7 @@ static int process_rtr(struct ldc_channel *lp,
+ 
+ 	if (p->stype     != LDC_INFO ||
+ 	    p->env       != lp->cfg.mode)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->snd_nxt = p->seqid;
+ 	lp->hs_state = LDC_HS_COMPLETE;
+@@ -713,7 +716,7 @@ static int process_rdx(struct ldc_channel *lp,
+ 
+ 	if (p->stype != LDC_INFO ||
+ 	    !(rx_seq_ok(lp, p->seqid)))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->rcv_nxt = p->seqid;
+ 
+@@ -740,14 +743,14 @@ static int process_control_frame(struct ldc_channel *lp,
+ 		return process_rdx(lp, p);
+ 
+ 	default:
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 	}
+ }
+ 
+ static int process_error_frame(struct ldc_channel *lp,
+ 			       struct ldc_packet *p)
+ {
+-	return ldc_abort(lp);
++	return LDC_ABORT(lp);
+ }
+ 
+ static int process_data_ack(struct ldc_channel *lp,
+@@ -766,7 +769,7 @@ static int process_data_ack(struct ldc_channel *lp,
+ 			return 0;
+ 		}
+ 		if (head = lp->tx_tail)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 	}
+ 
+ 	return 0;
+@@ -870,7 +873,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 			break;
+ 
+ 		default:
+-			err = ldc_abort(lp);
++			err = LDC_ABORT(lp);
+ 			break;
+ 		}
+ 
+@@ -885,7 +888,7 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 
+ 		err = __set_rx_head(lp, new);
+ 		if (err < 0) {
+-			(void) ldc_abort(lp);
++			(void) LDC_ABORT(lp);
+ 			break;
+ 		}
+ 		if (lp->hs_state = LDC_HS_COMPLETE)
+@@ -1509,7 +1512,7 @@ static int read_raw(struct ldc_channel *lp, void *buf, unsigned int size)
+ 					&lp->rx_tail,
+ 					&lp->chan_state);
+ 	if (hv_err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 	    lp->chan_state = LDC_CHANNEL_RESETTING)
+@@ -1552,7 +1555,7 @@ static int write_nonraw(struct ldc_channel *lp, const void *buf,
+ 		return -EBUSY;
+ 
+ 	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (!tx_has_space_for(lp, size))
+ 		return -EAGAIN;
+@@ -1620,7 +1623,7 @@ static int rx_bad_seq(struct ldc_channel *lp, struct ldc_packet *p,
+ 
+ 	err = ldc_rx_reset(lp);
+ 	if (err < 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -1633,7 +1636,7 @@ static int data_ack_nack(struct ldc_channel *lp, struct ldc_packet *p)
+ 			return err;
+ 	}
+ 	if (p->stype & LDC_NACK)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	return 0;
+ }
+@@ -1653,7 +1656,7 @@ static int rx_data_wait(struct ldc_channel *lp, unsigned long cur_head)
+ 						&lp->rx_tail,
+ 						&lp->chan_state);
+ 		if (hv_err)
+-			return ldc_abort(lp);
++			return LDC_ABORT(lp);
+ 
+ 		if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 		    lp->chan_state = LDC_CHANNEL_RESETTING)
+@@ -1676,7 +1679,7 @@ static int rx_set_head(struct ldc_channel *lp, unsigned long head)
+ 	int err = __set_rx_head(lp, head);
+ 
+ 	if (err < 0)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	lp->rx_head = head;
+ 	return 0;
+@@ -1715,7 +1718,7 @@ static int read_nonraw(struct ldc_channel *lp, void *buf, unsigned int size)
+ 					&lp->rx_tail,
+ 					&lp->chan_state);
+ 	if (hv_err)
+-		return ldc_abort(lp);
++		return LDC_ABORT(lp);
+ 
+ 	if (lp->chan_state = LDC_CHANNEL_DOWN ||
+ 	    lp->chan_state = LDC_CHANNEL_RESETTING)
+-- 
 1.7.1
 
