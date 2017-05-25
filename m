@@ -1,46 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 18 May 2017 18:03:30 +0000
-Subject: [GIT] Sparc
-Message-Id: <20170518.140330.400029734994473855.davem@davemloft.net>
+From: Jane Chu <jane.chu@oracle.com>
+Date: Thu, 25 May 2017 19:51:20 +0000
+Subject: [PATCH] arch/sparc: increase CONFIG_NODES_SHIFT on SPARC64 to 5
+Message-Id: <1495741880-893167-1-git-send-email-jane.chu@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jane.chu@oracle.com
 
+SPARC M6-32 platform has (2^5) NUMA nodes, so need to bump up the
+CONFIG_NODES_SHIFT to 5.
 
-Please pull in these three sparc bug fixes.
+Orabug: 25577754
 
-Thank you.
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
 
-The following changes since commit b23afd384801711ab6dbccd259cc14cb09a1dcaf:
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Atish Patra <atish.patra@oracle.com>
+---
+ arch/sparc/Kconfig |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-  Merge tag 'pstore-v4.12-rc2' of git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux (2017-05-16 13:29:07 -0700)
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 58243b0..e544ac1 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -295,9 +295,13 @@ config NUMA
+ 	depends on SPARC64 && SMP
+ 
+ config NODES_SHIFT
+-	int
+-	default "4"
++	int "Maximum NUMA Nodes (as a power of 2)"
++	range 4 5 if SPARC64
++	default "5"
+ 	depends on NEED_MULTIPLE_NODES
++	help
++	  Specify the maximum number of NUMA Nodes available on the target
++	  system.  Increases memory reserved to accommodate various tables.
+ 
+ # Some NUMA nodes have memory ranges that span
+ # other nodes.  Even though a pfn is valid and
+-- 
+1.7.1
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to 48078d2dac0a26f84f5f3ec704f24f7c832cce14:
-
-  sparc/ftrace: Fix ftrace graph time measurement (2017-05-17 12:07:47 -0700)
-
-----------------------------------------------------------------
-Liam R. Howlett (1):
-      sparc/ftrace: Fix ftrace graph time measurement
-
-Nitin Gupta (1):
-      sparc64: Fix mapping of 64k pages with MAP_FIXED
-
-Orlando Arias (1):
-      sparc: Fix -Wstringop-overflow warning
-
- arch/sparc/include/asm/hugetlb.h    |  6 ++++--
- arch/sparc/include/asm/pgtable_32.h |  4 ++--
- arch/sparc/include/asm/setup.h      |  2 +-
- arch/sparc/kernel/ftrace.c          | 13 ++++++-------
- arch/sparc/mm/init_32.c             |  2 +-
- 5 files changed, 14 insertions(+), 13 deletions(-)
