@@ -1,12 +1,17 @@
-From: "bricheva.vladislawa@yandex.ru" <arzumanoff.iv@yandex.ru>
-Date: Mon, 29 May 2017 06:55:03 +0000
-Subject: =?utf-8?B?X9CX0LTRgGHQsmNt0LLRg9C5bWUhIEJhYyB10L1tZdGA?= =?utf-8?B?ZWPRg9GObSDQutC7dWXQvW1j0Lp1ZSDQs
-Message-Id: <EEEB5D0E05D1FE9D41440DB2265D8347@yandex.ru>
+From: "Mr.Simon Gaston" <hugo@globalfrutas.com.br>
+Date: Sun, 28 May 2017 06:34:19 +0000
+Subject: Parthership
+Message-Id: <20170528063937.9787326DAC@server2.globalfrutas.com.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-X9CXZ9GA0LDQsmPRgtCy0YPQudGCZSEgQtCwYyDQuNC90YJl0YBlY9GD0Y7RgiBr0LvQuGXQvdGC
-Y2vQuGUg0LHQsNC30YsgZ9Cw0L3QvdGLeD8NCg=
+Hello Good morning
+ 
+Please I need your help in claiming an abandoned fund I discovered in our Bank.The account is dormant and non operational for 12 calendar years.We stand to gain immensely on the successful completion of this mutual undertaking. I have a business opportunity that Guarantee's you 30% of ($3.5 Million USD Do get back to me for more information on this subject matter.
+ 
+Thanks in anticipation for your response.
+ 
+Mr.Simon Gaston Seiku
