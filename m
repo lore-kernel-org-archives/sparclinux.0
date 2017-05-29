@@ -1,39 +1,50 @@
-From: Max Filippov <jcmvbkbc@gmail.com>
-Date: Thu, 25 May 2017 22:52:14 +0000
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Mon, 29 May 2017 12:07:41 +0000
 Subject: Re: CPU_BIG_ENDIAN in generic code (was: Re: [PATCH v3 3/7] arch/sparc: Define config parameter CPU_
-Message-Id: <CAMo8Bf+m0mqnrpC=b+3sGq0iMfqUj2uVtQxtLU6+5pNc_4fWNw@mail.gmail.com>
+Message-Id: <87a85v7to2.fsf@concordia.ellerman.id.au>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CAMuHMdVjh+1TR19mUUQYHSazHnBHa4uxn7KyHUO+jAh7WDxy5Q@mail.gmail.com>
- <CAK8P3a1XZGQk3b3q+JFJ+mLgw_upUdAtTM1VBjHZq5f2m-YdUg@mail.gmail.com>
- <CAMo8BfL8G0Fzn2SZ1356yaoxGgm8tpTDmFJ8cCxEEEgyObMwCQ@mail.gmail.com> <116e7ba5-cb5e-8e96-ea74-bf91b4818d69@oracle.com>
-In-Reply-To: <116e7ba5-cb5e-8e96-ea74-bf91b4818d69-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <CAMuHMdVjh+1TR19mUUQYHSazHnBHa4uxn7KyHUO+jAh7WDxy5Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Babu Moger <babu.moger-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-Arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>, Babu Moger <babu.moger-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel@vger.kernel.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux-Arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree@vger.kernel.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial@vger.kernel.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 
-On Thu, May 25, 2017 at 3:41 PM, Babu Moger <babu.moger@oracle.com> wrote:
-> On 5/25/2017 5:27 PM, Max Filippov wrote:
->> Xtensa may have either endianness and for xtensa we define
->> CONFIG_CPU_BIG_ENDIAN or CONFIG_CPU_LITTLE_ENDIAN
->> in the arch/xtensa/Makefile based on the value of the compiler builtin
->> macro.
+Geert Uytterhoeven <geert@linux-m68k.org> writes:
+
+> On Tue, May 23, 2017 at 11:45 PM, Babu Moger <babu.moger@oracle.com> wrote:
+>> Found this problem while enabling queued rwlock on SPARC.
+>> The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
+>> specific byte in qrwlock structure. Without this parameter,
+>> we clear the wrong byte. Here is the code.
+>>
+>> static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+>>  {
+>>         return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+>>  }
+>>
+>> Define CPU_BIG_ENDIAN for SPARC to fix it.
 >
-> Hmm.. That means defining  CPU_LITTLE_ENDIAN  based on "def_bool
-> !CPU_BIG_ENDIAN" will
->  be a problem for Xtensa because menuconfig does not have the knowledge of
-> compiler builtin macro.
-> Is that correct?
+>> --- a/arch/sparc/Kconfig
+>> +++ b/arch/sparc/Kconfig
+>> @@ -92,6 +92,10 @@ config ARCH_DEFCONFIG
+>>  config ARCH_PROC_KCORE_TEXT
+>>         def_bool y
+>>
+>> +config CPU_BIG_ENDIAN
+>> +       bool
+>> +       default y if SPARC
+>
+> Nice catch!
+>
+> Traditionally, CPU_BIG_ENDIAN and CPU_LITTLE_ENDIAN were defined only on
+> architectures that may support both.  And it was checked in platform code
+> and drivers only.
+> Hence the symbol is lacking from most architectures. Heck, even
+> architectures that support both may default to one endiannes, and declare
+> only the symbol for the other endianness:
 
-I think so. OTOH outside the arch/ CPU_LITTLE_ENDIAN is only used in
-two Kconfig files:
+I guess there's a reason we can't use __BIG_ENDIAN__ / __LITTLE_ENDIAN__ ?
 
-drivers/crypto/nx/Kconfig
-drivers/isdn/hisax/Kconfig
-
-both of which are irrelevant for xtensa.
-
--- 
-Thanks.
--- Max
+cheers
