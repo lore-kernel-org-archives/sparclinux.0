@@ -1,26 +1,12 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 12 May 2017 01:30:48 +0000
-Subject: [PATCH v2 0/5] LDC changes for porting VCC driver into upstream kernel
-Message-Id: <cover.1494551284.git.jag.raman@oracle.com>
+From: "bricheva.vladislawa@yandex.ru" <arzumanoff.iv@yandex.ru>
+Date: Mon, 29 May 2017 06:55:03 +0000
+Subject: =?utf-8?B?X9CX0LTRgGHQsmNt0LLRg9C5bWUhIEJhYyB10L1tZdGA?= =?utf-8?B?ZWPRg9GObSDQutC7dWXQvW1j0Lp1ZSDQs
+Message-Id: <EEEB5D0E05D1FE9D41440DB2265D8347@yandex.ru>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Version 2 of patch-set to enable LDC to support VCC driver. Version 2 addresses
-the following changes suggested by Dave Miller
-Patch 1/5: enable_irq()/disable_irq() used to enable/disable HV interrupts
-Patch 4/5: Commit message adds more detail to justify the change
-
-Jag Raman (5):
-  sparc64: expand LDC interface
-  sparc64: enhance ldc_abort to print message
-  sparc64: ensure LDC channel is ready before communication
-  sparc64: ldc abort during vds iso boot
-  sparc64: print debug messages when reading from LDC channel
-
- arch/sparc/include/asm/ldc.h |   10 +++
- arch/sparc/kernel/ldc.c      |  176 +++++++++++++++++++++++++++++++----------
- 2 files changed, 143 insertions(+), 43 deletions(-)
-
+X9CXZ9GA0LDQsmPRgtCy0YPQudGCZSEgQtCwYyDQuNC90YJl0YBlY9GD0Y7RgiBr0LvQuGXQvdGC
+Y2vQuGUg0LHQsNC30YsgZ9Cw0L3QvdGLeD8NCg=
