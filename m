@@ -1,84 +1,148 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 19 May 2017 00:36:07 +0000
-Subject: [PATCH 3/6] arch/sparc: Introduce cmpxchg_u8 SPARC
-Message-Id: <1495154170-854693-4-git-send-email-babu.moger@oracle.com>
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Mon, 29 May 2017 16:54:19 +0000
+Subject: [PATCH 2/2] sparc: Machine description indices can vary
+Message-Id: <20170529165419.19121-2-jrtc27@jrtc27.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1495154170-854693-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: davem@davemloft.net, peterz@infradead.org, mingo@redhat.com, arnd@arndb.de
-Cc: babu.moger@oracle.com, shannon.nelson@oracle.com, haakon.bugge@oracle.com, steven.sistare@oracle.com, vijay.ac.kumar@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-SPARC supports 32 bit and 64 bit cmpxchg right now. Add support
-for 8 bit (1 byte) cmpxchg. This is required to support queued
-rwlocks feature  which uses 1 byte cmpxchg.
+VIO devices were being looked up by their index in the machine
+description node block, but this often varies over time as devices are
+added and removed. Instead, store the ID and look up using the type,
+config handle and ID.
 
-The function __cmpxchg_u8 here uses the 4 byte cas instruction with a
-byte manipulation to achieve 1 byte cmpxchg.
-
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Jane Chu <jane.chu@oracle.com>
-Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Signed-off-by: James Clarke <jrtc27@jrtc27.com>
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id2541
 ---
- arch/sparc/include/asm/cmpxchg_64.h |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/vio.h |  1 +
+ arch/sparc/kernel/vio.c      | 68 +++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 65 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/c=
-mpxchg_64.h
-index faa2f61..65bfae0 100644
---- a/arch/sparc/include/asm/cmpxchg_64.h
-+++ b/arch/sparc/include/asm/cmpxchg_64.h
-@@ -87,6 +87,33 @@ static inline unsigned long __xchg(unsigned long x, __vo=
-latile__ void * ptr,
- 	return new;
+diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
+index 8174f6cdbbbb..9dca7a892978 100644
+--- a/arch/sparc/include/asm/vio.h
++++ b/arch/sparc/include/asm/vio.h
+@@ -327,6 +327,7 @@ struct vio_dev {
+ 	int			compat_len;
+ 
+ 	u64			dev_no;
++	u64			id;
+ 
+ 	unsigned long		channel_id;
+ 
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 4da8db27fbf2..4413c850eaba 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -302,13 +302,16 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
+ 	if (!id) {
+ 		dev_set_name(&vdev->dev, "%s", bus_id_name);
+ 		vdev->dev_no = ~(u64)0;
++		vdev->id = ~(u64)0;
+ 	} else if (!cfg_handle) {
+ 		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
+ 		vdev->dev_no = *id;
++		vdev->id = ~(u64)0;
+ 	} else {
+ 		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
+ 			     *cfg_handle, *id);
+ 		vdev->dev_no = *cfg_handle;
++		vdev->id = *id;
+ 	}
+ 
+ 	vdev->dev.parent = parent;
+@@ -351,21 +354,68 @@ static void vio_add(struct mdesc_handle *hp, u64 node)
+ 	(void) vio_create_one(hp, node, &root_vdev->dev);
  }
-=20
-+/*
-+ * Use 4 byte cas instruction to achieve 1 byte cmpxchg. Main logic
-+ * here is to get the bit shift of the byte we are interested in.
-+ * The XOR is handy for reversing the bits for big-endian byte order
-+ */
-+static inline unsigned long
-+__cmpxchg_u8(volatile unsigned char *m, unsigned int old, unsigned int new)
-+{
-+	unsigned long maddr =3D (unsigned long)m;
-+	int bit_shift =3D (((unsigned long)m & 3) ^ 3) << 3;
-+	unsigned int mask =3D 0xff << bit_shift;
-+	unsigned int *ptr =3D (unsigned int *) (maddr & ~3);
-+	unsigned int old32, new32, load;
-+	unsigned int load32 =3D *ptr;
+ 
++struct vio_md_node_query {
++	const char *type;
++	u64 dev_no;
++	u64 id;
++};
 +
-+	do {
-+		new32 =3D (load32 & ~mask) | (new << bit_shift);
-+		old32 =3D (load32 & ~mask) | (old << bit_shift);
-+		load32 =3D __cmpxchg_u32(ptr, old32, new32);
-+		if (load32 =3D old32)
-+			return old;
-+		load =3D (load32 & mask) >> bit_shift;
-+	} while (load =3D old);
-+
-+	return load;
-+}
-+
- /* This function doesn't exist, so you'll get a linker error
-    if something tries to do an invalid cmpxchg().  */
- void __cmpxchg_called_with_bad_pointer(void);
-@@ -95,6 +122,8 @@ static inline unsigned long __xchg(unsigned long x, __vo=
-latile__ void * ptr,
- __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new, int si=
-ze)
+ static int vio_md_node_match(struct device *dev, void *arg)
  {
- 	switch (size) {
-+		case 1:
-+			return __cmpxchg_u8(ptr, old, new);
- 		case 4:
- 			return __cmpxchg_u32(ptr, old, new);
- 		case 8:
---=20
-1.7.1
++	struct vio_md_node_query *query = (struct vio_md_node_query *) arg;
+ 	struct vio_dev *vdev = to_vio_dev(dev);
+ 
+-	if (vdev->mp = (u64) arg)
+-		return 1;
++	if (vdev->dev_no != query->dev_no)
++		return 0;
++	if (vdev->id != query->id)
++		return 0;
++	if (strcmp(vdev->type, query->type))
++		return 0;
+ 
+-	return 0;
++	return 1;
+ }
+ 
+ static void vio_remove(struct mdesc_handle *hp, u64 node)
+ {
++	const char *type;
++	const u64 *id, *cfg_handle;
++	u64 a;
++	struct vio_md_node_query query;
+ 	struct device *dev;
+ 
+-	dev = device_find_child(&root_vdev->dev, (void *) node,
++	type = mdesc_get_property(hp, node, "device-type", NULL);
++	if (!type) {
++		type = mdesc_get_property(hp, node, "name", NULL);
++		if (!type)
++			type = mdesc_node_name(hp, node);
++	}
++
++	query.type = type;
++
++	id = mdesc_get_property(hp, node, "id", NULL);
++	cfg_handle = NULL;
++	mdesc_for_each_arc(a, hp, node, MDESC_ARC_TYPE_BACK) {
++		u64 target;
++
++		target = mdesc_arc_target(hp, a);
++		cfg_handle = mdesc_get_property(hp, target,
++					"cfg-handle", NULL);
++		if (cfg_handle)
++			break;
++	}
++
++	if (!id) {
++		query.dev_no = ~(u64)0;
++		query.id = ~(u64)0;
++	} else if (!cfg_handle) {
++		query.dev_no = *id;
++		query.id = ~(u64)0;
++	} else {
++		query.dev_no = *cfg_handle;
++		query.id = *id;
++	}
++
++	dev = device_find_child(&root_vdev->dev, &query,
+ 				vio_md_node_match);
+ 	if (dev) {
+ 		struct vio_dev *vdev = to_vio_dev(dev);
+@@ -378,6 +428,16 @@ static void vio_remove(struct mdesc_handle *hp, u64 node)
+ 					  &dev_attr_obppath.attr);
+ 
+ 		put_device(dev);
++	} else {
++		if (!id)
++			printk(KERN_ERR "VIO: Removed unknown %s node.\n",
++			       type);
++		else if (!cfg_handle)
++			printk(KERN_ERR "VIO: Removed unknown %s node %llu.\n",
++			       type, *id);
++		else
++			printk(KERN_ERR "VIO: Removed unknown %s node %llu-%llu.\n",
++			       type, *cfg_handle, *id);
+ 	}
+ }
+ 
+-- 
+2.11.0
 
