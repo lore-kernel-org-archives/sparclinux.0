@@ -1,33 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 May 2017 14:37:44 +0000
-Subject: Re: [PATCH 1/5] sparc64: expand LDC interface
-Message-Id: <20170503.103744.1191619276146392297.davem@davemloft.net>
+From: James Clarke <jrtc27@jrtc27.com>
+Date: Mon, 29 May 2017 19:17:00 +0000
+Subject: [PATCH v2 0/1] sparc: Machine description indices can vary
+Message-Id: <20170529191701.29000-1-jrtc27@jrtc27.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jag Raman <jag.raman@oracle.com>
-Date: Wed, 29 Mar 2017 17:51:42 -0400
+Changes since v1:
+ * Dropped "sparc: Remove corresponding sysfs file on device remove"
+   - I initially thought this was a problem before writing the second patch,
+     but now realise the second patch is what's needed.
 
-> @@ -24,6 +24,9 @@ struct ldc_channel_config {
->  	u32			mtu;
->  	unsigned int		rx_irq;
->  	unsigned int		tx_irq;
-> +	u64			rx_ino;
-> +	u64			tx_ino;
-> +	u64			dev_handle;
->  	u8			mode;
->  #define LDC_MODE_RAW		0x00
->  #define LDC_MODE_UNRELIABLE	0x01
- ...
-> +void ldc_enable_hv_intr(struct ldc_channel *lp)
- ...
-> +void ldc_disable_hv_intr(struct ldc_channel *lp)
+James Clarke (1):
+  sparc: Machine description indices can vary
 
-You should use enable_irq() and disable_irq() for this.
+ arch/sparc/include/asm/vio.h |  1 +
+ arch/sparc/kernel/vio.c      | 68 +++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 65 insertions(+), 4 deletions(-)
 
-The whole idea is that the entire kernel should only operate on
-32-bit abstract IRQ cookies, and not have to have any knowledge
-about interrupt numbering details such as INOs.
+-- 
+2.11.0
+
