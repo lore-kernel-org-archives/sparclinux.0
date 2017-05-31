@@ -1,83 +1,41 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Fri, 05 May 2017 13:34:39 +0000
-Subject: Re: [PATCH 04/13] sparc/PCI: Add IORESOURCE_MEM_64 for 64-bit resource in OF parsing
-Message-Id: <20170505133439.GE9648@bhelgaas-glaptop.roam.corp.google.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 31 May 2017 15:25:19 +0000
+Subject: [v1 0/6] sparc64: context wrap fixes
+Message-Id: <1496244325-180257-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170421050500.13957-1-yinghai@kernel.org>
- <20170421050500.13957-5-yinghai@kernel.org>
-In-Reply-To: <20170421050500.13957-5-yinghai@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Yinghai Lu <yinghai@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, Khalid Aziz <khalid.aziz@oracle.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Thu, Apr 20, 2017 at 10:04:51PM -0700, Yinghai Lu wrote:
-> For device resource with PREF bit setting under bridge 64-bit pref resour=
-ce,
-> we need to make sure only set PREF for 64bit resource.
->=20
-> so this patch set IORESOUCE_MEM_64 for 64bit resource during OF device
+This patch series contains fixes for context wrap: when we are out of
+context ids, and need to get a new version.
 
-s/IORESOUCE_MEM_64/IORESOURCE_MEM_64/
+It fixes memory corruption issues which happen when more than number of
+context ids (currently set to 8K) number of processes are started
+simultaneously, and processes can get a wrong context.
 
-This misspelling occurs three times in the series; please fix them all.
+sparc64: new context wrap:
+- contains explanation of new wrap method, and also explanation of races
+  that it solves
+sparc64: reset mm cpumask after wrap
+- explains issue of not reseting cpu mask on a wrap
 
-> resource flags parsing.
->=20
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96261
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=96241
-> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Tested-by: Khalid Aziz <khalid.aziz@oracle.com>
-> ---
->  arch/sparc/kernel/of_device_32.c | 5 +++--
->  arch/sparc/kernel/of_device_64.c | 5 +++--
->  2 files changed, 6 insertions(+), 4 deletions(-)
->=20
-> diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_devi=
-ce_32.c
-> index 185aa96..3e9f273 100644
-> --- a/arch/sparc/kernel/of_device_32.c
-> +++ b/arch/sparc/kernel/of_device_32.c
-> @@ -83,11 +83,12 @@ static unsigned long of_bus_pci_get_flags(const u32 *=
-addr, unsigned long flags)
->  	case 0x01:
->  		flags |=3D IORESOURCE_IO;
->  		break;
-> -
->  	case 0x02: /* 32 bits */
-> -	case 0x03: /* 64 bits */
->  		flags |=3D IORESOURCE_MEM;
->  		break;
-> +	case 0x03: /* 64 bits */
-> +		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-> +		break;
->  	}
->  	if (w & 0x40000000)
->  		flags |=3D IORESOURCE_PREFETCH;
-> diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_devi=
-ce_64.c
-> index 7bbdc26..defee61 100644
-> --- a/arch/sparc/kernel/of_device_64.c
-> +++ b/arch/sparc/kernel/of_device_64.c
-> @@ -146,11 +146,12 @@ static unsigned long of_bus_pci_get_flags(const u32=
- *addr, unsigned long flags)
->  	case 0x01:
->  		flags |=3D IORESOURCE_IO;
->  		break;
-> -
->  	case 0x02: /* 32 bits */
-> -	case 0x03: /* 64 bits */
->  		flags |=3D IORESOURCE_MEM;
->  		break;
-> +	case 0x03: /* 64 bits */
-> +		flags |=3D IORESOURCE_MEM | IORESOURCE_MEM_64;
-> +		break;
->  	}
->  	if (w & 0x40000000)
->  		flags |=3D IORESOURCE_PREFETCH;
-> --=20
-> 2.9.3
->=20
+Pavel Tatashin (6):
+  sparc64: reset mm cpumask after wrap
+  sparc64: combine activate_mm and switch_mm
+  sparc64: redefine first version
+  sparc64: add per-cpu mm of secondary contexts
+  sparc64: new context wrap
+  sparc64: delete old wrap code
+
+ arch/sparc/include/asm/mmu_64.h         |    2 +-
+ arch/sparc/include/asm/mmu_context_64.h |   32 ++----------
+ arch/sparc/include/asm/pil.h            |    1 -
+ arch/sparc/kernel/kernel.h              |    1 -
+ arch/sparc/kernel/smp_64.c              |   31 -----------
+ arch/sparc/kernel/ttable_64.S           |    2 +-
+ arch/sparc/mm/init_64.c                 |   86 +++++++++++++++++++++----------
+ arch/sparc/mm/ultra.S                   |    5 --
+ 8 files changed, 64 insertions(+), 96 deletions(-)
+
