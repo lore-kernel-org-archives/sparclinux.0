@@ -1,83 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 03 May 2017 15:29:46 +0000
-Subject: Re: linux-4.11-rc6/arch/sparc/kernel/setup_32.c:151]: (style) Redundant condition
-Message-Id: <20170503.112946.1803743581979942128.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 31 May 2017 15:25:22 +0000
+Subject: [v1 3/6] sparc64: redefine first version
+Message-Id: <1496244325-180257-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: David Binderman <dcb314@hotmail.com>
-Date: Mon, 10 Apr 2017 08:20:09 +0000
+CTX_FIRST_VERSION defines the first context version, but also it defines
+first context. This patch redefines it to only include the first context
+version.
 
-> Hello there,
-> 
-> 
-> linux-4.11-rc6/arch/sparc/kernel/setup_32.c:151]: (style) Redundant condition: If 'EXPR = ' '', the comparison 'EXPR' is always true.
-> 
-> 
-> Source code is
-> 
-> 
->         while (*commands && *commands = ' ')
-> 
-> 
-> Suggest new code
-> 
-> 
->         while (*commands = ' ')
-> 
-> Also, there seems to be a duplicate in a similar file:
-> 
-> linux-4.11-rc6/arch/sparc/kernel/setup_64.c:136]: (style) Redundant condition: If 'EXPR = ' '', the comparison 'EXPR' is always true.
-
-Yep, both are correct transformations, thanks.
-
-==========
-sparc: Remove redundant tests in boot_flags_init().
-
-The test:
-
-	*commands && *commands = ' '
-
-is equivalent to:
-
-	*commands = ' '
-
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 ---
- arch/sparc/kernel/setup_32.c | 2 +-
- arch/sparc/kernel/setup_64.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/mmu_64.h |    2 +-
+ arch/sparc/mm/init_64.c         |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-index 6f06058..6722308 100644
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -148,7 +148,7 @@ static void __init boot_flags_init(char *commands)
- {
- 	while (*commands) {
- 		/* Move to the start of the next "argument". */
--		while (*commands && *commands = ' ')
-+		while (*commands = ' ')
- 			commands++;
+diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
+index f7de0db..83b36a5 100644
+--- a/arch/sparc/include/asm/mmu_64.h
++++ b/arch/sparc/include/asm/mmu_64.h
+@@ -52,7 +52,7 @@
+ #define CTX_NR_MASK		TAG_CONTEXT_BITS
+ #define CTX_HW_MASK		(CTX_NR_MASK | CTX_PGSZ_MASK)
  
- 		/* Process any command switches, otherwise skip it. */
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 6b7331d..422b178 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -133,7 +133,7 @@ static void __init boot_flags_init(char *commands)
- {
- 	while (*commands) {
- 		/* Move to the start of the next "argument". */
--		while (*commands && *commands = ' ')
-+		while (*commands = ' ')
- 			commands++;
+-#define CTX_FIRST_VERSION	((_AC(1,UL) << CTX_VERSION_SHIFT) + _AC(1,UL))
++#define CTX_FIRST_VERSION	BIT(CTX_VERSION_SHIFT)
+ #define CTX_VALID(__ctx)	\
+ 	 (!(((__ctx.sparc64_ctx_val) ^ tlb_context_cache) & CTX_VERSION_MASK))
+ #define CTX_HWBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_HW_MASK)
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index e679b14..18f958b 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -706,7 +706,7 @@ void __flush_dcache_range(unsigned long start, unsigned long end)
  
- 		/* Process any command switches, otherwise skip it. */
+ /* get_new_mmu_context() uses "cache + 1".  */
+ DEFINE_SPINLOCK(ctx_alloc_lock);
+-unsigned long tlb_context_cache = CTX_FIRST_VERSION - 1;
++unsigned long tlb_context_cache = CTX_FIRST_VERSION;
+ #define MAX_CTX_NR	(1UL << CTX_NR_BITS)
+ #define CTX_BMAP_SLOTS	BITS_TO_LONGS(MAX_CTX_NR)
+ DECLARE_BITMAP(mmu_context_bmap, MAX_CTX_NR);
+@@ -737,9 +737,9 @@ void get_new_mmu_context(struct mm_struct *mm)
+ 		if (new_ctx >= ctx) {
+ 			int i;
+ 			new_ctx = (tlb_context_cache & CTX_VERSION_MASK) +
+-				CTX_FIRST_VERSION;
++				CTX_FIRST_VERSION + 1;
+ 			if (new_ctx = 1)
+-				new_ctx = CTX_FIRST_VERSION;
++				new_ctx = CTX_FIRST_VERSION + 1;
+ 
+ 			/* Don't call memset, for 16 entries that's just
+ 			 * plain silly...
 -- 
-2.1.2.532.g19b5d50
+1.7.1
 
