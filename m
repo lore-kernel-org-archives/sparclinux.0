@@ -1,180 +1,55 @@
 From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 31 May 2017 11:56:52 +0000
+Date: Wed, 31 May 2017 12:12:09 +0000
 Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <CADxRZqzNTB1n0g1r_2rLsjifHpJ+_x1WPxNOSqEcHbi74jHi5w@mail.gmail.com>
+Message-Id: <CADxRZqwKAEHZwkCmZw7zShCm7uMACdLMfD=EdFETZK4HZ=DEeg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqzgaL4ew6PVek3WBsdwo6GcT0ORx=7h+6p0V3NAr8qF+w@mail.gmail.com>
-In-Reply-To: <CADxRZqzgaL4ew6PVek3WBsdwo6GcT0ORx=7h+6p0V3NAr8qF+w@mail.gmail.com>
+ <CADxRZqzNTB1n0g1r_2rLsjifHpJ+_x1WPxNOSqEcHbi74jHi5w@mail.gmail.com>
+In-Reply-To: <CADxRZqzNTB1n0g1r_2rLsjifHpJ+_x1WPxNOSqEcHbi74jHi5w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Sparc kernel list <sparclinux@vger.kernel.org>
 Cc: Eric Sandeen <sandeen@sandeen.net>, linux-crypto@vger.kernel.org
 
-Hello!
+A bit more on testing machines:
 
-While debugging occasional crc32c checksum errors with xfs disk reads on
-sparc64 (T5 [sun4v] 3.6 GHz CPU ldom, debian unstable/sid), Eric have found
-that crc32c sometimes returns wrong checksum for data. Eric made a simple
-test kernel module (included), which produce the following results on my
-sparc64 machines:
+kernel on T5 ldom ttip is git kernel:
 
-# cat test3.c
-#include <linux/module.h>
-#include <linux/printk.h>
-#include <linux/init.h>
-#include <linux/crc32c.h>
+Linux ttip 4.12.0-rc3-00011-gf511c0b17b08 #327 SMP Wed May 31 12:54:02
+MSK 2017 sparc64 GNU/Linux
 
-#define CRC_SEED (~(u32)0)
+kernel on v215 is debian sid kernel:
 
-static int __init mymodule_init (void)
-{
-char data[512];
-u32 oldcrc = 0xd00dface, crc = 0xdeadbeef;
-int i;
-u64 nsec;
+Linux v215 4.9.0-3-sparc64-smp #1 SMP Debian 4.9.25-1 (2017-05-02)
+sparc64 GNU/Linux
 
-memset(data, 0, 512);
-
-nsec = ktime_get_ns();
-for (i = 0; i < 1000000; i++) {
-crc = crc32c(CRC_SEED, data, 512);
-
-if (i > 0 && crc != oldcrc)
-printk("i: %d: oldcrc: 0x%x, crc: 0x%x\n", i, oldcrc, crc);
-oldcrc = crc;
-}
-nsec = ktime_get_ns() - nsec;
-
-printk("Loop done in %lld nsec\n", nsec);
-return 0;
-}
-
-static void __exit mymodule_exit (void)
-{
-printk ("Module uninitialized successfully \n");
-}
-
-module_init(mymodule_init);
-module_exit(mymodule_exit);
-MODULE_LICENSE("GPL");
-
-
-root@ttip# modprobe libcrc32c
-root@ttip# for i in `seq 1 100`; do echo -n "$i "; insmod ./test3.ko; sleep
-1; rmmod test3; done
-# journalctl -k -f
-
-CONFIG_CRYPTO_CRC32C = M
-CONFIG_CRYPTO_CRC32C_SPARC64 = M
-
-# lsmod| grep crc
-crc32test               1557  0
-libcrc32c               1382  3 nf_conntrack,xfs,nf_nat
-crc32c_generic          2528  0
-crc16                   1745  1 ext4
-crc32c_sparc64          3493  3
-
-
-May 31 12:35:13 ttip kernel: Module uninitialized successfully
-May 31 12:35:13 ttip kernel: Loop done in 139269659 nsec
-May 31 12:35:14 ttip kernel: Module uninitialized successfully
-May 31 12:35:15 ttip kernel: Loop done in 139650571 nsec
-May 31 12:35:16 ttip kernel: Module uninitialized successfully
-May 31 12:35:16 ttip kernel: Loop done in 139559959 nsec
-May 31 12:35:17 ttip kernel: Module uninitialized successfully
-May 31 12:35:17 ttip kernel: Loop done in 139212192 nsec
-May 31 12:35:18 ttip kernel: Module uninitialized successfully
-May 31 12:35:18 ttip kernel: Loop done in 139619805 nsec
-May 31 12:35:19 ttip kernel: Module uninitialized successfully
-May 31 12:35:20 ttip kernel: Loop done in 139558722 nsec
-May 31 12:35:21 ttip kernel: Module uninitialized successfully
-May 31 12:35:21 ttip kernel: i: 34706: oldcrc: 0xcf03123f, crc: 0x0
-May 31 12:35:21 ttip kernel: i: 34707: oldcrc: 0x0, crc: 0xcf03123f
-May 31 12:35:36 ttip kernel: Module uninitialized successfully
-May 31 12:35:37 ttip kernel: i: 695650: oldcrc: 0xcf03123f, crc: 0x0
-May 31 12:35:37 ttip kernel: i: 695651: oldcrc: 0x0, crc: 0xcf03123f
-May 31 12:36:24 ttip kernel: Module uninitialized successfully
-May 31 12:36:24 ttip kernel: i: 664460: oldcrc: 0xcf03123f, crc: 0x0
-May 31 12:36:24 ttip kernel: i: 664461: oldcrc: 0x0, crc: 0xcf03123f
-
-another run with kernel
-CONFIG_CRYPTO_CRC32C = M
-CONFIG_CRYPTO_CRC32C_SPARC64 is not set
-
-# lsmod | grep crc
-libcrc32c               1382  3 nf_conntrack,xfs,nf_nat
-crc32c_generic          2528  3
-crc16                   1745  1 ext4
-
-May 31 12:57:26 ttip kernel: test3: loading out-of-tree module taints
-kernel.
-May 31 12:57:26 ttip kernel: Loop done in 439555353 nsec
-May 31 12:57:27 ttip kernel: Module uninitialized successfully
-May 31 12:57:28 ttip kernel: Loop done in 441111064 nsec
-May 31 12:57:29 ttip kernel: Module uninitialized successfully
-May 31 12:57:29 ttip kernel: Loop done in 439476126 nsec
-May 31 12:57:30 ttip kernel: Module uninitialized successfully
-May 31 12:57:31 ttip kernel: Loop done in 440995512 nsec
-May 31 12:57:32 ttip kernel: Module uninitialized successfully
-May 31 12:57:33 ttip kernel: Loop done in 439825440 nsec
-May 31 12:57:34 ttip kernel: Module uninitialized successfully
-May 31 12:57:34 ttip kernel: i: 293384: oldcrc: 0xcf03123f, crc: 0x0
-May 31 12:57:34 ttip kernel: i: 293385: oldcrc: 0x0, crc: 0xcf03123f
-May 31 12:57:34 ttip kernel: Loop done in 439500110 nsec
-May 31 12:57:35 ttip kernel: Module uninitialized successfully
-May 31 13:02:26 ttip kernel: i: 293577: oldcrc: 0xcf03123f, crc: 0x0
-May 31 13:02:26 ttip kernel: i: 293578: oldcrc: 0x0, crc: 0xcf03123f
-May 31 13:02:26 ttip kernel: i: 515055: oldcrc: 0xcf03123f, crc: 0x0
-May 31 13:02:26 ttip kernel: i: 515056: oldcrc: 0x0, crc: 0xcf03123f
-May 31 13:03:15 ttip kernel: Module uninitialized successfully
-May 31 13:03:15 ttip kernel: i: 259986: oldcrc: 0xcf03123f, crc: 0x0
-May 31 13:03:15 ttip kernel: i: 259987: oldcrc: 0x0, crc: 0xcf03123f
-May 31 13:03:16 ttip kernel: Loop done in 449601790 nsec
-
-
-cycle loading (for i in `seq 1 100`) crc32test module
-(CONFIG_CRC32_SELFTEST) shows all tests as passed (no errors).
-
-running on older (1.5 GHz cpu) sparc64 (sun4u) v215 machine hit wrong crc
-error  immidiatelly:
-
-# lsmod | grep crc
-crc16                   1591  1 ext4
-libcrc32c               1234  1 raid456
-crc32c_generic          2270  1
-
-root@v215# journalctl  -k -b
-May 31 14:32:13 v215 kernel: systemd: 28 output lines suppressed due to
-ratelimiting
-May 31 14:36:34 v215 kernel: test3: loading out-of-tree module taints
-kernel.
-May 31 14:36:35 v215 kernel: i: 99466: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:35 v215 kernel: i: 99467: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:35 v215 kernel: Loop done in 1017018626 nsec
-May 31 14:36:36 v215 kernel: Module uninitialized successfully
-May 31 14:36:37 v215 kernel: i: 320351: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:37 v215 kernel: i: 320352: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:38 v215 kernel: Loop done in 1019229670 nsec
-May 31 14:36:39 v215 kernel: Module uninitialized successfully
-May 31 14:36:39 v215 kernel: i: 275151: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:39 v215 kernel: i: 275152: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:40 v215 kernel: Loop done in 1019406833 nsec
-May 31 14:36:41 v215 kernel: Module uninitialized successfully
-May 31 14:36:41 v215 kernel: i: 356512: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:41 v215 kernel: i: 356513: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:42 v215 kernel: Loop done in 1019136933 nsec
-May 31 14:36:43 v215 kernel: Module uninitialized successfully
-May 31 14:36:43 v215 kernel: i: 243633: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:43 v215 kernel: i: 243634: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:44 v215 kernel: i: 409279: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:44 v215 kernel: i: 409280: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:44 v215 kernel: i: 516166: oldcrc: 0xcf03123f, crc: 0x0
-May 31 14:36:44 v215 kernel: i: 516167: oldcrc: 0x0, crc: 0xcf03123f
-May 31 14:36:44 v215 kernel: Loop done in 1285740619 nsec
-May 31 14:36:45 v215 kernel: Module uninitialized successfully
-
-Tested as well on x86_64 and ppc64 machines, and can't reproduce it there.
-
-Can someone please look what is wrong with crc32c on sparc64 ?!
-Thanks!
+mator@ttip:~$ gcc -v
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/sparc64-linux-gnu/6/lto-wrapper
+Target: sparc64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Debian
+6.3.0-18' --with-bugurl=file:///usr/share/doc/gcc-6/README.Bugs
+--enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++
+--prefix=/usr --program-suffix=-6 --program-prefix=sparc64-linux-gnu-
+--enable-shared --enable-linker-build-id --libexecdir=/usr/lib
+--without-included-gettext --enable-threads=posix --libdir=/usr/lib
+--enable-nls --with-sysroot=/ --enable-clocale=gnu
+--enable-libstdcxx-debug --enable-libstdcxx-time=yes
+--with-default-libstdcxx-abi=new --enable-gnu-unique-object
+--disable-libquadmath --enable-plugin --enable-default-pie
+--with-system-zlib --disable-browser-plugin --enable-java-awt=gtk
+--enable-gtk-cairo
+--with-java-home=/usr/lib/jvm/java-1.5.0-gcj-6-sparc64/jre
+--enable-java-home
+--with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-6-sparc64
+--with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-6-sparc64
+--with-arch-directory=sparc64
+--with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc=auto
+--enable-multiarch --enable-targets=all --with-cpu-32=ultrasparc
+--with-long-double-128 --enable-multilib --enable-checking=release
+--build=sparc64-linux-gnu --host=sparc64-linux-gnu
+--target=sparc64-linux-gnu
+Thread model: posix
+gcc version 6.3.0 20170516 (Debian 6.3.0-18)
