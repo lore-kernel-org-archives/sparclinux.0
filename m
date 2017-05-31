@@ -1,56 +1,43 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 31 May 2017 15:53:35 +0000
+Date: Wed, 31 May 2017 16:03:30 +0000
 Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <20170531.115335.213691069712156732.davem@davemloft.net>
+Message-Id: <20170531.120330.169342845867105735.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqzgaL4ew6PVek3WBsdwo6GcT0ORx=7h+6p0V3NAr8qF+w@mail.gmail.com>
         <CADxRZqzNTB1n0g1r_2rLsjifHpJ+_x1WPxNOSqEcHbi74jHi5w@mail.gmail.com>
-In-Reply-To: <CADxRZqzNTB1n0g1r_2rLsjifHpJ+_x1WPxNOSqEcHbi74jHi5w@mail.gmail.com>
+        <20170531.115335.213691069712156732.davem@davemloft.net>
+In-Reply-To: <20170531.115335.213691069712156732.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: matorola@gmail.com
 Cc: sparclinux@vger.kernel.org, sandeen@sandeen.net, linux-crypto@vger.kernel.org
 
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 31 May 2017 14:56:52 +0300
+From: David Miller <davem@davemloft.net>
+Date: Wed, 31 May 2017 11:53:35 -0400 (EDT)
 
-> While debugging occasional crc32c checksum errors with xfs disk reads on
-> sparc64 (T5 [sun4v] 3.6 GHz CPU ldom, debian unstable/sid), Eric have found
-> that crc32c sometimes returns wrong checksum for data. Eric made a simple
-> test kernel module (included), which produce the following results on my
-> sparc64 machines:
+> Can you try something like disabling cpu IRQs around the crc32c() function
+> in lib/libcrc32c.c?  Something like:
+> 
+> 	u32 retval;
+> 
+> 	local_irq_disable();
+> 
+> 	shash->tfm = tfm;
+> 	shash->flags = 0;
+> 	*ctx = crc;
+> 
+> 	err = crypto_shash_update(shash, address, length);
+> 	BUG_ON(err);
+> 
+> 	retval = *ctx;
+> 
+> 	local_irq_enable();
+> 
+> 	return retval;
 
-I don't think that crc32c() is thread safe because of the way it is
-implemented with a shared TFM crypto object allocated once at boot
-time.
+Actually you would need a spinlock, with IRQs disabled, to properly test
+this theory since the TFM is shared across the entire system.
 
-I think you are seeing the corruption any time an interrupt comes in
-on the same cpu as your test module is running on and does a crc32c()
-calculation, corrupting the context key value being used by your
-invocation.
-
-At least that's my guess, I could have misread how the key is stored
-and managed around operations.
-
-Can you try something like disabling cpu IRQs around the crc32c() function
-in lib/libcrc32c.c?  Something like:
-
-	u32 retval;
-
-	local_irq_disable();
-
-	shash->tfm = tfm;
-	shash->flags = 0;
-	*ctx = crc;
-
-	err = crypto_shash_update(shash, address, length);
-	BUG_ON(err);
-
-	retval = *ctx;
-
-	local_irq_enable();
-
-	return retval;
-
-Thanks.
+The really suspicious part of your test results is that the corrupted
+checksum always evaluates to zero.
