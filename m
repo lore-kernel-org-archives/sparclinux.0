@@ -1,147 +1,57 @@
-From: James Clarke <jrtc27@jrtc27.com>
-Date: Mon, 29 May 2017 19:17:56 +0000
-Subject: [PATCH v2 1/1] sparc: Machine description indices can vary
-Message-Id: <20170529191756.29165-1-jrtc27@jrtc27.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 31 May 2017 15:25:21 +0000
+Subject: [v1 2/6] sparc64: combine activate_mm and switch_mm
+Message-Id: <1496244325-180257-3-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-VIO devices were being looked up by their index in the machine
-description node block, but this often varies over time as devices are
-added and removed. Instead, store the ID and look up using the type,
-config handle and ID.
+The only difference between these two functions is that in activate_mm we
+unconditionally flush context. However, there is no need to keep this
+difference after fixing a bug where cpumask was not reset on a wrap. So, in
+this patch we combine these.
 
-Signed-off-by: James Clarke <jrtc27@jrtc27.com>
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id2541
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 ---
- arch/sparc/include/asm/vio.h |  1 +
- arch/sparc/kernel/vio.c      | 68 +++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 65 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/mmu_context_64.h |   21 +--------------------
+ 1 files changed, 1 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
-index 8174f6cdbbbb..9dca7a892978 100644
---- a/arch/sparc/include/asm/vio.h
-+++ b/arch/sparc/include/asm/vio.h
-@@ -327,6 +327,7 @@ struct vio_dev {
- 	int			compat_len;
-
- 	u64			dev_no;
-+	u64			id;
-
- 	unsigned long		channel_id;
-
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index f6bb857254fc..ef00bbec34b7 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -302,13 +302,16 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 	if (!id) {
- 		dev_set_name(&vdev->dev, "%s", bus_id_name);
- 		vdev->dev_no = ~(u64)0;
-+		vdev->id = ~(u64)0;
- 	} else if (!cfg_handle) {
- 		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
- 		vdev->dev_no = *id;
-+		vdev->id = ~(u64)0;
- 	} else {
- 		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
- 			     *cfg_handle, *id);
- 		vdev->dev_no = *cfg_handle;
-+		vdev->id = *id;
- 	}
-
- 	vdev->dev.parent = parent;
-@@ -351,27 +354,84 @@ static void vio_add(struct mdesc_handle *hp, u64 node)
- 	(void) vio_create_one(hp, node, &root_vdev->dev);
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 22fede6..734a134 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -133,26 +133,7 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
  }
-
-+struct vio_md_node_query {
-+	const char *type;
-+	u64 dev_no;
-+	u64 id;
-+};
-+
- static int vio_md_node_match(struct device *dev, void *arg)
- {
-+	struct vio_md_node_query *query = (struct vio_md_node_query *) arg;
- 	struct vio_dev *vdev = to_vio_dev(dev);
-
--	if (vdev->mp = (u64) arg)
--		return 1;
-+	if (vdev->dev_no != query->dev_no)
-+		return 0;
-+	if (vdev->id != query->id)
-+		return 0;
-+	if (strcmp(vdev->type, query->type))
-+		return 0;
-
--	return 0;
-+	return 1;
- }
-
- static void vio_remove(struct mdesc_handle *hp, u64 node)
- {
-+	const char *type;
-+	const u64 *id, *cfg_handle;
-+	u64 a;
-+	struct vio_md_node_query query;
- 	struct device *dev;
-
--	dev = device_find_child(&root_vdev->dev, (void *) node,
-+	type = mdesc_get_property(hp, node, "device-type", NULL);
-+	if (!type) {
-+		type = mdesc_get_property(hp, node, "name", NULL);
-+		if (!type)
-+			type = mdesc_node_name(hp, node);
-+	}
-+
-+	query.type = type;
-+
-+	id = mdesc_get_property(hp, node, "id", NULL);
-+	cfg_handle = NULL;
-+	mdesc_for_each_arc(a, hp, node, MDESC_ARC_TYPE_BACK) {
-+		u64 target;
-+
-+		target = mdesc_arc_target(hp, a);
-+		cfg_handle = mdesc_get_property(hp, target,
-+					"cfg-handle", NULL);
-+		if (cfg_handle)
-+			break;
-+	}
-+
-+	if (!id) {
-+		query.dev_no = ~(u64)0;
-+		query.id = ~(u64)0;
-+	} else if (!cfg_handle) {
-+		query.dev_no = *id;
-+		query.id = ~(u64)0;
-+	} else {
-+		query.dev_no = *cfg_handle;
-+		query.id = *id;
-+	}
-+
-+	dev = device_find_child(&root_vdev->dev, &query,
- 				vio_md_node_match);
- 	if (dev) {
- 		printk(KERN_INFO "VIO: Removing device %s\n", dev_name(dev));
-
- 		device_unregister(dev);
- 		put_device(dev);
-+	} else {
-+		if (!id)
-+			printk(KERN_ERR "VIO: Removed unknown %s node.\n",
-+			       type);
-+		else if (!cfg_handle)
-+			printk(KERN_ERR "VIO: Removed unknown %s node %llu.\n",
-+			       type, *id);
-+		else
-+			printk(KERN_ERR "VIO: Removed unknown %s node %llu-%llu.\n",
-+			       type, *cfg_handle, *id);
- 	}
- }
-
---
-2.11.0
+ 
+ #define deactivate_mm(tsk,mm)	do { } while (0)
+-
+-/* Activate a new MM instance for the current task. */
+-static inline void activate_mm(struct mm_struct *active_mm, struct mm_struct *mm)
+-{
+-	unsigned long flags;
+-	int cpu;
+-
+-	spin_lock_irqsave(&mm->context.lock, flags);
+-	if (!CTX_VALID(mm->context))
+-		get_new_mmu_context(mm);
+-	cpu = smp_processor_id();
+-	if (!cpumask_test_cpu(cpu, mm_cpumask(mm)))
+-		cpumask_set_cpu(cpu, mm_cpumask(mm));
+-
+-	load_secondary_context(mm);
+-	__flush_tlb_mm(CTX_HWBITS(mm->context), SECONDARY_CONTEXT);
+-	tsb_context_switch(mm);
+-	spin_unlock_irqrestore(&mm->context.lock, flags);
+-}
+-
++#define activate_mm(active_mm, mm) switch_mm(active_mm, mm, NULL)
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(__SPARC64_MMU_CONTEXT_H) */
+-- 
+1.7.1
 
