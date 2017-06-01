@@ -1,33 +1,57 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 01 Jun 2017 12:48:51 +0000
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Jun 2017 16:45:44 +0000
 Subject: Re: sparc gcc 7.1 compile issue
-Message-Id: <20170601124851.GD3226@physik.fu-berlin.de>
+Message-Id: <20170601.124544.426768385909160370.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170531193431.GA26922@waldemar-brodkorb.de>
- <20170531.171008.528800003662477033.davem@davemloft.net>
- <20170601121224.GE26922@waldemar-brodkorb.de>
- <CADxRZqyug5w1+tWpWxAX7aKkom166j=xqHUa-L61EKWEx7XAHw@mail.gmail.com>
+References: <20170531.171008.528800003662477033.davem@davemloft.net>
+        <20170601121224.GE26922@waldemar-brodkorb.de>
+        <CADxRZqyug5w1+tWpWxAX7aKkom166j=xqHUa-L61EKWEx7XAHw@mail.gmail.com>
 In-Reply-To: <CADxRZqyug5w1+tWpWxAX7aKkom166j=xqHUa-L61EKWEx7XAHw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anatoly Pugachev <matorola@gmail.com>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: matorola@gmail.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Jun 01, 2017 at 03:46:04PM +0300, Anatoly Pugachev wrote:
-> on the same topic , latest git does not compile for me with gcc-7.0.1
-> gcc version 7.0.1 20170407 (experimental) [trunk revision 246759]
-> (Debian 7-20170407-1)
-
-Let's first try this again once the 7.1.0-6 gcc-7 package has built
-successfully in Debian experimental. It's been uploaded for a while
-now but we have the usual issues with the gcc testsuite crashing the
-kernel.
-
-Adrian
-
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+RnJvbTogQW5hdG9seSBQdWdhY2hldiA8bWF0b3JvbGFAZ21haWwuY29tPg0KRGF0ZTogVGh1LCAx
+IEp1biAyMDE3IDE1OjQ2OjA0ICswMzAwDQoNCj4gb24gdGhlIHNhbWUgdG9waWMgLCBsYXRlc3Qg
+Z2l0IGRvZXMgbm90IGNvbXBpbGUgZm9yIG1lIHdpdGggZ2NjLTcuMC4xDQo+IGdjYyB2ZXJzaW9u
+IDcuMC4xIDIwMTcwNDA3IChleHBlcmltZW50YWwpIFt0cnVuayByZXZpc2lvbiAyNDY3NTldDQo+
+IChEZWJpYW4gNy0yMDE3MDQwNy0xKQ0KPiANCj4gJCBtYWtlDQo+IC4uLg0KPiAgIENDICAgICAg
+YXJjaC9zcGFyYy9rZXJuZWwvZHMubw0KPiBhcmNoL3NwYXJjL2tlcm5lbC9kcy5jOiBJbiBmdW5j
+dGlvbiChcmVnaXN0ZXJfc2VydmljZXOiOg0KPiBhcmNoL3NwYXJjL2tlcm5lbC9kcy5jOjkxMjoz
+OiBlcnJvcjogoXN0cmNweaI6IHdyaXRpbmcgYXQgbGVhc3QgMSBieXRlDQo+IGludG8gYSByZWdp
+b24gb2Ygc2l6ZSAwIG92ZXJmbG93cyB0aGUgZGVzdGluYXRpb24NCj4gWy1XZXJyb3I9c3RyaW5n
+b3Atb3ZlcmZsb3cgXQ0KPiAgICBzdHJjcHkocGJ1Zi5yZXEuc3ZjX2lkLCBjcC0+c2VydmljZV9p
+ZCk7DQo+ICAgIF5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fn5+fg0KDQpUaGF0
+J3MgZWFzeSBlbm91Z2ggdG8gZml4LCBJJ3ZlIHB1c2hlZCB0aGUgcGF0Y2ggYmVsb3cgdG8gJ3Nw
+YXJjJyBHSVQuDQoNCj4gICBNT0RQT1NUIHZtbGludXgubw0KPiBpcGMvYnVpbHQtaW4ubzogSW4g
+ZnVuY3Rpb24gYG1xX2F0dHJfb2suaXNyYS4wJzoNCj4gbXF1ZXVlLmM6KC50ZXh0KzB4YzQ5MCk6
+IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYF9fbXVsdGkzJw0KPiBkcml2ZXJzL2J1aWx0LWluLm86
+IEluIGZ1bmN0aW9uIGBkbV92Y2FsbG9jJzoNCj4gKC50ZXh0KzB4YzllOTgpOiB1bmRlZmluZWQg
+cmVmZXJlbmNlIHRvIGBfX211bHRpMycNCj4gTWFrZWZpbGU6OTk3OiByZWNpcGUgZm9yIHRhcmdl
+dCAndm1saW51eCcgZmFpbGVkDQo+IG1ha2U6ICoqKiBbdm1saW51eF0gRXJyb3IgMQ0KDQpUaGlz
+LCBvbiB0aGUgb3RoZXIgaGFuZC4uLi4gd29uZGVyIHdoeSBpdCB3YW50cyB0byBkbyBhIDEyOC1i
+aXQgbXVsdGlwbHkNCndoZW4gdGhlIE1RIGF0dHJpYnV0ZSBzdHJ1Y3QgaXMganVzdCA2NC1iaXQg
+dmFsdWVzLi4uDQoNCj09PT09PT09PT09PT09PT09PT09DQpGcm9tIDBmZGU3YWQ3MWVlMzcxZWRl
+NzNiM2YzMjZlNThmOWU4ZDEwMmZlYjYgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQpGcm9tOiAi
+RGF2aWQgUy4gTWlsbGVyIiA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4NCkRhdGU6IFRodSwgMSBKdW4g
+MjAxNyAwOTo0Mjo0NiAtMDcwMA0KU3ViamVjdDogW1BBVENIXSBzcGFyYzY0OiBGaXggYnVpbGQg
+d2FybmluZ3Mgd2l0aCBnY2MgNy4NCk1JTUUtVmVyc2lvbjogMS4wDQpDb250ZW50LVR5cGU6IHRl
+eHQvcGxhaW47IGNoYXJzZXQ9VVRGLTgNCkNvbnRlbnQtVHJhbnNmZXItRW5jb2Rpbmc6IDhiaXQN
+Cg0KYXJjaC9zcGFyYy9rZXJuZWwvZHMuYzogSW4gZnVuY3Rpb24goXJlZ2lzdGVyX3NlcnZpY2Vz
+ojoNCmFyY2gvc3BhcmMva2VybmVsL2RzLmM6OTEyOjM6IGVycm9yOiChc3RyY3B5ojogd3JpdGlu
+ZyBhdCBsZWFzdCAxIGJ5dGUNCmludG8gYSByZWdpb24gb2Ygc2l6ZSAwIG92ZXJmbG93cyB0aGUg
+ZGVzdGluYXRpb24NCg0KUmVwb3J0ZWQtYnk6IEFuYXRvbHkgUHVnYWNoZXYgPG1hdG9yb2xhQGdt
+YWlsLmNvbT4NClNpZ25lZC1vZmYtYnk6IERhdmlkIFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0
+Lm5ldD4NCi0tLQ0KIGFyY2gvc3BhcmMva2VybmVsL2RzLmMgfCAyICstDQogMSBmaWxlIGNoYW5n
+ZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pDQoNCmRpZmYgLS1naXQgYS9hcmNoL3Nw
+YXJjL2tlcm5lbC9kcy5jIGIvYXJjaC9zcGFyYy9rZXJuZWwvZHMuYw0KaW5kZXggYjU0MmNjNy4u
+Zjg3MjY1YSAxMDA2NDQNCi0tLSBhL2FyY2gvc3BhcmMva2VybmVsL2RzLmMNCisrKyBiL2FyY2gv
+c3BhcmMva2VybmVsL2RzLmMNCkBAIC05MDksNyArOTA5LDcgQEAgc3RhdGljIGludCByZWdpc3Rl
+cl9zZXJ2aWNlcyhzdHJ1Y3QgZHNfaW5mbyAqZHApDQogCQlwYnVmLnJlcS5oYW5kbGUgPSBjcC0+
+aGFuZGxlOw0KIAkJcGJ1Zi5yZXEubWFqb3IgPSAxOw0KIAkJcGJ1Zi5yZXEubWlub3IgPSAwOw0K
+LQkJc3RyY3B5KHBidWYucmVxLnN2Y19pZCwgY3AtPnNlcnZpY2VfaWQpOw0KKwkJc3RyY3B5KHBi
+dWYuaWRfYnVmLCBjcC0+c2VydmljZV9pZCk7DQogDQogCQllcnIgPSBfX2RzX3NlbmQobHAsICZw
+YnVmLCBtc2dfbGVuKTsNCiAJCWlmIChlcnIgPiAwKQ0KLS0gDQoyLjEuMi41MzIuZzE5YjVkNTAN
+Cg0K
