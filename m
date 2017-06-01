@@ -1,68 +1,71 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Fri, 30 Jun 2017 18:13:40 +0000
-Subject: Re: [PATCH 3/8] signal/sparc: Document a conflict with SI_USER with SIGFPE
-Message-Id: <8737ahwdgr.fsf@xmission.com>
+From: Jane Chu <jane.chu@oracle.com>
+Date: Thu, 01 Jun 2017 21:39:13 +0000
+Subject: [PATCH] arch/sparc: support NR_CPUS = 4096
+Message-Id: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87efu22set.fsf@xmission.com>
-	<20170630123906.8865-3-ebiederm@xmission.com>
-	<20170630.124505.736865959393416284.davem@davemloft.net>
-In-Reply-To: <20170630.124505.736865959393416284.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> (David
-	Miller's message of "Fri, 30 Jun 2017 12:45:05 -0400 (EDT)")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, avagin-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, xemul-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org, oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org, luto-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gorcunov-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org, mtk.manpages-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, w@1wt.eu, avagin-GEFAQzZX7r8dnm+yROfE0A@public.gmane.org
+To: davem@davemloft.net, tglx@linutronix.de
+Cc: atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jane.chu@oracle.com
 
-David Miller <davem@davemloft.net> writes:
+Linux SPARC64 limits NR_CPUS to 4064 because init_cpu_send_mondo_info()
+only allocates a single page for NR_CPUS mondo entries. Thus we cannot
+use all 4096 CPUs on some SPARC platforms.
 
-> From: "Eric W. Biederman" <ebiederm@xmission.com>
-> Date: Fri, 30 Jun 2017 07:39:01 -0500
->
->> diff --git a/arch/sparc/include/uapi/asm/siginfo.h b/arch/sparc/include/uapi/asm/siginfo.h
->> index 2d9b79ccaa50..6bc5c677e92f 100644
->> --- a/arch/sparc/include/uapi/asm/siginfo.h
->> +++ b/arch/sparc/include/uapi/asm/siginfo.h
->> @@ -17,6 +17,11 @@
->>  #define SI_NOINFO	32767		/* no information in siginfo_t */
->>  
->>  /*
->> + * SIGFPE si_codes
->> + */
->> +#define FPE_FIXME	(__SI_FAULT|0)	/* Broken dup of SI_USER */
->> +
->> +/*
->>   * SIGEMT si_codes
->>   */
->>  #define EMT_TAGOVF	(__SI_FAULT|1)	/* tag overflow */
->
-> It's one thing to say FIXME in a comment in a kernel local header or
-> C file.
->
-> It's quite another to put this into the name of a macro which has
-> visibility in the global user compilation namespace.
->
-> I don't think you should really do that.
+To fix, allocate (2^order) pages where order is set according to the size
+of cpu_list for possible cpus. Since cpu_list_pa and cpu_mondo_block_pa
+are not used in asm code, there are no imm13 offsets from the base PA
+that will break because they can only reach one page.
 
-Good point.
+Orabug: 25505750
 
-Sigh.   It almost fits because we did do something off in the uapi
-exported to userspace and we don't have a header file definition for
-that case.
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
 
-Still.  At this point arch/sparc/include/asm/siginfo.h is
-a better fit for that definition.
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Atish Patra <atish.patra@oracle.com>
+---
+ arch/sparc/Kconfig         |    4 ++--
+ arch/sparc/kernel/irq_64.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-I will respin and fix that.
-
-I wish I knew what would make a better default floating point si_code on
-sparc.  Using 0 aka SI_USER is doesn't fit at all.  Sigh.
-
-Unfortunately I don't know the architecture well enough to even guess
-what is going on in do_fpe_common when when no bits in fsr are set.
-
-Any suggests for a better fix than just documenting that linux does
-something weird and ill advised here?
-
-Eric
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 58243b0..4399be7 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -192,9 +192,9 @@ config NR_CPUS
+ 	int "Maximum number of CPUs"
+ 	depends on SMP
+ 	range 2 32 if SPARC32
+-	range 2 1024 if SPARC64
++	range 2 4096 if SPARC64
+ 	default 32 if SPARC32
+-	default 64 if SPARC64
++	default 4096 if SPARC64
+ 
+ source kernel/Kconfig.hz
+ 
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 4d0248a..5b19108 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -1034,12 +1034,12 @@ static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
+ {
+ #ifdef CONFIG_SMP
+ 	unsigned long page;
++	unsigned int order;
+ 
+-	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
+-
+-	page = get_zeroed_page(GFP_KERNEL);
++	order = get_order(num_possible_cpus() * sizeof(u16) + 64);
++	page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+ 	if (!page) {
+-		prom_printf("SUN4V: Error, cannot allocate cpu mondo page.\n");
++		prom_printf("SUN4V: Error, cannot allocate cpu mondo pages.\n");
+ 		prom_halt();
+ 	}
+ 
+-- 
+1.7.1
 
