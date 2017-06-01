@@ -1,97 +1,50 @@
-From: <gregkh@linuxfoundation.org>
-Date: Fri, 09 Jun 2017 18:08:19 +0000
-Subject: patch "sparc: vio: use dev_groups and not dev_attrs for bus_type" added to driver-core-next
-Message-Id: <149703169921458@kroah.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Jun 2017 21:44:19 +0000
+Subject: Re: [sparc64] crc32c misbehave
+Message-Id: <20170601.174419.2151404855471358626.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <149699886520255@kroah.com>
-In-Reply-To: <149699886520255@kroah.com>
+References: <ccdf645b-e22f-ef71-53df-993cc45869c0@sandeen.net>
+        <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
+        <20170531.124916.1406665885250072302.davem@davemloft.net>
+In-Reply-To: <20170531.124916.1406665885250072302.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: sandeen@sandeen.net
+Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
 
+From: David Miller <davem@davemloft.net>
+Date: Wed, 31 May 2017 12:49:16 -0400 (EDT)
 
-This is a note to let you know that I've just added the patch titled
+> From: Eric Sandeen <sandeen@sandeen.net>
+> Date: Wed, 31 May 2017 11:31:10 -0500
+> 
+>> On 5/31/17 11:19 AM, Eric Sandeen wrote:
+>>> On 5/31/17 10:53 AM, David Miller wrote:
+>>>> From: Anatoly Pugachev <matorola@gmail.com>
+>>>> Date: Wed, 31 May 2017 14:56:52 +0300
+>>>>
+>>>>> While debugging occasional crc32c checksum errors with xfs disk reads on
+>>>>> sparc64 (T5 [sun4v] 3.6 GHz CPU ldom, debian unstable/sid), Eric have found
+>>>>> that crc32c sometimes returns wrong checksum for data. Eric made a simple
+>>>>> test kernel module (included), which produce the following results on my
+>>>>> sparc64 machines:
+>>> 
+>>> cc: linux-xfs, because this problem cropped up on xfs/sparc.
+>> 
+>> FWIW, the testcase (module which does
+>> 
+>> 	crc = crc32c(CRC_SEED, data, 512);
+>> 
+>> 1 million times in a loop on the same data, and printk's if
+>> the result ever changes) does not fail on x86_64 or ARM
+>> (well, not after a gcc bug was fixed on ARM ...)
+> 
+> Is the machine doing things that would cause crc32c() operations in
+> interrupts (SCTP protocol traffic) or on other cpus?
+> 
+> That's the danger in comparing other machines, the context and what's
+> running on them is different.
 
-    sparc: vio: use dev_groups and not dev_attrs for bus_type
-
-to my driver-core git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core.git
-in the driver-core-next branch.
-
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
-
-The patch will also be merged in the next major kernel release
-during the merge window.
-
-If you have any questions about this process, please let me know.
-
-
-From 33acc6db64f77a7bd773f4bc5cc8fcd1b6976ddc Mon Sep 17 00:00:00 2001
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue, 6 Jun 2017 14:27:08 +0200
-Subject: sparc: vio: use dev_groups and not dev_attrs for bus_type
-
-The dev_attrs field has long been "depreciated" and is finally being
-removed, so move the driver to use the "correct" dev_groups field
-instead for struct bus_type.
-
-Acked-by: "David S. Miller" <davem@davemloft.net>
-Cc: <sparclinux@vger.kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/sparc/kernel/vio.c | 18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
-
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index f6bb857254fc..78bf2cc60924 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -105,6 +105,7 @@ static ssize_t devspec_show(struct device *dev,
- 
- 	return sprintf(buf, "%s\n", str);
- }
-+static DEVICE_ATTR_RO(devspec);
- 
- static ssize_t type_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
-@@ -112,6 +113,7 @@ static ssize_t type_show(struct device *dev,
- 	struct vio_dev *vdev = to_vio_dev(dev);
- 	return sprintf(buf, "%s\n", vdev->type);
- }
-+static DEVICE_ATTR_RO(type);
- 
- static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
- 			     char *buf)
-@@ -120,17 +122,19 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
- 
- 	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
- }
-+static DEVICE_ATTR_RO(modalias);
- 
--static struct device_attribute vio_dev_attrs[] = {
--	__ATTR_RO(devspec),
--	__ATTR_RO(type),
--	__ATTR_RO(modalias),
--	__ATTR_NULL
--};
-+static struct attribute *vio_dev_attrs[] = {
-+	&dev_attr_devspec.attr,
-+	&dev_attr_type.attr,
-+	&dev_attr_modalias.attr,
-+	NULL,
-+ };
-+ATTRIBUTE_GROUPS(vio_dev);
- 
- static struct bus_type vio_bus_type = {
- 	.name		= "vio",
--	.dev_attrs	= vio_dev_attrs,
-+	.dev_groups	= vio_dev_groups,
- 	.uevent         = vio_hotplug,
- 	.match		= vio_bus_match,
- 	.probe		= vio_device_probe,
--- 
-2.13.1
-
-
+Ok, I can reproduce this bug on my systems.  I'll see if I can figure out
+what is going on.
