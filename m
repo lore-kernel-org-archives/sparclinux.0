@@ -1,29 +1,43 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 02 Jun 2017 18:39:06 +0000
+Date: Fri, 02 Jun 2017 19:55:29 +0000
 Subject: Re: crypto: Work around deallocated stack frame reference gcc bug on sparc.
-Message-Id: <20170602.143906.818489457650113258.davem@davemloft.net>
+Message-Id: <20170602.155529.599501370529389401.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170602.112854.571030442583332811.davem@davemloft.net>
         <20170602180808.GB5636@birch.djwong.org>
-In-Reply-To: <20170602180808.GB5636@birch.djwong.org>
+        <20170602.143906.818489457650113258.davem@davemloft.net>
+In-Reply-To: <20170602.143906.818489457650113258.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: darrick.wong@oracle.com
 Cc: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, linux-btrfs@vger.kernel.org, clm@fb.com, jbacik@fb.com, dsterba@suse.com, matorola@gmail.com, sandeen@sandeen.net, linux-xfs@vger.kernel.org, linux-ext4@vger.kernel.org
 
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Date: Fri, 2 Jun 2017 11:08:08 -0700
+From: David Miller <davem@davemloft.net>
+Date: Fri, 02 Jun 2017 14:39:06 -0400 (EDT)
 
-> ext4/jbd2's crc32c implementations will also need a fix like this for
-> {ext4,jbd2}_chksum.  Note that both of these modules call the crypto api
-> directly to avoid a static dependence on libcrc32c; this was done to
-> reduce kernel footprint for applications that don't need it.  (ext2,
-> ext3, and ext4 before the metadata_csum feature existed).
+> From: "Darrick J. Wong" <darrick.wong@oracle.com>
+> Date: Fri, 2 Jun 2017 11:08:08 -0700
+> 
+>> ext4/jbd2's crc32c implementations will also need a fix like this for
+>> {ext4,jbd2}_chksum.  Note that both of these modules call the crypto api
+>> directly to avoid a static dependence on libcrc32c; this was done to
+>> reduce kernel footprint for applications that don't need it.  (ext2,
+>> ext3, and ext4 before the metadata_csum feature existed).
+> 
+> Good catch.  I even looked at that code the other day so should
+> have spotted it as well.
+> 
+> I'll integrate fixes for those into my patch when I get a chance,
+> thanks!
 
-Good catch.  I even looked at that code the other day so should
-have spotted it as well.
+Actually, ext4 doesn't trigger the problem because the on-stack object
+used in ext4 is a fixed size at compile time.  Which is technically an
+ill-advised assumption to make.  Even the generic libcrc32c.c doesn't
+assume that the context area is 4 bytes for crc32c.
 
-I'll integrate fixes for those into my patch when I get a chance,
-thanks!
+Anyways, back to the main point, the gcc bug only triggers when
+alloca() like constructs are used.
 
+That's why I scanned for SHASH_DESC_ON_STACK() to see exactly where
+the workaround is necessary.
