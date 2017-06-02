@@ -1,226 +1,276 @@
-From: Palmer Dabbelt <palmer@dabbelt.com>
-Date: Wed, 28 Jun 2017 00:14:20 +0000
-Subject: Re: [PATCH] pci:  Add and use PCI_GENERIC_SETUP Kconfig entry
-Message-Id: <mhng-6085a11b-60d7-4b83-a40c-ee395a951e53@palmer-si-x1c4>
+From: Aleksa Sarai <asarai@suse.de>
+Date: Fri, 02 Jun 2017 08:48:58 +0000
+Subject: [PATCH v2 1/1] tty: add TIOCGPTPEER ioctl
+Message-Id: <20170602084858.4299-2-asarai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-In-Reply-To: <20170627233740.GN17844@bhelgaas-glaptop.roam.corp.google.com>
-References: <20170623214538.25967-1-palmer@dabbelt.com>
-In-Reply-To: <20170623214538.25967-1-palmer@dabbelt.com>
+References: <20170602084858.4299-1-asarai@suse.de>
+In-Reply-To: <20170602084858.4299-1-asarai@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Aleksa Sarai <asarai@suse.de>, Christian Brauner <christian.brauner@ubuntu.com>, Valentin Rothberg <vrothberg@suse.com>
 
-On Tue, 27 Jun 2017 16:37:40 PDT (-0700), helgaas@kernel.org wrote:
-> [+cc Lorenzo]
->
-> Hi Palmer,
->
-> On Fri, Jun 23, 2017 at 02:45:38PM -0700, Palmer Dabbelt wrote:
->> We wanted to add RISC-V to the list of architectures that used the
->> generic PCI setup-irq.o inside the Makefile and it was suggested that
->> instead we define a Kconfig entry and use that.
->>
->> I've done very minimal testing on this: I just checked to see that
->> an aarch64 defconfig still build setup-irq.o with the patch applied.
->> The intention is that this patch doesn't change the behavior of any
->> build.
->>
->> Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
->
-> Lorenzo Pieralisi's "ARM/ARM64: remove pci_fixup_irqs() usage" series
-> overlaps with this quite a bit, and includes this patch:
->
-> https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git/commit/?h=pci/enumeration&id[64036feff4
->
-> which makes it so we build setup-irq.o on *all* arches.  Can you check
-> out the pci/enumeration branch and see whether it accomplishes what
-> you need?
->
-> https://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git/log/?h=pci/enumeration
+When opening the slave end of a PTY, it is not possible for userspace to
+safely ensure that /dev/pts/$num is actually a slave (in cases where the
+mount namespace in which devpts was mounted is controlled by an
+untrusted process). In addition, there are several unresolvable
+race conditions if userspace were to attempt to detect attacks through
+stat(2) and other similar methods [in addition it is not clear how
+userspace could detect attacks involving FUSE].
 
-Great, that's even better for me, as I don't have to go touch a bunch of
-different arch code :).  We'll use that instead when it lands.
+Resolve this by providing an interface for userpace to safely open the
+"peer" end of a PTY file descriptor by using the dentry cached by
+devpts. Since it is not possible to have an open master PTY without
+having its slave exposed in /dev/pts this interface is safe. This
+interface currently does not provide a way to get the master pty (since
+it is not clear whether such an interface is safe or even useful).
 
-Thanks!
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Valentin Rothberg <vrothberg@suse.com>
+Signed-off-by: Aleksa Sarai <asarai@suse.de>
+---
+ arch/alpha/include/uapi/asm/ioctls.h   |  1 +
+ arch/mips/include/uapi/asm/ioctls.h    |  1 +
+ arch/parisc/include/uapi/asm/ioctls.h  |  1 +
+ arch/powerpc/include/uapi/asm/ioctls.h |  1 +
+ arch/sh/include/uapi/asm/ioctls.h      |  1 +
+ arch/sparc/include/uapi/asm/ioctls.h   |  3 +-
+ arch/xtensa/include/uapi/asm/ioctls.h  |  1 +
+ drivers/tty/pty.c                      | 71 ++++++++++++++++++++++++++++++++--
+ include/uapi/asm-generic/ioctls.h      |  1 +
+ 9 files changed, 76 insertions(+), 5 deletions(-)
 
->
->> ---
->>  arch/alpha/Kconfig     |  1 +
->>  arch/arc/Kconfig       |  1 +
->>  arch/arm/Kconfig       |  1 +
->>  arch/arm64/Kconfig     |  1 +
->>  arch/m68k/Kconfig      |  1 +
->>  arch/mips/Kconfig      |  1 +
->>  arch/sh/Kconfig        |  1 +
->>  arch/sparc/Kconfig     |  1 +
->>  arch/tile/Kconfig      |  1 +
->>  arch/unicore32/Kconfig |  1 +
->>  drivers/pci/Kconfig    |  3 +++
->>  drivers/pci/Makefile   | 11 +----------
->>  12 files changed, 14 insertions(+), 10 deletions(-)
->>
->> diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
->> index 0e49d39ea74a..30f4e711f681 100644
->> --- a/arch/alpha/Kconfig
->> +++ b/arch/alpha/Kconfig
->> @@ -26,6 +26,7 @@ config ALPHA
->>  	select ODD_RT_SIGACTION
->>  	select OLD_SIGSUSPEND
->>  	select CPU_NO_EFFICIENT_FFS if !ALPHA_EV67
->> +	select PCI_GENERIC_SETUP
->>  	help
->>  	  The Alpha is a 64-bit general-purpose processor designed and
->>  	  marketed by the Digital Equipment Corporation of blessed memory,
->> diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
->> index a5459698f0ee..dd1f64858118 100644
->> --- a/arch/arc/Kconfig
->> +++ b/arch/arc/Kconfig
->> @@ -44,6 +44,7 @@ config ARC
->>  	select HAVE_GENERIC_DMA_COHERENT
->>  	select HAVE_KERNEL_GZIP
->>  	select HAVE_KERNEL_LZMA
->> +	select PCI_GENERIC_SETUP
->>
->>  config MIGHT_HAVE_PCI
->>  	bool
->> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
->> index 4c1a35f15838..86872246951c 100644
->> --- a/arch/arm/Kconfig
->> +++ b/arch/arm/Kconfig
->> @@ -96,6 +96,7 @@ config ARM
->>  	select PERF_USE_VMALLOC
->>  	select RTC_LIB
->>  	select SYS_SUPPORTS_APM_EMULATION
->> +	select PCI_GENERIC_SETUP
->>  	# Above selects are sorted alphabetically; please add new ones
->>  	# according to that.  Thanks.
->>  	help
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index b2024db225a9..6c684d8c8816 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -115,6 +115,7 @@ config ARM64
->>  	select SPARSE_IRQ
->>  	select SYSCTL_EXCEPTION_TRACE
->>  	select THREAD_INFO_IN_TASK
->> +	select PCI_GENERIC_SETUP
->>  	help
->>  	  ARM 64-bit (AArch64) Linux support.
->>
->> diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
->> index d140206d5d29..c16214344f1c 100644
->> --- a/arch/m68k/Kconfig
->> +++ b/arch/m68k/Kconfig
->> @@ -22,6 +22,7 @@ config M68K
->>  	select MODULES_USE_ELF_RELA
->>  	select OLD_SIGSUSPEND3
->>  	select OLD_SIGACTION
->> +	select PCI_GENERIC_SETUP
->>
->>  config RWSEM_GENERIC_SPINLOCK
->>  	bool
->> diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
->> index 2828ecde133d..474a7c710686 100644
->> --- a/arch/mips/Kconfig
->> +++ b/arch/mips/Kconfig
->> @@ -70,6 +70,7 @@ config MIPS
->>  	select HAVE_EXIT_THREAD
->>  	select HAVE_REGS_AND_STACK_ACCESS_API
->>  	select HAVE_COPY_THREAD_TLS
->> +	select PCI_GENERIC_SETUP
->>
->>  menu "Machine selection"
->>
->> diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
->> index ee086958b2b2..90a98ac526fb 100644
->> --- a/arch/sh/Kconfig
->> +++ b/arch/sh/Kconfig
->> @@ -48,6 +48,7 @@ config SUPERH
->>  	select HAVE_ARCH_AUDITSYSCALL
->>  	select HAVE_FUTEX_CMPXCHG if FUTEX
->>  	select HAVE_NMI
->> +	select PCI_GENERIC_SETUP
->>  	help
->>  	  The SuperH is a RISC processor targeted for use in embedded systems
->>  	  and consumer electronics; it was also used in the Sega Dreamcast
->> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
->> index 5639c9fe5b55..24cea64104bd 100644
->> --- a/arch/sparc/Kconfig
->> +++ b/arch/sparc/Kconfig
->> @@ -424,6 +424,7 @@ config SPARC_LEON
->>  	depends on SPARC32
->>  	select USB_EHCI_BIG_ENDIAN_MMIO
->>  	select USB_EHCI_BIG_ENDIAN_DESC
->> +	select PCI_GENERIC_SETUP
->>  	---help---
->>  	  If you say Y here if you are running on a SPARC-LEON processor.
->>  	  The LEON processor is a synthesizable VHDL model of the
->> diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
->> index 4583c0320059..6679af85a882 100644
->> --- a/arch/tile/Kconfig
->> +++ b/arch/tile/Kconfig
->> @@ -33,6 +33,7 @@ config TILE
->>  	select USER_STACKTRACE_SUPPORT
->>  	select USE_PMC if PERF_EVENTS
->>  	select VIRT_TO_BUS
->> +	select PCI_GENERIC_SETUP
->>
->>  config MMU
->>  	def_bool y
->> diff --git a/arch/unicore32/Kconfig b/arch/unicore32/Kconfig
->> index 0769066929c6..162a7d3def0c 100644
->> --- a/arch/unicore32/Kconfig
->> +++ b/arch/unicore32/Kconfig
->> @@ -18,6 +18,7 @@ config UNICORE32
->>  	select ARCH_WANT_FRAME_POINTERS
->>  	select GENERIC_IOMAP
->>  	select MODULES_USE_ELF_REL
->> +	select PCI_GENERIC_SETUP
->>  	help
->>  	  UniCore-32 is 32-bit Instruction Set Architecture,
->>  	  including a series of low-power-consumption RISC chip
->> diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
->> index e0cacb7b8563..658c9f95ab3f 100644
->> --- a/drivers/pci/Kconfig
->> +++ b/drivers/pci/Kconfig
->> @@ -131,6 +131,9 @@ config PCI_HYPERV
->>            The PCI device frontend driver allows the kernel to import arbitrary
->>            PCI devices from a PCI backend to support PCI driver domains.
->>
->> +config PCI_GENERIC_SETUP
->> +	def_bool n
->> +
->>  source "drivers/pci/hotplug/Kconfig"
->>  source "drivers/pci/dwc/Kconfig"
->>  source "drivers/pci/host/Kconfig"
->> diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
->> index 462c1f5f5546..26f4710c88ec 100644
->> --- a/drivers/pci/Makefile
->> +++ b/drivers/pci/Makefile
->> @@ -31,16 +31,7 @@ obj-$(CONFIG_PCI_IOV) += iov.o
->>  #
->>  # Some architectures use the generic PCI setup functions
->>  #
->> -obj-$(CONFIG_ALPHA) += setup-irq.o
->> -obj-$(CONFIG_ARC) += setup-irq.o
->> -obj-$(CONFIG_ARM) += setup-irq.o
->> -obj-$(CONFIG_ARM64) += setup-irq.o
->> -obj-$(CONFIG_UNICORE32) += setup-irq.o
->> -obj-$(CONFIG_SUPERH) += setup-irq.o
->> -obj-$(CONFIG_MIPS) += setup-irq.o
->> -obj-$(CONFIG_TILE) += setup-irq.o
->> -obj-$(CONFIG_SPARC_LEON) += setup-irq.o
->> -obj-$(CONFIG_M68K) += setup-irq.o
->> +obj-$(CONFIG_PCI_GENERIC_SETUP) += setup-irq.o
->>
->>  #
->>  # ACPI Related PCI FW Functions
->> --
->> 2.13.0
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+diff --git a/arch/alpha/include/uapi/asm/ioctls.h b/arch/alpha/include/uapi/asm/ioctls.h
+index f30c94ae1bdb..ff67b8373bf7 100644
+--- a/arch/alpha/include/uapi/asm/ioctls.h
++++ b/arch/alpha/include/uapi/asm/ioctls.h
+@@ -100,6 +100,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define TIOCSERCONFIG	0x5453
+ #define TIOCSERGWILD	0x5454
+diff --git a/arch/mips/include/uapi/asm/ioctls.h b/arch/mips/include/uapi/asm/ioctls.h
+index 740219c2c894..68e19b689a00 100644
+--- a/arch/mips/include/uapi/asm/ioctls.h
++++ b/arch/mips/include/uapi/asm/ioctls.h
+@@ -91,6 +91,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ /* I hope the range from 0x5480 on is free ... */
+ #define TIOCSCTTY	0x5480		/* become controlling tty */
+diff --git a/arch/parisc/include/uapi/asm/ioctls.h b/arch/parisc/include/uapi/asm/ioctls.h
+index b6572f051b67..674c68a5bbd0 100644
+--- a/arch/parisc/include/uapi/asm/ioctls.h
++++ b/arch/parisc/include/uapi/asm/ioctls.h
+@@ -60,6 +60,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define FIONCLEX	0x5450  /* these numbers need to be adjusted. */
+ #define FIOCLEX		0x5451
+diff --git a/arch/powerpc/include/uapi/asm/ioctls.h b/arch/powerpc/include/uapi/asm/ioctls.h
+index 49a25796a61a..bfd609a3e928 100644
+--- a/arch/powerpc/include/uapi/asm/ioctls.h
++++ b/arch/powerpc/include/uapi/asm/ioctls.h
+@@ -100,6 +100,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define TIOCSERCONFIG	0x5453
+ #define TIOCSERGWILD	0x5454
+diff --git a/arch/sh/include/uapi/asm/ioctls.h b/arch/sh/include/uapi/asm/ioctls.h
+index c9903e56ccf4..eec7901e9e65 100644
+--- a/arch/sh/include/uapi/asm/ioctls.h
++++ b/arch/sh/include/uapi/asm/ioctls.h
+@@ -93,6 +93,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define TIOCSERCONFIG	_IO('T', 83) /* 0x5453 */
+ #define TIOCSERGWILD	_IOR('T', 84,  int) /* 0x5454 */
+diff --git a/arch/sparc/include/uapi/asm/ioctls.h b/arch/sparc/include/uapi/asm/ioctls.h
+index 06b3f6c3bb9a..6d27398632ea 100644
+--- a/arch/sparc/include/uapi/asm/ioctls.h
++++ b/arch/sparc/include/uapi/asm/ioctls.h
+@@ -27,7 +27,7 @@
+ #define TIOCGRS485	_IOR('T', 0x41, struct serial_rs485)
+ #define TIOCSRS485	_IOWR('T', 0x42, struct serial_rs485)
+ 
+-/* Note that all the ioctls that are not available in Linux have a 
++/* Note that all the ioctls that are not available in Linux have a
+  * double underscore on the front to: a) avoid some programs to
+  * think we support some ioctls under Linux (autoconfiguration stuff)
+  */
+@@ -88,6 +88,7 @@
+ #define TIOCGPTN	_IOR('t', 134, unsigned int) /* Get Pty Number */
+ #define TIOCSPTLCK	_IOW('t', 135, int) /* Lock/unlock PTY */
+ #define TIOCSIG		_IOW('t', 136, int) /* Generate signal on Pty slave */
++#define TIOCGPTPEER	_IOR('t', 137, int) /* Safely open the slave */
+ 
+ /* Little f */
+ #define FIOCLEX		_IO('f', 1)
+diff --git a/arch/xtensa/include/uapi/asm/ioctls.h b/arch/xtensa/include/uapi/asm/ioctls.h
+index 518954e74e6d..98b004e24e85 100644
+--- a/arch/xtensa/include/uapi/asm/ioctls.h
++++ b/arch/xtensa/include/uapi/asm/ioctls.h
+@@ -105,6 +105,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define TIOCSERCONFIG	_IO('T', 83)
+ #define TIOCSERGWILD	_IOR('T', 84,  int)
+diff --git a/drivers/tty/pty.c b/drivers/tty/pty.c
+index 65799575c666..19c134ca47bb 100644
+--- a/drivers/tty/pty.c
++++ b/drivers/tty/pty.c
+@@ -24,6 +24,9 @@
+ #include <linux/slab.h>
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
++#include <linux/mount.h>
++#include <linux/file.h>
++#include <linux/ioctl.h>
+ 
+ #undef TTY_DEBUG_HANGUP
+ #ifdef TTY_DEBUG_HANGUP
+@@ -66,8 +69,13 @@ static void pty_close(struct tty_struct *tty, struct file *filp)
+ #ifdef CONFIG_UNIX98_PTYS
+ 		if (tty->driver = ptm_driver) {
+ 			mutex_lock(&devpts_mutex);
+-			if (tty->link->driver_data)
+-				devpts_pty_kill(tty->link->driver_data);
++			if (tty->link->driver_data) {
++				struct path *path = tty->link->driver_data;
++
++				devpts_pty_kill(path->dentry);
++				path_put(path);
++				kfree(path);
++			}
+ 			mutex_unlock(&devpts_mutex);
+ 		}
+ #endif
+@@ -440,6 +448,48 @@ static int pty_common_install(struct tty_driver *driver, struct tty_struct *tty,
+ 	return retval;
+ }
+ 
++/**
++ *	pty_open_peer - open the peer of a pty
++ *	@tty: the peer of the pty being opened
++ *
++ *	Open the cached dentry in tty->link, providing a safe way for userspace
++ *	to get the slave end of a pty (where they have the master fd and cannot
++ *	access or trust the mount namespace /dev/pts was mounted inside).
++ */
++static struct file *pty_open_peer(struct tty_struct *tty, int flags)
++{
++	if (tty->driver->subtype != PTY_TYPE_MASTER)
++		return ERR_PTR(-EIO);
++	return dentry_open(tty->link->driver_data, flags, current_cred());
++}
++
++static int pty_get_peer(struct tty_struct *tty, int flags)
++{
++	int fd = -1;
++	struct file *filp = NULL;
++	int retval = -EINVAL;
++
++	fd = get_unused_fd_flags(0);
++	if (fd < 0) {
++		retval = fd;
++		goto err;
++	}
++
++	filp = pty_open_peer(tty, flags);
++	if (IS_ERR(filp)) {
++		retval = PTR_ERR(filp);
++		goto err_put;
++	}
++
++	fd_install(fd, filp);
++	return fd;
++
++err_put:
++	put_unused_fd(fd);
++err:
++	return retval;
++}
++
+ static void pty_cleanup(struct tty_struct *tty)
+ {
+ 	tty_port_put(tty->port);
+@@ -602,6 +652,8 @@ static int pty_unix98_ioctl(struct tty_struct *tty,
+ 		return pty_get_pktmode(tty, (int __user *)arg);
+ 	case TIOCGPTN: /* Get PT Number */
+ 		return put_user(tty->index, (unsigned int __user *)arg);
++	case TIOCGPTPEER: /* Open the other end */
++		return pty_get_peer(tty, (int) arg);
+ 	case TIOCSIG:    /* Send signal to other side of pty */
+ 		return pty_signal(tty, (int) arg);
+ 	}
+@@ -718,6 +770,7 @@ static int ptmx_open(struct inode *inode, struct file *filp)
+ {
+ 	struct pts_fs_info *fsi;
+ 	struct tty_struct *tty;
++	struct path *pts_path;
+ 	struct dentry *dentry;
+ 	int retval;
+ 	int index;
+@@ -771,16 +824,26 @@ static int ptmx_open(struct inode *inode, struct file *filp)
+ 		retval = PTR_ERR(dentry);
+ 		goto err_release;
+ 	}
+-	tty->link->driver_data = dentry;
++	/* We need to cache a fake path for TIOCGPTPEER. */
++	pts_path = kmalloc(sizeof(struct path), GFP_KERNEL);
++	if (!pts_path)
++		goto err_release;
++	pts_path->mnt = filp->f_path.mnt;
++	pts_path->dentry = dentry;
++	path_get(pts_path);
++	tty->link->driver_data = pts_path;
+ 
+ 	retval = ptm_driver->ops->open(tty, filp);
+ 	if (retval)
+-		goto err_release;
++		goto err_path_put;
+ 
+ 	tty_debug_hangup(tty, "opening (count=%d)\n", tty->count);
+ 
+ 	tty_unlock(tty);
+ 	return 0;
++err_path_put:
++	path_put(pts_path);
++	kfree(pts_path);
+ err_release:
+ 	tty_unlock(tty);
+ 	// This will also put-ref the fsi
+diff --git a/include/uapi/asm-generic/ioctls.h b/include/uapi/asm-generic/ioctls.h
+index 143dacbb7d9a..06d5f7ddf84e 100644
+--- a/include/uapi/asm-generic/ioctls.h
++++ b/include/uapi/asm-generic/ioctls.h
+@@ -77,6 +77,7 @@
+ #define TIOCGPKT	_IOR('T', 0x38, int) /* Get packet mode state */
+ #define TIOCGPTLCK	_IOR('T', 0x39, int) /* Get Pty lock state */
+ #define TIOCGEXCL	_IOR('T', 0x40, int) /* Get exclusive mode state */
++#define TIOCGPTPEER	_IOR('T', 0x41, int) /* Safely open the slave */
+ 
+ #define FIONCLEX	0x5450
+ #define FIOCLEX		0x5451
+-- 
+2.13.0
+
