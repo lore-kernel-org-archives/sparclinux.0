@@ -1,70 +1,32 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Mon, 12 Jun 2017 22:09:59 +0000
-Subject: [PATCH v3 2/3] arch/microblaze: Add choice for endianness and update Makefile
-Message-Id: <1497305400-147425-3-git-send-email-babu.moger@oracle.com>
+From: Aleksa Sarai <asarai@suse.de>
+Date: Fri, 02 Jun 2017 08:48:57 +0000
+Subject: [PATCH v2 0/1] tty: add TIOCGPTPEER ioctl
+Message-Id: <20170602084858.4299-1-asarai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Aleksa Sarai <asarai@suse.de>
 
-microblaze architectures can be configured for either little or
-big endian formats. Add a choice option for the user to select the
-correct endian format(default to big endian).
+Changes in v2:
 
-Also update the Makefile so toolchain can compile for the format
-it is configured for.
+  * Reordered addition to ioctls.h to follow correct hex ordering.
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/microblaze/Kconfig  |   16 ++++++++++++++++
- arch/microblaze/Makefile |    2 ++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+Aleksa Sarai (1):
+  tty: add TIOCGPTPEER ioctl
 
-diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
-index 85885a5..74aa5de 100644
---- a/arch/microblaze/Kconfig
-+++ b/arch/microblaze/Kconfig
-@@ -35,6 +35,22 @@ config MICROBLAZE
- 	select VIRT_TO_BUS
- 	select CPU_NO_EFFICIENT_FFS
- 
-+# Endianness selection
-+choice
-+	prompt "Endianness selection"
-+	default CPU_BIG_ENDIAN
-+	help
-+	  microblaze architectures can be configured for either little or
-+	  big endian formats. Be sure to select the appropriate mode.
-+
-+config CPU_BIG_ENDIAN
-+	bool "Big endian"
-+
-+config CPU_LITTLE_ENDIAN
-+	bool "Little endian"
-+
-+endchoice
-+
- config SWAP
- 	def_bool n
- 
-diff --git a/arch/microblaze/Makefile b/arch/microblaze/Makefile
-index 740f2b8..1f6c486 100644
---- a/arch/microblaze/Makefile
-+++ b/arch/microblaze/Makefile
-@@ -35,6 +35,8 @@ endif
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_DIV) += -mno-xl-soft-div
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_BARREL) += -mxl-barrel-shift
- CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR) += -mxl-pattern-compare
-+CPUFLAGS-$(CONFIG_BIG_ENDIAN) += -mbig-endian
-+CPUFLAGS-$(CONFIG_LITTLE_ENDIAN) += -mlittle-endian
- 
- CPUFLAGS-1 += $(call cc-option,-mcpu=v$(CPU_VER))
- 
+ arch/alpha/include/uapi/asm/ioctls.h   |  1 +
+ arch/mips/include/uapi/asm/ioctls.h    |  1 +
+ arch/parisc/include/uapi/asm/ioctls.h  |  1 +
+ arch/powerpc/include/uapi/asm/ioctls.h |  1 +
+ arch/sh/include/uapi/asm/ioctls.h      |  1 +
+ arch/sparc/include/uapi/asm/ioctls.h   |  3 +-
+ arch/xtensa/include/uapi/asm/ioctls.h  |  1 +
+ drivers/tty/pty.c                      | 71 ++++++++++++++++++++++++++++++++--
+ include/uapi/asm-generic/ioctls.h      |  1 +
+ 9 files changed, 76 insertions(+), 5 deletions(-)
+
 -- 
-1.7.1
+2.13.0
 
