@@ -1,37 +1,65 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 09 Jun 2017 16:30:51 +0000
-Subject: [PATCH v1 02/12] sparc64: specify the device class in VIO version info. packet
-Message-Id: <814a2936950840f0bf558b9256f3c16511b750d7.1497024216.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 02 Jun 2017 18:40:49 +0000
+Subject: [v1 1/6] sparc64: remove trailing white spaces
+Message-Id: <1496428854-936411-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Specify the class of VIO device in the version info. packet. The device's
-class identifies the type of VIO device, whether it's DISK, CONSOLE,
-NETWORK, etc... This packet is used in the handshake between the
-client and server for this device.
+A few changes that were reported by checkpatch, removed all trailing white
+spaces in these two files.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/kernel/viohs.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/setup.h |    2 +-
+ arch/sparc/kernel/setup_64.c   |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
-index ea28cb7..68e952a 100644
---- a/arch/sparc/kernel/viohs.c
-+++ b/arch/sparc/kernel/viohs.c
-@@ -286,6 +286,7 @@ static int process_ver_info(struct vio_driver_state *vio,
- 			ver.minor = vap->minor;
- 		pkt->minor = ver.minor;
- 		pkt->tag.stype = VIO_SUBTYPE_ACK;
-+		pkt->dev_class = vio->dev_class;
- 		viodbg(HS, "SEND VERSION ACK maj[%u] min[%u]\n",
- 		       pkt->major, pkt->minor);
- 		err = send_ctrl(vio, &pkt->tag, sizeof(*pkt));
+diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
+index 3fae200..8b32538 100644
+--- a/arch/sparc/include/asm/setup.h
++++ b/arch/sparc/include/asm/setup.h
+@@ -1,5 +1,5 @@
+ /*
+- *	Just a place holder. 
++ *	Just a place holder.
+  */
+ #ifndef _SPARC_SETUP_H
+ #define _SPARC_SETUP_H
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 422b178..4a85f92 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -95,7 +95,7 @@ struct screen_info screen_info = {
+ 	.index =	-1,
+ };
+ 
+-/* 
++/*
+  * Process kernel command line switches that are specific to the
+  * SPARC or that require special low-level processing.
+  */
+@@ -639,7 +639,7 @@ void __init setup_arch(char **cmdline_p)
+ #ifdef CONFIG_BLK_DEV_RAM
+ 	rd_image_start = ram_flags & RAMDISK_IMAGE_START_MASK;
+ 	rd_prompt = ((ram_flags & RAMDISK_PROMPT_FLAG) != 0);
+-	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);	
++	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);
+ #endif
+ 
+ 	task_thread_info(&init_task)->kregs = &fake_swapper_regs;
+@@ -648,7 +648,7 @@ void __init setup_arch(char **cmdline_p)
+ 	if (!ic_set_manually) {
+ 		phandle chosen = prom_finddevice("/chosen");
+ 		u32 cl, sv, gw;
+-		
++
+ 		cl = prom_getintdefault (chosen, "client-ip", 0);
+ 		sv = prom_getintdefault (chosen, "server-ip", 0);
+ 		gw = prom_getintdefault (chosen, "gateway-ip", 0);
 -- 
 1.7.1
 
