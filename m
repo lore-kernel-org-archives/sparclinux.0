@@ -1,84 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 02 Jun 2017 03:33:29 +0000
+From: Eric Sandeen <sandeen@sandeen.net>
+Date: Fri, 02 Jun 2017 03:34:37 +0000
 Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <20170601.233329.698047529665811283.davem@davemloft.net>
+Message-Id: <a4400f52-5b16-4cd5-1067-9984e8d21dc6@sandeen.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170601.174419.2151404855471358626.davem@davemloft.net>
-        <20170601.215711.1719799806113363582.davem@davemloft.net>
-        <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
-In-Reply-To: <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
+ <20170601.215711.1719799806113363582.davem@davemloft.net>
+ <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
+ <20170601.233329.698047529665811283.davem@davemloft.net>
+In-Reply-To: <20170601.233329.698047529665811283.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sandeen@sandeen.net
+To: David Miller <davem@davemloft.net>
 Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
 
-From: Eric Sandeen <sandeen@sandeen.net>
-Date: Thu, 1 Jun 2017 21:10:50 -0500
 
-> On ARM, there was a gcc bug causing similar results - I /think/
-> it was https://gcc.gnu.org/bugzilla/show_bug.cgi?idc293
+
+On 6/1/17 10:33 PM, David Miller wrote:
+> From: Eric Sandeen <sandeen@sandeen.net>
+> Date: Thu, 1 Jun 2017 21:10:50 -0500
 > 
-> "programs could fail sporadically with this if an interrupt happens at
-> the wrong instant in time and data was written onto the current stack."
+>> On ARM, there was a gcc bug causing similar results - I /think/
+>> it was https://gcc.gnu.org/bugzilla/show_bug.cgi?idc293
+>>
+>> "programs could fail sporadically with this if an interrupt happens at
+>> the wrong instant in time and data was written onto the current stack."
+>>
+>> https://gcc.gnu.org/ml/gcc-patches/2014-09/msg02292.html
+>>
+>> Maybe totally unrelated; if not, hope it helps.  :)
 > 
-> https://gcc.gnu.org/ml/gcc-patches/2014-09/msg02292.html
-> 
-> Maybe totally unrelated; if not, hope it helps.  :)
+> Wow, that looks exactly like what the bug is:
 
-Wow, that looks exactly like what the bug is:
+Sweet.
 
-crc32c:
-        .register       %g2, #scratch
-        save    %sp, -176, %sp  !
-        sethi   %hi(tfm), %g1   !, tmp121
-        mov     %i2, %o2        ! length,
-        ldx     [%g1+%lo(tfm)], %g2     ! tfm, tfm.0_4
-        mov     %i1, %o1        ! address,
-        lduw    [%g2], %g1      ! tfm.0_4->descsize, tfm.0_4->descsize
-        add     %g1, 38, %g1    ! tfm.0_4->descsize,, tmp126
-        srlx    %g1, 4, %g1     ! tmp126,, tmp127
-        sllx    %g1, 4, %g1     ! tmp127,, tmp128
-        sub     %sp, %g1, %sp   !, tmp128,
-        add     %sp, 2230, %i5  !,, tmp130
+\o/
 
-Ok, %i5 holds the stack address of the shash context:
-
- ...
-        return  %i7+8
-         lduw   [%o5+16], %o0   ! MEM[(u32 *)__shash_desc.1_10 + 16B],
-
-'return' deallocates the stack frame plus the register window, and at
-the same time does a delayed control transfer to "%i7 + 8".  So in the
-branch delay slot instruction %i5 becomes %o5.
-
-And here we are accessing deallocated stack memory in the delay slot.
-
-I'm using gcc-6.3.0 here.
-
-And indeed the following patch makes the problem go away:
-
-diff --git a/lib/libcrc32c.c b/lib/libcrc32c.c
-index 74a54b7..bf831e2 100644
---- a/lib/libcrc32c.c
-+++ b/lib/libcrc32c.c
-@@ -43,7 +43,7 @@ static struct crypto_shash *tfm;
- u32 crc32c(u32 crc, const void *address, unsigned int length)
- {
- 	SHASH_DESC_ON_STACK(shash, tfm);
--	u32 *ctx = (u32 *)shash_desc_ctx(shash);
-+	u32 ret, *ctx = (u32 *)shash_desc_ctx(shash);
- 	int err;
- 
- 	shash->tfm = tfm;
-@@ -53,7 +53,9 @@ u32 crc32c(u32 crc, const void *address, unsigned int length)
- 	err = crypto_shash_update(shash, address, length);
- 	BUG_ON(err);
- 
--	return *ctx;
-+	ret = *ctx;
-+	barrier();
-+	return ret;
- }
- 
- EXPORT_SYMBOL(crc32c);
+-Eric
