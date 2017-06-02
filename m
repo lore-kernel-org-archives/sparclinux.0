@@ -1,64 +1,84 @@
-From: Eric Sandeen <sandeen@sandeen.net>
-Date: Fri, 02 Jun 2017 02:10:50 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 02 Jun 2017 03:33:29 +0000
 Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
+Message-Id: <20170601.233329.698047529665811283.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
- <20170531.124916.1406665885250072302.davem@davemloft.net>
- <20170601.174419.2151404855471358626.davem@davemloft.net>
- <20170601.215711.1719799806113363582.davem@davemloft.net>
-In-Reply-To: <20170601.215711.1719799806113363582.davem@davemloft.net>
+References: <20170601.174419.2151404855471358626.davem@davemloft.net>
+        <20170601.215711.1719799806113363582.davem@davemloft.net>
+        <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
+In-Reply-To: <9902b59c-0f73-f306-28e0-fea7ee4a1169@sandeen.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
+To: sandeen@sandeen.net
 Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
 
-On 6/1/17 8:57 PM, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Thu, 01 Jun 2017 17:44:19 -0400 (EDT)
-> 
->> Ok, I can reproduce this bug on my systems.  I'll see if I can figure out
->> what is going on.
-> 
-> So I've done several tests to try and narrow down the cause.
-> 
-> First, I implemented crc32c() inside of the test module, doing
-> exactly the same thing that lib/libcrc32c.c is doing.  So this
-> make it use a separate tfm.
-> 
-> This never fails.
-> 
-> Then, I implemented a separate module "davem_crc32c.ko" that is
-> identical to lib/libcrc32.c except it uses it's own 'tfm' and it
-> exports the symbol davem_crc32c() instead of crc32c(). And finally I
-> adjust the test case to call davem_crc32c() instead of crc32c().
-> 
-> This also never fails.
-> 
-> So it only fails if we use the lib/libcrc32.c shared with the rest of
-> the kernel.
-> 
-> I really can't figure out yet why this sharing can even matter.  The
-> per-computation state is all in the on-stack 'shash':
-> 
-> 	SHASH_DESC_ON_STACK(shash, tfm);
-> 
-> So invocations of crc32c() should not be able to corrupt the state of
-> other parallel invocations.
-> 
-> I'll keep digging, but that is where I am right now.
+From: Eric Sandeen <sandeen@sandeen.net>
+Date: Thu, 1 Jun 2017 21:10:50 -0500
 
-Thanks for digging.
+> On ARM, there was a gcc bug causing similar results - I /think/
+> it was https://gcc.gnu.org/bugzilla/show_bug.cgi?idc293
+> 
+> "programs could fail sporadically with this if an interrupt happens at
+> the wrong instant in time and data was written onto the current stack."
+> 
+> https://gcc.gnu.org/ml/gcc-patches/2014-09/msg02292.html
+> 
+> Maybe totally unrelated; if not, hope it helps.  :)
 
-On ARM, there was a gcc bug causing similar results - I /think/
-it was https://gcc.gnu.org/bugzilla/show_bug.cgi?idc293
+Wow, that looks exactly like what the bug is:
 
-"programs could fail sporadically with this if an interrupt happens at
-the wrong instant in time and data was written onto the current stack."
+crc32c:
+        .register       %g2, #scratch
+        save    %sp, -176, %sp  !
+        sethi   %hi(tfm), %g1   !, tmp121
+        mov     %i2, %o2        ! length,
+        ldx     [%g1+%lo(tfm)], %g2     ! tfm, tfm.0_4
+        mov     %i1, %o1        ! address,
+        lduw    [%g2], %g1      ! tfm.0_4->descsize, tfm.0_4->descsize
+        add     %g1, 38, %g1    ! tfm.0_4->descsize,, tmp126
+        srlx    %g1, 4, %g1     ! tmp126,, tmp127
+        sllx    %g1, 4, %g1     ! tmp127,, tmp128
+        sub     %sp, %g1, %sp   !, tmp128,
+        add     %sp, 2230, %i5  !,, tmp130
 
-https://gcc.gnu.org/ml/gcc-patches/2014-09/msg02292.html
+Ok, %i5 holds the stack address of the shash context:
 
-Maybe totally unrelated; if not, hope it helps.  :)
+ ...
+        return  %i7+8
+         lduw   [%o5+16], %o0   ! MEM[(u32 *)__shash_desc.1_10 + 16B],
 
--Eric
+'return' deallocates the stack frame plus the register window, and at
+the same time does a delayed control transfer to "%i7 + 8".  So in the
+branch delay slot instruction %i5 becomes %o5.
+
+And here we are accessing deallocated stack memory in the delay slot.
+
+I'm using gcc-6.3.0 here.
+
+And indeed the following patch makes the problem go away:
+
+diff --git a/lib/libcrc32c.c b/lib/libcrc32c.c
+index 74a54b7..bf831e2 100644
+--- a/lib/libcrc32c.c
++++ b/lib/libcrc32c.c
+@@ -43,7 +43,7 @@ static struct crypto_shash *tfm;
+ u32 crc32c(u32 crc, const void *address, unsigned int length)
+ {
+ 	SHASH_DESC_ON_STACK(shash, tfm);
+-	u32 *ctx = (u32 *)shash_desc_ctx(shash);
++	u32 ret, *ctx = (u32 *)shash_desc_ctx(shash);
+ 	int err;
+ 
+ 	shash->tfm = tfm;
+@@ -53,7 +53,9 @@ u32 crc32c(u32 crc, const void *address, unsigned int length)
+ 	err = crypto_shash_update(shash, address, length);
+ 	BUG_ON(err);
+ 
+-	return *ctx;
++	ret = *ctx;
++	barrier();
++	return ret;
+ }
+ 
+ EXPORT_SYMBOL(crc32c);
