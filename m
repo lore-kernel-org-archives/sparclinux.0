@@ -1,12 +1,12 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Jun 2017 21:44:19 +0000
+Date: Fri, 02 Jun 2017 01:57:11 +0000
 Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <20170601.174419.2151404855471358626.davem@davemloft.net>
+Message-Id: <20170601.215711.1719799806113363582.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ccdf645b-e22f-ef71-53df-993cc45869c0@sandeen.net>
-        <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
+References: <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
         <20170531.124916.1406665885250072302.davem@davemloft.net>
-In-Reply-To: <20170531.124916.1406665885250072302.davem@davemloft.net>
+        <20170601.174419.2151404855471358626.davem@davemloft.net>
+In-Reply-To: <20170601.174419.2151404855471358626.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,37 +14,35 @@ To: sandeen@sandeen.net
 Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
 
 From: David Miller <davem@davemloft.net>
-Date: Wed, 31 May 2017 12:49:16 -0400 (EDT)
+Date: Thu, 01 Jun 2017 17:44:19 -0400 (EDT)
 
-> From: Eric Sandeen <sandeen@sandeen.net>
-> Date: Wed, 31 May 2017 11:31:10 -0500
-> 
->> On 5/31/17 11:19 AM, Eric Sandeen wrote:
->>> On 5/31/17 10:53 AM, David Miller wrote:
->>>> From: Anatoly Pugachev <matorola@gmail.com>
->>>> Date: Wed, 31 May 2017 14:56:52 +0300
->>>>
->>>>> While debugging occasional crc32c checksum errors with xfs disk reads on
->>>>> sparc64 (T5 [sun4v] 3.6 GHz CPU ldom, debian unstable/sid), Eric have found
->>>>> that crc32c sometimes returns wrong checksum for data. Eric made a simple
->>>>> test kernel module (included), which produce the following results on my
->>>>> sparc64 machines:
->>> 
->>> cc: linux-xfs, because this problem cropped up on xfs/sparc.
->> 
->> FWIW, the testcase (module which does
->> 
->> 	crc = crc32c(CRC_SEED, data, 512);
->> 
->> 1 million times in a loop on the same data, and printk's if
->> the result ever changes) does not fail on x86_64 or ARM
->> (well, not after a gcc bug was fixed on ARM ...)
-> 
-> Is the machine doing things that would cause crc32c() operations in
-> interrupts (SCTP protocol traffic) or on other cpus?
-> 
-> That's the danger in comparing other machines, the context and what's
-> running on them is different.
+> Ok, I can reproduce this bug on my systems.  I'll see if I can figure out
+> what is going on.
 
-Ok, I can reproduce this bug on my systems.  I'll see if I can figure out
-what is going on.
+So I've done several tests to try and narrow down the cause.
+
+First, I implemented crc32c() inside of the test module, doing
+exactly the same thing that lib/libcrc32c.c is doing.  So this
+make it use a separate tfm.
+
+This never fails.
+
+Then, I implemented a separate module "davem_crc32c.ko" that is
+identical to lib/libcrc32.c except it uses it's own 'tfm' and it
+exports the symbol davem_crc32c() instead of crc32c(). And finally I
+adjust the test case to call davem_crc32c() instead of crc32c().
+
+This also never fails.
+
+So it only fails if we use the lib/libcrc32.c shared with the rest of
+the kernel.
+
+I really can't figure out yet why this sharing can even matter.  The
+per-computation state is all in the on-stack 'shash':
+
+	SHASH_DESC_ON_STACK(shash, tfm);
+
+So invocations of crc32c() should not be able to corrupt the state of
+other parallel invocations.
+
+I'll keep digging, but that is where I am right now.
