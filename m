@@ -1,54 +1,33 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 23 Jun 2017 18:58:37 +0000
-Subject: [PATCH v2 09/12] sparc64: check if a client is allowed to register for MDESC notifications
-Message-Id: <9f88c78ab49c64e5f824af1064b09601eae477f9.1498238657.git.jag.raman@oracle.com>
+From: Aleksa Sarai <asarai@suse.de>
+Date: Sat, 03 Jun 2017 14:15:13 +0000
+Subject: [PATCH v4 0/2] tty: add TIOCGPTPEER ioctl
+Message-Id: <20170603141515.9529-1-asarai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>, Valentin Rothberg <vrothberg@suse.com>, Aleksa Sarai <asarai@suse.de>
 
-Check if a client is supported, by comparing against a whitelist, to
-register for notifications from Machine Description (MDESC)
+Changes in v4:
+  * Dropped an accidental change to Makefile.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- arch/sparc/kernel/mdesc.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+Aleksa Sarai (2):
+  tty: add compat_ioctl callbacks
+  tty: add TIOCGPTPEER ioctl
 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 04b7626..f795ee0 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -284,9 +284,26 @@ void mdesc_release(struct mdesc_handle *hp)
- 
- void mdesc_register_notifier(struct mdesc_notifier_client *client)
- {
-+	bool supported = false;
- 	u64 node;
-+	int i;
- 
- 	mutex_lock(&mdesc_mutex);
-+
-+	/* check to see if the node is supported for registration */
-+	for (i = 0; md_node_ops_table[i].name != NULL; i++) {
-+		if (strcmp(md_node_ops_table[i].name, client->node_name) = 0) {
-+			supported = true;
-+			break;
-+		}
-+	}
-+
-+	if (!supported) {
-+		pr_err("MD: %s node not supported\n", client->node_name);
-+		mutex_unlock(&mdesc_mutex);
-+		return;
-+	}
-+
- 	client->next = client_list;
- 	client_list = client;
- 
+ arch/alpha/include/uapi/asm/ioctls.h   |  1 +
+ arch/mips/include/uapi/asm/ioctls.h    |  1 +
+ arch/parisc/include/uapi/asm/ioctls.h  |  1 +
+ arch/powerpc/include/uapi/asm/ioctls.h |  1 +
+ arch/sh/include/uapi/asm/ioctls.h      |  1 +
+ arch/sparc/include/uapi/asm/ioctls.h   |  3 +-
+ arch/xtensa/include/uapi/asm/ioctls.h  |  1 +
+ drivers/tty/pty.c                      | 93 ++++++++++++++++++++++++++++++++--
+ fs/compat_ioctl.c                      |  6 ---
+ include/uapi/asm-generic/ioctls.h      |  1 +
+ 10 files changed, 98 insertions(+), 11 deletions(-)
+
 -- 
-1.7.1
+2.13.0
 
