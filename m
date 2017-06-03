@@ -1,56 +1,36 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 15 Jun 2017 14:40:58 +0000
-Subject: [v1 1/2] sparc64: use prom interface to get %stick frequency
-Message-Id: <1497537659-419752-2-git-send-email-pasha.tatashin@oracle.com>
+From: Aleksa Sarai <asarai@suse.de>
+Date: Sat, 03 Jun 2017 13:51:09 +0000
+Subject: [PATCH v3 0/2] tty: add TIOCGPTPEER ioctl
+Message-Id: <20170603135111.5444-1-asarai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>, Valentin Rothberg <vrothberg@suse.com>, Aleksa Sarai <asarai@suse.de>
 
-We initialize time early, we must use prom interface instead of open
-firmware driver, which is not yet initialized.
+Changes in v3:
+  * Defined a compat_ioctl callback for all pty ioctls, since they are
+    all 32-bit and 64-bit compatible.
+  * Made TIOCGPTPEER support 32-bit userspace.
 
-Also, use prom_getintdefault() instead of prom_getint() to be compatible
-with the code before early boot timestamps project.
+Aleksa Sarai (2):
+  tty: add compat_ioctl callbacks
+  tty: add TIOCGPTPEER ioctl
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
----
- arch/sparc/kernel/time_64.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ Makefile                               |  1 +
+ arch/alpha/include/uapi/asm/ioctls.h   |  1 +
+ arch/mips/include/uapi/asm/ioctls.h    |  1 +
+ arch/parisc/include/uapi/asm/ioctls.h  |  1 +
+ arch/powerpc/include/uapi/asm/ioctls.h |  1 +
+ arch/sh/include/uapi/asm/ioctls.h      |  1 +
+ arch/sparc/include/uapi/asm/ioctls.h   |  3 +-
+ arch/xtensa/include/uapi/asm/ioctls.h  |  1 +
+ drivers/tty/pty.c                      | 93 ++++++++++++++++++++++++++++++++--
+ fs/compat_ioctl.c                      |  6 ---
+ include/uapi/asm-generic/ioctls.h      |  1 +
+ 11 files changed, 99 insertions(+), 11 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index a612a91..a62758c 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -32,7 +32,6 @@
- #include <linux/kernel_stat.h>
- #include <linux/clockchips.h>
- #include <linux/clocksource.h>
--#include <linux/of_device.h>
- #include <linux/platform_device.h>
- #include <linux/ftrace.h>
- 
-@@ -257,7 +256,7 @@ static int stick_add_compare(unsigned long adj)
- 
- static unsigned long stick_get_frequency(void)
- {
--	return prom_getint(prom_root_node, "stick-frequency");
-+	return prom_getintdefault(prom_root_node, "stick-frequency", 0);
- }
- 
- static struct sparc64_tick_ops stick_operations __read_mostly = {
-@@ -391,9 +390,7 @@ static int hbtick_add_compare(unsigned long adj)
- 
- static unsigned long hbtick_get_frequency(void)
- {
--	struct device_node *dp = of_find_node_by_path("/");
--
--	return of_getintprop_default(dp, "stick-frequency", 0);
-+	return prom_getintdefault(prom_root_node, "stick-frequency", 0);
- }
- 
- static struct sparc64_tick_ops hbtick_operations __read_mostly = {
 -- 
-1.7.1
+2.13.0
 
