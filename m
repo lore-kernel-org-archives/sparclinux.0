@@ -1,59 +1,112 @@
-From: tndave <tushar.n.dave@oracle.com>
-Date: Mon, 26 Jun 2017 22:06:25 +0000
-Subject: Re: clean up and modularize arch dma_mapping interface V2
-Message-Id: <91360640-546b-edab-9f4a-952c7a1d0061@oracle.com>
+From: Aleksa Sarai <asarai@suse.de>
+Date: Sat, 03 Jun 2017 14:15:14 +0000
+Subject: [PATCH v4 1/2] tty: add compat_ioctl callbacks
+Message-Id: <20170603141515.9529-2-asarai@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-	<162d7932-5766-4c29-5471-07d1b699190a@oracle.com>
-	<20170624071855.GD14580@lst.de>
-	<1498318616.31581.87.camel@kernel.crashing.org>
-	<20170626094739.GB13981@lst.de>
-In-Reply-To: <20170626094739.GB13981-jcswGhMUV9g@public.gmane.org>
+References: <20170603141515.9529-1-asarai@suse.de>
+In-Reply-To: <20170603141515.9529-1-asarai@suse.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>, Valentin Rothberg <vrothberg@suse.com>, Aleksa Sarai <asarai@suse.de>
 
+In order to avoid future diversions between fs/compat_ioctl.c and
+drivers/tty/pty.c, define .compat_ioctl callbacks for the relevant
+tty_operations structs. Since both pty_unix98_ioctl() and
+pty_bsd_ioctl() are compatible between 32-bit and 64-bit userspace no
+special translation is required.
 
+Signed-off-by: Aleksa Sarai <asarai@suse.de>
+---
+ drivers/tty/pty.c | 22 ++++++++++++++++++++++
+ fs/compat_ioctl.c |  6 ------
+ 2 files changed, 22 insertions(+), 6 deletions(-)
 
-On 06/26/2017 02:47 AM, Christoph Hellwig wrote:
-> On Sat, Jun 24, 2017 at 10:36:56AM -0500, Benjamin Herrenschmidt wrote:
->> I think we still need to do it. For example we have a bunch new "funky"
->> cases.
-> 
-> I have no plan to do away with the selection - I just want a better
-> interface than the current one.
-I agree we need better interface than the current one.
-Like Benjamin mentioned cases for powerpc , sparc also need some special
-treatment for ATU IOMMU depending on device's DMA mask.
+diff --git a/drivers/tty/pty.c b/drivers/tty/pty.c
+index 65799575c666..2a6bd9ae3f8b 100644
+--- a/drivers/tty/pty.c
++++ b/drivers/tty/pty.c
+@@ -481,6 +481,16 @@ static int pty_bsd_ioctl(struct tty_struct *tty,
+ 	return -ENOIOCTLCMD;
+ }
+ 
++static long pty_bsd_compat_ioctl(struct tty_struct *tty,
++				 unsigned int cmd, unsigned long arg)
++{
++	/*
++	 * PTY ioctls don't require any special translation between 32-bit and
++	 * 64-bit userspace, they are already compatible.
++	 */
++	return pty_bsd_ioctl(tty, cmd, arg);
++}
++
+ static int legacy_count = CONFIG_LEGACY_PTY_COUNT;
+ /*
+  * not really modular, but the easiest way to keep compat with existing
+@@ -502,6 +512,7 @@ static const struct tty_operations master_pty_ops_bsd = {
+ 	.chars_in_buffer = pty_chars_in_buffer,
+ 	.unthrottle = pty_unthrottle,
+ 	.ioctl = pty_bsd_ioctl,
++	.compat_ioctl = pty_bsd_compat_ioctl,
+ 	.cleanup = pty_cleanup,
+ 	.resize = pty_resize,
+ 	.remove = pty_remove
+@@ -609,6 +620,16 @@ static int pty_unix98_ioctl(struct tty_struct *tty,
+ 	return -ENOIOCTLCMD;
+ }
+ 
++static long pty_unix98_compat_ioctl(struct tty_struct *tty,
++				 unsigned int cmd, unsigned long arg)
++{
++	/*
++	 * PTY ioctls don't require any special translation between 32-bit and
++	 * 64-bit userspace, they are already compatible.
++	 */
++	return pty_unix98_ioctl(tty, cmd, arg);
++}
++
+ /**
+  *	ptm_unix98_lookup	-	find a pty master
+  *	@driver: ptm driver
+@@ -681,6 +702,7 @@ static const struct tty_operations ptm_unix98_ops = {
+ 	.chars_in_buffer = pty_chars_in_buffer,
+ 	.unthrottle = pty_unthrottle,
+ 	.ioctl = pty_unix98_ioctl,
++	.compat_ioctl = pty_unix98_compat_ioctl,
+ 	.resize = pty_resize,
+ 	.cleanup = pty_cleanup
+ };
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 6116d5275a3e..112b3e1e20e3 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -866,8 +866,6 @@ COMPATIBLE_IOCTL(TIOCGDEV)
+ COMPATIBLE_IOCTL(TIOCCBRK)
+ COMPATIBLE_IOCTL(TIOCGSID)
+ COMPATIBLE_IOCTL(TIOCGICOUNT)
+-COMPATIBLE_IOCTL(TIOCGPKT)
+-COMPATIBLE_IOCTL(TIOCGPTLCK)
+ COMPATIBLE_IOCTL(TIOCGEXCL)
+ /* Little t */
+ COMPATIBLE_IOCTL(TIOCGETD)
+@@ -883,16 +881,12 @@ COMPATIBLE_IOCTL(TIOCMGET)
+ COMPATIBLE_IOCTL(TIOCMBIC)
+ COMPATIBLE_IOCTL(TIOCMBIS)
+ COMPATIBLE_IOCTL(TIOCMSET)
+-COMPATIBLE_IOCTL(TIOCPKT)
+ COMPATIBLE_IOCTL(TIOCNOTTY)
+ COMPATIBLE_IOCTL(TIOCSTI)
+ COMPATIBLE_IOCTL(TIOCOUTQ)
+ COMPATIBLE_IOCTL(TIOCSPGRP)
+ COMPATIBLE_IOCTL(TIOCGPGRP)
+-COMPATIBLE_IOCTL(TIOCGPTN)
+-COMPATIBLE_IOCTL(TIOCSPTLCK)
+ COMPATIBLE_IOCTL(TIOCSERGETLSR)
+-COMPATIBLE_IOCTL(TIOCSIG)
+ #ifdef TIOCSRS485
+ COMPATIBLE_IOCTL(TIOCSRS485)
+ #endif
+-- 
+2.13.0
 
-For sparc, I am in process of enabling one or more dedicated IOTSB (I/O
-Translation Storage Buffer) per PCI BDF (contrary to current design
-where all PCI device under root complex share a 32bit and/or 64bit IOTSB
-depending on 32bit and/or 64bit DMA). I am planning to use DMA set mask
-APIs as hook where based on device's dma mask values (dma_mask and
-coherent_dma_mask) one or more IOTSB resource will be allocated (and
-released [1]).
-
-Without set_dma_mask ops, I can still rely on HAVE_ARCH_DMA_SET_MASK and
-dma_supported() that allows me to distinguish if device is setting
-its streaming dma_mask and coherent_dma_mask respectively.
-
--Tushar
-
-[1] By default, every PCI BDF will have one dedicated 32bit IOTSB. This
-is to support default case where some device drivers even don't bother
-to set DMA mask but instead are fine with default 32bit mask.
-A 64bit IOTSB will be allocated when device request 64bit dma_mask.
-However if device wants 64bit dma mask for both coherent and
-non-coherent, a default 32bit IOTSB will be released as well. Wasting an
-IOTSB is not a good idea because there is a hard limit on max number of
-IOTSB per guest domain per root complex.
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
