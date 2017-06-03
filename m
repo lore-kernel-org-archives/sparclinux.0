@@ -1,106 +1,100 @@
-From: Palmer Dabbelt <palmer@dabbelt.com>
-Date: Tue, 06 Jun 2017 19:10:18 +0000
-Subject: [PATCH 2/7] m32r: Use lib/ucmpdi2.c
-Message-Id: <20170606191023.24581-3-palmer@dabbelt.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 03 Jun 2017 19:00:59 +0000
+Subject: [PATCH 2/5] ia64: remove HAVE_ARCH_COPY_SIGINFO
+Message-Id: <20170603190102.28866-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170523220546.16758-1-palmer@dabbelt.com>
- <20170606191023.24581-1-palmer@dabbelt.com>
-In-Reply-To: <20170606191023.24581-1-palmer@dabbelt.com>
+References: <20170603190102.28866-1-hch@lst.de>
+In-Reply-To: <20170603190102.28866-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+To: Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>
+Cc: linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 
-These files are functionally identical to the shared copies that I
-recently added.
+Since ia64 defines __ARCH_SI_PREAMBLE_SIZE it can just use the generic
+copy_siginfo implementation, which is identical to the architecture
+specific one.
 
-Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+With that support for HAVE_ARCH_COPY_SIGINFO can go away entirely.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/m32r/Kconfig       |  1 +
- arch/m32r/lib/Makefile  |  3 +--
- arch/m32r/lib/libgcc.h  | 23 -----------------------
- arch/m32r/lib/ucmpdi2.c | 17 -----------------
- 4 files changed, 2 insertions(+), 42 deletions(-)
- delete mode 100644 arch/m32r/lib/libgcc.h
- delete mode 100644 arch/m32r/lib/ucmpdi2.c
+ arch/ia64/include/asm/siginfo.h      | 22 ----------------------
+ arch/ia64/include/uapi/asm/siginfo.h |  1 -
+ include/linux/signal.h               |  7 +------
+ 3 files changed, 1 insertion(+), 29 deletions(-)
 
-diff --git a/arch/m32r/Kconfig b/arch/m32r/Kconfig
-index 95474460b367..756d68d4f4e1 100644
---- a/arch/m32r/Kconfig
-+++ b/arch/m32r/Kconfig
-@@ -19,6 +19,7 @@ config M32R
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select CPU_NO_EFFICIENT_FFS
- 	select DMA_NOOP_OPS
-+	select GENERIC_UCMPDI3
- 
- config SBUS
- 	bool
-diff --git a/arch/m32r/lib/Makefile b/arch/m32r/lib/Makefile
-index 5889eb9610b5..0a753a833bbf 100644
---- a/arch/m32r/lib/Makefile
-+++ b/arch/m32r/lib/Makefile
-@@ -3,5 +3,4 @@
- #
- 
- lib-y  := checksum.o ashxdi3.o memset.o memcpy.o \
--	  delay.o strlen.o usercopy.o csum_partial_copy.o \
--	  ucmpdi2.o
-+	  delay.o strlen.o usercopy.o csum_partial_copy.o
-diff --git a/arch/m32r/lib/libgcc.h b/arch/m32r/lib/libgcc.h
-deleted file mode 100644
-index 267aa435bc35..000000000000
---- a/arch/m32r/lib/libgcc.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--#ifndef __ASM_LIBGCC_H
--#define __ASM_LIBGCC_H
+diff --git a/arch/ia64/include/asm/siginfo.h b/arch/ia64/include/asm/siginfo.h
+index 6f2e2dd0f28f..dd2f2fce976b 100644
+--- a/arch/ia64/include/asm/siginfo.h
++++ b/arch/ia64/include/asm/siginfo.h
+@@ -1,23 +1 @@
+-/*
+- * Based on <asm-i386/siginfo.h>.
+- *
+- * Modified 1998-2002
+- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
+- */
+-#ifndef _ASM_IA64_SIGINFO_H
+-#define _ASM_IA64_SIGINFO_H
 -
--#include <asm/byteorder.h>
+-#include <linux/string.h>
+ #include <uapi/asm/siginfo.h>
 -
--#ifdef __BIG_ENDIAN
--struct DWstruct {
--	int high, low;
--};
--#elif defined(__LITTLE_ENDIAN)
--struct DWstruct {
--	int low, high;
--};
--#else
--#error I feel sick.
+-static inline void
+-copy_siginfo (siginfo_t *to, siginfo_t *from)
+-{
+-	if (from->si_code < 0)
+-		memcpy(to, from, sizeof(siginfo_t));
+-	else
+-		/* _sigchld is currently the largest know union member */
+-		memcpy(to, from, 4*sizeof(int) + sizeof(from->_sifields._sigchld));
+-}
+-
+-#endif /* _ASM_IA64_SIGINFO_H */
+diff --git a/arch/ia64/include/uapi/asm/siginfo.h b/arch/ia64/include/uapi/asm/siginfo.h
+index f72bf0172bb2..4694c64252d6 100644
+--- a/arch/ia64/include/uapi/asm/siginfo.h
++++ b/arch/ia64/include/uapi/asm/siginfo.h
+@@ -11,7 +11,6 @@
+ #define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
+ 
+ #define HAVE_ARCH_SIGINFO_T
+-#define HAVE_ARCH_COPY_SIGINFO
+ #define HAVE_ARCH_COPY_SIGINFO_TO_USER
+ 
+ #include <asm-generic/siginfo.h>
+diff --git a/include/linux/signal.h b/include/linux/signal.h
+index 1f5a16620693..80c7418be359 100644
+--- a/include/linux/signal.h
++++ b/include/linux/signal.h
+@@ -3,16 +3,13 @@
+ 
+ #include <linux/bug.h>
+ #include <linux/signal_types.h>
++#include <linux/string.h>
+ 
+ struct task_struct;
+ 
+ /* for sysctl */
+ extern int print_fatal_signals;
+ 
+-#ifndef HAVE_ARCH_COPY_SIGINFO
+-
+-#include <linux/string.h>
+-
+ static inline void copy_siginfo(struct siginfo *to, struct siginfo *from)
+ {
+ 	if (from->si_code < 0)
+@@ -22,8 +19,6 @@ static inline void copy_siginfo(struct siginfo *to, struct siginfo *from)
+ 		memcpy(to, from, __ARCH_SI_PREAMBLE_SIZE + sizeof(from->_sifields._sigchld));
+ }
+ 
 -#endif
 -
--typedef union {
--	struct DWstruct s;
--	long long ll;
--} DWunion;
--
--#endif /* __ASM_LIBGCC_H */
-diff --git a/arch/m32r/lib/ucmpdi2.c b/arch/m32r/lib/ucmpdi2.c
-deleted file mode 100644
-index 9d3c682c89b5..000000000000
---- a/arch/m32r/lib/ucmpdi2.c
-+++ /dev/null
-@@ -1,17 +0,0 @@
--#include "libgcc.h"
--
--int __ucmpdi2(unsigned long long a, unsigned long long b)
--{
--	const DWunion au = {.ll = a};
--	const DWunion bu = {.ll = b};
--
--	if ((unsigned int)au.s.high < (unsigned int)bu.s.high)
--		return 0;
--	else if ((unsigned int)au.s.high > (unsigned int)bu.s.high)
--		return 2;
--	if ((unsigned int)au.s.low < (unsigned int)bu.s.low)
--		return 0;
--	else if ((unsigned int)au.s.low > (unsigned int)bu.s.low)
--		return 2;
--	return 1;
--}
+ /*
+  * Define some primitives to manipulate sigset_t.
+  */
 -- 
-2.13.0
+2.11.0
 
