@@ -1,45 +1,49 @@
-From: jane.chu@oracle.com
-Date: Tue, 06 Jun 2017 17:04:25 +0000
-Subject: Re: [PATCH v2] arch/sparc: support NR_CPUS = 4096
-Message-Id: <c0b19f67-db79-c171-6f5b-6ecd1ec42078@oracle.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Sat, 03 Jun 2017 02:18:08 +0000
+Subject: Re: [PATCH 4/7] mips: Use lib/{ashldi3,ashrdi3,cmpdi2,lshrdi3,ucmpdi2}.c
+Message-Id: <mhng-fc1d65cf-1943-4c73-8fae-b13ee8349d2f@palmer-si-x1c4>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1496702911-717442-1-git-send-email-jane.chu@oracle.com>
- <20170605.205739.2124313705421284534.davem@davemloft.net>
- <6255d34e-499d-db38-ec86-8930828684de@oracle.com>
- <20170605.232724.386554178947981058.davem@davemloft.net>
-In-Reply-To: <20170605.232724.386554178947981058.davem@davemloft.net>
+References: <a870bfb8-a1c8-220e-460c-baa03b3fd554@imgtec.com>
+In-Reply-To: <a870bfb8-a1c8-220e-460c-baa03b3fd554@imgtec.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: tglx@linutronix.de, atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: matt.redfearn@imgtec.com
+Cc: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
 
-On 06/05/2017 08:27 PM, David Miller wrote:
-
-> From: jane.chu@oracle.com
-> Date: Mon, 5 Jun 2017 20:03:28 -0700
+On Wed, 24 May 2017 02:01:39 PDT (-0700), matt.redfearn@imgtec.com wrote:
+> Hi Palmer,
+> This patch doesn't quite match the subject, since it only removes the
+> mips specific implementation of __ucmpdi2. The following patch removes
+> all of the intrinsics that you added to lib/ from arch/mips/lib. I've
+> built & boot tested this on a MIPS pistachio platform.
+> Note that this patch will require rebasing on linux-next, since it will
+> conflict with other changes in arch/mips/Kconfig
 >
->> On sun4v sparc, it looks like kzalloc(64, GFP_KERNEL) ends up
->> allocating from kmalloc_caches[6] - a 64-byte kmem-cache allocated
->> by kmem_cache_init() with SLAB_HWCACHE_ALIGN flag set, so it's in
->> l3-cache-line-size alignment, i.e. 64byte.  I printed out the
->> 'mondo' pa and verified that.
-> Please check this, because that is an implementation detail.  We have
-> three SLAB allocators.
+> Thanks,
+> Matt
 >
-> For example, if the user enables SLOB, I bet you don't get that
-> alignment.
+> [PATCH] MIPS: Use generic libgcc intrinsics
 >
-> The only thing we are universally guaranteed is ARCH_KMALLOC_MINALIGN.
+> These routines in arch/mips/lib/ are functionally identical to those
+> recently added to lib/ so remove them and select the generic ones.
 >
-> Please implement this properly, rather than relying upon things like
-> the above.
+> Signed-off-by: Matt Redfearn <matt.redfearn@imgtec.com>
+> ---
+>   arch/mips/Kconfig       |  5 +++++
+>   arch/mips/lib/Makefile  |  2 +-
+>   arch/mips/lib/ashldi3.c | 29 -----------------------------
+>   arch/mips/lib/ashrdi3.c | 31 -------------------------------
+>   arch/mips/lib/cmpdi2.c  | 27 ---------------------------
+>   arch/mips/lib/libgcc.h  | 25 -------------------------
+>   arch/mips/lib/lshrdi3.c | 29 -----------------------------
+>   arch/mips/lib/ucmpdi2.c | 21 ---------------------
+>   8 files changed, 6 insertions(+), 163 deletions(-)
+>   delete mode 100644 arch/mips/lib/ashldi3.c
+>   delete mode 100644 arch/mips/lib/ashrdi3.c
+>   delete mode 100644 arch/mips/lib/cmpdi2.c
+>   delete mode 100644 arch/mips/lib/libgcc.h
+>   delete mode 100644 arch/mips/lib/lshrdi3.c
+>   delete mode 100644 arch/mips/lib/ucmpdi2.c
 
-Good point, agreed.  I will update the patch.
-
-thanks!
--jane
-
->
-> Thank you.
-
+Sorry about that, I'll take your version and submit a v2.
