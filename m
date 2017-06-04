@@ -1,71 +1,69 @@
-From: Jane Chu <jane.chu@oracle.com>
-Date: Thu, 01 Jun 2017 21:39:13 +0000
-Subject: [PATCH] arch/sparc: support NR_CPUS = 4096
-Message-Id: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 04 Jun 2017 23:46:53 +0000
+Subject: Re: [PATCH] arch/sparc: support NR_CPUS = 4096
+Message-Id: <20170604.194653.1906726081560123777.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
+In-Reply-To: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, tglx@linutronix.de
-Cc: atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jane.chu@oracle.com
+To: jane.chu@oracle.com
+Cc: tglx@linutronix.de, atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Linux SPARC64 limits NR_CPUS to 4064 because init_cpu_send_mondo_info()
-only allocates a single page for NR_CPUS mondo entries. Thus we cannot
-use all 4096 CPUs on some SPARC platforms.
+From: Jane Chu <jane.chu@oracle.com>
+Date: Thu,  1 Jun 2017 15:39:13 -0600
 
-To fix, allocate (2^order) pages where order is set according to the size
-of cpu_list for possible cpus. Since cpu_list_pa and cpu_mondo_block_pa
-are not used in asm code, there are no imm13 offsets from the base PA
-that will break because they can only reach one page.
+> diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+> index 4d0248a..5b19108 100644
+> --- a/arch/sparc/kernel/irq_64.c
+> +++ b/arch/sparc/kernel/irq_64.c
+> @@ -1034,12 +1034,12 @@ static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
+>  {
+>  #ifdef CONFIG_SMP
+>  	unsigned long page;
+> +	unsigned int order;
+>  
+> -	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
+> -
+> -	page = get_zeroed_page(GFP_KERNEL);
+> +	order = get_order(num_possible_cpus() * sizeof(u16) + 64);
+> +	page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
+>  	if (!page) {
 
-Orabug: 25505750
+The only reason we allocated these two items together was because it
+was convenient and it all fit into a single page.
 
-Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Since it now doesn't, it makes sense to split it up.
 
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Atish Patra <atish.patra@oracle.com>
----
- arch/sparc/Kconfig         |    4 ++--
- arch/sparc/kernel/irq_64.c |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+Simply use a single page for the cpu_list_pa and kzalloc for the
+cpu_mondo_block.
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 58243b0..4399be7 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -192,9 +192,9 @@ config NR_CPUS
- 	int "Maximum number of CPUs"
- 	depends on SMP
- 	range 2 32 if SPARC32
--	range 2 1024 if SPARC64
-+	range 2 4096 if SPARC64
- 	default 32 if SPARC32
--	default 64 if SPARC64
-+	default 4096 if SPARC64
- 
- source kernel/Kconfig.hz
- 
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 4d0248a..5b19108 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -1034,12 +1034,12 @@ static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
- {
- #ifdef CONFIG_SMP
- 	unsigned long page;
-+	unsigned int order;
- 
--	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
--
--	page = get_zeroed_page(GFP_KERNEL);
-+	order = get_order(num_possible_cpus() * sizeof(u16) + 64);
-+	page = __get_free_pages(GFP_KERNEL | __GFP_ZERO, order);
- 	if (!page) {
--		prom_printf("SUN4V: Error, cannot allocate cpu mondo page.\n");
-+		prom_printf("SUN4V: Error, cannot allocate cpu mondo pages.\n");
- 		prom_halt();
- 	}
- 
--- 
-1.7.1
+This also allows to keep the BUILD_BUG_ON(), which I really wish
+you hadn't tried to remove.
 
+static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
+{
+#ifdef CONFIG_SMP
+	unsigned long page;
+	void *mondo;
+
+	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > PAGE_SIZE);
+
+	mondo = kzalloc(64, GFP_KERNEL);
+	if (!mondo) {
+		prom_printf("SUN4V: Error, cannot allocate mondo block.\n");
+		prom_halt();
+	}
+	tb->cpu_mondo_block_pa = __pa(mondo);
+
+	page = get_zeroed_page(GFP_KERNEL);
+	if (!page) {
+		prom_printf("SUN4V: Error, cannot allocate cpu list page.\n");
+		prom_halt();
+	}
+	tb->cpu_list_pa = __pa(page);
+#endif
+}
+
+Thanks.
