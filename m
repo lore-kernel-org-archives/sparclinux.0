@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jun 2017 15:59:32 +0000
+Date: Mon, 05 Jun 2017 18:31:00 +0000
 Subject: Re: sparc64 gcc 7.1 compile error
-Message-Id: <20170605.115932.676337842945675142.davem@davemloft.net>
+Message-Id: <20170605.143100.1613465160039991726.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170605091941.GM26922@waldemar-brodkorb.de>
 In-Reply-To: <20170605091941.GM26922@waldemar-brodkorb.de>
@@ -16,39 +16,76 @@ Date: Mon, 5 Jun 2017 11:19:41 +0200
 
 > I get a compile/linking error with gcc 7.1 when targeting qemu system
 > sparc64.
-> 
-> + objects='arch/sparc/kernel/head_64.o  init/built-in.o
-> --start-group  usr/built-in.o  arch/sparc/built-in.o
-> kernel/built-in.o  certs/built-in.o  mm/built-in.o  fs/built-in.o
-> ipc/built-in.o  security/built-in.o  crypto/built-in.o
-> block/built-in.o  lib/lib.a  arch/sparc/prom/lib.a
-> arch/sparc/lib/lib.a  lib/built-in.o  arch/sparc/prom/built-in.o
-> arch/sparc/lib/built-in.o  drivers/built-in.o  sound/built-in.o
-> firmware/built-in.o  net/built-in.o  virt/built-in.o
-> --end-group           '
-> +
-> /home/wbx/openadk/toolchain_qemu-sparc64_glibc_v9/usr/bin/sparc64-openadk-linux-gnu-ld
-> -m elf64_sparc --build-id -o vmlinux -T
-> ./arch/sparc/kernel/vmlinux.lds arch/sparc/kernel/head_64.o
-> init/built-in.o --start-group usr/built-in.o arch/sparc/built-in.o
-> kernel/built-in.o certs/built-in.o mm/built-in.o fs/built-in.o
-> ipc/built-in.o security/built-in.o crypto/built-in.o
-> block/built-in.o lib/lib.a arch/sparc/prom/lib.a
-> arch/sparc/lib/lib.a lib/built-in.o arch/sparc/prom/built-in.o
-> arch/sparc/lib/built-in.o drivers/built-in.o sound/built-in.o
-> firmware/built-in.o net/built-in.o virt/built-in.o --end-group
-> ipc/built-in.o: In function `mq_attr_ok':
-> mqueue.c:(.text+0x6154): undefined reference to `__multi3'
-> 
-> I tried with Linux 4.11.3, Linus master and David Miller's SPARC
-> tree from today with the same result. The failing config is attached.
 
-GCC seems to be emitting a 128-bit multiply to work out this
-expression in ipc/mqueue.c:
+This should fix the problem, please let me know if it works for you:
 
- if (attr->mq_msgsize > (~0UL)/attr->mq_maxmsg)
-  return -92;
+==========
+From 1b4af13ff2cc6897557bb0b8d9e2fad4fa4d67aa Mon Sep 17 00:00:00 2001
+From: "David S. Miller" <davem@davemloft.net>
+Date: Mon, 5 Jun 2017 11:28:57 -0700
+Subject: [PATCH] sparc64: Add __multi3 for gcc 7.x and later.
 
-Seems like a bit of an extreme way to do this.
+Reported-by: Waldemar Brodkorb <wbx@openadk.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/lib/Makefile |  1 +
+ arch/sparc/lib/multi3.S | 35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+)
+ create mode 100644 arch/sparc/lib/multi3.S
 
-But worst case we'll have to add __multi3 to the kernel libraries.
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 69912d2..07c03e7 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -15,6 +15,7 @@ lib-$(CONFIG_SPARC32) += copy_user.o locks.o
+ lib-$(CONFIG_SPARC64) += atomic_64.o
+ lib-$(CONFIG_SPARC32) += lshrdi3.o ashldi3.o
+ lib-$(CONFIG_SPARC32) += muldi3.o bitext.o cmpdi2.o
++lib-$(CONFIG_SPARC64) += multi3.o
+ 
+ lib-$(CONFIG_SPARC64) += copy_page.o clear_page.o bzero.o
+ lib-$(CONFIG_SPARC64) += csum_copy.o csum_copy_from_user.o csum_copy_to_user.o
+diff --git a/arch/sparc/lib/multi3.S b/arch/sparc/lib/multi3.S
+new file mode 100644
+index 0000000..d6b6c97
+--- /dev/null
++++ b/arch/sparc/lib/multi3.S
+@@ -0,0 +1,35 @@
++#include <linux/linkage.h>
++#include <asm/export.h>
++
++	.text
++	.align	4
++ENTRY(__multi3) /* %o0 = u, %o1 = v */
++	mov	%o1, %g1
++	srl	%o3, 0, %g4
++	mulx	%g4, %g1, %o1
++	srlx	%g1, 0x20, %g3
++	mulx	%g3, %g4, %g5
++	sllx	%g5, 0x20, %o5
++	srl	%g1, 0, %g4
++	sub	%o1, %o5, %o5
++	srlx	%o5, 0x20, %o5
++	addcc	%g5, %o5, %g5
++	srlx	%o3, 0x20, %o5
++	mulx	%g4, %o5, %g4
++	mulx	%g3, %o5, %o5
++	sethi	%hi(0x80000000), %g3
++	addcc	%g5, %g4, %g5
++	srlx	%g5, 0x20, %g5
++	add	%g3, %g3, %g3
++	movcc	%xcc, %g0, %g3
++	addcc	%o5, %g5, %o5
++	sllx	%g4, 0x20, %g4
++	add	%o1, %g4, %o1
++	add	%o5, %g3, %g2
++	mulx	%g1, %o2, %g1
++	add	%g1, %g2, %g1
++	mulx	%o0, %o3, %o0
++	retl
++	 add	%g1, %o0, %o0
++ENDPROC(__multi3)
++EXPORT_SYMBOL(__multi3)
+-- 
+2.1.2.532.g19b5d50
+
