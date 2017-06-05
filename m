@@ -1,7 +1,7 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 05 Jun 2017 20:10:04 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 05 Jun 2017 20:24:37 +0000
 Subject: Re: [v1 5/6] sparc64: new context wrap
-Message-Id: <0fce5547-556b-8866-b6c6-055e43732c22@oracle.com>
+Message-Id: <20170605.162437.147811943419915807.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1496244325-180257-6-git-send-email-pasha.tatashin@oracle.com>
 In-Reply-To: <1496244325-180257-6-git-send-email-pasha.tatashin@oracle.com>
@@ -10,22 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-> 
-> Ok, thanks for the details.
-> 
-> I'm not too happy about scanning NCPUS 'mm' pointers every context
-> wrap, that can be up to 4096 so the cost is not exactly trivial.
+From: Pasha Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 5 Jun 2017 16:10:04 -0400
 
-Hi Dave,
+> Going through NCPU proportional loop for xcall purpose or 'mm'
+> pointers is a fundamental limitation when there is only one global
+> context counter per system. To solve this limitation would be a
+> different project: we will need multiple context counters per system:
+> up-to one per core. Bob Picco is working on adding this support. In
+> that case the loop sizes are going to be bound by:
+> NCPU / (# context domains)
 
-Thank you for accepting the changes.
+I see, I think MIPS uses per-cpu context IDs, perhaps you can see how
+they handle this.
 
-Going through NCPU proportional loop for xcall purpose or 'mm' pointers 
-is a fundamental limitation when there is only one global context 
-counter per system. To solve this limitation would be a different 
-project: we will need multiple context counters per system: up-to one 
-per core. Bob Picco is working on adding this support. In that case the 
-loop sizes are going to be bound by:
-NCPU / (# context domains)
-
-Pasha
+Thanks.
