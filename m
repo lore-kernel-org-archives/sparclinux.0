@@ -1,73 +1,84 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:23 +0000
-Subject: [PATCH 08/44] xen-swiotlb: implement ->mapping_error
-Message-Id: <20170616181059.19206-9-hch@lst.de>
+From: Jane Chu <jane.chu@oracle.com>
+Date: Mon, 05 Jun 2017 22:48:31 +0000
+Subject: [PATCH v2] arch/sparc: support NR_CPUS = 4096
+Message-Id: <1496702911-717442-1-git-send-email-jane.chu@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: davem@davemloft.net, tglx@linutronix.de
+Cc: atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jane.chu@oracle.com
 
-DMA_ERROR_CODE is going to go away, so don't rely on it.
+Linux SPARC64 limits NR_CPUS to 4064 because init_cpu_send_mondo_info()
+only allocates a single page for NR_CPUS mondo entries. Thus we cannot
+use all 4096 CPUs on some SPARC platforms.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To fix, allocate (2^order) pages where order is set according to the size
+of cpu_list for possible cpus. Since cpu_list_pa and cpu_mondo_block_pa
+are not used in asm code, there are no imm13 offsets from the base PA
+that will break because they can only reach one page.
+
+Orabug: 25505750
+
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Atish Patra <atish.patra@oracle.com>
 ---
- drivers/xen/swiotlb-xen.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/sparc/Kconfig         |    4 ++--
+ arch/sparc/kernel/irq_64.c |   16 ++++++++++++----
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
-index a0f006daab48..c3a04b2d7532 100644
---- a/drivers/xen/swiotlb-xen.c
-+++ b/drivers/xen/swiotlb-xen.c
-@@ -67,6 +67,8 @@ static unsigned long dma_alloc_coherent_mask(struct device *dev,
- }
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 58243b0..4399be7 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -192,9 +192,9 @@ config NR_CPUS
+ 	int "Maximum number of CPUs"
+ 	depends on SMP
+ 	range 2 32 if SPARC32
+-	range 2 1024 if SPARC64
++	range 2 4096 if SPARC64
+ 	default 32 if SPARC32
+-	default 64 if SPARC64
++	default 4096 if SPARC64
+ 
+ source kernel/Kconfig.hz
+ 
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 4d0248a..cc8f6c3 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -1034,17 +1034,25 @@ static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
+ {
+ #ifdef CONFIG_SMP
+ 	unsigned long page;
++	void *mondo;
+ 
+-	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > (PAGE_SIZE - 64));
++	BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > PAGE_SIZE);
++
++	/* Make sure mondo block is 64byte aligned */
++	mondo = kzalloc(64, GFP_KERNEL);
++	if (!mondo) {
++		prom_printf("SUN4V: Error, cannot allocate mondo block.\n");
++		prom_halt();
++	}
++	tb->cpu_mondo_block_pa = __pa(mondo);
+ 
+ 	page = get_zeroed_page(GFP_KERNEL);
+ 	if (!page) {
+-		prom_printf("SUN4V: Error, cannot allocate cpu mondo page.\n");
++		prom_printf("SUN4V: Error, cannot allocate cpu list page.\n");
+ 		prom_halt();
+ 	}
+ 
+-	tb->cpu_mondo_block_pa = __pa(page);
+-	tb->cpu_list_pa = __pa(page + 64);
++	tb->cpu_list_pa = __pa(page);
  #endif
- 
-+#define XEN_SWIOTLB_ERROR_CODE	(~(dma_addr_t)0x0)
-+
- static char *xen_io_tlb_start, *xen_io_tlb_end;
- static unsigned long xen_io_tlb_nslabs;
- /*
-@@ -410,7 +412,7 @@ static dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 	map = swiotlb_tbl_map_single(dev, start_dma_addr, phys, size, dir,
- 				     attrs);
- 	if (map = SWIOTLB_MAP_ERROR)
--		return DMA_ERROR_CODE;
-+		return XEN_SWIOTLB_ERROR_CODE;
- 
- 	dev_addr = xen_phys_to_bus(map);
- 	xen_dma_map_page(dev, pfn_to_page(map >> PAGE_SHIFT),
-@@ -425,7 +427,7 @@ static dma_addr_t xen_swiotlb_map_page(struct device *dev, struct page *page,
- 	attrs |= DMA_ATTR_SKIP_CPU_SYNC;
- 	swiotlb_tbl_unmap_single(dev, map, size, dir, attrs);
- 
--	return DMA_ERROR_CODE;
-+	return XEN_SWIOTLB_ERROR_CODE;
  }
  
- /*
-@@ -715,6 +717,11 @@ xen_swiotlb_get_sgtable(struct device *dev, struct sg_table *sgt,
- 	return dma_common_get_sgtable(dev, sgt, cpu_addr, handle, size);
- }
- 
-+static int xen_swiotlb_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	return dma_addr = XEN_SWIOTLB_ERROR_CODE;
-+}
-+
- const struct dma_map_ops xen_swiotlb_dma_ops = {
- 	.alloc = xen_swiotlb_alloc_coherent,
- 	.free = xen_swiotlb_free_coherent,
-@@ -730,4 +737,5 @@ const struct dma_map_ops xen_swiotlb_dma_ops = {
- 	.set_dma_mask = xen_swiotlb_set_dma_mask,
- 	.mmap = xen_swiotlb_dma_mmap,
- 	.get_sgtable = xen_swiotlb_get_sgtable,
-+	.mapping_error	= xen_swiotlb_mapping_error,
- };
 -- 
-2.11.0
+1.7.1
 
