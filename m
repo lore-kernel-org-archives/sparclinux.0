@@ -1,7 +1,7 @@
 From: jane.chu@oracle.com
-Date: Mon, 05 Jun 2017 19:15:41 +0000
+Date: Mon, 05 Jun 2017 21:32:10 +0000
 Subject: Re: [PATCH] arch/sparc: support NR_CPUS = 4096
-Message-Id: <849c3d62-8bb1-e1f4-3fc4-68fa71484a2b@oracle.com>
+Message-Id: <d30b7444-60ba-4774-d0ce-1c2cf9b60058@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
  <20170604.194653.1906726081560123777.davem@davemloft.net>
@@ -10,9 +10,33 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
-Cc: tglx@linutronix.de, atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, "JANE.CHU" <jane.chu@oracle.com>
+Cc: tglx@linutronix.de, atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Steven Sistare <steven.sistare@oracle.com>
 
-Hi, David,
+Hi,
+
+I have a question about a checkpatch.pl warning against the
+
+use of NR_CPUS -
+
+$ ./scripts/checkpatch.pl diff.patch
+WARNING: usage of NR_CPUS is often wrong - consider using 
+cpu_possible(), num_possible_cpus(), for_each_possible_cpu(), etc
+#14: FILE: arch/sparc/kernel/irq_64.c:1039:
++       BUILD_BUG_ON((NR_CPUS * sizeof(u16)) > PAGE_SIZE);
+
+num_possible_cpus() is the hard limit on a domain without platform reboot,
+
+it is capped by both NR_CPUS and 'max_cpus' (a platform property in the
+
+machine description).  So it is theoretically possible to have NR_CPUS>4096
+
+but num_possible_cpus() < 4096 -- a scenario I think we'd prefer to reject.
+
+Is it okay to ignore the checkpatch.pl warning in this case?
+
+thanks,
+
+-jane
 
 
 On 06/04/2017 04:46 PM, David Miller wrote:
@@ -45,9 +69,6 @@ On 06/04/2017 04:46 PM, David Miller wrote:
 >
 > This also allows to keep the BUILD_BUG_ON(), which I really wish
 > you hadn't tried to remove.
-
-Good point!  I will just add a comment for future maintenance that
-the mondo trap block needs to be 64byte aligned.
 >
 > static void __init init_cpu_send_mondo_info(struct trap_per_cpu *tb)
 > {
@@ -72,11 +93,6 @@ the mondo trap block needs to be 64byte aligned.
 > 	tb->cpu_list_pa = __pa(page);
 > #endif
 > }
-
-Thanks a lot!
-
--jane
-
 >
 > Thanks.
 
