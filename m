@@ -1,67 +1,220 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Date: Sun, 18 Jun 2017 09:54:02 +0000
-Subject: Re: [PATCH 42/44] powerpc/cell: use the dma_supported method for ops switching
-Message-Id: <1497779642.31581.6.camel@kernel.crashing.org>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Tue, 06 Jun 2017 19:10:21 +0000
+Subject: [PATCH 5/7] sh: Use lib/ashldi3,ashrdi3,lshrdi3}.c
+Message-Id: <20170606191023.24581-6-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
- <20170616181059.19206-43-hch@lst.de>
- <1497732627.2897.128.camel@kernel.crashing.org>
- <20170618071344.GB18526@infradead.org>
-In-Reply-To: <20170618071344.GB18526@infradead.org>
+References: <20170523220546.16758-1-palmer@dabbelt.com>
+ <20170606191023.24581-1-palmer@dabbelt.com>
+In-Reply-To: <20170606191023.24581-1-palmer@dabbelt.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-mips@linux-mips.org, linux-samsung-soc@vger.kernel.org, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, x86@kernel.org, linux-tegra@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, dmaengine@vger.kernel.org, iommu@lists.linux-foundation.org, openrisc@lists.librecores.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, linuxppc-dev@lists.ozlabs.org, Christoph Hellwig <hch@lst.de>, linux-arm-kernel@lists.infradead.org
+To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 
-On Sun, 2017-06-18 at 00:13 -0700, Christoph Hellwig wrote:
-> On Sun, Jun 18, 2017 at 06:50:27AM +1000, Benjamin Herrenschmidt wrote:
-> > What is your rationale here ? (I have missed patch 0 it seems).
-> 
-> Less code duplication, more modular dma_map_ops insteance.
-> 
-> > dma_supported() was supposed to be pretty much a "const" function
-> > simply informing whether a given setup is possible. Having it perform
-> > an actual switch of ops seems to be pushing it...
-> 
-> dma_supported() is already gone from the public DMA API as it doesn't
-> make sense to be called separately from set_dma_mask.  It will be
-> entirely gone in the next series after this one.
+These files are functionally identical to the shared copies that I
+recently added.
 
-Ah ok, in that case it makes much more sense, we can rename it then.
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ arch/sh/Kconfig                  |  3 +++
+ arch/sh/boot/compressed/Makefile |  6 +++---
+ arch/sh/lib/Makefile             |  4 +---
+ arch/sh/lib/ashldi3.c            | 29 -----------------------------
+ arch/sh/lib/ashrdi3.c            | 31 -------------------------------
+ arch/sh/lib/libgcc.h             | 25 -------------------------
+ arch/sh/lib/lshrdi3.c            | 29 -----------------------------
+ 7 files changed, 7 insertions(+), 120 deletions(-)
+ delete mode 100644 arch/sh/lib/ashldi3.c
+ delete mode 100644 arch/sh/lib/ashrdi3.c
+ delete mode 100644 arch/sh/lib/libgcc.h
+ delete mode 100644 arch/sh/lib/lshrdi3.c
 
-> > What if a driver wants to test various dma masks and then pick one ?
-> > 
-> > Where does the API documents that if a driver calls dma_supported() it
-> > then *must* set the corresponding mask and use that ?
-> 
-> Where is the API document for _any_ of the dma routines? (A: work in
-> progress by me, but I need to clean up the mess of arch hooks before
-> it can make any sense)
-
-Heh fair enough.
-
-> > I don't like a function that is a "boolean query" like this one to have
-> > such a major side effect.
-> > 
-> > > From an API standpoint, dma_set_mask() is when the mask is established,
-> > 
-> > and thus when the ops switch should happen.
-> 
-> And that's exactly what happens at the driver API level.  It just turns
-> out the dma_capable method is they way better place to actually
-> implement it, as the ->set_dma_mask method requires lots of code
-> duplication while not offering any actual benefit over ->dma_capable.
-> And because of that it's gone after this series.
-> 
-> In theory we could rename ->dma_capable now, but it would require a
-> _lot_ of churn.  Give me another merge window or two and we should
-> be down to be about 2 handful of dma_map_ops instance, at which point
-> we could do all this gratious renaming a lot more easily :)
-
-Sure, I get it now, as long as it's not publicly exposed to drivers
-we are fine.
-
-Cheers,
-Ben.
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index ee086958b2b2..49b98f74d7a0 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -48,6 +48,9 @@ config SUPERH
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
++	select GENERIC_ASHLDI3
++	select GENERIC_ASHRDI3
++	select GENERIC_LSHRDI3
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+ 	  and consumer electronics; it was also used in the Sega Dreamcast
+diff --git a/arch/sh/boot/compressed/Makefile b/arch/sh/boot/compressed/Makefile
+index c4c47ea9fa94..45a8e1349103 100644
+--- a/arch/sh/boot/compressed/Makefile
++++ b/arch/sh/boot/compressed/Makefile
+@@ -38,10 +38,10 @@ LDFLAGS_vmlinux := --oformat $(ld-bfd) -Ttext $(IMAGE_OFFSET) -e startup \
+ #
+ # Pull in the necessary libgcc bits from the in-kernel implementation.
+ #
+-lib1funcs-$(CONFIG_SUPERH32)	:= ashiftrt.S ashldi3.c ashrsi3.S ashlsi3.S \
+-				   lshrsi3.S
++lib1funcs-$(CONFIG_SUPERH32)	:= ashiftrt.S ashrsi3.S ashlsi3.S lshrsi3.S
+ lib1funcs-obj			:= \
+-	$(addsuffix .o, $(basename $(addprefix $(obj)/, $(lib1funcs-y))))
++	$(addsuffix .o, $(basename $(addprefix $(obj)/, $(lib1funcs-y)))) \
++	$(srctree)/lib/ashldi3.o
+ 
+ lib1funcs-dir		:= $(srctree)/arch/$(SRCARCH)/lib
+ ifeq ($(BITS),64)
+diff --git a/arch/sh/lib/Makefile b/arch/sh/lib/Makefile
+index 3baff31e58cf..971d9ac1e068 100644
+--- a/arch/sh/lib/Makefile
++++ b/arch/sh/lib/Makefile
+@@ -6,9 +6,7 @@ lib-y  = delay.o memmove.o memchr.o \
+ 	 checksum.o strlen.o div64.o div64-generic.o
+ 
+ # Extracted from libgcc
+-obj-y += movmem.o ashldi3.o ashrdi3.o lshrdi3.o \
+-	 ashlsi3.o ashrsi3.o ashiftrt.o lshrsi3.o \
+-	 udiv_qrnnd.o
++obj-y += movmem.o ashlsi3.o ashrsi3.o ashiftrt.o lshrsi3.o udiv_qrnnd.o
+ 
+ udivsi3-y			:= udivsi3_i4i-Os.o
+ 
+diff --git a/arch/sh/lib/ashldi3.c b/arch/sh/lib/ashldi3.c
+deleted file mode 100644
+index beb80f316095..000000000000
+--- a/arch/sh/lib/ashldi3.c
++++ /dev/null
+@@ -1,29 +0,0 @@
+-#include <linux/module.h>
+-
+-#include "libgcc.h"
+-
+-long long __ashldi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		w.s.low = 0;
+-		w.s.high = (unsigned int) uu.s.low << -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.low >> bm;
+-
+-		w.s.low = (unsigned int) uu.s.low << b;
+-		w.s.high = ((unsigned int) uu.s.high << b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__ashldi3);
+diff --git a/arch/sh/lib/ashrdi3.c b/arch/sh/lib/ashrdi3.c
+deleted file mode 100644
+index c884a912b660..000000000000
+--- a/arch/sh/lib/ashrdi3.c
++++ /dev/null
+@@ -1,31 +0,0 @@
+-#include <linux/module.h>
+-
+-#include "libgcc.h"
+-
+-long long __ashrdi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		/* w.s.high = 1..1 or 0..0 */
+-		w.s.high -		    uu.s.high >> 31;
+-		w.s.low = uu.s.high >> -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.high << bm;
+-
+-		w.s.high = uu.s.high >> b;
+-		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__ashrdi3);
+diff --git a/arch/sh/lib/libgcc.h b/arch/sh/lib/libgcc.h
+deleted file mode 100644
+index 05909d58e2fe..000000000000
+--- a/arch/sh/lib/libgcc.h
++++ /dev/null
+@@ -1,25 +0,0 @@
+-#ifndef __ASM_LIBGCC_H
+-#define __ASM_LIBGCC_H
+-
+-#include <asm/byteorder.h>
+-
+-typedef int word_type __attribute__ ((mode (__word__)));
+-
+-#ifdef __BIG_ENDIAN
+-struct DWstruct {
+-	int high, low;
+-};
+-#elif defined(__LITTLE_ENDIAN)
+-struct DWstruct {
+-	int low, high;
+-};
+-#else
+-#error I feel sick.
+-#endif
+-
+-typedef union {
+-	struct DWstruct s;
+-	long long ll;
+-} DWunion;
+-
+-#endif /* __ASM_LIBGCC_H */
+diff --git a/arch/sh/lib/lshrdi3.c b/arch/sh/lib/lshrdi3.c
+deleted file mode 100644
+index dcf8d6810b7c..000000000000
+--- a/arch/sh/lib/lshrdi3.c
++++ /dev/null
+@@ -1,29 +0,0 @@
+-#include <linux/module.h>
+-
+-#include "libgcc.h"
+-
+-long long __lshrdi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		w.s.high = 0;
+-		w.s.low = (unsigned int) uu.s.high >> -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.high << bm;
+-
+-		w.s.high = (unsigned int) uu.s.high >> b;
+-		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__lshrdi3);
+-- 
+2.13.0
 
