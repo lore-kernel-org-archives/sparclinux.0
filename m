@@ -1,87 +1,74 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:20 +0000
-Subject: [PATCH 05/44] drm/armada: don't abuse DMA_ERROR_CODE
-Message-Id: <20170616181059.19206-6-hch@lst.de>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 06 Jun 2017 19:22:19 +0000
+Subject: [PATCH 14/16] sparc: vio: use dev_groups and not dev_attrs for bus_type
+Message-Id: <20170606192221.1617-15-gregkh@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <20170606192221.1617-1-gregkh@linuxfoundation.org>
+In-Reply-To: <20170606192221.1617-1-gregkh@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-dev_addr isn't even a dma_addr_t, and DMA_ERROR_CODE has never been
-a valid driver API.  Add a bool mapped flag instead.
+The dev_attrs field has long been "depreciated" and is finally being
+removed, so move the driver to use the "correct" dev_groups field
+instead for struct bus_type.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <sparclinux@vger.kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/gpu/drm/armada/armada_fb.c  | 2 +-
- drivers/gpu/drm/armada/armada_gem.c | 5 ++---
- drivers/gpu/drm/armada/armada_gem.h | 1 +
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/vio.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/gpu/drm/armada/armada_fb.c b/drivers/gpu/drm/armada/armada_fb.c
-index 2a7eb6817c36..92e6b08ea64a 100644
---- a/drivers/gpu/drm/armada/armada_fb.c
-+++ b/drivers/gpu/drm/armada/armada_fb.c
-@@ -133,7 +133,7 @@ static struct drm_framebuffer *armada_fb_create(struct drm_device *dev,
- 	}
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index f6bb857254fc..78bf2cc60924 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -105,6 +105,7 @@ static ssize_t devspec_show(struct device *dev,
  
- 	/* Framebuffer objects must have a valid device address for scanout */
--	if (obj->dev_addr = DMA_ERROR_CODE) {
-+	if (!obj->mapped) {
- 		ret = -EINVAL;
- 		goto err_unref;
- 	}
-diff --git a/drivers/gpu/drm/armada/armada_gem.c b/drivers/gpu/drm/armada/armada_gem.c
-index d6c2a5d190eb..a76ca21d063b 100644
---- a/drivers/gpu/drm/armada/armada_gem.c
-+++ b/drivers/gpu/drm/armada/armada_gem.c
-@@ -175,6 +175,7 @@ armada_gem_linear_back(struct drm_device *dev, struct armada_gem_object *obj)
- 
- 		obj->phys_addr = obj->linear->start;
- 		obj->dev_addr = obj->linear->start;
-+		obj->mapped = true;
- 	}
- 
- 	DRM_DEBUG_DRIVER("obj %p phys %#llx dev %#llx\n", obj,
-@@ -205,7 +206,6 @@ armada_gem_alloc_private_object(struct drm_device *dev, size_t size)
- 		return NULL;
- 
- 	drm_gem_private_object_init(dev, &obj->obj, size);
--	obj->dev_addr = DMA_ERROR_CODE;
- 
- 	DRM_DEBUG_DRIVER("alloc private obj %p size %zu\n", obj, size);
- 
-@@ -229,8 +229,6 @@ static struct armada_gem_object *armada_gem_alloc_object(struct drm_device *dev,
- 		return NULL;
- 	}
- 
--	obj->dev_addr = DMA_ERROR_CODE;
--
- 	mapping = obj->obj.filp->f_mapping;
- 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER | __GFP_RECLAIMABLE);
- 
-@@ -610,5 +608,6 @@ int armada_gem_map_import(struct armada_gem_object *dobj)
- 		return -EINVAL;
- 	}
- 	dobj->dev_addr = sg_dma_address(dobj->sgt->sgl);
-+	dobj->mapped = true;
- 	return 0;
+ 	return sprintf(buf, "%s\n", str);
  }
-diff --git a/drivers/gpu/drm/armada/armada_gem.h b/drivers/gpu/drm/armada/armada_gem.h
-index b88d2b9853c7..6e524e0676bb 100644
---- a/drivers/gpu/drm/armada/armada_gem.h
-+++ b/drivers/gpu/drm/armada/armada_gem.h
-@@ -16,6 +16,7 @@ struct armada_gem_object {
- 	void			*addr;
- 	phys_addr_t		phys_addr;
- 	resource_size_t		dev_addr;
-+	bool			mapped;
- 	struct drm_mm_node	*linear;	/* for linear backed */
- 	struct page		*page;		/* for page backed */
- 	struct sg_table		*sgt;		/* for imported */
++static DEVICE_ATTR_RO(devspec);
+ 
+ static ssize_t type_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -112,6 +113,7 @@ static ssize_t type_show(struct device *dev,
+ 	struct vio_dev *vdev = to_vio_dev(dev);
+ 	return sprintf(buf, "%s\n", vdev->type);
+ }
++static DEVICE_ATTR_RO(type);
+ 
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
+@@ -120,17 +122,19 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 
+ 	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
+ }
++static DEVICE_ATTR_RO(modalias);
+ 
+-static struct device_attribute vio_dev_attrs[] = {
+-	__ATTR_RO(devspec),
+-	__ATTR_RO(type),
+-	__ATTR_RO(modalias),
+-	__ATTR_NULL
+-};
++static struct attribute *vio_dev_attrs[] = {
++	&dev_attr_devspec.attr,
++	&dev_attr_type.attr,
++	&dev_attr_modalias.attr,
++	NULL,
++ };
++ATTRIBUTE_GROUPS(vio_dev);
+ 
+ static struct bus_type vio_bus_type = {
+ 	.name		= "vio",
+-	.dev_attrs	= vio_dev_attrs,
++	.dev_groups	= vio_dev_groups,
+ 	.uevent         = vio_hotplug,
+ 	.match		= vio_bus_match,
+ 	.probe		= vio_device_probe,
 -- 
-2.11.0
+2.13.0
 
