@@ -1,55 +1,278 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 06 Jun 2017 12:46:20 +0000
-Subject: Re: [PATCH v3 1/2] tty: add compat_ioctl callbacks
-Message-Id: <CAK8P3a1XsE9uCwn9N7oc4GycPERX3t1XhGyiixxRjhG8GXoEuA@mail.gmail.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Tue, 06 Jun 2017 19:10:23 +0000
+Subject: [PATCH 7/7] MIPS: Use generic libgcc intrinsics
+Message-Id: <20170606191023.24581-8-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170603135111.5444-1-asarai@suse.de> <20170603135111.5444-2-asarai@suse.de>
- <CAK8P3a3j4rB+iVX=a36csE6mX9iMRp14TS1UeePyFsjTKQyiZw@mail.gmail.com> <6faa7b93-a355-f7ba-e5e9-12f2414ac695@suse.de>
-In-Reply-To: <6faa7b93-a355-f7ba-e5e9-12f2414ac695@suse.de>
+References: <20170523220546.16758-1-palmer@dabbelt.com>
+ <20170606191023.24581-1-palmer@dabbelt.com>
+In-Reply-To: <20170606191023.24581-1-palmer@dabbelt.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Aleksa Sarai <asarai@suse.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-sh@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, linux-xtensa@linux-xtensa.org, linux-arch <linux-arch@vger.kernel.org>, Christian Brauner <christian.brauner@ubuntu.com>, Valentin Rothberg <vrothberg@suse.com>
+To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Palmer Dabbelt <palmer@dabbelt.com>, Matt Redfearn <matt.redfearn@imgtec.com>
 
-On Tue, Jun 6, 2017 at 1:05 PM, Aleksa Sarai <asarai@suse.de> wrote:
->>> diff --git a/drivers/tty/pty.c b/drivers/tty/pty.c
->>> index 65799575c666..2a6bd9ae3f8b 100644
->>> --- a/drivers/tty/pty.c
->>> +++ b/drivers/tty/pty.c
->>> @@ -481,6 +481,16 @@ static int pty_bsd_ioctl(struct tty_struct *tty,
->>>          return -ENOIOCTLCMD;
->>>   }
->>>
->>> +static long pty_bsd_compat_ioctl(struct tty_struct *tty,
->>> +                                unsigned int cmd, unsigned long arg)
->>> +{
->>> +       /*
->>> +        * PTY ioctls don't require any special translation between
->>> 32-bit and
->>> +        * 64-bit userspace, they are already compatible.
->>> +        */
->>> +       return pty_bsd_ioctl(tty, cmd, arg);
->>> +}
->>> +
->>
->>
->> This looks correct but unnecessary, you can simply point both
->> function pointers to the same function:
->
->
-> They have different types, since they have different return types:
->
-> int  (*ioctl)(struct tty_struct *tty,
->             unsigned int cmd, unsigned long arg);
-> long (*compat_ioctl)(struct tty_struct *tty,
->                      unsigned int cmd, unsigned long arg);
->
-> If you like, I can change (*ioctl) to return longs as well, and then change
-> all of the call-sites (since unlocked_ioctl also returns long).
+These routines in arch/mips/lib/ are functionally identical to those
+recently added to lib/ so remove them and select the generic ones.
 
-Ah, my mistake. In most other data structures that have a compat_ioctl
-callback pointer, the prototypes are the same, and I had not realized
-that tty_operations is an exception.
+Signed-off-by: Matt Redfearn <matt.redfearn@imgtec.com>
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+---
+ arch/mips/Kconfig                  |  5 +++++
+ arch/mips/boot/compressed/Makefile |  4 +++-
+ arch/mips/lib/Makefile             |  2 +-
+ arch/mips/lib/ashldi3.c            | 29 -----------------------------
+ arch/mips/lib/ashrdi3.c            | 31 -------------------------------
+ arch/mips/lib/cmpdi2.c             | 27 ---------------------------
+ arch/mips/lib/libgcc.h             | 25 -------------------------
+ arch/mips/lib/lshrdi3.c            | 29 -----------------------------
+ arch/mips/lib/ucmpdi2.c            | 21 ---------------------
+ 9 files changed, 9 insertions(+), 164 deletions(-)
+ delete mode 100644 arch/mips/lib/ashldi3.c
+ delete mode 100644 arch/mips/lib/ashrdi3.c
+ delete mode 100644 arch/mips/lib/cmpdi2.c
+ delete mode 100644 arch/mips/lib/libgcc.h
+ delete mode 100644 arch/mips/lib/lshrdi3.c
+ delete mode 100644 arch/mips/lib/ucmpdi2.c
 
-        Arnd
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 2828ecde133d..25713699ef1d 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -70,6 +70,11 @@ config MIPS
+ 	select HAVE_EXIT_THREAD
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_COPY_THREAD_TLS
++	select GENERIC_ASHLDI3
++	select GENERIC_ASHRDI3
++	select GENERIC_CMPDI2
++	select GENERIC_LSHRDI3
++	select GENERIC_UCMPDI2
+ 
+ menu "Machine selection"
+ 
+diff --git a/arch/mips/boot/compressed/Makefile b/arch/mips/boot/compressed/Makefile
+index c675eece389a..83cc738fb7af 100644
+--- a/arch/mips/boot/compressed/Makefile
++++ b/arch/mips/boot/compressed/Makefile
+@@ -48,7 +48,9 @@ vmlinuzobjs-$(CONFIG_KERNEL_XZ) += $(obj)/ashldi3.o $(obj)/bswapsi.o
+ 
+ extra-y += ashldi3.c bswapsi.c
+ $(obj)/ashldi3.o $(obj)/bswapsi.o: KBUILD_CFLAGS += -I$(srctree)/arch/mips/lib
+-$(obj)/ashldi3.c $(obj)/bswapsi.c: $(obj)/%.c: $(srctree)/arch/mips/lib/%.c
++$(obj)/ashldi3.c $(obj)/%.c: $(srctree)/lib/%.c
++	$(call cmd,shipped)
++$(obj)/bswapsi.c: $(obj)/%.c: $(srctree)/arch/mips/lib/%.c
+ 	$(call cmd,shipped)
+ 
+ targets := $(notdir $(vmlinuzobjs-y))
+diff --git a/arch/mips/lib/Makefile b/arch/mips/lib/Makefile
+index 0344e575f522..814e739d6f86 100644
+--- a/arch/mips/lib/Makefile
++++ b/arch/mips/lib/Makefile
+@@ -15,4 +15,4 @@ obj-$(CONFIG_CPU_R3000)		+= r3k_dump_tlb.o
+ obj-$(CONFIG_CPU_TX39XX)	+= r3k_dump_tlb.o
+ 
+ # libgcc-style stuff needed in the kernel
+-obj-y += ashldi3.o ashrdi3.o bswapsi.o bswapdi.o cmpdi2.o lshrdi3.o ucmpdi2.o
++obj-y += bswapsi.o bswapdi.o
+diff --git a/arch/mips/lib/ashldi3.c b/arch/mips/lib/ashldi3.c
+deleted file mode 100644
+index c3e22053d13e..000000000000
+--- a/arch/mips/lib/ashldi3.c
++++ /dev/null
+@@ -1,29 +0,0 @@
+-#include <linux/export.h>
+-
+-#include "libgcc.h"
+-
+-long long notrace __ashldi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		w.s.low = 0;
+-		w.s.high = (unsigned int) uu.s.low << -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.low >> bm;
+-
+-		w.s.low = (unsigned int) uu.s.low << b;
+-		w.s.high = ((unsigned int) uu.s.high << b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__ashldi3);
+diff --git a/arch/mips/lib/ashrdi3.c b/arch/mips/lib/ashrdi3.c
+deleted file mode 100644
+index 17456024873d..000000000000
+--- a/arch/mips/lib/ashrdi3.c
++++ /dev/null
+@@ -1,31 +0,0 @@
+-#include <linux/export.h>
+-
+-#include "libgcc.h"
+-
+-long long notrace __ashrdi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		/* w.s.high = 1..1 or 0..0 */
+-		w.s.high -		    uu.s.high >> 31;
+-		w.s.low = uu.s.high >> -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.high << bm;
+-
+-		w.s.high = uu.s.high >> b;
+-		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__ashrdi3);
+diff --git a/arch/mips/lib/cmpdi2.c b/arch/mips/lib/cmpdi2.c
+deleted file mode 100644
+index 9d849d8743c9..000000000000
+--- a/arch/mips/lib/cmpdi2.c
++++ /dev/null
+@@ -1,27 +0,0 @@
+-#include <linux/export.h>
+-
+-#include "libgcc.h"
+-
+-word_type notrace __cmpdi2(long long a, long long b)
+-{
+-	const DWunion au = {
+-		.ll = a
+-	};
+-	const DWunion bu = {
+-		.ll = b
+-	};
+-
+-	if (au.s.high < bu.s.high)
+-		return 0;
+-	else if (au.s.high > bu.s.high)
+-		return 2;
+-
+-	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
+-		return 0;
+-	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
+-		return 2;
+-
+-	return 1;
+-}
+-
+-EXPORT_SYMBOL(__cmpdi2);
+diff --git a/arch/mips/lib/libgcc.h b/arch/mips/lib/libgcc.h
+deleted file mode 100644
+index 05909d58e2fe..000000000000
+--- a/arch/mips/lib/libgcc.h
++++ /dev/null
+@@ -1,25 +0,0 @@
+-#ifndef __ASM_LIBGCC_H
+-#define __ASM_LIBGCC_H
+-
+-#include <asm/byteorder.h>
+-
+-typedef int word_type __attribute__ ((mode (__word__)));
+-
+-#ifdef __BIG_ENDIAN
+-struct DWstruct {
+-	int high, low;
+-};
+-#elif defined(__LITTLE_ENDIAN)
+-struct DWstruct {
+-	int low, high;
+-};
+-#else
+-#error I feel sick.
+-#endif
+-
+-typedef union {
+-	struct DWstruct s;
+-	long long ll;
+-} DWunion;
+-
+-#endif /* __ASM_LIBGCC_H */
+diff --git a/arch/mips/lib/lshrdi3.c b/arch/mips/lib/lshrdi3.c
+deleted file mode 100644
+index 221167c1be55..000000000000
+--- a/arch/mips/lib/lshrdi3.c
++++ /dev/null
+@@ -1,29 +0,0 @@
+-#include <linux/export.h>
+-
+-#include "libgcc.h"
+-
+-long long notrace __lshrdi3(long long u, word_type b)
+-{
+-	DWunion uu, w;
+-	word_type bm;
+-
+-	if (b = 0)
+-		return u;
+-
+-	uu.ll = u;
+-	bm = 32 - b;
+-
+-	if (bm <= 0) {
+-		w.s.high = 0;
+-		w.s.low = (unsigned int) uu.s.high >> -bm;
+-	} else {
+-		const unsigned int carries = (unsigned int) uu.s.high << bm;
+-
+-		w.s.high = (unsigned int) uu.s.high >> b;
+-		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
+-	}
+-
+-	return w.ll;
+-}
+-
+-EXPORT_SYMBOL(__lshrdi3);
+diff --git a/arch/mips/lib/ucmpdi2.c b/arch/mips/lib/ucmpdi2.c
+deleted file mode 100644
+index 08067fa538f2..000000000000
+--- a/arch/mips/lib/ucmpdi2.c
++++ /dev/null
+@@ -1,21 +0,0 @@
+-#include <linux/export.h>
+-
+-#include "libgcc.h"
+-
+-word_type notrace __ucmpdi2(unsigned long long a, unsigned long long b)
+-{
+-	const DWunion au = {.ll = a};
+-	const DWunion bu = {.ll = b};
+-
+-	if ((unsigned int) au.s.high < (unsigned int) bu.s.high)
+-		return 0;
+-	else if ((unsigned int) au.s.high > (unsigned int) bu.s.high)
+-		return 2;
+-	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
+-		return 0;
+-	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
+-		return 2;
+-	return 1;
+-}
+-
+-EXPORT_SYMBOL(__ucmpdi2);
+-- 
+2.13.0
+
