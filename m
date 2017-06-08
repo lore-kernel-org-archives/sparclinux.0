@@ -1,40 +1,128 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Fri, 30 Jun 2017 05:36:27 +0000
-Subject: Re: Spontaneous reboots seem to have been fixed - not
-Message-Id: <61f9f28f-544b-f92a-54a8-5ad2d942dbd3@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Thu, 08 Jun 2017 22:17:22 +0000
+Subject: [PATCH 1/2] arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
+Message-Id: <1496960243-196898-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1704231850570.29170@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1704231850570.29170@math.ut.ee>
+References: <1496960243-196898-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1496960243-196898-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk
+Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-On 6/29/17 10:10 AM, Meelis Roos wrote:
->> I started at the same time on 2 machines and spread to third when I 
->> copied the .config oveer to it, so at the moment I do not suspect the 
->> hardware but the kernel.
->>
->> Will put more time to it but I do not know when.
-> 
-> I did it on dual-CPU v210.
-> 
-> Minimized config to minimal nonmodular working one. That worked stable 
-> with current 4.12-rc7+git. Then added THP and enabled it (always on) - 
-> trouble was back. Disabled THP, this left on some setting that THP 
-> enabled (compaction etc), it was working again.
-> 
-> So it is THP.
-> 
-> Attached are good and bad minimal configs for my V210.
-> 
-> What is the next thing I can do to debug it?
-> 
+While working on enabling queued rwlock on SPARC, found
+this following code in include/asm-generic/qrwlock.h
+which uses CONFIG_CPU_BIG_ENDIAN to clear a byte.
 
-Thanks for the minimal config. I will try to reproduce this locally on
-the machines I have. Finding the bad commit would be a good first step.
+static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+ {
+	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+ }
 
-I'm on vacation till Jul 10, so would probably look in detail after that.
+Problem is many of the fixed big endian architectures dont define
+CPU_BIG_ENDIAN and clears the wrong byte.
 
-Nitin
+Define CPU_BIG_ENDIAN for all the fixed big endian architecture.
+
+Here is the orinal discussion
+http://www.spinics.net/lists/devicetree/msg178101.html
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/frv/Kconfig      |    3 +++
+ arch/h8300/Kconfig    |    3 +++
+ arch/m68k/Kconfig     |    3 +++
+ arch/openrisc/Kconfig |    3 +++
+ arch/parisc/Kconfig   |    3 +++
+ arch/sparc/Kconfig    |    3 +++
+ 6 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
+index eefd9a4..1cce824 100644
+--- a/arch/frv/Kconfig
++++ b/arch/frv/Kconfig
+@@ -17,6 +17,9 @@ config FRV
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select ARCH_NO_COHERENT_DMA_MMAP
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config ZONE_DMA
+ 	bool
+ 	default y
+diff --git a/arch/h8300/Kconfig b/arch/h8300/Kconfig
+index 3ae8525..5380ac8 100644
+--- a/arch/h8300/Kconfig
++++ b/arch/h8300/Kconfig
+@@ -23,6 +23,9 @@ config H8300
+ 	select HAVE_ARCH_HASH
+ 	select CPU_NO_EFFICIENT_FFS
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config RWSEM_GENERIC_SPINLOCK
+ 	def_bool y
+ 
+diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
+index d140206..029a58b 100644
+--- a/arch/m68k/Kconfig
++++ b/arch/m68k/Kconfig
+@@ -23,6 +23,9 @@ config M68K
+ 	select OLD_SIGSUSPEND3
+ 	select OLD_SIGACTION
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config RWSEM_GENERIC_SPINLOCK
+ 	bool
+ 	default y
+diff --git a/arch/openrisc/Kconfig b/arch/openrisc/Kconfig
+index 1e95920..a0f2e4a 100644
+--- a/arch/openrisc/Kconfig
++++ b/arch/openrisc/Kconfig
+@@ -29,6 +29,9 @@ config OPENRISC
+ 	select CPU_NO_EFFICIENT_FFS if !OPENRISC_HAVE_INST_FF1
+ 	select NO_BOOTMEM
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config MMU
+ 	def_bool y
+ 
+diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
+index 531da9e..dda1f55 100644
+--- a/arch/parisc/Kconfig
++++ b/arch/parisc/Kconfig
+@@ -47,6 +47,9 @@ config PARISC
+ 	  and later HP3000 series).  The PA-RISC Linux project home page is
+ 	  at <http://www.parisc-linux.org/>.
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config MMU
+ 	def_bool y
+ 
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 58243b0..eb213b5 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -92,6 +92,9 @@ config ARCH_DEFCONFIG
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+ 
++config CPU_BIG_ENDIAN
++	def_bool y
++
+ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+-- 
+1.7.1
 
