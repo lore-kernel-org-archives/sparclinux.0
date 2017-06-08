@@ -1,56 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 27 Jun 2017 17:24:11 +0000
-Subject: Re: [PATCH] vDSO for sparc
-Message-Id: <20170627.132411.1713223287761684771.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:54 +0000
+Subject: [PATCH 29/44] dma-noop: remove dma_supported and mapping_error methods
+Message-Id: <20170608132609.32662-30-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1498495167-773325-1-git-send-email-nagarathnam.muthusamy@oracle.com>
-In-Reply-To: <1498495167-773325-1-git-send-email-nagarathnam.muthusamy@oracle.com>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Nick Alcock <nick.alcock@oracle.com>
-Date: Tue, 27 Jun 2017 12:29:16 +0100
+These just duplicate the default behavior if no method is provided.
 
-> On 27 Jun 2017, David Miller stated:
-> 
->> From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
->> Date: Mon, 26 Jun 2017 12:39:27 -0400
->>
->>> +static notrace inline u64
->>> +vgetsns(struct vvar_data *vvar)
->>> +{
->>> +	u64 v;
->>> +	u64 cycles;
->>> +
->>> +	switch (vvar->vclock_mode) {
->>> +	case VCLOCK_TICK:
->>> +		cycles = vread_tick();
->>> +		break;
->>> +	case VCLOCK_STICK:
->>> +		cycles = vread_stick();
->>> +		break;
->>> +	default:
->>> +		return 0;
->>> +	}
->>> +	v = (cycles - vvar->clock.cycle_last) & vvar->clock.mask;
->>> +	return v * vvar->clock.mult;
->>> +}
->>
->> If you're going to go through all of this trouble to make a vdso,
->> it should be assembler code patched at boot time for the tick
->> access etc.
-> 
-> Oh wait I see what you're getting at: it just needs to be a single jump,
-> doesn't it, with the target patched, and an asm label pointing at the
-> jump instruction? I was assuming something much more complex, analyzing
-> the compiler-generated instruction stream for vgetsns(), but you can
-> of course call something one instruction long that just jumps, and then
-> there's no analysis at all...
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/dma-noop.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-You have to write this function in assembler, and patch it just like
-we patch any other code for cpu specific things in the kernel.
+diff --git a/lib/dma-noop.c b/lib/dma-noop.c
+index de26c8b68f34..643a074f139d 100644
+--- a/lib/dma-noop.c
++++ b/lib/dma-noop.c
+@@ -54,23 +54,11 @@ static int dma_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nent
+ 	return nents;
+ }
+ 
+-static int dma_noop_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return 0;
+-}
+-
+-static int dma_noop_supported(struct device *dev, u64 mask)
+-{
+-	return 1;
+-}
+-
+ const struct dma_map_ops dma_noop_ops = {
+ 	.alloc			= dma_noop_alloc,
+ 	.free			= dma_noop_free,
+ 	.map_page		= dma_noop_map_page,
+ 	.map_sg			= dma_noop_map_sg,
+-	.mapping_error		= dma_noop_mapping_error,
+-	.dma_supported		= dma_noop_supported,
+ };
+ 
+ EXPORT_SYMBOL(dma_noop_ops);
+-- 
+2.11.0
 
-We recently had this done for the kernel time keeping to get sched_clock()
-as efficient as possible, so you have something to use as a guide.
