@@ -1,116 +1,95 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:49 +0000
-Subject: [PATCH 34/44] arm: remove arch specific dma_supported implementation
-Message-Id: <20170616181059.19206-35-hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:42 +0000
+Subject: [PATCH 17/44] hexagon: switch to use ->mapping_error for error reporting
+Message-Id: <20170608132609.32662-18-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-And instead wire it up as method for all the dma_map_ops instances.
-
-Note that the code seems a little fishy for dmabounce and iommu, but
-for now I'd like to preserve the existing behavior 1:1.
+To: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/arm/common/dmabounce.c        | 1 +
- arch/arm/include/asm/dma-iommu.h   | 2 ++
- arch/arm/include/asm/dma-mapping.h | 3 ---
- arch/arm/mm/dma-mapping.c          | 7 +++++--
- 4 files changed, 8 insertions(+), 5 deletions(-)
+ arch/hexagon/include/asm/dma-mapping.h |  2 --
+ arch/hexagon/kernel/dma.c              | 12 +++++++++---
+ arch/hexagon/kernel/hexagon_ksyms.c    |  1 -
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/common/dmabounce.c b/arch/arm/common/dmabounce.c
-index 4060378e0f14..6ecd5be5d37e 100644
---- a/arch/arm/common/dmabounce.c
-+++ b/arch/arm/common/dmabounce.c
-@@ -473,6 +473,7 @@ static const struct dma_map_ops dmabounce_ops = {
- 	.sync_sg_for_device	= arm_dma_sync_sg_for_device,
- 	.set_dma_mask		= dmabounce_set_mask,
- 	.mapping_error		= dmabounce_mapping_error,
-+	.dma_supported		= arm_dma_supported,
- };
+diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
+index d3a87bd9b686..00e3f10113b0 100644
+--- a/arch/hexagon/include/asm/dma-mapping.h
++++ b/arch/hexagon/include/asm/dma-mapping.h
+@@ -29,8 +29,6 @@
+ #include <asm/io.h>
  
- static int dmabounce_init_pool(struct dmabounce_pool *pool, struct device *dev,
-diff --git a/arch/arm/include/asm/dma-iommu.h b/arch/arm/include/asm/dma-iommu.h
-index 389a26a10ea3..c090ec675eac 100644
---- a/arch/arm/include/asm/dma-iommu.h
-+++ b/arch/arm/include/asm/dma-iommu.h
-@@ -35,5 +35,7 @@ int arm_iommu_attach_device(struct device *dev,
- 					struct dma_iommu_mapping *mapping);
- void arm_iommu_detach_device(struct device *dev);
+ struct device;
+-extern int bad_dma_address;
+-#define DMA_ERROR_CODE bad_dma_address
  
-+int arm_dma_supported(struct device *dev, u64 mask);
+ extern const struct dma_map_ops *dma_ops;
+ 
+diff --git a/arch/hexagon/kernel/dma.c b/arch/hexagon/kernel/dma.c
+index e74b65009587..71269dc0f225 100644
+--- a/arch/hexagon/kernel/dma.c
++++ b/arch/hexagon/kernel/dma.c
+@@ -25,11 +25,11 @@
+ #include <linux/module.h>
+ #include <asm/page.h>
+ 
++#define HEXAGON_MAPPING_ERROR	0
 +
- #endif /* __KERNEL__ */
- #endif
-diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-index 52a8fd5a8edb..8dabcfdf4505 100644
---- a/arch/arm/include/asm/dma-mapping.h
-+++ b/arch/arm/include/asm/dma-mapping.h
-@@ -20,9 +20,6 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- 	return &arm_dma_ops;
- }
+ const struct dma_map_ops *dma_ops;
+ EXPORT_SYMBOL(dma_ops);
  
--#define HAVE_ARCH_DMA_SUPPORTED 1
--extern int dma_supported(struct device *dev, u64 mask);
+-int bad_dma_address;  /*  globals are automatically initialized to zero  */
 -
- #ifdef __arch_page_to_dma
- #error Please update to __arch_pfn_to_dma
- #endif
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 8f2c5a8a98f0..b9677ada421f 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -199,6 +199,7 @@ const struct dma_map_ops arm_dma_ops = {
- 	.sync_sg_for_cpu	= arm_dma_sync_sg_for_cpu,
- 	.sync_sg_for_device	= arm_dma_sync_sg_for_device,
- 	.mapping_error		= arm_dma_mapping_error,
-+	.dma_supported		= arm_dma_supported,
- };
- EXPORT_SYMBOL(arm_dma_ops);
- 
-@@ -218,6 +219,7 @@ const struct dma_map_ops arm_coherent_dma_ops = {
- 	.map_page		= arm_coherent_dma_map_page,
- 	.map_sg			= arm_dma_map_sg,
- 	.mapping_error		= arm_dma_mapping_error,
-+	.dma_supported		= arm_dma_supported,
- };
- EXPORT_SYMBOL(arm_coherent_dma_ops);
- 
-@@ -1184,11 +1186,10 @@ void arm_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
-  * during bus mastering, then you would pass 0x00ffffff as the mask
-  * to this function.
-  */
--int dma_supported(struct device *dev, u64 mask)
-+int arm_dma_supported(struct device *dev, u64 mask)
+ static inline void *dma_addr_to_virt(dma_addr_t dma_addr)
  {
- 	return __dma_supported(dev, mask, false);
+ 	return phys_to_virt((unsigned long) dma_addr);
+@@ -181,7 +181,7 @@ static dma_addr_t hexagon_map_page(struct device *dev, struct page *page,
+ 	WARN_ON(size = 0);
+ 
+ 	if (!check_addr("map_single", dev, bus, size))
+-		return bad_dma_address;
++		return HEXAGON_MAPPING_ERROR;
+ 
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		dma_sync(dma_addr_to_virt(bus), size, dir);
+@@ -203,6 +203,11 @@ static void hexagon_sync_single_for_device(struct device *dev,
+ 	dma_sync(dma_addr_to_virt(dma_handle), size, dir);
  }
--EXPORT_SYMBOL(dma_supported);
  
- #define PREALLOC_DMA_DEBUG_ENTRIES	4096
- 
-@@ -2149,6 +2150,7 @@ const struct dma_map_ops iommu_ops = {
- 	.unmap_resource		= arm_iommu_unmap_resource,
- 
- 	.mapping_error		= arm_dma_mapping_error,
-+	.dma_supported		= arm_dma_supported,
++static int hexagon_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return dma_addr = HEXAGON_MAPPING_ERROR;
++}
++
+ const struct dma_map_ops hexagon_dma_ops = {
+ 	.alloc		= hexagon_dma_alloc_coherent,
+ 	.free		= hexagon_free_coherent,
+@@ -210,6 +215,7 @@ const struct dma_map_ops hexagon_dma_ops = {
+ 	.map_page	= hexagon_map_page,
+ 	.sync_single_for_cpu = hexagon_sync_single_for_cpu,
+ 	.sync_single_for_device = hexagon_sync_single_for_device,
++	.mapping_error	= hexagon_mapping_error;
+ 	.is_phys	= 1,
  };
  
- const struct dma_map_ops iommu_coherent_ops = {
-@@ -2167,6 +2169,7 @@ const struct dma_map_ops iommu_coherent_ops = {
- 	.unmap_resource	= arm_iommu_unmap_resource,
+diff --git a/arch/hexagon/kernel/hexagon_ksyms.c b/arch/hexagon/kernel/hexagon_ksyms.c
+index 00bcad9cbd8f..aa248f595431 100644
+--- a/arch/hexagon/kernel/hexagon_ksyms.c
++++ b/arch/hexagon/kernel/hexagon_ksyms.c
+@@ -40,7 +40,6 @@ EXPORT_SYMBOL(memset);
+ /* Additional variables */
+ EXPORT_SYMBOL(__phys_offset);
+ EXPORT_SYMBOL(_dflt_cache_att);
+-EXPORT_SYMBOL(bad_dma_address);
  
- 	.mapping_error		= arm_dma_mapping_error,
-+	.dma_supported		= arm_dma_supported,
- };
- 
- /**
+ #define DECLARE_EXPORT(name)     \
+ 	extern void name(void); EXPORT_SYMBOL(name)
 -- 
 2.11.0
 
