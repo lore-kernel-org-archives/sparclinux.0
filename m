@@ -1,85 +1,101 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:56 +0000
-Subject: [PATCH 41/44] powerpc/cell: clean up fixed mapping dma_ops initialization
-Message-Id: <20170616181059.19206-42-hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:43 +0000
+Subject: [PATCH 18/44] iommu/amd: implement ->mapping_error
+Message-Id: <20170608132609.32662-19-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 
-By the time cell_pci_dma_dev_setup calls cell_dma_dev_setup no device can
-have the fixed map_ops set yet as it's only set by the set_dma_mask
-method.  So move the setup for the fixed case to be only called in that
-place instead of indirecting through cell_dma_dev_setup.
+DMA_ERROR_CODE is going to go away, so don't rely on it.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/powerpc/platforms/cell/iommu.c | 27 +++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+ drivers/iommu/amd_iommu.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/arch/powerpc/platforms/cell/iommu.c b/arch/powerpc/platforms/cell/iommu.c
-index 948086e33a0c..497bfbdbd967 100644
---- a/arch/powerpc/platforms/cell/iommu.c
-+++ b/arch/powerpc/platforms/cell/iommu.c
-@@ -663,14 +663,9 @@ static const struct dma_map_ops dma_iommu_fixed_ops = {
- 	.mapping_error	= dma_iommu_mapping_error,
- };
+diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
+index 63cacf5d6cf2..d41280e869de 100644
+--- a/drivers/iommu/amd_iommu.c
++++ b/drivers/iommu/amd_iommu.c
+@@ -54,6 +54,8 @@
+ #include "amd_iommu_types.h"
+ #include "irq_remapping.h"
  
--static void cell_dma_dev_setup_fixed(struct device *dev);
--
- static void cell_dma_dev_setup(struct device *dev)
- {
--	/* Order is important here, these are not mutually exclusive */
--	if (get_dma_ops(dev) = &dma_iommu_fixed_ops)
--		cell_dma_dev_setup_fixed(dev);
--	else if (get_pci_dma_ops() = &dma_iommu_ops)
-+	if (get_pci_dma_ops() = &dma_iommu_ops)
- 		set_iommu_table_base(dev, cell_get_iommu_table(dev));
- 	else if (get_pci_dma_ops() = &dma_direct_ops)
- 		set_dma_offset(dev, cell_dma_direct_offset);
-@@ -963,32 +958,24 @@ static int dma_set_mask_and_switch(struct device *dev, u64 dma_mask)
- 		return -EIO;
++#define AMD_IOMMU_MAPPING_ERROR	0
++
+ #define CMD_SET_TYPE(cmd, t) ((cmd)->data[1] |= ((t) << 28))
  
- 	if (dma_mask = DMA_BIT_MASK(64) &&
--		cell_iommu_get_fixed_address(dev) != OF_BAD_ADDR)
--	{
-+	    cell_iommu_get_fixed_address(dev) != OF_BAD_ADDR) {
-+		u64 addr = cell_iommu_get_fixed_address(dev) +
-+			dma_iommu_fixed_base;
- 		dev_dbg(dev, "iommu: 64-bit OK, using fixed ops\n");
-+		dev_dbg(dev, "iommu: fixed addr = %llx\n", addr);
- 		set_dma_ops(dev, &dma_iommu_fixed_ops);
-+		set_dma_offset(dev, addr);
- 	} else {
- 		dev_dbg(dev, "iommu: not 64-bit, using default ops\n");
- 		set_dma_ops(dev, get_pci_dma_ops());
-+		cell_dma_dev_setup(dev);
- 	}
+ #define LOOP_TIMEOUT	100000
+@@ -2394,7 +2396,7 @@ static dma_addr_t __map_single(struct device *dev,
+ 	paddr &= PAGE_MASK;
  
--	cell_dma_dev_setup(dev);
--
- 	*dev->dma_mask = dma_mask;
+ 	address = dma_ops_alloc_iova(dev, dma_dom, pages, dma_mask);
+-	if (address = DMA_ERROR_CODE)
++	if (address = AMD_IOMMU_MAPPING_ERROR)
+ 		goto out;
  
- 	return 0;
+ 	prot = dir2prot(direction);
+@@ -2431,7 +2433,7 @@ static dma_addr_t __map_single(struct device *dev,
+ 
+ 	dma_ops_free_iova(dma_dom, address, pages);
+ 
+-	return DMA_ERROR_CODE;
++	return AMD_IOMMU_MAPPING_ERROR;
  }
  
--static void cell_dma_dev_setup_fixed(struct device *dev)
--{
--	u64 addr;
--
--	addr = cell_iommu_get_fixed_address(dev) + dma_iommu_fixed_base;
--	set_dma_offset(dev, addr);
--
--	dev_dbg(dev, "iommu: fixed addr = %llx\n", addr);
--}
--
- static void insert_16M_pte(unsigned long addr, unsigned long *ptab,
- 			   unsigned long base_pte)
- {
+ /*
+@@ -2483,7 +2485,7 @@ static dma_addr_t map_page(struct device *dev, struct page *page,
+ 	if (PTR_ERR(domain) = -EINVAL)
+ 		return (dma_addr_t)paddr;
+ 	else if (IS_ERR(domain))
+-		return DMA_ERROR_CODE;
++		return AMD_IOMMU_MAPPING_ERROR;
+ 
+ 	dma_mask = *dev->dma_mask;
+ 	dma_dom = to_dma_ops_domain(domain);
+@@ -2560,7 +2562,7 @@ static int map_sg(struct device *dev, struct scatterlist *sglist,
+ 	npages = sg_num_pages(dev, sglist, nelems);
+ 
+ 	address = dma_ops_alloc_iova(dev, dma_dom, npages, dma_mask);
+-	if (address = DMA_ERROR_CODE)
++	if (address = AMD_IOMMU_MAPPING_ERROR)
+ 		goto out_err;
+ 
+ 	prot = dir2prot(direction);
+@@ -2683,7 +2685,7 @@ static void *alloc_coherent(struct device *dev, size_t size,
+ 	*dma_addr = __map_single(dev, dma_dom, page_to_phys(page),
+ 				 size, DMA_BIDIRECTIONAL, dma_mask);
+ 
+-	if (*dma_addr = DMA_ERROR_CODE)
++	if (*dma_addr = AMD_IOMMU_MAPPING_ERROR)
+ 		goto out_free;
+ 
+ 	return page_address(page);
+@@ -2732,6 +2734,11 @@ static int amd_iommu_dma_supported(struct device *dev, u64 mask)
+ 	return check_device(dev);
+ }
+ 
++static int amd_iommu_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return dma_addr = AMD_IOMMU_MAPPING_ERROR;
++}
++
+ static const struct dma_map_ops amd_iommu_dma_ops = {
+ 	.alloc		= alloc_coherent,
+ 	.free		= free_coherent,
+@@ -2740,6 +2747,7 @@ static const struct dma_map_ops amd_iommu_dma_ops = {
+ 	.map_sg		= map_sg,
+ 	.unmap_sg	= unmap_sg,
+ 	.dma_supported	= amd_iommu_dma_supported,
++	.mapping_error	= amd_iommu_mapping_error,
+ };
+ 
+ static int init_reserved_iova_ranges(void)
 -- 
 2.11.0
 
