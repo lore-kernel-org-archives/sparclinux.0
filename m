@@ -1,38 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jun 2017 18:55:23 +0000
-Subject: Re: [PATCH] sparc64: mm: fix copy_tsb to correctly copy huge page TSBs
-Message-Id: <20170605.145523.2161559093801012337.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:26:04 +0000
+Subject: [PATCH 39/44] xen-swiotlb: remove xen_swiotlb_set_dma_mask
+Message-Id: <20170608132609.32662-40-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1496440272-19057-1-git-send-email-mike.kravetz@oracle.com>
-In-Reply-To: <1496440272-19057-1-git-send-email-mike.kravetz@oracle.com>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mike.kravetz@oracle.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, nitin.m.gupta@oracle.com, bob.picco@oracle.com, anthony.yznaga@oracle.com
+To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri,  2 Jun 2017 14:51:12 -0700
+This just duplicates the generic implementation.
 
-> When a TSB grows beyond its current capacity, a new TSB is allocated
-> and copy_tsb is called to copy entries from the old TSB to the new.
-> A hash shift based on page size is used to calculate the index of an
-> entry in the TSB.  copy_tsb has hard coded PAGE_SHIFT in these
-> calculations.  However, for huge page TSBs the value REAL_HPAGE_SHIFT
-> should be used.  As a result, when copy_tsb is called for a huge page
-> TSB the entries are placed at the incorrect index in the newly
-> allocated TSB.  When doing hardware table walk, the MMU does not
-> match these entries and we end up in the TSB miss handling code.
-> This code will then create and write an entry to the correct index
-> in the TSB.  We take a performance hit for the table walk miss and
-> recreation of these entries.
-> 
-> Pass a new parameter to copy_tsb that is the page size shift to be
-> used when copying the TSB.
-> 
-> Suggested-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/xen/swiotlb-xen.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-Great find, applied and queued up for -stable.
+diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
+index c3a04b2d7532..82fc54f8eb77 100644
+--- a/drivers/xen/swiotlb-xen.c
++++ b/drivers/xen/swiotlb-xen.c
+@@ -661,17 +661,6 @@ xen_swiotlb_dma_supported(struct device *hwdev, u64 mask)
+ 	return xen_virt_to_bus(xen_io_tlb_end - 1) <= mask;
+ }
+ 
+-static int
+-xen_swiotlb_set_dma_mask(struct device *dev, u64 dma_mask)
+-{
+-	if (!dev->dma_mask || !xen_swiotlb_dma_supported(dev, dma_mask))
+-		return -EIO;
+-
+-	*dev->dma_mask = dma_mask;
+-
+-	return 0;
+-}
+-
+ /*
+  * Create userspace mapping for the DMA-coherent memory.
+  * This function should be called with the pages from the current domain only,
+@@ -734,7 +723,6 @@ const struct dma_map_ops xen_swiotlb_dma_ops = {
+ 	.map_page = xen_swiotlb_map_page,
+ 	.unmap_page = xen_swiotlb_unmap_page,
+ 	.dma_supported = xen_swiotlb_dma_supported,
+-	.set_dma_mask = xen_swiotlb_set_dma_mask,
+ 	.mmap = xen_swiotlb_dma_mmap,
+ 	.get_sgtable = xen_swiotlb_get_sgtable,
+ 	.mapping_error	= xen_swiotlb_mapping_error,
+-- 
+2.11.0
 
-Thanks!
