@@ -1,190 +1,237 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 10 Jun 2017 22:45:18 +0000
-Subject: Re: [RFC] sparc64: Add virtual console server support
-Message-Id: <20170610.184518.412609942618991143.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:46 +0000
+Subject: [PATCH 21/44] powerpc: implement ->mapping_error
+Message-Id: <20170608132609.32662-22-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <7e19207357c55e200ea2ebb36a5bf9ebd509ff4c.1497024581.git.jag.raman@oracle.com>
-In-Reply-To: <7e19207357c55e200ea2ebb36a5bf9ebd509ff4c.1497024581.git.jag.raman@oracle.com>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri,  9 Jun 2017 12:32:02 -0400
+DMA_ERROR_CODE is going to go away, so don't rely on it.  Instead
+define a ->mapping_error method for all IOMMU based dma operation
+instances.  The direct ops don't ever return an error and don't
+need a ->mapping_error method.
 
-> diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
-> index d1c47e9..fca4a91 100644
-> --- a/arch/sparc/include/asm/vio.h
-> +++ b/arch/sparc/include/asm/vio.h
-> @@ -52,6 +52,7 @@ struct vio_ver_info {
->  #define VDEV_NETWORK_SWITCH	0x02
->  #define VDEV_DISK		0x03
->  #define VDEV_DISK_SERVER	0x04
-> +#define VDEV_CONSOLE_CON	0x05
->  
->  	u8			resv1[3];
->  	u64			resv2[5];
-> @@ -282,6 +283,14 @@ struct vio_dring_state {
->  	struct ldc_trans_cookie	cookies[VIO_MAX_RING_COOKIES];
->  };
->  
-> +#define	VIO_TAG_SIZE		(sizeof(struct vio_msg_tag))
-> +#define	VIO_VCC_MTU_SIZE	(LDC_PACKET_SIZE - 8)
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/powerpc/include/asm/dma-mapping.h |  4 ----
+ arch/powerpc/include/asm/iommu.h       |  4 ++++
+ arch/powerpc/kernel/dma-iommu.c        |  6 ++++++
+ arch/powerpc/kernel/iommu.c            | 28 ++++++++++++++--------------
+ arch/powerpc/platforms/cell/iommu.c    |  1 +
+ arch/powerpc/platforms/pseries/vio.c   |  3 ++-
+ 6 files changed, 27 insertions(+), 19 deletions(-)
 
-This "8" is just VIO_TAG_SIZE right?  So just use that.
+diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
+index 181a095468e4..73aedbe6c977 100644
+--- a/arch/powerpc/include/asm/dma-mapping.h
++++ b/arch/powerpc/include/asm/dma-mapping.h
+@@ -17,10 +17,6 @@
+ #include <asm/io.h>
+ #include <asm/swiotlb.h>
+ 
+-#ifdef CONFIG_PPC64
+-#define DMA_ERROR_CODE		(~(dma_addr_t)0x0)
+-#endif
+-
+ /* Some dma direct funcs must be visible for use in other dma_ops */
+ extern void *__dma_direct_alloc_coherent(struct device *dev, size_t size,
+ 					 dma_addr_t *dma_handle, gfp_t flag,
+diff --git a/arch/powerpc/include/asm/iommu.h b/arch/powerpc/include/asm/iommu.h
+index 8a8ce220d7d0..20febe0b7f32 100644
+--- a/arch/powerpc/include/asm/iommu.h
++++ b/arch/powerpc/include/asm/iommu.h
+@@ -139,6 +139,8 @@ struct scatterlist;
+ 
+ #ifdef CONFIG_PPC64
+ 
++#define IOMMU_MAPPING_ERROR		(~(dma_addr_t)0x0)
++
+ static inline void set_iommu_table_base(struct device *dev,
+ 					struct iommu_table *base)
+ {
+@@ -238,6 +240,8 @@ static inline int __init tce_iommu_bus_notifier_init(void)
+ }
+ #endif /* !CONFIG_IOMMU_API */
+ 
++int dma_iommu_mapping_error(struct device *dev, dma_addr_t dma_addr);
++
+ #else
+ 
+ static inline void *get_iommu_table_base(struct device *dev)
+diff --git a/arch/powerpc/kernel/dma-iommu.c b/arch/powerpc/kernel/dma-iommu.c
+index fb7cbaa37658..8f7abf9baa63 100644
+--- a/arch/powerpc/kernel/dma-iommu.c
++++ b/arch/powerpc/kernel/dma-iommu.c
+@@ -105,6 +105,11 @@ static u64 dma_iommu_get_required_mask(struct device *dev)
+ 	return mask;
+ }
+ 
++int dma_iommu_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return dma_addr = IOMMU_MAPPING_ERROR;
++}
++
+ struct dma_map_ops dma_iommu_ops = {
+ 	.alloc			= dma_iommu_alloc_coherent,
+ 	.free			= dma_iommu_free_coherent,
+@@ -115,5 +120,6 @@ struct dma_map_ops dma_iommu_ops = {
+ 	.map_page		= dma_iommu_map_page,
+ 	.unmap_page		= dma_iommu_unmap_page,
+ 	.get_required_mask	= dma_iommu_get_required_mask,
++	.mapping_error		= dma_iommu_mapping_error,
+ };
+ EXPORT_SYMBOL(dma_iommu_ops);
+diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
+index f2b724cd9e64..233ca3fe4754 100644
+--- a/arch/powerpc/kernel/iommu.c
++++ b/arch/powerpc/kernel/iommu.c
+@@ -198,11 +198,11 @@ static unsigned long iommu_range_alloc(struct device *dev,
+ 	if (unlikely(npages = 0)) {
+ 		if (printk_ratelimit())
+ 			WARN_ON(1);
+-		return DMA_ERROR_CODE;
++		return IOMMU_MAPPING_ERROR;
+ 	}
+ 
+ 	if (should_fail_iommu(dev))
+-		return DMA_ERROR_CODE;
++		return IOMMU_MAPPING_ERROR;
+ 
+ 	/*
+ 	 * We don't need to disable preemption here because any CPU can
+@@ -278,7 +278,7 @@ static unsigned long iommu_range_alloc(struct device *dev,
+ 		} else {
+ 			/* Give up */
+ 			spin_unlock_irqrestore(&(pool->lock), flags);
+-			return DMA_ERROR_CODE;
++			return IOMMU_MAPPING_ERROR;
+ 		}
+ 	}
+ 
+@@ -310,13 +310,13 @@ static dma_addr_t iommu_alloc(struct device *dev, struct iommu_table *tbl,
+ 			      unsigned long attrs)
+ {
+ 	unsigned long entry;
+-	dma_addr_t ret = DMA_ERROR_CODE;
++	dma_addr_t ret = IOMMU_MAPPING_ERROR;
+ 	int build_fail;
+ 
+ 	entry = iommu_range_alloc(dev, tbl, npages, NULL, mask, align_order);
+ 
+-	if (unlikely(entry = DMA_ERROR_CODE))
+-		return DMA_ERROR_CODE;
++	if (unlikely(entry = IOMMU_MAPPING_ERROR))
++		return IOMMU_MAPPING_ERROR;
+ 
+ 	entry += tbl->it_offset;	/* Offset into real TCE table */
+ 	ret = entry << tbl->it_page_shift;	/* Set the return dma address */
+@@ -328,12 +328,12 @@ static dma_addr_t iommu_alloc(struct device *dev, struct iommu_table *tbl,
+ 
+ 	/* tbl->it_ops->set() only returns non-zero for transient errors.
+ 	 * Clean up the table bitmap in this case and return
+-	 * DMA_ERROR_CODE. For all other errors the functionality is
++	 * IOMMU_MAPPING_ERROR. For all other errors the functionality is
+ 	 * not altered.
+ 	 */
+ 	if (unlikely(build_fail)) {
+ 		__iommu_free(tbl, ret, npages);
+-		return DMA_ERROR_CODE;
++		return IOMMU_MAPPING_ERROR;
+ 	}
+ 
+ 	/* Flush/invalidate TLB caches if necessary */
+@@ -478,7 +478,7 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
+ 		DBG("  - vaddr: %lx, size: %lx\n", vaddr, slen);
+ 
+ 		/* Handle failure */
+-		if (unlikely(entry = DMA_ERROR_CODE)) {
++		if (unlikely(entry = IOMMU_MAPPING_ERROR)) {
+ 			if (!(attrs & DMA_ATTR_NO_WARN) &&
+ 			    printk_ratelimit())
+ 				dev_info(dev, "iommu_alloc failed, tbl %p "
+@@ -545,7 +545,7 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
+ 	 */
+ 	if (outcount < incount) {
+ 		outs = sg_next(outs);
+-		outs->dma_address = DMA_ERROR_CODE;
++		outs->dma_address = IOMMU_MAPPING_ERROR;
+ 		outs->dma_length = 0;
+ 	}
+ 
+@@ -563,7 +563,7 @@ int ppc_iommu_map_sg(struct device *dev, struct iommu_table *tbl,
+ 			npages = iommu_num_pages(s->dma_address, s->dma_length,
+ 						 IOMMU_PAGE_SIZE(tbl));
+ 			__iommu_free(tbl, vaddr, npages);
+-			s->dma_address = DMA_ERROR_CODE;
++			s->dma_address = IOMMU_MAPPING_ERROR;
+ 			s->dma_length = 0;
+ 		}
+ 		if (s = outs)
+@@ -777,7 +777,7 @@ dma_addr_t iommu_map_page(struct device *dev, struct iommu_table *tbl,
+ 			  unsigned long mask, enum dma_data_direction direction,
+ 			  unsigned long attrs)
+ {
+-	dma_addr_t dma_handle = DMA_ERROR_CODE;
++	dma_addr_t dma_handle = IOMMU_MAPPING_ERROR;
+ 	void *vaddr;
+ 	unsigned long uaddr;
+ 	unsigned int npages, align;
+@@ -797,7 +797,7 @@ dma_addr_t iommu_map_page(struct device *dev, struct iommu_table *tbl,
+ 		dma_handle = iommu_alloc(dev, tbl, vaddr, npages, direction,
+ 					 mask >> tbl->it_page_shift, align,
+ 					 attrs);
+-		if (dma_handle = DMA_ERROR_CODE) {
++		if (dma_handle = IOMMU_MAPPING_ERROR) {
+ 			if (!(attrs & DMA_ATTR_NO_WARN) &&
+ 			    printk_ratelimit())  {
+ 				dev_info(dev, "iommu_alloc failed, tbl %p "
+@@ -869,7 +869,7 @@ void *iommu_alloc_coherent(struct device *dev, struct iommu_table *tbl,
+ 	io_order = get_iommu_order(size, tbl);
+ 	mapping = iommu_alloc(dev, tbl, ret, nio_pages, DMA_BIDIRECTIONAL,
+ 			      mask >> tbl->it_page_shift, io_order, 0);
+-	if (mapping = DMA_ERROR_CODE) {
++	if (mapping = IOMMU_MAPPING_ERROR) {
+ 		free_pages((unsigned long)ret, order);
+ 		return NULL;
+ 	}
+diff --git a/arch/powerpc/platforms/cell/iommu.c b/arch/powerpc/platforms/cell/iommu.c
+index 71b995bbcae0..948086e33a0c 100644
+--- a/arch/powerpc/platforms/cell/iommu.c
++++ b/arch/powerpc/platforms/cell/iommu.c
+@@ -660,6 +660,7 @@ static const struct dma_map_ops dma_iommu_fixed_ops = {
+ 	.set_dma_mask   = dma_set_mask_and_switch,
+ 	.map_page       = dma_fixed_map_page,
+ 	.unmap_page     = dma_fixed_unmap_page,
++	.mapping_error	= dma_iommu_mapping_error,
+ };
+ 
+ static void cell_dma_dev_setup_fixed(struct device *dev);
+diff --git a/arch/powerpc/platforms/pseries/vio.c b/arch/powerpc/platforms/pseries/vio.c
+index 28b09fd797ec..e6f43d546827 100644
+--- a/arch/powerpc/platforms/pseries/vio.c
++++ b/arch/powerpc/platforms/pseries/vio.c
+@@ -519,7 +519,7 @@ static dma_addr_t vio_dma_iommu_map_page(struct device *dev, struct page *page,
+ {
+ 	struct vio_dev *viodev = to_vio_dev(dev);
+ 	struct iommu_table *tbl;
+-	dma_addr_t ret = DMA_ERROR_CODE;
++	dma_addr_t ret = IOMMU_MAPPING_ERROR;
+ 
+ 	tbl = get_iommu_table_base(dev);
+ 	if (vio_cmo_alloc(viodev, roundup(size, IOMMU_PAGE_SIZE(tbl)))) {
+@@ -625,6 +625,7 @@ static const struct dma_map_ops vio_dma_mapping_ops = {
+ 	.unmap_page        = vio_dma_iommu_unmap_page,
+ 	.dma_supported     = vio_dma_iommu_dma_supported,
+ 	.get_required_mask = vio_dma_get_required_mask,
++	.mapping_error	   = dma_iommu_mapping_error,
+ };
+ 
+ /**
+-- 
+2.11.0
 
-> +#define	TIMER_SET(v, x, t)	((v)->x##_timer.expires = (t))
-> +#define	TIMER_CLEAR(v, x)	((v)->x##_timer.expires = 0)
-> +#define	TIMER_ACTIVE(v, x)	((v)->x##_timer.expires)
-
-I see you use this like:
-
-> +	TIMER_SET(vcc, rx, jiffies + 1);
-> +	add_timer(&vcc->rx_timer);
-
-Please juse use "mod_timer()" which is also thread safe and also works
-even if the timer is pending.
-
-The TIMER_CLEAR() operation doesn't even do anything.
-
-There is an interface for seeing if a timer is active "timer_pending()"
-
-So please remove these special timer macros and just use the provided
-standard kernel interfaces.
-
-> +static int vcc_ldc_read(struct vcc *vcc)
-> +{
-> +	struct vio_driver_state *vio = &vcc->vio;
-> +	struct tty_struct *tty;
-> +	struct vio_vcc pkt;
-> +	int rv = 0;
-> +	vccdbg("%s\n", __func__);
-
-Please put an empty line between local variable declarations and code.
-
-> +static void vcc_rx_timer(unsigned long arg)
-> +{
-> +	struct vcc *vcc;
-> +	struct vio_driver_state *vio;
-> +	unsigned long flags;
-> +	int rv;
-
-Please order local variable from longest to shortest line.
-
-> +static void vcc_tx_timer(unsigned long arg)
-> +{
-> +	struct vcc *vcc;
-> +	struct vio_vcc *pkt;
-> +	unsigned long flags;
-> +	int tosend = 0;
-> +	int rv;
-
-Likewise.
-
-> +static void vcc_event(void *arg, int event)
-> +{
-> +	struct vcc *vcc = arg;
-> +	struct vio_driver_state *vio = &vcc->vio;
-> +	unsigned long flags;
-> +	int rv;
-
-Likewise.
-
-> +static ssize_t vcc_sysfs_domain_show(struct device *device,
-> +	struct device_attribute *attr, char *buf)
-> +{
-> +	int rv;
-> +	struct vcc *vcc;
-
-Likewise.
-
-> +static int vcc_send_ctl(struct vcc *vcc, int ctl)
-> +{
-> +	int rv;
-> +	struct vio_vcc pkt;
-
-Likewise.
-
-> +static ssize_t vcc_sysfs_break_store(struct device *device,
-> +	struct device_attribute *attr, const char *buf, size_t count)
-> +{
-> +	int rv = count;
-> +	int brk;
-> +	unsigned long flags;
-> +	struct vcc *vcc;
-
-Likewise.
-
-> +static int vcc_probe(struct vio_dev *vdev,
-> +	const struct vio_device_id *id)
-> +{
-> +	int rv;
-> +	char *name;
-> +	const char *domain;
-> +	struct vcc *vcc;
-> +	struct device *dev;
-> +	struct mdesc_handle *hp;
-> +	u64 node;
-
-Likewise.
-
-> +	/*
-> +	 * Register the device using the port ID as the index.
-> +	 * TODO - Device registration should probably be done last
-> +	 * since the device is "live" as soon as it's called (and
-> +	 * calls into the tty/vcc infrastructure can start
-> +	 * happening for this device immediately afterwards).
-> +	 */
-> +	dev = tty_register_device(vcc_tty_driver, vdev->port_id, &vdev->dev);
-> +	if (IS_ERR(dev)) {
-> +		rv = PTR_ERR(dev);
-> +		goto free_ldc;
-> +	}
-
-I agree, you should probably only make the device visible after you have set
-everything else up.  It means that unwinding from registry error is a bit more
-tedious but I am pretty sure registering early like this is going to cause
-problems.
-
-> +static int vcc_open(struct tty_struct *tty, struct file *filp)
-> +{
-> +	struct vcc *vcc;
-> +	struct tty_port *port;
-> +	int rv;
-
-Local variable ordering again.
-
-> +static void vcc_hangup(struct tty_struct *tty)
-> +{
-> +	struct vcc *vcc;
-> +	struct tty_port *port;
-
-Likewise.
-
-> +static int vcc_write(struct tty_struct *tty,
-> +		const unsigned char *buf, int count)
-> +{
-> +	struct vcc *vcc;
-> +	struct vio_vcc *pkt;
-> +	unsigned long flags;
-> +	int total_sent = 0;
-> +	int tosend = 0;
-> +	int rv = -EINVAL;
-
-Likewise.
-
-> +static int vcc_break_ctl(struct tty_struct *tty, int state)
-> +{
-> +	struct vcc *vcc;
-> +	unsigned long flags;
-
-Likewise.
-
-> +static int vcc_install(struct tty_driver *driver, struct tty_struct *tty)
-> +{
-> +	int ret;
-> +	struct vcc *vcc;
-> +	struct tty_port *port;
-
-Likewise.
