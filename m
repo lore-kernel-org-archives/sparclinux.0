@@ -1,60 +1,61 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:46 +0000
-Subject: [PATCH 31/44] hexagon: remove arch-specific dma_supported implementation
-Message-Id: <20170616181059.19206-32-hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:41 +0000
+Subject: [PATCH 16/44] arm64: remove DMA_ERROR_CODE
+Message-Id: <20170608132609.32662-17-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
 
-This implementation is simply bogus - hexagon only has a simple
-direct mapped DMA implementation and thus doesn't care about the
-address.
+The dma alloc interface returns an error by return NULL, and the
+mapping interfaces rely on the mapping_error method, which the dummy
+ops already implement correctly.
+
+Thus remove the DMA_ERROR_CODE define.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Richard Kuo <rkuo@codeaurora.org>
 ---
- arch/hexagon/include/asm/dma-mapping.h | 2 --
- arch/hexagon/kernel/dma.c              | 9 ---------
- 2 files changed, 11 deletions(-)
+ arch/arm64/include/asm/dma-mapping.h | 1 -
+ arch/arm64/mm/dma-mapping.c          | 3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
-index 00e3f10113b0..9c15cb5271a6 100644
---- a/arch/hexagon/include/asm/dma-mapping.h
-+++ b/arch/hexagon/include/asm/dma-mapping.h
-@@ -37,8 +37,6 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- 	return dma_ops;
+diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/include/asm/dma-mapping.h
+index 5392dbeffa45..cf8fc8f05580 100644
+--- a/arch/arm64/include/asm/dma-mapping.h
++++ b/arch/arm64/include/asm/dma-mapping.h
+@@ -24,7 +24,6 @@
+ #include <xen/xen.h>
+ #include <asm/xen/hypervisor.h>
+ 
+-#define DMA_ERROR_CODE	(~(dma_addr_t)0)
+ extern const struct dma_map_ops dummy_dma_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+index 3216e098c058..147fbb907a2f 100644
+--- a/arch/arm64/mm/dma-mapping.c
++++ b/arch/arm64/mm/dma-mapping.c
+@@ -184,7 +184,6 @@ static void *__dma_alloc(struct device *dev, size_t size,
+ no_map:
+ 	__dma_free_coherent(dev, size, ptr, *dma_handle, attrs);
+ no_mem:
+-	*dma_handle = DMA_ERROR_CODE;
+ 	return NULL;
  }
  
--#define HAVE_ARCH_DMA_SUPPORTED 1
--extern int dma_supported(struct device *dev, u64 mask);
- extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
- extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 			   enum dma_data_direction direction);
-diff --git a/arch/hexagon/kernel/dma.c b/arch/hexagon/kernel/dma.c
-index 71269dc0f225..9ff1b2041f85 100644
---- a/arch/hexagon/kernel/dma.c
-+++ b/arch/hexagon/kernel/dma.c
-@@ -35,15 +35,6 @@ static inline void *dma_addr_to_virt(dma_addr_t dma_addr)
- 	return phys_to_virt((unsigned long) dma_addr);
+@@ -487,7 +486,7 @@ static dma_addr_t __dummy_map_page(struct device *dev, struct page *page,
+ 				   enum dma_data_direction dir,
+ 				   unsigned long attrs)
+ {
+-	return DMA_ERROR_CODE;
++	return 0;
  }
  
--int dma_supported(struct device *dev, u64 mask)
--{
--	if (mask = DMA_BIT_MASK(32))
--		return 1;
--	else
--		return 0;
--}
--EXPORT_SYMBOL(dma_supported);
--
- static struct gen_pool *coherent_pool;
- 
- 
+ static void __dummy_unmap_page(struct device *dev, dma_addr_t dev_addr,
 -- 
 2.11.0
 
