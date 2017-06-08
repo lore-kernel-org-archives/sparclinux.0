@@ -1,26 +1,33 @@
-From: Eric Sandeen <sandeen@sandeen.net>
-Date: Tue, 06 Jun 2017 19:09:08 +0000
-Subject: Re: [sparc64] crc32c misbehave
-Message-Id: <394b1570-7219-36a5-baa8-a26555655d4f@sandeen.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:57 +0000
+Subject: [PATCH 32/44] hexagon: remove the unused dma_is_consistent prototype
+Message-Id: <20170608132609.32662-33-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ccdf645b-e22f-ef71-53df-993cc45869c0@sandeen.net>
- <260a016f-0f17-e286-ceca-83b6977f2fc0@sandeen.net>
- <20170531.124916.1406665885250072302.davem@davemloft.net>
- <20170606.150555.855421580901340490.davem@davemloft.net>
-In-Reply-To: <20170606.150555.855421580901340490.davem@davemloft.net>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: matorola@gmail.com, sparclinux@vger.kernel.org, linux-xfs@vger.kernel.org
+To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On 6/6/17 2:05 PM, David Miller wrote:
-> 
-> Just FYI, I've meanwhile pushed a fix for the GCC bug that created
-> this mess to all active branches.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/hexagon/include/asm/dma-mapping.h | 1 -
+ 1 file changed, 1 deletion(-)
 
-David -
+diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
+index 9c15cb5271a6..463dbc18f853 100644
+--- a/arch/hexagon/include/asm/dma-mapping.h
++++ b/arch/hexagon/include/asm/dma-mapping.h
+@@ -37,7 +37,6 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ 	return dma_ops;
+ }
+ 
+-extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
+ extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ 			   enum dma_data_direction direction);
+ 
+-- 
+2.11.0
 
-Awesome.  Thanks for digging into it.
-
--Eric
