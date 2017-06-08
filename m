@@ -1,26 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 06 Jun 2017 19:36:34 +0000
-Subject: Re: [PATCH 14/16] sparc: vio: use dev_groups and not dev_attrs for bus_type
-Message-Id: <20170606.153634.299909834402599003.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:25 +0000
+Subject: clean up and modularize arch dma_mapping interface
+Message-Id: <20170608132609.32662-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170606192221.1617-1-gregkh@linuxfoundation.org>
-        <20170606192221.1617-15-gregkh@linuxfoundation.org>
-In-Reply-To: <20170606192221.1617-15-gregkh@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: gregkh@linuxfoundation.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Tue,  6 Jun 2017 21:22:19 +0200
+Hi all,
 
-> The dev_attrs field has long been "depreciated" and is finally being
-> removed, so move the driver to use the "correct" dev_groups field
-> instead for struct bus_type.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: <sparclinux@vger.kernel.org>
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+for a while we have a generic implementation of the dma mapping routines
+that call into per-arch or per-device operations.  But right now there
+still are various bits in the interfaces where don't clearly operate
+on these ops.  This series tries to clean up a lot of those (but not all
+yet, but the series is big enough).  It gets rid of the DMA_ERROR_CODE
+way of signaling failures of the mapping routines from the
+implementations to the generic code (and cleans up various drivers that
+were incorrectly using it), and gets rid of the ->set_dma_mask routine
+in favor of relying on the ->dma_capable method that can be used in
+the same way, but which requires less code duplication.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Btw, we don't seem to have a tree every-growing amount of common dma
+mapping code, and given that I have a fair amount of all over the tree
+work in that area in my plate I'd like to start one.  Any good reason
+to that?  Anyone willing to volunteer as co maintainer?
+
+The whole series is also available in git:
+
+    git://git.infradead.org/users/hch/misc.git dma-map
+
+Gitweb:
+
+    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dma-map
