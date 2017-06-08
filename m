@@ -1,61 +1,117 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Wed, 07 Jun 2017 03:04:29 +0000
-Subject: Re: crypto: Work around deallocated stack frame reference gcc bug on sparc.
-Message-Id: <20170607030429.GA29532@gondor.apana.org.au>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:44 +0000
+Subject: [PATCH 19/44] s390: implement ->mapping_error
+Message-Id: <20170608132609.32662-20-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170602.112854.571030442583332811.davem@davemloft.net>
- <20170606.150408.1629203951871477326.davem@davemloft.net>
-In-Reply-To: <20170606.150408.1629203951871477326.davem@davemloft.net>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org, linux-btrfs@vger.kernel.org, clm@fb.com, jbacik@fb.com, dsterba@suse.com, matorola@gmail.com, sandeen@sandeen.net, linux-xfs@vger.kernel.org
+To: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On Tue, Jun 06, 2017 at 03:04:08PM -0400, David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Fri, 02 Jun 2017 11:28:54 -0400 (EDT)
-> 
-> > 
-> > On sparc, if we have an alloca() like situation, as is the case with
-> > SHASH_DESC_ON_STACK(), we can end up referencing deallocated stack
-> > memory.  The result can be that the value is clobbered if a trap
-> > or interrupt arrives at just the right instruction.
-> > 
-> > It only occurs if the function ends returning a value from that
-> > alloca() area and that value can be placed into the return value
-> > register using a single instruction.
-> > 
-> > For example, in lib/libcrc32c.c:crc32c() we end up with a return
-> > sequence like:
-> > 
-> >         return  %i7+8
-> >          lduw   [%o5+16], %o0   ! MEM[(u32 *)__shash_desc.1_10 + 16B],
-> > 
-> > %o5 holds the base of the on-stack area allocated for the shash
-> > descriptor.  But the return released the stack frame and the
-> > register window.
-> > 
-> > So if an intererupt arrives between 'return' and 'lduw', then
-> > the value read at %o5+16 can be corrupted.
-> > 
-> > Add a data compiler barrier to work around this problem.  This is
-> > exactly what the gcc fix will end up doing as well, and it absolutely
-> > should not change the code generated for other cpus (unless gcc
-> > on them has the same bug :-)
-> > 
-> > With crucial insight from Eric Sandeen.
-> > 
-> > Reported-by: Anatoly Pugachev <matorola@gmail.com>
-> > Signed-off-by: David S. Miller <davem@davemloft.net>
-> 
-> Herbert, please take a look at this and push via your crypto tree
-> and submit to -stable if you don't have any objections.
+s390 can also use noop_dma_ops, and while that currently does not return
+errors it will so in the future.  Implementing the mapping_error method
+is the proper way to have per-ops error conditions.
 
-Sure I'll push it today.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/s390/include/asm/dma-mapping.h |  2 --
+ arch/s390/pci/pci_dma.c             | 18 +++++++++++++-----
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
-Cheers,
+diff --git a/arch/s390/include/asm/dma-mapping.h b/arch/s390/include/asm/dma-mapping.h
+index 3108b8dbe266..512ad0eaa11a 100644
+--- a/arch/s390/include/asm/dma-mapping.h
++++ b/arch/s390/include/asm/dma-mapping.h
+@@ -8,8 +8,6 @@
+ #include <linux/dma-debug.h>
+ #include <linux/io.h>
+ 
+-#define DMA_ERROR_CODE		(~(dma_addr_t) 0x0)
+-
+ extern const struct dma_map_ops s390_pci_dma_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
+index 9081a57fa340..ea623faab525 100644
+--- a/arch/s390/pci/pci_dma.c
++++ b/arch/s390/pci/pci_dma.c
+@@ -14,6 +14,8 @@
+ #include <linux/pci.h>
+ #include <asm/pci_dma.h>
+ 
++#define S390_MAPPING_ERROR		(~(dma_addr_t) 0x0)
++
+ static struct kmem_cache *dma_region_table_cache;
+ static struct kmem_cache *dma_page_table_cache;
+ static int s390_iommu_strict;
+@@ -281,7 +283,7 @@ static dma_addr_t dma_alloc_address(struct device *dev, int size)
+ 
+ out_error:
+ 	spin_unlock_irqrestore(&zdev->iommu_bitmap_lock, flags);
+-	return DMA_ERROR_CODE;
++	return S390_MAPPING_ERROR;
+ }
+ 
+ static void dma_free_address(struct device *dev, dma_addr_t dma_addr, int size)
+@@ -329,7 +331,7 @@ static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
+ 	/* This rounds up number of pages based on size and offset */
+ 	nr_pages = iommu_num_pages(pa, size, PAGE_SIZE);
+ 	dma_addr = dma_alloc_address(dev, nr_pages);
+-	if (dma_addr = DMA_ERROR_CODE) {
++	if (dma_addr = S390_MAPPING_ERROR) {
+ 		ret = -ENOSPC;
+ 		goto out_err;
+ 	}
+@@ -352,7 +354,7 @@ static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
+ out_err:
+ 	zpci_err("map error:\n");
+ 	zpci_err_dma(ret, pa);
+-	return DMA_ERROR_CODE;
++	return S390_MAPPING_ERROR;
+ }
+ 
+ static void s390_dma_unmap_pages(struct device *dev, dma_addr_t dma_addr,
+@@ -429,7 +431,7 @@ static int __s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	int ret;
+ 
+ 	dma_addr_base = dma_alloc_address(dev, nr_pages);
+-	if (dma_addr_base = DMA_ERROR_CODE)
++	if (dma_addr_base = S390_MAPPING_ERROR)
+ 		return -ENOMEM;
+ 
+ 	dma_addr = dma_addr_base;
+@@ -476,7 +478,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	for (i = 1; i < nr_elements; i++) {
+ 		s = sg_next(s);
+ 
+-		s->dma_address = DMA_ERROR_CODE;
++		s->dma_address = S390_MAPPING_ERROR;
+ 		s->dma_length = 0;
+ 
+ 		if (s->offset || (size & ~PAGE_MASK) ||
+@@ -525,6 +527,11 @@ static void s390_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		s->dma_length = 0;
+ 	}
+ }
++	
++static int s390_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return dma_addr = S390_MAPPING_ERROR;
++}
+ 
+ int zpci_dma_init_device(struct zpci_dev *zdev)
+ {
+@@ -657,6 +664,7 @@ const struct dma_map_ops s390_pci_dma_ops = {
+ 	.unmap_sg	= s390_dma_unmap_sg,
+ 	.map_page	= s390_dma_map_pages,
+ 	.unmap_page	= s390_dma_unmap_pages,
++	.mapping_error	= s390_mapping_error,
+ 	/* if we support direct DMA this must be conditional */
+ 	.is_phys	= 0,
+ 	/* dma_supported is unconditionally true without a callback */
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.11.0
+
