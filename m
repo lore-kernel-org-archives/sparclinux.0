@@ -1,101 +1,42 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:33 +0000
-Subject: [PATCH 18/44] iommu/amd: implement ->mapping_error
-Message-Id: <20170616181059.19206-19-hch@lst.de>
+Date: Thu, 08 Jun 2017 13:25:26 +0000
+Subject: [PATCH 01/44] firmware/ivc: use dma_mapping_error
+Message-Id: <20170608132609.32662-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <20170608132609.32662-1-hch@lst.de>
+In-Reply-To: <20170608132609.32662-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-DMA_ERROR_CODE is going to go away, so don't rely on it.
+DMA_ERROR_CODE is not supposed to be used by drivers.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/iommu/amd_iommu.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/firmware/tegra/ivc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-index 63cacf5d6cf2..d41280e869de 100644
---- a/drivers/iommu/amd_iommu.c
-+++ b/drivers/iommu/amd_iommu.c
-@@ -54,6 +54,8 @@
- #include "amd_iommu_types.h"
- #include "irq_remapping.h"
+diff --git a/drivers/firmware/tegra/ivc.c b/drivers/firmware/tegra/ivc.c
+index 29ecfd815320..a01461d63f68 100644
+--- a/drivers/firmware/tegra/ivc.c
++++ b/drivers/firmware/tegra/ivc.c
+@@ -646,12 +646,12 @@ int tegra_ivc_init(struct tegra_ivc *ivc, struct device *peer, void *rx,
+ 	if (peer) {
+ 		ivc->rx.phys = dma_map_single(peer, rx, queue_size,
+ 					      DMA_BIDIRECTIONAL);
+-		if (ivc->rx.phys = DMA_ERROR_CODE)
++		if (dma_mapping_error(peer, ivc->rx.phys))
+ 			return -ENOMEM;
  
-+#define AMD_IOMMU_MAPPING_ERROR	0
-+
- #define CMD_SET_TYPE(cmd, t) ((cmd)->data[1] |= ((t) << 28))
- 
- #define LOOP_TIMEOUT	100000
-@@ -2394,7 +2396,7 @@ static dma_addr_t __map_single(struct device *dev,
- 	paddr &= PAGE_MASK;
- 
- 	address = dma_ops_alloc_iova(dev, dma_dom, pages, dma_mask);
--	if (address = DMA_ERROR_CODE)
-+	if (address = AMD_IOMMU_MAPPING_ERROR)
- 		goto out;
- 
- 	prot = dir2prot(direction);
-@@ -2431,7 +2433,7 @@ static dma_addr_t __map_single(struct device *dev,
- 
- 	dma_ops_free_iova(dma_dom, address, pages);
- 
--	return DMA_ERROR_CODE;
-+	return AMD_IOMMU_MAPPING_ERROR;
- }
- 
- /*
-@@ -2483,7 +2485,7 @@ static dma_addr_t map_page(struct device *dev, struct page *page,
- 	if (PTR_ERR(domain) = -EINVAL)
- 		return (dma_addr_t)paddr;
- 	else if (IS_ERR(domain))
--		return DMA_ERROR_CODE;
-+		return AMD_IOMMU_MAPPING_ERROR;
- 
- 	dma_mask = *dev->dma_mask;
- 	dma_dom = to_dma_ops_domain(domain);
-@@ -2560,7 +2562,7 @@ static int map_sg(struct device *dev, struct scatterlist *sglist,
- 	npages = sg_num_pages(dev, sglist, nelems);
- 
- 	address = dma_ops_alloc_iova(dev, dma_dom, npages, dma_mask);
--	if (address = DMA_ERROR_CODE)
-+	if (address = AMD_IOMMU_MAPPING_ERROR)
- 		goto out_err;
- 
- 	prot = dir2prot(direction);
-@@ -2683,7 +2685,7 @@ static void *alloc_coherent(struct device *dev, size_t size,
- 	*dma_addr = __map_single(dev, dma_dom, page_to_phys(page),
- 				 size, DMA_BIDIRECTIONAL, dma_mask);
- 
--	if (*dma_addr = DMA_ERROR_CODE)
-+	if (*dma_addr = AMD_IOMMU_MAPPING_ERROR)
- 		goto out_free;
- 
- 	return page_address(page);
-@@ -2732,6 +2734,11 @@ static int amd_iommu_dma_supported(struct device *dev, u64 mask)
- 	return check_device(dev);
- }
- 
-+static int amd_iommu_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	return dma_addr = AMD_IOMMU_MAPPING_ERROR;
-+}
-+
- static const struct dma_map_ops amd_iommu_dma_ops = {
- 	.alloc		= alloc_coherent,
- 	.free		= free_coherent,
-@@ -2740,6 +2747,7 @@ static const struct dma_map_ops amd_iommu_dma_ops = {
- 	.map_sg		= map_sg,
- 	.unmap_sg	= unmap_sg,
- 	.dma_supported	= amd_iommu_dma_supported,
-+	.mapping_error	= amd_iommu_mapping_error,
- };
- 
- static int init_reserved_iova_ranges(void)
+ 		ivc->tx.phys = dma_map_single(peer, tx, queue_size,
+ 					      DMA_BIDIRECTIONAL);
+-		if (ivc->tx.phys = DMA_ERROR_CODE) {
++		if (dma_mapping_error(peer, ivc->tx.phys)) {
+ 			dma_unmap_single(peer, ivc->rx.phys, queue_size,
+ 					 DMA_BIDIRECTIONAL);
+ 			return -ENOMEM;
 -- 
 2.11.0
 
