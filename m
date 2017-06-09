@@ -1,69 +1,40 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:42 +0000
-Subject: [PATCH 27/44] sparc: remove leon_dma_ops
-Message-Id: <20170616181059.19206-28-hch@lst.de>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:29:27 +0000
+Subject: [PATCH v4 0/5] LDC changes for porting VCC driver into upstream kernel
+Message-Id: <cover.1497022394.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-We can just use pci32_dma_ops directly.
+This series of patches is part of an effort to add VCC (Virtual Console
+Concentrator) support to Linux.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/dma-mapping.h | 3 +--
- arch/sparc/kernel/ioport.c           | 5 +----
- 2 files changed, 2 insertions(+), 6 deletions(-)
+VCC enables the virtualization of serial console on SPARC processors. VCC 
+provides access to the guest domain's serial console.
 
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index b8e8dfcd065d..98da9f92c318 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -17,7 +17,6 @@ static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- }
- 
- extern const struct dma_map_ops *dma_ops;
--extern const struct dma_map_ops *leon_dma_ops;
- extern const struct dma_map_ops pci32_dma_ops;
- 
- extern struct bus_type pci_bus_type;
-@@ -26,7 +25,7 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
- #ifdef CONFIG_SPARC_LEON
- 	if (sparc_cpu_model = sparc_leon)
--		return leon_dma_ops;
-+		return &pci32_dma_ops;
- #endif
- #if defined(CONFIG_SPARC32) && defined(CONFIG_PCI)
- 	if (bus = &pci_bus_type)
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index cf20033a1458..dd081d557609 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -637,6 +637,7 @@ static void pci32_sync_sg_for_device(struct device *device, struct scatterlist *
- 	}
- }
- 
-+/* note: leon re-uses pci32_dma_ops */
- const struct dma_map_ops pci32_dma_ops = {
- 	.alloc			= pci32_alloc_coherent,
- 	.free			= pci32_free_coherent,
-@@ -651,10 +652,6 @@ const struct dma_map_ops pci32_dma_ops = {
- };
- EXPORT_SYMBOL(pci32_dma_ops);
- 
--/* leon re-uses pci32_dma_ops */
--const struct dma_map_ops *leon_dma_ops = &pci32_dma_ops;
--EXPORT_SYMBOL(leon_dma_ops);
--
- const struct dma_map_ops *dma_ops = &sbus_dma_ops;
- EXPORT_SYMBOL(dma_ops);
- 
--- 
-2.11.0
+VCC depends on some core functionalities in the linux kernel for SPARC. The 
+functionalities include LDC (Logical Domain Channels), MDESC (Machine
+Descriptor) and VIO (Virtual IO protocol). In order for VCC to be enabled,
+it requires that these core functionalities support them.
+
+This series of patches adds LDC support to enable VCC on Linux. It
+is the first batch of changes to enable VCC.
+
+This version 4 of the series addresses the following changes
+suggested by Dave Miller
+Patch 1/5: Modifies ldc_print/__ldc_print to print caller name. Fixes
+           indentation of wrapped lines.
+
+Jag Raman (5):
+  sparc64: expand LDC interface
+  sparc64: enhance ldc_abort to print message
+  sparc64: ensure LDC channel is ready before communication
+  sparc64: ldc abort during vds iso boot
+  sparc64: print debug messages when reading from LDC channel
+
+ arch/sparc/include/asm/ldc.h |    8 +++
+ arch/sparc/kernel/ldc.c      |  141 +++++++++++++++++++++++++++++-------------
+ 2 files changed, 106 insertions(+), 43 deletions(-)
 
