@@ -1,8 +1,10 @@
 From: <gregkh@linuxfoundation.org>
-Date: Fri, 09 Jun 2017 09:01:05 +0000
-Subject: patch "sparc: vio: use dev_groups and not dev_attrs for bus_type" added to driver-core-testing
-Message-Id: <149699886520255@kroah.com>
+Date: Fri, 09 Jun 2017 18:08:19 +0000
+Subject: patch "sparc: vio: use dev_groups and not dev_attrs for bus_type" added to driver-core-next
+Message-Id: <149703169921458@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <149699886520255@kroah.com>
+In-Reply-To: <149699886520255@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,13 +17,13 @@ This is a note to let you know that I've just added the patch titled
 
 to my driver-core git tree which can be found at
     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core.git
-in the driver-core-testing branch.
+in the driver-core-next branch.
 
 The patch will show up in the next release of the linux-next tree
 (usually sometime within the next 24 hours during the week.)
 
-The patch will be merged to the driver-core-next branch sometime soon,
-after it passes testing, and the merge window is open.
+The patch will also be merged in the next major kernel release
+during the merge window.
 
 If you have any questions about this process, please let me know.
 
