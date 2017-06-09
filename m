@@ -1,45 +1,262 @@
-From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Wed, 21 Jun 2017 16:09:52 +0000
-Subject: [PATCH net-next 0/2] sunvnet: add to ethtool data
-Message-Id: <1498061394-233018-1-git-send-email-shannon.nelson@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:31:00 +0000
+Subject: [PATCH v1 11/12] sparc64: Enhance search for VIO device in MDESC
+Message-Id: <d0bd0f312f4b785614e48c7e540f11b30dc662ab.1497024216.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, netdev@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-The first patch gets some driver-specific information available for
-use by the LDom management utilities through the drvinfo service: the
-lowlevel vio version into firmware-version field, and, most importantly,
-the remote-mac address into the bus-info field.
+Enhances search for VIO device in MDESC by leveraging already existing
+MDESC APIs. Enhances changes in c982aa9 by using existing MD search
+functions. It also specifies a match function, thereby enabling
+device_find_child() to use it for the purpose of matching device
+nodes in MDESC.
 
-When creating the LDoms and their network connections, there currently
-isn't a good way to match the vif netdev to the client LDom that it
-services.  By having the vif device print the remote-mac address from
-the mdesc used to build the connection, the userland tools can correlate
-which vif services which LDom.
+An API to find VDEV node in MDESC based on its md_node_info is also
+added. It is planned to be used by VIO device clients in the future.
 
-There was some discussion about adding a 'remote-mac' element into the
-/sys/class/net/<dev>/ model, but our thinking was that this might be
-too specific to our devices and not fit well into the general model.
-We're open to going back to that if others in the community think it
-would be a better place for this data.
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ arch/sparc/include/asm/vio.h |    5 ++-
+ arch/sparc/kernel/mdesc.c    |    2 +
+ arch/sparc/kernel/vio.c      |  119 ++++++++++++++++++++----------------------
+ 3 files changed, 63 insertions(+), 63 deletions(-)
 
-The second patch implements the get_settings service.  This might seem
-moot as these primarily describe a hardware port connection which doesn't
-make much sense in a virtualized network connection.  However, there are a
-couple of userland LDom management tools that work better if this data is
-filled out.  One specific example is that the /sys/class/net/<dev>/speed
-attribute becomes readable.
-
-Shannon Nelson (2):
-  ldmvsw: add vio version and remote-mac to ethtool info
-  sunvnet: implement basic ethtool get_settings
-
- drivers/net/ethernet/sun/ldmvsw.c         |    8 ++++++++
- drivers/net/ethernet/sun/sunvnet.c        |    1 +
- drivers/net/ethernet/sun/sunvnet_common.c |   11 +++++++++++
- drivers/net/ethernet/sun/sunvnet_common.h |    2 ++
- 4 files changed, 22 insertions(+), 0 deletions(-)
+diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
+index d8eb195..25ede61 100644
+--- a/arch/sparc/include/asm/vio.h
++++ b/arch/sparc/include/asm/vio.h
+@@ -329,7 +329,6 @@ struct vio_dev {
+ 	int			compat_len;
+ 
+ 	u64			dev_no;
+-	u64			id;
+ 
+ 	unsigned long		channel_id;
+ 
+@@ -341,6 +340,9 @@ struct vio_dev {
+ 	/* Handle to the root of "channel-devices" sub-tree in MDESC */
+ 	u64			cdev_handle;
+ 
++	/* MD specific data used to identify the vdev in MD */
++	union md_node_info	md_node_info;
++
+ 	struct device		dev;
+ };
+ 
+@@ -497,5 +499,6 @@ int vio_driver_init(struct vio_driver_state *vio, struct vio_dev *vdev,
+ 
+ void vio_port_up(struct vio_driver_state *vio);
+ int vio_set_intr(unsigned long dev_ino, int state);
++u64 vio_vdev_node(struct mdesc_handle *hp, struct vio_dev *vdev);
+ 
+ #endif /* _SPARC64_VIO_H */
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 6f7a769..35412f2 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -525,6 +525,7 @@ u64 mdesc_get_node(struct mdesc_handle *hp, char *node_name,
+ 
+ 	return hp_node;
+ }
++EXPORT_SYMBOL(mdesc_get_node);
+ 
+ int mdesc_get_node_info(struct mdesc_handle *hp, u64 node, char *node_name,
+ 			union md_node_info *node_info)
+@@ -555,6 +556,7 @@ int mdesc_get_node_info(struct mdesc_handle *hp, u64 node, char *node_name,
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(mdesc_get_node_info);
+ 
+ static struct mdesc_elem *node_block(struct mdesc_hdr *mdesc)
+ {
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 7d2e00e..bd3a108 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -217,6 +217,31 @@ static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH,
+ 	return cfg_handle;
+ }
+ 
++/**
++ * vio_vdev_node() - Find VDEV node in MD
++ * @hp:  Handle to the MD
++ * @vdev:  Pointer to VDEV
++ *
++ * Find the node in the current MD which matches the given vio_dev. This
++ * must be done dynamically since the node value can change if the MD
++ * is updated.
++ *
++ * NOTE: the MD must be locked, using mdesc_grab(), when calling this routine
++ *
++ * Return: The VDEV node in MDESC
++ */
++u64 vio_vdev_node(struct mdesc_handle *hp, struct vio_dev *vdev)
++{
++	u64 node;
++
++	if (vdev = NULL)
++		return MDESC_NODE_NULL;
++
++	node = mdesc_get_node(hp, vdev->node_name, &vdev->md_node_info);
++
++	return node;
++}
++
+ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
+ 				  struct vio_dev *vdev)
+ {
+@@ -315,16 +340,13 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 	if (!id) {
+ 		dev_set_name(&vdev->dev, "%s", type);
+ 		vdev->dev_no = ~(u64)0;
+-		vdev->id = ~(u64)0;
+ 	} else if (!cfg_handle) {
+ 		dev_set_name(&vdev->dev, "%s-%llu", type, *id);
+ 		vdev->dev_no = *id;
+-		vdev->id = ~(u64)0;
+ 	} else {
+ 		dev_set_name(&vdev->dev, "%s-%llu-%llu", type,
+ 			     *cfg_handle, *id);
+ 		vdev->dev_no = *cfg_handle;
+-		vdev->id = *id;
+ 	}
+ 
+ 	vdev->dev.parent = parent;
+@@ -346,11 +368,24 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 	}
+ 	vdev->dp = dp;
+ 
+-	/* node_name is NULL for the parent/channel-devices node */
+-	if (node_name != NULL)
++	/*
++	 * node_name is NULL for the parent/channel-devices node and
++	 * the parent doesn't require the MD node info.
++	 */
++	if (node_name != NULL) {
+ 		(void) snprintf(vdev->node_name, VIO_MAX_NAME_LEN, "%s",
+ 				node_name);
+ 
++		err = mdesc_get_node_info(hp, mp, node_name,
++					  &vdev->md_node_info);
++		if (err) {
++			pr_err("VIO: Could not get MD node info %s, err=%d\n",
++			       dev_name(&vdev->dev), err);
++			kfree(vdev);
++			return NULL;
++		}
++	}
++
+ 	pr_info("VIO: Adding device %s (tx_ino = %llx, rx_ino = %llx)\n",
+ 		dev_name(&vdev->dev), vdev->tx_ino, vdev->rx_ino);
+ 
+@@ -374,68 +409,36 @@ static void vio_add(struct mdesc_handle *hp, u64 node,
+ 	(void) vio_create_one(hp, node, (char *)node_name, &root_vdev->dev);
+ }
+ 
+-struct vio_md_node_query {
+-	const char *type;
+-	u64 dev_no;
+-	u64 id;
++struct vio_remove_node_data {
++	struct mdesc_handle *hp;
++	u64 node;
+ };
+ 
+ static int vio_md_node_match(struct device *dev, void *arg)
+ {
+-	struct vio_md_node_query *query = (struct vio_md_node_query *) arg;
+ 	struct vio_dev *vdev = to_vio_dev(dev);
++	struct vio_remove_node_data *node_data;
++	u64 node;
+ 
+-	if (vdev->dev_no != query->dev_no)
+-		return 0;
+-	if (vdev->id != query->id)
+-		return 0;
+-	if (strcmp(vdev->type, query->type))
+-		return 0;
++	node_data = (struct vio_remove_node_data *)arg;
+ 
+-	return 1;
++	node = vio_vdev_node(node_data->hp, vdev);
++
++	if (node = node_data->node)
++		return 1;
++	else
++		return 0;
+ }
+ 
+ static void vio_remove(struct mdesc_handle *hp, u64 node, const char *node_name)
+ {
+-	const char *type;
+-	const u64 *id, *cfg_handle;
+-	u64 a;
+-	struct vio_md_node_query query;
++	struct vio_remove_node_data node_data;
+ 	struct device *dev;
+ 
+-	type = mdesc_get_property(hp, node, "device-type", NULL);
+-	if (!type) {
+-		type = mdesc_get_property(hp, node, "name", NULL);
+-		if (!type)
+-			type = mdesc_node_name(hp, node);
+-	}
+-
+-	query.type = type;
+-
+-	id = mdesc_get_property(hp, node, "id", NULL);
+-	cfg_handle = NULL;
+-	mdesc_for_each_arc(a, hp, node, MDESC_ARC_TYPE_BACK) {
+-		u64 target;
+-
+-		target = mdesc_arc_target(hp, a);
+-		cfg_handle = mdesc_get_property(hp, target,
+-						"cfg-handle", NULL);
+-		if (cfg_handle)
+-			break;
+-	}
+-
+-	if (!id) {
+-		query.dev_no = ~(u64)0;
+-		query.id = ~(u64)0;
+-	} else if (!cfg_handle) {
+-		query.dev_no = *id;
+-		query.id = ~(u64)0;
+-	} else {
+-		query.dev_no = *cfg_handle;
+-		query.id = *id;
+-	}
++	node_data.hp = hp;
++	node_data.node = node;
+ 
+-	dev = device_find_child(&root_vdev->dev, &query,
++	dev = device_find_child(&root_vdev->dev, (void *)&node_data,
+ 				vio_md_node_match);
+ 	if (dev) {
+ 		printk(KERN_INFO "VIO: Removing device %s\n", dev_name(dev));
+@@ -443,15 +446,7 @@ static void vio_remove(struct mdesc_handle *hp, u64 node, const char *node_name)
+ 		device_unregister(dev);
+ 		put_device(dev);
+ 	} else {
+-		if (!id)
+-			printk(KERN_ERR "VIO: Removed unknown %s node.\n",
+-			       type);
+-		else if (!cfg_handle)
+-			printk(KERN_ERR "VIO: Removed unknown %s node %llu.\n",
+-			       type, *id);
+-		else
+-			printk(KERN_ERR "VIO: Removed unknown %s node %llu-%llu.\n",
+-			       type, *cfg_handle, *id);
++		pr_err("VIO: %s node not found in MDESC\n", node_name);
+ 	}
+ }
+ 
+-- 
+1.7.1
 
