@@ -1,47 +1,56 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 09 Jun 2017 16:29:32 +0000
-Subject: [PATCH v4 5/5] sparc64: print debug messages when reading from LDC channel
-Message-Id: <23530ee79070e1dbb5b4dcbd786f3c056ff4f891.1497022394.git.jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:31:01 +0000
+Subject: [PATCH v1 12/12] sparc64: add port_id to VIO device metadata
+Message-Id: <15c4d71fb71a99787ef6ee80435cdabf292d825f.1497024216.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Print debug messages when reading from given LDC channel.
+Add port_id field to VIO device metadata to identify the port of
+VIO device.
 
 Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
 Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/vio.h |    1 +
+ arch/sparc/kernel/vio.c      |    2 ++
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 47817b7..97a5743 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -1950,6 +1950,8 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
- 	unsigned long flags;
- 	int err;
+diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
+index 25ede61..d1c47e9 100644
+--- a/arch/sparc/include/asm/vio.h
++++ b/arch/sparc/include/asm/vio.h
+@@ -330,6 +330,7 @@ struct vio_dev {
  
-+	ldcdbg(RX, "%s: entered size=%d\n", __func__, size);
-+
- 	if (!buf)
- 		return -EINVAL;
+ 	u64			dev_no;
  
-@@ -1965,6 +1967,9 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
++	unsigned long		port_id;
+ 	unsigned long		channel_id;
  
- 	spin_unlock_irqrestore(&lp->lock, flags);
+ 	unsigned int		tx_irq;
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index bd3a108..c8cf1c2 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -332,6 +332,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 		memset(vdev->compat, 0, sizeof(vdev->compat));
+ 	vdev->compat_len = clen;
  
-+	ldcdbg(RX, "%s: mode=%d, head=%lu, tail=%lu rv=%d\n", __func__,
-+	       lp->cfg.mode, lp->rx_head, lp->rx_tail, err);
-+
- 	return err;
- }
- EXPORT_SYMBOL(ldc_read);
++	vdev->port_id = ~0UL;
+ 	vdev->tx_irq = 0;
+ 	vdev->rx_irq = 0;
+ 
+@@ -347,6 +348,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 		dev_set_name(&vdev->dev, "%s-%llu-%llu", type,
+ 			     *cfg_handle, *id);
+ 		vdev->dev_no = *cfg_handle;
++		vdev->port_id = *id;
+ 	}
+ 
+ 	vdev->dev.parent = parent;
 -- 
 1.7.1
 
