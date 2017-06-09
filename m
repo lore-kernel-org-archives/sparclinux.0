@@ -1,68 +1,82 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 09 Jun 2017 19:48:07 +0000
-Subject: [PATCH v2 2/2] include: warn for inconsistent endian config definition
-Message-Id: <1497037687-107638-3-git-send-email-babu.moger@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:29:30 +0000
+Subject: [PATCH v4 3/5] sparc64: ensure LDC channel is ready before communication
+Message-Id: <9dcbb9b15c74dcae426ee56fb65903a2f86b3b61.1497022394.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497037687-107638-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1497037687-107638-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-We have seen some generic code use config parameter CONFIG_CPU_BIG_ENDIAN
-to decide the endianness.
+Ensure that LDC channel is up before writing to it, in RAW mode. Generate
+event to bring the LDC channel up, if it's not up already.
 
-Here are the few examples.
-include/asm-generic/qrwlock.h
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
-
-Display warning if CPU_BIG_ENDIAN is not defined on big endian
-architecture and also warn if it defined on little endian architectures.
-
-Here is our original discussion
-https://lkml.org/lkml/2017/5/24/620
-
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 ---
- include/linux/byteorder/big_endian.h    |    4 ++++
- include/linux/byteorder/little_endian.h |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/ldc.c |   30 +++++++++++++++++++++++++-----
+ 1 files changed, 25 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/byteorder/big_endian.h b/include/linux/byteorder/big_endian.h
-index 3920414..ffd2159 100644
---- a/include/linux/byteorder/big_endian.h
-+++ b/include/linux/byteorder/big_endian.h
-@@ -3,5 +3,9 @@
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 902cbf4..639da7b 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -813,9 +813,14 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
+ 		lp->hs_state = LDC_HS_COMPLETE;
+ 		ldc_set_state(lp, LDC_STATE_CONNECTED);
  
- #include <uapi/linux/byteorder/big_endian.h>
+-		event_mask |= LDC_EVENT_UP;
+-
+-		orig_state = lp->chan_state;
++		/*
++		 * Generate an LDC_EVENT_UP event if the channel
++		 * was not already up.
++		 */
++		if (orig_state != LDC_CHANNEL_UP) {
++			event_mask |= LDC_EVENT_UP;
++			orig_state = lp->chan_state;
++		}
+ 	}
  
-+#ifndef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
-+#endif
+ 	/* If we are in reset state, flush the RX queue and ignore
+@@ -929,7 +934,14 @@ static irqreturn_t ldc_tx(int irq, void *dev_id)
+ 		lp->hs_state = LDC_HS_COMPLETE;
+ 		ldc_set_state(lp, LDC_STATE_CONNECTED);
+ 
+-		event_mask |= LDC_EVENT_UP;
++		/*
++		 * Generate an LDC_EVENT_UP event if the channel
++		 * was not already up.
++		 */
++		if (orig_state != LDC_CHANNEL_UP) {
++			event_mask |= LDC_EVENT_UP;
++			orig_state = lp->chan_state;
++		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&lp->lock, flags);
+@@ -1475,9 +1487,17 @@ void __ldc_print(struct ldc_channel *lp, const char *caller)
+ static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
+ {
+ 	struct ldc_packet *p;
+-	unsigned long new_tail;
++	unsigned long new_tail, hv_err;
+ 	int err;
+ 
++	hv_err = sun4v_ldc_tx_get_state(lp->id, &lp->tx_head, &lp->tx_tail,
++					&lp->chan_state);
++	if (unlikely(hv_err))
++		return -EBUSY;
 +
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
-diff --git a/include/linux/byteorder/little_endian.h b/include/linux/byteorder/little_endian.h
-index 0805737..ba910bb 100644
---- a/include/linux/byteorder/little_endian.h
-+++ b/include/linux/byteorder/little_endian.h
-@@ -3,5 +3,9 @@
- 
- #include <uapi/linux/byteorder/little_endian.h>
- 
-+#ifdef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, CONFIG_CPU_BIG_ENDIAN is set
-+#endif
++	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
++		return LDC_ABORT(lp);
 +
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
+ 	if (size > LDC_PACKET_SIZE)
+ 		return -EMSGSIZE;
+ 
 -- 
 1.7.1
 
