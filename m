@@ -1,64 +1,47 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 15 Jun 2017 14:40:59 +0000
-Subject: [v1 2/2] sparc64: broken %tick frequency on spitfire cpus
-Message-Id: <1497537659-419752-3-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:29:32 +0000
+Subject: [PATCH v4 5/5] sparc64: print debug messages when reading from LDC channel
+Message-Id: <23530ee79070e1dbb5b4dcbd786f3c056ff4f891.1497022394.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-After early boot time stamps project the %tick frequency is detected
-incorrectly on spittfire cpus.
+Print debug messages when reading from given LDC channel.
 
-We must use cpuid of boot cpu to find corresponding cpu node in OpenBoot,
-and extract clock-frequency property from there.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Aaron Young <aaron.young@oracle.com>
+Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 ---
- arch/sparc/kernel/time_64.c |   27 ++++++++++++++++++++++++++-
- 1 files changed, 26 insertions(+), 1 deletions(-)
+ arch/sparc/kernel/ldc.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index a62758c..f584c53 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -162,9 +162,34 @@ static unsigned long tick_add_tick(unsigned long adj)
- 	return new_tick;
- }
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 47817b7..97a5743 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1950,6 +1950,8 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
+ 	unsigned long flags;
+ 	int err;
  
-+/* Searches for cpu clock frequency with given cpuid in OpenBoot tree */
-+static unsigned long cpuid_to_freq(phandle node, int cpuid)
-+{
-+	bool is_cpu_node = false;
-+	unsigned long freq = 0;
-+	char type[128];
++	ldcdbg(RX, "%s: entered size=%d\n", __func__, size);
 +
-+	if (!node)
-+		return freq;
-+
-+	if (prom_getproperty(node, "device_type", type, sizeof(type)) != -1)
-+		is_cpu_node = (strcmp(type, "cpu") = 0);
-+
-+	/* try upa-portis then cpuid to get cpuid, see prom_64.c */
-+	if (is_cpu_node && (prom_getint(node, "upa-portis") = cpuid ||
-+			    prom_getint(node, "cpuid") = cpuid))
-+		freq = prom_getintdefault(node, "clock-frequency", 0);
-+	if (!freq)
-+		freq = cpuid_to_freq(prom_getchild(node), cpuid);
-+	if (!freq)
-+		freq = cpuid_to_freq(prom_getsibling(node), cpuid);
-+
-+	return freq;
-+}
-+
- static unsigned long tick_get_frequency(void)
- {
--	return local_cpu_data().clock_tick;
-+	return cpuid_to_freq(prom_root_node, hard_smp_processor_id());
- }
+ 	if (!buf)
+ 		return -EINVAL;
  
- static struct sparc64_tick_ops tick_operations __cacheline_aligned = {
+@@ -1965,6 +1967,9 @@ int ldc_read(struct ldc_channel *lp, void *buf, unsigned int size)
+ 
+ 	spin_unlock_irqrestore(&lp->lock, flags);
+ 
++	ldcdbg(RX, "%s: mode=%d, head=%lu, tail=%lu rv=%d\n", __func__,
++	       lp->cfg.mode, lp->rx_head, lp->rx_tail, err);
++
+ 	return err;
+ }
+ EXPORT_SYMBOL(ldc_read);
 -- 
 1.7.1
 
