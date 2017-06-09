@@ -1,128 +1,48 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Thu, 08 Jun 2017 22:17:22 +0000
-Subject: [PATCH 1/2] arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
-Message-Id: <1496960243-196898-2-git-send-email-babu.moger@oracle.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 09 Jun 2017 07:03:18 +0000
+Subject: Re: [PATCH 1/2] arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
+Message-Id: <CAMuHMdXke2z5YuVfGU-wQ-PawwrGRP5_TyDN0qH8zah-iidNUQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1496960243-196898-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1496960243-196898-1-git-send-email-babu.moger@oracle.com>
+References: <1496960243-196898-1-git-send-email-babu.moger@oracle.com> <1496960243-196898-2-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1496960243-196898-2-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: Babu Moger <babu.moger@oracle.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>, Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, Stafford Horne <shorne@gmail.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Al Viro <viro@zeniv.linux.org.uk>, Michael Ellerman <mpe@ellerman.id.au>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, uclinux-h8-devel@lists.sourceforge.jp, Linux/m68k <linux-m68k@vger.kernel.org>, openrisc@lists.librecores.org, Parisc List <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
 
-While working on enabling queued rwlock on SPARC, found
-this following code in include/asm-generic/qrwlock.h
-which uses CONFIG_CPU_BIG_ENDIAN to clear a byte.
+On Fri, Jun 9, 2017 at 12:17 AM, Babu Moger <babu.moger@oracle.com> wrote:
+> While working on enabling queued rwlock on SPARC, found
+> this following code in include/asm-generic/qrwlock.h
+> which uses CONFIG_CPU_BIG_ENDIAN to clear a byte.
+>
+> static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+>  {
+>         return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+>  }
+>
+> Problem is many of the fixed big endian architectures dont define
+> CPU_BIG_ENDIAN and clears the wrong byte.
+>
+> Define CPU_BIG_ENDIAN for all the fixed big endian architecture.
+>
+> Here is the orinal discussion
+> http://www.spinics.net/lists/devicetree/msg178101.html
+>
+> Signed-off-by: Babu Moger <babu.moger@oracle.com>
+> Suggested-by: Arnd Bergmann <arnd@arndb.de>
 
-static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
- {
-	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
- }
+Hmm, the link above refers to a mail from me? ;-)
 
-Problem is many of the fixed big endian architectures dont define
-CPU_BIG_ENDIAN and clears the wrong byte.
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Define CPU_BIG_ENDIAN for all the fixed big endian architecture.
+Gr{oetje,eeting}s,
 
-Here is the orinal discussion
-http://www.spinics.net/lists/devicetree/msg178101.html
+                        Geert
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/frv/Kconfig      |    3 +++
- arch/h8300/Kconfig    |    3 +++
- arch/m68k/Kconfig     |    3 +++
- arch/openrisc/Kconfig |    3 +++
- arch/parisc/Kconfig   |    3 +++
- arch/sparc/Kconfig    |    3 +++
- 6 files changed, 18 insertions(+), 0 deletions(-)
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
-index eefd9a4..1cce824 100644
---- a/arch/frv/Kconfig
-+++ b/arch/frv/Kconfig
-@@ -17,6 +17,9 @@ config FRV
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select ARCH_NO_COHERENT_DMA_MMAP
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config ZONE_DMA
- 	bool
- 	default y
-diff --git a/arch/h8300/Kconfig b/arch/h8300/Kconfig
-index 3ae8525..5380ac8 100644
---- a/arch/h8300/Kconfig
-+++ b/arch/h8300/Kconfig
-@@ -23,6 +23,9 @@ config H8300
- 	select HAVE_ARCH_HASH
- 	select CPU_NO_EFFICIENT_FFS
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config RWSEM_GENERIC_SPINLOCK
- 	def_bool y
- 
-diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
-index d140206..029a58b 100644
---- a/arch/m68k/Kconfig
-+++ b/arch/m68k/Kconfig
-@@ -23,6 +23,9 @@ config M68K
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config RWSEM_GENERIC_SPINLOCK
- 	bool
- 	default y
-diff --git a/arch/openrisc/Kconfig b/arch/openrisc/Kconfig
-index 1e95920..a0f2e4a 100644
---- a/arch/openrisc/Kconfig
-+++ b/arch/openrisc/Kconfig
-@@ -29,6 +29,9 @@ config OPENRISC
- 	select CPU_NO_EFFICIENT_FFS if !OPENRISC_HAVE_INST_FF1
- 	select NO_BOOTMEM
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config MMU
- 	def_bool y
- 
-diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
-index 531da9e..dda1f55 100644
---- a/arch/parisc/Kconfig
-+++ b/arch/parisc/Kconfig
-@@ -47,6 +47,9 @@ config PARISC
- 	  and later HP3000 series).  The PA-RISC Linux project home page is
- 	  at <http://www.parisc-linux.org/>.
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config MMU
- 	def_bool y
- 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 58243b0..eb213b5 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -92,6 +92,9 @@ config ARCH_DEFCONFIG
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
- 
-+config CPU_BIG_ENDIAN
-+	def_bool y
-+
- config ARCH_ATU
- 	bool
- 	default y if SPARC64
--- 
-1.7.1
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
