@@ -1,65 +1,79 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 12 Jun 2017 16:48:20 +0000
-Subject: [v2 1/8] sparc64: remove trailing white spaces
-Message-Id: <1497286107-974183-2-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:30:57 +0000
+Subject: [PATCH v1 08/12] sparc64: remove restriction on VIO device name size
+Message-Id: <3c1bcc54c240f93248d6fe12fb1825fb8c56ffd6.1497024216.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-A few changes that were reported by checkpatch, removed all trailing white
-spaces in these two files.
+Removes restriction on VIO device's size limit. Since KOBJ_NAME_LEN
+has been dropped from kobject, there doesn't seem to be a
+restriction on the device name anymore. This limit therefore
+doesn't make sense.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/include/asm/setup.h |    2 +-
- arch/sparc/kernel/setup_64.c   |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/vio.c |   23 ++++-------------------
+ 1 files changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-index 3fae200..8b32538 100644
---- a/arch/sparc/include/asm/setup.h
-+++ b/arch/sparc/include/asm/setup.h
-@@ -1,5 +1,5 @@
- /*
-- *	Just a place holder. 
-+ *	Just a place holder.
-  */
- #ifndef _SPARC_SETUP_H
- #define _SPARC_SETUP_H
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 422b178..4a85f92 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -95,7 +95,7 @@ struct screen_info screen_info = {
- 	.index =	-1,
- };
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index bcb754c..e142708 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -239,7 +239,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
+ 				      char *node_name, struct device *parent)
+ {
+-	const char *type, *compat, *bus_id_name;
++	const char *type, *compat;
+ 	struct device_node *dp;
+ 	struct vio_dev *vdev;
+ 	int err, tlen, clen;
+@@ -263,21 +263,6 @@ int vio_set_intr(unsigned long dev_ino, int state)
  
--/* 
-+/*
-  * Process kernel command line switches that are specific to the
-  * SPARC or that require special low-level processing.
-  */
-@@ -639,7 +639,7 @@ void __init setup_arch(char **cmdline_p)
- #ifdef CONFIG_BLK_DEV_RAM
- 	rd_image_start = ram_flags & RAMDISK_IMAGE_START_MASK;
- 	rd_prompt = ((ram_flags & RAMDISK_PROMPT_FLAG) != 0);
--	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);	
-+	rd_doload = ((ram_flags & RAMDISK_LOAD_FLAG) != 0);
- #endif
+ 	cfg_handle = vio_cfg_handle(hp, mp);
  
- 	task_thread_info(&init_task)->kregs = &fake_swapper_regs;
-@@ -648,7 +648,7 @@ void __init setup_arch(char **cmdline_p)
- 	if (!ic_set_manually) {
- 		phandle chosen = prom_finddevice("/chosen");
- 		u32 cl, sv, gw;
--		
-+
- 		cl = prom_getintdefault (chosen, "client-ip", 0);
- 		sv = prom_getintdefault (chosen, "server-ip", 0);
- 		gw = prom_getintdefault (chosen, "gateway-ip", 0);
+-	bus_id_name = type;
+-	if (!strcmp(type, "domain-services-port"))
+-		bus_id_name = "ds";
+-
+-	/*
+-	 * 20 char is the old driver-core name size limit, which is no more.
+-	 * This check can probably be removed after review and possible
+-	 * adaption of the vio users name length handling.
+-	 */
+-	if (strlen(bus_id_name) >= 20 - 4) {
+-		printk(KERN_ERR "VIO: bus_id_name [%s] is too long.\n",
+-		       bus_id_name);
+-		return NULL;
+-	}
+-
+ 	compat = mdesc_get_property(hp, mp, "device-type", &clen);
+ 	if (!compat) {
+ 		clen = 0;
+@@ -308,15 +293,15 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 	vio_fill_channel_info(hp, mp, vdev);
+ 
+ 	if (!id) {
+-		dev_set_name(&vdev->dev, "%s", bus_id_name);
++		dev_set_name(&vdev->dev, "%s", type);
+ 		vdev->dev_no = ~(u64)0;
+ 		vdev->id = ~(u64)0;
+ 	} else if (!cfg_handle) {
+-		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
++		dev_set_name(&vdev->dev, "%s-%llu", type, *id);
+ 		vdev->dev_no = *id;
+ 		vdev->id = ~(u64)0;
+ 	} else {
+-		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
++		dev_set_name(&vdev->dev, "%s-%llu-%llu", type,
+ 			     *cfg_handle, *id);
+ 		vdev->dev_no = *cfg_handle;
+ 		vdev->id = *id;
 -- 
 1.7.1
 
