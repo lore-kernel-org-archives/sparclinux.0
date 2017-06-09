@@ -1,53 +1,95 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:53 +0000
-Subject: [PATCH 38/44] arm: implement ->dma_supported instead of ->set_dma_mask
-Message-Id: <20170616181059.19206-39-hch@lst.de>
+From: <gregkh@linuxfoundation.org>
+Date: Fri, 09 Jun 2017 09:01:05 +0000
+Subject: patch "sparc: vio: use dev_groups and not dev_attrs for bus_type" added to driver-core-testing
+Message-Id: <149699886520255@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Same behavior, less code duplication.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This is a note to let you know that I've just added the patch titled
+
+    sparc: vio: use dev_groups and not dev_attrs for bus_type
+
+to my driver-core git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core.git
+in the driver-core-testing branch.
+
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
+
+The patch will be merged to the driver-core-next branch sometime soon,
+after it passes testing, and the merge window is open.
+
+If you have any questions about this process, please let me know.
+
+
+From 33acc6db64f77a7bd773f4bc5cc8fcd1b6976ddc Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Tue, 6 Jun 2017 14:27:08 +0200
+Subject: sparc: vio: use dev_groups and not dev_attrs for bus_type
+
+The dev_attrs field has long been "depreciated" and is finally being
+removed, so move the driver to use the "correct" dev_groups field
+instead for struct bus_type.
+
+Acked-by: "David S. Miller" <davem@davemloft.net>
+Cc: <sparclinux@vger.kernel.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/arm/common/dmabounce.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/vio.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/common/dmabounce.c b/arch/arm/common/dmabounce.c
-index 6ecd5be5d37e..9a92de63426f 100644
---- a/arch/arm/common/dmabounce.c
-+++ b/arch/arm/common/dmabounce.c
-@@ -445,12 +445,12 @@ static void dmabounce_sync_for_device(struct device *dev,
- 	arm_dma_ops.sync_single_for_device(dev, handle, size, dir);
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index f6bb857254fc..78bf2cc60924 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -105,6 +105,7 @@ static ssize_t devspec_show(struct device *dev,
+ 
+ 	return sprintf(buf, "%s\n", str);
  }
++static DEVICE_ATTR_RO(devspec);
  
--static int dmabounce_set_mask(struct device *dev, u64 dma_mask)
-+static int dmabounce_dma_supported(struct device *dev, u64 dma_mask)
- {
- 	if (dev->archdata.dmabounce)
- 		return 0;
- 
--	return arm_dma_ops.set_dma_mask(dev, dma_mask);
-+	return arm_dma_ops.dma_supported(dev, dma_mask);
+ static ssize_t type_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+@@ -112,6 +113,7 @@ static ssize_t type_show(struct device *dev,
+ 	struct vio_dev *vdev = to_vio_dev(dev);
+ 	return sprintf(buf, "%s\n", vdev->type);
  }
++static DEVICE_ATTR_RO(type);
  
- static int dmabounce_mapping_error(struct device *dev, dma_addr_t dma_addr)
-@@ -471,9 +471,8 @@ static const struct dma_map_ops dmabounce_ops = {
- 	.unmap_sg		= arm_dma_unmap_sg,
- 	.sync_sg_for_cpu	= arm_dma_sync_sg_for_cpu,
- 	.sync_sg_for_device	= arm_dma_sync_sg_for_device,
--	.set_dma_mask		= dmabounce_set_mask,
-+	.dma_supported		= dmabounce_dma_supported,
- 	.mapping_error		= dmabounce_mapping_error,
--	.dma_supported		= arm_dma_supported,
- };
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
+@@ -120,17 +122,19 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
  
- static int dmabounce_init_pool(struct dmabounce_pool *pool, struct device *dev,
+ 	return sprintf(buf, "vio:T%sS%s\n", vdev->type, vdev->compat);
+ }
++static DEVICE_ATTR_RO(modalias);
+ 
+-static struct device_attribute vio_dev_attrs[] = {
+-	__ATTR_RO(devspec),
+-	__ATTR_RO(type),
+-	__ATTR_RO(modalias),
+-	__ATTR_NULL
+-};
++static struct attribute *vio_dev_attrs[] = {
++	&dev_attr_devspec.attr,
++	&dev_attr_type.attr,
++	&dev_attr_modalias.attr,
++	NULL,
++ };
++ATTRIBUTE_GROUPS(vio_dev);
+ 
+ static struct bus_type vio_bus_type = {
+ 	.name		= "vio",
+-	.dev_attrs	= vio_dev_attrs,
++	.dev_groups	= vio_dev_groups,
+ 	.uevent         = vio_hotplug,
+ 	.match		= vio_bus_match,
+ 	.probe		= vio_device_probe,
 -- 
-2.11.0
+2.13.1
+
 
