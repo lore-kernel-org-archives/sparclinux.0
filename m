@@ -1,169 +1,166 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 12 Jun 2017 20:41:42 +0000
-Subject: [v3 2/8] sparc64: access tick function from variable
-Message-Id: <1497300108-158125-3-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 09 Jun 2017 16:30:59 +0000
+Subject: [PATCH v1 10/12] sparc64: enhance VIO device probing
+Message-Id: <7d4210189f4b634bfab3fc43b917309b25b49ed9.1497024216.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-In timer_64.c tick functions are access via pointer (tick_ops), every time
-clock is read, there is one extra load to get to the function.
+- Allocate IRQs for VIO devices during probing.
+- Allow clients to specify if IRQs would be allocated for a given
+  VIO device.
+- Cache the device handle of the root node of channel-devices sub-tree in
+  Machine Description (MDESC).
 
-This patch optimizes it, by accessing functions pointer from value.
-
-Current ched_clock():
-sethi  %hi(0xb9b400), %g1
-ldx  [ %g1 + 0x250 ], %g1  ! <tick_ops>
-ldx  [ %g1 ], %g1
-call  %g1
-nop
-sethi  %hi(0xb9b400), %g1
-ldx  [ %g1 + 0x300 ], %g1  ! <timer_ticks_per_nsec_quotient>
-mulx  %o0, %g1, %g1
-rett  %i7 + 8
-srlx  %g1, 0xa, %o0
-
-New sched_clock():
-sethi  %hi(0xb9b400), %g1
-ldx  [ %g1 + 0x340 ], %g1
-call  %g1
-nop
-sethi  %hi(0xb9b400), %g1
-ldx  [ %g1 + 0x378 ], %g1
-mulx  %o0, %g1, %g1
-rett  %i7 + 8
-srlx  %g1, 0xa, %o0
-
-Before three loads, now two loads.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 ---
- arch/sparc/kernel/time_64.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+ arch/sparc/include/asm/vio.h |    5 ++++
+ arch/sparc/kernel/vio.c      |   53 +++++++++++++++++++++++++++++------------
+ 2 files changed, 42 insertions(+), 16 deletions(-)
 
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 98d05de..6724bcb 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -585,6 +585,7 @@ static int __init clock_init(void)
- /* This is gets the master TICK_INT timer going. */
- static unsigned long sparc64_init_timers(void)
- {
-+	struct sparc64_tick_ops *ops = NULL;
- 	struct device_node *dp;
- 	unsigned long freq;
+diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
+index 69cb3a5..d8eb195 100644
+--- a/arch/sparc/include/asm/vio.h
++++ b/arch/sparc/include/asm/vio.h
+@@ -336,6 +336,10 @@ struct vio_dev {
+ 	unsigned int		tx_irq;
+ 	unsigned int		rx_irq;
+ 	u64			rx_ino;
++	u64			tx_ino;
++
++	/* Handle to the root of "channel-devices" sub-tree in MDESC */
++	u64			cdev_handle;
  
-@@ -598,16 +599,17 @@ static unsigned long sparc64_init_timers(void)
- 		impl = ((ver >> 32) & 0xffff);
- 		if (manuf = 0x17 && impl = 0x13) {
- 			/* Hummingbird, aka Ultra-IIe */
--			tick_ops = &hbtick_operations;
-+			ops = &hbtick_operations;
- 			freq = of_getintprop_default(dp, "stick-frequency", 0);
- 		} else {
--			tick_ops = &tick_operations;
- 			freq = local_cpu_data().clock_tick;
- 		}
- 	} else {
--		tick_ops = &stick_operations;
-+		ops = &stick_operations;
- 		freq = of_getintprop_default(dp, "stick-frequency", 0);
+ 	struct device		dev;
+ };
+@@ -349,6 +353,7 @@ struct vio_driver {
+ 	void (*shutdown)(struct vio_dev *dev);
+ 	unsigned long			driver_data;
+ 	struct device_driver		driver;
++	bool				no_irq;
+ };
+ 
+ struct vio_version {
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index e142708..7d2e00e 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -70,15 +70,26 @@ static int vio_device_probe(struct device *dev)
+ 	struct vio_dev *vdev = to_vio_dev(dev);
+ 	struct vio_driver *drv = to_vio_driver(dev->driver);
+ 	const struct vio_device_id *id;
+-	int error = -ENODEV;
+ 
+-	if (drv->probe) {
+-		id = vio_match_device(drv->id_table, vdev);
+-		if (id)
+-			error = drv->probe(vdev, id);
++	if (!drv->probe)
++		return -ENODEV;
++
++	id = vio_match_device(drv->id_table, vdev);
++	if (!id)
++		return -ENODEV;
++
++	/* alloc irqs (unless the driver specified not to) */
++	if (!drv->no_irq) {
++		if (vdev->tx_irq = 0 && vdev->tx_ino != ~0UL)
++			vdev->tx_irq = sun4v_build_virq(vdev->cdev_handle,
++							vdev->tx_ino);
++
++		if (vdev->rx_irq = 0 && vdev->rx_ino != ~0UL)
++			vdev->rx_irq = sun4v_build_virq(vdev->cdev_handle,
++							vdev->rx_ino);
  	}
-+	if (ops)
-+		memcpy(&tick_operations, ops, sizeof(struct sparc64_tick_ops));
  
- 	return freq;
- }
-@@ -671,12 +673,12 @@ static int __init register_sparc64_cpufreq_notifier(void)
- static int sparc64_next_event(unsigned long delta,
- 			      struct clock_event_device *evt)
- {
--	return tick_ops->add_compare(delta) ? -ETIME : 0;
-+	return tick_operations.add_compare(delta) ? -ETIME : 0;
+-	return error;
++	return drv->probe(vdev, id);
  }
  
- static int sparc64_timer_shutdown(struct clock_event_device *evt)
+ static int vio_device_remove(struct device *dev)
+@@ -86,8 +97,15 @@ static int vio_device_remove(struct device *dev)
+ 	struct vio_dev *vdev = to_vio_dev(dev);
+ 	struct vio_driver *drv = to_vio_driver(dev->driver);
+ 
+-	if (drv->remove)
++	if (drv->remove) {
++		/*
++		 * Ideally, we would remove/deallocate tx/rx virqs
++		 * here - however, there are currently no support
++		 * routines to do so at the moment. TBD
++		 */
++
+ 		return drv->remove(vdev);
++	}
+ 
+ 	return 1;
+ }
+@@ -204,6 +222,9 @@ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
  {
--	tick_ops->disable_irq();
-+	tick_operations.disable_irq();
- 	return 0;
+ 	u64 a;
+ 
++	vdev->tx_ino = ~0UL;
++	vdev->rx_ino = ~0UL;
++	vdev->channel_id = ~0UL;
+ 	mdesc_for_each_arc(a, hp, mp, MDESC_ARC_TYPE_FWD) {
+ 		const u64 *chan_id;
+ 		const u64 *irq;
+@@ -213,18 +234,18 @@ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
+ 
+ 		irq = mdesc_get_property(hp, target, "tx-ino", NULL);
+ 		if (irq)
+-			vdev->tx_irq = sun4v_build_virq(cdev_cfg_handle, *irq);
++			vdev->tx_ino = *irq;
+ 
+ 		irq = mdesc_get_property(hp, target, "rx-ino", NULL);
+-		if (irq) {
+-			vdev->rx_irq = sun4v_build_virq(cdev_cfg_handle, *irq);
++		if (irq)
+ 			vdev->rx_ino = *irq;
+-		}
+ 
+ 		chan_id = mdesc_get_property(hp, target, "id", NULL);
+ 		if (chan_id)
+ 			vdev->channel_id = *chan_id;
+ 	}
++
++	vdev->cdev_handle = cdev_cfg_handle;
  }
  
-@@ -693,7 +695,7 @@ static int sparc64_timer_shutdown(struct clock_event_device *evt)
- void __irq_entry timer_interrupt(int irq, struct pt_regs *regs)
- {
- 	struct pt_regs *old_regs = set_irq_regs(regs);
--	unsigned long tick_mask = tick_ops->softint_mask;
-+	unsigned long tick_mask = tick_operations.softint_mask;
- 	int cpu = smp_processor_id();
- 	struct clock_event_device *evt = &per_cpu(sparc64_events, cpu);
+ int vio_set_intr(unsigned long dev_ino, int state)
+@@ -286,9 +307,8 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 		memset(vdev->compat, 0, sizeof(vdev->compat));
+ 	vdev->compat_len = clen;
  
-@@ -728,7 +730,7 @@ void setup_sparc64_timer(void)
- 			     : "=r" (pstate)
- 			     : "i" (PSTATE_IE));
+-	vdev->channel_id = ~0UL;
+-	vdev->tx_irq = ~0;
+-	vdev->rx_irq = ~0;
++	vdev->tx_irq = 0;
++	vdev->rx_irq = 0;
  
--	tick_ops->init_tick();
-+	tick_operations.init_tick();
+ 	vio_fill_channel_info(hp, mp, vdev);
  
- 	/* Restore PSTATE_IE. */
- 	__asm__ __volatile__("wrpr	%0, 0x0, %%pstate"
-@@ -757,9 +759,9 @@ void __delay(unsigned long loops)
- {
- 	unsigned long bclock, now;
+@@ -326,13 +346,14 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 	}
+ 	vdev->dp = dp;
  
--	bclock = tick_ops->get_tick();
-+	bclock = tick_operations.get_tick();
- 	do {
--		now = tick_ops->get_tick();
-+		now = tick_operations.get_tick();
- 	} while ((now-bclock) < loops);
- }
- EXPORT_SYMBOL(__delay);
-@@ -772,7 +774,7 @@ void udelay(unsigned long usecs)
+-	printk(KERN_INFO "VIO: Adding device %s\n", dev_name(&vdev->dev));
+-
+ 	/* node_name is NULL for the parent/channel-devices node */
+ 	if (node_name != NULL)
+ 		(void) snprintf(vdev->node_name, VIO_MAX_NAME_LEN, "%s",
+ 				node_name);
  
- static u64 clocksource_tick_read(struct clocksource *cs)
- {
--	return tick_ops->get_tick();
-+	return tick_operations.get_tick();
- }
- 
- void __init time_init(void)
-@@ -784,14 +786,14 @@ void __init time_init(void)
- 	timer_ticks_per_nsec_quotient  		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
- 
--	clocksource_tick.name = tick_ops->name;
-+	clocksource_tick.name = tick_operations.name;
- 	clocksource_tick.read = clocksource_tick_read;
- 
- 	clocksource_register_hz(&clocksource_tick, freq);
- 	printk("clocksource: mult[%x] shift[%d]\n",
- 	       clocksource_tick.mult, clocksource_tick.shift);
- 
--	sparc64_clockevent.name = tick_ops->name;
-+	sparc64_clockevent.name = tick_operations.name;
- 	clockevents_calc_mult_shift(&sparc64_clockevent, freq, 4);
- 
- 	sparc64_clockevent.max_delta_ns @@ -809,7 +811,7 @@ void __init time_init(void)
- 
- unsigned long long sched_clock(void)
- {
--	unsigned long ticks = tick_ops->get_tick();
-+	unsigned long ticks = tick_operations.get_tick();
- 
- 	return (ticks * timer_ticks_per_nsec_quotient)
- 		>> SPARC64_NSEC_PER_CYC_SHIFT;
-@@ -817,6 +819,6 @@ unsigned long long sched_clock(void)
- 
- int read_current_timer(unsigned long *timer_val)
- {
--	*timer_val = tick_ops->get_tick();
-+	*timer_val = tick_operations.get_tick();
- 	return 0;
- }
++	pr_info("VIO: Adding device %s (tx_ino = %llx, rx_ino = %llx)\n",
++		dev_name(&vdev->dev), vdev->tx_ino, vdev->rx_ino);
++
+ 	err = device_register(&vdev->dev);
+ 	if (err) {
+ 		printk(KERN_ERR "VIO: Could not register device %s, err=%d\n",
 -- 
 1.7.1
 
