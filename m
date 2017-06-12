@@ -1,61 +1,61 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 01 Jun 2017 08:46:09 +0000
-Subject: Re: [v3 0/9] parallelized "struct page" zeroing
-Message-Id: <20170601084609.GF32677@dhcp22.suse.cz>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 12 Jun 2017 22:09:57 +0000
+Subject: [PATCH v3 0/3] Define CPU_BIG_ENDIAN or warn for inconsistencies
+Message-Id: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170509181234.GA4397@dhcp22.suse.cz>
- <e19b241d-be27-3c9a-8984-2fb20211e2e1@oracle.com>
- <20170515193817.GC7551@dhcp22.suse.cz>
- <9b3d68aa-d2b6-2b02-4e75-f8372cbeb041@oracle.com>
- <20170516083601.GB2481@dhcp22.suse.cz>
- <07a6772b-711d-4fdc-f688-db76f1ec4c45@oracle.com>
- <20170529115358.GJ19725@dhcp22.suse.cz>
- <ae992f21-3edf-1ae7-41db-641052e411c7@oracle.com>
- <20170531163131.GY27783@dhcp22.suse.cz>
- <2fa60098-d9be-f57d-cb86-3b55cfe915b7@oracle.com>
-In-Reply-To: <2fa60098-d9be-f57d-cb86-3b55cfe915b7@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pasha Tatashin <pasha.tatashin@oracle.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, davem@davemloft.net
+To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
+Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Wed 31-05-17 23:35:48, Pasha Tatashin wrote:
-> >OK, so why cannot we make zero_struct_page 8x 8B stores, other arches
-> >would do memset. You said it would be slower but would that be
-> >measurable? I am sorry to be so persistent here but I would be really
-> >happier if this didn't depend on the deferred initialization. If this is
-> >absolutely a no-go then I can live with that of course.
-> 
-> Hi Michal,
-> 
-> This is actually a very good idea. I just did some measurements, and it
-> looks like performance is very good.
-> 
-> Here is data from SPARC-M7 with 3312G memory with single thread performance:
-> 
-> Current:
-> memset() in memblock allocator takes: 8.83s
-> __init_single_page() take: 8.63s
-> 
-> Option 1:
-> memset() in __init_single_page() takes: 61.09s (as we discussed because of
-> membar overhead, memset should really be optimized to do STBI only when size
-> is 1 page or bigger).
-> 
-> Option 2:
-> 
-> 8 stores (stx) in __init_single_page(): 8.525s!
-> 
-> So, even for single thread performance we can double the initialization
-> speed of "struct page" on SPARC by removing memset() from memblock, and
-> using 8 stx in __init_single_page(). It appears we never miss L1 in
-> __init_single_page() after the initial 8 stx.
+Found this problem while enabling queued rwlock on SPARC.
+The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
+specific byte in qrwlock structure. Without this parameter,
+we clear the wrong byte.
+Here is the code in include/asm-generic/qrwlock.h
 
-OK, that is good to hear and it actually matches my understanding that
-writes to a single cacheline should add an overhead.
+static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+  {
+         return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+  }
 
-Thanks!
--- 
-Michal Hocko
-SUSE Labs
+Also found few more references of this parameter in
+drivers/of/base.c
+drivers/of/fdt.c
+drivers/tty/serial/earlycon.c
+drivers/tty/serial/serial_core.c
+
+Here is our previous discussion.
+https://lkml.org/lkml/2017/5/24/620
+
+Based on the discussion, it was decided to add CONFIG_CPU_BIG_ENDIAN
+for all the fixed big endian architecture(frv, h8300, m68k, openrisc,
+parisc and sparc). And warn if there are inconsistencies in this definition.
+
+v2 -> v3:
+ Added the choice statement for endianness selection for microblaze.
+ Updated the Makefile for microblaze(Suggested by Arnd Bergmann) to
+ properly compile for the correct format.
+ Updated acks.
+
+v1 -> v2:
+ Updated the commit messages and acks.
+
+Babu Moger (3):
+  arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
+  arch/microblaze: Add choice for endianness and update Makefile
+  include: warn for inconsistent endian config definition
+
+ arch/frv/Kconfig                        |    3 +++
+ arch/h8300/Kconfig                      |    3 +++
+ arch/m68k/Kconfig                       |    3 +++
+ arch/microblaze/Kconfig                 |   16 ++++++++++++++++
+ arch/microblaze/Makefile                |    2 ++
+ arch/openrisc/Kconfig                   |    3 +++
+ arch/parisc/Kconfig                     |    3 +++
+ arch/sparc/Kconfig                      |    3 +++
+ include/linux/byteorder/big_endian.h    |    4 ++++
+ include/linux/byteorder/little_endian.h |    4 ++++
+ 10 files changed, 44 insertions(+), 0 deletions(-)
+
