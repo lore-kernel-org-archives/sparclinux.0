@@ -1,126 +1,122 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Wed, 21 Jun 2017 01:05:55 +0000
-Subject: [PATCH 2/4] sparc64: Support huge PUD case in get_user_pages
-Message-Id: <1450b5655a5dcd9b9c326a24f359f4a0673fc5a8.1498005968.git.nitin.m.gupta@oracle.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 12 Jun 2017 03:26:54 +0000
+Subject: [PATCH 00/27] kbuild, arch: complete UAPI de-coupling and cleanup scripts/Makefile.headersinst
+Message-Id: <1497238041-7011-1-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1498005968.git.nitin.m.gupta@oracle.com>
-In-Reply-To: <cover.1498005968.git.nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tom Hromatka <tom.hromatka@oracle.com>, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kbuild@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, Jonas Bonn <jonas@southpole.se>, Jesper Nilsson <jesper.nilsson@axis.com>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-hexagon@vger.kernel.org, Helge Deller <deller@gmx.de>, Aurelien Jacquiot <a-jacquiot@ti.com>, Russell King <linux@armlinux.org.uk>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Fenghua Yu <fenghua.yu@intel.com>, James Hogan <james.hogan@imgtec.com>, Chris Metcalf <cmetcalf@mellanox.com>, Steven
 
-get_user_pages() is used to do direct IO. It already
-handles the case where the address range is backed
-by PMD huge pages. This patch now adds the case where
-the range could be backed by PUD huge pages.
 
-Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
----
- arch/sparc/include/asm/pgtable_64.h | 15 ++++++++++--
- arch/sparc/mm/gup.c                 | 47 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 59 insertions(+), 3 deletions(-)
+In v4.12-rc1, we had a big progress for headers_install.
+All (and only) headers under UAPI directories are exported.
+However, asm-generic wrappers are still exceptions because
+most of arch/*/include/asm/Kbuild include "generic-y" for
+exported headers.  As a result, many of generic-wrappers to be
+exported are generated outside UAPI directories.
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 2444b02..4fefe37 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -692,6 +692,8 @@ static inline unsigned long pmd_write(pmd_t pmd)
- 	return pte_write(pte);
- }
- 
-+#define pud_write(pud)	pte_write(__pte(pud_val(pud)))
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline unsigned long pmd_dirty(pmd_t pmd)
- {
-@@ -828,9 +830,18 @@ static inline unsigned long __pmd_page(pmd_t pmd)
- 
- 	return ((unsigned long) __va(pfn << PAGE_SHIFT));
- }
-+
-+static inline unsigned long pud_page_vaddr(pud_t pud)
-+{
-+	pte_t pte = __pte(pud_val(pud));
-+	unsigned long pfn;
-+
-+	pfn = pte_pfn(pte);
-+
-+	return ((unsigned long) __va(pfn << PAGE_SHIFT));
-+}
-+
- #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
--#define pud_page_vaddr(pud)		\
--	((unsigned long) __va(pud_val(pud)))
- #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
- #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
- #define pud_present(pud)		(pud_val(pud) != 0U)
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index cd0e32b..7cfa9c5 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -103,6 +103,47 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
- 	return 1;
- }
- 
-+static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
-+			unsigned long end, int write, struct page **pages,
-+			int *nr)
-+{
-+	struct page *head, *page;
-+	int refs;
-+
-+	if (!(pud_val(pud) & _PAGE_VALID))
-+		return 0;
-+
-+	if (write && !pud_write(pud))
-+		return 0;
-+
-+	refs = 0;
-+	head = pud_page(pud);
-+	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+	if (PageTail(head))
-+		head = compound_head(head);
-+	do {
-+		VM_BUG_ON(compound_head(page) != head);
-+		pages[*nr] = page;
-+		(*nr)++;
-+		page++;
-+		refs++;
-+	} while (addr += PAGE_SIZE, addr != end);
-+
-+	if (!page_cache_add_speculative(head, refs)) {
-+		*nr -= refs;
-+		return 0;
-+	}
-+
-+	if (unlikely(pud_val(pud) != pud_val(*pudp))) {
-+		*nr -= refs;
-+		while (refs--)
-+			put_page(head);
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
- 		int write, struct page **pages, int *nr)
- {
-@@ -141,7 +182,11 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
- 		next = pud_addr_end(addr, end);
- 		if (pud_none(pud))
- 			return 0;
--		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
-+		if (unlikely(pud_large(pud))) {
-+			if (!gup_huge_pud(pudp, pud, addr, next,
-+					  write, pages, nr))
-+				return 0;
-+		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
- 			return 0;
- 	} while (pudp++, addr = next, addr != end);
- 
+To finish de-coupling UAPI, "generic-y" for exported headers
+should be moved to arch/*/include/uapi/asm/Kbuild.
+
+With those cleanups, the logic of headers_install will become
+even simpler.  UAPI will be completely self-contained.
+
+This series is based on v4.12-rc2 tag.
+
+This series touches Kbuild files under arch/.  We have two options
+to merge this series.
+
+[1] I will collect Acked-by from arch maintainers, then apply the
+    whole series to the Kbuild tree.
+
+[2] I will ask arch maintainers to pick up arch changes (for v4.13),
+    then apply Makefile changes to the Kbuild tree (for v4.14).
+
+[1] will finish this work by v4.13, but need to deal with some conflicts.
+[2] will allow us to reduce conflicts (still a bit conflicts),
+    but take more time to finish this work.
+
+If arch maintainers ack [1], I can manage conflicts
+before sending a pull request to Linus.
+
+
+
+Masahiro Yamada (27):
+  kbuild: remove useless $(gen) variable in Makefile.headersinst
+  kbuild: fix comment about dst of headers_{install,check}_all
+  kbuild: pass dst= to Makefile.headersinst from top Makefile
+  arm64: move generic-y of exported headers to uapi/asm/Kbuild
+  ARM: move generic-y of exported headers to uapi/asm/Kbuild
+  arc: move generic-y of exported headers to uapi/asm/Kbuild
+  blackfin: move generic-y of exported headers to uapi/asm/Kbuild
+  c6x: move generic-y of exported headers to uapi/asm/Kbuild
+  cris: move generic-y of exported headers to uapi/asm/Kbuild
+  h8300: move generic-y of exported headers to uapi/asm/Kbuild
+  hexagon: move generic-y of exported headers to uapi/asm/Kbuild
+  ia64: move generic-y of exported headers to uapi/asm/Kbuild
+  m32r: move generic-y of exported headers to uapi/asm/Kbuild
+  m68k: move generic-y of exported headers to uapi/asm/Kbuild
+  metag: move generic-y of exported headers to uapi/asm/Kbuild
+  nios2: remove unneeded arch/nios2/include/(generated/)asm/signal.h
+  nios2: move generic-y of exported headers to uapi/asm/Kbuild
+  openrisc: move generic-y of exported headers to uapi/asm/Kbuild
+  parisc: move generic-y of exported headers to uapi/asm/Kbuild
+  sh: move generic-y of exported headers to uapi/asm/Kbuild
+  sparc: move generic-y of exported headers to uapi/asm/Kbuild
+  tile: move generic-y of exported headers to uapi/asm/Kbuild
+  unicore32: move generic-y of exported headers to uapi/asm/Kbuild
+  xtensa: move generic-y of exported headers to uapi/asm/Kbuild
+  kbuild: do not include old-kbuild-file from Makefile.headersinst
+  kbuild: split exported generic header creation into uapi-asm-generic
+  kbuild: remove wrapper files handling from Makefile.headersinst
+
+ Makefile                               | 13 +++++++------
+ arch/arc/include/asm/Kbuild            | 25 -------------------------
+ arch/arc/include/uapi/asm/Kbuild       | 26 ++++++++++++++++++++++++++
+ arch/arm/include/asm/Kbuild            | 17 -----------------
+ arch/arm/include/uapi/asm/Kbuild       | 16 ++++++++++++++++
+ arch/arm64/include/asm/Kbuild          | 17 -----------------
+ arch/arm64/include/uapi/asm/Kbuild     | 16 ++++++++++++++++
+ arch/blackfin/include/asm/Kbuild       | 22 ----------------------
+ arch/blackfin/include/uapi/asm/Kbuild  | 22 ++++++++++++++++++++++
+ arch/c6x/include/asm/Kbuild            | 27 ---------------------------
+ arch/c6x/include/uapi/asm/Kbuild       | 26 ++++++++++++++++++++++++++
+ arch/cris/include/asm/Kbuild           | 18 ------------------
+ arch/cris/include/uapi/asm/Kbuild      | 19 +++++++++++++++++++
+ arch/h8300/include/asm/Kbuild          | 27 ---------------------------
+ arch/h8300/include/uapi/asm/Kbuild     | 28 ++++++++++++++++++++++++++++
+ arch/hexagon/include/asm/Kbuild        | 23 -----------------------
+ arch/hexagon/include/uapi/asm/Kbuild   | 24 ++++++++++++++++++++++++
+ arch/ia64/include/asm/Kbuild           |  2 --
+ arch/m32r/include/asm/Kbuild           |  2 --
+ arch/m32r/include/uapi/asm/Kbuild      |  2 ++
+ arch/m68k/include/asm/Kbuild           | 12 ------------
+ arch/m68k/include/uapi/asm/Kbuild      | 11 +++++++++++
+ arch/metag/include/asm/Kbuild          | 24 ------------------------
+ arch/metag/include/uapi/asm/Kbuild     | 24 ++++++++++++++++++++++++
+ arch/nios2/include/asm/Kbuild          | 25 -------------------------
+ arch/nios2/include/asm/signal.h        | 22 ----------------------
+ arch/nios2/include/uapi/asm/Kbuild     | 24 ++++++++++++++++++++++++
+ arch/openrisc/include/asm/Kbuild       | 28 ----------------------------
+ arch/openrisc/include/uapi/asm/Kbuild  | 29 +++++++++++++++++++++++++++++
+ arch/parisc/include/asm/Kbuild         |  5 -----
+ arch/parisc/include/uapi/asm/Kbuild    |  4 ++++
+ arch/sh/include/asm/Kbuild             | 20 --------------------
+ arch/sh/include/uapi/asm/Kbuild        | 20 ++++++++++++++++++++
+ arch/sparc/include/asm/Kbuild          |  1 -
+ arch/sparc/include/uapi/asm/Kbuild     |  2 ++
+ arch/tile/include/asm/Kbuild           | 19 -------------------
+ arch/tile/include/uapi/asm/Kbuild      | 19 +++++++++++++++++++
+ arch/unicore32/include/asm/Kbuild      | 31 +------------------------------
+ arch/unicore32/include/uapi/asm/Kbuild | 28 ++++++++++++++++++++++++++++
+ arch/xtensa/include/asm/Kbuild         |  9 ---------
+ arch/xtensa/include/uapi/asm/Kbuild    | 10 ++++++++++
+ scripts/Makefile.headersinst           | 28 ++++------------------------
+ 42 files changed, 362 insertions(+), 405 deletions(-)
+ delete mode 100644 arch/nios2/include/asm/signal.h
+
 -- 
-2.9.2
+2.7.4
 
