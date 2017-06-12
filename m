@@ -1,37 +1,59 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 23 Jun 2017 18:58:30 +0000
-Subject: [PATCH v2 02/12] sparc64: specify the device class in VIO version info. packet
-Message-Id: <98f84edd3bf5e4bd5fcbc1982644f1fe94cb541b.1498238657.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 12 Jun 2017 20:41:43 +0000
+Subject: [v3 3/8] sparc64: show time stamps from zero
+Message-Id: <1497300108-158125-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Specify the class of VIO device in the version info. packet. The device's
-class identifies the type of VIO device, whether it's DISK, CONSOLE,
-NETWORK, etc... This packet is used in the handshake between the
-client and server for this device.
+On most platforms, time is shown from the beginning of boot.  This patch is
+adding offset to sched_clock() for SPARC, to also show time from 0.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+This means we will have one more load, but we saved one in an ealier patch.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 ---
- arch/sparc/kernel/viohs.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/time_64.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
-index ea28cb7..68e952a 100644
---- a/arch/sparc/kernel/viohs.c
-+++ b/arch/sparc/kernel/viohs.c
-@@ -286,6 +286,7 @@ static int process_ver_info(struct vio_driver_state *vio,
- 			ver.minor = vap->minor;
- 		pkt->minor = ver.minor;
- 		pkt->tag.stype = VIO_SUBTYPE_ACK;
-+		pkt->dev_class = vio->dev_class;
- 		viodbg(HS, "SEND VERSION ACK maj[%u] min[%u]\n",
- 		       pkt->major, pkt->minor);
- 		err = send_ctrl(vio, &pkt->tag, sizeof(*pkt));
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 6724bcb..5f53b74 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -392,6 +392,7 @@ static int hbtick_add_compare(unsigned long adj)
+ };
+ 
+ static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
++static unsigned long timer_offset __read_mostly;
+ 
+ unsigned long cmos_regs;
+ EXPORT_SYMBOL(cmos_regs);
+@@ -786,6 +787,10 @@ void __init time_init(void)
+ 	timer_ticks_per_nsec_quotient  		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
+ 
++	timer_offset = (tick_operations.get_tick()
++			* timer_ticks_per_nsec_quotient)
++			>> SPARC64_NSEC_PER_CYC_SHIFT;
++
+ 	clocksource_tick.name = tick_operations.name;
+ 	clocksource_tick.read = clocksource_tick_read;
+ 
+@@ -813,8 +818,9 @@ unsigned long long sched_clock(void)
+ {
+ 	unsigned long ticks = tick_operations.get_tick();
+ 
+-	return (ticks * timer_ticks_per_nsec_quotient)
+-		>> SPARC64_NSEC_PER_CYC_SHIFT;
++	return ((ticks * timer_ticks_per_nsec_quotient)
++		>> SPARC64_NSEC_PER_CYC_SHIFT)
++		- timer_offset;
+ }
+ 
+ int read_current_timer(unsigned long *timer_val)
 -- 
 1.7.1
 
