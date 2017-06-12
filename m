@@ -1,43 +1,70 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Jun 2017 02:40:27 +0000
-Subject: [PATCH net-next] bpf: Take advantage of stack_depth tracking in sparc64 JIT
-Message-Id: <20170531.194027.376921509270354470.davem@davemloft.net>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 12 Jun 2017 22:09:59 +0000
+Subject: [PATCH v3 2/3] arch/microblaze: Add choice for endianness and update Makefile
+Message-Id: <1497305400-147425-3-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: netdev@vger.kernel.org
-Cc: ast@kernel.org, daniel@iogearbox.net, sparclinux@vger.kernel.org
+To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
+Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
+microblaze architectures can be configured for either little or
+big endian formats. Add a choice option for the user to select the
+correct endian format(default to big endian).
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Also update the Makefile so toolchain can compile for the format
+it is configured for.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
+ arch/microblaze/Kconfig  |   16 ++++++++++++++++
+ arch/microblaze/Makefile |    2 ++
+ 2 files changed, 18 insertions(+), 0 deletions(-)
 
-Committed to net-next.
-
- arch/sparc/net/bpf_jit_comp_64.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
-index 4a52d34..098874a 100644
---- a/arch/sparc/net/bpf_jit_comp_64.c
-+++ b/arch/sparc/net/bpf_jit_comp_64.c
-@@ -802,8 +802,13 @@ static void build_prologue(struct jit_ctx *ctx)
- {
- 	s32 stack_needed = BASE_STACKFRAME;
+diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+index 85885a5..74aa5de 100644
+--- a/arch/microblaze/Kconfig
++++ b/arch/microblaze/Kconfig
+@@ -35,6 +35,22 @@ config MICROBLAZE
+ 	select VIRT_TO_BUS
+ 	select CPU_NO_EFFICIENT_FFS
  
--	if (ctx->saw_frame_pointer || ctx->saw_tail_call)
--		stack_needed += MAX_BPF_STACK;
-+	if (ctx->saw_frame_pointer || ctx->saw_tail_call) {
-+		struct bpf_prog *prog = ctx->prog;
-+		u32 stack_depth;
++# Endianness selection
++choice
++	prompt "Endianness selection"
++	default CPU_BIG_ENDIAN
++	help
++	  microblaze architectures can be configured for either little or
++	  big endian formats. Be sure to select the appropriate mode.
 +
-+		stack_depth = prog->aux->stack_depth;
-+		stack_needed += round_up(stack_depth, 16);
-+	}
++config CPU_BIG_ENDIAN
++	bool "Big endian"
++
++config CPU_LITTLE_ENDIAN
++	bool "Little endian"
++
++endchoice
++
+ config SWAP
+ 	def_bool n
  
- 	if (ctx->saw_tail_call)
- 		stack_needed += 8;
+diff --git a/arch/microblaze/Makefile b/arch/microblaze/Makefile
+index 740f2b8..1f6c486 100644
+--- a/arch/microblaze/Makefile
++++ b/arch/microblaze/Makefile
+@@ -35,6 +35,8 @@ endif
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_DIV) += -mno-xl-soft-div
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_BARREL) += -mxl-barrel-shift
+ CPUFLAGS-$(CONFIG_XILINX_MICROBLAZE0_USE_PCMP_INSTR) += -mxl-pattern-compare
++CPUFLAGS-$(CONFIG_BIG_ENDIAN) += -mbig-endian
++CPUFLAGS-$(CONFIG_LITTLE_ENDIAN) += -mlittle-endian
+ 
+ CPUFLAGS-1 += $(call cc-option,-mcpu=v$(CPU_VER))
+ 
 -- 
-2.1.2.532.g19b5d50
+1.7.1
 
