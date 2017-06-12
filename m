@@ -1,126 +1,100 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Tue, 20 Jun 2017 01:52:59 +0000
-Subject: [PATCH v3 2/4] sparc64: Support huge PUD case in get_user_pages
-Message-Id: <1497923621-96708-2-git-send-email-nitin.m.gupta@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 12 Jun 2017 20:41:44 +0000
+Subject: [v3 4/8] sparc64: optimize loads in clock_sched()
+Message-Id: <1497300108-158125-5-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497923621-96708-1-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1497923621-96708-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tom Hromatka <tom.hromatka@oracle.com>, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-get_user_pages() is used to do direct IO. It already
-handles the case where the address range is backed
-by PMD huge pages. This patch now adds the case where
-the range could be backed by PUD huge pages.
+In clock sched we now have three loads:
+	- Function pointer
+	- quotient for multiplication
+	- offset
 
-Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+However, it is possible to improve performance substantially, by
+guaranteeing that all three loads are from the same cacheline.
+
+By moving these three values first in sparc64_tick_ops, and by having
+tick_operations 64-byte aligned we guarantee this.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 15 ++++++++++--
- arch/sparc/mm/gup.c                 | 47 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 59 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/timer_64.h |    5 +++++
+ arch/sparc/kernel/time_64.c       |   17 +++++++----------
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 2444b02..4fefe37 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -692,6 +692,8 @@ static inline unsigned long pmd_write(pmd_t pmd)
- 	return pte_write(pte);
+diff --git a/arch/sparc/include/asm/timer_64.h b/arch/sparc/include/asm/timer_64.h
+index fce4150..bde2cc4 100644
+--- a/arch/sparc/include/asm/timer_64.h
++++ b/arch/sparc/include/asm/timer_64.h
+@@ -9,7 +9,12 @@
+ #include <linux/types.h>
+ #include <linux/init.h>
+ 
++/* The most frequently accessed fields should be first,
++ * to fit into the same cacheline.
++ */
+ struct sparc64_tick_ops {
++	unsigned long ticks_per_nsec_quotient;
++	unsigned long offset;
+ 	unsigned long long (*get_tick)(void);
+ 	int (*add_compare)(unsigned long);
+ 	unsigned long softint_mask;
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 5f53b74..44e37e9 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -164,7 +164,7 @@ static unsigned long tick_add_tick(unsigned long adj)
+ 	return new_tick;
  }
  
-+#define pud_write(pud)	pte_write(__pte(pud_val(pud)))
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- static inline unsigned long pmd_dirty(pmd_t pmd)
+-static struct sparc64_tick_ops tick_operations __read_mostly = {
++static struct sparc64_tick_ops tick_operations __cacheline_aligned = {
+ 	.name		=	"tick",
+ 	.init_tick	=	tick_init_tick,
+ 	.disable_irq	=	tick_disable_irq,
+@@ -391,9 +391,6 @@ static int hbtick_add_compare(unsigned long adj)
+ 	.softint_mask	=	1UL << 0,
+ };
+ 
+-static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
+-static unsigned long timer_offset __read_mostly;
+-
+ unsigned long cmos_regs;
+ EXPORT_SYMBOL(cmos_regs);
+ 
+@@ -784,11 +781,11 @@ void __init time_init(void)
+ 
+ 	tb_ticks_per_usec = freq / USEC_PER_SEC;
+ 
+-	timer_ticks_per_nsec_quotient +	tick_operations.ticks_per_nsec_quotient  		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
+ 
+-	timer_offset = (tick_operations.get_tick()
+-			* timer_ticks_per_nsec_quotient)
++	tick_operations.offset = (tick_operations.get_tick()
++			* tick_operations.ticks_per_nsec_quotient)
+ 			>> SPARC64_NSEC_PER_CYC_SHIFT;
+ 
+ 	clocksource_tick.name = tick_operations.name;
+@@ -816,11 +813,11 @@ void __init time_init(void)
+ 
+ unsigned long long sched_clock(void)
  {
-@@ -828,9 +830,18 @@ static inline unsigned long __pmd_page(pmd_t pmd)
++	unsigned long quotient = tick_operations.ticks_per_nsec_quotient;
++	unsigned long offset = tick_operations.offset;
+ 	unsigned long ticks = tick_operations.get_tick();
  
- 	return ((unsigned long) __va(pfn << PAGE_SHIFT));
- }
-+
-+static inline unsigned long pud_page_vaddr(pud_t pud)
-+{
-+	pte_t pte = __pte(pud_val(pud));
-+	unsigned long pfn;
-+
-+	pfn = pte_pfn(pte);
-+
-+	return ((unsigned long) __va(pfn << PAGE_SHIFT));
-+}
-+
- #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
--#define pud_page_vaddr(pud)		\
--	((unsigned long) __va(pud_val(pud)))
- #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
- #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
- #define pud_present(pud)		(pud_val(pud) != 0U)
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index cd0e32b..7cfa9c5 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -103,6 +103,47 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
- 	return 1;
+-	return ((ticks * timer_ticks_per_nsec_quotient)
+-		>> SPARC64_NSEC_PER_CYC_SHIFT)
+-		- timer_offset;
++	return ((ticks * quotient) >> SPARC64_NSEC_PER_CYC_SHIFT) - offset;
  }
  
-+static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
-+			unsigned long end, int write, struct page **pages,
-+			int *nr)
-+{
-+	struct page *head, *page;
-+	int refs;
-+
-+	if (!(pud_val(pud) & _PAGE_VALID))
-+		return 0;
-+
-+	if (write && !pud_write(pud))
-+		return 0;
-+
-+	refs = 0;
-+	head = pud_page(pud);
-+	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+	if (PageTail(head))
-+		head = compound_head(head);
-+	do {
-+		VM_BUG_ON(compound_head(page) != head);
-+		pages[*nr] = page;
-+		(*nr)++;
-+		page++;
-+		refs++;
-+	} while (addr += PAGE_SIZE, addr != end);
-+
-+	if (!page_cache_add_speculative(head, refs)) {
-+		*nr -= refs;
-+		return 0;
-+	}
-+
-+	if (unlikely(pud_val(pud) != pud_val(*pudp))) {
-+		*nr -= refs;
-+		while (refs--)
-+			put_page(head);
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
- 		int write, struct page **pages, int *nr)
- {
-@@ -141,7 +182,11 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
- 		next = pud_addr_end(addr, end);
- 		if (pud_none(pud))
- 			return 0;
--		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
-+		if (unlikely(pud_large(pud))) {
-+			if (!gup_huge_pud(pudp, pud, addr, next,
-+					  write, pages, nr))
-+				return 0;
-+		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
- 			return 0;
- 	} while (pudp++, addr = next, addr != end);
- 
+ int read_current_timer(unsigned long *timer_val)
 -- 
-2.9.2
+1.7.1
 
