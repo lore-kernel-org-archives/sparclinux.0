@@ -1,104 +1,52 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Tue, 20 Jun 2017 01:53:01 +0000
-Subject: [PATCH v3 4/4] sparc64: Cleanup hugepage table walk functions
-Message-Id: <1497923621-96708-4-git-send-email-nitin.m.gupta@oracle.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 12 Jun 2017 03:27:15 +0000
+Subject: [PATCH 21/27] sparc: move generic-y of exported headers to uapi/asm/Kbuild
+Message-Id: <1497238041-7011-22-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497923621-96708-1-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1497923621-96708-1-git-send-email-nitin.m.gupta@oracle.com>
+References: <1497238041-7011-1-git-send-email-yamada.masahiro@socionext.com>
+In-Reply-To: <1497238041-7011-1-git-send-email-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, Hugh Dickins <hughd@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kbuild@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-Flatten out nested code structure in huge_pte_offset()
-and huge_pte_alloc().
+Since commit fcc8487d477a ("uapi: export all headers under uapi
+directories"), all (and only) headers under uapi directories are
+exported, but asm-generic wrappers are still exceptions.
 
-Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+scripts/Makefile.headersinst still need to deal with old-kbuild-file
+for headers listed in arch/*/include/asm/Kbuild, but actually exported.
+
+As the last work to finish de-coupling the uapi from kernel headers,
+move generic-y of exported headers to uapi/asm/Kbuild.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 ---
- arch/sparc/mm/hugetlbpage.c | 54 +++++++++++++++++----------------------------
- 1 file changed, 20 insertions(+), 34 deletions(-)
 
-diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
-index f0bb42d..e8b7245 100644
---- a/arch/sparc/mm/hugetlbpage.c
-+++ b/arch/sparc/mm/hugetlbpage.c
-@@ -266,27 +266,19 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
--	pte_t *pte = NULL;
- 
- 	pgd = pgd_offset(mm, addr);
- 	pud = pud_alloc(mm, pgd, addr);
- 	if (!pud)
- 		return NULL;
--
- 	if (sz >= PUD_SIZE)
--		pte = (pte_t *)pud;
--	else {
--		pmd = pmd_alloc(mm, pud, addr);
--		if (!pmd)
--			return NULL;
--
--		if (sz >= PMD_SIZE)
--			pte = (pte_t *)pmd;
--		else
--			pte = pte_alloc_map(mm, pmd, addr);
--	}
--
--	return pte;
-+		return (pte_t *)pud;
-+	pmd = pmd_alloc(mm, pud, addr);
-+	if (!pmd)
-+		return NULL;
-+	if (sz >= PMD_SIZE)
-+		return (pte_t *)pmd;
-+	return pte_alloc_map(mm, pmd, addr);
- }
- 
- pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
-@@ -294,27 +286,21 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
--	pte_t *pte = NULL;
- 
- 	pgd = pgd_offset(mm, addr);
--	if (!pgd_none(*pgd)) {
--		pud = pud_offset(pgd, addr);
--		if (!pud_none(*pud)) {
--			if (is_hugetlb_pud(*pud))
--				pte = (pte_t *)pud;
--			else {
--				pmd = pmd_offset(pud, addr);
--				if (!pmd_none(*pmd)) {
--					if (is_hugetlb_pmd(*pmd))
--						pte = (pte_t *)pmd;
--					else
--						pte = pte_offset_map(pmd, addr);
--				}
--			}
--		}
--	}
--
--	return pte;
-+	if (pgd_none(*pgd))
-+		return NULL;
-+	pud = pud_offset(pgd, addr);
-+	if (pud_none(*pud))
-+		return NULL;
-+	if (is_hugetlb_pud(*pud))
-+		return (pte_t *)pud;
-+	pmd = pmd_offset(pud, addr);
-+	if (pmd_none(*pmd))
-+		return NULL;
-+	if (is_hugetlb_pmd(*pmd))
-+		return (pte_t *)pmd;
-+	return pte_offset_map(pmd, addr);
- }
- 
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ arch/sparc/include/asm/Kbuild      | 1 -
+ arch/sparc/include/uapi/asm/Kbuild | 2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+index e9e837bc3158..80ddc01f57ac 100644
+--- a/arch/sparc/include/asm/Kbuild
++++ b/arch/sparc/include/asm/Kbuild
+@@ -18,5 +18,4 @@ generic-y += preempt.h
+ generic-y += rwsem.h
+ generic-y += serial.h
+ generic-y += trace_clock.h
+-generic-y += types.h
+ generic-y += word-at-a-time.h
+diff --git a/arch/sparc/include/uapi/asm/Kbuild b/arch/sparc/include/uapi/asm/Kbuild
+index b15bf6bc0e94..2178c78c7c1a 100644
+--- a/arch/sparc/include/uapi/asm/Kbuild
++++ b/arch/sparc/include/uapi/asm/Kbuild
+@@ -1,2 +1,4 @@
+ # UAPI Header export list
+ include include/uapi/asm-generic/Kbuild.asm
++
++generic-y += types.h
 -- 
-2.9.2
+2.7.4
 
