@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 10 Jun 2017 21:33:17 +0000
+Date: Tue, 13 Jun 2017 17:45:07 +0000
 Subject: Re: [PATCH v1 04/12] sparc64: expand MDESC interface
-Message-Id: <20170610.173317.767785408388196635.davem@davemloft.net>
+Message-Id: <20170613.134507.182825488891018746.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <214c8e29bc065cb831b81a7e3f9e0b6f27c62f81.1497024216.git.jag.raman@oracle.com>
 In-Reply-To: <214c8e29bc065cb831b81a7e3f9e0b6f27c62f81.1497024216.git.jag.raman@oracle.com>
@@ -11,40 +11,25 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 From: Jag Raman <jag.raman@oracle.com>
-Date: Fri,  9 Jun 2017 12:30:53 -0400
+Date: Tue, 13 Jun 2017 13:23:56 -0400
 
-> @@ -71,6 +72,22 @@ struct mdesc_notifier_client {
->  
->  void mdesc_register_notifier(struct mdesc_notifier_client *client);
->  
-> +union md_node_info {
-> +	struct vdev_port {
-> +		u64 id;				/* id */
-> +		u64 parent_cfg_hdl;		/* parent config handle */
-> +		char name[MDESC_MAX_STR_LEN];	/* name (property) */
-> +	} vdev_port;
-> +	struct ds_port {
-> +		u64 id;				/* id */
-> +	} ds_port;
-> +};
+> Starting from [PATCH v1 11/12] in this series, md_node_info is
+> cached in "struct vio_dev", and is later used to identify VIO
+> devices in the MDESC. As a result, the name string in md_node_info
+> would be used outside of mdesc_grab()/mdesc_release(). In such
+> cases, caching a pointer to the property in MDESC may become a
+> problem.
 
-You don't need to allocate stack or structure space for the name string.
-Just use "const char *"
+I strongly discourage this kind of string storage.
 
-Any traversal of the MDESC must do an mdesc grab around the operation,
-therefore the mdesc node property holding the string will persist and
-not disappear on us.
+Use dynamically allocated memory if you have to, otherwise you
+are:
 
-> +u64 mdesc_get_node(struct mdesc_handle *hp, char *node_name,
+1) Imposing arbitrary limits on string size.
 
-Please use "const char *node_name"
+2) Always consuming the "max" string length for every VIO
+   device object.
 
-> +int mdesc_get_node_info(struct mdesc_handle *hp, u64 node,
-> +			char *node_name, union md_node_info *node_info);
+We have a kstrdup_const() so please use something like that.
 
-Likewise.
-
-> +static void mdesc_get_node_ops(char *node_name, mdesc_node_info_f *node_info_f,
-> +			       mdesc_node_match_f *node_match_f)
-
-Likewise.
+Thank you.
