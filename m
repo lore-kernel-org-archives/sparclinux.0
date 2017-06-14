@@ -1,460 +1,142 @@
-From: Palmer Dabbelt <palmer@dabbelt.com>
-Date: Tue, 06 Jun 2017 19:10:17 +0000
-Subject: [PATCH 1/7] lib: Add shared copies of some GCC library routines
-Message-Id: <20170606191023.24581-2-palmer@dabbelt.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Wed, 14 Jun 2017 05:05:57 +0000
+Subject: [PATCH] sparc64: Exclude perf user callchain during critical sections
+Message-Id: <1497416757-9894-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170523220546.16758-1-palmer@dabbelt.com>
- <20170606191023.24581-1-palmer@dabbelt.com>
-In-Reply-To: <20170606191023.24581-1-palmer@dabbelt.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: monstr@monstr.eu, ralf@linux-mips.org, liqin.linux@gmail.com, lennox.wu@gmail.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, linux-mips@linux-mips.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, geert@linux-m68k.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+To: sparclinux@vger.kernel.org
 
-Many ports (m32r, microblaze, mips, parisc, score, and sparc) use
-functionally identical copies of various GCC library routine files,
-which came up as we were submitting the RISC-V port (which also uses
-some of these).
+This fixes another cause of random segfaults and bus errors that
+may occur while running perf with the callgraph (-g) option.
 
-This patch adds a new copy of these library routine files, which are
-functionally identical to the various other copies.  These are
-availiable via Kconfig as CONFIG_LIB_$ROUTINE, which currently isn't
-used anywhere.
+Critical sections beginning with spin_lock_irqsave() raise the
+interrupt level to PIL_NORMAL_MAX (14) and intentionally do not block
+performance counter interrupts, which arrive at PIL_NMI (15).  So perf
+code must be very careful about what it does since it might execute in
+the middle of one of these critical sections. In particular, the
+perf_callchain_user() path is problematic because it accesses user
+space and may cause TLB activity as well as faults as it unwinds the
+user stack.
 
-Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+One particular critical section occurs in switch_mm:
+
+        spin_lock_irqsave(&mm->context.lock, flags);
+        ...
+        load_secondary_context(mm);
+        tsb_context_switch(mm);
+        ...
+        spin_unlock_irqrestore(&mm->context.lock, flags);
+
+If a perf interrupt arrives in between load_secondary_context() and
+tsb_context_switch(), then perf_callchain_user() could execute with
+the context ID of one process, but with an active tsb for a different
+process. When the user stack is accessed, it is very likely to
+incur a TLB miss, since the h/w context ID has been changed. The TLB
+will then be reloaded with a translation from the TSB for one process,
+but using a context ID for another process. This exposes memory from
+one process to another, and since it is a mapping for stack memory,
+this usually causes the new process to crash quickly.
+
+Some potential solutions are:
+
+1) Make critical sections run at PIL_NMI instead of PIL_NORMAL_MAX.
+This would certainly eliminate the problem, but it would also prevent
+perf from having any visibility into code running in these critical
+sections, and it seems clear that PIL_NORMAL_MAX is used for just
+this reason.
+
+2) Protect this particular critical section by masking all interrupts,
+either by setting %pil to PIL_NMI or by clearing pstate.ie around the
+calls to load_secondary_context() and tsb_context_switch(). This approach
+has a few drawbacks:
+
+ - It would only address this particular critical section, and would
+   have to be repeated in several other known places. There might be
+   other such critical sections that are not known.
+
+ - It has a performance cost which would be incurred at every context
+   switch, since it would require additional accesses to %pil or
+   %pstate.
+
+ - Turning off pstate.ie would require changing __tsb_context_switch(),
+   which expects to be called with pstate.ie on.
+
+3) Avoid user space MMU activity entirely in perf_callchain_user() by
+implementing a new copy_from_user() function that accesses the user
+stack via physical addresses. This works, but requires quite a bit of
+new code to get it to perform reasonably, ie, caching of translations,
+etc.
+
+4) Allow the perf interrupt to happen in existing critical sections as
+it does now, but have perf code detect that this is happening, and
+skip any user callchain processing. This approach was deemed best, as
+the change is extremely localized and covers both known and unknown
+instances of perf interrupting critical sections. Perf has interrupted
+a critical section when %pil = PIL_NORMAL_MAX at the time of the perf
+interrupt.
+
+Ordinarily, a function that has a pt_regs passed in can simply examine
+(reg->tstate & TSTATE_PIL) to extract the interrupt level that was in
+effect at the time of the perf interrupt.  However, when the perf
+interrupt occurs while executing in the kernel, the pt_regs pointer is
+replaced with task_pt_regs(current) in perf_callchain(), and so
+perf_callchain_user() does not have access to the state of the machine
+at the time of the perf interrupt. To work around this, we check
+(regs->tstate & TSTATE_PIL) in perf_event_nmi_handler() before calling
+in to the arch independent part of perf, and temporarily change the
+event attributes so that user callchain processing is avoided. Though
+a user stack sample is not collected, this loss is not statistically
+significant. Kernel call graph collection is not affected.
+
+Orabug: 25577560
+
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- include/lib/libgcc.h | 44 ++++++++++++++++++++++++++++++++
- lib/Kconfig          | 18 +++++++++++++
- lib/Makefile         |  8 ++++++
- lib/ashldi3.c        | 45 ++++++++++++++++++++++++++++++++
- lib/ashrdi3.c        | 46 +++++++++++++++++++++++++++++++++
- lib/cmpdi2.c         | 42 ++++++++++++++++++++++++++++++
- lib/lshrdi3.c        | 45 ++++++++++++++++++++++++++++++++
- lib/muldi3.c         | 72 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- lib/ucmpdi2.c        | 35 +++++++++++++++++++++++++
- 9 files changed, 355 insertions(+)
- create mode 100644 include/lib/libgcc.h
- create mode 100644 lib/ashldi3.c
- create mode 100644 lib/ashrdi3.c
- create mode 100644 lib/cmpdi2.c
- create mode 100644 lib/lshrdi3.c
- create mode 100644 lib/muldi3.c
- create mode 100644 lib/ucmpdi2.c
+ arch/sparc/kernel/perf_event.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/include/lib/libgcc.h b/include/lib/libgcc.h
-new file mode 100644
-index 000000000000..a5397e34e005
---- /dev/null
-+++ b/include/lib/libgcc.h
-@@ -0,0 +1,44 @@
-+/*
-+ * include/lib/libgcc.h
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+
-+#ifndef __LIB_LIBGCC_H
-+#define __LIB_LIBGCC_H
-+
-+#include <asm/byteorder.h>
-+
-+typedef int word_type __attribute__ ((mode (__word__)));
-+
-+#ifdef __BIG_ENDIAN
-+struct DWstruct {
-+	int high, low;
-+};
-+#elif defined(__LITTLE_ENDIAN)
-+struct DWstruct {
-+	int low, high;
-+};
-+#else
-+#error I feel sick.
-+#endif
-+
-+typedef union {
-+	struct DWstruct s;
-+	long long ll;
-+} DWunion;
-+
-+#endif /* __ASM_LIBGCC_H */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 0c8b78a9ae2e..7a9c934d91fd 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -565,3 +565,21 @@ config PRIME_NUMBERS
- 	tristate
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 710f327..5295dda 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1602,6 +1602,7 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
+ 	struct perf_sample_data data;
+ 	struct cpu_hw_events *cpuc;
+ 	struct pt_regs *regs;
++	bool irq_disabled;
+ 	int i;
  
- endmenu
-+
-+config GENERIC_ASHLDI3
-+	def_bool n
-+
-+config GENERIC_ASHRDI3
-+	def_bool n
-+
-+config GENERIC_LSHRDI3
-+	def_bool n
-+
-+config GENERIC_MULDI3
-+	def_bool n
-+
-+config GENERIC_CMPDI2
-+	def_bool n
-+
-+config GENERIC_UCMPDI2
-+	def_bool n
-diff --git a/lib/Makefile b/lib/Makefile
-index 0166fbc0fa81..5f68242f7774 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -243,3 +243,11 @@ UBSAN_SANITIZE_ubsan.o := n
- obj-$(CONFIG_SBITMAP) += sbitmap.o
+ 	if (!atomic_read(&active_events))
+@@ -1630,6 +1631,7 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
+ 	    sparc_pmu->num_pcrs = 1)
+ 		pcr_ops->write_pcr(0, cpuc->pcr[0]);
  
- obj-$(CONFIG_PARMAN) += parman.o
++	irq_disabled = ((regs->tstate & TSTATE_PIL) >> 20) = PIL_NORMAL_MAX;
+ 	for (i = 0; i < cpuc->n_events; i++) {
+ 		struct perf_event *event = cpuc->event[i];
+ 		int idx = cpuc->current_idx[i];
+@@ -1649,8 +1651,16 @@ static int __kprobes perf_event_nmi_handler(struct notifier_block *self,
+ 		if (!sparc_perf_event_set_period(event, hwc, idx))
+ 			continue;
+ 
+-		if (perf_event_overflow(event, &data, regs))
++		if (unlikely(irq_disabled)) {
++			u64 saved_exclude = event->attr.exclude_callchain_user;
 +
-+# GCC library routines
-+obj-$(CONFIG_GENERIC_ASHLDI3) += ashldi3.o
-+obj-$(CONFIG_GENERIC_ASHRDI3) += ashrdi3.o
-+obj-$(CONFIG_GENERIC_LSHRDI3) += lshrdi3.o
-+obj-$(CONFIG_GENERIC_MULDI3) += muldi3.o
-+obj-$(CONFIG_GENERIC_CMPDI2) += cmpdi2.o
-+obj-$(CONFIG_GENERIC_UCMPDI2) += ucmpdi2.o
-diff --git a/lib/ashldi3.c b/lib/ashldi3.c
-new file mode 100644
-index 000000000000..ff4ec63d2ab6
---- /dev/null
-+++ b/lib/ashldi3.c
-@@ -0,0 +1,45 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+
-+#include <linux/export.h>
-+
-+#include <lib/libgcc.h>
-+
-+long long notrace __ashldi3(long long u, word_type b)
-+{
-+	DWunion uu, w;
-+	word_type bm;
-+
-+	if (b = 0)
-+		return u;
-+
-+	uu.ll = u;
-+	bm = 32 - b;
-+
-+	if (bm <= 0) {
-+		w.s.low = 0;
-+		w.s.high = (unsigned int) uu.s.low << -bm;
-+	} else {
-+		const unsigned int carries = (unsigned int) uu.s.low >> bm;
-+
-+		w.s.low = (unsigned int) uu.s.low << b;
-+		w.s.high = ((unsigned int) uu.s.high << b) | carries;
-+	}
-+
-+	return w.ll;
-+}
-+EXPORT_SYMBOL(__ashldi3);
-diff --git a/lib/ashrdi3.c b/lib/ashrdi3.c
-new file mode 100644
-index 000000000000..2e67c97ac65a
---- /dev/null
-+++ b/lib/ashrdi3.c
-@@ -0,0 +1,46 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+#include <linux/export.h>
-+
-+#include <lib/libgcc.h>
-+
-+long long notrace __ashrdi3(long long u, word_type b)
-+{
-+	DWunion uu, w;
-+	word_type bm;
-+
-+	if (b = 0)
-+		return u;
-+
-+	uu.ll = u;
-+	bm = 32 - b;
-+
-+	if (bm <= 0) {
-+		/* w.s.high = 1..1 or 0..0 */
-+		w.s.high +		    uu.s.high >> 31;
-+		w.s.low = uu.s.high >> -bm;
-+	} else {
-+		const unsigned int carries = (unsigned int) uu.s.high << bm;
-+
-+		w.s.high = uu.s.high >> b;
-+		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
-+	}
-+
-+	return w.ll;
-+}
-+EXPORT_SYMBOL(__ashrdi3);
-diff --git a/lib/cmpdi2.c b/lib/cmpdi2.c
-new file mode 100644
-index 000000000000..6d7ebf6c2b86
---- /dev/null
-+++ b/lib/cmpdi2.c
-@@ -0,0 +1,42 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+#include <linux/export.h>
-+
-+#include <lib/libgcc.h>
-+
-+word_type notrace __cmpdi2(long long a, long long b)
-+{
-+	const DWunion au = {
-+		.ll = a
-+	};
-+	const DWunion bu = {
-+		.ll = b
-+	};
-+
-+	if (au.s.high < bu.s.high)
-+		return 0;
-+	else if (au.s.high > bu.s.high)
-+		return 2;
-+
-+	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
-+		return 0;
-+	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
-+		return 2;
-+
-+	return 1;
-+}
-+EXPORT_SYMBOL(__cmpdi2);
-diff --git a/lib/lshrdi3.c b/lib/lshrdi3.c
-new file mode 100644
-index 000000000000..8e845f4bb65f
---- /dev/null
-+++ b/lib/lshrdi3.c
-@@ -0,0 +1,45 @@
-+/*
-+ * lib/lshrdi3.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+#include <linux/module.h>
-+#include <lib/libgcc.h>
-+
-+long long notrace __lshrdi3(long long u, word_type b)
-+{
-+	DWunion uu, w;
-+	word_type bm;
-+
-+	if (b = 0)
-+		return u;
-+
-+	uu.ll = u;
-+	bm = 32 - b;
-+
-+	if (bm <= 0) {
-+		w.s.high = 0;
-+		w.s.low = (unsigned int) uu.s.high >> -bm;
-+	} else {
-+		const unsigned int carries = (unsigned int) uu.s.high << bm;
-+
-+		w.s.high = (unsigned int) uu.s.high >> b;
-+		w.s.low = ((unsigned int) uu.s.low >> b) | carries;
-+	}
-+
-+	return w.ll;
-+}
-+EXPORT_SYMBOL(__lshrdi3);
-diff --git a/lib/muldi3.c b/lib/muldi3.c
-new file mode 100644
-index 000000000000..88938543e10a
---- /dev/null
-+++ b/lib/muldi3.c
-@@ -0,0 +1,72 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+#include <linux/export.h>
-+#include <lib/libgcc.h>
-+
-+#define W_TYPE_SIZE 32
-+
-+#define __ll_B ((unsigned long) 1 << (W_TYPE_SIZE / 2))
-+#define __ll_lowpart(t) ((unsigned long) (t) & (__ll_B - 1))
-+#define __ll_highpart(t) ((unsigned long) (t) >> (W_TYPE_SIZE / 2))
-+
-+/* If we still don't have umul_ppmm, define it using plain C.  */
-+#if !defined(umul_ppmm)
-+#define umul_ppmm(w1, w0, u, v)						\
-+	do {								\
-+		unsigned long __x0, __x1, __x2, __x3;			\
-+		unsigned short __ul, __vl, __uh, __vh;			\
-+									\
-+		__ul = __ll_lowpart(u);					\
-+		__uh = __ll_highpart(u);				\
-+		__vl = __ll_lowpart(v);					\
-+		__vh = __ll_highpart(v);				\
-+									\
-+		__x0 = (unsigned long) __ul * __vl;			\
-+		__x1 = (unsigned long) __ul * __vh;			\
-+		__x2 = (unsigned long) __uh * __vl;			\
-+		__x3 = (unsigned long) __uh * __vh;			\
-+									\
-+		__x1 += __ll_highpart(__x0); /* this can't give carry */\
-+		__x1 += __x2; /* but this indeed can */			\
-+		if (__x1 < __x2) /* did we get it? */			\
-+		__x3 += __ll_B; /* yes, add it in the proper pos */	\
-+									\
-+		(w1) = __x3 + __ll_highpart(__x1);			\
-+		(w0) = __ll_lowpart(__x1) * __ll_B + __ll_lowpart(__x0);\
-+	} while (0)
-+#endif
-+
-+#if !defined(__umulsidi3)
-+#define __umulsidi3(u, v) ({				\
-+	DWunion __w;					\
-+	umul_ppmm(__w.s.high, __w.s.low, u, v);		\
-+	__w.ll;						\
-+	})
-+#endif
-+
-+long long notrace __muldi3(long long u, long long v)
-+{
-+	const DWunion uu = {.ll = u};
-+	const DWunion vv = {.ll = v};
-+	DWunion w = {.ll = __umulsidi3(uu.s.low, vv.s.low)};
-+
-+	w.s.high += ((unsigned long) uu.s.low * (unsigned long) vv.s.high
-+		+ (unsigned long) uu.s.high * (unsigned long) vv.s.low);
-+
-+	return w.ll;
-+}
-+EXPORT_SYMBOL(__muldi3);
-diff --git a/lib/ucmpdi2.c b/lib/ucmpdi2.c
-new file mode 100644
-index 000000000000..49a53505c8e3
---- /dev/null
-+++ b/lib/ucmpdi2.c
-@@ -0,0 +1,35 @@
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.
-+ */
-+
-+#include <linux/module.h>
-+#include <lib/libgcc.h>
-+
-+word_type __ucmpdi2(unsigned long long a, unsigned long long b)
-+{
-+	const DWunion au = {.ll = a};
-+	const DWunion bu = {.ll = b};
-+
-+	if ((unsigned int) au.s.high < (unsigned int) bu.s.high)
-+		return 0;
-+	else if ((unsigned int) au.s.high > (unsigned int) bu.s.high)
-+		return 2;
-+	if ((unsigned int) au.s.low < (unsigned int) bu.s.low)
-+		return 0;
-+	else if ((unsigned int) au.s.low > (unsigned int) bu.s.low)
-+		return 2;
-+	return 1;
-+}
-+EXPORT_SYMBOL(__ucmpdi2);
++			event->attr.exclude_callchain_user = 1;
++			if (perf_event_overflow(event, &data, regs))
++				sparc_pmu_stop(event, 0);
++			event->attr.exclude_callchain_user = saved_exclude;
++		} else if (perf_event_overflow(event, &data, regs)) {
+ 			sparc_pmu_stop(event, 0);
++		}
+ 	}
+ 
+ 	return NOTIFY_STOP;
 -- 
-2.13.0
+1.7.1
 
