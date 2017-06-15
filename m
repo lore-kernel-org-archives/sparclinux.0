@@ -1,7 +1,7 @@
 From: Guenter Roeck <linux@roeck-us.net>
-Date: Thu, 15 Jun 2017 20:33:58 +0000
+Date: Thu, 15 Jun 2017 21:36:28 +0000
 Subject: Re: [v1 0/2] Early boot timestamp fixes
-Message-Id: <20170615203358.GA664@roeck-us.net>
+Message-Id: <20170615213628.GB30058@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1497537659-419752-1-git-send-email-pasha.tatashin@oracle.com>
 In-Reply-To: <1497537659-419752-1-git-send-email-pasha.tatashin@oracle.com>
@@ -10,21 +10,52 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Thu, Jun 15, 2017 at 04:01:42PM -0400, Pasha Tatashin wrote:
-> >
-> >Guess that means that qemu doesn't really support this CPU,
-> >and your code is fine.
-> >
+On Thu, Jun 15, 2017 at 06:57:30PM +0100, Mark Cave-Ayland wrote:
+> On 15/06/17 16:43, Pasha Tatashin wrote:
 > 
-> Thank you very much for testing!
+> > I have not used qemu for SPARC, so I am not fully aware of its
+> > capability. The changes in this work touched three types of CPUs:
 > 
-> Do you cross compile linux for sparc or do you compile kernel inside qemu or
-> do you have SPARC machine? Just want to figure out what is the best way to
-> use qemu for SPARC.
+> The default CPU in QEMU for sun4u is the TI UltraSparc IIi, and the
+> device tree is roughly similar to that of an Ultra 5, or it least it
+> will be soon when I've finished working on my latest round of patches.
 > 
+> Currently I'm booting one of John Paul Adrian Glaubitz's Debian 9 images
+> and the timestamps stay at 0 until the clock is initialised so I'd hope
+> that these patches would fix that. Do they require any PROM support at all?
+> 
+> > 1. UltraSPARC IIe (Hummingbird)
+> >     - %stick is in I/O space, need at least to loads to get upper
+> >       and lower part of stick value.
+> > 2. Spitfire
+> >     - Use %tick and cpu frequency to determine that clock. This is
+> >      what you tested with TI UltraSparc IIi
+> 
+> So this is the path I'd expect to be exercised under QEMU.
+> 
+> > 3. All other
+> >     - use %stick register and stick-frequency values. This is what
+> >     you tested with Fujitsu Sparc64 IV (which by the way is still
+> >     sun4u, I do not think qemu supports sun4v emulation)
+> 
+> Sure it does. As of the latest 2.9 release, QEMU includes niagara
+> support out of the box - see http://wiki.qemu.org/SPARC for the latest
 
-I cross compile Linux for everything :-). See http://kerneltests.org/builders,
-and the environment is published at https://github.com/groeck/linux-build-test.
+Do you have information on how to boot the Linux kernel for -M niagara 
+(assuming that is possible) ? Directions for Solaris and HelenOS don't
+help much for the uninitiated :-(.
 
-Cheers,
+Thanks,
 Guenter
+
+> updates and
+> http://tyom.blogspot.co.uk/2016/10/qemu-sun4vniagara-target-went-public.html
+> for more sun4v detail.
+> 
+> Disclaimer: I'm one of the QEMU SPARC maintainers.
+> 
+> 
+> ATB,
+> 
+> Mark.
+> 
