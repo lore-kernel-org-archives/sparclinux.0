@@ -1,32 +1,55 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Sun, 04 Jun 2017 20:38:44 +0000
+From: Pavel Machek <pavel@ucw.cz>
+Date: Sun, 18 Jun 2017 09:22:58 +0000
 Subject: Re: sparc gcc 7.1 compile issue
-Message-Id: <f731dcd9-c1f3-52ca-46a5-f4ed1cca6e61@physik.fu-berlin.de>
+Message-Id: <20170618092258.GA20211@amd>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="UugvWAfsgieZRqgk"
 List-Id: <sparclinux.vger.kernel.org>
-References: <d58c5980-c973-a74f-292c-f246680ec246@physik.fu-berlin.de>
- <20170604.163042.2037487368752934309.davem@davemloft.net>
- <374faa2d-3a77-3a8e-e214-9d635a1f2ec0@physik.fu-berlin.de>
- <20170604.163422.1495211552291226243.davem@davemloft.net>
-In-Reply-To: <20170604.163422.1495211552291226243.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <20170531193431.GA26922@waldemar-brodkorb.de>
+ <20170531.171008.528800003662477033.davem@davemloft.net>
+In-Reply-To: <20170531.171008.528800003662477033.davem@davemloft.net>
 To: David Miller <davem@davemloft.net>
-Cc: wbx@openadk.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Anatoly Pugachev <matorola@gmail.com>
+Cc: wbx@openadk.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On 06/04/2017 10:34 PM, David Miller wrote:
-> Please post your sparc64 system specs.
 
-It's a SPARC-T5 running Debian inside an LDOM with 94 GiB RAM
-and 128 active CPU threads.
+--UugvWAfsgieZRqgk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I don't know the exact specs as the machine is owned by Anatoly
-Pugachev. I'm CC'ing him so he can disclose the remaining specs.
+Hi!
 
-Adrian
+> diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm=
+/pgtable_32.h
+> index ce6f569..cf19072 100644
+> --- a/arch/sparc/include/asm/pgtable_32.h
+> +++ b/arch/sparc/include/asm/pgtable_32.h
+> @@ -91,9 +91,9 @@ extern unsigned long pfn_base;
+>   * ZERO_PAGE is a global shared page that is always zero: used
+>   * for zero-mapped memory areas etc..
+>   */
+> -extern unsigned long empty_zero_page;
+> +extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Would it make sense to make empty_zero_page array of bytes? There's
+nothing fundamentally structured in it...
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--UugvWAfsgieZRqgk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAllGRnIACgkQMOfwapXb+vJmGACgwlHJFk4iSvjinL5JuP5vQVEW
+EQkAn2JTx0wfmnmjJnmHlvixW3gntEl6
+=Bfm5
+-----END PGP SIGNATURE-----
+
+--UugvWAfsgieZRqgk--
