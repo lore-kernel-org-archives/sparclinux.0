@@ -1,100 +1,40 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 02 Jun 2017 18:40:52 +0000
-Subject: [v1 4/6] sparc64: optimize loads in clock_sched()
-Message-Id: <1496428854-936411-5-git-send-email-pasha.tatashin@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Mon, 19 Jun 2017 21:48:02 +0000
+Subject: [PATCH v2 3/4] sparc64: Fix gup_huge_pmd
+Message-Id: <1497908927-93636-3-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1497908927-93636-1-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1497908927-93636-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In clock sched we now have three loads:
-	- Function pointer
-	- quotient for multiplication
-	- offset
+The function assumes that each PMD points to head of a
+huge page. This is not correct as a PMD can point to
+start of any 8M region with a, say 256M, hugepage. The
+fix ensures that it points to the correct head of any PMD
+huge page.
 
-However, it is possible to improve performance substantially, by
-guaranteeing that all three loads are from the same cacheline.
-
-By moving these three values first in sparc64_tick_ops, and by having
-tick_operations 64-byte aligned we guarantee this.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- arch/sparc/include/asm/timer_64.h |    5 +++++
- arch/sparc/kernel/time_64.c       |   17 +++++++----------
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ arch/sparc/mm/gup.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/sparc/include/asm/timer_64.h b/arch/sparc/include/asm/timer_64.h
-index fce4150..bde2cc4 100644
---- a/arch/sparc/include/asm/timer_64.h
-+++ b/arch/sparc/include/asm/timer_64.h
-@@ -9,7 +9,12 @@
- #include <linux/types.h>
- #include <linux/init.h>
- 
-+/* The most frequently accessed fields should be first,
-+ * to fit into the same cacheline.
-+ */
- struct sparc64_tick_ops {
-+	unsigned long ticks_per_nsec_quotient;
-+	unsigned long offset;
- 	unsigned long long (*get_tick)(void);
- 	int (*add_compare)(unsigned long);
- 	unsigned long softint_mask;
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 5f53b74..d654f5c 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -164,7 +164,7 @@ static unsigned long tick_add_tick(unsigned long adj)
- 	return new_tick;
- }
- 
--static struct sparc64_tick_ops tick_operations __read_mostly = {
-+static struct sparc64_tick_ops tick_operations __aligned(64) __read_mostly = {
- 	.name		=	"tick",
- 	.init_tick	=	tick_init_tick,
- 	.disable_irq	=	tick_disable_irq,
-@@ -391,9 +391,6 @@ static int hbtick_add_compare(unsigned long adj)
- 	.softint_mask	=	1UL << 0,
- };
- 
--static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
--static unsigned long timer_offset __read_mostly;
--
- unsigned long cmos_regs;
- EXPORT_SYMBOL(cmos_regs);
- 
-@@ -784,11 +781,11 @@ void __init time_init(void)
- 
- 	tb_ticks_per_usec = freq / USEC_PER_SEC;
- 
--	timer_ticks_per_nsec_quotient +	tick_operations.ticks_per_nsec_quotient  		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
- 
--	timer_offset = (tick_operations.get_tick()
--			* timer_ticks_per_nsec_quotient)
-+	tick_operations.offset = (tick_operations.get_tick()
-+			* tick_operations.ticks_per_nsec_quotient)
- 			>> SPARC64_NSEC_PER_CYC_SHIFT;
- 
- 	clocksource_tick.name = tick_operations.name;
-@@ -816,11 +813,11 @@ void __init time_init(void)
- 
- unsigned long long sched_clock(void)
- {
-+	unsigned long quotient = tick_operations.ticks_per_nsec_quotient;
-+	unsigned long offset = tick_operations.offset;
- 	unsigned long ticks = tick_operations.get_tick();
- 
--	return ((ticks * timer_ticks_per_nsec_quotient)
--		>> SPARC64_NSEC_PER_CYC_SHIFT)
--		- timer_offset;
-+	return ((ticks * quotient) >> SPARC64_NSEC_PER_CYC_SHIFT) - offset;
- }
- 
- int read_current_timer(unsigned long *timer_val)
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 7cfa9c5..b1c649d 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -80,6 +80,8 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 	refs = 0;
+ 	head = pmd_page(pmd);
+ 	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	if (PageTail(head))
++		head = compound_head(head);
+ 	do {
+ 		VM_BUG_ON(compound_head(page) != head);
+ 		pages[*nr] = page;
 -- 
-1.7.1
+2.9.2
 
