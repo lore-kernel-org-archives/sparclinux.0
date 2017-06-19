@@ -1,79 +1,99 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 09 Jun 2017 16:30:57 +0000
-Subject: [PATCH v1 08/12] sparc64: remove restriction on VIO device name size
-Message-Id: <3c1bcc54c240f93248d6fe12fb1825fb8c56ffd6.1497024216.git.jag.raman@oracle.com>
+From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
+Date: Mon, 19 Jun 2017 17:08:49 +0000
+Subject: [PATCH 2/3] sed regex in Makefile.build requires line break between exported symbols
+Message-Id: <1497892130-875525-3-git-send-email-nagarathnam.muthusamy@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Removes restriction on VIO device's size limit. Since KOBJ_NAME_LEN
-has been dropped from kobject, there doesn't seem to be a
-restriction on the device name anymore. This limit therefore
-doesn't make sense.
+The following regex in Makefile.build matches only one ___EXPORT_SYMBOL per line.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+sed
+'s/.*___EXPORT_SYMBOL[[:space:]]*\([a-zA-Z0-9_]*\)[[:space:]]*,.*/EXPORT_SYMBOL(\1);/'
+
+ATOMIC_OPS macro in atomic_64.S expands multiple symbols in same line hence
+version generation is done only for the last matched symbol. This patch adds
+new line between the symbol expansions.
+
+Signed-off-by: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
+Reviewed-by: Babu Moger <babu.moger@oracle.com>
+
 ---
- arch/sparc/kernel/vio.c |   23 ++++-------------------
- 1 files changed, 4 insertions(+), 19 deletions(-)
+ arch/sparc/lib/atomic_64.S |   44 ++++++++++++++++++++++++++------------------
+ 1 files changed, 26 insertions(+), 18 deletions(-)
 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index bcb754c..e142708 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -239,7 +239,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
- static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 				      char *node_name, struct device *parent)
- {
--	const char *type, *compat, *bus_id_name;
-+	const char *type, *compat;
- 	struct device_node *dp;
- 	struct vio_dev *vdev;
- 	int err, tlen, clen;
-@@ -263,21 +263,6 @@ int vio_set_intr(unsigned long dev_ino, int state)
+diff --git a/arch/sparc/lib/atomic_64.S b/arch/sparc/lib/atomic_64.S
+index 1c6a1bd..ce17c30 100644
+--- a/arch/sparc/lib/atomic_64.S
++++ b/arch/sparc/lib/atomic_64.S
+@@ -62,19 +62,23 @@ ENTRY(atomic_fetch_##op) /* %o0 = increment, %o1 = atomic_ptr */	\
+ ENDPROC(atomic_fetch_##op);						\
+ EXPORT_SYMBOL(atomic_fetch_##op);
  
- 	cfg_handle = vio_cfg_handle(hp, mp);
+-#define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_OP_RETURN(op) ATOMIC_FETCH_OP(op)
++ATOMIC_OP(add)
++ATOMIC_OP_RETURN(add)
++ATOMIC_FETCH_OP(add)
  
--	bus_id_name = type;
--	if (!strcmp(type, "domain-services-port"))
--		bus_id_name = "ds";
--
--	/*
--	 * 20 char is the old driver-core name size limit, which is no more.
--	 * This check can probably be removed after review and possible
--	 * adaption of the vio users name length handling.
--	 */
--	if (strlen(bus_id_name) >= 20 - 4) {
--		printk(KERN_ERR "VIO: bus_id_name [%s] is too long.\n",
--		       bus_id_name);
--		return NULL;
--	}
--
- 	compat = mdesc_get_property(hp, mp, "device-type", &clen);
- 	if (!compat) {
- 		clen = 0;
-@@ -308,15 +293,15 @@ int vio_set_intr(unsigned long dev_ino, int state)
- 	vio_fill_channel_info(hp, mp, vdev);
+-ATOMIC_OPS(add)
+-ATOMIC_OPS(sub)
++ATOMIC_OP(sub)
++ATOMIC_OP_RETURN(sub)
++ATOMIC_FETCH_OP(sub)
  
- 	if (!id) {
--		dev_set_name(&vdev->dev, "%s", bus_id_name);
-+		dev_set_name(&vdev->dev, "%s", type);
- 		vdev->dev_no = ~(u64)0;
- 		vdev->id = ~(u64)0;
- 	} else if (!cfg_handle) {
--		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
-+		dev_set_name(&vdev->dev, "%s-%llu", type, *id);
- 		vdev->dev_no = *id;
- 		vdev->id = ~(u64)0;
- 	} else {
--		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
-+		dev_set_name(&vdev->dev, "%s-%llu-%llu", type,
- 			     *cfg_handle, *id);
- 		vdev->dev_no = *cfg_handle;
- 		vdev->id = *id;
+-#undef ATOMIC_OPS
+-#define ATOMIC_OPS(op) ATOMIC_OP(op) ATOMIC_FETCH_OP(op)
++ATOMIC_OP(and)
++ATOMIC_FETCH_OP(and)
+ 
+-ATOMIC_OPS(and)
+-ATOMIC_OPS(or)
+-ATOMIC_OPS(xor)
++ATOMIC_OP(or)
++ATOMIC_FETCH_OP(or)
++
++ATOMIC_OP(xor)
++ATOMIC_FETCH_OP(xor)
+ 
+-#undef ATOMIC_OPS
+ #undef ATOMIC_FETCH_OP
+ #undef ATOMIC_OP_RETURN
+ #undef ATOMIC_OP
+@@ -124,19 +128,23 @@ ENTRY(atomic64_fetch_##op) /* %o0 = increment, %o1 = atomic_ptr */	\
+ ENDPROC(atomic64_fetch_##op);						\
+ EXPORT_SYMBOL(atomic64_fetch_##op);
+ 
+-#define ATOMIC64_OPS(op) ATOMIC64_OP(op) ATOMIC64_OP_RETURN(op) ATOMIC64_FETCH_OP(op)
++ATOMIC64_OP(add)
++ATOMIC64_OP_RETURN(add)
++ATOMIC64_FETCH_OP(add)
++
++ATOMIC64_OP(sub)
++ATOMIC64_OP_RETURN(sub)
++ATOMIC64_FETCH_OP(sub)
+ 
+-ATOMIC64_OPS(add)
+-ATOMIC64_OPS(sub)
++ATOMIC64_OP(and)
++ATOMIC64_FETCH_OP(and)
+ 
+-#undef ATOMIC64_OPS
+-#define ATOMIC64_OPS(op) ATOMIC64_OP(op) ATOMIC64_FETCH_OP(op)
++ATOMIC64_OP(or)
++ATOMIC64_FETCH_OP(or)
+ 
+-ATOMIC64_OPS(and)
+-ATOMIC64_OPS(or)
+-ATOMIC64_OPS(xor)
++ATOMIC64_OP(xor)
++ATOMIC64_FETCH_OP(xor)
+ 
+-#undef ATOMIC64_OPS
+ #undef ATOMIC64_FETCH_OP
+ #undef ATOMIC64_OP_RETURN
+ #undef ATOMIC64_OP
 -- 
 1.7.1
 
