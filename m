@@ -1,19 +1,29 @@
-From: "Seydou Thieba" <seydouthieba@tiscali.co.uk>
-Date: Fri, 02 Jun 2017 23:01:51 +0000
-Subject: Investment Interest & Offer
-Message-Id: <201706022301.v52MWded028747@www.brfliseberg.se>
+From: INFO <mguerrero@huv.gov.co>
+Date: Mon, 19 Jun 2017 20:15:01 +0000
+Subject: Re: Reply Urgent
+Message-Id: <20170619151501.836750gf2mscb005@correo.huv.gov.co>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-We are a Fund management company located in the United Kingdom, we specialize in searching for potential investments opportunities for our high net-worth clients globally. Should this be of interest to you, please do not hesitate to email me for  further information.
+Hello,
 
-Thanks
-Seydou Thieba
+How are you doing? I have been sent to inform you that, We have an  
+inheritance of a deceased client with your surname. Contact Mr Andrew  
+Bailey Reply Email To: myinfand@gmail.com with your "Full Names" for  
+more info.  Thanks for your understanding.
 
----
-This email has been checked for viruses by AVG.
-http://www.avg.com
+Reply ASAP thank you.
+
+Melissa.
+----------------------------------
+Correo Corporativo Hospital Universitario del Valle E.S.E
+*******************************************************************************
+
+"Estamos re-dimensionandonos para crecer!"
+
+******************************************************************************
+
 
