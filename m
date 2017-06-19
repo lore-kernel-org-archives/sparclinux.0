@@ -1,75 +1,104 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 09 Jun 2017 16:30:52 +0000
-Subject: [PATCH v1 03/12] sparc64: skip handshake for LDC channels in RAW mode
-Message-Id: <2fa8719fee2bde0cac3be9671d49d0eedbe76c72.1497024216.git.jag.raman@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Mon, 19 Jun 2017 21:48:03 +0000
+Subject: [PATCH v2 4/4] sparc64: Cleanup hugepage table walk functions
+Message-Id: <1497908927-93636-4-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1497908927-93636-1-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1497908927-93636-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, Hugh Dickins <hughd@google.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-LDC channels in RAW mode does not provide any session management. No
-handshake protocol is defined for LDC channels in RAW mode. It's
-therefore skipped.
+Flatten out nested code structure in huge_pte_offset()
+and huge_pte_alloc().
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- arch/sparc/kernel/ldc.c   |   10 ++++++++++
- arch/sparc/kernel/viohs.c |    6 +++++-
- 2 files changed, 15 insertions(+), 1 deletions(-)
+ arch/sparc/mm/hugetlbpage.c | 54 +++++++++++++++++----------------------------
+ 1 file changed, 20 insertions(+), 34 deletions(-)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 97a5743..840e0b2 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -1347,6 +1347,14 @@ int ldc_bind(struct ldc_channel *lp)
- 	lp->hs_state = LDC_HS_OPEN;
- 	ldc_set_state(lp, LDC_STATE_BOUND);
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index f0bb42d..e8b7245 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -266,27 +266,19 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte = NULL;
  
-+	if (lp->cfg.mode = LDC_MODE_RAW) {
-+		/*
-+		 * There is no handshake in RAW mode, so handshake
-+		 * is completed.
-+		 */
-+		lp->hs_state = LDC_HS_COMPLETE;
-+	}
-+
- 	spin_unlock_irqrestore(&lp->lock, flags);
- 
- 	return 0;
-@@ -1460,11 +1468,13 @@ void ldc_set_state(struct ldc_channel *lp, u8 state)
- 
- 	lp->state = state;
+ 	pgd = pgd_offset(mm, addr);
+ 	pud = pud_alloc(mm, pgd, addr);
+ 	if (!pud)
+ 		return NULL;
+-
+ 	if (sz >= PUD_SIZE)
+-		pte = (pte_t *)pud;
+-	else {
+-		pmd = pmd_alloc(mm, pud, addr);
+-		if (!pmd)
+-			return NULL;
+-
+-		if (sz >= PMD_SIZE)
+-			pte = (pte_t *)pmd;
+-		else
+-			pte = pte_alloc_map(mm, pmd, addr);
+-	}
+-
+-	return pte;
++		return (pte_t *)pud;
++	pmd = pmd_alloc(mm, pud, addr);
++	if (!pmd)
++		return NULL;
++	if (sz >= PMD_SIZE)
++		return (pte_t *)pmd;
++	return pte_alloc_map(mm, pmd, addr);
  }
-+EXPORT_SYMBOL(ldc_set_state);
  
- int ldc_mode(struct ldc_channel *lp)
- {
- 	return lp->cfg.mode;
+ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
+@@ -294,27 +286,21 @@ pte_t *huge_pte_offset(struct mm_struct *mm, unsigned long addr)
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte = NULL;
+ 
+ 	pgd = pgd_offset(mm, addr);
+-	if (!pgd_none(*pgd)) {
+-		pud = pud_offset(pgd, addr);
+-		if (!pud_none(*pud)) {
+-			if (is_hugetlb_pud(*pud))
+-				pte = (pte_t *)pud;
+-			else {
+-				pmd = pmd_offset(pud, addr);
+-				if (!pmd_none(*pmd)) {
+-					if (is_hugetlb_pmd(*pmd))
+-						pte = (pte_t *)pmd;
+-					else
+-						pte = pte_offset_map(pmd, addr);
+-				}
+-			}
+-		}
+-	}
+-
+-	return pte;
++	if (pgd_none(*pgd))
++		return NULL;
++	pud = pud_offset(pgd, addr);
++	if (pud_none(*pud))
++		return NULL;
++	if (is_hugetlb_pud(*pud))
++		return (pte_t *)pud;
++	pmd = pmd_offset(pud, addr);
++	if (pmd_none(*pmd))
++		return NULL;
++	if (is_hugetlb_pmd(*pmd))
++		return (pte_t *)pmd;
++	return pte_offset_map(pmd, addr);
  }
-+EXPORT_SYMBOL(ldc_mode);
  
- int ldc_rx_reset(struct ldc_channel *lp)
- {
-diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
-index 68e952a..d4f13c0 100644
---- a/arch/sparc/kernel/viohs.c
-+++ b/arch/sparc/kernel/viohs.c
-@@ -776,7 +776,11 @@ void vio_port_up(struct vio_driver_state *vio)
- 	}
- 
- 	if (!err) {
--		err = ldc_connect(vio->lp);
-+		if (ldc_mode(vio->lp) = LDC_MODE_RAW)
-+			ldc_set_state(vio->lp, LDC_STATE_CONNECTED);
-+		else
-+			err = ldc_connect(vio->lp);
-+
- 		if (err)
- 			printk(KERN_WARNING "%s: Port %lu connect failed, "
- 			       "err=%d\n",
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 -- 
-1.7.1
+2.9.2
 
