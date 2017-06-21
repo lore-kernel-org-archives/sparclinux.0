@@ -1,27 +1,88 @@
 From: Shannon Nelson <shannon.nelson@oracle.com>
-Date: Thu, 15 Jun 2017 18:54:51 +0000
-Subject: Re: [PATCH net-next] sunvnet: restrict advertized checksum offloads to just IP
-Message-Id: <d8203dbd-2873-afcf-91b9-f7ff7495d3bb@oracle.com>
+Date: Wed, 21 Jun 2017 16:09:54 +0000
+Subject: [PATCH net-next 2/2] sunvnet: implement basic ethtool get_settings
+Message-Id: <1498061394-233018-3-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497480217-391315-1-git-send-email-shannon.nelson@oracle.com>
- <20170615.142314.2129688024540050765.davem@davemloft.net>
-In-Reply-To: <20170615.142314.2129688024540050765.davem@davemloft.net>
+References: <1498061394-233018-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1498061394-233018-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-On 6/15/2017 11:23 AM, David Miller wrote:
-> 
-> Applied, but this bug must be fixed properly and ipv6 checksumming
-> properly supported.
-> 
-> Thanks.
-> 
+Add the get_settings callback so that both the ldmvsw and sunvnet
+drivers will give a little more information when asked for its
+basic settings.  These aren't necessarily very useful, but they
+make some users happier.  Also, a side effect is that the speed
+attribute in /sys/class/net/<dev> is now readable, which makes
+a couple of the ldom management tools happier.
 
-Understood - we just wanted first to stop the bleeding while we think 
-about how to do this right.
+Orabug: 26175474
 
-Thanks,
-sln
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/net/ethernet/sun/ldmvsw.c         |    1 +
+ drivers/net/ethernet/sun/sunvnet.c        |    1 +
+ drivers/net/ethernet/sun/sunvnet_common.c |   11 +++++++++++
+ drivers/net/ethernet/sun/sunvnet_common.h |    2 ++
+ 4 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index de512ef..0ac389b 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -88,6 +88,7 @@ static void vsw_set_msglevel(struct net_device *dev, u32 value)
+ }
+ 
+ static const struct ethtool_ops vsw_ethtool_ops = {
++	.get_settings		= sunvnet_get_settings,
+ 	.get_drvinfo		= vsw_get_drvinfo,
+ 	.get_msglevel		= vsw_get_msglevel,
+ 	.set_msglevel		= vsw_set_msglevel,
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 75b167e..d16c351 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -189,6 +189,7 @@ static void vnet_get_ethtool_stats(struct net_device *dev,
+ }
+ 
+ static const struct ethtool_ops vnet_ethtool_ops = {
++	.get_settings		= sunvnet_get_settings,
+ 	.get_drvinfo		= vnet_get_drvinfo,
+ 	.get_msglevel		= vnet_get_msglevel,
+ 	.set_msglevel		= vnet_set_msglevel,
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.c b/drivers/net/ethernet/sun/sunvnet_common.c
+index 9e86833..6ca27b0 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.c
++++ b/drivers/net/ethernet/sun/sunvnet_common.c
+@@ -1759,3 +1759,14 @@ void sunvnet_port_rm_txq_common(struct vnet_port *port)
+ 	port->q_index = 0;
+ }
+ EXPORT_SYMBOL_GPL(sunvnet_port_rm_txq_common);
++
++int sunvnet_get_settings(struct net_device *netdev,
++			 struct ethtool_cmd *ecmd)
++{
++	ethtool_cmd_speed_set(ecmd, 0);
++	ecmd->duplex = DUPLEX_FULL;
++	ecmd->port = PORT_NONE;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(sunvnet_get_settings);
+diff --git a/drivers/net/ethernet/sun/sunvnet_common.h b/drivers/net/ethernet/sun/sunvnet_common.h
+index b20d6fa..c566ec9 100644
+--- a/drivers/net/ethernet/sun/sunvnet_common.h
++++ b/drivers/net/ethernet/sun/sunvnet_common.h
+@@ -151,5 +151,7 @@ int sunvnet_start_xmit_common(struct sk_buff *skb, struct net_device *dev,
+ bool sunvnet_port_is_up_common(struct vnet_port *vnet);
+ void sunvnet_port_add_txq_common(struct vnet_port *port);
+ void sunvnet_port_rm_txq_common(struct vnet_port *port);
++int sunvnet_get_settings(struct net_device *netdev,
++			 struct ethtool_cmd *ecmd);
+ 
+ #endif /* _SUNVNETCOMMON_H */
+-- 
+1.7.1
+
