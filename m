@@ -1,53 +1,76 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:54 +0000
-Subject: [PATCH 39/44] xen-swiotlb: remove xen_swiotlb_set_dma_mask
-Message-Id: <20170616181059.19206-40-hch@lst.de>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Wed, 21 Jun 2017 01:05:53 +0000
+Subject: [PATCH 0/4] sparc64: Add 16GB hugepage support
+Message-Id: <cover.1498005968.git.nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-This just duplicates the generic implementation.
+SPARC architecture supports 16G hugepages but the kernel did not
+support these. This patch series adds support for it and also cleanes
+up some page walk/alloc functions.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/xen/swiotlb-xen.c | 12 ------------
- 1 file changed, 12 deletions(-)
+Patch 1/4: Core changes needed to add 16G hugepage support: To map a
+  single 16G hugepage, two PUD entries are used. Each PUD entry maps
+  8G portion of a 16G page. This page table encoding scheme is same as
+  that used for hugepages at PMD level (8M, 256M and 2G pages) where
+  each PMD entry points successively to 8M regions within a page.  No
+  page table entries below the PUD level are allocated for 16G
+  hugepage since those are not required.
 
-diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
-index c3a04b2d7532..82fc54f8eb77 100644
---- a/drivers/xen/swiotlb-xen.c
-+++ b/drivers/xen/swiotlb-xen.c
-@@ -661,17 +661,6 @@ xen_swiotlb_dma_supported(struct device *hwdev, u64 mask)
- 	return xen_virt_to_bus(xen_io_tlb_end - 1) <= mask;
- }
- 
--static int
--xen_swiotlb_set_dma_mask(struct device *dev, u64 dma_mask)
--{
--	if (!dev->dma_mask || !xen_swiotlb_dma_supported(dev, dma_mask))
--		return -EIO;
--
--	*dev->dma_mask = dma_mask;
--
--	return 0;
--}
--
- /*
-  * Create userspace mapping for the DMA-coherent memory.
-  * This function should be called with the pages from the current domain only,
-@@ -734,7 +723,6 @@ const struct dma_map_ops xen_swiotlb_dma_ops = {
- 	.map_page = xen_swiotlb_map_page,
- 	.unmap_page = xen_swiotlb_unmap_page,
- 	.dma_supported = xen_swiotlb_dma_supported,
--	.set_dma_mask = xen_swiotlb_set_dma_mask,
- 	.mmap = xen_swiotlb_dma_mmap,
- 	.get_sgtable = xen_swiotlb_get_sgtable,
- 	.mapping_error	= xen_swiotlb_mapping_error,
+  TSB entries for a 16G page are created at every 4M boundary since
+  the HUGE_TSB is used for these pages which is configured with page
+  size of 4M.  When walking page tables (on a TSB miss), bits [32:22]
+  are transferred from vaddr to PUD to resolve addresses at 4M
+  boundary. The resolved address mapping is then stored in HUGE_TSB.
+
+Patch 2/4: get_user_pages() etc. are used for direct IO. These
+  functions were not aware of hugepages at the PUD level and would try
+  to continue walking page tables beyond the PUD level. Since 16G
+  hugepages have page tables allocated till PUD level only, these
+  accesses would result in invalid access. This patch adds the case
+  for PUD huge pages to these functions.
+
+Patch 3/4: Fixes a bug in gup_huge_pmd() which caused wrong page
+  within a hugepage to be considered as the head page. gup_huge_pud()
+  already has this fix.
+
+Patch 4/4: Patch 1 added the case of PUD entry being huge in page
+  table walk and alloc functions. This new case further increased
+  nesting in these functions and made them harder to follow. This
+  patch flattens these functions for better readability.
+
+Cc: sparclinux@vger.kernel.org
+
+Changelog v4 vs v3:
+ - Added cover letter (patch 0/4) for patch series.
+
+Changelog v3 vs v2:
+ - Fixed email headers so the subject shows up correctly.
+
+Changelog v2 vs v1:
+ - Remove redundant brgez,pn (Bob Picco)
+ - Remove unncessary label rename from 700 to 701 (Rob Gardner)
+ - Add patch description (Paul)
+ - Add 16G case to get_user_pages()
+
+Nitin Gupta (4):
+  sparc64: Add 16GB hugepage support
+  sparc64: Support huge PUD case in get_user_pages
+  sparc64: Fix gup_huge_pmd
+  sparc64: Cleanup hugepage table walk functions
+
+ arch/sparc/include/asm/page_64.h    |   3 +-
+ arch/sparc/include/asm/pgtable_64.h |  20 ++++++-
+ arch/sparc/include/asm/tsb.h        |  30 +++++++++++
+ arch/sparc/kernel/tsb.S             |   2 +-
+ arch/sparc/mm/gup.c                 |  49 ++++++++++++++++-
+ arch/sparc/mm/hugetlbpage.c         | 102 +++++++++++++++++++++---------------
+ arch/sparc/mm/init_64.c             |  41 ++++++++++++---
+ 7 files changed, 193 insertions(+), 54 deletions(-)
+
 -- 
-2.11.0
+2.9.2
 
