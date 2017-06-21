@@ -1,37 +1,48 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:39 +0000
-Subject: [PATCH 24/44] x86: remove DMA_ERROR_CODE
-Message-Id: <20170616181059.19206-25-hch@lst.de>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Wed, 21 Jun 2017 16:09:53 +0000
+Subject: [PATCH net-next 1/2] ldmvsw: add vio version and remote-mac to ethtool info
+Message-Id: <1498061394-233018-2-git-send-email-shannon.nelson@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
+References: <1498061394-233018-1-git-send-email-shannon.nelson@oracle.com>
+In-Reply-To: <1498061394-233018-1-git-send-email-shannon.nelson@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-All dma_map_ops instances now handle their errors through
-->mapping_error.
+In the ethtool -i output print the vio version and the remote-mac
+of the ldom that the vif device is serving as this vif info is
+not exposed elsewhere.  The remote-mac address is most useful for
+tracking which client ldom is being served by the vif.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Orabug: 26316362
+
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/x86/include/asm/dma-mapping.h | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/ethernet/sun/ldmvsw.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
-index 08a0838b83fb..c35d228aa381 100644
---- a/arch/x86/include/asm/dma-mapping.h
-+++ b/arch/x86/include/asm/dma-mapping.h
-@@ -19,8 +19,6 @@
- # define ISA_DMA_BIT_MASK DMA_BIT_MASK(32)
- #endif
+diff --git a/drivers/net/ethernet/sun/ldmvsw.c b/drivers/net/ethernet/sun/ldmvsw.c
+index 8603e39..de512ef 100644
+--- a/drivers/net/ethernet/sun/ldmvsw.c
++++ b/drivers/net/ethernet/sun/ldmvsw.c
+@@ -62,8 +62,15 @@
+ static void vsw_get_drvinfo(struct net_device *dev,
+ 			    struct ethtool_drvinfo *info)
+ {
++	struct vnet_port *port = netdev_priv(dev);
++
+ 	strlcpy(info->driver, DRV_MODULE_NAME, sizeof(info->driver));
+ 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
++
++	snprintf(info->fw_version, sizeof(info->fw_version),
++		 "vio %d.%d", port->vio.ver.major, port->vio.ver.minor);
++	snprintf(info->bus_info, sizeof(info->bus_info),
++		 "remote-mac %pM", port->raddr);
+ }
  
--#define DMA_ERROR_CODE	0
--
- extern int iommu_merge;
- extern struct device x86_dma_fallback_dev;
- extern int panic_on_overflow;
+ static u32 vsw_get_msglevel(struct net_device *dev)
 -- 
-2.11.0
+1.7.1
 
