@@ -1,82 +1,126 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 23 Jun 2017 18:58:29 +0000
-Subject: [PATCH v2 01/12] sparc64: ensure VIO operations are defined while being used
-Message-Id: <04c46dac62702f6a64f9cf319173178957915fc1.1498238657.git.jag.raman@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Wed, 21 Jun 2017 01:05:55 +0000
+Subject: [PATCH 2/4] sparc64: Support huge PUD case in get_user_pages
+Message-Id: <1450b5655a5dcd9b9c326a24f359f4a0673fc5a8.1498005968.git.nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1498005968.git.nitin.m.gupta@oracle.com>
+In-Reply-To: <cover.1498005968.git.nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tom Hromatka <tom.hromatka@oracle.com>, Michal Hocko <mhocko@suse.com>, Ingo Molnar <mingo@kernel.org>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-It's possible that VIO operations are not defined for some VIO
-clients. In that case, VIO ops pointer should be checked for
-NULL before being used
+get_user_pages() is used to do direct IO. It already
+handles the case where the address range is backed
+by PMD huge pages. This patch now adds the case where
+the range could be backed by PUD huge pages.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- arch/sparc/kernel/viohs.c |   17 +++++++++++++----
- 1 files changed, 13 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 15 ++++++++++--
+ arch/sparc/mm/gup.c                 | 47 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 59 insertions(+), 3 deletions(-)
 
-diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
-index b30b30a..ea28cb7 100644
---- a/arch/sparc/kernel/viohs.c
-+++ b/arch/sparc/kernel/viohs.c
-@@ -223,6 +223,9 @@ static int send_rdx(struct vio_driver_state *vio)
- 
- static int send_attr(struct vio_driver_state *vio)
- {
-+	if (!vio->ops)
-+		return -EINVAL;
-+
- 	return vio->ops->send_attr(vio);
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 2444b02..4fefe37 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -692,6 +692,8 @@ static inline unsigned long pmd_write(pmd_t pmd)
+ 	return pte_write(pte);
  }
  
-@@ -374,6 +377,9 @@ static int process_attr(struct vio_driver_state *vio, void *pkt)
- 	if (!(vio->hs_state & VIO_HS_GOTVERS))
- 		return handshake_failure(vio);
++#define pud_write(pud)	pte_write(__pte(pud_val(pud)))
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline unsigned long pmd_dirty(pmd_t pmd)
+ {
+@@ -828,9 +830,18 @@ static inline unsigned long __pmd_page(pmd_t pmd)
  
-+	if (!vio->ops)
+ 	return ((unsigned long) __va(pfn << PAGE_SHIFT));
+ }
++
++static inline unsigned long pud_page_vaddr(pud_t pud)
++{
++	pte_t pte = __pte(pud_val(pud));
++	unsigned long pfn;
++
++	pfn = pte_pfn(pte);
++
++	return ((unsigned long) __va(pfn << PAGE_SHIFT));
++}
++
+ #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
+-#define pud_page_vaddr(pud)		\
+-	((unsigned long) __va(pud_val(pud)))
+ #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pud_present(pud)		(pud_val(pud) != 0U)
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index cd0e32b..7cfa9c5 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -103,6 +103,47 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 	return 1;
+ }
+ 
++static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
++			unsigned long end, int write, struct page **pages,
++			int *nr)
++{
++	struct page *head, *page;
++	int refs;
++
++	if (!(pud_val(pud) & _PAGE_VALID))
 +		return 0;
 +
- 	err = vio->ops->handle_attr(vio, pkt);
- 	if (err < 0) {
- 		return handshake_failure(vio);
-@@ -388,6 +394,7 @@ static int process_attr(struct vio_driver_state *vio, void *pkt)
- 			vio->hs_state |= VIO_HS_SENT_DREG;
- 		}
- 	}
++	if (write && !pud_write(pud))
++		return 0;
 +
- 	return 0;
- }
- 
-@@ -647,10 +654,13 @@ int vio_control_pkt_engine(struct vio_driver_state *vio, void *pkt)
- 		err = process_unknown(vio, pkt);
- 		break;
- 	}
++	refs = 0;
++	head = pud_page(pud);
++	page = head + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	if (PageTail(head))
++		head = compound_head(head);
++	do {
++		VM_BUG_ON(compound_head(page) != head);
++		pages[*nr] = page;
++		(*nr)++;
++		page++;
++		refs++;
++	} while (addr += PAGE_SIZE, addr != end);
 +
- 	if (!err &&
- 	    vio->hs_state != prev_state &&
--	    (vio->hs_state & VIO_HS_COMPLETE))
--		vio->ops->handshake_complete(vio);
-+	    (vio->hs_state & VIO_HS_COMPLETE)) {
-+		if (vio->ops)
-+			vio->ops->handshake_complete(vio);
++	if (!page_cache_add_speculative(head, refs)) {
++		*nr -= refs;
++		return 0;
 +	}
- 
- 	return err;
- }
-@@ -805,8 +815,7 @@ int vio_driver_init(struct vio_driver_state *vio, struct vio_dev *vdev,
- 		return -EINVAL;
- 	}
- 
--	if (!ops->send_attr ||
--	    !ops->handle_attr ||
-+	if (!ops || !ops->send_attr || !ops->handle_attr ||
- 	    !ops->handshake_complete)
- 		return -EINVAL;
++
++	if (unlikely(pud_val(pud) != pud_val(*pudp))) {
++		*nr -= refs;
++		while (refs--)
++			put_page(head);
++		return 0;
++	}
++
++	return 1;
++}
++
+ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+ 		int write, struct page **pages, int *nr)
+ {
+@@ -141,7 +182,11 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(pud))
+ 			return 0;
+-		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
++		if (unlikely(pud_large(pud))) {
++			if (!gup_huge_pud(pudp, pud, addr, next,
++					  write, pages, nr))
++				return 0;
++		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
+ 			return 0;
+ 	} while (pudp++, addr = next, addr != end);
  
 -- 
-1.7.1
+2.9.2
 
