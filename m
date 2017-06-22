@@ -1,37 +1,58 @@
-From: Palmer Dabbelt <palmer@dabbelt.com>
-Date: Mon, 26 Jun 2017 20:27:55 +0000
-Subject: Re: [PATCH] pci: Add and use PCI_GENERIC_SETUP Kconfig entry
-Message-Id: <20170626202756.22220-1-palmer@dabbelt.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 22 Jun 2017 20:19:04 +0000
+Subject: [v1] sparc64: fix typo in property
+Message-Id: <1498162744-840346-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAMuHMdXSrfbSX2de2q35Hj6vQwi+sr23M1LEg82JL+FyLq4OJw@mail.gmail.com>
-In-Reply-To: <CAMuHMdXSrfbSX2de2q35Hj6vQwi+sr23M1LEg82JL+FyLq4OJw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rth@twiddle.net
+To: sparclinux@vger.kernel.org
 
->On Mon, Jun 26, 2017 at 7:39 AM, kbuild test robot <lkp@intel.com> wrote:
->> [auto build test WARNING on linus/master]
->> [also build test WARNING on v4.12-rc6]
->> [cannot apply to next-20170623]
->> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>
->> url:    https://github.com/0day-ci/linux/commits/Palmer-Dabbelt/pci-Add-and-use-PCI_GENERIC_SETUP-Kconfig-entry/20170626-043558
->> config: m68k-allnoconfig (attached as .config)
->> compiler: m68k-linux-gcc (GCC) 4.9.0
->> reproduce:
->>         wget https://raw.githubusercontent.com/01org/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->>         chmod +x ~/bin/make.cross
->>         # save the attached .config to linux build tree
->>         make.cross ARCH=m68k
->>
->> All warnings (new ones prefixed by >>):
->>
->> warning: (M68K) selects PCI_GENERIC_SETUP which has unmet direct dependencies (MMU)
->
->I can't seem to find this dependency of PCI_GENERIC_SETUP on MMU?
+There is a typo in a comment that propogated into code:
+upa-portis instead of upa-portid
 
-It looks like M68K only includes the PCI Kconfig entry when MMU is enabled.  I
-moved the select around a bit and it builds the config that was failing for me.
+This problem was detected by code inspection, and I am not sure if it
+effects any current systems. It was not reproduced by QEMU.
 
-The updated patch is threaded.
+It is likely that all existing implementations of OpenBoot have cpuid
+property in cpu node.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reported-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+---
+ arch/sparc/kernel/prom_64.c |    2 +-
+ arch/sparc/kernel/time_64.c |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 20cc5d8..baeaeed 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -381,7 +381,7 @@ bool arch_find_n_match_cpu_physical_id(struct device_node *cpun,
+ 	int this_cpu_id;
+ 
+ 	/* On hypervisor based platforms we interrogate the 'reg'
+-	 * property.  On everything else we look for a 'upa-portis',
++	 * property.  On everything else we look for a 'upa-portid',
+ 	 * 'portid', or 'cpuid' property.
+ 	 */
+ 
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index f584c53..564f0e4 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -175,8 +175,8 @@ static unsigned long cpuid_to_freq(phandle node, int cpuid)
+ 	if (prom_getproperty(node, "device_type", type, sizeof(type)) != -1)
+ 		is_cpu_node = (strcmp(type, "cpu") = 0);
+ 
+-	/* try upa-portis then cpuid to get cpuid, see prom_64.c */
+-	if (is_cpu_node && (prom_getint(node, "upa-portis") = cpuid ||
++	/* try upa-portid then cpuid to get cpuid, see prom_64.c */
++	if (is_cpu_node && (prom_getint(node, "upa-portid") = cpuid ||
+ 			    prom_getint(node, "cpuid") = cpuid))
+ 		freq = prom_getintdefault(node, "clock-frequency", 0);
+ 	if (!freq)
+-- 
+1.7.1
+
