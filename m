@@ -1,35 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 25 Jun 2017 20:46:11 +0000
-Subject: Re: [PATCH v2 00/12] Add MDESC & VIO support for VCC
-Message-Id: <20170625.164611.80383357608966104.davem@davemloft.net>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Date: Fri, 23 Jun 2017 09:33:35 +0000
+Subject: [PATCH] sparc: kernel: apc: make of_device_ids const
+Message-Id: <6d8baf5133e6aec69f472850dc54779ceba0c774.1498209603.git.arvind.yadav.cs@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1498238657.git.jag.raman@oracle.com>
-In-Reply-To: <cover.1498238657.git.jag.raman@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 23 Jun 2017 14:58:28 -0400
+of_device_ids are not supposed to change at runtime. All functions
+working with of_device_ids provided by <linux/of.h> work with const
+of_device_ids. So mark the non-const structs as const.
 
-> This series of patches is part of an effort to add VCC (Virtual Console
-> Concentrator) support to Linux.
- ...
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ arch/sparc/kernel/apc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Series applied to sparc-next thanks.
+diff --git a/arch/sparc/kernel/apc.c b/arch/sparc/kernel/apc.c
+index 9ebc37e..c988e7f 100644
+--- a/arch/sparc/kernel/apc.c
++++ b/arch/sparc/kernel/apc.c
+@@ -167,7 +167,7 @@ static int apc_probe(struct platform_device *op)
+ 	return 0;
+ }
+ 
+-static struct of_device_id apc_match[] = {
++static const struct of_device_id apc_match[] = {
+ 	{
+ 		.name = APC_OBPNAME,
+ 	},
+-- 
+1.9.1
 
-I'm concerned about the MDESC allocation GFP flags change.
-
-If we fail the MDESC update, that's it, we can end up never seeing the
-new devices which were advertised or properly releasing the ones which
-got removed.
-
-If GFP_NOFAIL isn't the solution, then we need something that is.
-
-A bulletproof solution would be possible if we knew the sizes of the
-MDESC or an upper bounds ahead of time, but of course we do not.  That
-way we could simply always have two buffers, and switch from one to
-the other when an MDESC update occurs.
-
-Any better ideas?
