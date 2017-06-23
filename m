@@ -1,29 +1,66 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 10 Jun 2017 21:34:27 +0000
-Subject: Re: [PATCH v1 06/12] sparc64: add MDESC node name property to VIO device metadata
-Message-Id: <20170610.173427.1068166680822846577.davem@davemloft.net>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:28 +0000
+Subject: [PATCH v2 00/12] Add MDESC & VIO support for VCC
+Message-Id: <cover.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <0be25e29ae56ab36a892ea186ce661dbb775459c.1497024216.git.jag.raman@oracle.com>
-In-Reply-To: <0be25e29ae56ab36a892ea186ce661dbb775459c.1497024216.git.jag.raman@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jag Raman <jag.raman@oracle.com>
-Date: Fri,  9 Jun 2017 12:30:55 -0400
+This series of patches is part of an effort to add VCC (Virtual Console
+Concentrator) support to Linux.
 
->  static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
-> -				      struct device *parent)
-> +				      char *node_name, struct device *parent)
+VCC enables the virtualization of serial console on SPARC processors. VCC 
+provides access to the guest domain's serial console.
 
-Make this "const char *node_name", and then:
+VCC depends on some core functionalities in the linux kernel for SPARC. The 
+functionalities include LDC (Logical Domain Channels), MDESC (Machine
+Descriptor) and VIO (Virtual IO protocol). In order for VCC to be enabled,
+it requires that these core functionalities support them.
 
-> -	(void) vio_create_one(hp, node, &root_vdev->dev);
-> +	(void) vio_create_one(hp, node, (char *)node_name, &root_vdev->dev);
- ...
-> -		(void) vio_create_one(hp, node, &root_vdev->dev);
-> +		(void) vio_create_one(hp, node, (char *)node_name,
-> +				      &root_vdev->dev);
+This series of patches adds MDESC & VIO support to enable VCC on Linux. It
+is the second batch of changes to enable VCC.
 
-You won't need these casts.
+This version of the series addresses the following changes
+suggested by Dave Miller
+Patch 4/5:
+ - "name" field in vdev_port md_node_info is declared as "const char *"
+ - Code has been modified to dynamically allocate & free "name" in
+   vdev_port md_node_info
+ - Parameters to mdesc_get_node(), mdesc_get_node_info() &
+   mdesc_get_node_ops() have been updated to use "const char *"
+
+Patch 6/5:
+ - "node_name" parameter in vio_create_one() has been
+   changed to "const char *" type from "char *"
+ - Typecasts in vio_create_one() invocations to convert
+   "const char *" to "char *" have been removed
+
+Patch 11/5:
+ - Invocations of mdesc_node_get() & mdesc_get_node_info()
+   have been updated to use the prototypes defined in patch 4/5
+
+Jag Raman (12):
+  sparc64: ensure VIO operations are defined while being used
+  sparc64: specify the device class in VIO version info. packet
+  sparc64: skip handshake for LDC channels in RAW mode
+  sparc64: expand MDESC interface
+  sparc64: mdesc: use __GFP_REPEAT action modifier for VM allocation
+  sparc64: add MDESC node name property to VIO device metadata
+  sparc64: refactor code to obtain cfg_handle property from MDESC
+  sparc64: remove restriction on VIO device name size
+  sparc64: check if a client is allowed to register for MDESC
+    notifications
+  sparc64: enhance VIO device probing
+  sparc64: Enhance search for VIO device in MDESC
+  sparc64: add port_id to VIO device metadata
+
+ arch/sparc/include/asm/mdesc.h |   24 +++-
+ arch/sparc/include/asm/vio.h   |   13 ++-
+ arch/sparc/kernel/ldc.c        |   10 ++
+ arch/sparc/kernel/mdesc.c      |  331 ++++++++++++++++++++++++++++++++++------
+ arch/sparc/kernel/vio.c        |  244 ++++++++++++++++--------------
+ arch/sparc/kernel/viohs.c      |   24 +++-
+ 6 files changed, 479 insertions(+), 167 deletions(-)
+
