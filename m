@@ -1,166 +1,79 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 23 Jun 2017 18:58:38 +0000
-Subject: [PATCH v2 10/12] sparc64: enhance VIO device probing
-Message-Id: <8db3dcf67e3d76b9a0f94d492dfadf7e86a04ea5.1498238657.git.jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:36 +0000
+Subject: [PATCH v2 08/12] sparc64: remove restriction on VIO device name size
+Message-Id: <ac438a6a008ced3f014bfbef8326cc3aba4fee26.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-- Allocate IRQs for VIO devices during probing.
-- Allow clients to specify if IRQs would be allocated for a given
-  VIO device.
-- Cache the device handle of the root node of channel-devices sub-tree in
-  Machine Description (MDESC).
+Removes restriction on VIO device's size limit. Since KOBJ_NAME_LEN
+has been dropped from kobject, there doesn't seem to be a
+restriction on the device name anymore. This limit therefore
+doesn't make sense.
 
 Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
 Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/include/asm/vio.h |    5 ++++
- arch/sparc/kernel/vio.c      |   53 +++++++++++++++++++++++++++++------------
- 2 files changed, 42 insertions(+), 16 deletions(-)
+ arch/sparc/kernel/vio.c |   23 ++++-------------------
+ 1 files changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/arch/sparc/include/asm/vio.h b/arch/sparc/include/asm/vio.h
-index 69cb3a5..d8eb195 100644
---- a/arch/sparc/include/asm/vio.h
-+++ b/arch/sparc/include/asm/vio.h
-@@ -336,6 +336,10 @@ struct vio_dev {
- 	unsigned int		tx_irq;
- 	unsigned int		rx_irq;
- 	u64			rx_ino;
-+	u64			tx_ino;
-+
-+	/* Handle to the root of "channel-devices" sub-tree in MDESC */
-+	u64			cdev_handle;
- 
- 	struct device		dev;
- };
-@@ -349,6 +353,7 @@ struct vio_driver {
- 	void (*shutdown)(struct vio_dev *dev);
- 	unsigned long			driver_data;
- 	struct device_driver		driver;
-+	bool				no_irq;
- };
- 
- struct vio_version {
 diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index 0890a25..ea63f02 100644
+index 1ac5da1..0890a25 100644
 --- a/arch/sparc/kernel/vio.c
 +++ b/arch/sparc/kernel/vio.c
-@@ -70,15 +70,26 @@ static int vio_device_probe(struct device *dev)
- 	struct vio_dev *vdev = to_vio_dev(dev);
- 	struct vio_driver *drv = to_vio_driver(dev->driver);
- 	const struct vio_device_id *id;
--	int error = -ENODEV;
- 
--	if (drv->probe) {
--		id = vio_match_device(drv->id_table, vdev);
--		if (id)
--			error = drv->probe(vdev, id);
-+	if (!drv->probe)
-+		return -ENODEV;
-+
-+	id = vio_match_device(drv->id_table, vdev);
-+	if (!id)
-+		return -ENODEV;
-+
-+	/* alloc irqs (unless the driver specified not to) */
-+	if (!drv->no_irq) {
-+		if (vdev->tx_irq = 0 && vdev->tx_ino != ~0UL)
-+			vdev->tx_irq = sun4v_build_virq(vdev->cdev_handle,
-+							vdev->tx_ino);
-+
-+		if (vdev->rx_irq = 0 && vdev->rx_ino != ~0UL)
-+			vdev->rx_irq = sun4v_build_virq(vdev->cdev_handle,
-+							vdev->rx_ino);
- 	}
- 
--	return error;
-+	return drv->probe(vdev, id);
- }
- 
- static int vio_device_remove(struct device *dev)
-@@ -86,8 +97,15 @@ static int vio_device_remove(struct device *dev)
- 	struct vio_dev *vdev = to_vio_dev(dev);
- 	struct vio_driver *drv = to_vio_driver(dev->driver);
- 
--	if (drv->remove)
-+	if (drv->remove) {
-+		/*
-+		 * Ideally, we would remove/deallocate tx/rx virqs
-+		 * here - however, there are currently no support
-+		 * routines to do so at the moment. TBD
-+		 */
-+
- 		return drv->remove(vdev);
-+	}
- 
- 	return 1;
- }
-@@ -204,6 +222,9 @@ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
+@@ -240,7 +240,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 				      const char *node_name,
+ 				      struct device *parent)
  {
- 	u64 a;
+-	const char *type, *compat, *bus_id_name;
++	const char *type, *compat;
+ 	struct device_node *dp;
+ 	struct vio_dev *vdev;
+ 	int err, tlen, clen;
+@@ -264,21 +264,6 @@ int vio_set_intr(unsigned long dev_ino, int state)
  
-+	vdev->tx_ino = ~0UL;
-+	vdev->rx_ino = ~0UL;
-+	vdev->channel_id = ~0UL;
- 	mdesc_for_each_arc(a, hp, mp, MDESC_ARC_TYPE_FWD) {
- 		const u64 *chan_id;
- 		const u64 *irq;
-@@ -213,18 +234,18 @@ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
+ 	cfg_handle = vio_cfg_handle(hp, mp);
  
- 		irq = mdesc_get_property(hp, target, "tx-ino", NULL);
- 		if (irq)
--			vdev->tx_irq = sun4v_build_virq(cdev_cfg_handle, *irq);
-+			vdev->tx_ino = *irq;
- 
- 		irq = mdesc_get_property(hp, target, "rx-ino", NULL);
--		if (irq) {
--			vdev->rx_irq = sun4v_build_virq(cdev_cfg_handle, *irq);
-+		if (irq)
- 			vdev->rx_ino = *irq;
--		}
- 
- 		chan_id = mdesc_get_property(hp, target, "id", NULL);
- 		if (chan_id)
- 			vdev->channel_id = *chan_id;
- 	}
-+
-+	vdev->cdev_handle = cdev_cfg_handle;
- }
- 
- int vio_set_intr(unsigned long dev_ino, int state)
-@@ -287,9 +308,8 @@ int vio_set_intr(unsigned long dev_ino, int state)
- 		memset(vdev->compat, 0, sizeof(vdev->compat));
- 	vdev->compat_len = clen;
- 
--	vdev->channel_id = ~0UL;
--	vdev->tx_irq = ~0;
--	vdev->rx_irq = ~0;
-+	vdev->tx_irq = 0;
-+	vdev->rx_irq = 0;
- 
+-	bus_id_name = type;
+-	if (!strcmp(type, "domain-services-port"))
+-		bus_id_name = "ds";
+-
+-	/*
+-	 * 20 char is the old driver-core name size limit, which is no more.
+-	 * This check can probably be removed after review and possible
+-	 * adaption of the vio users name length handling.
+-	 */
+-	if (strlen(bus_id_name) >= 20 - 4) {
+-		printk(KERN_ERR "VIO: bus_id_name [%s] is too long.\n",
+-		       bus_id_name);
+-		return NULL;
+-	}
+-
+ 	compat = mdesc_get_property(hp, mp, "device-type", &clen);
+ 	if (!compat) {
+ 		clen = 0;
+@@ -309,15 +294,15 @@ int vio_set_intr(unsigned long dev_ino, int state)
  	vio_fill_channel_info(hp, mp, vdev);
  
-@@ -327,13 +347,14 @@ int vio_set_intr(unsigned long dev_ino, int state)
- 	}
- 	vdev->dp = dp;
- 
--	printk(KERN_INFO "VIO: Adding device %s\n", dev_name(&vdev->dev));
--
- 	/* node_name is NULL for the parent/channel-devices node */
- 	if (node_name != NULL)
- 		(void) snprintf(vdev->node_name, VIO_MAX_NAME_LEN, "%s",
- 				node_name);
- 
-+	pr_info("VIO: Adding device %s (tx_ino = %llx, rx_ino = %llx)\n",
-+		dev_name(&vdev->dev), vdev->tx_ino, vdev->rx_ino);
-+
- 	err = device_register(&vdev->dev);
- 	if (err) {
- 		printk(KERN_ERR "VIO: Could not register device %s, err=%d\n",
+ 	if (!id) {
+-		dev_set_name(&vdev->dev, "%s", bus_id_name);
++		dev_set_name(&vdev->dev, "%s", type);
+ 		vdev->dev_no = ~(u64)0;
+ 		vdev->id = ~(u64)0;
+ 	} else if (!cfg_handle) {
+-		dev_set_name(&vdev->dev, "%s-%llu", bus_id_name, *id);
++		dev_set_name(&vdev->dev, "%s-%llu", type, *id);
+ 		vdev->dev_no = *id;
+ 		vdev->id = ~(u64)0;
+ 	} else {
+-		dev_set_name(&vdev->dev, "%s-%llu-%llu", bus_id_name,
++		dev_set_name(&vdev->dev, "%s-%llu-%llu", type,
+ 			     *cfg_handle, *id);
+ 		vdev->dev_no = *cfg_handle;
+ 		vdev->id = *id;
 -- 
 1.7.1
 
