@@ -1,66 +1,37 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Fri, 30 Jun 2017 00:01:32 +0000
-Subject: [PATCH RFC 24/26] sparc: Remove spin_unlock_wait() arch-specific definitions
-Message-Id: <1498780894-8253-24-git-send-email-paulmck@linux.vnet.ibm.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:30 +0000
+Subject: [PATCH v2 02/12] sparc64: specify the device class in VIO version info. packet
+Message-Id: <98f84edd3bf5e4bd5fcbc1982644f1fe94cb541b.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170629235918.GA6445@linux.vnet.ibm.com>
-In-Reply-To: <20170629235918.GA6445@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org, oleg@redhat.com, akpm@linux-foundation.org, mingo@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, tj@kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org, will.deacon@arm.com, peterz@infradead.org, stern@rowland.harvard.edu, parri.andrea@gmail.com, torvalds@linux-foundation.org, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-There is no agreed-upon definition of spin_unlock_wait()'s semantics,
-and it appears that all callers could do just as well with a lock/unlock
-pair.  This commit therefore removes the underlying arch-specific
-arch_spin_unlock_wait().
+Specify the class of VIO device in the version info. packet. The device's
+class identifies the type of VIO device, whether it's DISK, CONSOLE,
+NETWORK, etc... This packet is used in the handshake between the
+client and server for this device.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <sparclinux@vger.kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Andrea Parri <parri.andrea@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/include/asm/spinlock_32.h | 5 -----
- arch/sparc/include/asm/spinlock_64.h | 5 -----
- 2 files changed, 10 deletions(-)
+ arch/sparc/kernel/viohs.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/include/asm/spinlock_32.h b/arch/sparc/include/asm/spinlock_32.h
-index 8011e79f59c9..67345b2dc408 100644
---- a/arch/sparc/include/asm/spinlock_32.h
-+++ b/arch/sparc/include/asm/spinlock_32.h
-@@ -14,11 +14,6 @@
- 
- #define arch_spin_is_locked(lock) (*((volatile unsigned char *)(lock)) != 0)
- 
--static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
--{
--	smp_cond_load_acquire(&lock->lock, !VAL);
--}
--
- static inline void arch_spin_lock(arch_spinlock_t *lock)
- {
- 	__asm__ __volatile__(
-diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
-index 07c9f2e9bf57..923d57f9b79d 100644
---- a/arch/sparc/include/asm/spinlock_64.h
-+++ b/arch/sparc/include/asm/spinlock_64.h
-@@ -26,11 +26,6 @@
- 
- #define arch_spin_is_locked(lp)	((lp)->lock != 0)
- 
--static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
--{
--	smp_cond_load_acquire(&lock->lock, !VAL);
--}
--
- static inline void arch_spin_lock(arch_spinlock_t *lock)
- {
- 	unsigned long tmp;
+diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
+index ea28cb7..68e952a 100644
+--- a/arch/sparc/kernel/viohs.c
++++ b/arch/sparc/kernel/viohs.c
+@@ -286,6 +286,7 @@ static int process_ver_info(struct vio_driver_state *vio,
+ 			ver.minor = vap->minor;
+ 		pkt->minor = ver.minor;
+ 		pkt->tag.stype = VIO_SUBTYPE_ACK;
++		pkt->dev_class = vio->dev_class;
+ 		viodbg(HS, "SEND VERSION ACK maj[%u] min[%u]\n",
+ 		       pkt->major, pkt->minor);
+ 		err = send_ctrl(vio, &pkt->tag, sizeof(*pkt));
 -- 
-2.5.2
+1.7.1
 
