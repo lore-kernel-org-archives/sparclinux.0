@@ -1,81 +1,81 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Fri, 09 Jun 2017 16:29:30 +0000
-Subject: [PATCH v4 3/5] sparc64: ensure LDC channel is ready before communication
-Message-Id: <9dcbb9b15c74dcae426ee56fb65903a2f86b3b61.1497022394.git.jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:29 +0000
+Subject: [PATCH v2 01/12] sparc64: ensure VIO operations are defined while being used
+Message-Id: <04c46dac62702f6a64f9cf319173178957915fc1.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ensure that LDC channel is up before writing to it, in RAW mode. Generate
-event to bring the LDC channel up, if it's not up already.
+It's possible that VIO operations are not defined for some VIO
+clients. In that case, VIO ops pointer should be checked for
+NULL before being used
 
 Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Bijan Mottahedeh <bijan.mottahedeh@oracle.com>
 Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |   30 +++++++++++++++++++++++++-----
- 1 files changed, 25 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/viohs.c |   17 +++++++++++++----
+ 1 files changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 902cbf4..639da7b 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -813,9 +813,14 @@ static irqreturn_t ldc_rx(int irq, void *dev_id)
- 		lp->hs_state = LDC_HS_COMPLETE;
- 		ldc_set_state(lp, LDC_STATE_CONNECTED);
+diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
+index b30b30a..ea28cb7 100644
+--- a/arch/sparc/kernel/viohs.c
++++ b/arch/sparc/kernel/viohs.c
+@@ -223,6 +223,9 @@ static int send_rdx(struct vio_driver_state *vio)
  
--		event_mask |= LDC_EVENT_UP;
--
--		orig_state = lp->chan_state;
-+		/*
-+		 * Generate an LDC_EVENT_UP event if the channel
-+		 * was not already up.
-+		 */
-+		if (orig_state != LDC_CHANNEL_UP) {
-+			event_mask |= LDC_EVENT_UP;
-+			orig_state = lp->chan_state;
-+		}
- 	}
- 
- 	/* If we are in reset state, flush the RX queue and ignore
-@@ -929,7 +934,14 @@ static irqreturn_t ldc_tx(int irq, void *dev_id)
- 		lp->hs_state = LDC_HS_COMPLETE;
- 		ldc_set_state(lp, LDC_STATE_CONNECTED);
- 
--		event_mask |= LDC_EVENT_UP;
-+		/*
-+		 * Generate an LDC_EVENT_UP event if the channel
-+		 * was not already up.
-+		 */
-+		if (orig_state != LDC_CHANNEL_UP) {
-+			event_mask |= LDC_EVENT_UP;
-+			orig_state = lp->chan_state;
-+		}
- 	}
- 
- 	spin_unlock_irqrestore(&lp->lock, flags);
-@@ -1475,9 +1487,17 @@ void __ldc_print(struct ldc_channel *lp, const char *caller)
- static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
+ static int send_attr(struct vio_driver_state *vio)
  {
- 	struct ldc_packet *p;
--	unsigned long new_tail;
-+	unsigned long new_tail, hv_err;
- 	int err;
++	if (!vio->ops)
++		return -EINVAL;
++
+ 	return vio->ops->send_attr(vio);
+ }
  
-+	hv_err = sun4v_ldc_tx_get_state(lp->id, &lp->tx_head, &lp->tx_tail,
-+					&lp->chan_state);
-+	if (unlikely(hv_err))
-+		return -EBUSY;
+@@ -374,6 +377,9 @@ static int process_attr(struct vio_driver_state *vio, void *pkt)
+ 	if (!(vio->hs_state & VIO_HS_GOTVERS))
+ 		return handshake_failure(vio);
+ 
++	if (!vio->ops)
++		return 0;
 +
-+	if (unlikely(lp->chan_state != LDC_CHANNEL_UP))
-+		return LDC_ABORT(lp);
+ 	err = vio->ops->handle_attr(vio, pkt);
+ 	if (err < 0) {
+ 		return handshake_failure(vio);
+@@ -388,6 +394,7 @@ static int process_attr(struct vio_driver_state *vio, void *pkt)
+ 			vio->hs_state |= VIO_HS_SENT_DREG;
+ 		}
+ 	}
 +
- 	if (size > LDC_PACKET_SIZE)
- 		return -EMSGSIZE;
+ 	return 0;
+ }
+ 
+@@ -647,10 +654,13 @@ int vio_control_pkt_engine(struct vio_driver_state *vio, void *pkt)
+ 		err = process_unknown(vio, pkt);
+ 		break;
+ 	}
++
+ 	if (!err &&
+ 	    vio->hs_state != prev_state &&
+-	    (vio->hs_state & VIO_HS_COMPLETE))
+-		vio->ops->handshake_complete(vio);
++	    (vio->hs_state & VIO_HS_COMPLETE)) {
++		if (vio->ops)
++			vio->ops->handshake_complete(vio);
++	}
+ 
+ 	return err;
+ }
+@@ -805,8 +815,7 @@ int vio_driver_init(struct vio_driver_state *vio, struct vio_dev *vdev,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (!ops->send_attr ||
+-	    !ops->handle_attr ||
++	if (!ops || !ops->send_attr || !ops->handle_attr ||
+ 	    !ops->handshake_complete)
+ 		return -EINVAL;
  
 -- 
 1.7.1
