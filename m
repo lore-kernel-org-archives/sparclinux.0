@@ -1,52 +1,44 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Fri, 09 Jun 2017 19:48:05 +0000
-Subject: [PATCH v2 0/2] Define CPU_BIG_ENDIAN or warn for inconsistencies
-Message-Id: <1497037687-107638-1-git-send-email-babu.moger@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:33 +0000
+Subject: [PATCH v2 05/12] sparc64: mdesc: use __GFP_REPEAT action modifier for VM allocation
+Message-Id: <2e03b48fb618eb4a8a59efee3fe72aebb02ad7d7.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Found this problem while enabling queued rwlock on SPARC.
-The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
-specific byte in qrwlock structure. Without this parameter,
-we clear the wrong byte.
-Here is the code in include/asm-generic/qrwlock.h
+During MDESC handle allocation, use the __GFP_REPEAT flag instead of
+__GFP_NOFAIL. If memory is not available, the caller expects a NULL
+pointer instead of waiting until memory is allocated.
 
-static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
-  {
-         return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
-  }
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ arch/sparc/kernel/mdesc.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-Also found few more references of this parameter in
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
-
-Here is our previous discussion.
-https://lkml.org/lkml/2017/5/24/620
-
-Based on the discussion, it was decided to add CONFIG_CPU_BIG_ENDIAN
-for all the fixed big endian architecture(frv, h8300, m68k, openrisc,
-parisc and sparc). And warn if there are inconsistencies in this definition.
-
-v1 -> v2:
- Updated the commit messages and acks.
-
-Babu Moger (2):
-  arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
-  include: warn for inconsistent endian config definition
-
- arch/frv/Kconfig                        |    3 +++
- arch/h8300/Kconfig                      |    3 +++
- arch/m68k/Kconfig                       |    3 +++
- arch/openrisc/Kconfig                   |    3 +++
- arch/parisc/Kconfig                     |    3 +++
- arch/sparc/Kconfig                      |    3 +++
- include/linux/byteorder/big_endian.h    |    4 ++++
- include/linux/byteorder/little_endian.h |    4 ++++
- 8 files changed, 26 insertions(+), 0 deletions(-)
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 72aca73..f024969 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -205,12 +205,10 @@ static void __init mdesc_memblock_free(struct mdesc_handle *hp)
+ 	handle_size = (sizeof(struct mdesc_handle) -
+ 		       sizeof(struct mdesc_hdr) +
+ 		       mdesc_size);
++	base = kmalloc(handle_size + 15, GFP_KERNEL | __GFP_REPEAT);
++	if (!base)
++		return NULL;
+ 
+-	/*
+-	 * Allocation has to succeed because mdesc update would be missed
+-	 * and such events are not retransmitted.
+-	 */
+-	base = kmalloc(handle_size + 15, GFP_KERNEL | __GFP_NOFAIL);
+ 	addr = (unsigned long)base;
+ 	addr = (addr + 15UL) & ~15UL;
+ 	hp = (struct mdesc_handle *) addr;
+-- 
+1.7.1
 
