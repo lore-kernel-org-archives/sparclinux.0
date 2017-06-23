@@ -1,68 +1,78 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Mon, 12 Jun 2017 22:10:00 +0000
-Subject: [PATCH v3 3/3] include: warn for inconsistent endian config definition
-Message-Id: <1497305400-147425-4-git-send-email-babu.moger@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Fri, 23 Jun 2017 18:58:35 +0000
+Subject: [PATCH v2 07/12] sparc64: refactor code to obtain cfg_handle property from MDESC
+Message-Id: <3c2686467d44af744dea14258fb614c4006e8b0e.1498238657.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-We have seen some generic code use config parameter CONFIG_CPU_BIG_ENDIAN
-to decide the endianness.
+Refactors code to get the cfg_handle property of a node from Machine
+Description (MDESC)
 
-Here are the few examples.
-include/asm-generic/qrwlock.h
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
-
-Display warning if CPU_BIG_ENDIAN is not defined on big endian
-architecture and also warn if it defined on little endian architectures.
-
-Here is our original discussion
-https://lkml.org/lkml/2017/5/24/620
-
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/linux/byteorder/big_endian.h    |    4 ++++
- include/linux/byteorder/little_endian.h |    4 ++++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ arch/sparc/kernel/vio.c |   30 +++++++++++++++++++-----------
+ 1 files changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/byteorder/big_endian.h b/include/linux/byteorder/big_endian.h
-index 3920414..ffd2159 100644
---- a/include/linux/byteorder/big_endian.h
-+++ b/include/linux/byteorder/big_endian.h
-@@ -3,5 +3,9 @@
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index f37937b..1ac5da1 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -181,6 +181,24 @@ static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH,
+ static struct vio_dev *root_vdev;
+ static u64 cdev_cfg_handle;
  
- #include <uapi/linux/byteorder/big_endian.h>
- 
-+#ifndef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
-+#endif
++static const u64 *vio_cfg_handle(struct mdesc_handle *hp, u64 node)
++{
++	const u64 *cfg_handle = NULL;
++	u64 a;
 +
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
-diff --git a/include/linux/byteorder/little_endian.h b/include/linux/byteorder/little_endian.h
-index 0805737..ba910bb 100644
---- a/include/linux/byteorder/little_endian.h
-+++ b/include/linux/byteorder/little_endian.h
-@@ -3,5 +3,9 @@
- 
- #include <uapi/linux/byteorder/little_endian.h>
- 
-+#ifdef CONFIG_CPU_BIG_ENDIAN
-+#warning inconsistent configuration, CONFIG_CPU_BIG_ENDIAN is set
-+#endif
++	mdesc_for_each_arc(a, hp, node, MDESC_ARC_TYPE_BACK) {
++		u64 target;
 +
- #include <linux/byteorder/generic.h>
- #endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
++		target = mdesc_arc_target(hp, a);
++		cfg_handle = mdesc_get_property(hp, target,
++						"cfg-handle", NULL);
++		if (cfg_handle)
++			break;
++	}
++
++	return cfg_handle;
++}
++
+ static void vio_fill_channel_info(struct mdesc_handle *hp, u64 mp,
+ 				  struct vio_dev *vdev)
+ {
+@@ -227,7 +245,6 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 	struct vio_dev *vdev;
+ 	int err, tlen, clen;
+ 	const u64 *id, *cfg_handle;
+-	u64 a;
+ 
+ 	type = mdesc_get_property(hp, mp, "device-type", &tlen);
+ 	if (!type) {
+@@ -245,16 +262,7 @@ int vio_set_intr(unsigned long dev_ino, int state)
+ 
+ 	id = mdesc_get_property(hp, mp, "id", NULL);
+ 
+-	cfg_handle = NULL;
+-	mdesc_for_each_arc(a, hp, mp, MDESC_ARC_TYPE_BACK) {
+-		u64 target;
+-
+-		target = mdesc_arc_target(hp, a);
+-		cfg_handle = mdesc_get_property(hp, target,
+-						"cfg-handle", NULL);
+-		if (cfg_handle)
+-			break;
+-	}
++	cfg_handle = vio_cfg_handle(hp, mp);
+ 
+ 	bus_id_name = type;
+ 	if (!strcmp(type, "domain-services-port"))
 -- 
 1.7.1
 
