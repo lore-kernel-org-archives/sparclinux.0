@@ -1,50 +1,44 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 16 Jun 2017 18:10:45 +0000
-Subject: [PATCH 30/44] dma-virt: remove dma_supported and mapping_error methods
-Message-Id: <20170616181059.19206-31-hch@lst.de>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Fri, 23 Jun 2017 00:15:08 +0000
+Subject: [PATCH v2] sparc64: Fix gup_huge_pmd
+Message-Id: <1498176950-233141-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
-In-Reply-To: <20170616181059.19206-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: x86@kernel.org, linux-arm-kernel@lists.infradead.org, xen-devel@lists.xenproject.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, dmaengine@vger.kernel.org, linux-tegra@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org, iommu@lists.linux-foundation.org, netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Julian Calaby <julian.calaby@gmail.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-These just duplicate the default behavior if no method is provided.
+The function assumes that each PMD points to head of a
+huge page. This is not correct as a PMD can point to
+start of any 8M region with a, say 256M, hugepage. The
+fix ensures that it points to the correct head of any PMD
+huge page.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Julian Calaby <julian.calaby@gmail.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- lib/dma-virt.c | 12 ------------
- 1 file changed, 12 deletions(-)
+ Changes since v1
+ - Clarify use of 'head' variable (Julian Calaby)
 
-diff --git a/lib/dma-virt.c b/lib/dma-virt.c
-index dcd4df1f7174..5c4f11329721 100644
---- a/lib/dma-virt.c
-+++ b/lib/dma-virt.c
-@@ -51,22 +51,10 @@ static int dma_virt_map_sg(struct device *dev, struct scatterlist *sgl,
- 	return nents;
- }
+ arch/sparc/mm/gup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index cd0e32b..f80cfc6 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -78,8 +78,8 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 		return 0;
  
--static int dma_virt_mapping_error(struct device *dev, dma_addr_t dma_addr)
--{
--	return false;
--}
--
--static int dma_virt_supported(struct device *dev, u64 mask)
--{
--	return true;
--}
--
- const struct dma_map_ops dma_virt_ops = {
- 	.alloc			= dma_virt_alloc,
- 	.free			= dma_virt_free,
- 	.map_page		= dma_virt_map_page,
- 	.map_sg			= dma_virt_map_sg,
--	.mapping_error		= dma_virt_mapping_error,
--	.dma_supported		= dma_virt_supported,
- };
- EXPORT_SYMBOL(dma_virt_ops);
+ 	refs = 0;
+-	head = pmd_page(pmd);
+-	page = head + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	page = pmd_page(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
++	head = compound_head(page);
+ 	do {
+ 		VM_BUG_ON(compound_head(page) != head);
+ 		pages[*nr] = page;
 -- 
-2.11.0
+2.9.2
 
