@@ -1,29 +1,194 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 26 Jun 2017 07:03:50 +0000
-Subject: Re: new dma-mapping tree, was Re: clean up and modularize arch dma_mapping interface V2
-Message-Id: <20170626070350.GB10544@lst.de>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Fri, 23 Jun 2017 21:45:38 +0000
+Subject: [PATCH] pci:  Add and use PCI_GENERIC_SETUP Kconfig entry
+Message-Id: <20170623214538.25967-1-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170616181059.19206-1-hch@lst.de>
- <20170620124140.GA27163@lst.de> <20170620230400.1a5ae889@canb.auug.org.au>
- <CGME20170620131628epcas1p4f21d821bd414cba7e2d49abcbe414365@epcas1p4.samsung.com>
- <20170620131623.GB30769@lst.de>
- <5425587c-73e8-e24a-86a3-8a65a7791dcb@samsung.com>
-In-Reply-To: <5425587c-73e8-e24a-86a3-8a65a7791dcb@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-samsung-soc@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Kyungmin Park <kyungmin.park@samsung.com>, Linus Torvalds <torvalds@linux-foundation.org>, xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org, linux-s390@vger.kernel.org, openrisc@lists.librecores.org, linux-tegra@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, dmaengine@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Wed, Jun 21, 2017 at 03:32:39PM +0200, Marek Szyprowski wrote:
-> linux-next
-> was a side effect of that. I think that for now it can be dropped in favor 
-> of
-> Christoph's tree. I can also do some review and help in maintainers work if
-> needed, although I was recently busy with other stuff.
->
-> Christoph: Could you add me to your MAINTAINERS patch, so further 
-> dma-mapping
-> related patches hopefully will be also CC: to me?
+We wanted to add RISC-V to the list of architectures that used the
+generic PCI setup-irq.o inside the Makefile and it was suggested that
+instead we define a Kconfig entry and use that.
 
-I've added you as a co-maintainer, thanks!
+I've done very minimal testing on this: I just checked to see that
+an aarch64 defconfig still build setup-irq.o with the patch applied.
+The intention is that this patch doesn't change the behavior of any
+build.
+
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+---
+ arch/alpha/Kconfig     |  1 +
+ arch/arc/Kconfig       |  1 +
+ arch/arm/Kconfig       |  1 +
+ arch/arm64/Kconfig     |  1 +
+ arch/m68k/Kconfig      |  1 +
+ arch/mips/Kconfig      |  1 +
+ arch/sh/Kconfig        |  1 +
+ arch/sparc/Kconfig     |  1 +
+ arch/tile/Kconfig      |  1 +
+ arch/unicore32/Kconfig |  1 +
+ drivers/pci/Kconfig    |  3 +++
+ drivers/pci/Makefile   | 11 +----------
+ 12 files changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
+index 0e49d39ea74a..30f4e711f681 100644
+--- a/arch/alpha/Kconfig
++++ b/arch/alpha/Kconfig
+@@ -26,6 +26,7 @@ config ALPHA
+ 	select ODD_RT_SIGACTION
+ 	select OLD_SIGSUSPEND
+ 	select CPU_NO_EFFICIENT_FFS if !ALPHA_EV67
++	select PCI_GENERIC_SETUP
+ 	help
+ 	  The Alpha is a 64-bit general-purpose processor designed and
+ 	  marketed by the Digital Equipment Corporation of blessed memory,
+diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+index a5459698f0ee..dd1f64858118 100644
+--- a/arch/arc/Kconfig
++++ b/arch/arc/Kconfig
+@@ -44,6 +44,7 @@ config ARC
+ 	select HAVE_GENERIC_DMA_COHERENT
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_LZMA
++	select PCI_GENERIC_SETUP
+ 
+ config MIGHT_HAVE_PCI
+ 	bool
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 4c1a35f15838..86872246951c 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -96,6 +96,7 @@ config ARM
+ 	select PERF_USE_VMALLOC
+ 	select RTC_LIB
+ 	select SYS_SUPPORTS_APM_EMULATION
++	select PCI_GENERIC_SETUP
+ 	# Above selects are sorted alphabetically; please add new ones
+ 	# according to that.  Thanks.
+ 	help
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index b2024db225a9..6c684d8c8816 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -115,6 +115,7 @@ config ARM64
+ 	select SPARSE_IRQ
+ 	select SYSCTL_EXCEPTION_TRACE
+ 	select THREAD_INFO_IN_TASK
++	select PCI_GENERIC_SETUP
+ 	help
+ 	  ARM 64-bit (AArch64) Linux support.
+ 
+diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
+index d140206d5d29..c16214344f1c 100644
+--- a/arch/m68k/Kconfig
++++ b/arch/m68k/Kconfig
+@@ -22,6 +22,7 @@ config M68K
+ 	select MODULES_USE_ELF_RELA
+ 	select OLD_SIGSUSPEND3
+ 	select OLD_SIGACTION
++	select PCI_GENERIC_SETUP
+ 
+ config RWSEM_GENERIC_SPINLOCK
+ 	bool
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 2828ecde133d..474a7c710686 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -70,6 +70,7 @@ config MIPS
+ 	select HAVE_EXIT_THREAD
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_COPY_THREAD_TLS
++	select PCI_GENERIC_SETUP
+ 
+ menu "Machine selection"
+ 
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index ee086958b2b2..90a98ac526fb 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -48,6 +48,7 @@ config SUPERH
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
++	select PCI_GENERIC_SETUP
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+ 	  and consumer electronics; it was also used in the Sega Dreamcast
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 5639c9fe5b55..24cea64104bd 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -424,6 +424,7 @@ config SPARC_LEON
+ 	depends on SPARC32
+ 	select USB_EHCI_BIG_ENDIAN_MMIO
+ 	select USB_EHCI_BIG_ENDIAN_DESC
++	select PCI_GENERIC_SETUP
+ 	---help---
+ 	  If you say Y here if you are running on a SPARC-LEON processor.
+ 	  The LEON processor is a synthesizable VHDL model of the
+diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
+index 4583c0320059..6679af85a882 100644
+--- a/arch/tile/Kconfig
++++ b/arch/tile/Kconfig
+@@ -33,6 +33,7 @@ config TILE
+ 	select USER_STACKTRACE_SUPPORT
+ 	select USE_PMC if PERF_EVENTS
+ 	select VIRT_TO_BUS
++	select PCI_GENERIC_SETUP
+ 
+ config MMU
+ 	def_bool y
+diff --git a/arch/unicore32/Kconfig b/arch/unicore32/Kconfig
+index 0769066929c6..162a7d3def0c 100644
+--- a/arch/unicore32/Kconfig
++++ b/arch/unicore32/Kconfig
+@@ -18,6 +18,7 @@ config UNICORE32
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select GENERIC_IOMAP
+ 	select MODULES_USE_ELF_REL
++	select PCI_GENERIC_SETUP
+ 	help
+ 	  UniCore-32 is 32-bit Instruction Set Architecture,
+ 	  including a series of low-power-consumption RISC chip
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index e0cacb7b8563..658c9f95ab3f 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -131,6 +131,9 @@ config PCI_HYPERV
+           The PCI device frontend driver allows the kernel to import arbitrary
+           PCI devices from a PCI backend to support PCI driver domains.
+ 
++config PCI_GENERIC_SETUP
++	def_bool n
++
+ source "drivers/pci/hotplug/Kconfig"
+ source "drivers/pci/dwc/Kconfig"
+ source "drivers/pci/host/Kconfig"
+diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
+index 462c1f5f5546..26f4710c88ec 100644
+--- a/drivers/pci/Makefile
++++ b/drivers/pci/Makefile
+@@ -31,16 +31,7 @@ obj-$(CONFIG_PCI_IOV) += iov.o
+ #
+ # Some architectures use the generic PCI setup functions
+ #
+-obj-$(CONFIG_ALPHA) += setup-irq.o
+-obj-$(CONFIG_ARC) += setup-irq.o
+-obj-$(CONFIG_ARM) += setup-irq.o
+-obj-$(CONFIG_ARM64) += setup-irq.o
+-obj-$(CONFIG_UNICORE32) += setup-irq.o
+-obj-$(CONFIG_SUPERH) += setup-irq.o
+-obj-$(CONFIG_MIPS) += setup-irq.o
+-obj-$(CONFIG_TILE) += setup-irq.o
+-obj-$(CONFIG_SPARC_LEON) += setup-irq.o
+-obj-$(CONFIG_M68K) += setup-irq.o
++obj-$(CONFIG_PCI_GENERIC_SETUP) += setup-irq.o
+ 
+ #
+ # ACPI Related PCI FW Functions
+-- 
+2.13.0
+
