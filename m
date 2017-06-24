@@ -1,59 +1,26 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 02 Jun 2017 18:40:51 +0000
-Subject: [v1 3/6] sparc64: show time stamps from zero
-Message-Id: <1496428854-936411-4-git-send-email-pasha.tatashin@oracle.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Sat, 24 Jun 2017 01:50:41 +0000
+Subject: pci: Add generic pcibios_{fixup_bus,align_resource}
+Message-Id: <20170624015044.16746-1-palmer@dabbelt.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
 
-On most platforms, time is shown from the beginning of boot.  This patch is
-adding offset to sched_clock() for SPARC, to also show time from 0.
+While upstreaming the RISC-V port, it was pointed out that multiple
+architectures have copied the mostly empty versions of at least one of these
+functions.  This defines weakly bound versions of the common functions and
+removes the now obselete functions from other ports.
 
-This means we will have one more load, but we saved one in an ealier patch.
+This has been split out from the RISC-V submission so we can decouple all these
+generic changes from our port review process.  There's some discussion on an
+earlier version of the patch here
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
----
- arch/sparc/kernel/time_64.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+  https://lkml.org/lkml/2017/6/6/998
 
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 6724bcb..5f53b74 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -392,6 +392,7 @@ static int hbtick_add_compare(unsigned long adj)
- };
- 
- static unsigned long timer_ticks_per_nsec_quotient __read_mostly;
-+static unsigned long timer_offset __read_mostly;
- 
- unsigned long cmos_regs;
- EXPORT_SYMBOL(cmos_regs);
-@@ -786,6 +787,10 @@ void __init time_init(void)
- 	timer_ticks_per_nsec_quotient  		clocksource_hz2mult(freq, SPARC64_NSEC_PER_CYC_SHIFT);
- 
-+	timer_offset = (tick_operations.get_tick()
-+			* timer_ticks_per_nsec_quotient)
-+			>> SPARC64_NSEC_PER_CYC_SHIFT;
-+
- 	clocksource_tick.name = tick_operations.name;
- 	clocksource_tick.read = clocksource_tick_read;
- 
-@@ -813,8 +818,9 @@ unsigned long long sched_clock(void)
- {
- 	unsigned long ticks = tick_operations.get_tick();
- 
--	return (ticks * timer_ticks_per_nsec_quotient)
--		>> SPARC64_NSEC_PER_CYC_SHIFT;
-+	return ((ticks * timer_ticks_per_nsec_quotient)
-+		>> SPARC64_NSEC_PER_CYC_SHIFT)
-+		- timer_offset;
- }
- 
- int read_current_timer(unsigned long *timer_val)
--- 
-1.7.1
+but I'm afraid a lot of this is really out of my wheelhouse (and I'm pretty
+slammed trying to get the RISC-V port in better shape), so I'm afraid I'm not
+going to be able to perform the full cleanup suggested.
 
