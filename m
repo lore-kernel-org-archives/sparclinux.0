@@ -1,24 +1,316 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 05 Jun 2017 21:50:36 +0000
-Subject: Re: [PATCH] arch/sparc: support NR_CPUS = 4096
-Message-Id: <20170605.175036.1428912633143669195.davem@davemloft.net>
+From: Jane Chu <jane.chu@oracle.com>
+Date: Wed, 28 Jun 2017 21:02:26 +0000
+Subject: [PATCH] arch/sparc: Measure receiver forward progress to avoid send mondo timeout
+Message-Id: <1498683746-623218-1-git-send-email-jane.chu@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1496353153-587795-1-git-send-email-jane.chu@oracle.com>
-        <20170604.194653.1906726081560123777.davem@davemloft.net>
-        <d30b7444-60ba-4774-d0ce-1c2cf9b60058@oracle.com>
-In-Reply-To: <d30b7444-60ba-4774-d0ce-1c2cf9b60058@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jane.chu@oracle.com
-Cc: tglx@linutronix.de, atish.patra@oracle.com, Liam.Howlett@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, steven.sistare@oracle.com
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, steven.sistare@oracle.com, rob.gardner@oracle.com, anthony.yznaga@oracle.com, jane.chu@oracle.com
 
-From: jane.chu@oracle.com
-Date: Mon, 5 Jun 2017 14:32:10 -0700
+A large sun4v SPARC system may have moments of intensive xcall activities,
+usually caused by unmapping many pages on many CPUs concurrently. This can
+flood receivers with CPU mondo interrupts for an extended period, causing
+some unlucky senders to hit send-mondo timeout. This problem gets worse
+as cpu count increases because sometimes mappings must be invalidated on
+all CPUs, and sometimes all CPUs may gang up on a single CPU.
 
-> Is it okay to ignore the checkpatch.pl warning in this case?
+But a busy system is not a broken system. In the above scenario, as long
+as the receiver is making forward progress processing mondo interrupts,
+the sender should continue to retry.
 
-I absolutely think you can ignore this warning.
+This patch implements the receiver's forward progress meter by introducing
+a per cpu counter 'cpu_mondo_counter[cpu]' where 'cpu' is in the range
+of 0..NR_CPUS. The receiver increments its counter as soon as it receives
+a mondo and the sender tracks the receiver's counter. Every 10000 retries,
+if the receiver has stopped making forward progress, the sender declares
+send-mondo-timeout and panic; otherwise, the receiver is allowed to keep
+making forward progress.
 
-Thanks.
+Orabug: 25476541
+
+Signed-off-by: Jane Chu <jane.chu@oracle.com>
+Reviewed-by: Steve Sistare <steven.sistare@oracle.com>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Reviewed-by: Rob Gardner <rob.gardner@oracle.com>
+---
+ arch/sparc/include/asm/trap_block.h |    1 +
+ arch/sparc/kernel/smp_64.c          |  166 ++++++++++++++++++++--------------
+ arch/sparc/kernel/sun4v_ivec.S      |   15 +++
+ arch/sparc/kernel/traps_64.c        |    1 +
+ 4 files changed, 115 insertions(+), 68 deletions(-)
+
+diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
+index ec9c04d..ff05992 100644
+--- a/arch/sparc/include/asm/trap_block.h
++++ b/arch/sparc/include/asm/trap_block.h
+@@ -54,6 +54,7 @@ struct trap_per_cpu {
+ void init_cur_cpu_trap(struct thread_info *);
+ void setup_tba(void);
+ extern int ncpus_probed;
++extern u64 cpu_mondo_counter[NR_CPUS];
+ 
+ unsigned long real_hard_smp_processor_id(void);
+ 
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index fdf3104..2ee61cf 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -622,22 +622,35 @@ static void cheetah_xcall_deliver(struct trap_per_cpu *tb, int cnt)
+ 	}
+ }
+ 
+-/* Multi-cpu list version.  */
++#define	CPU_MONDO_COUNTER(cpuid)	(cpu_mondo_counter[cpuid])
++
++/* Multi-cpu list version.
++ *
++ * Deliver xcalls to 'cnt' number of cpus in 'cpu_list'.
++ * Sometimes not all cpus receive the mondo, requiring us to re-send
++ * the mondo until all cpus have received, or cpus are truly stuck
++ * unable to receive mondo, and we timeout.
++ */
+ static void hypervisor_xcall_deliver(struct trap_per_cpu *tb, int cnt)
+ {
+-	int retries, this_cpu, prev_sent, i, saw_cpu_error;
++	int retries, this_cpu, prev_sent, i, rem;
++	uint16_t first_cpu = 0xffff;
++	unsigned long xc_rcvd = 0;
++	int usec_wait = cnt * 2;
+ 	unsigned long status;
++	int ecpuerror_id = 0;
++	int enocpu_id = 0;
+ 	u16 *cpu_list;
++	uint16_t cpu;
+ 
+ 	this_cpu = smp_processor_id();
+ 
+ 	cpu_list = __va(tb->cpu_list_pa);
+-
+-	saw_cpu_error = 0;
+ 	retries = 0;
+ 	prev_sent = 0;
++
+ 	do {
+-		int forward_progress, n_sent;
++		int n_sent, mondo_delivered, target_cpu_busy;
+ 
+ 		status = sun4v_cpu_mondo_send(cnt,
+ 					      tb->cpu_list_pa,
+@@ -645,94 +658,111 @@ static void hypervisor_xcall_deliver(struct trap_per_cpu *tb, int cnt)
+ 
+ 		/* HV_EOK means all cpus received the xcall, we're done.  */
+ 		if (likely(status = HV_EOK))
+-			break;
++			goto xcall_done;
++
++		/* If not these non-fatal errors, panic */
++		if (unlikely((status != HV_EWOULDBLOCK) &&
++			(status != HV_ECPUERROR) &&
++			(status != HV_ENOCPU)))
++			goto fatal_errors;
+ 
+ 		/* First, see if we made any forward progress.
+ 		 *
++		 * Go through the cpu_list, count the target cpus that have
++		 * received our mondo (n_sent), and those that did not (rem).
++		 * Re-pack cpu_list with the cpus remain to be retried in the
++		 * front - this simplifies tracking the truly stalled cpus.
++		 *
+ 		 * The hypervisor indicates successful sends by setting
+ 		 * cpu list entries to the value 0xffff.
++		 *
++		 * EWOULDBLOCK means some target cpus did not receive the
++		 * mondo and retry usually helps.
++		 *
++		 * ECPUERROR means at least one target cpu is in error state,
++		 * it's usually safe to skip the faulty cpu and retry.
++		 *
++		 * ENOCPU means one of the target cpu doesn't belong to the
++		 * domain, perhaps offlined which is unexpected, but not
++		 * fatal and it's okay to skip the offlined cpu.
+ 		 */
++		rem = 0;
+ 		n_sent = 0;
+ 		for (i = 0; i < cnt; i++) {
+-			if (likely(cpu_list[i] = 0xffff))
++			cpu = cpu_list[i];
++			if (likely(cpu = 0xffff)) {
+ 				n_sent++;
++			} else if ((status = HV_ECPUERROR) &&
++				(sun4v_cpu_state(cpu) = HV_CPU_STATE_ERROR)) {
++				ecpuerror_id = cpu + 1;
++			} else if (status = HV_ENOCPU && !cpu_online(cpu)) {
++				enocpu_id = cpu + 1;
++			} else {
++				cpu_list[rem++] = cpu;
++			}
+ 		}
+ 
+-		forward_progress = 0;
+-		if (n_sent > prev_sent)
+-			forward_progress = 1;
++		/* No cpu remained, we're done. */
++		if (rem = 0)
++			break;
+ 
+-		prev_sent = n_sent;
++		/* Otherwise, update the cpu count for retry. */
++		cnt = rem;
+ 
+-		/* If we get a HV_ECPUERROR, then one or more of the cpus
+-		 * in the list are in error state.  Use the cpu_state()
+-		 * hypervisor call to find out which cpus are in error state.
++		/* Record the overall number of mondos received by the
++		 * first of the remaining cpus.
+ 		 */
+-		if (unlikely(status = HV_ECPUERROR)) {
+-			for (i = 0; i < cnt; i++) {
+-				long err;
+-				u16 cpu;
++		if (first_cpu != cpu_list[0]) {
++			first_cpu = cpu_list[0];
++			xc_rcvd = CPU_MONDO_COUNTER(first_cpu);
++		}
+ 
+-				cpu = cpu_list[i];
+-				if (cpu = 0xffff)
+-					continue;
++		/* Was any mondo delivered successfully? */
++		mondo_delivered = (n_sent > prev_sent);
++		prev_sent = n_sent;
+ 
+-				err = sun4v_cpu_state(cpu);
+-				if (err = HV_CPU_STATE_ERROR) {
+-					saw_cpu_error = (cpu + 1);
+-					cpu_list[i] = 0xffff;
+-				}
+-			}
+-		} else if (unlikely(status != HV_EWOULDBLOCK))
+-			goto fatal_mondo_error;
++		/* or, was any target cpu busy processing other mondos? */
++		target_cpu_busy = (xc_rcvd < CPU_MONDO_COUNTER(first_cpu));
++		xc_rcvd = CPU_MONDO_COUNTER(first_cpu);
+ 
+-		/* Don't bother rewriting the CPU list, just leave the
+-		 * 0xffff and non-0xffff entries in there and the
+-		 * hypervisor will do the right thing.
+-		 *
+-		 * Only advance timeout state if we didn't make any
+-		 * forward progress.
++		/* Retry count is for no progress. If we're making progress,
++		 * reset the retry count.
+ 		 */
+-		if (unlikely(!forward_progress)) {
+-			if (unlikely(++retries > 10000))
+-				goto fatal_mondo_timeout;
++		if (likely(mondo_delivered || target_cpu_busy))
++			retries = 0;
++		else if (unlikely(retries > 10000))
++			goto fatal_mondo_timeout;
+ 
+-			/* Delay a little bit to let other cpus catch up
+-			 * on their cpu mondo queue work.
+-			 */
+-			udelay(2 * cnt);
+-		}
+-	} while (1);
+-
+-	if (unlikely(saw_cpu_error))
+-		goto fatal_mondo_cpu_error;
++		/* Delay a little bit to let other cpus catch up on
++		 * their cpu mondo queue work.
++		 */
++		if (!mondo_delivered)
++			udelay(usec_wait);
+ 
+-	return;
++		retries++;
++	} while (1);
+ 
+-fatal_mondo_cpu_error:
+-	printk(KERN_CRIT "CPU[%d]: SUN4V mondo cpu error, some target cpus "
+-	       "(including %d) were in error state\n",
+-	       this_cpu, saw_cpu_error - 1);
++xcall_done:
++	if (unlikely(ecpuerror_id > 0)) {
++		pr_crit("CPU[%d]: SUN4V mondo cpu error, target cpu(%d) was in error state\n",
++		       this_cpu, ecpuerror_id - 1);
++	} else if (unlikely(enocpu_id > 0)) {
++		pr_crit("CPU[%d]: SUN4V mondo cpu error, target cpu(%d) does not belong to the domain\n",
++		       this_cpu, enocpu_id - 1);
++	}
+ 	return;
+ 
+-fatal_mondo_timeout:
+-	printk(KERN_CRIT "CPU[%d]: SUN4V mondo timeout, no forward "
+-	       " progress after %d retries.\n",
+-	       this_cpu, retries);
+-	goto dump_cpu_list_and_out;
+-
+-fatal_mondo_error:
+-	printk(KERN_CRIT "CPU[%d]: Unexpected SUN4V mondo error %lu\n",
+-	       this_cpu, status);
+-	printk(KERN_CRIT "CPU[%d]: Args were cnt(%d) cpulist_pa(%lx) "
+-	       "mondo_block_pa(%lx)\n",
++fatal_errors:
++	/* fatal errors include bad alignment, etc */
++	pr_crit("CPU[%d]: Args were cnt(%d) cpulist_pa(%lx) mondo_block_pa(%lx)\n",
+ 	       this_cpu, cnt, tb->cpu_list_pa, tb->cpu_mondo_block_pa);
++	panic("Unexpected SUN4V mondo error %lu\n", status);
+ 
+-dump_cpu_list_and_out:
+-	printk(KERN_CRIT "CPU[%d]: CPU list [ ", this_cpu);
+-	for (i = 0; i < cnt; i++)
+-		printk("%u ", cpu_list[i]);
+-	printk("]\n");
++fatal_mondo_timeout:
++	/* some cpus being non-responsive to the cpu mondo */
++	pr_crit("CPU[%d]: SUN4V mondo timeout, cpu(%d) made no forward progress after %d retries.\n",
++	       this_cpu, first_cpu, retries);
++	panic("SUN4V mondo timeout panic\n");
+ }
+ 
+ static void (*xcall_deliver_impl)(struct trap_per_cpu *, int);
+diff --git a/arch/sparc/kernel/sun4v_ivec.S b/arch/sparc/kernel/sun4v_ivec.S
+index 559bc5e..3463199 100644
+--- a/arch/sparc/kernel/sun4v_ivec.S
++++ b/arch/sparc/kernel/sun4v_ivec.S
+@@ -26,6 +26,21 @@ sun4v_cpu_mondo:
+ 	ldxa	[%g0] ASI_SCRATCHPAD, %g4
+ 	sub	%g4, TRAP_PER_CPU_FAULT_INFO, %g4
+ 
++	/* Get smp_processor_id() into %g3 */
++	sethi	%hi(trap_block), %g5
++	or	%g5, %lo(trap_block), %g5
++	sub	%g4, %g5, %g3
++	srlx	%g3, TRAP_BLOCK_SZ_SHIFT, %g3
++
++	/* Increment cpu_mondo_counter[smp_processor_id()] */
++	sethi	%hi(cpu_mondo_counter), %g5
++	or	%g5, %lo(cpu_mondo_counter), %g5
++	sllx	%g3, 3, %g3
++	add	%g5, %g3, %g5
++	ldx	[%g5], %g3
++	add	%g3, 1, %g3
++	stx	%g3, [%g5]
++
+ 	/* Get CPU mondo queue base phys address into %g7.  */
+ 	ldx	[%g4 + TRAP_PER_CPU_CPU_MONDO_PA], %g7
+ 
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 196ee5e..ad31af1 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2733,6 +2733,7 @@ void do_getpsr(struct pt_regs *regs)
+ 	}
+ }
+ 
++u64 cpu_mondo_counter[NR_CPUS] = {0};
+ struct trap_per_cpu trap_block[NR_CPUS];
+ EXPORT_SYMBOL(trap_block);
+ 
+-- 
+1.7.1
 
