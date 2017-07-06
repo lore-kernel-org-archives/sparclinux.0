@@ -1,37 +1,68 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Fri, 21 Jul 2017 16:23:55 +0000
-Subject: [PATCH v2 0/2] sparc64: Use low latency path to resume idle cpu
-Message-Id: <1500654237-23326-1-git-send-email-vijay.ac.kumar@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Thu, 06 Jul 2017 16:34:21 +0000
+Subject: [PATCH v3 3/3] include: warn for inconsistent endian config definition
+Message-Id: <1499358861-179979-4-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: gregkh@linuxfoundation.org, ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
+Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-CPU_POKE is a low latency path to resume the target cpu if suspended
-using CPU_YIELD. Use CPU_POKE to resume cpu if supported by hypervisor.
+We have seen some generic code use config parameter CONFIG_CPU_BIG_ENDIAN
+to decide the endianness.
 
-	     Hackbench results (lower is better):
-Number of		
-Process:		w/o fix		with fix
-1  			0.012		 0.010
-10			0.021		 0.019
-100			0.151		 0.148
+Here are the few examples.
+include/asm-generic/qrwlock.h
+drivers/of/base.c
+drivers/of/fdt.c
+drivers/tty/serial/earlycon.c
+drivers/tty/serial/serial_core.c
 
-Changelog:
-v2:
-  - Fixed comments and spacing (2/2)
+Display warning if CPU_BIG_ENDIAN is not defined on big endian
+architecture and also warn if it defined on little endian architectures.
 
-Vijay Kumar (2):
-  sparc64: Add a new hypercall CPU_POKE
-  sparc64: Use cpu_poke to resume idle cpu
+Here is our original discussion
+https://lkml.org/lkml/2017/5/24/620
 
- arch/sparc/include/asm/hypervisor.h |   18 ++++++++
- arch/sparc/include/asm/smp_64.h     |    5 ++
- arch/sparc/kernel/hvapi.c           |    2 +-
- arch/sparc/kernel/hvcalls.S         |   11 +++++
- arch/sparc/kernel/process_64.c      |    7 +++-
- arch/sparc/kernel/setup_64.c        |    1 +
- arch/sparc/kernel/smp_64.c          |   80 +++++++++++++++++++++++++++++++++-
- 7 files changed, 119 insertions(+), 5 deletions(-)
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+---
+ include/linux/byteorder/big_endian.h    |    4 ++++
+ include/linux/byteorder/little_endian.h |    4 ++++
+ 2 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/byteorder/big_endian.h b/include/linux/byteorder/big_endian.h
+index 3920414..ffd2159 100644
+--- a/include/linux/byteorder/big_endian.h
++++ b/include/linux/byteorder/big_endian.h
+@@ -3,5 +3,9 @@
+ 
+ #include <uapi/linux/byteorder/big_endian.h>
+ 
++#ifndef CONFIG_CPU_BIG_ENDIAN
++#warning inconsistent configuration, needs CONFIG_CPU_BIG_ENDIAN
++#endif
++
+ #include <linux/byteorder/generic.h>
+ #endif /* _LINUX_BYTEORDER_BIG_ENDIAN_H */
+diff --git a/include/linux/byteorder/little_endian.h b/include/linux/byteorder/little_endian.h
+index 0805737..ba910bb 100644
+--- a/include/linux/byteorder/little_endian.h
++++ b/include/linux/byteorder/little_endian.h
+@@ -3,5 +3,9 @@
+ 
+ #include <uapi/linux/byteorder/little_endian.h>
+ 
++#ifdef CONFIG_CPU_BIG_ENDIAN
++#warning inconsistent configuration, CONFIG_CPU_BIG_ENDIAN is set
++#endif
++
+ #include <linux/byteorder/generic.h>
+ #endif /* _LINUX_BYTEORDER_LITTLE_ENDIAN_H */
+-- 
+1.7.1
 
