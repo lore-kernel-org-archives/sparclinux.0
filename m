@@ -1,64 +1,53 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Jul 2017 20:10:00 +0000
-Subject: Re: [PATCH 2/3] sparc64: Add 16GB hugepage support
-Message-Id: <20170726.131000.188457155250159722.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 10 Jul 2017 08:16:46 +0000
+Subject: Re: Spontaneous reboots seem to have been fixed - not
+Message-Id: <alpine.LRH.2.20.1707071019470.605@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1499982815-183450-3-git-send-email-nitin.m.gupta@oracle.com>
-        <20170720.130435.1273416665807575517.davem@davemloft.net>
-        <d2438f2d-87ca-c09a-1891-ed39f4139089@oracle.com>
-In-Reply-To: <d2438f2d-87ca-c09a-1891-ed39f4139089@oracle.com>
+References: <alpine.LRH.2.20.1704231850570.29170@math.ut.ee>
+In-Reply-To: <alpine.LRH.2.20.1704231850570.29170@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: nitin.m.gupta@oracle.com
-Cc: mike.kravetz@oracle.com, kirill.shutemov@linux.intel.com, tom.hromatka@oracle.com, mhocko@suse.com, mingo@kernel.org, akpm@linux-foundation.org, steve.capper@arm.com, hughd@google.com, punit.agrawal@arm.com, bob.picco@oracle.com, pasha.tatashin@oracle.com, steven.sistare@oracle.com, paul.gortmaker@windriver.com, thomas.tai@oracle.com, atish.patra@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Wed, 26 Jul 2017 11:35:28 -0700
-
+> >> I started at the same time on 2 machines and spread to third when I 
+> >> copied the .config oveer to it, so at the moment I do not suspect the 
+> >> hardware but the kernel.
+> >>
+> >> Will put more time to it but I do not know when.
+> > 
+> > I did it on dual-CPU v210.
+> > 
+> > Minimized config to minimal nonmodular working one. That worked stable 
+> > with current 4.12-rc7+git. Then added THP and enabled it (always on) - 
+> > trouble was back. Disabled THP, this left on some setting that THP 
+> > enabled (compaction etc), it was working again.
+> > 
+> > So it is THP.
+> > 
+> > Attached are good and bad minimal configs for my V210.
+> > 
+> > What is the next thing I can do to debug it?
+> > 
 > 
-> 
-> On 07/20/2017 01:04 PM, David Miller wrote:
->> From: Nitin Gupta <nitin.m.gupta@oracle.com>
->> Date: Thu, 13 Jul 2017 14:53:24 -0700
->> 
->>> Testing:
->>>
->>> Tested with the stream benchmark which allocates 48G of
->>> arrays backed by 16G hugepages and does RW operation on
->>> them in parallel.
->> 
->> It would be great if we started adding tests under
->> tools/testing/selftests so that other people can recreate
->> your tests/benchmarks.
->> 
-> 
-> Yes, I would like to add the stream benchmark to selftests too.
-> I will check if our internal version of stream can be released.
+> Thanks for the minimal config. I will try to reproduce this locally on
+> the machines I have. Finding the bad commit would be a good first step.
 
-That would be great.
+I tried bisecting with THP on. First frame was that 4.5 was good and 4.6 
+was bad. These results were repeatable.
 
->> This macro is getting way out of control, every TLB/TSB miss is
->> going to invoke this sequence of code.
->> 
->> Yes, it's just a two cycle constant load, a test modifying the
->> condition codes, and an easy to predict branch.
->> 
->> But every machine will eat this overhead, even if they don't use
->> hugepages or don't set the 16GB knob.
->> 
->> I think we can do better, using code patching or similar.
->> 
->> Once the knob is set, you can know for sure that this code path
->> will never actually be taken.
-> 
-> The simplest way I can think of is to add CONFIG_SPARC_16GB_HUGEPAGE
-> and exclude PUD check if not enabled.  Would this be okay?
+Nex I found that 4.5.0-10882-g266c73b was the first bad one but found no 
+other bad commits back to 4.5. That seemed strange so I retested 4.6 
+(was still bad) and the same commit. Now I can not reproduce the badness 
+with the same config any more - I have a repeating script for test that 
+untars old git tree, does git pull on that, then builds it, and it has 
+worked fine for many iterations now.
 
-I am saying above to do a run-time code patch.
+So my script for reproducing is not good enough it seems.
 
-Kconfig knobs are completely pointless in this kind of situation
-since every distribution is going to turn the thing on so essentially
-all real users eat the overhead if you do it the Kconfig way.
+However, turing THP off has cured all the machines - V210, V240, V440, 
+E420R - and compiling current git on them with 4.12 and THP off has 
+worked with no problems.
 
-So do a run-time code patch instead, thank you.
+-- 
+Meelis Roos (mroos@linux.ee)
