@@ -1,48 +1,104 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Thu, 20 Jul 2017 07:52:37 +0000
-Subject: [PATCH 3/3] sparc64: Increase max_phys_bits to 51 for M8.
-Message-Id: <1500536437-14589-3-git-send-email-allen.pais@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Thu, 13 Jul 2017 21:53:25 +0000
+Subject: [PATCH 3/3] sparc64: Cleanup hugepage table walk functions
+Message-Id: <1499982815-183450-4-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1499982815-183450-1-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1499982815-183450-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Steve Capper <steve.capper@arm.com>, Hugh Dickins <hughd@google.com>, Mike Kravetz <mike.kravetz@oracle.com>, Punit Agrawal <punit.agrawal@arm.com>, Ingo Molnar <mingo@kernel.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Flatten out nested code structure in huge_pte_offset()
+and huge_pte_alloc().
 
-On M8 chips, use a max_phys_bits value of 51 and also fix the VA hole.
-
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- arch/sparc/mm/init_64.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/sparc/mm/hugetlbpage.c | 54 +++++++++++++++++----------------------------
+ 1 file changed, 20 insertions(+), 34 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 612b53a..7ebc17a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1936,12 +1936,18 @@ static void __init setup_page_offset(void)
- 			break;
- 		case SUN4V_CHIP_SPARC_M7:
- 		case SUN4V_CHIP_SPARC_SN:
--		default:
- 			/* M7 and later support 52-bit virtual addresses.  */
- 			sparc64_va_hole_top =    0xfff8000000000000UL;
- 			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 49;
- 			break;
-+               case SUN4V_CHIP_SPARC_M8:
-+               default:
-+                       /* M8 and later support 54-bit virtual addresses.  */
-+                       sparc64_va_hole_top =    0xffe0000000000000UL;
-+                       sparc64_va_hole_bottom = 0x0020000000000000UL;
-+                       max_phys_bits = 51;
-+                       break;
- 		}
- 	}
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index 7acb84d..bcd8cdb 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -266,27 +266,19 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte = NULL;
  
+ 	pgd = pgd_offset(mm, addr);
+ 	pud = pud_alloc(mm, pgd, addr);
+ 	if (!pud)
+ 		return NULL;
+-
+ 	if (sz >= PUD_SIZE)
+-		pte = (pte_t *)pud;
+-	else {
+-		pmd = pmd_alloc(mm, pud, addr);
+-		if (!pmd)
+-			return NULL;
+-
+-		if (sz >= PMD_SIZE)
+-			pte = (pte_t *)pmd;
+-		else
+-			pte = pte_alloc_map(mm, pmd, addr);
+-	}
+-
+-	return pte;
++		return (pte_t *)pud;
++	pmd = pmd_alloc(mm, pud, addr);
++	if (!pmd)
++		return NULL;
++	if (sz >= PMD_SIZE)
++		return (pte_t *)pmd;
++	return pte_alloc_map(mm, pmd, addr);
+ }
+ 
+ pte_t *huge_pte_offset(struct mm_struct *mm,
+@@ -295,27 +287,21 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte = NULL;
+ 
+ 	pgd = pgd_offset(mm, addr);
+-	if (!pgd_none(*pgd)) {
+-		pud = pud_offset(pgd, addr);
+-		if (!pud_none(*pud)) {
+-			if (is_hugetlb_pud(*pud))
+-				pte = (pte_t *)pud;
+-			else {
+-				pmd = pmd_offset(pud, addr);
+-				if (!pmd_none(*pmd)) {
+-					if (is_hugetlb_pmd(*pmd))
+-						pte = (pte_t *)pmd;
+-					else
+-						pte = pte_offset_map(pmd, addr);
+-				}
+-			}
+-		}
+-	}
+-
+-	return pte;
++	if (pgd_none(*pgd))
++		return NULL;
++	pud = pud_offset(pgd, addr);
++	if (pud_none(*pud))
++		return NULL;
++	if (is_hugetlb_pud(*pud))
++		return (pte_t *)pud;
++	pmd = pmd_offset(pud, addr);
++	if (pmd_none(*pmd))
++		return NULL;
++	if (is_hugetlb_pmd(*pmd))
++		return (pte_t *)pmd;
++	return pte_offset_map(pmd, addr);
+ }
+ 
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
 -- 
-1.9.1
+2.9.2
 
