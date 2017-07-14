@@ -1,138 +1,106 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 25 Jul 2017 14:09:10 +0000
-Subject: Re: [PATCH v1 0/4] Context domains
-Message-Id: <9b134486-ec72-65fb-a4ff-5102053b80fe@oracle.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Fri, 14 Jul 2017 15:20:27 +0000
+Subject: [PATCH v2] sparc64: Prevent perf from running during super critical sections
+Message-Id: <1500045627-451648-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1500601861-203232-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1500601861-203232-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+This fixes another cause of random segfaults and bus errors that may
+occur while running perf with the callgraph option.
 
+Critical sections beginning with spin_lock_irqsave() raise the interrupt
+level to PIL_NORMAL_MAX (14) and intentionally do not block performance
+counter interrupts, which arrive at PIL_NMI (15).
 
-On 07/25/2017 09:45 AM, Bob Picco wrote:
-> David Miller wrote:	[Thu Jul 20 2017, 11:06:55PM EDT]
->> From: David Miller <davem@davemloft.net>
->> Date: Fri, 21 Jul 2017 03:50:05 +0100 (WEST)
->>
->>> Having to allocate a full trap frame just to TLB flush one page or an
->>> MM is a serious regression.
->>>
->>> Next, allocating a whole new data structure and clearing it out on
->>> every new address creation is going to be a significant new cost as
->>> well.
-> None of this work has seen performance analysis. We rushed our sharing
-> because of forthcoming job reassignments.
->>
->> So, just thinking out loud:
->>
->> 1) You can retain the cross call TLB flush assembler by passing in the
->>     appropriate context value for each individual cpu from the cross
->>     call dispatcher.
-> Agreed and reinstated.
->>
->> 2) If you have some constant bounds on the upper number of context
->>     domains, you can simply inline them into the existing mmu_context
->>     structure.  This avoids the memory allocation per mm creation.
-> Yes the direction I was moving towards on Friday (7/14). I have
-> similar on top of what Pasha posted. It has to be debugged and tested.
-> Pasha made some nice identifier name changes and clean ups before
-> posting.
->>
->> You can also make the context domain salting extremely cheap.
->> Perhaps something like "(cpuid>>x) & y".
->>
->> No, you won't map cores to context domains so precisely like the
->> code does now, but you will make up for it in code simplicity and
->> overall new costs added by these changes for the more common
->> cases.
->>
->> I suggest "(cpuid>>x) & y" and a very small number of context domains
->> (which determines 'y') because we don't need something perfect, we
->> need something which divides the problem by some order of magnitude.
->>
->> The hash of locks caught my eye as well.  I think you don't need that
->> and we really steer clear of hashed spinlock tables in the Linux
->> kernel because they never scale properly.
-> Agreed and witnessed during experimentation  (7/7 - 7/11) with CTX_NR_BITS
-> reduction.
->>
->> Instead, I think you can use something like RCU to provide the
->> necessary synchronization.  So you could first make sure X isn't
->> referenced on the local cpu any more, and then do call_rcu() to do the
->> actual clearing of the bitmap which allows X to be allocated again.
-> Making the context id array compile time within mm_context_t eliminates
-> requirement for hashed spin lock. The elimination of hash spin lock and
-> code simplicity is why I changed direction on 7/14. Not sure we will
-> require any RCU like thing. This also will likely make mm_cd_destroy()
-> more scalable with fewer context domains to inspect and possibly context
-> id releases. The context id release aspect will decrease wrap events.
-> 
-> It is difficult to satisfy all topologies. To me it seems likely
-> impossible.
+But some sections of code are "super critical" with respect to perf
+because the perf_callchain_user() path accesses user space and may cause
+TLB activity as well as faults as it unwinds the user stack.
 
-Another approach to simplify the initial putback is to remove all hash 
-locks entirely, and only keep one global wrap lock. We would not regress 
-compared to base, as there is global lock taken during mm destroy 
-already. Later, if this area found to be problematic the contention can 
-be scaled, either by using hash locks or some other way.
+One particular critical section occurs in switch_mm:
 
-> 
-> This is a snippet of the patch series. I just booted it on my t5-2:
-> diff --git a/arch/sparc/include/asm/mmu_64.h b/arch/sparc/include/asm/mmu_64.h
-> index 83b36a5..11f2c07 100644
-> --- a/arch/sparc/include/asm/mmu_64.h
-> +++ b/arch/sparc/include/asm/mmu_64.h
-> @@ -53,10 +53,6 @@
->   #define CTX_HW_MASK		(CTX_NR_MASK | CTX_PGSZ_MASK)
->   
->   #define CTX_FIRST_VERSION	BIT(CTX_VERSION_SHIFT)
-> -#define CTX_VALID(__ctx)	\
-> -	 (!(((__ctx.sparc64_ctx_val) ^ tlb_context_cache) & CTX_VERSION_MASK))
-> -#define CTX_HWBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_HW_MASK)
-> -#define CTX_NRBITS(__ctx)	((__ctx.sparc64_ctx_val) & CTX_NR_MASK)
->   
->   #ifndef __ASSEMBLY__
->   
-> @@ -89,9 +85,21 @@ struct tsb_config {
->   #define MM_NUM_TSBS	1
->   #endif
->   
-> +int alloc_context_domain(int cpu);
-> +void cd_cpu_online(int cpu);
-> +void cd_cpu_offline(int cpu);
-> +void mm_cd_destroy(struct mm_struct *mm);
-> +
-> +#define CPU_TO_CD_SHIFT		(8)
-> +#define CD_MAX			(0x10u)
-> +#define CD_MASK			(0x0fu)
-> +#define CPU_TO_CD(CPUID)	(((CPUID) >> CPU_TO_CD_SHIFT) & CD_MASK)
-> +
-> +#define NR_CD	(CPU_TO_CD((CONFIG_NR_CPUS - 1)) + 1)
-> +
->   typedef struct {
->   	spinlock_t		lock;
-> -	unsigned long		sparc64_ctx_val;
-> +	unsigned long		cds[NR_CD];
->   	unsigned long		hugetlb_pte_count;
->   	unsigned long		thp_pte_count;
->   	struct tsb_config	tsb_block[MM_NUM_TSBS];
-> . We may want to reduce CPU_TO_CD_SHIFT to let's say 7. I will have
-> to do this just for testing on my t5-2. The current value of 8 will
-> likely make Debian a single context domain. Please allow a couple
-> more days for testing.
-> 
-> To summarize, reinstate cross calls, mm_cd_destroy() will now release
-> valid context-id-s (mitigate wrap) and compile time mm.context.cds.
->>
->> Just some ideas...
-> thanx,
-> 
-> bob
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+        spin_lock_irqsave(&mm->context.lock, flags);
+        ...
+        load_secondary_context(mm);
+        tsb_context_switch(mm);
+        ...
+        spin_unlock_irqrestore(&mm->context.lock, flags);
+
+If a perf interrupt arrives in between load_secondary_context() and
+tsb_context_switch(), then perf_callchain_user() could execute with
+the context ID of one process, but with an active TSB for a different
+process. When the user stack is accessed, it is very likely to
+incur a TLB miss, since the h/w context ID has been changed. The TLB
+will then be reloaded with a translation from the TSB for one process,
+but using a context ID for another process. This exposes memory from
+one process to another, and since it is a mapping for stack memory,
+this usually causes the new process to crash quickly.
+
+This super critical section needs more protection than is provided
+by spin_lock_irqsave() since perf interrupts must not be allowed in.
+
+Fixed by masking non-maskable interrupts just before the the super
+critical section in switch_mm(), and in restore_processor_state()
+which has the identical logic. This change persists until the end of
+the original critical section.
+
+Orabug: 25577560
+
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+---
+ arch/sparc/include/asm/irqflags_64.h    |   10 ++++++++++
+ arch/sparc/include/asm/mmu_context_64.h |    1 +
+ arch/sparc/power/hibernate.c            |    1 +
+ 3 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/arch/sparc/include/asm/irqflags_64.h b/arch/sparc/include/asm/irqflags_64.h
+index 23cd27f..22f8228 100644
+--- a/arch/sparc/include/asm/irqflags_64.h
++++ b/arch/sparc/include/asm/irqflags_64.h
+@@ -36,6 +36,16 @@ static inline notrace void arch_local_irq_restore(unsigned long flags)
+ 	);
+ }
+ 
++static inline notrace void arch_local_nmi_disable(void)
++{
++	__asm__ __volatile__(
++		"wrpr	%0, %%pil"
++		: /* no outputs */
++		: "i" (PIL_NMI)
++		: "memory"
++	);
++}
++
+ static inline notrace void arch_local_irq_disable(void)
+ {
+ 	__asm__ __volatile__(
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 2cddcda..cffd627 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -112,6 +112,7 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
+ 	 * cpu0 to update it's TSB because at that point the cpu_vm_mask
+ 	 * only had cpu1 set in it.
+ 	 */
++	arch_local_nmi_disable();
+ 	load_secondary_context(mm);
+ 	tsb_context_switch(mm);
+ 
+diff --git a/arch/sparc/power/hibernate.c b/arch/sparc/power/hibernate.c
+index 17bd2e1..1d77045 100644
+--- a/arch/sparc/power/hibernate.c
++++ b/arch/sparc/power/hibernate.c
+@@ -35,6 +35,7 @@ void restore_processor_state(void)
+ {
+ 	struct mm_struct *mm = current->active_mm;
+ 
++	arch_local_nmi_disable();
+ 	load_secondary_context(mm);
+ 	tsb_context_switch(mm);
+ }
+-- 
+1.7.1
+
