@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 12 Jul 2017 04:05:54 +0000
+Date: Mon, 17 Jul 2017 20:57:48 +0000
 Subject: [GIT] Sparc
-Message-Id: <20170711.210554.1600862716843784839.davem@davemloft.net>
+Message-Id: <20170717.135748.2024029115923543493.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,43 +12,38 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-1) Fix symbol version generation for assembler on sparc, from
-   Nagarathnam Muthusamy.
+Please pull to get these two sparc fixes:
 
-2) Fix compound page handling in gup_huge_pmd(), from Nitin Gupta.
+1) Fix DMA regression in 4.13 merge window, only certain chips can
+   do 64-bit DMA.  From Dave Dushar.
 
-Please pull, thanks a lot!
+2) Correct cpu cross-call algorithm to correctly detect stalled or
+   stuck remote cpus, from Jane Chu.
 
-The following changes since commit 5faab9e0f03c4eef97886b45436015e107f79f5f:
+Thanks!
 
-  Merge branch 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs (2017-06-10 11:09:23 -0700)
+The following changes since commit 3b06b1a7448ee4e8e51dae3938774735404e51fb:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc (2017-07-11 21:34:24 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc 
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
-for you to fetch changes up to dbd2667a4fb9ce4f547982b07cd69dda127c47ea:
+for you to fetch changes up to 9d53caec84c7c5700e7c1ed744ea584fff55f9ac:
 
-  sparc64: Fix gup_huge_pmd (2017-06-25 15:23:57 -0400)
+  sparc64: Measure receiver forward progress to avoid send mondo timeout (2017-07-14 11:18:02 -0700)
 
 ----------------------------------------------------------------
-David S. Miller (1):
-      Merge branch 'sparc-Suppressing-version-generation-failed-warnings-in-sparc'
+Jane Chu (1):
+      sparc64: Measure receiver forward progress to avoid send mondo timeout
 
-Nagarathnam Muthusamy (3):
-      Adding asm-prototypes.h for genksyms to generate crc
-      sed regex in Makefile.build requires line break between exported symbols
-      Adding the type of exported symbols
+Tushar Dave (1):
+      SPARC64: Fix sun4v DMA panic
 
-Nitin Gupta (1):
-      sparc64: Fix gup_huge_pmd
-
- arch/sparc/include/asm/asm-prototypes.h | 24 ++++++++++++++++++++++++
- arch/sparc/lib/atomic_64.S              | 44 ++++++++++++++++++++++++++------------------
- arch/sparc/lib/checksum_64.S            |  1 +
- arch/sparc/lib/csum_copy.S              |  1 +
- arch/sparc/lib/memscan_64.S             |  2 ++
- arch/sparc/lib/memset.S                 |  1 +
- arch/sparc/mm/gup.c                     |  4 ++--
- 7 files changed, 57 insertions(+), 20 deletions(-)
- create mode 100644 arch/sparc/include/asm/asm-prototypes.h
+ arch/sparc/include/asm/trap_block.h |   1 +
+ arch/sparc/kernel/pci_sun4v.c       |  12 ++++----
+ arch/sparc/kernel/smp_64.c          | 185 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
+ arch/sparc/kernel/sun4v_ivec.S      |  15 ++++++++++
+ arch/sparc/kernel/traps_64.c        |   1 +
+ 5 files changed, 139 insertions(+), 75 deletions(-)
