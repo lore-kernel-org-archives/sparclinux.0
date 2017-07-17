@@ -1,65 +1,144 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Thu, 06 Jul 2017 16:34:18 +0000
-Subject: [PATCH v3 0/3] Define CPU_BIG_ENDIAN or warn for inconsistencies
-Message-Id: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Mon, 17 Jul 2017 15:22:27 +0000
+Subject: [PATCH v3] sparc64: Prevent perf from running during super critical sections
+Message-Id: <1500304947-60133-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: gregkh@linuxfoundation.org, ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Resending the series per Greg KH's request.
+This fixes another cause of random segfaults and bus errors that may
+occur while running perf with the callgraph option.
 
-Found this problem while enabling queued rwlock on SPARC.
-The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
-specific byte in qrwlock structure. Without this parameter,
-we clear the wrong byte.
-Here is the code in include/asm-generic/qrwlock.h
+Critical sections beginning with spin_lock_irqsave() raise the interrupt
+level to PIL_NORMAL_MAX (14) and intentionally do not block performance
+counter interrupts, which arrive at PIL_NMI (15).
 
-static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
-  {
-         return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
-  }
+But some sections of code are "super critical" with respect to perf
+because the perf_callchain_user() path accesses user space and may cause
+TLB activity as well as faults as it unwinds the user stack.
 
-Also found few more references of this parameter in
-drivers/of/base.c
-drivers/of/fdt.c
-drivers/tty/serial/earlycon.c
-drivers/tty/serial/serial_core.c
+One particular critical section occurs in switch_mm:
 
-Here is our previous discussion.
-https://lkml.org/lkml/2017/5/24/620
+        spin_lock_irqsave(&mm->context.lock, flags);
+        ...
+        load_secondary_context(mm);
+        tsb_context_switch(mm);
+        ...
+        spin_unlock_irqrestore(&mm->context.lock, flags);
 
-Based on the discussion, it was decided to add CONFIG_CPU_BIG_ENDIAN
-for all the fixed big endian architecture(frv, h8300, m68k, openrisc,
-parisc and sparc). And warn if there are inconsistencies in this definition.
+If a perf interrupt arrives in between load_secondary_context() and
+tsb_context_switch(), then perf_callchain_user() could execute with
+the context ID of one process, but with an active TSB for a different
+process. When the user stack is accessed, it is very likely to
+incur a TLB miss, since the h/w context ID has been changed. The TLB
+will then be reloaded with a translation from the TSB for one process,
+but using a context ID for another process. This exposes memory from
+one process to another, and since it is a mapping for stack memory,
+this usually causes the new process to crash quickly.
 
-v2 -> v3:
- Added the choice statement for endianness selection for microblaze.
- Updated the Makefile for microblaze(Suggested by Arnd Bergmann) to
- properly compile for the correct format.
- Updated acks.
+This super critical section needs more protection than is provided
+by spin_lock_irqsave() since perf interrupts must not be allowed in.
 
-v1 -> v2:
- Updated the commit messages and acks.
+Since __tsb_context_switch already goes through the trouble of
+disabling interrupts completely, we fix this by moving the secondary
+context load down into this better protected region.
 
-Babu Moger (3):
-  arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
-  arch/microblaze: Add choice for endianness and update Makefile
-  include: warn for inconsistent endian config definition
+Orabug: 25577560
 
- arch/frv/Kconfig                        |    3 +++
- arch/h8300/Kconfig                      |    3 +++
- arch/m68k/Kconfig                       |    3 +++
- arch/microblaze/Kconfig                 |   16 ++++++++++++++++
- arch/microblaze/Makefile                |    2 ++
- arch/openrisc/Kconfig                   |    3 +++
- arch/parisc/Kconfig                     |    3 +++
- arch/sparc/Kconfig                      |    3 +++
- include/linux/byteorder/big_endian.h    |    4 ++++
- include/linux/byteorder/little_endian.h |    4 ++++
- 10 files changed, 44 insertions(+), 0 deletions(-)
+Signed-off-by: Dave Aldridge <david.j.aldridge@oracle.com>
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+---
+ arch/sparc/include/asm/mmu_context_64.h |   14 +++++++++-----
+ arch/sparc/kernel/tsb.S                 |   12 ++++++++++++
+ arch/sparc/power/hibernate.c            |    3 +--
+ 3 files changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 2cddcda..87841d6 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -27,9 +27,11 @@ static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+ void __tsb_context_switch(unsigned long pgd_pa,
+ 			  struct tsb_config *tsb_base,
+ 			  struct tsb_config *tsb_huge,
+-			  unsigned long tsb_descr_pa);
++			  unsigned long tsb_descr_pa,
++			  unsigned long secondary_ctx);
+ 
+-static inline void tsb_context_switch(struct mm_struct *mm)
++static inline void tsb_context_switch_ctx(struct mm_struct *mm,
++					  unsigned long ctx)
+ {
+ 	__tsb_context_switch(__pa(mm->pgd),
+ 			     &mm->context.tsb_block[MM_TSB_BASE],
+@@ -40,9 +42,12 @@ static inline void tsb_context_switch(struct mm_struct *mm)
+ #else
+ 			     NULL
+ #endif
+-			     , __pa(&mm->context.tsb_descr[MM_TSB_BASE]));
++			     , __pa(&mm->context.tsb_descr[MM_TSB_BASE]),
++			     ctx);
+ }
+ 
++#define tsb_context_switch(X) tsb_context_switch_ctx(X, 0)
++
+ void tsb_grow(struct mm_struct *mm,
+ 	      unsigned long tsb_index,
+ 	      unsigned long mm_rss);
+@@ -112,8 +117,7 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
+ 	 * cpu0 to update it's TSB because at that point the cpu_vm_mask
+ 	 * only had cpu1 set in it.
+ 	 */
+-	load_secondary_context(mm);
+-	tsb_context_switch(mm);
++	tsb_context_switch_ctx(mm, CTX_HWBITS(mm->context));
+ 
+ 	/* Any time a processor runs a context on an address space
+ 	 * for the first time, we must flush that context out of the
+diff --git a/arch/sparc/kernel/tsb.S b/arch/sparc/kernel/tsb.S
+index 07c0df9..db872db 100644
+--- a/arch/sparc/kernel/tsb.S
++++ b/arch/sparc/kernel/tsb.S
+@@ -360,6 +360,7 @@ tsb_flush:
+ 	 * %o1:	TSB base config pointer
+ 	 * %o2:	TSB huge config pointer, or NULL if none
+ 	 * %o3:	Hypervisor TSB descriptor physical address
++	 * %o4: Secondary context to load, if non-zero
+ 	 *
+ 	 * We have to run this whole thing with interrupts
+ 	 * disabled so that the current cpu doesn't change
+@@ -372,6 +373,17 @@ __tsb_context_switch:
+ 	rdpr	%pstate, %g1
+ 	wrpr	%g1, PSTATE_IE, %pstate
+ 
++	brz,pn	%o4, 1f
++	 mov	SECONDARY_CONTEXT, %o5
++
++661:	stxa	%o4, [%o5] ASI_DMMU
++	.section .sun4v_1insn_patch, "ax"
++	.word	661b
++	stxa	%o4, [%o5] ASI_MMU
++	.previous
++	flush	%g6
++
++1:
+ 	TRAP_LOAD_TRAP_BLOCK(%g2, %g3)
+ 
+ 	stx	%o0, [%g2 + TRAP_PER_CPU_PGD_PADDR]
+diff --git a/arch/sparc/power/hibernate.c b/arch/sparc/power/hibernate.c
+index 17bd2e1..df707a8 100644
+--- a/arch/sparc/power/hibernate.c
++++ b/arch/sparc/power/hibernate.c
+@@ -35,6 +35,5 @@ void restore_processor_state(void)
+ {
+ 	struct mm_struct *mm = current->active_mm;
+ 
+-	load_secondary_context(mm);
+-	tsb_context_switch(mm);
++	tsb_context_switch_ctx(mm, CTX_HWBITS(mm->context));
+ }
+-- 
+1.7.1
 
