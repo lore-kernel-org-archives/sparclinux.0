@@ -1,31 +1,72 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 17 Jul 2017 13:47:46 +0000
-Subject: Re: [PATCH] [PING] Fix TIOCGPTPEER ioctl definition
-Message-Id: <20170717134746.GA19574@kroah.com>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 18 Jul 2017 21:43:27 +0000
+Subject: [PATCH] sbus: Convert to using %pOF instead of full_name
+Message-Id: <20170718214339.7774-47-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170717132946.GK21910@glebfm.cloud.tilaa.com>
-In-Reply-To: <20170717132946.GK21910@glebfm.cloud.tilaa.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
-Cc: Aleksa Sarai <asarai@suse.de>, David Laight <David.Laight@ACULAB.COM>, James Hogan <james.hogan@imgtec.com>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, Valentin Rothberg <vrothberg@suse.com>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dmitry V. Levin" <ldv@altlinux.org>, Jiri Slaby <jslaby@suse.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Christian Brauner <christian.brauner@ubuntu.com>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Mon, Jul 17, 2017 at 04:29:46PM +0300, Gleb Fotengauer-Malinovskiy wrote:
-> This ioctl does nothing to justify an _IOC_READ or _IOC_WRITE flag
-> because it doesn't copy anything from/to userspace to access the
-> argument.
-> 
-> Fixes: 54ebbfb16034 ("tty: add TIOCGPTPEER ioctl")
-> Signed-off-by: Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>
-> Acked-by: Aleksa Sarai <asarai@suse.de>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
+Now that we have a custom printf format specifier, convert users of
+full_name to use %pOF instead. This is preparation to remove storing
+of the full path string for each node.
 
+Signed-off-by: Rob Herring <robh@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ drivers/sbus/char/display7seg.c | 4 ++--
+ drivers/sbus/char/flash.c       | 4 ++--
+ drivers/sbus/char/uctrl.c       | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-Why the PING?  -rc1 just happened, so I am only now able to apply the
-patch to the tree.  Please relax, you are behind about 800+ other
-patches in my queue...
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 04efed171c88..f32765d3cbd8 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -212,8 +212,8 @@ static int d7s_probe(struct platform_device *op)
 
-thanks,
+ 	writeb(regs,  p->regs);
 
-greg k-h
+-	printk(KERN_INFO PFX "7-Segment Display%s at [%s:0x%llx] %s\n",
+-	       op->dev.of_node->full_name,
++	printk(KERN_INFO PFX "7-Segment Display%pOF at [%s:0x%llx] %s\n",
++	       op->dev.of_node,
+ 	       (regs & D7S_FLIP) ? " (FLIPPED)" : "",
+ 	       op->resource[0].start,
+ 	       sol_compat ? "in sol_compat mode" : "");
+diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
+index 216f923161d1..a610b8d3d11f 100644
+--- a/drivers/sbus/char/flash.c
++++ b/drivers/sbus/char/flash.c
+@@ -181,8 +181,8 @@ static int flash_probe(struct platform_device *op)
+ 	}
+ 	flash.busy = 0;
+
+-	printk(KERN_INFO "%s: OBP Flash, RD %lx[%lx] WR %lx[%lx]\n",
+-	       op->dev.of_node->full_name,
++	printk(KERN_INFO "%pOF: OBP Flash, RD %lx[%lx] WR %lx[%lx]\n",
++	       op->dev.of_node,
+ 	       flash.read_base, flash.read_size,
+ 	       flash.write_base, flash.write_size);
+
+diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
+index 57696fc0b482..0a5013350acd 100644
+--- a/drivers/sbus/char/uctrl.c
++++ b/drivers/sbus/char/uctrl.c
+@@ -379,8 +379,8 @@ static int uctrl_probe(struct platform_device *op)
+ 	}
+
+ 	sbus_writel(UCTRL_INTR_RXNE_REQ|UCTRL_INTR_RXNE_MSK, &p->regs->uctrl_intr);
+-	printk(KERN_INFO "%s: uctrl regs[0x%p] (irq %d)\n",
+-	       op->dev.of_node->full_name, p->regs, p->irq);
++	printk(KERN_INFO "%pOF: uctrl regs[0x%p] (irq %d)\n",
++	       op->dev.of_node, p->regs, p->irq);
+ 	uctrl_get_event_status(p);
+ 	uctrl_get_external_status(p);
+
+--
+2.11.0
+
