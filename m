@@ -1,7 +1,7 @@
-From: "John Hanan" <JohnHanan21119@leaf.ocn.ne.jp>
-Date: Mon, 03 Jul 2017 08:35:30 +0000
+From: "Gary Walker" <gwalker210970@leaf.ocn.ne.jp>
+Date: Wed, 19 Jul 2017 17:42:17 +0000
 Subject: Re: Investment Consideration
-Message-Id: <20170703083524.755DE4E5922@msgw008-04.ocn.ad.jp>
+Message-Id: <20170719174209.C83605F5080@msgw011-02.ocn.ad.jp>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170618132915.3403A47DC59@msgw011-04.ocn.ad.jp>
 In-Reply-To: <20170618132915.3403A47DC59@msgw011-04.ocn.ad.jp>
@@ -18,5 +18,5 @@ Please get back to me if you are interested in this or you know anybody who has 
 
 Sincerely,
 
-John Hanan, MBA, CFA
+Gary Walker, MBA, CFA
 General Investment Consultant
