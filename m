@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Jul 2017 19:35:37 +0000
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Thu, 20 Jul 2017 19:47:16 +0000
 Subject: Re: [PATCH] sparc64: prevent sunvdc panic when mpgroup disk added to guest domain
-Message-Id: <20170720.123537.753986315503458559.davem@davemloft.net>
+Message-Id: <20170720194716.GA12218@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
 In-Reply-To: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
@@ -10,9 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Jim Quigley <Jim.Quigley@oracle.com>
-Date: Thu, 20 Jul 2017 06:29:50 -0400
+Hi Jim.
 
+A few nitpicks.
+
+On Thu, Jul 20, 2017 at 06:29:50AM -0400, Jim Quigley wrote:
 > Using mpgroup to define multiple paths for a virtual disk causes multiple
 > virtual-device-port ports to be created for that virtual device.
 > Each virtual-device-port port then gets a vdisk created for it by the Linux
@@ -27,26 +29,32 @@ Date: Thu, 20 Jul 2017 06:29:50 -0400
 > Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 > Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
 > Reviewed-by: Aaron Young <aaron.young@oracle.com>
+> +
+> +/*
+> + * Determine whether the VIO device is part of an mpgroup
+> + * by locating all the virtual-device-port nodes associated
+> + * with the parent virtual-device node for the VIO device
+> + * and checking whether any of these nodes are vdc-ports
+> + * which have already been configured.
+> + *
+> + * Returns true if this device is part of an mpgroup and has
+> + * already been probed.
+> + */
+This filel uses "netdev" style for comments.
+Change coments to look like this:
 
-Please use "sunvdc: " as your subsystem prefix in your subject line.
+/* Bla bla.
+ * More bla blah.
+ */
 
-> +	if ((vdev->dev_no = port_data->dev_no) &&
-> +	    (!(strcmp((char *)&vdev->type, port_data->type))) &&
 
-vdev->type is a char pointer already, there is no need for this cast
-and it's looks awful as well :-)
-
-> +		return 1;
-> +	} else {
-> +		return 0;
-
-Please use "bool" as the return type and true/false here.
-
+> +static bool vdc_port_mpgroup_check(struct vio_dev *vdev)
+> +{
+> +	struct vdc_check_port_data port_data;
+> +	struct device *dev;
+> +
+> +	port_data.dev_no = vdev->dev_no;
 > +	port_data.type = (char *)&vdev->type;
+Cast not needed?
 
-Again, no need for this cast.
-
-> +	dev = device_find_child(vdev->dev.parent, (void *)&port_data,
-
-You also never need to explicitly cast to "void *", it will implicitly
-be done if that is the argument type.
+	Sam
