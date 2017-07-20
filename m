@@ -1,45 +1,81 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 20 Jul 2017 22:01:58 +0000
-Subject: Re: [PATCH] sparc64: prevent sunvdc panic when mpgroup disk added to guest domain
-Message-Id: <20170720.230158.963296800355149608.davem@davemloft.net>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Thu, 20 Jul 2017 00:12:54 +0000
+Subject: [PATCH] sparc64: Register hugepages during arch init
+Message-Id: <1500509583-192121-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
-In-Reply-To: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: bob picco <bob.picco@oracle.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nitin Gupta <nitin.m.gupta@oracle.com>, Steven Sistare <steven.sistare@oracle.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, Thomas Tai <thomas.tai@oracle.com>, Atish Patra <atish.patra@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Jim Quigley <jim.quigley@oracle.com>
-Date: Thu, 20 Jul 2017 21:19:52 +0100
+Add hstate for each supported hugepage size using
+arch initcall. This change fixes some hugepage
+parameter parsing inconsistencies:
 
-> On 20/07/2017 20:35, David Miller wrote:
->>> +	if ((vdev->dev_no = port_data->dev_no) &&
->>> +	    (!(strcmp((char *)&vdev->type, port_data->type))) &&
->> vdev->type is a char pointer already, there is no need for this cast
->> and it's looks awful as well :-)
-> 
->     vdev->type is defined as
-> 
->                 char                    type[VIO_MAX_TYPE_LEN];
-> 
->     and removing the cast results in :-
-> 
-> drivers/block/sunvdc.c: In function 'vdc_device_probed':
-> drivers/block/sunvdc.c:891: warning: passing argument 1 of 'strcmp'
-> from incompatible pointer type
-> ./include/linux/string.h:42: note: expected 'const char *' but
-> argument is of type 'char (*)[32]'
+case 1: no hugepage parameters
 
-That's unfortunate, ok.
+ Without hugepage parameters, only a hugepages-8192kB entry is visible
+ in sysfs.  It's different from x86_64 where both 2M and 1G hugepage
+ sizes are available.
 
->>
->>> +		return 1;
->>> +	} else {
->>> +		return 0;
->> Please use "bool" as the return type and true/false here.
-> 
->     It needs to be an int for device_find_child().
+case 2: default_hugepagesz=[64K|256M|2G]
 
-Ok.
+ When specifying only a default_hugepagesz parameter, the default
+ hugepage size isn't really changed and it stays at 8M. This is again
+ different from x86_64.
+
+Orabug: 25869946
+
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 3c40ebd..fed73f1 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -325,6 +325,29 @@ static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_inde
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
++static void __init add_huge_page_size(unsigned long size)
++{
++	unsigned int order;
++
++	if (size_to_hstate(size))
++		return;
++
++	order = ilog2(size) - PAGE_SHIFT;
++	hugetlb_add_hstate(order);
++}
++
++static int __init hugetlbpage_init(void)
++{
++	add_huge_page_size(1UL << HPAGE_64K_SHIFT);
++	add_huge_page_size(1UL << HPAGE_SHIFT);
++	add_huge_page_size(1UL << HPAGE_256MB_SHIFT);
++	add_huge_page_size(1UL << HPAGE_2GB_SHIFT);
++
++	return 0;
++}
++
++arch_initcall(hugetlbpage_init);
++
+ static int __init setup_hugepagesz(char *string)
+ {
+ 	unsigned long long hugepage_size;
+@@ -364,7 +387,7 @@ static int __init setup_hugepagesz(char *string)
+ 		goto out;
+ 	}
+ 
+-	hugetlb_add_hstate(hugepage_shift - PAGE_SHIFT);
++	add_huge_page_size(hugepage_size);
+ 	rc = 1;
+ 
+ out:
+-- 
+2.9.2
 
