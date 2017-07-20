@@ -1,31 +1,92 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Tue, 25 Jul 2017 03:45:33 +0000
-Subject: Re: RCU stall warnings...
-Message-Id: <20170725134533.3e215be5@canb.auug.org.au>
+From: Krzysztof Kozlowski <krzk@kernel.org>
+Date: Thu, 20 Jul 2017 05:00:55 +0000
+Subject: [RESEND PATCH] sparc: defconfig: Cleanup from old Kconfig options
+Message-Id: <1500526855-4132-1-git-send-email-krzk@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170724.153248.1457902120749226419.davem@davemloft.net>
-        <20170724232033.GI3730@linux.vnet.ibm.com>
-        <20170724.163458.1860624258080140141.davem@davemloft.net>
-In-Reply-To: <20170724.163458.1860624258080140141.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: paulmck@linux.vnet.ibm.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Krzysztof Kozlowski <krzk@kernel.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Hi Dave,
+Remove old, dead Kconfig options (in order appearing in this commit):
+ - EXPERIMENTAL is gone since v3.9;
+ - INET_LRO: commit 7bbf3cae65b6 ("ipv4: Remove inet_lro library");
+ - AUTOFS_FS: commit 561c5cf9236a ("staging: Remove autofs3");
+ - RCU_CPU_STALL_DETECTOR: commit a00e0d714fbd ("rcu: Remove conditional
+   compilation for RCU CPU stall warnings");
+ - USB_DEVICE_CLASS: commit 007bab91324e ("USB: remove
+   CONFIG_USB_DEVICE_CLASS");
+ - SYSCTL_SYSCALL_CHECK: commit 7c60c48f58a7 ("sysctl: Improve the
+   sysctl sanity checks");
 
-On Mon, 24 Jul 2017 16:34:58 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
->
-> Shoing my ignorance as well, after reading this, for some reason this
-> commit below sticks out to me.  Maybe I should do a bisect and see if
-> it lands on this commit.
-> 
-> That would take a while as it's hard to forcibly set this thing off.
+Signed-off-by: Krzysztof Kozlowski <krzk@kernel.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/configs/sparc32_defconfig | 4 ----
+ arch/sparc/configs/sparc64_defconfig | 4 ----
+ 2 files changed, 8 deletions(-)
 
-For a quick test, just try with the parent of that commit and (if that
-is "good") then with that commit itself ...
-
+diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/sparc32_defconfig
+index c74d3701ad68..207a43a2d8b3 100644
+--- a/arch/sparc/configs/sparc32_defconfig
++++ b/arch/sparc/configs/sparc32_defconfig
+@@ -1,4 +1,3 @@
+-CONFIG_EXPERIMENTAL=y
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+ CONFIG_LOG_BUF_SHIFT
+@@ -23,7 +22,6 @@ CONFIG_IP_PNP_DHCP=y
+ CONFIG_INET_AH=y
+ CONFIG_INET_ESP=y
+ CONFIG_INET_IPCOMP=y
+-# CONFIG_INET_LRO is not set
+ CONFIG_INET6_AH=m
+ CONFIG_INET6_ESP=m
+ CONFIG_INET6_IPCOMP=m
+@@ -69,7 +67,6 @@ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+ CONFIG_EXT2_FS_SECURITY=y
+-CONFIG_AUTOFS_FS=m
+ CONFIG_AUTOFS4_FS=m
+ CONFIG_ISO9660_FS=m
+ CONFIG_PROC_KCORE=y
+@@ -82,7 +79,6 @@ CONFIG_NLS=y
+ CONFIG_DEBUG_KERNEL=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_SCHED_DEBUG is not set
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
+ CONFIG_KGDB=y
+ CONFIG_KGDB_TESTS=y
+ CONFIG_CRYPTO_NULL=m
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index b2e650d1764f..ca8609d7292f 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -1,5 +1,4 @@
+ CONFIG_64BIT=y
+-CONFIG_EXPERIMENTAL=y
+ # CONFIG_LOCALVERSION_AUTO is not set
+ CONFIG_SYSVIPC=y
+ CONFIG_POSIX_MQUEUE=y
+@@ -184,7 +183,6 @@ CONFIG_HID_TOPSEED=y
+ CONFIG_HID_THRUSTMASTER=y
+ CONFIG_HID_ZEROPLUS=y
+ CONFIG_USB=y
+-# CONFIG_USB_DEVICE_CLASS is not set
+ CONFIG_USB_EHCI_HCD=m
+ # CONFIG_USB_EHCI_TT_NEWSCHED is not set
+ CONFIG_USB_OHCI_HCD=y
+@@ -210,8 +208,6 @@ CONFIG_LOCKUP_DETECTOR=y
+ CONFIG_DETECT_HUNG_TASK=y
+ # CONFIG_SCHED_DEBUG is not set
+ CONFIG_SCHEDSTATS=y
+-# CONFIG_RCU_CPU_STALL_DETECTOR is not set
+-CONFIG_SYSCTL_SYSCALL_CHECK=y
+ CONFIG_BLK_DEV_IO_TRACE=y
+ CONFIG_UPROBE_EVENTS=y
+ CONFIG_KEYS=y
 -- 
-Cheers,
-Stephen Rothwell
+2.7.4
+
