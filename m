@@ -1,122 +1,52 @@
-From: Jim Quigley <Jim.Quigley@oracle.com>
-Date: Thu, 20 Jul 2017 10:29:50 +0000
-Subject: [PATCH] sparc64: prevent sunvdc panic when mpgroup disk added to guest domain
-Message-Id: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 20 Jul 2017 19:35:37 +0000
+Subject: Re: [PATCH] sparc64: prevent sunvdc panic when mpgroup disk added to guest domain
+Message-Id: <20170720.123537.753986315503458559.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
+In-Reply-To: <1500546590-109040-1-git-send-email-Jim.Quigley@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Using mpgroup to define multiple paths for a virtual disk causes multiple
-virtual-device-port ports to be created for that virtual device.
-Each virtual-device-port port then gets a vdisk created for it by the Linux
-sunvdc driver. As mpgroup is not supported by the Linux sunvdc driver it
-cannot handle multiple ports for a single vdisk, leading to a kernel panic
-at startup.
+From: Jim Quigley <Jim.Quigley@oracle.com>
+Date: Thu, 20 Jul 2017 06:29:50 -0400
 
-This fix prevents more than one vdisk per virtual-device-port being created
-until full virtual disk multipathing (mpgroup) support is implemented.
+> Using mpgroup to define multiple paths for a virtual disk causes multiple
+> virtual-device-port ports to be created for that virtual device.
+> Each virtual-device-port port then gets a vdisk created for it by the Linux
+> sunvdc driver. As mpgroup is not supported by the Linux sunvdc driver it
+> cannot handle multiple ports for a single vdisk, leading to a kernel panic
+> at startup.
+> 
+> This fix prevents more than one vdisk per virtual-device-port being created
+> until full virtual disk multipathing (mpgroup) support is implemented.
+> 
+> Signed-off-by: Jim Quigley <Jim.Quigley@oracle.com>
+> Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+> Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
+> Reviewed-by: Aaron Young <aaron.young@oracle.com>
 
-Signed-off-by: Jim Quigley <Jim.Quigley@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Alexandre Chartre <alexandre.chartre@oracle.com>
-Reviewed-by: Aaron Young <aaron.young@oracle.com>
----
- drivers/block/sunvdc.c |   66 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 66 insertions(+), 0 deletions(-)
+Please use "sunvdc: " as your subsystem prefix in your subject line.
 
-diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
-index 6b16ead..9638403 100644
---- a/drivers/block/sunvdc.c
-+++ b/drivers/block/sunvdc.c
-@@ -875,6 +875,58 @@ static void print_version(void)
- 		printk(KERN_INFO "%s", version);
- }
- 
-+struct vdc_check_port_data {
-+	int	dev_no;
-+	char	*type;
-+};
-+
-+static int vdc_device_probed(struct device *dev, void *arg)
-+{
-+	struct vio_dev *vdev = to_vio_dev(dev);
-+	struct vdc_check_port_data *port_data;
-+
-+	port_data = (struct vdc_check_port_data *)arg;
-+
-+	if ((vdev->dev_no = port_data->dev_no) &&
-+	    (!(strcmp((char *)&vdev->type, port_data->type))) &&
-+		dev_get_drvdata(dev)) {
-+		/*
-+		 * This device has already been configured
-+		 * by vdc_port_probe()
-+		 */
-+		return 1;
-+	} else {
-+		return 0;
-+	}
-+}
-+
-+/*
-+ * Determine whether the VIO device is part of an mpgroup
-+ * by locating all the virtual-device-port nodes associated
-+ * with the parent virtual-device node for the VIO device
-+ * and checking whether any of these nodes are vdc-ports
-+ * which have already been configured.
-+ *
-+ * Returns true if this device is part of an mpgroup and has
-+ * already been probed.
-+ */
-+static bool vdc_port_mpgroup_check(struct vio_dev *vdev)
-+{
-+	struct vdc_check_port_data port_data;
-+	struct device *dev;
-+
-+	port_data.dev_no = vdev->dev_no;
-+	port_data.type = (char *)&vdev->type;
-+
-+	dev = device_find_child(vdev->dev.parent, (void *)&port_data,
-+				vdc_device_probed);
-+
-+	if (dev)
-+		return true;
-+
-+	return false;
-+}
-+
- static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- {
- 	struct mdesc_handle *hp;
-@@ -893,6 +945,16 @@ static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 		goto err_out_release_mdesc;
- 	}
- 
-+	/*
-+	 * Check if this device is part of an mpgroup
-+	 */
-+	if (vdc_port_mpgroup_check(vdev)) {
-+		printk(KERN_WARNING
-+			"VIO: Ignoring extra vdisk port %s",
-+			dev_name(&vdev->dev));
-+		goto err_out_release_mdesc;
-+	}
-+
- 	port = kzalloc(sizeof(*port), GFP_KERNEL);
- 	err = -ENOMEM;
- 	if (!port) {
-@@ -943,6 +1005,10 @@ static int vdc_port_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 	if (err)
- 		goto err_out_free_tx_ring;
- 
-+	/*
-+	 * Note that the device driver_data is used to determine
-+	 * whether the port has been probed.
-+	 */
- 	dev_set_drvdata(&vdev->dev, port);
- 
- 	mdesc_release(hp);
--- 
-1.7.1
+> +	if ((vdev->dev_no = port_data->dev_no) &&
+> +	    (!(strcmp((char *)&vdev->type, port_data->type))) &&
 
+vdev->type is a char pointer already, there is no need for this cast
+and it's looks awful as well :-)
+
+> +		return 1;
+> +	} else {
+> +		return 0;
+
+Please use "bool" as the return type and true/false here.
+
+> +	port_data.type = (char *)&vdev->type;
+
+Again, no need for this cast.
+
+> +	dev = device_find_child(vdev->dev.parent, (void *)&port_data,
+
+You also never need to explicitly cast to "void *", it will implicitly
+be done if that is the argument type.
