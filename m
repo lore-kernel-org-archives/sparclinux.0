@@ -1,38 +1,41 @@
-From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
-Date: Fri, 21 Jul 2017 15:51:17 +0000
-Subject: Re: [PATCH V2] vDSO for SPARC
-Message-Id: <06092c16-1467-dd3d-8bff-1af9c0100d29@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 21 Jul 2017 01:50:57 +0000
+Subject: [PATCH v1 0/4] Context domains
+Message-Id: <1500601861-203232-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1499268125-877874-1-git-send-email-nagarathnam.muthusamy@oracle.com>
-In-Reply-To: <1499268125-877874-1-git-send-email-nagarathnam.muthusamy@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Most of this work was done by: bob.picco@oracle.com
 
+Currently, there is only one context domain per-system. This means
+when wrap occurs we must go through a cpu-count proportional loop
+in order to invalidate context ids. It also means, that context wraps
+can occur more frequently. This patchset solves this problem by
+introducing multiple context domains. By default one context domain
+per physical core (on most sun4v it is actually one per two cores,
+because the defined max strands per core is set to 16 to match
+match T3.).
 
-On 07/20/2017 07:26 PM, David Miller wrote:
-> From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
-> Date: Wed,  5 Jul 2017 11:22:05 -0400
->
->> Following patch is based on work done by Nick Alcock on 64-bit vDSO
->> for sparc in Oracle linux. I have extended it to include support for
->> 32-bit vDSO for sparc on 64-bit kernel.
->   ...
->
-> This patch looks good so far to me.
->
-> I just want to review and think about it some more before applying
-> it to the sparc-next tree.
->
-> BTW, I'm probably the only person outside of your internal team who
-> knows what a putback is :-)
+Pavel Tatashin (4):
+  sparc64: interface to get random tick
+  sparc64: tlb mondo replacement with smp_call_function_many
+  sparc64: context domains
+  sparc64: add boot line core to context domain parameter
 
-Oops...It kind of slipped in due to old habit. Will use more standard
-terminology next time :-)
-
-Thanks!
->
-> Thanks!
+ arch/sparc/include/asm/mmu_64.h         |   13 +-
+ arch/sparc/include/asm/mmu_context_64.h |   52 ++++-
+ arch/sparc/include/asm/timer_64.h       |   15 ++
+ arch/sparc/include/asm/tlb_64.h         |    3 +-
+ arch/sparc/include/asm/tlbflush_64.h    |    2 +-
+ arch/sparc/kernel/smp_64.c              |   54 ++++--
+ arch/sparc/kernel/unaligned_64.c        |    4 +-
+ arch/sparc/mm/fault_64.c                |    4 +-
+ arch/sparc/mm/init_64.c                 |  336 +++++++++++++++++++++++++++----
+ arch/sparc/mm/tlb.c                     |    4 +-
+ arch/sparc/mm/tsb.c                     |   20 +-
+ arch/sparc/mm/ultra.S                   |  131 ------------
+ 12 files changed, 420 insertions(+), 218 deletions(-)
 
