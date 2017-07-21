@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 21 Jul 2017 02:50:05 +0000
+Date: Fri, 21 Jul 2017 03:06:55 +0000
 Subject: Re: [PATCH v1 0/4] Context domains
-Message-Id: <20170721.035005.1773741271807870610.davem@davemloft.net>
+Message-Id: <20170721.040655.1839487789481890275.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1500601861-203232-1-git-send-email-pasha.tatashin@oracle.com>
 In-Reply-To: <1500601861-203232-1-git-send-email-pasha.tatashin@oracle.com>
@@ -10,45 +10,45 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 20 Jul 2017 21:50:57 -0400
+From: David Miller <davem@davemloft.net>
+Date: Fri, 21 Jul 2017 03:50:05 +0100 (WEST)
 
-> Most of this work was done by: bob.picco@oracle.com
+> Having to allocate a full trap frame just to TLB flush one page or an
+> MM is a serious regression.
 > 
-> Currently, there is only one context domain per-system. This means
-> when wrap occurs we must go through a cpu-count proportional loop
-> in order to invalidate context ids. It also means, that context wraps
-> can occur more frequently. This patchset solves this problem by
-> introducing multiple context domains. By default one context domain
-> per physical core (on most sun4v it is actually one per two cores,
-> because the defined max strands per core is set to 16 to match
-> match T3.).
+> Next, allocating a whole new data structure and clearing it out on
+> every new address creation is going to be a significant new cost as
+> well.
 
-Thanks for working on this.
+So, just thinking out loud:
 
-I guess this is a story of many tradeoffs.
+1) You can retain the cross call TLB flush assembler by passing in the
+   appropriate context value for each individual cpu from the cross
+   call dispatcher.
 
-In another thread we are trying to make sparc64 MONDOs happen less
-often and be less expensive.  And these changes make TLB shootdowns
-more expensive.
+2) If you have some constant bounds on the upper number of context
+   domains, you can simply inline them into the existing mmu_context
+   structure.  This avoids the memory allocation per mm creation.
 
-Having to allocate a full trap frame just to TLB flush one page or an
-MM is a serious regression.
+You can also make the context domain salting extremely cheap.
+Perhaps something like "(cpuid>>x) & y".
 
-Next, allocating a whole new data structure and clearing it out on
-every new address creation is going to be a significant new cost as
-well.
-
-I can guarantee you will be able to measure this with lmbench or a
-similar set of microbenchmarks which measure fork/exit speed.
-
-It's hard to swallow this given that these changes only help extremely
-large systems running specific kinds of loads, yet pessimize all other
+No, you won't map cores to context domains so precisely like the
+code does now, but you will make up for it in code simplicity and
+overall new costs added by these changes for the more common
 cases.
 
-Even when the number of context domains is configured to zero, we eat
-all of this overhead.
+I suggest "(cpuid>>x) & y" and a very small number of context domains
+(which determines 'y') because we don't need something perfect, we
+need something which divides the problem by some order of magnitude.
 
-I have some clerical feedback as well, which I will make in response
-to the individual patches.
+The hash of locks caught my eye as well.  I think you don't need that
+and we really steer clear of hashed spinlock tables in the Linux
+kernel because they never scale properly.
 
+Instead, I think you can use something like RCU to provide the
+necessary synchronization.  So you could first make sure X isn't
+referenced on the local cpu any more, and then do call_rcu() to do the
+actual clearing of the bitmap which allows X to be allocated again.
+
+Just some ideas...
