@@ -1,48 +1,30 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Mon, 24 Jul 2017 06:26:19 +0000
-Subject: [PATCH v2 3/3] sparc64: Increase max_phys_bits to 51 for M8.
-Message-Id: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Mon, 24 Jul 2017 13:33:29 +0000
+Subject: Re: [PATCH v2 3/3] sparc64: Increase max_phys_bits to 51 for M8.
+Message-Id: <c7ed28ae-7ea0-2b2d-88a8-e08da66ad094@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
+In-Reply-To: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Hi Allen,
 
-On M8 chips, use a max_phys_bits value of 51 and also fix the VA hole.
+On 7/24/2017 1:14 AM, Allen Pais wrote:
+ > From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+ >
+ > On M8 chips, use a max_phys_bits value of 51 and also fix the VA hole.
+ >
+ > Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+ > Reviewed-by: Bob Picco <bob.picco@oracle.com>
+ > Signed-off-by: Allen Pais <allen.pais@oracle.com>
+ > ---
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
----
- arch/sparc/mm/init_64.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+This patch needs to go with sparc-5-Level-paging  patch. I am still 
+working on adding boot time selection option, so please ignore this 
+patch for now. I will post this patch separately with sparc-5-level patch.
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index a111625..04c9ea3 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1921,12 +1921,18 @@ static void __init setup_page_offset(void)
- 			break;
- 		case SUN4V_CHIP_SPARC_M7:
- 		case SUN4V_CHIP_SPARC_SN:
--		default:
- 			/* M7 and later support 52-bit virtual addresses.  */
- 			sparc64_va_hole_top =    0xfff8000000000000UL;
- 			sparc64_va_hole_bottom = 0x0008000000000000UL;
- 			max_phys_bits = 49;
- 			break;
-+		case SUN4V_CHIP_SPARC_M8:
-+		default:
-+			/* M8 and later support 54-bit virtual addresses.  */
-+			sparc64_va_hole_top =    0xffe0000000000000UL;
-+			sparc64_va_hole_bottom = 0x0020000000000000UL;
-+			max_phys_bits = 51;
-+			break;
- 		}
- 	}
- 
--- 
-1.9.1
-
+Thanks,
+Vijay
