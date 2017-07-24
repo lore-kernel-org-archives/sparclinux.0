@@ -1,66 +1,92 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Jul 2017 20:14:02 +0000
-Subject: Re: [PATCH v2 3/3] sparc64: Increase max_phys_bits to 51 for M8.
-Message-Id: <20170726.131402.1547005552721736032.davem@davemloft.net>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 24 Jul 2017 06:26:17 +0000
+Subject: [PATCH v2 1/3] sparc64: properly name the cpu constants
+Message-Id: <1500876859-8398-1-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
-In-Reply-To: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 26 Jul 2017 14:57:01 -0500
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
+---
+ arch/sparc/include/asm/spitfire.h | 14 ++++++++++++++
+ arch/sparc/kernel/head_64.S       | 16 ++++++++--------
+ 2 files changed, 22 insertions(+), 8 deletions(-)
 
-> 
-> On 7/26/2017 1:11 AM, David Miller wrote:
->> From: Allen <allen.pais@oracle.com>
->> Date: Mon, 24 Jul 2017 19:33:27 +0530
->>
->>>> This patch needs to go with sparc-5-Level-paging  patch. I am still
->>>> working on adding boot time selection option, so please ignore this
->>>> patch for now. I will post this patch separately with sparc-5-level
->>>> patch.
->>>   My bad. David, could you please ignore this patch for the moment.
->> Wait, why do you need 5 level page tables for this?
->>
->> The existing 4 level code supports up to 53-bits and you need only 51
->> for M8.
->>
->> There is even a check for this limit in asm/pgtable_64.h:
->>
->> #if (MAX_PHYS_ADDRESS_BITS > PGDIR_SHIFT + PGDIR_BITS)
->> #error MAX_PHYS_ADDRESS_BITS exceeds what kernel page tables can
->> #support
->> #endif
->>
->> #if (PGDIR_SHIFT + PGDIR_BITS) != 53
->> #error Page table parameters do not cover virtual address space
->> #properly.
->> #endif
->>
->> We've supported up to 53-bits forever, from page_64.h:
->>
->> #define MAX_PHYS_ADDRESS_BITS	53
-> Issue is not with Physical-address-bits but with
-> virtual-address-bits. With this patch, virtual address bits for M8 is
-> increased to 54 whereas current pagetable supports up to 53 bits only.
-> 
-> PGDIR_BITS + PUD_BITS + PMD_BITS + PAGE_SHIFT + PAGE_OFFSET = 10 + 10
-> + 10 + 10 + 13 = 53 bits
-> 
-> Just to verify, I applied this patch and M8 does not boot up.
-> 
-> Did I miss anything?
+diff --git a/arch/sparc/include/asm/spitfire.h b/arch/sparc/include/asm/spitfire.h
+index 1d8321c..9cc2afe 100644
+--- a/arch/sparc/include/asm/spitfire.h
++++ b/arch/sparc/include/asm/spitfire.h
+@@ -51,6 +51,20 @@
+ #define SUN4V_CHIP_SPARC_SN	0x8b
+ #define SUN4V_CHIP_UNKNOWN	0xff
+ 
++/*
++ * The following CPU_ID_xxx constants are used
++ * to identify the CPU type in the setup phase
++ * (see head_64.S)
++ */
++#define CPU_ID_NIAGARA1		('1')
++#define CPU_ID_NIAGARA2		('2')
++#define CPU_ID_NIAGARA3		('3')
++#define CPU_ID_NIAGARA4		('4')
++#define CPU_ID_NIAGARA5		('5')
++#define CPU_ID_M6		('6')
++#define CPU_ID_M7		('7')
++#define CPU_ID_SONOMA1		('N')
++
+ #ifndef __ASSEMBLY__
+ 
+ enum ultra_tlb_layout {
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 41a4073..ddb5e24 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -424,22 +424,22 @@ EXPORT_SYMBOL(sun4v_chip_type)
+ 	 nop
+ 
+ 70:	ldub	[%g1 + 7], %g2
+-	cmp	%g2, '3'
++	cmp	%g2, CPU_ID_NIAGARA3
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA3, %g4
+-	cmp	%g2, '4'
++	cmp	%g2, CPU_ID_NIAGARA4
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA4, %g4
+-	cmp	%g2, '5'
++	cmp	%g2, CPU_ID_NIAGARA5
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA5, %g4
+-	cmp	%g2, '6'
++	cmp	%g2, CPU_ID_M6
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_SPARC_M6, %g4
+-	cmp	%g2, '7'
++	cmp	%g2, CPU_ID_M7
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_SPARC_M7, %g4
+-	cmp	%g2, 'N'
++	cmp	%g2, CPU_ID_SONOMA1
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_SPARC_SN, %g4
+ 	ba,pt	%xcc, 49f
+@@ -448,10 +448,10 @@ EXPORT_SYMBOL(sun4v_chip_type)
+ 91:	sethi	%hi(prom_cpu_compatible), %g1
+ 	or	%g1, %lo(prom_cpu_compatible), %g1
+ 	ldub	[%g1 + 17], %g2
+-	cmp	%g2, '1'
++	cmp	%g2, CPU_ID_NIAGARA1
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA1, %g4
+-	cmp	%g2, '2'
++	cmp	%g2, CPU_ID_NIAGARA2
+ 	be,pt	%xcc, 5f
+ 	 mov	SUN4V_CHIP_NIAGARA2, %g4
+ 	
+-- 
+1.9.1
 
-Ok, the chip can do 54 bits.
-
-Can you guys just live with 53 bits for now?  Thanks.
-
-Please resubmit the M8 support patches, using 53 virtual address
-bits.  You can add a comment there stating that the chip supports
-54 but the 4-level page tables currently cannot support that.
-
-Maybe we can meanwhile figure out some trick to grab an extra virtual
-address bit from the page table layout without going to 5-levels.
