@@ -1,23 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 31 Jul 2017 23:23:31 +0000
-Subject: Re: [PATCH] sunhme: fix up GREG_STAT and GREG_IMASK register offsets
-Message-Id: <20170731.162331.1431467479318719169.davem@davemloft.net>
+From: Allen Pais <allen.pais@oracle.com>
+Date: Mon, 24 Jul 2017 06:26:19 +0000
+Subject: [PATCH v2 3/3] sparc64: Increase max_phys_bits to 51 for M8.
+Message-Id: <1500876859-8398-3-git-send-email-allen.pais@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501172760-26293-1-git-send-email-mark.cave-ayland@ilande.co.uk>
-In-Reply-To: <1501172760-26293-1-git-send-email-mark.cave-ayland@ilande.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Date: Thu, 27 Jul 2017 17:26:00 +0100
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
 
-> Update the values to match those from the STP2002QFP documentation.
-> 
-> Signed-off-by: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+On M8 chips, use a max_phys_bits value of 51 and also fix the VA hole.
 
-Applied to the networking GIT tree, you should have posted this to
-netdev@vger.kernel.org not (just) the sparc list.
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Allen Pais <allen.pais@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Thanks.
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index a111625..04c9ea3 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1921,12 +1921,18 @@ static void __init setup_page_offset(void)
+ 			break;
+ 		case SUN4V_CHIP_SPARC_M7:
+ 		case SUN4V_CHIP_SPARC_SN:
+-		default:
+ 			/* M7 and later support 52-bit virtual addresses.  */
+ 			sparc64_va_hole_top =    0xfff8000000000000UL;
+ 			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 49;
+ 			break;
++		case SUN4V_CHIP_SPARC_M8:
++		default:
++			/* M8 and later support 54-bit virtual addresses.  */
++			sparc64_va_hole_top =    0xffe0000000000000UL;
++			sparc64_va_hole_bottom = 0x0020000000000000UL;
++			max_phys_bits = 51;
++			break;
+ 		}
+ 	}
+ 
+-- 
+1.9.1
+
