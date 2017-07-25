@@ -1,148 +1,130 @@
-From: Helge Deller <deller@gmx.de>
-Date: Thu, 27 Jul 2017 21:10:05 +0000
-Subject: Re: [PATCH v3 1/3] arch: Define CPU_BIG_ENDIAN for all fixed big endian archs
-Message-Id: <8d0ac21c-5642-14f6-3820-815a1cc3c418@gmx.de>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Tue, 25 Jul 2017 13:46:26 +0000
+Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n  - any one else seeing this?
+Message-Id: <20170725134626.GL3730@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1497305400-147425-1-git-send-email-babu.moger@oracle.com>
- <1497305400-147425-2-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1497305400-147425-2-git-send-email-babu.moger@oracle.com>
+References: <20170725193039.00007c80@huawei.com>
+ <20170725222654.5a968588@roar.ozlabs.ibm.com>
+In-Reply-To: <20170725222654.5a968588@roar.ozlabs.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Babu Moger <babu.moger@oracle.com>, ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, viro@zeniv.linux.org.uk, monstr@monstr.eu
-Cc: mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On 13.06.2017 00:09, Babu Moger wrote:
-> While working on enabling queued rwlock on SPARC, found
-> this following code in include/asm-generic/qrwlock.h
-> which uses CONFIG_CPU_BIG_ENDIAN to clear a byte.
+On Tue, Jul 25, 2017 at 10:26:54PM +1000, Nicholas Piggin wrote:
+> On Tue, 25 Jul 2017 19:32:10 +0800
+> Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
 > 
-> static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
->  {
-> 	return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
->  }
-> 
-> Problem is many of the fixed big endian architectures don't define
-> CPU_BIG_ENDIAN and clears the wrong byte.
-> 
-> Define CPU_BIG_ENDIAN for all the fixed big endian architecture to fix it.
-> 
-> Also found few more references of this config parameter in
-> drivers/of/base.c
-> drivers/of/fdt.c
-> drivers/tty/serial/earlycon.c
-> drivers/tty/serial/serial_core.c
-> Be aware that this may cause regressions if someone has worked-around
-> problems in the above code already. Remove the work-around.
-> 
-> Here is our original discussion
-> https://lkml.org/lkml/2017/5/24/620
-> 
-> Signed-off-by: Babu Moger <babu.moger@oracle.com>
-> Suggested-by: Arnd Bergmann <arnd@arndb.de>
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: David S. Miller <davem@davemloft.net>
-> Acked-by: Stafford Horne <shorne@gmail.com>
+> > Hi All,
+> > 
+> > We observed a regression on our d05 boards (but curiously not
+> > the fairly similar but single socket / smaller core count
+> > d03), initially seen with linux-next prior to the merge window
+> > and still present in v4.13-rc2.
+> > 
+> > The symptom is:
 
-It seems for sparc it was already merged?
+Adding Dave Miller and the sparclinux@vger.kernel.org email on CC, as
+they have been seeing something similar, and you might well have saved
+them the trouble of bisecting.
 
-Anyway, you may add
-Acked-by: Helge Deller <deller@gmx.de> # parisc
+[ . . . ]
 
-Helge
+> > [ 1984.628602] rcu_preempt kthread starved for 5663 jiffies! g1566 c1565 f0x0 RCU_GP_WAIT_FQS(3) ->state=0x1
 
-> ---
->  arch/frv/Kconfig      |    3 +++
->  arch/h8300/Kconfig    |    3 +++
->  arch/m68k/Kconfig     |    3 +++
->  arch/openrisc/Kconfig |    3 +++
->  arch/parisc/Kconfig   |    3 +++
->  arch/sparc/Kconfig    |    3 +++
->  6 files changed, 18 insertions(+), 0 deletions(-)
+This is the cause from an RCU perspective.  You had a lot of idle CPUs,
+and RCU is not permitted to disturb them -- the battery-powered embedded
+guys get very annoyed by that sort of thing.  What happens instead is
+that each CPU updates a per-CPU state variable when entering or exiting
+idle, and the grace-period kthread ("rcu_preempt kthread" in the above
+message) checks these state variables, and if when sees an idle CPU,
+it reports a quiescent state on that CPU's behalf.
+
+But the grace-period kthread can only do this work if it gets a chance
+to run.  And the message above says that this kthread hasn't had a chance
+to run for a full 5,663 jiffies.  For completeness, the "g1566 c1565"
+says that grace period #1566 is in progress, the "f0x0" says that no one
+is needing another grace period #1567.  The "RCU_GP_WAIT_FQS(3)" says
+that the grace-period kthread has fully initialized the current grace
+period and is sleeping for a few jiffies waiting to scan for idle tasks.
+Finally, the "->state=0x1" says that the grace-period kthread is in
+TASK_INTERRUPTIBLE state, in other words, still sleeping.
+
+So my first question is "What did commit 05a4a9527 (kernel/watchdog:
+split up config options) do to prevent the grace-period kthread from
+getting a chance to run?"  I must confess that I don't see anything
+obvious in that commit, so my second question is "Are we sure that
+reverting this commit makes the problem go away?" and my third is "Is
+this an intermittent problem that led to a false bisection?"
+
+[ . . . ]
+
+> > Reducing the RCU CPU stall timeout makes it happen more often,
+> > but we are seeing even with the default value of 24 seconds.
+> > 
+> > Tends to occur after a period or relatively low usage, but has
+> > also been seen mid way through performance tests.
+> > 
+> > This was not seen with v4.12 so a bisection run later lead to
+> > commit 05a4a9527 (kernel/watchdog: split up config options).
+> > 
+> > Which was odd until we discovered that a side effect of this patch
+> > was to change whether the softlockup detector was enabled or not in
+> > the arm64 defconfig.
+> > 
+> > On 4.13-rc2 enabling the softlockup detector indeed stopped us
+> > seeing the rcu issue. Disabling the equivalent on 4.12 made the
+> > issue occur there as well.
+> > 
+> > Clearly the softlockup detector results in a thread on every cpu,
+> > which might be related but beyond that we are still looking into
+> > the issue.
+> > 
+> > So the obvious question is whether anyone else is seeing this as
+> > it might help us to focus in on where to look!
 > 
-> diff --git a/arch/frv/Kconfig b/arch/frv/Kconfig
-> index eefd9a4..1cce824 100644
-> --- a/arch/frv/Kconfig
-> +++ b/arch/frv/Kconfig
-> @@ -17,6 +17,9 @@ config FRV
->  	select HAVE_DEBUG_STACKOVERFLOW
->  	select ARCH_NO_COHERENT_DMA_MMAP
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config ZONE_DMA
->  	bool
->  	default y
-> diff --git a/arch/h8300/Kconfig b/arch/h8300/Kconfig
-> index 3ae8525..5380ac8 100644
-> --- a/arch/h8300/Kconfig
-> +++ b/arch/h8300/Kconfig
-> @@ -23,6 +23,9 @@ config H8300
->  	select HAVE_ARCH_HASH
->  	select CPU_NO_EFFICIENT_FFS
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config RWSEM_GENERIC_SPINLOCK
->  	def_bool y
->  
-> diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
-> index d140206..029a58b 100644
-> --- a/arch/m68k/Kconfig
-> +++ b/arch/m68k/Kconfig
-> @@ -23,6 +23,9 @@ config M68K
->  	select OLD_SIGSUSPEND3
->  	select OLD_SIGACTION
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config RWSEM_GENERIC_SPINLOCK
->  	bool
->  	default y
-> diff --git a/arch/openrisc/Kconfig b/arch/openrisc/Kconfig
-> index 1e95920..a0f2e4a 100644
-> --- a/arch/openrisc/Kconfig
-> +++ b/arch/openrisc/Kconfig
-> @@ -29,6 +29,9 @@ config OPENRISC
->  	select CPU_NO_EFFICIENT_FFS if !OPENRISC_HAVE_INST_FF1
->  	select NO_BOOTMEM
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config MMU
->  	def_bool y
->  
-> diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
-> index 531da9e..dda1f55 100644
-> --- a/arch/parisc/Kconfig
-> +++ b/arch/parisc/Kconfig
-> @@ -47,6 +47,9 @@ config PARISC
->  	  and later HP3000 series).  The PA-RISC Linux project home page is
->  	  at <http://www.parisc-linux.org/>.
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config MMU
->  	def_bool y
->  
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 908f019..0d9dc49 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -92,6 +92,9 @@ config ARCH_DEFCONFIG
->  config ARCH_PROC_KCORE_TEXT
->  	def_bool y
->  
-> +config CPU_BIG_ENDIAN
-> +	def_bool y
-> +
->  config ARCH_ATU
->  	bool
->  	default y if SPARC64
+> Huh. Something similar has been seen very intermittently on powerpc
+> as well. We couldn't reproduce it reliably to bisect it already, so
+> this is a good help.
+> 
+> http://marc.info/?l=linuxppc-embedded&m9872815523646&w=2
+> 
+> It looks like the watchdog patch has a similar effect on powerpc in
+> that it stops enabling the softlockup detector by default. Haven't
+> confirmed, but it looks like the same thing.
+> 
+> A bug in RCU stall detection?
+
+Well, if I am expected to make grace periods complete when my grace-period
+kthreads aren't getting any CPU time, I will have to make some substantial
+changes.  ;-)
+
+One possibility is that the timer isn't firing and another is that the
+timer's wakeup is being lost somehow.
+
+So another thing to try is to boot with rcutree.rcu_kick_kthreads=1.
+This will cause RCU to do redundant wakeups on the grace-period kthread
+if the grace period is moving slowly.  This is of course a crude hack,
+which is why this boot parameter will also cause a splat if it ever has
+to do anything.
+
+Does this help at all?
+
+							Thanx, Paul
+
+> > In the meantime we'll carry on digging.
+> > 
+> > Thanks,
+> > 
+> > Jonathan
+> > 
+> > p.s. As a more general question, do we want to have the
+> > soft lockup detector enabledon arm64 by default?
+> 
+> I've cc'ed Don. My patch should not have changed defconfigs, I
+> should have been more careful with that.
+> 
+> Thanks,
+> Nick
 > 
 
