@@ -1,28 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 26 Jul 2017 16:48:58 +0000
+Date: Wed, 26 Jul 2017 16:54:32 +0000
 Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
-Message-Id: <20170726.094858.1478051591748336400.davem@davemloft.net>
+Message-Id: <20170726.095432.169004918437663011.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170726103232.0000368e@huawei.com>
- <20170726132801.00001e8c@huawei.com>
- <20170726141417.GJ3730@linux.vnet.ibm.com>
-In-Reply-To: <20170726141417.GJ3730@linux.vnet.ibm.com>
+References: <20170726152315.00003d61@huawei.com>
+ <20170726163340.0000014f@huawei.com>
+ <20170726154900.GQ3730@linux.vnet.ibm.com>
+In-Reply-To: <20170726154900.GQ3730@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Wed, 26 Jul 2017 07:14:17 -0700
+Date: Wed, 26 Jul 2017 08:49:00 -0700
 
-> Dave, any other ideas on what might be causing this or what might be
-> tested?
+> On Wed, Jul 26, 2017 at 04:33:40PM +0100, Jonathan Cameron wrote:
+>> Didn't leave it long enough. Still bad on 4.10-rc7 just took over
+>> an hour to occur.
+> 
+> And it is quite possible that SOFTLOCKUP_DETECTOR=y and HZ_PERIODIC=y
+> are just greatly reducing the probability of the problem rather than
+> completely preventing it.
+> 
+> Still, hopefully useful information, thank you for the testing!
 
-I was going to go through the changes that happened between v4.12
-and now to kernel/timer/tick-sched.c and see if reverting any of
-those help.
+I guess that invalidates my idea to test reverting recent changes to
+the tick-sched.c code... :-/
 
-But I don't know when I would get to that.
+In NO_HZ_IDLE mode, what is really supposed to happen on a completely
+idle system?
 
-Commit 411fe24e6b7c283c3a1911450cdba6dd3aaea56e, looks particularly juicy.
-:-)
+All the cpus enter the idle loop, have no timers programmed, and they
+all just go to sleep until an external event happens.
+
+What ensures that grace periods get processed in this regime?
