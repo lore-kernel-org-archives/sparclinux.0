@@ -1,52 +1,75 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 21 Jul 2017 01:51:01 +0000
-Subject: [PATCH v1 4/4] sparc64: add boot line core to context domain parameter
-Message-Id: <1500601861-203232-5-git-send-email-pasha.tatashin@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Sat, 29 Jul 2017 18:42:16 +0000
+Subject: [PATCH v5 0/3] sparc64: Add 16GB hugepage support
+Message-Id: <cover.1501353478.git.nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add an option to cause fewer cores to a context domain. A value of zero is
-allowed to for a single context domain.
+SPARC architecture supports 16G hugepages but the kernel did not
+support these. This patch series adds support for it and also cleanes
+up some page walk/alloc functions.
 
-The boot command line parameter name is "cores_to_context_domain".
+Patch 1/3: Core changes needed to add 16G hugepage support: To map a
+  single 16G hugepage, two PUD entries are used. Each PUD entry maps
+  8G portion of a 16G page. This page table encoding scheme is same as
+  that used for hugepages at PMD level (8M, 256M and 2G pages) where
+  each PMD entry points successively to 8M regions within a page.  No
+  page table entries below the PUD level are allocated for 16G
+  hugepage since those are not required.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Signed-off-by: Bob Picco <bob.picco@oracle.com>
----
- arch/sparc/mm/init_64.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+  TSB entries for a 16G page are created at every 4M boundary since
+  the HUGE_TSB is used for these pages which is configured with page
+  size of 4M.  When walking page tables (on a TSB miss), bits [32:22]
+  are transferred from vaddr to PUD to resolve addresses at 4M
+  boundary. The resolved address mapping is then stored in HUGE_TSB.
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 8c61fbc..9ada3c8 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2302,6 +2302,23 @@ static unsigned short cpu_to_context_domain_id(int cpu)
- 	return cpu / strands_to_context_domain;
- }
- 
-+static int __init core_to_cd_early(char *p)
-+{
-+	unsigned short result;
-+
-+	if (kstrtou16(p, 10, &result) < 0) {
-+		pr_err("Invalid core to context domain value.\n");
-+		return 0;
-+	}
-+
-+	cores_to_context_domain = result;
-+	pr_info("Using core to context domain count of %u.\n",
-+		cores_to_context_domain);
-+	return 0;
-+}
-+
-+early_param("cores_to_context_domain", core_to_cd_early);
-+
- static void __init context_domains_init(void)
- {
- 	phys_addr_t cda_size;
+Patch 2/3: get_user_pages() etc. are used for direct IO. These
+  functions were not aware of hugepages at the PUD level and would try
+  to continue walking page tables beyond the PUD level. Since 16G
+  hugepages have page tables allocated till PUD level only, these
+  accesses would result in invalid access. This patch adds the case
+  for PUD huge pages to these functions.
+
+Patch 3/3: Patch 1 added the case of PUD entry being huge in page
+  table walk and alloc functions. This new case further increased
+  nesting in these functions and made them harder to follow. This
+  patch flattens these functions for better readability.
+
+Cc: sparclinux@vger.kernel.org
+
+Changelog v5 vs v4:
+ - Checking at PUD level for hugepage entry during page table walk is
+   patched out if 16GB hugepages are not being used.
+Changelog v4 vs v3:
+ - Added cover letter (patch 0/4) for patch series.
+Changelog v3 vs v2:
+ - Fixed email headers so the subject shows up correctly.
+
+Changelog v2 vs v1:
+ - Remove redundant brgez,pn (Bob Picco)
+ - Remove unncessary label rename from 700 to 701 (Rob Gardner)
+ - Add patch description (Paul)
+ - Add 16G case to get_user_pages()
+
+Nitin Gupta (3):
+  sparc64: Support huge PUD case in get_user_pages
+  sparc64: Add 16GB hugepage support
+  sparc64: Cleanup hugepage table walk functions
+
+ arch/sparc/include/asm/hugetlb.h    |   7 +++
+ arch/sparc/include/asm/page_64.h    |   3 +-
+ arch/sparc/include/asm/pgtable_64.h |  20 ++++++-
+ arch/sparc/include/asm/tsb.h        |  36 +++++++++++++
+ arch/sparc/kernel/tsb.S             |   2 +-
+ arch/sparc/kernel/vmlinux.lds.S     |   5 ++
+ arch/sparc/mm/gup.c                 |  45 +++++++++++++++-
+ arch/sparc/mm/hugetlbpage.c         | 102 +++++++++++++++++++++---------------
+ arch/sparc/mm/init_64.c             |  54 ++++++++++++++++---
+ 9 files changed, 220 insertions(+), 54 deletions(-)
+
 -- 
-1.7.1
+2.9.2
 
