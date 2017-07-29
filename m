@@ -1,22 +1,52 @@
-From: "Gary Walker" <gwalker210970@leaf.ocn.ne.jp>
-Date: Wed, 19 Jul 2017 17:42:17 +0000
-Subject: Re: Investment Consideration
-Message-Id: <20170719174209.C83605F5080@msgw011-02.ocn.ad.jp>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Sat, 29 Jul 2017 01:29:32 +0000
+Subject: [PATCH v3] sparc64: Increase max_phys_bits to 51 and VA bits to 53 for M8.
+Message-Id: <1501291772-470855-1-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170618132915.3403A47DC59@msgw011-04.ocn.ad.jp>
-In-Reply-To: <20170618132915.3403A47DC59@msgw011-04.ocn.ad.jp>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Thank you for your time,
+On M8 chips, use a max_phys_bits value of 51.
 
-We are looking for clients in your country with good business or project that requires financing to execute.
+Also, M8 supports VA bits up to 54 bits. However, for now
+restrict VA bits to 53 due to 4-level pagetable limitation.
 
-Please get back to me if you are interested in this or you know anybody who has good business ideas but lack the necessary capital to fund his projects so we can establish working relationship.
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
 
-Sincerely,
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index a111625..d4d96b8 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1921,12 +1921,22 @@ static void __init setup_page_offset(void)
+ 			break;
+ 		case SUN4V_CHIP_SPARC_M7:
+ 		case SUN4V_CHIP_SPARC_SN:
+-		default:
+ 			/* M7 and later support 52-bit virtual addresses.  */
+ 			sparc64_va_hole_top =    0xfff8000000000000UL;
+ 			sparc64_va_hole_bottom = 0x0008000000000000UL;
+ 			max_phys_bits = 49;
+ 			break;
++		case SUN4V_CHIP_SPARC_M8:
++		default:
++			/* M8 and later support 54-bit virtual addresses.
++			 * However, restricting M8 and above VA bits to 53
++			 * as 4-level page table cannot support more than
++			 * 53 VA bits.
++			 */
++			sparc64_va_hole_top =    0xfff0000000000000UL;
++			sparc64_va_hole_bottom = 0x0010000000000000UL;
++			max_phys_bits = 51;
++			break;
+ 		}
+ 	}
+ 
+-- 
+1.7.1
 
-Gary Walker, MBA, CFA
-General Investment Consultant
