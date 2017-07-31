@@ -1,97 +1,136 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Date: Mon, 31 Jul 2017 11:55:48 +0000
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Mon, 31 Jul 2017 15:04:11 +0000
 Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
-Message-Id: <20170731125548.00007b68@huawei.com>
+Message-Id: <20170731150411.GA3730@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170726.095432.169004918437663011.davem@davemloft.net>
- <20170726175013.GT3730@linux.vnet.ibm.com>
- <20170726223658.GA27617@linux.vnet.ibm.com>
- <20170726.154540.150558937277891719.davem@davemloft.net>
- <20170726231505.GG3730@linux.vnet.ibm.com>
- <20170731120908.00002e28@huawei.com>
-In-Reply-To: <20170731120908.00002e28@huawei.com>
+References: <20170727124913.GL3730@linux.vnet.ibm.com>
+ <20170727144903.000022a1@huawei.com>
+ <20170727173923.000001b2@huawei.com>
+ <20170727165245.GD3730@linux.vnet.ibm.com>
+ <20170728084411.00001ddb@huawei.com>
+ <20170728142403.0000122b@huawei.com>
+ <20170728165529.GF3730@linux.vnet.ibm.com>
+ <20170728182053.000072aa@huawei.com>
+ <20170728190349.GM3730@linux.vnet.ibm.com>
+ <20170731120847.00003d5c@huawei.com>
+In-Reply-To: <20170731120847.00003d5c@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, 31 Jul 2017 12:09:08 +0100
-Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
-
-> On Wed, 26 Jul 2017 16:15:05 -0700
+On Mon, Jul 31, 2017 at 12:08:47PM +0100, Jonathan Cameron wrote:
+> On Fri, 28 Jul 2017 12:03:50 -0700
 > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
-> 
-> > On Wed, Jul 26, 2017 at 03:45:40PM -0700, David Miller wrote:  
-> > > From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-> > > Date: Wed, 26 Jul 2017 15:36:58 -0700
-> > >     
-> > > > And without CONFIG_SOFTLOCKUP_DETECTOR, I see five runs of 24 with RCU
-> > > > CPU stall warnings.  So it seems likely that CONFIG_SOFTLOCKUP_DETECTOR
-> > > > really is having an effect.    
-> > > 
-> > > Thanks for all of the info Paul, I'll digest this and scan over the
-> > > code myself.
-> > > 
-> > > Just out of curiousity, what x86 idle method is your machine using?
-> > > The mwait one or the one which simply uses 'halt'?  The mwait variant
-> > > might mask this bug, and halt would be a lot closer to how sparc64 and
-> > > Jonathan's system operates.    
-> > 
-> > My kernel builds with CONFIG_INTEL_IDLE=n, which I believe means that
-> > I am not using the mwait one.  Here is a grep for IDLE in my .config:
-> > 
-> > 	CONFIG_NO_HZ_IDLE=y
-> > 	CONFIG_GENERIC_SMP_IDLE_THREAD=y
-> > 	# CONFIG_IDLE_PAGE_TRACKING is not set
-> > 	CONFIG_ACPI_PROCESSOR_IDLE=y
-> > 	CONFIG_CPU_IDLE=y
-> > 	# CONFIG_CPU_IDLE_GOV_LADDER is not set
-> > 	CONFIG_CPU_IDLE_GOV_MENU=y
-> > 	# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
-> > 	# CONFIG_INTEL_IDLE is not set
-> >   
-> > > On sparc64 the cpu yield we do in the idle loop sleeps the cpu.  It's
-> > > local TICK register keeps advancing, and the local timer therefore
-> > > will still trigger.  Also, any externally generated interrupts
-> > > (including cross calls) will wake up the cpu as well.
-> > > 
-> > > The tick-sched code is really tricky wrt. NO_HZ even in the NO_HZ_IDLE
-> > > case.  One of my running theories is that we miss scheduling a tick
-> > > due to a race.  That would be consistent with the behavior we see
-> > > in the RCU dumps, I think.    
-> > 
-> > But wouldn't you have to miss a -lot- of ticks to get an RCU CPU stall
-> > warning?  By default, your grace period needs to extend for more than
-> > 21 seconds (more than one-third of a -minute-) to get one.  Or do
-> > you mean that the ticks get shut off now and forever, as opposed to
-> > just losing one of them?
-> >   
-> > > Anyways, just a theory, and that's why I keep mentioning that commit
-> > > about the revert of the revert (specifically
-> > > 411fe24e6b7c283c3a1911450cdba6dd3aaea56e).
-> > > 
-> > > :-)    
-> > 
-> > I am running an overnight test in preparation for attempting to push
-> > some fixes for regressions into 4.12, but will try reverting this
-> > and enabling CONFIG_HZ_PERIODIC tomorrow.
-> > 
-> > Jonathan, might the commit that Dave points out above be what reduces
-> > the probability of occurrence as you test older releases?  
-> I just got around to trying this out of curiosity.  Superficially it did
-> appear to possibly make the issue harder to hit took over 30 minutes
-> but the issue otherwise looks much the same with or without that patch.
-> 
-> Just out of curiosity, next thing on my list is to disable hrtimers entirely
-> and see what happens.
-> 
-> Jonathan
-> > 
+>=20
+> > On Fri, Jul 28, 2017 at 06:27:05PM +0100, Jonathan Cameron wrote:
+> > > On Fri, 28 Jul 2017 09:55:29 -0700
+> > > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
+> > >  =20
+> > > > On Fri, Jul 28, 2017 at 02:24:03PM +0100, Jonathan Cameron wrote:  =
+
+> > > > > On Fri, 28 Jul 2017 08:44:11 +0100
+> > > > > Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:   =20
+> > > >=20
+> > > > [ . . . ]
+> > > >  =20
+> > > > > Ok.  Some info.  I disabled a few driver (usb and SAS) in the int=
+erest of having
+> > > > > fewer timer events.  Issue became much easier to trigger (on some=
+ runs before
+> > > > > I could get tracing up and running)
+> > > > >e
+> > > > > So logs are large enough that pastebin doesn't like them - please=
+ shoet if   =20
+> > > > >>e another timer period is of interest.   =20
+> > > > >=20
+> > > > > https://pastebin.com/iUZDfQGM for the timer trace.
+> > > > > https://pastebin.com/3w1F7amH for dmesg. =20
+> > > > >=20
+> > > > > The relevant timeout on the RCU stall detector was 8 seconds.  Ev=
+ent is
+> > > > > detected around 835.
+> > > > >=20
+> > > > > It's a lot of logs, so I haven't identified a smoking gun yet but=
+ there
+> > > > > may well be one in there.   =20
+> > > >=20
+> > > > The dmesg says:
+> > > >=20
+> > > > rcu_preempt kthread starved for 2508 jiffies! g112 c111 f0x0 RCU_GP=
+_WAIT_FQS(3) ->state=3D0x1
+> > > >=20
+> > > > So I look for "rcu_preempt" timer events and find these:
+> > > >=20
+> > > > rcu_preempt-9     [019] ....   827.579114: timer_init: timer=FFff80=
+17d5fc7da0
+> > > > rcu_preempt-9     [019] d..1   827.579115: timer_start: timer=FFff8=
+017d5fc7da0 function=3Dprocess_timeout=20
+> > > >=20
+> > > > Next look for "ffff8017d5fc7da0" and I don't find anything else. =20
+> > > It does show up off the bottom of what would fit in pastebin...
+> > >=20
+> > >      rcu_preempt-9     [001] d..1   837.681077: timer_cancel: timer=
+=FFff8017d5fc7da0
+> > >      rcu_preempt-9     [001] ....   837.681086: timer_init: timer=FFf=
+f8017d5fc7da0
+> > >      rcu_preempt-9     [001] d..1   837.681087: timer_start: timer=FF=
+ff8017d5fc7da0 function=3Dprocess_timeout expiresB95101298 [timeout=3D1] cp=
+u=3D1 idx=3D0 flags=3D =20
+> >=20
+> > Odd.  I would expect an expiration...  And ten seconds is way longer
+> > than the requested one jiffy!
+> >=20
+> > > > The timeout was one jiffy, and more than a second later, no expirat=
+ion.
+> > > > Is it possible that this event was lost?  I am not seeing any sign =
+of
+> > > > this is the trace.
+> > > >=20
+> > > > I don't see any sign of CPU hotplug (and I test with lots of that in
+> > > > any case).
+> > > >=20
+> > > > The last time we saw something like this it was a timer HW/driver p=
+roblem,
+> > > > but it is a bit hard to imagine such a problem affecting both ARM64
+> > > > and SPARC.  ;-) =20
+> > > Could be different issues, both of which were hidden by that lockup d=
+etector.
+> > >=20
+> > > There is an errata work around for the timers on this particular boar=
+d.
+> > > I'm only vaguely aware of it, so may be unconnected.
+> > >=20
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/co=
+mmit/drivers/clocksource/arm_arch_timer.c?h=3Dv4.13-rc2&id=BB42ca47401010fc=
+02901b5e8f79e40a26f208cb
+> > >=20
+> > > Seems unlikely though! + we've not yet seen it on the other chips that
+> > > errata effects (not that that means much). =20
+> >=20
+> > If you can reproduce quickly, might be worth trying anyway...
+> >=20
 > > 							Thanx, Paul
-> >   
-> 
-> _______________________________________________
-> linuxarm mailing list
-> linuxarm@huawei.com
-> http://rnd-openeuler.huawei.com/mailman/listinfo/linuxarm
+> Errata fix is running already and was for all those tests.
+
+I was afraid of that...  ;-)
+
+> I'll have a dig into the timers today and see where I get to.
+
+Look forward to seeing what you find!
+
+							Thanx, Paul
+
+> Jonathan
+> >=20
+> > > Jonathan
+> > >  =20
+> > > >=20
+> > > > Thomas, any debugging suggestions?
+> > > >=20
+> > > > 							Thanx, Paul
+> > > >  =20
+> > >  =20
+> >=20
+>=20
 
