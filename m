@@ -1,95 +1,99 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 17 Aug 2017 15:37:11 +0000
-Subject: Re: [v6 01/15] x86/mm: reserve only exiting low pages
-Message-Id: <5c39369d-c8a4-ceab-1845-6b36eabe7fca@oracle.com>
+From: Mikael Pettersson <mikpelinux@gmail.com>
+Date: Tue, 01 Aug 2017 07:29:28 +0000
+Subject: Re: strace-4.18 test suite oopses sparc64 4.12 and 4.13-rc kernels
+Message-Id: <22912.11736.664315.645426@gargle.gargle.HOWL>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
- <1502138329-123460-2-git-send-email-pasha.tatashin@oracle.com>
- <20170814135525.GN19063@dhcp22.suse.cz>
-In-Reply-To: <20170814135525.GN19063@dhcp22.suse.cz>
+References: <CADxRZqzkUqWsHgw8eNHF4E_wi5a6d=hJnmEtm5omsw42tHAw+Q@mail.gmail.com>
+        <20170731.145151.571917275997786929.davem@davemloft.net>
+        <CADxRZqz+oQn8=Q3RDtfko9ctP1RE41XnsVP3H8RXJuE9m=VPLw@mail.gmail.com>
+        <20170731.150632.885106324164202893.davem@davemloft.net>
+In-Reply-To: <20170731.150632.885106324164202893.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: David Miller <davem@davemloft.net>
+Cc: matorola@gmail.com, mikpelinux@gmail.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Michal,
+David Miller writes:
+ > From: Anatoly Pugachev <matorola@gmail.com>
+ > Date: Tue, 1 Aug 2017 01:01:47 +0300
+ > 
+ > > I don't know how to run on a running kernel , but as I understood:
+ > > 
+ > > root@v215:strace# gzip -dc /boot/vmlinuz-4.12.0 > vmlinux
+ > > root@v215:strace# gdb -q vmlinux
+ > > Reading symbols from vmlinux...(no debugging symbols found)...done.
+ > > (gdb) x/20i 0x49b294 - 16
+ > 
+ > Unfortunately you need to do this on the build kernel image before it
+ > has been stripped of all of it's symbols.
+ > 
+ > Mikael, you built your kernels right?
+ > 
+ > Go into one of your OOPS's and extract the "RPC: " hex value, and run
+ > the gdb command:
+ > 
+ > bash$ cd src/linux
+ > bash$ gdb ./vmlinux
+ > (gdb) x/10i 0x${RPC_HEX_VALUE} - 16
+ > 
+ > Thanks.
 
-While working on a bug that was reported to me by "kernel test robot".
+Ok, with 4.13-rc3 I got
 
-  unable to handle kernel NULL pointer dereference at           (null)
+[  240.085153] Unable to handle kernel NULL pointer dereference
+[  240.142397] tsk->{mm,active_mm}->context = 000000000000044a
+[  240.198531] tsk->{mm,active_mm}->pgd = fff000023c784000
+[  240.250112]               \|/ ____ \|/
+                             "@'/ .. \`@"
+                             /_| \__/ |_\
+                                \__U_/
+[  240.374879] poll(724): Oops [#1]
+[  240.400132] CPU: 0 PID: 724 Comm: poll Not tainted 4.13.0-rc3 #1
+[  240.462002] task: fff000123cc71e00 task.stack: fff000123c894000
+[  240.522717] TSTATE: 0000004411001605 TPC: 00000000007570fc TNPC: 0000000000757110 Y: 00000000    Not tainted
+[  240.634921] TPC: <__bzero+0x20/0xc0>
+[  240.664747] g0: fff000123c897081 g1: 0000000000000000 g2: 0000000000000000 g3: 00000000008ca100
+[  240.762068] g4: fff000123cc71e00 g5: fff000023ef44000 g6: fff000123c894000 g7: 0000000000000008
+[  240.859389] o0: 000000000000000c o1: fff000123c897a80 o2: 0000000000000000 o3: 000000000000000c
+[  240.956718] o4: fff000123c897a7c o5: 00000000000000fb sp: fff000123c897181 ret_pc: 0000000000516ee0
+[  241.058627] RPC: <do_sys_poll+0x80/0x3c0>
+[  241.094166] l0: 0000000000000002 l1: 00000000014000c0 l2: 00000000000003fe l3: fff000123c897a7c
+[  241.191506] l4: 0000000000000000 l5: 0000000000000000 l6: 000000000000006d l7: ffffffffffffffea
+[  241.288822] i0: 00000000f7d93ff8 i1: 0000000000000002 i2: fff000123c897e90 i3: fff000123c897a70
+[  241.386141] i4: 000fffedc3768590 i5: fff000123c897a70 i6: fff000123c8975e1 i7: 00000000005177f8
+[  241.483468] I7: <SyS_poll+0x74/0xd0>
+[  241.513292] Call Trace:
+[  241.528265]  [00000000005177f8] SyS_poll+0x74/0xd0
+[  241.574140]  [00000000004061b4] linux_sparc_syscall32+0x34/0x60
+[  241.634847] Disabling lock debugging due to kernel taint
+[  241.687555] Caller[00000000005177f8]: SyS_poll+0x74/0xd0
+[  241.740276] Caller[00000000004061b4]: linux_sparc_syscall32+0x34/0x60
+[  241.807855] Caller[0000000000010a20]: 0x10a20
+[  241.847983] Instruction DUMP:
+[  241.847987]  c56a2000 
+[  241.869824]  808a2003 
+[  241.883651]  02480006 
+[  241.897475] <d42a2000>
+[  241.911207]  90022001 
+[  241.925032]  808a2003 
+[  241.938755]  1247fffd 
+[  241.952484]  92226001 
+[  241.966310]  808a2007 
 
-The issue was that page_to_pfn() on that configuration was looking for a 
-section inside flags fields in "struct page". So, reserved but 
-unavailable memory should have its "struct page" zeroed.
+so the RPC should be do_sys_poll+0x80 right?  Then gdb on the original vmlinux said:
 
-Therefore, I am going to remove this patch from my series, but instead 
-have a new patch that iterates through:
+(gdb) x/10i do_sys_poll+0x80-16
+   0x516ed0 <do_sys_poll+112>:  brz  %o0, 0x5170fc <do_sys_poll+668>
+   0x516ed4 <do_sys_poll+116>:  mov  %o0, %o2
+   0x516ed8 <do_sys_poll+120>:  sub  %i4, %o0, %i4
+   0x516edc <do_sys_poll+124>:  clr  %o1
+   0x516ee0 <do_sys_poll+128>:  call  0x7570b8 <memset>
+   0x516ee4 <do_sys_poll+132>:  add  %l3, %i4, %o0
+   0x516ee8 <do_sys_poll+136>:  b  %xcc, 0x5170b0 <do_sys_poll+592>
+   0x516eec <do_sys_poll+140>:  mov  -14, %l7
+   0x516ef0 <do_sys_poll+144>:  mov  %l2, %o0
+   0x516ef4 <do_sys_poll+148>:  movleu  %xcc, %l0, %o0
+(gdb)
 
-reserved && !memory memblocks, and zeroes struct pages for them. Since 
-for that memory struct pages will never go through __init_single_page(), 
-yet some fields might still be accessed.
-
-Pasha
-
-On 08/14/2017 09:55 AM, Michal Hocko wrote:
-> Let's CC Hpa on this one. I am still not sure it is correct. The full
-> series is here
-> http://lkml.kernel.org/r/1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com
-> 
-> On Mon 07-08-17 16:38:35, Pavel Tatashin wrote:
->> Struct pages are initialized by going through __init_single_page(). Since
->> the existing physical memory in memblock is represented in memblock.memory
->> list, struct page for every page from this list goes through
->> __init_single_page().
->>
->> The second memblock list: memblock.reserved, manages the allocated memory.
->> The memory that won't be available to kernel allocator. So, every page from
->> this list goes through reserve_bootmem_region(), where certain struct page
->> fields are set, the assumption being that the struct pages have been
->> initialized beforehand.
->>
->> In trim_low_memory_range() we unconditionally reserve memoryfrom PFN 0, but
->> memblock.memory might start at a later PFN. For example, in QEMU,
->> e820__memblock_setup() can use PFN 1 as the first PFN in memblock.memory,
->> so PFN 0 is not on memblock.memory (and hence isn't initialized via
->> __init_single_page) but is on memblock.reserved (and hence we set fields in
->> the uninitialized struct page).
->>
->> Currently, the struct page memory is always zeroed during allocation,
->> which prevents this problem from being detected. But, if some asserts
->> provided by CONFIG_DEBUG_VM_PGFLAGS are tighten, this problem may become
->> visible in existing kernels.
->>
->> In this patchset we will stop zeroing struct page memory during allocation.
->> Therefore, this bug must be fixed in order to avoid random assert failures
->> caused by CONFIG_DEBUG_VM_PGFLAGS triggers.
->>
->> The fix is to reserve memory from the first existing PFN.
->>
->> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
->> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
->> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
->> Reviewed-by: Bob Picco <bob.picco@oracle.com>
->> ---
->>   arch/x86/kernel/setup.c | 5 ++++-
->>   1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
->> index 3486d0498800..489cdc141bcb 100644
->> --- a/arch/x86/kernel/setup.c
->> +++ b/arch/x86/kernel/setup.c
->> @@ -790,7 +790,10 @@ early_param("reservelow", parse_reservelow);
->>   
->>   static void __init trim_low_memory_range(void)
->>   {
->> -	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
->> +	unsigned long min_pfn = find_min_pfn_with_active_regions();
->> +	phys_addr_t base = min_pfn << PAGE_SHIFT;
->> +
->> +	memblock_reserve(base, ALIGN(reserve_low, PAGE_SIZE));
->>   }
->>   	
->>   /*
->> -- 
->> 2.14.0
-> 
+/Mikael
