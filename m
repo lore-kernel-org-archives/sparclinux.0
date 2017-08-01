@@ -1,26 +1,32 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 11 Aug 2017 16:04:51 +0000
-Subject: Re: [v6 09/15] sparc64: optimized struct page zeroing
-Message-Id: <3830e513-cb35-e52e-341c-25eaecc51d43@oracle.com>
+From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+Date: Tue, 01 Aug 2017 19:22:27 +0000
+Subject: Re: [PATCH] sunhme: fix up GREG_STAT and GREG_IMASK register offsets
+Message-Id: <146814bb-31ad-17af-9edc-3eb5d01777ba@ilande.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
- <1502138329-123460-10-git-send-email-pasha.tatashin@oracle.com>
- <20170811125326.GK30811@dhcp22.suse.cz>
-In-Reply-To: <20170811125326.GK30811@dhcp22.suse.cz>
+References: <1501172760-26293-1-git-send-email-mark.cave-ayland@ilande.co.uk>
+In-Reply-To: <1501172760-26293-1-git-send-email-mark.cave-ayland@ilande.co.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
->> Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
->> calling memset(). We do eight to tent regular stores based on the size of
->> struct page. Compiler optimizes out the conditions of switch() statement.
+On 01/08/17 00:23, David Miller wrote:
+
+> From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+> Date: Thu, 27 Jul 2017 17:26:00 +0100
 > 
-> Again, this doesn't explain why we need this. You have mentioned those
-> reasons in some previous emails but be explicit here please.
+>> Update the values to match those from the STP2002QFP documentation.
+>>
+>> Signed-off-by: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
 > 
+> Applied to the networking GIT tree, you should have posted this to
+> netdev@vger.kernel.org not (just) the sparc list.
 
-I will add performance data to this patch as well.
+Ah sorry my bad, noted for future reference. Thanks a lot for queuing
+the patch, it will be interesting to see what happens when someone tries
+it on real hardware...
 
-Thank you,
-Pasha
+
+ATB,
+
+Mark.
