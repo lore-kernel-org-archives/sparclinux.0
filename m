@@ -1,369 +1,82 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Mon, 07 Aug 2017 23:52:49 +0000
-Subject: [PATCH v2 1/4] arch/sparc: Separate the exception handlers from NG4memcpy
-Message-Id: <1502149972-61517-2-git-send-email-babu.moger@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:11 +0000
+Subject: [v4 02/15] x86/mm: setting fields in deferred pages
+Message-Id: <1501706304-869240-3-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502149972-61517-1-git-send-email-babu.moger@oracle.com>
-In-Reply-To: <1502149972-61517-1-git-send-email-babu.moger@oracle.com>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, babu.moger@oracle.com
+To: linux-arm-kernel@lists.infradead.org
 
-Separate the exception handlers from NG4memcpy so that it can be
-used with new memcpy routines. Make a separate file for all these handlers.
+Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+flags and other fields in "struct page"es are never changed prior to first
+initializing struct pages by going through __init_single_page().
 
-Signed-off-by: Babu Moger <babu.moger@oracle.com>
+With deferred struct page feature enabled there is a case where we set some
+fields prior to initializing:
+
+        mem_init() {
+                register_page_bootmem_info();
+                free_all_bootmem();
+                ...
+        }
+
+When register_page_bootmem_info() is called only non-deferred struct pages
+are initialized. But, this function goes through some reserved pages which
+might be part of the deferred, and thus are not yet initialized.
+
+  mem_init
+   register_page_bootmem_info
+    register_page_bootmem_info_node
+     get_page_bootmem
+      .. setting fields here ..
+      such as: page->freelist = (void *)type;
+
+We end-up with similar issue as in the previous patch, where currently we
+do not observe problem as memory is zeroed. But, if flag asserts are
+changed we can start hitting issues.
+
+Also, because in this patch series we will stop zeroing struct page memory
+during allocation, we must make sure that struct pages are properly
+initialized prior to using them.
+
+The deferred-reserved pages are initialized in free_all_bootmem().
+Therefore, the fix is to switch the above calls.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/sparc/lib/Makefile       |    2 +
- arch/sparc/lib/Memcpy_utils.S |  163 +++++++++++++++++++++++++++++++++++++++++
- arch/sparc/lib/NG4memcpy.S    |  149 -------------------------------------
- 3 files changed, 165 insertions(+), 149 deletions(-)
- create mode 100644 arch/sparc/lib/Memcpy_utils.S
+ arch/x86/mm/init_64.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 07c03e7..37930c0 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -36,6 +36,8 @@ lib-$(CONFIG_SPARC64) +=  NG2patch.o
- lib-$(CONFIG_SPARC64) += NG4memcpy.o NG4copy_from_user.o NG4copy_to_user.o
- lib-$(CONFIG_SPARC64) +=  NG4patch.o NG4copy_page.o NG4clear_page.o NG4memset.o
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 136422d7d539..1e863baec847 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1165,12 +1165,17 @@ void __init mem_init(void)
  
-+lib-$(CONFIG_SPARC64) += Memcpy_utils.o
-+
- lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
- lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
+ 	/* clear_bss() already clear the empty_zero_page */
  
-diff --git a/arch/sparc/lib/Memcpy_utils.S b/arch/sparc/lib/Memcpy_utils.S
-new file mode 100644
-index 0000000..f7a26e0
---- /dev/null
-+++ b/arch/sparc/lib/Memcpy_utils.S
-@@ -0,0 +1,163 @@
-+#ifndef __ASM_MEMCPY_UTILS
-+#define __ASM_MEMCPY_UTILS
-+
-+#include <linux/linkage.h>
-+#include <asm/asi.h>
-+#include <asm/visasm.h>
-+
-+ENTRY(__restore_asi_fp)
-+	VISExitHalf
-+	retl
-+	 wr	%g0, ASI_AIUS, %asi
-+ENDPROC(__restore_asi_fp)
-+
-+ENTRY(__restore_asi)
-+	retl
-+	 wr	%g0, ASI_AIUS, %asi
-+ENDPROC(__restore_asi)
-+
-+ENTRY(NG4_retl_o2)
-+	ba,pt	%xcc, __restore_asi
-+	 mov	%o2, %o0
-+ENDPROC(NG4_retl_o2)
-+ENTRY(NG4_retl_o2_plus_1)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, 1, %o0
-+ENDPROC(NG4_retl_o2_plus_1)
-+ENTRY(NG4_retl_o2_plus_4)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, 4, %o0
-+ENDPROC(NG4_retl_o2_plus_4)
-+ENTRY(NG4_retl_o2_plus_o5)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5)
-+ENTRY(NG4_retl_o2_plus_o5_plus_4)
-+	add	%o5, 4, %o5
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5_plus_4)
-+ENTRY(NG4_retl_o2_plus_o5_plus_8)
-+	add	%o5, 8, %o5
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5_plus_8)
-+ENTRY(NG4_retl_o2_plus_o5_plus_16)
-+	add	%o5, 16, %o5
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5_plus_16)
-+ENTRY(NG4_retl_o2_plus_o5_plus_24)
-+	add	%o5, 24, %o5
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5_plus_24)
-+ENTRY(NG4_retl_o2_plus_o5_plus_32)
-+	add	%o5, 32, %o5
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o5, %o0
-+ENDPROC(NG4_retl_o2_plus_o5_plus_32)
-+ENTRY(NG4_retl_o2_plus_g1)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG4_retl_o2_plus_g1)
-+ENTRY(NG4_retl_o2_plus_g1_plus_1)
-+	add	%g1, 1, %g1
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG4_retl_o2_plus_g1_plus_1)
-+ENTRY(NG4_retl_o2_plus_g1_plus_8)
-+	add	%g1, 8, %g1
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %g1, %o0
-+ENDPROC(NG4_retl_o2_plus_g1_plus_8)
-+ENTRY(NG4_retl_o2_plus_o4)
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4)
-+ENTRY(NG4_retl_o2_plus_o4_plus_8)
-+	add	%o4, 8, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_8)
-+ENTRY(NG4_retl_o2_plus_o4_plus_16)
-+	add	%o4, 16, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_16)
-+ENTRY(NG4_retl_o2_plus_o4_plus_24)
-+	add	%o4, 24, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_24)
-+ENTRY(NG4_retl_o2_plus_o4_plus_32)
-+	add	%o4, 32, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_32)
-+ENTRY(NG4_retl_o2_plus_o4_plus_40)
-+	add	%o4, 40, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_40)
-+ENTRY(NG4_retl_o2_plus_o4_plus_48)
-+	add	%o4, 48, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_48)
-+ENTRY(NG4_retl_o2_plus_o4_plus_56)
-+	add	%o4, 56, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_56)
-+ENTRY(NG4_retl_o2_plus_o4_plus_64)
-+	add	%o4, 64, %o4
-+	ba,pt	%xcc, __restore_asi
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_64)
-+ENTRY(NG4_retl_o2_plus_o4_fp)
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_8_fp)
-+	add	%o4, 8, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_8_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_16_fp)
-+	add	%o4, 16, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_16_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_24_fp)
-+	add	%o4, 24, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_24_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_32_fp)
-+	add	%o4, 32, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_32_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_40_fp)
-+	add	%o4, 40, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_40_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_48_fp)
-+	add	%o4, 48, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_48_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_56_fp)
-+	add	%o4, 56, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_56_fp)
-+ENTRY(NG4_retl_o2_plus_o4_plus_64_fp)
-+	add	%o4, 64, %o4
-+	ba,pt	%xcc, __restore_asi_fp
-+	 add	%o2, %o4, %o0
-+ENDPROC(NG4_retl_o2_plus_o4_plus_64_fp)
-+
-+#endif
-diff --git a/arch/sparc/lib/NG4memcpy.S b/arch/sparc/lib/NG4memcpy.S
-index 78ea962..e20d654 100644
---- a/arch/sparc/lib/NG4memcpy.S
-+++ b/arch/sparc/lib/NG4memcpy.S
-@@ -94,155 +94,6 @@
- 	.text
- #ifndef EX_RETVAL
- #define EX_RETVAL(x)	x
--__restore_asi_fp:
--	VISExitHalf
--__restore_asi:
--	retl
--	 wr	%g0, ASI_AIUS, %asi
+-	register_page_bootmem_info();
 -
--ENTRY(NG4_retl_o2)
--	ba,pt	%xcc, __restore_asi
--	 mov	%o2, %o0
--ENDPROC(NG4_retl_o2)
--ENTRY(NG4_retl_o2_plus_1)
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, 1, %o0
--ENDPROC(NG4_retl_o2_plus_1)
--ENTRY(NG4_retl_o2_plus_4)
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, 4, %o0
--ENDPROC(NG4_retl_o2_plus_4)
--ENTRY(NG4_retl_o2_plus_o5)
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5)
--ENTRY(NG4_retl_o2_plus_o5_plus_4)
--	add	%o5, 4, %o5
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5_plus_4)
--ENTRY(NG4_retl_o2_plus_o5_plus_8)
--	add	%o5, 8, %o5
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5_plus_8)
--ENTRY(NG4_retl_o2_plus_o5_plus_16)
--	add	%o5, 16, %o5
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5_plus_16)
--ENTRY(NG4_retl_o2_plus_o5_plus_24)
--	add	%o5, 24, %o5
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5_plus_24)
--ENTRY(NG4_retl_o2_plus_o5_plus_32)
--	add	%o5, 32, %o5
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o5, %o0
--ENDPROC(NG4_retl_o2_plus_o5_plus_32)
--ENTRY(NG4_retl_o2_plus_g1)
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %g1, %o0
--ENDPROC(NG4_retl_o2_plus_g1)
--ENTRY(NG4_retl_o2_plus_g1_plus_1)
--	add	%g1, 1, %g1
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %g1, %o0
--ENDPROC(NG4_retl_o2_plus_g1_plus_1)
--ENTRY(NG4_retl_o2_plus_g1_plus_8)
--	add	%g1, 8, %g1
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %g1, %o0
--ENDPROC(NG4_retl_o2_plus_g1_plus_8)
--ENTRY(NG4_retl_o2_plus_o4)
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4)
--ENTRY(NG4_retl_o2_plus_o4_plus_8)
--	add	%o4, 8, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_8)
--ENTRY(NG4_retl_o2_plus_o4_plus_16)
--	add	%o4, 16, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_16)
--ENTRY(NG4_retl_o2_plus_o4_plus_24)
--	add	%o4, 24, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_24)
--ENTRY(NG4_retl_o2_plus_o4_plus_32)
--	add	%o4, 32, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_32)
--ENTRY(NG4_retl_o2_plus_o4_plus_40)
--	add	%o4, 40, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_40)
--ENTRY(NG4_retl_o2_plus_o4_plus_48)
--	add	%o4, 48, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_48)
--ENTRY(NG4_retl_o2_plus_o4_plus_56)
--	add	%o4, 56, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_56)
--ENTRY(NG4_retl_o2_plus_o4_plus_64)
--	add	%o4, 64, %o4
--	ba,pt	%xcc, __restore_asi
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_64)
--ENTRY(NG4_retl_o2_plus_o4_fp)
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_8_fp)
--	add	%o4, 8, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_8_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_16_fp)
--	add	%o4, 16, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_16_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_24_fp)
--	add	%o4, 24, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_24_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_32_fp)
--	add	%o4, 32, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_32_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_40_fp)
--	add	%o4, 40, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_40_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_48_fp)
--	add	%o4, 48, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_48_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_56_fp)
--	add	%o4, 56, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_56_fp)
--ENTRY(NG4_retl_o2_plus_o4_plus_64_fp)
--	add	%o4, 64, %o4
--	ba,pt	%xcc, __restore_asi_fp
--	 add	%o2, %o4, %o0
--ENDPROC(NG4_retl_o2_plus_o4_plus_64_fp)
- #endif
- 	.align		64
+ 	/* this will put all memory onto the freelists */
+ 	free_all_bootmem();
+ 	after_bootmem = 1;
  
++	/* Must be done after boot memory is put on freelist, because here we
++	 * might set fields in deferred struct pages that have not yet been
++	 * initialized, and free_all_bootmem() initializes all the reserved
++	 * deferred pages for us.
++	 */
++	register_page_bootmem_info();
++
+ 	/* Register memory areas for /proc/kcore */
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
+ 			 PAGE_SIZE, KCORE_OTHER);
 -- 
-1.7.1
+2.13.3
 
