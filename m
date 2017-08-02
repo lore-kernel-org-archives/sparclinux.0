@@ -1,7 +1,7 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Tue, 01 Aug 2017 18:46:46 +0000
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Date: Wed, 02 Aug 2017 16:25:55 +0000
 Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
-Message-Id: <20170801184646.GE3730@linux.vnet.ibm.com>
+Message-Id: <20170802172555.0000468a@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170727173923.000001b2@huawei.com>
  <20170727165245.GD3730@linux.vnet.ibm.com>
@@ -13,138 +13,159 @@ References: <20170727173923.000001b2@huawei.com>
  <20170731120847.00003d5c@huawei.com>
  <20170731150411.GA3730@linux.vnet.ibm.com>
  <20170731162757.000058ba@huawei.com>
-In-Reply-To: <20170731162757.000058ba@huawei.com>
+ <20170801184646.GE3730@linux.vnet.ibm.com>
+In-Reply-To: <20170801184646.GE3730@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, Jul 31, 2017 at 04:27:57PM +0100, Jonathan Cameron wrote:
-> On Mon, 31 Jul 2017 08:04:11 -0700
-> "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
->=20
-> > On Mon, Jul 31, 2017 at 12:08:47PM +0100, Jonathan Cameron wrote:
-> > > On Fri, 28 Jul 2017 12:03:50 -0700
-> > > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
-> > >  =20
-> > > > On Fri, Jul 28, 2017 at 06:27:05PM +0100, Jonathan Cameron wrote:  =
+On Tue, 1 Aug 2017 11:46:46 -0700
+"Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
 
-> > > > > On Fri, 28 Jul 2017 09:55:29 -0700
-> > > > > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
-> > > > >    =20
-> > > > > > On Fri, Jul 28, 2017 at 02:24:03PM +0100, Jonathan Cameron wrot=
-e:   =20
-> > > > > > > On Fri, 28 Jul 2017 08:44:11 +0100
-> > > > > > > Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:     =20
-> > > > > >=20
-> > > > > > [ . . . ]
-> > > > > >    =20
-> > > > > > > Ok.  Some info.  I disabled a few driver (usb and SAS) in the=
- interest of having
-> > > > > > > fewer timer events.  Issue became much easier to trigger (on =
-some runs before
-> > > > > > > I could get tracing up and running)
-> > > > > > >e
-> > > > > > > So logs are large enough that pastebin doesn't like them - pl=
-ease shoet if     =20
-> > > > > > >>e another timer period is of interest.     =20
+> On Mon, Jul 31, 2017 at 04:27:57PM +0100, Jonathan Cameron wrote:
+> > On Mon, 31 Jul 2017 08:04:11 -0700
+> > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
+> >  =20
+> > > On Mon, Jul 31, 2017 at 12:08:47PM +0100, Jonathan Cameron wrote: =20
+> > > > On Fri, 28 Jul 2017 12:03:50 -0700
+> > > > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
+> > > >    =20
+> > > > > On Fri, Jul 28, 2017 at 06:27:05PM +0100, Jonathan Cameron wrote:=
+   =20
+> > > > > > On Fri, 28 Jul 2017 09:55:29 -0700
+> > > > > > "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
+> > > > > >      =20
+> > > > > > > On Fri, Jul 28, 2017 at 02:24:03PM +0100, Jonathan Cameron wr=
+ote:     =20
+> > > > > > > > On Fri, 28 Jul 2017 08:44:11 +0100
+> > > > > > > > Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:      =
+ =20
 > > > > > > >=20
-> > > > > > > https://pastebin.com/iUZDfQGM for the timer trace.
-> > > > > > > https://pastebin.com/3w1F7amH for dmesg. =20
+> > > > > > > [ . . . ]
+> > > > > > >      =20
+> > > > > > > > Ok.  Some info.  I disabled a few driver (usb and SAS) in t=
+he interest of having
+> > > > > > > > fewer timer events.  Issue became much easier to trigger (o=
+n some runs before
+> > > > > > > > I could get tracing up and running)
+> > > > > > > >e
+> > > > > > > > So logs are large enough that pastebin doesn't like them - =
+please shoet if       =20
+> > > > > > > >>e another timer period is of interest.       =20
+> > > > > > > >=20
+> > > > > > > > https://pastebin.com/iUZDfQGM for the timer trace.
+> > > > > > > > https://pastebin.com/3w1F7amH for dmesg. =20
+> > > > > > > >=20
+> > > > > > > > The relevant timeout on the RCU stall detector was 8 second=
+s.  Event is
+> > > > > > > > detected around 835.
+> > > > > > > >=20
+> > > > > > > > It's a lot of logs, so I haven't identified a smoking gun y=
+et but there
+> > > > > > > > may well be one in there.       =20
 > > > > > > >=20
-> > > > > > > The relevant timeout on the RCU stall detector was 8 seconds.=
-  Event is
-> > > > > > > detected around 835.
+> > > > > > > The dmesg says:
 > > > > > > >=20
-> > > > > > > It's a lot of logs, so I haven't identified a smoking gun yet=
- but there
-> > > > > > > may well be one in there.     =20
-> > > > > >=20
-> > > > > > The dmesg says:
-> > > > > >=20
-> > > > > > rcu_preempt kthread starved for 2508 jiffies! g112 c111 f0x0 RC=
-U_GP_WAIT_FQS(3) ->state=3D0x1
-> > > > > >=20
-> > > > > > So I look for "rcu_preempt" timer events and find these:
-> > > > > >=20
-> > > > > > rcu_preempt-9     [019] ....   827.579114: timer_init: timer=FF=
-ff8017d5fc7da0
-> > > > > > rcu_preempt-9     [019] d..1   827.579115: timer_start: timer=
-=FFff8017d5fc7da0 function=3Dprocess_timeout=20
-> > > > > >=20
-> > > > > > Next look for "ffff8017d5fc7da0" and I don't find anything else=
-.   =20
-> > > > > It does show up off the bottom of what would fit in pastebin...
-> > > > >=20
-> > > > >      rcu_preempt-9     [001] d..1   837.681077: timer_cancel: tim=
-er=FFff8017d5fc7da0
-> > > > >      rcu_preempt-9     [001] ....   837.681086: timer_init: timer=
+> > > > > > > rcu_preempt kthread starved for 2508 jiffies! g112 c111 f0x0 =
+RCU_GP_WAIT_FQS(3) ->state=3D0x1
+> > > > > > >=20
+> > > > > > > So I look for "rcu_preempt" timer events and find these:
+> > > > > > >=20
+> > > > > > > rcu_preempt-9     [019] ....   827.579114: timer_init: timer=
 =FFff8017d5fc7da0
-> > > > >      rcu_preempt-9     [001] d..1   837.681087: timer_start: time=
-r=FFff8017d5fc7da0 function=3Dprocess_timeout expiresB95101298 [timeout=3D1=
-] cpu=3D1 idx=3D0 flags=3D   =20
-> > > >=20
-> > > > Odd.  I would expect an expiration...  And ten seconds is way longer
-> > > > than the requested one jiffy!
-> > > >  =20
-> > > > > > The timeout was one jiffy, and more than a second later, no exp=
-iration.
-> > > > > > Is it possible that this event was lost?  I am not seeing any s=
-ign of
-> > > > > > this is the trace.
+> > > > > > > rcu_preempt-9     [019] d..1   827.579115: timer_start: timer=
+=FFff8017d5fc7da0 function=3Dprocess_timeout=20
+> > > > > > >=20
+> > > > > > > Next look for "ffff8017d5fc7da0" and I don't find anything el=
+se.     =20
+> > > > > > It does show up off the bottom of what would fit in pastebin...
 > > > > > >=20
-> > > > > > I don't see any sign of CPU hotplug (and I test with lots of th=
-at in
-> > > > > > any case).
+> > > > > >      rcu_preempt-9     [001] d..1   837.681077: timer_cancel: t=
+imer=FFff8017d5fc7da0
+> > > > > >      rcu_preempt-9     [001] ....   837.681086: timer_init: tim=
+er=FFff8017d5fc7da0
+> > > > > >      rcu_preempt-9     [001] d..1   837.681087: timer_start: ti=
+mer=FFff8017d5fc7da0 function=3Dprocess_timeout expiresB95101298 [timeout=
+=3D1] cpu=3D1 idx=3D0 flags=3D     =20
+> > > > >=20
+> > > > > Odd.  I would expect an expiration...  And ten seconds is way lon=
+ger
+> > > > > than the requested one jiffy!
+> > > > >    =20
+> > > > > > > The timeout was one jiffy, and more than a second later, no e=
+xpiration.
+> > > > > > > Is it possible that this event was lost?  I am not seeing any=
+ sign of
+> > > > > > > this is the trace.
+> > > > > > >=20
+> > > > > > > I don't see any sign of CPU hotplug (and I test with lots of =
+that in
+> > > > > > > any case).
+> > > > > > >=20
+> > > > > > > The last time we saw something like this it was a timer HW/dr=
+iver problem,
+> > > > > > > but it is a bit hard to imagine such a problem affecting both=
+ ARM64
+> > > > > > > and SPARC.  ;-)     =20
+> > > > > > Could be different issues, both of which were hidden by that lo=
+ckup detector.
 > > > > > >=20
-> > > > > > The last time we saw something like this it was a timer HW/driv=
-er problem,
-> > > > > > but it is a bit hard to imagine such a problem affecting both A=
-RM64
-> > > > > > and SPARC.  ;-)   =20
-> > > > > Could be different issues, both of which were hidden by that lock=
-up detector.
+> > > > > > There is an errata work around for the timers on this particula=
+r board.
+> > > > > > I'm only vaguely aware of it, so may be unconnected.
+> > > > > >=20
+> > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.=
+git/commit/drivers/clocksource/arm_arch_timer.c?h=3Dv4.13-rc2&id=BB42ca4740=
+1010fc02901b5e8f79e40a26f208cb
+> > > > > >=20
+> > > > > > Seems unlikely though! + we've not yet seen it on the other chi=
+ps that
+> > > > > > errata effects (not that that means much).     =20
 > > > > >=20
-> > > > > There is an errata work around for the timers on this particular =
-board.
-> > > > > I'm only vaguely aware of it, so may be unconnected.
+> > > > > If you can reproduce quickly, might be worth trying anyway...
 > > > > >=20
-> > > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.gi=
-t/commit/drivers/clocksource/arm_arch_timer.c?h=3Dv4.13-rc2&id=BB42ca474010=
-10fc02901b5e8f79e40a26f208cb
-> > > > >=20
-> > > > > Seems unlikely though! + we've not yet seen it on the other chips=
- that
-> > > > > errata effects (not that that means much).   =20
-> > > >=20
-> > > > If you can reproduce quickly, might be worth trying anyway...
-> > > >=20
-> > > > 							Thanx, Paul =20
-> > > Errata fix is running already and was for all those tests. =20
+> > > > > 							Thanx, Paul   =20
+> > > > Errata fix is running already and was for all those tests.   =20
+> > >=20
+> > > I was afraid of that...  ;-) =20
+> > It's a pretty rare errata it seems.  Not actually managed to catch
+> > one yet.  =20
+> > >  =20
+> > > > I'll have a dig into the timers today and see where I get to.   =20
+> > >=20
+> > > Look forward to seeing what you find! =20
+> > Nothing obvious turning up other than we don't seem to have issue
+> > when we aren't running hrtimers.
 > >=20
-> > I was afraid of that...  ;-)
-> It's a pretty rare errata it seems.  Not actually managed to catch
-> one yet.=20
+> > On a plus side I just got a report that it is effecting our d03
+> > boards which is good on the basis I couldn't tell what the difference
+> > could be wrt to this issue!
 > >=20
-> > > I'll have a dig into the timers today and see where I get to. =20
-> >=20
-> > Look forward to seeing what you find!
-> Nothing obvious turning up other than we don't seem to have issue
-> when we aren't running hrtimers.
+> > It indeed looks like we are consistently missing a timer before
+> > the rcu splat occurs. =20
 >=20
-> On a plus side I just got a report that it is effecting our d03
-> boards which is good on the basis I couldn't tell what the difference
-> could be wrt to this issue!
+> And for my part, my tests with CONFIG_HZ_PERIODIC=3Dy and
+> CONFIG_RCU_FAST_NO_HZ=3Dn showed roughly the same failure rate
+> as other runs.
 >=20
-> It indeed looks like we are consistently missing a timer before
-> the rcu splat occurs.
+> Missing a timer can most certainly give RCU severe heartburn!  ;-)
+> Do you have what you need to track down the missing timer? =20
 
-And for my part, my tests with CONFIG_HZ_PERIODIC=3Dy and
-CONFIG_RCU_FAST_NO_HZ=3Dn showed roughly the same failure rate
-as other runs.
+Not managed to make much progress yet.  Turning on any additional tracing
+in that area seems to make the issue stop happening or at least
+occur very infrequently. Which certainly makes it 'fun' to find.
 
-Missing a timer can most certainly give RCU severe heartburn!  ;-)
-Do you have what you need to track down the missing timer? =20
+As a long shot I applied a locking fix from another reported issue that
+was causing rcu stalls and it seemed good for much longer, but
+eventually still occurred.
 
-							Thanx, Paul
+(from the thread rcu_sched stall while waiting in csd_lock_wait())
+
+Jonathan
+
+
+>=20
+> 							Thanx, Paul
+>=20
 
