@@ -1,135 +1,79 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:44:02 +0000
-Subject: [PATCH v1 10/13] sparc64: vcc: Add write & write_room TTY operations
-Message-Id: <a3d085e90ba0f2c6223ca4402d194d2e0a39f541.1501781770.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:12 +0000
+Subject: [v4 03/15] sparc64/mm: setting fields in deferred pages
+Message-Id: <1501706304-869240-4-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Add handlers to support TTY write & write_room operations
+Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+flags and other fields in "struct page"es are never changed prior to first
+initializing struct pages by going through __init_single_page().
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- drivers/tty/vcc.c |  101 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 98 insertions(+), 3 deletions(-)
+With deferred struct page feature enabled there is a case where we set some
+fields prior to initializing:
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index fef6ab4..e6aa35c 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -843,10 +843,105 @@ static void vcc_hangup(struct tty_struct *tty)
- 	tty_port_hangup(tty->port);
+ mem_init() {
+	 register_page_bootmem_info();
+	 free_all_bootmem();
+	 ...
  }
+
+When register_page_bootmem_info() is called only non-deferred struct pages
+are initialized. But, this function goes through some reserved pages which
+might be part of the deferred, and thus are not yet initialized.
+
+mem_init
+register_page_bootmem_info
+ register_page_bootmem_info_node
+  get_page_bootmem
+   .. setting fields here ..
+   such as: page->freelist = (void *)type;
+
+We end-up with similar issue as in the previous patch, where currently we
+do not observe problem as memory is zeroed. But, if flag asserts are
+changed we can start hitting issues.
+
+Also, because in this patch series we will stop zeroing struct page memory
+during allocation, we must make sure that struct pages are properly
+initialized prior to using them.
+
+The deferred-reserved pages are initialized in free_all_bootmem().
+Therefore, the fix is to switch the above calls.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 3c40ebd50f92..ba957b763c07 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2464,9 +2464,15 @@ void __init mem_init(void)
+ {
+ 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
  
-+static int vcc_write(struct tty_struct *tty, const unsigned char *buf,
-+		     int count)
-+{
-+	struct vcc_port *port;
-+	struct vio_vcc *pkt;
-+	unsigned long flags;
-+	int total_sent = 0;
-+	int tosend = 0;
-+	int rv = -EINVAL;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: write: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: write: Failed to find VCC port");
-+		return -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	pkt = &port->buffer;
-+	pkt->tag.type = VIO_TYPE_DATA;
-+
-+	while (count > 0) {
-+		/* Minimum of data to write and space available */
-+		tosend = min(count, (VCC_BUFF_LEN - port->chars_in_buffer));
-+
-+		if (!tosend)
-+			break;
-+
-+		memcpy(&pkt->data[port->chars_in_buffer], &buf[total_sent],
-+		       tosend);
-+		port->chars_in_buffer += tosend;
-+		pkt->tag.stype = tosend;
-+
-+		vccdbg("TAG [%02x:%02x:%04x:%08x]\n", pkt->tag.type,
-+		       pkt->tag.stype, pkt->tag.stype_env, pkt->tag.sid);
-+		vccdbg("DATA [%s]\n", pkt->data);
-+		vccdbgl(port->vio.lp);
-+
-+		/* Since we know we have enough room in VCC buffer for tosend
-+		 * we record that it was sent regardless of whether the
-+		 * hypervisor actually took it because we have it buffered.
-+		 */
-+		rv = ldc_write(port->vio.lp, pkt, (VIO_TAG_SIZE + tosend));
-+		vccdbg("VCC: write: ldc_write(%d)=%d\n",
-+		       (VIO_TAG_SIZE + tosend), rv);
-+
-+		total_sent += tosend;
-+		count -= tosend;
-+		if (rv < 0) {
-+			vcc_kick_tx(port);
-+			break;
-+		}
-+
-+		port->chars_in_buffer = 0;
-+	}
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+
-+	vcc_put(port, false);
-+
-+	vccdbg("VCC: write: total=%d rv=%d", total_sent, rv);
-+
-+	return total_sent ? total_sent : rv;
-+}
-+
-+static int vcc_write_room(struct tty_struct *tty)
-+{
-+	struct vcc_port *port;
-+	u64 num;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: write_room: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: write_room: Failed to find VCC port\n");
-+		return -ENODEV;
-+	}
-+
-+	num = VCC_BUFF_LEN - port->chars_in_buffer;
-+
-+	vcc_put(port, false);
-+
-+	return num;
-+}
-+
- static const struct tty_operations vcc_ops = {
--	.open	= vcc_open,
--	.close	= vcc_close,
--	.hangup	= vcc_hangup,
-+	.open		= vcc_open,
-+	.close		= vcc_close,
-+	.hangup		= vcc_hangup,
-+	.write		= vcc_write,
-+	.write_room	= vcc_write_room,
- };
+-	register_page_bootmem_info();
+ 	free_all_bootmem();
  
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
++	/* Must be done after boot memory is put on freelist, because here we
++	 * might set fields in deferred struct pages that have not yet been
++	 * initialized, and free_all_bootmem() initializes all the reserved
++	 * deferred pages for us.
++	 */
++	register_page_bootmem_info();
++
+ 	/*
+ 	 * Set up the zero page, mark it reserved, so that page count
+ 	 * is not manipulated when freeing the page from user ptes.
 -- 
-1.7.1
+2.13.3
 
