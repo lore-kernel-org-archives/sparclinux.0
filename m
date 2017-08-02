@@ -1,92 +1,68 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 29 Aug 2017 02:02:21 +0000
-Subject: [PATCH v7 10/11] arm64/kasan: explicitly zero kasan shadow memory
-Message-Id: <1503972142-289376-11-git-send-email-pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:10 +0000
+Subject: [v4 01/15] x86/mm: reserve only exiting low pages
+Message-Id: <1501706304-869240-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-To optimize the performance of struct page initialization,
-vmemmap_populate() will no longer zero memory.
+Struct pages are initialized by going through __init_single_page(). Since
+the existing physical memory in memblock is represented in memblock.memory
+list, struct page for every page from this list goes through
+__init_single_page().
 
-We must explicitly zero the memory that is allocated by vmemmap_populate()
-for kasan, as this memory does not go through struct page initialization
-path.
+The second memblock list: memblock.reserved, manages the allocated memory.
+The memory that won't be available to kernel allocator. So, every page from
+this list goes through reserve_bootmem_region(), where certain struct page
+fields are set, the assumption being that the struct pages have been
+initialized beforehand.
+
+In trim_low_memory_range() we unconditionally reserve memoryfrom PFN 0, but
+memblock.memory might start at a later PFN. For example, in QEMU,
+e820__memblock_setup() can use PFN 1 as the first PFN in memblock.memory,
+so PFN 0 is not on memblock.memory (and hence isn't initialized via
+__init_single_page) but is on memblock.reserved (and hence we set fields in
+the uninitialized struct page).
+
+Currently, the struct page memory is always zeroed during allocation,
+which prevents this problem from being detected. But, if some asserts
+provided by CONFIG_DEBUG_VM_PGFLAGS are tighten, this problem may become
+visible in existing kernels.
+
+In this patchset we will stop zeroing struct page memory during allocation.
+Therefore, this bug must be fixed in order to avoid random assert failures
+caused by CONFIG_DEBUG_VM_PGFLAGS triggers.
+
+The fix is to reserve memory from the first existing PFN.
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/arm64/mm/kasan_init.c | 42 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ arch/x86/kernel/setup.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
-index 81f03959a4ab..e78a9ecbb687 100644
---- a/arch/arm64/mm/kasan_init.c
-+++ b/arch/arm64/mm/kasan_init.c
-@@ -135,6 +135,41 @@ static void __init clear_pgds(unsigned long start,
- 		set_pgd(pgd_offset_k(start), __pgd(0));
- }
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 3486d0498800..489cdc141bcb 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -790,7 +790,10 @@ early_param("reservelow", parse_reservelow);
  
-+/*
-+ * Memory that was allocated by vmemmap_populate is not zeroed, so we must
-+ * zero it here explicitly.
-+ */
-+static void
-+zero_vmemmap_populated_memory(void)
-+{
-+	struct memblock_region *reg;
-+	u64 start, end;
-+
-+	for_each_memblock(memory, reg) {
-+		start = __phys_to_virt(reg->base);
-+		end = __phys_to_virt(reg->base + reg->size);
-+
-+		if (start >= end)
-+			break;
-+
-+		start = (u64)kasan_mem_to_shadow((void *)start);
-+		end = (u64)kasan_mem_to_shadow((void *)end);
-+
-+		/* Round to the start end of the mapped pages */
-+		start = round_down(start, SWAPPER_BLOCK_SIZE);
-+		end = round_up(end, SWAPPER_BLOCK_SIZE);
-+		memset((void *)start, 0, end - start);
-+	}
-+
-+	start = (u64)kasan_mem_to_shadow(_text);
-+	end = (u64)kasan_mem_to_shadow(_end);
-+
-+	/* Round to the start end of the mapped pages */
-+	start = round_down(start, SWAPPER_BLOCK_SIZE);
-+	end = round_up(end, SWAPPER_BLOCK_SIZE);
-+	memset((void *)start, 0, end - start);
-+}
-+
- void __init kasan_init(void)
+ static void __init trim_low_memory_range(void)
  {
- 	u64 kimg_shadow_start, kimg_shadow_end;
-@@ -205,8 +240,15 @@ void __init kasan_init(void)
- 			pfn_pte(sym_to_pfn(kasan_zero_page), PAGE_KERNEL_RO));
- 
- 	memset(kasan_zero_page, 0, PAGE_SIZE);
+-	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
++	unsigned long min_pfn = find_min_pfn_with_active_regions();
++	phys_addr_t base = min_pfn << PAGE_SHIFT;
 +
- 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
- 
-+	/*
-+	 * vmemmap_populate does not zero the memory, so we need to zero it
-+	 * explicitly
-+	 */
-+	zero_vmemmap_populated_memory();
-+
- 	/* At this point kasan is fully initialized. Enable error messages */
- 	init_task.kasan_depth = 0;
- 	pr_info("KernelAddressSanitizer initialized\n");
++	memblock_reserve(base, ALIGN(reserve_low, PAGE_SIZE));
+ }
+ 	
+ /*
 -- 
-2.14.1
+2.13.3
 
