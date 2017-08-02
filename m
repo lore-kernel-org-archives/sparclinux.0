@@ -1,24 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 28 Aug 2017 22:49:05 +0000
-Subject: Re: [PATCH] sparc: leon: grpci1: constify of_device_id
-Message-Id: <20170828.154905.771431778711401050.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:23 +0000
+Subject: [v4 14/15] mm: optimize early system hash allocations
+Message-Id: <1501706304-869240-15-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cde41ec4bb81718be389f0c47d0469fb2a0d27c1.1503746607.git.arvind.yadav.cs@gmail.com>
-        <47b2967d191cb0b0a525682feb7991742df333e6.1503746607.git.arvind.yadav.cs@gmail.com>
-In-Reply-To: <47b2967d191cb0b0a525682feb7991742df333e6.1503746607.git.arvind.yadav.cs@gmail.com>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arvind.yadav.cs@gmail.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Date: Sat, 26 Aug 2017 16:58:48 +0530
+Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
+that memory that was allocated for system hash needs to be zeroed,
+otherwise the memory does not need to be zeroed, and client will initialize
+it.
 
-> of_device_id are not supposed to change at runtime. All functions
-> working with of_device_id provided by <linux/of.h> work with const
-> of_device_ids. So mark the const and __initconst.
-> 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+If memory does not need to be zero'd, call the new
+memblock_virt_alloc_raw() interface, and thus improve the boot performance.
 
-Applied.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ mm/page_alloc.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index debea7c0febb..623e2f7634e7 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7350,18 +7350,17 @@ void *__init alloc_large_system_hash(const char *tablename,
+ 
+ 	log2qty = ilog2(numentries);
+ 
+-	/*
+-	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
+-	 * currently not used when HASH_EARLY is specified.
+-	 */
+ 	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
+ 	do {
+ 		size = bucketsize << log2qty;
+-		if (flags & HASH_EARLY)
+-			table = memblock_virt_alloc_nopanic(size, 0);
+-		else if (hashdist)
++		if (flags & HASH_EARLY) {
++			if (flags & HASH_ZERO)
++				table = memblock_virt_alloc_nopanic(size, 0);
++			else
++				table = memblock_virt_alloc_raw(size, 0);
++		} else if (hashdist) {
+ 			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
+-		else {
++		} else {
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
+ 			 * some pages at the end of hash table which
+-- 
+2.13.3
+
