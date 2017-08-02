@@ -1,143 +1,80 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:43:57 +0000
-Subject: [PATCH v1 05/13] sparc64: vcc: Create sysfs attribute group
-Message-Id: <8afb626fd86cc17f2593de1d0f1e1b08ebae5d60.1501781770.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:20 +0000
+Subject: [v4 11/15] arm64/kasan: explicitly zero kasan shadow memory
+Message-Id: <1501706304-869240-12-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Create sysfs attribute group to show the domain name and
-send break command.
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+We must explicitly zero the memory that is allocated by vmemmap_populate()
+for kasan, as this memory does not go through struct page initialization
+path.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/tty/vcc.c |   81 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 81 insertions(+), 0 deletions(-)
+ arch/arm64/mm/kasan_init.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index b231903..d168547 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -7,6 +7,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/sysfs.h>
- #include <linux/tty.h>
- #include <asm/vio.h>
- #include <asm/ldc.h>
-@@ -52,6 +53,9 @@ struct vcc_port {
- #define VCC_MAX_PORTS		1024
- #define VCC_MINOR_START		0	/* must be zero */
+diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
+index 81f03959a4ab..a57104bc54b8 100644
+--- a/arch/arm64/mm/kasan_init.c
++++ b/arch/arm64/mm/kasan_init.c
+@@ -135,6 +135,31 @@ static void __init clear_pgds(unsigned long start,
+ 		set_pgd(pgd_offset_k(start), __pgd(0));
+ }
  
-+#define VCC_CTL_BREAK		-1
-+#define VCC_CTL_HUP		-2
-+
- static const char vcc_driver_name[] = "vcc";
- static const char vcc_device_node[] = "vcc";
- static struct tty_driver *vcc_tty_driver;
-@@ -268,6 +272,77 @@ static void vcc_event(void *arg, int event)
- 	{ .major = 1, .minor = 0 },
- };
- 
-+static ssize_t vcc_sysfs_domain_show(struct device *dev,
-+				     struct device_attribute *attr,
-+				     char *buf)
++/*
++ * Memory that was allocated by vmemmap_populate is not zeroed, so we must
++ * zero it here explicitly.
++ */
++static void
++zero_vemmap_populated_memory(void)
 +{
-+	struct vcc_port *port;
-+	int rv;
++	struct memblock_region *reg;
++	u64 start, end;
 +
-+	port = dev_get_drvdata(dev);
-+	if (!port)
-+		return -ENODEV;
++	for_each_memblock(memory, reg) {
++		start = __phys_to_virt(reg->base);
++		end = __phys_to_virt(reg->base + reg->size);
 +
-+	rv = scnprintf(buf, PAGE_SIZE, "%s\n", port->domain);
++		if (start >= end)
++			break;
 +
-+	return rv;
++		memset((void *)start, 0, end - start);
++	}
++
++	start = (u64)kasan_mem_to_shadow(_stext);
++	end = (u64)kasan_mem_to_shadow(_end);
++	memset((void *)start, 0, end - start);
 +}
 +
-+static int vcc_send_ctl(struct vcc_port *port, int ctl)
-+{
-+	struct vio_vcc pkt;
-+	int rv;
-+
-+	pkt.tag.type = VIO_TYPE_CTRL;
-+	pkt.tag.sid = ctl;
-+	pkt.tag.stype = 0;
-+
-+	rv = ldc_write(port->vio.lp, &pkt, sizeof(pkt.tag));
-+	WARN_ON(!rv);
-+	vccdbg("VCC: ldc_write(%ld)=%d\n", sizeof(pkt.tag), rv);
-+
-+	return rv;
-+}
-+
-+static ssize_t vcc_sysfs_break_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct vcc_port *port;
-+	unsigned long flags;
-+	int rv = count;
-+	int brk;
-+
-+	port = dev_get_drvdata(dev);
-+	if (!port)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
-+		rv = -EINVAL;
-+	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
-+		pr_err("VCC: unable to send CTL_BREAK\n");
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+
-+	return rv;
-+}
-+
-+static DEVICE_ATTR(domain, 0400, vcc_sysfs_domain_show, NULL);
-+static DEVICE_ATTR(break, 0200, NULL, vcc_sysfs_break_store);
-+
-+static struct attribute *vcc_sysfs_entries[] = {
-+	&dev_attr_domain.attr,
-+	&dev_attr_break.attr,
-+	NULL
-+};
-+
-+static struct attribute_group vcc_attribute_group = {
-+	.name = NULL,
-+	.attrs = vcc_sysfs_entries,
-+};
-+
- /**
-  * vcc_probe() - Initialize VCC port
-  * @vdev: Pointer to VIO device of the new VCC port
-@@ -349,6 +424,10 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ void __init kasan_init(void)
+ {
+ 	u64 kimg_shadow_start, kimg_shadow_end;
+@@ -205,6 +230,13 @@ void __init kasan_init(void)
+ 			pfn_pte(sym_to_pfn(kasan_zero_page), PAGE_KERNEL_RO));
  
- 	mdesc_release(hp);
- 
-+	rv = sysfs_create_group(&vdev->dev.kobj, &vcc_attribute_group);
-+	if (rv)
-+		goto free_domain;
+ 	memset(kasan_zero_page, 0, PAGE_SIZE);
 +
- 	dev_set_drvdata(&vdev->dev, port);
++	/*
++	 * vmemmap_populate does not zero the memory, so we need to zero it
++	 * explicitly
++	 */
++	zero_vemmap_populated_memory();
++
+ 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
  
- 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
-@@ -360,6 +439,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 
- 	return 0;
- 
-+free_domain:
-+	kfree(port->domain);
- unreg_tty:
- 	tty_unregister_device(vcc_tty_driver, port->index);
- free_table:
+ 	/* At this point kasan is fully initialized. Enable error messages */
 -- 
-1.7.1
+2.13.3
 
