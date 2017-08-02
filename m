@@ -1,50 +1,55 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 16 Aug 2017 14:34:42 +0000
-Subject: Re: [PATCH v7 2/9] mm, swap: Add infrastructure for saving page metadata on swap
-Message-Id: <05c64690-fa24-7104-4f1f-d98ff54863bc@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 02 Aug 2017 20:38:18 +0000
+Subject: [v4 09/15] sparc64: optimized struct page zeroing
+Message-Id: <1501706304-869240-10-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1502219353.git.khalid.aziz@oracle.com>
- <cover.1502219353.git.khalid.aziz@oracle.com>
- <87ff7a44c45bd6a146102c6e6033ee7810d9ebb5.1502219353.git.khalid.aziz@oracle.com>
- <20170815.215326.1833101229202321710.davem@davemloft.net>
-In-Reply-To: <20170815.215326.1833101229202321710.davem@davemloft.net>
+References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: akpm@linux-foundation.org, dave.hansen@linux.intel.com, arnd@arndb.de, kirill.shutemov@linux.intel.com, mhocko@suse.com, jack@suse.cz, ross.zwisler@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, dave.jiang@intel.com, willy@infradead.org, hughd@google.com, minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, shli@fb.com, mingo@kernel.org, jmarchan@redhat.com, lstoakes@gmail.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, khalid@gonehiking.org
+To: linux-arm-kernel@lists.infradead.org
 
-On 08/15/2017 10:53 PM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Wed,  9 Aug 2017 15:25:55 -0600
-> 
->> @@ -1399,6 +1399,12 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
->>   				(flags & TTU_MIGRATION)) {
->>   			swp_entry_t entry;
->>   			pte_t swp_pte;
->> +
->> +			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
->> +				set_pte_at(mm, address, pvmw.pte, pteval);
->> +				ret = false;
->> +				page_vma_mapped_walk_done(&pvmw);
->> +				break;
->>   			/*
->>   			 * Store the pfn of the page in a special migration
->>   			 * pte. do_swap_page() will wait until the migration
->> @@ -1410,6 +1416,7 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
->>   			if (pte_soft_dirty(pteval))
->>   				swp_pte = pte_swp_mksoft_dirty(swp_pte);
->>   			set_pte_at(mm, address, pvmw.pte, swp_pte);
->> +			}
-> 
-> This basic block doesn't look right.  I think the new closing brace is
-> intended to be right after the new break; statement.  If not at the
-> very least the indentation of the existing code in there needs to be
-> adjusted.
+Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
+calling memset(). We do eight regular stores, thus avoid cost of membar.
 
-Hi Dave,
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/include/asm/pgtable_64.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-Thanks. That brace needs to move up right after break. I will fix that.
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 6fbd931f0570..23ad51ea5340 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -230,6 +230,24 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
+ 
++/* This macro must be updated when the size of struct page changes,
++ * so use static assert to enforce the assumed size.
++ */
++#define	mm_zero_struct_page(pp)					\
++	do {							\
++		unsigned long *_pp = (void *)(pp);		\
++								\
++		BUILD_BUG_ON(sizeof(struct page) != 64);	\
++		_pp[0] = 0;					\
++		_pp[1] = 0;					\
++		_pp[2] = 0;					\
++		_pp[3] = 0;					\
++		_pp[4] = 0;					\
++		_pp[5] = 0;					\
++		_pp[6] = 0;					\
++		_pp[7] = 0;					\
++	} while (0)
++
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+-- 
+2.13.3
 
---
-Khalid
