@@ -1,85 +1,87 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 01 Aug 2017 20:58:29 +0000
+Date: Wed, 02 Aug 2017 21:36:47 +0000
 Subject: Re: strace-4.18 test suite oopses sparc64 4.12 and 4.13-rc kernels
-Message-Id: <20170801205829.GA7496@ravnborg.org>
+Message-Id: <20170802213647.GA5506@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqzkUqWsHgw8eNHF4E_wi5a6d=hJnmEtm5omsw42tHAw+Q@mail.gmail.com>
  <20170731.145151.571917275997786929.davem@davemloft.net>
  <CADxRZqz+oQn8=Q3RDtfko9ctP1RE41XnsVP3H8RXJuE9m=VPLw@mail.gmail.com>
  <20170731.150632.885106324164202893.davem@davemloft.net>
  <22912.11736.664315.645426@gargle.gargle.HOWL>
-In-Reply-To: <22912.11736.664315.645426@gargle.gargle.HOWL>
+ <20170801205829.GA7496@ravnborg.org>
+In-Reply-To: <20170801205829.GA7496@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Mikael Pettersson <mikpelinux@gmail.com>
 Cc: David Miller <davem@davemloft.net>, matorola@gmail.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Mikael.
-
-I think this translates to the following code
-from linux/uaccess.h
-
-first part is the inlined _copy_from_user()
-
+On Tue, Aug 01, 2017 at 10:58:29PM +0200, Sam Ravnborg wrote:
+> Hi Mikael.
 > 
-> (gdb) x/10i do_sys_poll+0x80-16
->    0x516ed0 <do_sys_poll+112>:  brz  %o0, 0x5170fc <do_sys_poll+668>
-if (unlikely(res))
+> I think this translates to the following code
+> from linux/uaccess.h
+> 
+> first part is the inlined _copy_from_user()
+> 
+> > 
+> > (gdb) x/10i do_sys_poll+0x80-16
+> >    0x516ed0 <do_sys_poll+112>:  brz  %o0, 0x5170fc <do_sys_poll+668>
+> if (unlikely(res))
+> 
+> >    0x516ed4 <do_sys_poll+116>:  mov  %o0, %o2
+> >    0x516ed8 <do_sys_poll+120>:  sub  %i4, %o0, %i4
+> >    0x516edc <do_sys_poll+124>:  clr  %o1
+> >    0x516ee0 <do_sys_poll+128>:  call  0x7570b8 <memset>
+> >    0x516ee4 <do_sys_poll+132>:  add  %l3, %i4, %o0
+> memset(to + (n - res), 0, res);
 
->    0x516ed4 <do_sys_poll+116>:  mov  %o0, %o2
->    0x516ed8 <do_sys_poll+120>:  sub  %i4, %o0, %i4
->    0x516edc <do_sys_poll+124>:  clr  %o1
->    0x516ee0 <do_sys_poll+128>:  call  0x7570b8 <memset>
->    0x516ee4 <do_sys_poll+132>:  add  %l3, %i4, %o0
-memset(to + (n - res), 0, res);
+And memset calls down to bzero, where %o0=buf, %o1=len
+
+%o0 = 0xc
+%o1 = 0xfff000123c897a80
+%o2 = 0x0
+%o3 = 0xc
+
+So from this we know that:
+res = 0xfff000123c897a80
+to + (n - 0xfff000123c897a80)) = 0xc
+
+The value "fff000123c897a80" really looks like a constructed address
+from somewhere in the strace code, and where this constructed address
+is used to provoke some unusual behaviour.
+The "fff0" part may be a sparc thing.
+
+So far the analysis seems to match the intial conclusion that
+we in this special case try to zero out the remaining memory
+based on the return value of raw_copy_from_user.
+And therefore we use the return value (res) which triggers the oops.
+
+So rather than manipulating with the assembler code as suggested
+in the previous mail this simpler patch could be tested:
+
+diff --git a/include/linux/uaccess.h b/include/linux/uaccess.h
+index acdd6f915a8d..13d299ff1f21 100644
+--- a/include/linux/uaccess.h
++++ b/include/linux/uaccess.h
+@@ -115,7 +115,7 @@ _copy_from_user(void *to, const void __user *from, unsigned long n)
+ 		res = raw_copy_from_user(to, from, n);
+ 	}
+ 	if (unlikely(res))
+-		memset(to + (n - res), 0, res);
++		void: /*memset(to + (n - res), 0, res);*/
+ 	return res;
+ }
+ #else
 
 
-and this part is from the inlined copy_from_user()
+It would be good to know if this makes the opps go away.
 
->    0x516ee8 <do_sys_poll+136>:  b  %xcc, 0x5170b0 <do_sys_poll+592>
-jump to end of function
+And maybe you could try to print the parameters
+supplied to _copy_from_user in case memset would be called,
+so we have an idea what error path is taken.
 
->    0x516eec <do_sys_poll+140>:  mov  -14, %l7
->    0x516ef0 <do_sys_poll+144>:  mov  %l2, %o0
->    0x516ef4 <do_sys_poll+148>:  movleu  %xcc, %l0, %o0
-} else if (!__builtin_constant_p(n))
-                copy_user_overflow(sz, n);
-
-Where we in the generic implementation now uses the return value
-of raw_copy_from_user() which we did not do before said patch.
-
-So I suspect that what we see here is that:
-1) with the patch from Al we start to use the return value of raw_copy_from_user
-2) The return value is wrong in the sparc implmentation so boom
-3) We only trigger this on old HW because the return value is correct in some,
-but not all of the implemantions of raw_copy_from_user.
-Davem fixed this is a series of patches that requires some sparc
-assembler knowledge to dechifer.
-
-The return value was fixed in ee841d0aff649164080e445e84885015958d8ff4
-for the Ultra III as used by SUN Blade 2500.
-And if I am right then this fix fails with the paramters used 
-in our case with strace.
-
-Mikael - could you try to edit U3patch.S like this:
-
-Change the following lines:
-
-cheetah_patch_copyops:
-        ULTRA3_DO_PATCH(memcpy, U3memcpy)
-        ULTRA3_DO_PATCH(___copy_from_user, U3copy_from_user)
-        ULTRA3_DO_PATCH(___copy_to_user, U3copy_to_user)
-        retl
-
-To:
-cheetah_patch_copyops:
-        ULTRA3_DO_PATCH(memcpy, GENmemcpy)
-        ULTRA3_DO_PATCH(raw_copy_from_user, GENcopy_from_user)
-        ULTRA3_DO_PATCH(raw_copy_to_user, GENcopy_to_user)
-        retl
-
-In other words, so we use the generic versions which I assume
-is OK on Ultra III, but slower.
+I have tried to dechiper U3memcpy.S - but that is non-trivial.
+So it would be good with a bit more data to verify the theory.
 
 	Sam
