@@ -1,64 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 21 Aug 2017 20:47:35 +0000
-Subject: Re: [PATCH v2] sparc64: speed up etrap/rtrap on NG2 and later processors
-Message-Id: <20170821.134735.414712980112483462.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:47 +0000
+Subject: [v5 09/15] sparc64: optimized struct page zeroing
+Message-Id: <1501795433-982645-10-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503085236-65590-1-git-send-email-anthony.yznaga@oracle.com>
-In-Reply-To: <1503085236-65590-1-git-send-email-anthony.yznaga@oracle.com>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Date: Fri, 18 Aug 2017 12:40:36 -0700
+Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
+calling memset(). We do eight regular stores, thus avoid cost of membar.
 
-> For many sun4v processor types, reading or writing a privileged register
-> has a latency of 40 to 70 cycles.  Use a combination of the low-latency
-> allclean, otherw, normalw, and nop instructions in etrap and rtrap to
-> replace 2 rdpr and 5 wrpr instructions and improve etrap/rtrap
-> performance.  allclean, otherw, and normalw are available on NG2 and
-> later processors.
-> 
-> The average ticks to execute the flush windows trap ("ta 0x3") with and
-> without this patch on select platforms:
-> 
->  CPU            Not patched     Patched    % Latency Reduction
-> 
->  NG2            1762            1558            -11.58
->  NG4            3619            3204            -11.47
->  M7             3015            2624            -12.97
->  SPARC64-X      829             770              -7.12
-> 
-> Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-> ---
-> v2:
-> 	Simplified and future-proofed changes to sun4v_patch()
-> 	by just skipping hot patching for Niagara1 processors.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/include/asm/pgtable_64.h | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-I'm applying this after I review it a little more but this situation
-is kinda disappointing:
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 6fbd931f0570..be47537e84c5 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -230,6 +230,38 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
+ 
++/* This macro must be updated when the size of struct page grows above 80
++ * or reduces below 64.
++ * The idea that compiler optimizes out switch() statement, and only
++ * leaves clrx instructions or memset() call.
++ */
++#define	mm_zero_struct_page(pp) do {					\
++	unsigned long *_pp = (void *)(pp);				\
++									\
++	/* Check that struct page is 8-byte aligned */			\
++	BUILD_BUG_ON(sizeof(struct page) & 7);				\
++									\
++	switch (sizeof(struct page)) {					\
++	case 80:							\
++		_pp[9] = 0;	/* fallthrough */			\
++	case 72:							\
++		_pp[8] = 0;	/* fallthrough */			\
++	case 64:							\
++		_pp[7] = 0;						\
++		_pp[6] = 0;						\
++		_pp[5] = 0;						\
++		_pp[4] = 0;						\
++		_pp[3] = 0;						\
++		_pp[2] = 0;						\
++		_pp[1] = 0;						\
++		_pp[0] = 0;						\
++		break;		/* no fallthrough */			\
++	default:							\
++		pr_warn_once("suboptimal mm_zero_struct_page");		\
++		memset(_pp, 0, sizeof(struct page));			\
++	}								\
++} while (0)
++
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+-- 
+2.13.4
 
-> @@ -38,7 +38,11 @@ etrap_syscall:	TRAP_LOAD_THREAD_REG(%g6, %g1)
->  		or	%g1, %g3, %g1
->  		bne,pn	%xcc, 1f
->  		 sub	%sp, STACKFRAME_SZ+TRACEREG_SZ-STACK_BIAS, %g2
-> -		wrpr	%g0, 7, %cleanwin
-> +661:		wrpr	%g0, 7, %cleanwin
-> +		.section .fast_win_ctrl_1insn_patch, "ax"
-> +		.word	661b
-> +		.word	0x85880000	! allclean
-> +		.previous
->  
->  		sethi	%hi(TASK_REGOFF), %g2
->  		sethi	%hi(TSTATE_PEF), %g3
-
-So the chip can't decode "wrpr %g0, 7, %cleanwin" and say "hey, this is
-'allclean'" and do whatever fast path exists in the chip for that?
-
-I realize the other cases are not so simple because they involve a
-read/write sequence.
-
-Enough complaining from me :-)
-
-Applied, thanks.
