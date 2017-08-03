@@ -1,120 +1,143 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:44:05 +0000
-Subject: [PATCH v1 13/13] sparc64: vcc: Add install & cleanup TTY operations
-Message-Id: <b8838b2da6e948b4b3ec8da6a47927a2b59deece.1501781770.git.jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:43:57 +0000
+Subject: [PATCH v1 05/13] sparc64: vcc: Create sysfs attribute group
+Message-Id: <8afb626fd86cc17f2593de1d0f1e1b08ebae5d60.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add handlers to support TTY install & cleanup operations
+Create sysfs attribute group to show the domain name and
+send break command.
 
 Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
 Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/tty/vcc.c |   73 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 73 insertions(+), 0 deletions(-)
+ drivers/tty/vcc.c |   81 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 81 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 16e2f9e..8aeb4b4 100644
+index b231903..d168547 100644
 --- a/drivers/tty/vcc.c
 +++ b/drivers/tty/vcc.c
-@@ -490,6 +490,8 @@ static void vcc_event(void *arg, int event)
+@@ -7,6 +7,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/sysfs.h>
+ #include <linux/tty.h>
+ #include <asm/vio.h>
+ #include <asm/ldc.h>
+@@ -52,6 +53,9 @@ struct vcc_port {
+ #define VCC_MAX_PORTS		1024
+ #define VCC_MINOR_START		0	/* must be zero */
+ 
++#define VCC_CTL_BREAK		-1
++#define VCC_CTL_HUP		-2
++
+ static const char vcc_driver_name[] = "vcc";
+ static const char vcc_device_node[] = "vcc";
+ static struct tty_driver *vcc_tty_driver;
+@@ -268,6 +272,77 @@ static void vcc_event(void *arg, int event)
  	{ .major = 1, .minor = 0 },
  };
  
-+static struct tty_port_operations vcc_port_ops = { 0 };
-+
- static ssize_t vcc_sysfs_domain_show(struct device *dev,
- 				     struct device_attribute *attr,
- 				     char *buf)
-@@ -993,6 +995,75 @@ static int vcc_break_ctl(struct tty_struct *tty, int state)
- 	return 0;
- }
- 
-+static int vcc_install(struct tty_driver *driver, struct tty_struct *tty)
-+{
-+	struct vcc_port *port_vcc;
-+	struct tty_port *port_tty;
-+	int ret;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: install: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	if (tty->index >= VCC_MAX_PORTS)
-+		return -EINVAL;
-+
-+	ret = tty_standard_install(driver, tty);
-+	if (ret)
-+		return ret;
-+
-+	port_tty = kzalloc(sizeof(struct tty_port), GFP_KERNEL);
-+	if (!port_tty)
-+		return -ENOMEM;
-+
-+	port_vcc = vcc_get(tty->index, true);
-+	if (!port_vcc) {
-+		pr_err("VCC: install: Failed to find VCC port\n");
-+		tty->port = NULL;
-+		kfree(port_tty);
-+		return -ENODEV;
-+	}
-+
-+	tty_port_init(port_tty);
-+	port_tty->ops = &vcc_port_ops;
-+	tty->port = port_tty;
-+
-+	port_vcc->tty = tty;
-+
-+	vcc_put(port_vcc, true);
-+
-+	return 0;
-+}
-+
-+static void vcc_cleanup(struct tty_struct *tty)
++static ssize_t vcc_sysfs_domain_show(struct device *dev,
++				     struct device_attribute *attr,
++				     char *buf)
 +{
 +	struct vcc_port *port;
++	int rv;
 +
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: cleanup: Invalid TTY handle\n");
-+		return;
-+	}
++	port = dev_get_drvdata(dev);
++	if (!port)
++		return -ENODEV;
 +
-+	port = vcc_get(tty->index, true);
-+	if (port) {
-+		port->tty = NULL;
++	rv = scnprintf(buf, PAGE_SIZE, "%s\n", port->domain);
 +
-+		if (port->removed) {
-+			vcc_table_remove(tty->index);
-+			kfree(port->vio.name);
-+			kfree(port->domain);
-+			kfree(port);
-+		} else {
-+			vcc_put(port, true);
-+		}
-+	}
-+
-+	tty_port_destroy(tty->port);
-+	kfree(tty->port);
-+	tty->port = NULL;
++	return rv;
 +}
 +
- static const struct tty_operations vcc_ops = {
- 	.open			= vcc_open,
- 	.close			= vcc_close,
-@@ -1001,6 +1072,8 @@ static int vcc_break_ctl(struct tty_struct *tty, int state)
- 	.write_room		= vcc_write_room,
- 	.chars_in_buffer	= vcc_chars_in_buffer,
- 	.break_ctl		= vcc_break_ctl,
-+	.install		= vcc_install,
-+	.cleanup		= vcc_cleanup,
- };
++static int vcc_send_ctl(struct vcc_port *port, int ctl)
++{
++	struct vio_vcc pkt;
++	int rv;
++
++	pkt.tag.type = VIO_TYPE_CTRL;
++	pkt.tag.sid = ctl;
++	pkt.tag.stype = 0;
++
++	rv = ldc_write(port->vio.lp, &pkt, sizeof(pkt.tag));
++	WARN_ON(!rv);
++	vccdbg("VCC: ldc_write(%ld)=%d\n", sizeof(pkt.tag), rv);
++
++	return rv;
++}
++
++static ssize_t vcc_sysfs_break_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
++{
++	struct vcc_port *port;
++	unsigned long flags;
++	int rv = count;
++	int brk;
++
++	port = dev_get_drvdata(dev);
++	if (!port)
++		return -ENODEV;
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
++		rv = -EINVAL;
++	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
++		pr_err("VCC: unable to send CTL_BREAK\n");
++
++	spin_unlock_irqrestore(&port->lock, flags);
++
++	return rv;
++}
++
++static DEVICE_ATTR(domain, 0400, vcc_sysfs_domain_show, NULL);
++static DEVICE_ATTR(break, 0200, NULL, vcc_sysfs_break_store);
++
++static struct attribute *vcc_sysfs_entries[] = {
++	&dev_attr_domain.attr,
++	&dev_attr_break.attr,
++	NULL
++};
++
++static struct attribute_group vcc_attribute_group = {
++	.name = NULL,
++	.attrs = vcc_sysfs_entries,
++};
++
+ /**
+  * vcc_probe() - Initialize VCC port
+  * @vdev: Pointer to VIO device of the new VCC port
+@@ -349,6 +424,10 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
  
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
+ 	mdesc_release(hp);
+ 
++	rv = sysfs_create_group(&vdev->dev.kobj, &vcc_attribute_group);
++	if (rv)
++		goto free_domain;
++
+ 	dev_set_drvdata(&vdev->dev, port);
+ 
+ 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
+@@ -360,6 +439,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 
+ 	return 0;
+ 
++free_domain:
++	kfree(port->domain);
+ unreg_tty:
+ 	tty_unregister_device(vcc_tty_driver, port->index);
+ free_table:
 -- 
 1.7.1
 
