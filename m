@@ -1,98 +1,68 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:43:53 +0000
-Subject: [PATCH v1 01/13] sparc64: vcc: Enable VCC module in linux
-Message-Id: <5e4301986cb90a020bf7a40e9c955b6c4d160165.1501781770.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:39 +0000
+Subject: [v5 01/15] x86/mm: reserve only exiting low pages
+Message-Id: <1501795433-982645-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Enables the Virtual Console Concentrator (VCC) module
-in linux kernel
+Struct pages are initialized by going through __init_single_page(). Since
+the existing physical memory in memblock is represented in memblock.memory
+list, struct page for every page from this list goes through
+__init_single_page().
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+The second memblock list: memblock.reserved, manages the allocated memory.
+The memory that won't be available to kernel allocator. So, every page from
+this list goes through reserve_bootmem_region(), where certain struct page
+fields are set, the assumption being that the struct pages have been
+initialized beforehand.
+
+In trim_low_memory_range() we unconditionally reserve memoryfrom PFN 0, but
+memblock.memory might start at a later PFN. For example, in QEMU,
+e820__memblock_setup() can use PFN 1 as the first PFN in memblock.memory,
+so PFN 0 is not on memblock.memory (and hence isn't initialized via
+__init_single_page) but is on memblock.reserved (and hence we set fields in
+the uninitialized struct page).
+
+Currently, the struct page memory is always zeroed during allocation,
+which prevents this problem from being detected. But, if some asserts
+provided by CONFIG_DEBUG_VM_PGFLAGS are tighten, this problem may become
+visible in existing kernels.
+
+In this patchset we will stop zeroing struct page memory during allocation.
+Therefore, this bug must be fixed in order to avoid random assert failures
+caused by CONFIG_DEBUG_VM_PGFLAGS triggers.
+
+The fix is to reserve memory from the first existing PFN.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- MAINTAINERS                          |    1 +
- arch/sparc/configs/sparc64_defconfig |    1 +
- drivers/tty/Kconfig                  |    5 +++++
- drivers/tty/Makefile                 |    1 +
- drivers/tty/vcc.c                    |   18 ++++++++++++++++++
- 5 files changed, 26 insertions(+), 0 deletions(-)
- create mode 100644 drivers/tty/vcc.c
+ arch/x86/kernel/setup.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 205d397..982cc06 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -12469,6 +12469,7 @@ F:	drivers/tty/serial/sunsab.h
- F:	drivers/tty/serial/sunsu.c
- F:	drivers/tty/serial/sunzilog.c
- F:	drivers/tty/serial/sunzilog.h
-+F:	drivers/tty/vcc.c
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 3486d0498800..489cdc141bcb 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -790,7 +790,10 @@ early_param("reservelow", parse_reservelow);
  
- SPARSE CHECKER
- M:	"Christopher Li" <sparse@chrisli.org>
-diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
-index ca8609d..4d4e1cc 100644
---- a/arch/sparc/configs/sparc64_defconfig
-+++ b/arch/sparc/configs/sparc64_defconfig
-@@ -238,3 +238,4 @@ CONFIG_CRYPTO_TWOFISH=m
- # CONFIG_CRYPTO_ANSI_CPRNG is not set
- CONFIG_CRC16=m
- CONFIG_LIBCRC32C=m
-+CONFIG_VCC=m
-diff --git a/drivers/tty/Kconfig b/drivers/tty/Kconfig
-index 9510305..8643b55 100644
---- a/drivers/tty/Kconfig
-+++ b/drivers/tty/Kconfig
-@@ -455,4 +455,9 @@ config MIPS_EJTAG_FDC_KGDB_CHAN
- 	help
- 	  FDC channel number to use for KGDB.
- 
-+config VCC
-+	tristate "Sun Virtual Console Concentrator"
-+	depends on SUN_LDOMS
-+	help
-+	  Support for Sun logical domain consoles.
- endif # TTY
-diff --git a/drivers/tty/Makefile b/drivers/tty/Makefile
-index 8689279..16330a8 100644
---- a/drivers/tty/Makefile
-+++ b/drivers/tty/Makefile
-@@ -33,5 +33,6 @@ obj-$(CONFIG_PPC_EPAPR_HV_BYTECHAN) += ehv_bytechan.o
- obj-$(CONFIG_GOLDFISH_TTY)	+= goldfish.o
- obj-$(CONFIG_DA_TTY)		+= metag_da.o
- obj-$(CONFIG_MIPS_EJTAG_FDC_TTY) += mips_ejtag_fdc.o
-+obj-$(CONFIG_VCC)		+= vcc.o
- 
- obj-y += ipwireless/
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-new file mode 100644
-index 0000000..e1b8099
---- /dev/null
-+++ b/drivers/tty/vcc.c
-@@ -0,0 +1,18 @@
-+/* vcc.c: sun4v virtual channel concentrator
-+ *
-+ * Copyright (C) 2017 Oracle. All rights reserved.
-+ */
+ static void __init trim_low_memory_range(void)
+ {
+-	memblock_reserve(0, ALIGN(reserve_low, PAGE_SIZE));
++	unsigned long min_pfn = find_min_pfn_with_active_regions();
++	phys_addr_t base = min_pfn << PAGE_SHIFT;
 +
-+#include <linux/module.h>
-+
-+static int __init vcc_init(void)
-+{
-+	return 0;
-+}
-+
-+static void __exit vcc_exit(void)
-+{
-+}
-+
-+module_init(vcc_init);
-+module_exit(vcc_exit);
++	memblock_reserve(base, ALIGN(reserve_low, PAGE_SIZE));
+ }
+ 	
+ /*
 -- 
-1.7.1
+2.13.4
 
