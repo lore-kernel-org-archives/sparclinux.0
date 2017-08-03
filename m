@@ -1,63 +1,68 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 03 Aug 2017 21:23:50 +0000
-Subject: [v5 12/15] mm: explicitly zero pagetable memory
-Message-Id: <1501795433-982645-13-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:44:03 +0000
+Subject: [PATCH v1 11/13] sparc64: vcc: Add chars_in_buffer TTY operation
+Message-Id: <cb633075e4a55aaf2f93546687ef96f77cdeec95.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Soon vmemmap_alloc_block() will no longer zero the block, so zero memory
-at its call sites for everything except struct pages.  Struct page memory
-is zero'd by struct page initialization.
+Add handler to support TTY chars_in_buffer operation
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- mm/sparse-vmemmap.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/tty/vcc.c |   34 +++++++++++++++++++++++++++++-----
+ 1 files changed, 29 insertions(+), 5 deletions(-)
 
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index c50b1a14d55e..d40c721ab19f 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -191,6 +191,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
- 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		memset(p, 0, PAGE_SIZE);
- 		pmd_populate_kernel(&init_mm, pmd, p);
- 	}
- 	return pmd;
-@@ -203,6 +204,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
- 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		memset(p, 0, PAGE_SIZE);
- 		pud_populate(&init_mm, pud, p);
- 	}
- 	return pud;
-@@ -215,6 +217,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
- 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		memset(p, 0, PAGE_SIZE);
- 		p4d_populate(&init_mm, p4d, p);
- 	}
- 	return p4d;
-@@ -227,6 +230,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
-+		memset(p, 0, PAGE_SIZE);
- 		pgd_populate(&init_mm, pgd, p);
- 	}
- 	return pgd;
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index e6aa35c..f7325f8 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -936,12 +936,36 @@ static int vcc_write_room(struct tty_struct *tty)
+ 	return num;
+ }
+ 
++static int vcc_chars_in_buffer(struct tty_struct *tty)
++{
++	struct vcc_port *port;
++	u64 num;
++
++	if (unlikely(!tty)) {
++		pr_err("VCC: chars_in_buffer: Invalid TTY handle\n");
++		return -ENXIO;
++	}
++
++	port = vcc_get_ne(tty->index);
++	if (unlikely(!port)) {
++		pr_err("VCC: chars_in_buffer: Failed to find VCC port\n");
++		return -ENODEV;
++	}
++
++	num = port->chars_in_buffer;
++
++	vcc_put(port, false);
++
++	return num;
++}
++
+ static const struct tty_operations vcc_ops = {
+-	.open		= vcc_open,
+-	.close		= vcc_close,
+-	.hangup		= vcc_hangup,
+-	.write		= vcc_write,
+-	.write_room	= vcc_write_room,
++	.open			= vcc_open,
++	.close			= vcc_close,
++	.hangup			= vcc_hangup,
++	.write			= vcc_write,
++	.write_room		= vcc_write_room,
++	.chars_in_buffer	= vcc_chars_in_buffer,
+ };
+ 
+ #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
 -- 
-2.13.4
+1.7.1
 
