@@ -1,125 +1,276 @@
-From: Atish Patra <atish.patra@oracle.com>
-Date: Thu, 24 Aug 2017 00:07:04 +0000
-Subject: Re: Bisected: E3500 crash on boot just befoire v4.8
-Message-Id: <49fee3f4-7765-ea55-7412-9d4cb9fc5b09@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:43:58 +0000
+Subject: [PATCH v1 06/13] sparc64: vcc: Add RX & TX timer for delayed LDC operation
+Message-Id: <92bf7beadd3d50f0c6e27578c00c96bfc1bf296e.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1611260012320.9292@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1611260012320.9292@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Add RX & TX timers to perform delayed/asynchronous LDC
+read and write operations.
 
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ arch/sparc/kernel/ldc.c |    1 +
+ drivers/tty/vcc.c       |  197 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 197 insertions(+), 1 deletions(-)
 
-On 08/23/2017 01:23 AM, David Miller wrote:
-> From: Meelis Roos <mroos@linux.ee>
-> Date: Wed, 23 Aug 2017 09:18:44 +0300 (EEST)
->
->> The regression is still present in 4.13-rc5+git - can I do something to
->> help solving it?
->>
->> Nothing about CPUs in boot args. Just CONFIG_NR_CPUS2 in .config.
->>
->> lscpu tells the CPU numbers are like this:
->> On-line CPU(s) list:   6,7,18,19
-> Atish please look into this.
-I apologize for the delay in providing a fix. Lack of sparse numbered 
-machines at our end is the reason behind this issue.
-I am working on a potential fix and will verify the fix with Meelis 
-before sending it for review.
-
-Regards,
-Atish
->>>> I (sort of) revived my E3500. TODC batteries are empty but I programmed
->>>> new nvram contents and started it up. Last it ran probably 4.1, 4.2 had
->>>> some blk-mq trouble. Updated to 4.9-rc6+git and got a boot crash.
->>> Finished bisecting. The bug crept in right before 4.8.0. E3500 has
->>> sparse CPU numbering, maybe this was not considered in the patch?
->>>
->>> commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
->>> Author: Atish Patra <atish.patra@oracle.com>
->>> Date:   Thu Sep 15 14:54:40 2016 -0600
->>>
->>>      sparc64: Fix cpu_possible_mask if nr_cpus is set
->>>      
->>>      If kernel boot parameter nr_cpus is set, it should define the number
->>>      of CPUs that can ever be available in the system i.e.
->>>      cpu_possible_mask. setup_nr_cpu_ids() overrides the nr_cpu_ids based
->>>      on the cpu_possible_mask during kernel initialization. If
->>>      cpu_possible_mask is not set based on the nr_cpus value, earlier part
->>>      of the kernel would be initialized using nr_cpus value leading to a
->>>      kernel crash.
->>>      
->>>      Set cpu_possible_mask based on nr_cpus value. Thus setup_nr_cpu_ids()
->>>      becomes redundant and does not corrupt nr_cpu_ids value.
->>>      
->>>      Signed-off-by: Atish Patra <atish.patra@oracle.com>
->>>      Reviewed-by: Bob Picco <bob.picco@oracle.com>
->>>      Reviewed-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
->>>      Signed-off-by: David S. Miller <davem@davemloft.net>
->>>
->>> :040000 040000 cd7f09841a45d3187cebeafb48b5fe22c00688a7 5c3d6e50160bd00108ee95f40cdf83264e9f5139 M      arch
->>>
->>>
->>>> Unable to handle kernel NULL pointer dereference
->>>> tsk->{mm,active_mm}->context = 0000000000000000
->>>> tsk->{mm,active_mm}->pgd = fffff80000402000
->>>>                \|/ ____ \|/
->>>>                "@'/ .. \`@"
->>>>                /_| \__/ |_\
->>>>                   \__U_/
->>>> swapper(0): Oops [#1]
->>>> CPU: 6 PID: 0 Comm: swapper Not tainted 4.9.0-rc6-00124-gded9b5d #71
->>>> task: 0000000000a1ddc0 task.stack: 0000000000a0c000
->>>> TSTATE: 0000009980e01600 TPC: 00000000006c1f24 TNPC: 00000000006c1f28 Y: 00000016    Not tainted
->>>> TPC: <__list_add+0x4/0xe0>
->>>> g0: 000000000129e650 g1: 0000000000aa9f58 g2: 0000000000a574e0 g3: 000000000007e09f
->>>> g4: 0000000000a1ddc0 g5: 0000000000000000 g6: 0000000000a0c000 g7: 000000000007e09e
->>>> o0: 0000000000515f84 o1: fffff800ff3de000 o2: 000000000001e1c0 o3: 0000000000a0f968
->>>> o4: 0000000000000100 o5: 0000000000000200 sp: 0000000000a0f171 ret_pc: 00000000004a7d04
->>>> RPC: <trace_hardirqs_off+0x4/0x20>
->>>> l0: 000000000129ddb8 l1: 00000000009ad178 l2: 0000000000a32400 l3: 0000000000000001
->>>> l4: 0000000000a18338 l5: 0000000000000006 l6: 000000000129e000 l7: 000000000129e1d8
->>>> i0: 0000060001fe7ba0 i1: 0000000000aa9b70 i2: 0000000000000000 i3: 0000000000a1ddc0
->>>> i4: fffff800ff3de000 i5: 0000000000000000 i6: 0000000000a0f221 i7: 0000000000515ff0
->>>> I7: <free_hot_cold_page+0x130/0x1e0>
->>>> Call Trace:
->>>>   [0000000000515ff0] free_hot_cold_page+0x130/0x1e0
->>>>   [0000000000517f04] __free_pages+0x24/0x60
->>>>   [0000000000a6ece0] __free_pages_bootmem+0xb0/0xc0
->>>>   [0000000000a728f8] free_all_bootmem+0x11c/0x17c
->>>>   [0000000000a68794] mem_init+0x20/0xb0
->>>>   [0000000000a62818] start_kernel+0x208/0x41c
->>>>   [0000000000a640fc] start_early_boot+0x274/0x284
->>>>   [00000000008ca18c] tlb_fixup_done+0x4c/0x60
->>>>   [0000000000000000]           (null)
->>>> Disabling lock debugging due to kernel taint
->>>> Caller[0000000000515ff0]: free_hot_cold_page+0x130/0x1e0
->>>> Caller[0000000000517f04]: __free_pages+0x24/0x60
->>>> Caller[0000000000a6ece0]: __free_pages_bootmem+0xb0/0xc0
->>>> Caller[0000000000a728f8]: free_all_bootmem+0x11c/0x17c
->>>> Caller[0000000000a68794]: mem_init+0x20/0xb0
->>>> Caller[0000000000a62818]: start_kernel+0x208/0x41c
->>>> Caller[0000000000a640fc]: start_early_boot+0x274/0x284
->>>> Caller[00000000008ca18c]: tlb_fixup_done+0x4c/0x60
->>>> Caller[0000000000000000]:           (null)
->>>> Instruction DUMP: 900a20ff
->>>>   01000000  9de3bf50
->>>> <d85ea008> 80a30019
->>>>   2268000b  d85e4000
->>>>   11002751  15002751
->>>>
->>>> Kernel panic - not syncing: Attempted to kill the idle task!
->>>> Press Stop-A (L1-A) to return to the boot prom
->>>> ---[ end Kernel panic - not syncing: Attempted to kill the idle task!
->>>>
->>>>
->> -- 
->> Meelis Roos (mroos@linux.ee)
->> --
->> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 1169915..acffbc8 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1480,6 +1480,7 @@ int ldc_rx_reset(struct ldc_channel *lp)
+ {
+ 	return __set_rx_head(lp, lp->rx_tail);
+ }
++EXPORT_SYMBOL(ldc_rx_reset);
+ 
+ void __ldc_print(struct ldc_channel *lp, const char *caller)
+ {
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index d168547..84a8dd7 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -9,6 +9,7 @@
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
+ #include <linux/tty.h>
++#include <linux/tty_flip.h>
+ #include <asm/vio.h>
+ #include <asm/ldc.h>
+ 
+@@ -52,10 +53,15 @@ struct vcc_port {
+ 
+ #define VCC_MAX_PORTS		1024
+ #define VCC_MINOR_START		0	/* must be zero */
++#define VCC_BUFF_LEN		VIO_VCC_MTU_SIZE
+ 
+ #define VCC_CTL_BREAK		-1
+ #define VCC_CTL_HUP		-2
+ 
++#define TIMER_SET(v, x, t)	((v)->x##_timer.expires = (t))
++#define TIMER_CLEAR(v, x)	((v)->x##_timer.expires = 0)
++#define TIMER_ACTIVE(v, x)	((v)->x##_timer.expires)
++
+ static const char vcc_driver_name[] = "vcc";
+ static const char vcc_device_node[] = "vcc";
+ static struct tty_driver *vcc_tty_driver;
+@@ -256,6 +262,187 @@ static void vcc_put(struct vcc_port *port, bool excl)
+ 	return port;
+ }
+ 
++static void vcc_kick_rx(struct vcc_port *port)
++{
++	struct vio_driver_state *vio = &port->vio;
++
++	assert_spin_locked(&port->lock);
++
++	if (TIMER_ACTIVE(port, rx))
++		return;
++
++	disable_irq_nosync(vio->vdev->rx_irq);
++	TIMER_SET(port, rx, (jiffies + 1));
++	add_timer(&port->rx_timer);
++}
++
++static void vcc_kick_tx(struct vcc_port *port)
++{
++	assert_spin_locked(&port->lock);
++
++	if (TIMER_ACTIVE(port, tx))
++		return;
++
++	TIMER_SET(port, tx, (jiffies + 1));
++	add_timer(&port->tx_timer);
++}
++
++static int vcc_rx_check(struct tty_struct *tty, int size)
++{
++	if (WARN_ON(!tty || !tty->port))
++		return 1;
++
++	/* tty_buffer_request_room won't sleep because it uses
++	 * GFP_ATOMIC flag to allocate buffer
++	 */
++	if (test_bit(TTY_THROTTLED, &tty->flags) ||
++	    (tty_buffer_request_room(tty->port, VCC_BUFF_LEN) < VCC_BUFF_LEN))
++		return 0;
++
++	return 1;
++}
++
++static int vcc_rx(struct tty_struct *tty, char *buf, int size)
++{
++	int len = 0;
++
++	if (WARN_ON(!tty || !tty->port))
++		return len;
++
++	len = tty_insert_flip_string(tty->port, buf, size);
++	if (len)
++		tty_flip_buffer_push(tty->port);
++
++	return len;
++}
++
++static int vcc_ldc_read(struct vcc_port *port)
++{
++	struct vio_driver_state *vio = &port->vio;
++	struct tty_struct *tty;
++	struct vio_vcc pkt;
++	int rv = 0;
++
++	tty = port->tty;
++	if (!tty) {
++		rv = ldc_rx_reset(vio->lp);
++		vccdbg("VCC: reset rx q: rv=%d\n", rv);
++		goto done;
++	}
++
++	/* Read as long as LDC has incoming data. */
++	while (1) {
++		if (!vcc_rx_check(tty, VIO_VCC_MTU_SIZE)) {
++			vcc_kick_rx(port);
++			break;
++		}
++
++		vccdbgl(vio->lp);
++
++		rv = ldc_read(vio->lp, &pkt, sizeof(pkt));
++		if (rv <= 0)
++			break;
++
++		vccdbg("VCC: ldc_read()=%d\n", rv);
++		vccdbg("TAG [%02x:%02x:%04x:%08x]\n",
++		       pkt.tag.type, pkt.tag.stype,
++		       pkt.tag.stype_env, pkt.tag.sid);
++
++		if (pkt.tag.type = VIO_TYPE_DATA) {
++			vccdbgp(pkt);
++			/* vcc_rx_check ensures memory availability */
++			vcc_rx(tty, pkt.data, pkt.tag.stype);
++		} else {
++			pr_err("VCC: unknown msg [%02x:%02x:%04x:%08x]\n",
++			       pkt.tag.type, pkt.tag.stype,
++			       pkt.tag.stype_env, pkt.tag.sid);
++			rv = -ECONNRESET;
++			break;
++		}
++
++		WARN_ON(rv != LDC_PACKET_SIZE);
++	}
++
++done:
++	return rv;
++}
++
++static void vcc_rx_timer(unsigned long index)
++{
++	struct vio_driver_state *vio;
++	struct vcc_port *port;
++	unsigned long flags;
++	int rv;
++
++	port = vcc_get_ne(index);
++	if (!port)
++		return;
++
++	spin_lock_irqsave(&port->lock, flags);
++	TIMER_CLEAR(port, rx);
++
++	vio = &port->vio;
++
++	enable_irq(vio->vdev->rx_irq);
++
++	if (!port->tty)
++		goto done;
++
++	rv = vcc_ldc_read(port);
++	if (rv = -ECONNRESET)
++		vio_conn_reset(vio);
++
++done:
++	spin_unlock_irqrestore(&port->lock, flags);
++	vcc_put(port, false);
++}
++
++static void vcc_tx_timer(unsigned long index)
++{
++	struct vcc_port *port;
++	struct vio_vcc *pkt;
++	unsigned long flags;
++	int tosend = 0;
++	int rv;
++
++	port = vcc_get_ne(index);
++	if (!port)
++		return;
++
++	spin_lock_irqsave(&port->lock, flags);
++	TIMER_CLEAR(port, tx);
++
++	if (!port->tty)
++		goto done;
++
++	tosend = min(VCC_BUFF_LEN, port->chars_in_buffer);
++	if (!tosend)
++		goto done;
++
++	pkt = &port->buffer;
++	pkt->tag.type = VIO_TYPE_DATA;
++	pkt->tag.stype = tosend;
++	vccdbgl(port->vio.lp);
++
++	rv = ldc_write(port->vio.lp, pkt, (VIO_TAG_SIZE + tosend));
++	WARN_ON(!rv);
++
++	if (rv < 0) {
++		vccdbg("VCC: ldc_write()=%d\n", rv);
++		vcc_kick_tx(port);
++	} else {
++		struct tty_struct *tty = port->tty;
++
++		port->chars_in_buffer = 0;
++		if (tty)
++			tty_wakeup(tty);
++	}
++
++done:
++	spin_unlock_irqrestore(&port->lock, flags);
++	vcc_put(port, false);
++}
++
+ static void vcc_event(void *arg, int event)
+ {
+ }
+@@ -322,7 +509,7 @@ static ssize_t vcc_sysfs_break_store(struct device *dev,
+ 	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
+ 		rv = -EINVAL;
+ 	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
+-		pr_err("VCC: unable to send CTL_BREAK\n");
++		vcc_kick_tx(port);
+ 
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 
+@@ -428,6 +615,14 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	if (rv)
+ 		goto free_domain;
+ 
++	init_timer(&port->rx_timer);
++	port->rx_timer.function = vcc_rx_timer;
++	port->rx_timer.data = port->index;
++
++	init_timer(&port->tx_timer);
++	port->tx_timer.function = vcc_tx_timer;
++	port->tx_timer.data = port->index;
++
+ 	dev_set_drvdata(&vdev->dev, port);
+ 
+ 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
+-- 
+1.7.1
 
