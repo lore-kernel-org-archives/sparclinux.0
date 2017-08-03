@@ -1,68 +1,77 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Tue, 15 Aug 2017 21:03:07 +0000
-Subject: [PATCH v2 11/13] sparc64: vcc: Add chars_in_buffer TTY operation
-Message-Id: <bd16412fedbe5465e3578b425d46957c05ac3219.1502829972.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:48 +0000
+Subject: [v5 10/15] x86/kasan: explicitly zero kasan shadow memory
+Message-Id: <1501795433-982645-11-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Add handler to support TTY chars_in_buffer operation
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+We must explicitly zero the memory that is allocated by vmemmap_populate()
+for kasan, as this memory does not go through struct page initialization
+path.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/tty/vcc.c |   34 +++++++++++++++++++++++++++++-----
- 1 files changed, 29 insertions(+), 5 deletions(-)
+ arch/x86/mm/kasan_init_64.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 0c0fe22..070c541 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -937,12 +937,36 @@ static int vcc_write_room(struct tty_struct *tty)
- 	return num;
- }
+diff --git a/arch/x86/mm/kasan_init_64.c b/arch/x86/mm/kasan_init_64.c
+index 02c9d7553409..7d06cf0b0b6e 100644
+--- a/arch/x86/mm/kasan_init_64.c
++++ b/arch/x86/mm/kasan_init_64.c
+@@ -84,6 +84,28 @@ static struct notifier_block kasan_die_notifier = {
+ };
+ #endif
  
-+static int vcc_chars_in_buffer(struct tty_struct *tty)
++/*
++ * Memory that was allocated by vmemmap_populate is not zeroed, so we must
++ * zero it here explicitly.
++ */
++static void
++zero_vemmap_populated_memory(void)
 +{
-+	struct vcc_port *port;
-+	u64 num;
++	u64 i, start, end;
 +
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: chars_in_buffer: Invalid TTY handle\n");
-+		return -ENXIO;
++	for (i = 0; i < E820_MAX_ENTRIES && pfn_mapped[i].end; i++) {
++		void *kaddr_start = pfn_to_kaddr(pfn_mapped[i].start);
++		void *kaddr_end = pfn_to_kaddr(pfn_mapped[i].end);
++
++		start = (u64)kasan_mem_to_shadow(kaddr_start);
++		end = (u64)kasan_mem_to_shadow(kaddr_end);
++		memset((void *)start, 0, end - start);
 +	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: chars_in_buffer: Failed to find VCC port\n");
-+		return -ENODEV;
-+	}
-+
-+	num = port->chars_in_buffer;
-+
-+	vcc_put(port, false);
-+
-+	return num;
++	start = (u64)kasan_mem_to_shadow(_stext);
++	end = (u64)kasan_mem_to_shadow(_end);
++	memset((void *)start, 0, end - start);
 +}
 +
- static const struct tty_operations vcc_ops = {
--	.open		= vcc_open,
--	.close		= vcc_close,
--	.hangup		= vcc_hangup,
--	.write		= vcc_write,
--	.write_room	= vcc_write_room,
-+	.open			= vcc_open,
-+	.close			= vcc_close,
-+	.hangup			= vcc_hangup,
-+	.write			= vcc_write,
-+	.write_room		= vcc_write_room,
-+	.chars_in_buffer	= vcc_chars_in_buffer,
- };
+ void __init kasan_early_init(void)
+ {
+ 	int i;
+@@ -156,6 +178,13 @@ void __init kasan_init(void)
+ 		pte_t pte = __pte(__pa(kasan_zero_page) | __PAGE_KERNEL_RO);
+ 		set_pte(&kasan_zero_pte[i], pte);
+ 	}
++
++	/*
++	 * vmemmap_populate does not zero the memory, so we need to zero it
++	 * explicitly
++	 */
++	zero_vemmap_populated_memory();
++
+ 	/* Flush TLBs again to be sure that write protection applied. */
+ 	__flush_tlb_all();
  
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
 -- 
-1.7.1
+2.13.4
 
