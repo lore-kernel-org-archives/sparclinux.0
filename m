@@ -1,87 +1,63 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:43:54 +0000
-Subject: [PATCH v1 02/13] sparc64: vcc: Add VCC debug message macros
-Message-Id: <a2f25eed5a51c0c117f3c261976d91dc5ec9c444.1501781770.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:50 +0000
+Subject: [v5 12/15] mm: explicitly zero pagetable memory
+Message-Id: <1501795433-982645-13-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Add C macros to print debug messages from VCC module
+Soon vmemmap_alloc_block() will no longer zero the block, so zero memory
+at its call sites for everything except struct pages.  Struct page memory
+is zero'd by struct page initialization.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/sparc/kernel/ldc.c |    1 +
- drivers/tty/vcc.c       |   41 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 42 insertions(+), 0 deletions(-)
+ mm/sparse-vmemmap.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
-index 840e0b2..1169915 100644
---- a/arch/sparc/kernel/ldc.c
-+++ b/arch/sparc/kernel/ldc.c
-@@ -1493,6 +1493,7 @@ void __ldc_print(struct ldc_channel *lp, const char *caller)
- 		lp->tx_head, lp->tx_tail, lp->tx_num_entries,
- 		lp->rcv_nxt, lp->snd_nxt);
- }
-+EXPORT_SYMBOL(__ldc_print);
- 
- static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
- {
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index e1b8099..4fd8dd0 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -5,6 +5,47 @@
- 
- #include <linux/module.h>
- 
-+#define DRV_MODULE_NAME		"vcc"
-+#define DRV_MODULE_VERSION	"1.1"
-+#define DRV_MODULE_RELDATE	"July 1, 2017"
-+
-+MODULE_DESCRIPTION("Sun LDOM virtual console concentrator driver");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION(DRV_MODULE_VERSION);
-+
-+int vcc_dbg;
-+int vcc_dbg_ldc;
-+int vcc_dbg_vio;
-+
-+module_param(vcc_dbg, uint, 0664);
-+module_param(vcc_dbg_ldc, uint, 0664);
-+module_param(vcc_dbg_vio, uint, 0664);
-+
-+#define VCC_DBG_DRV	0x1
-+#define VCC_DBG_LDC	0x2
-+#define VCC_DBG_PKT	0x4
-+
-+#define vccdbg(f, a...)						\
-+	do {							\
-+		if (vcc_dbg & VCC_DBG_DRV)			\
-+			pr_info(f, ## a);			\
-+	} while (0)						\
-+
-+#define vccdbgl(l)						\
-+	do {							\
-+		if (vcc_dbg & VCC_DBG_LDC)			\
-+			ldc_print(l);				\
-+	} while (0)						\
-+
-+#define vccdbgp(pkt)						\
-+	do {							\
-+		if (vcc_dbg & VCC_DBG_PKT) {			\
-+			int i;					\
-+			for (i = 0; i < pkt.tag.stype; i++)	\
-+				pr_info("[%c]", pkt.data[i]);	\
-+		}						\
-+	} while (0)						\
-+
- static int __init vcc_init(void)
- {
- 	return 0;
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index c50b1a14d55e..d40c721ab19f 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -191,6 +191,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		memset(p, 0, PAGE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, p);
+ 	}
+ 	return pmd;
+@@ -203,6 +204,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		memset(p, 0, PAGE_SIZE);
+ 		pud_populate(&init_mm, pud, p);
+ 	}
+ 	return pud;
+@@ -215,6 +217,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		memset(p, 0, PAGE_SIZE);
+ 		p4d_populate(&init_mm, p4d, p);
+ 	}
+ 	return p4d;
+@@ -227,6 +230,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ 		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
++		memset(p, 0, PAGE_SIZE);
+ 		pgd_populate(&init_mm, pgd, p);
+ 	}
+ 	return pgd;
 -- 
-1.7.1
+2.13.4
 
