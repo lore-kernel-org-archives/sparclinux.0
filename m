@@ -1,87 +1,59 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 03 Aug 2017 21:23:38 +0000
-Subject: [v5 00/15] complete deferred page initialization
-Message-Id: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:46 +0000
+Subject: [v5 08/15] mm: zero struct pages during initialization
+Message-Id: <1501795433-982645-9-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Changelog:
-v5 - v4
-- Fixed build issues reported by kbuild on various configurations
+Add struct page zeroing as a part of initialization of other fields in
+__init_single_page().
 
-v4 - v3
-- Rewrote code to zero sturct pages in __init_single_page() as
-  suggested by Michal Hocko
-- Added code to handle issues related to accessing struct page
-  memory before they are initialized.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/mm.h | 9 +++++++++
+ mm/page_alloc.c    | 1 +
+ 2 files changed, 10 insertions(+)
 
-v3 - v2
-- Addressed David Miller comments about one change per patch:
-    * Splited changes to platforms into 4 patches
-    * Made "do not zero vmemmap_buf" as a separate patch
-
-v2 - v1
-- Per request, added s390 to deferred "struct page" zeroing
-- Collected performance data on x86 which proofs the importance to
-  keep memset() as prefetch (see below).
-
-SMP machines can benefit from the DEFERRED_STRUCT_PAGE_INIT config option,
-which defers initializing struct pages until all cpus have been started so
-it can be done in parallel.
-
-However, this feature is sub-optimal, because the deferred page
-initialization code expects that the struct pages have already been zeroed,
-and the zeroing is done early in boot with a single thread only.  Also, we
-access that memory and set flags before struct pages are initialized. All
-of this is fixed in this patchset.
-
-In this work we do the following:
-- Never read access struct page until it was initialized
-- Never set any fields in struct pages before they are initialized
-- Zero struct page at the beginning of struct page initialization
-
-Performance improvements on x86 machine with 8 nodes:
-Intel(R) Xeon(R) CPU E7-8895 v3 @ 2.60GHz
-
-Single threaded struct page init: 7.6s/T improvement
-Deferred struct page init: 10.2s/T improvement
-
-Pavel Tatashin (15):
-  x86/mm: reserve only exiting low pages
-  x86/mm: setting fields in deferred pages
-  sparc64/mm: setting fields in deferred pages
-  mm: discard memblock data later
-  mm: don't accessed uninitialized struct pages
-  sparc64: simplify vmemmap_populate
-  mm: defining memblock_virt_alloc_try_nid_raw
-  mm: zero struct pages during initialization
-  sparc64: optimized struct page zeroing
-  x86/kasan: explicitly zero kasan shadow memory
-  arm64/kasan: explicitly zero kasan shadow memory
-  mm: explicitly zero pagetable memory
-  mm: stop zeroing memory during allocation in vmemmap
-  mm: optimize early system hash allocations
-  mm: debug for raw alloctor
-
- arch/arm64/mm/kasan_init.c          |  32 ++++++++
- arch/sparc/include/asm/pgtable_64.h |  32 ++++++++
- arch/sparc/mm/init_64.c             |  31 +++-----
- arch/x86/kernel/setup.c             |   5 +-
- arch/x86/mm/init_64.c               |   9 ++-
- arch/x86/mm/kasan_init_64.c         |  29 +++++++
- include/linux/bootmem.h             |  27 +++++++
- include/linux/memblock.h            |   9 ++-
- include/linux/mm.h                  |   9 +++
- mm/memblock.c                       | 152 ++++++++++++++++++++++++++++--------
- mm/nobootmem.c                      |  16 ----
- mm/page_alloc.c                     |  31 +++++---
- mm/sparse-vmemmap.c                 |  10 ++-
- mm/sparse.c                         |   6 +-
- 14 files changed, 310 insertions(+), 88 deletions(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 46b9ac5e8569..183ac5e733db 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -94,6 +94,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #endif
+ 
+ /*
++ * On some architectures it is expensive to call memset() for small sizes.
++ * Those architectures should provide their own implementation of "struct page"
++ * zeroing by defining this macro in <asm/pgtable.h>.
++ */
++#ifndef mm_zero_struct_page
++#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
++#endif
++
++/*
+  * Default maximum number of active map areas, this limits the number of vmas
+  * per mm struct. Users can overwrite this number by sysctl but there is a
+  * problem.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 05110ae50aca..cbcdd53ad9f8 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1168,6 +1168,7 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
 -- 
 2.13.4
 
