@@ -1,96 +1,191 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:44:00 +0000
-Subject: [PATCH v1 08/13] sparc64: vcc: Add open & close TTY operations
-Message-Id: <aba9f54eac78807e180945e8af7ef0abc2ebffdf.1501781770.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:45 +0000
+Subject: [v5 07/15] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <1501795433-982645-8-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Add handlers to support TTY open & close operations
+A new variant of memblock_virt_alloc_* allocations:
+memblock_virt_alloc_try_nid_raw()
+    - Does not zero the allocated memory
+    - Does not panic if request cannot be satisfied
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- drivers/tty/vcc.c |   63 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 62 insertions(+), 1 deletions(-)
+ include/linux/bootmem.h | 27 +++++++++++++++++++++++++
+ mm/memblock.c           | 53 ++++++++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 73 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 8f4afdb..b9f6aea 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -745,7 +745,68 @@ static int vcc_remove(struct vio_dev *vdev)
- 	.name		= "vcc",
- };
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index e223d91b6439..ea30b3987282 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -160,6 +160,9 @@ extern void *__alloc_bootmem_low_node(pg_data_t *pgdat,
+ #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
  
--static const struct tty_operations vcc_ops;
-+static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
+ /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
++void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
++				      phys_addr_t min_addr,
++				      phys_addr_t max_addr, int nid);
+ void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
+ 		phys_addr_t align, phys_addr_t min_addr,
+ 		phys_addr_t max_addr, int nid);
+@@ -176,6 +179,14 @@ static inline void * __init memblock_virt_alloc(
+ 					    NUMA_NO_NODE);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
 +{
-+	struct vcc_port *port;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: open: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	if (tty->count > 1)
-+		return -EBUSY;
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: open: Failed to find VCC port\n");
-+		return -ENODEV;
-+	}
-+
-+	if (unlikely(!port->vio.lp)) {
-+		pr_err("VCC: open: LDC channel not configured\n");
-+		vcc_put(port, false);
-+		return -EPIPE;
-+	}
-+	vccdbgl(port->vio.lp);
-+
-+	vcc_put(port, false);
-+
-+	if (unlikely(!tty->port)) {
-+		pr_err("VCC: open: TTY port not found\n");
-+		return -ENXIO;
-+	}
-+
-+	if (unlikely(!tty->port->ops)) {
-+		pr_err("VCC: open: TTY ops not defined\n");
-+		return -ENXIO;
-+	}
-+
-+	return tty_port_open(tty->port, tty, vcc_file);
++	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
++					    BOOTMEM_ALLOC_ACCESSIBLE,
++					    NUMA_NO_NODE);
 +}
 +
-+static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -257,6 +268,14 @@ static inline void * __init memblock_virt_alloc(
+ 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
 +{
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: close: Invalid TTY handle\n");
-+		return;
-+	}
-+
-+	if (unlikely(tty->count > 1))
-+		return;
-+
-+	if (unlikely(!tty->port)) {
-+		pr_err("VCC: close: TTY port not found\n");
-+		return;
-+	}
-+
-+	tty_port_close(tty->port, tty, vcc_file);
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
 +}
 +
-+static const struct tty_operations vcc_ops = {
-+	.open	= vcc_open,
-+	.close	= vcc_close,
-+};
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -309,6 +328,14 @@ static inline void * __init memblock_virt_alloc_try_nid(phys_addr_t size,
+ 					  min_addr);
+ }
  
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
++static inline void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
++{
++	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
++				min_addr, max_addr);
++}
++
+ static inline void * __init memblock_virt_alloc_try_nid_nopanic(
+ 			phys_addr_t size, phys_addr_t align,
+ 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
+diff --git a/mm/memblock.c b/mm/memblock.c
+index e6df054e3180..bdf31f207fa4 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1327,7 +1327,6 @@ static void * __init memblock_virt_alloc_internal(
+ 	return NULL;
+ done:
+ 	ptr = phys_to_virt(alloc);
+-	memset(ptr, 0, size);
  
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+@@ -1341,6 +1340,38 @@ static void * __init memblock_virt_alloc_internal(
+ }
+ 
+ /**
++ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
++ * memory and without panicking
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @min_addr: the lower bound of the memory region from where the allocation
++ *	  is preferred (phys address)
++ * @max_addr: the upper bound of the memory region from where the allocation
++ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
++ *	      allocate only from memory limited by memblock.current_limit value
++ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
++ *
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. Does not zero allocated memory, does not panic if request
++ * cannot be satisfied.
++ *
++ * RETURNS:
++ * Virtual address of allocated memory block on success, NULL on failure.
++ */
++void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr,
++			int nid)
++{
++	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
++		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
++		     (u64)max_addr, (void *)_RET_IP_);
++
++	return memblock_virt_alloc_internal(size, align,
++					    min_addr, max_addr, nid);
++}
++
++/**
+  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
+  * @size: size of memory block to be allocated in bytes
+  * @align: alignment of the region and block's size
+@@ -1351,8 +1382,8 @@ static void * __init memblock_virt_alloc_internal(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
+- * additional debug information (including caller info), if enabled.
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. This function zeroes the allocated memory.
+  *
+  * RETURNS:
+  * Virtual address of allocated memory block on success, NULL on failure.
+@@ -1362,11 +1393,17 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+ 				phys_addr_t min_addr, phys_addr_t max_addr,
+ 				int nid)
+ {
++	void *ptr;
++
+ 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+-	return memblock_virt_alloc_internal(size, align, min_addr,
+-					     max_addr, nid);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++	if (ptr)
++		memset(ptr, 0, size);
++	return ptr;
+ }
+ 
+ /**
+@@ -1380,7 +1417,7 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
++ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
+  * which provides debug information (including caller info), if enabled,
+  * and panics if the request can not be satisfied.
+  *
+@@ -1399,8 +1436,10 @@ void * __init memblock_virt_alloc_try_nid(
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	ptr = memblock_virt_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid);
+-	if (ptr)
++	if (ptr) {
++		memset(ptr, 0, size);
+ 		return ptr;
++	}
+ 
+ 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
+ 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
 -- 
-1.7.1
+2.13.4
 
