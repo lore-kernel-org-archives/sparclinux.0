@@ -1,7 +1,7 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Tue, 15 Aug 2017 21:02:59 +0000
-Subject: [PATCH v2 03/13] sparc64: vcc: TTY driver initialization and cleanup
-Message-Id: <9181397cd3d4ee8dc1aff828828cbc4127f41dd7.1502829972.git.jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:43:55 +0000
+Subject: [PATCH v1 03/13] sparc64: vcc: TTY driver initialization and cleanup
+Message-Id: <788d2a3e381e25f6607ada0d0d1cadde03e1ecf5.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
