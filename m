@@ -1,153 +1,87 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Tue, 15 Aug 2017 21:03:01 +0000
-Subject: [PATCH v2 05/13] sparc64: vcc: Create sysfs attribute group
-Message-Id: <903983656b5558b03e6a9cd14d9218144855871c.1502829972.git.jag.raman@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 03 Aug 2017 21:23:38 +0000
+Subject: [v5 00/15] complete deferred page initialization
+Message-Id: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Create sysfs attribute group to show the domain name and
-send break command.
+Changelog:
+v5 - v4
+- Fixed build issues reported by kbuild on various configurations
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- v2: remove sysfs attr group during cleanup
+v4 - v3
+- Rewrote code to zero sturct pages in __init_single_page() as
+  suggested by Michal Hocko
+- Added code to handle issues related to accessing struct page
+  memory before they are initialized.
 
- drivers/tty/vcc.c |   82 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
+v3 - v2
+- Addressed David Miller comments about one change per patch:
+    * Splited changes to platforms into 4 patches
+    * Made "do not zero vmemmap_buf" as a separate patch
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 4edace1..72e0879 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -7,6 +7,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-+#include <linux/sysfs.h>
- #include <linux/tty.h>
- #include <asm/vio.h>
- #include <asm/ldc.h>
-@@ -52,6 +53,9 @@ struct vcc_port {
- #define VCC_MAX_PORTS		1024
- #define VCC_MINOR_START		0	/* must be zero */
- 
-+#define VCC_CTL_BREAK		-1
-+#define VCC_CTL_HUP		-2
-+
- static const char vcc_driver_name[] = "vcc";
- static const char vcc_device_node[] = "vcc";
- static struct tty_driver *vcc_tty_driver;
-@@ -268,6 +272,77 @@ static void vcc_event(void *arg, int event)
- 	{ .major = 1, .minor = 0 },
- };
- 
-+static ssize_t vcc_sysfs_domain_show(struct device *dev,
-+				     struct device_attribute *attr,
-+				     char *buf)
-+{
-+	struct vcc_port *port;
-+	int rv;
-+
-+	port = dev_get_drvdata(dev);
-+	if (!port)
-+		return -ENODEV;
-+
-+	rv = scnprintf(buf, PAGE_SIZE, "%s\n", port->domain);
-+
-+	return rv;
-+}
-+
-+static int vcc_send_ctl(struct vcc_port *port, int ctl)
-+{
-+	struct vio_vcc pkt;
-+	int rv;
-+
-+	pkt.tag.type = VIO_TYPE_CTRL;
-+	pkt.tag.sid = ctl;
-+	pkt.tag.stype = 0;
-+
-+	rv = ldc_write(port->vio.lp, &pkt, sizeof(pkt.tag));
-+	WARN_ON(!rv);
-+	vccdbg("VCC: ldc_write(%ld)=%d\n", sizeof(pkt.tag), rv);
-+
-+	return rv;
-+}
-+
-+static ssize_t vcc_sysfs_break_store(struct device *dev,
-+				     struct device_attribute *attr,
-+				     const char *buf, size_t count)
-+{
-+	struct vcc_port *port;
-+	unsigned long flags;
-+	int rv = count;
-+	int brk;
-+
-+	port = dev_get_drvdata(dev);
-+	if (!port)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
-+		rv = -EINVAL;
-+	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
-+		pr_err("VCC: unable to send CTL_BREAK\n");
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+
-+	return rv;
-+}
-+
-+static DEVICE_ATTR(domain, 0400, vcc_sysfs_domain_show, NULL);
-+static DEVICE_ATTR(break, 0200, NULL, vcc_sysfs_break_store);
-+
-+static struct attribute *vcc_sysfs_entries[] = {
-+	&dev_attr_domain.attr,
-+	&dev_attr_break.attr,
-+	NULL
-+};
-+
-+static struct attribute_group vcc_attribute_group = {
-+	.name = NULL,
-+	.attrs = vcc_sysfs_entries,
-+};
-+
- /**
-  * vcc_probe() - Initialize VCC port
-  * @vdev: Pointer to VIO device of the new VCC port
-@@ -349,6 +424,10 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 
- 	mdesc_release(hp);
- 
-+	rv = sysfs_create_group(&vdev->dev.kobj, &vcc_attribute_group);
-+	if (rv)
-+		goto free_domain;
-+
- 	dev_set_drvdata(&vdev->dev, port);
- 
- 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
-@@ -360,6 +439,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 
- 	return 0;
- 
-+free_domain:
-+	kfree(port->domain);
- unreg_tty:
- 	tty_unregister_device(vcc_tty_driver, port->index);
- free_table:
-@@ -408,6 +489,7 @@ static int vcc_remove(struct vio_dev *vdev)
- 
- 	del_timer_sync(&port->vio.timer);
- 	vio_ldc_free(&port->vio);
-+	sysfs_remove_group(&vdev->dev.kobj, &vcc_attribute_group);
- 	dev_set_drvdata(&vdev->dev, NULL);
- 
- 	if (port->tty) {
+v2 - v1
+- Per request, added s390 to deferred "struct page" zeroing
+- Collected performance data on x86 which proofs the importance to
+  keep memset() as prefetch (see below).
+
+SMP machines can benefit from the DEFERRED_STRUCT_PAGE_INIT config option,
+which defers initializing struct pages until all cpus have been started so
+it can be done in parallel.
+
+However, this feature is sub-optimal, because the deferred page
+initialization code expects that the struct pages have already been zeroed,
+and the zeroing is done early in boot with a single thread only.  Also, we
+access that memory and set flags before struct pages are initialized. All
+of this is fixed in this patchset.
+
+In this work we do the following:
+- Never read access struct page until it was initialized
+- Never set any fields in struct pages before they are initialized
+- Zero struct page at the beginning of struct page initialization
+
+Performance improvements on x86 machine with 8 nodes:
+Intel(R) Xeon(R) CPU E7-8895 v3 @ 2.60GHz
+
+Single threaded struct page init: 7.6s/T improvement
+Deferred struct page init: 10.2s/T improvement
+
+Pavel Tatashin (15):
+  x86/mm: reserve only exiting low pages
+  x86/mm: setting fields in deferred pages
+  sparc64/mm: setting fields in deferred pages
+  mm: discard memblock data later
+  mm: don't accessed uninitialized struct pages
+  sparc64: simplify vmemmap_populate
+  mm: defining memblock_virt_alloc_try_nid_raw
+  mm: zero struct pages during initialization
+  sparc64: optimized struct page zeroing
+  x86/kasan: explicitly zero kasan shadow memory
+  arm64/kasan: explicitly zero kasan shadow memory
+  mm: explicitly zero pagetable memory
+  mm: stop zeroing memory during allocation in vmemmap
+  mm: optimize early system hash allocations
+  mm: debug for raw alloctor
+
+ arch/arm64/mm/kasan_init.c          |  32 ++++++++
+ arch/sparc/include/asm/pgtable_64.h |  32 ++++++++
+ arch/sparc/mm/init_64.c             |  31 +++-----
+ arch/x86/kernel/setup.c             |   5 +-
+ arch/x86/mm/init_64.c               |   9 ++-
+ arch/x86/mm/kasan_init_64.c         |  29 +++++++
+ include/linux/bootmem.h             |  27 +++++++
+ include/linux/memblock.h            |   9 ++-
+ include/linux/mm.h                  |   9 +++
+ mm/memblock.c                       | 152 ++++++++++++++++++++++++++++--------
+ mm/nobootmem.c                      |  16 ----
+ mm/page_alloc.c                     |  31 +++++---
+ mm/sparse-vmemmap.c                 |  10 ++-
+ mm/sparse.c                         |   6 +-
+ 14 files changed, 310 insertions(+), 88 deletions(-)
+
 -- 
-1.7.1
+2.13.4
 
