@@ -1,79 +1,77 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 07 Aug 2017 20:38:37 +0000
-Subject: [v6 03/15] sparc64/mm: setting fields in deferred pages
-Message-Id: <1502138329-123460-4-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:44:01 +0000
+Subject: [PATCH v1 09/13] sparc64: vcc: Add hangup TTY operation
+Message-Id: <dc756d745a3dfcb75da153c69b841b9e886d4934.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+Add handler to support TTY hangup operation
 
-With deferred struct page feature enabled there is a case where we set some
-fields prior to initializing:
-
- mem_init() {
-	 register_page_bootmem_info();
-	 free_all_bootmem();
-	 ...
- }
-
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
-
-mem_init
-register_page_bootmem_info
- register_page_bootmem_info_node
-  get_page_bootmem
-   .. setting fields here ..
-   such as: page->freelist = (void *)type;
-
-We end-up with similar issue as in the previous patch, where currently we
-do not observe problem as memory is zeroed. But, if flag asserts are
-changed we can start hitting issues.
-
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/mm/init_64.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/tty/vcc.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 41 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index fed73f14aa49..25ded711ab6c 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2487,9 +2487,15 @@ void __init mem_init(void)
- {
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index b9f6aea..fef6ab4 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -803,9 +803,50 @@ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
+ 	tty_port_close(tty->port, tty, vcc_file);
+ }
  
--	register_page_bootmem_info();
- 	free_all_bootmem();
- 
-+	/* Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
++static void vcc_ldc_hup(struct vcc_port *port)
++{
++	unsigned long flags;
 +
- 	/*
- 	 * Set up the zero page, mark it reserved, so that page count
- 	 * is not manipulated when freeing the page from user ptes.
++	spin_lock_irqsave(&port->lock, flags);
++
++	if (vcc_send_ctl(port, VCC_CTL_HUP) < 0)
++		vcc_kick_tx(port);
++
++	spin_unlock_irqrestore(&port->lock, flags);
++}
++
++static void vcc_hangup(struct tty_struct *tty)
++{
++	struct vcc_port *port;
++
++	if (unlikely(!tty)) {
++		pr_err("VCC: hangup: Invalid TTY handle\n");
++		return;
++	}
++
++	port = vcc_get_ne(tty->index);
++	if (unlikely(!port)) {
++		pr_err("VCC: hangup: Failed to find VCC port\n");
++		return;
++	}
++
++	if (unlikely(!tty->port)) {
++		pr_err("VCC: hangup: TTY port not found\n");
++		vcc_put(port, false);
++		return;
++	}
++
++	vcc_ldc_hup(port);
++
++	vcc_put(port, false);
++
++	tty_port_hangup(tty->port);
++}
++
+ static const struct tty_operations vcc_ops = {
+ 	.open	= vcc_open,
+ 	.close	= vcc_close,
++	.hangup	= vcc_hangup,
+ };
+ 
+ #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
 -- 
-2.14.0
+1.7.1
 
