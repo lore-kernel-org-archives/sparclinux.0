@@ -1,48 +1,66 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Sat, 12 Aug 2017 02:50:36 +0000
-Subject: Re: [PATCH 2/3] sparc64: Add 16GB hugepage support
-Message-Id: <15a11c95-f4b2-3304-186d-de8d64396ba7@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Thu, 03 Aug 2017 17:43:59 +0000
+Subject: [PATCH v1 07/13] sparc64: vcc: Enable LDC event processing engine
+Message-Id: <06dccdc7a1d8ce6aa507f1b164185cd508d4055e.1501781770.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1499982815-183450-3-git-send-email-nitin.m.gupta@oracle.com>
-In-Reply-To: <1499982815-183450-3-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 8/11/17 5:28 PM, Xose Vazquez Perez wrote:
-> Nitin Gupta wrote:
-> 
->> On 07/20/2017 01:04 PM, David Miller wrote:
->>> From: Nitin Gupta <nitin.m.gupta@oracle.com>
->>> Date: Thu, 13 Jul 2017 14:53:24 -0700
->>>
->>>> Testing:
->>>>
->>>> Tested with the stream benchmark which allocates 48G of
->>>> arrays backed by 16G hugepages and does RW operation on
->>>> them in parallel.
->>>
->>> It would be great if we started adding tests under
->>> tools/testing/selftests so that other people can recreate
->>> your tests/benchmarks.
->>>
->>
->> Yes, I would like to add the stream benchmark to selftests too.
->> I will check if our internal version of stream can be released.
-> 
-> STREAM's $HOME is at: https://www.cs.virginia.edu/stream/
-> C and Fortran implementations: https://www.cs.virginia.edu/stream/FTP/Code/
+Enable event processing engine to handle LDC events
 
-Looking at:
-https://www.cs.virginia.edu/stream/FTP/Code/stream.c
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/tty/vcc.c |   31 +++++++++++++++++++++++++++++++
+ 1 files changed, 31 insertions(+), 0 deletions(-)
 
-I see that arrays are statically allocated. To be useful for hugepage
-testing, it should probably be converted to use malloc/mmap for these
-array allocations.  This is a small easy change.  However, I'm not sure
-if publication restrictions (see Item 3 in source header) would be
-acceptable to the Linux kernel which is a call that I can't make.
-
-Nitin
-
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 84a8dd7..8f4afdb 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -443,8 +443,39 @@ static void vcc_tx_timer(unsigned long index)
+ 	vcc_put(port, false);
+ }
+ 
++/**
++ * vcc_event() - LDC event processing engine
++ * @arg: VCC private data
++ * @event: LDC event
++ *
++ * Handles LDC events for VCC
++ */
+ static void vcc_event(void *arg, int event)
+ {
++	struct vcc_port *port = (struct vcc_port *)arg;
++	struct vio_driver_state *vio = &port->vio;
++	unsigned long flags;
++	int rv;
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	switch (event) {
++	case LDC_EVENT_RESET:
++	case LDC_EVENT_UP:
++		vio_link_state_change(vio, event);
++		break;
++
++	case LDC_EVENT_DATA_READY:
++		rv = vcc_ldc_read(port);
++		if (rv = -ECONNRESET)
++			vio_conn_reset(vio);
++		break;
++
++	default:
++		pr_err("VCC: unexpected LDC event(%d)\n", event);
++	}
++
++	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ static struct ldc_channel_config vcc_ldc_cfg = {
+-- 
+1.7.1
 
