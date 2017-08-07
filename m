@@ -1,72 +1,369 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 03 Aug 2017 21:23:51 +0000
-Subject: [v5 13/15] mm: stop zeroing memory during allocation in vmemmap
-Message-Id: <1501795433-982645-14-git-send-email-pasha.tatashin@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 07 Aug 2017 23:52:49 +0000
+Subject: [PATCH v2 1/4] arch/sparc: Separate the exception handlers from NG4memcpy
+Message-Id: <1502149972-61517-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
+References: <1502149972-61517-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1502149972-61517-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, babu.moger@oracle.com
 
-Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
-we will get the performance improvement by zeroing the memory in parallel
-when struct pages are zeroed.
+Separate the exception handlers from NG4memcpy so that it can be
+used with new memcpy routines. Make a separate file for all these handlers.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
 ---
- mm/sparse-vmemmap.c | 6 +++---
- mm/sparse.c         | 6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ arch/sparc/lib/Makefile       |    2 +
+ arch/sparc/lib/Memcpy_utils.S |  163 +++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/NG4memcpy.S    |  149 -------------------------------------
+ 3 files changed, 165 insertions(+), 149 deletions(-)
+ create mode 100644 arch/sparc/lib/Memcpy_utils.S
 
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index d40c721ab19f..3b646b5ce1b6 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
- 				unsigned long align,
- 				unsigned long goal)
- {
--	return memblock_virt_alloc_try_nid(size, align, goal,
-+	return memblock_virt_alloc_try_nid_raw(size, align, goal,
- 					    BOOTMEM_ALLOC_ACCESSIBLE, node);
- }
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 07c03e7..37930c0 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -36,6 +36,8 @@ lib-$(CONFIG_SPARC64) +=  NG2patch.o
+ lib-$(CONFIG_SPARC64) += NG4memcpy.o NG4copy_from_user.o NG4copy_to_user.o
+ lib-$(CONFIG_SPARC64) +=  NG4patch.o NG4copy_page.o NG4clear_page.o NG4memset.o
  
-@@ -56,11 +56,11 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
++lib-$(CONFIG_SPARC64) += Memcpy_utils.o
++
+ lib-$(CONFIG_SPARC64) += GENmemcpy.o GENcopy_from_user.o GENcopy_to_user.o
+ lib-$(CONFIG_SPARC64) += GENpatch.o GENpage.o GENbzero.o
  
- 		if (node_state(node, N_HIGH_MEMORY))
- 			page = alloc_pages_node(
--				node, GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
-+				node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
- 				get_order(size));
- 		else
- 			page = alloc_pages(
--				GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
-+				GFP_KERNEL | __GFP_RETRY_MAYFAIL,
- 				get_order(size));
- 		if (page)
- 			return page_address(page);
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 7b4be3fd5cac..0e315766ad11 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -441,9 +441,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
- 	}
+diff --git a/arch/sparc/lib/Memcpy_utils.S b/arch/sparc/lib/Memcpy_utils.S
+new file mode 100644
+index 0000000..f7a26e0
+--- /dev/null
++++ b/arch/sparc/lib/Memcpy_utils.S
+@@ -0,0 +1,163 @@
++#ifndef __ASM_MEMCPY_UTILS
++#define __ASM_MEMCPY_UTILS
++
++#include <linux/linkage.h>
++#include <asm/asi.h>
++#include <asm/visasm.h>
++
++ENTRY(__restore_asi_fp)
++	VISExitHalf
++	retl
++	 wr	%g0, ASI_AIUS, %asi
++ENDPROC(__restore_asi_fp)
++
++ENTRY(__restore_asi)
++	retl
++	 wr	%g0, ASI_AIUS, %asi
++ENDPROC(__restore_asi)
++
++ENTRY(NG4_retl_o2)
++	ba,pt	%xcc, __restore_asi
++	 mov	%o2, %o0
++ENDPROC(NG4_retl_o2)
++ENTRY(NG4_retl_o2_plus_1)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, 1, %o0
++ENDPROC(NG4_retl_o2_plus_1)
++ENTRY(NG4_retl_o2_plus_4)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, 4, %o0
++ENDPROC(NG4_retl_o2_plus_4)
++ENTRY(NG4_retl_o2_plus_o5)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5)
++ENTRY(NG4_retl_o2_plus_o5_plus_4)
++	add	%o5, 4, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_4)
++ENTRY(NG4_retl_o2_plus_o5_plus_8)
++	add	%o5, 8, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_8)
++ENTRY(NG4_retl_o2_plus_o5_plus_16)
++	add	%o5, 16, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_16)
++ENTRY(NG4_retl_o2_plus_o5_plus_24)
++	add	%o5, 24, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_24)
++ENTRY(NG4_retl_o2_plus_o5_plus_32)
++	add	%o5, 32, %o5
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o5, %o0
++ENDPROC(NG4_retl_o2_plus_o5_plus_32)
++ENTRY(NG4_retl_o2_plus_g1)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1)
++ENTRY(NG4_retl_o2_plus_g1_plus_1)
++	add	%g1, 1, %g1
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1_plus_1)
++ENTRY(NG4_retl_o2_plus_g1_plus_8)
++	add	%g1, 8, %g1
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %g1, %o0
++ENDPROC(NG4_retl_o2_plus_g1_plus_8)
++ENTRY(NG4_retl_o2_plus_o4)
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4)
++ENTRY(NG4_retl_o2_plus_o4_plus_8)
++	add	%o4, 8, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_8)
++ENTRY(NG4_retl_o2_plus_o4_plus_16)
++	add	%o4, 16, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_16)
++ENTRY(NG4_retl_o2_plus_o4_plus_24)
++	add	%o4, 24, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_24)
++ENTRY(NG4_retl_o2_plus_o4_plus_32)
++	add	%o4, 32, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_32)
++ENTRY(NG4_retl_o2_plus_o4_plus_40)
++	add	%o4, 40, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_40)
++ENTRY(NG4_retl_o2_plus_o4_plus_48)
++	add	%o4, 48, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_48)
++ENTRY(NG4_retl_o2_plus_o4_plus_56)
++	add	%o4, 56, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_56)
++ENTRY(NG4_retl_o2_plus_o4_plus_64)
++	add	%o4, 64, %o4
++	ba,pt	%xcc, __restore_asi
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_64)
++ENTRY(NG4_retl_o2_plus_o4_fp)
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_8_fp)
++	add	%o4, 8, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_8_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_16_fp)
++	add	%o4, 16, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_16_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_24_fp)
++	add	%o4, 24, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_24_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_32_fp)
++	add	%o4, 32, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_32_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_40_fp)
++	add	%o4, 40, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_40_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_48_fp)
++	add	%o4, 48, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_48_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_56_fp)
++	add	%o4, 56, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_56_fp)
++ENTRY(NG4_retl_o2_plus_o4_plus_64_fp)
++	add	%o4, 64, %o4
++	ba,pt	%xcc, __restore_asi_fp
++	 add	%o2, %o4, %o0
++ENDPROC(NG4_retl_o2_plus_o4_plus_64_fp)
++
++#endif
+diff --git a/arch/sparc/lib/NG4memcpy.S b/arch/sparc/lib/NG4memcpy.S
+index 78ea962..e20d654 100644
+--- a/arch/sparc/lib/NG4memcpy.S
++++ b/arch/sparc/lib/NG4memcpy.S
+@@ -94,155 +94,6 @@
+ 	.text
+ #ifndef EX_RETVAL
+ #define EX_RETVAL(x)	x
+-__restore_asi_fp:
+-	VISExitHalf
+-__restore_asi:
+-	retl
+-	 wr	%g0, ASI_AIUS, %asi
+-
+-ENTRY(NG4_retl_o2)
+-	ba,pt	%xcc, __restore_asi
+-	 mov	%o2, %o0
+-ENDPROC(NG4_retl_o2)
+-ENTRY(NG4_retl_o2_plus_1)
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, 1, %o0
+-ENDPROC(NG4_retl_o2_plus_1)
+-ENTRY(NG4_retl_o2_plus_4)
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, 4, %o0
+-ENDPROC(NG4_retl_o2_plus_4)
+-ENTRY(NG4_retl_o2_plus_o5)
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5)
+-ENTRY(NG4_retl_o2_plus_o5_plus_4)
+-	add	%o5, 4, %o5
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5_plus_4)
+-ENTRY(NG4_retl_o2_plus_o5_plus_8)
+-	add	%o5, 8, %o5
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5_plus_8)
+-ENTRY(NG4_retl_o2_plus_o5_plus_16)
+-	add	%o5, 16, %o5
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5_plus_16)
+-ENTRY(NG4_retl_o2_plus_o5_plus_24)
+-	add	%o5, 24, %o5
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5_plus_24)
+-ENTRY(NG4_retl_o2_plus_o5_plus_32)
+-	add	%o5, 32, %o5
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o5, %o0
+-ENDPROC(NG4_retl_o2_plus_o5_plus_32)
+-ENTRY(NG4_retl_o2_plus_g1)
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %g1, %o0
+-ENDPROC(NG4_retl_o2_plus_g1)
+-ENTRY(NG4_retl_o2_plus_g1_plus_1)
+-	add	%g1, 1, %g1
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %g1, %o0
+-ENDPROC(NG4_retl_o2_plus_g1_plus_1)
+-ENTRY(NG4_retl_o2_plus_g1_plus_8)
+-	add	%g1, 8, %g1
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %g1, %o0
+-ENDPROC(NG4_retl_o2_plus_g1_plus_8)
+-ENTRY(NG4_retl_o2_plus_o4)
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4)
+-ENTRY(NG4_retl_o2_plus_o4_plus_8)
+-	add	%o4, 8, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_8)
+-ENTRY(NG4_retl_o2_plus_o4_plus_16)
+-	add	%o4, 16, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_16)
+-ENTRY(NG4_retl_o2_plus_o4_plus_24)
+-	add	%o4, 24, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_24)
+-ENTRY(NG4_retl_o2_plus_o4_plus_32)
+-	add	%o4, 32, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_32)
+-ENTRY(NG4_retl_o2_plus_o4_plus_40)
+-	add	%o4, 40, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_40)
+-ENTRY(NG4_retl_o2_plus_o4_plus_48)
+-	add	%o4, 48, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_48)
+-ENTRY(NG4_retl_o2_plus_o4_plus_56)
+-	add	%o4, 56, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_56)
+-ENTRY(NG4_retl_o2_plus_o4_plus_64)
+-	add	%o4, 64, %o4
+-	ba,pt	%xcc, __restore_asi
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_64)
+-ENTRY(NG4_retl_o2_plus_o4_fp)
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_8_fp)
+-	add	%o4, 8, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_8_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_16_fp)
+-	add	%o4, 16, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_16_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_24_fp)
+-	add	%o4, 24, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_24_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_32_fp)
+-	add	%o4, 32, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_32_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_40_fp)
+-	add	%o4, 40, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_40_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_48_fp)
+-	add	%o4, 48, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_48_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_56_fp)
+-	add	%o4, 56, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_56_fp)
+-ENTRY(NG4_retl_o2_plus_o4_plus_64_fp)
+-	add	%o4, 64, %o4
+-	ba,pt	%xcc, __restore_asi_fp
+-	 add	%o2, %o4, %o0
+-ENDPROC(NG4_retl_o2_plus_o4_plus_64_fp)
+ #endif
+ 	.align		64
  
- 	size = PAGE_ALIGN(size);
--	map = memblock_virt_alloc_try_nid(size * map_count,
--					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
--					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
-+	map = memblock_virt_alloc_try_nid_raw(size * map_count,
-+					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
-+					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
- 	if (map) {
- 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 			if (!present_section_nr(pnum))
 -- 
-2.13.4
+1.7.1
 
