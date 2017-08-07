@@ -1,172 +1,201 @@
-From: Babu Moger <babu.moger@oracle.com>
-Date: Thu, 03 Aug 2017 21:08:26 +0000
-Subject: Re: [PATCH RFC 3/4] arch/sparc: Optimized memcpy, memset, copy_to_user, copy_from_user for M7
-Message-Id: <97e07f34-a1d6-de42-7e8f-9c71b88c1653@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 07 Aug 2017 20:38:39 +0000
+Subject: [v6 05/15] mm: don't accessed uninitialized struct pages
+Message-Id: <1502138329-123460-6-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501192650-1043374-1-git-send-email-babu.moger@oracle.com>
- <1501192650-1043374-3-git-send-email-babu.moger@oracle.com>
- <20170729.143619.1067390481813023112.davem@davemloft.net>
-In-Reply-To: <20170729.143619.1067390481813023112.davem@davemloft.net>
+References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-David, Thanks for the comments. I am working on addressing your feedback.
+In deferred_init_memmap() where all deferred struct pages are initialized
+we have a check like this:
 
-Comments inline below.
+    if (page->flags) {
+            VM_BUG_ON(page_zone(page) != zone);
+            goto free_range;
+    }
 
+This way we are checking if the current deferred page has already been
+initialized. It works, because memory for struct pages has been zeroed, and
+the only way flags are not zero if it went through __init_single_page()
+before.  But, once we change the current behavior and won't zero the memory
+in memblock allocator, we cannot trust anything inside "struct page"es
+until they are initialized. This patch fixes this.
 
-On 7/29/2017 4:36 PM, David Miller wrote:
-> From: Babu Moger <babu.moger@oracle.com>
-> Date: Thu, 27 Jul 2017 15:57:29 -0600
->
->> @@ -600,7 +600,7 @@ niagara_tlb_fixup:
->>   	be,pt	%xcc, niagara4_patch
->>   	 nop
->>   	cmp	%g1, SUN4V_CHIP_SPARC_M7
->> -	be,pt	%xcc, niagara4_patch
->> +	be,pt	%xcc, sparc_m7_patch
->>   	 nop
->>   	cmp	%g1, SUN4V_CHIP_SPARC_SN
->>   	be,pt	%xcc, niagara4_patch
-> This part will need to be respun now that the M8 patches are in
-> as there will be a slight conflict in this hunk.
-Actually, these patches have been tested both on M7 and M8.  I wanted to 
-add M8 also. But M8 patches were
-not in the kernel yet. Now that these M8 patches(from Allen) are in the 
-kernel, I can add it now.
-Will update it in the second version.
->> +        .register      %g2,#scratch
->> +
->> +       .section        ".text"
->> +       .global FUNC_NAME
->> +       .type   FUNC_NAME, #function
->> +       .align  16
->> +FUNC_NAME:
->> +	srlx            %o2, 31, %g2
->> +	cmp             %g2, 0
->> +	tne             %xcc, 5
->> +	PREAMBLE
->> +	mov		%o0, %g1	! save %o0
->> +	brz,pn          %o2, .Lsmallx
->> +
->> +	cmp            %o2, 3
->> +        ble,pn          %icc, .Ltiny_cp
->> +         cmp            %o2, 19
->> +        ble,pn          %icc, .Lsmall_cp
->> +         or             %o0, %o1, %g2
->> +        cmp             %o2, SMALL_MAX
->> +        bl,pn           %icc, .Lmedium_cp
->> +         nop
-> What in world is going on with this indentation?
->
-> I can't comprehend how, if anyone actually put their eyes on
-> this code and the patch itself, wouldn't notice this.
->
-> DO NOT mix all-spaced and TAB+space indentation.
->
-> Always, consistently, use as many TABs as you can and
-> then when needed add trailing spaces.
+This patch defines a new accessor memblock_get_reserved_pfn_range()
+which returns successive ranges of reserved PFNs.  deferred_init_memmap()
+calls it to determine if a PFN and its struct page has already been
+initialized.
 
-Sure. Will address these problems. In general will address all the 
-format issues. thanks
->
->> +.Lsrc_dst_aligned_on_8:
->> +	! check if we are copying MED_MAX or more bytes
->> +        set MED_MAX, %o3
->> +        cmp %o2, %o3 			! limit to store buffer size
->> +	bgu,pn	%ncc, .Llarge_align8_copy
->> +	 nop
-> Again, same problem here.
->
->> +/*
->> + * Handle all cases where src and dest are aligned on word
->> + * boundaries. Use unrolled loops for better performance.
->> + * This option wins over standard large data move when
->> + * source and destination is in cache for.Lmedium
->> + * to short data moves.
->> + */
->> +        set MED_WMAX, %o3
->> +        cmp %o2, %o3 			! limit to store buffer size
->> +	bge,pt	%ncc, .Lunalignrejoin	! otherwise rejoin main loop
->> +	 nop
-> More weird indentation.
->
->> +.dbalign:
->> +        andcc   %o5, 7, %o3             ! is sp1 aligned on a 8 byte bound?
->> +        bz,pt   %ncc, .blkalign         ! already long word aligned
->> +         sub     %o3, 8, %o3             ! -(bytes till long word aligned)
->> +
->> +        add     %o2, %o3, %o2           ! update o2 with new count
->> +        ! Set -(%o3) bytes till sp1 long word aligned
->> +1:      stb     %o1, [%o5]              ! there is at least 1 byte to set
->> +	inccc   %o3                     ! byte clearing loop
->> +        bl,pt   %ncc, 1b
->> +	 inc     %o5
-> More weird indentation.
->
->> +        ! Now sp1 is block aligned
->> +.blkwr:
->> +        andn    %o2, 63, %o4            ! calculate size of blocks in bytes
->> +        brz,pn  %o1, .wrzero            ! special case if c = 0
->> +         and     %o2, 63, %o3            ! %o3 = bytes left after blk stores.
->> +
->> +        set     MIN_LOOP, %g1
->> +        cmp     %o4, %g1                ! check there are enough bytes to set
->> +	blu,pn  %ncc, .short_set        ! to justify cost of membar
->> +                                        ! must be > pre-cleared lines
->> +         nop
-> Likewise.
->
->> +
->> +        ! initial cache-clearing stores
->> +        ! get store pipeline moving
->> +	rd	%asi, %g3		! save %asi to be restored later
->> +        wr     %g0, ASI_STBIMRU_P, %asi
-> Likewise.
->
->> +.wrzero_small:
->> +        stxa    %o1, [%o5]ASI_STBI_P
->> +        subcc   %o4, 64, %o4
->> +        bgu,pt  %ncc, .wrzero_small
->> +         add     %o5, 64, %o5
->> +	ba,a	.bsi_done
-> Likewise.
->
->> +.asi_done:
->> +	wr	%g3, 0x0, %asi		! restored saved %asi
->> +.bsi_done:
->> +        membar  #StoreStore             ! required by use of Block Store Init
-> Likewise.
->
->> +	.size		M7memset,.-M7memset
-> It's usually a lot better to use ENTRY() and ENDPROC() instead of
-> expanding these kinds of directives out.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/memblock.h |  3 +++
+ mm/memblock.c            | 54 ++++++++++++++++++++++++++++++++++++++++++------
+ mm/page_alloc.c          | 11 +++++++++-
+ 3 files changed, 61 insertions(+), 7 deletions(-)
 
-Ok.  Sure. Will address it.
->> +	.globl	m7_patch_copyops
->> +	.type	m7_patch_copyops,#function
->> +m7_patch_copyops:
-> ENTRY()
-Sure.
->> +	.size	m7_patch_copyops,.-m7_patch_copyops
-> ENDPROC()
-Sure
->> +	.globl	m7_patch_bzero
->> +	.type	m7_patch_bzero,#function
->> +m7_patch_bzero:
-> Likewise.
-Ok
->> +	.size	m7_patch_bzero,.-m7_patch_bzero
-> Likewise.
-Ok
->> +	.globl	m7_patch_pageops
->> +	.type	m7_patch_pageops,#function
->> +m7_patch_pageops:
-> Likewise.
-Ok
->> +	.size	m7_patch_pageops,.-m7_patch_pageops
-> Likewise.
-ok
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index bae11c7e7bf3..b6a2a610f5e1 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -320,6 +320,9 @@ int memblock_is_map_memory(phys_addr_t addr);
+ int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
+ bool memblock_is_reserved(phys_addr_t addr);
+ bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
++void memblock_get_reserved_pfn_range(unsigned long pfn,
++				     unsigned long *pfn_start,
++				     unsigned long *pfn_end);
+ 
+ extern void __memblock_dump_all(void);
+ 
+diff --git a/mm/memblock.c b/mm/memblock.c
+index bf14aea6ab70..08f449acfdd1 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1580,7 +1580,13 @@ void __init memblock_mem_limit_remove_map(phys_addr_t limit)
+ 	memblock_cap_memory_range(0, max_addr);
+ }
+ 
+-static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
++/**
++ * Return index in regions array if addr is within the region. Otherwise
++ * return -1. If -1 is returned and *next_idx is not %NULL, sets it to the
++ * next region index or -1 if there is none.
++ */
++static int __init_memblock memblock_search(struct memblock_type *type,
++					   phys_addr_t addr, int *next_idx)
+ {
+ 	unsigned int left = 0, right = type->cnt;
+ 
+@@ -1595,22 +1601,26 @@ static int __init_memblock memblock_search(struct memblock_type *type, phys_addr
+ 		else
+ 			return mid;
+ 	} while (left < right);
++
++	if (next_idx)
++		*next_idx = (right = type->cnt) ? -1 : right;
++
+ 	return -1;
+ }
+ 
+ bool __init memblock_is_reserved(phys_addr_t addr)
+ {
+-	return memblock_search(&memblock.reserved, addr) != -1;
++	return memblock_search(&memblock.reserved, addr, NULL) != -1;
+ }
+ 
+ bool __init_memblock memblock_is_memory(phys_addr_t addr)
+ {
+-	return memblock_search(&memblock.memory, addr) != -1;
++	return memblock_search(&memblock.memory, addr, NULL) != -1;
+ }
+ 
+ int __init_memblock memblock_is_map_memory(phys_addr_t addr)
+ {
+-	int i = memblock_search(&memblock.memory, addr);
++	int i = memblock_search(&memblock.memory, addr, NULL);
+ 
+ 	if (i = -1)
+ 		return false;
+@@ -1622,7 +1632,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
+ 			 unsigned long *start_pfn, unsigned long *end_pfn)
+ {
+ 	struct memblock_type *type = &memblock.memory;
+-	int mid = memblock_search(type, PFN_PHYS(pfn));
++	int mid = memblock_search(type, PFN_PHYS(pfn), NULL);
+ 
+ 	if (mid = -1)
+ 		return -1;
+@@ -1646,7 +1656,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
+  */
+ int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size)
+ {
+-	int idx = memblock_search(&memblock.memory, base);
++	int idx = memblock_search(&memblock.memory, base, NULL);
+ 	phys_addr_t end = base + memblock_cap_size(base, &size);
+ 
+ 	if (idx = -1)
+@@ -1655,6 +1665,38 @@ int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size
+ 		 memblock.memory.regions[idx].size) >= end;
+ }
+ 
++/**
++ * memblock_get_reserved_pfn_range - search for the next reserved region
++ *
++ * @pfn: start searching from this pfn.
++ *
++ * RETURNS:
++ * [start_pfn, end_pfn), where start_pfn >= pfn. If none is found
++ * start_pfn, and end_pfn are both set to ULONG_MAX.
++ */
++void __init_memblock memblock_get_reserved_pfn_range(unsigned long pfn,
++						     unsigned long *start_pfn,
++						     unsigned long *end_pfn)
++{
++	struct memblock_type *type = &memblock.reserved;
++	int next_idx, idx;
++
++	idx = memblock_search(type, PFN_PHYS(pfn), &next_idx);
++	if (idx = -1 && next_idx = -1) {
++		*start_pfn = ULONG_MAX;
++		*end_pfn = ULONG_MAX;
++		return;
++	}
++
++	if (idx = -1) {
++		idx = next_idx;
++		*start_pfn = PFN_DOWN(type->regions[idx].base);
++	} else {
++		*start_pfn = pfn;
++	}
++	*end_pfn = PFN_DOWN(type->regions[idx].base + type->regions[idx].size);
++}
++
+ /**
+  * memblock_is_region_reserved - check if a region intersects reserved memory
+  * @base: base of region to check
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 63d16c185736..983de0a8047b 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1447,6 +1447,7 @@ static int __init deferred_init_memmap(void *data)
+ 	pg_data_t *pgdat = data;
+ 	int nid = pgdat->node_id;
+ 	struct mminit_pfnnid_cache nid_init_state = { };
++	unsigned long resv_start_pfn = 0, resv_end_pfn = 0;
+ 	unsigned long start = jiffies;
+ 	unsigned long nr_pages = 0;
+ 	unsigned long walk_start, walk_end;
+@@ -1491,6 +1492,10 @@ static int __init deferred_init_memmap(void *data)
+ 			pfn = zone->zone_start_pfn;
+ 
+ 		for (; pfn < end_pfn; pfn++) {
++			if (pfn >= resv_end_pfn)
++				memblock_get_reserved_pfn_range(pfn,
++								&resv_start_pfn,
++								&resv_end_pfn);
+ 			if (!pfn_valid_within(pfn))
+ 				goto free_range;
+ 
+@@ -1524,7 +1529,11 @@ static int __init deferred_init_memmap(void *data)
+ 				cond_resched();
+ 			}
+ 
+-			if (page->flags) {
++			/*
++			 * Check if this page has already been initialized due
++			 * to being reserved during boot in memblock.
++			 */
++			if (pfn >= resv_start_pfn) {
+ 				VM_BUG_ON(page_zone(page) != zone);
+ 				goto free_range;
+ 			}
+-- 
+2.14.0
+
