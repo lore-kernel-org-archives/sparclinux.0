@@ -1,25 +1,191 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Aug 2017 01:08:44 +0000
-Subject: Re: [PATCH v7 04/11] sparc64: simplify vmemmap_populate
-Message-Id: <20170829.180844.1866158985287686267.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 07 Aug 2017 20:38:41 +0000
+Subject: [v6 07/15] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <1502138329-123460-8-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
- <1503972142-289376-5-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1503972142-289376-5-git-send-email-pasha.tatashin@oracle.com>
+References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 28 Aug 2017 22:02:15 -0400
+A new variant of memblock_virt_alloc_* allocations:
+memblock_virt_alloc_try_nid_raw()
+    - Does not zero the allocated memory
+    - Does not panic if request cannot be satisfied
 
-> Remove duplicating code by using common functions
-> vmemmap_pud_populate and vmemmap_pgd_populate.
-> 
-> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-> Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/bootmem.h | 27 +++++++++++++++++++++++++
+ mm/memblock.c           | 53 ++++++++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 73 insertions(+), 7 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index e223d91b6439..ea30b3987282 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -160,6 +160,9 @@ extern void *__alloc_bootmem_low_node(pg_data_t *pgdat,
+ #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
+ 
+ /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
++void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
++				      phys_addr_t min_addr,
++				      phys_addr_t max_addr, int nid);
+ void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
+ 		phys_addr_t align, phys_addr_t min_addr,
+ 		phys_addr_t max_addr, int nid);
+@@ -176,6 +179,14 @@ static inline void * __init memblock_virt_alloc(
+ 					    NUMA_NO_NODE);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
++					    BOOTMEM_ALLOC_ACCESSIBLE,
++					    NUMA_NO_NODE);
++}
++
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -257,6 +268,14 @@ static inline void * __init memblock_virt_alloc(
+ 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
++}
++
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -309,6 +328,14 @@ static inline void * __init memblock_virt_alloc_try_nid(phys_addr_t size,
+ 					  min_addr);
+ }
+ 
++static inline void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
++{
++	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
++				min_addr, max_addr);
++}
++
+ static inline void * __init memblock_virt_alloc_try_nid_nopanic(
+ 			phys_addr_t size, phys_addr_t align,
+ 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 08f449acfdd1..3fbf3bcb52d9 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1327,7 +1327,6 @@ static void * __init memblock_virt_alloc_internal(
+ 	return NULL;
+ done:
+ 	ptr = phys_to_virt(alloc);
+-	memset(ptr, 0, size);
+ 
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+@@ -1340,6 +1339,38 @@ static void * __init memblock_virt_alloc_internal(
+ 	return ptr;
+ }
+ 
++/**
++ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
++ * memory and without panicking
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @min_addr: the lower bound of the memory region from where the allocation
++ *	  is preferred (phys address)
++ * @max_addr: the upper bound of the memory region from where the allocation
++ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
++ *	      allocate only from memory limited by memblock.current_limit value
++ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
++ *
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. Does not zero allocated memory, does not panic if request
++ * cannot be satisfied.
++ *
++ * RETURNS:
++ * Virtual address of allocated memory block on success, NULL on failure.
++ */
++void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr,
++			int nid)
++{
++	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
++		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
++		     (u64)max_addr, (void *)_RET_IP_);
++
++	return memblock_virt_alloc_internal(size, align,
++					    min_addr, max_addr, nid);
++}
++
+ /**
+  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
+  * @size: size of memory block to be allocated in bytes
+@@ -1351,8 +1382,8 @@ static void * __init memblock_virt_alloc_internal(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
+- * additional debug information (including caller info), if enabled.
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. This function zeroes the allocated memory.
+  *
+  * RETURNS:
+  * Virtual address of allocated memory block on success, NULL on failure.
+@@ -1362,11 +1393,17 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+ 				phys_addr_t min_addr, phys_addr_t max_addr,
+ 				int nid)
+ {
++	void *ptr;
++
+ 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+-	return memblock_virt_alloc_internal(size, align, min_addr,
+-					     max_addr, nid);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++	if (ptr)
++		memset(ptr, 0, size);
++	return ptr;
+ }
+ 
+ /**
+@@ -1380,7 +1417,7 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
++ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
+  * which provides debug information (including caller info), if enabled,
+  * and panics if the request can not be satisfied.
+  *
+@@ -1399,8 +1436,10 @@ void * __init memblock_virt_alloc_try_nid(
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	ptr = memblock_virt_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid);
+-	if (ptr)
++	if (ptr) {
++		memset(ptr, 0, size);
+ 		return ptr;
++	}
+ 
+ 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
+ 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+-- 
+2.14.0
+
