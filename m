@@ -1,40 +1,59 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Date: Thu, 17 Aug 2017 01:22:46 +0000
-Subject: Re: [PATCH net 0/2] net: ixgbe: Use new flag to disable Relaxed Ordering
-Message-Id: <ea51f2cc-49f7-3689-d503-23c56e6fe90b@huawei.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 07 Aug 2017 20:38:42 +0000
+Subject: [v6 08/15] mm: zero struct pages during initialization
+Message-Id: <1502138329-123460-9-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502876507-9360-1-git-send-email-dingtianhong@huawei.com>
- <20170816.105647.341781221143669151.davem@davemloft.net>
-In-Reply-To: <20170816.105647.341781221143669151.davem@davemloft.net>
+References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+Add struct page zeroing as a part of initialization of other fields in
+__init_single_page().
 
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/mm.h | 9 +++++++++
+ mm/page_alloc.c    | 1 +
+ 2 files changed, 10 insertions(+)
 
-On 2017/8/17 1:56, David Miller wrote:
-> From: Ding Tianhong <dingtianhong@huawei.com>
-> Date: Wed, 16 Aug 2017 17:41:45 +0800
-> 
->> The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
->> to indicate that Relaxed Ordering Attributes (RO) should not
->> be used for Transaction Layer Packets (TLP) targeted toward
->> these affected Root Port, it will clear the bit4 in the PCIe
->> Device Control register, so the PCIe device drivers could
->> query PCIe configuration space to determine if it can send
->> TLPs to Root Port with the Relaxed Ordering Attributes set.
->>
->> The ixgbe driver could use this flag to determine if it can
->> send TLPs to Root Port with the Relaxed Ordering Attributes set.
-> 
-> I'll let the Intel guys pick this up.
-> 
-Thanks David, but I am not sure when the Intel guys would take over,
-just Alex has replied, so I will release a new version according Alex's
-suggestion.
-
-> .
-> 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 46b9ac5e8569..183ac5e733db 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -93,6 +93,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #define mm_forbids_zeropage(X)	(0)
+ #endif
+ 
++/*
++ * On some architectures it is expensive to call memset() for small sizes.
++ * Those architectures should provide their own implementation of "struct page"
++ * zeroing by defining this macro in <asm/pgtable.h>.
++ */
++#ifndef mm_zero_struct_page
++#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
++#endif
++
+ /*
+  * Default maximum number of active map areas, this limits the number of vmas
+  * per mm struct. Users can overwrite this number by sysctl but there is a
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 983de0a8047b..4d32c1fa4c6c 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1168,6 +1168,7 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+-- 
+2.14.0
 
