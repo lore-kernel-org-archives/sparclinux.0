@@ -1,55 +1,115 @@
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Date: Sun, 13 Aug 2017 21:14:58 +0000
-Subject: [PATCH] sparc: kernel/pcic: silence gcc 7.x warning in pcibios_fixup_bus()
-Message-Id: <20170813211458.24511-1-thomas.petazzoni@free-electrons.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 07 Aug 2017 20:38:44 +0000
+Subject: [v6 10/15] x86/kasan: explicitly zero kasan shadow memory
+Message-Id: <1502138329-123460-11-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-When building the kernel for Sparc using gcc 7.x, the build fails
-with:
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-arch/sparc/kernel/pcic.c: In function ‘pcibios_fixup_bus’:
-arch/sparc/kernel/pcic.c:647:8: error: ‘cmd’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-    cmd |= PCI_COMMAND_IO;
-        ^~
+We must explicitly zero the memory that is allocated by vmemmap_populate()
+for kasan, as this memory does not go through struct page initialization
+path.
 
-The simplified code looks like this:
-
-unsigned int cmd;
-[...]
-pcic_read_config(dev->bus, dev->devfn, PCI_COMMAND, 2, &cmd);
-[...]
-cmd |= PCI_COMMAND_IO;
-
-I.e, the code assumes that pcic_read_config() will always initialize
-cmd. But it's not the case. Looking at pcic_read_config(), if
-bus->number is != 0 or if the size is not one of 1, 2 or 4, *val will
-not be initialized.
-
-As a simple fix, we initialize cmd to zero at the beginning of
-pcibios_fixup_bus.
-
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/sparc/kernel/pcic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/kasan_init_64.c | 67 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
 
-diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
-index a38787b..732af9a 100644
---- a/arch/sparc/kernel/pcic.c
-+++ b/arch/sparc/kernel/pcic.c
-@@ -602,7 +602,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+diff --git a/arch/x86/mm/kasan_init_64.c b/arch/x86/mm/kasan_init_64.c
+index 02c9d7553409..ec6b2272fd80 100644
+--- a/arch/x86/mm/kasan_init_64.c
++++ b/arch/x86/mm/kasan_init_64.c
+@@ -84,6 +84,66 @@ static struct notifier_block kasan_die_notifier = {
+ };
+ #endif
+ 
++/*
++ * x86 variant of vmemmap_populate() uses either PMD_SIZE pages or base pages
++ * to map allocated memory.  This routine determines the page size for the given
++ * address from vmemmap.
++ */
++static u64 get_vmemmap_pgsz(u64 addr)
++{
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++
++	pgd = pgd_offset_k(addr);
++	BUG_ON(pgd_none(*pgd) || pgd_large(*pgd));
++
++	p4d = p4d_offset(pgd, addr);
++	BUG_ON(p4d_none(*p4d) || p4d_large(*p4d));
++
++	pud = pud_offset(p4d, addr);
++	BUG_ON(pud_none(*pud) || pud_large(*pud));
++
++	pmd = pmd_offset(pud, addr);
++	BUG_ON(pmd_none(*pmd));
++
++	if (pmd_large(*pmd))
++		return PMD_SIZE;
++	return PAGE_SIZE;
++}
++
++/*
++ * Memory that was allocated by vmemmap_populate is not zeroed, so we must
++ * zero it here explicitly.
++ */
++static void
++zero_vmemmap_populated_memory(void)
++{
++	u64 i, start, end;
++
++	for (i = 0; i < E820_MAX_ENTRIES && pfn_mapped[i].end; i++) {
++		void *kaddr_start = pfn_to_kaddr(pfn_mapped[i].start);
++		void *kaddr_end = pfn_to_kaddr(pfn_mapped[i].end);
++
++		start = (u64)kasan_mem_to_shadow(kaddr_start);
++		end = (u64)kasan_mem_to_shadow(kaddr_end);
++
++		/* Round to the start end of the mapped pages */
++		start = rounddown(start, get_vmemmap_pgsz(start));
++		end = roundup(end, get_vmemmap_pgsz(start));
++		memset((void *)start, 0, end - start);
++	}
++
++	start = (u64)kasan_mem_to_shadow(_stext);
++	end = (u64)kasan_mem_to_shadow(_end);
++
++	/* Round to the start end of the mapped pages */
++	start = rounddown(start, get_vmemmap_pgsz(start));
++	end = roundup(end, get_vmemmap_pgsz(start));
++	memset((void *)start, 0, end - start);
++}
++
+ void __init kasan_early_init(void)
  {
- 	struct pci_dev *dev;
- 	int i, has_io, has_mem;
--	unsigned int cmd;
-+	unsigned int cmd = 0;
- 	struct linux_pcic *pcic;
- 	/* struct linux_pbm_info* pbm = &pcic->pbm; */
- 	int node;
+ 	int i;
+@@ -156,6 +216,13 @@ void __init kasan_init(void)
+ 		pte_t pte = __pte(__pa(kasan_zero_page) | __PAGE_KERNEL_RO);
+ 		set_pte(&kasan_zero_pte[i], pte);
+ 	}
++
++	/*
++	 * vmemmap_populate does not zero the memory, so we need to zero it
++	 * explicitly
++	 */
++	zero_vmemmap_populated_memory();
++
+ 	/* Flush TLBs again to be sure that write protection applied. */
+ 	__flush_tlb_all();
+ 
 -- 
-2.9.4
+2.14.0
 
