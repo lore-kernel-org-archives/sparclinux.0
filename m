@@ -1,37 +1,67 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Wed, 02 Aug 2017 20:00:31 +0000
-Subject: Re: pci: Add generic pcibios_{fixup_bus,align_resource}
-Message-Id: <20170802200031.GD20308@bhelgaas-glaptop.roam.corp.google.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 07 Aug 2017 20:38:40 +0000
+Subject: [v6 06/15] sparc64: simplify vmemmap_populate
+Message-Id: <1502138329-123460-7-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170624015044.16746-1-palmer@dabbelt.com>
-In-Reply-To: <20170624015044.16746-1-palmer@dabbelt.com>
+References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, bhelgaas@google.com, hch@infradead.org, Arnd Bergmann <arnd@arndb.de>, linux-snps-arc@lists.infradead.org, linux-cris-kernel@axis.com, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Jun 23, 2017 at 06:50:41PM -0700, Palmer Dabbelt wrote:
-> While upstreaming the RISC-V port, it was pointed out that multiple
-> architectures have copied the mostly empty versions of at least one of these
-> functions.  This defines weakly bound versions of the common functions and
-> removes the now obselete functions from other ports.
-> 
-> This has been split out from the RISC-V submission so we can decouple all these
-> generic changes from our port review process.  There's some discussion on an
-> earlier version of the patch here
-> 
->   https://lkml.org/lkml/2017/6/6/998
-> 
-> but I'm afraid a lot of this is really out of my wheelhouse (and I'm pretty
-> slammed trying to get the RISC-V port in better shape), so I'm afraid I'm not
-> going to be able to perform the full cleanup suggested.
+Remove duplicating code by using common functions
+vmemmap_pud_populate and vmemmap_pgd_populate.
 
-Applied to pci/resource for v4.14, thanks!
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-There's room for future improvement, e.g., using per-host callbacks,
-etc., but I think this is a clear improvement as-is.
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 25ded711ab6c..ffb25be19389 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2590,30 +2590,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 	vstart = vstart & PMD_MASK;
+ 	vend = ALIGN(vend, PMD_SIZE);
+ 	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = pgd_offset_k(vstart);
++		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+ 		unsigned long pte;
+ 		pud_t *pud;
+ 		pmd_t *pmd;
+ 
+-		if (pgd_none(*pgd)) {
+-			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
++		if (!pgd)
++			return -ENOMEM;
+ 
+-			if (!new)
+-				return -ENOMEM;
+-			pgd_populate(&init_mm, pgd, new);
+-		}
+-
+-		pud = pud_offset(pgd, vstart);
+-		if (pud_none(*pud)) {
+-			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
+-
+-			if (!new)
+-				return -ENOMEM;
+-			pud_populate(&init_mm, pud, new);
+-		}
++		pud = vmemmap_pud_populate(pgd, vstart, node);
++		if (!pud)
++			return -ENOMEM;
+ 
+ 		pmd = pmd_offset(pud, vstart);
+-
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+-- 
+2.14.0
 
-There's some folklore about the evils of weak symbols, but I don't
-know the details.  It would be useful to have them codified somewhere
-in Documentation/ or near the __weak definition.
