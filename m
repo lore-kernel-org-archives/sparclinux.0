@@ -1,36 +1,139 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 11 Aug 2017 16:13:13 +0000
-Subject: Re: [v6 14/15] mm: optimize early system hash allocations
-Message-Id: <8da9321c-769c-3319-8c02-3c91d86b221e@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 09 Aug 2017 21:25:55 +0000
+Subject: [PATCH v7 2/9] mm, swap: Add infrastructure for saving page metadata on swap
+Message-Id: <87ff7a44c45bd6a146102c6e6033ee7810d9ebb5.1502219353.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
- <1502138329-123460-15-git-send-email-pasha.tatashin@oracle.com>
- <20170811130541.GM30811@dhcp22.suse.cz>
-In-Reply-To: <20170811130541.GM30811@dhcp22.suse.cz>
+References: <cover.1502219353.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1502219353.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org, davem@davemloft.net, dave.hansen@linux.intel.com, arnd@arndb.de
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, jack@suse.cz, ross.zwisler@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, dave.jiang@intel.com, willy@infradead.org, hughd@google.com, minchan@kernel.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, shli@fb.com, mingo@kernel.org, jmarchan@redhat.com, lstoakes@gmail.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
->> Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
->> that memory that was allocated for system hash needs to be zeroed,
->> otherwise the memory does not need to be zeroed, and client will initialize
->> it.
->>
->> If memory does not need to be zero'd, call the new
->> memblock_virt_alloc_raw() interface, and thus improve the boot performance.
->>
->> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
->> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
->> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
->> Reviewed-by: Bob Picco <bob.picco@oracle.com>
-> 
-> OK, but as mentioned in the previous patch add memblock_virt_alloc_raw
-> in this patch.
-> 
-> Acked-by: Michal Hocko <mhocko@suse.com>
 
-Ok I will merge them.
+If a processor supports special metadata for a page, for example ADI
+version tags on SPARC M7, this metadata must be saved when the page is
+swapped out. The same metadata must be restored when the page is swapped
+back in. This patch adds two new architecture specific functions -
+arch_do_swap_page() to be called when a page is swapped in, and
+arch_unmap_one() to be called when a page is being unmapped for swap
+out. These architecture hooks allow page metadata to be saved if the
+architecture supports it.
 
-Thank you,
-Pasha
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+---
+v6:
+	- Updated parameter list for arch_do_swap_page() and
+	  arch_unmap_one()
+v5:
+	- Replaced set_swp_pte() function with new architecture
+	  functions arch_do_swap_page() and arch_unmap_one()
+
+ include/asm-generic/pgtable.h | 36 ++++++++++++++++++++++++++++++++++++
+ mm/memory.c                   |  1 +
+ mm/rmap.c                     | 13 +++++++++++++
+ 3 files changed, 50 insertions(+)
+
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 7dfa767dc680..15668c2470b4 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -392,6 +392,42 @@ static inline int pud_same(pud_t pud_a, pud_t pud_b)
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
+ 
++#ifndef __HAVE_ARCH_DO_SWAP_PAGE
++/*
++ * Some architectures support metadata associated with a page. When a
++ * page is being swapped out, this metadata must be saved so it can be
++ * restored when the page is swapped back in. SPARC M7 and newer
++ * processors support an ADI (Application Data Integrity) tag for the
++ * page as metadata for the page. arch_do_swap_page() can restore this
++ * metadata when a page is swapped back in.
++ */
++static inline void arch_do_swap_page(struct mm_struct *mm,
++				     struct vm_area_struct *vma,
++				     unsigned long addr,
++				     pte_t pte, pte_t oldpte)
++{
++
++}
++#endif
++
++#ifndef __HAVE_ARCH_UNMAP_ONE
++/*
++ * Some architectures support metadata associated with a page. When a
++ * page is being swapped out, this metadata must be saved so it can be
++ * restored when the page is swapped back in. SPARC M7 and newer
++ * processors support an ADI (Application Data Integrity) tag for the
++ * page as metadata for the page. arch_unmap_one() can save this
++ * metadata on a swap-out of a page.
++ */
++static inline int arch_unmap_one(struct mm_struct *mm,
++				  struct vm_area_struct *vma,
++				  unsigned long addr,
++				  pte_t orig_pte)
++{
++	return 0;
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
+ #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
+ #endif
+diff --git a/mm/memory.c b/mm/memory.c
+index bb11c474857e..eb92e4f94d3b 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -2798,6 +2798,7 @@ int do_swap_page(struct vm_fault *vmf)
+ 	if (pte_swp_soft_dirty(vmf->orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+ 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
++	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
+ 	vmf->orig_pte = pte;
+ 	if (page = swapcache) {
+ 		do_page_add_anon_rmap(page, vma, vmf->address, exclusive);
+diff --git a/mm/rmap.c b/mm/rmap.c
+index d405f0e0ee96..5ff2a7943c57 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -1399,6 +1399,12 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 				(flags & TTU_MIGRATION)) {
+ 			swp_entry_t entry;
+ 			pte_t swp_pte;
++
++			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				set_pte_at(mm, address, pvmw.pte, pteval);
++				ret = false;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
+ 			/*
+ 			 * Store the pfn of the page in a special migration
+ 			 * pte. do_swap_page() will wait until the migration
+@@ -1410,6 +1416,7 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 			if (pte_soft_dirty(pteval))
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
+ 			set_pte_at(mm, address, pvmw.pte, swp_pte);
++			}
+ 		} else if (PageAnon(page)) {
+ 			swp_entry_t entry = { .val = page_private(subpage) };
+ 			pte_t swp_pte;
+@@ -1448,6 +1455,12 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+ 			}
++			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				set_pte_at(mm, address, pvmw.pte, pteval);
++				ret = false;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+ 				if (list_empty(&mm->mmlist))
+-- 
+2.11.0
+
