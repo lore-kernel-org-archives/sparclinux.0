@@ -1,75 +1,285 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:44:04 +0000
-Subject: [PATCH v1 12/13] sparc64: vcc: Add break_ctl TTY operation
-Message-Id: <15cc233d3b083e8ad7a64ef674dc207e724ac597.1501781770.git.jag.raman@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 09 Aug 2017 21:25:53 +0000
+Subject: [PATCH v7 0/9] Application Data Integrity feature introduced by SPARC M7
+Message-Id: <cover.1502219353.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org, 0x7f454c46@gmail.com, aarcange@redhat.com, ak@linux.intel.com, allen.pais@oracle.com, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, atish.patra@oracle.com, benh@kernel.crashing.org, bob.picco@oracle.com, bsingharora@gmail.com, chris.hyser@oracle.com, cmetcalf@mellanox.com, corbet@lwn.net, dan.carpenter@oracle.com, dave.jiang@intel.com, dja@axtens.net, eric.saint.etienne@oracle.com, geert@linux-m68k.org, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, jack@suse.cz, jmarchan@redhat.com, jroedel@suse.de, kirill.shutemov@linux.intel.com, Liam.Howlett@oracle.com, lstoakes@gmail.com, mgorman@suse.de, mhocko@suse.com, mike.kravetz@oracle.commi
 
-Add handler to support TTY break_ctl operation
+SPARC M7 processor adds additional metadata for memory address space
+that can be used to secure access to regions of memory. This additional
+metadata is implemented as a 4-bit tag attached to each cacheline size
+block of memory. A task can set a tag on any number of such blocks.
+Access to such block is granted only if the virtual address used to
+access that block of memory has the tag encoded in the uppermost 4 bits
+of VA. Since sparc processor does not implement all 64 bits of VA, top 4
+bits are available for ADI tags. Any mismatch between tag encoded in VA
+and tag set on the memory block results in a trap. Tags are verified in
+the VA presented to the MMU and tags are associated with the physical
+page VA maps on to. If a memory page is swapped out and page frame gets
+reused for another task, the tags are lost and hence must be saved when
+swapping or migrating the page.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
----
- drivers/tty/vcc.c |   35 +++++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+), 0 deletions(-)
+A userspace task enables ADI through mprotect(). This patch series adds
+a page protection bit PROT_ADI and a corresponding VMA flag
+VM_SPARC_ADI. VM_SPARC_ADI is used to trigger setting TTE.mcd bit in the
+sparc pte that enables ADI checking on the corresponding page. MMU
+validates the tag embedded in VA for every page that has TTE.mcd bit set
+in its pte. After enabling ADI on a memory range, the userspace task can
+set ADI version tags using stxa instruction with ASI_MCD_PRIMARY or
+ASI_MCD_ST_BLKINIT_PRIMARY ASI.
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index f7325f8..16e2f9e 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -959,6 +959,40 @@ static int vcc_chars_in_buffer(struct tty_struct *tty)
- 	return num;
- }
- 
-+static int vcc_break_ctl(struct tty_struct *tty, int state)
-+{
-+	struct vcc_port *port;
-+	unsigned long flags;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: break_ctl: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: break_ctl: Failed to find VCC port\n");
-+		return -ENODEV;
-+	}
-+
-+	/* Turn off break */
-+	if (state = 0) {
-+		vcc_put(port, false);
-+		return 0;
-+	}
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
-+		vcc_kick_tx(port);
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+
-+	vcc_put(port, false);
-+
-+	return 0;
-+}
-+
- static const struct tty_operations vcc_ops = {
- 	.open			= vcc_open,
- 	.close			= vcc_close,
-@@ -966,6 +1000,7 @@ static int vcc_chars_in_buffer(struct tty_struct *tty)
- 	.write			= vcc_write,
- 	.write_room		= vcc_write_room,
- 	.chars_in_buffer	= vcc_chars_in_buffer,
-+	.break_ctl		= vcc_break_ctl,
- };
- 
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
+Once userspace task calls mprotect() with PROT_ADI, kernel takes
+following overall steps:
+
+1. Find the VMAs covering the address range passed in to mprotect and
+set VM_SPARC_ADI flag. If address range covers a subset of a VMA, the
+VMA will be split.
+
+2. When a page is allocated for a VA and the VMA covering this VA has
+VM_SPARC_ADI flag set, set the TTE.mcd bit so MMU will check the
+vwersion tag.
+
+3. Userspace can now set version tags on the memory it has enabled ADI
+on. Userspace accesses ADI enabled memory using a virtual address that
+has the version tag embedded in the high bits. MMU validates this
+version tag against the actual tag set on the memory. If tag matches,
+MMU performs the VA->PA translation and access is granted. If there is a
+mismatch, hypervisor sends a data access exception or precise memory
+corruption detected exception depending upon whether precise exceptions
+are enabled or not (controlled by MCDPERR register). Kernel sends
+SIGSEGV to the task with appropriate si_code.
+
+4. If a page is being swapped out or migrated, kernel must save any ADI
+tags set on the page. Kernel maintains a page worth of tag storage
+descriptors. Each descriptors pointsto a tag storage space and the
+address range it covers. If the page being swapped out or migrated has
+ADI enabled on it, kernel finds a tag storage descriptor that covers the
+address range for the page or allocates a new descriptor if none of the
+existing descriptors cover the address range. Kernel saves tags from the
+page into the tag storage space descriptor points to.
+
+5. When the page is swapped back in or reinstantiated after migration,
+kernel restores the version tags on the new physical page by retrieving
+the original tag from tag storage pointed to by a tag storage descriptor
+for the virtual address range for new page.
+
+User task can disable ADI by calling mprotect() again on the memory
+range with PROT_ADI bit unset. Kernel clears the VM_SPARC_ADI flag in
+VMAs, merges adjacent VMAs if necessary, and clears TTE.mcd bit in the
+corresponding ptes.
+
+IOMMU does not support ADI checking. Any version tags embedded in the
+top bits of VA meant for IOMMU, are cleared and replaced with sign
+extension of the first non-version tag bit (bit 59 for SPARC M7) for
+IOMMU addresses.
+
+This patch series adds support for this feature in 9 patches:
+
+Patch 1/9
+  Tag mismatch on access by a task results in a trap from hypervisor as
+  data access exception or a precide memory corruption detected
+  exception. As part of handling these exceptions, kernel sends a
+  SIGSEGV to user process with special si_code to indicate which fault
+  occurred. This patch adds three new si_codes to differentiate between
+  various mismatch errors.
+
+Patch 2/9
+  When a page is swapped or migrated, metadata associated with the page
+  must be saved so it can be restored later. This patch adds a new
+  function that saves/restores this metadata when updating pte upon a
+  swap/migration.
+
+Patch 3/9
+  SPARC M7 processor adds new fields to control registers to support ADI
+  feature. It also adds a new exception for precise traps on tag
+  mismatch. This patch adds definitions for the new control register
+  fields, new ASIs for ADI and an exception handler for the precise trap
+  on tag mismatch.
+
+Patch 4/9
+  New hypervisor fault types were added by sparc M7 processor to support
+  ADI feature. This patch adds code to handle these fault types for data
+  access exception handler.
+
+Patch 5/9
+  When ADI is in use for a page and a tag mismatch occurs, processor
+  raises "Memory corruption Detected" trap. This patch adds a handler
+  for this trap.
+
+Patch 6/9
+  ADI usage is governed by ADI properties on a platform. These
+  properties are provided to kernel by firmware. Thsi patch adds new
+  auxiliary vectors that provide these values to userpsace.
+
+Patch 7/9
+  arch_validate_prot() is used to validate the new protection bits asked
+  for by the userspace app. Validating protection bits may need the
+  context of address space the bits are being applied to. One such
+  example is PROT_ADI bit on sparc processor that enables ADI protection
+  on an address range. ADI protection applies only to addresses covered
+  by physical RAM and not other PFN mapped addresses or device
+  addresses. This patch adds "address" to the parameters being passed to
+  arch_validate_prot() to provide that context.
+
+Patch 8/9
+  When protection bits are changed on a page, kernel carries forward all
+  protection bits except for read/write/exec. Additional code was added
+  to allow kernel to clear PKEY bits on x86 but this requirement to
+  clear other bits is not unique to x86. This patch extends the existing
+  code to allow other architectures to clear any other protection bits
+  as well on protection bit change.
+
+Patch 9/9
+  This patch adds support for a user space task to enable ADI and enable
+  tag checking for subsets of its address space. As part of enabling
+  this feature, this patch adds to support manipulation of precise
+  exception for memory corruption detection, adds code to save and
+  restore tags on page swap and migration, and adds code to handle ADI
+  tagged addresses for DMA.
+
+
+Changelog v7:
+
+	- Patch 1/9: No changes
+	- Patch 2/9: Updated parameters to arch specific swap in/out
+	  handlers
+	- Patch 3/9: No changes
+	- Patch 4/9: new patch split off from patch 4/4 in v6
+	- Patch 5/9: new patch split off from patch 4/4 in v6
+	- Patch 6/9: new patch split off from patch 4/4 in v6
+	- Patch 7/9: new patch
+	- Patch 8/9: new patch
+	- Patch 9/9:
+		- Enhanced arch_validate_prot() to enable ADI only on
+		  writable addresses backed by physical RAM
+		- Added support for saving/restoring ADI tags for each
+		  ADI block size address range on a page on swap in/out
+		- copy ADI tags on COW
+		- Updated values for auxiliary vectors to not conflict
+		  with values on other architectures to avoid conflict
+		  in glibc
+		- Disable same page merging on ADI enabled pages
+		- Enable ADI only on writable addresses backed by
+		  physical RAM
+		- Split parts of patch off into separate patches
+
+Changelog v6:
+	- Patch 1/4: No changes
+	- Patch 2/4: No changes
+	- Patch 3/4: Added missing nop in the delay slot in
+	  sun4v_mcd_detect_precise
+	- Patch 4/4: Eliminated instructions to read and write PSTATE
+	  as well as MCDPER and PMCDPER on every access to userspace
+	  addresses by setting PSTATE and PMCDPER correctly upon entry
+	  into kernel
+
+Changelog v5:
+	- Patch 1/4: No changes
+	- Patch 2/4: Replaced set_swp_pte_at() with new architecture
+	  functions arch_do_swap_page() and arch_unmap_one() that
+	  suppoprt architecture specific actions to be taken on page
+	  swap and migration
+	- Patch 3/4: Fixed indentation issues in assembly code
+	- Patch 4/4:
+		- Fixed indentation issues and instrcuctions in assembly
+		  code
+		- Removed CONFIG_SPARC64 from mdesc.c
+		- Changed to maintain state of MCDPER register in thread
+		  info flags as opposed to in mm context. MCDPER is a
+		  per-thread state and belongs in thread info flag as
+		  opposed to mm context which is shared across threads.
+		  Added comments to clarify this is a lazily maintained
+		  state and must be updated on context switch and
+		  copy_process() 
+		- Updated code to use the new arch_do_swap_page() and
+		  arch_unmap_one() functions
+
+Testing:
+
+- All functionality was tested with 8K normal pages as well as hugepages
+  using malloc, mmap and shm.
+- Multiple long duration stress tests were run using hugepages over 2+
+  months. Normal pages were tested with shorter duration stress tests.
+- Tested swapping with malloc and shm by reducing max memory and
+  allocating three times the available system memory by active processes
+  using ADI on allocated memory. Ran through multiple hours long runs of
+  this test.
+- Tested page migration with malloc and shm by migrating data pages of
+  active ADI test process using migratepages, back and forth between two
+  nodes every few seconds over an hour long run. Verified page migration
+  through /proc/<pid>/numa_maps.
+- Tested COW support using test that forks children that read from
+  ADI enabled pages shared with parent and other children and write to
+  them as well forcing COW.
+
+
+---------
+Khalid Aziz (9):
+  signals, sparc: Add signal codes for ADI violations
+  mm, swap: Add infrastructure for saving page metadata as well on swap
+  sparc64: Add support for ADI register fields, ASIs and traps
+  sparc64: Add HV fault type handlers for ADI related faults
+  sparc64: Add handler for "Memory Corruption Detected" trap
+  sparc64: Add auxiliary vectors to report platform ADI properties
+  mm: Add address parameter to arch_validate_prot()
+  mm: Clear arch specific VM flags on protection change
+  sparc64: Add support for ADI (Application Data Integrity)
+
+ Documentation/sparc/adi.txt             | 272 +++++++++++++++++++++++
+ arch/powerpc/include/asm/mman.h         |   2 +-
+ arch/powerpc/kernel/syscalls.c          |   2 +-
+ arch/sparc/include/asm/adi.h            |   6 +
+ arch/sparc/include/asm/adi_64.h         |  45 ++++
+ arch/sparc/include/asm/elf_64.h         |   8 +
+ arch/sparc/include/asm/hypervisor.h     |   2 +
+ arch/sparc/include/asm/mman.h           |  72 ++++++-
+ arch/sparc/include/asm/mmu_64.h         |  17 ++
+ arch/sparc/include/asm/mmu_context_64.h |  43 ++++
+ arch/sparc/include/asm/page_64.h        |   4 +
+ arch/sparc/include/asm/pgtable_64.h     |  48 +++++
+ arch/sparc/include/asm/thread_info_64.h |   2 +-
+ arch/sparc/include/asm/trap_block.h     |   2 +
+ arch/sparc/include/asm/ttable.h         |  10 +
+ arch/sparc/include/uapi/asm/asi.h       |   5 +
+ arch/sparc/include/uapi/asm/auxvec.h    |  10 +
+ arch/sparc/include/uapi/asm/mman.h      |   2 +
+ arch/sparc/include/uapi/asm/pstate.h    |  10 +
+ arch/sparc/kernel/Makefile              |   1 +
+ arch/sparc/kernel/adi_64.c              | 367 ++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/entry.h               |   3 +
+ arch/sparc/kernel/etrap_64.S            |  28 ++-
+ arch/sparc/kernel/head_64.S             |   1 +
+ arch/sparc/kernel/mdesc.c               |   2 +
+ arch/sparc/kernel/process_64.c          |  25 +++
+ arch/sparc/kernel/setup_64.c            |  11 +-
+ arch/sparc/kernel/sun4v_mcd.S           |  17 ++
+ arch/sparc/kernel/traps_64.c            | 142 +++++++++++-
+ arch/sparc/kernel/ttable_64.S           |   6 +-
+ arch/sparc/kernel/vmlinux.lds.S         |   5 +
+ arch/sparc/mm/gup.c                     |  37 ++++
+ arch/sparc/mm/hugetlbpage.c             |  14 +-
+ arch/sparc/mm/init_64.c                 |  33 +++
+ arch/sparc/mm/tsb.c                     |  21 ++
+ arch/x86/kernel/signal_compat.c         |   2 +-
+ include/asm-generic/pgtable.h           |  36 ++++
+ include/linux/mm.h                      |   9 +
+ include/linux/mman.h                    |   2 +-
+ include/uapi/asm-generic/siginfo.h      |   5 +-
+ mm/ksm.c                                |   4 +
+ mm/memory.c                             |   1 +
+ mm/mprotect.c                           |   4 +-
+ mm/rmap.c                               |  13 ++
+ 44 files changed, 1334 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/sparc/adi.txt
+ create mode 100644 arch/sparc/include/asm/adi.h
+ create mode 100644 arch/sparc/include/asm/adi_64.h
+ create mode 100644 arch/sparc/kernel/adi_64.c
+ create mode 100644 arch/sparc/kernel/sun4v_mcd.S
+
 -- 
-1.7.1
+2.11.0
 
