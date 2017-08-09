@@ -1,77 +1,73 @@
-From: Jag Raman <jag.raman@oracle.com>
-Date: Tue, 15 Aug 2017 21:03:05 +0000
-Subject: [PATCH v2 09/13] sparc64: vcc: Add hangup TTY operation
-Message-Id: <a23431101299e1fc772327665df13423086e0ba2.1502829972.git.jag.raman@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 09 Aug 2017 21:25:57 +0000
+Subject: [PATCH v7 4/9] sparc64: Add HV fault type handlers for ADI related faults
+Message-Id: <870629f367fbd5d487a54b3796f66348218b5d7d.1502219353.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1502219353.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1502219353.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org, vegard.nossum@oracle.com, mingo@kernel.org, peterz@infradead.org, dan.carpenter@oracle.com, Liam.Howlett@oracle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-Add handler to support TTY hangup operation
+ADI (Application Data Integrity) feature on M7 and newer processors
+adds new fault types for hypervisor - Invalid ASI and MCD disabled.
+This patch expands data access exception handler to handle these
+faults.
 
-Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
-Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
 ---
- drivers/tty/vcc.c |   41 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 41 insertions(+), 0 deletions(-)
+v7:
+	- new patch split off from patch 4/4 in v6
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index f964fb2..67be5a5 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -804,9 +804,50 @@ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
- 	tty_port_close(tty->port, tty, vcc_file);
+ arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 88eed0dc3faf..88c96d349f2f 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -352,12 +352,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
+ 		regs->tpc &= 0xffffffff;
+ 		regs->tnpc &= 0xffffffff;
+ 	}
+-	info.si_signo = SIGSEGV;
++	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
++	 * is vectored thorugh data access exception trap with fault type
++	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
++	 * Accessing an address with invalid ASI for the address, for
++	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
++	 * when TTE.mcd is not set for the VA, is also vectored into
++	 * kerbel by HV as data access exception with fault type set to
++	 * HV_FAULT_TYPE_INV_ASI.
++	 */
+ 	info.si_errno = 0;
+-	info.si_code = SEGV_MAPERR;
+ 	info.si_addr = (void __user *) addr;
+ 	info.si_trapno = 0;
+-	force_sig_info(SIGSEGV, &info, current);
++	switch (type) {
++	case HV_FAULT_TYPE_INV_ASI:
++		info.si_signo = SIGILL;
++		info.si_code = ILL_ILLADR;
++		force_sig_info(SIGILL, &info, current);
++		break;
++	case HV_FAULT_TYPE_MCD_DIS:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_ACCADI;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	default:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_MAPERR;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	}
  }
  
-+static void vcc_ldc_hup(struct vcc_port *port)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	if (vcc_send_ctl(port, VCC_CTL_HUP) < 0)
-+		vcc_kick_tx(port);
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+}
-+
-+static void vcc_hangup(struct tty_struct *tty)
-+{
-+	struct vcc_port *port;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: hangup: Invalid TTY handle\n");
-+		return;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: hangup: Failed to find VCC port\n");
-+		return;
-+	}
-+
-+	if (unlikely(!tty->port)) {
-+		pr_err("VCC: hangup: TTY port not found\n");
-+		vcc_put(port, false);
-+		return;
-+	}
-+
-+	vcc_ldc_hup(port);
-+
-+	vcc_put(port, false);
-+
-+	tty_port_hangup(tty->port);
-+}
-+
- static const struct tty_operations vcc_ops = {
- 	.open	= vcc_open,
- 	.close	= vcc_close,
-+	.hangup	= vcc_hangup,
- };
- 
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
+ void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
 -- 
-1.7.1
+2.11.0
 
