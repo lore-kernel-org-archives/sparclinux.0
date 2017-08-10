@@ -1,51 +1,76 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 10 Aug 2017 22:03:08 +0000
+From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
+Date: Thu, 10 Aug 2017 23:13:04 +0000
 Subject: Re: [PATCH V3] vDSO for SPARC
-Message-Id: <20170810.150308.866379816687061520.davem@davemloft.net>
+Message-Id: <9e6ba7c2-be99-92ff-e8cb-b64eef143c64@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1502400887-281290-1-git-send-email-nagarathnam.muthusamy@oracle.com>
 In-Reply-To: <1502400887-281290-1-git-send-email-nagarathnam.muthusamy@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-RnJvbTogTmFnYXJhdGhuYW0gTXV0aHVzYW15IDxuYWdhcmF0aG5hbS5tdXRodXNhbXlAb3JhY2xl
-LmNvbT4NCkRhdGU6IFRodSwgMTAgQXVnIDIwMTcgMTc6MzQ6NDcgLTA0MDANCg0KPiBGb2xsb3dp
-bmcgcGF0Y2ggaXMgYmFzZWQgb24gd29yayBkb25lIGJ5IE5pY2sgQWxjb2NrIG9uIDY0LWJpdCB2
-RFNPIGZvciBzcGFyYw0KPiBpbiBPcmFjbGUgbGludXguIEkgaGF2ZSBleHRlbmRlZCBpdCB0byBp
-bmNsdWRlIHN1cHBvcnQgZm9yIDMyLWJpdCB2RFNPIGZvciBzcGFyYw0KPiBvbiA2NC1iaXQga2Vy
-bmVsLg0KDQpUaGlzIGRvZXNuJ3QgYnVpbGQ6DQoNCmRhdmVtQHBhdGllbmNlOn4vc3JjL0dJVC9z
-cGFyYy1uZXh0JCBtYWtlIC1zIC1qMTI4DQpJbiBmaWxlIGluY2x1ZGVkIGZyb20gYXJjaC9zcGFy
-Yy92ZHNvL3Zkc28yYy5jOjE0MTowOg0KYXJjaC9zcGFyYy92ZHNvL3Zkc28yYy5oOiBJbiBmdW5j
-dGlvbiChZ282NKI6DQphcmNoL3NwYXJjL3Zkc28vdmRzbzJjLmg6MjA6MTQ6IHdhcm5pbmc6IHZh
-cmlhYmxlIKFzZWNzdHJpbmdzoiBzZXQgYnV0IG5vdCB1c2VkIFstV3VudXNlZC1idXQtc2V0LXZh
-cmlhYmxlXQ0KICBjb25zdCBjaGFyICpzZWNzdHJpbmdzOw0KICAgICAgICAgICAgICBefn5+fn5+
-fn5+DQpJbiBmaWxlIGluY2x1ZGVkIGZyb20gYXJjaC9zcGFyYy92ZHNvL3Zkc28yYy5jOjE0NTow
-Og0KYXJjaC9zcGFyYy92ZHNvL3Zkc28yYy5oOiBJbiBmdW5jdGlvbiChZ28zMqI6DQphcmNoL3Nw
-YXJjL3Zkc28vdmRzbzJjLmg6MjA6MTQ6IHdhcm5pbmc6IHZhcmlhYmxlIKFzZWNzdHJpbmdzoiBz
-ZXQgYnV0IG5vdCB1c2VkIFstV3VudXNlZC1idXQtc2V0LXZhcmlhYmxlXQ0KICBjb25zdCBjaGFy
-ICpzZWNzdHJpbmdzOw0KICAgICAgICAgICAgICBefn5+fn5+fn5+DQpFcnJvcjogdnZhcl9iZWdp
-biBtdXN0IGJlIGEgbXVsdGlwbGUgb2YgODE5Mg0KbWFrZVsyXTogKioqIFthcmNoL3NwYXJjL3Zk
-c28vdmRzby1pbWFnZS02NC5jXSBFcnJvciAxDQptYWtlWzJdOiAqKiogV2FpdGluZyBmb3IgdW5m
-aW5pc2hlZCBqb2JzLi4uLg0KRXJyb3I6IHZ2YXJfYmVnaW4gbXVzdCBiZSBhIG11bHRpcGxlIG9m
-IDgxOTINCm1ha2VbMl06ICoqKiBbYXJjaC9zcGFyYy92ZHNvL3Zkc28taW1hZ2UtMzIuY10gRXJy
-b3IgMQ0KbWFrZVsxXTogKioqIFthcmNoL3NwYXJjL3Zkc29dIEVycm9yIDINCg0KDQpkYXZlbUBw
-YXRpZW5jZTp+L3NyYy9HSVQvc3BhcmMtbmV4dCQgZ2NjIC0tdmVyc2lvbg0KZ2NjIChHQ0MpIDYu
-My4wDQpDb3B5cmlnaHQgKEMpIDIwMTYgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLCBJbmMuDQpU
-aGlzIGlzIGZyZWUgc29mdHdhcmU7IHNlZSB0aGUgc291cmNlIGZvciBjb3B5aW5nIGNvbmRpdGlv
-bnMuICBUaGVyZSBpcyBOTw0Kd2FycmFudHk7IG5vdCBldmVuIGZvciBNRVJDSEFOVEFCSUxJVFkg
-b3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0UuDQoNCmRhdmVtQHBhdGllbmNlOn4v
-c3JjL0dJVC9zcGFyYy1uZXh0JCBhcyAtLXZlcnNpb24NCkdOVSBhc3NlbWJsZXIgKEdOVSBCaW51
-dGlscyBmb3IgRGViaWFuKSAyLjIyDQpDb3B5cmlnaHQgMjAxMSBGcmVlIFNvZnR3YXJlIEZvdW5k
-YXRpb24sIEluYy4NClRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgbWF5IHJlZGlz
-dHJpYnV0ZSBpdCB1bmRlciB0aGUgdGVybXMgb2YNCnRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGlj
-ZW5zZSB2ZXJzaW9uIDMgb3IgbGF0ZXIuDQpUaGlzIHByb2dyYW0gaGFzIGFic29sdXRlbHkgbm8g
-d2FycmFudHkuDQpUaGlzIGFzc2VtYmxlciB3YXMgY29uZmlndXJlZCBmb3IgYSB0YXJnZXQgb2Yg
-YHNwYXJjLWxpbnV4LWdudScuDQpkYXZlbUBwYXRpZW5jZTp+L3NyYy9HSVQvc3BhcmMtbmV4dCQg
-bGQgLS12ZXJzaW9uDQpHTlUgbGQgKEdOVSBCaW51dGlscyBmb3IgRGViaWFuKSAyLjIyDQpDb3B5
-cmlnaHQgMjAxMSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24sIEluYy4NClRoaXMgcHJvZ3JhbSBp
-cyBmcmVlIHNvZnR3YXJlOyB5b3UgbWF5IHJlZGlzdHJpYnV0ZSBpdCB1bmRlciB0aGUgdGVybXMg
-b2YNCnRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDMgb3IgKGF0IHlvdXIg
-b3B0aW9uKSBhIGxhdGVyIHZlcnNpb24uDQpUaGlzIHByb2dyYW0gaGFzIGFic29sdXRlbHkgbm8g
-d2FycmFudHkuDQpkYXZlbUBwYXRpZW5jZTp+L3NyYy9HSVQvc3BhcmMtbmV4dCQgDQo
+
+
+On 08/10/2017 03:03 PM, David Miller wrote:
+> From: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
+> Date: Thu, 10 Aug 2017 17:34:47 -0400
+>
+>> Following patch is based on work done by Nick Alcock on 64-bit vDSO for =
+sparc
+>> in Oracle linux. I have extended it to include support for 32-bit vDSO f=
+or sparc
+>> on 64-bit kernel.
+> This doesn't build:
+>
+> davem@patience:~/src/GIT/sparc-next$ make -s -j128
+> In file included from arch/sparc/vdso/vdso2c.c:141:0:
+> arch/sparc/vdso/vdso2c.h: In function =A1go64=A2:
+> arch/sparc/vdso/vdso2c.h:20:14: warning: variable =A1secstrings=A2 set bu=
+t not used [-Wunused-but-set-variable]
+>    const char *secstrings;
+>                ^~~~~~~~~~
+> In file included from arch/sparc/vdso/vdso2c.c:145:0:
+> arch/sparc/vdso/vdso2c.h: In function =A1go32=A2:
+> arch/sparc/vdso/vdso2c.h:20:14: warning: variable =A1secstrings=A2 set bu=
+t not used [-Wunused-but-set-variable]
+>    const char *secstrings;
+>                ^~~~~~~~~~
+> Error: vvar_begin must be a multiple of 8192
+> make[2]: *** [arch/sparc/vdso/vdso-image-64.c] Error 1
+> make[2]: *** Waiting for unfinished jobs....
+> Error: vvar_begin must be a multiple of 8192
+> make[2]: *** [arch/sparc/vdso/vdso-image-32.c] Error 1
+> make[1]: *** [arch/sparc/vdso] Error 2
+>
+>
+> davem@patience:~/src/GIT/sparc-next$ gcc --version
+> gcc (GCC) 6.3.0
+> Copyright (C) 2016 Free Software Foundation, Inc.
+> This is free software; see the source for copying conditions.  There is NO
+> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOS=
+E.
+
+My gcc version is bit old (4.4.7) and the build passed in my system. I=20
+will reproduce the errors locally, fix them
+and send out an updated patch.
+
+Sorry!
+
+>
+> davem@patience:~/src/GIT/sparc-next$ as --version
+> GNU assembler (GNU Binutils for Debian) 2.22
+> Copyright 2011 Free Software Foundation, Inc.
+> This program is free software; you may redistribute it under the terms of
+> the GNU General Public License version 3 or later.
+> This program has absolutely no warranty.
+> This assembler was configured for a target of `sparc-linux-gnu'.
+> davem@patience:~/src/GIT/sparc-next$ ld --version
+> GNU ld (GNU Binutils for Debian) 2.22
+> Copyright 2011 Free Software Foundation, Inc.
+> This program is free software; you may redistribute it under the terms of
+> the GNU General Public License version 3 or (at your option) a later vers=
+ion.
+> This program has absolutely no warranty.
+> davem@patience:~/src/GIT/sparc-next$
+
