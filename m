@@ -1,7 +1,7 @@
-From: Mel Gorman <mgorman@techsingularity.net>
-Date: Fri, 11 Aug 2017 09:50:09 +0000
+From: Pasha Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 11 Aug 2017 15:49:15 +0000
 Subject: Re: [v6 04/15] mm: discard memblock data later
-Message-Id: <20170811095009.hz2vnatcwztffraw@techsingularity.net>
+Message-Id: <6366171f-1a30-2faa-d776-01983fcb5a00@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
  <1502138329-123460-5-git-send-email-pasha.tatashin@oracle.com>
@@ -12,11 +12,15 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Aug 11, 2017 at 11:32:49AM +0200, Michal Hocko wrote:
-> > Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-> > Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-> > Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-> > Reviewed-by: Bob Picco <bob.picco@oracle.com>
+> I guess this goes all the way down to
+> Fixes: 7e18adb4f80b ("mm: meminit: initialise remaining struct pages in parallel with kswapd")
+
+I will add this to the patch.
+
+>> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+>> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+>> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+>> Reviewed-by: Bob Picco <bob.picco@oracle.com>
 > 
 > Considering that some HW might behave strangely and this would be rather
 > hard to debug I would be tempted to mark this for stable. It should also
@@ -24,10 +28,61 @@ On Fri, Aug 11, 2017 at 11:32:49AM +0200, Michal Hocko wrote:
 > 
 > I have just one nit below
 > Acked-by: Michal Hocko <mhocko@suse.com>
-> 
 
-Agreed.
+I will address your comment, and send out a new patch. Should I send it 
+out separately from the series or should I keep it inside?
 
--- 
-Mel Gorman
-SUSE Labs
+Also, before I send out a new patch, I will need to root cause and 
+resolve problem found by kernel test robot <fengguang.wu@intel.com>, and 
+bisected down to this patch.
+
+[  156.659400] BUG: Bad page state in process swapper  pfn:03147
+[  156.660051] page:ffff88001ed8a1c0 count:0 mapcount:-127 mapping: 
+     (null) index:0x1
+[  156.660917] flags: 0x0()
+[  156.661198] raw: 0000000000000000 0000000000000000 0000000000000001 
+00000000ffffff80
+[  156.662006] raw: ffff88001f4a8120 ffff88001ed85ce0 0000000000000000 
+0000000000000000
+[  156.662811] page dumped because: nonzero mapcount
+[  156.663307] CPU: 0 PID: 1 Comm: swapper Not tainted 
+4.13.0-rc3-00220-g1aad694 #1
+[  156.664077] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), 
+BIOS 1.9.3-20161025_171302-gandalf 04/01/2014
+[  156.665129] Call Trace:
+[  156.665422]  dump_stack+0x1e/0x20
+[  156.665802]  bad_page+0x122/0x148
+
+I was not able to reproduce this problem, even-though I used their qemu 
+script and config. But I am getting the following panic both base and fix:
+
+[  115.763259] VFS: Cannot open root device "ram0" or 
+unknown-block(0,0): error -6
+[  115.764511] Please append a correct "root=" boot option; here are the 
+available partitions:
+[  115.765816] Kernel panic - not syncing: VFS: Unable to mount root fs 
+on unknown-block(0,0)
+[  115.767124] CPU: 0 PID: 1 Comm: swapper Not tainted 
+4.13.0-rc4_pt_memset6-00033-g7e65200b1473 #7
+[  115.768506] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), 
+BIOS rel-1.10.2-0-g5f4c7b1-prebuilt.qemu-project.org 04/01/2014
+[  115.770368] Call Trace:
+[  115.770771]  dump_stack+0x1e/0x20
+[  115.771310]  panic+0xf8/0x2bc
+[  115.771792]  mount_block_root+0x3bb/0x441
+[  115.772437]  ? do_early_param+0xc5/0xc5
+[  115.773051]  ? do_early_param+0xc5/0xc5
+[  115.773683]  mount_root+0x7c/0x7f
+[  115.774243]  prepare_namespace+0x194/0x1d1
+[  115.774898]  kernel_init_freeable+0x1c8/0x1df
+[  115.775575]  ? rest_init+0x13f/0x13f
+[  115.776153]  kernel_init+0x14/0x142
+[  115.776711]  ? rest_init+0x13f/0x13f
+[  115.777285]  ret_from_fork+0x2a/0x40
+[  115.777864] Kernel Offset: disabled
+
+Their config has CONFIG_BLK_DEV_RAM disabled, but qemu script has:
+root=/dev/ram0, so I enabled dev_ram, but still getting a panic when 
+root is mounted both in base and fix.
+
+Pasha
