@@ -1,42 +1,124 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 26 Aug 2017 19:26:44 +0000
-Subject: [PATCH] sbus: Delete an error message for a failed memory allocation in uctrl_probe()
-Message-Id: <f53e3426-14b4-dceb-6599-1d15f3eeee84@users.sourceforge.net>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Fri, 11 Aug 2017 23:46:49 +0000
+Subject: [PATCH v6 1/3] sparc64: Support huge PUD case in get_user_pages
+Message-Id: <1502495225-199727-2-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1502495225-199727-1-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1502495225-199727-1-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nitin Gupta <nitin.m.gupta@oracle.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Tom Hromatka <tom.hromatka@oracle.com>, Bob Picco <bob.picco@oracle.com>, Ingo Molnar <mingo@kernel.org>, Lorenzo Stoakes <lstoakes@gmail.com>, Jan Kara <jack@suse.cz>, Michal Hocko <mhocko@suse.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sat, 26 Aug 2017 21:21:33 +0200
+get_user_pages() is used to do direct IO. It already
+handles the case where the address range is backed
+by PMD huge pages. This patch now adds the case where
+the range could be backed by PUD huge pages.
 
-Omit an extra message for a memory allocation failure in this function.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
 ---
- drivers/sbus/char/uctrl.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h | 15 +++++++++++--
+ arch/sparc/mm/gup.c                 | 45 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 57 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
-index 0a5013350acd..f3b9f7e87ffa 100644
---- a/drivers/sbus/char/uctrl.c
-+++ b/drivers/sbus/char/uctrl.c
-@@ -352,10 +352,8 @@ static int uctrl_probe(struct platform_device *op)
- 	int err = -ENOMEM;
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 6fbd931..2579f5a 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -687,6 +687,8 @@ static inline unsigned long pmd_write(pmd_t pmd)
+ 	return pte_write(pte);
+ }
  
- 	p = kzalloc(sizeof(*p), GFP_KERNEL);
--	if (!p) {
--		printk(KERN_ERR "uctrl: Unable to allocate device struct.\n");
-+	if (!p)
- 		goto out;
--	}
++#define pud_write(pud)	pte_write(__pte(pud_val(pud)))
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline unsigned long pmd_dirty(pmd_t pmd)
+ {
+@@ -823,9 +825,18 @@ static inline unsigned long __pmd_page(pmd_t pmd)
  
- 	p->regs = of_ioremap(&op->resource[0], 0,
- 			     resource_size(&op->resource[0]),
+ 	return ((unsigned long) __va(pfn << PAGE_SHIFT));
+ }
++
++static inline unsigned long pud_page_vaddr(pud_t pud)
++{
++	pte_t pte = __pte(pud_val(pud));
++	unsigned long pfn;
++
++	pfn = pte_pfn(pte);
++
++	return ((unsigned long) __va(pfn << PAGE_SHIFT));
++}
++
+ #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
+-#define pud_page_vaddr(pud)		\
+-	((unsigned long) __va(pud_val(pud)))
+ #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pud_present(pud)		(pud_val(pud) != 0U)
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index f80cfc6..d809099 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -103,6 +103,45 @@ static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+ 	return 1;
+ }
+ 
++static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
++			unsigned long end, int write, struct page **pages,
++			int *nr)
++{
++	struct page *head, *page;
++	int refs;
++
++	if (!(pud_val(pud) & _PAGE_VALID))
++		return 0;
++
++	if (write && !pud_write(pud))
++		return 0;
++
++	refs = 0;
++	page = pud_page(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
++	head = compound_head(page);
++	do {
++		VM_BUG_ON(compound_head(page) != head);
++		pages[*nr] = page;
++		(*nr)++;
++		page++;
++		refs++;
++	} while (addr += PAGE_SIZE, addr != end);
++
++	if (!page_cache_add_speculative(head, refs)) {
++		*nr -= refs;
++		return 0;
++	}
++
++	if (unlikely(pud_val(pud) != pud_val(*pudp))) {
++		*nr -= refs;
++		while (refs--)
++			put_page(head);
++		return 0;
++	}
++
++	return 1;
++}
++
+ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+ 		int write, struct page **pages, int *nr)
+ {
+@@ -141,7 +180,11 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 		next = pud_addr_end(addr, end);
+ 		if (pud_none(pud))
+ 			return 0;
+-		if (!gup_pmd_range(pud, addr, next, write, pages, nr))
++		if (unlikely(pud_large(pud))) {
++			if (!gup_huge_pud(pudp, pud, addr, next,
++					  write, pages, nr))
++				return 0;
++		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
+ 			return 0;
+ 	} while (pudp++, addr = next, addr != end);
+ 
 -- 
-2.14.0
+2.9.2
 
