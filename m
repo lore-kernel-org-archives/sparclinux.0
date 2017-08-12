@@ -1,55 +1,34 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 31 Aug 2017 16:38:30 +0000
-Subject: Re: [PATCH v7 9/9] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <3ff76988-43f2-85e4-eaf4-cc0d10b420a3@oracle.com>
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Date: Sat, 12 Aug 2017 00:28:43 +0000
+Subject: Re: [PATCH 2/3] sparc64: Add 16GB hugepage support
+Message-Id: <09ba52c3-85de-20ca-4f5a-05433b82401f@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <7b8216b8-e732-0b31-a374-1a817d4fbc80@oracle.com>
- <20170830.153830.2267882580011615008.davem@davemloft.net>
- <b5d9bbb2-a575-ee47-33aa-11994edef702@oracle.com>
- <20170830.170925.386619891775278628.davem@davemloft.net>
-In-Reply-To: <20170830.170925.386619891775278628.davem@davemloft.net>
+References: <1499982815-183450-3-git-send-email-nitin.m.gupta@oracle.com>
+In-Reply-To: <1499982815-183450-3-git-send-email-nitin.m.gupta@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: anthony.yznaga@oracle.com, dave.hansen@linux.intel.com, corbet@lwn.net, bob.picco@oracle.com, steven.sistare@oracle.com, pasha.tatashin@oracle.com, mike.kravetz@oracle.com, mingo@kernel.org, nitin.m.gupta@oracle.com, kirill.shutemov@linux.intel.com, tom.hromatka@oracle.com, eric.saint.etienne@oracle.com, allen.pais@oracle.com, cmetcalf@mellanox.com, akpm@linux-foundation.org, geert@linux-m68k.org, tklauser@distanz.ch, atish.patra@oracle.com, vijay.ac.kumar@oracle.com, peterz@infradead.org, mhocko@suse.com, jack@suse.cz, lstoakes@gmail.com, hughd@google.com, thomas.tai@oracle.com, paul.gortmaker@windriver.com, ross.zwisler@linux.intel.com, dave.jiang@intel.com, willy@infradead.org, ying.huang@intel.com, zhongjiang@huawei.com, minchan@kernel.org, vegard.nossum@oracle.com, imbrenda@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, khalid@gonehiking.org
+To: sparclinux@vger.kernel.org
 
-On 08/30/2017 06:09 PM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Wed, 30 Aug 2017 17:23:37 -0600
-> 
->> That is an interesting idea. This would enable TSTATE_MCDE on all
->> threads of a process as soon as one thread enables it. If we consider
->> the case where the parent creates a shared memory area and spawns a
->> bunch of threads. These threads access the shared memory without ADI
->> enabled. Now one of the threads decides to enable ADI on the shared
->> memory. As soon as it does that, we enable TSTATE_MCDE across all
->> threads and since threads are all using the same TTE for the shared
->> memory, every thread becomes subject to ADI verification. If one of
->> the other threads was in the middle of accessing the shared memory, it
->> will get a sigsegv. If we did not enable TSTATE_MCDE across all
->> threads, it could have continued execution without fault. In other
->> words, updating TSTATE_MCDE across all threads will eliminate the
->> option of running some threads with ADI enabled and some not while
->> accessing the same shared memory. This could be necessary at least for
->> short periods of time before threads can communicate with each other
->> and all switch to accessing shared memory with ADI enabled using same
->> tag. Does that sound like a valid use case or am I off in the weeds
->> here?
-> 
-> A threaded application needs to synchronize and properly orchestrate
-> access to shared memory.
-> 
-> When a change is made to a mappping, in this case setting ADI
-> attributes, it's being done for the address space not the thread.
-> 
-> And the address space is shared amongst threads.
-> 
-> Therefore ADI is not really a per-thread property but rather
-> a per-address-space property.
-> 
+Nitin Gupta wrote:
 
-That does make sense.
+> On 07/20/2017 01:04 PM, David Miller wrote:
+>> From: Nitin Gupta <nitin.m.gupta@oracle.com>
+>> Date: Thu, 13 Jul 2017 14:53:24 -0700
+>> 
+>>> Testing:
+>>>
+>>> Tested with the stream benchmark which allocates 48G of
+>>> arrays backed by 16G hugepages and does RW operation on
+>>> them in parallel.
+>> 
+>> It would be great if we started adding tests under
+>> tools/testing/selftests so that other people can recreate
+>> your tests/benchmarks.
+>> 
+> 
+> Yes, I would like to add the stream benchmark to selftests too.
+> I will check if our internal version of stream can be released.
 
-Thanks,
-Khalid
+STREAM's $HOME is at: https://www.cs.virginia.edu/stream/
+C and Fortran implementations: https://www.cs.virginia.edu/stream/FTP/Code/
