@@ -1,29 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 Aug 2017 05:35:53 +0000
-Subject: Re: [PATCH V3] vDSO for SPARC
-Message-Id: <20170814.223553.2043404627456712062.davem@davemloft.net>
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Date: Sun, 13 Aug 2017 06:21:43 +0000
+Subject: [PATCH 04/11] serial: sunsu: constify uart_ops structures
+Message-Id: <1502605310-4314-5-git-send-email-Julia.Lawall@lip6.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502400887-281290-1-git-send-email-nagarathnam.muthusamy@oracle.com>
-In-Reply-To: <1502400887-281290-1-git-send-email-nagarathnam.muthusamy@oracle.com>
+References: <1502605310-4314-1-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1502605310-4314-1-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Nick Alcock <nick.alcock@oracle.com>
-Date: Fri, 11 Aug 2017 13:23:26 +0100
+These uart_ops structures are only stored in the ops field of a
+uart_port structure and this fields is const, so the uart_ops
+structures can also be const.
 
-> unless you have a really serious linker bug,
+Done with the help of Coccinelle.
 
-Open your mind a little bit.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Maybe due to a bug in the Makefile the linker script doesn't get
-used, or the wrong one is used.
+---
+ drivers/tty/serial/sunsu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Maybe parallel builds are not handled correctly.
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 5380407..95d34d7 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -958,7 +958,7 @@ static void sunsu_config_port(struct uart_port *port, int flags)
+ 	return uart_config[type].name;
+ }
+ 
+-static struct uart_ops sunsu_pops = {
++static const struct uart_ops sunsu_pops = {
+ 	.tx_empty	= sunsu_tx_empty,
+ 	.set_mctrl	= sunsu_set_mctrl,
+ 	.get_mctrl	= sunsu_get_mctrl,
 
-Narrowly focusing on the linker file directly could compromise your
-ability to diagnose this :-)
-
-I'll try to look at this myself soon, I've been too busy to do so
-lately.
