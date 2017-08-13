@@ -1,82 +1,55 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 02 Aug 2017 20:38:11 +0000
-Subject: [v4 02/15] x86/mm: setting fields in deferred pages
-Message-Id: <1501706304-869240-3-git-send-email-pasha.tatashin@oracle.com>
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Date: Sun, 13 Aug 2017 21:14:58 +0000
+Subject: [PATCH] sparc: kernel/pcic: silence gcc 7.x warning in pcibios_fixup_bus()
+Message-Id: <20170813211458.24511-1-thomas.petazzoni@free-electrons.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+When building the kernel for Sparc using gcc 7.x, the build fails
+with:
 
-With deferred struct page feature enabled there is a case where we set some
-fields prior to initializing:
+arch/sparc/kernel/pcic.c: In function ‘pcibios_fixup_bus’:
+arch/sparc/kernel/pcic.c:647:8: error: ‘cmd’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
+    cmd |= PCI_COMMAND_IO;
+        ^~
 
-        mem_init() {
-                register_page_bootmem_info();
-                free_all_bootmem();
-                ...
-        }
+The simplified code looks like this:
 
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
+unsigned int cmd;
+[...]
+pcic_read_config(dev->bus, dev->devfn, PCI_COMMAND, 2, &cmd);
+[...]
+cmd |= PCI_COMMAND_IO;
 
-  mem_init
-   register_page_bootmem_info
-    register_page_bootmem_info_node
-     get_page_bootmem
-      .. setting fields here ..
-      such as: page->freelist = (void *)type;
+I.e, the code assumes that pcic_read_config() will always initialize
+cmd. But it's not the case. Looking at pcic_read_config(), if
+bus->number is != 0 or if the size is not one of 1, 2 or 4, *val will
+not be initialized.
 
-We end-up with similar issue as in the previous patch, where currently we
-do not observe problem as memory is zeroed. But, if flag asserts are
-changed we can start hitting issues.
+As a simple fix, we initialize cmd to zero at the beginning of
+pcibios_fixup_bus.
 
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 ---
- arch/x86/mm/init_64.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/pcic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 136422d7d539..1e863baec847 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1165,12 +1165,17 @@ void __init mem_init(void)
- 
- 	/* clear_bss() already clear the empty_zero_page */
- 
--	register_page_bootmem_info();
--
- 	/* this will put all memory onto the freelists */
- 	free_all_bootmem();
- 	after_bootmem = 1;
- 
-+	/* Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
-+
- 	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
- 			 PAGE_SIZE, KCORE_OTHER);
+diff --git a/arch/sparc/kernel/pcic.c b/arch/sparc/kernel/pcic.c
+index a38787b..732af9a 100644
+--- a/arch/sparc/kernel/pcic.c
++++ b/arch/sparc/kernel/pcic.c
+@@ -602,7 +602,7 @@ void pcibios_fixup_bus(struct pci_bus *bus)
+ {
+ 	struct pci_dev *dev;
+ 	int i, has_io, has_mem;
+-	unsigned int cmd;
++	unsigned int cmd = 0;
+ 	struct linux_pcic *pcic;
+ 	/* struct linux_pbm_info* pbm = &pcic->pbm; */
+ 	int node;
 -- 
-2.13.3
+2.9.4
 
