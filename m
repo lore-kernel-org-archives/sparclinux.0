@@ -1,7 +1,7 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:44:03 +0000
-Subject: [PATCH v1 11/13] sparc64: vcc: Add chars_in_buffer TTY operation
-Message-Id: <cb633075e4a55aaf2f93546687ef96f77cdeec95.1501781770.git.jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:03:07 +0000
+Subject: [PATCH v2 11/13] sparc64: vcc: Add chars_in_buffer TTY operation
+Message-Id: <bd16412fedbe5465e3578b425d46957c05ac3219.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,10 +18,10 @@ Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
  1 files changed, 29 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index e6aa35c..f7325f8 100644
+index 0c0fe22..070c541 100644
 --- a/drivers/tty/vcc.c
 +++ b/drivers/tty/vcc.c
-@@ -936,12 +936,36 @@ static int vcc_write_room(struct tty_struct *tty)
+@@ -937,12 +937,36 @@ static int vcc_write_room(struct tty_struct *tty)
  	return num;
  }
  
