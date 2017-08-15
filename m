@@ -1,43 +1,96 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Date: Sun, 20 Aug 2017 10:10:53 +0000
-Subject: [PATCH v3 net 0/2 RESEND] net: ixgbe: Use new flag to disable Relaxed Ordering
-Message-Id: <1503223855-24616-1-git-send-email-dingtianhong@huawei.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:03:04 +0000
+Subject: [PATCH v2 08/13] sparc64: vcc: Add open & close TTY operations
+Message-Id: <108794ab848313201916ebfcec8c8b4ee1a7876a.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
-Cc: Ding Tianhong <dingtianhong@huawei.com>
+To: sparclinux@vger.kernel.org
 
-The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
-to indicate that Relaxed Ordering Attributes (RO) should not
-be used for Transaction Layer Packets (TLP) targeted toward
-these affected Root Port, it will clear the bit4 in the PCIe
-Device Control register, so the PCIe device drivers could
-query PCIe configuration space to determine if it can send
-TLPs to Root Port with the Relaxed Ordering Attributes set.
+Add handlers to support TTY open & close operations
 
-The ixgbe driver could use this flag to determine if it can
-send TLPs to Root Port with the Relaxed Ordering Attributes set.
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ drivers/tty/vcc.c |   63 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 62 insertions(+), 1 deletions(-)
 
-v2: Simplify the original program according Alex's suggestion,
-    remove the new ixgbe flag2 and only check the bit4 in the
-    PCIe Device Control register. 
-
-v3: Remove the code that clears the bits in DCA_T/RXCTRL, relaxed
-    ordering should be enabled by the HW when the bus allow it.
-
-Ding Tianhong (2):
-  Revert commit 1a8b6d76dc5b ("net:add one common config...")
-  net: ixgbe: Use new IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING flag
-
- arch/Kconfig                                    |  3 --
- arch/sparc/Kconfig                              |  1 -
- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
- 4 files changed, 35 insertions(+), 38 deletions(-)
-
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 91f663d..f964fb2 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -746,7 +746,68 @@ static int vcc_remove(struct vio_dev *vdev)
+ 	.name		= "vcc",
+ };
+ 
+-static const struct tty_operations vcc_ops;
++static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
++{
++	struct vcc_port *port;
++
++	if (unlikely(!tty)) {
++		pr_err("VCC: open: Invalid TTY handle\n");
++		return -ENXIO;
++	}
++
++	if (tty->count > 1)
++		return -EBUSY;
++
++	port = vcc_get_ne(tty->index);
++	if (unlikely(!port)) {
++		pr_err("VCC: open: Failed to find VCC port\n");
++		return -ENODEV;
++	}
++
++	if (unlikely(!port->vio.lp)) {
++		pr_err("VCC: open: LDC channel not configured\n");
++		vcc_put(port, false);
++		return -EPIPE;
++	}
++	vccdbgl(port->vio.lp);
++
++	vcc_put(port, false);
++
++	if (unlikely(!tty->port)) {
++		pr_err("VCC: open: TTY port not found\n");
++		return -ENXIO;
++	}
++
++	if (unlikely(!tty->port->ops)) {
++		pr_err("VCC: open: TTY ops not defined\n");
++		return -ENXIO;
++	}
++
++	return tty_port_open(tty->port, tty, vcc_file);
++}
++
++static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
++{
++	if (unlikely(!tty)) {
++		pr_err("VCC: close: Invalid TTY handle\n");
++		return;
++	}
++
++	if (unlikely(tty->count > 1))
++		return;
++
++	if (unlikely(!tty->port)) {
++		pr_err("VCC: close: TTY port not found\n");
++		return;
++	}
++
++	tty_port_close(tty->port, tty, vcc_file);
++}
++
++static const struct tty_operations vcc_ops = {
++	.open	= vcc_open,
++	.close	= vcc_close,
++};
+ 
+ #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
+ 
 -- 
-1.8.3.1
-
+1.7.1
 
