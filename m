@@ -1,67 +1,98 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 07 Aug 2017 20:38:40 +0000
-Subject: [v6 06/15] sparc64: simplify vmemmap_populate
-Message-Id: <1502138329-123460-7-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:02:57 +0000
+Subject: [PATCH v2 01/13] sparc64: vcc: Enable VCC module in linux
+Message-Id: <99cb83ee3b1771b36bb2d03836450f19531a84d4.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Remove duplicating code by using common functions
-vmemmap_pud_populate and vmemmap_pgd_populate.
+Enables the Virtual Console Concentrator (VCC) module
+in linux kernel
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/sparc/mm/init_64.c | 23 ++++++-----------------
- 1 file changed, 6 insertions(+), 17 deletions(-)
+ MAINTAINERS                          |    1 +
+ arch/sparc/configs/sparc64_defconfig |    1 +
+ drivers/tty/Kconfig                  |    5 +++++
+ drivers/tty/Makefile                 |    1 +
+ drivers/tty/vcc.c                    |   18 ++++++++++++++++++
+ 5 files changed, 26 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/tty/vcc.c
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 25ded711ab6c..ffb25be19389 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2590,30 +2590,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
- 	vstart = vstart & PMD_MASK;
- 	vend = ALIGN(vend, PMD_SIZE);
- 	for (; vstart < vend; vstart += PMD_SIZE) {
--		pgd_t *pgd = pgd_offset_k(vstart);
-+		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
- 		unsigned long pte;
- 		pud_t *pud;
- 		pmd_t *pmd;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 84d6a82..28c0b4b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12294,6 +12294,7 @@ F:	drivers/tty/serial/sunsab.h
+ F:	drivers/tty/serial/sunsu.c
+ F:	drivers/tty/serial/sunzilog.c
+ F:	drivers/tty/serial/sunzilog.h
++F:	drivers/tty/vcc.c
  
--		if (pgd_none(*pgd)) {
--			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
-+		if (!pgd)
-+			return -ENOMEM;
+ SPARSE CHECKER
+ M:	"Christopher Li" <sparse@chrisli.org>
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index ca8609d..4d4e1cc 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -238,3 +238,4 @@ CONFIG_CRYPTO_TWOFISH=m
+ # CONFIG_CRYPTO_ANSI_CPRNG is not set
+ CONFIG_CRC16=m
+ CONFIG_LIBCRC32C=m
++CONFIG_VCC=m
+diff --git a/drivers/tty/Kconfig b/drivers/tty/Kconfig
+index 9510305..8643b55 100644
+--- a/drivers/tty/Kconfig
++++ b/drivers/tty/Kconfig
+@@ -455,4 +455,9 @@ config MIPS_EJTAG_FDC_KGDB_CHAN
+ 	help
+ 	  FDC channel number to use for KGDB.
  
--			if (!new)
--				return -ENOMEM;
--			pgd_populate(&init_mm, pgd, new);
--		}
--
--		pud = pud_offset(pgd, vstart);
--		if (pud_none(*pud)) {
--			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
--
--			if (!new)
--				return -ENOMEM;
--			pud_populate(&init_mm, pud, new);
--		}
-+		pud = vmemmap_pud_populate(pgd, vstart, node);
-+		if (!pud)
-+			return -ENOMEM;
++config VCC
++	tristate "Sun Virtual Console Concentrator"
++	depends on SUN_LDOMS
++	help
++	  Support for Sun logical domain consoles.
+ endif # TTY
+diff --git a/drivers/tty/Makefile b/drivers/tty/Makefile
+index 8689279..16330a8 100644
+--- a/drivers/tty/Makefile
++++ b/drivers/tty/Makefile
+@@ -33,5 +33,6 @@ obj-$(CONFIG_PPC_EPAPR_HV_BYTECHAN) += ehv_bytechan.o
+ obj-$(CONFIG_GOLDFISH_TTY)	+= goldfish.o
+ obj-$(CONFIG_DA_TTY)		+= metag_da.o
+ obj-$(CONFIG_MIPS_EJTAG_FDC_TTY) += mips_ejtag_fdc.o
++obj-$(CONFIG_VCC)		+= vcc.o
  
- 		pmd = pmd_offset(pud, vstart);
--
- 		pte = pmd_val(*pmd);
- 		if (!(pte & _PAGE_VALID)) {
- 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+ obj-y += ipwireless/
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+new file mode 100644
+index 0000000..e1b8099
+--- /dev/null
++++ b/drivers/tty/vcc.c
+@@ -0,0 +1,18 @@
++/* vcc.c: sun4v virtual channel concentrator
++ *
++ * Copyright (C) 2017 Oracle. All rights reserved.
++ */
++
++#include <linux/module.h>
++
++static int __init vcc_init(void)
++{
++	return 0;
++}
++
++static void __exit vcc_exit(void)
++{
++}
++
++module_init(vcc_init);
++module_exit(vcc_exit);
 -- 
-2.14.0
+1.7.1
 
