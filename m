@@ -1,37 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 Aug 2017 23:31:45 +0000
-Subject: Re: Niagara2 & Could not register hvapi ATU err=-22
-Message-Id: <20170815.163145.2182718865887298725.davem@davemloft.net>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:02:56 +0000
+Subject: [PATCH v2 00/13] Enable Virtual Console Concentrator (VCC)
+Message-Id: <cover.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.20.1708151738450.29628@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1708151738450.29628@math.ut.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Tushar Dave <tushar.n.dave@oracle.com>
-Date: Tue, 15 Aug 2017 15:07:35 -0700
+Patchset to enable Virtual Console Concentrator (VCC). VCC provides
+access to the serial console of a guest domain. It creates a RAW
+VIO/LDC link between the guest domain & primary through which serial
+console data is shared.
 
-> 
-> 
-> On 08/15/2017 07:42 AM, Meelis Roos wrote:
->> I noticed that on Niagara2, dmesg has a red error about ATU
->> registration:
->> [    4.579231] pci_sun4v: Could not register hvapi ATU err=-22
->> This is preceded by info line
->> [    4.578073] pci_sun4v: Registered hvapi major[1] minor[0]
->> As I understand, there is no ATU on Niagara1 & Niagara2 sun4v
->> platforms,
->> so there is no point in trying to log an error to dmesg in that case?
-> You are right.
-> IMO, we should not log ATU hvapi registration failure message at
-> all. Unlike PCI hvapi, ATU hvapi registration failure is not *hard
-> error*.
-> Even if ATU hvapi registration fails (on system with ATU or without
-> ATU) system continues with legacy IOMMU.
-> So I think log message only when ATU is registered successfully.
+This set addresses feedback provided by Dave Miller. Cleanup of
+driver state is also addressed in this set. Patches updated
+are 4, 5, 6 & 7.
 
-Please submit this formally.
+version3:
+ - PATCH 04/13: delete VIO timer during removal
+ - PATCH 05/13: remove sysfs attr group during cleanup
+ - PATCH 06/13: Timer access macros replaced with direct
+                access. Timer routines check if VCC is
+                removed. Delete timer during cleanup
+ - PATCH 07/13: avoid explicit typecast of void pointer
 
-Thank you.
+Jag Raman (13):
+  sparc64: vcc: Enable VCC module in linux
+  sparc64: vcc: Add VCC debug message macros
+  sparc64: vcc: TTY driver initialization and cleanup
+  sparc64: vcc: Enable VCC port probe and removal
+  sparc64: vcc: Create sysfs attribute group
+  sparc64: vcc: Add RX & TX timer for delayed LDC operation
+  sparc64: vcc: Enable LDC event processing engine
+  sparc64: vcc: Add open & close TTY operations
+  sparc64: vcc: Add hangup TTY operation
+  sparc64: vcc: Add write & write_room TTY operations
+  sparc64: vcc: Add chars_in_buffer TTY operation
+  sparc64: vcc: Add break_ctl TTY operation
+  sparc64: vcc: Add install & cleanup TTY operations
+
+ MAINTAINERS                          |    1 +
+ arch/sparc/configs/sparc64_defconfig |    1 +
+ arch/sparc/include/asm/vio.h         |    9 +
+ arch/sparc/kernel/ldc.c              |    2 +
+ arch/sparc/kernel/vio.c              |    1 +
+ arch/sparc/kernel/viohs.c            |   12 +-
+ drivers/tty/Kconfig                  |    5 +
+ drivers/tty/Makefile                 |    1 +
+ drivers/tty/vcc.c                    | 1155 ++++++++++++++++++++++++++++++++++
+ 9 files changed, 1184 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/tty/vcc.c
+
