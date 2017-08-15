@@ -1,92 +1,153 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 29 Aug 2017 02:02:12 +0000
-Subject: [PATCH v7 01/11] x86/mm: setting fields in deferred pages
-Message-Id: <1503972142-289376-2-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:03:01 +0000
+Subject: [PATCH v2 05/13] sparc64: vcc: Create sysfs attribute group
+Message-Id: <903983656b5558b03e6a9cd14d9218144855871c.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+Create sysfs attribute group to show the domain name and
+send break command.
 
-With deferred struct page feature enabled, however, we set fields in
-register_page_bootmem_info that are subsequently clobbered right after in
-free_all_bootmem:
-
-        mem_init() {
-                register_page_bootmem_info();
-                free_all_bootmem();
-                ...
-        }
-
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
-
-  mem_init
-   register_page_bootmem_info
-    register_page_bootmem_info_node
-     get_page_bootmem
-      .. setting fields here ..
-      such as: page->freelist = (void *)type;
-
-  free_all_bootmem()
-   free_low_memory_core_early()
-    for_each_reserved_mem_region()
-     reserve_bootmem_region()
-      init_reserved_page() <- Only if this is deferred reserved page
-       __init_single_pfn()
-        __init_single_page()
-            memset(0) <-- Loose the set fields here
-
-We end-up with issue where, currently we do not observe problem as memory
-is explicitly zeroed. But, if flag asserts are changed we can start hitting
-issues.
-
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- arch/x86/mm/init_64.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ v2: remove sysfs attr group during cleanup
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 62a91e6b1237..3a997352a992 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1174,12 +1174,17 @@ void __init mem_init(void)
+ drivers/tty/vcc.c |   82 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 82 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 4edace1..72e0879 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -7,6 +7,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/sysfs.h>
+ #include <linux/tty.h>
+ #include <asm/vio.h>
+ #include <asm/ldc.h>
+@@ -52,6 +53,9 @@ struct vcc_port {
+ #define VCC_MAX_PORTS		1024
+ #define VCC_MINOR_START		0	/* must be zero */
  
- 	/* clear_bss() already clear the empty_zero_page */
- 
--	register_page_bootmem_info();
--
- 	/* this will put all memory onto the freelists */
- 	free_all_bootmem();
- 	after_bootmem = 1;
- 
-+	/* Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
++#define VCC_CTL_BREAK		-1
++#define VCC_CTL_HUP		-2
 +
- 	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
- 			 PAGE_SIZE, KCORE_OTHER);
+ static const char vcc_driver_name[] = "vcc";
+ static const char vcc_device_node[] = "vcc";
+ static struct tty_driver *vcc_tty_driver;
+@@ -268,6 +272,77 @@ static void vcc_event(void *arg, int event)
+ 	{ .major = 1, .minor = 0 },
+ };
+ 
++static ssize_t vcc_sysfs_domain_show(struct device *dev,
++				     struct device_attribute *attr,
++				     char *buf)
++{
++	struct vcc_port *port;
++	int rv;
++
++	port = dev_get_drvdata(dev);
++	if (!port)
++		return -ENODEV;
++
++	rv = scnprintf(buf, PAGE_SIZE, "%s\n", port->domain);
++
++	return rv;
++}
++
++static int vcc_send_ctl(struct vcc_port *port, int ctl)
++{
++	struct vio_vcc pkt;
++	int rv;
++
++	pkt.tag.type = VIO_TYPE_CTRL;
++	pkt.tag.sid = ctl;
++	pkt.tag.stype = 0;
++
++	rv = ldc_write(port->vio.lp, &pkt, sizeof(pkt.tag));
++	WARN_ON(!rv);
++	vccdbg("VCC: ldc_write(%ld)=%d\n", sizeof(pkt.tag), rv);
++
++	return rv;
++}
++
++static ssize_t vcc_sysfs_break_store(struct device *dev,
++				     struct device_attribute *attr,
++				     const char *buf, size_t count)
++{
++	struct vcc_port *port;
++	unsigned long flags;
++	int rv = count;
++	int brk;
++
++	port = dev_get_drvdata(dev);
++	if (!port)
++		return -ENODEV;
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
++		rv = -EINVAL;
++	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
++		pr_err("VCC: unable to send CTL_BREAK\n");
++
++	spin_unlock_irqrestore(&port->lock, flags);
++
++	return rv;
++}
++
++static DEVICE_ATTR(domain, 0400, vcc_sysfs_domain_show, NULL);
++static DEVICE_ATTR(break, 0200, NULL, vcc_sysfs_break_store);
++
++static struct attribute *vcc_sysfs_entries[] = {
++	&dev_attr_domain.attr,
++	&dev_attr_break.attr,
++	NULL
++};
++
++static struct attribute_group vcc_attribute_group = {
++	.name = NULL,
++	.attrs = vcc_sysfs_entries,
++};
++
+ /**
+  * vcc_probe() - Initialize VCC port
+  * @vdev: Pointer to VIO device of the new VCC port
+@@ -349,6 +424,10 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 
+ 	mdesc_release(hp);
+ 
++	rv = sysfs_create_group(&vdev->dev.kobj, &vcc_attribute_group);
++	if (rv)
++		goto free_domain;
++
+ 	dev_set_drvdata(&vdev->dev, port);
+ 
+ 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
+@@ -360,6 +439,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 
+ 	return 0;
+ 
++free_domain:
++	kfree(port->domain);
+ unreg_tty:
+ 	tty_unregister_device(vcc_tty_driver, port->index);
+ free_table:
+@@ -408,6 +489,7 @@ static int vcc_remove(struct vio_dev *vdev)
+ 
+ 	del_timer_sync(&port->vio.timer);
+ 	vio_ldc_free(&port->vio);
++	sysfs_remove_group(&vdev->dev.kobj, &vcc_attribute_group);
+ 	dev_set_drvdata(&vdev->dev, NULL);
+ 
+ 	if (port->tty) {
 -- 
-2.14.1
+1.7.1
 
