@@ -1,135 +1,87 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Tue, 15 Aug 2017 21:03:06 +0000
-Subject: [PATCH v2 10/13] sparc64: vcc: Add write & write_room TTY operations
-Message-Id: <1dda16cbd80d137a2e0e7a4c0cca8d7718a5347a.1502829972.git.jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:02:58 +0000
+Subject: [PATCH v2 02/13] sparc64: vcc: Add VCC debug message macros
+Message-Id: <06e30803f85a853258685d1d313353ccf09d52db.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Add handlers to support TTY write & write_room operations
+Add C macros to print debug messages from VCC module
 
 Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
 Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
 Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- drivers/tty/vcc.c |  101 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 98 insertions(+), 3 deletions(-)
+ arch/sparc/kernel/ldc.c |    1 +
+ drivers/tty/vcc.c       |   41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+), 0 deletions(-)
 
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 840e0b2..1169915 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1493,6 +1493,7 @@ void __ldc_print(struct ldc_channel *lp, const char *caller)
+ 		lp->tx_head, lp->tx_tail, lp->tx_num_entries,
+ 		lp->rcv_nxt, lp->snd_nxt);
+ }
++EXPORT_SYMBOL(__ldc_print);
+ 
+ static int write_raw(struct ldc_channel *lp, const void *buf, unsigned int size)
+ {
 diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 67be5a5..0c0fe22 100644
+index e1b8099..4fd8dd0 100644
 --- a/drivers/tty/vcc.c
 +++ b/drivers/tty/vcc.c
-@@ -844,10 +844,105 @@ static void vcc_hangup(struct tty_struct *tty)
- 	tty_port_hangup(tty->port);
- }
+@@ -5,6 +5,47 @@
  
-+static int vcc_write(struct tty_struct *tty, const unsigned char *buf,
-+		     int count)
-+{
-+	struct vcc_port *port;
-+	struct vio_vcc *pkt;
-+	unsigned long flags;
-+	int total_sent = 0;
-+	int tosend = 0;
-+	int rv = -EINVAL;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: write: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: write: Failed to find VCC port");
-+		return -ENODEV;
-+	}
-+
-+	spin_lock_irqsave(&port->lock, flags);
-+
-+	pkt = &port->buffer;
-+	pkt->tag.type = VIO_TYPE_DATA;
-+
-+	while (count > 0) {
-+		/* Minimum of data to write and space available */
-+		tosend = min(count, (VCC_BUFF_LEN - port->chars_in_buffer));
-+
-+		if (!tosend)
-+			break;
-+
-+		memcpy(&pkt->data[port->chars_in_buffer], &buf[total_sent],
-+		       tosend);
-+		port->chars_in_buffer += tosend;
-+		pkt->tag.stype = tosend;
-+
-+		vccdbg("TAG [%02x:%02x:%04x:%08x]\n", pkt->tag.type,
-+		       pkt->tag.stype, pkt->tag.stype_env, pkt->tag.sid);
-+		vccdbg("DATA [%s]\n", pkt->data);
-+		vccdbgl(port->vio.lp);
-+
-+		/* Since we know we have enough room in VCC buffer for tosend
-+		 * we record that it was sent regardless of whether the
-+		 * hypervisor actually took it because we have it buffered.
-+		 */
-+		rv = ldc_write(port->vio.lp, pkt, (VIO_TAG_SIZE + tosend));
-+		vccdbg("VCC: write: ldc_write(%d)=%d\n",
-+		       (VIO_TAG_SIZE + tosend), rv);
-+
-+		total_sent += tosend;
-+		count -= tosend;
-+		if (rv < 0) {
-+			vcc_kick_tx(port);
-+			break;
-+		}
-+
-+		port->chars_in_buffer = 0;
-+	}
-+
-+	spin_unlock_irqrestore(&port->lock, flags);
-+
-+	vcc_put(port, false);
-+
-+	vccdbg("VCC: write: total=%d rv=%d", total_sent, rv);
-+
-+	return total_sent ? total_sent : rv;
-+}
-+
-+static int vcc_write_room(struct tty_struct *tty)
-+{
-+	struct vcc_port *port;
-+	u64 num;
-+
-+	if (unlikely(!tty)) {
-+		pr_err("VCC: write_room: Invalid TTY handle\n");
-+		return -ENXIO;
-+	}
-+
-+	port = vcc_get_ne(tty->index);
-+	if (unlikely(!port)) {
-+		pr_err("VCC: write_room: Failed to find VCC port\n");
-+		return -ENODEV;
-+	}
-+
-+	num = VCC_BUFF_LEN - port->chars_in_buffer;
-+
-+	vcc_put(port, false);
-+
-+	return num;
-+}
-+
- static const struct tty_operations vcc_ops = {
--	.open	= vcc_open,
--	.close	= vcc_close,
--	.hangup	= vcc_hangup,
-+	.open		= vcc_open,
-+	.close		= vcc_close,
-+	.hangup		= vcc_hangup,
-+	.write		= vcc_write,
-+	.write_room	= vcc_write_room,
- };
+ #include <linux/module.h>
  
- #define VCC_TTY_FLAGS   (TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_REAL_RAW)
++#define DRV_MODULE_NAME		"vcc"
++#define DRV_MODULE_VERSION	"1.1"
++#define DRV_MODULE_RELDATE	"July 1, 2017"
++
++MODULE_DESCRIPTION("Sun LDOM virtual console concentrator driver");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRV_MODULE_VERSION);
++
++int vcc_dbg;
++int vcc_dbg_ldc;
++int vcc_dbg_vio;
++
++module_param(vcc_dbg, uint, 0664);
++module_param(vcc_dbg_ldc, uint, 0664);
++module_param(vcc_dbg_vio, uint, 0664);
++
++#define VCC_DBG_DRV	0x1
++#define VCC_DBG_LDC	0x2
++#define VCC_DBG_PKT	0x4
++
++#define vccdbg(f, a...)						\
++	do {							\
++		if (vcc_dbg & VCC_DBG_DRV)			\
++			pr_info(f, ## a);			\
++	} while (0)						\
++
++#define vccdbgl(l)						\
++	do {							\
++		if (vcc_dbg & VCC_DBG_LDC)			\
++			ldc_print(l);				\
++	} while (0)						\
++
++#define vccdbgp(pkt)						\
++	do {							\
++		if (vcc_dbg & VCC_DBG_PKT) {			\
++			int i;					\
++			for (i = 0; i < pkt.tag.stype; i++)	\
++				pr_info("[%c]", pkt.data[i]);	\
++		}						\
++	} while (0)						\
++
+ static int __init vcc_init(void)
+ {
+ 	return 0;
 -- 
 1.7.1
 
