@@ -1,201 +1,288 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 02 Aug 2017 20:38:14 +0000
-Subject: [v4 05/15] mm: don't accessed uninitialized struct pages
-Message-Id: <1501706304-869240-6-git-send-email-pasha.tatashin@oracle.com>
+From: Jag Raman <jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:03:02 +0000
+Subject: [PATCH v2 06/13] sparc64: vcc: Add RX & TX timer for delayed LDC operation
+Message-Id: <05665f17648c16621b62487b4e27a4ebfa656653.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1501706304-869240-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-In deferred_init_memmap() where all deferred struct pages are initialized
-we have a check like this:
+Add RX & TX timers to perform delayed/asynchronous LDC
+read and write operations.
 
-    if (page->flags) {
-            VM_BUG_ON(page_zone(page) != zone);
-            goto free_range;
-    }
-
-This way we are checking if the current deferred page has already been
-initialized. It works, because memory for struct pages has been zeroed, and
-the only way flags are not zero if it went through __init_single_page()
-before.  But, once we change the current behavior and won't zero the memory
-in memblock allocator, we cannot trust anything inside "struct page"es
-until they are initialized. This patch fixes this.
-
-This patch defines a new accessor memblock_get_reserved_pfn_range()
-which returns successive ranges of reserved PFNs.  deferred_init_memmap()
-calls it to determine if a PFN and its struct page has already been
-initialized.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
- include/linux/memblock.h |  3 +++
- mm/memblock.c            | 54 ++++++++++++++++++++++++++++++++++++++++++------
- mm/page_alloc.c          | 11 +++++++++-
- 3 files changed, 61 insertions(+), 7 deletions(-)
+ v2: Timer access macros replaced with direct access. Timer
+     routines check if VCC is removed. Delete timer during
+     cleanup
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index c89d16c88512..9d8dabedf5ba 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -321,6 +321,9 @@ int memblock_is_map_memory(phys_addr_t addr);
- int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
- bool memblock_is_reserved(phys_addr_t addr);
- bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
-+void memblock_get_reserved_pfn_range(unsigned long pfn,
-+				     unsigned long *pfn_start,
-+				     unsigned long *pfn_end);
+ arch/sparc/kernel/ldc.c |    1 +
+ drivers/tty/vcc.c       |  195 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 194 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 1169915..acffbc8 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -1480,6 +1480,7 @@ int ldc_rx_reset(struct ldc_channel *lp)
+ {
+ 	return __set_rx_head(lp, lp->rx_tail);
+ }
++EXPORT_SYMBOL(ldc_rx_reset);
  
- extern void __memblock_dump_all(void);
+ void __ldc_print(struct ldc_channel *lp, const char *caller)
+ {
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 72e0879..27566d5 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -9,6 +9,7 @@
+ #include <linux/slab.h>
+ #include <linux/sysfs.h>
+ #include <linux/tty.h>
++#include <linux/tty_flip.h>
+ #include <asm/vio.h>
+ #include <asm/ldc.h>
  
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 3a2707914064..e6df054e3180 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1580,7 +1580,13 @@ void __init memblock_mem_limit_remove_map(phys_addr_t limit)
- 	memblock_cap_memory_range(0, max_addr);
+@@ -52,6 +53,7 @@ struct vcc_port {
+ 
+ #define VCC_MAX_PORTS		1024
+ #define VCC_MINOR_START		0	/* must be zero */
++#define VCC_BUFF_LEN		VIO_VCC_MTU_SIZE
+ 
+ #define VCC_CTL_BREAK		-1
+ #define VCC_CTL_HUP		-2
+@@ -256,6 +258,185 @@ static void vcc_put(struct vcc_port *port, bool excl)
+ 	return port;
  }
  
--static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
-+/**
-+ * Return index in regions array if addr is within the region. Otherwise
-+ * return -1. If -1 is returned and *next_idx is not %NULL, sets it to the
-+ * next region index or -1 if there is none.
-+ */
-+static int __init_memblock memblock_search(struct memblock_type *type,
-+					   phys_addr_t addr, int *next_idx)
- {
- 	unsigned int left = 0, right = type->cnt;
- 
-@@ -1595,22 +1601,26 @@ static int __init_memblock memblock_search(struct memblock_type *type, phys_addr
- 		else
- 			return mid;
- 	} while (left < right);
-+
-+	if (next_idx)
-+		*next_idx = (right = type->cnt) ? -1 : right;
-+
- 	return -1;
- }
- 
- bool __init memblock_is_reserved(phys_addr_t addr)
- {
--	return memblock_search(&memblock.reserved, addr) != -1;
-+	return memblock_search(&memblock.reserved, addr, NULL) != -1;
- }
- 
- bool __init_memblock memblock_is_memory(phys_addr_t addr)
- {
--	return memblock_search(&memblock.memory, addr) != -1;
-+	return memblock_search(&memblock.memory, addr, NULL) != -1;
- }
- 
- int __init_memblock memblock_is_map_memory(phys_addr_t addr)
- {
--	int i = memblock_search(&memblock.memory, addr);
-+	int i = memblock_search(&memblock.memory, addr, NULL);
- 
- 	if (i = -1)
- 		return false;
-@@ -1622,7 +1632,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
- 			 unsigned long *start_pfn, unsigned long *end_pfn)
- {
- 	struct memblock_type *type = &memblock.memory;
--	int mid = memblock_search(type, PFN_PHYS(pfn));
-+	int mid = memblock_search(type, PFN_PHYS(pfn), NULL);
- 
- 	if (mid = -1)
- 		return -1;
-@@ -1646,7 +1656,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
-  */
- int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size)
- {
--	int idx = memblock_search(&memblock.memory, base);
-+	int idx = memblock_search(&memblock.memory, base, NULL);
- 	phys_addr_t end = base + memblock_cap_size(base, &size);
- 
- 	if (idx = -1)
-@@ -1656,6 +1666,38 @@ int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size
- }
- 
- /**
-+ * memblock_get_reserved_pfn_range - search for the next reserved region
-+ *
-+ * @pfn: start searching from this pfn.
-+ *
-+ * RETURNS:
-+ * [start_pfn, end_pfn), where start_pfn >= pfn. If none is found
-+ * start_pfn, and end_pfn are both set to ULONG_MAX.
-+ */
-+void __init_memblock memblock_get_reserved_pfn_range(unsigned long pfn,
-+						     unsigned long *start_pfn,
-+						     unsigned long *end_pfn)
++static void vcc_kick_rx(struct vcc_port *port)
 +{
-+	struct memblock_type *type = &memblock.reserved;
-+	int next_idx, idx;
++	struct vio_driver_state *vio = &port->vio;
 +
-+	idx = memblock_search(type, PFN_PHYS(pfn), &next_idx);
-+	if (idx = -1 && next_idx = -1) {
-+		*start_pfn = ULONG_MAX;
-+		*end_pfn = ULONG_MAX;
-+		return;
-+	}
++	assert_spin_locked(&port->lock);
 +
-+	if (idx = -1) {
-+		idx = next_idx;
-+		*start_pfn = PFN_DOWN(type->regions[idx].base);
-+	} else {
-+		*start_pfn = pfn;
++	if (!timer_pending(&port->rx_timer) && !port->removed) {
++		disable_irq_nosync(vio->vdev->rx_irq);
++		port->rx_timer.expires = (jiffies + 1);
++		add_timer(&port->rx_timer);
 +	}
-+	*end_pfn = PFN_DOWN(type->regions[idx].base + type->regions[idx].size);
 +}
 +
-+/**
-  * memblock_is_region_reserved - check if a region intersects reserved memory
-  * @base: base of region to check
-  * @size: size of region to check
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 87fb35ac0b87..99b9e2e06319 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1447,6 +1447,7 @@ static int __init deferred_init_memmap(void *data)
- 	pg_data_t *pgdat = data;
- 	int nid = pgdat->node_id;
- 	struct mminit_pfnnid_cache nid_init_state = { };
-+	unsigned long resv_start_pfn = 0, resv_end_pfn = 0;
- 	unsigned long start = jiffies;
- 	unsigned long nr_pages = 0;
- 	unsigned long walk_start, walk_end;
-@@ -1491,6 +1492,10 @@ static int __init deferred_init_memmap(void *data)
- 			pfn = zone->zone_start_pfn;
++static void vcc_kick_tx(struct vcc_port *port)
++{
++	assert_spin_locked(&port->lock);
++
++	if (!timer_pending(&port->tx_timer) && !port->removed) {
++		port->tx_timer.expires = (jiffies + 1);
++		add_timer(&port->tx_timer);
++	}
++}
++
++static int vcc_rx_check(struct tty_struct *tty, int size)
++{
++	if (WARN_ON(!tty || !tty->port))
++		return 1;
++
++	/* tty_buffer_request_room won't sleep because it uses
++	 * GFP_ATOMIC flag to allocate buffer
++	 */
++	if (test_bit(TTY_THROTTLED, &tty->flags) ||
++	    (tty_buffer_request_room(tty->port, VCC_BUFF_LEN) < VCC_BUFF_LEN))
++		return 0;
++
++	return 1;
++}
++
++static int vcc_rx(struct tty_struct *tty, char *buf, int size)
++{
++	int len = 0;
++
++	if (WARN_ON(!tty || !tty->port))
++		return len;
++
++	len = tty_insert_flip_string(tty->port, buf, size);
++	if (len)
++		tty_flip_buffer_push(tty->port);
++
++	return len;
++}
++
++static int vcc_ldc_read(struct vcc_port *port)
++{
++	struct vio_driver_state *vio = &port->vio;
++	struct tty_struct *tty;
++	struct vio_vcc pkt;
++	int rv = 0;
++
++	tty = port->tty;
++	if (!tty) {
++		rv = ldc_rx_reset(vio->lp);
++		vccdbg("VCC: reset rx q: rv=%d\n", rv);
++		goto done;
++	}
++
++	/* Read as long as LDC has incoming data. */
++	while (1) {
++		if (!vcc_rx_check(tty, VIO_VCC_MTU_SIZE)) {
++			vcc_kick_rx(port);
++			break;
++		}
++
++		vccdbgl(vio->lp);
++
++		rv = ldc_read(vio->lp, &pkt, sizeof(pkt));
++		if (rv <= 0)
++			break;
++
++		vccdbg("VCC: ldc_read()=%d\n", rv);
++		vccdbg("TAG [%02x:%02x:%04x:%08x]\n",
++		       pkt.tag.type, pkt.tag.stype,
++		       pkt.tag.stype_env, pkt.tag.sid);
++
++		if (pkt.tag.type = VIO_TYPE_DATA) {
++			vccdbgp(pkt);
++			/* vcc_rx_check ensures memory availability */
++			vcc_rx(tty, pkt.data, pkt.tag.stype);
++		} else {
++			pr_err("VCC: unknown msg [%02x:%02x:%04x:%08x]\n",
++			       pkt.tag.type, pkt.tag.stype,
++			       pkt.tag.stype_env, pkt.tag.sid);
++			rv = -ECONNRESET;
++			break;
++		}
++
++		WARN_ON(rv != LDC_PACKET_SIZE);
++	}
++
++done:
++	return rv;
++}
++
++static void vcc_rx_timer(unsigned long index)
++{
++	struct vio_driver_state *vio;
++	struct vcc_port *port;
++	unsigned long flags;
++	int rv;
++
++	port = vcc_get_ne(index);
++	if (!port)
++		return;
++
++	spin_lock_irqsave(&port->lock, flags);
++	port->rx_timer.expires = 0;
++
++	vio = &port->vio;
++
++	enable_irq(vio->vdev->rx_irq);
++
++	if (!port->tty || port->removed)
++		goto done;
++
++	rv = vcc_ldc_read(port);
++	if (rv = -ECONNRESET)
++		vio_conn_reset(vio);
++
++done:
++	spin_unlock_irqrestore(&port->lock, flags);
++	vcc_put(port, false);
++}
++
++static void vcc_tx_timer(unsigned long index)
++{
++	struct vcc_port *port;
++	struct vio_vcc *pkt;
++	unsigned long flags;
++	int tosend = 0;
++	int rv;
++
++	port = vcc_get_ne(index);
++	if (!port)
++		return;
++
++	spin_lock_irqsave(&port->lock, flags);
++	port->tx_timer.expires = 0;
++
++	if (!port->tty || port->removed)
++		goto done;
++
++	tosend = min(VCC_BUFF_LEN, port->chars_in_buffer);
++	if (!tosend)
++		goto done;
++
++	pkt = &port->buffer;
++	pkt->tag.type = VIO_TYPE_DATA;
++	pkt->tag.stype = tosend;
++	vccdbgl(port->vio.lp);
++
++	rv = ldc_write(port->vio.lp, pkt, (VIO_TAG_SIZE + tosend));
++	WARN_ON(!rv);
++
++	if (rv < 0) {
++		vccdbg("VCC: ldc_write()=%d\n", rv);
++		vcc_kick_tx(port);
++	} else {
++		struct tty_struct *tty = port->tty;
++
++		port->chars_in_buffer = 0;
++		if (tty)
++			tty_wakeup(tty);
++	}
++
++done:
++	spin_unlock_irqrestore(&port->lock, flags);
++	vcc_put(port, false);
++}
++
+ static void vcc_event(void *arg, int event)
+ {
+ }
+@@ -322,7 +503,7 @@ static ssize_t vcc_sysfs_break_store(struct device *dev,
+ 	if (sscanf(buf, "%ud", &brk) != 1 || brk != 1)
+ 		rv = -EINVAL;
+ 	else if (vcc_send_ctl(port, VCC_CTL_BREAK) < 0)
+-		pr_err("VCC: unable to send CTL_BREAK\n");
++		vcc_kick_tx(port);
  
- 		for (; pfn < end_pfn; pfn++) {
-+			if (pfn >= resv_end_pfn)
-+				memblock_get_reserved_pfn_range(pfn,
-+								&resv_start_pfn,
-+								&resv_end_pfn);
- 			if (!pfn_valid_within(pfn))
- 				goto free_range;
+ 	spin_unlock_irqrestore(&port->lock, flags);
  
-@@ -1524,7 +1529,11 @@ static int __init deferred_init_memmap(void *data)
- 				cond_resched();
- 			}
+@@ -428,6 +609,14 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	if (rv)
+ 		goto free_domain;
  
--			if (page->flags) {
-+			/*
-+			 * Check if this page has already been initialized due
-+			 * to being reserved during boot in memblock.
-+			 */
-+			if (pfn >= resv_start_pfn) {
- 				VM_BUG_ON(page_zone(page) != zone);
- 				goto free_range;
- 			}
++	init_timer(&port->rx_timer);
++	port->rx_timer.function = vcc_rx_timer;
++	port->rx_timer.data = port->index;
++
++	init_timer(&port->tx_timer);
++	port->tx_timer.function = vcc_tx_timer;
++	port->tx_timer.data = port->index;
++
+ 	dev_set_drvdata(&vdev->dev, port);
+ 
+ 	/* It's possible to receive IRQs in the middle of vio_port_up. Disable
+@@ -470,6 +659,9 @@ static int vcc_remove(struct vio_dev *vdev)
+ 	if (!port)
+ 		return -ENODEV;
+ 
++	del_timer_sync(&port->rx_timer);
++	del_timer_sync(&port->tx_timer);
++
+ 	/* If there's a process with the device open, do a synchronous
+ 	 * hangup of the TTY. This *may* cause the process to call close
+ 	 * asynchronously, but it's not guaranteed.
+@@ -491,7 +683,6 @@ static int vcc_remove(struct vio_dev *vdev)
+ 	vio_ldc_free(&port->vio);
+ 	sysfs_remove_group(&vdev->dev.kobj, &vcc_attribute_group);
+ 	dev_set_drvdata(&vdev->dev, NULL);
+-
+ 	if (port->tty) {
+ 		port->removed = true;
+ 		vcc_put(port, true);
 -- 
-2.13.3
+1.7.1
 
