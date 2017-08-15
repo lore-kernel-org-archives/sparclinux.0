@@ -1,42 +1,71 @@
 From: Jag Raman <jag.raman@oracle.com>
-Date: Thu, 03 Aug 2017 17:43:52 +0000
-Subject: [PATCH v1 00/13] Enable Virtual Console Concentrator (VCC)
-Message-Id: <cover.1501781770.git.jag.raman@oracle.com>
+Date: Tue, 15 Aug 2017 21:03:03 +0000
+Subject: [PATCH v2 07/13] sparc64: vcc: Enable LDC event processing engine
+Message-Id: <9316a515f750df98cec0cc2a23ec1e0fc3715020.1502829972.git.jag.raman@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Patchset to enable Virtual Console Concentrator (VCC). VCC provides
-access to the serial console of a guest domain. It creates a RAW
-VIO/LDC link between the guest domain & primary through which serial
-console data is shared.
+Enable event processing engine to handle LDC events
 
-Jag Raman (13):
-  sparc64: vcc: Enable VCC module in linux
-  sparc64: vcc: Add VCC debug message macros
-  sparc64: vcc: TTY driver initialization and cleanup
-  sparc64: vcc: Enable VCC port probe and removal
-  sparc64: vcc: Create sysfs attribute group
-  sparc64: vcc: Add RX & TX timer for delayed LDC operation
-  sparc64: vcc: Enable LDC event processing engine
-  sparc64: vcc: Add open & close TTY operations
-  sparc64: vcc: Add hangup TTY operation
-  sparc64: vcc: Add write & write_room TTY operations
-  sparc64: vcc: Add chars_in_buffer TTY operation
-  sparc64: vcc: Add break_ctl TTY operation
-  sparc64: vcc: Add install & cleanup TTY operations
+Signed-off-by: Jagannathan Raman <jag.raman@oracle.com>
+Reviewed-by: Liam Merwick <liam.merwick@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+---
+ v2: Avoid explicit typecast of void pointer
 
- MAINTAINERS                          |    1 +
- arch/sparc/configs/sparc64_defconfig |    1 +
- arch/sparc/include/asm/vio.h         |    9 +
- arch/sparc/kernel/ldc.c              |    2 +
- arch/sparc/kernel/vio.c              |    1 +
- arch/sparc/kernel/viohs.c            |   12 +-
- drivers/tty/Kconfig                  |    5 +
- drivers/tty/Makefile                 |    1 +
- drivers/tty/vcc.c                    | 1154 ++++++++++++++++++++++++++++++++++
- 9 files changed, 1183 insertions(+), 3 deletions(-)
- create mode 100644 drivers/tty/vcc.c
+ drivers/tty/vcc.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 27566d5..91f663d 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -437,8 +437,42 @@ static void vcc_tx_timer(unsigned long index)
+ 	vcc_put(port, false);
+ }
+ 
++/**
++ * vcc_event() - LDC event processing engine
++ * @arg: VCC private data
++ * @event: LDC event
++ *
++ * Handles LDC events for VCC
++ */
+ static void vcc_event(void *arg, int event)
+ {
++	struct vio_driver_state *vio;
++	struct vcc_port *port;
++	unsigned long flags;
++	int rv;
++
++	port = arg;
++	vio = &port->vio;
++
++	spin_lock_irqsave(&port->lock, flags);
++
++	switch (event) {
++	case LDC_EVENT_RESET:
++	case LDC_EVENT_UP:
++		vio_link_state_change(vio, event);
++		break;
++
++	case LDC_EVENT_DATA_READY:
++		rv = vcc_ldc_read(port);
++		if (rv = -ECONNRESET)
++			vio_conn_reset(vio);
++		break;
++
++	default:
++		pr_err("VCC: unexpected LDC event(%d)\n", event);
++	}
++
++	spin_unlock_irqrestore(&port->lock, flags);
+ }
+ 
+ static struct ldc_channel_config vcc_ldc_cfg = {
+-- 
+1.7.1
 
