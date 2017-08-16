@@ -1,49 +1,183 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Tue, 29 Aug 2017 09:04:30 +0000
-Subject: Re: [PATCH v3 0/3] Define CPU_BIG_ENDIAN or warn for inconsistencies
-Message-Id: <20170829090430.f6p3shucjxzicekw@hirez.programming.kicks-ass.net>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Date: Wed, 16 Aug 2017 09:41:47 +0000
+Subject: [PATCH net 2/2] net: ixgbe: Use new IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING flag
+Message-Id: <1502876507-9360-3-git-send-email-dingtianhong@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
- <20170829063015.GA12198@kroah.com>
-In-Reply-To: <20170829063015.GA12198@kroah.com>
+References: <1502876507-9360-1-git-send-email-dingtianhong@huawei.com>
+In-Reply-To: <1502876507-9360-1-git-send-email-dingtianhong@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Babu Moger <babu.moger@oracle.com>, ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org
+Cc: Ding Tianhong <dingtianhong@huawei.com>
 
-On Tue, Aug 29, 2017 at 08:30:15AM +0200, Greg KH wrote:
-> On Thu, Jul 06, 2017 at 09:34:18AM -0700, Babu Moger wrote:
-> > Resending the series per Greg KH's request.
-> > 
-> > Found this problem while enabling queued rwlock on SPARC.
-> > The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
-> > specific byte in qrwlock structure. Without this parameter,
-> > we clear the wrong byte.
-> > Here is the code in include/asm-generic/qrwlock.h
-> > 
-> > static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
-> >   {
-> >          return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
-> >   }
-> > 
-> > Also found few more references of this parameter in
-> > drivers/of/base.c
-> > drivers/of/fdt.c
-> > drivers/tty/serial/earlycon.c
-> > drivers/tty/serial/serial_core.c
-> > 
-> > Here is our previous discussion.
-> > https://lkml.org/lkml/2017/5/24/620
-> > 
-> > Based on the discussion, it was decided to add CONFIG_CPU_BIG_ENDIAN
-> > for all the fixed big endian architecture(frv, h8300, m68k, openrisc,
-> > parisc and sparc). And warn if there are inconsistencies in this definition.
-> 
-> Did this series ever get picked up by anyone?  I don't know whose tree
-> it should go through if not, anyone have any ideas?  I guess I could,
-> but arch-specific stuff is odd...
+The ixgbe driver use the compile check to determine if it can
+send TLPs to Root Port with the Relaxed Ordering Attribute set,
+this is too inconvenient, now the new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING
+has been added to the kernel and we could check the bit4 in the PCIe
+Davice Control register to determine whether we should use the Relaxed
+Ordering Attributes or not, so we add a new flag which called
+IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING to the ixgbe driver, it will
+be set if the Root Port couldn't deal the upstream TLPs with Relaxed
+Ordering Attribute, then the driver could know what to do next.
 
-Seems like something that akpm would pick up, but it appears people
-didn't actually Cc him.
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe.h        |  1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c   | 17 ++++++++++++
+ 4 files changed, 53 insertions(+), 34 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe.h b/drivers/net/ethernet/intel/ixgbe/ixgbe.h
+index dd55787..50e0553 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe.h
+@@ -621,6 +621,7 @@ struct ixgbe_adapter {
+ #define IXGBE_FLAG2_EEE_CAPABLE			BIT(14)
+ #define IXGBE_FLAG2_EEE_ENABLED			BIT(15)
+ #define IXGBE_FLAG2_RX_LEGACY			BIT(16)
++#define IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING	BIT(17)
+ 
+ 	/* Tx fast path data */
+ 	int num_tx_queues;
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+index 523f9d0..0727a30 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+@@ -175,31 +175,30 @@ static s32 ixgbe_init_phy_ops_82598(struct ixgbe_hw *hw)
+  **/
+ static s32 ixgbe_start_hw_82598(struct ixgbe_hw *hw)
+ {
+-#ifndef CONFIG_SPARC
+-	u32 regval;
+-	u32 i;
+-#endif
++	u32 regval, i;
+ 	s32 ret_val;
++	struct ixgbe_adapter *adapter = hw->back;
+ 
+ 	ret_val = ixgbe_start_hw_generic(hw);
+ 
+-#ifndef CONFIG_SPARC
+-	/* Disable relaxed ordering */
+-	for (i = 0; ((i < hw->mac.max_tx_queues) &&
+-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL(i));
+-		regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), regval);
+-	}
++	if (adapter->flags2 & IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING) {
++		/* Disable relaxed ordering */
++		for (i = 0; ((i < hw->mac.max_tx_queues) &&
++		     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL(i));
++			regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), regval);
++		}
+ 
+-	for (i = 0; ((i < hw->mac.max_rx_queues) &&
+-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
+-		regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
+-			    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		for (i = 0; ((i < hw->mac.max_rx_queues) &&
++		     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
++			regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
++				    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		}
+ 	}
+-#endif
++
+ 	if (ret_val)
+ 		return ret_val;
+ 
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+index d4933d2..2473c0b 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+@@ -342,6 +342,7 @@ s32 ixgbe_start_hw_generic(struct ixgbe_hw *hw)
+ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ {
+ 	u32 i;
++	struct ixgbe_adapter *adapter = hw->back;
+ 
+ 	/* Clear the rate limiters */
+ 	for (i = 0; i < hw->mac.max_tx_queues; i++) {
+@@ -350,25 +351,26 @@ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ 	}
+ 	IXGBE_WRITE_FLUSH(hw);
+ 
+-#ifndef CONFIG_SPARC
+-	/* Disable relaxed ordering */
+-	for (i = 0; i < hw->mac.max_tx_queues; i++) {
+-		u32 regval;
++	if (adapter->flags2 & IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING) {
++		/* Disable relaxed ordering */
++		for (i = 0; i < hw->mac.max_tx_queues; i++) {
++			u32 regval;
+ 
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
+-		regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL_82599(i), regval);
+-	}
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
++			regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL_82599(i), regval);
++		}
+ 
+-	for (i = 0; i < hw->mac.max_rx_queues; i++) {
+-		u32 regval;
++		for (i = 0; i < hw->mac.max_rx_queues; i++) {
++			u32 regval;
+ 
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
+-		regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
+-			    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
++			regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
++				    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		}
+ 	}
+-#endif
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index f1dbdf2..f576be7 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -10081,6 +10081,23 @@ static int ixgbe_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 		goto err_ioremap;
+ 	}
+ 
++	/* If possible, we use PCIe Relaxed Ordering Attribute to deliver
++	 * Ingress Packet Data to Free List Buffers in order to allow for
++	 * chipset performance optimizations between the Root Complex and
++	 * Memory Controllers.  (Messages to the associated Ingress Queue
++	 * notifying new Packet Placement in the Free Lists Buffers will be
++	 * send without the Relaxed Ordering Attribute thus guaranteeing that
++	 * all preceding PCIe Transaction Layer Packets will be processed
++	 * first.)  But some Root Complexes have various issues with Upstream
++	 * Transaction Layer Packets with the Relaxed Ordering Attribute set.
++	 * The PCIe devices which under the Root Complexes will be cleared the
++	 * Relaxed Ordering bit in the configuration space, So we check our
++	 * PCIe configuration space to see if it's flagged with advice against
++	 * using Relaxed Ordering.
++	 */
++	if (!pcie_relaxed_ordering_enabled(pdev))
++		adapter->flags2 |= IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING;
++
+ 	netdev->netdev_ops = &ixgbe_netdev_ops;
+ 	ixgbe_set_ethtool_ops(netdev);
+ 	netdev->watchdog_timeo = 5 * HZ;
+-- 
+1.8.3.1
+
 
