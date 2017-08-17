@@ -1,201 +1,40 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 03 Aug 2017 21:23:43 +0000
-Subject: [v5 05/15] mm: don't accessed uninitialized struct pages
-Message-Id: <1501795433-982645-6-git-send-email-pasha.tatashin@oracle.com>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Date: Thu, 17 Aug 2017 03:25:14 +0000
+Subject: [PATCH net v2 0/2] net: ixgbe: Use new flag to disable Relaxed Ordering
+Message-Id: <1502940316-13384-1-git-send-email-dingtianhong@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1501795433-982645-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
+Cc: Ding Tianhong <dingtianhong@huawei.com>
 
-In deferred_init_memmap() where all deferred struct pages are initialized
-we have a check like this:
+The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
+to indicate that Relaxed Ordering Attributes (RO) should not
+be used for Transaction Layer Packets (TLP) targeted toward
+these affected Root Port, it will clear the bit4 in the PCIe
+Device Control register, so the PCIe device drivers could
+query PCIe configuration space to determine if it can send
+TLPs to Root Port with the Relaxed Ordering Attributes set.
 
-    if (page->flags) {
-            VM_BUG_ON(page_zone(page) != zone);
-            goto free_range;
-    }
+The ixgbe driver could use this flag to determine if it can
+send TLPs to Root Port with the Relaxed Ordering Attributes set.
 
-This way we are checking if the current deferred page has already been
-initialized. It works, because memory for struct pages has been zeroed, and
-the only way flags are not zero if it went through __init_single_page()
-before.  But, once we change the current behavior and won't zero the memory
-in memblock allocator, we cannot trust anything inside "struct page"es
-until they are initialized. This patch fixes this.
+v2: Simplify the original program according Alex's suggestion,
+    remove the new ixgbe flag2 and only check the bit4 in the
+    PCIe Device Control register. 
 
-This patch defines a new accessor memblock_get_reserved_pfn_range()
-which returns successive ranges of reserved PFNs.  deferred_init_memmap()
-calls it to determine if a PFN and its struct page has already been
-initialized.
+Ding Tianhong (2):
+  Revert commit 1a8b6d76dc5b ("net:add one common config...")
+  net: ixgbe: Use new PCI_DEV_FLAGS_NO_RELAXED_ORDERING flag
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
----
- include/linux/memblock.h |  3 +++
- mm/memblock.c            | 54 ++++++++++++++++++++++++++++++++++++++++++------
- mm/page_alloc.c          | 11 +++++++++-
- 3 files changed, 61 insertions(+), 7 deletions(-)
+ arch/Kconfig                                    |  3 --
+ arch/sparc/Kconfig                              |  1 -
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
+ 4 files changed, 35 insertions(+), 38 deletions(-)
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index bae11c7e7bf3..b6a2a610f5e1 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -320,6 +320,9 @@ int memblock_is_map_memory(phys_addr_t addr);
- int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
- bool memblock_is_reserved(phys_addr_t addr);
- bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
-+void memblock_get_reserved_pfn_range(unsigned long pfn,
-+				     unsigned long *pfn_start,
-+				     unsigned long *pfn_end);
- 
- extern void __memblock_dump_all(void);
- 
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 3a2707914064..e6df054e3180 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1580,7 +1580,13 @@ void __init memblock_mem_limit_remove_map(phys_addr_t limit)
- 	memblock_cap_memory_range(0, max_addr);
- }
- 
--static int __init_memblock memblock_search(struct memblock_type *type, phys_addr_t addr)
-+/**
-+ * Return index in regions array if addr is within the region. Otherwise
-+ * return -1. If -1 is returned and *next_idx is not %NULL, sets it to the
-+ * next region index or -1 if there is none.
-+ */
-+static int __init_memblock memblock_search(struct memblock_type *type,
-+					   phys_addr_t addr, int *next_idx)
- {
- 	unsigned int left = 0, right = type->cnt;
- 
-@@ -1595,22 +1601,26 @@ static int __init_memblock memblock_search(struct memblock_type *type, phys_addr
- 		else
- 			return mid;
- 	} while (left < right);
-+
-+	if (next_idx)
-+		*next_idx = (right = type->cnt) ? -1 : right;
-+
- 	return -1;
- }
- 
- bool __init memblock_is_reserved(phys_addr_t addr)
- {
--	return memblock_search(&memblock.reserved, addr) != -1;
-+	return memblock_search(&memblock.reserved, addr, NULL) != -1;
- }
- 
- bool __init_memblock memblock_is_memory(phys_addr_t addr)
- {
--	return memblock_search(&memblock.memory, addr) != -1;
-+	return memblock_search(&memblock.memory, addr, NULL) != -1;
- }
- 
- int __init_memblock memblock_is_map_memory(phys_addr_t addr)
- {
--	int i = memblock_search(&memblock.memory, addr);
-+	int i = memblock_search(&memblock.memory, addr, NULL);
- 
- 	if (i = -1)
- 		return false;
-@@ -1622,7 +1632,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
- 			 unsigned long *start_pfn, unsigned long *end_pfn)
- {
- 	struct memblock_type *type = &memblock.memory;
--	int mid = memblock_search(type, PFN_PHYS(pfn));
-+	int mid = memblock_search(type, PFN_PHYS(pfn), NULL);
- 
- 	if (mid = -1)
- 		return -1;
-@@ -1646,7 +1656,7 @@ int __init_memblock memblock_search_pfn_nid(unsigned long pfn,
-  */
- int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size)
- {
--	int idx = memblock_search(&memblock.memory, base);
-+	int idx = memblock_search(&memblock.memory, base, NULL);
- 	phys_addr_t end = base + memblock_cap_size(base, &size);
- 
- 	if (idx = -1)
-@@ -1656,6 +1666,38 @@ int __init_memblock memblock_is_region_memory(phys_addr_t base, phys_addr_t size
- }
- 
- /**
-+ * memblock_get_reserved_pfn_range - search for the next reserved region
-+ *
-+ * @pfn: start searching from this pfn.
-+ *
-+ * RETURNS:
-+ * [start_pfn, end_pfn), where start_pfn >= pfn. If none is found
-+ * start_pfn, and end_pfn are both set to ULONG_MAX.
-+ */
-+void __init_memblock memblock_get_reserved_pfn_range(unsigned long pfn,
-+						     unsigned long *start_pfn,
-+						     unsigned long *end_pfn)
-+{
-+	struct memblock_type *type = &memblock.reserved;
-+	int next_idx, idx;
-+
-+	idx = memblock_search(type, PFN_PHYS(pfn), &next_idx);
-+	if (idx = -1 && next_idx = -1) {
-+		*start_pfn = ULONG_MAX;
-+		*end_pfn = ULONG_MAX;
-+		return;
-+	}
-+
-+	if (idx = -1) {
-+		idx = next_idx;
-+		*start_pfn = PFN_DOWN(type->regions[idx].base);
-+	} else {
-+		*start_pfn = pfn;
-+	}
-+	*end_pfn = PFN_DOWN(type->regions[idx].base + type->regions[idx].size);
-+}
-+
-+/**
-  * memblock_is_region_reserved - check if a region intersects reserved memory
-  * @base: base of region to check
-  * @size: size of region to check
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index f1e84d8f1e37..05110ae50aca 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1447,6 +1447,7 @@ static int __init deferred_init_memmap(void *data)
- 	pg_data_t *pgdat = data;
- 	int nid = pgdat->node_id;
- 	struct mminit_pfnnid_cache nid_init_state = { };
-+	unsigned long resv_start_pfn = 0, resv_end_pfn = 0;
- 	unsigned long start = jiffies;
- 	unsigned long nr_pages = 0;
- 	unsigned long walk_start, walk_end;
-@@ -1491,6 +1492,10 @@ static int __init deferred_init_memmap(void *data)
- 			pfn = zone->zone_start_pfn;
- 
- 		for (; pfn < end_pfn; pfn++) {
-+			if (pfn >= resv_end_pfn)
-+				memblock_get_reserved_pfn_range(pfn,
-+								&resv_start_pfn,
-+								&resv_end_pfn);
- 			if (!pfn_valid_within(pfn))
- 				goto free_range;
- 
-@@ -1524,7 +1529,11 @@ static int __init deferred_init_memmap(void *data)
- 				cond_resched();
- 			}
- 
--			if (page->flags) {
-+			/*
-+			 * Check if this page has already been initialized due
-+			 * to being reserved during boot in memblock.
-+			 */
-+			if (pfn >= resv_start_pfn) {
- 				VM_BUG_ON(page_zone(page) != zone);
- 				goto free_range;
- 			}
 -- 
-2.13.4
+1.8.3.1
+
 
