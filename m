@@ -1,66 +1,138 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 30 Aug 2017 01:09:28 +0000
-Subject: Re: [PATCH v7 02/11] sparc64/mm: setting fields in deferred pages
-Message-Id: <20170829.180928.896986367806428362.davem@davemloft.net>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Date: Thu, 17 Aug 2017 03:25:16 +0000
+Subject: [PATCH net v2 2/2] net: ixgbe: Use new PCI_DEV_FLAGS_NO_RELAXED_ORDERING flag
+Message-Id: <1502940316-13384-3-git-send-email-dingtianhong@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
- <1503972142-289376-3-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1503972142-289376-3-git-send-email-pasha.tatashin@oracle.com>
+References: <1502940316-13384-1-git-send-email-dingtianhong@huawei.com>
+In-Reply-To: <1502940316-13384-1-git-send-email-dingtianhong@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
+Cc: Ding Tianhong <dingtianhong@huawei.com>
 
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 28 Aug 2017 22:02:13 -0400
+The ixgbe driver use the compile check to determine if it can
+send TLPs to Root Port with the Relaxed Ordering Attribute set,
+this is too inconvenient, now the new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING
+has been added to the kernel and we could check the bit4 in the PCIe
+Device Control register to determine whether we should use the Relaxed
+Ordering Attributes or not, so use this new way in the ixgbe driver.
 
-> Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-> flags and other fields in "struct page"es are never changed prior to first
-> initializing struct pages by going through __init_single_page().
-> 
-> With deferred struct page feature enabled there is a case where we set some
-> fields prior to initializing:
-> 
-> mem_init() {
->      register_page_bootmem_info();
->      free_all_bootmem();
->      ...
-> }
-> 
-> When register_page_bootmem_info() is called only non-deferred struct pages
-> are initialized. But, this function goes through some reserved pages which
-> might be part of the deferred, and thus are not yet initialized.
-> 
-> mem_init
-> register_page_bootmem_info
-> register_page_bootmem_info_node
->  get_page_bootmem
->   .. setting fields here ..
->   such as: page->freelist = (void *)type;
-> 
-> free_all_bootmem()
-> free_low_memory_core_early()
->  for_each_reserved_mem_region()
->   reserve_bootmem_region()
->    init_reserved_page() <- Only if this is deferred reserved page
->     __init_single_pfn()
->      __init_single_page()
->       memset(0) <-- Loose the set fields here
-> 
-> We end-up with similar issue as in the previous patch, where currently we
-> do not observe problem as memory is zeroed. But, if flag asserts are
-> changed we can start hitting issues.
-> 
-> Also, because in this patch series we will stop zeroing struct page memory
-> during allocation, we must make sure that struct pages are properly
-> initialized prior to using them.
-> 
-> The deferred-reserved pages are initialized in free_all_bootmem().
-> Therefore, the fix is to switch the above calls.
-> 
-> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-> Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
+ 2 files changed, 35 insertions(+), 34 deletions(-)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+index 523f9d0..d1571e3 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+@@ -175,31 +175,30 @@ static s32 ixgbe_init_phy_ops_82598(struct ixgbe_hw *hw)
+  **/
+ static s32 ixgbe_start_hw_82598(struct ixgbe_hw *hw)
+ {
+-#ifndef CONFIG_SPARC
+-	u32 regval;
+-	u32 i;
+-#endif
++	u32 regval, i;
+ 	s32 ret_val;
++	struct ixgbe_adapter *adapter = hw->back;
+ 
+ 	ret_val = ixgbe_start_hw_generic(hw);
+ 
+-#ifndef CONFIG_SPARC
+-	/* Disable relaxed ordering */
+-	for (i = 0; ((i < hw->mac.max_tx_queues) &&
+-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL(i));
+-		regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), regval);
+-	}
++	if (!pcie_relaxed_ordering_enabled(adapter->pdev)) {
++		/* Disable relaxed ordering */
++		for (i = 0; ((i < hw->mac.max_tx_queues) &&
++		     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL(i));
++			regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL(i), regval);
++		}
+ 
+-	for (i = 0; ((i < hw->mac.max_rx_queues) &&
+-	     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
+-		regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
+-			    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		for (i = 0; ((i < hw->mac.max_rx_queues) &&
++		     (i < IXGBE_DCA_MAX_QUEUES_82598)); i++) {
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
++			regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
++				    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		}
+ 	}
+-#endif
++
+ 	if (ret_val)
+ 		return ret_val;
+ 
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+index d4933d2..d1052ee 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+@@ -342,6 +342,7 @@ s32 ixgbe_start_hw_generic(struct ixgbe_hw *hw)
+ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ {
+ 	u32 i;
++	struct ixgbe_adapter *adapter = hw->back;
+ 
+ 	/* Clear the rate limiters */
+ 	for (i = 0; i < hw->mac.max_tx_queues; i++) {
+@@ -350,25 +351,26 @@ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ 	}
+ 	IXGBE_WRITE_FLUSH(hw);
+ 
+-#ifndef CONFIG_SPARC
+-	/* Disable relaxed ordering */
+-	for (i = 0; i < hw->mac.max_tx_queues; i++) {
+-		u32 regval;
++	if (!pcie_relaxed_ordering_enabled(adapter->pdev)) {
++		/* Disable relaxed ordering */
++		for (i = 0; i < hw->mac.max_tx_queues; i++) {
++			u32 regval;
+ 
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
+-		regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL_82599(i), regval);
+-	}
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_TXCTRL_82599(i));
++			regval &= ~IXGBE_DCA_TXCTRL_DESC_WRO_EN;
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_TXCTRL_82599(i), regval);
++		}
+ 
+-	for (i = 0; i < hw->mac.max_rx_queues; i++) {
+-		u32 regval;
++		for (i = 0; i < hw->mac.max_rx_queues; i++) {
++			u32 regval;
+ 
+-		regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
+-		regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
+-			    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
+-		IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++			regval = IXGBE_READ_REG(hw, IXGBE_DCA_RXCTRL(i));
++			regval &= ~(IXGBE_DCA_RXCTRL_DATA_WRO_EN |
++				    IXGBE_DCA_RXCTRL_HEAD_WRO_EN);
++			IXGBE_WRITE_REG(hw, IXGBE_DCA_RXCTRL(i), regval);
++		}
+ 	}
+-#endif
++
+ 	return 0;
+ }
+ 
+-- 
+1.8.3.1
+
+
