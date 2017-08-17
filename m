@@ -1,7 +1,7 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 17 Aug 2017 15:28:23 +0000
+From: Michal Hocko <mhocko@kernel.org>
+Date: Thu, 17 Aug 2017 15:43:24 +0000
 Subject: Re: [v6 05/15] mm: don't accessed uninitialized struct pages
-Message-Id: <139b7d83-12a3-d584-0461-d01a79df5d2b@oracle.com>
+Message-Id: <20170817154324.GB3146@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
  <1502138329-123460-6-git-send-email-pasha.tatashin@oracle.com>
@@ -9,64 +9,27 @@ References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
  <8444cb2b-b134-e9fc-a458-1ba7b22a8df1@oracle.com>
  <20170814114755.GI19063@dhcp22.suse.cz>
  <e339a33c-d16b-91bd-5df0-18f5ec03d52b@oracle.com>
-In-Reply-To: <e339a33c-d16b-91bd-5df0-18f5ec03d52b@oracle.com>
+ <139b7d83-12a3-d584-0461-d01a79df5d2b@oracle.com>
+In-Reply-To: <139b7d83-12a3-d584-0461-d01a79df5d2b@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Hi Michal,
-
-I've been looking through this code again, and I think your suggestion 
-will work. I did not realize this iterator already exist:
-
-for_each_free_mem_range() basically iterates through (memory && !reserved)
-
-This is exactly what we need here. So, I will update this patch to use 
-this iterator, which will simplify it.
-
-Pasha
-
-On 08/14/2017 09:51 AM, Pasha Tatashin wrote:
->>> mem_init()
->>>   free_all_bootmem()
->>>    free_low_memory_core_early()
->>>     for_each_reserved_mem_region()
->>>      reserve_bootmem_region()
->>>       init_reserved_page() <- if this is deferred reserved page
->>>        __init_single_pfn()
->>>         __init_single_page()
->>>
->>> So, currently, we are using the value of page->flags to figure out if 
->>> this
->>> page has been initialized while being part of deferred page, but this 
->>> is not
->>> going to work for this project, as we do not zero the memory that is 
->>> backing
->>> the struct pages, and size the value of page->flags can be anything.
->>
->> True, this is the initialization part I've missed in one of the previous
->> patches already. Would it be possible to only iterate over !reserved
->> memory blocks instead? Now that we discard all the metadata later it
->> should be quite easy to do for_each_memblock_type, no?
-> 
+On Thu 17-08-17 11:28:23, Pasha Tatashin wrote:
 > Hi Michal,
 > 
-> Clever suggestion to add a new iterator to go through unreserved 
-> existing memory, I do not think there is this iterator available, so it 
-> would need to be implemented, using similar approach to what I have done 
-> with a call back.
+> I've been looking through this code again, and I think your suggestion will
+> work. I did not realize this iterator already exist:
 > 
-> However, there is a different reason, why I took this current approach.
+> for_each_free_mem_range() basically iterates through (memory && !reserved)
 > 
-> Daniel Jordan is working on a ktask support:
-> https://lkml.org/lkml/2017/7/14/666
-> 
-> He and I discussed on how to multi-thread struct pages initialization 
-> within memory nodes using ktasks. Having this callback interface makes 
-> that multi-threading quiet easy, improving the boot performance further, 
-> with his prototype we saw x4-6 improvements (using 4-8 threads per 
-> node). Reducing the total time it takes to initialize all struct pages 
-> on machines with terabytes of memory to less than one second.
-> 
-> Pasha
+> This is exactly what we need here. So, I will update this patch to use this
+> iterator, which will simplify it.
+
+Please have a look at
+http://lkml.kernel.org/r/20170815093306.GC29067@dhcp22.suse.cz
+I believe we can simply drop the check altogether.
+-- 
+Michal Hocko
+SUSE Labs
