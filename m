@@ -1,45 +1,76 @@
-From: Pierre Muller <pierre@freepascal.org>
-Date: Wed, 02 Aug 2017 09:04:20 +0000
-Subject: Sparc64 kernel rcu_sched stalls (was: Reproducer for sparc64 kernel lock-up bug)
-Message-Id: <80e15663-e062-3de8-9597-efdebd688791@freepascal.org>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Date: Thu, 17 Aug 2017 03:25:15 +0000
+Subject: [PATCH net v2 1/2] Revert commit 1a8b6d76dc5b ("net:add one common config...")
+Message-Id: <1502940316-13384-2-git-send-email-dingtianhong@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1502940316-13384-1-git-send-email-dingtianhong@huawei.com>
+In-Reply-To: <1502940316-13384-1-git-send-email-dingtianhong@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
+Cc: Ding Tianhong <dingtianhong@huawei.com>
+
+The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
+to indicate that Relaxed Ordering Attributes (RO) should not
+be used for Transaction Layer Packets (TLP) targeted toward
+these affected Root Port, it will clear the bit4 in the PCIe
+Device Control register, so the PCIe device drivers could
+query PCIe configuration space to determine if it can send
+TLPs to Root Port with the Relaxed Ordering Attributes set.
+
+With this new flag  we don't need the config ARCH_WANT_RELAX_ORDER
+to control the Relaxed Ordering Attributes for the ixgbe drivers
+just like the commit 1a8b6d76dc5b ("net:add one common config...") did,
+so revert this commit.
+
+Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+---
+ arch/Kconfig                                    | 3 ---
+ arch/sparc/Kconfig                              | 1 -
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 2 +-
+ 3 files changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 21d0089..00cfc63 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -928,9 +928,6 @@ config STRICT_MODULE_RWX
+ 	  and non-text memory will be made non-executable. This provides
+ 	  protection against certain security exploits (e.g. writing to text)
+ 
+-config ARCH_WANT_RELAX_ORDER
+-	bool
+-
+ config REFCOUNT_FULL
+ 	bool "Perform full reference count validation at the expense of speed"
+ 	help
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a4a6261..987a575 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -44,7 +44,6 @@ config SPARC
+ 	select ARCH_HAS_SG_CHAIN
+ 	select CPU_NO_EFFICIENT_FFS
+ 	select LOCKDEP_SMALL if LOCKDEP
+-	select ARCH_WANT_RELAX_ORDER
+ 
+ config SPARC32
+ 	def_bool !64BIT
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+index 4e35e70..d4933d2 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+@@ -350,7 +350,7 @@ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
+ 	}
+ 	IXGBE_WRITE_FLUSH(hw);
+ 
+-#ifndef CONFIG_ARCH_WANT_RELAX_ORDER
++#ifndef CONFIG_SPARC
+ 	/* Disable relaxed ordering */
+ 	for (i = 0; i < hw->mac.max_tx_queues; i++) {
+ 		u32 regval;
+-- 
+1.8.3.1
 
 
-
-Le 27/07/2017 à 01:41, David Miller a écrit :
-> From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-> Date: Fri, 21 Jul 2017 16:28:01 +0200
-> 
->> When running the attached, statically linked binary on a recent
->> kernel, the kernel locks up with:
-> 
-> Thanks a lot, as soon as I sort through the RCU stall bug I'll take
-> a close look at this!
-> 
-
-
-Hi David,
-
-  is this responsible for the fact that sometimes
-my bash sleep commands do not return after the argument given time is elapsed?
-
-  Is there a way to 'shake' the system?
-
-  I do have a lot of
-INFO: rcu_sched detected stalls on CPUs/tasks
-messages in dmesg output, but I do not see
-directly any user program that is causing the problem
-in the output.
-
-There are however a lot of segfault reports that are generated
-by the Free Pascal sparc64 testuite runs, on Debian stadler machine.
-
-Are the two related?
-
-Could this be useful for you to debug the problem?
-
-Pierre Muller
