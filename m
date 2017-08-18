@@ -1,62 +1,45 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 09 Aug 2017 21:26:01 +0000
-Subject: [PATCH v7 8/9] mm: Clear arch specific VM flags on protection change
-Message-Id: <8474c263daa5c8f7c72eb24dda0014bacb11f81c.1502219353.git.khalid.aziz@oracle.com>
+From: Ding Tianhong <dingtianhong@huawei.com>
+Date: Fri, 18 Aug 2017 06:21:03 +0000
+Subject: [PATCH v3 net 0/2] net: ixgbe: Use new flag to disable Relaxed Ordering
+Message-Id: <1503037265-11144-1-git-send-email-dingtianhong@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1502219353.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1502219353.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, davem@davemloft.net, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, lstoakes@gmail.com, dave.jiang@intel.com, willy@infradead.org, hughd@google.com, ying.huang@intel.com, tglx@linutronix.de, mgorman@suse.de, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
+Cc: Mao Wenan <maowenan@huawei.com>
 
-When protection bits are changed on a VMA, some of the architecture
-specific flags should be cleared as well. An examples of this are the
-PKEY flags on x86.  This patch expands the current code that clears PKEY
-flags for x86, to support similar functionality for other architectures
-as well.
+From: Mao Wenan <maowenan@huawei.com>
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
----
-v7:
-	- new patch
+The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
+to indicate that Relaxed Ordering Attributes (RO) should not
+be used for Transaction Layer Packets (TLP) targeted toward
+these affected Root Port, it will clear the bit4 in the PCIe
+Device Control register, so the PCIe device drivers could
+query PCIe configuration space to determine if it can send
+TLPs to Root Port with the Relaxed Ordering Attributes set.
 
- include/linux/mm.h | 6 ++++++
- mm/mprotect.c      | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+The ixgbe driver could use this flag to determine if it can
+send TLPs to Root Port with the Relaxed Ordering Attributes set.
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 6f543a47fc92..b7aa3932e6d4 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -271,6 +271,12 @@ extern unsigned int kobjsize(const void *objp);
- /* This mask is used to clear all the VMA flags used by mlock */
- #define VM_LOCKED_CLEAR_MASK	(~(VM_LOCKED | VM_LOCKONFAULT))
- 
-+/* Arch-specific flags to clear when updating VM flags on protection change */
-+#ifndef VM_ARCH_CLEAR
-+# define VM_ARCH_CLEAR	VM_NONE
-+#endif
-+#define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
-+
- /*
-  * mapping from the currently active vm_flags protection bits (the
-  * low four bits) to a page protection mask..
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index beac2dfbb5fa..b1ec9902dcd6 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -454,7 +454,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
- 		 * cleared from the VMA.
- 		 */
- 		mask_off_old_flags = VM_READ | VM_WRITE | VM_EXEC |
--					ARCH_VM_PKEY_FLAGS;
-+					VM_FLAGS_CLEAR;
- 
- 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
- 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
+v2: Simplify the original program according Alex's suggestion,
+    remove the new ixgbe flag2 and only check the bit4 in the
+    PCIe Device Control register. 
+
+v3: Remove the code that clears the bits in DCA_T/RXCTRL, relaxed
+    ordering should be enabled by the HW when the bus allow it.
+
+Ding Tianhong (2):
+  Revert commit 1a8b6d76dc5b ("net:add one common config...")
+  net: ixgbe: Use new IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING flag
+
+ arch/Kconfig                                    |  3 --
+ arch/sparc/Kconfig                              |  1 -
+ drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
+ drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
+ 4 files changed, 35 insertions(+), 38 deletions(-)
+
 -- 
-2.11.0
+1.8.3.1
+
 
