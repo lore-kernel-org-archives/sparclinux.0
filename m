@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 10 Aug 2017 05:26:18 +0000
+Date: Mon, 21 Aug 2017 21:01:15 +0000
 Subject: [GIT] Sparc
-Message-Id: <20170809.222618.2480234611970585.davem@davemloft.net>
+Message-Id: <20170821.140115.1959731292155939618.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
@@ -12,43 +12,46 @@ To: torvalds@linux-foundation.org
 Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
-Please pull to get these sparc changes:
+Just a couple small fixes, two of which have to do with gcc-7:
 
-1) Recognize M8 cpus, just basic chip ID matching, from Allen Pais.
+1) Don't clobber kernel fixed registers in __multi4 libgcc helper.
 
-2) Prevent crashes when bringing up sunvdc virtual block devices in
-   some environments.  From Jim Quigley.
+2) Fix a new uninitialized variable warning on sparc32 with gcc-7,
+   from Thomas Petazzoni.
 
-Thanks!
+3) Adjust pmd_t initializer on sparc32 to make gcc happy.
 
-The following changes since commit 0a23ea65ce9f10ec2ea392571006b781b150327f:
+4) If ATU isn't avoid, don't bark in the logs.  From Tushar Dave.
 
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc (2017-08-04 10:17:45 -0700)
+Please pull, thanks a lot.
+
+The following changes since commit 26273939ace935dd7553b31d279eab30b40f7b9a:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2017-08-10 10:30:29 -0700)
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc 
 
-for you to fetch changes up to 3ee70591d6c47ef4c4699b3395ba96ce287db937:
+for you to fetch changes up to 2dc77533f1e495788d73ffa4bee4323b2646d2bb:
 
-  sunvdc: prevent sunvdc panic when mpgroup disk added to guest domain (2017-08-09 22:22:32 -0700)
+  sparc: kernel/pcic: silence gcc 7.x warning in pcibios_fixup_bus() (2017-08-21 13:57:22 -0700)
 
 ----------------------------------------------------------------
-Allen Pais (2):
-      sparc64: properly name the cpu constants
-      sparc64: recognize and support sparc M8 cpu type
+David S. Miller (1):
+      sparc64: Don't clibber fixed registers in __multi4.
 
-Jim Quigley (1):
-      sunvdc: prevent sunvdc panic when mpgroup disk added to guest domain
+Thomas Petazzoni (1):
+      sparc: kernel/pcic: silence gcc 7.x warning in pcibios_fixup_bus()
 
-Vijay Kumar (1):
-      sparc64: Increase max_phys_bits to 51 and VA bits to 53 for M8.
+Tushar Dave (1):
+      sparc64: remove unnecessary log message
 
- arch/sparc/include/asm/spitfire.h | 16 ++++++++++++++++
- arch/sparc/kernel/cpu.c           |  6 ++++++
- arch/sparc/kernel/cpumap.c        |  1 +
- arch/sparc/kernel/head_64.S       | 22 ++++++++++++++--------
- arch/sparc/kernel/setup_64.c      | 15 +++++++++++++--
- arch/sparc/mm/init_64.c           | 14 +++++++++++++-
- drivers/block/sunvdc.c            | 61 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 7 files changed, 124 insertions(+), 11 deletions(-)
+Zi Yan (1):
+      mm: add pmd_t initializer __pmd() to work around a GCC bug.
+
+ arch/sparc/include/asm/page_32.h |  2 ++
+ arch/sparc/kernel/pci_sun4v.c    |  2 --
+ arch/sparc/kernel/pcic.c         |  2 +-
+ arch/sparc/lib/multi3.S          | 24 ++++++++++++------------
+ 4 files changed, 15 insertions(+), 15 deletions(-)
