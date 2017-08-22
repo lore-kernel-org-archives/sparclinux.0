@@ -1,40 +1,59 @@
-From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Date: Tue, 22 Aug 2017 07:49:11 +0000
+From: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Date: Tue, 22 Aug 2017 08:51:46 +0000
 Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
-Message-Id: <20170822084911.00000c23@huawei.com>
+Message-Id: <1503391892.3629.28.camel@abdul.in.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170821160605.5b1cc019@roar.ozlabs.ibm.com>
  <20170821111833.00006753@huawei.com>
  <20170822001928.74f01322@roar.ozlabs.ibm.com>
  <20170821.135504.1392954698746959868.davem@davemloft.net>
-In-Reply-To: <20170821.135504.1392954698746959868.davem@davemloft.net>
+ <20170822084911.00000c23@huawei.com>
+In-Reply-To: <20170822084911.00000c23@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, 21 Aug 2017 13:55:04 -0700
-David Miller <davem@davemloft.net> wrote:
-
-> From: Nicholas Piggin <npiggin@gmail.com>
-> Date: Tue, 22 Aug 2017 00:19:28 +1000
+On Tue, 2017-08-22 at 08:49 +0100, Jonathan Cameron wrote:
+> On Mon, 21 Aug 2017 13:55:04 -0700
+> David Miller <davem@davemloft.net> wrote:
 > 
-> > Thanks here's an updated version with a couple more bugs fixed. If
-> > you could try testing, that would be much appreciated.  
+> > From: Nicholas Piggin <npiggin@gmail.com>
+> > Date: Tue, 22 Aug 2017 00:19:28 +1000
+> > 
+> > > Thanks here's an updated version with a couple more bugs fixed. If
+> > > you could try testing, that would be much appreciated.  
+> > 
+> > I'm not getting RCU stalls on sparc64 any longer with this patch.
+> > 
+> > I'm really happy you guys were able to figure out what was going
+> > wrong. :-)
+> > 
+> > Feel free to add my Tested-by:
+> > 
 > 
-> I'm not getting RCU stalls on sparc64 any longer with this patch.
+> Like wise - 16 hours of clean run with the latest
 > 
-> I'm really happy you guys were able to figure out what was going
-> wrong. :-)
+> Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 > 
-> Feel free to add my Tested-by:
+> Thanks for all the hard work everyone put into this one, great to
+> cross it off the list!
+> 
+> Jonathan
 > 
 
-Like wise - 16 hours of clean run with the latest
+No more RCU stalls on PowerPC, system is clean when idle or with some
+test runs.
 
-Tested-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Thank you all for your time and efforts in fixing this.
 
-Thanks for all the hard work everyone put into this one, great to
-cross it off the list!
+Reported-and-Tested-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
 
-Jonathan
+-- 
+Regard's
+
+Abdul Haleem
+IBM Linux Technology Centre
+
+
+
