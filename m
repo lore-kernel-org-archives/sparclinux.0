@@ -1,26 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 14 Aug 2017 03:12:43 +0000
-Subject: Re: [PATCH 03/11] serial: sunsab: constify uart_ops structures
-Message-Id: <20170813.201243.113370942135429593.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Tue, 22 Aug 2017 19:25:12 +0000
+Subject: arch/sparc/kernel/nmi.c: warning: array subscript is above array bounds
+Message-Id: <alpine.LRH.2.20.1708222221270.23061@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502605310-4314-1-git-send-email-Julia.Lawall@lip6.fr>
-        <1502605310-4314-4-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1502605310-4314-4-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Julia.Lawall@lip6.fr
-Cc: bhumirks@gmail.com, kernel-janitors@vger.kernel.org, gregkh@linuxfoundation.org, jslaby@suse.com, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Date: Sun, 13 Aug 2017 08:21:42 +0200
+Just noticed this scroll away when compiling todays 4.13-rc5+git on a 
+sparc64 machine with old debian gcc version 4.9.2 (Debian 4.9.2-1).
 
-> These uart_ops structures are only stored in the ops field of a
-> uart_port structure and this fields is const, so the uart_ops
-> structures can also be const.
-> 
-> Done with the help of Coccinelle.
-> 
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+  CC      arch/sparc/kernel/nmi.o
+In file included from ./include/linux/compiler.h:58:0,
+                 from ./include/uapi/linux/stddef.h:1,
+                 from ./include/linux/stddef.h:4,
+                 from ./include/uapi/linux/posix_types.h:4,
+                 from ./include/uapi/linux/types.h:13,
+                 from ./include/linux/types.h:5,
+                 from ./include/linux/proc_fs.h:7,
+                 from kernel/cpu.c:6:
+kernel/cpu.c: In function 'cpu_up':
+./arch/sparc/include/asm/percpu_64.h:13:13: warning: array subscript is above array bounds [-Warray-bounds]
+  (trap_block[(__cpu)].__per_cpu_base)
+             ^
+./include/linux/compiler-gcc.h:53:26: note: in definition of macro 'RELOC_HIDE'
+  (typeof(ptr)) (__ptr + (off));     \
+                          ^
+./include/linux/percpu-defs.h:223:2: note: in expansion of macro 'SHIFT_PERCPU_PTR'
+  SHIFT_PERCPU_PTR((ptr), per_cpu_offset((cpu)));   \
+  ^
+./arch/sparc/include/asm/percpu_64.h:14:28: note: in expansion of macro '__per_cpu_offset'
+ #define per_cpu_offset(x) (__per_cpu_offset(x))
+                            ^
+./include/linux/percpu-defs.h:223:26: note: in expansion of macro 'per_cpu_offset'
+  SHIFT_PERCPU_PTR((ptr), per_cpu_offset((cpu)));   \
+                          ^
+kernel/cpu.c:802:31: note: in expansion of macro 'per_cpu_ptr'
+  struct cpuhp_cpu_state *st = per_cpu_ptr(&cpuhp_state, cpu);
+                               ^
 
-Acked-by: David S. Miller <davem@davemloft.net>
+
+-- 
+Meelis Roos (mroos@linux.ee)
