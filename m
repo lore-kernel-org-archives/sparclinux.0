@@ -1,25 +1,22 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Aug 2017 16:45:57 +0000
+Date: Tue, 22 Aug 2017 16:52:09 +0000
 Subject: Re: 4.13.0-rc4 sparc64: can't allocate MSI-X affinity masks for 2 vectors
-Message-Id: <20170822.094557.1690177202348153731.davem@davemloft.net>
+Message-Id: <20170822.095209.1371730017153863860.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170822063505.GA6721@lst.de>
 	<20170822.093139.473720171751670244.davem@davemloft.net>
-	<alpine.LRH.2.20.1708221932490.23061@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.20.1708221932490.23061@math.ut.ee>
+	<20170822163916.GA31671@lst.de>
+In-Reply-To: <20170822163916.GA31671@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: hch@lst.de, helgaas@kernel.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, qla2xxx-upstream@qlogic.com, linux-kernel@vger.kernel.org
+To: hch@lst.de
+Cc: mroos@linux.ee, helgaas@kernel.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, qla2xxx-upstream@qlogic.com, linux-kernel@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Tue, 22 Aug 2017 19:33:55 +0300 (EEST)
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 22 Aug 2017 18:39:16 +0200
 
->> > On Mon, Aug 21, 2017 at 01:35:49PM -0700, David Miller wrote:
->> >> I ask because the commit log message indicates that this failure is
->> >> not expected to ever happen on SMP.
->> > 
+> On Tue, Aug 22, 2017 at 09:31:39AM -0700, David Miller wrote:
 >> > I fear my commit message (but not the code) might be wrong.
 >> > irq_create_affinity_masks can return NULL any time we don't have any
 >> > affinity masks.  I've already had a discussion about this elsewhere
@@ -29,7 +26,10 @@ Date: Tue, 22 Aug 2017 19:33:55 +0300 (EEST)
 >> This is a rather large machine with 64 or more cpus and several NUMA
 >> nodes.  Why wouldn't there be any affinity masks available?
 > 
-> T5120 with 1 slot and 32 threads total. I have not configured any NUM on 
-> it is there any reason for that?
+> The drivers only asked for two MSI-X vectors, and marked bost of them
+> as pre-vectors that should not be spread.  So there is no actual
+> vector left that we want to actually spread.
 
-Ok 32 cpus and 1 NUMA node, my bad :-)
+Ok, now it makes more sense, and yes the warning should be removed.
+
+
