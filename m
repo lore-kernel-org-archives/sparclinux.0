@@ -1,21 +1,32 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 21 Aug 2017 14:42:44 +0000
-Subject: Re: [xfstests, sparc64] git kernel OOPS 4.13.0-rc5+
-Message-Id: <CADxRZqwRL1tQ=6KGDzTFJt62bWQ_eN__Yu8UF02pk0beFejwoQ@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Date: Sat, 26 Aug 2017 06:12:05 +0000
+Subject: [PATCH sparc-next] sparc64: vcc: Check for IS_ERR() instead of NULL
+Message-Id: <20170826061205.nkfvekwgzpfgfuhh@mwanda>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqykqGycgPh5O9C1F_Eq0J_rP-95zxesDkSDbkLD=04uYA@mail.gmail.com>
- <CADxRZqz_m69YL214tiimqCQ-+pYAvc1UFO_HgvTdKKok0_LzXw@mail.gmail.com>
- <CADxRZqyHkwT+HVTQopDZYiAwkCAkBDvPM0eY-Cqw6e5XuzcZ5Q@mail.gmail.com>
- <CADxRZqwe71WZ2=9Xecash65zdk2HmaRffoiCWjwQCHzub3tdvQ@mail.gmail.com> <CADxRZqyTse068Pt8xsAyehEJoHA7jQ6vPH4WCVyxrzEjYjpA1Q@mail.gmail.com>
-In-Reply-To: <CADxRZqyTse068Pt8xsAyehEJoHA7jQ6vPH4WCVyxrzEjYjpA1Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: lvm-devel@redhat.com
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+To: kernel-janitors@vger.kernel.org
 
-Compiling git kernel with gcc-7.2 and with patch [1] fixes OOPS on
-xfstests as well.
+The tty_alloc_driver() function never returns NULL, it returns error
+pointers on error.
 
-1. "[sparc64] kernel OOPS with gcc 7.1 / 7.2"
-https://marc.info/?l=gcc&m0285790205560&w=2
+Fixes: ce808b746325 ("sparc64: vcc: TTY driver initialization and cleanup")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 5e608173b091..716729129e01 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -1086,9 +1086,9 @@ static int vcc_tty_init(void)
+ 	pr_info("VCC: %s\n", version);
+ 
+ 	vcc_tty_driver = tty_alloc_driver(VCC_MAX_PORTS, VCC_TTY_FLAGS);
+-	if (!vcc_tty_driver) {
++	if (IS_ERR(vcc_tty_driver)) {
+ 		pr_err("VCC: TTY driver alloc failed\n");
+-		return -ENOMEM;
++		return PTR_ERR(vcc_tty_driver);
+ 	}
+ 
+ 	vcc_tty_driver->driver_name = vcc_driver_name;
