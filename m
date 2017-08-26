@@ -1,73 +1,42 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 29 Aug 2017 02:02:17 +0000
-Subject: [PATCH v7 06/11] mm: zero struct pages during initialization
-Message-Id: <1503972142-289376-7-git-send-email-pasha.tatashin@oracle.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 26 Aug 2017 19:26:44 +0000
+Subject: [PATCH] sbus: Delete an error message for a failed memory allocation in uctrl_probe()
+Message-Id: <f53e3426-14b4-dceb-6599-1d15f3eeee84@users.sourceforge.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
-In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Rob Herring <robh@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 
-Add struct page zeroing as a part of initialization of other fields in
-__init_single_page().
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 26 Aug 2017 21:21:33 +0200
 
-This single thread performance collected on: Intel(R) Xeon(R) CPU E7-8895
-v3 @ 2.60GHz with 1T of memory (268400646 pages in 8 nodes):
+Omit an extra message for a memory allocation failure in this function.
 
-                        BASE            FIX
-sparse_init     11.244671836s   0.007199623s
-zone_sizes_init  4.879775891s   8.355182299s
-                  --------------------------
-Total           16.124447727s   8.362381922s
+This issue was detected by using the Coccinelle software.
 
-sparse_init is where memory for struct pages is zeroed, and the zeroing
-part is moved later in this patch into __init_single_page(), which is
-called from zone_sizes_init().
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- include/linux/mm.h | 9 +++++++++
- mm/page_alloc.c    | 1 +
- 2 files changed, 10 insertions(+)
+ drivers/sbus/char/uctrl.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 46b9ac5e8569..183ac5e733db 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -93,6 +93,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
- #define mm_forbids_zeropage(X)	(0)
- #endif
+diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
+index 0a5013350acd..f3b9f7e87ffa 100644
+--- a/drivers/sbus/char/uctrl.c
++++ b/drivers/sbus/char/uctrl.c
+@@ -352,10 +352,8 @@ static int uctrl_probe(struct platform_device *op)
+ 	int err = -ENOMEM;
  
-+/*
-+ * On some architectures it is expensive to call memset() for small sizes.
-+ * Those architectures should provide their own implementation of "struct page"
-+ * zeroing by defining this macro in <asm/pgtable.h>.
-+ */
-+#ifndef mm_zero_struct_page
-+#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
-+#endif
-+
- /*
-  * Default maximum number of active map areas, this limits the number of vmas
-  * per mm struct. Users can overwrite this number by sysctl but there is a
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 8293815ca85d..4d67fe3dd172 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1169,6 +1169,7 @@ static void free_one_page(struct zone *zone,
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
-+	mm_zero_struct_page(page);
- 	set_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
+ 	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p) {
+-		printk(KERN_ERR "uctrl: Unable to allocate device struct.\n");
++	if (!p)
+ 		goto out;
+-	}
+ 
+ 	p->regs = of_ioremap(&op->resource[0], 0,
+ 			     resource_size(&op->resource[0]),
 -- 
-2.14.1
+2.14.0
 
