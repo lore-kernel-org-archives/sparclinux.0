@@ -1,30 +1,38 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 11 Aug 2017 16:24:27 +0000
-Subject: Re: [v6 07/15] mm: defining memblock_virt_alloc_try_nid_raw
-Message-Id: <1d93e0eb-080a-ed2b-de2d-092f397a981c@oracle.com>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Date: Sat, 26 Aug 2017 11:40:48 +0000
+Subject: [PATCH] sparc: leon: grpci1: constify of_device_id
+Message-Id: <47b2967d191cb0b0a525682feb7991742df333e6.1503746607.git.arvind.yadav.cs@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1502138329-123460-1-git-send-email-pasha.tatashin@oracle.com>
- <1502138329-123460-8-git-send-email-pasha.tatashin@oracle.com>
- <20170811123953.GI30811@dhcp22.suse.cz>
- <545b7230-2c09-d2f9-f26a-05ef395c36d4@oracle.com>
- <20170811160646.GT30811@dhcp22.suse.cz>
-In-Reply-To: <20170811160646.GT30811@dhcp22.suse.cz>
+References: <cde41ec4bb81718be389f0c47d0469fb2a0d27c1.1503746607.git.arvind.yadav.cs@gmail.com>
+In-Reply-To: <cde41ec4bb81718be389f0c47d0469fb2a0d27c1.1503746607.git.arvind.yadav.cs@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
->> Sure, I could do this, but as I understood from earlier Dave Miller's
->> comments, we should do one logical change at a time. Hence, introduce API in
->> one patch use it in another. So, this is how I tried to organize this patch
->> set. Is this assumption incorrect?
-> 
-> Well, it really depends. If the patch is really small then adding a new
-> API along with users is easier to review and backport because you have a
-> clear view of the usage. I believe this is the case here. But if others
-> feel otherwise I will not object.
+of_device_id are not supposed to change at runtime. All functions
+working with of_device_id provided by <linux/of.h> work with const
+of_device_ids. So mark the const and __initconst.
 
-I will merge them.
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ arch/sparc/kernel/leon_pci_grpci1.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thank you,
-Pasha
+diff --git a/arch/sparc/kernel/leon_pci_grpci1.c b/arch/sparc/kernel/leon_pci_grpci1.c
+index 1e77128..c5fc762 100644
+--- a/arch/sparc/kernel/leon_pci_grpci1.c
++++ b/arch/sparc/kernel/leon_pci_grpci1.c
+@@ -695,7 +695,7 @@ static int grpci1_of_probe(struct platform_device *ofdev)
+ 	return err;
+ }
+ 
+-static struct of_device_id grpci1_of_match[] = {
++static const struct of_device_id grpci1_of_match[] __initconst = {
+ 	{
+ 	 .name = "GAISLER_PCIFBRG",
+ 	 },
+-- 
+2.7.4
+
