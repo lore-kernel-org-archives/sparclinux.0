@@ -1,73 +1,47 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 09 Aug 2017 21:25:57 +0000
-Subject: [PATCH v7 4/9] sparc64: Add HV fault type handlers for ADI related faults
-Message-Id: <870629f367fbd5d487a54b3796f66348218b5d7d.1502219353.git.khalid.aziz@oracle.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Date: Tue, 29 Aug 2017 06:30:15 +0000
+Subject: Re: [PATCH v3 0/3] Define CPU_BIG_ENDIAN or warn for inconsistencies
+Message-Id: <20170829063015.GA12198@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1502219353.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1502219353.git.khalid.aziz@oracle.com>
+References: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1499358861-179979-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org, vegard.nossum@oracle.com, mingo@kernel.org, peterz@infradead.org, dan.carpenter@oracle.com, Liam.Howlett@oracle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: Babu Moger <babu.moger@oracle.com>
+Cc: ysato@users.sourceforge.jp, geert@linux-m68k.org, jonas@southpole.se, stefan.kristiansson@saunalahti.fi, shorne@gmail.com, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, viro@zeniv.linux.org.uk, monstr@monstr.eu, mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com, jcmvbkbc@gmail.com, linux-kernel@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-m68k@vger.kernel.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-ADI (Application Data Integrity) feature on M7 and newer processors
-adds new fault types for hypervisor - Invalid ASI and MCD disabled.
-This patch expands data access exception handler to handle these
-faults.
+On Thu, Jul 06, 2017 at 09:34:18AM -0700, Babu Moger wrote:
+> Resending the series per Greg KH's request.
+> 
+> Found this problem while enabling queued rwlock on SPARC.
+> The parameter CONFIG_CPU_BIG_ENDIAN is used to clear the
+> specific byte in qrwlock structure. Without this parameter,
+> we clear the wrong byte.
+> Here is the code in include/asm-generic/qrwlock.h
+> 
+> static inline u8 *__qrwlock_write_byte(struct qrwlock *lock)
+>   {
+>          return (u8 *)lock + 3 * IS_BUILTIN(CONFIG_CPU_BIG_ENDIAN);
+>   }
+> 
+> Also found few more references of this parameter in
+> drivers/of/base.c
+> drivers/of/fdt.c
+> drivers/tty/serial/earlycon.c
+> drivers/tty/serial/serial_core.c
+> 
+> Here is our previous discussion.
+> https://lkml.org/lkml/2017/5/24/620
+> 
+> Based on the discussion, it was decided to add CONFIG_CPU_BIG_ENDIAN
+> for all the fixed big endian architecture(frv, h8300, m68k, openrisc,
+> parisc and sparc). And warn if there are inconsistencies in this definition.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
----
-v7:
-	- new patch split off from patch 4/4 in v6
+Did this series ever get picked up by anyone?  I don't know whose tree
+it should go through if not, anyone have any ideas?  I guess I could,
+but arch-specific stuff is odd...
 
- arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+thanks,
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 88eed0dc3faf..88c96d349f2f 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -352,12 +352,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
- 		regs->tpc &= 0xffffffff;
- 		regs->tnpc &= 0xffffffff;
- 	}
--	info.si_signo = SIGSEGV;
-+	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
-+	 * is vectored thorugh data access exception trap with fault type
-+	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
-+	 * Accessing an address with invalid ASI for the address, for
-+	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
-+	 * when TTE.mcd is not set for the VA, is also vectored into
-+	 * kerbel by HV as data access exception with fault type set to
-+	 * HV_FAULT_TYPE_INV_ASI.
-+	 */
- 	info.si_errno = 0;
--	info.si_code = SEGV_MAPERR;
- 	info.si_addr = (void __user *) addr;
- 	info.si_trapno = 0;
--	force_sig_info(SIGSEGV, &info, current);
-+	switch (type) {
-+	case HV_FAULT_TYPE_INV_ASI:
-+		info.si_signo = SIGILL;
-+		info.si_code = ILL_ILLADR;
-+		force_sig_info(SIGILL, &info, current);
-+		break;
-+	case HV_FAULT_TYPE_MCD_DIS:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_ACCADI;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	default:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_MAPERR;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	}
- }
- 
- void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
--- 
-2.11.0
-
+greg k-h
