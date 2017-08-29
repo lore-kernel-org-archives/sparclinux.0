@@ -1,45 +1,135 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Date: Fri, 18 Aug 2017 06:21:03 +0000
-Subject: [PATCH v3 net 0/2] net: ixgbe: Use new flag to disable Relaxed Ordering
-Message-Id: <1503037265-11144-1-git-send-email-dingtianhong@huawei.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 29 Aug 2017 02:02:22 +0000
+Subject: [PATCH v7 11/11] mm: stop zeroing memory during allocation in vmemmap
+Message-Id: <1503972142-289376-12-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
-Cc: Mao Wenan <maowenan@huawei.com>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Mao Wenan <maowenan@huawei.com>
+vmemmap_alloc_block() will no longer zero the block, so zero memory
+at its call sites for everything except struct pages.  Struct page memory
+is zero'd by struct page initialization.
 
-The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
-to indicate that Relaxed Ordering Attributes (RO) should not
-be used for Transaction Layer Packets (TLP) targeted toward
-these affected Root Port, it will clear the bit4 in the PCIe
-Device Control register, so the PCIe device drivers could
-query PCIe configuration space to determine if it can send
-TLPs to Root Port with the Relaxed Ordering Attributes set.
+Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
+we will get the performance improvement by zeroing the memory in parallel
+when struct pages are zeroed.
 
-The ixgbe driver could use this flag to determine if it can
-send TLPs to Root Port with the Relaxed Ordering Attributes set.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/mm.h  | 11 +++++++++++
+ mm/sparse-vmemmap.c | 14 +++++++-------
+ mm/sparse.c         |  6 +++---
+ 3 files changed, 21 insertions(+), 10 deletions(-)
 
-v2: Simplify the original program according Alex's suggestion,
-    remove the new ixgbe flag2 and only check the bit4 in the
-    PCIe Device Control register. 
-
-v3: Remove the code that clears the bits in DCA_T/RXCTRL, relaxed
-    ordering should be enabled by the HW when the bus allow it.
-
-Ding Tianhong (2):
-  Revert commit 1a8b6d76dc5b ("net:add one common config...")
-  net: ixgbe: Use new IXGBE_FLAG2_ROOT_NO_RELAXED_ORDERING flag
-
- arch/Kconfig                                    |  3 --
- arch/sparc/Kconfig                              |  1 -
- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c  | 37 ++++++++++++-------------
- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 32 +++++++++++----------
- 4 files changed, 35 insertions(+), 38 deletions(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0a440ff8f226..fba540aef1da 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2456,6 +2456,17 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
+ 	return __vmemmap_alloc_block_buf(size, node, NULL);
+ }
+ 
++static inline void *vmemmap_alloc_block_zero(unsigned long size, int node)
++{
++	void *p = vmemmap_alloc_block(size, node);
++
++	if (!p)
++		return NULL;
++	memset(p, 0, size);
++
++	return p;
++}
++
+ void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 			       int node);
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index c50b1a14d55e..423d4da85a91 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
+ 				unsigned long align,
+ 				unsigned long goal)
+ {
+-	return memblock_virt_alloc_try_nid(size, align, goal,
++	return memblock_virt_alloc_try_nid_raw(size, align, goal,
+ 					    BOOTMEM_ALLOC_ACCESSIBLE, node);
+ }
+ 
+@@ -56,11 +56,11 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+ 
+ 		if (node_state(node, N_HIGH_MEMORY))
+ 			page = alloc_pages_node(
+-				node, GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
++				node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
+ 				get_order(size));
+ 		else
+ 			page = alloc_pages(
+-				GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
++				GFP_KERNEL | __GFP_RETRY_MAYFAIL,
+ 				get_order(size));
+ 		if (page)
+ 			return page_address(page);
+@@ -188,7 +188,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	if (pmd_none(*pmd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pmd_populate_kernel(&init_mm, pmd, p);
+@@ -200,7 +200,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pud_populate(&init_mm, pud, p);
+@@ -212,7 +212,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		p4d_populate(&init_mm, p4d, p);
+@@ -224,7 +224,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ {
+ 	pgd_t *pgd = pgd_offset_k(addr);
+ 	if (pgd_none(*pgd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pgd_populate(&init_mm, pgd, p);
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 7b4be3fd5cac..0e315766ad11 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -441,9 +441,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+ 	}
+ 
+ 	size = PAGE_ALIGN(size);
+-	map = memblock_virt_alloc_try_nid(size * map_count,
+-					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+-					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
++	map = memblock_virt_alloc_try_nid_raw(size * map_count,
++					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+ 	if (map) {
+ 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+ 			if (!present_section_nr(pnum))
 -- 
-1.8.3.1
-
+2.14.1
 
