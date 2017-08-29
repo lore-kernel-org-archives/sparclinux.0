@@ -1,91 +1,88 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 15 Aug 2017 14:32:11 +0000
-Subject: Re: [PATCH v7 7/9] mm: Add address parameter to arch_validate_prot()
-Message-Id: <4b17a1f2-c6a9-ab4e-5df6-0f9aa47214cb@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 29 Aug 2017 02:02:13 +0000
+Subject: [PATCH v7 02/11] sparc64/mm: setting fields in deferred pages
+Message-Id: <1503972142-289376-3-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1502219353.git.khalid.aziz@oracle.com>
- <43c120f0cbbebd1398997b9521013ced664e5053.1502219353.git.khalid.aziz@oracle.com>
- <87tw1flftz.fsf@concordia.ellerman.id.au>
- <2e97b439-dd71-8997-4824-15f2b1f53787@oracle.com>
- <877ey5v2y7.fsf@concordia.ellerman.id.au>
-In-Reply-To: <877ey5v2y7.fsf@concordia.ellerman.id.au>
+References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Michael Ellerman <mpe@ellerman.id.au>, akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: bsingharora@gmail.com, dja@axtens.net, tglx@linutronix.de, mgorman@suse.de, aarcange@redhat.com, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, ak@linux.intel.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-On 08/14/2017 11:02 PM, Michael Ellerman wrote:
-> Khalid Aziz <khalid.aziz@oracle.com> writes:
-> 
->> On 08/10/2017 07:20 AM, Michael Ellerman wrote:
->>> Khalid Aziz <khalid.aziz@oracle.com> writes:
->>>
->>>> A protection flag may not be valid across entire address space and
->>>> hence arch_validate_prot() might need the address a protection bit is
->>>> being set on to ensure it is a valid protection flag. For example, sparc
->>>> processors support memory corruption detection (as part of ADI feature)
->>>> flag on memory addresses mapped on to physical RAM but not on PFN mapped
->>>> pages or addresses mapped on to devices. This patch adds address to the
->>>> parameters being passed to arch_validate_prot() so protection bits can
->>>> be validated in the relevant context.
->>>>
->>>> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
->>>> Cc: Khalid Aziz <khalid@gonehiking.org>
->>>> ---
->>>> v7:
->>>> 	- new patch
->>>>
->>>>    arch/powerpc/include/asm/mman.h | 2 +-
->>>>    arch/powerpc/kernel/syscalls.c  | 2 +-
->>>>    include/linux/mman.h            | 2 +-
->>>>    mm/mprotect.c                   | 2 +-
->>>>    4 files changed, 4 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
->>>> index 30922f699341..bc74074304a2 100644
->>>> --- a/arch/powerpc/include/asm/mman.h
->>>> +++ b/arch/powerpc/include/asm/mman.h
->>>> @@ -40,7 +40,7 @@ static inline bool arch_validate_prot(unsigned long prot)
->>>>    		return false;
->>>>    	return true;
->>>>    }
->>>> -#define arch_validate_prot(prot) arch_validate_prot(prot)
->>>> +#define arch_validate_prot(prot, addr) arch_validate_prot(prot)
->>>
->>> This can be simpler, as just:
->>>
->>> #define arch_validate_prot arch_validate_prot
->>>
->>
->> Hi Michael,
->>
->> Thanks for reviewing!
->>
->> My patch expands parameter list for arch_validate_prot() from one to two
->> parameters. Existing powerpc version of arch_validate_prot() is written
->> with one parameter. If I use the above #define, compilation fails with:
->>
->> mm/mprotect.c: In function ‘do_mprotect_pkey’:
->> mm/mprotect.c:399: error: too many arguments to function
->> ‘arch_validate_prot’
->>
->> Another way to solve it would be to add the new addr parameter to
->> powerpc version of arch_validate_prot() but I chose the less disruptive
->> solution of tackling it through #define and expanded the existing
->> #define to include the new parameter. Make sense?
-> 
-> Yes, it makes sense. But it's a bit gross.
-> 
-> At first glance it looks like our arch_validate_prot() has an incorrect
-> signature.
-> 
-> I'd prefer you just updated it to have the correct signature, I think
-> you'll have to change one more line in do_mmap2(). So it's not very
-> intrusive.
+Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+flags and other fields in "struct page"es are never changed prior to first
+initializing struct pages by going through __init_single_page().
 
-Thanks, Michael. I can do that.
+With deferred struct page feature enabled there is a case where we set some
+fields prior to initializing:
 
---
-Khalid
+mem_init() {
+     register_page_bootmem_info();
+     free_all_bootmem();
+     ...
+}
+
+When register_page_bootmem_info() is called only non-deferred struct pages
+are initialized. But, this function goes through some reserved pages which
+might be part of the deferred, and thus are not yet initialized.
+
+mem_init
+register_page_bootmem_info
+register_page_bootmem_info_node
+ get_page_bootmem
+  .. setting fields here ..
+  such as: page->freelist = (void *)type;
+
+free_all_bootmem()
+free_low_memory_core_early()
+ for_each_reserved_mem_region()
+  reserve_bootmem_region()
+   init_reserved_page() <- Only if this is deferred reserved page
+    __init_single_pfn()
+     __init_single_page()
+      memset(0) <-- Loose the set fields here
+
+We end-up with similar issue as in the previous patch, where currently we
+do not observe problem as memory is zeroed. But, if flag asserts are
+changed we can start hitting issues.
+
+Also, because in this patch series we will stop zeroing struct page memory
+during allocation, we must make sure that struct pages are properly
+initialized prior to using them.
+
+The deferred-reserved pages are initialized in free_all_bootmem().
+Therefore, the fix is to switch the above calls.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/sparc/mm/init_64.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index b3020a956b87..12dbba85a2e2 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2508,9 +2508,15 @@ void __init mem_init(void)
+ {
+ 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+ 
+-	register_page_bootmem_info();
+ 	free_all_bootmem();
+ 
++	/* Must be done after boot memory is put on freelist, because here we
++	 * might set fields in deferred struct pages that have not yet been
++	 * initialized, and free_all_bootmem() initializes all the reserved
++	 * deferred pages for us.
++	 */
++	register_page_bootmem_info();
++
+ 	/*
+ 	 * Set up the zero page, mark it reserved, so that page count
+ 	 * is not manipulated when freeing the page from user ptes.
+-- 
+2.14.1
 
