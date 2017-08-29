@@ -1,62 +1,73 @@
-From: Kaz Kylheku <kaz@kylheku.com>
-Date: Thu, 10 Aug 2017 14:45:16 +0000
-Subject: WTD: Hacker for SPARC port of TXR Language
-Message-Id: <2d4e9e2b1ff614a190d57d528ee9c7fc@mail.kylheku.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 29 Aug 2017 02:02:17 +0000
+Subject: [PATCH v7 06/11] mm: zero struct pages during initialization
+Message-Id: <1503972142-289376-7-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Hi,
+Add struct page zeroing as a part of initialization of other fields in
+__init_single_page().
 
-I'm looking for a SPARC wizard to help port the TXR language to SPARC 
-V9.
+This single thread performance collected on: Intel(R) Xeon(R) CPU E7-8895
+v3 @ 2.60GHz with 1T of memory (268400646 pages in 8 nodes):
 
-TXR is BSD-licensed freeware.
+                        BASE            FIX
+sparse_init     11.244671836s   0.007199623s
+zone_sizes_init  4.879775891s   8.355182299s
+                  --------------------------
+Total           16.124447727s   8.362381922s
 
-   Home page: http://www.nongnu.org
-   Git repo: http://kylheku.com/cgit/txr
+sparse_init is where memory for struct pages is zeroed, and the zeroing
+part is moved later in this patch into __init_single_page(), which is
+called from zone_sizes_init().
 
-Basically, the architecture dependency is in the "jmp.S" file which 
-defines
-some assembly code, and a definition of "struct jmp" in in "signal.h".
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+---
+ include/linux/mm.h | 9 +++++++++
+ mm/page_alloc.c    | 1 +
+ 2 files changed, 10 insertions(+)
 
-jmp.S defines jmp_save and jmp_restore functions, which closely resemble
-setjmp and longjmp.
-
-They are currently defined for x86, x86-64, ARM and PPC64.
-
-These are used as the basis for implementing two major requirements:
-
-- non-local, dynamic control transfers (for things like returns from
-   named blocks and exception handling).
-
-- delimited continuations.
-
-The first requirement can be met with setjmp/longjmp. TXR discontinued 
-the
-use of setjmp/longjmp when delimited continuations were introduced.
-(The reason was: glibc's security mangling of pointers in jmp_buf
-interfered with pointer fixup of changed stack addresses.)
-
-In the implementation of delimited continuations, a continuation is 
-captured
-by creating an object on the heap which contains a copy of a section of
-the stack.
-
-A continuation is invoked by copying the stack section into to a new 
-area
-at the top of the stack (carved out with alloca), performing various 
-fix-ups,
-and then performing a jmp_restore into that section.
-
-This requirement for a jmp_restore to work with a relocated section of
-the stack seems to be challenging and requires consideration from 
-someone
-who really understands SPARC and its register windows.
-
-If you're interested, and have any questions, please contact me.
-
-Thanks!
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 46b9ac5e8569..183ac5e733db 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -93,6 +93,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #define mm_forbids_zeropage(X)	(0)
+ #endif
+ 
++/*
++ * On some architectures it is expensive to call memset() for small sizes.
++ * Those architectures should provide their own implementation of "struct page"
++ * zeroing by defining this macro in <asm/pgtable.h>.
++ */
++#ifndef mm_zero_struct_page
++#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
++#endif
++
+ /*
+  * Default maximum number of active map areas, this limits the number of vmas
+  * per mm struct. Users can overwrite this number by sysctl but there is a
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 8293815ca85d..4d67fe3dd172 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1169,6 +1169,7 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+-- 
+2.14.1
 
