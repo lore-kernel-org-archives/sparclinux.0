@@ -1,76 +1,92 @@
-From: Ding Tianhong <dingtianhong@huawei.com>
-Date: Sun, 20 Aug 2017 10:10:54 +0000
-Subject: [PATCH v3 net 1/2 RESEND] Revert commit 1a8b6d76dc5b ("net:add one common config...")
-Message-Id: <1503223855-24616-2-git-send-email-dingtianhong@huawei.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Tue, 29 Aug 2017 02:02:12 +0000
+Subject: [PATCH v7 01/11] x86/mm: setting fields in deferred pages
+Message-Id: <1503972142-289376-2-git-send-email-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1503223855-24616-1-git-send-email-dingtianhong@huawei.com>
-In-Reply-To: <1503223855-24616-1-git-send-email-dingtianhong@huawei.com>
+References: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
+In-Reply-To: <1503972142-289376-1-git-send-email-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, jeffrey.t.kirsher@intel.com, keescook@chromium.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, intel-wired-lan@lists.osuosl.org, alexander.duyck@gmail.com, netdev@vger.kernel.org, linuxarm@huawei.com
-Cc: Ding Tianhong <dingtianhong@huawei.com>
+To: linux-arm-kernel@lists.infradead.org
 
-The new flag PCI_DEV_FLAGS_NO_RELAXED_ORDERING has been added
-to indicate that Relaxed Ordering Attributes (RO) should not
-be used for Transaction Layer Packets (TLP) targeted toward
-these affected Root Port, it will clear the bit4 in the PCIe
-Device Control register, so the PCIe device drivers could
-query PCIe configuration space to determine if it can send
-TLPs to Root Port with the Relaxed Ordering Attributes set.
+Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+flags and other fields in "struct page"es are never changed prior to first
+initializing struct pages by going through __init_single_page().
 
-With this new flag  we don't need the config ARCH_WANT_RELAX_ORDER
-to control the Relaxed Ordering Attributes for the ixgbe drivers
-just like the commit 1a8b6d76dc5b ("net:add one common config...") did,
-so revert this commit.
+With deferred struct page feature enabled, however, we set fields in
+register_page_bootmem_info that are subsequently clobbered right after in
+free_all_bootmem:
 
-Signed-off-by: Ding Tianhong <dingtianhong@huawei.com>
+        mem_init() {
+                register_page_bootmem_info();
+                free_all_bootmem();
+                ...
+        }
+
+When register_page_bootmem_info() is called only non-deferred struct pages
+are initialized. But, this function goes through some reserved pages which
+might be part of the deferred, and thus are not yet initialized.
+
+  mem_init
+   register_page_bootmem_info
+    register_page_bootmem_info_node
+     get_page_bootmem
+      .. setting fields here ..
+      such as: page->freelist = (void *)type;
+
+  free_all_bootmem()
+   free_low_memory_core_early()
+    for_each_reserved_mem_region()
+     reserve_bootmem_region()
+      init_reserved_page() <- Only if this is deferred reserved page
+       __init_single_pfn()
+        __init_single_page()
+            memset(0) <-- Loose the set fields here
+
+We end-up with issue where, currently we do not observe problem as memory
+is explicitly zeroed. But, if flag asserts are changed we can start hitting
+issues.
+
+Also, because in this patch series we will stop zeroing struct page memory
+during allocation, we must make sure that struct pages are properly
+initialized prior to using them.
+
+The deferred-reserved pages are initialized in free_all_bootmem().
+Therefore, the fix is to switch the above calls.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/Kconfig                                    | 3 ---
- arch/sparc/Kconfig                              | 1 -
- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c | 2 +-
- 3 files changed, 1 insertion(+), 5 deletions(-)
+ arch/x86/mm/init_64.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 21d0089..00cfc63 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -928,9 +928,6 @@ config STRICT_MODULE_RWX
- 	  and non-text memory will be made non-executable. This provides
- 	  protection against certain security exploits (e.g. writing to text)
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 62a91e6b1237..3a997352a992 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1174,12 +1174,17 @@ void __init mem_init(void)
  
--config ARCH_WANT_RELAX_ORDER
--	bool
+ 	/* clear_bss() already clear the empty_zero_page */
+ 
+-	register_page_bootmem_info();
 -
- config REFCOUNT_FULL
- 	bool "Perform full reference count validation at the expense of speed"
- 	help
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a4a6261..987a575 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -44,7 +44,6 @@ config SPARC
- 	select ARCH_HAS_SG_CHAIN
- 	select CPU_NO_EFFICIENT_FFS
- 	select LOCKDEP_SMALL if LOCKDEP
--	select ARCH_WANT_RELAX_ORDER
+ 	/* this will put all memory onto the freelists */
+ 	free_all_bootmem();
+ 	after_bootmem = 1;
  
- config SPARC32
- 	def_bool !64BIT
-diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
-index 4e35e70..d4933d2 100644
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
-+++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
-@@ -350,7 +350,7 @@ s32 ixgbe_start_hw_gen2(struct ixgbe_hw *hw)
- 	}
- 	IXGBE_WRITE_FLUSH(hw);
- 
--#ifndef CONFIG_ARCH_WANT_RELAX_ORDER
-+#ifndef CONFIG_SPARC
- 	/* Disable relaxed ordering */
- 	for (i = 0; i < hw->mac.max_tx_queues; i++) {
- 		u32 regval;
++	/* Must be done after boot memory is put on freelist, because here we
++	 * might set fields in deferred struct pages that have not yet been
++	 * initialized, and free_all_bootmem() initializes all the reserved
++	 * deferred pages for us.
++	 */
++	register_page_bootmem_info();
++
+ 	/* Register memory areas for /proc/kcore */
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
+ 			 PAGE_SIZE, KCORE_OTHER);
 -- 
-1.8.3.1
-
+2.14.1
 
