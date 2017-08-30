@@ -1,7 +1,7 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Wed, 30 Aug 2017 03:28:43 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 30 Aug 2017 07:22:59 +0000
 Subject: Re: RFC: Driver for Oracle Data Analytics Accelerator
-Message-Id: <40f4c3f0-1417-e36e-eb42-eee5e927ee7d@oracle.com>
+Message-Id: <6064c0e0-fa3e-3aa6-e18b-41426511dd5a@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1504049763-51918-1-git-send-email-rob.gardner@oracle.com>
 In-Reply-To: <1504049763-51918-1-git-send-email-rob.gardner@oracle.com>
@@ -10,53 +10,28 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 08/29/2017 08:33 PM, David Miller wrote:
-> From: Rob Gardner <rob.gardner@oracle.com>
-> Date: Tue, 29 Aug 2017 19:47:23 -0600
->
->> On 08/29/2017 07:07 PM, David Miller wrote:
->>> From: Rob Gardner <rob.gardner@oracle.com>
->>> Date: Tue, 29 Aug 2017 17:36:01 -0600
->>>
->>>> Any and all feedback welcome and appreciated.
->>> So basically binary blobs will be passed into this driver, and there
->>> will be no verification or documentation of the various DAX
->>> operations, their parameters, what operation they perform, how they
->>> work, and their how their references to the user's buffers operate?
->>>
->>> Right?
->>>
->> No, that is not at all how it works. Full documentation of the command
->> interface will be provided in the library. The driver is just a
->> transport to connect user space with the hypervisor calls.
-> Again, my point is that what the kernel processes is basically
-> semanticless.
->
-> The kernel doesn't validate the DAX commands, it doesn't validate
-> the parameters given to the commands, etc.
->
-> It's a block box, accepting binary blobs, and passing them on
-> as-is to the hypervisor.
+Hi Rob!
 
-Not quite as-is, since the driver does check address types to make sure 
-the user is not passing in a real address. But yes, apart from that, it 
-is a pass through driver, much like a scsi pass through driver; a user 
-app can construct a command block and use the driver to get it to the 
-hardware. A scsi pass through driver does not validate that the scsi ccb 
-has valid commands, parameters, etc, but allows the hardware to do that 
-and decide to accept it or reject it. As long as we are sure that the 
-user cannot accomplish anything malicious, we don't need to duplicate 
-validation that the hardware already does for us.
+On 08/30/2017 01:36 AM, Rob Gardner wrote:
+> To answer the most obvious question "who will use this?", there is a
+> companion userspace library which will be published under UPL
+> shortly. This is a comprehensive collection of higher level functions
+> along with tests and documentation. We'll include a link to this before
+> the code is submitted as a patch.
 
-Perhaps it would seem less like a black box with further explanation of 
-the operations, or perhaps some example programs that use the driver 
-interface. Would that help? The library that goes along with this driver 
-has extensive documentation and it will be open source very soon, but we 
-can certainly provide further detail before that happens.
+Out of curiosity. Do you know what the current progress with the publication
+of the patches for LDOM control support on Linux are? I have seen that Oracle
+Linux now ships the LDOM utilities, so I assume that it is possible to run
+Oracle Linux in the control domain. But since the sources are missing for
+the LDOM packages in OL, it's not yet possible to package it for Debian.
 
-Thank you for your feedback. I am already revising the documentation to 
-better explain the interface, and eager to hear more of your thinking on 
-this.
+It would be really nice to have Debian running in the control domain,
+currently we're still running Solaris there on the SPARC T5 we have.
 
-Rob
+Adrian
 
+-- 
+  .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+   `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
