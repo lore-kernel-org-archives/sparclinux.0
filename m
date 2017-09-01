@@ -1,119 +1,47 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 27 Sep 2017 05:59:12 +0000
-Subject: [PATCH 2/2] sparc64: Use lzcnt instruction for fls and __fls
-Message-Id: <1506491952-9659-3-git-send-email-vijay.ac.kumar@oracle.com>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Date: Fri, 01 Sep 2017 02:56:37 +0000
+Subject: [PATCH v2 5/7] sparc64/topology: Remove the unused parent_node() macro
+Message-Id: <1504234599-29533-6-git-send-email-douly.fnst@cn.fujitsu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1506491952-9659-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1506491952-9659-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <1504234599-29533-1-git-send-email-douly.fnst@cn.fujitsu.com>
+In-Reply-To: <1504234599-29533-1-git-send-email-douly.fnst@cn.fujitsu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
+To: akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-For T4 and above, patch fls and __fls functions
-at the boot time to use lzcnt instruction.
+Commit a7be6e5a7f8d ("mm: drop useless local parameters of
+__register_one_node()") removes the last user of parent_node().
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Reviewed-by: Babu Moger <babu.moger@oracle.com>
+The parent_node() macro in SPARC64 platform is unnecessary.
+
+Remove it for cleanup.
+
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/sparc/Makefile         |    1 +
- arch/sparc/kernel/head_64.S |    2 ++
- arch/sparc/lib/Makefile     |    3 +++
- arch/sparc/lib/NG4fls.S     |   31 +++++++++++++++++++++++++++++++
- arch/sparc/lib/NG4patch.S   |    9 +++++++++
- 5 files changed, 46 insertions(+), 0 deletions(-)
+ arch/sparc/include/asm/topology_64.h | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index 8496a07..0763cd8 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -48,6 +48,7 @@ KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
- KBUILD_CFLAGS += -Wa,--undeclared-regs
- KBUILD_CFLAGS += $(call cc-option,-mtune=ultrasparc3)
- KBUILD_AFLAGS += -m64 -mcpu=ultrasparc -Wa,--undeclared-regs
-+KBUILD_AFLAGS += -Wa,-Asparc4
+diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
+index ad5293f..0fcc9a0 100644
+--- a/arch/sparc/include/asm/topology_64.h
++++ b/arch/sparc/include/asm/topology_64.h
+@@ -10,8 +10,6 @@ static inline int cpu_to_node(int cpu)
+ 	return numa_cpu_lookup_table[cpu];
+ }
  
- ifeq ($(CONFIG_MCOUNT),y)
-   KBUILD_CFLAGS += -pg
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 78e0211..1165254 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -628,6 +628,8 @@ niagara4_patch:
- 	 nop
- 	call	niagara4_patch_pageops
- 	 nop
-+	call	niagara4_patch_fls
-+	 nop
- 
- 	ba,a,pt	%xcc, 80f
- 	 nop
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index eefbb9c..72d2d8c 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -46,3 +46,6 @@ lib-$(CONFIG_SPARC64) += mcount.o ipcsum.o xor.o hweight.o ffs.o
- obj-$(CONFIG_SPARC64) += iomap.o
- obj-$(CONFIG_SPARC32) += atomic32.o ucmpdi2.o
- obj-$(CONFIG_SPARC64) += PeeCeeI.o
-+
-+obj-$(CONFIG_SPARC64) += fls.o
-+obj-$(CONFIG_SPARC64) += NG4fls.o
-diff --git a/arch/sparc/lib/NG4fls.S b/arch/sparc/lib/NG4fls.S
-new file mode 100644
-index 0000000..7c2cfb3
---- /dev/null
-+++ b/arch/sparc/lib/NG4fls.S
-@@ -0,0 +1,31 @@
-+/* NG4fls.S: SPARC optimized fls and __fls for T4 and above.
-+ *
-+ * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-+ */
-+
-+	.text
-+	.align 32
-+
-+	.globl NG4fls
-+	.globl __NG4fls
-+	.type  NG4fls, #function
-+	.type  __NG4fls, #function
-+
-+NG4fls:
-+	lzcnt   %o0, %o1
-+	mov     64, %o2
-+	sub     %o2, %o1, %o0
-+	retl
-+	.size   NG4fls, .-NG4fls
-+
-+__NG4fls:
-+	brz,pn  %o0, 1f
-+        mov	%o0, %o1
-+	lzcnt	%o1, %o0
-+	mov     63, %o2
-+	sub     %o2, %o0, %o0
-+1:
-+	retl
-+	nop
-+	nop
-+	.size   __NG4fls, .-__NG4fls
-diff --git a/arch/sparc/lib/NG4patch.S b/arch/sparc/lib/NG4patch.S
-index 3cc0f8c..1010d53 100644
---- a/arch/sparc/lib/NG4patch.S
-+++ b/arch/sparc/lib/NG4patch.S
-@@ -52,3 +52,12 @@ niagara4_patch_pageops:
- 	retl
- 	 nop
- 	.size	niagara4_patch_pageops,.-niagara4_patch_pageops
-+
-+	.globl	niagara4_patch_fls
-+	.type	niagara4_patch_fls,#function
-+niagara4_patch_fls:
-+	NG_DO_PATCH(fls, NG4fls)
-+	NG_DO_PATCH(__fls, __NG4fls)
-+	retl
-+	 nop
-+	.size	niagara4_patch_fls,.-niagara4_patch_fls
+-#define parent_node(node)	(node)
+-
+ #define cpumask_of_node(node) ((node) = -1 ?				\
+ 			       cpu_all_mask :				\
+ 			       &numa_cpumask_lookup_table[node])
 -- 
-1.7.1
+2.5.5
+
+
 
