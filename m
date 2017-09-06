@@ -1,91 +1,87 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Sep 2017 05:28:19 +0000
-Subject: Re: [PATCH] sparc: Provide cmpxchg64 for 32-bit builds
-Message-Id: <20170927.222819.365912965397559137.davem@davemloft.net>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Date: Wed, 06 Sep 2017 12:28:44 +0000
+Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
+Message-Id: <20170906122844.GA30180@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1506274171-28423-1-git-send-email-linux@roeck-us.net>
-        <20170927.213812.1333158312684109871.davem@davemloft.net>
-        <92d872fa-cdde-3e1d-9e2e-0722c9480bbd@roeck-us.net>
-In-Reply-To: <92d872fa-cdde-3e1d-9e2e-0722c9480bbd@roeck-us.net>
+References: <20170821160605.5b1cc019@roar.ozlabs.ibm.com>
+ <20170821111833.00006753@huawei.com>
+ <20170822001928.74f01322@roar.ozlabs.ibm.com>
+ <20170821.135504.1392954698746959868.davem@davemloft.net>
+ <20170822084911.00000c23@huawei.com>
+ <1503391892.3629.28.camel@abdul.in.ibm.com>
+ <20170822152637.GA11320@linux.vnet.ibm.com>
+In-Reply-To: <20170822152637.GA11320@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Wed, 27 Sep 2017 21:55:50 -0700
+On Tue, Aug 22, 2017 at 08:26:37AM -0700, Paul E. McKenney wrote:
+> On Tue, Aug 22, 2017 at 02:21:32PM +0530, Abdul Haleem wrote:
+> > On Tue, 2017-08-22 at 08:49 +0100, Jonathan Cameron wrote:
 
-> On 09/27/2017 09:38 PM, David Miller wrote:
->> From: Guenter Roeck <linux@roeck-us.net>
->> Date: Sun, 24 Sep 2017 10:29:31 -0700
->> 
->>> Fix the following build error, seen when building
->>> sparc32:allmodconfig.
->>>
->>> drivers/net/ethernet/intel/i40e/i40e_ethtool.c:
->>> 	In function 'i40e_set_priv_flags':
->>> drivers/net/ethernet/intel/i40e/i40e_ethtool.c:4150:2: error:
->>> 	implicit declaration of function 'cmpxchg64'
->>>
->>> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
->> That fixes the build:
->> 
->>> @@ -72,5 +72,6 @@ __cmpxchg(volatile void *ptr, unsigned long old,
->>> unsigned long new_, int size)
->>>   	((__typeof__(*(ptr)))__cmpxchg_local_generic((ptr), (unsigned long)(o),\
->>>   			(unsigned long)(n), sizeof(*(ptr))))
->>>   #define cmpxchg64_local(ptr, o, n) __cmpxchg64_local_generic((ptr),
->>>   #(o), (n))
->>> +#define cmpxchg64(ptr, o, n)	cmpxchg64_local((ptr), (o), (n))
->>>     #endif /* __ARCH_SPARC_CMPXCHG__ */
->> but it's wrong.  cmpxchg64_local() is only atomic on the current cpu
->> so using it for plain cmpxchg64() is not going to work.
->> 
+[ . . . ]
+
+> > No more RCU stalls on PowerPC, system is clean when idle or with some
+> > test runs.
+> > 
+> > Thank you all for your time and efforts in fixing this.
+> > 
+> > Reported-and-Tested-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
 > 
-> Yeah, I was concerned about that. My bad.
-> 
-> Unfortunately I don't know enough about sparc to provide a better
-> solution.
-> Consider this a problem report, then.
+> I am still seeing failures, but then again I am running rcutorture with
+> lots of CPU hotplug activity.  So I am probably seeing some other bug,
+> though it still looks a lot like a lost timer.
 
-I'll see what I can do.  Something like this:
+So one problem appears to be a timing-related deadlock between RCU and
+timers.  The way that this can happen is that the outgoing CPU goes
+offline (as in cpuhp_report_idle_dead() invoked from do_idle()) with
+one of RCU's grace-period kthread's timers queued.  Now, if someone
+waits for a grace period, either directly or indirectly, in a way that
+blocks the hotplug notifiers, execution will never reach timers_dead_cpu(),
+which means that the grace-period kthread will never wake, which will
+mean that the grace period will never complete.  Classic deadlock.
 
-diff --git a/arch/sparc/include/asm/cmpxchg_32.h b/arch/sparc/include/asm/cmpxchg_32.h
-index 83ffb83..7f95d3c 100644
---- a/arch/sparc/include/asm/cmpxchg_32.h
-+++ b/arch/sparc/include/asm/cmpxchg_32.h
-@@ -62,6 +62,8 @@ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
- 			(unsigned long)_n_, sizeof(*(ptr)));		\
- })
- 
-+extern u64 cmpxchg64(u64 *ptr, u64 old, u64 new);
-+
- #include <asm-generic/cmpxchg-local.h>
- 
- /*
-diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
-index 2c37332..41601eb 100644
---- a/arch/sparc/lib/atomic32.c
-+++ b/arch/sparc/lib/atomic32.c
-@@ -172,6 +172,20 @@ unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
- }
- EXPORT_SYMBOL(__cmpxchg_u32);
- 
-+u64 cmpxchg64(u64 *ptr, u64 old, u64 new)
-+{
-+	unsigned long flags;
-+	u64 prev;
-+
-+	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
-+	if ((prev = *ptr) = old)
-+		*ptr = new;
-+	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
-+
-+	return prev;
-+}
-+EXPORT_SYMBOL(cmpxchg64);
-+
- unsigned long __xchg_u32(volatile u32 *ptr, u32 new)
- {
- 	unsigned long flags;
+I currently have an extremely ugly workaround for this deadlock, which
+is to periodically and (usually) redundantly wake up all the RCU
+grace-period kthreads from the scheduling-interrupt handler.  This is
+of course completely inappropriate for mainline, but it does reliably
+prevent the "kthread starved for %ld jiffies!" type of RCU CPU stall
+warning that I would otherwise see.
+
+To mainline this, one approach would be to make the timers switch to
+add_timer_on() to a surviving CPU once the offlining process starts.
+Alternatively, I suppose that RCU could do the redundant-wakeup kludge,
+but with checks to prevent it from happening unless (1) there is a CPU
+in the process of going offline (2) there is an RCU grace period in
+progress, and (3) the RCU grace period kthread has been blocked for
+(say) three times longer than it should have.
+
+Unfortunately, this is not sufficient to make rcutorture run reliably,
+though it does help, which is of course to say that it makes debugging
+slower.  ;-)
+
+What happens now is that random rcutorture kthreads will hang waiting for
+timeouts to complete.  This confused me for awhile because I expected
+that the timeouts would be delayed during offline processing, but that
+my crude deadlock-resolution approach would eventually get things going.
+My current suspicion is that the problem is due to a potential delay
+between the time an outgoing CPU hits cpuhp_report_idle_dead() and the
+timers get migrated from timers_dead_cpu().  This means that the CPU
+adopting the timers might be a few ticks ahead of where the outgoing CPU
+last processed timers.  My current guess is that any timers queued in
+intervening indexes are going to wait one good long time.  And I don't see
+any code in the timers_dead_cpu() that would account for this possibility,
+though I of course cannot claim to fully understand this code..
+
+Is this plausible, or am I confused?  (Either way, -something- besides
+just me is rather thoroughly confused!)
+
+If this is plausible, my guess is that timers_dead_cpu() needs to check
+for mismatched indexes (in timer->flags?) and force any intervening
+timers to expire if so.
+
+Thoughts?
+
+							Thanx, Paul
+
