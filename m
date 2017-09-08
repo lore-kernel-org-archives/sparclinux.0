@@ -1,133 +1,122 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 20 Sep 2017 20:17:14 +0000
-Subject: [PATCH v9 12/12] mm: stop zeroing memory during allocation in vmemmap
-Message-Id: <20170920201714.19817-13-pasha.tatashin@oracle.com>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Fri, 08 Sep 2017 22:34:21 +0000
+Subject: [PATCH v2] sparc64: Handle additional cases of no fault loads
+Message-Id: <1504910061-248242-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-vmemmap_alloc_block() will no longer zero the block, so zero memory
-at its call sites for everything except struct pages.  Struct page memory
-is zero'd by struct page initialization.
+Load instructions using ASI_PNF or other no-fault ASIs should not
+cause a SIGSEGV or SIGBUS.
 
-Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
-we will get the performance improvement by zeroing the memory in parallel
-when struct pages are zeroed.
+A garden variety unmapped address follows the TSB miss path, and when
+no valid mapping is found in the process page tables, the miss handler
+checks to see if the access was via a no-fault ASI.  It then fixes up
+the target register with a zero, and skips the no-fault load
+instruction.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
+But different paths are taken for data access exceptions and alignment
+traps, and these do not respect the no-fault ASI. We add checks in
+these paths for the no-fault ASI, and fix up the target register and
+TPC just like in the TSB miss case.
+
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
 ---
- include/linux/mm.h  | 11 +++++++++++
- mm/sparse-vmemmap.c | 15 +++++++--------
- mm/sparse.c         |  6 +++---
- 3 files changed, 21 insertions(+), 11 deletions(-)
+ arch/sparc/kernel/traps_64.c |   51 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 51 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index a7bba4ce79ba..25848764570f 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2501,6 +2501,17 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
- 	return __vmemmap_alloc_block_buf(size, node, NULL);
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index ad31af1..c74f2df 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -265,6 +265,45 @@ void sun4v_insn_access_exception_tl1(struct pt_regs *regs, unsigned long addr, u
+ 	sun4v_insn_access_exception(regs, addr, type_ctx);
  }
  
-+static inline void *vmemmap_alloc_block_zero(unsigned long size, int node)
++bool is_no_fault_exception(struct pt_regs *regs)
 +{
-+	void *p = vmemmap_alloc_block(size, node);
++	unsigned char asi;
++	u32 insn;
 +
-+	if (!p)
-+		return NULL;
-+	memset(p, 0, size);
++	if (get_user(insn, (u32 __user *)regs->tpc) = -EFAULT)
++		return false;
 +
-+	return p;
++	/*
++	 * Must do a little instruction decoding here in order to
++	 * decide on a course of action. The bits of interest are:
++	 *  insn[31:30] = op, where 3 indicates the load/store group
++	 *  insn[24:19] = op3, which identifies individual opcodes
++	 *  insn[13] indicates an immediate offset
++	 *  op3[4]=1 identifies alternate space instructions
++	 *  op3[5:4]=3 identifies floating point instructions
++	 *  op3[2]=1 identifies stores
++	 * See "Opcode Maps" in the appendix of any Sparc V9
++	 * architecture spec for full details.
++	 */
++	if ((insn & 0xc0800000) = 0xc0800000) {    /* op=3, op3[4]=1   */
++		if (insn & 0x2000)		    /* immediate offset */
++			asi = (regs->tstate >> 24); /* saved %asi       */
++		else
++			asi = (insn >> 5);	    /* immediate asi    */
++		if ((asi & 0xf2) = ASI_PNF) {
++			if (insn & 0x1000000) {     /* op3[5:4]=3       */
++				handle_ldf_stq(insn, regs);
++				return true;
++			} else if (insn & 0x200000) { /* op3[2], stores */
++				return false;
++			}
++			handle_ld_nf(insn, regs);
++			return true;
++		}
++	}
++	return false;
 +}
 +
- void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
- int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 			       int node);
-diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
-index d1a39b8051e0..c2f5654e7c9d 100644
---- a/mm/sparse-vmemmap.c
-+++ b/mm/sparse-vmemmap.c
-@@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
- 				unsigned long align,
- 				unsigned long goal)
+ void spitfire_data_access_exception(struct pt_regs *regs, unsigned long sfsr, unsigned long sfar)
  {
--	return memblock_virt_alloc_try_nid(size, align, goal,
-+	return memblock_virt_alloc_try_nid_raw(size, align, goal,
- 					    BOOTMEM_ALLOC_ACCESSIBLE, node);
- }
- 
-@@ -54,9 +54,8 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
- 	if (slab_is_available()) {
- 		struct page *page;
- 
--		page = alloc_pages_node(node,
--			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
--			get_order(size));
-+		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
-+					get_order(size));
- 		if (page)
- 			return page_address(page);
- 		return NULL;
-@@ -183,7 +182,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
- {
- 	pmd_t *pmd = pmd_offset(pud, addr);
- 	if (pmd_none(*pmd)) {
--		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
-+		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
- 		pmd_populate_kernel(&init_mm, pmd, p);
-@@ -195,7 +194,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
- {
- 	pud_t *pud = pud_offset(p4d, addr);
- 	if (pud_none(*pud)) {
--		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
-+		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
- 		pud_populate(&init_mm, pud, p);
-@@ -207,7 +206,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
- {
- 	p4d_t *p4d = p4d_offset(pgd, addr);
- 	if (p4d_none(*p4d)) {
--		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
-+		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
- 		p4d_populate(&init_mm, p4d, p);
-@@ -219,7 +218,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
- {
- 	pgd_t *pgd = pgd_offset_k(addr);
- 	if (pgd_none(*pgd)) {
--		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
-+		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
- 		pgd_populate(&init_mm, pgd, p);
-diff --git a/mm/sparse.c b/mm/sparse.c
-index 83b3bf6461af..d22f51bb7c79 100644
---- a/mm/sparse.c
-+++ b/mm/sparse.c
-@@ -437,9 +437,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+ 	enum ctx_state prev_state = exception_enter();
+@@ -296,6 +335,9 @@ void spitfire_data_access_exception(struct pt_regs *regs, unsigned long sfsr, un
+ 		die_if_kernel("Dax", regs);
  	}
  
- 	size = PAGE_ALIGN(size);
--	map = memblock_virt_alloc_try_nid(size * map_count,
--					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
--					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
-+	map = memblock_virt_alloc_try_nid_raw(size * map_count,
-+					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
-+					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
- 	if (map) {
- 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
- 			if (!present_section_nr(pnum))
++	if (is_no_fault_exception(regs))
++		return;
++
+ 	info.si_signo = SIGSEGV;
+ 	info.si_errno = 0;
+ 	info.si_code = SEGV_MAPERR;
+@@ -352,6 +394,9 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
+ 		regs->tpc &= 0xffffffff;
+ 		regs->tnpc &= 0xffffffff;
+ 	}
++	if (is_no_fault_exception(regs))
++		return;
++
+ 	info.si_signo = SIGSEGV;
+ 	info.si_errno = 0;
+ 	info.si_code = SEGV_MAPERR;
+@@ -2575,6 +2620,9 @@ void mem_address_unaligned(struct pt_regs *regs, unsigned long sfar, unsigned lo
+ 		kernel_unaligned_trap(regs, *((unsigned int *)regs->tpc));
+ 		goto out;
+ 	}
++	if (is_no_fault_exception(regs))
++		return;
++
+ 	info.si_signo = SIGBUS;
+ 	info.si_errno = 0;
+ 	info.si_code = BUS_ADRALN;
+@@ -2597,6 +2645,9 @@ void sun4v_do_mna(struct pt_regs *regs, unsigned long addr, unsigned long type_c
+ 		kernel_unaligned_trap(regs, *((unsigned int *)regs->tpc));
+ 		return;
+ 	}
++	if (is_no_fault_exception(regs))
++		return;
++
+ 	info.si_signo = SIGBUS;
+ 	info.si_errno = 0;
+ 	info.si_code = BUS_ADRALN;
 -- 
-2.14.1
+1.7.1
 
