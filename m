@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sat, 09 Sep 2017 06:40:03 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sun, 10 Sep 2017 03:17:01 +0000
 Subject: Re: [PATCH v2] sparc64: Handle additional cases of no fault loads
-Message-Id: <20170909064003.GB841@ravnborg.org>
+Message-Id: <20170909.201701.349814412927744923.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1504910061-248242-1-git-send-email-rob.gardner@oracle.com>
 In-Reply-To: <1504910061-248242-1-git-send-email-rob.gardner@oracle.com>
@@ -10,7 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Fri, Sep 08, 2017 at 04:34:21PM -0600, Rob Gardner wrote:
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Fri,  8 Sep 2017 16:34:21 -0600
+
 > Load instructions using ASI_PNF or other no-fault ASIs should not
 > cause a SIGSEGV or SIGBUS.
 > 
@@ -26,5 +28,18 @@ On Fri, Sep 08, 2017 at 04:34:21PM -0600, Rob Gardner wrote:
 > TPC just like in the TSB miss case.
 > 
 > Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
-Looks much better!
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+
+Applied, but we really should use a common set of instruction decode
+macros, like the ones we use to create instructions in the eBPF JIT
+for example.
+
+So instead of having the explain every opcode field in comments, which
+is really a redundant waste of space, we would say:
+
+	/* If load/store instruction and accesses alternate address
+	 * space...
+	 */
+	if (OP(insn) = 3 && (OP3(insn) & 0x10) != 0)) {
+
+Or something like that.
+
