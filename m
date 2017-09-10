@@ -1,143 +1,150 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 20 Sep 2017 20:17:10 +0000
-Subject: [PATCH v9 08/12] mm: zero reserved and unavailable struct pages
-Message-Id: <20170920201714.19817-9-pasha.tatashin@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 10 Sep 2017 03:24:00 +0000
+Subject: [GIT] Sparc
+Message-Id: <20170909.202400.1185213376564357639.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Some memory is reserved but unavailable: not present in memblock.memory
-(because not backed by physical pages), but present in memblock.reserved.
-Such memory has backing struct pages, but they are not initialized by going
-through __init_single_page().
 
-In some cases these struct pages are accessed even if they do not contain
-any data. One example is page_to_pfn() might access page->flags if this is
-where section information is stored (CONFIG_SPARSEMEM,
-SECTION_IN_PAGE_FLAGS).
+1) Use register window state adjustment instructions when available,
+   from Anthony Yznaga.
 
-Since, struct pages are zeroed in __init_single_page(), and not during
-allocation time, we must zero such struct pages explicitly.
+2) Add VCC console concentrator driver, from Jag Raman.
 
-The patch involves adding a new memblock iterator:
-	for_each_resv_unavail_range(i, p_start, p_end)
+3) Add 16GB hugepage support, from Nitin Gupta.
 
-Which iterates through reserved && !memory lists, and we zero struct pages
-explicitly by calling mm_zero_struct_page().
+4) Support cpu 'poke' hypercall, from Vijay Kumar.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
----
- include/linux/memblock.h | 16 ++++++++++++++++
- include/linux/mm.h       |  6 ++++++
- mm/page_alloc.c          | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 52 insertions(+)
+5) Add M7/M8 optimized memcpy/memset/copy_{to,from}_user, from Babu Moger.
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index bae11c7e7bf3..bdd4268f9323 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -237,6 +237,22 @@ unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
- 	for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved,	\
- 			       nid, flags, p_start, p_end, p_nid)
- 
-+/**
-+ * for_each_resv_unavail_range - iterate through reserved and unavailable memory
-+ * @i: u64 used as loop variable
-+ * @flags: pick from blocks based on memory attributes
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over unavailabled but reserved (reserved && !memory) areas of memblock.
-+ * Available as soon as memblock is initialized.
-+ * Note: because this memory does not belong to any physical node, flags and
-+ * nid arguments do not make sense and thus not exported as arguments.
-+ */
-+#define for_each_resv_unavail_range(i, p_start, p_end)			\
-+	for_each_mem_range(i, &memblock.reserved, &memblock.memory,	\
-+			   NUMA_NO_NODE, MEMBLOCK_NONE, p_start, p_end, NULL)
-+
- static inline void memblock_set_region_flags(struct memblock_region *r,
- 					     unsigned long flags)
- {
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 50b74d628243..a7bba4ce79ba 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2010,6 +2010,12 @@ extern int __meminit __early_pfn_to_nid(unsigned long pfn,
- 					struct mminit_pfnnid_cache *state);
- #endif
- 
-+#ifdef CONFIG_HAVE_MEMBLOCK
-+void zero_resv_unavail(void);
-+#else
-+static inline void zero_resv_unavail(void) {}
-+#endif
-+
- extern void set_dma_reserve(unsigned long new_dma_reserve);
- extern void memmap_init_zone(unsigned long, int, unsigned long,
- 				unsigned long, enum memmap_context);
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 4b630ee91430..1d38d391dffd 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -6202,6 +6202,34 @@ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
- 	free_area_init_core(pgdat);
- }
- 
-+#ifdef CONFIG_HAVE_MEMBLOCK
-+/*
-+ * Only struct pages that are backed by physical memory are zeroed and
-+ * initialized by going through __init_single_page(). But, there are some
-+ * struct pages which are reserved in memblock allocator and their fields
-+ * may be accessed (for example page_to_pfn() on some configuration accesses
-+ * flags). We must explicitly zero those struct pages.
-+ */
-+void __paginginit zero_resv_unavail(void)
-+{
-+	phys_addr_t start, end;
-+	unsigned long pfn;
-+	u64 i, pgcnt;
-+
-+	/* Loop through ranges that are reserved, but do not have reported
-+	 * physical memory backing.
-+	 */
-+	pgcnt = 0;
-+	for_each_resv_unavail_range(i, &start, &end) {
-+		for (pfn = PFN_DOWN(start); pfn < PFN_UP(end); pfn++) {
-+			mm_zero_struct_page(pfn_to_page(pfn));
-+			pgcnt++;
-+		}
-+	}
-+	pr_info("Reserved but unavailable: %lld pages", pgcnt);
-+}
-+#endif /* CONFIG_HAVE_MEMBLOCK */
-+
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 
- #if MAX_NUMNODES > 1
-@@ -6625,6 +6653,7 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
- 			node_set_state(nid, N_MEMORY);
- 		check_for_memory(pgdat, nid);
- 	}
-+	zero_resv_unavail();
- }
- 
- static int __init cmdline_parse_core(char *p, unsigned long *core)
-@@ -6788,6 +6817,7 @@ void __init free_area_init(unsigned long *zones_size)
- {
- 	free_area_init_node(0, zones_size,
- 			__pa(PAGE_OFFSET) >> PAGE_SHIFT, NULL);
-+	zero_resv_unavail();
- }
- 
- static int page_alloc_cpu_dead(unsigned int cpu)
--- 
-2.14.1
+Please pull, thanks a lot.
 
+The following changes since commit 26273939ace935dd7553b31d279eab30b40f7b9a:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2017-08-10 10:30:29 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-next.git 
+
+for you to fetch changes up to b6fe1089667a7afcc2cf92cdaec590c7b8381715:
+
+  sparc64: Handle additional cases of no fault loads (2017-09-09 20:20:11 -0700)
+
+----------------------------------------------------------------
+Anthony Yznaga (1):
+      sparc64: speed up etrap/rtrap on NG2 and later processors
+
+Arvind Yadav (2):
+      sparc: leon: grpci2: constify of_device_id
+      sparc: leon: grpci1: constify of_device_id
+
+Babu Moger (4):
+      arch/sparc: Separate the exception handlers from NG4memcpy
+      arch/sparc: Rename exception handlers
+      arch/sparc: Optimized memcpy, memset, copy_to_user, copy_from_user for M7/M8
+      arch/sparc: Add accurate exception reporting in M7memcpy
+
+Bhumika Goyal (1):
+      sparc64: vcc: make ktermios const
+
+Dan Carpenter (1):
+      sparc64: vcc: Check for IS_ERR() instead of NULL
+
+David S. Miller (7):
+      Merge branch 'sparc64-Add-16GB-hugepage-support'
+      Merge branch 'sparc64-Use-low-latency-path-to-resume-idle-cpu'
+      sparc64: Revert 16GB huge page support.
+      Merge git://git.kernel.org/.../davem/sparc
+      Merge branch 'sparc64-M7-memcpy'
+      Merge branch 'sparc64-vcc'
+      Merge branch 'sparc64-16gb-hugepages'
+
+Jag Raman (13):
+      sparc64: vcc: Enable VCC module in linux
+      sparc64: vcc: Add VCC debug message macros
+      sparc64: vcc: TTY driver initialization and cleanup
+      sparc64: vcc: Enable VCC port probe and removal
+      sparc64: vcc: Create sysfs attribute group
+      sparc64: vcc: Add RX & TX timer for delayed LDC operation
+      sparc64: vcc: Enable LDC event processing engine
+      sparc64: vcc: Add open & close TTY operations
+      sparc64: vcc: Add hangup TTY operation
+      sparc64: vcc: Add write & write_room TTY operations
+      sparc64: vcc: Add chars_in_buffer TTY operation
+      sparc64: vcc: Add break_ctl TTY operation
+      sparc64: vcc: Add install & cleanup TTY operations
+
+Nitin Gupta (6):
+      sparc64: Support huge PUD case in get_user_pages
+      sparc64: Add 16GB hugepage support
+      sparc64: Cleanup hugepage table walk functions
+      sparc64: Support huge PUD case in get_user_pages
+      sparc64: Add 16GB hugepage support
+      sparc64: Cleanup hugepage table walk functions
+
+Rob Gardner (1):
+      sparc64: Handle additional cases of no fault loads
+
+Sam Ravnborg (1):
+      sparc64: update comments in U3memcpy
+
+Vijay Kumar (2):
+      sparc64: Add a new hypercall CPU_POKE
+      sparc64: Use CPU_POKE to resume idle cpu
+
+ MAINTAINERS                          |    1 +
+ arch/sparc/configs/sparc64_defconfig |    1 +
+ arch/sparc/include/asm/hugetlb.h     |    7 +
+ arch/sparc/include/asm/hypervisor.h  |   18 ++
+ arch/sparc/include/asm/page_64.h     |    3 +-
+ arch/sparc/include/asm/pgtable_64.h  |   20 +-
+ arch/sparc/include/asm/smp_64.h      |    5 +
+ arch/sparc/include/asm/trap_block.h  |    2 +
+ arch/sparc/include/asm/tsb.h         |   36 ++++
+ arch/sparc/include/asm/vio.h         |    9 +
+ arch/sparc/kernel/etrap_64.S         |   26 ++-
+ arch/sparc/kernel/head_64.S          |   18 +-
+ arch/sparc/kernel/hvapi.c            |    2 +-
+ arch/sparc/kernel/hvcalls.S          |   11 ++
+ arch/sparc/kernel/ldc.c              |    2 +
+ arch/sparc/kernel/leon_pci_grpci1.c  |    2 +-
+ arch/sparc/kernel/leon_pci_grpci2.c  |    2 +-
+ arch/sparc/kernel/process_64.c       |    7 +-
+ arch/sparc/kernel/rtrap_64.S         |   13 +-
+ arch/sparc/kernel/setup_64.c         |    6 +
+ arch/sparc/kernel/smp_64.c           |   80 +++++++-
+ arch/sparc/kernel/traps_64.c         |   51 ++++++
+ arch/sparc/kernel/tsb.S              |    2 +-
+ arch/sparc/kernel/vio.c              |    1 +
+ arch/sparc/kernel/viohs.c            |   12 +-
+ arch/sparc/kernel/vmlinux.lds.S      |   10 +
+ arch/sparc/lib/M7copy_from_user.S    |   40 ++++
+ arch/sparc/lib/M7copy_to_user.S      |   51 ++++++
+ arch/sparc/lib/M7memcpy.S            |  923 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/M7memset.S            |  352 ++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/M7patch.S             |   51 ++++++
+ arch/sparc/lib/Makefile              |    5 +
+ arch/sparc/lib/Memcpy_utils.S        |  345 +++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/NG4memcpy.S           |  277 +++++++---------------------
+ arch/sparc/lib/U3memcpy.S            |   32 ++--
+ arch/sparc/mm/gup.c                  |   45 ++++-
+ arch/sparc/mm/hugetlbpage.c          |  102 ++++++-----
+ arch/sparc/mm/init_64.c              |   54 +++++-
+ drivers/tty/Kconfig                  |    5 +
+ drivers/tty/Makefile                 |    1 +
+ drivers/tty/vcc.c                    | 1155 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 41 files changed, 3488 insertions(+), 297 deletions(-)
+ create mode 100644 arch/sparc/lib/M7copy_from_user.S
+ create mode 100644 arch/sparc/lib/M7copy_to_user.S
+ create mode 100644 arch/sparc/lib/M7memcpy.S
+ create mode 100644 arch/sparc/lib/M7memset.S
+ create mode 100644 arch/sparc/lib/M7patch.S
+ create mode 100644 arch/sparc/lib/Memcpy_utils.S
+ create mode 100644 drivers/tty/vcc.c
