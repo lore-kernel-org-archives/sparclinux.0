@@ -1,7 +1,7 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 14 Sep 2017 22:40:22 +0000
-Subject: [PATCH v8 00/11] complete deferred page initialization
-Message-Id: <d2b52cf6-2fdf-922e-2bb7-56bd0ed67bb4@oracle.com>
+Date: Thu, 14 Sep 2017 22:35:17 +0000
+Subject: [PATCH v8 11/11] mm: stop zeroing memory during allocation in vmemmap
+Message-Id: <20170914223517.8242-12-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170914223517.8242-1-pasha.tatashin@oracle.com>
 In-Reply-To: <20170914223517.8242-1-pasha.tatashin@oracle.com>
@@ -10,125 +10,124 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Copy paste error, changing the subject for the header to v8 from v7.
+vmemmap_alloc_block() will no longer zero the block, so zero memory
+at its call sites for everything except struct pages.  Struct page memory
+is zero'd by struct page initialization.
 
-On 09/14/2017 06:35 PM, Pavel Tatashin wrote:
-> Changelog:
-> v8 - v7
-> - Added Acked-by's from Dave Miller for SPARC changes
-> - Fixed a minor compiling issue on tile architecture reported by kbuild
->
-> v7 - v6
-> - Addressed comments from Michal Hocko
-> - memblock_discard() patch was removed from this series and integrated
->    separately
-> - Fixed bug reported by kbuild test robot new patch:
->    mm: zero reserved and unavailable struct pages
-> - Removed patch
->    x86/mm: reserve only exiting low pages
->    As, it is not needed anymore, because of the previous fix
-> - Re-wrote deferred_init_memmap(), found and fixed an existing bug, where
->    page variable is not reset when zone holes present.
-> - Merged several patches together per Michal request
-> - Added performance data including raw logs
->
-> v6 - v5
-> - Fixed ARM64 + kasan code, as reported by Ard Biesheuvel
-> - Tested ARM64 code in qemu and found few more issues, that I fixed in this
->    iteration
-> - Added page roundup/rounddown to x86 and arm zeroing routines to zero the
->    whole allocated range, instead of only provided address range.
-> - Addressed SPARC related comment from Sam Ravnborg
-> - Fixed section mismatch warnings related to memblock_discard().
->
-> v5 - v4
-> - Fixed build issues reported by kbuild on various configurations
->
-> v4 - v3
-> - Rewrote code to zero sturct pages in __init_single_page() as
->    suggested by Michal Hocko
-> - Added code to handle issues related to accessing struct page
->    memory before they are initialized.
->
-> v3 - v2
-> - Addressed David Miller comments about one change per patch:
->      * Splited changes to platforms into 4 patches
->      * Made "do not zero vmemmap_buf" as a separate patch
->
-> v2 - v1
-> - Per request, added s390 to deferred "struct page" zeroing
-> - Collected performance data on x86 which proofs the importance to
->    keep memset() as prefetch (see below).
->
-> SMP machines can benefit from the DEFERRED_STRUCT_PAGE_INIT config option,
-> which defers initializing struct pages until all cpus have been started so
-> it can be done in parallel.
->
-> However, this feature is sub-optimal, because the deferred page
-> initialization code expects that the struct pages have already been zeroed,
-> and the zeroing is done early in boot with a single thread only.  Also, we
-> access that memory and set flags before struct pages are initialized. All
-> of this is fixed in this patchset.
->
-> In this work we do the following:
-> - Never read access struct page until it was initialized
-> - Never set any fields in struct pages before they are initialized
-> - Zero struct page at the beginning of struct page initialization
->
->
-> =====================================
-> Performance improvements on x86 machine with 8 nodes:
-> Intel(R) Xeon(R) CPU E7-8895 v3 @ 2.60GHz and 1T of memory:
->                          TIME          SPEED UP
-> base no deferred:       95.796233s
-> fix no deferred:        79.978956s    19.77%
->
-> base deferred:          77.254713s
-> fix deferred:           55.050509s    40.34%
-> =====================================
-> SPARC M6 3600 MHz with 15T of memory
->                          TIME          SPEED UP
-> base no deferred:       358.335727s
-> fix no deferred:        302.320936s   18.52%
->
-> base deferred:          237.534603s
-> fix deferred:           182.103003s   30.44%
-> =====================================
-> Raw dmesg output with timestamps:
-> x86 base no deferred:    https://hastebin.com/ofunepurit.scala
-> x86 base deferred:       https://hastebin.com/ifazegeyas.scala
-> x86 fix no deferred:     https://hastebin.com/pegocohevo.scala
-> x86 fix deferred:        https://hastebin.com/ofupevikuk.scala
-> sparc base no deferred:  https://hastebin.com/ibobeteken.go
-> sparc base deferred:     https://hastebin.com/fariqimiyu.go
-> sparc fix no deferred:   https://hastebin.com/muhegoheyi.go
-> sparc fix deferred:      https://hastebin.com/xadinobutu.go
->
-> Pavel Tatashin (11):
->    x86/mm: setting fields in deferred pages
->    sparc64/mm: setting fields in deferred pages
->    mm: deferred_init_memmap improvements
->    sparc64: simplify vmemmap_populate
->    mm: defining memblock_virt_alloc_try_nid_raw
->    mm: zero struct pages during initialization
->    sparc64: optimized struct page zeroing
->    mm: zero reserved and unavailable struct pages
->    x86/kasan: explicitly zero kasan shadow memory
->    arm64/kasan: explicitly zero kasan shadow memory
->    mm: stop zeroing memory during allocation in vmemmap
->
->   arch/arm64/mm/kasan_init.c          |  42 ++++++++
->   arch/sparc/include/asm/pgtable_64.h |  30 ++++++
->   arch/sparc/mm/init_64.c             |  31 +++---
->   arch/x86/mm/init_64.c               |   9 +-
->   arch/x86/mm/kasan_init_64.c         |  66 ++++++++++++
->   include/linux/bootmem.h             |  27 +++++
->   include/linux/memblock.h            |  16 +++
->   include/linux/mm.h                  |  26 +++++
->   mm/memblock.c                       |  60 +++++++++--
->   mm/page_alloc.c                     | 207 ++++++++++++++++++++----------------
->   mm/sparse-vmemmap.c                 |  15 ++-
->   mm/sparse.c                         |   6 +-
->   12 files changed, 406 insertions(+), 129 deletions(-)
->
+Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
+we will get the performance improvement by zeroing the memory in parallel
+when struct pages are zeroed.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ include/linux/mm.h  | 11 +++++++++++
+ mm/sparse-vmemmap.c | 15 +++++++--------
+ mm/sparse.c         |  6 +++---
+ 3 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a7bba4ce79ba..25848764570f 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2501,6 +2501,17 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
+ 	return __vmemmap_alloc_block_buf(size, node, NULL);
+ }
+ 
++static inline void *vmemmap_alloc_block_zero(unsigned long size, int node)
++{
++	void *p = vmemmap_alloc_block(size, node);
++
++	if (!p)
++		return NULL;
++	memset(p, 0, size);
++
++	return p;
++}
++
+ void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 			       int node);
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index d1a39b8051e0..c2f5654e7c9d 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
+ 				unsigned long align,
+ 				unsigned long goal)
+ {
+-	return memblock_virt_alloc_try_nid(size, align, goal,
++	return memblock_virt_alloc_try_nid_raw(size, align, goal,
+ 					    BOOTMEM_ALLOC_ACCESSIBLE, node);
+ }
+ 
+@@ -54,9 +54,8 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+ 	if (slab_is_available()) {
+ 		struct page *page;
+ 
+-		page = alloc_pages_node(node,
+-			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
+-			get_order(size));
++		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
++					get_order(size));
+ 		if (page)
+ 			return page_address(page);
+ 		return NULL;
+@@ -183,7 +182,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	if (pmd_none(*pmd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pmd_populate_kernel(&init_mm, pmd, p);
+@@ -195,7 +194,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pud_populate(&init_mm, pud, p);
+@@ -207,7 +206,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		p4d_populate(&init_mm, p4d, p);
+@@ -219,7 +218,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ {
+ 	pgd_t *pgd = pgd_offset_k(addr);
+ 	if (pgd_none(*pgd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pgd_populate(&init_mm, pgd, p);
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 83b3bf6461af..d22f51bb7c79 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -437,9 +437,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+ 	}
+ 
+ 	size = PAGE_ALIGN(size);
+-	map = memblock_virt_alloc_try_nid(size * map_count,
+-					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+-					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
++	map = memblock_virt_alloc_try_nid_raw(size * map_count,
++					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+ 	if (map) {
+ 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+ 			if (!present_section_nr(pnum))
+-- 
+2.14.1
 
