@@ -1,33 +1,92 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 28 Sep 2017 04:52:06 +0000
-Subject: Re: [PATCH] sparc64: mmu_context: Add missing include files
-Message-Id: <20170927.215206.1151121167562961485.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 14 Sep 2017 22:35:16 +0000
+Subject: [PATCH v8 10/11] arm64/kasan: explicitly zero kasan shadow memory
+Message-Id: <20170914223517.8242-11-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1505076287-18401-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1505076287-18401-1-git-send-email-linux@roeck-us.net>
+References: <20170914223517.8242-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170914223517.8242-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@roeck-us.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 10 Sep 2017 13:44:47 -0700
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-> Fix the following build errors.
-> 
-> In file included from arch/sparc/include/asm/mmu_context.h:4:0,
->                  from include/linux/mmu_context.h:4,
-> 		 from drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h:29,
-> 		 from drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c:23:
-> arch/sparc/include/asm/mmu_context_64.h:22:37: error:
-> 	unknown type name 'per_cpu_secondary_mm'
-> 
-> arch/sparc/include/asm/mmu_context_64.h: In function 'switch_mm':
-> arch/sparc/include/asm/mmu_context_64.h:79:2: error:
-> 	implicit declaration of function 'smp_processor_id'
-> 
-> Fixes: 70539bd79500 ("drm/amd: Update MEC HQD loading code for KFD")
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+We must explicitly zero the memory that is allocated by vmemmap_populate()
+for kasan, as this memory does not go through struct page initialization
+path.
 
-Applied.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ arch/arm64/mm/kasan_init.c | 42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
+index 81f03959a4ab..e78a9ecbb687 100644
+--- a/arch/arm64/mm/kasan_init.c
++++ b/arch/arm64/mm/kasan_init.c
+@@ -135,6 +135,41 @@ static void __init clear_pgds(unsigned long start,
+ 		set_pgd(pgd_offset_k(start), __pgd(0));
+ }
+ 
++/*
++ * Memory that was allocated by vmemmap_populate is not zeroed, so we must
++ * zero it here explicitly.
++ */
++static void
++zero_vmemmap_populated_memory(void)
++{
++	struct memblock_region *reg;
++	u64 start, end;
++
++	for_each_memblock(memory, reg) {
++		start = __phys_to_virt(reg->base);
++		end = __phys_to_virt(reg->base + reg->size);
++
++		if (start >= end)
++			break;
++
++		start = (u64)kasan_mem_to_shadow((void *)start);
++		end = (u64)kasan_mem_to_shadow((void *)end);
++
++		/* Round to the start end of the mapped pages */
++		start = round_down(start, SWAPPER_BLOCK_SIZE);
++		end = round_up(end, SWAPPER_BLOCK_SIZE);
++		memset((void *)start, 0, end - start);
++	}
++
++	start = (u64)kasan_mem_to_shadow(_text);
++	end = (u64)kasan_mem_to_shadow(_end);
++
++	/* Round to the start end of the mapped pages */
++	start = round_down(start, SWAPPER_BLOCK_SIZE);
++	end = round_up(end, SWAPPER_BLOCK_SIZE);
++	memset((void *)start, 0, end - start);
++}
++
+ void __init kasan_init(void)
+ {
+ 	u64 kimg_shadow_start, kimg_shadow_end;
+@@ -205,8 +240,15 @@ void __init kasan_init(void)
+ 			pfn_pte(sym_to_pfn(kasan_zero_page), PAGE_KERNEL_RO));
+ 
+ 	memset(kasan_zero_page, 0, PAGE_SIZE);
++
+ 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
+ 
++	/*
++	 * vmemmap_populate does not zero the memory, so we need to zero it
++	 * explicitly
++	 */
++	zero_vmemmap_populated_memory();
++
+ 	/* At this point kasan is fully initialized. Enable error messages */
+ 	init_task.kasan_depth = 0;
+ 	pr_info("KernelAddressSanitizer initialized\n");
+-- 
+2.14.1
+
