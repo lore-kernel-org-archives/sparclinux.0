@@ -1,114 +1,246 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Mon, 25 Sep 2017 16:48:56 +0000
-Subject: [PATCH v8 5/9] sparc64: Add handler for "Memory Corruption Detected" trap
-Message-Id: <e16385d5ab0556cfa905f0fc7d6b7f8604735958.1506089472.git.khalid.aziz@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 14 Sep 2017 22:35:11 +0000
+Subject: [PATCH v8 05/11] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <20170914223517.8242-6-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1506089472.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1506089472.git.khalid.aziz@oracle.com>
+References: <20170914223517.8242-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170914223517.8242-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, dan.carpenter@oracle.com, Liam.Howlett@oracle.com, mhocko@suse.com, mingo@kernel.org, paul.gortmaker@windriver.com, vegard.nossum@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-M7 and newer processors add a "Memory corruption Detected" trap with
-the addition of ADI feature. This trap is vectored into kernel by HV
-through resumable error trap with error attribute for the resumable
-error set to 0x00000800.
+* A new variant of memblock_virt_alloc_* allocations:
+memblock_virt_alloc_try_nid_raw()
+    - Does not zero the allocated memory
+    - Does not panic if request cannot be satisfied
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+* optimize early system hash allocations
+
+Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
+that memory that was allocated for system hash needs to be zeroed,
+otherwise the memory does not need to be zeroed, and client will initialize
+it.
+
+If memory does not need to be zero'd, call the new
+memblock_virt_alloc_raw() interface, and thus improve the boot performance.
+
+* debug for raw alloctor
+
+When CONFIG_DEBUG_VM is enabled, this patch sets all the memory that is
+returned by memblock_virt_alloc_try_nid_raw() to ones to ensure that no
+places excpect zeroed memory.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
-v7:
-	- new patch split off from patch 4/4 in v6
+ include/linux/bootmem.h | 27 ++++++++++++++++++++++
+ mm/memblock.c           | 60 +++++++++++++++++++++++++++++++++++++++++++------
+ mm/page_alloc.c         | 15 ++++++-------
+ 3 files changed, 87 insertions(+), 15 deletions(-)
 
- arch/sparc/kernel/traps_64.c | 59 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
-
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 7775d011691c..565e3c2836aa 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -1825,6 +1825,7 @@ struct sun4v_error_entry {
- #define SUN4V_ERR_ATTRS_ASI		0x00000080
- #define SUN4V_ERR_ATTRS_PRIV_REG	0x00000100
- #define SUN4V_ERR_ATTRS_SPSTATE_MSK	0x00000600
-+#define SUN4V_ERR_ATTRS_MCD		0x00000800
- #define SUN4V_ERR_ATTRS_SPSTATE_SHFT	9
- #define SUN4V_ERR_ATTRS_MODE_MSK	0x03000000
- #define SUN4V_ERR_ATTRS_MODE_SHFT	24
-@@ -2022,6 +2023,56 @@ static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
- 	}
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index e223d91b6439..ea30b3987282 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -160,6 +160,9 @@ extern void *__alloc_bootmem_low_node(pg_data_t *pgdat,
+ #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
+ 
+ /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
++void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
++				      phys_addr_t min_addr,
++				      phys_addr_t max_addr, int nid);
+ void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
+ 		phys_addr_t align, phys_addr_t min_addr,
+ 		phys_addr_t max_addr, int nid);
+@@ -176,6 +179,14 @@ static inline void * __init memblock_virt_alloc(
+ 					    NUMA_NO_NODE);
  }
  
-+/* Handle memory corruption detected error which is vectored in
-+ * through resumable error trap.
-+ */
-+void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
 +{
-+	siginfo_t info;
-+
-+	if (notify_die(DIE_TRAP, "MCD error", regs, 0, 0x34,
-+		       SIGSEGV) = NOTIFY_STOP)
-+		return;
-+
-+	if (regs->tstate & TSTATE_PRIV) {
-+		/* MCD exception could happen because the task was
-+		 * running a system call with MCD enabled and passed a
-+		 * non-versioned pointer or pointer with bad version
-+		 * tag to the system call. In such cases, hypervisor
-+		 * places the address of offending instruction in the
-+		 * resumable error report. This is a deferred error,
-+		 * so the read/write that caused the trap was potentially
-+		 * retired long time back and we may have no choice
-+		 * but to send SIGSEGV to the process.
-+		 */
-+		const struct exception_table_entry *entry;
-+
-+		entry = search_exception_tables(regs->tpc);
-+		if (entry) {
-+			/* Looks like a bad syscall parameter */
-+#ifdef DEBUG_EXCEPTIONS
-+			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
-+				 regs->tpc);
-+			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
-+				 ent.err_raddr, entry->fixup);
-+#endif
-+			regs->tpc = entry->fixup;
-+			regs->tnpc = regs->tpc + 4;
-+			return;
-+		}
-+	}
-+
-+	/* Send SIGSEGV to the userspace process with the right signal
-+	 * code
-+	 */
-+	info.si_signo = SIGSEGV;
-+	info.si_errno = 0;
-+	info.si_code = SEGV_ADIDERR;
-+	info.si_addr = (void __user *)ent.err_raddr;
-+	info.si_trapno = 0;
-+	force_sig_info(SIGSEGV, &info, current);
++	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
++					    BOOTMEM_ALLOC_ACCESSIBLE,
++					    NUMA_NO_NODE);
 +}
 +
- /* We run with %pil set to PIL_NORMAL_MAX and PSTATE_IE enabled in %pstate.
-  * Log the event and clear the first word of the entry.
-  */
-@@ -2059,6 +2110,14 @@ void sun4v_resum_error(struct pt_regs *regs, unsigned long offset)
- 		goto out;
- 	}
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -257,6 +268,14 @@ static inline void * __init memblock_virt_alloc(
+ 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
+ }
  
-+	/* If this is a memory corruption detected error vectored in
-+	 * by HV through resumable error trap, call the handler
-+	 */
-+	if (local_copy.err_attrs & SUN4V_ERR_ATTRS_MCD) {
-+		do_mcd_err(regs, local_copy);
-+		return;
-+	}
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
++}
 +
- 	sun4v_log_error(regs, &local_copy, cpu,
- 			KERN_ERR "RESUMABLE ERROR",
- 			&sun4v_resum_oflow_cnt);
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -309,6 +328,14 @@ static inline void * __init memblock_virt_alloc_try_nid(phys_addr_t size,
+ 					  min_addr);
+ }
+ 
++static inline void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
++{
++	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
++				min_addr, max_addr);
++}
++
+ static inline void * __init memblock_virt_alloc_try_nid_nopanic(
+ 			phys_addr_t size, phys_addr_t align,
+ 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 91205780e6b1..1f299fb1eb08 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1327,7 +1327,6 @@ static void * __init memblock_virt_alloc_internal(
+ 	return NULL;
+ done:
+ 	ptr = phys_to_virt(alloc);
+-	memset(ptr, 0, size);
+ 
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+@@ -1340,6 +1339,45 @@ static void * __init memblock_virt_alloc_internal(
+ 	return ptr;
+ }
+ 
++/**
++ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
++ * memory and without panicking
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @min_addr: the lower bound of the memory region from where the allocation
++ *	  is preferred (phys address)
++ * @max_addr: the upper bound of the memory region from where the allocation
++ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
++ *	      allocate only from memory limited by memblock.current_limit value
++ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
++ *
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. Does not zero allocated memory, does not panic if request
++ * cannot be satisfied.
++ *
++ * RETURNS:
++ * Virtual address of allocated memory block on success, NULL on failure.
++ */
++void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr,
++			int nid)
++{
++	void *ptr;
++
++	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
++		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
++		     (u64)max_addr, (void *)_RET_IP_);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++#ifdef CONFIG_DEBUG_VM
++	if (ptr && size > 0)
++		memset(ptr, 0xff, size);
++#endif
++	return ptr;
++}
++
+ /**
+  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
+  * @size: size of memory block to be allocated in bytes
+@@ -1351,8 +1389,8 @@ static void * __init memblock_virt_alloc_internal(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
+- * additional debug information (including caller info), if enabled.
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. This function zeroes the allocated memory.
+  *
+  * RETURNS:
+  * Virtual address of allocated memory block on success, NULL on failure.
+@@ -1362,11 +1400,17 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+ 				phys_addr_t min_addr, phys_addr_t max_addr,
+ 				int nid)
+ {
++	void *ptr;
++
+ 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+-	return memblock_virt_alloc_internal(size, align, min_addr,
+-					     max_addr, nid);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++	if (ptr)
++		memset(ptr, 0, size);
++	return ptr;
+ }
+ 
+ /**
+@@ -1380,7 +1424,7 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
++ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
+  * which provides debug information (including caller info), if enabled,
+  * and panics if the request can not be satisfied.
+  *
+@@ -1399,8 +1443,10 @@ void * __init memblock_virt_alloc_try_nid(
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	ptr = memblock_virt_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid);
+-	if (ptr)
++	if (ptr) {
++		memset(ptr, 0, size);
+ 		return ptr;
++	}
+ 
+ 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
+ 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index d132c801d2c1..a8dbd405ed94 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7299,18 +7299,17 @@ void *__init alloc_large_system_hash(const char *tablename,
+ 
+ 	log2qty = ilog2(numentries);
+ 
+-	/*
+-	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
+-	 * currently not used when HASH_EARLY is specified.
+-	 */
+ 	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
+ 	do {
+ 		size = bucketsize << log2qty;
+-		if (flags & HASH_EARLY)
+-			table = memblock_virt_alloc_nopanic(size, 0);
+-		else if (hashdist)
++		if (flags & HASH_EARLY) {
++			if (flags & HASH_ZERO)
++				table = memblock_virt_alloc_nopanic(size, 0);
++			else
++				table = memblock_virt_alloc_raw(size, 0);
++		} else if (hashdist) {
+ 			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
+-		else {
++		} else {
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
+ 			 * some pages at the end of hash table which
 -- 
-2.11.0
+2.14.1
 
