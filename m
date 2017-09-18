@@ -1,72 +1,34 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Fri, 08 Sep 2017 22:32:04 +0000
-Subject: Re: [PATCH] sparc64: Handle additional cases of no fault loads
-Message-Id: <07664534-d051-6e61-6c20-ab6ae390e9ec@oracle.com>
+From: Corentin Labbe <clabbe.montjoie@gmail.com>
+Date: Mon, 18 Sep 2017 17:58:21 +0000
+Subject: [PATCH] sparc: time: Remove unneeded linux/miscdevice.h include
+Message-Id: <20170918175821.20026-1-clabbe.montjoie@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1504827559-109802-1-git-send-email-rob.gardner@oracle.com>
-In-Reply-To: <1504827559-109802-1-git-send-email-rob.gardner@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Corentin Labbe <clabbe.montjoie@gmail.com>
 
-On 09/08/2017 09:03 AM, Sam Ravnborg wrote:
-> Hi Rob.
->
->> diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
->> index ad31af1..c49949c 100644
->> --- a/arch/sparc/kernel/traps_64.c
->> +++ b/arch/sparc/kernel/traps_64.c
->> @@ -265,6 +265,34 @@ void sun4v_insn_access_exception_tl1(struct pt_regs *regs, unsigned long addr, u
->>   	sun4v_insn_access_exception(regs, addr, type_ctx);
->>   }
->>   
->> +bool is_no_fault_exception(struct pt_regs *regs)
->> +{
->> +	unsigned char asi;
->> +	u32 insn;
->> +
->> +	if (get_user(insn, (u32 __user *)regs->tpc) = -EFAULT)
->> +		return false;
->> +
->> +	if ((insn & 0xc0800000) = 0xc0800000) {
->> +		if (insn & 0x2000)
->> +			asi = (regs->tstate >> 24);
->> +		else
->> +			asi = (insn >> 5);
-> The constants used in the above code is pure magic
-> for peopel without any initimate knowledge of sparc.
-> Could at a abre minimum add a few comments that explains
-> what is going on.
+arch/sparc/kernel/time_64.c does not contain any miscdevice so the
+inclusion of linux/miscdevice.h is unnecessary.
 
-Thanks for pointing this out. I was trying to keep the code close to 
-that found in do_kernel_fault(), but I agree it would be better to add 
-some explanatory comments. Will revise.
+Signed-off-by: Corentin Labbe <clabbe.montjoie@gmail.com>
+---
+ arch/sparc/kernel/time_64.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Rob
-
-
->
->
->> +		if ((asi & 0xf2) = ASI_PNF) {
->> +			if (insn & 0x1000000) {
->> +				handle_ldf_stq(insn, regs);
->> +				return true;
->> +			} else if (insn & 0x200000) {
->> +				/* store instruction, do not handle */
->> +				return false;
->> +			}
-> Likewise
->
->> +			handle_ld_nf(insn, regs);
->> +			return true;
->> +		}
->> +	}
->> +	return false;
->> +}
-> 	Sam
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 564f0e46ffd4..5c8524ff09d9 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -27,7 +27,6 @@
+ #include <linux/jiffies.h>
+ #include <linux/cpufreq.h>
+ #include <linux/percpu.h>
+-#include <linux/miscdevice.h>
+ #include <linux/rtc/m48t59.h>
+ #include <linux/kernel_stat.h>
+ #include <linux/clockchips.h>
+-- 
+2.13.5
 
