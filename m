@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 16 Sep 2017 06:08:38 +0000
+From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
+Date: Mon, 18 Sep 2017 14:27:45 +0000
 Subject: Re: [PATCH] Expose some h/w info from ILOM to userspace via sysfs
-Message-Id: <20170915.230838.1519702385714790065.davem@davemloft.net>
+Message-Id: <59e0a2f6-78db-0846-1f4c-72f972055e11@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <baf0b81a-0265-ed20-52c8-e5c558f62c47@oracle.com>
 In-Reply-To: <baf0b81a-0265-ed20-52c8-e5c558f62c47@oracle.com>
@@ -10,18 +10,16 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
-Date: Sat, 16 Sep 2017 05:42:41 +0100
+Dave,
 
-> To get a snapshot as complete as possible of what the system is
-> composed of,
-> this commit adds the ability to retrieve a set of hardware details
-> that are only
-> available to the ILOM and export them via sysfs to userspace programs
-> and
-> utilities. Not all the ILOM properties are exposed, only a subset
-> useful to
-> system utilities.
+I doubt that a blob model like /dev/mdesc is better since it's not the 
+approach that has been used in the kernel. You can convince yourself of 
+this by looking at where lshw gets most if its data: from sysfs. That's 
+because kernel developers before us (since 2.4 when sysfs has been 
+introduced, really) have decided to expose things on sysfs rather then 
+via blobs. So sysfs is definitely the way to go.
 
-Again, patch is whitespace damaged, and a model like /dev/mdesc
-is better for this.
+regards,
+
+Eric
+
