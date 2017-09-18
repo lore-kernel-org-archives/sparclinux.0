@@ -1,31 +1,60 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 27 Sep 2017 05:59:10 +0000
-Subject: [PATCH 0/2] sparc64: Optimize fls, fls64 and __fls
-Message-Id: <1506491952-9659-1-git-send-email-vijay.ac.kumar@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 18 Sep 2017 16:53:28 +0000
+Subject: [PATCH 1/2] arch: Fix duplicates in Kconfig for parisc and sparc
+Message-Id: <1505753609-602923-2-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1505753609-602923-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1505753609-602923-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com
+To: monstr@monstr.eu, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, akpm@linux-foundation.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-parisc@vger.kernel.org, babu.moger@oracle.com
 
-SPARC provides lzcnt instruction (with VIS3) which can be used to
-optimize fls, fls64 and __fls functions. For the systems that supports 
-lzcnt instruction, we now do boot time patching to use sparc
-optimized fls, fls64 and __fls functions.
-  
-Vijay Kumar (2):
-  sparc64: Define SPARC default fls and __fls
-  sparc64: Use lzcnt instruction for fls and __fls
+Fix duplicates for sparc and parisc. This was due these following commits.
 
- arch/sparc/Makefile                |    1 +
- arch/sparc/include/asm/bitops_64.h |    7 +-
- arch/sparc/kernel/head_64.S        |    2 +
- arch/sparc/lib/Makefile            |    4 +
- arch/sparc/lib/NG4fls.S            |   31 +++++++++
- arch/sparc/lib/NG4patch.S          |    9 +++
- arch/sparc/lib/fls.S               |  126 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 177 insertions(+), 3 deletions(-)
- create mode 100644 arch/sparc/lib/NG4fls.S
- create mode 100644 arch/sparc/lib/fls.S
+1. commit 4c97a0c8fee3 ("arch: define CPU_BIG_ENDIAN for all fixed big
+   endian archs")
+2. commit 97d9f969161d ("arch/sparc: Define config parameter
+   CPU_BIG_ENDIAN")
+3. commit 74ad3d28af21 ("parisc: Define CONFIG_CPU_BIG_ENDIAN")
+
+Remove duplicates.
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+---
+ arch/parisc/Kconfig |    3 ---
+ arch/sparc/Kconfig  |    3 ---
+ 2 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
+index ba7b7dd..1364851 100644
+--- a/arch/parisc/Kconfig
++++ b/arch/parisc/Kconfig
+@@ -59,9 +59,6 @@ config PARISC
+ config CPU_BIG_ENDIAN
+ 	def_bool y
+ 
+-config CPU_BIG_ENDIAN
+-	def_bool y
+-
+ config MMU
+ 	def_bool y
+ 
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 0be3828..a4a6261 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -97,9 +97,6 @@ config ARCH_PROC_KCORE_TEXT
+ config CPU_BIG_ENDIAN
+ 	def_bool y
+ 
+-config CPU_BIG_ENDIAN
+-	def_bool y
+-
+ config ARCH_ATU
+ 	bool
+ 	default y if SPARC64
+-- 
+1.7.1
 
