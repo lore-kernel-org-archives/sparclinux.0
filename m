@@ -1,68 +1,41 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 20 Sep 2017 20:17:06 +0000
-Subject: [PATCH v9 04/12] sparc64: simplify vmemmap_populate
-Message-Id: <20170920201714.19817-5-pasha.tatashin@oracle.com>
+From: Babu Moger <babu.moger@oracle.com>
+Date: Mon, 18 Sep 2017 16:53:29 +0000
+Subject: [PATCH 2/2] arch: change default endian for microblaze
+Message-Id: <1505753609-602923-3-git-send-email-babu.moger@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+References: <1505753609-602923-1-git-send-email-babu.moger@oracle.com>
+In-Reply-To: <1505753609-602923-1-git-send-email-babu.moger@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: monstr@monstr.eu, jejb@parisc-linux.org, deller@gmx.de, davem@davemloft.net, akpm@linux-foundation.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-parisc@vger.kernel.org, babu.moger@oracle.com
 
-Remove duplicating code by using common functions
-vmemmap_pud_populate and vmemmap_pgd_populate.
+Fix the default for microblaze. Michal Simek mentioned default for
+microblaze should be CPU_LITTLE_ENDIAN.
 
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Fixes : commit 206d3642d8ee ("arch/microblaze: add choice for endianness
+	and update Makefile")
+
+Signed-off-by: Babu Moger <babu.moger@oracle.com>
+Cc: Michal Simek <monstr@monstr.eu>
 ---
- arch/sparc/mm/init_64.c | 23 ++++++-----------------
- 1 file changed, 6 insertions(+), 17 deletions(-)
+ arch/microblaze/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 310c6754bcaa..99aea4d15a5f 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2651,30 +2651,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
- 	vstart = vstart & PMD_MASK;
- 	vend = ALIGN(vend, PMD_SIZE);
- 	for (; vstart < vend; vstart += PMD_SIZE) {
--		pgd_t *pgd = pgd_offset_k(vstart);
-+		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
- 		unsigned long pte;
- 		pud_t *pud;
- 		pmd_t *pmd;
- 
--		if (pgd_none(*pgd)) {
--			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
-+		if (!pgd)
-+			return -ENOMEM;
- 
--			if (!new)
--				return -ENOMEM;
--			pgd_populate(&init_mm, pgd, new);
--		}
--
--		pud = pud_offset(pgd, vstart);
--		if (pud_none(*pud)) {
--			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
--
--			if (!new)
--				return -ENOMEM;
--			pud_populate(&init_mm, pud, new);
--		}
-+		pud = vmemmap_pud_populate(pgd, vstart, node);
-+		if (!pud)
-+			return -ENOMEM;
- 
- 		pmd = pmd_offset(pud, vstart);
--
- 		pte = pmd_val(*pmd);
- 		if (!(pte & _PAGE_VALID)) {
- 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+index 9d26abd..4f798aa 100644
+--- a/arch/microblaze/Kconfig
++++ b/arch/microblaze/Kconfig
+@@ -39,7 +39,7 @@ config MICROBLAZE
+ # Endianness selection
+ choice
+ 	prompt "Endianness selection"
+-	default CPU_BIG_ENDIAN
++	default CPU_LITTLE_ENDIAN
+ 	help
+ 	  microblaze architectures can be configured for either little or
+ 	  big endian formats. Be sure to select the appropriate mode.
 -- 
-2.14.1
+1.7.1
 
