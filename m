@@ -1,7 +1,7 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 17:38:38 +0000
+Date: Tue, 19 Sep 2017 17:40:30 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <35b2d1dd-9cf5-cee6-4428-86d4765fd338@physik.fu-berlin.de>
+Message-Id: <6ddf8480-40cc-fd4d-4fe6-74d72c2b0edc@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,20 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/19/2017 07:32 PM, David Miller wrote:
->> Is there anything that prevents us from removing it?
-> 
-> Yes, I and others have tools like mdlint that we use every day?!?!
+On 09/19/2017 07:31 PM, David Miller wrote:
+> All of that complexity and knowledge of formatting properties this way
+> or that has no business in the kernel, and belongs completely in
+> userspace.
 
-This one? [1]
+But that's not really contradicting to the fact that this information
+belongs to sysfs, not some obscure device node below /dev.
 
-Otherwise I don't know of any "mdlint" tool. I just know that using
-sysfs is the standard way of reading information from the kernel these
-days, on all architectures.
+Basically every human-readable information from the kernel is provided
+through sysfs these days. Why should it be different for SPARC?
+
+I really don't think that makes any sense.
 
 Adrian
-
-> [1] https://github.com/ChrisWren/mdlint
 
 -- 
  .''`.  John Paul Adrian Glaubitz
