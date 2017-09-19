@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 17:42:25 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Sep 2017 18:04:24 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <b6f4cba5-f86a-922f-e42d-7b742cc01a72@physik.fu-berlin.de>
+Message-Id: <20170919.110424.1419250176281651461.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,25 +10,17 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/19/2017 07:33 PM, David Miller wrote:
-> The kernel has no business having all of the details of how to
-> interpret binary property values, what they mean, what the
-> most reasonable way is to format them, etc.
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Tue, 19 Sep 2017 18:55:52 +0300
 
-So, you basically disagree with all the other subsystem maintainers?
+> please, lets not make/introduce another tool for parsing /dev/mdesc,
+> it's so easier to use sysfs , instead of using another arch-specific
+> (sparc64) tool, like prtconf.
 
-> That's userspace.
-> 
-> Sparc users already make use of special tools such as 'prtconf'
-> and 'mdlint' already exists and works just fine.
+We have /dev/mdesc already, and there is an existing tool, mdlint.
 
-Tools that probably haven't been touched for ages. Like with SILO,
-the world has moved on to more modern tools.
+I use it every day.
 
-Adrian
+I'm not suggesting to use anything new, I'm saying use the stuff
+that we have already.
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
