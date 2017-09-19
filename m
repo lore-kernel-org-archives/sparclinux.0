@@ -1,7 +1,7 @@
 From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
-Date: Tue, 19 Sep 2017 21:43:56 +0000
+Date: Tue, 19 Sep 2017 21:49:05 +0000
 Subject: Re: [PATCH] Expose some h/w info from ILOM to userspace via sysfs
-Message-Id: <6ad10674-10dc-497a-96cc-31717dd980b2@default>
+Message-Id: <3c530c9e-1e7a-41c7-a95b-6f82157591e7@default>
 List-Id: <sparclinux.vger.kernel.org>
 References: <baf0b81a-0265-ed20-52c8-e5c558f62c47@oracle.com>
 In-Reply-To: <baf0b81a-0265-ed20-52c8-e5c558f62c47@oracle.com>
@@ -9,6 +9,18 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+Let me also add this: the filtering also prevents making available pieces of information that is already available on sysfs.
+That's a good thing because not duplicating the same info in the kernel is paramount as you mentioned on a separate email thread today.
+
+-eric
+
+----- Original Message -----
+From: eric.saint.etienne@oracle.com
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org
+Sent: Tuesday, 19 September, 2017 10:44:20 PM GMT +00:00 GMT Britain, Ireland, Portugal
+Subject: Re: [PATCH] Expose some h/w info from ILOM to userspace via sysfs
 
 Thank you for the prompt feedback.
 
@@ -44,3 +56,7 @@ Okay I got that but in this instance the parsing is necessary to
 allow filtering, which is in turn necessary for security.
 
 -eric
+--
+To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
