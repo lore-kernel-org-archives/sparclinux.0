@@ -1,7 +1,7 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 06:53:50 +0000
+Date: Tue, 19 Sep 2017 06:58:06 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <9825dcb1-5016-fce2-f295-ac0eaba84bfb@physik.fu-berlin.de>
+Message-Id: <a917b765-bc3b-3942-a5a1-6959faa8ebd3@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,28 +10,34 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/18/2017 06:43 PM, David Miller wrote:
->> Also, since mdesc is basically a tree it maps well to a filesystem
->> structure like sysfs.
-> 
-> We don't export identical information two different ways in the kernel.
+On 09/19/2017 08:43 AM, Eric Saint Etienne wrote:
+> I am sorry for every Sparc users because it was a chance for them to
+> easily explore and use machine description without having to install
+> an external tool and a scripting language plus dependencies (potentially
+> a lot of dependency). Users may also not know about /dev/mdesc whereas
+> a mere "grep -ri cache /sys" would be fruitful.
 
-I agree.
+I agree and I found your argumentation very reasonable and convincing.
 
-> We have /dev/mdesc already.
+Users are looking for hardware information below /sysfs, not somewhere
+in /dev. /dev would actually be the last location I'd ever expect to
+provide hardware information.
 
-Is there anything that prevents us from removing it?
+It also shouldn't be necessary to install a special tool to be able
+to parse hardware information. /dev/mdesc sounds like a relict from
+the old Linux days to me which should be superceded by sysfs.
 
-> For the other cases, sysfs was done first.  It wasn't duplicating an
-> existing mechanism.
+Wasn't it a goal to eventually move all system information to sysfs
+and even removing the remains from /proc in the distant future as
+/proc is actually the process filesystem and not for system information?
 
-I don't think Eric wants to duplicate the mechanism. He rather wants
-to move mdesc to sysfs which sounds like a reasonable decision.
+> Also mdesc is root accessible only. Exposing all or even just a selection
+> of machine description nodes to users via sysfs provides them with the
+> visibility of for instance TLBs and Caches (number, size, and more
+> importantly how they are organized in the processor).
 
-As a user, I'd always be looking for system information below /sys,
-not in a special device available in /dev/. Not supporting sysfs
-for providing hardware information sounds like a step backwards
-to me.
+That's even worse. Users should be able to retrieve system information
+without being the root user.
 
 Adrian
 
