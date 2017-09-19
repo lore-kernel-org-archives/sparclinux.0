@@ -1,7 +1,7 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 17:40:30 +0000
+Date: Tue, 19 Sep 2017 17:42:25 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <6ddf8480-40cc-fd4d-4fe6-74d72c2b0edc@physik.fu-berlin.de>
+Message-Id: <b6f4cba5-f86a-922f-e42d-7b742cc01a72@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,18 +10,20 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/19/2017 07:31 PM, David Miller wrote:
-> All of that complexity and knowledge of formatting properties this way
-> or that has no business in the kernel, and belongs completely in
-> userspace.
+On 09/19/2017 07:33 PM, David Miller wrote:
+> The kernel has no business having all of the details of how to
+> interpret binary property values, what they mean, what the
+> most reasonable way is to format them, etc.
 
-But that's not really contradicting to the fact that this information
-belongs to sysfs, not some obscure device node below /dev.
+So, you basically disagree with all the other subsystem maintainers?
 
-Basically every human-readable information from the kernel is provided
-through sysfs these days. Why should it be different for SPARC?
+> That's userspace.
+> 
+> Sparc users already make use of special tools such as 'prtconf'
+> and 'mdlint' already exists and works just fine.
 
-I really don't think that makes any sense.
+Tools that probably haven't been touched for ages. Like with SILO,
+the world has moved on to more modern tools.
 
 Adrian
 
