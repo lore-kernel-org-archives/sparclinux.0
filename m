@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Sep 2017 22:07:49 +0000
+Date: Tue, 19 Sep 2017 22:08:28 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <20170919.150749.1067994309690697347.davem@davemloft.net>
+Message-Id: <20170919.150828.1505151541792692845.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,21 +10,27 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Wed, 20 Sep 2017 00:02:20 +0200
+From: Kjetil Oftedal <oftedal@gmail.com>
+Date: Wed, 20 Sep 2017 00:03:30 +0200
 
-> On 09/19/2017 10:29 PM, David Miller wrote:
->> You are showing that you do not even know what packages exist
->> in Debian.
+> On 19/09/2017, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
+>> On 09/19/2017 10:24 PM, David Miller wrote:
+>>> davem@patience:~/src/GIT/sparc-next$ dpkg -S /usr/sbin/prtconf
+>>> sparc-utils: /usr/sbin/prtconf
+>>>
+>>> Come again?
+>>
+>> David, seriously, are you arguing about Debian packages with me?
+>>
+>> sparc-utils is part of the *unreleased* distribution because *I*
+>> put it there. *unreleased* is *not* an official part of Debian.
+>>
+>> sparc-utils is *not* part of Debian unstable.
+>>
+>> Adrian
+>>
 > 
-> No, you're the one who is not up the current status quo.
-> 
->> 'prtconf' has been in the sparc-utils package for probably like
->> two decades.
-> 
-> No, it isn't. Debian on sparc does no longer exist and "sparc-utils"
-> is a package with the architectures "sparc" and "sparc64". The former
-> is no longer part of Debian, the latter is part of Debian Ports.
+> Actually, sparc-utils was a part of wheezy/stable before Debian decided
+> to drop the official SPARC port.
 
-If the package got removed from 'main' repository, that's not something
-I did.
+What a relief, some sanity, _THANK_ _YOU_.
