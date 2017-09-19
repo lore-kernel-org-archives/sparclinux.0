@@ -1,26 +1,37 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 22:16:52 +0000
+Date: Tue, 19 Sep 2017 22:25:45 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <55de00ff-5403-339a-73ba-a41ea6b2cfff@physik.fu-berlin.de>
+Message-Id: <9f01d731-fc40-169e-4c24-9b365e9374ec@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/20/2017 12:13 AM, John Paul Adrian Glaubitz wrote:
-> You are aware of the fact that Gentoo is about to completely remove
-> support for sparc these days? [1] You want to just run Wheezy on your
-> boxes then?
+On 09/20/2017 12:15 AM, David Miller wrote:
+> At least it has the packages that should be there by default.
 
-For the record, they already pulled the plug:
+I don't think you really understand why sparc-utils is no longer part
+of Debian unstable. And, as already mentioned, Gentoo has effectively
+killed off sparc support.
 
-> https://gitweb.gentoo.org/repo/gentoo.git/commit/?id=B5901d8f716555a1479f=
-12313a2925fcadd177a9
+Users currently have only three options:
 
---=20
+ * Linux for SPARC
+ * Oracle Linux for SPARC
+ * Debian unstable sparc64
+
+All of these are pure 64-bit builds. There are no more 32-bit SPARC
+distributions left. You can, if you really want to, bootstrap your
+own Debian sparc (32-bit) using rebootstrap [1].
+
+Adrian
+
+> [1] https://wiki.debian.org/HelmutGrohne/rebootstrap
+
+-- 
  .''`.  John Paul Adrian Glaubitz
 : :' :  Debian Developer - glaubitz@debian.org
 `. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
