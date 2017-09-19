@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 06:58:06 +0000
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Tue, 19 Sep 2017 15:55:52 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <a917b765-bc3b-3942-a5a1-6959faa8ebd3@physik.fu-berlin.de>
+Message-Id: <CADxRZqwJDYOPxy-h3G1JNZQEScxE9tNHfrsZC5trSFyfNkjmLA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,39 +10,42 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/19/2017 08:43 AM, Eric Saint Etienne wrote:
-> I am sorry for every Sparc users because it was a chance for them to
-> easily explore and use machine description without having to install
-> an external tool and a scripting language plus dependencies (potentially
-> a lot of dependency). Users may also not know about /dev/mdesc whereas
-> a mere "grep -ri cache /sys" would be fruitful.
+On Mon, Sep 18, 2017 at 7:43 PM, David Miller <davem@davemloft.net> wrote:
+> From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
+> Date: Mon, 18 Sep 2017 15:23:57 +0100
+>
+>> The aim of this patch is to ease browsing mdesc and implement
+>> utilities like lshw. If you look at lshw sources, you'll see that they
+>> make a real huge use of sysfs, the only binary device they use is for
+>> DMI tables (via /dev/dmi if present, or by directly accessing mmap'ed
+>> physical memory otherwise)
+>
+> So you're telling me that there is support for image based handling in
+> the tool for the sake of DMI, so the tool could therefore just as
+> easily handle the current mdesc export format as well.
+>
+>> Also, since mdesc is basically a tree it maps well to a filesystem
+>> structure like sysfs.
+>
+> We don't export identical information two different ways in the kernel.
+>
+> We have /dev/mdesc already.
+>
+> For the other cases, sysfs was done first.  It wasn't duplicating an
+> existing mechanism.
+>
+> I still stand by my decision, sorry.
 
-I agree and I found your argumentation very reasonable and convincing.
+David,
 
-Users are looking for hardware information below /sysfs, not somewhere
-in /dev. /dev would actually be the last location I'd ever expect to
-provide hardware information.
+please, lets not make/introduce another tool for parsing /dev/mdesc,
+it's so easier to use sysfs , instead of using another arch-specific
+(sparc64) tool, like prtconf.
 
-It also shouldn't be necessary to install a special tool to be able
-to parse hardware information. /dev/mdesc sounds like a relict from
-the old Linux days to me which should be superceded by sysfs.
+For example, virt-what, systemd-detect-virt or ansible (facts module,
+virtualization) could simply look for file(s) in mounted sysfs,
+instead of calling another external utility (which should be installed
+before in choosen linux $distribution) or each one writting its own
+internal parser for /dev/mdesc.
 
-Wasn't it a goal to eventually move all system information to sysfs
-and even removing the remains from /proc in the distant future as
-/proc is actually the process filesystem and not for system information?
-
-> Also mdesc is root accessible only. Exposing all or even just a selection
-> of machine description nodes to users via sysfs provides them with the
-> visibility of for instance TLBs and Caches (number, size, and more
-> importantly how they are organized in the processor).
-
-That's even worse. Users should be able to retrieve system information
-without being the root user.
-
-Adrian
-
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Thanks.
