@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 22:09:42 +0000
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Sep 2017 22:12:38 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <37921979-57ce-3417-f458-fdda41c96c24@physik.fu-berlin.de>
+Message-Id: <20170919.151238.1806280768295761383.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,29 +10,53 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/20/2017 12:06 AM, David Miller wrote:
-> Come again?
+From: David Miller <davem@davemloft.net>
+Date: Tue, 19 Sep 2017 15:08:28 -0700 (PDT)
+
+> From: Kjetil Oftedal <oftedal@gmail.com>
+> Date: Wed, 20 Sep 2017 00:03:30 +0200
 > 
-> davem@patience:~/src/GIT/sparc-next$ cat /etc/apt/sources.list
-> # 
+>> On 19/09/2017, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
+>>> On 09/19/2017 10:24 PM, David Miller wrote:
+>>>> davem@patience:~/src/GIT/sparc-next$ dpkg -S /usr/sbin/prtconf
+>>>> sparc-utils: /usr/sbin/prtconf
+>>>>
+>>>> Come again?
+>>>
+>>> David, seriously, are you arguing about Debian packages with me?
+>>>
+>>> sparc-utils is part of the *unreleased* distribution because *I*
+>>> put it there. *unreleased* is *not* an official part of Debian.
+>>>
+>>> sparc-utils is *not* part of Debian unstable.
+>>>
+>>> Adrian
+>>>
+>> 
+>> Actually, sparc-utils was a part of wheezy/stable before Debian decided
+>> to drop the official SPARC port.
 > 
-> # deb cdrom:[Debian GNU/Linux testing _Wheezy_ - Official Snapshot sparc NETINST Binary-1 20121216-21:35]/ wheezy main
+> What a relief, some sanity, _THANK_ _YOU_.
 
-Are you actually being serious. You are talking about something
-that has been completely dead and unsupported for years.
+And btw this really sounds like a _disincentive_ to use the current sparc64
+debian port, if useful utilities are being removed from the primary sparc64
+set of packages like this.
 
-Are you seriously recommending SPARC users to install an ancient
-release of Debian stable?
+I keep hearing about how I am getting in the way of users making use of
+the sparc64 port.
 
-Do you think that people who buy a $100,000 SPARC server nowadays
-install Debian Wheezy on it?
+But honestly I haven't done things like remove core utilities or anything
+like that.
 
-Come, on.
+The worst thing I might have done is given it a lot of bad press because
+I still to this day thing that using a default of 64-bits for all userland
+utilities is a huge mistake.  And that for performance reasons 32-bit
+should be the default, and things like databases and what--have-you should
+be built 64-bit on a case by case basis.
 
-Adrian
+This is why I won't upgrade and I'll keep kicking the tires on my ancient
+debian sparc installs.
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Maybe other people see things the similarly to how I do, and share
+some of my opinions, and that's at least part of the real reason
+sparc64/debian doesn't have a lot of uptake.
