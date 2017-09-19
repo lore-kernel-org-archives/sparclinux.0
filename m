@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 19 Sep 2017 18:44:24 +0000
+From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
+Date: Tue, 19 Sep 2017 19:16:03 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <7b046745-3658-05a1-981a-77708fdde7cd@physik.fu-berlin.de>
+Message-Id: <3e85d485-e4eb-d3f1-8776-a26ddfc79faa@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,30 +10,18 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/19/2017 08:14 PM, David Miller wrote:
->> Does it work without root privileges?
-> 
-> Depends upon what permissions and ownership the administrator decides
-> to set for /dev/mdesc
-> 
-> Which is identical to what you would get with sysfs, "file permissions"
-> 
-> This conversation is going nowhere, can you guys please drop this?
 
-It's not going anywhere because you are not open to discussion. You
-are stuck in your opinion coming from your own personal usecase and
-refuse to accept that other users have different usecases.
+> Not "we", you. You are refusing to make progress and that's frustrating,
+> especially for all the folk from Oracle who are sending in patches all
+> the time.
+Let's keep a cool head here, please. Nobody can and want to force Dave 
+to expose mdesc on sysfs if he doesn't want to.
 
-> We're not exporting the machine desctription in a second way, period.
+At the end of the day, users who want to expose mdesc on sysfs can 
+download and apply the patch since it will be forever available on the 
+sparclinux mailing list archives.
 
-Not "we", you. You are refusing to make progress and that's frustrating,
-especially for all the folk from Oracle who are sending in patches all
-the time.
+Thanks Dave for having spent time considering my request.
 
-Adrian
+-eric
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
