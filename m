@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Sep 2017 18:04:24 +0000
+Date: Tue, 19 Sep 2017 18:07:50 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <20170919.110424.1419250176281651461.davem@davemloft.net>
+Message-Id: <20170919.110750.1287027619002808466.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,17 +10,19 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Tue, 19 Sep 2017 18:55:52 +0300
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Tue, 19 Sep 2017 19:38:38 +0200
 
-> please, lets not make/introduce another tool for parsing /dev/mdesc,
-> it's so easier to use sysfs , instead of using another arch-specific
-> (sparc64) tool, like prtconf.
+> On 09/19/2017 07:32 PM, David Miller wrote:
+>>> Is there anything that prevents us from removing it?
+>> 
+>> Yes, I and others have tools like mdlint that we use every day?!?!
+> 
+> This one? [1]
+> 
+> Otherwise I don't know of any "mdlint" tool. I just know that using
+> sysfs is the standard way of reading information from the kernel these
+> days, on all architectures.
 
-We have /dev/mdesc already, and there is an existing tool, mdlint.
-
-I use it every day.
-
-I'm not suggesting to use anything new, I'm saying use the stuff
-that we have already.
-
+I took the mdlint tool Solaris uses and ported it to build on Linux
+so that I could test and use the /dev/mdesc driver.
