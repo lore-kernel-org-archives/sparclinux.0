@@ -1,73 +1,58 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Mon, 25 Sep 2017 16:48:55 +0000
-Subject: [PATCH v8 4/9] sparc64: Add HV fault type handlers for ADI related faults
-Message-Id: <e6fe27e5382d346bcffba3e01356eae939acae20.1506089472.git.khalid.aziz@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:13 +0000
+Subject: [PATCH v9 11/12] arm64/kasan: use kasan_map_populate()
+Message-Id: <20170920201714.19817-12-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1506089472.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1506089472.git.khalid.aziz@oracle.com>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, rob.gardner@oracle.com, dan.carpenter@oracle.com, Liam.Howlett@oracle.com, steven.sistare@oracle.com, jane.chu@oracle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-ADI (Application Data Integrity) feature on M7 and newer processors
-adds new fault types for hypervisor - Invalid ASI and MCD disabled.
-This patch expands data access exception handler to handle these
-faults.
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+Therefore, we must use a new interface to allocate and map kasan shadow
+memory, that also zeroes memory for us.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 ---
-v7:
-	- new patch split off from patch 4/4 in v6
+ arch/arm64/mm/kasan_init.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
- arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
-
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 0fe0eed3cecb..7775d011691c 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -352,12 +352,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
- 		regs->tpc &= 0xffffffff;
- 		regs->tnpc &= 0xffffffff;
- 	}
--	info.si_signo = SIGSEGV;
-+	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
-+	 * is vectored thorugh data access exception trap with fault type
-+	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
-+	 * Accessing an address with invalid ASI for the address, for
-+	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
-+	 * when TTE.mcd is not set for the VA, is also vectored into
-+	 * kerbel by HV as data access exception with fault type set to
-+	 * HV_FAULT_TYPE_INV_ASI.
-+	 */
- 	info.si_errno = 0;
--	info.si_code = SEGV_MAPERR;
- 	info.si_addr = (void __user *) addr;
- 	info.si_trapno = 0;
--	force_sig_info(SIGSEGV, &info, current);
-+	switch (type) {
-+	case HV_FAULT_TYPE_INV_ASI:
-+		info.si_signo = SIGILL;
-+		info.si_code = ILL_ILLADR;
-+		force_sig_info(SIGILL, &info, current);
-+		break;
-+	case HV_FAULT_TYPE_MCD_DIS:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_ACCADI;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	default:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_MAPERR;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	}
- }
+diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
+index 81f03959a4ab..b6e92cfa3ea3 100644
+--- a/arch/arm64/mm/kasan_init.c
++++ b/arch/arm64/mm/kasan_init.c
+@@ -161,11 +161,11 @@ void __init kasan_init(void)
  
- void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
+ 	clear_pgds(KASAN_SHADOW_START, KASAN_SHADOW_END);
+ 
+-	vmemmap_populate(kimg_shadow_start, kimg_shadow_end,
+-			 pfn_to_nid(virt_to_pfn(lm_alias(_text))));
++	kasan_map_populate(kimg_shadow_start, kimg_shadow_end,
++			   pfn_to_nid(virt_to_pfn(lm_alias(_text))));
+ 
+ 	/*
+-	 * vmemmap_populate() has populated the shadow region that covers the
++	 * kasan_map_populate() has populated the shadow region that covers the
+ 	 * kernel image with SWAPPER_BLOCK_SIZE mappings, so we have to round
+ 	 * the start and end addresses to SWAPPER_BLOCK_SIZE as well, to prevent
+ 	 * kasan_populate_zero_shadow() from replacing the page table entries
+@@ -191,9 +191,9 @@ void __init kasan_init(void)
+ 		if (start >= end)
+ 			break;
+ 
+-		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
+-				(unsigned long)kasan_mem_to_shadow(end),
+-				pfn_to_nid(virt_to_pfn(start)));
++		kasan_map_populate((unsigned long)kasan_mem_to_shadow(start),
++				   (unsigned long)kasan_mem_to_shadow(end),
++				   pfn_to_nid(virt_to_pfn(start)));
+ 	}
+ 
+ 	/*
 -- 
-2.11.0
+2.14.1
 
