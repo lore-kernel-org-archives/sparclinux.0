@@ -1,22 +1,52 @@
-From: resiliency2015@cyberresilience.id
-Date: Fri, 01 Sep 2017 14:08:35 +0000
-Subject: Stop being so freaking plump, you're a total failure
-Message-Id: <C6340047.5125489@cyberresilience.id>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:12 +0000
+Subject: [PATCH v9 10/12] x86/kasan: use kasan_map_populate()
+Message-Id: <20170920201714.19817-11-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-SXQncyB0aW1lIHRvIGZhY2UgdGhlIGZhY3RzOiB5ZWFoLCB5b3UncmUgZmF0Lg0KQWxsIG9mIHlv
-dXIgZnJpZW5kcyBhcmUganVzdCBiZWluZyBwb2xpdGUgd2hlbiB0aGV5IHNheSB5b3UgbG9vayB0
-aGluLg0KSXQgaXMgdGltZSBmb3IgeW91IHRvIHN0b3AgYmVpbmcgc28gZ29kZGFtbiBjaHViYnks
-IHlvdSBuZWVkIHRvIGJlIHNraW5ueSB0byBiZSBkYXRlYWJsZS4NCk5vYm9keSBsaWtlcyBhIGJp
-ZyBleGN1c2UgZm9yIGEgaHVtYW4gYmVpbmcsIHNvIHlvdSBuZWVkIHRvIGV4ZXJjaXNlIGhhcmQg
-dG8gZ2V0IHRoYXQgYmVhY2ggYm9keSBPUiB5b3UgY2FuIHV0aWxpemUgb3VyIHdlaWdodCBsb3Nz
-IG1lZHMgdGhhdCB3aWxsIGFjdHVhbGx5IGhlbHAgeW91IGdldCBmaXQuDQpUaGlzIGlzIGFsbCB1
-cCB0byB5b3UsIHdlJ3JlIGp1c3QgZ29pbmcgdG8gbGVhdmUgdGhpcyBsaW5rIGhlcmUuIA0KVGhp
-cyBpcyB0aGUgVVJMIG9ubHkgYWNjZXNzaWJsZSBmb3IgdGhpcyBJUCwgaXQgd2lsbCBob29rIHlv
-dSB1cCB3aXRoIGEgZnJlZSBzYW1wbGU6IHlvdXIgZHJlYW0gYm9keSBpcyBqdXN0IGEgY2xpY2sg
-YXdheSANCmh0dHA6Ly9nYnRkcXUuY29udGFtaW5hdGVkbWVkaWEueHl6L09TOHhMekl3TVRjN01U
-WTZNRGc2TXpRPQ0K
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
+
+Therefore, we must use a new interface to allocate and map kasan shadow
+memory, that also zeroes memory for us.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+---
+ arch/x86/mm/kasan_init_64.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/arch/x86/mm/kasan_init_64.c b/arch/x86/mm/kasan_init_64.c
+index bc84b73684b7..2db95efd208e 100644
+--- a/arch/x86/mm/kasan_init_64.c
++++ b/arch/x86/mm/kasan_init_64.c
+@@ -23,7 +23,7 @@ static int __init map_range(struct range *range)
+ 	start = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->start));
+ 	end = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->end));
+ 
+-	return vmemmap_populate(start, end, NUMA_NO_NODE);
++	return kasan_map_populate(start, end, NUMA_NO_NODE);
+ }
+ 
+ static void __init clear_pgds(unsigned long start,
+@@ -136,9 +136,9 @@ void __init kasan_init(void)
+ 		kasan_mem_to_shadow((void *)PAGE_OFFSET + MAXMEM),
+ 		kasan_mem_to_shadow((void *)__START_KERNEL_map));
+ 
+-	vmemmap_populate((unsigned long)kasan_mem_to_shadow(_stext),
+-			(unsigned long)kasan_mem_to_shadow(_end),
+-			NUMA_NO_NODE);
++	kasan_map_populate((unsigned long)kasan_mem_to_shadow(_stext),
++			   (unsigned long)kasan_mem_to_shadow(_end),
++			   NUMA_NO_NODE);
+ 
+ 	kasan_populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_END),
+ 			(void *)KASAN_SHADOW_END);
+-- 
+2.14.1
+
