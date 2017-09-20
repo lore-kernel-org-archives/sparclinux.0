@@ -1,87 +1,258 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Wed, 06 Sep 2017 12:28:44 +0000
-Subject: Re: RCU lockup issues when CONFIG_SOFTLOCKUP_DETECTOR=n - any one else seeing this?
-Message-Id: <20170906122844.GA30180@linux.vnet.ibm.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:05 +0000
+Subject: [PATCH v9 03/12] mm: deferred_init_memmap improvements
+Message-Id: <20170920201714.19817-4-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170821160605.5b1cc019@roar.ozlabs.ibm.com>
- <20170821111833.00006753@huawei.com>
- <20170822001928.74f01322@roar.ozlabs.ibm.com>
- <20170821.135504.1392954698746959868.davem@davemloft.net>
- <20170822084911.00000c23@huawei.com>
- <1503391892.3629.28.camel@abdul.in.ibm.com>
- <20170822152637.GA11320@linux.vnet.ibm.com>
-In-Reply-To: <20170822152637.GA11320@linux.vnet.ibm.com>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 22, 2017 at 08:26:37AM -0700, Paul E. McKenney wrote:
-> On Tue, Aug 22, 2017 at 02:21:32PM +0530, Abdul Haleem wrote:
-> > On Tue, 2017-08-22 at 08:49 +0100, Jonathan Cameron wrote:
+This patch fixes two issues in deferred_init_memmap
 
-[ . . . ]
+==In deferred_init_memmap() where all deferred struct pages are initialized
+we have a check like this:
 
-> > No more RCU stalls on PowerPC, system is clean when idle or with some
-> > test runs.
-> > 
-> > Thank you all for your time and efforts in fixing this.
-> > 
-> > Reported-and-Tested-by: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
-> 
-> I am still seeing failures, but then again I am running rcutorture with
-> lots of CPU hotplug activity.  So I am probably seeing some other bug,
-> though it still looks a lot like a lost timer.
+if (page->flags) {
+	VM_BUG_ON(page_zone(page) != zone);
+	goto free_range;
+}
 
-So one problem appears to be a timing-related deadlock between RCU and
-timers.  The way that this can happen is that the outgoing CPU goes
-offline (as in cpuhp_report_idle_dead() invoked from do_idle()) with
-one of RCU's grace-period kthread's timers queued.  Now, if someone
-waits for a grace period, either directly or indirectly, in a way that
-blocks the hotplug notifiers, execution will never reach timers_dead_cpu(),
-which means that the grace-period kthread will never wake, which will
-mean that the grace period will never complete.  Classic deadlock.
+This way we are checking if the current deferred page has already been
+initialized. It works, because memory for struct pages has been zeroed, and
+the only way flags are not zero if it went through __init_single_page()
+before.  But, once we change the current behavior and won't zero the memory
+in memblock allocator, we cannot trust anything inside "struct page"es
+until they are initialized. This patch fixes this.
 
-I currently have an extremely ugly workaround for this deadlock, which
-is to periodically and (usually) redundantly wake up all the RCU
-grace-period kthreads from the scheduling-interrupt handler.  This is
-of course completely inappropriate for mainline, but it does reliably
-prevent the "kthread starved for %ld jiffies!" type of RCU CPU stall
-warning that I would otherwise see.
+The deferred_init_memmap() is re-written to loop through only free memory
+ranges provided by memblock.
 
-To mainline this, one approach would be to make the timers switch to
-add_timer_on() to a surviving CPU once the offlining process starts.
-Alternatively, I suppose that RCU could do the redundant-wakeup kludge,
-but with checks to prevent it from happening unless (1) there is a CPU
-in the process of going offline (2) there is an RCU grace period in
-progress, and (3) the RCU grace period kthread has been blocked for
-(say) three times longer than it should have.
+==This patch fixes another existing issue on systems that have holes in
+zones i.e CONFIG_HOLES_IN_ZONE is defined.
 
-Unfortunately, this is not sufficient to make rcutorture run reliably,
-though it does help, which is of course to say that it makes debugging
-slower.  ;-)
+In for_each_mem_pfn_range() we have code like this:
 
-What happens now is that random rcutorture kthreads will hang waiting for
-timeouts to complete.  This confused me for awhile because I expected
-that the timeouts would be delayed during offline processing, but that
-my crude deadlock-resolution approach would eventually get things going.
-My current suspicion is that the problem is due to a potential delay
-between the time an outgoing CPU hits cpuhp_report_idle_dead() and the
-timers get migrated from timers_dead_cpu().  This means that the CPU
-adopting the timers might be a few ticks ahead of where the outgoing CPU
-last processed timers.  My current guess is that any timers queued in
-intervening indexes are going to wait one good long time.  And I don't see
-any code in the timers_dead_cpu() that would account for this possibility,
-though I of course cannot claim to fully understand this code..
+if (!pfn_valid_within(pfn)
+	goto free_range;
 
-Is this plausible, or am I confused?  (Either way, -something- besides
-just me is rather thoroughly confused!)
+Note: 'page' is not set to NULL and is not incremented but 'pfn' advances.
+Thus means if deferred struct pages are enabled on systems with these kind
+of holes, linux would get memory corruptions. I have fixed this issue by
+defining a new macro that performs all the necessary operations when we
+free the current set of pages.
 
-If this is plausible, my guess is that timers_dead_cpu() needs to check
-for mismatched indexes (in timer->flags?) and force any intervening
-timers to expire if so.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+---
+ mm/page_alloc.c | 161 +++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 78 insertions(+), 83 deletions(-)
 
-Thoughts?
-
-							Thanx, Paul
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index c841af88836a..d132c801d2c1 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1410,14 +1410,17 @@ void clear_zone_contiguous(struct zone *zone)
+ }
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-static void __init deferred_free_range(struct page *page,
+-					unsigned long pfn, int nr_pages)
++static void __init deferred_free_range(unsigned long pfn,
++				       unsigned long nr_pages)
+ {
+-	int i;
++	struct page *page;
++	unsigned long i;
+ 
+-	if (!page)
++	if (!nr_pages)
+ 		return;
+ 
++	page = pfn_to_page(pfn);
++
+ 	/* Free a large naturally-aligned chunk if possible */
+ 	if (nr_pages = pageblock_nr_pages &&
+ 	    (pfn & (pageblock_nr_pages - 1)) = 0) {
+@@ -1443,19 +1446,82 @@ static inline void __init pgdat_init_report_one_done(void)
+ 		complete(&pgdat_init_all_done_comp);
+ }
+ 
++#define DEFERRED_FREE(nr_free, free_base_pfn, page)			\
++({									\
++	unsigned long nr = (nr_free);					\
++									\
++	deferred_free_range((free_base_pfn), (nr));			\
++	(free_base_pfn) = 0;						\
++	(nr_free) = 0;							\
++	page = NULL;							\
++	nr;								\
++})
++
++static unsigned long deferred_init_range(int nid, int zid, unsigned long pfn,
++					 unsigned long end_pfn)
++{
++	struct mminit_pfnnid_cache nid_init_state = { };
++	unsigned long nr_pgmask = pageblock_nr_pages - 1;
++	unsigned long free_base_pfn = 0;
++	unsigned long nr_pages = 0;
++	unsigned long nr_free = 0;
++	struct page *page = NULL;
++
++	for (; pfn < end_pfn; pfn++) {
++		/*
++		 * First we check if pfn is valid on architectures where it is
++		 * possible to have holes within pageblock_nr_pages. On systems
++		 * where it is not possible, this function is optimized out.
++		 *
++		 * Then, we check if a current large page is valid by only
++		 * checking the validity of the head pfn.
++		 *
++		 * meminit_pfn_in_nid is checked on systems where pfns can
++		 * interleave within a node: a pfn is between start and end
++		 * of a node, but does not belong to this memory node.
++		 *
++		 * Finally, we minimize pfn page lookups and scheduler checks by
++		 * performing it only once every pageblock_nr_pages.
++		 */
++		if (!pfn_valid_within(pfn)) {
++			nr_pages += DEFERRED_FREE(nr_free, free_base_pfn, page);
++		} else if (!(pfn & nr_pgmask) && !pfn_valid(pfn)) {
++			nr_pages += DEFERRED_FREE(nr_free, free_base_pfn, page);
++		} else if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state)) {
++			nr_pages += DEFERRED_FREE(nr_free, free_base_pfn, page);
++		} else if (page && (pfn & nr_pgmask)) {
++			page++;
++			__init_single_page(page, pfn, zid, nid);
++			nr_free++;
++		} else {
++			nr_pages += DEFERRED_FREE(nr_free, free_base_pfn, page);
++			page = pfn_to_page(pfn);
++			__init_single_page(page, pfn, zid, nid);
++			free_base_pfn = pfn;
++			nr_free = 1;
++			cond_resched();
++		}
++	}
++	/* Free the last block of pages to allocator */
++	nr_pages += DEFERRED_FREE(nr_free, free_base_pfn, page);
++
++	return nr_pages;
++}
++
+ /* Initialise remaining memory on a node */
+ static int __init deferred_init_memmap(void *data)
+ {
+ 	pg_data_t *pgdat = data;
+ 	int nid = pgdat->node_id;
+-	struct mminit_pfnnid_cache nid_init_state = { };
+ 	unsigned long start = jiffies;
+ 	unsigned long nr_pages = 0;
+-	unsigned long walk_start, walk_end;
+-	int i, zid;
++	unsigned long spfn, epfn;
++	phys_addr_t spa, epa;
++	int zid;
+ 	struct zone *zone;
+ 	unsigned long first_init_pfn = pgdat->first_deferred_pfn;
+ 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
++	u64 i;
+ 
+ 	if (first_init_pfn = ULONG_MAX) {
+ 		pgdat_init_report_one_done();
+@@ -1477,83 +1543,12 @@ static int __init deferred_init_memmap(void *data)
+ 		if (first_init_pfn < zone_end_pfn(zone))
+ 			break;
+ 	}
++	first_init_pfn = max(zone->zone_start_pfn, first_init_pfn);
+ 
+-	for_each_mem_pfn_range(i, nid, &walk_start, &walk_end, NULL) {
+-		unsigned long pfn, end_pfn;
+-		struct page *page = NULL;
+-		struct page *free_base_page = NULL;
+-		unsigned long free_base_pfn = 0;
+-		int nr_to_free = 0;
+-
+-		end_pfn = min(walk_end, zone_end_pfn(zone));
+-		pfn = first_init_pfn;
+-		if (pfn < walk_start)
+-			pfn = walk_start;
+-		if (pfn < zone->zone_start_pfn)
+-			pfn = zone->zone_start_pfn;
+-
+-		for (; pfn < end_pfn; pfn++) {
+-			if (!pfn_valid_within(pfn))
+-				goto free_range;
+-
+-			/*
+-			 * Ensure pfn_valid is checked every
+-			 * pageblock_nr_pages for memory holes
+-			 */
+-			if ((pfn & (pageblock_nr_pages - 1)) = 0) {
+-				if (!pfn_valid(pfn)) {
+-					page = NULL;
+-					goto free_range;
+-				}
+-			}
+-
+-			if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state)) {
+-				page = NULL;
+-				goto free_range;
+-			}
+-
+-			/* Minimise pfn page lookups and scheduler checks */
+-			if (page && (pfn & (pageblock_nr_pages - 1)) != 0) {
+-				page++;
+-			} else {
+-				nr_pages += nr_to_free;
+-				deferred_free_range(free_base_page,
+-						free_base_pfn, nr_to_free);
+-				free_base_page = NULL;
+-				free_base_pfn = nr_to_free = 0;
+-
+-				page = pfn_to_page(pfn);
+-				cond_resched();
+-			}
+-
+-			if (page->flags) {
+-				VM_BUG_ON(page_zone(page) != zone);
+-				goto free_range;
+-			}
+-
+-			__init_single_page(page, pfn, zid, nid);
+-			if (!free_base_page) {
+-				free_base_page = page;
+-				free_base_pfn = pfn;
+-				nr_to_free = 0;
+-			}
+-			nr_to_free++;
+-
+-			/* Where possible, batch up pages for a single free */
+-			continue;
+-free_range:
+-			/* Free the current block of pages to allocator */
+-			nr_pages += nr_to_free;
+-			deferred_free_range(free_base_page, free_base_pfn,
+-								nr_to_free);
+-			free_base_page = NULL;
+-			free_base_pfn = nr_to_free = 0;
+-		}
+-		/* Free the last block of pages to allocator */
+-		nr_pages += nr_to_free;
+-		deferred_free_range(free_base_page, free_base_pfn, nr_to_free);
+-
+-		first_init_pfn = max(end_pfn, first_init_pfn);
++	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
++		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
++		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
++		nr_pages += deferred_init_range(nid, zid, spfn, epfn);
+ 	}
+ 
+ 	/* Sanity check that the next zone really is unpopulated */
+-- 
+2.14.1
 
