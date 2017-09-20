@@ -1,50 +1,131 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Thu, 21 Sep 2017 22:18:42 +0000
-Subject: [PATCH 0/2] Driver for Oracle Data Analytics Accelerator
-Message-Id: <1506032324-14146-1-git-send-email-rob.gardner@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:11 +0000
+Subject: [PATCH v9 09/12] mm/kasan: kasan specific map populate function
+Message-Id: <20170920201714.19817-10-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Recent Oracle Sparc processors (M7 and M8) have a coprocessor which
-lives on the cpu chip. The coprocessor is called DAX (Data Analytics
-Accelerator), and is controlled via sun4v hypercalls. The programmatic
-interface to the coprocessor is somewhat unorthodox, and is documented
-in detail in an included file. The driver API is described in the
-accompanying Documentation file. Also included is an example program
-that shows how the raw driver API is used, though it is expected that
-general use of the coprocessor will go through the companion userspace
-library, which has been published under UPL at:
-	  https://oss.oracle.com/git/gitweb.cgi?p=libdax.git
-This library is a comprehensive collection of higher level functions
-along with tests and documentation. The format of the command control
-blocks is described in this library as well. Though the primary
-purpose of the coprocessor is to accelerate data analytics operations,
-it may be used for any suitable purpose.
+During early boot, kasan uses vmemmap_populate() to establish its shadow
+memory. But, that interface is intended for struct pages use.
 
-The coprocessor may also be used by internal kernel code for any
-purpose for which one sees fit. Example code to do this is also
-included. Those who wish to use the coprocessor will need to construct
-their own command blocks to submit, as no higher level services are
-provided. The library contains numerous code examples to assist in
-this, and the included Hypervisor API document provides a complete
-specification of all the commands and parameters that may be used.
+Because of the current project, vmemmap won't be zeroed during allocation,
+but kasan expects that memory to be zeroed. We are adding a new
+kasan_map_populate() function to resolve this difference.
 
-The machine descriptor identifies the device as "dax", and all
-internal documentation refers to it as "dax". But since the term "dax"
-already has other meanings and uses in Linux, we call this driver
-"oradax".
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+---
+ arch/arm64/include/asm/pgtable.h |  3 ++
+ include/linux/kasan.h            |  2 ++
+ mm/kasan/kasan_init.c            | 67 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 72 insertions(+)
 
-Right now we've got the main driver source file in drivers/sbus/char,
-which seems to be where Sparc specific drivers go, but seeing as
-"sbus" is a very old Sparc feature and not used anymore, it might
-perhaps be better placed elsewhere.
+diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+index bc4e92337d16..d89713f04354 100644
+--- a/arch/arm64/include/asm/pgtable.h
++++ b/arch/arm64/include/asm/pgtable.h
+@@ -381,6 +381,9 @@ extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+ 				 PUD_TYPE_TABLE)
+ #endif
+ 
++#define pmd_large(pmd)		pmd_sect(pmd)
++#define pud_large(pud)		pud_sect(pud)
++
+ static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
+ {
+ 	*pmdp = pmd;
+diff --git a/include/linux/kasan.h b/include/linux/kasan.h
+index a5c7046f26b4..7e13df1722c2 100644
+--- a/include/linux/kasan.h
++++ b/include/linux/kasan.h
+@@ -78,6 +78,8 @@ size_t kasan_metadata_size(struct kmem_cache *cache);
+ 
+ bool kasan_save_enable_multi_shot(void);
+ void kasan_restore_multi_shot(bool enabled);
++int __meminit kasan_map_populate(unsigned long start, unsigned long end,
++				 int node);
+ 
+ #else /* CONFIG_KASAN */
+ 
+diff --git a/mm/kasan/kasan_init.c b/mm/kasan/kasan_init.c
+index 554e4c0f23a2..57a973f05f63 100644
+--- a/mm/kasan/kasan_init.c
++++ b/mm/kasan/kasan_init.c
+@@ -197,3 +197,70 @@ void __init kasan_populate_zero_shadow(const void *shadow_start,
+ 		zero_p4d_populate(pgd, addr, next);
+ 	} while (pgd++, addr = next, addr != end);
+ }
++
++/* Creates mappings for kasan during early boot. The mapped memory is zeroed */
++int __meminit kasan_map_populate(unsigned long start, unsigned long end,
++				 int node)
++{
++	unsigned long addr, pfn, next;
++	unsigned long long size;
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	int ret;
++
++	ret = vmemmap_populate(start, end, node);
++	/*
++	 * We might have partially populated memory, so check for no entries,
++	 * and zero only those that actually exist.
++	 */
++	for (addr = start; addr < end; addr = next) {
++		pgd = pgd_offset_k(addr);
++		if (pgd_none(*pgd)) {
++			next = pgd_addr_end(addr, end);
++			continue;
++		}
++
++		p4d = p4d_offset(pgd, addr);
++		if (p4d_none(*p4d)) {
++			next = p4d_addr_end(addr, end);
++			continue;
++		}
++
++		pud = pud_offset(p4d, addr);
++		if (pud_none(*pud)) {
++			next = pud_addr_end(addr, end);
++			continue;
++		}
++		if (pud_large(*pud)) {
++			/* This is PUD size page */
++			next = pud_addr_end(addr, end);
++			size = PUD_SIZE;
++			pfn = pud_pfn(*pud);
++		} else {
++			pmd = pmd_offset(pud, addr);
++			if (pmd_none(*pmd)) {
++				next = pmd_addr_end(addr, end);
++				continue;
++			}
++			if (pmd_large(*pmd)) {
++				/* This is PMD size page */
++				next = pmd_addr_end(addr, end);
++				size = PMD_SIZE;
++				pfn = pmd_pfn(*pmd);
++			} else {
++				pte = pte_offset_kernel(pmd, addr);
++				next = addr + PAGE_SIZE;
++				if (pte_none(*pte))
++					continue;
++				/* This is base size page */
++				size = PAGE_SIZE;
++				pfn = pte_pfn(*pte);
++			}
++		}
++		memset(phys_to_virt(PFN_PHYS(pfn)), 0, size);
++	}
++	return ret;
++}
+-- 
+2.14.1
 
-Any and all feedback welcome and appreciated.
-
-Thanks,
-Rob Gardner
-Sanath Kumar
-Jonathan Helman
