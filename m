@@ -1,7 +1,7 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 20 Sep 2017 20:17:11 +0000
-Subject: [PATCH v9 09/12] mm/kasan: kasan specific map populate function
-Message-Id: <20170920201714.19817-10-pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:10 +0000
+Subject: [PATCH v9 08/12] mm: zero reserved and unavailable struct pages
+Message-Id: <20170920201714.19817-9-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
@@ -10,122 +10,134 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-During early boot, kasan uses vmemmap_populate() to establish its shadow
-memory. But, that interface is intended for struct pages use.
+Some memory is reserved but unavailable: not present in memblock.memory
+(because not backed by physical pages), but present in memblock.reserved.
+Such memory has backing struct pages, but they are not initialized by going
+through __init_single_page().
 
-Because of the current project, vmemmap won't be zeroed during allocation,
-but kasan expects that memory to be zeroed. We are adding a new
-kasan_map_populate() function to resolve this difference.
+In some cases these struct pages are accessed even if they do not contain
+any data. One example is page_to_pfn() might access page->flags if this is
+where section information is stored (CONFIG_SPARSEMEM,
+SECTION_IN_PAGE_FLAGS).
+
+Since, struct pages are zeroed in __init_single_page(), and not during
+allocation time, we must zero such struct pages explicitly.
+
+The patch involves adding a new memblock iterator:
+	for_each_resv_unavail_range(i, p_start, p_end)
+
+Which iterates through reserved && !memory lists, and we zero struct pages
+explicitly by calling mm_zero_struct_page().
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
 ---
- arch/arm64/include/asm/pgtable.h |  3 ++
- include/linux/kasan.h            |  2 ++
- mm/kasan/kasan_init.c            | 67 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 72 insertions(+)
+ include/linux/memblock.h | 16 ++++++++++++++++
+ include/linux/mm.h       |  6 ++++++
+ mm/page_alloc.c          | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 52 insertions(+)
 
-diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-index bc4e92337d16..d89713f04354 100644
---- a/arch/arm64/include/asm/pgtable.h
-+++ b/arch/arm64/include/asm/pgtable.h
-@@ -381,6 +381,9 @@ extern pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 				 PUD_TYPE_TABLE)
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index bae11c7e7bf3..bdd4268f9323 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -237,6 +237,22 @@ unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
+ 	for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved,	\
+ 			       nid, flags, p_start, p_end, p_nid)
+ 
++/**
++ * for_each_resv_unavail_range - iterate through reserved and unavailable memory
++ * @i: u64 used as loop variable
++ * @flags: pick from blocks based on memory attributes
++ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
++ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
++ *
++ * Walks over unavailabled but reserved (reserved && !memory) areas of memblock.
++ * Available as soon as memblock is initialized.
++ * Note: because this memory does not belong to any physical node, flags and
++ * nid arguments do not make sense and thus not exported as arguments.
++ */
++#define for_each_resv_unavail_range(i, p_start, p_end)			\
++	for_each_mem_range(i, &memblock.reserved, &memblock.memory,	\
++			   NUMA_NO_NODE, MEMBLOCK_NONE, p_start, p_end, NULL)
++
+ static inline void memblock_set_region_flags(struct memblock_region *r,
+ 					     unsigned long flags)
+ {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 50b74d628243..a7bba4ce79ba 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2010,6 +2010,12 @@ extern int __meminit __early_pfn_to_nid(unsigned long pfn,
+ 					struct mminit_pfnnid_cache *state);
  #endif
  
-+#define pmd_large(pmd)		pmd_sect(pmd)
-+#define pud_large(pud)		pud_sect(pud)
++#ifdef CONFIG_HAVE_MEMBLOCK
++void zero_resv_unavail(void);
++#else
++static inline void zero_resv_unavail(void) {}
++#endif
 +
- static inline void set_pmd(pmd_t *pmdp, pmd_t pmd)
- {
- 	*pmdp = pmd;
-diff --git a/include/linux/kasan.h b/include/linux/kasan.h
-index a5c7046f26b4..7e13df1722c2 100644
---- a/include/linux/kasan.h
-+++ b/include/linux/kasan.h
-@@ -78,6 +78,8 @@ size_t kasan_metadata_size(struct kmem_cache *cache);
- 
- bool kasan_save_enable_multi_shot(void);
- void kasan_restore_multi_shot(bool enabled);
-+int __meminit kasan_map_populate(unsigned long start, unsigned long end,
-+				 int node);
- 
- #else /* CONFIG_KASAN */
- 
-diff --git a/mm/kasan/kasan_init.c b/mm/kasan/kasan_init.c
-index 554e4c0f23a2..57a973f05f63 100644
---- a/mm/kasan/kasan_init.c
-+++ b/mm/kasan/kasan_init.c
-@@ -197,3 +197,70 @@ void __init kasan_populate_zero_shadow(const void *shadow_start,
- 		zero_p4d_populate(pgd, addr, next);
- 	} while (pgd++, addr = next, addr != end);
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+ extern void memmap_init_zone(unsigned long, int, unsigned long,
+ 				unsigned long, enum memmap_context);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 4b630ee91430..1d38d391dffd 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6202,6 +6202,34 @@ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
+ 	free_area_init_core(pgdat);
  }
-+
-+/* Creates mappings for kasan during early boot. The mapped memory is zeroed */
-+int __meminit kasan_map_populate(unsigned long start, unsigned long end,
-+				 int node)
+ 
++#ifdef CONFIG_HAVE_MEMBLOCK
++/*
++ * Only struct pages that are backed by physical memory are zeroed and
++ * initialized by going through __init_single_page(). But, there are some
++ * struct pages which are reserved in memblock allocator and their fields
++ * may be accessed (for example page_to_pfn() on some configuration accesses
++ * flags). We must explicitly zero those struct pages.
++ */
++void __paginginit zero_resv_unavail(void)
 +{
-+	unsigned long addr, pfn, next;
-+	unsigned long long size;
-+	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	int ret;
++	phys_addr_t start, end;
++	unsigned long pfn;
++	u64 i, pgcnt;
 +
-+	ret = vmemmap_populate(start, end, node);
-+	/*
-+	 * We might have partially populated memory, so check for no entries,
-+	 * and zero only those that actually exist.
++	/* Loop through ranges that are reserved, but do not have reported
++	 * physical memory backing.
 +	 */
-+	for (addr = start; addr < end; addr = next) {
-+		pgd = pgd_offset_k(addr);
-+		if (pgd_none(*pgd)) {
-+			next = pgd_addr_end(addr, end);
-+			continue;
++	pgcnt = 0;
++	for_each_resv_unavail_range(i, &start, &end) {
++		for (pfn = PFN_DOWN(start); pfn < PFN_UP(end); pfn++) {
++			mm_zero_struct_page(pfn_to_page(pfn));
++			pgcnt++;
 +		}
-+
-+		p4d = p4d_offset(pgd, addr);
-+		if (p4d_none(*p4d)) {
-+			next = p4d_addr_end(addr, end);
-+			continue;
-+		}
-+
-+		pud = pud_offset(p4d, addr);
-+		if (pud_none(*pud)) {
-+			next = pud_addr_end(addr, end);
-+			continue;
-+		}
-+		if (pud_large(*pud)) {
-+			/* This is PUD size page */
-+			next = pud_addr_end(addr, end);
-+			size = PUD_SIZE;
-+			pfn = pud_pfn(*pud);
-+		} else {
-+			pmd = pmd_offset(pud, addr);
-+			if (pmd_none(*pmd)) {
-+				next = pmd_addr_end(addr, end);
-+				continue;
-+			}
-+			if (pmd_large(*pmd)) {
-+				/* This is PMD size page */
-+				next = pmd_addr_end(addr, end);
-+				size = PMD_SIZE;
-+				pfn = pmd_pfn(*pmd);
-+			} else {
-+				pte = pte_offset_kernel(pmd, addr);
-+				next = addr + PAGE_SIZE;
-+				if (pte_none(*pte))
-+					continue;
-+				/* This is base size page */
-+				size = PAGE_SIZE;
-+				pfn = pte_pfn(*pte);
-+			}
-+		}
-+		memset(phys_to_virt(PFN_PHYS(pfn)), 0, size);
 +	}
-+	return ret;
++	pr_info("Reserved but unavailable: %lld pages", pgcnt);
 +}
++#endif /* CONFIG_HAVE_MEMBLOCK */
++
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 
+ #if MAX_NUMNODES > 1
+@@ -6625,6 +6653,7 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+ 			node_set_state(nid, N_MEMORY);
+ 		check_for_memory(pgdat, nid);
+ 	}
++	zero_resv_unavail();
+ }
+ 
+ static int __init cmdline_parse_core(char *p, unsigned long *core)
+@@ -6788,6 +6817,7 @@ void __init free_area_init(unsigned long *zones_size)
+ {
+ 	free_area_init_node(0, zones_size,
+ 			__pa(PAGE_OFFSET) >> PAGE_SHIFT, NULL);
++	zero_resv_unavail();
+ }
+ 
+ static int page_alloc_cpu_dead(unsigned int cpu)
 -- 
 2.14.1
 
