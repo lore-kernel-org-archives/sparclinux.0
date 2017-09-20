@@ -1,23 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 27 Sep 2017 22:10:20 +0000
-Subject: Re: [PATCH v2 2/2] sparc64: Use lzcnt instruction for fls and __fls
-Message-Id: <20170927.151020.2182569060914905496.davem@davemloft.net>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Wed, 20 Sep 2017 20:17:06 +0000
+Subject: [PATCH v9 04/12] sparc64: simplify vmemmap_populate
+Message-Id: <20170920201714.19817-5-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1506540326-9604-3-git-send-email-vijay.ac.kumar@oracle.com>
-        <20170927195637.GB15193@ravnborg.org>
-        <9DB110D2-67D6-4CAA-8C14-C3AF995D9711@oracle.com>
-In-Reply-To: <9DB110D2-67D6-4CAA-8C14-C3AF995D9711@oracle.com>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: anthony.yznaga@oracle.com
-Cc: sam@ravnborg.org, vijay.ac.kumar@oracle.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com
+To: linux-arm-kernel@lists.infradead.org
 
-RnJvbTogQW50aG9ueSBZem5hZ2EgPGFudGhvbnkueXpuYWdhQG9yYWNsZS5jb20+DQpEYXRlOiBX
-ZWQsIDI3IFNlcCAyMDE3IDE0OjQ1OjM0IC0wNzAwDQoNCj4gVmlqYXksDQo+IE9sZGVyIGFzc2Vt
-YmxlcnMgbWF5IG5vdCBzdXBwb3J0IHRoaXMgZmxhZyBzbyB5b3WibGwgbmVlZCB0bw0KPiBoYXJk
-Y29kZSB0aGUgbHpjbnQgaW5zdHJ1Y3Rpb25zIHVzaW5nIC53b3JkIGRpcmVjdGl2ZXMuDQoNClJp
-Z2h0LCBvbGRlciBiaW51dGlscyBkbyBub3Qgc3VwcG9ydCB0aGUgVDQgaW5zdHJ1Y3Rpb25zLg0K
-DQpUaGlzIGlzIHdoeSB3ZSBoYXJkY29kZSB0aGUgb3Bjb2RlcyBmb3IgYWxsIG9mIHRoZSBjcnlw
-dG8NCmluc3RydWN0aW9ucyB1c2VkIHVuZGVyIGFyY2gvc3BhcmM2NC9jcnlwdG8vLCBmb3IgZXhh
-bXBsZS4NCg0K
+Remove duplicating code by using common functions
+vmemmap_pud_populate and vmemmap_pgd_populate.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/mm/init_64.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
+
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 310c6754bcaa..99aea4d15a5f 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2651,30 +2651,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 	vstart = vstart & PMD_MASK;
+ 	vend = ALIGN(vend, PMD_SIZE);
+ 	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = pgd_offset_k(vstart);
++		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+ 		unsigned long pte;
+ 		pud_t *pud;
+ 		pmd_t *pmd;
+ 
+-		if (pgd_none(*pgd)) {
+-			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
++		if (!pgd)
++			return -ENOMEM;
+ 
+-			if (!new)
+-				return -ENOMEM;
+-			pgd_populate(&init_mm, pgd, new);
+-		}
+-
+-		pud = pud_offset(pgd, vstart);
+-		if (pud_none(*pud)) {
+-			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
+-
+-			if (!new)
+-				return -ENOMEM;
+-			pud_populate(&init_mm, pud, new);
+-		}
++		pud = vmemmap_pud_populate(pgd, vstart, node);
++		if (!pud)
++			return -ENOMEM;
+ 
+ 		pmd = pmd_offset(pud, vstart);
+-
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
+-- 
+2.14.1
+
