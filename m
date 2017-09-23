@@ -1,7 +1,7 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Sat, 23 Sep 2017 06:14:41 +0000
+From: David Miller <davem@davemloft.net>
+Date: Sat, 23 Sep 2017 16:53:28 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <476d58dd-2bf5-0b3e-dc4e-83cc8b1a188f@physik.fu-berlin.de>
+Message-Id: <20170923.095328.1477618247086498374.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,22 +10,31 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On 09/23/2017 03:35 AM, David Miller wrote:
-> It was part of the opensolaris sources, I ported it locally myself
-> so that it would build and work on Linux.
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Sat, 23 Sep 2017 08:14:41 +0200
+
+> On 09/23/2017 03:35 AM, David Miller wrote:
+>> It was part of the opensolaris sources, I ported it locally myself
+>> so that it would build and work on Linux.
+>> 
+>> I do not know where you can download it, and I'm probably not allowed
+>> to redistribute my modified version of the sources.
 > 
-> I do not know where you can download it, and I'm probably not allowed
-> to redistribute my modified version of the sources.
+> So, you are eagerly defending the use of /dev/mdesc and claim there is
+> no need for anyone to have a sysfs interface because people can use tools
+> like mdlint only to disclose later that mdlint not available anywhere
+> because it is effectively proprietary.
+> 
+> OK.
 
-So, you are eagerly defending the use of /dev/mdesc and claim there is
-no need for anyone to have a sysfs interface because people can use tools
-like mdlint only to disclose later that mdlint not available anywhere
-because it is effectively proprietary.
+The tool is quite easy to write.  Would you like me to write such a
+tool in a day or two?  It would look very similar to what the mdesc
+sysfs kernel patch looked like, in fact much of the code would look
+identical.
 
-OK.
+The problem with the Linux/sparc port is resources, I'm the only
+maintainer and I devote all of the spare time I have for kernel patch
+review.
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+I know you really want to prove me wrong, and that this is very
+important to you for some reason.
