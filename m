@@ -1,7 +1,7 @@
-From: Wim Coekaerts <wim.coekaerts@oracle.com>
-Date: Sun, 24 Sep 2017 16:23:27 +0000
+From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
+Date: Sun, 24 Sep 2017 20:54:03 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <59C7DBFF.2010904@oracle.com>
+Message-Id: <56412167-60bd-4b2b-939d-84994ba9364a@default>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,35 +10,23 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Let me dig up the source and see.
 
-On 9/22/17, 6:35 PM, David Miller wrote:
-> From: Anatoly Pugachev <matorola@gmail.com>
-> Date: Fri, 22 Sep 2017 21:40:42 +0300
->
->> On Wed, Sep 20, 2017 at 12:24 AM, Anatoly Pugachev <matorola@gmail.com> wrote:
->>> On Tue, Sep 19, 2017 at 11:29 PM, David Miller <davem@davemloft.net> wrote:
->>>> 'prtconf' has been in the sparc-utils package for probably like
->>>> two decades.
->>> By the way, David, what is mdlint you mentioned earlier? I'm surprised
->>> to hear about it for the first time in my sparc linux adventure.
->>> Google seem doesn't know anything about it, and I failed to find it
->>> with "mdlint linux sparc" / "linux sparc wiki mdlint"
->>> Solaris does not have it (being I'm only 10 years with solaris
->>> starting from version 9).
->>> Why don't we have it in sparc-utils along with prtconf and eeprom?
->> David,
->>
->> is it possible to download mdlint somewhere ?
-> It was part of the opensolaris sources, I ported it locally myself
-> so that it would build and work on Linux.
->
-> I do not know where you can download it, and I'm probably not allowed
-> to redistribute my modified version of the sources.
->
-> Sorry.
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The problem with the Linux/sparc port is resources, I'm the only
+> maintainer and I devote all of the spare time I have for kernel patch
+> review.
 
+Maybe it does have something to do with being maintainer of so many subsystems:
+- Sparc arch
+- Sparc drivers
+- General Networking
+- IPSEC
+- Networking IPv4/IPv6
+- Crypto API
+- Kernel probes
+- IDE subsystem
+
+in addition to your daily job and having a life.
+
+I'd be overloaded with only one of these subsystem to maintain, so I easily imagine that you've got very little time to devote/spare to Sparc.
+
+-eric
