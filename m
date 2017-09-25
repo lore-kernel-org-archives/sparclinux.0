@@ -1,31 +1,62 @@
-From: Sam Rasheed-Hiscoke <Sam.Rasheed-Hiscoke@acgedu.com>
-Date: Fri, 08 Sep 2017 16:11:24 +0000
-Subject: RE: Outlook Web app for Staff
-Message-Id: <7C8A9AB98AD5004F81C914D1E66C1472E2AA98C5@HAVANA.acg.ac.nz>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Mon, 25 Sep 2017 16:48:59 +0000
+Subject: [PATCH v8 8/9] mm: Clear arch specific VM flags on protection change
+Message-Id: <9297528d3184e695e98129f4362a8f399b5783cf.1506089472.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1506089472.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1506089472.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, davem@davemloft.net, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, lstoakes@gmail.com, dave.jiang@intel.com, willy@infradead.org, hughd@google.com, ying.huang@intel.com, n-horiguchi@ah.jp.nec.com, heiko.carstens@de.ibm.com, mgorman@suse.de, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpGcm9tOiBTYW0gUmFzaGVlZC1IaXNj
-b2tlClNlbnQ6IFNhdHVyZGF5LCA5IFNlcHRlbWJlciAyMDE3IDI6MDAgYS5tLgpUbzogU2FtIFJh
-c2hlZWQtSGlzY29rZQpTdWJqZWN0OiBPdXRsb29rIFdlYiBhcHAgZm9yIFN0YWZmCgpXZWxjb21l
-IHRvIHRoZSBuZXcgb3V0bG9vayB3ZWIgYXBwIGZvciBTdGFmZgoKVGhlIG5ldyBPdXRsb29rIFdl
-YiBhcHAgZm9yIFN0YWZmIGlzIHRoZSBuZXcgaG9tZSBmb3Igb25saW5lIHNlbGYtc2VydmljZSBh
-bmQgaW5mb3JtYXRpb24uCkNsaWNrIG9uIExvZ2luIGhlcmU8aHR0cHM6Ly93d3cucG93ci5pby9w
-bHVnaW5zL2Zvcm0tYnVpbGRlci92aWV3LzExMjI5MjkwP21vZGU9cGFnZT4gYW5kIGxvZ2luIHRv
-Ogq3ICAgICAgICAgICAgICAgICAgICAgQWNjZXNzIHRoZSBuZXcgc3RhZmYgZGlyZWN0b3J5Crcg
-ICAgICAgICAgICAgICAgICAgICBBY2Nlc3MgeW91ciBwYXkgc2xpcHMgYW5kIFA2MHMKtyAgICAg
-ICAgICAgICAgICAgICAgIFVwZGF0ZSB5b3VyIElEIHBob3RvCrcgICAgICAgICAgICAgICAgICAg
-ICBFLW1haWwgYW5kIENhbGVuZGFyIEZsZXhpYmlsaXR5CrcgICAgICAgICAgICAgICAgICAgICBD
-b25uZWN0IG1vYmlsZSBudW1iZXIgdG8gZS1tYWlsIGZvciBWb2ljZW1haWwuClRoaXMgZW1haWwg
-bWF5IGNvbnRhaW4gcHJpdmlsZWdlZCBvciBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24uIElmIHlv
-dSBhcmUgbm90IHRoZSBpbnRlbmRlZCByZWNpcGllbnQgcGxlYXNlIGRlbGV0ZSB0aGUgbWVzc2Fn
-ZSwgYW5kIGFueSBhdHRhY2htZW50cywgYW5kIG5vdGlmeSB0aGUgc2VuZGVyLiBBbnkgb3Bpbmlv
-bnMgaW4gdGhpcyBlbWFpbCBhcmUgdGhvc2Ugb2YgdGhlIHNlbmRlciBhbmQgZG8gbm90IG5lY2Vz
-c2FyaWx5IHJlcHJlc2VudCB0aGUgb3BpbmlvbnMgb2YgQUNHIEVkdWNhdGlvbi4KLS0KVG8gdW5z
-dWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIHNwYXJj
-bGludXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
-b3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
-b21vLWluZm8uaHRtbA==
+When protection bits are changed on a VMA, some of the architecture
+specific flags should be cleared as well. An examples of this are the
+PKEY flags on x86. This patch expands the current code that clears
+PKEY flags for x86, to support similar functionality for other
+architectures as well.
+
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+v7:
+	- new patch
+
+ include/linux/mm.h | 6 ++++++
+ mm/mprotect.c      | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index c1f6c95f3496..cbb21facce6b 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -271,6 +271,12 @@ extern unsigned int kobjsize(const void *objp);
+ /* This mask is used to clear all the VMA flags used by mlock */
+ #define VM_LOCKED_CLEAR_MASK	(~(VM_LOCKED | VM_LOCKONFAULT))
+ 
++/* Arch-specific flags to clear when updating VM flags on protection change */
++#ifndef VM_ARCH_CLEAR
++# define VM_ARCH_CLEAR	VM_NONE
++#endif
++#define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
++
+ /*
+  * mapping from the currently active vm_flags protection bits (the
+  * low four bits) to a page protection mask..
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index 4f0e46bb1797..85b65b3a823d 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -453,7 +453,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+ 		 * cleared from the VMA.
+ 		 */
+ 		mask_off_old_flags = VM_READ | VM_WRITE | VM_EXEC |
+-					ARCH_VM_PKEY_FLAGS;
++					VM_FLAGS_CLEAR;
+ 
+ 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
+ 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
+-- 
+2.11.0
+
