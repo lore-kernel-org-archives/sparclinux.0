@@ -1,246 +1,101 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 14 Sep 2017 22:35:11 +0000
-Subject: [PATCH v8 05/11] mm: defining memblock_virt_alloc_try_nid_raw
-Message-Id: <20170914223517.8242-6-pasha.tatashin@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Mon, 25 Sep 2017 16:48:58 +0000
+Subject: [PATCH v8 7/9] mm: Add address parameter to arch_validate_prot()
+Message-Id: <e4b6fcaa267628f7ef8fdbe60f05ec8d4d60b3be.1506089472.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170914223517.8242-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20170914223517.8242-1-pasha.tatashin@oracle.com>
+References: <cover.1506089472.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1506089472.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, bsingharora@gmail.com, nborisov@suse.com, aarcange@redhat.com, tj@kernel.org, mgorman@suse.de, vbabka@suse.cz, nadav.amit@gmail.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, ak@linux.intel.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-* A new variant of memblock_virt_alloc_* allocations:
-memblock_virt_alloc_try_nid_raw()
-    - Does not zero the allocated memory
-    - Does not panic if request cannot be satisfied
+A protection flag may not be valid across entire address space and
+hence arch_validate_prot() might need the address a protection bit is
+being set on to ensure it is a valid protection flag. For example, sparc
+processors support memory corruption detection (as part of ADI feature)
+flag on memory addresses mapped on to physical RAM but not on PFN mapped
+pages or addresses mapped on to devices. This patch adds address to the
+parameters being passed to arch_validate_prot() so protection bits can
+be validated in the relevant context.
 
-* optimize early system hash allocations
-
-Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
-that memory that was allocated for system hash needs to be zeroed,
-otherwise the memory does not need to be zeroed, and client will initialize
-it.
-
-If memory does not need to be zero'd, call the new
-memblock_virt_alloc_raw() interface, and thus improve the boot performance.
-
-* debug for raw alloctor
-
-When CONFIG_DEBUG_VM is enabled, this patch sets all the memory that is
-returned by memblock_virt_alloc_try_nid_raw() to ones to ensure that no
-places excpect zeroed memory.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
 ---
- include/linux/bootmem.h | 27 ++++++++++++++++++++++
- mm/memblock.c           | 60 +++++++++++++++++++++++++++++++++++++++++++------
- mm/page_alloc.c         | 15 ++++++-------
- 3 files changed, 87 insertions(+), 15 deletions(-)
+v8:
+	- Added addr parameter to powerpc arch_validate_prot() (suggested
+	  by Michael Ellerman)
+v7:
+	- new patch
 
-diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
-index e223d91b6439..ea30b3987282 100644
---- a/include/linux/bootmem.h
-+++ b/include/linux/bootmem.h
-@@ -160,6 +160,9 @@ extern void *__alloc_bootmem_low_node(pg_data_t *pgdat,
- #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
- 
- /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
-+void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
-+				      phys_addr_t min_addr,
-+				      phys_addr_t max_addr, int nid);
- void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
- 		phys_addr_t align, phys_addr_t min_addr,
- 		phys_addr_t max_addr, int nid);
-@@ -176,6 +179,14 @@ static inline void * __init memblock_virt_alloc(
- 					    NUMA_NO_NODE);
+ arch/powerpc/include/asm/mman.h | 4 ++--
+ arch/powerpc/kernel/syscalls.c  | 2 +-
+ include/linux/mman.h            | 2 +-
+ mm/mprotect.c                   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
+index 30922f699341..1d129f4521ac 100644
+--- a/arch/powerpc/include/asm/mman.h
++++ b/arch/powerpc/include/asm/mman.h
+@@ -32,7 +32,7 @@ static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
  }
+ #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
  
-+static inline void * __init memblock_virt_alloc_raw(
-+					phys_addr_t size,  phys_addr_t align)
-+{
-+	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
-+					    BOOTMEM_ALLOC_ACCESSIBLE,
-+					    NUMA_NO_NODE);
-+}
-+
- static inline void * __init memblock_virt_alloc_nopanic(
- 					phys_addr_t size, phys_addr_t align)
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
  {
-@@ -257,6 +268,14 @@ static inline void * __init memblock_virt_alloc(
- 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+ 		return false;
+@@ -40,7 +40,7 @@ static inline bool arch_validate_prot(unsigned long prot)
+ 		return false;
+ 	return true;
  }
+-#define arch_validate_prot(prot) arch_validate_prot(prot)
++#define arch_validate_prot arch_validate_prot
  
-+static inline void * __init memblock_virt_alloc_raw(
-+					phys_addr_t size,  phys_addr_t align)
-+{
-+	if (!align)
-+		align = SMP_CACHE_BYTES;
-+	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
-+}
-+
- static inline void * __init memblock_virt_alloc_nopanic(
- 					phys_addr_t size, phys_addr_t align)
+ #endif /* CONFIG_PPC64 */
+ #endif	/* _ASM_POWERPC_MMAN_H */
+diff --git a/arch/powerpc/kernel/syscalls.c b/arch/powerpc/kernel/syscalls.c
+index a877bf8269fe..6d90ddbd2d11 100644
+--- a/arch/powerpc/kernel/syscalls.c
++++ b/arch/powerpc/kernel/syscalls.c
+@@ -48,7 +48,7 @@ static inline long do_mmap2(unsigned long addr, size_t len,
  {
-@@ -309,6 +328,14 @@ static inline void * __init memblock_virt_alloc_try_nid(phys_addr_t size,
- 					  min_addr);
- }
+ 	long ret = -EINVAL;
  
-+static inline void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
-+{
-+	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
-+				min_addr, max_addr);
-+}
-+
- static inline void * __init memblock_virt_alloc_try_nid_nopanic(
- 			phys_addr_t size, phys_addr_t align,
- 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 91205780e6b1..1f299fb1eb08 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -1327,7 +1327,6 @@ static void * __init memblock_virt_alloc_internal(
- 	return NULL;
- done:
- 	ptr = phys_to_virt(alloc);
--	memset(ptr, 0, size);
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, addr))
+ 		goto out;
  
- 	/*
- 	 * The min_count is set to 0 so that bootmem allocated blocks
-@@ -1340,6 +1339,45 @@ static void * __init memblock_virt_alloc_internal(
- 	return ptr;
- }
- 
-+/**
-+ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
-+ * memory and without panicking
-+ * @size: size of memory block to be allocated in bytes
-+ * @align: alignment of the region and block's size
-+ * @min_addr: the lower bound of the memory region from where the allocation
-+ *	  is preferred (phys address)
-+ * @max_addr: the upper bound of the memory region from where the allocation
-+ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
-+ *	      allocate only from memory limited by memblock.current_limit value
-+ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ *
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. Does not zero allocated memory, does not panic if request
-+ * cannot be satisfied.
-+ *
-+ * RETURNS:
-+ * Virtual address of allocated memory block on success, NULL on failure.
-+ */
-+void * __init memblock_virt_alloc_try_nid_raw(
-+			phys_addr_t size, phys_addr_t align,
-+			phys_addr_t min_addr, phys_addr_t max_addr,
-+			int nid)
-+{
-+	void *ptr;
-+
-+	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
-+		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-+		     (u64)max_addr, (void *)_RET_IP_);
-+
-+	ptr = memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid);
-+#ifdef CONFIG_DEBUG_VM
-+	if (ptr && size > 0)
-+		memset(ptr, 0xff, size);
-+#endif
-+	return ptr;
-+}
-+
- /**
-  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
-  * @size: size of memory block to be allocated in bytes
-@@ -1351,8 +1389,8 @@ static void * __init memblock_virt_alloc_internal(
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+ 	if (shift) {
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index c8367041fafd..b42ad5c9d6a2 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -49,7 +49,7 @@ static inline void vm_unacct_memory(long pages)
   *
-- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
-- * additional debug information (including caller info), if enabled.
-+ * Public function, provides additional debug information (including caller
-+ * info), if enabled. This function zeroes the allocated memory.
-  *
-  * RETURNS:
-  * Virtual address of allocated memory block on success, NULL on failure.
-@@ -1362,11 +1400,17 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
- 				phys_addr_t min_addr, phys_addr_t max_addr,
- 				int nid)
+  * Returns true if the prot flags are valid
+  */
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
  {
-+	void *ptr;
-+
- 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
- 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
- 		     (u64)max_addr, (void *)_RET_IP_);
--	return memblock_virt_alloc_internal(size, align, min_addr,
--					     max_addr, nid);
-+
-+	ptr = memblock_virt_alloc_internal(size, align,
-+					   min_addr, max_addr, nid);
-+	if (ptr)
-+		memset(ptr, 0, size);
-+	return ptr;
+ 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) = 0;
  }
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index bd0f409922cb..4f0e46bb1797 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -395,7 +395,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+ 	end = start + len;
+ 	if (end <= start)
+ 		return -ENOMEM;
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, start))
+ 		return -EINVAL;
  
- /**
-@@ -1380,7 +1424,7 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
-  *	      allocate only from memory limited by memblock.current_limit value
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-  *
-- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
-+ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
-  * which provides debug information (including caller info), if enabled,
-  * and panics if the request can not be satisfied.
-  *
-@@ -1399,8 +1443,10 @@ void * __init memblock_virt_alloc_try_nid(
- 		     (u64)max_addr, (void *)_RET_IP_);
- 	ptr = memblock_virt_alloc_internal(size, align,
- 					   min_addr, max_addr, nid);
--	if (ptr)
-+	if (ptr) {
-+		memset(ptr, 0, size);
- 		return ptr;
-+	}
- 
- 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
- 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d132c801d2c1..a8dbd405ed94 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -7299,18 +7299,17 @@ void *__init alloc_large_system_hash(const char *tablename,
- 
- 	log2qty = ilog2(numentries);
- 
--	/*
--	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
--	 * currently not used when HASH_EARLY is specified.
--	 */
- 	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
- 	do {
- 		size = bucketsize << log2qty;
--		if (flags & HASH_EARLY)
--			table = memblock_virt_alloc_nopanic(size, 0);
--		else if (hashdist)
-+		if (flags & HASH_EARLY) {
-+			if (flags & HASH_ZERO)
-+				table = memblock_virt_alloc_nopanic(size, 0);
-+			else
-+				table = memblock_virt_alloc_raw(size, 0);
-+		} else if (hashdist) {
- 			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
--		else {
-+		} else {
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
- 			 * some pages at the end of hash table which
+ 	reqprot = prot;
 -- 
-2.14.1
+2.11.0
 
