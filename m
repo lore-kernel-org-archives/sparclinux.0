@@ -1,72 +1,140 @@
-From: Joe Perches <joe@perches.com>
-Date: Thu, 26 Oct 2017 04:53:52 +0000
-Subject: Re: [PATCH v2] sparc: Provide cmpxchg64 for 32-bit builds
-Message-Id: <1508993632.10651.19.camel@perches.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 03 Oct 2017 13:19:52 +0000
+Subject: Re: [PATCH v9 12/12] mm: stop zeroing memory during allocation in vmemmap
+Message-Id: <20171003131952.aqq377pjug5me6go@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1508986312-32081-1-git-send-email-linux@roeck-us.net>
-In-Reply-To: <1508986312-32081-1-git-send-email-linux@roeck-us.net>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+ <20170920201714.19817-13-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-13-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Guenter Roeck <linux@roeck-us.net>, "David S . Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Wed, 2017-10-25 at 19:51 -0700, Guenter Roeck wrote:
-> Fix the following build error, seen when building sparc32:allmodconfig.
+On Wed 20-09-17 16:17:14, Pavel Tatashin wrote:
+> vmemmap_alloc_block() will no longer zero the block, so zero memory
+> at its call sites for everything except struct pages.  Struct page memory
+> is zero'd by struct page initialization.
 > 
-> drivers/net/ethernet/intel/i40e/i40e_ethtool.c:
-> 	In function 'i40e_set_priv_flags':
-> drivers/net/ethernet/intel/i40e/i40e_ethtool.c:4150:2: error:
-> 	implicit declaration of function 'cmpxchg64'
-> 
-> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
+> we will get the performance improvement by zeroing the memory in parallel
+> when struct pages are zeroed.
+
+Is it possible to merge this patch with http://lkml.kernel.org/r/20170920201714.19817-7-pasha.tatashin@oracle.com
+
+> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+> Reviewed-by: Bob Picco <bob.picco@oracle.com>
 > ---
-> v2: Actually implement cmpxchg64 with code snippet provided by Dave Miller
->     Note: I am aware that this doesn't pass checkpatch; I found it more
->     important to be in line with __cmpxchg_u32().
+>  include/linux/mm.h  | 11 +++++++++++
+>  mm/sparse-vmemmap.c | 15 +++++++--------
+>  mm/sparse.c         |  6 +++---
+>  3 files changed, 21 insertions(+), 11 deletions(-)
 > 
->  arch/sparc/include/asm/cmpxchg_32.h |  2 ++
->  arch/sparc/lib/atomic32.c           | 14 ++++++++++++++
->  2 files changed, 16 insertions(+)
-> 
-> diff --git a/arch/sparc/include/asm/cmpxchg_32.h b/arch/sparc/include/asm/cmpxchg_32.h
-> index 83ffb83c5397..7f95d3ca20e2 100644
-> --- a/arch/sparc/include/asm/cmpxchg_32.h
-> +++ b/arch/sparc/include/asm/cmpxchg_32.h
-> @@ -62,6 +62,8 @@ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
->  			(unsigned long)_n_, sizeof(*(ptr)));		\
->  })
->  
-> +extern u64 cmpxchg64(u64 *ptr, u64 old, u64 new);
-
-This extern is unusual style for sparc function declarations.
-
-> +
->  #include <asm-generic/cmpxchg-local.h>
->  
->  /*
-> diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
-> index 2c373329d5cb..41601eb540e7 100644
-> --- a/arch/sparc/lib/atomic32.c
-> +++ b/arch/sparc/lib/atomic32.c
-> @@ -172,6 +172,20 @@ unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index a7bba4ce79ba..25848764570f 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -2501,6 +2501,17 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
+>  	return __vmemmap_alloc_block_buf(size, node, NULL);
 >  }
->  EXPORT_SYMBOL(__cmpxchg_u32);
 >  
-> +u64 cmpxchg64(u64 *ptr, u64 old, u64 new)
+> +static inline void *vmemmap_alloc_block_zero(unsigned long size, int node)
 > +{
-> +	unsigned long flags;
-> +	u64 prev;
+> +	void *p = vmemmap_alloc_block(size, node);
 > +
-> +	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
-> +	if ((prev = *ptr) = old)
-> +		*ptr = new;
-> +	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
+> +	if (!p)
+> +		return NULL;
+> +	memset(p, 0, size);
 > +
-> +	return prev;
+> +	return p;
 > +}
-> +EXPORT_SYMBOL(cmpxchg64);
 > +
->  unsigned long __xchg_u32(volatile u32 *ptr, u32 new)
+>  void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+>  int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+>  			       int node);
+> diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+> index d1a39b8051e0..c2f5654e7c9d 100644
+> --- a/mm/sparse-vmemmap.c
+> +++ b/mm/sparse-vmemmap.c
+> @@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
+>  				unsigned long align,
+>  				unsigned long goal)
 >  {
->  	unsigned long flags;
+> -	return memblock_virt_alloc_try_nid(size, align, goal,
+> +	return memblock_virt_alloc_try_nid_raw(size, align, goal,
+>  					    BOOTMEM_ALLOC_ACCESSIBLE, node);
+>  }
+>  
+> @@ -54,9 +54,8 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+>  	if (slab_is_available()) {
+>  		struct page *page;
+>  
+> -		page = alloc_pages_node(node,
+> -			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
+> -			get_order(size));
+> +		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
+> +					get_order(size));
+>  		if (page)
+>  			return page_address(page);
+>  		return NULL;
+> @@ -183,7 +182,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+>  {
+>  	pmd_t *pmd = pmd_offset(pud, addr);
+>  	if (pmd_none(*pmd)) {
+> -		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+> +		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+>  		if (!p)
+>  			return NULL;
+>  		pmd_populate_kernel(&init_mm, pmd, p);
+> @@ -195,7 +194,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+>  {
+>  	pud_t *pud = pud_offset(p4d, addr);
+>  	if (pud_none(*pud)) {
+> -		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+> +		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+>  		if (!p)
+>  			return NULL;
+>  		pud_populate(&init_mm, pud, p);
+> @@ -207,7 +206,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+>  {
+>  	p4d_t *p4d = p4d_offset(pgd, addr);
+>  	if (p4d_none(*p4d)) {
+> -		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+> +		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+>  		if (!p)
+>  			return NULL;
+>  		p4d_populate(&init_mm, p4d, p);
+> @@ -219,7 +218,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+>  {
+>  	pgd_t *pgd = pgd_offset_k(addr);
+>  	if (pgd_none(*pgd)) {
+> -		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
+> +		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+>  		if (!p)
+>  			return NULL;
+>  		pgd_populate(&init_mm, pgd, p);
+> diff --git a/mm/sparse.c b/mm/sparse.c
+> index 83b3bf6461af..d22f51bb7c79 100644
+> --- a/mm/sparse.c
+> +++ b/mm/sparse.c
+> @@ -437,9 +437,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+>  	}
+>  
+>  	size = PAGE_ALIGN(size);
+> -	map = memblock_virt_alloc_try_nid(size * map_count,
+> -					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+> -					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+> +	map = memblock_virt_alloc_try_nid_raw(size * map_count,
+> +					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+> +					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+>  	if (map) {
+>  		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+>  			if (!present_section_nr(pnum))
+> -- 
+> 2.14.1
+
+-- 
+Michal Hocko
+SUSE Labs
