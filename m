@@ -1,69 +1,100 @@
-From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Date: Fri, 13 Oct 2017 17:19:16 +0000
-Subject: Re: [PATCH v8 9/9] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <520A262E-1F2A-4717-8766-CD434BBF716C@oracle.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 03 Oct 2017 12:28:23 +0000
+Subject: Re: [PATCH v9 02/12] sparc64/mm: setting fields in deferred pages
+Message-Id: <20171003122823.mdzkhxs4xza7sb2w@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1506089472.git.khalid.aziz@oracle.com> <cover.1506089472.git.khalid.aziz@oracle.com> <9e3a8c90ade57d94d1ab2100c6d9508fc2d0a212.1506089472.git.khalid.aziz@oracle.com> <ABC0A87C-2B65-493D-8D7C-998616015FF7@oracle.com> <5edaf7dc-6bc7-c365-0b54-b78975c08894@oracle.com> <782BD060-74C5-4D9B-B013-731249A72F87@oracle.com> <44c3473b-a8fb-197e-7fd3-03613569f339@oracle.com> <ce3a91db-0fa0-8dda-492d-2ddd281070a7@oracle.com>
-In-Reply-To: <ce3a91db-0fa0-8dda-492d-2ddd281070a7@oracle.com>
+References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
+ <20170920201714.19817-3-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-3-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Miller <davem@davemloft.net>, dave.hansen@linux.intel.com, corbet@lwn.net, Bob Picco <bob.picco@oracle.com>, STEVEN_SISTARE <steven.sistare@oracle.com>, Pasha Tatashin <pasha.tatashin@oracle.com>, Mike Kravetz <mike.kravetz@oracle.com>, Rob Gardner <rob.gardner@oracle.com>, mingo@kernel.org, Nitin Gupta <nitin.m.gupta@oracle.com>, kirill.shutemov@linux.intel.com, Tom Hromatka <tom.hromatka@oracle.com>, Eric Saint Etienne <eric.saint.etienne@oracle.com>, Allen Pais <allen.pais@oracle.com>, cmetcalf@mellanox.com, akpm@linux-foundation.org, geert@linux-m68k.org, pmladek@suse.com, tklauser@distanz.ch, Atish Patra <atish.patra@oracle.com>, Shannon Nelson <shannon.nelson@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, peterz@infradead.org, mhocko@suse.com, jack@suse.cz, lstoakes@gmail.com, punit.agrawal@arm.com, hughd@google.com, thomas.tai@oracle.com, paul.gortmaker@windriver.com, ross.zwisler@linux.intel.com, dave.jiang@intel.com, willy@infradead.org, ying.huang@intel.com, zhongjiang@huawei.com, minchan@kernel.org, imbrenda@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Sparc kernel list <sparclinux@vger.kernel.org>, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
+On Wed 20-09-17 16:17:04, Pavel Tatashin wrote:
+> Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+> flags and other fields in "struct page"es are never changed prior to first
+> initializing struct pages by going through __init_single_page().
+> 
+> With deferred struct page feature enabled there is a case where we set some
+> fields prior to initializing:
+> 
+> mem_init() {
+>      register_page_bootmem_info();
+>      free_all_bootmem();
+>      ...
+> }
+> 
+> When register_page_bootmem_info() is called only non-deferred struct pages
+> are initialized. But, this function goes through some reserved pages which
+> might be part of the deferred, and thus are not yet initialized.
+> 
+> mem_init
+> register_page_bootmem_info
+> register_page_bootmem_info_node
+>  get_page_bootmem
+>   .. setting fields here ..
+>   such as: page->freelist = (void *)type;
+> 
+> free_all_bootmem()
+> free_low_memory_core_early()
+>  for_each_reserved_mem_region()
+>   reserve_bootmem_region()
+>    init_reserved_page() <- Only if this is deferred reserved page
+>     __init_single_pfn()
+>      __init_single_page()
+>       memset(0) <-- Loose the set fields here
+> 
+> We end-up with similar issue as in the previous patch, where currently we
+> do not observe problem as memory is zeroed. But, if flag asserts are
+> changed we can start hitting issues.
+> 
+> Also, because in this patch series we will stop zeroing struct page memory
+> during allocation, we must make sure that struct pages are properly
+> initialized prior to using them.
+> 
+> The deferred-reserved pages are initialized in free_all_bootmem().
+> Therefore, the fix is to switch the above calls.
+> 
+> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+> Reviewed-by: Bob Picco <bob.picco@oracle.com>
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-> On Oct 13, 2017, at 9:18 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
-> 
-> On 10/13/2017 08:14 AM, Khalid Aziz wrote:
->> On 10/12/2017 02:27 PM, Anthony Yznaga wrote:
->>> 
->>>> On Oct 12, 2017, at 7:44 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
->>>> 
->>>> 
->>>> On 10/06/2017 04:12 PM, Anthony Yznaga wrote:
->>>>>> On Sep 25, 2017, at 9:49 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
->>>>>> 
->>>>>> This patch extends mprotect to enable ADI (TSTATE.mcde), enable/disable
->>>>>> MCD (Memory Corruption Detection) on selected memory ranges, enable
->>>>>> TTE.mcd in PTEs, return ADI parameters to userspace and save/restore ADI
->>>>>> version tags on page swap out/in or migration. ADI is not enabled by
->>>>> I still don't believe migration is properly supported.  Your
->>>>> implementation is relying on a fault happening on a page while its
->>>>> migration is in progress so that do_swap_page() will be called, but
->>>>> I don't see how do_swap_page() will be called if a fault does not
->>>>> happen until after the migration has completed.
->>>> 
->>>> User pages are on LRU list and for the mapped pages on LRU list, migrate_pages() ultimately calls try_to_unmap_one and makes a migration swap entry for the page being migrated. This forces a page fault upon access on the destination node and the page is swapped back in from swap cache. The fault is forced by the migration swap entry, rather than fault being an accidental event. If page fault happens on the destination node while migration is in progress, do_swap_page() waits until migration is done. Please take a look at the code in __unmap_and_move().
->>> 
->>> I looked at the code again, and I now believe ADI tags are never restored for migrated pages.  Here's why:
->>> 
->> I will take a look at it again. I have run extensive tests migrating pages of a process across multiple NUMA nodes over and over again and ADI tags were never lost, so this does work. I won't rule out the possibility of having missed a code path where tags are not restored and I will look for it.
-> 
-> Anthony,
-> 
-> I just ran my migration test again which:
-> 
-> - malloc's 16 GB of memory
-> - Assigns a rotating ADI tag every 64 bytes to the malloc'd buffer
-> - Writes a pattern to the entire buffer
-> - Verifies the pattern it wrote using ADI tagged addresses.
+As you separated x86 and sparc patches doing essentially the same I
+assume David is going to take this patch?
 
-The verification will appear to succeed if the tags have been cleared.
+Acked-by: Michal Hocko <mhocko@suse.com>
 
-To be complete the test should also manually verify that the in-memory tag values remain non-zero after migration.  migrate_page_copy() will call copy_huge_page() or copy_highpage() which will result in the tags being cleared at the destination because the stores will be done to kernel physical mapping VAs using block initializing stores.
+> ---
+>  arch/sparc/mm/init_64.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index 6034569e2c0d..310c6754bcaa 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2548,9 +2548,15 @@ void __init mem_init(void)
+>  {
+>  	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+>  
+> -	register_page_bootmem_info();
+>  	free_all_bootmem();
+>  
+> +	/* Must be done after boot memory is put on freelist, because here we
+> +	 * might set fields in deferred struct pages that have not yet been
+> +	 * initialized, and free_all_bootmem() initializes all the reserved
+> +	 * deferred pages for us.
+> +	 */
+> +	register_page_bootmem_info();
+> +
+>  	/*
+>  	 * Set up the zero page, mark it reserved, so that page count
+>  	 * is not manipulated when freeing the page from user ptes.
+> -- 
+> 2.14.1
 
-Anthony
-
-> 
-> While this test was running, I had a script migrate test program pages across two NUMA nodes every 30 seconds using migratepages command. I did not see an ADI tag mismatch over multiple runs of this test. This test shows migration is working.
-> 
-> Can you give me a test that shows the failure you think we should see and I will debug it.
-> 
-> Thanks,
-> Khalid
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Michal Hocko
+SUSE Labs
