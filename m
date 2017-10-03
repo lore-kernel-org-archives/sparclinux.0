@@ -1,29 +1,81 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 03 Oct 2017 15:10:35 +0000
-Subject: Re: [PATCH v9 02/12] sparc64/mm: setting fields in deferred pages
-Message-Id: <3c410186-0af9-dae8-84eb-8f4d4651d355@oracle.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 03 Oct 2017 13:08:57 +0000
+Subject: Re: [PATCH v9 06/12] mm: zero struct pages during initialization
+Message-Id: <20171003130857.vohli6lnqj4tdmhl@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
- <20170920201714.19817-3-pasha.tatashin@oracle.com>
- <20171003122823.mdzkhxs4xza7sb2w@dhcp22.suse.cz>
-In-Reply-To: <20171003122823.mdzkhxs4xza7sb2w@dhcp22.suse.cz>
+ <20170920201714.19817-7-pasha.tatashin@oracle.com>
+In-Reply-To: <20170920201714.19817-7-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
+On Wed 20-09-17 16:17:08, Pavel Tatashin wrote:
+> Add struct page zeroing as a part of initialization of other fields in
+> __init_single_page().
 > 
-> As you separated x86 and sparc patches doing essentially the same I
-> assume David is going to take this patch?
-
-Correct, I noticed that usually platform specific changes are done in 
-separate patches even if they are small. Dave already Acked this patch. 
-So, I do not think it should be separated from the rest of the patches 
-when this projects goes into mm-tree.
-
+> This single thread performance collected on: Intel(R) Xeon(R) CPU E7-8895
+> v3 @ 2.60GHz with 1T of memory (268400646 pages in 8 nodes):
 > 
+>                         BASE            FIX
+> sparse_init     11.244671836s   0.007199623s
+> zone_sizes_init  4.879775891s   8.355182299s
+>                   --------------------------
+> Total           16.124447727s   8.362381922s
+
+Hmm, this is confusing. This assumes that sparse_init doesn't zero pages
+anymore, right? So these number depend on the last patch in the series?
+
+> sparse_init is where memory for struct pages is zeroed, and the zeroing
+> part is moved later in this patch into __init_single_page(), which is
+> called from zone_sizes_init().
+> 
+> Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+> Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+> Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+> Reviewed-by: Bob Picco <bob.picco@oracle.com>
 > Acked-by: Michal Hocko <mhocko@suse.com>
+> ---
+>  include/linux/mm.h | 9 +++++++++
+>  mm/page_alloc.c    | 1 +
+>  2 files changed, 10 insertions(+)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index f8c10d336e42..50b74d628243 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -94,6 +94,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
+>  #define mm_forbids_zeropage(X)	(0)
+>  #endif
+>  
+> +/*
+> + * On some architectures it is expensive to call memset() for small sizes.
+> + * Those architectures should provide their own implementation of "struct page"
+> + * zeroing by defining this macro in <asm/pgtable.h>.
+> + */
+> +#ifndef mm_zero_struct_page
+> +#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
+> +#endif
+> +
+>  /*
+>   * Default maximum number of active map areas, this limits the number of vmas
+>   * per mm struct. Users can overwrite this number by sysctl but there is a
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index a8dbd405ed94..4b630ee91430 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -1170,6 +1170,7 @@ static void free_one_page(struct zone *zone,
+>  static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+>  				unsigned long zone, int nid)
+>  {
+> +	mm_zero_struct_page(page);
+>  	set_page_links(page, zone, nid, pfn);
+>  	init_page_count(page);
+>  	page_mapcount_reset(page);
+> -- 
+> 2.14.1
 
-Thank you,
-Pasha
-
+-- 
+Michal Hocko
+SUSE Labs
