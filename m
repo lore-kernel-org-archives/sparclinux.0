@@ -1,10 +1,10 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 13 Oct 2017 17:32:08 +0000
-Subject: [PATCH v12 05/11] mm: defining memblock_virt_alloc_try_nid_raw
-Message-Id: <20171013173214.27300-6-pasha.tatashin@oracle.com>
+Date: Thu, 05 Oct 2017 21:11:18 +0000
+Subject: [PATCH v10 04/10] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <20171005211124.26524-5-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171013173214.27300-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171013173214.27300-1-pasha.tatashin@oracle.com>
+References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
