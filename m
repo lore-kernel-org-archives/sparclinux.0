@@ -1,85 +1,69 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 09 Oct 2017 22:19:31 +0000
-Subject: [PATCH v11 9/9] sparc64: optimized struct page zeroing
-Message-Id: <20171009221931.1481-10-pasha.tatashin@oracle.com>
+Date: Thu, 05 Oct 2017 21:11:17 +0000
+Subject: [PATCH v10 03/10] sparc64: simplify vmemmap_populate
+Message-Id: <20171005211124.26524-4-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
-calling memset(). We do eight to ten regular stores based on the size of
-struct page. Compiler optimizes out the conditions of switch() statement.
-
-SPARC-M6 with 15T of memory, single thread performance:
-
-                               BASE            FIX  OPTIMIZED_FIX
-        bootmem_init   28.440467985s   2.305674818s   2.305161615s
-free_area_init_nodes  202.845901673s 225.343084508s 172.556506560s
-                      --------------------------------------------
-Total                 231.286369658s 227.648759326s 174.861668175s
-
-BASE:  current linux
-FIX:   This patch series without "optimized struct page zeroing"
-OPTIMIZED_FIX: This patch series including the current patch.
-
-bootmem_init() is where memory for struct pages is zeroed during
-allocation. Note, about two seconds in this function is a fixed time: it
-does not increase as memory is increased.
+Remove duplicating code by using common functions
+vmemmap_pud_populate and vmemmap_pgd_populate.
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Reviewed-by: Bob Picco <bob.picco@oracle.com>
 Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ arch/sparc/mm/init_64.c | 23 ++++++-----------------
+ 1 file changed, 6 insertions(+), 17 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 4fefe3762083..8ed478abc630 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -230,6 +230,36 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index caed495544e9..6839db3ffe1d 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2652,30 +2652,19 @@ int __meminit vmemmap_populate(unsigned long vstart, unsigned long vend,
+ 	vstart = vstart & PMD_MASK;
+ 	vend = ALIGN(vend, PMD_SIZE);
+ 	for (; vstart < vend; vstart += PMD_SIZE) {
+-		pgd_t *pgd = pgd_offset_k(vstart);
++		pgd_t *pgd = vmemmap_pgd_populate(vstart, node);
+ 		unsigned long pte;
+ 		pud_t *pud;
+ 		pmd_t *pmd;
  
-+/* This macro must be updated when the size of struct page grows above 80
-+ * or reduces below 64.
-+ * The idea that compiler optimizes out switch() statement, and only
-+ * leaves clrx instructions
-+ */
-+#define	mm_zero_struct_page(pp) do {					\
-+	unsigned long *_pp = (void *)(pp);				\
-+									\
-+	 /* Check that struct page is either 64, 72, or 80 bytes */	\
-+	BUILD_BUG_ON(sizeof(struct page) & 7);				\
-+	BUILD_BUG_ON(sizeof(struct page) < 64);				\
-+	BUILD_BUG_ON(sizeof(struct page) > 80);				\
-+									\
-+	switch (sizeof(struct page)) {					\
-+	case 80:							\
-+		_pp[9] = 0;	/* fallthrough */			\
-+	case 72:							\
-+		_pp[8] = 0;	/* fallthrough */			\
-+	default:							\
-+		_pp[7] = 0;						\
-+		_pp[6] = 0;						\
-+		_pp[5] = 0;						\
-+		_pp[4] = 0;						\
-+		_pp[3] = 0;						\
-+		_pp[2] = 0;						\
-+		_pp[1] = 0;						\
-+		_pp[0] = 0;						\
-+	}								\
-+} while (0)
-+
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
+-		if (pgd_none(*pgd)) {
+-			pud_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
++		if (!pgd)
++			return -ENOMEM;
+ 
+-			if (!new)
+-				return -ENOMEM;
+-			pgd_populate(&init_mm, pgd, new);
+-		}
+-
+-		pud = pud_offset(pgd, vstart);
+-		if (pud_none(*pud)) {
+-			pmd_t *new = vmemmap_alloc_block(PAGE_SIZE, node);
+-
+-			if (!new)
+-				return -ENOMEM;
+-			pud_populate(&init_mm, pud, new);
+-		}
++		pud = vmemmap_pud_populate(pgd, vstart, node);
++		if (!pud)
++			return -ENOMEM;
+ 
+ 		pmd = pmd_offset(pud, vstart);
+-
+ 		pte = pmd_val(*pmd);
+ 		if (!(pte & _PAGE_VALID)) {
+ 			void *block = vmemmap_alloc_block(PMD_SIZE, node);
 -- 
 2.14.2
 
