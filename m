@@ -1,91 +1,77 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 05 Oct 2017 21:11:16 +0000
-Subject: [PATCH v10 02/10] sparc64/mm: setting fields in deferred pages
-Message-Id: <20171005211124.26524-3-pasha.tatashin@oracle.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Thu, 05 Oct 2017 20:39:06 +0000
+Subject: [PATCH 4/4] alpha/PCI: Make pdev_save_srm_config() static
+Message-Id: <20171005203906.18300.63272.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+References: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-pci@vger.kernel.org
+Cc: linux-mips@linux-mips.org, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Howells <dhowells@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-am33-list@redhat.com, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Helge Deller <deller@gmx.de>, x86@kernel.org, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ingo Molnar <mingo@redhat.com>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-xtensa@linux-xtensa.org, Mikael Starvik <starvik@axis.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, Tony Luck <tony.luck@intel.com>, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-With deferred struct page feature enabled there is a case where we set some
-fields prior to initializing:
+pdev_save_srm_config() and struct pdev_srm_saved_conf are only used in
+arch/alpha/kernel/pci.c, so make them static there.
 
-mem_init() {
-     register_page_bootmem_info();
-     free_all_bootmem();
-     ...
-}
-
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
-
-mem_init
-register_page_bootmem_info
-register_page_bootmem_info_node
- get_page_bootmem
-  .. setting fields here ..
-  such as: page->freelist = (void *)type;
-
-free_all_bootmem()
-free_low_memory_core_early()
- for_each_reserved_mem_region()
-  reserve_bootmem_region()
-   init_reserved_page() <- Only if this is deferred reserved page
-    __init_single_pfn()
-     __init_single_page()
-      memset(0) <-- Loose the set fields here
-
-We end-up with similar issue as in the previous patch, where currently we
-do not observe problem as memory is zeroed. But, if flag asserts are
-changed we can start hitting issues.
-
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/sparc/mm/init_64.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/pci.c      |   11 ++++++++++-
+ arch/alpha/kernel/pci_impl.h |    8 --------
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 6034569e2c0d..caed495544e9 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2548,9 +2548,16 @@ void __init mem_init(void)
- {
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
+index 564114eb85e1..16b67621a0d5 100644
+--- a/arch/alpha/kernel/pci.c
++++ b/arch/alpha/kernel/pci.c
+@@ -196,9 +196,16 @@ pcibios_init(void)
+ subsys_initcall(pcibios_init);
  
--	register_page_bootmem_info();
- 	free_all_bootmem();
- 
-+	/*
-+	 * Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
+ #ifdef ALPHA_RESTORE_SRM_SETUP
++/* Store PCI device configuration left by SRM here. */
++struct pdev_srm_saved_conf
++{
++	struct pdev_srm_saved_conf *next;
++	struct pci_dev *dev;
++};
 +
- 	/*
- 	 * Set up the zero page, mark it reserved, so that page count
- 	 * is not manipulated when freeing the page from user ptes.
--- 
-2.14.2
+ static struct pdev_srm_saved_conf *srm_saved_configs;
+ 
+-void pdev_save_srm_config(struct pci_dev *dev)
++static void pdev_save_srm_config(struct pci_dev *dev)
+ {
+ 	struct pdev_srm_saved_conf *tmp;
+ 	static int printed = 0;
+@@ -238,6 +245,8 @@ pci_restore_srm_config(void)
+ 		pci_restore_state(tmp->dev);
+ 	}
+ }
++#else
++#define pdev_save_srm_config(dev)	do {} while (0)
+ #endif
+ 
+ void pcibios_fixup_bus(struct pci_bus *bus)
+diff --git a/arch/alpha/kernel/pci_impl.h b/arch/alpha/kernel/pci_impl.h
+index 2b0ac429f5eb..65adea0d3d78 100644
+--- a/arch/alpha/kernel/pci_impl.h
++++ b/arch/alpha/kernel/pci_impl.h
+@@ -156,16 +156,8 @@ struct pci_iommu_arena
+ #endif
+ 
+ #ifdef ALPHA_RESTORE_SRM_SETUP
+-/* Store PCI device configuration left by SRM here. */
+-struct pdev_srm_saved_conf
+-{
+-	struct pdev_srm_saved_conf *next;
+-	struct pci_dev *dev;
+-};
+-
+ extern void pci_restore_srm_config(void);
+ #else
+-#define pdev_save_srm_config(dev)	do {} while (0)
+ #define pci_restore_srm_config()	do {} while (0)
+ #endif
+ 
 
