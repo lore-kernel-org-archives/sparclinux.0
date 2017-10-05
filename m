@@ -1,56 +1,85 @@
-From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Date: Fri, 20 Oct 2017 12:12:27 +0000
-Subject: qemu-system-sparc64: upcoming changes in 2.11
-Message-Id: <cc20fc70-3a30-d511-b497-46da2bbb7175@ilande.co.uk>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 05 Oct 2017 21:11:24 +0000
+Subject: [PATCH v10 10/10] sparc64: optimized struct page zeroing
+Message-Id: <20171005211124.26524-11-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Hi all,
+Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
+calling memset(). We do eight to ten regular stores based on the size of
+struct page. Compiler optimizes out the conditions of switch() statement.
 
-As I know there are quite a few people on these lists using
-qemu-system-sparc64 with Linux, I thought it would be worth writing a
-quick email about some important changes to the sun4u machine in the
-upcoming 2.11 release:
+SPARC-M6 with 15T of memory, single thread performance:
 
-1) Change of default NIC from ne2k_pci to sunhme
+                               BASE            FIX  OPTIMIZED_FIX
+        bootmem_init   28.440467985s   2.305674818s   2.305161615s
+free_area_init_nodes  202.845901673s 225.343084508s 172.556506560s
+                      --------------------------------------------
+Total                 231.286369658s 227.648759326s 174.861668175s
 
-This enables compatibility with more OSs out of the box, particularly as
-some OSs don't compile all NIC drivers for SPARC, or if they do, they
-are broken since they haven't been tested properly. There should be no
-noticeable change for Linux users, other than you will need to make sure
-that the sunhme module is included if you want basic networking without
-changing any defaults.
+BASE:  current linux
+FIX:   This patch series without "optimized struct page zeroing"
+OPTIMIZED_FIX: This patch series including the current patch.
 
-2) Ensure devices are connected behind simba PCI bridges
+bootmem_init() is where memory for struct pages is zeroed during
+allocation. Note, about two seconds in this function is a fixed time: it
+does not increase as memory is increased.
 
-Previous versions of QEMU connected all PCI devices directly onto the
-sabre PCI bus and used various hacks to handle bridge windows and
-interrupt routing. These have now been removed and devices connected
-behind the simba bridges accordingly as per a real Ultra 5.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+---
+ arch/sparc/include/asm/pgtable_64.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-For Linux users the obvious change is that warnings about PCI window
-overlaps will no longer appear on boot. One further point to note is
-that if you are adding extra PCI devices on the command line, you must
-specify bus=pciB to ensure that the device is connected behind the
-appropriate simba PCI bridge; otherwise QEMU will exit with a message
-along the lines of "PCI: no slot/function available for virtio-blk-pci,
-all in use or reserved".
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 4fefe3762083..8ed478abc630 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -230,6 +230,36 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
+ 
++/* This macro must be updated when the size of struct page grows above 80
++ * or reduces below 64.
++ * The idea that compiler optimizes out switch() statement, and only
++ * leaves clrx instructions
++ */
++#define	mm_zero_struct_page(pp) do {					\
++	unsigned long *_pp = (void *)(pp);				\
++									\
++	 /* Check that struct page is either 64, 72, or 80 bytes */	\
++	BUILD_BUG_ON(sizeof(struct page) & 7);				\
++	BUILD_BUG_ON(sizeof(struct page) < 64);				\
++	BUILD_BUG_ON(sizeof(struct page) > 80);				\
++									\
++	switch (sizeof(struct page)) {					\
++	case 80:							\
++		_pp[9] = 0;	/* fallthrough */			\
++	case 72:							\
++		_pp[8] = 0;	/* fallthrough */			\
++	default:							\
++		_pp[7] = 0;						\
++		_pp[6] = 0;						\
++		_pp[5] = 0;						\
++		_pp[4] = 0;						\
++		_pp[3] = 0;						\
++		_pp[2] = 0;						\
++		_pp[1] = 0;						\
++		_pp[0] = 0;						\
++	}								\
++} while (0)
++
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+-- 
+2.14.2
 
-I've written this up in more detail on the QEMU wiki for people who want
-further information at
-https://wiki.qemu.org/Documentation/Platforms/SPARC#Changes_to_sun4u_machine_from_2.11_onwards.
-
-Finally I'm pleased to announce that my fix for bochs_drm (commit
-931e8c6 "drm/bochs: switch fb_ops over to use drm_fb_helper_cfb
-helpers") which was otherwise causing a panic on boot if -nographic
-wasn't supplied has been applied for the upcoming 4.14 LTS release. So
-as this trickles down to the various distributions it will finally be
-possible to boot Linux with a framebuffer under qemu-system-sparc64.
-
-
-ATB,
-
-Mark.
