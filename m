@@ -1,73 +1,144 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Fri, 20 Oct 2017 16:57:57 +0000
-Subject: [PATCH v9 04/10] sparc64: Add HV fault type handlers for ADI related faults
-Message-Id: <596c5b5cfb517b27997908f023e1236719462243.1508364660.git.khalid.aziz@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 05 Oct 2017 21:11:14 +0000
+Subject: [PATCH v10 00/10] complete deferred page initialization
+Message-Id: <20171005211124.26524-1-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1508364660.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1508364660.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, rob.gardner@oracle.com, dan.carpenter@oracle.com, Liam.Howlett@oracle.com, steven.sistare@oracle.com, jane.chu@oracle.com, paul.gortmaker@windriver.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-ADI (Application Data Integrity) feature on M7 and newer processors
-adds new fault types for hypervisor - Invalid ASI and MCD disabled.
-This patch expands data access exception handler to handle these
-faults.
+Changelog:
+v10 - v9
+- Addressed new comments from Michal Hocko.
+- Sent "mm: deferred_init_memmap improvements" as a separate patch as
+  it is also fixing existing problem.
+- Merged "mm: stop zeroing memory during allocation in vmemmap" with
+  "mm: zero struct pages during initialization".
+- Added more comments "mm: zero reserved and unavailable struct pages"
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
----
-v7:
-	- new patch split off from patch 4/4 in v6
+v9 - v8
+- Addressed comments raised by Mark Rutland and Ard Biesheuvel: changed
+  kasan implementation. Added a new function: kasan_map_populate() that
+  zeroes the allocated and mapped memory
 
- arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+v8 - v7
+- Added Acked-by's from Dave Miller for SPARC changes
+- Fixed a minor compiling issue on tile architecture reported by kbuild
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 0fe0eed3cecb..7775d011691c 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -352,12 +352,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
- 		regs->tpc &= 0xffffffff;
- 		regs->tnpc &= 0xffffffff;
- 	}
--	info.si_signo = SIGSEGV;
-+	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
-+	 * is vectored thorugh data access exception trap with fault type
-+	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
-+	 * Accessing an address with invalid ASI for the address, for
-+	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
-+	 * when TTE.mcd is not set for the VA, is also vectored into
-+	 * kerbel by HV as data access exception with fault type set to
-+	 * HV_FAULT_TYPE_INV_ASI.
-+	 */
- 	info.si_errno = 0;
--	info.si_code = SEGV_MAPERR;
- 	info.si_addr = (void __user *) addr;
- 	info.si_trapno = 0;
--	force_sig_info(SIGSEGV, &info, current);
-+	switch (type) {
-+	case HV_FAULT_TYPE_INV_ASI:
-+		info.si_signo = SIGILL;
-+		info.si_code = ILL_ILLADR;
-+		force_sig_info(SIGILL, &info, current);
-+		break;
-+	case HV_FAULT_TYPE_MCD_DIS:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_ACCADI;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	default:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_MAPERR;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	}
- }
- 
- void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
+v7 - v6
+- Addressed comments from Michal Hocko
+- memblock_discard() patch was removed from this series and integrated
+  separately
+- Fixed bug reported by kbuild test robot new patch:
+  mm: zero reserved and unavailable struct pages
+- Removed patch
+  x86/mm: reserve only exiting low pages
+  As, it is not needed anymore, because of the previous fix 
+- Re-wrote deferred_init_memmap(), found and fixed an existing bug, where
+  page variable is not reset when zone holes present.
+- Merged several patches together per Michal request
+- Added performance data including raw logs
+
+v6 - v5
+- Fixed ARM64 + kasan code, as reported by Ard Biesheuvel
+- Tested ARM64 code in qemu and found few more issues, that I fixed in this
+  iteration
+- Added page roundup/rounddown to x86 and arm zeroing routines to zero the
+  whole allocated range, instead of only provided address range.
+- Addressed SPARC related comment from Sam Ravnborg
+- Fixed section mismatch warnings related to memblock_discard().
+
+v5 - v4
+- Fixed build issues reported by kbuild on various configurations
+v4 - v3
+- Rewrote code to zero sturct pages in __init_single_page() as
+  suggested by Michal Hocko
+- Added code to handle issues related to accessing struct page
+  memory before they are initialized.
+
+v3 - v2
+- Addressed David Miller comments about one change per patch:
+    * Splited changes to platforms into 4 patches
+    * Made "do not zero vmemmap_buf" as a separate patch
+
+v2 - v1
+- Per request, added s390 to deferred "struct page" zeroing
+- Collected performance data on x86 which proofs the importance to
+  keep memset() as prefetch (see below).
+
+SMP machines can benefit from the DEFERRED_STRUCT_PAGE_INIT config option,
+which defers initializing struct pages until all cpus have been started so
+it can be done in parallel.
+
+However, this feature is sub-optimal, because the deferred page
+initialization code expects that the struct pages have already been zeroed,
+and the zeroing is done early in boot with a single thread only.  Also, we
+access that memory and set flags before struct pages are initialized. All
+of this is fixed in this patchset.
+
+In this work we do the following:
+- Never read access struct page until it was initialized
+- Never set any fields in struct pages before they are initialized
+- Zero struct page at the beginning of struct page initialization
+
+=====================================
+Performance improvements on x86 machine with 8 nodes:
+Intel(R) Xeon(R) CPU E7-8895 v3 @ 2.60GHz and 1T of memory:
+                        TIME          SPEED UP
+base no deferred:       95.796233s
+fix no deferred:        79.978956s    19.77%
+
+base deferred:          77.254713s
+fix deferred:           55.050509s    40.34%
+=====================================
+SPARC M6 3600 MHz with 15T of memory
+                        TIME          SPEED UP
+base no deferred:       358.335727s
+fix no deferred:        302.320936s   18.52%
+
+base deferred:          237.534603s
+fix deferred:           182.103003s   30.44%
+=====================================
+Raw dmesg output with timestamps:
+x86 base no deferred:    https://hastebin.com/ofunepurit.scala
+x86 base deferred:       https://hastebin.com/ifazegeyas.scala
+x86 fix no deferred:     https://hastebin.com/pegocohevo.scala
+x86 fix deferred:        https://hastebin.com/ofupevikuk.scala
+sparc base no deferred:  https://hastebin.com/ibobeteken.go
+sparc base deferred:     https://hastebin.com/fariqimiyu.go
+sparc fix no deferred:   https://hastebin.com/muhegoheyi.go
+sparc fix deferred:      https://hastebin.com/xadinobutu.go
+
+Pavel Tatashin (10):
+  x86/mm: setting fields in deferred pages
+  sparc64/mm: setting fields in deferred pages
+  sparc64: simplify vmemmap_populate
+  mm: defining memblock_virt_alloc_try_nid_raw
+  mm: zero reserved and unavailable struct pages
+  mm/kasan: kasan specific map populate function
+  x86/kasan: use kasan_map_populate()
+  arm64/kasan: use kasan_map_populate()
+  mm: stop zeroing memory during allocation in vmemmap
+  sparc64: optimized struct page zeroing
+
+ arch/arm64/include/asm/pgtable.h    |  3 ++
+ arch/arm64/mm/kasan_init.c          | 12 +++----
+ arch/sparc/include/asm/pgtable_64.h | 30 +++++++++++++++++
+ arch/sparc/mm/init_64.c             | 32 ++++++++----------
+ arch/x86/mm/init_64.c               | 10 ++++--
+ arch/x86/mm/kasan_init_64.c         |  8 ++---
+ include/linux/bootmem.h             | 27 +++++++++++++++
+ include/linux/kasan.h               |  2 ++
+ include/linux/memblock.h            | 16 +++++++++
+ include/linux/mm.h                  | 26 ++++++++++++++
+ mm/kasan/kasan_init.c               | 67 +++++++++++++++++++++++++++++++++++++
+ mm/memblock.c                       | 60 +++++++++++++++++++++++++++++----
+ mm/page_alloc.c                     | 54 +++++++++++++++++++++++++-----
+ mm/sparse-vmemmap.c                 | 15 ++++-----
+ mm/sparse.c                         |  6 ++--
+ 15 files changed, 312 insertions(+), 56 deletions(-)
+
 -- 
-2.11.0
+2.14.2
 
