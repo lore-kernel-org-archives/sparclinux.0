@@ -1,47 +1,58 @@
-From: Allen Pais <allen.pais@oracle.com>
-Date: Tue, 24 Oct 2017 09:50:13 +0000
-Subject: [PATCH] sparc64: Convert timers to user timer_setup()
-Message-Id: <1508837893-26652-1-git-send-email-allen.pais@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Thu, 05 Oct 2017 21:11:22 +0000
+Subject: [PATCH v10 08/10] arm64/kasan: use kasan_map_populate()
+Message-Id: <20171005211124.26524-9-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Switch to using the new timer_setup() and from_timer()
-in LDOM Virtual I/O handshake.
+To optimize the performance of struct page initialization,
+vmemmap_populate() will no longer zero memory.
 
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: Allen Pais <allen.pais@oracle.com>
+Therefore, we must use a new interface to allocate and map kasan shadow
+memory, that also zeroes memory for us.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 ---
- arch/sparc/kernel/viohs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm64/mm/kasan_init.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/kernel/viohs.c b/arch/sparc/kernel/viohs.c
-index dcd278f..7cb27c2 100644
---- a/arch/sparc/kernel/viohs.c
-+++ b/arch/sparc/kernel/viohs.c
-@@ -797,9 +797,9 @@ void vio_port_up(struct vio_driver_state *vio)
- }
- EXPORT_SYMBOL(vio_port_up);
+diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
+index 81f03959a4ab..b6e92cfa3ea3 100644
+--- a/arch/arm64/mm/kasan_init.c
++++ b/arch/arm64/mm/kasan_init.c
+@@ -161,11 +161,11 @@ void __init kasan_init(void)
  
--static void vio_port_timer(unsigned long _arg)
-+static void vio_port_timer(struct timer_list *t)
- {
--	struct vio_driver_state *vio = (struct vio_driver_state *) _arg;
-+	struct vio_driver_state *vio = from_timer(vio, t, timer);
+ 	clear_pgds(KASAN_SHADOW_START, KASAN_SHADOW_END);
  
- 	vio_port_up(vio);
- }
-@@ -848,7 +848,7 @@ int vio_driver_init(struct vio_driver_state *vio, struct vio_dev *vdev,
+-	vmemmap_populate(kimg_shadow_start, kimg_shadow_end,
+-			 pfn_to_nid(virt_to_pfn(lm_alias(_text))));
++	kasan_map_populate(kimg_shadow_start, kimg_shadow_end,
++			   pfn_to_nid(virt_to_pfn(lm_alias(_text))));
  
- 	vio->ops = ops;
+ 	/*
+-	 * vmemmap_populate() has populated the shadow region that covers the
++	 * kasan_map_populate() has populated the shadow region that covers the
+ 	 * kernel image with SWAPPER_BLOCK_SIZE mappings, so we have to round
+ 	 * the start and end addresses to SWAPPER_BLOCK_SIZE as well, to prevent
+ 	 * kasan_populate_zero_shadow() from replacing the page table entries
+@@ -191,9 +191,9 @@ void __init kasan_init(void)
+ 		if (start >= end)
+ 			break;
  
--	setup_timer(&vio->timer, vio_port_timer, (unsigned long) vio);
-+	timer_setup(&vio->timer, vio_port_timer, 0);
+-		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
+-				(unsigned long)kasan_mem_to_shadow(end),
+-				pfn_to_nid(virt_to_pfn(start)));
++		kasan_map_populate((unsigned long)kasan_mem_to_shadow(start),
++				   (unsigned long)kasan_mem_to_shadow(end),
++				   pfn_to_nid(virt_to_pfn(start)));
+ 	}
  
- 	return 0;
- }
+ 	/*
 -- 
-1.9.1
+2.14.2
 
