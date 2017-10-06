@@ -1,45 +1,41 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 04 Oct 2017 12:26:57 +0000
-Subject: Re: [PATCH v9 06/12] mm: zero struct pages during initialization
-Message-Id: <2fd7b718-c254-612b-e100-a457094e7c38@oracle.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Fri, 06 Oct 2017 16:54:52 +0000
+Subject: [PATCH v3 4/5] sparc64: SPARC optimised __fls function
+Message-Id: <1507308893-9218-5-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
- <20170920201714.19817-7-pasha.tatashin@oracle.com>
- <20171003130857.vohli6lnqj4tdmhl@dhcp22.suse.cz>
- <73ea1215-7aa2-39e1-b820-30f58119183e@oracle.com>
- <20171004084554.fhxpmywtovs5umnm@dhcp22.suse.cz>
-In-Reply-To: <20171004084554.fhxpmywtovs5umnm@dhcp22.suse.cz>
+References: <1507308893-9218-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1507308893-9218-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org
 
-On 10/04/2017 04:45 AM, Michal Hocko wrote:
-> On Tue 03-10-17 11:22:35, Pasha Tatashin wrote:
->>
->>
->> On 10/03/2017 09:08 AM, Michal Hocko wrote:
->>> On Wed 20-09-17 16:17:08, Pavel Tatashin wrote:
->>>> Add struct page zeroing as a part of initialization of other fields in
->>>> __init_single_page().
->>>>
->>>> This single thread performance collected on: Intel(R) Xeon(R) CPU E7-8895
->>>> v3 @ 2.60GHz with 1T of memory (268400646 pages in 8 nodes):
->>>>
->>>>                           BASE            FIX
->>>> sparse_init     11.244671836s   0.007199623s
->>>> zone_sizes_init  4.879775891s   8.355182299s
->>>>                     --------------------------
->>>> Total           16.124447727s   8.362381922s
->>>
->>> Hmm, this is confusing. This assumes that sparse_init doesn't zero pages
->>> anymore, right? So these number depend on the last patch in the series?
->>
->> Correct, without the last patch sparse_init time won't change.
-> 
-> THen this is just misleading.
-> 
+Defined SPARC optimised __fls using lzcnt opcode.
 
-OK, I will re-arrange patches the way you suggested earlier.
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/lib/NG4fls.S |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-Pasha
+diff --git a/arch/sparc/lib/NG4fls.S b/arch/sparc/lib/NG4fls.S
+index 5ed7da9..34ad371 100644
+--- a/arch/sparc/lib/NG4fls.S
++++ b/arch/sparc/lib/NG4fls.S
+@@ -18,3 +18,13 @@ ENTRY(NG4fls)
+ 	retl
+ 	 sub	%g3, %g2, %o0
+ ENDPROC(NG4fls)
++
++ENTRY(__NG4fls)
++	brz,pn	%o0, 1f
++	LXCNT_O0_G2	!lzcnt	%o0, %g2
++	mov	63, %g3
++	sub	%g3, %g2, %o0
++1:
++	retl
++	 nop
++ENDPROC(__NG4fls)
+-- 
+1.7.1
+
