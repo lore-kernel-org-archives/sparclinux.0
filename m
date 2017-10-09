@@ -1,76 +1,129 @@
-From: Pasha Tatashin <pasha.tatashin@oracle.com>
-Date: Wed, 04 Oct 2017 15:08:59 +0000
-Subject: Re: [PATCH v9 08/12] mm: zero reserved and unavailable struct pages
-Message-Id: <ee817a40-1160-c24a-5106-f900ad3ebf26@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 09 Oct 2017 22:19:29 +0000
+Subject: [PATCH v11 7/9] arm64/kasan: add and use kasan_map_populate()
+Message-Id: <20171009221931.1481-8-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
- <20170920201714.19817-9-pasha.tatashin@oracle.com>
- <20171003131817.omzbam3js67edp3s@dhcp22.suse.cz>
- <691dba28-718c-e9a9-d006-88505eb5cd7e@oracle.com>
- <20171004085636.w2rnwf5xxhahzuy7@dhcp22.suse.cz>
- <9198a33d-cd40-dd70-4823-7f70c57ef9a2@oracle.com>
- <20171004125743.fm6mf2artbga76et@dhcp22.suse.cz>
- <d743668c-6b7e-1775-a5b8-d6e997537990@oracle.com>
- <20171004140410.2w2zf2gbutdxunir@dhcp22.suse.cz>
-In-Reply-To: <20171004140410.2w2zf2gbutdxunir@dhcp22.suse.cz>
+References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
+During early boot, kasan uses vmemmap_populate() to establish its shadow
+memory. But, that interface is intended for struct pages use.
 
+Because of the current project, vmemmap won't be zeroed during allocation,
+but kasan expects that memory to be zeroed. We are adding a new
+kasan_map_populate() function to resolve this difference.
 
-On 10/04/2017 10:04 AM, Michal Hocko wrote:
-> On Wed 04-10-17 09:28:55, Pasha Tatashin wrote:
->>
->>> I am not really familiar with the trim_low_memory_range code path. I am
->>> not even sure we have to care about it because nobody should be walking
->>> pfns outside of any zone.
->>
->> According to commit comments first 4K belongs to BIOS, so I think the memory
->> exists but BIOS may or may not report it to Linux. So, reserve it to make
->> sure we never touch it.
-> 
-> Yes and that memory should be outside of any zones, no?
+Therefore, we must use a new interface to allocate and map kasan shadow
+memory, that also zeroes memory for us.
 
-I am not totally sure, I think some x86 expert could help us here. But, 
-in either case this issue can be fixed separately from the rest of the 
-series.
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+---
+ arch/arm64/mm/kasan_init.c | 72 ++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 66 insertions(+), 6 deletions(-)
 
-> 
->>> I am worried that this patch adds a code which
->>> is not really used and it will just stay that way for ever because
->>> nobody will dare to change it as it is too obscure and not explained
->>> very well.
->>
->> I could explain mine code better. Perhaps add more comments, and explain
->> when it can be removed?
-> 
-> More explanation would be definitely helpful
-> 
->>> trim_low_memory_range is a good example of this. Why do we
->>> even reserve this range from the memory block allocator? The memory
->>> shouldn't be backed by any real memory and thus not in the allocator in
->>> the first place, no?
->>>
->>
->> Since it is not enforced in memblock that everything in reserved list must
->> be part of memory list, we can have it, and we need to make sure kernel does
->> not panic. Otherwise, it is very hard to detect such bugs.
-> 
-> So, should we report such a memblock reservation API (ab)use to the log?
-> Are you actually sure that trim_low_memory_range is doing a sane and
-> really needed thing? In other words do we have a zone which contains
-> this no-memory backed pfns?
-> 
+diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
+index 81f03959a4ab..cb4af2951c90 100644
+--- a/arch/arm64/mm/kasan_init.c
++++ b/arch/arm64/mm/kasan_init.c
+@@ -28,6 +28,66 @@
+ 
+ static pgd_t tmp_pg_dir[PTRS_PER_PGD] __initdata __aligned(PGD_SIZE);
+ 
++/* Creates mappings for kasan during early boot. The mapped memory is zeroed */
++static int __meminit kasan_map_populate(unsigned long start, unsigned long end,
++					int node)
++{
++	unsigned long addr, pfn, next;
++	unsigned long long size;
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	int ret;
++
++	ret = vmemmap_populate(start, end, node);
++	/*
++	 * We might have partially populated memory, so check for no entries,
++	 * and zero only those that actually exist.
++	 */
++	for (addr = start; addr < end; addr = next) {
++		pgd = pgd_offset_k(addr);
++		if (pgd_none(*pgd)) {
++			next = pgd_addr_end(addr, end);
++			continue;
++		}
++
++		pud = pud_offset(pgd, addr);
++		if (pud_none(*pud)) {
++			next = pud_addr_end(addr, end);
++			continue;
++		}
++		if (pud_sect(*pud)) {
++			/* This is PUD size page */
++			next = pud_addr_end(addr, end);
++			size = PUD_SIZE;
++			pfn = pud_pfn(*pud);
++		} else {
++			pmd = pmd_offset(pud, addr);
++			if (pmd_none(*pmd)) {
++				next = pmd_addr_end(addr, end);
++				continue;
++			}
++			if (pmd_sect(*pmd)) {
++				/* This is PMD size page */
++				next = pmd_addr_end(addr, end);
++				size = PMD_SIZE;
++				pfn = pmd_pfn(*pmd);
++			} else {
++				pte = pte_offset_kernel(pmd, addr);
++				next = addr + PAGE_SIZE;
++				if (pte_none(*pte))
++					continue;
++				/* This is base size page */
++				size = PAGE_SIZE;
++				pfn = pte_pfn(*pte);
++			}
++		}
++		memset(phys_to_virt(PFN_PHYS(pfn)), 0, size);
++	}
++	return ret;
++}
++
+ /*
+  * The p*d_populate functions call virt_to_phys implicitly so they can't be used
+  * directly on kernel symbols (bm_p*d). All the early functions are called too
+@@ -161,11 +221,11 @@ void __init kasan_init(void)
+ 
+ 	clear_pgds(KASAN_SHADOW_START, KASAN_SHADOW_END);
+ 
+-	vmemmap_populate(kimg_shadow_start, kimg_shadow_end,
+-			 pfn_to_nid(virt_to_pfn(lm_alias(_text))));
++	kasan_map_populate(kimg_shadow_start, kimg_shadow_end,
++			   pfn_to_nid(virt_to_pfn(lm_alias(_text))));
+ 
+ 	/*
+-	 * vmemmap_populate() has populated the shadow region that covers the
++	 * kasan_map_populate() has populated the shadow region that covers the
+ 	 * kernel image with SWAPPER_BLOCK_SIZE mappings, so we have to round
+ 	 * the start and end addresses to SWAPPER_BLOCK_SIZE as well, to prevent
+ 	 * kasan_populate_zero_shadow() from replacing the page table entries
+@@ -191,9 +251,9 @@ void __init kasan_init(void)
+ 		if (start >= end)
+ 			break;
+ 
+-		vmemmap_populate((unsigned long)kasan_mem_to_shadow(start),
+-				(unsigned long)kasan_mem_to_shadow(end),
+-				pfn_to_nid(virt_to_pfn(start)));
++		kasan_map_populate((unsigned long)kasan_mem_to_shadow(start),
++				   (unsigned long)kasan_mem_to_shadow(end),
++				   pfn_to_nid(virt_to_pfn(start)));
+ 	}
+ 
+ 	/*
+-- 
+2.14.2
 
-And, this patch reports it already:
-
-+	pr_info("Reserved but unavailable: %lld pages", pgcnt);
-
-I could add a comment above this print call, explain that such memory is 
-probably bogus and must be studied/fixed. Also, add that this code can 
-be removed once memblock is changed to allow reserve only memory that is 
-backed by physical memory i.e. in "memory" list.
-
-Pasha
