@@ -1,66 +1,94 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Fri, 20 Oct 2017 16:57:54 +0000
-Subject: [PATCH v9 01/10] signals, sparc: Add signal codes for ADI violations
-Message-Id: <6aaf85946246e352cb55df577228c1b247aa674b.1508364660.git.khalid.aziz@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 09 Oct 2017 22:19:23 +0000
+Subject: [PATCH v11 1/9] x86/mm: setting fields in deferred pages
+Message-Id: <20171009221931.1481-2-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1508364660.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1508364660.git.khalid.aziz@oracle.com>
+References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arnd@arndb.de, hpa@zytor.com, davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, 0x7f454c46@gmail.com, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, jroedel@suse.de, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-SPARC M7 processor introduces a new feature - Application Data
-Integrity (ADI). ADI allows MMU to  catch rogue accesses to memory.
-When a rogue access occurs, MMU blocks the access and raises an
-exception. In response to the exception, kernel sends the offending
-task a SIGSEGV with si_code that indicates the nature of exception.
-This patch adds three new signal codes specific to ADI feature:
+Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
+flags and other fields in "struct page"es are never changed prior to first
+initializing struct pages by going through __init_single_page().
 
-1. ADI is not enabled for the address and task attempted to access
-   memory using ADI
-2. Task attempted to access memory using wrong ADI tag and caused
-   a deferred exception.
-3. Task attempted to access memory using wrong ADI Ttag and caused
-   a precise exception.
+With deferred struct page feature enabled, however, we set fields in
+register_page_bootmem_info that are subsequently clobbered right after in
+free_all_bootmem:
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+        mem_init() {
+                register_page_bootmem_info();
+                free_all_bootmem();
+                ...
+        }
+
+When register_page_bootmem_info() is called only non-deferred struct pages
+are initialized. But, this function goes through some reserved pages which
+might be part of the deferred, and thus are not yet initialized.
+
+  mem_init
+   register_page_bootmem_info
+    register_page_bootmem_info_node
+     get_page_bootmem
+      .. setting fields here ..
+      such as: page->freelist = (void *)type;
+
+  free_all_bootmem()
+   free_low_memory_core_early()
+    for_each_reserved_mem_region()
+     reserve_bootmem_region()
+      init_reserved_page() <- Only if this is deferred reserved page
+       __init_single_pfn()
+        __init_single_page()
+            memset(0) <-- Loose the set fields here
+
+We end-up with issue where, currently we do not observe problem as memory
+is explicitly zeroed. But, if flag asserts are changed we can start hitting
+issues.
+
+Also, because in this patch series we will stop zeroing struct page memory
+during allocation, we must make sure that struct pages are properly
+initialized prior to using them.
+
+The deferred-reserved pages are initialized in free_all_bootmem().
+Therefore, the fix is to switch the above calls.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/x86/kernel/signal_compat.c    | 2 +-
- include/uapi/asm-generic/siginfo.h | 5 ++++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ arch/x86/mm/init_64.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
-index 71beb28600d4..e6e0b50230c3 100644
---- a/arch/x86/kernel/signal_compat.c
-+++ b/arch/x86/kernel/signal_compat.c
-@@ -26,7 +26,7 @@ static inline void signal_compat_build_tests(void)
- 	 */
- 	BUILD_BUG_ON(NSIGILL  != 8);
- 	BUILD_BUG_ON(NSIGFPE  != 8);
--	BUILD_BUG_ON(NSIGSEGV != 4);
-+	BUILD_BUG_ON(NSIGSEGV != 7);
- 	BUILD_BUG_ON(NSIGBUS  != 5);
- 	BUILD_BUG_ON(NSIGTRAP != 4);
- 	BUILD_BUG_ON(NSIGCHLD != 6);
-diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
-index 9c4eca6b374a..72b435beb930 100644
---- a/include/uapi/asm-generic/siginfo.h
-+++ b/include/uapi/asm-generic/siginfo.h
-@@ -224,7 +224,10 @@ typedef struct siginfo {
- #define SEGV_ACCERR	(__SI_FAULT|2)	/* invalid permissions for mapped object */
- #define SEGV_BNDERR	(__SI_FAULT|3)  /* failed address bound checks */
- #define SEGV_PKUERR	(__SI_FAULT|4)  /* failed protection key checks */
--#define NSIGSEGV	4
-+#define SEGV_ACCADI	(__SI_FAULT|5)	/* ADI not enabled for mapped object */
-+#define SEGV_ADIDERR	(__SI_FAULT|6)	/* Disrupting MCD error */
-+#define SEGV_ADIPERR	(__SI_FAULT|7)	/* Precise MCD exception */
-+#define NSIGSEGV	7
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index 5ea1c3c2636e..8822523fdcd7 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -1182,12 +1182,18 @@ void __init mem_init(void)
  
- /*
-  * SIGBUS si_codes
+ 	/* clear_bss() already clear the empty_zero_page */
+ 
+-	register_page_bootmem_info();
+-
+ 	/* this will put all memory onto the freelists */
+ 	free_all_bootmem();
+ 	after_bootmem = 1;
+ 
++	/*
++	 * Must be done after boot memory is put on freelist, because here we
++	 * might set fields in deferred struct pages that have not yet been
++	 * initialized, and free_all_bootmem() initializes all the reserved
++	 * deferred pages for us.
++	 */
++	register_page_bootmem_info();
++
+ 	/* Register memory areas for /proc/kcore */
+ 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
+ 			 PAGE_SIZE, KCORE_OTHER);
 -- 
-2.11.0
+2.14.2
 
