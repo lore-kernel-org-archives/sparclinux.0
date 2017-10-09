@@ -1,7 +1,7 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Mon, 09 Oct 2017 18:14:33 +0000
+From: Will Deacon <will.deacon@arm.com>
+Date: Mon, 09 Oct 2017 18:22:17 +0000
 Subject: Re: [PATCH v9 09/12] mm/kasan: kasan specific map populate function
-Message-Id: <20171009181433.wevxa447d4g6kdsj@dhcp22.suse.cz>
+Message-Id: <20171009182217.GC30828@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20170920201714.19817-1-pasha.tatashin@oracle.com>
  <20170920201714.19817-10-pasha.tatashin@oracle.com>
@@ -14,9 +14,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon 09-10-17 13:51:47, Pavel Tatashin wrote:
-> Hi Will,
-> 
+Hi Pavel,
+
+On Mon, Oct 09, 2017 at 01:51:47PM -0400, Pavel Tatashin wrote:
 > I can go back to that approach, if Michal OK with it. But, that would
 > mean that I would need to touch every single architecture that
 > implements vmemmap_populate(), and also pass flags at least through
@@ -30,18 +30,21 @@ On Mon 09-10-17 13:51:47, Pavel Tatashin wrote:
 > __vmemmap_alloc_block_buf()
 > alloc_block_buf()
 > vmemmap_alloc_block()
-> 
+
+As an interim step, why not introduce something like
+vmemmap_alloc_block_flags and make the page-table walking opt-out for
+architectures that don't want it? Then we can just pass __GFP_ZERO from
+our vmemmap_populate where necessary and other architectures can do the
+page-table walking dance if they prefer.
+
 > IMO, while I understand that it looks strange that we must walk page
 > table after creating it, it is a better approach: more enclosed as it
 > effects kasan only, and more universal as it is in common code.
 
-While I understand that gfp mask approach might look better at first
-sight this is by no means a general purpose API so I would rather be
-pragmatic and have a smaller code footprint than a more general
-interface. Kasan is pretty much a special case and doing a one time
-initialization 2 pass thing is imho acceptable. If this turns out to be
-impractical in future then let's fix it up but right now I would rather
-go a simpler path.
--- 
-Michal Hocko
-SUSE Labs
+I don't buy the more universal aspect, but I appreciate it's subjective.
+Frankly, I'd just sooner not have core code walking early page tables if
+it can be avoided, and it doesn't look hard to avoid it in this case.
+The fact that you're having to add pmd_large and pud_large, which are
+otherwise unused in mm/, is an indication that this isn't quite right imo.
+
+Will
