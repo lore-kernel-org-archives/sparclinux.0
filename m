@@ -1,77 +1,130 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Thu, 05 Oct 2017 20:39:06 +0000
-Subject: [PATCH 4/4] alpha/PCI: Make pdev_save_srm_config() static
-Message-Id: <20171005203906.18300.63272.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 09 Oct 2017 22:19:28 +0000
+Subject: [PATCH v11 6/9] x86/kasan: add and use kasan_map_populate()
+Message-Id: <20171009221931.1481-7-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
-In-Reply-To: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
+References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-pci@vger.kernel.org
-Cc: linux-mips@linux-mips.org, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Howells <dhowells@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-am33-list@redhat.com, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Helge Deller <deller@gmx.de>, x86@kernel.org, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ingo Molnar <mingo@redhat.com>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-xtensa@linux-xtensa.org, Mikael Starvik <starvik@axis.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, Tony Luck <tony.luck@intel.com>, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-arm-kernel@lists.infradead.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
+During early boot, kasan uses vmemmap_populate() to establish its shadow
+memory. But, that interface is intended for struct pages use.
 
-pdev_save_srm_config() and struct pdev_srm_saved_conf are only used in
-arch/alpha/kernel/pci.c, so make them static there.
+Because of the current project, vmemmap won't be zeroed during allocation,
+but kasan expects that memory to be zeroed. We are adding a new
+kasan_map_populate() function to resolve this difference.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Therefore, we must use a new interface to allocate and map kasan shadow
+memory, that also zeroes memory for us.
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 ---
- arch/alpha/kernel/pci.c      |   11 ++++++++++-
- arch/alpha/kernel/pci_impl.h |    8 --------
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ arch/x86/mm/kasan_init_64.c | 75 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 71 insertions(+), 4 deletions(-)
 
-diff --git a/arch/alpha/kernel/pci.c b/arch/alpha/kernel/pci.c
-index 564114eb85e1..16b67621a0d5 100644
---- a/arch/alpha/kernel/pci.c
-+++ b/arch/alpha/kernel/pci.c
-@@ -196,9 +196,16 @@ pcibios_init(void)
- subsys_initcall(pcibios_init);
+diff --git a/arch/x86/mm/kasan_init_64.c b/arch/x86/mm/kasan_init_64.c
+index bc84b73684b7..9778fec8a5dc 100644
+--- a/arch/x86/mm/kasan_init_64.c
++++ b/arch/x86/mm/kasan_init_64.c
+@@ -15,6 +15,73 @@
  
- #ifdef ALPHA_RESTORE_SRM_SETUP
-+/* Store PCI device configuration left by SRM here. */
-+struct pdev_srm_saved_conf
+ extern struct range pfn_mapped[E820_MAX_ENTRIES];
+ 
++/* Creates mappings for kasan during early boot. The mapped memory is zeroed */
++static int __meminit kasan_map_populate(unsigned long start, unsigned long end,
++					int node)
 +{
-+	struct pdev_srm_saved_conf *next;
-+	struct pci_dev *dev;
-+};
++	unsigned long addr, pfn, next;
++	unsigned long long size;
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	int ret;
 +
- static struct pdev_srm_saved_conf *srm_saved_configs;
- 
--void pdev_save_srm_config(struct pci_dev *dev)
-+static void pdev_save_srm_config(struct pci_dev *dev)
++	ret = vmemmap_populate(start, end, node);
++	/*
++	 * We might have partially populated memory, so check for no entries,
++	 * and zero only those that actually exist.
++	 */
++	for (addr = start; addr < end; addr = next) {
++		pgd = pgd_offset_k(addr);
++		if (pgd_none(*pgd)) {
++			next = pgd_addr_end(addr, end);
++			continue;
++		}
++
++		p4d = p4d_offset(pgd, addr);
++		if (p4d_none(*p4d)) {
++			next = p4d_addr_end(addr, end);
++			continue;
++		}
++
++		pud = pud_offset(p4d, addr);
++		if (pud_none(*pud)) {
++			next = pud_addr_end(addr, end);
++			continue;
++		}
++		if (pud_large(*pud)) {
++			/* This is PUD size page */
++			next = pud_addr_end(addr, end);
++			size = PUD_SIZE;
++			pfn = pud_pfn(*pud);
++		} else {
++			pmd = pmd_offset(pud, addr);
++			if (pmd_none(*pmd)) {
++				next = pmd_addr_end(addr, end);
++				continue;
++			}
++			if (pmd_large(*pmd)) {
++				/* This is PMD size page */
++				next = pmd_addr_end(addr, end);
++				size = PMD_SIZE;
++				pfn = pmd_pfn(*pmd);
++			} else {
++				pte = pte_offset_kernel(pmd, addr);
++				next = addr + PAGE_SIZE;
++				if (pte_none(*pte))
++					continue;
++				/* This is base size page */
++				size = PAGE_SIZE;
++				pfn = pte_pfn(*pte);
++			}
++		}
++		memset(phys_to_virt(PFN_PHYS(pfn)), 0, size);
++	}
++	return ret;
++}
++
+ static int __init map_range(struct range *range)
  {
- 	struct pdev_srm_saved_conf *tmp;
- 	static int printed = 0;
-@@ -238,6 +245,8 @@ pci_restore_srm_config(void)
- 		pci_restore_state(tmp->dev);
- 	}
+ 	unsigned long start;
+@@ -23,7 +90,7 @@ static int __init map_range(struct range *range)
+ 	start = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->start));
+ 	end = (unsigned long)kasan_mem_to_shadow(pfn_to_kaddr(range->end));
+ 
+-	return vmemmap_populate(start, end, NUMA_NO_NODE);
++	return kasan_map_populate(start, end, NUMA_NO_NODE);
  }
-+#else
-+#define pdev_save_srm_config(dev)	do {} while (0)
- #endif
  
- void pcibios_fixup_bus(struct pci_bus *bus)
-diff --git a/arch/alpha/kernel/pci_impl.h b/arch/alpha/kernel/pci_impl.h
-index 2b0ac429f5eb..65adea0d3d78 100644
---- a/arch/alpha/kernel/pci_impl.h
-+++ b/arch/alpha/kernel/pci_impl.h
-@@ -156,16 +156,8 @@ struct pci_iommu_arena
- #endif
+ static void __init clear_pgds(unsigned long start,
+@@ -136,9 +203,9 @@ void __init kasan_init(void)
+ 		kasan_mem_to_shadow((void *)PAGE_OFFSET + MAXMEM),
+ 		kasan_mem_to_shadow((void *)__START_KERNEL_map));
  
- #ifdef ALPHA_RESTORE_SRM_SETUP
--/* Store PCI device configuration left by SRM here. */
--struct pdev_srm_saved_conf
--{
--	struct pdev_srm_saved_conf *next;
--	struct pci_dev *dev;
--};
--
- extern void pci_restore_srm_config(void);
- #else
--#define pdev_save_srm_config(dev)	do {} while (0)
- #define pci_restore_srm_config()	do {} while (0)
- #endif
+-	vmemmap_populate((unsigned long)kasan_mem_to_shadow(_stext),
+-			(unsigned long)kasan_mem_to_shadow(_end),
+-			NUMA_NO_NODE);
++	kasan_map_populate((unsigned long)kasan_mem_to_shadow(_stext),
++			   (unsigned long)kasan_mem_to_shadow(_end),
++			   NUMA_NO_NODE);
  
+ 	kasan_populate_zero_shadow(kasan_mem_to_shadow((void *)MODULES_END),
+ 			(void *)KASAN_SHADOW_END);
+-- 
+2.14.2
 
