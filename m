@@ -1,121 +1,163 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 11 Oct 2017 18:50:03 +0000
-Subject: [PATCH v4 2/5] sparc64: Define SPARC default __fls function
-Message-Id: <1507747806-10251-3-git-send-email-vijay.ac.kumar@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Mon, 09 Oct 2017 22:19:30 +0000
+Subject: [PATCH v11 8/9] mm: stop zeroing memory during allocation in vmemmap
+Message-Id: <20171009221931.1481-9-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
+To: linux-arm-kernel@lists.infradead.org
 
-__fls will now require a boot time patching on T4 and above.
-Redefining it under arch/sparc/lib.
+vmemmap_alloc_block() will no longer zero the block, so zero memory
+at its call sites for everything except struct pages.  Struct page memory
+is zero'd by struct page initialization.
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Replace allocators in sprase-vmemmap to use the non-zeroing version. So,
+we will get the performance improvement by zeroing the memory in parallel
+when struct pages are zeroed.
+
+Add struct page zeroing as a part of initialization of other fields in
+__init_single_page().
+
+This single thread performance collected on: Intel(R) Xeon(R) CPU E7-8895
+v3 @ 2.60GHz with 1T of memory (268400646 pages in 8 nodes):
+
+                         BASE            FIX
+sparse_init     11.244671836s   0.007199623s
+zone_sizes_init  4.879775891s   8.355182299s
+                  --------------------------
+Total           16.124447727s   8.362381922s
+
+sparse_init is where memory for struct pages is zeroed, and the zeroing
+part is moved later in this patch into __init_single_page(), which is
+called from zone_sizes_init().
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sparc/include/asm/bitops_64.h |    2 +-
- arch/sparc/lib/Makefile            |    1 +
- arch/sparc/lib/fls64.S             |   61 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 63 insertions(+), 1 deletions(-)
+ include/linux/mm.h  | 11 +++++++++++
+ mm/page_alloc.c     |  1 +
+ mm/sparse-vmemmap.c | 15 +++++++--------
+ mm/sparse.c         |  6 +++---
+ 4 files changed, 22 insertions(+), 11 deletions(-)
 
-diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
-index 30aea56..d7a46e2 100644
---- a/arch/sparc/include/asm/bitops_64.h
-+++ b/arch/sparc/include/asm/bitops_64.h
-@@ -23,10 +23,10 @@
- void change_bit(unsigned long nr, volatile unsigned long *addr);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 04c8b2e5aff4..fd045a3b243a 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2501,6 +2501,17 @@ static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
+ 	return __vmemmap_alloc_block_buf(size, node, NULL);
+ }
  
- int fls(unsigned int word);
-+int __fls(unsigned long word);
- 
- #include <asm-generic/bitops/non-atomic.h>
- 
--#include <asm-generic/bitops/__fls.h>
- #include <asm-generic/bitops/fls64.h>
- 
- #ifdef __KERNEL__
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index 3b9f5e0..5380c59 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -17,6 +17,7 @@ lib-$(CONFIG_SPARC32) += lshrdi3.o ashldi3.o
- lib-$(CONFIG_SPARC32) += muldi3.o bitext.o cmpdi2.o
- lib-$(CONFIG_SPARC64) += multi3.o
- lib-$(CONFIG_SPARC64) += fls.o
-+lib-$(CONFIG_SPARC64) += fls64.o
- 
- lib-$(CONFIG_SPARC64) += copy_page.o clear_page.o bzero.o
- lib-$(CONFIG_SPARC64) += csum_copy.o csum_copy_from_user.o csum_copy_to_user.o
-diff --git a/arch/sparc/lib/fls64.S b/arch/sparc/lib/fls64.S
-new file mode 100644
-index 0000000..c83e22a
---- /dev/null
-+++ b/arch/sparc/lib/fls64.S
-@@ -0,0 +1,61 @@
-+/* fls64.S: SPARC default __fls definition.
-+ *
-+ * SPARC default __fls definition, which follows the same algorithm as
-+ * in generic __fls(). This function will be boot time patched on T4
-+ * and onward.
-+ */
++static inline void *vmemmap_alloc_block_zero(unsigned long size, int node)
++{
++	void *p = vmemmap_alloc_block(size, node);
 +
-+#include <linux/linkage.h>
-+#include <asm/export.h>
++	if (!p)
++		return NULL;
++	memset(p, 0, size);
 +
-+	.text
-+	.register	%g2, #scratch
-+	.register	%g3, #scratch
-+ENTRY(__fls)
-+	mov	-1, %g2
-+	sllx	%g2, 32, %g2
-+	and	%o0, %g2, %g2
-+	brnz,pt	%g2, 1f
-+	 mov	63, %g1
-+	sllx	%o0, 32, %o0
-+	mov	31, %g1
-+1:
-+	mov	-1, %g2
-+	sllx	%g2, 48, %g2
-+	and	%o0, %g2, %g2
-+	brnz,pt	%g2, 2f
-+	 mov	-1, %g2
-+	sllx	%o0, 16, %o0
-+	add	%g1, -16, %g1
-+2:
-+	mov	-1, %g2
-+	sllx	%g2, 56, %g2
-+	and	%o0, %g2, %g2
-+	brnz,pt	%g2, 3f
-+	 mov	-1, %g2
-+	sllx	%o0, 8, %o0
-+	add	%g1, -8, %g1
-+3:
-+	sllx	%g2, 60, %g2
-+	and	%o0, %g2, %g2
-+	brnz,pt	%g2, 4f
-+	 mov	-1, %g2
-+	sllx	%o0, 4, %o0
-+	add	%g1, -4, %g1
-+4:
-+	sllx	%g2, 62, %g2
-+	and	%o0, %g2, %g2
-+	brnz,pt	%g2, 5f
-+	 mov	-1, %g3
-+	sllx	%o0, 2, %o0
-+	add	%g1, -2, %g1
-+5:
-+	mov	0, %g2
-+	sllx	%g3, 63, %g3
-+	and	%o0, %g3, %o0
-+	movre	%o0, 1, %g2
-+	sub	%g1, %g2, %g1
-+	jmp	%o7+8
-+	 sra	%g1, 0, %o0
-+ENDPROC(__fls)
-+EXPORT_SYMBOL(__fls)
++	return p;
++}
++
+ void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
+ int vmemmap_populate_basepages(unsigned long start, unsigned long end,
+ 			       int node);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 5f0013bbbe9d..85e038e1e941 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1170,6 +1170,7 @@ static void free_one_page(struct zone *zone,
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
++	mm_zero_struct_page(page);
+ 	set_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+diff --git a/mm/sparse-vmemmap.c b/mm/sparse-vmemmap.c
+index d1a39b8051e0..c2f5654e7c9d 100644
+--- a/mm/sparse-vmemmap.c
++++ b/mm/sparse-vmemmap.c
+@@ -41,7 +41,7 @@ static void * __ref __earlyonly_bootmem_alloc(int node,
+ 				unsigned long align,
+ 				unsigned long goal)
+ {
+-	return memblock_virt_alloc_try_nid(size, align, goal,
++	return memblock_virt_alloc_try_nid_raw(size, align, goal,
+ 					    BOOTMEM_ALLOC_ACCESSIBLE, node);
+ }
+ 
+@@ -54,9 +54,8 @@ void * __meminit vmemmap_alloc_block(unsigned long size, int node)
+ 	if (slab_is_available()) {
+ 		struct page *page;
+ 
+-		page = alloc_pages_node(node,
+-			GFP_KERNEL | __GFP_ZERO | __GFP_RETRY_MAYFAIL,
+-			get_order(size));
++		page = alloc_pages_node(node, GFP_KERNEL | __GFP_RETRY_MAYFAIL,
++					get_order(size));
+ 		if (page)
+ 			return page_address(page);
+ 		return NULL;
+@@ -183,7 +182,7 @@ pmd_t * __meminit vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node)
+ {
+ 	pmd_t *pmd = pmd_offset(pud, addr);
+ 	if (pmd_none(*pmd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pmd_populate_kernel(&init_mm, pmd, p);
+@@ -195,7 +194,7 @@ pud_t * __meminit vmemmap_pud_populate(p4d_t *p4d, unsigned long addr, int node)
+ {
+ 	pud_t *pud = pud_offset(p4d, addr);
+ 	if (pud_none(*pud)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pud_populate(&init_mm, pud, p);
+@@ -207,7 +206,7 @@ p4d_t * __meminit vmemmap_p4d_populate(pgd_t *pgd, unsigned long addr, int node)
+ {
+ 	p4d_t *p4d = p4d_offset(pgd, addr);
+ 	if (p4d_none(*p4d)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		p4d_populate(&init_mm, p4d, p);
+@@ -219,7 +218,7 @@ pgd_t * __meminit vmemmap_pgd_populate(unsigned long addr, int node)
+ {
+ 	pgd_t *pgd = pgd_offset_k(addr);
+ 	if (pgd_none(*pgd)) {
+-		void *p = vmemmap_alloc_block(PAGE_SIZE, node);
++		void *p = vmemmap_alloc_block_zero(PAGE_SIZE, node);
+ 		if (!p)
+ 			return NULL;
+ 		pgd_populate(&init_mm, pgd, p);
+diff --git a/mm/sparse.c b/mm/sparse.c
+index 83b3bf6461af..d22f51bb7c79 100644
+--- a/mm/sparse.c
++++ b/mm/sparse.c
+@@ -437,9 +437,9 @@ void __init sparse_mem_maps_populate_node(struct page **map_map,
+ 	}
+ 
+ 	size = PAGE_ALIGN(size);
+-	map = memblock_virt_alloc_try_nid(size * map_count,
+-					  PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
+-					  BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
++	map = memblock_virt_alloc_try_nid_raw(size * map_count,
++					      PAGE_SIZE, __pa(MAX_DMA_ADDRESS),
++					      BOOTMEM_ALLOC_ACCESSIBLE, nodeid);
+ 	if (map) {
+ 		for (pnum = pnum_begin; pnum < pnum_end; pnum++) {
+ 			if (!present_section_nr(pnum))
 -- 
-1.7.1
+2.14.2
 
