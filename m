@@ -1,85 +1,246 @@
 From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Thu, 05 Oct 2017 21:11:24 +0000
-Subject: [PATCH v10 10/10] sparc64: optimized struct page zeroing
-Message-Id: <20171005211124.26524-11-pasha.tatashin@oracle.com>
+Date: Mon, 09 Oct 2017 22:19:26 +0000
+Subject: [PATCH v11 4/9] mm: defining memblock_virt_alloc_try_nid_raw
+Message-Id: <20171009221931.1481-5-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171005211124.26524-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171005211124.26524-1-pasha.tatashin@oracle.com>
+References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Add an optimized mm_zero_struct_page(), so struct page's are zeroed without
-calling memset(). We do eight to ten regular stores based on the size of
-struct page. Compiler optimizes out the conditions of switch() statement.
+* A new variant of memblock_virt_alloc_* allocations:
+memblock_virt_alloc_try_nid_raw()
+    - Does not zero the allocated memory
+    - Does not panic if request cannot be satisfied
 
-SPARC-M6 with 15T of memory, single thread performance:
+* optimize early system hash allocations
 
-                               BASE            FIX  OPTIMIZED_FIX
-        bootmem_init   28.440467985s   2.305674818s   2.305161615s
-free_area_init_nodes  202.845901673s 225.343084508s 172.556506560s
-                      --------------------------------------------
-Total                 231.286369658s 227.648759326s 174.861668175s
+Clients can call alloc_large_system_hash() with flag: HASH_ZERO to specify
+that memory that was allocated for system hash needs to be zeroed,
+otherwise the memory does not need to be zeroed, and client will initialize
+it.
 
-BASE:  current linux
-FIX:   This patch series without "optimized struct page zeroing"
-OPTIMIZED_FIX: This patch series including the current patch.
+If memory does not need to be zero'd, call the new
+memblock_virt_alloc_raw() interface, and thus improve the boot performance.
 
-bootmem_init() is where memory for struct pages is zeroed during
-allocation. Note, about two seconds in this function is a fixed time: it
-does not increase as memory is increased.
+* debug for raw alloctor
+
+When CONFIG_DEBUG_VM is enabled, this patch sets all the memory that is
+returned by memblock_virt_alloc_try_nid_raw() to ones to ensure that no
+places excpect zeroed memory.
 
 Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
 Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
 Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
 Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ include/linux/bootmem.h | 27 ++++++++++++++++++++++
+ mm/memblock.c           | 60 +++++++++++++++++++++++++++++++++++++++++++------
+ mm/page_alloc.c         | 15 ++++++-------
+ 3 files changed, 87 insertions(+), 15 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 4fefe3762083..8ed478abc630 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -230,6 +230,36 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
+diff --git a/include/linux/bootmem.h b/include/linux/bootmem.h
+index e223d91b6439..ea30b3987282 100644
+--- a/include/linux/bootmem.h
++++ b/include/linux/bootmem.h
+@@ -160,6 +160,9 @@ extern void *__alloc_bootmem_low_node(pg_data_t *pgdat,
+ #define BOOTMEM_ALLOC_ANYWHERE		(~(phys_addr_t)0)
  
-+/* This macro must be updated when the size of struct page grows above 80
-+ * or reduces below 64.
-+ * The idea that compiler optimizes out switch() statement, and only
-+ * leaves clrx instructions
-+ */
-+#define	mm_zero_struct_page(pp) do {					\
-+	unsigned long *_pp = (void *)(pp);				\
-+									\
-+	 /* Check that struct page is either 64, 72, or 80 bytes */	\
-+	BUILD_BUG_ON(sizeof(struct page) & 7);				\
-+	BUILD_BUG_ON(sizeof(struct page) < 64);				\
-+	BUILD_BUG_ON(sizeof(struct page) > 80);				\
-+									\
-+	switch (sizeof(struct page)) {					\
-+	case 80:							\
-+		_pp[9] = 0;	/* fallthrough */			\
-+	case 72:							\
-+		_pp[8] = 0;	/* fallthrough */			\
-+	default:							\
-+		_pp[7] = 0;						\
-+		_pp[6] = 0;						\
-+		_pp[5] = 0;						\
-+		_pp[4] = 0;						\
-+		_pp[3] = 0;						\
-+		_pp[2] = 0;						\
-+		_pp[1] = 0;						\
-+		_pp[0] = 0;						\
-+	}								\
-+} while (0)
+ /* FIXME: Move to memblock.h at a point where we remove nobootmem.c */
++void *memblock_virt_alloc_try_nid_raw(phys_addr_t size, phys_addr_t align,
++				      phys_addr_t min_addr,
++				      phys_addr_t max_addr, int nid);
+ void *memblock_virt_alloc_try_nid_nopanic(phys_addr_t size,
+ 		phys_addr_t align, phys_addr_t min_addr,
+ 		phys_addr_t max_addr, int nid);
+@@ -176,6 +179,14 @@ static inline void * __init memblock_virt_alloc(
+ 					    NUMA_NO_NODE);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
++{
++	return memblock_virt_alloc_try_nid_raw(size, align, BOOTMEM_LOW_LIMIT,
++					    BOOTMEM_ALLOC_ACCESSIBLE,
++					    NUMA_NO_NODE);
++}
 +
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -257,6 +268,14 @@ static inline void * __init memblock_virt_alloc(
+ 	return __alloc_bootmem(size, align, BOOTMEM_LOW_LIMIT);
+ }
+ 
++static inline void * __init memblock_virt_alloc_raw(
++					phys_addr_t size,  phys_addr_t align)
++{
++	if (!align)
++		align = SMP_CACHE_BYTES;
++	return __alloc_bootmem_nopanic(size, align, BOOTMEM_LOW_LIMIT);
++}
++
+ static inline void * __init memblock_virt_alloc_nopanic(
+ 					phys_addr_t size, phys_addr_t align)
+ {
+@@ -309,6 +328,14 @@ static inline void * __init memblock_virt_alloc_try_nid(phys_addr_t size,
+ 					  min_addr);
+ }
+ 
++static inline void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
++{
++	return ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size, align,
++				min_addr, max_addr);
++}
++
+ static inline void * __init memblock_virt_alloc_try_nid_nopanic(
+ 			phys_addr_t size, phys_addr_t align,
+ 			phys_addr_t min_addr, phys_addr_t max_addr, int nid)
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 91205780e6b1..1f299fb1eb08 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1327,7 +1327,6 @@ static void * __init memblock_virt_alloc_internal(
+ 	return NULL;
+ done:
+ 	ptr = phys_to_virt(alloc);
+-	memset(ptr, 0, size);
+ 
+ 	/*
+ 	 * The min_count is set to 0 so that bootmem allocated blocks
+@@ -1340,6 +1339,45 @@ static void * __init memblock_virt_alloc_internal(
+ 	return ptr;
+ }
+ 
++/**
++ * memblock_virt_alloc_try_nid_raw - allocate boot memory block without zeroing
++ * memory and without panicking
++ * @size: size of memory block to be allocated in bytes
++ * @align: alignment of the region and block's size
++ * @min_addr: the lower bound of the memory region from where the allocation
++ *	  is preferred (phys address)
++ * @max_addr: the upper bound of the memory region from where the allocation
++ *	      is preferred (phys address), or %BOOTMEM_ALLOC_ACCESSIBLE to
++ *	      allocate only from memory limited by memblock.current_limit value
++ * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
++ *
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. Does not zero allocated memory, does not panic if request
++ * cannot be satisfied.
++ *
++ * RETURNS:
++ * Virtual address of allocated memory block on success, NULL on failure.
++ */
++void * __init memblock_virt_alloc_try_nid_raw(
++			phys_addr_t size, phys_addr_t align,
++			phys_addr_t min_addr, phys_addr_t max_addr,
++			int nid)
++{
++	void *ptr;
++
++	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
++		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
++		     (u64)max_addr, (void *)_RET_IP_);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++#ifdef CONFIG_DEBUG_VM
++	if (ptr && size > 0)
++		memset(ptr, 0xff, size);
++#endif
++	return ptr;
++}
++
+ /**
+  * memblock_virt_alloc_try_nid_nopanic - allocate boot memory block
+  * @size: size of memory block to be allocated in bytes
+@@ -1351,8 +1389,8 @@ static void * __init memblock_virt_alloc_internal(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public version of _memblock_virt_alloc_try_nid_nopanic() which provides
+- * additional debug information (including caller info), if enabled.
++ * Public function, provides additional debug information (including caller
++ * info), if enabled. This function zeroes the allocated memory.
+  *
+  * RETURNS:
+  * Virtual address of allocated memory block on success, NULL on failure.
+@@ -1362,11 +1400,17 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+ 				phys_addr_t min_addr, phys_addr_t max_addr,
+ 				int nid)
+ {
++	void *ptr;
++
+ 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx %pF\n",
+ 		     __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+ 		     (u64)max_addr, (void *)_RET_IP_);
+-	return memblock_virt_alloc_internal(size, align, min_addr,
+-					     max_addr, nid);
++
++	ptr = memblock_virt_alloc_internal(size, align,
++					   min_addr, max_addr, nid);
++	if (ptr)
++		memset(ptr, 0, size);
++	return ptr;
+ }
+ 
+ /**
+@@ -1380,7 +1424,7 @@ void * __init memblock_virt_alloc_try_nid_nopanic(
+  *	      allocate only from memory limited by memblock.current_limit value
+  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
+  *
+- * Public panicking version of _memblock_virt_alloc_try_nid_nopanic()
++ * Public panicking version of memblock_virt_alloc_try_nid_nopanic()
+  * which provides debug information (including caller info), if enabled,
+  * and panics if the request can not be satisfied.
+  *
+@@ -1399,8 +1443,10 @@ void * __init memblock_virt_alloc_try_nid(
+ 		     (u64)max_addr, (void *)_RET_IP_);
+ 	ptr = memblock_virt_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid);
+-	if (ptr)
++	if (ptr) {
++		memset(ptr, 0, size);
+ 		return ptr;
++	}
+ 
+ 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=0x%llx max_addr=0x%llx\n",
+ 	      __func__, (u64)size, (u64)align, nid, (u64)min_addr,
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index cdbd14829fd3..20b0bace2235 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -7307,18 +7307,17 @@ void *__init alloc_large_system_hash(const char *tablename,
+ 
+ 	log2qty = ilog2(numentries);
+ 
+-	/*
+-	 * memblock allocator returns zeroed memory already, so HASH_ZERO is
+-	 * currently not used when HASH_EARLY is specified.
+-	 */
+ 	gfp_flags = (flags & HASH_ZERO) ? GFP_ATOMIC | __GFP_ZERO : GFP_ATOMIC;
+ 	do {
+ 		size = bucketsize << log2qty;
+-		if (flags & HASH_EARLY)
+-			table = memblock_virt_alloc_nopanic(size, 0);
+-		else if (hashdist)
++		if (flags & HASH_EARLY) {
++			if (flags & HASH_ZERO)
++				table = memblock_virt_alloc_nopanic(size, 0);
++			else
++				table = memblock_virt_alloc_raw(size, 0);
++		} else if (hashdist) {
+ 			table = __vmalloc(size, gfp_flags, PAGE_KERNEL);
+-		else {
++		} else {
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
+ 			 * some pages at the end of hash table which
 -- 
 2.14.2
 
