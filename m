@@ -1,94 +1,88 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Mon, 09 Oct 2017 22:19:23 +0000
-Subject: [PATCH v11 1/9] x86/mm: setting fields in deferred pages
-Message-Id: <20171009221931.1481-2-pasha.tatashin@oracle.com>
+From: Kees Cook <keescook@chromium.org>
+Date: Tue, 10 Oct 2017 22:07:27 +0000
+Subject: [PATCH] sparc/led: Convert timers to use timer_setup()
+Message-Id: <20171010220727.GA97619@beast>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171009221931.1481-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Geliang Tang <geliangtang@gmail.com>, Ingo Molnar <mingo@kernel.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+In preparation for unconditionally passing the struct timer_list pointer to
+all timer callbacks, switch to using the new timer_setup() and from_timer()
+to pass the timer pointer explicitly. Adds a static variable to hold timeout
+value.
 
-With deferred struct page feature enabled, however, we set fields in
-register_page_bootmem_info that are subsequently clobbered right after in
-free_all_bootmem:
-
-        mem_init() {
-                register_page_bootmem_info();
-                free_all_bootmem();
-                ...
-        }
-
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
-
-  mem_init
-   register_page_bootmem_info
-    register_page_bootmem_info_node
-     get_page_bootmem
-      .. setting fields here ..
-      such as: page->freelist = (void *)type;
-
-  free_all_bootmem()
-   free_low_memory_core_early()
-    for_each_reserved_mem_region()
-     reserve_bootmem_region()
-      init_reserved_page() <- Only if this is deferred reserved page
-       __init_single_pfn()
-        __init_single_page()
-            memset(0) <-- Loose the set fields here
-
-We end-up with issue where, currently we do not observe problem as memory
-is explicitly zeroed. But, if flag asserts are changed we can start hitting
-issues.
-
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geliang Tang <geliangtang@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
 ---
- arch/x86/mm/init_64.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+This requires commit 686fef928bba ("timer: Prepare to change timer
+callback argument type") in v4.14-rc3, but should be otherwise
+stand-alone.
+---
+ arch/sparc/kernel/led.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
-index 5ea1c3c2636e..8822523fdcd7 100644
---- a/arch/x86/mm/init_64.c
-+++ b/arch/x86/mm/init_64.c
-@@ -1182,12 +1182,18 @@ void __init mem_init(void)
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+index e278bf52963b..519f5ba7ed7e 100644
+--- a/arch/sparc/kernel/led.c
++++ b/arch/sparc/kernel/led.c
+@@ -31,19 +31,20 @@ static inline void led_toggle(void)
+ }
  
- 	/* clear_bss() already clear the empty_zero_page */
+ static struct timer_list led_blink_timer;
++static unsigned long led_blink_timer_timeout;
  
--	register_page_bootmem_info();
--
- 	/* this will put all memory onto the freelists */
- 	free_all_bootmem();
- 	after_bootmem = 1;
- 
-+	/*
-+	 * Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
+-static void led_blink(unsigned long timeout)
++static void led_blink(struct timer_list *unused)
+ {
++	unsigned long timeout = led_blink_timer_timeout;
 +
- 	/* Register memory areas for /proc/kcore */
- 	kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR,
- 			 PAGE_SIZE, KCORE_OTHER);
+ 	led_toggle();
+ 
+ 	/* reschedule */
+ 	if (!timeout) { /* blink according to load */
+ 		led_blink_timer.expires = jiffies +
+ 			((1 + (avenrun[0] >> FSHIFT)) * HZ);
+-		led_blink_timer.data = 0;
+ 	} else { /* blink at user specified interval */
+ 		led_blink_timer.expires = jiffies + (timeout * HZ);
+-		led_blink_timer.data = timeout;
+ 	}
+ 	add_timer(&led_blink_timer);
+ }
+@@ -88,9 +89,11 @@ static ssize_t led_proc_write(struct file *file, const char __user *buffer,
+ 	} else if (!strcmp(buf, "toggle")) {
+ 		led_toggle();
+ 	} else if ((*buf > '0') && (*buf <= '9')) {
+-		led_blink(simple_strtoul(buf, NULL, 10));
++		led_blink_timer_timeout = simple_strtoul(buf, NULL, 10);
++		led_blink(&led_blink_timer);
+ 	} else if (!strcmp(buf, "load")) {
+-		led_blink(0);
++		led_blink_timer_timeout = 0;
++		led_blink(&led_blink_timer);
+ 	} else {
+ 		auxio_set_led(AUXIO_LED_OFF);
+ 	}
+@@ -115,8 +118,7 @@ static struct proc_dir_entry *led;
+ 
+ static int __init led_init(void)
+ {
+-	init_timer(&led_blink_timer);
+-	led_blink_timer.function = led_blink;
++	timer_setup(&led_blink_timer, led_blink, 0);
+ 
+ 	led = proc_create("led", 0, NULL, &led_proc_fops);
+ 	if (!led)
 -- 
-2.14.2
+2.7.4
 
+
+-- 
+Kees Cook
+Pixel Security
