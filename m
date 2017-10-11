@@ -1,7 +1,7 @@
 From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 11 Oct 2017 18:50:06 +0000
-Subject: [PATCH v4 5/5] sparc64: Use sparc optimized fls and __fls for T4 and above
-Message-Id: <1507747806-10251-6-git-send-email-vijay.ac.kumar@oracle.com>
+Date: Wed, 11 Oct 2017 18:50:04 +0000
+Subject: [PATCH v4 3/5] sparc64: SPARC optimized fls function
+Message-Id: <1507747806-10251-4-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
 In-Reply-To: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
@@ -11,52 +11,52 @@ Content-Transfer-Encoding: 7bit
 To: davem@davemloft.net
 Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
 
-For T4 and above, patch fls and __fls functions
-at the boot time to use lzcnt instruction.
+Defined SPARC optimized fls using lzcnt opcode.
 
 Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/kernel/head_64.S |    2 ++
- arch/sparc/lib/NG4patch.S   |    9 +++++++++
- 2 files changed, 11 insertions(+), 0 deletions(-)
+ arch/sparc/lib/Makefile |    1 +
+ arch/sparc/lib/NG4fls.S |   20 ++++++++++++++++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 4de9fbd..f362ecb 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -640,6 +640,8 @@ niagara4_patch:
- 	 nop
- 	call	niagara4_patch_pageops
- 	 nop
-+	call	niagara4_patch_fls
-+	 nop
+diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
+index 5380c59..2823b8e 100644
+--- a/arch/sparc/lib/Makefile
++++ b/arch/sparc/lib/Makefile
+@@ -18,6 +18,7 @@ lib-$(CONFIG_SPARC32) += muldi3.o bitext.o cmpdi2.o
+ lib-$(CONFIG_SPARC64) += multi3.o
+ lib-$(CONFIG_SPARC64) += fls.o
+ lib-$(CONFIG_SPARC64) += fls64.o
++obj-$(CONFIG_SPARC64) += NG4fls.o
  
- 	ba,a,pt	%xcc, 80f
- 	 nop
-diff --git a/arch/sparc/lib/NG4patch.S b/arch/sparc/lib/NG4patch.S
-index 3cc0f8c..da65a3e 100644
---- a/arch/sparc/lib/NG4patch.S
-+++ b/arch/sparc/lib/NG4patch.S
-@@ -3,6 +3,8 @@
-  * Copyright (C) 2012 David S. Miller <davem@davemloft.net>
-  */
- 
+ lib-$(CONFIG_SPARC64) += copy_page.o clear_page.o bzero.o
+ lib-$(CONFIG_SPARC64) += csum_copy.o csum_copy_from_user.o csum_copy_to_user.o
+diff --git a/arch/sparc/lib/NG4fls.S b/arch/sparc/lib/NG4fls.S
+new file mode 100644
+index 0000000..bc17b65
+--- /dev/null
++++ b/arch/sparc/lib/NG4fls.S
+@@ -0,0 +1,20 @@
++/* NG4fls.S: SPARC optimized fls and __fls for T4 and above.
++ *
++ * Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
++ */
++
 +#include <linux/linkage.h>
 +
- #define BRANCH_ALWAYS	0x10680000
- #define NOP		0x01000000
- #define NG_DO_PATCH(OLD, NEW)	\
-@@ -52,3 +54,10 @@ niagara4_patch_pageops:
- 	retl
- 	 nop
- 	.size	niagara4_patch_pageops,.-niagara4_patch_pageops
++#define LZCNT_O0_G2	\
++	.word	0x85b002e8
 +
-+ENTRY(niagara4_patch_fls)
-+	NG_DO_PATCH(fls, NG4fls)
-+	NG_DO_PATCH(__fls, __NG4fls)
++	.text
++	.register	%g2, #scratch
++	.register	%g3, #scratch
++
++ENTRY(NG4fls)
++	LZCNT_O0_G2	!lzcnt	%o0, %g2
++	mov	64, %g3
 +	retl
-+	 nop
-+ENDPROC(niagara4_patch_fls)
++	 sub	%g3, %g2, %o0
++ENDPROC(NG4fls)
 -- 
 1.7.1
 
