@@ -1,91 +1,62 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 13 Oct 2017 17:32:06 +0000
-Subject: [PATCH v12 03/11] sparc64/mm: setting fields in deferred pages
-Message-Id: <20171013173214.27300-4-pasha.tatashin@oracle.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Wed, 11 Oct 2017 18:50:06 +0000
+Subject: [PATCH v4 5/5] sparc64: Use sparc optimized fls and __fls for T4 and above
+Message-Id: <1507747806-10251-6-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171013173214.27300-1-pasha.tatashin@oracle.com>
-In-Reply-To: <20171013173214.27300-1-pasha.tatashin@oracle.com>
+References: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
 
-Without deferred struct page feature (CONFIG_DEFERRED_STRUCT_PAGE_INIT),
-flags and other fields in "struct page"es are never changed prior to first
-initializing struct pages by going through __init_single_page().
+For T4 and above, patch fls and __fls functions
+at the boot time to use lzcnt instruction.
 
-With deferred struct page feature enabled there is a case where we set some
-fields prior to initializing:
-
-mem_init() {
-     register_page_bootmem_info();
-     free_all_bootmem();
-     ...
-}
-
-When register_page_bootmem_info() is called only non-deferred struct pages
-are initialized. But, this function goes through some reserved pages which
-might be part of the deferred, and thus are not yet initialized.
-
-mem_init
-register_page_bootmem_info
-register_page_bootmem_info_node
- get_page_bootmem
-  .. setting fields here ..
-  such as: page->freelist = (void *)type;
-
-free_all_bootmem()
-free_low_memory_core_early()
- for_each_reserved_mem_region()
-  reserve_bootmem_region()
-   init_reserved_page() <- Only if this is deferred reserved page
-    __init_single_pfn()
-     __init_single_page()
-      memset(0) <-- Loose the set fields here
-
-We end-up with similar issue as in the previous patch, where currently we
-do not observe problem as memory is zeroed. But, if flag asserts are
-changed we can start hitting issues.
-
-Also, because in this patch series we will stop zeroing struct page memory
-during allocation, we must make sure that struct pages are properly
-initialized prior to using them.
-
-The deferred-reserved pages are initialized in free_all_bootmem().
-Therefore, the fix is to switch the above calls.
-
-Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
-Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
-Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
-Reviewed-by: Bob Picco <bob.picco@oracle.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
 ---
- arch/sparc/mm/init_64.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/head_64.S |    2 ++
+ arch/sparc/lib/NG4patch.S   |    9 +++++++++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 6034569e2c0d..caed495544e9 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -2548,9 +2548,16 @@ void __init mem_init(void)
- {
- 	high_memory = __va(last_valid_pfn << PAGE_SHIFT);
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index 4de9fbd..f362ecb 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -640,6 +640,8 @@ niagara4_patch:
+ 	 nop
+ 	call	niagara4_patch_pageops
+ 	 nop
++	call	niagara4_patch_fls
++	 nop
  
--	register_page_bootmem_info();
- 	free_all_bootmem();
+ 	ba,a,pt	%xcc, 80f
+ 	 nop
+diff --git a/arch/sparc/lib/NG4patch.S b/arch/sparc/lib/NG4patch.S
+index 3cc0f8c..da65a3e 100644
+--- a/arch/sparc/lib/NG4patch.S
++++ b/arch/sparc/lib/NG4patch.S
+@@ -3,6 +3,8 @@
+  * Copyright (C) 2012 David S. Miller <davem@davemloft.net>
+  */
  
-+	/*
-+	 * Must be done after boot memory is put on freelist, because here we
-+	 * might set fields in deferred struct pages that have not yet been
-+	 * initialized, and free_all_bootmem() initializes all the reserved
-+	 * deferred pages for us.
-+	 */
-+	register_page_bootmem_info();
++#include <linux/linkage.h>
 +
- 	/*
- 	 * Set up the zero page, mark it reserved, so that page count
- 	 * is not manipulated when freeing the page from user ptes.
+ #define BRANCH_ALWAYS	0x10680000
+ #define NOP		0x01000000
+ #define NG_DO_PATCH(OLD, NEW)	\
+@@ -52,3 +54,10 @@ niagara4_patch_pageops:
+ 	retl
+ 	 nop
+ 	.size	niagara4_patch_pageops,.-niagara4_patch_pageops
++
++ENTRY(niagara4_patch_fls)
++	NG_DO_PATCH(fls, NG4fls)
++	NG_DO_PATCH(__fls, __NG4fls)
++	retl
++	 nop
++ENDPROC(niagara4_patch_fls)
 -- 
-2.14.2
+1.7.1
 
