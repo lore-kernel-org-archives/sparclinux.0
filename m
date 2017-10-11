@@ -1,29 +1,45 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Tue, 10 Oct 2017 17:19:19 +0000
-Subject: Re: [PATCH v11 0/9] complete deferred page initialization
-Message-Id: <bd333387-fefc-c48a-2258-1d8c36f2db41@oracle.com>
+From: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Date: Wed, 11 Oct 2017 18:50:01 +0000
+Subject: [PATCH v4 0/5] sparc64: Optimize fls and __fls
+Message-Id: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
- <20171010141547.zpdptsccsblyw634@dhcp22.suse.cz>
-In-Reply-To: <20171010141547.zpdptsccsblyw634@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
 
-I wanted to thank you Michal for spending time and doing the in-depth 
-reviews of every incremental change. Overall the series is in much 
-better shape now because of your feedback.
+SPARC provides lzcnt instruction (with VIS3) which can be used to
+optimize fls, __fls and fls64 functions. For the systems that supports
+lzcnt instruction, we now do boot time patching to use sparc
+optimized fls, __fls and fls64 functions.
 
-Pavel
+v3->v4:
+ -  Fixed a typo.
+v2->v3:
+ -  Using ENTRY(), ENDPROC() for assembler functions.
+ -  Removed BITS_PER_LONG from __fls.
+ -  Using generic fls64().
+ -  Replaced lzcnt instruction with .word directive.
+v1->v2:
+ - Fixed delay slot issue.
 
-On 10/10/2017 10:15 AM, Michal Hocko wrote:
-> Btw. thanks for your persistance and willingness to go over all the
-> suggestions which might not have been consistent btween different
-> versions. I believe this is a general improvement in the early
-> initialization code. We do not rely on an implicit zeroing which just
-> happens to work by a chance. The perfomance improvements are a bonus on
-> top.
-> 
-> Thanks, good work!
-> 
+Vijay Kumar (5):
+  sparc64: Define SPARC default fls function
+  sparc64: Define SPARC default __fls function
+  sparc64: SPARC optimized fls function
+  sparc64: SPARC optimized __fls function
+  sparc64: Use sparc optimized fls and __fls for T4 and above
+
+ arch/sparc/include/asm/bitops_64.h |    5 ++-
+ arch/sparc/kernel/head_64.S        |    2 +
+ arch/sparc/lib/Makefile            |    3 ++
+ arch/sparc/lib/NG4fls.S            |   30 ++++++++++++++++
+ arch/sparc/lib/NG4patch.S          |    9 +++++
+ arch/sparc/lib/fls.S               |   67 ++++++++++++++++++++++++++++++++++++
+ arch/sparc/lib/fls64.S             |   61 ++++++++++++++++++++++++++++++++
+ 7 files changed, 175 insertions(+), 2 deletions(-)
+ create mode 100644 arch/sparc/lib/NG4fls.S
+ create mode 100644 arch/sparc/lib/fls.S
+ create mode 100644 arch/sparc/lib/fls64.S
+
