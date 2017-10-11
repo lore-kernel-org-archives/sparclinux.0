@@ -1,39 +1,41 @@
 From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Fri, 06 Oct 2017 16:54:48 +0000
-Subject: [PATCH v3 0/5] sparc64: Optimize fls and __fls
-Message-Id: <1507308893-9218-1-git-send-email-vijay.ac.kumar@oracle.com>
+Date: Wed, 11 Oct 2017 18:50:05 +0000
+Subject: [PATCH v4 4/5] sparc64: SPARC optimized __fls function
+Message-Id: <1507747806-10251-5-git-send-email-vijay.ac.kumar@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
+In-Reply-To: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
 
-SPARC provides lzcnt instruction (with VIS3) which can be used to
-optimize fls, __fls and fls64 functions. For the systems that supports 
-lzcnt instruction, we now do boot time patching to use sparc
-optimized fls, __fls and fls64 functions.
+Defined SPARC optimized __fls using lzcnt opcode.
 
-v2->v3:
- -  Using ENTRY(), ENDPROC() for assembler functions.
- -  Removed BITS_PER_LONG from __fls.
- -  Using generic fls64().
- -  Replaced lzcnt instruction with .word directive.
-v1->v2: 
- - Fixed delay slot issue.
+Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+---
+ arch/sparc/lib/NG4fls.S |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-Vijay Kumar (2):
-  sparc64: Define SPARC default fls and __fls
-  sparc64: Use lzcnt instruction for fls and __fls
-
- arch/sparc/Makefile                |    1 +
- arch/sparc/include/asm/bitops_64.h |    7 +-
- arch/sparc/kernel/head_64.S        |    2 +
- arch/sparc/lib/Makefile            |    4 +
- arch/sparc/lib/NG4fls.S            |   31 +++++++++
- arch/sparc/lib/NG4patch.S          |    9 +++
- arch/sparc/lib/fls.S               |  126 ++++++++++++++++++++++++++++++++++++
- 7 files changed, 177 insertions(+), 3 deletions(-)
- create mode 100644 arch/sparc/lib/NG4fls.S
- create mode 100644 arch/sparc/lib/fls.S
+diff --git a/arch/sparc/lib/NG4fls.S b/arch/sparc/lib/NG4fls.S
+index bc17b65..2d0991e 100644
+--- a/arch/sparc/lib/NG4fls.S
++++ b/arch/sparc/lib/NG4fls.S
+@@ -18,3 +18,13 @@ ENTRY(NG4fls)
+ 	retl
+ 	 sub	%g3, %g2, %o0
+ ENDPROC(NG4fls)
++
++ENTRY(__NG4fls)
++	brz,pn	%o0, 1f
++	LZCNT_O0_G2	!lzcnt	%o0, %g2
++	mov	63, %g3
++	sub	%g3, %g2, %o0
++1:
++	retl
++	 nop
++ENDPROC(__NG4fls)
+-- 
+1.7.1
 
