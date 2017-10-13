@@ -1,52 +1,158 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Sat, 07 Oct 2017 08:58:58 +0000
-Subject: Re: [PATCH 0/4] PCI: Cleanup unused stuff
-Message-Id: <20171007085858.hjjowcgm457wo3cg@gmail.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 13 Oct 2017 17:32:03 +0000
+Subject: [PATCH v12 00/11] complete deferred page initialization
+Message-Id: <20171013173214.27300-1-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
-In-Reply-To: <20171005201939.18300.25690.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-mips@linux-mips.org, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Howells <dhowells@redhat.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Jesper Nilsson <jesper.nilsson@axis.com>, linux-am33-list@redhat.com, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Helge Deller <deller@gmx.de>, x86@kernel.org, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ingo Molnar <mingo@redhat.com>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-xtensa@linux-xtensa.org, Mikael Starvik <starvik@axis.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Thomas Gleixner <tglx@linutronix.de>, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, Tony Luck <tony.luck@intel.com>, linux-cris-kernel@axis.com, linux-parisc@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-arm-kernel@lists.infradead.org
+
+Changelog:
+v12 - v11
+- Improved comments for mm: zero reserved and unavailable struct pages
+- Added back patch: mm: deferred_init_memmap improvements
+- Added patch from Will Deacon: arm64: kasan: Avoid using
+  vmemmap_populate to initialise shadow
+
+v11 - v10
+- Moved kasan_map_populate() implementation from common code into arch
+  specific as discussed with Will Deacon. We do not need
+  "mm/kasan: kasan specific map populate function" anymore, so only
+  9 patches left.
+
+v10 - v9
+- Addressed new comments from Michal Hocko.
+- Sent "mm: deferred_init_memmap improvements" as a separate patch as
+  it is also fixing existing problem.
+- Merged "mm: stop zeroing memory during allocation in vmemmap" with
+  "mm: zero struct pages during initialization".
+- Added more comments "mm: zero reserved and unavailable struct pages"
+
+v9 - v8
+- Addressed comments raised by Mark Rutland and Ard Biesheuvel: changed
+  kasan implementation. Added a new function: kasan_map_populate() that
+  zeroes the allocated and mapped memory
+
+v8 - v7
+- Added Acked-by's from Dave Miller for SPARC changes
+- Fixed a minor compiling issue on tile architecture reported by kbuild
+
+v7 - v6
+- Addressed comments from Michal Hocko
+- memblock_discard() patch was removed from this series and integrated
+  separately
+- Fixed bug reported by kbuild test robot new patch:
+  mm: zero reserved and unavailable struct pages
+- Removed patch
+  x86/mm: reserve only exiting low pages
+  As, it is not needed anymore, because of the previous fix 
+- Re-wrote deferred_init_memmap(), found and fixed an existing bug, where
+  page variable is not reset when zone holes present.
+- Merged several patches together per Michal request
+- Added performance data including raw logs
+
+v6 - v5
+- Fixed ARM64 + kasan code, as reported by Ard Biesheuvel
+- Tested ARM64 code in qemu and found few more issues, that I fixed in this
+  iteration
+- Added page roundup/rounddown to x86 and arm zeroing routines to zero the
+  whole allocated range, instead of only provided address range.
+- Addressed SPARC related comment from Sam Ravnborg
+- Fixed section mismatch warnings related to memblock_discard().
+
+v5 - v4
+- Fixed build issues reported by kbuild on various configurations
+v4 - v3
+- Rewrote code to zero sturct pages in __init_single_page() as
+  suggested by Michal Hocko
+- Added code to handle issues related to accessing struct page
+  memory before they are initialized.
+
+v3 - v2
+- Addressed David Miller comments about one change per patch:
+    * Splited changes to platforms into 4 patches
+    * Made "do not zero vmemmap_buf" as a separate patch
+
+v2 - v1
+- Per request, added s390 to deferred "struct page" zeroing
+- Collected performance data on x86 which proofs the importance to
+  keep memset() as prefetch (see below).
+
+SMP machines can benefit from the DEFERRED_STRUCT_PAGE_INIT config option,
+which defers initializing struct pages until all cpus have been started so
+it can be done in parallel.
+
+However, this feature is sub-optimal, because the deferred page
+initialization code expects that the struct pages have already been zeroed,
+and the zeroing is done early in boot with a single thread only.  Also, we
+access that memory and set flags before struct pages are initialized. All
+of this is fixed in this patchset.
+
+In this work we do the following:
+- Never read access struct page until it was initialized
+- Never set any fields in struct pages before they are initialized
+- Zero struct page at the beginning of struct page initialization
 
 
-* Bjorn Helgaas <helgaas@kernel.org> wrote:
+=====================================
+Performance improvements on x86 machine with 8 nodes:
+Intel(R) Xeon(R) CPU E7-8895 v3 @ 2.60GHz and 1T of memory:
+                        TIME          SPEED UP
+base no deferred:       95.796233s
+fix no deferred:        79.978956s    19.77%
 
-> Sorry for the long cc list.  These are pretty trivial; they just remove
-> some unnecessary declarations across several arches.
-> 
-> ---
-> 
-> Bjorn Helgaas (4):
->       PCI: Remove redundant pcibios_set_master() declarations
->       PCI: Remove redundant pci_dev, pci_bus, resource declarations
->       PCI: Remove unused declarations
->       alpha/PCI: Make pdev_save_srm_config() static
-> 
-> 
->  arch/alpha/include/asm/pci.h            |    5 -----
->  arch/alpha/kernel/pci.c                 |   11 ++++++++++-
->  arch/alpha/kernel/pci_impl.h            |    8 --------
->  arch/cris/include/asm/pci.h             |    9 ---------
->  arch/frv/include/asm/pci.h              |    4 ----
->  arch/ia64/include/asm/pci.h             |    4 ----
->  arch/mips/include/asm/pci.h             |    4 ----
->  arch/mn10300/include/asm/pci.h          |    4 ----
->  arch/mn10300/unit-asb2305/pci-asb2305.h |    3 ---
->  arch/parisc/include/asm/pci.h           |    8 --------
->  arch/powerpc/include/asm/pci.h          |    2 --
->  arch/sh/include/asm/pci.h               |    4 ----
->  arch/sparc/include/asm/pci_32.h         |    2 --
->  arch/x86/include/asm/pci.h              |    2 --
->  arch/xtensa/include/asm/pci.h           |    2 --
->  15 files changed, 10 insertions(+), 62 deletions(-)
+base deferred:          77.254713s
+fix deferred:           55.050509s    40.34%
+=====================================
+SPARC M6 3600 MHz with 15T of memory
+                        TIME          SPEED UP
+base no deferred:       358.335727s
+fix no deferred:        302.320936s   18.52%
 
-Nice cleanups! For the whole series:
+base deferred:          237.534603s
+fix deferred:           182.103003s   30.44%
+=====================================
+Raw dmesg output with timestamps:
+x86 base no deferred:    https://hastebin.com/ofunepurit.scala
+x86 base deferred:       https://hastebin.com/ifazegeyas.scala
+x86 fix no deferred:     https://hastebin.com/pegocohevo.scala
+x86 fix deferred:        https://hastebin.com/ofupevikuk.scala
+sparc base no deferred:  https://hastebin.com/ibobeteken.go
+sparc base deferred:     https://hastebin.com/fariqimiyu.go
+sparc fix no deferred:   https://hastebin.com/muhegoheyi.go
+sparc fix deferred:      https://hastebin.com/xadinobutu.go
 
-  Reviewed-by: Ingo Molnar <mingo@kernel.org>
+Pavel Tatashin (10):
+  mm: deferred_init_memmap improvements
+  x86/mm: setting fields in deferred pages
+  sparc64/mm: setting fields in deferred pages
+  sparc64: simplify vmemmap_populate
+  mm: defining memblock_virt_alloc_try_nid_raw
+  mm: zero reserved and unavailable struct pages
+  x86/kasan: add and use kasan_map_populate()
+  arm64/kasan: add and use kasan_map_populate()
+  mm: stop zeroing memory during allocation in vmemmap
+  sparc64: optimized struct page zeroing
 
-Thanks,
+Will Deacon (1):
+  arm64: kasan: Avoid using vmemmap_populate to initialise shadow
 
-	Ingo
+ arch/arm64/Kconfig                  |   2 +-
+ arch/arm64/mm/kasan_init.c          | 130 +++++++++++++--------
+ arch/sparc/include/asm/pgtable_64.h |  30 +++++
+ arch/sparc/mm/init_64.c             |  32 +++---
+ arch/x86/mm/init_64.c               |  10 +-
+ arch/x86/mm/kasan_init_64.c         |  75 +++++++++++-
+ include/linux/bootmem.h             |  27 +++++
+ include/linux/memblock.h            |  16 +++
+ include/linux/mm.h                  |  26 +++++
+ mm/memblock.c                       |  60 ++++++++--
+ mm/page_alloc.c                     | 224 +++++++++++++++++++++---------------
+ mm/sparse-vmemmap.c                 |  15 ++-
+ mm/sparse.c                         |   6 +-
+ 13 files changed, 469 insertions(+), 184 deletions(-)
+
+-- 
+2.14.2
+
