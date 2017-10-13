@@ -1,7 +1,7 @@
-From: Will Deacon <will.deacon@arm.com>
-Date: Fri, 13 Oct 2017 15:44:26 +0000
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 13 Oct 2017 15:54:21 +0000
 Subject: Re: [PATCH v11 7/9] arm64/kasan: add and use kasan_map_populate()
-Message-Id: <20171013154426.GC4746@arm.com>
+Message-Id: <CAOAebxspETEqFXL1Ez_4TK9CAwwk+uhHbYOmZk2QR8b=GO80cQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
  <20171009221931.1481-8-pasha.tatashin@oracle.com>
@@ -12,84 +12,20 @@ References: <20171009221931.1481-1-pasha.tatashin@oracle.com>
  <CAOAebxu5WL-FQLgfCxNcWy36V6zsTO1v3LLqXv5rM1Pp9R-=YA@mail.gmail.com>
  <20171013144319.GB4746@arm.com>
  <CAOAebxv4h+8ej6JA_DZbXaNV5JsAk4MbcCLf1+2RvwKGF2+MxQ@mail.gmail.com>
-In-Reply-To: <CAOAebxv4h+8ej6JA_DZbXaNV5JsAk4MbcCLf1+2RvwKGF2+MxQ@mail.gmail.com>
+ <20171013154426.GC4746@arm.com>
+In-Reply-To: <20171013154426.GC4746@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Hi Pavel,
+> Thanks for sharing the .config and tree. It looks like the problem is that
+> kimg_shadow_start and kimg_shadow_end are not page-aligned. Whilst I fix
+> them up in kasan_map_populate, they remain unaligned when passed to
+> kasan_populate_zero_shadow, which confuses the loop termination conditions
+> in e.g. zero_pte_populate and the shadow isn't configured properly.
 
-On Fri, Oct 13, 2017 at 11:09:41AM -0400, Pavel Tatashin wrote:
-> > It shouldn't be difficult to use section mappings with my patch, I just
-> > don't really see the need to try to optimise TLB pressure when you're
-> > running with KASAN enabled which already has something like a 3x slowdown
-> > afaik. If it ends up being a big deal, we can always do that later, but
-> > my main aim here is to divorce kasan from vmemmap because they should be
-> > completely unrelated.
-> 
-> Yes, I understand that kasan makes system slow, but my point is why
-> make it even slower? However, I am OK adding your patch to the series,
-> BTW, symmetric changes will be needed for x86 as well sometime later.
-> 
-> >
-> > This certainly doesn't sound right; mapping the shadow with pages shouldn't
-> > lead to problems. I also can't seem to reproduce this myself -- could you
-> > share your full .config and a pointer to the git tree that you're using,
-> > please?
-> 
-> Config is attached. I am using my patch series + your patch + today's
-> clone from https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+This makes sense. Thank you. I will insert these changes into your
+patch, and send out a new series soon after sanity checking it.
 
-Great, I hit the same problem with your .config. It might actually be
-CONFIG_DEBUG_MEMORY_INIT which does it.
-
-> Also, in a separate e-mail i sent out the qemu arguments.
-> 
-> >
-> >> I feel, this patch requires more work, and I am troubled with using
-> >> base pages instead of large pages.
-> >
-> > I'm happy to try fixing this, because I think splitting up kasan and vmemmap
-> > is the right thing to do here.
-> 
-> Thank you very much.
-
-Thanks for sharing the .config and tree. It looks like the problem is that
-kimg_shadow_start and kimg_shadow_end are not page-aligned. Whilst I fix
-them up in kasan_map_populate, they remain unaligned when passed to
-kasan_populate_zero_shadow, which confuses the loop termination conditions
-in e.g. zero_pte_populate and the shadow isn't configured properly.
-
-Fixup diff below; please merge in with my original patch.
-
-Will
-
---->8
-
-diff --git a/arch/arm64/mm/kasan_init.c b/arch/arm64/mm/kasan_init.c
-index b922826d9908..207b1acb823a 100644
---- a/arch/arm64/mm/kasan_init.c
-+++ b/arch/arm64/mm/kasan_init.c
-@@ -146,7 +146,7 @@ asmlinkage void __init kasan_early_init(void)
- static void __init kasan_map_populate(unsigned long start, unsigned long end,
-				      int node)
- {
--	kasan_pgd_populate(start & PAGE_MASK, PAGE_ALIGN(end), node, false);
-+	kasan_pgd_populate(start, end, node, false);
- }
- 
- /*
-@@ -183,8 +183,8 @@ void __init kasan_init(void)
-	struct memblock_region *reg;
-	int i;
- 
--	kimg_shadow_start = (u64)kasan_mem_to_shadow(_text);
--	kimg_shadow_end = (u64)kasan_mem_to_shadow(_end);
-+	kimg_shadow_start = (u64)kasan_mem_to_shadow(_text) & PAGE_MASK;
-+	kimg_shadow_end = PAGE_ALIGN((u64)kasan_mem_to_shadow(_end));
- 
-	mod_shadow_start = (u64)kasan_mem_to_shadow((void *)MODULES_VADDR);
-	mod_shadow_end = (u64)kasan_mem_to_shadow((void *)MODULES_END);
-
-
+Pavel
