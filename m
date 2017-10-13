@@ -1,288 +1,242 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Fri, 20 Oct 2017 16:57:56 +0000
-Subject: [PATCH v9 03/10] sparc64: Add support for ADI register fields, ASIs and traps
-Message-Id: <6f4966d8c42a900be231da3b30bbc003488e1d7b.1508364660.git.khalid.aziz@oracle.com>
+From: Pavel Tatashin <pasha.tatashin@oracle.com>
+Date: Fri, 13 Oct 2017 17:32:09 +0000
+Subject: [PATCH v12 06/11] mm: zero reserved and unavailable struct pages
+Message-Id: <20171013173214.27300-7-pasha.tatashin@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1508364660.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1508364660.git.khalid.aziz@oracle.com>
+References: <20171013173214.27300-1-pasha.tatashin@oracle.com>
+In-Reply-To: <20171013173214.27300-1-pasha.tatashin@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, chris.hyser@oracle.com, tushar.n.dave@oracle.com, sowmini.varadhan@oracle.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, nitin.m.gupta@oracle.com, tom.hromatka@oracle.com, eric.saint.etienne@oracle.com, allen.pais@oracle.com, rob.gardner@oracle.com, david.j.aldridge@oracle.com, babu.moger@oracle.com, paul.gortmaker@windriver.com, bob.picco@oracle.com, steven.sistare@oracle.com, pasha.tatashin@oracle.com, Liam.Howlett@oracle.com, vegard.nossum@oracle.com, dan.carpenter@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-SPARC M7 processor adds new control register fields, ASIs and a new
-trap to support the ADI (Application Data Integrity) feature. This
-patch adds definitions for these register fields, ASIs and a handler
-for the new precise memory corruption detected trap.
+Some memory is reserved but unavailable: not present in memblock.memory
+(because not backed by physical pages), but present in memblock.reserved.
+Such memory has backing struct pages, but they are not initialized by going
+through __init_single_page().
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+In some cases these struct pages are accessed even if they do not contain
+any data. One example is page_to_pfn() might access page->flags if this is
+where section information is stored (CONFIG_SPARSEMEM,
+SECTION_IN_PAGE_FLAGS).
+
+One example of such memory: trim_low_memory_range() unconditionally
+reserves from pfn 0, but e820__memblock_setup() might provide the exiting
+memory from pfn 1 (i.e. KVM).
+
+Since, struct pages are zeroed in __init_single_page(), and not during
+allocation time, we must zero such struct pages explicitly.
+
+The patch involves adding a new memblock iterator:
+	for_each_resv_unavail_range(i, p_start, p_end)
+
+Which iterates through reserved && !memory lists, and we zero struct pages
+explicitly by calling mm_zero_struct_page().
+
+=
+Here is more detailed example of problem that this patch is addressing:
+
+Run tested on qemu with the following arguments:
+
+	-enable-kvm -cpu kvm64 -m 512 -smp 2
+
+This patch reports that there are 98 unavailable pages.
+
+They are: pfn 0 and pfns in range [159, 255].
+
+Note, trim_low_memory_range() reserves only pfns in range [0, 15], it does
+not reserve [159, 255] ones.
+
+e820__memblock_setup() reports linux that the following physical ranges are
+available:
+    [1 , 158]
+[256, 130783]
+
+Notice, that exactly unavailable pfns are missing!
+
+Now, lets check what we have in zone 0: [1, 131039]
+
+pfn 0, is not part of the zone, but pfns [1, 158], are.
+
+However, the bigger problem we have if we do not initialize these struct
+pages is with memory hotplug. Because, that path operates at 2M boundaries
+(section_nr). And checks if 2M range of pages is hot removable. It starts
+with first pfn from zone, rounds it down to 2M boundary (sturct pages are
+allocated at 2M boundaries when vmemmap is created), and checks if that
+section is hot removable. In this case start with pfn 1 and convert it down
+to pfn 0. Later pfn is converted to struct page, and some fields are
+checked. Now, if we do not zero struct pages, we get unpredictable results.
+
+In fact when CONFIG_VM_DEBUG is enabled, and we explicitly set all vmemmap
+memory to ones, the following panic is observed with kernel test without
+this patch applied:
+
+BUG: unable to handle kernel NULL pointer dereference at          (null)
+IP: is_pageblock_removable_nolock+0x35/0x90
+PGD 0 P4D 0
+Oops: 0000 [#1] PREEMPT
+...
+task: ffff88001f4e2900 task.stack: ffffc90000314000
+RIP: 0010:is_pageblock_removable_nolock+0x35/0x90
+RSP: 0018:ffffc90000317d60 EFLAGS: 00010202
+RAX: ffffffffffffffff RBX: ffff88001d92b000 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000200000 RDI: ffff88001d92b000
+RBP: ffffc90000317d80 R08: 00000000000010c8 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: ffff88001db2b000
+R13: ffffffff81af6d00 R14: ffff88001f7d5000 R15: ffffffff82a1b6c0
+FS:  00007f4eb857f7c0(0000) GS:ffffffff81c27000(0000) knlGS:0
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 000000001f4e6000 CR4: 00000000000006b0
+Call Trace:
+ ? is_mem_section_removable+0x5a/0xd0
+ show_mem_removable+0x6b/0xa0
+ dev_attr_show+0x1b/0x50
+ sysfs_kf_seq_show+0xa1/0x100
+ kernfs_seq_show+0x22/0x30
+ seq_read+0x1ac/0x3a0
+ kernfs_fop_read+0x36/0x190
+ ? security_file_permission+0x90/0xb0
+ __vfs_read+0x16/0x30
+ vfs_read+0x81/0x130
+ SyS_read+0x44/0xa0
+ entry_SYSCALL_64_fastpath+0x1f/0xbd
+
+Signed-off-by: Pavel Tatashin <pasha.tatashin@oracle.com>
+Reviewed-by: Steven Sistare <steven.sistare@oracle.com>
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
+Reviewed-by: Bob Picco <bob.picco@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 ---
-v8:
-	- Minor print formatting change as suggested by checkpatch
-v6:
-	- Added a missing nop in the delay slot in sun4v_mcd_detect_precise
+ include/linux/memblock.h | 16 ++++++++++++++++
+ include/linux/mm.h       | 15 +++++++++++++++
+ mm/page_alloc.c          | 40 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 71 insertions(+)
 
-v5:
-	- Fixed indentation issues in assembly code
-
-v4:
-	- Broke patch up into smaller patches
-
-v3:
-	- Removed CONFIG_SPARC_ADI
-	- Replaced prctl commands with mprotect
-	- Added auxiliary vectors for ADI parameters
-	- Enabled ADI for swappable pages
-
-v2:
-	- Fixed a build error
-
- arch/sparc/include/asm/hypervisor.h  |  2 ++
- arch/sparc/include/asm/pgtable_64.h  |  2 ++
- arch/sparc/include/asm/ttable.h      | 10 +++++++
- arch/sparc/include/uapi/asm/asi.h    |  5 ++++
- arch/sparc/include/uapi/asm/pstate.h | 10 +++++++
- arch/sparc/kernel/entry.h            |  3 ++
- arch/sparc/kernel/head_64.S          |  1 +
- arch/sparc/kernel/sun4v_mcd.S        | 17 ++++++++++++
- arch/sparc/kernel/traps_64.c         | 54 ++++++++++++++++++++++++++++++++++++
- arch/sparc/kernel/ttable_64.S        |  6 ++--
- 10 files changed, 108 insertions(+), 2 deletions(-)
- create mode 100644 arch/sparc/kernel/sun4v_mcd.S
-
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index 73cb8978df58..31782f7996b3 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -547,6 +547,8 @@ struct hv_fault_status {
- #define HV_FAULT_TYPE_RESV1	13
- #define HV_FAULT_TYPE_UNALIGNED	14
- #define HV_FAULT_TYPE_INV_PGSZ	15
-+#define HV_FAULT_TYPE_MCD	17
-+#define HV_FAULT_TYPE_MCD_DIS	18
- /* Values 16 --> -2 are reserved.  */
- #define HV_FAULT_TYPE_MULTIPLE	-1
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index bae11c7e7bf3..ce8bfa5f3e9b 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -237,6 +237,22 @@ unsigned long memblock_next_valid_pfn(unsigned long pfn, unsigned long max_pfn);
+ 	for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved,	\
+ 			       nid, flags, p_start, p_end, p_nid)
  
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 6fbd931f0570..af045061f41e 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -163,6 +163,8 @@ bool kern_addr_valid(unsigned long addr);
- #define _PAGE_E_4V	  _AC(0x0000000000000800,UL) /* side-Effect          */
- #define _PAGE_CP_4V	  _AC(0x0000000000000400,UL) /* Cacheable in P-Cache */
- #define _PAGE_CV_4V	  _AC(0x0000000000000200,UL) /* Cacheable in V-Cache */
-+/* Bit 9 is used to enable MCD corruption detection instead on M7 */
-+#define _PAGE_MCD_4V      _AC(0x0000000000000200,UL) /* Memory Corruption    */
- #define _PAGE_P_4V	  _AC(0x0000000000000100,UL) /* Privileged Page      */
- #define _PAGE_EXEC_4V	  _AC(0x0000000000000080,UL) /* Executable Page      */
- #define _PAGE_W_4V	  _AC(0x0000000000000040,UL) /* Writable             */
-diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
-index 82e7df296abc..d6510ab8fa4d 100644
---- a/arch/sparc/include/asm/ttable.h
-+++ b/arch/sparc/include/asm/ttable.h
-@@ -218,6 +218,16 @@
- 	nop;						\
- 	nop;
- 
-+#define SUN4V_MCD_PRECISE				\
-+	ldxa	[%g0] ASI_SCRATCHPAD, %g2;		\
-+	ldx	[%g2 + HV_FAULT_D_ADDR_OFFSET], %g4;	\
-+	ldx	[%g2 + HV_FAULT_D_CTX_OFFSET], %g5;	\
-+	ba,pt	%xcc, etrap;				\
-+	 rd	%pc, %g7;				\
-+	ba,pt	%xcc, sun4v_mcd_detect_precise;		\
-+	 nop;						\
-+	nop;
-+
- /* Before touching these macros, you owe it to yourself to go and
-  * see how arch/sparc64/kernel/winfixup.S works... -DaveM
-  *
-diff --git a/arch/sparc/include/uapi/asm/asi.h b/arch/sparc/include/uapi/asm/asi.h
-index 7ad7203deaec..2bcdaa5321d3 100644
---- a/arch/sparc/include/uapi/asm/asi.h
-+++ b/arch/sparc/include/uapi/asm/asi.h
-@@ -144,6 +144,8 @@
-  * ASIs, "(4V)" designates SUN4V specific ASIs.  "(NG4)" designates SPARC-T4
-  * and later ASIs.
-  */
-+#define ASI_MCD_PRIV_PRIMARY	0x02 /* (NG7) Privileged MCD version VA	*/
-+#define ASI_MCD_REAL		0x05 /* (NG7) Privileged MCD version PA	*/
- #define ASI_PHYS_USE_EC		0x14 /* PADDR, E-cachable		*/
- #define ASI_PHYS_BYPASS_EC_E	0x15 /* PADDR, E-bit			*/
- #define ASI_BLK_AIUP_4V		0x16 /* (4V) Prim, user, block ld/st	*/
-@@ -244,6 +246,9 @@
- #define ASI_UDBL_CONTROL_R	0x7f /* External UDB control regs rd low*/
- #define ASI_INTR_R		0x7f /* IRQ vector dispatch read	*/
- #define ASI_INTR_DATAN_R	0x7f /* (III) In irq vector data reg N	*/
-+#define ASI_MCD_PRIMARY		0x90 /* (NG7) MCD version load/store	*/
-+#define ASI_MCD_ST_BLKINIT_PRIMARY	\
-+				0x92 /* (NG7) MCD store BLKINIT primary	*/
- #define ASI_PIC			0xb0 /* (NG4) PIC registers		*/
- #define ASI_PST8_P		0xc0 /* Primary, 8 8-bit, partial	*/
- #define ASI_PST8_S		0xc1 /* Secondary, 8 8-bit, partial	*/
-diff --git a/arch/sparc/include/uapi/asm/pstate.h b/arch/sparc/include/uapi/asm/pstate.h
-index cf832e14aa05..d0521db9bb6f 100644
---- a/arch/sparc/include/uapi/asm/pstate.h
-+++ b/arch/sparc/include/uapi/asm/pstate.h
-@@ -10,7 +10,12 @@
-  * -----------------------------------------------------------------------
-  *  63  12  11   10    9     8    7   6   5     4     3     2     1    0
-  */
-+/* IG on V9 conflicts with MCDE on M7. PSTATE_MCDE will only be used on
-+ * processors that support ADI which do not use IG, hence there is no
-+ * functional conflict
-+ */
- #define PSTATE_IG   _AC(0x0000000000000800,UL) /* Interrupt Globals.	*/
-+#define PSTATE_MCDE _AC(0x0000000000000800,UL) /* MCD Enable		*/
- #define PSTATE_MG   _AC(0x0000000000000400,UL) /* MMU Globals.		*/
- #define PSTATE_CLE  _AC(0x0000000000000200,UL) /* Current Little Endian.*/
- #define PSTATE_TLE  _AC(0x0000000000000100,UL) /* Trap Little Endian.	*/
-@@ -47,7 +52,12 @@
- #define TSTATE_ASI	_AC(0x00000000ff000000,UL) /* AddrSpace ID.	*/
- #define TSTATE_PIL	_AC(0x0000000000f00000,UL) /* %pil (Linux traps)*/
- #define TSTATE_PSTATE	_AC(0x00000000000fff00,UL) /* PSTATE.		*/
-+/* IG on V9 conflicts with MCDE on M7. TSTATE_MCDE will only be used on
-+ * processors that support ADI which do not support IG, hence there is
-+ * no functional conflict
-+ */
- #define TSTATE_IG	_AC(0x0000000000080000,UL) /* Interrupt Globals.*/
-+#define TSTATE_MCDE	_AC(0x0000000000080000,UL) /* MCD enable.       */
- #define TSTATE_MG	_AC(0x0000000000040000,UL) /* MMU Globals.	*/
- #define TSTATE_CLE	_AC(0x0000000000020000,UL) /* CurrLittleEndian.	*/
- #define TSTATE_TLE	_AC(0x0000000000010000,UL) /* TrapLittleEndian.	*/
-diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
-index 0f679421b468..207846855a4d 100644
---- a/arch/sparc/kernel/entry.h
-+++ b/arch/sparc/kernel/entry.h
-@@ -159,6 +159,9 @@ void sun4v_resum_overflow(struct pt_regs *regs);
- void sun4v_nonresum_error(struct pt_regs *regs,
- 			  unsigned long offset);
- void sun4v_nonresum_overflow(struct pt_regs *regs);
-+void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs,
-+				      unsigned long addr,
-+				      unsigned long context);
- 
- extern unsigned long sun4v_err_itlb_vaddr;
- extern unsigned long sun4v_err_itlb_ctx;
-diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
-index 78e0211753d2..0bd326b6ca58 100644
---- a/arch/sparc/kernel/head_64.S
-+++ b/arch/sparc/kernel/head_64.S
-@@ -883,6 +883,7 @@ sparc64_boot_end:
- #include "helpers.S"
- #include "hvcalls.S"
- #include "sun4v_tlb_miss.S"
-+#include "sun4v_mcd.S"
- #include "sun4v_ivec.S"
- #include "ktlb.S"
- #include "tsb.S"
-diff --git a/arch/sparc/kernel/sun4v_mcd.S b/arch/sparc/kernel/sun4v_mcd.S
-new file mode 100644
-index 000000000000..92afb6248dbc
---- /dev/null
-+++ b/arch/sparc/kernel/sun4v_mcd.S
-@@ -0,0 +1,17 @@
-+/* sun4v_mcd.S: Sun4v memory corruption detected precise exception handler
++/**
++ * for_each_resv_unavail_range - iterate through reserved and unavailable memory
++ * @i: u64 used as loop variable
++ * @flags: pick from blocks based on memory attributes
++ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
++ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
 + *
-+ * Copyright (C) 2015 Bob Picco <bob.picco@oracle.com>
-+ * Copyright (C) 2015 Khalid Aziz <khalid.aziz@oracle.com>
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.
++ * Walks over unavailable but reserved (reserved && !memory) areas of memblock.
++ * Available as soon as memblock is initialized.
++ * Note: because this memory does not belong to any physical node, flags and
++ * nid arguments do not make sense and thus not exported as arguments.
 + */
-+	.text
-+	.align 32
++#define for_each_resv_unavail_range(i, p_start, p_end)			\
++	for_each_mem_range(i, &memblock.reserved, &memblock.memory,	\
++			   NUMA_NO_NODE, MEMBLOCK_NONE, p_start, p_end, NULL)
 +
-+sun4v_mcd_detect_precise:
-+	mov	%l4, %o1
-+	mov 	%l5, %o2
-+	call	sun4v_mem_corrupt_detect_precise
-+	 add	%sp, PTREGS_OFF, %o0
-+	ba,a,pt	%xcc, rtrap
-+	 nop
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index ad31af1dd726..0fe0eed3cecb 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -2605,6 +2605,60 @@ void sun4v_do_mna(struct pt_regs *regs, unsigned long addr, unsigned long type_c
- 	force_sig_info(SIGBUS, &info, current);
+ static inline void memblock_set_region_flags(struct memblock_region *r,
+ 					     unsigned long flags)
+ {
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 065d99deb847..04c8b2e5aff4 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -94,6 +94,15 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #define mm_forbids_zeropage(X)	(0)
+ #endif
+ 
++/*
++ * On some architectures it is expensive to call memset() for small sizes.
++ * Those architectures should provide their own implementation of "struct page"
++ * zeroing by defining this macro in <asm/pgtable.h>.
++ */
++#ifndef mm_zero_struct_page
++#define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
++#endif
++
+ /*
+  * Default maximum number of active map areas, this limits the number of vmas
+  * per mm struct. Users can overwrite this number by sysctl but there is a
+@@ -2001,6 +2010,12 @@ extern int __meminit __early_pfn_to_nid(unsigned long pfn,
+ 					struct mminit_pfnnid_cache *state);
+ #endif
+ 
++#ifdef CONFIG_HAVE_MEMBLOCK
++void zero_resv_unavail(void);
++#else
++static inline void zero_resv_unavail(void) {}
++#endif
++
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+ extern void memmap_init_zone(unsigned long, int, unsigned long,
+ 				unsigned long, enum memmap_context);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 20b0bace2235..54e0fa12e7ff 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6209,6 +6209,44 @@ void __paginginit free_area_init_node(int nid, unsigned long *zones_size,
+ 	free_area_init_core(pgdat);
  }
  
-+/* sun4v_mem_corrupt_detect_precise() - Handle precise exception on an ADI
-+ * tag mismatch.
-+ *
-+ * ADI version tag mismatch on a load from memory always results in a
-+ * precise exception. Tag mismatch on a store to memory will result in
-+ * precise exception if MCDPER or PMCDPER is set to 1.
++#ifdef CONFIG_HAVE_MEMBLOCK
++/*
++ * Only struct pages that are backed by physical memory are zeroed and
++ * initialized by going through __init_single_page(). But, there are some
++ * struct pages which are reserved in memblock allocator and their fields
++ * may be accessed (for example page_to_pfn() on some configuration accesses
++ * flags). We must explicitly zero those struct pages.
 + */
-+void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs, unsigned long addr,
-+				      unsigned long context)
++void __paginginit zero_resv_unavail(void)
 +{
-+	siginfo_t info;
++	phys_addr_t start, end;
++	unsigned long pfn;
++	u64 i, pgcnt;
 +
-+	if (notify_die(DIE_TRAP, "memory corruption precise exception", regs,
-+		       0, 0x8, SIGSEGV) = NOTIFY_STOP)
-+		return;
-+
-+	if (regs->tstate & TSTATE_PRIV) {
-+		/* MCD exception could happen because the task was running
-+		 * a system call with MCD enabled and passed a non-versioned
-+		 * pointer or pointer with bad version tag to  the system
-+		 * call.
-+		 */
-+		const struct exception_table_entry *entry;
-+
-+		entry = search_exception_tables(regs->tpc);
-+		if (entry) {
-+			/* Looks like a bad syscall parameter */
-+#ifdef DEBUG_EXCEPTIONS
-+			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
-+				 regs->tpc);
-+			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
-+				 regs->tpc, entry->fixup);
-+#endif
-+			regs->tpc = entry->fixup;
-+			regs->tnpc = regs->tpc + 4;
-+			return;
++	/*
++	 * Loop through ranges that are reserved, but do not have reported
++	 * physical memory backing.
++	 */
++	pgcnt = 0;
++	for_each_resv_unavail_range(i, &start, &end) {
++		for (pfn = PFN_DOWN(start); pfn < PFN_UP(end); pfn++) {
++			mm_zero_struct_page(pfn_to_page(pfn));
++			pgcnt++;
 +		}
-+		pr_emerg("%s: ADDR[%016lx] CTX[%lx], going.\n",
-+			 __func__, addr, context);
-+		die_if_kernel("MCD precise", regs);
 +	}
 +
-+	if (test_thread_flag(TIF_32BIT)) {
-+		regs->tpc &= 0xffffffff;
-+		regs->tnpc &= 0xffffffff;
-+	}
-+	info.si_signo = SIGSEGV;
-+	info.si_code = SEGV_ADIPERR;
-+	info.si_errno = 0;
-+	info.si_addr = (void __user *) addr;
-+	info.si_trapno = 0;
-+	force_sig_info(SIGSEGV, &info, current);
++	/*
++	 * Struct pages that do not have backing memory. This could be because
++	 * firmware is using some of this memory, or for some other reasons.
++	 * Once memblock is changed so such behaviour is not allowed: i.e.
++	 * list of "reserved" memory must be a subset of list of "memory", then
++	 * this code can be removed.
++	 */
++	if (pgcnt)
++		pr_info("Reserved but unavailable: %lld pages", pgcnt);
 +}
++#endif /* CONFIG_HAVE_MEMBLOCK */
 +
- void do_privop(struct pt_regs *regs)
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 
+ #if MAX_NUMNODES > 1
+@@ -6632,6 +6670,7 @@ void __init free_area_init_nodes(unsigned long *max_zone_pfn)
+ 			node_set_state(nid, N_MEMORY);
+ 		check_for_memory(pgdat, nid);
+ 	}
++	zero_resv_unavail();
+ }
+ 
+ static int __init cmdline_parse_core(char *p, unsigned long *core)
+@@ -6795,6 +6834,7 @@ void __init free_area_init(unsigned long *zones_size)
  {
- 	enum ctx_state prev_state = exception_enter();
-diff --git a/arch/sparc/kernel/ttable_64.S b/arch/sparc/kernel/ttable_64.S
-index efe93ab4a9c0..36a9708f93d9 100644
---- a/arch/sparc/kernel/ttable_64.S
-+++ b/arch/sparc/kernel/ttable_64.S
-@@ -25,8 +25,10 @@ tl0_ill:	membar #Sync
- 		TRAP_7INSNS(do_illegal_instruction)
- tl0_privop:	TRAP(do_privop)
- tl0_resv012:	BTRAP(0x12) BTRAP(0x13) BTRAP(0x14) BTRAP(0x15) BTRAP(0x16) BTRAP(0x17)
--tl0_resv018:	BTRAP(0x18) BTRAP(0x19) BTRAP(0x1a) BTRAP(0x1b) BTRAP(0x1c) BTRAP(0x1d)
--tl0_resv01e:	BTRAP(0x1e) BTRAP(0x1f)
-+tl0_resv018:	BTRAP(0x18) BTRAP(0x19)
-+tl0_mcd:	SUN4V_MCD_PRECISE
-+tl0_resv01b:	BTRAP(0x1b)
-+tl0_resv01c:	BTRAP(0x1c) BTRAP(0x1d)	BTRAP(0x1e) BTRAP(0x1f)
- tl0_fpdis:	TRAP_NOSAVE(do_fpdis)
- tl0_fpieee:	TRAP_SAVEFPU(do_fpieee)
- tl0_fpother:	TRAP_NOSAVE(do_fpother_check_fitos)
+ 	free_area_init_node(0, zones_size,
+ 			__pa(PAGE_OFFSET) >> PAGE_SHIFT, NULL);
++	zero_resv_unavail();
+ }
+ 
+ static int page_alloc_cpu_dead(unsigned int cpu)
 -- 
-2.11.0
+2.14.2
 
