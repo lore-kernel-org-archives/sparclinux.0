@@ -1,127 +1,101 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Wed, 11 Oct 2017 18:50:02 +0000
-Subject: [PATCH v4 1/5] sparc64: Define SPARC default fls function
-Message-Id: <1507747806-10251-2-git-send-email-vijay.ac.kumar@oracle.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 20 Oct 2017 16:58:00 +0000
+Subject: [PATCH v9 07/10] mm: Add address parameter to arch_validate_prot()
+Message-Id: <24966e414aa0e3e6b6b1b8df6d680f32736b86d5.1508364660.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
-In-Reply-To: <1507747806-10251-1-git-send-email-vijay.ac.kumar@oracle.com>
+References: <cover.1508364660.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1508364660.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org, anthony.yznaga@oracle.com
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, bsingharora@gmail.com, nborisov@suse.com, aarcange@redhat.com, tj@kernel.org, mgorman@suse.de, vbabka@suse.cz, nadav.amit@gmail.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, ak@linux.intel.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-fls will now require a boot time patching on T4 and above.
-Redefining it under arch/sparc/lib.
+A protection flag may not be valid across entire address space and
+hence arch_validate_prot() might need the address a protection bit is
+being set on to ensure it is a valid protection flag. For example, sparc
+processors support memory corruption detection (as part of ADI feature)
+flag on memory addresses mapped on to physical RAM but not on PFN mapped
+pages or addresses mapped on to devices. This patch adds address to the
+parameters being passed to arch_validate_prot() so protection bits can
+be validated in the relevant context.
 
-Signed-off-by: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
 ---
- arch/sparc/include/asm/bitops_64.h |    3 +-
- arch/sparc/lib/Makefile            |    1 +
- arch/sparc/lib/fls.S               |   67 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 70 insertions(+), 1 deletions(-)
+v8:
+	- Added addr parameter to powerpc arch_validate_prot() (suggested
+	  by Michael Ellerman)
+v7:
+	- new patch
 
-diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
-index 2d52240..30aea56 100644
---- a/arch/sparc/include/asm/bitops_64.h
-+++ b/arch/sparc/include/asm/bitops_64.h
-@@ -22,9 +22,10 @@
- void clear_bit(unsigned long nr, volatile unsigned long *addr);
- void change_bit(unsigned long nr, volatile unsigned long *addr);
+ arch/powerpc/include/asm/mman.h | 4 ++--
+ arch/powerpc/kernel/syscalls.c  | 2 +-
+ include/linux/mman.h            | 2 +-
+ mm/mprotect.c                   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
+index 30922f699341..1d129f4521ac 100644
+--- a/arch/powerpc/include/asm/mman.h
++++ b/arch/powerpc/include/asm/mman.h
+@@ -32,7 +32,7 @@ static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
+ }
+ #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
  
-+int fls(unsigned int word);
-+
- #include <asm-generic/bitops/non-atomic.h>
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
+ {
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+ 		return false;
+@@ -40,7 +40,7 @@ static inline bool arch_validate_prot(unsigned long prot)
+ 		return false;
+ 	return true;
+ }
+-#define arch_validate_prot(prot) arch_validate_prot(prot)
++#define arch_validate_prot arch_validate_prot
  
--#include <asm-generic/bitops/fls.h>
- #include <asm-generic/bitops/__fls.h>
- #include <asm-generic/bitops/fls64.h>
+ #endif /* CONFIG_PPC64 */
+ #endif	/* _ASM_POWERPC_MMAN_H */
+diff --git a/arch/powerpc/kernel/syscalls.c b/arch/powerpc/kernel/syscalls.c
+index a877bf8269fe..6d90ddbd2d11 100644
+--- a/arch/powerpc/kernel/syscalls.c
++++ b/arch/powerpc/kernel/syscalls.c
+@@ -48,7 +48,7 @@ static inline long do_mmap2(unsigned long addr, size_t len,
+ {
+ 	long ret = -EINVAL;
  
-diff --git a/arch/sparc/lib/Makefile b/arch/sparc/lib/Makefile
-index a1a2d39..3b9f5e0 100644
---- a/arch/sparc/lib/Makefile
-+++ b/arch/sparc/lib/Makefile
-@@ -16,6 +16,7 @@ lib-$(CONFIG_SPARC64) += atomic_64.o
- lib-$(CONFIG_SPARC32) += lshrdi3.o ashldi3.o
- lib-$(CONFIG_SPARC32) += muldi3.o bitext.o cmpdi2.o
- lib-$(CONFIG_SPARC64) += multi3.o
-+lib-$(CONFIG_SPARC64) += fls.o
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, addr))
+ 		goto out;
  
- lib-$(CONFIG_SPARC64) += copy_page.o clear_page.o bzero.o
- lib-$(CONFIG_SPARC64) += csum_copy.o csum_copy_from_user.o csum_copy_to_user.o
-diff --git a/arch/sparc/lib/fls.S b/arch/sparc/lib/fls.S
-new file mode 100644
-index 0000000..06b8d30
---- /dev/null
-+++ b/arch/sparc/lib/fls.S
-@@ -0,0 +1,67 @@
-+/* fls.S: SPARC default fls definition.
-+ *
-+ * SPARC default fls definition, which follows the same algorithm as
-+ * in generic fls(). This function will be boot time patched on T4
-+ * and onward.
-+ */
-+
-+#include <linux/linkage.h>
-+#include <asm/export.h>
-+
-+	.text
-+	.register	%g2, #scratch
-+	.register	%g3, #scratch
-+ENTRY(fls)
-+	brz,pn	%o0, 6f
-+	 mov	0, %o1
-+	sethi	%hi(0xffff0000), %g3
-+	mov	%o0, %g2
-+	andcc	%o0, %g3, %g0
-+	be,pt	%icc, 8f
-+	 mov	32, %o1
-+	sethi	%hi(0xff000000), %g3
-+	andcc	%g2, %g3, %g0
-+	bne,pt	%icc, 3f
-+	 sethi	%hi(0xf0000000), %g3
-+	sll	%o0, 8, %o0
-+1:
-+	add	%o1, -8, %o1
-+	sra	%o0, 0, %o0
-+	mov	%o0, %g2
-+2:
-+	sethi	%hi(0xf0000000), %g3
-+3:
-+	andcc	%g2, %g3, %g0
-+	bne,pt	%icc, 4f
-+	 sethi	%hi(0xc0000000), %g3
-+	sll	%o0, 4, %o0
-+	add	%o1, -4, %o1
-+	sra	%o0, 0, %o0
-+	mov	%o0, %g2
-+4:
-+	andcc	%g2, %g3, %g0
-+	be,a,pt	%icc, 7f
-+	 sll	%o0, 2, %o0
-+5:
-+	xnor	%g0, %o0, %o0
-+	srl	%o0, 31, %o0
-+	sub	%o1, %o0, %o1
-+6:
-+	jmp	%o7 + 8
-+	 sra	%o1, 0, %o0
-+7:
-+	add	%o1, -2, %o1
-+	ba,pt	%xcc, 5b
-+	 sra	%o0, 0, %o0
-+8:
-+	sll	%o0, 16, %o0
-+	sethi	%hi(0xff000000), %g3
-+	sra	%o0, 0, %o0
-+	mov	%o0, %g2
-+	andcc	%g2, %g3, %g0
-+	bne,pt	%icc, 2b
-+	 mov	16, %o1
-+	ba,pt	%xcc, 1b
-+	 sll	%o0, 8, %o0
-+ENDPROC(fls)
-+EXPORT_SYMBOL(fls)
+ 	if (shift) {
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index c8367041fafd..b42ad5c9d6a2 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -49,7 +49,7 @@ static inline void vm_unacct_memory(long pages)
+  *
+  * Returns true if the prot flags are valid
+  */
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
+ {
+ 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) = 0;
+ }
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index bd0f409922cb..4f0e46bb1797 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -395,7 +395,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+ 	end = start + len;
+ 	if (end <= start)
+ 		return -ENOMEM;
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, start))
+ 		return -EINVAL;
+ 
+ 	reqprot = prot;
 -- 
-1.7.1
+2.11.0
 
