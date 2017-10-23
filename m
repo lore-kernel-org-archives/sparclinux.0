@@ -1,91 +1,54 @@
-From: "Reshetova, Elena" <elena.reshetova@intel.com>
-Date: Mon, 23 Oct 2017 07:10:55 +0000
-Subject: RE: [PATCH] sparc64: convert mdesc_handle.refcnt from atomic_t to refcount_t
-Message-Id: <2236FBA76BA1254E88B949DDB74E612B802B4255@IRSMSX102.ger.corp.intel.com>
+From: Shannon Nelson <shannon.nelson@oracle.com>
+Date: Mon, 23 Oct 2017 15:19:20 +0000
+Subject: Re: [PATCH] sparc64: convert mdesc_handle.refcnt from atomic_t to refcount_t
+Message-Id: <2331cc3d-7a89-a835-bfc2-cab1dd2df9c3@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1508486277-24913-1-git-send-email-elena.reshetova@intel.com>
  <519f48f1-3145-6bf4-469f-0c6059681287@oracle.com>
-In-Reply-To: <519f48f1-3145-6bf4-469f-0c6059681287@oracle.com>
+ <2236FBA76BA1254E88B949DDB74E612B802B4255@IRSMSX102.ger.corp.intel.com>
+In-Reply-To: <2236FBA76BA1254E88B949DDB74E612B802B4255@IRSMSX102.ger.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Shannon Nelson <shannon.nelson@oracle.com>, "davem@davemloft.net" <davem@davemloft.net>
+To: "Reshetova, Elena" <elena.reshetova@intel.com>, "davem@davemloft.net" <davem@davemloft.net>
 Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "jag.raman@oracle.com" <jag.raman@oracle.com>, "peterz@infradead.org" <peterz@infradead.org>, "keescook@chromium.org" <keescook@chromium.org>
 
-PiBPbiAxMC8yMC8yMDE3IDEyOjU3IEFNLCBFbGVuYSBSZXNoZXRvdmEgd3JvdGU6DQo+ID4gYXRv
-bWljX3QgdmFyaWFibGVzIGFyZSBjdXJyZW50bHkgdXNlZCB0byBpbXBsZW1lbnQgcmVmZXJlbmNl
-DQo+ID4gY291bnRlcnMgd2l0aCB0aGUgZm9sbG93aW5nIHByb3BlcnRpZXM6DQo+ID4gICAtIGNv
-dW50ZXIgaXMgaW5pdGlhbGl6ZWQgdG8gMSB1c2luZyBhdG9taWNfc2V0KCkNCj4gPiAgIC0gYSBy
-ZXNvdXJjZSBpcyBmcmVlZCB1cG9uIGNvdW50ZXIgcmVhY2hpbmcgemVybw0KPiA+ICAgLSBvbmNl
-IGNvdW50ZXIgcmVhY2hlcyB6ZXJvLCBpdHMgZnVydGhlcg0KPiA+ICAgICBpbmNyZW1lbnRzIGFy
-ZW4ndCBhbGxvd2VkDQo+ID4gICAtIGNvdW50ZXIgc2NoZW1hIHVzZXMgYmFzaWMgYXRvbWljIG9w
-ZXJhdGlvbnMNCj4gPiAgICAgKHNldCwgaW5jLCBpbmNfbm90X3plcm8sIGRlY19hbmRfdGVzdCwg
-ZXRjLikNCj4gPg0KPiA+IFN1Y2ggYXRvbWljIHZhcmlhYmxlcyBzaG91bGQgYmUgY29udmVydGVk
-IHRvIGEgbmV3bHkgcHJvdmlkZWQNCj4gPiByZWZjb3VudF90IHR5cGUgYW5kIEFQSSB0aGF0IHBy
-ZXZlbnRzIGFjY2lkZW50YWwgY291bnRlciBvdmVyZmxvd3MNCj4gPiBhbmQgdW5kZXJmbG93cy4g
-VGhpcyBpcyBpbXBvcnRhbnQgc2luY2Ugb3ZlcmZsb3dzIGFuZCB1bmRlcmZsb3dzDQo+ID4gY2Fu
-IGxlYWQgdG8gdXNlLWFmdGVyLWZyZWUgc2l0dWF0aW9uIGFuZCBiZSBleHBsb2l0YWJsZS4NCj4g
-Pg0KPiA+IFRoZSB2YXJpYWJsZSBtZGVzY19oYW5kbGUucmVmY250IGlzIHVzZWQgYXMgcHVyZSBy
-ZWZlcmVuY2UgY291bnRlci4NCj4gPiBDb252ZXJ0IGl0IHRvIHJlZmNvdW50X3QgYW5kIGZpeCB1
-cCB0aGUgb3BlcmF0aW9ucy4NCj4gPg0KPiA+IFN1Z2dlc3RlZC1ieTogS2VlcyBDb29rIDxrZWVz
-Y29va0BjaHJvbWl1bS5vcmc+DQo+ID4gUmV2aWV3ZWQtYnk6IERhdmlkIFdpbmRzb3IgPGR3aW5k
-c29yQGdtYWlsLmNvbT4NCj4gPiBSZXZpZXdlZC1ieTogSGFucyBMaWxqZXN0cmFuZCA8aXNoa2Ft
-aWVsQGdtYWlsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBFbGVuYSBSZXNoZXRvdmEgPGVsZW5h
-LnJlc2hldG92YUBpbnRlbC5jb20+DQo+IA0KPiBBY2tlZC1ieTogU2hhbm5vbiBOZWxzb24gPHNo
-YW5ub24ubmVsc29uQG9yYWNsZS5jb20+DQoNClRoYW5rIHlvdSBTaGFubm9uISBXb3VsZCB5b3Ug
-YmUgYWJsZSB0byB0YWtlIHRoaXMgcGF0Y2ggaW50byB0aGUgcmVzcGVjdGl2ZSB0cmVlDQp0byBw
-cm9wYWdhdGUgbm9ybWFsbHkgZnJvbSB0aGVyZT8NCg0KQmVzdCBSZWdhcmRzLA0KRWxlbmEuDQo+
-IA0KPiA+IC0tLQ0KPiA+ICAgYXJjaC9zcGFyYy9rZXJuZWwvbWRlc2MuYyB8IDE3ICsrKysrKysr
-Ky0tLS0tLS0tDQo+ID4gICAxIGZpbGUgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCA4IGRlbGV0
-aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL21kZXNjLmMg
-Yi9hcmNoL3NwYXJjL2tlcm5lbC9tZGVzYy5jDQo+ID4gaW5kZXggZmE0NjZjZS4uODIxYTcyNCAx
-MDA2NDQNCj4gPiAtLS0gYS9hcmNoL3NwYXJjL2tlcm5lbC9tZGVzYy5jDQo+ID4gKysrIGIvYXJj
-aC9zcGFyYy9rZXJuZWwvbWRlc2MuYw0KPiA+IEBAIC0xMiw2ICsxMiw3IEBADQo+ID4gICAjaW5j
-bHVkZSA8bGludXgvbWlzY2RldmljZS5oPg0KPiA+ICAgI2luY2x1ZGUgPGxpbnV4L2Jvb3RtZW0u
-aD4NCj4gPiAgICNpbmNsdWRlIDxsaW51eC9leHBvcnQuaD4NCj4gPiArI2luY2x1ZGUgPGxpbnV4
-L3JlZmNvdW50Lmg+DQo+ID4NCj4gPiAgICNpbmNsdWRlIDxhc20vY3B1ZGF0YS5oPg0KPiA+ICAg
-I2luY2x1ZGUgPGFzbS9oeXBlcnZpc29yLmg+DQo+ID4gQEAgLTcwLDcgKzcxLDcgQEAgc3RydWN0
-IG1kZXNjX2hhbmRsZSB7DQo+ID4gICAJc3RydWN0IGxpc3RfaGVhZAlsaXN0Ow0KPiA+ICAgCXN0
-cnVjdCBtZGVzY19tZW1fb3BzCSptb3BzOw0KPiA+ICAgCXZvaWQJCQkqc2VsZl9iYXNlOw0KPiA+
-IC0JYXRvbWljX3QJCXJlZmNudDsNCj4gPiArCXJlZmNvdW50X3QJCXJlZmNudDsNCj4gPiAgIAl1
-bnNpZ25lZCBpbnQJCWhhbmRsZV9zaXplOw0KPiA+ICAgCXN0cnVjdCBtZGVzY19oZHIJbWRlc2M7
-DQo+ID4gICB9Ow0KPiA+IEBAIC0xNTIsNyArMTUzLDcgQEAgc3RhdGljIHZvaWQgbWRlc2NfaGFu
-ZGxlX2luaXQoc3RydWN0IG1kZXNjX2hhbmRsZSAqaHAsDQo+ID4gICAJbWVtc2V0KGhwLCAwLCBo
-YW5kbGVfc2l6ZSk7DQo+ID4gICAJSU5JVF9MSVNUX0hFQUQoJmhwLT5saXN0KTsNCj4gPiAgIAlo
-cC0+c2VsZl9iYXNlID0gYmFzZTsNCj4gPiAtCWF0b21pY19zZXQoJmhwLT5yZWZjbnQsIDEpOw0K
-PiA+ICsJcmVmY291bnRfc2V0KCZocC0+cmVmY250LCAxKTsNCj4gPiAgIAlocC0+aGFuZGxlX3Np
-emUgPSBoYW5kbGVfc2l6ZTsNCj4gPiAgIH0NCj4gPg0KPiA+IEBAIC0xODIsNyArMTgzLDcgQEAg
-c3RhdGljIHZvaWQgX19pbml0IG1kZXNjX21lbWJsb2NrX2ZyZWUoc3RydWN0DQo+IG1kZXNjX2hh
-bmRsZSAqaHApDQo+ID4gICAJdW5zaWduZWQgaW50IGFsbG9jX3NpemU7DQo+ID4gICAJdW5zaWdu
-ZWQgbG9uZyBzdGFydDsNCj4gPg0KPiA+IC0JQlVHX09OKGF0b21pY19yZWFkKCZocC0+cmVmY250
-KSAhPSAwKTsNCj4gPiArCUJVR19PTihyZWZjb3VudF9yZWFkKCZocC0+cmVmY250KSAhPSAwKTsN
-Cj4gPiAgIAlCVUdfT04oIWxpc3RfZW1wdHkoJmhwLT5saXN0KSk7DQo+ID4NCj4gPiAgIAlhbGxv
-Y19zaXplID0gUEFHRV9BTElHTihocC0+aGFuZGxlX3NpemUpOw0KPiA+IEBAIC0yMjAsNyArMjIx
-LDcgQEAgc3RhdGljIHN0cnVjdCBtZGVzY19oYW5kbGUgKm1kZXNjX2ttYWxsb2ModW5zaWduZWQg
-aW50DQo+IG1kZXNjX3NpemUpDQo+ID4NCj4gPiAgIHN0YXRpYyB2b2lkIG1kZXNjX2tmcmVlKHN0
-cnVjdCBtZGVzY19oYW5kbGUgKmhwKQ0KPiA+ICAgew0KPiA+IC0JQlVHX09OKGF0b21pY19yZWFk
-KCZocC0+cmVmY250KSAhPSAwKTsNCj4gPiArCUJVR19PTihyZWZjb3VudF9yZWFkKCZocC0+cmVm
-Y250KSAhPSAwKTsNCj4gPiAgIAlCVUdfT04oIWxpc3RfZW1wdHkoJmhwLT5saXN0KSk7DQo+ID4N
-Cj4gPiAgIAlrZnJlZShocC0+c2VsZl9iYXNlKTsNCj4gPiBAQCAtMjU5LDcgKzI2MCw3IEBAIHN0
-cnVjdCBtZGVzY19oYW5kbGUgKm1kZXNjX2dyYWIodm9pZCkNCj4gPiAgIAlzcGluX2xvY2tfaXJx
-c2F2ZSgmbWRlc2NfbG9jaywgZmxhZ3MpOw0KPiA+ICAgCWhwID0gY3VyX21kZXNjOw0KPiA+ICAg
-CWlmIChocCkNCj4gPiAtCQlhdG9taWNfaW5jKCZocC0+cmVmY250KTsNCj4gPiArCQlyZWZjb3Vu
-dF9pbmMoJmhwLT5yZWZjbnQpOw0KPiA+ICAgCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm1kZXNj
-X2xvY2ssIGZsYWdzKTsNCj4gPg0KPiA+ICAgCXJldHVybiBocDsNCj4gPiBAQCAtMjcxLDcgKzI3
-Miw3IEBAIHZvaWQgbWRlc2NfcmVsZWFzZShzdHJ1Y3QgbWRlc2NfaGFuZGxlICpocCkNCj4gPiAg
-IAl1bnNpZ25lZCBsb25nIGZsYWdzOw0KPiA+DQo+ID4gICAJc3Bpbl9sb2NrX2lycXNhdmUoJm1k
-ZXNjX2xvY2ssIGZsYWdzKTsNCj4gPiAtCWlmIChhdG9taWNfZGVjX2FuZF90ZXN0KCZocC0+cmVm
-Y250KSkgew0KPiA+ICsJaWYgKHJlZmNvdW50X2RlY19hbmRfdGVzdCgmaHAtPnJlZmNudCkpIHsN
-Cj4gPiAgIAkJbGlzdF9kZWxfaW5pdCgmaHAtPmxpc3QpOw0KPiA+ICAgCQlocC0+bW9wcy0+ZnJl
-ZShocCk7DQo+ID4gICAJfQ0KPiA+IEBAIC01MTMsNyArNTE0LDcgQEAgdm9pZCBtZGVzY191cGRh
-dGUodm9pZCkNCj4gPiAgIAlpZiAoc3RhdHVzICE9IEhWX0VPSyB8fCByZWFsX2xlbiA+IGxlbikg
-ew0KPiA+ICAgCQlwcmludGsoS0VSTl9FUlIgIk1EOiBtZGVzYyByZXJlYWQgZmFpbHMgd2l0aCAl
-bHVcbiIsDQo+ID4gICAJCSAgICAgICBzdGF0dXMpOw0KPiA+IC0JCWF0b21pY19kZWMoJmhwLT5y
-ZWZjbnQpOw0KPiA+ICsJCXJlZmNvdW50X2RlYygmaHAtPnJlZmNudCk7DQo+ID4gICAJCW1kZXNj
-X2ZyZWUoaHApOw0KPiA+ICAgCQlnb3RvIG91dDsNCj4gPiAgIAl9DQo+ID4gQEAgLTUyNiw3ICs1
-MjcsNyBAQCB2b2lkIG1kZXNjX3VwZGF0ZSh2b2lkKQ0KPiA+ICAgCW1kZXNjX25vdGlmeV9jbGll
-bnRzKG9yaWdfaHAsIGhwKTsNCj4gPg0KPiA+ICAgCXNwaW5fbG9ja19pcnFzYXZlKCZtZGVzY19s
-b2NrLCBmbGFncyk7DQo+ID4gLQlpZiAoYXRvbWljX2RlY19hbmRfdGVzdCgmb3JpZ19ocC0+cmVm
-Y250KSkNCj4gPiArCWlmIChyZWZjb3VudF9kZWNfYW5kX3Rlc3QoJm9yaWdfaHAtPnJlZmNudCkp
-DQo+ID4gICAJCW1kZXNjX2ZyZWUob3JpZ19ocCk7DQo+ID4gICAJZWxzZQ0KPiA+ICAgCQlsaXN0
-X2FkZCgmb3JpZ19ocC0+bGlzdCwgJm1kZXNjX3pvbWJpZV9saXN0KTsNCj4gPg0K
+On 10/23/2017 12:10 AM, Reshetova, Elena wrote:
+>> On 10/20/2017 12:57 AM, Elena Reshetova wrote:
+>>> atomic_t variables are currently used to implement reference
+>>> counters with the following properties:
+>>>    - counter is initialized to 1 using atomic_set()
+>>>    - a resource is freed upon counter reaching zero
+>>>    - once counter reaches zero, its further
+>>>      increments aren't allowed
+>>>    - counter schema uses basic atomic operations
+>>>      (set, inc, inc_not_zero, dec_and_test, etc.)
+>>>
+>>> Such atomic variables should be converted to a newly provided
+>>> refcount_t type and API that prevents accidental counter overflows
+>>> and underflows. This is important since overflows and underflows
+>>> can lead to use-after-free situation and be exploitable.
+>>>
+>>> The variable mdesc_handle.refcnt is used as pure reference counter.
+>>> Convert it to refcount_t and fix up the operations.
+>>>
+>>> Suggested-by: Kees Cook <keescook@chromium.org>
+>>> Reviewed-by: David Windsor <dwindsor@gmail.com>
+>>> Reviewed-by: Hans Liljestrand <ishkamiel@gmail.com>
+>>> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
+>>
+>> Acked-by: Shannon Nelson <shannon.nelson@oracle.com>
+> 
+> Thank you Shannon! Would you be able to take this patch into the respective tree
+> to propagate normally from there?
+> 
+> Best Regards,
+> Elena.
+
+Hi Elena,
+
+Dave Miller takes good care of the sparclinux tree, I'm sure this is on 
+his ToDo list already.
+
+sln
+
