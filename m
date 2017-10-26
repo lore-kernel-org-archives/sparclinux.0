@@ -1,33 +1,69 @@
-From: Will Deacon <will.deacon@arm.com>
-Date: Fri, 13 Oct 2017 16:18:09 +0000
-Subject: Re: [PATCH v11 7/9] arm64/kasan: add and use kasan_map_populate()
-Message-Id: <20171013161809.GE4746@arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Thu, 26 Oct 2017 02:51:52 +0000
+Subject: [PATCH v2] sparc: Provide cmpxchg64 for 32-bit builds
+Message-Id: <1508986312-32081-1-git-send-email-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171010155619.GA2517@arm.com>
- <CAOAebxv21+KtXPAk-xWz=+2fqWQDgp9SAFZz-N=XsuBxev=zcg@mail.gmail.com>
- <20171010171047.GC2517@arm.com>
- <CAOAebxtrSthSP4NAa0obBbsCK1KZxO+x0w5xNrpY6m2y9UZFvQ@mail.gmail.com>
- <CAOAebxu5WL-FQLgfCxNcWy36V6zsTO1v3LLqXv5rM1Pp9R-=YA@mail.gmail.com>
- <20171013144319.GB4746@arm.com>
- <CAOAebxv4h+8ej6JA_DZbXaNV5JsAk4MbcCLf1+2RvwKGF2+MxQ@mail.gmail.com>
- <20171013154426.GC4746@arm.com>
- <CAOAebxspETEqFXL1Ez_4TK9CAwwk+uhHbYOmZk2QR8b=GO80cQ@mail.gmail.com>
- <CAOAebxv=u4cKS=_Bvyqs7pDA=5Oi0HNWvC4zRmhCiaEUMgQu3w@mail.gmail.com>
-In-Reply-To: <CAOAebxv=u4cKS=_Bvyqs7pDA=5Oi0HNWvC4zRmhCiaEUMgQu3w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Fri, Oct 13, 2017 at 12:00:27PM -0400, Pavel Tatashin wrote:
-> BTW, don't we need the same aligments inside for_each_memblock() loop?
+Fix the following build error, seen when building sparc32:allmodconfig.
 
-Hmm, yes actually, given that we shift them right for the shadow address.
+drivers/net/ethernet/intel/i40e/i40e_ethtool.c:
+	In function 'i40e_set_priv_flags':
+drivers/net/ethernet/intel/i40e/i40e_ethtool.c:4150:2: error:
+	implicit declaration of function 'cmpxchg64'
 
-> How about change kasan_map_populate() to accept regular VA start, end
-> address, and convert them internally after aligning to PAGE_SIZE?
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v2: Actually implement cmpxchg64 with code snippet provided by Dave Miller
+    Note: I am aware that this doesn't pass checkpatch; I found it more
+    important to be in line with __cmpxchg_u32().
 
-That's what my original patch did, but it doesn't help on its own because
-kasan_populate_zero_shadow would need the same change.
+ arch/sparc/include/asm/cmpxchg_32.h |  2 ++
+ arch/sparc/lib/atomic32.c           | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-Will
+diff --git a/arch/sparc/include/asm/cmpxchg_32.h b/arch/sparc/include/asm/cmpxchg_32.h
+index 83ffb83c5397..7f95d3ca20e2 100644
+--- a/arch/sparc/include/asm/cmpxchg_32.h
++++ b/arch/sparc/include/asm/cmpxchg_32.h
+@@ -62,6 +62,8 @@ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
+ 			(unsigned long)_n_, sizeof(*(ptr)));		\
+ })
+ 
++extern u64 cmpxchg64(u64 *ptr, u64 old, u64 new);
++
+ #include <asm-generic/cmpxchg-local.h>
+ 
+ /*
+diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
+index 2c373329d5cb..41601eb540e7 100644
+--- a/arch/sparc/lib/atomic32.c
++++ b/arch/sparc/lib/atomic32.c
+@@ -172,6 +172,20 @@ unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
+ }
+ EXPORT_SYMBOL(__cmpxchg_u32);
+ 
++u64 cmpxchg64(u64 *ptr, u64 old, u64 new)
++{
++	unsigned long flags;
++	u64 prev;
++
++	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
++	if ((prev = *ptr) = old)
++		*ptr = new;
++	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
++
++	return prev;
++}
++EXPORT_SYMBOL(cmpxchg64);
++
+ unsigned long __xchg_u32(volatile u32 *ptr, u32 new)
+ {
+ 	unsigned long flags;
+-- 
+2.7.4
+
