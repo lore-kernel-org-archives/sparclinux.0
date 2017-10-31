@@ -1,36 +1,42 @@
-From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-Date: Mon, 09 Oct 2017 15:12:28 +0000
-Subject: Re: [PATCH v3 3/5] sparc64: SPARC optimised fls function
-Message-Id: <fc978dfa-fc49-53a6-7455-263a7d860583@oracle.com>
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Date: Tue, 31 Oct 2017 17:22:10 +0000
+Subject: [PATCH] sparc: pass endianness info to sparse
+Message-Id: <20171031172210.9990-1-luc.vanoostenryck@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1507308893-9218-1-git-send-email-vijay.ac.kumar@oracle.com>
- <1507308893-9218-4-git-send-email-vijay.ac.kumar@oracle.com>
- <20171008.213957.296383983633615999.davem@davemloft.net>
-In-Reply-To: <20171008.213957.296383983633615999.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, babu.moger@oracle.com, rob.gardner@oracle.com, sam@ravnborg.org
+To: sparclinux@vger.kernel.org
 
+sparc is big-endian only but sparse assumes the same endianness
+as the building machine.
+This is problematic for code which expect __BYTE_ORDER__ being
+correctly predefined by the compiler which sparse can then
+pre-process differently from what gcc would, depending on the
+building machine endianness.
 
+Fix this by letting sparse know about the architecture endianness.
 
-On 10/8/2017 11:39 PM, David Miller wrote:
-> From: Vijay Kumar <vijay.ac.kumar@oracle.com>
-> Date: Fri,  6 Oct 2017 10:54:51 -0600
-> 
->> +#define LXCNT_O0_G2	\
->> +	.word	0x85b002e8
->> +
->> +	.text
->> +	.register	%g2, #scratch
->> +	.register	%g3, #scratch
->> +
->> +ENTRY(NG4fls)
->> +	LXCNT_O0_G2	!lzcnt	%o0, %g2
-> 
-> Agreed with others that you should name this LZCNT_* instead of
-> LXCNT_*.
-Yes, That's typo. I will fix it.
+To: David S. Miller <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+---
+ arch/sparc/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Vijay
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 8496a074b..ef1598f5a 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -55,6 +55,8 @@ endif
+ 
+ endif
+ 
++CHECKFLAGS     += -mbig-endian
++
+ head-y                 := arch/sparc/kernel/head_$(BITS).o
+ 
+ # See arch/sparc/Kbuild for the core part of the kernel
+-- 
+2.14.0
+
