@@ -1,62 +1,37 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 16 Nov 2017 14:38:31 +0000
-Subject: [PATCH RESEND v10 08/10] mm: Clear arch specific VM flags on protection change
-Message-Id: <e4656969f15fe0b43135b6e3f301695b77c885fc.1510768775.git.khalid.aziz@oracle.com>
+From: Nitin Gupta <nitin.m.gupta@oracle.com>
+Date: Fri, 03 Nov 2017 19:26:06 +0000
+Subject: [PATCH] sparc64: Fix page table walk for PUD hugepages
+Message-Id: <1509737200-103059-1-git-send-email-nitin.m.gupta@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1510768775.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1510768775.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, lstoakes@gmail.com, dave.jiang@intel.com, willy@infradead.org, hughd@google.com, ying.huang@intel.com, n-horiguchi@ah.jp.nec.com, heiko.carstens@de.ibm.com, mgorman@suse.de, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>, Nitin Gupta <nitin.m.gupta@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Bob Picco <bob.picco@oracle.com>, Allen Pais <allen.pais@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-When protection bits are changed on a VMA, some of the architecture
-specific flags should be cleared as well. An examples of this are the
-PKEY flags on x86. This patch expands the current code that clears
-PKEY flags for x86, to support similar functionality for other
-architectures as well.
+For a PUD hugepage entry, we need to propagate bits [32:22]
+from virtual address to resolve at 4M granularity. However,
+the current code was incorrectly propagating bits [29:19].
+This bug can cause incorrect data to be returned for pages
+backed with 16G hugepages.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
----
-v7:
-	- new patch
+Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
+Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 
- include/linux/mm.h | 6 ++++++
- mm/mprotect.c      | 2 +-
- 2 files changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 43edf659453b..f97bc6184c52 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -277,6 +277,12 @@ extern unsigned int kobjsize(const void *objp);
- /* This mask is used to clear all the VMA flags used by mlock */
- #define VM_LOCKED_CLEAR_MASK	(~(VM_LOCKED | VM_LOCKONFAULT))
- 
-+/* Arch-specific flags to clear when updating VM flags on protection change */
-+#ifndef VM_ARCH_CLEAR
-+# define VM_ARCH_CLEAR	VM_NONE
-+#endif
-+#define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
-+
- /*
-  * mapping from the currently active vm_flags protection bits (the
-  * low four bits) to a page protection mask..
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index 1e0d9cb024c8..a071f72309c0 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -468,7 +468,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
- 		 * cleared from the VMA.
- 		 */
- 		mask_off_old_flags = VM_READ | VM_WRITE | VM_EXEC |
--					ARCH_VM_PKEY_FLAGS;
-+					VM_FLAGS_CLEAR;
- 
- 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
- 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
+diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
+index acf55063aa3d..ca0de1646f1e 100644
+--- a/arch/sparc/include/asm/tsb.h
++++ b/arch/sparc/include/asm/tsb.h
+@@ -216,7 +216,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
+ 	sllx		REG2, 32, REG2;			\
+ 	andcc		REG1, REG2, %g0;		\
+ 	be,pt		%xcc, 700f;			\
+-	 sethi		%hi(0x1ffc0000), REG2;		\
++	 sethi		%hi(0xffe00000), REG2;		\
+ 	sllx		REG2, 1, REG2;			\
+ 	brgez,pn	REG1, FAIL_LABEL;		\
+ 	 andn		REG1, REG2, REG1;		\
 -- 
-2.11.0
+2.13.1
 
