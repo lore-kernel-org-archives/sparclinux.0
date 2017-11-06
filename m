@@ -1,60 +1,70 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 29 Nov 2017 21:12:23 +0000
-Subject: Re: [PATCH v2 00/10] posix_clocks: Prepare syscalls for 64 bit time_t conversion
-Message-Id: <CAK8P3a2ho3S3NYp4VL7kOAk-bg3bsUmLaJJVEvNfzPoEue3v3w@mail.gmail.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 06 Nov 2017 14:41:45 +0000
+Subject: [PATCH v3] sparc: Provide cmpxchg64 for 32-bit builds
+Message-Id: <1509979305-11791-1-git-send-email-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171127193037.8711-1-deepa.kernel@gmail.com> <CAK8P3a2pcpQqf_TNGVxLBePBSKYhxD90UN-FjBor4d-dKhAwbQ@mail.gmail.com>
- <CABeXuvrBOSVTNSbEZZMKmuTgWeU_VDqjSZkwGAM+bnPh0-72zA@mail.gmail.com>
- <CAK8P3a26g74UA5J5uQLwdjK3hq+htzjrdTYRKqfy_MawY7st+g@mail.gmail.com> <CABeXuvrtQfSsOipGTnfmONXS45Dqxy4_T7MAcfO4VajoSycW4w@mail.gmail.com>
-In-Reply-To: <CABeXuvrtQfSsOipGTnfmONXS45Dqxy4_T7MAcfO4VajoSycW4w@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, John Stultz <john.stultz@linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, Arnaldo Carvalho de Melo <acme@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Christian Borntraeger <borntraeger@de.ibm.com>, Catalin Marinas <catalin.marinas@arm.com>, Chris Metcalf <cmetcalf@mellanox.com>, cohuck@redhat.com, David Miller <davem@davemloft.net>, Helge Deller <deller@gmx.de>, devel@driverdev.osuosl.org, gerald.schaefer@de.ibm.com, gregkh <gregkh@linuxfoundation.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Jan Hoeppner <hoeppner@linux.vnet.ibm.com>, "H. Peter Anvin" <hpa@zytor.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Julian
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
 
-On Wed, Nov 29, 2017 at 12:17 AM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> On Tue, Nov 28, 2017 at 6:17 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Mon, Nov 27, 2017 at 11:29 PM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> Right. There are three options:
->
-> 1. Use two configs to identify which syscalls need not be supported by
-> new architectures.
-> In this case it makes sense to say LEGACY_TIME_SYSCALLS and
-> COMPAT_32BIT_TIME both need to be disabled for new architectures. And,
-> I can reword the config to what you mention below.
->
-> 2. Make the LEGACY_TIME_SYSCALLS eliminate non y2038 safe syscalls
-> mentioned below only.
-> In this case only the native and compat functions of the below
-> mentioned syscalls need to be identified by the config. I like this
-> option as this clearly identifies which syscalls are deprecated and do
-> not have a 64 bit counterpart. Not all architectures need to support
-> turning this off.
->
-> 3. If we don't need either 1 or 2, then we could stick with what we
-> have today in the series as CONFIG_64BIT_TIME will be deleted and they
-> only need #ifdef CONFIG_64BIT.
->
-> Let me know if anyone prefers something else.
+Fix the following build error, seen when building sparc32:allmodconfig.
 
-I think I prefer to have both LEGACY_TIME_SYSCALLS to guard
-the native deprecated syscalls (disabled on 32-bit architectures after
-the conversion, and enabled on 64-bit architectures until
-we merge the next one), and COMPAT_32BIT_TIME to guard the
-compat versions of both the deprecated and the non-deprecated
-syscalls (enabled on all existing 32-bit architectures after the
-conversion, and on 64-bit architectures if they provide a compat
-mode for the former).
+drivers/net/ethernet/intel/i40e/i40e_ethtool.c:
+	In function 'i40e_set_priv_flags':
+drivers/net/ethernet/intel/i40e/i40e_ethtool.c:4150:2: error:
+	implicit declaration of function 'cmpxchg64'
 
-Those two are not symmetric, but I think those are the most
-common combinations, and the Kconfig symbol helps document
-what they are.
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+v3: Drop extern from cmpxchg64 declaration in include file
+v2: Actually implement cmpxchg64 with code snippet provided by Dave Miller
+    Note: I am aware that this doesn't pass checkpatch; I found it more
+    important to be in line with __cmpxchg_u32().
 
-There is one more category for things like io_getevents() and
-rt_sigtimedwait that also need two separate compat versions,
-one for 32-bit time_t and one for 64-bit time_t, but it seems better
-to deal with those case-by-case rather than introducing another
-Kconfig symbol.
+ arch/sparc/include/asm/cmpxchg_32.h |  2 ++
+ arch/sparc/lib/atomic32.c           | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+)
 
-        Arnd
+diff --git a/arch/sparc/include/asm/cmpxchg_32.h b/arch/sparc/include/asm/cmpxchg_32.h
+index 83ffb83c5397..01bb66b5d125 100644
+--- a/arch/sparc/include/asm/cmpxchg_32.h
++++ b/arch/sparc/include/asm/cmpxchg_32.h
+@@ -62,6 +62,8 @@ __cmpxchg(volatile void *ptr, unsigned long old, unsigned long new_, int size)
+ 			(unsigned long)_n_, sizeof(*(ptr)));		\
+ })
+ 
++u64 cmpxchg64(u64 *ptr, u64 old, u64 new);
++
+ #include <asm-generic/cmpxchg-local.h>
+ 
+ /*
+diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
+index 2c373329d5cb..41601eb540e7 100644
+--- a/arch/sparc/lib/atomic32.c
++++ b/arch/sparc/lib/atomic32.c
+@@ -172,6 +172,20 @@ unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
+ }
+ EXPORT_SYMBOL(__cmpxchg_u32);
+ 
++u64 cmpxchg64(u64 *ptr, u64 old, u64 new)
++{
++	unsigned long flags;
++	u64 prev;
++
++	spin_lock_irqsave(ATOMIC_HASH(ptr), flags);
++	if ((prev = *ptr) = old)
++		*ptr = new;
++	spin_unlock_irqrestore(ATOMIC_HASH(ptr), flags);
++
++	return prev;
++}
++EXPORT_SYMBOL(cmpxchg64);
++
+ unsigned long __xchg_u32(volatile u32 *ptr, u32 new)
+ {
+ 	unsigned long flags;
+-- 
+2.7.4
+
