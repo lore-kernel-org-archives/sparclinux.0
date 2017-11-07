@@ -1,36 +1,24 @@
-From: Anthony Yznaga <anthony.yznaga@oracle.com>
-Date: Fri, 17 Nov 2017 02:14:37 +0000
-Subject: Re: [PATCH RESEND v10 00/10] Application Data Integrity feature introduced by SPARC M7
-Message-Id: <3D32E16F-281B-464B-8F6D-D6A8FE62FAB2@oracle.com>
+From: "Douglas" <ad32@eplptx.com>
+Date: Tue, 07 Nov 2017 09:23:12 +0000
+Subject: Investment proposal.
+Message-Id: <CY4PR13MB0968EDEE78A941E5DA9E45EBB4510@CY4PR13MB0968.namprd13.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1510768775.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1510768775.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Miller <davem@davemloft.net>, dave.hansen@linux.intel.com, akpm@linux-foundation.org, 0x7f454c46@gmail.com, aarcange@redhat.com, ak@linux.intel.com, Allen Pais <allen.pais@oracle.com>, aneesh.kumar@linux.vnet.ibm.com, arnd@arndb.de, Atish Patra <atish.patra@oracle.com>, benh@kernel.crashing.org, Bob Picco <bob.picco@oracle.com>, bsingharora@gmail.com, chris.hyser@oracle.com, cmetcalf@mellanox.com, corbet@lwn.net, dan.carpenter@oracle.com, dave.jiang@intel.com, dja@axtens.net, Eric Saint Etienne <eric.saint.etienne@oracle.com>, geert@linux-m68k.org, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, hpa@zytor.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, jack@suse.cz, jmarchan@redhat.com, jroedel@suse.de, Khalid Aziz <khalid@gonehiking.org>, kirill.shutemov@linux.intel.com
+To: sparclinux@vger.kernel.org
 
+Dear Friend,
 
-> On Nov 16, 2017, at 6:38 AM, Khalid Aziz <khalid.aziz@oracle.com> wrote:
-> 
-> Changelog v10:
-> 
-> 	- Patch 1/10: Updated si_codes definitions for SEGV to match 4.14
-> 	- Patch 2/10: No changes
-> 	- Patch 3/10: Updated copyright
-> 	- Patch 4/10: No changes
-> 	- Patch 5/10: No changes
-> 	- Patch 6/10: Updated copyright
-> 	- Patch 7/10: No changes
-> 	- Patch 8/10: No changes
-> 	- Patch 9/10: No changes
-> 	- Patch 10/10: Added code to return from kernel path to set
-> 	  PSTATE.mcde if kernel continues execution in another thread
-> 	  (Suggested by Anthony)
+I am interested in establishing and operating a very viable business as a means of investment,  I did not know how this will be done in your country therefore I seek for Beneficial projects for the organizations in the following sectors: oil/Gas, banking, real estate, stock speculation and mining, transportation, health sector and tobacco, Schools, Communication Services, Agriculture Forestry & Fishing, thus any sector as I am proposing to invest the sum of Ten Million Great British Pounds (10,000,000 GBP)
 
-Looks good, Khalid.  Thanks for making the changes.
+My need for this business proposition and to acquire these properties is very urgent as I have retired from my position as the Chairman of HSBC London.
 
-For the entire series:
-
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+As business inclined man, I want you to come up with your individual business/ investment ideas as I will welcome it from the bottom of my heart.
+Kindly revert back if you have any ideas in the following sectors for further discussion and negotiation
+ 
+------------------------------------------------------------------------
+Thanks & Regards,
+Douglas Jardine Flint
+HSBC Group Chairman
+8 Canada Square London E14 5HQ
