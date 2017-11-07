@@ -1,8 +1,10 @@
-From: "Douglas" <ad32@eplptx.com>
-Date: Tue, 07 Nov 2017 09:23:12 +0000
+From: "Douglas" <ad@eplptx.com>
+Date: Tue, 07 Nov 2017 17:37:35 +0000
 Subject: Investment proposal.
-Message-Id: <CY4PR13MB0968EDEE78A941E5DA9E45EBB4510@CY4PR13MB0968.namprd13.prod.outlook.com>
+Message-Id: <MWHPR13MB119992FB6F50CF87D31E76C2B5510@MWHPR13MB1199.namprd13.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <CY4PR13MB0968EDEE78A941E5DA9E45EBB4510@CY4PR13MB0968.namprd13.prod.outlook.com>
+In-Reply-To: <CY4PR13MB0968EDEE78A941E5DA9E45EBB4510@CY4PR13MB0968.namprd13.prod.outlook.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
