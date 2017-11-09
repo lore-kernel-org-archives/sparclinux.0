@@ -1,47 +1,48 @@
-From: "M,Shakour Rosarita" <hassantara789@gmail.com>
-Date: Mon, 13 Nov 2017 12:08:18 +0000
-Subject: Hello Dear...
-Message-Id: <CAMyxZDE63FQAQ=JTZN_2Ks1T4PC7+RQ2oo6+S3vs4Q0Mp-K2iQ@mail.gmail.com>
+From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+Date: Thu, 09 Nov 2017 06:16:51 +0000
+Subject: [PATCH v2 1/2] sparc: use a common CHECKFLAGS entry for common flags
+Message-Id: <20171109061652.14948-2-luc.vanoostenryck@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171109061652.14948-1-luc.vanoostenryck@gmail.com>
+In-Reply-To: <20171109061652.14948-1-luc.vanoostenryck@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S . Miller" <davem@davemloft.net>
+Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello Dear...
+---
+ arch/sparc/Makefile | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-I know that this message will come to you as a surprise. I hoped that
-you will not expose or betray this trust and confident that I am about
-to repose on you, my name is M, Shakour Rosarita. I am 19 years old
-Girl, female, from Tartu Syria, (never married) 61 kg, white in
-complexion, and I am currently living in the refugee camp here in
-Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
-renowned businessman and owner of Natour Petrol Station in Syria, he
-was killed in a stampede riot in Tartu, Syria.
-When I got the news about my parents. I fled to a nearby country
-Jordan before I joined a ferry to Africa and came to Abidjan capital
-city Ivory Coast West Africa find safety here.
-I came in 2015 to Abidjan and I now live in refugee camps here as
-refugees are allowed freely to enter here without, My late father
-deposited (US$6.200.000.00m) My late father kept the money at the bank
-of Africa, I want you to help me transfer the money to your hand so
-that you will help me bring me into your country for my continue
-education.
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 8496a074b..a42aa114e 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -14,12 +14,13 @@ else
+         KBUILD_DEFCONFIG := sparc64_defconfig
+ endif
+ 
++CHECKFLAGS     += -D__sparc__
++
+ ifeq ($(CONFIG_SPARC32),y)
+ #####
+ # sparc32
+ #
+ 
+-CHECKFLAGS     += -D__sparc__
+ LDFLAGS        := -m elf32_sparc
+ export BITS    := 32
+ UTS_MACHINE    := sparc
+@@ -38,7 +39,7 @@ else
+ # sparc64
+ #
+ 
+-CHECKFLAGS    += -D__sparc__ -D__sparc_v9__ -D__arch64__ -m64
++CHECKFLAGS    += -D__sparc_v9__ -D__arch64__ -m64
+ LDFLAGS       := -m elf64_sparc
+ export BITS   := 64
+ UTS_MACHINE   := sparc64
+-- 
+2.14.0
 
-I sent my pictures here for you to see. Who I am seriously looking for
-a good-person in my life, so I want to hear from you soon and learn
-more about you.
-
-I am an open-minded and friendly girl to share a good time with you
-and have fun and enjoy on the go, bird watching, the rest of our
-lives. My Hobbies, tourism books, dance, music, soccer, tennis,
-swimming and cinema.
-I would just think about you, including your dose and doesn=E2=80=99t .I
-believe we will do well together, and live like one family.
-Thank you and God bless you, for you in your promise to help me here,
-looking forward to your reply by the grace of God and have a good day.
-I hope you send me your photos as well? I await your next reply in
-faith please reply through my private email at
-(mshakourrosarita22@gmail.com):
-Thanks.
-Ms Rosarita
