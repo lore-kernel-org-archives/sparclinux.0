@@ -1,76 +1,84 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Tue, 14 Nov 2017 07:07:48 +0000
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Tue, 14 Nov 2017 08:54:59 +0000
 Subject: Re: linux-next: Tree for Nov 7
-Message-Id: <20171114070748.in5zdc4giqbxowjy@dhcp22.suse.cz>
+Message-Id: <87h8txw87w.fsf@concordia.ellerman.id.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171110123054.5pnefm3mczsfv7bz@dhcp22.suse.cz>
+References: <20171107162217.382cd754@canb.auug.org.au>
+ <CACPK8Xfd4nqkf=Lk3n6+TNHAAi327r0dkUfGypZ3TpR0LqfS4Q@mail.gmail.com>
+ <20171108142050.7w3yliulxjeco3b7@dhcp22.suse.cz>
+ <20171110123054.5pnefm3mczsfv7bz@dhcp22.suse.cz>
  <CACPK8Xe5uUKEytkRiszdX511b_cYTD-z3X=ZsMcNJ-NOYnXfuQ@mail.gmail.com>
  <20171113092006.cjw2njjukt6limvb@dhcp22.suse.cz>
  <20171113094203.aofz2e7kueitk55y@dhcp22.suse.cz>
  <87lgjawgx1.fsf@concordia.ellerman.id.au>
  <20171113120057.555mvrs4fjq5tyng@dhcp22.suse.cz>
- <20171113151641.yfqrecpcxllpn5mq@dhcp22.suse.cz>
- <20171113154939.6ui2fmpokpm7g4oj@dhcp22.suse.cz>
- <20171113160637.jhekbdyfpccme3be@dhcp22.suse.cz>
- <c52fa249-9583-18a2-cbac-28abfb23d5a5@oracle.com>
-In-Reply-To: <c52fa249-9583-18a2-cbac-28abfb23d5a5@oracle.com>
+In-Reply-To: <20171113120057.555mvrs4fjq5tyng@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon 13-11-17 09:35:22, Khalid Aziz wrote:
-> On 11/13/2017 09:06 AM, Michal Hocko wrote:
-> > OK, so this one should take care of the backward compatibility while
-> > still not touching the arch code
-> > ---
-> > commit 39ff9bf8597e79a032da0954aea1f0d77d137765
-> > Author: Michal Hocko <mhocko@suse.com>
-> > Date:   Mon Nov 13 17:06:24 2017 +0100
-> > 
-> >      mm: introduce MAP_FIXED_SAFE
-> >      MAP_FIXED is used quite often but it is inherently dangerous because it
-> >      unmaps an existing mapping covered by the requested range. While this
-> >      might be might be really desidered behavior in many cases there are
-> >      others which would rather see a failure than a silent memory corruption.
-> >      Introduce a new MAP_FIXED_SAFE flag for mmap to achive this behavior.
-> >      It is a MAP_FIXED extension with a single exception that it fails with
-> >      ENOMEM if the requested address is already covered by an existing
-> >      mapping. We still do rely on get_unmaped_area to handle all the arch
-> >      specific MAP_FIXED treatment and check for a conflicting vma after it
-> >      returns.
-> >      Signed-off-by: Michal Hocko <mhocko@suse.com>
-> > 
-> > ...... deleted .......
-> > diff --git a/mm/mmap.c b/mm/mmap.c
-> > index 680506faceae..aad8d37f0205 100644
-> > --- a/mm/mmap.c
-> > +++ b/mm/mmap.c
-> > @@ -1358,6 +1358,10 @@ unsigned long do_mmap(struct file *file, unsigned long addr,
-> >   	if (mm->map_count > sysctl_max_map_count)
-> >   		return -ENOMEM;
-> > +	/* force arch specific MAP_FIXED handling in get_unmapped_area */
-> > +	if (flags & MAP_FIXED_SAFE)
-> > +		flags |= MAP_FIXED;
-> > +
-> >   	/* Obtain the address to map to. we verify (or select) it and ensure
-> >   	 * that it represents a valid section of the address space.
-> >   	 */
-> 
-> Do you need to move this code above:
-> 
->         if (!(flags & MAP_FIXED))
->                 addr = round_hint_to_min(addr);
-> 
->         /* Careful about overflows.. */
->         len = PAGE_ALIGN(len);
->         if (!len)
->                 return -ENOMEM;
-> 
-> Not doing that might mean the hint address will end up being rounded for
-> MAP_FIXED_SAFE which would change the behavior from MAP_FIXED.
+Michal Hocko <mhocko@kernel.org> writes:
 
-Yes, I will move it.
--- 
-Michal Hocko
-SUSE Labs
+> On Mon 13-11-17 22:34:50, Michael Ellerman wrote:
+>> Hi Michal,
+>> 
+>> Michal Hocko <mhocko@kernel.org> writes:
+>> > On Mon 13-11-17 10:20:06, Michal Hocko wrote:
+>> >> [Cc arm and ppc maintainers]
+>> >
+>> > Hmm, it turned out to be a problem on other architectures as well.
+>> > CCing more maintainers. For your reference, we are talking about
+>> > http://lkml.kernel.org/r/20171023082608.6167-1-mhocko@kernel.org
+>> > which has broken architectures which do apply aligning on the mmap
+>> > address hint without MAP_FIXED applied. See below my proposed way
+>> > around this issue because I belive that the above patch is quite
+>> > valuable on its own to be dropped for all archs.
+>> 
+>> I don't really like your solution sorry :)  The fact that you've had to
+>> patch seven arches seems like a red flag.
+>> 
+>> I think this is a generic problem with MAP_FIXED, which I've heard
+>> userspace folks complain about in the past.
+>
+> The thing is that we canno  change MAP_FIXED behavior as it is carved in
+> stone
+
+Yes obviously. I didn't mean to imply we would change MAP_FIXED, rather
+we would add a new flag with the new semantics.
+
+>> Currently MAP_FIXED does two things:
+>>   1. makes addr not a hint but the required address
+>>   2. blasts any existing mapping
+>> 
+>> You want 1) but not 2).
+>
+> + fail if there is a clashing range
+
+Yep. I thought that was implied :)
+
+>> So the right solution IMHO would be to add a new mmap flag to request
+>> that behaviour, ie. a fixed address but iff there is nothing already
+>> mapped there.
+>> 
+>> I don't know the mm code well enough to know if that's hard for some
+>> reason, but it *seems* like it should be doable.
+>
+> Yes, I have mentioned that in the previous email but the amount of code
+> would be even larger. Basically every arch which reimplements
+> arch_get_unmapped_area would have to special case new MAP_FIXED flag to
+> do vma lookup.
+
+I'd have to look, but my memory of the arch code is that it doesn't deal
+with the vma so it wouldn't need any change.
+
+> So this was the most simple solution I could come up
+> with. If there was a general interest for MAP_FIXED_SAFE then we can
+> introduce it later of course. I would just like the hardening merged
+> sooner rather than later.
+
+Sure. But in the scheme of things one more kernel release is not that
+big a deal to get it right. Given that the simple approach of dropping
+MAP_FIXED turns out to not be simple at all.
+
+cheers
