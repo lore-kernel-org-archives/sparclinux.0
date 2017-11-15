@@ -1,37 +1,39 @@
 From: David Miller <davem@davemloft.net>
-Date: Wed, 29 Nov 2017 20:17:22 +0000
-Subject: [GIT] Sparc
-Message-Id: <20171129.151722.840617144837142590.davem@davemloft.net>
+Date: Wed, 15 Nov 2017 05:42:15 +0000
+Subject: Re: [PATCH] sparc64: convert mdesc_handle.refcnt from atomic_t to refcount_t
+Message-Id: <20171115.144215.1875016289797792026.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <1508486277-24913-1-git-send-email-elena.reshetova@intel.com>
+In-Reply-To: <1508486277-24913-1-git-send-email-elena.reshetova@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: elena.reshetova@intel.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, shannon.nelson@oracle.com, jag.raman@oracle.com, peterz@infradead.org, keescook@chromium.org
 
+From: Elena Reshetova <elena.reshetova@intel.com>
+Date: Fri, 20 Oct 2017 10:57:57 +0300
 
-Please pull to get this T4 and later cpu bootup regression
-fix.
+> atomic_t variables are currently used to implement reference
+> counters with the following properties:
+>  - counter is initialized to 1 using atomic_set()
+>  - a resource is freed upon counter reaching zero
+>  - once counter reaches zero, its further
+>    increments aren't allowed
+>  - counter schema uses basic atomic operations
+>    (set, inc, inc_not_zero, dec_and_test, etc.)
+> 
+> Such atomic variables should be converted to a newly provided
+> refcount_t type and API that prevents accidental counter overflows
+> and underflows. This is important since overflows and underflows
+> can lead to use-after-free situation and be exploitable.
+> 
+> The variable mdesc_handle.refcnt is used as pure reference counter.
+> Convert it to refcount_t and fix up the operations.
+> 
+> Suggested-by: Kees Cook <keescook@chromium.org>
+> Reviewed-by: David Windsor <dwindsor@gmail.com>
+> Reviewed-by: Hans Liljestrand <ishkamiel@gmail.com>
+> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
 
-Thank you!
-
-The following changes since commit 0c86a6bd85ff0629cd2c5141027fc1c8bb6cde9c:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2017-11-21 05:56:12 -1000)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to e5372cd5ef12b05ae74d608f95dc53fe06558867:
-
-  sparc64: Fix boot on T4 and later. (2017-11-29 15:09:29 -0500)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc64: Fix boot on T4 and later.
-
- arch/sparc/lib/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied.
