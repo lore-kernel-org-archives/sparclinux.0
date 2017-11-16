@@ -1,23 +1,101 @@
-From: "Mr. Moo" <aguegbu43@vir-gor-5k.gq>
-Date: Tue, 28 Nov 2017 15:14:24 +0000
-Subject: my subject
-Message-Id: <MWHPR1301MB206409507E537B58C10F7CADEA3A0@MWHPR1301MB2064.namprd13.prod.outlook.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 16 Nov 2017 14:38:30 +0000
+Subject: [PATCH RESEND v10 07/10] mm: Add address parameter to arch_validate_prot()
+Message-Id: <daceaac7c517c4d0525b1150e5e8ddcfdc7d8aec.1510768775.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1510768775.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1510768775.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, bsingharora@gmail.com, nborisov@suse.com, aarcange@redhat.com, tj@kernel.org, mgorman@suse.de, vbabka@suse.cz, nadav.amit@gmail.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, ak@linux.intel.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-Attention pls,
+A protection flag may not be valid across entire address space and
+hence arch_validate_prot() might need the address a protection bit is
+being set on to ensure it is a valid protection flag. For example, sparc
+processors support memory corruption detection (as part of ADI feature)
+flag on memory addresses mapped on to physical RAM but not on PFN mapped
+pages or addresses mapped on to devices. This patch adds address to the
+parameters being passed to arch_validate_prot() so protection bits can
+be validated in the relevant context.
 
-I am Mohad I Kwame, presently the current Manager at the UBA Bank Capital (Europe) Ltd. I need a reliable and honest person to handle a very confidential transaction, which involves transfer of a huge sum of money to a foreign account.
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+v8:
+	- Added addr parameter to powerpc arch_validate_prot() (suggested
+	  by Michael Ellerman)
+v7:
+	- new patch
 
-A foreigner (LATE ENGR NAZIR RUZU) an oil Merchant /contractor with some companies in TOGO, before his sudden death some years ago in a ghastly author crash deposited with Atlantic Bank Group Togo a closing balance of USD$10.2M: which, I successfully moved the money in a security vault Safe Keeping with UBA LONDON with instruction that it MUST be Delivered to the BENEFICIARY [YOU]. Furthermore I personally moved the money to UBA BANK LONDON when I was called to become the manager. However the bank expects the money to be claimed by the beneficiary as instructed.
+ arch/powerpc/include/asm/mman.h | 4 ++--
+ arch/powerpc/kernel/syscalls.c  | 2 +-
+ include/linux/mman.h            | 2 +-
+ mm/mprotect.c                   | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-Though valuable efforts were been made to get in touch with any of late Engr's relative or next of kin, though (he did not make any person known to the Bank) Now the board of directors is making arrangement for the fund to be declared “UNRELIABLE” and then subsequently becomes Bank's money. In order to avert this negative development, that is why, I seek for your permission to PRESENT YOU as the through next of kin so that the fund, USD$10.2M, would subsequently paid into your bank account as the beneficiary next of kin.
+diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
+index 30922f699341..1d129f4521ac 100644
+--- a/arch/powerpc/include/asm/mman.h
++++ b/arch/powerpc/include/asm/mman.h
+@@ -32,7 +32,7 @@ static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
+ }
+ #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
+ 
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
+ {
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+ 		return false;
+@@ -40,7 +40,7 @@ static inline bool arch_validate_prot(unsigned long prot)
+ 		return false;
+ 	return true;
+ }
+-#define arch_validate_prot(prot) arch_validate_prot(prot)
++#define arch_validate_prot arch_validate_prot
+ 
+ #endif /* CONFIG_PPC64 */
+ #endif	/* _ASM_POWERPC_MMAN_H */
+diff --git a/arch/powerpc/kernel/syscalls.c b/arch/powerpc/kernel/syscalls.c
+index a877bf8269fe..6d90ddbd2d11 100644
+--- a/arch/powerpc/kernel/syscalls.c
++++ b/arch/powerpc/kernel/syscalls.c
+@@ -48,7 +48,7 @@ static inline long do_mmap2(unsigned long addr, size_t len,
+ {
+ 	long ret = -EINVAL;
+ 
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, addr))
+ 		goto out;
+ 
+ 	if (shift) {
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index 7c87b6652244..4d3395e41268 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -50,7 +50,7 @@ static inline void vm_unacct_memory(long pages)
+  *
+  * Returns true if the prot flags are valid
+  */
+-static inline bool arch_validate_prot(unsigned long prot)
++static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
+ {
+ 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) = 0;
+ }
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index ec39f730a0bf..1e0d9cb024c8 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -410,7 +410,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+ 	end = start + len;
+ 	if (end <= start)
+ 		return -ENOMEM;
+-	if (!arch_validate_prot(prot))
++	if (!arch_validate_prot(prot, start))
+ 		return -EINVAL;
+ 
+ 	reqprot = prot;
+-- 
+2.11.0
 
-All documents and proves to enable you get this fund have been carefully worked out and I am assuring you 100% risk free involvement. Your share would be 30% of the total amount. While the rest 70% would be for me which I can invest in your country. Kindly get back to me immediately.
-
-Mohamad I Kwame,
-UBA Capital (Europe) Ltd
-TEL. +447024053645
