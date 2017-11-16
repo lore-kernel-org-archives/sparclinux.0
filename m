@@ -1,28 +1,54 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 15 Nov 2017 05:42:03 +0000
-Subject: Re: [PATCH] sparc/led: Convert timers to use timer_setup()
-Message-Id: <20171115.144203.2015410660429172361.davem@davemloft.net>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 16 Nov 2017 14:38:32 +0000
+Subject: [PATCH RESEND v10 09/10] mm: Allow arch code to override copy_highpage()
+Message-Id: <6bf7a449fb35d9235b539bb452df23c453b23401.1510768775.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171010220727.GA97619@beast>
-In-Reply-To: <20171010220727.GA97619@beast>
+References: <cover.1510768775.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1510768775.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: keescook@chromium.org
-Cc: geliangtang@gmail.com, mingo@kernel.org, sparclinux@vger.kernel.org, tglx@linutronix.de, linux-kernel@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
 
-From: Kees Cook <keescook@chromium.org>
-Date: Tue, 10 Oct 2017 15:07:27 -0700
+Some architectures can support metadata for memory pages and when a
+page is copied, its metadata must also be copied. Sparc processors
+from M7 onwards support metadata for memory pages. This metadata
+provides tag based protection for access to memory pages. To maintain
+this protection, the tag data must be copied to the new page when a
+page is migrated across NUMA nodes. This patch allows arch specific
+code to override default copy_highpage() and copy metadata along
+with page data upon migration.
 
-> In preparation for unconditionally passing the struct timer_list pointer to
-> all timer callbacks, switch to using the new timer_setup() and from_timer()
-> to pass the timer pointer explicitly. Adds a static variable to hold timeout
-> value.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Geliang Tang <geliangtang@gmail.com>
-> Cc: Ingo Molnar <mingo@kernel.org>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+---
+v9:
+	- new patch
 
-Applied.
+ include/linux/highmem.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/linux/highmem.h b/include/linux/highmem.h
+index 776f90f3a1cd..0690679832d4 100644
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -237,6 +237,8 @@ static inline void copy_user_highpage(struct page *to, struct page *from,
+ 
+ #endif
+ 
++#ifndef __HAVE_ARCH_COPY_HIGHPAGE
++
+ static inline void copy_highpage(struct page *to, struct page *from)
+ {
+ 	char *vfrom, *vto;
+@@ -248,4 +250,6 @@ static inline void copy_highpage(struct page *to, struct page *from)
+ 	kunmap_atomic(vfrom);
+ }
+ 
++#endif
++
+ #endif /* _LINUX_HIGHMEM_H */
+-- 
+2.11.0
+
