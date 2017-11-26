@@ -1,7 +1,7 @@
 From: Frans van Berckel <fberckel@xs4all.nl>
-Date: Sun, 26 Nov 2017 20:52:16 +0000
+Date: Sun, 26 Nov 2017 21:53:10 +0000
 Subject: Re: Silo on RAID 1
-Message-Id: <1511729536.1834.37.camel@xs4all.nl>
+Message-Id: <1511733190.1834.47.camel@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1511689792.4483.9.camel@xs4all.nl>
 In-Reply-To: <1511689792.4483.9.camel@xs4all.nl>
@@ -10,25 +10,35 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Chase,
-
-On Sun, 2017-11-26 at 15:12 -0500, chase rayfield wrote:
-
-> Shouldn't your partition index for silo be 1 if you are following
-> this guide? Silo counts partitions 1-n not 0-n like grub etc...
+On Sun, 2017-11-26 at 21:52 +0100, Frans van Berckel wrote:
+> Hi Chase,
 > 
-> https://www.unix.com/linux/141253-sparc-linux-raid1-silo.html
+> Are you sure? Because the Silo readme from David's tree calls ...
+> 
+> "Note that numbers start at 0, rather than Linux's convention of
+> starting at 1, so sd(0,3,1) is /dev/sda2."
+> 
+> Please checkout docs/README.
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/davem/silo.git/
 
-Are you sure? Because the Silo readme from David's tree calls ...
+A bit lower from the same readme calls...
 
-"Note that numbers start at 0, rather than Linux's convention of
-starting at 1, so sd(0,3,1) is /dev/sda2."
+"With old proms, you type prom paths as dev(X,Y,Z) [e.g. sd(0,3,1)].
+With new proms, you type the open boot prom style strings such as
+/iommu/sbus/espdma/esp/sd@1,0 terminated with a semicolon (;) to
+specify disk. Then the partition can be specified, defaulting to the
+(optional) partition=Z line in the main section in silo.conf. /dev/sda2
+is '2'."
 
-Please checkout docs/README.
+But changing 0 to 1, I am still getting ...
 
-https://git.kernel.org/pub/scm/linux/kernel/git/davem/silo.git/
+/etc/silo.conf appears to be valid
+Fatal error: File systems other than ext2, ext3, ufs and romfs not yet
+supported.
 
-Thanks for supporting,
+So I have to look over something.
 
+Thanks,
 
 Frans van Berckel
