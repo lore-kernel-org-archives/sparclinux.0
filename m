@@ -1,47 +1,57 @@
-From: Pavel Tatashin <pasha.tatashin@oracle.com>
-Date: Fri, 03 Nov 2017 15:50:53 +0000
-Subject: Re: [PATCH v12 08/11] arm64/kasan: add and use kasan_map_populate()
-Message-Id: <7f4e35ba-2448-16ba-63e1-229eb30b068b@oracle.com>
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Sun, 26 Nov 2017 09:49:52 +0000
+Subject: Silo on RAID 1
+Message-Id: <1511689792.4483.9.camel@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171013173214.27300-1-pasha.tatashin@oracle.com>
- <20171013173214.27300-9-pasha.tatashin@oracle.com>
- <0ae84532-8dcb-10aa-9d69-79d7025b089e@virtuozzo.com>
- <ad8c5715-dc4f-1fa7-c25b-e08df68643d0@oracle.com>
- <20171018170651.GG21820@arm.com>
- <e32c677e-62ac-8977-2f9d-7fe7bda4b547@oracle.com>
- <f1cb8d18-4d0f-1f88-c3c5-0add8c6c077a@virtuozzo.com>
- <a587687a-5d90-c03d-f3d2-1ea9cab1b0c4@oracle.com>
- <07ab0b77-0e2a-97b5-73ff-a6598bcb94cd@virtuozzo.com>
-In-Reply-To: <07ab0b77-0e2a-97b5-73ff-a6598bcb94cd@virtuozzo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
->> 1. Replace these two patches:
->>
->> arm64/kasan: add and use kasan_map_populate()
->> x86/kasan: add and use kasan_map_populate()
->>
->> With:
->>
->> x86/mm/kasan: don't use vmemmap_populate() to initialize
->>   shadow
->> arm64/mm/kasan: don't use vmemmap_populate() to initialize
->>   shadow
->>
-> 
-> Pavel, could you please send the patches? These patches doesn't interfere with rest of the series,
-> so I think it should be enough to send just two patches to replace the old ones.
-> 
+Dear team,
 
-Hi Andrey,
+How am i gonna sole this error, with a fresh Silo install on RAID 1?
 
-I asked Michal and Andrew how to proceed but never received a reply from 
-them. The patches independent from the deferred page init series as long 
-as they come before the series.
+~ # cat /target/boot/silo.conf
 
-Anyway, I will post these two patches to the mailing list soon. But, not 
-really sure if they will be taken into mm-tree.
+root=/dev/md1
+partition=0
+default=Linux
+read-only
+timeout0
 
-Pavel
+image=/vmlinuz
+        label=Linux
+        initrd=/initrd.img
+
+image=/vmlinuz.old
+        label=LinuxOLD
+        initrd=/initrd.img.old
+
+~ # /target/sbin/silo -r /target
+
+/etc/silo.conf appears to be valid
+Fatal error: File systems other than ext2, ext3, ufs and romfs not yet
+supported
+
+~ # df
+<snap>
+
+/dev/md0 93207 26714 61681 30% /target/boot
+/dev/md1 139839652 1000748 131665692 1% /target
+/dev/md2 26766048 45096 25338260 0% /target/home
+
+~ # mount
+<snap>
+
+/dev/md0 on /target/boot type ext2
+(rw,relatime,block_validity,barrier,user_xattr,acl)
+
+/dev/md1 on /target type ext4 (rw,relatime,errors=remount-
+ro,data=ordered)
+
+/dev/md2 on /target/home type ext4 (rw,relatime,data=ordered)
+
+Thanks,
+
+Frans van Berckel
