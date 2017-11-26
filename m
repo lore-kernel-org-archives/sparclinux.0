@@ -1,7 +1,7 @@
-From: chase rayfield <cusbrar1@gmail.com>
-Date: Sun, 26 Nov 2017 20:12:49 +0000
+From: Frans van Berckel <fberckel@xs4all.nl>
+Date: Sun, 26 Nov 2017 20:52:16 +0000
 Subject: Re: Silo on RAID 1
-Message-Id: <CACwypyNCcoa1OouMvsc9dw93CCTYu070v1ETuDEQR6fWkaJpnw@mail.gmail.com>
+Message-Id: <1511729536.1834.37.camel@xs4all.nl>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1511689792.4483.9.camel@xs4all.nl>
 In-Reply-To: <1511689792.4483.9.camel@xs4all.nl>
@@ -10,12 +10,25 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Shouldn't your partition index for silo be 1 if you are following this
-guide? Silo counts partitions 1-n not 0-n like grub etc...
+Hi Chase,
 
-https://www.unix.com/linux/141253-sparc-linux-raid1-silo.html
+On Sun, 2017-11-26 at 15:12 -0500, chase rayfield wrote:
 
-Sorry it took me a bit to get this to go to the list I don't post here
-often and the HTML email rejection is pretty stout ha!
+> Shouldn't your partition index for silo be 1 if you are following
+> this guide? Silo counts partitions 1-n not 0-n like grub etc...
+> 
+> https://www.unix.com/linux/141253-sparc-linux-raid1-silo.html
 
-Chase Rayfield
+Are you sure? Because the Silo readme from David's tree calls ...
+
+"Note that numbers start at 0, rather than Linux's convention of
+starting at 1, so sd(0,3,1) is /dev/sda2."
+
+Please checkout docs/README.
+
+https://git.kernel.org/pub/scm/linux/kernel/git/davem/silo.git/
+
+Thanks for supporting,
+
+
+Frans van Berckel
