@@ -1,37 +1,163 @@
-From: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Date: Thu, 09 Nov 2017 13:13:07 +0000
-Subject: Re: [PATCH v2 2/2] sparc: pass endianness info to sparse
-Message-Id: <CAMHZB6H4dGwMM+nPbDg0SEDBkRF7_R_LZ-bMWUzreBYDj3U3Sg@mail.gmail.com>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Mon, 27 Nov 2017 19:30:27 +0000
+Subject: [PATCH v2 00/10] posix_clocks: Prepare syscalls for 64 bit time_t conversion
+Message-Id: <20171127193037.8711-1-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171109061652.14948-1-luc.vanoostenryck@gmail.com>
- <20171109061652.14948-3-luc.vanoostenryck@gmail.com> <20171109083452.GA10787@infradead.org>
-In-Reply-To: <20171109083452.GA10787@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>
-Cc: "David S . Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Babu Moger <babu.moger@oracle.com>
+To: tglx@linutronix.de, john.stultz@linaro.org
+Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, acme@kernel.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, cmetcalf@mellanox.com, cohuck@redhat.com, davem@davemloft.net, deller@gmx.de, devel@driverdev.osuosl.org, gerald.schaefer@de.ibm.com, gregkh@linuxfoundation.org, heiko.carstens@de.ibm.com, hoeppner@linux.vnet.ibm.com, hpa@zytor.com, jejb@parisc-linux.org, jwi@linux.vnet.ibm.com, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, mark.rutland@arm.com, mingo@redhat.com, mpe@ellerman.id.au, oberpar@linux.vnet.ibm.com, oprofile-list@lists.sf.net, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org
 
-On Thu, Nov 9, 2017 at 9:34 AM, Christoph Hellwig <hch@infradead.org> wrote:
-> On Thu, Nov 09, 2017 at 07:16:52AM +0100, Luc Van Oostenryck wrote:
->> sparc is big-endian only but sparse assumes the same endianness
->> as the building machine.
->> This is problematic for code which expect __BYTE_ORDER__ being
->> correctly predefined by the compiler which sparse can then
->> pre-process differently from what gcc would, depending on the
->> building machine endianness.
->>
->> Fix this by letting sparse know about the architecture endianness.
->
-> You're posted patches for this for about half a dozen architectures
-> now, but we also now have generic Kconfig symbols for the byte order.
->
-> I'd much rather see this done in generic code than hacking it up
-> everywhere.
+The series is a preparation series for individual architectures
+to use 64 bit time_t syscalls in compat and 32 bit emulation modes.
 
-OK, when I wrote these patch (in June, IIRC) there wasn't yet the
-generic Kconfig symbol. I'll see what can now be generic and what
-need to stay specific (for example, ARM need __ARME{L,B}__,
-ARM64 & MIPS are in the same situation as are a few others archs).
+This is a follow up to the series Arnd Bergmann posted:
+https://sourceware.org/ml/libc-alpha/2015-05/msg00070.html [1]
 
--- Luc Van Oostenryck
+Big picture is as per the lwn article:
+https://lwn.net/Articles/643234/ [2]
+
+The series is directed at converting posix clock syscalls:
+clock_gettime, clock_settime, clock_getres and clock_nanosleep
+to use a new data structure __kernel_timespec at syscall boundaries.
+__kernel_timespec maintains 64 bit time_t across all execution modes.
+
+vdso will be handled as part of each architecture when they enable
+support for 64 bit time_t.
+
+The compat syscalls are repurposed to provide backward compatibility
+by using them as native syscalls as well for 32 bit architectures.
+They will continue to use timespec at syscall boundaries.
+
+CONFIG_64_BIT_TIME controls whether the syscalls use __kernel_timespec
+or timespec at syscall boundaries.
+
+The series does the following:
+1. Enable compat syscalls on 32 bit architectures.
+2. Add a new __kernel_timespec type to be used as the data structure
+   for all the new syscalls.
+3. Add new config CONFIG_64BIT_TIME(intead of the CONFIG_COMPAT_TIME in
+   [1] and [2] to switch to new definition of __kernel_timespec. It is
+   the same as struct timespec otherwise.
+4. Add new CONFIG_32BIT_TIME to conditionally compile compat syscalls.
+
+* Changes since v1:
+ * Introduce CONFIG_32BIT_TIME
+ * Fixed zeroing out of higher order bits of tv_nsec
+ * Included Arnd's changes to fix up use of compat headers
+
+I decided against using LEGACY_TIME_SYSCALLS to conditionally compile
+legacy time syscalls such as sys_nanosleep because this will need to
+enclose compat_sys_nanosleep as well. So, defining it as 
+
+config LEGACY_TIME_SYSCALLS
+     def_bool 64BIT || !64BIT_TIME
+
+will not include compat_sys_nanosleep. We will instead need a new config to
+exclusively mark legacy syscalls.
+
+Deepa Dinamani (10):
+  compat: Make compat helpers independent of CONFIG_COMPAT
+  include: Move compat_timespec/ timeval to compat_time.h
+  compat: enable compat_get/put_timespec64 always
+  arch: introduce CONFIG_64BIT_TIME
+  arch: Introduce CONFIG_COMPAT_32BIT_TIME
+  posix-clocks: Make compat syscalls depend on CONFIG_COMPAT_32BIT_TIME
+  include: Add new y2038 safe __kernel_timespec
+  fix get_timespec64() for y2038 safe compat interfaces
+  change time types to new y2038 safe __kernel_* types
+  nanosleep: change time types to safe __kernel_* types
+
+ arch/Kconfig                           | 18 +++++++
+ arch/arm64/include/asm/compat.h        | 11 ----
+ arch/arm64/include/asm/stat.h          |  1 +
+ arch/arm64/kernel/hw_breakpoint.c      |  1 -
+ arch/arm64/kernel/perf_regs.c          |  2 +-
+ arch/arm64/kernel/process.c            |  1 -
+ arch/mips/include/asm/compat.h         | 11 ----
+ arch/mips/kernel/signal32.c            |  2 +-
+ arch/parisc/include/asm/compat.h       | 11 ----
+ arch/powerpc/include/asm/compat.h      | 11 ----
+ arch/powerpc/kernel/asm-offsets.c      |  2 +-
+ arch/powerpc/oprofile/backtrace.c      |  2 +-
+ arch/s390/hypfs/hypfs_sprp.c           |  1 -
+ arch/s390/include/asm/compat.h         | 11 ----
+ arch/s390/include/asm/elf.h            |  3 +-
+ arch/s390/kvm/priv.c                   |  1 -
+ arch/s390/pci/pci_clp.c                |  1 -
+ arch/sparc/include/asm/compat.h        | 11 ----
+ arch/tile/include/asm/compat.h         | 11 ----
+ arch/x86/events/core.c                 |  2 +-
+ arch/x86/include/asm/compat.h          | 11 ----
+ arch/x86/include/asm/ftrace.h          |  2 +-
+ arch/x86/include/asm/sys_ia32.h        |  2 +-
+ arch/x86/kernel/sys_x86_64.c           |  2 +-
+ drivers/s390/block/dasd_ioctl.c        |  1 -
+ drivers/s390/char/fs3270.c             |  1 -
+ drivers/s390/char/sclp_ctl.c           |  1 -
+ drivers/s390/char/vmcp.c               |  1 -
+ drivers/s390/cio/chsc_sch.c            |  1 -
+ drivers/s390/net/qeth_core_main.c      |  2 +-
+ drivers/staging/pi433/pi433_if.c       |  2 +-
+ include/linux/compat.h                 | 11 ++--
+ include/linux/compat_time.h            | 23 +++++++++
+ include/linux/restart_block.h          |  7 +--
+ include/linux/syscalls.h               | 12 ++---
+ include/linux/time.h                   |  4 +-
+ include/linux/time64.h                 | 10 +++-
+ include/uapi/asm-generic/posix_types.h |  1 +
+ include/uapi/linux/time.h              |  7 +++
+ kernel/Makefile                        |  2 +-
+ kernel/compat.c                        | 92 ++++++++++++++++++----------------
+ kernel/time/hrtimer.c                  | 10 ++--
+ kernel/time/posix-stubs.c              | 12 +++--
+ kernel/time/posix-timers.c             | 24 ++++++---
+ kernel/time/time.c                     | 10 +++-
+ 45 files changed, 175 insertions(+), 190 deletions(-)
+ create mode 100644 include/linux/compat_time.h
+
+base-commit: b0a84f19a5161418d4360cd57603e94ed489915e
+-- 
+2.14.1
+
+Cc: acme@kernel.org
+Cc: benh@kernel.crashing.org
+Cc: borntraeger@de.ibm.com
+Cc: catalin.marinas@arm.com
+Cc: cmetcalf@mellanox.com
+Cc: cohuck@redhat.com
+Cc: davem@davemloft.net
+Cc: deller@gmx.de
+Cc: devel@driverdev.osuosl.org
+Cc: gerald.schaefer@de.ibm.com
+Cc: gregkh@linuxfoundation.org
+Cc: heiko.carstens@de.ibm.com
+Cc: hoeppner@linux.vnet.ibm.com
+Cc: hpa@zytor.com
+Cc: jejb@parisc-linux.org
+Cc: jwi@linux.vnet.ibm.com
+Cc: linux-api@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: mark.rutland@arm.com
+Cc: mingo@redhat.com
+Cc: mpe@ellerman.id.au
+Cc: oberpar@linux.vnet.ibm.com
+Cc: oprofile-list@lists.sf.net
+Cc: paulus@samba.org
+Cc: peterz@infradead.org
+Cc: ralf@linux-mips.org
+Cc: rostedt@goodmis.org
+Cc: rric@kernel.org
+Cc: schwidefsky@de.ibm.com
+Cc: sebott@linux.vnet.ibm.com
+Cc: sparclinux@vger.kernel.org
+Cc: sth@linux.vnet.ibm.com
+Cc: ubraun@linux.vnet.ibm.com
+Cc: will.deacon@arm.com
+Cc: x86@kernel.org
