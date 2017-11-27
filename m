@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 19 Nov 2017 06:54:14 +0000
+From: Atish Patra <atish.patra@oracle.com>
+Date: Mon, 27 Nov 2017 16:39:33 +0000
 Subject: Re: [PATCH] sparc64: Set possible and present masks based on nr_cpu_ids
-Message-Id: <20171119.155414.106239434154655103.davem@davemloft.net>
+Message-Id: <37cc2825-491a-f86e-f3b8-f5f0f23979b3@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
 In-Reply-To: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
@@ -11,13 +11,19 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-So, this is fixing a regression, right?
 
-If so, you need to provide a proper "Fixes: " tag identifying
-the commit that introduced the bug.
+On 11/19/2017 12:54 AM, David Miller wrote:
+> So, this is fixing a regression, right?
+Yes.
+> If so, you need to provide a proper "Fixes: " tag identifying
+> the commit that introduced the bug.
+Sure. I will add that in v2.
+> I'm also finding it hard to believe that forcing cpu 0 as a possible
+> cpu is required.  Have you considered contacting the timer subsystem
+> maintainers and asked them to remove this assumption?
+I will check with the timer maintainers.
 
-I'm also finding it hard to believe that forcing cpu 0 as a possible
-cpu is required.  Have you considered contacting the timer subsystem
-maintainers and asked them to remove this assumption?
+Regards,
+Atish
+> Thank you.
 
-Thank you.
