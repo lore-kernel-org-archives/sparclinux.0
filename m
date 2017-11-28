@@ -1,37 +1,23 @@
-From: Nitin Gupta <nitin.m.gupta@oracle.com>
-Date: Fri, 03 Nov 2017 19:26:06 +0000
-Subject: [PATCH] sparc64: Fix page table walk for PUD hugepages
-Message-Id: <1509737200-103059-1-git-send-email-nitin.m.gupta@oracle.com>
+From: "Mr. Moo" <aguegbu43@vir-gor-5k.gq>
+Date: Tue, 28 Nov 2017 15:14:24 +0000
+Subject: my subject
+Message-Id: <MWHPR1301MB206409507E537B58C10F7CADEA3A0@MWHPR1301MB2064.namprd13.prod.outlook.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>, Nitin Gupta <nitin.m.gupta@oracle.com>, "Liam R. Howlett" <Liam.Howlett@oracle.com>, Vijay Kumar <vijay.ac.kumar@oracle.com>, Bob Picco <bob.picco@oracle.com>, Allen Pais <allen.pais@oracle.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-For a PUD hugepage entry, we need to propagate bits [32:22]
-from virtual address to resolve at 4M granularity. However,
-the current code was incorrectly propagating bits [29:19].
-This bug can cause incorrect data to be returned for pages
-backed with 16G hugepages.
+Attention pls,
 
-Signed-off-by: Nitin Gupta <nitin.m.gupta@oracle.com>
-Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+I am Mohad I Kwame, presently the current Manager at the UBA Bank Capital (Europe) Ltd. I need a reliable and honest person to handle a very confidential transaction, which involves transfer of a huge sum of money to a foreign account.
 
-diff --git a/arch/sparc/include/asm/tsb.h b/arch/sparc/include/asm/tsb.h
-index acf55063aa3d..ca0de1646f1e 100644
---- a/arch/sparc/include/asm/tsb.h
-+++ b/arch/sparc/include/asm/tsb.h
-@@ -216,7 +216,7 @@ extern struct tsb_phys_patch_entry __tsb_phys_patch, __tsb_phys_patch_end;
- 	sllx		REG2, 32, REG2;			\
- 	andcc		REG1, REG2, %g0;		\
- 	be,pt		%xcc, 700f;			\
--	 sethi		%hi(0x1ffc0000), REG2;		\
-+	 sethi		%hi(0xffe00000), REG2;		\
- 	sllx		REG2, 1, REG2;			\
- 	brgez,pn	REG1, FAIL_LABEL;		\
- 	 andn		REG1, REG2, REG1;		\
--- 
-2.13.1
+A foreigner (LATE ENGR NAZIR RUZU) an oil Merchant /contractor with some companies in TOGO, before his sudden death some years ago in a ghastly author crash deposited with Atlantic Bank Group Togo a closing balance of USD$10.2M: which, I successfully moved the money in a security vault Safe Keeping with UBA LONDON with instruction that it MUST be Delivered to the BENEFICIARY [YOU]. Furthermore I personally moved the money to UBA BANK LONDON when I was called to become the manager. However the bank expects the money to be claimed by the beneficiary as instructed.
 
+Though valuable efforts were been made to get in touch with any of late Engr's relative or next of kin, though (he did not make any person known to the Bank) Now the board of directors is making arrangement for the fund to be declared “UNRELIABLE” and then subsequently becomes Bank's money. In order to avert this negative development, that is why, I seek for your permission to PRESENT YOU as the through next of kin so that the fund, USD$10.2M, would subsequently paid into your bank account as the beneficiary next of kin.
+
+All documents and proves to enable you get this fund have been carefully worked out and I am assuring you 100% risk free involvement. Your share would be 30% of the total amount. While the rest 70% would be for me which I can invest in your country. Kindly get back to me immediately.
+
+Mohamad I Kwame,
+UBA Capital (Europe) Ltd
+TEL. +447024053645
