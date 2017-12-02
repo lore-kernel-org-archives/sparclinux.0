@@ -1,27 +1,57 @@
-From: Julian Calaby <julian.calaby@gmail.com>
-Date: Fri, 29 Dec 2017 10:11:56 +0000
-Subject: Re: [PATCH 17/67] microblaze: rename dma_direct to dma_microblaze
-Message-Id: <CAGRGNgW1qwLcCAvU2Jc=3_7b-0Bu016to3cQUgVsc+ca0No_6g@mail.gmail.com>
+From: James Ettle <james@ettle.org.uk>
+Date: Sat, 02 Dec 2017 23:28:18 +0000
+Subject: Unaligned access in gss_{get,verify}_mic_v2() on sparc64
+Message-Id: <55549068-2605-7f71-ccef-c102d6fd69ab@ettle.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de> <20171229081911.2802-18-hch@lst.de>
-In-Reply-To: <20171229081911.2802-18-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: iommu@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, "Mailing List, Arm" <linux-arm-kernel@lists.infradead.org>, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-nfs@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-Hi Christoph,
+Hello,
 
-On Fri, Dec 29, 2017 at 7:18 PM, Christoph Hellwig <hch@lst.de> wrote:
-> This frees the dma_direct_* namespace for a generic implementation.
+I've been using nfs4 with krb5 on sparc64 with kernel 4.13 and 4.14 and
+seeing a lot of messages like:
 
-Don't you mean "dma_nommu" not "dma_microblaze" in the subject line?
+sparky kernel: [  105.262927] Kernel unaligned access at TPC[10afb234]
+gss_get_mic_kerberos+0xd4/0x360 [rpcsec_gss_krb5]
+
+I've traced this down to gss_get_mic_v2() in gss_krb5_seal.c. I think
+the suspicious line is:
+
+	*((__be64 *)(krb5_hdr + 8)) = cpu_to_be64(seq_send);
+
+krb5_hdr is void*, but comes from a u16 so won't generally have __be64
+alignment. As an experiment I added local variable
+
+	__be64 seq_send_be64;
+
+and replaced the cpu_to_be64 line with:
+
+	seq_send_be64 = cpu_to_be64(seq_send);
+	memcpy(krb5_hdr + 8, (char *) &seq_send_be64, 8);
+
+There's another one in gss_verify_mic_v2() in gss_krb5_unseal.c. Here
+there's a line
+
+	if (be16_to_cpu(*((__be16 *)ptr)) != KG2_TOK_MIC)
+
+but ptr is a u8*. For this I added local variable
+
+	__be16 data_be16;
+
+and replaced the above if() with
+
+	memcpy((void *) &data_be16, (char *) ptr, 2);
+	if (be16_to_cpu(data_be16) != KG2_TOK_MIC)
+
+I've not seen any misalignment complaints yet with this.
+
+I apologise for not sending this in the form of a patch, but this is
+only a sketch solution. I'm not a kernel hacker and I'm sure someone
+else will make a proper job of it!
 
 Thanks,
 
--- 
-Julian Calaby
-
-Email: julian.calaby@gmail.com
-Profile: http://www.google.com/profiles/julian.calaby/
+James.
