@@ -1,55 +1,89 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Mon, 25 Dec 2017 21:09:48 +0000
-Subject: Re: [PATCH v5 1/8] arch: enable relative relocations for arm64, power, x86, s390 and x86
-Message-Id: <CAKv+Gu_Ue30XqQ4sok34U0rjcsfkN1caACzQN3En71Hmd6Kc3A@mail.gmail.com>
+From: Atish Patra <atish.patra@oracle.com>
+Date: Wed, 06 Dec 2017 01:41:47 +0000
+Subject: Re: [PATCH] sparc64: Set possible and present masks based on nr_cpu_ids
+Message-Id: <839f3177-7869-1e4c-2547-bc684210e8f7@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
- <20171225205440.14575-2-ard.biesheuvel@linaro.org>
- <20171225210502.GA635@ravnborg.org>
-In-Reply-To: <20171225210502.GA635@ravnborg.org>
+References: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
+In-Reply-To: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On 25 December 2017 at 21:05, Sam Ravnborg <sam@ravnborg.org> wrote:
-> Hi Ard.
+Hi Thomas,
+I am looking at a spinlock bad magic issue in timer code on a legacy 
+sparc machine.
+
+0eeda71b (timer: Replace timer base by a cpu index)
+As per my understanding, the above patch assumes there is always a cpu 0 
+and that timer to CPU0 should be assigned statically to avoid 
+boot_tvec_base logic.
+DEFINE_TIMER macro seems to initialize the flags to 0 and the commit 
+text also points to that.
+Please let me know if I missed something.
+
+We observed the spinlock bad magic with legacy sun4u machines which have 
+sparse numbered cpus and does not have cpu0.
+We may be wrong but our investigation pointed out that per-cpu 
+timer_base structure for cpu 0 is not initialized leading invalid
+magic value. console_timer seems to be statically assigned to cpu0 in 
+this case.
+
+-----------------------------------part of the relevant 
+dmesg---------------------------------------------------------------------------
+[  179.005589] clocksource: tick: mask: 0xffffffffffffffff max_cycles: 
+0x5c4093a7d1, max_idle_ns: 440795210635 ns
+[  179.109253] clocksource: mult[2800000] shift[24]
+[  179.148828] clockevent: mult[66666666] shift[32]
+[  179.190350] BUG: spinlock bad magic on CPU#6, swapper/6/0
+[  179.190392]  lock: timer_bases+0x0/0x2180, .magic: 00000000, .owner: 
+<none>/-1, .owner_cpu: 0
+[  179.190409] CPU: 6 PID: 0 Comm: swapper/6 Not tainted 4.8.0-dirty #92
+[  179.190416] Call Trace:
+[  179.190445]  [00000000004abe60] spin_dump+0x60/0xa0
+[  179.190460]  [00000000004abeb8] spin_bug+0x18/0x40
+[  179.190476]  [00000000004ac024] do_raw_spin_lock+0x24/0x120
+[  179.190510]  [00000000008c6088] _raw_spin_lock_irqsave+0x48/0x60
+[  179.190530]  [00000000004bfd08] lock_timer_base.isra.13+0x68/0xc0
+[  179.190545]  [00000000004c07cc] mod_timer+0xcc/0x2c0
+[  179.190562]  [0000000000a6928c] con_init+0x120/0x28c
+[  179.190575]  [0000000000a68a4c] console_init+0x1c/0x38
+[  179.190592]  [0000000000a4e92c] start_kernel+0x31c/0x41c
+[  179.190607]  [0000000000a500fc] start_early_boot+0x274/0x284
+[  179.190622]  [00000000008bed2c] tlb_fixup_done+0x4c/0x60
+[  179.190632]  [0000000000000000]           (null)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+I tried to avoid this by setting the cpu0 in cpu possible map just for 
+sun4u.
+Here is upstream discussion for my patch:
+http://www.spinics.net/lists/sparclinux/msg19144.html
+I agree that this is a hack. I would prefer any other elegant approach 
+to solve this issue.
+
+Regards,
+Atish
+
+On 11/27/2017 10:39 AM, Atish Patra wrote:
 >
-> On Mon, Dec 25, 2017 at 08:54:33PM +0000, Ard Biesheuvel wrote:
->> Before updating certain subsystems to use place relative 32-bit
->> relocations in special sections, to save space  and reduce the
->> number of absolute relocations that need to be processed at runtime
->> by relocatable kernels, introduce the Kconfig symbol and define it
->> for some architectures that should be able to support and benefit
->> from it.
->>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> Cc: Paul Mackerras <paulus@samba.org>
->> Cc: Michael Ellerman <mpe@ellerman.id.au>
->> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
->> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Ingo Molnar <mingo@redhat.com>
->> Cc: "H. Peter Anvin" <hpa@zytor.com>
->> Cc: x86@kernel.org
->> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
->> ---
->>  arch/Kconfig                    | 10 ++++++++++
->>  arch/arm64/Kconfig              |  1 +
 >
->>  arch/arm64/kernel/vmlinux.lds.S |  2 +-
-> The change to arch/arm64/kernel/vmlinux.lds.S is
-> not justified in the changelog.
-> Did you add it by mistake?
+> On 11/19/2017 12:54 AM, David Miller wrote:
+>> So, this is fixing a regression, right?
+> Yes.
+>> If so, you need to provide a proper "Fixes: " tag identifying
+>> the commit that introduced the bug.
+> Sure. I will add that in v2.
+>> I'm also finding it hard to believe that forcing cpu 0 as a possible
+>> cpu is required.  Have you considered contacting the timer subsystem
+>> maintainers and asked them to remove this assumption?
+> I will check with the timer maintainers.
 >
+> Regards,
+> Atish
+>> Thank you.
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-No. The PREL32 support adds a __ADDRESSABLE() macro that emits code
-into .discard.text, and on arm64, the EFI object sections get a .init
-prefix so we need to discard .init.discard.* explicitly as well.
-
-I will add this as a note.
-
-Thanks,
-Ard.
