@@ -1,7 +1,7 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 14 Dec 2017 16:08:55 +0000
+From: Xose Vazquez Perez <xose.vazquez@gmail.com>
+Date: Thu, 14 Dec 2017 17:07:30 +0000
 Subject: Re: [PATCH] sparc64: Expose mdesc to sysfs
-Message-Id: <20171214.110855.2120337295444660436.davem@davemloft.net>
+Message-Id: <d1486d0c-93b8-b3fd-259f-347178c5ba8d@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
 In-Reply-To: <201709160508.v8G58BRq011742@aserv0022.oracle.com>
@@ -10,17 +10,11 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-From: Eric Saint Etienne <eric.saint.etienne@oracle.com>
-Date: Thu, 14 Dec 2017 14:59:55 +0000
+On 01/12/17 19:46, David Miller wrote:
 
-> Please elaborate as I don't understand what's happening here. Thank
-> you.
+> Also the hypervisor specification URL is completely non-functional,
+> the kenai.com stuff went down years ago.
 
-Well, re-reviewing your patch I do have technical feedback.
-
-You're copying several datastructures and code from the existing MDESC
-code.
-
-Please share as much code as possible with arch/sparc/kernel/mdesc.c
-
-Thank you.
+It was archived in:
+https://web.archive.org/web/20170409060159/https://kenai.com/projects/hypervisor/downloads
+https://web.archive.org/web/20170410000828/https://kenai.com/projects/hypervisor/pages/ReferenceMaterials
