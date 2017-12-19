@@ -1,47 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Dec 2017 15:31:16 +0000
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Tue, 19 Dec 2017 15:42:39 +0000
 Subject: Re: [PATCH] crypto: n2 - cure use after free
-Message-Id: <20171219.103116.1726291053594167469.davem@davemloft.net>
+Message-Id: <nycvar.YFH.7.76.1712191637300.11660@n3.vanv.qr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171216010117.13275-1-jengelh@inai.de>
-In-Reply-To: <20171216010117.13275-1-jengelh@inai.de>
+References: <nycvar.YFH.7.76.1712151444211.6644@n3.vanv.qr> <20171216010117.13275-1-jengelh@inai.de> <20171219.103116.1726291053594167469.davem@davemloft.net>
+In-Reply-To: <20171219.103116.1726291053594167469.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, rmk+kernel@arm.linux.org.uk
 
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Sat, 16 Dec 2017 02:01:17 +0100
 
-> queue_cache_init is called for every crypto processor found.
-> 
-> When first invoked, queue_cache[0] is NULL and queue_cache_init will
-> allocate a kmem_cache. If queue_cache_init returns a failure code, the
-> caller, grab_global_resources, will call queue_cache_destroy to release said
-> kmem_cache, but it does this without setting queue_cache_init[0] to NULL.
+On Tuesday 2017-12-19 16:31, David Miller wrote:
+>
+>Instead, what fails is the algorithm registry which you should look
+>more deeply into the cause of.
 
-That's not what's happening exactly.
+You are right. The registration failure is because the crypto layer 
+expects halg->statesize to be non-zero, and drivers/crypto/n2_core.c 
+does not set it, causing breakage since possibly 
+v4.2-rc1-182-g8996eafdcbad (commit by rmk):
 
-queue_cache_init() is not failing and returning a failure code.
+(1471)  halg = &ahash->halg;
+        halg->digestsize = tmpl->digest_size;
 
-In fact, it is a very simple function which does nothing more than
-create kmem caches so is very much unlikely to fail, especially with
-the repeatability that you are seeing (ie. every time).
-
-Instead, what fails is the algorithm registry which you should look
-more deeply into the cause of.
-
-And this failure path is how we lead to the problem.
-
-This does need to be fixed, so please fix you commit message and
-_also_, more importantly, please CC: the crypto list as well as the
-crypto maintainer so that Herbert can see and integrate the fix.
-
-I would also like you to look into why the algorithm registry fails,
-if the selftest is running and getting incorrect results for the
-algorithm that is a huge issue and must be investigated and fixed.
-
-That is the true regression which is causing the failure path you
-see to run at all.
-
-Thank you.
+Nevertheless, I think that the error pathing in n2_core.c should be made 
+robust as well. Should I resubmit with a new commit message?
