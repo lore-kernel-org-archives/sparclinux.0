@@ -1,20 +1,17 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 19 Dec 2017 18:39:13 +0000
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Fri, 22 Dec 2017 08:36:16 +0000
 Subject: Re: [PATCH] crypto: n2 - cure use after free
-Message-Id: <20171219.133913.989258584455045384.davem@davemloft.net>
+Message-Id: <20171222083616.GA30844@gondor.apana.org.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171219.113820.1629794046915223777.davem@davemloft.net>
-        <20171219180907.12895-1-jengelh@inai.de>
+References: <20171219180907.12895-1-jengelh@inai.de>
 In-Reply-To: <20171219180907.12895-1-jengelh@inai.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: jengelh@inai.de
-Cc: sparclinux@vger.kernel.org, linux-crypto@vger.kernel.org, rmk+kernel@arm.linux.org.uk
+To: Jan Engelhardt <jengelh@inai.de>
+Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-crypto@vger.kernel.org, rmk+kernel@arm.linux.org.uk
 
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Tue, 19 Dec 2017 19:09:07 +0100
-
+Jan Engelhardt <jengelh@inai.de> wrote:
 > queue_cache_init is first called for the Control Word Queue
 > (n2_crypto_probe). At that time, queue_cache[0] is NULL and a new
 > kmem_cache will be allocated. If the subsequent n2_register_algs call
@@ -25,7 +22,32 @@ Date: Tue, 19 Dec 2017 19:09:07 +0100
 > queue_cache_init will not allocate a kmem_cache again, but leave it
 > as its bogus value, causing a BUG() to trigger when queue_cache[0] is
 > eventually passed to kmem_cache_zalloc:
- ...
+> 
+>        n2_crypto: Found N2CP at /virtual-devices@100/n2cp@7
+>        n2_crypto: Registered NCS HVAPI version 2.0
+>        called queue_cache_init
+>        n2_crypto: md5 alg registration failed
+>        n2cp f028687c: /virtual-devices@100/n2cp@7: Unable to register algorithms.
+>        called queue_cache_destroy
+>        n2cp: probe of f028687c failed with error -22
+>        n2_crypto: Found NCP at /virtual-devices@100/ncp@6
+>        n2_crypto: Registered NCS HVAPI version 2.0
+>        called queue_cache_init
+>        kernel BUG at mm/slab.c:2993!
+>        Call Trace:
+>         [0000000000604488] kmem_cache_alloc+0x1a8/0x1e0
+>                  (inlined) kmem_cache_zalloc
+>                  (inlined) new_queue
+>                  (inlined) spu_queue_setup
+>                  (inlined) handle_exec_unit
+>         [0000000010c61eb4] spu_mdesc_scan+0x1f4/0x460 [n2_crypto]
+>         [0000000010c62b80] n2_mau_probe+0x100/0x220 [n2_crypto]
+>         [000000000084b174] platform_drv_probe+0x34/0xc0
+> 
 > Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Patch applied.  Thanks.
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
