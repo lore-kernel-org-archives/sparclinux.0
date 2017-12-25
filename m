@@ -1,60 +1,437 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 29 Dec 2017 14:12:25 +0000
-Subject: Re: [PATCH 27/67] dma-direct: add dma address sanity checks
-Message-Id: <CAMuHMdWg3PnTXezMCcr3oGf-83-cjvcj4wGiPk7j2pY1Tgzo9Q@mail.gmail.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Mon, 25 Dec 2017 20:54:38 +0000
+Subject: [PATCH v5 6/8] kernel/jump_label: abstract jump_entry member accessors
+Message-Id: <20171225205440.14575-7-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de> <20171229081911.2802-28-hch@lst.de>
-In-Reply-To: <20171229081911.2802-28-hch@lst.de>
+References: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: iommu@lists.linux-foundation.org, Linux MIPS Mailing List <linux-mips@linux-mips.org>, linux-ia64@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Linux-Arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, linux-c6x-dev@linux-c6x.org, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, adi-buildroot-devel@lists.sourceforge.net, linux-m68k <linux-m68k@lists.linux-m68k.org>, patches@groups.riscv.org, "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Parisc
+To: linux-arm-kernel@lists.infradead.org
 
-Hi Christoph,
+In preparation of allowing architectures to use relative references
+in jump_label entries [which can dramatically reduce the memory
+footprint], introduce abstractions for references to the 'code' and
+'key' members of struct jump_entry.
 
-On Fri, Dec 29, 2017 at 9:18 AM, Christoph Hellwig <hch@lst.de> wrote:
-> Roughly based on the x86 pci-nommu implementation.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/arm/include/asm/jump_label.h     | 27 ++++++++++++++
+ arch/arm64/include/asm/jump_label.h   | 27 ++++++++++++++
+ arch/mips/include/asm/jump_label.h    | 27 ++++++++++++++
+ arch/powerpc/include/asm/jump_label.h | 27 ++++++++++++++
+ arch/s390/include/asm/jump_label.h    | 20 +++++++++++
+ arch/sparc/include/asm/jump_label.h   | 27 ++++++++++++++
+ arch/tile/include/asm/jump_label.h    | 27 ++++++++++++++
+ arch/x86/include/asm/jump_label.h     | 27 ++++++++++++++
+ kernel/jump_label.c                   | 38 +++++++++-----------
+ 9 files changed, 225 insertions(+), 22 deletions(-)
 
-Thanks for your patch!
+diff --git a/arch/arm/include/asm/jump_label.h b/arch/arm/include/asm/jump_label.h
+index e12d7d096fc0..7b05b404063a 100644
+--- a/arch/arm/include/asm/jump_label.h
++++ b/arch/arm/include/asm/jump_label.h
+@@ -45,5 +45,32 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #endif  /* __ASSEMBLY__ */
+ #endif
+diff --git a/arch/arm64/include/asm/jump_label.h b/arch/arm64/include/asm/jump_label.h
+index 1b5e0e843c3a..9d6e46355c89 100644
+--- a/arch/arm64/include/asm/jump_label.h
++++ b/arch/arm64/include/asm/jump_label.h
+@@ -62,5 +62,32 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #endif  /* __ASSEMBLY__ */
+ #endif	/* __ASM_JUMP_LABEL_H */
+diff --git a/arch/mips/include/asm/jump_label.h b/arch/mips/include/asm/jump_label.h
+index e77672539e8e..70df9293dc49 100644
+--- a/arch/mips/include/asm/jump_label.h
++++ b/arch/mips/include/asm/jump_label.h
+@@ -66,5 +66,32 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #endif  /* __ASSEMBLY__ */
+ #endif /* _ASM_MIPS_JUMP_LABEL_H */
+diff --git a/arch/powerpc/include/asm/jump_label.h b/arch/powerpc/include/asm/jump_label.h
+index 9a287e0ac8b1..412b2699c9f6 100644
+--- a/arch/powerpc/include/asm/jump_label.h
++++ b/arch/powerpc/include/asm/jump_label.h
+@@ -59,6 +59,33 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #else
+ #define ARCH_STATIC_BRANCH(LABEL, KEY)		\
+ 1098:	nop;					\
+diff --git a/arch/s390/include/asm/jump_label.h b/arch/s390/include/asm/jump_label.h
+index 40f651292aa7..3d4a08e9514b 100644
+--- a/arch/s390/include/asm/jump_label.h
++++ b/arch/s390/include/asm/jump_label.h
+@@ -50,5 +50,25 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline jump_label_t jump_entry_key(const struct jump_entry *entry)
++{
++	return entry->key;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
+ #endif  /* __ASSEMBLY__ */
+ #endif
+diff --git a/arch/sparc/include/asm/jump_label.h b/arch/sparc/include/asm/jump_label.h
+index 94eb529dcb77..18e893687f7c 100644
+--- a/arch/sparc/include/asm/jump_label.h
++++ b/arch/sparc/include/asm/jump_label.h
+@@ -48,5 +48,32 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #endif  /* __ASSEMBLY__ */
+ #endif
+diff --git a/arch/tile/include/asm/jump_label.h b/arch/tile/include/asm/jump_label.h
+index cde7573f397b..86acaa6ff33d 100644
+--- a/arch/tile/include/asm/jump_label.h
++++ b/arch/tile/include/asm/jump_label.h
+@@ -55,4 +55,31 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #endif /* _ASM_TILE_JUMP_LABEL_H */
+diff --git a/arch/x86/include/asm/jump_label.h b/arch/x86/include/asm/jump_label.h
+index 8c0de4282659..009ff2699d07 100644
+--- a/arch/x86/include/asm/jump_label.h
++++ b/arch/x86/include/asm/jump_label.h
+@@ -74,6 +74,33 @@ struct jump_entry {
+ 	jump_label_t key;
+ };
+ 
++static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
++{
++	return entry->code;
++}
++
++static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
++{
++	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++}
++
++static inline bool jump_entry_is_branch(const struct jump_entry *entry)
++{
++	return (unsigned long)entry->key & 1UL;
++}
++
++static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
++{
++	return entry->code = 0;
++}
++
++static inline void jump_entry_set_module_init(struct jump_entry *entry)
++{
++	entry->code = 0;
++}
++
++#define jump_label_swap		NULL
++
+ #else	/* __ASSEMBLY__ */
+ 
+ .macro STATIC_JUMP_IF_TRUE target, key, def
+diff --git a/kernel/jump_label.c b/kernel/jump_label.c
+index 8594d24e4adc..baed094ab8d1 100644
+--- a/kernel/jump_label.c
++++ b/kernel/jump_label.c
+@@ -37,10 +37,12 @@ static int jump_label_cmp(const void *a, const void *b)
+ 	const struct jump_entry *jea = a;
+ 	const struct jump_entry *jeb = b;
+ 
+-	if (jea->key < jeb->key)
++	if ((unsigned long)jump_entry_key(jea) <
++	    (unsigned long)jump_entry_key(jeb))
+ 		return -1;
+ 
+-	if (jea->key > jeb->key)
++	if ((unsigned long)jump_entry_key(jea) >
++	    (unsigned long)jump_entry_key(jeb))
+ 		return 1;
+ 
+ 	return 0;
+@@ -53,7 +55,8 @@ jump_label_sort_entries(struct jump_entry *start, struct jump_entry *stop)
+ 
+ 	size = (((unsigned long)stop - (unsigned long)start)
+ 					/ sizeof(struct jump_entry));
+-	sort(start, size, sizeof(struct jump_entry), jump_label_cmp, NULL);
++	sort(start, size, sizeof(struct jump_entry), jump_label_cmp,
++	     jump_label_swap);
+ }
+ 
+ static void jump_label_update(struct static_key *key);
+@@ -254,8 +257,8 @@ EXPORT_SYMBOL_GPL(jump_label_rate_limit);
+ 
+ static int addr_conflict(struct jump_entry *entry, void *start, void *end)
+ {
+-	if (entry->code <= (unsigned long)end &&
+-		entry->code + JUMP_LABEL_NOP_SIZE > (unsigned long)start)
++	if (jump_entry_code(entry) <= (unsigned long)end &&
++	    jump_entry_code(entry) + JUMP_LABEL_NOP_SIZE > (unsigned long)start)
+ 		return 1;
+ 
+ 	return 0;
+@@ -314,16 +317,6 @@ static inline void static_key_set_linked(struct static_key *key)
+ 	key->type |= JUMP_TYPE_LINKED;
+ }
+ 
+-static inline struct static_key *jump_entry_key(struct jump_entry *entry)
+-{
+-	return (struct static_key *)((unsigned long)entry->key & ~1UL);
+-}
+-
+-static bool jump_entry_branch(struct jump_entry *entry)
+-{
+-	return (unsigned long)entry->key & 1UL;
+-}
+-
+ /***
+  * A 'struct static_key' uses a union such that it either points directly
+  * to a table of 'struct jump_entry' or to a linked list of modules which in
+@@ -348,7 +341,7 @@ static enum jump_label_type jump_label_type(struct jump_entry *entry)
+ {
+ 	struct static_key *key = jump_entry_key(entry);
+ 	bool enabled = static_key_enabled(key);
+-	bool branch = jump_entry_branch(entry);
++	bool branch = jump_entry_is_branch(entry);
+ 
+ 	/* See the comment in linux/jump_label.h */
+ 	return enabled ^ branch;
+@@ -364,7 +357,8 @@ static void __jump_label_update(struct static_key *key,
+ 		 * kernel_text_address() verifies we are not in core kernel
+ 		 * init code, see jump_label_invalidate_module_init().
+ 		 */
+-		if (entry->code && kernel_text_address(entry->code))
++		if (jump_entry_is_module_init(entry) &&
++		    kernel_text_address(jump_entry_code(entry)))
+ 			arch_jump_label_transform(entry, jump_label_type(entry));
+ 	}
+ }
+@@ -417,7 +411,7 @@ static enum jump_label_type jump_label_init_type(struct jump_entry *entry)
+ {
+ 	struct static_key *key = jump_entry_key(entry);
+ 	bool type = static_key_type(key);
+-	bool branch = jump_entry_branch(entry);
++	bool branch = jump_entry_is_branch(entry);
+ 
+ 	/* See the comment in linux/jump_label.h */
+ 	return type ^ branch;
+@@ -541,7 +535,7 @@ static int jump_label_add_module(struct module *mod)
+ 			continue;
+ 
+ 		key = iterk;
+-		if (within_module(iter->key, mod)) {
++		if (within_module((unsigned long)key, mod)) {
+ 			static_key_set_entries(key, iter);
+ 			continue;
+ 		}
+@@ -591,7 +585,7 @@ static void jump_label_del_module(struct module *mod)
+ 
+ 		key = jump_entry_key(iter);
+ 
+-		if (within_module(iter->key, mod))
++		if (within_module((unsigned long)key, mod))
+ 			continue;
+ 
+ 		/* No memory during module load */
+@@ -634,8 +628,8 @@ static void jump_label_invalidate_module_init(struct module *mod)
+ 	struct jump_entry *iter;
+ 
+ 	for (iter = iter_start; iter < iter_stop; iter++) {
+-		if (within_module_init(iter->code, mod))
+-			iter->code = 0;
++		if (within_module_init(jump_entry_code(iter), mod))
++			jump_entry_set_module_init(iter);
+ 	}
+ }
+ 
+-- 
+2.11.0
 
-> --- a/lib/dma-direct.c
-> +++ b/lib/dma-direct.c
-> @@ -9,6 +9,24 @@
->  #include <linux/scatterlist.h>
->  #include <linux/pfn.h>
->
-> +#define DIRECT_MAPPING_ERROR           0
-> +
-> +static bool
-> +check_addr(struct device *dev, dma_addr_t dma_addr, size_t size,
-> +               const char *caller)
-> +{
-> +       if (unlikely(dev && !dma_capable(dev, dma_addr, size))) {
-> +               if (*dev->dma_mask >= DMA_BIT_MASK(32)) {
-> +                       dev_err(dev,
-> +                               "%s: overflow %llx+%zu of device mask %llx\n",
-
-Please use "%pad" to format dma_addr_t ...
-
-> +                               caller, (long long)dma_addr, size,
-
-... and use &dma_addr.
-
-> +                               (long long)*dev->dma_mask);
-
-This cast is not needed, as u64 is unsigned long long in kernelspace on
-all architectures.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
