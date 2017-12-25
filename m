@@ -1,124 +1,123 @@
-From: James Ettle <james@ettle.org.uk>
-Date: Thu, 07 Dec 2017 01:42:03 +0000
-Subject: Re: Unaligned access in gss_{get,verify}_mic_v2() on sparc64
-Message-Id: <8d4f1809-5027-46e7-1d21-d55f93950693@ettle.org.uk>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Mon, 25 Dec 2017 20:54:33 +0000
+Subject: [PATCH v5 1/8] arch: enable relative relocations for arm64, power, x86, s390 and x86
+Message-Id: <20171225205440.14575-2-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <55549068-2605-7f71-ccef-c102d6fd69ab@ettle.org.uk>
- <20171206190936.GB5875@fieldses.org>
-In-Reply-To: <20171206190936.GB5875@fieldses.org>
+References: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-nfs@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Patch from git as instructed:
+Before updating certain subsystems to use place relative 32-bit
+relocations in special sections, to save space  and reduce the
+number of absolute relocations that need to be processed at runtime
+by relocatable kernels, introduce the Kconfig symbol and define it
+for some architectures that should be able to support and benefit
+from it.
 
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/Kconfig                    | 10 ++++++++++
+ arch/arm64/Kconfig              |  1 +
+ arch/arm64/kernel/vmlinux.lds.S |  2 +-
+ arch/powerpc/Kconfig            |  1 +
+ arch/s390/Kconfig               |  1 +
+ arch/x86/Kconfig                |  1 +
+ 6 files changed, 15 insertions(+), 1 deletion(-)
 
-commit a90324ca784dea5a7259a2672c24626f5c03f576
-Author: James Ettle <james@ettle.org.uk>
-Date:   Thu Dec 7 00:50:28 2017 +0000
-
-    Fix unaligned access on sparc64.
-
-diff --git a/net/sunrpc/auth_gss/gss_krb5_seal.c b/net/sunrpc/auth_gss/gss_krb5_seal.c
-index 1d74d653e6c0..94a2b3f082a8 100644
---- a/net/sunrpc/auth_gss/gss_krb5_seal.c
-+++ b/net/sunrpc/auth_gss/gss_krb5_seal.c
-@@ -177,6 +177,7 @@ gss_get_mic_v2(struct krb5_ctx *ctx, struct xdr_buf *text,
- 	u64 seq_send;
- 	u8 *cksumkey;
- 	unsigned int cksum_usage;
-+	__be64 seq_send_be64;
-
- 	dprintk("RPC:       %s\n", __func__);
-
-@@ -187,7 +188,9 @@ gss_get_mic_v2(struct krb5_ctx *ctx, struct xdr_buf *text,
- 	spin_lock(&krb5_seq_lock);
- 	seq_send = ctx->seq_send64++;
- 	spin_unlock(&krb5_seq_lock);
--	*((__be64 *)(krb5_hdr + 8)) = cpu_to_be64(seq_send);
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 400b9e1b2f27..dbc036a7bd1b 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -959,4 +959,14 @@ config REFCOUNT_FULL
+ 	  against various use-after-free conditions that can be used in
+ 	  security flaw exploits.
+ 
++config HAVE_ARCH_PREL32_RELOCATIONS
++	bool
++	help
++	  May be selected by an architecture if it supports place-relative
++	  32-bit relocations, both in the toolchain and in the module loader,
++	  in which case relative references can be used in special sections
++	  for PCI fixup, initcalls etc which are only half the size on 64 bit
++	  architectures, and don't require runtime relocation on relocatable
++	  kernels.
 +
-+	seq_send_be64 = cpu_to_be64(seq_send);
-+	memcpy(krb5_hdr + 8, (char *) &seq_send_be64, 8);
+ source "kernel/gcov/Kconfig"
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index c9a7e9e1414f..66c7b9ab2a3d 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -89,6 +89,7 @@ config ARM64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
+index 7da3e5c366a0..49ae5b43fe2b 100644
+--- a/arch/arm64/kernel/vmlinux.lds.S
++++ b/arch/arm64/kernel/vmlinux.lds.S
+@@ -156,7 +156,7 @@ SECTIONS
+ 		CON_INITCALL
+ 		SECURITY_INITCALL
+ 		INIT_RAM_FS
+-		*(.init.rodata.* .init.bss)	/* from the EFI stub */
++		*(.init.rodata.* .init.bss .init.discard.*)	/* EFI stub */
+ 	}
+ 	.exit.data : {
+ 		ARM_EXIT_KEEP(EXIT_DATA)
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index c51e6ce42e7a..e172478e2ae7 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -177,6 +177,7 @@ config PPC
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select ARCH_HAS_STRICT_KERNEL_RWX	if ((PPC_BOOK3S_64 || PPC32) && !RELOCATABLE && !HIBERNATION)
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 829c67986db7..ed29d1ebecd9 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -129,6 +129,7 @@ config S390
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select CPU_NO_EFFICIENT_FFS if !HAVE_MARCH_Z9_109_FEATURES
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_SOFT_DIRTY
+ 	select HAVE_ARCH_TRACEHOOK
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index d4fc98c50378..9f2bb853aedb 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -115,6 +115,7 @@ config X86
+ 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
+ 	select HAVE_ARCH_COMPAT_MMAP_BASES	if MMU && COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+-- 
+2.11.0
 
- 	if (ctx->initiate) {
- 		cksumkey = ctx->initiator_sign;
-diff --git a/net/sunrpc/auth_gss/gss_krb5_unseal.c b/net/sunrpc/auth_gss/gss_krb5_unseal.c
-index dcf9515d9aef..8ea6e30d6f3f 100644
---- a/net/sunrpc/auth_gss/gss_krb5_unseal.c
-+++ b/net/sunrpc/auth_gss/gss_krb5_unseal.c
-@@ -155,10 +155,12 @@ gss_verify_mic_v2(struct krb5_ctx *ctx,
- 	u8 flags;
- 	int i;
- 	unsigned int cksum_usage;
--
-+	__be16 be16_ptr;
-+	
- 	dprintk("RPC:       %s\n", __func__);
-
--	if (be16_to_cpu(*((__be16 *)ptr)) != KG2_TOK_MIC)
-+	memcpy(&be16_ptr, (char *) ptr, 2);
-+	if (be16_to_cpu(be16_ptr) != KG2_TOK_MIC)
- 		return GSS_S_DEFECTIVE_TOKEN;
-
- 	flags = ptr[2];
-
-
-
-On 06/12/17 19:09, J. Bruce Fields wrote:
-> On Sat, Dec 02, 2017 at 11:28:18PM +0000, James Ettle wrote:
->> I've been using nfs4 with krb5 on sparc64 with kernel 4.13 and 4.14 and
->> seeing a lot of messages like:
->>
->> sparky kernel: [  105.262927] Kernel unaligned access at TPC[10afb234]
->> gss_get_mic_kerberos+0xd4/0x360 [rpcsec_gss_krb5]
->>
->> I've traced this down to gss_get_mic_v2() in gss_krb5_seal.c. I think
->> the suspicious line is:
->>
->> 	*((__be64 *)(krb5_hdr + 8)) = cpu_to_be64(seq_send);
->>
->> krb5_hdr is void*, but comes from a u16 so won't generally have __be64
->> alignment. As an experiment I added local variable
->>
->> 	__be64 seq_send_be64;
->>
->> and replaced the cpu_to_be64 line with:
->>
->> 	seq_send_be64 = cpu_to_be64(seq_send);
->> 	memcpy(krb5_hdr + 8, (char *) &seq_send_be64, 8);
->>
->> There's another one in gss_verify_mic_v2() in gss_krb5_unseal.c. Here
->> there's a line
->>
->> 	if (be16_to_cpu(*((__be16 *)ptr)) != KG2_TOK_MIC)
->>
->> but ptr is a u8*. For this I added local variable
->>
->> 	__be16 data_be16;
->>
->> and replaced the above if() with
->>
->> 	memcpy((void *) &data_be16, (char *) ptr, 2);
->> 	if (be16_to_cpu(data_be16) != KG2_TOK_MIC)
->>
->> I've not seen any misalignment complaints yet with this.
->>
->> I apologise for not sending this in the form of a patch, but this is
->> only a sketch solution. I'm not a kernel hacker and I'm sure someone
->> else will make a proper job of it!
-> 
-> Probably so.  But it might get done sooner if you do it.  There's the
-> added benefit that you can test the exact patch that gets applied.  You
-> can just:
-> 
-> 	git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> 	<make your changes>
-> 	git commit -a
-> 	<write a changelog>
-> 
-> then send us the output of "git show".
-> 
-> --b.
-> 
