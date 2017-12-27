@@ -1,44 +1,123 @@
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Tue, 26 Dec 2017 10:23:15 +0000
-Subject: Re: [PATCH v5 6/8] kernel/jump_label: abstract jump_entry member accessors
-Message-Id: <CAKv+Gu_9L8LDe72FJDDhWVA4G9ZWcuxQnxWRtFMKgH=AhMOiZQ@mail.gmail.com>
+Date: Wed, 27 Dec 2017 08:50:26 +0000
+Subject: [PATCH v6 1/8] arch: enable relative relocations for arm64, power, x86, s390 and x86
+Message-Id: <20171227085033.22389-2-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171225205440.14575-7-ard.biesheuvel@linaro.org>
- <201712261806.hJg043uc%fengguang.wu@intel.com>
-In-Reply-To: <201712261806.hJg043uc%fengguang.wu@intel.com>
+References: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On 26 December 2017 at 10:19, kbuild test robot <lkp@intel.com> wrote:
-> Hi Ard,
->
-> I love your patch! Yet something to improve:
->
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.15-rc5 next-20171222]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Ard-Biesheuvel/add-support-for-relative-references-in-special-sections/20171226-164147
-> config: s390-allmodconfig (attached as .config)
-> compiler: s390x-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=s390
->
+Before updating certain subsystems to use place relative 32-bit
+relocations in special sections, to save space  and reduce the
+number of absolute relocations that need to be processed at runtime
+by relocatable kernels, introduce the Kconfig symbol and define it
+for some architectures that should be able to support and benefit
+from it.
 
-I guess the diffstat gives it away:
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/Kconfig                    | 10 ++++++++++
+ arch/arm64/Kconfig              |  1 +
+ arch/arm64/kernel/vmlinux.lds.S |  2 +-
+ arch/powerpc/Kconfig            |  1 +
+ arch/s390/Kconfig               |  1 +
+ arch/x86/Kconfig                |  1 +
+ 6 files changed, 15 insertions(+), 1 deletion(-)
 
->  arch/arm/include/asm/jump_label.h     | 27 ++++++++++++++
->  arch/arm64/include/asm/jump_label.h   | 27 ++++++++++++++
->  arch/mips/include/asm/jump_label.h    | 27 ++++++++++++++
->  arch/powerpc/include/asm/jump_label.h | 27 ++++++++++++++
->  arch/s390/include/asm/jump_label.h    | 20 +++++++++++
->  arch/sparc/include/asm/jump_label.h   | 27 ++++++++++++++
->  arch/tile/include/asm/jump_label.h    | 27 ++++++++++++++
->  arch/x86/include/asm/jump_label.h     | 27 ++++++++++++++
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 400b9e1b2f27..dbc036a7bd1b 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -959,4 +959,14 @@ config REFCOUNT_FULL
+ 	  against various use-after-free conditions that can be used in
+ 	  security flaw exploits.
+ 
++config HAVE_ARCH_PREL32_RELOCATIONS
++	bool
++	help
++	  May be selected by an architecture if it supports place-relative
++	  32-bit relocations, both in the toolchain and in the module loader,
++	  in which case relative references can be used in special sections
++	  for PCI fixup, initcalls etc which are only half the size on 64 bit
++	  architectures, and don't require runtime relocation on relocatable
++	  kernels.
++
+ source "kernel/gcov/Kconfig"
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index c9a7e9e1414f..66c7b9ab2a3d 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -89,6 +89,7 @@ config ARM64
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+diff --git a/arch/arm64/kernel/vmlinux.lds.S b/arch/arm64/kernel/vmlinux.lds.S
+index 7da3e5c366a0..49ae5b43fe2b 100644
+--- a/arch/arm64/kernel/vmlinux.lds.S
++++ b/arch/arm64/kernel/vmlinux.lds.S
+@@ -156,7 +156,7 @@ SECTIONS
+ 		CON_INITCALL
+ 		SECURITY_INITCALL
+ 		INIT_RAM_FS
+-		*(.init.rodata.* .init.bss)	/* from the EFI stub */
++		*(.init.rodata.* .init.bss .init.discard.*)	/* EFI stub */
+ 	}
+ 	.exit.data : {
+ 		ARM_EXIT_KEEP(EXIT_DATA)
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index c51e6ce42e7a..e172478e2ae7 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -177,6 +177,7 @@ config PPC
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_MMAP_RND_BITS
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select ARCH_HAS_STRICT_KERNEL_RWX	if ((PPC_BOOK3S_64 || PPC32) && !RELOCATABLE && !HIBERNATION)
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 829c67986db7..ed29d1ebecd9 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -129,6 +129,7 @@ config S390
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select CPU_NO_EFFICIENT_FFS if !HAVE_MARCH_Z9_109_FEATURES
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_SOFT_DIRTY
+ 	select HAVE_ARCH_TRACEHOOK
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index d4fc98c50378..9f2bb853aedb 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -115,6 +115,7 @@ config X86
+ 	select HAVE_ARCH_MMAP_RND_BITS		if MMU
+ 	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
+ 	select HAVE_ARCH_COMPAT_MMAP_BASES	if MMU && COMPAT
++	select HAVE_ARCH_PREL32_RELOCATIONS
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+-- 
+2.11.0
 
-Will fix in the next revision.
