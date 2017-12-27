@@ -1,122 +1,170 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:13 +0000
-Subject: [PATCH 09/67] arc: remove CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
-Message-Id: <20171229081911.2802-10-hch@lst.de>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Wed, 27 Dec 2017 08:50:25 +0000
+Subject: [PATCH v6 0/8] add support for relative references in special sections
+Message-Id: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de>
-In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-We always use the stub definitions, so remove the unused other code.
+This adds support for emitting special sections such as initcall arrays,
+PCI fixups and tracepoints as relative references rather than absolute
+references. This reduces the size by 50% on 64-bit architectures, but
+more importantly, it removes the need for carrying relocation metadata
+for these sections in relocatables kernels (e.g., for KASLR) that need
+to fix up these absolute references at boot time. On arm64, this reduces
+the vmlinux footprint of such a reference by 8x (8 byte absolute reference
++ 24 byte RELA entry vs 4 byte relative reference)
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arc/Kconfig                   |  3 ---
- arch/arc/include/asm/dma-mapping.h |  7 -------
- arch/arc/mm/dma.c                  | 14 +++++++-------
- 3 files changed, 7 insertions(+), 17 deletions(-)
+Patch #2 was sent out before as a single patch. This series supersedes
+the previous submission. This version makes relative ksymtab entries
+dependent on the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS rather
+than trying to infer from kbuild test robot replies for which architectures
+it should be blacklisted.
 
-diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
-index 9d5fd00d9e91..f3a80cf164cc 100644
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -463,9 +463,6 @@ config ARCH_PHYS_ADDR_T_64BIT
- config ARCH_DMA_ADDR_T_64BIT
- 	bool
- 
--config ARC_PLAT_NEEDS_PHYS_TO_DMA
--	bool
--
- config ARC_KVADDR_SIZE
- 	int "Kernel Virtual Address Space size (MB)"
- 	range 0 512
-diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
-index 94285031c4fb..7a16824bfe98 100644
---- a/arch/arc/include/asm/dma-mapping.h
-+++ b/arch/arc/include/asm/dma-mapping.h
-@@ -11,13 +11,6 @@
- #ifndef ASM_ARC_DMA_MAPPING_H
- #define ASM_ARC_DMA_MAPPING_H
- 
--#ifndef CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
--#define plat_dma_to_phys(dev, dma_handle) ((phys_addr_t)(dma_handle))
--#define plat_phys_to_dma(dev, paddr) ((dma_addr_t)(paddr))
--#else
--#include <plat/dma.h>
--#endif
--
- extern const struct dma_map_ops arc_dma_ops;
- 
- static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
-diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
-index fad18261ef6a..1d405b86250c 100644
---- a/arch/arc/mm/dma.c
-+++ b/arch/arc/mm/dma.c
-@@ -60,7 +60,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
- 	/* This is linear addr (0x8000_0000 based) */
- 	paddr = page_to_phys(page);
- 
--	*dma_handle = plat_phys_to_dma(dev, paddr);
-+	*dma_handle = paddr;
- 
- 	/* This is kernel Virtual address (0x7000_0000 based) */
- 	if (need_kvaddr) {
-@@ -92,7 +92,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
- static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
- 		dma_addr_t dma_handle, unsigned long attrs)
- {
--	phys_addr_t paddr = plat_dma_to_phys(dev, dma_handle);
-+	phys_addr_t paddr = dma_handle;
- 	struct page *page = virt_to_page(paddr);
- 	int is_non_coh = 1;
- 
-@@ -111,7 +111,7 @@ static int arc_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- {
- 	unsigned long user_count = vma_pages(vma);
- 	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
--	unsigned long pfn = __phys_to_pfn(plat_dma_to_phys(dev, dma_addr));
-+	unsigned long pfn = __phys_to_pfn(dma_addr);
- 	unsigned long off = vma->vm_pgoff;
- 	int ret = -ENXIO;
- 
-@@ -175,7 +175,7 @@ static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
- 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		_dma_cache_sync(paddr, size, dir);
- 
--	return plat_phys_to_dma(dev, paddr);
-+	return paddr;
- }
- 
- /*
-@@ -190,7 +190,7 @@ static void arc_dma_unmap_page(struct device *dev, dma_addr_t handle,
- 			       size_t size, enum dma_data_direction dir,
- 			       unsigned long attrs)
- {
--	phys_addr_t paddr = plat_dma_to_phys(dev, handle);
-+	phys_addr_t paddr = handle;
- 
- 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
- 		_dma_cache_sync(paddr, size, dir);
-@@ -224,13 +224,13 @@ static void arc_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
- static void arc_dma_sync_single_for_cpu(struct device *dev,
- 		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
- {
--	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_FROM_DEVICE);
-+	_dma_cache_sync(dma_handle, size, DMA_FROM_DEVICE);
- }
- 
- static void arc_dma_sync_single_for_device(struct device *dev,
- 		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
- {
--	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_TO_DEVICE);
-+	_dma_cache_sync(dma_handle, size, DMA_TO_DEVICE);
- }
- 
- static void arc_dma_sync_sg_for_cpu(struct device *dev,
+Patch #1 introduces the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS,
+and sets it for the main architectures that are expected to benefit the
+most from this feature, i.e., 64-bit architectures or ones that use
+runtime relocations.
+
+Patches #3 - #5 implement relative references for initcalls, PCI fixups
+and tracepoints, respectively, all of which produce sections with order
+~1000 entries on an arm64 defconfig kernel with tracing enabled. This
+means we save about 28 KB of vmlinux space for each of these patches.
+
+Patches #6 - #8 have been added in v5, and implement relative references
+in jump tables for arm64 and x86. On arm64, this results in significant
+space savings (650+ KB on a typical distro kernel). On x86, the savings
+are not as impressive, but still worthwhile. (Note that these patches
+do not rely on CONFIG_HAVE_ARCH_PREL32_RELOCATIONS, given that the
+inline asm that is emitted is already per-arch)
+
+For the arm64 kernel, all patches combined reduce the memory footprint of
+vmlinux by about 1.3 MB (using a config copied from Ubuntu that has KASLR
+enabled), of which ~1 MB is the size reduction of the RELA section in .init,
+and the remaining 300 KB is reduction of .text/.data.
+
+Branch:
+git://git.kernel.org/pub/scm/linux/kernel/git/ardb/linux.git relative-special-sections-v6
+
+Changes since v5:
+- add missing jump_label prototypes to s390 jump_label.h (#6)
+- fix inverted condition in call to jump_entry_is_module_init() (#6)
+
+Changes since v4:
+- add patches to convert x86 and arm64 to use relative references for jump
+  tables (#6 - #8)
+- rename PCI patch and add Bjorn's ack (#4)
+- rebase onto v4.15-rc5
+
+Changes since v3:
+- fix module unload issue in patch #5 reported by Jessica, by reusing the
+  updated routine for_each_tracepoint_range() for the quiescent check at
+  module unload time; this requires this routine to be moved before
+  tracepoint_module_going() in kernel/tracepoint.c
+- add Jessica's ack to #2
+- rebase onto v4.14-rc1
+
+Changes since v2:
+- Revert my slightly misguided attempt to appease checkpatch, which resulted
+  in needless churn and worse code. This v3 is based on v1 with a few tweaks
+  that were actually reasonable checkpatch warnings: unnecessary braces (as
+  pointed out by Ingo) and other minor whitespace misdemeanors.
+
+Changes since v1:
+- Remove checkpatch errors to the extent feasible: in some cases, this
+  involves moving extern declarations into C files, and switching to
+  struct definitions rather than typedefs. Some errors are impossible
+  to fix: please find the remaining ones after the diffstat.
+- Used 'int' instead if 'signed int' for the various offset fields: there
+  is no ambiguity between architectures regarding its signedness (unlike
+  'char')
+- Refactor the different patches to be more uniform in the way they define
+  the section entry type and accessors in the .h file, and avoid the need to
+  add #ifdefs to the C code.
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Nicolas Pitre <nico@linaro.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: x86@kernel.org
+
+Ard Biesheuvel (8):
+  arch: enable relative relocations for arm64, power, x86, s390 and x86
+  module: use relative references for __ksymtab entries
+  init: allow initcall tables to be emitted using relative references
+  PCI: Add support for relative addressing in quirk tables
+  kernel: tracepoints: add support for relative references
+  kernel/jump_label: abstract jump_entry member accessors
+  arm64/kernel: jump_label: use relative references
+  x86/kernel: jump_table: use relative references
+
+ arch/Kconfig                          | 10 ++++
+ arch/arm/include/asm/jump_label.h     | 27 +++++++++
+ arch/arm64/Kconfig                    |  1 +
+ arch/arm64/include/asm/jump_label.h   | 48 +++++++++++++---
+ arch/arm64/kernel/jump_label.c        | 22 +++++++-
+ arch/arm64/kernel/vmlinux.lds.S       |  2 +-
+ arch/mips/include/asm/jump_label.h    | 27 +++++++++
+ arch/powerpc/Kconfig                  |  1 +
+ arch/powerpc/include/asm/jump_label.h | 27 +++++++++
+ arch/s390/Kconfig                     |  1 +
+ arch/s390/include/asm/jump_label.h    | 20 +++++++
+ arch/sparc/include/asm/jump_label.h   | 27 +++++++++
+ arch/tile/include/asm/jump_label.h    | 27 +++++++++
+ arch/x86/Kconfig                      |  1 +
+ arch/x86/include/asm/Kbuild           |  1 +
+ arch/x86/include/asm/export.h         |  5 --
+ arch/x86/include/asm/jump_label.h     | 56 +++++++++++++++----
+ arch/x86/kernel/jump_label.c          | 59 ++++++++++++++------
+ drivers/pci/quirks.c                  | 13 ++++-
+ include/asm-generic/export.h          | 12 +++-
+ include/linux/compiler.h              | 11 ++++
+ include/linux/export.h                | 46 +++++++++++----
+ include/linux/init.h                  | 44 +++++++++++----
+ include/linux/pci.h                   | 20 +++++++
+ include/linux/tracepoint.h            | 19 +++++--
+ init/main.c                           | 32 +++++------
+ kernel/jump_label.c                   | 38 ++++++-------
+ kernel/module.c                       | 33 +++++++++--
+ kernel/printk/printk.c                |  4 +-
+ kernel/tracepoint.c                   | 50 +++++++++--------
+ security/security.c                   |  4 +-
+ tools/objtool/special.c               |  4 +-
+ 32 files changed, 544 insertions(+), 148 deletions(-)
+ delete mode 100644 arch/x86/include/asm/export.h
+
 -- 
-2.14.2
+2.11.0
 
