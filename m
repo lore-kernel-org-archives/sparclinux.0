@@ -1,7 +1,7 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Thu, 28 Dec 2017 12:05:31 +0000
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Thu, 28 Dec 2017 12:39:39 +0000
 Subject: Re: [PATCH v6 2/8] module: use relative references for __ksymtab entries
-Message-Id: <20171228120531.xhcb4dg2qu2z5ssp@gmail.com>
+Message-Id: <CAKv+Gu_D+eYoFCuEt=boim=kdVd2WGcBsC-3nSZawwFp-gqKKQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
  <20171227085033.22389-3-ard.biesheuvel@linaro.org>
@@ -9,36 +9,53 @@ References: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
  <CAKv+Gu-2NUzsakN2rcM_5fqD0ubr+6ZXSc+5sjZZPbU3wj_Xsg@mail.gmail.com>
  <CA+55aFzygF6P3v5VxyBucZfn-tg58jeV6qwt0y7QGmmNiKYghQ@mail.gmail.com>
  <CAKv+Gu-wRtfnGfrEjuxR5YkCpZM-nQHZShROEdbcEh=fSiWf5A@mail.gmail.com>
-In-Reply-To: <CAKv+Gu-wRtfnGfrEjuxR5YkCpZM-nQHZShROEdbcEh=fSiWf5A@mail.gmail.com>
+ <20171228120531.xhcb4dg2qu2z5ssp@gmail.com>
+In-Reply-To: <20171228120531.xhcb4dg2qu2z5ssp@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
+On 28 December 2017 at 12:05, Ingo Molnar <mingo@kernel.org> wrote:
+>
+> * Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
+>
+>> Annoyingly, we need this because there is a single instance of a
+>> special section that ends up in the EFI stub code: we build lib/sort.c
+>> again as a EFI libstub object, and given that sort() is exported, we
+>> end up with a ksymtab section in the EFI stub. The sort() thing has
+>> caused issues before [0], so perhaps I should just clone sort.c into
+>> drivers/firmware/efi/libstub and get rid of that hack.
+>>
+>> [0] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id)f9007b3182ab3f328a31da13e6b1c9072f7a95
+>
+> If the root problem is early bootstrap code randomly using generic facility that
+> isn't __init, then we should definitely improve tooling to at least detect these
+> problems.
+>
+> As bootstrap code gets improved (KASLR, more complex decompression, etc. etc.) we
+> keep using new bits of generic facilities...
+>
+> So this should definitely not be hidden by open coding that function (which has
+> various other disadvantages as well), but should be turned from silent breakage
+> either into non-breakage (and do so not only for sort() but for other generic
+> functions as well), or should be turned into a build failure.
+>
 
-* Ard Biesheuvel <ard.biesheuvel@linaro.org> wrote:
+We already have safeguards in place to ensure that the arm64 EFI stub
+(which is essentially the same executable as the kernel proper) only
+pulls in code that has been made available to it explicitly. That is
+why sort.c is recompiled for the EFI stub, as well as all other C code
+that is shared between the stub and the kernel. We also have a build
+time check to ensure that the resulting code does not rely on absolute
+symbol references, which will be invalid in the UEFI execution
+context.
 
-> Annoyingly, we need this because there is a single instance of a
-> special section that ends up in the EFI stub code: we build lib/sort.c
-> again as a EFI libstub object, and given that sort() is exported, we
-> end up with a ksymtab section in the EFI stub. The sort() thing has
-> caused issues before [0], so perhaps I should just clone sort.c into
-> drivers/firmware/efi/libstub and get rid of that hack.
-> 
-> [0] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id)f9007b3182ab3f328a31da13e6b1c9072f7a95
-
-If the root problem is early bootstrap code randomly using generic facility that 
-isn't __init, then we should definitely improve tooling to at least detect these 
-problems.
-
-As bootstrap code gets improved (KASLR, more complex decompression, etc. etc.) we 
-keep using new bits of generic facilities...
-
-So this should definitely not be hidden by open coding that function (which has 
-various other disadvantages as well), but should be turned from silent breakage 
-either into non-breakage (and do so not only for sort() but for other generic 
-functions as well), or should be turned into a build failure.
-
-Thanks,
-
-	Ingo
+So the only problem is that unneeded ksymtab/kcrctab sections, which
+affected ARM for obscure reasons; typically, they just take up some
+space. On x86, the kaslr code deals with a similar issue by
+#define'ing _LINUX_EXPORT_H before including linux/export.h, which
+also gets rid of these sections, but I was a bit reluctant to copy
+that pattern. Perhaps we should enhance linux/export.h for reasons
+such as these by adding a macro that nops out EXPORT_SYMBOL()
+declarations?
