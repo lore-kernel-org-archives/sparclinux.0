@@ -1,80 +1,80 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:22 +0000
-Subject: [PATCH 18/67] microblaze: remove dma_nommu_dma_supported
-Message-Id: <20171229081911.2802-19-hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:44 +0000
+Subject: [PATCH 40/67] iommu/intel-iommu: use dma_direct_* helpers for the direct mapping case
+Message-Id: <20171229081911.2802-41-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171229081911.2802-1-hch@lst.de>
-In-Reply-To: <20171229081911.2802-1-hch-jcswGhMUV9g@public.gmane.org>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-snps-arc@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-Always returning 1 is the same behavior as not supplying a method at all.
+This simplifies the code a bit, and prepares for future cleanups.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/microblaze/kernel/dma.c | 6 ------
- arch/parisc/kernel/pci-dma.c | 7 -------
- 2 files changed, 13 deletions(-)
+ drivers/iommu/Kconfig       |  1 +
+ drivers/iommu/intel-iommu.c | 17 ++++++++---------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index 364b0ac41452..49b09648679b 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -89,11 +89,6 @@ static int dma_nommu_map_sg(struct device *dev, struct scatterlist *sgl,
- 	return nents;
- }
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index dc7c1914645d..df171cb85822 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -143,6 +143,7 @@ config DMAR_TABLE
+ config INTEL_IOMMU
+ 	bool "Support for Intel IOMMU using DMA Remapping Devices"
+ 	depends on PCI_MSI && ACPI && (X86 || IA64_GENERIC)
++	select DMA_DIRECT_OPS
+ 	select IOMMU_API
+ 	select IOMMU_IOVA
+ 	select DMAR_TABLE
+diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
+index 921caf4f0c3e..0de8bfe89061 100644
+--- a/drivers/iommu/intel-iommu.c
++++ b/drivers/iommu/intel-iommu.c
+@@ -31,6 +31,7 @@
+ #include <linux/pci.h>
+ #include <linux/dmar.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dma-direct.h>
+ #include <linux/mempool.h>
+ #include <linux/memory.h>
+ #include <linux/cpu.h>
+@@ -3712,17 +3713,12 @@ static void *intel_alloc_coherent(struct device *dev, size_t size,
+ 	struct page *page = NULL;
+ 	int order;
  
--static int dma_nommu_dma_supported(struct device *dev, u64 mask)
--{
--	return 1;
--}
++	if (iommu_no_mapping(dev))
++		return dma_direct_alloc(dev, size, dma_handle, flags, attrs);
++
+ 	size = PAGE_ALIGN(size);
+ 	order = get_order(size);
 -
- static inline dma_addr_t dma_nommu_map_page(struct device *dev,
- 					     struct page *page,
- 					     unsigned long offset,
-@@ -209,7 +204,6 @@ const struct dma_map_ops dma_nommu_ops = {
- 	.free			= dma_nommu_free_coherent,
- 	.mmap			= dma_nommu_mmap_coherent,
- 	.map_sg			= dma_nommu_map_sg,
--	.dma_supported		= dma_nommu_dma_supported,
- 	.map_page		= dma_nommu_map_page,
- 	.unmap_page		= dma_nommu_unmap_page,
- 	.sync_single_for_cpu	= dma_nommu_sync_single_for_cpu,
-diff --git a/arch/parisc/kernel/pci-dma.c b/arch/parisc/kernel/pci-dma.c
-index 6ad9aed3d025..2a05457f7aab 100644
---- a/arch/parisc/kernel/pci-dma.c
-+++ b/arch/parisc/kernel/pci-dma.c
-@@ -75,11 +75,6 @@ void dump_resmap(void)
- static inline void dump_resmap(void) {;}
- #endif
+-	if (!iommu_no_mapping(dev))
+-		flags &= ~(GFP_DMA | GFP_DMA32);
+-	else if (dev->coherent_dma_mask < dma_get_required_mask(dev)) {
+-		if (dev->coherent_dma_mask < DMA_BIT_MASK(32))
+-			flags |= GFP_DMA;
+-		else
+-			flags |= GFP_DMA32;
+-	}
++	flags &= ~(GFP_DMA | GFP_DMA32);
  
--static int pa11_dma_supported( struct device *dev, u64 mask)
--{
--	return 1;
--}
--
- static inline int map_pte_uncached(pte_t * pte,
- 		unsigned long vaddr,
- 		unsigned long size, unsigned long *paddr_ptr)
-@@ -579,7 +574,6 @@ static void pa11_dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- }
+ 	if (gfpflags_allow_blocking(flags)) {
+ 		unsigned int count = size >> PAGE_SHIFT;
+@@ -3758,6 +3754,9 @@ static void intel_free_coherent(struct device *dev, size_t size, void *vaddr,
+ 	int order;
+ 	struct page *page = virt_to_page(vaddr);
  
- const struct dma_map_ops pcxl_dma_ops = {
--	.dma_supported =	pa11_dma_supported,
- 	.alloc =		pa11_dma_alloc,
- 	.free =			pa11_dma_free,
- 	.map_page =		pa11_dma_map_page,
-@@ -617,7 +611,6 @@ static void pcx_dma_free(struct device *dev, size_t size, void *vaddr,
- }
++	if (iommu_no_mapping(dev))
++		return dma_direct_free(dev, size, vaddr, dma_handle, attrs);
++
+ 	size = PAGE_ALIGN(size);
+ 	order = get_order(size);
  
- const struct dma_map_ops pcx_dma_ops = {
--	.dma_supported =	pa11_dma_supported,
- 	.alloc =		pcx_dma_alloc,
- 	.free =			pcx_dma_free,
- 	.map_page =		pa11_dma_map_page,
 -- 
 2.14.2
 
