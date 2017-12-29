@@ -1,267 +1,109 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Wed, 06 Dec 2017 02:40:42 +0000
-Subject: [PATCH v2 1/2] sparc64: Oracle DAX infrastructure
-Message-Id: <20171206024043.327441-2-rob.gardner@oracle.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:47 +0000
+Subject: [PATCH 43/67] ia64: rename swiotlb_dma_ops
+Message-Id: <20171229081911.2802-44-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This patch adds hypercall function stubs and C templates for
-ccb_submit/info/kill which provide coprocessor services for the Oracle
-Data Analytics Accelerator, registration for the DAX api group, and
-all the various associated constants.
+We'll need that name for a generic implementation soon.
 
-Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
-Signed-off-by: Jonathan Helman <jonathan.helman@oracle.com>
-Signed-off-by: Sanath Kumar <sanath099@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/include/asm/hypervisor.h | 138 ++++++++++++++++++++++++++++++++++++
- arch/sparc/kernel/hvapi.c           |   1 +
- arch/sparc/kernel/hvcalls.S         |  57 +++++++++++++++
- 3 files changed, 196 insertions(+)
+ arch/ia64/hp/common/hwsw_iommu.c | 4 ++--
+ arch/ia64/hp/common/sba_iommu.c  | 6 +++---
+ arch/ia64/kernel/pci-swiotlb.c   | 6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
-index 73cb8978df58..401fafea4754 100644
---- a/arch/sparc/include/asm/hypervisor.h
-+++ b/arch/sparc/include/asm/hypervisor.h
-@@ -75,6 +75,10 @@
- #define HV_ETOOMANY			15 /* Too many items specified     */
- #define HV_ECHANNEL			16 /* Invalid LDC channel          */
- #define HV_EBUSY			17 /* Resource busy                */
-+#define HV_EUNAVAILABLE			23 /* Resource or operation not
-+					    * currently available, but may
-+					    * become available in the future
-+					    */
+diff --git a/arch/ia64/hp/common/hwsw_iommu.c b/arch/ia64/hp/common/hwsw_iommu.c
+index 63d8e1d2477f..41279f0442bd 100644
+--- a/arch/ia64/hp/common/hwsw_iommu.c
++++ b/arch/ia64/hp/common/hwsw_iommu.c
+@@ -19,7 +19,7 @@
+ #include <linux/export.h>
+ #include <asm/machvec.h>
  
- /* mach_exit()
-  * TRAP:	HV_FAST_TRAP
-@@ -922,6 +926,139 @@ unsigned long sun4v_mmu_map_perm_addr(unsigned long vaddr,
-  */
- #define HV_FAST_MEM_SYNC		0x32
+-extern const struct dma_map_ops sba_dma_ops, swiotlb_dma_ops;
++extern const struct dma_map_ops sba_dma_ops, ia64_swiotlb_dma_ops;
  
-+/* Coprocessor services
-+ *
-+ * M7 and later processors provide an on-chip coprocessor which
-+ * accelerates database operations, and is known internally as
-+ * DAX.
-+ */
-+
-+/* ccb_submit()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_CCB_SUBMIT
-+ * ARG0:	address of CCB array
-+ * ARG1:	size (in bytes) of CCB array being submitted
-+ * ARG2:	flags
-+ * ARG3:	reserved
-+ * RET0:	status (success or error code)
-+ * RET1:	size (in bytes) of CCB array that was accepted (might be less
-+ *		than arg1)
-+ * RET2:	status data
-+ *		if status = ENOMAP or ENOACCESS, identifies the VA in question
-+ *		if status = EUNAVAILBLE, unavailable code
-+ * RET3:	reserved
-+ *
-+ * ERRORS:	EOK		successful submission (check size)
-+ *		EWOULDBLOCK	could not finish submissions, try again
-+ *		EBADALIGN	array not 64B aligned or size not 64B multiple
-+ *		ENORADDR	invalid RA for array or in CCB
-+ *		ENOMAP		could not translate address (see status data)
-+ *		EINVAL		invalid ccb or arguments
-+ *		ETOOMANY	too many ccbs with all-or-nothing flag
-+ *		ENOACCESS	guest has no access to submit ccbs or address
-+ *				in CCB does not have correct permissions (check
-+ *				status data)
-+ *		EUNAVAILABLE	ccb operation could not be performed at this
-+ *				time (check status data)
-+ *				Status data codes:
-+ *					0 - exact CCB could not be executed
-+ *					1 - CCB opcode cannot be executed
-+ *					2 - CCB version cannot be executed
-+ *					3 - vcpu cannot execute CCBs
-+ *					4 - no CCBs can be executed
-+ */
-+
-+#define HV_CCB_SUBMIT               0x34
-+#ifndef __ASSEMBLY__
-+unsigned long sun4v_ccb_submit(unsigned long ccb_buf,
-+			       unsigned long len,
-+			       unsigned long flags,
-+			       unsigned long reserved,
-+			       void *submitted_len,
-+			       void *status_data);
-+#endif
-+
-+/* flags (ARG2) */
-+#define HV_CCB_QUERY_CMD		BIT(1)
-+#define HV_CCB_ARG0_TYPE_REAL		0UL
-+#define HV_CCB_ARG0_TYPE_PRIMARY	BIT(4)
-+#define HV_CCB_ARG0_TYPE_SECONDARY	BIT(5)
-+#define HV_CCB_ARG0_TYPE_NUCLEUS	GENMASK(5, 4)
-+#define HV_CCB_ARG0_PRIVILEGED		BIT(6)
-+#define HV_CCB_ALL_OR_NOTHING		BIT(7)
-+#define HV_CCB_QUEUE_INFO		BIT(8)
-+#define HV_CCB_VA_REJECT		0UL
-+#define HV_CCB_VA_SECONDARY		BIT(13)
-+#define HV_CCB_VA_NUCLEUS		GENMASK(13, 12)
-+#define HV_CCB_VA_PRIVILEGED		BIT(14)
-+#define HV_CCB_VA_READ_ADI_DISABLE	BIT(15)	/* DAX2 only */
-+
-+/* ccb_info()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_CCB_INFO
-+ * ARG0:	real address of CCB completion area
-+ * RET0:	status (success or error code)
-+ * RET1:	info array
-+ *			- RET1[0]: CCB state
-+ *			- RET1[1]: dax unit
-+ *			- RET1[2]: queue number
-+ *			- RET1[3]: queue position
-+ *
-+ * ERRORS:	EOK		operation successful
-+ *		EBADALIGN	address not 64B aligned
-+ *		ENORADDR	RA in address not valid
-+ *		EINVAL		CA not valid
-+ *		EWOULDBLOCK	info not available for this CCB currently, try
-+ *				again
-+ *		ENOACCESS	guest cannot use dax
-+ */
-+
-+#define HV_CCB_INFO                 0x35
-+#ifndef __ASSEMBLY__
-+unsigned long sun4v_ccb_info(unsigned long ca,
-+			     void *info_arr);
-+#endif
-+
-+/* info array byte offsets (RET1) */
-+#define CCB_INFO_OFFSET_CCB_STATE	0
-+#define CCB_INFO_OFFSET_DAX_UNIT	2
-+#define CCB_INFO_OFFSET_QUEUE_NUM	4
-+#define CCB_INFO_OFFSET_QUEUE_POS	6
-+
-+/* CCB state (RET1[0]) */
-+#define HV_CCB_STATE_COMPLETED      0
-+#define HV_CCB_STATE_ENQUEUED       1
-+#define HV_CCB_STATE_INPROGRESS     2
-+#define HV_CCB_STATE_NOTFOUND       3
-+
-+/* ccb_kill()
-+ * TRAP:	HV_FAST_TRAP
-+ * FUNCTION:	HV_CCB_KILL
-+ * ARG0:	real address of CCB completion area
-+ * RET0:	status (success or error code)
-+ * RET1:	CCB kill status
-+ *
-+ * ERRORS:	EOK		operation successful
-+ *		EBADALIGN	address not 64B aligned
-+ *		ENORADDR	RA in address not valid
-+ *		EINVAL		CA not valid
-+ *		EWOULDBLOCK	kill not available for this CCB currently, try
-+ *				again
-+ *		ENOACCESS	guest cannot use dax
-+ */
-+
-+#define HV_CCB_KILL                 0x36
-+#ifndef __ASSEMBLY__
-+unsigned long sun4v_ccb_kill(unsigned long ca,
-+			     void *kill_status);
-+#endif
-+
-+/* CCB kill status (RET1) */
-+#define HV_CCB_KILL_COMPLETED       0
-+#define HV_CCB_KILL_DEQUEUED        1
-+#define HV_CCB_KILL_KILLED          2
-+#define HV_CCB_KILL_NOTFOUND        3
-+
- /* Time of day services.
-  *
-  * The hypervisor maintains the time of day on a per-domain basis.
-@@ -3336,6 +3473,7 @@ unsigned long sun4v_m7_set_perfreg(unsigned long reg_num,
- #define HV_GRP_SDIO_ERR			0x0109
- #define HV_GRP_REBOOT_DATA		0x0110
- #define HV_GRP_ATU			0x0111
-+#define HV_GRP_DAX			0x0113
- #define HV_GRP_M7_PERF			0x0114
- #define HV_GRP_NIAG_PERF		0x0200
- #define HV_GRP_FIRE_PERF		0x0201
-diff --git a/arch/sparc/kernel/hvapi.c b/arch/sparc/kernel/hvapi.c
-index 267731234ce8..c3a923abce8b 100644
---- a/arch/sparc/kernel/hvapi.c
-+++ b/arch/sparc/kernel/hvapi.c
-@@ -40,6 +40,7 @@ static struct api_info api_table[] = {
- 	{ .group = HV_GRP_SDIO_ERR,				},
- 	{ .group = HV_GRP_REBOOT_DATA,				},
- 	{ .group = HV_GRP_ATU,		.flags = FLAG_PRE_API	},
-+	{ .group = HV_GRP_DAX,					},
- 	{ .group = HV_GRP_NIAG_PERF,	.flags = FLAG_PRE_API	},
- 	{ .group = HV_GRP_FIRE_PERF,				},
- 	{ .group = HV_GRP_N2_CPU,				},
-diff --git a/arch/sparc/kernel/hvcalls.S b/arch/sparc/kernel/hvcalls.S
-index 4116ee5c7791..f7d799ef9ef9 100644
---- a/arch/sparc/kernel/hvcalls.S
-+++ b/arch/sparc/kernel/hvcalls.S
-@@ -859,3 +859,60 @@ ENTRY(sun4v_m7_set_perfreg)
- 	retl
- 	nop
- ENDPROC(sun4v_m7_set_perfreg)
-+
-+	/* %o0: address of CCB array
-+	 * %o1: size (in bytes) of CCB array
-+	 * %o2: flags
-+	 * %o3: reserved
-+	 *
-+	 * returns:
-+	 * %o0: status
-+	 * %o1: size (in bytes) of the CCB array that was accepted
-+	 * %o2: status data
-+	 * %o3: reserved
-+	 */
-+ENTRY(sun4v_ccb_submit)
-+	mov	%o5, %g1
-+	mov	HV_CCB_SUBMIT, %o5
-+	ta	HV_FAST_TRAP
-+	stx	%o1, [%o4]
-+	retl
-+	 stx	%o2, [%g1]
-+ENDPROC(sun4v_ccb_submit)
-+EXPORT_SYMBOL(sun4v_ccb_submit)
-+
-+	/* %o0: completion area ra for the ccb to get info
-+	 *
-+	 * returns:
-+	 * %o0: status
-+	 * %o1: CCB state
-+	 * %o2: position
-+	 * %o3: dax unit
-+	 * %o4: queue
-+	 */
-+ENTRY(sun4v_ccb_info)
-+	mov	%o1, %g1
-+	mov	HV_CCB_INFO, %o5
-+	ta	HV_FAST_TRAP
-+	sth	%o1, [%g1 + CCB_INFO_OFFSET_CCB_STATE]
-+	sth	%o2, [%g1 + CCB_INFO_OFFSET_QUEUE_POS]
-+	sth	%o3, [%g1 + CCB_INFO_OFFSET_DAX_UNIT]
-+	retl
-+	 sth	%o4, [%g1 + CCB_INFO_OFFSET_QUEUE_NUM]
-+ENDPROC(sun4v_ccb_info)
-+EXPORT_SYMBOL(sun4v_ccb_info)
-+
-+	/* %o0: completion area ra for the ccb to kill
-+	 *
-+	 * returns:
-+	 * %o0: status
-+	 * %o1: result of the kill
-+	 */
-+ENTRY(sun4v_ccb_kill)
-+	mov	%o1, %g1
-+	mov	HV_CCB_KILL, %o5
-+	ta	HV_FAST_TRAP
-+	retl
-+	 sth	%o1, [%g1]
-+ENDPROC(sun4v_ccb_kill)
-+EXPORT_SYMBOL(sun4v_ccb_kill)
+ /* swiotlb declarations & definitions: */
+ extern int swiotlb_late_init_with_default_size (size_t size);
+@@ -38,7 +38,7 @@ static inline int use_swiotlb(struct device *dev)
+ const struct dma_map_ops *hwsw_dma_get_ops(struct device *dev)
+ {
+ 	if (use_swiotlb(dev))
+-		return &swiotlb_dma_ops;
++		return &ia64_swiotlb_dma_ops;
+ 	return &sba_dma_ops;
+ }
+ EXPORT_SYMBOL(hwsw_dma_get_ops);
+diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
+index 6f05aba9012f..d68849ad2ee1 100644
+--- a/arch/ia64/hp/common/sba_iommu.c
++++ b/arch/ia64/hp/common/sba_iommu.c
+@@ -2093,7 +2093,7 @@ static int __init acpi_sba_ioc_init_acpi(void)
+ /* This has to run before acpi_scan_init(). */
+ arch_initcall(acpi_sba_ioc_init_acpi);
+ 
+-extern const struct dma_map_ops swiotlb_dma_ops;
++extern const struct dma_map_ops ia64_swiotlb_dma_ops;
+ 
+ static int __init
+ sba_init(void)
+@@ -2108,7 +2108,7 @@ sba_init(void)
+ 	 * a successful kdump kernel boot is to use the swiotlb.
+ 	 */
+ 	if (is_kdump_kernel()) {
+-		dma_ops = &swiotlb_dma_ops;
++		dma_ops = &ia64_swiotlb_dma_ops;
+ 		if (swiotlb_late_init_with_default_size(64 * (1<<20)) != 0)
+ 			panic("Unable to initialize software I/O TLB:"
+ 				  " Try machvec=dig boot option");
+@@ -2130,7 +2130,7 @@ sba_init(void)
+ 		 * If we didn't find something sba_iommu can claim, we
+ 		 * need to setup the swiotlb and switch to the dig machvec.
+ 		 */
+-		dma_ops = &swiotlb_dma_ops;
++		dma_ops = &ia64_swiotlb_dma_ops;
+ 		if (swiotlb_late_init_with_default_size(64 * (1<<20)) != 0)
+ 			panic("Unable to find SBA IOMMU or initialize "
+ 			      "software I/O TLB: Try machvec=dig boot option");
+diff --git a/arch/ia64/kernel/pci-swiotlb.c b/arch/ia64/kernel/pci-swiotlb.c
+index 5e50939aa03e..f1ae873a8c35 100644
+--- a/arch/ia64/kernel/pci-swiotlb.c
++++ b/arch/ia64/kernel/pci-swiotlb.c
+@@ -31,7 +31,7 @@ static void ia64_swiotlb_free_coherent(struct device *dev, size_t size,
+ 	swiotlb_free_coherent(dev, size, vaddr, dma_addr);
+ }
+ 
+-const struct dma_map_ops swiotlb_dma_ops = {
++const struct dma_map_ops ia64_swiotlb_dma_ops = {
+ 	.alloc = ia64_swiotlb_alloc_coherent,
+ 	.free = ia64_swiotlb_free_coherent,
+ 	.map_page = swiotlb_map_page,
+@@ -48,7 +48,7 @@ const struct dma_map_ops swiotlb_dma_ops = {
+ 
+ void __init swiotlb_dma_init(void)
+ {
+-	dma_ops = &swiotlb_dma_ops;
++	dma_ops = &ia64_swiotlb_dma_ops;
+ 	swiotlb_init(1);
+ }
+ 
+@@ -60,7 +60,7 @@ void __init pci_swiotlb_init(void)
+ 		printk(KERN_INFO "PCI-DMA: Re-initialize machine vector.\n");
+ 		machvec_init("dig");
+ 		swiotlb_init(1);
+-		dma_ops = &swiotlb_dma_ops;
++		dma_ops = &ia64_swiotlb_dma_ops;
+ #else
+ 		panic("Unable to find Intel IOMMU");
+ #endif
 -- 
-2.15.0
+2.14.2
 
