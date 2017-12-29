@@ -1,53 +1,42 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Date: Fri, 22 Dec 2017 08:36:16 +0000
-Subject: Re: [PATCH] crypto: n2 - cure use after free
-Message-Id: <20171222083616.GA30844@gondor.apana.org.au>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:55 +0000
+Subject: [PATCH 51/67] set_memory.h: provide set_memory_{en,de}crypted stubs
+Message-Id: <20171229081911.2802-52-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171219180907.12895-1-jengelh@inai.de>
-In-Reply-To: <20171219180907.12895-1-jengelh@inai.de>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh@inai.de>
-Cc: davem@davemloft.net, sparclinux@vger.kernel.org, linux-crypto@vger.kernel.org, rmk+kernel@arm.linux.org.uk
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Jan Engelhardt <jengelh@inai.de> wrote:
-> queue_cache_init is first called for the Control Word Queue
-> (n2_crypto_probe). At that time, queue_cache[0] is NULL and a new
-> kmem_cache will be allocated. If the subsequent n2_register_algs call
-> fails, the kmem_cache will be released in queue_cache_destroy, but
-> queue_cache_init[0] is not set back to NULL.
-> 
-> So when the Module Arithmetic Unit gets probed next (n2_mau_probe),
-> queue_cache_init will not allocate a kmem_cache again, but leave it
-> as its bogus value, causing a BUG() to trigger when queue_cache[0] is
-> eventually passed to kmem_cache_zalloc:
-> 
->        n2_crypto: Found N2CP at /virtual-devices@100/n2cp@7
->        n2_crypto: Registered NCS HVAPI version 2.0
->        called queue_cache_init
->        n2_crypto: md5 alg registration failed
->        n2cp f028687c: /virtual-devices@100/n2cp@7: Unable to register algorithms.
->        called queue_cache_destroy
->        n2cp: probe of f028687c failed with error -22
->        n2_crypto: Found NCP at /virtual-devices@100/ncp@6
->        n2_crypto: Registered NCS HVAPI version 2.0
->        called queue_cache_init
->        kernel BUG at mm/slab.c:2993!
->        Call Trace:
->         [0000000000604488] kmem_cache_alloc+0x1a8/0x1e0
->                  (inlined) kmem_cache_zalloc
->                  (inlined) new_queue
->                  (inlined) spu_queue_setup
->                  (inlined) handle_exec_unit
->         [0000000010c61eb4] spu_mdesc_scan+0x1f4/0x460 [n2_crypto]
->         [0000000010c62b80] n2_mau_probe+0x100/0x220 [n2_crypto]
->         [000000000084b174] platform_drv_probe+0x34/0xc0
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/set_memory.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-Patch applied.  Thanks.
+diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
+index e5140648f638..da5178216da5 100644
+--- a/include/linux/set_memory.h
++++ b/include/linux/set_memory.h
+@@ -17,4 +17,16 @@ static inline int set_memory_x(unsigned long addr,  int numpages) { return 0; }
+ static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
+ #endif
+ 
++#ifndef CONFIG_ARCH_HAS_MEM_ENCRYPT
++static inline int set_memory_encrypted(unsigned long addr, int numpages)
++{
++	return 0;
++}
++
++static inline int set_memory_decrypted(unsigned long addr, int numpages)
++{
++	return 0;
++}
++#endif /* CONFIG_ARCH_HAS_MEM_ENCRYPT */
++
+ #endif /* _LINUX_SET_MEMORY_H_ */
 -- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+2.14.2
+
