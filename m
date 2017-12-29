@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:23 +0000
-Subject: [PATCH 19/67] microblaze: remove the dead !NOT_COHERENT_CACHE dma code
-Message-Id: <20171229081911.2802-20-hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:36 +0000
+Subject: [PATCH 32/67] dma-direct: add support for allocation from ZONE_DMA and ZONE_DMA32
+Message-Id: <20171229081911.2802-33-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171229081911.2802-1-hch@lst.de>
 In-Reply-To: <20171229081911.2802-1-hch@lst.de>
@@ -13,69 +13,41 @@ Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-k
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/microblaze/kernel/dma.c | 28 ----------------------------
- 1 file changed, 28 deletions(-)
+ lib/dma-direct.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index 49b09648679b..031d889670f5 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -15,42 +15,18 @@
- #include <linux/bug.h>
- #include <asm/cacheflush.h>
+diff --git a/lib/dma-direct.c b/lib/dma-direct.c
+index 7e913728e099..2e9b9494610c 100644
+--- a/lib/dma-direct.c
++++ b/lib/dma-direct.c
+@@ -12,6 +12,14 @@
  
--#define NOT_COHERENT_CACHE
--
- static void *dma_nommu_alloc_coherent(struct device *dev, size_t size,
- 				       dma_addr_t *dma_handle, gfp_t flag,
- 				       unsigned long attrs)
- {
--#ifdef NOT_COHERENT_CACHE
- 	return consistent_alloc(flag, size, dma_handle);
--#else
--	void *ret;
--	struct page *page;
--	int node = dev_to_node(dev);
--
--	/* ignore region specifiers */
--	flag  &= ~(__GFP_HIGHMEM);
--
--	page = alloc_pages_node(node, flag, get_order(size));
--	if (page = NULL)
--		return NULL;
--	ret = page_address(page);
--	memset(ret, 0, size);
--	*dma_handle = virt_to_phys(ret);
--
--	return ret;
--#endif
- }
+ #define DIRECT_MAPPING_ERROR		0
  
- static void dma_nommu_free_coherent(struct device *dev, size_t size,
- 				     void *vaddr, dma_addr_t dma_handle,
- 				     unsigned long attrs)
- {
--#ifdef NOT_COHERENT_CACHE
- 	consistent_free(size, vaddr);
--#else
--	free_pages((unsigned long)vaddr, get_order(size));
--#endif
- }
++/*
++ * Most architectures use ZONE_DMA for the first 16 Megabytes, but
++ * some use it for entirely different regions:
++ */
++#ifndef ARCH_ZONE_DMA_BITS
++#define ARCH_ZONE_DMA_BITS 24
++#endif
++
+ static bool
+ check_addr(struct device *dev, dma_addr_t dma_addr, size_t size,
+ 		const char *caller)
+@@ -40,6 +48,12 @@ void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 	int page_order = get_order(size);
+ 	struct page *page = NULL;
  
- static inline void __dma_sync(unsigned long paddr,
-@@ -186,12 +162,8 @@ int dma_nommu_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
- 	if (off >= count || user_count > (count - off))
- 		return -ENXIO;
- 
--#ifdef NOT_COHERENT_CACHE
- 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 	pfn = consistent_virt_to_pfn(cpu_addr);
--#else
--	pfn = virt_to_pfn(cpu_addr);
--#endif
- 	return remap_pfn_range(vma, vma->vm_start, pfn + off,
- 			       vma->vm_end - vma->vm_start, vma->vm_page_prot);
- #else
++	/* GFP_DMA32 and GFP_DMA are no ops without the corresponding zones: */
++	if (dev->coherent_dma_mask < DMA_BIT_MASK(32))
++		gfp |= GFP_DMA32;
++	else if (dev->coherent_dma_mask < DMA_BIT_MASK(ARCH_ZONE_DMA_BITS))
++		gfp |= GFP_DMA;
++
+ again:
+ 	/* CMA can be used only in the context which permits sleeping */
+ 	if (gfpflags_allow_blocking(gfp)) {
 -- 
 2.14.2
 
