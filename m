@@ -1,96 +1,116 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Mon, 25 Dec 2017 20:54:36 +0000
-Subject: [PATCH v5 4/8] PCI: Add support for relative addressing in quirk tables
-Message-Id: <20171225205440.14575-5-ard.biesheuvel@linaro.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:19:09 +0000
+Subject: [PATCH 65/67] arm64: use swiotlb_alloc and swiotlb_free
+Message-Id: <20171229081911.2802-66-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Allow the PCI quirk tables to be emitted in a way that avoids absolute
-references to the hook functions. This reduces the size of the entries,
-and, more importantly, makes them invariant under runtime relocation
-(e.g., for KASLR)
+The generic swiotlb_alloc and swiotlb_free routines already take care
+of CMA allocations and adding GFP_DMA32 where needed, so use them
+instead of the arm specific helpers.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/pci/quirks.c | 13 ++++++++++---
- include/linux/pci.h  | 20 ++++++++++++++++++++
- 2 files changed, 30 insertions(+), 3 deletions(-)
+ arch/arm64/Kconfig          |  1 +
+ arch/arm64/mm/dma-mapping.c | 46 +++------------------------------------------
+ 2 files changed, 4 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 10684b17d0bd..b6d51b4d5ce1 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -3556,9 +3556,16 @@ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
- 		     f->vendor = (u16) PCI_ANY_ID) &&
- 		    (f->device = dev->device ||
- 		     f->device = (u16) PCI_ANY_ID)) {
--			calltime = fixup_debug_start(dev, f->hook);
--			f->hook(dev);
--			fixup_debug_report(dev, calltime, f->hook);
-+			void (*hook)(struct pci_dev *dev);
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+			hook = (void *)((unsigned long)&f->hook_offset +
-+					f->hook_offset);
-+#else
-+			hook = f->hook;
-+#endif
-+			calltime = fixup_debug_start(dev, hook);
-+			hook(dev);
-+			fixup_debug_report(dev, calltime, hook);
- 		}
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 6b6985f15d02..53205c02b18a 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -59,6 +59,7 @@ config ARM64
+ 	select COMMON_CLK
+ 	select CPU_PM if (SUSPEND || CPU_IDLE)
+ 	select DCACHE_WORD_ACCESS
++	select DMA_DIRECT_OPS
+ 	select EDAC_SUPPORT
+ 	select FRAME_POINTER
+ 	select GENERIC_ALLOCATOR
+diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+index 0d641875b20e..a96ec0181818 100644
+--- a/arch/arm64/mm/dma-mapping.c
++++ b/arch/arm64/mm/dma-mapping.c
+@@ -91,46 +91,6 @@ static int __free_from_pool(void *start, size_t size)
+ 	return 1;
  }
  
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index c170c9250c8b..e8c34afb5d4a 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1792,7 +1792,11 @@ struct pci_fixup {
- 	u16 device;		/* You can use PCI_ANY_ID here of course */
- 	u32 class;		/* You can use PCI_ANY_ID here too */
- 	unsigned int class_shift;	/* should be 0, 8, 16 */
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+	signed int hook_offset;
-+#else
- 	void (*hook)(struct pci_dev *dev);
-+#endif
- };
+-static void *__dma_alloc_coherent(struct device *dev, size_t size,
+-				  dma_addr_t *dma_handle, gfp_t flags,
+-				  unsigned long attrs)
+-{
+-	if (IS_ENABLED(CONFIG_ZONE_DMA32) &&
+-	    dev->coherent_dma_mask <= DMA_BIT_MASK(32))
+-		flags |= GFP_DMA32;
+-	if (dev_get_cma_area(dev) && gfpflags_allow_blocking(flags)) {
+-		struct page *page;
+-		void *addr;
+-
+-		page = dma_alloc_from_contiguous(dev, size >> PAGE_SHIFT,
+-						 get_order(size), flags);
+-		if (!page)
+-			return NULL;
+-
+-		*dma_handle = phys_to_dma(dev, page_to_phys(page));
+-		addr = page_address(page);
+-		memset(addr, 0, size);
+-		return addr;
+-	} else {
+-		return swiotlb_alloc_coherent(dev, size, dma_handle, flags);
+-	}
+-}
+-
+-static void __dma_free_coherent(struct device *dev, size_t size,
+-				void *vaddr, dma_addr_t dma_handle,
+-				unsigned long attrs)
+-{
+-	bool freed;
+-	phys_addr_t paddr = dma_to_phys(dev, dma_handle);
+-
+-
+-	freed = dma_release_from_contiguous(dev,
+-					phys_to_page(paddr),
+-					size >> PAGE_SHIFT);
+-	if (!freed)
+-		swiotlb_free_coherent(dev, size, vaddr, dma_handle);
+-}
+-
+ static void *__dma_alloc(struct device *dev, size_t size,
+ 			 dma_addr_t *dma_handle, gfp_t flags,
+ 			 unsigned long attrs)
+@@ -152,7 +112,7 @@ static void *__dma_alloc(struct device *dev, size_t size,
+ 		return addr;
+ 	}
  
- enum pci_fixup_pass {
-@@ -1806,12 +1810,28 @@ enum pci_fixup_pass {
- 	pci_fixup_suspend_late,	/* pci_device_suspend_late() */
- };
+-	ptr = __dma_alloc_coherent(dev, size, dma_handle, flags, attrs);
++	ptr = swiotlb_alloc(dev, size, dma_handle, flags, attrs);
+ 	if (!ptr)
+ 		goto no_mem;
  
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+#define __DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
-+				    class_shift, hook)			\
-+	__ADDRESSABLE(hook)						\
-+	asm(".section "	#sec ", \"a\"				\n"	\
-+	    ".balign	16					\n"	\
-+	    ".short "	#vendor ", " #device "			\n"	\
-+	    ".long "	#class ", " #class_shift "		\n"	\
-+	    ".long "	VMLINUX_SYMBOL_STR(hook) " - .		\n"	\
-+	    ".previous						\n");
-+#define DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
-+				  class_shift, hook)			\
-+	__DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
-+				  class_shift, hook)
-+#else
- /* Anonymous variables would be nice... */
- #define DECLARE_PCI_FIXUP_SECTION(section, name, vendor, device, class,	\
- 				  class_shift, hook)			\
- 	static const struct pci_fixup __PASTE(__pci_fixup_##name,__LINE__) __used	\
- 	__attribute__((__section__(#section), aligned((sizeof(void *)))))    \
- 		= { vendor, device, class, class_shift, hook };
-+#endif
+@@ -173,7 +133,7 @@ static void *__dma_alloc(struct device *dev, size_t size,
+ 	return coherent_ptr;
  
- #define DECLARE_PCI_FIXUP_CLASS_EARLY(vendor, device, class,		\
- 					 class_shift, hook)		\
+ no_map:
+-	__dma_free_coherent(dev, size, ptr, *dma_handle, attrs);
++	swiotlb_free(dev, size, ptr, *dma_handle, attrs);
+ no_mem:
+ 	return NULL;
+ }
+@@ -191,7 +151,7 @@ static void __dma_free(struct device *dev, size_t size,
+ 			return;
+ 		vunmap(vaddr);
+ 	}
+-	__dma_free_coherent(dev, size, swiotlb_addr, dma_handle, attrs);
++	swiotlb_free(dev, size, swiotlb_addr, dma_handle, attrs);
+ }
+ 
+ static dma_addr_t __swiotlb_map_page(struct device *dev, struct page *page,
 -- 
-2.11.0
+2.14.2
 
