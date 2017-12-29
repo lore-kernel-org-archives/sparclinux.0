@@ -1,146 +1,91 @@
-From: Andreas Larsson <andreas@gaisler.com>
-Date: Fri, 22 Dec 2017 15:26:13 +0000
-Subject: Re: [PATCH] sparc32,leon: Use CASA when available for atomic operations
-Message-Id: <5A3D2415.2020909@gaisler.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:31 +0000
+Subject: [PATCH 27/67] dma-direct: add dma address sanity checks
+Message-Id: <20171229081911.2802-28-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1513004290-3331-1-git-send-email-andreas@gaisler.com> <20171213224700.GA25963@ravnborg.org>
-In-Reply-To: <20171213224700.GA25963@ravnborg.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, software@gaisler.com
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
-On 2017-12-13 23:47, Sam Ravnborg wrote:
-> Hi Andreas.
->
-> On Mon, Dec 11, 2017 at 03:58:10PM +0100, Andreas Larsson wrote:
->> This probes for CASA support, that is commonly present in LEON
->> processors, and when available, uses the CASA instruction for atomic
->> operations rather than the spinlock based emulated atomic operations.
->>
->> All CASA instructions are encoded using .word to be able to assemble
->> for v8.
->
-> The patch mixes several things, so parts was not easy to follow.
-> It would have been much better if, based on the dynamic probing,
-> to replace relevant assembler parts with the relevant implementation.
-> So we avoid the check for sparc32_cas_capable in all the atomic_*
-> functions.
->
-> And the end result would most likely also be a more readable/simple
-> implementation.
->
-> And the end result could look like:
-> PATCH 1 - preparation
-> PATCH 2 - infrastructure
-> PATCH 3 - assembler version ready for patching
-> PATCH 4 - cas varaints - unused
-> PATCH 5 - detection and patching
->
-> Just to give you an idea.
->
-> You have most of the necessary bits in place already.
-> So most is code shuffelign and creating assembler versions
-> ready for patching.
->
-> You already have nice macros that avoids a lot of code duplication,
-> and this principle can be reused following the scheme outlined above.
+Roughly based on the x86 pci-nommu implementation.
 
-Thank you for the feedback!
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/dma-direct.c | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-Sure I can try to split things up in more pieces. I am not sure about 
-how well instruction patching will fit though. We have a good mix of 
-assembly, inline C code and macros that makes up the different parts of 
-the interface to the different kinds of atomic functionality. We don't 
-have the "easy" assembly level patching possibilities with "if case A 
-then use this set assembly instructions and if case B, patch it up with 
-this other set of assembly instructions". It is not merely CAS that is 
-either emulated or done in hardware. The emulation locking needs to be 
-used for writes of all kinds to these addresses when emulating CAS to 
-achieve atomicity.
-
-
->
-> An open question. There is a long-standing issue in glibc where
-> sparc32 does not support threading (IIRC). It had to do with
-> missing atomic support, which had to be emulated in the
-> kernel.
-> Will this patch move us closer to have that fixed?
-
-This does not add any of the main components of the CAS emulation for 
-user space done by the kernel that Dave has planned. But it makes 
-potential actual CAS available to the kernel when that can be used in 
-such a kernel emulation "call". Also, the information if the hardware 
-can use the CASA instruction can eventually be used in glibc to use CASA 
-when possible and the kernel emulation otherwise, once the kernel 
-emulation is in place. I have a followup patch (that I might just as 
-well add to the series when breaking it up in pieces) that adds the CAS 
-capability to the hardware capability information that glibc can use.
-
->
-> 	Sam
->
->
->> diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
->> index 358fe4e..d57dfe6 100644
->> --- a/arch/sparc/kernel/entry.S
->> +++ b/arch/sparc/kernel/entry.S
->> @@ -439,6 +439,10 @@ bad_instruction:
->>   	and	%l5, %l4, %l5
->>   	cmp	%l5, %l7
->>   	be	1f
->> +	 sethi	%hi(leon_cas_check), %l4
->> +	or	%l4, %lo(leon_cas_check), %l4
->> +	cmp	%l1, %l4
->> +	be	1f
->>   	SAVE_ALL
-> Here a nop is missing in the delay slot after "be  1f"
-
-Here I just followed the example of the previous check that let the 
-innocuous first instruction of SAVE_ALL be in the delay slot. But I have 
-nothing against clarity here.
-
->
->
->>
->>   	wr	%l0, PSR_ET, %psr		! re-enable traps
->> @@ -452,7 +456,7 @@ bad_instruction:
->>
->>   	RESTORE_ALL
->>
->> -1:	/* unimplemented flush - just skip */
->> +1:	/* unimplemented flush or probed CASA - just skip */
->>   	jmpl	%l2, %g0
->>   	 rett	%l2 + 4
->>
->> diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
->> index e55f2c0..72a57af 100644
->> --- a/arch/sparc/kernel/head_32.S
->> +++ b/arch/sparc/kernel/head_32.S
->> @@ -441,6 +441,14 @@ leon_init:
->>   		/* Update boot_cpu_id only on boot cpu */
->>   		stub	%g1, [%g2 + %lo(boot_cpu_id)]
->>
->> +		/* Check if CASA is supported */
->> +		set	sparc32_cas_capable, %g1
->> +		mov	1, %g2
->> +
->> +		.global	leon_cas_check
->> +leon_cas_check:
->> +		.word	0xc5e04160 /* casa [%g1] 0xb, %g0, %g2 */
->> +
->>   		ba continue_boot
->>   		 nop
->
-> I could not follow this code-snippet.
-> Maybe this is my ignorance of the casa instruction.
-> Will it store the value of %g2 (=1) in the address pointed
-> by %g1 (sparc32_cas_capable) if casa is enabled?
-> Maybe it is obvious for others, but it ws not for me.
-> So one or two comments more...
-
-Yes. I will add a comment to this.
-
-/Andreas
+diff --git a/lib/dma-direct.c b/lib/dma-direct.c
+index 0e087650e86b..ddd9dcf4e663 100644
+--- a/lib/dma-direct.c
++++ b/lib/dma-direct.c
+@@ -9,6 +9,24 @@
+ #include <linux/scatterlist.h>
+ #include <linux/pfn.h>
+ 
++#define DIRECT_MAPPING_ERROR		0
++
++static bool
++check_addr(struct device *dev, dma_addr_t dma_addr, size_t size,
++		const char *caller)
++{
++	if (unlikely(dev && !dma_capable(dev, dma_addr, size))) {
++		if (*dev->dma_mask >= DMA_BIT_MASK(32)) {
++			dev_err(dev,
++				"%s: overflow %llx+%zu of device mask %llx\n",
++				caller, (long long)dma_addr, size,
++				(long long)*dev->dma_mask);
++		}
++		return false;
++	}
++	return true;
++}
++
+ static void *dma_direct_alloc(struct device *dev, size_t size,
+ 		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+@@ -31,7 +49,11 @@ static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t size, enum dma_data_direction dir,
+ 		unsigned long attrs)
+ {
+-	return phys_to_dma(dev, page_to_phys(page)) + offset;
++	dma_addr_t dma_addr = phys_to_dma(dev, page_to_phys(page)) + offset;
++
++	if (!check_addr(dev, dma_addr, size, __func__))
++		return DIRECT_MAPPING_ERROR;
++	return dma_addr;
+ }
+ 
+ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+@@ -44,17 +66,25 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
+ 		BUG_ON(!sg_page(sg));
+ 
+ 		sg_dma_address(sg) = phys_to_dma(dev, sg_phys(sg));
++		if (!check_addr(dev, sg_dma_address(sg), sg->length, __func__))
++			return 0;
+ 		sg_dma_len(sg) = sg->length;
+ 	}
+ 
+ 	return nents;
+ }
+ 
++static int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr)
++{
++	return dma_addr = DIRECT_MAPPING_ERROR;
++}
++
+ const struct dma_map_ops dma_direct_ops = {
+ 	.alloc			= dma_direct_alloc,
+ 	.free			= dma_direct_free,
+ 	.map_page		= dma_direct_map_page,
+ 	.map_sg			= dma_direct_map_sg,
++	.mapping_error		= dma_direct_mapping_error,
+ 	.is_phys		= true,
+ };
+ EXPORT_SYMBOL(dma_direct_ops);
+-- 
+2.14.2
 
