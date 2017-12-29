@@ -1,154 +1,109 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Wed, 27 Dec 2017 08:50:32 +0000
-Subject: [PATCH v6 7/8] arm64/kernel: jump_label: use relative references
-Message-Id: <20171227085033.22389-8-ard.biesheuvel@linaro.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:19:10 +0000
+Subject: [PATCH 66/67] swiotlb: remove swiotlb_{alloc,free}_coherent
+Message-Id: <20171229081911.2802-67-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20171227085033.22389-1-ard.biesheuvel@linaro.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On a randomly chosen distro kernel build for arm64, vmlinux.o shows the
-following sections, containing jump label entries, and the associated
-RELA relocation records, respectively:
+Unused now that everyone uses swiotlb_{alloc,free}.
 
-  ...
-  [38088] __jump_table      PROGBITS         0000000000000000  00e19f30
-       000000000002ea10  0000000000000000  WA       0     0     8
-  [38089] .rela__jump_table RELA             0000000000000000  01fd8bb0
-       000000000008be30  0000000000000018   I      38178   38088     8
-  ...
-
-In other words, we have 190 KB worth of 'struct jump_entry' instances,
-and 573 KB worth of RELA entries to relocate each entry's code, target
-and key members. This means the RELA section occupies 10% of the .init
-segment, and the two sections combined represent 5% of vmlinux's entire
-memory footprint.
-
-So let's switch from 64-bit absolute references to 32-bit relative
-references: this reduces the size of the __jump_table by 50%, and gets
-rid of the RELA section entirely.
-
-Note that this requires some extra care in the sorting routine, given
-that the offsets change when entries are moved around in the jump_entry
-table.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/arm64/include/asm/jump_label.h | 27 ++++++++++++--------
- arch/arm64/kernel/jump_label.c      | 22 +++++++++++++---
- 2 files changed, 36 insertions(+), 13 deletions(-)
+ include/linux/swiotlb.h |  8 --------
+ lib/swiotlb.c           | 41 -----------------------------------------
+ 2 files changed, 49 deletions(-)
 
-diff --git a/arch/arm64/include/asm/jump_label.h b/arch/arm64/include/asm/jump_label.h
-index 9d6e46355c89..5cec68616125 100644
---- a/arch/arm64/include/asm/jump_label.h
-+++ b/arch/arm64/include/asm/jump_label.h
-@@ -30,8 +30,8 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- {
- 	asm goto("1: nop\n\t"
- 		 ".pushsection __jump_table,  \"aw\"\n\t"
--		 ".align 3\n\t"
--		 ".quad 1b, %l[l_yes], %c0\n\t"
-+		 ".align 2\n\t"
-+		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
- 		 ".popsection\n\t"
- 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
+diff --git a/include/linux/swiotlb.h b/include/linux/swiotlb.h
+index 5b1f2a00491c..965be92c33b5 100644
+--- a/include/linux/swiotlb.h
++++ b/include/linux/swiotlb.h
+@@ -72,14 +72,6 @@ void *swiotlb_alloc(struct device *hwdev, size_t size, dma_addr_t *dma_handle,
+ void swiotlb_free(struct device *dev, size_t size, void *vaddr,
+ 		dma_addr_t dma_addr, unsigned long attrs);
  
-@@ -44,8 +44,8 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- {
- 	asm goto("1: b %l[l_yes]\n\t"
- 		 ".pushsection __jump_table,  \"aw\"\n\t"
--		 ".align 3\n\t"
--		 ".quad 1b, %l[l_yes], %c0\n\t"
-+		 ".align 2\n\t"
-+		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
- 		 ".popsection\n\t"
- 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
- 
-@@ -57,19 +57,26 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- typedef u64 jump_label_t;
- 
- struct jump_entry {
--	jump_label_t code;
--	jump_label_t target;
--	jump_label_t key;
-+	s32 code;
-+	s32 target;
-+	s32 key;
- };
- 
- static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
- {
--	return entry->code;
-+	return (jump_label_t)&entry->code + entry->code;
-+}
-+
-+static inline jump_label_t jump_entry_target(const struct jump_entry *entry)
-+{
-+	return (jump_label_t)&entry->target + entry->target;
+-extern void
+-*swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-			dma_addr_t *dma_handle, gfp_t flags);
+-
+-extern void
+-swiotlb_free_coherent(struct device *hwdev, size_t size,
+-		      void *vaddr, dma_addr_t dma_handle);
+-
+ extern dma_addr_t swiotlb_map_page(struct device *dev, struct page *page,
+ 				   unsigned long offset, size_t size,
+ 				   enum dma_data_direction dir,
+diff --git a/lib/swiotlb.c b/lib/swiotlb.c
+index 4ea0b5710618..77a40b508db8 100644
+--- a/lib/swiotlb.c
++++ b/lib/swiotlb.c
+@@ -157,13 +157,6 @@ unsigned long swiotlb_size_or_default(void)
+ 	return size ? size : (IO_TLB_DEFAULT_SIZE);
  }
  
- static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
+-/* Note that this doesn't work with highmem page */
+-static dma_addr_t swiotlb_virt_to_bus(struct device *hwdev,
+-				      volatile void *address)
+-{
+-	return phys_to_dma(hwdev, virt_to_phys(address));
+-}
+-
+ static bool no_iotlb_memory;
+ 
+ void swiotlb_print_info(void)
+@@ -743,31 +736,6 @@ swiotlb_alloc_buffer(struct device *dev, size_t size, dma_addr_t *dma_handle)
+ 	return NULL;
+ }
+ 
+-void *
+-swiotlb_alloc_coherent(struct device *hwdev, size_t size,
+-		       dma_addr_t *dma_handle, gfp_t flags)
+-{
+-	int order = get_order(size);
+-	void *ret;
+-
+-	ret = (void *)__get_free_pages(flags, order);
+-	if (ret) {
+-		*dma_handle = swiotlb_virt_to_bus(hwdev, ret);
+-		if (*dma_handle  + size - 1 <= hwdev->coherent_dma_mask) {
+-			memset(ret, 0, size);
+-			return ret;
+-		}
+-
+-		/*
+-		 * The allocated memory isn't reachable by the device.
+-		 */
+-		free_pages((unsigned long) ret, order);
+-	}
+-
+-	return swiotlb_alloc_buffer(hwdev, size, dma_handle);
+-}
+-EXPORT_SYMBOL(swiotlb_alloc_coherent);
+-
+ static bool swiotlb_free_buffer(struct device *dev, size_t size,
+ 		dma_addr_t dma_addr)
  {
--	return (struct static_key *)((unsigned long)entry->key & ~1UL);
-+	unsigned long key = (unsigned long)&entry->key + entry->key;
-+
-+	return (struct static_key *)(key & ~1UL);
+@@ -787,15 +755,6 @@ static bool swiotlb_free_buffer(struct device *dev, size_t size,
+ 	return true;
  }
  
- static inline bool jump_entry_is_branch(const struct jump_entry *entry)
-@@ -87,7 +94,7 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
- 	entry->code = 0;
- }
- 
--#define jump_label_swap		NULL
-+void jump_label_swap(void *a, void *b, int size);
- 
- #endif  /* __ASSEMBLY__ */
- #endif	/* __ASM_JUMP_LABEL_H */
-diff --git a/arch/arm64/kernel/jump_label.c b/arch/arm64/kernel/jump_label.c
-index c2dd1ad3e648..2b8e459e91f7 100644
---- a/arch/arm64/kernel/jump_label.c
-+++ b/arch/arm64/kernel/jump_label.c
-@@ -25,12 +25,12 @@
- void arch_jump_label_transform(struct jump_entry *entry,
- 			       enum jump_label_type type)
- {
--	void *addr = (void *)entry->code;
-+	void *addr = (void *)jump_entry_code(entry);
- 	u32 insn;
- 
- 	if (type = JUMP_LABEL_JMP) {
--		insn = aarch64_insn_gen_branch_imm(entry->code,
--						   entry->target,
-+		insn = aarch64_insn_gen_branch_imm(jump_entry_code(entry),
-+						   jump_entry_target(entry),
- 						   AARCH64_INSN_BRANCH_NOLINK);
- 	} else {
- 		insn = aarch64_insn_gen_nop();
-@@ -50,4 +50,20 @@ void arch_jump_label_transform_static(struct jump_entry *entry,
- 	 */
- }
- 
-+void jump_label_swap(void *a, void *b, int size)
-+{
-+	long delta = (unsigned long)a - (unsigned long)b;
-+	struct jump_entry *jea = a;
-+	struct jump_entry *jeb = b;
-+	struct jump_entry tmp = *jea;
-+
-+	jea->code	= jeb->code - delta;
-+	jea->target	= jeb->target - delta;
-+	jea->key	= jeb->key - delta;
-+
-+	jeb->code	= tmp.code + delta;
-+	jeb->target	= tmp.target + delta;
-+	jeb->key	= tmp.key + delta;
-+}
-+
- #endif	/* HAVE_JUMP_LABEL */
+-void
+-swiotlb_free_coherent(struct device *hwdev, size_t size, void *vaddr,
+-		      dma_addr_t dev_addr)
+-{
+-	if (!swiotlb_free_buffer(hwdev, size, dev_addr))
+-		free_pages((unsigned long)vaddr, get_order(size));
+-}
+-EXPORT_SYMBOL(swiotlb_free_coherent);
+-
+ static void
+ swiotlb_full(struct device *dev, size_t size, enum dma_data_direction dir,
+ 	     int do_panic)
 -- 
-2.11.0
+2.14.2
 
