@@ -1,166 +1,87 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Mon, 25 Dec 2017 20:54:32 +0000
-Subject: [PATCH v5 0/8] add support for relative references in special sections
-Message-Id: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:48 +0000
+Subject: [PATCH 44/67] powerpc: rename swiotlb_dma_ops
+Message-Id: <20171229081911.2802-45-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This adds support for emitting special sections such as initcall arrays,
-PCI fixups and tracepoints as relative references rather than absolute
-references. This reduces the size by 50% on 64-bit architectures, but
-more importantly, it removes the need for carrying relocation metadata
-for these sections in relocatables kernels (e.g., for KASLR) that need
-to fix up these absolute references at boot time. On arm64, this reduces
-the vmlinux footprint of such a reference by 8x (8 byte absolute reference
-+ 24 byte RELA entry vs 4 byte relative reference)
+We'll need that name for a generic implementation soon.
 
-Patch #2 was sent out before as a single patch. This series supersedes
-the previous submission. This version makes relative ksymtab entries
-dependent on the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS rather
-than trying to infer from kbuild test robot replies for which architectures
-it should be blacklisted.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/powerpc/include/asm/swiotlb.h | 2 +-
+ arch/powerpc/kernel/dma-swiotlb.c  | 4 ++--
+ arch/powerpc/kernel/dma.c          | 2 +-
+ arch/powerpc/sysdev/fsl_pci.c      | 2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-Patch #1 introduces the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS,
-and sets it for the main architectures that are expected to benefit the
-most from this feature, i.e., 64-bit architectures or ones that use
-runtime relocations.
-
-Patches #3 - #5 implement relative references for initcalls, PCI fixups
-and tracepoints, respectively, all of which produce sections with order
-~1000 entries on an arm64 defconfig kernel with tracing enabled. This
-means we save about 28 KB of vmlinux space for each of these patches.
-
-Patches #6 - #8 have been added in v5, and implement relative references
-in jump tables for arm64 and x86. On arm64, this results in significant
-space savings (650+ KB on a typical distro kernel). On x86, the savings
-are not as impressive, but still worthwhile. (Note that these patches
-do not rely on CONFIG_HAVE_ARCH_PREL32_RELOCATIONS, given that the
-inline asm that is emitted is already per-arch)
-
-For the arm64 kernel, all patches combined reduce the memory footprint of
-vmlinux by about 1.3 MB (using a config copied from Ubuntu that has KASLR
-enabled), of which ~1 MB is the size reduction of the RELA section in .init,
-and the remaining 300 KB is reduction of .text/.data.
-
-Branch:
-git://git.kernel.org/pub/scm/linux/kernel/git/ardb/linux.git relative-special-sections-v5
-
-Changes since v4:
-- add patches to convert x86 and arm64 to use relative references for jump
-  tables (#6 - #8)
-- rename PCI patch and add Bjorn's ack (#4)
-- rebase onto v4.15-rc5
-
-Changes since v3:
-- fix module unload issue in patch #5 reported by Jessica, by reusing the
-  updated routine for_each_tracepoint_range() for the quiescent check at
-  module unload time; this requires this routine to be moved before
-  tracepoint_module_going() in kernel/tracepoint.c
-- add Jessica's ack to #2
-- rebase onto v4.14-rc1
-
-Changes since v2:
-- Revert my slightly misguided attempt to appease checkpatch, which resulted
-  in needless churn and worse code. This v3 is based on v1 with a few tweaks
-  that were actually reasonable checkpatch warnings: unnecessary braces (as
-  pointed out by Ingo) and other minor whitespace misdemeanors.
-
-Changes since v1:
-- Remove checkpatch errors to the extent feasible: in some cases, this
-  involves moving extern declarations into C files, and switching to
-  struct definitions rather than typedefs. Some errors are impossible
-  to fix: please find the remaining ones after the diffstat.
-- Used 'int' instead if 'signed int' for the various offset fields: there
-  is no ambiguity between architectures regarding its signedness (unlike
-  'char')
-- Refactor the different patches to be more uniform in the way they define
-  the section entry type and accessors in the .h file, and avoid the need to
-  add #ifdefs to the C code.
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Nicolas Pitre <nico@linaro.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jessica Yu <jeyu@kernel.org>
-
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-s390@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: x86@kernel.org
-
-Ard Biesheuvel (8):
-  arch: enable relative relocations for arm64, power, x86, s390 and x86
-  module: use relative references for __ksymtab entries
-  init: allow initcall tables to be emitted using relative references
-  PCI: Add support for relative addressing in quirk tables
-  kernel: tracepoints: add support for relative references
-  kernel/jump_label: abstract jump_entry member accessors
-  arm64/kernel: jump_label: use relative references
-  x86/kernel: jump_table: use relative references
-
- arch/Kconfig                          | 10 ++++
- arch/arm/include/asm/jump_label.h     | 27 +++++++++
- arch/arm64/Kconfig                    |  1 +
- arch/arm64/include/asm/jump_label.h   | 48 +++++++++++++---
- arch/arm64/kernel/jump_label.c        | 22 +++++++-
- arch/arm64/kernel/vmlinux.lds.S       |  2 +-
- arch/mips/include/asm/jump_label.h    | 27 +++++++++
- arch/powerpc/Kconfig                  |  1 +
- arch/powerpc/include/asm/jump_label.h | 27 +++++++++
- arch/s390/Kconfig                     |  1 +
- arch/s390/include/asm/jump_label.h    | 20 +++++++
- arch/sparc/include/asm/jump_label.h   | 27 +++++++++
- arch/tile/include/asm/jump_label.h    | 27 +++++++++
- arch/x86/Kconfig                      |  1 +
- arch/x86/include/asm/Kbuild           |  1 +
- arch/x86/include/asm/export.h         |  5 --
- arch/x86/include/asm/jump_label.h     | 56 +++++++++++++++----
- arch/x86/kernel/jump_label.c          | 59 ++++++++++++++------
- drivers/pci/quirks.c                  | 13 ++++-
- include/asm-generic/export.h          | 12 +++-
- include/linux/compiler.h              | 11 ++++
- include/linux/export.h                | 46 +++++++++++----
- include/linux/init.h                  | 44 +++++++++++----
- include/linux/pci.h                   | 20 +++++++
- include/linux/tracepoint.h            | 19 +++++--
- init/main.c                           | 32 +++++------
- kernel/jump_label.c                   | 38 ++++++-------
- kernel/module.c                       | 33 +++++++++--
- kernel/printk/printk.c                |  4 +-
- kernel/tracepoint.c                   | 50 +++++++++--------
- security/security.c                   |  4 +-
- tools/objtool/special.c               |  4 +-
- 32 files changed, 544 insertions(+), 148 deletions(-)
- delete mode 100644 arch/x86/include/asm/export.h
-
+diff --git a/arch/powerpc/include/asm/swiotlb.h b/arch/powerpc/include/asm/swiotlb.h
+index 9341ee804d19..f65ecf57b66c 100644
+--- a/arch/powerpc/include/asm/swiotlb.h
++++ b/arch/powerpc/include/asm/swiotlb.h
+@@ -13,7 +13,7 @@
+ 
+ #include <linux/swiotlb.h>
+ 
+-extern const struct dma_map_ops swiotlb_dma_ops;
++extern const struct dma_map_ops powerpc_swiotlb_dma_ops;
+ 
+ extern unsigned int ppc_swiotlb_enable;
+ int __init swiotlb_setup_bus_notifier(void);
+diff --git a/arch/powerpc/kernel/dma-swiotlb.c b/arch/powerpc/kernel/dma-swiotlb.c
+index f1e99b9cee97..506ac4fafac5 100644
+--- a/arch/powerpc/kernel/dma-swiotlb.c
++++ b/arch/powerpc/kernel/dma-swiotlb.c
+@@ -46,7 +46,7 @@ static u64 swiotlb_powerpc_get_required(struct device *dev)
+  * map_page, and unmap_page on highmem, use normal dma_ops
+  * for everything else.
+  */
+-const struct dma_map_ops swiotlb_dma_ops = {
++const struct dma_map_ops powerpc_swiotlb_dma_ops = {
+ 	.alloc = __dma_nommu_alloc_coherent,
+ 	.free = __dma_nommu_free_coherent,
+ 	.mmap = dma_nommu_mmap_coherent,
+@@ -89,7 +89,7 @@ static int ppc_swiotlb_bus_notify(struct notifier_block *nb,
+ 
+ 	/* May need to bounce if the device can't address all of DRAM */
+ 	if ((dma_get_mask(dev) + 1) < memblock_end_of_DRAM())
+-		set_dma_ops(dev, &swiotlb_dma_ops);
++		set_dma_ops(dev, &powerpc_swiotlb_dma_ops);
+ 
+ 	return NOTIFY_DONE;
+ }
+diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
+index 1723001d5de1..b787692b91ee 100644
+--- a/arch/powerpc/kernel/dma.c
++++ b/arch/powerpc/kernel/dma.c
+@@ -33,7 +33,7 @@ static u64 __maybe_unused get_pfn_limit(struct device *dev)
+ 	struct dev_archdata __maybe_unused *sd = &dev->archdata;
+ 
+ #ifdef CONFIG_SWIOTLB
+-	if (sd->max_direct_dma_addr && dev->dma_ops = &swiotlb_dma_ops)
++	if (sd->max_direct_dma_addr && dev->dma_ops = &powerpc_swiotlb_dma_ops)
+ 		pfn = min_t(u64, pfn, sd->max_direct_dma_addr >> PAGE_SHIFT);
+ #endif
+ 
+diff --git a/arch/powerpc/sysdev/fsl_pci.c b/arch/powerpc/sysdev/fsl_pci.c
+index e4d0133bbeeb..61e07c78d64f 100644
+--- a/arch/powerpc/sysdev/fsl_pci.c
++++ b/arch/powerpc/sysdev/fsl_pci.c
+@@ -118,7 +118,7 @@ static void setup_swiotlb_ops(struct pci_controller *hose)
+ {
+ 	if (ppc_swiotlb_enable) {
+ 		hose->controller_ops.dma_dev_setup = pci_dma_dev_setup_swiotlb;
+-		set_pci_dma_ops(&swiotlb_dma_ops);
++		set_pci_dma_ops(&powerpc_swiotlb_dma_ops);
+ 	}
+ }
+ #else
 -- 
-2.11.0
+2.14.2
 
