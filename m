@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:14 +0000
-Subject: [PATCH 10/67] m32r: remove the unused dma_capable helper
-Message-Id: <20171229081911.2802-11-hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:19 +0000
+Subject: [PATCH 15/67] hexagon: use the generic dma_capable helper
+Message-Id: <20171229081911.2802-16-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171229081911.2802-1-hch@lst.de>
 In-Reply-To: <20171229081911.2802-1-hch-jcswGhMUV9g@public.gmane.org>
@@ -13,25 +13,38 @@ Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/m32r/include/asm/dma-mapping.h | 7 -------
- 1 file changed, 7 deletions(-)
+ arch/hexagon/include/asm/dma-mapping.h | 7 -------
+ arch/hexagon/kernel/dma.c              | 1 +
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/arch/m32r/include/asm/dma-mapping.h b/arch/m32r/include/asm/dma-mapping.h
-index 336ffe60814b..8967fb659691 100644
---- a/arch/m32r/include/asm/dma-mapping.h
-+++ b/arch/m32r/include/asm/dma-mapping.h
-@@ -14,11 +14,4 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- 	return &dma_noop_ops;
+diff --git a/arch/hexagon/include/asm/dma-mapping.h b/arch/hexagon/include/asm/dma-mapping.h
+index 5208de242e79..263f6acbfb0f 100644
+--- a/arch/hexagon/include/asm/dma-mapping.h
++++ b/arch/hexagon/include/asm/dma-mapping.h
+@@ -37,11 +37,4 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ 	return dma_ops;
  }
  
 -static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
 -{
 -	if (!dev->dma_mask)
--		return false;
+-		return 0;
 -	return addr + size - 1 <= *dev->dma_mask;
 -}
 -
- #endif /* _ASM_M32R_DMA_MAPPING_H */
+ #endif
+diff --git a/arch/hexagon/kernel/dma.c b/arch/hexagon/kernel/dma.c
+index 3683bb9c05a2..c1d24e37807c 100644
+--- a/arch/hexagon/kernel/dma.c
++++ b/arch/hexagon/kernel/dma.c
+@@ -19,6 +19,7 @@
+  */
+ 
+ #include <linux/dma-mapping.h>
++#include <linux/dma-direct.h>
+ #include <linux/bootmem.h>
+ #include <linux/genalloc.h>
+ #include <asm/dma-mapping.h>
 -- 
 2.14.2
 
