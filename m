@@ -1,58 +1,74 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Thu, 14 Dec 2017 00:06:55 +0000
-Subject: Re: [PATCHv4 08/12] sparc64: Update pmdp_invalidate() to return old pmd value
-Message-Id: <20171213160655.9d95ad8dcf6df855c028fa52@linux-foundation.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:32 +0000
+Subject: [PATCH 28/67] dma-direct: add support for CMA allocation
+Message-Id: <20171229081911.2802-29-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171213105756.69879-1-kirill.shutemov@linux.intel.com>
-        <20171213105756.69879-9-kirill.shutemov@linux.intel.com>
-In-Reply-To: <20171213105756.69879-9-kirill.shutemov@linux.intel.com>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Michal Hocko <mhocko@kernel.org>, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Nitin Gupta <nitin.m.gupta@oracle.com>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, 13 Dec 2017 13:57:52 +0300 "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com> wrote:
+Try the CMA allocator for coherent allocations if supported.
 
-> From: Nitin Gupta <nitin.m.gupta@oracle.com>
-> 
-> It's required to avoid losing dirty and accessed bits.
-> 
-> ...
->
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -1010,7 +1010,7 @@ void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
->  			  pmd_t *pmd);
->  
->  #define __HAVE_ARCH_PMDP_INVALIDATE
-> -extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
-> +extern pmd_t pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
->  			    pmd_t *pmdp);
->  
->  #define __HAVE_ARCH_PGTABLE_DEPOSIT
-> diff --git a/arch/sparc/mm/tlb.c b/arch/sparc/mm/tlb.c
-> index 4ae86bc0d35c..5a3ba863b48a 100644
-> --- a/arch/sparc/mm/tlb.c
-> +++ b/arch/sparc/mm/tlb.c
-> @@ -219,17 +219,28 @@ void set_pmd_at(struct mm_struct *mm, unsigned long addr,
->  	}
->  }
->  
-> +static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
-> +		unsigned long address, pmd_t *pmdp, pmd_t pmd)
-> +{
-> +	pmd_t old;
-> +
-> +	{
-> +		old = *pmdp;
-> +	} while (cmpxchg64(&pmdp->pmd, old.pmd, pmd.pmd) != old.pmd);
-> +
-> +	return old;
-> +}
+Roughly modelled after the x86 code.
 
-um, I think I'll put a "do" in there...
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/dma-direct.c | 24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-And I'll wait until we see a "tested-by" or a nice ack, please.
-
+diff --git a/lib/dma-direct.c b/lib/dma-direct.c
+index ddd9dcf4e663..d0266b39788b 100644
+--- a/lib/dma-direct.c
++++ b/lib/dma-direct.c
+@@ -7,6 +7,7 @@
+ #include <linux/mm.h>
+ #include <linux/dma-direct.h>
+ #include <linux/scatterlist.h>
++#include <linux/dma-contiguous.h>
+ #include <linux/pfn.h>
+ 
+ #define DIRECT_MAPPING_ERROR		0
+@@ -30,19 +31,30 @@ check_addr(struct device *dev, dma_addr_t dma_addr, size_t size,
+ static void *dma_direct_alloc(struct device *dev, size_t size,
+ 		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+-	void *ret;
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
++	int page_order = get_order(size);
++	struct page *page = NULL;
+ 
+-	ret = (void *)__get_free_pages(gfp, get_order(size));
+-	if (ret)
+-		*dma_handle = phys_to_dma(dev, virt_to_phys(ret));
++	/* CMA can be used only in the context which permits sleeping */
++	if (gfpflags_allow_blocking(gfp))
++		page = dma_alloc_from_contiguous(dev, count, page_order, gfp);
++	if (!page)
++		page = alloc_pages(gfp, page_order);
++	if (!page)
++		return NULL;
+ 
+-	return ret;
++	*dma_handle = phys_to_dma(dev, page_to_phys(page));
++	memset(page_address(page), 0, size);
++	return page_address(page);
+ }
+ 
+ static void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_addr, unsigned long attrs)
+ {
+-	free_pages((unsigned long)cpu_addr, get_order(size));
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
++
++	if (!dma_release_from_contiguous(dev, virt_to_page(cpu_addr), count))
++		free_pages((unsigned long)cpu_addr, get_order(size));
+ }
+ 
+ static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
+-- 
+2.14.2
 
