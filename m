@@ -1,154 +1,122 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Mon, 25 Dec 2017 20:54:39 +0000
-Subject: [PATCH v5 7/8] arm64/kernel: jump_label: use relative references
-Message-Id: <20171225205440.14575-8-ard.biesheuvel@linaro.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:13 +0000
+Subject: [PATCH 09/67] arc: remove CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
+Message-Id: <20171229081911.2802-10-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20171225205440.14575-1-ard.biesheuvel@linaro.org>
+References: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On a randomly chosen distro kernel build for arm64, vmlinux.o shows the
-following sections, containing jump label entries, and the associated
-RELA relocation records, respectively:
+We always use the stub definitions, so remove the unused other code.
 
-  ...
-  [38088] __jump_table      PROGBITS         0000000000000000  00e19f30
-       000000000002ea10  0000000000000000  WA       0     0     8
-  [38089] .rela__jump_table RELA             0000000000000000  01fd8bb0
-       000000000008be30  0000000000000018   I      38178   38088     8
-  ...
-
-In other words, we have 190 KB worth of 'struct jump_entry' instances,
-and 573 KB worth of RELA entries to relocate each entry's code, target
-and key members. This means the RELA section occupies 10% of the .init
-segment, and the two sections combined represent 5% of vmlinux's entire
-memory footprint.
-
-So let's switch from 64-bit absolute references to 32-bit relative
-references: this reduces the size of the __jump_table by 50%, and gets
-rid of the RELA section entirely.
-
-Note that this requires some extra care in the sorting routine, given
-that the offsets change when entries are moved around in the jump_entry
-table.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/arm64/include/asm/jump_label.h | 27 ++++++++++++--------
- arch/arm64/kernel/jump_label.c      | 22 +++++++++++++---
- 2 files changed, 36 insertions(+), 13 deletions(-)
+ arch/arc/Kconfig                   |  3 ---
+ arch/arc/include/asm/dma-mapping.h |  7 -------
+ arch/arc/mm/dma.c                  | 14 +++++++-------
+ 3 files changed, 7 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm64/include/asm/jump_label.h b/arch/arm64/include/asm/jump_label.h
-index 9d6e46355c89..5cec68616125 100644
---- a/arch/arm64/include/asm/jump_label.h
-+++ b/arch/arm64/include/asm/jump_label.h
-@@ -30,8 +30,8 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
+diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+index 9d5fd00d9e91..f3a80cf164cc 100644
+--- a/arch/arc/Kconfig
++++ b/arch/arc/Kconfig
+@@ -463,9 +463,6 @@ config ARCH_PHYS_ADDR_T_64BIT
+ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
+ 
+-config ARC_PLAT_NEEDS_PHYS_TO_DMA
+-	bool
+-
+ config ARC_KVADDR_SIZE
+ 	int "Kernel Virtual Address Space size (MB)"
+ 	range 0 512
+diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
+index 94285031c4fb..7a16824bfe98 100644
+--- a/arch/arc/include/asm/dma-mapping.h
++++ b/arch/arc/include/asm/dma-mapping.h
+@@ -11,13 +11,6 @@
+ #ifndef ASM_ARC_DMA_MAPPING_H
+ #define ASM_ARC_DMA_MAPPING_H
+ 
+-#ifndef CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
+-#define plat_dma_to_phys(dev, dma_handle) ((phys_addr_t)(dma_handle))
+-#define plat_phys_to_dma(dev, paddr) ((dma_addr_t)(paddr))
+-#else
+-#include <plat/dma.h>
+-#endif
+-
+ extern const struct dma_map_ops arc_dma_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
+index fad18261ef6a..1d405b86250c 100644
+--- a/arch/arc/mm/dma.c
++++ b/arch/arc/mm/dma.c
+@@ -60,7 +60,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
+ 	/* This is linear addr (0x8000_0000 based) */
+ 	paddr = page_to_phys(page);
+ 
+-	*dma_handle = plat_phys_to_dma(dev, paddr);
++	*dma_handle = paddr;
+ 
+ 	/* This is kernel Virtual address (0x7000_0000 based) */
+ 	if (need_kvaddr) {
+@@ -92,7 +92,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
+ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
+ 		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	asm goto("1: nop\n\t"
- 		 ".pushsection __jump_table,  \"aw\"\n\t"
--		 ".align 3\n\t"
--		 ".quad 1b, %l[l_yes], %c0\n\t"
-+		 ".align 2\n\t"
-+		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
- 		 ".popsection\n\t"
- 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
+-	phys_addr_t paddr = plat_dma_to_phys(dev, dma_handle);
++	phys_addr_t paddr = dma_handle;
+ 	struct page *page = virt_to_page(paddr);
+ 	int is_non_coh = 1;
  
-@@ -44,8 +44,8 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
+@@ -111,7 +111,7 @@ static int arc_dma_mmap(struct device *dev, struct vm_area_struct *vma,
  {
- 	asm goto("1: b %l[l_yes]\n\t"
- 		 ".pushsection __jump_table,  \"aw\"\n\t"
--		 ".align 3\n\t"
--		 ".quad 1b, %l[l_yes], %c0\n\t"
-+		 ".align 2\n\t"
-+		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
- 		 ".popsection\n\t"
- 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
+ 	unsigned long user_count = vma_pages(vma);
+ 	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+-	unsigned long pfn = __phys_to_pfn(plat_dma_to_phys(dev, dma_addr));
++	unsigned long pfn = __phys_to_pfn(dma_addr);
+ 	unsigned long off = vma->vm_pgoff;
+ 	int ret = -ENXIO;
  
-@@ -57,19 +57,26 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- typedef u64 jump_label_t;
+@@ -175,7 +175,7 @@ static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		_dma_cache_sync(paddr, size, dir);
  
- struct jump_entry {
--	jump_label_t code;
--	jump_label_t target;
--	jump_label_t key;
-+	s32 code;
-+	s32 target;
-+	s32 key;
- };
- 
- static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
- {
--	return entry->code;
-+	return (jump_label_t)&entry->code + entry->code;
-+}
-+
-+static inline jump_label_t jump_entry_target(const struct jump_entry *entry)
-+{
-+	return (jump_label_t)&entry->target + entry->target;
+-	return plat_phys_to_dma(dev, paddr);
++	return paddr;
  }
  
- static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
+ /*
+@@ -190,7 +190,7 @@ static void arc_dma_unmap_page(struct device *dev, dma_addr_t handle,
+ 			       size_t size, enum dma_data_direction dir,
+ 			       unsigned long attrs)
  {
--	return (struct static_key *)((unsigned long)entry->key & ~1UL);
-+	unsigned long key = (unsigned long)&entry->key + entry->key;
-+
-+	return (struct static_key *)(key & ~1UL);
- }
+-	phys_addr_t paddr = plat_dma_to_phys(dev, handle);
++	phys_addr_t paddr = handle;
  
- static inline bool jump_entry_is_branch(const struct jump_entry *entry)
-@@ -87,7 +94,7 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
- 	entry->code = 0;
- }
- 
--#define jump_label_swap		NULL
-+void jump_label_swap(void *a, void *b, int size);
- 
- #endif  /* __ASSEMBLY__ */
- #endif	/* __ASM_JUMP_LABEL_H */
-diff --git a/arch/arm64/kernel/jump_label.c b/arch/arm64/kernel/jump_label.c
-index c2dd1ad3e648..2b8e459e91f7 100644
---- a/arch/arm64/kernel/jump_label.c
-+++ b/arch/arm64/kernel/jump_label.c
-@@ -25,12 +25,12 @@
- void arch_jump_label_transform(struct jump_entry *entry,
- 			       enum jump_label_type type)
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		_dma_cache_sync(paddr, size, dir);
+@@ -224,13 +224,13 @@ static void arc_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ static void arc_dma_sync_single_for_cpu(struct device *dev,
+ 		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
  {
--	void *addr = (void *)entry->code;
-+	void *addr = (void *)jump_entry_code(entry);
- 	u32 insn;
- 
- 	if (type = JUMP_LABEL_JMP) {
--		insn = aarch64_insn_gen_branch_imm(entry->code,
--						   entry->target,
-+		insn = aarch64_insn_gen_branch_imm(jump_entry_code(entry),
-+						   jump_entry_target(entry),
- 						   AARCH64_INSN_BRANCH_NOLINK);
- 	} else {
- 		insn = aarch64_insn_gen_nop();
-@@ -50,4 +50,20 @@ void arch_jump_label_transform_static(struct jump_entry *entry,
- 	 */
+-	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_FROM_DEVICE);
++	_dma_cache_sync(dma_handle, size, DMA_FROM_DEVICE);
  }
  
-+void jump_label_swap(void *a, void *b, int size)
-+{
-+	long delta = (unsigned long)a - (unsigned long)b;
-+	struct jump_entry *jea = a;
-+	struct jump_entry *jeb = b;
-+	struct jump_entry tmp = *jea;
-+
-+	jea->code	= jeb->code - delta;
-+	jea->target	= jeb->target - delta;
-+	jea->key	= jeb->key - delta;
-+
-+	jeb->code	= tmp.code + delta;
-+	jeb->target	= tmp.target + delta;
-+	jeb->key	= tmp.key + delta;
-+}
-+
- #endif	/* HAVE_JUMP_LABEL */
+ static void arc_dma_sync_single_for_device(struct device *dev,
+ 		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
+ {
+-	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_TO_DEVICE);
++	_dma_cache_sync(dma_handle, size, DMA_TO_DEVICE);
+ }
+ 
+ static void arc_dma_sync_sg_for_cpu(struct device *dev,
 -- 
-2.11.0
+2.14.2
 
