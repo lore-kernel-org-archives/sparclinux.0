@@ -1,70 +1,35 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:37 +0000
-Subject: [PATCH 33/67] dma-direct: reject too small dma masks
-Message-Id: <20171229081911.2802-34-hch@lst.de>
+Date: Fri, 29 Dec 2017 08:18:12 +0000
+Subject: [PATCH 08/67] powerpc: remove unused flush_write_buffers definition
+Message-Id: <20171229081911.2802-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171229081911.2802-1-hch@lst.de>
-In-Reply-To: <20171229081911.2802-1-hch@lst.de>
+In-Reply-To: <20171229081911.2802-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- include/linux/dma-direct.h |  1 +
- lib/dma-direct.c           | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ arch/powerpc/include/asm/dma-mapping.h | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/include/linux/dma-direct.h b/include/linux/dma-direct.h
-index 4788bf0bf683..bcdb1a3e4b1f 100644
---- a/include/linux/dma-direct.h
-+++ b/include/linux/dma-direct.h
-@@ -42,5 +42,6 @@ void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 		gfp_t gfp, unsigned long attrs);
- void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
- 		dma_addr_t dma_addr, unsigned long attrs);
-+int dma_direct_supported(struct device *dev, u64 mask);
- 
- #endif /* _LINUX_DMA_DIRECT_H */
-diff --git a/lib/dma-direct.c b/lib/dma-direct.c
-index 2e9b9494610c..5bb289483efc 100644
---- a/lib/dma-direct.c
-+++ b/lib/dma-direct.c
-@@ -123,6 +123,24 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
- 	return nents;
+diff --git a/arch/powerpc/include/asm/dma-mapping.h b/arch/powerpc/include/asm/dma-mapping.h
+index 5a6cbe11db6f..592c7f418aa0 100644
+--- a/arch/powerpc/include/asm/dma-mapping.h
++++ b/arch/powerpc/include/asm/dma-mapping.h
+@@ -107,9 +107,6 @@ static inline void set_dma_offset(struct device *dev, dma_addr_t off)
+ 		dev->archdata.dma_offset = off;
  }
  
-+int dma_direct_supported(struct device *dev, u64 mask)
-+{
-+#ifdef CONFIG_ZONE_DMA
-+	if (mask < DMA_BIT_MASK(ARCH_ZONE_DMA_BITS))
-+		return 0;
-+#else
-+	/*
-+	 * Because 32-bit DMA masks are so common we expect every architecture
-+	 * to be able to satisfy them - either by not supporting more physical
-+	 * memory, or by providing a ZONE_DMA32.  If neither is the case, the
-+	 * architecture needs to use an IOMMU instead of the direct mapping.
-+	 */
-+	if (mask < DMA_BIT_MASK(32))
-+		return 0;
-+#endif
-+	return 1;
-+}
-+
- static int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	return dma_addr = DIRECT_MAPPING_ERROR;
-@@ -133,6 +151,7 @@ const struct dma_map_ops dma_direct_ops = {
- 	.free			= dma_direct_free,
- 	.map_page		= dma_direct_map_page,
- 	.map_sg			= dma_direct_map_sg,
-+	.dma_supported		= dma_direct_supported,
- 	.mapping_error		= dma_direct_mapping_error,
- 	.is_phys		= true,
- };
+-/* this will be removed soon */
+-#define flush_write_buffers()
+-
+ #define HAVE_ARCH_DMA_SET_MASK 1
+ extern int dma_set_mask(struct device *dev, u64 dma_mask);
+ 
 -- 
 2.14.2
 
