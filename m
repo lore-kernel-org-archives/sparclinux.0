@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 29 Dec 2017 08:18:28 +0000
-Subject: [PATCH 24/67] dma-mapping: provide a generic asm/dma-mapping.h
-Message-Id: <20171229081911.2802-25-hch@lst.de>
+Date: Fri, 29 Dec 2017 08:19:00 +0000
+Subject: [PATCH 56/67] ia64: use generic swiotlb_ops
+Message-Id: <20171229081911.2802-57-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20171229081911.2802-1-hch@lst.de>
 In-Reply-To: <20171229081911.2802-1-hch@lst.de>
@@ -11,170 +11,179 @@ Content-Transfer-Encoding: 7bit
 To: iommu@lists.linux-foundation.org
 Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-For architectures that just use the generic dma_noop_ops we can provide
-a generic version of dma-mapping.h.
+These are identical to the ia64 ops, and would also support CMA
+if enabled on ia64.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- MAINTAINERS                          |  1 +
- arch/m32r/include/asm/Kbuild         |  1 +
- arch/m32r/include/asm/dma-mapping.h  | 17 -----------------
- arch/riscv/include/asm/Kbuild        |  1 +
- arch/riscv/include/asm/dma-mapping.h | 30 ------------------------------
- arch/s390/include/asm/Kbuild         |  1 +
- arch/s390/include/asm/dma-mapping.h  | 17 -----------------
- include/asm-generic/dma-mapping.h    | 10 ++++++++++
- 8 files changed, 14 insertions(+), 64 deletions(-)
- delete mode 100644 arch/m32r/include/asm/dma-mapping.h
- delete mode 100644 arch/riscv/include/asm/dma-mapping.h
- delete mode 100644 arch/s390/include/asm/dma-mapping.h
- create mode 100644 include/asm-generic/dma-mapping.h
+ arch/ia64/Kconfig                |  5 +++++
+ arch/ia64/hp/common/hwsw_iommu.c |  4 ++--
+ arch/ia64/hp/common/sba_iommu.c  |  6 +++---
+ arch/ia64/kernel/pci-swiotlb.c   | 38 +++-----------------------------------
+ 4 files changed, 13 insertions(+), 40 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7521b063b499..a8b35d9f41b2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4340,6 +4340,7 @@ F:	lib/dma-noop.c
- F:	lib/dma-virt.c
- F:	drivers/base/dma-mapping.c
- F:	drivers/base/dma-coherent.c
-+F:	include/asm-generic/dma-mapping.h
- F:	include/linux/dma-direct.h
- F:	include/linux/dma-mapping.h
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index 888acdb163cb..29148fe4bf5a 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -146,6 +146,7 @@ config IA64_GENERIC
+ 	bool "generic"
+ 	select NUMA
+ 	select ACPI_NUMA
++	select DMA_DIRECT_OPS
+ 	select SWIOTLB
+ 	select PCI_MSI
+ 	help
+@@ -166,6 +167,7 @@ config IA64_GENERIC
  
-diff --git a/arch/m32r/include/asm/Kbuild b/arch/m32r/include/asm/Kbuild
-index 7e11b125c35e..ca83fda8177b 100644
---- a/arch/m32r/include/asm/Kbuild
-+++ b/arch/m32r/include/asm/Kbuild
-@@ -1,5 +1,6 @@
- generic-y += clkdev.h
- generic-y += current.h
-+generic-y += dma-mapping.h
- generic-y += exec.h
- generic-y += extable.h
- generic-y += irq_work.h
-diff --git a/arch/m32r/include/asm/dma-mapping.h b/arch/m32r/include/asm/dma-mapping.h
-deleted file mode 100644
-index 8967fb659691..000000000000
---- a/arch/m32r/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _ASM_M32R_DMA_MAPPING_H
--#define _ASM_M32R_DMA_MAPPING_H
+ config IA64_DIG
+ 	bool "DIG-compliant"
++	select DMA_DIRECT_OPS
+ 	select SWIOTLB
+ 
+ config IA64_DIG_VTD
+@@ -181,6 +183,7 @@ config IA64_HP_ZX1
+ 
+ config IA64_HP_ZX1_SWIOTLB
+ 	bool "HP-zx1/sx1000 with software I/O TLB"
++	select DMA_DIRECT_OPS
+ 	select SWIOTLB
+ 	help
+ 	  Build a kernel that runs on HP zx1 and sx1000 systems even when they
+@@ -204,6 +207,7 @@ config IA64_SGI_UV
+ 	bool "SGI-UV"
+ 	select NUMA
+ 	select ACPI_NUMA
++	select DMA_DIRECT_OPS
+ 	select SWIOTLB
+ 	help
+ 	  Selecting this option will optimize the kernel for use on UV based
+@@ -214,6 +218,7 @@ config IA64_SGI_UV
+ 
+ config IA64_HP_SIM
+ 	bool "Ski-simulator"
++	select DMA_DIRECT_OPS
+ 	select SWIOTLB
+ 	depends on !PM
+ 
+diff --git a/arch/ia64/hp/common/hwsw_iommu.c b/arch/ia64/hp/common/hwsw_iommu.c
+index 41279f0442bd..58969039bed2 100644
+--- a/arch/ia64/hp/common/hwsw_iommu.c
++++ b/arch/ia64/hp/common/hwsw_iommu.c
+@@ -19,7 +19,7 @@
+ #include <linux/export.h>
+ #include <asm/machvec.h>
+ 
+-extern const struct dma_map_ops sba_dma_ops, ia64_swiotlb_dma_ops;
++extern const struct dma_map_ops sba_dma_ops;
+ 
+ /* swiotlb declarations & definitions: */
+ extern int swiotlb_late_init_with_default_size (size_t size);
+@@ -38,7 +38,7 @@ static inline int use_swiotlb(struct device *dev)
+ const struct dma_map_ops *hwsw_dma_get_ops(struct device *dev)
+ {
+ 	if (use_swiotlb(dev))
+-		return &ia64_swiotlb_dma_ops;
++		return &swiotlb_dma_ops;
+ 	return &sba_dma_ops;
+ }
+ EXPORT_SYMBOL(hwsw_dma_get_ops);
+diff --git a/arch/ia64/hp/common/sba_iommu.c b/arch/ia64/hp/common/sba_iommu.c
+index d68849ad2ee1..6f05aba9012f 100644
+--- a/arch/ia64/hp/common/sba_iommu.c
++++ b/arch/ia64/hp/common/sba_iommu.c
+@@ -2093,7 +2093,7 @@ static int __init acpi_sba_ioc_init_acpi(void)
+ /* This has to run before acpi_scan_init(). */
+ arch_initcall(acpi_sba_ioc_init_acpi);
+ 
+-extern const struct dma_map_ops ia64_swiotlb_dma_ops;
++extern const struct dma_map_ops swiotlb_dma_ops;
+ 
+ static int __init
+ sba_init(void)
+@@ -2108,7 +2108,7 @@ sba_init(void)
+ 	 * a successful kdump kernel boot is to use the swiotlb.
+ 	 */
+ 	if (is_kdump_kernel()) {
+-		dma_ops = &ia64_swiotlb_dma_ops;
++		dma_ops = &swiotlb_dma_ops;
+ 		if (swiotlb_late_init_with_default_size(64 * (1<<20)) != 0)
+ 			panic("Unable to initialize software I/O TLB:"
+ 				  " Try machvec=dig boot option");
+@@ -2130,7 +2130,7 @@ sba_init(void)
+ 		 * If we didn't find something sba_iommu can claim, we
+ 		 * need to setup the swiotlb and switch to the dig machvec.
+ 		 */
+-		dma_ops = &ia64_swiotlb_dma_ops;
++		dma_ops = &swiotlb_dma_ops;
+ 		if (swiotlb_late_init_with_default_size(64 * (1<<20)) != 0)
+ 			panic("Unable to find SBA IOMMU or initialize "
+ 			      "software I/O TLB: Try machvec=dig boot option");
+diff --git a/arch/ia64/kernel/pci-swiotlb.c b/arch/ia64/kernel/pci-swiotlb.c
+index 4a9a6e58ad6a..0f8d5fbd86bd 100644
+--- a/arch/ia64/kernel/pci-swiotlb.c
++++ b/arch/ia64/kernel/pci-swiotlb.c
+@@ -6,8 +6,7 @@
+ #include <linux/cache.h>
+ #include <linux/module.h>
+ #include <linux/dma-mapping.h>
 -
--#include <linux/kernel.h>
--#include <linux/types.h>
--#include <linux/mm.h>
--#include <linux/scatterlist.h>
--#include <linux/dma-debug.h>
--#include <linux/io.h>
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+-#include <asm/swiotlb.h>
++#include <linux/swiotlb.h>
+ #include <asm/dma.h>
+ #include <asm/iommu.h>
+ #include <asm/machvec.h>
+@@ -15,40 +14,9 @@
+ int swiotlb __read_mostly;
+ EXPORT_SYMBOL(swiotlb);
+ 
+-static void *ia64_swiotlb_alloc_coherent(struct device *dev, size_t size,
+-					 dma_addr_t *dma_handle, gfp_t gfp,
+-					 unsigned long attrs)
 -{
--	return &dma_noop_ops;
+-	if (dev->coherent_dma_mask != DMA_BIT_MASK(64))
+-		gfp |= GFP_DMA32;
+-	return swiotlb_alloc_coherent(dev, size, dma_handle, gfp);
 -}
 -
--#endif /* _ASM_M32R_DMA_MAPPING_H */
-diff --git a/arch/riscv/include/asm/Kbuild b/arch/riscv/include/asm/Kbuild
-index 970460a0b492..197460ccbf21 100644
---- a/arch/riscv/include/asm/Kbuild
-+++ b/arch/riscv/include/asm/Kbuild
-@@ -7,6 +7,7 @@ generic-y += device.h
- generic-y += div64.h
- generic-y += dma.h
- generic-y += dma-contiguous.h
-+generic-y += dma-mapping.h
- generic-y += emergency-restart.h
- generic-y += errno.h
- generic-y += exec.h
-diff --git a/arch/riscv/include/asm/dma-mapping.h b/arch/riscv/include/asm/dma-mapping.h
-deleted file mode 100644
-index 73849e2cc761..000000000000
---- a/arch/riscv/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/*
-- * Copyright (C) 2003-2004 Hewlett-Packard Co
-- *	David Mosberger-Tang <davidm@hpl.hp.com>
-- * Copyright (C) 2012 ARM Ltd.
-- * Copyright (C) 2016 SiFive, Inc.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--#ifndef __ASM_RISCV_DMA_MAPPING_H
--#define __ASM_RISCV_DMA_MAPPING_H
--
--/* Use ops->dma_mapping_error (if it exists) or assume success */
--// #undef DMA_ERROR_CODE
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+-static void ia64_swiotlb_free_coherent(struct device *dev, size_t size,
+-				       void *vaddr, dma_addr_t dma_addr,
+-				       unsigned long attrs)
 -{
--	return &dma_noop_ops;
+-	swiotlb_free_coherent(dev, size, vaddr, dma_addr);
 -}
 -
--#endif	/* __ASM_RISCV_DMA_MAPPING_H */
-diff --git a/arch/s390/include/asm/Kbuild b/arch/s390/include/asm/Kbuild
-index 048450869328..dade72be127b 100644
---- a/arch/s390/include/asm/Kbuild
-+++ b/arch/s390/include/asm/Kbuild
-@@ -4,6 +4,7 @@ generic-y += cacheflush.h
- generic-y += clkdev.h
- generic-y += device.h
- generic-y += dma-contiguous.h
-+generic-y += dma-mapping.h
- generic-y += div64.h
- generic-y += emergency-restart.h
- generic-y += export.h
-diff --git a/arch/s390/include/asm/dma-mapping.h b/arch/s390/include/asm/dma-mapping.h
-deleted file mode 100644
-index bdc2455483f6..000000000000
---- a/arch/s390/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _ASM_S390_DMA_MAPPING_H
--#define _ASM_S390_DMA_MAPPING_H
+-const struct dma_map_ops ia64_swiotlb_dma_ops = {
+-	.alloc = ia64_swiotlb_alloc_coherent,
+-	.free = ia64_swiotlb_free_coherent,
+-	.map_page = swiotlb_map_page,
+-	.unmap_page = swiotlb_unmap_page,
+-	.map_sg = swiotlb_map_sg_attrs,
+-	.unmap_sg = swiotlb_unmap_sg_attrs,
+-	.sync_single_for_cpu = swiotlb_sync_single_for_cpu,
+-	.sync_single_for_device = swiotlb_sync_single_for_device,
+-	.sync_sg_for_cpu = swiotlb_sync_sg_for_cpu,
+-	.sync_sg_for_device = swiotlb_sync_sg_for_device,
+-	.dma_supported = swiotlb_dma_supported,
+-	.mapping_error = swiotlb_dma_mapping_error,
+-};
 -
--#include <linux/kernel.h>
--#include <linux/types.h>
--#include <linux/mm.h>
--#include <linux/scatterlist.h>
--#include <linux/dma-debug.h>
--#include <linux/io.h>
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
--{
--	return &dma_noop_ops;
--}
--
--#endif /* _ASM_S390_DMA_MAPPING_H */
-diff --git a/include/asm-generic/dma-mapping.h b/include/asm-generic/dma-mapping.h
-new file mode 100644
-index 000000000000..164031531d85
---- /dev/null
-+++ b/include/asm-generic/dma-mapping.h
-@@ -0,0 +1,10 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _ASM_GENERIC_DMA_MAPPING_H
-+#define _ASM_GENERIC_DMA_MAPPING_H
-+
-+static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
-+{
-+	return &dma_noop_ops;
-+}
-+
-+#endif /* _ASM_GENERIC_DMA_MAPPING_H */
+ void __init swiotlb_dma_init(void)
+ {
+-	dma_ops = &ia64_swiotlb_dma_ops;
++	dma_ops = &swiotlb_dma_ops;
+ 	swiotlb_init(1);
+ }
+ 
+@@ -60,7 +28,7 @@ void __init pci_swiotlb_init(void)
+ 		printk(KERN_INFO "PCI-DMA: Re-initialize machine vector.\n");
+ 		machvec_init("dig");
+ 		swiotlb_init(1);
+-		dma_ops = &ia64_swiotlb_dma_ops;
++		dma_ops = &swiotlb_dma_ops;
+ #else
+ 		panic("Unable to find Intel IOMMU");
+ #endif
 -- 
 2.14.2
 
