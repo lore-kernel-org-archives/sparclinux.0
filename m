@@ -1,20 +1,18 @@
 From: Anatoly Pugachev <matorola@gmail.com>
-Date: Sat, 30 Dec 2017 12:00:07 +0000
+Date: Sat, 30 Dec 2017 12:05:46 +0000
 Subject: Re: building debug version of klibc
-Message-Id: <CADxRZqyfzYxPPCiZCwdwsDvjZbTDX-i1x4dedb+PDJ7-BGL_HA@mail.gmail.com>
+Message-Id: <CADxRZqy1+ovSHdoUS+kr8=vMgLDmq+gmsz=uw2K=6JQzrxRYPQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqz24hXaLZzSgn=4ZC-Mj53ecbq7J=AcwxVyypU6eNQVqA@mail.gmail.com>
-	<20171230113002.GA10794@ravnborg.org>
-In-Reply-To: <20171230113002.GA10794@ravnborg.org>
+	<238034.1514635201@turing-police.cc.vt.edu>
+In-Reply-To: <238034.1514635201@turing-police.cc.vt.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: kernelnewbies@lists.kernelnewbies.org
 
-On Sat, Dec 30, 2017 at 2:30 PM, Sam Ravnborg <sam@ravnborg.org> wrote:
-> Hi Anatoly
->
-> On Sat, Dec 30, 2017 at 01:54:05PM +0300, Anatoly Pugachev wrote:
+On Sat, Dec 30, 2017 at 3:00 PM,  <valdis.kletnieks@vt.edu> wrote:
+> On Sat, 30 Dec 2017 13:54:05 +0300, Anatoly Pugachev said:
 >> Hello!
 >>
 >> Can someone please help me in building debug version of klibc ?
@@ -24,75 +22,35 @@ On Sat, Dec 30, 2017 at 2:30 PM, Sam Ravnborg <sam@ravnborg.org> wrote:
 >>
 >> added "-g" to HOSTCFLAGS in Makefile, but
 >
-> HOSTCFLAGS is used when building tools running on your build machine.
+> Hint:  HOSTCFLAGS is applied to code that needs to run on the machine that's
+> doing the build, not the target code.  So for instance, if I'm cross-compiling on
+> an x86_64       for an ARM target (which I do quite a bit, building Lede router images
+> for my wireless), HOSTCFLAGS is applied to any x86_64 utility code that gets
+> built.  I don't know what code is in klibc, but an example in the kernel source
+> tree would be 'objtool' - that runs on the host system during the build, not at runtime.
 >
-> Try something like this (untested, whitespace damaged):
+>> I started to get segfault in fstype:
 >
-> diff --git a/scripts/Kbuild.klibc b/scripts/Kbuild.klibc
-> index f500d535..3e8124f7 100644
-> --- a/scripts/Kbuild.klibc
-> +++ b/scripts/Kbuild.klibc
-> @@ -69,7 +69,7 @@ include $(srctree)/scripts/Kbuild.include
->  KLIBCREQFLAGS     := $(call cc-option, -fno-stack-protector, ) \
->                       $(call cc-option, -fwrapv, )
->  KLIBCARCHREQFLAGS :> -KLIBCOPTFLAGS     :> +KLIBCOPTFLAGS     := -g
->  KLIBCWARNFLAGS    := -W -Wall -Wno-sign-compare -Wno-unused-parameter
->  KLIBCSHAREDFLAGS  :>  KLIBCBITSIZE      :>
-> If you use make V=1 then you should be able to see the
-> full gcc command line, where -g should be included with
-> theabove fix.
+>> linux-2.6$ make install
+> ...
+>>  DEPMOD  4.15.0-rc5-00149-g5aa90a845892
+>> sh ./arch/sparc/boot/install.sh 4.15.0-rc5-00149-g5aa90a845892 arch/sparc/boot/zImage \
+>>        System.map "/boot"
+>
+> What directory did you do that in?  It looks like you're trying to install a whole
+> new kernel image, not a new initramfs that has an updated klibc on it.
 
+Valdis,
 
-Sam, thanks!
-I did notice that later as well, but I've changed KLIBCCFLAGS to
-include "-g" and changed strip to echo:
+it's usual git kernel compile and install. And it's the first time I
+started to get segfault from fstype.
 
-mator@ttip:~/klibc$ git diff
-diff --git a/scripts/Kbuild.klibc b/scripts/Kbuild.klibc
-index f500d535..40cbfd60 100644
---- a/scripts/Kbuild.klibc
-+++ b/scripts/Kbuild.klibc
-@@ -74,7 +74,7 @@ KLIBCWARNFLAGS    := -W -Wall -Wno-sign-compare
--Wno-unused-parameter
- KLIBCSHAREDFLAGS  : KLIBCBITSIZE      : KLIBCLDFLAGS      :-KLIBCCFLAGS       :+KLIBCCFLAGS       := -g
+git kernel from
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
 
- # Defaults for arch to override
- KLIBCARCHINCFLAGS = -I$(KLIBCKERNELOBJ)/arch/$(KLIBCARCH)/include
-@@ -99,7 +99,7 @@ KLIBCAR          := $(AR)
- klibc-ar = $(KLIBCAR) $(if $(KBUILD_REPRODUCIBLE),$(2),$(1))
-
- KLIBCRANLIB      := $(call klibc-ar,s,Ds)
--KLIBCSTRIP       := $(STRIP)
-+KLIBCSTRIP       := echo
- KLIBCNM          := $(NM)
- KLIBCOBJCOPY     := $(OBJCOPY)
- KLIBCOBJDUMP     := $(OBJDUMP)
-@@ -126,7 +126,7 @@ KLIBCCPPFLAGS    += $(KLIBCDEFS)
- KLIBCCFLAGS      += $(KLIBCCPPFLAGS) $(KLIBCREQFLAGS) $(KLIBCARCHREQFLAGS)  \
-                     $(KLIBCOPTFLAGS) $(KLIBCWARNFLAGS)
- KLIBCAFLAGS      += -D__ASSEMBLY__ $(KLIBCCFLAGS)
--KLIBCSTRIPFLAGS  += --strip-all -R .comment -R .note
-+#KLIBCSTRIPFLAGS  += --strip-all -R .comment -R .note
-
- KLIBCLIBGCC_DEF  := $(shell $(KLIBCCC) $(KLIBCCFLAGS) --print-libgcc)
- KLIBCLIBGCC     ?= $(KLIBCLIBGCC_DEF)
-mator@ttip:~/klibc$
-
-this helped me to produce exec with debug info and stack trace:
-
-(gdb) file ./usr/kinit/fstype/static/fstype
-Reading symbols from ./usr/kinit/fstype/static/fstype...done.
-(gdb) run
-Starting program: /home/mator/klibc/usr/kinit/fstype/static/fstype
-
-Program received signal SIGSEGV, Segmentation fault.
-__syscall_common () at usr/klibc/arch/sparc64/syscall.S:15
-15              st      %o0,[%g4]
-(gdb) bt
-#0  __syscall_common () at usr/klibc/arch/sparc64/syscall.S:15
-#1  0x00000000001010d4 in identify_fs ()
-#2  0x00000000001001f0 in main ()
-
-
-PS: added sparclinux@vger , first thread message is
-http://www.zytor.com/pipermail/klibc/2017-December/003962.html
+local directory where do i build it is ~/linux-2.6 , my own config.
+Worked fine for more than 100th times.
+So, i'm doing "make modules_install && make install" in this directory
+which doing right about to copy vmlinuz, System.map, kernel config
+file to /boot and generate initrd there and updating boot loader
+(grub2) config file.
