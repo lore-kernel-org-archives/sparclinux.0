@@ -1,52 +1,43 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Date: Wed, 10 Jan 2018 17:00:30 +0000
-Subject: Re: [PATCH 31/33] dma-direct: reject too small dma masks
-Message-Id: <619b174d-f38d-8d9e-dfd2-cc3a64ace446@arm.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 01 Jan 2018 21:11:49 +0000
+Subject: [sparc64] kernel unaligned access at TPC aa_dfa_unpack
+Message-Id: <CADxRZqwo8sL3RtEWRMcHkgkSAnWKeVibLRrtdXU2e8w2Q5KSTQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180110080027.13879-1-hch@lst.de>
- <20180110080027.13879-32-hch@lst.de>
- <0bcca030-a8da-c34a-a905-707986689f33@arm.com>
- <20180110153226.GE17790@lst.de>
-In-Reply-To: <20180110153226.GE17790@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: iommu@lists.linux-foundation.org, linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-snps-arc@lists.infradead.org, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: linux-security-module@vger.kernel.org
+
+Hello!
+
+Using latest git kernel (4.15.0-rc6) , getting the following messages
+on LDOM/kernel boot:
+
+[    7.693653] Kernel unaligned access at TPC[7496d8] aa_dfa_unpack+0x38/0x580
+[    7.693735] Kernel unaligned access at TPC[7496f8] aa_dfa_unpack+0x58/0x580
+[    7.693782] Kernel unaligned access at TPC[749708] aa_dfa_unpack+0x68/0x580
+[    7.693829] Kernel unaligned access at TPC[74973c] aa_dfa_unpack+0x9c/0x580
+[    7.693875] Kernel unaligned access at TPC[749758] aa_dfa_unpack+0xb8/0x580
+[    7.697135] audit: type00 audit(1514840016.480:2):
+apparmor="STATUS" operation="profile_load" profile="unconfined"
+name="/usr/sbin/tcpdump" pidP7 comm="apparmor_parser"
 
 
+Can someone please look, what could cause unaligned access at this
+aa_dfa_unpack function/structure ?
 
-On 10/01/18 15:32, Christoph Hellwig wrote:
-> On Wed, Jan 10, 2018 at 11:49:34AM +0000, Robin Murphy wrote:
->>> +#ifdef CONFIG_ZONE_DMA
->>> +	if (mask < DMA_BIT_MASK(ARCH_ZONE_DMA_BITS))
->>> +		return 0;
->>> +#else
->>> +	/*
->>> +	 * Because 32-bit DMA masks are so common we expect every architecture
->>> +	 * to be able to satisfy them - either by not supporting more physical
->>> +	 * memory, or by providing a ZONE_DMA32.  If neither is the case, the
->>> +	 * architecture needs to use an IOMMU instead of the direct mapping.
->>> +	 */
->>> +	if (mask < DMA_BIT_MASK(32))
->>> +		return 0;
->>
->> Do you think it's worth the effort to be a little more accommodating here?
->> i.e.:
->>
->> 		return dma_max_pfn(dev) >= max_pfn;
->>
->> We seem to have a fair few 28-31 bit masks for older hardware which
->> probably associates with host systems packing equivalently small amounts of
->> RAM.
-> 
-> And those devices don't have a ZONE_DMA?  I think we could do something
-> like that, but I'd rather have it as a separate commit with a good
-> explanation.  Maybe you can just send on on top of the series?
 
-Good point - other than the IXP4xx platform and possibly the Broadcom 
-network drivers, it's probably only x86-relevant stuff where the concern 
-is moot. Let's just keep the simple assumption then, until actually 
-proven otherwise.
+kernel config for apparmor is the following:
 
-Robin.
+$ grep APPARMOR /boot/config-4.15.0-rc6
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=1
+CONFIG_SECURITY_APPARMOR_HASH=y
+CONFIG_SECURITY_APPARMOR_HASH_DEFAULT=y
+CONFIG_SECURITY_APPARMOR_DEBUG=y
+CONFIG_SECURITY_APPARMOR_DEBUG_ASSERTS=y
+# CONFIG_SECURITY_APPARMOR_DEBUG_MESSAGES is not set
+CONFIG_DEFAULT_SECURITY_APPARMOR=y
+
+
+Thanks!
