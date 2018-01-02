@@ -1,7 +1,7 @@
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Tue, 02 Jan 2018 20:05:43 +0000
-Subject: [PATCH v7 04/10] init: allow initcall tables to be emitted using relative references
-Message-Id: <20180102200549.22984-5-ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:45 +0000
+Subject: [PATCH v7 06/10] kernel: tracepoints: add support for relative references
+Message-Id: <20180102200549.22984-7-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
@@ -10,197 +10,140 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-Allow the initcall tables to be emitted using relative references that
-are only half the size on 64-bit architectures and don't require fixups
-at runtime on relocatable kernels.
+To avoid the need for relocating absolute references to tracepoint
+structures at boot time when running relocatable kernels (which may
+take a disproportionate amount of space), add the option to emit
+these tables as relative references instead.
 
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Acked-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- include/linux/init.h   | 44 +++++++++++++++-----
- init/main.c            | 32 +++++++-------
- kernel/printk/printk.c |  4 +-
- security/security.c    |  4 +-
- 4 files changed, 53 insertions(+), 31 deletions(-)
+ include/linux/tracepoint.h | 19 ++++++--
+ kernel/tracepoint.c        | 50 +++++++++++---------
+ 2 files changed, 42 insertions(+), 27 deletions(-)
 
-diff --git a/include/linux/init.h b/include/linux/init.h
-index ea1b31101d9e..cef8e817e5a5 100644
---- a/include/linux/init.h
-+++ b/include/linux/init.h
-@@ -109,8 +109,24 @@
- typedef int (*initcall_t)(void);
- typedef void (*exitcall_t)(void);
+diff --git a/include/linux/tracepoint.h b/include/linux/tracepoint.h
+index a26ffbe09e71..d02bf1a695e8 100644
+--- a/include/linux/tracepoint.h
++++ b/include/linux/tracepoint.h
+@@ -228,6 +228,19 @@ extern void syscall_unregfunc(void);
+ 		return static_key_false(&__tracepoint_##name.key);	\
+ 	}
  
--extern initcall_t __con_initcall_start[], __con_initcall_end[];
--extern initcall_t __security_initcall_start[], __security_initcall_end[];
 +#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+typedef int initcall_entry_t;
-+
-+static inline initcall_t initcall_from_entry(initcall_entry_t *entry)
-+{
-+	return (initcall_t)((unsigned long)entry + *entry);
-+}
++#define __TRACEPOINT_ENTRY(name)					 \
++	asm("	.section \"__tracepoints_ptrs\", \"a\"		     \n" \
++	    "	.balign 4					     \n" \
++	    "	.long " VMLINUX_SYMBOL_STR(__tracepoint_##name) " - .\n" \
++	    "	.previous					     \n")
 +#else
-+typedef initcall_t initcall_entry_t;
-+
-+static inline initcall_t initcall_from_entry(initcall_entry_t *entry)
-+{
-+	return *entry;
-+}
++#define __TRACEPOINT_ENTRY(name)					 \
++	static struct tracepoint * const __tracepoint_ptr_##name __used	 \
++	__attribute__((section("__tracepoints_ptrs"))) =		 \
++		&__tracepoint_##name
 +#endif
 +
-+extern initcall_entry_t __con_initcall_start[], __con_initcall_end[];
-+extern initcall_entry_t __security_initcall_start[], __security_initcall_end[];
- 
- /* Used for contructor calls. */
- typedef void (*ctor_fn_t)(void);
-@@ -160,9 +176,20 @@ extern bool initcall_debug;
-  * as KEEP() in the linker script.
-  */
- 
--#define __define_initcall(fn, id) \
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+#define ___define_initcall(fn, id, __sec)			\
-+	__ADDRESSABLE(fn)					\
-+	asm(".section	\"" #__sec ".init\", \"a\"	\n"	\
-+	"__initcall_" #fn #id ":			\n"	\
-+	    ".long "	VMLINUX_SYMBOL_STR(fn) " - .	\n"	\
-+	    ".previous					\n");
-+#else
-+#define ___define_initcall(fn, id, __sec) \
- 	static initcall_t __initcall_##fn##id __used \
--	__attribute__((__section__(".initcall" #id ".init"))) = fn;
-+		__attribute__((__section__(#__sec ".init"))) = fn;
-+#endif
-+
-+#define __define_initcall(fn, id) ___define_initcall(fn, id, .initcall##id)
- 
  /*
-  * Early initcalls run before initializing SMP.
-@@ -201,13 +228,8 @@ extern bool initcall_debug;
- #define __exitcall(fn)						\
- 	static exitcall_t __exitcall_##fn __exit_call = fn
+  * We have no guarantee that gcc and the linker won't up-align the tracepoint
+  * structures, so we create an array of pointers that will be used for iteration
+@@ -237,11 +250,9 @@ extern void syscall_unregfunc(void);
+ 	static const char __tpstrtab_##name[]				 \
+ 	__attribute__((section("__tracepoints_strings"))) = #name;	 \
+ 	struct tracepoint __tracepoint_##name				 \
+-	__attribute__((section("__tracepoints"))) =			 \
++	__attribute__((section("__tracepoints"), used)) =		 \
+ 		{ __tpstrtab_##name, STATIC_KEY_INIT_FALSE, reg, unreg, NULL };\
+-	static struct tracepoint * const __tracepoint_ptr_##name __used	 \
+-	__attribute__((section("__tracepoints_ptrs"))) =		 \
+-		&__tracepoint_##name;
++	__TRACEPOINT_ENTRY(name);
  
--#define console_initcall(fn)					\
--	static initcall_t __initcall_##fn			\
--	__used __section(.con_initcall.init) = fn
--
--#define security_initcall(fn)					\
--	static initcall_t __initcall_##fn			\
--	__used __section(.security_initcall.init) = fn
-+#define console_initcall(fn)	___define_initcall(fn,, .con_initcall)
-+#define security_initcall(fn)	___define_initcall(fn,, .security_initcall)
- 
- struct obs_kernel_param {
- 	const char *str;
-diff --git a/init/main.c b/init/main.c
-index a8100b954839..d81487cc126d 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -848,18 +848,18 @@ int __init_or_module do_one_initcall(initcall_t fn)
+ #define DEFINE_TRACE(name)						\
+ 	DEFINE_TRACE_FN(name, NULL, NULL);
+diff --git a/kernel/tracepoint.c b/kernel/tracepoint.c
+index 685c50ae6300..05649fef106c 100644
+--- a/kernel/tracepoint.c
++++ b/kernel/tracepoint.c
+@@ -327,6 +327,28 @@ int tracepoint_probe_unregister(struct tracepoint *tp, void *probe, void *data)
  }
+ EXPORT_SYMBOL_GPL(tracepoint_probe_unregister);
  
- 
--extern initcall_t __initcall_start[];
--extern initcall_t __initcall0_start[];
--extern initcall_t __initcall1_start[];
--extern initcall_t __initcall2_start[];
--extern initcall_t __initcall3_start[];
--extern initcall_t __initcall4_start[];
--extern initcall_t __initcall5_start[];
--extern initcall_t __initcall6_start[];
--extern initcall_t __initcall7_start[];
--extern initcall_t __initcall_end[];
--
--static initcall_t *initcall_levels[] __initdata = {
-+extern initcall_entry_t __initcall_start[];
-+extern initcall_entry_t __initcall0_start[];
-+extern initcall_entry_t __initcall1_start[];
-+extern initcall_entry_t __initcall2_start[];
-+extern initcall_entry_t __initcall3_start[];
-+extern initcall_entry_t __initcall4_start[];
-+extern initcall_entry_t __initcall5_start[];
-+extern initcall_entry_t __initcall6_start[];
-+extern initcall_entry_t __initcall7_start[];
-+extern initcall_entry_t __initcall_end[];
++static void for_each_tracepoint_range(struct tracepoint * const *begin,
++		struct tracepoint * const *end,
++		void (*fct)(struct tracepoint *tp, void *priv),
++		void *priv)
++{
++	if (!begin)
++		return;
 +
-+static initcall_entry_t *initcall_levels[] __initdata = {
- 	__initcall0_start,
- 	__initcall1_start,
- 	__initcall2_start,
-@@ -885,7 +885,7 @@ static char *initcall_level_names[] __initdata = {
- 
- static void __init do_initcall_level(int level)
++	if (IS_ENABLED(CONFIG_HAVE_ARCH_PREL32_RELOCATIONS)) {
++		const int *iter;
++
++		for (iter = (const int *)begin; iter < (const int *)end; iter++)
++			fct((struct tracepoint *)((unsigned long)iter + *iter),
++			    priv);
++	} else {
++		struct tracepoint * const *iter;
++
++		for (iter = begin; iter < end; iter++)
++			fct(*iter, priv);
++	}
++}
++
+ #ifdef CONFIG_MODULES
+ bool trace_module_has_bad_taint(struct module *mod)
  {
--	initcall_t *fn;
-+	initcall_entry_t *fn;
- 
- 	strcpy(initcall_command_line, saved_command_line);
- 	parse_args(initcall_level_names[level],
-@@ -895,7 +895,7 @@ static void __init do_initcall_level(int level)
- 		   NULL, &repair_env_string);
- 
- 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
--		do_one_initcall(*fn);
-+		do_one_initcall(initcall_from_entry(fn));
- }
- 
- static void __init do_initcalls(void)
-@@ -926,10 +926,10 @@ static void __init do_basic_setup(void)
- 
- static void __init do_pre_smp_initcalls(void)
- {
--	initcall_t *fn;
-+	initcall_entry_t *fn;
- 
- 	for (fn = __initcall_start; fn < __initcall0_start; fn++)
--		do_one_initcall(*fn);
-+		do_one_initcall(initcall_from_entry(fn));
- }
- 
- /*
-diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-index b9006617710f..0516005261c7 100644
---- a/kernel/printk/printk.c
-+++ b/kernel/printk/printk.c
-@@ -2611,7 +2611,7 @@ EXPORT_SYMBOL(unregister_console);
+@@ -391,15 +413,9 @@ EXPORT_SYMBOL_GPL(unregister_tracepoint_module_notifier);
+  * Ensure the tracer unregistered the module's probes before the module
+  * teardown is performed. Prevents leaks of probe and data pointers.
   */
- void __init console_init(void)
+-static void tp_module_going_check_quiescent(struct tracepoint * const *begin,
+-		struct tracepoint * const *end)
++static void tp_module_going_check_quiescent(struct tracepoint *tp, void *priv)
  {
--	initcall_t *call;
-+	initcall_entry_t *call;
+-	struct tracepoint * const *iter;
+-
+-	if (!begin)
+-		return;
+-	for (iter = begin; iter < end; iter++)
+-		WARN_ON_ONCE((*iter)->funcs);
++	WARN_ON_ONCE(tp->funcs);
+ }
  
- 	/* Setup the default TTY line discipline. */
- 	n_tty_init();
-@@ -2622,7 +2622,7 @@ void __init console_init(void)
- 	 */
- 	call = __con_initcall_start;
- 	while (call < __con_initcall_end) {
--		(*call)();
-+		initcall_from_entry(call)();
- 		call++;
+ static int tracepoint_module_coming(struct module *mod)
+@@ -450,8 +466,9 @@ static void tracepoint_module_going(struct module *mod)
+ 			 * Called the going notifier before checking for
+ 			 * quiescence.
+ 			 */
+-			tp_module_going_check_quiescent(mod->tracepoints_ptrs,
+-				mod->tracepoints_ptrs + mod->num_tracepoints);
++			for_each_tracepoint_range(mod->tracepoints_ptrs,
++				mod->tracepoints_ptrs + mod->num_tracepoints,
++				tp_module_going_check_quiescent, NULL);
+ 			break;
+ 		}
  	}
- }
-diff --git a/security/security.c b/security/security.c
-index 1cd8526cb0b7..f648eeff06de 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -45,10 +45,10 @@ static __initdata char chosen_lsm[SECURITY_NAME_MAX + 1]  
- static void __init do_security_initcalls(void)
- {
--	initcall_t *call;
-+	initcall_entry_t *call;
- 	call = __security_initcall_start;
- 	while (call < __security_initcall_end) {
--		(*call) ();
-+		initcall_from_entry(call)();
- 		call++;
- 	}
- }
+@@ -503,19 +520,6 @@ static __init int init_tracepoints(void)
+ __initcall(init_tracepoints);
+ #endif /* CONFIG_MODULES */
+ 
+-static void for_each_tracepoint_range(struct tracepoint * const *begin,
+-		struct tracepoint * const *end,
+-		void (*fct)(struct tracepoint *tp, void *priv),
+-		void *priv)
+-{
+-	struct tracepoint * const *iter;
+-
+-	if (!begin)
+-		return;
+-	for (iter = begin; iter < end; iter++)
+-		fct(*iter, priv);
+-}
+-
+ /**
+  * for_each_kernel_tracepoint - iteration on all kernel tracepoints
+  * @fct: callback
 -- 
 2.11.0
 
