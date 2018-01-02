@@ -1,34 +1,104 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 10 Jan 2018 07:59:57 +0000
-Subject: [PATCH 03/33] m32r: remove unused flush_write_buffers definition
-Message-Id: <20180110080027.13879-4-hch@lst.de>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:48 +0000
+Subject: [PATCH v7 09/10] x86: jump_label: switch to jump_entry accessors
+Message-Id: <20180102200549.22984-10-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180110080027.13879-1-hch@lst.de>
-In-Reply-To: <20180110080027.13879-1-hch-jcswGhMUV9g@public.gmane.org>
+References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+In preparation of switching x86 to use place-relative references for
+the code, target and key members of struct jump_entry, replace direct
+references to the struct member with invocations of the new accessors.
+This will allow us to make the switch by modifying the accessors only.
+
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- arch/m32r/include/asm/io.h | 2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/kernel/jump_label.c | 43 ++++++++++++--------
+ 1 file changed, 26 insertions(+), 17 deletions(-)
 
-diff --git a/arch/m32r/include/asm/io.h b/arch/m32r/include/asm/io.h
-index 1b653bb16f9a..a4272d8f0d9c 100644
---- a/arch/m32r/include/asm/io.h
-+++ b/arch/m32r/include/asm/io.h
-@@ -191,8 +191,6 @@ static inline void _writel(unsigned long l, unsigned long addr)
+diff --git a/arch/x86/kernel/jump_label.c b/arch/x86/kernel/jump_label.c
+index e56c95be2808..d64296092ef5 100644
+--- a/arch/x86/kernel/jump_label.c
++++ b/arch/x86/kernel/jump_label.c
+@@ -52,22 +52,24 @@ static void __jump_label_transform(struct jump_entry *entry,
+ 			 * Jump label is enabled for the first time.
+ 			 * So we expect a default_nop...
+ 			 */
+-			if (unlikely(memcmp((void *)entry->code, default_nop, 5)
+-				     != 0))
+-				bug_at((void *)entry->code, __LINE__);
++			if (unlikely(memcmp((void *)jump_entry_code(entry),
++					    default_nop, 5) != 0))
++				bug_at((void *)jump_entry_code(entry),
++				       __LINE__);
+ 		} else {
+ 			/*
+ 			 * ...otherwise expect an ideal_nop. Otherwise
+ 			 * something went horribly wrong.
+ 			 */
+-			if (unlikely(memcmp((void *)entry->code, ideal_nop, 5)
+-				     != 0))
+-				bug_at((void *)entry->code, __LINE__);
++			if (unlikely(memcmp((void *)jump_entry_code(entry),
++					    ideal_nop, 5) != 0))
++				bug_at((void *)jump_entry_code(entry),
++				       __LINE__);
+ 		}
  
- #define mmiowb()
+ 		code.jump = 0xe9;
+-		code.offset = entry->target -
+-				(entry->code + JUMP_LABEL_NOP_SIZE);
++		code.offset = jump_entry_target(entry) -
++			      (jump_entry_code(entry) + JUMP_LABEL_NOP_SIZE);
+ 	} else {
+ 		/*
+ 		 * We are disabling this jump label. If it is not what
+@@ -76,14 +78,18 @@ static void __jump_label_transform(struct jump_entry *entry,
+ 		 * are converting the default nop to the ideal nop.
+ 		 */
+ 		if (init) {
+-			if (unlikely(memcmp((void *)entry->code, default_nop, 5) != 0))
+-				bug_at((void *)entry->code, __LINE__);
++			if (unlikely(memcmp((void *)jump_entry_code(entry),
++					    default_nop, 5) != 0))
++				bug_at((void *)jump_entry_code(entry),
++				       __LINE__);
+ 		} else {
+ 			code.jump = 0xe9;
+-			code.offset = entry->target -
+-				(entry->code + JUMP_LABEL_NOP_SIZE);
+-			if (unlikely(memcmp((void *)entry->code, &code, 5) != 0))
+-				bug_at((void *)entry->code, __LINE__);
++			code.offset = jump_entry_target(entry) -
++				(jump_entry_code(entry) + JUMP_LABEL_NOP_SIZE);
++			if (unlikely(memcmp((void *)jump_entry_code(entry),
++				     &code, 5) != 0))
++				bug_at((void *)jump_entry_code(entry),
++				       __LINE__);
+ 		}
+ 		memcpy(&code, ideal_nops[NOP_ATOMIC5], JUMP_LABEL_NOP_SIZE);
+ 	}
+@@ -97,10 +103,13 @@ static void __jump_label_transform(struct jump_entry *entry,
+ 	 *
+ 	 */
+ 	if (poker)
+-		(*poker)((void *)entry->code, &code, JUMP_LABEL_NOP_SIZE);
++		(*poker)((void *)jump_entry_code(entry), &code,
++			 JUMP_LABEL_NOP_SIZE);
+ 	else
+-		text_poke_bp((void *)entry->code, &code, JUMP_LABEL_NOP_SIZE,
+-			     (void *)entry->code + JUMP_LABEL_NOP_SIZE);
++		text_poke_bp((void *)jump_entry_code(entry), &code,
++			     JUMP_LABEL_NOP_SIZE,
++			     (void *)jump_entry_code(entry) +
++			     JUMP_LABEL_NOP_SIZE);
+ }
  
--#define flush_write_buffers() do { } while (0)  /* M32R_FIXME */
--
- static inline void
- memset_io(volatile void __iomem *addr, unsigned char val, int count)
- {
+ void arch_jump_label_transform(struct jump_entry *entry,
 -- 
-2.14.2
+2.11.0
 
