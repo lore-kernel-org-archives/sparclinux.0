@@ -1,71 +1,154 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 12 Jan 2018 08:42:30 +0000
-Subject: [PATCH 32/34] dma-direct: reject too small dma masks
-Message-Id: <20180112084232.2857-33-hch@lst.de>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:47 +0000
+Subject: [PATCH v7 08/10] arm64/kernel: jump_label: use relative references
+Message-Id: <20180102200549.22984-9-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180112084232.2857-1-hch@lst.de>
-In-Reply-To: <20180112084232.2857-1-hch@lst.de>
+References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+On a randomly chosen distro kernel build for arm64, vmlinux.o shows the
+following sections, containing jump label entries, and the associated
+RELA relocation records, respectively:
+
+  ...
+  [38088] __jump_table      PROGBITS         0000000000000000  00e19f30
+       000000000002ea10  0000000000000000  WA       0     0     8
+  [38089] .rela__jump_table RELA             0000000000000000  01fd8bb0
+       000000000008be30  0000000000000018   I      38178   38088     8
+  ...
+
+In other words, we have 190 KB worth of 'struct jump_entry' instances,
+and 573 KB worth of RELA entries to relocate each entry's code, target
+and key members. This means the RELA section occupies 10% of the .init
+segment, and the two sections combined represent 5% of vmlinux's entire
+memory footprint.
+
+So let's switch from 64-bit absolute references to 32-bit relative
+references: this reduces the size of the __jump_table by 50%, and gets
+rid of the RELA section entirely.
+
+Note that this requires some extra care in the sorting routine, given
+that the offsets change when entries are moved around in the jump_entry
+table.
+
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- include/linux/dma-direct.h |  1 +
- lib/dma-direct.c           | 19 +++++++++++++++++++
- 2 files changed, 20 insertions(+)
+ arch/arm64/include/asm/jump_label.h | 27 ++++++++++++--------
+ arch/arm64/kernel/jump_label.c      | 22 +++++++++++++---
+ 2 files changed, 36 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/dma-direct.h b/include/linux/dma-direct.h
-index 4788bf0bf683..bcdb1a3e4b1f 100644
---- a/include/linux/dma-direct.h
-+++ b/include/linux/dma-direct.h
-@@ -42,5 +42,6 @@ void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 		gfp_t gfp, unsigned long attrs);
- void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
- 		dma_addr_t dma_addr, unsigned long attrs);
-+int dma_direct_supported(struct device *dev, u64 mask);
+diff --git a/arch/arm64/include/asm/jump_label.h b/arch/arm64/include/asm/jump_label.h
+index 9d6e46355c89..8f82adeb7b0b 100644
+--- a/arch/arm64/include/asm/jump_label.h
++++ b/arch/arm64/include/asm/jump_label.h
+@@ -30,8 +30,8 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
+ {
+ 	asm goto("1: nop\n\t"
+ 		 ".pushsection __jump_table,  \"aw\"\n\t"
+-		 ".align 3\n\t"
+-		 ".quad 1b, %l[l_yes], %c0\n\t"
++		 ".align 2\n\t"
++		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
+ 		 ".popsection\n\t"
+ 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
  
- #endif /* _LINUX_DMA_DIRECT_H */
-diff --git a/lib/dma-direct.c b/lib/dma-direct.c
-index 784a68dfdbe3..40b1f92f2214 100644
---- a/lib/dma-direct.c
-+++ b/lib/dma-direct.c
-@@ -122,6 +122,24 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
- 	return nents;
- }
+@@ -44,8 +44,8 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
+ {
+ 	asm goto("1: b %l[l_yes]\n\t"
+ 		 ".pushsection __jump_table,  \"aw\"\n\t"
+-		 ".align 3\n\t"
+-		 ".quad 1b, %l[l_yes], %c0\n\t"
++		 ".align 2\n\t"
++		 ".long 1b - ., %l[l_yes] - ., %c0 - .\n\t"
+ 		 ".popsection\n\t"
+ 		 :  :  "i"(&((char *)key)[branch]) :  : l_yes);
  
-+int dma_direct_supported(struct device *dev, u64 mask)
-+{
-+#ifdef CONFIG_ZONE_DMA
-+	if (mask < DMA_BIT_MASK(ARCH_ZONE_DMA_BITS))
-+		return 0;
-+#else
-+	/*
-+	 * Because 32-bit DMA masks are so common we expect every architecture
-+	 * to be able to satisfy them - either by not supporting more physical
-+	 * memory, or by providing a ZONE_DMA32.  If neither is the case, the
-+	 * architecture needs to use an IOMMU instead of the direct mapping.
-+	 */
-+	if (mask < DMA_BIT_MASK(32))
-+		return 0;
-+#endif
-+	return 1;
+@@ -57,19 +57,26 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
+ typedef u64 jump_label_t;
+ 
+ struct jump_entry {
+-	jump_label_t code;
+-	jump_label_t target;
+-	jump_label_t key;
++	s32 code;
++	s32 target;
++	s32 key;
+ };
+ 
+ static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
+ {
+-	return entry->code;
++	return (unsigned long)&entry->code + entry->code;
 +}
 +
- static int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr)
++static inline jump_label_t jump_entry_target(const struct jump_entry *entry)
++{
++	return (unsigned long)&entry->target + entry->target;
+ }
+ 
+ static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
  {
- 	return dma_addr = DIRECT_MAPPING_ERROR;
-@@ -132,6 +150,7 @@ const struct dma_map_ops dma_direct_ops = {
- 	.free			= dma_direct_free,
- 	.map_page		= dma_direct_map_page,
- 	.map_sg			= dma_direct_map_sg,
-+	.dma_supported		= dma_direct_supported,
- 	.mapping_error		= dma_direct_mapping_error,
- };
- EXPORT_SYMBOL(dma_direct_ops);
+-	return (struct static_key *)((unsigned long)entry->key & ~1UL);
++	unsigned long key = (unsigned long)&entry->key + entry->key;
++
++	return (struct static_key *)(key & ~1UL);
+ }
+ 
+ static inline bool jump_entry_is_branch(const struct jump_entry *entry)
+@@ -87,7 +94,7 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
+ 	entry->code = 0;
+ }
+ 
+-#define jump_label_swap		NULL
++void jump_label_swap(void *a, void *b, int size);
+ 
+ #endif  /* __ASSEMBLY__ */
+ #endif	/* __ASM_JUMP_LABEL_H */
+diff --git a/arch/arm64/kernel/jump_label.c b/arch/arm64/kernel/jump_label.c
+index c2dd1ad3e648..2b8e459e91f7 100644
+--- a/arch/arm64/kernel/jump_label.c
++++ b/arch/arm64/kernel/jump_label.c
+@@ -25,12 +25,12 @@
+ void arch_jump_label_transform(struct jump_entry *entry,
+ 			       enum jump_label_type type)
+ {
+-	void *addr = (void *)entry->code;
++	void *addr = (void *)jump_entry_code(entry);
+ 	u32 insn;
+ 
+ 	if (type = JUMP_LABEL_JMP) {
+-		insn = aarch64_insn_gen_branch_imm(entry->code,
+-						   entry->target,
++		insn = aarch64_insn_gen_branch_imm(jump_entry_code(entry),
++						   jump_entry_target(entry),
+ 						   AARCH64_INSN_BRANCH_NOLINK);
+ 	} else {
+ 		insn = aarch64_insn_gen_nop();
+@@ -50,4 +50,20 @@ void arch_jump_label_transform_static(struct jump_entry *entry,
+ 	 */
+ }
+ 
++void jump_label_swap(void *a, void *b, int size)
++{
++	long delta = (unsigned long)a - (unsigned long)b;
++	struct jump_entry *jea = a;
++	struct jump_entry *jeb = b;
++	struct jump_entry tmp = *jea;
++
++	jea->code	= jeb->code - delta;
++	jea->target	= jeb->target - delta;
++	jea->key	= jeb->key - delta;
++
++	jeb->code	= tmp.code + delta;
++	jeb->target	= tmp.target + delta;
++	jeb->key	= tmp.key + delta;
++}
++
+ #endif	/* HAVE_JUMP_LABEL */
 -- 
-2.14.2
+2.11.0
 
