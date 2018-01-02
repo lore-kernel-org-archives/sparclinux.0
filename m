@@ -1,43 +1,110 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 22 Jan 2018 16:35:02 +0000
-Subject: Re: [PATCH v2 0/2] Driver for Oracle Data Analytics Accelerator
-Message-Id: <20180122.113502.930388214324368727.davem@davemloft.net>
+From: Vladimir Murzin <vladimir.murzin@arm.com>
+Date: Tue, 02 Jan 2018 16:44:21 +0000
+Subject: Re: [PATCH 31/67] dma-direct: make dma_direct_{alloc, free} available to other implementations
+Message-Id: <f7aca03c-e893-d10a-7a28-bb3c9ae47900@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171229081911.2802-1-hch@lst.de>
+ <20171229081911.2802-32-hch@lst.de>
+In-Reply-To: <20171229081911.2802-32-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-snps-arc@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Tue,  5 Dec 2017 19:40:41 -0700
-
-> v2:
->   Revised example code and updated documentation
->   New version of Hypervisor API specification
+On 29/12/17 08:18, Christoph Hellwig wrote:
+> So that they don't need to indirect through the operation vector.
 > 
-> Recent Oracle Sparc processors (M7 and M8) have a coprocessor which
-> lives on the cpu chip. The coprocessor is called DAX (Data Analytics
-> Accelerator), and is controlled via sun4v hypercalls. The programmatic
-> interface to the coprocessor is somewhat unorthodox, and all commands
-> and parameters are documented in detail in dax-hv-api.txt. The driver
-> API is described in oracle-dax.txt, which has been expanded with new
-> example code along with detailed explanations to demonstrate how user
-> and kernel code can use the capabilities of DAX.  Those who wish to
-> use the coprocessor in the kernel will need to construct their own
-> command blocks to submit, as no higher level services are provided.
-> Note that it is expected that general use of the coprocessor will go
-> through the companion userspace library, which has been published
-> under UPL at:
-> 	  https://oss.oracle.com/git/gitweb.cgi?p=libdax.git
-> This library is a comprehensive collection of higher level functions
-> along with tests, documentation, and code examples. The format of the
-> command control blocks is described in this library as well. Though
-> the primary purpose of the coprocessor is to accelerate data analytics
-> operations, it may be used for any suitable purpose.
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  arch/arm/mm/dma-mapping-nommu.c | 9 +++------
+>  include/linux/dma-direct.h      | 5 +++++
+>  lib/dma-direct.c                | 6 +++---
+>  3 files changed, 11 insertions(+), 9 deletions(-)
 > 
-> The machine descriptor identifies the device as "dax", and all
-> internal documentation refers to it as "dax". But since the term "dax"
-> already has other meanings and uses in Linux, we call this driver
-> "oradax".
+> diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
+> index 49e9831dc0f1..b4cf3e4e9d4a 100644
+> --- a/arch/arm/mm/dma-mapping-nommu.c
+> +++ b/arch/arm/mm/dma-mapping-nommu.c
+> @@ -11,7 +11,7 @@
+>  
+>  #include <linux/export.h>
+>  #include <linux/mm.h>
+> -#include <linux/dma-mapping.h>
+> +#include <linux/dma-direct.h>
+>  #include <linux/scatterlist.h>
+>  
+>  #include <asm/cachetype.h>
+> @@ -39,7 +39,6 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+>  				 unsigned long attrs)
+>  
+>  {
+> -	const struct dma_map_ops *ops = &dma_direct_ops;
+>  	void *ret;
+>  
+>  	/*
+> @@ -48,7 +47,7 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+>  	 */
+>  
+>  	if (attrs & DMA_ATTR_NON_CONSISTENT)
+> -		return ops->alloc(dev, size, dma_handle, gfp, attrs);
+> +		return dma_direct_alloc(dev, size, dma_handle, gfp, attrs);
+>  
+>  	ret = dma_alloc_from_global_coherent(size, dma_handle);
+>  
+> @@ -70,10 +69,8 @@ static void arm_nommu_dma_free(struct device *dev, size_t size,
+>  			       void *cpu_addr, dma_addr_t dma_addr,
+>  			       unsigned long attrs)
+>  {
+> -	const struct dma_map_ops *ops = &dma_direct_ops;
+> -
+>  	if (attrs & DMA_ATTR_NON_CONSISTENT) {
+> -		ops->free(dev, size, cpu_addr, dma_addr, attrs);
+> +		dma_direct_free(dev, size, cpu_addr, dma_addr, attrs);
+>  	} else {
+>  		int ret = dma_release_from_global_coherent(get_order(size),
+>  							   cpu_addr);
+> diff --git a/include/linux/dma-direct.h b/include/linux/dma-direct.h
+> index 10e924b7cba7..4788bf0bf683 100644
+> --- a/include/linux/dma-direct.h
+> +++ b/include/linux/dma-direct.h
+> @@ -38,4 +38,9 @@ static inline void dma_mark_clean(void *addr, size_t size)
+>  }
+>  #endif /* CONFIG_ARCH_HAS_DMA_MARK_CLEAN */
+>  
+> +void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+> +		gfp_t gfp, unsigned long attrs);
+> +void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
+> +		dma_addr_t dma_addr, unsigned long attrs);
+> +
+>  #endif /* _LINUX_DMA_DIRECT_H */
+> diff --git a/lib/dma-direct.c b/lib/dma-direct.c
+> index f8467cb3d89a..7e913728e099 100644
+> --- a/lib/dma-direct.c
+> +++ b/lib/dma-direct.c
+> @@ -33,8 +33,8 @@ static bool dma_coherent_ok(struct device *dev, phys_addr_t phys, size_t size)
+>  	return phys_to_dma(dev, phys) + size <= dev->coherent_dma_mask;
+>  }
+>  
+> -static void *dma_direct_alloc(struct device *dev, size_t size,
+> -		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+> +void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+> +		gfp_t gfp, unsigned long attrs)
+>  {
+>  	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+>  	int page_order = get_order(size);
+> @@ -71,7 +71,7 @@ static void *dma_direct_alloc(struct device *dev, size_t size,
+>  	return page_address(page);
+>  }
+>  
+> -static void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
+> +void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
+>  		dma_addr_t dma_addr, unsigned long attrs)
+>  {
+>  	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+> 
 
-Series applied to sparc-next, thanks for doing all of this hard work.
+Reviewed-by: Vladimir Murzin <vladimir.murzin@arm.com>
+
+Thanks
+Vladimir
