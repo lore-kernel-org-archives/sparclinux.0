@@ -1,134 +1,81 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Wed, 03 Jan 2018 22:49:52 +0000
-Subject: Re: sending SIGFPE via kill() returns wrong values in si_pid and si_uid
-Message-Id: <87k1wyy2un.fsf@xmission.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:41 +0000
+Subject: [PATCH v7 02/10] module: allow symbol exports to be disabled
+Message-Id: <20180102200549.22984-3-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1942316.IfptgDaGPd@eto>
-In-Reply-To: <1942316.IfptgDaGPd@eto>
+References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Rolf Eike Beer <eike-kernel@sf-tec.de> writes:
+To allow existing C code to be incorporated into the decompressor or
+the UEFI stub, introduce a CPP macro that turns all EXPORT_SYMBOL_xxx
+declarations into nops, and #define it in places where such exports
+are undesirable. Note that this gets rid of a rather dodgy redefine
+of linux/export.h's header guard.
 
-> This originally came up as a failure in the testsuite of strace on Gentoo 
-> (T5120, 64 bit kernel, 32 bit userspace) and was reported here: 
-> https://bugs.gentoo.org/643060. This was then reported upstream here: 
-> https://github.com/strace/strace/issues/21 . I'll paste the relevant parts of
-> those bugs here.
->
-> The test program is as follows (done by Dmitry V. Levin): 
->
-> #include <assert.h>
-> #include <signal.h>
-> #include <stdio.h>
-> #include <unistd.h>
->
-> static void
-> handler(int sig, siginfo_t *info, void *ucontext)
-> {
->
-> fprintf(stderr, "sig=%d, si_signo=%d, si_pid=%d, si_uid=%d\n",
-> 	sig, info->si_signo, info->si_pid, info->si_uid);
-> }
->
-> static void
-> setup(int sig, sigset_t *mask)
-> {
->
-> static const struct sigaction act = { .sa_sigaction = handler, .sa_flags = SA_SIGINFO };
-> assert(!sigaction(sig, &act, NULL));
-> assert(!sigaddset(mask, sig));
-> }
->
-> static void
-> test(int sig)
-> {
->
-> assert(!raise(sig));
-> assert(!kill(getpid(), sig));
-> }
->
-> int
-> main(void)
-> {
->
-> sigset_t mask;
-> assert(!sigemptyset(&mask));
->
-> setup(SIGFPE, &mask);
-> setup(SIGTERM, &mask);
->
-> assert(!sigprocmask(SIG_UNBLOCK, &mask, NULL));
->
-> test(SIGFPE);
-> test(SIGTERM);
->
-> return 0;
-> }
->
-> Running this on sparc64 userspace works fine:
->
-> sig=8, si_signo=8, si_pid5186, si_uid08
-> sig=8, si_signo=8, si_pid5186, si_uid08
-> sig, si_signo, si_pid5186, si_uid08
-> sig, si_signo, si_pid5186, si_uid08
->
-> However, on sparc32 things go wrong:
->
-> sig=8, si_signo=8, si_pid5192, si_uid08
-> sig=8, si_signo=8, si_pid08, si_uid=0
-> sig, si_signo, si_pid5192, si_uid08
-> sig, si_signo, si_pid5192, si_uid08
->
-> When digging the code up and down I came up with this patch, which fixes the 
-> issue for me:
->
-> diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-> index 54a6159b9cd8..a05e271e0924 100644
-> --- a/arch/sparc/kernel/signal32.c
-> +++ b/arch/sparc/kernel/signal32.c
-> @@ -87,7 +87,7 @@ int copy_siginfo_to_user32(compat_siginfo_t __user *to, 
->         err = __put_user(from->si_signo, &to->si_signo);
->         err |= __put_user(from->si_errno, &to->si_errno);
->         err |= __put_user(from->si_code, &to->si_code);
-> -       if (from->si_code < 0)
-> +       if (SI_FROMUSER(from))
->                 err |= __copy_to_user(&to->_sifields._pad, &from->_sifields._pad, SI_PAD_SIZE);
->         else {
->                 switch (siginfo_layout(from->si_signo, from->si_code)) {
->
-> I suspect it was broken by cc731525f26af85a1c3537da41e0abd1d35e0bdb as it is 
-> reported that it worked in 4.5.0. Looking at that commit other archs (at least 
-> arm64, mips, parisc, powerpc, s390, tile, x86) have the same code, but 
-> different default-cases. From a quick glance arm64, parisc, and x86 do not 
-> have a default case anymore since that commit, while the others do not seem to 
-> have changed their default case. However it could be that siginfo_layout() 
-> behaves slightly different than the mask code used before in the switch 
-> statements. I'm currently building a 4.14.9 kernel for my HP C8000, will 
-> report the test results once that is done.
+Cc: matt@codeblueprint.co.uk
+Cc: keescook@chromium.org
+Cc: jeyu@kernel.org
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/x86/boot/compressed/kaslr.c      | 5 +----
+ drivers/firmware/efi/libstub/Makefile | 3 ++-
+ include/linux/export.h                | 9 +++++++++
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
-That is definitely the wrong fix.
-However it does verify that your si_code is SI_USER.
+diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+index 8199a6187251..3a2a6d7049e4 100644
+--- a/arch/x86/boot/compressed/kaslr.c
++++ b/arch/x86/boot/compressed/kaslr.c
+@@ -23,11 +23,8 @@
+  * _ctype[] in lib/ctype.c is needed by isspace() of linux/ctype.h.
+  * While both lib/ctype.c and lib/cmdline.c will bring EXPORT_SYMBOL
+  * which is meaningless and will cause compiling error in some cases.
+- * So do not include linux/export.h and define EXPORT_SYMBOL(sym)
+- * as empty.
+  */
+-#define _LINUX_EXPORT_H
+-#define EXPORT_SYMBOL(sym)
++#define __DISABLE_EXPORTS
+ 
+ #include "misc.h"
+ #include "error.h"
+diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
+index adaa4a964f0c..312bd0b64a61 100644
+--- a/drivers/firmware/efi/libstub/Makefile
++++ b/drivers/firmware/efi/libstub/Makefile
+@@ -20,7 +20,8 @@ cflags-$(CONFIG_EFI_ARMSTUB)	+= -I$(srctree)/scripts/dtc/libfdt
+ KBUILD_CFLAGS			:= $(cflags-y) -DDISABLE_BRANCH_PROFILING \
+ 				   -D__NO_FORTIFY \
+ 				   $(call cc-option,-ffreestanding) \
+-				   $(call cc-option,-fno-stack-protector)
++				   $(call cc-option,-fno-stack-protector) \
++				   -D__DISABLE_EXPORTS
+ 
+ GCOV_PROFILE			:= n
+ KASAN_SANITIZE			:= n
+diff --git a/include/linux/export.h b/include/linux/export.h
+index 1a1dfdb2a5c6..6dba2fb08f77 100644
+--- a/include/linux/export.h
++++ b/include/linux/export.h
+@@ -83,6 +83,15 @@ extern struct module __this_module;
+  */
+ #define __EXPORT_SYMBOL(sym, sec)	== __KSYM_##sym = 
++#elif defined(__DISABLE_EXPORTS)
++
++/*
++ * Allow symbol exports to be disabled completely so that C code may
++ * be reused in other execution contexts such as the UEFI stub or the
++ * decompressor.
++ */
++#define __EXPORT_SYMBOL(sym, sec)
++
+ #elif defined(CONFIG_TRIM_UNUSED_KSYMS)
+ 
+ #include <generated/autoksyms.h>
+-- 
+2.11.0
 
-The issue is that sparc has ambiguous signal handling, and
-si_code of 0 combined with the signal SIGFPE could be either
-a real floating point signal or a signal sent with kill.
-
-As it is pointless to send yourself a signal with kill I choose to
-preserve the floating point signal.   That is the test is not actually
-testing floating point SIGFPE so I don't know that it makes much sense.
-
-I do have some further fixes that I was planning on testing and applying
-but I ran out of time to finish last year so I will see about digging
-those up.  It is definitely wrong to allow sending SIGFPE to yourself
-whent si_code = SI_USER when SIGFPE_FIXME is defined.  I should fix
-that as well.
-
-Ideally someone will go through sparc and look at
-arch/sparc/kernel/traps_32.c:do_fpe_trap and
-arch/sparc/kernel/traps_64.c:do_fpe_common and see if they can remove
-the need for FPE_FIXME (aka SI_USER, aka 0).
-
-Eric
