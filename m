@@ -1,29 +1,96 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Thu, 04 Jan 2018 08:53:15 +0000
-Subject: Re: [PATCH 02/67] alpha: mark jensen as broken
-Message-Id: <20180104085315.GD3251@lst.de>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:44 +0000
+Subject: [PATCH v7 05/10] PCI: Add support for relative addressing in quirk tables
+Message-Id: <20180102200549.22984-6-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de> <20171229081911.2802-3-hch@lst.de> <CAMuHMdUXSMuQ=RoZp86CODVk5Ubd3R+jtqOur_Uqnu+7h_m9AA@mail.gmail.com>
-In-Reply-To: <CAMuHMdUXSMuQ=RoZp86CODVk5Ubd3R+jtqOur_Uqnu+7h_m9AA@mail.gmail.com>
+References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org, alpha <linux-alpha@vger.kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, Cris <linux-cris-kernel@axis.com>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, linux-ia64@vger.kernel.org, linux-m68k <linux-m68k@lists.linux-m68k.org>, "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>, Michal Simek <monstr@monstr.eu>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparc
+To: linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 02, 2018 at 11:36:00AM +0100, Geert Uytterhoeven wrote:
-> Hi Christoph,
-> 
-> On Fri, Dec 29, 2017 at 9:18 AM, Christoph Hellwig <hch@lst.de> wrote:
-> > CONFIG_ALPHA_JENSEN has failed to compile since commit aca05038
-> > ("alpha/dma: use common noop dma ops"), so mark it as broken.
-> 
-> unknown revision or path not in the working tree.
-> Ah, you dropped the leading "6":
-> 6aca0503847f6329460b15b3ab2b0e30bb752793
-> is less than 2 years old, though.
+Allow the PCI quirk tables to be emitted in a way that avoids absolute
+references to the hook functions. This reduces the size of the entries,
+and, more importantly, makes them invariant under runtime relocation
+(e.g., for KASLR)
 
-I'll fix the reference.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ drivers/pci/quirks.c | 13 ++++++++++---
+ include/linux/pci.h  | 20 ++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 3 deletions(-)
 
-But 23 month of a whole sub-architecture not compiling should still be
-enough to mark it broken.
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 10684b17d0bd..b6d51b4d5ce1 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -3556,9 +3556,16 @@ static void pci_do_fixups(struct pci_dev *dev, struct pci_fixup *f,
+ 		     f->vendor = (u16) PCI_ANY_ID) &&
+ 		    (f->device = dev->device ||
+ 		     f->device = (u16) PCI_ANY_ID)) {
+-			calltime = fixup_debug_start(dev, f->hook);
+-			f->hook(dev);
+-			fixup_debug_report(dev, calltime, f->hook);
++			void (*hook)(struct pci_dev *dev);
++#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
++			hook = (void *)((unsigned long)&f->hook_offset +
++					f->hook_offset);
++#else
++			hook = f->hook;
++#endif
++			calltime = fixup_debug_start(dev, hook);
++			hook(dev);
++			fixup_debug_report(dev, calltime, hook);
+ 		}
+ }
+ 
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index c170c9250c8b..086c3965710b 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1792,7 +1792,11 @@ struct pci_fixup {
+ 	u16 device;		/* You can use PCI_ANY_ID here of course */
+ 	u32 class;		/* You can use PCI_ANY_ID here too */
+ 	unsigned int class_shift;	/* should be 0, 8, 16 */
++#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
++	int hook_offset;
++#else
+ 	void (*hook)(struct pci_dev *dev);
++#endif
+ };
+ 
+ enum pci_fixup_pass {
+@@ -1806,12 +1810,28 @@ enum pci_fixup_pass {
+ 	pci_fixup_suspend_late,	/* pci_device_suspend_late() */
+ };
+ 
++#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
++#define __DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
++				    class_shift, hook)			\
++	__ADDRESSABLE(hook)						\
++	asm(".section "	#sec ", \"a\"				\n"	\
++	    ".balign	16					\n"	\
++	    ".short "	#vendor ", " #device "			\n"	\
++	    ".long "	#class ", " #class_shift "		\n"	\
++	    ".long "	VMLINUX_SYMBOL_STR(hook) " - .		\n"	\
++	    ".previous						\n");
++#define DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
++				  class_shift, hook)			\
++	__DECLARE_PCI_FIXUP_SECTION(sec, name, vendor, device, class,	\
++				  class_shift, hook)
++#else
+ /* Anonymous variables would be nice... */
+ #define DECLARE_PCI_FIXUP_SECTION(section, name, vendor, device, class,	\
+ 				  class_shift, hook)			\
+ 	static const struct pci_fixup __PASTE(__pci_fixup_##name,__LINE__) __used	\
+ 	__attribute__((__section__(#section), aligned((sizeof(void *)))))    \
+ 		= { vendor, device, class, class_shift, hook };
++#endif
+ 
+ #define DECLARE_PCI_FIXUP_CLASS_EARLY(vendor, device, class,		\
+ 					 class_shift, hook)		\
+-- 
+2.11.0
+
