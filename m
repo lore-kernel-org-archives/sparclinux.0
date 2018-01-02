@@ -1,287 +1,186 @@
-From: Vladimir Murzin <vladimir.murzin@arm.com>
-Date: Tue, 02 Jan 2018 16:25:59 +0000
-Subject: Re: [PATCH 25/67] dma-direct: rename dma_noop to dma_direct
-Message-Id: <0f48e84c-a6a8-b200-5f2b-69fd49e79fca@arm.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Tue, 02 Jan 2018 20:05:39 +0000
+Subject: [PATCH v7 00/10] add support for relative references in special sections
+Message-Id: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de>
- <20171229081911.2802-26-hch@lst.de>
-In-Reply-To: <20171229081911.2802-26-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-snps-arc@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: linux-arm-kernel@lists.infradead.org
 
-On 29/12/17 08:18, Christoph Hellwig wrote:
-> The trivial direct mapping implementation already does a virtual to
-> physical translation which isn't strictly a noop, and will soon learn
-> to do non-direct but linear physical to dma translations through the
-> device offset and a few small tricks.  Rename it to a better fitting
-> name.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  MAINTAINERS                        |  2 +-
->  arch/arm/Kconfig                   |  2 +-
->  arch/arm/include/asm/dma-mapping.h |  2 +-
->  arch/arm/mm/dma-mapping-nommu.c    |  8 ++++----
->  arch/m32r/Kconfig                  |  2 +-
->  arch/riscv/Kconfig                 |  2 +-
->  arch/s390/Kconfig                  |  2 +-
->  include/asm-generic/dma-mapping.h  |  2 +-
->  include/linux/dma-mapping.h        |  2 +-
->  lib/Kconfig                        |  2 +-
->  lib/Makefile                       |  2 +-
->  lib/{dma-noop.c => dma-direct.c}   | 35 +++++++++++++++--------------------
->  12 files changed, 29 insertions(+), 34 deletions(-)
->  rename lib/{dma-noop.c => dma-direct.c} (53%)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a8b35d9f41b2..b4005fe06e4c 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4336,7 +4336,7 @@ T:	git git://git.infradead.org/users/hch/dma-mapping.git
->  W:	http://git.infradead.org/users/hch/dma-mapping.git
->  S:	Supported
->  F:	lib/dma-debug.c
-> -F:	lib/dma-noop.c
-> +F:	lib/dma-direct.c
->  F:	lib/dma-virt.c
->  F:	drivers/base/dma-mapping.c
->  F:	drivers/base/dma-coherent.c
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index 00d889a37965..430a0aa710d6 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -25,7 +25,7 @@ config ARM
->  	select CLONE_BACKWARDS
->  	select CPU_PM if (SUSPEND || CPU_IDLE)
->  	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
-> -	select DMA_NOOP_OPS if !MMU
-> +	select DMA_DIRECT_OPS if !MMU
->  	select EDAC_SUPPORT
->  	select EDAC_ATOMIC_SCRUB
->  	select GENERIC_ALLOCATOR
-> diff --git a/arch/arm/include/asm/dma-mapping.h b/arch/arm/include/asm/dma-mapping.h
-> index e5d9020c9ee1..8436f6ade57d 100644
-> --- a/arch/arm/include/asm/dma-mapping.h
-> +++ b/arch/arm/include/asm/dma-mapping.h
-> @@ -18,7 +18,7 @@ extern const struct dma_map_ops arm_coherent_dma_ops;
->  
->  static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
->  {
-> -	return IS_ENABLED(CONFIG_MMU) ? &arm_dma_ops : &dma_noop_ops;
-> +	return IS_ENABLED(CONFIG_MMU) ? &arm_dma_ops : &dma_direct_ops;
->  }
->  
->  #ifdef __arch_page_to_dma
-> diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
-> index 1cced700e45a..49e9831dc0f1 100644
-> --- a/arch/arm/mm/dma-mapping-nommu.c
-> +++ b/arch/arm/mm/dma-mapping-nommu.c
-> @@ -22,7 +22,7 @@
->  #include "dma.h"
->  
->  /*
-> - *  dma_noop_ops is used if
-> + *  dma_direct_ops is used if
->   *   - MMU/MPU is off
->   *   - cpu is v7m w/o cache support
->   *   - device is coherent
-> @@ -39,7 +39,7 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
->  				 unsigned long attrs)
->  
->  {
-> -	const struct dma_map_ops *ops = &dma_noop_ops;
-> +	const struct dma_map_ops *ops = &dma_direct_ops;
->  	void *ret;
->  
->  	/*
-> @@ -70,7 +70,7 @@ static void arm_nommu_dma_free(struct device *dev, size_t size,
->  			       void *cpu_addr, dma_addr_t dma_addr,
->  			       unsigned long attrs)
->  {
-> -	const struct dma_map_ops *ops = &dma_noop_ops;
-> +	const struct dma_map_ops *ops = &dma_direct_ops;
->  
->  	if (attrs & DMA_ATTR_NON_CONSISTENT) {
->  		ops->free(dev, size, cpu_addr, dma_addr, attrs);
-> @@ -214,7 +214,7 @@ EXPORT_SYMBOL(arm_nommu_dma_ops);
->  
->  static const struct dma_map_ops *arm_nommu_get_dma_map_ops(bool coherent)
->  {
-> -	return coherent ? &dma_noop_ops : &arm_nommu_dma_ops;
-> +	return coherent ? &dma_direct_ops : &arm_nommu_dma_ops;
->  }
->  
->  void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
-> diff --git a/arch/m32r/Kconfig b/arch/m32r/Kconfig
-> index 498398d915c1..dd84ee194579 100644
-> --- a/arch/m32r/Kconfig
-> +++ b/arch/m32r/Kconfig
-> @@ -19,7 +19,7 @@ config M32R
->  	select MODULES_USE_ELF_RELA
->  	select HAVE_DEBUG_STACKOVERFLOW
->  	select CPU_NO_EFFICIENT_FFS
-> -	select DMA_NOOP_OPS
-> +	select DMA_DIRECT_OPS
->  	select ARCH_NO_COHERENT_DMA_MMAP if !MMU
->  
->  config SBUS
-> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-> index 2c6adf12713a..865e14f50c14 100644
-> --- a/arch/riscv/Kconfig
-> +++ b/arch/riscv/Kconfig
-> @@ -83,7 +83,7 @@ config PGTABLE_LEVELS
->  config HAVE_KPROBES
->  	def_bool n
->  
-> -config DMA_NOOP_OPS
-> +config DMA_DIRECT_OPS
->  	def_bool y
->  
->  menu "Platform type"
-> diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-> index 829c67986db7..9376637229c9 100644
-> --- a/arch/s390/Kconfig
-> +++ b/arch/s390/Kconfig
-> @@ -140,7 +140,7 @@ config S390
->  	select HAVE_DEBUG_KMEMLEAK
->  	select HAVE_DMA_API_DEBUG
->  	select HAVE_DMA_CONTIGUOUS
-> -	select DMA_NOOP_OPS
-> +	select DMA_DIRECT_OPS
->  	select HAVE_DYNAMIC_FTRACE
->  	select HAVE_DYNAMIC_FTRACE_WITH_REGS
->  	select HAVE_EFFICIENT_UNALIGNED_ACCESS
-> diff --git a/include/asm-generic/dma-mapping.h b/include/asm-generic/dma-mapping.h
-> index 164031531d85..880a292d792f 100644
-> --- a/include/asm-generic/dma-mapping.h
-> +++ b/include/asm-generic/dma-mapping.h
-> @@ -4,7 +4,7 @@
->  
->  static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
->  {
-> -	return &dma_noop_ops;
-> +	return &dma_direct_ops;
->  }
->  
->  #endif /* _ASM_GENERIC_DMA_MAPPING_H */
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index 72568bf4fc12..ff3528de5322 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -143,7 +143,7 @@ struct dma_map_ops {
->  	bool is_phys;
->  };
->  
-> -extern const struct dma_map_ops dma_noop_ops;
-> +extern const struct dma_map_ops dma_direct_ops;
->  extern const struct dma_map_ops dma_virt_ops;
->  
->  #define DMA_BIT_MASK(n)	(((n) = 64) ? ~0ULL : ((1ULL<<(n))-1))
-> diff --git a/lib/Kconfig b/lib/Kconfig
-> index c5e84fbcb30b..9d3d649c9dc9 100644
-> --- a/lib/Kconfig
-> +++ b/lib/Kconfig
-> @@ -409,7 +409,7 @@ config HAS_DMA
->  	depends on !NO_DMA
->  	default y
->  
-> -config DMA_NOOP_OPS
-> +config DMA_DIRECT_OPS
->  	bool
->  	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
->  	default n
-> diff --git a/lib/Makefile b/lib/Makefile
-> index d11c48ec8ffd..749851abe85a 100644
-> --- a/lib/Makefile
-> +++ b/lib/Makefile
-> @@ -28,7 +28,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
->  
->  lib-$(CONFIG_MMU) += ioremap.o
->  lib-$(CONFIG_SMP) += cpumask.o
-> -lib-$(CONFIG_DMA_NOOP_OPS) += dma-noop.o
-> +lib-$(CONFIG_DMA_DIRECT_OPS) += dma-direct.o
->  lib-$(CONFIG_DMA_VIRT_OPS) += dma-virt.o
->  
->  lib-y	+= kobject.o klist.o
-> diff --git a/lib/dma-noop.c b/lib/dma-direct.c
-> similarity index 53%
-> rename from lib/dma-noop.c
-> rename to lib/dma-direct.c
-> index c3728a0551f5..439db40854b7 100644
-> --- a/lib/dma-noop.c
-> +++ b/lib/dma-direct.c
-> @@ -10,9 +10,8 @@
->  #include <linux/scatterlist.h>
->  #include <linux/pfn.h>
->  
-> -static void *dma_noop_alloc(struct device *dev, size_t size,
-> -			    dma_addr_t *dma_handle, gfp_t gfp,
-> -			    unsigned long attrs)
-> +static void *dma_direct_alloc(struct device *dev, size_t size,
-> +		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
->  {
->  	void *ret;
->  
-> @@ -23,24 +22,21 @@ static void *dma_noop_alloc(struct device *dev, size_t size,
->  	return ret;
->  }
->  
-> -static void dma_noop_free(struct device *dev, size_t size,
-> -			  void *cpu_addr, dma_addr_t dma_addr,
-> -			  unsigned long attrs)
-> +static void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
-> +		dma_addr_t dma_addr, unsigned long attrs)
->  {
->  	free_pages((unsigned long)cpu_addr, get_order(size));
->  }
->  
-> -static dma_addr_t dma_noop_map_page(struct device *dev, struct page *page,
-> -				      unsigned long offset, size_t size,
-> -				      enum dma_data_direction dir,
-> -				      unsigned long attrs)
-> +static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
-> +		unsigned long offset, size_t size, enum dma_data_direction dir,
-> +		unsigned long attrs)
->  {
->  	return page_to_phys(page) + offset - PFN_PHYS(dev->dma_pfn_offset);
->  }
->  
-> -static int dma_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
-> -			     enum dma_data_direction dir,
-> -			     unsigned long attrs)
-> +static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
-> +		int nents, enum dma_data_direction dir, unsigned long attrs)
->  {
->  	int i;
->  	struct scatterlist *sg;
-> @@ -58,12 +54,11 @@ static int dma_noop_map_sg(struct device *dev, struct scatterlist *sgl, int nent
->  	return nents;
->  }
->  
-> -const struct dma_map_ops dma_noop_ops = {
-> -	.alloc			= dma_noop_alloc,
-> -	.free			= dma_noop_free,
-> -	.map_page		= dma_noop_map_page,
-> -	.map_sg			= dma_noop_map_sg,
-> +const struct dma_map_ops dma_direct_ops = {
-> +	.alloc			= dma_direct_alloc,
-> +	.free			= dma_direct_free,
-> +	.map_page		= dma_direct_map_page,
-> +	.map_sg			= dma_direct_map_sg,
->  	.is_phys		= true,
->  };
-> -
-> -EXPORT_SYMBOL(dma_noop_ops);
-> +EXPORT_SYMBOL(dma_direct_ops);
-> 
+This adds support for emitting special sections such as initcall arrays,
+PCI fixups and tracepoints as relative references rather than absolute
+references. This reduces the size by 50% on 64-bit architectures, but
+more importantly, it removes the need for carrying relocation metadata
+for these sections in relocatables kernels (e.g., for KASLR) that need
+to fix up these absolute references at boot time. On arm64, this reduces
+the vmlinux footprint of such a reference by 8x (8 byte absolute reference
++ 24 byte RELA entry vs 4 byte relative reference)
 
-From ARM NOMMU perspective
+Patch #3 was sent out before as a single patch. This series supersedes
+the previous submission. This version makes relative ksymtab entries
+dependent on the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS rather
+than trying to infer from kbuild test robot replies for which architectures
+it should be blacklisted.
 
-Reviewed-by: Vladimir Murzin <vladimir.murzin@arm.com>
+Patch #1 introduces the new Kconfig symbol HAVE_ARCH_PREL32_RELOCATIONS,
+and sets it for the main architectures that are expected to benefit the
+most from this feature, i.e., 64-bit architectures or ones that use
+runtime relocations.
 
-Thanks
-Vladimir
+Patches #4 - #6 implement relative references for initcalls, PCI fixups
+and tracepoints, respectively, all of which produce sections with order
+~1000 entries on an arm64 defconfig kernel with tracing enabled. This
+means we save about 28 KB of vmlinux space for each of these patches.
+
+Patches #7 - #10 have been added in v5, and implement relative references
+in jump tables for arm64 and x86. On arm64, this results in significant
+space savings (650+ KB on a typical distro kernel). On x86, the savings
+are not as impressive, but still worthwhile. (Note that these patches
+do not rely on CONFIG_HAVE_ARCH_PREL32_RELOCATIONS, given that the
+inline asm that is emitted is already per-arch)
+
+For the arm64 kernel, all patches combined reduce the memory footprint of
+vmlinux by about 1.3 MB (using a config copied from Ubuntu that has KASLR
+enabled), of which ~1 MB is the size reduction of the RELA section in .init,
+and the remaining 300 KB is reduction of .text/.data.
+
+Branch:
+git://git.kernel.org/pub/scm/linux/kernel/git/ardb/linux.git relative-special-sections-v7
+
+Changes since v6:
+- drop S390 from patch #1 introducing HAVE_ARCH_PREL32_RELOCATIONS: kbuild
+  robot threw me some s390 curveballs, and given that s390 does not define
+  CONFIG_RELOCATABLE in the first place, it does not benefit as much from
+  relative references as arm64, x86 and power do
+- add patch to allow symbol exports to be disabled at compilation unit
+  granularity (#2)
+- get rid of arm64 vmlinux.lds.S hunk to ensure code generated by __ADDRESSABLE
+  gets discarded from the EFI stub - it is no longer needed after adding #2 (#1)
+- change _ADDRESSABLE() to emit a data reference, not a code reference - this
+  is another simplification made possible by patch #2 (#3)
+- add Steven's ack to #6
+- split x86 jump_label patch into two (#9, #10)
+
+Changes since v5:
+- add missing jump_label prototypes to s390 jump_label.h (#6)
+- fix inverted condition in call to jump_entry_is_module_init() (#6)
+
+Changes since v4:
+- add patches to convert x86 and arm64 to use relative references for jump
+  tables (#6 - #8)
+- rename PCI patch and add Bjorn's ack (#4)
+- rebase onto v4.15-rc5
+
+Changes since v3:
+- fix module unload issue in patch #5 reported by Jessica, by reusing the
+  updated routine for_each_tracepoint_range() for the quiescent check at
+  module unload time; this requires this routine to be moved before
+  tracepoint_module_going() in kernel/tracepoint.c
+- add Jessica's ack to #2
+- rebase onto v4.14-rc1
+
+Changes since v2:
+- Revert my slightly misguided attempt to appease checkpatch, which resulted
+  in needless churn and worse code. This v3 is based on v1 with a few tweaks
+  that were actually reasonable checkpatch warnings: unnecessary braces (as
+  pointed out by Ingo) and other minor whitespace misdemeanors.
+
+Changes since v1:
+- Remove checkpatch errors to the extent feasible: in some cases, this
+  involves moving extern declarations into C files, and switching to
+  struct definitions rather than typedefs. Some errors are impossible
+  to fix: please find the remaining ones after the diffstat.
+- Used 'int' instead if 'signed int' for the various offset fields: there
+  is no ambiguity between architectures regarding its signedness (unlike
+  'char')
+- Refactor the different patches to be more uniform in the way they define
+  the section entry type and accessors in the .h file, and avoid the need to
+  add #ifdefs to the C code.
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Nicolas Pitre <nico@linaro.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Jessica Yu <jeyu@kernel.org>
+
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: x86@kernel.org
+
+Ard Biesheuvel (10):
+  arch: enable relative relocations for arm64, power and x86
+  module: allow symbol exports to be disabled
+  module: use relative references for __ksymtab entries
+  init: allow initcall tables to be emitted using relative references
+  PCI: Add support for relative addressing in quirk tables
+  kernel: tracepoints: add support for relative references
+  kernel/jump_label: abstract jump_entry member accessors
+  arm64/kernel: jump_label: use relative references
+  x86: jump_label: switch to jump_entry accessors
+  x86/kernel: jump_table: use relative references
+
+ arch/Kconfig                          | 10 ++++
+ arch/arm/include/asm/jump_label.h     | 27 +++++++++
+ arch/arm64/Kconfig                    |  1 +
+ arch/arm64/include/asm/jump_label.h   | 48 +++++++++++++---
+ arch/arm64/kernel/jump_label.c        | 22 +++++++-
+ arch/mips/include/asm/jump_label.h    | 27 +++++++++
+ arch/powerpc/Kconfig                  |  1 +
+ arch/powerpc/include/asm/jump_label.h | 27 +++++++++
+ arch/s390/include/asm/jump_label.h    | 27 +++++++++
+ arch/sparc/include/asm/jump_label.h   | 27 +++++++++
+ arch/tile/include/asm/jump_label.h    | 27 +++++++++
+ arch/x86/Kconfig                      |  1 +
+ arch/x86/boot/compressed/kaslr.c      |  5 +-
+ arch/x86/include/asm/Kbuild           |  1 +
+ arch/x86/include/asm/export.h         |  5 --
+ arch/x86/include/asm/jump_label.h     | 56 +++++++++++++++----
+ arch/x86/kernel/jump_label.c          | 59 ++++++++++++++------
+ drivers/firmware/efi/libstub/Makefile |  3 +-
+ drivers/pci/quirks.c                  | 13 ++++-
+ include/asm-generic/export.h          | 12 +++-
+ include/linux/compiler.h              | 10 ++++
+ include/linux/export.h                | 55 ++++++++++++++----
+ include/linux/init.h                  | 44 +++++++++++----
+ include/linux/pci.h                   | 20 +++++++
+ include/linux/tracepoint.h            | 19 +++++--
+ init/main.c                           | 32 +++++------
+ kernel/jump_label.c                   | 38 ++++++-------
+ kernel/module.c                       | 33 +++++++++--
+ kernel/printk/printk.c                |  4 +-
+ kernel/tracepoint.c                   | 50 +++++++++--------
+ security/security.c                   |  4 +-
+ tools/objtool/special.c               |  4 +-
+ 32 files changed, 560 insertions(+), 152 deletions(-)
+ delete mode 100644 arch/x86/include/asm/export.h
+
+-- 
+2.11.0
 
