@@ -1,26 +1,32 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Sun, 28 Jan 2018 20:08:30 +0000
-Subject: Re: Unaligned access in gss_{get,verify}_mic_v2() on sparc64
-Message-Id: <20180128200830.GA30041@ravnborg.org>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 03 Jan 2018 22:53:58 +0000
+Subject: Separate kernel and userspace address spaces on Linux SPARC?
+Message-Id: <9ce7f029-6894-5f69-0984-84a871b12979@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <55549068-2605-7f71-ccef-c102d6fd69ab@ettle.org.uk>
- <20171206190936.GB5875@fieldses.org>
- <8d4f1809-5027-46e7-1d21-d55f93950693@ettle.org.uk>
- <2fad5cab-915c-a224-a1f1-b96a77a8546d@ettle.org.uk>
-In-Reply-To: <2fad5cab-915c-a224-a1f1-b96a77a8546d@ettle.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Ettle <james@ettle.org.uk>
-Cc: linux-nfs@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On Sun, Jan 28, 2018 at 04:34:57PM +0000, James Ettle wrote:
-> Hi,
-> 
-> Just a polite prod in case it's fallen off the radar. The patch in this thread still applies cleanly to 4.14.15.
-I would recommend you to send this as a new mail - with a proper [PATCH] in the title.
-Otherwise it may not be picked up.
+Hi!
 
-Posting a patch in the midle of a thread is no-go.
+In the light of the recent x86 vulnerability which allows user space
+applications to peak into kernel memory and consequently make the
+system vulnerable to Return-Oriented Programming (ROP) attacks, I have
+heard that these attacks are not possible on SPARC v9 as the architecture
+uses separate address spaces for kernel and userspace.
 
-	Sam
+While I have found literature that this applies to Solaris, I couldn't
+find any direct mentions of Linux on SPARC.
+
+Does anyone of the SPARC kernel people know what the situation on Linux
+SPARC is?
+
+Thanks,
+Adrian
+
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
