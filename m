@@ -1,11 +1,34 @@
-From: foundation@gmail.com
-Date: Tue, 02 Jan 2018 16:16:56 +0000
-Subject: =?utf-8?q?Spende_von_=E2=82=AC_3=2E400=2E000=2C00_EUR?=
-Message-Id: <20180102163748.5C5CB2707375@wsbmail01.wsb.wroclaw.pl>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 04 Jan 2018 08:52:05 +0000
+Subject: Re: [PATCH 27/67] dma-direct: add dma address sanity checks
+Message-Id: <20180104085205.GC3251@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20171229081911.2802-1-hch@lst.de> <20171229081911.2802-28-hch@lst.de> <CAMuHMdWg3PnTXezMCcr3oGf-83-cjvcj4wGiPk7j2pY1Tgzo9Q@mail.gmail.com>
+In-Reply-To: <CAMuHMdWg3PnTXezMCcr3oGf-83-cjvcj4wGiPk7j2pY1Tgzo9Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org, Linux MIPS Mailing List <linux-mips@linux-mips.org>, linux-ia64@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Guan Xuetao <gxt@mprc.pku.edu.cn>, Linux-Arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, linux-c6x-dev@linux-c6x.org, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, adi-buildroot-devel@lists.sourceforge.net, linux-m68k <linux-m68k@lists.linux-m68k.org>, patches@groups.riscv.org, "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Michal Simek <mon>
 
-Hallo, ich Roy Cockrum, 58, aus Knoxville, Tennessee Vereinigte Staaten von Amerika, du hast eine Wohltätigkeitsspende von € 3.400.000,00 EUR, ich gewann die America Lotterie in Amerika im Wert von $ 259,9 Millionen, und ich gebe einen Teil davon Zu fünf glücklichen Leuten und Wohltätigkeitshäusern in Gelübde, um die Armut vor dieser Welt zu beseitigen, ich kämpfe gegen die Armut. Kontaktieren Sie mich für weitere Details: roycockrumpovertyfoundation@gmail.com
+On Fri, Dec 29, 2017 at 03:12:25PM +0100, Geert Uytterhoeven wrote:
+> > +check_addr(struct device *dev, dma_addr_t dma_addr, size_t size,
+> > +               const char *caller)
+> > +{
+> > +       if (unlikely(dev && !dma_capable(dev, dma_addr, size))) {
+> > +               if (*dev->dma_mask >= DMA_BIT_MASK(32)) {
+> > +                       dev_err(dev,
+> > +                               "%s: overflow %llx+%zu of device mask %llx\n",
+> 
+> Please use "%pad" to format dma_addr_t ...
+> 
+> > +                               caller, (long long)dma_addr, size,
+> 
+> ... and use &dma_addr.
+> 
+> > +                               (long long)*dev->dma_mask);
+> 
+> This cast is not needed, as u64 is unsigned long long in kernelspace on
+> all architectures.
+
+Thanks, fixed.
