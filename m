@@ -1,285 +1,131 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Tue, 02 Jan 2018 20:05:42 +0000
-Subject: [PATCH v7 03/10] module: use relative references for __ksymtab entries
-Message-Id: <20180102200549.22984-4-ard.biesheuvel@linaro.org>
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Date: Fri, 05 Jan 2018 19:45:16 +0000
+Subject: Re: [PATCH 09/67] arc: remove CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
+Message-Id: <2c24bfd1-5f54-4b82-444e-833dc53b6efd@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+References: <20171229081911.2802-1-hch@lst.de>
+	<20171229081911.2802-10-hch@lst.de>
+In-Reply-To: <20171229081911.2802-10-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: "linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org" <linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org>, "linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, "linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <adi-buildroot-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org" <patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org>, "linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-metag@vger.k>
 
-An ordinary arm64 defconfig build has ~64 KB worth of __ksymtab
-entries, each consisting of two 64-bit fields containing absolute
-references, to the symbol itself and to a char array containing
-its name, respectively.
+On 12/29/2017 12:25 AM, Christoph Hellwig wrote:
+> We always use the stub definitions, so remove the unused other code.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-When we build the same configuration with KASLR enabled, we end
-up with an additional ~192 KB of relocations in the .init section,
-i.e., one 24 byte entry for each absolute reference, which all need
-to be processed at boot time.
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
 
-Given how the struct kernel_symbol that describes each entry is
-completely local to module.c (except for the references emitted
-by EXPORT_SYMBOL() itself), we can easily modify it to contain
-two 32-bit relative references instead. This reduces the size of
-the __ksymtab section by 50% for all 64-bit architectures, and
-gets rid of the runtime relocations entirely for architectures
-implementing KASLR, either via standard PIE linking (arm64) or
-using custom host tools (x86).
+FWIW, it was removed and reintroduced as one of the customers wanted it, which is 
+not relevant now !
 
-Note that the binary search involving __ksymtab contents relies
-on each section being sorted by symbol name. This is implemented
-based on the input section names, not the names in the ksymtab
-entries, so this patch does not interfere with that.
+Thx,
+-Vineet
 
-Given that the use of place-relative relocations requires support
-both in the toolchain and in the module loader, we cannot enable
-this feature for all architectures. So make it dependent on whether
-CONFIG_HAVE_ARCH_PREL32_RELOCATIONS is defined.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Nicolas Pitre <nico@linaro.org>
-Acked-by: Jessica Yu <jeyu@kernel.org>
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- arch/x86/include/asm/Kbuild   |  1 +
- arch/x86/include/asm/export.h |  5 ---
- include/asm-generic/export.h  | 12 ++++-
- include/linux/compiler.h      | 10 +++++
- include/linux/export.h        | 46 +++++++++++++++-----
- kernel/module.c               | 33 +++++++++++---
- 6 files changed, 83 insertions(+), 24 deletions(-)
-
-diff --git a/arch/x86/include/asm/Kbuild b/arch/x86/include/asm/Kbuild
-index 5d6a53fd7521..3e8a88dcaa1d 100644
---- a/arch/x86/include/asm/Kbuild
-+++ b/arch/x86/include/asm/Kbuild
-@@ -9,5 +9,6 @@ generated-y += xen-hypercalls.h
- generic-y += clkdev.h
- generic-y += dma-contiguous.h
- generic-y += early_ioremap.h
-+generic-y += export.h
- generic-y += mcs_spinlock.h
- generic-y += mm-arch-hooks.h
-diff --git a/arch/x86/include/asm/export.h b/arch/x86/include/asm/export.h
-deleted file mode 100644
-index 2a51d66689c5..000000000000
---- a/arch/x86/include/asm/export.h
-+++ /dev/null
-@@ -1,5 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifdef CONFIG_64BIT
--#define KSYM_ALIGN 16
--#endif
--#include <asm-generic/export.h>
-diff --git a/include/asm-generic/export.h b/include/asm-generic/export.h
-index 719db1968d81..97ce606459ae 100644
---- a/include/asm-generic/export.h
-+++ b/include/asm-generic/export.h
-@@ -5,12 +5,10 @@
- #define KSYM_FUNC(x) x
- #endif
- #ifdef CONFIG_64BIT
--#define __put .quad
- #ifndef KSYM_ALIGN
- #define KSYM_ALIGN 8
- #endif
- #else
--#define __put .long
- #ifndef KSYM_ALIGN
- #define KSYM_ALIGN 4
- #endif
-@@ -25,6 +23,16 @@
- #define KSYM(name) name
- #endif
- 
-+.macro __put, val, name
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+	.long	\val - ., \name - .
-+#elif defined(CONFIG_64BIT)
-+	.quad	\val, \name
-+#else
-+	.long	\val, \name
-+#endif
-+.endm
-+
- /*
-  * note on .section use: @progbits vs %progbits nastiness doesn't matter,
-  * since we immediately emit into those sections anyway.
-diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-index 52e611ab9a6c..79db4aa87d75 100644
---- a/include/linux/compiler.h
-+++ b/include/linux/compiler.h
-@@ -327,4 +327,14 @@ static __always_inline void __write_once_size(volatile void *p, void *res, int s
- 	compiletime_assert(__native_word(t),				\
- 		"Need native word sized stores/loads for atomicity.")
- 
-+/*
-+ * Force the compiler to emit 'sym' as a symbol, so that we can reference
-+ * it from inline assembler. Necessary in case 'sym' could be inlined
-+ * otherwise, or eliminated entirely due to lack of references that are
-+ * visible to the compiler.
-+ */
-+#define __ADDRESSABLE(sym) \
-+	static void * const __attribute__((section(".discard"), used))	\
-+		__PASTE(__addressable_##sym, __LINE__) = (void *)&sym;
-+
- #endif /* __LINUX_COMPILER_H */
-diff --git a/include/linux/export.h b/include/linux/export.h
-index 6dba2fb08f77..4744cf4736b0 100644
---- a/include/linux/export.h
-+++ b/include/linux/export.h
-@@ -24,12 +24,6 @@
- #define VMLINUX_SYMBOL_STR(x) __VMLINUX_SYMBOL_STR(x)
- 
- #ifndef __ASSEMBLY__
--struct kernel_symbol
--{
--	unsigned long value;
--	const char *name;
--};
--
- #ifdef MODULE
- extern struct module __this_module;
- #define THIS_MODULE (&__this_module)
-@@ -60,17 +54,47 @@ extern struct module __this_module;
- #define __CRC_SYMBOL(sym, sec)
- #endif
- 
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+#include <linux/compiler.h>
-+/*
-+ * Emit the ksymtab entry as a pair of relative references: this reduces
-+ * the size by half on 64-bit architectures, and eliminates the need for
-+ * absolute relocations that require runtime processing on relocatable
-+ * kernels.
-+ */
-+#define __KSYMTAB_ENTRY(sym, sec)					\
-+	__ADDRESSABLE(sym)						\
-+	asm("	.section \"___ksymtab" sec "+" #sym "\", \"a\"	\n"	\
-+	    "	.balign	8					\n"	\
-+	    VMLINUX_SYMBOL_STR(__ksymtab_##sym) ":		\n"	\
-+	    "	.long "	VMLINUX_SYMBOL_STR(sym) "- .		\n"	\
-+	    "	.long "	VMLINUX_SYMBOL_STR(__kstrtab_##sym) "- .\n"	\
-+	    "	.previous					\n")
-+
-+struct kernel_symbol {
-+	int value_offset;
-+	int name_offset;
-+};
-+#else
-+#define __KSYMTAB_ENTRY(sym, sec)					\
-+	static const struct kernel_symbol __ksymtab_##sym		\
-+	__attribute__((section("___ksymtab" sec "+" #sym), used))	\
-+	= { (unsigned long)&sym, __kstrtab_##sym }
-+
-+struct kernel_symbol {
-+	unsigned long value;
-+	const char *name;
-+};
-+#endif
-+
- /* For every exported symbol, place a struct in the __ksymtab section */
- #define ___EXPORT_SYMBOL(sym, sec)					\
- 	extern typeof(sym) sym;						\
- 	__CRC_SYMBOL(sym, sec)						\
- 	static const char __kstrtab_##sym[]				\
--	__attribute__((section("__ksymtab_strings"), aligned(1)))	\
-+	__attribute__((section("__ksymtab_strings"), used, aligned(1)))	\
- 	= VMLINUX_SYMBOL_STR(sym);					\
--	static const struct kernel_symbol __ksymtab_##sym		\
--	__used								\
--	__attribute__((section("___ksymtab" sec "+" #sym), used))	\
--	= { (unsigned long)&sym, __kstrtab_##sym }
-+	__KSYMTAB_ENTRY(sym, sec)
- 
- #if defined(__KSYM_DEPS__)
- 
-diff --git a/kernel/module.c b/kernel/module.c
-index dea01ac9cb74..d3a908ffc42c 100644
---- a/kernel/module.c
-+++ b/kernel/module.c
-@@ -549,12 +549,31 @@ static bool check_symbol(const struct symsearch *syms,
- 	return true;
- }
- 
-+static unsigned long kernel_symbol_value(const struct kernel_symbol *sym)
-+{
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+	return (unsigned long)&sym->value_offset + sym->value_offset;
-+#else
-+	return sym->value;
-+#endif
-+}
-+
-+static const char *kernel_symbol_name(const struct kernel_symbol *sym)
-+{
-+#ifdef CONFIG_HAVE_ARCH_PREL32_RELOCATIONS
-+	return (const char *)((unsigned long)&sym->name_offset +
-+			      sym->name_offset);
-+#else
-+	return sym->name;
-+#endif
-+}
-+
- static int cmp_name(const void *va, const void *vb)
- {
- 	const char *a;
- 	const struct kernel_symbol *b;
- 	a = va; b = vb;
--	return strcmp(a, b->name);
-+	return strcmp(a, kernel_symbol_name(b));
- }
- 
- static bool find_symbol_in_section(const struct symsearch *syms,
-@@ -2198,7 +2217,7 @@ void *__symbol_get(const char *symbol)
- 		sym = NULL;
- 	preempt_enable();
- 
--	return sym ? (void *)sym->value : NULL;
-+	return sym ? (void *)kernel_symbol_value(sym) : NULL;
- }
- EXPORT_SYMBOL_GPL(__symbol_get);
- 
-@@ -2228,10 +2247,12 @@ static int verify_export_symbols(struct module *mod)
- 
- 	for (i = 0; i < ARRAY_SIZE(arr); i++) {
- 		for (s = arr[i].sym; s < arr[i].sym + arr[i].num; s++) {
--			if (find_symbol(s->name, &owner, NULL, true, false)) {
-+			if (find_symbol(kernel_symbol_name(s), &owner, NULL,
-+					true, false)) {
- 				pr_err("%s: exports duplicate symbol %s"
- 				       " (owned by %s)\n",
--				       mod->name, s->name, module_name(owner));
-+				       mod->name, kernel_symbol_name(s),
-+				       module_name(owner));
- 				return -ENOEXEC;
- 			}
- 		}
-@@ -2280,7 +2301,7 @@ static int simplify_symbols(struct module *mod, const struct load_info *info)
- 			ksym = resolve_symbol_wait(mod, info, name);
- 			/* Ok if resolved.  */
- 			if (ksym && !IS_ERR(ksym)) {
--				sym[i].st_value = ksym->value;
-+				sym[i].st_value = kernel_symbol_value(ksym);
- 				break;
- 			}
- 
-@@ -2540,7 +2561,7 @@ static int is_exported(const char *name, unsigned long value,
- 		ks = lookup_symbol(name, __start___ksymtab, __stop___ksymtab);
- 	else
- 		ks = lookup_symbol(name, mod->syms, mod->syms + mod->num_syms);
--	return ks != NULL && ks->value = value;
-+	return ks != NULL && kernel_symbol_value(ks) = value;
- }
- 
- /* As per nm */
--- 
-2.11.0
+> ---
+>   arch/arc/Kconfig                   |  3 ---
+>   arch/arc/include/asm/dma-mapping.h |  7 -------
+>   arch/arc/mm/dma.c                  | 14 +++++++-------
+>   3 files changed, 7 insertions(+), 17 deletions(-)
+>
+> diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+> index 9d5fd00d9e91..f3a80cf164cc 100644
+> --- a/arch/arc/Kconfig
+> +++ b/arch/arc/Kconfig
+> @@ -463,9 +463,6 @@ config ARCH_PHYS_ADDR_T_64BIT
+>   config ARCH_DMA_ADDR_T_64BIT
+>   	bool
+>   
+> -config ARC_PLAT_NEEDS_PHYS_TO_DMA
+> -	bool
+> -
+>   config ARC_KVADDR_SIZE
+>   	int "Kernel Virtual Address Space size (MB)"
+>   	range 0 512
+> diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
+> index 94285031c4fb..7a16824bfe98 100644
+> --- a/arch/arc/include/asm/dma-mapping.h
+> +++ b/arch/arc/include/asm/dma-mapping.h
+> @@ -11,13 +11,6 @@
+>   #ifndef ASM_ARC_DMA_MAPPING_H
+>   #define ASM_ARC_DMA_MAPPING_H
+>   
+> -#ifndef CONFIG_ARC_PLAT_NEEDS_PHYS_TO_DMA
+> -#define plat_dma_to_phys(dev, dma_handle) ((phys_addr_t)(dma_handle))
+> -#define plat_phys_to_dma(dev, paddr) ((dma_addr_t)(paddr))
+> -#else
+> -#include <plat/dma.h>
+> -#endif
+> -
+>   extern const struct dma_map_ops arc_dma_ops;
+>   
+>   static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+> diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
+> index fad18261ef6a..1d405b86250c 100644
+> --- a/arch/arc/mm/dma.c
+> +++ b/arch/arc/mm/dma.c
+> @@ -60,7 +60,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
+>   	/* This is linear addr (0x8000_0000 based) */
+>   	paddr = page_to_phys(page);
+>   
+> -	*dma_handle = plat_phys_to_dma(dev, paddr);
+> +	*dma_handle = paddr;
+>   
+>   	/* This is kernel Virtual address (0x7000_0000 based) */
+>   	if (need_kvaddr) {
+> @@ -92,7 +92,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
+>   static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
+>   		dma_addr_t dma_handle, unsigned long attrs)
+>   {
+> -	phys_addr_t paddr = plat_dma_to_phys(dev, dma_handle);
+> +	phys_addr_t paddr = dma_handle;
+>   	struct page *page = virt_to_page(paddr);
+>   	int is_non_coh = 1;
+>   
+> @@ -111,7 +111,7 @@ static int arc_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+>   {
+>   	unsigned long user_count = vma_pages(vma);
+>   	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+> -	unsigned long pfn = __phys_to_pfn(plat_dma_to_phys(dev, dma_addr));
+> +	unsigned long pfn = __phys_to_pfn(dma_addr);
+>   	unsigned long off = vma->vm_pgoff;
+>   	int ret = -ENXIO;
+>   
+> @@ -175,7 +175,7 @@ static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
+>   	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+>   		_dma_cache_sync(paddr, size, dir);
+>   
+> -	return plat_phys_to_dma(dev, paddr);
+> +	return paddr;
+>   }
+>   
+>   /*
+> @@ -190,7 +190,7 @@ static void arc_dma_unmap_page(struct device *dev, dma_addr_t handle,
+>   			       size_t size, enum dma_data_direction dir,
+>   			       unsigned long attrs)
+>   {
+> -	phys_addr_t paddr = plat_dma_to_phys(dev, handle);
+> +	phys_addr_t paddr = handle;
+>   
+>   	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+>   		_dma_cache_sync(paddr, size, dir);
+> @@ -224,13 +224,13 @@ static void arc_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+>   static void arc_dma_sync_single_for_cpu(struct device *dev,
+>   		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
+>   {
+> -	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_FROM_DEVICE);
+> +	_dma_cache_sync(dma_handle, size, DMA_FROM_DEVICE);
+>   }
+>   
+>   static void arc_dma_sync_single_for_device(struct device *dev,
+>   		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
+>   {
+> -	_dma_cache_sync(plat_dma_to_phys(dev, dma_handle), size, DMA_TO_DEVICE);
+> +	_dma_cache_sync(dma_handle, size, DMA_TO_DEVICE);
+>   }
+>   
+>   static void arc_dma_sync_sg_for_cpu(struct device *dev,
 
