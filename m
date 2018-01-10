@@ -1,97 +1,37 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Fri, 05 Jan 2018 18:29:09 +0000
-Subject: Re: [PATCH v7 07/10] kernel/jump_label: abstract jump_entry member accessors
-Message-Id: <CAKv+Gu9R=Dmog+omP0xAGmsBiH0rseHAVjob4VA5P3c7i4++hQ@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 10 Jan 2018 08:00:03 +0000
+Subject: [PATCH 09/33] dma-mapping: take dma_pfn_offset into account in dma_max_pfn
+Message-Id: <20180110080027.13879-10-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
- <20180102200549.22984-8-ard.biesheuvel@linaro.org>
- <20180105175834.vqgpsme7itsdg54u@armageddon.cambridge.arm.com>
- <CAKv+Gu8zROE-TDpfbbVi3RPOr8BNcsN_s27Gr-VvMN+-eMU+Hg@mail.gmail.com>
- <20180105182229.pjnlq3l5hzfac4na@armageddon.cambridge.arm.com>
-In-Reply-To: <20180105182229.pjnlq3l5hzfac4na@armageddon.cambridge.arm.com>
+References: <20180110080027.13879-1-hch@lst.de>
+In-Reply-To: <20180110080027.13879-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu@lists.linux-foundation.org
+Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 5 January 2018 at 18:22, Catalin Marinas <catalin.marinas@arm.com> wrote:
-> On Fri, Jan 05, 2018 at 06:01:33PM +0000, Ard Biesheuvel wrote:
->> On 5 January 2018 at 17:58, Catalin Marinas <catalin.marinas@arm.com> wrote:
->> > On Tue, Jan 02, 2018 at 08:05:46PM +0000, Ard Biesheuvel wrote:
->> >> diff --git a/arch/arm/include/asm/jump_label.h b/arch/arm/include/asm/jump_label.h
->> >> index e12d7d096fc0..7b05b404063a 100644
->> >> --- a/arch/arm/include/asm/jump_label.h
->> >> +++ b/arch/arm/include/asm/jump_label.h
->> >> @@ -45,5 +45,32 @@ struct jump_entry {
->> >>       jump_label_t key;
->> >>  };
->> >>
->> >> +static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
->> >> +{
->> >> +     return entry->code;
->> >> +}
->> >> +
->> >> +static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
->> >> +{
->> >> +     return (struct static_key *)((unsigned long)entry->key & ~1UL);
->> >> +}
->> >> +
->> >> +static inline bool jump_entry_is_branch(const struct jump_entry *entry)
->> >> +{
->> >> +     return (unsigned long)entry->key & 1UL;
->> >> +}
->> >> +
->> >> +static inline bool jump_entry_is_module_init(const struct jump_entry *entry)
->> >> +{
->> >> +     return entry->code = 0;
->> >> +}
->> >> +
->> >> +static inline void jump_entry_set_module_init(struct jump_entry *entry)
->> >> +{
->> >> +     entry->code = 0;
->> >> +}
->> >> +
->> >> +#define jump_label_swap              NULL
->> >
->> > Is there any difference between these functions on any of the
->> > architectures touched? Even with the relative offset, arm64 and x86
->> > looked the same to me (well, I may have missed some detail).
->>
->> No, the latter two are identical everywhere, and the others are the
->> same modulo absolute vs relative.
->>
->> The issue is that the struct definition is per-arch so the accessors
->> should be as well.
->
-> Up to this patch, even the jump_entry structure is the same on all
-> architectures (the jump_label_t type differs).
->
-> With relative offset, can you not just define jump_label_t to s32? At a
-> quick grep in mainline, it doesn't seem to be used outside the structure
-> definition.
->
+This makes sure the generic version can be used with architectures /
+devices that have a DMA offset in the direct mapping.
 
-I think we can just remove jump_label_t entirely, and replace it with
-unsigned long for absolute, and s32 for relative. Maybe I am missing
-something, but things like
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/dma-mapping.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-#ifdef CONFIG_X86_64
-typedef u64 jump_label_t;
-#else
-typedef u32 jump_label_t;
-#endif
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 81ed9b2d84dc..d84951865be7 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -692,7 +692,7 @@ static inline int dma_set_seg_boundary(struct device *dev, unsigned long mask)
+ #ifndef dma_max_pfn
+ static inline unsigned long dma_max_pfn(struct device *dev)
+ {
+-	return *dev->dma_mask >> PAGE_SHIFT;
++	return (*dev->dma_mask >> PAGE_SHIFT) + dev->dma_pfn_offset;
+ }
+ #endif
+ 
+-- 
+2.14.2
 
-seem a bit pointless to me anyway.
-
-
->> Perhaps I should introduce two variants two asm-generic, similar to
->> how we have different flavors of unaligned accessors.
->
-> You could as well define them directly in kernel/jump_label.h or, if
-> used outside this file, include/linux/jump_label.h.
->
-
-Perhaps I should define a Kconfig symbol after all for relative jump
-labels, and just keep everything in the same file. The question is
-whether I should use CONFIG_HAVE_ARCH_PREL32_RELOCATIONS for this as
-well.
