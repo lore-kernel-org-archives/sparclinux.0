@@ -1,60 +1,214 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 16 Jan 2018 15:18:37 +0000
-Subject: Re: [PATCH v3 00/10] posix_clocks: Prepare syscalls for 64 bit time_t conversion
-Message-Id: <CAK8P3a2NjS2tTS0Jzrv2HoAg5Xz=DbOJD=0-JZi65_uGmKa8sA@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 10 Jan 2018 08:00:14 +0000
+Subject: [PATCH 20/33] dma-mapping: clear harmful GFP_* flags in common code
+Message-Id: <20180110080027.13879-21-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180116021818.24791-1-deepa.kernel@gmail.com>
-In-Reply-To: <20180116021818.24791-1-deepa.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+References: <20180110080027.13879-1-hch@lst.de>
+In-Reply-To: <20180110080027.13879-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, y2038 Mailman List <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, Arnaldo Carvalho de Melo <acme-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Christian Borntraeger <borntraeger-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Chris Metcalf <cmetcalf-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, cohuck-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Helge Deller <deller-Mmb7MZpHnFY@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, gerald.schaefer-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, gregkh <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Heiko Carstens <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Jan Hoeppner <hoeppner-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "James E.J. Bottomley" <jejb-6jwH94ZQLHl74goWV3ctuw@public.gmane.org>, Julian
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
-On Tue, Jan 16, 2018 at 3:18 AM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> The series is a preparation series for individual architectures
-> to use 64 bit time_t syscalls in compat and 32 bit emulation modes.
->
-> This is a follow up to the series Arnd Bergmann posted:
-> https://sourceware.org/ml/libc-alpha/2015-05/msg00070.html [1]
->
-> Big picture is as per the lwn article:
-> https://lwn.net/Articles/643234/ [2]
->
-> The series is directed at converting posix clock syscalls:
-> clock_gettime, clock_settime, clock_getres and clock_nanosleep
-> to use a new data structure __kernel_timespec at syscall boundaries.
-> __kernel_timespec maintains 64 bit time_t across all execution modes.
->
-> vdso will be handled as part of each architecture when they enable
-> support for 64 bit time_t.
->
-> The compat syscalls are repurposed to provide backward compatibility
-> by using them as native syscalls as well for 32 bit architectures.
-> They will continue to use timespec at syscall boundaries.
->
-> CONFIG_64_BIT_TIME controls whether the syscalls use __kernel_timespec
-> or timespec at syscall boundaries.
->
-> The series does the following:
-> 1. Enable compat syscalls on 32 bit architectures.
-> 2. Add a new __kernel_timespec type to be used as the data structure
->    for all the new syscalls.
-> 3. Add new config CONFIG_64BIT_TIME(intead of the CONFIG_COMPAT_TIME in
->    [1] and [2] to switch to new definition of __kernel_timespec. It is
->    the same as struct timespec otherwise.
-> 4. Add new CONFIG_32BIT_TIME to conditionally compile compat syscalls.
+Lift the code from x86 so that we behave consistently.  In the future we
+should probably warn if any of these is set.
 
-This looks all good to me. I think we should have this included in linux-next as
-soon as possible, but this probably means after -rc1 at the current point, since
-it's a bit late for 4.16.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> [m68k]
+---
+ arch/cris/arch-v32/drivers/pci/dma.c      | 3 ---
+ arch/h8300/kernel/dma.c                   | 3 ---
+ arch/m68k/kernel/dma.c                    | 2 --
+ arch/mips/cavium-octeon/dma-octeon.c      | 3 ---
+ arch/mips/loongson64/common/dma-swiotlb.c | 3 ---
+ arch/mips/mm/dma-default.c                | 3 ---
+ arch/mips/netlogic/common/nlm-dma.c       | 3 ---
+ arch/mn10300/mm/dma-alloc.c               | 3 ---
+ arch/nios2/mm/dma-mapping.c               | 3 ---
+ arch/powerpc/kernel/dma.c                 | 3 ---
+ arch/x86/kernel/pci-dma.c                 | 2 --
+ include/linux/dma-mapping.h               | 7 +++++++
+ 12 files changed, 7 insertions(+), 31 deletions(-)
 
-I'll pick up the series into my randconfig build tree again to find
-possible build
-time regressions. Otherwise the way I'd stage it out is to put it into my y2038
-branch after -rc1 and then send a pull request to Thomas for the tip tree
-a week later. It seems unlikely that any major problems come up, so we could
-plan to address additional requests for changes by adding commits on top
-once it's in linux-next.
+diff --git a/arch/cris/arch-v32/drivers/pci/dma.c b/arch/cris/arch-v32/drivers/pci/dma.c
+index dbbd3816cc0b..8c3802244ef3 100644
+--- a/arch/cris/arch-v32/drivers/pci/dma.c
++++ b/arch/cris/arch-v32/drivers/pci/dma.c
+@@ -22,9 +22,6 @@ static void *v32_dma_alloc(struct device *dev, size_t size,
+ {
+ 	void *ret;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+-
+ 	if (dev = NULL || (dev->coherent_dma_mask < 0xffffffff))
+ 		gfp |= GFP_DMA;
+ 
+diff --git a/arch/h8300/kernel/dma.c b/arch/h8300/kernel/dma.c
+index 225dd0a188dc..d44ba5db4ac3 100644
+--- a/arch/h8300/kernel/dma.c
++++ b/arch/h8300/kernel/dma.c
+@@ -16,9 +16,6 @@ static void *dma_alloc(struct device *dev, size_t size,
+ {
+ 	void *ret;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+-
+ 	if (dev = NULL || (*dev->dma_mask < 0xffffffff))
+ 		gfp |= GFP_DMA;
+ 	ret = (void *)__get_free_pages(gfp, get_order(size));
+diff --git a/arch/m68k/kernel/dma.c b/arch/m68k/kernel/dma.c
+index 87ef73a93856..c01b9b8f97bf 100644
+--- a/arch/m68k/kernel/dma.c
++++ b/arch/m68k/kernel/dma.c
+@@ -76,8 +76,6 @@ static void *m68k_dma_alloc(struct device *dev, size_t size,
+ 		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+ 
+ 	if (dev = NULL || (*dev->dma_mask < 0xffffffff))
+ 		gfp |= GFP_DMA;
+diff --git a/arch/mips/cavium-octeon/dma-octeon.c b/arch/mips/cavium-octeon/dma-octeon.c
+index c64bd87f0b6e..5baf79fce643 100644
+--- a/arch/mips/cavium-octeon/dma-octeon.c
++++ b/arch/mips/cavium-octeon/dma-octeon.c
+@@ -161,9 +161,6 @@ static void *octeon_dma_alloc_coherent(struct device *dev, size_t size,
+ {
+ 	void *ret;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
+-
+ 	if (IS_ENABLED(CONFIG_ZONE_DMA) && dev = NULL)
+ 		gfp |= __GFP_DMA;
+ 	else if (IS_ENABLED(CONFIG_ZONE_DMA) &&
+diff --git a/arch/mips/loongson64/common/dma-swiotlb.c b/arch/mips/loongson64/common/dma-swiotlb.c
+index ef07740cee61..15388c24a504 100644
+--- a/arch/mips/loongson64/common/dma-swiotlb.c
++++ b/arch/mips/loongson64/common/dma-swiotlb.c
+@@ -15,9 +15,6 @@ static void *loongson_dma_alloc_coherent(struct device *dev, size_t size,
+ {
+ 	void *ret;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
+-
+ 	if ((IS_ENABLED(CONFIG_ISA) && dev = NULL) ||
+ 	    (IS_ENABLED(CONFIG_ZONE_DMA) &&
+ 	     dev->coherent_dma_mask < DMA_BIT_MASK(32)))
+diff --git a/arch/mips/mm/dma-default.c b/arch/mips/mm/dma-default.c
+index e3e94d05f0fd..237532e89919 100644
+--- a/arch/mips/mm/dma-default.c
++++ b/arch/mips/mm/dma-default.c
+@@ -93,9 +93,6 @@ static gfp_t massage_gfp_flags(const struct device *dev, gfp_t gfp)
+ {
+ 	gfp_t dma_flag;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
+-
+ #ifdef CONFIG_ISA
+ 	if (dev = NULL)
+ 		dma_flag = __GFP_DMA;
+diff --git a/arch/mips/netlogic/common/nlm-dma.c b/arch/mips/netlogic/common/nlm-dma.c
+index 0ec9d9da6d51..49c975b6aa28 100644
+--- a/arch/mips/netlogic/common/nlm-dma.c
++++ b/arch/mips/netlogic/common/nlm-dma.c
+@@ -47,9 +47,6 @@ static char *nlm_swiotlb;
+ static void *nlm_dma_alloc_coherent(struct device *dev, size_t size,
+ 	dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM);
+-
+ #ifdef CONFIG_ZONE_DMA32
+ 	if (dev->coherent_dma_mask <= DMA_BIT_MASK(32))
+ 		gfp |= __GFP_DMA32;
+diff --git a/arch/mn10300/mm/dma-alloc.c b/arch/mn10300/mm/dma-alloc.c
+index 86108d2496b3..e3910d4db102 100644
+--- a/arch/mn10300/mm/dma-alloc.c
++++ b/arch/mn10300/mm/dma-alloc.c
+@@ -37,9 +37,6 @@ static void *mn10300_dma_alloc(struct device *dev, size_t size,
+ 		goto done;
+ 	}
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+-
+ 	if (dev = NULL || dev->coherent_dma_mask < 0xffffffff)
+ 		gfp |= GFP_DMA;
+ 
+diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
+index 7040c1adbb5e..4be815519dd4 100644
+--- a/arch/nios2/mm/dma-mapping.c
++++ b/arch/nios2/mm/dma-mapping.c
+@@ -63,9 +63,6 @@ static void *nios2_dma_alloc(struct device *dev, size_t size,
+ {
+ 	void *ret;
+ 
+-	/* ignore region specifiers */
+-	gfp &= ~(__GFP_DMA | __GFP_HIGHMEM);
+-
+ 	/* optimized page clearing */
+ 	gfp |= __GFP_ZERO;
+ 
+diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
+index 6d5d04ccf3b4..76079841d3d0 100644
+--- a/arch/powerpc/kernel/dma.c
++++ b/arch/powerpc/kernel/dma.c
+@@ -105,9 +105,6 @@ void *__dma_nommu_alloc_coherent(struct device *dev, size_t size,
+ 	};
+ #endif /* CONFIG_FSL_SOC */
+ 
+-	/* ignore region specifiers */
+-	flag  &= ~(__GFP_HIGHMEM);
+-
+ 	page = alloc_pages_node(node, flag, get_order(size));
+ 	if (page = NULL)
+ 		return NULL;
+diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
+index 8439e6de6156..61a8f1cb3829 100644
+--- a/arch/x86/kernel/pci-dma.c
++++ b/arch/x86/kernel/pci-dma.c
+@@ -87,7 +87,6 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 
+ 	dma_mask = dma_alloc_coherent_mask(dev, flag);
+ 
+-	flag &= ~__GFP_ZERO;
+ again:
+ 	page = NULL;
+ 	/* CMA can be used only in the context which permits sleeping */
+@@ -139,7 +138,6 @@ bool arch_dma_alloc_attrs(struct device **dev, gfp_t *gfp)
+ 	if (!*dev)
+ 		*dev = &x86_dma_fallback_dev;
+ 
+-	*gfp &= ~(__GFP_DMA | __GFP_HIGHMEM | __GFP_DMA32);
+ 	*gfp = dma_alloc_coherent_gfp_flags(*dev, *gfp);
+ 
+ 	if (!is_device_dma_capable(*dev))
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 9f28b2fa329e..88bcb1a8211d 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -518,6 +518,13 @@ static inline void *dma_alloc_attrs(struct device *dev, size_t size,
+ 	if (dma_alloc_from_dev_coherent(dev, size, dma_handle, &cpu_addr))
+ 		return cpu_addr;
+ 
++	/*
++	 * Let the implementation decide on the zone to allocate from, and
++	 * decide on the way of zeroing the memory given that the memory
++	 * returned should always be zeroed.
++	 */
++	flag &= ~(__GFP_DMA | __GFP_DMA32 | __GFP_HIGHMEM | __GFP_ZERO);
++
+ 	if (!arch_dma_alloc_attrs(&dev, &flag))
+ 		return NULL;
+ 	if (!ops->alloc)
+-- 
+2.14.2
 
-       Arnd
