@@ -1,84 +1,157 @@
-From: Vladimir Murzin <vladimir.murzin@arm.com>
-Date: Tue, 02 Jan 2018 16:26:27 +0000
-Subject: Re: [PATCH 26/67] dma-direct: use phys_to_dma
-Message-Id: <76092d0d-3e74-9433-5fae-afc512e34b20@arm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 10 Jan 2018 08:00:27 +0000
+Subject: [PATCH 33/33] h8300: use dma-direct
+Message-Id: <20180110080027.13879-34-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de>
- <20171229081911.2802-27-hch@lst.de>
-In-Reply-To: <20171229081911.2802-27-hch@lst.de>
+References: <20180110080027.13879-1-hch@lst.de>
+In-Reply-To: <20180110080027.13879-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-snps-arc@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: iommu@lists.linux-foundation.org
+Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 29/12/17 08:18, Christoph Hellwig wrote:
-> This means it uses whatever linear remapping scheme that the architecture
-> provides is used in the generic dma_direct ops.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  lib/dma-direct.c | 18 +++++++-----------
->  1 file changed, 7 insertions(+), 11 deletions(-)
-> 
-> diff --git a/lib/dma-direct.c b/lib/dma-direct.c
-> index 439db40854b7..0e087650e86b 100644
-> --- a/lib/dma-direct.c
-> +++ b/lib/dma-direct.c
-> @@ -1,12 +1,11 @@
->  // SPDX-License-Identifier: GPL-2.0
->  /*
-> - *	lib/dma-noop.c
-> - *
-> - * DMA operations that map to physical addresses without flushing memory.
-> + * DMA operations that map physical memory directly without using an IOMMU or
-> + * flushing caches.
->   */
->  #include <linux/export.h>
->  #include <linux/mm.h>
-> -#include <linux/dma-mapping.h>
-> +#include <linux/dma-direct.h>
->  #include <linux/scatterlist.h>
->  #include <linux/pfn.h>
->  
-> @@ -17,7 +16,7 @@ static void *dma_direct_alloc(struct device *dev, size_t size,
->  
->  	ret = (void *)__get_free_pages(gfp, get_order(size));
->  	if (ret)
-> -		*dma_handle = virt_to_phys(ret) - PFN_PHYS(dev->dma_pfn_offset);
-> +		*dma_handle = phys_to_dma(dev, virt_to_phys(ret));
->  
->  	return ret;
->  }
-> @@ -32,7 +31,7 @@ static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
->  		unsigned long offset, size_t size, enum dma_data_direction dir,
->  		unsigned long attrs)
->  {
-> -	return page_to_phys(page) + offset - PFN_PHYS(dev->dma_pfn_offset);
-> +	return phys_to_dma(dev, page_to_phys(page)) + offset;
->  }
->  
->  static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
-> @@ -42,12 +41,9 @@ static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
->  	struct scatterlist *sg;
->  
->  	for_each_sg(sgl, sg, nents, i) {
-> -		dma_addr_t offset = PFN_PHYS(dev->dma_pfn_offset);
-> -		void *va;
-> -
->  		BUG_ON(!sg_page(sg));
-> -		va = sg_virt(sg);
-> -		sg_dma_address(sg) = (dma_addr_t)virt_to_phys(va) - offset;
-> +
-> +		sg_dma_address(sg) = phys_to_dma(dev, sg_phys(sg));
->  		sg_dma_len(sg) = sg->length;
->  	}
->  
-> 
+Replace the bare-bones h8300 direct dma mapping implementation with
+the fully featured generic dma-direct one.
 
-From ARM NOMMU perspective
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/h8300/Kconfig                   |  1 +
+ arch/h8300/include/asm/Kbuild        |  1 +
+ arch/h8300/include/asm/dma-mapping.h | 12 -------
+ arch/h8300/kernel/Makefile           |  2 +-
+ arch/h8300/kernel/dma.c              | 66 ------------------------------------
+ 5 files changed, 3 insertions(+), 79 deletions(-)
+ delete mode 100644 arch/h8300/include/asm/dma-mapping.h
+ delete mode 100644 arch/h8300/kernel/dma.c
 
-Reviewed-by: Vladimir Murzin <vladimir.murzin@arm.com>
+diff --git a/arch/h8300/Kconfig b/arch/h8300/Kconfig
+index f8d3fde08190..091d6d04b5e5 100644
+--- a/arch/h8300/Kconfig
++++ b/arch/h8300/Kconfig
+@@ -23,6 +23,7 @@ config H8300
+ 	select HAVE_ARCH_KGDB
+ 	select HAVE_ARCH_HASH
+ 	select CPU_NO_EFFICIENT_FFS
++	select DMA_DIRECT_OPS
+ 
+ config CPU_BIG_ENDIAN
+ 	def_bool y
+diff --git a/arch/h8300/include/asm/Kbuild b/arch/h8300/include/asm/Kbuild
+index bc077491d299..642752c94306 100644
+--- a/arch/h8300/include/asm/Kbuild
++++ b/arch/h8300/include/asm/Kbuild
+@@ -9,6 +9,7 @@ generic-y += delay.h
+ generic-y += device.h
+ generic-y += div64.h
+ generic-y += dma.h
++generic-y += dma-mapping.h
+ generic-y += emergency-restart.h
+ generic-y += exec.h
+ generic-y += extable.h
+diff --git a/arch/h8300/include/asm/dma-mapping.h b/arch/h8300/include/asm/dma-mapping.h
+deleted file mode 100644
+index 21bb1fc3a6f1..000000000000
+--- a/arch/h8300/include/asm/dma-mapping.h
++++ /dev/null
+@@ -1,12 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef _H8300_DMA_MAPPING_H
+-#define _H8300_DMA_MAPPING_H
+-
+-extern const struct dma_map_ops h8300_dma_map_ops;
+-
+-static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+-{
+-	return &h8300_dma_map_ops;
+-}
+-
+-#endif
+diff --git a/arch/h8300/kernel/Makefile b/arch/h8300/kernel/Makefile
+index b62e830525c6..307aa51576dd 100644
+--- a/arch/h8300/kernel/Makefile
++++ b/arch/h8300/kernel/Makefile
+@@ -7,7 +7,7 @@ extra-y := vmlinux.lds
+ 
+ obj-y := process.o traps.o ptrace.o \
+ 	 signal.o setup.o syscalls.o \
+-	 irq.o entry.o dma.o
++	 irq.o entry.o
+ 
+ obj-$(CONFIG_ROMKERNEL) += head_rom.o
+ obj-$(CONFIG_RAMKERNEL) += head_ram.o
+diff --git a/arch/h8300/kernel/dma.c b/arch/h8300/kernel/dma.c
+deleted file mode 100644
+index d44ba5db4ac3..000000000000
+--- a/arch/h8300/kernel/dma.c
++++ /dev/null
+@@ -1,66 +0,0 @@
+-/*
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file COPYING in the main directory of this archive
+- * for more details.
+- */
+-
+-#include <linux/dma-mapping.h>
+-#include <linux/kernel.h>
+-#include <linux/scatterlist.h>
+-#include <linux/module.h>
+-#include <asm/pgalloc.h>
+-
+-static void *dma_alloc(struct device *dev, size_t size,
+-		       dma_addr_t *dma_handle, gfp_t gfp,
+-		       unsigned long attrs)
+-{
+-	void *ret;
+-
+-	if (dev = NULL || (*dev->dma_mask < 0xffffffff))
+-		gfp |= GFP_DMA;
+-	ret = (void *)__get_free_pages(gfp, get_order(size));
+-
+-	if (ret != NULL) {
+-		memset(ret, 0, size);
+-		*dma_handle = virt_to_phys(ret);
+-	}
+-	return ret;
+-}
+-
+-static void dma_free(struct device *dev, size_t size,
+-		     void *vaddr, dma_addr_t dma_handle,
+-		     unsigned long attrs)
+-
+-{
+-	free_pages((unsigned long)vaddr, get_order(size));
+-}
+-
+-static dma_addr_t map_page(struct device *dev, struct page *page,
+-				  unsigned long offset, size_t size,
+-				  enum dma_data_direction direction,
+-				  unsigned long attrs)
+-{
+-	return page_to_phys(page) + offset;
+-}
+-
+-static int map_sg(struct device *dev, struct scatterlist *sgl,
+-		  int nents, enum dma_data_direction direction,
+-		  unsigned long attrs)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		sg->dma_address = sg_phys(sg);
+-	}
+-
+-	return nents;
+-}
+-
+-const struct dma_map_ops h8300_dma_map_ops = {
+-	.alloc = dma_alloc,
+-	.free = dma_free,
+-	.map_page = map_page,
+-	.map_sg = map_sg,
+-};
+-EXPORT_SYMBOL(h8300_dma_map_ops);
+-- 
+2.14.2
 
-Thanks
-Vladimir
