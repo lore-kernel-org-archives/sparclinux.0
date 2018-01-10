@@ -1,7 +1,7 @@
-From: Atish Patra <atish.patra@oracle.com>
-Date: Wed, 10 Jan 2018 14:51:09 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 10 Jan 2018 16:27:35 +0000
 Subject: Re: [PATCH] sparc64: Set possible and present masks based on nr_cpu_ids
-Message-Id: <727acac9-8e54-7d31-399b-cb43a6750e2b@oracle.com>
+Message-Id: <20180110.112735.1016186261733195898.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
 In-Reply-To: <1506630439-192139-1-git-send-email-atish.patra@oracle.com>
@@ -10,40 +10,10 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-ping ?
+From: Atish Patra <atish.patra@oracle.com>
+Date: Wed, 10 Jan 2018 08:51:09 -0600
 
-Regards
-On 12/08/2017 12:13 PM, David Miller wrote:
-> From: Atish Patra <atish.patra@oracle.com>
-> Date: Tue, 5 Dec 2017 19:41:47 -0600
->
->> I am looking at a spinlock bad magic issue in timer code on a legacy
->> sparc machine.
->>
->> 0eeda71b (timer: Replace timer base by a cpu index)
->> As per my understanding, the above patch assumes there is always a cpu
->> 0 and that timer to CPU0 should be assigned statically to avoid
->> boot_tvec_base logic.
->> DEFINE_TIMER macro seems to initialize the flags to 0 and the commit
->> text also points to that.
->> Please let me know if I missed something.
->>
->> We observed the spinlock bad magic with legacy sun4u machines which
->> have sparse numbered cpus and does not have cpu0.
->> We may be wrong but our investigation pointed out that per-cpu
->> timer_base structure for cpu 0 is not initialized leading invalid
->> magic value. console_timer seems to be statically assigned to cpu0 in
->> this case.
-> Yeah, you can't really assume that cpu 0 is the boot cpu let alone
-> even exists.  And it is clear that the timer code now has such a
-> dependency.
->
-> Thomas, you'll probably have to do something like have a fixup early
-> in the boot process which fixes up the flags field of all of the
-> statically defined timer objects so that it contains the cpu that
-> is running the early bootup process.
-> --
-> To unsubscribe from this list: send the line "unsubscribe sparclinux" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ping ?
 
+Thomas and co. are overloaded working on Meltdown and Spectre, so don't
+expect a reply from them on this for at least a few more weeks at best.
