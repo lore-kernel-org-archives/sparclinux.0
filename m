@@ -1,39 +1,36 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Date: Wed, 10 Jan 2018 11:07:55 +0000
-Subject: Re: [PATCH 09/33] dma-mapping: take dma_pfn_offset into account in dma_max_pfn
-Message-Id: <6e4732eb-9eaf-7e5b-863c-d3faa47bb513@arm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 10 Jan 2018 08:00:21 +0000
+Subject: [PATCH 27/33] dma-direct: use node local allocations for coherent memory
+Message-Id: <20180110080027.13879-28-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180110080027.13879-1-hch@lst.de>
- <20180110080027.13879-10-hch@lst.de>
-In-Reply-To: <20180110080027.13879-10-hch@lst.de>
+In-Reply-To: <20180110080027.13879-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-snps-arc@lists.infradead.org, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On 10/01/18 08:00, Christoph Hellwig wrote:
-> This makes sure the generic version can be used with architectures /
-> devices that have a DMA offset in the direct mapping.
+To preserve the x86 behavior.
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/dma-direct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->   include/linux/dma-mapping.h | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index 81ed9b2d84dc..d84951865be7 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -692,7 +692,7 @@ static inline int dma_set_seg_boundary(struct device *dev, unsigned long mask)
->   #ifndef dma_max_pfn
->   static inline unsigned long dma_max_pfn(struct device *dev)
->   {
-> -	return *dev->dma_mask >> PAGE_SHIFT;
-> +	return (*dev->dma_mask >> PAGE_SHIFT) + dev->dma_pfn_offset;
->   }
->   #endif
->   
-> 
+diff --git a/lib/dma-direct.c b/lib/dma-direct.c
+index a9ae98be7af3..f04a424f91fa 100644
+--- a/lib/dma-direct.c
++++ b/lib/dma-direct.c
+@@ -38,7 +38,7 @@ static void *dma_direct_alloc(struct device *dev, size_t size,
+ 	if (gfpflags_allow_blocking(gfp))
+ 		page = dma_alloc_from_contiguous(dev, count, page_order, gfp);
+ 	if (!page)
+-		page = alloc_pages(gfp, page_order);
++		page = alloc_pages_node(dev_to_node(dev), gfp, page_order);
+ 	if (!page)
+ 		return NULL;
+ 
+-- 
+2.14.2
+
