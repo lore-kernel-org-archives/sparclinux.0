@@ -1,22 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 24 Jan 2018 21:50:01 +0000
-Subject: Re: [PATCH] sparc64: fix typo in CONFIG_CRYPTO_DES_SPARC64 => CONFIG_CRYPTO_CAMELLIA_SPARC64
-Message-Id: <20180124.165001.873099042670433590.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 10 Jan 2018 08:00:04 +0000
+Subject: [PATCH 10/33] arm64: don't override dma_max_pfn
+Message-Id: <20180110080027.13879-11-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1516717994-24407-1-git-send-email-clabbe@baylibre.com>
-In-Reply-To: <1516717994-24407-1-git-send-email-clabbe@baylibre.com>
+References: <20180110080027.13879-1-hch@lst.de>
+In-Reply-To: <20180110080027.13879-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: clabbe@baylibre.com
-Cc: herbert@gondor.apana.org.au, linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
-From: Corentin Labbe <clabbe@baylibre.com>
-Date: Tue, 23 Jan 2018 14:33:14 +0000
+The generic version now takes dma_pfn_offset into account, so there is no
+more need for an architecture override.
 
-> This patch fixes the typo CONFIG_CRYPTO_DES_SPARC64 => CONFIG_CRYPTO_CAMELLIA_SPARC64
-> 
-> Fixes: 81658ad0d923 ("sparc64: Add CAMELLIA driver making use of the new camellia opcodes.")
-> Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/arm64/include/asm/dma-mapping.h | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-Applied, thank you.
+diff --git a/arch/arm64/include/asm/dma-mapping.h b/arch/arm64/include/asm/dma-mapping.h
+index 0df756b24863..eada887a93bf 100644
+--- a/arch/arm64/include/asm/dma-mapping.h
++++ b/arch/arm64/include/asm/dma-mapping.h
+@@ -76,14 +76,5 @@ static inline void dma_mark_clean(void *addr, size_t size)
+ {
+ }
+ 
+-/* Override for dma_max_pfn() */
+-static inline unsigned long dma_max_pfn(struct device *dev)
+-{
+-	dma_addr_t dma_max = (dma_addr_t)*dev->dma_mask;
+-
+-	return (ulong)dma_to_phys(dev, dma_max) >> PAGE_SHIFT;
+-}
+-#define dma_max_pfn(dev) dma_max_pfn(dev)
+-
+ #endif	/* __KERNEL__ */
+ #endif	/* __ASM_DMA_MAPPING_H */
+-- 
+2.14.2
+
