@@ -1,160 +1,38 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Tue, 02 Jan 2018 20:05:49 +0000
-Subject: [PATCH v7 10/10] x86/kernel: jump_table: use relative references
-Message-Id: <20180102200549.22984-11-ard.biesheuvel@linaro.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 12 Jan 2018 08:42:05 +0000
+Subject: [PATCH 07/34] riscv: remove the unused dma_capable helper
+Message-Id: <20180112084232.2857-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
+References: <20180112084232.2857-1-hch@lst.de>
+In-Reply-To: <20180112084232.2857-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Similar to the arm64 case, 64-bit x86 can benefit from using 32-bit
-relative references rather than 64-bit absolute ones when emitting
-struct jump_entry instances. Not only does this reduce the memory
-footprint of the entries themselves by 50%, it also removes the need
-for carrying relocation metadata on relocatable builds (i.e., for KASLR)
-which saves a fair chunk of .init space as well (although the savings
-are not as dramatic as on arm64)
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/x86/include/asm/jump_label.h | 35 ++++++++++++--------
- arch/x86/kernel/jump_label.c      | 16 +++++++++
- tools/objtool/special.c           |  4 +--
- 3 files changed, 39 insertions(+), 16 deletions(-)
+ arch/riscv/include/asm/dma-mapping.h | 8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/arch/x86/include/asm/jump_label.h b/arch/x86/include/asm/jump_label.h
-index 009ff2699d07..35fc2c5ec846 100644
---- a/arch/x86/include/asm/jump_label.h
-+++ b/arch/x86/include/asm/jump_label.h
-@@ -36,8 +36,8 @@ static __always_inline bool arch_static_branch(struct static_key *key, bool bran
- 	asm_volatile_goto("1:"
- 		".byte " __stringify(STATIC_KEY_INIT_NOP) "\n\t"
- 		".pushsection __jump_table,  \"aw\" \n\t"
--		_ASM_ALIGN "\n\t"
--		_ASM_PTR "1b, %l[l_yes], %c0 + %c1 \n\t"
-+		".balign 4\n\t"
-+		".long 1b - ., %l[l_yes] - ., %c0 + %c1 - .\n\t"
- 		".popsection \n\t"
- 		: :  "i" (key), "i" (branch) : : l_yes);
- 
-@@ -52,8 +52,8 @@ static __always_inline bool arch_static_branch_jump(struct static_key *key, bool
- 		".byte 0xe9\n\t .long %l[l_yes] - 2f\n\t"
- 		"2:\n\t"
- 		".pushsection __jump_table,  \"aw\" \n\t"
--		_ASM_ALIGN "\n\t"
--		_ASM_PTR "1b, %l[l_yes], %c0 + %c1 \n\t"
-+		".balign 4\n\t"
-+		".long 1b - ., %l[l_yes] - ., %c0 + %c1 - .\n\t"
- 		".popsection \n\t"
- 		: :  "i" (key), "i" (branch) : : l_yes);
- 
-@@ -69,19 +69,26 @@ typedef u32 jump_label_t;
- #endif
- 
- struct jump_entry {
--	jump_label_t code;
--	jump_label_t target;
--	jump_label_t key;
-+	s32 code;
-+	s32 target;
-+	s32 key;
- };
- 
- static inline jump_label_t jump_entry_code(const struct jump_entry *entry)
- {
--	return entry->code;
-+	return (unsigned long)&entry->code + entry->code;
-+}
-+
-+static inline jump_label_t jump_entry_target(const struct jump_entry *entry)
-+{
-+	return (unsigned long)&entry->target + entry->target;
+diff --git a/arch/riscv/include/asm/dma-mapping.h b/arch/riscv/include/asm/dma-mapping.h
+index 3eec1000196d..73849e2cc761 100644
+--- a/arch/riscv/include/asm/dma-mapping.h
++++ b/arch/riscv/include/asm/dma-mapping.h
+@@ -27,12 +27,4 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ 	return &dma_noop_ops;
  }
  
- static inline struct static_key *jump_entry_key(const struct jump_entry *entry)
- {
--	return (struct static_key *)((unsigned long)entry->key & ~1UL);
-+	unsigned long key = (unsigned long)&entry->key + entry->key;
-+
-+	return (struct static_key *)(key & ~1UL);
- }
- 
- static inline bool jump_entry_is_branch(const struct jump_entry *entry)
-@@ -99,7 +106,7 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
- 	entry->code = 0;
- }
- 
--#define jump_label_swap		NULL
-+void jump_label_swap(void *a, void *b, int size);
- 
- #else	/* __ASSEMBLY__ */
- 
-@@ -114,8 +121,8 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
- 	.byte		STATIC_KEY_INIT_NOP
- 	.endif
- 	.pushsection __jump_table, "aw"
--	_ASM_ALIGN
--	_ASM_PTR	.Lstatic_jump_\@, \target, \key
-+	.balign		4
-+	.long		.Lstatic_jump_\@ - ., \target - ., \key - .
- 	.popsection
- .endm
- 
-@@ -130,8 +137,8 @@ static inline void jump_entry_set_module_init(struct jump_entry *entry)
- .Lstatic_jump_after_\@:
- 	.endif
- 	.pushsection __jump_table, "aw"
--	_ASM_ALIGN
--	_ASM_PTR	.Lstatic_jump_\@, \target, \key + 1
-+	.balign		4
-+	.long		.Lstatic_jump_\@ - ., \target - ., \key + 1 - .
- 	.popsection
- .endm
- 
-diff --git a/arch/x86/kernel/jump_label.c b/arch/x86/kernel/jump_label.c
-index d64296092ef5..cc5034b42335 100644
---- a/arch/x86/kernel/jump_label.c
-+++ b/arch/x86/kernel/jump_label.c
-@@ -149,4 +149,20 @@ __init_or_module void arch_jump_label_transform_static(struct jump_entry *entry,
- 		__jump_label_transform(entry, type, text_poke_early, 1);
- }
- 
-+void jump_label_swap(void *a, void *b, int size)
-+{
-+	long delta = (unsigned long)a - (unsigned long)b;
-+	struct jump_entry *jea = a;
-+	struct jump_entry *jeb = b;
-+	struct jump_entry tmp = *jea;
-+
-+	jea->code	= jeb->code - delta;
-+	jea->target	= jeb->target - delta;
-+	jea->key	= jeb->key - delta;
-+
-+	jeb->code	= tmp.code + delta;
-+	jeb->target	= tmp.target + delta;
-+	jeb->key	= tmp.key + delta;
-+}
-+
- #endif
-diff --git a/tools/objtool/special.c b/tools/objtool/special.c
-index 84f001d52322..98ae55b39037 100644
---- a/tools/objtool/special.c
-+++ b/tools/objtool/special.c
-@@ -30,9 +30,9 @@
- #define EX_ORIG_OFFSET		0
- #define EX_NEW_OFFSET		4
- 
--#define JUMP_ENTRY_SIZE		24
-+#define JUMP_ENTRY_SIZE		12
- #define JUMP_ORIG_OFFSET	0
--#define JUMP_NEW_OFFSET		8
-+#define JUMP_NEW_OFFSET		4
- 
- #define ALT_ENTRY_SIZE		13
- #define ALT_ORIG_OFFSET		0
+-static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+-{
+-	if (!dev->dma_mask)
+-		return false;
+-
+-	return addr + size - 1 <= *dev->dma_mask;
+-}
+-
+ #endif	/* __ASM_RISCV_DMA_MAPPING_H */
 -- 
-2.11.0
+2.14.2
 
