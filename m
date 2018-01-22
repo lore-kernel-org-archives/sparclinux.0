@@ -1,38 +1,43 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 10 Jan 2018 08:00:01 +0000
-Subject: [PATCH 07/33] riscv: remove the unused dma_capable helper
-Message-Id: <20180110080027.13879-8-hch@lst.de>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 22 Jan 2018 16:35:02 +0000
+Subject: Re: [PATCH v2 0/2] Driver for Oracle Data Analytics Accelerator
+Message-Id: <20180122.113502.930388214324368727.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180110080027.13879-1-hch@lst.de>
-In-Reply-To: <20180110080027.13879-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linux-ia64-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Guan Xuetao <gxt-TG0Ac1+ktVePQbnJrJN+5g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Konrad Rzeszutek Wilk <konrad-Gq0aWv8utHQdnm+yROfE0A@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, patches-q3qR2WxjNRFS9aJRtSZj7A@public.gmane.org, linux-metag-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-cris-kernel-VrBV9hrLPhE@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: sparclinux@vger.kernel.org
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/riscv/include/asm/dma-mapping.h | 8 --------
- 1 file changed, 8 deletions(-)
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Tue,  5 Dec 2017 19:40:41 -0700
 
-diff --git a/arch/riscv/include/asm/dma-mapping.h b/arch/riscv/include/asm/dma-mapping.h
-index 3eec1000196d..73849e2cc761 100644
---- a/arch/riscv/include/asm/dma-mapping.h
-+++ b/arch/riscv/include/asm/dma-mapping.h
-@@ -27,12 +27,4 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- 	return &dma_noop_ops;
- }
- 
--static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
--{
--	if (!dev->dma_mask)
--		return false;
--
--	return addr + size - 1 <= *dev->dma_mask;
--}
--
- #endif	/* __ASM_RISCV_DMA_MAPPING_H */
--- 
-2.14.2
+> v2:
+>   Revised example code and updated documentation
+>   New version of Hypervisor API specification
+> 
+> Recent Oracle Sparc processors (M7 and M8) have a coprocessor which
+> lives on the cpu chip. The coprocessor is called DAX (Data Analytics
+> Accelerator), and is controlled via sun4v hypercalls. The programmatic
+> interface to the coprocessor is somewhat unorthodox, and all commands
+> and parameters are documented in detail in dax-hv-api.txt. The driver
+> API is described in oracle-dax.txt, which has been expanded with new
+> example code along with detailed explanations to demonstrate how user
+> and kernel code can use the capabilities of DAX.  Those who wish to
+> use the coprocessor in the kernel will need to construct their own
+> command blocks to submit, as no higher level services are provided.
+> Note that it is expected that general use of the coprocessor will go
+> through the companion userspace library, which has been published
+> under UPL at:
+> 	  https://oss.oracle.com/git/gitweb.cgi?p=libdax.git
+> This library is a comprehensive collection of higher level functions
+> along with tests, documentation, and code examples. The format of the
+> command control blocks is described in this library as well. Though
+> the primary purpose of the coprocessor is to accelerate data analytics
+> operations, it may be used for any suitable purpose.
+> 
+> The machine descriptor identifies the device as "dax", and all
+> internal documentation refers to it as "dax". But since the term "dax"
+> already has other meanings and uses in Linux, we call this driver
+> "oradax".
 
+Series applied to sparc-next, thanks for doing all of this hard work.
