@@ -1,46 +1,35 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Tue, 02 Jan 2018 23:55:05 +0000
-Subject: Re: [PATCH v7 02/10] module: allow symbol exports to be disabled
-Message-Id: <CAKv+Gu9x+DeOdMn1CuEDNHtLSi1_cFpx7ZyxMYVGht0qBastmw@mail.gmail.com>
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Tue, 23 Jan 2018 14:33:14 +0000
+Subject: [PATCH] sparc64: fix typo in CONFIG_CRYPTO_DES_SPARC64 => CONFIG_CRYPTO_CAMELLIA_SPARC64
+Message-Id: <1516717994-24407-1-git-send-email-clabbe@baylibre.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180102200549.22984-1-ard.biesheuvel@linaro.org>
- <20180102200549.22984-3-ard.biesheuvel@linaro.org>
- <nycvar.YSQ.7.76.1801021841410.8567@knanqh.ubzr>
-In-Reply-To: <nycvar.YSQ.7.76.1801021841410.8567@knanqh.ubzr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net, herbert@gondor.apana.org.au
+Cc: linux-crypto@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 
-On 2 January 2018 at 23:47, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
-> On Tue, 2 Jan 2018, Ard Biesheuvel wrote:
->
->> To allow existing C code to be incorporated into the decompressor or
->> the UEFI stub, introduce a CPP macro that turns all EXPORT_SYMBOL_xxx
->> declarations into nops, and #define it in places where such exports
->> are undesirable. Note that this gets rid of a rather dodgy redefine
->> of linux/export.h's header guard.
-> [...]
->
->> --- a/include/linux/export.h
->> +++ b/include/linux/export.h
->> @@ -83,6 +83,15 @@ extern struct module __this_module;
->>   */
->>  #define __EXPORT_SYMBOL(sym, sec)    == __KSYM_##sym =>>
->> +#elif defined(__DISABLE_EXPORTS)
->> +
->> +/*
->> + * Allow symbol exports to be disabled completely so that C code may
->> + * be reused in other execution contexts such as the UEFI stub or the
->> + * decompressor.
->> + */
->> +#define __EXPORT_SYMBOL(sym, sec)
->> +
->
-> I think you should rather put this first thing in the #if sequence so to
-> override the defined(__KSYM_DEPS__) case too.  No need to create build
-> dependencies for module symbols that you're going to stub out
-> afterwards anyway.
->
+This patch fixes the typo CONFIG_CRYPTO_DES_SPARC64 => CONFIG_CRYPTO_CAMELLIA_SPARC64
 
-I wasn't sure, so thanks for clearing that up.
+Fixes: 81658ad0d923 ("sparc64: Add CAMELLIA driver making use of the new camellia opcodes.")
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ arch/sparc/crypto/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/crypto/Makefile b/arch/sparc/crypto/Makefile
+index 818d3aa5172e..d257186c27d1 100644
+--- a/arch/sparc/crypto/Makefile
++++ b/arch/sparc/crypto/Makefile
+@@ -10,7 +10,7 @@ obj-$(CONFIG_CRYPTO_MD5_SPARC64) += md5-sparc64.o
+ 
+ obj-$(CONFIG_CRYPTO_AES_SPARC64) += aes-sparc64.o
+ obj-$(CONFIG_CRYPTO_DES_SPARC64) += des-sparc64.o
+-obj-$(CONFIG_CRYPTO_DES_SPARC64) += camellia-sparc64.o
++obj-$(CONFIG_CRYPTO_CAMELLIA_SPARC64) += camellia-sparc64.o
+ 
+ obj-$(CONFIG_CRYPTO_CRC32C_SPARC64) += crc32c-sparc64.o
+ 
+-- 
+2.13.6
+
