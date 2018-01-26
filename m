@@ -1,38 +1,33 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 02 Jan 2018 10:29:10 +0000
-Subject: Re: [PATCH 29/67] dma-direct: use node local allocations for coherent memory
-Message-Id: <CAMuHMdU0_p4RHSKL891YCgej_L2KM5cxmhXDLXVUBXgWoUosVA@mail.gmail.com>
+From: Peter Schuster <verne.leboigoier@gmail.com>
+Date: Fri, 26 Jan 2018 07:39:04 +0000
+Subject: =?UTF-8?Q?Darlehen_Geld_f=C3=BCr_Einzelpersonen_und_Fachleute_in_w?= =?UTF-8?Q?eniger_als_72_Stunden
+Message-Id: <CAD3j=Xy0PQHSr_JWk2n4HBZfhhUHCew=dZZixp12-jsMPbixGw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20171229081911.2802-1-hch@lst.de> <20171229081911.2802-30-hch@lst.de>
-In-Reply-To: <20171229081911.2802-30-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: iommu@lists.linux-foundation.org, alpha <linux-alpha@vger.kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, linux-arm-kernel@lists.infradead.org, adi-buildroot-devel@lists.sourceforge.net, linux-c6x-dev@linux-c6x.org, Cris <linux-cris-kernel@axis.com>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, linux-ia64@vger.kernel.org, linux-m68k <linux-m68k@lists.linux-m68k.org>, "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>, Michal Simek <monstr@monstr.eu>, Linux MIPS Mailing List <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.or>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-Missing patch description explaining why this change is desirable.
+Hallo,
 
-On Fri, Dec 29, 2017 at 9:18 AM, Christoph Hellwig <hch@lst.de> wrote:
-> --- a/lib/dma-direct.c
-> +++ b/lib/dma-direct.c
-> @@ -39,7 +39,7 @@ static void *dma_direct_alloc(struct device *dev, size_t size,
->         if (gfpflags_allow_blocking(gfp))
->                 page = dma_alloc_from_contiguous(dev, count, page_order, gfp);
->         if (!page)
-> -               page = alloc_pages(gfp, page_order);
-> +               page = alloc_pages_node(dev_to_node(dev), gfp, page_order);
->         if (!page)
->                 return NULL;
->
+Sind Sie in einer schwierigen Situation, für die Sie sich für ein
+Darlehen suchen? Benötigen Sie eine Finanzierung, um eine Schuld zu
+begleichen oder eine Aktivität zu finanzieren? Haben Sie einen
+Verbraucherkredit, eine Hypothek, einen persönlichen Kredit, eine
+Hypothek, Investition Darlehen, Schuldenkonsolidierung Darlehen oder
+andere braucht?
 
-Gr{oetje,eeting}s,
+Ich bin ein einzelner Investor. I zur Verfügung stellen die Kredit
+kurz-, mittel- und langfristige. Ihr Finanzierungsbedingungen sind
+sehr einfach und meine Zinssatz beträgt 3% pro Jahr.
 
-                        Geert
+Für alle Anfragen, bleibe ich zur Verfügung, um Ihre Fragen zu beantworten.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Danke, dass Sie mir per E-Mail an Sie von  :   klaus.peterschuster@outlook.de
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Mit freundlichen Grüßen.
+
+Peter Schuster
+
+Financial Bank
+https://firstfinancialsa.com/de
