@@ -1,749 +1,292 @@
-From: Ulf Magnusson <ulfalizer@gmail.com>
-Date: Sun, 18 Feb 2018 11:15:13 +0000
-Subject: Re: [PATCH 06/23] kconfig: reference environments directly and remove 'option env=' syntax
-Message-Id: <20180218111513.6ffkj4isjkdc4wvd@huvuddator>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Thu, 01 Feb 2018 18:01:11 +0000
+Subject: [PATCH v11 03/10] sparc64: Add support for ADI register fields, ASIs and traps
+Message-Id: <e4ad304a57afeff9e3bd6f1fc57a927c943506b0.1517497017.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1518806331-7101-1-git-send-email-yamada.masahiro@socionext.com>
- <1518806331-7101-7-git-send-email-yamada.masahiro@socionext.com>
-In-Reply-To: <1518806331-7101-7-git-send-email-yamada.masahiro@socionext.com>
+References: <cover.1517497017.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1517497017.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: linux-kbuild@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>, Randy Dunlap <rdunlap@infradead.org>, Sam Ravnborg <sam@ravnborg.org>, Michal Marek <michal.lkml@markovi.net>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, x86@kernel.org, linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-sh@vger.kernel.org, Richard Weinberger <richard@nod.at>, user-mode-linux-user@lists.sourceforge.net, user-mode-linux-devel@lists.sourceforge.net, Rich Felker <dalias@libc.org>, Ingo Molnar <mingo@redhat.com>, Jeff Dike <jdike@addtoit.com>
+To: davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, mingo@kernel.org, gregkh@linuxfoundation.org, glx@linutronix.de, kstewart@linuxfoundation.org, vijay.ac.kumar@oracle.com, kirill.shutemov@linux.intel.com, nitin.m.gupta@oracle.com, tom.hromatka@oracle.com, allen.pais@oracle.com, rob.gardner@oracle.com, david.j.aldridge@oracle.com, babu.moger@oracle.com, bob.picco@oracle.com, steven.sistare@oracle.com, pasha.tatashin@oracle.com, vegard.nossum@oracle.com, pombredanne@nexb.com, jane.chu@oracle.com, anthony.yznaga@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-On Sat, Feb 17, 2018 at 03:38:34AM +0900, Masahiro Yamada wrote:
-> To get an environment value, Kconfig needs to define a symbol using
-> "option env=" syntax.  It is tedious to add a config entry for each
-> environment given that we need more environments such as 'CC', 'AS',
-> 'srctree' etc. to evaluate the compiler capability in Kconfig.
-> 
-> Adding '$' to symbols is weird.  Kconfig can reference symbols directly
-> like this:
-> 
->   config FOO
->           string
->           default BAR
-> 
-> So, I want to use the following syntax to get environment 'BAR' from
-> the system:
-> 
->   config FOO
->           string
->           default $BAR
+SPARC M7 processor adds new control register fields, ASIs and a new
+trap to support the ADI (Application Data Integrity) feature. This
+patch adds definitions for these register fields, ASIs and a handler
+for the new precise memory corruption detected trap.
 
-I like this idea. These bounce symbols always seemed kinda pointless to
-me too (and I've seen some other Kconfig dialects that got rid of them).
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+---
+v10:
+	- Updated copyright
+v8:
+	- Minor print formatting change as suggested by checkpatch
+v6:
+	- Added a missing nop in the delay slot in sun4v_mcd_detect_precise
 
-Getting rid of those symbols also gets rid of the only case where
-Kconfig would previously evaluate Kconfig symbols during parsing (for
-'source "$ENV"'), so it makes the parsing/evaluation separation a bit
-cleaner.
+v5:
+	- Fixed indentation issues in assembly code
 
+v4:
+	- Broke patch up into smaller patches
 
-I wonder if we could just make the quotes mandatory though, and treat
-$BAR simply as string interpolation, similar to the idea in
-https://lkml.org/lkml/2018/2/17/175.
+v3:
+	- Removed CONFIG_SPARC_ADI
+	- Replaced prctl commands with mprotect
+	- Added auxiliary vectors for ADI parameters
+	- Enabled ADI for swappable pages
 
-That would make the behavior clearer I think, and you wouldn't have to
-do special parsing for symbols starting with $ (but see the note at the
-end).
+v2:
+	- Fixed a build error
 
-> 
-> Looking at the code, the symbols prefixed with 'S' are expanded by:
->  - conf_expand_value()
->    This is used to expand 'arch/$ARCH/defconfig' and 'defconfig_list'
->  - expand_string_value()
->    This is used to expand strings in 'source' and 'mainmenu'
-> 
-> All of them are independent of user configuration, i.e. fixed values.
-> So, this kind of syntax should be moved to simply take the environment.
-> 
-> This change makes the code much cleaner.  The bounce symbols 'SRCARCH',
-> 'ARCH', 'SUBARCH', 'KERNELVERSION' are gone.
-> 
-> sym_init() hard-coding 'UNAME_RELEASE' is also gone.  'UNAME_RELEASE'
-> should be be given from the environment.
-> 
-> ARCH_DEFCONFIG is a normal symbol, so it should be simply referenced
-> by 'default ARCH_DEFCONFIG'.
-> 
-> An environment can appear anywhere a symbol reference can appear.
-> (It is expanded by sym_lookup().)  If an expression (which is derived
-> from symbols) is a string, environments in the string are also expanded.
-> 
-> For example, the following code works.
-> 
-> Example code:
-> 
->   config TOOLCHAIN_LIST
->           string
->           default "My tools: CC=$CC, AS=$AS, CPP=$CPP"
-> 
-> Result:
-> 
->   $ make -s alldefconfig && tail -n 1 .config
->   CONFIG_TOOLCHAIN_LIST="My tools: CC=gcc, AS=as, CPP=gcc -E"
-> 
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> ---
-> 
-> I tested all 'make *config' for arch architectures.
-> I confirmed this commit still produced the same result.
-> 
-> 
->  Documentation/kbuild/kconfig-language.txt |   8 --
->  Kconfig                                   |   4 -
->  Makefile                                  |   3 +-
->  arch/sh/Kconfig                           |   4 +-
->  arch/sparc/Kconfig                        |   4 +-
->  arch/tile/Kconfig                         |   2 +-
->  arch/um/Kconfig.common                    |   4 -
->  arch/x86/Kconfig                          |   4 +-
->  arch/x86/um/Kconfig                       |   4 +-
->  init/Kconfig                              |  10 +-
->  scripts/kconfig/confdata.c                |  31 +-----
->  scripts/kconfig/kconf_id.c                |   1 -
->  scripts/kconfig/lkc.h                     |   4 -
->  scripts/kconfig/menu.c                    |   3 -
->  scripts/kconfig/symbol.c                  |  84 ++++------------
->  scripts/kconfig/util.c                    | 156 +++++++++++++++++++++---------
->  scripts/kconfig/zconf.l                   |   2 +-
->  scripts/kconfig/zconf.y                   |   1 -
->  18 files changed, 144 insertions(+), 185 deletions(-)
-> 
-> diff --git a/Documentation/kbuild/kconfig-language.txt b/Documentation/kbuild/kconfig-language.txt
-> index f5b9493..0e966e8 100644
-> --- a/Documentation/kbuild/kconfig-language.txt
-> +++ b/Documentation/kbuild/kconfig-language.txt
-> @@ -198,14 +198,6 @@ applicable everywhere (see syntax).
->      enables the third modular state for all config symbols.
->      At most one symbol may have the "modules" option set.
->  
-> -  - "env"=<value>
-> -    This imports the environment variable into Kconfig. It behaves like
-> -    a default, except that the value comes from the environment, this
-> -    also means that the behaviour when mixing it with normal defaults is
-> -    undefined at this point. The symbol is currently not exported back
-> -    to the build environment (if this is desired, it can be done via
-> -    another symbol).
-> -
->    - "allnoconfig_y"
->      This declares the symbol as one that should have the value y when
->      using "allnoconfig". Used for symbols that hide other symbols.
-> diff --git a/Kconfig b/Kconfig
-> index 8c4c1cb..e6ece5b 100644
-> --- a/Kconfig
-> +++ b/Kconfig
-> @@ -5,8 +5,4 @@
->  #
->  mainmenu "Linux/$ARCH $KERNELVERSION Kernel Configuration"
->  
-> -config SRCARCH
-> -	string
-> -	option env="SRCARCH"
-> -
->  source "arch/$SRCARCH/Kconfig"
-> diff --git a/Makefile b/Makefile
-> index 94a957e..9a8c689 100644
-> --- a/Makefile
-> +++ b/Makefile
-> @@ -275,7 +275,8 @@ include scripts/Kbuild.include
->  # Read KERNELRELEASE from include/config/kernel.release (if it exists)
->  KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
->  KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
-> -export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
-> +UNAME_RELEASE := $(shell uname --release)
-> +export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION UNAME_RELEASE
->  
->  # SUBARCH tells the usermode build what the underlying arch is.  That is set
->  # first, and if a usermode build is happening, the "ARCH=um" on the command
-> diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-> index 97fe293..89fc2f6 100644
-> --- a/arch/sh/Kconfig
-> +++ b/arch/sh/Kconfig
-> @@ -57,7 +57,7 @@ config SUPERH
->  	  <http://www.linux-sh.org/>.
->  
->  config SUPERH32
-> -	def_bool ARCH = "sh"
-> +	def_bool $ARCH = "sh"
+ arch/sparc/include/asm/hypervisor.h  |  2 ++
+ arch/sparc/include/asm/pgtable_64.h  |  2 ++
+ arch/sparc/include/asm/ttable.h      | 10 +++++++
+ arch/sparc/include/uapi/asm/asi.h    |  5 ++++
+ arch/sparc/include/uapi/asm/pstate.h | 10 +++++++
+ arch/sparc/kernel/entry.h            |  3 ++
+ arch/sparc/kernel/head_64.S          |  1 +
+ arch/sparc/kernel/sun4v_mcd.S        | 18 ++++++++++++
+ arch/sparc/kernel/traps_64.c         | 54 ++++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/ttable_64.S        |  6 ++--
+ 10 files changed, 109 insertions(+), 2 deletions(-)
+ create mode 100644 arch/sparc/kernel/sun4v_mcd.S
 
-With the idea above, this would just be
+diff --git a/arch/sparc/include/asm/hypervisor.h b/arch/sparc/include/asm/hypervisor.h
+index 89a0c57aed59..83fdcc5e91db 100644
+--- a/arch/sparc/include/asm/hypervisor.h
++++ b/arch/sparc/include/asm/hypervisor.h
+@@ -566,6 +566,8 @@ struct hv_fault_status {
+ #define HV_FAULT_TYPE_RESV1	13
+ #define HV_FAULT_TYPE_UNALIGNED	14
+ #define HV_FAULT_TYPE_INV_PGSZ	15
++#define HV_FAULT_TYPE_MCD	17
++#define HV_FAULT_TYPE_MCD_DIS	18
+ /* Values 16 --> -2 are reserved.  */
+ #define HV_FAULT_TYPE_MULTIPLE	-1
+ 
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 9937c5ff94a9..db5c83532cfd 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -164,6 +164,8 @@ bool kern_addr_valid(unsigned long addr);
+ #define _PAGE_E_4V	  _AC(0x0000000000000800,UL) /* side-Effect          */
+ #define _PAGE_CP_4V	  _AC(0x0000000000000400,UL) /* Cacheable in P-Cache */
+ #define _PAGE_CV_4V	  _AC(0x0000000000000200,UL) /* Cacheable in V-Cache */
++/* Bit 9 is used to enable MCD corruption detection instead on M7 */
++#define _PAGE_MCD_4V      _AC(0x0000000000000200,UL) /* Memory Corruption    */
+ #define _PAGE_P_4V	  _AC(0x0000000000000100,UL) /* Privileged Page      */
+ #define _PAGE_EXEC_4V	  _AC(0x0000000000000080,UL) /* Executable Page      */
+ #define _PAGE_W_4V	  _AC(0x0000000000000040,UL) /* Writable             */
+diff --git a/arch/sparc/include/asm/ttable.h b/arch/sparc/include/asm/ttable.h
+index ede2b66cf4a0..8f6469408019 100644
+--- a/arch/sparc/include/asm/ttable.h
++++ b/arch/sparc/include/asm/ttable.h
+@@ -219,6 +219,16 @@
+ 	nop;						\
+ 	nop;
+ 
++#define SUN4V_MCD_PRECISE				\
++	ldxa	[%g0] ASI_SCRATCHPAD, %g2;		\
++	ldx	[%g2 + HV_FAULT_D_ADDR_OFFSET], %g4;	\
++	ldx	[%g2 + HV_FAULT_D_CTX_OFFSET], %g5;	\
++	ba,pt	%xcc, etrap;				\
++	 rd	%pc, %g7;				\
++	ba,pt	%xcc, sun4v_mcd_detect_precise;		\
++	 nop;						\
++	nop;
++
+ /* Before touching these macros, you owe it to yourself to go and
+  * see how arch/sparc64/kernel/winfixup.S works... -DaveM
+  *
+diff --git a/arch/sparc/include/uapi/asm/asi.h b/arch/sparc/include/uapi/asm/asi.h
+index d371b269571a..fbb30a5b082f 100644
+--- a/arch/sparc/include/uapi/asm/asi.h
++++ b/arch/sparc/include/uapi/asm/asi.h
+@@ -145,6 +145,8 @@
+  * ASIs, "(4V)" designates SUN4V specific ASIs.  "(NG4)" designates SPARC-T4
+  * and later ASIs.
+  */
++#define ASI_MCD_PRIV_PRIMARY	0x02 /* (NG7) Privileged MCD version VA	*/
++#define ASI_MCD_REAL		0x05 /* (NG7) Privileged MCD version PA	*/
+ #define ASI_PHYS_USE_EC		0x14 /* PADDR, E-cachable		*/
+ #define ASI_PHYS_BYPASS_EC_E	0x15 /* PADDR, E-bit			*/
+ #define ASI_BLK_AIUP_4V		0x16 /* (4V) Prim, user, block ld/st	*/
+@@ -245,6 +247,9 @@
+ #define ASI_UDBL_CONTROL_R	0x7f /* External UDB control regs rd low*/
+ #define ASI_INTR_R		0x7f /* IRQ vector dispatch read	*/
+ #define ASI_INTR_DATAN_R	0x7f /* (III) In irq vector data reg N	*/
++#define ASI_MCD_PRIMARY		0x90 /* (NG7) MCD version load/store	*/
++#define ASI_MCD_ST_BLKINIT_PRIMARY	\
++				0x92 /* (NG7) MCD store BLKINIT primary	*/
+ #define ASI_PIC			0xb0 /* (NG4) PIC registers		*/
+ #define ASI_PST8_P		0xc0 /* Primary, 8 8-bit, partial	*/
+ #define ASI_PST8_S		0xc1 /* Secondary, 8 8-bit, partial	*/
+diff --git a/arch/sparc/include/uapi/asm/pstate.h b/arch/sparc/include/uapi/asm/pstate.h
+index b6999c9e7e86..ceca96e685c2 100644
+--- a/arch/sparc/include/uapi/asm/pstate.h
++++ b/arch/sparc/include/uapi/asm/pstate.h
+@@ -11,7 +11,12 @@
+  * -----------------------------------------------------------------------
+  *  63  12  11   10    9     8    7   6   5     4     3     2     1    0
+  */
++/* IG on V9 conflicts with MCDE on M7. PSTATE_MCDE will only be used on
++ * processors that support ADI which do not use IG, hence there is no
++ * functional conflict
++ */
+ #define PSTATE_IG   _AC(0x0000000000000800,UL) /* Interrupt Globals.	*/
++#define PSTATE_MCDE _AC(0x0000000000000800,UL) /* MCD Enable		*/
+ #define PSTATE_MG   _AC(0x0000000000000400,UL) /* MMU Globals.		*/
+ #define PSTATE_CLE  _AC(0x0000000000000200,UL) /* Current Little Endian.*/
+ #define PSTATE_TLE  _AC(0x0000000000000100,UL) /* Trap Little Endian.	*/
+@@ -48,7 +53,12 @@
+ #define TSTATE_ASI	_AC(0x00000000ff000000,UL) /* AddrSpace ID.	*/
+ #define TSTATE_PIL	_AC(0x0000000000f00000,UL) /* %pil (Linux traps)*/
+ #define TSTATE_PSTATE	_AC(0x00000000000fff00,UL) /* PSTATE.		*/
++/* IG on V9 conflicts with MCDE on M7. TSTATE_MCDE will only be used on
++ * processors that support ADI which do not support IG, hence there is
++ * no functional conflict
++ */
+ #define TSTATE_IG	_AC(0x0000000000080000,UL) /* Interrupt Globals.*/
++#define TSTATE_MCDE	_AC(0x0000000000080000,UL) /* MCD enable.       */
+ #define TSTATE_MG	_AC(0x0000000000040000,UL) /* MMU Globals.	*/
+ #define TSTATE_CLE	_AC(0x0000000000020000,UL) /* CurrLittleEndian.	*/
+ #define TSTATE_TLE	_AC(0x0000000000010000,UL) /* TrapLittleEndian.	*/
+diff --git a/arch/sparc/kernel/entry.h b/arch/sparc/kernel/entry.h
+index 7378567b601f..c746c0fd5d6b 100644
+--- a/arch/sparc/kernel/entry.h
++++ b/arch/sparc/kernel/entry.h
+@@ -160,6 +160,9 @@ void sun4v_resum_overflow(struct pt_regs *regs);
+ void sun4v_nonresum_error(struct pt_regs *regs,
+ 			  unsigned long offset);
+ void sun4v_nonresum_overflow(struct pt_regs *regs);
++void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs,
++				      unsigned long addr,
++				      unsigned long context);
+ 
+ extern unsigned long sun4v_err_itlb_vaddr;
+ extern unsigned long sun4v_err_itlb_ctx;
+diff --git a/arch/sparc/kernel/head_64.S b/arch/sparc/kernel/head_64.S
+index a41e6e16eb36..540bfc98472c 100644
+--- a/arch/sparc/kernel/head_64.S
++++ b/arch/sparc/kernel/head_64.S
+@@ -897,6 +897,7 @@ sparc64_boot_end:
+ #include "syscalls.S"
+ #include "helpers.S"
+ #include "sun4v_tlb_miss.S"
++#include "sun4v_mcd.S"
+ #include "sun4v_ivec.S"
+ #include "ktlb.S"
+ #include "tsb.S"
+diff --git a/arch/sparc/kernel/sun4v_mcd.S b/arch/sparc/kernel/sun4v_mcd.S
+new file mode 100644
+index 000000000000..d6c69ebca110
+--- /dev/null
++++ b/arch/sparc/kernel/sun4v_mcd.S
+@@ -0,0 +1,18 @@
++/* sun4v_mcd.S: Sun4v memory corruption detected precise exception handler
++ *
++ * Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved.
++ * Authors: Bob Picco <bob.picco@oracle.com>,
++ *          Khalid Aziz <khalid.aziz@oracle.com>
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
++	.text
++	.align 32
++
++sun4v_mcd_detect_precise:
++	mov	%l4, %o1
++	mov 	%l5, %o2
++	call	sun4v_mem_corrupt_detect_precise
++	 add	%sp, PTREGS_OFF, %o0
++	ba,a,pt	%xcc, rtrap
++	 nop
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 0a56dc257cb9..fc73baa588f6 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2656,6 +2656,60 @@ void sun4v_do_mna(struct pt_regs *regs, unsigned long addr, unsigned long type_c
+ 	force_sig_info(SIGBUS, &info, current);
+ }
+ 
++/* sun4v_mem_corrupt_detect_precise() - Handle precise exception on an ADI
++ * tag mismatch.
++ *
++ * ADI version tag mismatch on a load from memory always results in a
++ * precise exception. Tag mismatch on a store to memory will result in
++ * precise exception if MCDPER or PMCDPER is set to 1.
++ */
++void sun4v_mem_corrupt_detect_precise(struct pt_regs *regs, unsigned long addr,
++				      unsigned long context)
++{
++	siginfo_t info;
++
++	if (notify_die(DIE_TRAP, "memory corruption precise exception", regs,
++		       0, 0x8, SIGSEGV) = NOTIFY_STOP)
++		return;
++
++	if (regs->tstate & TSTATE_PRIV) {
++		/* MCD exception could happen because the task was running
++		 * a system call with MCD enabled and passed a non-versioned
++		 * pointer or pointer with bad version tag to  the system
++		 * call.
++		 */
++		const struct exception_table_entry *entry;
++
++		entry = search_exception_tables(regs->tpc);
++		if (entry) {
++			/* Looks like a bad syscall parameter */
++#ifdef DEBUG_EXCEPTIONS
++			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
++				 regs->tpc);
++			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
++				 regs->tpc, entry->fixup);
++#endif
++			regs->tpc = entry->fixup;
++			regs->tnpc = regs->tpc + 4;
++			return;
++		}
++		pr_emerg("%s: ADDR[%016lx] CTX[%lx], going.\n",
++			 __func__, addr, context);
++		die_if_kernel("MCD precise", regs);
++	}
++
++	if (test_thread_flag(TIF_32BIT)) {
++		regs->tpc &= 0xffffffff;
++		regs->tnpc &= 0xffffffff;
++	}
++	info.si_signo = SIGSEGV;
++	info.si_code = SEGV_ADIPERR;
++	info.si_errno = 0;
++	info.si_addr = (void __user *) addr;
++	info.si_trapno = 0;
++	force_sig_info(SIGSEGV, &info, current);
++}
++
+ void do_privop(struct pt_regs *regs)
+ {
+ 	enum ctx_state prev_state = exception_enter();
+diff --git a/arch/sparc/kernel/ttable_64.S b/arch/sparc/kernel/ttable_64.S
+index 18685fe69b91..86e737e59c7e 100644
+--- a/arch/sparc/kernel/ttable_64.S
++++ b/arch/sparc/kernel/ttable_64.S
+@@ -26,8 +26,10 @@ tl0_ill:	membar #Sync
+ 		TRAP_7INSNS(do_illegal_instruction)
+ tl0_privop:	TRAP(do_privop)
+ tl0_resv012:	BTRAP(0x12) BTRAP(0x13) BTRAP(0x14) BTRAP(0x15) BTRAP(0x16) BTRAP(0x17)
+-tl0_resv018:	BTRAP(0x18) BTRAP(0x19) BTRAP(0x1a) BTRAP(0x1b) BTRAP(0x1c) BTRAP(0x1d)
+-tl0_resv01e:	BTRAP(0x1e) BTRAP(0x1f)
++tl0_resv018:	BTRAP(0x18) BTRAP(0x19)
++tl0_mcd:	SUN4V_MCD_PRECISE
++tl0_resv01b:	BTRAP(0x1b)
++tl0_resv01c:	BTRAP(0x1c) BTRAP(0x1d)	BTRAP(0x1e) BTRAP(0x1f)
+ tl0_fpdis:	TRAP_NOSAVE(do_fpdis)
+ tl0_fpieee:	TRAP_SAVEFPU(do_fpieee)
+ tl0_fpother:	TRAP_NOSAVE(do_fpother_check_fitos)
+-- 
+2.11.0
 
-	def_bool "$ARCH" = "sh"
-
-instead.
-
->  	select HAVE_KPROBES
->  	select HAVE_KRETPROBES
->  	select HAVE_IOREMAP_PROT if MMU && !X2TLB
-> @@ -76,7 +76,7 @@ config SUPERH32
->  	select HAVE_CC_STACKPROTECTOR
->  
->  config SUPERH64
-> -	def_bool ARCH = "sh64"
-> +	def_bool $ARCH = "sh64"
->  	select HAVE_EXIT_THREAD
->  	select KALLSYMS
->  
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 6bf594a..fed3d82 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -1,6 +1,6 @@
->  config 64BIT
-> -	bool "64-bit kernel" if ARCH = "sparc"
-> -	default ARCH = "sparc64"
-> +	bool "64-bit kernel" if $ARCH = "sparc"
-> +	default $ARCH = "sparc64"
->  	help
->  	  SPARC is a family of RISC microprocessors designed and marketed by
->  	  Sun Microsystems, incorporated.  They are very widely found in Sun
-> diff --git a/arch/tile/Kconfig b/arch/tile/Kconfig
-> index ef9d403..fed372e 100644
-> --- a/arch/tile/Kconfig
-> +++ b/arch/tile/Kconfig
-> @@ -119,7 +119,7 @@ config HVC_TILE
->  # Building with ARCH=tilegx (or ARCH=tile) implies using the
->  # 64-bit TILE-Gx toolchain, so force CONFIG_TILEGX on.
->  config TILEGX
-> -	def_bool ARCH != "tilepro"
-> +	def_bool $ARCH != "tilepro"
->  	select ARCH_SUPPORTS_ATOMIC_RMW
->  	select GENERIC_IRQ_LEGACY_ALLOC_HWIRQ
->  	select HAVE_ARCH_JUMP_LABEL
-> diff --git a/arch/um/Kconfig.common b/arch/um/Kconfig.common
-> index c68add8..07f84c8 100644
-> --- a/arch/um/Kconfig.common
-> +++ b/arch/um/Kconfig.common
-> @@ -54,10 +54,6 @@ config HZ
->  	int
->  	default 100
->  
-> -config SUBARCH
-> -	string
-> -	option env="SUBARCH"
-> -
->  config NR_CPUS
->  	int
->  	range 1 1
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index a528c14..54d943a 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -1,8 +1,8 @@
->  # SPDX-License-Identifier: GPL-2.0
->  # Select 32 or 64 bit
->  config 64BIT
-> -	bool "64-bit kernel" if ARCH = "x86"
-> -	default ARCH != "i386"
-> +	bool "64-bit kernel" if $ARCH = "x86"
-> +	default $ARCH != "i386"
->  	---help---
->  	  Say yes to build a 64-bit kernel - formerly known as x86_64
->  	  Say no to build a 32-bit kernel - formerly known as i386
-> diff --git a/arch/x86/um/Kconfig b/arch/x86/um/Kconfig
-> index 13ed827..d355413 100644
-> --- a/arch/x86/um/Kconfig
-> +++ b/arch/x86/um/Kconfig
-> @@ -16,8 +16,8 @@ config UML_X86
->  	select GENERIC_FIND_FIRST_BIT
->  
->  config 64BIT
-> -	bool "64-bit kernel" if SUBARCH = "x86"
-> -	default SUBARCH != "i386"
-> +	bool "64-bit kernel" if $SUBARCH = "x86"
-> +	default $SUBARCH != "i386"
->  
->  config X86_32
->  	def_bool !64BIT
-> diff --git a/init/Kconfig b/init/Kconfig
-> index df18492..b4814e6 100644
-> --- a/init/Kconfig
-> +++ b/init/Kconfig
-> @@ -1,11 +1,3 @@
-> -config ARCH
-> -	string
-> -	option env="ARCH"
-> -
-> -config KERNELVERSION
-> -	string
-> -	option env="KERNELVERSION"
-> -
->  config DEFCONFIG_LIST
->  	string
->  	depends on !UML
-> @@ -13,7 +5,7 @@ config DEFCONFIG_LIST
->  	default "/lib/modules/$UNAME_RELEASE/.config"
->  	default "/etc/kernel-config"
->  	default "/boot/config-$UNAME_RELEASE"
-> -	default "$ARCH_DEFCONFIG"
-> +	default ARCH_DEFCONFIG
->  	default "arch/$ARCH/defconfig"
->  
->  config CONSTRUCTORS
-> diff --git a/scripts/kconfig/confdata.c b/scripts/kconfig/confdata.c
-> index df26c7b..98c2014 100644
-> --- a/scripts/kconfig/confdata.c
-> +++ b/scripts/kconfig/confdata.c
-> @@ -81,39 +81,13 @@ const char *conf_get_autoconfig_name(void)
->  	return name ? name : "include/config/auto.conf";
->  }
->  
-> -static char *conf_expand_value(const char *in)
-> -{
-> -	struct symbol *sym;
-> -	const char *src;
-> -	static char res_value[SYMBOL_MAXLENGTH];
-> -	char *dst, name[SYMBOL_MAXLENGTH];
-> -
-> -	res_value[0] = 0;
-> -	dst = name;
-> -	while ((src = strchr(in, '$'))) {
-> -		strncat(res_value, in, src - in);
-> -		src++;
-> -		dst = name;
-> -		while (isalnum(*src) || *src = '_')
-> -			*dst++ = *src++;
-> -		*dst = 0;
-> -		sym = sym_lookup(name, 0);
-> -		sym_calc_value(sym);
-> -		strcat(res_value, sym_get_string_value(sym));
-> -		in = src;
-> -	}
-> -	strcat(res_value, in);
-> -
-> -	return res_value;
-> -}
-> -
->  char *conf_get_default_confname(void)
->  {
->  	struct stat buf;
->  	static char fullname[PATH_MAX+1];
->  	char *env, *name;
->  
-> -	name = conf_expand_value(conf_defname);
-> +	name = expand_string_value(conf_defname);
->  	env = getenv(SRCTREE);
->  	if (env) {
->  		sprintf(fullname, "%s/%s", env, name);
-> @@ -274,7 +248,8 @@ int conf_read_simple(const char *name, int def)
->  			if (expr_calc_value(prop->visible.expr) = no ||
->  			    prop->expr->type != E_SYMBOL)
->  				continue;
-> -			name = conf_expand_value(prop->expr->left.sym->name);
-> +			sym_calc_value(prop->expr->left.sym);
-> +			name = sym_get_string_value(prop->expr->left.sym);
->  			in = zconf_fopen(name);
->  			if (in) {
->  				conf_message(_("using defaults found in %s"),
-> diff --git a/scripts/kconfig/kconf_id.c b/scripts/kconfig/kconf_id.c
-> index 3ea9c5f..b3e0ea0 100644
-> --- a/scripts/kconfig/kconf_id.c
-> +++ b/scripts/kconfig/kconf_id.c
-> @@ -32,7 +32,6 @@ static struct kconf_id kconf_id_array[] = {
->  	{ "on",			T_ON,			TF_PARAM },
->  	{ "modules",		T_OPT_MODULES,		TF_OPTION },
->  	{ "defconfig_list",	T_OPT_DEFCONFIG_LIST,	TF_OPTION },
-> -	{ "env",		T_OPT_ENV,		TF_OPTION },
->  	{ "allnoconfig_y",	T_OPT_ALLNOCONFIG_Y,	TF_OPTION },
->  };
->  
-> diff --git a/scripts/kconfig/lkc.h b/scripts/kconfig/lkc.h
-> index fb2503a..0ff3256 100644
-> --- a/scripts/kconfig/lkc.h
-> +++ b/scripts/kconfig/lkc.h
-> @@ -58,7 +58,6 @@ enum conf_def_mode {
->  
->  #define T_OPT_MODULES		1
->  #define T_OPT_DEFCONFIG_LIST	2
-> -#define T_OPT_ENV		3
->  #define T_OPT_ALLNOCONFIG_Y	4
-
-Decrease T_OPT_ALLNOCONFIG_Y to 3 as well? Looks like a bitmask to me
-otherwise.
-
->  
->  struct kconf_id {
-> @@ -134,9 +133,6 @@ void str_printf(struct gstr *gs, const char *fmt, ...);
->  const char *str_get(struct gstr *gs);
->  
->  /* symbol.c */
-> -extern struct expr *sym_env_list;
-> -
-> -void sym_init(void);
->  void sym_clear_all_valid(void);
->  struct symbol *sym_choice_default(struct symbol *sym);
->  const char *sym_get_string_default(struct symbol *sym);
-> diff --git a/scripts/kconfig/menu.c b/scripts/kconfig/menu.c
-> index 36cd3e1..a9d0ccc 100644
-> --- a/scripts/kconfig/menu.c
-> +++ b/scripts/kconfig/menu.c
-> @@ -214,9 +214,6 @@ void menu_add_option(int token, char *arg)
->  			zconf_error("trying to redefine defconfig symbol");
->  		sym_defconfig_list->flags |= SYMBOL_AUTO;
->  		break;
-> -	case T_OPT_ENV:
-> -		prop_add_env(arg);
-> -		break;
->  	case T_OPT_ALLNOCONFIG_Y:
->  		current_entry->sym->flags |= SYMBOL_ALLNOCONFIG_Y;
->  		break;
-> diff --git a/scripts/kconfig/symbol.c b/scripts/kconfig/symbol.c
-> index e4ccf56..96ea8a9 100644
-> --- a/scripts/kconfig/symbol.c
-> +++ b/scripts/kconfig/symbol.c
-> @@ -33,33 +33,6 @@ struct symbol *sym_defconfig_list;
->  struct symbol *modules_sym;
->  tristate modules_val;
->  
-> -struct expr *sym_env_list;
-> -
-> -static void sym_add_default(struct symbol *sym, const char *def)
-> -{
-> -	struct property *prop = prop_alloc(P_DEFAULT, sym);
-> -
-> -	prop->expr = expr_alloc_symbol(sym_lookup(def, SYMBOL_CONST));
-> -}
-> -
-> -void sym_init(void)
-> -{
-> -	struct symbol *sym;
-> -	struct utsname uts;
-> -	static bool inited = false;
-> -
-> -	if (inited)
-> -		return;
-> -	inited = true;
-> -
-> -	uname(&uts);
-> -
-> -	sym = sym_lookup("UNAME_RELEASE", 0);
-> -	sym->type = S_STRING;
-> -	sym->flags |= SYMBOL_AUTO;
-> -	sym_add_default(sym, uts.release);
-> -}
-> -
->  enum symbol_type sym_get_type(struct symbol *sym)
->  {
->  	enum symbol_type type = sym->type;
-> @@ -828,28 +801,38 @@ static unsigned strhash(const char *s)
->  
->  struct symbol *sym_lookup(const char *name, int flags)
->  {
-> -	struct symbol *symbol;
-> +	struct symbol *symbol = NULL;
->  	char *new_name;
->  	int hash;
->  
->  	if (name) {
-> -		if (name[0] && !name[1]) {
-> -			switch (name[0]) {
-> -			case 'y': return &symbol_yes;
-> -			case 'm': return &symbol_mod;
-> -			case 'n': return &symbol_no;
-> +		new_name = expand_string_value(name);
-> +		if (new_name[0] && !new_name[1]) {
-> +			switch (new_name[0]) {
-> +			case 'y':
-> +				symbol = &symbol_yes;
-> +				break;
-> +			case 'm':
-> +				symbol = &symbol_mod;
-> +				break;
-> +			case 'n':
-> +				symbol = &symbol_no;
-> +				break;
-> +			}
-> +			if (symbol) {
-> +				free(new_name);
-> +				return symbol;
->  			}
->  		}
-> -		hash = strhash(name) % SYMBOL_HASHSIZE;
-> +		hash = strhash(new_name) % SYMBOL_HASHSIZE;
->  
->  		for (symbol = symbol_hash[hash]; symbol; symbol = symbol->next) {
->  			if (symbol->name &&
-> -			    !strcmp(symbol->name, name) &&
-> +			    !strcmp(symbol->name, new_name) &&
->  			    (flags ? symbol->flags & flags
->  				   : !(symbol->flags & (SYMBOL_CONST|SYMBOL_CHOICE))))
->  				return symbol;
->  		}
-> -		new_name = xstrdup(name);
->  	} else {
->  		new_name = NULL;
->  		hash = 0;
-> @@ -1336,32 +1319,3 @@ const char *prop_get_type_name(enum prop_type type)
->  	}
->  	return "unknown";
->  }
-> -
-> -static void prop_add_env(const char *env)
-> -{
-> -	struct symbol *sym, *sym2;
-> -	struct property *prop;
-> -	char *p;
-> -
-> -	sym = current_entry->sym;
-> -	sym->flags |= SYMBOL_AUTO;
-> -	for_all_properties(sym, prop, P_ENV) {
-> -		sym2 = prop_get_symbol(prop);
-> -		if (strcmp(sym2->name, env))
-> -			menu_warn(current_entry, "redefining environment symbol from %s",
-> -				  sym2->name);
-> -		return;
-> -	}
-> -
-> -	prop = prop_alloc(P_ENV, sym);
-> -	prop->expr = expr_alloc_symbol(sym_lookup(env, SYMBOL_CONST));
-> -
-> -	sym_env_list = expr_alloc_one(E_LIST, sym_env_list);
-> -	sym_env_list->right.sym = sym;
-> -
-> -	p = getenv(env);
-> -	if (p)
-> -		sym_add_default(sym, p);
-> -	else
-> -		menu_warn(current_entry, "environment variable %s undefined", env);
-> -}
-> diff --git a/scripts/kconfig/util.c b/scripts/kconfig/util.c
-> index 22201a4..dddf85b 100644
-> --- a/scripts/kconfig/util.c
-> +++ b/scripts/kconfig/util.c
-> @@ -8,16 +8,98 @@
->  #include <stdarg.h>
->  #include <stdlib.h>
->  #include <string.h>
-> +
-> +#include "list.h"
->  #include "lkc.h"
->  
-> +static LIST_HEAD(env_list);
-> +
-> +struct env {
-> +	char *name;
-> +	char *value;
-> +	struct list_head node;
-> +};
-> +
-> +static struct env *env_list_lookup(const char *name)
-> +{
-> +	struct env *e;
-> +
-> +	list_for_each_entry(e, &env_list, node) {
-> +		if (!strcmp(name, e->name))
-> +			return e;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
-> +static void env_list_add(const char *name, const char *value)
-> +{
-> +	struct env *e;
-> +
-> +	e = xmalloc(sizeof(*e));
-> +	e->name = xstrdup(name);
-> +	e->value = xstrdup(value);
-> +
-> +	list_add_tail(&e->node, &env_list);
-> +}
-> +
-> +static void env_list_del(struct env *e)
-> +{
-> +	list_del(&e->node);
-> +	free(e->name);
-> +	free(e->value);
-> +	free(e);
-> +}
-> +
-> +/* the returned pointer must be freed when done */
-> +static char *env_expand(const char *name)
-> +{
-> +	struct env *e;
-> +	const char *value;
-> +
-> +	e = env_list_lookup(name);
-> +	if (e)
-> +		return xstrdup(e->value);
-> +
-> +	value = getenv(name);
-> +	if (!value) {
-> +		fprintf(stderr, "environment variable \"%s\" undefined\n", name);
-> +		value = "";
-> +	}
-> +
-> +	/*
-> +	 * we need to remember all referenced environments.
-> +	 * They will be written out to include/config/auto.conf.cmd
-> +	 */
-> +	env_list_add(name, value);
-> +
-> +	return xstrdup(value);
-> +}
-> +
-> +/* works like env_expand, but 'name' does not need to be null-terminated */
-> +static char *env_expand_n(const char *name, size_t n)
-> +{
-> +	char *tmp, *res;
-> +
-> +	tmp = xmalloc(n + 1);
-> +	memcpy(tmp, name, n);
-> +	*(tmp + n) = '\0';
-> +
-> +	res = env_expand(tmp);
-> +
-> +	free(tmp);
-> +
-> +	return res;
-> +}
-> +
->  /*
-> - * Expand symbol's names embedded in the string given in argument. Symbols'
-> - * name to be expanded shall be prefixed by a '$'. Unknown symbol expands to
-> + * Expand environments embedded in the string given in argument. Environments
-> + * to be expanded shall be prefixed by a '$'. Unknown environment expands to
->   * the empty string.
->   */
->  char *expand_string_value(const char *in)
->  {
-> -	const char *src;
-> +	const char *p, *q;
->  	char *res;
->  	size_t reslen;
->  
-> @@ -25,39 +107,28 @@ char *expand_string_value(const char *in)
->  	 * Note: 'in' might come from a token that's about to be
->  	 * freed, so make sure to always allocate a new string
->  	 */
-> -	reslen = strlen(in) + 1;
-> -	res = xmalloc(reslen);
-> -	res[0] = '\0';
-> -
-> -	while ((src = strchr(in, '$'))) {
-> -		char *p, name[SYMBOL_MAXLENGTH];
-> -		const char *symval = "";
-> -		struct symbol *sym;
-> -		size_t newlen;
-> -
-> -		strncat(res, in, src - in);
-> -		src++;
-> -
-> -		p = name;
-> -		while (isalnum(*src) || *src = '_')
-> -			*p++ = *src++;
-> -		*p = '\0';
-> -
-> -		sym = sym_find(name);
-> -		if (sym != NULL) {
-> -			sym_calc_value(sym);
-> -			symval = sym_get_string_value(sym);
-> -		}
-> +	res = xmalloc(1);
-> +	*res = '\0';
->  
-> -		newlen = strlen(res) + strlen(symval) + strlen(src) + 1;
-> -		if (newlen > reslen) {
-> -			reslen = newlen;
-> -			res = xrealloc(res, reslen);
-> -		}
-> +	while ((p = strchr(in, '$'))) {
-> +		char *new;
-> +
-> +		q = p + 1;
-> +		while (isalnum(*q) || *q = '_')
-> +			q++;
->  
-> -		strcat(res, symval);
-> -		in = src;
-> +		new = env_expand_n(p + 1, q - p - 1);
-> +
-> +		reslen = strlen(res) + (p - in) + strlen(new) + 1;
-> +		res = xrealloc(res, reslen);
-> +		strncat(res, in, p - in);
-> +		strcat(res, new);
-> +		free(new);
-> +		in = q;
->  	}
-> +
-> +	reslen = strlen(res) + strlen(in) + 1;
-> +	res = xrealloc(res, reslen);
->  	strcat(res, in);
->  
->  	return res;
-> @@ -87,8 +158,7 @@ struct file *file_lookup(const char *name)
->  /* write a dependency file as used by kbuild to track dependencies */
->  int file_write_dep(const char *name)
->  {
-> -	struct symbol *sym, *env_sym;
-> -	struct expr *e;
-> +	struct env *env, *tmp;
->  	struct file *file;
->  	FILE *out;
->  
-> @@ -107,20 +177,12 @@ int file_write_dep(const char *name)
->  	fprintf(out, "\n%s: \\\n"
->  		     "\t$(deps_config)\n\n", conf_get_autoconfig_name());
->  
-> -	expr_list_for_each_sym(sym_env_list, e, sym) {
-> -		struct property *prop;
-> -		const char *value;
-> -
-> -		prop = sym_get_env_prop(sym);
-> -		env_sym = prop_get_symbol(prop);
-> -		if (!env_sym)
-> -			continue;
-> -		value = getenv(env_sym->name);
-> -		if (!value)
-> -			value = "";
-> -		fprintf(out, "ifneq \"$(%s)\" \"%s\"\n", env_sym->name, value);
-> +	list_for_each_entry_safe(env, tmp, &env_list, node) {
-> +		fprintf(out, "ifneq \"$(%s)\" \"%s\"\n",
-> +			env->name, getenv(env->name) ?: "");
->  		fprintf(out, "%s: FORCE\n", conf_get_autoconfig_name());
->  		fprintf(out, "endif\n");
-> +		env_list_del(env);
->  	}
->  
->  	fprintf(out, "\n$(deps_config): ;\n");
-> diff --git a/scripts/kconfig/zconf.l b/scripts/kconfig/zconf.l
-> index 02de6fe..0d89ea6 100644
-> --- a/scripts/kconfig/zconf.l
-> +++ b/scripts/kconfig/zconf.l
-> @@ -75,7 +75,7 @@ static void warn_ignored_character(char chr)
->  }
->  %}
->  
-> -n	[A-Za-z0-9_-]
-> +n	[$A-Za-z0-9_-]
->  
->  %%
->  	int str = 0;
-> diff --git a/scripts/kconfig/zconf.y b/scripts/kconfig/zconf.y
-> index 262c464..784083d 100644
-> --- a/scripts/kconfig/zconf.y
-> +++ b/scripts/kconfig/zconf.y
-> @@ -534,7 +534,6 @@ void conf_parse(const char *name)
->  
->  	zconf_initscan(name);
->  
-> -	sym_init();
->  	_menu_init();
->  
->  	if (getenv("ZCONF_DEBUG"))
-> -- 
-> 2.7.4
-> 
-
-Another option if we want to allow $ENV outside of quotes (even though I
-prefer mandatory quotes) would be to transform it early into "$ENV" by
-returning a T_WORD_QUOTE token for it.
-
-I think you could then get expand_string_value() to handle both the
-quoted and unquoted cases.
-
-Cheers,
-Ulf
