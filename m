@@ -1,49 +1,27 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Mon, 26 Feb 2018 23:21:18 +0000
-Subject: [PATCH] sparc64: Oracle DAX driver depends on SPARC64
-Message-Id: <1519687278-9785-1-git-send-email-linux@roeck-us.net>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Feb 2018 03:36:02 +0000
+Subject: Re: [PATCH 2/2] sparc,leon: Select USB_UHCI_BIG_ENDIAN_{MMIO,DESC}
+Message-Id: <20180131.223602.362388254047189521.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.a68aa8a51a9733579dc929dcc4367a56b22f0c75.1517437177.git-series.jhogan@kernel.org>
+        <cover.a68aa8a51a9733579dc929dcc4367a56b22f0c75.1517437177.git-series.jhogan@kernel.org>
+        <fb8ebffece031b246324cef5ad3afd75cf3795dd.1517437177.git-series.jhogan@kernel.org>
+In-Reply-To: <fb8ebffece031b246324cef5ad3afd75cf3795dd.1517437177.git-series.jhogan@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S . Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Kees Cook <keescook@chromium.org>
+To: jhogan@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-mips@linux-mips.org, paul.burton@mips.com, ralf@linux-mips.org, clabbe.montjoie@gmail.com, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org
 
-sparc:allmodconfig fails to build as follows.
+From: James Hogan <jhogan@kernel.org>
+Date: Wed, 31 Jan 2018 22:24:46 +0000
 
-ERROR: "mdesc_release" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "sun4v_hvapi_register" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "mdesc_get_property" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "mdesc_node_by_name" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "mdesc_grab" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "sun4v_ccb_info" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "sun4v_ccb_submit" [drivers/sbus/char/oradax.ko] undefined!
-ERROR: "sun4v_ccb_kill" [drivers/sbus/char/oradax.ko] undefined!
+> Now that USB_UHCI_BIG_ENDIAN_MMIO and USB_UHCI_BIG_ENDIAN_DESC are moved
+> outside of the USB_SUPPORT conditional, simply select them from
+> SPARC_LEON rather than by the symbol's defaults in drivers/usb/Kconfig,
+> similar to how it is done for USB_EHCI_BIG_ENDIAN_MMIO and
+> USB_EHCI_BIG_ENDIAN_DESC.
+> 
+> Signed-off-by: James Hogan <jhogan@kernel.org>
 
-The symbols are only available with SPARC64 builds, thus the driver
-depends on it.
-
-Fixes: dd0273284c74 ("sparc64: Oracle DAX driver")
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
----
- drivers/sbus/char/Kconfig | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/sbus/char/Kconfig b/drivers/sbus/char/Kconfig
-index a785aa7660c3..bf3c5f735614 100644
---- a/drivers/sbus/char/Kconfig
-+++ b/drivers/sbus/char/Kconfig
-@@ -72,7 +72,8 @@ config DISPLAY7SEG
- 
- config ORACLE_DAX
- 	tristate "Oracle Data Analytics Accelerator"
--	default m if SPARC64
-+	depends on SPARC64
-+	default m
- 	help
- 	 Driver for Oracle Data Analytics Accelerator, which is
- 	 a coprocessor that performs database operations in hardware.
--- 
-2.7.4
-
+Acked-by: David S. Miller <davem@davemloft.net>
