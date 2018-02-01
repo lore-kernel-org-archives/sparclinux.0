@@ -1,102 +1,297 @@
 From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 01 Feb 2018 18:01:15 +0000
-Subject: [PATCH v11 07/10] mm: Add address parameter to arch_validate_prot()
-Message-Id: <27616ceba664f0a0be02198102ba2d62a62f10d8.1517497017.git.khalid.aziz@oracle.com>
+Date: Thu, 01 Feb 2018 18:01:14 +0000
+Subject: [PATCH v11 06/10] sparc64: Add auxiliary vectors to report platform ADI properties
+Message-Id: <84fd2651f3c348095f4c0c36727a945046f83e01.1517497017.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1517497017.git.khalid.aziz@oracle.com>
 In-Reply-To: <cover.1517497017.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, bsingharora@gmail.com, nborisov@suse.com, aarcange@redhat.com, anthony.yznaga@oracle.com, mgorman@suse.de, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, ross.zwisler@linux.intel.com, gregkh@linuxfoundation.org, tglx@linutronix.de, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, jglisse@redhat.com, khandual@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, anthony.yznaga@oracle.com, tglx@linutronix.de, gregkh@linuxfoundation.org, nagarathnam.muthusamy@oracle.com, nick.alcock@oracle.com, jag.raman@oracle.com, shannon.nelson@oracle.com, liam.merwick@oracle.com, mhocko@suse.com, pombredanne@nexb.com, elena.reshetova@intel.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-A protection flag may not be valid across entire address space and
-hence arch_validate_prot() might need the address a protection bit is
-being set on to ensure it is a valid protection flag. For example, sparc
-processors support memory corruption detection (as part of ADI feature)
-flag on memory addresses mapped on to physical RAM but not on PFN mapped
-pages or addresses mapped on to devices. This patch adds address to the
-parameters being passed to arch_validate_prot() so protection bits can
-be validated in the relevant context.
+ADI feature on M7 and newer processors has three important properties
+relevant to userspace apps using ADI capabilities - (1) Size of block of
+memory an ADI version tag applies to, (2) Number of uppermost bits in
+virtual address used to encode ADI tag, and (3) The value M7 processor
+will force the ADI tags to if it detects uncorrectable error in an ADI
+tagged cacheline. Kernel can retrieve these properties for a platform
+through machine description provided by the firmware. This patch adds
+code to retrieve these properties and report them to userspace through
+auxiliary vectors.
 
 Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Khalid Aziz <khalid@gonehiking.org>
 Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
 ---
+v11:
+	- Rebased to 4.15
+v10:
+	- Updated copyright
 v8:
-	- Added addr parameter to powerpc arch_validate_prot() (suggested
-	  by Michael Ellerman)
+	- Added AT_ADI_UEONADI back
 v7:
-	- new patch
+	- new patch split off from patch 4/4 in v6
 
- arch/powerpc/include/asm/mman.h | 4 ++--
- arch/powerpc/kernel/syscalls.c  | 2 +-
- include/linux/mman.h            | 2 +-
- mm/mprotect.c                   | 2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ arch/sparc/include/asm/adi.h         |  6 +++
+ arch/sparc/include/asm/adi_64.h      | 47 ++++++++++++++++++
+ arch/sparc/include/asm/elf_64.h      |  5 ++
+ arch/sparc/include/uapi/asm/auxvec.h | 11 +++++
+ arch/sparc/kernel/Makefile           |  1 +
+ arch/sparc/kernel/adi_64.c           | 96 ++++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/mdesc.c            |  2 +
+ 7 files changed, 168 insertions(+)
+ create mode 100644 arch/sparc/include/asm/adi.h
+ create mode 100644 arch/sparc/include/asm/adi_64.h
+ create mode 100644 arch/sparc/kernel/adi_64.c
 
-diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
-index 30922f699341..1d129f4521ac 100644
---- a/arch/powerpc/include/asm/mman.h
-+++ b/arch/powerpc/include/asm/mman.h
-@@ -32,7 +32,7 @@ static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
+diff --git a/arch/sparc/include/asm/adi.h b/arch/sparc/include/asm/adi.h
+new file mode 100644
+index 000000000000..acad0d04e4c6
+--- /dev/null
++++ b/arch/sparc/include/asm/adi.h
+@@ -0,0 +1,6 @@
++#ifndef ___ASM_SPARC_ADI_H
++#define ___ASM_SPARC_ADI_H
++#if defined(__sparc__) && defined(__arch64__)
++#include <asm/adi_64.h>
++#endif
++#endif
+diff --git a/arch/sparc/include/asm/adi_64.h b/arch/sparc/include/asm/adi_64.h
+new file mode 100644
+index 000000000000..85f7a763af85
+--- /dev/null
++++ b/arch/sparc/include/asm/adi_64.h
+@@ -0,0 +1,47 @@
++/* adi_64.h: ADI related data structures
++ *
++ * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved.
++ * Author: Khalid Aziz (khalid.aziz@oracle.com)
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
++#ifndef __ASM_SPARC64_ADI_H
++#define __ASM_SPARC64_ADI_H
++
++#include <linux/types.h>
++
++#ifndef __ASSEMBLY__
++
++struct adi_caps {
++	__u64 blksz;
++	__u64 nbits;
++	__u64 ue_on_adi;
++};
++
++struct adi_config {
++	bool enabled;
++	struct adi_caps caps;
++};
++
++extern struct adi_config adi_state;
++
++extern void mdesc_adi_init(void);
++
++static inline bool adi_capable(void)
++{
++	return adi_state.enabled;
++}
++
++static inline unsigned long adi_blksize(void)
++{
++	return adi_state.caps.blksz;
++}
++
++static inline unsigned long adi_nbits(void)
++{
++	return adi_state.caps.nbits;
++}
++
++#endif	/* __ASSEMBLY__ */
++
++#endif	/* !(__ASM_SPARC64_ADI_H) */
+diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
+index 25340df3570c..7e078bc73ef5 100644
+--- a/arch/sparc/include/asm/elf_64.h
++++ b/arch/sparc/include/asm/elf_64.h
+@@ -10,6 +10,7 @@
+ #include <asm/processor.h>
+ #include <asm/extable_64.h>
+ #include <asm/spitfire.h>
++#include <asm/adi.h>
+ 
+ /*
+  * Sparc section types
+@@ -215,9 +216,13 @@ extern unsigned int vdso_enabled;
+ 
+ #define	ARCH_DLINFO							\
+ do {									\
++	extern struct adi_config adi_state;				\
+ 	if (vdso_enabled)						\
+ 		NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
+ 			    (unsigned long)current->mm->context.vdso);	\
++	NEW_AUX_ENT(AT_ADI_BLKSZ, adi_state.caps.blksz);		\
++	NEW_AUX_ENT(AT_ADI_NBITS, adi_state.caps.nbits);		\
++	NEW_AUX_ENT(AT_ADI_UEONADI, adi_state.caps.ue_on_adi);		\
+ } while (0)
+ 
+ struct linux_binprm;
+diff --git a/arch/sparc/include/uapi/asm/auxvec.h b/arch/sparc/include/uapi/asm/auxvec.h
+index 5f80a70cc901..f9937ccfcd99 100644
+--- a/arch/sparc/include/uapi/asm/auxvec.h
++++ b/arch/sparc/include/uapi/asm/auxvec.h
+@@ -3,6 +3,17 @@
+ 
+ #define AT_SYSINFO_EHDR		33
+ 
++#ifdef CONFIG_SPARC64
++/* Avoid overlap with other AT_* values since they are consolidated in
++ * glibc and any overlaps can cause problems
++ */
++#define AT_ADI_BLKSZ	48
++#define AT_ADI_NBITS	49
++#define AT_ADI_UEONADI	50
++
++#define AT_VECTOR_SIZE_ARCH	4
++#else
+ #define AT_VECTOR_SIZE_ARCH	1
++#endif
+ 
+ #endif /* !(__ASMSPARC_AUXVEC_H) */
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index cc97545737f0..76cb57750dda 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -69,6 +69,7 @@ obj-$(CONFIG_SPARC64)   += visemul.o
+ obj-$(CONFIG_SPARC64)   += hvapi.o
+ obj-$(CONFIG_SPARC64)   += sstate.o
+ obj-$(CONFIG_SPARC64)   += mdesc.o
++obj-$(CONFIG_SPARC64)   += adi_64.o
+ obj-$(CONFIG_SPARC64)	+= pcr.o
+ obj-$(CONFIG_SPARC64)	+= nmi.o
+ obj-$(CONFIG_SPARC64_SMP) += cpumap.o
+diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
+new file mode 100644
+index 000000000000..8fb72585d9f1
+--- /dev/null
++++ b/arch/sparc/kernel/adi_64.c
+@@ -0,0 +1,96 @@
++/* adi_64.c: support for ADI (Application Data Integrity) feature on
++ * sparc m7 and newer processors. This feature is also known as
++ * SSM (Silicon Secured Memory).
++ *
++ * Copyright (C) 2016 Oracle and/or its affiliates. All rights reserved.
++ * Author: Khalid Aziz (khalid.aziz@oracle.com)
++ *
++ * This work is licensed under the terms of the GNU GPL, version 2.
++ */
++#include <linux/init.h>
++#include <asm/mdesc.h>
++#include <asm/adi_64.h>
++
++struct adi_config adi_state;
++
++/* mdesc_adi_init() : Parse machine description provided by the
++ *	hypervisor to detect ADI capabilities
++ *
++ * Hypervisor reports ADI capabilities of platform in "hwcap-list" property
++ * for "cpu" node. If the platform supports ADI, "hwcap-list" property
++ * contains the keyword "adp". If the platform supports ADI, "platform"
++ * node will contain "adp-blksz", "adp-nbits" and "ue-on-adp" properties
++ * to describe the ADI capabilities.
++ */
++void __init mdesc_adi_init(void)
++{
++	struct mdesc_handle *hp = mdesc_grab();
++	const char *prop;
++	u64 pn, *val;
++	int len;
++
++	if (!hp)
++		goto adi_not_found;
++
++	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "cpu");
++	if (pn = MDESC_NODE_NULL)
++		goto adi_not_found;
++
++	prop = mdesc_get_property(hp, pn, "hwcap-list", &len);
++	if (!prop)
++		goto adi_not_found;
++
++	/*
++	 * Look for "adp" keyword in hwcap-list which would indicate
++	 * ADI support
++	 */
++	adi_state.enabled = false;
++	while (len) {
++		int plen;
++
++		if (!strcmp(prop, "adp")) {
++			adi_state.enabled = true;
++			break;
++		}
++
++		plen = strlen(prop) + 1;
++		prop += plen;
++		len -= plen;
++	}
++
++	if (!adi_state.enabled)
++		goto adi_not_found;
++
++	/* Find the ADI properties in "platform" node. If all ADI
++	 * properties are not found, ADI support is incomplete and
++	 * do not enable ADI in the kernel.
++	 */
++	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "platform");
++	if (pn = MDESC_NODE_NULL)
++		goto adi_not_found;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "adp-blksz", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.blksz = *val;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "adp-nbits", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.nbits = *val;
++
++	val = (u64 *) mdesc_get_property(hp, pn, "ue-on-adp", &len);
++	if (!val)
++		goto adi_not_found;
++	adi_state.caps.ue_on_adi = *val;
++
++	mdesc_release(hp);
++	return;
++
++adi_not_found:
++	adi_state.enabled = false;
++	adi_state.caps.blksz = 0;
++	adi_state.caps.nbits = 0;
++	if (hp)
++		mdesc_release(hp);
++}
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 418592a09b41..39a2503fa3e1 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -22,6 +22,7 @@
+ #include <linux/uaccess.h>
+ #include <asm/oplib.h>
+ #include <asm/smp.h>
++#include <asm/adi.h>
+ 
+ /* Unlike the OBP device tree, the machine description is a full-on
+  * DAG.  An arbitrary number of ARCs are possible from one
+@@ -1345,5 +1346,6 @@ void __init sun4v_mdesc_init(void)
+ 
+ 	cur_mdesc = hp;
+ 
++	mdesc_adi_init();
+ 	report_platform_properties();
  }
- #define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
- 
--static inline bool arch_validate_prot(unsigned long prot)
-+static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
- {
- 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
- 		return false;
-@@ -40,7 +40,7 @@ static inline bool arch_validate_prot(unsigned long prot)
- 		return false;
- 	return true;
- }
--#define arch_validate_prot(prot) arch_validate_prot(prot)
-+#define arch_validate_prot arch_validate_prot
- 
- #endif /* CONFIG_PPC64 */
- #endif	/* _ASM_POWERPC_MMAN_H */
-diff --git a/arch/powerpc/kernel/syscalls.c b/arch/powerpc/kernel/syscalls.c
-index a877bf8269fe..6d90ddbd2d11 100644
---- a/arch/powerpc/kernel/syscalls.c
-+++ b/arch/powerpc/kernel/syscalls.c
-@@ -48,7 +48,7 @@ static inline long do_mmap2(unsigned long addr, size_t len,
- {
- 	long ret = -EINVAL;
- 
--	if (!arch_validate_prot(prot))
-+	if (!arch_validate_prot(prot, addr))
- 		goto out;
- 
- 	if (shift) {
-diff --git a/include/linux/mman.h b/include/linux/mman.h
-index 6a4d1caaff5c..4b08e9c9c538 100644
---- a/include/linux/mman.h
-+++ b/include/linux/mman.h
-@@ -92,7 +92,7 @@ static inline void vm_unacct_memory(long pages)
-  *
-  * Returns true if the prot flags are valid
-  */
--static inline bool arch_validate_prot(unsigned long prot)
-+static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
- {
- 	return (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM)) = 0;
- }
-diff --git a/mm/mprotect.c b/mm/mprotect.c
-index 58b629bb70de..80243e0166a7 100644
---- a/mm/mprotect.c
-+++ b/mm/mprotect.c
-@@ -412,7 +412,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
- 	end = start + len;
- 	if (end <= start)
- 		return -ENOMEM;
--	if (!arch_validate_prot(prot))
-+	if (!arch_validate_prot(prot, start))
- 		return -EINVAL;
- 
- 	reqprot = prot;
 -- 
 2.11.0
 
