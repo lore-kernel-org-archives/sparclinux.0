@@ -1,74 +1,48 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 21 Feb 2018 17:15:46 +0000
-Subject: [PATCH v12 04/11] sparc64: Add HV fault type handlers for ADI related faults
-Message-Id: <ce772518871b086e08a7d2570132035564251f5c.1519227112.git.khalid.aziz@oracle.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Fri, 02 Feb 2018 17:47:23 +0000
+Subject: Re: [PATCH 22/34] dma-mapping: add an arch_dma_supported hook
+Message-Id: <5d7dfb29-eeef-2280-13c9-5260e9104f67@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1519227112.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1519227112.git.khalid.aziz@oracle.com>
+References: <20180112084232.2857-1-hch@lst.de>
+ <20180112084232.2857-23-hch@lst.de>
+In-Reply-To: <20180112084232.2857-23-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, rob.gardner@oracle.com, anthony.yznaga@oracle.com, jane.chu@oracle.com, mingo@kernel.org, ebiederm@xmission.com, vegard.nossum@oracle.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
+Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-snps-arc@lists.infradead.org, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-ADI (Application Data Integrity) feature on M7 and newer processors
-adds new fault types for hypervisor - Invalid ASI and MCD disabled.
-This patch expands data access exception handler to handle these
-faults.
+On 01/12/2018 12:42 AM, Christoph Hellwig wrote:
+> To implement the x86 forbid_dac and iommu_sac_force we want an arch hook
+> so that it can apply the global options across all dma_map_ops
+> implementations.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  arch/x86/include/asm/dma-mapping.h |  3 +++
+>  arch/x86/kernel/pci-dma.c          | 19 ++++++++++++-------
+>  include/linux/dma-mapping.h        | 11 +++++++++++
+>  3 files changed, 26 insertions(+), 7 deletions(-)
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
----
-v7:
-	- new patch split off from patch 4/4 in v6
+> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+> index 88bcb1a8211d..d67742dad904 100644
+> --- a/include/linux/dma-mapping.h
+> +++ b/include/linux/dma-mapping.h
+> @@ -576,6 +576,14 @@ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+>  	return 0;
+>  }
+>  
+> +/*
+> + * This is a hack for the legacy x86 forbid_dac and iommu_sac_force. Please
+> + * don't use this is new code.
 
- arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+                     in new code.
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index fc73baa588f6..d273a65a0a10 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -397,12 +397,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
- 	if (is_no_fault_exception(regs))
- 		return;
- 
--	info.si_signo = SIGSEGV;
-+	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
-+	 * is vectored thorugh data access exception trap with fault type
-+	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
-+	 * Accessing an address with invalid ASI for the address, for
-+	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
-+	 * when TTE.mcd is not set for the VA, is also vectored into
-+	 * kerbel by HV as data access exception with fault type set to
-+	 * HV_FAULT_TYPE_INV_ASI.
-+	 */
- 	info.si_errno = 0;
--	info.si_code = SEGV_MAPERR;
- 	info.si_addr = (void __user *) addr;
- 	info.si_trapno = 0;
--	force_sig_info(SIGSEGV, &info, current);
-+	switch (type) {
-+	case HV_FAULT_TYPE_INV_ASI:
-+		info.si_signo = SIGILL;
-+		info.si_code = ILL_ILLADR;
-+		force_sig_info(SIGILL, &info, current);
-+		break;
-+	case HV_FAULT_TYPE_MCD_DIS:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_ACCADI;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	default:
-+		info.si_signo = SIGSEGV;
-+		info.si_code = SEGV_MAPERR;
-+		force_sig_info(SIGSEGV, &info, current);
-+		break;
-+	}
- }
- 
- void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
+> + */
+> +#ifndef arch_dma_supported
+> +#define arch_dma_supported(dev, mask)	(1)
+> +#endif
+
+
 -- 
-2.11.0
-
+~Randy
