@@ -1,48 +1,26 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Date: Fri, 02 Feb 2018 17:47:23 +0000
-Subject: Re: [PATCH 22/34] dma-mapping: add an arch_dma_supported hook
-Message-Id: <5d7dfb29-eeef-2280-13c9-5260e9104f67@infradead.org>
+From: "Sandra Younes" <mamg7610885@angel.ocn.ne.jp>
+Date: Mon, 05 Feb 2018 16:10:41 +0000
+Subject: Re: Help needed!
+Message-Id: <201802051610.w15GAgRi043086@mf-smf-ucb016.ocn.ad.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180112084232.2857-1-hch@lst.de>
- <20180112084232.2857-23-hch@lst.de>
-In-Reply-To: <20180112084232.2857-23-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>, iommu@lists.linux-foundation.org
-Cc: linux-mips@linux-mips.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-snps-arc@lists.infradead.org, linux-m68k@lists.linux-m68k.org, patches@groups.riscv.org, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-parisc@vger.kernel.org, linux-cris-kernel@axis.com, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: sparclinux@vger.kernel.org
 
-On 01/12/2018 12:42 AM, Christoph Hellwig wrote:
-> To implement the x86 forbid_dac and iommu_sac_force we want an arch hook
-> so that it can apply the global options across all dma_map_ops
-> implementations.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/x86/include/asm/dma-mapping.h |  3 +++
->  arch/x86/kernel/pci-dma.c          | 19 ++++++++++++-------
->  include/linux/dma-mapping.h        | 11 +++++++++++
->  3 files changed, 26 insertions(+), 7 deletions(-)
+Good Day,
 
-> diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-> index 88bcb1a8211d..d67742dad904 100644
-> --- a/include/linux/dma-mapping.h
-> +++ b/include/linux/dma-mapping.h
-> @@ -576,6 +576,14 @@ static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
->  	return 0;
->  }
->  
-> +/*
-> + * This is a hack for the legacy x86 forbid_dac and iommu_sac_force. Please
-> + * don't use this is new code.
+Forgive my indignation if this message comes to you as a surprise and may offend your personality for contacting you without your prior consent and writing through this channel.
 
-                     in new code.
+I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
 
-> + */
-> +#ifndef arch_dma_supported
-> +#define arch_dma_supported(dev, mask)	(1)
-> +#endif
+I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. My father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,i request that you be my tr
+ ustee and assist me in th
 
+You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
+I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
 
--- 
-~Randy
+Thanks for giving me your attention,
+
+Yours sincerely,
+Miss. Sandra Younes
