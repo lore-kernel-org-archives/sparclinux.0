@@ -1,41 +1,27 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Thu, 22 Feb 2018 03:22:02 +0000
-Subject: Re: [PATCH 00/23] kconfig: move compiler capability tests to Kconfig
-Message-Id: <87efldr9np.fsf@concordia.ellerman.id.au>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Sat, 10 Feb 2018 08:10:11 +0000
+Subject: Re: [sparc64] kernel unaligned access at TPC aa_dfa_unpack
+Message-Id: <CADxRZqySeF_3ZK7vJjJ9XW1buiRd6sesOGBF-Skj6qV8xevZ_A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1518806331-7101-1-git-send-email-yamada.masahiro@socionext.com> <20180218221352.GA6651@ravnborg.org> <CAFkk2KT1krKuDkWt0eHcasfC61fTVQNf-1kqw7icLP9OYGYkXQ@mail.gmail.com> <CAK7LNAQH0WD3A3T97gce0xmZpMy0zWxTO2StfNWaDbiqjQg8gg@mail.gmail.com> <CAK8P3a2BOQt5Y0B4271WqaJvvWqfxHxD3S6r1i1xONvb+CJ5Dg@mail.gmail.com> <CAK7LNARtZcW1v53ridFJK1MULmj8tQT4s+DoRhKj9PrbMri5rQ@mail.gmail.com> <CAK8P3a1DrhxWXaEs6E85W5HEhvFr23E-GDsu=0X-sG0pX+PLag@mail.gmail.com> <CAK7LNAR3OMh9Q9ZfaBq=FpSJ-+DT5-RH_20ohV-iu34pX9hFKw@mail.gmail.com>
-In-Reply-To: <CAK7LNAR3OMh9Q9ZfaBq=FpSJ-+DT5-RH_20ohV-iu34pX9hFKw@mail.gmail.com>
+References: <CADxRZqwo8sL3RtEWRMcHkgkSAnWKeVibLRrtdXU2e8w2Q5KSTQ@mail.gmail.com>
+	<CADxRZqyTE5xFm+Fs-iR2Xjb4JHiVdGma+iyKwtBoU-RtBFf0qg@mail.gmail.com>
+In-Reply-To: <CADxRZqyTE5xFm+Fs-iR2Xjb4JHiVdGma+iyKwtBoU-RtBFf0qg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masahiro Yamada <yamada.masahiro@socionext.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Rich Felker <dalias@libc.org>, Kernel Hardening <kernel-hardening@lists.openwall.com>, X86 ML <x86@kernel.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Linux-sh list <linux-sh@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@redhat.com>, Emese Revfy <re.emese@gmail.com>, Kees Cook <keescook@chromium.org>, uml-devel <user-mode-linux-devel@lists.sourceforge.net>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Jeff Dike <jdike@addtoit.com>, user-mode-linux-user@lists.sourceforge.net, Thomas Gleixner <tglx@linutronix.de>, Michal Marek <michal.lkml@markovi.net>, Ulf Magnusson <ulfalizer@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, "open
- list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>
+To: linux-security-module@vger.kernel.org
 
-Masahiro Yamada <yamada.masahiro@socionext.com> writes:
->
-<snip>
->
-> (Case 3)
-> Compiler flag -foo is sensitive to endian-ness.
->
->
-> config CC_NEEDS_BIG_ENDIAN
->           def_bool $(cc-option -mbig-endian) && CPU_BIG_ENDIAN
->
-> config CC_NEEDS_LITTLE_ENDIAN
->           def_bool $(cc-option -mlittle-endian) && CPU_LITTLE_ENDIAN
->
-> config CC_HAS_FOO
->          bool
->          default $(cc-option -mbig-endian -foo) if CC_NEEDS_BIG_ENDIAN
->          default $(cc-option -mlittle-endian -foo) if CC_NEEDS_LITTLE_ENDIAN
->          default $(cc-option -foo)
+On Sun, Jan 21, 2018 at 10:41 PM, Anatoly Pugachev <matorola@gmail.com> wrote:
+> On Tue, Jan 2, 2018 at 12:11 AM, Anatoly Pugachev <matorola@gmail.com> wrote:
+>> Hello!
+>>
+>> Using latest git kernel (4.15.0-rc6) , getting the following messages
+>> on LDOM/kernel boot:
+>>
+>> [    7.693653] Kernel unaligned access at TPC[7496d8] aa_dfa_unpack+0x38/0x580
+>> [    7.693735] Kernel unaligned access at TPC[7496f8] aa_dfa_unpack+0x58/0x580
+>> [    7.693782] Kernel unaligned access at TPC[749708] aa_dfa_unpack+0x68/0x580
+>> [    7.693829] Kernel unaligned access at TPC[74973c] aa_dfa_unpack+0x9c/0x580
+>> [    7.693875] Kernel unaligned access at TPC[749758] aa_dfa_unpack+0xb8/0x580
 
-We may do something like this on powerpc, where we have 32/64-bit and
-big/little endian (on 64-bit) and then some ABI options that we
-set/unset depending on endian.
-
-The above looks like it could work though.
-
-cheers
+https://bugzilla.kernel.org/show_bug.cgi?id8743
