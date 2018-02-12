@@ -1,65 +1,77 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Fri, 23 Feb 2018 22:11:01 +0000
-Subject: Re: [PATCH v12 10/11] sparc64: Add support for ADI (Application Data Integrity)
-Message-Id: <7223b9b5-c05a-8ade-beaa-e7e82cc8ea01@oracle.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 12 Feb 2018 10:28:32 +0000
+Subject: Re: Build regressions/improvements in v4.16-rc1
+Message-Id: <CAMuHMdW5qRH93CMyRL-gbWgiA_rnizErbjNtSMT5b3d58N3ZTQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <d8602e35e65c8bf6df1a85166bf181536a6f3664.1519227112.git.khalid.aziz@oracle.com>
- <201802231005.WSf8KcHd%fengguang.wu@intel.com>
- <490b8c3b-fc62-b6e7-af28-7c1257e953ce@oracle.com>
- <20180223.135716.511559214062584207.davem@davemloft.net>
-In-Reply-To: <20180223.135716.511559214062584207.davem@davemloft.net>
+References: <1518430656-21669-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1518430656-21669-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: akpm@linux-foundation.org, dave.hansen@linux.intel.com, corbet@lwn.net, steven.sistare@oracle.com, pasha.tatashin@oracle.com, mike.kravetz@oracle.com, rob.gardner@oracle.com, mingo@kernel.org, nitin.m.gupta@oracle.com, anthony.yznaga@oracle.com, kirill.shutemov@linux.intel.com, tom.hromatka@oracle.com, allen.pais@oracle.com, tklauser@distanz.ch, shannon.nelson@oracle.com, vijay.ac.kumar@oracle.com, mhocko@suse.com, jack@suse.cz, punit.agrawal@arm.com, hughd@google.com, thomas.tai@oracle.com, ross.zwisler@linux.intel.com, dave.jiang@intel.com, willy@infradead.org, minchan@kernel.org, imbrenda@linux.vnet.ibm.com, aarcange@redhat.com, kstewart@linuxfoundation.org, pombredanne@nexb.com, tglx@linutronix.de, gregkh@linuxfoundation.org, nagarathnam.muthusamy@oracle.com, linux@roeck-us.net, jane.chu@oracle.com, dan.j.williams@intel.com, jglisse@redhat.com, ktkhai@virtuozzo.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, khalid@gonehiking.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Jose Ricardo Ziviani <joserz@linux.vnet.ibm.com>, Michael Bringmann <mwb@linux.vnet.ibm.com>, Rob Gardner <rob.gardner@oracle.com>, sparclinux <sparclinux@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org, Linux MIPS Mailing List <linux-mips@linux-mips.org>, adi-buildroot-devel@lists.sourceforge.net
 
-On 02/23/2018 11:57 AM, David Miller wrote:
-> From: Khalid Aziz <khalid.aziz@oracle.com>
-> Date: Fri, 23 Feb 2018 11:51:25 -0700
-> 
->> On 02/22/2018 07:50 PM, kbuild test robot wrote:
->>> Hi Khalid,
->>> I love your patch! Yet something to improve:
->>> [auto build test ERROR on sparc-next/master]
->>> [also build test ERROR on v4.16-rc2]
->>> [cannot apply to next-20180222]
->>> [if your patch is applied to the wrong git tree, please drop us a note
->>> to help improve the system]
->>> url:
->>> https://github.com/0day-ci/linux/commits/Khalid-Aziz/Application-Data-Integrity-feature-introduced-by-SPARC-M7/20180223-071725
->>> base:
->>> https://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-next.git
->>> master
->>> config: sparc64-allyesconfig (attached as .config)
->>> compiler: sparc64-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
->>> reproduce:
->>>           wget
->>>           https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross
->>>           -O ~/bin/make.cross
->>>           chmod +x ~/bin/make.cross
->>>           # save the attached .config to linux build tree
->>>           make.cross ARCH=sparc64
->>> All error/warnings (new ones prefixed by >>):
->>
->> Hi Dave,
->>
->> Including linux/sched.h in arch/sparc/include/asm/mmu_context.h should
->> eliminate these build warnings. My gcc version 6.2.1 does not report
->> these errors. Build bot is using 7.2.0.
->>
->> I can add a patch 12 to add the include, revise patch 10 or you can
->> add the include in your tree. Let me know how you would prefer to
->> resolve this.
-> 
-> You need to update patch #10 so that your patch series is fully
-> bisectable.
+On Mon, Feb 12, 2018 at 11:17 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> Below is the list of build error/warning regressions/improvements in
+> v4.16-rc1[1] compared to v4.15[2].
+>
+> Summarized:
+>   - build errors: +13/-5
+>   - build warnings: +1653/-1537
+>
+> Note that there may be false regressions, as some logs are incomplete.
+> Still, they're build errors/warnings.
+>
+> Happy fixing! ;-)
+>
+> Thanks to the linux-next team for providing the build service.
+>
+> [1] http://kisskb.ellerman.id.au/kisskb/head/7928b2cbe55b2a410a0f5c1f154610059c57b1b2/ (all 273 configs)
+> [2] http://kisskb.ellerman.id.au/kisskb/head/d8a5b80568a9cb66810e75b182018e9edb68e8ff/ (271 out of 273 configs)
+>
+>
+> *** ERRORS ***
+>
+> 13 error regressions:
+>   + /home/kisskb/slave/src/arch/powerpc/kvm/powerpc.c: error: 'emulated' may be used uninitialized in this function [-Werror=uninitialized]:  => 1361:2
 
-Hi Dave,
+Lots of powerpc configs
 
-That sounds like the right thing to do. I am updating patch 10 and will 
-send out v13 for patch 10/11. Rest of the series is unchanged but I can 
-send the whole series if you prefer that.
+>   + /home/kisskb/slave/src/drivers/net/ethernet/intel/i40e/i40e_ethtool.c: error: implicit declaration of function 'cmpxchg64' [-Werror=implicit-function-declaration]:  => 4443:6, 4443:2
 
-Thanks,
-Khalid
+mips{,el}-allmodconfig
+
+>   + /home/kisskb/slave/src/fs/signalfd.c: error: 'BUS_MCEERR_AR' undeclared (first use in this function):  => 126:26
+
+Lots of blackfin configs
+
+>   + error: "mdesc_get_property" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "mdesc_grab" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "mdesc_node_by_name" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "mdesc_release" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "sun4v_ccb_info" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "sun4v_ccb_kill" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "sun4v_ccb_submit" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+>   + error: "sun4v_hvapi_register" [drivers/sbus/char/oradax.ko] undefined!:  => N/A
+
+sparc-allmodconfig (i.e. sparc32)
+
+>   + error: No rule to make target arch/ia64/kernel/pci-swiotlb.o:  => N/A
+
+ia64-defconfig (patch availavle)
+
+>   + error: hotplug-cpu.c: undefined reference to `find_and_online_cpu_nid':  => .text+0x13c)
+
+ppc64le/pseries_le_defconfig
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
