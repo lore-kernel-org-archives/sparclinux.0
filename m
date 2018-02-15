@@ -1,75 +1,41 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Wed, 21 Feb 2018 20:58:32 +0000
-Subject: Re: [PATCH v12 01/11] signals, sparc: Add signal codes for ADI violations
-Message-Id: <874lmaf4av.fsf@xmission.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Thu, 15 Feb 2018 15:17:58 +0000
+Subject: [PATCH v1 0/2] PCI: Sparc 64-bit resource fixups
+Message-Id: <20180215151118.196756.99622.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1519227112.git.khalid.aziz@oracle.com>
-        <cover.1519227112.git.khalid.aziz@oracle.com>
-        <b1712b03774934c31afd9e394f07aae51eca74f8.1519227112.git.khalid.aziz@oracle.com>
-In-Reply-To: <b1712b03774934c31afd9e394f07aae51eca74f8.1519227112.git.khalid.aziz@oracle.com>
-        (Khalid Aziz's message of "Wed, 21 Feb 2018 10:15:43 -0700")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: arnd@arndb.de, hpa@zytor.com, davem@davemloft.net, dave.hansen@linux.intel.com, tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, anthony.yznaga@oracle.com, pombredanne@nexb.com, jroedel@suse.de, gregkh@linuxfoundation.org, viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: Khalid Aziz <khalid.aziz@oracle.com>, "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, linux-kernel@vger.kernel.org
 
-Khalid Aziz <khalid.aziz@oracle.com> writes:
+I'm trying to make some progress on this old series from Yinghai [1].
+There's a lot more to do than just these first two patches, but maybe a
+tiny bit of incremental progress is better than none.
 
-> SPARC M7 processor introduces a new feature - Application Data
-> Integrity (ADI). ADI allows MMU to  catch rogue accesses to memory.
-> When a rogue access occurs, MMU blocks the access and raises an
-> exception. In response to the exception, kernel sends the offending
-> task a SIGSEGV with si_code that indicates the nature of exception.
-> This patch adds three new signal codes specific to ADI feature:
->
-> 1. ADI is not enabled for the address and task attempted to access
->    memory using ADI
-> 2. Task attempted to access memory using wrong ADI tag and caused
->    a deferred exception.
-> 3. Task attempted to access memory using wrong ADI tag and caused
->    a precise exception.
->
-> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-> Cc: Khalid Aziz <khalid@gonehiking.org>
-> Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+The first patch ("Support arbitrary host bridge address offset") is
+unchanged from Yinghai's posting except for the changelog.
 
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+I'm interested in feedback about the second ("Reserve System ROM and Video
+ROM") patch because it changes something that *looks* wrong to me, but I
+don't know anything about the Sparc address map.
 
-> ---
-> v10:
-> 	- Updated si_code definitions to match other definitions
->
->  arch/x86/kernel/signal_compat.c    | 2 +-
->  include/uapi/asm-generic/siginfo.h | 5 ++++-
->  2 files changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
-> index ac057f9b0763..41cf5996a2a9 100644
-> --- a/arch/x86/kernel/signal_compat.c
-> +++ b/arch/x86/kernel/signal_compat.c
-> @@ -27,7 +27,7 @@ static inline void signal_compat_build_tests(void)
->  	 */
->  	BUILD_BUG_ON(NSIGILL  != 11);
->  	BUILD_BUG_ON(NSIGFPE  != 13);
-> -	BUILD_BUG_ON(NSIGSEGV != 4);
-> +	BUILD_BUG_ON(NSIGSEGV != 7);
->  	BUILD_BUG_ON(NSIGBUS  != 5);
->  	BUILD_BUG_ON(NSIGTRAP != 4);
->  	BUILD_BUG_ON(NSIGCHLD != 6);
-> diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
-> index 85dc965afd89..e94f03b3ee6f 100644
-> --- a/include/uapi/asm-generic/siginfo.h
-> +++ b/include/uapi/asm-generic/siginfo.h
-> @@ -246,7 +246,10 @@ typedef struct siginfo {
->  #else
->  # define SEGV_PKUERR	4	/* failed protection key checks */
->  #endif
-> -#define NSIGSEGV	4
-> +#define SEGV_ACCADI	5	/* ADI not enabled for mapped object */
-> +#define SEGV_ADIDERR	6	/* Disrupting MCD error */
-> +#define SEGV_ADIPERR	7	/* Precise MCD exception */
-> +#define NSIGSEGV	7
->  
->  /*
->   * SIGBUS si_codes
+If this is on the right track, I'd like to merge these via my PCI tree in
+the hope that I can include more of Yinghai's patches as well.
+
+[1] https://lkml.kernel.org/r/20170421050500.13957-1-yinghai@kernel.org
+
+---
+
+Bjorn Helgaas (1):
+      sparc/PCI: Reserve System ROM and Video ROM outside of PCI space
+
+Yinghai Lu (1):
+      sparc/PCI: Support arbitrary host bridge address offset
+
+
+ arch/sparc/kernel/pci.c        |    6 ++--
+ arch/sparc/kernel/pci_common.c |   54 +++++++++++++++++++---------------------
+ arch/sparc/kernel/pci_impl.h   |    4 +++
+ arch/sparc/mm/init_64.c        |   17 +++++++++++++
+ 4 files changed, 50 insertions(+), 31 deletions(-)
