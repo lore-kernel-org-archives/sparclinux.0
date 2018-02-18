@@ -1,133 +1,99 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Fri, 16 Feb 2018 18:38:28 +0000
-Subject: [PATCH 00/23] kconfig: move compiler capability tests to Kconfig
-Message-Id: <1518806331-7101-1-git-send-email-yamada.masahiro@socionext.com>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Sun, 18 Feb 2018 22:13:52 +0000
+Subject: Re: [PATCH 00/23] kconfig: move compiler capability tests to Kconfig
+Message-Id: <20180218221352.GA6651@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1518806331-7101-1-git-send-email-yamada.masahiro@socionext.com>
+In-Reply-To: <1518806331-7101-1-git-send-email-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kbuild@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>, Randy Dunlap <rdunlap@infradead.org>, Ulf Magnusson <ulfalizer@gmail.com>, Sam Ravnborg <sam@ravnborg.org>, Michal Marek <michal.lkml@markovi.net>, Masahiro Yamada <yamada.masahiro@socionext.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, kernel-hardening@lists.openwall.com, Jonathan Corbet <corbet@lwn.net>, sparclinux@vger.kernel.org, linux-sh@vger.kernel.org, x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Rich Felker <dalias@libc.org>, Jeff Dike <jdike@addtoit.com>, "H. Peter Anvin" <hpa@zytor.com>, user-mode-linux-devel@lists.sourceforge.net, Yoshinori Sato <ysato@users.sourceforge.jp>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, Paul Mackerras <paulus@samba.org>, user-mode-linux-user@lists.sourceforge.net, Ingo Molnar <mingo@redhat.com>, "David S. Miller" <davem@davemloft.net>, Michael Ellerman <mpe@ellerman.id.au>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Richard Weinberger <richard@nod.at>, Emese Revfy <re.emese@gmail.com>
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: linux-kbuild@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>, Randy Dunlap <rdunlap@infradead.org>, Ulf Magnusson <ulfalizer@gmail.com>, Michal Marek <michal.lkml@markovi.net>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, kernel-hardening@lists.openwall.com, Jonathan Corbet <corbet@lwn.net>, sparclinux@vger.kernel.org, linux-sh@vger.kernel.org, x86@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Rich Felker <dalias@libc.org>, Jeff Dike <jdike@addtoit.com>, "H. Peter Anvin" <hpa@zytor.com>, user-mode-linux-devel@lists.sourceforge.net, Yoshinori Sato <ysato@users.sourceforge.jp>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, Paul Mackerras <paulus@samba.org>, user-mode-linux-user@lists.sourceforge.net, Ingo Molnar <mingo@redhat.com>, "David S. Miller" <davem@davemloft.net>, Michael Ellerman <mpe@ellerman.id.au>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, Richard Weinberger <richard@nod.at>, Emese Revfy <re.emese@gmail.com>
 
-I brushed up the implementation in this version.
+Hi Masahiro.
 
-In the previous RFC, CC_HAS_ was described by using 'option shell=',
-like this:
+On Sat, Feb 17, 2018 at 03:38:28AM +0900, Masahiro Yamada wrote:
+> I brushed up the implementation in this version.
+> 
+> In the previous RFC, CC_HAS_ was described by using 'option shell=',
+> like this:
+> 
+> config CC_HAS_STACKPROTECTOR
+>         bool
+>         option shell="$CC -Werror -fstack-protector -c -x c /dev/null"
+> 
+> After I thought a bit more, the following syntax is more grammatical,
+> and flexible.
+> 
+> config CC_HAS_STACKPROTECTOR
+>         bool
+>         default $(shell $CC -Werror -fstack-protector -c -x c /dev/null)
 
-config CC_HAS_STACKPROTECTOR
-        bool
-        option shell="$CC -Werror -fstack-protector -c -x c /dev/null"
+Looks good - but maybe we should go one step further.
 
-After I thought a bit more, the following syntax is more grammatical,
-and flexible.
+So we in the syntax explicit handles:
+- shell commands
+- other commands, defined as strings
+- environment variables
+- config variables
 
-config CC_HAS_STACKPROTECTOR
-        bool
-        default $(shell $CC -Werror -fstack-protector -c -x c /dev/null)
+Each case is explicit - so the reader is not confused what is used when.
 
-This version supports cc-option, so it can be written as:
+$(shell foo)	- output of the shell command foo. Uses $SHELL as the shell.
+		  May include optional paramters.
+		  foo may be a config variable referenced using ${} or a config variable prefixed with $
+		Example:
 
-config CC_HAS_STACKPROTECTOR
-        bool
-        default $(cc-option -fstack-protector)
+		config BUILD_DIR
+			string
+			default $(shell cd ${objtree}; pwd)
 
-To support this in a clean way, I introduced a new concept 'function'
-like we see in Makefiles.
+$(call bar)	- output of the bar command that may take optional parameters.
+		  bar may be a text string, a config variable or an environment variable
+		   The definition of bar may reference the parameters using $(1), $(2)
+		   In this context a config variable needs to be prefixed with $
 
-$(shell ...) is a built-in function.  $(cc-option ...) is implemented
-as macro (user-defined function).
+		Example:
 
-I also try cleaning of stack-protector, gcc-plugins since the Makefile
-is so dirty.
+		config reverse
+			string
+			default $(2) $(1)
 
-Current limitations:
-
-Dependency on outside scripts.
-  For example, scripts/gcc-x86_64-has-stack-protecter.sh is run from
-  Kconfig.  When the shell script is updated, should Kconfig be re-run
-  automatically?
-
-Inter-option dependency:
-  $(call cc-option,...) in Makefile accumulates added options to
-  KBUILD_CFLAGS, but it is difficult to do it in Kconfig.
-  If a compiler option check is dependent on another option,
-  this is a difficult case.  Let's see how significant it is.
-
-Functions are evaluated statically:
-  Functions are only expanded when parsing the Kconfig.  So, it can
-  not refelect user configuration.  If this is required, $(shell )
-  must be dynamically re-calculated depending on other symbols.
-  But, this is difficult, and may cause performance issue.
+		config NEW_ORDER
+			string
+			$(call $reverse, A, B)	# Will assign REVERSE the value "B A"
 
 
+		Example2:
 
-Masahiro Yamada (22):
-  kbuild: remove kbuild cache
-  kbuild: remove CONFIG_CROSS_COMPILE support
-  kconfig: add xstrdup() helper
-  kconfig: set SYMBOL_AUTO to the symbol marked with defconfig_list
-  kconfig: move and rename sym_expand_string_value()
-  kconfig: reference environments directly and remove 'option env='
-    syntax
-  kconfig: add function support and implement 'shell' function
-  kconfig: add 'macro' keyword to support user-defined function
-  kconfig: add 'cc-option' macro
-  stack-protector: test compiler capability in Kconfig and drop AUTO
-    mode
-  kconfig: add 'shell-stdout' function
-  kconfig: replace $UNAME_RELEASE with function call
-  kconfig: expand environments/functions in (main)menu, comment, prompt
-  kconfig: show compiler version text in the top comment
-  kconfig: add CC_IS_GCC and GCC_VERSION
-  kconfig: add CC_IS_CLANG and CLANG_VERSION
-  gcov: remove CONFIG_GCOV_FORMAT_AUTODETECT
-  kcov: imply GCC_PLUGINS and GCC_PLUGIN_SANCOV instead of select'ing
-    them
-  gcc-plugins: always build plugins with C++
-  gcc-plugins: move GCC version check for PowerPC to Kconfig
-  gcc-plugins: test GCC plugin support in Kconfig
-  gcc-plugins: enable GCC_PLUGINS for COMPILE_TEST
+		config CC_OPTION
+			string
+			default $(shell ${srctree}/scripts/cc-option ${CC} $(1) $(2))
 
-Sami Tolvanen (1):
-  kbuild: add clang-version.sh
+		config CC_OPTIMIZE
+			string
+			$(call $CC_OPTION, -Oz, -Os)
 
- Documentation/kbuild/kconfig-language.txt |   8 -
- Kconfig                                   |   4 +-
- Makefile                                  | 103 ++----------
- arch/Kconfig                              |  43 +++--
- arch/powerpc/Kconfig                      |   2 +-
- arch/sh/Kconfig                           |   4 +-
- arch/sparc/Kconfig                        |   4 +-
- arch/tile/Kconfig                         |   2 +-
- arch/um/Kconfig.common                    |   4 -
- arch/x86/Kconfig                          |  12 +-
- arch/x86/um/Kconfig                       |   4 +-
- init/Kconfig                              |  44 +++---
- kernel/gcov/Kconfig                       |  18 +--
- kernel/gcov/Makefile                      |   2 -
- lib/Kconfig.debug                         |   7 +-
- scripts/Kbuild.include                    | 101 ++----------
- scripts/Makefile.gcc-plugins              |  95 ++++-------
- scripts/clang-version.sh                  |  31 ++++
- scripts/gcc-plugin.sh                     |  37 +----
- scripts/gcc-plugins/Makefile              |  15 +-
- scripts/gcc-x86_32-has-stack-protector.sh |   7 +-
- scripts/gcc-x86_64-has-stack-protector.sh |   5 -
- scripts/kconfig/confdata.c                |  33 +---
- scripts/kconfig/function.c                | 251 ++++++++++++++++++++++++++++++
- scripts/kconfig/kconf_id.c                |   2 +-
- scripts/kconfig/kxgettext.c               |   2 +-
- scripts/kconfig/lkc.h                     |   6 +-
- scripts/kconfig/lkc_proto.h               |   7 +-
- scripts/kconfig/menu.c                    |   6 +-
- scripts/kconfig/symbol.c                  | 139 +++--------------
- scripts/kconfig/util.c                    | 186 ++++++++++++++++++++--
- scripts/kconfig/zconf.l                   |  40 ++++-
- scripts/kconfig/zconf.y                   |  48 +++---
- 33 files changed, 687 insertions(+), 585 deletions(-)
- create mode 100755 scripts/clang-version.sh
- create mode 100644 scripts/kconfig/function.c
 
--- 
-2.7.4
+${FOO}		- environment variable
 
+The above is inspired by how make implement similar functionality.
+
+I'm not happy that we in one context can reference CONFIG variables
+directly, but inside the $(call ...) and $(shell ...) needs the $ prefix.
+But I could not come up with something un-ambigious where this could be avoided.
+
+The above proposal include the functionality of the macro stuff proposed in this patch-set.
+But with a simpler syntax and we keep all the other kconfig logic (depends on etc) - so
+users will not be limited in their creativity.
+
+> Current limitations:
+> 
+> Dependency on outside scripts.
+> Inter-option dependency:
+> Functions are evaluated statically:
+
+Same limitations exists with the syntax suggested above.
+
+	Sam
