@@ -1,297 +1,111 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 21 Feb 2018 17:15:48 +0000
-Subject: [PATCH v12 06/11] sparc64: Add auxiliary vectors to report platform ADI properties
-Message-Id: <a69f584f353ece247da108e7f149f22ea75d695d.1519227112.git.khalid.aziz@oracle.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 19 Feb 2018 15:32:59 +0000
+Subject: [sparc64] git kernel (2.16.0-rc2) unaligned access TPC/OOPS in kmemleak_scan
+Message-Id: <CADxRZqxPUMen4v1WOqp79Q761Jj86Dz92eU9arXkm1OfaaBxNw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1519227112.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, anthony.yznaga@oracle.com, tglx@linutronix.de, gregkh@linuxfoundation.org, nagarathnam.muthusamy@oracle.com, nick.alcock@oracle.com, kstewart@linuxfoundation.org, jag.raman@oracle.com, shannon.nelson@oracle.com, liam.merwick@oracle.com, mhocko@suse.com, pombredanne@nexb.com, dwindsor@gmail.com, elena.reshetova@intel.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: sparclinux@vger.kernel.org
 
-ADI feature on M7 and newer processors has three important properties
-relevant to userspace apps using ADI capabilities - (1) Size of block of
-memory an ADI version tag applies to, (2) Number of uppermost bits in
-virtual address used to encode ADI tag, and (3) The value M7 processor
-will force the ADI tags to if it detects uncorrectable error in an ADI
-tagged cacheline. Kernel can retrieve these properties for a platform
-through machine description provided by the firmware. This patch adds
-code to retrieve these properties and report them to userspace through
-auxiliary vectors.
+Hello!
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
----
-v11:
-	- Rebased to 4.15
-v10:
-	- Updated copyright
-v8:
-	- Added AT_ADI_UEONADI back
-v7:
-	- new patch split off from patch 4/4 in v6
+Using default (?) kernel option
 
- arch/sparc/include/asm/adi.h         |  6 +++
- arch/sparc/include/asm/adi_64.h      | 47 ++++++++++++++++++
- arch/sparc/include/asm/elf_64.h      |  5 ++
- arch/sparc/include/uapi/asm/auxvec.h | 11 +++++
- arch/sparc/kernel/Makefile           |  1 +
- arch/sparc/kernel/adi_64.c           | 96 ++++++++++++++++++++++++++++++++++++
- arch/sparc/kernel/mdesc.c            |  2 +
- 7 files changed, 168 insertions(+)
- create mode 100644 arch/sparc/include/asm/adi.h
- create mode 100644 arch/sparc/include/asm/adi_64.h
- create mode 100644 arch/sparc/kernel/adi_64.c
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE = 400
 
-diff --git a/arch/sparc/include/asm/adi.h b/arch/sparc/include/asm/adi.h
-new file mode 100644
-index 000000000000..acad0d04e4c6
---- /dev/null
-+++ b/arch/sparc/include/asm/adi.h
-@@ -0,0 +1,6 @@
-+#ifndef ___ASM_SPARC_ADI_H
-+#define ___ASM_SPARC_ADI_H
-+#if defined(__sparc__) && defined(__arch64__)
-+#include <asm/adi_64.h>
-+#endif
-+#endif
-diff --git a/arch/sparc/include/asm/adi_64.h b/arch/sparc/include/asm/adi_64.h
-new file mode 100644
-index 000000000000..85f7a763af85
---- /dev/null
-+++ b/arch/sparc/include/asm/adi_64.h
-@@ -0,0 +1,47 @@
-+/* adi_64.h: ADI related data structures
-+ *
-+ * Copyright (c) 2016 Oracle and/or its affiliates. All rights reserved.
-+ * Author: Khalid Aziz (khalid.aziz@oracle.com)
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.
-+ */
-+#ifndef __ASM_SPARC64_ADI_H
-+#define __ASM_SPARC64_ADI_H
-+
-+#include <linux/types.h>
-+
-+#ifndef __ASSEMBLY__
-+
-+struct adi_caps {
-+	__u64 blksz;
-+	__u64 nbits;
-+	__u64 ue_on_adi;
-+};
-+
-+struct adi_config {
-+	bool enabled;
-+	struct adi_caps caps;
-+};
-+
-+extern struct adi_config adi_state;
-+
-+extern void mdesc_adi_init(void);
-+
-+static inline bool adi_capable(void)
-+{
-+	return adi_state.enabled;
-+}
-+
-+static inline unsigned long adi_blksize(void)
-+{
-+	return adi_state.caps.blksz;
-+}
-+
-+static inline unsigned long adi_nbits(void)
-+{
-+	return adi_state.caps.nbits;
-+}
-+
-+#endif	/* __ASSEMBLY__ */
-+
-+#endif	/* !(__ASM_SPARC64_ADI_H) */
-diff --git a/arch/sparc/include/asm/elf_64.h b/arch/sparc/include/asm/elf_64.h
-index 25340df3570c..7e078bc73ef5 100644
---- a/arch/sparc/include/asm/elf_64.h
-+++ b/arch/sparc/include/asm/elf_64.h
-@@ -10,6 +10,7 @@
- #include <asm/processor.h>
- #include <asm/extable_64.h>
- #include <asm/spitfire.h>
-+#include <asm/adi.h>
- 
- /*
-  * Sparc section types
-@@ -215,9 +216,13 @@ extern unsigned int vdso_enabled;
- 
- #define	ARCH_DLINFO							\
- do {									\
-+	extern struct adi_config adi_state;				\
- 	if (vdso_enabled)						\
- 		NEW_AUX_ENT(AT_SYSINFO_EHDR,				\
- 			    (unsigned long)current->mm->context.vdso);	\
-+	NEW_AUX_ENT(AT_ADI_BLKSZ, adi_state.caps.blksz);		\
-+	NEW_AUX_ENT(AT_ADI_NBITS, adi_state.caps.nbits);		\
-+	NEW_AUX_ENT(AT_ADI_UEONADI, adi_state.caps.ue_on_adi);		\
- } while (0)
- 
- struct linux_binprm;
-diff --git a/arch/sparc/include/uapi/asm/auxvec.h b/arch/sparc/include/uapi/asm/auxvec.h
-index 5f80a70cc901..f9937ccfcd99 100644
---- a/arch/sparc/include/uapi/asm/auxvec.h
-+++ b/arch/sparc/include/uapi/asm/auxvec.h
-@@ -3,6 +3,17 @@
- 
- #define AT_SYSINFO_EHDR		33
- 
-+#ifdef CONFIG_SPARC64
-+/* Avoid overlap with other AT_* values since they are consolidated in
-+ * glibc and any overlaps can cause problems
-+ */
-+#define AT_ADI_BLKSZ	48
-+#define AT_ADI_NBITS	49
-+#define AT_ADI_UEONADI	50
-+
-+#define AT_VECTOR_SIZE_ARCH	4
-+#else
- #define AT_VECTOR_SIZE_ARCH	1
-+#endif
- 
- #endif /* !(__ASMSPARC_AUXVEC_H) */
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index cc97545737f0..76cb57750dda 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -69,6 +69,7 @@ obj-$(CONFIG_SPARC64)   += visemul.o
- obj-$(CONFIG_SPARC64)   += hvapi.o
- obj-$(CONFIG_SPARC64)   += sstate.o
- obj-$(CONFIG_SPARC64)   += mdesc.o
-+obj-$(CONFIG_SPARC64)   += adi_64.o
- obj-$(CONFIG_SPARC64)	+= pcr.o
- obj-$(CONFIG_SPARC64)	+= nmi.o
- obj-$(CONFIG_SPARC64_SMP) += cpumap.o
-diff --git a/arch/sparc/kernel/adi_64.c b/arch/sparc/kernel/adi_64.c
-new file mode 100644
-index 000000000000..8fb72585d9f1
---- /dev/null
-+++ b/arch/sparc/kernel/adi_64.c
-@@ -0,0 +1,96 @@
-+/* adi_64.c: support for ADI (Application Data Integrity) feature on
-+ * sparc m7 and newer processors. This feature is also known as
-+ * SSM (Silicon Secured Memory).
-+ *
-+ * Copyright (C) 2016 Oracle and/or its affiliates. All rights reserved.
-+ * Author: Khalid Aziz (khalid.aziz@oracle.com)
-+ *
-+ * This work is licensed under the terms of the GNU GPL, version 2.
-+ */
-+#include <linux/init.h>
-+#include <asm/mdesc.h>
-+#include <asm/adi_64.h>
-+
-+struct adi_config adi_state;
-+
-+/* mdesc_adi_init() : Parse machine description provided by the
-+ *	hypervisor to detect ADI capabilities
-+ *
-+ * Hypervisor reports ADI capabilities of platform in "hwcap-list" property
-+ * for "cpu" node. If the platform supports ADI, "hwcap-list" property
-+ * contains the keyword "adp". If the platform supports ADI, "platform"
-+ * node will contain "adp-blksz", "adp-nbits" and "ue-on-adp" properties
-+ * to describe the ADI capabilities.
-+ */
-+void __init mdesc_adi_init(void)
-+{
-+	struct mdesc_handle *hp = mdesc_grab();
-+	const char *prop;
-+	u64 pn, *val;
-+	int len;
-+
-+	if (!hp)
-+		goto adi_not_found;
-+
-+	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "cpu");
-+	if (pn = MDESC_NODE_NULL)
-+		goto adi_not_found;
-+
-+	prop = mdesc_get_property(hp, pn, "hwcap-list", &len);
-+	if (!prop)
-+		goto adi_not_found;
-+
-+	/*
-+	 * Look for "adp" keyword in hwcap-list which would indicate
-+	 * ADI support
-+	 */
-+	adi_state.enabled = false;
-+	while (len) {
-+		int plen;
-+
-+		if (!strcmp(prop, "adp")) {
-+			adi_state.enabled = true;
-+			break;
-+		}
-+
-+		plen = strlen(prop) + 1;
-+		prop += plen;
-+		len -= plen;
-+	}
-+
-+	if (!adi_state.enabled)
-+		goto adi_not_found;
-+
-+	/* Find the ADI properties in "platform" node. If all ADI
-+	 * properties are not found, ADI support is incomplete and
-+	 * do not enable ADI in the kernel.
-+	 */
-+	pn = mdesc_node_by_name(hp, MDESC_NODE_NULL, "platform");
-+	if (pn = MDESC_NODE_NULL)
-+		goto adi_not_found;
-+
-+	val = (u64 *) mdesc_get_property(hp, pn, "adp-blksz", &len);
-+	if (!val)
-+		goto adi_not_found;
-+	adi_state.caps.blksz = *val;
-+
-+	val = (u64 *) mdesc_get_property(hp, pn, "adp-nbits", &len);
-+	if (!val)
-+		goto adi_not_found;
-+	adi_state.caps.nbits = *val;
-+
-+	val = (u64 *) mdesc_get_property(hp, pn, "ue-on-adp", &len);
-+	if (!val)
-+		goto adi_not_found;
-+	adi_state.caps.ue_on_adi = *val;
-+
-+	mdesc_release(hp);
-+	return;
-+
-+adi_not_found:
-+	adi_state.enabled = false;
-+	adi_state.caps.blksz = 0;
-+	adi_state.caps.nbits = 0;
-+	if (hp)
-+		mdesc_release(hp);
-+}
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 418592a09b41..39a2503fa3e1 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -22,6 +22,7 @@
- #include <linux/uaccess.h>
- #include <asm/oplib.h>
- #include <asm/smp.h>
-+#include <asm/adi.h>
- 
- /* Unlike the OBP device tree, the machine description is a full-on
-  * DAG.  An arbitrary number of ARCs are possible from one
-@@ -1345,5 +1346,6 @@ void __init sun4v_mdesc_init(void)
- 
- 	cur_mdesc = hp;
- 
-+	mdesc_adi_init();
- 	report_platform_properties();
- }
--- 
-2.11.0
+there's a kernel boot message:
 
+[    0.339759] kmemleak: Early log buffer exceeded (24635), please
+increase DEBUG_KMEMLEAK_EARLY_LOG_SIZE
+
+increasing CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE to suggested size,
+produces the following kernel TPC/OOPS for me, withing 1 minute after
+machine boots:
+
+$ zgrep DEBUG_KMEMLEAK /proc/config.gz
+CONFIG_HAVE_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE$636
+# CONFIG_DEBUG_KMEMLEAK_TEST is not set
+# CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF is not set
+
+$ systemd-analyze
+Startup finished in 7.670s (kernel) + 22.578s (userspace) = 30.249s
+graphical.target reached after 22.474s in userspace
+
+
+[  OK  ] Started Samba SMB Daemon.
+[  OK  ] Reached target Multi-User System.
+[  OK  ] Reached target Graphical Interface.
+         Starting Update UTMP about System Runlevel Changes...
+[  OK  ] Started Update UTMP about System Runlevel Changes.
+[   31.691103] tun: Universal TUN/TAP device driver, 1.6
+
+Debian GNU/Linux buster/sid ttip console
+
+[   65.561601] log_unaligned: 9641 callbacks suppressed
+[   65.561618] Kernel unaligned access at TPC[65a5d4] kmemleak_scan+0x2d4/0x820
+[   65.561813] Unable to handle kernel NULL pointer dereference in mna handler
+[   65.561819]  at virtual address 000000000000001a
+[   65.561890] current->{active_,}mm->context = 0000000000000244
+[   65.561927] current->{active_,}mm->pgd = fff800409f494000
+[   65.561964]               \|/ ____ \|/
+[   65.561964]               "@'/ .. \`@"
+[   65.561964]               /_| \__/ |_\
+[   65.561964]                  \__U_/
+[   65.562046] kmemleak(197): Oops [#1]
+[   65.562077] CPU: 8 PID: 197 Comm: kmemleak Not tainted 4.16.0-rc2 #633
+[   65.562121] TSTATE: 0000009980001604 TPC: 000000000065a5d4 TNPC:
+000000000065a5d8 Y: 00001243    Not tainted
+[   65.562182] TPC: <kmemleak_scan+0x2d4/0x820>
+[   65.562213] g0: 0000000000000000 g1: fffffffffffffffe g2:
+0000000000000001 g3: fffffffffffffffe
+[   65.562266] g4: fff80000fb4491c0 g5: fff80040bc040000 g6:
+fff80040a1a24000 g7: 0000000000000200
+[   65.562319] o0: 00060000486c0000 o1: 00060000023fe109 o2:
+0000000000000000 o3: 0000000000c28c00
+[   65.562375] o4: 0000000000c28c00 o5: 0000000000000000 sp:
+fff80040a1a27481 ret_pc: 000000000065a5e8
+[   65.562432] RPC: <kmemleak_scan+0x2e8/0x820>
+[   65.562465] l0: 0000000000b4dac8 l1: 000000000205fca3 l2:
+00000000007fffff l3: 0000000001844800
+[   65.562519] l4: 0000000000be1800 l5: 0000000000000000 l6:
+0000000000000000 l7: 0000000000000000
+[   65.562574] i0: 00000000486c0000 i1: 0000000001847000 i2:
+0000000000c28c00 i3: 0000000000bf9400
+[   65.562628] i4: 0000000000c28dc0 i5: 0000000001018000 i6:
+fff80040a1a27541 i7: 000000000065b10c
+[   65.562688] I7: <kmemleak_scan_thread+0x8c/0x100>
+[   65.562724] Call Trace:
+[   65.562750]  [000000000065b10c] kmemleak_scan_thread+0x8c/0x100
+[   65.562797]  [000000000048bbb4] kthread+0x114/0x140
+[   65.562840]  [0000000000406084] ret_from_fork+0x1c/0x2c
+[   65.562878]  [0000000000000000]           (null)
+[   65.562912] Disabling lock debugging due to kernel taint
+[   65.562936] Caller[000000000065b10c]: kmemleak_scan_thread+0x8c/0x100
+[   65.562961] Caller[000000000048bbb4]: kthread+0x114/0x140
+[   65.562984] Caller[0000000000406084]: ret_from_fork+0x1c/0x2c
+[   65.563006] Caller[0000000000000000]:           (null)
+[   65.563026] Instruction DUMP:
+[   65.563030]  84086001
+[   65.563046]  82007fff
+[   65.563060]  87789401
+[   65.563073] <c200e01c>
+[   65.563088]  80a06000
+[   65.563101]  2248000f
+[   65.563114]  ba076001
+[   65.563127]  94102000
+[   65.563140]  7ffffe6e
+[   65.563153]
+
+
+
+Not sure how this affects system (except system boots almost 10
+seconds slower than usually), since it works and no more OOPS are
+generated.
+
+PS: any value which is more than suggested  (tested kernel boot with
+24636, 25000, 40000) produces TPC/OOPS. Any value which is less than
+24635 (tested with 400, 12000,18000, 22000, 24000), does not produce
+TPC/OOPS.
