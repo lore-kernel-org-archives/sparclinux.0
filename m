@@ -1,110 +1,203 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Wed, 07 Feb 2018 17:42:24 +0000
-Subject: Re: [PATCH v11 00/10] Application Data Integrity feature introduced by SPARC M7
-Message-Id: <87r2pwae7z.fsf@xmission.com>
+From: David Woodhouse <dwmw@amazon.co.uk>
+Date: Mon, 19 Feb 2018 13:04:12 +0000
+Subject: [PATCH] sparc: Use generic pci_mmap_resource_range()
+Message-Id: <1519045452-22645-1-git-send-email-dwmw@amazon.co.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1517497017.git.khalid.aziz@oracle.com>
-        <87wozwi0p1.fsf@xmission.com>
-        <0f1bdb63-60d5-467c-a6a4-c06ba62b1f6e@oracle.com>
-        <87h8qtfdvj.fsf@xmission.com>
-        <c50c053f-1ee7-81f9-99bb-e5f6fe6bb43e@oracle.com>
-In-Reply-To: <c50c053f-1ee7-81f9-99bb-e5f6fe6bb43e@oracle.com> (Khalid Aziz's
-        message of "Wed, 7 Feb 2018 09:04:50 -0700")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: davem@davemloft.net, dave.hansen@linux.intel.com, aarcange@redhat.com, akpm@linux-foundation.org, allen.pais@oracle.com, anthony.yznaga@oracle.com, arnd@arndb.de, babu.moger@oracle.com, benh@kernel.crashing.org, bob.picco@oracle.com, bsingharora@gmail.com, corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com, david.j.aldridge@oracle.com, elena.reshetova@intel.com, glx@linutronix.de, gregkh@linuxfoundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hpa@zytor.com, hughd@google.com, imbrenda@linux.vnet.ibm.com, jack@suse.cz, jag.raman@oracle.com, jane.chu@oracle.com, jglisse@redhat.com, jroedel@suse.de, khalid@gonehiking.org, khandual@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, kstewart@linuxfoundation.org, ktkhai@virtuozzo.com, liam.merwick@oracle.com
+To: davem@davemloft.net, sparclinux@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-Khalid Aziz <khalid.aziz@oracle.com> writes:
+Commit f719582435 ("PCI: Add pci_mmap_resource_range() and use it for
+ARM64") added this generic function with the intent of using it
+everywhere and ultimately killing the old arch-specific implementations.
 
-> On 02/07/2018 12:38 AM, ebiederm@xmission.com wrote:
->> Khalid Aziz <khalid.aziz@oracle.com> writes:
->>
->>> On 02/01/2018 07:29 PM, ebiederm@xmission.com wrote:
->>>> Khalid Aziz <khalid.aziz@oracle.com> writes:
->>>>
->>>>> V11 changes:
->>>>> This series is same as v10 and was simply rebased on 4.15 kernel. Can
->>>>> mm maintainers please review patches 2, 7, 8 and 9 which are arch
->>>>> independent, and include/linux/mm.h and mm/ksm.c changes in patch 10
->>>>> and ack these if everything looks good?
->>>>
->>>> I am a bit puzzled how this differs from the pkey's that other
->>>> architectures are implementing to achieve a similar result.
->>>>
->>>> I am a bit mystified why you don't store the tag in a vma
->>>> instead of inventing a new way to store data on page out.
->>>
->>> Hello Eric,
->>>
->>> As Steven pointed out, sparc sets tags per cacheline unlike pkey. This results
->>> in much finer granularity for tags that pkey and hence requires larger tag
->>> storage than what we can do in a vma.
->>
->> *Nod*   I am a bit mystified where you keep the information in memory.
->> I would think the tags would need to be stored per cacheline or per
->> tlb entry, in some kind of cache that could overflow.  So I would be
->> surprised if swapping is the only time this information needs stored
->> in memory.  Which makes me wonder if you have the proper data
->> structures.
->>
->> I would think an array per vma or something in the page tables would
->> tend to make sense.
->>
->> But perhaps I am missing something.
->
-> The ADI tags are stored in spare bits in the RAM. ADI tag storage is
-> managed entirely by memory controller which maintains these tags per
-> ADI block. An ADI block is the same size as cacheline on M7. Tags for
-> each ADI block are associated with the physical ADI block, not the
-> virtual address. When a physical page is reused, the physical ADI tag
-> storage for that page is overwritten with new ADI tags, hence we need
-> to store away the tags when we swap out a page. Kernel updates the ADI
-> tags for physical page when it swaps a new page in. Each vma can cover
-> variable number of pages so it is best to store a pointer to the tag
-> storage in vma as opposed to actual tags in an array. Each 8K page can
-> have 128 tags on it. Since each tag is 4 bits, we need 64 bytes per
-> page to store the tags. That can add up for a large vma.
+Let's get on with that eradication...
 
-If the tags are already stored in RAM I can see why it does not make any
-sense to store them except on page out.  Management wise this feels a
-lot like the encrypted memory options I have been seeing on x86.
+Signed-off-by: David Woodhouse <dwmw@amazon.co.uk>
+---
+ arch/sparc/include/asm/pci_64.h |   1 +
+ arch/sparc/kernel/pci.c         | 155 ----------------------------------------
+ 2 files changed, 1 insertion(+), 155 deletions(-)
 
->>>> Can you please use force_sig_fault to send these signals instead
->>>> of force_sig_info.  Emperically I have found that it is very
->>>> error prone to generate siginfo's by hand, especially on code
->>>> paths where several different si_codes may apply.  So it helps
->>>> to go through a helper function to ensure the fiddly bits are
->>>> all correct.  AKA the unused bits all need to be set to zero before
->>>> struct siginfo is copied to userspace.
->>>>
->>>
->>> What you say makes sense. I followed the same code as other fault handlers for
->>> sparc. I could change just the fault handlers for ADI related faults. Would it
->>> make more sense to change all the fault handlers in a separate patch and keep
->>> the code in arch/sparc/kernel/traps_64.c consistent? Dave M, do you have a
->>> preference?
->>
->> It is my intention post -rc1 to start sending out patches to get the
->> rest of not just sparc but all of the architectures using the new
->> helpers.  I have the code I just ran out of time befor the merge
->> window opened to ensure everything had a good thorough review.
->>
->> So if you can handle the your new changes I expect I will handle the
->> rest.
->>
->
-> I can add a patch at the end of my series to update all
-> force_sig_info() in my patchset to force_sig_fault(). That will sync
-> my patches up with your changes cleanly. Does that work for you? I can
-> send an updated series with this change. Can you review and ack the
-> patches after this change.
-
-One additional patch would be fine.  I can certainly review and ack that
-part.  You probably want to wait until post -rc1 so that you have a
-clean base to work off of.
-
-Eric
-
+diff --git a/arch/sparc/include/asm/pci_64.h b/arch/sparc/include/asm/pci_64.h
+index 671274e..95d41c8 100644
+--- a/arch/sparc/include/asm/pci_64.h
++++ b/arch/sparc/include/asm/pci_64.h
+@@ -43,6 +43,7 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ /* Platform support for /proc/bus/pci/X/Y mmap()s. */
+ 
+ #define HAVE_PCI_MMAP
++#define ARCH_GENERIC_PCI_MMAP_RESOURCE
+ #define arch_can_pci_mmap_io()	1
+ #define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
+ #define get_pci_unmapped_area get_fb_unmapped_area
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 220d0f3..1c1f632 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -721,161 +721,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ 	return 0;
+ }
+ 
+-/* Platform support for /proc/bus/pci/X/Y mmap()s. */
+-
+-/* If the user uses a host-bridge as the PCI device, he may use
+- * this to perform a raw mmap() of the I/O or MEM space behind
+- * that controller.
+- *
+- * This can be useful for execution of x86 PCI bios initialization code
+- * on a PCI card, like the xfree86 int10 stuff does.
+- */
+-static int __pci_mmap_make_offset_bus(struct pci_dev *pdev, struct vm_area_struct *vma,
+-				      enum pci_mmap_state mmap_state)
+-{
+-	struct pci_pbm_info *pbm = pdev->dev.archdata.host_controller;
+-	unsigned long space_size, user_offset, user_size;
+-
+-	if (mmap_state = pci_mmap_io) {
+-		space_size = resource_size(&pbm->io_space);
+-	} else {
+-		space_size = resource_size(&pbm->mem_space);
+-	}
+-
+-	/* Make sure the request is in range. */
+-	user_offset = vma->vm_pgoff << PAGE_SHIFT;
+-	user_size = vma->vm_end - vma->vm_start;
+-
+-	if (user_offset >= space_size ||
+-	    (user_offset + user_size) > space_size)
+-		return -EINVAL;
+-
+-	if (mmap_state = pci_mmap_io) {
+-		vma->vm_pgoff = (pbm->io_space.start +
+-				 user_offset) >> PAGE_SHIFT;
+-	} else {
+-		vma->vm_pgoff = (pbm->mem_space.start +
+-				 user_offset) >> PAGE_SHIFT;
+-	}
+-
+-	return 0;
+-}
+-
+-/* Adjust vm_pgoff of VMA such that it is the physical page offset
+- * corresponding to the 32-bit pci bus offset for DEV requested by the user.
+- *
+- * Basically, the user finds the base address for his device which he wishes
+- * to mmap.  They read the 32-bit value from the config space base register,
+- * add whatever PAGE_SIZE multiple offset they wish, and feed this into the
+- * offset parameter of mmap on /proc/bus/pci/XXX for that device.
+- *
+- * Returns negative error code on failure, zero on success.
+- */
+-static int __pci_mmap_make_offset(struct pci_dev *pdev,
+-				  struct vm_area_struct *vma,
+-				  enum pci_mmap_state mmap_state)
+-{
+-	unsigned long user_paddr, user_size;
+-	int i, err;
+-
+-	/* First compute the physical address in vma->vm_pgoff,
+-	 * making sure the user offset is within range in the
+-	 * appropriate PCI space.
+-	 */
+-	err = __pci_mmap_make_offset_bus(pdev, vma, mmap_state);
+-	if (err)
+-		return err;
+-
+-	/* If this is a mapping on a host bridge, any address
+-	 * is OK.
+-	 */
+-	if ((pdev->class >> 8) = PCI_CLASS_BRIDGE_HOST)
+-		return err;
+-
+-	/* Otherwise make sure it's in the range for one of the
+-	 * device's resources.
+-	 */
+-	user_paddr = vma->vm_pgoff << PAGE_SHIFT;
+-	user_size = vma->vm_end - vma->vm_start;
+-
+-	for (i = 0; i <= PCI_ROM_RESOURCE; i++) {
+-		struct resource *rp = &pdev->resource[i];
+-		resource_size_t aligned_end;
+-
+-		/* Active? */
+-		if (!rp->flags)
+-			continue;
+-
+-		/* Same type? */
+-		if (i = PCI_ROM_RESOURCE) {
+-			if (mmap_state != pci_mmap_mem)
+-				continue;
+-		} else {
+-			if ((mmap_state = pci_mmap_io &&
+-			     (rp->flags & IORESOURCE_IO) = 0) ||
+-			    (mmap_state = pci_mmap_mem &&
+-			     (rp->flags & IORESOURCE_MEM) = 0))
+-				continue;
+-		}
+-
+-		/* Align the resource end to the next page address.
+-		 * PAGE_SIZE intentionally added instead of (PAGE_SIZE - 1),
+-		 * because actually we need the address of the next byte
+-		 * after rp->end.
+-		 */
+-		aligned_end = (rp->end + PAGE_SIZE) & PAGE_MASK;
+-
+-		if ((rp->start <= user_paddr) &&
+-		    (user_paddr + user_size) <= aligned_end)
+-			break;
+-	}
+-
+-	if (i > PCI_ROM_RESOURCE)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-/* Set vm_page_prot of VMA, as appropriate for this architecture, for a pci
+- * device mapping.
+- */
+-static void __pci_mmap_set_pgprot(struct pci_dev *dev, struct vm_area_struct *vma,
+-					     enum pci_mmap_state mmap_state)
+-{
+-	/* Our io_remap_pfn_range takes care of this, do nothing.  */
+-}
+-
+-/* Perform the actual remap of the pages for a PCI device mapping, as appropriate
+- * for this architecture.  The region in the process to map is described by vm_start
+- * and vm_end members of VMA, the base physical address is found in vm_pgoff.
+- * The pci device structure is provided so that architectures may make mapping
+- * decisions on a per-device or per-bus basis.
+- *
+- * Returns a negative error code on failure, zero on success.
+- */
+-int pci_mmap_page_range(struct pci_dev *dev, int bar,
+-			struct vm_area_struct *vma,
+-			enum pci_mmap_state mmap_state, int write_combine)
+-{
+-	int ret;
+-
+-	ret = __pci_mmap_make_offset(dev, vma, mmap_state);
+-	if (ret < 0)
+-		return ret;
+-
+-	__pci_mmap_set_pgprot(dev, vma, mmap_state);
+-
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	ret = io_remap_pfn_range(vma, vma->vm_start,
+-				 vma->vm_pgoff,
+-				 vma->vm_end - vma->vm_start,
+-				 vma->vm_page_prot);
+-	if (ret)
+-		return ret;
+-
+-	return 0;
+-}
+-
+ #ifdef CONFIG_NUMA
+ int pcibus_to_node(struct pci_bus *pbus)
+ {
+-- 
+2.7.4
 
