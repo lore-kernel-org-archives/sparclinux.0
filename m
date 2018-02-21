@@ -1,40 +1,63 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Wed, 28 Feb 2018 23:08:29 +0000
-Subject: Re: [PATCH] sparc: Use generic pci_mmap_resource_range()
-Message-Id: <20180228230828.GR127842@bhelgaas-glaptop.roam.corp.google.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 21 Feb 2018 17:15:50 +0000
+Subject: [PATCH v12 08/11] mm: Clear arch specific VM flags on protection change
+Message-Id: <f0bfc4b7ce6c8563bf0d5ef74af20b5d1edea66f.1519227112.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1519045452-22645-1-git-send-email-dwmw@amazon.co.uk>
- <20180219.094951.2098243214524004486.davem@davemloft.net>
- <1519053858.7876.84.camel@infradead.org>
- <20180219.103025.1676484157305869188.davem@davemloft.net>
-In-Reply-To: <20180219.103025.1676484157305869188.davem@davemloft.net>
+References: <cover.1519227112.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem@davemloft.net>
-Cc: dwmw2@infradead.org, sparclinux@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: akpm@linux-foundation.org, davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, mhocko@suse.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, willy@infradead.org, hughd@google.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, jglisse@redhat.com, dave.jiang@intel.com, dan.j.williams@intel.com, anthony.yznaga@oracle.com, nadav.amit@gmail.com, zi.yan@cs.rutgers.edu, aarcange@redhat.com, khandual@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, henry.willard@oracle.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-On Mon, Feb 19, 2018 at 10:30:25AM -0500, David Miller wrote:
-> From: David Woodhouse <dwmw2@infradead.org>
-> Date: Mon, 19 Feb 2018 15:24:18 +0000
->=20
-> >> For one, the sparc specific code allows mmap'ing any address range
-> >> within a PCI bus device.=A0=A0The generic code does not allow that.
-> >=20
-> >=20
-> > You mean any address range in a given PCI bus even if there is no
-> > actual device with a BAR at the corresponding address?
-> >=20
-> > Would I be right to assume this was only available through the legacy
-> > procfs API? I think it should be possible to accommodate it, and it
-> > does look like I'd missed this requirement the first time round; thanks
-> > for pointing it out.
->=20
-> It was probably the case that only procfs could do it.
->=20
-> It is the mechanism by which we were able to let the X server poke
-> around in VGA ISA space.  It does a bus I/O space map for the bus
-> device above the VGA card.
+When protection bits are changed on a VMA, some of the architecture
+specific flags should be cleared as well. An examples of this are the
+PKEY flags on x86. This patch expands the current code that clears
+PKEY flags for x86, to support similar functionality for other
+architectures as well.
 
-What's the bottom line?  Do we want this for sparc?  If so, do you
-want to take it, Dave M, or would you like me to?
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+---
+v7:
+	- new patch
+
+ include/linux/mm.h | 6 ++++++
+ mm/mprotect.c      | 2 +-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ad06d42adb1a..ae806dbc63ee 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -287,6 +287,12 @@ extern unsigned int kobjsize(const void *objp);
+ /* This mask is used to clear all the VMA flags used by mlock */
+ #define VM_LOCKED_CLEAR_MASK	(~(VM_LOCKED | VM_LOCKONFAULT))
+ 
++/* Arch-specific flags to clear when updating VM flags on protection change */
++#ifndef VM_ARCH_CLEAR
++# define VM_ARCH_CLEAR	VM_NONE
++#endif
++#define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
++
+ /*
+  * mapping from the currently active vm_flags protection bits (the
+  * low four bits) to a page protection mask..
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index 088ea9c08678..c1d6af7455da 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -475,7 +475,7 @@ static int do_mprotect_pkey(unsigned long start, size_t len,
+ 		 * cleared from the VMA.
+ 		 */
+ 		mask_off_old_flags = VM_READ | VM_WRITE | VM_EXEC |
+-					ARCH_VM_PKEY_FLAGS;
++					VM_FLAGS_CLEAR;
+ 
+ 		new_vma_pkey = arch_override_mprotect_pkey(vma, prot, pkey);
+ 		newflags = calc_vm_prot_bits(prot, new_vma_pkey);
+-- 
+2.11.0
+
