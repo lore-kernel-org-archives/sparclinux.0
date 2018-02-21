@@ -1,37 +1,135 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 10 Jan 2018 08:00:00 +0000
-Subject: [PATCH 06/33] m32r: remove the unused dma_capable helper
-Message-Id: <20180110080027.13879-7-hch@lst.de>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Wed, 21 Feb 2018 17:15:44 +0000
+Subject: [PATCH v12 02/11] mm, swap: Add infrastructure for saving page metadata on swap
+Message-Id: <f5316c71e645d99ffdd52963f1e9675de3fc6386.1519227112.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180110080027.13879-1-hch@lst.de>
-In-Reply-To: <20180110080027.13879-1-hch@lst.de>
+References: <cover.1519227112.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: Konrad Rzeszutek Wilk <konrad@darnok.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-cris-kernel@axis.com, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-metag@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, patches@groups.riscv.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Guan Xuetao <gxt@mprc.pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, dave.hansen@linux.intel.com, arnd@arndb.de
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, dave.jiang@intel.com, mgorman@techsingularity.net, willy@infradead.org, hughd@google.com, minchan@kernel.org, hannes@cmpxchg.org, shli@fb.com, mingo@kernel.org, jglisse@redhat.com, me@tobin.cc, anthony.yznaga@oracle.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+If a processor supports special metadata for a page, for example ADI
+version tags on SPARC M7, this metadata must be saved when the page is
+swapped out. The same metadata must be restored when the page is swapped
+back in. This patch adds two new architecture specific functions -
+arch_do_swap_page() to be called when a page is swapped in, and
+arch_unmap_one() to be called when a page is being unmapped for swap
+out. These architecture hooks allow page metadata to be saved if the
+architecture supports it.
+
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Khalid Aziz <khalid@gonehiking.org>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
 ---
- arch/m32r/include/asm/dma-mapping.h | 7 -------
- 1 file changed, 7 deletions(-)
+v8:
+	- Fixed an erroneous "}"
+v6:
+	- Updated parameter list for arch_do_swap_page() and
+	  arch_unmap_one()
+v5:
+	- Replaced set_swp_pte() function with new architecture
+	  functions arch_do_swap_page() and arch_unmap_one()
 
-diff --git a/arch/m32r/include/asm/dma-mapping.h b/arch/m32r/include/asm/dma-mapping.h
-index 336ffe60814b..8967fb659691 100644
---- a/arch/m32r/include/asm/dma-mapping.h
-+++ b/arch/m32r/include/asm/dma-mapping.h
-@@ -14,11 +14,4 @@ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- 	return &dma_noop_ops;
- }
+ include/asm-generic/pgtable.h | 36 ++++++++++++++++++++++++++++++++++++
+ mm/memory.c                   |  1 +
+ mm/rmap.c                     | 14 ++++++++++++++
+ 3 files changed, 51 insertions(+)
+
+diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
+index 2cfa3075d148..6fbbc0b6c05e 100644
+--- a/include/asm-generic/pgtable.h
++++ b/include/asm-generic/pgtable.h
+@@ -400,6 +400,42 @@ static inline int pud_same(pud_t pud_a, pud_t pud_b)
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
--static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
--{
--	if (!dev->dma_mask)
--		return false;
--	return addr + size - 1 <= *dev->dma_mask;
--}
--
- #endif /* _ASM_M32R_DMA_MAPPING_H */
++#ifndef __HAVE_ARCH_DO_SWAP_PAGE
++/*
++ * Some architectures support metadata associated with a page. When a
++ * page is being swapped out, this metadata must be saved so it can be
++ * restored when the page is swapped back in. SPARC M7 and newer
++ * processors support an ADI (Application Data Integrity) tag for the
++ * page as metadata for the page. arch_do_swap_page() can restore this
++ * metadata when a page is swapped back in.
++ */
++static inline void arch_do_swap_page(struct mm_struct *mm,
++				     struct vm_area_struct *vma,
++				     unsigned long addr,
++				     pte_t pte, pte_t oldpte)
++{
++
++}
++#endif
++
++#ifndef __HAVE_ARCH_UNMAP_ONE
++/*
++ * Some architectures support metadata associated with a page. When a
++ * page is being swapped out, this metadata must be saved so it can be
++ * restored when the page is swapped back in. SPARC M7 and newer
++ * processors support an ADI (Application Data Integrity) tag for the
++ * page as metadata for the page. arch_unmap_one() can save this
++ * metadata on a swap-out of a page.
++ */
++static inline int arch_unmap_one(struct mm_struct *mm,
++				  struct vm_area_struct *vma,
++				  unsigned long addr,
++				  pte_t orig_pte)
++{
++	return 0;
++}
++#endif
++
+ #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
+ #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
+ #endif
+diff --git a/mm/memory.c b/mm/memory.c
+index 5fcfc24904d1..aed37325d94e 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3053,6 +3053,7 @@ int do_swap_page(struct vm_fault *vmf)
+ 	if (pte_swp_soft_dirty(vmf->orig_pte))
+ 		pte = pte_mksoft_dirty(pte);
+ 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
++	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
+ 	vmf->orig_pte = pte;
+ 
+ 	/* ksm created a completely new copy */
+diff --git a/mm/rmap.c b/mm/rmap.c
+index 47db27f8049e..144c66e688a9 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -1497,6 +1497,14 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 				(flags & (TTU_MIGRATION|TTU_SPLIT_FREEZE))) {
+ 			swp_entry_t entry;
+ 			pte_t swp_pte;
++
++			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				set_pte_at(mm, address, pvmw.pte, pteval);
++				ret = false;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
++
+ 			/*
+ 			 * Store the pfn of the page in a special migration
+ 			 * pte. do_swap_page() will wait until the migration
+@@ -1556,6 +1564,12 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 				page_vma_mapped_walk_done(&pvmw);
+ 				break;
+ 			}
++			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
++				set_pte_at(mm, address, pvmw.pte, pteval);
++				ret = false;
++				page_vma_mapped_walk_done(&pvmw);
++				break;
++			}
+ 			if (list_empty(&mm->mmlist)) {
+ 				spin_lock(&mmlist_lock);
+ 				if (list_empty(&mm->mmlist))
 -- 
-2.14.2
+2.11.0
 
