@@ -1,135 +1,74 @@
 From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 01 Feb 2018 18:01:10 +0000
-Subject: [PATCH v11 02/10] mm, swap: Add infrastructure for saving page metadata on swap
-Message-Id: <c7cdd0eccb1c1ea10cf0a145e4854364686a1e82.1517497017.git.khalid.aziz@oracle.com>
+Date: Wed, 21 Feb 2018 17:15:46 +0000
+Subject: [PATCH v12 04/11] sparc64: Add HV fault type handlers for ADI related faults
+Message-Id: <ce772518871b086e08a7d2570132035564251f5c.1519227112.git.khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1517497017.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1517497017.git.khalid.aziz@oracle.com>
+References: <cover.1519227112.git.khalid.aziz@oracle.com>
+In-Reply-To: <cover.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, davem@davemloft.net, dave.hansen@linux.intel.com, arnd@arndb.de
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, kirill.shutemov@linux.intel.com, mhocko@suse.com, ross.zwisler@linux.intel.com, dave.jiang@intel.com, mgorman@techsingularity.net, willy@infradead.org, hughd@google.com, minchan@kernel.org, hannes@cmpxchg.org, shli@fb.com, mingo@kernel.org, jglisse@redhat.com, me@tobin.cc, anthony.yznaga@oracle.com, hillf.zj@alibaba-inc.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: davem@davemloft.net, dave.hansen@linux.intel.com
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, rob.gardner@oracle.com, anthony.yznaga@oracle.com, jane.chu@oracle.com, mingo@kernel.org, ebiederm@xmission.com, vegard.nossum@oracle.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-If a processor supports special metadata for a page, for example ADI
-version tags on SPARC M7, this metadata must be saved when the page is
-swapped out. The same metadata must be restored when the page is swapped
-back in. This patch adds two new architecture specific functions -
-arch_do_swap_page() to be called when a page is swapped in, and
-arch_unmap_one() to be called when a page is being unmapped for swap
-out. These architecture hooks allow page metadata to be saved if the
-architecture supports it.
+ADI (Application Data Integrity) feature on M7 and newer processors
+adds new fault types for hypervisor - Invalid ASI and MCD disabled.
+This patch expands data access exception handler to handle these
+faults.
 
 Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
 Cc: Khalid Aziz <khalid@gonehiking.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
 ---
-v8:
-	- Fixed an erroneous "}"
-v6:
-	- Updated parameter list for arch_do_swap_page() and
-	  arch_unmap_one()
-v5:
-	- Replaced set_swp_pte() function with new architecture
-	  functions arch_do_swap_page() and arch_unmap_one()
+v7:
+	- new patch split off from patch 4/4 in v6
 
- include/asm-generic/pgtable.h | 36 ++++++++++++++++++++++++++++++++++++
- mm/memory.c                   |  1 +
- mm/rmap.c                     | 14 ++++++++++++++
- 3 files changed, 51 insertions(+)
+ arch/sparc/kernel/traps_64.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 868e68561f91..5530cfc72ef8 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -393,6 +393,42 @@ static inline int pud_same(pud_t pud_a, pud_t pud_b)
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- #endif
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index fc73baa588f6..d273a65a0a10 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -397,12 +397,35 @@ void sun4v_data_access_exception(struct pt_regs *regs, unsigned long addr, unsig
+ 	if (is_no_fault_exception(regs))
+ 		return;
  
-+#ifndef __HAVE_ARCH_DO_SWAP_PAGE
-+/*
-+ * Some architectures support metadata associated with a page. When a
-+ * page is being swapped out, this metadata must be saved so it can be
-+ * restored when the page is swapped back in. SPARC M7 and newer
-+ * processors support an ADI (Application Data Integrity) tag for the
-+ * page as metadata for the page. arch_do_swap_page() can restore this
-+ * metadata when a page is swapped back in.
-+ */
-+static inline void arch_do_swap_page(struct mm_struct *mm,
-+				     struct vm_area_struct *vma,
-+				     unsigned long addr,
-+				     pte_t pte, pte_t oldpte)
-+{
-+
-+}
-+#endif
-+
-+#ifndef __HAVE_ARCH_UNMAP_ONE
-+/*
-+ * Some architectures support metadata associated with a page. When a
-+ * page is being swapped out, this metadata must be saved so it can be
-+ * restored when the page is swapped back in. SPARC M7 and newer
-+ * processors support an ADI (Application Data Integrity) tag for the
-+ * page as metadata for the page. arch_unmap_one() can save this
-+ * metadata on a swap-out of a page.
-+ */
-+static inline int arch_unmap_one(struct mm_struct *mm,
-+				  struct vm_area_struct *vma,
-+				  unsigned long addr,
-+				  pte_t orig_pte)
-+{
-+	return 0;
-+}
-+#endif
-+
- #ifndef __HAVE_ARCH_PGD_OFFSET_GATE
- #define pgd_offset_gate(mm, addr)	pgd_offset(mm, addr)
- #endif
-diff --git a/mm/memory.c b/mm/memory.c
-index 793004608332..4e9bd81aa6f5 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3017,6 +3017,7 @@ int do_swap_page(struct vm_fault *vmf)
- 	if (pte_swp_soft_dirty(vmf->orig_pte))
- 		pte = pte_mksoft_dirty(pte);
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
-+	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
- 	vmf->orig_pte = pte;
+-	info.si_signo = SIGSEGV;
++	/* MCD (Memory Corruption Detection) disabled trap (TT=0x19) in HV
++	 * is vectored thorugh data access exception trap with fault type
++	 * set to HV_FAULT_TYPE_MCD_DIS. Check for MCD disabled trap.
++	 * Accessing an address with invalid ASI for the address, for
++	 * example setting an ADI tag on an address with ASI_MCD_PRIMARY
++	 * when TTE.mcd is not set for the VA, is also vectored into
++	 * kerbel by HV as data access exception with fault type set to
++	 * HV_FAULT_TYPE_INV_ASI.
++	 */
+ 	info.si_errno = 0;
+-	info.si_code = SEGV_MAPERR;
+ 	info.si_addr = (void __user *) addr;
+ 	info.si_trapno = 0;
+-	force_sig_info(SIGSEGV, &info, current);
++	switch (type) {
++	case HV_FAULT_TYPE_INV_ASI:
++		info.si_signo = SIGILL;
++		info.si_code = ILL_ILLADR;
++		force_sig_info(SIGILL, &info, current);
++		break;
++	case HV_FAULT_TYPE_MCD_DIS:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_ACCADI;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	default:
++		info.si_signo = SIGSEGV;
++		info.si_code = SEGV_MAPERR;
++		force_sig_info(SIGSEGV, &info, current);
++		break;
++	}
+ }
  
- 	/* ksm created a completely new copy */
-diff --git a/mm/rmap.c b/mm/rmap.c
-index 47db27f8049e..144c66e688a9 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -1497,6 +1497,14 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 				(flags & (TTU_MIGRATION|TTU_SPLIT_FREEZE))) {
- 			swp_entry_t entry;
- 			pte_t swp_pte;
-+
-+			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+				set_pte_at(mm, address, pvmw.pte, pteval);
-+				ret = false;
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
-+
- 			/*
- 			 * Store the pfn of the page in a special migration
- 			 * pte. do_swap_page() will wait until the migration
-@@ -1556,6 +1564,12 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 				page_vma_mapped_walk_done(&pvmw);
- 				break;
- 			}
-+			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
-+				set_pte_at(mm, address, pvmw.pte, pteval);
-+				ret = false;
-+				page_vma_mapped_walk_done(&pvmw);
-+				break;
-+			}
- 			if (list_empty(&mm->mmlist)) {
- 				spin_lock(&mmlist_lock);
- 				if (list_empty(&mm->mmlist))
+ void sun4v_data_access_exception_tl1(struct pt_regs *regs, unsigned long addr, unsigned long type_ctx)
 -- 
 2.11.0
 
