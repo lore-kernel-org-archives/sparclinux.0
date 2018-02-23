@@ -1,115 +1,56 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 01 Feb 2018 18:01:13 +0000
-Subject: [PATCH v11 05/10] sparc64: Add handler for "Memory Corruption Detected" trap
-Message-Id: <605397a59cb3d02fa7cbe3fa187ca421e9f5abce.1517497017.git.khalid.aziz@oracle.com>
+From: Alexander Sverdlin <alexander.sverdlin@nokia.com>
+Date: Fri, 23 Feb 2018 16:58:46 +0000
+Subject: [PATCH 0/3] ARM: Implement MODULE_PLT support in FTRACE
+Message-Id: <20180223165849.16388-1-alexander.sverdlin@nokia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1517497017.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1517497017.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, dave.hansen@linux.intel.com
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, anthony.yznaga@oracle.com, mingo@kernel.org, rob.gardner@oracle.com, ebiederm@xmission.com, vegard.nossum@oracle.com, jane.chu@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: linux-arm-kernel@lists.infradead.org
 
-M7 and newer processors add a "Memory corruption Detected" trap with
-the addition of ADI feature. This trap is vectored into kernel by HV
-through resumable error trap with error attribute for the resumable
-error set to 0x00000800.
+FTRACE's function tracer currently doesn't always work on ARM with
+MODULE_PLT option enabled. If the module is loaded too far, FTRACE's
+code modifier cannot cope with introduced veneers and turns the
+function tracer off globally.
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
----
-v7:     
-	- new patch split off from patch 4/4 in v6
+ARM64 already has a solution for the problem, refer to the following
+patches:
 
- arch/sparc/kernel/traps_64.c | 59 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+arm64: ftrace: emit ftrace-mod.o contents through code
+arm64: module-plts: factor out PLT generation code for ftrace
+arm64: ftrace: fix !CONFIG_ARM64_MODULE_PLTS kernels
+arm64: ftrace: fix building without CONFIG_MODULES
+arm64: ftrace: add support for far branches to dynamic ftrace
+arm64: ftrace: don't validate branch via PLT in ftrace_make_nop()
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index d273a65a0a10..f36a40217f6c 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -1870,6 +1870,7 @@ struct sun4v_error_entry {
- #define SUN4V_ERR_ATTRS_ASI		0x00000080
- #define SUN4V_ERR_ATTRS_PRIV_REG	0x00000100
- #define SUN4V_ERR_ATTRS_SPSTATE_MSK	0x00000600
-+#define SUN4V_ERR_ATTRS_MCD		0x00000800
- #define SUN4V_ERR_ATTRS_SPSTATE_SHFT	9
- #define SUN4V_ERR_ATTRS_MODE_MSK	0x03000000
- #define SUN4V_ERR_ATTRS_MODE_SHFT	24
-@@ -2067,6 +2068,56 @@ static void sun4v_log_error(struct pt_regs *regs, struct sun4v_error_entry *ent,
- 	}
- }
- 
-+/* Handle memory corruption detected error which is vectored in
-+ * through resumable error trap.
-+ */
-+void do_mcd_err(struct pt_regs *regs, struct sun4v_error_entry ent)
-+{
-+	siginfo_t info;
-+
-+	if (notify_die(DIE_TRAP, "MCD error", regs, 0, 0x34,
-+		       SIGSEGV) = NOTIFY_STOP)
-+		return;
-+
-+	if (regs->tstate & TSTATE_PRIV) {
-+		/* MCD exception could happen because the task was
-+		 * running a system call with MCD enabled and passed a
-+		 * non-versioned pointer or pointer with bad version
-+		 * tag to the system call. In such cases, hypervisor
-+		 * places the address of offending instruction in the
-+		 * resumable error report. This is a deferred error,
-+		 * so the read/write that caused the trap was potentially
-+		 * retired long time back and we may have no choice
-+		 * but to send SIGSEGV to the process.
-+		 */
-+		const struct exception_table_entry *entry;
-+
-+		entry = search_exception_tables(regs->tpc);
-+		if (entry) {
-+			/* Looks like a bad syscall parameter */
-+#ifdef DEBUG_EXCEPTIONS
-+			pr_emerg("Exception: PC<%016lx> faddr<UNKNOWN>\n",
-+				 regs->tpc);
-+			pr_emerg("EX_TABLE: insn<%016lx> fixup<%016lx>\n",
-+				 ent.err_raddr, entry->fixup);
-+#endif
-+			regs->tpc = entry->fixup;
-+			regs->tnpc = regs->tpc + 4;
-+			return;
-+		}
-+	}
-+
-+	/* Send SIGSEGV to the userspace process with the right signal
-+	 * code
-+	 */
-+	info.si_signo = SIGSEGV;
-+	info.si_errno = 0;
-+	info.si_code = SEGV_ADIDERR;
-+	info.si_addr = (void __user *)ent.err_raddr;
-+	info.si_trapno = 0;
-+	force_sig_info(SIGSEGV, &info, current);
-+}
-+
- /* We run with %pil set to PIL_NORMAL_MAX and PSTATE_IE enabled in %pstate.
-  * Log the event and clear the first word of the entry.
-  */
-@@ -2104,6 +2155,14 @@ void sun4v_resum_error(struct pt_regs *regs, unsigned long offset)
- 		goto out;
- 	}
- 
-+	/* If this is a memory corruption detected error vectored in
-+	 * by HV through resumable error trap, call the handler
-+	 */
-+	if (local_copy.err_attrs & SUN4V_ERR_ATTRS_MCD) {
-+		do_mcd_err(regs, local_copy);
-+		return;
-+	}
-+
- 	sun4v_log_error(regs, &local_copy, cpu,
- 			KERN_ERR "RESUMABLE ERROR",
- 			&sun4v_resum_oflow_cnt);
+But the presented ARM variant has just a half of the footprint in terms of
+the changed LoCs. It also retains the code validation-before-modification
+instead of switching it off.
+
+Alexander Sverdlin (3):
+  ftrace: Add module to ftrace_make_call() parameters
+  ARM: PLT: Move struct plt_entries definition to header
+  ftrace: Add MODULE_PLTS support
+
+ arch/arm/include/asm/module.h      | 10 ++++++
+ arch/arm/kernel/ftrace.c           | 73 ++++++++++++++++++++++++++++++++------
+ arch/arm/kernel/module-plts.c      | 58 +++++++++++++++++++-----------
+ arch/arm64/kernel/ftrace.c         |  3 +-
+ arch/blackfin/kernel/ftrace.c      |  3 +-
+ arch/ia64/kernel/ftrace.c          |  3 +-
+ arch/metag/kernel/ftrace.c         |  3 +-
+ arch/microblaze/kernel/ftrace.c    |  3 +-
+ arch/mips/kernel/ftrace.c          |  3 +-
+ arch/powerpc/kernel/trace/ftrace.c |  3 +-
+ arch/s390/kernel/ftrace.c          |  3 +-
+ arch/sh/kernel/ftrace.c            |  3 +-
+ arch/sparc/kernel/ftrace.c         |  3 +-
+ arch/tile/kernel/ftrace.c          |  3 +-
+ arch/x86/kernel/ftrace.c           |  3 +-
+ include/linux/ftrace.h             |  4 ++-
+ kernel/trace/ftrace.c              |  6 ++--
+ 17 files changed, 140 insertions(+), 47 deletions(-)
+
 -- 
-2.11.0
+2.4.6
 
