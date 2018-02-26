@@ -1,70 +1,49 @@
-From: Alexander Sverdlin <alexander.sverdlin@nokia.com>
-Date: Fri, 23 Feb 2018 16:58:48 +0000
-Subject: [PATCH 2/3] ARM: PLT: Move struct plt_entries definition to header
-Message-Id: <20180223165849.16388-3-alexander.sverdlin@nokia.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 26 Feb 2018 23:21:18 +0000
+Subject: [PATCH] sparc64: Oracle DAX driver depends on SPARC64
+Message-Id: <1519687278-9785-1-git-send-email-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180223165849.16388-1-alexander.sverdlin@nokia.com>
-In-Reply-To: <20180223165849.16388-1-alexander.sverdlin@nokia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Kees Cook <keescook@chromium.org>
 
-No functional change, later it will be re-used in several files.
+sparc:allmodconfig fails to build as follows.
 
-Signed-off-by: Alexander Sverdlin <alexander.sverdlin@nokia.com>
+ERROR: "mdesc_release" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "sun4v_hvapi_register" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "mdesc_get_property" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "mdesc_node_by_name" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "mdesc_grab" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "sun4v_ccb_info" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "sun4v_ccb_submit" [drivers/sbus/char/oradax.ko] undefined!
+ERROR: "sun4v_ccb_kill" [drivers/sbus/char/oradax.ko] undefined!
+
+The symbols are only available with SPARC64 builds, thus the driver
+depends on it.
+
+Fixes: dd0273284c74 ("sparc64: Oracle DAX driver")
+Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/arm/include/asm/module.h | 9 +++++++++
- arch/arm/kernel/module-plts.c | 9 ---------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/sbus/char/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/module.h b/arch/arm/include/asm/module.h
-index 89ad059..6996405 100644
---- a/arch/arm/include/asm/module.h
-+++ b/arch/arm/include/asm/module.h
-@@ -19,6 +19,15 @@ enum {
- };
- #endif
+diff --git a/drivers/sbus/char/Kconfig b/drivers/sbus/char/Kconfig
+index a785aa7660c3..bf3c5f735614 100644
+--- a/drivers/sbus/char/Kconfig
++++ b/drivers/sbus/char/Kconfig
+@@ -72,7 +72,8 @@ config DISPLAY7SEG
  
-+#define PLT_ENT_STRIDE		L1_CACHE_BYTES
-+#define PLT_ENT_COUNT		(PLT_ENT_STRIDE / sizeof(u32))
-+#define PLT_ENT_SIZE		(sizeof(struct plt_entries) / PLT_ENT_COUNT)
-+
-+struct plt_entries {
-+	u32	ldr[PLT_ENT_COUNT];
-+	u32	lit[PLT_ENT_COUNT];
-+};
-+
- struct mod_plt_sec {
- 	struct elf32_shdr	*plt;
- 	int			plt_count;
-diff --git a/arch/arm/kernel/module-plts.c b/arch/arm/kernel/module-plts.c
-index 3d0c2e4..f272711 100644
---- a/arch/arm/kernel/module-plts.c
-+++ b/arch/arm/kernel/module-plts.c
-@@ -14,10 +14,6 @@
- #include <asm/cache.h>
- #include <asm/opcodes.h>
- 
--#define PLT_ENT_STRIDE		L1_CACHE_BYTES
--#define PLT_ENT_COUNT		(PLT_ENT_STRIDE / sizeof(u32))
--#define PLT_ENT_SIZE		(sizeof(struct plt_entries) / PLT_ENT_COUNT)
--
- #ifdef CONFIG_THUMB2_KERNEL
- #define PLT_ENT_LDR		__opcode_to_mem_thumb32(0xf8dff000 | \
- 							(PLT_ENT_STRIDE - 4))
-@@ -26,11 +22,6 @@
- 						    (PLT_ENT_STRIDE - 8))
- #endif
- 
--struct plt_entries {
--	u32	ldr[PLT_ENT_COUNT];
--	u32	lit[PLT_ENT_COUNT];
--};
--
- static bool in_init(const struct module *mod, unsigned long loc)
- {
- 	return loc - (u32)mod->init_layout.base < mod->init_layout.size;
+ config ORACLE_DAX
+ 	tristate "Oracle Data Analytics Accelerator"
+-	default m if SPARC64
++	depends on SPARC64
++	default m
+ 	help
+ 	 Driver for Oracle Data Analytics Accelerator, which is
+ 	 a coprocessor that performs database operations in hardware.
 -- 
-2.4.6
+2.7.4
 
