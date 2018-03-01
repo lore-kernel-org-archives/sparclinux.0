@@ -1,33 +1,45 @@
-From: Rich Felker <dalias@libc.org>
-Date: Fri, 30 Mar 2018 13:33:48 +0000
-Subject: Re: [RFC PATCH v2 0/2] Randomization of address chosen by mmap.
-Message-Id: <20180330133348.GR1436@brightrain.aerifal.cx>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Mar 2018 03:28:53 +0000
+Subject: Re: [PATCH] sparc: Use generic pci_mmap_resource_range()
+Message-Id: <20180228.222853.1570972177848923005.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1521736598-12812-1-git-send-email-blackzert@gmail.com>
- <20180330075508.GA21798@amd>
-In-Reply-To: <20180330075508.GA21798@amd>
+References: <1519053858.7876.84.camel@infradead.org>
+	<20180219.103025.1676484157305869188.davem@davemloft.net>
+	<20180228230828.GR127842@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20180228230828.GR127842@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ilya Smith <blackzert@gmail.com>, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@synopsys.com, linux@armlinux.org.uk, tony.luck@intel.com, fenghua.yu@intel.com, jhogan@kernel.org, ralf@linux-mips.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, ysato@users.sourceforge.jp, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, nyc@holomorphy.com, viro@zeniv.linux.org.uk, arnd@arndb.de, gregkh@linuxfoundation.org, deepa.kernel@gmail.com, mhocko@suse.com, hughd@google.com, kstewart@linuxfoundation.org, pombredanne@nexb.com, akpm@linux-foundation.org, steve.capper@arm.com, punit.agrawal@arm.com, paul.burton@mips.com, aneesh.kumar@linux.vnet.ibm.com, npiggin@gmail.com, keescook@chromium.org, bhsharma@redhat.com, riel@redhat.com, nitin.m.gupta@oracle.com, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, ross.zwisler@linux.intel.com, jglisse@redhat.com, willy@infradead.org, aarcange@redhat.com, oleg@redhat.com, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-metag@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: helgaas@kernel.org
+Cc: dwmw2@infradead.org, sparclinux@vger.kernel.org, bhelgaas@google.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Fri, Mar 30, 2018 at 09:55:08AM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > Current implementation doesn't randomize address returned by mmap.
-> > All the entropy ends with choosing mmap_base_addr at the process
-> > creation. After that mmap build very predictable layout of address
-> > space. It allows to bypass ASLR in many cases. This patch make
-> > randomization of address on any mmap call.
-> 
-> How will this interact with people debugging their application, and
-> getting different behaviours based on memory layout?
-> 
-> strace, strace again, get different results?
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Wed, 28 Feb 2018 17:08:29 -0600
 
-Normally gdb disables ASLR for the process when invoking a program to
-debug. I don't see why that would be terribly useful with strace but
-you can do the same if you want.
+> On Mon, Feb 19, 2018 at 10:30:25AM -0500, David Miller wrote:
+>> From: David Woodhouse <dwmw2@infradead.org>
+>> Date: Mon, 19 Feb 2018 15:24:18 +0000
+>>=20
+>> >> For one, the sparc specific code allows mmap'ing any address range
+>> >> within a PCI bus device.=A0=A0The generic code does not allow that.
+>> >=20
+>> >=20
+>> > You mean any address range in a given PCI bus even if there is no
+>> > actual device with a BAR at the corresponding address?
+>> >=20
+>> > Would I be right to assume this was only available through the legacy
+>> > procfs API? I think it should be possible to accommodate it, and it
+>> > does look like I'd missed this requirement the first time round; thanks
+>> > for pointing it out.
+>>=20
+>> It was probably the case that only procfs could do it.
+>>=20
+>> It is the mechanism by which we were able to let the X server poke
+>> around in VGA ISA space.  It does a bus I/O space map for the bus
+>> device above the VGA card.
+>=20
+> What's the bottom line?  Do we want this for sparc?  If so, do you
+> want to take it, Dave M, or would you like me to?
 
-Rich
+The bottom line is that David W.'s patch would break sparc so
+we don't want this.
