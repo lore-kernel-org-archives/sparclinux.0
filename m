@@ -1,25 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 20 Mar 2018 15:14:46 +0000
-Subject: Re: [PATCH sparc-next] sparc: Make auxiliary vectors for ADI available on 32-bit as well
-Message-Id: <20180320.111446.111954216494768560.davem@davemloft.net>
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Date: Mon, 05 Mar 2018 19:23:27 +0000
+Subject: Re: [PATCH v12 08/11] mm: Clear arch specific VM flags on protection change
+Message-Id: <df5344a2-f28d-7828-b76b-107dc24be2dd@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180320144602.16535-1-khalid.aziz@oracle.com>
-In-Reply-To: <20180320144602.16535-1-khalid.aziz@oracle.com>
+References: <cover.1519227112.git.khalid.aziz@oracle.com>
+ <f0bfc4b7ce6c8563bf0d5ef74af20b5d1edea66f.1519227112.git.khalid.aziz@oracle.com>
+In-Reply-To: <f0bfc4b7ce6c8563bf0d5ef74af20b5d1edea66f.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: khalid.aziz@oracle.com
-Cc: shannon.nelson@oracle.com, nagarathnam.muthusamy@oracle.com, nick.alcock@oracle.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, khalid@gonehiking.org
+To: Khalid Aziz <khalid.aziz@oracle.com>, akpm@linux-foundation.org, davem@davemloft.net
+Cc: mhocko@suse.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, willy@infradead.org, hughd@google.com, n-horiguchi@ah.jp.nec.com, mgorman@suse.de, jglisse@redhat.com, dave.jiang@intel.com, dan.j.williams@intel.com, anthony.yznaga@oracle.com, nadav.amit@gmail.com, zi.yan@cs.rutgers.edu, aarcange@redhat.com, khandual@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, henry.willard@oracle.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Tue, 20 Mar 2018 08:46:02 -0600
+On 02/21/2018 09:15 AM, Khalid Aziz wrote:
+> +/* Arch-specific flags to clear when updating VM flags on protection change */
+> +#ifndef VM_ARCH_CLEAR
+> +# define VM_ARCH_CLEAR	VM_NONE
+> +#endif
+> +#define VM_FLAGS_CLEAR	(ARCH_VM_PKEY_FLAGS | VM_ARCH_CLEAR)
 
-> Commit c6202ca764ac ("sparc64: Add auxiliary vectors to report
-> platform ADI properties") adds auxiliary vectors to report ADI
-> capabilities on sparc64 platform only. This needs to be uniform
-> across 64-bit and 32-bit. This patch makes the same vectors
-> available on 32-bit as well.
-> 
-> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+Shouldn't this be defining
 
-Applied, thank you.
+# define VM_ARCH_CLEAR	ARCH_VM_PKEY_FLAGS
+
+on x86?
