@@ -1,28 +1,30 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Tue, 20 Mar 2018 20:14:34 +0000
-Subject: Re: [PATCH v1 0/2] PCI: Sparc 64-bit resource fixups
-Message-Id: <20180320201434.GB137590@bhelgaas-glaptop.roam.corp.google.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 06 Mar 2018 22:48:07 +0000
+Subject: Re: [PATCH v12 07/11] mm: Add address parameter to arch_validate_prot()
+Message-Id: <20180306144807.30915bcffe6e640c3ad6279c@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180319171140.GA52750@bhelgaas-glaptop.roam.corp.google.com>
- <20180319.142831.793002554436316260.davem@davemloft.net>
- <20180319193854.GI77194@bhelgaas-glaptop.roam.corp.google.com>
- <20180319.193341.105600714432834778.davem@davemloft.net>
-In-Reply-To: <20180319.193341.105600714432834778.davem@davemloft.net>
+References: <cover.1519227112.git.khalid.aziz@oracle.com>
+	<349751cbd54fda6f4a223f941aa71bbfe7be77ce.1519227112.git.khalid.aziz@oracle.com>
+In-Reply-To: <349751cbd54fda6f4a223f941aa71bbfe7be77ce.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: david.ahern@oracle.com, alex.williamson@redhat.com, airlied@linux.ie, linux-pci@vger.kernel.org, linux@iam.tj, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, khalid.aziz@oracle.com, sparclinux@vger.kernel.org, yinghai@kernel.org
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net, dave.hansen@linux.intel.com, bsingharora@gmail.com, nborisov@suse.com, aarcange@redhat.com, anthony.yznaga@oracle.com, mgorman@suse.de, linuxram@us.ibm.com, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, ross.zwisler@linux.intel.com, gregkh@linuxfoundation.org, tglx@linutronix.de, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, jglisse@redhat.com, henry.willard@oracle.com, aneesh.kumar@linux.vnet.ibm.com, khandual@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
 
-On Mon, Mar 19, 2018 at 07:33:41PM -0400, David Miller wrote:
-> From: Bjorn Helgaas <helgaas@kernel.org>
-> Date: Mon, 19 Mar 2018 14:38:54 -0500
-> 
-> > I'd be happy to remove both.  But I wonder how X init works on
-> > sparc.
-> 
-> It's been many years since I worked on this, but I think it
-> mapped and used the PCI ROM resource for this.
+On Wed, 21 Feb 2018 10:15:49 -0700 Khalid Aziz <khalid.aziz@oracle.com> wrote:
 
-Thanks, I posted a v2 series that removes the System ROM and Video ROM
-areas completely.
+> A protection flag may not be valid across entire address space and
+> hence arch_validate_prot() might need the address a protection bit is
+> being set on to ensure it is a valid protection flag. For example, sparc
+> processors support memory corruption detection (as part of ADI feature)
+> flag on memory addresses mapped on to physical RAM but not on PFN mapped
+> pages or addresses mapped on to devices. This patch adds address to the
+> parameters being passed to arch_validate_prot() so protection bits can
+> be validated in the relevant context.
+> 
+> Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+> Cc: Khalid Aziz <khalid@gonehiking.org>
+> Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+
+Acked-by: Andrew Morton <akpm@linux-foundation.org>
