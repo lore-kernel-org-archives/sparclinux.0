@@ -1,63 +1,26 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 06 Mar 2018 22:48:19 +0000
-Subject: Re: [PATCH v12 09/11] mm: Allow arch code to override copy_highpage()
-Message-Id: <20180306144819.53e794acc83309fd8b401e92@linux-foundation.org>
+From: "Sandra Y" <mamg7610885@angel.ocn.ne.jp>
+Date: Sat, 10 Mar 2018 10:58:41 +0000
+Subject: Re: A cry for help, please don't ignore!
+Message-Id: <1520679531.ucDDeiphjwXtUucDDeh4zB@mf-smf-ucb036c3>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1519227112.git.khalid.aziz@oracle.com>
-	<ecbafa2bfcc05f22183be2e7784ed11943b1d5b2.1519227112.git.khalid.aziz@oracle.com>
-In-Reply-To: <ecbafa2bfcc05f22183be2e7784ed11943b1d5b2.1519227112.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: davem@davemloft.net, dave.hansen@linux.intel.com, kstewart@linuxfoundation.org, pombredanne@nexb.com, tglx@linutronix.de, anthony.yznaga@oracle.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Khalid Aziz <khalid@gonehiking.org>
+To: sparclinux@vger.kernel.org
 
-On Wed, 21 Feb 2018 10:15:51 -0700 Khalid Aziz <khalid.aziz@oracle.com> wrote:
+Good Day,
 
-> Some architectures can support metadata for memory pages and when a
-> page is copied, its metadata must also be copied. Sparc processors
-> from M7 onwards support metadata for memory pages. This metadata
-> provides tag based protection for access to memory pages. To maintain
-> this protection, the tag data must be copied to the new page when a
-> page is migrated across NUMA nodes. This patch allows arch specific
-> code to override default copy_highpage() and copy metadata along
-> with page data upon migration.
-> 
-> ...
->
-> --- a/include/linux/highmem.h
-> +++ b/include/linux/highmem.h
-> @@ -237,6 +237,8 @@ static inline void copy_user_highpage(struct page *to, struct page *from,
->  
->  #endif
->  
-> +#ifndef __HAVE_ARCH_COPY_HIGHPAGE
-> +
->  static inline void copy_highpage(struct page *to, struct page *from)
->  {
->  	char *vfrom, *vto;
-> @@ -248,4 +250,6 @@ static inline void copy_highpage(struct page *to, struct page *from)
->  	kunmap_atomic(vfrom);
->  }
->  
-> +#endif
-> +
->  #endif /* _LINUX_HIGHMEM_H */
+Forgive my indignation if this message comes to you as a surprise and may offend your personality for contacting you without your prior consent and writing through this channel.
 
-It would be more consistent and conventional here to do
+I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
 
-#ifndef copy_highpage
-static inline void copy_highpage(struct page *to, struct page *from)
-{
-	...
-}
-#define copy_highpage copy_highpage
+I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. My father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,i request that you be my tr
+ ustee and assist me in th
 
-As is happening in [patch 07/11].
+You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
+I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
 
-And a similar change could be made to [patch 02/11], actually.
+Thanks for giving me your attention,
 
-
-Either way,
-
-Acked-by: Andrew Morton <akpm@linux-foundation.org>
+Yours sincerely,
+Miss. Sandra Younes
