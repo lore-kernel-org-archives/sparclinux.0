@@ -1,324 +1,172 @@
-From: Ulf Magnusson <ulfalizer@gmail.com>
-Date: Fri, 02 Mar 2018 09:12:01 +0000
-Subject: Re: [PATCH 00/23] kconfig: move compiler capability tests to Kconfig
-Message-Id: <20180302091201.veyw5iv2uwvlvs2h@huvuddator>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Wed, 14 Mar 2018 04:03:23 +0000
+Subject: [PATCH v5 00/10] posix_clocks: Prepare syscalls for 64 bit time_t conversion
+Message-Id: <20180314040333.3291-1-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180218221352.GA6651@ravnborg.org>
- <CAFkk2KT1krKuDkWt0eHcasfC61fTVQNf-1kqw7icLP9OYGYkXQ@mail.gmail.com>
- <CAK7LNAQH0WD3A3T97gce0xmZpMy0zWxTO2StfNWaDbiqjQg8gg@mail.gmail.com>
- <CAK8P3a2BOQt5Y0B4271WqaJvvWqfxHxD3S6r1i1xONvb+CJ5Dg@mail.gmail.com>
- <CAK7LNARtZcW1v53ridFJK1MULmj8tQT4s+DoRhKj9PrbMri5rQ@mail.gmail.com>
- <CAK8P3a1DrhxWXaEs6E85W5HEhvFr23E-GDsu=0X-sG0pX+PLag@mail.gmail.com>
- <CAK7LNAR3OMh9Q9ZfaBq=FpSJ-+DT5-RH_20ohV-iu34pX9hFKw@mail.gmail.com>
- <20180221213946.w4v6ywy7fbiy6oyc@huvuddator>
- <CAK7LNARd-9KNRTHT3jrNganqLisheAWbDQMGi_ujp+1GpYzSOg@mail.gmail.com>
- <20180302090326.h55wontzv3traxnn@huvuddator>
-In-Reply-To: <20180302090326.h55wontzv3traxnn@huvuddator>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Rich Felker <dalias@libc.org>, Kernel Hardening <kernel-hardening@lists.openwall.com>, X86 ML <x86@kernel.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Jonathan Corbet <corbet@lwn.net>, Richard Weinberger <richard@nod.at>, Linux-sh list <linux-sh@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, Emese Revfy <re.emese@gmail.com>, Kees Cook <keescook@chromium.org>, uml-devel <user-mode-linux-devel@lists.sourceforge.net>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Jeff Dike <jdike@addtoit.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, user-mode-linux-user@lists.sourceforge.net, Thomas Gleixner <tglx@linutronix.de>, Michal Marek <michal.lkml@markovi.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>
+To: arnd@arndb.de, tglx@linutronix.de, john.stultz@linaro.org
+Cc: mark.rutland@arm.com, linux-mips@linux-mips.org, peterz@infradead.org, benh@kernel.crashing.org, sth@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, y2038@lists.linaro.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, sebott@linux.vnet.ibm.com, jejb@parisc-linux.org, will.deacon@arm.com, borntraeger@de.ibm.com, mingo@redhat.com, oprofile-list@lists.sf.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, rric@kernel.org, cmetcalf@mellanox.com, oberpar@linux.vnet.ibm.com, acme@kernel.org, jwi@linux.vnet.ibm.com, rostedt@goodmis.org, ubraun@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, linux-parisc@vger.kernel.org, gregkh@linuxfoundation.org, cohuck@redhat.com, linux-kernel@vger.kernel.org, ralf@linux-mips.org, hoeppner@linux.vnet.ibm.com, linux-ap
 
-On Fri, Mar 02, 2018 at 10:03:26AM +0100, Ulf Magnusson wrote:
-> On Fri, Mar 02, 2018 at 02:50:39PM +0900, Masahiro Yamada wrote:
-> > 2018-02-22 6:39 GMT+09:00 Ulf Magnusson <ulfalizer@gmail.com>:
-> > > On Wed, Feb 21, 2018 at 09:57:03PM +0900, Masahiro Yamada wrote:
-> > >> 2018-02-21 19:52 GMT+09:00 Arnd Bergmann <arnd@arndb.de>:
-> > >> > On Wed, Feb 21, 2018 at 11:20 AM, Masahiro Yamada
-> > >> > <yamada.masahiro@socionext.com> wrote:
-> > >> >> 2018-02-21 18:56 GMT+09:00 Arnd Bergmann <arnd@arndb.de>:
-> > >> >>> On Wed, Feb 21, 2018 at 8:38 AM, Masahiro Yamada
-> > >> >>> <yamada.masahiro@socionext.com> wrote:
-> > >> >>>> 2018-02-20 0:18 GMT+09:00 Ulf Magnusson <ulfalizer@gmail.com>:
-> > >> >>
-> > >> >> Let me clarify my concern.
-> > >> >>
-> > >> >> When we test the compiler flag, is there a case
-> > >> >> where a particular flag depends on -m{32,64} ?
-> > >> >>
-> > >> >> For example, is there a compiler that supports -fstack-protector
-> > >> >> for 64bit mode, but unsupports it for 32bit mode?
-> > >> >>
-> > >> >>   $(cc-option -m32)                     ->  y
-> > >> >>   $(cc-option -m64)                     ->  y
-> > >> >>   $(cc-option -fstack-protector)        ->  y
-> > >> >>   $(cc-option -m32 -fstack-protector)   ->  n
-> > >> >>   $(cc-option -m64 -fstack-protector)   ->  y
-> > >> >>
-> > >> >> I guess this is unlikely to happen,
-> > >> >> but I am not whether it is zero possibility.
-> > >> >>
-> > >> >> If this could happen,
-> > >> >> $(cc-option ) must be evaluated together with
-> > >> >> correct bi-arch option (either -m32 or -m64).
-> > >> >>
-> > >> >>
-> > >> >> Currently, -m32/-m64 is specified in Makefile,
-> > >> >> but we are moving compiler tests to Kconfig
-> > >> >> and, CONFIG_64BIT can be dynamically toggled in Kconfig.
-> > >> >
-> > >> > I don't think it can happen for this particular combination (stack protector
-> > >> > and word size), but I'm sure we'll eventually run into options that
-> > >> > need to be tested in combination. For the current CFLAGS_KERNEL
-> > >> > setting, we definitely have the case of needing the variables to be
-> > >> > evaluated in a specific order.
-> > >> >
-> > >>
-> > >>
-> > >>
-> > >>
-> > >> I was thinking of how we can handle complex cases
-> > >> in the current approach.
-> > >>
-> > >>
-> > >>
-> > >> (Case 1)
-> > >>
-> > >> Compiler flag -foo and -bar interacts, so
-> > >> we also need to check the combination of the two.
-> > >>
-> > >>
-> > >> config CC_HAS_FOO
-> > >>         def_bool $(cc-option -foo)
-> > >>
-> > >> config CC_HAS_BAR
-> > >>         def_bool $(cc-option -bar)
-> > >>
-> > >> config CC_HAS_FOO_WITH_BAR
-> > >>         def_bool $(cc-option -foo -bar)
-> > >>
-> > >>
-> > >>
-> > >> (Case 2)
-> > >> Compiler flag -foo is sensitive to word-size.
-> > >> So, we need to test this option together with -m32/-m64.
-> > >> User can toggle CONFIG_64BIT, like i386/x86_64.
-> > >>
-> > >>
-> > >> config CC_NEEDS_M64
-> > >>           def_bool $(cc-option -m64) && 64BIT
-> > >>
-> > >> config CC_NEEDS_M32
-> > >>           def_bool $(cc-option -m32) && !64BIT
-> > >>
-> > >> config CC_HAS_FOO
-> > >>          bool
-> > >>          default $(cc-option -m64 -foo) if CC_NEEDS_M64
-> > >>          default $(cc-option -m32 -foo) if CC_NEEDS_M32
-> > >>          default $(cc-option -foo)
-> > >>
-> > >>
-> > >>
-> > >> (Case 3)
-> > >> Compiler flag -foo is sensitive to endian-ness.
-> > >>
-> > >>
-> > >> config CC_NEEDS_BIG_ENDIAN
-> > >>           def_bool $(cc-option -mbig-endian) && CPU_BIG_ENDIAN
-> > >>
-> > >> config CC_NEEDS_LITTLE_ENDIAN
-> > >>           def_bool $(cc-option -mlittle-endian) && CPU_LITTLE_ENDIAN
-> > >>
-> > >> config CC_HAS_FOO
-> > >>          bool
-> > >>          default $(cc-option -mbig-endian -foo) if CC_NEEDS_BIG_ENDIAN
-> > >>          default $(cc-option -mlittle-endian -foo) if CC_NEEDS_LITTLE_ENDIAN
-> > >>          default $(cc-option -foo)
-> > >>
-> > >>
-> > >>
-> > >>
-> > >> Hmm, I think I can implement those somehow.
-> > >> But, I hope we do not have many instances like this...
-> > >>
-> > >>
-> > >> If you know more naive cases, please share your knowledge.
-> > >>
-> > >> Thanks!
-> > >>
-> > >>
-> > >> --
-> > >> Best Regards
-> > >> Masahiro Yamada
-> > >
-> > > Would get pretty bad if a test needs to consider multiple symbols.
-> > > Exponential explosion there...
-> > >
-> > >
-> > > I thought some more about the implementation of dynamic (post-parsing)
-> > > functions to see how bad it would get with the current implementation.
-> > >
-> > > Some background on how things work now:
-> > >
-> > >   1. All expression operands in Kconfig are symbols.
-> > >
-> > >   2. Returning '$ENV' or '$(fn foo)' as a T_WORD during parsing gets
-> > >      you symbols with those strings as names and S_UNKNOWN type (because
-> > >      they act like references to undefined symbols).
-> > >
-> > >   3. For "foo-$(fn foo)", you also get a symbol with that string as its
-> > >      name and S_UNKNOWN type (stored among the SYMBOL_CONST symbols)
-> > >
-> > >   4. Symbols with S_UNKNOWN type get their name as their string value,
-> > >      and the tristate value n.
-> > >
-> > > So, if you do string expansion on the names of symbols with S_UNKNOWN
-> > > type in sym_calc_value(), you're almost there with the current
-> > > implementation, except for the tristate case.
-> > >
-> > > Maybe you could set the tristate value of S_UNKNOWN symbols depending on
-> > > the string value you end up with. Things are getting pretty confusing at
-> > > that point.
-> > >
-> > > Could have something like S_DYNAMIC as well. More Kconfig complexity...
-> > >
-> > > Then there's other complications:
-> > >
-> > >   1. SYMBOL_CONST is no longer constant.
-> > >
-> > >   2. Dependency loop detection needs to consider symbol references
-> > >      within strings.
-> > >
-> > >   3. Dependency loop detection relies on static knowledge of what
-> > >      symbols a symbol depends on. That might get messy for certain
-> > >      expansions, though it might be things you wouldn't do in practice.
-> > >
-> > >   4. Symbols still need to be properly invalidated. It looks like at
-> > >      least menuconfig just does a dumb invalidate-everything whenever
-> > >      the value of a symbol is changed though, so it might not require
-> > >      extra work. (Bit messier in Kconfiglib, which does minimal
-> > >      invalidation to keep scripts fast, but just need to extract a few
-> > >      extra deps there.)
-> > >
-> > >
-> > > It looks like dynamic functions could get quite messy, but might be
-> > > doable if absolutely required. There's probably more devils in the
-> > > details though.
-> > >
-> > > I don't think the static function model precludes switching models later
-> > > btw, when people have more experience.
-> > 
-> > 
-> > 
-> > I really want to start with the static function model
-> > and see if we need the dynamic function implementation.
-> 
-> Yeah, let's start with static functions, IMO.
-> 
-> Either we'll learn that they're powerful enough in practice, and save
-> ourselves some work, or we'll gain experience for later. Converting from
-> static to dynamic functions should be painless, if needed.
-> 
-> My plan would be something like:
-> 
->   1. Implement static functions
-> 
->   2. Convert as many simple cases over to them as possible
-> 
->   3. See how bad the bad cases get. If they get really bad, then decide
->      what to do next (extend Kconfig, handle them in the Makefiles,
->      etc.)
-> 
-> > 
-> > Here is an idea for the migration path in case
-> > we need to do that in the future.
-> > 
-> > 
-> > 
-> > Currently, every time user input is given,
-> > sym_clear_all_valid() is called.
-> > 
-> > It is not efficient to blindly re-evaluate expensive $(shell ...)
-> 
-> I think menuconfig only reevalutes the symbols in the menu that's
-> currently shown in the interface (along with their dependencies).
-> 
-> Maybe that'd be bad enough though.
-> 
-> > 
-> > 
-> > So, have a list of symbols the function depends on
-> > in its arguments.
-> > 
-> > For example,
-> > 
-> > config CC_HAS_SANE_STACKPROTECTOR
-> >         def_bool $(shell $srctree/scripts/gcc-has-stack-protector.sh
-> > $CC $(1), CFLAGS_BASE)
-> > 
-> > 
-> > Here the first argument
-> >   $srctree/scripts/gcc-x86-has-stack-protector.sh $CC $(1)
-> > 
-> > is the shell command.
-> > $(1), $(2), ... will be replaced with the values of symbols (or expressions)
-> > that follow when running the shell command.
-> > 
-> > 
-> > The second argument
-> > CFLAGS_BASE
-> > is the dependency symbol (or expression).
-> > 
-> > 
-> > CFLAGS_BASE can be dynamically changed like
-> > 
-> > config CFLAGS_BASE
-> >         string
-> >         default "-m64" if 64BIT
-> >         default "-m32"
-> > 
-> > 
-> > When and only when CFLAGS_BASE is updated, the function should be re-calculated.
-> > (This will require efforts to minimize the amount of re-evaluation.)
-> > 
-> > 
-> > 
-> > 
-> > cc-option will be implemented like follows:
-> > 
-> > macro cc-option $(shell $CC -Werror $$(1) $(1) -c -x c /dev/null -o
-> > /dev/null, CFLAGS_BASE)
-> > 
-> > 
-> > 
-> > Please notice the difference between $$(1) and $(1).
-> > 
-> > $(1) is immediately expanded by cc-option macro.
-> > 
-> > $$(1) is escaped since we want to expand it by $(shell ...), not by
-> > $(cc-option ...)
-> > 
-> > 
-> > 
-> > For example,
-> > 
-> >   $(cc-option -fstack-protector)
-> > 
-> > will be expanded to
-> > 
-> >   $(shell gcc -Werror $(1) -fstack-protector -c -x c /dev/null -o
-> > /dev/null, CFLAGS_BASE)
-> > 
-> > Since macros are just textual shorthand, so this expansion happens
-> > during the parse phase.
-> > 
-> > 
-> > 
-> > Then, the evaluation phase does the following every time CFLAGS_BASE is updated.
-> > 
-> > gcc -Werror [value of CFLAGS_BASE] -fstack-protector -c -x c /dev/null
-> > -o /dev/null
-> > 
-> > 
-> > This is a new form of expression, so it will be managed in AST tree
-> > with a flag E_SHELL (or E_FUNC) etc.
-> > 
-> > 
-> > Not implemented at all.  Just a rough sketch.
-> 
-> A simpler syntax like
-> 
-> 	$(shell $CC -Werror {CFLAGS_BASE} -c -x c /dev/null -o /dev/null)
+The series is a preparation series for individual architectures
+to use 64 bit time_t syscalls in compat and 32 bit emulation modes.
 
-	*$(shell $CC -Werror {CFLAGS_BASE} -fstack-protector -c -x c /dev/null -o /dev/null)
+This is a follow up to the series Arnd Bergmann posted:
+https://sourceware.org/ml/libc-alpha/2015-05/msg00070.html [1]
+
+Thomas, Arnd, this seems ready to be merged now.
+Can you help get this merged?
+
+Big picture is as per the lwn article:
+https://lwn.net/Articles/643234/ [2]
+
+The series is directed at converting posix clock syscalls:
+clock_gettime, clock_settime, clock_getres and clock_nanosleep
+to use a new data structure __kernel_timespec at syscall boundaries.
+__kernel_timespec maintains 64 bit time_t across all execution modes.
+
+vdso will be handled as part of each architecture when they enable
+support for 64 bit time_t.
+
+The compat syscalls are repurposed to provide backward compatibility
+by using them as native syscalls as well for 32 bit architectures.
+They will continue to use timespec at syscall boundaries.
+
+CONFIG_64_BIT_TIME controls whether the syscalls use __kernel_timespec
+or timespec at syscall boundaries.
+
+The series does the following:
+1. Enable compat syscalls on 32 bit architectures.
+2. Add a new __kernel_timespec type to be used as the data structure
+   for all the new syscalls.
+3. Add new config CONFIG_64BIT_TIME(intead of the CONFIG_COMPAT_TIME in
+   [1] and [2] to switch to new definition of __kernel_timespec. It is
+   the same as struct timespec otherwise.
+4. Add new CONFIG_32BIT_TIME to conditionally compile compat syscalls.
+
+* Changes since v4:
+ * Fixed up kbuild errors for arm64 and powerpc non compat configs
+* Changes since v3:
+ * Updated include file ordering
+* Changes since v2:
+ * Dropped the ARCH_HAS_64BIT_TIME config.
+ * Fixed zeroing out of higher order bits of tv_nsec for real.
+ * Addressed minor review comments from v1.
+* Changes since v1:
+ * Introduce CONFIG_32BIT_TIME
+ * Fixed zeroing out of higher order bits of tv_nsec
+ * Included Arnd's changes to fix up use of compat headers
+
+I decided against using LEGACY_TIME_SYSCALLS to conditionally compile
+legacy time syscalls such as sys_nanosleep because this will need to
+enclose compat_sys_nanosleep as well. So, defining it as 
+
+config LEGACY_TIME_SYSCALLS
+     def_bool 64BIT || !64BIT_TIME
+
+will not include compat_sys_nanosleep. We will instead need a new config to
+exclusively mark legacy syscalls.
+
+Deepa Dinamani (10):
+  compat: Make compat helpers independent of CONFIG_COMPAT
+  include: Move compat_timespec/ timeval to compat_time.h
+  compat: enable compat_get/put_timespec64 always
+  arch: introduce CONFIG_64BIT_TIME
+  arch: Introduce CONFIG_COMPAT_32BIT_TIME
+  posix-clocks: Make compat syscalls depend on CONFIG_COMPAT_32BIT_TIME
+  include: Add new y2038 safe __kernel_timespec
+  fix get_timespec64() for y2038 safe compat interfaces
+  change time types to new y2038 safe __kernel_* types
+  nanosleep: change time types to safe __kernel_* types
+
+ arch/Kconfig                           | 15 +++++++++
+ arch/arm64/include/asm/compat.h        | 11 -------
+ arch/arm64/include/asm/stat.h          |  1 +
+ arch/arm64/kernel/hw_breakpoint.c      |  1 -
+ arch/arm64/kernel/perf_regs.c          |  2 +-
+ arch/mips/include/asm/compat.h         | 11 -------
+ arch/mips/kernel/signal32.c            |  2 +-
+ arch/parisc/include/asm/compat.h       | 11 -------
+ arch/powerpc/include/asm/compat.h      | 11 -------
+ arch/powerpc/kernel/asm-offsets.c      |  2 +-
+ arch/powerpc/oprofile/backtrace.c      |  1 +
+ arch/s390/hypfs/hypfs_sprp.c           |  1 -
+ arch/s390/include/asm/compat.h         | 11 -------
+ arch/s390/include/asm/elf.h            |  4 +--
+ arch/s390/kvm/priv.c                   |  1 -
+ arch/s390/pci/pci_clp.c                |  1 -
+ arch/sparc/include/asm/compat.h        | 11 -------
+ arch/tile/include/asm/compat.h         | 11 -------
+ arch/x86/events/core.c                 |  2 +-
+ arch/x86/include/asm/compat.h          | 11 -------
+ arch/x86/include/asm/ftrace.h          |  2 +-
+ arch/x86/include/asm/sys_ia32.h        |  2 +-
+ arch/x86/kernel/sys_x86_64.c           |  2 +-
+ drivers/s390/block/dasd_ioctl.c        |  1 -
+ drivers/s390/char/fs3270.c             |  1 -
+ drivers/s390/char/sclp_ctl.c           |  1 -
+ drivers/s390/char/vmcp.c               |  1 -
+ drivers/s390/cio/chsc_sch.c            |  1 -
+ drivers/s390/net/qeth_core_main.c      |  2 +-
+ include/linux/compat.h                 | 11 ++++---
+ include/linux/compat_time.h            | 23 ++++++++++++++
+ include/linux/restart_block.h          |  7 ++--
+ include/linux/syscalls.h               | 12 +++----
+ include/linux/time.h                   |  4 +--
+ include/linux/time64.h                 | 10 +++++-
+ include/uapi/asm-generic/posix_types.h |  1 +
+ include/uapi/linux/time.h              |  7 ++++
+ kernel/compat.c                        | 52 +++++-------------------------
+ kernel/time/hrtimer.c                  | 10 ++++--
+ kernel/time/posix-stubs.c              | 12 ++++---
+ kernel/time/posix-timers.c             | 24 ++++++++++----
+ kernel/time/time.c                     | 58 +++++++++++++++++++++++++++++++---
+ 42 files changed, 177 insertions(+), 188 deletions(-)
+ create mode 100644 include/linux/compat_time.h
+
+
+base-commit: 61530b14b059d4838dcc2186e9de9d57e195ce55
+-- 
+2.14.1
+
+Cc: acme@kernel.org
+Cc: benh@kernel.crashing.org
+Cc: borntraeger@de.ibm.com
+Cc: catalin.marinas@arm.com
+Cc: cmetcalf@mellanox.com
+Cc: cohuck@redhat.com
+Cc: davem@davemloft.net
+Cc: deller@gmx.de
+Cc: devel@driverdev.osuosl.org
+Cc: gerald.schaefer@de.ibm.com
+Cc: gregkh@linuxfoundation.org
+Cc: heiko.carstens@de.ibm.com
+Cc: hoeppner@linux.vnet.ibm.com
+Cc: hpa@zytor.com
+Cc: jejb@parisc-linux.org
+Cc: jwi@linux.vnet.ibm.com
+Cc: linux-api@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: mark.rutland@arm.com
+Cc: mingo@redhat.com
+Cc: mpe@ellerman.id.au
+Cc: oberpar@linux.vnet.ibm.com
+Cc: oprofile-list@lists.sf.net
+Cc: paulus@samba.org
+Cc: peterz@infradead.org
+Cc: ralf@linux-mips.org
+Cc: rostedt@goodmis.org
+Cc: rric@kernel.org
+Cc: schwidefsky@de.ibm.com
+Cc: sebott@linux.vnet.ibm.com
+Cc: sparclinux@vger.kernel.org
+Cc: sth@linux.vnet.ibm.com
+Cc: ubraun@linux.vnet.ibm.com
+Cc: will.deacon@arm.com
+Cc: x86@kernel.org
