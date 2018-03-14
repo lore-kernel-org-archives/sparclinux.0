@@ -1,55 +1,40 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Thu, 01 Feb 2018 18:01:17 +0000
-Subject: [PATCH v11 09/10] mm: Allow arch code to override copy_highpage()
-Message-Id: <3e5949f4cedfdd499bd745135bd99f36cbb13503.1517497017.git.khalid.aziz@oracle.com>
+From: cathy.zhou@oracle.com
+Date: Wed, 14 Mar 2018 17:56:07 +0000
+Subject: [PATCH net-next] sunvnet: does not support GSO for sctp
+Message-Id: <1521050167-3946-1-git-send-email-cathy.zhou@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1517497017.git.khalid.aziz@oracle.com>
-In-Reply-To: <cover.1517497017.git.khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, davem@davemloft.net
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, kstewart@linuxfoundation.org, pombredanne@nexb.com, tglx@linutronix.de, anthony.yznaga@oracle.com, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Khalid Aziz <khalid@gonehiking.org>
+To: davem@davemloft.net, netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 
-Some architectures can support metadata for memory pages and when a
-page is copied, its metadata must also be copied. Sparc processors
-from M7 onwards support metadata for memory pages. This metadata
-provides tag based protection for access to memory pages. To maintain
-this protection, the tag data must be copied to the new page when a
-page is migrated across NUMA nodes. This patch allows arch specific
-code to override default copy_highpage() and copy metadata along
-with page data upon migration.
+From: Cathy Zhou <Cathy.Zhou@Oracle.COM>
 
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+The NETIF_F_GSO_SOFTWARE implies support for GSO on SCTP, but the
+sunvnet driver does not support GSO for sctp.  Here we remove the
+NETIF_F_GSO_SOFTWARE feature flag and only report NETIF_F_ALL_TSO
+instead.
+
+Signed-off-by: Cathy Zhou <Cathy.Zhou@Oracle.COM>
+Signed-off-by: Shannon Nelson <shannon.nelson@oracle.com>
 ---
-v9:
-	- new patch
+ drivers/net/ethernet/sun/sunvnet.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- include/linux/highmem.h | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index 776f90f3a1cd..0690679832d4 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -237,6 +237,8 @@ static inline void copy_user_highpage(struct page *to, struct page *from,
+diff --git a/drivers/net/ethernet/sun/sunvnet.c b/drivers/net/ethernet/sun/sunvnet.c
+index 63d3d6b..a94f504 100644
+--- a/drivers/net/ethernet/sun/sunvnet.c
++++ b/drivers/net/ethernet/sun/sunvnet.c
+@@ -312,7 +312,7 @@ static void vnet_poll_controller(struct net_device *dev)
+ 	dev->ethtool_ops = &vnet_ethtool_ops;
+ 	dev->watchdog_timeo = VNET_TX_TIMEOUT;
  
- #endif
+-	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_GSO_SOFTWARE |
++	dev->hw_features = NETIF_F_TSO | NETIF_F_GSO | NETIF_F_ALL_TSO |
+ 			   NETIF_F_HW_CSUM | NETIF_F_SG;
+ 	dev->features = dev->hw_features;
  
-+#ifndef __HAVE_ARCH_COPY_HIGHPAGE
-+
- static inline void copy_highpage(struct page *to, struct page *from)
- {
- 	char *vfrom, *vto;
-@@ -248,4 +250,6 @@ static inline void copy_highpage(struct page *to, struct page *from)
- 	kunmap_atomic(vfrom);
- }
- 
-+#endif
-+
- #endif /* _LINUX_HIGHMEM_H */
 -- 
-2.11.0
+1.7.1
 
