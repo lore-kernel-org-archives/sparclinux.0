@@ -1,54 +1,57 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 18 Mar 2018 17:40:22 +0000
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Sun, 18 Mar 2018 18:05:14 +0000
 Subject: Re: [RFC PATCH 3/6] fs: provide generic compat_sys_p{read,write}64() implementations
-Message-Id: <CA+55aFy3THY_nw7NNeUZYoGcszSDkGW-DFK0K063uFMUEO9w=g@mail.gmail.com>
+Message-Id: <20180318180514.GT30522@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180318161056.5377-1-linux@dominikbrodowski.net> <20180318161056.5377-4-linux@dominikbrodowski.net>
+References: <20180318161056.5377-1-linux@dominikbrodowski.net>
+ <20180318161056.5377-4-linux@dominikbrodowski.net>
 In-Reply-To: <20180318161056.5377-4-linux@dominikbrodowski.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Al Viro <viro@zeniv.linux.org.uk>, linux-arch <linux-arch@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mips <linux-mips@linux-mips.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-s390 <linux-s390@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, the arch/x86 maintainers <x86@kernel.org>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, arnd@arndb.de, linux-arch@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-s390@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, x86@kernel.org
 
-Honestly, I think the patches like this are disgusting:
+On Sun, Mar 18, 2018 at 05:10:53PM +0100, Dominik Brodowski wrote:
 
-On Sun, Mar 18, 2018 at 9:10 AM, Dominik Brodowski
-<linux@dominikbrodowski.net> wrote:
 > +#ifdef __ARCH_WANT_COMPAT_SYS_PREADWRITE64
 > +#if defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +       defined(__ARCH_WANT_LE_COMPAT_SYS)
+> +	defined(__ARCH_WANT_LE_COMPAT_SYS)
 > +COMPAT_SYSCALL_DEFINE6(pread64, unsigned int, fd, char __user *, ubuf,
-> +                      u32, count, u32, padding, u32, poslo, u32, poshi)
+> +		       u32, count, u32, padding, u32, poslo, u32, poshi)
 > +#elif defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +       !defined(__ARCH_WANT_LE_COMPAT_SYS)
+> +	!defined(__ARCH_WANT_LE_COMPAT_SYS)
 > +COMPAT_SYSCALL_DEFINE6(pread64, unsigned int, fd, char __user *, ubuf,
-> +                      u32, count, u32, padding, u32, poshi, u32, poslo)
+> +		       u32, count, u32, padding, u32, poshi, u32, poslo)
 > +#elif !defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +       defined(__ARCH_WANT_LE_COMPAT_SYS)
+> +	defined(__ARCH_WANT_LE_COMPAT_SYS)
 > +COMPAT_SYSCALL_DEFINE5(pread64, unsigned int, fd, char __user *, ubuf,
-> +                      u32, count, u32, poslo, u32, poshi)
+> +		       u32, count, u32, poslo, u32, poshi)
 > +#else /* no padding, big endian */
 > +COMPAT_SYSCALL_DEFINE5(pread64, unsigned int, fd, char __user *, ubuf,
-> +                      u32, count, u32, poshi, u32, poslo)
+> +		       u32, count, u32, poshi, u32, poslo)
 > +#endif
 > +{
 > +#ifdef CONFIG_S390
-> +       if ((compat_ssize_t) count < 0)
-> +               return -EINVAL;
+> +	if ((compat_ssize_t) count < 0)
+> +		return -EINVAL;
 > +#endif /* CONFIG_S390 */
+> +	return do_pread64(fd, ubuf, count,
+> +			  ((loff_t) (unsigned long) (poshi) << 32) |
+> +				(unsigned long) (poslo));
+> +}
 
-and we should just keep code like this entirely architecture-dependent.
+Egads...  You have 4 ifdefs before you even get to the body.  And good luck
+trying to actually keep track of that mess.
 
-It doesn't save all that many lines:
+They clearly go in 2 pairs, right?  One parameter is "do we have padding"
+(= does ABI prohibit passing 64bit value in 4th and 5th words), another
+is the order in which the halves of 64bit are passed.  On l-e you have
+bits 0..31 in the first one and bits 32..63 in the second; on b-e it's the
+other way round.
 
- 19 files changed, 97 insertions(+), 106 deletions(-)
-
-and the lines it adds are an unreadable mess compared to the lines it removes.
-
-So please keep the high/low/padding stuff in the arch wrapper, and
-just make them use "do_pwrite64()" and friends instead (or
-"kern_pwrite64()", or whatever we ended up using as the kernel naming
-for in-kernel system call wrappers).
-
-                Linus
+Only the logics for putting them together into a 64bit value cares which
+half is which; insisting on the names of form <something>{hi,lo} gives
+you arseloads of similar variants in ifdefs, all for the sake of not
+having conditional code in the body.  Or, actually, in the inlined
+helper for building that 64bit out of two halves...
