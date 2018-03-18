@@ -1,57 +1,43 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Sun, 18 Mar 2018 18:05:14 +0000
-Subject: Re: [RFC PATCH 3/6] fs: provide generic compat_sys_p{read,write}64() implementations
-Message-Id: <20180318180514.GT30522@ZenIV.linux.org.uk>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 18 Mar 2018 16:07:34 +0000
+Subject: Re: [PATCH v1 0/2] PCI: Sparc 64-bit resource fixups
+Message-Id: <20180318.120734.1936832399192758981.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180318161056.5377-1-linux@dominikbrodowski.net>
- <20180318161056.5377-4-linux@dominikbrodowski.net>
-In-Reply-To: <20180318161056.5377-4-linux@dominikbrodowski.net>
+References: <20180215151118.196756.99622.stgit@bhelgaas-glaptop.roam.corp.google.com>
+	<20180220233935.GE32228@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20180220233935.GE32228@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org, arnd@arndb.de, linux-arch@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-s390@vger.kernel.org, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Jiri Slaby <jslaby@suse.com>, x86@kernel.org
+To: helgaas@kernel.org
+Cc: khalid.aziz@oracle.com, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, yinghai@kernel.org, linux-kernel@vger.kernel.org, david.ahern@oracle.com, linux@iam.tj
 
-On Sun, Mar 18, 2018 at 05:10:53PM +0100, Dominik Brodowski wrote:
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Tue, 20 Feb 2018 17:39:35 -0600
 
-> +#ifdef __ARCH_WANT_COMPAT_SYS_PREADWRITE64
-> +#if defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +	defined(__ARCH_WANT_LE_COMPAT_SYS)
-> +COMPAT_SYSCALL_DEFINE6(pread64, unsigned int, fd, char __user *, ubuf,
-> +		       u32, count, u32, padding, u32, poslo, u32, poshi)
-> +#elif defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +	!defined(__ARCH_WANT_LE_COMPAT_SYS)
-> +COMPAT_SYSCALL_DEFINE6(pread64, unsigned int, fd, char __user *, ubuf,
-> +		       u32, count, u32, padding, u32, poshi, u32, poslo)
-> +#elif !defined(__ARCH_WANT_COMPAT_SYS_WITH_PADDING) && \
-> +	defined(__ARCH_WANT_LE_COMPAT_SYS)
-> +COMPAT_SYSCALL_DEFINE5(pread64, unsigned int, fd, char __user *, ubuf,
-> +		       u32, count, u32, poslo, u32, poshi)
-> +#else /* no padding, big endian */
-> +COMPAT_SYSCALL_DEFINE5(pread64, unsigned int, fd, char __user *, ubuf,
-> +		       u32, count, u32, poshi, u32, poslo)
-> +#endif
-> +{
-> +#ifdef CONFIG_S390
-> +	if ((compat_ssize_t) count < 0)
-> +		return -EINVAL;
-> +#endif /* CONFIG_S390 */
-> +	return do_pread64(fd, ubuf, count,
-> +			  ((loff_t) (unsigned long) (poshi) << 32) |
-> +				(unsigned long) (poslo));
-> +}
+> Both these patches are on my pci/sparc branch and appeared in the
+> Feb 19 linux-next tree.
+> 
+> Any testing and feedback (especially on the second patch, which should
+> change /proc/iomem) would be great.
+> 
+> They're headed for v4.17 unless I hear about issues.
+> 
+> It would be useful to hear about what's still broken so I can try to
+> pull in the other patches.
 
-Egads...  You have 4 ifdefs before you even get to the body.  And good luck
-trying to actually keep track of that mess.
+I don't understand why you put the SYSTEM and Video ROM at addresses
+relative to absolute zero.  The result of this is that it might
+overlap real physical memory.
 
-They clearly go in 2 pairs, right?  One parameter is "do we have padding"
-(= does ABI prohibit passing 64bit value in 4th and 5th words), another
-is the order in which the halves of 64bit are passed.  On l-e you have
-bits 0..31 in the first one and bits 32..63 in the second; on b-e it's the
-other way round.
+If a VGA card is present, it's ROM will respond to those addresses
+relative to the PCI controller's MEM space area.
 
-Only the logics for putting them together into a 64bit value cares which
-half is which; insisting on the names of form <something>{hi,lo} gives
-you arseloads of similar variants in ifdefs, all for the sake of not
-having conditional code in the body.  Or, actually, in the inlined
-helper for building that 64bit out of two halves...
+Their legacy resources are "hardwired", but those hardwired addresses
+need to be relative to the PCI host controller's MEM areas in order
+for them to be accessible.
+
+I could understand removing the System ROM resource altogether, that
+makes a lot of sense to me.
+
+Thanks.
