@@ -1,31 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 20 Mar 2018 21:04:41 +0000
-Subject: Re: [PATCH v2 0/2] PCI: Sparc 64-bit resource fixups
-Message-Id: <20180320.170441.1570889987094445930.davem@davemloft.net>
+From: "Dr. Heinz Beck" <doburoku@sumiresou.com>
+Date: Sun, 18 Mar 2018 08:21:42 +0000
+Subject: YOUR MESSAGE
+Message-Id: <201803180821.w2I8LgDC004678@www1800.sakura.ne.jp>
 List-Id: <sparclinux.vger.kernel.org>
-References: <152157662729.167463.14127576964193645242.stgit@bhelgaas-glaptop.roam.corp.google.com>
-In-Reply-To: <152157662729.167463.14127576964193645242.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: helgaas@kernel.org
-Cc: david.ahern@oracle.com, airlied@linux.ie, linux-pci@vger.kernel.org, linux@iam.tj, alex.williamson@redhat.com, dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org, khalid.aziz@oracle.com, sparclinux@vger.kernel.org, yinghai@kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Tue, 20 Mar 2018 15:14:01 -0500
 
-> These are from an old series from Yinghai [1] that fix some issues on
-> sparc64.  The v1 posting is at [2].
-> 
-> [1] https://lkml.kernel.org/r/20170421050500.13957-1-yinghai@kernel.org
-> [2] https://lkml.kernel.org/r/20180215151118.196756.99622.stgit@bhelgaas-glaptop.roam.corp.google.com
-> 
-> Changes from v1:
-> - In v1, I reserved the "Video ROM" and "System ROM" regions from system
->   memory, not from the PCI bus address space.  In v2, I removed those
->   reservations completely because they seem to be copied from x86 and are
->   not applicable on sparc.
-
-For the series:
-
-Acked-by: David S. Miller <davem@davemloft.net>
+Dear Beneficiary!
+ 
+This is to inform you that your fund of $1.5Million USD has been deposited with Western Union Money Transfer under care of Ms Janet Foreman, Western Union Money Transfer Manager. You are advised to contact her immediately with this following details:
+ 
+Receiver's Name_______________
+Home Address:__________________
+Telephone#:_____________________
+Zipcode:_________________
+ 
+Contact Ms JANET here for more details and direction how you can start receiving your fund. According to her, sum of $5000.00 will be sending to you daily till the total amount of $1.5Million is completely transferred. Here is her contact information to reach her:
+ 
+Attn: Ms Janet Foreman
+Western Union Manager.
+Telephone# +229 6965 6978
+E-mail: office606file571@gmail.com
+ 
+You start receiving your daily payments. Your immediate response will be appreciated.
+ 
+Dr. Heinz Beck
