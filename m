@@ -1,87 +1,78 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Tue, 20 Mar 2018 00:12:24 +0000
-Subject: sparc_pipe(2) (was Re: [RFC PATCH 4/6] mm: provide generic compat_sys_readahead() implementation)
-Message-Id: <20180320001224.GY30522@ZenIV.linux.org.uk>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Tue, 20 Mar 2018 20:14:17 +0000
+Subject: [PATCH v2 2/2] sparc/PCI: Stop reserving System ROM and Video ROM in PCI space
+Message-Id: <152157685713.167463.4236364024847068642.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <152157662729.167463.14127576964193645242.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <152157662729.167463.14127576964193645242.stgit@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: David Ahern <david.ahern@oracle.com>, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, TJ <linux@iam.tj>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Alex Williamson <alex.williamson@redhat.com>, sparclinux@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
 
-On Mon, Mar 19, 2018 at 04:23:00AM +0000, Al Viro wrote:
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-> 3) sparc wrappers in sys32.S.  Most of those got killed off back in 2012,
-> what remained was
-> SIGN1(sys32_getrusage, compat_sys_getrusage, %o0)
-> SIGN1(sys32_readahead, compat_sys_readahead, %o0)
-> SIGN2(sys32_fadvise64, compat_sys_fadvise64, %o0, %o4)
-> SIGN2(sys32_fadvise64_64, compat_sys_fadvise64_64, %o0, %o5)
-> SIGN1(sys32_clock_nanosleep, compat_sys_clock_nanosleep, %o1)
-> SIGN1(sys32_timer_settime, compat_sys_timer_settime, %o1)
-> SIGN1(sys32_io_submit, compat_sys_io_submit, %o1)
-> SIGN1(sys32_mq_open, compat_sys_mq_open, %o1)
-> SIGN1(sys32_select, compat_sys_select, %o0)
-> SIGN3(sys32_futex, compat_sys_futex, %o1, %o2, %o5)
-> SIGN2(sys32_sendfile, compat_sys_sendfile, %o0, %o1)
-> SIGN1(sys32_recvfrom, compat_sys_recvfrom, %o0)
-> SIGN1(sys32_recvmsg, compat_sys_recvmsg, %o0)
-> SIGN1(sys32_sendmsg, compat_sys_sendmsg, %o0)
-> SIGN2(sys32_sync_file_range, compat_sync_file_range, %o0, %o5)
-> SIGN1(sys32_vmsplice, compat_sys_vmsplice, %o0)
-> with some of those killed off later and (completely pointless)
-> SIGN2(sys32_renameat2, sys_renameat2, %o0, %o2)
-> added.
-> 
-> Since then clock_nanosleep(), timer_settime(), io_submit(), mq_open(),
-> select(), recvfrom(), recvmsg(), sendmsg(), getrusage(), sync_file_range(),
-> futex() and vmsplice() got switched to COMPAT_SYSCALL_DEFINE, making those
-> SIGN... wrappers pointless.  That leaves
-> SIGN1(sys32_readahead, compat_sys_readahead, %o0)
-> SIGN2(sys32_fadvise64, compat_sys_fadvise64, %o0, %o4)
-> SIGN2(sys32_fadvise64_64, compat_sys_fadvise64_64, %o0, %o5)
-> all of which are right there in arch/sparc/kernel/sys_sparc32.c and
-> trivially converted to COMPAT_SYSCALL_DEFINE.  Which would kill all the
-> SIGN... bunch off, leaving there sys_mmap() and sys_socketcall()
+Previously, pci_register_legacy_regions() reserved PCI address space under
+every PCI host bridge for the System ROM and the Video ROM, but these
+regions are not part of PCI address space.
 
-Speaking of sparc...  Is there any reason why we bother with
-sys_sparc_pipe:
-        ba,pt   %xcc, sys_sparc_pipe_real
-         add    %sp, PTREGS_OFF, %o0
+Previously, pci_register_legacy_regions() reserved the following areas of
+PCI address space under every PCI host bridge:
 
-SYSCALL_DEFINE1(sparc_pipe_real, struct pt_regs *, regs)
-{
-        int fd[2];
-        int error;
+  [bus 0xa0000-0xbffff]    Video RAM area (VGA frame buffer)
+  [bus 0xc0000-0xc7fff]    Video ROM
+  [bus 0xf0000-0xfffff]    System ROM
 
-        error = do_pipe_flags(fd, 0);
-        if (error)
-                goto out;
-        regs->u_regs[UREG_I1] = fd[1];
-        error = fd[0];   
-out:   
-        return error;
-}
+It does need to reserve the [bus 0xa0000-0xbffff] region (at least if
+there's a possibility of a VGA device below the bridge) because VGA devices
+can respond to that even if they don't describe it with a BAR.
 
-instead of
+But the Video ROM and System ROM areas don't seem necessary because they
+are not areas that legacy PCI devices respond to.
 
-SYSCALL_DEFINE0(sparc_pipe)
-{
-        int fd[2];
-        int error;
+They appear to be copied from x86, where they describe areas of system
+memory that depend on BIOS conventions.  On x86, BIOS copies the option ROM
+of the primary VGA device to RAM at 0xc0000, and the 0xf0000-0xfffff region
+is reserved for the motherboard BIOS.  Neither of these things applies to
+sparc.
 
-        error = do_pipe_flags(fd, 0);
-        if (error)
-                goto out;
-        current_pt_regs()->u_regs[UREG_I1] = fd[1];
-        error = fd[0];   
-out:   
-        return error;
-}
+Stop reserving the System ROM and Video ROM regions in PCI space.
 
-After all, current_pt_regs() on sparc is
-%g6 + THREAD_SIZE - sizeof(struct pt_regs), i.e. g6 + <constant>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ arch/sparc/kernel/pci_common.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-So we are trading use of constant circa 16K for extra branch + use of
-constant circa 2K?  Doesn't look like there would be any benefit...
-Am I missing something here, or is it simply that the thing predates
-current_pt_regs()?
+diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
+index 14fa74f90fdb..38d46bcc8634 100644
+--- a/arch/sparc/kernel/pci_common.c
++++ b/arch/sparc/kernel/pci_common.c
+@@ -344,26 +344,6 @@ static void pci_register_legacy_regions(struct resource *io_res,
+ 	p->end = p->start + 0x1ffffUL;
+ 	p->flags = IORESOURCE_BUSY;
+ 	request_resource(mem_res, p);
+-
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
+-		return;
+-
+-	p->name = "System ROM";
+-	p->start = mem_res->start + 0xf0000UL;
+-	p->end = p->start + 0xffffUL;
+-	p->flags = IORESOURCE_BUSY;
+-	request_resource(mem_res, p);
+-
+-	p = kzalloc(sizeof(*p), GFP_KERNEL);
+-	if (!p)
+-		return;
+-
+-	p->name = "Video ROM";
+-	p->start = mem_res->start + 0xc0000UL;
+-	p->end = p->start + 0x7fffUL;
+-	p->flags = IORESOURCE_BUSY;
+-	request_resource(mem_res, p);
+ }
+ 
+ static void pci_register_iommu_region(struct pci_pbm_info *pbm)
+
