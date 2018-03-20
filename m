@@ -1,36 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 15 Mar 2018 21:20:49 +0000
-Subject: [GIT] Sparc
-Message-Id: <20180315.172049.277308110149944782.davem@davemloft.net>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Tue, 20 Mar 2018 20:14:01 +0000
+Subject: [PATCH v2 0/2] PCI: Sparc 64-bit resource fixups
+Message-Id: <152157662729.167463.14127576964193645242.stgit@bhelgaas-glaptop.roam.corp.google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: David Ahern <david.ahern@oracle.com>, David Airlie <airlied@linux.ie>, linux-pci@vger.kernel.org, TJ <linux@iam.tj>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Alex Williamson <alex.williamson@redhat.com>, sparclinux@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>
+
+These are from an old series from Yinghai [1] that fix some issues on
+sparc64.  The v1 posting is at [2].
+
+[1] https://lkml.kernel.org/r/20170421050500.13957-1-yinghai@kernel.org
+[2] https://lkml.kernel.org/r/20180215151118.196756.99622.stgit@bhelgaas-glaptop.roam.corp.google.com
+
+Changes from v1:
+- In v1, I reserved the "Video ROM" and "System ROM" regions from system
+  memory, not from the PCI bus address space.  In v2, I removed those
+  reservations completely because they seem to be copied from x86 and are
+  not applicable on sparc.
+
+---
+
+Bjorn Helgaas (1):
+      sparc/PCI: Stop reserving System ROM and Video ROM in PCI space
+
+Yinghai Lu (1):
+      sparc/PCI: Support arbitrary host bridge address offset
 
 
-Please pull to get this sparc64 PMD handling regression fix.
-
-Thank you!
-
-The following changes since commit e2c15aff5f353ba80bd3bb49840837f65fa5cc43:
-
-  Merge tag 'sound-4.16-rc6' of git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound (2018-03-15 11:07:35 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to cfb61b5e3e09f8b49bc4d685429df75f45127adc:
-
-  sparc64: Fix regression in pmdp_invalidate(). (2018-03-15 14:18:00 -0700)
-
-----------------------------------------------------------------
-David S. Miller (1):
-      sparc64: Fix regression in pmdp_invalidate().
-
- arch/sparc/mm/tlb.c | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ arch/sparc/kernel/pci.c        |    6 ++--
+ arch/sparc/kernel/pci_common.c |   54 +++++++++++++++++++---------------------
+ arch/sparc/kernel/pci_impl.h   |    4 +++
+ 3 files changed, 33 insertions(+), 31 deletions(-)
