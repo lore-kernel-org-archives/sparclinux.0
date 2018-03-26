@@ -1,94 +1,225 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Mon, 12 Mar 2018 17:59:53 +0000
-Subject: Re: [PATCH v3 02/10] include: Move compat_timespec/ timeval to compat_time.h
-Message-Id: <CABeXuvo-D-NFhhx9KXDFy6bYjp0-XZvoky6ugQGdBZr8DjUzxw@mail.gmail.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 26 Mar 2018 15:53:54 +0000
+Subject: [PATCH v2,10/10] kbuild: mark $(targets) as .SECONDARY and remove .PRECIOUS markers
+Message-Id: <1522079634-5947-1-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180116021818.24791-1-deepa.kernel@gmail.com>
- <20180116021818.24791-3-deepa.kernel@gmail.com> <c6fb6676-a8d3-8893-660c-2b9899c5d5ab@de.ibm.com>
- <CAK8P3a0Gm1L70EaFzJBk0drRNKtX0FE22BHOSrXBgH1wNfKZ5A@mail.gmail.com>
- <d8480da9-afe9-8a43-9c47-50919215a2de@de.ibm.com> <CABeXuvrdPV0q4ufuxEnqT6T3b8pCT5RLUfuAZ_cwXr0it8gj0Q@mail.gmail.com>
-In-Reply-To: <CABeXuvrdPV0q4ufuxEnqT6T3b8pCT5RLUfuAZ_cwXr0it8gj0Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Thomas Gleixner <tglx@linutronix.de>, John Stultz <john.stultz@linaro.org>, Mark Rutland <mark.rutland@arm.com>, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Peter Zijlstra <peterz@infradead.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, devel@driverdev.osuosl.org, linux-s390 <linux-s390@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, the arch/x86 maintainers <x86@kernel.org>, sebott@linux.vnet.ibm.com, "James E.J. Bottomley" <jejb@parisc-linux.org>, Will Deacon <will.deacon@arm.com>, Ingo Molnar <mingo@redhat.com>, oprofile-list@lists.sf.net, Catalin Marinas <catalin.marinas@arm.com>, Robert Richter <rric@kernel.org>, Chris Metcalf <cmetcalf@mellanox.com>, Peter Oberparleiter <oberpar@linux.vnet.ibm.com>, Arnaldo Carvalho de Melo <acme@kernel.org>, Julian Wiedmann <jwi@linux.vnet.ibm.com>, Steven Rostedt <rostedt@goodmis.org>, Ursula Braun <ubraun@linux.vnet.ibm.com>, gerald.schaefer@de.ibm.com, Parisc List <linux-parisc@vger.kernel.org>, gregkh <gregkh@linuxfoundation.org>, cohuck@redhat.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Jan Hoeppner <hoeppner@linux.vnet.ibm.com>, Stefan Haberland <sth@linux.vnet.ibm.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, David Miller <davem@davemloft.net>
+To: linux-arm-kernel@lists.infradead.org
 
-I posted the updated series. I fixed up the order of include files
-where I could find some order.
-There have been other commits that used scripts to do such
-replacements and have already stomped on the order.
-For example:
+GNU Make automatically deletes intermediate files that are updated
+in a chain of pattern rules.
 
-commit 7c0f6ba682b9c7632072ffbedf8d328c8f3c42ba
-Author: Linus Torvalds <torvalds@linux-foundation.org>
-Replace <asm/uaccess.h> with <linux/uaccess.h> globally
+Example 1) %.dtb.o <- %.dtb.S <- %.dtb <- %.dts
+Example 2) %.o <- %.c <- %.c_shipped
 
--Deepa
+A couple of makefiles mark such targets as .PRECIOUS to prevent Make
+from deleting them, but the correct way is to use .SECONDARY.
 
+  .SECONDARY
+    Prerequisites of this special target are treated as intermediate
+    files but are never automatically deleted.
 
-On Tue, Mar 6, 2018 at 2:58 PM, Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> On Tue, Mar 6, 2018 at 4:48 AM, Christian Borntraeger
-> <borntraeger@de.ibm.com> wrote:
->>
->>
->> On 03/06/2018 01:46 PM, Arnd Bergmann wrote:
->>> On Mon, Mar 5, 2018 at 10:30 AM, Christian Borntraeger
->>> <borntraeger@de.ibm.com> wrote:
->>>> On 01/16/2018 03:18 AM, Deepa Dinamani wrote:
->>>>> All the current architecture specific defines for these
->>>>> are the same. Refactor these common defines to a common
->>>>> header file.
->>>>>
->>>>> The new common linux/compat_time.h is also useful as it
->>>>> will eventually be used to hold all the defines that
->>>>> are needed for compat time types that support non y2038
->>>>> safe types. New architectures need not have to define these
->>>>> new types as they will only use new y2038 safe syscalls.
->>>>> This file can be deleted after y2038 when we stop supporting
->>>>> non y2038 safe syscalls.
->>>>
->>>> You are now include a <linux/*.h> from several asm files
->>>> (
->>>>  arch/arm64/include/asm/stat.h
->>>>  arch/s390/include/asm/elf.h
->>>>  arch/x86/include/asm/ftrace.h
->>>>  arch/x86/include/asm/sys_ia32.h
->>>> )
->>>> It works, and it is done in many places, but it looks somewhat weird.
->>>> Would it make sense to have an asm-generic/compate-time.h instead? Asking for
->>>> opinions here.
->>>
->>> I don't think we have such a rule. If a header file is common to all
->>> architectures (i.e. no architecture uses a different implementation),
->>> it should be in include/linux rather than include/asm-generic, regardless
->>> of whether it can be used by assembler files or not.
->>>
->>>>> --- a/drivers/s390/net/qeth_core_main.c
->>>>> +++ b/drivers/s390/net/qeth_core_main.c
->>>>> @@ -32,7 +32,7 @@
->>>>>  #include <asm/chpid.h>
->>>>>  #include <asm/io.h>
->>>>>  #include <asm/sysinfo.h>
->>>>> -#include <asm/compat.h>
->>>>> +#include <linux/compat.h>
->>>>>  #include <asm/diag.h>
->>>>>  #include <asm/cio.h>
->>>>>  #include <asm/ccwdev.h>
->>>>
->>>> Can you move that into the other includes (where all the other <linux/*> includes are.
->>>
->>> Good catch, this is definitely a rule we have ;-)
->>
->> FWIW, this was also broken for
->> arch/x86/include/asm/sys_ia32.h
->
-> The reason that this was done this way is because of the sed script
-> mentioned in the commit text.
-> I was trying to make minimal change apart from the script so that we
-> don't have other changes like moving the lines to keep the patch
-> simpler.
-> I will fix this by hand since this is preferred.
-> I will post an update.
->
-> -Deepa
+  .PRECIOUS
+    When make is interrupted during execution, it may delete the target
+    file it is updating if the file was modified since make started.
+    If you mark the file as precious, make will never delete the file
+    if interrupted.
+
+Both can avoid deletion of intermediate files, but the difference is
+the behavior when Make is interrupted; .SECONDARY deletes the target,
+but .PRECIOUS does not.
+
+The use of .PRECIOUS is relatively rare since we do not want to keep
+partially constructed (possibly corrupted) targets.
+
+Another difference is that .PRECIOUS works with pattern rules whereas
+.SECONDARY does not.
+
+  .PRECIOUS: $(obj)/%.lex.c
+
+works, but
+
+  .SECONDARY: $(obj)/%.lex.c
+
+has no effect.  However, for the reason above, I do not want to use
+.PRECIOUS which could cause obscure build breakage.
+
+The targets specified as .SECONDARY must be explicit.  $(targets)
+contains all targets that need to include .*.cmd files.  So, the
+intermediates you want to keep are mostly in there.  Therefore, mark
+$(targets) as .SECONDARY.  It means primary targets are also marked
+as .SECONDARY, but I do not see any drawback for this.
+
+I replaced some .SECONDARY / .PRECIOUS markers with 'targets'.  This
+will make Kbuild search for non-existing .*.cmd files, but this is
+not a noticeable performance issue.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Acked-by: Frank Rowand <frowand.list@gmail.com>
+---
+ arch/arc/boot/dts/Makefile        |  2 --
+ arch/arm/crypto/Makefile          |  2 +-
+ arch/arm64/crypto/Makefile        |  2 +-
+ arch/metag/boot/dts/Makefile      |  2 --
+ arch/sparc/vdso/Makefile          |  4 +---
+ arch/x86/entry/vdso/Makefile      |  4 +---
+ drivers/of/unittest-data/Makefile |  4 ----
+ scripts/Makefile.build            | 10 +++++++---
+ scripts/Makefile.lib              |  3 ---
+ 9 files changed, 11 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arc/boot/dts/Makefile b/arch/arc/boot/dts/Makefile
+index 22a4c5d..a83c4f5 100644
+--- a/arch/arc/boot/dts/Makefile
++++ b/arch/arc/boot/dts/Makefile
+@@ -9,8 +9,6 @@ endif
+ obj-y   += $(builtindtb-y).dtb.o
+ dtb-y := $(builtindtb-y).dtb
+ 
+-.SECONDARY: $(obj)/$(builtindtb-y).dtb.S
+-
+ # for CONFIG_OF_ALL_DTBS test
+ dtstree	:= $(srctree)/$(src)
+ dtb-	:= $(patsubst $(dtstree)/%.dts,%.dtb, $(wildcard $(dtstree)/*.dts))
+diff --git a/arch/arm/crypto/Makefile b/arch/arm/crypto/Makefile
+index 30ef8e2..b69ea35 100644
+--- a/arch/arm/crypto/Makefile
++++ b/arch/arm/crypto/Makefile
+@@ -63,4 +63,4 @@ $(src)/sha256-core.S_shipped: $(src)/sha256-armv4.pl
+ $(src)/sha512-core.S_shipped: $(src)/sha512-armv4.pl
+ 	$(call cmd,perl)
+ 
+-.PRECIOUS: $(obj)/sha256-core.S $(obj)/sha512-core.S
++targets += sha256-core.S sha512-core.S
+diff --git a/arch/arm64/crypto/Makefile b/arch/arm64/crypto/Makefile
+index cee9b8d9..036eb23 100644
+--- a/arch/arm64/crypto/Makefile
++++ b/arch/arm64/crypto/Makefile
+@@ -76,4 +76,4 @@ $(src)/sha256-core.S_shipped: $(src)/sha512-armv8.pl
+ $(src)/sha512-core.S_shipped: $(src)/sha512-armv8.pl
+ 	$(call cmd,perlasm)
+ 
+-.PRECIOUS: $(obj)/sha256-core.S $(obj)/sha512-core.S
++targets += sha256-core.S sha512-core.S
+diff --git a/arch/metag/boot/dts/Makefile b/arch/metag/boot/dts/Makefile
+index f0a180f..16505aa 100644
+--- a/arch/metag/boot/dts/Makefile
++++ b/arch/metag/boot/dts/Makefile
+@@ -12,5 +12,3 @@ endif
+ 
+ dtb-$(CONFIG_METAG_BUILTIN_DTB)	+= $(builtindtb-y).dtb
+ obj-$(CONFIG_METAG_BUILTIN_DTB)	+= $(builtindtb-y).dtb.o
+-
+-.SECONDARY: $(obj)/$(builtindtb-y).dtb.S
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index a6615d8..dd0b5a9 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -29,9 +29,7 @@ vdso_img_cfiles := $(vdso_img-y:%=vdso-image-%.c)
+ vdso_img_sodbg := $(vdso_img-y:%=vdso%.so.dbg)
+ obj-y += $(vdso_img_objs)
+ targets += $(vdso_img_cfiles)
+-targets += $(vdso_img_sodbg)
+-.SECONDARY: $(vdso_img-y:%=$(obj)/vdso-image-%.c) \
+-	$(vdso_img-y:%=$(obj)/vdso%.so)
++targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
+ 
+ export CPPFLAGS_vdso.lds += -P -C
+ 
+diff --git a/arch/x86/entry/vdso/Makefile b/arch/x86/entry/vdso/Makefile
+index 1943aeb..d998a48 100644
+--- a/arch/x86/entry/vdso/Makefile
++++ b/arch/x86/entry/vdso/Makefile
+@@ -42,9 +42,7 @@ vdso_img_cfiles := $(vdso_img-y:%=vdso-image-%.c)
+ vdso_img_sodbg := $(vdso_img-y:%=vdso%.so.dbg)
+ obj-y += $(vdso_img_objs)
+ targets += $(vdso_img_cfiles)
+-targets += $(vdso_img_sodbg)
+-.SECONDARY: $(vdso_img-y:%=$(obj)/vdso-image-%.c) \
+-	$(vdso_img-y:%=$(obj)/vdso%.so)
++targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
+ 
+ export CPPFLAGS_vdso.lds += -P -C
+ 
+diff --git a/drivers/of/unittest-data/Makefile b/drivers/of/unittest-data/Makefile
+index 87a65ca..013d85e 100644
+--- a/drivers/of/unittest-data/Makefile
++++ b/drivers/of/unittest-data/Makefile
+@@ -30,7 +30,3 @@ DTC_FLAGS_testcases += -@
+ 
+ # suppress warnings about intentional errors
+ DTC_FLAGS_testcases += -Wno-interrupts_property
+-
+-.PRECIOUS: \
+-	$(obj)/%.dtb.S \
+-	$(obj)/%.dtb
+diff --git a/scripts/Makefile.build b/scripts/Makefile.build
+index ee004f5..67fda60 100644
+--- a/scripts/Makefile.build
++++ b/scripts/Makefile.build
+@@ -434,8 +434,6 @@ quiet_cmd_asn1_compiler = ASN.1   $@
+       cmd_asn1_compiler = $(objtree)/scripts/asn1_compiler $< \
+ 				$(subst .h,.c,$@) $(subst .c,.h,$@)
+ 
+-.PRECIOUS: $(objtree)/$(obj)/%.asn1.c $(objtree)/$(obj)/%.asn1.h
+-
+ $(obj)/%.asn1.c $(obj)/%.asn1.h: $(src)/%.asn1 $(objtree)/scripts/asn1_compiler
+ 	$(call cmd,asn1_compiler)
+ 
+@@ -573,10 +571,12 @@ targets := $(filter-out $(PHONY), $(targets))
+ intermediate_targets = $(foreach sfx, $(2), \
+ 				$(patsubst %$(strip $(1)),%$(sfx), \
+ 					$(filter %$(strip $(1)), $(targets))))
++# %.asn1.o <- %.asn1.[ch] <- %.asn1
+ # %.dtb.o <- %.dtb.S <- %.dtb <- %.dts
+ # %.lex.o <- %.lex.c <- %.l
+ # %.tab.o <- %.tab.[ch] <- %.y
+-targets += $(call intermediate_targets, .dtb.o, .dtb.S .dtb) \
++targets += $(call intermediate_targets, .asn1.o, .asn1.c .asn1.h) \
++	   $(call intermediate_targets, .dtb.o, .dtb.S .dtb) \
+ 	   $(call intermediate_targets, .lex.o, .lex.c) \
+ 	   $(call intermediate_targets, .tab.o, .tab.c .tab.h)
+ 
+@@ -616,6 +616,10 @@ $(shell mkdir -p $(obj-dirs))
+ endif
+ endif
+ 
++# Some files contained in $(targets) are intermediate artifacts.
++# We never want them to be removed automatically.
++.SECONDARY: $(targets)
++
+ # Declare the contents of the .PHONY variable as phony.  We keep that
+ # information in a variable se we can use it in if_changed and friends.
+ 
+diff --git a/scripts/Makefile.lib b/scripts/Makefile.lib
+index 2882e19..173d198 100644
+--- a/scripts/Makefile.lib
++++ b/scripts/Makefile.lib
+@@ -191,7 +191,6 @@ endef
+ quiet_cmd_flex = LEX     $@
+       cmd_flex = $(LEX) -o$@ -L $<
+ 
+-.PRECIOUS: $(obj)/%.lex.c
+ $(obj)/%.lex.c: $(src)/%.l FORCE
+ 	$(call if_changed,flex)
+ 
+@@ -200,14 +199,12 @@ $(obj)/%.lex.c: $(src)/%.l FORCE
+ quiet_cmd_bison = YACC    $@
+       cmd_bison = $(YACC) -o$@ -t -l $<
+ 
+-.PRECIOUS: $(obj)/%.tab.c
+ $(obj)/%.tab.c: $(src)/%.y FORCE
+ 	$(call if_changed,bison)
+ 
+ quiet_cmd_bison_h = YACC    $@
+       cmd_bison_h = bison -o/dev/null --defines=$@ -t -l $<
+ 
+-.PRECIOUS: $(obj)/%.tab.h
+ $(obj)/%.tab.h: $(src)/%.y FORCE
+ 	$(call if_changed,bison_h)
+ 
+-- 
+2.7.4
+
