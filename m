@@ -1,8 +1,10 @@
-From: "Sandra Y" <mamg7610885@angel.ocn.ne.jp>
-Date: Sat, 10 Mar 2018 10:58:41 +0000
+From: "Sandra Y" <mamg7610885@woody.ocn.ne.jp>
+Date: Wed, 28 Mar 2018 16:10:48 +0000
 Subject: Re: A cry for help, please don't ignore!
-Message-Id: <1520679531.ucDDeiphjwXtUucDDeh4zB@mf-smf-ucb036c3>
+Message-Id: <1522253440.1DeofFRi8pTPr1DeqfAHdR@mf-smf-ucb035c1>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1520679531.ucDDeiphjwXtUucDDeh4zB@mf-smf-ucb036c3>
+In-Reply-To: <1520679531.ucDDeiphjwXtUucDDeh4zB@mf-smf-ucb036c3>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,8 +16,8 @@ Forgive my indignation if this message comes to you as a surprise and may offend
 
 I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
 
-I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. My father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,i request that you be my tr
- ustee and assist me in th
+I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. My father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,
+i request that you be my trustee and assist me in this process.
 
 You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
 I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
