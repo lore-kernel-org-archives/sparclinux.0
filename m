@@ -1,46 +1,36 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Wed, 18 Apr 2018 16:29:56 +0000
-Subject: [PATCH 0/2] sparc64: Add privileged ADI driver
-Message-Id: <20180418162958.442909-1-tom.hromatka@oracle.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 03 Apr 2018 15:27:34 +0000
+Subject: [PATCH] sparc64: Make atomic_xchg() an inline function rather than a macro.
+Message-Id: <20180403.112734.2094972368899586063.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-ADI is a feature supported on SPARC M7 and newer processors to allow
-hardware to catch rogue accesses to memory. ADI is supported for data
-fetches only and not instruction fetches. An app can enable ADI on its
-data pages, set version tags on them and use versioned addresses to
-access the data pages. Upper bits of the address contain the version
-tag. On M7 processors, upper four bits (bits 63-60) contain the version
-tag. If a rogue app attempts to access ADI enabled data pages, its
-access is blocked and processor generates an exception. Please see
-Documentation/sparc/adi.txt for further details.
-
-This patchset implements a char driver to read/write ADI versions from
-privileged user space processes.  Intended consumers are makedumpfile
-and crash.
-
-Tom Hromatka (2):
-  char: sparc64: Add privileged ADI driver
-  selftests: sparc64: char: Selftest for privileged ADI driver
-
- drivers/char/Kconfig                               |  12 +
- drivers/char/Makefile                              |   1 +
- drivers/char/adi.c                                 | 262 ++++++++
- tools/testing/selftests/Makefile                   |   1 +
- tools/testing/selftests/sparc64/Makefile           |  52 ++
- tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
- tools/testing/selftests/sparc64/drivers/Makefile   |  13 +
- tools/testing/selftests/sparc64/drivers/adi-test.c | 727 +++++++++++++++++++++
- 8 files changed, 1069 insertions(+)
- create mode 100644 drivers/char/adi.c
- create mode 100644 tools/testing/selftests/sparc64/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
- create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
-
--- 
-2.15.0
-
+DQpUaGlzIGF2b2lkcyBhIGxvdCBvZiAtV3VudXNlZCB3YXJuaW5ncyBzdWNoIGFzOg0KDQo9PT09
+PT09PT09PT09PT09PT09PQ0Ka2VybmVsL2RlYnVnL2RlYnVnX2NvcmUuYzogSW4gZnVuY3Rpb24g
+oWtnZGJfY3B1X2VudGVyojoNCi4vYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9jbXB4Y2hnXzY0Lmg6
+NTU6MjI6IHdhcm5pbmc6IHZhbHVlIGNvbXB1dGVkIGlzIG5vdCB1c2VkIFstV3VudXNlZC12YWx1
+ZV0NCiAjZGVmaW5lIHhjaGcocHRyLHgpICgoX190eXBlb2ZfXygqKHB0cikpKV9feGNoZygodW5z
+aWduZWQgbG9uZykoeCksKHB0ciksc2l6ZW9mKCoocHRyKSkpKQ0KDQouL2FyY2gvc3BhcmMvaW5j
+bHVkZS9hc20vYXRvbWljXzY0Lmg6ODY6MzA6IG5vdGU6IGluIGV4cGFuc2lvbiBvZiBtYWNybyCh
+eGNoZ6INCiAjZGVmaW5lIGF0b21pY194Y2hnKHYsIG5ldykgKHhjaGcoJigodiktPmNvdW50ZXIp
+LCBuZXcpKQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXn5+fg0Ka2VybmVsL2RlYnVn
+L2RlYnVnX2NvcmUuYzo1MDg6NDogbm90ZTogaW4gZXhwYW5zaW9uIG9mIG1hY3JvIKFhdG9taWNf
+eGNoZ6INCiAgICBhdG9taWNfeGNoZygma2dkYl9hY3RpdmUsIGNwdSk7DQogICAgXn5+fn5+fn5+
+fn4NCj09PT09PT09PT09PT09PT09PT09DQoNClNpZ25lZC1vZmYtYnk6IERhdmlkIFMuIE1pbGxl
+ciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4NCi0tLQ0KDQpBcHBsaWVkIHRvIHNwYXJjLW5leHQuDQoN
+CiBhcmNoL3NwYXJjL2luY2x1ZGUvYXNtL2F0b21pY182NC5oIHwgNiArKysrKy0NCiAxIGZpbGUg
+Y2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQoNCmRpZmYgLS1naXQgYS9h
+cmNoL3NwYXJjL2luY2x1ZGUvYXNtL2F0b21pY182NC5oIGIvYXJjaC9zcGFyYy9pbmNsdWRlL2Fz
+bS9hdG9taWNfNjQuaA0KaW5kZXggYWJhZDk3ZWRmNzM2Li4yOGRiMDU4ZDQ3MWIgMTAwNjQ0DQot
+LS0gYS9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL2F0b21pY182NC5oDQorKysgYi9hcmNoL3NwYXJj
+L2luY2x1ZGUvYXNtL2F0b21pY182NC5oDQpAQCAtODMsNyArODMsMTEgQEAgQVRPTUlDX09QUyh4
+b3IpDQogI2RlZmluZSBhdG9taWM2NF9hZGRfbmVnYXRpdmUoaSwgdikgKGF0b21pYzY0X2FkZF9y
+ZXR1cm4oaSwgdikgPCAwKQ0KIA0KICNkZWZpbmUgYXRvbWljX2NtcHhjaGcodiwgbywgbikgKGNt
+cHhjaGcoJigodiktPmNvdW50ZXIpLCAobyksIChuKSkpDQotI2RlZmluZSBhdG9taWNfeGNoZyh2
+LCBuZXcpICh4Y2hnKCYoKHYpLT5jb3VudGVyKSwgbmV3KSkNCisNCitzdGF0aWMgaW5saW5lIGlu
+dCBhdG9taWNfeGNoZyhhdG9taWNfdCAqdiwgaW50IG5ldykNCit7DQorCXJldHVybiB4Y2hnKCZ2
+LT5jb3VudGVyLCBuZXcpOw0KK30NCiANCiBzdGF0aWMgaW5saW5lIGludCBfX2F0b21pY19hZGRf
+dW5sZXNzKGF0b21pY190ICp2LCBpbnQgYSwgaW50IHUpDQogew0KLS0gDQoyLjE0LjMNCg0K
