@@ -1,78 +1,116 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 24 Apr 2018 14:02:34 +0000
-Subject: [PATCH 2/3] dma-debug: simplify counting of preallocated requests
-Message-Id: <20180424140235.9125-3-hch@lst.de>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Date: Thu, 05 Apr 2018 21:03:50 +0000
+Subject: [PATCH v2 3/3] mm/gup: document return value
+Message-Id: <1522962072-182137-6-git-send-email-mst@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180424140235.9125-1-hch@lst.de>
-In-Reply-To: <20180424140235.9125-1-hch@lst.de>
+References: <1522962072-182137-1-git-send-email-mst@redhat.com>
+In-Reply-To: <1522962072-182137-1-git-send-email-mst@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Andrew Morton <akpm@linux-foundation.org>, Huang Ying <ying.huang@intel.com>, Jonathan Corbet <corbet@lwn.net>, Linus Torvalds <torvalds@linux-foundation.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Thorsten Leemhuis <regressions@leemhuis.info>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
 
-Just keep a single variable with a descriptive name instead of two
-with confusing names.
+__get_user_pages_fast handles errors differently from
+get_user_pages_fast: the former always returns the number of pages
+pinned, the later might return a negative error code.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 ---
- lib/dma-debug.c | 20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ arch/mips/mm/gup.c  | 2 ++
+ arch/s390/mm/gup.c  | 2 ++
+ arch/sh/mm/gup.c    | 2 ++
+ arch/sparc/mm/gup.c | 4 ++++
+ mm/gup.c            | 4 +++-
+ mm/util.c           | 6 ++++--
+ 6 files changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index 712a897174e4..075253cb613b 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -132,7 +132,7 @@ static u32 min_free_entries;
- static u32 nr_total_entries;
- 
- /* number of preallocated entries requested by kernel cmdline */
--static u32 req_entries;
-+static u32 nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
- 
- /* debugfs dentry's for the stuff above */
- static struct dentry *dma_debug_dent        __read_mostly;
-@@ -1011,7 +1011,6 @@ void dma_debug_add_bus(struct bus_type *bus)
- 
- static int dma_debug_init(void)
- {
--	u32 num_entries;
- 	int i;
- 
- 	/* Do not use dma_debug_initialized here, since we really want to be
-@@ -1032,12 +1031,7 @@ static int dma_debug_init(void)
- 		return 0;
- 	}
- 
--	if (req_entries)
--		num_entries = req_entries;
--	else
--		num_entries = PREALLOC_DMA_DEBUG_ENTRIES;
--
--	if (prealloc_memory(num_entries) != 0) {
-+	if (prealloc_memory(nr_prealloc_entries) != 0) {
- 		pr_err("DMA-API: debugging out of memory error - disabled\n");
- 		global_disable = true;
- 
-@@ -1068,16 +1062,10 @@ static __init int dma_debug_cmdline(char *str)
- 
- static __init int dma_debug_entries_cmdline(char *str)
- {
--	int res;
--
- 	if (!str)
- 		return -EINVAL;
--
--	res = get_option(&str, &req_entries);
--
--	if (!res)
--		req_entries = 0;
--
-+	if (!get_option(&str, &nr_prealloc_entries))
-+		nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
- 	return 0;
+diff --git a/arch/mips/mm/gup.c b/arch/mips/mm/gup.c
+index 1e4658e..5a4875ca 100644
+--- a/arch/mips/mm/gup.c
++++ b/arch/mips/mm/gup.c
+@@ -178,6 +178,8 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ /*
+  * Like get_user_pages_fast() except its IRQ-safe in that it won't fall
+  * back to the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
+  */
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+diff --git a/arch/s390/mm/gup.c b/arch/s390/mm/gup.c
+index 05c8abd..2809d11 100644
+--- a/arch/s390/mm/gup.c
++++ b/arch/s390/mm/gup.c
+@@ -220,6 +220,8 @@ static inline int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr,
+ /*
+  * Like get_user_pages_fast() except its IRQ-safe in that it won't fall
+  * back to the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
+  */
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+diff --git a/arch/sh/mm/gup.c b/arch/sh/mm/gup.c
+index 8045b5b..56c86ca 100644
+--- a/arch/sh/mm/gup.c
++++ b/arch/sh/mm/gup.c
+@@ -160,6 +160,8 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ /*
+  * Like get_user_pages_fast() except its IRQ-safe in that it won't fall
+  * back to the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
+  */
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 5335ba3..ca3eb69 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -192,6 +192,10 @@ static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 	return 1;
  }
  
++/*
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
++ */
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+ {
+diff --git a/mm/gup.c b/mm/gup.c
+index 8f3a064..5cb5bb1 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -1740,7 +1740,9 @@ bool gup_fast_permitted(unsigned long start, int nr_pages, int write)
+ 
+ /*
+  * Like get_user_pages_fast() except it's IRQ-safe in that it won't fall back to
+- * the regular GUP. It will only return non-negative values.
++ * the regular GUP.
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
+  */
+ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			  struct page **pages)
+diff --git a/mm/util.c b/mm/util.c
+index c125050..db2f005 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -297,8 +297,10 @@ void arch_pick_mmap_layout(struct mm_struct *mm)
+ /*
+  * Like get_user_pages_fast() except its IRQ-safe in that it won't fall
+  * back to the regular GUP.
+- * If the architecture not support this function, simply return with no
+- * page pinned
++ * Note a difference with get_user_pages_fast: this always returns the
++ * number of pages pinned, 0 if no pages were pinned.
++ * If the architecture does not support this function, simply return with no
++ * pages pinned.
+  */
+ int __weak __get_user_pages_fast(unsigned long start,
+ 				 int nr_pages, int write, struct page **pages)
 -- 
-2.17.0
+MST
 
