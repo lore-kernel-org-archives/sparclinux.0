@@ -1,55 +1,54 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Date: Thu, 05 Apr 2018 00:32:43 +0000
-Subject: Re: [sparc64] number of processors in a LDOM
-Message-Id: <alpine.LSU.2.20.1804050146150.6762@n3.vanv.qr>
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Date: Sat, 07 Apr 2018 20:44:14 +0000
+Subject: [git pull] sparc syscall stuff
+Message-Id: <20180407204414.GC30522@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqwQZJ-9T3=zS8pXkf0PUiKdw=wFjduRJg8v0mh6W4gzkw@mail.gmail.com>
-In-Reply-To: <CADxRZqwQZJ-9T3=zS8pXkf0PUiKdw=wFjduRJg8v0mh6W4gzkw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: kernelnewbies@lists.kernelnewbies.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Dominik Brodowski <linux@dominikbrodowski.net>
 
+	sparc syscall stuff - killing pointless wrappers, conversions to
+{COMPAT_,}SYSCALL_DEFINE.
 
-On Wednesday 2018-04-04 15:30, Anatoly Pugachev wrote:
->
->Can someone tell me or suggest why does getconf returns total available to a physical machine
->cpu count, and not LDOM allocated processor/vcpu count ?
->
->ttip$ getconf -a | grep PROCESSORS
->_NPROCESSORS_CONF                  256
->_NPROCESSORS_ONLN                  16
+	Conflicts in arch/sparc/kernel/sys_sparc32.c are not hard to resolve,
+but keep in mind that casts to u64 are needed there.  I'd pushed a variant of
+resolution into #test-merge.
 
-It's how the hypervisor populates the MDESC info passed to domains.
-It even does that for control domains. Almost makes one want to believe
-the 6-core T1s could be functional 8-core ones. (Who knows.)
+The following changes since commit 0c8efd610b58cb23cefdfa12015799079aef94ae:
 
+  Linux 4.16-rc5 (2018-03-11 17:25:09 -0700)
 
-jengelh@a1:~$ lscpu
-Architecture:        sparc64 (T1000)
-CPU op-mode(s):      32-bit, 64-bit
-Byte Order:          Big Endian
-CPU(s):              24
-On-line CPU(s) list: 0-23
+are available in the git repository at:
 
-Anyhow, by declaring nr_cpus_present%6 but only nr_cpus_online, domains can
-get more vCPUs assigned at a later time without rebooting the OS, if one
-assumes that the MDESC is meant to be static during runtime and/or that the OS
-cannot handle a change of nr_cpus_present (there are possibly some allocations
-of exactly this size all over the place). Similar to NR_CPUS.
+  git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git misc.sparc
 
+for you to fetch changes up to 47db69752b22de2ac315d094fd09fac31b0d3bfc:
 
+  sparc: get rid of asm wrapper for nis_syscall() (2018-03-20 12:05:17 -0400)
 
->I'm raising this issue, because some userspace tools use nproc to run parallel make for
->example. And starting from 4.15+ (but not on 4.14) kernel overcommited CPU usage (for example,
->using make -j256 on a LDOM with 16 vcpus allocated) gets me to the following (reproducible):
+----------------------------------------------------------------
+Al Viro (11):
+      sparc: get rid of sys_sparc_pipe() wrappers
+      sparc: kill useless SIGN... wrappers
+      sparc: get rid of remaining SIGN... wrappers
+      sparc: bury a zombie extern that had been that way for twenty years
+      sparc: trivial conversions to {COMPAT_,}SYSCALL_DEFINE()
+      sparc: get rid of memory_ordering(2) wrapper
+      switch sparc_remap_file_pages() to SYSCALL_DEFINE
+      convert compat sync_file_range() to COMPAT_SYSCALL_DEFINE
+      sparc: switch compat pread64 and pwrite64 to COMPAT_SYSCALL_DEFINE
+      sparc: switch compat {f,}truncate64() to COMPAT_SYSCALL_DEFINE
+      sparc: get rid of asm wrapper for nis_syscall()
 
-I consider defaulting to nr_cpus_present totally wrong for any software.
-CPUs can be offlined by the administrator at will.
-
-Second, I would also consider defaulting to on nr_cpus_online to be a subpar
-default. Some institutions (or the load balancing system in use there) use
-sched_setaffinity as a primitive measure to statically ensure that login shells
-never run on the same core as a number cruncher task.
-`make -j$(getconf _NPROCESSORS_ONLN)` would be dumb there because only e.g. 2 cores
-are available for shells/gcc - the other 14 are assigned to HPC tasks.
+ arch/sparc/kernel/entry.S        | 15 -------
+ arch/sparc/kernel/sys32.S        | 38 ------------------
+ arch/sparc/kernel/sys_sparc32.c  | 87 ++++++++++++++++------------------------
+ arch/sparc/kernel/sys_sparc_32.c | 31 +++++++-------
+ arch/sparc/kernel/sys_sparc_64.c | 18 ++++-----
+ arch/sparc/kernel/syscalls.S     |  9 -----
+ arch/sparc/kernel/systbls.h      | 53 ++++++++++++------------
+ arch/sparc/kernel/systbls_32.S   |  2 +-
+ arch/sparc/kernel/systbls_64.S   | 24 +++++------
+ 9 files changed, 97 insertions(+), 180 deletions(-)
