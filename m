@@ -1,39 +1,30 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Date: Mon, 09 Apr 2018 14:53:56 +0000
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Date: Mon, 09 Apr 2018 16:03:49 +0000
 Subject: Re: [PATCH 0/3] move __HAVE_ARCH_PTE_SPECIAL in Kconfig
-Message-Id: <20180409145344.GA3285@redhat.com>
+Message-Id: <17b19aac-fed7-23a2-013c-43ca867152e9@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
- <20180409140721.GI21835@dhcp22.suse.cz>
-In-Reply-To: <20180409140721.GI21835@dhcp22.suse.cz>
+In-Reply-To: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Mon, Apr 09, 2018 at 04:07:21PM +0200, Michal Hocko wrote:
-> On Mon 09-04-18 15:57:06, Laurent Dufour wrote:
-> > The per architecture __HAVE_ARCH_PTE_SPECIAL is defined statically in t=
-he
-> > per architecture header files. This doesn't allow to make other
-> > configuration dependent on it.
-> >=20
-> > This series is moving the __HAVE_ARCH_PTE_SPECIAL into the Kconfig file=
-s,
-> > setting it automatically when architectures was already setting it in
-> > header file.
-> >=20
-> > There is no functional change introduced by this series.
->=20
-> I would just fold all three patches into a single one. It is much easier
-> to review that those selects are done properly when you can see that the
-> define is set for the same architecture.
->=20
-> In general, I like the patch. It is always quite painful to track per
-> arch defines.
+On 04/09/2018 06:57 AM, Laurent Dufour wrote:
+> The per architecture __HAVE_ARCH_PTE_SPECIAL is defined statically in the
+> per architecture header files. This doesn't allow to make other
+> configuration dependent on it.
 
-You can also add Reviewed-by: J=E9r=F4me Glisse <jglisse@redhat> my grep fu
-showed no place that was forgotten.
+So I understand this series has more "readability" value and I'm fine with this 
+change but I wonder if you really would want to make something depend on it or 
+make this de-configurable. PTE special is really a fundamental construct - e.g. it 
+is used for anon mapped pages where zero page has been wired up etc...
 
-Cheers,
-J=E9r=F4me
+-Vineet
+
+> This series is moving the __HAVE_ARCH_PTE_SPECIAL into the Kconfig files,
+> setting it automatically when architectures was already setting it in
+> header file.
+>
+> There is no functional change introduced by this series.
+
