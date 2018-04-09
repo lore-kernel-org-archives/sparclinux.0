@@ -1,222 +1,147 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:29 +0000
-Subject: [PATCH v3 09/17] y2038: sparc: Extend sysvipc data structures
-Message-Id: <20180419143737.606138-10-arnd@arndb.de>
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Date: Mon, 09 Apr 2018 13:57:09 +0000
+Subject: [PATCH 3/3] mm: remove __HAVE_ARCH_PTE_SPECIAL
+Message-Id: <1523282229-20731-4-git-send-email-ldufour@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180419143737.606138-1-arnd@arndb.de>
-In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
+References: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
+In-Reply-To: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-sparc, uses a nonstandard variation of the generic sysvipc
-data structures, intended to have the padding moved around
-so it can deal with big-endian 32-bit user space that has
-64-bit time_t.
+It is now replaced by Kconfig variable CONFIG_ARCH_HAS_PTE_SPECIAL.
 
-Unlike most architectures, sparc actually succeeded in
-defining this right for big-endian CPUs, but as everyone else
-got it wrong, we just use the same hack everywhere.
-
-This takes just take the same approach here that we have for
-the asm-generic headers and adds separate 32-bit fields for the
-upper halves of the timestamps, to let libc deal with the mess
-in user space.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
 ---
- arch/sparc/include/asm/compat.h      | 32 ++++++++++++++++----------------
- arch/sparc/include/uapi/asm/msgbuf.h | 22 +++++++++-------------
- arch/sparc/include/uapi/asm/sembuf.h | 16 +++++++---------
- arch/sparc/include/uapi/asm/shmbuf.h | 21 +++++++++------------
- 4 files changed, 41 insertions(+), 50 deletions(-)
+ arch/arc/include/asm/pgtable.h               | 2 --
+ arch/arm/include/asm/pgtable-3level.h        | 1 -
+ arch/arm64/include/asm/pgtable.h             | 2 --
+ arch/powerpc/include/asm/book3s/64/pgtable.h | 3 ---
+ arch/powerpc/include/asm/pte-common.h        | 3 ---
+ arch/s390/include/asm/pgtable.h              | 1 -
+ arch/sh/include/asm/pgtable.h                | 2 --
+ arch/sparc/include/asm/pgtable_64.h          | 3 ---
+ arch/x86/include/asm/pgtable_types.h         | 1 -
+ 9 files changed, 18 deletions(-)
 
-diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
-index 1910c44521e3..4eb51d2dae98 100644
---- a/arch/sparc/include/asm/compat.h
-+++ b/arch/sparc/include/asm/compat.h
-@@ -192,10 +192,10 @@ struct compat_ipc64_perm {
+diff --git a/arch/arc/include/asm/pgtable.h b/arch/arc/include/asm/pgtable.h
+index 08fe33830d4b..8ec5599a0957 100644
+--- a/arch/arc/include/asm/pgtable.h
++++ b/arch/arc/include/asm/pgtable.h
+@@ -320,8 +320,6 @@ PTE_BIT_FUNC(mkexec,	|= (_PAGE_EXECUTE));
+ PTE_BIT_FUNC(mkspecial,	|= (_PAGE_SPECIAL));
+ PTE_BIT_FUNC(mkhuge,	|= (_PAGE_HW_SZ));
  
- struct compat_semid64_ds {
- 	struct compat_ipc64_perm sem_perm;
--	unsigned int	__pad1;
--	compat_time_t	sem_otime;
--	unsigned int	__pad2;
--	compat_time_t	sem_ctime;
-+	unsigned int	sem_otime_high;
-+	unsigned int	sem_otime;
-+	unsigned int	sem_ctime_high;
-+	unsigned int	sem_ctime;
- 	u32		sem_nsems;
- 	u32		__unused1;
- 	u32		__unused2;
-@@ -203,12 +203,12 @@ struct compat_semid64_ds {
- 
- struct compat_msqid64_ds {
- 	struct compat_ipc64_perm msg_perm;
--	unsigned int	__pad1;
--	compat_time_t	msg_stime;
--	unsigned int	__pad2;
--	compat_time_t	msg_rtime;
--	unsigned int	__pad3;
--	compat_time_t	msg_ctime;
-+	unsigned int	msg_stime_high;
-+	unsigned int	msg_stime;
-+	unsigned int	msg_rtime_high;
-+	unsigned int	msg_rtime;
-+	unsigned int	msg_ctime_high;
-+	unsigned int	msg_ctime;
- 	unsigned int	msg_cbytes;
- 	unsigned int	msg_qnum;
- 	unsigned int	msg_qbytes;
-@@ -220,12 +220,12 @@ struct compat_msqid64_ds {
- 
- struct compat_shmid64_ds {
- 	struct compat_ipc64_perm shm_perm;
--	unsigned int	__pad1;
--	compat_time_t	shm_atime;
--	unsigned int	__pad2;
--	compat_time_t	shm_dtime;
--	unsigned int	__pad3;
--	compat_time_t	shm_ctime;
-+	unsigned int	shm_atime_high;
-+	unsigned int	shm_atime;
-+	unsigned int	shm_dtime_high;
-+	unsigned int	shm_dtime;
-+	unsigned int	shm_ctime_high;
-+	unsigned int	shm_ctime;
- 	compat_size_t	shm_segsz;
- 	compat_pid_t	shm_cpid;
- 	compat_pid_t	shm_lpid;
-diff --git a/arch/sparc/include/uapi/asm/msgbuf.h b/arch/sparc/include/uapi/asm/msgbuf.h
-index b601c4f4d956..ffc46c211d6d 100644
---- a/arch/sparc/include/uapi/asm/msgbuf.h
-+++ b/arch/sparc/include/uapi/asm/msgbuf.h
-@@ -8,25 +8,22 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  */
+-#define __HAVE_ARCH_PTE_SPECIAL
 -
--#if defined(__sparc__) && defined(__arch64__)
--# define PADDING(x)
--#else
--# define PADDING(x) unsigned int x;
--#endif
--
--
- struct msqid64_ds {
- 	struct ipc64_perm msg_perm;
--	PADDING(__pad1)
-+#if defined(__sparc__) && defined(__arch64__)
- 	__kernel_time_t msg_stime;	/* last msgsnd time */
--	PADDING(__pad2)
- 	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	PADDING(__pad3)
- 	__kernel_time_t msg_ctime;	/* last change time */
-+#else
-+	unsigned long msg_stime_high;
-+	unsigned long msg_stime;	/* last msgsnd time */
-+	unsigned long msg_rtime_high;
-+	unsigned long msg_rtime;	/* last msgrcv time */
-+	unsigned long msg_ctime_high;
-+	unsigned long msg_ctime;	/* last change time */
-+#endif
- 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
- 	unsigned long  msg_qnum;	/* number of messages in queue */
- 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
-@@ -35,5 +32,4 @@ struct msqid64_ds {
- 	unsigned long  __unused1;
- 	unsigned long  __unused2;
- };
--#undef PADDING
- #endif /* _SPARC_MSGBUF_H */
-diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
-index f49b0ffa0ab8..f3d309c2e1cd 100644
---- a/arch/sparc/include/uapi/asm/sembuf.h
-+++ b/arch/sparc/include/uapi/asm/sembuf.h
-@@ -8,25 +8,23 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  */
--#if defined(__sparc__) && defined(__arch64__)
--# define PADDING(x)
--#else
--# define PADDING(x) unsigned int x;
--#endif
+ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ {
+ 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot));
+diff --git a/arch/arm/include/asm/pgtable-3level.h b/arch/arm/include/asm/pgtable-3level.h
+index 2a4836087358..6d50a11d7793 100644
+--- a/arch/arm/include/asm/pgtable-3level.h
++++ b/arch/arm/include/asm/pgtable-3level.h
+@@ -219,7 +219,6 @@ static inline pte_t pte_mkspecial(pte_t pte)
+ 	pte_val(pte) |= L_PTE_SPECIAL;
+ 	return pte;
+ }
+-#define	__HAVE_ARCH_PTE_SPECIAL
  
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	PADDING(__pad1)
-+#if defined(__sparc__) && defined(__arch64__)
- 	__kernel_time_t	sem_otime;		/* last semop time */
--	PADDING(__pad2)
- 	__kernel_time_t	sem_ctime;		/* last change time */
-+#else
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_otime;		/* last semop time */
-+	unsigned long	sem_ctime_high;
-+	unsigned long	sem_ctime;		/* last change time */
-+#endif
- 	unsigned long	sem_nsems;		/* no. of semaphores in array */
- 	unsigned long	__unused1;
- 	unsigned long	__unused2;
- };
--#undef PADDING
+ #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
+ #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
+diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+index 7e2c27e63cd8..b96c8a186908 100644
+--- a/arch/arm64/include/asm/pgtable.h
++++ b/arch/arm64/include/asm/pgtable.h
+@@ -306,8 +306,6 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
  
- #endif /* _SPARC64_SEMBUF_H */
-diff --git a/arch/sparc/include/uapi/asm/shmbuf.h b/arch/sparc/include/uapi/asm/shmbuf.h
-index 286631db705c..06618b84822d 100644
---- a/arch/sparc/include/uapi/asm/shmbuf.h
-+++ b/arch/sparc/include/uapi/asm/shmbuf.h
-@@ -8,24 +8,23 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  */
- 
--#if defined(__sparc__) && defined(__arch64__)
--# define PADDING(x)
--#else
--# define PADDING(x) unsigned int x;
--#endif
+-#define __HAVE_ARCH_PTE_SPECIAL
 -
- struct shmid64_ds {
- 	struct ipc64_perm	shm_perm;	/* operation perms */
--	PADDING(__pad1)
-+#if defined(__sparc__) && defined(__arch64__)
- 	__kernel_time_t		shm_atime;	/* last attach time */
--	PADDING(__pad2)
- 	__kernel_time_t		shm_dtime;	/* last detach time */
--	PADDING(__pad3)
- 	__kernel_time_t		shm_ctime;	/* last change time */
-+#else
-+	unsigned long		shm_atime_high;
-+	unsigned long		shm_atime;	/* last attach time */
-+	unsigned long		shm_dtime_high;
-+	unsigned long		shm_dtime;	/* last detach time */
-+	unsigned long		shm_ctime_high;
-+	unsigned long		shm_ctime;	/* last change time */
-+#endif
- 	size_t			shm_segsz;	/* size of segment (bytes) */
- 	__kernel_pid_t		shm_cpid;	/* pid of creator */
- 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
-@@ -46,6 +45,4 @@ struct shminfo64 {
- 	unsigned long	__unused4;
- };
+ static inline pte_t pgd_pte(pgd_t pgd)
+ {
+ 	return __pte(pgd_val(pgd));
+diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
+index a6b9f1d74600..f12d148eccbe 100644
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h
++++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -338,9 +338,6 @@ extern unsigned long pci_io_base;
+ /* Advertise special mapping type for AGP */
+ #define HAVE_PAGE_AGP
  
--#undef PADDING
+-/* Advertise support for _PAGE_SPECIAL */
+-#define __HAVE_ARCH_PTE_SPECIAL
 -
- #endif /* _SPARC_SHMBUF_H */
+ #ifndef __ASSEMBLY__
+ 
+ /*
+diff --git a/arch/powerpc/include/asm/pte-common.h b/arch/powerpc/include/asm/pte-common.h
+index c4a72c7a8c83..03dfddb1f49a 100644
+--- a/arch/powerpc/include/asm/pte-common.h
++++ b/arch/powerpc/include/asm/pte-common.h
+@@ -216,9 +216,6 @@ static inline bool pte_user(pte_t pte)
+ #define PAGE_AGP		(PAGE_KERNEL_NC)
+ #define HAVE_PAGE_AGP
+ 
+-/* Advertise support for _PAGE_SPECIAL */
+-#define __HAVE_ARCH_PTE_SPECIAL
+-
+ #ifndef _PAGE_READ
+ /* if not defined, we should not find _PAGE_WRITE too */
+ #define _PAGE_READ 0
+diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
+index 2d24d33bf188..9809694e1389 100644
+--- a/arch/s390/include/asm/pgtable.h
++++ b/arch/s390/include/asm/pgtable.h
+@@ -171,7 +171,6 @@ static inline int is_module_addr(void *addr)
+ #define _PAGE_WRITE	0x020		/* SW pte write bit */
+ #define _PAGE_SPECIAL	0x040		/* SW associated with special page */
+ #define _PAGE_UNUSED	0x080		/* SW bit for pgste usage state */
+-#define __HAVE_ARCH_PTE_SPECIAL
+ 
+ #ifdef CONFIG_MEM_SOFT_DIRTY
+ #define _PAGE_SOFT_DIRTY 0x002		/* SW pte soft dirty bit */
+diff --git a/arch/sh/include/asm/pgtable.h b/arch/sh/include/asm/pgtable.h
+index 89c513a982fc..f6abfe2bca93 100644
+--- a/arch/sh/include/asm/pgtable.h
++++ b/arch/sh/include/asm/pgtable.h
+@@ -156,8 +156,6 @@ extern void page_table_range_init(unsigned long start, unsigned long end,
+ #define HAVE_ARCH_UNMAPPED_AREA
+ #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
+ 
+-#define __HAVE_ARCH_PTE_SPECIAL
+-
+ #include <asm-generic/pgtable.h>
+ 
+ #endif /* __ASM_SH_PGTABLE_H */
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 44d6ac47e035..1393a8ac596b 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -117,9 +117,6 @@ bool kern_addr_valid(unsigned long addr);
+ #define _PAGE_PMD_HUGE    _AC(0x0100000000000000,UL) /* Huge page            */
+ #define _PAGE_PUD_HUGE    _PAGE_PMD_HUGE
+ 
+-/* Advertise support for _PAGE_SPECIAL */
+-#define __HAVE_ARCH_PTE_SPECIAL
+-
+ /* SUN4U pte bits... */
+ #define _PAGE_SZ4MB_4U	  _AC(0x6000000000000000,UL) /* 4MB Page             */
+ #define _PAGE_SZ512K_4U	  _AC(0x4000000000000000,UL) /* 512K Page            */
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index acfe755562a6..3e195728d7d1 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -65,7 +65,6 @@
+ #define _PAGE_PKEY_BIT2	(_AT(pteval_t, 0))
+ #define _PAGE_PKEY_BIT3	(_AT(pteval_t, 0))
+ #endif
+-#define __HAVE_ARCH_PTE_SPECIAL
+ 
+ #define _PAGE_PKEY_MASK (_PAGE_PKEY_BIT0 | \
+ 			 _PAGE_PKEY_BIT1 | \
 -- 
-2.9.0
+2.7.4
 
