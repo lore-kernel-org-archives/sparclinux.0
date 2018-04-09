@@ -1,297 +1,122 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 23 Apr 2018 17:04:15 +0000
-Subject: [PATCH 08/12] arch: define the ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig
-Message-Id: <20180423170419.20330-9-hch@lst.de>
+From: Oliver O'Halloran <oohall@gmail.com>
+Date: Mon, 09 Apr 2018 07:46:04 +0000
+Subject: [PATCH] drivers/of: Introduce ARCH_HAS_OWN_OF_NUMA
+Message-Id: <20180409074604.17671-1-oohall@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180423170419.20330-1-hch@lst.de>
-In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 
-Define this symbol if the architecture either uses 64-bit pointers or the
-PHYS_ADDR_T_64BIT is set.  This covers 95% of the old arch magic.  We only
-need an additional select for Xen on ARM (why anyway?), and we now always
-set ARCH_DMA_ADDR_T_64BIT on mips boards with 64-bit physical addressing
-instead of only doing it when highmem is set.
+Some OF platforms (pseries and some SPARC systems) has their own
+implementations of NUMA affinity detection rather than using the generic
+OF_NUMA driver, which mainly exists for arm64. For other platforms one
+of two fallbacks provided by the base OF driver are used depending on
+CONFIG_NUMA.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+In the CONFIG_NUMA=n case the fallback is an inline function in of.h.
+In the =y case the fallback is a real function which is defined as a
+weak symbol so that it may be overwritten by the architecture if desired.
+
+The problem with this arrangement is that the real implementations all
+export of_node_to_nid(). Unfortunately it's not possible to export the
+fallback since it would clash with the non-weak version. As a result
+we get build failures when:
+
+a) CONFIG_NUMA=y && CONFIG_OF=y, and
+b) The platform doesn't implement of_node_to_nid(), and
+c) A module uses of_node_to_nid()
+
+Given b) will be true for most platforms this is fairly easy to hit
+and has been observed on ia64 and x86.
+
+This patch remedies the problem by introducing the ARCH_HAS_OWN_OF_NUMA
+Kconfig option which is selected if an architecture provides an
+implementation of of_node_to_nid(). If a platform does not use it's own,
+or the generic OF_NUMA, then always use the inline fallback in of.h so
+we don't need to futz around with exports.
+
+Cc: devicetree@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Fixes: 298535c00a2c ("of, numa: Add NUMA of binding implementation.")
+Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
 ---
- arch/alpha/Kconfig             | 3 ---
- arch/arc/Kconfig               | 3 ---
- arch/arm/mach-axxia/Kconfig    | 1 -
- arch/arm/mach-bcm/Kconfig      | 1 -
- arch/arm/mach-exynos/Kconfig   | 1 -
- arch/arm/mach-highbank/Kconfig | 1 -
- arch/arm/mach-rockchip/Kconfig | 1 -
- arch/arm/mach-shmobile/Kconfig | 1 -
- arch/arm/mach-tegra/Kconfig    | 1 -
- arch/arm/mm/Kconfig            | 3 ---
- arch/arm64/Kconfig             | 3 ---
- arch/ia64/Kconfig              | 3 ---
- arch/mips/Kconfig              | 3 ---
- arch/powerpc/Kconfig           | 3 ---
- arch/riscv/Kconfig             | 3 ---
- arch/s390/Kconfig              | 3 ---
- arch/sparc/Kconfig             | 4 ----
- arch/x86/Kconfig               | 4 ----
- lib/Kconfig                    | 3 +++
- 19 files changed, 3 insertions(+), 42 deletions(-)
+ arch/powerpc/Kconfig | 1 +
+ arch/sparc/Kconfig   | 1 +
+ drivers/of/Kconfig   | 3 +++
+ drivers/of/base.c    | 7 -------
+ include/linux/of.h   | 2 +-
+ 5 files changed, 6 insertions(+), 8 deletions(-)
 
-diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-index 1fd9645b0c67..aa7df1a36fd0 100644
---- a/arch/alpha/Kconfig
-+++ b/arch/alpha/Kconfig
-@@ -66,9 +66,6 @@ config ZONE_DMA
- 	bool
- 	default y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
-index f94c61da682a..7498aca4b887 100644
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -458,9 +458,6 @@ config ARC_HAS_PAE40
- 	  Enable access to physical memory beyond 4G, only supported on
- 	  ARC cores with 40 bit Physical Addressing support
- 
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--
- config ARC_KVADDR_SIZE
- 	int "Kernel Virtual Address Space size (MB)"
- 	range 0 512
-diff --git a/arch/arm/mach-axxia/Kconfig b/arch/arm/mach-axxia/Kconfig
-index bb2ce1c63fd9..d3eae6037913 100644
---- a/arch/arm/mach-axxia/Kconfig
-+++ b/arch/arm/mach-axxia/Kconfig
-@@ -2,7 +2,6 @@
- config ARCH_AXXIA
- 	bool "LSI Axxia platforms"
- 	depends on ARCH_MULTI_V7 && ARM_LPAE
--	select ARCH_DMA_ADDR_T_64BIT
- 	select ARM_AMBA
- 	select ARM_GIC
- 	select ARM_TIMER_SP804
-diff --git a/arch/arm/mach-bcm/Kconfig b/arch/arm/mach-bcm/Kconfig
-index c2f3b0d216a4..c46a728df44e 100644
---- a/arch/arm/mach-bcm/Kconfig
-+++ b/arch/arm/mach-bcm/Kconfig
-@@ -211,7 +211,6 @@ config ARCH_BRCMSTB
- 	select BRCMSTB_L2_IRQ
- 	select BCM7120_L2_IRQ
- 	select ARCH_HAS_HOLES_MEMORYMODEL
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ZONE_DMA if ARM_LPAE
- 	select SOC_BRCMSTB
- 	select SOC_BUS
-diff --git a/arch/arm/mach-exynos/Kconfig b/arch/arm/mach-exynos/Kconfig
-index 647c319f9f5f..2ca405816846 100644
---- a/arch/arm/mach-exynos/Kconfig
-+++ b/arch/arm/mach-exynos/Kconfig
-@@ -112,7 +112,6 @@ config SOC_EXYNOS5440
- 	bool "SAMSUNG EXYNOS5440"
- 	default y
- 	depends on ARCH_EXYNOS5
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select HAVE_ARM_ARCH_TIMER
- 	select AUTO_ZRELADDR
- 	select PINCTRL_EXYNOS5440
-diff --git a/arch/arm/mach-highbank/Kconfig b/arch/arm/mach-highbank/Kconfig
-index 81110ec34226..5552968f07f8 100644
---- a/arch/arm/mach-highbank/Kconfig
-+++ b/arch/arm/mach-highbank/Kconfig
-@@ -1,7 +1,6 @@
- config ARCH_HIGHBANK
- 	bool "Calxeda ECX-1000/2000 (Highbank/Midway)"
- 	depends on ARCH_MULTI_V7
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_SUPPORTS_BIG_ENDIAN
- 	select ARM_AMBA
-diff --git a/arch/arm/mach-rockchip/Kconfig b/arch/arm/mach-rockchip/Kconfig
-index a4065966881a..fafd3d7f9f8c 100644
---- a/arch/arm/mach-rockchip/Kconfig
-+++ b/arch/arm/mach-rockchip/Kconfig
-@@ -3,7 +3,6 @@ config ARCH_ROCKCHIP
- 	depends on ARCH_MULTI_V7
- 	select PINCTRL
- 	select PINCTRL_ROCKCHIP
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_HAS_RESET_CONTROLLER
- 	select ARM_AMBA
- 	select ARM_GIC
-diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-index 280e7312a9e1..fe60cd09a5ca 100644
---- a/arch/arm/mach-shmobile/Kconfig
-+++ b/arch/arm/mach-shmobile/Kconfig
-@@ -29,7 +29,6 @@ config ARCH_RMOBILE
- menuconfig ARCH_RENESAS
- 	bool "Renesas ARM SoCs"
- 	depends on ARCH_MULTI_V7 && MMU
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_SHMOBILE
- 	select ARM_GIC
- 	select GPIOLIB
-diff --git a/arch/arm/mach-tegra/Kconfig b/arch/arm/mach-tegra/Kconfig
-index 1e0aeb47bac6..7f3b83e0d324 100644
---- a/arch/arm/mach-tegra/Kconfig
-+++ b/arch/arm/mach-tegra/Kconfig
-@@ -15,6 +15,5 @@ menuconfig ARCH_TEGRA
- 	select RESET_CONTROLLER
- 	select SOC_BUS
- 	select ZONE_DMA if ARM_LPAE
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	help
- 	  This enables support for NVIDIA Tegra based systems.
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index 2f77c6344ef1..5a016bc80e26 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -674,9 +674,6 @@ config ARM_PV_FIXUP
- 	def_bool y
- 	depends on ARM_LPAE && ARM_PATCH_PHYS_VIRT && ARCH_KEYSTONE
- 
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--
- config ARM_THUMB
- 	bool "Support Thumb user binaries" if !CPU_THUMBONLY && EXPERT
- 	depends on CPU_THUMB_CAPABLE
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index b6aa33e642cc..4d924eb32e7f 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -236,9 +236,6 @@ config ZONE_DMA32
- config HAVE_GENERIC_GUP
- 	def_bool y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config SMP
- 	def_bool y
- 
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 0e42731adaf1..685d557eea48 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -80,9 +80,6 @@ config MMU
- 	bool
- 	default y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config SWIOTLB
-        bool
- 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 985388078872..e10cc5c7be69 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -1101,9 +1101,6 @@ config GPIO_TXX9
- config FW_CFE
- 	bool
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool (HIGHMEM && PHYS_ADDR_T_64BIT) || 64BIT
--
- config ARCH_SUPPORTS_UPROBES
- 	bool
- 
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index b3d091d65e05..a4b2ac7c3d2e 100644
+index c32a181a7cbb..74ce5f3564ae 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
-@@ -13,9 +13,6 @@ config 64BIT
- 	bool
- 	default y if PPC64
+@@ -625,6 +625,7 @@ config NUMA
+ 	bool "NUMA support"
+ 	depends on PPC64
+ 	default y if SMP && PPC_PSERIES
++	select ARCH_HAS_OWN_OF_NUMA
  
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool PHYS_ADDR_T_64BIT
--
- config MMU
- 	bool
- 	default y
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index f52f86f43a4b..17212ba54ee3 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -44,9 +44,6 @@ config ZONE_DMA32
- 	bool
- 	default y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config PAGE_OFFSET
- 	hex
- 	default 0xC0000000 if 32BIT && MAXPHYSMEM_2GB
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 89a007672f70..b794a2ab6d15 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -35,9 +35,6 @@ config GENERIC_BUG
- config GENERIC_BUG_RELATIVE_POINTERS
- 	def_bool y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config GENERIC_LOCKBREAK
- 	def_bool y if SMP && PREEMPT
- 
+ config NODES_SHIFT
+ 	int
 diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index be770b511ddd..c1cfc17eb504 100644
+index 8767e45f1b2b..f8071f1c3edb 100644
 --- a/arch/sparc/Kconfig
 +++ b/arch/sparc/Kconfig
-@@ -105,10 +105,6 @@ config ARCH_ATU
- 	bool
- 	default y if SPARC64
+@@ -299,6 +299,7 @@ config GENERIC_LOCKBREAK
+ config NUMA
+ 	bool "NUMA support"
+ 	depends on SPARC64 && SMP
++	select ARCH_HAS_OWN_OF_NUMA
  
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--	default y if ARCH_ATU
--
- config STACKTRACE_SUPPORT
- 	bool
- 	default y if SPARC64
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8fccdaf02bb0..07b031f99eb1 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1476,10 +1476,6 @@ config X86_5LEVEL
- 
- 	  Say N if unsure.
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--	depends on X86_64 || HIGHMEM64G
--
- config X86_DIRECT_GBPAGES
- 	def_bool y
- 	depends on X86_64 && !DEBUG_PAGEALLOC
-diff --git a/lib/Kconfig b/lib/Kconfig
-index ce9fa962d59b..1f12faf03819 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -435,6 +435,9 @@ config NEED_SG_DMA_LENGTH
- config NEED_DMA_MAP_STATE
+ config NODES_SHIFT
+ 	int "Maximum NUMA Nodes (as a power of 2)"
+diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+index ad3fcad4d75b..01c62b747b25 100644
+--- a/drivers/of/Kconfig
++++ b/drivers/of/Kconfig
+@@ -103,4 +103,7 @@ config OF_OVERLAY
+ config OF_NUMA
  	bool
  
-+config ARCH_DMA_ADDR_T_64BIT
-+	def_bool 64BIT || PHYS_ADDR_T_64BIT
++config ARCH_HAS_OWN_OF_NUMA
++	bool
 +
- config IOMMU_HELPER
- 	bool
+ endif # OF
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 848f549164cd..82a9584bb0e2 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -84,13 +84,6 @@ int of_n_size_cells(struct device_node *np)
+ }
+ EXPORT_SYMBOL(of_n_size_cells);
  
+-#ifdef CONFIG_NUMA
+-int __weak of_node_to_nid(struct device_node *np)
+-{
+-	return NUMA_NO_NODE;
+-}
+-#endif
+-
+ static struct device_node **phandle_cache;
+ static u32 phandle_cache_mask;
+ 
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 4d25e4f952d9..9bb42dac5e65 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -942,7 +942,7 @@ static inline int of_cpu_node_to_id(struct device_node *np)
+ #define of_node_cmp(s1, s2)		strcasecmp((s1), (s2))
+ #endif
+ 
+-#if defined(CONFIG_OF) && defined(CONFIG_NUMA)
++#if defined(CONFIG_OF_NUMA) || defined(CONFIG_ARCH_HAS_OWN_OF_NUMA)
+ extern int of_node_to_nid(struct device_node *np);
+ #else
+ static inline int of_node_to_nid(struct device_node *device)
 -- 
-2.17.0
+2.9.5
 
