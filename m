@@ -1,167 +1,62 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 25 Apr 2018 15:06:05 +0000
-Subject: [PATCH v4 15/16] y2038: ipc: Enable COMPAT_32BIT_TIME
-Message-Id: <20180425150606.954771-15-arnd@arndb.de>
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Date: Wed, 11 Apr 2018 08:03:34 +0000
+Subject: [PATCH v3 0/2] move __HAVE_ARCH_PTE_SPECIAL in Kconfig
+Message-Id: <1523433816-14460-1-git-send-email-ldufour@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425132242.1500539-1-arnd@arndb.de>
-In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
 
-Three ipc syscalls (mq_timedsend, mq_timedreceive and and semtimedop)
-take a timespec argument. After we move 32-bit architectures over to
-useing 64-bit time_t based syscalls, we need seperate entry points for
-the old 32-bit based interfaces.
+The per architecture __HAVE_ARCH_PTE_SPECIAL is defined statically in the
+per architecture header files. This doesn't allow to make other
+configuration dependent on it.
 
-This changes the #ifdef guards for the existing 32-bit compat syscalls
-to check for CONFIG_COMPAT_32BIT_TIME instead, which will then be
-enabled on all existing 32-bit architectures.
+The first patch of this series is replacing __HAVE_ARCH_PTE_SPECIAL by
+CONFIG_ARCH_HAS_PTE_SPECIAL defined into the Kconfig files,
+setting it automatically when architectures was already setting it in
+header file.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- ipc/mqueue.c | 80 +++++++++++++++++++++++++++++++-----------------------------
- ipc/sem.c    |  3 ++-
- ipc/util.h   |  2 +-
- 3 files changed, 44 insertions(+), 41 deletions(-)
+The second patch is removing the odd define HAVE_PTE_SPECIAL which is a
+duplicate of CONFIG_ARCH_HAS_PTE_SPECIAL.
 
-diff --git a/ipc/mqueue.c b/ipc/mqueue.c
-index 9610afcfa2e5..c0d58f390c3b 100644
---- a/ipc/mqueue.c
-+++ b/ipc/mqueue.c
-@@ -1420,6 +1420,47 @@ COMPAT_SYSCALL_DEFINE4(mq_open, const char __user *, u_name,
- 	return do_mq_open(u_name, oflag, mode, p);
- }
- 
-+COMPAT_SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
-+		       const struct compat_sigevent __user *, u_notification)
-+{
-+	struct sigevent n, *p = NULL;
-+	if (u_notification) {
-+		if (get_compat_sigevent(&n, u_notification))
-+			return -EFAULT;
-+		if (n.sigev_notify = SIGEV_THREAD)
-+			n.sigev_value.sival_ptr = compat_ptr(n.sigev_value.sival_int);
-+		p = &n;
-+	}
-+	return do_mq_notify(mqdes, p);
-+}
-+
-+COMPAT_SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
-+		       const struct compat_mq_attr __user *, u_mqstat,
-+		       struct compat_mq_attr __user *, u_omqstat)
-+{
-+	int ret;
-+	struct mq_attr mqstat, omqstat;
-+	struct mq_attr *new = NULL, *old = NULL;
-+
-+	if (u_mqstat) {
-+		new = &mqstat;
-+		if (get_compat_mq_attr(new, u_mqstat))
-+			return -EFAULT;
-+	}
-+	if (u_omqstat)
-+		old = &omqstat;
-+
-+	ret = do_mq_getsetattr(mqdes, new, old);
-+	if (ret || !old)
-+		return ret;
-+
-+	if (put_compat_mq_attr(old, u_omqstat))
-+		return -EFAULT;
-+	return 0;
-+}
-+#endif
-+
-+#ifdef CONFIG_COMPAT_32BIT_TIME
- static int compat_prepare_timeout(const struct compat_timespec __user *p,
- 				   struct timespec64 *ts)
- {
-@@ -1459,45 +1500,6 @@ COMPAT_SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes,
- 	}
- 	return do_mq_timedreceive(mqdes, u_msg_ptr, msg_len, u_msg_prio, p);
- }
--
--COMPAT_SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
--		       const struct compat_sigevent __user *, u_notification)
--{
--	struct sigevent n, *p = NULL;
--	if (u_notification) {
--		if (get_compat_sigevent(&n, u_notification))
--			return -EFAULT;
--		if (n.sigev_notify = SIGEV_THREAD)
--			n.sigev_value.sival_ptr = compat_ptr(n.sigev_value.sival_int);
--		p = &n;
--	}
--	return do_mq_notify(mqdes, p);
--}
--
--COMPAT_SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
--		       const struct compat_mq_attr __user *, u_mqstat,
--		       struct compat_mq_attr __user *, u_omqstat)
--{
--	int ret;
--	struct mq_attr mqstat, omqstat;
--	struct mq_attr *new = NULL, *old = NULL;
--
--	if (u_mqstat) {
--		new = &mqstat;
--		if (get_compat_mq_attr(new, u_mqstat))
--			return -EFAULT;
--	}
--	if (u_omqstat)
--		old = &omqstat;
--
--	ret = do_mq_getsetattr(mqdes, new, old);
--	if (ret || !old)
--		return ret;
--
--	if (put_compat_mq_attr(old, u_omqstat))
--		return -EFAULT;
--	return 0;
--}
- #endif
- 
- static const struct inode_operations mqueue_dir_inode_operations = {
-diff --git a/ipc/sem.c b/ipc/sem.c
-index b951e25ba2db..cfd94d48a9aa 100644
---- a/ipc/sem.c
-+++ b/ipc/sem.c
-@@ -70,6 +70,7 @@
-  *   The worst-case behavior is nevertheless O(N^2) for N wakeups.
-  */
- 
-+#include <linux/compat.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/init.h>
-@@ -2193,7 +2194,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
- 	return ksys_semtimedop(semid, tsops, nsops, timeout);
- }
- 
--#ifdef CONFIG_COMPAT
-+#ifdef CONFIG_COMPAT_32BIT_TIME
- long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
- 			    unsigned int nsops,
- 			    const struct compat_timespec __user *timeout)
-diff --git a/ipc/util.h b/ipc/util.h
-index 975c6de2df9d..0aba3230d007 100644
---- a/ipc/util.h
-+++ b/ipc/util.h
-@@ -265,10 +265,10 @@ long ksys_shmdt(char __user *shmaddr);
- long ksys_shmctl(int shmid, int cmd, struct shmid_ds __user *buf);
- 
- /* for CONFIG_ARCH_WANT_OLD_COMPAT_IPC */
--#ifdef CONFIG_COMPAT
- long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
- 			    unsigned int nsops,
- 			    const struct compat_timespec __user *timeout);
-+#ifdef CONFIG_COMPAT
- long compat_ksys_semctl(int semid, int semnum, int cmd, int arg);
- long compat_ksys_msgctl(int msqid, int cmd, void __user *uptr);
- long compat_ksys_msgrcv(int msqid, compat_uptr_t msgp, compat_ssize_t msgsz,
+There is no functional change introduced by this series.
+
+--
+Changes since v2:
+ * remove __HAVE_ARCH_PTE_SPECIAL in arch/riscv/include/asm/pgtable-bits.h
+ * use IS_ENABLED() instead of #ifdef blocks in patch 2
+
+Laurent Dufour (2):
+  mm: introduce ARCH_HAS_PTE_SPECIAL
+  mm: remove odd HAVE_PTE_SPECIAL
+
+ .../features/vm/pte_special/arch-support.txt          |  2 +-
+ arch/arc/Kconfig                                      |  1 +
+ arch/arc/include/asm/pgtable.h                        |  2 --
+ arch/arm/Kconfig                                      |  1 +
+ arch/arm/include/asm/pgtable-3level.h                 |  1 -
+ arch/arm64/Kconfig                                    |  1 +
+ arch/arm64/include/asm/pgtable.h                      |  2 --
+ arch/powerpc/Kconfig                                  |  1 +
+ arch/powerpc/include/asm/book3s/64/pgtable.h          |  3 ---
+ arch/powerpc/include/asm/pte-common.h                 |  3 ---
+ arch/riscv/Kconfig                                    |  1 +
+ arch/riscv/include/asm/pgtable-bits.h                 |  3 ---
+ arch/s390/Kconfig                                     |  1 +
+ arch/s390/include/asm/pgtable.h                       |  1 -
+ arch/sh/Kconfig                                       |  1 +
+ arch/sh/include/asm/pgtable.h                         |  2 --
+ arch/sparc/Kconfig                                    |  1 +
+ arch/sparc/include/asm/pgtable_64.h                   |  3 ---
+ arch/x86/Kconfig                                      |  1 +
+ arch/x86/include/asm/pgtable_types.h                  |  1 -
+ include/linux/pfn_t.h                                 |  4 ++--
+ mm/Kconfig                                            |  3 +++
+ mm/gup.c                                              |  4 ++--
+ mm/memory.c                                           | 19 ++++++++-----------
+ 24 files changed, 25 insertions(+), 37 deletions(-)
+
 -- 
-2.9.0
+2.7.4
 
