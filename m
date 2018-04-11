@@ -1,66 +1,72 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Sun, 15 Apr 2018 15:22:31 +0000
-Subject: Re: sparc/ppc/arm compat siginfo ABI regressions: sending SIGFPE via kill() returns wrong values in 
-Message-Id: <87lgdocx54.fsf@xmission.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 11 Apr 2018 15:40:02 +0000
+Subject: [GIT PULL] asm-generic fixes for v4.17-rc1
+Message-Id: <CAK8P3a081_hkr5d0FRWpTaT-AsJoqznsS1=_WF4JVLTUOupUgg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CA+55aFxdg2bYHtbKXb4mT5UuP2GH_qjkc=WeZY-RYHWZFQ2Gng@mail.gmail.com>
- <20180412172051.GK16141@n2100.armlinux.org.uk>
- <CA+55aFwjZqd8J0=veki1g+quQg8amEG4NnMe-h7HFksn=F=x_Q@mail.gmail.com>
- <20180413094211.GN16141@n2100.armlinux.org.uk>
- <CA+55aFwoThxqUeAZSsMhf--ODyhGkmOENH5R6=4+CuaopFx9eA@mail.gmail.com>
- <20180413170827.GB16308@e103592.cambridge.arm.com>
- <20180413175407.GO16141@n2100.armlinux.org.uk>
- <CA+55aFyya6B9_aq8ZSrZT-S-BGbpbDgFvDff5z8upDirpcoiHA@mail.gmail.com>
- <20180413184522.GD16308@e103592.cambridge.arm.com>
- <CA+55aFwMUQbALx60b3JDrTcWVSBS7imS+zCYEMz8NOs=6rE6+A@mail.gmail.com>
- <20180415131206.GR16141@n2100.armlinux.org.uk>
-In-Reply-To: <20180415131206.GR16141@n2100.armlinux.org.uk> (Russell King's
- message of "Sun, 15 Apr 2018 14:12:06 +0100")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-arch <linux-arch@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Ley Foon Tan <lftan@altera.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Michal Simek <monstr@monstr.eu>, "moderated list:H8/300 ARCHITECTURE" <uclinux-h8-devel@lists.sourceforge.jp>, Yoshinori Sato <ysato@users.sourceforge.jp>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Guan
 
-Russell King - ARM Linux <linux@armlinux.org.uk> writes:
+The following changes since commit 0adb32858b0bddf4ada5f364a84ed60b196dbcda:
 
-> On Fri, Apr 13, 2018 at 12:53:49PM -0700, Linus Torvalds wrote:
->> On Fri, Apr 13, 2018 at 11:45 AM, Dave Martin <Dave.Martin@arm.com> wrote:
->> >
->> > Most uses I've seen do nothing more than use the FPE_xyz value to
->> > format diagnostic messages while dying.  I struggled to find code that
->> > made a meaningful functional decision based on the value, though that's
->> > not proof...
->> 
->> Yeah. I've seen code that cares about SIGFPE deeply, but it's almost
->> invariably about some emulated environment (eg Java VM, or CPU
->> emulation).
->> 
->> And the siginfo data is basically never good enough for those
->> environments anyway on its own, so they will go and look at the actual
->> instruction that caused the fault and the register state instead,
->> because they need *all* the information.
->> 
->> The cases that use si_code are the ones that just trapped signals in
->> order to give a more helpful abort message.
->> 
->> So I could certainly imagine that si_code is actually used by somebody
->> who then decides to actuall act differently on it, but aside from
->> perhaps printing out a different message, it sounds far-fetched.
->
-> Okay, in that case let's just use FPE_FLTINV.  That makes the patch
-> easily back-portable for stable kernels.
+  Linux 4.16 (2018-04-01 14:20:27 -0700)
 
-If we want to I don't think  backporting 266da65e9156 ("signal: Add
-FPE_FLTUNK si_code for undiagnosable fp exceptions") would be at
-all difficult.
+are available in the git repository at:
 
-What it is changing has been stable for quite a while.  The surroundings
-might change and so it might require some trivial manual fixup but I
-don't expect any problems.
+  git+ssh://gitolite@ra.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
+tags/asm-generic
 
-Not that I want to derail the consensus but if we want to backport
-similar fixes for arm64 or the other architectures that wind up using
-FPE_FLTUNK for their fix we would need to backport 266da65e9156 anyway.
+for you to fetch changes up to a71e7c44ffb7baea0c0795824afc34cc0bc1a301:
 
-Eric
+  io: change writeX_relaxed() to remove barriers (2018-04-10 16:37:34 +0200)
 
+----------------------------------------------------------------
+asm-generic fixes for v4.17-rc1
+
+I have one regression fix for a minor build problem after the architecture
+removal series, plus a rework of the barriers in the readl/writel
+functions, thanks to work by Sinan Kaya:
+
+This started from a discussion on the linuxpcc and rdma mailing lists
+[1]. To summarize, we decided that architectures are responsible to
+serialize readl() and writel() accesses on a device MMIO space relative
+to DMA performed by that device.
+
+This series provides a pessimistic implementation of that behavior for
+asm-generic/io.h, which is in turn used by a number of architectures
+(h8300, microblaze, nios2, openrisc, s390, sparc, um, unicore32, and
+xtensa). Some of those presumably need no extra barriers, or something
+weaker than rmb()/wmb(), and they are advised to override the new default
+for better performance.
+
+For inb()/outb(), the same barriers are used, but architectures might
+want to add another barrier to outb() here if that can guarantee
+non-posted behavior (some architectures can, others cannot do that).
+
+The readl_relaxed()/writel_relaxed() family of functions retains the
+existing behavior with no extra barriers.
+
+[1]: https://lists.ozlabs.org/pipermail/linuxppc-dev/2018-March/170481.html
+
+----------------------------------------------------------------
+Liu, Changcheng (1):
+      dts: remove cris & metag dts hard link file
+
+Sinan Kaya (7):
+      io: define several IO & PIO barrier types for the asm-generic version
+      io: define stronger ordering for the default readX() implementation
+      io: define stronger ordering for the default writeX() implementation
+      io: change outX() to have their own IO barrier overrides
+      io: change inX() to have their own IO barrier overrides
+      io: change readX_relaxed() to remove barriers
+      io: change writeX_relaxed() to remove barriers
+
+ include/asm-generic/io.h           | 161
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++------------
+ scripts/dtc/include-prefixes/cris  |   1 -
+ scripts/dtc/include-prefixes/metag |   1 -
+ 3 files changed, 143 insertions(+), 20 deletions(-)
+ delete mode 120000 scripts/dtc/include-prefixes/cris
+ delete mode 120000 scripts/dtc/include-prefixes/metag
