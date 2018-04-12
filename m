@@ -1,28 +1,81 @@
-From: "hch@lst.de" <hch@lst.de>
-Date: Thu, 26 Apr 2018 08:25:12 +0000
-Subject: Re: [PATCH 06/22] arc: use generic dma_noncoherent_ops
-Message-Id: <20180426082512.GB15580@lst.de>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Thu, 12 Apr 2018 11:03:14 +0000
+Subject: Re: sparc/ppc/arm compat siginfo ABI regressions: sending SIGFPE via kill() returns wrong values in 
+Message-Id: <20180412110314.GA28070@altlinux.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="LQksG6bCIzRHxTLp"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de> <20180420080313.18796-7-hch@lst.de> <1524655020.5315.9.camel@synopsys.com> <20180426064500.GB13895@lst.de>
-In-Reply-To: <20180426064500.GB13895@lst.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
-Cc: "hch@lst.de" <hch@lst.de>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nios2-dev@lists.rocketboards.org" <nios2-dev@lists.rocketboards.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "green.hu@gmail.com" <green.hu@gmail.com>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+References: <20180409152253.GD10489@altlinux.org>
+ <20180412013435.GA21219@altlinux.org>
+ <20180412095811.GC16141@n2100.armlinux.org.uk>
+In-Reply-To: <20180412095811.GC16141@n2100.armlinux.org.uk>
+To: linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 26, 2018 at 08:45:00AM +0200, hch@lst.de wrote:
-> On Wed, Apr 25, 2018 at 11:17:01AM +0000, Alexey Brodkin wrote:
-> > Which is actually strange as I would expect ARC code to be built by bots.
-> 
-> I don't think I got any notification.  Thank for the fixes!
-> 
-> I think I found the bug, based on the fact that so far all tests for
-> architectures that also need a cache op for device to cpu transitions
-> failed.  I did a stupid typo when changing kconfig symbols, so please
-> try the patch below.
 
-Confirmed to work for nds32, so here is a git tree with the core, arc
-and nds32 fixes folded in, feel free to test that one:
+--LQksG6bCIzRHxTLp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-git://git.infradead.org/users/hch/misc.git generic-dma-noncoherent
+On Thu, Apr 12, 2018 at 10:58:11AM +0100, Russell King - ARM Linux wrote:
+> On Thu, Apr 12, 2018 at 04:34:35AM +0300, Dmitry V. Levin wrote:
+> > A similar commit v4.16-rc1~159^2~37
+> > ("signal/arm: Document conflicts with SI_USER and SIGFPE") must have
+> > introduced a similar ABI regression to compat arm.
+>=20
+> So, could you explain how can this change cause a regression?
+>=20
+> +#define FPE_FIXME      0
+> -               vfp_raise_sigfpe(0, regs);
+> +               vfp_raise_sigfpe(FPE_FIXME, regs);
+
+No, this hunk hasn't caused the regression, but another one did:
+
+diff --git a/arch/arm/include/uapi/asm/siginfo.h b/arch/arm/include/uapi/as=
+m/siginfo.h
+new file mode 100644
+index 0000000..d051388
+--- /dev/null
++++ b/arch/arm/include/uapi/asm/siginfo.h
+@@ -0,0 +1,13 @@
++#ifndef __ASM_SIGINFO_H
++#define __ASM_SIGINFO_H
++
++#include <asm-generic/siginfo.h>
++
++/*
++ * SIGFPE si_codes
++ */
++#ifdef __KERNEL__
++#define FPE_FIXME      0       /* Broken dup of SI_USER */
++#endif /* __KERNEL__ */
++
++#endif
+
+This is due to FPE_FIXME handling in kernel/signal.c
+
+
+--=20
+ldv
+
+--LQksG6bCIzRHxTLp
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJazzzyAAoJEAVFT+BVnCUIw1YP/0I5ff8Z4fOIPctdlF7NS3Jh
+c2TAv7D40LUzHOnfXWx2Fy8hzScahtMi1FGOhwFCHvQawI1XYYKG1QAKOtOBV/ut
+bpPe/p/4Ib0Qjep1MNB+nhfmXHUS/GVGoFDp5cueyKqw9axCjkJGU1zZ1s4Frpme
+KMufr8I5JOh7mKh11lHiktGkP4oQFfVhHAnpn3GgsDDr0Lm3ASA759nEHQYSQ0yc
+uDNQrSYjdFoWsXoijWOq5zmABNcYi0c3L+6HJQVXH/FEXLDHyxv3uLSLWQ6KZt1G
+28vT61+SEko2RWM7ethcXc9J0VEgl20cQ5BLsYhExrje872YillIwAVHrbxE8SZh
+u6lHx+VYlHpYP+H3p67/pb1RbMGUNLK8fUv+oOif5FaPwShhRVtJGKhGsg4yyKAz
+3Kh6PkeE5LhRo4OUhq8SjeMHSPlgidmcAXZJSsNlW2A1+5IEnd640JfKyP7jcgOg
+AZEos39gLXAp0iMIff9IdrLmNtqc/LCKP5bE1PKXdpsyhMI/B3tN6h4DkTcU5X5I
+2V4SofWNC084zpxE8fHAQZ+Iwj9AEwCAatCnnoFxFm2AxyiCQmChXoS5RN+hPAOB
+6S70Qob9vxMPPPdHPyDvor6DwKUwHiPYAvfxGRq08nkDkkRLy09NCjofMBwvnGZF
+5FZOXAQ3wERpSpjaklJH
+=kR/I
+-----END PGP SIGNATURE-----
+
+--LQksG6bCIzRHxTLp--
