@@ -1,7 +1,9 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Date: Fri, 13 Apr 2018 09:42:11 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 13 Apr 2018 16:33:17 +0000
 Subject: Re: sparc/ppc/arm compat siginfo ABI regressions: sending SIGFPE via kill() returns wrong values in 
-Message-Id: <20180413094211.GN16141@n2100.armlinux.org.uk>
+Message-Id: <CA+55aFwoThxqUeAZSsMhf--ODyhGkmOENH5R6=4+CuaopFx9eA@mail.gmail.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="001a114a4cf2f881360569bd6d69"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180409152253.GD10489@altlinux.org>
  <20180412013435.GA21219@altlinux.org>
@@ -13,90 +15,72 @@ References: <20180409152253.GD10489@altlinux.org>
  <CA+55aFxdg2bYHtbKXb4mT5UuP2GH_qjkc=WeZY-RYHWZFQ2Gng@mail.gmail.com>
  <20180412172051.GK16141@n2100.armlinux.org.uk>
  <CA+55aFwjZqd8J0=veki1g+quQg8amEG4NnMe-h7HFksn=F=x_Q@mail.gmail.com>
-In-Reply-To: <CA+55aFwjZqd8J0=veki1g+quQg8amEG4NnMe-h7HFksn=F=x_Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+ <20180413094211.GN16141@n2100.armlinux.org.uk>
+In-Reply-To: <20180413094211.GN16141@n2100.armlinux.org.uk>
 To: linux-arm-kernel@lists.infradead.org
 
-On Thu, Apr 12, 2018 at 10:22:15AM -0700, Linus Torvalds wrote:
-> On Thu, Apr 12, 2018 at 10:20 AM, Russell King - ARM Linux
-> <linux@armlinux.org.uk> wrote:
-> >
-> > This file was created to contain FPE_FIXME, by the "signal/arm: Document
-> > conflicts with SI_USER and SIGFPE" commit so if we're removing it, it
-> > would be better to remove the whole file.
-> 
-> Fair enough. I'm not going to commit that anyway since I can't test
-> it, but yes, if it tests ok that sounds like the right thing to do.
+--001a114a4cf2f881360569bd6d69
+Content-Type: text/plain; charset="UTF-8"
 
-Yes, it does solve the problem at hand with strace - the exact patch I
-tested against 4.16 is below.
+On Fri, Apr 13, 2018 at 2:42 AM, Russell King - ARM Linux
+<linux@armlinux.org.uk> wrote:
+>
+> Yes, it does solve the problem at hand with strace - the exact patch I
+> tested against 4.16 is below.
 
-Testing this exact code path (exceptions set to VFP_EXCEPTION_ERROR)
-is something that can only happen if the hardware does something stupid,
-and I don't have a way of making it do that, so the code path can't be
-tested.
+Ok, good.
 
-However, FPE_FLTUNK is not defined in older kernels, so while we can
-fix it this way for the current merge window, that doesn't help 4.16.
-How we solve that depends what happens with Eric's patch (266da65e9156
-("signal: Add FPE_FLTUNK si_code for undiagnosable fp exceptions"))
-that introduces FPE_FLTUNK - and there's also the problem of NSIGFPE,
-which kernel/signal.c uses in the path that selects the siginfo layout.
+> However, FPE_FLTUNK is not defined in older kernels, so while we can
+> fix it this way for the current merge window, that doesn't help 4.16.
 
-Given that the path we're talking about is unlikely to happen (as
-mentioned in my second paragraph) I still think reverting Eric's patch
-is the right way forward for older kernels.
+I wonder if we should even bother with FPE_FLTUNK.
 
-(Note, my previous comment about the si_code initialiser was incorrect.)
+I suspect we might as well use FPE_FLTINV, I suspect, and not have
+this complexity at all. That case is not worth worrying about, since
+it's a "this shouldn't happen anyway" and the *real* reason will be in
+the kernel logs due to vfs_panic().
 
-diff --git a/arch/arm/include/uapi/asm/siginfo.h b/arch/arm/include/uapi/asm/siginfo.h
-deleted file mode 100644
-index d0513880be21..000000000000
---- a/arch/arm/include/uapi/asm/siginfo.h
-+++ /dev/null
-@@ -1,13 +0,0 @@
--#ifndef __ASM_SIGINFO_H
--#define __ASM_SIGINFO_H
--
--#include <asm-generic/siginfo.h>
--
--/*
-- * SIGFPE si_codes
-- */
--#ifdef __KERNEL__
--#define FPE_FIXME	0	/* Broken dup of SI_USER */
--#endif /* __KERNEL__ */
--
--#endif
-diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
-index 4c375e11ae95..8a1a5e6048d2 100644
---- a/arch/arm/vfp/vfpmodule.c
-+++ b/arch/arm/vfp/vfpmodule.c
-@@ -28,6 +28,10 @@
- #include <asm/thread_notify.h>
- #include <asm/vfp.h>
- 
-+#ifndef FPE_FLTUNK
-+#define FPE_FLTUNK 14
-+#endif
-+
- #include "vfpinstr.h"
- #include "vfp.h"
- 
-@@ -257,7 +261,7 @@ static void vfp_raise_exceptions(u32 exceptions, u32 inst, u32 fpscr, struct pt_
- 
- 	if (exceptions = VFP_EXCEPTION_ERROR) {
- 		vfp_panic("unhandled bounce", inst);
--		vfp_raise_sigfpe(FPE_FIXME, regs);
-+		vfp_raise_sigfpe(FPE_FLTUNK, regs);
- 		return;
- 	}
- 
+So it's not like this is something that the user should ever care
+about the si_code about.
 
+> Given that the path we're talking about is unlikely to happen (as
+> mentioned in my second paragraph) I still think reverting Eric's patch
+> is the right way forward for older kernels.
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+I'd much rather get rid of that FPE_FIXME, and leave that whole mess behind.
+
+So the attached patch seems simple and should work with 4.16 too.
+
+Let's not leave this as some kind of nasty maintenance issue, and just
+go for simple and stupid.
+
+Hmm?
+
+                Linus
+
+--001a114a4cf2f881360569bd6d69
+Content-Type: text/x-patch; charset="US-ASCII"; name="patch.diff"
+Content-Disposition: attachment; filename="patch.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_jfy68q9b0
+
+IGFyY2gvYXJtL2luY2x1ZGUvdWFwaS9hc20vc2lnaW5mby5oIHwgMTMgLS0tLS0tLS0tLS0tLQog
+YXJjaC9hcm0vdmZwL3ZmcG1vZHVsZS5jICAgICAgICAgICAgfCAgMiArLQogMiBmaWxlcyBjaGFu
+Z2VkLCAxIGluc2VydGlvbigrKSwgMTQgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9h
+cm0vaW5jbHVkZS91YXBpL2FzbS9zaWdpbmZvLmggYi9hcmNoL2FybS9pbmNsdWRlL3VhcGkvYXNt
+L3NpZ2luZm8uaApkZWxldGVkIGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggZDA1MTM4ODBiZTIxLi4w
+MDAwMDAwMDAwMDAKLS0tIGEvYXJjaC9hcm0vaW5jbHVkZS91YXBpL2FzbS9zaWdpbmZvLmgKKysr
+IC9kZXYvbnVsbApAQCAtMSwxMyArMCwwIEBACi0jaWZuZGVmIF9fQVNNX1NJR0lORk9fSAotI2Rl
+ZmluZSBfX0FTTV9TSUdJTkZPX0gKLQotI2luY2x1ZGUgPGFzbS1nZW5lcmljL3NpZ2luZm8uaD4K
+LQotLyoKLSAqIFNJR0ZQRSBzaV9jb2RlcwotICovCi0jaWZkZWYgX19LRVJORUxfXwotI2RlZmlu
+ZSBGUEVfRklYTUUJMAkvKiBCcm9rZW4gZHVwIG9mIFNJX1VTRVIgKi8KLSNlbmRpZiAvKiBfX0tF
+Uk5FTF9fICovCi0KLSNlbmRpZgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vdmZwL3ZmcG1vZHVsZS5j
+IGIvYXJjaC9hcm0vdmZwL3ZmcG1vZHVsZS5jCmluZGV4IDRjMzc1ZTExYWU5NS4uYWY0ZWUyY2Vm
+MmY5IDEwMDY0NAotLS0gYS9hcmNoL2FybS92ZnAvdmZwbW9kdWxlLmMKKysrIGIvYXJjaC9hcm0v
+dmZwL3ZmcG1vZHVsZS5jCkBAIC0yNTcsNyArMjU3LDcgQEAgc3RhdGljIHZvaWQgdmZwX3JhaXNl
+X2V4Y2VwdGlvbnModTMyIGV4Y2VwdGlvbnMsIHUzMiBpbnN0LCB1MzIgZnBzY3IsIHN0cnVjdCBw
+dF8KIAogCWlmIChleGNlcHRpb25zID09IFZGUF9FWENFUFRJT05fRVJST1IpIHsKIAkJdmZwX3Bh
+bmljKCJ1bmhhbmRsZWQgYm91bmNlIiwgaW5zdCk7Ci0JCXZmcF9yYWlzZV9zaWdmcGUoRlBFX0ZJ
+WE1FLCByZWdzKTsKKwkJdmZwX3JhaXNlX3NpZ2ZwZShGUEVfRkxUSU5WLCByZWdzKTsKIAkJcmV0
+dXJuOwogCX0KIAo=
+--001a114a4cf2f881360569bd6d69--
