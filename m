@@ -1,103 +1,84 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Fri, 20 Apr 2018 14:35:52 +0000
-Subject: [REVIEW][PATCH 00/22] Simplifying siginfo users
-Message-Id: <87604mhrnb.fsf@xmission.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Fri, 13 Apr 2018 14:19:02 +0000
+Subject: [PATCH] sparc: fix compat siginfo ABI regression
+Message-Id: <20180413141901.GA15253@altlinux.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <878t9ilmhv.fsf@xmission.com>
-In-Reply-To: <878t9ilmhv.fsf@xmission.com> (Eric W. Biederman's message of
-        "Thu, 19 Apr 2018 20:01:16 -0500")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Albert Ou <albert@sifive.com>, Aurelien Jacquiot <jacquiot.aurelien@gmail.com>, Chris Zankel <chris@zankel.net>, David Miller <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Helge Deller <deller@gmx.de>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, James Bottomley <jejb@parisc-linux.org>, James Hogan <jhogan@kernel.org>, Jeff Dike <jdike@addtoit.com>, Jonas Bonn <jonas@southpole.se>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Max Filippov <jcmvbkbc@gmail.com>, Michal Simek <monstr@monstr.eu>, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Anatoly Pugachev <matorola@gmail.com>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+Starting with commit v4.14-rc1~60^2^2~1, a SIGFPE signal sent via kill
+results to wrong values in si_pid and si_uid fields of compat siginfo_t.
 
-This patchset is almost completely updating the various pieces of
-architecture code from filling out a struct siginfo and then calling
-force_sig_info.  To using the helper force_sig_fault instead.  Which
-takes the values that would have gone in siginfo as arguments.
+This happens due to FPE_FIXME being defined to 0 for sparc, and at the
+same time siginfo_layout() introduced by the same commit returns
+SIL_FAULT for SIGFPE if si_code = SI_USER and FPE_FIXME is defined to 0.
 
-As the diffstat below shows this noticeable reduces the amount of code.
+Fix this regression by removing FPE_FIXME macro and changing all its users
+to assign FPE_FLTUNK to si_code instead of FPE_FIXME.
 
-There are a couple of minor and straight forward bug fixes as well
-that I came across while working on the aforementioned changes.
+Note that FPE_FLTUNK is a new macro introduced by commit
+266da65e9156d93e1126e185259a4aae68188d0e.
 
-This applies on my last round of siginfo changes simply to remove the
-possibility of conflicts.  The changes should be semantically separate.
+Tested with commit v4.16-11958-g16e205cf42da.
 
-I intend to merge these changes through my siginfo tree.  If you have
-any objections or would prefer to carry these changes in your
-architecture trees please let me know.
+This bug was found by strace test suite.
 
-The changes are also available at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/user-namespace.git siginfo-review2
+Link: https://github.com/strace/strace/issues/21
+Fixes: cc731525f26a ("signal: Remove kernel interal si_code magic")
+Thanks-to: Anatoly Pugachev <matorola@gmail.com>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
+ arch/sparc/include/uapi/asm/siginfo.h | 7 -------
+ arch/sparc/kernel/traps_32.c          | 2 +-
+ arch/sparc/kernel/traps_64.c          | 2 +-
+ 3 files changed, 2 insertions(+), 9 deletions(-)
 
-Eric W. Biederman (22):
-      signal/alpha: Use send_sig_fault where appropriate
-      signal/alpha: Use force_sig_fault where appropriate
-      signal/c6x: Use force_sig_fault where appropriate
-      signal/hexagon: Use force_sig_fault as appropriate
-      signal/m68k: Use force_sig_fault where appropriate
-      signal/microblaze: Remove the commented out force_sig_info in do_page_fault
-      signal/microblaze: Use force_sig_fault where appropriate
-      signal/mips: Use force_sig_fault where appropriate
-      signal/nds32: Use force_sig_fault where appropriate
-      signal/nios2: Use force_sig_fault where appropriate
-      signal/openrisc: Use force_sig_fault where appropriate
-      signal/parisc: Use force_sig_mceerr where appropriate
-      signal/parisc: Use force_sig_fault where appropriate
-      signal/riscv: Use force_sig_fault where appropriate
-      signal/s390: Use force_sig_fault where appropriate
-      signal/sh: Use force_sig_fault where appropriate
-      signal/sparc: Use send_sig_fault where appropriate
-      signal/sparc: Use force_sig_fault where appropriate
-      signal/um: Use force_sig_fault in relay_signal.
-      signal/um: Use force_sig_fault where appropriate
-      signal/xtensa: Consistenly use SIGBUS in do_unaligned_user
-      signal/xtensa: Use force_sig_fault where appropriate
-
- arch/alpha/kernel/osf_sys.c         |  10 +--
- arch/alpha/kernel/signal.c          |  22 +-----
- arch/alpha/kernel/traps.c           |  80 +++++---------------
- arch/alpha/mm/fault.c               |  15 +---
- arch/c6x/kernel/traps.c             |  10 +--
- arch/hexagon/kernel/traps.c         |  10 +--
- arch/hexagon/mm/vm_fault.c          |  21 ++----
- arch/m68k/kernel/traps.c            |  60 +++++++--------
- arch/m68k/mm/fault.c                |  25 +++----
- arch/microblaze/kernel/exceptions.c |   9 +--
- arch/microblaze/mm/fault.c          |  14 +---
- arch/mips/kernel/traps.c            |  65 +++++-----------
- arch/mips/mm/fault.c                |  19 ++---
- arch/nds32/kernel/traps.c           |  20 +----
- arch/nds32/mm/fault.c               |  19 ++---
- arch/nios2/kernel/traps.c           |   9 +--
- arch/openrisc/kernel/traps.c        |  33 +-------
- arch/openrisc/mm/fault.c            |  19 ++---
- arch/parisc/kernel/ptrace.c         |  11 +--
- arch/parisc/kernel/traps.c          |  63 +++++-----------
- arch/parisc/kernel/unaligned.c      |  16 +---
- arch/parisc/math-emu/driver.c       |   9 +--
- arch/parisc/mm/fault.c              |  55 +++++++-------
- arch/riscv/kernel/traps.c           |   9 +--
- arch/s390/kernel/traps.c            |  32 ++------
- arch/s390/mm/fault.c                |  23 ++----
- arch/sh/kernel/traps_32.c           |  19 ++---
- arch/sh/math-emu/math.c             |   9 +--
- arch/sh/mm/fault.c                  |  10 +--
- arch/sparc/kernel/process_64.c      |  10 +--
- arch/sparc/kernel/sys_sparc_32.c    |   9 +--
- arch/sparc/kernel/sys_sparc_64.c    |   8 +-
- arch/sparc/kernel/traps_32.c        | 114 +++++-----------------------
- arch/sparc/kernel/traps_64.c        | 145 +++++++-----------------------------
- arch/sparc/kernel/unaligned_32.c    |  12 +--
- arch/sparc/mm/fault_32.c            |  13 +---
- arch/sparc/mm/fault_64.c            |   9 +--
- arch/um/kernel/ptrace.c             |  13 +---
- arch/um/kernel/trap.c               |  54 ++++++--------
- arch/xtensa/kernel/traps.c          |  10 +--
- arch/xtensa/mm/fault.c              |  19 ++---
- 41 files changed, 280 insertions(+), 852 deletions(-)
-
-Eric
+diff --git a/arch/sparc/include/uapi/asm/siginfo.h b/arch/sparc/include/uapi/asm/siginfo.h
+index 896ce44..e704955 100644
+--- a/arch/sparc/include/uapi/asm/siginfo.h
++++ b/arch/sparc/include/uapi/asm/siginfo.h
+@@ -18,13 +18,6 @@
+ #define SI_NOINFO	32767		/* no information in siginfo_t */
+ 
+ /*
+- * SIGFPE si_codes
+- */
+-#ifdef __KERNEL__
+-#define FPE_FIXME	0	/* Broken dup of SI_USER */
+-#endif /* __KERNEL__ */
+-
+-/*
+  * SIGEMT si_codes
+  */
+ #define EMT_TAGOVF	1	/* tag overflow */
+diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
+index b1ed763..33cd35b 100644
+--- a/arch/sparc/kernel/traps_32.c
++++ b/arch/sparc/kernel/traps_32.c
+@@ -307,7 +307,7 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ 	info.si_errno = 0;
+ 	info.si_addr = (void __user *)pc;
+ 	info.si_trapno = 0;
+-	info.si_code = FPE_FIXME;
++	info.si_code = FPE_FLTUNK;
+ 	if ((fsr & 0x1c000) = (1 << 14)) {
+ 		if (fsr & 0x10)
+ 			info.si_code = FPE_FLTINV;
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 462a21a..e81072a 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2372,7 +2372,7 @@ static void do_fpe_common(struct pt_regs *regs)
+ 		info.si_errno = 0;
+ 		info.si_addr = (void __user *)regs->tpc;
+ 		info.si_trapno = 0;
+-		info.si_code = FPE_FIXME;
++		info.si_code = FPE_FLTUNK;
+ 		if ((fsr & 0x1c000) = (1 << 14)) {
+ 			if (fsr & 0x10)
+ 				info.si_code = FPE_FLTINV;
+-- 
+ldv
