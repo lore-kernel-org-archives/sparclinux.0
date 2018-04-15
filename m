@@ -1,22 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Apr 2018 20:07:32 +0000
-Subject: Re: [PATCH] sparc64: Fix mistake in oradax license text
-Message-Id: <20180430.160732.1872926631657638410.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 15 Apr 2018 14:59:37 +0000
+Subject: [PATCH 02/12] iommu-helper: unexport iommu_area_alloc
+Message-Id: <20180415145947.1248-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1524250105-44243-1-git-send-email-rob.gardner@oracle.com>
-In-Reply-To: <1524250105-44243-1-git-send-email-rob.gardner@oracle.com>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Fri, 20 Apr 2018 12:48:25 -0600
+This function is only used by built-in code.
 
-> The license text in both oradax files mistakenly specifies "version 3" of
-> the GNU General Public License.  This is corrected to specify "version 2".
-> 
-> Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
-> Signed-off-by: Jonathan Helman <jonathan.helman@oracle.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+---
+ lib/iommu-helper.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Applied, thank you.
+diff --git a/lib/iommu-helper.c b/lib/iommu-helper.c
+index 23633c0fda4a..ded1703e7e64 100644
+--- a/lib/iommu-helper.c
++++ b/lib/iommu-helper.c
+@@ -3,7 +3,6 @@
+  * IOMMU helper functions for the free area management
+  */
+ 
+-#include <linux/export.h>
+ #include <linux/bitmap.h>
+ #include <linux/bug.h>
+ 
+@@ -38,4 +37,3 @@ unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 	}
+ 	return -1;
+ }
+-EXPORT_SYMBOL(iommu_area_alloc);
+-- 
+2.17.0
+
