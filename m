@@ -1,56 +1,153 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Date: Sat, 07 Apr 2018 23:02:34 +0000
-Subject: Re: [git pull] sparc syscall stuff
-Message-Id: <20180407230234.GE30522@ZenIV.linux.org.uk>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 15 Apr 2018 14:59:36 +0000
+Subject: [PATCH 01/12] iommu-common: move to arch/sparc
+Message-Id: <20180415145947.1248-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180407204414.GC30522@ZenIV.linux.org.uk>
- <CA+55aFyzdWyGZoczjCQE0rK1Bp9fq54DHNv-TqEeBvZ-C00VtQ@mail.gmail.com>
-In-Reply-To: <CA+55aFyzdWyGZoczjCQE0rK1Bp9fq54DHNv-TqEeBvZ-C00VtQ@mail.gmail.com>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Dominik Brodowski <linux@dominikbrodowski.net>
+To: linux-arm-kernel@lists.infradead.org
 
-On Sat, Apr 07, 2018 at 02:37:24PM -0700, Linus Torvalds wrote:
-> On Sat, Apr 7, 2018 at 1:44 PM, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> >
-> >         Conflicts in arch/sparc/kernel/sys_sparc32.c are not hard to resolve,
-> > but keep in mind that casts to u64 are needed there.  I'd pushed a variant of
-> > resolution into #test-merge.
-> 
-> You say "keep in mind that casts to u64 are needed there", but then
-> you seem to be missing them yourself in your test merge (see
-> [f]truncate64).
-> 
-> I only noticed because I decided to check my merge against yours. I
-> strive to always do the merge resolution, but if people give me a test
-> merge, I then double-check against it after-the-fack.
-> 
-> Hmm?
+This code is only used by sparc, and all new iommu drivers should use the
+drivers/iommu/ framework.  Also remove the unused exports.
 
-Merge fuckup; mine ;-/  FWIW, the corresponding part in my branch (in 3d0e354e4e51) is
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ {include/linux => arch/sparc/include/asm}/iommu-common.h | 0
+ arch/sparc/include/asm/iommu_64.h                        | 2 +-
+ arch/sparc/kernel/Makefile                               | 2 +-
+ {lib => arch/sparc/kernel}/iommu-common.c                | 5 +----
+ arch/sparc/kernel/iommu.c                                | 2 +-
+ arch/sparc/kernel/ldc.c                                  | 2 +-
+ arch/sparc/kernel/pci_sun4v.c                            | 2 +-
+ lib/Makefile                                             | 2 +-
+ 8 files changed, 7 insertions(+), 10 deletions(-)
+ rename {include/linux => arch/sparc/include/asm}/iommu-common.h (100%)
+ rename {lib => arch/sparc/kernel}/iommu-common.c (98%)
 
--asmlinkage long sys32_truncate64(const char __user * path, unsigned long high, unsigned long low)
-+COMPAT_SYSCALL_DEFINE3(truncate64, const char __user *, path, u32, high, u32, low)
- {
--       if ((int)high < 0)
--               return -EINVAL;
--       else
--               return sys_truncate(path, (high << 32) | low);
-+       return sys_truncate(path, ((u64)high << 32) | low);
+diff --git a/include/linux/iommu-common.h b/arch/sparc/include/asm/iommu-common.h
+similarity index 100%
+rename from include/linux/iommu-common.h
+rename to arch/sparc/include/asm/iommu-common.h
+diff --git a/arch/sparc/include/asm/iommu_64.h b/arch/sparc/include/asm/iommu_64.h
+index 9ed6b54caa4b..0ef6dedf747e 100644
+--- a/arch/sparc/include/asm/iommu_64.h
++++ b/arch/sparc/include/asm/iommu_64.h
+@@ -17,7 +17,7 @@
+ #define IOPTE_WRITE   0x0000000000000002UL
+ 
+ #define IOMMU_NUM_CTXS	4096
+-#include <linux/iommu-common.h>
++#include <asm/iommu-common.h>
+ 
+ struct iommu_arena {
+ 	unsigned long	*map;
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index 76cb57750dda..a284662b0e4c 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -59,7 +59,7 @@ obj-$(CONFIG_SPARC32)   += leon_pmc.o
+ 
+ obj-$(CONFIG_SPARC64)   += reboot.o
+ obj-$(CONFIG_SPARC64)   += sysfs.o
+-obj-$(CONFIG_SPARC64)   += iommu.o
++obj-$(CONFIG_SPARC64)   += iommu.o iommu-common.o
+ obj-$(CONFIG_SPARC64)   += central.o
+ obj-$(CONFIG_SPARC64)   += starfire.o
+ obj-$(CONFIG_SPARC64)   += power.o
+diff --git a/lib/iommu-common.c b/arch/sparc/kernel/iommu-common.c
+similarity index 98%
+rename from lib/iommu-common.c
+rename to arch/sparc/kernel/iommu-common.c
+index 55b00de106b5..59cb16691322 100644
+--- a/lib/iommu-common.c
++++ b/arch/sparc/kernel/iommu-common.c
+@@ -8,9 +8,9 @@
+ #include <linux/bitmap.h>
+ #include <linux/bug.h>
+ #include <linux/iommu-helper.h>
+-#include <linux/iommu-common.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/hash.h>
++#include <asm/iommu-common.h>
+ 
+ static unsigned long iommu_large_alloc = 15;
+ 
+@@ -93,7 +93,6 @@ void iommu_tbl_pool_init(struct iommu_map_table *iommu,
+ 	p->hint = p->start;
+ 	p->end = num_entries;
  }
-
-linux-next resolution is the right one -
-git diff v4.16..HEAD -- arch/sparc/kernel/sys_sparc32.c
-gives
--asmlinkage long sys32_truncate64(const char __user * path, unsigned long high, unsigned long low)
-+COMPAT_SYSCALL_DEFINE3(truncate64, const char __user *, path, u32, high, u32, low)
- {
--       if ((int)high < 0)
--               return -EINVAL;
--       else
--               return sys_truncate(path, (high << 32) | low);
-+       return ksys_truncate(path, ((u64)high << 32) | low);
+-EXPORT_SYMBOL(iommu_tbl_pool_init);
+ 
+ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 				struct iommu_map_table *iommu,
+@@ -224,7 +223,6 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 
+ 	return n;
  }
-etc. in there.  Again, my apologies.
+-EXPORT_SYMBOL(iommu_tbl_range_alloc);
+ 
+ static struct iommu_pool *get_pool(struct iommu_map_table *tbl,
+ 				   unsigned long entry)
+@@ -264,4 +262,3 @@ void iommu_tbl_range_free(struct iommu_map_table *iommu, u64 dma_addr,
+ 	bitmap_clear(iommu->map, entry, npages);
+ 	spin_unlock_irqrestore(&(pool->lock), flags);
+ }
+-EXPORT_SYMBOL(iommu_tbl_range_free);
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index b08dc3416f06..40d008b0bd3e 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -14,7 +14,7 @@
+ #include <linux/errno.h>
+ #include <linux/iommu-helper.h>
+ #include <linux/bitmap.h>
+-#include <linux/iommu-common.h>
++#include <asm/iommu-common.h>
+ 
+ #ifdef CONFIG_PCI
+ #include <linux/pci.h>
+diff --git a/arch/sparc/kernel/ldc.c b/arch/sparc/kernel/ldc.c
+index 86b625f9d8dc..c0fa3ef6cf01 100644
+--- a/arch/sparc/kernel/ldc.c
++++ b/arch/sparc/kernel/ldc.c
+@@ -16,7 +16,7 @@
+ #include <linux/list.h>
+ #include <linux/init.h>
+ #include <linux/bitmap.h>
+-#include <linux/iommu-common.h>
++#include <asm/iommu-common.h>
+ 
+ #include <asm/hypervisor.h>
+ #include <asm/iommu.h>
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 249367228c33..565d9ac883d0 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -16,7 +16,7 @@
+ #include <linux/export.h>
+ #include <linux/log2.h>
+ #include <linux/of_device.h>
+-#include <linux/iommu-common.h>
++#include <asm/iommu-common.h>
+ 
+ #include <asm/iommu.h>
+ #include <asm/irq.h>
+diff --git a/lib/Makefile b/lib/Makefile
+index ce20696d5a92..94203b5eecd4 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -147,7 +147,7 @@ obj-$(CONFIG_AUDIT_GENERIC) += audit.o
+ obj-$(CONFIG_AUDIT_COMPAT_GENERIC) += compat_audit.o
+ 
+ obj-$(CONFIG_SWIOTLB) += swiotlb.o
+-obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o iommu-common.o
++obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o
+ obj-$(CONFIG_FAULT_INJECTION) += fault-inject.o
+ obj-$(CONFIG_NOTIFIER_ERROR_INJECTION) += notifier-error-inject.o
+ obj-$(CONFIG_PM_NOTIFIER_ERROR_INJECT) += pm-notifier-error-inject.o
+-- 
+2.17.0
+
