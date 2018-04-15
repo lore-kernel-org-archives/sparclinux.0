@@ -1,34 +1,255 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 24 Apr 2018 07:35:24 +0000
-Subject: Re: [PATCH 01/22] dma-debug: move initialization to common code
-Message-Id: <20180424073524.GB18945@lst.de>
+Date: Sun, 15 Apr 2018 14:59:38 +0000
+Subject: [PATCH 03/12] iommu-helper: mark iommu_is_span_boundary as inline
+Message-Id: <20180415145947.1248-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de> <20180420080313.18796-2-hch@lst.de> <294a1469-01d6-10fb-5de1-b1d4513a066c@arm.com>
-In-Reply-To: <294a1469-01d6-10fb-5de1-b1d4513a066c@arm.com>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
 
-On Fri, Apr 20, 2018 at 11:23:43AM +0100, Robin Murphy wrote:
->> -void dma_debug_init(u32 num_entries)
->> +static int dma_debug_init(void)
->>   {
->> +	u32 num_entries;
->
-> Maybe initialise it to PREALLOC_DMA_DEBUG_ENTRIES?
+This avoids selecting IOMMU_HELPER just for this function.  And we only
+use it once or twice in normal builds so this often even is a size
+reduction.
 
-We initialize it down in an if/else clause which seems a little more clear
-to me, at the cost of two extra lines of code.  But I suspect I should
-just go a little further and merge the global req_entries and the local
-num_entries into a single variable with a better name.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/alpha/Kconfig              |  3 ---
+ arch/arm/Kconfig                |  3 ---
+ arch/arm64/Kconfig              |  3 ---
+ arch/ia64/Kconfig               |  3 ---
+ arch/mips/cavium-octeon/Kconfig |  4 ----
+ arch/mips/loongson64/Kconfig    |  4 ----
+ arch/mips/netlogic/Kconfig      |  3 ---
+ arch/powerpc/Kconfig            |  1 -
+ arch/unicore32/mm/Kconfig       |  3 ---
+ arch/x86/Kconfig                |  2 +-
+ drivers/parisc/Kconfig          |  5 -----
+ include/linux/iommu-helper.h    | 13 ++++++++++---
+ lib/iommu-helper.c              | 12 +-----------
+ 13 files changed, 12 insertions(+), 47 deletions(-)
 
->> +core_initcall(dma_debug_init);
->
-> I think it's worth noting that for most users this now happens much earlier 
-> than before. In general that's probably good (e.g. on arm64 it should 
-> prevent false-positives from the Arm SMMU drivers under ACPI), and I can't 
-> imagine it's high-risk, but it is a behaviour change.
+diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
+index b2022885ced8..3ff735a722af 100644
+--- a/arch/alpha/Kconfig
++++ b/arch/alpha/Kconfig
+@@ -345,9 +345,6 @@ config PCI_DOMAINS
+ config PCI_SYSCALL
+ 	def_bool PCI
+ 
+-config IOMMU_HELPER
+-	def_bool PCI
+-
+ config ALPHA_NONAME
+ 	bool
+ 	depends on ALPHA_BOOK1 || ALPHA_NONAME_CH
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index a7f8e7f4b88f..2f79222c5c02 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1781,9 +1781,6 @@ config SECCOMP
+ config SWIOTLB
+ 	def_bool y
+ 
+-config IOMMU_HELPER
+-	def_bool SWIOTLB
+-
+ config PARAVIRT
+ 	bool "Enable paravirtualization code"
+ 	help
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index eb2cf4938f6d..fbef5d3de83f 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -252,9 +252,6 @@ config SMP
+ config SWIOTLB
+ 	def_bool y
+ 
+-config IOMMU_HELPER
+-	def_bool SWIOTLB
+-
+ config KERNEL_MODE_NEON
+ 	def_bool y
+ 
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index bbe12a038d21..862c5160c09d 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -613,6 +613,3 @@ source "security/Kconfig"
+ source "crypto/Kconfig"
+ 
+ source "lib/Kconfig"
+-
+-config IOMMU_HELPER
+-	def_bool (IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB || IA64_GENERIC || SWIOTLB)
+diff --git a/arch/mips/cavium-octeon/Kconfig b/arch/mips/cavium-octeon/Kconfig
+index b5eee1a57d6c..647ed158ac98 100644
+--- a/arch/mips/cavium-octeon/Kconfig
++++ b/arch/mips/cavium-octeon/Kconfig
+@@ -67,16 +67,12 @@ config CAVIUM_OCTEON_LOCK_L2_MEMCPY
+ 	help
+ 	  Lock the kernel's implementation of memcpy() into L2.
+ 
+-config IOMMU_HELPER
+-	bool
+-
+ config NEED_SG_DMA_LENGTH
+ 	bool
+ 
+ config SWIOTLB
+ 	def_bool y
+ 	select DMA_DIRECT_OPS
+-	select IOMMU_HELPER
+ 	select NEED_SG_DMA_LENGTH
+ 
+ config OCTEON_ILM
+diff --git a/arch/mips/loongson64/Kconfig b/arch/mips/loongson64/Kconfig
+index 72af0c183969..5efb2e63878e 100644
+--- a/arch/mips/loongson64/Kconfig
++++ b/arch/mips/loongson64/Kconfig
+@@ -130,9 +130,6 @@ config LOONGSON_UART_BASE
+ 	default y
+ 	depends on EARLY_PRINTK || SERIAL_8250
+ 
+-config IOMMU_HELPER
+-	bool
+-
+ config NEED_SG_DMA_LENGTH
+ 	bool
+ 
+@@ -141,7 +138,6 @@ config SWIOTLB
+ 	default y
+ 	depends on CPU_LOONGSON3
+ 	select DMA_DIRECT_OPS
+-	select IOMMU_HELPER
+ 	select NEED_SG_DMA_LENGTH
+ 	select NEED_DMA_MAP_STATE
+ 
+diff --git a/arch/mips/netlogic/Kconfig b/arch/mips/netlogic/Kconfig
+index 7fcfc7fe9f14..5c5ee0e05a17 100644
+--- a/arch/mips/netlogic/Kconfig
++++ b/arch/mips/netlogic/Kconfig
+@@ -83,9 +83,6 @@ endif
+ config NLM_COMMON
+ 	bool
+ 
+-config IOMMU_HELPER
+-	bool
+-
+ config NEED_SG_DMA_LENGTH
+ 	bool
+ 
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 73ce5dd07642..eb23f2949bf6 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -484,7 +484,6 @@ config IOMMU_HELPER
+ config SWIOTLB
+ 	bool "SWIOTLB support"
+ 	default n
+-	select IOMMU_HELPER
+ 	---help---
+ 	  Support for IO bounce buffering for systems without an IOMMU.
+ 	  This allows us to DMA to the full physical address space on
+diff --git a/arch/unicore32/mm/Kconfig b/arch/unicore32/mm/Kconfig
+index e9154a59d561..3f105e00c432 100644
+--- a/arch/unicore32/mm/Kconfig
++++ b/arch/unicore32/mm/Kconfig
+@@ -44,9 +44,6 @@ config SWIOTLB
+ 	def_bool y
+ 	select DMA_DIRECT_OPS
+ 
+-config IOMMU_HELPER
+-	def_bool SWIOTLB
+-
+ config NEED_SG_DMA_LENGTH
+ 	def_bool SWIOTLB
+ 
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index d234cca296db..336b1378ee62 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -930,7 +930,7 @@ config SWIOTLB
+ 
+ config IOMMU_HELPER
+ 	def_bool y
+-	depends on CALGARY_IOMMU || GART_IOMMU || SWIOTLB || AMD_IOMMU
++	depends on CALGARY_IOMMU || GART_IOMMU
+ 
+ config MAXSMP
+ 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
+diff --git a/drivers/parisc/Kconfig b/drivers/parisc/Kconfig
+index 3a102a84d637..5a48b5606110 100644
+--- a/drivers/parisc/Kconfig
++++ b/drivers/parisc/Kconfig
+@@ -103,11 +103,6 @@ config IOMMU_SBA
+ 	depends on PCI_LBA
+ 	default PCI_LBA
+ 
+-config IOMMU_HELPER
+-	bool
+-	depends on IOMMU_SBA || IOMMU_CCIO
+-	default y
+-
+ source "drivers/pcmcia/Kconfig"
+ 
+ endmenu
+diff --git a/include/linux/iommu-helper.h b/include/linux/iommu-helper.h
+index cb9a9248c8c0..70d01edcbf8b 100644
+--- a/include/linux/iommu-helper.h
++++ b/include/linux/iommu-helper.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_IOMMU_HELPER_H
+ #define _LINUX_IOMMU_HELPER_H
+ 
++#include <linux/bug.h>
+ #include <linux/kernel.h>
+ 
+ static inline unsigned long iommu_device_max_index(unsigned long size,
+@@ -14,9 +15,15 @@ static inline unsigned long iommu_device_max_index(unsigned long size,
+ 		return size;
+ }
+ 
+-extern int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+-				  unsigned long shift,
+-				  unsigned long boundary_size);
++static inline int iommu_is_span_boundary(unsigned int index, unsigned int nr,
++		unsigned long shift, unsigned long boundary_size)
++{
++	BUG_ON(!is_power_of_2(boundary_size));
++
++	shift = (shift + index) & (boundary_size - 1);
++	return shift + nr > boundary_size;
++}
++
+ extern unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 				      unsigned long start, unsigned int nr,
+ 				      unsigned long shift,
+diff --git a/lib/iommu-helper.c b/lib/iommu-helper.c
+index ded1703e7e64..92a9f243c0e2 100644
+--- a/lib/iommu-helper.c
++++ b/lib/iommu-helper.c
+@@ -4,17 +4,7 @@
+  */
+ 
+ #include <linux/bitmap.h>
+-#include <linux/bug.h>
+-
+-int iommu_is_span_boundary(unsigned int index, unsigned int nr,
+-			   unsigned long shift,
+-			   unsigned long boundary_size)
+-{
+-	BUG_ON(!is_power_of_2(boundary_size));
+-
+-	shift = (shift + index) & (boundary_size - 1);
+-	return shift + nr > boundary_size;
+-}
++#include <linux/iommu-helper.h>
+ 
+ unsigned long iommu_area_alloc(unsigned long *map, unsigned long size,
+ 			       unsigned long start, unsigned int nr,
+-- 
+2.17.0
 
-I'll mention this in the changelog, thanks!
