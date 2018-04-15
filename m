@@ -1,431 +1,257 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 24 Apr 2018 14:02:33 +0000
-Subject: [PATCH 1/3] dma-debug: move initialization to common code
-Message-Id: <20180424140235.9125-2-hch@lst.de>
+Date: Sun, 15 Apr 2018 14:59:42 +0000
+Subject: [PATCH 07/12] arch: remove the ARCH_PHYS_ADDR_T_64BIT config symbol
+Message-Id: <20180415145947.1248-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180424140235.9125-1-hch@lst.de>
-In-Reply-To: <20180424140235.9125-1-hch-jcswGhMUV9g@public.gmane.org>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: linux-arm-kernel@lists.infradead.org
 
-Most mainstream architectures are using 65536 entries, so lets stick to
-that.  If someone is really desperate to override it that can still be
-done through <asm/dma-mapping.h>, but I'd rather see a really good
-rationale for that.
-
-dma_debug_init is now called as a core_initcall, which for many
-architectures means much earlier, and provides dma-debug functionality
-earlier in the boot process.  This should be safe as it only relies
-on the memory allocator already being available.
+Instead select the PHYS_ADDR_T_64BIT for 32-bit architectures that need a
+64-bit phys_addr_t type directly.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/arm/mm/dma-mapping-nommu.c |  9 ---------
- arch/arm/mm/dma-mapping.c       |  9 ---------
- arch/arm64/mm/dma-mapping.c     | 10 ----------
- arch/c6x/kernel/dma.c           | 11 -----------
- arch/ia64/kernel/dma-mapping.c  | 10 ----------
- arch/microblaze/kernel/dma.c    | 11 -----------
- arch/mips/mm/dma-default.c      | 10 ----------
- arch/openrisc/kernel/dma.c      | 11 -----------
- arch/powerpc/kernel/dma.c       |  3 ---
- arch/s390/pci/pci_dma.c         |  9 ---------
- arch/sh/mm/consistent.c         |  9 ---------
- arch/sparc/kernel/Makefile      |  2 --
- arch/sparc/kernel/dma.c         | 13 -------------
- arch/x86/kernel/pci-dma.c       |  4 ----
- arch/xtensa/kernel/pci-dma.c    |  9 ---------
- include/linux/dma-debug.h       |  6 ------
- lib/dma-debug.c                 | 21 ++++++++++++++-------
- 17 files changed, 14 insertions(+), 143 deletions(-)
- delete mode 100644 arch/sparc/kernel/dma.c
+ arch/arc/Kconfig                       |  4 +---
+ arch/arm/kernel/setup.c                |  2 +-
+ arch/arm/mm/Kconfig                    |  4 +---
+ arch/arm64/Kconfig                     |  3 ---
+ arch/mips/Kconfig                      | 15 ++++++---------
+ arch/powerpc/Kconfig                   |  5 +----
+ arch/powerpc/platforms/Kconfig.cputype |  1 +
+ arch/riscv/Kconfig                     |  6 ++----
+ arch/x86/Kconfig                       |  5 +----
+ mm/Kconfig                             |  2 +-
+ 10 files changed, 15 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
-index 619f24a42d09..f448a0663b10 100644
---- a/arch/arm/mm/dma-mapping-nommu.c
-+++ b/arch/arm/mm/dma-mapping-nommu.c
-@@ -241,12 +241,3 @@ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
- void arch_teardown_dma_ops(struct device *dev)
- {
- }
--
--#define PREALLOC_DMA_DEBUG_ENTRIES	4096
--
--static int __init dma_debug_do_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--core_initcall(dma_debug_do_init);
-diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
-index 8c398fedbbb6..c26bf83f44ca 100644
---- a/arch/arm/mm/dma-mapping.c
-+++ b/arch/arm/mm/dma-mapping.c
-@@ -1165,15 +1165,6 @@ int arm_dma_supported(struct device *dev, u64 mask)
- 	return __dma_supported(dev, mask, false);
- }
+diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+index d76bf4a83740..f94c61da682a 100644
+--- a/arch/arc/Kconfig
++++ b/arch/arc/Kconfig
+@@ -453,13 +453,11 @@ config ARC_HAS_PAE40
+ 	default n
+ 	depends on ISA_ARCV2
+ 	select HIGHMEM
++	select PHYS_ADDR_T_64BIT
+ 	help
+ 	  Enable access to physical memory beyond 4G, only supported on
+ 	  ARC cores with 40 bit Physical Addressing support
  
--#define PREALLOC_DMA_DEBUG_ENTRIES	4096
+-config ARCH_PHYS_ADDR_T_64BIT
+-	def_bool ARC_HAS_PAE40
 -
--static int __init dma_debug_do_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--core_initcall(dma_debug_do_init);
--
- #ifdef CONFIG_ARM_DMA_USE_IOMMU
+ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
  
- static int __dma_info_to_prot(enum dma_data_direction dir, unsigned long attrs)
-diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
-index a96ec0181818..db01f2709842 100644
---- a/arch/arm64/mm/dma-mapping.c
-+++ b/arch/arm64/mm/dma-mapping.c
-@@ -508,16 +508,6 @@ static int __init arm64_dma_init(void)
- }
- arch_initcall(arm64_dma_init);
+diff --git a/arch/arm/kernel/setup.c b/arch/arm/kernel/setup.c
+index fc40a2b40595..35ca494c028c 100644
+--- a/arch/arm/kernel/setup.c
++++ b/arch/arm/kernel/setup.c
+@@ -754,7 +754,7 @@ int __init arm_add_memory(u64 start, u64 size)
+ 	else
+ 		size -= aligned_start - start;
  
--#define PREALLOC_DMA_DEBUG_ENTRIES	4096
--
--static int __init dma_debug_do_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--fs_initcall(dma_debug_do_init);
--
--
- #ifdef CONFIG_IOMMU_DMA
- #include <linux/dma-iommu.h>
- #include <linux/platform_device.h>
-diff --git a/arch/c6x/kernel/dma.c b/arch/c6x/kernel/dma.c
-index 9fff8be75f58..31e1a9ec3a9c 100644
---- a/arch/c6x/kernel/dma.c
-+++ b/arch/c6x/kernel/dma.c
-@@ -136,14 +136,3 @@ const struct dma_map_ops c6x_dma_ops = {
- 	.sync_sg_for_cpu	= c6x_dma_sync_sg_for_cpu,
- };
- EXPORT_SYMBOL(c6x_dma_ops);
--
--/* Number of entries preallocated for DMA-API debugging */
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
--
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--
--	return 0;
--}
--fs_initcall(dma_init);
-diff --git a/arch/ia64/kernel/dma-mapping.c b/arch/ia64/kernel/dma-mapping.c
-index f2d57e66fd86..7a471d8d67d4 100644
---- a/arch/ia64/kernel/dma-mapping.c
-+++ b/arch/ia64/kernel/dma-mapping.c
-@@ -9,16 +9,6 @@ int iommu_detected __read_mostly;
- const struct dma_map_ops *dma_ops;
- EXPORT_SYMBOL(dma_ops);
+-#ifndef CONFIG_ARCH_PHYS_ADDR_T_64BIT
++#ifndef CONFIG_PHYS_ADDR_T_64BIT
+ 	if (aligned_start > ULONG_MAX) {
+ 		pr_crit("Ignoring memory at 0x%08llx outside 32-bit physical address space\n",
+ 			(long long)start);
+diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
+index 7f14acf67caf..2f77c6344ef1 100644
+--- a/arch/arm/mm/Kconfig
++++ b/arch/arm/mm/Kconfig
+@@ -661,6 +661,7 @@ config ARM_LPAE
+ 	bool "Support for the Large Physical Address Extension"
+ 	depends on MMU && CPU_32v7 && !CPU_32v6 && !CPU_32v5 && \
+ 		!CPU_32v4 && !CPU_32v3
++	select PHYS_ADDR_T_64BIT
+ 	help
+ 	  Say Y if you have an ARMv7 processor supporting the LPAE page
+ 	  table format and you would like to access memory beyond the
+@@ -673,9 +674,6 @@ config ARM_PV_FIXUP
+ 	def_bool y
+ 	depends on ARM_LPAE && ARM_PATCH_PHYS_VIRT && ARCH_KEYSTONE
  
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
+-config ARCH_PHYS_ADDR_T_64BIT
+-	def_bool ARM_LPAE
 -
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--
--	return 0;
--}
--fs_initcall(dma_init);
--
- const struct dma_map_ops *dma_get_ops(struct device *dev)
- {
- 	return dma_ops;
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index c91e8cef98dd..3145e7dc8ab1 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -184,14 +184,3 @@ const struct dma_map_ops dma_nommu_ops = {
- 	.sync_sg_for_device	= dma_nommu_sync_sg_for_device,
- };
- EXPORT_SYMBOL(dma_nommu_ops);
--
--/* Number of entries preallocated for DMA-API debugging */
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
--
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--
--	return 0;
--}
--fs_initcall(dma_init);
-diff --git a/arch/mips/mm/dma-default.c b/arch/mips/mm/dma-default.c
-index dcafa43613b6..f9fef0028ca2 100644
---- a/arch/mips/mm/dma-default.c
-+++ b/arch/mips/mm/dma-default.c
-@@ -402,13 +402,3 @@ static const struct dma_map_ops mips_default_dma_map_ops = {
+ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
  
- const struct dma_map_ops *mips_dma_map_ops = &mips_default_dma_map_ops;
- EXPORT_SYMBOL(mips_dma_map_ops);
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 940adfb9a2bc..b6aa33e642cc 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -152,9 +152,6 @@ config ARM64
+ config 64BIT
+ 	def_bool y
+ 
+-config ARCH_PHYS_ADDR_T_64BIT
+-	def_bool y
 -
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
+ config MMU
+ 	def_bool y
+ 
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 47d72c64d687..985388078872 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -132,7 +132,7 @@ config MIPS_GENERIC
+ 
+ config MIPS_ALCHEMY
+ 	bool "Alchemy processor based machines"
+-	select ARCH_PHYS_ADDR_T_64BIT
++	select PHYS_ADDR_T_64BIT
+ 	select CEVT_R4K
+ 	select CSRC_R4K
+ 	select IRQ_MIPS_CPU
+@@ -890,7 +890,7 @@ config CAVIUM_OCTEON_SOC
+ 	bool "Cavium Networks Octeon SoC based boards"
+ 	select CEVT_R4K
+ 	select ARCH_HAS_PHYS_TO_DMA
+-	select ARCH_PHYS_ADDR_T_64BIT
++	select PHYS_ADDR_T_64BIT
+ 	select DMA_COHERENT
+ 	select SYS_SUPPORTS_64BIT_KERNEL
+ 	select SYS_SUPPORTS_BIG_ENDIAN
+@@ -936,7 +936,7 @@ config NLM_XLR_BOARD
+ 	select SWAP_IO_SPACE
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+ 	select SYS_SUPPORTS_64BIT_KERNEL
+-	select ARCH_PHYS_ADDR_T_64BIT
++	select PHYS_ADDR_T_64BIT
+ 	select SYS_SUPPORTS_BIG_ENDIAN
+ 	select SYS_SUPPORTS_HIGHMEM
+ 	select DMA_COHERENT
+@@ -962,7 +962,7 @@ config NLM_XLP_BOARD
+ 	select HW_HAS_PCI
+ 	select SYS_SUPPORTS_32BIT_KERNEL
+ 	select SYS_SUPPORTS_64BIT_KERNEL
+-	select ARCH_PHYS_ADDR_T_64BIT
++	select PHYS_ADDR_T_64BIT
+ 	select GPIOLIB
+ 	select SYS_SUPPORTS_BIG_ENDIAN
+ 	select SYS_SUPPORTS_LITTLE_ENDIAN
+@@ -1102,7 +1102,7 @@ config FW_CFE
+ 	bool
+ 
+ config ARCH_DMA_ADDR_T_64BIT
+-	def_bool (HIGHMEM && ARCH_PHYS_ADDR_T_64BIT) || 64BIT
++	def_bool (HIGHMEM && PHYS_ADDR_T_64BIT) || 64BIT
+ 
+ config ARCH_SUPPORTS_UPROBES
+ 	bool
+@@ -1767,7 +1767,7 @@ config CPU_MIPS32_R5_XPA
+ 	depends on SYS_SUPPORTS_HIGHMEM
+ 	select XPA
+ 	select HIGHMEM
+-	select ARCH_PHYS_ADDR_T_64BIT
++	select PHYS_ADDR_T_64BIT
+ 	default n
+ 	help
+ 	  Choose this option if you want to enable the Extended Physical
+@@ -2399,9 +2399,6 @@ config SB1_PASS_2_1_WORKAROUNDS
+ 	default y
+ 
+ 
+-config ARCH_PHYS_ADDR_T_64BIT
+-       bool
 -
--static int __init mips_dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
+ choice
+ 	prompt "SmartMIPS or microMIPS ASE support"
+ 
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 39c5377a5460..8bdcd7e44838 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -13,11 +13,8 @@ config 64BIT
+ 	bool
+ 	default y if PPC64
+ 
+-config ARCH_PHYS_ADDR_T_64BIT
+-       def_bool PPC64 || PHYS_64BIT
 -
--	return 0;
--}
--fs_initcall(mips_dma_init);
-diff --git a/arch/openrisc/kernel/dma.c b/arch/openrisc/kernel/dma.c
-index a945f00011b4..ec7fd45704d2 100644
---- a/arch/openrisc/kernel/dma.c
-+++ b/arch/openrisc/kernel/dma.c
-@@ -247,14 +247,3 @@ const struct dma_map_ops or1k_dma_map_ops = {
- 	.sync_single_for_device = or1k_sync_single_for_device,
- };
- EXPORT_SYMBOL(or1k_dma_map_ops);
+ config ARCH_DMA_ADDR_T_64BIT
+-	def_bool ARCH_PHYS_ADDR_T_64BIT
++	def_bool PHYS_ADDR_T_64BIT
+ 
+ config MMU
+ 	bool
+diff --git a/arch/powerpc/platforms/Kconfig.cputype b/arch/powerpc/platforms/Kconfig.cputype
+index 67d3125d0610..84b58abc08ee 100644
+--- a/arch/powerpc/platforms/Kconfig.cputype
++++ b/arch/powerpc/platforms/Kconfig.cputype
+@@ -222,6 +222,7 @@ config PTE_64BIT
+ config PHYS_64BIT
+ 	bool 'Large physical address support' if E500 || PPC_86xx
+ 	depends on (44x || E500 || PPC_86xx) && !PPC_83xx && !PPC_82xx
++	select PHYS_ADDR_T_64BIT
+ 	---help---
+ 	  This option enables kernel support for larger than 32-bit physical
+ 	  addresses.  This feature may not be available on all cores.
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 23d8acca5c90..f52f86f43a4b 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -5,6 +5,8 @@
+ 
+ config RISCV
+ 	def_bool y
++	# even on 32-bit, physical (and DMA) addresses are > 32-bits
++	select PHYS_ADDR_T_64BIT
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select OF_IRQ
+@@ -38,10 +40,6 @@ config RISCV
+ config MMU
+ 	def_bool y
+ 
+-# even on 32-bit, physical (and DMA) addresses are > 32-bits
+-config ARCH_PHYS_ADDR_T_64BIT
+-	def_bool y
 -
--/* Number of entries preallocated for DMA-API debugging */
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
+ config ZONE_DMA32
+ 	bool
+ 	default y
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 414043303ea1..15f228984e70 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1447,6 +1447,7 @@ config HIGHMEM
+ config X86_PAE
+ 	bool "PAE (Physical Address Extension) Support"
+ 	depends on X86_32 && !HIGHMEM4G
++	select PHYS_ADDR_T_64BIT
+ 	select SWIOTLB
+ 	---help---
+ 	  PAE is required for NX support, and furthermore enables
+@@ -1474,10 +1475,6 @@ config X86_5LEVEL
+ 
+ 	  Say N if unsure.
+ 
+-config ARCH_PHYS_ADDR_T_64BIT
+-	def_bool y
+-	depends on X86_64 || X86_PAE
 -
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--
--	return 0;
--}
--fs_initcall(dma_init);
-diff --git a/arch/powerpc/kernel/dma.c b/arch/powerpc/kernel/dma.c
-index da20569de9d4..138157deeadf 100644
---- a/arch/powerpc/kernel/dma.c
-+++ b/arch/powerpc/kernel/dma.c
-@@ -309,8 +309,6 @@ int dma_set_coherent_mask(struct device *dev, u64 mask)
- }
- EXPORT_SYMBOL(dma_set_coherent_mask);
+ config ARCH_DMA_ADDR_T_64BIT
+ 	def_bool y
+ 	depends on X86_64 || HIGHMEM64G
+diff --git a/mm/Kconfig b/mm/Kconfig
+index d5004d82a1d6..a3f0005ac212 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -266,7 +266,7 @@ config ARCH_ENABLE_THP_MIGRATION
+ 	bool
  
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
--
- int dma_set_mask(struct device *dev, u64 dma_mask)
- {
- 	if (ppc_md.dma_set_mask)
-@@ -361,7 +359,6 @@ EXPORT_SYMBOL_GPL(dma_get_required_mask);
+ config PHYS_ADDR_T_64BIT
+-	def_bool 64BIT || ARCH_PHYS_ADDR_T_64BIT
++	def_bool 64BIT
  
- static int __init dma_init(void)
- {
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
- #ifdef CONFIG_PCI
- 	dma_debug_add_bus(&pci_bus_type);
- #endif
-diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-index 2d15d84c20ed..5dee7a922589 100644
---- a/arch/s390/pci/pci_dma.c
-+++ b/arch/s390/pci/pci_dma.c
-@@ -668,15 +668,6 @@ void zpci_dma_exit(void)
- 	kmem_cache_destroy(dma_region_table_cache);
- }
- 
--#define PREALLOC_DMA_DEBUG_ENTRIES	(1 << 16)
--
--static int __init dma_debug_do_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--fs_initcall(dma_debug_do_init);
--
- const struct dma_map_ops s390_pci_dma_ops = {
- 	.alloc		= s390_dma_alloc,
- 	.free		= s390_dma_free,
-diff --git a/arch/sh/mm/consistent.c b/arch/sh/mm/consistent.c
-index 8ce98691d822..35ea3099a3b6 100644
---- a/arch/sh/mm/consistent.c
-+++ b/arch/sh/mm/consistent.c
-@@ -20,18 +20,9 @@
- #include <asm/cacheflush.h>
- #include <asm/addrspace.h>
- 
--#define PREALLOC_DMA_DEBUG_ENTRIES	4096
--
- const struct dma_map_ops *dma_ops;
- EXPORT_SYMBOL(dma_ops);
- 
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--fs_initcall(dma_init);
--
- void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 				 dma_addr_t *dma_handle, gfp_t gfp,
- 				 unsigned long attrs)
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 76cb57750dda..84cfc5a428d6 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -74,8 +74,6 @@ obj-$(CONFIG_SPARC64)	+= pcr.o
- obj-$(CONFIG_SPARC64)	+= nmi.o
- obj-$(CONFIG_SPARC64_SMP) += cpumap.o
- 
--obj-y                     += dma.o
--
- obj-$(CONFIG_PCIC_PCI)    += pcic.o
- obj-$(CONFIG_LEON_PCI)    += leon_pci.o
- obj-$(CONFIG_SPARC_GRPCI2)+= leon_pci_grpci2.o
-diff --git a/arch/sparc/kernel/dma.c b/arch/sparc/kernel/dma.c
-deleted file mode 100644
-index f73e7597c971..000000000000
---- a/arch/sparc/kernel/dma.c
-+++ /dev/null
-@@ -1,13 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--#include <linux/kernel.h>
--#include <linux/dma-mapping.h>
--#include <linux/dma-debug.h>
--
--#define PREALLOC_DMA_DEBUG_ENTRIES       (1 << 15)
--
--static int __init dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--fs_initcall(dma_init);
-diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
-index 77625b60a510..bcbaa2e8031e 100644
---- a/arch/x86/kernel/pci-dma.c
-+++ b/arch/x86/kernel/pci-dma.c
-@@ -55,9 +55,6 @@ struct device x86_dma_fallback_dev = {
- };
- EXPORT_SYMBOL(x86_dma_fallback_dev);
- 
--/* Number of entries preallocated for DMA-API debugging */
--#define PREALLOC_DMA_DEBUG_ENTRIES       65536
--
- void __init pci_iommu_alloc(void)
- {
- 	struct iommu_table_entry *p;
-@@ -189,7 +186,6 @@ EXPORT_SYMBOL(arch_dma_supported);
- static int __init pci_iommu_init(void)
- {
- 	struct iommu_table_entry *p;
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
- 
- #ifdef CONFIG_PCI
- 	dma_debug_add_bus(&pci_bus_type);
-diff --git a/arch/xtensa/kernel/pci-dma.c b/arch/xtensa/kernel/pci-dma.c
-index 732631ce250f..392b4a80ebc2 100644
---- a/arch/xtensa/kernel/pci-dma.c
-+++ b/arch/xtensa/kernel/pci-dma.c
-@@ -261,12 +261,3 @@ const struct dma_map_ops xtensa_dma_map_ops = {
- 	.mapping_error = xtensa_dma_mapping_error,
- };
- EXPORT_SYMBOL(xtensa_dma_map_ops);
--
--#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
--
--static int __init xtensa_dma_init(void)
--{
--	dma_debug_init(PREALLOC_DMA_DEBUG_ENTRIES);
--	return 0;
--}
--fs_initcall(xtensa_dma_init);
-diff --git a/include/linux/dma-debug.h b/include/linux/dma-debug.h
-index c7d844f09c3a..a785f2507159 100644
---- a/include/linux/dma-debug.h
-+++ b/include/linux/dma-debug.h
-@@ -30,8 +30,6 @@ struct bus_type;
- 
- extern void dma_debug_add_bus(struct bus_type *bus);
- 
--extern void dma_debug_init(u32 num_entries);
--
- extern int dma_debug_resize_entries(u32 num_entries);
- 
- extern void debug_dma_map_page(struct device *dev, struct page *page,
-@@ -100,10 +98,6 @@ static inline void dma_debug_add_bus(struct bus_type *bus)
- {
- }
- 
--static inline void dma_debug_init(u32 num_entries)
--{
--}
--
- static inline int dma_debug_resize_entries(u32 num_entries)
- {
- 	return 0;
-diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-index 7f5cdc1e6b29..712a897174e4 100644
---- a/lib/dma-debug.c
-+++ b/lib/dma-debug.c
-@@ -41,6 +41,11 @@
- #define HASH_FN_SHIFT   13
- #define HASH_FN_MASK    (HASH_SIZE - 1)
- 
-+/* allow architectures to override this if absolutely required */
-+#ifndef PREALLOC_DMA_DEBUG_ENTRIES
-+#define PREALLOC_DMA_DEBUG_ENTRIES (1 << 16)
-+#endif
-+
- enum {
- 	dma_debug_single,
- 	dma_debug_page,
-@@ -1004,18 +1009,16 @@ void dma_debug_add_bus(struct bus_type *bus)
- 	bus_register_notifier(bus, nb);
- }
- 
--/*
-- * Let the architectures decide how many entries should be preallocated.
-- */
--void dma_debug_init(u32 num_entries)
-+static int dma_debug_init(void)
- {
-+	u32 num_entries;
- 	int i;
- 
- 	/* Do not use dma_debug_initialized here, since we really want to be
- 	 * called to set dma_debug_initialized
- 	 */
- 	if (global_disable)
--		return;
-+		return 0;
- 
- 	for (i = 0; i < HASH_SIZE; ++i) {
- 		INIT_LIST_HEAD(&dma_entry_hash[i].list);
-@@ -1026,17 +1029,19 @@ void dma_debug_init(u32 num_entries)
- 		pr_err("DMA-API: error creating debugfs entries - disabling\n");
- 		global_disable = true;
- 
--		return;
-+		return 0;
- 	}
- 
- 	if (req_entries)
- 		num_entries = req_entries;
-+	else
-+		num_entries = PREALLOC_DMA_DEBUG_ENTRIES;
- 
- 	if (prealloc_memory(num_entries) != 0) {
- 		pr_err("DMA-API: debugging out of memory error - disabled\n");
- 		global_disable = true;
- 
--		return;
-+		return 0;
- 	}
- 
- 	nr_total_entries = num_free_entries;
-@@ -1044,7 +1049,9 @@ void dma_debug_init(u32 num_entries)
- 	dma_debug_initialized = true;
- 
- 	pr_info("DMA-API: debugging enabled by kernel config\n");
-+	return 0;
- }
-+core_initcall(dma_debug_init);
- 
- static __init int dma_debug_cmdline(char *str)
- {
+ config BOUNCE
+ 	bool "Enable bounce buffers"
 -- 
 2.17.0
 
