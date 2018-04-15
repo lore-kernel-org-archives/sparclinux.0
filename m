@@ -1,38 +1,141 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 11 Apr 2018 20:25:03 +0000
-Subject: Re: [PATCH] sparc: compat: allow including asm/compat.h for 32-bit
-Message-Id: <CAK8P3a3em5b2Qp_y0uHz95=JbyB7dHuPnfRNWNZ79beV6hGMyQ@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 15 Apr 2018 14:59:39 +0000
+Subject: [PATCH 04/12] iommu-helper: move the IOMMU_HELPER config symbol to lib/
+Message-Id: <20180415145947.1248-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180411150829.3881900-1-arnd@arndb.de> <87fu41ilor.fsf@xmission.com>
-In-Reply-To: <87fu41ilor.fsf@xmission.com>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Deepa Dinamani <deepa.kernel@gmail.com>, y2038 Mailman List <y2038@lists.linaro.org>, sparclinux <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
 
-On Wed, Apr 11, 2018 at 9:32 PM, Eric W. Biederman
-<ebiederm@xmission.com> wrote:
-> Arnd Bergmann <arnd@arndb.de> writes:
->
->> We have several files on sparc that include linux/compat.h and expect
->> asm/compat.h not to be included, otherwise we get a build failure.
->
-> Should this say: "We have several files on sparc that include
-> linux/compat.h and expect asm/compat.h not be included when
-> !CONFIG_COMPAT." ?
+This way we have one central definition of it, and user can select it as
+needed.
 
-Correct, I'll fix it up. I'll say '32-bit builds' instead, which is what
-I'm interested in. On sparc64, CONFIG_COMPAT is enabled
-unconditionally, so it's really the same thing.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/powerpc/Kconfig | 4 +---
+ arch/s390/Kconfig    | 5 ++---
+ arch/sparc/Kconfig   | 5 +----
+ arch/x86/Kconfig     | 6 ++----
+ lib/Kconfig          | 3 +++
+ 5 files changed, 9 insertions(+), 14 deletions(-)
 
-> I don't have your tree and I see asm/compat.h included from
-> linux/compat.h already so the description above seems wrong.
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index eb23f2949bf6..3ca617cd4807 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -223,6 +223,7 @@ config PPC
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_VIRT_CPU_ACCOUNTING
+ 	select HAVE_IRQ_TIME_ACCOUNTING
++	select IOMMU_HELPER			if PPC64
+ 	select IRQ_DOMAIN
+ 	select IRQ_FORCED_THREADING
+ 	select MODULES_USE_ELF_RELA
+@@ -478,9 +479,6 @@ config MPROFILE_KERNEL
+ 	depends on PPC64 && CPU_LITTLE_ENDIAN
+ 	def_bool !DISABLE_MPROFILE_KERNEL
+ 
+-config IOMMU_HELPER
+-	def_bool PPC64
+-
+ config SWIOTLB
+ 	bool "SWIOTLB support"
+ 	default n
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 32a0d5b958bf..bfa449fdeb19 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -693,7 +693,9 @@ config QDIO
+ menuconfig PCI
+ 	bool "PCI support"
+ 	select PCI_MSI
++	select IOMMU_HELPER
+ 	select IOMMU_SUPPORT
++
+ 	help
+ 	  Enable PCI support.
+ 
+@@ -717,9 +719,6 @@ config PCI_DOMAINS
+ config HAS_IOMEM
+ 	def_bool PCI
+ 
+-config IOMMU_HELPER
+-	def_bool PCI
+-
+ config NEED_SG_DMA_LENGTH
+ 	def_bool PCI
+ 
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 8767e45f1b2b..44e0f3cd7988 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -67,6 +67,7 @@ config SPARC64
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_CONTEXT_TRACKING
+ 	select HAVE_DEBUG_KMEMLEAK
++	select IOMMU_HELPER
+ 	select SPARSE_IRQ
+ 	select RTC_DRV_CMOS
+ 	select RTC_DRV_BQ4802
+@@ -106,10 +107,6 @@ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
+ 	default y if ARCH_ATU
+ 
+-config IOMMU_HELPER
+-	bool
+-	default y if SPARC64
+-
+ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y if SPARC64
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 336b1378ee62..06ca29e70d6b 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -870,6 +870,7 @@ config DMI
+ 
+ config GART_IOMMU
+ 	bool "Old AMD GART IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI && AMD_NB
+ 	---help---
+@@ -891,6 +892,7 @@ config GART_IOMMU
+ 
+ config CALGARY_IOMMU
+ 	bool "IBM Calgary IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI
+ 	---help---
+@@ -928,10 +930,6 @@ config SWIOTLB
+ 	  with more than 3 GB of memory.
+ 	  If unsure, say Y.
+ 
+-config IOMMU_HELPER
+-	def_bool y
+-	depends on CALGARY_IOMMU || GART_IOMMU
+-
+ config MAXSMP
+ 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
+ 	depends on X86_64 && SMP && DEBUG_KERNEL
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 5fe577673b98..2f6908577534 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -429,6 +429,9 @@ config SGL_ALLOC
+ 	bool
+ 	default n
+ 
++config IOMMU_HELPER
++	bool
++
+ config DMA_DIRECT_OPS
+ 	bool
+ 	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
+-- 
+2.17.0
 
-I removed the tree from linux-next before the merge window because
-of this build regression, if you are interested in the other changes,
-please see
-
-git://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git y2038-next
-
-      Arnd
