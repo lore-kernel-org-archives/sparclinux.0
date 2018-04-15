@@ -1,46 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 30 Apr 2018 20:12:22 +0000
-Subject: [GIT] Sparc
-Message-Id: <20180430.161222.657632197850615574.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 15 Apr 2018 14:59:44 +0000
+Subject: [PATCH 09/12] PCI: remove CONFIG_PCI_BUS_ADDR_T_64BIT
+Message-Id: <20180415145947.1248-10-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20180415145947.1248-1-hch@lst.de>
+In-Reply-To: <20180415145947.1248-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+This symbol is now always identical to CONFIG_ARCH_DMA_ADDR_T_64BIT, so
+remove it.
 
-Please pull to get the following fixes:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/pci/Kconfig | 4 ----
+ drivers/pci/bus.c   | 4 ++--
+ include/linux/pci.h | 2 +-
+ 3 files changed, 3 insertions(+), 7 deletions(-)
 
-1) Fixup license text for oradax driver, from Rob Gardner.
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 34b56a8f8480..29a487f31dae 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -5,10 +5,6 @@
+ 
+ source "drivers/pci/pcie/Kconfig"
+ 
+-config PCI_BUS_ADDR_T_64BIT
+-	def_bool y if (ARCH_DMA_ADDR_T_64BIT || 64BIT)
+-	depends on PCI
+-
+ config PCI_MSI
+ 	bool "Message Signaled Interrupts (MSI and MSI-X)"
+ 	depends on PCI
+diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
+index bc2ded4c451f..35b7fc87eac5 100644
+--- a/drivers/pci/bus.c
++++ b/drivers/pci/bus.c
+@@ -120,7 +120,7 @@ int devm_request_pci_bus_resources(struct device *dev,
+ EXPORT_SYMBOL_GPL(devm_request_pci_bus_resources);
+ 
+ static struct pci_bus_region pci_32_bit = {0, 0xffffffffULL};
+-#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
++#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ static struct pci_bus_region pci_64_bit = {0,
+ 				(pci_bus_addr_t) 0xffffffffffffffffULL};
+ static struct pci_bus_region pci_high = {(pci_bus_addr_t) 0x100000000ULL,
+@@ -230,7 +230,7 @@ int pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
+ 					  resource_size_t),
+ 		void *alignf_data)
+ {
+-#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
++#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ 	int rc;
+ 
+ 	if (res->flags & IORESOURCE_MEM_64) {
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 73178a2fcee0..55371cb827ad 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -670,7 +670,7 @@ int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+ int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
+ 		  int reg, int len, u32 val);
+ 
+-#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
++#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ typedef u64 pci_bus_addr_t;
+ #else
+ typedef u32 pci_bus_addr_t;
+-- 
+2.17.0
 
-2) Release device object with put_device() instead of straight
-   kfree(), from Arvind Yadav.
-
-Thanks!
-
-The following changes since commit 17dec0a949153d9ac00760ba2f5b78cb583e995f:
-
-  Merge branch 'userns-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/user-namespace (2018-04-03 19:15:32 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to 00ad691ab140b54ab9f5de5e74cb994f552e8124:
-
-  sparc: vio: use put_device() instead of kfree() (2018-04-30 16:09:34 -0400)
-
-----------------------------------------------------------------
-Arvind Yadav (1):
-      sparc: vio: use put_device() instead of kfree()
-
-Rob Gardner (1):
-      sparc64: Fix mistake in oradax license text
-
- arch/sparc/include/uapi/asm/oradax.h | 2 +-
- arch/sparc/kernel/vio.c              | 2 +-
- drivers/sbus/char/oradax.c           | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
