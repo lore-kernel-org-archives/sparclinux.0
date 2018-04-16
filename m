@@ -1,64 +1,35 @@
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Date: Mon, 16 Apr 2018 08:56:33 +0000
+From: David Miller <davem@davemloft.net>
+Date: Mon, 16 Apr 2018 13:58:33 +0000
 Subject: Re: [PATCH 01/12] iommu-common: move to arch/sparc
-Message-Id: <f0305a92-b206-1567-3c25-67fbd194047d@linux.vnet.ibm.com>
+Message-Id: <20180416.095833.969403163564136309.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180415145947.1248-1-hch@lst.de>
  <20180415145947.1248-2-hch@lst.de>
-In-Reply-To: <20180415145947.1248-2-hch@lst.de>
+ <f0305a92-b206-1567-3c25-67fbd194047d@linux.vnet.ibm.com>
+In-Reply-To: <f0305a92-b206-1567-3c25-67fbd194047d@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On 04/15/2018 08:29 PM, Christoph Hellwig wrote:
-> This code is only used by sparc, and all new iommu drivers should use the
-> drivers/iommu/ framework.  Also remove the unused exports.
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Date: Mon, 16 Apr 2018 14:26:07 +0530
+
+> On 04/15/2018 08:29 PM, Christoph Hellwig wrote:
+>> This code is only used by sparc, and all new iommu drivers should use the
+>> drivers/iommu/ framework.  Also remove the unused exports.
+>> 
+>> Signed-off-by: Christoph Hellwig <hch@lst.de>
 > 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Right, these functions are used only from SPARC architecture. Simple
+> git grep confirms it as well. Hence it makes sense to move them into
+> arch code instead.
 
-Right, these functions are used only from SPARC architecture. Simple
-git grep confirms it as well. Hence it makes sense to move them into
-arch code instead.
+Well, we put these into a common location and used type friendly for
+powerpc because we hoped powerpc would convert over to using this
+common piece of code as well.
 
-git grep iommu_tbl_pool_init
-----------------------------
+But nobody did the powerpc work.
 
-arch/sparc/include/asm/iommu-common.h:extern void iommu_tbl_pool_init(struct iommu_map_table *iommu,
-arch/sparc/kernel/iommu-common.c:void iommu_tbl_pool_init(struct iommu_map_table *iommu,
-arch/sparc/kernel/iommu.c:      iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
-arch/sparc/kernel/ldc.c:        iommu_tbl_pool_init(iommu, num_tsb_entries, PAGE_SHIFT,
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_pool_init(&atu->tbl, num_iotte, IO_PAGE_SHIFT,
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_pool_init(&iommu->tbl, num_tsb_entries, IO_PAGE_SHIFT,
-
-git grep iommu_tbl_range_alloc
-------------------------------
-
-arch/sparc/include/asm/iommu-common.h:extern unsigned long iommu_tbl_range_alloc(struct device *dev,
-arch/sparc/kernel/iommu-common.c:unsigned long iommu_tbl_range_alloc(struct device *dev,
-arch/sparc/kernel/iommu.c:      entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages, NULL,
-arch/sparc/kernel/iommu.c:              entry = iommu_tbl_range_alloc(dev, &iommu->tbl, npages,
-arch/sparc/kernel/ldc.c:        entry = iommu_tbl_range_alloc(NULL, &iommu->iommu_map_table,
-arch/sparc/kernel/pci_sun4v.c:  entry = iommu_tbl_range_alloc(dev, tbl, npages, NULL,
-arch/sparc/kernel/pci_sun4v.c:  entry = iommu_tbl_range_alloc(dev, tbl, npages, NULL,
-arch/sparc/kernel/pci_sun4v.c:          entry = iommu_tbl_range_alloc(dev, tbl, npages,
-
-git grep iommu_tbl_range_free
------------------------------
-
-arch/sparc/include/asm/iommu-common.h:extern void iommu_tbl_range_free(struct iommu_map_table *iommu,
-arch/sparc/kernel/iommu-common.c:void iommu_tbl_range_free(struct iommu_map_table *iommu, u64 dma_addr,
-arch/sparc/kernel/iommu.c:      iommu_tbl_range_free(&iommu->tbl, dvma, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/iommu.c:      iommu_tbl_range_free(&iommu->tbl, bus_addr, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/iommu.c:                      iommu_tbl_range_free(&iommu->tbl, vaddr, npages,
-arch/sparc/kernel/iommu.c:              iommu_tbl_range_free(&iommu->tbl, dma_handle, npages,
-arch/sparc/kernel/ldc.c:        iommu_tbl_range_free(&iommu->iommu_map_table, cookie, npages, entry);
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_range_free(tbl, *dma_addrp, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_range_free(tbl, dvma, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_range_free(tbl, bus_addr, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/pci_sun4v.c:  iommu_tbl_range_free(tbl, bus_addr, npages, IOMMU_ERROR_CODE);
-arch/sparc/kernel/pci_sun4v.c:                  iommu_tbl_range_free(tbl, vaddr, npages,
-arch/sparc/kernel/pci_sun4v.c:          iommu_tbl_range_free(tbl, dma_handle, npages,
-
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-
+If you look at the powerpc iommu support, it's the same code basically
+for entry allocation.
