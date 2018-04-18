@@ -1,32 +1,33 @@
-From: Greentime Hu <green.hu@gmail.com>
-Date: Thu, 26 Apr 2018 09:39:20 +0000
-Subject: Re: [PATCH 13/22] nds32: use generic dma_noncoherent_ops
-Message-Id: <CAEbi=3dnduyq3k8hkoLu180EtwCQ5-Hz0jc1iviv70WXp7yUJg@mail.gmail.com>
+From: =?windows-1252?Q?Ren=E9_Rebe?= <rene@exactcode.com>
+Date: Wed, 18 Apr 2018 16:53:24 +0000
+Subject: BUG: Bad rss-counter state ...
+Message-Id: <E08C1995-DD20-4613-9885-D9F2857D7737@exactcode.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de> <20180420080313.18796-14-hch@lst.de>
- <CAEbi=3fkakVD2vxGu6SgJM77JnNM8Y79xS8_o6m9d_85BJpMFQ@mail.gmail.com>
- <20180424191640.GA32495@lst.de> <CAEbi=3f7yzE+KAM2GOh6QahC_E6BAUfB3ys3U-WdBSUf3DPZqg@mail.gmail.com>
- <20180425064055.GA11460@lst.de> <CAEbi=3fcd8E=xi_hbef45LnPsBZhZv37yPO-xfZmU1gMaWnDvg@mail.gmail.com>
- <20180426064239.GA13895@lst.de> <CAEbi=3e3gM_WpQOtKZXP4Xj2Az4bLf_u6BjDELqXy6-d9HurMQ@mail.gmail.com>
- <20180426082429.GA15580@lst.de>
-In-Reply-To: <20180426082429.GA15580@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-arch <linux-arch@vger.kernel.org>, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, linux-xtensa@linux-xtensa.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-2018-04-26 16:24 GMT+08:00 Christoph Hellwig <hch@lst.de>:
-> On Thu, Apr 26, 2018 at 04:06:34PM +0800, Greentime Hu wrote:
->> It works!!!
->
-> Thanks!
->
-> Can you retest the updated tree here with all the fixes and give me
-> your Tested-by: for the generic and nds32 patches?
->
-> git://git.infradead.org/users/hch/misc.git generic-dma-noncoherent
+Hi,
 
-Sorry Christoph. I found the previous mail I said it works was wrong
-because I used a wrong vmlinux.
-It still failed. >,<
+I recently dusted off some sparc systems, to help testing latest versions a=
+nd such (https://www.youtube.com/watch?v=3D10q2OxHAzQ4&t=3D500s).
+
+On my Ultra 30 I get some BUG printk in dmesg:
+
+[    0.000145] PROMLIB: Sun IEEE Boot Prom 'OBP 3.9.5 1997/04/11 10:03'
+[    0.000168] PROMLIB: Root node compatible:=20
+[    0.000251] Linux version 4.16.2-dist (root@somewhere.exactcode.de) (gcc=
+ version 5.3.0 (GCC)) #1 SMP Tue Apr 17 08:21:44 Local time zone must be se=
+t--see zic=20
+[    0.000828] bootconsole [earlyprom0] enabled
+[    0.000835] ARCH: SUN4U
+=85
+[ 3290.076290] BUG: Bad rss-counter state mm:00000000e37e5ba7 idx:1 val:1
+[ 3290.080937] BUG: non-zero pgtables_bytes on freeing mm: 8192
+
+
+
+--=20
+ Ren=E9 Rebe, ExactCODE GmbH, Lietzenburger Str. 42, DE-10789 Berlin
+ https://exactcode.com | https://t2sde.org | https://rene.rebe.de
