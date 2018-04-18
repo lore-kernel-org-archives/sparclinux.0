@@ -1,68 +1,335 @@
-From: Rob Herring <robh@kernel.org>
-Date: Mon, 16 Apr 2018 16:47:45 +0000
-Subject: Re: [PATCH] drivers/of: Introduce ARCH_HAS_OWN_OF_NUMA
-Message-Id: <CAL_JsqLujBZzo5T0118QiX-CvxfetaBcPG9rC_WGCCK8k4Ka7Q@mail.gmail.com>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Wed, 18 Apr 2018 16:29:57 +0000
+Subject: [PATCH 1/2] char: sparc64: Add privileged ADI driver
+Message-Id: <20180418162958.442909-2-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180409074604.17671-1-oohall@gmail.com>
- <CAL_Jsq+ho2QhmNmPZMDJcfSxposJd=jYDvjhXH8cMAtVFP7n4A@mail.gmail.com>
- <CAPcyv4iCkc7ZSB7Sjk-O7iBWvvTzhTmdccucC4uN6GEu5Bjotw@mail.gmail.com>
-In-Reply-To: <CAPcyv4iCkc7ZSB7Sjk-O7iBWvvTzhTmdccucC4uN6GEu5Bjotw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+References: <20180418162958.442909-1-tom.hromatka@oracle.com>
+In-Reply-To: <20180418162958.442909-1-tom.hromatka@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Device Tree <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+To: sparclinux@vger.kernel.org
 
-On Mon, Apr 9, 2018 at 4:05 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Mon, Apr 9, 2018 at 1:52 PM, Rob Herring <robh@kernel.org> wrote:
->> On Mon, Apr 9, 2018 at 2:46 AM, Oliver O'Halloran <oohall@gmail.com> wrote:
->>> Some OF platforms (pseries and some SPARC systems) has their own
->>> implementations of NUMA affinity detection rather than using the generic
->>> OF_NUMA driver, which mainly exists for arm64. For other platforms one
->>> of two fallbacks provided by the base OF driver are used depending on
->>> CONFIG_NUMA.
->>>
->>> In the CONFIG_NUMA=n case the fallback is an inline function in of.h.
->>> In the =y case the fallback is a real function which is defined as a
->>> weak symbol so that it may be overwritten by the architecture if desired.
->>>
->>> The problem with this arrangement is that the real implementations all
->>> export of_node_to_nid(). Unfortunately it's not possible to export the
->>> fallback since it would clash with the non-weak version. As a result
->>> we get build failures when:
->>>
->>> a) CONFIG_NUMA=y && CONFIG_OF=y, and
->>> b) The platform doesn't implement of_node_to_nid(), and
->>> c) A module uses of_node_to_nid()
->>>
->>> Given b) will be true for most platforms this is fairly easy to hit
->>> and has been observed on ia64 and x86.
->>
->> How specifically do we hit this? The only module I see using
->> of_node_to_nid in mainline is Cell EDAC driver.
->
-> The of_pmem driver is using it currently pending for a 4.17 pull
-> request. Stephen hit the compile failure in -next.
+SPARC M7 and newer processors utilize ADI to version and
+protect memory.  This driver is capable of reading/writing
+ADI/MCD versions from privileged user space processes.
+Addresses in the adi file are mapped linearly to physical
+memory at a ratio of 1:adi_blksz.  Thus, a read (or write)
+of offset K in the file operates upon the ADI version at
+physical address K * adi_blksz.  The version information
+is encoded as one version per byte.  Intended consumers
+are makedumpfile and crash.
 
-I took a look at this. The correct fix here is to use dev_to_node() instead:
+Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+---
+ drivers/char/Kconfig  |  12 +++
+ drivers/char/Makefile |   1 +
+ drivers/char/adi.c    | 262 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 275 insertions(+)
+ create mode 100644 drivers/char/adi.c
 
-diff --git a/drivers/nvdimm/of_pmem.c b/drivers/nvdimm/of_pmem.c
-index 85013bad35de..0a701837dfc0 100644
---- a/drivers/nvdimm/of_pmem.c
-+++ b/drivers/nvdimm/of_pmem.c
-@@ -67,7 +67,7 @@ static int of_pmem_region_probe(struct platform_device *pdev)
-                 */
-                memset(&ndr_desc, 0, sizeof(ndr_desc));
-                ndr_desc.attr_groups = region_attr_groups;
--               ndr_desc.numa_node = of_node_to_nid(np);
-+               ndr_desc.numa_node = dev_to_node(&pdev->dev);
-                ndr_desc.res = &pdev->resource[i];
-                ndr_desc.of_node = np;
-                set_bit(ND_REGION_PAGEMAP, &ndr_desc.flags);
+diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+index 40947a796666..5ecddc95a698 100644
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -540,5 +540,17 @@ source "drivers/s390/char/Kconfig"
+ 
+ source "drivers/char/xillybus/Kconfig"
+ 
++config ADI
++	tristate "SPARC Privileged ADI driver"
++	depends on SPARC64
++	default m
++	help
++	  SPARC M7 and newer processors utilize ADI (Application Data
++	  Integrity) to version and protect memory.  This driver provides
++	  read/write access to the ADI versions for privileged processes.
++	  This feature is also known as MCD (Memory Corruption Detection)
++	  and SSM (Silicon Secured Memory).  Intended consumers of this
++	  driver include crash and makedumpfile.
++
+ endmenu
+ 
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index c97c768cd1dd..b8d42b4e979b 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -57,3 +57,4 @@ js-rtc-y = rtc.o
+ 
+ obj-$(CONFIG_XILLYBUS)		+= xillybus/
+ obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
++obj-$(CONFIG_ADI)		+= adi.o
+diff --git a/drivers/char/adi.c b/drivers/char/adi.c
+new file mode 100644
+index 000000000000..0dee52bc8a3d
+--- /dev/null
++++ b/drivers/char/adi.c
+@@ -0,0 +1,262 @@
++/*
++ * Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
++ * Author: Tom Hromatka <tom.hromatka@oracle.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version 2
++ * as published by the Free Softare Foundation; or, when distributed
++ * separately from the Linux kernel or incorporated into other
++ * software packages, subject to the following license:
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this source file (the "Software"), to deal in the Software without
++ * restriction, including without limitation the rights to use, copy, modify,
++ * merge, publish, distribute, sublicense, and/or sell copies of the Software,
++ * and to permit persons to whom the Software is furnished to do so, subject to
++ * the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
++ * IN THE SOFTWARE.
++ */
++#include <linux/kernel.h>
++#include <linux/miscdevice.h>
++#include <linux/module.h>
++#include <linux/proc_fs.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <asm/asi.h>
++
++#define MODULE_NAME	"adi"
++#define MAX_BUF_SZ	4096
++
++static int adi_open(struct inode *inode, struct file *file)
++{
++	file->f_mode |= FMODE_UNSIGNED_OFFSET;
++	return 0;
++}
++
++static int read_mcd_tag(unsigned long addr)
++{
++	long err;
++	int ver;
++
++	__asm__ __volatile__(
++		"1:	ldxa [%[addr]] %[asi], %[ver]\n"
++		"	mov 0, %[err]\n"
++		"2:\n"
++		"	.section .fixup,#alloc,#execinstr\n"
++		"	.align 4\n"
++		"3:	sethi %%hi(2b), %%g1\n"
++		"	jmpl  %%g1 + %%lo(2b), %%g0\n"
++		"	mov %[invalid], %[err]\n"
++		"	.previous\n"
++		"	.section __ex_table, \"a\"\n"
++		"	.align 4\n"
++		"	.word  1b, 3b\n"
++		"	.previous\n"
++		: [ver] "=r" (ver), [err] "=r" (err)
++		: [addr] "r"  (addr), [invalid] "i" (EFAULT),
++		  [asi] "i" (ASI_MCD_REAL)
++		: "memory", "g1"
++		);
++
++	if (err)
++		return -EFAULT;
++	else
++		return ver;
++}
++
++static ssize_t adi_read(struct file *file, char __user *buf,
++			size_t count, loff_t *offp)
++{
++	size_t ver_buf_sz, bytes_read = 0;
++	int ver_buf_idx = 0;
++	loff_t offset;
++	u8 *ver_buf;
++	ssize_t ret;
++
++	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
++	ver_buf = kmalloc(ver_buf_sz, GFP_KERNEL);
++	if (!ver_buf)
++		return -ENOMEM;
++
++	offset = (*offp) * adi_blksize();
++
++	while (bytes_read < count) {
++		ret = read_mcd_tag(offset);
++		if (ret < 0)
++			goto out;
++
++		ver_buf[ver_buf_idx] = (u8)ret;
++		ver_buf_idx++;
++		offset += adi_blksize();
++
++		if (ver_buf_idx >= ver_buf_sz) {
++			if (copy_to_user(buf + bytes_read, ver_buf,
++					 ver_buf_sz)) {
++				ret = -EFAULT;
++				goto out;
++			}
++
++			bytes_read += ver_buf_sz;
++			ver_buf_idx = 0;
++
++			ver_buf_sz = min(count - bytes_read,
++					 (size_t)MAX_BUF_SZ);
++		}
++	}
++
++	(*offp) += bytes_read;
++	ret = bytes_read;
++out:
++	kfree(ver_buf);
++	return ret;
++}
++
++static int set_mcd_tag(unsigned long addr, u8 ver)
++{
++	long err;
++
++	__asm__ __volatile__(
++		"1:	stxa %[ver], [%[addr]] %[asi]\n"
++		"	mov 0, %[err]\n"
++		"2:\n"
++		"	.section .fixup,#alloc,#execinstr\n"
++		"	.align 4\n"
++		"3:	sethi %%hi(2b), %%g1\n"
++		"	jmpl %%g1 + %%lo(2b), %%g0\n"
++		"	mov %[invalid], %[err]\n"
++		"	.previous\n"
++		"	.section __ex_table, \"a\"\n"
++		"	.align 4\n"
++		"	.word 1b, 3b\n"
++		"	.previous\n"
++		: [err] "=r" (err)
++		: [ver] "r" (ver), [addr] "r"  (addr),
++		  [invalid] "i" (EFAULT), [asi] "i" (ASI_MCD_REAL)
++		: "memory", "g1"
++		);
++
++	if (err)
++		return -EFAULT;
++	else
++		return ver;
++}
++
++static ssize_t adi_write(struct file *file, const char __user *buf,
++			 size_t count, loff_t *offp)
++{
++	size_t ver_buf_sz, bytes_written = 0;
++	loff_t offset;
++	u8 *ver_buf;
++	ssize_t ret;
++	int i;
++
++	if (count <= 0)
++		return -EINVAL;
++
++	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
++	ver_buf = kmalloc(ver_buf_sz, (size_t)GFP_KERNEL);
++	if (!ver_buf)
++		return -ENOMEM;
++
++	offset = (*offp) * adi_blksize();
++
++	do {
++		if (copy_from_user(ver_buf, &buf[bytes_written],
++				   ver_buf_sz)) {
++			ret = -EFAULT;
++			goto out;
++		}
++
++		for (i = 0; i < ver_buf_sz; i++) {
++			ret = set_mcd_tag(offset, ver_buf[i]);
++			if (ret < 0)
++				goto out;
++
++			offset += adi_blksize();
++		}
++
++		bytes_written += ver_buf_sz;
++		ver_buf_sz = min(count - bytes_written, (size_t)MAX_BUF_SZ);
++	} while (bytes_written < count);
++
++	(*offp) += bytes_written;
++	ret = bytes_written;
++out:
++	__asm__ __volatile__("membar #Sync");
++	kfree(ver_buf);
++	return ret;
++}
++
++static loff_t adi_llseek(struct file *file, loff_t offset, int whence)
++{
++	loff_t ret = -EINVAL;
++
++	switch (whence) {
++	case SEEK_END:
++	case SEEK_DATA:
++	case SEEK_HOLE:
++		/* unsupported */
++		return -EINVAL;
++	case SEEK_CUR:
++		if (offset = 0)
++			return file->f_pos;
++
++		offset += file->f_pos;
++		break;
++	case SEEK_SET:
++		break;
++	}
++
++	if (offset != file->f_pos) {
++		file->f_pos = offset;
++		file->f_version = 0;
++		ret = offset;
++	}
++
++	return ret;
++}
++
++static const struct file_operations adi_fops = {
++	.owner		= THIS_MODULE,
++	.llseek		= adi_llseek,
++	.open		= adi_open,
++	.read		= adi_read,
++	.write		= adi_write,
++};
++
++static struct miscdevice adi_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name = MODULE_NAME,
++	.fops = &adi_fops,
++};
++
++static int __init adi_init(void)
++{
++	if (!adi_capable())
++		return -EPERM;
++
++	return misc_register(&adi_miscdev);
++}
++
++static void __exit adi_exit(void)
++{
++	misc_deregister(&adi_miscdev);
++}
++
++module_init(adi_init);
++module_exit(adi_exit);
++
++MODULE_AUTHOR("Tom Hromatka <tom.hromatka@oracle.com>");
++MODULE_DESCRIPTION("Privileged interface to ADI");
++MODULE_VERSION("1.0");
++MODULE_LICENSE("GPL");
+-- 
+2.15.0
 
-
-And we should remove the exported symbol.
-
-I'll send a proper patch.
-
-Rob
