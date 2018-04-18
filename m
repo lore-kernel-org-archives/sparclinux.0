@@ -1,333 +1,868 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 23 Apr 2018 17:04:13 +0000
-Subject: [PATCH 06/12] dma-mapping: move the NEED_DMA_MAP_STATE config symbol to lib/Kconfig
-Message-Id: <20180423170419.20330-7-hch@lst.de>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Wed, 18 Apr 2018 16:29:58 +0000
+Subject: [PATCH 2/2] selftests: sparc64: char: Selftest for privileged ADI driver
+Message-Id: <20180418162958.442909-3-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180423170419.20330-1-hch@lst.de>
-In-Reply-To: <20180423170419.20330-1-hch@lst.de>
+References: <20180418162958.442909-1-tom.hromatka@oracle.com>
+In-Reply-To: <20180418162958.442909-1-tom.hromatka@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-This way we have one central definition of it, and user can select it as
-needed.  Note that we now also always select it when CONFIG_DMA_API_DEBUG
-is select, which fixes some incorrect checks in a few network drivers.
+Add a selftest for the sparc64 privileged ADI driver.  These
+tests verify the read(), pread(), write(), pwrite(), and seek()
+functionality of the driver.  The tests also report simple
+performance statistics:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+        Syscall Call    AvgTime AvgSize
+                Count   (ticks) (bytes)
+        -------------------------------
+        read          3  167134    8133
+        pread         4  137217    6741
+        write         3   73787    8133
+        pwrite        4   65832    6741
+        seek         10    2422       0
+
+        Ran 8 tests
+        All tests passed
+
+Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
+Reviewed-by: Allen Pais <allen.pais@oracle.com>
 ---
- arch/alpha/Kconfig          | 4 +---
- arch/arm/Kconfig            | 4 +---
- arch/arm64/Kconfig          | 4 +---
- arch/ia64/Kconfig           | 4 +---
- arch/mips/Kconfig           | 3 ---
- arch/parisc/Kconfig         | 4 +---
- arch/s390/Kconfig           | 4 +---
- arch/sh/Kconfig             | 4 +---
- arch/sparc/Kconfig          | 4 +---
- arch/unicore32/Kconfig      | 4 +---
- arch/x86/Kconfig            | 6 ++----
- drivers/iommu/Kconfig       | 1 +
- include/linux/dma-mapping.h | 2 +-
- lib/Kconfig                 | 3 +++
- lib/Kconfig.debug           | 1 +
- 15 files changed, 17 insertions(+), 35 deletions(-)
+ tools/testing/selftests/Makefile                   |   1 +
+ tools/testing/selftests/sparc64/Makefile           |  52 ++
+ tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
+ tools/testing/selftests/sparc64/drivers/Makefile   |  13 +
+ tools/testing/selftests/sparc64/drivers/adi-test.c | 727 +++++++++++++++++++++
+ 5 files changed, 794 insertions(+)
+ create mode 100644 tools/testing/selftests/sparc64/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
+ create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
 
-diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-index 8e6a67ecf069..1fd9645b0c67 100644
---- a/arch/alpha/Kconfig
-+++ b/arch/alpha/Kconfig
-@@ -10,6 +10,7 @@ config ALPHA
- 	select HAVE_OPROFILE
- 	select HAVE_PCSPKR_PLATFORM
- 	select HAVE_PERF_EVENTS
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 	select VIRT_TO_BUS
- 	select GENERIC_IRQ_PROBE
-@@ -68,9 +69,6 @@ config ZONE_DMA
- config ARCH_DMA_ADDR_T_64BIT
- 	def_bool y
- 
--config NEED_DMA_MAP_STATE
--       def_bool y
--
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 602c8320282f..aa1c187d756d 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -96,6 +96,7 @@ config ARM
- 	select HAVE_VIRT_CPU_ACCOUNTING_GEN
- 	select IRQ_FORCED_THREADING
- 	select MODULES_USE_ELF_REL
-+	select NEED_DMA_MAP_STATE
- 	select NO_BOOTMEM
- 	select OF_EARLY_FLATTREE if OF
- 	select OF_RESERVED_MEM if OF
-@@ -221,9 +222,6 @@ config ARCH_MAY_HAVE_PC_FDC
- config ZONE_DMA
- 	bool
- 
--config NEED_DMA_MAP_STATE
--       def_bool y
--
- config ARCH_SUPPORTS_UPROBES
- 	def_bool y
- 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 3b441c5587f1..940adfb9a2bc 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -133,6 +133,7 @@ config ARM64
- 	select IRQ_FORCED_THREADING
- 	select MODULES_USE_ELF_RELA
- 	select MULTI_IRQ_HANDLER
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 	select NO_BOOTMEM
- 	select OF
-@@ -241,9 +242,6 @@ config HAVE_GENERIC_GUP
- config ARCH_DMA_ADDR_T_64BIT
- 	def_bool y
- 
--config NEED_DMA_MAP_STATE
--	def_bool y
--
- config SMP
- 	def_bool y
- 
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 333917676f7f..0e42731adaf1 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -54,6 +54,7 @@ config IA64
- 	select MODULES_USE_ELF_RELA
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_AUDITSYSCALL
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 	default y
- 	help
-@@ -82,9 +83,6 @@ config MMU
- config ARCH_DMA_ADDR_T_64BIT
- 	def_bool y
- 
--config NEED_DMA_MAP_STATE
--	def_bool y
--
- config SWIOTLB
-        bool
- 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 225c95da23ce..47d72c64d687 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -1122,9 +1122,6 @@ config DMA_NONCOHERENT
- 	bool
- 	select NEED_DMA_MAP_STATE
- 
--config NEED_DMA_MAP_STATE
--	bool
--
- config SYS_HAS_EARLY_PRINTK
- 	bool
- 
-diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
-index 89caea87556e..4d8f64d48597 100644
---- a/arch/parisc/Kconfig
-+++ b/arch/parisc/Kconfig
-@@ -51,6 +51,7 @@ config PARISC
- 	select GENERIC_CLOCKEVENTS
- 	select ARCH_NO_COHERENT_DMA_MMAP
- 	select CPU_NO_EFFICIENT_FFS
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 
- 	help
-@@ -112,9 +113,6 @@ config PM
- config STACKTRACE_SUPPORT
- 	def_bool y
- 
--config NEED_DMA_MAP_STATE
--	def_bool y
--
- config ISA_DMA_API
- 	bool
- 
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index f80c6b983159..89a007672f70 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -711,6 +711,7 @@ menuconfig PCI
- 	select PCI_MSI
- 	select IOMMU_HELPER
- 	select IOMMU_SUPPORT
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 
- 	help
-@@ -736,9 +737,6 @@ config PCI_DOMAINS
- config HAS_IOMEM
- 	def_bool PCI
- 
--config NEED_DMA_MAP_STATE
--	def_bool PCI
--
- config CHSC_SCH
- 	def_tristate m
- 	prompt "Support for CHSC subchannels"
-diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-index e127e0cbe30f..9417f70e008e 100644
---- a/arch/sh/Kconfig
-+++ b/arch/sh/Kconfig
-@@ -50,6 +50,7 @@ config SUPERH
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select HAVE_FUTEX_CMPXCHG if FUTEX
- 	select HAVE_NMI
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 
- 	help
-@@ -162,9 +163,6 @@ config DMA_COHERENT
- config DMA_NONCOHERENT
- 	def_bool !DMA_COHERENT
- 
--config NEED_DMA_MAP_STATE
--	def_bool DMA_NONCOHERENT
--
- config PGTABLE_LEVELS
- 	default 3 if X2TLB
- 	default 2
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index e79badc8a682..be770b511ddd 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -44,6 +44,7 @@ config SPARC
- 	select ARCH_HAS_SG_CHAIN
- 	select CPU_NO_EFFICIENT_FFS
- 	select LOCKDEP_SMALL if LOCKDEP
-+	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
- 
- config SPARC32
-@@ -144,9 +145,6 @@ config ZONE_DMA
- 	bool
- 	default y if SPARC32
- 
--config NEED_DMA_MAP_STATE
--	def_bool y
--
- config GENERIC_ISA_DMA
- 	bool
- 	default y if SPARC32
-diff --git a/arch/unicore32/Kconfig b/arch/unicore32/Kconfig
-index 462e59a7ae78..82195714d20b 100644
---- a/arch/unicore32/Kconfig
-+++ b/arch/unicore32/Kconfig
-@@ -19,6 +19,7 @@ config UNICORE32
- 	select ARCH_WANT_FRAME_POINTERS
- 	select GENERIC_IOMAP
- 	select MODULES_USE_ELF_REL
-+	select NEED_DMA_MAP_STATE
- 	help
- 	  UniCore-32 is 32-bit Instruction Set Architecture,
- 	  including a series of low-power-consumption RISC chip
-@@ -61,9 +62,6 @@ config ARCH_MAY_HAVE_PC_FDC
- config ZONE_DMA
- 	def_bool y
- 
--config NEED_DMA_MAP_STATE
--       def_bool y
--
- source "init/Kconfig"
- 
- source "kernel/Kconfig.freezer"
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index ead3babe4e79..a98a9b14fda2 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -28,6 +28,7 @@ config X86_64
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_ARCH_SOFT_DIRTY
- 	select MODULES_USE_ELF_RELA
-+	select NEED_DMA_MAP_STATE
- 	select X86_DEV_DMA_OPS
- 	select ARCH_HAS_SYSCALL_WRAPPER
- 
-@@ -236,10 +237,6 @@ config ARCH_MMAP_RND_COMPAT_BITS_MAX
- config SBUS
- 	bool
- 
--config NEED_DMA_MAP_STATE
--	def_bool y
--	depends on X86_64 || INTEL_IOMMU || DMA_API_DEBUG || SWIOTLB
--
- config GENERIC_ISA_DMA
- 	def_bool y
- 	depends on ISA_DMA_API
-@@ -922,6 +919,7 @@ config CALGARY_IOMMU_ENABLED_BY_DEFAULT
- # need this always selected by IOMMU for the VIA workaround
- config SWIOTLB
- 	def_bool y if X86_64
-+	select NEED_DMA_MAP_STATE
- 	---help---
- 	  Support for software bounce buffers used on x86-64 systems
- 	  which don't have a hardware IOMMU. Using this PCI devices
-diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-index df171cb85822..5b714a062fa7 100644
---- a/drivers/iommu/Kconfig
-+++ b/drivers/iommu/Kconfig
-@@ -146,6 +146,7 @@ config INTEL_IOMMU
- 	select DMA_DIRECT_OPS
- 	select IOMMU_API
- 	select IOMMU_IOVA
-+	select NEED_DMA_MAP_STATE
- 	select DMAR_TABLE
- 	help
- 	  DMA remapping (DMAR) devices support enables independent address
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index f8ab1c0f589e..14269d25498b 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -839,7 +839,7 @@ static inline int dma_mmap_wc(struct device *dev,
- #define dma_mmap_writecombine dma_mmap_wc
- #endif
- 
--#if defined(CONFIG_NEED_DMA_MAP_STATE) || defined(CONFIG_DMA_API_DEBUG)
-+#ifdef CONFIG_NEED_DMA_MAP_STATE
- #define DEFINE_DMA_UNMAP_ADDR(ADDR_NAME)        dma_addr_t ADDR_NAME
- #define DEFINE_DMA_UNMAP_LEN(LEN_NAME)          __u32 LEN_NAME
- #define dma_unmap_addr(PTR, ADDR_NAME)           ((PTR)->ADDR_NAME)
-diff --git a/lib/Kconfig b/lib/Kconfig
-index aeb7fae16bc2..ce9fa962d59b 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -432,6 +432,9 @@ config SGL_ALLOC
- config NEED_SG_DMA_LENGTH
- 	bool
- 
-+config NEED_DMA_MAP_STATE
-+	bool
+diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
+index 7442dfb73b7f..94da632579e7 100644
+--- a/tools/testing/selftests/Makefile
++++ b/tools/testing/selftests/Makefile
+@@ -28,6 +28,7 @@ TARGETS += ptrace
+ TARGETS += seccomp
+ TARGETS += sigaltstack
+ TARGETS += size
++TARGETS += sparc64
+ TARGETS += splice
+ TARGETS += static_keys
+ TARGETS += sync
+diff --git a/tools/testing/selftests/sparc64/Makefile b/tools/testing/selftests/sparc64/Makefile
+new file mode 100644
+index 000000000000..b18bbce141c9
+--- /dev/null
++++ b/tools/testing/selftests/sparc64/Makefile
+@@ -0,0 +1,52 @@
++# Makefile for sparc selftests
 +
- config IOMMU_HELPER
- 	bool
- 
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index c40c7b734cd1..685ed2dd4384 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -1635,6 +1635,7 @@ config PROVIDE_OHCI1394_DMA_INIT
- config DMA_API_DEBUG
- 	bool "Enable debugging of DMA-API usage"
- 	depends on HAVE_DMA_API_DEBUG
-+	select NEED_DMA_MAP_STATE
- 	help
- 	  Enable this option to debug the use of the DMA API by device drivers.
- 	  With this option you will be able to detect common bugs in device
++# ARCH can be overridden by the user for cross compiling
++ARCH ?= $(shell uname -m)
++
++ifeq ($(ARCH),sparc64)
++
++GIT_VERSION = $(shell git describe --always --long --dirty || echo "unknown")
++
++CFLAGS := -Wall -Werror -O2 -DGIT_VERSION='"$(GIT_VERSION)"' -I$(CURDIR) $(CFLAGS)
++
++export CFLAGS
++
++SUB_DIRS = drivers
++
++endif
++
++all: $(SUB_DIRS)
++
++$(SUB_DIRS):
++	$(MAKE) -k -C $@ all
++
++include ../lib.mk
++
++override define RUN_TESTS
++	@for TARGET in $(SUB_DIRS); do \
++		$(MAKE) -C $$TARGET run_tests; \
++	done;
++endef
++
++override define INSTALL_RULE
++	@for TARGET in $(SUB_DIRS); do \
++		$(MAKE) -C $$TARGET install; \
++	done;
++endef
++
++override define EMIT_TESTS
++	@for TARGET in $(SUB_DIRS); do \
++		$(MAKE) -s -C $$TARGET emit_tests; \
++	done;
++endef
++
++clean:
++	@for TARGET in $(SUB_DIRS); do \
++		$(MAKE) -C $$TARGET clean; \
++	done;
++	rm -f tags
++
++tags:
++	find . -name '*.c' -o -name '*.h' | xargs ctags
++
++.PHONY: tags $(SUB_DIRS)
+diff --git a/tools/testing/selftests/sparc64/drivers/.gitignore b/tools/testing/selftests/sparc64/drivers/.gitignore
+new file mode 100644
+index 000000000000..90e835ed74e6
+--- /dev/null
++++ b/tools/testing/selftests/sparc64/drivers/.gitignore
+@@ -0,0 +1 @@
++adi-test
+diff --git a/tools/testing/selftests/sparc64/drivers/Makefile b/tools/testing/selftests/sparc64/drivers/Makefile
+new file mode 100644
+index 000000000000..06b50943eddf
+--- /dev/null
++++ b/tools/testing/selftests/sparc64/drivers/Makefile
+@@ -0,0 +1,13 @@
++noarg:
++	$(MAKE) -C ../
++
++TEST_PROGS := adi-test
++
++all: $(TEST_PROGS)
++
++$(TEST_PROGS): adi-test.c
++
++include ../../lib.mk
++
++clean:
++	rm -f $(TEST_PROGS)
+diff --git a/tools/testing/selftests/sparc64/drivers/adi-test.c b/tools/testing/selftests/sparc64/drivers/adi-test.c
+new file mode 100644
+index 000000000000..8ea6671b7b58
+--- /dev/null
++++ b/tools/testing/selftests/sparc64/drivers/adi-test.c
+@@ -0,0 +1,727 @@
++/*	adi_test.c
++ *
++ *	Unit tests for adi.c
++ *
++ *	(c) Copyright 2017, 2018 Oracle and/or its affiliates
++ *
++ *	Tests for the privileged interface to SPARC ADI
++ *
++ *	This program is free software; you can redistribute it and/or
++ *	modify it under the terms of the GNU General Public License
++ *	as published by the Free Software Foundation; either version
++ *	2 of the License, or (at your option) any later version.
++ *
++ *	Author: Tom Hromatka <tom.hromatka@oracle.com>
++ */
++#include <linux/kernel.h>
++#include <errno.h>
++#include <fcntl.h>
++#include <stdarg.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <sys/syscall.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++
++#define DEBUG_LEVEL_1_BIT	(0x0001)
++#define DEBUG_LEVEL_2_BIT	(0x0002)
++#define DEBUG_LEVEL_3_BIT	(0x0004)
++#define DEBUG_LEVEL_4_BIT	(0x0008)
++#define DEBUG_TIMING_BIT	(0x1000)
++
++#ifndef ARRAY_SIZE
++# define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++#endif
++
++/* bit mask of enabled bits to print */
++#define DEBUG 0x0001
++
++#define DEBUG_PRINT_L1(...)	debug_print(DEBUG_LEVEL_1_BIT, __VA_ARGS__)
++#define DEBUG_PRINT_L2(...)	debug_print(DEBUG_LEVEL_2_BIT, __VA_ARGS__)
++#define DEBUG_PRINT_L3(...)	debug_print(DEBUG_LEVEL_3_BIT, __VA_ARGS__)
++#define DEBUG_PRINT_L4(...)	debug_print(DEBUG_LEVEL_4_BIT, __VA_ARGS__)
++#define DEBUG_PRINT_T(...)	debug_print(DEBUG_TIMING_BIT, __VA_ARGS__)
++
++static void debug_print(int level, const char *s, ...)
++{
++	va_list args;
++
++	va_start(args, s);
++
++	if (DEBUG & level)
++		vfprintf(stdout, s, args);
++	va_end(args);
++}
++
++#ifndef min
++#define min(x, y) ((x) < (y) ? x : y)
++#endif
++
++#define RETURN_FROM_TEST(_ret) \
++	do { \
++		DEBUG_PRINT_L1( \
++			"\tTest %s returned %d\n", __func__, _ret); \
++		return _ret; \
++	} while (0)
++
++#define ADI_BLKSZ	64
++#define ADI_MAX_VERSION	15
++
++#define TEST_STEP_FAILURE(_ret) \
++	do { \
++		fprintf(stderr, "\tTest step failure: %d at %s:%d\n", \
++			_ret, __func__, __LINE__); \
++		goto out; \
++	} while (0)
++
++#define RDTICK(_x) \
++	asm volatile(" rd %%tick, %0\n" : "=r" (_x))
++
++static int random_version(void)
++{
++	long tick;
++
++	RDTICK(tick);
++
++	return tick % (ADI_MAX_VERSION + 1);
++}
++
++#define MAX_RANGES_SUPPORTED	5
++static const char system_ram_str[] = "System RAM\n";
++static int range_count;
++static unsigned long long int start_addr[MAX_RANGES_SUPPORTED];
++static unsigned long long int   end_addr[MAX_RANGES_SUPPORTED];
++
++struct stats {
++	char		name[16];
++	unsigned long	total;
++	unsigned long	count;
++	unsigned long	bytes;
++};
++
++static struct stats read_stats = {
++	.name = "read", .total = 0, .count = 0, .bytes = 0};
++static struct stats pread_stats = {
++	.name = "pread", .total = 0, .count = 0, .bytes = 0};
++static struct stats write_stats = {
++	.name = "write", .total = 0, .count = 0, .bytes = 0};
++static struct stats pwrite_stats = {
++	.name = "pwrite", .total = 0, .count = 0, .bytes = 0};
++static struct stats seek_stats = {
++	.name = "seek", .total = 0, .count = 0, .bytes = 0};
++
++static void update_stats(struct stats * const ustats,
++			 unsigned long measurement, unsigned long bytes)
++{
++	ustats->total += measurement;
++	ustats->bytes += bytes;
++	ustats->count++;
++}
++
++static void print_ustats(const struct stats * const ustats)
++{
++	DEBUG_PRINT_L1("%s\t%7d\t%7.0f\t%7.0f\n",
++		       ustats->name, ustats->count,
++		       (float)ustats->total / (float)ustats->count,
++		       (float)ustats->bytes / (float)ustats->count);
++}
++
++static void print_stats(void)
++{
++	DEBUG_PRINT_L1("\nSyscall\tCall\tAvgTime\tAvgSize\n"
++		       "\tCount\t(ticks)\t(bytes)\n"
++		       "-------------------------------\n");
++
++	print_ustats(&read_stats);
++	print_ustats(&pread_stats);
++	print_ustats(&write_stats);
++	print_ustats(&pwrite_stats);
++	print_ustats(&seek_stats);
++}
++
++static int build_memory_map(void)
++{
++	char line[256];
++	FILE *fp;
++	int i;
++
++	range_count = 0;
++
++	fp = fopen("/proc/iomem", "r");
++	if (!fp) {
++		fprintf(stderr, "/proc/iomem: error %d: %s\n",
++			errno, strerror(errno));
++		return -errno;
++	}
++
++	while (fgets(line, sizeof(line), fp) != 0) {
++		if (strstr(line, system_ram_str)) {
++			char *dash, *end_ptr;
++
++			/* Given a line like this:
++			 * d0400000-10ffaffff : System RAM
++			 * replace the "-" with a space
++			 */
++			dash = strstr(line, "-");
++			dash[0] = 0x20;
++
++			start_addr[range_count] = strtoull(line, &end_ptr, 16);
++			end_addr[range_count] = strtoull(end_ptr, NULL, 16);
++			range_count++;
++		}
++	}
++
++	fclose(fp);
++
++	DEBUG_PRINT_L1("RAM Ranges\n");
++	for (i = 0; i < range_count; i++)
++		DEBUG_PRINT_L1("\trange %d: 0x%llx\t- 0x%llx\n",
++			       i, start_addr[i], end_addr[i]);
++
++	if (range_count = 0)
++		return -1;
++
++	return 0;
++}
++
++static int read_adi(int fd, unsigned char *buf, int buf_sz)
++{
++	int ret, bytes_read = 0;
++	long start, end, elapsed_time = 0;
++
++	do {
++		RDTICK(start);
++		ret = read(fd, buf + bytes_read, buf_sz - bytes_read);
++		RDTICK(end);
++		if (ret < 0)
++			return -errno;
++
++		elapsed_time += end - start;
++		update_stats(&read_stats, elapsed_time, buf_sz);
++		bytes_read += ret;
++
++	} while (bytes_read < buf_sz);
++
++	DEBUG_PRINT_T("\tread elapsed timed = %ld\n", elapsed_time);
++	DEBUG_PRINT_L3("\tRead  %d bytes\n", bytes_read);
++
++	return bytes_read;
++}
++
++static int pread_adi(int fd, unsigned char *buf,
++		     int buf_sz, unsigned long offset)
++{
++	int ret, i, bytes_read = 0;
++	unsigned long cur_offset;
++	long start, end, elapsed_time = 0;
++
++	cur_offset = offset;
++	do {
++		RDTICK(start);
++		ret = pread(fd, buf + bytes_read, buf_sz - bytes_read,
++			    cur_offset);
++		RDTICK(end);
++		if (ret < 0)
++			return -errno;
++
++		elapsed_time += end - start;
++		update_stats(&pread_stats, elapsed_time, buf_sz);
++		bytes_read += ret;
++		cur_offset += ret;
++
++	} while (bytes_read < buf_sz);
++
++	DEBUG_PRINT_T("\tpread elapsed timed = %ld\n", elapsed_time);
++	DEBUG_PRINT_L3("\tRead  %d bytes starting at offset 0x%lx\n",
++		       bytes_read, offset);
++	for (i = 0; i < bytes_read; i++)
++		DEBUG_PRINT_L4("\t\t0x%lx\t%d\n", offset + i, buf[i]);
++
++	return bytes_read;
++}
++
++static int write_adi(int fd, const unsigned char * const buf, int buf_sz)
++{
++	int ret, bytes_written = 0;
++	long start, end, elapsed_time = 0;
++
++	do {
++		RDTICK(start);
++		ret = write(fd, buf + bytes_written, buf_sz - bytes_written);
++		RDTICK(end);
++		if (ret < 0)
++			return -errno;
++
++		elapsed_time += (end - start);
++		update_stats(&write_stats, elapsed_time, buf_sz);
++		bytes_written += ret;
++	} while (bytes_written < buf_sz);
++
++	DEBUG_PRINT_T("\twrite elapsed timed = %ld\n", elapsed_time);
++	DEBUG_PRINT_L3("\tWrote %d of %d bytes\n", bytes_written, buf_sz);
++
++	return bytes_written;
++}
++
++static int pwrite_adi(int fd, const unsigned char * const buf,
++		      int buf_sz, unsigned long offset)
++{
++	int ret, bytes_written = 0;
++	unsigned long cur_offset;
++	long start, end, elapsed_time = 0;
++
++	cur_offset = offset;
++
++	do {
++		RDTICK(start);
++		ret = pwrite(fd, buf + bytes_written,
++			     buf_sz - bytes_written, cur_offset);
++		RDTICK(end);
++		if (ret < 0) {
++			fprintf(stderr, "pwrite(): error %d: %s\n",
++				errno, strerror(errno));
++			return -errno;
++		}
++
++		elapsed_time += (end - start);
++		update_stats(&pwrite_stats, elapsed_time, buf_sz);
++		bytes_written += ret;
++		cur_offset += ret;
++
++	} while (bytes_written < buf_sz);
++
++	DEBUG_PRINT_T("\tpwrite elapsed timed = %ld\n", elapsed_time);
++	DEBUG_PRINT_L3("\tWrote %d of %d bytes starting at address 0x%lx\n",
++		       bytes_written, buf_sz, offset);
++
++	return bytes_written;
++}
++
++static off_t seek_adi(int fd, off_t offset, int whence)
++{
++	long start, end;
++	off_t ret;
++
++	RDTICK(start);
++	ret = lseek(fd, offset, whence);
++	RDTICK(end);
++	DEBUG_PRINT_L2("\tlseek ret = 0x%llx\n", ret);
++	if (ret < 0)
++		goto out;
++
++	DEBUG_PRINT_T("\tlseek elapsed timed = %ld\n", end - start);
++	update_stats(&seek_stats, end - start, 0);
++
++out:
++	(void)lseek(fd, 0, SEEK_END);
++	return ret;
++}
++
++static int test0_prpw_aligned_1byte(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		(end_addr[range_count - 1] - 0x1000) & ~(ADI_BLKSZ - 1);
++	unsigned char version[1], expected_version;
++	loff_t offset;
++	int ret;
++
++	version[0] = random_version();
++	expected_version = version[0];
++
++	offset = paddr / ADI_BLKSZ;
++
++	ret = pwrite_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	ret = pread_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	if (expected_version != version[0]) {
++		DEBUG_PRINT_L2("\tExpected version %d but read version %d\n",
++			       expected_version, version[0]);
++		TEST_STEP_FAILURE(-expected_version);
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++#define TEST1_VERSION_SZ	4096
++static int test1_prpw_aligned_4096bytes(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		(end_addr[range_count - 1] - 0x6000) & ~(ADI_BLKSZ - 1);
++	unsigned char version[TEST1_VERSION_SZ],
++		expected_version[TEST1_VERSION_SZ];
++	loff_t offset;
++	int ret, i;
++
++	for (i = 0; i < TEST1_VERSION_SZ; i++) {
++		version[i] = random_version();
++		expected_version[i] = version[i];
++	}
++
++	offset = paddr / ADI_BLKSZ;
++
++	ret = pwrite_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	ret = pread_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	for (i = 0; i < TEST1_VERSION_SZ; i++) {
++		if (expected_version[i] != version[i]) {
++			DEBUG_PRINT_L2(
++				"\tExpected version %d but read version %d\n",
++				expected_version, version[0]);
++			TEST_STEP_FAILURE(-expected_version[i]);
++		}
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++#define TEST2_VERSION_SZ	10327
++static int test2_prpw_aligned_10327bytes(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		(start_addr[0] + 0x6000) & ~(ADI_BLKSZ - 1);
++	unsigned char version[TEST2_VERSION_SZ],
++		expected_version[TEST2_VERSION_SZ];
++	loff_t offset;
++	int ret, i;
++
++	for (i = 0; i < TEST2_VERSION_SZ; i++) {
++		version[i] = random_version();
++		expected_version[i] = version[i];
++	}
++
++	offset = paddr / ADI_BLKSZ;
++
++	ret = pwrite_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	ret = pread_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	for (i = 0; i < TEST2_VERSION_SZ; i++) {
++		if (expected_version[i] != version[i]) {
++			DEBUG_PRINT_L2(
++				"\tExpected version %d but read version %d\n",
++				expected_version, version[0]);
++			TEST_STEP_FAILURE(-expected_version[i]);
++		}
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++#define TEST3_VERSION_SZ	12541
++static int test3_prpw_unaligned_12541bytes(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		((start_addr[0] + 0xC000) & ~(ADI_BLKSZ - 1)) + 17;
++	unsigned char version[TEST3_VERSION_SZ],
++		expected_version[TEST3_VERSION_SZ];
++	loff_t offset;
++	int ret, i;
++
++	for (i = 0; i < TEST3_VERSION_SZ; i++) {
++		version[i] = random_version();
++		expected_version[i] = version[i];
++	}
++
++	offset = paddr / ADI_BLKSZ;
++
++	ret = pwrite_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	ret = pread_adi(fd, version, sizeof(version), offset);
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	for (i = 0; i < TEST3_VERSION_SZ; i++) {
++		if (expected_version[i] != version[i]) {
++			DEBUG_PRINT_L2(
++				"\tExpected version %d but read version %d\n",
++				expected_version, version[0]);
++			TEST_STEP_FAILURE(-expected_version[i]);
++		}
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++static int test4_lseek(int fd)
++{
++#define	OFFSET_ADD	(0x100)
++#define OFFSET_SUBTRACT	(0xFFFFFFF000000000)
++
++	off_t offset_out, offset_in;
++	int ret;
++
++
++	offset_in = 0x123456789abcdef0;
++	offset_out = seek_adi(fd, offset_in, SEEK_SET);
++	if (offset_out != offset_in) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	/* seek to the current offset.  this should return EINVAL */
++	offset_out = seek_adi(fd, offset_in, SEEK_SET);
++	if (offset_out < 0 && errno = EINVAL)
++		DEBUG_PRINT_L2(
++			"\tSEEK_SET failed as designed. Not an error\n");
++	else {
++		ret = -2;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	offset_out = seek_adi(fd, 0, SEEK_CUR);
++	if (offset_out != offset_in) {
++		ret = -3;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	offset_out = seek_adi(fd, OFFSET_ADD, SEEK_CUR);
++	if (offset_out != (offset_in + OFFSET_ADD)) {
++		ret = -4;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	offset_out = seek_adi(fd, OFFSET_SUBTRACT, SEEK_CUR);
++	if (offset_out != (offset_in + OFFSET_ADD + OFFSET_SUBTRACT)) {
++		ret = -5;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++static int test5_rw_aligned_1byte(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		(end_addr[range_count - 1] - 0xF000) & ~(ADI_BLKSZ - 1);
++	unsigned char version, expected_version;
++	loff_t offset;
++	off_t oret;
++	int ret;
++
++	offset = paddr / ADI_BLKSZ;
++	version = expected_version = random_version();
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = write_adi(fd, &version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = read_adi(fd, &version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	if (expected_version != version) {
++		DEBUG_PRINT_L2("\tExpected version %d but read version %d\n",
++			       expected_version, version);
++		TEST_STEP_FAILURE(-expected_version);
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++#define TEST6_VERSION_SZ        9434
++static int test6_rw_aligned_9434bytes(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +		(end_addr[range_count - 1] - 0x5F000) & ~(ADI_BLKSZ - 1);
++	unsigned char version[TEST6_VERSION_SZ],
++		      expected_version[TEST6_VERSION_SZ];
++	loff_t offset;
++	off_t oret;
++	int ret, i;
++
++	offset = paddr / ADI_BLKSZ;
++	for (i = 0; i < TEST6_VERSION_SZ; i++)
++		version[i] = expected_version[i] = random_version();
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = write_adi(fd, version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	memset(version, 0, TEST6_VERSION_SZ);
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = read_adi(fd, version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	for (i = 0; i < TEST6_VERSION_SZ; i++) {
++		if (expected_version[i] != version[i]) {
++			DEBUG_PRINT_L2(
++				"\tExpected version %d but read version %d\n",
++				expected_version[i], version[i]);
++			TEST_STEP_FAILURE(-expected_version[i]);
++		}
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++#define TEST7_VERSION_SZ        14963
++static int test7_rw_aligned_14963bytes(int fd)
++{
++	/* somewhat arbitrarily chosen address */
++	unsigned long paddr +	  ((start_addr[range_count - 1] + 0xF000) & ~(ADI_BLKSZ - 1)) + 39;
++	unsigned char version[TEST7_VERSION_SZ],
++		      expected_version[TEST7_VERSION_SZ];
++	loff_t offset;
++	off_t oret;
++	int ret, i;
++
++	offset = paddr / ADI_BLKSZ;
++	for (i = 0; i < TEST7_VERSION_SZ; i++) {
++		version[i] = random_version();
++		expected_version[i] = version[i];
++	}
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = write_adi(fd, version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	memset(version, 0, TEST7_VERSION_SZ);
++
++	oret = seek_adi(fd, offset, SEEK_SET);
++	if (oret != offset) {
++		ret = -1;
++		TEST_STEP_FAILURE(ret);
++	}
++
++	ret = read_adi(fd, version, sizeof(version));
++	if (ret != sizeof(version))
++		TEST_STEP_FAILURE(ret);
++
++	for (i = 0; i < TEST7_VERSION_SZ; i++) {
++		if (expected_version[i] != version[i]) {
++			DEBUG_PRINT_L2(
++				"\tExpected version %d but read version %d\n",
++				expected_version[i], version[i]);
++			TEST_STEP_FAILURE(-expected_version[i]);
++		}
++
++		paddr += ADI_BLKSZ;
++	}
++
++	ret = 0;
++out:
++	RETURN_FROM_TEST(ret);
++}
++
++static int (*tests[])(int fd) = {
++	test0_prpw_aligned_1byte,
++	test1_prpw_aligned_4096bytes,
++	test2_prpw_aligned_10327bytes,
++	test3_prpw_unaligned_12541bytes,
++	test4_lseek,
++	test5_rw_aligned_1byte,
++	test6_rw_aligned_9434bytes,
++	test7_rw_aligned_14963bytes,
++};
++#define TEST_COUNT	ARRAY_SIZE(tests)
++
++int main(int argc, char *argv[])
++{
++	int fd, ret, test, failure_count = 0;
++
++	ret = build_memory_map();
++	if (ret < 0) {
++		fprintf(stderr, "build: error %d: %s\n",
++			errno, strerror(errno));
++		return -errno;
++	}
++
++	fd = open("/dev/adi", O_RDWR);
++	if (fd < 0) {
++		fprintf(stderr, "open: error %d: %s\n",
++			errno, strerror(errno));
++		return -errno;
++	}
++
++	for (test = 0; test < TEST_COUNT; test++) {
++		DEBUG_PRINT_L1("Running test #%d\n", test);
++
++		ret = (*tests[test])(fd);
++		if (ret != 0) {
++			fprintf(stderr, "Test #%d failed: error %d\n",
++				test, ret);
++			failure_count++;
++		}
++	}
++
++	print_stats();
++
++	fprintf(stdout, "\nRan %ld tests\n", TEST_COUNT);
++	if (failure_count)
++		fprintf(stdout, "%d tests failed\n", failure_count);
++	else
++		fprintf(stdout, "All tests passed\n");
++
++	close(fd);
++	return -failure_count;
++}
 -- 
-2.17.0
+2.15.0
 
