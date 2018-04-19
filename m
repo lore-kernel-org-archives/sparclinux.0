@@ -1,340 +1,222 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:03:02 +0000
-Subject: [PATCH 11/22] microblaze: use generic dma_noncoherent_ops
-Message-Id: <20180420080313.18796-12-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 19 Apr 2018 14:37:29 +0000
+Subject: [PATCH v3 09/17] y2038: sparc: Extend sysvipc data structures
+Message-Id: <20180419143737.606138-10-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
+References: <20180419143737.606138-1-arnd@arndb.de>
+In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-Switch to the generic noncoherent direct mapping implementation.
+sparc, uses a nonstandard variation of the generic sysvipc
+data structures, intended to have the padding moved around
+so it can deal with big-endian 32-bit user space that has
+64-bit time_t.
 
-This removes the direction-based optimizations in
-sync_{single,sg}_for_{cpu,device} which were marked untestested and
-do not match the usually very well tested {un,}map_{single,sg}
-implementations.
+Unlike most architectures, sparc actually succeeded in
+defining this right for big-endian CPUs, but as everyone else
+got it wrong, we just use the same hack everywhere.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This takes just take the same approach here that we have for
+the asm-generic headers and adds separate 32-bit fields for the
+upper halves of the timestamps, to let libc deal with the mess
+in user space.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/microblaze/Kconfig                   |   4 +
- arch/microblaze/include/asm/Kbuild        |   1 +
- arch/microblaze/include/asm/dma-mapping.h |  28 -----
- arch/microblaze/include/asm/pgtable.h     |   2 -
- arch/microblaze/kernel/dma.c              | 144 ++--------------------
- arch/microblaze/mm/consistent.c           |   9 +-
- 6 files changed, 22 insertions(+), 166 deletions(-)
- delete mode 100644 arch/microblaze/include/asm/dma-mapping.h
+ arch/sparc/include/asm/compat.h      | 32 ++++++++++++++++----------------
+ arch/sparc/include/uapi/asm/msgbuf.h | 22 +++++++++-------------
+ arch/sparc/include/uapi/asm/sembuf.h | 16 +++++++---------
+ arch/sparc/include/uapi/asm/shmbuf.h | 21 +++++++++------------
+ 4 files changed, 41 insertions(+), 50 deletions(-)
 
-diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
-index 3817a3e2146c..91b9b999eb18 100644
---- a/arch/microblaze/Kconfig
-+++ b/arch/microblaze/Kconfig
-@@ -1,6 +1,8 @@
- config MICROBLAZE
- 	def_bool y
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_NO_COHERENT_DMA_MMAP if !MMU
- 	select ARCH_WANT_IPC_PARSE_VERSION
-@@ -8,6 +10,8 @@ config MICROBLAZE
- 	select TIMER_OF
- 	select CLONE_BACKWARDS3
- 	select COMMON_CLK
-+	select DMA_NONCOHERENT_OPS
-+	select DMA_NONCOHERENT_MMAP
- 	select GENERIC_ATOMIC64
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_CPU_DEVICES
-diff --git a/arch/microblaze/include/asm/Kbuild b/arch/microblaze/include/asm/Kbuild
-index 3c80a5a308ed..8d3e71f43a3e 100644
---- a/arch/microblaze/include/asm/Kbuild
-+++ b/arch/microblaze/include/asm/Kbuild
-@@ -4,6 +4,7 @@ generic-y += bug.h
- generic-y += bugs.h
- generic-y += device.h
- generic-y += div64.h
-+generic-y += dma-mapping.h
- generic-y += emergency-restart.h
- generic-y += exec.h
- generic-y += extable.h
-diff --git a/arch/microblaze/include/asm/dma-mapping.h b/arch/microblaze/include/asm/dma-mapping.h
-deleted file mode 100644
-index add50c1373bf..000000000000
---- a/arch/microblaze/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/*
-- * Implements the generic device dma API for microblaze and the pci
-- *
-- * Copyright (C) 2009-2010 Michal Simek <monstr@monstr.eu>
-- * Copyright (C) 2009-2010 PetaLogix
-- *
-- * This file is subject to the terms and conditions of the GNU General
-- * Public License. See the file COPYING in the main directory of this
-- * archive for more details.
-- *
-- * This file is base on powerpc and x86 dma-mapping.h versions
-- * Copyright (C) 2004 IBM
-- */
--
--#ifndef _ASM_MICROBLAZE_DMA_MAPPING_H
--#define _ASM_MICROBLAZE_DMA_MAPPING_H
--
--/*
-- * Available generic sets of operations
-- */
--extern const struct dma_map_ops dma_nommu_ops;
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
--{
--	return &dma_nommu_ops;
--}
--
--#endif	/* _ASM_MICROBLAZE_DMA_MAPPING_H */
-diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
-index e53b8532353c..5174733fb489 100644
---- a/arch/microblaze/include/asm/pgtable.h
-+++ b/arch/microblaze/include/asm/pgtable.h
-@@ -551,8 +551,6 @@ void __init *early_get_page(void);
+diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
+index 1910c44521e3..4eb51d2dae98 100644
+--- a/arch/sparc/include/asm/compat.h
++++ b/arch/sparc/include/asm/compat.h
+@@ -192,10 +192,10 @@ struct compat_ipc64_perm {
  
- extern unsigned long ioremap_bot, ioremap_base;
+ struct compat_semid64_ds {
+ 	struct compat_ipc64_perm sem_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	sem_otime;
+-	unsigned int	__pad2;
+-	compat_time_t	sem_ctime;
++	unsigned int	sem_otime_high;
++	unsigned int	sem_otime;
++	unsigned int	sem_ctime_high;
++	unsigned int	sem_ctime;
+ 	u32		sem_nsems;
+ 	u32		__unused1;
+ 	u32		__unused2;
+@@ -203,12 +203,12 @@ struct compat_semid64_ds {
  
--void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle);
--void consistent_free(size_t size, void *vaddr);
- void consistent_sync(void *vaddr, size_t size, int direction);
- void consistent_sync_page(struct page *page, unsigned long offset,
- 	size_t size, int direction);
-diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
-index 3145e7dc8ab1..71032cf64669 100644
---- a/arch/microblaze/kernel/dma.c
-+++ b/arch/microblaze/kernel/dma.c
-@@ -8,29 +8,15 @@
+ struct compat_msqid64_ds {
+ 	struct compat_ipc64_perm msg_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	msg_stime;
+-	unsigned int	__pad2;
+-	compat_time_t	msg_rtime;
+-	unsigned int	__pad3;
+-	compat_time_t	msg_ctime;
++	unsigned int	msg_stime_high;
++	unsigned int	msg_stime;
++	unsigned int	msg_rtime_high;
++	unsigned int	msg_rtime;
++	unsigned int	msg_ctime_high;
++	unsigned int	msg_ctime;
+ 	unsigned int	msg_cbytes;
+ 	unsigned int	msg_qnum;
+ 	unsigned int	msg_qbytes;
+@@ -220,12 +220,12 @@ struct compat_msqid64_ds {
+ 
+ struct compat_shmid64_ds {
+ 	struct compat_ipc64_perm shm_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	shm_atime;
+-	unsigned int	__pad2;
+-	compat_time_t	shm_dtime;
+-	unsigned int	__pad3;
+-	compat_time_t	shm_ctime;
++	unsigned int	shm_atime_high;
++	unsigned int	shm_atime;
++	unsigned int	shm_dtime_high;
++	unsigned int	shm_dtime;
++	unsigned int	shm_ctime_high;
++	unsigned int	shm_ctime;
+ 	compat_size_t	shm_segsz;
+ 	compat_pid_t	shm_cpid;
+ 	compat_pid_t	shm_lpid;
+diff --git a/arch/sparc/include/uapi/asm/msgbuf.h b/arch/sparc/include/uapi/asm/msgbuf.h
+index b601c4f4d956..ffc46c211d6d 100644
+--- a/arch/sparc/include/uapi/asm/msgbuf.h
++++ b/arch/sparc/include/uapi/asm/msgbuf.h
+@@ -8,25 +8,22 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+-
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
+-
+-
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-	PADDING(__pad2)
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-	PADDING(__pad3)
+ 	__kernel_time_t msg_ctime;	/* last change time */
++#else
++	unsigned long msg_stime_high;
++	unsigned long msg_stime;	/* last msgsnd time */
++	unsigned long msg_rtime_high;
++	unsigned long msg_rtime;	/* last msgrcv time */
++	unsigned long msg_ctime_high;
++	unsigned long msg_ctime;	/* last change time */
++#endif
+ 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+ 	unsigned long  msg_qnum;	/* number of messages in queue */
+ 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+@@ -35,5 +32,4 @@ struct msqid64_ds {
+ 	unsigned long  __unused1;
+ 	unsigned long  __unused2;
+ };
+-#undef PADDING
+ #endif /* _SPARC_MSGBUF_H */
+diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
+index f49b0ffa0ab8..f3d309c2e1cd 100644
+--- a/arch/sparc/include/uapi/asm/sembuf.h
++++ b/arch/sparc/include/uapi/asm/sembuf.h
+@@ -8,25 +8,23 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
+ 
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t	sem_otime;		/* last semop time */
+-	PADDING(__pad2)
+ 	__kernel_time_t	sem_ctime;		/* last change time */
++#else
++	unsigned long	sem_otime_high;
++	unsigned long	sem_otime;		/* last semop time */
++	unsigned long	sem_ctime_high;
++	unsigned long	sem_ctime;		/* last change time */
++#endif
+ 	unsigned long	sem_nsems;		/* no. of semaphores in array */
+ 	unsigned long	__unused1;
+ 	unsigned long	__unused2;
+ };
+-#undef PADDING
+ 
+ #endif /* _SPARC64_SEMBUF_H */
+diff --git a/arch/sparc/include/uapi/asm/shmbuf.h b/arch/sparc/include/uapi/asm/shmbuf.h
+index 286631db705c..06618b84822d 100644
+--- a/arch/sparc/include/uapi/asm/shmbuf.h
++++ b/arch/sparc/include/uapi/asm/shmbuf.h
+@@ -8,24 +8,23 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
   */
  
- #include <linux/device.h>
--#include <linux/dma-mapping.h>
-+#include <linux/dma-noncoherent.h>
- #include <linux/gfp.h>
- #include <linux/dma-debug.h>
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <asm/cacheflush.h>
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
+-
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-	PADDING(__pad2)
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-	PADDING(__pad3)
+ 	__kernel_time_t		shm_ctime;	/* last change time */
++#else
++	unsigned long		shm_atime_high;
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_ctime_high;
++	unsigned long		shm_ctime;	/* last change time */
++#endif
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+ 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+@@ -46,6 +45,4 @@ struct shminfo64 {
+ 	unsigned long	__unused4;
+ };
  
--static void *dma_nommu_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t flag,
--				       unsigned long attrs)
--{
--	return consistent_alloc(flag, size, dma_handle);
--}
+-#undef PADDING
 -
--static void dma_nommu_free_coherent(struct device *dev, size_t size,
--				     void *vaddr, dma_addr_t dma_handle,
--				     unsigned long attrs)
--{
--	consistent_free(size, vaddr);
--}
--
--static inline void __dma_sync(unsigned long paddr,
--			      size_t size, enum dma_data_direction direction)
-+static void __dma_sync(struct device *dev, phys_addr_t paddr, size_t size,
-+		enum dma_data_direction direction)
- {
- 	switch (direction) {
- 	case DMA_TO_DEVICE:
-@@ -45,113 +31,21 @@ static inline void __dma_sync(unsigned long paddr,
- 	}
- }
- 
--static int dma_nommu_map_sg(struct device *dev, struct scatterlist *sgl,
--			     int nents, enum dma_data_direction direction,
--			     unsigned long attrs)
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--	struct scatterlist *sg;
--	int i;
--
--	/* FIXME this part of code is untested */
--	for_each_sg(sgl, sg, nents, i) {
--		sg->dma_address = sg_phys(sg);
--
--		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
--			continue;
--
--		__dma_sync(sg_phys(sg), sg->length, direction);
--	}
--
--	return nents;
--}
--
--static inline dma_addr_t dma_nommu_map_page(struct device *dev,
--					     struct page *page,
--					     unsigned long offset,
--					     size_t size,
--					     enum dma_data_direction direction,
--					     unsigned long attrs)
--{
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		__dma_sync(page_to_phys(page) + offset, size, direction);
--	return page_to_phys(page) + offset;
-+	__dma_sync(dev, paddr, size, dir);
- }
- 
--static inline void dma_nommu_unmap_page(struct device *dev,
--					 dma_addr_t dma_address,
--					 size_t size,
--					 enum dma_data_direction direction,
--					 unsigned long attrs)
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--/* There is not necessary to do cache cleanup
-- *
-- * phys_to_virt is here because in __dma_sync_page is __virt_to_phys and
-- * dma_address is physical address
-- */
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		__dma_sync(dma_address, size, direction);
-+	__dma_sync(dev, paddr, size, dir);
- }
- 
--static inline void
--dma_nommu_sync_single_for_cpu(struct device *dev,
--			       dma_addr_t dma_handle, size_t size,
--			       enum dma_data_direction direction)
--{
--	/*
--	 * It's pointless to flush the cache as the memory segment
--	 * is given to the CPU
--	 */
--
--	if (direction = DMA_FROM_DEVICE)
--		__dma_sync(dma_handle, size, direction);
--}
--
--static inline void
--dma_nommu_sync_single_for_device(struct device *dev,
--				  dma_addr_t dma_handle, size_t size,
--				  enum dma_data_direction direction)
--{
--	/*
--	 * It's pointless to invalidate the cache if the device isn't
--	 * supposed to write to the relevant region
--	 */
--
--	if (direction = DMA_TO_DEVICE)
--		__dma_sync(dma_handle, size, direction);
--}
--
--static inline void
--dma_nommu_sync_sg_for_cpu(struct device *dev,
--			   struct scatterlist *sgl, int nents,
--			   enum dma_data_direction direction)
--{
--	struct scatterlist *sg;
--	int i;
--
--	/* FIXME this part of code is untested */
--	if (direction = DMA_FROM_DEVICE)
--		for_each_sg(sgl, sg, nents, i)
--			__dma_sync(sg->dma_address, sg->length, direction);
--}
--
--static inline void
--dma_nommu_sync_sg_for_device(struct device *dev,
--			      struct scatterlist *sgl, int nents,
--			      enum dma_data_direction direction)
--{
--	struct scatterlist *sg;
--	int i;
--
--	/* FIXME this part of code is untested */
--	if (direction = DMA_TO_DEVICE)
--		for_each_sg(sgl, sg, nents, i)
--			__dma_sync(sg->dma_address, sg->length, direction);
--}
--
--static
--int dma_nommu_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
--			     void *cpu_addr, dma_addr_t handle, size_t size,
--			     unsigned long attrs)
-+int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-+		void *cpu_addr, dma_addr_t handle, size_t size,
-+		unsigned long attrs)
- {
- #ifdef CONFIG_MMU
- 	unsigned long user_count = vma_pages(vma);
-@@ -170,17 +64,3 @@ int dma_nommu_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
- 	return -ENXIO;
- #endif
- }
--
--const struct dma_map_ops dma_nommu_ops = {
--	.alloc			= dma_nommu_alloc_coherent,
--	.free			= dma_nommu_free_coherent,
--	.mmap			= dma_nommu_mmap_coherent,
--	.map_sg			= dma_nommu_map_sg,
--	.map_page		= dma_nommu_map_page,
--	.unmap_page		= dma_nommu_unmap_page,
--	.sync_single_for_cpu	= dma_nommu_sync_single_for_cpu,
--	.sync_single_for_device	= dma_nommu_sync_single_for_device,
--	.sync_sg_for_cpu	= dma_nommu_sync_sg_for_cpu,
--	.sync_sg_for_device	= dma_nommu_sync_sg_for_device,
--};
--EXPORT_SYMBOL(dma_nommu_ops);
-diff --git a/arch/microblaze/mm/consistent.c b/arch/microblaze/mm/consistent.c
-index b06c3a7faf20..b9a9c8c3397b 100644
---- a/arch/microblaze/mm/consistent.c
-+++ b/arch/microblaze/mm/consistent.c
-@@ -33,6 +33,7 @@
- #include <linux/pci.h>
- #include <linux/interrupt.h>
- #include <linux/gfp.h>
-+#include <linux/dma-noncoherent.h>
- 
- #include <asm/pgalloc.h>
- #include <linux/io.h>
-@@ -59,7 +60,8 @@
-  * uncached region.  This will no doubt cause big problems if memory allocated
-  * here is not also freed properly. -- JW
-  */
--void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs)
- {
- 	unsigned long order, vaddr;
- 	void *ret;
-@@ -154,7 +156,6 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
- 
- 	return ret;
- }
--EXPORT_SYMBOL(consistent_alloc);
- 
- #ifdef CONFIG_MMU
- static pte_t *consistent_virt_to_pte(void *vaddr)
-@@ -178,7 +179,8 @@ unsigned long consistent_virt_to_pfn(void *vaddr)
- /*
-  * free page(s) as defined by the above mapping.
-  */
--void consistent_free(size_t size, void *vaddr)
-+void arch_dma_free(struct device *dev, size_t size, void *vaddr,
-+		dma_addr_t dma_addr, unsigned long attrs)
- {
- 	struct page *page;
- 
-@@ -218,7 +220,6 @@ void consistent_free(size_t size, void *vaddr)
- 	flush_tlb_all();
- #endif
- }
--EXPORT_SYMBOL(consistent_free);
- 
- /*
-  * make an area consistent.
+ #endif /* _SPARC_SHMBUF_H */
 -- 
-2.17.0
+2.9.0
 
