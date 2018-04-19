@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:31 +0000
-Subject: [PATCH v3 11/17] y2038: xtensa: Extend sysvipc data structures
-Message-Id: <20180419143737.606138-12-arnd@arndb.de>
+Date: Thu, 19 Apr 2018 14:37:34 +0000
+Subject: [PATCH v3 14/17] y2038: ipc: Use __kernel_timespec
+Message-Id: <20180419143737.606138-15-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180419143737.606138-1-arnd@arndb.de>
 In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
@@ -11,176 +11,111 @@ Content-Transfer-Encoding: 7bit
 To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
 Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-xtensa, uses a nonstandard variation of the generic sysvipc
-data structures, intended to have the padding moved around
-so it can deal with big-endian 32-bit user space that has
-64-bit time_t.
+This is a preparatation for changing over __kernel_timespec to 64-bit
+times, which involves assigning new system call numbers for mq_timedsend(),
+mq_timedreceive() and semtimedop() for compatibility with future y2038
+proof user space.
 
-xtensa tries hard to define the structures so they work
-in both big-endian and little-endian systems with padding
-on the right side.
-However, they only succeeded for for two of the three structures,
-and their struct shmid64_ds ended up being defined in two
-identical copies, and the big-endian one is wrong.
-
-This takes just take the same approach here that we have for
-the asm-generic headers and adds separate 32-bit fields for the
-upper halves of the timestamps, to let libc deal with the mess
-in user space.
+The existing ABIs will remain available through compat code.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/xtensa/include/uapi/asm/msgbuf.h | 25 ++++++++++++-----------
- arch/xtensa/include/uapi/asm/sembuf.h | 17 ++++++++--------
- arch/xtensa/include/uapi/asm/shmbuf.h | 37 ++++++++---------------------------
- 3 files changed, 28 insertions(+), 51 deletions(-)
+ include/linux/syscalls.h | 6 +++---
+ ipc/mqueue.c             | 6 +++---
+ ipc/sem.c                | 4 ++--
+ ipc/util.h               | 2 +-
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/arch/xtensa/include/uapi/asm/msgbuf.h b/arch/xtensa/include/uapi/asm/msgbuf.h
-index 36e2e103ca38..d6915e9f071c 100644
---- a/arch/xtensa/include/uapi/asm/msgbuf.h
-+++ b/arch/xtensa/include/uapi/asm/msgbuf.h
-@@ -7,7 +7,6 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  * This file is subject to the terms and conditions of the GNU General
-@@ -21,19 +20,19 @@
- struct msqid64_ds {
- 	struct ipc64_perm msg_perm;
- #ifdef __XTENSA_EB__
--	unsigned int	__unused1;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	unsigned int	__unused2;
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	unsigned int	__unused3;
--	__kernel_time_t msg_ctime;	/* last change time */
-+	unsigned long  msg_stime_high;
-+	unsigned long  msg_stime;	/* last msgsnd time */
-+	unsigned long  msg_rtime_high;
-+	unsigned long  msg_rtime;	/* last msgrcv time */
-+	unsigned long  msg_ctime_high;
-+	unsigned long  msg_ctime;	/* last change time */
- #elif defined(__XTENSA_EL__)
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	unsigned int	__unused1;
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	unsigned int	__unused2;
--	__kernel_time_t msg_ctime;	/* last change time */
--	unsigned int	__unused3;
-+	unsigned long  msg_stime;	/* last msgsnd time */
-+	unsigned long  msg_stime_high;
-+	unsigned long  msg_rtime;	/* last msgrcv time */
-+	unsigned long  msg_rtime_high;
-+	unsigned long  msg_ctime;	/* last change time */
-+	unsigned long  msg_ctime_high;
- #else
- # error processor byte order undefined!
- #endif
-diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
-index f61b6331a10c..09f348d643f1 100644
---- a/arch/xtensa/include/uapi/asm/sembuf.h
-+++ b/arch/xtensa/include/uapi/asm/sembuf.h
-@@ -14,7 +14,6 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  */
-@@ -27,15 +26,15 @@
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
- #ifdef __XTENSA_EL__
--	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned long	__unused1;
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	__unused2;
-+	unsigned long	sem_otime;		/* last semop time */
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_ctime;		/* last change time */
-+	unsigned long	sem_ctime_high;
- #else
--	unsigned long	__unused1;
--	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned long	__unused2;
--	__kernel_time_t	sem_ctime;		/* last change time */
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_otime;		/* last semop time */
-+	unsigned long	sem_ctime_high;
-+	unsigned long	sem_ctime;		/* last change time */
- #endif
- 	unsigned long	sem_nsems;		/* no. of semaphores in array */
- 	unsigned long	__unused3;
-diff --git a/arch/xtensa/include/uapi/asm/shmbuf.h b/arch/xtensa/include/uapi/asm/shmbuf.h
-index 26550bdc8430..554a57a6a90f 100644
---- a/arch/xtensa/include/uapi/asm/shmbuf.h
-+++ b/arch/xtensa/include/uapi/asm/shmbuf.h
-@@ -4,10 +4,10 @@
-  *
-  * The shmid64_ds structure for Xtensa architecture.
-  * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-+ * between kernel and user space, but the padding is on the wrong
-+ * side for big-endian xtensa, for historic reasons.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  * This file is subject to the terms and conditions of the GNU General Public
-@@ -20,42 +20,21 @@
- #ifndef _XTENSA_SHMBUF_H
- #define _XTENSA_SHMBUF_H
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index c9a2a2601852..b92cb79d38c3 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -680,8 +680,8 @@ asmlinkage long sys_sysinfo(struct sysinfo __user *info);
+ /* ipc/mqueue.c */
+ asmlinkage long sys_mq_open(const char __user *name, int oflag, umode_t mode, struct mq_attr __user *attr);
+ asmlinkage long sys_mq_unlink(const char __user *name);
+-asmlinkage long sys_mq_timedsend(mqd_t mqdes, const char __user *msg_ptr, size_t msg_len, unsigned int msg_prio, const struct timespec __user *abs_timeout);
+-asmlinkage long sys_mq_timedreceive(mqd_t mqdes, char __user *msg_ptr, size_t msg_len, unsigned int __user *msg_prio, const struct timespec __user *abs_timeout);
++asmlinkage long sys_mq_timedsend(mqd_t mqdes, const char __user *msg_ptr, size_t msg_len, unsigned int msg_prio, const struct __kernel_timespec __user *abs_timeout);
++asmlinkage long sys_mq_timedreceive(mqd_t mqdes, char __user *msg_ptr, size_t msg_len, unsigned int __user *msg_prio, const struct __kernel_timespec __user *abs_timeout);
+ asmlinkage long sys_mq_notify(mqd_t mqdes, const struct sigevent __user *notification);
+ asmlinkage long sys_mq_getsetattr(mqd_t mqdes, const struct mq_attr __user *mqstat, struct mq_attr __user *omqstat);
  
--#if defined (__XTENSA_EL__)
- struct shmid64_ds {
- 	struct ipc64_perm	shm_perm;	/* operation perms */
- 	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	unsigned long		__unused1;
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	unsigned long		__unused2;
--	__kernel_time_t		shm_ctime;	/* last change time */
--	unsigned long		__unused3;
-+	unsigned long		shm_atime;	/* last attach time */
-+	unsigned long		shm_atime_high;
-+	unsigned long		shm_dtime;	/* last detach time */
-+	unsigned long		shm_dtime_high;
-+	unsigned long		shm_ctime;	/* last change time */
-+	unsigned long		shm_ctime_high;
- 	__kernel_pid_t		shm_cpid;	/* pid of creator */
- 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
- 	unsigned long		shm_nattch;	/* no. of current attaches */
- 	unsigned long		__unused4;
- 	unsigned long		__unused5;
- };
--#elif defined (__XTENSA_EB__)
--struct shmid64_ds {
--	struct ipc64_perm	shm_perm;	/* operation perms */
--	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	unsigned long		__unused1;
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	unsigned long		__unused2;
--	__kernel_time_t		shm_ctime;	/* last change time */
--	unsigned long		__unused3;
--	__kernel_pid_t		shm_cpid;	/* pid of creator */
--	__kernel_pid_t		shm_lpid;	/* pid of last operator */
--	unsigned long		shm_nattch;	/* no. of current attaches */
--	unsigned long		__unused4;
--	unsigned long		__unused5;
--};
--#else
--# error endian order not defined
--#endif
--
+@@ -698,7 +698,7 @@ asmlinkage long sys_semget(key_t key, int nsems, int semflg);
+ asmlinkage long sys_semctl(int semid, int semnum, int cmd, unsigned long arg);
+ asmlinkage long sys_semtimedop(int semid, struct sembuf __user *sops,
+ 				unsigned nsops,
+-				const struct timespec __user *timeout);
++				const struct __kernel_timespec __user *timeout);
+ asmlinkage long sys_semop(int semid, struct sembuf __user *sops,
+ 				unsigned nsops);
  
- struct shminfo64 {
- 	unsigned long	shmmax;
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index a808f29d4c5a..9610afcfa2e5 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -691,7 +691,7 @@ static void __do_notify(struct mqueue_inode_info *info)
+ 	wake_up(&info->wait_q);
+ }
+ 
+-static int prepare_timeout(const struct timespec __user *u_abs_timeout,
++static int prepare_timeout(const struct __kernel_timespec __user *u_abs_timeout,
+ 			   struct timespec64 *ts)
+ {
+ 	if (get_timespec64(ts, u_abs_timeout))
+@@ -1128,7 +1128,7 @@ static int do_mq_timedreceive(mqd_t mqdes, char __user *u_msg_ptr,
+ 
+ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 		size_t, msg_len, unsigned int, msg_prio,
+-		const struct timespec __user *, u_abs_timeout)
++		const struct __kernel_timespec __user *, u_abs_timeout)
+ {
+ 	struct timespec64 ts, *p = NULL;
+ 	if (u_abs_timeout) {
+@@ -1142,7 +1142,7 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 
+ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ 		size_t, msg_len, unsigned int __user *, u_msg_prio,
+-		const struct timespec __user *, u_abs_timeout)
++		const struct __kernel_timespec __user *, u_abs_timeout)
+ {
+ 	struct timespec64 ts, *p = NULL;
+ 	if (u_abs_timeout) {
+diff --git a/ipc/sem.c b/ipc/sem.c
+index 8935cd8cf166..b951e25ba2db 100644
+--- a/ipc/sem.c
++++ b/ipc/sem.c
+@@ -2176,7 +2176,7 @@ static long do_semtimedop(int semid, struct sembuf __user *tsops,
+ }
+ 
+ long ksys_semtimedop(int semid, struct sembuf __user *tsops,
+-		     unsigned int nsops, const struct timespec __user *timeout)
++		     unsigned int nsops, const struct __kernel_timespec __user *timeout)
+ {
+ 	if (timeout) {
+ 		struct timespec64 ts;
+@@ -2188,7 +2188,7 @@ long ksys_semtimedop(int semid, struct sembuf __user *tsops,
+ }
+ 
+ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
+-		unsigned int, nsops, const struct timespec __user *, timeout)
++		unsigned int, nsops, const struct __kernel_timespec __user *, timeout)
+ {
+ 	return ksys_semtimedop(semid, tsops, nsops, timeout);
+ }
+diff --git a/ipc/util.h b/ipc/util.h
+index acc5159e96d0..975c6de2df9d 100644
+--- a/ipc/util.h
++++ b/ipc/util.h
+@@ -251,7 +251,7 @@ static inline int compat_ipc_parse_version(int *cmd)
+ /* for __ARCH_WANT_SYS_IPC */
+ long ksys_semtimedop(int semid, struct sembuf __user *tsops,
+ 		     unsigned int nsops,
+-		     const struct timespec __user *timeout);
++		     const struct __kernel_timespec __user *timeout);
+ long ksys_semget(key_t key, int nsems, int semflg);
+ long ksys_semctl(int semid, int semnum, int cmd, unsigned long arg);
+ long ksys_msgget(key_t key, int msgflg);
 -- 
 2.9.0
 
