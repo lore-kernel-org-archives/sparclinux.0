@@ -1,41 +1,160 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 12 Apr 2018 07:16:30 +0000
-Subject: Re: [GIT PULL] asm-generic fixes for v4.17-rc1
-Message-Id: <CAK8P3a2brHyWJx=WwXgxr3Gkouu5DAgqBvBQiz0rcPvZ18xO8g@mail.gmail.com>
+Date: Thu, 19 Apr 2018 14:37:21 +0000
+Subject: [PATCH v3 01/17] y2038: asm-generic: Extend sysvipc data structures
+Message-Id: <20180419143737.606138-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a081_hkr5d0FRWpTaT-AsJoqznsS1=_WF4JVLTUOupUgg@mail.gmail.com>
- <CA+55aFx4_gaBeffy9roFRnkB30fnRa=nhh5qR=o=CgrWmgphiw@mail.gmail.com>
-In-Reply-To: <CA+55aFx4_gaBeffy9roFRnkB30fnRa=nhh5qR=o=CgrWmgphiw@mail.gmail.com>
+References: <20180419143737.606138-1-arnd@arndb.de>
+In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-arch <linux-arch@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Ley Foon Tan <lftan@altera.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Michal Simek <monstr@monstr.eu>, "moderated list:H8/300 ARCHITECTURE" <uclinux-h8-devel@lists.sourceforge.jp>, Yoshinori Sato <ysato@users.sourceforge.jp>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Guan
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-On Thu, Apr 12, 2018 at 1:16 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Wed, Apr 11, 2018 at 8:40 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->>
->> are available in the git repository at:
->>
->>   git+ssh://gitolite@ra.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
->> tags/asm-generic
->
-> Yeah, no they aren't available there at all.
->
-> That tag is some old tag from two years ago that just contains your
-> ancient "asm-generic: use compat version for preadv2 and pwritev2".
->
-> Forgot to push out? Or forgot to use "-f" to overwrite the old tag?
+Most architectures now use the asm-generic copy of the sysvipc data
+structures (msqid64_ds, semid64_ds, shmid64_ds), which use 32-bit
+__kernel_time_t on 32-bit architectures but have padding behind them to
+allow extending the type to 64-bit.
 
-Yes, something like that, I first tagged the local branch in the wrong
-tree which had an old branch of the same name, noticed my mistake
-as I pushed it, but then screwed up again when I tried to correct it:
-I force-pushed the correct branch again, but not the tag.
+Unfortunately, that fails on all big-endian architectures, which have the
+padding on the wrong side. As so many of them get it wrong, we decided to
+not bother even trying to fix it up when we introduced the asm-generic
+copy. Instead we always use the padding word now to provide the upper
+32 bits of the seconds value, regardless of the endianess.
 
-Pushed the right tag now, please pull from
+A libc implementation on a typical big-endian system can deal with
+this by providing its own copy of the structure definition to user
+space, and swapping the two 32-bit words before returning from the
+semctl/shmctl/msgctl system calls.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
-tags/asm-generic
+ARM64 and s/390 are architectures that use these generic headers and
+also provide support for compat mode on 64-bit kernels, so we adapt
+their copies here as well.
 
-        Arnd
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ include/uapi/asm-generic/msgbuf.h | 17 ++++++++---------
+ include/uapi/asm-generic/sembuf.h | 26 ++++++++++++++++----------
+ include/uapi/asm-generic/shmbuf.h | 17 ++++++++---------
+ 3 files changed, 32 insertions(+), 28 deletions(-)
+
+diff --git a/include/uapi/asm-generic/msgbuf.h b/include/uapi/asm-generic/msgbuf.h
+index fb306ebdb36f..d2169cae93b8 100644
+--- a/include/uapi/asm-generic/msgbuf.h
++++ b/include/uapi/asm-generic/msgbuf.h
+@@ -18,23 +18,22 @@
+  * On big-endian systems, the padding is in the wrong place.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+ 
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused1;
+-#endif
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused2;
+-#endif
+ 	__kernel_time_t msg_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused3;
++#else
++	unsigned long	msg_stime;	/* last msgsnd time */
++	unsigned long	msg_stime_high;
++	unsigned long	msg_rtime;	/* last msgrcv time */
++	unsigned long	msg_rtime_high;
++	unsigned long	msg_ctime;	/* last change time */
++	unsigned long	msg_ctime_high;
+ #endif
+ 	__kernel_ulong_t msg_cbytes;	/* current number of bytes on queue */
+ 	__kernel_ulong_t msg_qnum;	/* number of messages in queue */
+diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
+index cbf9cfe977d6..0bae010f1b64 100644
+--- a/include/uapi/asm-generic/sembuf.h
++++ b/include/uapi/asm-generic/sembuf.h
+@@ -13,23 +13,29 @@
+  * everyone just ended up making identical copies without specific
+  * optimizations, so we may just as well all use the same one.
+  *
+- * 64 bit architectures typically define a 64 bit __kernel_time_t,
++ * 64 bit architectures use a 64-bit __kernel_time_t here, while
++ * 32 bit architectures have a pair of unsigned long values.
+  * so they do not need the first two padding words.
+- * On big-endian systems, the padding is in the wrong place.
+  *
+- * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+- * - 2 miscellaneous 32-bit values
++ * On big-endian systems, the padding is in the wrong place for
++ * historic reasons, so user space has to reconstruct a time_t
++ * value using
++ *
++ * user_semid_ds.sem_otime = kernel_semid64_ds.sem_otime +
++ *		((long long)kernel_semid64_ds.sem_otime_high << 32)
++ *
++ * Pad space is left for 2 miscellaneous 32-bit values
+  */
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t	sem_otime;	/* last semop time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused1;
+-#endif
+ 	__kernel_time_t	sem_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused2;
++#else
++	unsigned long	sem_otime;	/* last semop time */
++	unsigned long	sem_otime_high;
++	unsigned long	sem_ctime;	/* last change time */
++	unsigned long	sem_ctime_high;
+ #endif
+ 	unsigned long	sem_nsems;	/* no. of semaphores in array */
+ 	unsigned long	__unused3;
+diff --git a/include/uapi/asm-generic/shmbuf.h b/include/uapi/asm-generic/shmbuf.h
+index 2b6c3bb97f97..602f1b5b462b 100644
+--- a/include/uapi/asm-generic/shmbuf.h
++++ b/include/uapi/asm-generic/shmbuf.h
+@@ -19,24 +19,23 @@
+  *
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+ 
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused1;
+-#endif
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused2;
+-#endif
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused3;
++#else
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_atime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_ctime;	/* last change time */
++	unsigned long		shm_ctime_high;
+ #endif
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+ 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+-- 
+2.9.0
+
