@@ -1,244 +1,294 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Date: Fri, 20 Apr 2018 14:38:06 +0000
-Subject: [REVIEW][PATCH 17/22] signal/sparc: Use send_sig_fault where appropriate
-Message-Id: <20180420143811.9994-17-ebiederm@xmission.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 19 Apr 2018 14:37:26 +0000
+Subject: [PATCH v3 06/17] y2038: mips: Extend sysvipc data structures
+Message-Id: <20180419143737.606138-7-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87604mhrnb.fsf@xmission.com>
-In-Reply-To: <87604mhrnb.fsf@xmission.com>
+References: <20180419143737.606138-1-arnd@arndb.de>
+In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, "Eric W. Biederman" <ebiederm@xmission.com>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-Filling in struct siginfo before calling send_sig_info a tedious and
-error prone process, where once in a great while the wrong fields
-are filled out, and siginfo has been inconsistently cleared.
+MIPS is the weirdest case for sysvipc, because each of the
+three data structures is done differently:
 
-Simplify this process by using the helper send_sig_fault.  Which
-takes as a parameters all of the information it needs, ensures
-all of the fiddly bits of filling in struct siginfo are done properly
-and then calls send_sig_info.
+* msqid64_ds has padding in the right place so we could in theory
+  extend this one to just have 64-bit values instead of time_t.
+  As this does not work for most of the other combinations,
+  we just handle it in the common manner though.
 
-In short about a 5 line reduction in code for every time send_sig_info
-is called, which makes the calling function clearer.
+* semid64_ds has no padding for 64-bit time_t, but has two reserved
+  'long' fields, which are sufficient to extend the sem_otime
+  and sem_ctime fields to 64 bit. In order to do this, the libc
+  implementation will have to copy the data into another structure
+  that has the fields in a different order. MIPS is the only
+  architecture with this problem, so this is best done in MIPS
+  specific libc code.
 
-Cc: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+* shmid64_ds is slightly worse than that, because it has three
+  time_t fields but only two unused 32-bit words. As a workaround,
+  we extend each field only by 16 bits, ending up with 48-bit
+  timestamps that user space again has to work around by itself.
+
+The compat versions of the data structures are changed in the
+same way.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/sparc/kernel/traps_32.c     | 93 ++++++++--------------------------------
- arch/sparc/kernel/unaligned_32.c | 12 ++----
- 2 files changed, 20 insertions(+), 85 deletions(-)
+ arch/mips/include/asm/compat.h      | 40 ++++++++++++++------------
+ arch/mips/include/uapi/asm/msgbuf.h | 57 ++++++++++++++++++++++++-------------
+ arch/mips/include/uapi/asm/sembuf.h | 15 ++++++++--
+ arch/mips/include/uapi/asm/shmbuf.h | 23 +++++++++++++--
+ 4 files changed, 94 insertions(+), 41 deletions(-)
 
-diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
-index 03e522274b8b..06f43cf9695f 100644
---- a/arch/sparc/kernel/traps_32.c
-+++ b/arch/sparc/kernel/traps_32.c
-@@ -116,8 +116,6 @@ void do_hw_interrupt(struct pt_regs *regs, unsigned long type)
- void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			    unsigned long psr)
- {
--	siginfo_t info;
--
- 	if(psr & PSR_PS)
- 		die_if_kernel("Kernel illegal instruction", regs);
- #ifdef TRAP_DEBUG
-@@ -125,29 +123,15 @@ void do_illegal_instruction(struct pt_regs *regs, unsigned long pc, unsigned lon
- 	       regs->pc, *(unsigned long *)regs->pc);
+diff --git a/arch/mips/include/asm/compat.h b/arch/mips/include/asm/compat.h
+index 3e548ee99a2f..78675f19440f 100644
+--- a/arch/mips/include/asm/compat.h
++++ b/arch/mips/include/asm/compat.h
+@@ -37,9 +37,11 @@ typedef struct {
+ typedef s32		compat_timer_t;
+ typedef s32		compat_key_t;
+ 
++typedef s16		compat_short_t;
+ typedef s32		compat_int_t;
+ typedef s32		compat_long_t;
+ typedef s64		compat_s64;
++typedef u16		compat_ushort_t;
+ typedef u32		compat_uint_t;
+ typedef u32		compat_ulong_t;
+ typedef u64		compat_u64;
+@@ -157,35 +159,35 @@ struct compat_ipc64_perm {
+ 
+ struct compat_semid64_ds {
+ 	struct compat_ipc64_perm sem_perm;
+-	compat_time_t	sem_otime;
+-	compat_time_t	sem_ctime;
++	compat_ulong_t	sem_otime;
++	compat_ulong_t	sem_ctime;
+ 	compat_ulong_t	sem_nsems;
+-	compat_ulong_t	__unused1;
+-	compat_ulong_t	__unused2;
++	compat_ulong_t	sem_otime_high;
++	compat_ulong_t	sem_ctime_high;
+ };
+ 
+ struct compat_msqid64_ds {
+ 	struct compat_ipc64_perm msg_perm;
+ #ifndef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused1;
++	compat_ulong_t	msg_stime_high;
  #endif
- 
--	clear_siginfo(&info);
--	info.si_signo = SIGILL;
--	info.si_errno = 0;
--	info.si_code = ILL_ILLOPC;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGILL, &info, current);
-+	send_sig_fault(SIGILL, ILL_ILLOPC, (void __user *)pc, 0, current);
- }
- 
- void do_priv_instruction(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			 unsigned long psr)
- {
--	siginfo_t info;
--
- 	if(psr & PSR_PS)
- 		die_if_kernel("Penguin instruction from Penguin mode??!?!", regs);
--	clear_siginfo(&info);
--	info.si_signo = SIGILL;
--	info.si_errno = 0;
--	info.si_code = ILL_PRVOPC;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGILL, &info, current);
-+	send_sig_fault(SIGILL, ILL_PRVOPC, (void __user *)pc, 0, current);
- }
- 
- /* XXX User may want to be allowed to do this. XXX */
-@@ -155,8 +139,6 @@ void do_priv_instruction(struct pt_regs *regs, unsigned long pc, unsigned long n
- void do_memaccess_unaligned(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			    unsigned long psr)
- {
--	siginfo_t info;
--
- 	if(regs->psr & PSR_PS) {
- 		printk("KERNEL MNA at pc %08lx npc %08lx called by %08lx\n", pc, npc,
- 		       regs->u_regs[UREG_RETPC]);
-@@ -168,13 +150,9 @@ void do_memaccess_unaligned(struct pt_regs *regs, unsigned long pc, unsigned lon
- 	instruction_dump ((unsigned long *) regs->pc);
- 	printk ("do_MNA!\n");
+-	compat_time_t	msg_stime;
++	compat_ulong_t	msg_stime;
+ #ifdef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused1;
++	compat_ulong_t	msg_stime_high;
  #endif
--	clear_siginfo(&info);
--	info.si_signo = SIGBUS;
--	info.si_errno = 0;
--	info.si_code = BUS_ADRALN;
--	info.si_addr = /* FIXME: Should dig out mna address */ (void *)0;
--	info.si_trapno = 0;
--	send_sig_info(SIGBUS, &info, current);
-+	send_sig_fault(SIGBUS, BUS_ADRALN,
-+		       /* FIXME: Should dig out mna address */ (void *)0,
-+		       0, current);
- }
- 
- static unsigned long init_fsr = 0x0UL;
-@@ -230,9 +208,9 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 		 unsigned long psr)
- {
- 	static int calls;
--	siginfo_t info;
- 	unsigned long fsr;
- 	int ret = 0;
-+	int code;
- #ifndef CONFIG_SMP
- 	struct task_struct *fpt = last_task_used_math;
- #else
-@@ -307,25 +285,20 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 	}
- 
- 	fsr = fpt->thread.fsr;
--	clear_siginfo(&info);
--	info.si_signo = SIGFPE;
--	info.si_errno = 0;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	info.si_code = FPE_FLTUNK;
-+	code = FPE_FLTUNK;
- 	if ((fsr & 0x1c000) = (1 << 14)) {
- 		if (fsr & 0x10)
--			info.si_code = FPE_FLTINV;
-+			code = FPE_FLTINV;
- 		else if (fsr & 0x08)
--			info.si_code = FPE_FLTOVF;
-+			code = FPE_FLTOVF;
- 		else if (fsr & 0x04)
--			info.si_code = FPE_FLTUND;
-+			code = FPE_FLTUND;
- 		else if (fsr & 0x02)
--			info.si_code = FPE_FLTDIV;
-+			code = FPE_FLTDIV;
- 		else if (fsr & 0x01)
--			info.si_code = FPE_FLTRES;
-+			code = FPE_FLTRES;
- 	}
--	send_sig_info(SIGFPE, &info, fpt);
-+	send_sig_fault(SIGFPE, code, (void __user *)pc, 0, fpt);
- #ifndef CONFIG_SMP
- 	last_task_used_math = NULL;
+ #ifndef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused2;
++	compat_ulong_t	msg_rtime_high;
  #endif
-@@ -337,17 +310,9 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- void handle_tag_overflow(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			 unsigned long psr)
- {
--	siginfo_t info;
--
- 	if(psr & PSR_PS)
- 		die_if_kernel("Penguin overflow trap from kernel mode", regs);
--	clear_siginfo(&info);
--	info.si_signo = SIGEMT;
--	info.si_errno = 0;
--	info.si_code = EMT_TAGOVF;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGEMT, &info, current);
-+	send_sig_fault(SIGEMT, EMT_TAGOVF, (void __user *)pc, 0, current);
- }
- 
- void handle_watchpoint(struct pt_regs *regs, unsigned long pc, unsigned long npc,
-@@ -383,47 +348,23 @@ void handle_reg_access(struct pt_regs *regs, unsigned long pc, unsigned long npc
- void handle_cp_disabled(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			unsigned long psr)
- {
--	siginfo_t info;
--
--	clear_siginfo(&info);
--	info.si_signo = SIGILL;
--	info.si_errno = 0;
--	info.si_code = ILL_COPROC;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGILL, &info, current);
-+	send_sig_fault(SIGILL, ILL_COPROC, (void __user *)pc, 0, current);
- }
- 
- void handle_cp_exception(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 			 unsigned long psr)
- {
--	siginfo_t info;
--
- #ifdef TRAP_DEBUG
- 	printk("Co-Processor Exception at PC %08lx NPC %08lx PSR %08lx\n",
- 	       pc, npc, psr);
+-	compat_time_t	msg_rtime;
++	compat_ulong_t	msg_rtime;
+ #ifdef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused2;
++	compat_ulong_t	msg_rtime_high;
  #endif
--	clear_siginfo(&info);
--	info.si_signo = SIGILL;
--	info.si_errno = 0;
--	info.si_code = ILL_COPROC;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGILL, &info, current);
-+	send_sig_fault(SIGILL, ILL_COPROC, (void __user *)pc, 0, current);
- }
+ #ifndef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused3;
++	compat_ulong_t	msg_ctime_high;
+ #endif
+-	compat_time_t	msg_ctime;
++	compat_ulong_t	msg_ctime;
+ #ifdef CONFIG_CPU_LITTLE_ENDIAN
+-	compat_ulong_t	__unused3;
++	compat_ulong_t	msg_ctime_high;
+ #endif
+ 	compat_ulong_t	msg_cbytes;
+ 	compat_ulong_t	msg_qnum;
+@@ -199,14 +201,16 @@ struct compat_msqid64_ds {
+ struct compat_shmid64_ds {
+ 	struct compat_ipc64_perm shm_perm;
+ 	compat_size_t	shm_segsz;
+-	compat_time_t	shm_atime;
+-	compat_time_t	shm_dtime;
+-	compat_time_t	shm_ctime;
++	compat_ulong_t	shm_atime;
++	compat_ulong_t	shm_dtime;
++	compat_ulong_t	shm_ctime;
+ 	compat_pid_t	shm_cpid;
+ 	compat_pid_t	shm_lpid;
+ 	compat_ulong_t	shm_nattch;
+-	compat_ulong_t	__unused1;
+-	compat_ulong_t	__unused2;
++	compat_ushort_t	shm_atime_high;
++	compat_ushort_t	shm_dtime_high;
++	compat_ushort_t	shm_ctime_high;
++	compat_ushort_t	__unused2;
+ };
  
- void handle_hw_divzero(struct pt_regs *regs, unsigned long pc, unsigned long npc,
- 		       unsigned long psr)
- {
--	siginfo_t info;
--
--	clear_siginfo(&info);
--	info.si_signo = SIGFPE;
--	info.si_errno = 0;
--	info.si_code = FPE_INTDIV;
--	info.si_addr = (void __user *)pc;
--	info.si_trapno = 0;
--	send_sig_info(SIGFPE, &info, current);
-+	send_sig_fault(SIGFPE, FPE_INTDIV, (void __user *)pc, 0, current);
- }
+ /* MIPS has unusual order of fields in stack_t */
+diff --git a/arch/mips/include/uapi/asm/msgbuf.h b/arch/mips/include/uapi/asm/msgbuf.h
+index eb4d0f9d7364..46aa15b13e4e 100644
+--- a/arch/mips/include/uapi/asm/msgbuf.h
++++ b/arch/mips/include/uapi/asm/msgbuf.h
+@@ -9,33 +9,15 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - extension of time_t to 64-bit on 32-bitsystem to solve the y2038 problem
+  * - 2 miscellaneous unsigned long values
+  */
  
- #ifdef CONFIG_DEBUG_BUGVERBOSE
-diff --git a/arch/sparc/kernel/unaligned_32.c b/arch/sparc/kernel/unaligned_32.c
-index 0e4cf7217413..64ac8c0c1429 100644
---- a/arch/sparc/kernel/unaligned_32.c
-+++ b/arch/sparc/kernel/unaligned_32.c
-@@ -311,15 +311,9 @@ static inline int ok_for_user(struct pt_regs *regs, unsigned int insn,
++#if defined(__mips64)
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+-#if !defined(__mips64) && defined(__MIPSEB__)
+-	unsigned long	__unused1;
+-#endif
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-#if !defined(__mips64) && defined(__MIPSEL__)
+-	unsigned long	__unused1;
+-#endif
+-#if !defined(__mips64) && defined(__MIPSEB__)
+-	unsigned long	__unused2;
+-#endif
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-#if !defined(__mips64) && defined(__MIPSEL__)
+-	unsigned long	__unused2;
+-#endif
+-#if !defined(__mips64) && defined(__MIPSEB__)
+-	unsigned long	__unused3;
+-#endif
+ 	__kernel_time_t msg_ctime;	/* last change time */
+-#if !defined(__mips64) && defined(__MIPSEL__)
+-	unsigned long	__unused3;
+-#endif
+ 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+ 	unsigned long  msg_qnum;	/* number of messages in queue */
+ 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+@@ -44,5 +26,42 @@ struct msqid64_ds {
+ 	unsigned long  __unused4;
+ 	unsigned long  __unused5;
+ };
++#elif defined (__MIPSEB__)
++struct msqid64_ds {
++	struct ipc64_perm msg_perm;
++	unsigned long  msg_stime_high;
++	unsigned long  msg_stime;	/* last msgsnd time */
++	unsigned long  msg_rtime_high;
++	unsigned long  msg_rtime;	/* last msgrcv time */
++	unsigned long  msg_ctime_high;
++	unsigned long  msg_ctime;	/* last change time */
++	unsigned long  msg_cbytes;	/* current number of bytes on queue */
++	unsigned long  msg_qnum;	/* number of messages in queue */
++	unsigned long  msg_qbytes;	/* max number of bytes on queue */
++	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
++	__kernel_pid_t msg_lrpid;	/* last receive pid */
++	unsigned long  __unused4;
++	unsigned long  __unused5;
++};
++#elif defined (__MIPSEL__)
++struct msqid64_ds {
++	struct ipc64_perm msg_perm;
++	unsigned long  msg_stime;	/* last msgsnd time */
++	unsigned long  msg_stime_high;
++	unsigned long  msg_rtime;	/* last msgrcv time */
++	unsigned long  msg_rtime_high;
++	unsigned long  msg_ctime;	/* last change time */
++	unsigned long  msg_ctime_high;
++	unsigned long  msg_cbytes;	/* current number of bytes on queue */
++	unsigned long  msg_qnum;	/* number of messages in queue */
++	unsigned long  msg_qbytes;	/* max number of bytes on queue */
++	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
++	__kernel_pid_t msg_lrpid;	/* last receive pid */
++	unsigned long  __unused4;
++	unsigned long  __unused5;
++};
++#else
++#warning no endianess set
++#endif
  
- static void user_mna_trap_fault(struct pt_regs *regs, unsigned int insn)
- {
--	siginfo_t info;
--
--	clear_siginfo(&info);
--	info.si_signo = SIGBUS;
--	info.si_errno = 0;
--	info.si_code = BUS_ADRALN;
--	info.si_addr = (void __user *)safe_compute_effective_address(regs, insn);
--	info.si_trapno = 0;
--	send_sig_info(SIGBUS, &info, current);
-+	send_sig_fault(SIGBUS, BUS_ADRALN,
-+		       (void __user *)safe_compute_effective_address(regs, insn),
-+		       0, current);
- }
+ #endif /* _ASM_MSGBUF_H */
+diff --git a/arch/mips/include/uapi/asm/sembuf.h b/arch/mips/include/uapi/asm/sembuf.h
+index 2c0f507ab7d1..60c89e6cb25b 100644
+--- a/arch/mips/include/uapi/asm/sembuf.h
++++ b/arch/mips/include/uapi/asm/sembuf.h
+@@ -7,10 +7,11 @@
+  * Note extra padding because this structure is passed back and forth
+  * between kernel and user space.
+  *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
++ * Pad space is left for 2 miscellaneous 64-bit values on mips64,
++ * but used for the upper 32 bit of the time values on mips32.
+  */
  
- asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn)
++#ifdef __mips64
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+ 	__kernel_time_t sem_otime;		/* last semop time */
+@@ -19,5 +20,15 @@ struct semid64_ds {
+ 	unsigned long	__unused1;
+ 	unsigned long	__unused2;
+ };
++#else
++struct semid64_ds {
++	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
++	unsigned long   sem_otime;		/* last semop time */
++	unsigned long   sem_ctime;		/* last change time */
++	unsigned long	sem_nsems;		/* no. of semaphores in array */
++	unsigned long	sem_otime_high;
++	unsigned long	sem_ctime_high;
++};
++#endif
+ 
+ #endif /* _ASM_SEMBUF_H */
+diff --git a/arch/mips/include/uapi/asm/shmbuf.h b/arch/mips/include/uapi/asm/shmbuf.h
+index 379e6bca518b..9b9bba3401f2 100644
+--- a/arch/mips/include/uapi/asm/shmbuf.h
++++ b/arch/mips/include/uapi/asm/shmbuf.h
+@@ -7,10 +7,13 @@
+  * Note extra padding because this structure is passed back and forth
+  * between kernel and user space.
+  *
+- * Pad space is left for:
+- * - 2 miscellaneous 32-bit rsp. 64-bit values
++ * As MIPS was lacking proper padding after shm_?time, we use 48 bits
++ * of the padding at the end to store a few additional bits of the time.
++ * libc implementations need to take care to convert this into a proper
++ * data structure when moving to 64-bit time_t.
+  */
+ 
++#ifdef __mips64
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+@@ -23,6 +26,22 @@ struct shmid64_ds {
+ 	unsigned long		__unused1;
+ 	unsigned long		__unused2;
+ };
++#else
++struct shmid64_ds {
++	struct ipc64_perm	shm_perm;	/* operation perms */
++	size_t			shm_segsz;	/* size of segment (bytes) */
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_ctime;	/* last change time */
++	__kernel_pid_t		shm_cpid;	/* pid of creator */
++	__kernel_pid_t		shm_lpid;	/* pid of last operator */
++	unsigned long		shm_nattch;	/* no. of current attaches */
++	unsigned short		shm_atime_high;
++	unsigned short		shm_dtime_high;
++	unsigned short		shm_ctime_high;
++	unsigned short		__unused1;
++};
++#endif
+ 
+ struct shminfo64 {
+ 	unsigned long	shmmax;
 -- 
-2.14.1
+2.9.0
 
