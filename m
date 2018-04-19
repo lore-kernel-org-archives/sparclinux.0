@@ -1,142 +1,167 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 25 Apr 2018 05:15:30 +0000
-Subject: [PATCH 04/13] iommu-helper: move the IOMMU_HELPER config symbol to lib/
-Message-Id: <20180425051539.1989-5-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 19 Apr 2018 14:37:35 +0000
+Subject: [PATCH v3 15/17] y2038: ipc: Enable COMPAT_32BIT_TIME
+Message-Id: <20180419143737.606138-16-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425051539.1989-1-hch@lst.de>
-In-Reply-To: <20180425051539.1989-1-hch@lst.de>
+References: <20180419143737.606138-1-arnd@arndb.de>
+In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-This way we have one central definition of it, and user can select it as
-needed.
+Three ipc syscalls (mq_timedsend, mq_timedreceive and and semtimedop)
+take a timespec argument. After we move 32-bit architectures over to
+useing 64-bit time_t based syscalls, we need seperate entry points for
+the old 32-bit based interfaces.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+This changes the #ifdef guards for the existing 32-bit compat syscalls
+to check for CONFIG_COMPAT_32BIT_TIME instead, which will then be
+enabled on all existing 32-bit architectures.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/powerpc/Kconfig | 4 +---
- arch/s390/Kconfig    | 5 ++---
- arch/sparc/Kconfig   | 5 +----
- arch/x86/Kconfig     | 6 ++----
- lib/Kconfig          | 3 +++
- 5 files changed, 9 insertions(+), 14 deletions(-)
+ ipc/mqueue.c | 80 +++++++++++++++++++++++++++++++-----------------------------
+ ipc/sem.c    |  3 ++-
+ ipc/util.h   |  2 +-
+ 3 files changed, 44 insertions(+), 41 deletions(-)
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 43e3c8e4e7f4..7698cf89af9c 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -223,6 +223,7 @@ config PPC
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_VIRT_CPU_ACCOUNTING
- 	select HAVE_IRQ_TIME_ACCOUNTING
-+	select IOMMU_HELPER			if PPC64
- 	select IRQ_DOMAIN
- 	select IRQ_FORCED_THREADING
- 	select MODULES_USE_ELF_RELA
-@@ -478,9 +479,6 @@ config MPROFILE_KERNEL
- 	depends on PPC64 && CPU_LITTLE_ENDIAN
- 	def_bool !DISABLE_MPROFILE_KERNEL
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index 9610afcfa2e5..c0d58f390c3b 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -1420,6 +1420,47 @@ COMPAT_SYSCALL_DEFINE4(mq_open, const char __user *, u_name,
+ 	return do_mq_open(u_name, oflag, mode, p);
+ }
  
--config IOMMU_HELPER
--	def_bool PPC64
--
- config SWIOTLB
- 	bool "SWIOTLB support"
- 	default n
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 199ac3e4da1d..60c4ab854182 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -709,7 +709,9 @@ config QDIO
- menuconfig PCI
- 	bool "PCI support"
- 	select PCI_MSI
-+	select IOMMU_HELPER
- 	select IOMMU_SUPPORT
++COMPAT_SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
++		       const struct compat_sigevent __user *, u_notification)
++{
++	struct sigevent n, *p = NULL;
++	if (u_notification) {
++		if (get_compat_sigevent(&n, u_notification))
++			return -EFAULT;
++		if (n.sigev_notify = SIGEV_THREAD)
++			n.sigev_value.sival_ptr = compat_ptr(n.sigev_value.sival_int);
++		p = &n;
++	}
++	return do_mq_notify(mqdes, p);
++}
 +
- 	help
- 	  Enable PCI support.
- 
-@@ -733,9 +735,6 @@ config PCI_DOMAINS
- config HAS_IOMEM
- 	def_bool PCI
- 
--config IOMMU_HELPER
--	def_bool PCI
--
- config NEED_SG_DMA_LENGTH
- 	def_bool PCI
- 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 8767e45f1b2b..44e0f3cd7988 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -67,6 +67,7 @@ config SPARC64
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_CONTEXT_TRACKING
- 	select HAVE_DEBUG_KMEMLEAK
-+	select IOMMU_HELPER
- 	select SPARSE_IRQ
- 	select RTC_DRV_CMOS
- 	select RTC_DRV_BQ4802
-@@ -106,10 +107,6 @@ config ARCH_DMA_ADDR_T_64BIT
- 	bool
- 	default y if ARCH_ATU
- 
--config IOMMU_HELPER
--	bool
--	default y if SPARC64
--
- config STACKTRACE_SUPPORT
- 	bool
- 	default y if SPARC64
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index cb2c7ecc1fea..fe9713539166 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -871,6 +871,7 @@ config DMI
- 
- config GART_IOMMU
- 	bool "Old AMD GART IOMMU support"
-+	select IOMMU_HELPER
- 	select SWIOTLB
- 	depends on X86_64 && PCI && AMD_NB
- 	---help---
-@@ -892,6 +893,7 @@ config GART_IOMMU
- 
- config CALGARY_IOMMU
- 	bool "IBM Calgary IOMMU support"
-+	select IOMMU_HELPER
- 	select SWIOTLB
- 	depends on X86_64 && PCI
- 	---help---
-@@ -929,10 +931,6 @@ config SWIOTLB
- 	  with more than 3 GB of memory.
- 	  If unsure, say Y.
- 
--config IOMMU_HELPER
--	def_bool y
--	depends on CALGARY_IOMMU || GART_IOMMU
--
- config MAXSMP
- 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
- 	depends on X86_64 && SMP && DEBUG_KERNEL
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 5fe577673b98..2f6908577534 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -429,6 +429,9 @@ config SGL_ALLOC
- 	bool
- 	default n
- 
-+config IOMMU_HELPER
-+	bool
++COMPAT_SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
++		       const struct compat_mq_attr __user *, u_mqstat,
++		       struct compat_mq_attr __user *, u_omqstat)
++{
++	int ret;
++	struct mq_attr mqstat, omqstat;
++	struct mq_attr *new = NULL, *old = NULL;
 +
- config DMA_DIRECT_OPS
- 	bool
- 	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
++	if (u_mqstat) {
++		new = &mqstat;
++		if (get_compat_mq_attr(new, u_mqstat))
++			return -EFAULT;
++	}
++	if (u_omqstat)
++		old = &omqstat;
++
++	ret = do_mq_getsetattr(mqdes, new, old);
++	if (ret || !old)
++		return ret;
++
++	if (put_compat_mq_attr(old, u_omqstat))
++		return -EFAULT;
++	return 0;
++}
++#endif
++
++#ifdef CONFIG_COMPAT_32BIT_TIME
+ static int compat_prepare_timeout(const struct compat_timespec __user *p,
+ 				   struct timespec64 *ts)
+ {
+@@ -1459,45 +1500,6 @@ COMPAT_SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes,
+ 	}
+ 	return do_mq_timedreceive(mqdes, u_msg_ptr, msg_len, u_msg_prio, p);
+ }
+-
+-COMPAT_SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
+-		       const struct compat_sigevent __user *, u_notification)
+-{
+-	struct sigevent n, *p = NULL;
+-	if (u_notification) {
+-		if (get_compat_sigevent(&n, u_notification))
+-			return -EFAULT;
+-		if (n.sigev_notify = SIGEV_THREAD)
+-			n.sigev_value.sival_ptr = compat_ptr(n.sigev_value.sival_int);
+-		p = &n;
+-	}
+-	return do_mq_notify(mqdes, p);
+-}
+-
+-COMPAT_SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
+-		       const struct compat_mq_attr __user *, u_mqstat,
+-		       struct compat_mq_attr __user *, u_omqstat)
+-{
+-	int ret;
+-	struct mq_attr mqstat, omqstat;
+-	struct mq_attr *new = NULL, *old = NULL;
+-
+-	if (u_mqstat) {
+-		new = &mqstat;
+-		if (get_compat_mq_attr(new, u_mqstat))
+-			return -EFAULT;
+-	}
+-	if (u_omqstat)
+-		old = &omqstat;
+-
+-	ret = do_mq_getsetattr(mqdes, new, old);
+-	if (ret || !old)
+-		return ret;
+-
+-	if (put_compat_mq_attr(old, u_omqstat))
+-		return -EFAULT;
+-	return 0;
+-}
+ #endif
+ 
+ static const struct inode_operations mqueue_dir_inode_operations = {
+diff --git a/ipc/sem.c b/ipc/sem.c
+index b951e25ba2db..cfd94d48a9aa 100644
+--- a/ipc/sem.c
++++ b/ipc/sem.c
+@@ -70,6 +70,7 @@
+  *   The worst-case behavior is nevertheless O(N^2) for N wakeups.
+  */
+ 
++#include <linux/compat.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
+@@ -2193,7 +2194,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid, struct sembuf __user *, tsops,
+ 	return ksys_semtimedop(semid, tsops, nsops, timeout);
+ }
+ 
+-#ifdef CONFIG_COMPAT
++#ifdef CONFIG_COMPAT_32BIT_TIME
+ long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
+ 			    unsigned int nsops,
+ 			    const struct compat_timespec __user *timeout)
+diff --git a/ipc/util.h b/ipc/util.h
+index 975c6de2df9d..0aba3230d007 100644
+--- a/ipc/util.h
++++ b/ipc/util.h
+@@ -265,10 +265,10 @@ long ksys_shmdt(char __user *shmaddr);
+ long ksys_shmctl(int shmid, int cmd, struct shmid_ds __user *buf);
+ 
+ /* for CONFIG_ARCH_WANT_OLD_COMPAT_IPC */
+-#ifdef CONFIG_COMPAT
+ long compat_ksys_semtimedop(int semid, struct sembuf __user *tsems,
+ 			    unsigned int nsops,
+ 			    const struct compat_timespec __user *timeout);
++#ifdef CONFIG_COMPAT
+ long compat_ksys_semctl(int semid, int semnum, int cmd, int arg);
+ long compat_ksys_msgctl(int msqid, int cmd, void __user *uptr);
+ long compat_ksys_msgrcv(int msqid, compat_uptr_t msgp, compat_ssize_t msgsz,
 -- 
-2.17.0
+2.9.0
 
