@@ -1,95 +1,197 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:02:55 +0000
-Subject: [PATCH 04/22] alpha: use dma_direct_ops for jensen
-Message-Id: <20180420080313.18796-5-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 19 Apr 2018 14:37:30 +0000
+Subject: [PATCH v3 10/17] y2038: powerpc: Extend sysvipc data structures
+Message-Id: <20180419143737.606138-11-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
+References: <20180419143737.606138-1-arnd@arndb.de>
+In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
 
-The generic dma_direct implementation does the same thing as the alpha
-pci-noop implementation, just with more bells and whistles.  And unlike
-the current code it at least has a theoretical chance to actually compile.
+powerpc, uses a nonstandard variation of the generic sysvipc
+data structures, intended to have the padding moved around
+so it can deal with big-endian 32-bit user space that has
+64-bit time_t.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+powerpc has the same definition as parisc and sparc, but now also
+supports little-endian mode, which is now wrong because the
+padding is made for big-endian user space.
+
+This takes just take the same approach here that we have for
+the asm-generic headers and adds separate 32-bit fields for the
+upper halves of the timestamps, to let libc deal with the mess
+in user space.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/alpha/Kconfig                   |  1 +
- arch/alpha/include/asm/dma-mapping.h |  4 ++++
- arch/alpha/kernel/pci-noop.c         | 33 ----------------------------
- 3 files changed, 5 insertions(+), 33 deletions(-)
+ arch/powerpc/include/asm/compat.h      | 32 ++++++++++++++++----------------
+ arch/powerpc/include/uapi/asm/msgbuf.h | 18 +++++++++---------
+ arch/powerpc/include/uapi/asm/sembuf.h | 14 +++++++-------
+ arch/powerpc/include/uapi/asm/shmbuf.h | 19 ++++++++-----------
+ 4 files changed, 40 insertions(+), 43 deletions(-)
 
-diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-index aa7df1a36fd0..94af0c7f494a 100644
---- a/arch/alpha/Kconfig
-+++ b/arch/alpha/Kconfig
-@@ -204,6 +204,7 @@ config ALPHA_EIGER
- config ALPHA_JENSEN
- 	bool "Jensen"
- 	depends on BROKEN
-+	select DMA_DIRECT_OPS
- 	help
- 	  DEC PC 150 AXP (aka Jensen): This is a very old Digital system - one
- 	  of the first-generation Alpha systems. A number of these systems
-diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
-index b78f61f20796..76ce923ecca1 100644
---- a/arch/alpha/include/asm/dma-mapping.h
-+++ b/arch/alpha/include/asm/dma-mapping.h
-@@ -6,7 +6,11 @@ extern const struct dma_map_ops *dma_ops;
+diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
+index b4773c81f7d5..85c8af2bb272 100644
+--- a/arch/powerpc/include/asm/compat.h
++++ b/arch/powerpc/include/asm/compat.h
+@@ -162,10 +162,10 @@ struct compat_ipc64_perm {
  
- static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
-+#ifdef CONFIG_ALPHA_JENSEN
-+	return &dma_direct_ops;
+ struct compat_semid64_ds {
+ 	struct compat_ipc64_perm sem_perm;
+-	unsigned int __unused1;
+-	compat_time_t sem_otime;
+-	unsigned int __unused2;
+-	compat_time_t sem_ctime;
++	unsigned int sem_otime_high;
++	unsigned int sem_otime;
++	unsigned int sem_ctime_high;
++	unsigned int sem_ctime;
+ 	compat_ulong_t sem_nsems;
+ 	compat_ulong_t __unused3;
+ 	compat_ulong_t __unused4;
+@@ -173,12 +173,12 @@ struct compat_semid64_ds {
+ 
+ struct compat_msqid64_ds {
+ 	struct compat_ipc64_perm msg_perm;
+-	unsigned int __unused1;
+-	compat_time_t msg_stime;
+-	unsigned int __unused2;
+-	compat_time_t msg_rtime;
+-	unsigned int __unused3;
+-	compat_time_t msg_ctime;
++	unsigned int msg_stime_high;
++	unsigned int msg_stime;
++	unsigned int msg_rtime_high;
++	unsigned int msg_rtime;
++	unsigned int msg_ctime_high;
++	unsigned int msg_ctime;
+ 	compat_ulong_t msg_cbytes;
+ 	compat_ulong_t msg_qnum;
+ 	compat_ulong_t msg_qbytes;
+@@ -190,12 +190,12 @@ struct compat_msqid64_ds {
+ 
+ struct compat_shmid64_ds {
+ 	struct compat_ipc64_perm shm_perm;
+-	unsigned int __unused1;
+-	compat_time_t shm_atime;
+-	unsigned int __unused2;
+-	compat_time_t shm_dtime;
+-	unsigned int __unused3;
+-	compat_time_t shm_ctime;
++	unsigned int shm_atime_high;
++	unsigned int shm_atime;
++	unsigned int shm_dtime_high;
++	unsigned int shm_dtime;
++	unsigned int shm_ctime_high;
++	unsigned int shm_ctime;
+ 	unsigned int __unused4;
+ 	compat_size_t shm_segsz;
+ 	compat_pid_t shm_cpid;
+diff --git a/arch/powerpc/include/uapi/asm/msgbuf.h b/arch/powerpc/include/uapi/asm/msgbuf.h
+index 65beb0942500..2b1b37797a47 100644
+--- a/arch/powerpc/include/uapi/asm/msgbuf.h
++++ b/arch/powerpc/include/uapi/asm/msgbuf.h
+@@ -10,18 +10,18 @@
+ 
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+-#ifndef __powerpc64__
+-	unsigned int	__unused1;
+-#endif
++#ifdef __powerpc64__
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-#ifndef __powerpc64__
+-	unsigned int	__unused2;
+-#endif
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-#ifndef __powerpc64__
+-	unsigned int	__unused3;
+-#endif
+ 	__kernel_time_t msg_ctime;	/* last change time */
 +#else
- 	return dma_ops;
++	unsigned long  msg_stime_high;
++	unsigned long  msg_stime;	/* last msgsnd time */
++	unsigned long  msg_rtime_high;
++	unsigned long  msg_rtime;	/* last msgrcv time */
++	unsigned long  msg_ctime_high;
++	unsigned long  msg_ctime;	/* last change time */
 +#endif
- }
+ 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+ 	unsigned long  msg_qnum;	/* number of messages in queue */
+ 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
+index 8f393d60f02d..3f60946f77e3 100644
+--- a/arch/powerpc/include/uapi/asm/sembuf.h
++++ b/arch/powerpc/include/uapi/asm/sembuf.h
+@@ -15,20 +15,20 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+- * - 2 miscellaneous 32-bit values
++ * - 2 miscellaneous 32/64-bit values
+  */
  
- #endif	/* _ALPHA_DMA_MAPPING_H */
-diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
-index b6ebb65127a8..c7c5879869d3 100644
---- a/arch/alpha/kernel/pci-noop.c
-+++ b/arch/alpha/kernel/pci-noop.c
-@@ -102,36 +102,3 @@ SYSCALL_DEFINE5(pciconfig_write, unsigned long, bus, unsigned long, dfn,
- 	else
- 		return -ENODEV;
- }
--
--static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
--				       dma_addr_t *dma_handle, gfp_t gfp,
--				       unsigned long attrs)
--{
--	void *ret;
--
--	if (!dev || *dev->dma_mask >= 0xffffffffUL)
--		gfp &= ~GFP_DMA;
--	ret = (void *)__get_free_pages(gfp, get_order(size));
--	if (ret) {
--		memset(ret, 0, size);
--		*dma_handle = virt_to_phys(ret);
--	}
--	return ret;
--}
--
--static int alpha_noop_supported(struct device *dev, u64 mask)
--{
--	return mask < 0x00ffffffUL ? 0 : 1;
--}
--
--const struct dma_map_ops alpha_noop_ops = {
--	.alloc			= alpha_noop_alloc_coherent,
--	.free			= dma_noop_free_coherent,
--	.map_page		= dma_noop_map_page,
--	.map_sg			= dma_noop_map_sg,
--	.mapping_error		= dma_noop_mapping_error,
--	.dma_supported		= alpha_noop_supported,
--};
--
--const struct dma_map_ops *dma_ops = &alpha_noop_ops;
--EXPORT_SYMBOL(dma_ops);
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
+ #ifndef __powerpc64__
+-	unsigned long	__unused1;
+-#endif
++	unsigned long	sem_otime_high;
++	unsigned long	sem_otime;	/* last semop time */
++	unsigned long	sem_ctime_high;
++	unsigned long	sem_ctime;	/* last change time */
++#else
+ 	__kernel_time_t	sem_otime;	/* last semop time */
+-#ifndef __powerpc64__
+-	unsigned long	__unused2;
+-#endif
+ 	__kernel_time_t	sem_ctime;	/* last change time */
++#endif
+ 	unsigned long	sem_nsems;	/* no. of semaphores in array */
+ 	unsigned long	__unused3;
+ 	unsigned long	__unused4;
+diff --git a/arch/powerpc/include/uapi/asm/shmbuf.h b/arch/powerpc/include/uapi/asm/shmbuf.h
+index deb1c3e503d3..b591c4d7e4c5 100644
+--- a/arch/powerpc/include/uapi/asm/shmbuf.h
++++ b/arch/powerpc/include/uapi/asm/shmbuf.h
+@@ -16,25 +16,22 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+ 
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-#ifndef __powerpc64__
+-	unsigned long		__unused1;
+-#endif
++#ifdef __powerpc64__
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-#ifndef __powerpc64__
+-	unsigned long		__unused2;
+-#endif
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-#ifndef __powerpc64__
+-	unsigned long		__unused3;
+-#endif
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+-#ifndef __powerpc64__
++#else
++	unsigned long		shm_atime_high;
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_ctime_high;
++	unsigned long		shm_ctime;	/* last change time */
+ 	unsigned long		__unused4;
+ #endif
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
 -- 
-2.17.0
+2.9.0
 
