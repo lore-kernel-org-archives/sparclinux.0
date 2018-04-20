@@ -1,186 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 25 Apr 2018 15:06:01 +0000
-Subject: [PATCH v4 11/16] y2038: xtensa: Extend sysvipc data structures
-Message-Id: <20180425150606.954771-11-arnd@arndb.de>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 20 Apr 2018 08:02:56 +0000
+Subject: [PATCH 05/22] alpha: simplify get_arch_dma_ops
+Message-Id: <20180420080313.18796-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425132242.1500539-1-arnd@arndb.de>
-In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-xtensa, uses a nonstandard variation of the generic sysvipc
-data structures, intended to have the padding moved around
-so it can deal with big-endian 32-bit user space that has
-64-bit time_t.
+Remove the dma_ops indirection.
 
-xtensa tries hard to define the structures so they work
-in both big-endian and little-endian systems with padding
-on the right side.
-However, they only succeeded for for two of the three structures,
-and their struct shmid64_ds ended up being defined in two
-identical copies, and the big-endian one is wrong.
-
-This takes just take the same approach here that we have for
-the asm-generic headers and adds separate 32-bit fields for the
-upper halves of the timestamps, to let libc deal with the mess
-in user space.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/xtensa/include/uapi/asm/msgbuf.h | 25 ++++++++++++-----------
- arch/xtensa/include/uapi/asm/sembuf.h | 17 ++++++++--------
- arch/xtensa/include/uapi/asm/shmbuf.h | 37 ++++++++---------------------------
- 3 files changed, 28 insertions(+), 51 deletions(-)
+ arch/alpha/include/asm/dma-mapping.h | 4 ++--
+ arch/alpha/kernel/pci_iommu.c        | 4 +---
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/arch/xtensa/include/uapi/asm/msgbuf.h b/arch/xtensa/include/uapi/asm/msgbuf.h
-index 36e2e103ca38..d6915e9f071c 100644
---- a/arch/xtensa/include/uapi/asm/msgbuf.h
-+++ b/arch/xtensa/include/uapi/asm/msgbuf.h
-@@ -7,7 +7,6 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  * This file is subject to the terms and conditions of the GNU General
-@@ -21,19 +20,19 @@
- struct msqid64_ds {
- 	struct ipc64_perm msg_perm;
- #ifdef __XTENSA_EB__
--	unsigned int	__unused1;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	unsigned int	__unused2;
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	unsigned int	__unused3;
--	__kernel_time_t msg_ctime;	/* last change time */
-+	unsigned long  msg_stime_high;
-+	unsigned long  msg_stime;	/* last msgsnd time */
-+	unsigned long  msg_rtime_high;
-+	unsigned long  msg_rtime;	/* last msgrcv time */
-+	unsigned long  msg_ctime_high;
-+	unsigned long  msg_ctime;	/* last change time */
- #elif defined(__XTENSA_EL__)
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	unsigned int	__unused1;
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	unsigned int	__unused2;
--	__kernel_time_t msg_ctime;	/* last change time */
--	unsigned int	__unused3;
-+	unsigned long  msg_stime;	/* last msgsnd time */
-+	unsigned long  msg_stime_high;
-+	unsigned long  msg_rtime;	/* last msgrcv time */
-+	unsigned long  msg_rtime_high;
-+	unsigned long  msg_ctime;	/* last change time */
-+	unsigned long  msg_ctime_high;
- #else
- # error processor byte order undefined!
- #endif
-diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
-index f61b6331a10c..09f348d643f1 100644
---- a/arch/xtensa/include/uapi/asm/sembuf.h
-+++ b/arch/xtensa/include/uapi/asm/sembuf.h
-@@ -14,7 +14,6 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  */
-@@ -27,15 +26,15 @@
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
- #ifdef __XTENSA_EL__
--	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned long	__unused1;
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	__unused2;
-+	unsigned long	sem_otime;		/* last semop time */
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_ctime;		/* last change time */
-+	unsigned long	sem_ctime_high;
- #else
--	unsigned long	__unused1;
--	__kernel_time_t	sem_otime;		/* last semop time */
--	unsigned long	__unused2;
--	__kernel_time_t	sem_ctime;		/* last change time */
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_otime;		/* last semop time */
-+	unsigned long	sem_ctime_high;
-+	unsigned long	sem_ctime;		/* last change time */
- #endif
- 	unsigned long	sem_nsems;		/* no. of semaphores in array */
- 	unsigned long	__unused3;
-diff --git a/arch/xtensa/include/uapi/asm/shmbuf.h b/arch/xtensa/include/uapi/asm/shmbuf.h
-index 26550bdc8430..554a57a6a90f 100644
---- a/arch/xtensa/include/uapi/asm/shmbuf.h
-+++ b/arch/xtensa/include/uapi/asm/shmbuf.h
-@@ -4,10 +4,10 @@
-  *
-  * The shmid64_ds structure for Xtensa architecture.
-  * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-+ * between kernel and user space, but the padding is on the wrong
-+ * side for big-endian xtensa, for historic reasons.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-  *
-  * This file is subject to the terms and conditions of the GNU General Public
-@@ -20,42 +20,21 @@
- #ifndef _XTENSA_SHMBUF_H
- #define _XTENSA_SHMBUF_H
+diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
+index 76ce923ecca1..8beeafd4f68e 100644
+--- a/arch/alpha/include/asm/dma-mapping.h
++++ b/arch/alpha/include/asm/dma-mapping.h
+@@ -2,14 +2,14 @@
+ #ifndef _ALPHA_DMA_MAPPING_H
+ #define _ALPHA_DMA_MAPPING_H
  
--#if defined (__XTENSA_EL__)
- struct shmid64_ds {
- 	struct ipc64_perm	shm_perm;	/* operation perms */
- 	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	unsigned long		__unused1;
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	unsigned long		__unused2;
--	__kernel_time_t		shm_ctime;	/* last change time */
--	unsigned long		__unused3;
-+	unsigned long		shm_atime;	/* last attach time */
-+	unsigned long		shm_atime_high;
-+	unsigned long		shm_dtime;	/* last detach time */
-+	unsigned long		shm_dtime_high;
-+	unsigned long		shm_ctime;	/* last change time */
-+	unsigned long		shm_ctime_high;
- 	__kernel_pid_t		shm_cpid;	/* pid of creator */
- 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
- 	unsigned long		shm_nattch;	/* no. of current attaches */
- 	unsigned long		__unused4;
- 	unsigned long		__unused5;
+-extern const struct dma_map_ops *dma_ops;
++extern const struct dma_map_ops alpha_pci_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ {
+ #ifdef CONFIG_ALPHA_JENSEN
+ 	return &dma_direct_ops;
+ #else
+-	return dma_ops;
++	return &alpha_pci_ops;
+ #endif
+ }
+ 
+diff --git a/arch/alpha/kernel/pci_iommu.c b/arch/alpha/kernel/pci_iommu.c
+index 83b34b9188ea..6923b0d9c1e1 100644
+--- a/arch/alpha/kernel/pci_iommu.c
++++ b/arch/alpha/kernel/pci_iommu.c
+@@ -950,6 +950,4 @@ const struct dma_map_ops alpha_pci_ops = {
+ 	.mapping_error		= alpha_pci_mapping_error,
+ 	.dma_supported		= alpha_pci_supported,
  };
--#elif defined (__XTENSA_EB__)
--struct shmid64_ds {
--	struct ipc64_perm	shm_perm;	/* operation perms */
--	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	unsigned long		__unused1;
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	unsigned long		__unused2;
--	__kernel_time_t		shm_ctime;	/* last change time */
--	unsigned long		__unused3;
--	__kernel_pid_t		shm_cpid;	/* pid of creator */
--	__kernel_pid_t		shm_lpid;	/* pid of last operator */
--	unsigned long		shm_nattch;	/* no. of current attaches */
--	unsigned long		__unused4;
--	unsigned long		__unused5;
--};
--#else
--# error endian order not defined
--#endif
 -
- 
- struct shminfo64 {
- 	unsigned long	shmmax;
+-const struct dma_map_ops *dma_ops = &alpha_pci_ops;
+-EXPORT_SYMBOL(dma_ops);
++EXPORT_SYMBOL(alpha_pci_ops);
 -- 
-2.9.0
+2.17.0
 
