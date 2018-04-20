@@ -1,69 +1,102 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Thu, 26 Apr 2018 16:54:07 +0000
-Subject: [PATCH v6 0/2] sparc64: Add privileged ADI driver
-Message-Id: <20180426165409.716764-1-tom.hromatka@oracle.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 20 Apr 2018 08:03:07 +0000
+Subject: [PATCH 16/22] sh: simplify get_arch_dma_ops
+Message-Id: <20180420080313.18796-17-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-ADI is a feature supported on SPARC M7 and newer processors to allow
-hardware to catch rogue accesses to memory. ADI is supported for data
-fetches only and not instruction fetches. An app can enable ADI on its
-data pages, set version tags on them and use versioned addresses to
-access the data pages. Upper bits of the address contain the version
-tag. On M7 processors, upper four bits (bits 63-60) contain the version
-tag. If a rogue app attempts to access ADI enabled data pages, its
-access is blocked and processor generates an exception. Please see
-Documentation/sparc/adi.txt for further details.
+Remove the indirection through the dma_ops variable, and just return
+nommu_dma_ops directly from get_arch_dma_ops.
 
-This patchset implements a char driver to read/write ADI versions from
-privileged user space processes.  Intended consumers are makedumpfile
-and crash.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sh/include/asm/dma-mapping.h |  5 ++---
+ arch/sh/kernel/dma-nommu.c        |  8 +-------
+ arch/sh/mm/consistent.c           |  3 ---
+ arch/sh/mm/init.c                 | 10 ----------
+ 4 files changed, 3 insertions(+), 23 deletions(-)
 
-v6:
-  * Addressed a few action items from greg k-h
-  * Added Reviewed-by Greg Kroah-Hartman and Shuah Khan
-v5:
-  * Fixed MODULE_LICENSE() for adi.c
-v4:
-  * Fixed messed up subject lines.
-v3:
-  * Really fixed the copyright headers to use SPDX GPL v2.  Really.
-v2:
-  * Simplified copyright headers
-  * Completely reworked sparc64 selftests Makefiles.  Used the
-    android selftests Makefiles as an example
-  * Added run.sh and drivers_test.sh to the sparc64 selftest
-    directory.  Used bpf/test_kmod.sh and the android selftests
-    as examples
-  * Minor cleanups in the selftest adi-test.c
-  * Added calls to ksft_test_*() in the adi-test.c
-
-Tom Hromatka (2):
-  char: sparc64: Add privileged ADI driver
-  selftests: sparc64: char: Selftest for privileged ADI driver
-
- drivers/char/Kconfig                               |  12 +
- drivers/char/Makefile                              |   1 +
- drivers/char/adi.c                                 | 239 +++++++
- tools/testing/selftests/Makefile                   |   1 +
- tools/testing/selftests/sparc64/Makefile           |  46 ++
- tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
- tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
- tools/testing/selftests/sparc64/drivers/adi-test.c | 721 +++++++++++++++++++++
- .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
- tools/testing/selftests/sparc64/run.sh             |   3 +
- 10 files changed, 1069 insertions(+)
- create mode 100644 drivers/char/adi.c
- create mode 100644 tools/testing/selftests/sparc64/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
- create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
- create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
- create mode 100755 tools/testing/selftests/sparc64/run.sh
-
+diff --git a/arch/sh/include/asm/dma-mapping.h b/arch/sh/include/asm/dma-mapping.h
+index 41167931e5d9..149e71f95be7 100644
+--- a/arch/sh/include/asm/dma-mapping.h
++++ b/arch/sh/include/asm/dma-mapping.h
+@@ -2,12 +2,11 @@
+ #ifndef __ASM_SH_DMA_MAPPING_H
+ #define __ASM_SH_DMA_MAPPING_H
+ 
+-extern const struct dma_map_ops *dma_ops;
+-extern void no_iommu_init(void);
++extern const struct dma_map_ops nommu_dma_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ {
+-	return dma_ops;
++	return &nommu_dma_ops;
+ }
+ 
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+diff --git a/arch/sh/kernel/dma-nommu.c b/arch/sh/kernel/dma-nommu.c
+index 2077cfe73cc6..c0fff676e2e4 100644
+--- a/arch/sh/kernel/dma-nommu.c
++++ b/arch/sh/kernel/dma-nommu.c
+@@ -76,10 +76,4 @@ const struct dma_map_ops nommu_dma_ops = {
+ 	.sync_sg_for_device	= nommu_sync_sg_for_device,
+ #endif
+ };
+-
+-void __init no_iommu_init(void)
+-{
+-	if (dma_ops)
+-		return;
+-	dma_ops = &nommu_dma_ops;
+-}
++EXPORT_SYMBOL(nommu_dma_ops);
+diff --git a/arch/sh/mm/consistent.c b/arch/sh/mm/consistent.c
+index a7bff3f29c2b..af2f28572119 100644
+--- a/arch/sh/mm/consistent.c
++++ b/arch/sh/mm/consistent.c
+@@ -20,9 +20,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/addrspace.h>
+ 
+-const struct dma_map_ops *dma_ops;
+-EXPORT_SYMBOL(dma_ops);
+-
+ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_handle, gfp_t gfp,
+ 				 unsigned long attrs)
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index ce0bbaa7e404..32e09f03e6bf 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -395,22 +395,12 @@ void __init paging_init(void)
+ 	free_area_init_nodes(max_zone_pfns);
+ }
+ 
+-/*
+- * Early initialization for any I/O MMUs we might have.
+- */
+-static void __init iommu_init(void)
+-{
+-	no_iommu_init();
+-}
+-
+ unsigned int mem_init_done = 0;
+ 
+ void __init mem_init(void)
+ {
+ 	pg_data_t *pgdat;
+ 
+-	iommu_init();
+-
+ 	high_memory = NULL;
+ 	for_each_online_pgdat(pgdat)
+ 		high_memory = max_t(void *, high_memory,
 -- 
-2.15.0
+2.17.0
 
