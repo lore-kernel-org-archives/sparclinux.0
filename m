@@ -1,38 +1,49 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 24 Apr 2018 07:56:45 +0000
-Subject: Re: [PATCH 11/12] swiotlb: move the SWIOTLB config symbol to lib/Kconfig
-Message-Id: <20180424075645.GA19379@lst.de>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Fri, 20 Apr 2018 18:48:25 +0000
+Subject: [PATCH] sparc64: Fix mistake in oradax license text
+Message-Id: <1524250105-44243-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180423170419.20330-1-hch@lst.de>
- <20180423170419.20330-12-hch@lst.de>
- <20180423235205.GH16141@n2100.armlinux.org.uk>
- <20180424065549.GA18468@lst.de>
- <20180424074726.GI16141@n2100.armlinux.org.uk>
-In-Reply-To: <20180424074726.GI16141@n2100.armlinux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-On Tue, Apr 24, 2018 at 08:47:27AM +0100, Russell King - ARM Linux wrote:
-> Therefore, the default state for SWIOTLB and hence NEED_SG_DMA_LENGTH
-> becomes 'y' on ARM, and any defconfig file that does not mention SWIOTLB
-> explicitly ends up with both these enabled.
+The license text in both oradax files mistakenly specifies "version 3" of
+the GNU General Public License.  This is corrected to specify "version 2".
 
-Indeed, sorry.
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+Signed-off-by: Jonathan Helman <jonathan.helman@oracle.com>
+---
+ arch/sparc/include/uapi/asm/oradax.h |    2 +-
+ drivers/sbus/char/oradax.c           |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-> It does look a bit weird though - patch 10 arranged stuff so that we
-> didn't end up with SWIOTLB always enabled, but this patch reintroduces
-> that with the allowance that the user can disable if so desired.
+diff --git a/arch/sparc/include/uapi/asm/oradax.h b/arch/sparc/include/uapi/asm/oradax.h
+index 7229519..4f6676f 100644
+--- a/arch/sparc/include/uapi/asm/oradax.h
++++ b/arch/sparc/include/uapi/asm/oradax.h
+@@ -3,7 +3,7 @@
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
++ * the Free Software Foundation, either version 2 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+diff --git a/drivers/sbus/char/oradax.c b/drivers/sbus/char/oradax.c
+index 96b4ad7..719d5fe 100644
+--- a/drivers/sbus/char/oradax.c
++++ b/drivers/sbus/char/oradax.c
+@@ -3,7 +3,7 @@
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
++ * the Free Software Foundation, either version 2 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+-- 
+1.7.1
 
-I am not very happy with that patch, but I have a hard time coming
-up with something saner.
-
-Bascially x86_64 and mips/loongson default to SWIOTLB=y but allow to
-deselect it, powerpc has it optional without any real dependency
-and defaults to n and everyone just selects it otherwise.
-
-I suspect the right thing is to just have it always one for x86_64
-and loongson and have a ppc-specific option to enable it on powerpc
-so that we can always use select statements.  I'll do that for the
-next round.
