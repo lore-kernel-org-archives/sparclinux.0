@@ -1,324 +1,267 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Fri, 20 Apr 2018 17:34:05 +0000
-Subject: [PATCH v2 1/2] char: sparc64: Add privileged ADI driver
-Message-Id: <20180420173406.485815-2-tom.hromatka@oracle.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 20 Apr 2018 08:02:58 +0000
+Subject: [PATCH 07/22] arm-nommu: use generic dma_noncoherent_ops
+Message-Id: <20180420080313.18796-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420173406.485815-1-tom.hromatka@oracle.com>
-In-Reply-To: <20180420173406.485815-1-tom.hromatka@oracle.com>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-SPARC M7 and newer processors utilize ADI to version and
-protect memory.  This driver is capable of reading/writing
-ADI/MCD versions from privileged user space processes.
-Addresses in the adi file are mapped linearly to physical
-memory at a ratio of 1:adi_blksz.  Thus, a read (or write)
-of offset K in the file operates upon the ADI version at
-physical address K * adi_blksz.  The version information
-is encoded as one version per byte.  Intended consumers
-are makedumpfile and crash.
+Switch to the generic noncoherent direct mapping implementation for
+the nommu dma map implementation.
 
-Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/char/Kconfig  |  12 +++
- drivers/char/Makefile |   1 +
- drivers/char/adi.c    | 251 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 264 insertions(+)
- create mode 100644 drivers/char/adi.c
+ arch/arc/Kconfig                |   1 +
+ arch/arm/Kconfig                |   4 +
+ arch/arm/mm/dma-mapping-nommu.c | 139 +++++---------------------------
+ 3 files changed, 23 insertions(+), 121 deletions(-)
 
-diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index 40947a796666..5ecddc95a698 100644
---- a/drivers/char/Kconfig
-+++ b/drivers/char/Kconfig
-@@ -540,5 +540,17 @@ source "drivers/s390/char/Kconfig"
+diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+index 89d47eac18b2..3a492a9aeaad 100644
+--- a/arch/arc/Kconfig
++++ b/arch/arc/Kconfig
+@@ -9,6 +9,7 @@
+ config ARC
+ 	def_bool y
+ 	select ARC_TIMERS
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ 	select ARCH_HAS_SYNC_DMA_FOR_CPU
+ 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ 	select ARCH_HAS_SG_CHAIN
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index f91f69174630..eacc45ac4e77 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -12,6 +12,8 @@ config ARM
+ 	select ARCH_HAS_PHYS_TO_DMA
+ 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
+ 	select ARCH_HAS_STRICT_MODULE_RWX if MMU
++	select ARCH_HAS_SYNC_DMA_FOR_CPU if !MMU
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if !MMU
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+@@ -27,6 +29,8 @@ config ARM
+ 	select CPU_PM if (SUSPEND || CPU_IDLE)
+ 	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	select DMA_DIRECT_OPS if !MMU
++	select DMA_NONCOHERENT_OPS if !MMU
++	select DMA_NONCOHERENT_MMAP if !MMU
+ 	select EDAC_SUPPORT
+ 	select EDAC_ATOMIC_SCRUB
+ 	select GENERIC_ALLOCATOR
+diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
+index f448a0663b10..a74ed6632982 100644
+--- a/arch/arm/mm/dma-mapping-nommu.c
++++ b/arch/arm/mm/dma-mapping-nommu.c
+@@ -12,6 +12,7 @@
+ #include <linux/export.h>
+ #include <linux/mm.h>
+ #include <linux/dma-direct.h>
++#include <linux/dma-noncoherent.h>
+ #include <linux/scatterlist.h>
  
- source "drivers/char/xillybus/Kconfig"
+ #include <asm/cachetype.h>
+@@ -26,18 +27,16 @@
+  *   - MMU/MPU is off
+  *   - cpu is v7m w/o cache support
+  *   - device is coherent
+- *  otherwise arm_nommu_dma_ops is used.
++ *  otherwise dma_noncoherent_ops is used.
+  *
+- *  arm_nommu_dma_ops rely on consistent DMA memory (please, refer to
++ *  dma_noncoherent_ops rely on consistent DMA memory (please, refer to
+  *  [1] on how to declare such memory).
+  *
+  *  [1] Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
+  */
  
-+config ADI
-+	tristate "SPARC Privileged ADI driver"
-+	depends on SPARC64
-+	default m
-+	help
-+	  SPARC M7 and newer processors utilize ADI (Application Data
-+	  Integrity) to version and protect memory.  This driver provides
-+	  read/write access to the ADI versions for privileged processes.
-+	  This feature is also known as MCD (Memory Corruption Detection)
-+	  and SSM (Silicon Secured Memory).  Intended consumers of this
-+	  driver include crash and makedumpfile.
-+
- endmenu
+-static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+-				 dma_addr_t *dma_handle, gfp_t gfp,
+-				 unsigned long attrs)
+-
++void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
  
-diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index c97c768cd1dd..b8d42b4e979b 100644
---- a/drivers/char/Makefile
-+++ b/drivers/char/Makefile
-@@ -57,3 +57,4 @@ js-rtc-y = rtc.o
+@@ -65,9 +64,8 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+ 	return ret;
+ }
  
- obj-$(CONFIG_XILLYBUS)		+= xillybus/
- obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
-+obj-$(CONFIG_ADI)		+= adi.o
-diff --git a/drivers/char/adi.c b/drivers/char/adi.c
-new file mode 100644
-index 000000000000..f94ddba092e8
---- /dev/null
-+++ b/drivers/char/adi.c
-@@ -0,0 +1,251 @@
-+/*
-+ * Copyright (c) 2017, 2018, Oracle and/or its affiliates. All rights reserved.
-+ * Author: Tom Hromatka <tom.hromatka@oracle.com>
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation, either version 3 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/miscdevice.h>
-+#include <linux/module.h>
-+#include <linux/proc_fs.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <asm/asi.h>
-+
-+#define MODULE_NAME	"adi"
-+#define MAX_BUF_SZ	4096
-+
-+static int adi_open(struct inode *inode, struct file *file)
-+{
-+	file->f_mode |= FMODE_UNSIGNED_OFFSET;
-+	return 0;
-+}
-+
-+static int read_mcd_tag(unsigned long addr)
-+{
-+	long err;
-+	int ver;
-+
-+	__asm__ __volatile__(
-+		"1:	ldxa [%[addr]] %[asi], %[ver]\n"
-+		"	mov 0, %[err]\n"
-+		"2:\n"
-+		"	.section .fixup,#alloc,#execinstr\n"
-+		"	.align 4\n"
-+		"3:	sethi %%hi(2b), %%g1\n"
-+		"	jmpl  %%g1 + %%lo(2b), %%g0\n"
-+		"	mov %[invalid], %[err]\n"
-+		"	.previous\n"
-+		"	.section __ex_table, \"a\"\n"
-+		"	.align 4\n"
-+		"	.word  1b, 3b\n"
-+		"	.previous\n"
-+		: [ver] "=r" (ver), [err] "=r" (err)
-+		: [addr] "r"  (addr), [invalid] "i" (EFAULT),
-+		  [asi] "i" (ASI_MCD_REAL)
-+		: "memory", "g1"
-+		);
-+
-+	if (err)
-+		return -EFAULT;
+-static void arm_nommu_dma_free(struct device *dev, size_t size,
+-			       void *cpu_addr, dma_addr_t dma_addr,
+-			       unsigned long attrs)
++void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
++		dma_addr_t dma_addr, unsigned long attrs)
+ {
+ 	if (attrs & DMA_ATTR_NON_CONSISTENT) {
+ 		dma_direct_free(dev, size, cpu_addr, dma_addr, attrs);
+@@ -81,9 +79,9 @@ static void arm_nommu_dma_free(struct device *dev, size_t size,
+ 	return;
+ }
+ 
+-static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+-			      void *cpu_addr, dma_addr_t dma_addr, size_t size,
+-			      unsigned long attrs)
++int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
++		void *cpu_addr, dma_addr_t dma_addr, size_t size,
++		unsigned long attrs)
+ {
+ 	int ret;
+ 
+@@ -93,9 +91,8 @@ static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+ 	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
+ }
+ 
+-
+-static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
+-				  enum dma_data_direction dir)
++void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+ 	dmac_map_area(__va(paddr), size, dir);
+ 
+@@ -105,8 +102,8 @@ static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
+ 		outer_clean_range(paddr, paddr + size);
+ }
+ 
+-static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
+-				  enum dma_data_direction dir)
++void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+ 	if (dir != DMA_TO_DEVICE) {
+ 		outer_inv_range(paddr, paddr + size);
+@@ -114,110 +111,9 @@ static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
+ 	}
+ }
+ 
+-static dma_addr_t arm_nommu_dma_map_page(struct device *dev, struct page *page,
+-					 unsigned long offset, size_t size,
+-					 enum dma_data_direction dir,
+-					 unsigned long attrs)
+-{
+-	dma_addr_t handle = page_to_phys(page) + offset;
+-
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-
+-	return handle;
+-}
+-
+-static void arm_nommu_dma_unmap_page(struct device *dev, dma_addr_t handle,
+-				     size_t size, enum dma_data_direction dir,
+-				     unsigned long attrs)
+-{
+-	__dma_page_dev_to_cpu(handle, size, dir);
+-}
+-
+-
+-static int arm_nommu_dma_map_sg(struct device *dev, struct scatterlist *sgl,
+-				int nents, enum dma_data_direction dir,
+-				unsigned long attrs)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		sg_dma_address(sg) = sg_phys(sg);
+-		sg_dma_len(sg) = sg->length;
+-		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
+-	}
+-
+-	return nents;
+-}
+-
+-static void arm_nommu_dma_unmap_sg(struct device *dev, struct scatterlist *sgl,
+-				   int nents, enum dma_data_direction dir,
+-				   unsigned long attrs)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-static void arm_nommu_dma_sync_single_for_device(struct device *dev,
+-		dma_addr_t handle, size_t size, enum dma_data_direction dir)
+-{
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-}
+-
+-static void arm_nommu_dma_sync_single_for_cpu(struct device *dev,
+-		dma_addr_t handle, size_t size, enum dma_data_direction dir)
+-{
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-}
+-
+-static void arm_nommu_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sgl,
+-					     int nents, enum dma_data_direction dir)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-static void arm_nommu_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl,
+-					  int nents, enum dma_data_direction dir)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-const struct dma_map_ops arm_nommu_dma_ops = {
+-	.alloc			= arm_nommu_dma_alloc,
+-	.free			= arm_nommu_dma_free,
+-	.mmap			= arm_nommu_dma_mmap,
+-	.map_page		= arm_nommu_dma_map_page,
+-	.unmap_page		= arm_nommu_dma_unmap_page,
+-	.map_sg			= arm_nommu_dma_map_sg,
+-	.unmap_sg		= arm_nommu_dma_unmap_sg,
+-	.sync_single_for_device	= arm_nommu_dma_sync_single_for_device,
+-	.sync_single_for_cpu	= arm_nommu_dma_sync_single_for_cpu,
+-	.sync_sg_for_device	= arm_nommu_dma_sync_sg_for_device,
+-	.sync_sg_for_cpu	= arm_nommu_dma_sync_sg_for_cpu,
+-};
+-EXPORT_SYMBOL(arm_nommu_dma_ops);
+-
+-static const struct dma_map_ops *arm_nommu_get_dma_map_ops(bool coherent)
+-{
+-	return coherent ? &dma_direct_ops : &arm_nommu_dma_ops;
+-}
+-
+ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
+ 			const struct iommu_ops *iommu, bool coherent)
+ {
+-	const struct dma_map_ops *dma_ops;
+-
+ 	if (IS_ENABLED(CONFIG_CPU_V7M)) {
+ 		/*
+ 		 * Cache support for v7m is optional, so can be treated as
+@@ -233,9 +129,10 @@ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
+ 		dev->archdata.dma_coherent = (get_cr() & CR_M) ? coherent : true;
+ 	}
+ 
+-	dma_ops = arm_nommu_get_dma_map_ops(dev->archdata.dma_coherent);
+-
+-	set_dma_ops(dev, dma_ops);
++	if (dev->archdata.dma_coherent)
++		set_dma_ops(dev, &dma_direct_ops);
 +	else
-+		return ver;
-+}
-+
-+static ssize_t adi_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *offp)
-+{
-+	size_t ver_buf_sz, bytes_read = 0;
-+	int ver_buf_idx = 0;
-+	loff_t offset;
-+	u8 *ver_buf;
-+	ssize_t ret;
-+
-+	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
-+	ver_buf = kmalloc(ver_buf_sz, GFP_KERNEL);
-+	if (!ver_buf)
-+		return -ENOMEM;
-+
-+	offset = (*offp) * adi_blksize();
-+
-+	while (bytes_read < count) {
-+		ret = read_mcd_tag(offset);
-+		if (ret < 0)
-+			goto out;
-+
-+		ver_buf[ver_buf_idx] = (u8)ret;
-+		ver_buf_idx++;
-+		offset += adi_blksize();
-+
-+		if (ver_buf_idx >= ver_buf_sz) {
-+			if (copy_to_user(buf + bytes_read, ver_buf,
-+					 ver_buf_sz)) {
-+				ret = -EFAULT;
-+				goto out;
-+			}
-+
-+			bytes_read += ver_buf_sz;
-+			ver_buf_idx = 0;
-+
-+			ver_buf_sz = min(count - bytes_read,
-+					 (size_t)MAX_BUF_SZ);
-+		}
-+	}
-+
-+	(*offp) += bytes_read;
-+	ret = bytes_read;
-+out:
-+	kfree(ver_buf);
-+	return ret;
-+}
-+
-+static int set_mcd_tag(unsigned long addr, u8 ver)
-+{
-+	long err;
-+
-+	__asm__ __volatile__(
-+		"1:	stxa %[ver], [%[addr]] %[asi]\n"
-+		"	mov 0, %[err]\n"
-+		"2:\n"
-+		"	.section .fixup,#alloc,#execinstr\n"
-+		"	.align 4\n"
-+		"3:	sethi %%hi(2b), %%g1\n"
-+		"	jmpl %%g1 + %%lo(2b), %%g0\n"
-+		"	mov %[invalid], %[err]\n"
-+		"	.previous\n"
-+		"	.section __ex_table, \"a\"\n"
-+		"	.align 4\n"
-+		"	.word 1b, 3b\n"
-+		"	.previous\n"
-+		: [err] "=r" (err)
-+		: [ver] "r" (ver), [addr] "r"  (addr),
-+		  [invalid] "i" (EFAULT), [asi] "i" (ASI_MCD_REAL)
-+		: "memory", "g1"
-+		);
-+
-+	if (err)
-+		return -EFAULT;
-+	else
-+		return ver;
-+}
-+
-+static ssize_t adi_write(struct file *file, const char __user *buf,
-+			 size_t count, loff_t *offp)
-+{
-+	size_t ver_buf_sz, bytes_written = 0;
-+	loff_t offset;
-+	u8 *ver_buf;
-+	ssize_t ret;
-+	int i;
-+
-+	if (count <= 0)
-+		return -EINVAL;
-+
-+	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
-+	ver_buf = kmalloc(ver_buf_sz, (size_t)GFP_KERNEL);
-+	if (!ver_buf)
-+		return -ENOMEM;
-+
-+	offset = (*offp) * adi_blksize();
-+
-+	do {
-+		if (copy_from_user(ver_buf, &buf[bytes_written],
-+				   ver_buf_sz)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+
-+		for (i = 0; i < ver_buf_sz; i++) {
-+			ret = set_mcd_tag(offset, ver_buf[i]);
-+			if (ret < 0)
-+				goto out;
-+
-+			offset += adi_blksize();
-+		}
-+
-+		bytes_written += ver_buf_sz;
-+		ver_buf_sz = min(count - bytes_written, (size_t)MAX_BUF_SZ);
-+	} while (bytes_written < count);
-+
-+	(*offp) += bytes_written;
-+	ret = bytes_written;
-+out:
-+	__asm__ __volatile__("membar #Sync");
-+	kfree(ver_buf);
-+	return ret;
-+}
-+
-+static loff_t adi_llseek(struct file *file, loff_t offset, int whence)
-+{
-+	loff_t ret = -EINVAL;
-+
-+	switch (whence) {
-+	case SEEK_END:
-+	case SEEK_DATA:
-+	case SEEK_HOLE:
-+		/* unsupported */
-+		return -EINVAL;
-+	case SEEK_CUR:
-+		if (offset = 0)
-+			return file->f_pos;
-+
-+		offset += file->f_pos;
-+		break;
-+	case SEEK_SET:
-+		break;
-+	}
-+
-+	if (offset != file->f_pos) {
-+		file->f_pos = offset;
-+		file->f_version = 0;
-+		ret = offset;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct file_operations adi_fops = {
-+	.owner		= THIS_MODULE,
-+	.llseek		= adi_llseek,
-+	.open		= adi_open,
-+	.read		= adi_read,
-+	.write		= adi_write,
-+};
-+
-+static struct miscdevice adi_miscdev = {
-+	.minor = MISC_DYNAMIC_MINOR,
-+	.name = MODULE_NAME,
-+	.fops = &adi_fops,
-+};
-+
-+static int __init adi_init(void)
-+{
-+	if (!adi_capable())
-+		return -EPERM;
-+
-+	return misc_register(&adi_miscdev);
-+}
-+
-+static void __exit adi_exit(void)
-+{
-+	misc_deregister(&adi_miscdev);
-+}
-+
-+module_init(adi_init);
-+module_exit(adi_exit);
-+
-+MODULE_AUTHOR("Tom Hromatka <tom.hromatka@oracle.com>");
-+MODULE_DESCRIPTION("Privileged interface to ADI");
-+MODULE_VERSION("1.0");
-+MODULE_LICENSE("GPL");
++		set_dma_ops(dev, &dma_noncoherent_ops);
+ }
+ 
+ void arch_teardown_dma_ops(struct device *dev)
 -- 
-2.15.0
+2.17.0
 
