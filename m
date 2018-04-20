@@ -1,90 +1,61 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:25 +0000
-Subject: [PATCH v3 05/17] y2038: arm64: Extend sysvipc compat data structures
-Message-Id: <20180419143737.606138-6-arnd@arndb.de>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Fri, 20 Apr 2018 17:34:04 +0000
+Subject: [PATCH v2 0/2] sparc64: Add privileged ADI driver
+Message-Id: <20180420173406.485815-1-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180419143737.606138-1-arnd@arndb.de>
-In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Both 32-bit amd 64-bit ARM use the asm-generic header files for their
-sysvipc data structures, so no special care is needed to make those
-work beyond y2038, with the one exception of compat mode: Since there
-is no asm-generic definition of the compat mode IPC structures, ARM64
-provides its own copy, and we make those match the changes in the native
-asm-generic header files.
+ADI is a feature supported on SPARC M7 and newer processors to allow
+hardware to catch rogue accesses to memory. ADI is supported for data
+fetches only and not instruction fetches. An app can enable ADI on its
+data pages, set version tags on them and use versioned addresses to
+access the data pages. Upper bits of the address contain the version
+tag. On M7 processors, upper four bits (bits 63-60) contain the version
+tag. If a rogue app attempts to access ADI enabled data pages, its
+access is blocked and processor generates an exception. Please see
+Documentation/sparc/adi.txt for further details.
 
-There is sufficient padding in these data structures to extend all
-timestamps to 64 bit, but on big-endian ARM kernels, the padding
-is in the wrong place, so the C library has to ensure it reassembles
-a 64-bit time_t correctly.
+This patchset implements a char driver to read/write ADI versions from
+privileged user space processes.  Intended consumers are makedumpfile
+and crash.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm64/include/asm/compat.h | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+v2:
+  * Simplified copyright headers
+  * Updated copyright headers to use GPL v3 or later
+  * Completely reworked sparc64 selftests Makefiles.  Used the
+    android selftests Makefiles as an example
+  * Added run.sh and drivers_test.sh to the sparc64 selftest
+    directory.  Used bpf/test_kmod.sh and the android selftests
+    as examples
+  * Minor cleanups in the selftest adi-test.c
+  * Added calls to ksft_test_*() in the adi-test.c
 
-diff --git a/arch/arm64/include/asm/compat.h b/arch/arm64/include/asm/compat.h
-index 0030f79808b3..1a037b94eba1 100644
---- a/arch/arm64/include/asm/compat.h
-+++ b/arch/arm64/include/asm/compat.h
-@@ -181,10 +181,10 @@ struct compat_ipc64_perm {
- 
- struct compat_semid64_ds {
- 	struct compat_ipc64_perm sem_perm;
--	compat_time_t  sem_otime;
--	compat_ulong_t __unused1;
--	compat_time_t  sem_ctime;
--	compat_ulong_t __unused2;
-+	compat_ulong_t sem_otime;
-+	compat_ulong_t sem_otime_high;
-+	compat_ulong_t sem_ctime;
-+	compat_ulong_t sem_ctime_high;
- 	compat_ulong_t sem_nsems;
- 	compat_ulong_t __unused3;
- 	compat_ulong_t __unused4;
-@@ -192,12 +192,12 @@ struct compat_semid64_ds {
- 
- struct compat_msqid64_ds {
- 	struct compat_ipc64_perm msg_perm;
--	compat_time_t  msg_stime;
--	compat_ulong_t __unused1;
--	compat_time_t  msg_rtime;
--	compat_ulong_t __unused2;
--	compat_time_t  msg_ctime;
--	compat_ulong_t __unused3;
-+	compat_ulong_t msg_stime;
-+	compat_ulong_t msg_stime_high;
-+	compat_ulong_t msg_rtime;
-+	compat_ulong_t msg_rtime_high;
-+	compat_ulong_t msg_ctime;
-+	compat_ulong_t msg_ctime_high;
- 	compat_ulong_t msg_cbytes;
- 	compat_ulong_t msg_qnum;
- 	compat_ulong_t msg_qbytes;
-@@ -210,12 +210,12 @@ struct compat_msqid64_ds {
- struct compat_shmid64_ds {
- 	struct compat_ipc64_perm shm_perm;
- 	compat_size_t  shm_segsz;
--	compat_time_t  shm_atime;
--	compat_ulong_t __unused1;
--	compat_time_t  shm_dtime;
--	compat_ulong_t __unused2;
--	compat_time_t  shm_ctime;
--	compat_ulong_t __unused3;
-+	compat_ulong_t shm_atime;
-+	compat_ulong_t shm_atime_high;
-+	compat_ulong_t shm_dtime;
-+	compat_ulong_t shm_dtime_high;
-+	compat_ulong_t shm_ctime;
-+	compat_ulong_t shm_ctime_high;
- 	compat_pid_t   shm_cpid;
- 	compat_pid_t   shm_lpid;
- 	compat_ulong_t shm_nattch;
+Tom Hromatka (2):
+  char: sparc64: Add privileged ADI driver
+  selftests: sparc64: char: Selftest for privileged ADI driver
+
+ drivers/char/Kconfig                               |  12 +
+ drivers/char/Makefile                              |   1 +
+ drivers/char/adi.c                                 | 251 +++++++
+ tools/testing/selftests/Makefile                   |   1 +
+ tools/testing/selftests/sparc64/Makefile           |  46 ++
+ tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
+ tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
+ tools/testing/selftests/sparc64/drivers/adi-test.c | 732 +++++++++++++++++++++
+ .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
+ tools/testing/selftests/sparc64/run.sh             |   3 +
+ 10 files changed, 1092 insertions(+)
+ create mode 100644 drivers/char/adi.c
+ create mode 100644 tools/testing/selftests/sparc64/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
+ create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
+ create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
+ create mode 100755 tools/testing/selftests/sparc64/run.sh
+
 -- 
-2.9.0
+2.15.0
 
