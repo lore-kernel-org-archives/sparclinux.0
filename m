@@ -1,252 +1,97 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 25 Apr 2018 15:05:55 +0000
-Subject: [PATCH v4 05/16] y2038: s390: Remove unneeded ipc uapi header files
-Message-Id: <20180425150606.954771-5-arnd@arndb.de>
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Date: Fri, 20 Apr 2018 01:03:53 +0000
+Subject: [REVIEW][PATCH 02/17] sparc: fix compat siginfo ABI regression
+Message-Id: <20180420010408.24438-2-ebiederm@xmission.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425132242.1500539-1-arnd@arndb.de>
-In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
+References: <878t9ilmhv.fsf@xmission.com>
+In-Reply-To: <878t9ilmhv.fsf@xmission.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
+To: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, "Dmitry V. Levin" <ldv@altlinux.org>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, "Eric W . Biederman" <ebiederm@xmission.com>
 
-The s390 msgbuf/sembuf/shmbuf header files are all identical to the
-version from asm-generic.
+From: "Dmitry V. Levin" <ldv@altlinux.org>
 
-This patch removes the files and replaces them with 'generic-y'
-statements, to avoid having to modify each copy when we extend sysvipc
-to deal with 64-bit time_t in 32-bit user space.
+Starting with commit v4.14-rc1~60^2^2~1, a SIGFPE signal sent via kill
+results to wrong values in si_pid and si_uid fields of compat siginfo_t.
 
-Note that unlike alpha and ia64, the ipcbuf.h header file is slightly
-different here, so I'm leaving the private copy.
+This happens due to FPE_FIXME being defined to 0 for sparc, and at the
+same time siginfo_layout() introduced by the same commit returns
+SIL_FAULT for SIGFPE if si_code = SI_USER and FPE_FIXME is defined to 0.
 
-To deal with 32-bit compat tasks, we also have to adapt the definitions
-of compat_{shm,sem,msg}id_ds to match the changes to the respective
-asm-generic files.
+Fix this regression by removing FPE_FIXME macro and changing all its users
+to assign FPE_FLTUNK to si_code instead of FPE_FIXME.
 
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Note that FPE_FLTUNK is a new macro introduced by commit
+266da65e9156d93e1126e185259a4aae68188d0e.
+
+Tested with commit v4.16-11958-g16e205cf42da.
+
+This bug was found by strace test suite.
+
+In the discussion about FPE_FLTUNK on sparc David Miller said:
+> Eric, feel free to do something similar on Sparc.
+
+Link: https://github.com/strace/strace/issues/21
+Fixes: cc731525f26a ("signal: Remove kernel interal si_code magic")
+Fixes: 2.3.41
+Cc: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Conceptually-Acked-By: David Miller <davem@davemloft.net>
+Thanks-to: Anatoly Pugachev <matorola@gmail.com>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
- arch/s390/include/asm/compat.h      | 32 ++++++++++++------------
- arch/s390/include/uapi/asm/Kbuild   |  3 +++
- arch/s390/include/uapi/asm/msgbuf.h | 38 ----------------------------
- arch/s390/include/uapi/asm/sembuf.h | 30 -----------------------
- arch/s390/include/uapi/asm/shmbuf.h | 49 -------------------------------------
- 5 files changed, 19 insertions(+), 133 deletions(-)
- delete mode 100644 arch/s390/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/s390/include/uapi/asm/sembuf.h
- delete mode 100644 arch/s390/include/uapi/asm/shmbuf.h
+ arch/sparc/include/uapi/asm/siginfo.h | 7 -------
+ arch/sparc/kernel/traps_32.c          | 2 +-
+ arch/sparc/kernel/traps_64.c          | 2 +-
+ 3 files changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
-index 501aaff85304..97db2fba546a 100644
---- a/arch/s390/include/asm/compat.h
-+++ b/arch/s390/include/asm/compat.h
-@@ -232,10 +232,10 @@ struct compat_ipc64_perm {
+diff --git a/arch/sparc/include/uapi/asm/siginfo.h b/arch/sparc/include/uapi/asm/siginfo.h
+index 896ce447d16a..e7049550ac82 100644
+--- a/arch/sparc/include/uapi/asm/siginfo.h
++++ b/arch/sparc/include/uapi/asm/siginfo.h
+@@ -17,13 +17,6 @@
  
- struct compat_semid64_ds {
- 	struct compat_ipc64_perm sem_perm;
--	compat_time_t  sem_otime;
--	compat_ulong_t __pad1;
--	compat_time_t  sem_ctime;
--	compat_ulong_t __pad2;
-+	compat_ulong_t sem_otime;
-+	compat_ulong_t sem_otime_high;
-+	compat_ulong_t sem_ctime;
-+	compat_ulong_t sem_ctime_high;
- 	compat_ulong_t sem_nsems;
- 	compat_ulong_t __unused1;
- 	compat_ulong_t __unused2;
-@@ -243,12 +243,12 @@ struct compat_semid64_ds {
+ #define SI_NOINFO	32767		/* no information in siginfo_t */
  
- struct compat_msqid64_ds {
- 	struct compat_ipc64_perm msg_perm;
--	compat_time_t   msg_stime;
--	compat_ulong_t __pad1;
--	compat_time_t   msg_rtime;
--	compat_ulong_t __pad2;
--	compat_time_t   msg_ctime;
--	compat_ulong_t __pad3;
-+	compat_ulong_t msg_stime;
-+	compat_ulong_t msg_stime_high;
-+	compat_ulong_t msg_rtime;
-+	compat_ulong_t msg_rtime_high;
-+	compat_ulong_t msg_ctime;
-+	compat_ulong_t msg_ctime_high;
- 	compat_ulong_t msg_cbytes;
- 	compat_ulong_t msg_qnum;
- 	compat_ulong_t msg_qbytes;
-@@ -261,12 +261,12 @@ struct compat_msqid64_ds {
- struct compat_shmid64_ds {
- 	struct compat_ipc64_perm shm_perm;
- 	compat_size_t  shm_segsz;
--	compat_time_t  shm_atime;
--	compat_ulong_t __pad1;
--	compat_time_t  shm_dtime;
--	compat_ulong_t __pad2;
--	compat_time_t  shm_ctime;
--	compat_ulong_t __pad3;
-+	compat_ulong_t shm_atime;
-+	compat_ulong_t shm_atime_high;
-+	compat_ulong_t shm_dtime;
-+	compat_ulong_t shm_dtime_high;
-+	compat_ulong_t shm_ctime;
-+	compat_ulong_t shm_ctime_high;
- 	compat_pid_t   shm_cpid;
- 	compat_pid_t   shm_lpid;
- 	compat_ulong_t shm_nattch;
-diff --git a/arch/s390/include/uapi/asm/Kbuild b/arch/s390/include/uapi/asm/Kbuild
-index faef3f7e8353..e364873e0d10 100644
---- a/arch/s390/include/uapi/asm/Kbuild
-+++ b/arch/s390/include/uapi/asm/Kbuild
-@@ -9,9 +9,12 @@ generic-y += errno.h
- generic-y += fcntl.h
- generic-y += ioctl.h
- generic-y += mman.h
-+generic-y += msgbuf.h
- generic-y += param.h
- generic-y += poll.h
- generic-y += resource.h
-+generic-y += sembuf.h
-+generic-y += shmbuf.h
- generic-y += sockios.h
- generic-y += swab.h
- generic-y += termbits.h
-diff --git a/arch/s390/include/uapi/asm/msgbuf.h b/arch/s390/include/uapi/asm/msgbuf.h
-deleted file mode 100644
-index 604f847cd68c..000000000000
---- a/arch/s390/include/uapi/asm/msgbuf.h
-+++ /dev/null
-@@ -1,38 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _S390_MSGBUF_H
--#define _S390_MSGBUF_H
--
--/* 
-- * The msqid64_ds structure for S/390 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-- * - 2 miscellaneous 32-bit values
+-/*
+- * SIGFPE si_codes
 - */
+-#ifdef __KERNEL__
+-#define FPE_FIXME	0	/* Broken dup of SI_USER */
+-#endif /* __KERNEL__ */
 -
--struct msqid64_ds {
--	struct ipc64_perm msg_perm;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--#ifndef __s390x__
--	unsigned long	__unused1;
--#endif /* ! __s390x__ */
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--#ifndef __s390x__
--	unsigned long	__unused2;
--#endif /* ! __s390x__ */
--	__kernel_time_t msg_ctime;	/* last change time */
--#ifndef __s390x__
--	unsigned long	__unused3;
--#endif /* ! __s390x__ */
--	unsigned long  msg_cbytes;	/* current number of bytes on queue */
--	unsigned long  msg_qnum;	/* number of messages in queue */
--	unsigned long  msg_qbytes;	/* max number of bytes on queue */
--	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
--	__kernel_pid_t msg_lrpid;	/* last receive pid */
--	unsigned long  __unused4;
--	unsigned long  __unused5;
--};
--
--#endif /* _S390_MSGBUF_H */
-diff --git a/arch/s390/include/uapi/asm/sembuf.h b/arch/s390/include/uapi/asm/sembuf.h
-deleted file mode 100644
-index 3e917697b668..000000000000
---- a/arch/s390/include/uapi/asm/sembuf.h
-+++ /dev/null
-@@ -1,30 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _S390_SEMBUF_H
--#define _S390_SEMBUF_H
--
--/* 
-- * The semid64_ds structure for S/390 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem (for !__s390x__)
-- * - 2 miscellaneous 32-bit values
-- */
--
--struct semid64_ds {
--	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	__kernel_time_t	sem_otime;		/* last semop time */
--#ifndef __s390x__
--	unsigned long	__unused1;
--#endif /* ! __s390x__ */
--	__kernel_time_t	sem_ctime;		/* last change time */
--#ifndef __s390x__
--	unsigned long	__unused2;
--#endif /* ! __s390x__ */
--	unsigned long	sem_nsems;		/* no. of semaphores in array */
--	unsigned long	__unused3;
--	unsigned long	__unused4;
--};
--
--#endif /* _S390_SEMBUF_H */
-diff --git a/arch/s390/include/uapi/asm/shmbuf.h b/arch/s390/include/uapi/asm/shmbuf.h
-deleted file mode 100644
-index 9cdce8d7ce60..000000000000
---- a/arch/s390/include/uapi/asm/shmbuf.h
-+++ /dev/null
-@@ -1,49 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _S390_SHMBUF_H
--#define _S390_SHMBUF_H
--
--/* 
-- * The shmid64_ds structure for S/390 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem (for !__s390x__)
-- * - 2 miscellaneous 32-bit values
-- */
--
--struct shmid64_ds {
--	struct ipc64_perm	shm_perm;	/* operation perms */
--	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--#ifndef __s390x__
--	unsigned long		__unused1;
--#endif /* ! __s390x__ */
--	__kernel_time_t		shm_dtime;	/* last detach time */
--#ifndef __s390x__
--	unsigned long		__unused2;
--#endif /* ! __s390x__ */
--	__kernel_time_t		shm_ctime;	/* last change time */
--#ifndef __s390x__
--	unsigned long		__unused3;
--#endif /* ! __s390x__ */
--	__kernel_pid_t		shm_cpid;	/* pid of creator */
--	__kernel_pid_t		shm_lpid;	/* pid of last operator */
--	unsigned long		shm_nattch;	/* no. of current attaches */
--	unsigned long		__unused4;
--	unsigned long		__unused5;
--};
--
--struct shminfo64 {
--	unsigned long	shmmax;
--	unsigned long	shmmin;
--	unsigned long	shmmni;
--	unsigned long	shmseg;
--	unsigned long	shmall;
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--	unsigned long	__unused3;
--	unsigned long	__unused4;
--};
--
--#endif /* _S390_SHMBUF_H */
+ /*
+  * SIGEMT si_codes
+  */
+diff --git a/arch/sparc/kernel/traps_32.c b/arch/sparc/kernel/traps_32.c
+index b1ed763e4787..33cd35bf3dc8 100644
+--- a/arch/sparc/kernel/traps_32.c
++++ b/arch/sparc/kernel/traps_32.c
+@@ -307,7 +307,7 @@ void do_fpe_trap(struct pt_regs *regs, unsigned long pc, unsigned long npc,
+ 	info.si_errno = 0;
+ 	info.si_addr = (void __user *)pc;
+ 	info.si_trapno = 0;
+-	info.si_code = FPE_FIXME;
++	info.si_code = FPE_FLTUNK;
+ 	if ((fsr & 0x1c000) = (1 << 14)) {
+ 		if (fsr & 0x10)
+ 			info.si_code = FPE_FLTINV;
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 462a21abd105..e81072ac52c3 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -2372,7 +2372,7 @@ static void do_fpe_common(struct pt_regs *regs)
+ 		info.si_errno = 0;
+ 		info.si_addr = (void __user *)regs->tpc;
+ 		info.si_trapno = 0;
+-		info.si_code = FPE_FIXME;
++		info.si_code = FPE_FLTUNK;
+ 		if ((fsr & 0x1c000) = (1 << 14)) {
+ 			if (fsr & 0x10)
+ 				info.si_code = FPE_FLTINV;
 -- 
-2.9.0
+2.14.1
 
