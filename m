@@ -1,158 +1,251 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:27 +0000
-Subject: [PATCH v3 07/17] y2038: x86: Extend sysvipc data structures
-Message-Id: <20180419143737.606138-8-arnd@arndb.de>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 20 Apr 2018 08:03:06 +0000
+Subject: [PATCH 15/22] openrisc: use generic dma_noncoherent_ops
+Message-Id: <20180420080313.18796-16-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180419143737.606138-1-arnd@arndb.de>
-In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-This extends the x86 copy of the sysvipc data structures to deal with
-32-bit user space that has 64-bit time_t and wants to see timestamps
-beyond 2038.
+Switch to the generic noncoherent direct mapping implementation.
 
-Fortunately, x86 has padding for this purpose in all the data structures,
-so we can just add extra fields. With msgid64_ds and shmid64_ds, the
-data structure is identical to the asm-generic version, which we have
-already extended.
+Fix sync_single_for_device to do the same cache coherency operations as
+the more tested map_single path, as both should transfer ownership to
+the device.
 
-For some reason however, the 64-bit version of semid64_ds ended up with
-extra padding, so I'm implementing the same approach as the asm-generic
-version here, by using separate fields for the upper and lower halves
-of the two timestamps.
+Remove the sync_single_for_cpu implementation as no cache coherency
+operations are used in the more commonly used unmap_single case, both
+of which transfer ownership to the CPU.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Implement the missing sync_sg_for_device operation, matching the cache
+coherency operations in sync_single_for_device and map_{single,sg}.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/x86/include/asm/compat.h      | 32 ++++++++++++++++----------------
- arch/x86/include/uapi/asm/Kbuild   |  5 ++++-
- arch/x86/include/uapi/asm/msgbuf.h |  1 -
- arch/x86/include/uapi/asm/sembuf.h | 11 ++++++++++-
- arch/x86/include/uapi/asm/shmbuf.h |  1 -
- 5 files changed, 30 insertions(+), 20 deletions(-)
- delete mode 100644 arch/x86/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/x86/include/uapi/asm/shmbuf.h
+ arch/openrisc/Kconfig                   |   2 +
+ arch/openrisc/include/asm/Kbuild        |   1 +
+ arch/openrisc/include/asm/dma-mapping.h |  35 --------
+ arch/openrisc/kernel/dma.c              | 109 +++---------------------
+ 4 files changed, 13 insertions(+), 134 deletions(-)
+ delete mode 100644 arch/openrisc/include/asm/dma-mapping.h
 
-diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
-index 7cd314b71c51..fb97cf7c4137 100644
---- a/arch/x86/include/asm/compat.h
-+++ b/arch/x86/include/asm/compat.h
-@@ -134,10 +134,10 @@ struct compat_ipc64_perm {
+diff --git a/arch/openrisc/Kconfig b/arch/openrisc/Kconfig
+index 9ecad05bfc73..65e3c574c9d3 100644
+--- a/arch/openrisc/Kconfig
++++ b/arch/openrisc/Kconfig
+@@ -6,6 +6,8 @@
  
- struct compat_semid64_ds {
- 	struct compat_ipc64_perm sem_perm;
--	compat_time_t  sem_otime;
--	compat_ulong_t __unused1;
--	compat_time_t  sem_ctime;
--	compat_ulong_t __unused2;
-+	compat_ulong_t sem_otime;
-+	compat_ulong_t sem_otime_high;
-+	compat_ulong_t sem_ctime;
-+	compat_ulong_t sem_ctime_high;
- 	compat_ulong_t sem_nsems;
- 	compat_ulong_t __unused3;
- 	compat_ulong_t __unused4;
-@@ -145,12 +145,12 @@ struct compat_semid64_ds {
- 
- struct compat_msqid64_ds {
- 	struct compat_ipc64_perm msg_perm;
--	compat_time_t  msg_stime;
--	compat_ulong_t __unused1;
--	compat_time_t  msg_rtime;
--	compat_ulong_t __unused2;
--	compat_time_t  msg_ctime;
--	compat_ulong_t __unused3;
-+	compat_ulong_t msg_stime;
-+	compat_ulong_t msg_stime_high;
-+	compat_ulong_t msg_rtime;
-+	compat_ulong_t msg_rtime_high;
-+	compat_ulong_t msg_ctime;
-+	compat_ulong_t msg_ctime_high;
- 	compat_ulong_t msg_cbytes;
- 	compat_ulong_t msg_qnum;
- 	compat_ulong_t msg_qbytes;
-@@ -163,12 +163,12 @@ struct compat_msqid64_ds {
- struct compat_shmid64_ds {
- 	struct compat_ipc64_perm shm_perm;
- 	compat_size_t  shm_segsz;
--	compat_time_t  shm_atime;
--	compat_ulong_t __unused1;
--	compat_time_t  shm_dtime;
--	compat_ulong_t __unused2;
--	compat_time_t  shm_ctime;
--	compat_ulong_t __unused3;
-+	compat_ulong_t shm_atime;
-+	compat_ulong_t shm_atime_high;
-+	compat_ulong_t shm_dtime;
-+	compat_ulong_t shm_dtime_high;
-+	compat_ulong_t shm_ctime;
-+	compat_ulong_t shm_ctime_high;
- 	compat_pid_t   shm_cpid;
- 	compat_pid_t   shm_lpid;
- 	compat_ulong_t shm_nattch;
-diff --git a/arch/x86/include/uapi/asm/Kbuild b/arch/x86/include/uapi/asm/Kbuild
-index 322681622d1e..d1d883e304f7 100644
---- a/arch/x86/include/uapi/asm/Kbuild
-+++ b/arch/x86/include/uapi/asm/Kbuild
-@@ -2,7 +2,10 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += bpf_perf_event.h
-+generic-y += msgbuf.h
-+generic-y += poll.h
-+generic-y += shmbuf.h
-+
- generated-y += unistd_32.h
- generated-y += unistd_64.h
- generated-y += unistd_x32.h
--generic-y += poll.h
-diff --git a/arch/x86/include/uapi/asm/msgbuf.h b/arch/x86/include/uapi/asm/msgbuf.h
+ config OPENRISC
+ 	def_bool y
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
++	select DMA_NONCOHERENT_OPS
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select IRQ_DOMAIN
+diff --git a/arch/openrisc/include/asm/Kbuild b/arch/openrisc/include/asm/Kbuild
+index f05c722a21f8..e663a996b612 100644
+--- a/arch/openrisc/include/asm/Kbuild
++++ b/arch/openrisc/include/asm/Kbuild
+@@ -6,6 +6,7 @@ generic-y += current.h
+ generic-y += device.h
+ generic-y += div64.h
+ generic-y += dma.h
++generic-y += dma-mapping.h
+ generic-y += emergency-restart.h
+ generic-y += exec.h
+ generic-y += extable.h
+diff --git a/arch/openrisc/include/asm/dma-mapping.h b/arch/openrisc/include/asm/dma-mapping.h
 deleted file mode 100644
-index 809134c644a6..000000000000
---- a/arch/x86/include/uapi/asm/msgbuf.h
+index e212a1f0b6d2..000000000000
+--- a/arch/openrisc/include/asm/dma-mapping.h
 +++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/msgbuf.h>
-diff --git a/arch/x86/include/uapi/asm/sembuf.h b/arch/x86/include/uapi/asm/sembuf.h
-index cabd7476bd6c..89de6cd9f0a7 100644
---- a/arch/x86/include/uapi/asm/sembuf.h
-+++ b/arch/x86/include/uapi/asm/sembuf.h
-@@ -8,15 +8,24 @@
-  * between kernel and user space.
-  *
-  * Pad space is left for:
-- * - 64-bit time_t to solve y2038 problem
-  * - 2 miscellaneous 32-bit values
-+ *
-+ * x86_64 and x32 incorrectly added padding here, so the structures
-+ * are still incompatible with the padding on x86.
+@@ -1,35 +0,0 @@
+-/*
+- * OpenRISC Linux
+- *
+- * Linux architectural port borrowing liberally from similar works of
+- * others.  All original copyrights apply as per the original source
+- * declaration.
+- *
+- * OpenRISC implementation:
+- * Copyright (C) 2010-2011 Jonas Bonn <jonas@southpole.se>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#ifndef __ASM_OPENRISC_DMA_MAPPING_H
+-#define __ASM_OPENRISC_DMA_MAPPING_H
+-
+-/*
+- * See Documentation/DMA-API-HOWTO.txt and
+- * Documentation/DMA-API.txt for documentation.
+- */
+-
+-#include <linux/dma-debug.h>
+-#include <linux/dma-mapping.h>
+-
+-extern const struct dma_map_ops or1k_dma_map_ops;
+-
+-static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+-{
+-	return &or1k_dma_map_ops;
+-}
+-
+-#endif	/* __ASM_OPENRISC_DMA_MAPPING_H */
+diff --git a/arch/openrisc/kernel/dma.c b/arch/openrisc/kernel/dma.c
+index ec7fd45704d2..cce99405edf4 100644
+--- a/arch/openrisc/kernel/dma.c
++++ b/arch/openrisc/kernel/dma.c
+@@ -19,9 +19,7 @@
+  * the only thing implemented properly.  The rest need looking into...
   */
- struct semid64_ds {
- 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
-+#ifdef __i386__
-+	unsigned long	sem_otime;	/* last semop time */
-+	unsigned long	sem_otime_high;
-+	unsigned long	sem_ctime;	/* last change time */
-+	unsigned long	sem_ctime_high;
-+#else
- 	__kernel_time_t	sem_otime;	/* last semop time */
- 	__kernel_ulong_t __unused1;
- 	__kernel_time_t	sem_ctime;	/* last change time */
- 	__kernel_ulong_t __unused2;
-+#endif
- 	__kernel_ulong_t sem_nsems;	/* no. of semaphores in array */
- 	__kernel_ulong_t __unused3;
- 	__kernel_ulong_t __unused4;
-diff --git a/arch/x86/include/uapi/asm/shmbuf.h b/arch/x86/include/uapi/asm/shmbuf.h
-deleted file mode 100644
-index 83c05fc2de38..000000000000
---- a/arch/x86/include/uapi/asm/shmbuf.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/shmbuf.h>
+ 
+-#include <linux/dma-mapping.h>
+-#include <linux/dma-debug.h>
+-#include <linux/export.h>
++#include <linux/dma-noncoherent.h>
+ 
+ #include <asm/cpuinfo.h>
+ #include <asm/spr_defs.h>
+@@ -80,10 +78,9 @@ page_clear_nocache(pte_t *pte, unsigned long addr,
+  * is being ignored for now; uncached but write-combined memory is a
+  * missing feature of the OR1K.
+  */
+-static void *
+-or1k_dma_alloc(struct device *dev, size_t size,
+-	       dma_addr_t *dma_handle, gfp_t gfp,
+-	       unsigned long attrs)
++void *
++arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, unsigned long attrs)
+ {
+ 	unsigned long va;
+ 	void *page;
+@@ -115,9 +112,9 @@ or1k_dma_alloc(struct device *dev, size_t size,
+ 	return (void *)va;
+ }
+ 
+-static void
+-or1k_dma_free(struct device *dev, size_t size, void *vaddr,
+-	      dma_addr_t dma_handle, unsigned long attrs)
++void
++arch_dma_free(struct device *dev, size_t size, void *vaddr,
++		dma_addr_t dma_handle, unsigned long attrs)
+ {
+ 	unsigned long va = (unsigned long)vaddr;
+ 	struct mm_walk walk = {
+@@ -133,18 +130,11 @@ or1k_dma_free(struct device *dev, size_t size, void *vaddr,
+ 	free_pages_exact(vaddr, size);
+ }
+ 
+-static dma_addr_t
+-or1k_map_page(struct device *dev, struct page *page,
+-	      unsigned long offset, size_t size,
+-	      enum dma_data_direction dir,
+-	      unsigned long attrs)
++void arch_sync_dma_for_device(struct device *dev, phys_addr_t addr, size_t size,
++		enum dma_data_direction dir)
+ {
+-	unsigned long cl;
+-	dma_addr_t addr = page_to_phys(page) + offset;
+ 	struct cpuinfo_or1k *cpuinfo = &cpuinfo_or1k[smp_processor_id()];
+-
+-	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
+-		return addr;
++	unsigned long cl;
+ 
+ 	switch (dir) {
+ 	case DMA_TO_DEVICE:
+@@ -167,83 +157,4 @@ or1k_map_page(struct device *dev, struct page *page,
+ 		 */
+ 		break;
+ 	}
+-
+-	return addr;
+ }
+-
+-static void
+-or1k_unmap_page(struct device *dev, dma_addr_t dma_handle,
+-		size_t size, enum dma_data_direction dir,
+-		unsigned long attrs)
+-{
+-	/* Nothing special to do here... */
+-}
+-
+-static int
+-or1k_map_sg(struct device *dev, struct scatterlist *sg,
+-	    int nents, enum dma_data_direction dir,
+-	    unsigned long attrs)
+-{
+-	struct scatterlist *s;
+-	int i;
+-
+-	for_each_sg(sg, s, nents, i) {
+-		s->dma_address = or1k_map_page(dev, sg_page(s), s->offset,
+-					       s->length, dir, 0);
+-	}
+-
+-	return nents;
+-}
+-
+-static void
+-or1k_unmap_sg(struct device *dev, struct scatterlist *sg,
+-	      int nents, enum dma_data_direction dir,
+-	      unsigned long attrs)
+-{
+-	struct scatterlist *s;
+-	int i;
+-
+-	for_each_sg(sg, s, nents, i) {
+-		or1k_unmap_page(dev, sg_dma_address(s), sg_dma_len(s), dir, 0);
+-	}
+-}
+-
+-static void
+-or1k_sync_single_for_cpu(struct device *dev,
+-			 dma_addr_t dma_handle, size_t size,
+-			 enum dma_data_direction dir)
+-{
+-	unsigned long cl;
+-	dma_addr_t addr = dma_handle;
+-	struct cpuinfo_or1k *cpuinfo = &cpuinfo_or1k[smp_processor_id()];
+-
+-	/* Invalidate the dcache for the requested range */
+-	for (cl = addr; cl < addr + size; cl += cpuinfo->dcache_block_size)
+-		mtspr(SPR_DCBIR, cl);
+-}
+-
+-static void
+-or1k_sync_single_for_device(struct device *dev,
+-			    dma_addr_t dma_handle, size_t size,
+-			    enum dma_data_direction dir)
+-{
+-	unsigned long cl;
+-	dma_addr_t addr = dma_handle;
+-	struct cpuinfo_or1k *cpuinfo = &cpuinfo_or1k[smp_processor_id()];
+-
+-	/* Flush the dcache for the requested range */
+-	for (cl = addr; cl < addr + size; cl += cpuinfo->dcache_block_size)
+-		mtspr(SPR_DCBFR, cl);
+-}
+-
+-const struct dma_map_ops or1k_dma_map_ops = {
+-	.alloc = or1k_dma_alloc,
+-	.free = or1k_dma_free,
+-	.map_page = or1k_map_page,
+-	.unmap_page = or1k_unmap_page,
+-	.map_sg = or1k_map_sg,
+-	.unmap_sg = or1k_unmap_sg,
+-	.sync_single_for_cpu = or1k_sync_single_for_cpu,
+-	.sync_single_for_device = or1k_sync_single_for_device,
+-};
+-EXPORT_SYMBOL(or1k_dma_map_ops);
 -- 
-2.9.0
+2.17.0
 
