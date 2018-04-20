@@ -1,7 +1,7 @@
-From: =?windows-1252?Q?Ren=E9_Rebe?= <rene@exactcode.com>
-Date: Fri, 20 Apr 2018 15:31:52 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Fri, 20 Apr 2018 18:46:46 +0000
 Subject: Re: BUG: Bad rss-counter state ...
-Message-Id: <185C6CDE-C3D7-4386-A273-8EA773F7E207@exactcode.com>
+Message-Id: <32894e88-d4ee-901f-78e7-8aa629735d8f@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <E08C1995-DD20-4613-9885-D9F2857D7737@exactcode.com>
 In-Reply-To: <E08C1995-DD20-4613-9885-D9F2857D7737@exactcode.com>
@@ -10,10 +10,52 @@ Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: quoted-printable
 To: sparclinux@vger.kernel.org
 
-Hi,
+On 04/20/2018 03:44 PM, Ren=E9 Rebe wrote:
+> Well, remember, I only went down with binutils / gcc versions because lat=
+est
+> binutils/ld segfaults linking newer glibcs:
+> https://twitter.com/renebln/status/984741114757439488
+>=20
+> #2 =A0in bfd_malloc at ../../bfd/libbfd.c:193
+> #3 =A0in _bfd_elf_strtab_finalize at ../../bfd/elf-strtab.c:368
+> #4 =A0in _bfd_elf_assign_file_positions_for_non_load at ../../bfd/elf.c:6=
+318
+> #5 =A0_bfd_elf_write_object_contents at ../../bfd/elf.c:6354
+> #6 =A0in bfd_close at ../../bfd/=85
+>=20
+> This is how I ended up downgrading binutils, glibc and gcc until I had a =
+user-land
+> that built, =85 (yes, I neglected t2/sparc* support the last years, sorry=
+ for that)
 
-On 20 Apr 2018, at 15:44, Ren=E9 Rebe <rene@exactcode.com> wrote:
+I remember there was recently an issue with glibc and 32-bit sparc userland
+that the Gentoo folks saw. I don't remember what it was though. We don't
+have any binutils problems on a 64-bit userland in Debian that I know of.
 
+Usually, James Clarke and Eric Botcazou are very fast fixing those issues
+in binutils or gcc. binutils had several regressions with the first
+2.30 versions but all that stuff was fixed in the latest 2.30 branch
+and glibc builds fine. So, if you have something reproducible for
+binutils, please file it in the upstream bug report tracker and
+CC them and me.
+
+Also, we have a fast SPARC-T5 porterbox running Debian sparc64 unstable
+which is used by many upstream developers (qemu, gcc, binutils, FPC
+and so on) and those people constantly test their stuff on this machine.
+Thus, lots of stuff was already fixed for sparc64. Though there can
+always be surprises, especially in binutils. Oracle themselves is focusing
+on the 64-bit SPARC userland, although I don't know how busy they are
+at the moment.
+
+In general, I would recommend you joining #debian-ports on OFTC and
+#gentoo-sparc on Freenode and #sparc on Freenode. There are lots of
+knowledgeable people around who also usually know about the latest
+regressions or previous issues.
+
+>> So, in case you are unable to track down the issue in the kernel, try a =
+newer
+>> toolchain and the latest version of binutils (2.30 + branch updates).
+>=20
 > Speaking of =93updates=94, if you have a patch for that segfault, =85
 > But today is your lucky, as my latest financing opensource work by YouTube
 > videos (http://youtube.com/renerebe) shows some results, I now rebuild
@@ -21,65 +63,36 @@ On 20 Apr 2018, at 15:44, Ren=E9 Rebe <rene@exactcode.com> wrote:
 > the binutils/ld crash happened with glibc, I only need to toolchain for
 > the kernel build):
 >=20
-> # scripts/Build-Target  -cfg sparc64 -job 0-binutils
-> =3D=3D 13:34:33 =3D[0]=3D> Building develop/binutils [2.30 9.0-svn].
-> # scripts/Build-Target  -cfg sparc64 -job 0-gcc=20
-> =3D=3D 13:36:00 =3D[0]=3D> Building develop/gcc [7.3.0 9.0-svn].
-> # scripts/Build-Target  -cfg sparc64 -job 1-linux
-> =3D=3D 13:42:19 =3D[1]=3D> Building base/linux [4.16.3 9.0-svn].
+> # scripts/Build-Target=A0=A0-cfg sparc64 -job 0-binutils
+> =3D 13:34:33 =3D[0]=3D> Building develop/binutils [2.30 9.0-svn].
+> # scripts/Build-Target=A0=A0-cfg sparc64 -job 0-gcc=A0
+> =3D 13:36:00 =3D[0]=3D> Building develop/gcc [7.3.0 9.0-svn].
+> # scripts/Build-Target=A0=A0-cfg sparc64 -job 1-linux
+> =3D 13:42:19 =3D[1]=3D> Building base/linux [4.16.3 9.0-svn].
 >=20
 > Waiting for the kernel to finish on my more Epyc CPU and then
 > rsync and reboot. So maybe less than an hour or so ;-)
 
-Did not change a thing, w/ GCC-7.3, latest Binutils 2.30, Ultra5:
+I just checked the latest build logs. The glibc testsuite recently
+failed for 2.27 but did not fail for a previous 2.27 build:
 
-[    0.000147] PROMLIB: Sun IEEE Boot Prom 'OBP 3.31.0 2001/07/25 20:36'
-[    0.000173] PROMLIB: Root node compatible:=20
-[    0.000260] Linux version 4.16.3-dist (root@builder.exactcode.de) (gcc v=
-ersion 7.3.0 (GCC)) #1 SMP Fri Apr 20 13:44:06 Local time zone must be set-=
--see zic=20
-[    0.040693] bootconsole [btext0] enabled
-[    0.040723] ARCH: SUN4U
-[    0.040915] Ethernet address: 08:00:20:13:de:ad
-[    0.041302] MM: PAGE_OFFSET is 0xfffff80000000000 (max_phys_bits =3D=3D =
-40)
-[    0.041314] MM: VMALLOC [0x0000000100000000 --> 0x0000060000000000]
-[    0.041323] MM: VMEMMAP [0x0000060000000000 --> 0x00000c0000000000]
-[    0.045674] Kernel: Using 2 locked TLB entries for main kernel image.
-...
-[   28.162995] random: crng init done
-[   30.858246] BUG: Bad rss-counter state mm:000000003b665864 idx:1 val:1
-[   30.858499] BUG: non-zero pgtables_bytes on freeing mm: 8192
+FAIL: https://buildd.debian.org/status/fetch.php?pkg=3Dglibc&arch=3Dsparc64=
+&ver=3D2.27-3%2Bb1&stamp=1523840708&raw=3D0
+PASS: https://buildd.debian.org/status/fetch.php?pkg=3Dglibc&arch=3Dsparc64=
+&ver=3D2.27-3&stamp=1522364505&raw=3D0
 
-Full disclosure:
-a) this is a cross compiler, but that never mattered for me in the last dec=
-ade (this is my fastest Sun @360MHz, =85)
-b) this system is using btrfs, however, I think I initially repotted form t=
-he Ultra30 wi/ only Ext3
-c) this system has some non Sun PCI cards plugged, in, but again initially =
-reported on the U30:
+There was also a userland memory corruption with kernel 4.14+ which got fix=
+ed with
+4.16-rc6. After upgrading the kernel, many packages built fine again but su=
+rprisingly
+not glibc. I should probably poke glibc upstream after triggering another r=
+ebuild
+of glibc.
 
-00:01.0 PCI bridge: Oracle/SUN Simba Advanced PCI Bridge (rev 13)
-00:01.1 PCI bridge: Oracle/SUN Simba Advanced PCI Bridge (rev 13)
-01:01.0 Bridge: Oracle/SUN EBUS (rev 01)
-01:01.1 Ethernet controller: Oracle/SUN Happy Meal 10/100 Ethernet [hme] (r=
-ev 01)
-01:02.0 VGA compatible controller: Advanced Micro Devices, Inc. [AMD/ATI] 3=
-D Rage Pro PCI (rev 5c)
-01:03.0 IDE interface: Silicon Image, Inc. PCI0646 (rev 03)
-02:01.0 SCSI storage controller: Adaptec AIC-7861 (rev 03)
-02:02.0 RAID bus controller: Promise Technology, Inc. PDC20371 (FastTrak S1=
-50 TX2plus) (rev 02)
-02:03.0 USB controller: NEC Corporation OHCI USB Controller (rev 43)
-02:03.1 USB controller: NEC Corporation OHCI USB Controller (rev 43)
-02:03.2 USB controller: NEC Corporation uPD72010x USB 2.0 Controller (rev 0=
-4)
-
-As I said, the system does continue to run =93just fine=94 (as far as I can=
- see, so far), so for now this is cosmetic, and meant as =93heads up=94 inf=
-ormal report, ...
+Adrian
 
 --=20
- ExactCODE GmbH, Lietzenburger Str. 42, DE-10789 Berlin
- http://exactcode.com | http://exactscan.com | http://ocrkit.com | http://t=
-2-project.org | http://rene.rebe.de
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
