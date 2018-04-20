@@ -1,167 +1,103 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:23 +0000
-Subject: [PATCH v3 03/17] y2038: ia64: Remove unneeded ipc uapi header files
-Message-Id: <20180419143737.606138-4-arnd@arndb.de>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Date: Fri, 20 Apr 2018 14:35:52 +0000
+Subject: [REVIEW][PATCH 00/22] Simplifying siginfo users
+Message-Id: <87604mhrnb.fsf@xmission.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180419143737.606138-1-arnd@arndb.de>
-In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
+References: <878t9ilmhv.fsf@xmission.com>
+In-Reply-To: <878t9ilmhv.fsf@xmission.com> (Eric W. Biederman's message of
+        "Thu, 19 Apr 2018 20:01:16 -0500")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+To: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Albert Ou <albert@sifive.com>, Aurelien Jacquiot <jacquiot.aurelien@gmail.com>, Chris Zankel <chris@zankel.net>, David Miller <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Helge Deller <deller@gmx.de>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, James Bottomley <jejb@parisc-linux.org>, James Hogan <jhogan@kernel.org>, Jeff Dike <jdike@addtoit.com>, Jonas Bonn <jonas@southpole.se>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Max Filippov <jcmvbkbc@gmail.com>, Michal Simek <monstr@monstr.eu>, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org
 
-The ia64 ipcbuf/msgbuf/sembuf/shmbuf header files are all identical
-to the version from asm-generic.
 
-This patch removes the files and replaces them with 'generic-y'
-statements as part of the y2038 changes. While ia64 no longer has
-a compat mode and doesn't need the file any more, it seem nicer
-to clean this up anyway.
+This patchset is almost completely updating the various pieces of
+architecture code from filling out a struct siginfo and then calling
+force_sig_info.  To using the helper force_sig_fault instead.  Which
+takes the values that would have gone in siginfo as arguments.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/ia64/include/uapi/asm/Kbuild   |  4 ++++
- arch/ia64/include/uapi/asm/ipcbuf.h |  2 --
- arch/ia64/include/uapi/asm/msgbuf.h | 28 --------------------------
- arch/ia64/include/uapi/asm/sembuf.h | 23 ----------------------
- arch/ia64/include/uapi/asm/shmbuf.h | 39 -------------------------------------
- 5 files changed, 4 insertions(+), 92 deletions(-)
- delete mode 100644 arch/ia64/include/uapi/asm/ipcbuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/sembuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/shmbuf.h
+As the diffstat below shows this noticeable reduces the amount of code.
 
-diff --git a/arch/ia64/include/uapi/asm/Kbuild b/arch/ia64/include/uapi/asm/Kbuild
-index c0527cfc48f0..3982e673e967 100644
---- a/arch/ia64/include/uapi/asm/Kbuild
-+++ b/arch/ia64/include/uapi/asm/Kbuild
-@@ -2,5 +2,9 @@
- include include/uapi/asm-generic/Kbuild.asm
- 
- generic-y += bpf_perf_event.h
-+generic-y += ipcbuf.h
- generic-y += kvm_para.h
-+generic-y += msgbuf.h
- generic-y += poll.h
-+generic-y += sembuf.h
-+generic-y += shmbuf.h
-diff --git a/arch/ia64/include/uapi/asm/ipcbuf.h b/arch/ia64/include/uapi/asm/ipcbuf.h
-deleted file mode 100644
-index 90d6445a14df..000000000000
---- a/arch/ia64/include/uapi/asm/ipcbuf.h
-+++ /dev/null
-@@ -1,2 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#include <asm-generic/ipcbuf.h>
-diff --git a/arch/ia64/include/uapi/asm/msgbuf.h b/arch/ia64/include/uapi/asm/msgbuf.h
-deleted file mode 100644
-index aa25df92d9dc..000000000000
---- a/arch/ia64/include/uapi/asm/msgbuf.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ASM_IA64_MSGBUF_H
--#define _ASM_IA64_MSGBUF_H
--
--/*
-- * The msqid64_ds structure for IA-64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct msqid64_ds {
--	struct ipc64_perm msg_perm;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	__kernel_time_t msg_ctime;	/* last change time */
--	unsigned long  msg_cbytes;	/* current number of bytes on queue */
--	unsigned long  msg_qnum;	/* number of messages in queue */
--	unsigned long  msg_qbytes;	/* max number of bytes on queue */
--	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
--	__kernel_pid_t msg_lrpid;	/* last receive pid */
--	unsigned long  __unused1;
--	unsigned long  __unused2;
--};
--
--#endif /* _ASM_IA64_MSGBUF_H */
-diff --git a/arch/ia64/include/uapi/asm/sembuf.h b/arch/ia64/include/uapi/asm/sembuf.h
-deleted file mode 100644
-index 6ed058760afc..000000000000
---- a/arch/ia64/include/uapi/asm/sembuf.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ASM_IA64_SEMBUF_H
--#define _ASM_IA64_SEMBUF_H
--
--/*
-- * The semid64_ds structure for IA-64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct semid64_ds {
--	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	__kernel_time_t	sem_otime;		/* last semop time */
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	sem_nsems;		/* no. of semaphores in array */
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--};
--
--#endif /* _ASM_IA64_SEMBUF_H */
-diff --git a/arch/ia64/include/uapi/asm/shmbuf.h b/arch/ia64/include/uapi/asm/shmbuf.h
-deleted file mode 100644
-index 6ef57cb70dee..000000000000
---- a/arch/ia64/include/uapi/asm/shmbuf.h
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ASM_IA64_SHMBUF_H
--#define _ASM_IA64_SHMBUF_H
--
--/*
-- * The shmid64_ds structure for IA-64 architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct shmid64_ds {
--	struct ipc64_perm	shm_perm;	/* operation perms */
--	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	__kernel_time_t		shm_ctime;	/* last change time */
--	__kernel_pid_t		shm_cpid;	/* pid of creator */
--	__kernel_pid_t		shm_lpid;	/* pid of last operator */
--	unsigned long		shm_nattch;	/* no. of current attaches */
--	unsigned long		__unused1;
--	unsigned long		__unused2;
--};
--
--struct shminfo64 {
--	unsigned long	shmmax;
--	unsigned long	shmmin;
--	unsigned long	shmmni;
--	unsigned long	shmseg;
--	unsigned long	shmall;
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--	unsigned long	__unused3;
--	unsigned long	__unused4;
--};
--
--#endif /* _ASM_IA64_SHMBUF_H */
--- 
-2.9.0
+There are a couple of minor and straight forward bug fixes as well
+that I came across while working on the aforementioned changes.
 
+This applies on my last round of siginfo changes simply to remove the
+possibility of conflicts.  The changes should be semantically separate.
+
+I intend to merge these changes through my siginfo tree.  If you have
+any objections or would prefer to carry these changes in your
+architecture trees please let me know.
+
+The changes are also available at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/user-namespace.git siginfo-review2
+
+Eric W. Biederman (22):
+      signal/alpha: Use send_sig_fault where appropriate
+      signal/alpha: Use force_sig_fault where appropriate
+      signal/c6x: Use force_sig_fault where appropriate
+      signal/hexagon: Use force_sig_fault as appropriate
+      signal/m68k: Use force_sig_fault where appropriate
+      signal/microblaze: Remove the commented out force_sig_info in do_page_fault
+      signal/microblaze: Use force_sig_fault where appropriate
+      signal/mips: Use force_sig_fault where appropriate
+      signal/nds32: Use force_sig_fault where appropriate
+      signal/nios2: Use force_sig_fault where appropriate
+      signal/openrisc: Use force_sig_fault where appropriate
+      signal/parisc: Use force_sig_mceerr where appropriate
+      signal/parisc: Use force_sig_fault where appropriate
+      signal/riscv: Use force_sig_fault where appropriate
+      signal/s390: Use force_sig_fault where appropriate
+      signal/sh: Use force_sig_fault where appropriate
+      signal/sparc: Use send_sig_fault where appropriate
+      signal/sparc: Use force_sig_fault where appropriate
+      signal/um: Use force_sig_fault in relay_signal.
+      signal/um: Use force_sig_fault where appropriate
+      signal/xtensa: Consistenly use SIGBUS in do_unaligned_user
+      signal/xtensa: Use force_sig_fault where appropriate
+
+ arch/alpha/kernel/osf_sys.c         |  10 +--
+ arch/alpha/kernel/signal.c          |  22 +-----
+ arch/alpha/kernel/traps.c           |  80 +++++---------------
+ arch/alpha/mm/fault.c               |  15 +---
+ arch/c6x/kernel/traps.c             |  10 +--
+ arch/hexagon/kernel/traps.c         |  10 +--
+ arch/hexagon/mm/vm_fault.c          |  21 ++----
+ arch/m68k/kernel/traps.c            |  60 +++++++--------
+ arch/m68k/mm/fault.c                |  25 +++----
+ arch/microblaze/kernel/exceptions.c |   9 +--
+ arch/microblaze/mm/fault.c          |  14 +---
+ arch/mips/kernel/traps.c            |  65 +++++-----------
+ arch/mips/mm/fault.c                |  19 ++---
+ arch/nds32/kernel/traps.c           |  20 +----
+ arch/nds32/mm/fault.c               |  19 ++---
+ arch/nios2/kernel/traps.c           |   9 +--
+ arch/openrisc/kernel/traps.c        |  33 +-------
+ arch/openrisc/mm/fault.c            |  19 ++---
+ arch/parisc/kernel/ptrace.c         |  11 +--
+ arch/parisc/kernel/traps.c          |  63 +++++-----------
+ arch/parisc/kernel/unaligned.c      |  16 +---
+ arch/parisc/math-emu/driver.c       |   9 +--
+ arch/parisc/mm/fault.c              |  55 +++++++-------
+ arch/riscv/kernel/traps.c           |   9 +--
+ arch/s390/kernel/traps.c            |  32 ++------
+ arch/s390/mm/fault.c                |  23 ++----
+ arch/sh/kernel/traps_32.c           |  19 ++---
+ arch/sh/math-emu/math.c             |   9 +--
+ arch/sh/mm/fault.c                  |  10 +--
+ arch/sparc/kernel/process_64.c      |  10 +--
+ arch/sparc/kernel/sys_sparc_32.c    |   9 +--
+ arch/sparc/kernel/sys_sparc_64.c    |   8 +-
+ arch/sparc/kernel/traps_32.c        | 114 +++++-----------------------
+ arch/sparc/kernel/traps_64.c        | 145 +++++++-----------------------------
+ arch/sparc/kernel/unaligned_32.c    |  12 +--
+ arch/sparc/mm/fault_32.c            |  13 +---
+ arch/sparc/mm/fault_64.c            |   9 +--
+ arch/um/kernel/ptrace.c             |  13 +---
+ arch/um/kernel/trap.c               |  54 ++++++--------
+ arch/xtensa/kernel/traps.c          |  10 +--
+ arch/xtensa/mm/fault.c              |  19 ++---
+ 41 files changed, 280 insertions(+), 852 deletions(-)
+
+Eric
