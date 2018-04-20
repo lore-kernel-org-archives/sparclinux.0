@@ -1,185 +1,340 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:20 +0000
-Subject: [PATCH v3 00/17] y2038: Convert IPC syscalls
-Message-Id: <20180419143737.606138-1-arnd@arndb.de>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 20 Apr 2018 08:03:02 +0000
+Subject: [PATCH 11/22] microblaze: use generic dma_noncoherent_ops
+Message-Id: <20180420080313.18796-12-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-This is an update of a series I posted a long time ago [1], updating
-the IPC subsystem to pass down 64-bit time stamps to user space.
+Switch to the generic noncoherent direct mapping implementation.
 
-In particular, for sys_msgctl, sys_semctl and sys_shmctl, I do not
-introduce a completely new set of replacement system calls, but instead
-extend the existing ones to return data in the reserved fields of the
-normal data structure.
+This removes the direction-based optimizations in
+sync_{single,sg}_for_{cpu,device} which were marked untestested and
+do not match the usually very well tested {un,}map_{single,sg}
+implementations.
 
-This should be completely transparent to any existing user space, and
-only after the 32-bit time_t wraps, it will make a difference in the
-returned data.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/microblaze/Kconfig                   |   4 +
+ arch/microblaze/include/asm/Kbuild        |   1 +
+ arch/microblaze/include/asm/dma-mapping.h |  28 -----
+ arch/microblaze/include/asm/pgtable.h     |   2 -
+ arch/microblaze/kernel/dma.c              | 144 ++--------------------
+ arch/microblaze/mm/consistent.c           |   9 +-
+ 6 files changed, 22 insertions(+), 166 deletions(-)
+ delete mode 100644 arch/microblaze/include/asm/dma-mapping.h
 
-libc implementations will consequently have to provide their own data
-structures when they move to 64-bit time_t, and convert the structures
-in user space from the ones returned by the kernel.
-
-In contrast, mq_timedsend, mq_timedreceive and and semtimedop all do
-need to change because having a libc redefine the timespec type
-breaks the ABI, so with this series, there will be two separate entry
-points for 32-bit architectures.
-
-There are three cases here:
-
-- little-endian architectures (except powerpc and mips) can use
-  the normal layout and just cast the data structure to the user space
-  type that contains 64-bit numbers.
-
-- parisc and sparc can do the same thing with big-endian user space
-
-- little-endian powerpc and most big-endian architectures have
-  to flip the upper and lower 32-bit halves of the time_t value in memory,
-  but can otherwise keep using the normal layout
-
-- mips and big-endian xtensa need to be more careful because
-  they are not consistent in their definitions, and they have to provide
-  custom libc implementations for the system calls to use 64-bit time_t.
-
-Changes to v2 [2]:
-- added patches for mq_timedsend, mq_timedreceive and and semtimedop
-  system calls
-- add asm-generic/compat.h changes to prepare for actually using those
-  on 32-bit.
-- fix 'make headers_install' as reported by Heiko Carstens
-- fix MIPS build as reported by build bot
-- Cc everyone on all patches as originally intended, not just on the
-  cover letter.
-
-Changes to v1 [1]:
-- Rebased to the latest kernel (4.17-rc)
-- Dropped changes for removed architectures
-- Simplified the IPC code changes, based on prior work from
-  both Deepa and Eric
-- Fixed a few bugs that I found during rebasing, in parcular the
-  sparc version was incorrect.
-
-I haven't seen any objections to v1 and will send a pull request
-to Thomas Gleixner after Deepa's first patches are all merged there.
-There are a few more patches in my tree [3] now, I'm still testing
-those and should be able to send the next batch next week.
-
-    Arnd
-
-[1] https://lkml.org/lkml/2015/5/20/605
-[2] https://lwn.net/Articles/751676/
-[3] git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git y2038-next
-
-Arnd Bergmann (17):
-  y2038: asm-generic: Extend sysvipc data structures
-  y2038: alpha: Remove unneeded ipc uapi header files
-  y2038: ia64: Remove unneeded ipc uapi header files
-  y2038: s390: Remove unneeded ipc uapi header files
-  y2038: arm64: Extend sysvipc compat data structures
-  y2038: mips: Extend sysvipc data structures
-  y2038: x86: Extend sysvipc data structures
-  y2038: parisc: Extend sysvipc data structures
-  y2038: sparc: Extend sysvipc data structures
-  y2038: powerpc: Extend sysvipc data structures
-  y2038: xtensa: Extend sysvipc data structures
-  y2038: ipc: Use ktime_get_real_seconds consistently
-  y2038: ipc: Report long times to user space
-  y2038: ipc: Use __kernel_timespec
-  y2038: ipc: Enable COMPAT_32BIT_TIME
-  y2038: ipc: Redirect ipc(SEMTIMEDOP, ...) to compat_ksys_semtimedop
-  y2038: compat: Move common compat types to asm-generic/compat.h
-
-Cc: linux-api@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: libc-alpha@sourceware.org
-Cc: tglx@linutronix.de
-Cc: deepa.kernel@gmail.com
-Cc: viro@zeniv.linux.org.uk
-Cc: ebiederm@xmission.com
-Cc: albert.aribaud@3adev.fr
-Cc: linux-s390@vger.kernel.org
-Cc: schwidefsky@de.ibm.com
-Cc: x86@kernel.org
-Cc: catalin.marinas@arm.com
-Cc: will.deacon@arm.com
-Cc: linux-mips@linux-mips.org
-Cc: jhogan@kernel.org
-Cc: ralf@linux-mips.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: sparclinux@vger.kernel.org
-
- arch/alpha/include/uapi/asm/Kbuild     |  4 ++
- arch/alpha/include/uapi/asm/ipcbuf.h   |  2 -
- arch/alpha/include/uapi/asm/msgbuf.h   | 28 -----------
- arch/alpha/include/uapi/asm/sembuf.h   | 23 ---------
- arch/alpha/include/uapi/asm/shmbuf.h   | 39 ---------------
- arch/arm64/include/asm/compat.h        | 52 +++++++-------------
- arch/ia64/include/uapi/asm/Kbuild      |  4 ++
- arch/ia64/include/uapi/asm/ipcbuf.h    |  2 -
- arch/ia64/include/uapi/asm/msgbuf.h    | 28 -----------
- arch/ia64/include/uapi/asm/sembuf.h    | 23 ---------
- arch/ia64/include/uapi/asm/shmbuf.h    | 39 ---------------
- arch/mips/include/asm/compat.h         | 58 +++++++++--------------
- arch/mips/include/uapi/asm/msgbuf.h    | 57 ++++++++++++++--------
- arch/mips/include/uapi/asm/sembuf.h    | 15 +++++-
- arch/mips/include/uapi/asm/shmbuf.h    | 23 ++++++++-
- arch/parisc/include/asm/compat.h       | 50 +++++++-------------
- arch/parisc/include/uapi/asm/msgbuf.h  | 33 +++++++------
- arch/parisc/include/uapi/asm/sembuf.h  | 16 +++----
- arch/parisc/include/uapi/asm/shmbuf.h  | 19 ++++----
- arch/powerpc/include/asm/compat.h      | 50 +++++++-------------
- arch/powerpc/include/uapi/asm/msgbuf.h | 18 +++----
- arch/powerpc/include/uapi/asm/sembuf.h | 14 +++---
- arch/powerpc/include/uapi/asm/shmbuf.h | 19 ++++----
- arch/s390/include/asm/compat.h         | 50 +++++++-------------
- arch/s390/include/uapi/asm/Kbuild      |  3 ++
- arch/s390/include/uapi/asm/msgbuf.h    | 38 ---------------
- arch/s390/include/uapi/asm/sembuf.h    | 30 ------------
- arch/s390/include/uapi/asm/shmbuf.h    | 49 -------------------
- arch/sparc/include/asm/compat.h        | 51 +++++++-------------
- arch/sparc/include/uapi/asm/msgbuf.h   | 22 ++++-----
- arch/sparc/include/uapi/asm/sembuf.h   | 16 +++----
- arch/sparc/include/uapi/asm/shmbuf.h   | 21 ++++-----
- arch/x86/include/asm/compat.h          | 51 +++++++-------------
- arch/x86/include/uapi/asm/Kbuild       |  5 +-
- arch/x86/include/uapi/asm/msgbuf.h     |  1 -
- arch/x86/include/uapi/asm/sembuf.h     | 11 ++++-
- arch/x86/include/uapi/asm/shmbuf.h     |  1 -
- arch/xtensa/include/uapi/asm/msgbuf.h  | 25 +++++-----
- arch/xtensa/include/uapi/asm/sembuf.h  | 17 ++++---
- arch/xtensa/include/uapi/asm/shmbuf.h  | 37 ++++-----------
- include/asm-generic/compat.h           | 24 +++++++++-
- include/linux/compat.h                 |  2 -
- include/linux/syscalls.h               |  6 +--
- include/uapi/asm-generic/msgbuf.h      | 17 ++++---
- include/uapi/asm-generic/sembuf.h      | 26 ++++++----
- include/uapi/asm-generic/shmbuf.h      | 17 ++++---
- ipc/mqueue.c                           | 86 +++++++++++++++++-----------------
- ipc/msg.c                              | 20 +++++---
- ipc/sem.c                              | 27 +++++++----
- ipc/shm.c                              | 14 ++++--
- ipc/syscall.c                          | 13 +++--
- ipc/util.h                             |  4 +-
- 52 files changed, 493 insertions(+), 807 deletions(-)
- delete mode 100644 arch/alpha/include/uapi/asm/ipcbuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/sembuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/shmbuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/ipcbuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/sembuf.h
- delete mode 100644 arch/ia64/include/uapi/asm/shmbuf.h
- delete mode 100644 arch/s390/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/s390/include/uapi/asm/sembuf.h
- delete mode 100644 arch/s390/include/uapi/asm/shmbuf.h
- delete mode 100644 arch/x86/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/x86/include/uapi/asm/shmbuf.h
-
+diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
+index 3817a3e2146c..91b9b999eb18 100644
+--- a/arch/microblaze/Kconfig
++++ b/arch/microblaze/Kconfig
+@@ -1,6 +1,8 @@
+ config MICROBLAZE
+ 	def_bool y
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_SYNC_DMA_FOR_CPU
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_NO_COHERENT_DMA_MMAP if !MMU
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+@@ -8,6 +10,8 @@ config MICROBLAZE
+ 	select TIMER_OF
+ 	select CLONE_BACKWARDS3
+ 	select COMMON_CLK
++	select DMA_NONCOHERENT_OPS
++	select DMA_NONCOHERENT_MMAP
+ 	select GENERIC_ATOMIC64
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_CPU_DEVICES
+diff --git a/arch/microblaze/include/asm/Kbuild b/arch/microblaze/include/asm/Kbuild
+index 3c80a5a308ed..8d3e71f43a3e 100644
+--- a/arch/microblaze/include/asm/Kbuild
++++ b/arch/microblaze/include/asm/Kbuild
+@@ -4,6 +4,7 @@ generic-y += bug.h
+ generic-y += bugs.h
+ generic-y += device.h
+ generic-y += div64.h
++generic-y += dma-mapping.h
+ generic-y += emergency-restart.h
+ generic-y += exec.h
+ generic-y += extable.h
+diff --git a/arch/microblaze/include/asm/dma-mapping.h b/arch/microblaze/include/asm/dma-mapping.h
+deleted file mode 100644
+index add50c1373bf..000000000000
+--- a/arch/microblaze/include/asm/dma-mapping.h
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/*
+- * Implements the generic device dma API for microblaze and the pci
+- *
+- * Copyright (C) 2009-2010 Michal Simek <monstr@monstr.eu>
+- * Copyright (C) 2009-2010 PetaLogix
+- *
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License. See the file COPYING in the main directory of this
+- * archive for more details.
+- *
+- * This file is base on powerpc and x86 dma-mapping.h versions
+- * Copyright (C) 2004 IBM
+- */
+-
+-#ifndef _ASM_MICROBLAZE_DMA_MAPPING_H
+-#define _ASM_MICROBLAZE_DMA_MAPPING_H
+-
+-/*
+- * Available generic sets of operations
+- */
+-extern const struct dma_map_ops dma_nommu_ops;
+-
+-static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+-{
+-	return &dma_nommu_ops;
+-}
+-
+-#endif	/* _ASM_MICROBLAZE_DMA_MAPPING_H */
+diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
+index e53b8532353c..5174733fb489 100644
+--- a/arch/microblaze/include/asm/pgtable.h
++++ b/arch/microblaze/include/asm/pgtable.h
+@@ -551,8 +551,6 @@ void __init *early_get_page(void);
+ 
+ extern unsigned long ioremap_bot, ioremap_base;
+ 
+-void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle);
+-void consistent_free(size_t size, void *vaddr);
+ void consistent_sync(void *vaddr, size_t size, int direction);
+ void consistent_sync_page(struct page *page, unsigned long offset,
+ 	size_t size, int direction);
+diff --git a/arch/microblaze/kernel/dma.c b/arch/microblaze/kernel/dma.c
+index 3145e7dc8ab1..71032cf64669 100644
+--- a/arch/microblaze/kernel/dma.c
++++ b/arch/microblaze/kernel/dma.c
+@@ -8,29 +8,15 @@
+  */
+ 
+ #include <linux/device.h>
+-#include <linux/dma-mapping.h>
++#include <linux/dma-noncoherent.h>
+ #include <linux/gfp.h>
+ #include <linux/dma-debug.h>
+ #include <linux/export.h>
+ #include <linux/bug.h>
+ #include <asm/cacheflush.h>
+ 
+-static void *dma_nommu_alloc_coherent(struct device *dev, size_t size,
+-				       dma_addr_t *dma_handle, gfp_t flag,
+-				       unsigned long attrs)
+-{
+-	return consistent_alloc(flag, size, dma_handle);
+-}
+-
+-static void dma_nommu_free_coherent(struct device *dev, size_t size,
+-				     void *vaddr, dma_addr_t dma_handle,
+-				     unsigned long attrs)
+-{
+-	consistent_free(size, vaddr);
+-}
+-
+-static inline void __dma_sync(unsigned long paddr,
+-			      size_t size, enum dma_data_direction direction)
++static void __dma_sync(struct device *dev, phys_addr_t paddr, size_t size,
++		enum dma_data_direction direction)
+ {
+ 	switch (direction) {
+ 	case DMA_TO_DEVICE:
+@@ -45,113 +31,21 @@ static inline void __dma_sync(unsigned long paddr,
+ 	}
+ }
+ 
+-static int dma_nommu_map_sg(struct device *dev, struct scatterlist *sgl,
+-			     int nents, enum dma_data_direction direction,
+-			     unsigned long attrs)
++void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+-	struct scatterlist *sg;
+-	int i;
+-
+-	/* FIXME this part of code is untested */
+-	for_each_sg(sgl, sg, nents, i) {
+-		sg->dma_address = sg_phys(sg);
+-
+-		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
+-			continue;
+-
+-		__dma_sync(sg_phys(sg), sg->length, direction);
+-	}
+-
+-	return nents;
+-}
+-
+-static inline dma_addr_t dma_nommu_map_page(struct device *dev,
+-					     struct page *page,
+-					     unsigned long offset,
+-					     size_t size,
+-					     enum dma_data_direction direction,
+-					     unsigned long attrs)
+-{
+-	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+-		__dma_sync(page_to_phys(page) + offset, size, direction);
+-	return page_to_phys(page) + offset;
++	__dma_sync(dev, paddr, size, dir);
+ }
+ 
+-static inline void dma_nommu_unmap_page(struct device *dev,
+-					 dma_addr_t dma_address,
+-					 size_t size,
+-					 enum dma_data_direction direction,
+-					 unsigned long attrs)
++void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+-/* There is not necessary to do cache cleanup
+- *
+- * phys_to_virt is here because in __dma_sync_page is __virt_to_phys and
+- * dma_address is physical address
+- */
+-	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+-		__dma_sync(dma_address, size, direction);
++	__dma_sync(dev, paddr, size, dir);
+ }
+ 
+-static inline void
+-dma_nommu_sync_single_for_cpu(struct device *dev,
+-			       dma_addr_t dma_handle, size_t size,
+-			       enum dma_data_direction direction)
+-{
+-	/*
+-	 * It's pointless to flush the cache as the memory segment
+-	 * is given to the CPU
+-	 */
+-
+-	if (direction = DMA_FROM_DEVICE)
+-		__dma_sync(dma_handle, size, direction);
+-}
+-
+-static inline void
+-dma_nommu_sync_single_for_device(struct device *dev,
+-				  dma_addr_t dma_handle, size_t size,
+-				  enum dma_data_direction direction)
+-{
+-	/*
+-	 * It's pointless to invalidate the cache if the device isn't
+-	 * supposed to write to the relevant region
+-	 */
+-
+-	if (direction = DMA_TO_DEVICE)
+-		__dma_sync(dma_handle, size, direction);
+-}
+-
+-static inline void
+-dma_nommu_sync_sg_for_cpu(struct device *dev,
+-			   struct scatterlist *sgl, int nents,
+-			   enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	/* FIXME this part of code is untested */
+-	if (direction = DMA_FROM_DEVICE)
+-		for_each_sg(sgl, sg, nents, i)
+-			__dma_sync(sg->dma_address, sg->length, direction);
+-}
+-
+-static inline void
+-dma_nommu_sync_sg_for_device(struct device *dev,
+-			      struct scatterlist *sgl, int nents,
+-			      enum dma_data_direction direction)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	/* FIXME this part of code is untested */
+-	if (direction = DMA_TO_DEVICE)
+-		for_each_sg(sgl, sg, nents, i)
+-			__dma_sync(sg->dma_address, sg->length, direction);
+-}
+-
+-static
+-int dma_nommu_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
+-			     void *cpu_addr, dma_addr_t handle, size_t size,
+-			     unsigned long attrs)
++int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
++		void *cpu_addr, dma_addr_t handle, size_t size,
++		unsigned long attrs)
+ {
+ #ifdef CONFIG_MMU
+ 	unsigned long user_count = vma_pages(vma);
+@@ -170,17 +64,3 @@ int dma_nommu_mmap_coherent(struct device *dev, struct vm_area_struct *vma,
+ 	return -ENXIO;
+ #endif
+ }
+-
+-const struct dma_map_ops dma_nommu_ops = {
+-	.alloc			= dma_nommu_alloc_coherent,
+-	.free			= dma_nommu_free_coherent,
+-	.mmap			= dma_nommu_mmap_coherent,
+-	.map_sg			= dma_nommu_map_sg,
+-	.map_page		= dma_nommu_map_page,
+-	.unmap_page		= dma_nommu_unmap_page,
+-	.sync_single_for_cpu	= dma_nommu_sync_single_for_cpu,
+-	.sync_single_for_device	= dma_nommu_sync_single_for_device,
+-	.sync_sg_for_cpu	= dma_nommu_sync_sg_for_cpu,
+-	.sync_sg_for_device	= dma_nommu_sync_sg_for_device,
+-};
+-EXPORT_SYMBOL(dma_nommu_ops);
+diff --git a/arch/microblaze/mm/consistent.c b/arch/microblaze/mm/consistent.c
+index b06c3a7faf20..b9a9c8c3397b 100644
+--- a/arch/microblaze/mm/consistent.c
++++ b/arch/microblaze/mm/consistent.c
+@@ -33,6 +33,7 @@
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
+ #include <linux/gfp.h>
++#include <linux/dma-noncoherent.h>
+ 
+ #include <asm/pgalloc.h>
+ #include <linux/io.h>
+@@ -59,7 +60,8 @@
+  * uncached region.  This will no doubt cause big problems if memory allocated
+  * here is not also freed properly. -- JW
+  */
+-void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
++void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, unsigned long attrs)
+ {
+ 	unsigned long order, vaddr;
+ 	void *ret;
+@@ -154,7 +156,6 @@ void *consistent_alloc(gfp_t gfp, size_t size, dma_addr_t *dma_handle)
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL(consistent_alloc);
+ 
+ #ifdef CONFIG_MMU
+ static pte_t *consistent_virt_to_pte(void *vaddr)
+@@ -178,7 +179,8 @@ unsigned long consistent_virt_to_pfn(void *vaddr)
+ /*
+  * free page(s) as defined by the above mapping.
+  */
+-void consistent_free(size_t size, void *vaddr)
++void arch_dma_free(struct device *dev, size_t size, void *vaddr,
++		dma_addr_t dma_addr, unsigned long attrs)
+ {
+ 	struct page *page;
+ 
+@@ -218,7 +220,6 @@ void consistent_free(size_t size, void *vaddr)
+ 	flush_tlb_all();
+ #endif
+ }
+-EXPORT_SYMBOL(consistent_free);
+ 
+ /*
+  * make an area consistent.
 -- 
-2.9.0
+2.17.0
 
