@@ -1,82 +1,64 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:03:08 +0000
-Subject: [PATCH 17/22] sh: introduce a sh_cacheop_vaddr helper
-Message-Id: <20180420080313.18796-18-hch@lst.de>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Fri, 20 Apr 2018 20:52:19 +0000
+Subject: [PATCH v4 0/2] sparc64: Add privileged ADI driver
+Message-Id: <20180420205221.488589-1-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-And use it in the maple bus code to avoid a dma API dependency.
+ADI is a feature supported on SPARC M7 and newer processors to allow
+hardware to catch rogue accesses to memory. ADI is supported for data
+fetches only and not instruction fetches. An app can enable ADI on its
+data pages, set version tags on them and use versioned addresses to
+access the data pages. Upper bits of the address contain the version
+tag. On M7 processors, upper four bits (bits 63-60) contain the version
+tag. If a rogue app attempts to access ADI enabled data pages, its
+access is blocked and processor generates an exception. Please see
+Documentation/sparc/adi.txt for further details.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/sh/include/asm/cacheflush.h | 7 +++++++
- arch/sh/mm/consistent.c          | 5 +----
- drivers/sh/maple/maple.c         | 7 ++++---
- 3 files changed, 12 insertions(+), 7 deletions(-)
+This patchset implements a char driver to read/write ADI versions from
+privileged user space processes.  Intended consumers are makedumpfile
+and crash.
 
-diff --git a/arch/sh/include/asm/cacheflush.h b/arch/sh/include/asm/cacheflush.h
-index d103ab5a4e4b..b932e42ef028 100644
---- a/arch/sh/include/asm/cacheflush.h
-+++ b/arch/sh/include/asm/cacheflush.h
-@@ -101,5 +101,12 @@ void kunmap_coherent(void *kvaddr);
- 
- void cpu_cache_init(void);
- 
-+static inline void *sh_cacheop_vaddr(void *vaddr)
-+{
-+	if (__in_29bit_mode())
-+		vaddr = (void *)CAC_ADDR((unsigned long)vaddr);
-+	return vaddr;
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* __ASM_SH_CACHEFLUSH_H */
-diff --git a/arch/sh/mm/consistent.c b/arch/sh/mm/consistent.c
-index af2f28572119..516d481525e1 100644
---- a/arch/sh/mm/consistent.c
-+++ b/arch/sh/mm/consistent.c
-@@ -69,10 +69,7 @@ void dma_generic_free_coherent(struct device *dev, size_t size,
- void sh_sync_dma_for_device(void *vaddr, size_t size,
- 		    enum dma_data_direction direction)
- {
--	void *addr;
--
--	addr = __in_29bit_mode() ?
--	       (void *)CAC_ADDR((unsigned long)vaddr) : vaddr;
-+	void *addr = sh_cacheop_vaddr(vaddr);
- 
- 	switch (direction) {
- 	case DMA_FROM_DEVICE:		/* invalidate only */
-diff --git a/drivers/sh/maple/maple.c b/drivers/sh/maple/maple.c
-index 7525039d812c..c9c354bd713a 100644
---- a/drivers/sh/maple/maple.c
-+++ b/drivers/sh/maple/maple.c
-@@ -300,8 +300,8 @@ static void maple_send(void)
- 	mutex_unlock(&maple_wlist_lock);
- 	if (maple_packets > 0) {
- 		for (i = 0; i < (1 << MAPLE_DMA_PAGES); i++)
--			sh_sync_dma_for_device(maple_sendbuf + i * PAGE_SIZE,
--				       PAGE_SIZE, DMA_BIDIRECTIONAL);
-+			__flush_purge_region(maple_sendbuf + i * PAGE_SIZE,
-+					PAGE_SIZE);
- 	}
- 
- finish:
-@@ -642,7 +642,8 @@ static void maple_dma_handler(struct work_struct *work)
- 		list_for_each_entry_safe(mq, nmq, &maple_sentq, list) {
- 			mdev = mq->dev;
- 			recvbuf = mq->recvbuf->buf;
--			sh_sync_dma_for_device(recvbuf, 0x400, DMA_FROM_DEVICE);
-+			__flush_invalidate_region(sh_cacheop_vaddr(recvbuf),
-+					0x400);
- 			code = recvbuf[0];
- 			kfree(mq->sendbuf);
- 			list_del_init(&mq->list);
+v4:
+  * Fixed messed up subject lines.
+v3:
+  * Really fixed the copyright headers to use SPDX GPL v2.  Really.
+v2:
+  * Simplified copyright headers
+  * Completely reworked sparc64 selftests Makefiles.  Used the
+    android selftests Makefiles as an example
+  * Added run.sh and drivers_test.sh to the sparc64 selftest
+    directory.  Used bpf/test_kmod.sh and the android selftests
+    as examples
+  * Minor cleanups in the selftest adi-test.c
+  * Added calls to ksft_test_*() in the adi-test.c
+
+Tom Hromatka (2):
+  char: sparc64: Add privileged ADI driver
+  selftests: sparc64: char: Selftest for privileged ADI driver
+
+ drivers/char/Kconfig                               |  12 +
+ drivers/char/Makefile                              |   1 +
+ drivers/char/adi.c                                 | 240 +++++++
+ tools/testing/selftests/Makefile                   |   1 +
+ tools/testing/selftests/sparc64/Makefile           |  46 ++
+ tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
+ tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
+ tools/testing/selftests/sparc64/drivers/adi-test.c | 721 +++++++++++++++++++++
+ .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
+ tools/testing/selftests/sparc64/run.sh             |   3 +
+ 10 files changed, 1070 insertions(+)
+ create mode 100644 drivers/char/adi.c
+ create mode 100644 tools/testing/selftests/sparc64/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
+ create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
+ create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
+ create mode 100755 tools/testing/selftests/sparc64/run.sh
+
 -- 
-2.17.0
+2.15.0
 
