@@ -1,76 +1,95 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 25 Apr 2018 05:15:35 +0000
-Subject: [PATCH 09/13] PCI: remove CONFIG_PCI_BUS_ADDR_T_64BIT
-Message-Id: <20180425051539.1989-10-hch@lst.de>
+Date: Fri, 20 Apr 2018 08:02:55 +0000
+Subject: [PATCH 04/22] alpha: use dma_direct_ops for jensen
+Message-Id: <20180420080313.18796-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425051539.1989-1-hch@lst.de>
-In-Reply-To: <20180425051539.1989-1-hch@lst.de>
+References: <20180420080313.18796-1-hch@lst.de>
+In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-This symbol is now always identical to CONFIG_ARCH_DMA_ADDR_T_64BIT, so
-remove it.
+The generic dma_direct implementation does the same thing as the alpha
+pci-noop implementation, just with more bells and whistles.  And unlike
+the current code it at least has a theoretical chance to actually compile.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- drivers/pci/Kconfig | 4 ----
- drivers/pci/bus.c   | 4 ++--
- include/linux/pci.h | 2 +-
- 3 files changed, 3 insertions(+), 7 deletions(-)
+ arch/alpha/Kconfig                   |  1 +
+ arch/alpha/include/asm/dma-mapping.h |  4 ++++
+ arch/alpha/kernel/pci-noop.c         | 33 ----------------------------
+ 3 files changed, 5 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-index 34b56a8f8480..29a487f31dae 100644
---- a/drivers/pci/Kconfig
-+++ b/drivers/pci/Kconfig
-@@ -5,10 +5,6 @@
+diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
+index aa7df1a36fd0..94af0c7f494a 100644
+--- a/arch/alpha/Kconfig
++++ b/arch/alpha/Kconfig
+@@ -204,6 +204,7 @@ config ALPHA_EIGER
+ config ALPHA_JENSEN
+ 	bool "Jensen"
+ 	depends on BROKEN
++	select DMA_DIRECT_OPS
+ 	help
+ 	  DEC PC 150 AXP (aka Jensen): This is a very old Digital system - one
+ 	  of the first-generation Alpha systems. A number of these systems
+diff --git a/arch/alpha/include/asm/dma-mapping.h b/arch/alpha/include/asm/dma-mapping.h
+index b78f61f20796..76ce923ecca1 100644
+--- a/arch/alpha/include/asm/dma-mapping.h
++++ b/arch/alpha/include/asm/dma-mapping.h
+@@ -6,7 +6,11 @@ extern const struct dma_map_ops *dma_ops;
  
- source "drivers/pci/pcie/Kconfig"
- 
--config PCI_BUS_ADDR_T_64BIT
--	def_bool y if (ARCH_DMA_ADDR_T_64BIT || 64BIT)
--	depends on PCI
--
- config PCI_MSI
- 	bool "Message Signaled Interrupts (MSI and MSI-X)"
- 	depends on PCI
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index bc2ded4c451f..35b7fc87eac5 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -120,7 +120,7 @@ int devm_request_pci_bus_resources(struct device *dev,
- EXPORT_SYMBOL_GPL(devm_request_pci_bus_resources);
- 
- static struct pci_bus_region pci_32_bit = {0, 0xffffffffULL};
--#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
-+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
- static struct pci_bus_region pci_64_bit = {0,
- 				(pci_bus_addr_t) 0xffffffffffffffffULL};
- static struct pci_bus_region pci_high = {(pci_bus_addr_t) 0x100000000ULL,
-@@ -230,7 +230,7 @@ int pci_bus_alloc_resource(struct pci_bus *bus, struct resource *res,
- 					  resource_size_t),
- 		void *alignf_data)
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
  {
--#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
-+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
- 	int rc;
++#ifdef CONFIG_ALPHA_JENSEN
++	return &dma_direct_ops;
++#else
+ 	return dma_ops;
++#endif
+ }
  
- 	if (res->flags & IORESOURCE_MEM_64) {
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 73178a2fcee0..55371cb827ad 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -670,7 +670,7 @@ int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
- int raw_pci_write(unsigned int domain, unsigned int bus, unsigned int devfn,
- 		  int reg, int len, u32 val);
- 
--#ifdef CONFIG_PCI_BUS_ADDR_T_64BIT
-+#ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
- typedef u64 pci_bus_addr_t;
- #else
- typedef u32 pci_bus_addr_t;
+ #endif	/* _ALPHA_DMA_MAPPING_H */
+diff --git a/arch/alpha/kernel/pci-noop.c b/arch/alpha/kernel/pci-noop.c
+index b6ebb65127a8..c7c5879869d3 100644
+--- a/arch/alpha/kernel/pci-noop.c
++++ b/arch/alpha/kernel/pci-noop.c
+@@ -102,36 +102,3 @@ SYSCALL_DEFINE5(pciconfig_write, unsigned long, bus, unsigned long, dfn,
+ 	else
+ 		return -ENODEV;
+ }
+-
+-static void *alpha_noop_alloc_coherent(struct device *dev, size_t size,
+-				       dma_addr_t *dma_handle, gfp_t gfp,
+-				       unsigned long attrs)
+-{
+-	void *ret;
+-
+-	if (!dev || *dev->dma_mask >= 0xffffffffUL)
+-		gfp &= ~GFP_DMA;
+-	ret = (void *)__get_free_pages(gfp, get_order(size));
+-	if (ret) {
+-		memset(ret, 0, size);
+-		*dma_handle = virt_to_phys(ret);
+-	}
+-	return ret;
+-}
+-
+-static int alpha_noop_supported(struct device *dev, u64 mask)
+-{
+-	return mask < 0x00ffffffUL ? 0 : 1;
+-}
+-
+-const struct dma_map_ops alpha_noop_ops = {
+-	.alloc			= alpha_noop_alloc_coherent,
+-	.free			= dma_noop_free_coherent,
+-	.map_page		= dma_noop_map_page,
+-	.map_sg			= dma_noop_map_sg,
+-	.mapping_error		= dma_noop_mapping_error,
+-	.dma_supported		= alpha_noop_supported,
+-};
+-
+-const struct dma_map_ops *dma_ops = &alpha_noop_ops;
+-EXPORT_SYMBOL(dma_ops);
 -- 
 2.17.0
 
