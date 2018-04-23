@@ -1,930 +1,313 @@
 From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Thu, 26 Apr 2018 16:25:20 +0000
-Subject: Re: [PATCH v5 2/2] selftests: sparc64: char: Selftest for privileged ADI driver
-Message-Id: <5dc5d9d1-9e88-1fd0-6b36-e77e4996eb8c@oracle.com>
+Date: Mon, 23 Apr 2018 17:33:31 +0000
+Subject: [PATCH v5 1/2] char: sparc64: Add privileged ADI driver
+Message-Id: <20180423173332.561489-2-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180423173332.561489-1-tom.hromatka@oracle.com>
- <20180423173332.561489-3-tom.hromatka@oracle.com>
- <ac23d601-b6be-9455-0c62-65729c15c11d@kernel.org>
-In-Reply-To: <ac23d601-b6be-9455-0c62-65729c15c11d@kernel.org>
+In-Reply-To: <20180423173332.561489-1-tom.hromatka@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+SPARC M7 and newer processors utilize ADI to version and
+protect memory.  This driver is capable of reading/writing
+ADI/MCD versions from privileged user space processes.
+Addresses in the adi file are mapped linearly to physical
+memory at a ratio of 1:adi_blksz.  Thus, a read (or write)
+of offset K in the file operates upon the ADI version at
+physical address K * adi_blksz.  The version information
+is encoded as one version per byte.  Intended consumers
+are makedumpfile and crash.
 
+Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
+Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+---
+ drivers/char/Kconfig  |  12 +++
+ drivers/char/Makefile |   1 +
+ drivers/char/adi.c    | 240 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 253 insertions(+)
+ create mode 100644 drivers/char/adi.c
 
-On 04/23/2018 03:01 PM, Shuah Khan wrote:
-> On 04/23/2018 11:33 AM, Tom Hromatka wrote:
->> Add a selftest for the sparc64 privileged ADI driver.  These
->> tests verify the read(), pread(), write(), pwrite(), and seek()
->> functionality of the driver.  The tests also report simple
->> performance statistics:
->>
->>          Syscall Call    AvgTime AvgSize
->>                  Count   (ticks) (bytes)
->>          -------------------------------
->>          read          3  119638    8133
->>          pread         4  118164    6741
->>          write         3  339442    8133
->>          pwrite        4  280134    6741
->>          seek         10    2919       0
->>          Pass 8 Fail 0 Xfail 0 Xpass 0 Skip 0 Error 0
->>
->> Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
->> Reviewed-by: Allen Pais <allen.pais@oracle.com>
->> ---
->>   tools/testing/selftests/Makefile                   |   1 +
->>   tools/testing/selftests/sparc64/Makefile           |  46 ++
->>   tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
->>   tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
->>   tools/testing/selftests/sparc64/drivers/adi-test.c | 721 +++++++++++++++++++++
->>   .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
->>   tools/testing/selftests/sparc64/run.sh             |   3 +
->>   7 files changed, 817 insertions(+)
->>   create mode 100644 tools/testing/selftests/sparc64/Makefile
->>   create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
->>   create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
->>   create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
->>   create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
->>   create mode 100755 tools/testing/selftests/sparc64/run.sh
->>
->> diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
->> index 7442dfb73b7f..94da632579e7 100644
->> --- a/tools/testing/selftests/Makefile
->> +++ b/tools/testing/selftests/Makefile
->> @@ -28,6 +28,7 @@ TARGETS += ptrace
->>   TARGETS += seccomp
->>   TARGETS += sigaltstack
->>   TARGETS += size
->> +TARGETS += sparc64
->>   TARGETS += splice
->>   TARGETS += static_keys
->>   TARGETS += sync
->> diff --git a/tools/testing/selftests/sparc64/Makefile b/tools/testing/selftests/sparc64/Makefile
->> new file mode 100644
->> index 000000000000..2082eeffd779
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/Makefile
->> @@ -0,0 +1,46 @@
->> +SUBDIRS := drivers
->> +
->> +TEST_PROGS := run.sh
->> +
->> +.PHONY: all clean
->> +
->> +include ../lib.mk
->> +
->> +all:
->> +	@for DIR in $(SUBDIRS); do		\
->> +		BUILD_TARGET=$(OUTPUT)/$$DIR;	\
->> +		mkdir $$BUILD_TARGET  -p;	\
->> +		make OUTPUT=$$BUILD_TARGET -C $$DIR $@;\
->> +		#SUBDIR test prog name should be in the form: SUBDIR_test.sh \
->> +		TEST=$$DIR"_test.sh"; \
->> +		if [ -e $$DIR/$$TEST ]; then \
->> +			rsync -a $$DIR/$$TEST $$BUILD_TARGET/; \
->> +		fi \
->> +	done
->> +
->> +override define RUN_TESTS
->> +	@cd $(OUTPUT); ./run.sh
->> +endef
->> +
->> +override define INSTALL_RULE
->> +	mkdir -p $(INSTALL_PATH)
->> +	install -t $(INSTALL_PATH) $(TEST_PROGS) $(TEST_PROGS_EXTENDED) $(TEST_FILES)
->> +
->> +	@for SUBDIR in $(SUBDIRS); do \
->> +		BUILD_TARGET=$(OUTPUT)/$$SUBDIR;	\
->> +		mkdir $$BUILD_TARGET  -p;	\
->> +		$(MAKE) OUTPUT=$$BUILD_TARGET -C $$SUBDIR INSTALL_PATH=$(INSTALL_PATH)/$$SUBDIR install; \
->> +	done;
->> +endef
->> +
->> +override define EMIT_TESTS
->> +	echo "./run.sh"
->> +endef
->> +
->> +override define CLEAN
->> +	@for DIR in $(SUBDIRS); do		\
->> +		BUILD_TARGET=$(OUTPUT)/$$DIR;	\
->> +		mkdir $$BUILD_TARGET  -p;	\
->> +		make OUTPUT=$$BUILD_TARGET -C $$DIR $@;\
->> +	done
->> +endef
->> diff --git a/tools/testing/selftests/sparc64/drivers/.gitignore b/tools/testing/selftests/sparc64/drivers/.gitignore
->> new file mode 100644
->> index 000000000000..90e835ed74e6
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/drivers/.gitignore
->> @@ -0,0 +1 @@
->> +adi-test
->> diff --git a/tools/testing/selftests/sparc64/drivers/Makefile b/tools/testing/selftests/sparc64/drivers/Makefile
->> new file mode 100644
->> index 000000000000..6264f40bbdbc
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/drivers/Makefile
->> @@ -0,0 +1,15 @@
->> +
->> +INCLUDEDIR := -I.
->> +CFLAGS := $(CFLAGS) $(INCLUDEDIR) -Wall -O2 -g
->> +
->> +TEST_GEN_FILES := adi-test
->> +
->> +all: $(TEST_GEN_FILES)
->> +
->> +$(TEST_GEN_FILES): adi-test.c
->> +
->> +TEST_PROGS := drivers_test.sh
->> +
->> +include ../../lib.mk
->> +
->> +$(OUTPUT)/adi-test: adi-test.c
->> diff --git a/tools/testing/selftests/sparc64/drivers/adi-test.c b/tools/testing/selftests/sparc64/drivers/adi-test.c
->> new file mode 100644
->> index 000000000000..95d93c6a88a5
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/drivers/adi-test.c
->> @@ -0,0 +1,721 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * selftest for sparc64's privileged ADI driver
->> + *
->> + * Author: Tom Hromatka <tom.hromatka@oracle.com>
->> + */
->> +#include <linux/kernel.h>
->> +#include <errno.h>
->> +#include <fcntl.h>
->> +#include <stdarg.h>
->> +#include <stdio.h>
->> +#include <stdlib.h>
->> +#include <string.h>
->> +#include <sys/syscall.h>
->> +#include <sys/types.h>
->> +#include <sys/stat.h>
->> +#include <unistd.h>
->> +
->> +#include "../../kselftest.h"
->> +
->> +#define DEBUG_LEVEL_1_BIT	(0x0001)
->> +#define DEBUG_LEVEL_2_BIT	(0x0002)
->> +#define DEBUG_LEVEL_3_BIT	(0x0004)
->> +#define DEBUG_LEVEL_4_BIT	(0x0008)
->> +#define DEBUG_TIMING_BIT	(0x1000)
->> +
->> +#ifndef ARRAY_SIZE
->> +# define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
->> +#endif
->> +
->> +/* bit mask of enabled bits to print */
->> +#define DEBUG 0x0001
->> +
->> +#define DEBUG_PRINT_L1(...)	debug_print(DEBUG_LEVEL_1_BIT, __VA_ARGS__)
->> +#define DEBUG_PRINT_L2(...)	debug_print(DEBUG_LEVEL_2_BIT, __VA_ARGS__)
->> +#define DEBUG_PRINT_L3(...)	debug_print(DEBUG_LEVEL_3_BIT, __VA_ARGS__)
->> +#define DEBUG_PRINT_L4(...)	debug_print(DEBUG_LEVEL_4_BIT, __VA_ARGS__)
->> +#define DEBUG_PRINT_T(...)	debug_print(DEBUG_TIMING_BIT, __VA_ARGS__)
->> +
->> +static void debug_print(int level, const char *s, ...)
->> +{
->> +	va_list args;
->> +
->> +	va_start(args, s);
->> +
->> +	if (DEBUG & level)
->> +		vfprintf(stdout, s, args);
->> +	va_end(args);
->> +}
->> +
->> +#ifndef min
->> +#define min(x, y) ((x) < (y) ? x : y)
->> +#endif
->> +
->> +#define RETURN_FROM_TEST(_ret) \
->> +	do { \
->> +		DEBUG_PRINT_L1( \
->> +			"\tTest %s returned %d\n", __func__, _ret); \
->> +		return _ret; \
->> +	} while (0)
->> +
->> +#define ADI_BLKSZ	64
->> +#define ADI_MAX_VERSION	15
->> +
->> +#define TEST_STEP_FAILURE(_ret) \
->> +	do { \
->> +		fprintf(stderr, "\tTest step failure: %d at %s:%d\n", \
->> +			_ret, __func__, __LINE__); \
->> +		goto out; \
->> +	} while (0)
->> +
->> +#define RDTICK(_x) \
->> +	asm volatile(" rd %%tick, %0\n" : "=r" (_x))
->> +
->> +static int random_version(void)
->> +{
->> +	long tick;
->> +
->> +	RDTICK(tick);
->> +
->> +	return tick % (ADI_MAX_VERSION + 1);
->> +}
->> +
->> +#define MAX_RANGES_SUPPORTED	5
->> +static const char system_ram_str[] = "System RAM\n";
->> +static int range_count;
->> +static unsigned long long int start_addr[MAX_RANGES_SUPPORTED];
->> +static unsigned long long int   end_addr[MAX_RANGES_SUPPORTED];
->> +
->> +struct stats {
->> +	char		name[16];
->> +	unsigned long	total;
->> +	unsigned long	count;
->> +	unsigned long	bytes;
->> +};
->> +
->> +static struct stats read_stats = {
->> +	.name = "read", .total = 0, .count = 0, .bytes = 0};
->> +static struct stats pread_stats = {
->> +	.name = "pread", .total = 0, .count = 0, .bytes = 0};
->> +static struct stats write_stats = {
->> +	.name = "write", .total = 0, .count = 0, .bytes = 0};
->> +static struct stats pwrite_stats = {
->> +	.name = "pwrite", .total = 0, .count = 0, .bytes = 0};
->> +static struct stats seek_stats = {
->> +	.name = "seek", .total = 0, .count = 0, .bytes = 0};
->> +
->> +static void update_stats(struct stats * const ustats,
->> +			 unsigned long measurement, unsigned long bytes)
->> +{
->> +	ustats->total += measurement;
->> +	ustats->bytes += bytes;
->> +	ustats->count++;
->> +}
->> +
->> +static void print_ustats(const struct stats * const ustats)
->> +{
->> +	DEBUG_PRINT_L1("%s\t%7d\t%7.0f\t%7.0f\n",
->> +		       ustats->name, ustats->count,
->> +		       (float)ustats->total / (float)ustats->count,
->> +		       (float)ustats->bytes / (float)ustats->count);
->> +}
->> +
->> +static void print_stats(void)
->> +{
->> +	DEBUG_PRINT_L1("\nSyscall\tCall\tAvgTime\tAvgSize\n"
->> +		       "\tCount\t(ticks)\t(bytes)\n"
->> +		       "-------------------------------\n");
->> +
->> +	print_ustats(&read_stats);
->> +	print_ustats(&pread_stats);
->> +	print_ustats(&write_stats);
->> +	print_ustats(&pwrite_stats);
->> +	print_ustats(&seek_stats);
->> +}
->> +
->> +static int build_memory_map(void)
->> +{
->> +	char line[256];
->> +	FILE *fp;
->> +	int i;
->> +
->> +	range_count = 0;
->> +
->> +	fp = fopen("/proc/iomem", "r");
->> +	if (!fp) {
->> +		fprintf(stderr, "/proc/iomem: error %d: %s\n",
->> +			errno, strerror(errno));
->> +		return -errno;
->> +	}
->> +
->> +	while (fgets(line, sizeof(line), fp) != 0) {
->> +		if (strstr(line, system_ram_str)) {
->> +			char *dash, *end_ptr;
->> +
->> +			/* Given a line like this:
->> +			 * d0400000-10ffaffff : System RAM
->> +			 * replace the "-" with a space
->> +			 */
->> +			dash = strstr(line, "-");
->> +			dash[0] = 0x20;
->> +
->> +			start_addr[range_count] = strtoull(line, &end_ptr, 16);
->> +			end_addr[range_count] = strtoull(end_ptr, NULL, 16);
->> +			range_count++;
->> +		}
->> +	}
->> +
->> +	fclose(fp);
->> +
->> +	DEBUG_PRINT_L1("RAM Ranges\n");
->> +	for (i = 0; i < range_count; i++)
->> +		DEBUG_PRINT_L1("\trange %d: 0x%llx\t- 0x%llx\n",
->> +			       i, start_addr[i], end_addr[i]);
->> +
->> +	if (range_count = 0) {
->> +		fprintf(stderr, "No valid address ranges found.  Error.\n");
->> +		return -1;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int read_adi(int fd, unsigned char *buf, int buf_sz)
->> +{
->> +	int ret, bytes_read = 0;
->> +	long start, end, elapsed_time = 0;
->> +
->> +	do {
->> +		RDTICK(start);
->> +		ret = read(fd, buf + bytes_read, buf_sz - bytes_read);
->> +		RDTICK(end);
->> +		if (ret < 0)
->> +			return -errno;
->> +
->> +		elapsed_time += end - start;
->> +		update_stats(&read_stats, elapsed_time, buf_sz);
->> +		bytes_read += ret;
->> +
->> +	} while (bytes_read < buf_sz);
->> +
->> +	DEBUG_PRINT_T("\tread elapsed timed = %ld\n", elapsed_time);
->> +	DEBUG_PRINT_L3("\tRead  %d bytes\n", bytes_read);
->> +
->> +	return bytes_read;
->> +}
->> +
->> +static int pread_adi(int fd, unsigned char *buf,
->> +		     int buf_sz, unsigned long offset)
->> +{
->> +	int ret, i, bytes_read = 0;
->> +	unsigned long cur_offset;
->> +	long start, end, elapsed_time = 0;
->> +
->> +	cur_offset = offset;
->> +	do {
->> +		RDTICK(start);
->> +		ret = pread(fd, buf + bytes_read, buf_sz - bytes_read,
->> +			    cur_offset);
->> +		RDTICK(end);
->> +		if (ret < 0)
->> +			return -errno;
->> +
->> +		elapsed_time += end - start;
->> +		update_stats(&pread_stats, elapsed_time, buf_sz);
->> +		bytes_read += ret;
->> +		cur_offset += ret;
->> +
->> +	} while (bytes_read < buf_sz);
->> +
->> +	DEBUG_PRINT_T("\tpread elapsed timed = %ld\n", elapsed_time);
->> +	DEBUG_PRINT_L3("\tRead  %d bytes starting at offset 0x%lx\n",
->> +		       bytes_read, offset);
->> +	for (i = 0; i < bytes_read; i++)
->> +		DEBUG_PRINT_L4("\t\t0x%lx\t%d\n", offset + i, buf[i]);
->> +
->> +	return bytes_read;
->> +}
->> +
->> +static int write_adi(int fd, const unsigned char * const buf, int buf_sz)
->> +{
->> +	int ret, bytes_written = 0;
->> +	long start, end, elapsed_time = 0;
->> +
->> +	do {
->> +		RDTICK(start);
->> +		ret = write(fd, buf + bytes_written, buf_sz - bytes_written);
->> +		RDTICK(end);
->> +		if (ret < 0)
->> +			return -errno;
->> +
->> +		elapsed_time += (end - start);
->> +		update_stats(&write_stats, elapsed_time, buf_sz);
->> +		bytes_written += ret;
->> +	} while (bytes_written < buf_sz);
->> +
->> +	DEBUG_PRINT_T("\twrite elapsed timed = %ld\n", elapsed_time);
->> +	DEBUG_PRINT_L3("\tWrote %d of %d bytes\n", bytes_written, buf_sz);
->> +
->> +	return bytes_written;
->> +}
->> +
->> +static int pwrite_adi(int fd, const unsigned char * const buf,
->> +		      int buf_sz, unsigned long offset)
->> +{
->> +	int ret, bytes_written = 0;
->> +	unsigned long cur_offset;
->> +	long start, end, elapsed_time = 0;
->> +
->> +	cur_offset = offset;
->> +
->> +	do {
->> +		RDTICK(start);
->> +		ret = pwrite(fd, buf + bytes_written,
->> +			     buf_sz - bytes_written, cur_offset);
->> +		RDTICK(end);
->> +		if (ret < 0) {
->> +			fprintf(stderr, "pwrite(): error %d: %s\n",
->> +				errno, strerror(errno));
->> +			return -errno;
->> +		}
->> +
->> +		elapsed_time += (end - start);
->> +		update_stats(&pwrite_stats, elapsed_time, buf_sz);
->> +		bytes_written += ret;
->> +		cur_offset += ret;
->> +
->> +	} while (bytes_written < buf_sz);
->> +
->> +	DEBUG_PRINT_T("\tpwrite elapsed timed = %ld\n", elapsed_time);
->> +	DEBUG_PRINT_L3("\tWrote %d of %d bytes starting at address 0x%lx\n",
->> +		       bytes_written, buf_sz, offset);
->> +
->> +	return bytes_written;
->> +}
->> +
->> +static off_t seek_adi(int fd, off_t offset, int whence)
->> +{
->> +	long start, end;
->> +	off_t ret;
->> +
->> +	RDTICK(start);
->> +	ret = lseek(fd, offset, whence);
->> +	RDTICK(end);
->> +	DEBUG_PRINT_L2("\tlseek ret = 0x%llx\n", ret);
->> +	if (ret < 0)
->> +		goto out;
->> +
->> +	DEBUG_PRINT_T("\tlseek elapsed timed = %ld\n", end - start);
->> +	update_stats(&seek_stats, end - start, 0);
->> +
->> +out:
->> +	(void)lseek(fd, 0, SEEK_END);
->> +	return ret;
->> +}
->> +
->> +static int test0_prpw_aligned_1byte(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		(end_addr[range_count - 1] - 0x1000) & ~(ADI_BLKSZ - 1);
->> +	unsigned char version[1], expected_version;
->> +	loff_t offset;
->> +	int ret;
->> +
->> +	version[0] = random_version();
->> +	expected_version = version[0];
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +
->> +	ret = pwrite_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	ret = pread_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	if (expected_version != version[0]) {
->> +		DEBUG_PRINT_L2("\tExpected version %d but read version %d\n",
->> +			       expected_version, version[0]);
->> +		TEST_STEP_FAILURE(-expected_version);
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +#define TEST1_VERSION_SZ	4096
->> +static int test1_prpw_aligned_4096bytes(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		(end_addr[range_count - 1] - 0x6000) & ~(ADI_BLKSZ - 1);
->> +	unsigned char version[TEST1_VERSION_SZ],
->> +		expected_version[TEST1_VERSION_SZ];
->> +	loff_t offset;
->> +	int ret, i;
->> +
->> +	for (i = 0; i < TEST1_VERSION_SZ; i++) {
->> +		version[i] = random_version();
->> +		expected_version[i] = version[i];
->> +	}
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +
->> +	ret = pwrite_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	ret = pread_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	for (i = 0; i < TEST1_VERSION_SZ; i++) {
->> +		if (expected_version[i] != version[i]) {
->> +			DEBUG_PRINT_L2(
->> +				"\tExpected version %d but read version %d\n",
->> +				expected_version, version[0]);
->> +			TEST_STEP_FAILURE(-expected_version[i]);
->> +		}
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +#define TEST2_VERSION_SZ	10327
->> +static int test2_prpw_aligned_10327bytes(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		(start_addr[0] + 0x6000) & ~(ADI_BLKSZ - 1);
->> +	unsigned char version[TEST2_VERSION_SZ],
->> +		expected_version[TEST2_VERSION_SZ];
->> +	loff_t offset;
->> +	int ret, i;
->> +
->> +	for (i = 0; i < TEST2_VERSION_SZ; i++) {
->> +		version[i] = random_version();
->> +		expected_version[i] = version[i];
->> +	}
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +
->> +	ret = pwrite_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	ret = pread_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	for (i = 0; i < TEST2_VERSION_SZ; i++) {
->> +		if (expected_version[i] != version[i]) {
->> +			DEBUG_PRINT_L2(
->> +				"\tExpected version %d but read version %d\n",
->> +				expected_version, version[0]);
->> +			TEST_STEP_FAILURE(-expected_version[i]);
->> +		}
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +#define TEST3_VERSION_SZ	12541
->> +static int test3_prpw_unaligned_12541bytes(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		((start_addr[0] + 0xC000) & ~(ADI_BLKSZ - 1)) + 17;
->> +	unsigned char version[TEST3_VERSION_SZ],
->> +		expected_version[TEST3_VERSION_SZ];
->> +	loff_t offset;
->> +	int ret, i;
->> +
->> +	for (i = 0; i < TEST3_VERSION_SZ; i++) {
->> +		version[i] = random_version();
->> +		expected_version[i] = version[i];
->> +	}
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +
->> +	ret = pwrite_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	ret = pread_adi(fd, version, sizeof(version), offset);
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	for (i = 0; i < TEST3_VERSION_SZ; i++) {
->> +		if (expected_version[i] != version[i]) {
->> +			DEBUG_PRINT_L2(
->> +				"\tExpected version %d but read version %d\n",
->> +				expected_version, version[0]);
->> +			TEST_STEP_FAILURE(-expected_version[i]);
->> +		}
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +static int test4_lseek(int fd)
->> +{
->> +#define	OFFSET_ADD	(0x100)
->> +#define OFFSET_SUBTRACT	(0xFFFFFFF000000000)
->> +
->> +	off_t offset_out, offset_in;
->> +	int ret;
->> +
->> +
->> +	offset_in = 0x123456789abcdef0;
->> +	offset_out = seek_adi(fd, offset_in, SEEK_SET);
->> +	if (offset_out != offset_in) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	/* seek to the current offset.  this should return EINVAL */
->> +	offset_out = seek_adi(fd, offset_in, SEEK_SET);
->> +	if (offset_out < 0 && errno = EINVAL)
->> +		DEBUG_PRINT_L2(
->> +			"\tSEEK_SET failed as designed. Not an error\n");
->> +	else {
->> +		ret = -2;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	offset_out = seek_adi(fd, 0, SEEK_CUR);
->> +	if (offset_out != offset_in) {
->> +		ret = -3;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	offset_out = seek_adi(fd, OFFSET_ADD, SEEK_CUR);
->> +	if (offset_out != (offset_in + OFFSET_ADD)) {
->> +		ret = -4;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	offset_out = seek_adi(fd, OFFSET_SUBTRACT, SEEK_CUR);
->> +	if (offset_out != (offset_in + OFFSET_ADD + OFFSET_SUBTRACT)) {
->> +		ret = -5;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +static int test5_rw_aligned_1byte(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		(end_addr[range_count - 1] - 0xF000) & ~(ADI_BLKSZ - 1);
->> +	unsigned char version, expected_version;
->> +	loff_t offset;
->> +	off_t oret;
->> +	int ret;
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +	version = expected_version = random_version();
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = write_adi(fd, &version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = read_adi(fd, &version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	if (expected_version != version) {
->> +		DEBUG_PRINT_L2("\tExpected version %d but read version %d\n",
->> +			       expected_version, version);
->> +		TEST_STEP_FAILURE(-expected_version);
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +#define TEST6_VERSION_SZ        9434
->> +static int test6_rw_aligned_9434bytes(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +		(end_addr[range_count - 1] - 0x5F000) & ~(ADI_BLKSZ - 1);
->> +	unsigned char version[TEST6_VERSION_SZ],
->> +		      expected_version[TEST6_VERSION_SZ];
->> +	loff_t offset;
->> +	off_t oret;
->> +	int ret, i;
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +	for (i = 0; i < TEST6_VERSION_SZ; i++)
->> +		version[i] = expected_version[i] = random_version();
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = write_adi(fd, version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	memset(version, 0, TEST6_VERSION_SZ);
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = read_adi(fd, version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	for (i = 0; i < TEST6_VERSION_SZ; i++) {
->> +		if (expected_version[i] != version[i]) {
->> +			DEBUG_PRINT_L2(
->> +				"\tExpected version %d but read version %d\n",
->> +				expected_version[i], version[i]);
->> +			TEST_STEP_FAILURE(-expected_version[i]);
->> +		}
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +#define TEST7_VERSION_SZ        14963
->> +static int test7_rw_aligned_14963bytes(int fd)
->> +{
->> +	/* somewhat arbitrarily chosen address */
->> +	unsigned long paddr >> +	  ((start_addr[range_count - 1] + 0xF000) & ~(ADI_BLKSZ - 1)) + 39;
->> +	unsigned char version[TEST7_VERSION_SZ],
->> +		      expected_version[TEST7_VERSION_SZ];
->> +	loff_t offset;
->> +	off_t oret;
->> +	int ret, i;
->> +
->> +	offset = paddr / ADI_BLKSZ;
->> +	for (i = 0; i < TEST7_VERSION_SZ; i++) {
->> +		version[i] = random_version();
->> +		expected_version[i] = version[i];
->> +	}
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = write_adi(fd, version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	memset(version, 0, TEST7_VERSION_SZ);
->> +
->> +	oret = seek_adi(fd, offset, SEEK_SET);
->> +	if (oret != offset) {
->> +		ret = -1;
->> +		TEST_STEP_FAILURE(ret);
->> +	}
->> +
->> +	ret = read_adi(fd, version, sizeof(version));
->> +	if (ret != sizeof(version))
->> +		TEST_STEP_FAILURE(ret);
->> +
->> +	for (i = 0; i < TEST7_VERSION_SZ; i++) {
->> +		if (expected_version[i] != version[i]) {
->> +			DEBUG_PRINT_L2(
->> +				"\tExpected version %d but read version %d\n",
->> +				expected_version[i], version[i]);
->> +			TEST_STEP_FAILURE(-expected_version[i]);
->> +		}
->> +
->> +		paddr += ADI_BLKSZ;
->> +	}
->> +
->> +	ret = 0;
->> +out:
->> +	RETURN_FROM_TEST(ret);
->> +}
->> +
->> +static int (*tests[])(int fd) = {
->> +	test0_prpw_aligned_1byte,
->> +	test1_prpw_aligned_4096bytes,
->> +	test2_prpw_aligned_10327bytes,
->> +	test3_prpw_unaligned_12541bytes,
->> +	test4_lseek,
->> +	test5_rw_aligned_1byte,
->> +	test6_rw_aligned_9434bytes,
->> +	test7_rw_aligned_14963bytes,
->> +};
->> +#define TEST_COUNT	ARRAY_SIZE(tests)
->> +
->> +int main(int argc, char *argv[])
->> +{
->> +	int fd, ret, test;
->> +
->> +	ret = build_memory_map();
->> +	if (ret < 0)
->> +		return ret;
->> +
->> +	fd = open("/dev/adi", O_RDWR);
->> +	if (fd < 0) {
->> +		fprintf(stderr, "open: error %d: %s\n",
->> +			errno, strerror(errno));
->> +		return -errno;
->> +	}
->> +
->> +	for (test = 0; test < TEST_COUNT; test++) {
->> +		DEBUG_PRINT_L1("Running test #%d\n", test);
->> +
->> +		ret = (*tests[test])(fd);
->> +		if (ret != 0)
->> +			ksft_test_result_fail("Test #%d failed: error %d\n",
->> +					      test, ret);
->> +		else
->> +			ksft_test_result_pass("Test #%d passed\n", test);
->> +	}
->> +
->> +	print_stats();
->> +	close(fd);
->> +
->> +	if (ksft_get_fail_cnt() > 0)
->> +		ksft_exit_fail();
->> +	else
->> +		ksft_exit_pass();
->> +
->> +	/* it's impossible to get here, but the compiler throws a warning
->> +	 * about control reaching the end of non-void function.  bah.
->> +	 */
->> +	return 0;
->> +}
->> diff --git a/tools/testing/selftests/sparc64/drivers/drivers_test.sh b/tools/testing/selftests/sparc64/drivers/drivers_test.sh
->> new file mode 100755
->> index 000000000000..6d08273b7532
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/drivers/drivers_test.sh
->> @@ -0,0 +1,30 @@
->> +#!/bin/sh
->> +# SPDX-License-Identifier: GPL-2.0
->> +
->> +SRC_TREE=../../../../
->> +
->> +test_run()
->> +{
->> +	if [ -f ${SRC_TREE}/drivers/char/adi.ko ]; then
->> +		insmod ${SRC_TREE}/drivers/char/adi.ko 2> /dev/null
->> +		if [ $? -ne 0 ]; then
->> +			rc=1
->> +		fi
->> +	else
->> +		# Use modprobe dry run to check for missing adi module
->> +		if ! /sbin/modprobe -q -n adi; then
->> +			echo "adi: [SKIP]"
->> +		elif /sbin/modprobe -q adi; then
->> +			echo "adi: ok"
->> +		else
->> +			echo "adi: [FAIL]"
->> +			rc=1
->> +		fi
->> +	fi
->> +	./adi-test
->> +	rmmod adi 2> /dev/null
->> +}
->> +
->> +rc=0
->> +test_run
->> +exit $rc
->> diff --git a/tools/testing/selftests/sparc64/run.sh b/tools/testing/selftests/sparc64/run.sh
->> new file mode 100755
->> index 000000000000..38ad61f9328e
->> --- /dev/null
->> +++ b/tools/testing/selftests/sparc64/run.sh
->> @@ -0,0 +1,3 @@
->> +#!/bin/sh
->> +
->> +(cd drivers; ./drivers_test.sh)
->>
-> Does this test need to be run as root? If so, a check for non-root run
-> to skip test will be a good idea. This can be done later as a separate
-> patch.
-
-Yes, good catch.  Thank you.
-
->
-> Assuming this patch is going through Sparc tree:
->
-> Reviewed-by:  Shuah Khan (Samsung OSG) <shuah@kernel.org>
-
-Awesome!  Thanks so much for your help.
-
-Regards.
-
-Tom
-
->
-> thanks,
-> -- Shuah
+diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+index 40947a796666..5ecddc95a698 100644
+--- a/drivers/char/Kconfig
++++ b/drivers/char/Kconfig
+@@ -540,5 +540,17 @@ source "drivers/s390/char/Kconfig"
+ 
+ source "drivers/char/xillybus/Kconfig"
+ 
++config ADI
++	tristate "SPARC Privileged ADI driver"
++	depends on SPARC64
++	default m
++	help
++	  SPARC M7 and newer processors utilize ADI (Application Data
++	  Integrity) to version and protect memory.  This driver provides
++	  read/write access to the ADI versions for privileged processes.
++	  This feature is also known as MCD (Memory Corruption Detection)
++	  and SSM (Silicon Secured Memory).  Intended consumers of this
++	  driver include crash and makedumpfile.
++
+ endmenu
+ 
+diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+index c97c768cd1dd..b8d42b4e979b 100644
+--- a/drivers/char/Makefile
++++ b/drivers/char/Makefile
+@@ -57,3 +57,4 @@ js-rtc-y = rtc.o
+ 
+ obj-$(CONFIG_XILLYBUS)		+= xillybus/
+ obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
++obj-$(CONFIG_ADI)		+= adi.o
+diff --git a/drivers/char/adi.c b/drivers/char/adi.c
+new file mode 100644
+index 000000000000..062b0d7feda2
+--- /dev/null
++++ b/drivers/char/adi.c
+@@ -0,0 +1,240 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Privileged ADI driver for sparc64
++ *
++ * Author: Tom Hromatka <tom.hromatka@oracle.com>
++ */
++#include <linux/kernel.h>
++#include <linux/miscdevice.h>
++#include <linux/module.h>
++#include <linux/proc_fs.h>
++#include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <asm/asi.h>
++
++#define MODULE_NAME	"adi"
++#define MAX_BUF_SZ	4096
++
++static int adi_open(struct inode *inode, struct file *file)
++{
++	file->f_mode |= FMODE_UNSIGNED_OFFSET;
++	return 0;
++}
++
++static int read_mcd_tag(unsigned long addr)
++{
++	long err;
++	int ver;
++
++	__asm__ __volatile__(
++		"1:	ldxa [%[addr]] %[asi], %[ver]\n"
++		"	mov 0, %[err]\n"
++		"2:\n"
++		"	.section .fixup,#alloc,#execinstr\n"
++		"	.align 4\n"
++		"3:	sethi %%hi(2b), %%g1\n"
++		"	jmpl  %%g1 + %%lo(2b), %%g0\n"
++		"	mov %[invalid], %[err]\n"
++		"	.previous\n"
++		"	.section __ex_table, \"a\"\n"
++		"	.align 4\n"
++		"	.word  1b, 3b\n"
++		"	.previous\n"
++		: [ver] "=r" (ver), [err] "=r" (err)
++		: [addr] "r"  (addr), [invalid] "i" (EFAULT),
++		  [asi] "i" (ASI_MCD_REAL)
++		: "memory", "g1"
++		);
++
++	if (err)
++		return -EFAULT;
++	else
++		return ver;
++}
++
++static ssize_t adi_read(struct file *file, char __user *buf,
++			size_t count, loff_t *offp)
++{
++	size_t ver_buf_sz, bytes_read = 0;
++	int ver_buf_idx = 0;
++	loff_t offset;
++	u8 *ver_buf;
++	ssize_t ret;
++
++	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
++	ver_buf = kmalloc(ver_buf_sz, GFP_KERNEL);
++	if (!ver_buf)
++		return -ENOMEM;
++
++	offset = (*offp) * adi_blksize();
++
++	while (bytes_read < count) {
++		ret = read_mcd_tag(offset);
++		if (ret < 0)
++			goto out;
++
++		ver_buf[ver_buf_idx] = (u8)ret;
++		ver_buf_idx++;
++		offset += adi_blksize();
++
++		if (ver_buf_idx >= ver_buf_sz) {
++			if (copy_to_user(buf + bytes_read, ver_buf,
++					 ver_buf_sz)) {
++				ret = -EFAULT;
++				goto out;
++			}
++
++			bytes_read += ver_buf_sz;
++			ver_buf_idx = 0;
++
++			ver_buf_sz = min(count - bytes_read,
++					 (size_t)MAX_BUF_SZ);
++		}
++	}
++
++	(*offp) += bytes_read;
++	ret = bytes_read;
++out:
++	kfree(ver_buf);
++	return ret;
++}
++
++static int set_mcd_tag(unsigned long addr, u8 ver)
++{
++	long err;
++
++	__asm__ __volatile__(
++		"1:	stxa %[ver], [%[addr]] %[asi]\n"
++		"	mov 0, %[err]\n"
++		"2:\n"
++		"	.section .fixup,#alloc,#execinstr\n"
++		"	.align 4\n"
++		"3:	sethi %%hi(2b), %%g1\n"
++		"	jmpl %%g1 + %%lo(2b), %%g0\n"
++		"	mov %[invalid], %[err]\n"
++		"	.previous\n"
++		"	.section __ex_table, \"a\"\n"
++		"	.align 4\n"
++		"	.word 1b, 3b\n"
++		"	.previous\n"
++		: [err] "=r" (err)
++		: [ver] "r" (ver), [addr] "r"  (addr),
++		  [invalid] "i" (EFAULT), [asi] "i" (ASI_MCD_REAL)
++		: "memory", "g1"
++		);
++
++	if (err)
++		return -EFAULT;
++	else
++		return ver;
++}
++
++static ssize_t adi_write(struct file *file, const char __user *buf,
++			 size_t count, loff_t *offp)
++{
++	size_t ver_buf_sz, bytes_written = 0;
++	loff_t offset;
++	u8 *ver_buf;
++	ssize_t ret;
++	int i;
++
++	if (count <= 0)
++		return -EINVAL;
++
++	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
++	ver_buf = kmalloc(ver_buf_sz, (size_t)GFP_KERNEL);
++	if (!ver_buf)
++		return -ENOMEM;
++
++	offset = (*offp) * adi_blksize();
++
++	do {
++		if (copy_from_user(ver_buf, &buf[bytes_written],
++				   ver_buf_sz)) {
++			ret = -EFAULT;
++			goto out;
++		}
++
++		for (i = 0; i < ver_buf_sz; i++) {
++			ret = set_mcd_tag(offset, ver_buf[i]);
++			if (ret < 0)
++				goto out;
++
++			offset += adi_blksize();
++		}
++
++		bytes_written += ver_buf_sz;
++		ver_buf_sz = min(count - bytes_written, (size_t)MAX_BUF_SZ);
++	} while (bytes_written < count);
++
++	(*offp) += bytes_written;
++	ret = bytes_written;
++out:
++	__asm__ __volatile__("membar #Sync");
++	kfree(ver_buf);
++	return ret;
++}
++
++static loff_t adi_llseek(struct file *file, loff_t offset, int whence)
++{
++	loff_t ret = -EINVAL;
++
++	switch (whence) {
++	case SEEK_END:
++	case SEEK_DATA:
++	case SEEK_HOLE:
++		/* unsupported */
++		return -EINVAL;
++	case SEEK_CUR:
++		if (offset = 0)
++			return file->f_pos;
++
++		offset += file->f_pos;
++		break;
++	case SEEK_SET:
++		break;
++	}
++
++	if (offset != file->f_pos) {
++		file->f_pos = offset;
++		file->f_version = 0;
++		ret = offset;
++	}
++
++	return ret;
++}
++
++static const struct file_operations adi_fops = {
++	.owner		= THIS_MODULE,
++	.llseek		= adi_llseek,
++	.open		= adi_open,
++	.read		= adi_read,
++	.write		= adi_write,
++};
++
++static struct miscdevice adi_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name = MODULE_NAME,
++	.fops = &adi_fops,
++};
++
++static int __init adi_init(void)
++{
++	if (!adi_capable())
++		return -EPERM;
++
++	return misc_register(&adi_miscdev);
++}
++
++static void __exit adi_exit(void)
++{
++	misc_deregister(&adi_miscdev);
++}
++
++module_init(adi_init);
++module_exit(adi_exit);
++
++MODULE_AUTHOR("Tom Hromatka <tom.hromatka@oracle.com>");
++MODULE_DESCRIPTION("Privileged interface to ADI");
++MODULE_VERSION("1.0");
++MODULE_LICENSE("GPL v2");
+-- 
+2.15.0
 
