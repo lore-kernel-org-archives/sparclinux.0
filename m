@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 15 Apr 2018 14:59:42 +0000
+Date: Mon, 23 Apr 2018 17:04:14 +0000
 Subject: [PATCH 07/12] arch: remove the ARCH_PHYS_ADDR_T_64BIT config symbol
-Message-Id: <20180415145947.1248-8-hch@lst.de>
+Message-Id: <20180423170419.20330-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
-In-Reply-To: <20180415145947.1248-1-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -164,7 +164,7 @@ index 47d72c64d687..985388078872 100644
  	prompt "SmartMIPS or microMIPS ASE support"
  
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 39c5377a5460..8bdcd7e44838 100644
+index cc9a616d8934..b3d091d65e05 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -13,11 +13,8 @@ config 64BIT
@@ -217,10 +217,10 @@ index 23d8acca5c90..f52f86f43a4b 100644
  	bool
  	default y
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 414043303ea1..15f228984e70 100644
+index a98a9b14fda2..8fccdaf02bb0 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -1447,6 +1447,7 @@ config HIGHMEM
+@@ -1448,6 +1448,7 @@ config HIGHMEM
  config X86_PAE
  	bool "PAE (Physical Address Extension) Support"
  	depends on X86_32 && !HIGHMEM4G
@@ -228,7 +228,7 @@ index 414043303ea1..15f228984e70 100644
  	select SWIOTLB
  	---help---
  	  PAE is required for NX support, and furthermore enables
-@@ -1474,10 +1475,6 @@ config X86_5LEVEL
+@@ -1475,10 +1476,6 @@ config X86_5LEVEL
  
  	  Say N if unsure.
  
