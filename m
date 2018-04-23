@@ -1,21 +1,142 @@
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Date: Mon, 16 Apr 2018 09:55:04 +0000
-Subject: Re: [PATCH 04/12] iommu-helper: move the IOMMU_HELPER config symbol to lib/
-Message-Id: <69224eb2-7056-4894-36d8-c6e9518df647@linux.vnet.ibm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 23 Apr 2018 17:04:11 +0000
+Subject: [PATCH 04/12] iommu-helper: move the IOMMU_HELPER config symbol to lib/
+Message-Id: <20180423170419.20330-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
- <20180415145947.1248-5-hch@lst.de>
-In-Reply-To: <20180415145947.1248-5-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On 04/15/2018 08:29 PM, Christoph Hellwig wrote:
-> This way we have one central definition of it, and user can select it as
-> needed.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+This way we have one central definition of it, and user can select it as
+needed.
 
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+---
+ arch/powerpc/Kconfig | 4 +---
+ arch/s390/Kconfig    | 5 ++---
+ arch/sparc/Kconfig   | 5 +----
+ arch/x86/Kconfig     | 6 ++----
+ lib/Kconfig          | 3 +++
+ 5 files changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 43e3c8e4e7f4..7698cf89af9c 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -223,6 +223,7 @@ config PPC
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_VIRT_CPU_ACCOUNTING
+ 	select HAVE_IRQ_TIME_ACCOUNTING
++	select IOMMU_HELPER			if PPC64
+ 	select IRQ_DOMAIN
+ 	select IRQ_FORCED_THREADING
+ 	select MODULES_USE_ELF_RELA
+@@ -478,9 +479,6 @@ config MPROFILE_KERNEL
+ 	depends on PPC64 && CPU_LITTLE_ENDIAN
+ 	def_bool !DISABLE_MPROFILE_KERNEL
+ 
+-config IOMMU_HELPER
+-	def_bool PPC64
+-
+ config SWIOTLB
+ 	bool "SWIOTLB support"
+ 	default n
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 199ac3e4da1d..60c4ab854182 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -709,7 +709,9 @@ config QDIO
+ menuconfig PCI
+ 	bool "PCI support"
+ 	select PCI_MSI
++	select IOMMU_HELPER
+ 	select IOMMU_SUPPORT
++
+ 	help
+ 	  Enable PCI support.
+ 
+@@ -733,9 +735,6 @@ config PCI_DOMAINS
+ config HAS_IOMEM
+ 	def_bool PCI
+ 
+-config IOMMU_HELPER
+-	def_bool PCI
+-
+ config NEED_SG_DMA_LENGTH
+ 	def_bool PCI
+ 
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 8767e45f1b2b..44e0f3cd7988 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -67,6 +67,7 @@ config SPARC64
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_CONTEXT_TRACKING
+ 	select HAVE_DEBUG_KMEMLEAK
++	select IOMMU_HELPER
+ 	select SPARSE_IRQ
+ 	select RTC_DRV_CMOS
+ 	select RTC_DRV_BQ4802
+@@ -106,10 +107,6 @@ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
+ 	default y if ARCH_ATU
+ 
+-config IOMMU_HELPER
+-	bool
+-	default y if SPARC64
+-
+ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y if SPARC64
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index cb2c7ecc1fea..fe9713539166 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -871,6 +871,7 @@ config DMI
+ 
+ config GART_IOMMU
+ 	bool "Old AMD GART IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI && AMD_NB
+ 	---help---
+@@ -892,6 +893,7 @@ config GART_IOMMU
+ 
+ config CALGARY_IOMMU
+ 	bool "IBM Calgary IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI
+ 	---help---
+@@ -929,10 +931,6 @@ config SWIOTLB
+ 	  with more than 3 GB of memory.
+ 	  If unsure, say Y.
+ 
+-config IOMMU_HELPER
+-	def_bool y
+-	depends on CALGARY_IOMMU || GART_IOMMU
+-
+ config MAXSMP
+ 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
+ 	depends on X86_64 && SMP && DEBUG_KERNEL
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 5fe577673b98..2f6908577534 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -429,6 +429,9 @@ config SGL_ALLOC
+ 	bool
+ 	default n
+ 
++config IOMMU_HELPER
++	bool
++
+ config DMA_DIRECT_OPS
+ 	bool
+ 	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
+-- 
+2.17.0
 
