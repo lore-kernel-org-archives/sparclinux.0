@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 15 Apr 2018 14:59:43 +0000
+Date: Mon, 23 Apr 2018 17:04:15 +0000
 Subject: [PATCH 08/12] arch: define the ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig
-Message-Id: <20180415145947.1248-9-hch@lst.de>
+Message-Id: <20180423170419.20330-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
-In-Reply-To: <20180415145947.1248-1-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -207,7 +207,7 @@ index 985388078872..e10cc5c7be69 100644
  	bool
  
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 8bdcd7e44838..b85a537421b8 100644
+index b3d091d65e05..a4b2ac7c3d2e 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -13,9 +13,6 @@ config 64BIT
@@ -235,7 +235,7 @@ index f52f86f43a4b..17212ba54ee3 100644
  	hex
  	default 0xC0000000 if 32BIT && MAXPHYSMEM_2GB
 diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index f682dd8d381d..567a130f8db4 100644
+index 89a007672f70..b794a2ab6d15 100644
 --- a/arch/s390/Kconfig
 +++ b/arch/s390/Kconfig
 @@ -35,9 +35,6 @@ config GENERIC_BUG
@@ -264,10 +264,10 @@ index be770b511ddd..c1cfc17eb504 100644
  	bool
  	default y if SPARC64
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 15f228984e70..a95eb9ef3311 100644
+index 8fccdaf02bb0..07b031f99eb1 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -1475,10 +1475,6 @@ config X86_5LEVEL
+@@ -1476,10 +1476,6 @@ config X86_5LEVEL
  
  	  Say N if unsure.
  
