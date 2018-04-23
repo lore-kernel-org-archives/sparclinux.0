@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 15 Apr 2018 14:59:45 +0000
+Date: Mon, 23 Apr 2018 17:04:17 +0000
 Subject: [PATCH 10/12] arm: don't build swiotlb by default
-Message-Id: <20180415145947.1248-11-hch@lst.de>
+Message-Id: <20180423170419.20330-11-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
-In-Reply-To: <20180415145947.1248-1-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
