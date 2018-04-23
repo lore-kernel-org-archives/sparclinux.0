@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 15 Apr 2018 14:59:47 +0000
+Date: Mon, 23 Apr 2018 17:04:19 +0000
 Subject: [PATCH 12/12] swiotlb: remove the CONFIG_DMA_DIRECT_OPS ifdefs
-Message-Id: <20180415145947.1248-13-hch@lst.de>
+Message-Id: <20180423170419.20330-13-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
-In-Reply-To: <20180415145947.1248-1-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,7 +19,7 @@ Signed-off-by: Christoph Hellwig <hch@lst.de>
  1 file changed, 4 deletions(-)
 
 diff --git a/lib/swiotlb.c b/lib/swiotlb.c
-index 47aeb04c1997..07f260319b82 100644
+index fece57566d45..6954f7ad200a 100644
 --- a/lib/swiotlb.c
 +++ b/lib/swiotlb.c
 @@ -692,7 +692,6 @@ void swiotlb_tbl_sync_single(struct device *hwdev, phys_addr_t tlb_addr,
@@ -48,7 +48,7 @@ index 47aeb04c1997..07f260319b82 100644
  {
 @@ -1089,4 +1086,3 @@ const struct dma_map_ops swiotlb_dma_ops = {
  	.unmap_page		= swiotlb_unmap_page,
- 	.dma_supported		= swiotlb_dma_supported,
+ 	.dma_supported		= dma_direct_supported,
  };
 -#endif /* CONFIG_DMA_DIRECT_OPS */
 -- 
