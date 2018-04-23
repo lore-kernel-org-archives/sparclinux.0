@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 15 Apr 2018 14:59:38 +0000
+Date: Mon, 23 Apr 2018 17:04:10 +0000
 Subject: [PATCH 03/12] iommu-helper: mark iommu_is_span_boundary as inline
-Message-Id: <20180415145947.1248-4-hch@lst.de>
+Message-Id: <20180423170419.20330-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180415145947.1248-1-hch@lst.de>
-In-Reply-To: <20180415145947.1248-1-hch@lst.de>
+References: <20180423170419.20330-1-hch@lst.de>
+In-Reply-To: <20180423170419.20330-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -142,7 +142,7 @@ index 7fcfc7fe9f14..5c5ee0e05a17 100644
  	bool
  
 diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 73ce5dd07642..eb23f2949bf6 100644
+index c32a181a7cbb..43e3c8e4e7f4 100644
 --- a/arch/powerpc/Kconfig
 +++ b/arch/powerpc/Kconfig
 @@ -484,7 +484,6 @@ config IOMMU_HELPER
@@ -168,10 +168,10 @@ index e9154a59d561..3f105e00c432 100644
  	def_bool SWIOTLB
  
 diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index d234cca296db..336b1378ee62 100644
+index 00fcf81f2c56..cb2c7ecc1fea 100644
 --- a/arch/x86/Kconfig
 +++ b/arch/x86/Kconfig
-@@ -930,7 +930,7 @@ config SWIOTLB
+@@ -931,7 +931,7 @@ config SWIOTLB
  
  config IOMMU_HELPER
  	def_bool y
