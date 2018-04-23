@@ -1,55 +1,66 @@
-From: Zi Yan <zi.yan@sent.com>
-Date: Thu, 26 Apr 2018 14:28:03 +0000
-Subject: [RFC PATCH 8/9] sparc: mm: migrate: add pmd swap entry to support thp migration.
-Message-Id: <20180426142804.180152-9-zi.yan@sent.com>
+From: Tom Hromatka <tom.hromatka@oracle.com>
+Date: Mon, 23 Apr 2018 17:33:30 +0000
+Subject: [PATCH v5 0/2] sparc64: Add privileged ADI driver
+Message-Id: <20180423173332.561489-1-tom.hromatka@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180426142804.180152-1-zi.yan@sent.com>
-In-Reply-To: <20180426142804.180152-1-zi.yan@sent.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: Zi Yan <zi.yan@cs.rutgers.edu>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Zi Yan <zi.yan@cs.rutgers.edu>
+ADI is a feature supported on SPARC M7 and newer processors to allow
+hardware to catch rogue accesses to memory. ADI is supported for data
+fetches only and not instruction fetches. An app can enable ADI on its
+data pages, set version tags on them and use versioned addresses to
+access the data pages. Upper bits of the address contain the version
+tag. On M7 processors, upper four bits (bits 63-60) contain the version
+tag. If a rogue app attempts to access ADI enabled data pages, its
+access is blocked and processor generates an exception. Please see
+Documentation/sparc/adi.txt for further details.
 
-Signed-off-by: Zi Yan <zi.yan@cs.rutgers.edu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
----
- arch/sparc/include/asm/pgtable_32.h | 2 ++
- arch/sparc/include/asm/pgtable_64.h | 2 ++
- 2 files changed, 4 insertions(+)
+This patchset implements a char driver to read/write ADI versions from
+privileged user space processes.  Intended consumers are makedumpfile
+and crash.
 
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 4eebed6c6781..293bf9f8f949 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -367,7 +367,9 @@ static inline swp_entry_t __swp_entry(unsigned long type, unsigned long offset)
- }
- 
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
-+#define __pmd_to_swp_entry(pmd)		((swp_entry_t) { pmd_val(pmd) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
-+#define __swp_entry_to_pmd(x)		((pmd_t) { (x).val })
- 
- static inline unsigned long
- __get_phys (unsigned long addr)
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 339920fdf9ed..2811aef4a636 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -1031,7 +1031,9 @@ pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm, pmd_t *pmdp);
-                  ((long)(offset) << (PAGE_SHIFT + 8UL))) \
- 	  } )
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
-+#define __pmd_to_swp_entry(pmd)		((swp_entry_t) { pmd_val(pmd) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
-+#define __swp_entry_to_pmd(x)		((pmd_t) { (x).val })
- 
- int page_in_phys_avail(unsigned long paddr);
- 
+v5:
+  * Fixed MODULE_LICENSE() for adi.c
+v4:
+  * Fixed messed up subject lines.
+v3:
+  * Really fixed the copyright headers to use SPDX GPL v2.  Really.
+v2:
+  * Simplified copyright headers
+  * Completely reworked sparc64 selftests Makefiles.  Used the
+    android selftests Makefiles as an example
+  * Added run.sh and drivers_test.sh to the sparc64 selftest
+    directory.  Used bpf/test_kmod.sh and the android selftests
+    as examples
+  * Minor cleanups in the selftest adi-test.c
+  * Added calls to ksft_test_*() in the adi-test.c
+
+Tom Hromatka (2):
+  char: sparc64: Add privileged ADI driver
+  selftests: sparc64: char: Selftest for privileged ADI driver
+
+ drivers/char/Kconfig                               |  12 +
+ drivers/char/Makefile                              |   1 +
+ drivers/char/adi.c                                 | 240 +++++++
+ tools/testing/selftests/Makefile                   |   1 +
+ tools/testing/selftests/sparc64/Makefile           |  46 ++
+ tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
+ tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
+ tools/testing/selftests/sparc64/drivers/adi-test.c | 721 +++++++++++++++++++++
+ .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
+ tools/testing/selftests/sparc64/run.sh             |   3 +
+ 10 files changed, 1070 insertions(+)
+ create mode 100644 drivers/char/adi.c
+ create mode 100644 tools/testing/selftests/sparc64/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
+ create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
+ create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
+ create mode 100755 tools/testing/selftests/sparc64/run.sh
+
 -- 
-2.17.0
+2.15.0
 
