@@ -1,58 +1,39 @@
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-Date: Sat, 21 Apr 2018 21:52:17 +0000
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 24 Apr 2018 08:20:23 +0000
 Subject: Re: [PATCH 22/22] parisc: use generic dma_noncoherent_ops
-Message-Id: <1524347537.3335.12.camel@HansenPartnership.com>
+Message-Id: <20180424082023.GA19725@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-         <20180420080313.18796-23-hch@lst.de>
-         <e0b4f3be-68b9-c3af-e432-fd20419e2d70@gmx.de>
-In-Reply-To: <e0b4f3be-68b9-c3af-e432-fd20419e2d70@gmx.de>
+References: <20180420080313.18796-1-hch@lst.de> <20180420080313.18796-23-hch@lst.de> <1524346967.3335.9.camel@HansenPartnership.com>
+In-Reply-To: <1524346967.3335.9.camel@HansenPartnership.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Helge Deller <deller@gmx.de>, Christoph Hellwig <hch@lst.de>
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-On Sat, 2018-04-21 at 19:43 +0200, Helge Deller wrote:
-> On 20.04.2018 10:03, Christoph Hellwig wrote:
-> > Switch to the generic noncoherent direct mapping implementation.
-> > 
-> > Parisc previously had two different non-coherent dma ops
-> > implementation that just different in the way coherent allocations
-> > were handled or not handled.  The different behavior is not
-> > selected at runtime in the arch_dma_alloc and arch_dma_free
-> > routines.  The non-coherent allocation in the pcx cases now uses
-> > the dma_direct helpers that are a little more sophisticated and
-> > used by a lot of other architectures.
-> > 
-> > Fix sync_single_for_cpu to do skip the cache flush unless the
-> > transfer is to the device to match the more tested unmap_single
-> > path which should have the same cache coherency implications.
-> > 
-> > This also now consistenly uses flush_kernel_dcache_range for cache
-> > flushing while previously some of the SG based operations used
-> > flush_kernel_vmap_range instead.
+On Sat, Apr 21, 2018 at 10:42:47PM +0100, James Bottomley wrote:
+> Well, this is wrong: you just made every 32 bit parisc system
+> unnecessarily use non-coherent.  We actually only have a small small
+> set of non-coherent systems.  The pxcs and pcxt systems (which are
+> about 99% of the user base) can use coherent dma ops.  The problem
+> seems to be in your new world you only have one dma_noncoherent_ops
+> pointer ... we definitely need two on parisc, so whether
+> arch_dma_cache_sync is present or not needs to be dynamic not config
+> defined.
+
+The changelog explicitly mentions merging the two noncoherent
+implementations, they only differ in the alloc and free callsbacks,
+and we now runtime switch between them.  Before the pcxs and pcxt
+cases used pcx_dma_ops, and pcxl and pxcl2 used pcxl_dma_ops, now
+all four use dma_noncoherent_ops and arch_dma_alloc/arch_dma_free
+branch out to different behavior.
+
+Both pcx_dma_ops and pcxl_dma_ops do define the cache_sync
+method in the existing code, so that isn't the issue.
+
+I'll take a deeper look at what sort of behavior change might have
+been introduced.
+
 > 
-> 
-> This patch breaks a 32bit kernel on a B160L machine (PA7300LC CPU,
-> "pcxl2"). After applying this patch series the lasi82956 network
-> driver works unreliable.  NIC gets IP, but ping doesn't work.
-> See drivers/net/ethernet/i825xx/lasi_82596.c, it uses dma*sync()
-> functions.
-
-That's actually a weird result.  The 32 bit machines have two cases:
-those that can make uncached memory by setting the U bit (and thus
-don't need the sync operations in the lasi and D700 drivers) and those
-that can't.  The latter is basically only the old 700 series.  The B180
-is in the class of can set pages to uncached, so it sounds like
-something in our uncached memory allocation for dma areas is failing
-after this patch set.
-
-I still have an old 700 in my box of curiosities, so I can try to dust
-it off and plug it back in when I get home to see what it makes of the
-series when it gets fixed.
-
-James
-
-James
-
+> James
+---end quoted text---
