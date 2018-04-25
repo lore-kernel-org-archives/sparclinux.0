@@ -1,50 +1,36 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Wed, 18 Apr 2018 20:03:37 +0000
-Subject: Re: [PATCH 2/2] selftests: sparc64: char: Selftest for privileged ADI driver
-Message-Id: <a44ead3d-8565-2d44-5a28-dfc51d4920d9@oracle.com>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Date: Wed, 25 Apr 2018 14:56:41 +0000
+Subject: [PATCH] sparc: vio: use put_device() instead of kfree()
+Message-Id: <a3722bda2eadf1ff229f73da6f0316f954956ae1.1524668025.git.arvind.yadav.cs@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180418162958.442909-1-tom.hromatka@oracle.com>
- <20180418162958.442909-3-tom.hromatka@oracle.com>
- <6ef81e28-7656-ccf5-5d4d-ef315ae250ce@kernel.org>
-In-Reply-To: <6ef81e28-7656-ccf5-5d4d-ef315ae250ce@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: davem@davemloft.net, shannon.nelson@oracle.com, jag.raman@oracle.com, liam.merwick@oracle.com
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
+Never directly free @dev after calling device_register(), even
+if it returned an error. Always use put_device() to give up the
+reference initialized.
 
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+---
+ arch/sparc/kernel/vio.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 04/18/2018 01:58 PM, Shuah Khan wrote:
-> Hi Tom,
->
-> On 04/18/2018 10:29 AM, Tom Hromatka wrote:
->> Add a selftest for the sparc64 privileged ADI driver.  These
->> tests verify the read(), pread(), write(), pwrite(), and seek()
->> functionality of the driver.  The tests also report simple
->> performance statistics:
->>
->>          Syscall Call    AvgTime AvgSize
->>                  Count   (ticks) (bytes)
->>          -------------------------------
->>          read          3  167134    8133
->>          pread         4  137217    6741
->>          write         3   73787    8133
->>          pwrite        4   65832    6741
->>          seek         10    2422       0
->>
->>          Ran 8 tests
->>          All tests passed
->>
->> Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
->> Reviewed-by: Allen Pais <allen.pais@oracle.com>
-> Thanks for the patch. A few comments below:
-
-Thanks for the quick turnaround, Shuah.=C2=A0 I'll work through your
-comments and get a v2 out in the next few days.
-
-Regards.
-
-Tom
-
-
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 1a0fa10..32bae68 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -403,7 +403,7 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
+ 	if (err) {
+ 		printk(KERN_ERR "VIO: Could not register device %s, err=%d\n",
+ 		       dev_name(&vdev->dev), err);
+-		kfree(vdev);
++		put_device(&vdev->dev);
+ 		return NULL;
+ 	}
+ 	if (vdev->dp)
+-- 
+2.7.4
 
