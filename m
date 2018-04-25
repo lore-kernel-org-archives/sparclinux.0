@@ -1,260 +1,217 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:03:05 +0000
-Subject: [PATCH 14/22] nios2: use generic dma_noncoherent_ops
-Message-Id: <20180420080313.18796-15-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 25 Apr 2018 13:22:26 +0000
+Subject: [GIT PULL, PATCH v4 00/16] y2038: IPC system call conversion
+Message-Id: <20180425132242.1500539-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Zack Weinberg <zackw@panix.com>, Jeffrey Walton <noloader@gmail.com>
 
-Switch to the generic noncoherent direct mapping implementation.
+Hi Thomas,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/nios2/Kconfig                   |   3 +
- arch/nios2/include/asm/Kbuild        |   1 +
- arch/nios2/include/asm/dma-mapping.h |  20 ----
- arch/nios2/mm/dma-mapping.c          | 139 +++------------------------
- 4 files changed, 17 insertions(+), 146 deletions(-)
- delete mode 100644 arch/nios2/include/asm/dma-mapping.h
+This is a small update to last week's patch series, I hope I
+have worked out all the remaining issues now. If nothing else
+comes up, please pull into tip for 4.18. The commits are
+based on top of what you already pulled into timers/core, so
+you can either add these to the same branch or to a different
+one.
 
-diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
-index 3d4ec88f1db1..92035042cf62 100644
---- a/arch/nios2/Kconfig
-+++ b/arch/nios2/Kconfig
-@@ -1,6 +1,9 @@
- # SPDX-License-Identifier: GPL-2.0
- config NIOS2
- 	def_bool y
-+	select ARCH_HAS_SYNC_DMA_FOR_CPU
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
-+	select DMA_NONCOHERENT_OPS
- 	select TIMER_OF
- 	select GENERIC_ATOMIC64
- 	select GENERIC_CLOCKEVENTS
-diff --git a/arch/nios2/include/asm/Kbuild b/arch/nios2/include/asm/Kbuild
-index d232da2cbb38..24f6ee1ee69b 100644
---- a/arch/nios2/include/asm/Kbuild
-+++ b/arch/nios2/include/asm/Kbuild
-@@ -8,6 +8,7 @@ generic-y += current.h
- generic-y += device.h
- generic-y += div64.h
- generic-y += dma.h
-+generic-y += dma-mapping.h
- generic-y += emergency-restart.h
- generic-y += exec.h
- generic-y += extable.h
-diff --git a/arch/nios2/include/asm/dma-mapping.h b/arch/nios2/include/asm/dma-mapping.h
-deleted file mode 100644
-index 6ceb92251da0..000000000000
---- a/arch/nios2/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,20 +0,0 @@
--/*
-- * Copyright (C) 2011 Tobias Klauser <tklauser@distanz.ch>
-- * Copyright (C) 2009 Wind River Systems Inc
-- *
-- * This file is subject to the terms and conditions of the GNU General
-- * Public License.  See the file COPYING in the main directory of this
-- * archive for more details.
-- */
--
--#ifndef _ASM_NIOS2_DMA_MAPPING_H
--#define _ASM_NIOS2_DMA_MAPPING_H
--
--extern const struct dma_map_ops nios2_dma_ops;
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
--{
--	return &nios2_dma_ops;
--}
--
--#endif /* _ASM_NIOS2_DMA_MAPPING_H */
-diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
-index 4be815519dd4..4af9e5b5ba1c 100644
---- a/arch/nios2/mm/dma-mapping.c
-+++ b/arch/nios2/mm/dma-mapping.c
-@@ -12,18 +12,18 @@
- 
- #include <linux/types.h>
- #include <linux/mm.h>
--#include <linux/export.h>
- #include <linux/string.h>
--#include <linux/scatterlist.h>
- #include <linux/dma-mapping.h>
- #include <linux/io.h>
- #include <linux/cache.h>
- #include <asm/cacheflush.h>
- 
--static inline void __dma_sync_for_device(void *vaddr, size_t size,
--			      enum dma_data_direction direction)
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--	switch (direction) {
-+	void *vaddr = phys_to_virt(paddr);
-+
-+	switch (dir) {
- 	case DMA_FROM_DEVICE:
- 		invalidate_dcache_range((unsigned long)vaddr,
- 			(unsigned long)(vaddr + size));
-@@ -42,10 +42,12 @@ static inline void __dma_sync_for_device(void *vaddr, size_t size,
- 	}
- }
- 
--static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
--			      enum dma_data_direction direction)
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--	switch (direction) {
-+	void *vaddr = phys_to_virt(paddr);
-+
-+	switch (dir) {
- 	case DMA_BIDIRECTIONAL:
- 	case DMA_FROM_DEVICE:
- 		invalidate_dcache_range((unsigned long)vaddr,
-@@ -58,8 +60,8 @@ static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
- 	}
- }
- 
--static void *nios2_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs)
- {
- 	void *ret;
- 
-@@ -80,125 +82,10 @@ static void *nios2_dma_alloc(struct device *dev, size_t size,
- 	return ret;
- }
- 
--static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
-+void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 		dma_addr_t dma_handle, unsigned long attrs)
- {
- 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
- 
- 	free_pages(addr, get_order(size));
- }
--
--static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
--		int nents, enum dma_data_direction direction,
--		unsigned long attrs)
--{
--	int i;
--
--	for_each_sg(sg, sg, nents, i) {
--		void *addr = sg_virt(sg);
--
--		if (!addr)
--			continue;
--
--		sg->dma_address = sg_phys(sg);
--
--		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
--			continue;
--
--		__dma_sync_for_device(addr, sg->length, direction);
--	}
--
--	return nents;
--}
--
--static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
--			unsigned long offset, size_t size,
--			enum dma_data_direction direction,
--			unsigned long attrs)
--{
--	void *addr = page_address(page) + offset;
--
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		__dma_sync_for_device(addr, size, direction);
--
--	return page_to_phys(page) + offset;
--}
--
--static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
--		size_t size, enum dma_data_direction direction,
--		unsigned long attrs)
--{
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
--}
--
--static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
--		int nhwentries, enum dma_data_direction direction,
--		unsigned long attrs)
--{
--	void *addr;
--	int i;
--
--	if (direction = DMA_TO_DEVICE)
--		return;
--
--	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
--		return;
--
--	for_each_sg(sg, sg, nhwentries, i) {
--		addr = sg_virt(sg);
--		if (addr)
--			__dma_sync_for_cpu(addr, sg->length, direction);
--	}
--}
--
--static void nios2_dma_sync_single_for_cpu(struct device *dev,
--		dma_addr_t dma_handle, size_t size,
--		enum dma_data_direction direction)
--{
--	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
--}
--
--static void nios2_dma_sync_single_for_device(struct device *dev,
--		dma_addr_t dma_handle, size_t size,
--		enum dma_data_direction direction)
--{
--	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
--}
--
--static void nios2_dma_sync_sg_for_cpu(struct device *dev,
--		struct scatterlist *sg, int nelems,
--		enum dma_data_direction direction)
--{
--	int i;
--
--	/* Make sure that gcc doesn't leave the empty loop body.  */
--	for_each_sg(sg, sg, nelems, i)
--		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
--}
--
--static void nios2_dma_sync_sg_for_device(struct device *dev,
--		struct scatterlist *sg, int nelems,
--		enum dma_data_direction direction)
--{
--	int i;
--
--	/* Make sure that gcc doesn't leave the empty loop body.  */
--	for_each_sg(sg, sg, nelems, i)
--		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
--
--}
--
--const struct dma_map_ops nios2_dma_ops = {
--	.alloc			= nios2_dma_alloc,
--	.free			= nios2_dma_free,
--	.map_page		= nios2_dma_map_page,
--	.unmap_page		= nios2_dma_unmap_page,
--	.map_sg			= nios2_dma_map_sg,
--	.unmap_sg		= nios2_dma_unmap_sg,
--	.sync_single_for_device	= nios2_dma_sync_single_for_device,
--	.sync_single_for_cpu	= nios2_dma_sync_single_for_cpu,
--	.sync_sg_for_cpu	= nios2_dma_sync_sg_for_cpu,
--	.sync_sg_for_device	= nios2_dma_sync_sg_for_device,
--};
--EXPORT_SYMBOL(nios2_dma_ops);
+I'll be away for three weeks starting on Sunday, so if new
+issues get found, I won't be able to address them until I get
+back home. I'll post another set of simpler syscall patches for
+review after this, and there is at last a fourth set of those
+that are not ready yet, but is available for preview at [3],
+which also contains unrelated y2038 patches for random
+subsystems.
+
+      Arnd
+
+----------------------------------------------------------------
+The following changes since commit 01909974b41036a6a8d3907c66cc7b41c9a73da9:
+
+  time: Change nanosleep to safe __kernel_* types (2018-04-19 13:32:03 +0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git y2038-ipc
+
+for you to fetch changes up to 5dc0b1529d21b54aad4098874e334a52027fd16d:
+
+  y2038: ipc: Redirect ipc(SEMTIMEDOP, ...) to compat_ksys_semtimedop (2018-04-20 16:20:30 +0200)
+
+----------------------------------------------------------------
+y2038: IPC system call conversion
+
+This is a follow-up to Deepa's work on the timekeeping system calls,
+providing a y2038-safe syscall API for SYSVIPC. It uses a combination
+of two strategies:
+
+For sys_msgctl, sys_semctl and sys_shmctl, I do not introduce a completely
+new set of replacement system calls, but instead extend the existing
+ones to return data in the reserved fields of the normal data structure.
+
+This should be completely transparent to any existing user space, and
+only after the 32-bit time_t wraps, it will make a difference in the
+returned data.
+
+libc implementations will consequently have to provide their own data
+structures when they move to 64-bit time_t, and convert the structures
+in user space from the ones returned by the kernel.
+
+In contrast, mq_timedsend, mq_timedreceive and and semtimedop all do
+need to change because having a libc redefine the timespec type
+breaks the ABI, so with this series there will be two separate entry
+points for 32-bit architectures.
+
+There are three cases here:
+
+- little-endian architectures (except powerpc and mips) can use
+  the normal layout and just cast the data structure to the user space
+  type that contains 64-bit numbers.
+
+- parisc and sparc can do the same thing with big-endian user space
+
+- little-endian powerpc and most big-endian architectures have
+  to flip the upper and lower 32-bit halves of the time_t value in memory,
+  but can otherwise keep using the normal layout
+
+- mips and big-endian xtensa need to be more careful because
+  they are not consistent in their definitions, and they have to provide
+  custom libc implementations for the system calls to use 64-bit time_t.
+
+----------------------------------------------------------------
+Changes to v3:
+- reworked x86 portion after discovering an old bug, submitted
+  a fix for that separately.
+- use consistent types in asm-generic based on feedback from
+  Jeffrey Walton
+
+Changes to v2:
+- added patches for mq_timedsend, mq_timedreceive and and semtimedop
+  system calls
+- add asm-generic/compat.h changes to prepare for actually using those
+  on 32-bit.
+- fix 'make headers_install' as reported by Heiko Carstens
+- fix MIPS build as reported by build bot
+- Cc everyone on all patches as originally intended, not just on the
+  cover letter.
+
+Changes to v1 [1]:
+- Rebased to the latest kernel (4.17-rc)
+- Dropped changes for removed architectures
+- Simplified the IPC code changes, based on prior work from
+  both Deepa and Eric
+- Fixed a few bugs that I found during rebasing, in parcular the
+  sparc version was incorrect.
+
+
+[1] https://lkml.org/lkml/2015/5/20/605
+[2] https://lwn.net/Articles/751676/
+[3] git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git y2038-next
+
+----------------------------------------------------------------
+
+Arnd Bergmann (16):
+  y2038: asm-generic: Extend sysvipc data structures
+  y2038: x86: Extend sysvipc data structures
+  y2038: alpha: Remove unneeded ipc uapi header files
+  y2038: ia64: Remove unneeded ipc uapi header files
+  y2038: s390: Remove unneeded ipc uapi header files
+  y2038: arm64: Extend sysvipc compat data structures
+  y2038: mips: Extend sysvipc data structures
+  y2038: parisc: Extend sysvipc data structures
+  y2038: sparc: Extend sysvipc data structures
+  y2038: powerpc: Extend sysvipc data structures
+  y2038: xtensa: Extend sysvipc data structures
+  y2038: ipc: Use ktime_get_real_seconds consistently
+  y2038: ipc: Report long times to user space
+  y2038: ipc: Use __kernel_timespec
+  y2038: ipc: Enable COMPAT_32BIT_TIME
+  y2038: ipc: Redirect ipc(SEMTIMEDOP, ...) to compat_ksys_semtimedop
+
+Cc: linux-api@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: libc-alpha@sourceware.org
+Cc: tglx@linutronix.de
+Cc: deepa.kernel@gmail.com
+Cc: viro@zeniv.linux.org.uk
+Cc: ebiederm@xmission.com
+Cc: albert.aribaud@3adev.fr
+Cc: linux-s390@vger.kernel.org
+Cc: schwidefsky@de.ibm.com
+Cc: x86@kernel.org
+Cc: catalin.marinas@arm.com
+Cc: will.deacon@arm.com
+Cc: linux-mips@linux-mips.org
+Cc: jhogan@kernel.org
+Cc: ralf@linux-mips.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: sparclinux@vger.kernel.org
+Cc: Zack Weinberg <zackw@panix.com>
+Cc: Jeffrey Walton <noloader@gmail.com>
+
+ arch/alpha/include/uapi/asm/Kbuild     |  4 ++
+ arch/alpha/include/uapi/asm/ipcbuf.h   |  2 -
+ arch/alpha/include/uapi/asm/msgbuf.h   | 28 -----------
+ arch/alpha/include/uapi/asm/sembuf.h   | 23 ---------
+ arch/alpha/include/uapi/asm/shmbuf.h   | 39 ---------------
+ arch/arm64/include/asm/compat.h        | 32 ++++++-------
+ arch/ia64/include/uapi/asm/Kbuild      |  4 ++
+ arch/ia64/include/uapi/asm/ipcbuf.h    |  2 -
+ arch/ia64/include/uapi/asm/msgbuf.h    | 28 -----------
+ arch/ia64/include/uapi/asm/sembuf.h    | 23 ---------
+ arch/ia64/include/uapi/asm/shmbuf.h    | 39 ---------------
+ arch/mips/include/asm/compat.h         | 40 +++++++++-------
+ arch/mips/include/uapi/asm/msgbuf.h    | 57 ++++++++++++++--------
+ arch/mips/include/uapi/asm/sembuf.h    | 15 +++++-
+ arch/mips/include/uapi/asm/shmbuf.h    | 23 ++++++++-
+ arch/parisc/include/asm/compat.h       | 32 ++++++-------
+ arch/parisc/include/uapi/asm/msgbuf.h  | 33 +++++++------
+ arch/parisc/include/uapi/asm/sembuf.h  | 16 +++----
+ arch/parisc/include/uapi/asm/shmbuf.h  | 19 ++++----
+ arch/powerpc/include/asm/compat.h      | 32 ++++++-------
+ arch/powerpc/include/uapi/asm/msgbuf.h | 18 +++----
+ arch/powerpc/include/uapi/asm/sembuf.h | 14 +++---
+ arch/powerpc/include/uapi/asm/shmbuf.h | 19 ++++----
+ arch/s390/include/asm/compat.h         | 32 ++++++-------
+ arch/s390/include/uapi/asm/Kbuild      |  3 ++
+ arch/s390/include/uapi/asm/msgbuf.h    | 38 ---------------
+ arch/s390/include/uapi/asm/sembuf.h    | 30 ------------
+ arch/s390/include/uapi/asm/shmbuf.h    | 49 -------------------
+ arch/sparc/include/asm/compat.h        | 32 ++++++-------
+ arch/sparc/include/uapi/asm/msgbuf.h   | 22 ++++-----
+ arch/sparc/include/uapi/asm/sembuf.h   | 16 +++----
+ arch/sparc/include/uapi/asm/shmbuf.h   | 21 ++++-----
+ arch/x86/include/asm/compat.h          | 32 ++++++-------
+ arch/x86/include/uapi/asm/sembuf.h     | 11 ++++-
+ arch/xtensa/include/uapi/asm/msgbuf.h  | 25 +++++-----
+ arch/xtensa/include/uapi/asm/sembuf.h  | 17 ++++---
+ arch/xtensa/include/uapi/asm/shmbuf.h  | 37 ++++-----------
+ include/linux/syscalls.h               |  6 +--
+ include/uapi/asm-generic/msgbuf.h      | 27 +++++------
+ include/uapi/asm-generic/sembuf.h      | 26 ++++++----
+ include/uapi/asm-generic/shmbuf.h      | 41 ++++++++--------
+ ipc/mqueue.c                           | 86 +++++++++++++++++-----------------
+ ipc/msg.c                              | 20 +++++---
+ ipc/sem.c                              | 27 +++++++----
+ ipc/shm.c                              | 14 ++++--
+ ipc/syscall.c                          | 13 +++--
+ ipc/util.h                             |  4 +-
+ 47 files changed, 471 insertions(+), 700 deletions(-)
+ elete mode 100644 arch/alpha/include/uapi/asm/ipcbuf.h
+ delete mode 100644 arch/alpha/include/uapi/asm/msgbuf.h
+ delete mode 100644 arch/alpha/include/uapi/asm/sembuf.h
+ delete mode 100644 arch/alpha/include/uapi/asm/shmbuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/ipcbuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/msgbuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/sembuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/shmbuf.h
+ delete mode 100644 arch/s390/include/uapi/asm/msgbuf.h
+ delete mode 100644 arch/s390/include/uapi/asm/sembuf.h
+ delete mode 100644 arch/s390/include/uapi/asm/shmbuf.h
+
 -- 
-2.17.0
+2.9.0
 
