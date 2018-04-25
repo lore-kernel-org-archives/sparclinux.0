@@ -1,267 +1,197 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:02:58 +0000
-Subject: [PATCH 07/22] arm-nommu: use generic dma_noncoherent_ops
-Message-Id: <20180420080313.18796-8-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 25 Apr 2018 15:06:00 +0000
+Subject: [PATCH v4 10/16] y2038: powerpc: Extend sysvipc data structures
+Message-Id: <20180425150606.954771-10-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
+References: <20180425132242.1500539-1-arnd@arndb.de>
+In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
 
-Switch to the generic noncoherent direct mapping implementation for
-the nommu dma map implementation.
+powerpc, uses a nonstandard variation of the generic sysvipc
+data structures, intended to have the padding moved around
+so it can deal with big-endian 32-bit user space that has
+64-bit time_t.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+powerpc has the same definition as parisc and sparc, but now also
+supports little-endian mode, which is now wrong because the
+padding is made for big-endian user space.
+
+This takes just take the same approach here that we have for
+the asm-generic headers and adds separate 32-bit fields for the
+upper halves of the timestamps, to let libc deal with the mess
+in user space.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arc/Kconfig                |   1 +
- arch/arm/Kconfig                |   4 +
- arch/arm/mm/dma-mapping-nommu.c | 139 +++++---------------------------
- 3 files changed, 23 insertions(+), 121 deletions(-)
+ arch/powerpc/include/asm/compat.h      | 32 ++++++++++++++++----------------
+ arch/powerpc/include/uapi/asm/msgbuf.h | 18 +++++++++---------
+ arch/powerpc/include/uapi/asm/sembuf.h | 14 +++++++-------
+ arch/powerpc/include/uapi/asm/shmbuf.h | 19 ++++++++-----------
+ 4 files changed, 40 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
-index 89d47eac18b2..3a492a9aeaad 100644
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -9,6 +9,7 @@
- config ARC
- 	def_bool y
- 	select ARC_TIMERS
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_HAS_SG_CHAIN
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index f91f69174630..eacc45ac4e77 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -12,6 +12,8 @@ config ARM
- 	select ARCH_HAS_PHYS_TO_DMA
- 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
- 	select ARCH_HAS_STRICT_MODULE_RWX if MMU
-+	select ARCH_HAS_SYNC_DMA_FOR_CPU if !MMU
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if !MMU
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-@@ -27,6 +29,8 @@ config ARM
- 	select CPU_PM if (SUSPEND || CPU_IDLE)
- 	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	select DMA_DIRECT_OPS if !MMU
-+	select DMA_NONCOHERENT_OPS if !MMU
-+	select DMA_NONCOHERENT_MMAP if !MMU
- 	select EDAC_SUPPORT
- 	select EDAC_ATOMIC_SCRUB
- 	select GENERIC_ALLOCATOR
-diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
-index f448a0663b10..a74ed6632982 100644
---- a/arch/arm/mm/dma-mapping-nommu.c
-+++ b/arch/arm/mm/dma-mapping-nommu.c
-@@ -12,6 +12,7 @@
- #include <linux/export.h>
- #include <linux/mm.h>
- #include <linux/dma-direct.h>
-+#include <linux/dma-noncoherent.h>
- #include <linux/scatterlist.h>
+diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
+index b4773c81f7d5..85c8af2bb272 100644
+--- a/arch/powerpc/include/asm/compat.h
++++ b/arch/powerpc/include/asm/compat.h
+@@ -162,10 +162,10 @@ struct compat_ipc64_perm {
  
- #include <asm/cachetype.h>
-@@ -26,18 +27,16 @@
-  *   - MMU/MPU is off
-  *   - cpu is v7m w/o cache support
-  *   - device is coherent
-- *  otherwise arm_nommu_dma_ops is used.
-+ *  otherwise dma_noncoherent_ops is used.
+ struct compat_semid64_ds {
+ 	struct compat_ipc64_perm sem_perm;
+-	unsigned int __unused1;
+-	compat_time_t sem_otime;
+-	unsigned int __unused2;
+-	compat_time_t sem_ctime;
++	unsigned int sem_otime_high;
++	unsigned int sem_otime;
++	unsigned int sem_ctime_high;
++	unsigned int sem_ctime;
+ 	compat_ulong_t sem_nsems;
+ 	compat_ulong_t __unused3;
+ 	compat_ulong_t __unused4;
+@@ -173,12 +173,12 @@ struct compat_semid64_ds {
+ 
+ struct compat_msqid64_ds {
+ 	struct compat_ipc64_perm msg_perm;
+-	unsigned int __unused1;
+-	compat_time_t msg_stime;
+-	unsigned int __unused2;
+-	compat_time_t msg_rtime;
+-	unsigned int __unused3;
+-	compat_time_t msg_ctime;
++	unsigned int msg_stime_high;
++	unsigned int msg_stime;
++	unsigned int msg_rtime_high;
++	unsigned int msg_rtime;
++	unsigned int msg_ctime_high;
++	unsigned int msg_ctime;
+ 	compat_ulong_t msg_cbytes;
+ 	compat_ulong_t msg_qnum;
+ 	compat_ulong_t msg_qbytes;
+@@ -190,12 +190,12 @@ struct compat_msqid64_ds {
+ 
+ struct compat_shmid64_ds {
+ 	struct compat_ipc64_perm shm_perm;
+-	unsigned int __unused1;
+-	compat_time_t shm_atime;
+-	unsigned int __unused2;
+-	compat_time_t shm_dtime;
+-	unsigned int __unused3;
+-	compat_time_t shm_ctime;
++	unsigned int shm_atime_high;
++	unsigned int shm_atime;
++	unsigned int shm_dtime_high;
++	unsigned int shm_dtime;
++	unsigned int shm_ctime_high;
++	unsigned int shm_ctime;
+ 	unsigned int __unused4;
+ 	compat_size_t shm_segsz;
+ 	compat_pid_t shm_cpid;
+diff --git a/arch/powerpc/include/uapi/asm/msgbuf.h b/arch/powerpc/include/uapi/asm/msgbuf.h
+index 65beb0942500..2b1b37797a47 100644
+--- a/arch/powerpc/include/uapi/asm/msgbuf.h
++++ b/arch/powerpc/include/uapi/asm/msgbuf.h
+@@ -10,18 +10,18 @@
+ 
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+-#ifndef __powerpc64__
+-	unsigned int	__unused1;
+-#endif
++#ifdef __powerpc64__
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-#ifndef __powerpc64__
+-	unsigned int	__unused2;
+-#endif
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-#ifndef __powerpc64__
+-	unsigned int	__unused3;
+-#endif
+ 	__kernel_time_t msg_ctime;	/* last change time */
++#else
++	unsigned long  msg_stime_high;
++	unsigned long  msg_stime;	/* last msgsnd time */
++	unsigned long  msg_rtime_high;
++	unsigned long  msg_rtime;	/* last msgrcv time */
++	unsigned long  msg_ctime_high;
++	unsigned long  msg_ctime;	/* last change time */
++#endif
+ 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+ 	unsigned long  msg_qnum;	/* number of messages in queue */
+ 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
+index 8f393d60f02d..3f60946f77e3 100644
+--- a/arch/powerpc/include/uapi/asm/sembuf.h
++++ b/arch/powerpc/include/uapi/asm/sembuf.h
+@@ -15,20 +15,20 @@
+  * between kernel and user space.
   *
-- *  arm_nommu_dma_ops rely on consistent DMA memory (please, refer to
-+ *  dma_noncoherent_ops rely on consistent DMA memory (please, refer to
-  *  [1] on how to declare such memory).
-  *
-  *  [1] Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+- * - 2 miscellaneous 32-bit values
++ * - 2 miscellaneous 32/64-bit values
   */
  
--static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
--				 dma_addr_t *dma_handle, gfp_t gfp,
--				 unsigned long attrs)
--
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs)
- {
- 	void *ret;
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
+ #ifndef __powerpc64__
+-	unsigned long	__unused1;
+-#endif
++	unsigned long	sem_otime_high;
++	unsigned long	sem_otime;	/* last semop time */
++	unsigned long	sem_ctime_high;
++	unsigned long	sem_ctime;	/* last change time */
++#else
+ 	__kernel_time_t	sem_otime;	/* last semop time */
+-#ifndef __powerpc64__
+-	unsigned long	__unused2;
+-#endif
+ 	__kernel_time_t	sem_ctime;	/* last change time */
++#endif
+ 	unsigned long	sem_nsems;	/* no. of semaphores in array */
+ 	unsigned long	__unused3;
+ 	unsigned long	__unused4;
+diff --git a/arch/powerpc/include/uapi/asm/shmbuf.h b/arch/powerpc/include/uapi/asm/shmbuf.h
+index deb1c3e503d3..b591c4d7e4c5 100644
+--- a/arch/powerpc/include/uapi/asm/shmbuf.h
++++ b/arch/powerpc/include/uapi/asm/shmbuf.h
+@@ -16,25 +16,22 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
  
-@@ -65,9 +64,8 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
- 	return ret;
- }
- 
--static void arm_nommu_dma_free(struct device *dev, size_t size,
--			       void *cpu_addr, dma_addr_t dma_addr,
--			       unsigned long attrs)
-+void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
-+		dma_addr_t dma_addr, unsigned long attrs)
- {
- 	if (attrs & DMA_ATTR_NON_CONSISTENT) {
- 		dma_direct_free(dev, size, cpu_addr, dma_addr, attrs);
-@@ -81,9 +79,9 @@ static void arm_nommu_dma_free(struct device *dev, size_t size,
- 	return;
- }
- 
--static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
--			      void *cpu_addr, dma_addr_t dma_addr, size_t size,
--			      unsigned long attrs)
-+int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-+		void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+		unsigned long attrs)
- {
- 	int ret;
- 
-@@ -93,9 +91,8 @@ static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
- 	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
- }
- 
--
--static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
--				  enum dma_data_direction dir)
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
- 	dmac_map_area(__va(paddr), size, dir);
- 
-@@ -105,8 +102,8 @@ static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
- 		outer_clean_range(paddr, paddr + size);
- }
- 
--static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
--				  enum dma_data_direction dir)
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
- 	if (dir != DMA_TO_DEVICE) {
- 		outer_inv_range(paddr, paddr + size);
-@@ -114,110 +111,9 @@ static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
- 	}
- }
- 
--static dma_addr_t arm_nommu_dma_map_page(struct device *dev, struct page *page,
--					 unsigned long offset, size_t size,
--					 enum dma_data_direction dir,
--					 unsigned long attrs)
--{
--	dma_addr_t handle = page_to_phys(page) + offset;
--
--	__dma_page_cpu_to_dev(handle, size, dir);
--
--	return handle;
--}
--
--static void arm_nommu_dma_unmap_page(struct device *dev, dma_addr_t handle,
--				     size_t size, enum dma_data_direction dir,
--				     unsigned long attrs)
--{
--	__dma_page_dev_to_cpu(handle, size, dir);
--}
--
--
--static int arm_nommu_dma_map_sg(struct device *dev, struct scatterlist *sgl,
--				int nents, enum dma_data_direction dir,
--				unsigned long attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sgl, sg, nents, i) {
--		sg_dma_address(sg) = sg_phys(sg);
--		sg_dma_len(sg) = sg->length;
--		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
--	}
--
--	return nents;
--}
--
--static void arm_nommu_dma_unmap_sg(struct device *dev, struct scatterlist *sgl,
--				   int nents, enum dma_data_direction dir,
--				   unsigned long attrs)
--{
--	struct scatterlist *sg;
--	int i;
--
--	for_each_sg(sgl, sg, nents, i)
--		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
--}
--
--static void arm_nommu_dma_sync_single_for_device(struct device *dev,
--		dma_addr_t handle, size_t size, enum dma_data_direction dir)
--{
--	__dma_page_cpu_to_dev(handle, size, dir);
--}
--
--static void arm_nommu_dma_sync_single_for_cpu(struct device *dev,
--		dma_addr_t handle, size_t size, enum dma_data_direction dir)
--{
--	__dma_page_cpu_to_dev(handle, size, dir);
--}
--
--static void arm_nommu_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sgl,
--					     int nents, enum dma_data_direction dir)
--{
--	struct scatterlist *sg;
--	int i;
--
--	for_each_sg(sgl, sg, nents, i)
--		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
--}
--
--static void arm_nommu_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl,
--					  int nents, enum dma_data_direction dir)
--{
--	struct scatterlist *sg;
--	int i;
--
--	for_each_sg(sgl, sg, nents, i)
--		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
--}
--
--const struct dma_map_ops arm_nommu_dma_ops = {
--	.alloc			= arm_nommu_dma_alloc,
--	.free			= arm_nommu_dma_free,
--	.mmap			= arm_nommu_dma_mmap,
--	.map_page		= arm_nommu_dma_map_page,
--	.unmap_page		= arm_nommu_dma_unmap_page,
--	.map_sg			= arm_nommu_dma_map_sg,
--	.unmap_sg		= arm_nommu_dma_unmap_sg,
--	.sync_single_for_device	= arm_nommu_dma_sync_single_for_device,
--	.sync_single_for_cpu	= arm_nommu_dma_sync_single_for_cpu,
--	.sync_sg_for_device	= arm_nommu_dma_sync_sg_for_device,
--	.sync_sg_for_cpu	= arm_nommu_dma_sync_sg_for_cpu,
--};
--EXPORT_SYMBOL(arm_nommu_dma_ops);
--
--static const struct dma_map_ops *arm_nommu_get_dma_map_ops(bool coherent)
--{
--	return coherent ? &dma_direct_ops : &arm_nommu_dma_ops;
--}
--
- void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
- 			const struct iommu_ops *iommu, bool coherent)
- {
--	const struct dma_map_ops *dma_ops;
--
- 	if (IS_ENABLED(CONFIG_CPU_V7M)) {
- 		/*
- 		 * Cache support for v7m is optional, so can be treated as
-@@ -233,9 +129,10 @@ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
- 		dev->archdata.dma_coherent = (get_cr() & CR_M) ? coherent : true;
- 	}
- 
--	dma_ops = arm_nommu_get_dma_map_ops(dev->archdata.dma_coherent);
--
--	set_dma_ops(dev, dma_ops);
-+	if (dev->archdata.dma_coherent)
-+		set_dma_ops(dev, &dma_direct_ops);
-+	else
-+		set_dma_ops(dev, &dma_noncoherent_ops);
- }
- 
- void arch_teardown_dma_ops(struct device *dev)
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-#ifndef __powerpc64__
+-	unsigned long		__unused1;
+-#endif
++#ifdef __powerpc64__
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-#ifndef __powerpc64__
+-	unsigned long		__unused2;
+-#endif
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-#ifndef __powerpc64__
+-	unsigned long		__unused3;
+-#endif
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+-#ifndef __powerpc64__
++#else
++	unsigned long		shm_atime_high;
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_ctime_high;
++	unsigned long		shm_ctime;	/* last change time */
+ 	unsigned long		__unused4;
+ #endif
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
 -- 
-2.17.0
+2.9.0
 
