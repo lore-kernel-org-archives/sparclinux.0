@@ -1,270 +1,76 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:02:57 +0000
-Subject: [PATCH 06/22] arc: use generic dma_noncoherent_ops
-Message-Id: <20180420080313.18796-7-hch@lst.de>
+From: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
+Date: Wed, 25 Apr 2018 11:17:01 +0000
+Subject: Re: [PATCH 06/22] arc: use generic dma_noncoherent_ops
+Message-Id: <1524655020.5315.9.camel@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
+ <20180420080313.18796-7-hch@lst.de>
+In-Reply-To: <20180420080313.18796-7-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: "hch@lst.de" <hch@lst.de>
+Cc: "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "green.hu@gmail.com" <green.hu@gmail.com>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "nios2-dev@lists.rocketboards.org" <nios>
 
-Switch to the generic noncoherent direct mapping implementation.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arc/Kconfig                   |   4 +
- arch/arc/include/asm/Kbuild        |   1 +
- arch/arc/include/asm/dma-mapping.h |  21 -----
- arch/arc/mm/dma.c                  | 141 +++--------------------------
- 4 files changed, 19 insertions(+), 148 deletions(-)
- delete mode 100644 arch/arc/include/asm/dma-mapping.h
-
-diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
-index 7498aca4b887..89d47eac18b2 100644
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -9,11 +9,15 @@
- config ARC
- 	def_bool y
- 	select ARC_TIMERS
-+	select ARCH_HAS_SYNC_DMA_FOR_CPU
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_SUPPORTS_ATOMIC_RMW if ARC_HAS_LLSC
- 	select BUILDTIME_EXTABLE_SORT
- 	select CLONE_BACKWARDS
- 	select COMMON_CLK
-+	select DMA_NONCOHERENT_OPS
-+	select DMA_NONCOHERENT_MMAP
- 	select GENERIC_ATOMIC64 if !ISA_ARCV2 || !(ARC_HAS_LL64 && ARC_HAS_LLSC)
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_FIND_FIRST_BIT
-diff --git a/arch/arc/include/asm/Kbuild b/arch/arc/include/asm/Kbuild
-index 4bd5d4369e05..bbdcb955e18f 100644
---- a/arch/arc/include/asm/Kbuild
-+++ b/arch/arc/include/asm/Kbuild
-@@ -2,6 +2,7 @@
- generic-y += bugs.h
- generic-y += device.h
- generic-y += div64.h
-+generic-y += dma-mapping.h
- generic-y += emergency-restart.h
- generic-y += extable.h
- generic-y += fb.h
-diff --git a/arch/arc/include/asm/dma-mapping.h b/arch/arc/include/asm/dma-mapping.h
-deleted file mode 100644
-index 7a16824bfe98..000000000000
---- a/arch/arc/include/asm/dma-mapping.h
-+++ /dev/null
-@@ -1,21 +0,0 @@
--/*
-- * DMA Mapping glue for ARC
-- *
-- * Copyright (C) 2004, 2007-2010, 2011-2012 Synopsys, Inc. (www.synopsys.com)
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef ASM_ARC_DMA_MAPPING_H
--#define ASM_ARC_DMA_MAPPING_H
--
--extern const struct dma_map_ops arc_dma_ops;
--
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
--{
--	return &arc_dma_ops;
--}
--
--#endif
-diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
-index 1dcc404b5aec..ecfeb5585cc7 100644
---- a/arch/arc/mm/dma.c
-+++ b/arch/arc/mm/dma.c
-@@ -16,13 +16,12 @@
-  * The default DMA address = Phy address which is 0x8000_0000 based.
-  */
- 
--#include <linux/dma-mapping.h>
-+#include <linux/dma-noncoherent.h>
- #include <asm/cache.h>
- #include <asm/cacheflush.h>
- 
--
--static void *arc_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs)
- {
- 	unsigned long order = get_order(size);
- 	struct page *page;
-@@ -89,7 +88,7 @@ static void *arc_dma_alloc(struct device *dev, size_t size,
- 	return kvaddr;
- }
- 
--static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
-+void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 		dma_addr_t dma_handle, unsigned long attrs)
- {
- 	phys_addr_t paddr = dma_handle;
-@@ -105,9 +104,9 @@ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
- 	__free_pages(page, get_order(size));
- }
- 
--static int arc_dma_mmap(struct device *dev, struct vm_area_struct *vma,
--			void *cpu_addr, dma_addr_t dma_addr, size_t size,
--			unsigned long attrs)
-+int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-+		void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+		unsigned long attrs)
- {
- 	unsigned long user_count = vma_pages(vma);
- 	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-@@ -135,7 +134,7 @@ static int arc_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-  * CPU accesses page via normal paddr, thus needs to explicitly made
-  * consistent before each use
-  */
--static void _dma_cache_sync(phys_addr_t paddr, size_t size,
-+static void _dma_cache_sync(struct device *dev, phys_addr_t paddr size_t size,
- 		enum dma_data_direction dir)
- {
- 	switch (dir) {
-@@ -153,126 +152,14 @@ static void _dma_cache_sync(phys_addr_t paddr, size_t size,
- 	}
- }
- 
--/*
-- * arc_dma_map_page - map a portion of a page for streaming DMA
-- *
-- * Ensure that any data held in the cache is appropriately discarded
-- * or written back.
-- *
-- * The device owns this memory once this call has completed.  The CPU
-- * can regain ownership by calling dma_unmap_page().
-- *
-- * Note: while it takes struct page as arg, caller can "abuse" it to pass
-- * a region larger than PAGE_SIZE, provided it is physically contiguous
-- * and this still works correctly
-- */
--static dma_addr_t arc_dma_map_page(struct device *dev, struct page *page,
--		unsigned long offset, size_t size, enum dma_data_direction dir,
--		unsigned long attrs)
--{
--	phys_addr_t paddr = page_to_phys(page) + offset;
--
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		_dma_cache_sync(paddr, size, dir);
--
--	return paddr;
--}
--
--/*
-- * arc_dma_unmap_page - unmap a buffer previously mapped through dma_map_page()
-- *
-- * After this call, reads by the CPU to the buffer are guaranteed to see
-- * whatever the device wrote there.
-- *
-- * Note: historically this routine was not implemented for ARC
-- */
--static void arc_dma_unmap_page(struct device *dev, dma_addr_t handle,
--			       size_t size, enum dma_data_direction dir,
--			       unsigned long attrs)
--{
--	phys_addr_t paddr = handle;
--
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		_dma_cache_sync(paddr, size, dir);
--}
--
--static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
--	   int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	struct scatterlist *s;
--	int i;
--
--	for_each_sg(sg, s, nents, i)
--		s->dma_address = dma_map_page(dev, sg_page(s), s->offset,
--					       s->length, dir);
--
--	return nents;
--}
--
--static void arc_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
--			     int nents, enum dma_data_direction dir,
--			     unsigned long attrs)
--{
--	struct scatterlist *s;
--	int i;
--
--	for_each_sg(sg, s, nents, i)
--		arc_dma_unmap_page(dev, sg_dma_address(s), sg_dma_len(s), dir,
--				   attrs);
--}
--
--static void arc_dma_sync_single_for_cpu(struct device *dev,
--		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
--{
--	_dma_cache_sync(dma_handle, size, DMA_FROM_DEVICE);
--}
--
--static void arc_dma_sync_single_for_device(struct device *dev,
--		dma_addr_t dma_handle, size_t size, enum dma_data_direction dir)
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--	_dma_cache_sync(dma_handle, size, DMA_TO_DEVICE);
-+	return _dma_cache_sync(dev, paddr, size, dir);
- }
- 
--static void arc_dma_sync_sg_for_cpu(struct device *dev,
--		struct scatterlist *sglist, int nelems,
--		enum dma_data_direction dir)
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sglist, sg, nelems, i)
--		_dma_cache_sync(sg_phys(sg), sg->length, dir);
-+	return _dma_cache_sync(dev, paddr, size, dir);
- }
--
--static void arc_dma_sync_sg_for_device(struct device *dev,
--		struct scatterlist *sglist, int nelems,
--		enum dma_data_direction dir)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sglist, sg, nelems, i)
--		_dma_cache_sync(sg_phys(sg), sg->length, dir);
--}
--
--static int arc_dma_supported(struct device *dev, u64 dma_mask)
--{
--	/* Support 32 bit DMA mask exclusively */
--	return dma_mask = DMA_BIT_MASK(32);
--}
--
--const struct dma_map_ops arc_dma_ops = {
--	.alloc			= arc_dma_alloc,
--	.free			= arc_dma_free,
--	.mmap			= arc_dma_mmap,
--	.map_page		= arc_dma_map_page,
--	.unmap_page		= arc_dma_unmap_page,
--	.map_sg			= arc_dma_map_sg,
--	.unmap_sg		= arc_dma_unmap_sg,
--	.sync_single_for_device	= arc_dma_sync_single_for_device,
--	.sync_single_for_cpu	= arc_dma_sync_single_for_cpu,
--	.sync_sg_for_cpu	= arc_dma_sync_sg_for_cpu,
--	.sync_sg_for_device	= arc_dma_sync_sg_for_device,
--	.dma_supported		= arc_dma_supported,
--};
--EXPORT_SYMBOL(arc_dma_ops);
--- 
-2.17.0
-
+SGkgQ2hyaXN0b3BoLA0KDQpPbiBGcmksIDIwMTgtMDQtMjAgYXQgMTA6MDIgKzAyMDAsIENocmlz
+dG9waCBIZWxsd2lnIHdyb3RlOg0KPiBTd2l0Y2ggdG8gdGhlIGdlbmVyaWMgbm9uY29oZXJlbnQg
+ZGlyZWN0IG1hcHBpbmcgaW1wbGVtZW50YXRpb24uDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDaHJp
+c3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4NCj4gLS0tDQo+ICBhcmNoL2FyYy9LY29uZmlnICAg
+ICAgICAgICAgICAgICAgIHwgICA0ICsNCj4gIGFyY2gvYXJjL2luY2x1ZGUvYXNtL0tidWlsZCAg
+ICAgICAgfCAgIDEgKw0KPiAgYXJjaC9hcmMvaW5jbHVkZS9hc20vZG1hLW1hcHBpbmcuaCB8ICAy
+MSAtLS0tLQ0KPiAgYXJjaC9hcmMvbW0vZG1hLmMgICAgICAgICAgICAgICAgICB8IDE0MSArKyst
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAgNCBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRp
+b25zKCspLCAxNDggZGVsZXRpb25zKC0pDQo+ICBkZWxldGUgbW9kZSAxMDA2NDQgYXJjaC9hcmMv
+aW5jbHVkZS9hc20vZG1hLW1hcHBpbmcuaA0KPiANCg0KW3NuaXBdDQoNCj4gQEAgLTEzNSw3ICsx
+MzQsNyBAQCBzdGF0aWMgaW50IGFyY19kbWFfbW1hcChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
+dCB2bV9hcmVhX3N0cnVjdCAqdm1hLA0KPiAgICogQ1BVIGFjY2Vzc2VzIHBhZ2UgdmlhIG5vcm1h
+bCBwYWRkciwgdGh1cyBuZWVkcyB0byBleHBsaWNpdGx5IG1hZGUNCj4gICAqIGNvbnNpc3RlbnQg
+YmVmb3JlIGVhY2ggdXNlDQo+ICAgKi8NCj4gLXN0YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhw
+aHlzX2FkZHJfdCBwYWRkciwgc2l6ZV90IHNpemUsDQo+ICtzdGF0aWMgdm9pZCBfZG1hX2NhY2hl
+X3N5bmMoc3RydWN0IGRldmljZSAqZGV2LCBwaHlzX2FkZHJfdCBwYWRkciBzaXplX3Qgc2l6ZSwN
+Cj4gIAkJZW51bSBkbWFfZGF0YV9kaXJlY3Rpb24gZGlyKQ0KDQpTZWVtcyBsaWtlIHRoZXJlJ3Mg
+YSBtaXNzaW5nIGNvbW1hOg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KLS0tIGEvYXJjaC9hcmMvbW0vZG1h
+LmMNCisrKyBiL2FyY2gvYXJjL21tL2RtYS5jDQpAQCAtMTM0LDcgKzEzNCw3IEBAIGludCBhcmNo
+X2RtYV9tbWFwKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
+DQogICogQ1BVIGFjY2Vzc2VzIHBhZ2UgdmlhIG5vcm1hbCBwYWRkciwgdGh1cyBuZWVkcyB0byBl
+eHBsaWNpdGx5IG1hZGUNCiAgKiBjb25zaXN0ZW50IGJlZm9yZSBlYWNoIHVzZQ0KICAqLw0KLXN0
+YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHBoeXNfYWRkcl90
+IHBhZGRyIHNpemVfdCBzaXplLA0KK3N0YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhzdHJ1Y3Qg
+ZGV2aWNlICpkZXYsIHBoeXNfYWRkcl90IHBhZGRyLCBzaXplX3Qgc2l6ZSwNCiAgICAgICAgICAg
+ICAgICBlbnVtIGRtYV9kYXRhX2RpcmVjdGlvbiBkaXIpDQogew0KICAgICAgICBzd2l0Y2ggKGRp
+cikgew0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KDQpXaGljaCBpcyBhY3R1YWxseSBzdHJhbmdlIGFzIEkg
+d291bGQgZXhwZWN0IEFSQyBjb2RlIHRvIGJlIGJ1aWx0IGJ5IGJvdHMuDQoNCkFueXdheXMgd2l0
+aCBhYm92ZSBmaXggSSBkbyBzZWUgcHJvYmxlbXMgd2l0aCBib3RoIFVTQiBhbmQgRXRoZXJuZXQg
+Y29udHJvbGxlcnMNCm9uIEFSQyBIU0RLIGJvYXJkLg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KdXNiIDEt
+MTogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgMiB1c2luZyBlaGNpLXBsYXRmb3Jt
+DQp1c2IgMS0xOiBkZXZpY2UgZGVzY3JpcHRvciByZWFkLzY0LCBlcnJvciAtMzINCnVzYiAxLTE6
+IGRldmljZSBkZXNjcmlwdG9yIHJlYWQvNjQsIGVycm9yIC0zMg0KdXNiIDEtMTogbmV3IGhpZ2gt
+c3BlZWQgVVNCIGRldmljZSBudW1iZXIgMyB1c2luZyBlaGNpLXBsYXRmb3JtDQp1c2IgMS0xOiBk
+ZXZpY2UgZGVzY3JpcHRvciByZWFkLzY0LCBlcnJvciAtMzINCnVzYiAxLTE6IGRldmljZSBkZXNj
+cmlwdG9yIHJlYWQvNjQsIGVycm9yIC0zMg0KdXNiIHVzYjEtcG9ydDE6IGF0dGVtcHQgcG93ZXIg
+Y3ljbGUNCnVzYiAxLTE6IG5ldyBoaWdoLXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDQgdXNpbmcg
+ZWhjaS1wbGF0Zm9ybQ0KdXNiIDEtMTogZGV2aWNlIG5vdCBhY2NlcHRpbmcgYWRkcmVzcyA0LCBl
+cnJvciAtMzINCnVzYiAxLTE6IG5ldyBoaWdoLXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDUgdXNp
+bmcgZWhjaS1wbGF0Zm9ybQ0KdXNiIDEtMTogZGV2aWNlIG5vdCBhY2NlcHRpbmcgYWRkcmVzcyA1
+LCBlcnJvciAtMzINCg0KLi4uDQoNCiMgd2dldCBmdHA6Ly9mdHAuZGVueC5kZS9wdWIvdS1ib290
+L3UtYm9vdC0xLjAuMC50YXIuYnoyDQpDb25uZWN0aW5nIHRvIGZ0cC5kZW54LmRlICg4MS4xNjku
+MjAyLjY6MjEpDQp3Z2V0OiBjYW4ndCBjb25uZWN0IHRvIHJlbW90ZSBob3N0ICg4MS4xNjkuMjAy
+LjYpOiBObyByb3V0ZSB0byBob3N0DQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LT44LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCldpbGwgYWxsIHBhdGNo
+ZXMgZnJvbSB0aGUgc2VyaWVzIHJldmVydGVkIChpLmUuIHdpdGgNCnlvdXIgYmFzZS1saW5lKSBh
+bGwgaXNzdWVzIGdvIGF3YXkuDQoNCkknbGwgbmVlZCB0byBzcGVuZCBtb3JlIHRpbWUgb24gY2hl
+Y2tpbmcgd2hhdCdzIGFjdHVhbGx5IHdyb25nLg0KDQotQWxleGV5DQoNClAuUy4gTm90ZSB0byBt
+eSBBUkMgY29sbGVhZ3VlcyAtIGl0J3MgcmVxdWlyZWQgdG8gZGlzYWJsZSBJTyBDb2hlcmVuY3kN
+CnRvIGdldCBETUEgb3BzIHJlYWxseSB1c2VkLCBpdCBjb3VsZCBiZSBvYnZpb3VzbHkgZG9uZSB3
+aXRoOg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KLS0tIGEvYXJjaC9hcmMvbW0vY2FjaGUuYw0KKysrIGIv
+YXJjaC9hcmMvbW0vY2FjaGUuYw0KQEAgLTI3LDcgKzI3LDcgQEANCiANCiBzdGF0aWMgaW50IGwy
+X2xpbmVfc3o7DQogc3RhdGljIGludCBpb2NfZXhpc3RzOw0KLWludCBzbGNfZW5hYmxlID0gMSwg
+aW9jX2VuYWJsZSA9IDE7DQoraW50IHNsY19lbmFibGUgPSAxLCBpb2NfZW5hYmxlID0gMDsNCiB1
+bnNpZ25lZCBsb25nIHBlcmlwX2Jhc2UgPSBBUkNfVU5DQUNIRURfQUREUl9TUEFDRTsgLyogbGVn
+YWN5IHZhbHVlIGZvciBib290ICovDQogdW5zaWduZWQgbG9uZyBwZXJpcF9lbmQgPSAweEZGRkZG
+RkZGOyAvKiBsZWdhY3kgdmFsdWUgKi8NCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tPjgtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg=
