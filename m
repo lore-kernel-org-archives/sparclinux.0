@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 23 Apr 2018 17:04:07 +0000
-Subject: centralize SWIOTLB config symbol and misc other cleanups V2
-Message-Id: <20180423170419.20330-1-hch@lst.de>
+Date: Wed, 25 Apr 2018 05:15:26 +0000
+Subject: centralize SWIOTLB config symbol and misc other cleanups V3
+Message-Id: <20180425051539.1989-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180415145947.1248-1-hch@lst.de>
 In-Reply-To: <20180415145947.1248-1-hch@lst.de>
@@ -15,7 +15,9 @@ Hi all,
 this seris aims for a single defintion of the Kconfig symbol.  To get
 there various cleanups, mostly about config symbols are included as well.
 
-Chances since V2 are a fixed s/Reviewed/Signed-Off/ for me, and a few
-reviewed-by tags.  I'd like to start merging this into the dma-mapping
-tree rather sooner than later given that quite a bit of material for
-this series depends on it.
+Changes since V2:
+ - swiotlb doesn't need the dma_length field by itself, so don't select it
+ - don't offer a user visible SWIOTLB choice
+
+Chages since V1:
+ - fixed a incorrect Reviewed-by that should be a Signed-off-by.
