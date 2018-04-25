@@ -1,166 +1,222 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 19 Apr 2018 14:37:22 +0000
-Subject: [PATCH v3 02/17] y2038: alpha: Remove unneeded ipc uapi header files
-Message-Id: <20180419143737.606138-3-arnd@arndb.de>
+Date: Wed, 25 Apr 2018 15:05:59 +0000
+Subject: [PATCH v4 09/16] y2038: sparc: Extend sysvipc data structures
+Message-Id: <20180425150606.954771-9-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180419143737.606138-1-arnd@arndb.de>
-In-Reply-To: <20180419143737.606138-1-arnd@arndb.de>
+References: <20180425132242.1500539-1-arnd@arndb.de>
+In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
 
-The alpha ipcbuf/msgbuf/sembuf/shmbuf header files are all identical
-to the version from asm-generic.
+sparc, uses a nonstandard variation of the generic sysvipc
+data structures, intended to have the padding moved around
+so it can deal with big-endian 32-bit user space that has
+64-bit time_t.
 
-This patch removes the files and replaces them with 'generic-y'
-statements as part of the y2038 series. Since there is no 32-bit
-syscall support for alpha, we don't need the other changes, but
-it's good to have clean this up anyway.
+Unlike most architectures, sparc actually succeeded in
+defining this right for big-endian CPUs, but as everyone else
+got it wrong, we just use the same hack everywhere.
+
+This takes just take the same approach here that we have for
+the asm-generic headers and adds separate 32-bit fields for the
+upper halves of the timestamps, to let libc deal with the mess
+in user space.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/alpha/include/uapi/asm/Kbuild   |  4 ++++
- arch/alpha/include/uapi/asm/ipcbuf.h |  2 --
- arch/alpha/include/uapi/asm/msgbuf.h | 28 --------------------------
- arch/alpha/include/uapi/asm/sembuf.h | 23 ---------------------
- arch/alpha/include/uapi/asm/shmbuf.h | 39 ------------------------------------
- 5 files changed, 4 insertions(+), 92 deletions(-)
- delete mode 100644 arch/alpha/include/uapi/asm/ipcbuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/msgbuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/sembuf.h
- delete mode 100644 arch/alpha/include/uapi/asm/shmbuf.h
+ arch/sparc/include/asm/compat.h      | 32 ++++++++++++++++----------------
+ arch/sparc/include/uapi/asm/msgbuf.h | 22 +++++++++-------------
+ arch/sparc/include/uapi/asm/sembuf.h | 16 +++++++---------
+ arch/sparc/include/uapi/asm/shmbuf.h | 21 +++++++++------------
+ 4 files changed, 41 insertions(+), 50 deletions(-)
 
-diff --git a/arch/alpha/include/uapi/asm/Kbuild b/arch/alpha/include/uapi/asm/Kbuild
-index 9afaba5e5503..1a5b75310cf4 100644
---- a/arch/alpha/include/uapi/asm/Kbuild
-+++ b/arch/alpha/include/uapi/asm/Kbuild
-@@ -2,4 +2,8 @@
- include include/uapi/asm-generic/Kbuild.asm
+diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
+index 1910c44521e3..4eb51d2dae98 100644
+--- a/arch/sparc/include/asm/compat.h
++++ b/arch/sparc/include/asm/compat.h
+@@ -192,10 +192,10 @@ struct compat_ipc64_perm {
  
- generic-y += bpf_perf_event.h
-+generic-y += ipcbuf.h
-+generic-y += msgbuf.h
- generic-y += poll.h
-+generic-y += sembuf.h
-+generic-y += shmbuf.h
-diff --git a/arch/alpha/include/uapi/asm/ipcbuf.h b/arch/alpha/include/uapi/asm/ipcbuf.h
-deleted file mode 100644
-index 90d6445a14df..000000000000
---- a/arch/alpha/include/uapi/asm/ipcbuf.h
-+++ /dev/null
-@@ -1,2 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#include <asm-generic/ipcbuf.h>
-diff --git a/arch/alpha/include/uapi/asm/msgbuf.h b/arch/alpha/include/uapi/asm/msgbuf.h
-deleted file mode 100644
-index 8c5d4d8c1b16..000000000000
---- a/arch/alpha/include/uapi/asm/msgbuf.h
-+++ /dev/null
-@@ -1,28 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ALPHA_MSGBUF_H
--#define _ALPHA_MSGBUF_H
+ struct compat_semid64_ds {
+ 	struct compat_ipc64_perm sem_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	sem_otime;
+-	unsigned int	__pad2;
+-	compat_time_t	sem_ctime;
++	unsigned int	sem_otime_high;
++	unsigned int	sem_otime;
++	unsigned int	sem_ctime_high;
++	unsigned int	sem_ctime;
+ 	u32		sem_nsems;
+ 	u32		__unused1;
+ 	u32		__unused2;
+@@ -203,12 +203,12 @@ struct compat_semid64_ds {
+ 
+ struct compat_msqid64_ds {
+ 	struct compat_ipc64_perm msg_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	msg_stime;
+-	unsigned int	__pad2;
+-	compat_time_t	msg_rtime;
+-	unsigned int	__pad3;
+-	compat_time_t	msg_ctime;
++	unsigned int	msg_stime_high;
++	unsigned int	msg_stime;
++	unsigned int	msg_rtime_high;
++	unsigned int	msg_rtime;
++	unsigned int	msg_ctime_high;
++	unsigned int	msg_ctime;
+ 	unsigned int	msg_cbytes;
+ 	unsigned int	msg_qnum;
+ 	unsigned int	msg_qbytes;
+@@ -220,12 +220,12 @@ struct compat_msqid64_ds {
+ 
+ struct compat_shmid64_ds {
+ 	struct compat_ipc64_perm shm_perm;
+-	unsigned int	__pad1;
+-	compat_time_t	shm_atime;
+-	unsigned int	__pad2;
+-	compat_time_t	shm_dtime;
+-	unsigned int	__pad3;
+-	compat_time_t	shm_ctime;
++	unsigned int	shm_atime_high;
++	unsigned int	shm_atime;
++	unsigned int	shm_dtime_high;
++	unsigned int	shm_dtime;
++	unsigned int	shm_ctime_high;
++	unsigned int	shm_ctime;
+ 	compat_size_t	shm_segsz;
+ 	compat_pid_t	shm_cpid;
+ 	compat_pid_t	shm_lpid;
+diff --git a/arch/sparc/include/uapi/asm/msgbuf.h b/arch/sparc/include/uapi/asm/msgbuf.h
+index b601c4f4d956..ffc46c211d6d 100644
+--- a/arch/sparc/include/uapi/asm/msgbuf.h
++++ b/arch/sparc/include/uapi/asm/msgbuf.h
+@@ -8,25 +8,22 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
 -
--/* 
-- * The msqid64_ds structure for alpha architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
 -
--struct msqid64_ds {
--	struct ipc64_perm msg_perm;
--	__kernel_time_t msg_stime;	/* last msgsnd time */
--	__kernel_time_t msg_rtime;	/* last msgrcv time */
--	__kernel_time_t msg_ctime;	/* last change time */
--	unsigned long  msg_cbytes;	/* current number of bytes on queue */
--	unsigned long  msg_qnum;	/* number of messages in queue */
--	unsigned long  msg_qbytes;	/* max number of bytes on queue */
--	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
--	__kernel_pid_t msg_lrpid;	/* last receive pid */
--	unsigned long  __unused1;
--	unsigned long  __unused2;
--};
 -
--#endif /* _ALPHA_MSGBUF_H */
-diff --git a/arch/alpha/include/uapi/asm/sembuf.h b/arch/alpha/include/uapi/asm/sembuf.h
-deleted file mode 100644
-index f28ffa668b2f..000000000000
---- a/arch/alpha/include/uapi/asm/sembuf.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ALPHA_SEMBUF_H
--#define _ALPHA_SEMBUF_H
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-	PADDING(__pad2)
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-	PADDING(__pad3)
+ 	__kernel_time_t msg_ctime;	/* last change time */
++#else
++	unsigned long msg_stime_high;
++	unsigned long msg_stime;	/* last msgsnd time */
++	unsigned long msg_rtime_high;
++	unsigned long msg_rtime;	/* last msgrcv time */
++	unsigned long msg_ctime_high;
++	unsigned long msg_ctime;	/* last change time */
++#endif
+ 	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+ 	unsigned long  msg_qnum;	/* number of messages in queue */
+ 	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+@@ -35,5 +32,4 @@ struct msqid64_ds {
+ 	unsigned long  __unused1;
+ 	unsigned long  __unused2;
+ };
+-#undef PADDING
+ #endif /* _SPARC_MSGBUF_H */
+diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
+index f49b0ffa0ab8..f3d309c2e1cd 100644
+--- a/arch/sparc/include/uapi/asm/sembuf.h
++++ b/arch/sparc/include/uapi/asm/sembuf.h
+@@ -8,25 +8,23 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
+ 
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t	sem_otime;		/* last semop time */
+-	PADDING(__pad2)
+ 	__kernel_time_t	sem_ctime;		/* last change time */
++#else
++	unsigned long	sem_otime_high;
++	unsigned long	sem_otime;		/* last semop time */
++	unsigned long	sem_ctime_high;
++	unsigned long	sem_ctime;		/* last change time */
++#endif
+ 	unsigned long	sem_nsems;		/* no. of semaphores in array */
+ 	unsigned long	__unused1;
+ 	unsigned long	__unused2;
+ };
+-#undef PADDING
+ 
+ #endif /* _SPARC64_SEMBUF_H */
+diff --git a/arch/sparc/include/uapi/asm/shmbuf.h b/arch/sparc/include/uapi/asm/shmbuf.h
+index 286631db705c..06618b84822d 100644
+--- a/arch/sparc/include/uapi/asm/shmbuf.h
++++ b/arch/sparc/include/uapi/asm/shmbuf.h
+@@ -8,24 +8,23 @@
+  * between kernel and user space.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
+ 
+-#if defined(__sparc__) && defined(__arch64__)
+-# define PADDING(x)
+-#else
+-# define PADDING(x) unsigned int x;
+-#endif
 -
--/* 
-- * The semid64_ds structure for alpha architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+-	PADDING(__pad1)
++#if defined(__sparc__) && defined(__arch64__)
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-	PADDING(__pad2)
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-	PADDING(__pad3)
+ 	__kernel_time_t		shm_ctime;	/* last change time */
++#else
++	unsigned long		shm_atime_high;
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_ctime_high;
++	unsigned long		shm_ctime;	/* last change time */
++#endif
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+ 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+@@ -46,6 +45,4 @@ struct shminfo64 {
+ 	unsigned long	__unused4;
+ };
+ 
+-#undef PADDING
 -
--struct semid64_ds {
--	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
--	__kernel_time_t	sem_otime;		/* last semop time */
--	__kernel_time_t	sem_ctime;		/* last change time */
--	unsigned long	sem_nsems;		/* no. of semaphores in array */
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--};
--
--#endif /* _ALPHA_SEMBUF_H */
-diff --git a/arch/alpha/include/uapi/asm/shmbuf.h b/arch/alpha/include/uapi/asm/shmbuf.h
-deleted file mode 100644
-index 7e041ca2eb40..000000000000
---- a/arch/alpha/include/uapi/asm/shmbuf.h
-+++ /dev/null
-@@ -1,39 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
--#ifndef _ALPHA_SHMBUF_H
--#define _ALPHA_SHMBUF_H
--
--/* 
-- * The shmid64_ds structure for alpha architecture.
-- * Note extra padding because this structure is passed back and forth
-- * between kernel and user space.
-- *
-- * Pad space is left for:
-- * - 2 miscellaneous 64-bit values
-- */
--
--struct shmid64_ds {
--	struct ipc64_perm	shm_perm;	/* operation perms */
--	size_t			shm_segsz;	/* size of segment (bytes) */
--	__kernel_time_t		shm_atime;	/* last attach time */
--	__kernel_time_t		shm_dtime;	/* last detach time */
--	__kernel_time_t		shm_ctime;	/* last change time */
--	__kernel_pid_t		shm_cpid;	/* pid of creator */
--	__kernel_pid_t		shm_lpid;	/* pid of last operator */
--	unsigned long		shm_nattch;	/* no. of current attaches */
--	unsigned long		__unused1;
--	unsigned long		__unused2;
--};
--
--struct shminfo64 {
--	unsigned long	shmmax;
--	unsigned long	shmmin;
--	unsigned long	shmmni;
--	unsigned long	shmseg;
--	unsigned long	shmall;
--	unsigned long	__unused1;
--	unsigned long	__unused2;
--	unsigned long	__unused3;
--	unsigned long	__unused4;
--};
--
--#endif /* _ALPHA_SHMBUF_H */
+ #endif /* _SPARC_SHMBUF_H */
 -- 
 2.9.0
 
