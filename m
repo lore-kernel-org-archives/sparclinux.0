@@ -1,297 +1,205 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 25 Apr 2018 05:15:34 +0000
-Subject: [PATCH 08/13] arch: define the ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig
-Message-Id: <20180425051539.1989-9-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 25 Apr 2018 15:05:51 +0000
+Subject: [PATCH v4 01/16] y2038: asm-generic: Extend sysvipc data structures
+Message-Id: <20180425150606.954771-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180425051539.1989-1-hch@lst.de>
-In-Reply-To: <20180425051539.1989-1-hch@lst.de>
+References: <20180425132242.1500539-1-arnd@arndb.de>
+In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
 
-Define this symbol if the architecture either uses 64-bit pointers or the
-PHYS_ADDR_T_64BIT is set.  This covers 95% of the old arch magic.  We only
-need an additional select for Xen on ARM (why anyway?), and we now always
-set ARCH_DMA_ADDR_T_64BIT on mips boards with 64-bit physical addressing
-instead of only doing it when highmem is set.
+Most architectures now use the asm-generic copy of the sysvipc data
+structures (msqid64_ds, semid64_ds, shmid64_ds), which use 32-bit
+__kernel_time_t on 32-bit architectures but have padding behind them to
+allow extending the type to 64-bit.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Unfortunately, that fails on all big-endian architectures, which have the
+padding on the wrong side. As so many of them get it wrong, we decided to
+not bother even trying to fix it up when we introduced the asm-generic
+copy. Instead we always use the padding word now to provide the upper
+32 bits of the seconds value, regardless of the endianess.
+
+A libc implementation on a typical big-endian system can deal with
+this by providing its own copy of the structure definition to user
+space, and swapping the two 32-bit words before returning from the
+semctl/shmctl/msgctl system calls.
+
+Note that msqid64_ds and shmid64_ds were broken on x32 since commit
+f4b4aae18288 ("x86/headers/uapi: Fix __BITS_PER_LONG value for x32
+builds"). I have sent a separate fix for that, but as we no longer
+have to worry about x32 here, I no longer worry about x32 here and
+use 'unsigned long' instead of __kernel_ulong_t.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/alpha/Kconfig             | 3 ---
- arch/arc/Kconfig               | 3 ---
- arch/arm/mach-axxia/Kconfig    | 1 -
- arch/arm/mach-bcm/Kconfig      | 1 -
- arch/arm/mach-exynos/Kconfig   | 1 -
- arch/arm/mach-highbank/Kconfig | 1 -
- arch/arm/mach-rockchip/Kconfig | 1 -
- arch/arm/mach-shmobile/Kconfig | 1 -
- arch/arm/mach-tegra/Kconfig    | 1 -
- arch/arm/mm/Kconfig            | 3 ---
- arch/arm64/Kconfig             | 3 ---
- arch/ia64/Kconfig              | 3 ---
- arch/mips/Kconfig              | 3 ---
- arch/powerpc/Kconfig           | 3 ---
- arch/riscv/Kconfig             | 3 ---
- arch/s390/Kconfig              | 3 ---
- arch/sparc/Kconfig             | 4 ----
- arch/x86/Kconfig               | 4 ----
- lib/Kconfig                    | 3 +++
- 19 files changed, 3 insertions(+), 42 deletions(-)
+ include/uapi/asm-generic/msgbuf.h | 27 +++++++++++++-------------
+ include/uapi/asm-generic/sembuf.h | 26 +++++++++++++++----------
+ include/uapi/asm-generic/shmbuf.h | 41 +++++++++++++++++++--------------------
+ 3 files changed, 49 insertions(+), 45 deletions(-)
 
-diff --git a/arch/alpha/Kconfig b/arch/alpha/Kconfig
-index 1fd9645b0c67..aa7df1a36fd0 100644
---- a/arch/alpha/Kconfig
-+++ b/arch/alpha/Kconfig
-@@ -66,9 +66,6 @@ config ZONE_DMA
- 	bool
- 	default y
+diff --git a/include/uapi/asm-generic/msgbuf.h b/include/uapi/asm-generic/msgbuf.h
+index fb306ebdb36f..9fe4881557cb 100644
+--- a/include/uapi/asm-generic/msgbuf.h
++++ b/include/uapi/asm-generic/msgbuf.h
+@@ -18,31 +18,30 @@
+  * On big-endian systems, the padding is in the wrong place.
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
  
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config GENERIC_ISA_DMA
- 	bool
- 	default y
-diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
-index f94c61da682a..7498aca4b887 100644
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -458,9 +458,6 @@ config ARC_HAS_PAE40
- 	  Enable access to physical memory beyond 4G, only supported on
- 	  ARC cores with 40 bit Physical Addressing support
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t msg_stime;	/* last msgsnd time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused1;
+-#endif
+ 	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused2;
+-#endif
+ 	__kernel_time_t msg_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused3;
++#else
++	unsigned long	msg_stime;	/* last msgsnd time */
++	unsigned long	msg_stime_high;
++	unsigned long	msg_rtime;	/* last msgrcv time */
++	unsigned long	msg_rtime_high;
++	unsigned long	msg_ctime;	/* last change time */
++	unsigned long	msg_ctime_high;
+ #endif
+-	__kernel_ulong_t msg_cbytes;	/* current number of bytes on queue */
+-	__kernel_ulong_t msg_qnum;	/* number of messages in queue */
+-	__kernel_ulong_t msg_qbytes;	/* max number of bytes on queue */
++	unsigned long	msg_cbytes;	/* current number of bytes on queue */
++	unsigned long	msg_qnum;	/* number of messages in queue */
++	unsigned long	 msg_qbytes;	/* max number of bytes on queue */
+ 	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
+ 	__kernel_pid_t msg_lrpid;	/* last receive pid */
+-	__kernel_ulong_t __unused4;
+-	__kernel_ulong_t __unused5;
++	unsigned long	 __unused4;
++	unsigned long	 __unused5;
+ };
  
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--
- config ARC_KVADDR_SIZE
- 	int "Kernel Virtual Address Space size (MB)"
- 	range 0 512
-diff --git a/arch/arm/mach-axxia/Kconfig b/arch/arm/mach-axxia/Kconfig
-index bb2ce1c63fd9..d3eae6037913 100644
---- a/arch/arm/mach-axxia/Kconfig
-+++ b/arch/arm/mach-axxia/Kconfig
-@@ -2,7 +2,6 @@
- config ARCH_AXXIA
- 	bool "LSI Axxia platforms"
- 	depends on ARCH_MULTI_V7 && ARM_LPAE
--	select ARCH_DMA_ADDR_T_64BIT
- 	select ARM_AMBA
- 	select ARM_GIC
- 	select ARM_TIMER_SP804
-diff --git a/arch/arm/mach-bcm/Kconfig b/arch/arm/mach-bcm/Kconfig
-index c2f3b0d216a4..c46a728df44e 100644
---- a/arch/arm/mach-bcm/Kconfig
-+++ b/arch/arm/mach-bcm/Kconfig
-@@ -211,7 +211,6 @@ config ARCH_BRCMSTB
- 	select BRCMSTB_L2_IRQ
- 	select BCM7120_L2_IRQ
- 	select ARCH_HAS_HOLES_MEMORYMODEL
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ZONE_DMA if ARM_LPAE
- 	select SOC_BRCMSTB
- 	select SOC_BUS
-diff --git a/arch/arm/mach-exynos/Kconfig b/arch/arm/mach-exynos/Kconfig
-index 647c319f9f5f..2ca405816846 100644
---- a/arch/arm/mach-exynos/Kconfig
-+++ b/arch/arm/mach-exynos/Kconfig
-@@ -112,7 +112,6 @@ config SOC_EXYNOS5440
- 	bool "SAMSUNG EXYNOS5440"
- 	default y
- 	depends on ARCH_EXYNOS5
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select HAVE_ARM_ARCH_TIMER
- 	select AUTO_ZRELADDR
- 	select PINCTRL_EXYNOS5440
-diff --git a/arch/arm/mach-highbank/Kconfig b/arch/arm/mach-highbank/Kconfig
-index 81110ec34226..5552968f07f8 100644
---- a/arch/arm/mach-highbank/Kconfig
-+++ b/arch/arm/mach-highbank/Kconfig
-@@ -1,7 +1,6 @@
- config ARCH_HIGHBANK
- 	bool "Calxeda ECX-1000/2000 (Highbank/Midway)"
- 	depends on ARCH_MULTI_V7
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_HAS_HOLES_MEMORYMODEL
- 	select ARCH_SUPPORTS_BIG_ENDIAN
- 	select ARM_AMBA
-diff --git a/arch/arm/mach-rockchip/Kconfig b/arch/arm/mach-rockchip/Kconfig
-index a4065966881a..fafd3d7f9f8c 100644
---- a/arch/arm/mach-rockchip/Kconfig
-+++ b/arch/arm/mach-rockchip/Kconfig
-@@ -3,7 +3,6 @@ config ARCH_ROCKCHIP
- 	depends on ARCH_MULTI_V7
- 	select PINCTRL
- 	select PINCTRL_ROCKCHIP
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_HAS_RESET_CONTROLLER
- 	select ARM_AMBA
- 	select ARM_GIC
-diff --git a/arch/arm/mach-shmobile/Kconfig b/arch/arm/mach-shmobile/Kconfig
-index 280e7312a9e1..fe60cd09a5ca 100644
---- a/arch/arm/mach-shmobile/Kconfig
-+++ b/arch/arm/mach-shmobile/Kconfig
-@@ -29,7 +29,6 @@ config ARCH_RMOBILE
- menuconfig ARCH_RENESAS
- 	bool "Renesas ARM SoCs"
- 	depends on ARCH_MULTI_V7 && MMU
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	select ARCH_SHMOBILE
- 	select ARM_GIC
- 	select GPIOLIB
-diff --git a/arch/arm/mach-tegra/Kconfig b/arch/arm/mach-tegra/Kconfig
-index 1e0aeb47bac6..7f3b83e0d324 100644
---- a/arch/arm/mach-tegra/Kconfig
-+++ b/arch/arm/mach-tegra/Kconfig
-@@ -15,6 +15,5 @@ menuconfig ARCH_TEGRA
- 	select RESET_CONTROLLER
- 	select SOC_BUS
- 	select ZONE_DMA if ARM_LPAE
--	select ARCH_DMA_ADDR_T_64BIT if ARM_LPAE
- 	help
- 	  This enables support for NVIDIA Tegra based systems.
-diff --git a/arch/arm/mm/Kconfig b/arch/arm/mm/Kconfig
-index 2f77c6344ef1..5a016bc80e26 100644
---- a/arch/arm/mm/Kconfig
-+++ b/arch/arm/mm/Kconfig
-@@ -674,9 +674,6 @@ config ARM_PV_FIXUP
- 	def_bool y
- 	depends on ARM_LPAE && ARM_PATCH_PHYS_VIRT && ARCH_KEYSTONE
+ #endif /* __ASM_GENERIC_MSGBUF_H */
+diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
+index cbf9cfe977d6..0bae010f1b64 100644
+--- a/include/uapi/asm-generic/sembuf.h
++++ b/include/uapi/asm-generic/sembuf.h
+@@ -13,23 +13,29 @@
+  * everyone just ended up making identical copies without specific
+  * optimizations, so we may just as well all use the same one.
+  *
+- * 64 bit architectures typically define a 64 bit __kernel_time_t,
++ * 64 bit architectures use a 64-bit __kernel_time_t here, while
++ * 32 bit architectures have a pair of unsigned long values.
+  * so they do not need the first two padding words.
+- * On big-endian systems, the padding is in the wrong place.
+  *
+- * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+- * - 2 miscellaneous 32-bit values
++ * On big-endian systems, the padding is in the wrong place for
++ * historic reasons, so user space has to reconstruct a time_t
++ * value using
++ *
++ * user_semid_ds.sem_otime = kernel_semid64_ds.sem_otime +
++ *		((long long)kernel_semid64_ds.sem_otime_high << 32)
++ *
++ * Pad space is left for 2 miscellaneous 32-bit values
+  */
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;	/* permissions .. see ipc.h */
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t	sem_otime;	/* last semop time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused1;
+-#endif
+ 	__kernel_time_t	sem_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long	__unused2;
++#else
++	unsigned long	sem_otime;	/* last semop time */
++	unsigned long	sem_otime_high;
++	unsigned long	sem_ctime;	/* last change time */
++	unsigned long	sem_ctime_high;
+ #endif
+ 	unsigned long	sem_nsems;	/* no. of semaphores in array */
+ 	unsigned long	__unused3;
+diff --git a/include/uapi/asm-generic/shmbuf.h b/include/uapi/asm-generic/shmbuf.h
+index 2b6c3bb97f97..e504422fc501 100644
+--- a/include/uapi/asm-generic/shmbuf.h
++++ b/include/uapi/asm-generic/shmbuf.h
+@@ -19,42 +19,41 @@
+  *
+  *
+  * Pad space is left for:
+- * - 64-bit time_t to solve y2038 problem
+  * - 2 miscellaneous 32-bit values
+  */
  
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--
- config ARM_THUMB
- 	bool "Support Thumb user binaries" if !CPU_THUMBONLY && EXPERT
- 	depends on CPU_THUMB_CAPABLE
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index b6aa33e642cc..4d924eb32e7f 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -236,9 +236,6 @@ config ZONE_DMA32
- config HAVE_GENERIC_GUP
- 	def_bool y
+ struct shmid64_ds {
+ 	struct ipc64_perm	shm_perm;	/* operation perms */
+ 	size_t			shm_segsz;	/* size of segment (bytes) */
++#if __BITS_PER_LONG = 64
+ 	__kernel_time_t		shm_atime;	/* last attach time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused1;
+-#endif
+ 	__kernel_time_t		shm_dtime;	/* last detach time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused2;
+-#endif
+ 	__kernel_time_t		shm_ctime;	/* last change time */
+-#if __BITS_PER_LONG != 64
+-	unsigned long		__unused3;
++#else
++	unsigned long		shm_atime;	/* last attach time */
++	unsigned long		shm_atime_high;
++	unsigned long		shm_dtime;	/* last detach time */
++	unsigned long		shm_dtime_high;
++	unsigned long		shm_ctime;	/* last change time */
++	unsigned long		shm_ctime_high;
+ #endif
+ 	__kernel_pid_t		shm_cpid;	/* pid of creator */
+ 	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+-	__kernel_ulong_t	shm_nattch;	/* no. of current attaches */
+-	__kernel_ulong_t	__unused4;
+-	__kernel_ulong_t	__unused5;
++	unsigned long		shm_nattch;	/* no. of current attaches */
++	unsigned long		__unused4;
++	unsigned long		__unused5;
+ };
  
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config SMP
- 	def_bool y
+ struct shminfo64 {
+-	__kernel_ulong_t	shmmax;
+-	__kernel_ulong_t	shmmin;
+-	__kernel_ulong_t	shmmni;
+-	__kernel_ulong_t	shmseg;
+-	__kernel_ulong_t	shmall;
+-	__kernel_ulong_t	__unused1;
+-	__kernel_ulong_t	__unused2;
+-	__kernel_ulong_t	__unused3;
+-	__kernel_ulong_t	__unused4;
++	unsigned long		shmmax;
++	unsigned long		shmmin;
++	unsigned long		shmmni;
++	unsigned long		shmseg;
++	unsigned long		shmall;
++	unsigned long		__unused1;
++	unsigned long		__unused2;
++	unsigned long		__unused3;
++	unsigned long		__unused4;
+ };
  
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 0e42731adaf1..685d557eea48 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -80,9 +80,6 @@ config MMU
- 	bool
- 	default y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config SWIOTLB
-        bool
- 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 985388078872..e10cc5c7be69 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -1101,9 +1101,6 @@ config GPIO_TXX9
- config FW_CFE
- 	bool
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool (HIGHMEM && PHYS_ADDR_T_64BIT) || 64BIT
--
- config ARCH_SUPPORTS_UPROBES
- 	bool
- 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index b3d091d65e05..a4b2ac7c3d2e 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -13,9 +13,6 @@ config 64BIT
- 	bool
- 	default y if PPC64
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool PHYS_ADDR_T_64BIT
--
- config MMU
- 	bool
- 	default y
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index f52f86f43a4b..17212ba54ee3 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -44,9 +44,6 @@ config ZONE_DMA32
- 	bool
- 	default y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config PAGE_OFFSET
- 	hex
- 	default 0xC0000000 if 32BIT && MAXPHYSMEM_2GB
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 89a007672f70..b794a2ab6d15 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -35,9 +35,6 @@ config GENERIC_BUG
- config GENERIC_BUG_RELATIVE_POINTERS
- 	def_bool y
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--
- config GENERIC_LOCKBREAK
- 	def_bool y if SMP && PREEMPT
- 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index be770b511ddd..c1cfc17eb504 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -105,10 +105,6 @@ config ARCH_ATU
- 	bool
- 	default y if SPARC64
- 
--config ARCH_DMA_ADDR_T_64BIT
--	bool
--	default y if ARCH_ATU
--
- config STACKTRACE_SUPPORT
- 	bool
- 	default y if SPARC64
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 8fccdaf02bb0..07b031f99eb1 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1476,10 +1476,6 @@ config X86_5LEVEL
- 
- 	  Say N if unsure.
- 
--config ARCH_DMA_ADDR_T_64BIT
--	def_bool y
--	depends on X86_64 || HIGHMEM64G
--
- config X86_DIRECT_GBPAGES
- 	def_bool y
- 	depends on X86_64 && !DEBUG_PAGEALLOC
-diff --git a/lib/Kconfig b/lib/Kconfig
-index ce9fa962d59b..1f12faf03819 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -435,6 +435,9 @@ config NEED_SG_DMA_LENGTH
- config NEED_DMA_MAP_STATE
- 	bool
- 
-+config ARCH_DMA_ADDR_T_64BIT
-+	def_bool 64BIT || PHYS_ADDR_T_64BIT
-+
- config IOMMU_HELPER
- 	bool
- 
+ #endif /* __ASM_GENERIC_SHMBUF_H */
 -- 
-2.17.0
+2.9.0
 
