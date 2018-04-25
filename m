@@ -1,193 +1,167 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 20 Apr 2018 08:03:01 +0000
-Subject: [PATCH 10/22] m68k: use generic dma_noncoherent_ops
-Message-Id: <20180420080313.18796-11-hch@lst.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 25 Apr 2018 15:05:54 +0000
+Subject: [PATCH v4 04/16] y2038: ia64: Remove unneeded ipc uapi header files
+Message-Id: <20180425150606.954771-4-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
-In-Reply-To: <20180420080313.18796-1-hch@lst.de>
+References: <20180425132242.1500539-1-arnd@arndb.de>
+In-Reply-To: <20180425132242.1500539-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: linux-api@vger.kernel.org, linux-arch@vger.kernel.org, libc-alpha@sourceware.org, tglx@linutronix.de, deepa.kernel@gmail.com, viro@zeniv.linux.org.uk, ebiederm@xmission.com, albert.aribaud@3adev.fr, linux-s390@vger.kernel.org, schwidefsky@de.ibm.com, x86@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-mips@linux-mips.org, jhogan@kernel.org, ralf@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, zackw@panix.com, noloader@gmail.com, Arnd Bergmann <arnd@arndb.de>
 
-Switch to the generic noncoherent direct mapping implementation.
+The ia64 ipcbuf/msgbuf/sembuf/shmbuf header files are all identical
+to the version from asm-generic.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This patch removes the files and replaces them with 'generic-y'
+statements as part of the y2038 changes. While ia64 no longer has
+a compat mode and doesn't need the file any more, it seem nicer
+to clean this up anyway.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/m68k/Kconfig                   |  2 +
- arch/m68k/include/asm/Kbuild        |  1 +
- arch/m68k/include/asm/dma-mapping.h | 12 -----
- arch/m68k/kernel/dma.c              | 68 ++++-------------------------
- 4 files changed, 11 insertions(+), 72 deletions(-)
- delete mode 100644 arch/m68k/include/asm/dma-mapping.h
+ arch/ia64/include/uapi/asm/Kbuild   |  4 ++++
+ arch/ia64/include/uapi/asm/ipcbuf.h |  2 --
+ arch/ia64/include/uapi/asm/msgbuf.h | 28 --------------------------
+ arch/ia64/include/uapi/asm/sembuf.h | 23 ----------------------
+ arch/ia64/include/uapi/asm/shmbuf.h | 39 -------------------------------------
+ 5 files changed, 4 insertions(+), 92 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/ipcbuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/msgbuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/sembuf.h
+ delete mode 100644 arch/ia64/include/uapi/asm/shmbuf.h
 
-diff --git a/arch/m68k/Kconfig b/arch/m68k/Kconfig
-index 785612b576f7..3f61327da2d5 100644
---- a/arch/m68k/Kconfig
-+++ b/arch/m68k/Kconfig
-@@ -2,6 +2,7 @@
- config M68K
- 	bool
- 	default y
-+	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if HAS_DMA
- 	select ARCH_MIGHT_HAVE_PC_PARPORT if ISA
- 	select ARCH_NO_COHERENT_DMA_MMAP if !MMU
- 	select HAVE_IDE
-@@ -24,6 +25,7 @@ config M68K
- 	select MODULES_USE_ELF_RELA
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
-+	select DMA_NONCOHERENT_OPS if HAS_DMA
+diff --git a/arch/ia64/include/uapi/asm/Kbuild b/arch/ia64/include/uapi/asm/Kbuild
+index c0527cfc48f0..3982e673e967 100644
+--- a/arch/ia64/include/uapi/asm/Kbuild
++++ b/arch/ia64/include/uapi/asm/Kbuild
+@@ -2,5 +2,9 @@
+ include include/uapi/asm-generic/Kbuild.asm
  
- config CPU_BIG_ENDIAN
- 	def_bool y
-diff --git a/arch/m68k/include/asm/Kbuild b/arch/m68k/include/asm/Kbuild
-index 88a9d27df1ac..a853c00f1374 100644
---- a/arch/m68k/include/asm/Kbuild
-+++ b/arch/m68k/include/asm/Kbuild
-@@ -1,5 +1,6 @@
- generic-y += barrier.h
- generic-y += device.h
-+generic-y += dma-mapping.h
- generic-y += emergency-restart.h
- generic-y += exec.h
- generic-y += extable.h
-diff --git a/arch/m68k/include/asm/dma-mapping.h b/arch/m68k/include/asm/dma-mapping.h
+ generic-y += bpf_perf_event.h
++generic-y += ipcbuf.h
+ generic-y += kvm_para.h
++generic-y += msgbuf.h
+ generic-y += poll.h
++generic-y += sembuf.h
++generic-y += shmbuf.h
+diff --git a/arch/ia64/include/uapi/asm/ipcbuf.h b/arch/ia64/include/uapi/asm/ipcbuf.h
 deleted file mode 100644
-index e3722ed04fbb..000000000000
---- a/arch/m68k/include/asm/dma-mapping.h
+index 90d6445a14df..000000000000
+--- a/arch/ia64/include/uapi/asm/ipcbuf.h
 +++ /dev/null
-@@ -1,12 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _M68K_DMA_MAPPING_H
--#define _M68K_DMA_MAPPING_H
+@@ -1,2 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#include <asm-generic/ipcbuf.h>
+diff --git a/arch/ia64/include/uapi/asm/msgbuf.h b/arch/ia64/include/uapi/asm/msgbuf.h
+deleted file mode 100644
+index aa25df92d9dc..000000000000
+--- a/arch/ia64/include/uapi/asm/msgbuf.h
++++ /dev/null
+@@ -1,28 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_MSGBUF_H
+-#define _ASM_IA64_MSGBUF_H
 -
--extern const struct dma_map_ops m68k_dma_ops;
+-/*
+- * The msqid64_ds structure for IA-64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
+- */
 -
--static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
--{
--        return &m68k_dma_ops;
--}
--
--#endif  /* _M68K_DMA_MAPPING_H */
-diff --git a/arch/m68k/kernel/dma.c b/arch/m68k/kernel/dma.c
-index c01b9b8f97bf..3d561c577d35 100644
---- a/arch/m68k/kernel/dma.c
-+++ b/arch/m68k/kernel/dma.c
-@@ -6,7 +6,7 @@
- 
- #undef DEBUG
- 
--#include <linux/dma-mapping.h>
-+#include <linux/dma-noncoherent.h>
- #include <linux/device.h>
- #include <linux/kernel.h>
- #include <linux/scatterlist.h>
-@@ -18,7 +18,7 @@
- 
- #if defined(CONFIG_MMU) && !defined(CONFIG_COLDFIRE)
- 
--static void *m68k_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
- 		gfp_t flag, unsigned long attrs)
- {
- 	struct page *page, **map;
-@@ -61,7 +61,7 @@ static void *m68k_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
- 	return addr;
- }
- 
--static void m68k_dma_free(struct device *dev, size_t size, void *addr,
-+void arch_dma_free(struct device *dev, size_t size, void *addr,
- 		dma_addr_t handle, unsigned long attrs)
- {
- 	pr_debug("dma_free_coherent: %p, %x\n", addr, handle);
-@@ -72,8 +72,8 @@ static void m68k_dma_free(struct device *dev, size_t size, void *addr,
- 
- #include <asm/cacheflush.h>
- 
--static void *m68k_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs)
- {
- 	void *ret;
- 
-@@ -88,7 +88,7 @@ static void *m68k_dma_alloc(struct device *dev, size_t size,
- 	return ret;
- }
- 
--static void m68k_dma_free(struct device *dev, size_t size, void *vaddr,
-+void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 		dma_addr_t dma_handle, unsigned long attrs)
- {
- 	free_pages((unsigned long)vaddr, get_order(size));
-@@ -96,8 +96,8 @@ static void m68k_dma_free(struct device *dev, size_t size, void *vaddr,
- 
- #endif /* CONFIG_MMU && !CONFIG_COLDFIRE */
- 
--static void m68k_dma_sync_single_for_device(struct device *dev,
--		dma_addr_t handle, size_t size, enum dma_data_direction dir)
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t handle,
-+		size_t size, enum dma_data_direction dir)
- {
- 	switch (dir) {
- 	case DMA_BIDIRECTIONAL:
-@@ -113,55 +113,3 @@ static void m68k_dma_sync_single_for_device(struct device *dev,
- 		break;
- 	}
- }
--
--static void m68k_dma_sync_sg_for_device(struct device *dev,
--		struct scatterlist *sglist, int nents, enum dma_data_direction dir)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sglist, sg, nents, i) {
--		dma_sync_single_for_device(dev, sg->dma_address, sg->length,
--					   dir);
--	}
--}
--
--static dma_addr_t m68k_dma_map_page(struct device *dev, struct page *page,
--		unsigned long offset, size_t size, enum dma_data_direction dir,
--		unsigned long attrs)
--{
--	dma_addr_t handle = page_to_phys(page) + offset;
--
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		dma_sync_single_for_device(dev, handle, size, dir);
--
--	return handle;
--}
--
--static int m68k_dma_map_sg(struct device *dev, struct scatterlist *sglist,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	int i;
--	struct scatterlist *sg;
--
--	for_each_sg(sglist, sg, nents, i) {
--		sg->dma_address = sg_phys(sg);
--
--		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
--			continue;
--
--		dma_sync_single_for_device(dev, sg->dma_address, sg->length,
--					   dir);
--	}
--	return nents;
--}
--
--const struct dma_map_ops m68k_dma_ops = {
--	.alloc			= m68k_dma_alloc,
--	.free			= m68k_dma_free,
--	.map_page		= m68k_dma_map_page,
--	.map_sg			= m68k_dma_map_sg,
--	.sync_single_for_device	= m68k_dma_sync_single_for_device,
--	.sync_sg_for_device	= m68k_dma_sync_sg_for_device,
+-struct msqid64_ds {
+-	struct ipc64_perm msg_perm;
+-	__kernel_time_t msg_stime;	/* last msgsnd time */
+-	__kernel_time_t msg_rtime;	/* last msgrcv time */
+-	__kernel_time_t msg_ctime;	/* last change time */
+-	unsigned long  msg_cbytes;	/* current number of bytes on queue */
+-	unsigned long  msg_qnum;	/* number of messages in queue */
+-	unsigned long  msg_qbytes;	/* max number of bytes on queue */
+-	__kernel_pid_t msg_lspid;	/* pid of last msgsnd */
+-	__kernel_pid_t msg_lrpid;	/* last receive pid */
+-	unsigned long  __unused1;
+-	unsigned long  __unused2;
 -};
--EXPORT_SYMBOL(m68k_dma_ops);
+-
+-#endif /* _ASM_IA64_MSGBUF_H */
+diff --git a/arch/ia64/include/uapi/asm/sembuf.h b/arch/ia64/include/uapi/asm/sembuf.h
+deleted file mode 100644
+index 6ed058760afc..000000000000
+--- a/arch/ia64/include/uapi/asm/sembuf.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_SEMBUF_H
+-#define _ASM_IA64_SEMBUF_H
+-
+-/*
+- * The semid64_ds structure for IA-64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
+- */
+-
+-struct semid64_ds {
+-	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+-	__kernel_time_t	sem_otime;		/* last semop time */
+-	__kernel_time_t	sem_ctime;		/* last change time */
+-	unsigned long	sem_nsems;		/* no. of semaphores in array */
+-	unsigned long	__unused1;
+-	unsigned long	__unused2;
+-};
+-
+-#endif /* _ASM_IA64_SEMBUF_H */
+diff --git a/arch/ia64/include/uapi/asm/shmbuf.h b/arch/ia64/include/uapi/asm/shmbuf.h
+deleted file mode 100644
+index 6ef57cb70dee..000000000000
+--- a/arch/ia64/include/uapi/asm/shmbuf.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_SHMBUF_H
+-#define _ASM_IA64_SHMBUF_H
+-
+-/*
+- * The shmid64_ds structure for IA-64 architecture.
+- * Note extra padding because this structure is passed back and forth
+- * between kernel and user space.
+- *
+- * Pad space is left for:
+- * - 2 miscellaneous 64-bit values
+- */
+-
+-struct shmid64_ds {
+-	struct ipc64_perm	shm_perm;	/* operation perms */
+-	size_t			shm_segsz;	/* size of segment (bytes) */
+-	__kernel_time_t		shm_atime;	/* last attach time */
+-	__kernel_time_t		shm_dtime;	/* last detach time */
+-	__kernel_time_t		shm_ctime;	/* last change time */
+-	__kernel_pid_t		shm_cpid;	/* pid of creator */
+-	__kernel_pid_t		shm_lpid;	/* pid of last operator */
+-	unsigned long		shm_nattch;	/* no. of current attaches */
+-	unsigned long		__unused1;
+-	unsigned long		__unused2;
+-};
+-
+-struct shminfo64 {
+-	unsigned long	shmmax;
+-	unsigned long	shmmin;
+-	unsigned long	shmmni;
+-	unsigned long	shmseg;
+-	unsigned long	shmall;
+-	unsigned long	__unused1;
+-	unsigned long	__unused2;
+-	unsigned long	__unused3;
+-	unsigned long	__unused4;
+-};
+-
+-#endif /* _ASM_IA64_SHMBUF_H */
 -- 
-2.17.0
+2.9.0
 
