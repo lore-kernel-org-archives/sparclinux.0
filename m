@@ -1,150 +1,56 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Sun, 15 Apr 2018 15:58:21 +0000
-Subject: [RFC PATCH 2/3] signal: Reduce copy_siginfo_to_user to just copy_to_user
-Message-Id: <87tvsc8ns2.fsf_-_@xmission.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 25 Apr 2018 05:15:39 +0000
+Subject: [PATCH 13/13] swiotlb: remove the CONFIG_DMA_DIRECT_OPS ifdefs
+Message-Id: <20180425051539.1989-14-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CA+55aFxdg2bYHtbKXb4mT5UuP2GH_qjkc=WeZY-RYHWZFQ2Gng@mail.gmail.com>
-        <20180412172051.GK16141@n2100.armlinux.org.uk>
-        <CA+55aFwjZqd8J0=veki1g+quQg8amEG4NnMe-h7HFksn=F=x_Q@mail.gmail.com>
-        <20180413094211.GN16141@n2100.armlinux.org.uk>
-        <CA+55aFwoThxqUeAZSsMhf--ODyhGkmOENH5R6=4+CuaopFx9eA@mail.gmail.com>
-        <20180413170827.GB16308@e103592.cambridge.arm.com>
-        <20180413175407.GO16141@n2100.armlinux.org.uk>
-        <CA+55aFyya6B9_aq8ZSrZT-S-BGbpbDgFvDff5z8upDirpcoiHA@mail.gmail.com>
-        <20180413184522.GD16308@e103592.cambridge.arm.com>
-        <CA+55aFwMUQbALx60b3JDrTcWVSBS7imS+zCYEMz8NOs=6rE6+A@mail.gmail.com>
-        <20180415131206.GR16141@n2100.armlinux.org.uk>
-        <87604sa2fu.fsf_-_@xmission.com>
-In-Reply-To: <87604sa2fu.fsf_-_@xmission.com> (Eric W. Biederman's message of
-        "Sun, 15 Apr 2018 10:56:21 -0500")
+References: <20180425051539.1989-1-hch@lst.de>
+In-Reply-To: <20180425051539.1989-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Dave Martin <Dave.Martin@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Dmitry V. Levin" <ldv@altlinux.org>, sparclinux <sparclinux@vger.kernel.org>, ppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Russell King - ARM Linux <linux@armlinux.org.uk>, linux-arch@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
+swiotlb now selects the DMA_DIRECT_OPS config symbol, so this will
+always be true.
 
-Now that every instance of struct siginfo is now initialized it is no
-longer necessary to copy struct siginfo piece by piece to userspace
-but instead the entire structure can be copied.
-
-As well as making the code simpler and more efficient this means that
-copy_sinfo_to_user no longer cares which union member of struct
-siginfo is in use.
-
-In practice this means that all 32bit architectures that define
-FPE_FIXME will handle properly send SI_USER when kill(SIGFPE) is sent.
-While still performing their historic architectural brokenness when 0
-is used a floating pointer signal.  This matches the current behavior
-of 64bit architectures that define FPE_FIXME who get lucky and an
-overloaded SI_USER has continuted to work through copy_siginfo_to_user
-because the 8 byte si_addr occupies the same bytes in struct siginfo
-as the 4 byte si_pid and the 4 byte si_uid.
-
-Problematic architectures still need to fix their ABI so that signalfd
-and 32bit compat code will work properly.
-
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- kernel/signal.c | 84 ++-------------------------------------------------------
- 1 file changed, 2 insertions(+), 82 deletions(-)
+ lib/swiotlb.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/kernel/signal.c b/kernel/signal.c
-index d4ccea599692..d56f4d496c89 100644
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -2850,89 +2850,9 @@ enum siginfo_layout siginfo_layout(int sig, int si_code)
- 
- int copy_siginfo_to_user(siginfo_t __user *to, const siginfo_t *from)
- {
--	int err;
--
--	if (!access_ok (VERIFY_WRITE, to, sizeof(siginfo_t)))
-+	if (copy_to_user(to, from , sizeof(struct siginfo)))
- 		return -EFAULT;
--	if (from->si_code < 0)
--		return __copy_to_user(to, from, sizeof(siginfo_t))
--			? -EFAULT : 0;
--	/*
--	 * If you change siginfo_t structure, please be sure
--	 * this code is fixed accordingly.
--	 * Please remember to update the signalfd_copyinfo() function
--	 * inside fs/signalfd.c too, in case siginfo_t changes.
--	 * It should never copy any pad contained in the structure
--	 * to avoid security leaks, but must copy the generic
--	 * 3 ints plus the relevant union member.
--	 */
--	err = __put_user(from->si_signo, &to->si_signo);
--	err |= __put_user(from->si_errno, &to->si_errno);
--	err |= __put_user(from->si_code, &to->si_code);
--	switch (siginfo_layout(from->si_signo, from->si_code)) {
--	case SIL_KILL:
--		err |= __put_user(from->si_pid, &to->si_pid);
--		err |= __put_user(from->si_uid, &to->si_uid);
--		break;
--	case SIL_TIMER:
--		/* Unreached SI_TIMER is negative */
--		break;
--	case SIL_POLL:
--		err |= __put_user(from->si_band, &to->si_band);
--		err |= __put_user(from->si_fd, &to->si_fd);
--		break;
--	case SIL_FAULT:
--		err |= __put_user(from->si_addr, &to->si_addr);
--#ifdef __ARCH_SI_TRAPNO
--		err |= __put_user(from->si_trapno, &to->si_trapno);
--#endif
--#ifdef __ia64__
--		err |= __put_user(from->si_imm, &to->si_imm);
--		err |= __put_user(from->si_flags, &to->si_flags);
--		err |= __put_user(from->si_isr, &to->si_isr);
--#endif
--		/*
--		 * Other callers might not initialize the si_lsb field,
--		 * so check explicitly for the right codes here.
--		 */
--#ifdef BUS_MCEERR_AR
--		if (from->si_signo = SIGBUS && from->si_code = BUS_MCEERR_AR)
--			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
--#endif
--#ifdef BUS_MCEERR_AO
--		if (from->si_signo = SIGBUS && from->si_code = BUS_MCEERR_AO)
--			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
--#endif
--#ifdef SEGV_BNDERR
--		if (from->si_signo = SIGSEGV && from->si_code = SEGV_BNDERR) {
--			err |= __put_user(from->si_lower, &to->si_lower);
--			err |= __put_user(from->si_upper, &to->si_upper);
--		}
--#endif
--#ifdef SEGV_PKUERR
--		if (from->si_signo = SIGSEGV && from->si_code = SEGV_PKUERR)
--			err |= __put_user(from->si_pkey, &to->si_pkey);
--#endif
--		break;
--	case SIL_CHLD:
--		err |= __put_user(from->si_pid, &to->si_pid);
--		err |= __put_user(from->si_uid, &to->si_uid);
--		err |= __put_user(from->si_status, &to->si_status);
--		err |= __put_user(from->si_utime, &to->si_utime);
--		err |= __put_user(from->si_stime, &to->si_stime);
--		break;
--	case SIL_RT:
--		err |= __put_user(from->si_pid, &to->si_pid);
--		err |= __put_user(from->si_uid, &to->si_uid);
--		err |= __put_user(from->si_ptr, &to->si_ptr);
--		break;
--	case SIL_SYS:
--		err |= __put_user(from->si_call_addr, &to->si_call_addr);
--		err |= __put_user(from->si_syscall, &to->si_syscall);
--		err |= __put_user(from->si_arch, &to->si_arch);
--		break;
--	}
--	return err;
-+	return 0;
+diff --git a/lib/swiotlb.c b/lib/swiotlb.c
+index fece57566d45..6954f7ad200a 100644
+--- a/lib/swiotlb.c
++++ b/lib/swiotlb.c
+@@ -692,7 +692,6 @@ void swiotlb_tbl_sync_single(struct device *hwdev, phys_addr_t tlb_addr,
+ 	}
  }
  
- #ifdef CONFIG_COMPAT
+-#ifdef CONFIG_DMA_DIRECT_OPS
+ static inline bool dma_coherent_ok(struct device *dev, dma_addr_t addr,
+ 		size_t size)
+ {
+@@ -764,7 +763,6 @@ static bool swiotlb_free_buffer(struct device *dev, size_t size,
+ 				 DMA_ATTR_SKIP_CPU_SYNC);
+ 	return true;
+ }
+-#endif
+ 
+ static void
+ swiotlb_full(struct device *dev, size_t size, enum dma_data_direction dir,
+@@ -1045,7 +1043,6 @@ swiotlb_dma_supported(struct device *hwdev, u64 mask)
+ 	return __phys_to_dma(hwdev, io_tlb_end - 1) <= mask;
+ }
+ 
+-#ifdef CONFIG_DMA_DIRECT_OPS
+ void *swiotlb_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		gfp_t gfp, unsigned long attrs)
+ {
+@@ -1089,4 +1086,3 @@ const struct dma_map_ops swiotlb_dma_ops = {
+ 	.unmap_page		= swiotlb_unmap_page,
+ 	.dma_supported		= dma_direct_supported,
+ };
+-#endif /* CONFIG_DMA_DIRECT_OPS */
 -- 
-2.14.1
+2.17.0
 
