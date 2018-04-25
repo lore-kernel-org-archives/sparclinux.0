@@ -1,147 +1,142 @@
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Date: Mon, 09 Apr 2018 13:57:09 +0000
-Subject: [PATCH 3/3] mm: remove __HAVE_ARCH_PTE_SPECIAL
-Message-Id: <1523282229-20731-4-git-send-email-ldufour@linux.vnet.ibm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 25 Apr 2018 05:15:30 +0000
+Subject: [PATCH 04/13] iommu-helper: move the IOMMU_HELPER config symbol to lib/
+Message-Id: <20180425051539.1989-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
-In-Reply-To: <1523282229-20731-1-git-send-email-ldufour@linux.vnet.ibm.com>
+References: <20180425051539.1989-1-hch@lst.de>
+In-Reply-To: <20180425051539.1989-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-It is now replaced by Kconfig variable CONFIG_ARCH_HAS_PTE_SPECIAL.
+This way we have one central definition of it, and user can select it as
+needed.
 
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 ---
- arch/arc/include/asm/pgtable.h               | 2 --
- arch/arm/include/asm/pgtable-3level.h        | 1 -
- arch/arm64/include/asm/pgtable.h             | 2 --
- arch/powerpc/include/asm/book3s/64/pgtable.h | 3 ---
- arch/powerpc/include/asm/pte-common.h        | 3 ---
- arch/s390/include/asm/pgtable.h              | 1 -
- arch/sh/include/asm/pgtable.h                | 2 --
- arch/sparc/include/asm/pgtable_64.h          | 3 ---
- arch/x86/include/asm/pgtable_types.h         | 1 -
- 9 files changed, 18 deletions(-)
+ arch/powerpc/Kconfig | 4 +---
+ arch/s390/Kconfig    | 5 ++---
+ arch/sparc/Kconfig   | 5 +----
+ arch/x86/Kconfig     | 6 ++----
+ lib/Kconfig          | 3 +++
+ 5 files changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arc/include/asm/pgtable.h b/arch/arc/include/asm/pgtable.h
-index 08fe33830d4b..8ec5599a0957 100644
---- a/arch/arc/include/asm/pgtable.h
-+++ b/arch/arc/include/asm/pgtable.h
-@@ -320,8 +320,6 @@ PTE_BIT_FUNC(mkexec,	|= (_PAGE_EXECUTE));
- PTE_BIT_FUNC(mkspecial,	|= (_PAGE_SPECIAL));
- PTE_BIT_FUNC(mkhuge,	|= (_PAGE_HW_SZ));
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 43e3c8e4e7f4..7698cf89af9c 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -223,6 +223,7 @@ config PPC
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_VIRT_CPU_ACCOUNTING
+ 	select HAVE_IRQ_TIME_ACCOUNTING
++	select IOMMU_HELPER			if PPC64
+ 	select IRQ_DOMAIN
+ 	select IRQ_FORCED_THREADING
+ 	select MODULES_USE_ELF_RELA
+@@ -478,9 +479,6 @@ config MPROFILE_KERNEL
+ 	depends on PPC64 && CPU_LITTLE_ENDIAN
+ 	def_bool !DISABLE_MPROFILE_KERNEL
  
--#define __HAVE_ARCH_PTE_SPECIAL
+-config IOMMU_HELPER
+-	def_bool PPC64
 -
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- {
- 	return __pte((pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot));
-diff --git a/arch/arm/include/asm/pgtable-3level.h b/arch/arm/include/asm/pgtable-3level.h
-index 2a4836087358..6d50a11d7793 100644
---- a/arch/arm/include/asm/pgtable-3level.h
-+++ b/arch/arm/include/asm/pgtable-3level.h
-@@ -219,7 +219,6 @@ static inline pte_t pte_mkspecial(pte_t pte)
- 	pte_val(pte) |= L_PTE_SPECIAL;
- 	return pte;
- }
--#define	__HAVE_ARCH_PTE_SPECIAL
+ config SWIOTLB
+ 	bool "SWIOTLB support"
+ 	default n
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 199ac3e4da1d..60c4ab854182 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -709,7 +709,9 @@ config QDIO
+ menuconfig PCI
+ 	bool "PCI support"
+ 	select PCI_MSI
++	select IOMMU_HELPER
+ 	select IOMMU_SUPPORT
++
+ 	help
+ 	  Enable PCI support.
  
- #define pmd_write(pmd)		(pmd_isclear((pmd), L_PMD_SECT_RDONLY))
- #define pmd_dirty(pmd)		(pmd_isset((pmd), L_PMD_SECT_DIRTY))
-diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
-index 7e2c27e63cd8..b96c8a186908 100644
---- a/arch/arm64/include/asm/pgtable.h
-+++ b/arch/arm64/include/asm/pgtable.h
-@@ -306,8 +306,6 @@ static inline int pte_same(pte_t pte_a, pte_t pte_b)
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+@@ -733,9 +735,6 @@ config PCI_DOMAINS
+ config HAS_IOMEM
+ 	def_bool PCI
  
--#define __HAVE_ARCH_PTE_SPECIAL
+-config IOMMU_HELPER
+-	def_bool PCI
 -
- static inline pte_t pgd_pte(pgd_t pgd)
- {
- 	return __pte(pgd_val(pgd));
-diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
-index a6b9f1d74600..f12d148eccbe 100644
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -338,9 +338,6 @@ extern unsigned long pci_io_base;
- /* Advertise special mapping type for AGP */
- #define HAVE_PAGE_AGP
+ config NEED_SG_DMA_LENGTH
+ 	def_bool PCI
  
--/* Advertise support for _PAGE_SPECIAL */
--#define __HAVE_ARCH_PTE_SPECIAL
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 8767e45f1b2b..44e0f3cd7988 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -67,6 +67,7 @@ config SPARC64
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select HAVE_CONTEXT_TRACKING
+ 	select HAVE_DEBUG_KMEMLEAK
++	select IOMMU_HELPER
+ 	select SPARSE_IRQ
+ 	select RTC_DRV_CMOS
+ 	select RTC_DRV_BQ4802
+@@ -106,10 +107,6 @@ config ARCH_DMA_ADDR_T_64BIT
+ 	bool
+ 	default y if ARCH_ATU
+ 
+-config IOMMU_HELPER
+-	bool
+-	default y if SPARC64
 -
- #ifndef __ASSEMBLY__
+ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y if SPARC64
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index cb2c7ecc1fea..fe9713539166 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -871,6 +871,7 @@ config DMI
  
- /*
-diff --git a/arch/powerpc/include/asm/pte-common.h b/arch/powerpc/include/asm/pte-common.h
-index c4a72c7a8c83..03dfddb1f49a 100644
---- a/arch/powerpc/include/asm/pte-common.h
-+++ b/arch/powerpc/include/asm/pte-common.h
-@@ -216,9 +216,6 @@ static inline bool pte_user(pte_t pte)
- #define PAGE_AGP		(PAGE_KERNEL_NC)
- #define HAVE_PAGE_AGP
+ config GART_IOMMU
+ 	bool "Old AMD GART IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI && AMD_NB
+ 	---help---
+@@ -892,6 +893,7 @@ config GART_IOMMU
  
--/* Advertise support for _PAGE_SPECIAL */
--#define __HAVE_ARCH_PTE_SPECIAL
+ config CALGARY_IOMMU
+ 	bool "IBM Calgary IOMMU support"
++	select IOMMU_HELPER
+ 	select SWIOTLB
+ 	depends on X86_64 && PCI
+ 	---help---
+@@ -929,10 +931,6 @@ config SWIOTLB
+ 	  with more than 3 GB of memory.
+ 	  If unsure, say Y.
+ 
+-config IOMMU_HELPER
+-	def_bool y
+-	depends on CALGARY_IOMMU || GART_IOMMU
 -
- #ifndef _PAGE_READ
- /* if not defined, we should not find _PAGE_WRITE too */
- #define _PAGE_READ 0
-diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
-index 2d24d33bf188..9809694e1389 100644
---- a/arch/s390/include/asm/pgtable.h
-+++ b/arch/s390/include/asm/pgtable.h
-@@ -171,7 +171,6 @@ static inline int is_module_addr(void *addr)
- #define _PAGE_WRITE	0x020		/* SW pte write bit */
- #define _PAGE_SPECIAL	0x040		/* SW associated with special page */
- #define _PAGE_UNUSED	0x080		/* SW bit for pgste usage state */
--#define __HAVE_ARCH_PTE_SPECIAL
+ config MAXSMP
+ 	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
+ 	depends on X86_64 && SMP && DEBUG_KERNEL
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 5fe577673b98..2f6908577534 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -429,6 +429,9 @@ config SGL_ALLOC
+ 	bool
+ 	default n
  
- #ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SOFT_DIRTY 0x002		/* SW pte soft dirty bit */
-diff --git a/arch/sh/include/asm/pgtable.h b/arch/sh/include/asm/pgtable.h
-index 89c513a982fc..f6abfe2bca93 100644
---- a/arch/sh/include/asm/pgtable.h
-+++ b/arch/sh/include/asm/pgtable.h
-@@ -156,8 +156,6 @@ extern void page_table_range_init(unsigned long start, unsigned long end,
- #define HAVE_ARCH_UNMAPPED_AREA
- #define HAVE_ARCH_UNMAPPED_AREA_TOPDOWN
- 
--#define __HAVE_ARCH_PTE_SPECIAL
--
- #include <asm-generic/pgtable.h>
- 
- #endif /* __ASM_SH_PGTABLE_H */
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 44d6ac47e035..1393a8ac596b 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -117,9 +117,6 @@ bool kern_addr_valid(unsigned long addr);
- #define _PAGE_PMD_HUGE    _AC(0x0100000000000000,UL) /* Huge page            */
- #define _PAGE_PUD_HUGE    _PAGE_PMD_HUGE
- 
--/* Advertise support for _PAGE_SPECIAL */
--#define __HAVE_ARCH_PTE_SPECIAL
--
- /* SUN4U pte bits... */
- #define _PAGE_SZ4MB_4U	  _AC(0x6000000000000000,UL) /* 4MB Page             */
- #define _PAGE_SZ512K_4U	  _AC(0x4000000000000000,UL) /* 512K Page            */
-diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
-index acfe755562a6..3e195728d7d1 100644
---- a/arch/x86/include/asm/pgtable_types.h
-+++ b/arch/x86/include/asm/pgtable_types.h
-@@ -65,7 +65,6 @@
- #define _PAGE_PKEY_BIT2	(_AT(pteval_t, 0))
- #define _PAGE_PKEY_BIT3	(_AT(pteval_t, 0))
- #endif
--#define __HAVE_ARCH_PTE_SPECIAL
- 
- #define _PAGE_PKEY_MASK (_PAGE_PKEY_BIT0 | \
- 			 _PAGE_PKEY_BIT1 | \
++config IOMMU_HELPER
++	bool
++
+ config DMA_DIRECT_OPS
+ 	bool
+ 	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
 -- 
-2.7.4
+2.17.0
 
