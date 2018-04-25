@@ -1,66 +1,44 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Mon, 23 Apr 2018 17:33:30 +0000
-Subject: [PATCH v5 0/2] sparc64: Add privileged ADI driver
-Message-Id: <20180423173332.561489-1-tom.hromatka@oracle.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 25 Apr 2018 05:15:36 +0000
+Subject: [PATCH 10/13] arm: don't build swiotlb by default
+Message-Id: <20180425051539.1989-11-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180425051539.1989-1-hch@lst.de>
+In-Reply-To: <20180425051539.1989-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-ADI is a feature supported on SPARC M7 and newer processors to allow
-hardware to catch rogue accesses to memory. ADI is supported for data
-fetches only and not instruction fetches. An app can enable ADI on its
-data pages, set version tags on them and use versioned addresses to
-access the data pages. Upper bits of the address contain the version
-tag. On M7 processors, upper four bits (bits 63-60) contain the version
-tag. If a rogue app attempts to access ADI enabled data pages, its
-access is blocked and processor generates an exception. Please see
-Documentation/sparc/adi.txt for further details.
+swiotlb is only used as a library of helper for xen-swiotlb if Xen support
+is enabled on arm, so don't build it by default.
 
-This patchset implements a char driver to read/write ADI versions from
-privileged user space processes.  Intended consumers are makedumpfile
-and crash.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/arm/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-v5:
-  * Fixed MODULE_LICENSE() for adi.c
-v4:
-  * Fixed messed up subject lines.
-v3:
-  * Really fixed the copyright headers to use SPDX GPL v2.  Really.
-v2:
-  * Simplified copyright headers
-  * Completely reworked sparc64 selftests Makefiles.  Used the
-    android selftests Makefiles as an example
-  * Added run.sh and drivers_test.sh to the sparc64 selftest
-    directory.  Used bpf/test_kmod.sh and the android selftests
-    as examples
-  * Minor cleanups in the selftest adi-test.c
-  * Added calls to ksft_test_*() in the adi-test.c
-
-Tom Hromatka (2):
-  char: sparc64: Add privileged ADI driver
-  selftests: sparc64: char: Selftest for privileged ADI driver
-
- drivers/char/Kconfig                               |  12 +
- drivers/char/Makefile                              |   1 +
- drivers/char/adi.c                                 | 240 +++++++
- tools/testing/selftests/Makefile                   |   1 +
- tools/testing/selftests/sparc64/Makefile           |  46 ++
- tools/testing/selftests/sparc64/drivers/.gitignore |   1 +
- tools/testing/selftests/sparc64/drivers/Makefile   |  15 +
- tools/testing/selftests/sparc64/drivers/adi-test.c | 721 +++++++++++++++++++++
- .../selftests/sparc64/drivers/drivers_test.sh      |  30 +
- tools/testing/selftests/sparc64/run.sh             |   3 +
- 10 files changed, 1070 insertions(+)
- create mode 100644 drivers/char/adi.c
- create mode 100644 tools/testing/selftests/sparc64/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
- create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
- create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
- create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
- create mode 100755 tools/testing/selftests/sparc64/run.sh
-
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index aa1c187d756d..90b81a3a28a7 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1774,7 +1774,7 @@ config SECCOMP
+ 	  defined by each seccomp mode.
+ 
+ config SWIOTLB
+-	def_bool y
++	bool
+ 
+ config PARAVIRT
+ 	bool "Enable paravirtualization code"
+@@ -1807,6 +1807,7 @@ config XEN
+ 	depends on MMU
+ 	select ARCH_DMA_ADDR_T_64BIT
+ 	select ARM_PSCI
++	select SWIOTLB
+ 	select SWIOTLB_XEN
+ 	select PARAVIRT
+ 	help
 -- 
-2.15.0
+2.17.0
 
