@@ -1,76 +1,55 @@
-From: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
-Date: Wed, 25 Apr 2018 11:17:01 +0000
+From: "hch@lst.de" <hch@lst.de>
+Date: Thu, 26 Apr 2018 06:45:00 +0000
 Subject: Re: [PATCH 06/22] arc: use generic dma_noncoherent_ops
-Message-Id: <1524655020.5315.9.camel@synopsys.com>
+Message-Id: <20180426064500.GB13895@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180420080313.18796-1-hch@lst.de>
- <20180420080313.18796-7-hch@lst.de>
-In-Reply-To: <20180420080313.18796-7-hch@lst.de>
+References: <20180420080313.18796-1-hch@lst.de> <20180420080313.18796-7-hch@lst.de> <1524655020.5315.9.camel@synopsys.com>
+In-Reply-To: <1524655020.5315.9.camel@synopsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "hch@lst.de" <hch@lst.de>
-Cc: "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "green.hu@gmail.com" <green.hu@gmail.com>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "nios2-dev@lists.rocketboards.org" <nios>
+To: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
+Cc: "hch@lst.de" <hch@lst.de>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "nios2-dev@lists.rocketboards.org" <nios2-dev@lists.rocketboards.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "green.hu@gmail.com" <green.hu@gmail.com>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-SGkgQ2hyaXN0b3BoLA0KDQpPbiBGcmksIDIwMTgtMDQtMjAgYXQgMTA6MDIgKzAyMDAsIENocmlz
-dG9waCBIZWxsd2lnIHdyb3RlOg0KPiBTd2l0Y2ggdG8gdGhlIGdlbmVyaWMgbm9uY29oZXJlbnQg
-ZGlyZWN0IG1hcHBpbmcgaW1wbGVtZW50YXRpb24uDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDaHJp
-c3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4NCj4gLS0tDQo+ICBhcmNoL2FyYy9LY29uZmlnICAg
-ICAgICAgICAgICAgICAgIHwgICA0ICsNCj4gIGFyY2gvYXJjL2luY2x1ZGUvYXNtL0tidWlsZCAg
-ICAgICAgfCAgIDEgKw0KPiAgYXJjaC9hcmMvaW5jbHVkZS9hc20vZG1hLW1hcHBpbmcuaCB8ICAy
-MSAtLS0tLQ0KPiAgYXJjaC9hcmMvbW0vZG1hLmMgICAgICAgICAgICAgICAgICB8IDE0MSArKyst
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAgNCBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRp
-b25zKCspLCAxNDggZGVsZXRpb25zKC0pDQo+ICBkZWxldGUgbW9kZSAxMDA2NDQgYXJjaC9hcmMv
-aW5jbHVkZS9hc20vZG1hLW1hcHBpbmcuaA0KPiANCg0KW3NuaXBdDQoNCj4gQEAgLTEzNSw3ICsx
-MzQsNyBAQCBzdGF0aWMgaW50IGFyY19kbWFfbW1hcChzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVj
-dCB2bV9hcmVhX3N0cnVjdCAqdm1hLA0KPiAgICogQ1BVIGFjY2Vzc2VzIHBhZ2UgdmlhIG5vcm1h
-bCBwYWRkciwgdGh1cyBuZWVkcyB0byBleHBsaWNpdGx5IG1hZGUNCj4gICAqIGNvbnNpc3RlbnQg
-YmVmb3JlIGVhY2ggdXNlDQo+ICAgKi8NCj4gLXN0YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhw
-aHlzX2FkZHJfdCBwYWRkciwgc2l6ZV90IHNpemUsDQo+ICtzdGF0aWMgdm9pZCBfZG1hX2NhY2hl
-X3N5bmMoc3RydWN0IGRldmljZSAqZGV2LCBwaHlzX2FkZHJfdCBwYWRkciBzaXplX3Qgc2l6ZSwN
-Cj4gIAkJZW51bSBkbWFfZGF0YV9kaXJlY3Rpb24gZGlyKQ0KDQpTZWVtcyBsaWtlIHRoZXJlJ3Mg
-YSBtaXNzaW5nIGNvbW1hOg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KLS0tIGEvYXJjaC9hcmMvbW0vZG1h
-LmMNCisrKyBiL2FyY2gvYXJjL21tL2RtYS5jDQpAQCAtMTM0LDcgKzEzNCw3IEBAIGludCBhcmNo
-X2RtYV9tbWFwKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWEs
-DQogICogQ1BVIGFjY2Vzc2VzIHBhZ2UgdmlhIG5vcm1hbCBwYWRkciwgdGh1cyBuZWVkcyB0byBl
-eHBsaWNpdGx5IG1hZGUNCiAgKiBjb25zaXN0ZW50IGJlZm9yZSBlYWNoIHVzZQ0KICAqLw0KLXN0
-YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhzdHJ1Y3QgZGV2aWNlICpkZXYsIHBoeXNfYWRkcl90
-IHBhZGRyIHNpemVfdCBzaXplLA0KK3N0YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhzdHJ1Y3Qg
-ZGV2aWNlICpkZXYsIHBoeXNfYWRkcl90IHBhZGRyLCBzaXplX3Qgc2l6ZSwNCiAgICAgICAgICAg
-ICAgICBlbnVtIGRtYV9kYXRhX2RpcmVjdGlvbiBkaXIpDQogew0KICAgICAgICBzd2l0Y2ggKGRp
-cikgew0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KDQpXaGljaCBpcyBhY3R1YWxseSBzdHJhbmdlIGFzIEkg
-d291bGQgZXhwZWN0IEFSQyBjb2RlIHRvIGJlIGJ1aWx0IGJ5IGJvdHMuDQoNCkFueXdheXMgd2l0
-aCBhYm92ZSBmaXggSSBkbyBzZWUgcHJvYmxlbXMgd2l0aCBib3RoIFVTQiBhbmQgRXRoZXJuZXQg
-Y29udHJvbGxlcnMNCm9uIEFSQyBIU0RLIGJvYXJkLg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KdXNiIDEt
-MTogbmV3IGhpZ2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgMiB1c2luZyBlaGNpLXBsYXRmb3Jt
-DQp1c2IgMS0xOiBkZXZpY2UgZGVzY3JpcHRvciByZWFkLzY0LCBlcnJvciAtMzINCnVzYiAxLTE6
-IGRldmljZSBkZXNjcmlwdG9yIHJlYWQvNjQsIGVycm9yIC0zMg0KdXNiIDEtMTogbmV3IGhpZ2gt
-c3BlZWQgVVNCIGRldmljZSBudW1iZXIgMyB1c2luZyBlaGNpLXBsYXRmb3JtDQp1c2IgMS0xOiBk
-ZXZpY2UgZGVzY3JpcHRvciByZWFkLzY0LCBlcnJvciAtMzINCnVzYiAxLTE6IGRldmljZSBkZXNj
-cmlwdG9yIHJlYWQvNjQsIGVycm9yIC0zMg0KdXNiIHVzYjEtcG9ydDE6IGF0dGVtcHQgcG93ZXIg
-Y3ljbGUNCnVzYiAxLTE6IG5ldyBoaWdoLXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDQgdXNpbmcg
-ZWhjaS1wbGF0Zm9ybQ0KdXNiIDEtMTogZGV2aWNlIG5vdCBhY2NlcHRpbmcgYWRkcmVzcyA0LCBl
-cnJvciAtMzINCnVzYiAxLTE6IG5ldyBoaWdoLXNwZWVkIFVTQiBkZXZpY2UgbnVtYmVyIDUgdXNp
-bmcgZWhjaS1wbGF0Zm9ybQ0KdXNiIDEtMTogZGV2aWNlIG5vdCBhY2NlcHRpbmcgYWRkcmVzcyA1
-LCBlcnJvciAtMzINCg0KLi4uDQoNCiMgd2dldCBmdHA6Ly9mdHAuZGVueC5kZS9wdWIvdS1ib290
-L3UtYm9vdC0xLjAuMC50YXIuYnoyDQpDb25uZWN0aW5nIHRvIGZ0cC5kZW54LmRlICg4MS4xNjku
-MjAyLjY6MjEpDQp3Z2V0OiBjYW4ndCBjb25uZWN0IHRvIHJlbW90ZSBob3N0ICg4MS4xNjkuMjAy
-LjYpOiBObyByb3V0ZSB0byBob3N0DQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LT44LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCldpbGwgYWxsIHBhdGNo
-ZXMgZnJvbSB0aGUgc2VyaWVzIHJldmVydGVkIChpLmUuIHdpdGgNCnlvdXIgYmFzZS1saW5lKSBh
-bGwgaXNzdWVzIGdvIGF3YXkuDQoNCkknbGwgbmVlZCB0byBzcGVuZCBtb3JlIHRpbWUgb24gY2hl
-Y2tpbmcgd2hhdCdzIGFjdHVhbGx5IHdyb25nLg0KDQotQWxleGV5DQoNClAuUy4gTm90ZSB0byBt
-eSBBUkMgY29sbGVhZ3VlcyAtIGl0J3MgcmVxdWlyZWQgdG8gZGlzYWJsZSBJTyBDb2hlcmVuY3kN
-CnRvIGdldCBETUEgb3BzIHJlYWxseSB1c2VkLCBpdCBjb3VsZCBiZSBvYnZpb3VzbHkgZG9uZSB3
-aXRoOg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KLS0tIGEvYXJjaC9hcmMvbW0vY2FjaGUuYw0KKysrIGIv
-YXJjaC9hcmMvbW0vY2FjaGUuYw0KQEAgLTI3LDcgKzI3LDcgQEANCiANCiBzdGF0aWMgaW50IGwy
-X2xpbmVfc3o7DQogc3RhdGljIGludCBpb2NfZXhpc3RzOw0KLWludCBzbGNfZW5hYmxlID0gMSwg
-aW9jX2VuYWJsZSA9IDE7DQoraW50IHNsY19lbmFibGUgPSAxLCBpb2NfZW5hYmxlID0gMDsNCiB1
-bnNpZ25lZCBsb25nIHBlcmlwX2Jhc2UgPSBBUkNfVU5DQUNIRURfQUREUl9TUEFDRTsgLyogbGVn
-YWN5IHZhbHVlIGZvciBib290ICovDQogdW5zaWduZWQgbG9uZyBwZXJpcF9lbmQgPSAweEZGRkZG
-RkZGOyAvKiBsZWdhY3kgdmFsdWUgKi8NCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tPjgtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg=
+On Wed, Apr 25, 2018 at 11:17:01AM +0000, Alexey Brodkin wrote:
+> Which is actually strange as I would expect ARC code to be built by bots.
+
+I don't think I got any notification.  Thank for the fixes!
+
+I think I found the bug, based on the fact that so far all tests for
+architectures that also need a cache op for device to cpu transitions
+failed.  I did a stupid typo when changing kconfig symbols, so please
+try the patch below.
+
+>  
+>  static int l2_line_sz;
+>  static int ioc_exists;
+> -int slc_enable = 1, ioc_enable = 1;
+> +int slc_enable = 1, ioc_enable = 0;
+
+Hmm.  It seems if ioc_enable is 0 we should simply be using
+dma_direct_ops on arc, but that is a different discussion.
+
+---
+diff --git a/lib/dma-noncoherent.c b/lib/dma-noncoherent.c
+index f4b8532c20ac..a2c192b3508d 100644
+--- a/lib/dma-noncoherent.c
++++ b/lib/dma-noncoherent.c
+@@ -48,7 +48,7 @@ static int dma_noncoherent_map_sg(struct device *dev, struct scatterlist *sgl,
+ 	return nents;
+ }
+ 
+-#ifdef CONFIG_DMA_NONCOHERENT_SYNC_FOR_CPU
++#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
+ static void dma_noncoherent_sync_single_for_cpu(struct device *dev,
+ 		dma_addr_t addr, size_t size, enum dma_data_direction dir)
+ {
+@@ -88,7 +88,7 @@ const struct dma_map_ops dma_noncoherent_ops = {
+ 	.sync_sg_for_device	= dma_noncoherent_sync_sg_for_device,
+ 	.map_page		= dma_noncoherent_map_page,
+ 	.map_sg			= dma_noncoherent_map_sg,
+-#ifdef CONFIG_DMA_NONCOHERENT_SYNC_FOR_CPU
++#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
+ 	.sync_single_for_cpu	= dma_noncoherent_sync_single_for_cpu,
+ 	.sync_sg_for_cpu	= dma_noncoherent_sync_sg_for_cpu,
+ 	.unmap_page		= dma_noncoherent_unmap_page,
