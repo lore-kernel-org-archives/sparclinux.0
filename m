@@ -1,80 +1,74 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Date: Tue, 08 May 2018 09:50:06 +0000
-Subject: Re: [PATCH 2/3] dma-debug: simplify counting of preallocated requests
-Message-Id: <b50ef15a-8ffb-e8f2-11a7-b38d2ebda1c6@arm.com>
+From: James Hogan <jhogan@kernel.org>
+Date: Wed, 02 May 2018 22:09:34 +0000
+Subject: Re: [PATCH 08/13] arch: define the ARCH_DMA_ADDR_T_64BIT config symbol in lib/Kconfig
+Message-Id: <20180502220933.GB20766@jamesdev>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="wzJLGUyc3ArbnUjN"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180424140235.9125-1-hch@lst.de>
-	<20180424140235.9125-3-hch@lst.de>
-In-Reply-To: <20180424140235.9125-3-hch-jcswGhMUV9g@public.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+References: <20180425051539.1989-1-hch@lst.de>
+ <20180425051539.1989-9-hch@lst.de>
+In-Reply-To: <20180425051539.1989-9-hch@lst.de>
+To: linux-arm-kernel@lists.infradead.org
 
-On 24/04/18 15:02, Christoph Hellwig wrote:
-> Just keep a single variable with a descriptive name instead of two
-> with confusing names.
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+--wzJLGUyc3ArbnUjN
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->   lib/dma-debug.c | 20 ++++----------------
->   1 file changed, 4 insertions(+), 16 deletions(-)
-> 
-> diff --git a/lib/dma-debug.c b/lib/dma-debug.c
-> index 712a897174e4..075253cb613b 100644
-> --- a/lib/dma-debug.c
-> +++ b/lib/dma-debug.c
-> @@ -132,7 +132,7 @@ static u32 min_free_entries;
->   static u32 nr_total_entries;
->   
->   /* number of preallocated entries requested by kernel cmdline */
-> -static u32 req_entries;
-> +static u32 nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
->   
->   /* debugfs dentry's for the stuff above */
->   static struct dentry *dma_debug_dent        __read_mostly;
-> @@ -1011,7 +1011,6 @@ void dma_debug_add_bus(struct bus_type *bus)
->   
->   static int dma_debug_init(void)
->   {
-> -	u32 num_entries;
->   	int i;
->   
->   	/* Do not use dma_debug_initialized here, since we really want to be
-> @@ -1032,12 +1031,7 @@ static int dma_debug_init(void)
->   		return 0;
->   	}
->   
-> -	if (req_entries)
-> -		num_entries = req_entries;
-> -	else
-> -		num_entries = PREALLOC_DMA_DEBUG_ENTRIES;
+On Wed, Apr 25, 2018 at 07:15:34AM +0200, Christoph Hellwig wrote:
+> Define this symbol if the architecture either uses 64-bit pointers or the
+> PHYS_ADDR_T_64BIT is set.  This covers 95% of the old arch magic.  We only
+> need an additional select for Xen on ARM (why anyway?), and we now always
+> set ARCH_DMA_ADDR_T_64BIT on mips boards with 64-bit physical addressing
+> instead of only doing it when highmem is set.
+
+I think this should be fine. It only affects alchemy and Netlogic, and
+Netlogic supports highmem already.
+
+So for MIPS:
+Acked-by: James Hogan <jhogan@kernel.org>
+
+Cheers
+James
+
+> diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+> index 985388078872..e10cc5c7be69 100644
+> --- a/arch/mips/Kconfig
+> +++ b/arch/mips/Kconfig
+> @@ -1101,9 +1101,6 @@ config GPIO_TXX9
+>  config FW_CFE
+>  	bool
+> =20
+> -config ARCH_DMA_ADDR_T_64BIT
+> -	def_bool (HIGHMEM && PHYS_ADDR_T_64BIT) || 64BIT
 > -
-> -	if (prealloc_memory(num_entries) != 0) {
-> +	if (prealloc_memory(nr_prealloc_entries) != 0) {
->   		pr_err("DMA-API: debugging out of memory error - disabled\n");
->   		global_disable = true;
->   
-> @@ -1068,16 +1062,10 @@ static __init int dma_debug_cmdline(char *str)
->   
->   static __init int dma_debug_entries_cmdline(char *str)
->   {
-> -	int res;
-> -
->   	if (!str)
->   		return -EINVAL;
-> -
-> -	res = get_option(&str, &req_entries);
-> -
-> -	if (!res)
-> -		req_entries = 0;
-> -
-> +	if (!get_option(&str, &nr_prealloc_entries))
-> +		nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
->   	return 0;
->   }
->   
-> 
+>  config ARCH_SUPPORTS_UPROBES
+>  	bool
+
+> diff --git a/lib/Kconfig b/lib/Kconfig
+> index ce9fa962d59b..1f12faf03819 100644
+> --- a/lib/Kconfig
+> +++ b/lib/Kconfig
+> @@ -435,6 +435,9 @@ config NEED_SG_DMA_LENGTH
+>  config NEED_DMA_MAP_STATE
+>  	bool
+> =20
+> +config ARCH_DMA_ADDR_T_64BIT
+> +	def_bool 64BIT || PHYS_ADDR_T_64BIT
+> +
+>  config IOMMU_HELPER
+>  	bool
+
+--wzJLGUyc3ArbnUjN
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQS7lRNBWUYtqfDOVL41zuSGKxAj8gUCWuo3DwAKCRA1zuSGKxAj
+8tikAQDi/ZUNjW7+epg5yVcHFsdN4zPqszjMfOoZb9Tw0/w5/QD+O0gHySriLqfv
+vZwnsvl5Mx2kzMLvdMNqFC++weR4XwQ=
+=H1g4
+-----END PGP SIGNATURE-----
+
+--wzJLGUyc3ArbnUjN--
