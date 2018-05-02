@@ -1,49 +1,40 @@
-From: Jens Axboe <axboe@kernel.dk>
-Date: Tue, 15 May 2018 19:57:41 +0000
-Subject: Re: [PATCH] jsflash: fix compilation
-Message-Id: <ba97628d-e7a6-0e0e-b4a6-8934da9f039e@kernel.dk>
+From: James Hogan <jhogan@kernel.org>
+Date: Wed, 02 May 2018 22:20:18 +0000
+Subject: Re: [PATCH 11/13] mips,unicore32: swiotlb doesn't need sg->dma_length
+Message-Id: <20180502222017.GC20766@jamesdev>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="Izn7cH1Com+I3R9J"
 List-Id: <sparclinux.vger.kernel.org>
-References: <0d9ca090-5277-6c1c-9bff-477054f97746@kernel.dk>
- <20180515.145810.2201898778026946067.davem@davemloft.net>
- <0ec7d5d1-cd5f-b415-b866-1b3daa9fa840@kernel.dk>
- <20180515.155118.1408865987817486838.davem@davemloft.net>
-In-Reply-To: <20180515.155118.1408865987817486838.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: hch@lst.de, linux-block@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20180425051539.1989-1-hch@lst.de>
+ <20180425051539.1989-12-hch@lst.de>
+In-Reply-To: <20180425051539.1989-12-hch@lst.de>
+To: linux-arm-kernel@lists.infradead.org
 
-On 5/15/18 1:51 PM, David Miller wrote:
-> From: Jens Axboe <axboe@kernel.dk>
-> Date: Tue, 15 May 2018 13:00:36 -0600
-> 
->> On 5/15/18 12:58 PM, David Miller wrote:
->>> From: Jens Axboe <axboe@kernel.dk>
->>> Date: Tue, 15 May 2018 12:51:20 -0600
->>>
->>>> On 5/15/18 12:32 PM, Christoph Hellwig wrote:
->>>>> No bio in this whole function, use req->bio instead.
->>>>
->>>> Applied.
->>>>
->>>>> Looks like no one except for Guenters build bot cared.  I wonder if we
->>>>> should just get rid of the driver given that it doesn't look in a good
->>>>> shape at all based on his build logs even with the fix..
->>>>
->>>> Needs input from the folks that actually might use it. The driver looks
->>>> abandoned, it's only getting updates through API changes etc.
->>>
->>> I don't think anyone is using it.
->>
->> Are you fine with removing it then?
-> 
-> Yes, I am:
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
 
-Great, done!
+--Izn7cH1Com+I3R9J
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
--- 
-Jens Axboe
+On Wed, Apr 25, 2018 at 07:15:37AM +0200, Christoph Hellwig wrote:
+> Only mips and unicore32 select CONFIG_NEED_SG_DMA_LENGTH when building
+> swiotlb.  swiotlb itself never merges segements and doesn't accesses the
+> dma_length field directly, so drop the dependency.
 
+Is that at odds with Documentation/DMA-API-HOWTO.txt, which seems to
+suggest arch ports should enable it for IOMMUs?
+
+Cheers
+James
+
+--Izn7cH1Com+I3R9J
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQS7lRNBWUYtqfDOVL41zuSGKxAj8gUCWuo5nwAKCRA1zuSGKxAj
+8toFAQDILXOi2KhP1yoO3zabIiof3I/tmRomgzUgGA3ESVm5lgEA4elhmn7zDXhX
+YG33reqJ7xyPenaOF8AX63cB5eqjOQ8=
+=UDV2
+-----END PGP SIGNATURE-----
+
+--Izn7cH1Com+I3R9J--
