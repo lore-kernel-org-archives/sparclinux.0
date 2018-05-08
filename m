@@ -1,9 +1,10 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Date: Tue, 08 May 2018 09:46:24 +0000
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Tue, 08 May 2018 10:22:12 +0000
 Subject: Re: [PATCH 1/3] dma-debug: move initialization to common code
-Message-Id: <f89e5ef3-d58a-ef2f-1695-e3a751cfe8a9@arm.com>
+Message-Id: <d2ea505f-ef18-bed1-23b5-dad81032e775@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180424140235.9125-1-hch@lst.de>
+	<CGME20180424140315epcas1p260a93a22d2b78db49274ec5c07664efe@epcas1p2.samsung.com>
 	<20180424140235.9125-2-hch@lst.de>
 In-Reply-To: <20180424140235.9125-2-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
@@ -12,20 +13,29 @@ Content-Transfer-Encoding: 7bit
 To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 
-On 24/04/18 15:02, Christoph Hellwig wrote:
+Hi Christoph,
+
+On 2018-04-24 16:02, Christoph Hellwig wrote:
 > Most mainstream architectures are using 65536 entries, so lets stick to
 > that.  If someone is really desperate to override it that can still be
 > done through <asm/dma-mapping.h>, but I'd rather see a really good
 > rationale for that.
-> 
+>
 > dma_debug_init is now called as a core_initcall, which for many
 > architectures means much earlier, and provides dma-debug functionality
 > earlier in the boot process.  This should be safe as it only relies
 > on the memory allocator already being available.
-
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
-
+>
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+Nice! Unification of this is definitely needed and solves the issues
+reported some time ago:
+
+https://patchwork.kernel.org/patch/9429637/ (arm)
+https://patchwork.kernel.org/patch/9431161/ (arm64, rejected)
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
 > ---
 >   arch/arm/mm/dma-mapping-nommu.c |  9 ---------
 >   arch/arm/mm/dma-mapping.c       |  9 ---------
@@ -46,7 +56,7 @@ Reviewed-by: Robin Murphy <robin.murphy@arm.com>
 >   lib/dma-debug.c                 | 21 ++++++++++++++-------
 >   17 files changed, 14 insertions(+), 143 deletions(-)
 >   delete mode 100644 arch/sparc/kernel/dma.c
-> 
+>
 > diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
 > index 619f24a42d09..f448a0663b10 100644
 > --- a/arch/arm/mm/dma-mapping-nommu.c
@@ -430,4 +440,9 @@ Reviewed-by: Robin Murphy <robin.murphy@arm.com>
 >   
 >   static __init int dma_debug_cmdline(char *str)
 >   {
-> 
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
