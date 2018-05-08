@@ -1,91 +1,80 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 11 May 2018 07:59:34 +0000
-Subject: [PATCH 09/20] microblaze: remove the consistent_sync and consistent_sync_page
-Message-Id: <20180511075945.16548-10-hch@lst.de>
+From: Robin Murphy <robin.murphy@arm.com>
+Date: Tue, 08 May 2018 09:50:06 +0000
+Subject: Re: [PATCH 2/3] dma-debug: simplify counting of preallocated requests
+Message-Id: <b50ef15a-8ffb-e8f2-11a7-b38d2ebda1c6@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180511075945.16548-1-hch@lst.de>
-In-Reply-To: <20180511075945.16548-1-hch-jcswGhMUV9g@public.gmane.org>
+References: <20180424140235.9125-1-hch@lst.de>
+	<20180424140235.9125-3-hch@lst.de>
+In-Reply-To: <20180424140235.9125-3-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 
-Both unused.
+On 24/04/18 15:02, Christoph Hellwig wrote:
+> Just keep a single variable with a descriptive name instead of two
+> with confusing names.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/microblaze/include/asm/pgtable.h |  3 --
- arch/microblaze/mm/consistent.c       | 45 ---------------------------
- 2 files changed, 48 deletions(-)
+Reviewed-by: Robin Murphy <robin.murphy@arm.com>
 
-diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
-index 8a2e654b709f..7b650ab14fa0 100644
---- a/arch/microblaze/include/asm/pgtable.h
-+++ b/arch/microblaze/include/asm/pgtable.h
-@@ -553,9 +553,6 @@ void __init *early_get_page(void);
- 
- extern unsigned long ioremap_bot, ioremap_base;
- 
--void consistent_sync(void *vaddr, size_t size, int direction);
--void consistent_sync_page(struct page *page, unsigned long offset,
--	size_t size, int direction);
- unsigned long consistent_virt_to_pfn(void *vaddr);
- 
- void setup_memory(void);
-diff --git a/arch/microblaze/mm/consistent.c b/arch/microblaze/mm/consistent.c
-index b9a9c8c3397b..c9a278ac795a 100644
---- a/arch/microblaze/mm/consistent.c
-+++ b/arch/microblaze/mm/consistent.c
-@@ -220,48 +220,3 @@ void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 	flush_tlb_all();
- #endif
- }
--
--/*
-- * make an area consistent.
-- */
--void consistent_sync(void *vaddr, size_t size, int direction)
--{
--	unsigned long start;
--	unsigned long end;
--
--	start = (unsigned long)vaddr;
--
--	/* Convert start address back down to unshadowed memory region */
--#ifdef CONFIG_XILINX_UNCACHED_SHADOW
--	start &= ~UNCACHED_SHADOW_MASK;
--#endif
--	end = start + size;
--
--	switch (direction) {
--	case PCI_DMA_NONE:
--		BUG();
--	case PCI_DMA_FROMDEVICE:	/* invalidate only */
--		invalidate_dcache_range(start, end);
--		break;
--	case PCI_DMA_TODEVICE:		/* writeback only */
--		flush_dcache_range(start, end);
--		break;
--	case PCI_DMA_BIDIRECTIONAL:	/* writeback and invalidate */
--		flush_dcache_range(start, end);
--		break;
--	}
--}
--EXPORT_SYMBOL(consistent_sync);
--
--/*
-- * consistent_sync_page makes memory consistent. identical
-- * to consistent_sync, but takes a struct page instead of a
-- * virtual address
-- */
--void consistent_sync_page(struct page *page, unsigned long offset,
--	size_t size, int direction)
--{
--	unsigned long start = (unsigned long)page_address(page) + offset;
--	consistent_sync((void *)start, size, direction);
--}
--EXPORT_SYMBOL(consistent_sync_page);
--- 
-2.17.0
-
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>   lib/dma-debug.c | 20 ++++----------------
+>   1 file changed, 4 insertions(+), 16 deletions(-)
+> 
+> diff --git a/lib/dma-debug.c b/lib/dma-debug.c
+> index 712a897174e4..075253cb613b 100644
+> --- a/lib/dma-debug.c
+> +++ b/lib/dma-debug.c
+> @@ -132,7 +132,7 @@ static u32 min_free_entries;
+>   static u32 nr_total_entries;
+>   
+>   /* number of preallocated entries requested by kernel cmdline */
+> -static u32 req_entries;
+> +static u32 nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
+>   
+>   /* debugfs dentry's for the stuff above */
+>   static struct dentry *dma_debug_dent        __read_mostly;
+> @@ -1011,7 +1011,6 @@ void dma_debug_add_bus(struct bus_type *bus)
+>   
+>   static int dma_debug_init(void)
+>   {
+> -	u32 num_entries;
+>   	int i;
+>   
+>   	/* Do not use dma_debug_initialized here, since we really want to be
+> @@ -1032,12 +1031,7 @@ static int dma_debug_init(void)
+>   		return 0;
+>   	}
+>   
+> -	if (req_entries)
+> -		num_entries = req_entries;
+> -	else
+> -		num_entries = PREALLOC_DMA_DEBUG_ENTRIES;
+> -
+> -	if (prealloc_memory(num_entries) != 0) {
+> +	if (prealloc_memory(nr_prealloc_entries) != 0) {
+>   		pr_err("DMA-API: debugging out of memory error - disabled\n");
+>   		global_disable = true;
+>   
+> @@ -1068,16 +1062,10 @@ static __init int dma_debug_cmdline(char *str)
+>   
+>   static __init int dma_debug_entries_cmdline(char *str)
+>   {
+> -	int res;
+> -
+>   	if (!str)
+>   		return -EINVAL;
+> -
+> -	res = get_option(&str, &req_entries);
+> -
+> -	if (!res)
+> -		req_entries = 0;
+> -
+> +	if (!get_option(&str, &nr_prealloc_entries))
+> +		nr_prealloc_entries = PREALLOC_DMA_DEBUG_ENTRIES;
+>   	return 0;
+>   }
+>   
+> 
