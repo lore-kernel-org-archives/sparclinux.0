@@ -1,45 +1,77 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 11 May 2018 07:59:26 +0000
-Subject: [PATCH 01/20] dma-mapping: simplify Kconfig dependencies
-Message-Id: <20180511075945.16548-2-hch@lst.de>
+Date: Wed, 09 May 2018 13:59:45 +0000
+Subject: [PATCH 4/7] mtd_blkdevs: handle highmem pages
+Message-Id: <20180509135948.20329-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180511075945.16548-1-hch@lst.de>
-In-Reply-To: <20180511075945.16548-1-hch@lst.de>
+References: <20180509135948.20329-1-hch@lst.de>
+In-Reply-To: <20180509135948.20329-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: "Ed L. Cashin" <ed.cashin@acm.org>, Geoff Levand <geoff@infradead.org>, Maxim Levitsky <maximlevitsky@gmail.com>, linux-block@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org
 
-ARCH_DMA_ADDR_T_64BIT is always true for 64-bit architectures now, so we
-can skip the clause requiring it.  'n' is the default default, so no need
-to explicitly state it.
+Just kmap the single payload page before passing it on to the FTL.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- lib/Kconfig | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/mtd/mtd_blkdevs.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 1d84e61cccfe..6c4e9d0ce5d1 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -443,13 +443,11 @@ config IOMMU_HELPER
+diff --git a/drivers/mtd/mtd_blkdevs.c b/drivers/mtd/mtd_blkdevs.c
+index 16ae4ae8e8f9..29c0bfd74e8a 100644
+--- a/drivers/mtd/mtd_blkdevs.c
++++ b/drivers/mtd/mtd_blkdevs.c
+@@ -82,7 +82,6 @@ static blk_status_t do_blktrans_request(struct mtd_blktrans_ops *tr,
  
- config DMA_DIRECT_OPS
- 	bool
--	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
--	default n
-+	depends on HAS_DMA
+ 	block = blk_rq_pos(req) << 9 >> tr->blkshift;
+ 	nsect = blk_rq_cur_bytes(req) >> tr->blkshift;
+-	buf = bio_data(req->bio);
  
- config DMA_VIRT_OPS
- 	bool
--	depends on HAS_DMA && (!64BIT || ARCH_DMA_ADDR_T_64BIT)
--	default n
-+	depends on HAS_DMA
+ 	if (req_op(req) = REQ_OP_FLUSH) {
+ 		if (tr->flush(dev))
+@@ -100,9 +99,14 @@ static blk_status_t do_blktrans_request(struct mtd_blktrans_ops *tr,
+ 			return BLK_STS_IOERR;
+ 		return BLK_STS_OK;
+ 	case REQ_OP_READ:
+-		for (; nsect > 0; nsect--, block++, buf += tr->blksize)
+-			if (tr->readsect(dev, block, buf))
++		buf = kmap(bio_page(req->bio)) + bio_offset(req->bio);
++		for (; nsect > 0; nsect--, block++, buf += tr->blksize) {
++			if (tr->readsect(dev, block, buf)) {
++				kunmap(bio_page(req->bio));
+ 				return BLK_STS_IOERR;
++			}
++		}
++		kunmap(bio_page(req->bio));
+ 		rq_flush_dcache_pages(req);
+ 		return BLK_STS_OK;
+ 	case REQ_OP_WRITE:
+@@ -110,9 +114,14 @@ static blk_status_t do_blktrans_request(struct mtd_blktrans_ops *tr,
+ 			return BLK_STS_IOERR;
  
- config SWIOTLB
- 	bool
+ 		rq_flush_dcache_pages(req);
+-		for (; nsect > 0; nsect--, block++, buf += tr->blksize)
+-			if (tr->writesect(dev, block, buf))
++		buf = kmap(bio_page(req->bio)) + bio_offset(req->bio);
++		for (; nsect > 0; nsect--, block++, buf += tr->blksize) {
++			if (tr->writesect(dev, block, buf)) {
++				kunmap(bio_page(req->bio));
+ 				return BLK_STS_IOERR;
++			}
++		}
++		kunmap(bio_page(req->bio));
+ 		return BLK_STS_OK;
+ 	default:
+ 		return BLK_STS_IOERR;
+@@ -418,7 +427,6 @@ int add_mtd_blktrans_dev(struct mtd_blktrans_dev *new)
+ 	new->rq->queuedata = new;
+ 	blk_queue_logical_block_size(new->rq, tr->blksize);
+ 
+-	blk_queue_bounce_limit(new->rq, BLK_BOUNCE_HIGH);
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, new->rq);
+ 	blk_queue_flag_clear(QUEUE_FLAG_ADD_RANDOM, new->rq);
+ 
 -- 
 2.17.0
 
