@@ -1,26 +1,51 @@
-From: "Sandra Y" <mamg7610885@woody.ocn.ne.jp>
-Date: Sun, 27 May 2018 02:23:59 +0000
-Subject: Re: A cry for help, please don't ignore!
-Message-Id: <1527387842.MlLmfun1PXhLXMlLmfqc5Y@mf-smf-ucb028c3>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 09 May 2018 13:59:46 +0000
+Subject: [PATCH 5/7] aoe: handle highmem pages
+Message-Id: <20180509135948.20329-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180509135948.20329-1-hch@lst.de>
+In-Reply-To: <20180509135948.20329-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: "Ed L. Cashin" <ed.cashin@acm.org>, Geoff Levand <geoff@infradead.org>, Maxim Levitsky <maximlevitsky@gmail.com>, linux-block@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mtd@lists.infradead.org, sparclinux@vger.kernel.org
 
-Good Day,
+Use kmap_atomic when copying out of a bio_vec.
 
-Forgive my indignation if this message comes to you as a surprise and may offend your personality for contacting you without your prior consent and writing through this channel.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/block/aoe/aoeblk.c | 1 -
+ drivers/block/aoe/aoecmd.c | 3 ++-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-I came across your name and contact on the course of my personal searching when i was searching for a foreign reliable partner. I was assured of your capability and reliability after going true your profile.
+diff --git a/drivers/block/aoe/aoeblk.c b/drivers/block/aoe/aoeblk.c
+index 6797e6c23c8a..027b876370bc 100644
+--- a/drivers/block/aoe/aoeblk.c
++++ b/drivers/block/aoe/aoeblk.c
+@@ -388,7 +388,6 @@ aoeblk_gdalloc(void *vp)
+ 			d->aoemajor, d->aoeminor);
+ 		goto err_mempool;
+ 	}
+-	blk_queue_bounce_limit(q, BLK_BOUNCE_HIGH);
+ 
+ 	spin_lock_irqsave(&d->lock, flags);
+ 	WARN_ON(!(d->flags & DEVFL_GD_NOW));
+diff --git a/drivers/block/aoe/aoecmd.c b/drivers/block/aoe/aoecmd.c
+index 540bb60cd071..096882e54095 100644
+--- a/drivers/block/aoe/aoecmd.c
++++ b/drivers/block/aoe/aoecmd.c
+@@ -1032,8 +1032,9 @@ bvcpy(struct sk_buff *skb, struct bio *bio, struct bvec_iter iter, long cnt)
+ 	iter.bi_size = cnt;
+ 
+ 	__bio_for_each_segment(bv, bio, iter, iter) {
+-		char *p = page_address(bv.bv_page) + bv.bv_offset;
++		char *p = kmap_atomic(bv.bv_page) + bv.bv_offset;
+ 		skb_copy_bits(skb, soff, p, bv.bv_len);
++		kunmap_atomic(p);
+ 		soff += bv.bv_len;
+ 	}
+ }
+-- 
+2.17.0
 
-I'm (Miss. Sandra) from Benghazi libya, My father of blessed memory by name late General Abdel Fattah Younes who was shot death by Islamist-linked militia within the anti-Gaddafi forces on 28th July, 2011 and after two days later my mother with my two brothers was killed one early morning by the rebels as result of civil war that is going on in my country Libya, then after the burial of my parents, my uncles conspired and sold my father's properties and left nothing for me. On a faithful morning, I opened my father's briefcase and discover a document which he has deposited ($6.250M USD) in a bank in a Turkish Bank which has a small branch in Canada with my name as the legitimate/next of kin. Meanwhile i have located the bank,and have also discussed the possiblity of transfering the fund. My father left a clause to the bank that i must introduce a trusted foreign partner who would be my trustee to help me invest this fund; hence the need for your assistance,
-i request that you be my trustee and assist me in this process.
-
-You will also be responsible for the investment and management of the fund for me and also you will help me get a good school where i will further my education.
-I agreed to give you 40% of the $6.250M once the transfer is done. this is my true life story, I will be glad to receive your respond soonest for more details to enable us start and champion the transfer less than 14 banking days as i was informed by the bank manager.
-
-Thanks for giving me your attention,
-
-Yours sincerely,
-Miss. Sandra Younes
