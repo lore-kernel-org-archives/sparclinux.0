@@ -1,127 +1,268 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Date: Fri, 18 May 2018 21:55:48 +0000
-Subject: Re: dma_sync_*_for_cpu and direction=TO_DEVICE (was Re: [PATCH 02/20] dma-mapping: provide a generic
-Message-Id: <20180518215548.GH17671@n2100.armlinux.org.uk>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 11 May 2018 07:59:29 +0000
+Subject: [PATCH 04/20] arm-nommu: use generic dma_noncoherent_ops
+Message-Id: <20180511075945.16548-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180511075945.16548-1-hch@lst.de>
- <20180511075945.16548-3-hch@lst.de>
- <bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
- <5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
- <20180518175004.GF17671@n2100.armlinux.org.uk>
- <cecfe6bd-ef1f-1e25-bfcf-992d1f828efb@synopsys.com>
-In-Reply-To: <cecfe6bd-ef1f-1e25-bfcf-992d1f828efb@synopsys.com>
+In-Reply-To: <20180511075945.16548-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Alexey Brodkin <Alexey.Brodkin@synopsys.com>, "hch@lst.de" <hch@lst.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, openrisc@lis
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 
-On Fri, May 18, 2018 at 01:35:08PM -0700, Vineet Gupta wrote:
-> On 05/18/2018 10:50 AM, Russell King - ARM Linux wrote:
-> >On Fri, May 18, 2018 at 10:20:02AM -0700, Vineet Gupta wrote:
-> >>I never understood the need for this direction. And if memory serves me
-> >>right, at that time I was seeing twice the amount of cache flushing !
-> >It's necessary.  Take a moment to think carefully about this:
-> >
-> >	dma_map_single(, dir)
-> >
-> >	dma_sync_single_for_cpu(, dir)
-> >
-> >	dma_sync_single_for_device(, dir)
-> >
-> >	dma_unmap_single(, dir)
->=20
-> As an aside, do these imply a state machine of sorts - does a driver needs
-> to always call map_single first ?
+Switch to the generic noncoherent direct mapping implementation for
+the nommu dma map implementation.
 
-Kind-of, but some drivers do omit some of the dma_sync_*() calls.
-For example, if a buffer is written to, then mapped with TO_DEVICE,
-and then the CPU wishes to write to it, it's fairly common that a
-driver omits the dma_sync_single_for_cpu() call.  If you think about
-the cases I gave and what cache operations happen, such a scenario
-practically turns out to be safe.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/arc/Kconfig                |   1 +
+ arch/arm/Kconfig                |   4 +
+ arch/arm/mm/dma-mapping-nommu.c | 139 +++++---------------------------
+ 3 files changed, 23 insertions(+), 121 deletions(-)
 
-> My original point of contention/confusion is the specific combinations of
-> API and direction, specifically for_cpu(TO_DEV) and for_device(TO_CPU)
+diff --git a/arch/arc/Kconfig b/arch/arc/Kconfig
+index 89d47eac18b2..3a492a9aeaad 100644
+--- a/arch/arc/Kconfig
++++ b/arch/arc/Kconfig
+@@ -9,6 +9,7 @@
+ config ARC
+ 	def_bool y
+ 	select ARC_TIMERS
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ 	select ARCH_HAS_SYNC_DMA_FOR_CPU
+ 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
+ 	select ARCH_HAS_SG_CHAIN
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index c43f5bb55ac8..76ddd0064f87 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -12,6 +12,8 @@ config ARM
+ 	select ARCH_HAS_PHYS_TO_DMA
+ 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
+ 	select ARCH_HAS_STRICT_MODULE_RWX if MMU
++	select ARCH_HAS_SYNC_DMA_FOR_CPU if !MMU
++	select ARCH_HAS_SYNC_DMA_FOR_DEVICE if !MMU
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+@@ -27,6 +29,8 @@ config ARM
+ 	select CPU_PM if (SUSPEND || CPU_IDLE)
+ 	select DCACHE_WORD_ACCESS if HAVE_EFFICIENT_UNALIGNED_ACCESS
+ 	select DMA_DIRECT_OPS if !MMU
++	select DMA_NONCOHERENT_OPS if !MMU
++	select DMA_NONCOHERENT_MMAP if !MMU
+ 	select EDAC_SUPPORT
+ 	select EDAC_ATOMIC_SCRUB
+ 	select GENERIC_ALLOCATOR
+diff --git a/arch/arm/mm/dma-mapping-nommu.c b/arch/arm/mm/dma-mapping-nommu.c
+index f448a0663b10..a74ed6632982 100644
+--- a/arch/arm/mm/dma-mapping-nommu.c
++++ b/arch/arm/mm/dma-mapping-nommu.c
+@@ -12,6 +12,7 @@
+ #include <linux/export.h>
+ #include <linux/mm.h>
+ #include <linux/dma-direct.h>
++#include <linux/dma-noncoherent.h>
+ #include <linux/scatterlist.h>
+ 
+ #include <asm/cachetype.h>
+@@ -26,18 +27,16 @@
+  *   - MMU/MPU is off
+  *   - cpu is v7m w/o cache support
+  *   - device is coherent
+- *  otherwise arm_nommu_dma_ops is used.
++ *  otherwise dma_noncoherent_ops is used.
+  *
+- *  arm_nommu_dma_ops rely on consistent DMA memory (please, refer to
++ *  dma_noncoherent_ops rely on consistent DMA memory (please, refer to
+  *  [1] on how to declare such memory).
+  *
+  *  [1] Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt
+  */
+ 
+-static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+-				 dma_addr_t *dma_handle, gfp_t gfp,
+-				 unsigned long attrs)
+-
++void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 
+@@ -65,9 +64,8 @@ static void *arm_nommu_dma_alloc(struct device *dev, size_t size,
+ 	return ret;
+ }
+ 
+-static void arm_nommu_dma_free(struct device *dev, size_t size,
+-			       void *cpu_addr, dma_addr_t dma_addr,
+-			       unsigned long attrs)
++void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
++		dma_addr_t dma_addr, unsigned long attrs)
+ {
+ 	if (attrs & DMA_ATTR_NON_CONSISTENT) {
+ 		dma_direct_free(dev, size, cpu_addr, dma_addr, attrs);
+@@ -81,9 +79,9 @@ static void arm_nommu_dma_free(struct device *dev, size_t size,
+ 	return;
+ }
+ 
+-static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+-			      void *cpu_addr, dma_addr_t dma_addr, size_t size,
+-			      unsigned long attrs)
++int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
++		void *cpu_addr, dma_addr_t dma_addr, size_t size,
++		unsigned long attrs)
+ {
+ 	int ret;
+ 
+@@ -93,9 +91,8 @@ static int arm_nommu_dma_mmap(struct device *dev, struct vm_area_struct *vma,
+ 	return dma_common_mmap(dev, vma, cpu_addr, dma_addr, size);
+ }
+ 
+-
+-static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
+-				  enum dma_data_direction dir)
++void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+ 	dmac_map_area(__va(paddr), size, dir);
+ 
+@@ -105,8 +102,8 @@ static void __dma_page_cpu_to_dev(phys_addr_t paddr, size_t size,
+ 		outer_clean_range(paddr, paddr + size);
+ }
+ 
+-static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
+-				  enum dma_data_direction dir)
++void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
+ {
+ 	if (dir != DMA_TO_DEVICE) {
+ 		outer_inv_range(paddr, paddr + size);
+@@ -114,110 +111,9 @@ static void __dma_page_dev_to_cpu(phys_addr_t paddr, size_t size,
+ 	}
+ }
+ 
+-static dma_addr_t arm_nommu_dma_map_page(struct device *dev, struct page *page,
+-					 unsigned long offset, size_t size,
+-					 enum dma_data_direction dir,
+-					 unsigned long attrs)
+-{
+-	dma_addr_t handle = page_to_phys(page) + offset;
+-
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-
+-	return handle;
+-}
+-
+-static void arm_nommu_dma_unmap_page(struct device *dev, dma_addr_t handle,
+-				     size_t size, enum dma_data_direction dir,
+-				     unsigned long attrs)
+-{
+-	__dma_page_dev_to_cpu(handle, size, dir);
+-}
+-
+-
+-static int arm_nommu_dma_map_sg(struct device *dev, struct scatterlist *sgl,
+-				int nents, enum dma_data_direction dir,
+-				unsigned long attrs)
+-{
+-	int i;
+-	struct scatterlist *sg;
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		sg_dma_address(sg) = sg_phys(sg);
+-		sg_dma_len(sg) = sg->length;
+-		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
+-	}
+-
+-	return nents;
+-}
+-
+-static void arm_nommu_dma_unmap_sg(struct device *dev, struct scatterlist *sgl,
+-				   int nents, enum dma_data_direction dir,
+-				   unsigned long attrs)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-static void arm_nommu_dma_sync_single_for_device(struct device *dev,
+-		dma_addr_t handle, size_t size, enum dma_data_direction dir)
+-{
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-}
+-
+-static void arm_nommu_dma_sync_single_for_cpu(struct device *dev,
+-		dma_addr_t handle, size_t size, enum dma_data_direction dir)
+-{
+-	__dma_page_cpu_to_dev(handle, size, dir);
+-}
+-
+-static void arm_nommu_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sgl,
+-					     int nents, enum dma_data_direction dir)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_cpu_to_dev(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-static void arm_nommu_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sgl,
+-					  int nents, enum dma_data_direction dir)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		__dma_page_dev_to_cpu(sg_dma_address(sg), sg_dma_len(sg), dir);
+-}
+-
+-const struct dma_map_ops arm_nommu_dma_ops = {
+-	.alloc			= arm_nommu_dma_alloc,
+-	.free			= arm_nommu_dma_free,
+-	.mmap			= arm_nommu_dma_mmap,
+-	.map_page		= arm_nommu_dma_map_page,
+-	.unmap_page		= arm_nommu_dma_unmap_page,
+-	.map_sg			= arm_nommu_dma_map_sg,
+-	.unmap_sg		= arm_nommu_dma_unmap_sg,
+-	.sync_single_for_device	= arm_nommu_dma_sync_single_for_device,
+-	.sync_single_for_cpu	= arm_nommu_dma_sync_single_for_cpu,
+-	.sync_sg_for_device	= arm_nommu_dma_sync_sg_for_device,
+-	.sync_sg_for_cpu	= arm_nommu_dma_sync_sg_for_cpu,
+-};
+-EXPORT_SYMBOL(arm_nommu_dma_ops);
+-
+-static const struct dma_map_ops *arm_nommu_get_dma_map_ops(bool coherent)
+-{
+-	return coherent ? &dma_direct_ops : &arm_nommu_dma_ops;
+-}
+-
+ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
+ 			const struct iommu_ops *iommu, bool coherent)
+ {
+-	const struct dma_map_ops *dma_ops;
+-
+ 	if (IS_ENABLED(CONFIG_CPU_V7M)) {
+ 		/*
+ 		 * Cache support for v7m is optional, so can be treated as
+@@ -233,9 +129,10 @@ void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
+ 		dev->archdata.dma_coherent = (get_cr() & CR_M) ? coherent : true;
+ 	}
+ 
+-	dma_ops = arm_nommu_get_dma_map_ops(dev->archdata.dma_coherent);
+-
+-	set_dma_ops(dev, dma_ops);
++	if (dev->archdata.dma_coherent)
++		set_dma_ops(dev, &dma_direct_ops);
++	else
++		set_dma_ops(dev, &dma_noncoherent_ops);
+ }
+ 
+ void arch_teardown_dma_ops(struct device *dev)
+-- 
+2.17.0
 
-Remember that it is expected that all calls for a mapping use the
-same direction argument while that mapping exists.  In other words,
-if you call dma_map_single(TO_DEVICE) and then use any of the other
-functions, the other functions will also use TO_DEVICE.  The DMA
-direction argument describes the direction of the DMA operation
-being performed on the buffer, not on the individual dma_* operation.
-
-What isn't expected at arch level is for drivers to do:
-
-	dma_map_single(TO_DEVICE)
-	dma_sync_single_for_cpu(FROM_DEVICE)
-
-or vice versa.
-
-> Semantically what does dma_sync_single_for_cpu(TO_DEV) even imply for a n=
-on
-> dma coherent arch.
->=20
-> Your tables below have "none" for both, implying it is unlikely to be a r=
-eal
-> combination (for ARM and ARC atleast).
-
-Very little for the cases that I've stated (and as I mentioned
-above, some drivers do omit the call in that case.)
-
-> The other case, actually @dir TO_CPU, independent of for_{cpu, device}=A0
-> implies driver intends to touch it after the call, so it would invalidate
-> any stray lines, unconditionally (and not just for speculative prefetch
-> case).
-
-If you don't have a CPU that speculatively prefetches, and you've
-already had to invalidate the cache lines (to avoid write-backs
-corrupting DMA'd data) then there's no need for the architecture
-to do any work at the for_cpu(TO_CPU) case - the CPU shouldn't
-be touching cache lines that are part of the buffer while it is
-mapped, which means a non-speculating CPU won't pull in any
-cache lines without an explicit access.
-
-Speculating CPUs are different.  The action of the speculation is
-to try and guess what data the program wants to access ahead of
-the program flow.  That causes the CPU to prefetch data into the
-cache.  The point in the program flow that this happens is not
-really determinant to the programmer.  This means that if you try
-to read from the DMA buffer after the DMA operation has complete
-without invalidating the cache between the DMA completing and the
-CPU reading, you have no guarantee that you're reading the data
-that the DMA operation has been written.  The cache may have
-loaded itself with data before the DMA operation completed, and
-the CPU may see that stale data.
-
-The difference between non-speculating CPUs and speculating CPUs
-is that for non-speculating CPUs, caches work according to explicit
-accesses by the program, and the program is stalled while the data
-is fetched from external memory.  Speculating CPUs try to predict
-ahead of time what data the program will require in the future,
-and attempt to load that data into the caches _before_ the program
-requires it - which means that the program suffers fewer stalls.
-
-> >In the case of a DMA-incoherent architecture, the operations done at each
-> >stage depend on the direction argument:
-> >
-> >	map		for_cpu		for_device	unmap
-> >TO_DEV	writeback	none		writeback	none
-> >TO_CPU	invalidate	invalidate*	invalidate	invalidate*
-> >BIDIR	writeback	invalidate	writeback	invalidate
-> >
-> >* - only necessary if the CPU speculatively prefetches.
-> >
-> >The multiple invalidations for the TO_CPU case handles different
-> >conditions that can result in data corruption, and for some CPUs, all
-> >four are necessary.
->=20
-> Can you please explain in some more detail, TO_CPU row, why invalidate is
-> conditional sometimes.
-
-See above - I hope my explanation above is sufficient.
-
---=20
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
