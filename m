@@ -1,7 +1,7 @@
 From: Jens Axboe <axboe@kernel.dk>
-Date: Wed, 09 May 2018 16:26:05 +0000
+Date: Fri, 11 May 2018 21:08:26 +0000
 Subject: Re: make a few block drivers highmem safe
-Message-Id: <36768a62-1b72-d7a8-8c4d-2ec66f314824@kernel.dk>
+Message-Id: <e5f3ffef-4fa3-50d3-4fbe-d67ba2a85bd8@kernel.dk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180509135948.20329-1-hch@lst.de>
 In-Reply-To: <20180509135948.20329-1-hch@lst.de>
@@ -18,7 +18,7 @@ On 5/9/18 7:59 AM, Christoph Hellwig wrote:
 > in preparation of eventually getting rid of the block layer bounce
 > buffering support.
 
-Series looks good to me.
+Applied, thanks.
 
 -- 
 Jens Axboe
