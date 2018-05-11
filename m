@@ -1,46 +1,43 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Date: Thu, 31 May 2018 11:11:26 +0000
-Subject: [PATCH v2 21/21] sparc64: use match_string() helper
-Message-Id: <1527765086-19873-22-git-send-email-xieyisheng1@huawei.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 11 May 2018 07:59:25 +0000
+Subject: common non-cache coherent direct dma mapping ops
+Message-Id: <20180511075945.16548-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
-In-Reply-To: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: andy.shevchenko@gmail.com, Yisheng Xie <xieyisheng1@huawei.com>, "David S. Miller" <davem@davemloft.net>, Anthony Yznaga <anthony.yznaga@oracle.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-match_string() returns the index of an array for a matching string,
-which can be used instead of open coded variant.
+Hi all,
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
----
- arch/sparc/kernel/setup_64.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+this series continues consolidating the dma-mapping code, with a focus
+on architectures that do not (always) provide cache coherence for DMA.
+Three architectures (arm, mips and powerpc) are still left to be
+converted later due to complexity of their dma ops selection.
 
-diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
-index 7944b3c..7af8c7e 100644
---- a/arch/sparc/kernel/setup_64.c
-+++ b/arch/sparc/kernel/setup_64.c
-@@ -512,10 +512,9 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
- 				break;
- 			}
- 		}
--		for (i = 0; i < ARRAY_SIZE(crypto_hwcaps); i++) {
--			if (!strcmp(prop, crypto_hwcaps[i]))
--				caps |= HWCAP_SPARC_CRYPTO;
--		}
-+		i = match_string(crypto_hwcaps, ARRAY_SIZE(crypto_hwcaps), prop);
-+		if (i >= 0)
-+			caps |= HWCAP_SPARC_CRYPTO;
- 
- 		plen = strlen(prop) + 1;
- 		prop += plen;
--- 
-1.7.12.4
+The dma-noncoherent ops calls the dma-direct ops for the actual
+translation of streaming mappins and allow the architecture to provide
+any cache flushing required for cpu to device and/or device to cpu
+ownership transfers.  The dma coherent allocator is for now still left
+entirely to architecture supplied implementations due the amount of
+variations.  Hopefully we can do some consolidation for them later on
+as well.
 
+A lot of architectures are currently doing very questionable things
+in their dma mapping routines, which are documented in the changelogs
+for each patch.  Please review them very careful and correct me on
+incorrect assumptions.
+
+Because this series sits on top of two previously submitted series
+a git tree might be useful to actually test it.  It is provided here:
+
+    git://git.infradead.org/users/hch/misc.git generic-dma-noncoherent
+
+Gitweb:
+
+    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/generic-dma-noncoherent
+
+Changes since RFC:
+ - fix a typo accidentally disabling the device to cpu transfer sync
+ - fixed a few compile failures
