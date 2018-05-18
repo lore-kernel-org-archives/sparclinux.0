@@ -1,349 +1,128 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 11 May 2018 07:59:27 +0000
-Subject: [PATCH 02/20] dma-mapping: provide a generic dma-noncoherent implementation
-Message-Id: <20180511075945.16548-3-hch@lst.de>
+From: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
+Date: Fri, 18 May 2018 13:03:46 +0000
+Subject: Re: [PATCH 02/20] dma-mapping: provide a generic dma-noncoherent implementation
+Message-Id: <bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180511075945.16548-1-hch@lst.de>
-In-Reply-To: <20180511075945.16548-1-hch-jcswGhMUV9g@public.gmane.org>
+	<20180511075945.16548-3-hch@lst.de>
+In-Reply-To: <20180511075945.16548-3-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org, Michal Simek <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, Vincent Chen <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Greentime Hu <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nios2-dev-g9ZBwUv/Ih/yUk5EbOjzuce+I+R0W71w@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>
+Cc: "linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org" <linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org>, "monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org" <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, "linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org" <openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org>, "green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-Add a new dma_map_ops implementation that uses dma-direct for the
-address mapping of streaming mappings, and which requires arch-specific
-implemenations of coherent allocate/free.
-
-Architectures have to provide flushing helpers to ownership trasnfers
-to the device and/or CPU, and can provide optional implementations of
-the coherent mmap functionality, and the cache_flush routines for
-non-coherent long term allocations.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- MAINTAINERS                       |   2 +
- include/asm-generic/dma-mapping.h |   9 +++
- include/linux/dma-direct.h        |   7 ++-
- include/linux/dma-mapping.h       |   1 +
- include/linux/dma-noncoherent.h   |  47 ++++++++++++++
- lib/Kconfig                       |  20 ++++++
- lib/Makefile                      |   1 +
- lib/dma-direct.c                  |   8 +--
- lib/dma-noncoherent.c             | 101 ++++++++++++++++++++++++++++++
- 9 files changed, 191 insertions(+), 5 deletions(-)
- create mode 100644 include/linux/dma-noncoherent.h
- create mode 100644 lib/dma-noncoherent.c
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 79bb02ff812f..08d0d15d4958 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4334,12 +4334,14 @@ W:	http://git.infradead.org/users/hch/dma-mapping.git
- S:	Supported
- F:	lib/dma-debug.c
- F:	lib/dma-direct.c
-+F:	lib/dma-noncoherent.c
- F:	lib/dma-virt.c
- F:	drivers/base/dma-mapping.c
- F:	drivers/base/dma-coherent.c
- F:	include/asm-generic/dma-mapping.h
- F:	include/linux/dma-direct.h
- F:	include/linux/dma-mapping.h
-+F:	include/linux/dma-noncoherent.h
- 
- DME1737 HARDWARE MONITOR DRIVER
- M:	Juerg Haefliger <juergh@gmail.com>
-diff --git a/include/asm-generic/dma-mapping.h b/include/asm-generic/dma-mapping.h
-index 880a292d792f..ad2868263867 100644
---- a/include/asm-generic/dma-mapping.h
-+++ b/include/asm-generic/dma-mapping.h
-@@ -4,7 +4,16 @@
- 
- static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
- {
-+	/*
-+	 * Use the non-coherent ops if available.  If an architecture wants a
-+	 * more fine-grained selection of operations it will have to implement
-+	 * get_arch_dma_ops itself or use the per-device dma_ops.
-+	 */
-+#ifdef CONFIG_DMA_NONCOHERENT_OPS
-+	return &dma_noncoherent_ops;
-+#else
- 	return &dma_direct_ops;
-+#endif
- }
- 
- #endif /* _ASM_GENERIC_DMA_MAPPING_H */
-diff --git a/include/linux/dma-direct.h b/include/linux/dma-direct.h
-index 53ad6a47f513..8d9f33febde5 100644
---- a/include/linux/dma-direct.h
-+++ b/include/linux/dma-direct.h
-@@ -59,6 +59,11 @@ void *dma_direct_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 		gfp_t gfp, unsigned long attrs);
- void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
- 		dma_addr_t dma_addr, unsigned long attrs);
-+dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs);
-+int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
-+		enum dma_data_direction dir, unsigned long attrs);
- int dma_direct_supported(struct device *dev, u64 mask);
--
-+int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr);
- #endif /* _LINUX_DMA_DIRECT_H */
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 25a9a2b04f78..4be070df5fc5 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -136,6 +136,7 @@ struct dma_map_ops {
- };
- 
- extern const struct dma_map_ops dma_direct_ops;
-+extern const struct dma_map_ops dma_noncoherent_ops;
- extern const struct dma_map_ops dma_virt_ops;
- 
- #define DMA_BIT_MASK(n)	(((n) = 64) ? ~0ULL : ((1ULL<<(n))-1))
-diff --git a/include/linux/dma-noncoherent.h b/include/linux/dma-noncoherent.h
-new file mode 100644
-index 000000000000..10b2654d549b
---- /dev/null
-+++ b/include/linux/dma-noncoherent.h
-@@ -0,0 +1,47 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_DMA_NONCOHERENT_H
-+#define _LINUX_DMA_NONCOHERENT_H 1
-+
-+#include <linux/dma-mapping.h>
-+
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
-+		gfp_t gfp, unsigned long attrs);
-+void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
-+		dma_addr_t dma_addr, unsigned long attrs);
-+
-+#ifdef CONFIG_DMA_NONCOHERENT_MMAP
-+int arch_dma_mmap(struct device *dev, struct vm_area_struct *vma,
-+		void *cpu_addr, dma_addr_t dma_addr, size_t size,
-+		unsigned long attrs);
-+#else
-+#define arch_dma_mmap NULL
-+#endif /* CONFIG_DMA_NONCOHERENT_MMAP */
-+
-+#ifdef CONFIG_DMA_NONCOHERENT_CACHE_SYNC
-+void arch_dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-+		enum dma_data_direction direction);
-+#else
-+#define arch_dma_cache_sync NULL
-+#endif /* CONFIG_DMA_NONCOHERENT_CACHE_SYNC */
-+
-+#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_DEVICE
-+void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir);
-+#else
-+static inline void arch_sync_dma_for_device(struct device *dev,
-+		phys_addr_t paddr, size_t size, enum dma_data_direction dir)
-+{
-+}
-+#endif /* ARCH_HAS_SYNC_DMA_FOR_DEVICE */
-+
-+#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir);
-+#else
-+static inline void arch_sync_dma_for_cpu(struct device *dev,
-+		phys_addr_t paddr, size_t size, enum dma_data_direction dir)
-+{
-+}
-+#endif /* ARCH_HAS_SYNC_DMA_FOR_CPU */
-+
-+#endif /* _LINUX_DMA_NONCOHERENT_H */
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 6c4e9d0ce5d1..7a913937888b 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -441,10 +441,30 @@ config ARCH_DMA_ADDR_T_64BIT
- config IOMMU_HELPER
- 	bool
- 
-+config ARCH_HAS_SYNC_DMA_FOR_DEVICE
-+	bool
-+
-+config ARCH_HAS_SYNC_DMA_FOR_CPU
-+	bool
-+	select NEED_DMA_MAP_STATE
-+
- config DMA_DIRECT_OPS
- 	bool
- 	depends on HAS_DMA
- 
-+config DMA_NONCOHERENT_OPS
-+	bool
-+	depends on HAS_DMA
-+	select DMA_DIRECT_OPS
-+
-+config DMA_NONCOHERENT_MMAP
-+	bool
-+	depends on DMA_NONCOHERENT_OPS
-+
-+config DMA_NONCOHERENT_CACHE_SYNC
-+	bool
-+	depends on DMA_NONCOHERENT_OPS
-+
- config DMA_VIRT_OPS
- 	bool
- 	depends on HAS_DMA
-diff --git a/lib/Makefile b/lib/Makefile
-index 94203b5eecd4..9f18c8152281 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -30,6 +30,7 @@ lib-$(CONFIG_PRINTK) += dump_stack.o
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
- lib-$(CONFIG_DMA_DIRECT_OPS) += dma-direct.o
-+lib-$(CONFIG_DMA_NONCOHERENT_OPS) += dma-noncoherent.o
- lib-$(CONFIG_DMA_VIRT_OPS) += dma-virt.o
- 
- lib-y	+= kobject.o klist.o
-diff --git a/lib/dma-direct.c b/lib/dma-direct.c
-index df9e726e0712..b824eb218782 100644
---- a/lib/dma-direct.c
-+++ b/lib/dma-direct.c
-@@ -128,7 +128,7 @@ void dma_direct_free(struct device *dev, size_t size, void *cpu_addr,
- 		free_pages((unsigned long)cpu_addr, page_order);
- }
- 
--static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
-+dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
- 		unsigned long offset, size_t size, enum dma_data_direction dir,
- 		unsigned long attrs)
- {
-@@ -139,8 +139,8 @@ static dma_addr_t dma_direct_map_page(struct device *dev, struct page *page,
- 	return dma_addr;
- }
- 
--static int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
-+int dma_direct_map_sg(struct device *dev, struct scatterlist *sgl, int nents,
-+		enum dma_data_direction dir, unsigned long attrs)
- {
- 	int i;
- 	struct scatterlist *sg;
-@@ -175,7 +175,7 @@ int dma_direct_supported(struct device *dev, u64 mask)
- 	return 1;
- }
- 
--static int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+int dma_direct_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	return dma_addr = DIRECT_MAPPING_ERROR;
- }
-diff --git a/lib/dma-noncoherent.c b/lib/dma-noncoherent.c
-new file mode 100644
-index 000000000000..a2c192b3508d
---- /dev/null
-+++ b/lib/dma-noncoherent.c
-@@ -0,0 +1,101 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright (C) 2018 Christoph Hellwig.
-+ *
-+ * DMA operations that map physical memory directly without providing cache
-+ * coherence.
-+ */
-+#include <linux/export.h>
-+#include <linux/mm.h>
-+#include <linux/dma-direct.h>
-+#include <linux/dma-noncoherent.h>
-+#include <linux/scatterlist.h>
-+
-+static void dma_noncoherent_sync_single_for_device(struct device *dev,
-+		dma_addr_t addr, size_t size, enum dma_data_direction dir)
-+{
-+	arch_sync_dma_for_device(dev, dma_to_phys(dev, addr), size, dir);
-+}
-+
-+static void dma_noncoherent_sync_sg_for_device(struct device *dev,
-+		struct scatterlist *sgl, int nents, enum dma_data_direction dir)
-+{
-+	struct scatterlist *sg;
-+	int i;
-+
-+	for_each_sg(sgl, sg, nents, i)
-+		arch_sync_dma_for_device(dev, sg_phys(sg), sg->length, dir);
-+}
-+
-+static dma_addr_t dma_noncoherent_map_page(struct device *dev, struct page *page,
-+		unsigned long offset, size_t size, enum dma_data_direction dir,
-+		unsigned long attrs)
-+{
-+	dma_addr_t addr;
-+
-+	addr = dma_direct_map_page(dev, page, offset, size, dir, attrs);
-+	if (!dma_mapping_error(dev, addr) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		arch_sync_dma_for_device(dev, page_to_phys(page), size, dir);
-+	return addr;
-+}
-+
-+static int dma_noncoherent_map_sg(struct device *dev, struct scatterlist *sgl,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	nents = dma_direct_map_sg(dev, sgl, nents, dir, attrs);
-+	if (nents > 0 && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		dma_noncoherent_sync_sg_for_device(dev, sgl, nents, dir);
-+	return nents;
-+}
-+
-+#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
-+static void dma_noncoherent_sync_single_for_cpu(struct device *dev,
-+		dma_addr_t addr, size_t size, enum dma_data_direction dir)
-+{
-+	arch_sync_dma_for_cpu(dev, dma_to_phys(dev, addr), size, dir);
-+}
-+
-+static void dma_noncoherent_sync_sg_for_cpu(struct device *dev,
-+		struct scatterlist *sgl, int nents, enum dma_data_direction dir)
-+{
-+	struct scatterlist *sg;
-+	int i;
-+
-+	for_each_sg(sgl, sg, nents, i)
-+		arch_sync_dma_for_cpu(dev, sg_phys(sg), sg->length, dir);
-+}
-+
-+static void dma_noncoherent_unmap_page(struct device *dev, dma_addr_t addr,
-+		size_t size, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		dma_noncoherent_sync_single_for_cpu(dev, addr, size, dir);
-+}
-+
-+static void dma_noncoherent_unmap_sg(struct device *dev, struct scatterlist *sgl,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
-+		dma_noncoherent_sync_sg_for_cpu(dev, sgl, nents, dir);
-+}
-+#endif
-+
-+const struct dma_map_ops dma_noncoherent_ops = {
-+	.alloc			= arch_dma_alloc,
-+	.free			= arch_dma_free,
-+	.mmap			= arch_dma_mmap,
-+	.sync_single_for_device	= dma_noncoherent_sync_single_for_device,
-+	.sync_sg_for_device	= dma_noncoherent_sync_sg_for_device,
-+	.map_page		= dma_noncoherent_map_page,
-+	.map_sg			= dma_noncoherent_map_sg,
-+#ifdef CONFIG_ARCH_HAS_SYNC_DMA_FOR_CPU
-+	.sync_single_for_cpu	= dma_noncoherent_sync_single_for_cpu,
-+	.sync_sg_for_cpu	= dma_noncoherent_sync_sg_for_cpu,
-+	.unmap_page		= dma_noncoherent_unmap_page,
-+	.unmap_sg		= dma_noncoherent_unmap_sg,
-+#endif
-+	.dma_supported		= dma_direct_supported,
-+	.mapping_error		= dma_direct_mapping_error,
-+	.cache_sync		= arch_dma_cache_sync,
-+};
-+EXPORT_SYMBOL(dma_noncoherent_ops);
--- 
-2.17.0
-
+SGkgQ2hyaXN0b3BoLA0KDQpPbiBGcmksIDIwMTgtMDUtMTEgYXQgMDk6NTkgKzAyMDAsIENocmlz
+dG9waCBIZWxsd2lnIHdyb3RlOg0KDQpbc25pcF0NCg0KVGhlcmUgc2VlbXMgdG8gYmUgb25lIHN1
+YnRsZSBpc3N1ZSB3aXRoIG1hcC91bm1hcCBjb2RlLg0KV2hpbGUgaW52ZXN0aWdhdGluZyBwcm9i
+bGVtcyBvbiBBUkMgSSBhZGRlZCBpbnN0cnVtZW50YXRpb24gYXMgYmVsb3c6DQotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPjgtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0NCi0tLSBhL2FyY2gvYXJjL21tL2RtYS5jDQorKysgYi9hcmNoL2FyYy9tbS9k
+bWEuYw0KQEAgLTE1MiwxNCArMTUyLDM3IEBAIHN0YXRpYyB2b2lkIF9kbWFfY2FjaGVfc3luYyhz
+dHJ1Y3QgZGV2aWNlICpkZXYsIHBoeXNfYWRkcl90IHBhZGRyLCBzaXplX3Qgc2l6ZSwNCiAgICAg
+ICAgfQ0KIH0NCiANCitzdGF0aWMgY29uc3QgY2hhciAqZGlyX3RvX3N0cihlbnVtIGRtYV9kYXRh
+X2RpcmVjdGlvbiBkaXIpDQorew0KKyAgICAgICBzd2l0Y2ggKGRpcikgew0KKyAgICAgICBjYXNl
+IERNQV9CSURJUkVDVElPTkFMOiByZXR1cm4gIkRNQV9CSURJUkVDVElPTkFMIjsNCisgICAgICAg
+Y2FzZSBETUFfVE9fREVWSUNFOiByZXR1cm4gIkRNQV9UT19ERVZJQ0UiOw0KKyAgICAgICBjYXNl
+IERNQV9GUk9NX0RFVklDRTogcmV0dXJuICJETUFfRlJPTV9ERVZJQ0UiOw0KKyAgICAgICBjYXNl
+IERNQV9OT05FOiByZXR1cm4gIkRNQV9OT05FIjsNCisgICAgICAgZGVmYXVsdDogcmV0dXJuICJX
+Uk9OR19WQUxVRSEiOw0KKyAgICAgICB9DQorfQ0KKw0KIHZvaWQgYXJjaF9zeW5jX2RtYV9mb3Jf
+ZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldiwgcGh5c19hZGRyX3QgcGFkZHIsDQogICAgICAgICAg
+ICAgICAgc2l6ZV90IHNpemUsIGVudW0gZG1hX2RhdGFfZGlyZWN0aW9uIGRpcikNCiB7DQorICAg
+ICAgIGlmIChkaXIgIT0gRE1BX1RPX0RFVklDRSl7DQorICAgICAgICAgICAgICAgZHVtcF9zdGFj
+aygpOw0KKyAgICAgICAgICAgICAgIHByaW50aygiICoqKiAlc0AlZDogRE1BIGRpcmVjdGlvbiBp
+cyAlcyBpbnN0ZWFkIG9mICVzXG4iLA0KKyAgICAgICAgICAgICAgICAgICAgICBfX2Z1bmNfXywg
+X19MSU5FX18sIGRpcl90b19zdHIoZGlyKSwgZGlyX3RvX3N0cihETUFfVE9fREVWSUNFKSk7DQor
+ICAgICAgIH0NCisNCiAgICAgICAgcmV0dXJuIF9kbWFfY2FjaGVfc3luYyhkZXYsIHBhZGRyLCBz
+aXplLCBkaXIpOw0KIH0NCiANCiB2b2lkIGFyY2hfc3luY19kbWFfZm9yX2NwdShzdHJ1Y3QgZGV2
+aWNlICpkZXYsIHBoeXNfYWRkcl90IHBhZGRyLA0KICAgICAgICAgICAgICAgIHNpemVfdCBzaXpl
+LCBlbnVtIGRtYV9kYXRhX2RpcmVjdGlvbiBkaXIpDQogew0KKyAgICAgICBpZiAoZGlyICE9IERN
+QV9GUk9NX0RFVklDRSkgew0KKyAgICAgICAgICAgICAgIGR1bXBfc3RhY2soKTsNCisgICAgICAg
+ICAgICAgICBwcmludGsoIiAqKiogJXNAJWQ6IERNQSBkaXJlY3Rpb24gaXMgJXMgaW5zdGVhZCBv
+ZiAlc1xuIiwNCisgICAgICAgICAgICAgICAgICAgICAgX19mdW5jX18sIF9fTElORV9fLCBkaXJf
+dG9fc3RyKGRpciksIGRpcl90b19zdHIoRE1BX0ZST01fREVWSUNFKSk7DQorICAgICAgIH0NCisN
+CiAgICAgICAgcmV0dXJuIF9kbWFfY2FjaGVfc3luYyhkZXYsIHBhZGRyLCBzaXplLCBkaXIpOw0K
+IH0NCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KDQpBbmQgd2l0aCB0aGF0IEkgbm90aWNlZCBhIGJp
+dCB1bmV4cGVjdGVkIG91dHB1dCwgc2VlIGJlbG93Og0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLT44LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpT
+dGFjayBUcmFjZToNCiAgYXJjX3Vud2luZF9jb3JlLmNvbnN0cHJvcC4xKzB4ZDQvMHhmOA0KICBk
+dW1wX3N0YWNrKzB4NjgvMHg4MA0KICBhcmNoX3N5bmNfZG1hX2Zvcl9kZXZpY2UrMHgzNC8weGM0
+DQogIGRtYV9ub25jb2hlcmVudF9tYXBfc2crMHg4MC8weDk0DQogIF9fZHdfbWNpX3N0YXJ0X3Jl
+cXVlc3QrMHgxZWUvMHg4NjgNCiAgZHdfbWNpX3JlcXVlc3QrMHgxN2UvMHgxYzgNCiAgbW1jX3dh
+aXRfZm9yX3JlcSsweDEwNi8weDFhYw0KICBtbWNfYXBwX3NkX3N0YXR1cysweDEwOC8weDEzMA0K
+ICBtbWNfc2Rfc2V0dXBfY2FyZCsweGM2LzB4MmU4DQogIG1tY19hdHRhY2hfc2QrMHgxYjYvMHgz
+OTQNCiAgbW1jX3Jlc2NhbisweDJmNC8weDNiYw0KICBwcm9jZXNzX29uZV93b3JrKzB4MTk0LzB4
+MzQ4DQogIHdvcmtlcl90aHJlYWQrMHhmMi8weDQ3OA0KICBrdGhyZWFkKzB4MTIwLzB4MTNjDQog
+IHJldF9mcm9tX2ZvcmsrMHgxOC8weDFjDQogKioqIGFyY2hfc3luY19kbWFfZm9yX2RldmljZUAx
+NzI6IERNQSBkaXJlY3Rpb24gaXMgRE1BX0ZST01fREVWSUNFIGluc3RlYWQgb2YgRE1BX1RPX0RF
+VklDRQ0KLi4uDQpTdGFjayBUcmFjZToNCiAgYXJjX3Vud2luZF9jb3JlLmNvbnN0cHJvcC4xKzB4
+ZDQvMHhmOA0KICBkdW1wX3N0YWNrKzB4NjgvMHg4MA0KICBhcmNoX3N5bmNfZG1hX2Zvcl9kZXZp
+Y2UrMHgzNC8weGM0DQogIGRtYV9ub25jb2hlcmVudF9tYXBfcGFnZSsweDg2LzB4OGMNCiAgdXNi
+X2hjZF9tYXBfdXJiX2Zvcl9kbWErMHg0OWUvMHg1M2MNCiAgdXNiX2hjZF9zdWJtaXRfdXJiKzB4
+NDNjLzB4OGM0DQogIHVzYl9jb250cm9sX21zZysweGJlLzB4MTZjDQogIGh1Yl9wb3J0X2luaXQr
+MHg1ZTAvMHhiMGMNCiAgaHViX2V2ZW50KzB4NGU2LzB4MTE2NA0KICBwcm9jZXNzX29uZV93b3Jr
+KzB4MTk0LzB4MzQ4DQogIHdvcmtlcl90aHJlYWQrMHhmMi8weDQ3OA0KICBrdGhyZWFkKzB4MTIw
+LzB4MTNjDQogIHJldF9mcm9tX2ZvcmsrMHgxOC8weDFjDQogbW1jYmxrMDogcDEgcDINCiAqKiog
+YXJjaF9zeW5jX2RtYV9mb3JfZGV2aWNlQDE3MjogRE1BIGRpcmVjdGlvbiBpcyBETUFfRlJPTV9E
+RVZJQ0UgaW5zdGVhZCBvZiBETUFfVE9fREVWSUNFDQoNCi4uLg0KYW5kIHF1aXRlIHNvbWUgbW9y
+ZSBvZiB0aGUgc2ltaWxhcg0KLi4uDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tPjgtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0KSW4gY2FzZSBv
+ZiBNTUMvRFdfTUNJIChBS0EgRGVzaWduV2FyZSBNb2JpbGVTdG9yYWdlIGNvbnRyb2xsZXIpIHRo
+YXQncyBhbiBleGVjdXRpb24gZmxvdzoNCjEpIF9fZHdfbWNpX3N0YXJ0X3JlcXVlc3QoKQ0KMikg
+ZHdfbWNpX3ByZV9kbWFfdHJhbnNmZXIoKQ0KMykgZG1hX21hcF9zZyguLi4sIG1tY19nZXRfZG1h
+X2RpcihkYXRhKSkNCg0KTm90ZSBtbWNfZ2V0X2RtYV9kaXIoKSBpcyBqdXN0ICJkYXRhLT5mbGFn
+cyAmIE1NQ19EQVRBX1dSSVRFID8gRE1BX1RPX0RFVklDRSA6IERNQV9GUk9NX0RFVklDRSIuDQpJ
+LmUuIGlmIHdlJ3JlIHByZXBhcmluZyBmb3Igc2VuZGluZyBkYXRhIGRtYV9ub25jb2hlcmVudF9t
+YXBfc2coKSB3aWxsIGhhdmUgRE1BX1RPX0RFVklDRSB3aGljaA0KaXMgcXVpdGUgT0sgZm9yIHBh
+c3NpbmcgdG8gZG1hX25vbmNvaGVyZW50X3N5bmNfc2dfZm9yX2RldmljZSgpIGJ1dCBpbiBjYXNl
+IG9mIHJlYWRpbmcgd2UnbGwgaGF2ZQ0KRE1BX0ZST01fREVWSUNFIHdoaWNoIHdlJ2xsIHBhc3Mg
+dG8gZG1hX25vbmNvaGVyZW50X3N5bmNfc2dfZm9yX2RldmljZSgpIGluIGRtYV9ub25jb2hlcmVu
+dF9tYXBfc2coKS4NCg0KSSdkIHNheSB0aGlzIGlzIG5vdCBlbnRpcmVseSBjb3JyZWN0IGJlY2F1
+c2UgSU1ITyBhcmNoX3N5bmNfZG1hX2Zvcl9jcHUoKSBpcyBzdXBwb3NlZCB0byBvbmx5IGJlIHVz
+ZWQNCmluIGNhc2Ugb2YgRE1BX0ZST01fREVWSUNFIGFuZCBhcmNoX3N5bmNfZG1hX2Zvcl9kZXZp
+Y2UoKSBvbmx5IGluIGNhc2Ugb2YgRE1BX1RPX0RFVklDRS4NCg0KDQo+ICtzdGF0aWMgZG1hX2Fk
+ZHJfdCBkbWFfbm9uY29oZXJlbnRfbWFwX3BhZ2Uoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3Qg
+cGFnZSAqcGFnZSwNCj4gKwkJdW5zaWduZWQgbG9uZyBvZmZzZXQsIHNpemVfdCBzaXplLCBlbnVt
+IGRtYV9kYXRhX2RpcmVjdGlvbiBkaXIsDQo+ICsJCXVuc2lnbmVkIGxvbmcgYXR0cnMpDQo+ICt7
+DQo+ICsJZG1hX2FkZHJfdCBhZGRyOw0KPiArDQo+ICsJYWRkciA9IGRtYV9kaXJlY3RfbWFwX3Bh
+Z2UoZGV2LCBwYWdlLCBvZmZzZXQsIHNpemUsIGRpciwgYXR0cnMpOw0KPiArCWlmICghZG1hX21h
+cHBpbmdfZXJyb3IoZGV2LCBhZGRyKSAmJiAhKGF0dHJzICYgRE1BX0FUVFJfU0tJUF9DUFVfU1lO
+QykpDQo+ICsJCWFyY2hfc3luY19kbWFfZm9yX2RldmljZShkZXYsIHBhZ2VfdG9fcGh5cyhwYWdl
+KSwgc2l6ZSwgZGlyKTsNCj4gKwlyZXR1cm4gYWRkcjsNCj4gK30NCj4gKw0KPiArc3RhdGljIGlu
+dCBkbWFfbm9uY29oZXJlbnRfbWFwX3NnKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IHNjYXR0
+ZXJsaXN0ICpzZ2wsDQo+ICsJCWludCBuZW50cywgZW51bSBkbWFfZGF0YV9kaXJlY3Rpb24gZGly
+LCB1bnNpZ25lZCBsb25nIGF0dHJzKQ0KPiArew0KPiArCW5lbnRzID0gZG1hX2RpcmVjdF9tYXBf
+c2coZGV2LCBzZ2wsIG5lbnRzLCBkaXIsIGF0dHJzKTsNCj4gKwlpZiAobmVudHMgPiAwICYmICEo
+YXR0cnMgJiBETUFfQVRUUl9TS0lQX0NQVV9TWU5DKSkNCj4gKwkJZG1hX25vbmNvaGVyZW50X3N5
+bmNfc2dfZm9yX2RldmljZShkZXYsIHNnbCwgbmVudHMsIGRpcik7DQo+ICsJcmV0dXJuIG5lbnRz
+Ow0KPiArfQ0KDQpUaGUgc2FtZSBpcyBmb3IgdW5tYXAgZnVuY3Rpb25zLg0KTXkgZ3Vlc3MgaXMg
+d2UgbmVlZCB0byByZXNwZWN0IGRpcmVjdGlvbiBpbiBtYXAvdW5tYXAgZnVuY3Rpb25zIGFuZCB1
+c2UNCmVpdGhlciBkbWFfbm9uY29oZXJlbnRfc3luY19zaW5nbGVfZm9yX2NwdSguLi4sIERNQV9G
+Uk9NX0RFVklDRSkgb3INCmRtYV9ub25jb2hlcmVudF9zeW5jX3NpbmdsZV9mb3JfZGV2aWNlKC4u
+LixETUFfVE9fREVWSUNFKS4NCg0KDQo+ICtzdGF0aWMgdm9pZCBkbWFfbm9uY29oZXJlbnRfdW5t
+YXBfcGFnZShzdHJ1Y3QgZGV2aWNlICpkZXYsIGRtYV9hZGRyX3QgYWRkciwNCj4gKwkJc2l6ZV90
+IHNpemUsIGVudW0gZG1hX2RhdGFfZGlyZWN0aW9uIGRpciwgdW5zaWduZWQgbG9uZyBhdHRycykN
+Cj4gK3sNCj4gKwlpZiAoIShhdHRycyAmIERNQV9BVFRSX1NLSVBfQ1BVX1NZTkMpKQ0KPiArCQlk
+bWFfbm9uY29oZXJlbnRfc3luY19zaW5nbGVfZm9yX2NwdShkZXYsIGFkZHIsIHNpemUsIGRpcik7
+DQo+ICt9DQo+ICsNCj4gK3N0YXRpYyB2b2lkIGRtYV9ub25jb2hlcmVudF91bm1hcF9zZyhzdHJ1
+Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBzY2F0dGVybGlzdCAqc2dsLA0KPiArCQlpbnQgbmVudHMs
+IGVudW0gZG1hX2RhdGFfZGlyZWN0aW9uIGRpciwgdW5zaWduZWQgbG9uZyBhdHRycykNCj4gK3sN
+Cj4gKwlpZiAoIShhdHRycyAmIERNQV9BVFRSX1NLSVBfQ1BVX1NZTkMpKQ0KPiArCQlkbWFfbm9u
+Y29oZXJlbnRfc3luY19zZ19mb3JfY3B1KGRldiwgc2dsLCBuZW50cywgZGlyKTsNCj4gK30NCj4g
+KyNlbmRpZg0KDQpCdXQgdGhlIHJlYWwgZml4IG9mIG15IHByb2JsZW0gaXM6DQotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPjgtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0NCi0tLSBhL2xpYi9kbWEtbm9uY29oZXJlbnQuYw0KKysrIGIvbGliL2RtYS1u
+b25jb2hlcmVudC5jDQpAQCAtMzUsNyArMzUsNyBAQCBzdGF0aWMgZG1hX2FkZHJfdCBkbWFfbm9u
+Y29oZXJlbnRfbWFwX3BhZ2Uoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgcGFnZSAqcGFnZQ0K
+IA0KICAgICAgICBhZGRyID0gZG1hX2RpcmVjdF9tYXBfcGFnZShkZXYsIHBhZ2UsIG9mZnNldCwg
+c2l6ZSwgZGlyLCBhdHRycyk7DQogICAgICAgIGlmICghZG1hX21hcHBpbmdfZXJyb3IoZGV2LCBh
+ZGRyKSAmJiAhKGF0dHJzICYgRE1BX0FUVFJfU0tJUF9DUFVfU1lOQykpDQotICAgICAgICAgICAg
+ICAgYXJjaF9zeW5jX2RtYV9mb3JfZGV2aWNlKGRldiwgcGFnZV90b19waHlzKHBhZ2UpLCBzaXpl
+LCBkaXIpOw0KKyAgICAgICAgICAgICAgIGFyY2hfc3luY19kbWFfZm9yX2RldmljZShkZXYsIHBh
+Z2VfdG9fcGh5cyhwYWdlKSArIG9mZnNldCwgc2l6ZSwgZGlyKTsNCiAgICAgICAgcmV0dXJuIGFk
+ZHI7DQogfQ0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLT44LS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQoNCllvdSBzZWVtIHRvIGxvc3QgYW4gb2Zm
+c2V0IGluIHRoZSBwYWdlIHNvIGlmIHdlIGhhcHBlbiB0byBoYXZlIGEgYnVmZmVyIG5vdCBhbGln
+bmVkIHRvDQphIHBhZ2UgYm91bmRhcnkgdGhlbiB3ZSB3ZXJlIG9idmlvdXNseSBjb3JydXB0aW5n
+IGRhdGEgb3V0c2lkZSBvdXIgZGF0YSA6KQ0KDQotQWxleGV5
