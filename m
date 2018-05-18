@@ -1,313 +1,81 @@
-From: Tom Hromatka <tom.hromatka@oracle.com>
-Date: Thu, 26 Apr 2018 16:54:08 +0000
-Subject: [PATCH v6 1/2] char: sparc64: Add privileged ADI driver
-Message-Id: <20180426165409.716764-2-tom.hromatka@oracle.com>
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Date: Fri, 18 May 2018 17:20:02 +0000
+Subject: dma_sync_*_for_cpu and direction=TO_DEVICE (was Re: [PATCH 02/20] dma-mapping: provide a generic dma
+Message-Id: <5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180426165409.716764-1-tom.hromatka@oracle.com>
-In-Reply-To: <20180426165409.716764-1-tom.hromatka@oracle.com>
+References: <20180511075945.16548-1-hch@lst.de>
+	<20180511075945.16548-3-hch@lst.de>
+	<bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
+In-Reply-To: <bad125dff49f6e49c895e818c9d1abb346a46e8e.camel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Alexey Brodkin <Alexey.Brodkin-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>
+Cc: "linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org" <linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org>, "monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org" <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, "deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org" <openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org>, "green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux@vg
 
-SPARC M7 and newer processors utilize ADI to version and
-protect memory.  This driver is capable of reading/writing
-ADI/MCD versions from privileged user space processes.
-Addresses in the adi file are mapped linearly to physical
-memory at a ratio of 1:adi_blksz.  Thus, a read (or write)
-of offset K in the file operates upon the ADI version at
-physical address K * adi_blksz.  The version information
-is encoded as one version per byte.  Intended consumers
-are makedumpfile and crash.
+On 05/18/2018 06:11 AM, Alexey Brodkin wrote:
+>   void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
+>                  size_t size, enum dma_data_direction dir)
+>   {
+> +       if (dir != DMA_TO_DEVICE){
+> +               dump_stack();
+> +               printk(" *** %s@%d: DMA direction is %s instead of %s\n",
+> +                      __func__, __LINE__, dir_to_str(dir), dir_to_str(DMA_TO_DEVICE));
+> +       }
+> +
+>          return _dma_cache_sync(dev, paddr, size, dir);
+>   }
+>   
+>   void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
+>                  size_t size, enum dma_data_direction dir)
+>   {
+> +       if (dir != DMA_FROM_DEVICE) {
+> +               dump_stack();
+> +               printk(" *** %s@%d: DMA direction is %s instead of %s\n",
+> +                      __func__, __LINE__, dir_to_str(dir), dir_to_str(DMA_FROM_DEVICE));
+> +       }
+> +
+>          return _dma_cache_sync(dev, paddr, size, dir);
+>   }
 
-Signed-off-by: Tom Hromatka <tom.hromatka@oracle.com>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Shannon Nelson <shannon.nelson@oracle.com>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Reviewed-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/char/Kconfig  |  12 +++
- drivers/char/Makefile |   1 +
- drivers/char/adi.c    | 239 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 252 insertions(+)
- create mode 100644 drivers/char/adi.c
+...
+> In case of MMC/DW_MCI (AKA DesignWare MobileStorage controller) that's an execution flow:
+> 1) __dw_mci_start_request()
+> 2) dw_mci_pre_dma_transfer()
+> 3) dma_map_sg(..., mmc_get_dma_dir(data))
+>
+> Note mmc_get_dma_dir() is just "data->flags & MMC_DATA_WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE".
+> I.e. if we're preparing for sending data dma_noncoherent_map_sg() will have DMA_TO_DEVICE which
+> is quite OK for passing to dma_noncoherent_sync_sg_for_device() but in case of reading we'll have
+> DMA_FROM_DEVICE which we'll pass to dma_noncoherent_sync_sg_for_device() in dma_noncoherent_map_sg().
+>
+> I'd say this is not entirely correct because IMHO arch_sync_dma_for_cpu() is supposed to only be used
+> in case of DMA_FROM_DEVICE and arch_sync_dma_for_device() only in case of DMA_TO_DEVICE.
 
-diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
-index 40947a796666..5ecddc95a698 100644
---- a/drivers/char/Kconfig
-+++ b/drivers/char/Kconfig
-@@ -540,5 +540,17 @@ source "drivers/s390/char/Kconfig"
- 
- source "drivers/char/xillybus/Kconfig"
- 
-+config ADI
-+	tristate "SPARC Privileged ADI driver"
-+	depends on SPARC64
-+	default m
-+	help
-+	  SPARC M7 and newer processors utilize ADI (Application Data
-+	  Integrity) to version and protect memory.  This driver provides
-+	  read/write access to the ADI versions for privileged processes.
-+	  This feature is also known as MCD (Memory Corruption Detection)
-+	  and SSM (Silicon Secured Memory).  Intended consumers of this
-+	  driver include crash and makedumpfile.
-+
- endmenu
- 
-diff --git a/drivers/char/Makefile b/drivers/char/Makefile
-index c97c768cd1dd..b8d42b4e979b 100644
---- a/drivers/char/Makefile
-+++ b/drivers/char/Makefile
-@@ -57,3 +57,4 @@ js-rtc-y = rtc.o
- 
- obj-$(CONFIG_XILLYBUS)		+= xillybus/
- obj-$(CONFIG_POWERNV_OP_PANEL)	+= powernv-op-panel.o
-+obj-$(CONFIG_ADI)		+= adi.o
-diff --git a/drivers/char/adi.c b/drivers/char/adi.c
-new file mode 100644
-index 000000000000..751d7cc0da1b
---- /dev/null
-+++ b/drivers/char/adi.c
-@@ -0,0 +1,239 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Privileged ADI driver for sparc64
-+ *
-+ * Author: Tom Hromatka <tom.hromatka@oracle.com>
-+ */
-+#include <linux/kernel.h>
-+#include <linux/miscdevice.h>
-+#include <linux/module.h>
-+#include <linux/proc_fs.h>
-+#include <linux/slab.h>
-+#include <linux/uaccess.h>
-+#include <asm/asi.h>
-+
-+#define MAX_BUF_SZ	PAGE_SIZE
-+
-+static int adi_open(struct inode *inode, struct file *file)
-+{
-+	file->f_mode |= FMODE_UNSIGNED_OFFSET;
-+	return 0;
-+}
-+
-+static int read_mcd_tag(unsigned long addr)
-+{
-+	long err;
-+	int ver;
-+
-+	__asm__ __volatile__(
-+		"1:	ldxa [%[addr]] %[asi], %[ver]\n"
-+		"	mov 0, %[err]\n"
-+		"2:\n"
-+		"	.section .fixup,#alloc,#execinstr\n"
-+		"	.align 4\n"
-+		"3:	sethi %%hi(2b), %%g1\n"
-+		"	jmpl  %%g1 + %%lo(2b), %%g0\n"
-+		"	mov %[invalid], %[err]\n"
-+		"	.previous\n"
-+		"	.section __ex_table, \"a\"\n"
-+		"	.align 4\n"
-+		"	.word  1b, 3b\n"
-+		"	.previous\n"
-+		: [ver] "=r" (ver), [err] "=r" (err)
-+		: [addr] "r"  (addr), [invalid] "i" (EFAULT),
-+		  [asi] "i" (ASI_MCD_REAL)
-+		: "memory", "g1"
-+		);
-+
-+	if (err)
-+		return -EFAULT;
-+	else
-+		return ver;
-+}
-+
-+static ssize_t adi_read(struct file *file, char __user *buf,
-+			size_t count, loff_t *offp)
-+{
-+	size_t ver_buf_sz, bytes_read = 0;
-+	int ver_buf_idx = 0;
-+	loff_t offset;
-+	u8 *ver_buf;
-+	ssize_t ret;
-+
-+	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
-+	ver_buf = kmalloc(ver_buf_sz, GFP_KERNEL);
-+	if (!ver_buf)
-+		return -ENOMEM;
-+
-+	offset = (*offp) * adi_blksize();
-+
-+	while (bytes_read < count) {
-+		ret = read_mcd_tag(offset);
-+		if (ret < 0)
-+			goto out;
-+
-+		ver_buf[ver_buf_idx] = (u8)ret;
-+		ver_buf_idx++;
-+		offset += adi_blksize();
-+
-+		if (ver_buf_idx >= ver_buf_sz) {
-+			if (copy_to_user(buf + bytes_read, ver_buf,
-+					 ver_buf_sz)) {
-+				ret = -EFAULT;
-+				goto out;
-+			}
-+
-+			bytes_read += ver_buf_sz;
-+			ver_buf_idx = 0;
-+
-+			ver_buf_sz = min(count - bytes_read,
-+					 (size_t)MAX_BUF_SZ);
-+		}
-+	}
-+
-+	(*offp) += bytes_read;
-+	ret = bytes_read;
-+out:
-+	kfree(ver_buf);
-+	return ret;
-+}
-+
-+static int set_mcd_tag(unsigned long addr, u8 ver)
-+{
-+	long err;
-+
-+	__asm__ __volatile__(
-+		"1:	stxa %[ver], [%[addr]] %[asi]\n"
-+		"	mov 0, %[err]\n"
-+		"2:\n"
-+		"	.section .fixup,#alloc,#execinstr\n"
-+		"	.align 4\n"
-+		"3:	sethi %%hi(2b), %%g1\n"
-+		"	jmpl %%g1 + %%lo(2b), %%g0\n"
-+		"	mov %[invalid], %[err]\n"
-+		"	.previous\n"
-+		"	.section __ex_table, \"a\"\n"
-+		"	.align 4\n"
-+		"	.word 1b, 3b\n"
-+		"	.previous\n"
-+		: [err] "=r" (err)
-+		: [ver] "r" (ver), [addr] "r"  (addr),
-+		  [invalid] "i" (EFAULT), [asi] "i" (ASI_MCD_REAL)
-+		: "memory", "g1"
-+		);
-+
-+	if (err)
-+		return -EFAULT;
-+	else
-+		return ver;
-+}
-+
-+static ssize_t adi_write(struct file *file, const char __user *buf,
-+			 size_t count, loff_t *offp)
-+{
-+	size_t ver_buf_sz, bytes_written = 0;
-+	loff_t offset;
-+	u8 *ver_buf;
-+	ssize_t ret;
-+	int i;
-+
-+	if (count <= 0)
-+		return -EINVAL;
-+
-+	ver_buf_sz = min_t(size_t, count, MAX_BUF_SZ);
-+	ver_buf = kmalloc(ver_buf_sz, GFP_KERNEL);
-+	if (!ver_buf)
-+		return -ENOMEM;
-+
-+	offset = (*offp) * adi_blksize();
-+
-+	do {
-+		if (copy_from_user(ver_buf, &buf[bytes_written],
-+				   ver_buf_sz)) {
-+			ret = -EFAULT;
-+			goto out;
-+		}
-+
-+		for (i = 0; i < ver_buf_sz; i++) {
-+			ret = set_mcd_tag(offset, ver_buf[i]);
-+			if (ret < 0)
-+				goto out;
-+
-+			offset += adi_blksize();
-+		}
-+
-+		bytes_written += ver_buf_sz;
-+		ver_buf_sz = min(count - bytes_written, (size_t)MAX_BUF_SZ);
-+	} while (bytes_written < count);
-+
-+	(*offp) += bytes_written;
-+	ret = bytes_written;
-+out:
-+	__asm__ __volatile__("membar #Sync");
-+	kfree(ver_buf);
-+	return ret;
-+}
-+
-+static loff_t adi_llseek(struct file *file, loff_t offset, int whence)
-+{
-+	loff_t ret = -EINVAL;
-+
-+	switch (whence) {
-+	case SEEK_END:
-+	case SEEK_DATA:
-+	case SEEK_HOLE:
-+		/* unsupported */
-+		return -EINVAL;
-+	case SEEK_CUR:
-+		if (offset = 0)
-+			return file->f_pos;
-+
-+		offset += file->f_pos;
-+		break;
-+	case SEEK_SET:
-+		break;
-+	}
-+
-+	if (offset != file->f_pos) {
-+		file->f_pos = offset;
-+		file->f_version = 0;
-+		ret = offset;
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct file_operations adi_fops = {
-+	.owner		= THIS_MODULE,
-+	.llseek		= adi_llseek,
-+	.open		= adi_open,
-+	.read		= adi_read,
-+	.write		= adi_write,
-+};
-+
-+static struct miscdevice adi_miscdev = {
-+	.minor = MISC_DYNAMIC_MINOR,
-+	.name = KBUILD_MODNAME,
-+	.fops = &adi_fops,
-+};
-+
-+static int __init adi_init(void)
-+{
-+	if (!adi_capable())
-+		return -EPERM;
-+
-+	return misc_register(&adi_miscdev);
-+}
-+
-+static void __exit adi_exit(void)
-+{
-+	misc_deregister(&adi_miscdev);
-+}
-+
-+module_init(adi_init);
-+module_exit(adi_exit);
-+
-+MODULE_AUTHOR("Tom Hromatka <tom.hromatka@oracle.com>");
-+MODULE_DESCRIPTION("Privileged interface to ADI");
-+MODULE_VERSION("1.0");
-+MODULE_LICENSE("GPL v2");
--- 
-2.15.0
+So roughly 10 years ago, some kernel rookie name Vineet Gupta, asked the exact 
+same question :-)
+
+http://kernelnewbies.kernelnewbies.narkive.com/aGW1QcDv/query-about-dma-sync-for-cpu-and-direction-to-device
+
+I never understood the need for this direction. And if memory serves me right, at 
+that time I was seeing twice the amount of cache flushing !
+
+> But the real fix of my problem is:
+> ---------------------------------------->8------------------------------------
+> --- a/lib/dma-noncoherent.c
+> +++ b/lib/dma-noncoherent.c
+> @@ -35,7 +35,7 @@ static dma_addr_t dma_noncoherent_map_page(struct device *dev, struct page *page
+>   
+>          addr = dma_direct_map_page(dev, page, offset, size, dir, attrs);
+>          if (!dma_mapping_error(dev, addr) && !(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+> -               arch_sync_dma_for_device(dev, page_to_phys(page), size, dir);
+> +               arch_sync_dma_for_device(dev, page_to_phys(page) + offset, size, dir);
+>          return addr;
+>   }
+> ---------------------------------------->8------------------------------------
+>
+> You seem to lost an offset in the page so if we happen to have a buffer not aligned to
+> a page boundary then we were obviously corrupting data outside our data :)
+
+Neat !
 
