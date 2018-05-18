@@ -1,66 +1,68 @@
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Date: Fri, 18 May 2018 17:50:04 +0000
+From: Alexey Brodkin <Alexey.Brodkin@synopsys.com>
+Date: Fri, 18 May 2018 19:57:34 +0000
 Subject: Re: dma_sync_*_for_cpu and direction=TO_DEVICE (was Re: [PATCH 02/20] dma-mapping: provide a generic
-Message-Id: <20180518175004.GF17671@n2100.armlinux.org.uk>
+Message-Id: <182840dedb4890a88c672b1c5d556920bf89a8fb.camel@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180511075945.16548-1-hch@lst.de>
- <20180511075945.16548-3-hch@lst.de>
- <bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
- <5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
-In-Reply-To: <5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
+	<20180511075945.16548-3-hch@lst.de>
+	<bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
+	<5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
+	<20180518175004.GF17671@n2100.armlinux.org.uk>
+In-Reply-To: <20180518175004.GF17671-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vineet Gupta <Vineet.Gupta1@synopsys.com>
-Cc: Alexey Brodkin <Alexey.Brodkin@synopsys.com>, "hch@lst.de" <hch@lst.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, openrisc@lis
+To: "linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org" <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
+Cc: "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org" <linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org>, "Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org" <openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org>, "green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, monstr@mons
 
-On Fri, May 18, 2018 at 10:20:02AM -0700, Vineet Gupta wrote:
-> I never understood the need for this direction. And if memory serves me
-> right, at that time I was seeing twice the amount of cache flushing !
-
-It's necessary.  Take a moment to think carefully about this:
-
-	dma_map_single(, dir)
-
-	dma_sync_single_for_cpu(, dir)
-
-	dma_sync_single_for_device(, dir)
-
-	dma_unmap_single(, dir)
-
-In the case of a DMA-incoherent architecture, the operations done at each
-stage depend on the direction argument:
-
-	map		for_cpu		for_device	unmap
-TO_DEV	writeback	none		writeback	none
-TO_CPU	invalidate	invalidate*	invalidate	invalidate*
-BIDIR	writeback	invalidate	writeback	invalidate
-
-* - only necessary if the CPU speculatively prefetches.
-
-The multiple invalidations for the TO_CPU case handles different
-conditions that can result in data corruption, and for some CPUs, all
-four are necessary.
-
-This is what is implemented for 32-bit ARM, depending on the CPU
-capabilities, as we have DMA incoherent devices and we have CPUs that
-speculatively prefetch data, and so may load data into the caches while
-DMA is in operation.
-
-
-Things get more interesting if the implementation behind the DMA API has
-to copy data between the buffer supplied to the mapping and some DMA
-accessible buffer:
-
-	map		for_cpu		for_device	unmap
-TO_DEV	copy to dma	none		copy to dma	none
-TO_CPU	none		copy to cpu	none		copy to cpu
-BIDIR	copy to dma	copy to cpu	copy to dma	copy to cpu
-
-So, in both cases, the value of the direction argument defines what you
-need to do in each call.
-
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+SGkgUnVzc2VsLA0KDQpPbiBGcmksIDIwMTgtMDUtMTggYXQgMTg6NTAgKzAxMDAsIFJ1c3NlbGwg
+S2luZyAtIEFSTSBMaW51eCB3cm90ZToNCj4gSXQncyBuZWNlc3NhcnkuICBUYWtlIGEgbW9tZW50
+IHRvIHRoaW5rIGNhcmVmdWxseSBhYm91dCB0aGlzOg0KPiANCj4gICAgICAgICBkbWFfbWFwX3Np
+bmdsZSgsIGRpcikNCj4gDQo+ICAgICAgICAgZG1hX3N5bmNfc2luZ2xlX2Zvcl9jcHUoLCBkaXIp
+DQo+IA0KPiAgICAgICAgIGRtYV9zeW5jX3NpbmdsZV9mb3JfZGV2aWNlKCwgZGlyKQ0KPiANCj4g
+ICAgICAgICBkbWFfdW5tYXBfc2luZ2xlKCwgZGlyKQ0KPiANCj4gSW4gdGhlIGNhc2Ugb2YgYSBE
+TUEtaW5jb2hlcmVudCBhcmNoaXRlY3R1cmUsIHRoZSBvcGVyYXRpb25zIGRvbmUgYXQgZWFjaA0K
+PiBzdGFnZSBkZXBlbmQgb24gdGhlIGRpcmVjdGlvbiBhcmd1bWVudDoNCj4gDQo+ICAgICAgICAg
+bWFwICAgICAgICAgICAgIGZvcl9jcHUgICAgICAgICBmb3JfZGV2aWNlICAgICAgdW5tYXANCj4g
+VE9fREVWICB3cml0ZWJhY2sgICAgICAgbm9uZSAgICAgICAgICAgIHdyaXRlYmFjayAgICAgICBu
+b25lDQo+IFRPX0NQVSAgaW52YWxpZGF0ZSAgICAgIGludmFsaWRhdGUqICAgICBpbnZhbGlkYXRl
+ICAgICAgaW52YWxpZGF0ZSoNCj4gQklESVIgICB3cml0ZWJhY2sgICAgICAgaW52YWxpZGF0ZSAg
+ICAgIHdyaXRlYmFjayAgICAgICBpbnZhbGlkYXRlDQo+IA0KPiAqIC0gb25seSBuZWNlc3Nhcnkg
+aWYgdGhlIENQVSBzcGVjdWxhdGl2ZWx5IHByZWZldGNoZXMuDQoNCkkgdGhpbmsgaW52YWxpZGF0
+aW9uIG9mIERNQSBidWZmZXIgaXMgcmVxdWlyZWQgb24gZm9yX2NwdShUT19DUFUpIGV2ZW4NCmlm
+IENQVSBkb2Vzbid0IHByZWZlcmNoIC0gd2hhdCBpZiB3ZSByZXVzZSB0aGUgc2FtZSBidWZmZXIg
+Zm9yIG11bHRpcGxlDQpyZWFkcyBmcm9tIERNQSBkZXZpY2U/DQoNCj4gVGhlIG11bHRpcGxlIGlu
+dmFsaWRhdGlvbnMgZm9yIHRoZSBUT19DUFUgY2FzZSBoYW5kbGVzIGRpZmZlcmVudA0KPiBjb25k
+aXRpb25zIHRoYXQgY2FuIHJlc3VsdCBpbiBkYXRhIGNvcnJ1cHRpb24sIGFuZCBmb3Igc29tZSBD
+UFVzLCBhbGwNCj4gZm91ciBhcmUgbmVjZXNzYXJ5Lg0KDQpJIHdvdWxkIGFncmVlIHRoYXQgbWFw
+KCkvdW5tYXAoKSBhIHF1aXRlIGEgc3BlY2lhbCBjYXNlcyBhbmQgc28gZGVwZW5kaW5nDQpvbiBk
+aXJlY3Rpb24gd2UgbmVlZCB0byBleGVjdXRlIGluIHRoZW0gZWl0aGVyIGZvcl9jcHUoKSBvciBm
+b3JfZGV2aWNlKCkNCmNhbGwtYmFja3MgZGVwZW5kaW5nIG9uIGRpcmVjdGlvbi4NCg0KQXMgZm9y
+IGludmFsaWRhdGlvbiBpbiBjYXNlIG9mIGZvcl9kZXZpY2UoVE9fQ1BVKSBJIHN0aWxsIGRvbid0
+IHNlZQ0KYSByYXRpb25hbGUgYmVoaW5kIGl0LiBXb3VsZCBiZSBpbnRlcmVzdGluZyB0byBzZWUg
+YSByZWFsIGV4YW1wbGUgd2hlcmUNCndlIGJlbmVmaXQgZnJvbSB0aGlzLg0KDQo+IFRoaXMgaXMg
+d2hhdCBpcyBpbXBsZW1lbnRlZCBmb3IgMzItYml0IEFSTSwgZGVwZW5kaW5nIG9uIHRoZSBDUFUN
+Cj4gY2FwYWJpbGl0aWVzLCBhcyB3ZSBoYXZlIERNQSBpbmNvaGVyZW50IGRldmljZXMgYW5kIHdl
+IGhhdmUgQ1BVcyB0aGF0DQo+IHNwZWN1bGF0aXZlbHkgcHJlZmV0Y2ggZGF0YSwgYW5kIHNvIG1h
+eSBsb2FkIGRhdGEgaW50byB0aGUgY2FjaGVzIHdoaWxlDQo+IERNQSBpcyBpbiBvcGVyYXRpb24u
+DQo+IA0KPiANCj4gVGhpbmdzIGdldCBtb3JlIGludGVyZXN0aW5nIGlmIHRoZSBpbXBsZW1lbnRh
+dGlvbiBiZWhpbmQgdGhlIERNQSBBUEkgaGFzDQo+IHRvIGNvcHkgZGF0YSBiZXR3ZWVuIHRoZSBi
+dWZmZXIgc3VwcGxpZWQgdG8gdGhlIG1hcHBpbmcgYW5kIHNvbWUgRE1BDQo+IGFjY2Vzc2libGUg
+YnVmZmVyOg0KPiANCj4gICAgICAgICBtYXAgICAgICAgICAgICAgZm9yX2NwdSAgICAgICAgIGZv
+cl9kZXZpY2UgICAgICB1bm1hcA0KPiBUT19ERVYgIGNvcHkgdG8gZG1hICAgICBub25lICAgICAg
+ICAgICAgY29weSB0byBkbWEgICAgIG5vbmUNCj4gVE9fQ1BVICBub25lICAgICAgICAgICAgY29w
+eSB0byBjcHUgICAgIG5vbmUgICAgICAgICAgICBjb3B5IHRvIGNwdQ0KPiBCSURJUiAgIGNvcHkg
+dG8gZG1hICAgICBjb3B5IHRvIGNwdSAgICAgY29weSB0byBkbWEgICAgIGNvcHkgdG8gY3B1DQo+
+IA0KPiBTbywgaW4gYm90aCBjYXNlcywgdGhlIHZhbHVlIG9mIHRoZSBkaXJlY3Rpb24gYXJndW1l
+bnQgZGVmaW5lcyB3aGF0IHlvdQ0KPiBuZWVkIHRvIGRvIGluIGVhY2ggY2FsbC4NCg0KSW50ZXJl
+c3RpbmcgZW5vdWdoIGluIHlvdXIgc2VvbmQgdGFibGUgKHdoaWNoIGRlc2NyaWJlcyBtb3JlIGNv
+bXBsaWNhdGVkDQpjYXNlIGluZGVlZCkgeW91IHNldCAibm9uZSIgZm9yIGZvcl9kZXZpY2UoVE9f
+Q1BVKSB3aGljaCBsb29rcyBsb2dpY2FsDQp0byBtZS4NCg0KU28gSU1ITyB0aGF0J3Mgd2hhdCBt
+YWtlIHNlbnNlOg0KLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLT44LS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0NCiAgICAgICAgbWFwICAgICAgICAgICAgIGZvcl9jcHUgICAgICAgICBm
+b3JfZGV2aWNlICAgICAgdW5tYXANClRPX0RFViAgd3JpdGViYWNrICAgICAgIG5vbmUgICAgICAg
+ICAgICB3cml0ZWJhY2sgICAgICAgbm9uZQ0KVE9fQ1BVICBub25lICAgICAgICAgICAgaW52YWxp
+ZGF0ZSAgICAgIG5vbmUgICAgICAgICAgICBpbnZhbGlkYXRlKg0KQklESVIgICB3cml0ZWJhY2sg
+ICAgICAgaW52YWxpZGF0ZSAgICAgIHdyaXRlYmFjayAgICAgICBpbnZhbGlkYXRlKg0KLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLT44LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCg0K
+KiBpcyB0aGUgY2FzZSBmb3IgcHJlZmV0Y2hpbmcgQ1BVLg0KDQotQWxleGV5
