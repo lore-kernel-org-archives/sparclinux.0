@@ -1,112 +1,127 @@
 From: Russell King - ARM Linux <linux@armlinux.org.uk>
-Date: Fri, 18 May 2018 21:33:10 +0000
+Date: Fri, 18 May 2018 21:55:48 +0000
 Subject: Re: dma_sync_*_for_cpu and direction=TO_DEVICE (was Re: [PATCH 02/20] dma-mapping: provide a generic
-Message-Id: <20180518213309.GG17671@n2100.armlinux.org.uk>
+Message-Id: <20180518215548.GH17671@n2100.armlinux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180511075945.16548-1-hch@lst.de>
-	<20180511075945.16548-3-hch@lst.de>
-	<bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
-	<5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
-	<20180518175004.GF17671@n2100.armlinux.org.uk>
-	<182840dedb4890a88c672b1c5d556920bf89a8fb.camel@synopsys.com>
-In-Reply-To: <182840dedb4890a88c672b1c5d556920bf89a8fb.camel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+ <20180511075945.16548-3-hch@lst.de>
+ <bad125dff49f6e49c895e818c9d1abb346a46e8e.camel@synopsys.com>
+ <5ac5b1e3-9b96-9c7c-4dfe-f65be45ec179@synopsys.com>
+ <20180518175004.GF17671@n2100.armlinux.org.uk>
+ <cecfe6bd-ef1f-1e25-bfcf-992d1f828efb@synopsys.com>
+In-Reply-To: <cecfe6bd-ef1f-1e25-bfcf-992d1f828efb@synopsys.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Alexey Brodkin <Alexey.Brodkin-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
-Cc: "linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <deanbo422-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>, "linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-hexagon-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org" <linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org>, "Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <Vineet.Gupta1-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org" <openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org>, "green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <green.hu-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, monstr@mons
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Cc: Alexey Brodkin <Alexey.Brodkin@synopsys.com>, "hch@lst.de" <hch@lst.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, openrisc@lis
 
-On Fri, May 18, 2018 at 07:57:34PM +0000, Alexey Brodkin wrote:
-> Hi Russel,
+On Fri, May 18, 2018 at 01:35:08PM -0700, Vineet Gupta wrote:
+> On 05/18/2018 10:50 AM, Russell King - ARM Linux wrote:
+> >On Fri, May 18, 2018 at 10:20:02AM -0700, Vineet Gupta wrote:
+> >>I never understood the need for this direction. And if memory serves me
+> >>right, at that time I was seeing twice the amount of cache flushing !
+> >It's necessary.  Take a moment to think carefully about this:
+> >
+> >	dma_map_single(, dir)
+> >
+> >	dma_sync_single_for_cpu(, dir)
+> >
+> >	dma_sync_single_for_device(, dir)
+> >
+> >	dma_unmap_single(, dir)
+>=20
+> As an aside, do these imply a state machine of sorts - does a driver needs
+> to always call map_single first ?
 
-That's Russell.
+Kind-of, but some drivers do omit some of the dma_sync_*() calls.
+For example, if a buffer is written to, then mapped with TO_DEVICE,
+and then the CPU wishes to write to it, it's fairly common that a
+driver omits the dma_sync_single_for_cpu() call.  If you think about
+the cases I gave and what cache operations happen, such a scenario
+practically turns out to be safe.
 
-> On Fri, 2018-05-18 at 18:50 +0100, Russell King - ARM Linux wrote:
-> > It's necessary.  Take a moment to think carefully about this:
-> > 
-> >         dma_map_single(, dir)
-> > 
-> >         dma_sync_single_for_cpu(, dir)
-> > 
-> >         dma_sync_single_for_device(, dir)
-> > 
-> >         dma_unmap_single(, dir)
-> > 
-> > In the case of a DMA-incoherent architecture, the operations done at each
-> > stage depend on the direction argument:
-> > 
-> >         map             for_cpu         for_device      unmap
-> > TO_DEV  writeback       none            writeback       none
-> > TO_CPU  invalidate      invalidate*     invalidate      invalidate*
-> > BIDIR   writeback       invalidate      writeback       invalidate
-> > 
-> > * - only necessary if the CPU speculatively prefetches.
-> 
-> I think invalidation of DMA buffer is required on for_cpu(TO_CPU) even
-> if CPU doesn't preferch - what if we reuse the same buffer for multiple
-> reads from DMA device?
+> My original point of contention/confusion is the specific combinations of
+> API and direction, specifically for_cpu(TO_DEV) and for_device(TO_CPU)
 
-That's fine - for non-coherent DMA, the CPU caches will only end up
-containing data for that memory if:
-- the CPU speculatively fetches data from that memory, or
-- the CPU explicitly touches that memory
+Remember that it is expected that all calls for a mapping use the
+same direction argument while that mapping exists.  In other words,
+if you call dma_map_single(TO_DEVICE) and then use any of the other
+functions, the other functions will also use TO_DEVICE.  The DMA
+direction argument describes the direction of the DMA operation
+being performed on the buffer, not on the individual dma_* operation.
 
-> > The multiple invalidations for the TO_CPU case handles different
-> > conditions that can result in data corruption, and for some CPUs, all
-> > four are necessary.
-> 
-> I would agree that map()/unmap() a quite a special cases and so depending
-> on direction we need to execute in them either for_cpu() or for_device()
-> call-backs depending on direction.
-> 
-> As for invalidation in case of for_device(TO_CPU) I still don't see
-> a rationale behind it. Would be interesting to see a real example where
-> we benefit from this.
+What isn't expected at arch level is for drivers to do:
 
-Yes, you could avoid that, but depending how you structure the
-architecture implementation, it can turn out to be a corner case.
-The above table is precisely how 32-bit ARM is implemented, because
-the way we implement them is based on who owns the memory - the "map"
-and "for_device" operations translate internally to a cpu-to-device
-ownership transition of the buffer.  Similar for "unmap" and "to_cpu".
-It basically avoids having to add additional functions at the lower
-implementation levels.
+	dma_map_single(TO_DEVICE)
+	dma_sync_single_for_cpu(FROM_DEVICE)
 
-> > Things get more interesting if the implementation behind the DMA API has
-> > to copy data between the buffer supplied to the mapping and some DMA
-> > accessible buffer:
-> > 
-> >         map             for_cpu         for_device      unmap
-> > TO_DEV  copy to dma     none            copy to dma     none
-> > TO_CPU  none            copy to cpu     none            copy to cpu
-> > BIDIR   copy to dma     copy to cpu     copy to dma     copy to cpu
-> > 
-> > So, in both cases, the value of the direction argument defines what you
-> > need to do in each call.
-> 
-> Interesting enough in your seond table (which describes more complicated
-> case indeed) you set "none" for for_device(TO_CPU) which looks logical
-> to me.
-> 
-> So IMHO that's what make sense:
-> ---------------------------->8-----------------------------
->         map             for_cpu         for_device      unmap
-> TO_DEV  writeback       none            writeback       none
-> TO_CPU  none            invalidate      none            invalidate*
-> BIDIR   writeback       invalidate      writeback       invalidate*
-> ---------------------------->8-----------------------------
+or vice versa.
 
-That doesn't make sense for the TO_CPU case.  If the caches contain
-dirty cache lines, and you're DMAing from the device to the system
-RAM, other system activity can cause the dirty cache lines to be
-evicted (written back) to memory which the DMA has already overwritten.
-The result is data corruption.  So, you really can't have "none" in
-the "map" case there.
+> Semantically what does dma_sync_single_for_cpu(TO_DEV) even imply for a n=
+on
+> dma coherent arch.
+>=20
+> Your tables below have "none" for both, implying it is unlikely to be a r=
+eal
+> combination (for ARM and ARC atleast).
 
-Given that, the "for_cpu" case becomes dependent on whether the CPU
-speculatively prefetches.
+Very little for the cases that I've stated (and as I mentioned
+above, some drivers do omit the call in that case.)
 
--- 
+> The other case, actually @dir TO_CPU, independent of for_{cpu, device}=A0
+> implies driver intends to touch it after the call, so it would invalidate
+> any stray lines, unconditionally (and not just for speculative prefetch
+> case).
+
+If you don't have a CPU that speculatively prefetches, and you've
+already had to invalidate the cache lines (to avoid write-backs
+corrupting DMA'd data) then there's no need for the architecture
+to do any work at the for_cpu(TO_CPU) case - the CPU shouldn't
+be touching cache lines that are part of the buffer while it is
+mapped, which means a non-speculating CPU won't pull in any
+cache lines without an explicit access.
+
+Speculating CPUs are different.  The action of the speculation is
+to try and guess what data the program wants to access ahead of
+the program flow.  That causes the CPU to prefetch data into the
+cache.  The point in the program flow that this happens is not
+really determinant to the programmer.  This means that if you try
+to read from the DMA buffer after the DMA operation has complete
+without invalidating the cache between the DMA completing and the
+CPU reading, you have no guarantee that you're reading the data
+that the DMA operation has been written.  The cache may have
+loaded itself with data before the DMA operation completed, and
+the CPU may see that stale data.
+
+The difference between non-speculating CPUs and speculating CPUs
+is that for non-speculating CPUs, caches work according to explicit
+accesses by the program, and the program is stalled while the data
+is fetched from external memory.  Speculating CPUs try to predict
+ahead of time what data the program will require in the future,
+and attempt to load that data into the caches _before_ the program
+requires it - which means that the program suffers fewer stalls.
+
+> >In the case of a DMA-incoherent architecture, the operations done at each
+> >stage depend on the direction argument:
+> >
+> >	map		for_cpu		for_device	unmap
+> >TO_DEV	writeback	none		writeback	none
+> >TO_CPU	invalidate	invalidate*	invalidate	invalidate*
+> >BIDIR	writeback	invalidate	writeback	invalidate
+> >
+> >* - only necessary if the CPU speculatively prefetches.
+> >
+> >The multiple invalidations for the TO_CPU case handles different
+> >conditions that can result in data corruption, and for some CPUs, all
+> >four are necessary.
+>=20
+> Can you please explain in some more detail, TO_CPU row, why invalidate is
+> conditional sometimes.
+
+See above - I hope my explanation above is sufficient.
+
+--=20
 RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
 FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
 According to speedtest.net: 8.21Mbps down 510kbps up
