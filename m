@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 22 May 2018 12:04:24 +0000
-Subject: [PATCH 19/25] sh: split arch/sh/mm/consistent.c
-Message-Id: <20180522120430.28709-20-hch@lst.de>
+Date: Tue, 22 May 2018 12:04:21 +0000
+Subject: [PATCH 16/25] sh: simplify get_arch_dma_ops
+Message-Id: <20180522120430.28709-17-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180522120430.28709-1-hch@lst.de>
 In-Reply-To: <20180522120430.28709-1-hch@lst.de>
@@ -9,213 +9,95 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: iommu@lists.linux-foundation.org
-Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-Half of the file just contains platform device memory setup code which
-is required for all builds, and half contains helpers for dma coherent
-allocation, which is only needed if CONFIG_DMA_NONCOHERENT is enabled.
+Remove the indirection through the dma_ops variable, and just return
+nommu_dma_ops directly from get_arch_dma_ops.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sh/kernel/Makefile       |  2 +-
- arch/sh/kernel/dma-coherent.c | 80 +++++++++++++++++++++++++++++++++++
- arch/sh/mm/consistent.c       | 75 --------------------------------
- 3 files changed, 81 insertions(+), 76 deletions(-)
- create mode 100644 arch/sh/kernel/dma-coherent.c
+ arch/sh/include/asm/dma-mapping.h |  5 ++---
+ arch/sh/kernel/dma-nommu.c        |  8 +-------
+ arch/sh/mm/consistent.c           |  3 ---
+ arch/sh/mm/init.c                 | 10 ----------
+ 4 files changed, 3 insertions(+), 23 deletions(-)
 
-diff --git a/arch/sh/kernel/Makefile b/arch/sh/kernel/Makefile
-index cb5f1bfb52de..d5ddb64bfffe 100644
---- a/arch/sh/kernel/Makefile
-+++ b/arch/sh/kernel/Makefile
-@@ -45,7 +45,7 @@ obj-$(CONFIG_DUMP_CODE)		+= disassemble.o
- obj-$(CONFIG_HIBERNATION)	+= swsusp.o
- obj-$(CONFIG_DWARF_UNWINDER)	+= dwarf.o
- obj-$(CONFIG_PERF_EVENTS)	+= perf_event.o perf_callchain.o
--obj-$(CONFIG_DMA_NONCOHERENT)	+= dma-nommu.o
-+obj-$(CONFIG_DMA_NONCOHERENT)	+= dma-nommu.o dma-coherent.o
- obj-$(CONFIG_HAVE_HW_BREAKPOINT)		+= hw_breakpoint.o
+diff --git a/arch/sh/include/asm/dma-mapping.h b/arch/sh/include/asm/dma-mapping.h
+index 41167931e5d9..149e71f95be7 100644
+--- a/arch/sh/include/asm/dma-mapping.h
++++ b/arch/sh/include/asm/dma-mapping.h
+@@ -2,12 +2,11 @@
+ #ifndef __ASM_SH_DMA_MAPPING_H
+ #define __ASM_SH_DMA_MAPPING_H
  
- ccflags-y := -Werror
-diff --git a/arch/sh/kernel/dma-coherent.c b/arch/sh/kernel/dma-coherent.c
-new file mode 100644
-index 000000000000..4f41e5cd5207
---- /dev/null
-+++ b/arch/sh/kernel/dma-coherent.c
-@@ -0,0 +1,80 @@
-+/*
-+ * Copyright (C) 2004 - 2007  Paul Mundt
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ */
-+#include <linux/mm.h>
-+#include <linux/init.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <asm/cacheflush.h>
-+#include <asm/addrspace.h>
-+
-+void *dma_generic_alloc_coherent(struct device *dev, size_t size,
-+				 dma_addr_t *dma_handle, gfp_t gfp,
-+				 unsigned long attrs)
-+{
-+	void *ret, *ret_nocache;
-+	int order = get_order(size);
-+
-+	gfp |= __GFP_ZERO;
-+
-+	ret = (void *)__get_free_pages(gfp, order);
-+	if (!ret)
-+		return NULL;
-+
-+	/*
-+	 * Pages from the page allocator may have data present in
-+	 * cache. So flush the cache before using uncached memory.
-+	 */
-+	sh_sync_dma_for_device(ret, size, DMA_BIDIRECTIONAL);
-+
-+	ret_nocache = (void __force *)ioremap_nocache(virt_to_phys(ret), size);
-+	if (!ret_nocache) {
-+		free_pages((unsigned long)ret, order);
-+		return NULL;
-+	}
-+
-+	split_page(pfn_to_page(virt_to_phys(ret) >> PAGE_SHIFT), order);
-+
-+	*dma_handle = virt_to_phys(ret) - PFN_PHYS(dev->dma_pfn_offset);
-+
-+	return ret_nocache;
-+}
-+
-+void dma_generic_free_coherent(struct device *dev, size_t size,
-+			       void *vaddr, dma_addr_t dma_handle,
-+			       unsigned long attrs)
-+{
-+	int order = get_order(size);
-+	unsigned long pfn = (dma_handle >> PAGE_SHIFT) + dev->dma_pfn_offset;
-+	int k;
-+
-+	for (k = 0; k < (1 << order); k++)
-+		__free_pages(pfn_to_page(pfn + k), 0);
-+
-+	iounmap(vaddr);
-+}
-+
-+void sh_sync_dma_for_device(void *vaddr, size_t size,
-+		    enum dma_data_direction direction)
-+{
-+	void *addr = sh_cacheop_vaddr(vaddr);
-+
-+	switch (direction) {
-+	case DMA_FROM_DEVICE:		/* invalidate only */
-+		__flush_invalidate_region(addr, size);
-+		break;
-+	case DMA_TO_DEVICE:		/* writeback only */
-+		__flush_wback_region(addr, size);
-+		break;
-+	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
-+		__flush_purge_region(addr, size);
-+		break;
-+	default:
-+		BUG();
-+	}
-+}
-+EXPORT_SYMBOL(sh_sync_dma_for_device);
+-extern const struct dma_map_ops *dma_ops;
+-extern void no_iommu_init(void);
++extern const struct dma_map_ops nommu_dma_ops;
+ 
+ static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
+ {
+-	return dma_ops;
++	return &nommu_dma_ops;
+ }
+ 
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+diff --git a/arch/sh/kernel/dma-nommu.c b/arch/sh/kernel/dma-nommu.c
+index 3e3a32fc676e..79a9edafa5b0 100644
+--- a/arch/sh/kernel/dma-nommu.c
++++ b/arch/sh/kernel/dma-nommu.c
+@@ -79,10 +79,4 @@ const struct dma_map_ops nommu_dma_ops = {
+ 	.sync_sg_for_device	= nommu_sync_sg_for_device,
+ #endif
+ };
+-
+-void __init no_iommu_init(void)
+-{
+-	if (dma_ops)
+-		return;
+-	dma_ops = &nommu_dma_ops;
+-}
++EXPORT_SYMBOL(nommu_dma_ops);
 diff --git a/arch/sh/mm/consistent.c b/arch/sh/mm/consistent.c
-index 5f86ae24025b..5da5be74fb6b 100644
+index 35ea3099a3b6..221832eec33b 100644
 --- a/arch/sh/mm/consistent.c
 +++ b/arch/sh/mm/consistent.c
-@@ -1,10 +1,6 @@
- /*
-- * arch/sh/mm/consistent.c
-- *
-  * Copyright (C) 2004 - 2007  Paul Mundt
-  *
-- * Declared coherent memory functions based on arch/x86/kernel/pci-dma_32.c
-- *
-  * This file is subject to the terms and conditions of the GNU General Public
-  * License.  See the file "COPYING" in the main directory of this archive
-  * for more details.
-@@ -13,78 +9,7 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
--#include <linux/dma-debug.h>
- #include <linux/io.h>
--#include <linux/module.h>
--#include <linux/gfp.h>
--#include <asm/cacheflush.h>
--#include <asm/addrspace.h>
--
--void *dma_generic_alloc_coherent(struct device *dev, size_t size,
--				 dma_addr_t *dma_handle, gfp_t gfp,
--				 unsigned long attrs)
--{
--	void *ret, *ret_nocache;
--	int order = get_order(size);
--
--	gfp |= __GFP_ZERO;
--
--	ret = (void *)__get_free_pages(gfp, order);
--	if (!ret)
--		return NULL;
--
--	/*
--	 * Pages from the page allocator may have data present in
--	 * cache. So flush the cache before using uncached memory.
--	 */
--	sh_sync_dma_for_device(ret, size, DMA_BIDIRECTIONAL);
--
--	ret_nocache = (void __force *)ioremap_nocache(virt_to_phys(ret), size);
--	if (!ret_nocache) {
--		free_pages((unsigned long)ret, order);
--		return NULL;
--	}
--
--	split_page(pfn_to_page(virt_to_phys(ret) >> PAGE_SHIFT), order);
--
--	*dma_handle = virt_to_phys(ret) - PFN_PHYS(dev->dma_pfn_offset);
--
--	return ret_nocache;
--}
--
--void dma_generic_free_coherent(struct device *dev, size_t size,
--			       void *vaddr, dma_addr_t dma_handle,
--			       unsigned long attrs)
--{
--	int order = get_order(size);
--	unsigned long pfn = (dma_handle >> PAGE_SHIFT) + dev->dma_pfn_offset;
--	int k;
--
--	for (k = 0; k < (1 << order); k++)
--		__free_pages(pfn_to_page(pfn + k), 0);
--
--	iounmap(vaddr);
--}
--
--void sh_sync_dma_for_device(void *vaddr, size_t size,
--		    enum dma_data_direction direction)
--{
--	void *addr = sh_cacheop_vaddr(vaddr);
--
--	switch (direction) {
--	case DMA_FROM_DEVICE:		/* invalidate only */
--		__flush_invalidate_region(addr, size);
--		break;
--	case DMA_TO_DEVICE:		/* writeback only */
--		__flush_wback_region(addr, size);
--		break;
--	case DMA_BIDIRECTIONAL:		/* writeback and invalidate */
--		__flush_purge_region(addr, size);
--		break;
--	default:
--		BUG();
--	}
--}
+@@ -20,9 +20,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/addrspace.h>
  
- static int __init memchunk_setup(char *str)
+-const struct dma_map_ops *dma_ops;
+-EXPORT_SYMBOL(dma_ops);
+-
+ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_handle, gfp_t gfp,
+ 				 unsigned long attrs)
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index ce0bbaa7e404..32e09f03e6bf 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -395,22 +395,12 @@ void __init paging_init(void)
+ 	free_area_init_nodes(max_zone_pfns);
+ }
+ 
+-/*
+- * Early initialization for any I/O MMUs we might have.
+- */
+-static void __init iommu_init(void)
+-{
+-	no_iommu_init();
+-}
+-
+ unsigned int mem_init_done = 0;
+ 
+ void __init mem_init(void)
  {
+ 	pg_data_t *pgdat;
+ 
+-	iommu_init();
+-
+ 	high_memory = NULL;
+ 	for_each_online_pgdat(pgdat)
+ 		high_memory = max_t(void *, high_memory,
 -- 
 2.17.0
 
