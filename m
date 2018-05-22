@@ -1,69 +1,55 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Mon, 21 May 2018 20:10:38 +0000
-Subject: Re: sparc64 PCI BAR allocation is still problematic
-Message-Id: <20180521201038.GF41790@bhelgaas-glaptop.roam.corp.google.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 22 May 2018 12:04:07 +0000
+Subject: [PATCH 02/25] hexagon: implement the sync_sg_for_device DMA operation
+Message-Id: <20180522120430.28709-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.21.1804081219340.17185@math.ut.ee>
- <20180410173437.GB24642@bhelgaas-glaptop.roam.corp.google.com>
- <alpine.LRH.2.21.1804102144240.32411@math.ut.ee>
- <20180410185610.GD24642@bhelgaas-glaptop.roam.corp.google.com>
- <alpine.LRH.2.21.1804111045330.18432@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.21.1804111045330.18432@math.ut.ee>
+References: <20180522120430.28709-1-hch@lst.de>
+In-Reply-To: <20180522120430.28709-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-arch@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org
 
-On Wed, Apr 11, 2018 at 10:59:19AM +0300, Meelis Roos wrote:
-> Fire V210: Video RAM BAR error is gone, these are still here:
-> [    5.061083] pci 0001:00:07.0: can't claim BAR 0 [io  0x7fe01000000-0x7fe0100ffff]: address conflict with 0001:00:06.0 [io  0x7fe01000600-0x7fe0100061f]
-> [    5.061334] pci 0001:00:07.0: can't claim BAR 2 [mem 0x7ff00000000-0x7ff000fffff]: address conflict with 0001:00:07.0 [mem 0x7ff00000000-0x7ff000fffff]
+This methods needs to provide the equivalent of sync_single_for_device
+for each S/G list element, but was missing.
 
-From lspci (https://bugzilla.kernel.org/attachment.cgi?id'5239):
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/hexagon/kernel/dma.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-  0001:00:06.0 ULi Electronics Inc. M7101 Power Management Controller
-    Region 0: [virtual] I/O ports at <unassigned> [size]
-  0001:00:07.0 ISA bridge: ULi Electronics Inc. M1533/M1535/M1543 PCI to ISA Bridge
-    Region 0: [virtual] I/O ports at 7fe01000000 [sizedK]
-    Region 1: [virtual] Memory at 7ff00000000 (32-bit, non-prefetchable) [size=1M]
-    Region 2: [virtual] Memory at 7ff00000000 (32-bit, non-prefetchable) [size=1M]
+diff --git a/arch/hexagon/kernel/dma.c b/arch/hexagon/kernel/dma.c
+index d2b717f352f4..9e46556a227d 100644
+--- a/arch/hexagon/kernel/dma.c
++++ b/arch/hexagon/kernel/dma.c
+@@ -188,6 +188,18 @@ static void hexagon_sync_single_for_device(struct device *dev,
+ 	dma_sync(dma_addr_to_virt(dma_handle), size, dir);
+ }
+ 
++static void hexagon_sync_sg_for_device(struct device *dev,
++		struct scatterlist *sgl, int nents, enum dma_data_direction dir)
++{
++	struct scatterlist *sg;
++	int i;
++
++	for_each_sg(sgl, sg, nents, i)
++		hexagon_sync_single_for_device(dev, sg_dma_address(sg),
++				sg->length, dir);
++}
++
++
+ static int hexagon_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ {
+ 	return dma_addr = HEXAGON_MAPPING_ERROR;
+@@ -199,6 +211,7 @@ const struct dma_map_ops hexagon_dma_ops = {
+ 	.map_sg		= hexagon_map_sg,
+ 	.map_page	= hexagon_map_page,
+ 	.sync_single_for_device = hexagon_sync_single_for_device,
++	.sync_sg_for_device = hexagon_sync_sg_for_device,
+ 	.mapping_error	= hexagon_mapping_error,
+ };
+ 
+-- 
+2.17.0
 
-From dmesg log (https://bugzilla.kernel.org/attachment.cgi?id'5237):
-
-  pci 0001:00:06.0: quirk: [io  0x7fe01000800-0x7fe0100083f] claimed by ali7101 ACPI
-  pci 0001:00:06.0: quirk: [io  0x7fe01000600-0x7fe0100061f] claimed by ali7101 SMB
-
-The 0001:00:07.0 BAR 0 conflict is with the ali7101 quirk.  I don't
-know how to fix that.  The quirk doesn't match up with the M1543/M7101
-docs I can find, but the quirk has been there forever and I don't
-think we can safely change it.
-
-The BAR 2 conflict is with 0001:00:07.0's own BAR 1.  I think those
-come from OF, not directly from the hardware, and it looks like an OF
-error that BAR 1 and BAR 2 are the same.
-
-We could filter out duplicates like this if they cause a problem.  But
-I'm not sure whether anything actually breaks because of this
-conflict.
-
-After the VGA framebuffer change, do you see anything that's still
-broken (besides the "can't claim" messages, I mean)?
-
-> Fire V240: Video RAM BAR errors is gone, these are still here:
-> [    5.530237] pci 0001:00:07.0: can't claim BAR 0 [io  0x7fe01000000-0x7fe0100ffff]: address conflict with 0001:00:06.0 [io  0x7fe01000600-0x7fe0100061f]
-> [    5.530389] pci 0001:00:07.0: can't claim BAR 2 [mem 0x7ff00000000-0x7ff000fffff]: address conflict with 0001:00:07.0 [mem 0x7ff00000000-0x7ff000fffff]
-
-Looks the same as V210.
-
-> Fire V440: Video RAM BAR error is gone, these are still here:
-> [    5.082920] pci 0002:00:07.0: can't claim BAR 0 [io  0x7fe01000000-0x7fe0100ffff]: address conflict with 0002:00:06.0 [io  0x7fe01000600-0x7fe0100061f]
-> [    5.082945] pci 0002:00:07.0: can't claim BAR 2 [mem 0x7ff00000000-0x7ff000fffff]: address conflict with 0002:00:07.0 [mem 0x7ff00000000-0x7ff000fffff]
-
-Looks the same as V210.
-
-> Blade 100: Video RAM related BAR error is gnone, this is still here:
-> [    6.131499] pci 0000:00:07.0: can't claim BAR 0 [io  0x1fe02000000-0x1fe0200ffff]: address conflict with 0000:00:03.0 [io  0x1fe02000600-0x1fe0200061f]
-
-Looks the same as V210, except that the firmware apparently doesn't
-have the duplicate BAR 1/2 that the other boxes have.
