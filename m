@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 11 May 2018 07:59:31 +0000
-Subject: [PATCH 06/20] hexagon: use generic dma_noncoherent_ops
-Message-Id: <20180511075945.16548-7-hch@lst.de>
+Date: Tue, 22 May 2018 12:04:08 +0000
+Subject: [PATCH 03/25] hexagon: use generic dma_noncoherent_ops
+Message-Id: <20180522120430.28709-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180511075945.16548-1-hch@lst.de>
-In-Reply-To: <20180511075945.16548-1-hch-jcswGhMUV9g@public.gmane.org>
+References: <20180522120430.28709-1-hch@lst.de>
+In-Reply-To: <20180522120430.28709-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,20 +13,13 @@ Cc: linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xtensa-PjhNF2WwrV/
 
 Switch to the generic noncoherent direct mapping implementation.
 
-This removes the previous sync_single_for_cpu implementation, which looks
-bogus given that no syncing is happening in the similar but more
-important unmap_single case.
-
-This adds the previously missing sync_sg_for_device implementation that
-matches the pre-existing sync_single_for_device implementation.
-
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
  arch/hexagon/Kconfig                   |   2 +
  arch/hexagon/include/asm/Kbuild        |   1 +
  arch/hexagon/include/asm/dma-mapping.h |  40 -------
- arch/hexagon/kernel/dma.c              | 143 ++-----------------------
- 4 files changed, 11 insertions(+), 175 deletions(-)
+ arch/hexagon/kernel/dma.c              | 148 ++-----------------------
+ 4 files changed, 11 insertions(+), 180 deletions(-)
  delete mode 100644 arch/hexagon/include/asm/dma-mapping.h
 
 diff --git a/arch/hexagon/Kconfig b/arch/hexagon/Kconfig
@@ -108,7 +101,7 @@ index 263f6acbfb0f..000000000000
 -
 -#endif
 diff --git a/arch/hexagon/kernel/dma.c b/arch/hexagon/kernel/dma.c
-index 77459df34e2e..ffc4ae8e126f 100644
+index 9e46556a227d..ffc4ae8e126f 100644
 --- a/arch/hexagon/kernel/dma.c
 +++ b/arch/hexagon/kernel/dma.c
 @@ -18,32 +18,19 @@
@@ -211,7 +204,7 @@ index 77459df34e2e..ffc4ae8e126f 100644
  	switch (dir) {
  	case DMA_TO_DEVICE:
  		hexagon_clean_dcache_range((unsigned long) addr,
-@@ -144,76 +90,3 @@ static inline void dma_sync(void *addr, size_t size,
+@@ -144,81 +90,3 @@ static inline void dma_sync(void *addr, size_t size,
  		BUG();
  	}
  }
@@ -252,19 +245,24 @@ index 77459df34e2e..ffc4ae8e126f 100644
 -	return bus;
 -}
 -
--static void hexagon_sync_single_for_cpu(struct device *dev,
--					dma_addr_t dma_handle, size_t size,
--					enum dma_data_direction dir)
--{
--	dma_sync(dma_addr_to_virt(dma_handle), size, dir);
--}
--
 -static void hexagon_sync_single_for_device(struct device *dev,
 -					dma_addr_t dma_handle, size_t size,
 -					enum dma_data_direction dir)
 -{
 -	dma_sync(dma_addr_to_virt(dma_handle), size, dir);
 -}
+-
+-static void hexagon_sync_sg_for_device(struct device *dev,
+-		struct scatterlist *sgl, int nents, enum dma_data_direction dir)
+-{
+-	struct scatterlist *sg;
+-	int i;
+-
+-	for_each_sg(sgl, sg, nents, i)
+-		hexagon_sync_single_for_device(dev, sg_dma_address(sg),
+-				sg->length, dir);
+-}
+-
 -
 -static int hexagon_mapping_error(struct device *dev, dma_addr_t dma_addr)
 -{
@@ -276,8 +274,8 @@ index 77459df34e2e..ffc4ae8e126f 100644
 -	.free		= hexagon_free_coherent,
 -	.map_sg		= hexagon_map_sg,
 -	.map_page	= hexagon_map_page,
--	.sync_single_for_cpu = hexagon_sync_single_for_cpu,
 -	.sync_single_for_device = hexagon_sync_single_for_device,
+-	.sync_sg_for_device = hexagon_sync_sg_for_device,
 -	.mapping_error	= hexagon_mapping_error,
 -};
 -
