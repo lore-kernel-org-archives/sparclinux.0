@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 11 May 2018 07:59:43 +0000
-Subject: [PATCH 18/20] xtensa: use generic dma_noncoherent_ops
-Message-Id: <20180511075945.16548-19-hch@lst.de>
+Date: Tue, 22 May 2018 12:04:16 +0000
+Subject: [PATCH 11/25] nios2: use generic dma_noncoherent_ops
+Message-Id: <20180522120430.28709-12-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180511075945.16548-1-hch@lst.de>
-In-Reply-To: <20180511075945.16548-1-hch-jcswGhMUV9g@public.gmane.org>
+References: <20180522120430.28709-1-hch@lst.de>
+In-Reply-To: <20180522120430.28709-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,276 +15,247 @@ Switch to the generic noncoherent direct mapping implementation.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/xtensa/Kconfig                   |   3 +
- arch/xtensa/include/asm/Kbuild        |   1 +
- arch/xtensa/include/asm/dma-mapping.h |  26 ------
- arch/xtensa/kernel/pci-dma.c          | 130 +++-----------------------
- 4 files changed, 19 insertions(+), 141 deletions(-)
- delete mode 100644 arch/xtensa/include/asm/dma-mapping.h
+ arch/nios2/Kconfig                   |   3 +
+ arch/nios2/include/asm/Kbuild        |   1 +
+ arch/nios2/include/asm/dma-mapping.h |  20 ----
+ arch/nios2/mm/dma-mapping.c          | 139 +++------------------------
+ 4 files changed, 17 insertions(+), 146 deletions(-)
+ delete mode 100644 arch/nios2/include/asm/dma-mapping.h
 
-diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
-index 17df332269b2..ef114648e954 100644
---- a/arch/xtensa/Kconfig
-+++ b/arch/xtensa/Kconfig
-@@ -5,11 +5,14 @@ config ZONE_DMA
- config XTENSA
+diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
+index 3d4ec88f1db1..92035042cf62 100644
+--- a/arch/nios2/Kconfig
++++ b/arch/nios2/Kconfig
+@@ -1,6 +1,9 @@
+ # SPDX-License-Identifier: GPL-2.0
+ config NIOS2
  	def_bool y
- 	select ARCH_NO_COHERENT_DMA_MMAP if !MMU
 +	select ARCH_HAS_SYNC_DMA_FOR_CPU
 +	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_WANT_FRAME_POINTERS
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select BUILDTIME_EXTABLE_SORT
- 	select CLONE_BACKWARDS
- 	select COMMON_CLK
 +	select DMA_NONCOHERENT_OPS
+ 	select TIMER_OF
  	select GENERIC_ATOMIC64
  	select GENERIC_CLOCKEVENTS
- 	select GENERIC_IRQ_SHOW
-diff --git a/arch/xtensa/include/asm/Kbuild b/arch/xtensa/include/asm/Kbuild
-index 436b20337168..a8d6cd3bee4b 100644
---- a/arch/xtensa/include/asm/Kbuild
-+++ b/arch/xtensa/include/asm/Kbuild
-@@ -2,6 +2,7 @@ generic-y += bug.h
+diff --git a/arch/nios2/include/asm/Kbuild b/arch/nios2/include/asm/Kbuild
+index d232da2cbb38..24f6ee1ee69b 100644
+--- a/arch/nios2/include/asm/Kbuild
++++ b/arch/nios2/include/asm/Kbuild
+@@ -8,6 +8,7 @@ generic-y += current.h
  generic-y += device.h
  generic-y += div64.h
- generic-y += dma-contiguous.h
+ generic-y += dma.h
 +generic-y += dma-mapping.h
  generic-y += emergency-restart.h
  generic-y += exec.h
  generic-y += extable.h
-diff --git a/arch/xtensa/include/asm/dma-mapping.h b/arch/xtensa/include/asm/dma-mapping.h
+diff --git a/arch/nios2/include/asm/dma-mapping.h b/arch/nios2/include/asm/dma-mapping.h
 deleted file mode 100644
-index 44098800dad7..000000000000
---- a/arch/xtensa/include/asm/dma-mapping.h
+index 6ceb92251da0..000000000000
+--- a/arch/nios2/include/asm/dma-mapping.h
 +++ /dev/null
-@@ -1,26 +0,0 @@
+@@ -1,20 +0,0 @@
 -/*
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file "COPYING" in the main directory of this archive
-- * for more details.
+- * Copyright (C) 2011 Tobias Klauser <tklauser@distanz.ch>
+- * Copyright (C) 2009 Wind River Systems Inc
 - *
-- * Copyright (C) 2003 - 2005 Tensilica Inc.
-- * Copyright (C) 2015 Cadence Design Systems Inc.
+- * This file is subject to the terms and conditions of the GNU General
+- * Public License.  See the file COPYING in the main directory of this
+- * archive for more details.
 - */
 -
--#ifndef _XTENSA_DMA_MAPPING_H
--#define _XTENSA_DMA_MAPPING_H
+-#ifndef _ASM_NIOS2_DMA_MAPPING_H
+-#define _ASM_NIOS2_DMA_MAPPING_H
 -
--#include <asm/cache.h>
--#include <asm/io.h>
--
--#include <linux/mm.h>
--#include <linux/scatterlist.h>
--
--extern const struct dma_map_ops xtensa_dma_map_ops;
+-extern const struct dma_map_ops nios2_dma_ops;
 -
 -static inline const struct dma_map_ops *get_arch_dma_ops(struct bus_type *bus)
 -{
--	return &xtensa_dma_map_ops;
+-	return &nios2_dma_ops;
 -}
 -
--#endif	/* _XTENSA_DMA_MAPPING_H */
-diff --git a/arch/xtensa/kernel/pci-dma.c b/arch/xtensa/kernel/pci-dma.c
-index 392b4a80ebc2..a83d60e92908 100644
---- a/arch/xtensa/kernel/pci-dma.c
-+++ b/arch/xtensa/kernel/pci-dma.c
-@@ -16,26 +16,24 @@
-  */
+-#endif /* _ASM_NIOS2_DMA_MAPPING_H */
+diff --git a/arch/nios2/mm/dma-mapping.c b/arch/nios2/mm/dma-mapping.c
+index 4be815519dd4..4af9e5b5ba1c 100644
+--- a/arch/nios2/mm/dma-mapping.c
++++ b/arch/nios2/mm/dma-mapping.c
+@@ -12,18 +12,18 @@
  
- #include <linux/dma-contiguous.h>
-+#include <linux/dma-noncoherent.h>
- #include <linux/dma-direct.h>
- #include <linux/gfp.h>
- #include <linux/highmem.h>
- #include <linux/mm.h>
--#include <linux/module.h>
--#include <linux/pci.h>
--#include <linux/string.h>
  #include <linux/types.h>
+ #include <linux/mm.h>
+-#include <linux/export.h>
+ #include <linux/string.h>
+-#include <linux/scatterlist.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
+ #include <linux/cache.h>
  #include <asm/cacheflush.h>
- #include <asm/io.h>
  
--static void do_cache_op(dma_addr_t dma_handle, size_t size,
-+static void do_cache_op(phys_addr_t paddr, size_t size,
- 			void (*fn)(unsigned long, unsigned long))
- {
--	unsigned long off = dma_handle & (PAGE_SIZE - 1);
--	unsigned long pfn = PFN_DOWN(dma_handle);
-+	unsigned long off = paddr & (PAGE_SIZE - 1);
-+	unsigned long pfn = PFN_DOWN(paddr);
- 	struct page *page = pfn_to_page(pfn);
- 
- 	if (!PageHighMem(page))
--		fn((unsigned long)bus_to_virt(dma_handle), size);
-+		fn((unsigned long)phys_to_virt(paddr), size);
- 	else
- 		while (size > 0) {
- 			size_t sz = min_t(size_t, size, PAGE_SIZE - off);
-@@ -49,14 +47,13 @@ static void do_cache_op(dma_addr_t dma_handle, size_t size,
- 		}
- }
- 
--static void xtensa_sync_single_for_cpu(struct device *dev,
--				       dma_addr_t dma_handle, size_t size,
--				       enum dma_data_direction dir)
-+void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
-+		size_t size, enum dma_data_direction dir)
- {
- 	switch (dir) {
- 	case DMA_BIDIRECTIONAL:
- 	case DMA_FROM_DEVICE:
--		do_cache_op(dma_handle, size, __invalidate_dcache_range);
-+		do_cache_op(paddr, size, __invalidate_dcache_range);
- 		break;
- 
- 	case DMA_NONE:
-@@ -68,15 +65,14 @@ static void xtensa_sync_single_for_cpu(struct device *dev,
- 	}
- }
- 
--static void xtensa_sync_single_for_device(struct device *dev,
--					  dma_addr_t dma_handle, size_t size,
--					  enum dma_data_direction dir)
+-static inline void __dma_sync_for_device(void *vaddr, size_t size,
+-			      enum dma_data_direction direction)
 +void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
 +		size_t size, enum dma_data_direction dir)
  {
- 	switch (dir) {
- 	case DMA_BIDIRECTIONAL:
- 	case DMA_TO_DEVICE:
- 		if (XCHAL_DCACHE_IS_WRITEBACK)
--			do_cache_op(dma_handle, size, __flush_dcache_range);
-+			do_cache_op(paddr, size, __flush_dcache_range);
- 		break;
- 
- 	case DMA_NONE:
-@@ -88,40 +84,13 @@ static void xtensa_sync_single_for_device(struct device *dev,
+-	switch (direction) {
++	void *vaddr = phys_to_virt(paddr);
++
++	switch (dir) {
+ 	case DMA_FROM_DEVICE:
+ 		invalidate_dcache_range((unsigned long)vaddr,
+ 			(unsigned long)(vaddr + size));
+@@ -42,10 +42,12 @@ static inline void __dma_sync_for_device(void *vaddr, size_t size,
  	}
  }
  
--static void xtensa_sync_sg_for_cpu(struct device *dev,
--				   struct scatterlist *sg, int nents,
--				   enum dma_data_direction dir)
--{
--	struct scatterlist *s;
--	int i;
--
--	for_each_sg(sg, s, nents, i) {
--		xtensa_sync_single_for_cpu(dev, sg_dma_address(s),
--					   sg_dma_len(s), dir);
--	}
--}
--
--static void xtensa_sync_sg_for_device(struct device *dev,
--				      struct scatterlist *sg, int nents,
--				      enum dma_data_direction dir)
--{
--	struct scatterlist *s;
--	int i;
--
--	for_each_sg(sg, s, nents, i) {
--		xtensa_sync_single_for_device(dev, sg_dma_address(s),
--					      sg_dma_len(s), dir);
--	}
--}
--
- /*
-  * Note: We assume that the full memory space is always mapped to 'kseg'
-  *	 Otherwise we have to use page attributes (not implemented).
-  */
- 
--static void *xtensa_dma_alloc(struct device *dev, size_t size,
--			      dma_addr_t *handle, gfp_t flag,
--			      unsigned long attrs)
-+void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
-+		gfp_t flag, unsigned long attrs)
+-static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
+-			      enum dma_data_direction direction)
++void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
++		size_t size, enum dma_data_direction dir)
  {
- 	unsigned long ret;
- 	unsigned long uncached;
-@@ -171,8 +140,8 @@ static void *xtensa_dma_alloc(struct device *dev, size_t size,
- 	return (void *)uncached;
+-	switch (direction) {
++	void *vaddr = phys_to_virt(paddr);
++
++	switch (dir) {
+ 	case DMA_BIDIRECTIONAL:
+ 	case DMA_FROM_DEVICE:
+ 		invalidate_dcache_range((unsigned long)vaddr,
+@@ -58,8 +60,8 @@ static inline void __dma_sync_for_cpu(void *vaddr, size_t size,
+ 	}
  }
  
--static void xtensa_dma_free(struct device *dev, size_t size, void *vaddr,
--			    dma_addr_t dma_handle, unsigned long attrs)
+-static void *nios2_dma_alloc(struct device *dev, size_t size,
+-		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
++void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
++		gfp_t gfp, unsigned long attrs)
+ {
+ 	void *ret;
+ 
+@@ -80,125 +82,10 @@ static void *nios2_dma_alloc(struct device *dev, size_t size,
+ 	return ret;
+ }
+ 
+-static void nios2_dma_free(struct device *dev, size_t size, void *vaddr,
 +void arch_dma_free(struct device *dev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, unsigned long attrs)
+ 		dma_addr_t dma_handle, unsigned long attrs)
  {
- 	unsigned long count = PAGE_ALIGN(size) >> PAGE_SHIFT;
- 	unsigned long addr = (unsigned long)vaddr;
-@@ -192,72 +161,3 @@ static void xtensa_dma_free(struct device *dev, size_t size, void *vaddr,
- 	if (!dma_release_from_contiguous(dev, page, count))
- 		__free_pages(page, get_order(size));
+ 	unsigned long addr = (unsigned long) CAC_ADDR((unsigned long) vaddr);
+ 
+ 	free_pages(addr, get_order(size));
  }
 -
--static dma_addr_t xtensa_map_page(struct device *dev, struct page *page,
--				  unsigned long offset, size_t size,
--				  enum dma_data_direction dir,
--				  unsigned long attrs)
+-static int nios2_dma_map_sg(struct device *dev, struct scatterlist *sg,
+-		int nents, enum dma_data_direction direction,
+-		unsigned long attrs)
 -{
--	dma_addr_t dma_handle = page_to_phys(page) + offset;
--
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		xtensa_sync_single_for_device(dev, dma_handle, size, dir);
--
--	return dma_handle;
--}
--
--static void xtensa_unmap_page(struct device *dev, dma_addr_t dma_handle,
--			      size_t size, enum dma_data_direction dir,
--			      unsigned long attrs)
--{
--	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
--		xtensa_sync_single_for_cpu(dev, dma_handle, size, dir);
--}
--
--static int xtensa_map_sg(struct device *dev, struct scatterlist *sg,
--			 int nents, enum dma_data_direction dir,
--			 unsigned long attrs)
--{
--	struct scatterlist *s;
 -	int i;
 -
--	for_each_sg(sg, s, nents, i) {
--		s->dma_address = xtensa_map_page(dev, sg_page(s), s->offset,
--						 s->length, dir, attrs);
+-	for_each_sg(sg, sg, nents, i) {
+-		void *addr = sg_virt(sg);
+-
+-		if (!addr)
+-			continue;
+-
+-		sg->dma_address = sg_phys(sg);
+-
+-		if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
+-			continue;
+-
+-		__dma_sync_for_device(addr, sg->length, direction);
 -	}
+-
 -	return nents;
 -}
 -
--static void xtensa_unmap_sg(struct device *dev,
--			    struct scatterlist *sg, int nents,
--			    enum dma_data_direction dir,
--			    unsigned long attrs)
+-static dma_addr_t nios2_dma_map_page(struct device *dev, struct page *page,
+-			unsigned long offset, size_t size,
+-			enum dma_data_direction direction,
+-			unsigned long attrs)
 -{
--	struct scatterlist *s;
+-	void *addr = page_address(page) + offset;
+-
+-	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+-		__dma_sync_for_device(addr, size, direction);
+-
+-	return page_to_phys(page) + offset;
+-}
+-
+-static void nios2_dma_unmap_page(struct device *dev, dma_addr_t dma_address,
+-		size_t size, enum dma_data_direction direction,
+-		unsigned long attrs)
+-{
+-	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+-		__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
+-}
+-
+-static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+-		int nhwentries, enum dma_data_direction direction,
+-		unsigned long attrs)
+-{
+-	void *addr;
 -	int i;
 -
--	for_each_sg(sg, s, nents, i) {
--		xtensa_unmap_page(dev, sg_dma_address(s),
--				  sg_dma_len(s), dir, attrs);
+-	if (direction = DMA_TO_DEVICE)
+-		return;
+-
+-	if (attrs & DMA_ATTR_SKIP_CPU_SYNC)
+-		return;
+-
+-	for_each_sg(sg, sg, nhwentries, i) {
+-		addr = sg_virt(sg);
+-		if (addr)
+-			__dma_sync_for_cpu(addr, sg->length, direction);
 -	}
 -}
 -
--int xtensa_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-static void nios2_dma_sync_single_for_cpu(struct device *dev,
+-		dma_addr_t dma_handle, size_t size,
+-		enum dma_data_direction direction)
 -{
--	return 0;
+-	__dma_sync_for_cpu(phys_to_virt(dma_handle), size, direction);
 -}
 -
--const struct dma_map_ops xtensa_dma_map_ops = {
--	.alloc = xtensa_dma_alloc,
--	.free = xtensa_dma_free,
--	.map_page = xtensa_map_page,
--	.unmap_page = xtensa_unmap_page,
--	.map_sg = xtensa_map_sg,
--	.unmap_sg = xtensa_unmap_sg,
--	.sync_single_for_cpu = xtensa_sync_single_for_cpu,
--	.sync_single_for_device = xtensa_sync_single_for_device,
--	.sync_sg_for_cpu = xtensa_sync_sg_for_cpu,
--	.sync_sg_for_device = xtensa_sync_sg_for_device,
--	.mapping_error = xtensa_dma_mapping_error,
+-static void nios2_dma_sync_single_for_device(struct device *dev,
+-		dma_addr_t dma_handle, size_t size,
+-		enum dma_data_direction direction)
+-{
+-	__dma_sync_for_device(phys_to_virt(dma_handle), size, direction);
+-}
+-
+-static void nios2_dma_sync_sg_for_cpu(struct device *dev,
+-		struct scatterlist *sg, int nelems,
+-		enum dma_data_direction direction)
+-{
+-	int i;
+-
+-	/* Make sure that gcc doesn't leave the empty loop body.  */
+-	for_each_sg(sg, sg, nelems, i)
+-		__dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
+-}
+-
+-static void nios2_dma_sync_sg_for_device(struct device *dev,
+-		struct scatterlist *sg, int nelems,
+-		enum dma_data_direction direction)
+-{
+-	int i;
+-
+-	/* Make sure that gcc doesn't leave the empty loop body.  */
+-	for_each_sg(sg, sg, nelems, i)
+-		__dma_sync_for_device(sg_virt(sg), sg->length, direction);
+-
+-}
+-
+-const struct dma_map_ops nios2_dma_ops = {
+-	.alloc			= nios2_dma_alloc,
+-	.free			= nios2_dma_free,
+-	.map_page		= nios2_dma_map_page,
+-	.unmap_page		= nios2_dma_unmap_page,
+-	.map_sg			= nios2_dma_map_sg,
+-	.unmap_sg		= nios2_dma_unmap_sg,
+-	.sync_single_for_device	= nios2_dma_sync_single_for_device,
+-	.sync_single_for_cpu	= nios2_dma_sync_single_for_cpu,
+-	.sync_sg_for_cpu	= nios2_dma_sync_sg_for_cpu,
+-	.sync_sg_for_device	= nios2_dma_sync_sg_for_device,
 -};
--EXPORT_SYMBOL(xtensa_dma_map_ops);
+-EXPORT_SYMBOL(nios2_dma_ops);
 -- 
 2.17.0
 
