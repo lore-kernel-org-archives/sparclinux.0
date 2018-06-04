@@ -1,159 +1,453 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Fri, 29 Jun 2018 13:47:21 +0000
-Subject: Re: sparc64 PCI BAR allocation is still problematic
-Message-Id: <20180629134721.GA98204@bhelgaas-glaptop.roam.corp.google.com>
+From: Masami Hiramatsu <mhiramat@kernel.org>
+Date: Mon, 04 Jun 2018 16:00:08 +0000
+Subject: [RFC PATCH -tip v5 24/27] bpf: error-inject: kprobes: Clear current_kprobe and enable preempt in kpr
+Message-Id: <152812800822.10068.3306094708706993432.stgit@devbox>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.21.1804081219340.17185@math.ut.ee>
- <20180620220525.GC108993@bhelgaas-glaptop.roam.corp.google.com>
- <alpine.LRH.2.21.1806291158320.6026@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.21.1806291158320.6026@math.ut.ee>
+References: <152812730943.10068.5166429445118734697.stgit@devbox>
+In-Reply-To: <152812730943.10068.5166429445118734697.stgit@devbox>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos@linux.ee>
-Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, linux-arch@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>
 
-On Fri, Jun 29, 2018 at 01:06:55PM +0300, Meelis Roos wrote:
-> > > This is a followup on the thread https://lkml.org/lkml/2015/10/7/135 and 
-> > > corresponding https://bugzilla.kernel.org/show_bug.cgi?id7191 entry.
-> > > 
-> > > I saw some sparc64 PCI allocation changes in yesterdays git and compiled 
-> > > 4.16.0-10242-gf605ba9 on most of my sparc64 machines to test if the PCI 
-> > > BAR allocation problems introduced in 4.3 were fixed on some of them. 
-> > > Alas, no change at all - of the test machines, none showed any changes 
-> > > in the error messages in "dmesg | grep BAR".
-> > > 
-> > > There was one test machine, T1000 with no addon cards, that did not 
-> > > encounter any problem, before or after the recent patch. All the other 
-> > > test machines tried still have the BAR allocation problems.
-> > > 
-> > > The errors seem to cluster into 3 categories:
-> > > 
-> > > 1. many devices fail BAR allocations
-> > > 2. one of the Davicom Ethernet devices fails BAR allocation
-> > > 3. Uli ISA bridge fails BAR allocation.
-> > > 
-> > > Full current dmesg and lspci info is also available if there is any 
-> > > interest. I did not include it all here, which machines are interesting?
-> > 
-> > Hi Meelis,
-> > 
-> > Fixes for the worst of these issues are in v4.18-rc1.
-> 
-> Thank you!
->  
-> > I think there are still cases where we will complain about conflicts.
-> > Some of these look like they result from OF/DT descriptions that
-> > contain conflicts, and they may not cause a problem other than the
-> > message itself.
-> 
-> Video RAM area related BAR messages are gone from all servers.
-> 
-> V100 OK
-> V120 OK
-> Netra X1 OK
-> Netra T1-200 OK
-> Netra T1-105 OK
-> 
-> T2000 still has "no compatible bridge window" about ULi ISA Bridge:
-> 
-> [    3.767832] pci 0001:05:02.0: can't claim BAR 0 [io  0xf010000000-0xf01000ffff]: no compatible bridge window
+Clear current_kprobe and enable preemption in kprobe
+even if pre_handler returns !0.
 
-From the dmesg log at https://bugzilla.kernel.org/show_bug.cgi?id7191,
+This simplifies function override using kprobes.
 
-  pci_sun4v f0287174: PCI host bridge to bus 0001:02
-  pci_bus 0001:02: root bus resource [io  0xf010000000-0xf01fffffff] (bus address [0x0000-0xfffffff])
-  pci 0001:05:02.0: can't claim BAR 0 [io  0xf010000000-0xf01000ffff]: no compatible bridge window
+Jprobe used to require to keep the preemption disabled and
+keep current_kprobe until it returned to original function
+entry. For this reason kprobe_int3_handler() and similar
+arch dependent kprobe handers checks pre_handler result
+and exit without enabling preemption if the result is !0.
 
-BAR 0 could potentially be valid, if the intermediate bridge windows
-were set up correctly.  But from the lspci:
+After removing the jprobe, Kprobes does not need to
+keep preempt disabled even if user handler returns !0
+anymore.
 
-  0001:02:00.0 PCI bridge: PEX 8532 Upstream Port
-    Bus: primary, secondary, subordinate	
-    I/O behind bridge: 00000000-00002fff
-  0001:03:01.0 PCI bridge: PEX 8532 Downstream Port
-    Bus: primary, secondary, subordinate
-    I/O behind bridge: 00000000-00000fff
-  0001:04:00.0 PCI bridge: PCIe to PCI/PCI-X Bridge
-    Bus: primary, secondary, subordinate
-    I/O behind bridge: 00000000-00000fff
-  0001:05:02.0 ISA bridge: ULi M1533/M1535/M1543 PCI to ISA Bridge
-    Region 0: [virtual] I/O ports at f010000000 [sizedK]
+But since the function override handler in error-inject
+and bpf is also returns !0 if it overrides a function,
+to balancing the preempt count, it enables preemption
+and reset current kprobe by itself.
 
-(lspci normally shows the CPU addresses, but it looks like it's showing
-bus addresses here (except for the 0001:05:02.0 I/O BAR).  That might
-be something we should sort out at some point.  I know sparc does
-things differently in that area.)
+That is a bad design that is very buggy. This fixes
+such unbalanced preempt-count and current_kprobes setting
+in kprobes, bpf and error-inject.
 
-But either way, the 0001:04:00.0 I/O aperture is only 4K in size, and
-apparently OF is telling us the ISA bridge has a 64K I/O BAR, so that
-explains the "no compatible bridge window" message.  We can't fit a
-64K BAR in a 4K window.
+Note: for powerpc and x86, this removes all preempt_disable
+from kprobe_ftrace_handler because ftrace callbacks are
+called under preempt disabled.
 
-Do you know if there's an ISA device behind that bridge?  If there
-is, and it only requires I/O ports in the 0-0xfff range, it probably
-still works in spite of the warning.
+Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
+Cc: Josef Bacik <jbacik@fb.com>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: x86@kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+---
+ Changes in v5:
+  - Fix kprobe_ftrace_handler in arch/powerpc too.
+---
+ arch/arc/kernel/kprobes.c            |    5 +++--
+ arch/arm/probes/kprobes/core.c       |   10 +++++-----
+ arch/arm64/kernel/probes/kprobes.c   |   10 +++++-----
+ arch/ia64/kernel/kprobes.c           |   13 ++++---------
+ arch/mips/kernel/kprobes.c           |    4 ++--
+ arch/powerpc/kernel/kprobes-ftrace.c |   15 ++++++---------
+ arch/powerpc/kernel/kprobes.c        |    7 +++++--
+ arch/s390/kernel/kprobes.c           |    7 ++++---
+ arch/sh/kernel/kprobes.c             |    7 ++++---
+ arch/sparc/kernel/kprobes.c          |    7 ++++---
+ arch/x86/kernel/kprobes/core.c       |    4 ++++
+ arch/x86/kernel/kprobes/ftrace.c     |   15 ++++++++-------
+ kernel/fail_function.c               |    3 ---
+ kernel/trace/trace_kprobe.c          |   11 +++--------
+ 14 files changed, 57 insertions(+), 61 deletions(-)
 
-But if it needs anything above 0xfff, or if we decided to be "smart"
-and not enable I/O on the bridge because we think the I/O BAR is
-invalid, it wouldn't work.
+diff --git a/arch/arc/kernel/kprobes.c b/arch/arc/kernel/kprobes.c
+index 465365696c91..df35d4c0b0b8 100644
+--- a/arch/arc/kernel/kprobes.c
++++ b/arch/arc/kernel/kprobes.c
+@@ -231,6 +231,9 @@ int __kprobes arc_kprobe_handler(unsigned long addr, struct pt_regs *regs)
+ 		if (!p->pre_handler || !p->pre_handler(p, regs)) {
+ 			setup_singlestep(p, regs);
+ 			kcb->kprobe_status = KPROBE_HIT_SS;
++		} else {
++			reset_current_kprobe();
++			preempt_enable_no_resched();
+ 		}
+ 
+ 		return 1;
+@@ -442,9 +445,7 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
+ 	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 	regs->ret = orig_ret_address;
+ 
+-	reset_current_kprobe();
+ 	kretprobe_hash_unlock(current, &flags);
+-	preempt_enable_no_resched();
+ 
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+diff --git a/arch/arm/probes/kprobes/core.c b/arch/arm/probes/kprobes/core.c
+index 3192350f389d..8d37601fdb20 100644
+--- a/arch/arm/probes/kprobes/core.c
++++ b/arch/arm/probes/kprobes/core.c
+@@ -300,10 +300,10 @@ void __kprobes kprobe_handler(struct pt_regs *regs)
+ 
+ 			/*
+ 			 * If we have no pre-handler or it returned 0, we
+-			 * continue with normal processing.  If we have a
+-			 * pre-handler and it returned non-zero, it prepped
+-			 * for calling the break_handler below on re-entry,
+-			 * so get out doing nothing more here.
++			 * continue with normal processing. If we have a
++			 * pre-handler and it returned non-zero, it will
++			 * modify the execution path and no need to single
++			 * stepping. Let's just reset current kprobe and exit.
+ 			 */
+ 			if (!p->pre_handler || !p->pre_handler(p, regs)) {
+ 				kcb->kprobe_status = KPROBE_HIT_SS;
+@@ -312,8 +312,8 @@ void __kprobes kprobe_handler(struct pt_regs *regs)
+ 					kcb->kprobe_status = KPROBE_HIT_SSDONE;
+ 					p->post_handler(p, regs, 0);
+ 				}
+-				reset_current_kprobe();
+ 			}
++			reset_current_kprobe();
+ 		}
+ 	} else {
+ 		/*
+diff --git a/arch/arm64/kernel/probes/kprobes.c b/arch/arm64/kernel/probes/kprobes.c
+index 076c3c0775a6..5daf3d721cb7 100644
+--- a/arch/arm64/kernel/probes/kprobes.c
++++ b/arch/arm64/kernel/probes/kprobes.c
+@@ -395,9 +395,9 @@ static void __kprobes kprobe_handler(struct pt_regs *regs)
+ 			/*
+ 			 * If we have no pre-handler or it returned 0, we
+ 			 * continue with normal processing.  If we have a
+-			 * pre-handler and it returned non-zero, it prepped
+-			 * for calling the break_handler below on re-entry,
+-			 * so get out doing nothing more here.
++			 * pre-handler and it returned non-zero, it will
++			 * modify the execution path and no need to single
++			 * stepping. Let's just reset current kprobe and exit.
+ 			 *
+ 			 * pre_handler can hit a breakpoint and can step thru
+ 			 * before return, keep PSTATE D-flag enabled until
+@@ -405,8 +405,8 @@ static void __kprobes kprobe_handler(struct pt_regs *regs)
+ 			 */
+ 			if (!p->pre_handler || !p->pre_handler(p, regs)) {
+ 				setup_singlestep(p, regs, kcb, 0);
+-				return;
+-			}
++			} else
++				reset_current_kprobe();
+ 		}
+ 	}
+ 	/*
+diff --git a/arch/ia64/kernel/kprobes.c b/arch/ia64/kernel/kprobes.c
+index 74c8524e6309..aa41bd5cf9b7 100644
+--- a/arch/ia64/kernel/kprobes.c
++++ b/arch/ia64/kernel/kprobes.c
+@@ -478,12 +478,9 @@ int __kprobes trampoline_probe_handler(struct kprobe *p, struct pt_regs *regs)
+ 			 */
+ 			break;
+ 	}
+-
+ 	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 
+-	reset_current_kprobe();
+ 	kretprobe_hash_unlock(current, &flags);
+-	preempt_enable_no_resched();
+ 
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+@@ -851,13 +848,11 @@ static int __kprobes pre_kprobes_handler(struct die_args *args)
+ 	set_current_kprobe(p, kcb);
+ 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+ 
+-	if (p->pre_handler && p->pre_handler(p, regs))
+-		/*
+-		 * Our pre-handler is specifically requesting that we just
+-		 * do a return.  This is used for both the jprobe pre-handler
+-		 * and the kretprobe trampoline
+-		 */
++	if (p->pre_handler && p->pre_handler(p, regs)) {
++		reset_current_kprobe();
++		preempt_enable_no_resched();
+ 		return 1;
++	}
+ 
+ #if !defined(CONFIG_PREEMPT)
+ 	if (p->ainsn.inst_flag = INST_FLAG_BOOSTABLE && !p->post_handler) {
+diff --git a/arch/mips/kernel/kprobes.c b/arch/mips/kernel/kprobes.c
+index 7fd277bc59b9..54cd675c5d1d 100644
+--- a/arch/mips/kernel/kprobes.c
++++ b/arch/mips/kernel/kprobes.c
+@@ -358,6 +358,8 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
+ 
+ 	if (p->pre_handler && p->pre_handler(p, regs)) {
+ 		/* handler has already set things up, so skip ss setup */
++		reset_current_kprobe();
++		preempt_enable_no_resched();
+ 		return 1;
+ 	}
+ 
+@@ -543,9 +545,7 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
+ 	kretprobe_assert(ri, orig_ret_address, trampoline_address);
+ 	instruction_pointer(regs) = orig_ret_address;
+ 
+-	reset_current_kprobe();
+ 	kretprobe_hash_unlock(current, &flags);
+-	preempt_enable_no_resched();
+ 
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+diff --git a/arch/powerpc/kernel/kprobes-ftrace.c b/arch/powerpc/kernel/kprobes-ftrace.c
+index 3869b0e5d5c7..c80c35d1e26e 100644
+--- a/arch/powerpc/kernel/kprobes-ftrace.c
++++ b/arch/powerpc/kernel/kprobes-ftrace.c
+@@ -51,11 +51,9 @@ void kprobe_ftrace_handler(unsigned long nip, unsigned long parent_nip,
+ 	struct kprobe *p;
+ 	struct kprobe_ctlblk *kcb;
+ 
+-	preempt_disable();
+-
+ 	p = get_kprobe((kprobe_opcode_t *)nip);
+ 	if (unlikely(!p) || kprobe_disabled(p))
+-		goto end;
++		return;
+ 
+ 	kcb = get_kprobe_ctlblk();
+ 	if (kprobe_running()) {
+@@ -75,15 +73,14 @@ void kprobe_ftrace_handler(unsigned long nip, unsigned long parent_nip,
+ 			skip_singlestep(p, regs, kcb, orig_nip);
+ 		else {
+ 			/*
+-			 * If pre_handler returns !0, it sets regs->nip and
+-			 * resets current kprobe. In this case, we should not
+-			 * re-enable preemption.
++			 * If pre_handler returns !0, this handler
++			 * modifies regs->ip and goes back to there
++			 * directly without single stepping.
++			 * So let's just clear current kprobe.
+ 			 */
+-			return;
++			__this_cpu_write(current_kprobe, NULL);
+ 		}
+ 	}
+-end:
+-	preempt_enable_no_resched();
+ }
+ NOKPROBE_SYMBOL(kprobe_ftrace_handler);
+ 
+diff --git a/arch/powerpc/kernel/kprobes.c b/arch/powerpc/kernel/kprobes.c
+index f06747e2e70d..5c60bb0f927f 100644
+--- a/arch/powerpc/kernel/kprobes.c
++++ b/arch/powerpc/kernel/kprobes.c
+@@ -358,9 +358,12 @@ int kprobe_handler(struct pt_regs *regs)
+ 
+ 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+ 	set_current_kprobe(p, regs, kcb);
+-	if (p->pre_handler && p->pre_handler(p, regs))
+-		/* handler has already set things up, so skip ss setup */
++	if (p->pre_handler && p->pre_handler(p, regs)) {
++		/* handler changed execution path, so skip ss setup */
++		reset_current_kprobe();
++		preempt_enable_no_resched();
+ 		return 1;
++	}
+ 
+ 	if (p->ainsn.boostable >= 0) {
+ 		ret = try_to_emulate(p, regs);
+diff --git a/arch/s390/kernel/kprobes.c b/arch/s390/kernel/kprobes.c
+index 3e34018960b5..7c0a095e9c5f 100644
+--- a/arch/s390/kernel/kprobes.c
++++ b/arch/s390/kernel/kprobes.c
+@@ -326,8 +326,11 @@ static int kprobe_handler(struct pt_regs *regs)
+ 			 */
+ 			push_kprobe(kcb, p);
+ 			kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+-			if (p->pre_handler && p->pre_handler(p, regs))
++			if (p->pre_handler && p->pre_handler(p, regs)) {
++				pop_kprobe(kcb);
++				preempt_enable_no_resched();
+ 				return 1;
++			}
+ 			kcb->kprobe_status = KPROBE_HIT_SS;
+ 		}
+ 		enable_singlestep(kcb, regs, (unsigned long) p->ainsn.insn);
+@@ -431,9 +434,7 @@ static int trampoline_probe_handler(struct kprobe *p, struct pt_regs *regs)
+ 
+ 	regs->psw.addr = orig_ret_address;
+ 
+-	pop_kprobe(get_kprobe_ctlblk());
+ 	kretprobe_hash_unlock(current, &flags);
+-	preempt_enable_no_resched();
+ 
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+diff --git a/arch/sh/kernel/kprobes.c b/arch/sh/kernel/kprobes.c
+index 4fafe0cd12c6..241e903dd3ee 100644
+--- a/arch/sh/kernel/kprobes.c
++++ b/arch/sh/kernel/kprobes.c
+@@ -272,9 +272,12 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
+ 	set_current_kprobe(p, regs, kcb);
+ 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+ 
+-	if (p->pre_handler && p->pre_handler(p, regs))
++	if (p->pre_handler && p->pre_handler(p, regs)) {
+ 		/* handler has already set things up, so skip ss setup */
++		reset_current_kprobe();
++		preempt_enable_no_resched();
+ 		return 1;
++	}
+ 
+ 	prepare_singlestep(p, regs);
+ 	kcb->kprobe_status = KPROBE_HIT_SS;
+@@ -352,8 +355,6 @@ int __kprobes trampoline_probe_handler(struct kprobe *p, struct pt_regs *regs)
+ 	regs->pc = orig_ret_address;
+ 	kretprobe_hash_unlock(current, &flags);
+ 
+-	preempt_enable_no_resched();
+-
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+ 		kfree(ri);
+diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
+index c684c96ef2e9..dfbca2470536 100644
+--- a/arch/sparc/kernel/kprobes.c
++++ b/arch/sparc/kernel/kprobes.c
+@@ -175,8 +175,11 @@ static int __kprobes kprobe_handler(struct pt_regs *regs)
+ 
+ 	set_current_kprobe(p, regs, kcb);
+ 	kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+-	if (p->pre_handler && p->pre_handler(p, regs))
++	if (p->pre_handler && p->pre_handler(p, regs)) {
++		reset_current_kprobe();
++		preempt_enable_no_resched();
+ 		return 1;
++	}
+ 
+ 	prepare_singlestep(p, regs, kcb);
+ 	kcb->kprobe_status = KPROBE_HIT_SS;
+@@ -508,9 +511,7 @@ static int __kprobes trampoline_probe_handler(struct kprobe *p,
+ 	regs->tpc = orig_ret_address;
+ 	regs->tnpc = orig_ret_address + 4;
+ 
+-	reset_current_kprobe();
+ 	kretprobe_hash_unlock(current, &flags);
+-	preempt_enable_no_resched();
+ 
+ 	hlist_for_each_entry_safe(ri, tmp, &empty_rp, hlist) {
+ 		hlist_del(&ri->hlist);
+diff --git a/arch/x86/kernel/kprobes/core.c b/arch/x86/kernel/kprobes/core.c
+index 0ac16a0d93e5..814e26b7c8a2 100644
+--- a/arch/x86/kernel/kprobes/core.c
++++ b/arch/x86/kernel/kprobes/core.c
+@@ -694,6 +694,10 @@ int kprobe_int3_handler(struct pt_regs *regs)
+ 			 */
+ 			if (!p->pre_handler || !p->pre_handler(p, regs))
+ 				setup_singlestep(p, regs, kcb, 0);
++			else {
++				reset_current_kprobe();
++				preempt_enable_no_resched();
++			}
+ 			return 1;
+ 		}
+ 	} else if (*addr != BREAKPOINT_INSTRUCTION) {
+diff --git a/arch/x86/kernel/kprobes/ftrace.c b/arch/x86/kernel/kprobes/ftrace.c
+index c8696f2a583f..310ef737b9d4 100644
+--- a/arch/x86/kernel/kprobes/ftrace.c
++++ b/arch/x86/kernel/kprobes/ftrace.c
+@@ -63,18 +63,19 @@ void kprobe_ftrace_handler(unsigned long ip, unsigned long parent_ip,
+ 		/* Kprobe handler expects regs->ip = ip + 1 as breakpoint hit */
+ 		regs->ip = ip + sizeof(kprobe_opcode_t);
+ 
+-		/* To emulate trap based kprobes, preempt_disable here */
+-		preempt_disable();
+ 		__this_cpu_write(current_kprobe, p);
+ 		kcb->kprobe_status = KPROBE_HIT_ACTIVE;
+ 		if (!p->pre_handler || !p->pre_handler(p, regs)) {
+ 			skip_singlestep(p, regs, kcb, orig_ip);
+-			preempt_enable_no_resched();
++		} else {
++			/*
++			 * If pre_handler returns !0, this handler
++			 * modifies regs->ip and goes back to there
++			 * directly without single stepping.
++			 * So let's just clear current kprobe.
++			 */
++			__this_cpu_write(current_kprobe, NULL);
+ 		}
+-		/*
+-		 * If pre_handler returns !0, it sets regs->ip and
+-		 * resets current kprobe, and keep preempt count +1.
+-		 */
+ 	}
+ }
+ NOKPROBE_SYMBOL(kprobe_ftrace_handler);
+diff --git a/kernel/fail_function.c b/kernel/fail_function.c
+index 1d5632d8bbcc..b090688df94f 100644
+--- a/kernel/fail_function.c
++++ b/kernel/fail_function.c
+@@ -184,9 +184,6 @@ static int fei_kprobe_handler(struct kprobe *kp, struct pt_regs *regs)
+ 	if (should_fail(&fei_fault_attr, 1)) {
+ 		regs_set_return_value(regs, attr->retval);
+ 		override_function_with_return(regs);
+-		/* Kprobe specific fixup */
+-		reset_current_kprobe();
+-		preempt_enable_no_resched();
+ 		return 1;
+ 	}
+ 
+diff --git a/kernel/trace/trace_kprobe.c b/kernel/trace/trace_kprobe.c
+index 02aed76e0978..b65cd6834450 100644
+--- a/kernel/trace/trace_kprobe.c
++++ b/kernel/trace/trace_kprobe.c
+@@ -1217,16 +1217,11 @@ kprobe_perf_func(struct trace_kprobe *tk, struct pt_regs *regs)
+ 
+ 		/*
+ 		 * We need to check and see if we modified the pc of the
+-		 * pt_regs, and if so clear the kprobe and return 1 so that we
+-		 * don't do the single stepping.
+-		 * The ftrace kprobe handler leaves it up to us to re-enable
+-		 * preemption here before returning if we've modified the ip.
++		 * pt_regs, and if so return 1 so that we don't do the
++		 * single stepping.
+ 		 */
+-		if (orig_ip != instruction_pointer(regs)) {
+-			reset_current_kprobe();
+-			preempt_enable_no_resched();
++		if (orig_ip != instruction_pointer(regs))
+ 			return 1;
+-		}
+ 		if (!ret)
+ 			return 0;
+ 	}
 
-> V245 still has "no compatible bridge window" about ULI ISA Bridge:
-> 
-> [    4.522892] pci 0000:05:1e.0: can't claim BAR 0 [io  0x7f810000000-0x7f810000fff]: no compatible bridge window
-
-Again from https://bugzilla.kernel.org/show_bug.cgi?id7191,
-
-  fire f0068b8c: PCI host bridge to bus 0000:02
-  pci_bus 0000:02: root bus resource [io  0x7f810000000-0x7f81fffffff] (bus address [0x0000-0xfffffff])
-  pci 0000:05:1e.0: can't claim BAR 0 [io  0x7f810000000-0x7f810000fff]: no compatible bridge window
-
-  0000:04:00.0 PCI bridge: ULi M5249 HTT to PCI Bridge
-    Bus: primary, secondary, subordinate
-    I/O behind bridge: 00001000-00001fff
-    Memory behind bridge: 00200000-03ffffff
-  0000:05:1c.0 ULi USB 1.1 Controller [OHCI]
-    Region 0: Memory at 01000000 (32-bit, non-prefetchable) [sizeM]
-  0000:05:1c.1 ULi USB 1.1 Controller [OHCI]
-    Region 0: Memory at 02000000 (32-bit, non-prefetchable) [sizeM]
-  0000:05:1c.3 ULi USB 2.0 Controller [EHCI]
-    Region 0: Memory at 00200000 (32-bit, non-prefetchable) [size=8K]
-  0000:05:1e.0 ISA bridge: ULi M1575 South Bridge
-    Region 0: [virtual] I/O ports at 7f810000000 [size=4K]
-  0000:05:1f.0 ULi M5229 IDE
-    Region 0: I/O ports at 1040 [sized]
-    Region 1: I/O ports at 1080 [sized]
-    Region 2: I/O ports at 10c0 [sized]
-    Region 3: I/O ports at 1100 [sized]
-    Region 4: I/O ports at 1000 [sized]
-
-The 0000:05:1e.0 I/O BAR (BAR 0) contains 0 (at least according to
-OF).  This is clearly invalid because the bridge at 0000:04:00.0 will
-never route anything to bus 05 with an I/O bus address of 0, so
-nothing behind the 05:1e.0 ISA bridge should work.
-
-If you still have the v4.18-rc1 logs from these boxes, would you mind
-attaching them to the bugzilla?
-
-> ULi PMU resource conflict still present on these servers:
-> 
-> V210
-> V240
-> V440
-> Blade 100
-> 
-> On Blade 100 it is different than the newer V*:
-> [    9.100363] pci 0000:00:07.0: can't claim BAR 0 [io  0x1fe02000000-0x1fe0200ffff]: address conflict with 0000:00:03.0 [io  0x1fe02000600-0x1fe0200061f]
-> 
-> 00:03.0 Non-VGA unclassified device: ULi Electronics Inc. M7101 Power Management Controller [PMU]
-> 00:07.0 ISA bridge: ULi Electronics Inc. M1533/M1535/M1543 PCI to ISA Bridge [Aladdin IV/V/V+]
-> 
-> 
-> Additionally, ULi ISA Bridge self-conflict still present - is that 
-> because it was already reserved by the OF? On these machines:
-> 
-> V210
-> V240
-> V440
-
-I haven't looked at the rest of these yet.
