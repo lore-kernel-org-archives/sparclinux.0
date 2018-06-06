@@ -1,49 +1,93 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Sat, 16 Jun 2018 13:27:59 +0000
-Subject: Re: [RFC PATCH 20/23] watchdog/hardlockup/hpet: Rotate interrupt among all monitored CPUs
-Message-Id: <alpine.DEB.2.21.1806161525390.1582@nanos.tec.linutronix.de>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Date: Wed, 06 Jun 2018 02:19:11 +0000
+Subject: [PATCH v3 21/21] sparc64: use match_string() helper
+Message-Id: <80339b72-902f-a74e-6ad2-28744c7760cb@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com> <1528851463-21140-21-git-send-email-ricardo.neri-calderon@linux.intel.com> <alpine.DEB.2.21.1806131140560.2280@nanos.tec.linutronix.de> <20180615021629.GD11625@voyager>
- <alpine.DEB.2.21.1806151122070.2079@nanos.tec.linutronix.de> <20180616004631.GB6659@voyager>
-In-Reply-To: <20180616004631.GB6659@voyager>
+References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
+ <1527765086-19873-22-git-send-email-xieyisheng1@huawei.com>
+In-Reply-To: <1527765086-19873-22-git-send-email-xieyisheng1@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Don Zickus <dzickus@redhat.com>, Nicholas Piggin <npiggin@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Weisbecker <frederic@kernel.org>, Alexei Starovoitov <ast@kernel.org>, Babu Moger <babu.moger@oracle.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Masami Hiramatsu <mhiramat@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: andy.shevchenko@gmail.com, "David S. Miller" <davem@davemloft.net>, Anthony Yznaga <anthony.yznaga@oracle.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, sparclinux@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On Fri, 15 Jun 2018, Ricardo Neri wrote:
-> On Fri, Jun 15, 2018 at 12:29:06PM +0200, Thomas Gleixner wrote:
-> > You have to consider two cases:
-> > 
-> >  1) !remapped mode:
-> > 
-> >     That's reasonably simple because you just have to deal with the HPET
-> >     TIMERn_PROCMSG_ROUT register. But then you need to do this directly and
-> >     not through any of the existing interrupt facilities.
-> 
-> Indeed, there is no need to use the generic interrupt faciities to set affinity;
-> I am dealing with an NMI anyways.
-> > 
-> >  2) remapped mode:
-> > 
-> >     That's way more complex as you _cannot_ ever do anything which touches
-> >     the IOMMU and the related tables.
-> > 
-> >     So you'd need to reserve an IOMMU remapping entry for each CPU upfront,
-> >     store the resulting value for the HPET TIMERn_PROCMSG_ROUT register in
-> >     per cpu storage and just modify that one from NMI.
-> > 
-> >     Though there might be subtle side effects involved, which are related to
-> >     the acknowledge part. You need to talk to the IOMMU wizards first.
-> 
-> I see. I will look into the code and prototype something that makes sense for
-> the IOMMU maintainers.
+match_string() returns the index of an array for a matching string,
+which can be used instead of open coded variant.
 
-I'd recommend to talk to them _before_ you cobble something together. If we
-cannot reliably switch the affinity by directing the HPET NMI to a
-different IOMMU remapping entry then the whole scheme does not work at all.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+---
+v3:
+ - add string literal instead of NULL for array hwcaps to make it
+   can use match_string() too.  - per Andy
+v2
+ - new add for use match_string() helper patchset.
 
-Thanks,
+ arch/sparc/kernel/setup_64.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-	tglx
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 7944b3c..4f0ec0c 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -401,7 +401,7 @@ void __init start_early_boot(void)
+ 	 */
+ 	"mul32", "div32", "fsmuld", "v8plus", "popc", "vis", "vis2",
+ 	"ASIBlkInit", "fmaf", "vis3", "hpc", "random", "trans", "fjfmau",
+-	"ima", "cspare", "pause", "cbcond", NULL /*reserved for crypto */,
++	"ima", "cspare", "pause", "cbcond", "resv" /*reserved for crypto */,
+ 	"adp",
+ };
+
+@@ -418,7 +418,7 @@ void cpucap_info(struct seq_file *m)
+ 	seq_puts(m, "cpucaps\t\t: ");
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (hwcaps[i] && (caps & bit)) {
++		if (bit != HWCAP_SPARC_CRYPTO && (caps & bit)) {
+ 			seq_printf(m, "%s%s",
+ 				   printed ? "," : "", hwcaps[i]);
+ 			printed++;
+@@ -472,7 +472,7 @@ static void __init report_hwcaps(unsigned long caps)
+
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (hwcaps[i] && (caps & bit))
++		if (bit != HWCAP_SPARC_CRYPTO && (caps & bit))
+ 			report_one_hwcap(&printed, hwcaps[i]);
+ 	}
+ 	if (caps & HWCAP_SPARC_CRYPTO)
+@@ -504,18 +504,13 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
+ 	while (len) {
+ 		int i, plen;
+
+-		for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+-			unsigned long bit = 1UL << i;
++		i = match_string(hwcaps, ARRAY_SIZE(hwcaps), prop);
++		if (i >= 0)
++			caps |= (1UL << i);
+
+-			if (hwcaps[i] && !strcmp(prop, hwcaps[i])) {
+-				caps |= bit;
+-				break;
+-			}
+-		}
+-		for (i = 0; i < ARRAY_SIZE(crypto_hwcaps); i++) {
+-			if (!strcmp(prop, crypto_hwcaps[i]))
+-				caps |= HWCAP_SPARC_CRYPTO;
+-		}
++		i = match_string(crypto_hwcaps, ARRAY_SIZE(crypto_hwcaps), prop);
++		if (i >= 0)
++			caps |= HWCAP_SPARC_CRYPTO;
+
+ 		plen = strlen(prop) + 1;
+ 		prop += plen;
+-- 
+1.7.12.4
+
+
+
