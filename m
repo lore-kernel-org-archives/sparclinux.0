@@ -1,54 +1,67 @@
-From: Jann Horn <jannh@google.com>
-Date: Wed, 27 Jun 2018 12:29:33 +0000
-Subject: Re: [PATCH] sys: don't hold uts_sem while accessing userspace memory
-Message-Id: <CAG48ez2JAj1daM5s7gyS0nzB+J85PkmUL5+D_BC4-afag9SWFA@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 09 Jun 2018 14:21:14 +0000
+Subject: [GIT] Sparc
+Message-Id: <20180609.102114.1940060150406660652.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180625163410.216168-1-jannh@google.com> <20180625164109.GF30522@ZenIV.linux.org.uk>
- <CAG48ez2i2Dpy5TLTjtLiGKdkFDYLGURqAGoTDbETaBGf5SgxPw@mail.gmail.com> <d23cd44b1e2e1521cedb1c514d392263ed976dca.camel@decadent.org.uk>
-In-Reply-To: <d23cd44b1e2e1521cedb1c514d392263ed976dca.camel@decadent.org.uk>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ben@decadent.org.uk, Al Viro <viro@zeniv.linux.org.uk>
-Cc: rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, davem@davemloft.net, linux-kernel@vger.kernel.org, ebiederm@xmission.com, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, security@kernel.org, hch@infradead.org, serge@hallyn.com
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 7:43 PM Ben Hutchings <ben@decadent.org.uk> wrote:
->
-> On Mon, 2018-06-25 at 20:16 +0200, Jann Horn wrote:
-> > On Mon, Jun 25, 2018 at 6:41 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
-> > >
-> > > On Mon, Jun 25, 2018 at 06:34:10PM +0200, Jann Horn wrote:
-> > >
-> > > > +     char tmp[32];
-> > > >
-> > > > -     if (namelen > 32)
-> > > > +     if (namelen < 0 || namelen > 32)
-> > > >               namelen = 32;
-> > > >
-> > > >       down_read(&uts_sem);
-> > > >       kname = utsname()->domainname;
-> > > >       len = strnlen(kname, namelen);
-> > > > -     if (copy_to_user(name, kname, min(len + 1, namelen)))
-> > > > -             err = -EFAULT;
-> > > > +     len = min(len + 1, namelen);
-> > > > +     memcpy(tmp, kname, len);
-> > > >       up_read(&uts_sem);
-> > > >
-> > > > -     return err;
-> > > > +     if (copy_to_user(name, tmp, len))
-> > > > +             return -EFAULT;
-> > >
-> > > Infoleak, and similar in a lot of other places.
-> >
-> > I don't see a problem. copy_to_user() copies "len" bytes from "tmp".
-> [...]
-> > Can you please explain why there is an infoleak here?
->
-> I think you're *fixing* information leaks in the Alpha syscalls,
-> because a negative value of namelen used to result in a huge length
-> argument to copy_to_user().
 
-Ah, you're right. Looks like this was previously fixed in commit
-21c5977a836e ("alpha: fix several security issues", first in v3.0),
-and then un-fixed in commit 9ba3eb5103cf ("osf_getdomainname(): use
-copy_to_user()", first in v4.13).
+There is a merge conflict here, just take the "HEAD" hunks and it
+will all work out.  It's because I applied a signal code fix that
+was already merged and then other cleanups/changes happend on top.
+
+Other than that, this adds the privileged ADI driver from Tom
+Hromatka.
+
+Please pull, thanks a lot!
+
+The following changes since commit fff75eb2a08c2ac96404a2d79685668f3cf5a7a3:
+
+  Merge tag 'errseq-v4.17' of git://git.kernel.org/pub/scm/linux/kernel/git/jlayton/linux (2018-04-30 16:53:40 -0700)
+
+are available in the Git repository at:
+
+  gitolite@ra.kernel.org:/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 1c1ff29da6c86864e73b05d4301a2df1d161f2da:
+
+  sparc: fix compat siginfo ABI regression (2018-06-05 11:29:42 -0700)
+
+----------------------------------------------------------------
+David S. Miller (1):
+      Merge branch 'adi-driver'
+
+Dmitry V. Levin (1):
+      sparc: fix compat siginfo ABI regression
+
+Tom Hromatka (2):
+      char: sparc64: Add privileged ADI driver
+      selftests: sparc64: char: Selftest for privileged ADI driver
+
+ arch/sparc/include/uapi/asm/siginfo.h                   |   7 -
+ arch/sparc/kernel/traps_32.c                            |   2 +-
+ arch/sparc/kernel/traps_64.c                            |   2 +-
+ drivers/char/Kconfig                                    |  12 ++
+ drivers/char/Makefile                                   |   1 +
+ drivers/char/adi.c                                      | 239 +++++++++++++++++++++++++++
+ tools/testing/selftests/Makefile                        |   1 +
+ tools/testing/selftests/sparc64/Makefile                |  46 ++++++
+ tools/testing/selftests/sparc64/drivers/.gitignore      |   1 +
+ tools/testing/selftests/sparc64/drivers/Makefile        |  15 ++
+ tools/testing/selftests/sparc64/drivers/adi-test.c      | 721 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ tools/testing/selftests/sparc64/drivers/drivers_test.sh |  30 ++++
+ tools/testing/selftests/sparc64/run.sh                  |   3 +
+ 13 files changed, 1071 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/char/adi.c
+ create mode 100644 tools/testing/selftests/sparc64/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/.gitignore
+ create mode 100644 tools/testing/selftests/sparc64/drivers/Makefile
+ create mode 100644 tools/testing/selftests/sparc64/drivers/adi-test.c
+ create mode 100755 tools/testing/selftests/sparc64/drivers/drivers_test.sh
+ create mode 100755 tools/testing/selftests/sparc64/run.sh
