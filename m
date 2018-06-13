@@ -1,92 +1,117 @@
-From: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-Date: Thu, 07 Jun 2018 11:54:18 +0000
-Subject: Re: [RFC PATCH -tip v5 24/27] bpf: error-inject: kprobes: Clear current_kprobe and enable preempt in
-Message-Id: <1528371714.iz71qgzxv3.naveen@linux.ibm.com>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 13 Jun 2018 00:57:28 +0000
+Subject: [RFC PATCH 08/23] x86/hpet: Calculate ticks-per-second in a separate function
+Message-Id: <1528851463-21140-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <152812730943.10068.5166429445118734697.stgit@devbox>
-        <152812800822.10068.3306094708706993432.stgit@devbox>
-In-Reply-To: <152812800822.10068.3306094708706993432.stgit@devbox>
+References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masami Hiramatsu <mhiramat@kernel.org>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Fenghua Yu <fenghua.yu@intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "H . Peter Anvin" <hpa@zytor.com>, Josef Bacik <jbacik@fb.com>, James Hogan <jhogan@kernel.org>, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <linux@armlinux.org.uk>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ingo Molnar <mingo@redhat.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@l>
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, Philippe Ombredanne <pombredanne@nexb.com>, Kate Stewart <kstewart@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, iommu@lists.linux-foundation.org
 
-Masami Hiramatsu wrote:
-> Clear current_kprobe and enable preemption in kprobe
-> even if pre_handler returns !0.
-> 
-> This simplifies function override using kprobes.
-> 
-> Jprobe used to require to keep the preemption disabled and
-> keep current_kprobe until it returned to original function
-> entry. For this reason kprobe_int3_handler() and similar
-> arch dependent kprobe handers checks pre_handler result
-> and exit without enabling preemption if the result is !0.
-> 
-> After removing the jprobe, Kprobes does not need to
-> keep preempt disabled even if user handler returns !0
-> anymore.
-> 
-> But since the function override handler in error-inject
-> and bpf is also returns !0 if it overrides a function,
-> to balancing the preempt count, it enables preemption
-> and reset current kprobe by itself.
-> 
-> That is a bad design that is very buggy. This fixes
-> such unbalanced preempt-count and current_kprobes setting
-> in kprobes, bpf and error-inject.
-> 
-> Note: for powerpc and x86, this removes all preempt_disable
-> from kprobe_ftrace_handler because ftrace callbacks are
-> called under preempt disabled.
-> 
-> Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
-> Cc: Vineet Gupta <vgupta@synopsys.com>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: Ralf Baechle <ralf@linux-mips.org>
-> Cc: James Hogan <jhogan@kernel.org>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: "Naveen N. Rao" <naveen.n.rao@linux.vnet.ibm.com>
-> Cc: Josef Bacik <jbacik@fb.com>
-> Cc: Alexei Starovoitov <ast@kernel.org>
-> Cc: x86@kernel.org
-> Cc: linux-snps-arc@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-ia64@vger.kernel.org
-> Cc: linux-mips@linux-mips.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> ---
->  Changes in v5:
->   - Fix kprobe_ftrace_handler in arch/powerpc too.
-> ---
->  arch/arc/kernel/kprobes.c            |    5 +++--
->  arch/arm/probes/kprobes/core.c       |   10 +++++-----
->  arch/arm64/kernel/probes/kprobes.c   |   10 +++++-----
->  arch/ia64/kernel/kprobes.c           |   13 ++++---------
->  arch/mips/kernel/kprobes.c           |    4 ++--
->  arch/powerpc/kernel/kprobes-ftrace.c |   15 ++++++---------
->  arch/powerpc/kernel/kprobes.c        |    7 +++++--
+It is easier to compute the expiration times of an HPET timer by using
+its frequency (i.e., the number of times it ticks in a second) than its
+period, as given in the capabilities register.
 
-For the powerpc bits:
-Acked-by: Naveen N. Rao <naveen.n.rao@linux.vnet.ibm.com>
+In addition to the HPET char driver, the HPET-based hardlockup detector
+will also need to know the timer's frequency. Thus, create a common
+function that both can use.
 
-Thanks,
-Naveen
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Jacob Pan <jacob.jun.pan@intel.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
+Cc: x86@kernel.org
+Cc: iommu@lists.linux-foundation.org
+Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+---
+ drivers/char/hpet.c  | 31 +++++++++++++++++++++++++------
+ include/linux/hpet.h |  1 +
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
+index be426eb..1c9584a 100644
+--- a/drivers/char/hpet.c
++++ b/drivers/char/hpet.c
+@@ -838,6 +838,29 @@ static unsigned long hpet_calibrate(struct hpets *hpetp)
+ 	return ret;
+ }
+ 
++u64 hpet_get_ticks_per_sec(u64 hpet_caps)
++{
++	u64 ticks_per_sec, period;
++
++	period = (hpet_caps & HPET_COUNTER_CLK_PERIOD_MASK) >>
++		 HPET_COUNTER_CLK_PERIOD_SHIFT; /* fs, 10^-15 */
++
++	/*
++	 * The frequency is the reciprocal of the period. The period is given
++	 * femtoseconds per second. Thus, prepare a dividend to obtain the
++	 * frequency in ticks per second.
++	 */
++
++	/* 10^15 femtoseconds per second */
++	ticks_per_sec = 1000000000000000uLL;
++	ticks_per_sec += period >> 1; /* round */
++
++	/* The quotient is put in the dividend. We drop the remainder. */
++	do_div(ticks_per_sec, period);
++
++	return ticks_per_sec;
++}
++
+ int hpet_alloc(struct hpet_data *hdp)
+ {
+ 	u64 cap, mcfg;
+@@ -847,7 +870,6 @@ int hpet_alloc(struct hpet_data *hdp)
+ 	size_t siz;
+ 	struct hpet __iomem *hpet;
+ 	static struct hpets *last;
+-	unsigned long period;
+ 	unsigned long long temp;
+ 	u32 remainder;
+ 
+@@ -883,6 +905,8 @@ int hpet_alloc(struct hpet_data *hdp)
+ 
+ 	cap = readq(&hpet->hpet_cap);
+ 
++	temp = hpet_get_ticks_per_sec(cap);
++
+ 	ntimer = ((cap & HPET_NUM_TIM_CAP_MASK) >> HPET_NUM_TIM_CAP_SHIFT) + 1;
+ 
+ 	if (hpetp->hp_ntimer != ntimer) {
+@@ -899,11 +923,6 @@ int hpet_alloc(struct hpet_data *hdp)
+ 
+ 	last = hpetp;
+ 
+-	period = (cap & HPET_COUNTER_CLK_PERIOD_MASK) >>
+-		HPET_COUNTER_CLK_PERIOD_SHIFT; /* fs, 10^-15 */
+-	temp = 1000000000000000uLL; /* 10^15 femtoseconds per second */
+-	temp += period >> 1; /* round */
+-	do_div(temp, period);
+ 	hpetp->hp_tick_freq = temp; /* ticks per second */
+ 
+ 	printk(KERN_INFO "hpet%d: at MMIO 0x%lx, IRQ%s",
+diff --git a/include/linux/hpet.h b/include/linux/hpet.h
+index 8604564..e7b36bcf4 100644
+--- a/include/linux/hpet.h
++++ b/include/linux/hpet.h
+@@ -107,5 +107,6 @@ static inline void hpet_reserve_timer(struct hpet_data *hd, int timer)
+ }
+ 
+ int hpet_alloc(struct hpet_data *);
++u64 hpet_get_ticks_per_sec(u64 hpet_caps);
+ 
+ #endif				/* !__HPET__ */
+-- 
+2.7.4
 
