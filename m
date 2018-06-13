@@ -1,34 +1,39 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Wed, 13 Jun 2018 09:07:20 +0000
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Wed, 13 Jun 2018 09:40:00 +0000
 Subject: Re: [RFC PATCH 17/23] watchdog/hardlockup/hpet: Convert the timer's interrupt to NMI
-Message-Id: <20180613090720.GV12258@hirez.programming.kicks-ass.net>
+Message-Id: <alpine.DEB.2.21.1806131128570.2280@nanos.tec.linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
-	<1528851463-21140-18-git-send-email-ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <1528851463-21140-18-git-send-email-ricardo.neri-calderon-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com> <1528851463-21140-18-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1528851463-21140-18-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ricardo Neri <ricardo.neri-calderon-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kai-Heng Feng <kai.heng.feng-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoffer Dall <cdall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Andi Kleen <andi.kleen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Waiman Long <longman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Masami Hiramatsu <mhiramat-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Don Zickus <dzickus-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Ravi V. Shankar" <ravi.v.shankar-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Frederic Weisbecker <frederic-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Nicholas Piggin <npiggin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Byungchul Park <byungchul.park-ntMhUJTgEBQ@public.gmane.org>
+To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Jacob Pan <jacob.jun.pan@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Don Zickus <dzickus@redhat.com>, Nicholas Piggin <npiggin@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Weisbecker <frederic@kernel.org>, Alexei Starovoitov <ast@kernel.org>, Babu Moger <babu.moger@oracle.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Masami Hiramatsu <mhiramat@kernel.org>
 
-On Tue, Jun 12, 2018 at 05:57:37PM -0700, Ricardo Neri wrote:
+On Tue, 12 Jun 2018, Ricardo Neri wrote:
+> @@ -183,6 +184,8 @@ static irqreturn_t hardlockup_detector_irq_handler(int irq, void *data)
+>  	if (!(hdata->flags & HPET_DEV_PERI_CAP))
+>  		kick_timer(hdata);
+>  
+> +	pr_err("This interrupt should not have happened. Ensure delivery mode is NMI.\n");
 
-+static bool is_hpet_wdt_interrupt(struct hpet_hld_data *hdata)
-+{
-+       unsigned long this_isr;
-+       unsigned int lvl_trig;
-+
-+       this_isr = hpet_readl(HPET_STATUS) & BIT(hdata->num);
-+
-+       lvl_trig = hpet_readl(HPET_Tn_CFG(hdata->num)) & HPET_TN_LEVEL;
-+
-+       if (lvl_trig && this_isr)
-+               return true;
-+
-+       return false;
-+}
+Eeew.
 
+>  /**
+> + * hardlockup_detector_nmi_handler() - NMI Interrupt handler
+> + * @val:	Attribute associated with the NMI. Not used.
+> + * @regs:	Register values as seen when the NMI was asserted
+> + *
+> + * When an NMI is issued, look for hardlockups. If the timer is not periodic,
+> + * kick it. The interrupt is always handled when if delivered via the
+> + * Front-Side Bus.
+> + *
+> + * Returns:
+> + *
+> + * NMI_DONE if the HPET timer did not cause the interrupt. NMI_HANDLED
+> + * otherwise.
+> + */
 > +static int hardlockup_detector_nmi_handler(unsigned int val,
 > +					   struct pt_regs *regs)
 > +{
@@ -40,32 +45,26 @@ On Tue, Jun 12, 2018 at 05:57:37PM -0700, Ricardo Neri wrote:
 > +	 * edge-triggered and there is no need to check the ISR register.
 > +	 */
 > +	use_fsb = hdata->flags & HPET_DEV_FSB_CAP;
-
-Please do explain.. That FSB thing basically means MSI. But there's only
-a single NMI vector. How do we know this NMI came from the HPET?
-
 > +
 > +	if (!use_fsb && !is_hpet_wdt_interrupt(hdata))
-
-So you add _2_ HPET reads for every single NMI that gets triggered...
-and IIRC HPET reads are _sllooooowwwwww_.
-
 > +		return NMI_DONE;
-> +
+
+So for 'use_fsb = True' every single NMI will fall through into the
+watchdog code below.
+
 > +	inspect_for_hardlockups(regs);
 > +
 > +	if (!(hdata->flags & HPET_DEV_PERI_CAP))
 > +		kick_timer(hdata);
-> +
-> +	/* Acknowledge interrupt if in level-triggered mode */
-> +	if (!use_fsb)
-> +		hpet_writel(BIT(hdata->num), HPET_STATUS);
-> +
-> +	return NMI_HANDLED;
 
-So if I read this right, when in FSB/MSI mode, we'll basically _always_
-claim every single NMI as handled?
+And in case that the HPET does not support periodic mode this reprogramms
+the timer on every NMI which means that while perf is running the watchdog
+will never ever detect anything.
 
-That's broken.
+Aside of that, reading TWO HPET registers for every NMI is insane. HPET
+access is horribly slow, so any high frequency perf monitoring will take a
+massive performance hit.
 
-> +}
+Thanks,
+
+	tglx
