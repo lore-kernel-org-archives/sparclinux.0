@@ -1,7 +1,7 @@
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Wed, 13 Jun 2018 00:57:43 +0000
-Subject: [RFC PATCH 23/23] watchdog/hardlockup: Activate the HPET-based lockup detector
-Message-Id: <1528851463-21140-24-git-send-email-ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 13 Jun 2018 00:57:30 +0000
+Subject: [RFC PATCH 10/23] x86/hpet: Relocate flag definitions to a header file
+Message-Id: <1528851463-21140-11-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
@@ -9,75 +9,64 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Don Zickus <dzickus@redhat.com>, Nicholas Piggin <npiggin@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Frederic Weisbecker <frederic@kernel.org>, Alexei Starovoitov <ast@kernel.org>, Babu Moger <babu.moger@oracle.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Masami Hiramatsu <mhiramat@kernel.org>, Peter Zijlstra <peterz@infra>
+Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, Philippe Ombredanne <pombredanne@nexb.com>, Kate Stewart <kstewart@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, iommu@lists.linux-foundation.org
 
-Now that the implementation of the HPET-based hardlockup detector is
-complete, enable it. It will be used only if it can be initialized
-successfully. Otherwise, the perf-based detector will be used.
+Users of HPET timers (such as the hardlockup detector) need the definitions
+of these flags to interpret the configuration of a timer as passed by
+platform code.
 
 Cc: Ashok Raj <ashok.raj@intel.com>
 Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Byungchul Park <byungchul.park@lge.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Christoffer Dall <cdall@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: x86@kernel.org
 Cc: iommu@lists.linux-foundation.org
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
- kernel/watchdog.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/x86/include/asm/hpet.h | 6 ++++++
+ arch/x86/kernel/hpet.c      | 6 ------
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index b5ce6e4..e2cc6c0 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -149,6 +149,21 @@ int __weak __init watchdog_nmi_probe(void)
- {
- 	int ret = -ENODEV;
+diff --git a/arch/x86/include/asm/hpet.h b/arch/x86/include/asm/hpet.h
+index 3266796..9fd112a 100644
+--- a/arch/x86/include/asm/hpet.h
++++ b/arch/x86/include/asm/hpet.h
+@@ -64,6 +64,12 @@
+ /* Timer used for the hardlockup detector */
+ #define HPET_WD_TIMER_NR 2
  
-+	/*
-+	 * Try first with the HPET hardlockup detector. It will only
-+	 * succeed if selected at build time and the nmi_watchdog
-+	 * command-line parameter is configured. This ensure that the
-+	 * perf-based detector is used by default, if selected at
-+	 * build time.
-+	 */
-+	if (IS_ENABLED(CONFIG_HARDLOCKUP_DETECTOR_HPET))
-+		ret = hardlockup_detector_hpet_ops.init();
++#define HPET_DEV_USED_BIT		2
++#define HPET_DEV_USED			(1 << HPET_DEV_USED_BIT)
++#define HPET_DEV_VALID			0x8
++#define HPET_DEV_FSB_CAP		0x1000
++#define HPET_DEV_PERI_CAP		0x2000
 +
-+	if (!ret) {
-+		nmi_wd_ops = &hardlockup_detector_hpet_ops;
-+		return ret;
-+	}
-+
- 	if (IS_ENABLED(CONFIG_HARDLOCKUP_DETECTOR_PERF))
- 		ret = hardlockup_detector_perf_ops.init();
+ /* hpet memory map physical address */
+ extern unsigned long hpet_address;
+ extern unsigned long force_hpet_address;
+diff --git a/arch/x86/kernel/hpet.c b/arch/x86/kernel/hpet.c
+index b03faee..99d4972 100644
+--- a/arch/x86/kernel/hpet.c
++++ b/arch/x86/kernel/hpet.c
+@@ -24,12 +24,6 @@
+    NSEC = 10^-9 */
+ #define FSEC_PER_NSEC			1000000L
+ 
+-#define HPET_DEV_USED_BIT		2
+-#define HPET_DEV_USED			(1 << HPET_DEV_USED_BIT)
+-#define HPET_DEV_VALID			0x8
+-#define HPET_DEV_FSB_CAP		0x1000
+-#define HPET_DEV_PERI_CAP		0x2000
+-
+ #define HPET_MIN_CYCLES			128
+ #define HPET_MIN_PROG_DELTA		(HPET_MIN_CYCLES + (HPET_MIN_CYCLES >> 1))
  
 -- 
 2.7.4
