@@ -1,7 +1,7 @@
 From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Wed, 13 Jun 2018 00:57:28 +0000
-Subject: [RFC PATCH 08/23] x86/hpet: Calculate ticks-per-second in a separate function
-Message-Id: <1528851463-21140-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 13 Jun 2018 00:57:22 +0000
+Subject: [RFC PATCH 02/23] genirq: Introduce IRQD_DELIVER_AS_NMI
+Message-Id: <1528851463-21140-3-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
@@ -9,109 +9,69 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Clemens Ladisch <clemens@ladisch.de>, Arnd Bergmann <arnd@arndb.de>, Philippe Ombredanne <pombredanne@nexb.com>, Kate Stewart <kstewart@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, iommu@lists.linux-foundation.org
+Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Bartosz Golaszewski <brgl@bgdev.pl>, Doug Berger <opendmb@gmail.com>, Palmer Dabbelt <palmer@sifive.com>, Randy Dunlap <rdunlap@infradead.org>, iommu@lists.linux-foundation.org
 
-It is easier to compute the expiration times of an HPET timer by using
-its frequency (i.e., the number of times it ticks in a second) than its
-period, as given in the capabilities register.
-
-In addition to the HPET char driver, the HPET-based hardlockup detector
-will also need to know the timer's frequency. Thus, create a common
-function that both can use.
+Certain interrupt controllers (e.g., APIC) are capable of delivering
+interrupts to the CPU as non-maskable. Add the new IRQD_DELIVER_AS_NMI
+interrupt state flag. The purpose of this flag is to communicate to the
+underlying irqchip whether the interrupt must be delivered in this manner.
 
 Cc: Ashok Raj <ashok.raj@intel.com>
 Cc: Andi Kleen <andi.kleen@intel.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Borislav Petkov <bp@suse.de>
 Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Doug Berger <opendmb@gmail.com>
+Cc: Palmer Dabbelt <palmer@sifive.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
 Cc: x86@kernel.org
 Cc: iommu@lists.linux-foundation.org
+
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
- drivers/char/hpet.c  | 31 +++++++++++++++++++++++++------
- include/linux/hpet.h |  1 +
- 2 files changed, 26 insertions(+), 6 deletions(-)
+ include/linux/irq.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/char/hpet.c b/drivers/char/hpet.c
-index be426eb..1c9584a 100644
---- a/drivers/char/hpet.c
-+++ b/drivers/char/hpet.c
-@@ -838,6 +838,29 @@ static unsigned long hpet_calibrate(struct hpets *hpetp)
- 	return ret;
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 65916a3..7271a2c 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -208,6 +208,7 @@ struct irq_data {
+  * IRQD_SINGLE_TARGET		- IRQ allows only a single affinity target
+  * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
+  * IRQD_CAN_RESERVE		- Can use reservation mode
++ * IRQD_DELIVER_AS_NMI		- Deliver this interrupt as non-maskable
+  */
+ enum {
+ 	IRQD_TRIGGER_MASK		= 0xf,
+@@ -230,6 +231,7 @@ enum {
+ 	IRQD_SINGLE_TARGET		= (1 << 24),
+ 	IRQD_DEFAULT_TRIGGER_SET	= (1 << 25),
+ 	IRQD_CAN_RESERVE		= (1 << 26),
++	IRQD_DELIVER_AS_NMI		= (1 << 27),
+ };
+ 
+ #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
+@@ -389,6 +391,16 @@ static inline bool irqd_can_reserve(struct irq_data *d)
+ 	return __irqd_to_state(d) & IRQD_CAN_RESERVE;
  }
  
-+u64 hpet_get_ticks_per_sec(u64 hpet_caps)
++static inline void irqd_set_deliver_as_nmi(struct irq_data *d)
 +{
-+	u64 ticks_per_sec, period;
-+
-+	period = (hpet_caps & HPET_COUNTER_CLK_PERIOD_MASK) >>
-+		 HPET_COUNTER_CLK_PERIOD_SHIFT; /* fs, 10^-15 */
-+
-+	/*
-+	 * The frequency is the reciprocal of the period. The period is given
-+	 * femtoseconds per second. Thus, prepare a dividend to obtain the
-+	 * frequency in ticks per second.
-+	 */
-+
-+	/* 10^15 femtoseconds per second */
-+	ticks_per_sec = 1000000000000000uLL;
-+	ticks_per_sec += period >> 1; /* round */
-+
-+	/* The quotient is put in the dividend. We drop the remainder. */
-+	do_div(ticks_per_sec, period);
-+
-+	return ticks_per_sec;
++	__irqd_to_state(d) |= IRQD_DELIVER_AS_NMI;
 +}
 +
- int hpet_alloc(struct hpet_data *hdp)
- {
- 	u64 cap, mcfg;
-@@ -847,7 +870,6 @@ int hpet_alloc(struct hpet_data *hdp)
- 	size_t siz;
- 	struct hpet __iomem *hpet;
- 	static struct hpets *last;
--	unsigned long period;
- 	unsigned long long temp;
- 	u32 remainder;
- 
-@@ -883,6 +905,8 @@ int hpet_alloc(struct hpet_data *hdp)
- 
- 	cap = readq(&hpet->hpet_cap);
- 
-+	temp = hpet_get_ticks_per_sec(cap);
++static inline bool irqd_deliver_as_nmi(struct irq_data *d)
++{
++	return __irqd_to_state(d) & IRQD_DELIVER_AS_NMI;
++}
 +
- 	ntimer = ((cap & HPET_NUM_TIM_CAP_MASK) >> HPET_NUM_TIM_CAP_SHIFT) + 1;
+ #undef __irqd_to_state
  
- 	if (hpetp->hp_ntimer != ntimer) {
-@@ -899,11 +923,6 @@ int hpet_alloc(struct hpet_data *hdp)
- 
- 	last = hpetp;
- 
--	period = (cap & HPET_COUNTER_CLK_PERIOD_MASK) >>
--		HPET_COUNTER_CLK_PERIOD_SHIFT; /* fs, 10^-15 */
--	temp = 1000000000000000uLL; /* 10^15 femtoseconds per second */
--	temp += period >> 1; /* round */
--	do_div(temp, period);
- 	hpetp->hp_tick_freq = temp; /* ticks per second */
- 
- 	printk(KERN_INFO "hpet%d: at MMIO 0x%lx, IRQ%s",
-diff --git a/include/linux/hpet.h b/include/linux/hpet.h
-index 8604564..e7b36bcf4 100644
---- a/include/linux/hpet.h
-+++ b/include/linux/hpet.h
-@@ -107,5 +107,6 @@ static inline void hpet_reserve_timer(struct hpet_data *hd, int timer)
- }
- 
- int hpet_alloc(struct hpet_data *);
-+u64 hpet_get_ticks_per_sec(u64 hpet_caps);
- 
- #endif				/* !__HPET__ */
+ static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
 -- 
 2.7.4
 
