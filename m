@@ -1,127 +1,148 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Date: Thu, 21 Jun 2018 01:13:00 +0000
-Subject: Re: [PATCH v3 21/21] sparc64: use match_string() helper
-Message-Id: <a5d3f025-6f55-5bd4-a949-c8833380b00e@huawei.com>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 13 Jun 2018 00:57:23 +0000
+Subject: [RFC PATCH 03/23] genirq: Introduce IRQF_DELIVER_AS_NMI
+Message-Id: <1528851463-21140-4-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
- <1527765086-19873-22-git-send-email-xieyisheng1@huawei.com>
- <80339b72-902f-a74e-6ad2-28744c7760cb@huawei.com>
- <CAHp75VdvpxZCuGmFV0r9nUdO1u7=eurDFZur7Q=ZO0kMC6D0rw@mail.gmail.com>
-In-Reply-To: <CAHp75VdvpxZCuGmFV0r9nUdO1u7=eurDFZur7Q=ZO0kMC6D0rw@mail.gmail.com>
+References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Anthony Yznaga <anthony.yznaga@oracle.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, sparclinux@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>, Randy Dunlap <rdunlap@infradead.org>, Masami Hiramatsu <mhiramat@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, Bartosz Golaszewski <brgl@bgdev.pl>, Doug Berger <opendmb@gmail.com>, Palmer Dabbelt <palmer@sifive.com>, iommu@lists.linux-found
 
-Hi Andy,
+Certain interrupt controllers (such as APIC) are capable of delivering
+interrupts as non-maskable. Likewise, drivers or subsystems (e.g., the
+hardlockup detector) might be interested in requesting a non-maskable
+interrupt. The new flag IRQF_DELIVER_AS_NMI serves this purpose.
 
-Sorry for late response. I will take your suggestion in next version.
+When setting up an interrupt, non-maskable delivery will be set in the
+interrupt state data only if supported by the underlying interrupt
+controller chips.
 
-Thanks
-Yisheng
+Interrupt controller chips can declare that they support non-maskable
+delivery by using the new flag IRQCHIP_CAN_DELIVER_AS_NMI.
 
-On 2018/6/6 13:01, Andy Shevchenko wrote:
-> On Wed, Jun 6, 2018 at 5:19 AM, Yisheng Xie <xieyisheng1@huawei.com> wrote:
->> match_string() returns the index of an array for a matching string,
->> which can be used instead of open coded variant.
->>
-> 
-> Thanks for an update.
-> My comments below.
-> 
-> I think you need to mentioned the string literal change in the commit message.
-> 
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
->> Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
->> Cc: sparclinux@vger.kernel.org
->> Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
->> ---
->> v3:
->>  - add string literal instead of NULL for array hwcaps to make it
->>    can use match_string() too.  - per Andy
->> v2
->>  - new add for use match_string() helper patchset.
->>
->>  arch/sparc/kernel/setup_64.c | 23 +++++++++--------------
->>  1 file changed, 9 insertions(+), 14 deletions(-)
->>
->> diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
->> index 7944b3c..4f0ec0c 100644
->> --- a/arch/sparc/kernel/setup_64.c
->> +++ b/arch/sparc/kernel/setup_64.c
->> @@ -401,7 +401,7 @@ void __init start_early_boot(void)
->>          */
->>         "mul32", "div32", "fsmuld", "v8plus", "popc", "vis", "vis2",
->>         "ASIBlkInit", "fmaf", "vis3", "hpc", "random", "trans", "fjfmau",
->> -       "ima", "cspare", "pause", "cbcond", NULL /*reserved for crypto */,
->> +       "ima", "cspare", "pause", "cbcond", "resv" /*reserved for crypto */,
->>         "adp",
-> 
-> Why not to spell "crypto" explicitly and remove comment?
-> 
->>  };
->>
->> @@ -418,7 +418,7 @@ void cpucap_info(struct seq_file *m)
->>         seq_puts(m, "cpucaps\t\t: ");
->>         for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
->>                 unsigned long bit = 1UL << i;
->> -               if (hwcaps[i] && (caps & bit)) {
->> +               if (bit != HWCAP_SPARC_CRYPTO && (caps & bit)) {
-> 
-> I would rather swap the order of subsonditions to check if caps has a
-> bit first, and then exclude CRYPTO.
-> 
->>                         seq_printf(m, "%s%s",
->>                                    printed ? "," : "", hwcaps[i]);
->>                         printed++;
->> @@ -472,7 +472,7 @@ static void __init report_hwcaps(unsigned long caps)
->>
->>         for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
->>                 unsigned long bit = 1UL << i;
->> -               if (hwcaps[i] && (caps & bit))
->> +               if (bit != HWCAP_SPARC_CRYPTO && (caps & bit))
->>                         report_one_hwcap(&printed, hwcaps[i]);
-> 
-> Ditto.
-> 
->>         }
->>         if (caps & HWCAP_SPARC_CRYPTO)
->> @@ -504,18 +504,13 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
->>         while (len) {
->>                 int i, plen;
->>
->> -               for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
->> -                       unsigned long bit = 1UL << i;
->> +               i = match_string(hwcaps, ARRAY_SIZE(hwcaps), prop);
->> +               if (i >= 0)
->> +                       caps |= (1UL << i);
-> 
-> Parens are redundant (and actually didn't present in the original code above).
-> 
->>
->> -                       if (hwcaps[i] && !strcmp(prop, hwcaps[i])) {
->> -                               caps |= bit;
->> -                               break;
->> -                       }
->> -               }
->> -               for (i = 0; i < ARRAY_SIZE(crypto_hwcaps); i++) {
->> -                       if (!strcmp(prop, crypto_hwcaps[i]))
->> -                               caps |= HWCAP_SPARC_CRYPTO;
->> -               }
->> +               i = match_string(crypto_hwcaps, ARRAY_SIZE(crypto_hwcaps), prop);
->> +               if (i >= 0)
->> +                       caps |= HWCAP_SPARC_CRYPTO;
->>
->>                 plen = strlen(prop) + 1;
->>                 prop += plen;
->> --
->> 1.7.12.4
->>
->>
->>
-> 
-> 
-> 
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Jacob Pan <jacob.jun.pan@intel.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Levin, Alexander (Sasha Levin)" <alexander.levin@verizon.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Bartosz Golaszewski <brgl@bgdev.pl>
+Cc: Doug Berger <opendmb@gmail.com>
+Cc: Palmer Dabbelt <palmer@sifive.com>
+Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
+Cc: x86@kernel.org
+Cc: iommu@lists.linux-foundation.org
+Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+---
+ include/linux/interrupt.h |  3 +++
+ include/linux/irq.h       |  3 +++
+ kernel/irq/manage.c       | 22 +++++++++++++++++++++-
+ 3 files changed, 27 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
+index 5426627..dbc5e02 100644
+--- a/include/linux/interrupt.h
++++ b/include/linux/interrupt.h
+@@ -61,6 +61,8 @@
+  *                interrupt handler after suspending interrupts. For system
+  *                wakeup devices users need to implement wakeup detection in
+  *                their interrupt handlers.
++ * IRQF_DELIVER_AS_NMI - Configure interrupt to be delivered as non-maskable, if
++ *                supported by the chip.
+  */
+ #define IRQF_SHARED		0x00000080
+ #define IRQF_PROBE_SHARED	0x00000100
+@@ -74,6 +76,7 @@
+ #define IRQF_NO_THREAD		0x00010000
+ #define IRQF_EARLY_RESUME	0x00020000
+ #define IRQF_COND_SUSPEND	0x00040000
++#define IRQF_DELIVER_AS_NMI	0x00080000
+ 
+ #define IRQF_TIMER		(__IRQF_TIMER | IRQF_NO_SUSPEND | IRQF_NO_THREAD)
+ 
+diff --git a/include/linux/irq.h b/include/linux/irq.h
+index 7271a2c..d2520ae 100644
+--- a/include/linux/irq.h
++++ b/include/linux/irq.h
+@@ -515,6 +515,8 @@ struct irq_chip {
+  * IRQCHIP_SKIP_SET_WAKE:	Skip chip.irq_set_wake(), for this irq chip
+  * IRQCHIP_ONESHOT_SAFE:	One shot does not require mask/unmask
+  * IRQCHIP_EOI_THREADED:	Chip requires eoi() on unmask in threaded mode
++ * IRQCHIP_CAN_DELIVER_AS_NMI	Chip can deliver interrupts it receives as non-
++ *				maskable.
+  */
+ enum {
+ 	IRQCHIP_SET_TYPE_MASKED		= (1 <<  0),
+@@ -524,6 +526,7 @@ enum {
+ 	IRQCHIP_SKIP_SET_WAKE		= (1 <<  4),
+ 	IRQCHIP_ONESHOT_SAFE		= (1 <<  5),
+ 	IRQCHIP_EOI_THREADED		= (1 <<  6),
++	IRQCHIP_CAN_DELIVER_AS_NMI	= (1 <<  7),
+ };
+ 
+ #include <linux/irqdesc.h>
+diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+index e3336d9..d058aa8 100644
+--- a/kernel/irq/manage.c
++++ b/kernel/irq/manage.c
+@@ -1137,7 +1137,7 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ {
+ 	struct irqaction *old, **old_ptr;
+ 	unsigned long flags, thread_mask = 0;
+-	int ret, nested, shared = 0;
++	int ret, nested, shared = 0, deliver_as_nmi = 0;
+ 
+ 	if (!desc)
+ 		return -EINVAL;
+@@ -1156,6 +1156,16 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 	if (!(new->flags & IRQF_TRIGGER_MASK))
+ 		new->flags |= irqd_get_trigger_type(&desc->irq_data);
+ 
++	/* Only deliver as non-maskable interrupt if supported by chip. */
++	if (new->flags & IRQF_DELIVER_AS_NMI) {
++		if (desc->irq_data.chip->flags & IRQCHIP_CAN_DELIVER_AS_NMI) {
++			irqd_set_deliver_as_nmi(&desc->irq_data);
++			deliver_as_nmi = 1;
++		} else {
++			return -EINVAL;
++		}
++	}
++
+ 	/*
+ 	 * Check whether the interrupt nests into another interrupt
+ 	 * thread.
+@@ -1166,6 +1176,13 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 			ret = -EINVAL;
+ 			goto out_mput;
+ 		}
++
++		/* Don't allow nesting if interrupt will be delivered as NMI. */
++		if (deliver_as_nmi) {
++			ret = -EINVAL;
++			goto out_mput;
++		}
++
+ 		/*
+ 		 * Replace the primary handler which was provided from
+ 		 * the driver for non nested interrupt handling by the
+@@ -1186,6 +1203,9 @@ __setup_irq(unsigned int irq, struct irq_desc *desc, struct irqaction *new)
+ 	 * thread.
+ 	 */
+ 	if (new->thread_fn && !nested) {
++		if (deliver_as_nmi)
++			goto out_mput;
++
+ 		ret = setup_irq_thread(new, irq, false);
+ 		if (ret)
+ 			goto out_mput;
+-- 
+2.7.4
 
