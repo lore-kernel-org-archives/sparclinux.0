@@ -1,77 +1,83 @@
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Wed, 13 Jun 2018 00:57:22 +0000
-Subject: [RFC PATCH 02/23] genirq: Introduce IRQD_DELIVER_AS_NMI
-Message-Id: <1528851463-21140-3-git-send-email-ricardo.neri-calderon@linux.intel.com>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Date: Thu, 14 Jun 2018 16:08:48 +0000
+Subject: [PATCH v3 03/27] arch/*: Kconfig: fix documentation for NMI watchdog
+Message-Id: <564367865a45eb5509b23c295259e74387b874ad.1528990947.git.mchehab+samsung@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+References: <cover.1528990947.git.mchehab+samsung@kernel.org>
+In-Reply-To: <cover.1528990947.git.mchehab+samsung@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Bartosz Golaszewski <brgl@bgdev.pl>, Doug Berger <opendmb@gmail.com>, Palmer Dabbelt <palmer@sifive.com>, Randy Dunlap <rdunlap@infradead.org>, iommu@lists.linux-foundation.org
+To: linux-arm-kernel@lists.infradead.org
 
-Certain interrupt controllers (e.g., APIC) are capable of delivering
-interrupts to the CPU as non-maskable. Add the new IRQD_DELIVER_AS_NMI
-interrupt state flag. The purpose of this flag is to communicate to the
-underlying irqchip whether the interrupt must be delivered in this manner.
+Changeset 9919cba7ff71 ("watchdog: Update documentation") updated
+the documentation, removing the old nmi_watchdog.txt and adding
+a file with a new content.
 
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Bartosz Golaszewski <brgl@bgdev.pl>
-Cc: Doug Berger <opendmb@gmail.com>
-Cc: Palmer Dabbelt <palmer@sifive.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
-Cc: x86@kernel.org
-Cc: iommu@lists.linux-foundation.org
+Update Kconfig files accordingly.
 
-Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Fixes: 9919cba7ff71 ("watchdog: Update documentation")
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
 ---
- include/linux/irq.h | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ arch/arm/Kconfig    | 2 +-
+ arch/parisc/Kconfig | 2 +-
+ arch/sh/Kconfig     | 2 +-
+ arch/sparc/Kconfig  | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/irq.h b/include/linux/irq.h
-index 65916a3..7271a2c 100644
---- a/include/linux/irq.h
-+++ b/include/linux/irq.h
-@@ -208,6 +208,7 @@ struct irq_data {
-  * IRQD_SINGLE_TARGET		- IRQ allows only a single affinity target
-  * IRQD_DEFAULT_TRIGGER_SET	- Expected trigger already been set
-  * IRQD_CAN_RESERVE		- Can use reservation mode
-+ * IRQD_DELIVER_AS_NMI		- Deliver this interrupt as non-maskable
-  */
- enum {
- 	IRQD_TRIGGER_MASK		= 0xf,
-@@ -230,6 +231,7 @@ enum {
- 	IRQD_SINGLE_TARGET		= (1 << 24),
- 	IRQD_DEFAULT_TRIGGER_SET	= (1 << 25),
- 	IRQD_CAN_RESERVE		= (1 << 26),
-+	IRQD_DELIVER_AS_NMI		= (1 << 27),
- };
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 2a78bdef9a24..fc3330807b09 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1301,7 +1301,7 @@ config SMP
+ 	  will run faster if you say N here.
  
- #define __irqd_to_state(d) ACCESS_PRIVATE((d)->common, state_use_accessors)
-@@ -389,6 +391,16 @@ static inline bool irqd_can_reserve(struct irq_data *d)
- 	return __irqd_to_state(d) & IRQD_CAN_RESERVE;
- }
+ 	  See also <file:Documentation/x86/i386/IO-APIC.txt>,
+-	  <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO available at
++	  <file:Documentation/lockup-watchdogs.txt> and the SMP-HOWTO available at
+ 	  <http://tldp.org/HOWTO/SMP-HOWTO.html>.
  
-+static inline void irqd_set_deliver_as_nmi(struct irq_data *d)
-+{
-+	__irqd_to_state(d) |= IRQD_DELIVER_AS_NMI;
-+}
-+
-+static inline bool irqd_deliver_as_nmi(struct irq_data *d)
-+{
-+	return __irqd_to_state(d) & IRQD_DELIVER_AS_NMI;
-+}
-+
- #undef __irqd_to_state
+ 	  If you don't know what to do here, say N.
+diff --git a/arch/parisc/Kconfig b/arch/parisc/Kconfig
+index 4d8f64d48597..c480770fabcd 100644
+--- a/arch/parisc/Kconfig
++++ b/arch/parisc/Kconfig
+@@ -275,7 +275,7 @@ config SMP
+ 	  machines, but will use only one CPU of a multiprocessor machine.
+ 	  On a uniprocessor machine, the kernel will run faster if you say N.
  
- static inline irq_hw_number_t irqd_to_hwirq(struct irq_data *d)
+-	  See also <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO
++	  See also <file:Documentation/lockup-watchdogs.txt> and the SMP-HOWTO
+ 	  available at <http://www.tldp.org/docs.html#howto>.
+ 
+ 	  If you don't know what to do here, say N.
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index 4d61a085982b..ac1829353139 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -687,7 +687,7 @@ config SMP
+ 	  People using multiprocessor machines who say Y here should also say
+ 	  Y to "Enhanced Real Time Clock Support", below.
+ 
+-	  See also <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO
++	  See also <file:Documentation/lockup-watchdogs.txt> and the SMP-HOWTO
+ 	  available at <http://www.tldp.org/docs.html#howto>.
+ 
+ 	  If you don't know what to do here, say N.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 9a2b8877f174..0f535debf802 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -178,7 +178,7 @@ config SMP
+ 	  Y to "Enhanced Real Time Clock Support", below. The "Advanced Power
+ 	  Management" code will be disabled if you say Y here.
+ 
+-	  See also <file:Documentation/nmi_watchdog.txt> and the SMP-HOWTO
++	  See also <file:Documentation/lockup-watchdogs.txt> and the SMP-HOWTO
+ 	  available at <http://www.tldp.org/docs.html#howto>.
+ 
+ 	  If you don't know what to do here, say N.
 -- 
-2.7.4
+2.17.1
 
