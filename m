@@ -1,80 +1,96 @@
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Wed, 13 Jun 2018 00:57:24 +0000
-Subject: [RFC PATCH 04/23] iommu/vt-d/irq_remapping: Add support for IRQCHIP_CAN_DELIVER_AS_NMI
-Message-Id: <1528851463-21140-5-git-send-email-ricardo.neri-calderon@linux.intel.com>
+From: Masami Hiramatsu <mhiramat@kernel.org>
+Date: Tue, 19 Jun 2018 16:09:58 +0000
+Subject: [PATCH -tip v6 12/27] sparc64: kprobes: Remove jprobe implementation
+Message-Id: <152942459795.15209.9736720668494241853.stgit@devbox>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+References: <152942424698.15209.15245996287444292393.stgit@devbox>
+In-Reply-To: <152942424698.15209.15245996287444292393.stgit@devbox>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, Ananth N Mavinakayanahalli <ananth@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Steven Rostedt <rostedt@goodmis.org>, linux-arch@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-The Intel IOMMU is capable of delivering remapped interrupts as non-
-maskable. Add the IRQCHIP_CAN_DELIVER_AS_NMI flag to its irq_chip
-structure to declare this capability. The delivery mode of each interrupt
-can be set separately.
+Remove arch dependent setjump/longjump functions
+and unused fields in kprobe_ctlblk for jprobes
+from arch/sparc.
 
-By default, the deliver mode is taken from the configuration field of the
-interrupt data. If non-maskable delivery is requested in the interrupt
-state flags, the respective entry in the remapping table is updated.
-
-When remapping an interrupt from an IO APIC, modify the delivery
-field in the interrupt remapping table entry. When remapping an MSI
-interrupt, simply update the delivery mode when composing the message.
-
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
-Cc: x86@kernel.org
-Cc: iommu@lists.linux-foundation.org
-Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
 ---
- drivers/iommu/intel_irq_remapping.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/sparc/include/asm/kprobes.h |    1 -
+ arch/sparc/kernel/kprobes.c      |   47 --------------------------------------
+ 2 files changed, 48 deletions(-)
 
-diff --git a/drivers/iommu/intel_irq_remapping.c b/drivers/iommu/intel_irq_remapping.c
-index 9f3a04d..b6cf7c4 100644
---- a/drivers/iommu/intel_irq_remapping.c
-+++ b/drivers/iommu/intel_irq_remapping.c
-@@ -1128,10 +1128,14 @@ static void intel_ir_reconfigure_irte(struct irq_data *irqd, bool force)
- 	struct irte *irte = &ir_data->irte_entry;
- 	struct irq_cfg *cfg = irqd_cfg(irqd);
- 
-+	if (irqd_deliver_as_nmi(irqd))
-+		cfg->delivery_mode = dest_NMI;
-+
- 	/*
- 	 * Atomically updates the IRTE with the new destination, vector
- 	 * and flushes the interrupt entry cache.
- 	 */
-+	irte->dlvry_mode = cfg->delivery_mode;
- 	irte->vector = cfg->vector;
- 	irte->dest_id = IRTE_DEST(cfg->dest_apicid);
- 
-@@ -1182,6 +1186,9 @@ static void intel_ir_compose_msi_msg(struct irq_data *irq_data,
- {
- 	struct intel_ir_data *ir_data = irq_data->chip_data;
- 
-+	if (irqd_deliver_as_nmi(irq_data))
-+		ir_data->irte_entry.dlvry_mode = dest_NMI;
-+
- 	*msg = ir_data->msi_entry;
- }
- 
-@@ -1227,6 +1234,7 @@ static struct irq_chip intel_ir_chip = {
- 	.irq_set_affinity	= intel_ir_set_affinity,
- 	.irq_compose_msi_msg	= intel_ir_compose_msi_msg,
- 	.irq_set_vcpu_affinity	= intel_ir_set_vcpu_affinity,
-+	.flags			= IRQCHIP_CAN_DELIVER_AS_NMI,
+diff --git a/arch/sparc/include/asm/kprobes.h b/arch/sparc/include/asm/kprobes.h
+index 3704490b4488..bfcaa6326c20 100644
+--- a/arch/sparc/include/asm/kprobes.h
++++ b/arch/sparc/include/asm/kprobes.h
+@@ -44,7 +44,6 @@ struct kprobe_ctlblk {
+ 	unsigned long kprobe_status;
+ 	unsigned long kprobe_orig_tnpc;
+ 	unsigned long kprobe_orig_tstate_pil;
+-	struct pt_regs jprobe_saved_regs;
+ 	struct prev_kprobe prev_kprobe;
  };
  
- static void intel_irq_remapping_prepare_irte(struct intel_ir_data *data,
--- 
-2.7.4
+diff --git a/arch/sparc/kernel/kprobes.c b/arch/sparc/kernel/kprobes.c
+index ab4ba4347941..f555711da8f1 100644
+--- a/arch/sparc/kernel/kprobes.c
++++ b/arch/sparc/kernel/kprobes.c
+@@ -441,53 +441,6 @@ asmlinkage void __kprobes kprobe_trap(unsigned long trap_level,
+ 	exception_exit(prev_state);
+ }
+ 
+-/* Jprobes support.  */
+-int __kprobes setjmp_pre_handler(struct kprobe *p, struct pt_regs *regs)
+-{
+-	struct jprobe *jp = container_of(p, struct jprobe, kp);
+-	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
+-
+-	memcpy(&(kcb->jprobe_saved_regs), regs, sizeof(*regs));
+-
+-	regs->tpc  = (unsigned long) jp->entry;
+-	regs->tnpc = ((unsigned long) jp->entry) + 0x4UL;
+-	regs->tstate |= TSTATE_PIL;
+-
+-	return 1;
+-}
+-
+-void __kprobes jprobe_return(void)
+-{
+-	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
+-	register unsigned long orig_fp asm("g1");
+-
+-	orig_fp = kcb->jprobe_saved_regs.u_regs[UREG_FP];
+-	__asm__ __volatile__("\n"
+-"1:	cmp		%%sp, %0\n\t"
+-	"blu,a,pt	%%xcc, 1b\n\t"
+-	" restore\n\t"
+-	".globl		jprobe_return_trap_instruction\n"
+-"jprobe_return_trap_instruction:\n\t"
+-	"ta		0x70"
+-	: /* no outputs */
+-	: "r" (orig_fp));
+-}
+-
+-extern void jprobe_return_trap_instruction(void);
+-
+-int __kprobes longjmp_break_handler(struct kprobe *p, struct pt_regs *regs)
+-{
+-	u32 *addr = (u32 *) regs->tpc;
+-	struct kprobe_ctlblk *kcb = get_kprobe_ctlblk();
+-
+-	if (addr = (u32 *) jprobe_return_trap_instruction) {
+-		memcpy(regs, &(kcb->jprobe_saved_regs), sizeof(*regs));
+-		preempt_enable_no_resched();
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ /* The value stored in the return address register is actually 2
+  * instructions before where the callee will return to.
+  * Sequences usually look something like this
 
