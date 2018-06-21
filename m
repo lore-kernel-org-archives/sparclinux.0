@@ -1,126 +1,93 @@
-From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
-Date: Thu, 28 Jun 2018 09:16:23 +0000
-Subject: Re: due to kconfig changes kernel config file is no longer sufficient for configuring the kernel
-Message-Id: <20180628111623.3807fe9b@naga.suse.cz>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Date: Thu, 21 Jun 2018 01:39:28 +0000
+Subject: [PATCH v4 21/21] sparc64: use match_string() helper
+Message-Id: <29324e04-e6c3-188c-a7fa-0363305b6455@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180627143705.5a1fed1c@kitsune.suse.cz>
-        <CAK7LNARVPNx_uC5xTrS_p9T4nMRTC79BO51T4Lytv2eU1c-ynw@mail.gmail.com>
-In-Reply-To: <CAK7LNARVPNx_uC5xTrS_p9T4nMRTC79BO51T4Lytv2eU1c-ynw@mail.gmail.com>
+References: <1527765086-19873-1-git-send-email-xieyisheng1@huawei.com>
+ <1527765086-19873-22-git-send-email-xieyisheng1@huawei.com>
+ <80339b72-902f-a74e-6ad2-28744c7760cb@huawei.com>
+ <CAHp75VdvpxZCuGmFV0r9nUdO1u7=eurDFZur7Q=ZO0kMC6D0rw@mail.gmail.com>
+In-Reply-To: <CAHp75VdvpxZCuGmFV0r9nUdO1u7=eurDFZur7Q=ZO0kMC6D0rw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Andreas Schwab <schwab@suse.de>, Michal Kubecek <mkubecek@suse.cz>, Michal Marek <michal.lkml@markovi.net>, Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, Kees Cook <keescook@chromium.org>, Philippe Ombredanne <pombredanne@nexb.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ulf Magnusson <ulfalizer@gmail.com>, Jeff Mahoney <jeffm@suse.com>, "Peter Zijlstra," <peterz@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Frederic Weisbecker <frederic@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Nicholas Piggin <npiggin@gmail.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-um@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Anthony Yznaga <anthony.yznaga@oracle.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, sparclinux@vger.kernel.org, Kefeng Wang <wangkefeng.wang@huawei.com>
 
-On Wed, 27 Jun 2018 23:07:21 +0900
-Masahiro Yamada <yamada.masahiro@socionext.com> wrote:
+match_string() returns the index of an array for a matching string,
+which can be used instead of open coded variant.
 
-> Hi.
->=20
->=20
-> 2018-06-27 21:37 GMT+09:00 Michal Such=C3=A1nek <msuchanek@suse.de>:
-> > Hello,
-> >
-> > in the x86 Kconfig we have this:
-> >
-> > # Select 32 or 64 bit
-> > config 64BIT
-> >         bool "64-bit kernel" if "$(ARCH)" =3D "x86"
-> >         default "$(ARCH)" !=3D "i386"
-> >         ---help---
-> >           Say yes to build a 64-bit kernel - formerly known as
-> > x86_64 Say no to build a 32-bit kernel - formerly known as i386
-> >
-> > Since commit 104daea149c4 ("kconfig: reference environment variables
-> > directly and remove 'option env=3D'") the value of ARCH is not saved
-> > in the kernel config. =20
->=20
-> I think this commit is unrelated.  It was just a syntax change.
+As Andy's suggestion, this patch add string literal instead of NULL
+for crypto in array of hwcaps and make an additional condition after
+match_string() in all users of it.
 
-This does not look like syntax only change to me:
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Anthony Yznaga <anthony.yznaga@oracle.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+---
+ arch/sparc/kernel/setup_64.c | 24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
-diff --git a/init/Kconfig b/init/Kconfig
-index 15aae32e0719..1217fc62ca61 100644
---- a/init/Kconfig
-+++ b/init/Kconfig
-@@ -1,20 +1,12 @@
--config ARCH
--       string
--       option env=3D"ARCH"
--
--config KERNELVERSION
--       string
--       option env=3D"KERNELVERSION"
--
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 7944b3c..6fa0c78 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -401,8 +401,7 @@ void __init start_early_boot(void)
+ 	 */
+ 	"mul32", "div32", "fsmuld", "v8plus", "popc", "vis", "vis2",
+ 	"ASIBlkInit", "fmaf", "vis3", "hpc", "random", "trans", "fjfmau",
+-	"ima", "cspare", "pause", "cbcond", NULL /*reserved for crypto */,
+-	"adp",
++	"ima", "cspare", "pause", "cbcond", "crypto", "adp",
+ };
 
->=20
-> Unless I am missing something,
-> we have never saved ARCH in the .config in the past.
+ static const char *crypto_hwcaps[] = {
+@@ -418,7 +417,7 @@ void cpucap_info(struct seq_file *m)
+ 	seq_puts(m, "cpucaps\t\t: ");
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (hwcaps[i] && (caps & bit)) {
++		if ((caps & bit) && bit != HWCAP_SPARC_CRYPTO) {
+ 			seq_printf(m, "%s%s",
+ 				   printed ? "," : "", hwcaps[i]);
+ 			printed++;
+@@ -472,7 +471,7 @@ static void __init report_hwcaps(unsigned long caps)
 
-There was a config symbol defined for it before the commit removed it.
+ 	for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+ 		unsigned long bit = 1UL << i;
+-		if (hwcaps[i] && (caps & bit))
++		if ((caps & bit) && bit != HWCAP_SPARC_CRYPTO)
+ 			report_one_hwcap(&printed, hwcaps[i]);
+ 	}
+ 	if (caps & HWCAP_SPARC_CRYPTO)
+@@ -504,18 +503,13 @@ static unsigned long __init mdesc_cpu_hwcap_list(void)
+ 	while (len) {
+ 		int i, plen;
 
->=20
->=20
-> > Since commit f467c5640c29 ("kconfig: only write '#
-> > CONFIG_FOO is not set' for visible symbols") the value of 64BIT is
-> > not saved if the ARCH is set i386 or x86_64 because the symbol is
-> > not visible. =20
->=20
-> This is correct.
->=20
-> It was discussed a few weeks ago.
->=20
-> https://lkml.org/lkml/2018/6/5/847
->=20
->=20
-> > There is a number of ways to hack this particular case to work.
-> >
-> > However, there is a more general problem with this. Some config
-> > options may depend on the environment, may not be saved, and the
-> > environment is not saved either. =20
->=20
-> Which environment variables in particular are in your mind?
+-		for (i = 0; i < ARRAY_SIZE(hwcaps); i++) {
+-			unsigned long bit = 1UL << i;
++		i = match_string(hwcaps, ARRAY_SIZE(hwcaps), prop);
++		if (i >= 0)
++			caps |= 1UL << i;
 
-Any that is used in Kconfig.
+-			if (hwcaps[i] && !strcmp(prop, hwcaps[i])) {
+-				caps |= bit;
+-				break;
+-			}
+-		}
+-		for (i = 0; i < ARRAY_SIZE(crypto_hwcaps); i++) {
+-			if (!strcmp(prop, crypto_hwcaps[i]))
+-				caps |= HWCAP_SPARC_CRYPTO;
+-		}
++		i = match_string(crypto_hwcaps, ARRAY_SIZE(crypto_hwcaps), prop);
++		if (i >= 0)
++			caps |= HWCAP_SPARC_CRYPTO;
 
->=20
-> As for ARCH, you need to pass the same ARCH as you used for building
-> the kernel. (For native building, you do not have to pass ARCH
-> explicitly, though.)
+ 		plen = strlen(prop) + 1;
+ 		prop += plen;
+-- 
+1.7.12.4
 
-Except if you do pass it to make config you may need to pass it to to
-make later as well.
 
->=20
-> As for CC, HOSTCC, etc.
-> yes, these are new 'unsaved' environments.
->=20
-> CONFIG options now depend on the compiler.
-> This is the concept suggested by Linus Torvalds.
->=20
->=20
-> > So in the end all the infrastructure with symlinks
-> > from module directory pointing to the kernel source and object
-> > directory is useless. To interpret the config stored there you need
-> > the environment and that is not saved anywhere. So if you try to
-> > build out-of-tree module it might end up reconfiguring your kernel
-> > and producing useless modules. =20
->=20
-> No. out-of-tree module building never ever re-configures the kernel.
-
-It does implicitly because the config values depend on environment that
-is not saved and the values themselves are not saved either. If that
-happens to expose a new variable it is even explicitly reconfigured.
-
->=20
-> out-of-tree modules are built with exactly the same configuration
-> as used for the kernel.
-
-It is not true. And that is the problem. You need the config file and
-dump of the environment passed to the make command at configuration
-time to get the exact same configuration. The environment is not saved
-anywhere, though.
-
-Thanks
-
-Michal
