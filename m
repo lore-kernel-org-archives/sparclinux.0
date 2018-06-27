@@ -1,7 +1,7 @@
 From: Chaitra Basappa <chaitra.basappa@broadcom.com>
-Date: Tue, 26 Jun 2018 12:17:53 +0000
+Date: Wed, 27 Jun 2018 14:40:34 +0000
 Subject: RE: mpt3sas regression...
-Message-Id: <fc8425808a51356656b6519f20d547e3@mail.gmail.com>
+Message-Id: <ffb464627d5ce965c13a2253901e3dac@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180624.134639.2035609272357314002.davem@davemloft.net>
 In-Reply-To: <20180624.134639.2035609272357314002.davem@davemloft.net>
@@ -9,6 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
+
+David,
+ Please let us know what is the issue faced and  if its recreating then
+share the driver logs with logging_level=0x3f8.
+
+Thanks,
+ Chaitra
+
+
+-----Original Message-----
+From: Chaitra Basappa [mailto:chaitra.basappa@broadcom.com]
+Sent: Tuesday, June 26, 2018 5:36 PM
+To: David Miller; linux-scsi@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Subject: RE: mpt3sas regression...
 
 Hi David,
  Sorry for the inconvenience caused. Yes,  "scsi: mpt3sas: Bug fix for big
