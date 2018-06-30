@@ -1,61 +1,54 @@
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Wed, 13 Jun 2018 00:57:26 +0000
-Subject: [RFC PATCH 06/23] x86/ioapic: Add support for IRQCHIP_CAN_DELIVER_AS_NMI with interrupt remapping
-Message-Id: <1528851463-21140-7-git-send-email-ricardo.neri-calderon@linux.intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sat, 30 Jun 2018 04:45:10 +0000
+Subject: [PATCH] sparc32: cacheflush_32: Declare struct page
+Message-Id: <1530333910-31209-1-git-send-email-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <1528851463-21140-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andi Kleen <andi.kleen@intel.com>, Ashok Raj <ashok.raj@intel.com>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, x86@kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Jacob Pan <jacob.jun.pan@intel.com>, Juergen Gross <jgross@suse.com>, Baoquan He <bhe@redhat.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Dou Liyang <douly.fnst@cn.fujitsu.com>, Jan Kiszka <jan.kiszka@siemens.com>, iommu@lists.linux-foundation.org
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Even though there is a delivery mode field at the entries of an IO APIC's
-redirection table, the documentation of the majority of the IO APICs
-explicitly states that interrupt delivery as non-maskable is not supported.
-Thus,
+Building allmodconfig images for sparc32 generates warnings such as
 
-However, when using an IO APIC in combination with the Intel VT-d interrupt
-remapping functionality, the delivery of the interrupt to the CPU is
-handled by the remapping hardware. In such a case, the interrupt can be
-delivered as non maskable.
+arch/sparc/include/asm/cacheflush_32.h:40:37: warning:
+	'struct page' declared inside parameter list
 
-Thus, add the IRQCHIP_CAN_DELIVER_AS_NMI flag only when used in combination
-with interrupt remapping.
+This results in odd warnings such as
 
-Cc: Ashok Raj <ashok.raj@intel.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Jacob Pan <jacob.jun.pan@intel.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
-Cc: x86@kernel.org
-Cc: iommu@lists.linux-foundation.org
-Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+arch/sparc/include/asm/cacheflush_32.h:40:6: note:
+	expected 'struct page *' but argument is of type 'struct page *'
+
+With recent compilers (gcc 5.5.0 and later), this warning turns into
+a build error when compiling drivers/staging/media/omap4iss/iss_video.c.
+
+./include/linux/highmem.h: In function 'copy_user_highpage':
+./include/linux/highmem.h:233:36: error:
+	passing argument 1 of 'sparc_flush_page_to_ram'
+				from incompatible pointer type
+
+Declare struct page to fix the problem.
+
+Fixes: 84fc727ed49c ("media: omap4iss: make it build with COMPILE_TEST")
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- arch/x86/kernel/apic/io_apic.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/include/asm/cacheflush_32.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
-index 10a20f8..39de91b 100644
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -1911,7 +1911,8 @@ static struct irq_chip ioapic_ir_chip __read_mostly = {
- 	.irq_eoi		= ioapic_ir_ack_level,
- 	.irq_set_affinity	= ioapic_set_affinity,
- 	.irq_retrigger		= irq_chip_retrigger_hierarchy,
--	.flags			= IRQCHIP_SKIP_SET_WAKE,
-+	.flags			= IRQCHIP_SKIP_SET_WAKE |
-+				  IRQCHIP_CAN_DELIVER_AS_NMI,
- };
+diff --git a/arch/sparc/include/asm/cacheflush_32.h b/arch/sparc/include/asm/cacheflush_32.h
+index fb66094a2c30..acb072c71e42 100644
+--- a/arch/sparc/include/asm/cacheflush_32.h
++++ b/arch/sparc/include/asm/cacheflush_32.h
+@@ -4,6 +4,8 @@
  
- static inline void init_IO_APIC_traps(void)
+ #include <asm/cachetlb_32.h>
+ 
++struct page;
++
+ #define flush_cache_all() \
+ 	sparc32_cachetlb_ops->cache_all()
+ #define flush_cache_mm(mm) \
 -- 
 2.7.4
 
