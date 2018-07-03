@@ -1,47 +1,24 @@
-From: UNITED NATIONS <unitednationawardwinner@gmail.com>
-Date: Fri, 20 Jul 2018 22:50:30 +0000
-Subject: Your long awaited part payment of $2.5.000.00Usd
-Message-Id: <CAFJYe+eGNFZkSTDShZh7CJf07o-s+WCT1Ya1RSbofkq4S0u7xw@mail.gmail.com>
+From: "Harel Insurance Investments and Financial Services Ltd"  <shs_chit_20.chita@zab
+Date: Tue, 03 Jul 2018 15:02:41 +0000
+Subject: 24/7 LOAN OFFER AT 3% INTEREST RATE
+Message-Id: <20180703150327.2D41A58B592@mail.zabedu.ru>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Attention: Beneficiary,
+Hello
 
-Your long awaited part payment of $2.5.000.00Usd (TWO MILLION FIVE
-Hundred Thousand United State Dollars) is ready for immediate release
-to you, and it was electronically credited into an ATM Visa Card for
-easy delivery.
+Are you desperately in need of a loan?
+Have you been denied of a loan from your bank or any institution?
+Do you need financial assistance?
+Do you need a loan to pay off your bills or buy a home?
+Do you want to have a business of your own and you need a Loan for your
+financial demands?
 
-Your new Payment Reference No.- 6363836,
-Password No: 006786,
-Pin Code No: 1787
-Your Certificate of Merit Payment No: 05872,
-Released Code No: 1134;
-Immediate Telex confirmation No:- 043612;
-Secret Code No: TBKTA28
+if yes contact us via this particular email: (davidhess012@yahoo.com)
 
-Re-Confirm;
-Your Names: |
-Address: |
-Cell Phone: |
-Fax: |
-Amount: |
-Your immediate response is needed UBA Bank
+Kind Regards,
 
-Person to Contact:MR KELLY HALL the Director of the International
-Audit unit ATM Payment Center,
-
-Email: unitedbank-for-africa-bf@financier.com
-TELEPHONE: +226 68251393
-
-Note: Your file will expire after 14 days if there is no response, and
-then we will not have any option than to return your fund to IMF as
-unclaimed.
-
-Your swift response will enhance our service,thanks for your co-operation;
-
-Regards.
-Mr JOHN MARK.
+David Hess
