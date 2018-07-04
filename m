@@ -1,102 +1,192 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Fri, 20 Jul 2018 12:55:20 +0000
-Subject: Re: FreePascal testsuite still triggers sparc64 kernel issues
-Message-Id: <3b78dd08-fb42-9694-5d9e-e697bb6e3684@physik.fu-berlin.de>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Wed, 04 Jul 2018 05:51:59 +0000
+Subject: [PATCH 03/11] hugetlb: Introduce generic version of set_huge_pte_at
+Message-Id: <20180704055207.27978-4-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <2fc3b653-d564-1013-6108-fe64fdd8122a@physik.fu-berlin.de>
-In-Reply-To: <2fc3b653-d564-1013-6108-fe64fdd8122a@physik.fu-berlin.de>
+References: <20180704055207.27978-1-alex@ghiti.fr>
+In-Reply-To: <20180704055207.27978-1-alex@ghiti.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-T24gMDcvMjAvMjAxOCAwMjo0NSBQTSwgSm9obiBQYXVsIEFkcmlhbiBHbGF1Yml0eiB3cm90ZToK
-PiBSdW5uaW5nICJzdHJhY2UgLi90d2Vha2xpYjIiIHdpbGwgaW1tZWRpYXRlbHkgdHJpZ2dlciB0
-aGUgY3Jhc2ggKHNlZSBiZWxvdykuCj4gCj4gSSBoYXZlIHVwbG9hZGVkIHRoZSB0ZXN0IGJpbmFy
-eSBhbmQgc291cmNlIGNvZGUgdG8gbXkgRGViaWFuIHNwYWNlOgo+IAo+PiBodHRwczovL3Blb3Bs
-ZS5kZWJpYW4ub3JnL35nbGF1Yml0ei9rZXJuZWwtY3Jhc2gtdGVzdC50YXIuZ3oKUnVubmluZyBh
-cyBub3JtYWwgdXNlcjoKCmdsYXViaXR6QHN0YWRsZXI6fi9rZXJuZWwtY3Jhc2gtdGVzdCQgLi90
-d2Vha2xpYjIgCklsbGVnYWwgaW5zdHJ1Y3Rpb24KZ2xhdWJpdHpAc3RhZGxlcjp+L2tlcm5lbC1j
-cmFzaC10ZXN0JCBzdHJhY2UgLi90d2Vha2xpYjIgCmV4ZWN2ZSgiLi90d2Vha2xpYjIiLCBbIi4v
-dHdlYWtsaWIyIl0sIDB4N2ZlZmZlYWQ1OTAgLyogMjIgdmFycyAqLykgPSAwCmJyayhOVUxMKSAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICA9IDB4MjY0MDAwCmFjY2VzcygiL2V0Yy9sZC5z
-by5ub2h3Y2FwIiwgRl9PSykgICAgICA9IC0xIEVOT0VOVCAoTm8gc3VjaCBmaWxlIG9yIGRpcmVj
-dG9yeSkKbW1hcChOVUxMLCAxNjM4NCwgUFJPVF9SRUFEfFBST1RfV1JJVEUsIE1BUF9QUklWQVRF
-fE1BUF9BTk9OWU1PVVMsIC0xLCAwKSA9IDB4ZmZmZjgwMDEwMDAyNDAwMAphY2Nlc3MoIi9ldGMv
-bGQuc28ucHJlbG9hZCIsIFJfT0spICAgICAgPSAtMSBFTk9FTlQgKE5vIHN1Y2ggZmlsZSBvciBk
-aXJlY3RvcnkpCm9wZW5hdChBVF9GRENXRCwgIi4vdGxzL3Y5di9saWJ0d2Vha2xpYjEuc28iLCBP
-X1JET05MWXxPX0NMT0VYRUMpID0gLTEgRU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5
-KQpvcGVuYXQoQVRfRkRDV0QsICIuL3Rscy9saWJ0d2Vha2xpYjEuc28iLCBPX1JET05MWXxPX0NM
-T0VYRUMpID0gLTEgRU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5KQpvcGVuYXQoQVRf
-RkRDV0QsICIuL3Y5di9saWJ0d2Vha2xpYjEuc28iLCBPX1JET05MWXxPX0NMT0VYRUMpID0gLTEg
-RU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5KQpvcGVuYXQoQVRfRkRDV0QsICIuL2xp
-YnR3ZWFrbGliMS5zbyIsIE9fUkRPTkxZfE9fQ0xPRVhFQykgPSAzCnJlYWQoMywgIlwxNzdFTEZc
-MlwyXDFcMFwwXDBcMFwwXDBcMFwwXDBcMFwzXDArXDBcMFwwXDFcMFwwXDBcMFwwXDBcMzEwXDM2
-MCIuLi4sIDgzMikgPSA4MzIKZnN0YXQ2NCgzLCB7c3RfbW9kZT1TX0lGUkVHfDA3NTUsIHN0X3Np
-emURNjUzMTIsIC4uLn0pID0gMApnZXRjd2QoIi9ob21lL2dsYXViaXR6L2tlcm5lbC1jcmFzaC10
-ZXN0IiwgMTI4KSA9IDMzCm1tYXAoTlVMTCwgMTUwMzc3NiwgUFJPVF9SRUFEfFBST1RfRVhFQywg
-TUFQX1BSSVZBVEV8TUFQX0RFTllXUklURSwgMywgMCkgPSAweGZmZmY4MDAxMDAxMjgwMDAKbXBy
-b3RlY3QoMHhmZmZmODAwMTAwMTg4MDAwLCAxMDQwMzg0LCBQUk9UX05PTkUpID0gMAptbWFwKDB4
-ZmZmZjgwMDEwMDI4NjAwMCwgNTczNDQsIFBST1RfUkVBRHxQUk9UX1dSSVRFLCBNQVBfUFJJVkFU
-RXxNQVBfRklYRUR8TUFQX0RFTllXUklURSwgMywgMHg1ZTAwMCkgPSAweGZmZmY4MDAxMDAyODYw
-MDAKbW1hcCgweGZmZmY4MDAxMDAyOTQwMDAsIDEyODMyLCBQUk9UX1JFQUR8UFJPVF9XUklURSwg
-TUFQX1BSSVZBVEV8TUFQX0ZJWEVEfE1BUF9BTk9OWU1PVVMsIC0xLCAwKSA9IDB4ZmZmZjgwMDEw
-MDI5NDAwMApjbG9zZSgzKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPSAwCm1wcm90
-ZWN0KDB4ZmZmZjgwMDEwMDI4NjAwMCwgODE5MiwgUFJPVF9SRUFEKSA9IDAKbXByb3RlY3QoMHgy
-NTIwMDAsIDgxOTIsIFBST1RfUkVBRCkgICAgID0gMAptcHJvdGVjdCgweGZmZmY4MDAxMDAxMjIw
-MDAsIDgxOTIsIFBST1RfUkVBRCkgPSAwCmdldHJsaW1pdChSTElNSVRfU1RBQ0ssIHtybGltX2N1
-coE5MioxMDI0LCBybGltX21heD1STElNNjRfSU5GSU5JVFl9KSA9IDAKcnRfc2lnYWN0aW9uKFNJ
-R0ZQRSwge3NhX2hhbmRsZXI9MHhmZmZmODAwMTAwMTgwZTEwLCBzYV9tYXNrPVtdLCBzYV9mbGFn
-cz1TQV9TSUdJTkZPfSwge3NhX2hhbmRsZXI9U0lHX0RGTCwgc2FfbWFzaz1bXSwgc2FfZmxhZ3M9
-MH0sIDB4ZmZmZjgwMDEwMDEzNGNhOCwgOCkgPSAwCnJ0X3NpZ2FjdGlvbihTSUdTRUdWLCB7c2Ff
-aGFuZGxlcj0weGZmZmY4MDAxMDAxODBlMTAsIHNhX21hc2s9W10sIHNhX2ZsYWdzPVNBX1NJR0lO
-Rk99LCB7c2FfaGFuZGxlcj1TSUdfREZMLCBzYV9tYXNrPVtdLCBzYV9mbGFncz0wfSwgMHhmZmZm
-ODAwMTAwMTM0Y2E4LCA4KSA9IDAKcnRfc2lnYWN0aW9uKFNJR0JVUywge3NhX2hhbmRsZXI9MHhm
-ZmZmODAwMTAwMTgwZTEwLCBzYV9tYXNrPVtdLCBzYV9mbGFncz1TQV9TSUdJTkZPfSwge3NhX2hh
-bmRsZXI9U0lHX0RGTCwgc2FfbWFzaz1bXSwgc2FfZmxhZ3M9MH0sIDB4ZmZmZjgwMDEwMDEzNGNh
-OCwgOCkgPSAwCnJ0X3NpZ2FjdGlvbihTSUdJTEwsIHtzYV9oYW5kbGVyPTB4ZmZmZjgwMDEwMDE4
-MGUxMCwgc2FfbWFzaz1bXSwgc2FfZmxhZ3M9U0FfU0lHSU5GT30sIHtzYV9oYW5kbGVyPVNJR19E
-RkwsIHNhX21hc2s9W10sIHNhX2ZsYWdzPTB9LCAweGZmZmY4MDAxMDAxMzRjYTgsIDgpID0gMApp
-b2N0bCgxLCBUQ0dFVFMsIHtCMzg0MDAgb3Bvc3QgaXNpZyBpY2Fub24gZWNobyAuLi59KSA9IDAK
-aW9jdGwoMiwgVENHRVRTLCB7QjM4NDAwIG9wb3N0IGlzaWcgaWNhbm9uIGVjaG8gLi4ufSkgPSAw
-CmlvY3RsKDEsIFRDR0VUUywge0IzODQwMCBvcG9zdCBpc2lnIGljYW5vbiBlY2hvIC4uLn0pID0g
-MAppb2N0bCgyLCBUQ0dFVFMsIHtCMzg0MDAgb3Bvc3QgaXNpZyBpY2Fub24gZWNobyAuLi59KSA9
-IDAKcmVhZGxpbmsoIi9wcm9jL3NlbGYvZXhlIiwgIi9ob21lL2dsYXViaXR6L2tlcm5lbC1jcmFz
-aC10ZXN0Ii4uLiwgMjU1KSA9IDQyCnJ0X3NpZ2FjdGlvbihTSUdGUEUsIHtzYV9oYW5kbGVyPVNJ
-R19ERkwsIHNhX21hc2s9W10sIHNhX2ZsYWdzPTB9LCBOVUxMLCAweGZmZmY4MDAxMDAxMzRjYTgs
-IDgpID0gMApydF9zaWdhY3Rpb24oU0lHU0VHViwge3NhX2hhbmRsZXI9U0lHX0RGTCwgc2FfbWFz
-az1bXSwgc2FfZmxhZ3M9MH0sIE5VTEwsIDB4ZmZmZjgwMDEwMDEzNGNhOCwgOCkgPSAwCnJ0X3Np
-Z2FjdGlvbihTSUdCVVMsIHtzYV9oYW5kbGVyPVNJR19ERkwsIHNhX21hc2s9W10sIHNhX2ZsYWdz
-PTB9LCBOVUxMLCAweGZmZmY4MDAxMDAxMzRjYTgsIDgpID0gMApydF9zaWdhY3Rpb24oU0lHSUxM
-LCB7c2FfaGFuZGxlcj1TSUdfREZMLCBzYV9tYXNrPVtdLCBzYV9mbGFncz0wfSwgTlVMTCwgMHhm
-ZmZmODAwMTAwMTM0Y2E4LCA4KSA9IDAKCkFuZCB0aGUga2VybmVsOgoKWyAgMTQ3LjcxNTc3MF0g
-dXNlcmNvcHk6IEtlcm5lbCBtZW1vcnkgZXhwb3N1cmUgYXR0ZW1wdCBkZXRlY3RlZCBmcm9tIG51
-bGwgYWRkcmVzcyAob2Zmc2V0IDAsIHNpemUgMTI4KSEKWyAgMTQ3LjcxNjQ3N10gdXNlcmNvcHk6
-IEtlcm5lbCBtZW1vcnkgZXhwb3N1cmUgYXR0ZW1wdCBkZXRlY3RlZCBmcm9tIG51bGwgYWRkcmVz
-cyAob2Zmc2V0IDAsIHNpemUgMTI4KSEKWyAgMTQ3LjcxNzM0OV0gdXNlcmNvcHk6IEtlcm5lbCBt
-ZW1vcnkgZXhwb3N1cmUgYXR0ZW1wdCBkZXRlY3RlZCBmcm9tIG51bGwgYWRkcmVzcyAob2Zmc2V0
-IDAsIHNpemUgMTI4KSEKWyAgMTQ3LjcxODI3Nl0gdXNlcmNvcHk6IEtlcm5lbCBtZW1vcnkgZXhw
-b3N1cmUgYXR0ZW1wdCBkZXRlY3RlZCBmcm9tIG51bGwgYWRkcmVzcyAob2Zmc2V0IDAsIHNpemUg
-MTI4KSEKWyAgMTQ3LjcxOTI1MF0gdXNlcmNvcHk6IEtlcm5lbCBtZW1vcnkgZXhwb3N1cmUgYXR0
-ZW1wdCBkZXRlY3RlZCBmcm9tIG51bGwgYWRkcmVzcyAob2Zmc2V0IDAsIHNpemUgMTI4KSEKWyAg
-MTY4LjcyNzIyMF0gSU5GTzogcmN1X3NjaGVkIGRldGVjdGVkIHN0YWxscyBvbiBDUFVzL3Rhc2tz
-OgpbICAxNjguNzI3Mzk5XSAgMjAtLi4uITogKDEgR1BzIGJlaGluZCkgaWRsZawyLzEvNDYxMTY4
-NjAxODQyNzM4NzkwNiBzb2Z0aXJxITYxLzIxNjIgZnFzNjQgClsgIDE2OC43Mjc0OTldICAoZGV0
-ZWN0ZWQgYnkgOCwgdFI1MiBqaWZmaWVzLCBnEDczLCBjEDcyLCBxRCkKWyAgMTY4LjcyNzc1OV0g
-cmN1X3NjaGVkIGt0aHJlYWQgc3RhcnZlZCBmb3IgNDUyNCBqaWZmaWVzISBnMTA3MyBjMTA3MiBm
-MHgwIFJDVV9HUF9XQUlUX0ZRUygzKSAtPnN0YXRlPTB4NDAyIC0+Y3B1FgpbICAxNjguNzI3ODI1
-XSBSQ1UgZ3JhY2UtcGVyaW9kIGt0aHJlYWQgc3RhY2sgZHVtcDoKWyAgMjMxLjg2OTA5OF0gSU5G
-TzogcmN1X3NjaGVkIGRldGVjdGVkIHN0YWxscyBvbiBDUFVzL3Rhc2tzOgpbICAyMzEuODY5Mjk1
-XSAgMjAtLi4uITogKDEgR1BzIGJlaGluZCkgaWRsZawyLzEvNDYxMTY4NjAxODQyNzM4NzkwNiBz
-b2Z0aXJxITYxLzIxNjIgZnFzNjQgClsgIDIzMS44NjkzOTldICAoZGV0ZWN0ZWQgYnkgMTcsIHQh
-MDM4IGppZmZpZXMsIGcQNzMsIGMQNzIsIHERNCkKWyAgMjMxLjg2OTc1OF0gcmN1X3NjaGVkIGt0
-aHJlYWQgc3RhcnZlZCBmb3IgMjAzMTAgamlmZmllcyEgZzEwNzMgYzEwNzIgZjB4MCBSQ1VfR1Bf
-V0FJVF9GUVMoMykgLT5zdGF0ZT0weDQwMiAtPmNwdRYKWyAgMjMxLjg3MDAyMF0gUkNVIGdyYWNl
-LXBlcmlvZCBrdGhyZWFkIHN0YWNrIGR1bXA6CgotLSAKIC4nJ2AuICBKb2huIFBhdWwgQWRyaWFu
-IEdsYXViaXR6CjogOicgOiAgRGViaWFuIERldmVsb3BlciAtIGdsYXViaXR6QGRlYmlhbi5vcmcK
-YC4gYCcgICBGcmVpZSBVbml2ZXJzaXRhZXQgQmVybGluIC0gZ2xhdWJpdHpAcGh5c2lrLmZ1LWJl
-cmxpbi5kZQogIGAtICAgIEdQRzogNjJGRiA4QTc1IDg0RTAgMjk1NiA5NTQ2ICAwMDA2IDc0MjYg
-M0IzNyBGNUI1IEY5MTMKLS0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhl
-IGxpbmUgInVuc3Vic2NyaWJlIHNwYXJjbGludXgiIGluCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
-byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6
-Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA==
+arm, ia64, mips, powerpc, sh, x86 architectures use the
+same version of set_huge_pte_at, so move this generic
+implementation into asm-generic/hugetlb.h.
+
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+---
+ arch/arm/include/asm/hugetlb-3level.h | 6 ------
+ arch/arm64/include/asm/hugetlb.h      | 1 +
+ arch/ia64/include/asm/hugetlb.h       | 6 ------
+ arch/mips/include/asm/hugetlb.h       | 6 ------
+ arch/parisc/include/asm/hugetlb.h     | 1 +
+ arch/powerpc/include/asm/hugetlb.h    | 6 ------
+ arch/sh/include/asm/hugetlb.h         | 6 ------
+ arch/sparc/include/asm/hugetlb.h      | 1 +
+ arch/x86/include/asm/hugetlb.h        | 6 ------
+ include/asm-generic/hugetlb.h         | 8 +++++++-
+ 10 files changed, 10 insertions(+), 37 deletions(-)
+
+diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
+index d4014fbe5ea3..398fb06e8207 100644
+--- a/arch/arm/include/asm/hugetlb-3level.h
++++ b/arch/arm/include/asm/hugetlb-3level.h
+@@ -37,12 +37,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ 	return retval;
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 					 unsigned long addr, pte_t *ptep)
+ {
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 4af1a800a900..874661a1dff1 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -60,6 +60,7 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+ extern pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
+ 				struct page *page, int writable);
+ #define arch_make_huge_pte arch_make_huge_pte
++#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+ extern void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			    pte_t *ptep, pte_t pte);
+ extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
+index afe9fa4d969b..a235d6f60fb3 100644
+--- a/arch/ia64/include/asm/hugetlb.h
++++ b/arch/ia64/include/asm/hugetlb.h
+@@ -20,12 +20,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 		REGION_NUMBER((addr)+(len)-1) = RGN_HPAGE);
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+ {
+diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
+index 53764050243e..8ea439041d5d 100644
+--- a/arch/mips/include/asm/hugetlb.h
++++ b/arch/mips/include/asm/hugetlb.h
+@@ -36,12 +36,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+ {
+diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
+index 28c23b68d38d..77c8adbac7c3 100644
+--- a/arch/parisc/include/asm/hugetlb.h
++++ b/arch/parisc/include/asm/hugetlb.h
+@@ -4,6 +4,7 @@
+ 
+ #include <asm/page.h>
+ 
++#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte);
+ 
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index de46ee16b615..ba7d5d8b543f 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -132,12 +132,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+ {
+diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
+index f6a51b609409..bc552e37c1c9 100644
+--- a/arch/sh/include/asm/hugetlb.h
++++ b/arch/sh/include/asm/hugetlb.h
+@@ -25,12 +25,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+ {
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 59d89b52ccb7..16b0c53ea6c9 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -12,6 +12,7 @@ struct pud_huge_patch_entry {
+ extern struct pud_huge_patch_entry __pud_huge_patch, __pud_huge_patch_end;
+ #endif
+ 
++#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte);
+ 
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index 996ce8e15365..554d5614b375 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -27,12 +27,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
+ 
+-static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+-				   pte_t *ptep, pte_t pte)
+-{
+-	set_pte_at(mm, addr, ptep, pte);
+-}
+-
+ static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
+ 					    unsigned long addr, pte_t *ptep)
+ {
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index c697ca9dda18..ee010b756246 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -47,8 +47,14 @@ static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
+ {
+ 	free_pgd_range(tlb, addr, end, floor, ceiling);
+ }
++#endif
+ 
+-
++#ifndef __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
++static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
++		pte_t *ptep, pte_t pte)
++{
++	set_pte_at(mm, addr, ptep, pte);
++}
+ #endif
+ 
+ #endif /* _ASM_GENERIC_HUGETLB_H */
+-- 
+2.16.2
+
