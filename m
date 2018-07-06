@@ -1,179 +1,117 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 05 Jul 2018 04:58:40 +0000
-Subject: [PATCH 04/11] hugetlb: Introduce generic version of huge_ptep_get_and_clear
-Message-Id: <20180705045847.32575-5-alex@ghiti.fr>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 06 Jul 2018 19:49:19 +0000
+Subject: Re: sparc64 PCI BAR allocation is still problematic
+Message-Id: <alpine.LRH.2.21.1807062218350.21056@math.ut.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180705045847.32575-1-alex@ghiti.fr>
-In-Reply-To: <20180705045847.32575-1-alex@ghiti.fr>
+References: <alpine.LRH.2.21.1804081219340.17185@math.ut.ee> <20180620220525.GC108993@bhelgaas-glaptop.roam.corp.google.com> <alpine.LRH.2.21.1806291158320.6026@math.ut.ee> <20180629134721.GA98204@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20180629134721.GA98204@bhelgaas-glaptop.roam.corp.google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>, linux-pci@vger.kernel.org, sparclinux@vger.kernel.org
 
-arm, ia64, sh, x86 architectures use the
-same version of huge_ptep_get_and_clear, so move this generic
-implementation into asm-generic/hugetlb.h.
+> > Video RAM area related BAR messages are gone from all servers.
+> > 
+> > V100 OK
+> > V120 OK
+> > Netra X1 OK
+> > Netra T1-200 OK
+> > Netra T1-105 OK
+> > 
+> > T2000 still has "no compatible bridge window" about ULi ISA Bridge:
+> > 
+> > [    3.767832] pci 0001:05:02.0: can't claim BAR 0 [io  0xf010000000-0xf01000ffff]: no compatible bridge window
+> 
+> >From the dmesg log at https://bugzilla.kernel.org/show_bug.cgi?id7191,
+> 
+>   pci_sun4v f0287174: PCI host bridge to bus 0001:02
+>   pci_bus 0001:02: root bus resource [io  0xf010000000-0xf01fffffff] (bus address [0x0000-0xfffffff])
+>   pci 0001:05:02.0: can't claim BAR 0 [io  0xf010000000-0xf01000ffff]: no compatible bridge window
+> 
+> BAR 0 could potentially be valid, if the intermediate bridge windows
+> were set up correctly.  But from the lspci:
+> 
+>   0001:02:00.0 PCI bridge: PEX 8532 Upstream Port
+>     Bus: primary, secondary, subordinate	
+>     I/O behind bridge: 00000000-00002fff
+>   0001:03:01.0 PCI bridge: PEX 8532 Downstream Port
+>     Bus: primary, secondary, subordinate
+>     I/O behind bridge: 00000000-00000fff
+>   0001:04:00.0 PCI bridge: PCIe to PCI/PCI-X Bridge
+>     Bus: primary, secondary, subordinate
+>     I/O behind bridge: 00000000-00000fff
+>   0001:05:02.0 ISA bridge: ULi M1533/M1535/M1543 PCI to ISA Bridge
+>     Region 0: [virtual] I/O ports at f010000000 [sizedK]
+> 
+> (lspci normally shows the CPU addresses, but it looks like it's showing
+> bus addresses here (except for the 0001:05:02.0 I/O BAR).  That might
+> be something we should sort out at some point.  I know sparc does
+> things differently in that area.)
+> 
+> But either way, the 0001:04:00.0 I/O aperture is only 4K in size, and
+> apparently OF is telling us the ISA bridge has a 64K I/O BAR, so that
+> explains the "no compatible bridge window" message.  We can't fit a
+> 64K BAR in a 4K window.
+> 
+> Do you know if there's an ISA device behind that bridge?  If there
+> is, and it only requires I/O ports in the 0-0xfff range, it probably
+> still works in spite of the warning.
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
----
- arch/arm/include/asm/hugetlb-3level.h | 6 ------
- arch/arm64/include/asm/hugetlb.h      | 1 +
- arch/ia64/include/asm/hugetlb.h       | 6 ------
- arch/mips/include/asm/hugetlb.h       | 1 +
- arch/parisc/include/asm/hugetlb.h     | 1 +
- arch/powerpc/include/asm/hugetlb.h    | 1 +
- arch/sh/include/asm/hugetlb.h         | 6 ------
- arch/sparc/include/asm/hugetlb.h      | 1 +
- arch/x86/include/asm/hugetlb.h        | 6 ------
- include/asm-generic/hugetlb.h         | 8 ++++++++
- 10 files changed, 13 insertions(+), 24 deletions(-)
+prtconf shows from OF that a serial port is there:
 
-diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
-index 398fb06e8207..ad36e84b819a 100644
---- a/arch/arm/include/asm/hugetlb-3level.h
-+++ b/arch/arm/include/asm/hugetlb-3level.h
-@@ -49,12 +49,6 @@ static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 	ptep_set_wrprotect(mm, addr, ptep);
- }
- 
--static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
--					    unsigned long addr, pte_t *ptep)
--{
--	return ptep_get_and_clear(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index 874661a1dff1..6ae0bcafe162 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -66,6 +66,7 @@ extern void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 				      unsigned long addr, pte_t *ptep,
- 				      pte_t pte, int dirty);
-+#define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- extern pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 				     unsigned long addr, pte_t *ptep);
- extern void huge_ptep_set_wrprotect(struct mm_struct *mm,
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index a235d6f60fb3..6719c74da0de 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -20,12 +20,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- 		REGION_NUMBER((addr)+(len)-1) = RGN_HPAGE);
- }
- 
--static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
--					    unsigned long addr, pte_t *ptep)
--{
--	return ptep_get_and_clear(mm, addr, ptep);
--}
--
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 8ea439041d5d..0959cc5a41fa 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -36,6 +36,7 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index 77c8adbac7c3..6e281e1bb336 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -8,6 +8,7 @@
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte);
- 
-+#define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
- 
-diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
-index ba7d5d8b543f..ec3e0c2e78f8 100644
---- a/arch/powerpc/include/asm/hugetlb.h
-+++ b/arch/powerpc/include/asm/hugetlb.h
-@@ -132,6 +132,7 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index bc552e37c1c9..08ee6c00b5e9 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -25,12 +25,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
--					    unsigned long addr, pte_t *ptep)
--{
--	return ptep_get_and_clear(mm, addr, ptep);
--}
--
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 16b0c53ea6c9..944e3a4bfaff 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -16,6 +16,7 @@ extern struct pud_huge_patch_entry __pud_huge_patch, __pud_huge_patch_end;
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte);
- 
-+#define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
- 
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index 554d5614b375..48b8d9b13cc6 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -27,12 +27,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
--					    unsigned long addr, pte_t *ptep)
--{
--	return ptep_get_and_clear(mm, addr, ptep);
--}
--
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
- {
-diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
-index ee010b756246..0f6f151780dd 100644
---- a/include/asm-generic/hugetlb.h
-+++ b/include/asm-generic/hugetlb.h
-@@ -57,4 +57,12 @@ static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- }
- #endif
- 
-+#ifndef __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
-+static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep)
-+{
-+	return ptep_get_and_clear(mm, addr, ptep);
-+}
-+#endif
-+
- #endif /* _ASM_GENERIC_HUGETLB_H */
+                        Node 0xf02991b8
+                            ignore-cd:
+                            reg:  00000000.000003f8.00000008
+                            interrupts:  00000001
+                            compatible: 'su16550' + 'su'
+                            device_type:  'serial'
+                            name:  'serial'
+
+
+> But if it needs anything above 0xfff, or if we decided to be "smart"
+> and not enable I/O on the bridge because we think the I/O BAR is
+> invalid, it wouldn't work.
+> 
+> > V245 still has "no compatible bridge window" about ULI ISA Bridge:
+> > 
+> > [    4.522892] pci 0000:05:1e.0: can't claim BAR 0 [io  0x7f810000000-0x7f810000fff]: no compatible bridge window
+> 
+> Again from https://bugzilla.kernel.org/show_bug.cgi?id7191,
+> 
+>   fire f0068b8c: PCI host bridge to bus 0000:02
+>   pci_bus 0000:02: root bus resource [io  0x7f810000000-0x7f81fffffff] (bus address [0x0000-0xfffffff])
+>   pci 0000:05:1e.0: can't claim BAR 0 [io  0x7f810000000-0x7f810000fff]: no compatible bridge window
+> 
+>   0000:04:00.0 PCI bridge: ULi M5249 HTT to PCI Bridge
+>     Bus: primary, secondary, subordinate
+>     I/O behind bridge: 00001000-00001fff
+>     Memory behind bridge: 00200000-03ffffff
+>   0000:05:1c.0 ULi USB 1.1 Controller [OHCI]
+>     Region 0: Memory at 01000000 (32-bit, non-prefetchable) [sizeM]
+>   0000:05:1c.1 ULi USB 1.1 Controller [OHCI]
+>     Region 0: Memory at 02000000 (32-bit, non-prefetchable) [sizeM]
+>   0000:05:1c.3 ULi USB 2.0 Controller [EHCI]
+>     Region 0: Memory at 00200000 (32-bit, non-prefetchable) [size=8K]
+>   0000:05:1e.0 ISA bridge: ULi M1575 South Bridge
+>     Region 0: [virtual] I/O ports at 7f810000000 [size=4K]
+>   0000:05:1f.0 ULi M5229 IDE
+>     Region 0: I/O ports at 1040 [sized]
+>     Region 1: I/O ports at 1080 [sized]
+>     Region 2: I/O ports at 10c0 [sized]
+>     Region 3: I/O ports at 1100 [sized]
+>     Region 4: I/O ports at 1000 [sized]
+> 
+> The 0000:05:1e.0 I/O BAR (BAR 0) contains 0 (at least according to
+> OF).  This is clearly invalid because the bridge at 0000:04:00.0 will
+> never route anything to bus 05 with an I/O bus address of 0, so
+> nothing behind the 05:1e.0 ISA bridge should work.
+> 
+> If you still have the v4.18-rc1 logs from these boxes, would you mind
+> attaching them to the bugzilla?
+
+Found 4.17.0 and 4.18-rc2+git dmesgs for both T2000 and V245, attached 
+there.
+
 -- 
-2.16.2
-
+Meelis Roos (mroos@linux.ee)
