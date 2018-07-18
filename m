@@ -1,7 +1,7 @@
 From: Pierre Muller <pierre@freepascal.org>
-Date: Tue, 10 Jul 2018 08:49:08 +0000
+Date: Wed, 18 Jul 2018 20:25:46 +0000
 Subject: Re: FreePascal testsuite still triggers sparc64 kernel issues
-Message-Id: <f922d90a-005e-bb23-9fdc-14bcc1aae3af@freepascal.org>
+Message-Id: <7679b0d0-59a1-eb16-d802-005909667418@freepascal.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <2fc3b653-d564-1013-6108-fe64fdd8122a@physik.fu-berlin.de>
 In-Reply-To: <2fc3b653-d564-1013-6108-fe64fdd8122a@physik.fu-berlin.de>
@@ -10,7 +10,57 @@ Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
+Maybe I was finally successful:
 
+  stadler seems to have come into troubles after runing a single (faulty) executable
+
+the executable is in
+/home/pierre/pas/test directory
+
+its name is
+./tweaklib2
+
+it uses a (probably faulty) library called
+./libtweaklib1.so
+
+both are 64-bit executable generated with the current Free Pascal compiler
+on my account, located in directory
+/home/pierre/pas/fpc-3.1.1/bin/ppcsparc64 (cross compiler from 32 to 64 bit)
+
+Last things I did was
+recompiling those two sources, using
+
+pierre@stadler:~/pas/test$ ppcsparc64 -gl  tweaklib1.pp -k-rpath -k. -Cg -n -Fu../trunk/fpcsrc/rtl/units/sparc64-linux
+pierre@stadler:~/pas/test$ ppcsparc64 -gl  tweaklib2.pp -k-rpath -k. -Cg -n -Fu../trunk/fpcsrc/rtl/units/sparc64-linux
+
+Running simply ./tweaklib2
+generated a SIGILL which stopped the program without any core generation...
+
+  Running it inside gdb did not help,
+SIGILL was not caught by GDB :-(
+
+Running it with strace generated this message:
+rt_sigaction(SIGBUS, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, NULL, 0xffff800100134ca8, 8) = 0
+rt_sigaction(SIGILL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, NULL, 0xffff800100134ca8, 8) = 0
+
+Message from syslogd@stadler at Jul 18 20:04:02 ...
+ kernel:[206085.986213] usercopy: Kernel memory exposure attempt detected from process stack (offset 0, size 128)!
+
+
+  I tried to access via a second ssh session to the machine,
+but the session froze also, and I finally got completely kicked out,
+probably due to a system shutdown...
+
+  This kernel crash might be easier to reproduce than any of what I got before ...
+
+  I am still unable to reconnect to the machine,
+so maybe someone can resart the machine,
+and test if running the tweaklib2 in /home/pierre/pas/test directory
+several times or with strace is sufficient to get a 'reproducible' crash.
+
+  In the hope that this will help,
+
+Pierre Muller
 
 Le 10/07/2018 à 09:52, John Paul Adrian Glaubitz a écrit :
 > Hi!
@@ -121,28 +171,7 @@ Le 10/07/2018 à 09:52, John Paul Adrian Glaubitz a écrit :
 > [309379.911244]  d89e5c42
 > 
 > Does anyone have a suggestion on how to debug this?
-
-  Maybe I can add some context:
-
-the crashes are difficult to reproduce, it seems here that the problem arise in a script that checks
-compilation of packages in the Free Pascal trunk SVN checkout for sparc 32-bit.
-
-  The problem is that running only a sub-part of this script does not generate this crash again.
-
-  Is there a way to get a core-dump generation?
-  Why is there no information at all about:
-  - owner of the process
-  - call stack of user land?
-
-  What does Instruction DUMP mean here?
-  is it a hex dump of the instructions around address 0x30730?
-  Is this a user-mode or kernel-mode address?
-
-  Address 0x30730 seems to be valid in user-mode ppcsparc executable, but
-I could not find the pattern 0xd89e5c40 in program code ...
-
-
-  Any help would be welcomed!
-
-Pierre Muller
-I
+> 
+> Thanks,
+> Adrian
+> 
