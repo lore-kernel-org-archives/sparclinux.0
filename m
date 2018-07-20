@@ -1,40 +1,47 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Date: Sun, 22 Jul 2018 02:57:21 +0000
-Subject: [PATCH] sparc: fix header problem in sparc32 build
-Message-Id: <42f344e6-73c1-87c5-ea2f-b3299675266b@infradead.org>
+From: UNITED NATIONS <unitednationawardwinner@gmail.com>
+Date: Fri, 20 Jul 2018 22:50:30 +0000
+Subject: Your long awaited part payment of $2.5.000.00Usd
+Message-Id: <CAFJYe+eGNFZkSTDShZh7CJf07o-s+WCT1Ya1RSbofkq4S0u7xw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Attention: Beneficiary,
 
-Add a "struct page;" "stub" to fix a build error in sparc32.
-Fixes this error:
+Your long awaited part payment of $2.5.000.00Usd (TWO MILLION FIVE
+Hundred Thousand United State Dollars) is ready for immediate release
+to you, and it was electronically credited into an ATM Visa Card for
+easy delivery.
 
-../include/linux/highmem.h: In function 'clear_user_highpage':
-../include/linux/highmem.h:137:31: error: passing argument 1 of 'sparc_flush_page_to_ram' from incompatible pointer type [-Werror=incompatible-pointer-types]
-  clear_user_page(addr, vaddr, page);
-                               ^~~~
-../arch/sparc/include/asm/page_32.h:24:27: note: in definition of macro 'clear_user_page'
-   sparc_flush_page_to_ram(page); \
-                           ^~~~
+Your new Payment Reference No.- 6363836,
+Password No: 006786,
+Pin Code No: 1787
+Your Certificate of Merit Payment No: 05872,
+Released Code No: 1134;
+Immediate Telex confirmation No:- 043612;
+Secret Code No: TBKTA28
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
----
- arch/sparc/include/asm/cacheflush_32.h |    1 +
- 1 file changed, 1 insertion(+)
+Re-Confirm;
+Your Names: |
+Address: |
+Cell Phone: |
+Fax: |
+Amount: |
+Your immediate response is needed UBA Bank
 
---- linux-next-20180717.orig/arch/sparc/include/asm/cacheflush_32.h
-+++ linux-next-20180717/arch/sparc/include/asm/cacheflush_32.h
-@@ -37,6 +37,7 @@
- #define flush_page_for_dma(addr) \
- 	sparc32_cachetlb_ops->page_for_dma(addr)
- 
-+struct page;
- void sparc_flush_page_to_ram(struct page *page);
- 
- #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+Person to Contact:MR KELLY HALL the Director of the International
+Audit unit ATM Payment Center,
 
+Email: unitedbank-for-africa-bf@financier.com
+TELEPHONE: +226 68251393
 
+Note: Your file will expire after 14 days if there is no response, and
+then we will not have any option than to return your fund to IMF as
+unclaimed.
+
+Your swift response will enhance our service,thanks for your co-operation;
+
+Regards.
+Mr JOHN MARK.
