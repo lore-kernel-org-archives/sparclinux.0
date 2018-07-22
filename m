@@ -1,55 +1,40 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 05 Jul 2018 05:16:30 +0000
-Subject: [PATCH v3 01/11] hugetlb: Harmonize hugetlb.h arch specific defines with pgtable.h
-Message-Id: <20180705051640.790-2-alex@ghiti.fr>
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Sun, 22 Jul 2018 02:57:21 +0000
+Subject: [PATCH] sparc: fix header problem in sparc32 build
+Message-Id: <42f344e6-73c1-87c5-ea2f-b3299675266b@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180705051640.790-1-alex@ghiti.fr>
-In-Reply-To: <20180705051640.790-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+To: LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>
 
-asm-generic/hugetlb.h proposes generic implementations of hugetlb
-related functions: use __HAVE_ARCH_HUGE* defines in order to make arch
-specific implementations of hugetlb functions consistent with pgtable.h
-scheme.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Add a "struct page;" "stub" to fix a build error in sparc32.
+Fixes this error:
+
+../include/linux/highmem.h: In function 'clear_user_highpage':
+../include/linux/highmem.h:137:31: error: passing argument 1 of 'sparc_flush_page_to_ram' from incompatible pointer type [-Werror=incompatible-pointer-types]
+  clear_user_page(addr, vaddr, page);
+                               ^~~~
+../arch/sparc/include/asm/page_32.h:24:27: note: in definition of macro 'clear_user_page'
+   sparc_flush_page_to_ram(page); \
+                           ^~~~
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 ---
- arch/arm64/include/asm/hugetlb.h | 2 +-
- include/asm-generic/hugetlb.h    | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/cacheflush_32.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index e73f68569624..3fcf14663dfa 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -81,9 +81,9 @@ extern void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 				    unsigned long addr, pte_t *ptep);
- extern void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 				  unsigned long addr, pte_t *ptep);
-+#define __HAVE_ARCH_HUGE_PTE_CLEAR
- extern void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 			   pte_t *ptep, unsigned long sz);
--#define huge_pte_clear huge_pte_clear
- extern void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
- 				 pte_t *ptep, pte_t pte, unsigned long sz);
- #define set_huge_swap_pte_at set_huge_swap_pte_at
-diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
-index 9d0cde8ab716..3da7cff52360 100644
---- a/include/asm-generic/hugetlb.h
-+++ b/include/asm-generic/hugetlb.h
-@@ -32,7 +32,7 @@ static inline pte_t huge_pte_modify(pte_t pte, pgprot_t newprot)
- 	return pte_modify(pte, newprot);
- }
+--- linux-next-20180717.orig/arch/sparc/include/asm/cacheflush_32.h
++++ linux-next-20180717/arch/sparc/include/asm/cacheflush_32.h
+@@ -37,6 +37,7 @@
+ #define flush_page_for_dma(addr) \
+ 	sparc32_cachetlb_ops->page_for_dma(addr)
  
--#ifndef huge_pte_clear
-+#ifndef __HAVE_ARCH_HUGE_PTE_CLEAR
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 		    pte_t *ptep, unsigned long sz)
- {
--- 
-2.16.2
++struct page;
+ void sparc_flush_page_to_ram(struct page *page);
+ 
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+
 
