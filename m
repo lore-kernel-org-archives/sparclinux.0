@@ -1,43 +1,23 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 02 Jul 2018 14:09:40 +0000
-Subject: Re: Build regressions/improvements in v4.18-rc3
-Message-Id: <CAMuHMdUHkShW5dT41x06Jz9DUJHim6=Wg6pspgTBJpsoVNphwA@mail.gmail.com>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Sun, 22 Jul 2018 20:45:39 +0000
+Subject: Unprivileged userland application crashes sparc64 kernel - was: Re: FreePascal testsuite still trigg
+Message-Id: <da111a90-01bc-7a0f-86db-c908ca2f4a4f@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180702140050.1660-1-geert@linux-m68k.org>
-In-Reply-To: <20180702140050.1660-1-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On Mon, Jul 2, 2018 at 4:01 PM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> JFYI, when comparing v4.18-rc3[1] to v4.18-rc2[3], the summaries are:
->   - build errors: +1/-7
+Hi!
 
-  + /kisskb/src/include/linux/highmem.h: error: passing argument 1 of
-'sparc_flush_page_to_ram' from incompatible pointer type
-[-Werror=incompatible-pointer-types]:  => 209:20, 233:36, 137:31
+I have opened a bug in the kernel bugzilla now, see:
 
-sparc64/sparc-allmodconfig (patch available)
+> https://bugzilla.kernel.org/show_bug.cgi?id 0625
 
-> [1] http://kisskb.ellerman.id.au/kisskb/head/021c91791a5e7e85c567452f1be3e4c2c6cb6063/ (231 out of 244 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/head/7daf201d7fe8334e2d2364d4e8ed3394ec9af819/ (231 out of 244 configs)
+Adrian
 
-> *** WARNINGS ***
->
-> [Deleted 26903 lines about "warning: ... [-Wpointer-sign]" on parisc-allmodconfig]
-> [Deleted 19308 lines about "warning: -ffunction-sections disabled; it makes profiling impossible [enabled by default]" on parisc-allmodconfig]
-
-Seems they're gone. Hopefully for good ;-)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
