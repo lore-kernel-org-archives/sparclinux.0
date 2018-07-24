@@ -1,35 +1,40 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 24 Jul 2018 14:37:36 +0000
+From: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+Date: Tue, 24 Jul 2018 14:44:07 +0000
 Subject: Re: [PATCH 1/2] sparc: move MSI related definitions to where they are used
-Message-Id: <20180724143736.GA22088@ravnborg.org>
+Message-Id: <20180724164407.4fa57d1f@windsurf>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20180724115305.11289-1-thomas.petazzoni@bootlin.com>
-In-Reply-To: <20180724115305.11289-1-thomas.petazzoni@bootlin.com>
+        <20180724143736.GA22088@ravnborg.org>
+In-Reply-To: <20180724143736.GA22088@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
+To: Sam Ravnborg <sam@ravnborg.org>
 Cc: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Hanna Hawa <hannah@marvell.com>
 
-Hi Thomas.
+Hello,
 
-One nitpick below.
-But other than that this is a nice cleanup:
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-> +/*
-> + * Locations of MSI Registers.
-> + */
+Thanks for the review.
 
-The SPARC way to format comments follows netdev style.
-So put it all in one line and everyone are happy:
+On Tue, 24 Jul 2018 16:37:36 +0200, Sam Ravnborg wrote:
 
-    /* Locations of MSI Registers. */
+> One nitpick below.
+> But other than that this is a nice cleanup:
+> Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> > +/*
+> > + * Locations of MSI Registers.
+> > + */  
+> 
+> The SPARC way to format comments follows netdev style.
+> So put it all in one line and everyone are happy:
 
-> +#define MSI_MBUS_ARBEN	0xe0001008	/* MBus Arbiter Enable register */
-> +
-> +/*
-> + * Useful bits in the MSI Registers.
-> + */
-Likewise
+Well, the code is being moved from arch/sparc to arch/sparc, so
+apparently, it was already non-compliant to this specific coding style
+rule. Should the comments be made compliant as part of the same commit,
+or a separate one ?
 
-	Sam
+Thomas
+-- 
+Thomas Petazzoni, CTO, Bootlin (formerly Free Electrons)
+Embedded Linux and Kernel engineering
+https://bootlin.com
