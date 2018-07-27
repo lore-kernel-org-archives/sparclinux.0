@@ -1,42 +1,17 @@
-From: "Vivek Shah" <viektian@elderluxe.com>
-Date: Tue, 31 Jul 2018 09:11:28 +0000
-Subject: Mobile apps development
-Message-Id: <3ef74c45b8032b8f9f3c5f090b955dd8@tigermedical.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 27 Jul 2018 16:44:08 +0000
+Subject: generic noncoherent dma ops for sparc32, 2nd resend
+Message-Id: <20180727164409.14873-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S . Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 
-We are an image editing service provider having more than 10 years of
-industry experience.
-We use latest techniques for photo editing to meet international quality
-standards.
-We are committed to deliver reliable photo processing services.
+Dave, can you take a review this and apply if ok?  I've been
+sending this twice already but never got an answer.  Out of my
+batch of conversion sparc is one of only two that haven't been
+merged yet.
 
-Production of 1000+ images within single working day
-
-24×7×365 photo editing services
-
-On-demand image editing to meet rush job requirements
-
-Service details:
-Images Masking
-Photo Clipping Path
-Photo Cutout
-Photo Enhancement
-Vector Conversion
-Photo Stitching Services
-Fashion Photo Editing
-Jewelry Retouching
-Footwear Photo Editing
-Furniture Photo Retouching
-Wedding Photo Editing
-Real Estate Photo Editing
-Photo Restoration
-
-We provide trials to evaluate our service quality to new clients.
-
-Thanks,
-Edward
 
