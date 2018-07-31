@@ -1,40 +1,187 @@
-From: "Edward Kong" <info@lee.org>
-Date: Wed, 11 Jul 2018 20:33:49 +0000
-Subject: Contact Reverend Fr.Leon Edward Jones for Your Compensation,
-Message-Id: <E2A9D353-06A1-4D69-BB3B-E40C8C98A01D@NpWVyQ146549>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Tue, 31 Jul 2018 06:01:55 +0000
+Subject: [PATCH v5 11/11] hugetlb: Introduce generic version of huge_ptep_get
+Message-Id: <20180731060155.16915-12-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180731060155.16915-1-alex@ghiti.fr>
+In-Reply-To: <20180731060155.16915-1-alex@ghiti.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
+ia64, mips, parisc, powerpc, sh, sparc, x86 architectures use the
+same version of huge_ptep_get, so move this generic implementation into
+asm-generic/hugetlb.h.
 
-Dear Beloved,
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ arch/arm/include/asm/hugetlb-3level.h | 1 +
+ arch/arm64/include/asm/hugetlb.h      | 1 +
+ arch/ia64/include/asm/hugetlb.h       | 5 -----
+ arch/mips/include/asm/hugetlb.h       | 5 -----
+ arch/parisc/include/asm/hugetlb.h     | 5 -----
+ arch/powerpc/include/asm/hugetlb.h    | 5 -----
+ arch/sh/include/asm/hugetlb.h         | 5 -----
+ arch/sparc/include/asm/hugetlb.h      | 5 -----
+ arch/x86/include/asm/hugetlb.h        | 5 -----
+ include/asm-generic/hugetlb.h         | 7 +++++++
+ 10 files changed, 9 insertions(+), 35 deletions(-)
 
-I believe that you have not forgotten me, although it was indeed a very long time we communicate last. Well, this is to thank you for your past effort to assist me in moving out late Mr. Alvin Peter's funds out from the Industrial and Commercial Bank of China (ICBC) New York city at that time, I understand your thought that time, that I wasn’t for real and you said that I am a scam but I told you that am not a scam and you understood me and did your best to assist me but could not conclude the transaction with me. I thank God for his grace and favor upon my life because there was a man called Phua Chu Kang from Singapore  who finally helped me to move the money to his account so the ICBC bank did not seize funds of late Alvin peter any more who died on the plane crash on 11th of September 2013 you can view the link to know more about him (http://www.cnn.com/SPECIALS/2001/memorial/people/2632.html).I thank God very much for all He has done.
-
-
-I am so glad to write this email to you today, God is really wonderful and so kind to me, God makes a way where there is no way, I did not believe that I will move out from New York by now, but God has made it possible for me. So I am happy to inform you about my success in getting those funds transferred under my new partner from Bedok Village, Singapore, I am currently in the Bedok Village for my investment here in the Singapore, Meanwhile, I did not forget all your past efforts and attempts to assist me that time in transferring those funds despite that it failed us somehow due to one reason or the other. But because i made a promise to God that i must surely compensate you as the first person who tried all your best to help me despite that you did not conclude the transaction but i could not forget your good advice and encouragement which gave me at that time. Now i want you contact our parish priest: Reverend Fr.Leon Edward Jones who used to be a good father to me when I was in US, his e-mail address is as follows(rev.fatherleojones@citromail.hu)
-
-
-I told him to send a certified bank check of (US$5,000,000.00),Five Million United State Dollars, which I prepared for you and kept for your compensation for all efforts and attempts to assist me in this matter, knowing fully well that I would have not succeeded if not your advice and encouragement to me at that time. Please accept this little token as it is, but I really appreciate your efforts at that time very much. So feel free to contact Rev. Father at: rev.fatherleojones@citromail.hu and instruct him where to send you the cashier check.
-
-
-Note: Below is the required information's you will send to Rev. Father Leon Edward Jones:
-(1) Your full names:(2) Your house address:(3) Your telephone number:(4) Your identification e.g. Drivers license
-
-
-Please let me know immediately you receive it so we can share our joy together after all the sufferings at that time. At this point, I’m very busy here because of my investment and some project that we have at hand. Finally, remember that I had forwarded instruction to the Rev. Father Leon Edward Jones on your behalf to receive that check but you have to reconfirm it again to avoid any mistake. So do not hesitate to contact him and he will send the amount to you without any delay.
-
-
-And please do not forget to inform me as soon as you received the cashier check.
-
-
-Take care and God bless you. Good bye for now.
-
-
-Yours friend,
-
-Brother 
-Edward Kong
+diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
+index 54e4b097b1f5..0d9f3918fa7e 100644
+--- a/arch/arm/include/asm/hugetlb-3level.h
++++ b/arch/arm/include/asm/hugetlb-3level.h
+@@ -29,6 +29,7 @@
+  * ptes.
+  * (The valid bit is automatically cleared by set_pte_at for PROT_NONE ptes).
+  */
++#define __HAVE_ARCH_HUGE_PTEP_GET
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+ {
+ 	pte_t retval = *ptep;
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 80887abcef7f..fb6609875455 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -20,6 +20,7 @@
+ 
+ #include <asm/page.h>
+ 
++#define __HAVE_ARCH_HUGE_PTEP_GET
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+ {
+ 	return READ_ONCE(*ptep);
+diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
+index e9b42750fdf5..36cc0396b214 100644
+--- a/arch/ia64/include/asm/hugetlb.h
++++ b/arch/ia64/include/asm/hugetlb.h
+@@ -27,11 +27,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
+index 120adc3b2ffd..425bb6fc3bda 100644
+--- a/arch/mips/include/asm/hugetlb.h
++++ b/arch/mips/include/asm/hugetlb.h
+@@ -82,11 +82,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 	return changed;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
+index 165b4e5a6f32..7cb595dcb7d7 100644
+--- a/arch/parisc/include/asm/hugetlb.h
++++ b/arch/parisc/include/asm/hugetlb.h
+@@ -48,11 +48,6 @@ int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty);
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index 658bf7136a3c..33a2d9e3ea9e 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -142,11 +142,6 @@ extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 				      unsigned long addr, pte_t *ptep,
+ 				      pte_t pte, int dirty);
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
+index c87195ae0cfa..6f025fe18146 100644
+--- a/arch/sh/include/asm/hugetlb.h
++++ b/arch/sh/include/asm/hugetlb.h
+@@ -32,11 +32,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 028a1465fbe7..3963f80d1cb3 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -53,11 +53,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 	return changed;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index 574d42eb081e..7469d321f072 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -13,11 +13,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 	return 0;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index f3c99a03ee83..71d7b77eea50 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -119,4 +119,11 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ }
+ #endif
+ 
++#ifndef __HAVE_ARCH_HUGE_PTEP_GET
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++#endif
++
+ #endif /* _ASM_GENERIC_HUGETLB_H */
+-- 
+2.16.2
 
