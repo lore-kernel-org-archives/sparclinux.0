@@ -1,23 +1,11 @@
-From: "Tony" <deltoonte@smmotorsports.net>
-Date: Thu, 09 Aug 2018 14:06:05 +0000
-Subject: we found that
-Message-Id: <fef8ba305a89ff6f449d268de219da96@wixfilters.com>
+From: "Ms CHIANG Lai Yuen JP" <MsCHIANGLaiYuenJP@hsb.com>
+Date: Wed, 01 Aug 2018 17:56:12 +0000
+Subject: Are you sure?
+Message-Id: <20180801212555.ED26AE26EB8@mail.nltel.ru>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-We just found that you need image editing.
-
-We are an image studio, we do all kinds of image editing such as for
-e-commerce photos, jewelry images
-and portrait mages.
-
-Our service includes cutting out and clipping path etc , we also do
-retouching.
-
-You may send us a photo, testing will be provided to check our quality
-
-Thanks,
-Tony Glenn
+I have a Businesss Proposal for you, Can you do it? If yes please get back to me for more details.
