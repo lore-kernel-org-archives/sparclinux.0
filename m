@@ -1,26 +1,23 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Mon, 06 Aug 2018 13:09:02 +0000
-Subject: Re: [PATCH v2 3/3] sparc32: split ramdisk detection and reservation to a helper function
-Message-Id: <20180806130902.GB23652@ravnborg.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Wed, 01 Aug 2018 01:33:20 +0000
+Subject: Re: Getting the instruction pointer on a per arch basis
+Message-Id: <aa58e248-8d03-2932-8888-25497bcbdfc3@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1533552755-16679-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1533552755-16679-4-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1533552755-16679-4-git-send-email-rppt@linux.vnet.ibm.com>
+References: <CAKwvOdku_BOi6m2ugaef6=8+VH_+KAHH-Ch+uZZqMr8WAKARCw@mail.gmail.com>
+ <CAKwvOdn1Ri2VP9hNfKwQ3WMzL278e7-3DGusZc1cwQZbk9H6nw@mail.gmail.com>
+In-Reply-To: <CAKwvOdn1Ri2VP9hNfKwQ3WMzL278e7-3DGusZc1cwQZbk9H6nw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: Nick Desaulniers <ndesaulniers@google.com>, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, tony.luck@intel.com, fenghua.yu@intel.com, msalter@redhat.com, jacquiot.aurelien@gmail.com, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, mingo@redhat.com
+Cc: Pirama Arumuga Nainar <pirama@google.com>, Greg Hackmann <ghackmann@google.com>, Mark Salyzyn <salyzyn@google.com>, LKML <linux-kernel@vger.kernel.org>, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, sparclinux@vger.kernel.org
 
-On Mon, Aug 06, 2018 at 01:52:35PM +0300, Mike Rapoport wrote:
-> The detection and reservation of ramdisk memory were separated to allow
-> bootmem bitmap initialization after the ramdisk boundaries are detected.
-> Since the bootmem initialization is removed, the reservation of ramdisk
-> memory is done immediately after its boundaries are found.
+On 07/31/2018 04:09 PM, Nick Desaulniers wrote:
+> + More maintainers and lists for visibility
 > 
-> Split the entire block into a separate helper function.
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-> Suggested-by: Sam Ravnborg <sam@ravnborg.org>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
 
+Ideally the linux-arch@vger.kernel.org mailing list would be sufficient,
+but I doubt that it is.  :(
+
+-- 
+~Randy
