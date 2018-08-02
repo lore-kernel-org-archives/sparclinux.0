@@ -1,28 +1,71 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 29 Aug 2018 05:51:33 +0000
-Subject: Re: new SBus related DMA warnings in 4.18+git
-Message-Id: <20180829055133.GA28945@lst.de>
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Date: Thu, 02 Aug 2018 11:53:53 +0000
+Subject: [PATCH 2/2] sparc32: tidy up ramdisk memory reservation
+Message-Id: <1533210833-14748-3-git-send-email-rppt@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.21.1808260902280.22219@math.ut.ee>
-	<20180827154716.GA30492@lst.de>
-	<alpine.LRH.2.21.1808272203270.28446@math.ut.ee>
-	<20180828092915.GC12488@lst.de>
-	<alpine.LRH.2.21.1808281330270.13945@math.ut.ee>
-	<20180828114358.GA14519@lst.de>
-	<alpine.LRH.2.21.1808281649580.19903@math.ut.ee>
-In-Reply-To: <alpine.LRH.2.21.1808281649580.19903-ptEonEWSGqKptlylMvRsHA@public.gmane.org>
+References: <1533210833-14748-1-git-send-email-rppt@linux.vnet.ibm.com>
+In-Reply-To: <1533210833-14748-1-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Meelis Roos <mroos-Y27EyoLml9s@public.gmane.org>
-Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.vnet.ibm.com>
 
-On Wed, Aug 29, 2018 at 08:47:04AM +0300, Meelis Roos wrote:
-> > Updated version including that has survived contact with a sparc cross
-> > compiler below.  Note that this is on top of the previous patch adding
-> > a dma_mask to struct platform_device, which I've included as well.
-> 
-> Works completely fine on both Ultra 1 and Ultra 2 - nothing DMA-relaated 
-> in dmesg.
+The detection and reservation of ramdisk memory were separated to allow
+bootmem bitmap initialization after the ramdisk boundaries are detected.
+Since the bootmem initialization is removed, the reservation of ramdisk
+memory can be done immediately after its boundaries are found.
 
-Thanks for testing!  I'll submit the patch for 4.19 in a bit.
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+---
+ arch/sparc/mm/init_32.c | 24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
+
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 5117a5e..b5d8f90 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -161,6 +161,8 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 		    high_pages >> (20 - PAGE_SHIFT));
+ 	}
+ 
++	*pages_avail = (memblock_phys_mem_size() >> PAGE_SHIFT) - high_pages;
++
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 	/*
+ 	 * Now have to check initial ramdisk, so that it won't pass
+@@ -176,23 +178,17 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 		                 	 "(0x%016lx > 0x%016lx)\ndisabling initrd\n",
+ 			       initrd_end, end_of_phys_memory);
+ 			initrd_start = 0;
++		} else {
++			/* Reserve the initrd image area. */
++			size = initrd_end - initrd_start;
++			memblock_reserve(initrd_start, size);
++			*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
++
++			initrd_start = (initrd_start - phys_base) + PAGE_OFFSET;
++			initrd_end = (initrd_end - phys_base) + PAGE_OFFSET;
+ 		}
+ 	}
+ #endif
+-
+-	*pages_avail = (memblock_phys_mem_size() >> PAGE_SHIFT) - high_pages;
+-
+-#ifdef CONFIG_BLK_DEV_INITRD
+-	if (initrd_start) {
+-		/* Reserve the initrd image area. */
+-		size = initrd_end - initrd_start;
+-		memblock_reserve(initrd_start, size);
+-		*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
+-
+-		initrd_start = (initrd_start - phys_base) + PAGE_OFFSET;
+-		initrd_end = (initrd_end - phys_base) + PAGE_OFFSET;
+-	}
+-#endif
+ 	/* Reserve the kernel text/data/bss. */
+ 	size = (start_pfn << PAGE_SHIFT) - phys_base;
+ 	memblock_reserve(phys_base, size);
+-- 
+2.7.4
+
