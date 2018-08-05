@@ -1,33 +1,22 @@
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 28 Aug 2018 14:13:15 +0000
-Subject: Re: [PATCH] sparc: Convert to using %pOFn instead of device_node.name
-Message-Id: <CAL_JsqK-U02dwj8H5KW9uF06NuK7AgCfAVeatsB-F-GGsxafvg@mail.gmail.com>
+From: elena_figueroa@hmha.gob.ec
+Date: Sun, 05 Aug 2018 18:32:27 +0000
+Subject: =?utf-8?b?V29obHTDpHRpZ2tlaXRzc3BlbmRlIGluIEjDtmhlIHZvbiDigqwgMi4wMDAu?= =?utf-8?q?000=2C00_EUR?=
+Message-Id: <20180805183230.926261F6840D@mail.hmha.gob.ec>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180828015252.28511-1-robh@kernel.org> <20180828015252.28511-7-robh@kernel.org>
-In-Reply-To: <20180828015252.28511-7-robh@kernel.org>
+References: <20180506152654.C43A9843D13@mail.ithb.ac.id>
+In-Reply-To: <20180506152654.C43A9843D13@mail.ithb.ac.id>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-On Mon, Aug 27, 2018 at 8:52 PM Rob Herring <robh@kernel.org> wrote:
->
-> In preparation to remove the node name pointer from struct device_node,
-> convert printf users to use the %pOFn format specifier.
->
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
-
-> @@ -201,7 +201,7 @@ char * __init build_path_component(struct device_node *dp)
->         tmp_buf[0] = '\0';
->         __build_path_component(dp, tmp_buf);
->         if (tmp_buf[0] = '\0')
-> -               strcpy(tmp_buf, dp->name);
-> +               snprint(tmp_buf, sizeof(tmp_buf), "%pOFn", dp);
-
-Ugg, v2 coming soon.
-
-Rob
+Hallo, ich bin Herr Tayeb Souami, New Jersey, Vereinigte Staaten von Amerika, Sie haben eine Wohltätigkeitsspende in Höhe von € 2.000.000,00, ich habe die America Lotterie in Amerika im Wert von $ 315 Millionen gewonnen, und ich gebe einen Teil davon an fünf glückliche Menschen und wohltätige Häuser, um Armut aus dieser Welt zu beseitigen, bekämpfe ich die Armut. Kontaktieren Sie mich für weitere Informationen: wumt.claimservice@gmail.com
+ 
+Das ist dein Spendencode: [DFC530342018]
+ 
+Antworten Sie mit dem Spendencode auf diese E-Mail: wumt.claimservice@gmail.com
+ 
+Ich hoffe, Sie und Ihre Familie glücklich zu machen.
+ 
+Grüße
+Herr Tayeb Souami
