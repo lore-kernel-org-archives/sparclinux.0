@@ -1,83 +1,35 @@
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 30 Aug 2018 19:05:23 +0000
-Subject: [PATCH 3/3] of: make default address and size cells sizes private
-Message-Id: <20180830190523.31474-4-robh@kernel.org>
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Date: Mon, 06 Aug 2018 10:52:32 +0000
+Subject: [PATCH v2 0/3] sparc32: switch to NO_BOOTMEM
+Message-Id: <1533552755-16679-1-git-send-email-rppt@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180830190523.31474-1-robh@kernel.org>
-In-Reply-To: <20180830190523.31474-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Frank Rowand <frowand.list@gmail.com>, devicetree@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.vnet.ibm.com>
 
-Only some old OpenFirmware implementations rely on default sizes. Any
-FDT and modern implementation should have explicit properties. Make the
-OF_ROOT_NODE_*_CELLS_DEFAULT defines private so we don't get any outside
-users.
+Hi,
 
-This also gets us one step closer to removing the asm/prom.h dependency on
-Sparc.
+These patches convert sparc32 to use memblock + nobootmem.
+I've made the conversion as simple as possible, just enough to allow moving
+HAVE_MEMBLOCK and NO_BOOTMEM to the common SPARC configuration.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- arch/sparc/include/asm/prom.h | 3 ---
- drivers/of/of_private.h       | 8 ++++++++
- include/linux/of.h            | 6 ------
- 3 files changed, 8 insertions(+), 9 deletions(-)
+v2 changes:
+* split whitespace changes to a separate patch
+* address Sam's comments [1]
 
-diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
-index d955c8df62d6..1902db27ff4b 100644
---- a/arch/sparc/include/asm/prom.h
-+++ b/arch/sparc/include/asm/prom.h
-@@ -24,9 +24,6 @@
- #include <linux/atomic.h>
- #include <linux/irqdomain.h>
- 
--#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	2
--#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
--
- #define of_compat_cmp(s1, s2, l)	strncmp((s1), (s2), (l))
- #define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
- #define of_node_cmp(s1, s2)		strcmp((s1), (s2))
-diff --git a/drivers/of/of_private.h b/drivers/of/of_private.h
-index 216175d11d3d..5d1567025358 100644
---- a/drivers/of/of_private.h
-+++ b/drivers/of/of_private.h
-@@ -27,6 +27,14 @@ struct alias_prop {
- 	char stem[0];
- };
- 
-+#if defined(CONFIG_SPARC)
-+#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 2
-+#else
-+#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
-+#endif
-+
-+#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
-+
- extern struct mutex of_mutex;
- extern struct list_head aliases_lookup;
- extern struct kset *of_kset;
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 506beca9588d..49d85f670c75 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -247,12 +247,6 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
- #include <asm/prom.h>
- #endif
- 
--/* Default #address and #size cells.  Allow arch asm/prom.h to override */
--#if !defined(OF_ROOT_NODE_ADDR_CELLS_DEFAULT)
--#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
--#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
--#endif
--
- #define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
- #define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
- 
+[1] https://lkml.org/lkml/2018/8/2/403
+
+Mike Rapoport (3):
+  sparc: mm/init_32: kill trailing whitespace
+  sparc32: switch to NO_BOOTMEM
+  sparc32: split ramdisk detection and reservation to a helper function
+
+ arch/sparc/Kconfig      |   4 +-
+ arch/sparc/mm/init_32.c | 127 ++++++++++++++++++------------------------------
+ 2 files changed, 50 insertions(+), 81 deletions(-)
+
 -- 
-2.17.1
+2.7.4
+
