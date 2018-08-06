@@ -1,51 +1,191 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 29 Aug 2018 06:24:01 +0000
-Subject: [PATCH 3/3] of/platform: initialise AMBA default DMA masks
-Message-Id: <20180829062401.8701-4-hch@lst.de>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Mon, 06 Aug 2018 17:57:11 +0000
+Subject: [PATCH v6 11/11] hugetlb: Introduce generic version of huge_ptep_get
+Message-Id: <20180806175711.24438-12-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180829062401.8701-1-hch@lst.de>
-In-Reply-To: <20180829062401.8701-1-hch@lst.de>
+References: <20180806175711.24438-1-alex@ghiti.fr>
+In-Reply-To: <20180806175711.24438-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: Robin Murphy <robin.murphy@arm.com>, Meelis Roos <mroos@linux.ee>, Guenter Roeck <linux@roeck-us.net>, Linus Walleij <linus.walleij@linaro.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-From: Linus Walleij <linus.walleij@linaro.org>
+ia64, mips, parisc, powerpc, sh, sparc, x86 architectures use the
+same version of huge_ptep_get, so move this generic implementation into
+asm-generic/hugetlb.h.
 
-commit a5516219b102 ("of/platform: Initialise default DMA masks") sets up
-the coherent_dma_mask of platform devices created from the device tree,
-but fails to do the same for AMBA (PrimeCell) devices.
-
-This leads to a regression in kernel v4.19-rc1 triggering the
-WARN_ON_ONCE(dev && !dev->coherent_dma_mask) in dma_alloc_attrs().
-
-This regresses the PL111 DRM driver in drivers/gpu/drm/pl111 that uses
-the AMBA PrimeCell to instantiate the frame buffer device, as it cannot
-allocate a chunk of coherent memory anymore due to the missing mask.
-
-Fixes: a5516219b102 ("of/platform: Initialise default DMA masks")
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-[hch: added a comment, and droped a conditional that can't be true]
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Tested-by: Helge Deller <deller@gmx.de> # parisc
+Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
+Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
+Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- drivers/of/platform.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/include/asm/hugetlb-3level.h | 1 +
+ arch/arm64/include/asm/hugetlb.h      | 1 +
+ arch/ia64/include/asm/hugetlb.h       | 5 -----
+ arch/mips/include/asm/hugetlb.h       | 5 -----
+ arch/parisc/include/asm/hugetlb.h     | 5 -----
+ arch/powerpc/include/asm/hugetlb.h    | 5 -----
+ arch/sh/include/asm/hugetlb.h         | 5 -----
+ arch/sparc/include/asm/hugetlb.h      | 5 -----
+ arch/x86/include/asm/hugetlb.h        | 5 -----
+ include/asm-generic/hugetlb.h         | 7 +++++++
+ 10 files changed, 9 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 7ba90c290a42..6c59673933e9 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -241,6 +241,10 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
- 	if (!dev)
- 		goto err_clear_flag;
+diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
+index 54e4b097b1f5..0d9f3918fa7e 100644
+--- a/arch/arm/include/asm/hugetlb-3level.h
++++ b/arch/arm/include/asm/hugetlb-3level.h
+@@ -29,6 +29,7 @@
+  * ptes.
+  * (The valid bit is automatically cleared by set_pte_at for PROT_NONE ptes).
+  */
++#define __HAVE_ARCH_HUGE_PTEP_GET
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+ {
+ 	pte_t retval = *ptep;
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 80887abcef7f..fb6609875455 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -20,6 +20,7 @@
  
-+	/* AMBA devices only support a single DMA mask */
-+	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-+	dev->dev.dma_mask = &dev->dev.coherent_dma_mask;
+ #include <asm/page.h>
+ 
++#define __HAVE_ARCH_HUGE_PTEP_GET
+ static inline pte_t huge_ptep_get(pte_t *ptep)
+ {
+ 	return READ_ONCE(*ptep);
+diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
+index e9b42750fdf5..36cc0396b214 100644
+--- a/arch/ia64/include/asm/hugetlb.h
++++ b/arch/ia64/include/asm/hugetlb.h
+@@ -27,11 +27,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
+index 120adc3b2ffd..425bb6fc3bda 100644
+--- a/arch/mips/include/asm/hugetlb.h
++++ b/arch/mips/include/asm/hugetlb.h
+@@ -82,11 +82,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 	return changed;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
+index 165b4e5a6f32..7cb595dcb7d7 100644
+--- a/arch/parisc/include/asm/hugetlb.h
++++ b/arch/parisc/include/asm/hugetlb.h
+@@ -48,11 +48,6 @@ int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 					     unsigned long addr, pte_t *ptep,
+ 					     pte_t pte, int dirty);
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index 658bf7136a3c..33a2d9e3ea9e 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -142,11 +142,6 @@ extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 				      unsigned long addr, pte_t *ptep,
+ 				      pte_t pte, int dirty);
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
+index c87195ae0cfa..6f025fe18146 100644
+--- a/arch/sh/include/asm/hugetlb.h
++++ b/arch/sh/include/asm/hugetlb.h
+@@ -32,11 +32,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 028a1465fbe7..3963f80d1cb3 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -53,11 +53,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ 	return changed;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index 574d42eb081e..7469d321f072 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -13,11 +13,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 	return 0;
+ }
+ 
+-static inline pte_t huge_ptep_get(pte_t *ptep)
+-{
+-	return *ptep;
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index f3c99a03ee83..71d7b77eea50 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -119,4 +119,11 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
+ }
+ #endif
+ 
++#ifndef __HAVE_ARCH_HUGE_PTEP_GET
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++#endif
 +
- 	/* setup generic device info */
- 	dev->dev.of_node = of_node_get(node);
- 	dev->dev.fwnode = &node->fwnode;
+ #endif /* _ASM_GENERIC_HUGETLB_H */
 -- 
-2.18.0
+2.16.2
+
