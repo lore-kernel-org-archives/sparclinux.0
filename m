@@ -1,198 +1,279 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 03 Aug 2018 20:07:18 +0000
-Subject: Re: [PATCH 1/2] sparc32: switch to NO_BOOTMEM
-Message-Id: <20180803200718.GA7789@ravnborg.org>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Date: Mon, 06 Aug 2018 18:07:25 +0000
+Subject: Re: due to kconfig changes kernel config file is no longer sufficient for configuring the kernel
+Message-Id: <20180806200725.4efa5d35@kitsune.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1533210833-14748-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1533210833-14748-2-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1533210833-14748-2-git-send-email-rppt@linux.vnet.ibm.com>
+References: <20180627143705.5a1fed1c@kitsune.suse.cz>
+        <CAK7LNARVPNx_uC5xTrS_p9T4nMRTC79BO51T4Lytv2eU1c-ynw@mail.gmail.com>
+        <20180628111623.3807fe9b@naga.suse.cz>
+        <CAK7LNARRKU7Mfa8ZBu1qPFYFRr-5k69sjVyERM2bYcnWoBDN8g@mail.gmail.com>
+In-Reply-To: <CAK7LNARRKU7Mfa8ZBu1qPFYFRr-5k69sjVyERM2bYcnWoBDN8g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, Andreas Schwab <schwab@suse.de>, Michal Kubecek <mkubecek@suse.cz>, Michal Marek <michal.lkml@markovi.net>, Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, Kees Cook <keescook@chromium.org>, Philippe Ombredanne <pombredanne@nexb.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ulf Magnusson <ulfalizer@gmail.com>, Jeff Mahoney <jeffm@suse.com>, "Peter Zijlstra," <peterz@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Frederic Weisbecker <frederic@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Nicholas Piggin <npiggin@gmail.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-um@lists.infradead.org
 
-Hi Mike.
+On Mon, 30 Jul 2018 17:02:42 +0900
+Masahiro Yamada <yamada.masahiro@socionext.com> wrote:
 
-A nice simplification of the arch code - with a potential to do much more.
-Some review comments, see the following.
-
-	Sam
-
-On Thu, Aug 02, 2018 at 02:53:52PM +0300, Mike Rapoport wrote:
-> Each populated sparc_phys_bank is added to memblock.memory. The
-> reserve_bootmem() calls are replaced with memblock_reserve(), and the
-> bootmem bitmap initialization is droppped.
+> 2018-06-28 18:16 GMT+09:00 Michal Suchánek <msuchanek@suse.de>:
+> > On Wed, 27 Jun 2018 23:07:21 +0900
+> > Masahiro Yamada <yamada.masahiro@socionext.com> wrote:
+> >  
+> >> Hi.
+> >>
+> >>
+> >> 2018-06-27 21:37 GMT+09:00 Michal Suchánek <msuchanek@suse.de>:  
+> >> > Hello,
+> >> >
+> >> > in the x86 Kconfig we have this:
+> >> >
+> >> > # Select 32 or 64 bit
+> >> > config 64BIT
+> >> >         bool "64-bit kernel" if "$(ARCH)" = "x86"
+> >> >         default "$(ARCH)" != "i386"
+> >> >         ---help---
+> >> >           Say yes to build a 64-bit kernel - formerly known as
+> >> > x86_64 Say no to build a 32-bit kernel - formerly known as i386
+> >> >
+> >> > Since commit 104daea149c4 ("kconfig: reference environment
+> >> > variables directly and remove 'option env='") the value of ARCH
+> >> > is not saved in the kernel config.  
+> >>
+> >> I think this commit is unrelated.  It was just a syntax change.  
+> >
+> > This does not look like syntax only change to me:
+> >
+> > diff --git a/init/Kconfig b/init/Kconfig
+> > index 15aae32e0719..1217fc62ca61 100644
+> > --- a/init/Kconfig
+> > +++ b/init/Kconfig
+> > @@ -1,20 +1,12 @@
+> > -config ARCH
+> > -       string
+> > -       option env="ARCH"
+> > -
+> > -config KERNELVERSION
+> > -       string
+> > -       option env="KERNELVERSION"
+> > -  
 > 
-> Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-> ---
-> @@ -103,11 +104,15 @@ static unsigned long calc_max_low_pfn(void)
->  
->  unsigned long __init bootmem_init(unsigned long *pages_avail)
->  {
-> -	unsigned long bootmap_size, start_pfn;
-> +	unsigned long start_pfn;
->  	unsigned long end_of_phys_memory = 0UL;
-> -	unsigned long bootmap_pfn, bytes_avail, size;
-> +	unsigned long bytes_avail, size;
-> +	unsigned long high_pages = 0UL;
->  	int i;
-Variable definitions here, but assignments after definitions.
-And sort the variable definitions as inverse christmas tree.
-(Longest line first, sorter alpabetically if same length)
+> This is just syntax change.
+> 
+> 'option env=' was used to reference an environment variable.
+> 
+> Now, $(ARCH), $(KERNELVERSION) are simpler forms.
+> 
+> 
+> >>
+> >> Unless I am missing something,
+> >> we have never saved ARCH in the .config in the past.  
+> >
+> > There was a config symbol defined for it before the commit removed
+> > it.  
+> 
+> No.
+> 
+> CONFIG symbols with'option env='
+> are not written out to the .config file.
+> 
+> We have never had CONFIG_ARCH or CONFIG_KERNELVERSION.
+> 
+> 
+> 
+> 
+> >>
+> >>  
+> >> > Since commit f467c5640c29 ("kconfig: only write '#
+> >> > CONFIG_FOO is not set' for visible symbols") the value of 64BIT
+> >> > is not saved if the ARCH is set i386 or x86_64 because the
+> >> > symbol is not visible.  
+> >>
+> >> This is correct.
+> >>
+> >> It was discussed a few weeks ago.
+> >>
+> >> https://lkml.org/lkml/2018/6/5/847
+> >>
+> >>  
+> >> > There is a number of ways to hack this particular case to work.
+> >> >
+> >> > However, there is a more general problem with this. Some config
+> >> > options may depend on the environment, may not be saved, and the
+> >> > environment is not saved either.  
+> >>
+> >> Which environment variables in particular are in your mind?  
+> >
+> > Any that is used in Kconfig.  
+> 
+> They are provided from outside of Kconfig.
+> This is the behavior we keep since a long time ago.
+> 
+> ARCH is given by the environment variable or the command line.
+> KERNELVERSION is supplied by the top Makefile.
+> 
+> >>
+> >> As for ARCH, you need to pass the same ARCH as you used for
+> >> building the kernel. (For native building, you do not have to pass
+> >> ARCH explicitly, though.)  
+> >
+> > Except if you do pass it to make config you may need to pass it to
+> > to make later as well.  
+> 
+> Right.
+> 
+> For exmaple 'make ARCH=arm config' will create the config suitable
+> only for ARM architecture.
+> Then, you need to do 'make ARCH=arm' to build the kernel.
+> 
+> If it is tedious to give 'ARCH=arm' to every make command,
+> you can do 'export ARCH=arm' in your shell.
+> 
+> Again, this is the behavior we have for a long time.
 
-No reason to use "0UL" for simple zero assignments.
+No, that's not what we had. The kernel build would fail instead of
+reconfiguring the kernel for the current arch. At least it used to work
+that way at some point.
 
->  
-> +	memblock_set_bottom_up(true);
-> +	memblock_allow_resize();
-> +
->  	bytes_avail = 0UL;
->  	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
->  		end_of_phys_memory = sp_banks[i].base_addr +
-> @@ -124,12 +129,15 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
->  				if (sp_banks[i].num_bytes = 0) {
->  					sp_banks[i].base_addr = 0xdeadbeef;
->  				} else {
-> +					memblock_add(sp_banks[i].base_addr,
-> +						     sp_banks[i].num_bytes);
->  					sp_banks[i+1].num_bytes = 0;
->  					sp_banks[i+1].base_addr = 0xdeadbeef;
->  				}
->  				break;
->  			}
->  		}
-> +		memblock_add(sp_banks[i].base_addr, sp_banks[i].num_bytes);
+> 
+> 
+> 
+> >>
+> >> As for CC, HOSTCC, etc.
+> >> yes, these are new 'unsaved' environments.
+> >>
+> >> CONFIG options now depend on the compiler.
+> >> This is the concept suggested by Linus Torvalds.
+> >>
+> >>  
+> >> > So in the end all the infrastructure with symlinks
+> >> > from module directory pointing to the kernel source and object
+> >> > directory is useless. To interpret the config stored there you
+> >> > need the environment and that is not saved anywhere. So if you
+> >> > try to build out-of-tree module it might end up reconfiguring
+> >> > your kernel and producing useless modules.  
+> >>
+> >> No. out-of-tree module building never ever re-configures the
+> >> kernel.  
+> >
+> > It does implicitly because the config values depend on environment
+> > that is not saved and the values themselves are not saved either.
+> > If that happens to expose a new variable it is even explicitly
+> > reconfigured.  
+> 
+> 
+> You should have a built kernel tree
+> before building external modules.
+> 
+> The .config is already there.
+> 
+> The .config works for external modules, given that
+> 
+>   - ARCH is the same
+>   - the compiler is the same
 
-This parts looks OK.
-You add the memory blocks to memblock that are relevant, and
-ignore the block above a possible limit from the command
-line (cmdline_memory_size).
+ - the compiler additional plugins and/or external libraries used to
+   implement advanced features are the same
 
->  	}
->  
->  	/* Start with page aligned address of last symbol in kernel
-> @@ -140,8 +148,6 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
->  	/* Now shift down to get the real physical page frame number. */
->  	start_pfn >>= PAGE_SHIFT;
->  
-> -	bootmap_pfn = start_pfn;
-> -
-OK, this is a bootmem artifact.
+> 
+> 
+> 
+> >>
+> >> out-of-tree modules are built with exactly the same configuration
+> >> as used for the kernel.  
+> >
+> > It is not true. And that is the problem. You need the config file
+> > and dump of the environment passed to the make command at
+> > configuration time to get the exact same configuration. The
+> > environment is not saved anywhere, though.  
+> 
+> 
+> Why dump of the environment?
+> 
+> 
+> If you are building external modules natively
+> your distribution provides /lib/modules/$(uname -r)/build,
+> which contains files enough for building external modules.
+> 
+> You can pass the directory path to M=... parameter.  That's it.
+
+No, that's not it. Since passing ARCH=i386 is the de-facto standard to
+configure a 32bit kernel and the result of passing that was not saved
+you need to pass it to make as well. And you need to patch a number of
+3rd party build scripts that build a kernel module as part of a bigger
+project.
+
+> 
+> 
+> 
+> If you are cross-building external modules,
+> you also need to
+> 
+>  - pass ARCH>  - use the same compiler with CROSS_COMPILE> 
+> You should know both
+> because you have built the kernel by your self.
+
+No, I am not cross-compiling. I am building 32bit modules and because
+the kconfig system did not save the information that the kernel is
+32bit I get 64bit modules instead.
+
+> 
+> You do not need any other information, do you?
+
+I need the information what ARCH was passed to the x86 kernel at
+configuration time when building on x86. This is new.
+
+To avoid this and similar surprises in the future I suggest to flag any
+option that depends on something dynamic (compiler option, environment
+variable) so that kconfig saves it even if it would not be saved
+otherwise.
+
+Then kconfig can do whatever seems sensible for oldconfig but
+syncconfig should not change any options based on dynamic input. It
+should verify that the option matches (ie compiler can accept -foobar
+if the option is on and defaults to cc-option -foobar) and fail if it
+does not.
 
 
->  	max_pfn = end_of_phys_memory >> PAGE_SHIFT;
->  
->  	max_low_pfn = max_pfn;
-> @@ -150,12 +156,16 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
->  	if (max_low_pfn > pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT)) {
->  		highstart_pfn = pfn_base + (SRMMU_MAXMEM >> PAGE_SHIFT);
->  		max_low_pfn = calc_max_low_pfn();
-> +		high_pages = calc_highpages();
->  		printk(KERN_NOTICE "%ldMB HIGHMEM available.\n",
-> -		    calc_highpages() >> (20 - PAGE_SHIFT));
-> +		    high_pages >> (20 - PAGE_SHIFT));
-This change looked un-related, but you need high_pages later. OK
+> 
+> > And it went nowhere.
+> >
+> > Anyway, the observed issue with CONFIG_64BIT on x86 is the tip of a
+> > larger problem which was unnoticed for ages. The .config simply does
+> > not contain the whole kernel configuration. ie. make oldconfig (and
+> > make syncconfig) is *not* expected to just work. It used to work
+> > just by luck until f467c5640c29 ("kconfig: only write '# CONFIG_FOO
+> > is not set' for visible symbols") finally exposed the problem.  
+> 
+> If you want to build the kernel for an architecture
+> other than the host machine architecture, you need to pass ARCH=.
+> 
+> Building the i386 kernel on a x86_64 machine, it is a _kind_ of
+> cross-compiling. So, passing ARCH=i386 is not so weird.
+> 
+> 
+> > So is .config supposed to contain the kernel configuration or is it
+> > just some byproduct of the kernel build which is meaningless
+> > outside of your build environment (the object tree, shell
+> > environment, etc).  
+> 
+> The .config is supposed to contain the kernel configuration,
+> 'ARCH' and the compiler are exceptions.
+> 
+> 'ARCH' must be passed separately.
+> 
+> The .config now depends on the compiler.  So, if you pass your .config
+> to somebody else, some symbols that depend on the compiler support
+> might be configured differently.
+> 
+> 'make syncconfig' will notice the compiler difference,
+> and show prompts for user input as needed.
 
->  	}
->  
->  #ifdef CONFIG_BLK_DEV_INITRD
-> -	/* Now have to check initial ramdisk, so that bootmap does not overwrite it */
-> +	/*
-> +	 * Now have to check initial ramdisk, so that it won't pass
-> +	 * the end of memory
-> +	 */
-This is a reformatting of a comment but you remove the "bootmap" reference.
-Please reformat comment to saprc style. No empty "/*" so it should look like this:
-	/* Now have to check initial ramdisk, so that it won't pass
-	 * the end of memory
-	 */
+It should not prompt. I want to build the kernel non-interactively. I
+do not want kernel rpm build to wait for user input or silently
+change the kernel ABI just because I installed a new gcc plugin. 
 
->  	if (sparc_ramdisk_image) {
->  		if (sparc_ramdisk_image >= (unsigned long)&_end - 2 * PAGE_SIZE)
->  			sparc_ramdisk_image -= KERNBASE;
-> @@ -167,67 +177,25 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
->  			       initrd_end, end_of_phys_memory);
->  			initrd_start = 0;
->  		}
-> -		if (initrd_start) {
-> -			if (initrd_start >= (start_pfn << PAGE_SHIFT) &&
-> -			    initrd_start < (start_pfn << PAGE_SHIFT) + 2 * PAGE_SIZE)
-> -				bootmap_pfn = PAGE_ALIGN (initrd_end) >> PAGE_SHIFT;
-> -		}
->  	}
-> -#endif	
-> -	/* Initialize the boot-time allocator. */
-> -	bootmap_size = init_bootmem_node(NODE_DATA(0), bootmap_pfn, pfn_base,
-> -					 max_low_pfn);
-> -
-> -	/* Now register the available physical memory with the
-> -	 * allocator.
-> -	 */
-> -	*pages_avail = 0;
-> -	for (i = 0; sp_banks[i].num_bytes != 0; i++) {
-> -		unsigned long curr_pfn, last_pfn;
-> -
-> -		curr_pfn = sp_banks[i].base_addr >> PAGE_SHIFT;
-> -		if (curr_pfn >= max_low_pfn)
-> -			break;
-> -
-> -		last_pfn = (sp_banks[i].base_addr + sp_banks[i].num_bytes) >> PAGE_SHIFT;
-> -		if (last_pfn > max_low_pfn)
-> -			last_pfn = max_low_pfn;
-> -
-> -		/*
-> -		 * .. finally, did all the rounding and playing
-> -		 * around just make the area go away?
-> -		 */
-> -		if (last_pfn <= curr_pfn)
-> -			continue;
-> +#endif
->  
-> -		size = (last_pfn - curr_pfn) << PAGE_SHIFT;
-> -		*pages_avail += last_pfn - curr_pfn;
-> -
-> -		free_bootmem(sp_banks[i].base_addr, size);
-> -	}
-Good to see all this code gone.
+Thanks
 
-> +	*pages_avail = (memblock_phys_mem_size() >> PAGE_SHIFT) - high_pages;
-Can we do this simpler?
-memblock knows the amount of memory not reserved.
-So we can ask memblock for the amount of non-reserved memory
-at the end of this function and then we have the result.
-Then we do not have to maintain pages_avail in the following code.
-
->  
->  #ifdef CONFIG_BLK_DEV_INITRD
->  	if (initrd_start) {
->  		/* Reserve the initrd image area. */
->  		size = initrd_end - initrd_start;
-> -		reserve_bootmem(initrd_start, size, BOOTMEM_DEFAULT);
-> +		memblock_reserve(initrd_start, size);
->  		*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
->  
->  		initrd_start = (initrd_start - phys_base) + PAGE_OFFSET;
-> -		initrd_end = (initrd_end - phys_base) + PAGE_OFFSET;		
-> +		initrd_end = (initrd_end - phys_base) + PAGE_OFFSET;
-This is a pure white space change, but leave it in.
-
->  	}
->  #endif
->  	/* Reserve the kernel text/data/bss. */
->  	size = (start_pfn << PAGE_SHIFT) - phys_base;
-> -	reserve_bootmem(phys_base, size, BOOTMEM_DEFAULT);
-> -	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
-> -
-> -	/* Reserve the bootmem map.   We do not account for it
-> -	 * in pages_avail because we will release that memory
-> -	 * in free_all_bootmem.
-> -	 */
-> -	size = bootmap_size;
-> -	reserve_bootmem((bootmap_pfn << PAGE_SHIFT), size, BOOTMEM_DEFAULT);
-> +	memblock_reserve(phys_base, size);
->  	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
->  
->  	return max_pfn;
-> -- 
-> 2.7.4
+Michal
