@@ -1,32 +1,22 @@
-From: "Ruby" <jeffsate@theheadsetcompany.com>
-Date: Tue, 28 Aug 2018 13:55:18 +0000
-Subject: Waiting for
-Message-Id: <c5cb06ffe435263873dc959ee2c3e3c3@racingradios.com>
+From: "Julian Jones" <levistonys@hoylelamps.com>
+Date: Wed, 08 Aug 2018 11:25:58 +0000
+Subject: have editing
+Message-Id: <0115c09b26ab5065ced211f0a3c2315e@opsgear.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-We provide photoshop services to some of the companies from around the
-world.
-We have worked on tons of images ever since our team establishment in 2009.
+You have needs for image editing for our studio?
+Our studio does different image editing for e-commerce photos, jewelry
+images, and portrait mages.
 
-Many online retail companies use our services for retouching electronics,
-jewelry, apparels, furniture
-etc. by getting the images of their products enhanced.
+It includes cutting out and clipping path and the others, like retouching
+etc.
 
-Here are the details of what we provide:
-Clipping path;
-Deep etch process
-Image masking
-Remove background
-Portrait retouching
-Jewelry retouching
-Fashion retouching
-
-Please reply back for further info.
-We can provide testing for your photos if needed.
+Drop us a photo, testing will be provided.
 
 Thanks,
-Ruby
+Julian
+
