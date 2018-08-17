@@ -1,27 +1,133 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 22 Aug 2018 06:03:26 +0000
-Subject: Re: [PATCH v3] sparc: use generic dma_noncoherent_ops
-Message-Id: <20180822060326.GA18493@lst.de>
+From: Mikulas Patocka <mpatocka@redhat.com>
+Date: Fri, 17 Aug 2018 19:19:37 +0000
+Subject: [PATCH] mach64: detect the dot clock divider correctly on sparc
+Message-Id: <alpine.LRH.2.02.1808171515550.31883@file01.intranet.prod.int.rdu2.redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180803074840.GA2763@lst.de>
-	<20180821.123800.1007897552850427796.davem@davemloft.net>
-	<20180822053613.GA17836@lst.de>
-	<20180821.225737.2130615341518333532.davem@davemloft.net>
-In-Reply-To: <20180821.225737.2130615341518333532.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sam-uyr5N9Q2VtJg9hUCZPvPmw@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, dri-devel@lists.freedesktop.org
 
-On Tue, Aug 21, 2018 at 10:57:37PM -0700, David Miller wrote:
-> From: Christoph Hellwig <hch@lst.de>
-> Date: Wed, 22 Aug 2018 07:36:13 +0200
-> 
-> > I fear you have already pushed out your tree, but otherwise it would
-> > be better do merge it through the dma-mapping tree.
-> 
-> I did and asked Linus to pull as well.  Sorry :-/
+On Sun Ultra 5, it happens that the dot clock is not set up properly for
+some videomodes. For example, if we set the videomode "r1024x768x60" in
+the firmware, Linux would incorrectly set a videomode with refresh rate
+180Hz when booting (suprisingly, my LCD monitor can display it, although
+display quality is very low).
 
-Oh, if you pushed that for 4.19 that is actually perfect to prepare
-for my 4.20 changes.  Never mind the interruption!
+The reason is this: Older mach64 cards set the divider in the register
+VCLK_POST_DIV. The register has four 2-bit fields (the field that is
+actually used is specified in the lowest two bits of the register
+CLOCK_CNTL). The 2 bits select divider "1, 2, 4, 8". On newer mach64 cards,
+there's another bit added - the top four bits of PLL_EXT_CNTL extend the
+divider selection, so we have possible dividers "1, 2, 4, 8, 3, 5, 6, 12".
+The Linux driver clears the top four bits of PLL_EXT_CNTL and never sets
+them, so it can work regardless if the card supports them. However, the
+sparc64 firmware may set these extended dividers during boot - and the
+mach64 driver detects incorrect dot clock in this case.
+
+This patch makes the driver read the additional divider bit from
+PLL_EXT_CNTL and calculate the initial refresh rate properly.
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+Cc: stable@vger.kernel.org
+
+---
+ drivers/video/fbdev/aty/atyfb.h      |    3 ++-
+ drivers/video/fbdev/aty/atyfb_base.c |    7 ++++---
+ drivers/video/fbdev/aty/mach64_ct.c  |   10 +++++-----
+ 3 files changed, 11 insertions(+), 9 deletions(-)
+
+Index: linux-stable/drivers/video/fbdev/aty/atyfb.h
+=================================--- linux-stable.orig/drivers/video/fbdev/aty/atyfb.h	2018-08-13 21:12:11.000000000 +0200
++++ linux-stable/drivers/video/fbdev/aty/atyfb.h	2018-08-13 21:17:14.000000000 +0200
+@@ -333,6 +333,8 @@ extern const struct aty_pll_ops aty_pll_
+ extern void aty_set_pll_ct(const struct fb_info *info, const union aty_pll *pll);
+ extern u8 aty_ld_pll_ct(int offset, const struct atyfb_par *par);
+ 
++extern const u8 aty_postdividers[8];
++
+ 
+     /*
+      *  Hardware cursor support
+@@ -359,7 +361,6 @@ static inline void wait_for_idle(struct
+ 
+ extern void aty_reset_engine(const struct atyfb_par *par);
+ extern void aty_init_engine(struct atyfb_par *par, struct fb_info *info);
+-extern u8   aty_ld_pll_ct(int offset, const struct atyfb_par *par);
+ 
+ void atyfb_copyarea(struct fb_info *info, const struct fb_copyarea *area);
+ void atyfb_fillrect(struct fb_info *info, const struct fb_fillrect *rect);
+Index: linux-stable/drivers/video/fbdev/aty/atyfb_base.c
+=================================--- linux-stable.orig/drivers/video/fbdev/aty/atyfb_base.c	2018-08-13 21:12:11.000000000 +0200
++++ linux-stable/drivers/video/fbdev/aty/atyfb_base.c	2018-08-13 21:22:23.000000000 +0200
+@@ -3087,17 +3087,18 @@ static int atyfb_setup_sparc(struct pci_
+ 		/*
+ 		 * PLL Reference Divider M:
+ 		 */
+-		M = pll_regs[2];
++		M = pll_regs[PLL_REF_DIV];
+ 
+ 		/*
+ 		 * PLL Feedback Divider N (Dependent on CLOCK_CNTL):
+ 		 */
+-		N = pll_regs[7 + (clock_cntl & 3)];
++		N = pll_regs[VCLK0_FB_DIV + (clock_cntl & 3)];
+ 
+ 		/*
+ 		 * PLL Post Divider P (Dependent on CLOCK_CNTL):
+ 		 */
+-		P = 1 << (pll_regs[6] >> ((clock_cntl & 3) << 1));
++		P = aty_postdividers[((pll_regs[VCLK_POST_DIV] >> ((clock_cntl & 3) << 1)) & 3) |
++		                     ((pll_regs[PLL_EXT_CNTL] >> (2 + (clock_cntl & 3))) & 4)];
+ 
+ 		/*
+ 		 * PLL Divider Q:
+Index: linux-stable/drivers/video/fbdev/aty/mach64_ct.c
+=================================--- linux-stable.orig/drivers/video/fbdev/aty/mach64_ct.c	2018-08-13 21:12:11.000000000 +0200
++++ linux-stable/drivers/video/fbdev/aty/mach64_ct.c	2018-08-13 21:35:32.000000000 +0200
+@@ -115,7 +115,7 @@ static void aty_st_pll_ct(int offset, u8
+  */
+ 
+ #define Maximum_DSP_PRECISION 7
+-static u8 postdividers[] = {1,2,4,8,3};
++const u8 aty_postdividers[8] = {1,2,4,8,3,5,6,12};
+ 
+ static int aty_dsp_gt(const struct fb_info *info, u32 bpp, struct pll_ct *pll)
+ {
+@@ -222,7 +222,7 @@ static int aty_valid_pll_ct(const struct
+ 		pll->vclk_post_div += (q <  64*8);
+ 		pll->vclk_post_div += (q <  32*8);
+ 	}
+-	pll->vclk_post_div_real = postdividers[pll->vclk_post_div];
++	pll->vclk_post_div_real = aty_postdividers[pll->vclk_post_div];
+ 	//    pll->vclk_post_div <<= 6;
+ 	pll->vclk_fb_div = q * pll->vclk_post_div_real / 8;
+ 	pllvclk = (1000000 * 2 * pll->vclk_fb_div) /
+@@ -513,7 +513,7 @@ static int aty_init_pll_ct(const struct
+ 		u8 mclk_fb_div, pll_ext_cntl;
+ 		pll->ct.pll_ref_div = aty_ld_pll_ct(PLL_REF_DIV, par);
+ 		pll_ext_cntl = aty_ld_pll_ct(PLL_EXT_CNTL, par);
+-		pll->ct.xclk_post_div_real = postdividers[pll_ext_cntl & 0x07];
++		pll->ct.xclk_post_div_real = aty_postdividers[pll_ext_cntl & 0x07];
+ 		mclk_fb_div = aty_ld_pll_ct(MCLK_FB_DIV, par);
+ 		if (pll_ext_cntl & PLL_MFB_TIMES_4_2B)
+ 			mclk_fb_div <<= 1;
+@@ -535,7 +535,7 @@ static int aty_init_pll_ct(const struct
+ 		xpost_div += (q <  64*8);
+ 		xpost_div += (q <  32*8);
+ 	}
+-	pll->ct.xclk_post_div_real = postdividers[xpost_div];
++	pll->ct.xclk_post_div_real = aty_postdividers[xpost_div];
+ 	pll->ct.mclk_fb_div = q * pll->ct.xclk_post_div_real / 8;
+ 
+ #ifdef CONFIG_PPC
+@@ -584,7 +584,7 @@ static int aty_init_pll_ct(const struct
+ 			mpost_div += (q <  64*8);
+ 			mpost_div += (q <  32*8);
+ 		}
+-		sclk_post_div_real = postdividers[mpost_div];
++		sclk_post_div_real = aty_postdividers[mpost_div];
+ 		pll->ct.sclk_fb_div = q * sclk_post_div_real / 8;
+ 		pll->ct.spll_cntl2 = mpost_div << 4;
+ #ifdef DEBUG
