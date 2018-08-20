@@ -1,35 +1,51 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 03 Aug 2018 20:18:16 +0000
-Subject: Re: [PATCH 2/2] sparc32: tidy up ramdisk memory reservation
-Message-Id: <20180803201816.GB7789@ravnborg.org>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 20 Aug 2018 17:08:28 +0000
+Subject: [PATCH] sparc: fix KBUILD_DEFCONFIG for ARCH=sparc32
+Message-Id: <1534784908-11692-1-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1533210833-14748-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1533210833-14748-3-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1533210833-14748-3-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Randy Dunlap <rdunlap@infradead.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, linux-kernel@vger.kernel.org
 
-Hi Mike.
+As commit 5ba800962a80 ("kbuild: update ARCH alias info for sparc")
+addressed, SPARC accepts ARCH=sparc32 as an alias.
 
-On Thu, Aug 02, 2018 at 02:53:53PM +0300, Mike Rapoport wrote:
-> The detection and reservation of ramdisk memory were separated to allow
-> bootmem bitmap initialization after the ramdisk boundaries are detected.
-> Since the bootmem initialization is removed, the reservation of ramdisk
-> memory can be done immediately after its boundaries are found.
+However, arch/sparc/Makefile wrongly sets KBUILD_DEFCONFIG, then
+sparc64_defconfig is chosen as the base configuration for ARCH=sparc32.
 
-When touching this area could you look
-at introducing a find_ramdisk() function like
-we do for sparc64?
-It is always nice when the codebases look alike.
-Then you could combine your simplification
-with some refactoring that further increases
-readability.
+  $ make ARCH=sparc32 defconfig
+  *** Default configuration is based on 'sparc64_defconfig'
+  #
+  # configuration written to .config
+  #
 
-See:
-https://patchwork.ozlabs.org/patch/151194/
-for my attempt from long time ago.
+Fix the logic to choose sparc64_defconfig only when ARCH=sparc64.
 
-	Sam
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
+
+ arch/sparc/Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 966a13d..e32ef20 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -9,10 +9,10 @@
+ # Copyright (C) 1998 Jakub Jelinek (jj@ultra.linux.cz)
+ 
+ # We are not yet configured - so test on arch
+-ifeq ($(ARCH),sparc)
+-        KBUILD_DEFCONFIG := sparc32_defconfig
+-else
++ifeq ($(ARCH),sparc64)
+         KBUILD_DEFCONFIG := sparc64_defconfig
++else
++        KBUILD_DEFCONFIG := sparc32_defconfig
+ endif
+ 
+ ifeq ($(CONFIG_SPARC32),y)
+-- 
+2.7.4
