@@ -1,26 +1,57 @@
-From: jose_mera@hmha.gob.ec
-Date: Tue, 28 Aug 2018 12:29:38 +0000
-Subject: =?utf-8?b?V29obHTDpHRpZ2tlaXRzc3BlbmRlIGluIEjDtmhlIHZvbiDigqwgMi4wMDAu?= =?utf-8?q?000=2C00?=
-Message-Id: <20180828122949.B80831F06C9D@mail.hmha.gob.ec>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Aug 2018 05:16:12 +0000
+Subject: [GIT] Sparc
+Message-Id: <20180821.221612.1820997428691874754.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180506152654.C43A9843D13@mail.ithb.ac.id>
-In-Reply-To: <20180506152654.C43A9843D13@mail.ithb.ac.id>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Lieber Freund,
- 
-Ich bin Herr Tayeb Souami, New Jersey, Vereinigte Staaten von Amerika, der Mega-Gewinner von $ 315million In Mega Millions Jackpot, spende ich an 5 zufällige Personen, wenn Sie diese E-Mail erhalten, dann wurde Ihre E-Mail nach einem Spinball ausgewählt.Ich habe den größten Teil meines Vermögens auf eine Reihe von Wohltätigkeitsorganisationen und Organisationen verteilt.Ich habe mich freiwillig dazu entschieden, die Summe von € 2.000.000,00 an Sie als eine der ausgewählten 5 zu spenden, um meine Gewinne zu überprüfen, sehen Sie bitte meine You Tube Seite unten.
- 
-UHR MICH HIER: https://www.youtube.com/watch?v=Z6ui8ZDQ6Ks
- 
-Das ist dein Spendencode: [DFC530342018]
- 
-Antworten Sie mit dem SPENDE-CODE an diese E-Mail: financialfundingcompany09@gmail.com
- 
-Ich hoffe, Sie und Ihre Familie glücklich zu machen.
- 
-Grüße
-Herr Tayeb Souami
+
+Nothing super serious:
+
+1) Convert sparc32 over to NO_BOOTMEM, from Mike Rapoport.
+
+2) Use dma_noncoherent_ops on sparc32, from Christoph Hellwig
+
+3) Fix kbuild defconfig handling on sparc32, from Masahiro Yamada.
+
+Please pull, thanks a lot.
+
+The following changes since commit 778a33959a8ad4cb1ea2f4c5119f9e1e8b9f9d9b:
+
+  Merge tag 'please-pull-noboot' of git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux (2018-08-20 19:37:09 -0700)
+
+are available in the Git repository at:
+
+  gitolite@ra.kernel.org:/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to c84ca616b1260949782f408271336f0eda056c61:
+
+  sparc: fix KBUILD_DEFCONFIG for ARCH=sparc32 (2018-08-21 12:41:12 -0700)
+
+----------------------------------------------------------------
+Christoph Hellwig (1):
+      sparc: use generic dma_noncoherent_ops
+
+David S. Miller (1):
+      Merge branch 'sparc32-NO_BOOTMEM'
+
+Masahiro Yamada (1):
+      sparc: fix KBUILD_DEFCONFIG for ARCH=sparc32
+
+Mike Rapoport (3):
+      sparc: mm/init_32: kill trailing whitespace
+      sparc32: switch to NO_BOOTMEM
+      sparc32: split ramdisk detection and reservation to a helper function
+
+ arch/sparc/Kconfig                   |   6 ++--
+ arch/sparc/Makefile                  |   6 ++--
+ arch/sparc/include/asm/dma-mapping.h |   5 ++-
+ arch/sparc/kernel/ioport.c           | 193 +++++++++++++++++---------------------------------------------------------------------------------------
+ arch/sparc/mm/init_32.c              | 127 ++++++++++++++++++++++++++------------------------------------------
+ 5 files changed, 88 insertions(+), 249 deletions(-)
