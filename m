@@ -1,36 +1,60 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Wed, 01 Aug 2018 11:50:49 +0000
-Subject: Re: [PATCH v5 00/11] hugetlb: Factorize hugetlb architecture primitives
-Message-Id: <1cee9f98-4cff-3e42-6cc8-088310e406d9@ghiti.fr>
+From: "Fredrick Dougan" <vdk28189@tatamotors.com>
+Date: Wed, 22 Aug 2018 19:20:44 +0000
+Subject: Inquiry
+Message-Id: <BM1PR01MB03225E14BA15AF5688E0CCDAEE300@BM1PR01MB0322.INDPRD01.PROD.OUTLOOK.COM>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180731060155.16915-1-alex@ghiti.fr>
- <20180731160640.11306628@doriath>
-In-Reply-To: <20180731160640.11306628@doriath>
+References: <8458eca861a4f66e1a3a7e7bd3797fa0@torostrade.net>
+In-Reply-To: <8458eca861a4f66e1a3a7e7bd3797fa0@torostrade.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-On 07/31/2018 10:06 PM, Luiz Capitulino wrote:
-> On Tue, 31 Jul 2018 06:01:44 +0000
-> Alexandre Ghiti <alex@ghiti.fr> wrote:
->
->> [CC linux-mm for inclusion in -mm tree]
->>
->> In order to reduce copy/paste of functions across architectures and then
->> make riscv hugetlb port (and future ports) simpler and smaller, this
->> patchset intends to factorize the numerous hugetlb primitives that are
->> defined across all the architectures.
-> [...]
->
->>   15 files changed, 139 insertions(+), 382 deletions(-)
-> I imagine you're mostly interested in non-x86 review at this point, but
-> as this series is looking amazing:
->
-> Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Hello,
 
-It's always good to have another feedback :)
-Thanks for your review Luiz,
+I write to you for a purpose of investment. I work in a Bank in London, United Kingdom; my name is Mr. Fredrick Dougan . I am contacting you regarding for an Investment project that I will like to establish in your Country. Due to the sensitivity of my position, I am seeking for a firm or an individual such as yourself who has the experience and capacity to receive assets and re-invest it into a good and lucrative investment you will recommend.
 
-Alex
+Kindly let me know your acceptance to this offer.
+
+Also you should furnish me with full comprehensive draft of your terms and conditions. I also need to know about the area or idea of investment plans you are to propose.
+
+Once I am  convinced on your capacity to handle these assets we will then provide you with all necessary information including the unmentioned amount  involved.
+
+Sincerely yours,
+Mr. Fredrick Dougan
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+******************************************************************************************************************************************************** "This e-Mail may contain proprietary and confidential information and is sent for the intended recipient(s) only. If, by an addressing or transmission error, this mail has been misdirected to you, you are requested to delete this mail immediately. You are also hereby notified that any use, any form of reproduction, dissemination, copying, disclosure, modification, distribution and/or publication of this e-mail message, contents or its attachment(s) other than by its intended recipient(s) is strictly prohibited. Any opinions expressed in this email are those of the individual and not necessarily of the organization. Before opening attachment(s), please scan for viruses." ********************************************************************************************************************************************************
