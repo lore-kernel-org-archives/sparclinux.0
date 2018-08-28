@@ -1,197 +1,309 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Mon, 06 Aug 2018 17:57:03 +0000
-Subject: [PATCH v6 03/11] hugetlb: Introduce generic version of set_huge_pte_at
-Message-Id: <20180806175711.24438-4-alex@ghiti.fr>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 28 Aug 2018 15:44:32 +0000
+Subject: [PATCH v2] sparc: Convert to using %pOFn instead of device_node.name
+Message-Id: <20180828154433.5693-6-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180806175711.24438-1-alex@ghiti.fr>
-In-Reply-To: <20180806175711.24438-1-alex@ghiti.fr>
+References: <20180828154433.5693-1-robh@kernel.org>
+In-Reply-To: <20180828154433.5693-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+To: linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-arm, ia64, mips, powerpc, sh, x86 architectures use the
-same version of set_huge_pte_at, so move this generic
-implementation into asm-generic/hugetlb.h.
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Tested-by: Helge Deller <deller@gmx.de> # parisc
-Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
-Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
-Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/arm/include/asm/hugetlb-3level.h | 6 ------
- arch/arm64/include/asm/hugetlb.h      | 1 +
- arch/ia64/include/asm/hugetlb.h       | 6 ------
- arch/mips/include/asm/hugetlb.h       | 6 ------
- arch/parisc/include/asm/hugetlb.h     | 1 +
- arch/powerpc/include/asm/hugetlb.h    | 6 ------
- arch/sh/include/asm/hugetlb.h         | 6 ------
- arch/sparc/include/asm/hugetlb.h      | 1 +
- arch/x86/include/asm/hugetlb.h        | 6 ------
- include/asm-generic/hugetlb.h         | 8 +++++++-
- 10 files changed, 10 insertions(+), 37 deletions(-)
+v2:
+- snprint -> snprintf typo fix
 
-diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
-index d4014fbe5ea3..398fb06e8207 100644
---- a/arch/arm/include/asm/hugetlb-3level.h
-+++ b/arch/arm/include/asm/hugetlb-3level.h
-@@ -37,12 +37,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
- 	return retval;
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index 4af1a800a900..874661a1dff1 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -60,6 +60,7 @@ static inline void arch_clear_hugepage_flags(struct page *page)
- extern pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
- 				struct page *page, int writable);
- #define arch_make_huge_pte arch_make_huge_pte
-+#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
- extern void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 			    pte_t *ptep, pte_t pte);
- extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index afe9fa4d969b..a235d6f60fb3 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -20,12 +20,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- 		REGION_NUMBER((addr)+(len)-1) = RGN_HPAGE);
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 53764050243e..8ea439041d5d 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -36,12 +36,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index 28c23b68d38d..77c8adbac7c3 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -4,6 +4,7 @@
- 
- #include <asm/page.h>
- 
-+#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte);
- 
-diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
-index a7d5c739df9b..0794b53439d4 100644
---- a/arch/powerpc/include/asm/hugetlb.h
-+++ b/arch/powerpc/include/asm/hugetlb.h
-@@ -132,12 +132,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index f6a51b609409..bc552e37c1c9 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -25,12 +25,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 59d89b52ccb7..16b0c53ea6c9 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -12,6 +12,7 @@ struct pud_huge_patch_entry {
- extern struct pud_huge_patch_entry __pud_huge_patch, __pud_huge_patch_end;
- #endif
- 
-+#define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte);
- 
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index 398da3b3414c..8db9a761964d 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -28,12 +28,6 @@ static inline int prepare_hugepage_range(struct file *file,
- 	return 0;
- }
- 
--static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--				   pte_t *ptep, pte_t pte)
--{
--	set_pte_at(mm, addr, ptep, pte);
--}
--
- static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 					    unsigned long addr, pte_t *ptep)
- {
-diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
-index c697ca9dda18..ee010b756246 100644
---- a/include/asm-generic/hugetlb.h
-+++ b/include/asm-generic/hugetlb.h
-@@ -47,8 +47,14 @@ static inline void hugetlb_free_pgd_range(struct mmu_gather *tlb,
- {
- 	free_pgd_range(tlb, addr, end, floor, ceiling);
- }
-+#endif
- 
--
-+#ifndef __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
-+static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+		pte_t *ptep, pte_t pte)
-+{
-+	set_pte_at(mm, addr, ptep, pte);
-+}
- #endif
- 
- #endif /* _ASM_GENERIC_HUGETLB_H */
--- 
-2.16.2
+ arch/sparc/kernel/auxio_64.c |  4 +--
+ arch/sparc/kernel/power.c    |  4 +--
+ arch/sparc/kernel/prom_32.c  | 26 +++++++-------
+ arch/sparc/kernel/prom_64.c  | 68 ++++++++++++++++++------------------
+ 4 files changed, 51 insertions(+), 51 deletions(-)
 
+diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
+index 4e8f56c3793c..cc42225c20f3 100644
+--- a/arch/sparc/kernel/auxio_64.c
++++ b/arch/sparc/kernel/auxio_64.c
+@@ -115,8 +115,8 @@ static int auxio_probe(struct platform_device *dev)
+ 		auxio_devtype = AUXIO_TYPE_SBUS;
+ 		size = 1;
+ 	} else {
+-		printk("auxio: Unknown parent bus type [%s]\n",
+-		       dp->parent->name);
++		printk("auxio: Unknown parent bus type [%pOFn]\n",
++		       dp->parent);
+ 		return -ENODEV;
+ 	}
+ 	auxio_register = of_ioremap(&dev->resource[0], 0, size, "auxio");
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index 92627abce311..d941875dd718 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -41,8 +41,8 @@ static int power_probe(struct platform_device *op)
+
+ 	power_reg = of_ioremap(res, 0, 0x4, "power");
+
+-	printk(KERN_INFO "%s: Control reg at %llx\n",
+-	       op->dev.of_node->name, res->start);
++	printk(KERN_INFO "%pOFn: Control reg at %llx\n",
++	       op->dev.of_node, res->start);
+
+ 	if (has_button_interrupt(irq, op->dev.of_node)) {
+ 		if (request_irq(irq,
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index b51cbb9e87dc..17c87d29ff20 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -68,8 +68,8 @@ static void __init sparc32_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+
+ 	regs = rprop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io, regs->phys_addr);
+ }
+
+@@ -84,8 +84,8 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+
+ 	regs = prop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io,
+ 		regs->phys_addr);
+ }
+@@ -104,13 +104,13 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+ 	devfn = (regs->phys_hi >> 8) & 0xff;
+ 	if (devfn & 0x07) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			devfn >> 3,
+ 			devfn & 0x07);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp,
+ 			devfn >> 3);
+ 	}
+ }
+@@ -127,8 +127,8 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
+
+ 	regs = prop->value;
+
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io, regs->phys_addr);
+ }
+
+@@ -167,8 +167,8 @@ static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 	device = prop->value;
+
+-	sprintf(tmp_buf, "%s:%d:%d@%x,%x",
+-		dp->name, *vendor, *device,
++	sprintf(tmp_buf, "%pOFn:%d:%d@%x,%x",
++		dp, *vendor, *device,
+ 		*intr, reg0);
+ }
+
+@@ -201,7 +201,7 @@ char * __init build_path_component(struct device_node *dp)
+ 	tmp_buf[0] = '\0';
+ 	__build_path_component(dp, tmp_buf);
+ 	if (tmp_buf[0] = '\0')
+-		strcpy(tmp_buf, dp->name);
++		snprintf(tmp_buf, sizeof(tmp_buf), "%pOFn", dp);
+
+ 	n = prom_early_alloc(strlen(tmp_buf) + 1);
+ 	strcpy(n, tmp_buf);
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index baeaeed64993..6220411ce8fc 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -82,8 +82,8 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
+
+ 	regs = rprop->value;
+ 	if (!of_node_is_root(dp->parent)) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+ 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ 		return;
+@@ -97,17 +97,17 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
+ 		const char *prefix = (type = 0) ? "m" : "i";
+
+ 		if (low_bits)
+-			sprintf(tmp_buf, "%s@%s%x,%x",
+-				dp->name, prefix,
++			sprintf(tmp_buf, "%pOFn@%s%x,%x",
++				dp, prefix,
+ 				high_bits, low_bits);
+ 		else
+-			sprintf(tmp_buf, "%s@%s%x",
+-				dp->name,
++			sprintf(tmp_buf, "%pOFn@%s%x",
++				dp,
+ 				prefix,
+ 				high_bits);
+ 	} else if (type = 12) {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name, high_bits);
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp, high_bits);
+ 	}
+ }
+
+@@ -122,8 +122,8 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
+
+ 	regs = prop->value;
+ 	if (!of_node_is_root(dp->parent)) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+ 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ 		return;
+@@ -138,8 +138,8 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
+ 		if (tlb_type >= cheetah)
+ 			mask = 0x7fffff;
+
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			*(u32 *)prop->value,
+ 			(unsigned int) (regs->phys_addr & mask));
+ 	}
+@@ -156,8 +156,8 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+
+ 	regs = prop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io,
+ 		regs->phys_addr);
+ }
+@@ -176,13 +176,13 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+ 	devfn = (regs->phys_hi >> 8) & 0xff;
+ 	if (devfn & 0x07) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			devfn >> 3,
+ 			devfn & 0x07);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp,
+ 			devfn >> 3);
+ 	}
+ }
+@@ -203,8 +203,8 @@ static void __init upa_path_component(struct device_node *dp, char *tmp_buf)
+ 	if (!prop)
+ 		return;
+
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		*(u32 *) prop->value,
+ 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ }
+@@ -221,7 +221,7 @@ static void __init vdev_path_component(struct device_node *dp, char *tmp_buf)
+
+ 	regs = prop->value;
+
+-	sprintf(tmp_buf, "%s@%x", dp->name, *regs);
++	sprintf(tmp_buf, "%pOFn@%x", dp, *regs);
+ }
+
+ /* "name@addrhi,addrlo" */
+@@ -236,8 +236,8 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
+
+ 	regs = prop->value;
+
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		(unsigned int) (regs->phys_addr >> 32UL),
+ 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ }
+@@ -257,8 +257,8 @@ static void __init i2c_path_component(struct device_node *dp, char *tmp_buf)
+ 	/* This actually isn't right... should look at the #address-cells
+ 	 * property of the i2c bus node etc. etc.
+ 	 */
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name, regs[0], regs[1]);
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp, regs[0], regs[1]);
+ }
+
+ /* "name@reg0[,reg1]" */
+@@ -274,11 +274,11 @@ static void __init usb_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+
+ 	if (prop->length = sizeof(u32) || regs[1] = 1) {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name, regs[0]);
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp, regs[0]);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name, regs[0], regs[1]);
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp, regs[0], regs[1]);
+ 	}
+ }
+
+@@ -295,11 +295,11 @@ static void __init ieee1394_path_component(struct device_node *dp, char *tmp_buf
+ 	regs = prop->value;
+
+ 	if (regs[2] || regs[3]) {
+-		sprintf(tmp_buf, "%s@%08x%08x,%04x%08x",
+-			dp->name, regs[0], regs[1], regs[2], regs[3]);
++		sprintf(tmp_buf, "%pOFn@%08x%08x,%04x%08x",
++			dp, regs[0], regs[1], regs[2], regs[3]);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%08x%08x",
+-			dp->name, regs[0], regs[1]);
++		sprintf(tmp_buf, "%pOFn@%08x%08x",
++			dp, regs[0], regs[1]);
+ 	}
+ }
+
+@@ -361,7 +361,7 @@ char * __init build_path_component(struct device_node *dp)
+ 	tmp_buf[0] = '\0';
+ 	__build_path_component(dp, tmp_buf);
+ 	if (tmp_buf[0] = '\0')
+-		strcpy(tmp_buf, dp->name);
++		snprintf(tmp_buf, sizeof(tmp_buf), "%pOFn", dp);
+
+ 	n = prom_early_alloc(strlen(tmp_buf) + 1);
+ 	strcpy(n, tmp_buf);
+--
+2.17.1
