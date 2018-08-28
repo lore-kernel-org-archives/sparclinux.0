@@ -1,166 +1,306 @@
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
-Date: Fri, 24 Aug 2018 11:58:52 +0000
-Subject: Re: [PATCH] mach64: detect the dot clock divider correctly on sparc
-Message-Id: <20180824115851.GC11867@sci.fi>
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 28 Aug 2018 01:52:08 +0000
+Subject: [PATCH] sparc: Convert to using %pOFn instead of device_node.name
+Message-Id: <20180828015252.28511-7-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <alpine.LRH.2.02.1808171515550.31883@file01.intranet.prod.int.rdu2.redhat.com>
- <20180819103657.GB11867@sci.fi>
- <alpine.LRH.2.02.1808231706420.13157@file01.intranet.prod.int.rdu2.redhat.com>
-In-Reply-To: <alpine.LRH.2.02.1808231706420.13157@file01.intranet.prod.int.rdu2.redhat.com>
+References: <20180828015252.28511-1-robh@kernel.org>
+In-Reply-To: <20180828015252.28511-1-robh@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Mikulas Patocka <mpatocka@redhat.com>
-Cc: sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, dri-devel@lists.freedesktop.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Thu, Aug 23, 2018 at 05:17:20PM -0400, Mikulas Patocka wrote:
->=20
->=20
-> On Sun, 19 Aug 2018, Ville Syrj=E4l=E4 wrote:
->=20
-> > On Fri, Aug 17, 2018 at 03:19:37PM -0400, Mikulas Patocka wrote:
-> > > On Sun Ultra 5, it happens that the dot clock is not set up properly =
-for
-> > > some videomodes. For example, if we set the videomode "r1024x768x60" =
-in
-> > > the firmware, Linux would incorrectly set a videomode with refresh ra=
-te
-> > > 180Hz when booting (suprisingly, my LCD monitor can display it, altho=
-ugh
-> > > display quality is very low).
-> > >=20
-> > > The reason is this: Older mach64 cards set the divider in the register
-> > > VCLK_POST_DIV. The register has four 2-bit fields (the field that is
-> > > actually used is specified in the lowest two bits of the register
-> > > CLOCK_CNTL). The 2 bits select divider "1, 2, 4, 8". On newer mach64 =
-cards,
-> > > there's another bit added - the top four bits of PLL_EXT_CNTL extend =
-the
-> > > divider selection, so we have possible dividers "1, 2, 4, 8, 3, 5, 6,=
- 12".
-> > > The Linux driver clears the top four bits of PLL_EXT_CNTL and never s=
-ets
-> > > them, so it can work regardless if the card supports them. However, t=
-he
-> > > sparc64 firmware may set these extended dividers during boot - and the
-> > > mach64 driver detects incorrect dot clock in this case.
-> > >=20
-> > > This patch makes the driver read the additional divider bit from
-> > > PLL_EXT_CNTL and calculate the initial refresh rate properly.
-> > >=20
-> > > Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
-> > > Cc: stable@vger.kernel.org
-> > >=20
-> > > ---
-> > >  drivers/video/fbdev/aty/atyfb.h      |    3 ++-
-> > >  drivers/video/fbdev/aty/atyfb_base.c |    7 ++++---
-> > >  drivers/video/fbdev/aty/mach64_ct.c  |   10 +++++-----
-> > >  3 files changed, 11 insertions(+), 9 deletions(-)
-> > >=20
-> > > Index: linux-stable/drivers/video/fbdev/aty/atyfb.h
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> > > --- linux-stable.orig/drivers/video/fbd=
-ev/aty/atyfb.h	2018-08-13 21:12:11.000000000 +0200
-> > > +++ linux-stable/drivers/video/fbdev/aty/atyfb.h	2018-08-13 21:17:14.=
-000000000 +0200
-> > > @@ -333,6 +333,8 @@ extern const struct aty_pll_ops aty_pll_
-> > >  extern void aty_set_pll_ct(const struct fb_info *info, const union a=
-ty_pll *pll);
-> > >  extern u8 aty_ld_pll_ct(int offset, const struct atyfb_par *par);
-> > > =20
-> > > +extern const u8 aty_postdividers[8];
-> > > +
-> > > =20
-> > >      /*
-> > >       *  Hardware cursor support
-> > > @@ -359,7 +361,6 @@ static inline void wait_for_idle(struct
-> > > =20
-> > >  extern void aty_reset_engine(const struct atyfb_par *par);
-> > >  extern void aty_init_engine(struct atyfb_par *par, struct fb_info *i=
-nfo);
-> > > -extern u8   aty_ld_pll_ct(int offset, const struct atyfb_par *par);
-> > > =20
-> > >  void atyfb_copyarea(struct fb_info *info, const struct fb_copyarea *=
-area);
-> > >  void atyfb_fillrect(struct fb_info *info, const struct fb_fillrect *=
-rect);
-> > > Index: linux-stable/drivers/video/fbdev/aty/atyfb_base.c
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> > > --- linux-stable.orig/drivers/video/fbd=
-ev/aty/atyfb_base.c	2018-08-13 21:12:11.000000000 +0200
-> > > +++ linux-stable/drivers/video/fbdev/aty/atyfb_base.c	2018-08-13 21:2=
-2:23.000000000 +0200
-> > > @@ -3087,17 +3087,18 @@ static int atyfb_setup_sparc(struct pci_
-> > >  		/*
-> > >  		 * PLL Reference Divider M:
-> > >  		 */
-> > > -		M =3D pll_regs[2];
-> > > +		M =3D pll_regs[PLL_REF_DIV];
-> > > =20
-> > >  		/*
-> > >  		 * PLL Feedback Divider N (Dependent on CLOCK_CNTL):
-> > >  		 */
-> > > -		N =3D pll_regs[7 + (clock_cntl & 3)];
-> > > +		N =3D pll_regs[VCLK0_FB_DIV + (clock_cntl & 3)];
-> > > =20
-> > >  		/*
-> > >  		 * PLL Post Divider P (Dependent on CLOCK_CNTL):
-> > >  		 */
-> > > -		P =3D 1 << (pll_regs[6] >> ((clock_cntl & 3) << 1));
-> > > +		P =3D aty_postdividers[((pll_regs[VCLK_POST_DIV] >> ((clock_cntl &=
- 3) << 1)) & 3) |
-> > > +		                     ((pll_regs[PLL_EXT_CNTL] >> (2 + (clock_cntl =
-& 3))) & 4)];
-> > > =20
-> > >  		/*
-> > >  		 * PLL Divider Q:
-> > > Index: linux-stable/drivers/video/fbdev/aty/mach64_ct.c
-> > > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> > > --- linux-stable.orig/drivers/video/fbd=
-ev/aty/mach64_ct.c	2018-08-13 21:12:11.000000000 +0200
-> > > +++ linux-stable/drivers/video/fbdev/aty/mach64_ct.c	2018-08-13 21:35=
-:32.000000000 +0200
-> > > @@ -115,7 +115,7 @@ static void aty_st_pll_ct(int offset, u8
-> > >   */
-> > > =20
-> > >  #define Maximum_DSP_PRECISION 7
-> > > -static u8 postdividers[] =3D {1,2,4,8,3};
-> > > +const u8 aty_postdividers[8] =3D {1,2,4,8,3,5,6,12};
-> >=20
-> > Not sure about the '5'. That setting is marked as reserved in my docs.
-> > So I guess it doesn't really matter what number we put there.
->=20
-> I downloaded documentation here:=20
-> http://ftp.nluug.nl/ftp/pub/NetBSD/misc/cegger/hw_manuals/ati/mach64_and_=
-ragepro/
->=20
-> The RAGE XL/XC Register Reference Guide - at page 4-77 it says "select=20
-> alternate post dividers", but doesn't say what they are.
-> At page 4-89 it lists post dividers 1,2,4,8,3,5,6,12. It's hard to say if=
-=20
-> they also apply to the PLL_EXT_CNTL register or not.
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
-Oh, I missed the V2CLK reg. Indeed I see the /5 there in my docs as
-well.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ arch/sparc/kernel/auxio_64.c |  4 +--
+ arch/sparc/kernel/power.c    |  4 +--
+ arch/sparc/kernel/prom_32.c  | 26 +++++++-------
+ arch/sparc/kernel/prom_64.c  | 68 ++++++++++++++++++------------------
+ 4 files changed, 51 insertions(+), 51 deletions(-)
 
-For the other clocks the Rage II docs I have have the following table:
-ALT_VCLKx_POST VCLKx_POST Post Divider
-0 00 /1
-0 01 /2
-0 10 /4
-0 11 /8
-1 00 /3
-1 01 reserved
-1 10 /6
-1 11 /12
-
-Curiously that table is nowhere to be found in the docs for any of the
-more recent chips.
-
-But yeah, given the V2CLK thing /5 seems like a perfectly good=20
-value to use here.
-
---=20
-Ville Syrj=E4l=E4
-syrjala@sci.fi
-http://www.sci.fi/~syrjala/
+diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
+index 4e8f56c3793c..cc42225c20f3 100644
+--- a/arch/sparc/kernel/auxio_64.c
++++ b/arch/sparc/kernel/auxio_64.c
+@@ -115,8 +115,8 @@ static int auxio_probe(struct platform_device *dev)
+ 		auxio_devtype = AUXIO_TYPE_SBUS;
+ 		size = 1;
+ 	} else {
+-		printk("auxio: Unknown parent bus type [%s]\n",
+-		       dp->parent->name);
++		printk("auxio: Unknown parent bus type [%pOFn]\n",
++		       dp->parent);
+ 		return -ENODEV;
+ 	}
+ 	auxio_register = of_ioremap(&dev->resource[0], 0, size, "auxio");
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index 92627abce311..d941875dd718 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -41,8 +41,8 @@ static int power_probe(struct platform_device *op)
+ 
+ 	power_reg = of_ioremap(res, 0, 0x4, "power");
+ 
+-	printk(KERN_INFO "%s: Control reg at %llx\n",
+-	       op->dev.of_node->name, res->start);
++	printk(KERN_INFO "%pOFn: Control reg at %llx\n",
++	       op->dev.of_node, res->start);
+ 
+ 	if (has_button_interrupt(irq, op->dev.of_node)) {
+ 		if (request_irq(irq,
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index b51cbb9e87dc..c876a8e62848 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -68,8 +68,8 @@ static void __init sparc32_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 
+ 	regs = rprop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io, regs->phys_addr);
+ }
+ 
+@@ -84,8 +84,8 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 
+ 	regs = prop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io,
+ 		regs->phys_addr);
+ }
+@@ -104,13 +104,13 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+ 	devfn = (regs->phys_hi >> 8) & 0xff;
+ 	if (devfn & 0x07) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			devfn >> 3,
+ 			devfn & 0x07);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp,
+ 			devfn >> 3);
+ 	}
+ }
+@@ -127,8 +127,8 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	regs = prop->value;
+ 
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io, regs->phys_addr);
+ }
+ 
+@@ -167,8 +167,8 @@ static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 	device = prop->value;
+ 
+-	sprintf(tmp_buf, "%s:%d:%d@%x,%x",
+-		dp->name, *vendor, *device,
++	sprintf(tmp_buf, "%pOFn:%d:%d@%x,%x",
++		dp, *vendor, *device,
+ 		*intr, reg0);
+ }
+ 
+@@ -201,7 +201,7 @@ char * __init build_path_component(struct device_node *dp)
+ 	tmp_buf[0] = '\0';
+ 	__build_path_component(dp, tmp_buf);
+ 	if (tmp_buf[0] = '\0')
+-		strcpy(tmp_buf, dp->name);
++		snprint(tmp_buf, sizeof(tmp_buf), "%pOFn", dp);
+ 
+ 	n = prom_early_alloc(strlen(tmp_buf) + 1);
+ 	strcpy(n, tmp_buf);
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index baeaeed64993..6220411ce8fc 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -82,8 +82,8 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	regs = rprop->value;
+ 	if (!of_node_is_root(dp->parent)) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+ 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ 		return;
+@@ -97,17 +97,17 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
+ 		const char *prefix = (type = 0) ? "m" : "i";
+ 
+ 		if (low_bits)
+-			sprintf(tmp_buf, "%s@%s%x,%x",
+-				dp->name, prefix,
++			sprintf(tmp_buf, "%pOFn@%s%x,%x",
++				dp, prefix,
+ 				high_bits, low_bits);
+ 		else
+-			sprintf(tmp_buf, "%s@%s%x",
+-				dp->name,
++			sprintf(tmp_buf, "%pOFn@%s%x",
++				dp,
+ 				prefix,
+ 				high_bits);
+ 	} else if (type = 12) {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name, high_bits);
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp, high_bits);
+ 	}
+ }
+ 
+@@ -122,8 +122,8 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	regs = prop->value;
+ 	if (!of_node_is_root(dp->parent)) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			(unsigned int) (regs->phys_addr >> 32UL),
+ 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ 		return;
+@@ -138,8 +138,8 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
+ 		if (tlb_type >= cheetah)
+ 			mask = 0x7fffff;
+ 
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			*(u32 *)prop->value,
+ 			(unsigned int) (regs->phys_addr & mask));
+ 	}
+@@ -156,8 +156,8 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
+ 		return;
+ 
+ 	regs = prop->value;
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		regs->which_io,
+ 		regs->phys_addr);
+ }
+@@ -176,13 +176,13 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+ 	devfn = (regs->phys_hi >> 8) & 0xff;
+ 	if (devfn & 0x07) {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp,
+ 			devfn >> 3,
+ 			devfn & 0x07);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name,
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp,
+ 			devfn >> 3);
+ 	}
+ }
+@@ -203,8 +203,8 @@ static void __init upa_path_component(struct device_node *dp, char *tmp_buf)
+ 	if (!prop)
+ 		return;
+ 
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		*(u32 *) prop->value,
+ 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ }
+@@ -221,7 +221,7 @@ static void __init vdev_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	regs = prop->value;
+ 
+-	sprintf(tmp_buf, "%s@%x", dp->name, *regs);
++	sprintf(tmp_buf, "%pOFn@%x", dp, *regs);
+ }
+ 
+ /* "name@addrhi,addrlo" */
+@@ -236,8 +236,8 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
+ 
+ 	regs = prop->value;
+ 
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name,
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp,
+ 		(unsigned int) (regs->phys_addr >> 32UL),
+ 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
+ }
+@@ -257,8 +257,8 @@ static void __init i2c_path_component(struct device_node *dp, char *tmp_buf)
+ 	/* This actually isn't right... should look at the #address-cells
+ 	 * property of the i2c bus node etc. etc.
+ 	 */
+-	sprintf(tmp_buf, "%s@%x,%x",
+-		dp->name, regs[0], regs[1]);
++	sprintf(tmp_buf, "%pOFn@%x,%x",
++		dp, regs[0], regs[1]);
+ }
+ 
+ /* "name@reg0[,reg1]" */
+@@ -274,11 +274,11 @@ static void __init usb_path_component(struct device_node *dp, char *tmp_buf)
+ 	regs = prop->value;
+ 
+ 	if (prop->length = sizeof(u32) || regs[1] = 1) {
+-		sprintf(tmp_buf, "%s@%x",
+-			dp->name, regs[0]);
++		sprintf(tmp_buf, "%pOFn@%x",
++			dp, regs[0]);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%x,%x",
+-			dp->name, regs[0], regs[1]);
++		sprintf(tmp_buf, "%pOFn@%x,%x",
++			dp, regs[0], regs[1]);
+ 	}
+ }
+ 
+@@ -295,11 +295,11 @@ static void __init ieee1394_path_component(struct device_node *dp, char *tmp_buf
+ 	regs = prop->value;
+ 
+ 	if (regs[2] || regs[3]) {
+-		sprintf(tmp_buf, "%s@%08x%08x,%04x%08x",
+-			dp->name, regs[0], regs[1], regs[2], regs[3]);
++		sprintf(tmp_buf, "%pOFn@%08x%08x,%04x%08x",
++			dp, regs[0], regs[1], regs[2], regs[3]);
+ 	} else {
+-		sprintf(tmp_buf, "%s@%08x%08x",
+-			dp->name, regs[0], regs[1]);
++		sprintf(tmp_buf, "%pOFn@%08x%08x",
++			dp, regs[0], regs[1]);
+ 	}
+ }
+ 
+@@ -361,7 +361,7 @@ char * __init build_path_component(struct device_node *dp)
+ 	tmp_buf[0] = '\0';
+ 	__build_path_component(dp, tmp_buf);
+ 	if (tmp_buf[0] = '\0')
+-		strcpy(tmp_buf, dp->name);
++		snprintf(tmp_buf, sizeof(tmp_buf), "%pOFn", dp);
+ 
+ 	n = prom_early_alloc(strlen(tmp_buf) + 1);
+ 	strcpy(n, tmp_buf);
+-- 
+2.17.1
