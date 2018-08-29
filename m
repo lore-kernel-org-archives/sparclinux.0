@@ -1,28 +1,52 @@
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Date: Thu, 02 Aug 2018 11:53:51 +0000
-Subject: [PATCH 0/2] sparc32: switch to NO_BOOTMEM
-Message-Id: <1533210833-14748-1-git-send-email-rppt@linux.vnet.ibm.com>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 29 Aug 2018 20:03:37 +0000
+Subject: [PATCH] sbus: Use of_get_child_by_name helper
+Message-Id: <20180829200337.15352-1-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "David S. Miller" <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Michal Hocko <mhocko@kernel.org>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
+Use the of_get_child_by_name() helper instead of open coding searching
+for the '/options' node. This removes directly accessing the name
+pointer as well.
 
-These patches convert sparc32 to use memblock + nobootmem.
-I've made the conversion as simple as possible, just enough to allow moving
-HAVE_MEMBLOCK and NO_BOOTMEM to the common SPARC configuration.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ drivers/sbus/char/openprom.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Mike Rapoport (2):
-  sparc32: switch to NO_BOOTMEM
-  sparc32: tidy up ramdisk memory reservation
-
- arch/sparc/Kconfig      |  4 +--
- arch/sparc/mm/init_32.c | 90 +++++++++++++++----------------------------------
- 2 files changed, 29 insertions(+), 65 deletions(-)
-
+diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
+index 7b31f19ade83..050879a2ddef 100644
+--- a/drivers/sbus/char/openprom.c
++++ b/drivers/sbus/char/openprom.c
+@@ -715,22 +715,13 @@ static struct miscdevice openprom_dev = {
+ 
+ static int __init openprom_init(void)
+ {
+-	struct device_node *dp;
+ 	int err;
+ 
+ 	err = misc_register(&openprom_dev);
+ 	if (err)
+ 		return err;
+ 
+-	dp = of_find_node_by_path("/");
+-	dp = dp->child;
+-	while (dp) {
+-		if (!strcmp(dp->name, "options"))
+-			break;
+-		dp = dp->sibling;
+-	}
+-	options_node = dp;
+-
++	options_node = of_get_child_by_name(of_find_node_by_path("/"), "options");
+ 	if (!options_node) {
+ 		misc_deregister(&openprom_dev);
+ 		return -EIO;
 -- 
-2.7.4
-
+2.17.1
