@@ -1,27 +1,72 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Aug 2018 19:40:43 +0000
-Subject: Re: [PATCH v2 0/3] sparc32: switch to NO_BOOTMEM
-Message-Id: <20180821.124043.1345592906200206631.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 29 Aug 2018 06:24:00 +0000
+Subject: [PATCH 2/3] sparc: set a default 32-bit dma mask for OF devices
+Message-Id: <20180829062401.8701-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1533552755-16679-1-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1533552755-16679-1-git-send-email-rppt@linux.vnet.ibm.com>
+References: <20180829062401.8701-1-hch@lst.de>
+In-Reply-To: <20180829062401.8701-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rppt@linux.vnet.ibm.com
-Cc: sam@ravnborg.org, mhocko@kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: Robin Murphy <robin.murphy@arm.com>, Meelis Roos <mroos@linux.ee>, Guenter Roeck <linux@roeck-us.net>, Linus Walleij <linus.walleij@linaro.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Date: Mon,  6 Aug 2018 13:52:32 +0300
+This keeps the historic default behavior for devices without a DMA mask,
+but removes the warning about a lacking DMA mask for doing DMA without
+a mask.
 
-> These patches convert sparc32 to use memblock + nobootmem.
-> I've made the conversion as simple as possible, just enough to allow moving
-> HAVE_MEMBLOCK and NO_BOOTMEM to the common SPARC configuration.
-> 
-> v2 changes:
-> * split whitespace changes to a separate patch
-> * address Sam's comments [1]
-> 
-> [1] https://lkml.org/lkml/2018/8/2/403
+Reported-by: Meelis Roos <mroos@linux.ee>
+Tested-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/of_device_32.c | 5 +++++
+ arch/sparc/kernel/of_device_64.c | 4 ++++
+ 2 files changed, 9 insertions(+)
 
-Series applied, thank you.
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 3641a294ed54..7f3dec7e1e78 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -9,6 +9,7 @@
+ #include <linux/irq.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
++#include <linux/dma-mapping.h>
+ #include <asm/leon.h>
+ #include <asm/leon_amba.h>
+ 
+@@ -381,6 +382,10 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 	else
+ 		dev_set_name(&op->dev, "%08x", dp->phandle);
+ 
++	op->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++	op->dev.dma_mask = &op->dma_mask;
++	op->dma_mask = DMA_BIT_MASK(32);
++
+ 	if (of_device_register(op)) {
+ 		printk("%s: Could not register of device.\n",
+ 		       dp->full_name);
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index 44e4d4435bed..d94c31822da1 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -2,6 +2,7 @@
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/of.h>
++#include <linux/dma-mapping.h>
+ #include <linux/init.h>
+ #include <linux/export.h>
+ #include <linux/mod_devicetable.h>
+@@ -675,6 +676,9 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 		dev_set_name(&op->dev, "root");
+ 	else
+ 		dev_set_name(&op->dev, "%08x", dp->phandle);
++	op->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++	op->dev.dma_mask = &op->dma_mask;
++	op->dma_mask = DMA_BIT_MASK(32);
+ 
+ 	if (of_device_register(op)) {
+ 		printk("%s: Could not register of device.\n",
+-- 
+2.18.0
