@@ -1,109 +1,147 @@
-From: Gloria Adelaida Elias Mejia <gaeliasm@mineco.gob.gt>
-Date: Thu, 02 Aug 2018 02:10:13 +0000
-Subject: Spende von $ 4,800,000.00!
-Message-Id: <0E9FB776D8E6DA429730C03A4C3AA640881CC0@EX2010SRV02.mineco.gob.gt>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_000_0E9FB776D8E6DA429730C03A4C3AA640881CC0EX2010SRV02mineco_"
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 29 Aug 2018 12:59:11 +0000
+Subject: [PATCH net-next 2/3] asm-generic: generalize asm/sockios.h
+Message-Id: <20180829130308.3504560-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-To: sparclinux@vger.kernel.org
+References: <20180829130308.3504560-1-arnd@arndb.de>
+In-Reply-To: <20180829130308.3504560-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netdev@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
+Cc: linux-arch@vger.kernel.org, y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Helge Deller <deller@gmx.de>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
---_000_0E9FB776D8E6DA429730C03A4C3AA640881CC0EX2010SRV02mineco_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+ia64, parisc and sparc just use a copy of the generic version
+of asm/sockios.h, and x86 is a redirect to the same file, so we
+can just let the header file be generated.
 
-Hallo, Sie haben eine Spende von $ 4,800,000.00, ich habe die America Lotte=
-rie im Wert von $ 40 Millionen gewonnen und ich gebe einen Teil davon an f=
-=FCnf gl=FCckliche Menschen und Wohlt=E4tigkeitseinrichtungen zum Gedenken =
-an meine verstorbene Frau, die an Krebs starb.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/ia64/include/uapi/asm/Kbuild      |  1 +
+ arch/ia64/include/uapi/asm/sockios.h   | 21 ---------------------
+ arch/parisc/include/uapi/asm/Kbuild    |  1 +
+ arch/parisc/include/uapi/asm/sockios.h | 14 --------------
+ arch/sparc/include/uapi/asm/Kbuild     |  1 +
+ arch/sparc/include/uapi/asm/sockios.h  | 15 ---------------
+ arch/x86/include/uapi/asm/Kbuild       |  1 +
+ arch/x86/include/uapi/asm/sockios.h    |  1 -
+ 8 files changed, 4 insertions(+), 51 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/sockios.h
+ delete mode 100644 arch/parisc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/sparc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/x86/include/uapi/asm/sockios.h
 
-
-
-Spendenreferenznummer: BBIB / AVL017 / 28392
-
-
-
-Kontaktieren Sie mich f=FCr weitere Informationen: tomcrist895@gmail.com
-
-
-
-Prost
-
-Tom Crist
-
-
---_000_0E9FB776D8E6DA429730C03A4C3AA640881CC0EX2010SRV02mineco_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" xmlns:o=3D"urn:schemas-micr=
-osoft-com:office:office" xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" xmlns=3D"http:=
-//www.w3.org/TR/REC-html40">
-<head>
-<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859-=
-1">
-<meta name=3D"Generator" content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-.MsoChpDefault
-	{mso-style-type:export-only;
-	font-size:10.0pt;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.Section1
-	{page:Section1;}
--->
-</style><!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-<body lang=3D"EN-US" link=3D"blue" vlink=3D"purple">
-<div class=3D"Section1">
-<p class=3D"MsoNormal">Hallo, Sie haben eine Spende von $ 4,800,000.00, ich=
- habe die America Lotterie im Wert von $ 40 Millionen gewonnen und ich gebe=
- einen Teil davon an f=FCnf gl=FCckliche Menschen und Wohlt=E4tigkeitseinri=
-chtungen zum Gedenken an meine verstorbene
- Frau, die an Krebs starb.<o:p></o:p></p>
-<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">Spendenreferenznummer: BBIB / AVL017 / 28392<o:p></o=
-:p></p>
-<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">Kontaktieren Sie mich f=FCr weitere Informationen: t=
-omcrist895@gmail.com<o:p></o:p></p>
-<p class=3D"MsoNormal"><o:p>&nbsp;</o:p></p>
-<p class=3D"MsoNormal">Prost<o:p></o:p></p>
-<p class=3D"MsoNormal">Tom Crist<o:p></o:p></p>
-</div>
-</body>
-</html>
-
---_000_0E9FB776D8E6DA429730C03A4C3AA640881CC0EX2010SRV02mineco_--
+diff --git a/arch/ia64/include/uapi/asm/Kbuild b/arch/ia64/include/uapi/asm/Kbuild
+index 3982e673e967..a6377ad3ba1c 100644
+--- a/arch/ia64/include/uapi/asm/Kbuild
++++ b/arch/ia64/include/uapi/asm/Kbuild
+@@ -8,3 +8,4 @@ generic-y += msgbuf.h
+ generic-y += poll.h
+ generic-y += sembuf.h
+ generic-y += shmbuf.h
++generic-y += sockios.h
+diff --git a/arch/ia64/include/uapi/asm/sockios.h b/arch/ia64/include/uapi/asm/sockios.h
+deleted file mode 100644
+index f27a12f95d20..000000000000
+--- a/arch/ia64/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_SOCKIOS_H
+-#define _ASM_IA64_SOCKIOS_H
+-
+-/*
+- * Socket-level I/O control calls.
+- *
+- * Based on <asm-i386/sockios.h>.
+- *
+- * Modified 1998, 1999
+- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
+- */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* _ASM_IA64_SOCKIOS_H */
+diff --git a/arch/parisc/include/uapi/asm/Kbuild b/arch/parisc/include/uapi/asm/Kbuild
+index 286ef5a5904b..be6c171f57f7 100644
+--- a/arch/parisc/include/uapi/asm/Kbuild
++++ b/arch/parisc/include/uapi/asm/Kbuild
+@@ -7,3 +7,4 @@ generic-y += kvm_para.h
+ generic-y += param.h
+ generic-y += poll.h
+ generic-y += resource.h
++generic-y += sockios.h
+diff --git a/arch/parisc/include/uapi/asm/sockios.h b/arch/parisc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 66a3ba64d53f..000000000000
+--- a/arch/parisc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,14 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef __ARCH_PARISC_SOCKIOS__
+-#define __ARCH_PARISC_SOCKIOS__
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif
+diff --git a/arch/sparc/include/uapi/asm/Kbuild b/arch/sparc/include/uapi/asm/Kbuild
+index 4680ba246b55..8fdae51d0eae 100644
+--- a/arch/sparc/include/uapi/asm/Kbuild
++++ b/arch/sparc/include/uapi/asm/Kbuild
+@@ -2,4 +2,5 @@
+ include include/uapi/asm-generic/Kbuild.asm
+ 
+ generic-y += bpf_perf_event.h
++generic-y += sockios.h
+ generic-y += types.h
+diff --git a/arch/sparc/include/uapi/asm/sockios.h b/arch/sparc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 18a3ec14a847..000000000000
+--- a/arch/sparc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_SPARC_SOCKIOS_H
+-#define _ASM_SPARC_SOCKIOS_H
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* !(_ASM_SPARC_SOCKIOS_H) */
+-
+diff --git a/arch/x86/include/uapi/asm/Kbuild b/arch/x86/include/uapi/asm/Kbuild
+index 322681622d1e..1d489e6b237e 100644
+--- a/arch/x86/include/uapi/asm/Kbuild
++++ b/arch/x86/include/uapi/asm/Kbuild
+@@ -6,3 +6,4 @@ generated-y += unistd_32.h
+ generated-y += unistd_64.h
+ generated-y += unistd_x32.h
+ generic-y += poll.h
++generic-y += sockios.h
+diff --git a/arch/x86/include/uapi/asm/sockios.h b/arch/x86/include/uapi/asm/sockios.h
+deleted file mode 100644
+index def6d4746ee7..000000000000
+--- a/arch/x86/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/sockios.h>
+-- 
+2.18.0
