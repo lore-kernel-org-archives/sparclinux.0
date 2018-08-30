@@ -1,57 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 22 Aug 2018 05:16:12 +0000
-Subject: [GIT] Sparc
-Message-Id: <20180821.221612.1820997428691874754.davem@davemloft.net>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 30 Aug 2018 19:05:23 +0000
+Subject: [PATCH 3/3] of: make default address and size cells sizes private
+Message-Id: <20180830190523.31474-4-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20180830190523.31474-1-robh@kernel.org>
+In-Reply-To: <20180830190523.31474-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Frank Rowand <frowand.list@gmail.com>, devicetree@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Only some old OpenFirmware implementations rely on default sizes. Any
+FDT and modern implementation should have explicit properties. Make the
+OF_ROOT_NODE_*_CELLS_DEFAULT defines private so we don't get any outside
+users.
 
-Nothing super serious:
+This also gets us one step closer to removing the asm/prom.h dependency on
+Sparc.
 
-1) Convert sparc32 over to NO_BOOTMEM, from Mike Rapoport.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ arch/sparc/include/asm/prom.h | 3 ---
+ drivers/of/of_private.h       | 8 ++++++++
+ include/linux/of.h            | 6 ------
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
-2) Use dma_noncoherent_ops on sparc32, from Christoph Hellwig
-
-3) Fix kbuild defconfig handling on sparc32, from Masahiro Yamada.
-
-Please pull, thanks a lot.
-
-The following changes since commit 778a33959a8ad4cb1ea2f4c5119f9e1e8b9f9d9b:
-
-  Merge tag 'please-pull-noboot' of git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux (2018-08-20 19:37:09 -0700)
-
-are available in the Git repository at:
-
-  gitolite@ra.kernel.org:/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to c84ca616b1260949782f408271336f0eda056c61:
-
-  sparc: fix KBUILD_DEFCONFIG for ARCH=sparc32 (2018-08-21 12:41:12 -0700)
-
-----------------------------------------------------------------
-Christoph Hellwig (1):
-      sparc: use generic dma_noncoherent_ops
-
-David S. Miller (1):
-      Merge branch 'sparc32-NO_BOOTMEM'
-
-Masahiro Yamada (1):
-      sparc: fix KBUILD_DEFCONFIG for ARCH=sparc32
-
-Mike Rapoport (3):
-      sparc: mm/init_32: kill trailing whitespace
-      sparc32: switch to NO_BOOTMEM
-      sparc32: split ramdisk detection and reservation to a helper function
-
- arch/sparc/Kconfig                   |   6 ++--
- arch/sparc/Makefile                  |   6 ++--
- arch/sparc/include/asm/dma-mapping.h |   5 ++-
- arch/sparc/kernel/ioport.c           | 193 +++++++++++++++++---------------------------------------------------------------------------------------
- arch/sparc/mm/init_32.c              | 127 ++++++++++++++++++++++++++------------------------------------------
- 5 files changed, 88 insertions(+), 249 deletions(-)
+diff --git a/arch/sparc/include/asm/prom.h b/arch/sparc/include/asm/prom.h
+index d955c8df62d6..1902db27ff4b 100644
+--- a/arch/sparc/include/asm/prom.h
++++ b/arch/sparc/include/asm/prom.h
+@@ -24,9 +24,6 @@
+ #include <linux/atomic.h>
+ #include <linux/irqdomain.h>
+ 
+-#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT	2
+-#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT	1
+-
+ #define of_compat_cmp(s1, s2, l)	strncmp((s1), (s2), (l))
+ #define of_prop_cmp(s1, s2)		strcasecmp((s1), (s2))
+ #define of_node_cmp(s1, s2)		strcmp((s1), (s2))
+diff --git a/drivers/of/of_private.h b/drivers/of/of_private.h
+index 216175d11d3d..5d1567025358 100644
+--- a/drivers/of/of_private.h
++++ b/drivers/of/of_private.h
+@@ -27,6 +27,14 @@ struct alias_prop {
+ 	char stem[0];
+ };
+ 
++#if defined(CONFIG_SPARC)
++#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 2
++#else
++#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
++#endif
++
++#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
++
+ extern struct mutex of_mutex;
+ extern struct list_head aliases_lookup;
+ extern struct kset *of_kset;
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 506beca9588d..49d85f670c75 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -247,12 +247,6 @@ static inline unsigned long of_read_ulong(const __be32 *cell, int size)
+ #include <asm/prom.h>
+ #endif
+ 
+-/* Default #address and #size cells.  Allow arch asm/prom.h to override */
+-#if !defined(OF_ROOT_NODE_ADDR_CELLS_DEFAULT)
+-#define OF_ROOT_NODE_ADDR_CELLS_DEFAULT 1
+-#define OF_ROOT_NODE_SIZE_CELLS_DEFAULT 1
+-#endif
+-
+ #define OF_IS_DYNAMIC(x) test_bit(OF_DYNAMIC, &x->_flags)
+ #define OF_MARK_DYNAMIC(x) set_bit(OF_DYNAMIC, &x->_flags)
+ 
+-- 
+2.17.1
