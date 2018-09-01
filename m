@@ -1,39 +1,71 @@
-From: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Date: Wed, 26 Sep 2018 11:48:37 +0000
-Subject: Re: [PATCH 02/30] mm: remove CONFIG_NO_BOOTMEM
-Message-Id: <20180926114836.GD4628@rapoport-lnx>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 01 Sep 2018 13:49:11 +0000
+Subject: [PATCH v3] sparc: set a default 32-bit dma mask for OF devices
+Message-Id: <20180901134911.22616-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1536927045-23536-3-git-send-email-rppt@linux.vnet.ibm.com>
- <20180926092239.GK6278@dhcp22.suse.cz>
-In-Reply-To: <20180926092239.GK6278@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Catalin Marinas <catalin.marinas@arm.com>, Chris Zankel <chris@zankel.net>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guan Xuetao <gxt@pku.edu.cn>, Ingo Molnar <mingo@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Jonas Bonn <jonas@southpole.se>, Jonathan Corbet <corbet@lwn.net>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Palmer Dabbelt <palmer@sifive.com>, Paul Burton <paul.burton@mips.com>, Richard Kuo <rkuo@codeaurora.org>, Richard Weinberger <richard@nod.at>, Rich Felker <dalias@libc.org>, Russell King <linux@armlinux.org.uk>, Serge Semin <fancer.lancer@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Vineet Gupta <vgupta@synopsys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp
+To: mroos-Y27EyoLml9s@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 
-On Wed, Sep 26, 2018 at 11:22:39AM +0200, Michal Hocko wrote:
-> On Fri 14-09-18 15:10:17, Mike Rapoport wrote:
-> > All achitectures select NO_BOOTMEM which essentially becomes 'Y' for any
-> > kernel configuration and therefore it can be removed.
-> 
-> git grep suggests that DEFERRED_STRUCT_PAGE_INIT still depends on
-> NO_BOOTMEM but I have a vague feeling that I've seen a patch to address
-> that. It would be great to have it folded to this one.
+This keeps the historic default behavior for devices without a DMA mask,
+but removes the warning about a lacking DMA mask for doing DMA without
+a mask.
 
-Yes, Alexander has already fixed that at [1]
+Reported-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
 
-[1] https://lkml.org/lkml/2018/9/25/1073
+Had to redo this because the platform_device patch that the previous
+version dependend on had to be dropped.
+
+ arch/sparc/kernel/of_device_32.c | 4 ++++
+ arch/sparc/kernel/of_device_64.c | 3 +++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 3641a294ed54..e4abe9b8f97a 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -9,6 +9,7 @@
+ #include <linux/irq.h>
+ #include <linux/of_device.h>
+ #include <linux/of_platform.h>
++#include <linux/dma-mapping.h>
+ #include <asm/leon.h>
+ #include <asm/leon_amba.h>
  
-> > Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
-> 
-> Acked-by: Michal Hocko <mhocko@suse.com>
-> -- 
-> Michal Hocko
-> SUSE Labs
-> 
-
+@@ -381,6 +382,9 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 	else
+ 		dev_set_name(&op->dev, "%08x", dp->phandle);
+ 
++	op->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++	op->dev.dma_mask = &op->dev.coherent_dma_mask;
++
+ 	if (of_device_register(op)) {
+ 		printk("%s: Could not register of device.\n",
+ 		       dp->full_name);
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index 44e4d4435bed..6df6086968c6 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -2,6 +2,7 @@
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+ #include <linux/of.h>
++#include <linux/dma-mapping.h>
+ #include <linux/init.h>
+ #include <linux/export.h>
+ #include <linux/mod_devicetable.h>
+@@ -675,6 +676,8 @@ static struct platform_device * __init scan_one_device(struct device_node *dp,
+ 		dev_set_name(&op->dev, "root");
+ 	else
+ 		dev_set_name(&op->dev, "%08x", dp->phandle);
++	op->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++	op->dev.dma_mask = &op->dev.coherent_dma_mask;
+ 
+ 	if (of_device_register(op)) {
+ 		printk("%s: Could not register of device.\n",
 -- 
-Sincerely yours,
-Mike.
+2.18.0
