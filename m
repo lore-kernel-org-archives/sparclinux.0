@@ -1,88 +1,38 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 20 Sep 2018 06:03:47 +0000
-Subject: [PATCH v7 00/11] hugetlb: Factorize hugetlb architecture primitives
-Message-Id: <20180920060358.16606-1-alex@ghiti.fr>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:33 +0000
+Subject: [PATCH 07/25] tty: mips_ejtag_fdc: Change return type to void
+Message-Id: <1536029091-4426-8-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Alexandre Ghiti <alex@ghiti.fr>
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-Hi Andrew,
+Since tty_port_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
 
-As suggested by people who reviewed/acked this series, please consider
-including this series into -mm tree.
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+---
+ drivers/tty/mips_ejtag_fdc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-In order to reduce copy/paste of functions across architectures and then         
-make riscv hugetlb port (and future ports) simpler and smaller, this             
-patchset intends to factorize the numerous hugetlb primitives that are           
-defined across all the architectures.                                            
-                                                                                 
-Except for prepare_hugepage_range, this patchset moves the versions that         
-are just pass-through to standard pte primitives into                            
-asm-generic/hugetlb.h by using the same #ifdef semantic that can be              
-found in asm-generic/pgtable.h, i.e. __HAVE_ARCH_***.                            
-                                                                                 
-s390 architecture has not been tackled in this serie since it does not           
-use asm-generic/hugetlb.h at all.                                                
-                                                                                 
-This patchset has been compiled on all addressed architectures with              
-success (except for parisc, but the problem does not come from this              
-series).                 
-
-v7:
-  Add Ingo Molnar Acked-By for x86.
-
-v6:                                                                              
-  - Remove nohash/32 and book3s/32 powerpc specific implementations in
-    order to use the generic ones.                                                        
-  - Add all the Reviewed-by, Acked-by and Tested-by in the commits,              
-    thanks to everyone.                                                          
-                                                                                 
-v5:                                                                              
-  As suggested by Mike Kravetz, no need to move the #include                     
-  <asm-generic/hugetlb.h> for arm and x86 architectures, let it live at          
-  the top of the file.                                                           
-                                                                                 
-v4:                                                                              
-  Fix powerpc build error due to misplacing of #include                          
-  <asm-generic/hugetlb.h> outside of #ifdef CONFIG_HUGETLB_PAGE, as              
-  pointed by Christophe Leroy.                                                   
-                                                                                 
-v1, v2, v3:                                                                      
-  Same version, just problems with email provider and misuse of                  
-  --batch-size option of git send-email
-
-Alexandre Ghiti (11):
-  hugetlb: Harmonize hugetlb.h arch specific defines with pgtable.h
-  hugetlb: Introduce generic version of hugetlb_free_pgd_range
-  hugetlb: Introduce generic version of set_huge_pte_at
-  hugetlb: Introduce generic version of huge_ptep_get_and_clear
-  hugetlb: Introduce generic version of huge_ptep_clear_flush
-  hugetlb: Introduce generic version of huge_pte_none
-  hugetlb: Introduce generic version of huge_pte_wrprotect
-  hugetlb: Introduce generic version of prepare_hugepage_range
-  hugetlb: Introduce generic version of huge_ptep_set_wrprotect
-  hugetlb: Introduce generic version of huge_ptep_set_access_flags
-  hugetlb: Introduce generic version of huge_ptep_get
-
- arch/arm/include/asm/hugetlb-3level.h        | 32 +---------
- arch/arm/include/asm/hugetlb.h               | 30 ----------
- arch/arm64/include/asm/hugetlb.h             | 39 +++---------
- arch/ia64/include/asm/hugetlb.h              | 47 ++-------------
- arch/mips/include/asm/hugetlb.h              | 40 +++----------
- arch/parisc/include/asm/hugetlb.h            | 33 +++--------
- arch/powerpc/include/asm/book3s/32/pgtable.h |  6 --
- arch/powerpc/include/asm/book3s/64/pgtable.h |  1 +
- arch/powerpc/include/asm/hugetlb.h           | 43 ++------------
- arch/powerpc/include/asm/nohash/32/pgtable.h |  6 --
- arch/powerpc/include/asm/nohash/64/pgtable.h |  1 +
- arch/sh/include/asm/hugetlb.h                | 54 ++---------------
- arch/sparc/include/asm/hugetlb.h             | 40 +++----------
- arch/x86/include/asm/hugetlb.h               | 69 ----------------------
- include/asm-generic/hugetlb.h                | 88 +++++++++++++++++++++++++++-
- 15 files changed, 135 insertions(+), 394 deletions(-)
-
+diff --git a/drivers/tty/mips_ejtag_fdc.c b/drivers/tty/mips_ejtag_fdc.c
+index 4c1cd49..33e06b4 100644
+--- a/drivers/tty/mips_ejtag_fdc.c
++++ b/drivers/tty/mips_ejtag_fdc.c
+@@ -763,7 +763,9 @@ static int mips_ejtag_fdc_tty_install(struct tty_driver *driver,
+ 	struct mips_ejtag_fdc_tty *priv = driver->driver_state;
+ 
+ 	tty->driver_data = &priv->ports[tty->index];
+-	return tty_port_install(&priv->ports[tty->index].port, driver, tty);
++	tty_port_install(&priv->ports[tty->index].port, driver, tty);
++
++	return 0;
+ }
+ 
+ static int mips_ejtag_fdc_tty_open(struct tty_struct *tty, struct file *filp)
 -- 
-2.16.2
+2.7.4
