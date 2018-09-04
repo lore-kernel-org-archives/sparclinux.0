@@ -1,47 +1,72 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 24 Sep 2018 21:17:01 +0000
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to generic_compat_ioctl_ptrarg
-Message-Id: <CAK8P3a1Bh9NnncbcT0X4fKWC7B0FnqYyEMUwB6MvmzaNO7VhFQ@mail.gmail.com>
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Tue, 04 Sep 2018 04:53:25 +0000
+Subject: [PATCH 2/4] sparc: Replace NR_SYSCALLS macro with __NR_SYSCALLS
+Message-Id: <1536036087-15260-3-git-send-email-firoz.khan@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180912150142.157913-1-arnd@arndb.de>
- <20180912151134.436719-1-arnd@arndb.de>
- <20180914203506.GE35251@wrath> <20180914205748.GC19965@ZenIV.linux.org.uk>
- <20180918175108.GF35251@wrath> <20180918175952.GJ11367@ziepe.ca>
- <CAK8P3a17GY89in7PeLk1F2T-0Xq=sCrwwntM+Y4BCpXheUC+qQ@mail.gmail.com>
- <20180924203505.GC6008@ziepe.ca>
-In-Reply-To: <20180924203505.GC6008-uk2M96/98Pc@public.gmane.org>
+References: <1536036087-15260-1-git-send-email-firoz.khan@linaro.org>
+In-Reply-To: <1536036087-15260-1-git-send-email-firoz.khan@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, driverdevel <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "open list:HID CORE LAYER" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, ceph-devel <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, gregkh <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-wireless <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
 
-On Mon, Sep 24, 2018 at 10:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> On Mon, Sep 24, 2018 at 10:18:52PM +0200, Arnd Bergmann wrote:
-> > On Tue, Sep 18, 2018 at 7:59 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > > On Tue, Sep 18, 2018 at 10:51:08AM -0700, Darren Hart wrote:
-> > > > On Fri, Sep 14, 2018 at 09:57:48PM +0100, Al Viro wrote:
-> > > > > On Fri, Sep 14, 2018 at 01:35:06PM -0700, Darren Hart wrote:
-> > We already do this inside of some subsystems, notably drivers/media/,
-> > and it simplifies the implementation of the ioctl handler function
-> > significantly. We obviously cannot do this in general, both because of
-> > traditional drivers that have 16-bit command codes (drivers/tty and others)
-> > and also because of drivers that by accident defined the commands
-> > incorrectly and use the wrong type or the wrong direction in the
-> > definition.
->
-> That could work well, but the first idea could be done globally and
-> mechanically, while this would require very careful per-driver
-> investigation.
->
-> Particularly if the core code has worse performance.. ie due to
-> kmalloc calls or something.
->
-> I think it would make more sense to start by having the core do the
-> case to __user and then add another entry point to have the core do
-> the copy_from_user, and so on.
+NR_syscalls macro holds the number of system call exist in SPARC
+architecture. This macro is currently the part of uapi/asm/unistd.h
+file. We have to change the value of NR_syscalls, if we add or
+delete a system call.
 
-Having six separate callback pointers to implement a single
-system call seems a bit excessive though.
+One of the patch in this patch series has a script which will generate
+a uapi header based on syscall.tbl file. The syscall.tbl file contains
+the number of system call information. So we have two option to update
+NR_syscalls value.
 
-        Arnd
+1. Update NR_syscalls in uapi/asm/unistd.h manually by counting the
+   no.of system calls. No need to update NR_syscalls until we either
+   add a new system call or delete an existing system call.
+
+2. We can keep this feature it above mentioned script, that'll
+   count the number of syscalls and keep it in a generated file.
+   In this case we don't need to explicitly update NR_syscalls
+   in asm/unistd.h file.
+
+The 2nd option will be the recommended one. For that, I moved the
+NR_syscalls macro from uapi/asm/unistd.h to asm/unistd.h. The macro
+name also changed form NR_syscalls to __NR_syscalls for making the
+name convention same across all architecture. While __NR_syscalls
+isn't strictly part of the uapi, having it as part of the generated
+header to simplifies the implementation.
+
+Signed-off-by: Firoz Khan <firoz.khan@linaro.org>
+---
+ arch/sparc/include/asm/unistd.h      | 2 ++
+ arch/sparc/include/uapi/asm/unistd.h | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
+index f120b6b..c8849b7 100644
+--- a/arch/sparc/include/asm/unistd.h
++++ b/arch/sparc/include/asm/unistd.h
+@@ -17,6 +17,8 @@
+ 
+ #include <uapi/asm/unistd.h>
+ 
++#define NR_syscalls __NR_syscalls
++
+ #ifndef __32bit_syscall_numbers__
+ #ifndef __arch64__
+ #define __32bit_syscall_numbers__
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index ccf4bea..e2407b4 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -422,6 +422,6 @@
+ #define __NR_pwritev2		359
+ #define __NR_statx		360
+ 
+-#define NR_syscalls		361
++#define __NR_syscalls		361
+ 
+ #endif /* _UAPI_SPARC_UNISTD_H */
+-- 
+1.9.1
