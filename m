@@ -1,36 +1,49 @@
-From: Colin King <colin.king@canonical.com>
-Date: Fri, 07 Sep 2018 10:35:00 +0000
-Subject: [PATCH] oradax: remove redundant null check before kfree
-Message-Id: <20180907103500.17453-1-colin.king@canonical.com>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:31 +0000
+Subject: [PATCH 05/25] tty: hvc: hvc_console: Change return type to void
+Message-Id: <1536029091-4426-6-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S . Miller" <davem@davemloft.net>, Rob Gardner <rob.gardner@oracle.com>, Jonathan Helman <jonathan.helman@oracle.com>, sparclinux@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-From: Colin Ian King <colin.king@canonical.com>
+Since tty_port_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
 
-A null check before a kfree is redundant, so remove it.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
 ---
- drivers/sbus/char/oradax.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/tty/hvc/hvc_console.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/sbus/char/oradax.c b/drivers/sbus/char/oradax.c
-index 524f9ea62e52..6516bc3cb58b 100644
---- a/drivers/sbus/char/oradax.c
-+++ b/drivers/sbus/char/oradax.c
-@@ -689,8 +689,7 @@ static int dax_open(struct inode *inode, struct file *f)
- alloc_error:
- 	kfree(ctx->ccb_buf);
- done:
--	if (ctx != NULL)
--		kfree(ctx);
-+	kfree(ctx);
- 	return -ENOMEM;
+diff --git a/drivers/tty/hvc/hvc_console.c b/drivers/tty/hvc/hvc_console.c
+index 5414c4a..13fad62 100644
+--- a/drivers/tty/hvc/hvc_console.c
++++ b/drivers/tty/hvc/hvc_console.c
+@@ -329,7 +329,6 @@ static void hvc_unthrottle(struct tty_struct *tty)
+ static int hvc_install(struct tty_driver *driver, struct tty_struct *tty)
+ {
+ 	struct hvc_struct *hp;
+-	int rc;
+ 
+ 	/* Auto increments kref reference if found. */
+ 	hp = hvc_get_by_index(tty->index);
+@@ -337,11 +336,9 @@ static int hvc_install(struct tty_driver *driver, struct tty_struct *tty)
+ 		return -ENODEV;
+ 
+ 	tty->driver_data = hp;
++	tty_port_install(&hp->port, driver, tty);
+ 
+-	rc = tty_port_install(&hp->port, driver, tty);
+-	if (rc)
+-		tty_port_put(&hp->port);
+-	return rc;
++	return 0;
  }
  
+ /*
 -- 
-2.17.1
+2.7.4
