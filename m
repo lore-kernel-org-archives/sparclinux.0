@@ -1,213 +1,53 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 26 Sep 2018 23:28:49 +0000
-Subject: [RFC mm PATCH 5/5] mm: Use common iterator for deferred_init_pages and deferred_free_pages
-Message-Id: <20180926232849.17365.28850.stgit@localhost.localdomain>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:46 +0000
+Subject: [PATCH 20/25] staging: gdm724x: gdm_tty: Change return type to void
+Message-Id: <1536029091-4426-21-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180926232117.17365.72207.stgit@localhost.localdomain>
-In-Reply-To: <20180926232117.17365.72207.stgit@localhost.localdomain>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-This patch creates a common iterator to be used by both deferred_init_pages
-and deferred_free_pages. By doing this we can cut down a bit on code
-overhead as they will likely both be inlined into the same function anyway.
+Since tty_standard_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
 
-This new approach allows deferred_init_pages to make use of
-__init_pageblock. By doing this we can cut down on the code size by sharing
-code between both the hotplug and deferred memory init code paths.
-
-An additional benefit to this approach is that we improve in cache locality
-of the memory init as we can focus on the memory areas related to
-identifying if a given PFN is valid and keep that warm in the cache until
-we transition to a region of a different type. So we will stream through a
-chunk of valid blocks before we turn to initializing page structs.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
 ---
- mm/page_alloc.c |  134 +++++++++++++++++++++++++++----------------------------
- 1 file changed, 65 insertions(+), 69 deletions(-)
+ drivers/staging/gdm724x/gdm_tty.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 1baea475f296..815ce793c73d 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1480,32 +1480,6 @@ void clear_zone_contiguous(struct zone *zone)
- }
+diff --git a/drivers/staging/gdm724x/gdm_tty.c b/drivers/staging/gdm724x/gdm_tty.c
+index 6e81369..d6348df 100644
+--- a/drivers/staging/gdm724x/gdm_tty.c
++++ b/drivers/staging/gdm724x/gdm_tty.c
+@@ -62,6 +62,7 @@ static int gdm_tty_install(struct tty_driver *driver, struct tty_struct *tty)
+ 		return -ENODEV;
  
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
--static void __init deferred_free_range(unsigned long pfn,
--				       unsigned long nr_pages)
--{
--	struct page *page;
--	unsigned long i;
+ 	mutex_lock(&gdm_table_lock);
++
+ 	gdm = gdm_table[ret][tty->index];
+ 	if (!gdm) {
+ 		mutex_unlock(&gdm_table_lock);
+@@ -69,15 +70,9 @@ static int gdm_tty_install(struct tty_driver *driver, struct tty_struct *tty)
+ 	}
+ 
+ 	tty_port_get(&gdm->port);
 -
--	if (!nr_pages)
--		return;
--
--	page = pfn_to_page(pfn);
--
--	/* Free a large naturally-aligned chunk if possible */
--	if (nr_pages = pageblock_nr_pages &&
--	    (pfn & (pageblock_nr_pages - 1)) = 0) {
--		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, pageblock_order);
--		return;
+-	ret = tty_standard_install(driver, tty);
+-	if (ret) {
+-		tty_port_put(&gdm->port);
+-		mutex_unlock(&gdm_table_lock);
+-		return ret;
 -	}
 -
--	for (i = 0; i < nr_pages; i++, page++, pfn++) {
--		if ((pfn & (pageblock_nr_pages - 1)) = 0)
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, 0);
--	}
--}
--
- /* Completion tracking for deferred_init_memmap() threads */
- static atomic_t pgdat_init_n_undone __initdata;
- static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
-@@ -1517,48 +1491,77 @@ static inline void __init pgdat_init_report_one_done(void)
- }
++	tty_standard_install(driver, tty);
+ 	tty->driver_data = gdm;
++
+ 	mutex_unlock(&gdm_table_lock);
  
- /*
-- * Returns true if page needs to be initialized or freed to buddy allocator.
-+ * Returns count if page range needs to be initialized or freed
-  *
-- * First we check if pfn is valid on architectures where it is possible to have
-- * holes within pageblock_nr_pages. On systems where it is not possible, this
-- * function is optimized out.
-+ * First, we check if a current large page is valid by only checking the
-+ * validity of the head pfn.
-  *
-- * Then, we check if a current large page is valid by only checking the validity
-- * of the head pfn.
-+ * Then we check if the contiguous pfns are valid on architectures where it
-+ * is possible to have holes within pageblock_nr_pages. On systems where it
-+ * is not possible, this function is optimized out.
-  */
--static inline bool __init deferred_pfn_valid(unsigned long pfn)
-+static unsigned long __next_pfn_valid_range(unsigned long *i,
-+					    unsigned long end_pfn)
- {
--	if (!pfn_valid_within(pfn))
--		return false;
--	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
--		return false;
--	return true;
-+	unsigned long pfn = *i;
-+	unsigned long count;
-+
-+	while (pfn < end_pfn) {
-+		unsigned long t = ALIGN(pfn + 1, pageblock_nr_pages);
-+		unsigned long pageblock_pfn = min(t, end_pfn);
-+
-+#ifndef CONFIG_HOLES_IN_ZONE
-+		count = pageblock_pfn - pfn;
-+		pfn = pageblock_pfn;
-+		if (!pfn_valid(pfn))
-+			continue;
-+#else
-+		for (count = 0; pfn < pageblock_pfn; pfn++) {
-+			if (pfn_valid_within(pfn)) {
-+				count++;
-+				continue;
-+			}
-+
-+			if (count)
-+				break;
-+		}
-+
-+		if (!count)
-+			continue;
-+#endif
-+		*i = pfn;
-+		return count;
-+	}
-+
-+	return 0;
- }
- 
-+#define for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) \
-+	for (i = (start_pfn),						     \
-+	     count = __next_pfn_valid_range(&i, (end_pfn));		     \
-+	     count && ({ pfn = i - count; 1; });			     \
-+	     count = __next_pfn_valid_range(&i, (end_pfn)))
- /*
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long start_pfn,
- 				       unsigned long end_pfn)
- {
--	unsigned long nr_pgmask = pageblock_nr_pages - 1;
--	unsigned long nr_free = 0;
--
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 0;
--		} else if (!(pfn & nr_pgmask)) {
--			deferred_free_range(pfn - nr_free, nr_free);
--			nr_free = 1;
--			touch_nmi_watchdog();
-+	unsigned long i, pfn, count;
-+
-+	for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		if (count = pageblock_nr_pages) {
-+			__free_pages_boot_core(page, pageblock_order);
- 		} else {
--			nr_free++;
-+			while (count--)
-+				__free_pages_boot_core(page++, 0);
- 		}
-+
-+		touch_nmi_watchdog();
- 	}
--	/* Free the last block of pages to allocator */
--	deferred_free_range(pfn - nr_free, nr_free);
- }
- 
- /*
-@@ -1567,29 +1570,22 @@ static void __init deferred_free_pages(unsigned long pfn,
-  * Return number of pages initialized.
-  */
- static unsigned long  __init deferred_init_pages(struct zone *zone,
--						 unsigned long pfn,
-+						 unsigned long start_pfn,
- 						 unsigned long end_pfn)
- {
--	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	unsigned long i, pfn, count;
- 	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
- 	int zid = zone_idx(zone);
--	struct page *page = NULL;
- 
--	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(pfn)) {
--			page = NULL;
--			continue;
--		} else if (!page || !(pfn & nr_pgmask)) {
--			page = pfn_to_page(pfn);
--			touch_nmi_watchdog();
--		} else {
--			page++;
--		}
--		__init_single_page(page, pfn, zid, nid);
--		nr_pages++;
-+	for_each_deferred_pfn_valid_range(i, start_pfn, end_pfn, pfn, count) {
-+		nr_pages += count;
-+		__init_pageblock(pfn, count, zid, nid, NULL, false);
-+
-+		touch_nmi_watchdog();
- 	}
--	return (nr_pages);
-+
-+	return nr_pages;
- }
- 
- /*
+ 	return 0;
+-- 
+2.7.4
