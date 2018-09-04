@@ -1,238 +1,95 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 20 Sep 2018 06:03:56 +0000
-Subject: [PATCH v7 09/11] hugetlb: Introduce generic version of huge_ptep_set_wrprotect
-Message-Id: <20180920060358.16606-10-alex@ghiti.fr>
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Tue, 04 Sep 2018 04:53:23 +0000
+Subject: [PATCH 0/4] System call table generation support
+Message-Id: <1536036087-15260-1-git-send-email-firoz.khan@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180920060358.16606-1-alex@ghiti.fr>
-In-Reply-To: <20180920060358.16606-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Alexandre Ghiti <alex@ghiti.fr>
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
 
-arm, ia64, mips, powerpc, sh, x86 architectures use the same version
-of huge_ptep_set_wrprotect, so move this generic implementation into
-asm-generic/hugetlb.h.
+The purpose of this patch series is:
+1. We can easily add/modify/delete system call by changing entry 
+in syscall.tbl file. No need to manually edit many files.
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Tested-by: Helge Deller <deller@gmx.de> # parisc
-Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
-Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
-Acked-by: Ingo Molnar <mingo@kernel.org> # x86
-Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
----
- arch/arm/include/asm/hugetlb-3level.h        | 6 ------
- arch/arm64/include/asm/hugetlb.h             | 1 +
- arch/ia64/include/asm/hugetlb.h              | 6 ------
- arch/mips/include/asm/hugetlb.h              | 6 ------
- arch/parisc/include/asm/hugetlb.h            | 1 +
- arch/powerpc/include/asm/book3s/32/pgtable.h | 6 ------
- arch/powerpc/include/asm/book3s/64/pgtable.h | 1 +
- arch/powerpc/include/asm/nohash/32/pgtable.h | 6 ------
- arch/powerpc/include/asm/nohash/64/pgtable.h | 1 +
- arch/sh/include/asm/hugetlb.h                | 6 ------
- arch/sparc/include/asm/hugetlb.h             | 1 +
- arch/x86/include/asm/hugetlb.h               | 6 ------
- include/asm-generic/hugetlb.h                | 8 ++++++++
- 13 files changed, 13 insertions(+), 42 deletions(-)
+2. It is easy to unify the system call implementation across all 
+the architectures. 
 
-diff --git a/arch/arm/include/asm/hugetlb-3level.h b/arch/arm/include/asm/hugetlb-3level.h
-index b897541520ef..8247cd6a2ac6 100644
---- a/arch/arm/include/asm/hugetlb-3level.h
-+++ b/arch/arm/include/asm/hugetlb-3level.h
-@@ -37,12 +37,6 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
- 	return retval;
- }
- 
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index 3e7f6e69b28d..f4f69ae5466e 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -48,6 +48,7 @@ extern int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- #define __HAVE_ARCH_HUGE_PTEP_GET_AND_CLEAR
- extern pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 				     unsigned long addr, pte_t *ptep);
-+#define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- extern void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 				    unsigned long addr, pte_t *ptep);
- #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index cbe296271030..49d1f7949f3a 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -27,12 +27,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- {
- }
- 
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 6ff2531cfb1d..3dcf5debf8c4 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -63,12 +63,6 @@ static inline int huge_pte_none(pte_t pte)
- 	return !val || (val = (unsigned long)invalid_pte_table);
- }
- 
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr,
- 					     pte_t *ptep, pte_t pte,
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index fb7e0fd858a3..9c3950ca2974 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -39,6 +39,7 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- {
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep);
- 
-diff --git a/arch/powerpc/include/asm/book3s/32/pgtable.h b/arch/powerpc/include/asm/book3s/32/pgtable.h
-index 751cf931bb3f..796d026da37e 100644
---- a/arch/powerpc/include/asm/book3s/32/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/32/pgtable.h
-@@ -221,12 +221,6 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- {
- 	pte_update(ptep, (_PAGE_RW | _PAGE_HWWRITE), _PAGE_RO);
- }
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- 
- static inline void __ptep_set_access_flags(struct vm_area_struct *vma,
- 					   pte_t *ptep, pte_t entry,
-diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
-index 13a688fc8cd0..badb56963885 100644
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h
-+++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -461,6 +461,7 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 		pte_update(mm, addr, ptep, 0, _PAGE_PRIVILEGED, 0);
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/powerpc/include/asm/nohash/32/pgtable.h b/arch/powerpc/include/asm/nohash/32/pgtable.h
-index a507a65b0866..6c82b9660c55 100644
---- a/arch/powerpc/include/asm/nohash/32/pgtable.h
-+++ b/arch/powerpc/include/asm/nohash/32/pgtable.h
-@@ -246,12 +246,6 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- {
- 	pte_update(ptep, (_PAGE_RW | _PAGE_HWWRITE), _PAGE_RO);
- }
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- 
- static inline void __ptep_set_access_flags(struct vm_area_struct *vma,
- 					   pte_t *ptep, pte_t entry,
-diff --git a/arch/powerpc/include/asm/nohash/64/pgtable.h b/arch/powerpc/include/asm/nohash/64/pgtable.h
-index 7cd6809f4d33..68283e632f04 100644
---- a/arch/powerpc/include/asm/nohash/64/pgtable.h
-+++ b/arch/powerpc/include/asm/nohash/64/pgtable.h
-@@ -239,6 +239,7 @@ static inline void ptep_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 	pte_update(mm, addr, ptep, _PAGE_RW, 0, 0);
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index f1bbd255ee43..8df4004977b9 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -32,12 +32,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- {
- }
- 
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 2101ea217f33..c41754a113f3 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -32,6 +32,7 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- {
- }
- 
-+#define __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
- static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 					   unsigned long addr, pte_t *ptep)
- {
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index 59c056adb3c9..a3f781f7a264 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -13,12 +13,6 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- 	return 0;
- }
- 
--static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
--					   unsigned long addr, pte_t *ptep)
--{
--	ptep_set_wrprotect(mm, addr, ptep);
--}
--
- static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty)
-diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
-index 6c0c8b0c71e0..9b9039845278 100644
---- a/include/asm-generic/hugetlb.h
-+++ b/include/asm-generic/hugetlb.h
-@@ -102,4 +102,12 @@ static inline int prepare_hugepage_range(struct file *file,
- }
- #endif
- 
-+#ifndef __HAVE_ARCH_HUGE_PTEP_SET_WRPROTECT
-+static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
-+		unsigned long addr, pte_t *ptep)
-+{
-+	ptep_set_wrprotect(mm, addr, ptep);
-+}
-+#endif
-+
- #endif /* _ASM_GENERIC_HUGETLB_H */
+The system call tables are in different format in all architecture 
+and it will be difficult to manually add or modify the system calls
+in the respective files manually. To make it easy by keeping a script 
+and which'll generate the header file and syscall table file so this 
+change will unify them across all architectures.
+
+syscall.tbl contains the list of available system calls along with 
+system call number and corresponding entry point. Add a new system 
+call in this architecture will be possible by adding new entry in 
+the syscall.tbl file.
+
+Adding a new table entry consisting of:
+        - System call number.
+        - ABI.
+        - System call name.
+        - Entry point name.
+        - Compat entry name, if required.
+
+ARM, s390 and x86 architecuture does exist the similar support. I 
+leverage their implementation to come up with a generic solution.
+
+I have done the same support for work for alpha, m68k, microblaze, 
+mips, parisc, powerpc, sh, sparc, and xtensa. But I started sending 
+the patch for one architecuture for review. Below mentioned git
+repository contains more details.
+Git repo:- https://github.com/frzkhn/system_call_table_generator/
+
+Finally, this is the ground work for solving the Y2038 issue. We 
+need to add/change two dozen of system calls to solve Y2038 issue. 
+So this patch series will help to easily modify from existing 
+system call to Y2038 compatible system calls.
+
+I started working system call table generation on 4.17-rc1. I used 
+marcin's script - https://github.com/hrw/syscalls-table to generate 
+the syscall.tbl file. And this will be the input to the system call 
+table generation script. But there are couple system call got add 
+in the latest rc release. If run Marcin's script on latest release,
+It will generate a new syscall.tbl. But I still use the old file - 
+syscall.tbl and once all review got over I'll update syscall.tbl 
+alone w.r.to the tip of the kernel. The impact of this thing, few 
+of the system call won't work.
+
+Firoz Khan (4):
+  sparc: Move __IGNORE* entries to non uapi header
+  sparc: Replace NR_SYSCALLS macro with __NR_SYSCALLS
+  sparc: Add system call table generation support
+  sparc: uapi header and system call table file generation
+
+ arch/sparc/Makefile                       |   3 +
+ arch/sparc/include/asm/Kbuild             |   5 +-
+ arch/sparc/include/asm/unistd.h           |  27 ++
+ arch/sparc/include/uapi/asm/Kbuild        |   3 +
+ arch/sparc/include/uapi/asm/unistd.h      | 434 +-----------------------------
+ arch/sparc/kernel/Makefile                |   2 +-
+ arch/sparc/kernel/head_64.S               |   2 +-
+ arch/sparc/kernel/syscall_table_32.S      |  12 +
+ arch/sparc/kernel/syscall_table_64.S      |  22 ++
+ arch/sparc/kernel/syscalls/Makefile       |  50 ++++
+ arch/sparc/kernel/syscalls/syscall_32.tbl | 365 +++++++++++++++++++++++++
+ arch/sparc/kernel/syscalls/syscall_64.tbl | 349 ++++++++++++++++++++++++
+ arch/sparc/kernel/syscalls/syscallhdr.sh  |  33 +++
+ arch/sparc/kernel/syscalls/syscalltbl.sh  |  38 +++
+ arch/sparc/kernel/systbls_32.S            |  93 -------
+ arch/sparc/kernel/systbls_64.S            | 176 ------------
+ 16 files changed, 912 insertions(+), 702 deletions(-)
+ create mode 100644 arch/sparc/kernel/syscall_table_32.S
+ create mode 100644 arch/sparc/kernel/syscall_table_64.S
+ create mode 100644 arch/sparc/kernel/syscalls/Makefile
+ create mode 100644 arch/sparc/kernel/syscalls/syscall_32.tbl
+ create mode 100644 arch/sparc/kernel/syscalls/syscall_64.tbl
+ create mode 100644 arch/sparc/kernel/syscalls/syscallhdr.sh
+ create mode 100644 arch/sparc/kernel/syscalls/syscalltbl.sh
+ delete mode 100644 arch/sparc/kernel/systbls_32.S
+ delete mode 100644 arch/sparc/kernel/systbls_64.S
+
 -- 
-2.16.2
+1.9.1
