@@ -1,37 +1,88 @@
-From: Firoz Khan <firoz.khan@linaro.org>
-Date: Tue, 18 Sep 2018 11:57:00 +0000
-Subject: Re: [PATCH 4/4] sparc: uapi header and system call table file generation
-Message-Id: <CALxhOngr6KY+CijcMx8f6Kg=SK3wJK_wxV6Z-HPWYpQ6h5iJog@mail.gmail.com>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:26 +0000
+Subject: [PATCH 00/25] Change tty_port(standard)_install's return type
+Message-Id: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536036087-15260-1-git-send-email-firoz.khan@linaro.org>
- <1536036087-15260-5-git-send-email-firoz.khan@linaro.org> <CAK8P3a2qFoCOzM6x-_mv0Um2E-WHDeOU-fuuZ65TtDKKcPxNrQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a2qFoCOzM6x-_mv0Um2E-WHDeOU-fuuZ65TtDKKcPxNrQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: David Miller <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, gregkh <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>, y2038 Mailman List <y2038@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Deepa Dinamani <deepa.kernel@gmail.com>, Marcin Juszkiewicz <marcin.juszkiewicz@linaro.org>
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-On 6 September 2018 at 21:04, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tue, Sep 4, 2018 at 6:42 AM Firoz Khan <firoz.khan@linaro.org> wrote:
->>
->> System call table generation script must be run to generate
->> unistd_32/64.h and syscall_table_32/64/c32.h files. This patch
->> will have changes which will invokes the script.
->>
->> This patch will generate unistd_32/64.h and syscall_table_
->> 32/64/c32.h files by the syscall table generation script
->> invoked by arch/sparc/Makefile and the generated files against
->> the removed files will be identical.
->>
->> The generated uapi header file will be included in uapi/asm/
->> unistd_32/64.h and generated system call table support file will
->> be included by arch/sparc/kernel/syscall_table_32/64.S file.
->
-> These changes all look good to me.
->
->        Arnd
+Many drivers with tty use the tty_stand_install(). But, there is no
+need to handle the error, since it always returns 0. So, change the
+return type of tty_standard_install() and tty_port_install() to void
+type and remove unnecessary exception handling where we use these
+functions.
 
-Thanks for your reply!
+Change return type for tty functions. Patch No.01
+  tty: Change return type to void
 
-- Firoz
+Apply tty_port_install() changes. Patch No.02~14
+  isdn: i4l: isdn_tty: Change return type to void
+  ...
+  Bluetooth: Change return type to void
+
+Apply tty_standard_install() changes. Patch No.15~25
+  um: Change return type to void
+  ...
+  usb: usb-serial: Change return type to void
+
+Jaejoong Kim (25):
+  tty: Change return type to void
+  isdn: i4l: isdn_tty: Change return type to void
+  s390: char: con3215: Change return type to void
+  s390: char: tty3270: Change return type to void
+  tty: hvc: hvc_console: Change return type to void
+  tty: hvc: hvcs: Change return type to void
+  tty: mips_ejtag_fdc: Change return type to void
+  tty: n_gsm: Change return type to void
+  tty: serial: kgdb_nmi: Change return type to void
+  tty: synclink: Change return type to void
+  tty: synclinkmp: Change return type to void
+  tty: vt: Change return type to void
+  usb: xhci: dbc: Change return type to void
+  Bluetooth: Change return type to void
+  um: Change return type to void
+  isdn: capi: Change return type to void
+  misc: pti: Change return type to void
+  mmc: core: sdio_uart: Change return type to void
+  staging: fwserial: Change return type to void
+  staging: gdm724x: gdm_tty: Change return type to void
+  staging: greybus: uart: Change return type to void
+  tty: nozomi: Change return type to void
+  tty: vcc: Change return type to void
+  usb: cdc-acm: Change return type to void
+  usb: usb-serial: Change return type to void
+
+ arch/um/drivers/line.c              |  7 +------
+ drivers/isdn/capi/capi.c            | 10 ++++------
+ drivers/isdn/i4l/isdn_tty.c         |  3 ++-
+ drivers/misc/pti.c                  | 28 +++++++++++++---------------
+ drivers/mmc/core/sdio_uart.c        | 11 ++++-------
+ drivers/s390/char/con3215.c         |  3 ++-
+ drivers/s390/char/tty3270.c         |  7 +------
+ drivers/staging/fwserial/fwserial.c | 22 ++++++++--------------
+ drivers/staging/gdm724x/gdm_tty.c   | 11 +++--------
+ drivers/staging/greybus/uart.c      | 10 ++--------
+ drivers/tty/hvc/hvc_console.c       |  7 ++-----
+ drivers/tty/hvc/hvcs.c              | 10 ++--------
+ drivers/tty/mips_ejtag_fdc.c        |  4 +++-
+ drivers/tty/n_gsm.c                 |  9 +--------
+ drivers/tty/nozomi.c                |  8 +++-----
+ drivers/tty/serial/kgdb_nmi.c       | 11 +----------
+ drivers/tty/synclink.c              |  3 ++-
+ drivers/tty/synclinkmp.c            |  3 ++-
+ drivers/tty/tty_io.c                | 10 ++++++----
+ drivers/tty/tty_port.c              |  4 ++--
+ drivers/tty/vcc.c                   |  5 +----
+ drivers/tty/vt/vt.c                 |  5 +----
+ drivers/usb/class/cdc-acm.c         | 10 +---------
+ drivers/usb/host/xhci-dbgtty.c      |  3 ++-
+ drivers/usb/serial/usb-serial.c     |  6 +-----
+ include/linux/tty.h                 |  4 ++--
+ net/bluetooth/rfcomm/tty.c          |  7 +------
+ 27 files changed, 73 insertions(+), 148 deletions(-)
+
+-- 
+2.7.4
