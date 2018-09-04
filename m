@@ -1,32 +1,38 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Wed, 26 Sep 2018 09:38:46 +0000
-Subject: Re: [PATCH 29/30] mm: remove include/linux/bootmem.h
-Message-Id: <20180926093846.GS6278@dhcp22.suse.cz>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:39 +0000
+Subject: [PATCH 13/25] usb: xhci: dbc: Change return type to void
+Message-Id: <1536029091-4426-14-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1536927045-23536-30-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1536927045-23536-30-git-send-email-rppt@linux.vnet.ibm.com>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Catalin Marinas <catalin.marinas@arm.com>, Chris Zankel <chris@zankel.net>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guan Xuetao <gxt@pku.edu.cn>, Ingo Molnar <mingo@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Jonas Bonn <jonas@southpole.se>, Jonathan Corbet <corbet@lwn.net>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Palmer Dabbelt <palmer@sifive.com>, Paul Burton <paul.burton@mips.com>, Richard Kuo <rkuo@codeaurora.org>, Richard Weinberger <richard@nod.at>, Rich Felker <dalias@libc.org>, Russell King <linux@armlinux.org.uk>, Serge Semin <fancer.lancer@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Vineet Gupta <vgupta@synopsys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-On Fri 14-09-18 15:10:44, Mike Rapoport wrote:
-> Move remaining definitions and declarations from include/linux/bootmem.h
-> into include/linux/memblock.h and remove the redundant header.
-> 
-> The includes were replaced with the semantic patch below and then
-> semi-automated removal of duplicated '#include <linux/memblock.h>
-> 
-> @@
-> @@
-> - #include <linux/bootmem.h>
-> + #include <linux/memblock.h>
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Since tty_port_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
 
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+---
+ drivers/usb/host/xhci-dbgtty.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-dbgtty.c b/drivers/usb/host/xhci-dbgtty.c
+index aff79ff..18d661c 100644
+--- a/drivers/usb/host/xhci-dbgtty.c
++++ b/drivers/usb/host/xhci-dbgtty.c
+@@ -174,8 +174,9 @@ static int dbc_tty_install(struct tty_driver *driver, struct tty_struct *tty)
+ 	struct dbc_port		*port = driver->driver_state;
+ 
+ 	tty->driver_data = port;
++	tty_port_install(&port->port, driver, tty);
+ 
+-	return tty_port_install(&port->port, driver, tty);
++	return 0;
+ }
+ 
+ static int dbc_tty_open(struct tty_struct *tty, struct file *file)
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
