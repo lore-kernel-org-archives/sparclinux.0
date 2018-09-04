@@ -1,7 +1,7 @@
 From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Tue, 04 Sep 2018 02:44:29 +0000
-Subject: [PATCH 03/25] s390: char: con3215: Change return type to void
-Message-Id: <1536029091-4426-4-git-send-email-climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:36 +0000
+Subject: [PATCH 10/25] tty: synclink: Change return type to void
+Message-Id: <1536029091-4426-11-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
@@ -16,23 +16,23 @@ to void. Now apply this and remove the obsolete error check.
 
 Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
 ---
- drivers/s390/char/con3215.c | 3 ++-
+ drivers/tty/synclink.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/s390/char/con3215.c b/drivers/s390/char/con3215.c
-index 8c9d412..6a9f6d9 100644
---- a/drivers/s390/char/con3215.c
-+++ b/drivers/s390/char/con3215.c
-@@ -965,8 +965,9 @@ static int tty3215_install(struct tty_driver *driver, struct tty_struct *tty)
+diff --git a/drivers/tty/synclink.c b/drivers/tty/synclink.c
+index fbdf4d0..6e7e4d6 100644
+--- a/drivers/tty/synclink.c
++++ b/drivers/tty/synclink.c
+@@ -3355,8 +3355,9 @@ static int mgsl_install(struct tty_driver *driver, struct tty_struct *tty)
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_open"))
  		return -ENODEV;
+ 	tty->driver_data = info;
++	tty_port_install(&info->port, driver, tty);
  
- 	tty->driver_data = raw;
-+	tty_port_install(&raw->port, driver, tty);
- 
--	return tty_port_install(&raw->port, driver, tty);
+-	return tty_port_install(&info->port, driver, tty);
 +	return 0;
  }
  
- /*
+ /* mgsl_open()
 -- 
 2.7.4
