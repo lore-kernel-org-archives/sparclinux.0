@@ -1,95 +1,46 @@
-From: Firoz Khan <firoz.khan@linaro.org>
-Date: Tue, 04 Sep 2018 04:53:23 +0000
-Subject: [PATCH 0/4] System call table generation support
-Message-Id: <1536036087-15260-1-git-send-email-firoz.khan@linaro.org>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:44 +0000
+Subject: [PATCH 18/25] mmc: core: sdio_uart: Change return type to void
+Message-Id: <1536029091-4426-19-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
-Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-The purpose of this patch series is:
-1. We can easily add/modify/delete system call by changing entry 
-in syscall.tbl file. No need to manually edit many files.
+Since tty_standard_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
 
-2. It is easy to unify the system call implementation across all 
-the architectures. 
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+---
+ drivers/mmc/core/sdio_uart.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-The system call tables are in different format in all architecture 
-and it will be difficult to manually add or modify the system calls
-in the respective files manually. To make it easy by keeping a script 
-and which'll generate the header file and syscall table file so this 
-change will unify them across all architectures.
-
-syscall.tbl contains the list of available system calls along with 
-system call number and corresponding entry point. Add a new system 
-call in this architecture will be possible by adding new entry in 
-the syscall.tbl file.
-
-Adding a new table entry consisting of:
-        - System call number.
-        - ABI.
-        - System call name.
-        - Entry point name.
-        - Compat entry name, if required.
-
-ARM, s390 and x86 architecuture does exist the similar support. I 
-leverage their implementation to come up with a generic solution.
-
-I have done the same support for work for alpha, m68k, microblaze, 
-mips, parisc, powerpc, sh, sparc, and xtensa. But I started sending 
-the patch for one architecuture for review. Below mentioned git
-repository contains more details.
-Git repo:- https://github.com/frzkhn/system_call_table_generator/
-
-Finally, this is the ground work for solving the Y2038 issue. We 
-need to add/change two dozen of system calls to solve Y2038 issue. 
-So this patch series will help to easily modify from existing 
-system call to Y2038 compatible system calls.
-
-I started working system call table generation on 4.17-rc1. I used 
-marcin's script - https://github.com/hrw/syscalls-table to generate 
-the syscall.tbl file. And this will be the input to the system call 
-table generation script. But there are couple system call got add 
-in the latest rc release. If run Marcin's script on latest release,
-It will generate a new syscall.tbl. But I still use the old file - 
-syscall.tbl and once all review got over I'll update syscall.tbl 
-alone w.r.to the tip of the kernel. The impact of this thing, few 
-of the system call won't work.
-
-Firoz Khan (4):
-  sparc: Move __IGNORE* entries to non uapi header
-  sparc: Replace NR_SYSCALLS macro with __NR_SYSCALLS
-  sparc: Add system call table generation support
-  sparc: uapi header and system call table file generation
-
- arch/sparc/Makefile                       |   3 +
- arch/sparc/include/asm/Kbuild             |   5 +-
- arch/sparc/include/asm/unistd.h           |  27 ++
- arch/sparc/include/uapi/asm/Kbuild        |   3 +
- arch/sparc/include/uapi/asm/unistd.h      | 434 +-----------------------------
- arch/sparc/kernel/Makefile                |   2 +-
- arch/sparc/kernel/head_64.S               |   2 +-
- arch/sparc/kernel/syscall_table_32.S      |  12 +
- arch/sparc/kernel/syscall_table_64.S      |  22 ++
- arch/sparc/kernel/syscalls/Makefile       |  50 ++++
- arch/sparc/kernel/syscalls/syscall_32.tbl | 365 +++++++++++++++++++++++++
- arch/sparc/kernel/syscalls/syscall_64.tbl | 349 ++++++++++++++++++++++++
- arch/sparc/kernel/syscalls/syscallhdr.sh  |  33 +++
- arch/sparc/kernel/syscalls/syscalltbl.sh  |  38 +++
- arch/sparc/kernel/systbls_32.S            |  93 -------
- arch/sparc/kernel/systbls_64.S            | 176 ------------
- 16 files changed, 912 insertions(+), 702 deletions(-)
- create mode 100644 arch/sparc/kernel/syscall_table_32.S
- create mode 100644 arch/sparc/kernel/syscall_table_64.S
- create mode 100644 arch/sparc/kernel/syscalls/Makefile
- create mode 100644 arch/sparc/kernel/syscalls/syscall_32.tbl
- create mode 100644 arch/sparc/kernel/syscalls/syscall_64.tbl
- create mode 100644 arch/sparc/kernel/syscalls/syscallhdr.sh
- create mode 100644 arch/sparc/kernel/syscalls/syscalltbl.sh
- delete mode 100644 arch/sparc/kernel/systbls_32.S
- delete mode 100644 arch/sparc/kernel/systbls_64.S
-
+diff --git a/drivers/mmc/core/sdio_uart.c b/drivers/mmc/core/sdio_uart.c
+index 25e1130..b727186 100644
+--- a/drivers/mmc/core/sdio_uart.c
++++ b/drivers/mmc/core/sdio_uart.c
+@@ -731,14 +731,11 @@ static int sdio_uart_install(struct tty_driver *driver, struct tty_struct *tty)
+ {
+ 	int idx = tty->index;
+ 	struct sdio_uart_port *port = sdio_uart_port_get(idx);
+-	int ret = tty_standard_install(driver, tty);
+ 
+-	if (ret = 0)
+-		/* This is the ref sdio_uart_port get provided */
+-		tty->driver_data = port;
+-	else
+-		sdio_uart_port_put(port);
+-	return ret;
++	tty_standard_install(driver, tty);
++	tty->driver_data = port;
++
++	return 0;
+ }
+ 
+ /**
 -- 
-1.9.1
+2.7.4
