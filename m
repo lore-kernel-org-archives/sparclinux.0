@@ -1,40 +1,41 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Wed, 12 Sep 2018 03:39:13 +0000
-Subject: [PATCH] sparc: vdso: clean-up vdso Makefile
-Message-Id: <1536723553-21287-1-git-send-email-yamada.masahiro@socionext.com>
+From: Jaejoong Kim <climbbb.kim@gmail.com>
+Date: Tue, 04 Sep 2018 02:44:41 +0000
+Subject: [PATCH 15/25] um: Change return type to void
+Message-Id: <1536029091-4426-16-git-send-email-climbbb.kim@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
-To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Shannon Nelson <shannon.nelson@oracle.com>, linux-kernel@vger.kernel.org, Nick Alcock <nick.alcock@oracle.com>, Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-YXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlIGlzIGEgcmVwbGljYSBvZiBhcmNoL3g4Ni9lbnRyeS92
-ZHNvL01ha2VmaWxlLgoKQ2xlYW4tdXAgdGhlIE1ha2VmaWxlIGluIHRoZSBzYW1lIHdheSBhcyBJ
-IGRpZCBmb3IgeDg2OgoKIC0gUmVtb3ZlIHVubmVjZXNzYXJ5IGV4cG9ydAogLSBQdXQgdGhlIGdl
-bmVyYXRlZCBsaW5rZXIgc2NyaXB0IHRvICQob2JqKS8gaW5zdGVhZCBvZiAkKHNyYykvCiAtIFNp
-bXBsaWZ5IGNtZF92ZHNvMmMKClRoZSBjb3JyZXNwb25kaW5nIHg4NiBjb21taXRzIGFyZToKCiAt
-IDYxNjE1ZmFmMGE4OSAoIng4Ni9idWlsZC92ZHNvOiBSZW1vdmUgdW5uZWNlc3NhcnkgZXhwb3J0
-IGluIE1ha2VmaWxlIikKIC0gMTc0MmVkMjA4OGNjICgieDg2L2J1aWxkL3Zkc286IFB1dCBnZW5l
-cmF0ZWQgbGlua2VyIHNjcmlwdHMgdG8gJChvYmopLyIpCiAtIGM1ZmNkYmYxNTUyMyAoIng4Ni9i
-dWlsZC92ZHNvOiBTaW1wbGlmeSAnY21kX3Zkc28yYyciKQoKU2lnbmVkLW9mZi1ieTogTWFzYWhp
-cm8gWWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4KLS0tCgogYXJjaC9zcGFy
-Yy92ZHNvL01ha2VmaWxlIHwgOCArKystLS0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9u
-cygrKSwgNSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL3Zkc28vTWFrZWZp
-bGUgYi9hcmNoL3NwYXJjL3Zkc28vTWFrZWZpbGUKaW5kZXggZGQwYjVhOS4uZGM4NTU3MCAxMDA2
-NDQKLS0tIGEvYXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlCisrKyBiL2FyY2gvc3BhcmMvdmRzby9N
-YWtlZmlsZQpAQCAtMzEsMjMgKzMxLDIxIEBAIG9iai15ICs9ICQodmRzb19pbWdfb2JqcykKIHRh
-cmdldHMgKz0gJCh2ZHNvX2ltZ19jZmlsZXMpCiB0YXJnZXRzICs9ICQodmRzb19pbWdfc29kYmcp
-ICQodmRzb19pbWcteTolPXZkc28lLnNvKQogCi1leHBvcnQgQ1BQRkxBR1NfdmRzby5sZHMgKz0g
-LVAgLUMKK0NQUEZMQUdTX3Zkc28ubGRzICs9IC1QIC1DCiAKIFZEU09fTERGTEFHU192ZHNvLmxk
-cyA9IC1tNjQgLVdsLC1zb25hbWU9bGludXgtdmRzby5zby4xIFwKIAkJCS1XbCwtLW5vLXVuZGVm
-aW5lZCBcCiAJCQktV2wsLXosbWF4LXBhZ2Utc2l6ZYE5MiAtV2wsLXosY29tbW9uLXBhZ2Utc2l6
-ZYE5MiBcCiAJCQkkKERJU0FCTEVfTFRPKQogCi0kKG9iaikvdmRzbzY0LnNvLmRiZzogJChzcmMp
-L3Zkc28ubGRzICQodm9ianMpIEZPUkNFCiskKG9iaikvdmRzbzY0LnNvLmRiZzogJChvYmopL3Zk
-c28ubGRzICQodm9ianMpIEZPUkNFCiAJJChjYWxsIGlmX2NoYW5nZWQsdmRzbykKIAogSE9TVF9F
-WFRSQUNGTEFHUyArPSAtSSQoc3JjdHJlZSkvdG9vbHMvaW5jbHVkZQogaG9zdHByb2dzLXkJCQkr
-PSB2ZHNvMmMKIAogcXVpZXRfY21kX3Zkc28yYyA9IFZEU08yQyAgJEAKLWRlZmluZSBjbWRfdmRz
-bzJjCi0JJChvYmopL3Zkc28yYyAkPCAkKDw6JS5kYmc9JSkgJEAKLWVuZGVmCisgICAgICBjbWRf
-dmRzbzJjID0gJChvYmopL3Zkc28yYyAkPCAkKDw6JS5kYmc9JSkgJEAKIAogJChvYmopL3Zkc28t
-aW1hZ2UtJS5jOiAkKG9iaikvdmRzbyUuc28uZGJnICQob2JqKS92ZHNvJS5zbyAkKG9iaikvdmRz
-bzJjIEZPUkNFCiAJJChjYWxsIGlmX2NoYW5nZWQsdmRzbzJjKQotLSAKMi43LjQK
+Since tty_standard_install() always returns 0, the return type has changed
+to void. Now apply this and remove the obsolete error check.
+
+Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+---
+ arch/um/drivers/line.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/arch/um/drivers/line.c b/arch/um/drivers/line.c
+index 8d80b27..47058cf 100644
+--- a/arch/um/drivers/line.c
++++ b/arch/um/drivers/line.c
+@@ -338,12 +338,7 @@ int line_open(struct tty_struct *tty, struct file *filp)
+ int line_install(struct tty_driver *driver, struct tty_struct *tty,
+ 		 struct line *line)
+ {
+-	int ret;
+-
+-	ret = tty_standard_install(driver, tty);
+-	if (ret)
+-		return ret;
+-
++	tty_standard_install(driver, tty);
+ 	tty->driver_data = line;
+ 
+ 	return 0;
+-- 
+2.7.4
