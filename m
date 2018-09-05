@@ -1,90 +1,197 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Thu, 06 Sep 2018 09:06:42 +0000
-Subject: Re: [RFC PATCH 26/29] memblock: rename __free_pages_bootmem to memblock_free_pages
-Message-Id: <20180906090642.GK14951@dhcp22.suse.cz>
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Date: Wed, 05 Sep 2018 15:59:34 +0000
+Subject: [RFC PATCH 19/29] memblock: replace alloc_bootmem_pages with memblock_alloc
+Message-Id: <1536163184-26356-20-git-send-email-rppt@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1536163184-26356-1-git-send-email-rppt@linux.vnet.ibm.com>
- <1536163184-26356-27-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1536163184-26356-27-git-send-email-rppt@linux.vnet.ibm.com>
+In-Reply-To: <1536163184-26356-1-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Paul Burton <paul.burton@mips.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, Paul Burton <paul.burton@mips.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.vnet.ibm.com>
 
-On Wed 05-09-18 18:59:41, Mike Rapoport wrote:
-> The conversion is done using
-> 
-> sed -i 's@__free_pages_bootmem@memblock_free_pages@' \
->     $(git grep -l __free_pages_bootmem)
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+The conversion is done using the following semantic patch:
 
-Acked-by: Michal Hocko <mhocko@suse.com>
+@@
+expression e;
+@@
+- alloc_bootmem_pages(e)
++ memblock_alloc(e, PAGE_SIZE)
 
-> ---
->  mm/internal.h   | 2 +-
->  mm/memblock.c   | 2 +-
->  mm/nobootmem.c  | 2 +-
->  mm/page_alloc.c | 2 +-
->  4 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/mm/internal.h b/mm/internal.h
-> index 87256ae..291eb2b 100644
-> --- a/mm/internal.h
-> +++ b/mm/internal.h
-> @@ -161,7 +161,7 @@ static inline struct page *pageblock_pfn_to_page(unsigned long start_pfn,
->  }
->  
->  extern int __isolate_free_page(struct page *page, unsigned int order);
-> -extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
-> +extern void memblock_free_pages(struct page *page, unsigned long pfn,
->  					unsigned int order);
->  extern void prep_compound_page(struct page *page, unsigned int order);
->  extern void post_alloc_hook(struct page *page, unsigned int order,
-> diff --git a/mm/memblock.c b/mm/memblock.c
-> index 63df68b..55d7d50 100644
-> --- a/mm/memblock.c
-> +++ b/mm/memblock.c
-> @@ -1639,7 +1639,7 @@ void __init __memblock_free_late(phys_addr_t base, phys_addr_t size)
->  	end = PFN_DOWN(base + size);
->  
->  	for (; cursor < end; cursor++) {
-> -		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
-> +		memblock_free_pages(pfn_to_page(cursor), cursor, 0);
->  		totalram_pages++;
->  	}
->  }
-> diff --git a/mm/nobootmem.c b/mm/nobootmem.c
-> index bb64b09..9608bc5 100644
-> --- a/mm/nobootmem.c
-> +++ b/mm/nobootmem.c
-> @@ -43,7 +43,7 @@ static void __init __free_pages_memory(unsigned long start, unsigned long end)
->  		while (start + (1UL << order) > end)
->  			order--;
->  
-> -		__free_pages_bootmem(pfn_to_page(start), start, order);
-> +		memblock_free_pages(pfn_to_page(start), start, order);
->  
->  		start += (1UL << order);
->  	}
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index 33c9e27..e143fae 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -1333,7 +1333,7 @@ meminit_pfn_in_nid(unsigned long pfn, int node,
->  #endif
->  
->  
-> -void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
-> +void __init memblock_free_pages(struct page *page, unsigned long pfn,
->  							unsigned int order)
->  {
->  	if (early_page_uninitialised(pfn))
-> -- 
-> 2.7.4
-> 
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+---
+ arch/c6x/mm/init.c             | 3 ++-
+ arch/h8300/mm/init.c           | 2 +-
+ arch/m68k/mm/init.c            | 2 +-
+ arch/m68k/mm/mcfmmu.c          | 4 ++--
+ arch/m68k/mm/motorola.c        | 2 +-
+ arch/m68k/mm/sun3mmu.c         | 4 ++--
+ arch/sh/mm/init.c              | 4 ++--
+ arch/x86/kernel/apic/io_apic.c | 3 ++-
+ arch/x86/mm/init_64.c          | 2 +-
+ drivers/xen/swiotlb-xen.c      | 3 ++-
+ 10 files changed, 16 insertions(+), 13 deletions(-)
 
+diff --git a/arch/c6x/mm/init.c b/arch/c6x/mm/init.c
+index 4cc72b0..dc369ad 100644
+--- a/arch/c6x/mm/init.c
++++ b/arch/c6x/mm/init.c
+@@ -38,7 +38,8 @@ void __init paging_init(void)
+ 	struct pglist_data *pgdat = NODE_DATA(0);
+ 	unsigned long zones_size[MAX_NR_ZONES] = {0, };
+ 
+-	empty_zero_page      = (unsigned long) alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page      = (unsigned long) memblock_alloc(PAGE_SIZE,
++							      PAGE_SIZE);
+ 	memset((void *)empty_zero_page, 0, PAGE_SIZE);
+ 
+ 	/*
+diff --git a/arch/h8300/mm/init.c b/arch/h8300/mm/init.c
+index 015287a..5d31ac9 100644
+--- a/arch/h8300/mm/init.c
++++ b/arch/h8300/mm/init.c
+@@ -67,7 +67,7 @@ void __init paging_init(void)
+ 	 * Initialize the bad page table and bad page to point
+ 	 * to a couple of allocated pages.
+ 	 */
+-	empty_zero_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 	memset((void *)empty_zero_page, 0, PAGE_SIZE);
+ 
+ 	/*
+diff --git a/arch/m68k/mm/init.c b/arch/m68k/mm/init.c
+index 38e2b27..977363e 100644
+--- a/arch/m68k/mm/init.c
++++ b/arch/m68k/mm/init.c
+@@ -93,7 +93,7 @@ void __init paging_init(void)
+ 
+ 	high_memory = (void *) end_mem;
+ 
+-	empty_zero_page = alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	/*
+ 	 * Set up SFC/DFC registers (user data space).
+diff --git a/arch/m68k/mm/mcfmmu.c b/arch/m68k/mm/mcfmmu.c
+index f5453d9..38a1d92 100644
+--- a/arch/m68k/mm/mcfmmu.c
++++ b/arch/m68k/mm/mcfmmu.c
+@@ -44,7 +44,7 @@ void __init paging_init(void)
+ 	enum zone_type zone;
+ 	int i;
+ 
+-	empty_zero_page = (void *) alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page = (void *) memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 	memset((void *) empty_zero_page, 0, PAGE_SIZE);
+ 
+ 	pg_dir = swapper_pg_dir;
+@@ -52,7 +52,7 @@ void __init paging_init(void)
+ 
+ 	size = num_pages * sizeof(pte_t);
+ 	size = (size + PAGE_SIZE) & ~(PAGE_SIZE-1);
+-	next_pgtable = (unsigned long) alloc_bootmem_pages(size);
++	next_pgtable = (unsigned long) memblock_alloc(size, PAGE_SIZE);
+ 
+ 	bootmem_end = (next_pgtable + size + PAGE_SIZE) & PAGE_MASK;
+ 	pg_dir += PAGE_OFFSET >> PGDIR_SHIFT;
+diff --git a/arch/m68k/mm/motorola.c b/arch/m68k/mm/motorola.c
+index 8bcf57e..2113eec 100644
+--- a/arch/m68k/mm/motorola.c
++++ b/arch/m68k/mm/motorola.c
+@@ -276,7 +276,7 @@ void __init paging_init(void)
+ 	 * initialize the bad page table and bad page to point
+ 	 * to a couple of allocated pages
+ 	 */
+-	empty_zero_page = alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	/*
+ 	 * Set up SFC/DFC registers
+diff --git a/arch/m68k/mm/sun3mmu.c b/arch/m68k/mm/sun3mmu.c
+index 4a99799..19c05ab 100644
+--- a/arch/m68k/mm/sun3mmu.c
++++ b/arch/m68k/mm/sun3mmu.c
+@@ -45,7 +45,7 @@ void __init paging_init(void)
+ 	unsigned long zones_size[MAX_NR_ZONES] = { 0, };
+ 	unsigned long size;
+ 
+-	empty_zero_page = alloc_bootmem_pages(PAGE_SIZE);
++	empty_zero_page = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	address = PAGE_OFFSET;
+ 	pg_dir = swapper_pg_dir;
+@@ -55,7 +55,7 @@ void __init paging_init(void)
+ 	size = num_pages * sizeof(pte_t);
+ 	size = (size + PAGE_SIZE) & ~(PAGE_SIZE-1);
+ 
+-	next_pgtable = (unsigned long)alloc_bootmem_pages(size);
++	next_pgtable = (unsigned long)memblock_alloc(size, PAGE_SIZE);
+ 	bootmem_end = (next_pgtable + size + PAGE_SIZE) & PAGE_MASK;
+ 
+ 	/* Map whole memory from PAGE_OFFSET (0x0E000000) */
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index 7713c08..c884b76 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -128,7 +128,7 @@ static pmd_t * __init one_md_table_init(pud_t *pud)
+ 	if (pud_none(*pud)) {
+ 		pmd_t *pmd;
+ 
+-		pmd = alloc_bootmem_pages(PAGE_SIZE);
++		pmd = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 		pud_populate(&init_mm, pud, pmd);
+ 		BUG_ON(pmd != pmd_offset(pud, 0));
+ 	}
+@@ -141,7 +141,7 @@ static pte_t * __init one_page_table_init(pmd_t *pmd)
+ 	if (pmd_none(*pmd)) {
+ 		pte_t *pte;
+ 
+-		pte = alloc_bootmem_pages(PAGE_SIZE);
++		pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 		pmd_populate_kernel(&init_mm, pmd, pte);
+ 		BUG_ON(pte != pte_offset_kernel(pmd, 0));
+ 	}
+diff --git a/arch/x86/kernel/apic/io_apic.c b/arch/x86/kernel/apic/io_apic.c
+index ff0d14c..e25118f 100644
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -2621,7 +2621,8 @@ void __init io_apic_init_mappings(void)
+ #ifdef CONFIG_X86_32
+ fake_ioapic_page:
+ #endif
+-			ioapic_phys = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
++			ioapic_phys = (unsigned long)memblock_alloc(PAGE_SIZE,
++								    PAGE_SIZE);
+ 			ioapic_phys = __pa(ioapic_phys);
+ 		}
+ 		set_fixmap_nocache(idx, ioapic_phys);
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index dd519f3..f39b512 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -197,7 +197,7 @@ static __ref void *spp_getpage(void)
+ 	if (after_bootmem)
+ 		ptr = (void *) get_zeroed_page(GFP_ATOMIC);
+ 	else
+-		ptr = alloc_bootmem_pages(PAGE_SIZE);
++		ptr = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	if (!ptr || ((unsigned long)ptr & ~PAGE_MASK)) {
+ 		panic("set_pte_phys: cannot allocate page data %s\n",
+diff --git a/drivers/xen/swiotlb-xen.c b/drivers/xen/swiotlb-xen.c
+index a6f9ba8..8d849b4 100644
+--- a/drivers/xen/swiotlb-xen.c
++++ b/drivers/xen/swiotlb-xen.c
+@@ -217,7 +217,8 @@ int __ref xen_swiotlb_init(int verbose, bool early)
+ 	 * Get IO TLB memory from any location.
+ 	 */
+ 	if (early)
+-		xen_io_tlb_start = alloc_bootmem_pages(PAGE_ALIGN(bytes));
++		xen_io_tlb_start = memblock_alloc(PAGE_ALIGN(bytes),
++						  PAGE_SIZE);
+ 	else {
+ #define SLABS_PER_PAGE (1 << (PAGE_SHIFT - IO_TLB_SHIFT))
+ #define IO_TLB_MIN_SLABS ((1<<20) >> IO_TLB_SHIFT)
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
