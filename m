@@ -1,123 +1,166 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Mon, 03 Sep 2018 10:23:05 +0000
-Subject: Re: due to kconfig changes kernel config file is no longer sufficient for configuring the kernel
-Message-Id: <CAK7LNATwJsYAm_VLZKJryD2zB5OHr9qVBg2mD4hyu+ieNd+r0A@mail.gmail.com>
+From: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Date: Wed, 05 Sep 2018 15:59:33 +0000
+Subject: [RFC PATCH 18/29] memblock: replace alloc_bootmem_low_pages with memblock_alloc_low
+Message-Id: <1536163184-26356-19-git-send-email-rppt@linux.vnet.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180627143705.5a1fed1c@kitsune.suse.cz> <CAK7LNARVPNx_uC5xTrS_p9T4nMRTC79BO51T4Lytv2eU1c-ynw@mail.gmail.com>
- <20180628111623.3807fe9b@naga.suse.cz> <CAK7LNARRKU7Mfa8ZBu1qPFYFRr-5k69sjVyERM2bYcnWoBDN8g@mail.gmail.com>
- <20180806200725.4efa5d35@kitsune.suse.cz> <CAK7LNATCktToMui4NYxoUXV8ZbuDK8F0JCp_CysEWaSBPUP7NQ@mail.gmail.com>
- <s5h6004hokn.wl-tiwai@suse.de>
-In-Reply-To: <s5h6004hokn.wl-tiwai@suse.de>
+References: <1536163184-26356-1-git-send-email-rppt@linux.vnet.ibm.com>
+In-Reply-To: <1536163184-26356-1-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Takashi Iwai <tiwai@suse.de>
-Cc: =?UTF-8?Q?Michal_Such=C3=A1nek?= <msuchanek@suse.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andreas Schwab <schwab@suse.de>, Michal Kubecek <mkubecek@suse.cz>, Michal Marek <michal.lkml@markovi.net>, Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, Kees Cook <keescook@chromium.org>, Philippe Ombredanne <pombredanne@nexb.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ulf Magnusson <ulfalizer@gmail.com>, Jeff Mahoney <jeffm@suse.com>, "Peter Zijlstra," <peterz@infradead.org>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Frederic Weisbecker <frederic@kernel.org>, Randy Dunlap <rdunlap@infradead.org>, Dominik Brodowski <linux@dominikbrodowski.net>, Nicholas Piggin <npiggin@gmail.com>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-um@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Hocko <mhocko@suse.com>, Paul Burton <paul.burton@mips.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.vnet.ibm.com>
 
-Hi.
+The conversion is done using the following semantic patch:
 
+@@
+expression e;
+@@
+- alloc_bootmem_low_pages(e)
++ memblock_alloc_low(e, PAGE_SIZE)
 
-2018-08-21 3:37 GMT+09:00 Takashi Iwai <tiwai@suse.de>:
-> On Mon, 20 Aug 2018 20:15:12 +0200,
-> Masahiro Yamada wrote:
->>
->> 2018-08-07 3:07 GMT+09:00 Michal Suchánek <msuchanek@suse.de>:
->> > On Mon, 30 Jul 2018 17:02:42 +0900
->> > Masahiro Yamada <yamada.masahiro@socionext.com> wrote:
->> >
->> >> 2018-06-28 18:16 GMT+09:00 Michal Suchánek <msuchanek@suse.de>:
->> >> > On Wed, 27 Jun 2018 23:07:21 +0900
->> >> > Masahiro Yamada <yamada.masahiro@socionext.com> wrote:
->> >> >
->> >> >> Hi.
->> >> >>
->> >> >>
->> >> >> 2018-06-27 21:37 GMT+09:00 Michal Suchánek <msuchanek@suse.de>:
->> >> >> > Hello,
->> >> >> >
->> >> >> > in the x86 Kconfig we have this:
->> >> >> >
->> >> >> > # Select 32 or 64 bit
->> >> >> > config 64BIT
->> >> >> >         bool "64-bit kernel" if "$(ARCH)" = "x86"
->> >> >> >         default "$(ARCH)" != "i386"
->> >> >> >         ---help---
->> >> >> >           Say yes to build a 64-bit kernel - formerly known as
->> >> >> > x86_64 Say no to build a 32-bit kernel - formerly known as i386
->> >> >> >
->> >> >> > Since commit 104daea149c4 ("kconfig: reference environment
->> >> >> > variables directly and remove 'option env='") the value of ARCH
->> >> >> > is not saved in the kernel config.
->> >> >>
->> >> >> I think this commit is unrelated.  It was just a syntax change.
->> >> >
->> >> > This does not look like syntax only change to me:
->> >> >
->> >> > diff --git a/init/Kconfig b/init/Kconfig
->> >> > index 15aae32e0719..1217fc62ca61 100644
->> >> > --- a/init/Kconfig
->> >> > +++ b/init/Kconfig
->> >> > @@ -1,20 +1,12 @@
->> >> > -config ARCH
->> >> > -       string
->> >> > -       option env="ARCH"
->> >> > -
->> >> > -config KERNELVERSION
->> >> > -       string
->> >> > -       option env="KERNELVERSION"
->> >> > -
->> >>
->> >> This is just syntax change.
->> >>
->> >> 'option env=' was used to reference an environment variable.
->> >>
->> >> Now, $(ARCH), $(KERNELVERSION) are simpler forms.
->> >>
->> >>
->> >> >>
->> >> >> Unless I am missing something,
->> >> >> we have never saved ARCH in the .config in the past.
->> >> >
->> >> > There was a config symbol defined for it before the commit removed
->> >> > it.
->> >>
->> >> No.
->> >>
->> >> CONFIG symbols with'option env='
->> >> are not written out to the .config file.
->> >>
->> >> We have never had CONFIG_ARCH or CONFIG_KERNELVERSION.
->
-> Maybe it sounds like a stupid question, but...
-> if passing ARCH= is almost mandatory for distinguishing the bi-arch or
-> cross-compile cases, why don't we save it in .config?
+Signed-off-by: Mike Rapoport <rppt@linux.vnet.ibm.com>
+---
+ arch/arc/mm/highmem.c                |  2 +-
+ arch/m68k/atari/stram.c              |  3 ++-
+ arch/m68k/mm/motorola.c              |  5 +++--
+ arch/mips/cavium-octeon/dma-octeon.c |  2 +-
+ arch/mips/mm/init.c                  |  3 ++-
+ arch/um/kernel/mem.c                 | 10 ++++++----
+ arch/xtensa/mm/mmu.c                 |  2 +-
+ 7 files changed, 16 insertions(+), 11 deletions(-)
 
-
-The .config may not exist, may not be loaded.
-
-For "make help", "make headers_install" etc.
-ARCH needs be given from the command line anyway.
-
-I do not want to obscure "when to pass ARCH".
-
-
-> The whole "regression" we've seen can be worked around by passing
-> ARCH at each time.  So, by having it in .config, everything would work
-> more easily, no?
-
-
-Recording ARCH in .config does not solve the problem
-because the .config contents depend on the compiler.
-
-
->
->
-> thanks,
->
-> Takashi
-
-
-
+diff --git a/arch/arc/mm/highmem.c b/arch/arc/mm/highmem.c
+index 77ff64a..f582dc8 100644
+--- a/arch/arc/mm/highmem.c
++++ b/arch/arc/mm/highmem.c
+@@ -123,7 +123,7 @@ static noinline pte_t * __init alloc_kmap_pgtable(unsigned long kvaddr)
+ 	pud_k = pud_offset(pgd_k, kvaddr);
+ 	pmd_k = pmd_offset(pud_k, kvaddr);
+ 
+-	pte_k = (pte_t *)alloc_bootmem_low_pages(PAGE_SIZE);
++	pte_k = (pte_t *)memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
+ 	pmd_populate_kernel(&init_mm, pmd_k, pte_k);
+ 	return pte_k;
+ }
+diff --git a/arch/m68k/atari/stram.c b/arch/m68k/atari/stram.c
+index c83d664..1089d67 100644
+--- a/arch/m68k/atari/stram.c
++++ b/arch/m68k/atari/stram.c
+@@ -95,7 +95,8 @@ void __init atari_stram_reserve_pages(void *start_mem)
+ {
+ 	if (kernel_in_stram) {
+ 		pr_debug("atari_stram pool: kernel in ST-RAM, using alloc_bootmem!\n");
+-		stram_pool.start = (resource_size_t)alloc_bootmem_low_pages(pool_size);
++		stram_pool.start = (resource_size_t)memblock_alloc_low(pool_size,
++								       PAGE_SIZE);
+ 		stram_pool.end = stram_pool.start + pool_size - 1;
+ 		request_resource(&iomem_resource, &stram_pool);
+ 		stram_virt_offset = 0;
+diff --git a/arch/m68k/mm/motorola.c b/arch/m68k/mm/motorola.c
+index 4e17ecb..8bcf57e 100644
+--- a/arch/m68k/mm/motorola.c
++++ b/arch/m68k/mm/motorola.c
+@@ -55,7 +55,7 @@ static pte_t * __init kernel_page_table(void)
+ {
+ 	pte_t *ptablep;
+ 
+-	ptablep = (pte_t *)alloc_bootmem_low_pages(PAGE_SIZE);
++	ptablep = (pte_t *)memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
+ 
+ 	clear_page(ptablep);
+ 	__flush_page_to_ram(ptablep);
+@@ -95,7 +95,8 @@ static pmd_t * __init kernel_ptr_table(void)
+ 
+ 	last_pgtable += PTRS_PER_PMD;
+ 	if (((unsigned long)last_pgtable & ~PAGE_MASK) = 0) {
+-		last_pgtable = (pmd_t *)alloc_bootmem_low_pages(PAGE_SIZE);
++		last_pgtable = (pmd_t *)memblock_alloc_low(PAGE_SIZE,
++							   PAGE_SIZE);
+ 
+ 		clear_page(last_pgtable);
+ 		__flush_page_to_ram(last_pgtable);
+diff --git a/arch/mips/cavium-octeon/dma-octeon.c b/arch/mips/cavium-octeon/dma-octeon.c
+index 236833b..c44c1a6 100644
+--- a/arch/mips/cavium-octeon/dma-octeon.c
++++ b/arch/mips/cavium-octeon/dma-octeon.c
+@@ -244,7 +244,7 @@ void __init plat_swiotlb_setup(void)
+ 	swiotlb_nslabs = ALIGN(swiotlb_nslabs, IO_TLB_SEGSIZE);
+ 	swiotlbsize = swiotlb_nslabs << IO_TLB_SHIFT;
+ 
+-	octeon_swiotlb = alloc_bootmem_low_pages(swiotlbsize);
++	octeon_swiotlb = memblock_alloc_low(swiotlbsize, PAGE_SIZE);
+ 
+ 	if (swiotlb_init_with_tbl(octeon_swiotlb, swiotlb_nslabs, 1) = -ENOMEM)
+ 		panic("Cannot allocate SWIOTLB buffer");
+diff --git a/arch/mips/mm/init.c b/arch/mips/mm/init.c
+index 400676c..a010fba7 100644
+--- a/arch/mips/mm/init.c
++++ b/arch/mips/mm/init.c
+@@ -244,7 +244,8 @@ void __init fixrange_init(unsigned long start, unsigned long end,
+ 			pmd = (pmd_t *)pud;
+ 			for (; (k < PTRS_PER_PMD) && (vaddr < end); pmd++, k++) {
+ 				if (pmd_none(*pmd)) {
+-					pte = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
++					pte = (pte_t *) memblock_alloc_low(PAGE_SIZE,
++									   PAGE_SIZE);
+ 					set_pmd(pmd, __pmd((unsigned long)pte));
+ 					BUG_ON(pte != pte_offset_kernel(pmd, 0));
+ 				}
+diff --git a/arch/um/kernel/mem.c b/arch/um/kernel/mem.c
+index 3c0e470..185f6bb 100644
+--- a/arch/um/kernel/mem.c
++++ b/arch/um/kernel/mem.c
+@@ -64,7 +64,8 @@ void __init mem_init(void)
+ static void __init one_page_table_init(pmd_t *pmd)
+ {
+ 	if (pmd_none(*pmd)) {
+-		pte_t *pte = (pte_t *) alloc_bootmem_low_pages(PAGE_SIZE);
++		pte_t *pte = (pte_t *) memblock_alloc_low(PAGE_SIZE,
++							  PAGE_SIZE);
+ 		set_pmd(pmd, __pmd(_KERNPG_TABLE +
+ 					   (unsigned long) __pa(pte)));
+ 		if (pte != pte_offset_kernel(pmd, 0))
+@@ -75,7 +76,7 @@ static void __init one_page_table_init(pmd_t *pmd)
+ static void __init one_md_table_init(pud_t *pud)
+ {
+ #ifdef CONFIG_3_LEVEL_PGTABLES
+-	pmd_t *pmd_table = (pmd_t *) alloc_bootmem_low_pages(PAGE_SIZE);
++	pmd_t *pmd_table = (pmd_t *) memblock_alloc_low(PAGE_SIZE, PAGE_SIZE);
+ 	set_pud(pud, __pud(_KERNPG_TABLE + (unsigned long) __pa(pmd_table)));
+ 	if (pmd_table != pmd_offset(pud, 0))
+ 		BUG();
+@@ -124,7 +125,7 @@ static void __init fixaddr_user_init( void)
+ 		return;
+ 
+ 	fixrange_init( FIXADDR_USER_START, FIXADDR_USER_END, swapper_pg_dir);
+-	v = (unsigned long) alloc_bootmem_low_pages(size);
++	v = (unsigned long) memblock_alloc_low(size, PAGE_SIZE);
+ 	memcpy((void *) v , (void *) FIXADDR_USER_START, size);
+ 	p = __pa(v);
+ 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
+@@ -143,7 +144,8 @@ void __init paging_init(void)
+ 	unsigned long zones_size[MAX_NR_ZONES], vaddr;
+ 	int i;
+ 
+-	empty_zero_page = (unsigned long *) alloc_bootmem_low_pages(PAGE_SIZE);
++	empty_zero_page = (unsigned long *) memblock_alloc_low(PAGE_SIZE,
++							       PAGE_SIZE);
+ 	for (i = 0; i < ARRAY_SIZE(zones_size); i++)
+ 		zones_size[i] = 0;
+ 
+diff --git a/arch/xtensa/mm/mmu.c b/arch/xtensa/mm/mmu.c
+index 9d1ecfc..f33a1ff 100644
+--- a/arch/xtensa/mm/mmu.c
++++ b/arch/xtensa/mm/mmu.c
+@@ -31,7 +31,7 @@ static void * __init init_pmd(unsigned long vaddr, unsigned long n_pages)
+ 	pr_debug("%s: vaddr: 0x%08lx, n_pages: %ld\n",
+ 		 __func__, vaddr, n_pages);
+ 
+-	pte = alloc_bootmem_low_pages(n_pages * sizeof(pte_t));
++	pte = memblock_alloc_low(n_pages * sizeof(pte_t), PAGE_SIZE);
+ 
+ 	for (i = 0; i < n_pages; ++i)
+ 		pte_clear(NULL, 0, pte + i);
 -- 
-Best Regards
-Masahiro Yamada
+2.7.4
