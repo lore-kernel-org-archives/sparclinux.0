@@ -1,63 +1,30 @@
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Tue, 04 Sep 2018 02:44:45 +0000
-Subject: [PATCH 19/25] staging: fwserial: Change return type to void
-Message-Id: <1536029091-4426-20-git-send-email-climbbb.kim@gmail.com>
+From: Mikhail Fridman <regragui@fsr.ac.ma>
+Date: Sun, 09 Sep 2018 23:31:46 +0000
+Subject: Charity Donation !!!
+Message-Id: <20180909233146.19493plbeinmnbsw@koutoubia.fsr.ac.ma>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
-In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
+To: sparclinux@vger.kernel.org
 
-Since tty_standard_install() always returns 0, the return type has changed
-to void. Now apply this and remove the obsolete error check.
 
-Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
----
- drivers/staging/fwserial/fwserial.c | 22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+I, Mikhail Fridman have selected you specifically as one of my  
+beneficiaries for my Charitable Donation of $5 Million Dollars,
 
-diff --git a/drivers/staging/fwserial/fwserial.c b/drivers/staging/fwserial/fwserial.c
-index fa0dd42..5134019 100644
---- a/drivers/staging/fwserial/fwserial.c
-+++ b/drivers/staging/fwserial/fwserial.c
-@@ -1064,27 +1064,21 @@ static void fwtty_cleanup(struct tty_struct *tty)
- static int fwtty_install(struct tty_driver *driver, struct tty_struct *tty)
- {
- 	struct fwtty_port *port = fwtty_port_get(tty->index);
--	int err;
- 
--	err = tty_standard_install(driver, tty);
--	if (!err)
--		tty->driver_data = port;
--	else
--		fwtty_port_put(port);
--	return err;
-+	tty_standard_install(driver, tty);
-+	tty->driver_data = port;
-+
-+	return 0;
- }
- 
- static int fwloop_install(struct tty_driver *driver, struct tty_struct *tty)
- {
- 	struct fwtty_port *port = fwtty_port_get(table_idx(tty->index));
--	int err;
- 
--	err = tty_standard_install(driver, tty);
--	if (!err)
--		tty->driver_data = port;
--	else
--		fwtty_port_put(port);
--	return err;
-+	tty_standard_install(driver, tty);
-+	tty->driver_data = port;
-+
-+	return 0;
- }
- 
- static int fwtty_write(struct tty_struct *tty, const unsigned char *buf, int c)
--- 
-2.7.4
+Check the link below for confirmation:
+
+https://www.rt.com/business/343781-mikhail-fridman-will-charity/
+
+I await your earliest response.
+
+Best Regards,
+Mikhail Fridman.
+
+
+
+
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
