@@ -1,33 +1,20 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Wed, 26 Sep 2018 09:41:54 +0000
-Subject: Re: [PATCH 00/30] mm: remove bootmem allocator
-Message-Id: <20180926094154.GT6278@dhcp22.suse.cz>
+From: Yi Tan <yitanhsbl@protonmail.com>
+Date: Tue, 11 Sep 2018 05:46:57 +0000
+Subject: Investment opportunity
+Message-Id: <9368325.9201.1536644819101.JavaMail.javamailuser@localhost>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
-In-Reply-To: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Catalin Marinas <catalin.marinas@arm.com>, Chris Zankel <chris@zankel.net>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guan Xuetao <gxt@pku.edu.cn>, Ingo Molnar <mingo@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Jonas Bonn <jonas@southpole.se>, Jonathan Corbet <corbet@lwn.net>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Palmer Dabbelt <palmer@sifive.com>, Paul Burton <paul.burton@mips.com>, Richard Kuo <rkuo@codeaurora.org>, Richard Weinberger <richard@nod.at>, Rich Felker <dalias@libc.org>, Russell King <linux@armlinux.org.uk>, Serge Semin <fancer.lancer@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Vineet Gupta <vgupta@synopsys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp
+To: sparclinux@vger.kernel.org
 
-On Fri 14-09-18 15:10:15, Mike Rapoport wrote:
-[...]
->  326 files changed, 866 insertions(+), 2539 deletions(-)
->  delete mode 100644 include/linux/bootmem.h
->  delete mode 100644 mm/bootmem.c
->  delete mode 100644 mm/nobootmem.c
+Greetings,
+I am contacting you for a proffer to invest in any profitable business in your country.
+We offer a quick loan at low interest rate. E-mail: yitanhsbl@gmail.com
+Sincerely: Yi Tan
 
-I _really_ love this part the most! Not only we got rid of the
-translation which always has been a headache but also this nicely shows
-how having multiple allocators hurt. I believe further cleanups on top
-will make the boot allocator even a place where you look and your eyes
-do not want to jump out.
 
-I have only went through patches without my acks from the previous
-iteration and there are only minor comments. This looks good overall.
 
-Nice work Mike!
--- 
-Michal Hocko
-SUSE Labs
+
+----------------------------------------------------
+This email was sent by the shareware version of Postman Professional.
