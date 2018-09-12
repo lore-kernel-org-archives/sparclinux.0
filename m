@@ -1,57 +1,40 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 20 Sep 2018 06:03:48 +0000
-Subject: [PATCH v7 01/11] hugetlb: Harmonize hugetlb.h arch specific defines with pgtable.h
-Message-Id: <20180920060358.16606-2-alex@ghiti.fr>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Wed, 12 Sep 2018 03:39:13 +0000
+Subject: [PATCH] sparc: vdso: clean-up vdso Makefile
+Message-Id: <1536723553-21287-1-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180920060358.16606-1-alex@ghiti.fr>
-In-Reply-To: <20180920060358.16606-1-alex@ghiti.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org
-Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Alexandre Ghiti <alex@ghiti.fr>
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Shannon Nelson <shannon.nelson@oracle.com>, linux-kernel@vger.kernel.org, Nick Alcock <nick.alcock@oracle.com>, Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-asm-generic/hugetlb.h proposes generic implementations of hugetlb
-related functions: use __HAVE_ARCH_HUGE* defines in order to make arch
-specific implementations of hugetlb functions consistent with pgtable.h
-scheme.
-
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
-Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
----
- arch/arm64/include/asm/hugetlb.h | 2 +-
- include/asm-generic/hugetlb.h    | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index e73f68569624..3fcf14663dfa 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -81,9 +81,9 @@ extern void huge_ptep_set_wrprotect(struct mm_struct *mm,
- 				    unsigned long addr, pte_t *ptep);
- extern void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 				  unsigned long addr, pte_t *ptep);
-+#define __HAVE_ARCH_HUGE_PTE_CLEAR
- extern void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 			   pte_t *ptep, unsigned long sz);
--#define huge_pte_clear huge_pte_clear
- extern void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
- 				 pte_t *ptep, pte_t pte, unsigned long sz);
- #define set_huge_swap_pte_at set_huge_swap_pte_at
-diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
-index 9d0cde8ab716..3da7cff52360 100644
---- a/include/asm-generic/hugetlb.h
-+++ b/include/asm-generic/hugetlb.h
-@@ -32,7 +32,7 @@ static inline pte_t huge_pte_modify(pte_t pte, pgprot_t newprot)
- 	return pte_modify(pte, newprot);
- }
- 
--#ifndef huge_pte_clear
-+#ifndef __HAVE_ARCH_HUGE_PTE_CLEAR
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 		    pte_t *ptep, unsigned long sz)
- {
--- 
-2.16.2
+YXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlIGlzIGEgcmVwbGljYSBvZiBhcmNoL3g4Ni9lbnRyeS92
+ZHNvL01ha2VmaWxlLgoKQ2xlYW4tdXAgdGhlIE1ha2VmaWxlIGluIHRoZSBzYW1lIHdheSBhcyBJ
+IGRpZCBmb3IgeDg2OgoKIC0gUmVtb3ZlIHVubmVjZXNzYXJ5IGV4cG9ydAogLSBQdXQgdGhlIGdl
+bmVyYXRlZCBsaW5rZXIgc2NyaXB0IHRvICQob2JqKS8gaW5zdGVhZCBvZiAkKHNyYykvCiAtIFNp
+bXBsaWZ5IGNtZF92ZHNvMmMKClRoZSBjb3JyZXNwb25kaW5nIHg4NiBjb21taXRzIGFyZToKCiAt
+IDYxNjE1ZmFmMGE4OSAoIng4Ni9idWlsZC92ZHNvOiBSZW1vdmUgdW5uZWNlc3NhcnkgZXhwb3J0
+IGluIE1ha2VmaWxlIikKIC0gMTc0MmVkMjA4OGNjICgieDg2L2J1aWxkL3Zkc286IFB1dCBnZW5l
+cmF0ZWQgbGlua2VyIHNjcmlwdHMgdG8gJChvYmopLyIpCiAtIGM1ZmNkYmYxNTUyMyAoIng4Ni9i
+dWlsZC92ZHNvOiBTaW1wbGlmeSAnY21kX3Zkc28yYyciKQoKU2lnbmVkLW9mZi1ieTogTWFzYWhp
+cm8gWWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4KLS0tCgogYXJjaC9zcGFy
+Yy92ZHNvL01ha2VmaWxlIHwgOCArKystLS0tLQogMSBmaWxlIGNoYW5nZWQsIDMgaW5zZXJ0aW9u
+cygrKSwgNSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL3Zkc28vTWFrZWZp
+bGUgYi9hcmNoL3NwYXJjL3Zkc28vTWFrZWZpbGUKaW5kZXggZGQwYjVhOS4uZGM4NTU3MCAxMDA2
+NDQKLS0tIGEvYXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlCisrKyBiL2FyY2gvc3BhcmMvdmRzby9N
+YWtlZmlsZQpAQCAtMzEsMjMgKzMxLDIxIEBAIG9iai15ICs9ICQodmRzb19pbWdfb2JqcykKIHRh
+cmdldHMgKz0gJCh2ZHNvX2ltZ19jZmlsZXMpCiB0YXJnZXRzICs9ICQodmRzb19pbWdfc29kYmcp
+ICQodmRzb19pbWcteTolPXZkc28lLnNvKQogCi1leHBvcnQgQ1BQRkxBR1NfdmRzby5sZHMgKz0g
+LVAgLUMKK0NQUEZMQUdTX3Zkc28ubGRzICs9IC1QIC1DCiAKIFZEU09fTERGTEFHU192ZHNvLmxk
+cyA9IC1tNjQgLVdsLC1zb25hbWU9bGludXgtdmRzby5zby4xIFwKIAkJCS1XbCwtLW5vLXVuZGVm
+aW5lZCBcCiAJCQktV2wsLXosbWF4LXBhZ2Utc2l6ZYE5MiAtV2wsLXosY29tbW9uLXBhZ2Utc2l6
+ZYE5MiBcCiAJCQkkKERJU0FCTEVfTFRPKQogCi0kKG9iaikvdmRzbzY0LnNvLmRiZzogJChzcmMp
+L3Zkc28ubGRzICQodm9ianMpIEZPUkNFCiskKG9iaikvdmRzbzY0LnNvLmRiZzogJChvYmopL3Zk
+c28ubGRzICQodm9ianMpIEZPUkNFCiAJJChjYWxsIGlmX2NoYW5nZWQsdmRzbykKIAogSE9TVF9F
+WFRSQUNGTEFHUyArPSAtSSQoc3JjdHJlZSkvdG9vbHMvaW5jbHVkZQogaG9zdHByb2dzLXkJCQkr
+PSB2ZHNvMmMKIAogcXVpZXRfY21kX3Zkc28yYyA9IFZEU08yQyAgJEAKLWRlZmluZSBjbWRfdmRz
+bzJjCi0JJChvYmopL3Zkc28yYyAkPCAkKDw6JS5kYmc9JSkgJEAKLWVuZGVmCisgICAgICBjbWRf
+dmRzbzJjID0gJChvYmopL3Zkc28yYyAkPCAkKDw6JS5kYmc9JSkgJEAKIAogJChvYmopL3Zkc28t
+aW1hZ2UtJS5jOiAkKG9iaikvdmRzbyUuc28uZGJnICQob2JqKS92ZHNvJS5zbyAkKG9iaikvdmRz
+bzJjIEZPUkNFCiAJJChjYWxsIGlmX2NoYW5nZWQsdmRzbzJjKQotLSAKMi43LjQK
