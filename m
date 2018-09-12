@@ -1,7 +1,7 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Tue, 04 Sep 2018 04:42:39 +0000
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Date: Wed, 12 Sep 2018 14:41:19 +0000
 Subject: Re: [PATCH 00/25] Change tty_port(standard)_install's return type
-Message-Id: <20180904044239.GA24208@ravnborg.org>
+Message-Id: <20180912154119.1fce639d@alans-desktop>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
@@ -11,26 +11,17 @@ Content-Transfer-Encoding: 7bit
 To: Jaejoong Kim <climbbb.kim@gmail.com>
 Cc: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
 
-Hi Jaejoong.
+On Tue,  4 Sep 2018 11:44:26 +0900
+Jaejoong Kim <climbbb.kim@gmail.com> wrote:
 
-> Change return type for tty functions. Patch No.01
->   tty: Change return type to void
-Adding this patch first will generate a lot of warnings
-until all users are updated.
-It is usual practice to prepare all users
-and then apply the infrastructure changes as the
-last patch.
-Then people will not see a lot of warnings when
-they build something in the middle,
-and I guess current stack set may also generate
-a few mails from the 0-day build infrastructure.
+> Many drivers with tty use the tty_stand_install(). But, there is no
+> need to handle the error, since it always returns 0.
 
 
->   isdn: i4l: isdn_tty: Change return type to void
+And what happens if another change means it can fail again. It's just a
+property of the current implementation that it can't. It used to fail.
 
-And a nitpick on the patch description.
-This patch do not change any return type, but
-it ignore the return value og tty_part_install().
-Same goes for all ramaining patches.
+This seems to be a ton of unneccessary churn that will end up just having
+to be reversed again some day in the future.
 
-	Sam
+Alan
