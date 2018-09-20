@@ -1,38 +1,57 @@
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Tue, 04 Sep 2018 02:44:39 +0000
-Subject: [PATCH 13/25] usb: xhci: dbc: Change return type to void
-Message-Id: <1536029091-4426-14-git-send-email-climbbb.kim@gmail.com>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Thu, 20 Sep 2018 06:03:48 +0000
+Subject: [PATCH v7 01/11] hugetlb: Harmonize hugetlb.h arch specific defines with pgtable.h
+Message-Id: <20180920060358.16606-2-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
-In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+References: <20180920060358.16606-1-alex@ghiti.fr>
+In-Reply-To: <20180920060358.16606-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Alexandre Ghiti <alex@ghiti.fr>
 
-Since tty_port_install() always returns 0, the return type has changed
-to void. Now apply this and remove the obsolete error check.
+asm-generic/hugetlb.h proposes generic implementations of hugetlb
+related functions: use __HAVE_ARCH_HUGE* defines in order to make arch
+specific implementations of hugetlb functions consistent with pgtable.h
+scheme.
 
-Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
+Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- drivers/usb/host/xhci-dbgtty.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm64/include/asm/hugetlb.h | 2 +-
+ include/asm-generic/hugetlb.h    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/host/xhci-dbgtty.c b/drivers/usb/host/xhci-dbgtty.c
-index aff79ff..18d661c 100644
---- a/drivers/usb/host/xhci-dbgtty.c
-+++ b/drivers/usb/host/xhci-dbgtty.c
-@@ -174,8 +174,9 @@ static int dbc_tty_install(struct tty_driver *driver, struct tty_struct *tty)
- 	struct dbc_port		*port = driver->driver_state;
- 
- 	tty->driver_data = port;
-+	tty_port_install(&port->port, driver, tty);
- 
--	return tty_port_install(&port->port, driver, tty);
-+	return 0;
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index e73f68569624..3fcf14663dfa 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -81,9 +81,9 @@ extern void huge_ptep_set_wrprotect(struct mm_struct *mm,
+ 				    unsigned long addr, pte_t *ptep);
+ extern void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 				  unsigned long addr, pte_t *ptep);
++#define __HAVE_ARCH_HUGE_PTE_CLEAR
+ extern void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ 			   pte_t *ptep, unsigned long sz);
+-#define huge_pte_clear huge_pte_clear
+ extern void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
+ 				 pte_t *ptep, pte_t pte, unsigned long sz);
+ #define set_huge_swap_pte_at set_huge_swap_pte_at
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index 9d0cde8ab716..3da7cff52360 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -32,7 +32,7 @@ static inline pte_t huge_pte_modify(pte_t pte, pgprot_t newprot)
+ 	return pte_modify(pte, newprot);
  }
  
- static int dbc_tty_open(struct tty_struct *tty, struct file *file)
+-#ifndef huge_pte_clear
++#ifndef __HAVE_ARCH_HUGE_PTE_CLEAR
+ static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ 		    pte_t *ptep, unsigned long sz)
+ {
 -- 
-2.7.4
+2.16.2
