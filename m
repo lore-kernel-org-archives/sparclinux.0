@@ -1,120 +1,195 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 26 Sep 2018 23:28:26 +0000
-Subject: [RFC mm PATCH 1/5] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-Message-Id: <20180926232826.17365.84669.stgit@localhost.localdomain>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Thu, 20 Sep 2018 06:03:53 +0000
+Subject: [PATCH v7 06/11] hugetlb: Introduce generic version of huge_pte_none
+Message-Id: <20180920060358.16606-7-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20180926232117.17365.72207.stgit@localhost.localdomain>
-In-Reply-To: <20180926232117.17365.72207.stgit@localhost.localdomain>
+References: <20180920060358.16606-1-alex@ghiti.fr>
+In-Reply-To: <20180920060358.16606-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: akpm@linux-foundation.org
+Cc: linux-mm@kvack.org, mike.kravetz@oracle.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jejb@parisc-linux.org, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, Alexandre Ghiti <alex@ghiti.fr>
 
-This change makes it so that we use the same approach that was already in
-use on Sparc on all the archtectures that support a 64b long.
+arm, arm64, ia64, mips, parisc, powerpc, sh, sparc, x86 architectures
+use the same version of huge_pte_none, so move this generic
+implementation into asm-generic/hugetlb.h.
 
-This is mostly motivated by the fact that 8 to 10 store/move instructions
-are likely always going to be faster than having to call into a function
-that is not specialized for handling page init.
-
-An added advantage to doing it this way is that the compiler can get away
-with combining writes in the __init_single_page call. As a result the
-memset call will be reduced to only about 4 write operations, or at least
-that is what I am seeing with GCC 6.2 as the flags, LRU poitners, and
-count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
-my system.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Tested-by: Helge Deller <deller@gmx.de> # parisc
+Acked-by: Catalin Marinas <catalin.marinas@arm.com> # arm64
+Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
+Acked-by: Ingo Molnar <mingo@kernel.org> # x86
+Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 ---
- arch/sparc/include/asm/pgtable_64.h |   30 ------------------------------
- include/linux/mm.h                  |   33 +++++++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+), 30 deletions(-)
+ arch/arm/include/asm/hugetlb.h     | 5 -----
+ arch/arm64/include/asm/hugetlb.h   | 5 -----
+ arch/ia64/include/asm/hugetlb.h    | 5 -----
+ arch/mips/include/asm/hugetlb.h    | 1 +
+ arch/parisc/include/asm/hugetlb.h  | 5 -----
+ arch/powerpc/include/asm/hugetlb.h | 5 -----
+ arch/sh/include/asm/hugetlb.h      | 5 -----
+ arch/sparc/include/asm/hugetlb.h   | 5 -----
+ arch/x86/include/asm/hugetlb.h     | 5 -----
+ include/asm-generic/hugetlb.h      | 7 +++++++
+ 10 files changed, 8 insertions(+), 40 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..22500c3be7a9 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -231,36 +231,6 @@
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
+diff --git a/arch/arm/include/asm/hugetlb.h b/arch/arm/include/asm/hugetlb.h
+index 537660891f9f..c821b550d6a4 100644
+--- a/arch/arm/include/asm/hugetlb.h
++++ b/arch/arm/include/asm/hugetlb.h
+@@ -44,11 +44,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
  
--/* This macro must be updated when the size of struct page grows above 80
-- * or reduces below 64.
-- * The idea that compiler optimizes out switch() statement, and only
-- * leaves clrx instructions
-- */
--#define	mm_zero_struct_page(pp) do {					\
--	unsigned long *_pp = (void *)(pp);				\
--									\
--	 /* Check that struct page is either 64, 72, or 80 bytes */	\
--	BUILD_BUG_ON(sizeof(struct page) & 7);				\
--	BUILD_BUG_ON(sizeof(struct page) < 64);				\
--	BUILD_BUG_ON(sizeof(struct page) > 80);				\
--									\
--	switch (sizeof(struct page)) {					\
--	case 80:							\
--		_pp[9] = 0;	/* fallthrough */			\
--	case 72:							\
--		_pp[8] = 0;	/* fallthrough */			\
--	default:							\
--		_pp[7] = 0;						\
--		_pp[6] = 0;						\
--		_pp[5] = 0;						\
--		_pp[4] = 0;						\
--		_pp[3] = 0;						\
--		_pp[2] = 0;						\
--		_pp[1] = 0;						\
--		_pp[0] = 0;						\
--	}								\
--} while (0)
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
 -
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 7312fb78ef31..db9aef028690 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -102,8 +102,41 @@ static inline void set_max_mapnr(unsigned long limit) { }
-  * zeroing by defining this macro in <asm/pgtable.h>.
-  */
- #ifndef mm_zero_struct_page
-+#if BITS_PER_LONG = 64
-+/* This function must be updated when the size of struct page grows above 80
-+ * or reduces below 64. The idea that compiler optimizes out switch()
-+ * statement, and only leaves move/store instructions
-+ */
-+#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
-+static inline void __mm_zero_struct_page(struct page *page)
-+{
-+	unsigned long *_pp = (void *)page;
-+
-+	 /* Check that struct page is either 64, 72, or 80 bytes */
-+	BUILD_BUG_ON(sizeof(struct page) & 7);
-+	BUILD_BUG_ON(sizeof(struct page) < 64);
-+	BUILD_BUG_ON(sizeof(struct page) > 80);
-+
-+	switch (sizeof(struct page)) {
-+	case 80:
-+		_pp[9] = 0;	/* fallthrough */
-+	case 72:
-+		_pp[8] = 0;	/* fallthrough */
-+	default:
-+		_pp[7] = 0;
-+		_pp[6] = 0;
-+		_pp[5] = 0;
-+		_pp[4] = 0;
-+		_pp[3] = 0;
-+		_pp[2] = 0;
-+		_pp[1] = 0;
-+		_pp[0] = 0;
-+	}
-+}
-+#else
- #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
- #endif
-+#endif
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 4c8dd488554d..49247c6f94db 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -42,11 +42,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
  
- /*
-  * Default maximum number of active map areas, this limits the number of vmas
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
+index 41b5f6adeee4..bf573500b3c4 100644
+--- a/arch/ia64/include/asm/hugetlb.h
++++ b/arch/ia64/include/asm/hugetlb.h
+@@ -26,11 +26,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
+index 7df1f116a3cc..1c9c4531376c 100644
+--- a/arch/mips/include/asm/hugetlb.h
++++ b/arch/mips/include/asm/hugetlb.h
+@@ -55,6 +55,7 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 	flush_tlb_page(vma, addr & huge_page_mask(hstate_vma(vma)));
+ }
+ 
++#define __HAVE_ARCH_HUGE_PTE_NONE
+ static inline int huge_pte_none(pte_t pte)
+ {
+ 	unsigned long val = pte_val(pte) & ~_PAGE_GLOBAL;
+diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
+index 9afff26747a1..c09d8c74553c 100644
+--- a/arch/parisc/include/asm/hugetlb.h
++++ b/arch/parisc/include/asm/hugetlb.h
+@@ -38,11 +38,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index 1eb3e131cab4..6a534353c8eb 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -149,11 +149,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 	flush_hugetlb_page(vma, addr);
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
+index 9abf9c86b769..a9f8266f33cf 100644
+--- a/arch/sh/include/asm/hugetlb.h
++++ b/arch/sh/include/asm/hugetlb.h
+@@ -31,11 +31,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 651a9593fcee..11115bbd712e 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -48,11 +48,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ {
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index fd59673e7a0a..42d872054791 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -28,11 +28,6 @@ static inline int prepare_hugepage_range(struct file *file,
+ 	return 0;
+ }
+ 
+-static inline int huge_pte_none(pte_t pte)
+-{
+-	return pte_none(pte);
+-}
+-
+ static inline pte_t huge_pte_wrprotect(pte_t pte)
+ {
+ 	return pte_wrprotect(pte);
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index ffa63fd8388d..2fc3d68424e9 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -73,4 +73,11 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ }
+ #endif
+ 
++#ifndef __HAVE_ARCH_HUGE_PTE_NONE
++static inline int huge_pte_none(pte_t pte)
++{
++	return pte_none(pte);
++}
++#endif
++
+ #endif /* _ASM_GENERIC_HUGETLB_H */
+-- 
+2.16.2
