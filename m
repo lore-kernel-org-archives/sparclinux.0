@@ -1,46 +1,33 @@
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Tue, 04 Sep 2018 02:44:32 +0000
-Subject: [PATCH 06/25] tty: hvc: hvcs: Change return type to void
-Message-Id: <1536029091-4426-7-git-send-email-climbbb.kim@gmail.com>
+From: Michal Hocko <mhocko@kernel.org>
+Date: Wed, 26 Sep 2018 09:41:54 +0000
+Subject: Re: [PATCH 00/30] mm: remove bootmem allocator
+Message-Id: <20180926094154.GT6278@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
-In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
+References: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
+In-Reply-To: <1536927045-23536-1-git-send-email-rppt@linux.vnet.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
+To: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Catalin Marinas <catalin.marinas@arm.com>, Chris Zankel <chris@zankel.net>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guan Xuetao <gxt@pku.edu.cn>, Ingo Molnar <mingo@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Jonas Bonn <jonas@southpole.se>, Jonathan Corbet <corbet@lwn.net>, Ley Foon Tan <lftan@altera.com>, Mark Salter <msalter@redhat.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Matt Turner <mattst88@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Palmer Dabbelt <palmer@sifive.com>, Paul Burton <paul.burton@mips.com>, Richard Kuo <rkuo@codeaurora.org>, Richard Weinberger <richard@nod.at>, Rich Felker <dalias@libc.org>, Russell King <linux@armlinux.org.uk>, Serge Semin <fancer.lancer@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Vineet Gupta <vgupta@synopsys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-um@lists.infradead.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp
 
-Since tty_port_install() always returns 0, the return type has changed
-to void. Now apply this and remove the obsolete error check.
+On Fri 14-09-18 15:10:15, Mike Rapoport wrote:
+[...]
+>  326 files changed, 866 insertions(+), 2539 deletions(-)
+>  delete mode 100644 include/linux/bootmem.h
+>  delete mode 100644 mm/bootmem.c
+>  delete mode 100644 mm/nobootmem.c
 
-Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
----
- drivers/tty/hvc/hvcs.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+I _really_ love this part the most! Not only we got rid of the
+translation which always has been a headache but also this nicely shows
+how having multiple allocators hurt. I believe further cleanups on top
+will make the boot allocator even a place where you look and your eyes
+do not want to jump out.
 
-diff --git a/drivers/tty/hvc/hvcs.c b/drivers/tty/hvc/hvcs.c
-index cb4db1b..4dfa70c 100644
---- a/drivers/tty/hvc/hvcs.c
-+++ b/drivers/tty/hvc/hvcs.c
-@@ -1140,16 +1140,10 @@ static int hvcs_install(struct tty_driver *driver, struct tty_struct *tty)
- 		goto err_put;
- 	}
- 
--	retval = tty_port_install(&hvcsd->port, driver, tty);
--	if (retval)
--		goto err_irq;
-+	tty_port_install(&hvcsd->port, driver, tty);
- 
- 	return 0;
--err_irq:
--	spin_lock_irqsave(&hvcsd->lock, flags);
--	vio_disable_interrupts(hvcsd->vdev);
--	spin_unlock_irqrestore(&hvcsd->lock, flags);
--	free_irq(irq, hvcsd);
-+
- err_put:
- 	tty_port_put(&hvcsd->port);
- 
+I have only went through patches without my acks from the previous
+iteration and there are only minor comments. This looks good overall.
+
+Nice work Mike!
 -- 
-2.7.4
+Michal Hocko
+SUSE Labs
