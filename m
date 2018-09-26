@@ -1,44 +1,45 @@
-From: Jaejoong Kim <climbbb.kim@gmail.com>
-Date: Tue, 04 Sep 2018 02:44:48 +0000
-Subject: [PATCH 22/25] tty: nozomi: Change return type to void
-Message-Id: <1536029091-4426-23-git-send-email-climbbb.kim@gmail.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 26 Sep 2018 23:28:20 +0000
+Subject: [RFC mm PATCH 0/5] mm: Deferred page init improvements
+Message-Id: <20180926232117.17365.72207.stgit@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
-In-Reply-To: <1536029091-4426-1-git-send-email-climbbb.kim@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-um@lists.infradead.org, netdev@vger.kernel.org, linux-mmc@vger.kernel.org, linux-s390@vger.kernel.org, devel@driverdev.osuosl.org, greybus-dev@lists.linaro.org, linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org, sparclinux@vger.kernel.org, linux-usb@vger.kernel.org, linux-bluetooth@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>
+To: sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, dan.j.williams@intel.com, willy@infradead.org, mingo@kernel.org, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, akpm@linux-foundation.org, ldufour@linux.vnet.ibm.com, davem@davemloft.net, kirill.shutemov@linux.intel.com
 
-Since tty_standard_install() always returns 0, the return type has changed
-to void. Now apply this and remove the obsolete error check.
+This patchset is essentially a refactor of the page initialization logic
+to provide for better code reuse while providing a significant improvement
+in deferred page initialization performance.
 
-Signed-off-by: Jaejoong Kim <climbbb.kim@gmail.com>
+In my testing I have seen a 3:1 reduction in the time needed for deferred
+memory initialization on two different x86_64 based test systems I have.
+
+In addition this provides a very slight improvement for the hotplug memory 
+initialization, although the improvement doesn't exceed 5% from what I can
+tell and that is to be expected since most of the changes related to
+hotplug initialization are just code clean-up to allow for reuse. I had
+been considering using a large memset for the entire pageblock I was
+initializing which showed a significant speedup for persistent memory init
+however that showed no improvements to a slight regression for regular
+deferred initialization of standard memory.
+
 ---
- drivers/tty/nozomi.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/tty/nozomi.c b/drivers/tty/nozomi.c
-index fed820e..479583d 100644
---- a/drivers/tty/nozomi.c
-+++ b/drivers/tty/nozomi.c
-@@ -1555,13 +1555,11 @@ static int ntty_install(struct tty_driver *driver, struct tty_struct *tty)
- {
- 	struct port *port = get_port_by_tty(tty);
- 	struct nozomi *dc = get_dc_by_tty(tty);
--	int ret;
- 	if (!port || !dc || dc->state != NOZOMI_STATE_READY)
- 		return -ENODEV;
--	ret = tty_standard_install(driver, tty);
--	if (ret = 0)
--		tty->driver_data = port;
--	return ret;
-+	tty_standard_install(driver, tty);
-+	tty->driver_data = port;
-+	return 0;
- }
- 
- static void ntty_cleanup(struct tty_struct *tty)
--- 
-2.7.4
+Alexander Duyck (5):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Use memblock/zone specific iterator for handling deferred page init
+      mm: Move hot-plug specific memory init into separate functions and optimize
+      mm: Use common iterator for deferred_init_pages and deferred_free_pages
+
+
+ arch/sparc/include/asm/pgtable_64.h |   30 --
+ include/linux/memblock.h            |   58 ++++
+ include/linux/mm.h                  |   33 ++
+ mm/memblock.c                       |   63 ++++
+ mm/page_alloc.c                     |  555 +++++++++++++++++++++--------------
+ 5 files changed, 485 insertions(+), 254 deletions(-)
+
+--
