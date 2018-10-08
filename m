@@ -1,44 +1,22 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 05 Oct 2018 15:11:57 +0000
-Subject: [mm PATCH 0/5] Deferred page init improvements
-Message-Id: <20181005151006.17473.83040.stgit@localhost.localdomain>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 08 Oct 2018 05:56:50 +0000
+Subject: Re: [PATCH] mach64: detect the dot clock divider correctly on sparc
+Message-Id: <20181007.225650.255111318936186975.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180819103657.GB11867@sci.fi>
+ <alpine.LRH.2.02.1808231706420.13157@file01.intranet.prod.int.rdu2.redhat.com>
+ <20180824115851.GC11867@sci.fi>
+In-Reply-To: <20180824115851.GC11867@sci.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: syrjala@sci.fi
+Cc: sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org, mpatocka@redhat.com, dri-devel@lists.freedesktop.org, b.zolnierkie@samsung.com
 
-This patchset is essentially a refactor of the page initialization logic
-that is meant to provide for better code reuse while providing a
-significant improvement in deferred page initialization performance.
+From: Ville Syrj=E4l=E4 <syrjala@sci.fi>
+Date: Fri, 24 Aug 2018 14:58:52 +0300
 
-In my testing I have seen a 60% reduction in the time needed for deferred
-memory initialization on two different x86_64 based test systems I have. In
-addition this provides a very slight improvement for the hotplug memory 
-initialization, although the improvement doesn't exceed 5% from what I can
-tell and that is to be expected since most of the changes related to
-hotplug init are mostly just code clean-up to allow for reuse.
+> But yeah, given the V2CLK thing /5 seems like a perfectly good=20
+> value to use here.
 
-The biggest gains of this patchset come from not having to test each pfn
-multiple times to see if it is valid and if it is actually a part of the
-node being initialized.
-
----
-
-Alexander Duyck (5):
-      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-      mm: Drop meminit_pfn_in_nid as it is redundant
-      mm: Use memblock/zone specific iterator for handling deferred page init
-      mm: Move hot-plug specific memory init into separate functions and optimize
-      mm: Use common iterator for deferred_init_pages and deferred_free_pages
-
-
- arch/sparc/include/asm/pgtable_64.h |   30 --
- include/linux/memblock.h            |   58 ++++
- include/linux/mm.h                  |   33 ++
- mm/memblock.c                       |   63 ++++
- mm/page_alloc.c                     |  555 +++++++++++++++++++++--------------
- 5 files changed, 485 insertions(+), 254 deletions(-)
-
---
+Patch applied.
