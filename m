@@ -1,88 +1,94 @@
-From: Doug Anderson <dianders@chromium.org>
-Date: Tue, 30 Oct 2018 22:21:30 +0000
-Subject: Re: [PATCH 6/7] smp: Don't yell about IRQs disabled in kgdb_roundup_cpus()
-Message-Id: <CAD=FV=Wno+QbhUp+0+Pmk72Ds4C9d25ynSH=0JDdttJ2WBU4NA@mail.gmail.com>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Date: Mon, 08 Oct 2018 10:27:08 +0000
+Subject: Re: [PATCH] mach64: detect the dot clock divider correctly on sparc
+Message-Id: <20181008102710eucas1p14709ad98709a7367e2cd0222326b289e~bm0fiCXL40600006000eucas1p1j@eucas1p1.samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181029180707.207546-1-dianders@chromium.org>
- <20181029180707.207546-7-dianders@chromium.org>
- <20181030094159.zt6akmyxwrbzoe2x@holly.lan>
-In-Reply-To: <20181030094159.zt6akmyxwrbzoe2x@holly.lan>
+References: <alpine.LRH.2.02.1808171515550.31883@file01.intranet.prod.int.rdu2.redhat.com>
+ <CGME20180819103713epcas3p1647de208684af49abe9f513f84876c0e@epcas3p1.samsung.com>
+ <20180819103657.GB11867@sci.fi>
+In-Reply-To: <20180819103657.GB11867@sci.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="euc-kr"
+Content-Transfer-Encoding: base64
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <syrjala@sci.fi>
+Cc: sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org, Mikulas Patocka <mpatocka@redhat.com>, "David S. Miller" <davem@davemloft.net>, dri-devel@lists.freedesktop.org
 
-Daniel,
-
-On Tue, Oct 30, 2018 at 2:42 AM Daniel Thompson
-<daniel.thompson@linaro.org> wrote:
->
-> On Mon, Oct 29, 2018 at 11:07:06AM -0700, Douglas Anderson wrote:
-> > In kgdb_roundup_cpus() we've got code that looks like:
-> >   local_irq_enable();
-> >   smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-> >   local_irq_disable();
-> >
-> > In certain cases when we drop into kgdb (like with sysrq-g on a serial
-> > console) we'll get a big yell that looks like:
-> >
-> >   sysrq: SysRq : DEBUG
-> >   ------------[ cut here ]------------
-> >   DEBUG_LOCKS_WARN_ON(current->hardirq_context)
-> >   WARNING: CPU: 0 PID: 0 at .../kernel/locking/lockdep.c:2875 lockdep_hardirqs_on+0xf0/0x160
-> >   CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.0 #27
-> >   pstate: 604003c9 (nZCv DAIF +PAN -UAO)
-> >   pc : lockdep_hardirqs_on+0xf0/0x160
-> >   ...
-> >   Call trace:
-> >    lockdep_hardirqs_on+0xf0/0x160
-> >    trace_hardirqs_on+0x188/0x1ac
-> >    kgdb_roundup_cpus+0x14/0x3c
-> >    kgdb_cpu_enter+0x53c/0x5cc
-> >    kgdb_handle_exception+0x180/0x1d4
-> >    kgdb_compiled_brk_fn+0x30/0x3c
-> >    brk_handler+0x134/0x178
-> >    do_debug_exception+0xfc/0x178
-> >    el1_dbg+0x18/0x78
-> >    kgdb_breakpoint+0x34/0x58
-> >    sysrq_handle_dbg+0x54/0x5c
-> >    __handle_sysrq+0x114/0x21c
-> >    handle_sysrq+0x30/0x3c
-> >    qcom_geni_serial_isr+0x2dc/0x30c
-> >   ...
-> >   ...
-> >   irq event stamp: ...45
-> >   hardirqs last  enabled at (...44): [...] __do_softirq+0xd8/0x4e4
-> >   hardirqs last disabled at (...45): [...] el1_irq+0x74/0x130
-> >   softirqs last  enabled at (...42): [...] _local_bh_enable+0x2c/0x34
-> >   softirqs last disabled at (...43): [...] irq_exit+0xa8/0x100
-> >   ---[ end trace adf21f830c46e638 ]---
-> >
-> > Let's add kgdb to the list of reasons not to warn in
-> > smp_call_function_many().  That will allow us (in a future patch) to
-> > stop calling local_irq_enable() which will get rid of the original
-> > splat.
-> >
-> > NOTE: with this change comes the obvious question: will we start
-> > deadlocking more often now when we drop into the debugger.  I can't
-> > say that for sure one way or the other, but the fact that we do the
-> > same logic for "oops_in_progress" makes me feel like it shouldn't
-> > happen too often.  Also note that the old logic of turning on
-> > interrupts temporarily wasn't exactly safe since (I presume) that
-> > could have violated spin_lock_irqsave() semantics and ended up with a
-> > deadlock of its own.
->
-> This is part of the code to bring all the cores to a halt and since
-> the other cores are still running kgdb isn't yet able to use the fact
-> all the CPUs are halted to bend the rules. It is better for this code
-> to play by the rules if it can.
->
-> Is is possible to get the roundup functions to use a private csd
-> alongside smp_call_function_single_async()? We could add a helper
-> function to the debug core to avoid having to add cpu_online loops into
-> every kgdb_roundup_cpus() implementaton.
-
-Exactly the kind of helpful suggestion I was looking for.  Thank you
-very much!  See v2 and hopefully it matches what you were thinking of.
-
--Doug
+Ck9uIDA4LzE5LzIwMTggMTI6MzYgUE0sIFZpbGxlIFN5cmrDpGzDpCB3cm90ZToKPiBPbiBGcmks
+IEF1ZyAxNywgMjAxOCBhdCAwMzoxOTozN1BNIC0wNDAwLCBNaWt1bGFzIFBhdG9ja2Egd3JvdGU6
+Cj4+IE9uIFN1biBVbHRyYSA1LCBpdCBoYXBwZW5zIHRoYXQgdGhlIGRvdCBjbG9jayBpcyBub3Qg
+c2V0IHVwIHByb3Blcmx5IGZvcgo+PiBzb21lIHZpZGVvbW9kZXMuIEZvciBleGFtcGxlLCBpZiB3
+ZSBzZXQgdGhlIHZpZGVvbW9kZSAicjEwMjR4NzY4eDYwIiBpbgo+PiB0aGUgZmlybXdhcmUsIExp
+bnV4IHdvdWxkIGluY29ycmVjdGx5IHNldCBhIHZpZGVvbW9kZSB3aXRoIHJlZnJlc2ggcmF0ZQo+
+PiAxODBIeiB3aGVuIGJvb3RpbmcgKHN1cHJpc2luZ2x5LCBteSBMQ0QgbW9uaXRvciBjYW4gZGlz
+cGxheSBpdCwgYWx0aG91Z2gKPj4gZGlzcGxheSBxdWFsaXR5IGlzIHZlcnkgbG93KS4KPj4KPj4g
+VGhlIHJlYXNvbiBpcyB0aGlzOiBPbGRlciBtYWNoNjQgY2FyZHMgc2V0IHRoZSBkaXZpZGVyIGlu
+IHRoZSByZWdpc3Rlcgo+PiBWQ0xLX1BPU1RfRElWLiBUaGUgcmVnaXN0ZXIgaGFzIGZvdXIgMi1i
+aXQgZmllbGRzICh0aGUgZmllbGQgdGhhdCBpcwo+PiBhY3R1YWxseSB1c2VkIGlzIHNwZWNpZmll
+ZCBpbiB0aGUgbG93ZXN0IHR3byBiaXRzIG9mIHRoZSByZWdpc3Rlcgo+PiBDTE9DS19DTlRMKS4g
+VGhlIDIgYml0cyBzZWxlY3QgZGl2aWRlciAiMSwgMiwgNCwgOCIuIE9uIG5ld2VyIG1hY2g2NCBj
+YXJkcywKPj4gdGhlcmUncyBhbm90aGVyIGJpdCBhZGRlZCAtIHRoZSB0b3AgZm91ciBiaXRzIG9m
+IFBMTF9FWFRfQ05UTCBleHRlbmQgdGhlCj4+IGRpdmlkZXIgc2VsZWN0aW9uLCBzbyB3ZSBoYXZl
+IHBvc3NpYmxlIGRpdmlkZXJzICIxLCAyLCA0LCA4LCAzLCA1LCA2LCAxMiIuCj4+IFRoZSBMaW51
+eCBkcml2ZXIgY2xlYXJzIHRoZSB0b3AgZm91ciBiaXRzIG9mIFBMTF9FWFRfQ05UTCBhbmQgbmV2
+ZXIgc2V0cwo+PiB0aGVtLCBzbyBpdCBjYW4gd29yayByZWdhcmRsZXNzIGlmIHRoZSBjYXJkIHN1
+cHBvcnRzIHRoZW0uIEhvd2V2ZXIsIHRoZQo+PiBzcGFyYzY0IGZpcm13YXJlIG1heSBzZXQgdGhl
+c2UgZXh0ZW5kZWQgZGl2aWRlcnMgZHVyaW5nIGJvb3QgLSBhbmQgdGhlCj4+IG1hY2g2NCBkcml2
+ZXIgZGV0ZWN0cyBpbmNvcnJlY3QgZG90IGNsb2NrIGluIHRoaXMgY2FzZS4KPj4KPj4gVGhpcyBw
+YXRjaCBtYWtlcyB0aGUgZHJpdmVyIHJlYWQgdGhlIGFkZGl0aW9uYWwgZGl2aWRlciBiaXQgZnJv
+bQo+PiBQTExfRVhUX0NOVEwgYW5kIGNhbGN1bGF0ZSB0aGUgaW5pdGlhbCByZWZyZXNoIHJhdGUg
+cHJvcGVybHkuCj4+Cj4+IFNpZ25lZC1vZmYtYnk6IE1pa3VsYXMgUGF0b2NrYSA8bXBhdG9ja2FA
+cmVkaGF0LmNvbT4KPj4gQ2M6IHN0YWJsZUB2Z2VyLmtlcm5lbC5vcmcKPj4KPj4gLS0tCj4+ICBk
+cml2ZXJzL3ZpZGVvL2ZiZGV2L2F0eS9hdHlmYi5oICAgICAgfCAgICAzICsrLQo+PiAgZHJpdmVy
+cy92aWRlby9mYmRldi9hdHkvYXR5ZmJfYmFzZS5jIHwgICAgNyArKysrLS0tCj4+ICBkcml2ZXJz
+L3ZpZGVvL2ZiZGV2L2F0eS9tYWNoNjRfY3QuYyAgfCAgIDEwICsrKysrLS0tLS0KPj4gIDMgZmls
+ZXMgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkKPj4KPj4gSW5kZXg6
+IGxpbnV4LXN0YWJsZS9kcml2ZXJzL3ZpZGVvL2ZiZGV2L2F0eS9hdHlmYi5oCj4+ID09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT4+IC0tLSBsaW51eC1zdGFibGUub3JpZy9kcml2ZXJz
+L3ZpZGVvL2ZiZGV2L2F0eS9hdHlmYi5oCTIwMTgtMDgtMTMgMjE6MTI6MTEuMDAwMDAwMDAwICsw
+MjAwCj4+ICsrKyBsaW51eC1zdGFibGUvZHJpdmVycy92aWRlby9mYmRldi9hdHkvYXR5ZmIuaAky
+MDE4LTA4LTEzIDIxOjE3OjE0LjAwMDAwMDAwMCArMDIwMAo+PiBAQCAtMzMzLDYgKzMzMyw4IEBA
+IGV4dGVybiBjb25zdCBzdHJ1Y3QgYXR5X3BsbF9vcHMgYXR5X3BsbF8KPj4gIGV4dGVybiB2b2lk
+IGF0eV9zZXRfcGxsX2N0KGNvbnN0IHN0cnVjdCBmYl9pbmZvICppbmZvLCBjb25zdCB1bmlvbiBh
+dHlfcGxsICpwbGwpOwo+PiAgZXh0ZXJuIHU4IGF0eV9sZF9wbGxfY3QoaW50IG9mZnNldCwgY29u
+c3Qgc3RydWN0IGF0eWZiX3BhciAqcGFyKTsKPj4gIAo+PiArZXh0ZXJuIGNvbnN0IHU4IGF0eV9w
+b3N0ZGl2aWRlcnNbOF07Cj4+ICsKPj4gIAo+PiAgICAgIC8qCj4+ICAgICAgICogIEhhcmR3YXJl
+IGN1cnNvciBzdXBwb3J0Cj4+IEBAIC0zNTksNyArMzYxLDYgQEAgc3RhdGljIGlubGluZSB2b2lk
+IHdhaXRfZm9yX2lkbGUoc3RydWN0Cj4+ICAKPj4gIGV4dGVybiB2b2lkIGF0eV9yZXNldF9lbmdp
+bmUoY29uc3Qgc3RydWN0IGF0eWZiX3BhciAqcGFyKTsKPj4gIGV4dGVybiB2b2lkIGF0eV9pbml0
+X2VuZ2luZShzdHJ1Y3QgYXR5ZmJfcGFyICpwYXIsIHN0cnVjdCBmYl9pbmZvICppbmZvKTsKPj4g
+LWV4dGVybiB1OCAgIGF0eV9sZF9wbGxfY3QoaW50IG9mZnNldCwgY29uc3Qgc3RydWN0IGF0eWZi
+X3BhciAqcGFyKTsKPj4gIAo+PiAgdm9pZCBhdHlmYl9jb3B5YXJlYShzdHJ1Y3QgZmJfaW5mbyAq
+aW5mbywgY29uc3Qgc3RydWN0IGZiX2NvcHlhcmVhICphcmVhKTsKPj4gIHZvaWQgYXR5ZmJfZmls
+bHJlY3Qoc3RydWN0IGZiX2luZm8gKmluZm8sIGNvbnN0IHN0cnVjdCBmYl9maWxscmVjdCAqcmVj
+dCk7Cj4+IEluZGV4OiBsaW51eC1zdGFibGUvZHJpdmVycy92aWRlby9mYmRldi9hdHkvYXR5ZmJf
+YmFzZS5jCj4+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT4+IC0tLSBsaW51eC1z
+dGFibGUub3JpZy9kcml2ZXJzL3ZpZGVvL2ZiZGV2L2F0eS9hdHlmYl9iYXNlLmMJMjAxOC0wOC0x
+MyAyMToxMjoxMS4wMDAwMDAwMDAgKzAyMDAKPj4gKysrIGxpbnV4LXN0YWJsZS9kcml2ZXJzL3Zp
+ZGVvL2ZiZGV2L2F0eS9hdHlmYl9iYXNlLmMJMjAxOC0wOC0xMyAyMToyMjoyMy4wMDAwMDAwMDAg
+KzAyMDAKPj4gQEAgLTMwODcsMTcgKzMwODcsMTggQEAgc3RhdGljIGludCBhdHlmYl9zZXR1cF9z
+cGFyYyhzdHJ1Y3QgcGNpXwo+PiAgCQkvKgo+PiAgCQkgKiBQTEwgUmVmZXJlbmNlIERpdmlkZXIg
+TToKPj4gIAkJICovCj4+IC0JCU0gPSBwbGxfcmVnc1syXTsKPj4gKwkJTSA9IHBsbF9yZWdzW1BM
+TF9SRUZfRElWXTsKPj4gIAo+PiAgCQkvKgo+PiAgCQkgKiBQTEwgRmVlZGJhY2sgRGl2aWRlciBO
+IChEZXBlbmRlbnQgb24gQ0xPQ0tfQ05UTCk6Cj4+ICAJCSAqLwo+PiAtCQlOID0gcGxsX3JlZ3Nb
+NyArIChjbG9ja19jbnRsICYgMyldOwo+PiArCQlOID0gcGxsX3JlZ3NbVkNMSzBfRkJfRElWICsg
+KGNsb2NrX2NudGwgJiAzKV07Cj4+ICAKPj4gIAkJLyoKPj4gIAkJICogUExMIFBvc3QgRGl2aWRl
+ciBQIChEZXBlbmRlbnQgb24gQ0xPQ0tfQ05UTCk6Cj4+ICAJCSAqLwo+PiAtCQlQID0gMSA8PCAo
+cGxsX3JlZ3NbNl0gPj4gKChjbG9ja19jbnRsICYgMykgPDwgMSkpOwo+PiArCQlQID0gYXR5X3Bv
+c3RkaXZpZGVyc1soKHBsbF9yZWdzW1ZDTEtfUE9TVF9ESVZdID4+ICgoY2xvY2tfY250bCAmIDMp
+IDw8IDEpKSAmIDMpIHwKPj4gKwkJICAgICAgICAgICAgICAgICAgICAgKChwbGxfcmVnc1tQTExf
+RVhUX0NOVExdID4+ICgyICsgKGNsb2NrX2NudGwgJiAzKSkpICYgNCldOwo+PiAgCj4+ICAJCS8q
+Cj4+ICAJCSAqIFBMTCBEaXZpZGVyIFE6Cj4+IEluZGV4OiBsaW51eC1zdGFibGUvZHJpdmVycy92
+aWRlby9mYmRldi9hdHkvbWFjaDY0X2N0LmMKPj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09Pj4gLS0tIGxpbnV4LXN0YWJsZS5vcmlnL2RyaXZlcnMvdmlkZW8vZmJkZXYvYXR5L21h
+Y2g2NF9jdC5jCTIwMTgtMDgtMTMgMjE6MTI6MTEuMDAwMDAwMDAwICswMjAwCj4+ICsrKyBsaW51
+eC1zdGFibGUvZHJpdmVycy92aWRlby9mYmRldi9hdHkvbWFjaDY0X2N0LmMJMjAxOC0wOC0xMyAy
+MTozNTozMi4wMDAwMDAwMDAgKzAyMDAKPj4gQEAgLTExNSw3ICsxMTUsNyBAQCBzdGF0aWMgdm9p
+ZCBhdHlfc3RfcGxsX2N0KGludCBvZmZzZXQsIHU4Cj4+ICAgKi8KPj4gIAo+PiAgI2RlZmluZSBN
+YXhpbXVtX0RTUF9QUkVDSVNJT04gNwo+PiAtc3RhdGljIHU4IHBvc3RkaXZpZGVyc1tdID0gezEs
+Miw0LDgsM307Cj4+ICtjb25zdCB1OCBhdHlfcG9zdGRpdmlkZXJzWzhdID0gezEsMiw0LDgsMyw1
+LDYsMTJ9Owo+IAo+IE5vdCBzdXJlIGFib3V0IHRoZSAnNScuIFRoYXQgc2V0dGluZyBpcyBtYXJr
+ZWQgYXMgcmVzZXJ2ZWQgaW4gbXkgZG9jcy4KPiBTbyBJIGd1ZXNzIGl0IGRvZXNuJ3QgcmVhbGx5
+IG1hdHRlciB3aGF0IG51bWJlciB3ZSBwdXQgdGhlcmUuCj4gCj4gUmV2aWV3ZWQtYnk6IFZpbGxl
+IFN5cmrDpGzDpCA8c3lyamFsYUBzY2kuZmk+CgpQYXRjaCBxdWV1ZWQgZm9yIDQuMjAsIHRoYW5r
+cy4KCkJlc3QgcmVnYXJkcywKLS0KQmFydGxvbWllaiBab2xuaWVya2lld2ljegpTYW1zdW5nIFIm
+RCBJbnN0aXR1dGUgUG9sYW5kClNhbXN1bmcgRWxlY3Ryb25pY3M=
