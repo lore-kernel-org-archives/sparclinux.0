@@ -1,31 +1,23 @@
 From: David Miller <davem@davemloft.net>
-Date: Fri, 19 Oct 2018 17:53:43 +0000
-Subject: [PATCH] sparc: Fix parport build warnings.
-Message-Id: <20181019.105343.265169338271222304.davem@davemloft.net>
+Date: Mon, 08 Oct 2018 05:57:45 +0000
+Subject: Re: [PATCH] oradax: remove redundant null check before kfree
+Message-Id: <20181007.225745.1952895704234282902.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20180907103500.17453-1-colin.king@canonical.com>
+In-Reply-To: <20180907103500.17453-1-colin.king@canonical.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: colin.king@canonical.com
+Cc: rob.gardner@oracle.com, jonathan.helman@oracle.com, sparclinux@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-DQpJZiBQQVJQT1JUX1BDX0ZJRk8gaXMgbm90IGVuYWJsZWQsIGRvIG5vdCBwcm92aWRlIHRoZSBk
-bWEgbG9jaw0KbWFjcm9zIGFuZCBsb2NrIGRlZmluaXRpb24uICBPdGhlcndpc2U6DQoNCi4vYXJj
-aC9zcGFyYy9pbmNsdWRlL2FzbS9wYXJwb3J0Lmg6MjQ6MjQ6IHdhcm5pbmc6IKFkbWFfc3Bpbl9s
-b2NroiBkZWZpbmVkIGJ1dCBub3QgdXNlZCBbLVd1bnVzZWQtdmFyaWFibGVdDQogc3RhdGljIERF
-RklORV9TUElOTE9DSyhkbWFfc3Bpbl9sb2NrKTsNCiAgICAgICAgICAgICAgICAgICAgICAgIF5+
-fn5+fn5+fn5+fn4NCi4vaW5jbHVkZS9saW51eC9zcGlubG9ja190eXBlcy5oOjgxOjM5OiBub3Rl
-OiBpbiBkZWZpbml0aW9uIG9mIG1hY3JvIKFERUZJTkVfU1BJTkxPQ0uiDQogI2RlZmluZSBERUZJ
-TkVfU1BJTkxPQ0soeCkgc3BpbmxvY2tfdCB4ID0gX19TUElOX0xPQ0tfVU5MT0NLRUQoeCkNCg0K
-U2lnbmVkLW9mZi1ieTogRGF2aWQgUy4gTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KLS0t
-DQogYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9wYXJwb3J0LmggfCAyICsrDQogMSBmaWxlIGNoYW5n
-ZWQsIDIgaW5zZXJ0aW9ucygrKQ0KDQpkaWZmIC0tZ2l0IGEvYXJjaC9zcGFyYy9pbmNsdWRlL2Fz
-bS9wYXJwb3J0LmggYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL3BhcnBvcnQuaA0KaW5kZXggMDVk
-ZjVmMDQzMDUzLi4zYzVhMWM2MjBmMGYgMTAwNjQ0DQotLS0gYS9hcmNoL3NwYXJjL2luY2x1ZGUv
-YXNtL3BhcnBvcnQuaA0KKysrIGIvYXJjaC9zcGFyYy9pbmNsdWRlL2FzbS9wYXJwb3J0LmgNCkBA
-IC0yMSw2ICsyMSw3IEBADQogICovDQogI2RlZmluZSBIQVNfRE1BDQogDQorI2lmZGVmIENPTkZJ
-R19QQVJQT1JUX1BDX0ZJRk8NCiBzdGF0aWMgREVGSU5FX1NQSU5MT0NLKGRtYV9zcGluX2xvY2sp
-Ow0KIA0KICNkZWZpbmUgY2xhaW1fZG1hX2xvY2soKSBcDQpAQCAtMzEsNiArMzIsNyBAQCBzdGF0
-aWMgREVGSU5FX1NQSU5MT0NLKGRtYV9zcGluX2xvY2spOw0KIA0KICNkZWZpbmUgcmVsZWFzZV9k
-bWFfbG9jayhfX2ZsYWdzKSBcDQogCXNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJmRtYV9zcGluX2xv
-Y2ssIF9fZmxhZ3MpOw0KKyNlbmRpZg0KIA0KIHN0YXRpYyBzdHJ1Y3Qgc3BhcmNfZWJ1c19pbmZv
-IHsNCiAJc3RydWN0IGVidXNfZG1hX2luZm8gaW5mbzsNCi0tIA0KMi4xNy4yDQoNCg=
+From: Colin King <colin.king@canonical.com>
+Date: Fri,  7 Sep 2018 11:35:00 +0100
+
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> A null check before a kfree is redundant, so remove it.
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+Applied.
