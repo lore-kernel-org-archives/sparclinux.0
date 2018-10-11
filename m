@@ -1,64 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 11 Oct 2018 04:10:36 +0000
-Subject: [PATCH] sparc: Wire up io_pgetevents system call.
-Message-Id: <20181010.211036.2130641974267107687.davem@davemloft.net>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Thu, 11 Oct 2018 22:13:28 +0000
+Subject: [mm PATCH v2 0/6] Deferred page init improvements
+Message-Id: <20181011221237.1925.85591.stgit@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, akpm@linux-foundation.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
 
+This patchset is essentially a refactor of the page initialization logic
+that is meant to provide for better code reuse while providing a
+significant improvement in deferred page initialization performance.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+In my testing I have seen a 60% reduction in the time needed for deferred
+memory initialization on two different x86_64 based test systems I have. In
+addition this provides a very slight improvement for the hotplug memory 
+initialization, although the improvement doesn't exceed 5% from what I can
+tell and that is to be expected since most of the changes related to
+hotplug init are mostly just code clean-up to allow for reuse.
+
+The biggest gains of this patchset come from not having to test each pfn
+multiple times to see if it is valid and if it is actually a part of the
+node being initialized.
+
+v1->v2:
+    Fixed build issue on PowerPC due to page struct size being 56
+    Added new patch that removed __SetPageReserved call for hotplug
+
 ---
- arch/sparc/include/uapi/asm/unistd.h | 3 ++-
- arch/sparc/kernel/systbls_32.S       | 2 +-
- arch/sparc/kernel/systbls_64.S       | 4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index 09acf0ddec10..45b4bf1875e6 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -427,8 +427,9 @@
- #define __NR_preadv2		358
- #define __NR_pwritev2		359
- #define __NR_statx		360
-+#define __NR_io_pgetevents	361
- 
--#define NR_syscalls		361
-+#define NR_syscalls		362
- 
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
-index 12bee14b552c..621a363098ec 100644
---- a/arch/sparc/kernel/systbls_32.S
-+++ b/arch/sparc/kernel/systbls_32.S
-@@ -90,4 +90,4 @@ sys_call_table:
- /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
- /*355*/	.long sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
--/*360*/	.long sys_statx
-+/*360*/	.long sys_statx, sys_io_pgetevents
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index 387ef993880a..bb68c805b891 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -91,7 +91,7 @@ sys_call_table32:
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
- 	.word compat_sys_setsockopt, sys_mlock2, sys_copy_file_range, compat_sys_preadv2, compat_sys_pwritev2
--/*360*/	.word sys_statx
-+/*360*/	.word sys_statx, compat_sys_io_pgetevents
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -173,4 +173,4 @@ sys_call_table:
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
- /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
- 	.word sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
--/*360*/	.word sys_statx
-+/*360*/	.word sys_statx, sys_io_pgetevents
--- 
-2.17.1
+Alexander Duyck (6):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Use memblock/zone specific iterator for handling deferred page init
+      mm: Do not set reserved flag for hotplug memory
+      mm: Move hot-plug specific memory init into separate functions and optimize
+      mm: Use common iterator for deferred_init_pages and deferred_free_pages
+
+
+ arch/sparc/include/asm/pgtable_64.h |   30 --
+ include/linux/memblock.h            |   58 ++++
+ include/linux/mm.h                  |   34 ++
+ mm/memblock.c                       |   63 ++++
+ mm/page_alloc.c                     |  552 +++++++++++++++++++++--------------
+ 5 files changed, 483 insertions(+), 254 deletions(-)
+
+--
