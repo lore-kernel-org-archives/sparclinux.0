@@ -1,56 +1,30 @@
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Date: Thu, 11 Oct 2018 23:31:13 +0000
-Subject: [PATCH v2 3/7] arm/modules: Add rlimit checking for arm modules
-Message-Id: <20181011233117.7883-4-rick.p.edgecombe@intel.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 11 Oct 2018 04:19:43 +0000
+Subject: [PATCH WIP 0/2] Sparc RSEQ support...
+Message-Id: <20181010.211943.943997307813263418.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
-In-Reply-To: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kernel-hardening@lists.openwall.com, daniel@iogearbox.net, keescook@chromium.org, catalin.marinas@arm.com, will.deacon@arm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, jeyu@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: kristen@linux.intel.com, dave.hansen@intel.com, arjan@linux.intel.com, deneen.t.dock@intel.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
+To: sparclinux@vger.kernel.org
 
-This adds in the rlimit checking for the arm module allocator.
 
-This has not been tested.
+Some work in progress patches I've been working on to add rseq
+support to sparc.
 
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
----
- arch/arm/kernel/module.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+It currently works with one minor hack on sparc64.  The issue is that
+__thread object alignment isn't working properly in the test cases so
+I disable the alignment check in the rseq syscall implementation
+whilst running the tests.  All the tests pass on sparc64 with this
+hack.
 
-diff --git a/arch/arm/kernel/module.c b/arch/arm/kernel/module.c
-index 3ff571c2c71c..e331863553d2 100644
---- a/arch/arm/kernel/module.c
-+++ b/arch/arm/kernel/module.c
-@@ -43,6 +43,9 @@ void *module_alloc(unsigned long size)
- 	gfp_t gfp_mask = GFP_KERNEL;
- 	void *p;
- 
-+	if (check_inc_mod_rlimit(size))
-+		return NULL;
-+
- 	/* Silence the initial allocation */
- 	if (IS_ENABLED(CONFIG_ARM_MODULE_PLTS))
- 		gfp_mask |= __GFP_NOWARN;
-@@ -51,10 +54,15 @@ void *module_alloc(unsigned long size)
- 				gfp_mask, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
- 				__builtin_return_address(0));
- 	if (!IS_ENABLED(CONFIG_ARM_MODULE_PLTS) || p)
--		return p;
--	return __vmalloc_node_range(size, 1,  VMALLOC_START, VMALLOC_END,
-+		goto done;
-+	p = __vmalloc_node_range(size, 1,  VMALLOC_START, VMALLOC_END,
- 				GFP_KERNEL, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
- 				__builtin_return_address(0));
-+
-+done:
-+	update_mod_rlimit(p, size);
-+
-+	return p;
- }
- #endif
- 
--- 
-2.17.1
+I plan to look into why glibc isn't aligning TLS objects in threads
+properly.
+
+Sparc32 needs some fleshing out.  First, sparc32 needs
+HAVE_REGS_AND_STACK_ACCESS_API support added, which isn't much work.
+Second, the rseq testcase sparc code needs to be made wordsize
+agnostic.  I just rushed the implementation to test the sparc64 kernel
+bits out quickly.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
