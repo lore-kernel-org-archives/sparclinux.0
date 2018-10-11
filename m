@@ -1,27 +1,52 @@
-From: "Jenny" <detintererpaenlkt@verizon.net>
-Date: Wed, 17 Oct 2018 10:44:49 +0000
-Subject: For your photos 20
-Message-Id: <6947d2586f8701cd8bf3130f41672bc9@woodslanding.com>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Thu, 11 Oct 2018 23:31:17 +0000
+Subject: [PATCH v2 7/7] s390/modules: Add rlimit checking for s390 modules
+Message-Id: <20181011233117.7883-8-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kernel-hardening@lists.openwall.com, daniel@iogearbox.net, keescook@chromium.org, catalin.marinas@arm.com, will.deacon@arm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, jeyu@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: kristen@linux.intel.com, dave.hansen@intel.com, arjan@linux.intel.com, deneen.t.dock@intel.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
-We provide photoshop services to some of the companies from around the
-world.
+This adds in the rlimit checking for the s390 module allocator.
 
-Some online stores use our services for retouching portraits, jewelry,
-apparels, furnitures etc.
+This has not been tested.
 
-Here are the details of what we provide:
-Clipping path for photos
-Deep etching  for photos
-Image masking  for photos
-Portrait retouching  for photos
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+---
+ arch/s390/kernel/module.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-Please reply back for further info.
-We can provide testing for your photos if needed.
-
-Thanks,
-Jenny
+diff --git a/arch/s390/kernel/module.c b/arch/s390/kernel/module.c
+index d298d3cb46d0..6c2356a72b63 100644
+--- a/arch/s390/kernel/module.c
++++ b/arch/s390/kernel/module.c
+@@ -32,12 +32,22 @@
+ 
+ void *module_alloc(unsigned long size)
+ {
++	void *p;
++
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+-	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
++
++	if (check_inc_mod_rlimit(size))
++		return NULL;
++
++	p = __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+ 				    GFP_KERNEL, PAGE_KERNEL_EXEC,
+ 				    0, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
++
++	update_mod_rlimit(p, size);
++
++	return p;
+ }
+ 
+ void module_arch_freeing_init(struct module *mod)
+-- 
+2.17.1
