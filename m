@@ -1,235 +1,147 @@
-From: Douglas Anderson <dianders@chromium.org>
-Date: Tue, 30 Oct 2018 22:18:42 +0000
-Subject: [PATCH v2 1/2] kgdb: Remove irq flags from roundup
-Message-Id: <20181030221843.121254-2-dianders@chromium.org>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 11 Oct 2018 04:19:48 +0000
+Subject: [PATCH WIP 1/2] sparc: Add rseq support.
+Message-Id: <20181010.211948.351460348799253220.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181030221843.121254-1-dianders@chromium.org>
-In-Reply-To: <20181030221843.121254-1-dianders@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-The function kgdb_roundup_cpus() was passed a parameter that was
-documented as:
+    
+Signed-off-by: David S. Miller <davem@davemloft.net>
 
-> the flags that will be used when restoring the interrupts. There is
-> local_irq_save() call before kgdb_roundup_cpus().
-
-Nobody used those flags.  Anyone who wanted to temporarily turn on
-interrupts just did local_irq_enable() and local_irq_disable() without
-looking at them.  So we can definitely remove the flags.
-
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
----
-
-Changes in v2:
-- Removing irq flags separated from fixing lockdep splat.
-
- arch/arc/kernel/kgdb.c     | 2 +-
- arch/arm/kernel/kgdb.c     | 2 +-
- arch/arm64/kernel/kgdb.c   | 2 +-
- arch/hexagon/kernel/kgdb.c | 9 ++-------
- arch/mips/kernel/kgdb.c    | 2 +-
- arch/powerpc/kernel/kgdb.c | 2 +-
- arch/sh/kernel/kgdb.c      | 2 +-
- arch/sparc/kernel/smp_64.c | 2 +-
- arch/x86/kernel/kgdb.c     | 9 ++-------
- include/linux/kgdb.h       | 9 ++-------
- kernel/debug/debug_core.c  | 2 +-
- 11 files changed, 14 insertions(+), 29 deletions(-)
-
-diff --git a/arch/arc/kernel/kgdb.c b/arch/arc/kernel/kgdb.c
-index 9a3c34af2ae8..0932851028e0 100644
---- a/arch/arc/kernel/kgdb.c
-+++ b/arch/arc/kernel/kgdb.c
-@@ -197,7 +197,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), NULL);
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index e6f2a38d2e61..1ee5721c6874 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -33,6 +33,7 @@ config SPARC
+ 	select HAVE_CBPF_JIT if SPARC32
+ 	select HAVE_EBPF_JIT if SPARC64
+ 	select HAVE_DEBUG_BUGVERBOSE
++	select HAVE_RSEQ
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_STRNCPY_FROM_USER
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 45b4bf1875e6..0e6d7a062db7 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -428,8 +428,9 @@
+ #define __NR_pwritev2		359
+ #define __NR_statx		360
+ #define __NR_io_pgetevents	361
++#define __NR_rseq		362
+ 
+-#define NR_syscalls		362
++#define NR_syscalls		363
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index 4d3696973325..4f49626fa90e 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -1018,6 +1018,11 @@ do_syscall:
+ 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
+ 
+ ret_sys_call:
++#ifdef CONFIG_DEBUG_RSEQ
++	call	rseq_syscall
++	 add	%sp, STACKFRAME_SZ, %o0
++	ld	[%sp + STACKFRAME_SZ + PT_I0], %o0
++#endif	
+ 	ld	[%curptr + TI_FLAGS], %l6
+ 	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index 44d379db3f64..6a713c99c935 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -614,6 +614,8 @@ static inline void handle_signal32(struct ksignal *ksig,
+ 	sigset_t *oldset = sigmask_to_save();
+ 	int err;
+ 
++	rseq_signal_deliver(ksig, regs);
++
+ 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+ 		err = setup_rt_frame32(ksig, regs, oldset);
+ 	else
+diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
+index 5665261cee37..9e5c75cd16ee 100644
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -422,6 +422,8 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
+ 	sigset_t *oldset = sigmask_to_save();
+ 	int err;
+ 
++	rseq_signal_deliver(ksig, regs);
++
+ 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+ 		err = setup_rt_frame(ksig, regs, oldset);
+ 	else
+@@ -527,6 +529,7 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
++		rseq_handle_notify_resume(NULL, regs);
+ 	}
  }
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm/kernel/kgdb.c b/arch/arm/kernel/kgdb.c
-index caa0dbe3dc61..f21077b077be 100644
---- a/arch/arm/kernel/kgdb.c
-+++ b/arch/arm/kernel/kgdb.c
-@@ -175,7 +175,7 @@ static void kgdb_call_nmi_hook(void *ignored)
-        kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index 48366e5eb5b2..8129f5bc2cbb 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -355,6 +355,8 @@ setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs)
+ 	int wsaved, err, sf_size;
+ 	void __user *tail;
+ 
++	rseq_signal_deliver(ksig, regs);
++
+ 	/* 1. Make sure everything is clean */
+ 	synchronize_user_stack();
+ 	save_and_clear_fpu();
+@@ -550,6 +552,7 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME) {
+ 		clear_thread_flag(TIF_NOTIFY_RESUME);
+ 		tracehook_notify_resume(regs);
++		rseq_handle_notify_resume(NULL, regs);
+ 	}
+ 	user_enter();
  }
+diff --git a/arch/sparc/kernel/syscalls.S b/arch/sparc/kernel/syscalls.S
+index db42b4fb3708..52a9eae74f12 100644
+--- a/arch/sparc/kernel/syscalls.S
++++ b/arch/sparc/kernel/syscalls.S
+@@ -255,6 +255,11 @@ linux_sparc_syscall:
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
-        local_irq_enable();
-        smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm64/kernel/kgdb.c b/arch/arm64/kernel/kgdb.c
-index a20de58061a8..12c339ff6e75 100644
---- a/arch/arm64/kernel/kgdb.c
-+++ b/arch/arm64/kernel/kgdb.c
-@@ -289,7 +289,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/hexagon/kernel/kgdb.c b/arch/hexagon/kernel/kgdb.c
-index 16c24b22d0b2..012e0e230ac2 100644
---- a/arch/hexagon/kernel/kgdb.c
-+++ b/arch/hexagon/kernel/kgdb.c
-@@ -119,17 +119,12 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
- 
- /**
-  * kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- * @flags: Current IRQ state
-  *
-  * On SMP systems, we need to get the attention of the other CPUs
-  * and get them be in a known state.  This should do what is needed
-  * to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  * the NMI approach is not used for rounding up all the CPUs. For example,
-- * in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- * this case, we have to make sure that interrupts are enabled before
-- * calling smp_call_function(). The argument to this function is
-- * the flags that will be used when restoring the interrupts. There is
-- * local_irq_save() call before kgdb_roundup_cpus().
-+ * in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  * On non-SMP systems, this is not called.
-  */
-@@ -139,7 +134,7 @@ static void hexagon_kgdb_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(hexagon_kgdb_nmi_hook, NULL, 0);
-diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
-index eb6c0d582626..2b05effc17b4 100644
---- a/arch/mips/kernel/kgdb.c
-+++ b/arch/mips/kernel/kgdb.c
-@@ -219,7 +219,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	set_fs(old_fs);
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/powerpc/kernel/kgdb.c b/arch/powerpc/kernel/kgdb.c
-index 59c578f865aa..b0e804844be0 100644
---- a/arch/powerpc/kernel/kgdb.c
-+++ b/arch/powerpc/kernel/kgdb.c
-@@ -124,7 +124,7 @@ static int kgdb_call_nmi_hook(struct pt_regs *regs)
- }
- 
- #ifdef CONFIG_SMP
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_send_debugger_break();
- }
-diff --git a/arch/sh/kernel/kgdb.c b/arch/sh/kernel/kgdb.c
-index 4f04c6638a4d..cc57630f6bf2 100644
---- a/arch/sh/kernel/kgdb.c
-+++ b/arch/sh/kernel/kgdb.c
-@@ -319,7 +319,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index d3ea1f3c06a0..68098bbf3705 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1014,7 +1014,7 @@ void flush_dcache_page_all(struct mm_struct *mm, struct page *page)
- }
- 
- #ifdef CONFIG_KGDB
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_cross_call(&xcall_kgdb_capture, 0, 0, 0);
- }
-diff --git a/arch/x86/kernel/kgdb.c b/arch/x86/kernel/kgdb.c
-index 8e36f249646e..ac6291a4178d 100644
---- a/arch/x86/kernel/kgdb.c
-+++ b/arch/x86/kernel/kgdb.c
-@@ -422,21 +422,16 @@ static void kgdb_disable_hw_debug(struct pt_regs *regs)
- #ifdef CONFIG_SMP
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them be in a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	apic->send_IPI_allbutself(APIC_DM_NMI);
- }
-diff --git a/include/linux/kgdb.h b/include/linux/kgdb.h
-index e465bb15912d..05e5b2eb0d32 100644
---- a/include/linux/kgdb.h
-+++ b/include/linux/kgdb.h
-@@ -178,21 +178,16 @@ kgdb_arch_handle_exception(int vector, int signo, int err_code,
- 
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them into a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--extern void kgdb_roundup_cpus(unsigned long flags);
-+extern void kgdb_roundup_cpus(void);
- 
- /**
-  *	kgdb_arch_set_pc - Generic call back to the program counter
-diff --git a/kernel/debug/debug_core.c b/kernel/debug/debug_core.c
-index 65c0f1363788..f3cadda45f07 100644
---- a/kernel/debug/debug_core.c
-+++ b/kernel/debug/debug_core.c
-@@ -593,7 +593,7 @@ static int kgdb_cpu_enter(struct kgdb_state *ks, struct pt_regs *regs,
- 
- 	/* Signal the other CPUs to enter kgdb_wait() */
- 	else if ((!kgdb_single_step) && kgdb_do_roundup)
--		kgdb_roundup_cpus(flags);
-+		kgdb_roundup_cpus();
- #endif
- 
- 	/*
--- 
-2.19.1.568.g152ad8e336-goog
+ 3:	stx	%o0, [%sp + PTREGS_OFF + PT_V9_I0]
+ ret_sys_call:
++#ifdef CONFIG_DEBUG_RSEQ
++	call	rseq_syscall
++	 add	%sp, PTREGS_OFF, %o0
++	ldx	[%sp + PTREGS_OFF + PT_V9_I0], %o0
++#endif	
+ 	ldx	[%sp + PTREGS_OFF + PT_V9_TSTATE], %g3
+ 	mov	%ulo(TSTATE_XCARRY | TSTATE_ICARRY), %g2
+ 	sllx	%g2, 32, %g2
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index 621a363098ec..89deba8a7264 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -90,4 +90,4 @@ sys_call_table:
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ /*355*/	.long sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
+-/*360*/	.long sys_statx, sys_io_pgetevents
++/*360*/	.long sys_statx, sys_io_pgetevents, sys_rseq
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index bb68c805b891..f9eccfd54eff 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -173,4 +173,4 @@ sys_call_table:
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ 	.word sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
+-/*360*/	.word sys_statx, sys_io_pgetevents
++/*360*/	.word sys_statx, sys_io_pgetevents, sys_rseq
