@@ -1,58 +1,62 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 11 Oct 2018 22:13:51 +0000
-Subject: [mm PATCH v2 4/6] mm: Do not set reserved flag for hotplug memory
-Message-Id: <20181011221351.1925.67694.stgit@localhost.localdomain>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 11 Oct 2018 22:58:31 +0000
+Subject: Re: [mm PATCH v2 4/6] mm: Do not set reserved flag for hotplug memory
+Message-Id: <CAPcyv4gw4YRJXZrXHunKwqbhXPekiNU6jsYkrpoBtznv0Py-sg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181011221237.1925.85591.stgit@localhost.localdomain>
-In-Reply-To: <20181011221237.1925.85591.stgit@localhost.localdomain>
+References: <20181011221237.1925.85591.stgit@localhost.localdomain> <20181011221351.1925.67694.stgit@localhost.localdomain>
+In-Reply-To: <20181011221351.1925.67694.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: alexander.h.duyck@linux.intel.com
+Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Pasha Tatashin <pavel.tatashin@microsoft.com>, Michal Hocko <mhocko@suse.com>, Dave Jiang <dave.jiang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, David Miller <davem@davemloft.net>, Zhang Yi <yi.z.zhang@linux.intel.com>, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org, Laurent Dufour <ldufour@linux.vnet.ibm.com>, Mel Gorman <mgorman@techsingularity.net>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 
-The general suspicion at this point is that the setting of the reserved bit
-is not really needed for hotplug memory. In addition the setting of this
-bit results in issues for DAX in that it is not possible to assign the
-region to KVM if the reserved bit is set in each page.
+On Thu, Oct 11, 2018 at 3:18 PM Alexander Duyck
+<alexander.h.duyck@linux.intel.com> wrote:
+>
+> The general suspicion at this point is that the setting of the reserved bit
+> is not really needed for hotplug memory. In addition the setting of this
+> bit results in issues for DAX in that it is not possible to assign the
+> region to KVM if the reserved bit is set in each page.
+>
+> For now we can try just not setting the bit since we suspect it isn't
+> adding value in setting it. If at a later time we find that it is needed we
+> can come back through and re-add it for the hotplug paths.
+>
+> Suggested-by: Michael Hocko <mhocko@suse.com>
+> Reported-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+> ---
+>  mm/page_alloc.c |   11 -----------
+>  1 file changed, 11 deletions(-)
+>
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 3603d5444865..e435223e2ddb 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -5571,8 +5571,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+>
+>                 page = pfn_to_page(pfn);
+>                 __init_single_page(page, pfn, zone, nid);
+> -               if (context = MEMMAP_HOTPLUG)
+> -                       __SetPageReserved(page);
 
-For now we can try just not setting the bit since we suspect it isn't
-adding value in setting it. If at a later time we find that it is needed we
-can come back through and re-add it for the hotplug paths.
+At a minimum I think we need to do this before removing PageReserved,
+to make sure zone_device pages are not tracked in the hibernation
+image.
 
-Suggested-by: Michael Hocko <mhocko@suse.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- mm/page_alloc.c |   11 -----------
- 1 file changed, 11 deletions(-)
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 3d37c279c090..c0613137d726 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -1285,6 +1285,9 @@ static struct page *saveable_page(struct zone
+*zone, unsigned long pfn)
+        if (swsusp_page_is_forbidden(page) || swsusp_page_is_free(page))
+                return NULL;
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 3603d5444865..e435223e2ddb 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5571,8 +5571,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 
- 		page = pfn_to_page(pfn);
- 		__init_single_page(page, pfn, zone, nid);
--		if (context = MEMMAP_HOTPLUG)
--			__SetPageReserved(page);
- 
- 		/*
- 		 * Mark the block movable so that blocks are reserved for
-@@ -5626,15 +5624,6 @@ void __ref memmap_init_zone_device(struct zone *zone,
- 		__init_single_page(page, pfn, zone_idx, nid);
- 
- 		/*
--		 * Mark page reserved as it will need to wait for onlining
--		 * phase for it to be fully associated with a zone.
--		 *
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
--
--		/*
- 		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
- 		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
- 		 * page is ever freed or placed on a driver-private list.
++       if (is_zone_device_page(page))
++               return NULL;
++
+        if (PageReserved(page)
+            && (!kernel_page_present(page) || pfn_is_nosave(pfn)))
+                return NULL;
