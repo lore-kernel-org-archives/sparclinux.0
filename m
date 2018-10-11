@@ -1,64 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Oct 2018 02:19:47 +0000
-Subject: [PATCH 8/8] sparc: Several small VDSO vclock_gettime.c improvements.
-Message-Id: <20181022.191947.433390161190289530.davem@davemloft.net>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Thu, 11 Oct 2018 23:31:13 +0000
+Subject: [PATCH v2 3/7] arm/modules: Add rlimit checking for arm modules
+Message-Id: <20181011233117.7883-4-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20181011233117.7883-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kernel-hardening@lists.openwall.com, daniel@iogearbox.net, keescook@chromium.org, catalin.marinas@arm.com, will.deacon@arm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, jeyu@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: kristen@linux.intel.com, dave.hansen@intel.com, arjan@linux.intel.com, deneen.t.dock@intel.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
+This adds in the rlimit checking for the arm module allocator.
 
-Almost entirely borrowed from the x86 code.
+This has not been tested.
 
-Main improvement is to avoid having to initialize
-ts->tv_nsec to zero before the sequence loops, by
-expanding timespec_add_ns().
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 ---
- arch/sparc/vdso/vclock_gettime.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/kernel/module.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/vdso/vclock_gettime.c b/arch/sparc/vdso/vclock_gettime.c
-index 7b5bf63fc0f5..7b539ceebe13 100644
---- a/arch/sparc/vdso/vclock_gettime.c
-+++ b/arch/sparc/vdso/vclock_gettime.c
-@@ -138,7 +138,6 @@ notrace static __always_inline int do_realtime(struct vvar_data *vvar,
- 	unsigned long seq;
- 	u64 ns;
+diff --git a/arch/arm/kernel/module.c b/arch/arm/kernel/module.c
+index 3ff571c2c71c..e331863553d2 100644
+--- a/arch/arm/kernel/module.c
++++ b/arch/arm/kernel/module.c
+@@ -43,6 +43,9 @@ void *module_alloc(unsigned long size)
+ 	gfp_t gfp_mask = GFP_KERNEL;
+ 	void *p;
  
--	ts->tv_nsec = 0;
- 	do {
- 		seq = vvar_read_begin(vvar);
- 		ts->tv_sec = vvar->wall_time_sec;
-@@ -147,7 +146,8 @@ notrace static __always_inline int do_realtime(struct vvar_data *vvar,
- 		ns >>= vvar->clock.shift;
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
- 
--	timespec_add_ns(ts, ns);
-+	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-+	ts->tv_nsec = ns;
- 
- 	return 0;
++	if (check_inc_mod_rlimit(size))
++		return NULL;
++
+ 	/* Silence the initial allocation */
+ 	if (IS_ENABLED(CONFIG_ARM_MODULE_PLTS))
+ 		gfp_mask |= __GFP_NOWARN;
+@@ -51,10 +54,15 @@ void *module_alloc(unsigned long size)
+ 				gfp_mask, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ 	if (!IS_ENABLED(CONFIG_ARM_MODULE_PLTS) || p)
+-		return p;
+-	return __vmalloc_node_range(size, 1,  VMALLOC_START, VMALLOC_END,
++		goto done;
++	p = __vmalloc_node_range(size, 1,  VMALLOC_START, VMALLOC_END,
+ 				GFP_KERNEL, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
++
++done:
++	update_mod_rlimit(p, size);
++
++	return p;
  }
-@@ -158,7 +158,6 @@ notrace static __always_inline int do_monotonic(struct vvar_data *vvar,
- 	unsigned long seq;
- 	u64 ns;
+ #endif
  
--	ts->tv_nsec = 0;
- 	do {
- 		seq = vvar_read_begin(vvar);
- 		ts->tv_sec = vvar->monotonic_time_sec;
-@@ -167,7 +166,8 @@ notrace static __always_inline int do_monotonic(struct vvar_data *vvar,
- 		ns >>= vvar->clock.shift;
- 	} while (unlikely(vvar_read_retry(vvar, seq)));
- 
--	timespec_add_ns(ts, ns);
-+	ts->tv_sec += __iter_div_u64_rem(ns, NSEC_PER_SEC, &ns);
-+	ts->tv_nsec = ns;
- 
- 	return 0;
- }
 -- 
-2.19.1.328.g5a0cc8aca
+2.17.1
