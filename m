@@ -1,127 +1,64 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 17 Oct 2018 23:54:31 +0000
-Subject: [mm PATCH v4 5/6] mm: Add reserved flag setting to set_page_links
-Message-Id: <20181017235431.17213.11512.stgit@localhost.localdomain>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 11 Oct 2018 04:10:36 +0000
+Subject: [PATCH] sparc: Wire up io_pgetevents system call.
+Message-Id: <20181010.211036.2130641974267107687.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181017235043.17213.92459.stgit@localhost.localdomain>
-In-Reply-To: <20181017235043.17213.92459.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: sparclinux@vger.kernel.org
 
-This patch modifies the set_page_links function to include the setting of
-the reserved flag via a simple AND and OR operation. The motivation for
-this is the fact that the existing __set_bit call still seems to have
-effects on performance as replacing the call with the AND and OR can reduce
-initialization time.
 
-Looking over the assembly code before and after the change the main
-difference between the two is that the reserved bit is stored in a value
-that is generated outside of the main initialization loop and is then
-written with the other flags field values in one write to the page->flags
-value. Previously the generated value was written and then then a btsq
-instruction was issued.
-
-On my x86_64 test system with 3TB of persistent memory per node I saw the
-persistent memory initialization time on average drop from 23.49s to
-19.12s per node.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- include/linux/mm.h |    9 ++++++++-
- mm/page_alloc.c    |   29 +++++++++++++++++++----------
- 2 files changed, 27 insertions(+), 11 deletions(-)
+ arch/sparc/include/uapi/asm/unistd.h | 3 ++-
+ arch/sparc/kernel/systbls_32.S       | 2 +-
+ arch/sparc/kernel/systbls_64.S       | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 6e2c9631af05..14d06d7d2986 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1171,11 +1171,18 @@ static inline void set_page_node(struct page *page, unsigned long node)
- 	page->flags |= (node & NODES_MASK) << NODES_PGSHIFT;
- }
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 09acf0ddec10..45b4bf1875e6 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -427,8 +427,9 @@
+ #define __NR_preadv2		358
+ #define __NR_pwritev2		359
+ #define __NR_statx		360
++#define __NR_io_pgetevents	361
  
-+static inline void set_page_reserved(struct page *page, bool reserved)
-+{
-+	page->flags &= ~(1ul << PG_reserved);
-+	page->flags |= (unsigned long)(!!reserved) << PG_reserved;
-+}
-+
- static inline void set_page_links(struct page *page, enum zone_type zone,
--	unsigned long node, unsigned long pfn)
-+	unsigned long node, unsigned long pfn, bool reserved)
- {
- 	set_page_zone(page, zone);
- 	set_page_node(page, node);
-+	set_page_reserved(page, reserved);
- #ifdef SECTION_IN_PAGE_FLAGS
- 	set_page_section(page, pfn_to_section_nr(pfn));
- #endif
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index a0b81e0bef03..e7fee7a5f8a3 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1179,7 +1179,7 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
- 	mm_zero_struct_page(page);
--	set_page_links(page, zone, nid, pfn);
-+	set_page_links(page, zone, nid, pfn, false);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
-@@ -1195,7 +1195,8 @@ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- static void __meminit __init_pageblock(unsigned long start_pfn,
- 				       unsigned long nr_pages,
- 				       unsigned long zone, int nid,
--				       struct dev_pagemap *pgmap)
-+				       struct dev_pagemap *pgmap,
-+				       bool is_reserved)
- {
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	struct page *start_page = pfn_to_page(start_pfn);
-@@ -1231,19 +1232,16 @@ static void __meminit __init_pageblock(unsigned long start_pfn,
- 		 * call because of the fact that the pfn number is used to
- 		 * get the section_nr and this function should not be
- 		 * spanning more than a single section.
-+		 *
-+		 * We can use a non-atomic operation for setting the
-+		 * PG_reserved flag as we are still initializing the pages.
- 		 */
--		set_page_links(page, zone, nid, start_pfn);
-+		set_page_links(page, zone, nid, start_pfn, is_reserved);
- 		init_page_count(page);
- 		page_mapcount_reset(page);
- 		page_cpupid_reset_last(page);
+-#define NR_syscalls		361
++#define NR_syscalls		362
  
- 		/*
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
--
--		/*
- 		 * ZONE_DEVICE pages union ->lru with a ->pgmap back
- 		 * pointer and hmm_data.  It is a bug if a ZONE_DEVICE
- 		 * page is ever freed or placed on a driver-private list.
-@@ -5612,7 +5610,18 @@ static void __meminit __memmap_init_hotplug(unsigned long size, int nid,
- 		pfn = max(ALIGN_DOWN(pfn - 1, pageblock_nr_pages), start_pfn);
- 		stride -= pfn;
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+index 12bee14b552c..621a363098ec 100644
+--- a/arch/sparc/kernel/systbls_32.S
++++ b/arch/sparc/kernel/systbls_32.S
+@@ -90,4 +90,4 @@ sys_call_table:
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.long sys_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ /*355*/	.long sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
+-/*360*/	.long sys_statx
++/*360*/	.long sys_statx, sys_io_pgetevents
+diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+index 387ef993880a..bb68c805b891 100644
+--- a/arch/sparc/kernel/systbls_64.S
++++ b/arch/sparc/kernel/systbls_64.S
+@@ -91,7 +91,7 @@ sys_call_table32:
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys32_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ 	.word compat_sys_setsockopt, sys_mlock2, sys_copy_file_range, compat_sys_preadv2, compat_sys_pwritev2
+-/*360*/	.word sys_statx
++/*360*/	.word sys_statx, compat_sys_io_pgetevents
  
--		__init_pageblock(pfn, stride, zone, nid, pgmap);
-+		/*
-+		 * The last argument of __init_pageblock is a boolean
-+		 * value indicating if the page will be marked as reserved.
-+		 *
-+		 * Mark page reserved as it will need to wait for onlining
-+		 * phase for it to be fully associated with a zone.
-+		 *
-+		 * Under certain circumstances ZONE_DEVICE pages may not
-+		 * need to be marked as reserved, however there is still
-+		 * code that is depending on this being set for now.
-+		 */
-+		__init_pageblock(pfn, stride, zone, nid, pgmap, true);
+ #endif /* CONFIG_COMPAT */
  
- 		cond_resched();
- 	}
+@@ -173,4 +173,4 @@ sys_call_table:
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+ /*350*/	.word sys64_execveat, sys_membarrier, sys_userfaultfd, sys_bind, sys_listen
+ 	.word sys_setsockopt, sys_mlock2, sys_copy_file_range, sys_preadv2, sys_pwritev2
+-/*360*/	.word sys_statx
++/*360*/	.word sys_statx, sys_io_pgetevents
+-- 
+2.17.1
