@@ -1,77 +1,124 @@
 From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Thu, 11 Oct 2018 23:22:30 +0000
-Subject: Re: [mm PATCH v2 4/6] mm: Do not set reserved flag for hotplug memory
-Message-Id: <0b7001f8-3653-d100-4218-3d9b06ff8b3a@linux.intel.com>
+Date: Mon, 15 Oct 2018 20:26:56 +0000
+Subject: [mm PATCH v3 1/6] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+Message-Id: <20181015202656.2171.92963.stgit@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181011221237.1925.85591.stgit@localhost.localdomain>
- <20181011221351.1925.67694.stgit@localhost.localdomain>
- <CAPcyv4gw4YRJXZrXHunKwqbhXPekiNU6jsYkrpoBtznv0Py-sg@mail.gmail.com>
-In-Reply-To: <CAPcyv4gw4YRJXZrXHunKwqbhXPekiNU6jsYkrpoBtznv0Py-sg@mail.gmail.com>
+References: <20181015202456.2171.88406.stgit@localhost.localdomain>
+In-Reply-To: <20181015202456.2171.88406.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Pasha Tatashin <pavel.tatashin@microsoft.com>, Michal Hocko <mhocko@suse.com>, Dave Jiang <dave.jiang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, David Miller <davem@davemloft.net>, Zhang Yi <yi.z.zhang@linux.intel.com>, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org, Laurent Dufour <ldufour@linux.vnet.ibm.com>, Mel Gorman <mgorman@techsingularity.net>, Ingo Molnar <mingo@kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: linux-mm@kvack.org, akpm@linux-foundation.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
 
-On 10/11/2018 3:58 PM, Dan Williams wrote:
-> On Thu, Oct 11, 2018 at 3:18 PM Alexander Duyck
-> <alexander.h.duyck@linux.intel.com> wrote:
->>
->> The general suspicion at this point is that the setting of the reserved bit
->> is not really needed for hotplug memory. In addition the setting of this
->> bit results in issues for DAX in that it is not possible to assign the
->> region to KVM if the reserved bit is set in each page.
->>
->> For now we can try just not setting the bit since we suspect it isn't
->> adding value in setting it. If at a later time we find that it is needed we
->> can come back through and re-add it for the hotplug paths.
->>
->> Suggested-by: Michael Hocko <mhocko@suse.com>
->> Reported-by: Dan Williams <dan.j.williams@intel.com>
->> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
->> ---
->>   mm/page_alloc.c |   11 -----------
->>   1 file changed, 11 deletions(-)
->>
->> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
->> index 3603d5444865..e435223e2ddb 100644
->> --- a/mm/page_alloc.c
->> +++ b/mm/page_alloc.c
->> @@ -5571,8 +5571,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
->>
->>                  page = pfn_to_page(pfn);
->>                  __init_single_page(page, pfn, zone, nid);
->> -               if (context = MEMMAP_HOTPLUG)
->> -                       __SetPageReserved(page);
-> 
-> At a minimum I think we need to do this before removing PageReserved,
-> to make sure zone_device pages are not tracked in the hibernation
-> image.
-> 
-> diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
-> index 3d37c279c090..c0613137d726 100644
-> --- a/kernel/power/snapshot.c
-> +++ b/kernel/power/snapshot.c
-> @@ -1285,6 +1285,9 @@ static struct page *saveable_page(struct zone
-> *zone, unsigned long pfn)
->          if (swsusp_page_is_forbidden(page) || swsusp_page_is_free(page))
->                  return NULL;
-> 
-> +       if (is_zone_device_page(page))
-> +               return NULL;
-> +
->          if (PageReserved(page)
->              && (!kernel_page_present(page) || pfn_is_nosave(pfn)))
->                  return NULL;
-> 
+This change makes it so that we use the same approach that was already in
+use on Sparc on all the archtectures that support a 64b long.
 
-Yeah, I am pretty sure I broke hotplug in general with this too since it 
-seems like it checks for the reserved flag before bringing a range 
-online in online_pages_range.
+This is mostly motivated by the fact that 8 to 10 store/move instructions
+are likely always going to be faster than having to call into a function
+that is not specialized for handling page init.
 
-I think I will drop this patch and go back to what I had before. There 
-was a slight performance gain to be had for not setting the bit at all, 
-but I think we are probably looking at yet another patch set if we want 
-to go through and drop the need for the reserved bit to be set.
+An added advantage to doing it this way is that the compiler can get away
+with combining writes in the __init_single_page call. As a result the
+memset call will be reduced to only about 4 write operations, or at least
+that is what I am seeing with GCC 6.2 as the flags, LRU poitners, and
+count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
+my system.
 
-- Alex
+One change I had to make to the function was to reduce the minimum page
+size to 56 to support some powerpc64 configurations.
+
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+---
+ arch/sparc/include/asm/pgtable_64.h |   30 ------------------------------
+ include/linux/mm.h                  |   34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 30 deletions(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..22500c3be7a9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -231,36 +231,6 @@
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
+ 
+-/* This macro must be updated when the size of struct page grows above 80
+- * or reduces below 64.
+- * The idea that compiler optimizes out switch() statement, and only
+- * leaves clrx instructions
+- */
+-#define	mm_zero_struct_page(pp) do {					\
+-	unsigned long *_pp = (void *)(pp);				\
+-									\
+-	 /* Check that struct page is either 64, 72, or 80 bytes */	\
+-	BUILD_BUG_ON(sizeof(struct page) & 7);				\
+-	BUILD_BUG_ON(sizeof(struct page) < 64);				\
+-	BUILD_BUG_ON(sizeof(struct page) > 80);				\
+-									\
+-	switch (sizeof(struct page)) {					\
+-	case 80:							\
+-		_pp[9] = 0;	/* fallthrough */			\
+-	case 72:							\
+-		_pp[8] = 0;	/* fallthrough */			\
+-	default:							\
+-		_pp[7] = 0;						\
+-		_pp[6] = 0;						\
+-		_pp[5] = 0;						\
+-		_pp[4] = 0;						\
+-		_pp[3] = 0;						\
+-		_pp[2] = 0;						\
+-		_pp[1] = 0;						\
+-		_pp[0] = 0;						\
+-	}								\
+-} while (0)
+-
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index bb0de406f8e7..ec6e57a0c14e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -102,8 +102,42 @@ static inline void set_max_mapnr(unsigned long limit) { }
+  * zeroing by defining this macro in <asm/pgtable.h>.
+  */
+ #ifndef mm_zero_struct_page
++#if BITS_PER_LONG = 64
++/* This function must be updated when the size of struct page grows above 80
++ * or reduces below 64. The idea that compiler optimizes out switch()
++ * statement, and only leaves move/store instructions
++ */
++#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
++static inline void __mm_zero_struct_page(struct page *page)
++{
++	unsigned long *_pp = (void *)page;
++
++	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
++	BUILD_BUG_ON(sizeof(struct page) & 7);
++	BUILD_BUG_ON(sizeof(struct page) < 56);
++	BUILD_BUG_ON(sizeof(struct page) > 80);
++
++	switch (sizeof(struct page)) {
++	case 80:
++		_pp[9] = 0;	/* fallthrough */
++	case 72:
++		_pp[8] = 0;	/* fallthrough */
++	default:
++		_pp[7] = 0;	/* fallthrough */
++	case 56:
++		_pp[6] = 0;
++		_pp[5] = 0;
++		_pp[4] = 0;
++		_pp[3] = 0;
++		_pp[2] = 0;
++		_pp[1] = 0;
++		_pp[0] = 0;
++	}
++}
++#else
+ #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
+ #endif
++#endif
+ 
+ /*
+  * Default maximum number of active map areas, this limits the number of vmas
