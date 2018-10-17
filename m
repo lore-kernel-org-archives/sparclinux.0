@@ -1,59 +1,63 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Oct 2018 02:19:37 +0000
-Subject: [PATCH 5/8] sparc: Improve VDSO CFLAGS.
-Message-Id: <20181022.191937.1740608972564144823.davem@davemloft.net>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 17 Oct 2018 23:54:02 +0000
+Subject: [mm PATCH v4 0/6] Deferred page init improvements
+Message-Id: <20181017235043.17213.92459.stgit@localhost.localdomain>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, akpm@linux-foundation.org
+Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
 
+This patchset is essentially a refactor of the page initialization logic
+that is meant to provide for better code reuse while providing a
+significant improvement in deferred page initialization performance.
 
-Do not set any special register usage options, use the default which
-is exactly what we should use for userspace code.
+In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
+memory per node I have seen the following. In the case of regular memory
+initialization the deferred init time was decreased from 3.75s to 1.06s on
+average. For the persistent memory the initialization time dropped from
+24.17s to 19.12s on average. This amounts to a 253% improvement for the
+deferred memory initialization performance, and a 26% improvement in the
+persistent memory initialization performance.
 
-Make sure we remove the gcc plugin options from the 64-bit build.
-The 32-bit cflags got it right already.
+I have called out the improvement observed with each patch.
 
-Signed-off-by: David S. Miller <davem@davemloft.net>
+v1->v2:
+    Fixed build issue on PowerPC due to page struct size being 56
+    Added new patch that removed __SetPageReserved call for hotplug
+v2->v3:
+    Rebased on latest linux-next
+    Removed patch that had removed __SetPageReserved call from init
+    Added patch that folded __SetPageReserved into set_page_links
+    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
+v3->v4:
+    Updated patch description and comments for mm_zero_struct_page patch
+        Replaced "default" with "case 64"
+        Removed #ifndef mm_zero_struct_page
+    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
+    Added Reviewed-by for patches reviewed by Pavel
+    Added Acked-by from Michal Hocko
+    Added deferred init times for patches that affect init performance
+    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
+        Did this as reserved bit wasn't used in deferred memory init
+
 ---
- arch/sparc/vdso/Makefile | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 7ea03dd2bd62..3b0d287311c2 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -54,14 +54,14 @@ $(obj)/vdso-image-%.c: $(obj)/vdso%.so.dbg $(obj)/vdso%.so $(obj)/vdso2c FORCE
- # Don't omit frame pointers for ease of userspace debugging, but do
- # optimize sibling calls.
- #
--CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables \
--       -m64 -ffixed-g2 -ffixed-g3 -fcall-used-g4 -fcall-used-g5 -ffixed-g6 \
--       -ffixed-g7 $(filter -g%,$(KBUILD_CFLAGS)) \
--       $(call cc-option, -fno-stack-protector) -fno-omit-frame-pointer \
--       -foptimize-sibling-calls \
-+CFL := $(PROFILING) -mcmodel=medlow -fPIC -O2 -fasynchronous-unwind-tables -m64 \
-+       $(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
-+       -fno-omit-frame-pointer -foptimize-sibling-calls \
-        -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO
- 
--$(vobjs): KBUILD_CFLAGS += $(CFL)
-+SPARC_REG_CFLAGS = -ffixed-g4 -ffixed-g5 -fcall-used-g5 -fcall-used-g7
-+
-+$(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS)) $(CFL)
- 
- #
- # vDSO code runs in userspace and -pg doesn't help with profiling anyway.
-@@ -92,7 +92,8 @@ KBUILD_CFLAGS_32 := $(filter-out -m64,$(KBUILD_CFLAGS))
- KBUILD_CFLAGS_32 := $(filter-out -mcmodel=medlow,$(KBUILD_CFLAGS_32))
- KBUILD_CFLAGS_32 := $(filter-out -fno-pic,$(KBUILD_CFLAGS_32))
- KBUILD_CFLAGS_32 := $(filter-out $(GCC_PLUGINS_CFLAGS),$(KBUILD_CFLAGS_32))
--KBUILD_CFLAGS_32 += -m32 -msoft-float -fpic -mno-app-regs -ffixed-g7
-+KBUILD_CFLAGS_32 := $(filter-out $(SPARC_REG_CFLAGS),$(KBUILD_CFLAGS_32))
-+KBUILD_CFLAGS_32 += -m32 -msoft-float -fpic
- KBUILD_CFLAGS_32 += $(call cc-option, -fno-stack-protector)
- KBUILD_CFLAGS_32 += $(call cc-option, -foptimize-sibling-calls)
- KBUILD_CFLAGS_32 += -fno-omit-frame-pointer
--- 
-2.19.1.328.g5a0cc8aca
+Alexander Duyck (6):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Use memblock/zone specific iterator for handling deferred page init
+      mm: Move hot-plug specific memory init into separate functions and optimize
+      mm: Add reserved flag setting to set_page_links
+      mm: Use common iterator for deferred_init_pages and deferred_free_pages
+
+
+ arch/sparc/include/asm/pgtable_64.h |   30 --
+ include/linux/memblock.h            |   58 ++++
+ include/linux/mm.h                  |   50 +++
+ mm/memblock.c                       |   63 ++++
+ mm/page_alloc.c                     |  569 +++++++++++++++++++++--------------
+ 5 files changed, 513 insertions(+), 257 deletions(-)
+
+--
