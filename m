@@ -1,90 +1,124 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Wed, 17 Oct 2018 15:40:25 +0000
-Subject: RE: [mm PATCH v3 1/6] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-Message-Id: <7d313318f1234a1eb45b608bd853c17c@AcuMS.aculab.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Wed, 17 Oct 2018 16:31:12 +0000
+Subject: Re: [mm PATCH v3 1/6] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+Message-Id: <e7cd1e6f-cc04-31ea-3322-5c8e25a6e58a@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181015202456.2171.88406.stgit@localhost.localdomain>
  <20181015202656.2171.92963.stgit@localhost.localdomain>
  <20181017084744.GH18839@dhcp22.suse.cz>
  <9700b00f-a8a4-e318-f6a8-71fd1e7021b3@linux.intel.com>
  <8aaa0fa2-5f12-ea3c-a0ca-ded9e1a639e2@gmail.com>
-In-Reply-To: <8aaa0fa2-5f12-ea3c-a0ca-ded9e1a639e2@gmail.com>
+ <7d313318f1234a1eb45b608bd853c17c@AcuMS.aculab.com>
+In-Reply-To: <7d313318f1234a1eb45b608bd853c17c@AcuMS.aculab.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: 'Pavel Tatashin' <pasha.tatashin@gmail.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Michal Hocko <mhocko@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: David Laight <David.Laight@ACULAB.COM>, 'Pavel Tatashin' <pasha.tatashin@gmail.com>, Michal Hocko <mhocko@kernel.org>
 Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "pavel.tatashin@microsoft.com" <pavel.tatashin@microsoft.com>, "dave.jiang@intel.com" <dave.jiang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "willy@infradead.org" <willy@infradead.org>, "davem@davemloft.net" <davem@davemloft.net>, "yi.z.zhang@linux.intel.com" <yi.z.zhang@linux.intel.com>, "khalid.aziz@oracle.com" <khalid.aziz@oracle.com>, "rppt@linux.vnet.ibm.com" <rppt@linux.vnet.ibm.com>, "vbabka@suse.cz" <vbabka@suse.cz>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "ldufour@linux.vnet.ibm.com" <ldufour@linux.vnet.ibm.com>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, "mingo@kernel.org" <mingo@kernel.org>, "kirill.shutemov@linux.intel.com" <kirill.shutemov@linux.intel.com>
 
-RnJvbTogUGF2ZWwgVGF0YXNoaW4NCj4gU2VudDogMTcgT2N0b2JlciAyMDE4IDE2OjEyDQo+IE9u
-IDEwLzE3LzE4IDExOjA3IEFNLCBBbGV4YW5kZXIgRHV5Y2sgd3JvdGU6DQo+ID4gT24gMTAvMTcv
-MjAxOCAxOjQ3IEFNLCBNaWNoYWwgSG9ja28gd3JvdGU6DQo+ID4+IE9uIE1vbiAxNS0xMC0xOCAx
-MzoyNjo1NiwgQWxleGFuZGVyIER1eWNrIHdyb3RlOg0KPiA+Pj4gVGhpcyBjaGFuZ2UgbWFrZXMg
-aXQgc28gdGhhdCB3ZSB1c2UgdGhlIHNhbWUgYXBwcm9hY2ggdGhhdCB3YXMNCj4gPj4+IGFscmVh
-ZHkgaW4NCj4gPj4+IHVzZSBvbiBTcGFyYyBvbiBhbGwgdGhlIGFyY2h0ZWN0dXJlcyB0aGF0IHN1
-cHBvcnQgYSA2NGIgbG9uZy4NCj4gPj4+DQo+ID4+PiBUaGlzIGlzIG1vc3RseSBtb3RpdmF0ZWQg
-YnkgdGhlIGZhY3QgdGhhdCA4IHRvIDEwIHN0b3JlL21vdmUNCj4gPj4+IGluc3RydWN0aW9ucw0K
-PiA+Pj4gYXJlIGxpa2VseSBhbHdheXMgZ29pbmcgdG8gYmUgZmFzdGVyIHRoYW4gaGF2aW5nIHRv
-IGNhbGwgaW50byBhIGZ1bmN0aW9uDQo+ID4+PiB0aGF0IGlzIG5vdCBzcGVjaWFsaXplZCBmb3Ig
-aGFuZGxpbmcgcGFnZSBpbml0Lg0KPiA+Pj4NCj4gPj4+IEFuIGFkZGVkIGFkdmFudGFnZSB0byBk
-b2luZyBpdCB0aGlzIHdheSBpcyB0aGF0IHRoZSBjb21waWxlciBjYW4gZ2V0DQo+ID4+PiBhd2F5
-DQo+ID4+PiB3aXRoIGNvbWJpbmluZyB3cml0ZXMgaW4gdGhlIF9faW5pdF9zaW5nbGVfcGFnZSBj
-YWxsLiBBcyBhIHJlc3VsdCB0aGUNCj4gPj4+IG1lbXNldCBjYWxsIHdpbGwgYmUgcmVkdWNlZCB0
-byBvbmx5IGFib3V0IDQgd3JpdGUgb3BlcmF0aW9ucywgb3IgYXQNCj4gPj4+IGxlYXN0DQo+ID4+
-PiB0aGF0IGlzIHdoYXQgSSBhbSBzZWVpbmcgd2l0aCBHQ0MgNi4yIGFzIHRoZSBmbGFncywgTFJV
-IHBvaXRuZXJzLCBhbmQNCj4gPj4+IGNvdW50L21hcGNvdW50IHNlZW0gdG8gYmUgY2FuY2VsbGlu
-ZyBvdXQgYXQgbGVhc3QgNCBvZiB0aGUgOA0KPiA+Pj4gYXNzaWdubWVudHMgb24NCj4gPj4+IG15
-IHN5c3RlbS4NCj4gPj4+DQo+ID4+PiBPbmUgY2hhbmdlIEkgaGFkIHRvIG1ha2UgdG8gdGhlIGZ1
-bmN0aW9uIHdhcyB0byByZWR1Y2UgdGhlIG1pbmltdW0gcGFnZQ0KPiA+Pj4gc2l6ZSB0byA1NiB0
-byBzdXBwb3J0IHNvbWUgcG93ZXJwYzY0IGNvbmZpZ3VyYXRpb25zLg0KPiA+Pg0KPiA+PiBUaGlz
-IHJlYWxseSBiZWdzIGZvciBudW1iZXJzLiBJIGRvIG5vdCBtaW5kIHRoZSBjaGFuZ2UgaXRzZWxm
-IHdpdGggc29tZQ0KPiA+PiBtaW5vciBjb21tZW50cyBiZWxvdy4NCj4gPj4NCj4gPj4gWy4uLl0N
-Cj4gPj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21tLmggYi9pbmNsdWRlL2xpbnV4L21t
-LmgNCj4gPj4+IGluZGV4IGJiMGRlNDA2ZjhlNy4uZWM2ZTU3YTBjMTRlIDEwMDY0NA0KPiA+Pj4g
-LS0tIGEvaW5jbHVkZS9saW51eC9tbS5oDQo+ID4+PiArKysgYi9pbmNsdWRlL2xpbnV4L21tLmgN
-Cj4gPj4+IEBAIC0xMDIsOCArMTAyLDQyIEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBzZXRfbWF4X21h
-cG5yKHVuc2lnbmVkIGxvbmcNCj4gPj4+IGxpbWl0KSB7IH0NCj4gPj4+IMKgwqAgKiB6ZXJvaW5n
-IGJ5IGRlZmluaW5nIHRoaXMgbWFjcm8gaW4gPGFzbS9wZ3RhYmxlLmg+Lg0KPiA+Pj4gwqDCoCAq
-Lw0KPiA+Pj4gwqAgI2lmbmRlZiBtbV96ZXJvX3N0cnVjdF9wYWdlDQo+ID4+DQo+ID4+IERvIHdl
-IHN0aWxsIG5lZWQgdGhpcyBpZmRlZj8gSSBndWVzcyB3ZSBjYW4gd2FpdCBmb3IgYW4gYXJjaCB3
-aGljaA0KPiA+PiBkb2Vzbid0IGxpa2UgdGhpcyBjaGFuZ2UgYW5kIHRoZW4gYWRkIHRoZSBvdmVy
-cmlkZS4gSSB3b3VsZCByYXRoZXIgZ28NCj4gPj4gc2ltcGxlIGlmIHBvc3NpYmxlLg0KPiA+DQo+
-ID4gV2UgcHJvYmFibHkgZG9uJ3QsIGJ1dCBhcyBzb29uIGFzIEkgcmVtb3ZlIGl0IHNvbWVib2R5
-IHdpbGwgcHJvYmFibHkNCj4gPiBjb21wbGFpbiBzb21ld2hlcmUuIEkgZ3Vlc3MgSSBjb3VsZCBk
-cm9wIGl0IGZvciBub3cgYW5kIHNlZSBpZiBhbnlib2R5DQo+ID4gc2NyZWFtcy4gQWRkaW5nIGl0
-IGJhY2sgc2hvdWxkIGJlIHByZXR0eSBzdHJhaWdodCBmb3J3YXJkIHNpbmNlIGl0IHdvdWxkDQo+
-ID4gb25seSBiZSAyIGxpbmVzLg0KPiA+DQo+ID4+PiArI2lmIEJJVFNfUEVSX0xPTkcgPT0gNjQN
-Cj4gPj4+ICsvKiBUaGlzIGZ1bmN0aW9uIG11c3QgYmUgdXBkYXRlZCB3aGVuIHRoZSBzaXplIG9m
-IHN0cnVjdCBwYWdlIGdyb3dzDQo+ID4+PiBhYm92ZSA4MA0KPiA+Pj4gKyAqIG9yIHJlZHVjZXMg
-YmVsb3cgNjQuIFRoZSBpZGVhIHRoYXQgY29tcGlsZXIgb3B0aW1pemVzIG91dCBzd2l0Y2goKQ0K
-PiA+Pj4gKyAqIHN0YXRlbWVudCwgYW5kIG9ubHkgbGVhdmVzIG1vdmUvc3RvcmUgaW5zdHJ1Y3Rp
-b25zDQo+ID4+PiArICovDQo+ID4+PiArI2RlZmluZcKgwqDCoCBtbV96ZXJvX3N0cnVjdF9wYWdl
-KHBwKSBfX21tX3plcm9fc3RydWN0X3BhZ2UocHApDQo+ID4+PiArc3RhdGljIGlubGluZSB2b2lk
-IF9fbW1femVyb19zdHJ1Y3RfcGFnZShzdHJ1Y3QgcGFnZSAqcGFnZSkNCj4gPj4+ICt7DQo+ID4+
-PiArwqDCoMKgIHVuc2lnbmVkIGxvbmcgKl9wcCA9ICh2b2lkICopcGFnZTsNCj4gPj4+ICsNCj4g
-Pj4+ICvCoMKgwqDCoCAvKiBDaGVjayB0aGF0IHN0cnVjdCBwYWdlIGlzIGVpdGhlciA1NiwgNjQs
-IDcyLCBvciA4MCBieXRlcyAqLw0KPiA+Pj4gK8KgwqDCoCBCVUlMRF9CVUdfT04oc2l6ZW9mKHN0
-cnVjdCBwYWdlKSAmIDcpOw0KPiA+Pj4gK8KgwqDCoCBCVUlMRF9CVUdfT04oc2l6ZW9mKHN0cnVj
-dCBwYWdlKSA8IDU2KTsNCj4gPj4+ICvCoMKgwqAgQlVJTERfQlVHX09OKHNpemVvZihzdHJ1Y3Qg
-cGFnZSkgPiA4MCk7DQo+ID4+PiArDQo+ID4+PiArwqDCoMKgIHN3aXRjaCAoc2l6ZW9mKHN0cnVj
-dCBwYWdlKSkgew0KPiA+Pj4gK8KgwqDCoCBjYXNlIDgwOg0KPiA+Pj4gK8KgwqDCoMKgwqDCoMKg
-IF9wcFs5XSA9IDA7wqDCoMKgIC8qIGZhbGx0aHJvdWdoICovDQo+ID4+PiArwqDCoMKgIGNhc2Ug
-NzI6DQo+ID4+PiArwqDCoMKgwqDCoMKgwqAgX3BwWzhdID0gMDvCoMKgwqAgLyogZmFsbHRocm91
-Z2ggKi8NCj4gPj4+ICvCoMKgwqAgZGVmYXVsdDoNCj4gPj4+ICvCoMKgwqDCoMKgwqDCoCBfcHBb
-N10gPSAwO8KgwqDCoCAvKiBmYWxsdGhyb3VnaCAqLw0KPiA+Pj4gK8KgwqDCoCBjYXNlIDU2Og0K
-PiA+Pj4gK8KgwqDCoMKgwqDCoMKgIF9wcFs2XSA9IDA7DQo+ID4+PiArwqDCoMKgwqDCoMKgwqAg
-X3BwWzVdID0gMDsNCj4gPj4+ICvCoMKgwqDCoMKgwqDCoCBfcHBbNF0gPSAwOw0KPiA+Pj4gK8Kg
-wqDCoMKgwqDCoMKgIF9wcFszXSA9IDA7DQo+ID4+PiArwqDCoMKgwqDCoMKgwqAgX3BwWzJdID0g
-MDsNCj4gPj4+ICvCoMKgwqDCoMKgwqDCoCBfcHBbMV0gPSAwOw0KPiA+Pj4gK8KgwqDCoMKgwqDC
-oMKgIF9wcFswXSA9IDA7DQo+ID4+PiArwqDCoMKgIH0NCj4gPj4NCj4gPj4gVGhpcyBqdXN0IGhp
-dCBteSBleWVzLiBJIGhhdmUgdG8gY29uZmVzcyBJIGhhdmUgbmV2ZXIgc2VlbiBkZWZhdWx0OiB0
-bw0KPiA+PiBiZSBub3QgdGhlIGxhc3Qgb25lIGluIHRoZSBzd2l0Y2guIENhbiB3ZSBoYXZlIGNh
-c2UgNjQgaW5zdGVhZCBvciBkb2VzDQo+ID4+IGdjYw0KPiA+PiBjb21wbGFpbj8gSSB3b3VsZCBi
-ZSBzdXJwcmlzZWQgd2l0aCB0aGUgc2V0IG9mIEJVSUxEX0JVR19PTnMuDQo+IA0KPiBJdCB3YXMg
-bWUsIEMgZG9lcyBub3QgcmVhbGx5IGNhcmUgd2hlcmUgZGVmYXVsdCBpcyBwbGFjZWQsIEkgd2Fz
-IHRyeWluZw0KPiB0byBrZWVwIHN0b3JlcyBzZXF1ZW50aWFsIGZvciBiZXR0ZXIgY2FjaGUgbG9j
-YWxpdHksIGJ1dCAiY2FzZSA2NCINCj4gc2hvdWxkIGJlIE9LLCBhbmQgZXZlbiBiZXR0ZXIgZm9y
-IHRoaXMgcHVycG9zZS4NCg0KWW91J2QgbmVlZCB0byBwdXQgbWVtb3J5IGJhcnJpZXJzIGJldHdl
-ZW4gdGhlbSB0byBmb3JjZSBzZXF1ZW50aWFsIHN0b3Jlcy4NCkknbSBhbHNvIHN1cnByaXNlZCB0
-aGF0IGdjYyBkb2Vzbid0IGlubGluZSB0aGUgbWVtc2V0KCkuDQoNCglEYXZpZA0KDQotDQpSZWdp
-c3RlcmVkIEFkZHJlc3MgTGFrZXNpZGUsIEJyYW1sZXkgUm9hZCwgTW91bnQgRmFybSwgTWlsdG9u
-IEtleW5lcywgTUsxIDFQVCwgVUsNClJlZ2lzdHJhdGlvbiBObzogMTM5NzM4NiAoV2FsZXMpDQo
+On 10/17/2018 8:40 AM, David Laight wrote:
+> From: Pavel Tatashin
+>> Sent: 17 October 2018 16:12
+>> On 10/17/18 11:07 AM, Alexander Duyck wrote:
+>>> On 10/17/2018 1:47 AM, Michal Hocko wrote:
+>>>> On Mon 15-10-18 13:26:56, Alexander Duyck wrote:
+>>>>> This change makes it so that we use the same approach that was
+>>>>> already in
+>>>>> use on Sparc on all the archtectures that support a 64b long.
+>>>>>
+>>>>> This is mostly motivated by the fact that 8 to 10 store/move
+>>>>> instructions
+>>>>> are likely always going to be faster than having to call into a function
+>>>>> that is not specialized for handling page init.
+>>>>>
+>>>>> An added advantage to doing it this way is that the compiler can get
+>>>>> away
+>>>>> with combining writes in the __init_single_page call. As a result the
+>>>>> memset call will be reduced to only about 4 write operations, or at
+>>>>> least
+>>>>> that is what I am seeing with GCC 6.2 as the flags, LRU poitners, and
+>>>>> count/mapcount seem to be cancelling out at least 4 of the 8
+>>>>> assignments on
+>>>>> my system.
+>>>>>
+>>>>> One change I had to make to the function was to reduce the minimum page
+>>>>> size to 56 to support some powerpc64 configurations.
+>>>>
+>>>> This really begs for numbers. I do not mind the change itself with some
+>>>> minor comments below.
+>>>>
+>>>> [...]
+>>>>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>>>>> index bb0de406f8e7..ec6e57a0c14e 100644
+>>>>> --- a/include/linux/mm.h
+>>>>> +++ b/include/linux/mm.h
+>>>>> @@ -102,8 +102,42 @@ static inline void set_max_mapnr(unsigned long
+>>>>> limit) { }
+>>>>>     * zeroing by defining this macro in <asm/pgtable.h>.
+>>>>>     */
+>>>>>    #ifndef mm_zero_struct_page
+>>>>
+>>>> Do we still need this ifdef? I guess we can wait for an arch which
+>>>> doesn't like this change and then add the override. I would rather go
+>>>> simple if possible.
+>>>
+>>> We probably don't, but as soon as I remove it somebody will probably
+>>> complain somewhere. I guess I could drop it for now and see if anybody
+>>> screams. Adding it back should be pretty straight forward since it would
+>>> only be 2 lines.
+>>>
+>>>>> +#if BITS_PER_LONG = 64
+>>>>> +/* This function must be updated when the size of struct page grows
+>>>>> above 80
+>>>>> + * or reduces below 64. The idea that compiler optimizes out switch()
+>>>>> + * statement, and only leaves move/store instructions
+>>>>> + */
+>>>>> +#define    mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
+>>>>> +static inline void __mm_zero_struct_page(struct page *page)
+>>>>> +{
+>>>>> +    unsigned long *_pp = (void *)page;
+>>>>> +
+>>>>> +     /* Check that struct page is either 56, 64, 72, or 80 bytes */
+>>>>> +    BUILD_BUG_ON(sizeof(struct page) & 7);
+>>>>> +    BUILD_BUG_ON(sizeof(struct page) < 56);
+>>>>> +    BUILD_BUG_ON(sizeof(struct page) > 80);
+>>>>> +
+>>>>> +    switch (sizeof(struct page)) {
+>>>>> +    case 80:
+>>>>> +        _pp[9] = 0;    /* fallthrough */
+>>>>> +    case 72:
+>>>>> +        _pp[8] = 0;    /* fallthrough */
+>>>>> +    default:
+>>>>> +        _pp[7] = 0;    /* fallthrough */
+>>>>> +    case 56:
+>>>>> +        _pp[6] = 0;
+>>>>> +        _pp[5] = 0;
+>>>>> +        _pp[4] = 0;
+>>>>> +        _pp[3] = 0;
+>>>>> +        _pp[2] = 0;
+>>>>> +        _pp[1] = 0;
+>>>>> +        _pp[0] = 0;
+>>>>> +    }
+>>>>
+>>>> This just hit my eyes. I have to confess I have never seen default: to
+>>>> be not the last one in the switch. Can we have case 64 instead or does
+>>>> gcc
+>>>> complain? I would be surprised with the set of BUILD_BUG_ONs.
+>>
+>> It was me, C does not really care where default is placed, I was trying
+>> to keep stores sequential for better cache locality, but "case 64"
+>> should be OK, and even better for this purpose.
+> 
+> You'd need to put memory barriers between them to force sequential stores.
+> I'm also surprised that gcc doesn't inline the memset().
+> 
+> 	David
+
+We don't need them to be sequential. The general idea is we have have to 
+fill a given amount of space with 0s. After that we have some calls that 
+are initialing the memory that doesn't have to be zero. Ideally the 
+compiler is smart enough to realize that since we don't have barriers 
+and we are performing assignments after the assignment of zero it can 
+just combine the two writes into one and drop the zero assignment.
+
+- Alex
