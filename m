@@ -1,174 +1,168 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Fri, 05 Oct 2018 15:12:10 +0000
-Subject: [mm PATCH 2/5] mm: Drop meminit_pfn_in_nid as it is redundant
-Message-Id: <20181005151210.17473.76791.stgit@localhost.localdomain>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Fri, 19 Oct 2018 20:47:23 +0000
+Subject: [PATCH v3 3/3] bpf: Add system wide BPF JIT limit
+Message-Id: <20181019204723.3903-4-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181005151006.17473.83040.stgit@localhost.localdomain>
-In-Reply-To: <20181005151006.17473.83040.stgit@localhost.localdomain>
+References: <20181019204723.3903-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20181019204723.3903-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: kernel-hardening@lists.openwall.com, daniel@iogearbox.net, keescook@chromium.org, catalin.marinas@arm.com, will.deacon@arm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, jeyu@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, jannh@google.com
+Cc: kristen@linux.intel.com, dave.hansen@intel.com, arjan@linux.intel.com, deneen.t.dock@intel.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
-As best as I can tell the meminit_pfn_in_nid call is completely redundant.
-The deferred memory initialization is already making use of
-for_each_free_mem_range which in turn will call into __next_mem_range which
-will only return a memory range if it matches the node ID provided assuming
-it is not NUMA_NO_NODE.
+In case of games played with multiple users, also add a system wide limit
+(in bytes) for BPF JIT. The default intends to be big enough for 10000 BPF JIT
+filters. This cannot help with the DOS in the case of
+CONFIG_BPF_JIT_ALWAYS_ON, but it can help with DOS for module space and
+with forcing a module to be loaded at a paticular address.
 
-I am operating on the assumption that there are no zones or pgdata_t
-structures that have a NUMA node of NUMA_NO_NODE associated with them. If
-that is the case then __next_mem_range will never return a memory range
-that doesn't match the zone's node ID and as such the check is redundant.
+The limit can be set like this:
+echo 5000000 > /proc/sys/net/core/bpf_jit_limit
 
-So one piece I would like to verfy on this is if this works for ia64.
-Technically it was using a different approach to get the node ID, but it
-seems to have the node ID also encoded into the memblock. So I am
-assuming this is okay, but would like to get confirmation on that.
-
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 ---
- mm/page_alloc.c |   50 ++++++++++++++------------------------------------
- 1 file changed, 14 insertions(+), 36 deletions(-)
+ include/linux/bpf.h        |  7 +++++++
+ include/linux/filter.h     |  1 +
+ kernel/bpf/core.c          | 22 +++++++++++++++++++++-
+ kernel/bpf/inode.c         | 16 ++++++++++++++++
+ net/core/sysctl_net_core.c |  7 +++++++
+ 5 files changed, 52 insertions(+), 1 deletion(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 7ec0997ded39..1d6e95df3412 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1305,36 +1305,22 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
+diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+index 523481a3471b..4d7b729a1fe7 100644
+--- a/include/linux/bpf.h
++++ b/include/linux/bpf.h
+@@ -827,4 +827,11 @@ extern const struct bpf_func_proto bpf_get_local_storage_proto;
+ void bpf_user_rnd_init_once(void);
+ u64 bpf_user_rnd_u32(u64 r1, u64 r2, u64 r3, u64 r4, u64 r5);
+ 
++#ifndef MOD_BPF_LIMIT_DEFAULT
++/*
++ * Leave room for 10000 large eBPF filters as default.
++ */
++#define MOD_BPF_LIMIT_DEFAULT (5 * PAGE_SIZE * 10000)
++#endif
++
+ #endif /* _LINUX_BPF_H */
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index 6791a0ac0139..3e91ffc7962b 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -854,6 +854,7 @@ bpf_run_sk_reuseport(struct sock_reuseport *reuse, struct sock *sk,
+ extern int bpf_jit_enable;
+ extern int bpf_jit_harden;
+ extern int bpf_jit_kallsyms;
++extern int bpf_jit_limit;
+ 
+ typedef void (*bpf_jit_fill_hole_t)(void *area, unsigned int size);
+ 
+diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+index 3f5bf1af0826..12c20fa6f04b 100644
+--- a/kernel/bpf/core.c
++++ b/kernel/bpf/core.c
+@@ -369,6 +369,9 @@ void bpf_prog_kallsyms_del_all(struct bpf_prog *fp)
+ int bpf_jit_enable   __read_mostly = IS_BUILTIN(CONFIG_BPF_JIT_ALWAYS_ON);
+ int bpf_jit_harden   __read_mostly;
+ int bpf_jit_kallsyms __read_mostly;
++int bpf_jit_limit __read_mostly;
++
++static atomic_long_t module_vm;
+ 
+ static __always_inline void
+ bpf_get_prog_addr_region(const struct bpf_prog *prog,
+@@ -583,17 +586,31 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+ 		     bpf_jit_fill_hole_t bpf_fill_ill_insns)
+ {
+ 	struct bpf_binary_header *hdr;
+-	unsigned int size, hole, start;
++	unsigned int size, hole, start, vpages;
+ 
+ 	/* Most of BPF filters are really small, but if some of them
+ 	 * fill a page, allow at least 128 extra bytes to insert a
+ 	 * random section of illegal instructions.
+ 	 */
+ 	size = round_up(proglen + sizeof(*hdr) + 128, PAGE_SIZE);
++
++	/* Size plus a guard page */
++	vpages = (PAGE_ALIGN(size) >> PAGE_SHIFT) + 1;
++
++	if (atomic_long_read(&module_vm) + vpages > bpf_jit_limit >> PAGE_SHIFT)
++		return NULL;
++
+ 	hdr = module_alloc(size);
+ 	if (hdr = NULL)
+ 		return NULL;
+ 
++	atomic_long_add(vpages, &module_vm);
++
++	if (atomic_long_read(&module_vm) > bpf_jit_limit >> PAGE_SHIFT) {
++		bpf_jit_binary_free(hdr);
++		return NULL;
++	}
++
+ 	/* Fill space with illegal/arch-dep instructions. */
+ 	bpf_fill_ill_insns(hdr, size);
+ 
+@@ -610,7 +627,10 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+ 
+ void bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
++	/* Size plus the guard page */
++	unsigned int vpages = hdr->pages + 1;
+ 	module_memfree(hdr);
++	atomic_long_sub(vpages, &module_vm);
+ }
+ 
+ /* This symbol is only overridden by archs that have different
+diff --git a/kernel/bpf/inode.c b/kernel/bpf/inode.c
+index 2ada5e21dfa6..d0a109733294 100644
+--- a/kernel/bpf/inode.c
++++ b/kernel/bpf/inode.c
+@@ -667,10 +667,26 @@ static struct file_system_type bpf_fs_type = {
+ 	.kill_sb	= kill_litter_super,
+ };
+ 
++#ifdef CONFIG_BPF_JIT
++void set_bpf_jit_limit(void)
++{
++	bpf_jit_limit = MOD_BPF_LIMIT_DEFAULT;
++}
++#else
++void set_bpf_jit_limit(void)
++{
++}
++#endif
++
+ static int __init bpf_init(void)
+ {
+ 	int ret;
+ 
++	/*
++	 * Module space size can be non-compile time constant so set it here.
++	 */
++	set_bpf_jit_limit();
++
+ 	ret = sysfs_create_mount_point(fs_kobj, "bpf");
+ 	if (ret)
+ 		return ret;
+diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
+index b1a2c5e38530..6bdf4a3da2b2 100644
+--- a/net/core/sysctl_net_core.c
++++ b/net/core/sysctl_net_core.c
+@@ -396,6 +396,13 @@ static struct ctl_table net_core_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++	{
++		.procname	= "bpf_jit_limit",
++		.data		= &bpf_jit_limit,
++		.maxlen		= sizeof(int),
++		.mode		= 0600,
++		.proc_handler	= proc_dointvec,
++	},
+ # endif
  #endif
- 
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--static inline bool __meminit __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn, state);
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
- 	if (nid >= 0 && nid != node)
- 		return false;
- 	return true;
- }
- 
--/* Only safe to use early in boot when initialisation is single-threaded */
--static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
--}
--
- #else
--
- static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	return true;
- }
--static inline bool __meminit  __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
--{
--	return true;
--}
- #endif
- 
- 
-@@ -1463,21 +1449,13 @@ static inline void __init pgdat_init_report_one_done(void)
-  *
-  * Then, we check if a current large page is valid by only checking the validity
-  * of the head pfn.
-- *
-- * Finally, meminit_pfn_in_nid is checked on systems where pfns can interleave
-- * within a node: a pfn is between start and end of a node, but does not belong
-- * to this memory node.
-  */
--static inline bool __init
--deferred_pfn_valid(int nid, unsigned long pfn,
--		   struct mminit_pfnnid_cache *nid_init_state)
-+static inline bool __init deferred_pfn_valid(unsigned long pfn)
- {
- 	if (!pfn_valid_within(pfn))
- 		return false;
- 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
- 		return false;
--	if (!meminit_pfn_in_nid(pfn, nid, nid_init_state))
--		return false;
- 	return true;
- }
- 
-@@ -1485,15 +1463,14 @@ static inline void __init pgdat_init_report_one_done(void)
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long pfn,
- 				       unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	unsigned long nr_free = 0;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			deferred_free_range(pfn - nr_free, nr_free);
- 			nr_free = 0;
- 		} else if (!(pfn & nr_pgmask)) {
-@@ -1513,17 +1490,18 @@ static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-  * by performing it only once every pageblock_nr_pages.
-  * Return number of pages initialized.
-  */
--static unsigned long  __init deferred_init_pages(int nid, int zid,
-+static unsigned long  __init deferred_init_pages(struct zone *zone,
- 						 unsigned long pfn,
- 						 unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
-+	int zid = zone_idx(zone);
- 	struct page *page = NULL;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			page = NULL;
- 			continue;
- 		} else if (!page || !(pfn & nr_pgmask)) {
-@@ -1586,12 +1564,12 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		nr_pages += deferred_init_pages(nid, zid, spfn, epfn);
-+		nr_pages += deferred_init_pages(zone, spfn, epfn);
- 	}
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
-@@ -1680,7 +1658,7 @@ static int __init deferred_init_memmap(void *data)
- 		while (spfn < epfn && nr_pages < nr_pages_needed) {
- 			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
- 			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(nid, zid, spfn,
-+			nr_pages += deferred_init_pages(zone, spfn,
- 							first_deferred_pfn);
- 			spfn = first_deferred_pfn;
- 		}
-@@ -1692,7 +1670,7 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, first_deferred_pfn, PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 
- 		if (first_deferred_pfn = epfn)
- 			break;
+ 	{
+-- 
+2.17.1
