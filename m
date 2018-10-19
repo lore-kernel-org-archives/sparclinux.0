@@ -1,172 +1,215 @@
-From: David Miller <davem@redhat.com>
-Date: Fri, 26 Oct 2018 03:36:46 +0000
-Subject: [PATCH] sparc64: Make corrupted user stacks more debuggable.
-Message-Id: <20181025.203646.832356012495064892.davem@redhat.com>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Fri, 19 Oct 2018 20:47:21 +0000
+Subject: [PATCH v3 1/3] modules: Create arch versions of module alloc/free
+Message-Id: <20181019204723.3903-2-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181019204723.3903-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20181019204723.3903-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: kernel-hardening@lists.openwall.com, daniel@iogearbox.net, keescook@chromium.org, catalin.marinas@arm.com, will.deacon@arm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, jeyu@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, jannh@google.com
+Cc: kristen@linux.intel.com, dave.hansen@intel.com, arjan@linux.intel.com, deneen.t.dock@intel.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
+In prep for module space rlimit, create a singular cross platform
+module_alloc and module_memfree that call into arch specific
+implementations.
 
-Right now if we get a corrupted user stack frame we do a
-do_exit(SIGILL) which is not helpful.
+This has only been tested on x86.
 
-If under a debugger, this behavior causes the inferior process to
-exit.  So the register and other state cannot be examined at the time
-of the event.
-
-Instead, conditionally log a rate limited kernel log message and then
-force a SIGSEGV.
-
-With bits and ideas borrowed (as usual) from powerpc.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 ---
- arch/sparc/include/asm/switch_to_64.h |  3 ++-
- arch/sparc/kernel/process_64.c        | 25 +++++++++++++++++++------
- arch/sparc/kernel/rtrap_64.S          |  1 +
- arch/sparc/kernel/signal32.c          | 12 ++++++++++--
- arch/sparc/kernel/signal_64.c         |  6 +++++-
- 5 files changed, 37 insertions(+), 10 deletions(-)
+ arch/arm/kernel/module.c       |  2 +-
+ arch/arm64/kernel/module.c     |  2 +-
+ arch/mips/kernel/module.c      |  2 +-
+ arch/nds32/kernel/module.c     |  2 +-
+ arch/nios2/kernel/module.c     |  4 ++--
+ arch/parisc/kernel/module.c    |  2 +-
+ arch/s390/kernel/module.c      |  2 +-
+ arch/sparc/kernel/module.c     |  2 +-
+ arch/unicore32/kernel/module.c |  2 +-
+ arch/x86/kernel/module.c       |  2 +-
+ kernel/module.c                | 14 ++++++++++++--
+ 11 files changed, 23 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/include/asm/switch_to_64.h b/arch/sparc/include/asm/switch_to_64.h
-index 4ff29b1406a9..b1d4e2e3210f 100644
---- a/arch/sparc/include/asm/switch_to_64.h
-+++ b/arch/sparc/include/asm/switch_to_64.h
-@@ -67,6 +67,7 @@ do {	save_and_clear_fpu();						\
- } while(0)
+diff --git a/arch/arm/kernel/module.c b/arch/arm/kernel/module.c
+index 3ff571c2c71c..359838a4bb06 100644
+--- a/arch/arm/kernel/module.c
++++ b/arch/arm/kernel/module.c
+@@ -38,7 +38,7 @@
+ #endif
  
- void synchronize_user_stack(void);
--void fault_in_user_windows(void);
-+struct pt_regs;
-+void fault_in_user_windows(struct pt_regs *);
- 
- #endif /* __SPARC64_SWITCH_TO_64_H */
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 6c086086ca8f..59eaf6227af1 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -36,6 +36,7 @@
- #include <linux/sysrq.h>
- #include <linux/nmi.h>
- #include <linux/context_tracking.h>
-+#include <linux/signal.h>
- 
- #include <linux/uaccess.h>
- #include <asm/page.h>
-@@ -521,7 +522,12 @@ static void stack_unaligned(unsigned long sp)
- 	force_sig_fault(SIGBUS, BUS_ADRALN, (void __user *) sp, 0, current);
- }
- 
--void fault_in_user_windows(void)
-+static const char uwfault32[] = KERN_INFO \
-+	"%s[%d]: bad register window fault: SP %08lx (orig_sp %08lx) TPC %08lx O7 %08lx\n";
-+static const char uwfault64[] = KERN_INFO \
-+	"%s[%d]: bad register window fault: SP %016lx (orig_sp %016lx) TPC %08lx O7 %016lx\n";
-+
-+void fault_in_user_windows(struct pt_regs *regs)
+ #ifdef CONFIG_MMU
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
  {
- 	struct thread_info *t = current_thread_info();
- 	unsigned long window;
-@@ -534,9 +540,9 @@ void fault_in_user_windows(void)
- 		do {
- 			struct reg_window *rwin = &t->reg_window[window];
- 			int winsize = sizeof(struct reg_window);
--			unsigned long sp;
-+			unsigned long sp, orig_sp;
+ 	gfp_t gfp_mask = GFP_KERNEL;
+ 	void *p;
+diff --git a/arch/arm64/kernel/module.c b/arch/arm64/kernel/module.c
+index f0f27aeefb73..a6891eb2fc16 100644
+--- a/arch/arm64/kernel/module.c
++++ b/arch/arm64/kernel/module.c
+@@ -30,7 +30,7 @@
+ #include <asm/insn.h>
+ #include <asm/sections.h>
  
--			sp = t->rwbuf_stkptrs[window];
-+			orig_sp = sp = t->rwbuf_stkptrs[window];
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	gfp_t gfp_mask = GFP_KERNEL;
+ 	void *p;
+diff --git a/arch/mips/kernel/module.c b/arch/mips/kernel/module.c
+index 491605137b03..e9ee8e7544f9 100644
+--- a/arch/mips/kernel/module.c
++++ b/arch/mips/kernel/module.c
+@@ -45,7 +45,7 @@ static LIST_HEAD(dbe_list);
+ static DEFINE_SPINLOCK(dbe_lock);
  
- 			if (test_thread_64bit_stack(sp))
- 				sp += STACK_BIAS;
-@@ -547,8 +553,16 @@ void fault_in_user_windows(void)
- 				stack_unaligned(sp);
+ #ifdef MODULE_START
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
+ 				GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
+diff --git a/arch/nds32/kernel/module.c b/arch/nds32/kernel/module.c
+index 1e31829cbc2a..75535daa22a5 100644
+--- a/arch/nds32/kernel/module.c
++++ b/arch/nds32/kernel/module.c
+@@ -7,7 +7,7 @@
+ #include <linux/moduleloader.h>
+ #include <asm/pgtable.h>
  
- 			if (unlikely(copy_to_user((char __user *)sp,
--						  rwin, winsize)))
-+						  rwin, winsize))) {
-+				if (show_unhandled_signals)
-+					printk_ratelimited(is_compat_task() ?
-+							   uwfault32 : uwfault64,
-+							   current->comm, current->pid,
-+							   sp, orig_sp,
-+							   regs->tpc,
-+							   regs->u_regs[UREG_I7]);
- 				goto barf;
-+			}
- 		} while (window--);
- 	}
- 	set_thread_wsaved(0);
-@@ -556,8 +570,7 @@ void fault_in_user_windows(void)
- 
- barf:
- 	set_thread_wsaved(window + 1);
--	user_exit();
--	do_exit(SIGILL);
-+	force_sig(SIGSEGV, current);
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+ 				    GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
+diff --git a/arch/nios2/kernel/module.c b/arch/nios2/kernel/module.c
+index e2e3f13f98d5..cd059a8e9a7b 100644
+--- a/arch/nios2/kernel/module.c
++++ b/arch/nios2/kernel/module.c
+@@ -28,7 +28,7 @@
+  * from 0x80000000 (vmalloc area) to 0xc00000000 (kernel) (kmalloc returns
+  * addresses in 0xc0000000)
+  */
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	if (size = 0)
+ 		return NULL;
+@@ -36,7 +36,7 @@ void *module_alloc(unsigned long size)
  }
  
- asmlinkage long sparc_do_fork(unsigned long clone_flags,
-diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
-index 4073e2b87dd0..29aa34f11720 100644
---- a/arch/sparc/kernel/rtrap_64.S
-+++ b/arch/sparc/kernel/rtrap_64.S
-@@ -39,6 +39,7 @@ __handle_preemption:
- 		 wrpr			%g0, RTRAP_PSTATE_IRQOFF, %pstate
+ /* Free memory returned from module_alloc */
+-void module_memfree(void *module_region)
++void arch_module_memfree(void *module_region)
+ {
+ 	kfree(module_region);
+ }
+diff --git a/arch/parisc/kernel/module.c b/arch/parisc/kernel/module.c
+index b5b3cb00f1fb..72ab3c8b103b 100644
+--- a/arch/parisc/kernel/module.c
++++ b/arch/parisc/kernel/module.c
+@@ -213,7 +213,7 @@ static inline int reassemble_22(int as22)
+ 		((as22 & 0x0003ff) << 3));
+ }
  
- __handle_user_windows:
-+		add			%sp, PTREGS_OFF, %o0
- 		call			fault_in_user_windows
- 661:		 wrpr			%g0, RTRAP_PSTATE, %pstate
- 		/* If userspace is using ADI, it could potentially pass
-diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-index 44d379db3f64..4c5b3fcbed94 100644
---- a/arch/sparc/kernel/signal32.c
-+++ b/arch/sparc/kernel/signal32.c
-@@ -371,7 +371,11 @@ static int setup_frame32(struct ksignal *ksig, struct pt_regs *regs,
- 		get_sigframe(ksig, regs, sigframe_size);
- 	
- 	if (invalid_frame_pointer(sf, sigframe_size)) {
--		do_exit(SIGILL);
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_frame32: %08lx TPC %08lx O7 %08lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	/* using RWX means less protection for modules, but it's
+ 	 * easier than trying to map the text, data, init_text and
+diff --git a/arch/s390/kernel/module.c b/arch/s390/kernel/module.c
+index d298d3cb46d0..e07c4a9384c0 100644
+--- a/arch/s390/kernel/module.c
++++ b/arch/s390/kernel/module.c
+@@ -30,7 +30,7 @@
  
-@@ -501,7 +505,11 @@ static int setup_rt_frame32(struct ksignal *ksig, struct pt_regs *regs,
- 		get_sigframe(ksig, regs, sigframe_size);
- 	
- 	if (invalid_frame_pointer(sf, sigframe_size)) {
--		do_exit(SIGILL);
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_rt_frame32: %08lx TPC %08lx O7 %08lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
+ #define PLT_ENTRY_SIZE 20
  
-diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index 48366e5eb5b2..e9de1803a22e 100644
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -370,7 +370,11 @@ setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs)
- 		get_sigframe(ksig, regs, sf_size);
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+diff --git a/arch/sparc/kernel/module.c b/arch/sparc/kernel/module.c
+index df39580f398d..870581ba9205 100644
+--- a/arch/sparc/kernel/module.c
++++ b/arch/sparc/kernel/module.c
+@@ -40,7 +40,7 @@ static void *module_map(unsigned long size)
+ }
+ #endif /* CONFIG_SPARC64 */
  
- 	if (invalid_frame_pointer (sf)) {
--		do_exit(SIGILL);	/* won't return, actually */
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_rt_frame: %016lx TPC %016lx O7 %016lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	void *ret;
  
+diff --git a/arch/unicore32/kernel/module.c b/arch/unicore32/kernel/module.c
+index e191b3448bd3..53ea96459d8c 100644
+--- a/arch/unicore32/kernel/module.c
++++ b/arch/unicore32/kernel/module.c
+@@ -22,7 +22,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/sections.h>
+ 
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+ 				GFP_KERNEL, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+diff --git a/arch/x86/kernel/module.c b/arch/x86/kernel/module.c
+index f58336af095c..032e49180577 100644
+--- a/arch/x86/kernel/module.c
++++ b/arch/x86/kernel/module.c
+@@ -77,7 +77,7 @@ static unsigned long int get_module_load_offset(void)
+ }
+ #endif
+ 
+-void *module_alloc(unsigned long size)
++void *arch_module_alloc(unsigned long size)
+ {
+ 	void *p;
+ 
+diff --git a/kernel/module.c b/kernel/module.c
+index 6746c85511fe..41c22aba8209 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -2110,11 +2110,16 @@ static void free_module_elf(struct module *mod)
+ }
+ #endif /* CONFIG_LIVEPATCH */
+ 
+-void __weak module_memfree(void *module_region)
++void __weak arch_module_memfree(void *module_region)
+ {
+ 	vfree(module_region);
+ }
+ 
++void module_memfree(void *module_region)
++{
++	arch_module_memfree(module_region);
++}
++
+ void __weak module_arch_cleanup(struct module *mod)
+ {
+ }
+@@ -2728,11 +2733,16 @@ static void dynamic_debug_remove(struct module *mod, struct _ddebug *debug)
+ 		ddebug_remove_module(mod->name);
+ }
+ 
+-void * __weak module_alloc(unsigned long size)
++void * __weak arch_module_alloc(unsigned long size)
+ {
+ 	return vmalloc_exec(size);
+ }
+ 
++void *module_alloc(unsigned long size)
++{
++	return arch_module_alloc(size);
++}
++
+ #ifdef CONFIG_DEBUG_KMEMLEAK
+ static void kmemleak_load_module(const struct module *mod,
+ 				 const struct load_info *info)
 -- 
-2.19.1.328.g5a0cc8aca
+2.17.1
