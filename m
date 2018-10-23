@@ -1,45 +1,62 @@
 From: David Miller <davem@davemloft.net>
-Date: Tue, 23 Oct 2018 02:19:42 +0000
-Subject: [PATCH 6/8] sparc: Really use linker with LDFLAGS.
-Message-Id: <20181022.191942.2052517677064845134.davem@davemloft.net>
+Date: Tue, 23 Oct 2018 02:19:20 +0000
+Subject: [PATCH 0/8] sparc: VDSO improvements
+Message-Id: <20181022.191920.1018836687109106651.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1254"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-ClJhdGhlciB0aGFuIGZ1bm5lbGluZyB0aHJvdWdoIENDLgoKQWxzbywgdXNlIC0taGFzaC1zdHls
-ZT1ib3RoIGp1c3QgbGlrZSBvdGhlciBWRFNPIGFyY2hpdGVjdHVyZXMgYW5kCmdsaWJjIGRvLgoK
-U2lnbmVkLW9mZi1ieTogRGF2aWQgUy4gTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0PgotLS0K
-IGFyY2gvc3BhcmMvdmRzby9NYWtlZmlsZSB8IDE2ICsrKysrKystLS0tLS0tLS0KIDEgZmlsZSBj
-aGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvYXJj
-aC9zcGFyYy92ZHNvL01ha2VmaWxlIGIvYXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlCmluZGV4IDNi
-MGQyODczMTFjMi4uYTllM2E0ZjYzM2E3IDEwMDY0NAotLS0gYS9hcmNoL3NwYXJjL3Zkc28vTWFr
-ZWZpbGUKKysrIGIvYXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlCkBAIC0zMywxMCArMzMsOCBAQCB0
-YXJnZXRzICs9ICQodmRzb19pbWdfc29kYmcpICQodmRzb19pbWcteTolPXZkc28lLnNvKQogCiBD
-UFBGTEFHU192ZHNvLmxkcyArPSAtUCAtQwogCi1WRFNPX0xERkxBR1NfdmRzby5sZHMgPSAtbTY0
-IC1XbCwtc29uYW1lPWxpbnV4LXZkc28uc28uMSBcCi0JCQktV2wsLS1uby11bmRlZmluZWQgXAot
-CQkJLVdsLC16LG1heC1wYWdlLXNpemWBOTIgLVdsLC16LGNvbW1vbi1wYWdlLXNpemWBOTIgXAot
-CQkJJChESVNBQkxFX0xUTykKK1ZEU09fTERGTEFHU192ZHNvLmxkcyA9IC1tIGVsZjY0X3NwYXJj
-IC1zb25hbWUgbGludXgtdmRzby5zby4xIC0tbm8tdW5kZWZpbmVkIFwKKwkJCS16IG1heC1wYWdl
-LXNpemWBOTIgLXogY29tbW9uLXBhZ2Utc2l6ZYE5MgogCiAkKG9iaikvdmRzbzY0LnNvLmRiZzog
-JChvYmopL3Zkc28ubGRzICQodm9ianMpIEZPUkNFCiAJJChjYWxsIGlmX2NoYW5nZWQsdmRzbykK
-QEAgLTc0LDcgKzcyLDcgQEAgJChvYmopLyUuc286ICQob2JqKS8lLnNvLmRiZwogCSQoY2FsbCBp
-Zl9jaGFuZ2VkLG9iamNvcHkpCiAKIENQUEZMQUdTX3Zkc28zMi5sZHMgPSAkKENQUEZMQUdTX3Zk
-c28ubGRzKQotVkRTT19MREZMQUdTX3Zkc28zMi5sZHMgPSAtbTMyIC1XbCwtbSxlbGYzMl9zcGFy
-Yywtc29uYW1lPWxpbnV4LWdhdGUuc28uMQorVkRTT19MREZMQUdTX3Zkc28zMi5sZHMgPSAtbSBl
-bGYzMl9zcGFyYyAtc29uYW1lIGxpbnV4LWdhdGUuc28uMQogCiAjVGhpcyBtYWtlcyBzdXJlIHRo
-ZSAkKG9iaikgc3ViZGlyZWN0b3J5IGV4aXN0cyBldmVuIHRob3VnaCB2ZHNvMzIvCiAjaXMgbm90
-IGEga2J1aWxkIHN1Yi1tYWtlIHN1YmRpcmVjdG9yeQpAQCAtMTExLDEyICsxMDksMTIgQEAgJChv
-YmopL3Zkc28zMi5zby5kYmc6IEZPUkNFIFwKICMgVGhlIERTTyBpbWFnZXMgYXJlIGJ1aWx0IHVz
-aW5nIGEgc3BlY2lhbCBsaW5rZXIgc2NyaXB0LgogIwogcXVpZXRfY21kX3Zkc28gPSBWRFNPICAg
-ICRACi0gICAgICBjbWRfdmRzbyA9ICQoQ0MpIC1ub3N0ZGxpYiAtbyAkQCBcCisgICAgICBjbWRf
-dmRzbyA9ICQoTEQpIC1ub3N0ZGxpYiAtbyAkQCBcCiAJCSAgICAgICAkKFZEU09fTERGTEFHUykg
-JChWRFNPX0xERkxBR1NfJChmaWx0ZXIgJS5sZHMsJCheRikpKSBcCi0JCSAgICAgICAtV2wsLVQs
-JChmaWx0ZXIgJS5sZHMsJF4pICQoZmlsdGVyICUubywkXikKKwkJICAgICAgIC1UICQoZmlsdGVy
-ICUubGRzLCReKSAkKGZpbHRlciAlLm8sJF4pCiAKLVZEU09fTERGTEFHUyA9IC1mUElDIC1zaGFy
-ZWQgJChjYWxsIGNjLWxkb3B0aW9uLCAtV2wkKGNvbW1hKS0taGFzaC1zdHlsZT1zeXN2KSBcCi0J
-JChjYWxsIGNjLWxkb3B0aW9uLCAtV2wkKGNvbW1hKS0tYnVpbGQtaWQpIC1XbCwtQnN5bWJvbGlj
-CitWRFNPX0xERkxBR1MgPSAtc2hhcmVkICQoY2FsbCBsZC1vcHRpb24sIC0taGFzaC1zdHlsZT1i
-b3RoKSBcCisJJChjYWxsIGxkLW9wdGlvbiwgLS1idWlsZC1pZCkgLUJzeW1ib2xpYwogR0NPVl9Q
-Uk9GSUxFIDo9IG4KIAogIwotLSAKMi4xOS4xLjMyOC5nNWEwY2M4YWNhCg==
+    
+I started out on these changes with the goal of improving perf
+annotations when the VDSO is in use.  Due to lack of inlining the
+helper functions are typically hit when profiling instead of
+__vdso_gettimeoday() or __vdso_vclock_gettime().
+
+The only symbols available by default are the dyanmic symbols,
+which therefore doesn't cover the helper functions.
+
+So the perf output looks terrible, because the symbols cannot be
+resolved and all show up as "Unknown".
+
+The sparc VDSO code forces no inlining because of the way the
+simplistic %tick register read code patching works.  So fixing that
+was the first order of business.  Tricks were taken from how x86
+implements alternates.  The crucial factor is that if you want to
+refer to locations (for the original and patch instruction(s)) you
+have to do so in a way that is resolvable at link time even for a
+shared object.  So you have to do this by storing PC-relative
+values, and not in executable sections.
+
+Next, we sanitize the Makefile so that the cflags et al. make more
+sense.  And LDFLAGS are applied actually to invocations of LD instead
+of CC.
+
+We also add some sanity checking, specifically in a post-link check
+that makes sure we don't have any unexpected unresolved symbols in the
+VDSO.  This is essential because the dynamic linker cannot resolve
+symbols in the VDSO because it cannot write to it.
+
+Finally some very minor optimizations are preformed to the
+vclock_gettime.c code.  One thing which is tricky with this code on
+sparc is that struct timeval and struct timespec are layed out
+differently on 64-bit.  This is because, unlike other architectures,
+sparc defined suseconds_t as 'int' even on 64-bit.  This is why we
+have all of the "union" tstv_t" business and the weird assignments
+in __vdso_gettimeofday().
+
+Performance wise we do gain some cycle shere, specifically here
+are cycle counts for a user application calling gettimeofday():
+
+        no-VDSO         VDSO-orig       VDSO-new
+========================
+64-bit  853 cycles      112 cycles      125 cycles
+32-bit  849 cycles      134 cycles      141 cycles
+
+These results are with current glibc sources.
+
+To get better we'd need to implement this in assembler, and I might
+just do that at some point.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
