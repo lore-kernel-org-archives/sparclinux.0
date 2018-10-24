@@ -1,40 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Oct 2018 17:08:57 +0000
-Subject: Re: sparc64 mystery with Cheetah+ D-cache parity error (n_tty_set_termios, bpf_check, cheetah_copy_p
-Message-Id: <20181010.100857.951754034539960711.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 24 Oct 2018 09:26:50 +0000
+Subject: [sparc vdso] compile failure in v4.19-4243-ga978a5b - operation combines symbols in different segmen
+Message-Id: <748cfe51-e74d-f6fc-a806-7689a86399e0@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a4391645-0c4f-bd99-7371-b0e2cb505542@linux.ee>
-In-Reply-To: <a4391645-0c4f-bd99-7371-b0e2cb505542@linux.ee>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mroos@linux.ee
-Cc: sparclinux@vger.kernel.org, netdev@vger.kernel.org, gregkh@linuxfoundation.org, jslaby@suse.com
+To: sparclinux@vger.kernel.org
 
-From: Meelis Roos <mroos@linux.ee>
-Date: Wed, 10 Oct 2018 16:24:59 +0300
+This happens on all 4 with 2015-08 32-bit userspace that I tested todays git on:
 
-> I have seen multiple strange messages like this, on multiple sparc64
-> machines:
-> 
-> [ 55.523882] CPU[1]: Cheetah+ D-cache parity error at
-> TPC[0000000000707e8c]
-> [   55.626033] TPC<n_tty_set_termios+0x2c/0x3c0>
-> 
-> This specfic one ise from n_tty_set_termios and it is currently
-> repeatable on a Sun V210.
-> I have seen these on V245 and V445 too, with different addresses. On
-> V445, the same address caused
-> errors on multiple CPUs so it does not seem like a hardware problem,
-> rather something software releated,
-> that's why I am reporting it here.
-> 
-> On V445 it is gone with my current custom kernels but was there with
-> 4.16.0-1-sparc64-smp Debian kernel package,
-> probabaly because I do not have bpfilter compiled in:
+   CC      arch/sparc/vdso/vclock_gettime.o
+{standard input}: Assembler messages:
+{standard input}:99: Error: operation combines symbols in different segments
+{standard input}:184: Error: operation combines symbols in different segments
+{standard input}:292: Error: operation combines symbols in different segments
+{standard input}:99: Error: can't resolve `.text' {.text section} - `L0' {.tick_patch section}
+{standard input}:99: Error: can't resolve `.tick_patch_replacement' {.tick_patch_replacement section} - `L0' {.tick_patch section}
+{standard input}:184: Error: can't resolve `.text' {.text section} - `L0' {.tick_patch section}
+{standard input}:184: Error: can't resolve `.tick_patch_replacement' {.tick_patch_replacement section} - `L0' {.tick_patch section}
+{standard input}:292: Error: can't resolve `.text' {.text section} - `L0' {.tick_patch section}
+{standard input}:292: Error: can't resolve `.tick_patch_replacement' {.tick_patch_replacement section} - `L0' {.tick_patch section}
+scripts/Makefile.build:305: recipe for target 'arch/sparc/vdso/vclock_gettime.o' failed
 
-I just started getting my older machines up again and I get these
-kinds of errors sometimes too, usually in the TSB copy routine.
+Have not tried on anything with current 64-bit userpace, the machines are not online at the moment.
 
-I'll definitely be looking into this and thanks for the report and
-data.
+-- 
+Meelis Roos <mroos@linux.ee>
