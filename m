@@ -1,7 +1,7 @@
 From: "Melvin Greg" <tk.sreejii@gmail.com>
-Date: Fri, 19 Oct 2018 11:12:26 +0000
+Date: Thu, 25 Oct 2018 06:07:43 +0000
 Subject: Re:Business proposition for you
-Message-Id: <20181019041226.A325A096E9045716@gmail.com>
+Message-Id: <20181024230743.E4C9BBA34325B698@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20160108072041.5FD128969C@mail.takasugi.co.jp>
 In-Reply-To: <20160108072041.5FD128969C@mail.takasugi.co.jp>
