@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Mon, 15 Oct 2018 03:26:31 +0000
-Subject: [PATCH] sparc64: Set %l4 properly on trap return after handling signals.
-Message-Id: <20181014.202631.1332592487175071585.davem@davemloft.net>
+Date: Fri, 26 Oct 2018 22:12:22 +0000
+Subject: [PATCH] sparc64: Export __node_distance.
+Message-Id: <20181026.151222.2282138700742476645.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -9,37 +9,28 @@ Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
 
-If we did some signal processing, we have to reload the pt_regs
-tstate register because it's value may have changed.
+Some drivers reference it via node_distance(), for example the
+NVME host driver core.
 
-In doing so we also have to extract the %pil value contained in there
-anre load that into %l4.
-
-This value is at bit 20 and thus needs to be shifted down before we
-later write it into the %pil register.
-
-Most of the time this is harmless as we are returning to userspace
-and the %pil is zero for that case.
+ERROR: "__node_distance" [drivers/nvme/host/nvme-core.ko] undefined!
+make[1]: *** [scripts/Makefile.modpost:92: __modpost] Error 1
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sparc/kernel/rtrap_64.S | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/mm/init_64.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
-index f6528884a2c8..4073e2b87dd0 100644
---- a/arch/sparc/kernel/rtrap_64.S
-+++ b/arch/sparc/kernel/rtrap_64.S
-@@ -84,8 +84,9 @@ __handle_signal:
- 		ldx			[%sp + PTREGS_OFF + PT_V9_TSTATE], %l1
- 		sethi			%hi(0xf << 20), %l4
- 		and			%l1, %l4, %l4
-+		andn			%l1, %l4, %l1
- 		ba,pt			%xcc, __handle_preemption_continue
--		 andn			%l1, %l4, %l1
-+		 srl			%l4, 20, %l4
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index f396048..39822f6 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -1383,6 +1383,7 @@ int __node_distance(int from, int to)
+ 	}
+ 	return numa_latency[from][to];
+ }
++EXPORT_SYMBOL(__node_distance);
  
- 		/* When returning from a NMI (%pil=15) interrupt we want to
- 		 * avoid running softirqs, doing IRQ tracing, preempting, etc.
+ static int __init find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
+ {
 -- 
-2.19.1
+2.1.2.532.g19b5d50
