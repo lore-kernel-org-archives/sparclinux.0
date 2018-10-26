@@ -1,107 +1,90 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 26 Oct 2018 03:29:54 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Fri, 26 Oct 2018 12:41:53 +0000
 Subject: Re: [GIT] Sparc
-Message-Id: <20181025.202954.554322425222522754.davem@davemloft.net>
+Message-Id: <9666273e-5499-a0b9-38e3-804ddd235ae1@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20100329.131141.80866523.davem@davemloft.net>
 In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
 To: sparclinux@vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Thu, 25 Oct 2018 16:39:22 -0700 (PDT)
-
-> This is a 64-bit ELF binary so my guess is setup_rt_frame().
-> 
-> I put some debugging in and I guessed wrong:
-> 
-> [   40.366945] [tweaklib2:428]: fault_in_user_windows() copy failed
-> 
-> Something definitely corrupted the stack and/or frame pointer in this
-> code.
-
-What this amounts to is actually a very simple program:
-
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ readelf -h tweaklib2
- ...
-  Entry point address:               0x1003d0
-
-Entry point 0x1003d0, what's that:
-
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ objdump -d tweaklib2 | grep -A 1 1003d0
-00000000001003d0 <SI_PRC_$$__FPC_DYNAMIC_PROC_START>:
-  1003d0:       81 c3 e0 08     retl
-  1003d4:       01 00 00 00     nop
-
-An entry point which simply returns.  So this program does nothing,
-main never gets called, we just return to the dynamic linker code that
-jumps to the program's entry point which isn't expected.
-
-So the test case is simply:
-
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ cat test.s
-        .text
-        .align 4
-        .globl _start
-_start: retl
-        nop
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ gcc -nostdlib -o test test.s
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ ./test
-Segmentation fault
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ 
-
-and nothing more.
-
-So what happens when you return from _start like this?  It ends up
-looping, adjusting the stack pointer up by 48 bytes every iteration.
-Eventually we push the stack pointer past the end of the stack mmap
-area and crash.
-
-The loop is:
-
-davem@salty:/opt/davem/src/GIT/CRASH/kernel-crash-test$ gdb ./test
- ...
-(gdb) b *0x0000010000000290
-Breakpoint 1 at 0x10000000290
-(gdb) display/i $pc
-1: x/i $pc
-<error: No registers.>
-(gdb) run
-Starting program: /opt/davem/src/GIT/CRASH/kernel-crash-test/test
-
-Breakpoint 1, 0x0000010000000290 in _start ()
-1: x/i $pc
-=> 0x10000000290 <_start+4>:    nop
-(gdb) stepi
-0xfff0000100001550 in ?? ()
-1: x/i $pc
-=> 0xfff0000100001550:  sethi  %hi(0x113000), %g1
-(gdb) 
-0xfff0000100001554 in ?? ()
-1: x/i $pc
-=> 0xfff0000100001554:  xor  %g1, -572, %g1
-(gdb) 
-0xfff0000100001558 in ?? ()
-1: x/i $pc
-=> 0xfff0000100001558:  add  %l7, %g1, %g1
-(gdb) 
-0xfff000010000155c in ?? ()
-1: x/i $pc
-=> 0xfff000010000155c:  jmp  %l0
-   0xfff0000100001560:  add  %sp, 0x30, %sp
-(gdb) 
-0xfff0000100001560 in ?? ()
-1: x/i $pc
-=> 0xfff0000100001560:  add  %sp, 0x30, %sp
-(gdb) 
-0x000001000000028c in _start () 
-1: x/i $pc 
-=> 0x1000000028c <_start>:      retl
-   0x10000000290 <_start+4>:    nop 
-(gdb) 
-
-And that's how we loop forever.
-
-It should not crash the machine and here with an upstream kernel it does not for me.
+SGkgRGF2ZSEKClRoYW5rcyBmb3IgdGhlIGV4cGxhbmF0aW9uIQoKT24gMTAvMjYvMTggNToyOSBB
+TSwgRGF2aWQgTWlsbGVyIHdyb3RlOgo+ICguLi4pCj4gQW5kIHRoYXQncyBob3cgd2UgbG9vcCBm
+b3JldmVyLgo+IAo+IEl0IHNob3VsZCBub3QgY3Jhc2ggdGhlIG1hY2hpbmUgYW5kIGhlcmUgd2l0
+aCBhbiB1cHN0cmVhbSBrZXJuZWwgaXQgZG9lcyBub3QgZm9yIG1lLgoKSW50ZXJlc3RpbmdseSwg
+d2UgY291bGRuJ3QgcmVwcm9kdWNlIHRoZSBpc3N1ZSBvbiB0aGUgU1BBUkMtVDUgYW55bW9yZSBl
+aXRoZXIuIEl0CmRlZmluaXRlbHkgY3Jhc2hlcyB0aGUgU3VuIEZpcmUgMjAwMCB1c2VkIGZvciBk
+ZXZlbG9wbWVudCBvZiB0aGUgRnJlZSBQYXNjYWwKY29tcGlsZXIgdGhvdWdoLCBqdXN0IHJlLXRl
+c3RlZDoKCnJvb3RAc3RhZGxlcjp+L2tlcm5lbC1jcmFzaC10ZXN0IyBzdHJhY2UgLi90d2Vha2xp
+YjIgCmV4ZWN2ZSgiLi90d2Vha2xpYjIiLCBbIi4vdHdlYWtsaWIyIl0sIDB4N2ZlZmZhYWZiOTAg
+LyogMjIgdmFycyAqLykgPSAwCmJyayhOVUxMKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICA9IDB4MjY0MDAwCmFjY2VzcygiL2V0Yy9sZC5zby5ub2h3Y2FwIiwgRl9PSykgICAgICA9IC0x
+IEVOT0VOVCAoTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeSkKbW1hcChOVUxMLCAxNjM4NCwgUFJP
+VF9SRUFEfFBST1RfV1JJVEUsIE1BUF9QUklWQVRFfE1BUF9BTk9OWU1PVVMsIC0xLCAwKSA9IDB4
+ZmZmZjgwMDEwMDAyNDAwMAphY2Nlc3MoIi9ldGMvbGQuc28ucHJlbG9hZCIsIFJfT0spICAgICAg
+PSAtMSBFTk9FTlQgKE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkpCm9wZW5hdChBVF9GRENXRCwg
+Ii4vdGxzL3Y5di9saWJ0d2Vha2xpYjEuc28iLCBPX1JET05MWXxPX0NMT0VYRUMpID0gLTEgRU5P
+RU5UIChObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5KQpvcGVuYXQoQVRfRkRDV0QsICIuL3Rscy9s
+aWJ0d2Vha2xpYjEuc28iLCBPX1JET05MWXxPX0NMT0VYRUMpID0gLTEgRU5PRU5UIChObyBzdWNo
+IGZpbGUgb3IgZGlyZWN0b3J5KQpvcGVuYXQoQVRfRkRDV0QsICIuL3Y5di9saWJ0d2Vha2xpYjEu
+c28iLCBPX1JET05MWXxPX0NMT0VYRUMpID0gLTEgRU5PRU5UIChObyBzdWNoIGZpbGUgb3IgZGly
+ZWN0b3J5KQpvcGVuYXQoQVRfRkRDV0QsICIuL2xpYnR3ZWFrbGliMS5zbyIsIE9fUkRPTkxZfE9f
+Q0xPRVhFQykgPSAzCnJlYWQoMywgIlwxNzdFTEZcMlwyXDFcMFwwXDBcMFwwXDBcMFwwXDBcMFwz
+XDArXDBcMFwwXDFcMFwwXDBcMFwwXDBcMzEwXDM2MCIuLi4sIDgzMikgPSA4MzIKZnN0YXQ2NCgz
+LCB7c3RfbW9kZT1TX0lGUkVHfDA3NTUsIHN0X3NpemURNjUzMTIsIC4uLn0pID0gMApnZXRjd2Qo
+Ii9yb290L2tlcm5lbC1jcmFzaC10ZXN0IiwgMTI4KSAgPSAyNAptbWFwKE5VTEwsIDE1MDM3NzYs
+IFBST1RfUkVBRHxQUk9UX0VYRUMsIE1BUF9QUklWQVRFfE1BUF9ERU5ZV1JJVEUsIDMsIDApID0g
+MHhmZmZmODAwMTAwMTI4MDAwCm1wcm90ZWN0KDB4ZmZmZjgwMDEwMDE4ODAwMCwgMTA0MDM4NCwg
+UFJPVF9OT05FKSA9IDAKbW1hcCgweGZmZmY4MDAxMDAyODYwMDAsIDU3MzQ0LCBQUk9UX1JFQUR8
+UFJPVF9XUklURSwgTUFQX1BSSVZBVEV8TUFQX0ZJWEVEfE1BUF9ERU5ZV1JJVEUsIDMsIDB4NWUw
+MDApID0gMHhmZmZmODAwMTAwMjg2MDAwCm1tYXAoMHhmZmZmODAwMTAwMjk0MDAwLCAxMjgzMiwg
+UFJPVF9SRUFEfFBST1RfV1JJVEUsIE1BUF9QUklWQVRFfE1BUF9GSVhFRHxNQVBfQU5PTllNT1VT
+LCAtMSwgMCkgPSAweGZmZmY4MDAxMDAyOTQwMDAKY2xvc2UoMykgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgID0gMAptcHJvdGVjdCgweGZmZmY4MDAxMDAyODYwMDAsIDgxOTIsIFBST1Rf
+UkVBRCkgPSAwCm1wcm90ZWN0KDB4MjUyMDAwLCA4MTkyLCBQUk9UX1JFQUQpICAgICA9IDAKbXBy
+b3RlY3QoMHhmZmZmODAwMTAwMTIyMDAwLCA4MTkyLCBQUk9UX1JFQUQpID0gMApnZXRybGltaXQo
+UkxJTUlUX1NUQUNLLCB7cmxpbV9jdXKBOTIqMTAyNCwgcmxpbV9tYXg9UkxJTTY0X0lORklOSVRZ
+fSkgPSAwCnJ0X3NpZ2FjdGlvbihTSUdGUEUsIHtzYV9oYW5kbGVyPTB4ZmZmZjgwMDEwMDE4MGUx
+MCwgc2FfbWFzaz1bXSwgc2FfZmxhZ3M9U0FfU0lHSU5GT30sIHtzYV9oYW5kbGVyPVNJR19ERkws
+IHNhX21hc2s9W10sIHNhX2ZsYWdzPTB9LCAweGZmZmY4MDAxMDAxMzRjYTgsIDgpID0gMApydF9z
+aWdhY3Rpb24oU0lHU0VHViwge3NhX2hhbmRsZXI9MHhmZmZmODAwMTAwMTgwZTEwLCBzYV9tYXNr
+PVtdLCBzYV9mbGFncz1TQV9TSUdJTkZPfSwge3NhX2hhbmRsZXI9U0lHX0RGTCwgc2FfbWFzaz1b
+XSwgc2FfZmxhZ3M9MH0sIDB4ZmZmZjgwMDEwMDEzNGNhOCwgOCkgPSAwCnJ0X3NpZ2FjdGlvbihT
+SUdCVVMsIHtzYV9oYW5kbGVyPTB4ZmZmZjgwMDEwMDE4MGUxMCwgc2FfbWFzaz1bXSwgc2FfZmxh
+Z3M9U0FfU0lHSU5GT30sIHtzYV9oYW5kbGVyPVNJR19ERkwsIHNhX21hc2s9W10sIHNhX2ZsYWdz
+PTB9LCAweGZmZmY4MDAxMDAxMzRjYTgsIDgpID0gMApydF9zaWdhY3Rpb24oU0lHSUxMLCB7c2Ff
+aGFuZGxlcj0weGZmZmY4MDAxMDAxODBlMTAsIHNhX21hc2s9W10sIHNhX2ZsYWdzPVNBX1NJR0lO
+Rk99LCB7c2FfaGFuZGxlcj1TSUdfREZMLCBzYV9tYXNrPVtdLCBzYV9mbGFncz0wfSwgMHhmZmZm
+ODAwMTAwMTM0Y2E4LCA4KSA9IDAKaW9jdGwoMSwgVENHRVRTLCB7QjM4NDAwIG9wb3N0IGlzaWcg
+aWNhbm9uIGVjaG8gLi4ufSkgPSAwCmlvY3RsKDIsIFRDR0VUUywge0IzODQwMCBvcG9zdCBpc2ln
+IGljYW5vbiBlY2hvIC4uLn0pID0gMAppb2N0bCgxLCBUQ0dFVFMsIHtCMzg0MDAgb3Bvc3QgaXNp
+ZyBpY2Fub24gZWNobyAuLi59KSA9IDAKaW9jdGwoMiwgVENHRVRTLCB7QjM4NDAwIG9wb3N0IGlz
+aWcgaWNhbm9uIGVjaG8gLi4ufSkgPSAwCnJlYWRsaW5rKCIvcHJvYy9zZWxmL2V4ZSIsICIvcm9v
+dC9rZXJuZWwtY3Jhc2gtdGVzdC90d2Vha2xpYiIuLi4sIDI1NSkgPSAzMwpydF9zaWdhY3Rpb24o
+U0lHRlBFLCB7c2FfaGFuZGxlcj1TSUdfREZMLCBzYV9tYXNrPVtdLCBzYV9mbGFncz0wfSwgTlVM
+TCwgMHhmZmZmODAwMTAwMTM0Y2E4LCA4KSA9IDAKcnRfc2lnYWN0aW9uKFNJR1NFR1YsIHtzYV9o
+YW5kbGVyPVNJR19ERkwsIHNhX21hc2s9W10sIHNhX2ZsYWdzPTB9LCBOVUxMLCAweGZmZmY4MDAx
+MDAxMzRjYTgsIDgpID0gMApydF9zaWdhY3Rpb24oU0lHQlVTLCB7c2FfaGFuZGxlcj1TSUdfREZM
+LCBzYV9tYXNrPVtdLCBzYV9mbGFncz0wfSwgTlVMTCwgMHhmZmZmODAwMTAwMTM0Y2E4LCA4KSA9
+IDAKcnRfc2lnYWN0aW9uKFNJR0lMTCwge3NhX2hhbmRsZXI9U0lHX0RGTCwgc2FfbWFzaz1bXSwg
+c2FfZmxhZ3M9MH0sIE5VTEwsIDB4ZmZmZjgwMDEwMDEzNGNhOCwgOCkgPSAwCgpBbmQgb24gdGhl
+IGNvbnNvbGU6CgpzYz4gY29uc29sZSAtZgpXYXJuaW5nOiBVc2VyIDwgPiBjdXJyZW50bHkgaGFz
+IHdyaXRlIHBlcm1pc3Npb24gdG8gdGhpcyBjb25zb2xlIGFuZCBmb3JjaWJseSByZW1vdmluZyB0
+aGVtIHdpbGwgdGVybWluYXRlIGFueSBjdXJyZW50IHdyaXRlIGFjdGlvbnMgYW5kIGFsbCB3b3Jr
+IHdpbGwgYmUgbG9zdC4gIFdvdWxkIHlvdSBsaWtlIHRvIGNvbnRpbnVlPyBbeS9uXXkKRW50ZXIg
+Iy4gdG8gcmV0dXJuIHRvIEFMT00uCls5NDI3OTguNTk3OTg1XSBVbmFibGUgdG8gaGFuZGxlIGtl
+cm5lbCBwYWdpbmcgcmVxdWVzdCBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAwMDAwMTUzYTAwMApb
+OTQyNzk4LjU5ODE1Nl0gdHNrLT57bW0sYWN0aXZlX21tfS0+Y29udGV4dCA9IDAwMDAwMDAwMDAw
+MDAyMjgKWzk0Mjc5OC41OTgyNTNdIHRzay0+e21tLGFjdGl2ZV9tbX0tPnBnZCA9IGZmZmY4MDA3
+ZjVkYTgwMDAKWzk0MjgwNi4yMDk4NDVdIHJjdTogSU5GTzogcmN1X3NjaGVkIGRldGVjdGVkIHN0
+YWxscyBvbiBDUFVzL3Rhc2tzOgpbOTQyODA2LjIxMDAzNl0gcmN1OiAgICA2LS4uLjA6ICgxIEdQ
+cyBiZWhpbmQpIGlkbGWEYS8xLzB4NDAwMDAwMDAwMDAwMDAwMiBzb2Z0aXJxgzc3MjYyLzgzNzcy
+NjMgZnFzJDY2IApbOTQyODA2LjIxMDEzN10gcmN1OiAgICAoZGV0ZWN0ZWQgYnkgMywgdFMzNyBq
+aWZmaWVzLCBnVzAxNTQ2MSwgcSc1MCkKCkkgd2lsbCBsZXQgeW91IGtub3cgd2hldGhlciB5b3Vy
+IHBhdGNoIGhlbHBzIHRvIGFkZHJlc3MgdGhlIHByb2JsZW0uCgpBZHJpYW4KCi0tIAogLicnYC4g
+IEpvaG4gUGF1bCBBZHJpYW4gR2xhdWJpdHoKOiA6JyA6ICBEZWJpYW4gRGV2ZWxvcGVyIC0gZ2xh
+dWJpdHpAZGViaWFuLm9yZwpgLiBgJyAgIEZyZWllIFVuaXZlcnNpdGFldCBCZXJsaW4gLSBnbGF1
+Yml0ekBwaHlzaWsuZnUtYmVybGluLmRlCiAgYC0gICAgR1BHOiA2MkZGIDhBNzUgODRFMCAyOTU2
+IDk1NDYgIDAwMDYgNzQyNiAzQjM3IEY1QjUgRjkxMwo=
