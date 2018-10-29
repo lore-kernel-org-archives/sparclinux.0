@@ -1,96 +1,96 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Tue, 30 Oct 2018 12:36:27 +0000
-Subject: Re: [PATCH 0/7] serial: Finish kgdb on qcom_geni; fix many lockdep splats w/ kgdb
-Message-Id: <20181030123627.GS10650@smile.fi.intel.com>
+From: Douglas Anderson <dianders@chromium.org>
+Date: Mon, 29 Oct 2018 18:07:06 +0000
+Subject: [PATCH 6/7] smp: Don't yell about IRQs disabled in kgdb_roundup_cpus()
+Message-Id: <20181029180707.207546-7-dianders@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181029180707.207546-1-dianders@chromium.org>
 In-Reply-To: <20181029180707.207546-1-dianders@chromium.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Jason Wessel <jason.wessel@windriver.com>, Daniel Thompson <daniel.thompson@linaro.org>, tglx@linutronix.de, mingo@kernel.org, gregkh@linuxfoundation.org, linux-arm-msm@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, nm@ti.com, linux-mips@linux-mips.org, dalias@libc.org, catalin.marinas@arm.com, vigneshr@ti.com, linux-aspeed@lists.ozlabs.org, linux-sh@vger.kernel.org, peterz@infradead.org, will.deacon@arm.com, mhocko@suse.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, marex@denx.de, sfr@canb.auug.org.au, ysato@users.sourceforge.jp, linux-hexagon@vger.kernel.org, x86@kernel.org, linux@armlinux.org.uk, pombredanne@nexb.com, tony@atomide.com, mingo@redhat.com, joel@jms.id.au, linux-serial@vger.kernel.org, rolf.evers.fischer@aptiv.com, jhogan@kernel.or
+To: linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 29, 2018 at 11:07:00AM -0700, Douglas Anderson wrote:
-> I started out this series trying to make sysrq work over the serial
-> console on qcom_geni_serial, then fell into a rat's nest.
-> 
-> To solve the deadlock I faced when enabling sysrq I tried to borrow
-> code from '8250_port.c' which avoided grabbing the port lock in
-> console_write().  ...but since these days I try to run with lockdep on
-> all the time, I found it caused an annoying lockdep splat (which I
-> also reproduced on my rk3399 board).  ...so I instead changed my
-> qcom_geni_serial solution to borrow code from 'msm_serial.c'
-> 
-> I wasn't super happy with the solution in 'msm_serial.c' though.  I
-> don't like releasing the spinlock there.  Not only is it ugly but it
-> means we are unlocking / re-locking _all the time_ even though sysrq
-> characters are rare.  ...so I came up with what I think is a better
-> solution and then implemented it for qcom_geni_serial.
-> 
-> Since I had a good way to test 8250-based UARTs, I also fixed that
-> driver to use my new method.  When doing so, I ran into a missing
-> msm_serial.c at all, so I didn't switch that (or all other serial
-> drivers for that matter) to the new method.
-> 
-> After fixing all the above issues, I found the next lockdep splat in
-> kgdb and I think I've worked around it in a good-enough way, but I'm
-> much less confident about this.  Hopefully folks can take a look at
-> it.
-> 
-> In general, patches earlier in this series should be "less
-> controversial" and hopefully can land even if people don't like
-> patches later in the series.  ;-)
-> 
-> Looking back, this is pretty much two series squashed that could be
-> treated indepdently.  The first is a serial series and the second is a
-> kgdb series.
-> 
-> For all serial patches I'd expect them to go through the tty tree once
-> they've been reviewed.
-> 
-> If folks are OK w/ the 'smp' patch it probably should go in some core
-> kernel tree.  The kgdb patch won't work without it, though, so to land
-> that we'd need coordination between the folks landing that and the
-> folks landing the 'smp' patch.
+In kgdb_roundup_cpus() we've got code that looks like:
+  local_irq_enable();
+  smp_call_function(kgdb_call_nmi_hook, NULL, 0);
+  local_irq_disable();
 
-I have got only 0/7 and 5/7, everything okay with your mail client and other tools?
+In certain cases when we drop into kgdb (like with sysrq-g on a serial
+console) we'll get a big yell that looks like:
 
-> 
-> 
-> Douglas Anderson (7):
->   serial: qcom_geni_serial: Finish supporting sysrq
->   serial: core: Allow processing sysrq at port unlock time
->   serial: qcom_geni_serial: Process sysrq at port unlock time
->   serial: core: Include console.h from serial_core.h
->   serial: 8250: Process sysrq at port unlock time
->   smp: Don't yell about IRQs disabled in kgdb_roundup_cpus()
->   kgdb: Remove irq flags and local_irq_enable/disable from roundup
-> 
->  arch/arc/kernel/kgdb.c                      |  4 +--
->  arch/arm/kernel/kgdb.c                      |  4 +--
->  arch/arm64/kernel/kgdb.c                    |  4 +--
->  arch/hexagon/kernel/kgdb.c                  | 11 ++----
->  arch/mips/kernel/kgdb.c                     |  4 +--
->  arch/powerpc/kernel/kgdb.c                  |  2 +-
->  arch/sh/kernel/kgdb.c                       |  4 +--
->  arch/sparc/kernel/smp_64.c                  |  2 +-
->  arch/x86/kernel/kgdb.c                      |  9 ++---
->  drivers/tty/serial/8250/8250_aspeed_vuart.c |  6 +++-
->  drivers/tty/serial/8250/8250_fsl.c          |  6 +++-
->  drivers/tty/serial/8250/8250_omap.c         |  6 +++-
->  drivers/tty/serial/8250/8250_port.c         |  8 ++---
->  drivers/tty/serial/qcom_geni_serial.c       | 10 ++++--
->  include/linux/kgdb.h                        |  9 ++---
->  include/linux/serial_core.h                 | 38 ++++++++++++++++++++-
->  kernel/debug/debug_core.c                   |  2 +-
->  kernel/smp.c                                |  4 ++-
->  18 files changed, 80 insertions(+), 53 deletions(-)
-> 
-> -- 
-> 2.19.1.568.g152ad8e336-goog
-> 
+  sysrq: SysRq : DEBUG
+  ------------[ cut here ]------------
+  DEBUG_LOCKS_WARN_ON(current->hardirq_context)
+  WARNING: CPU: 0 PID: 0 at .../kernel/locking/lockdep.c:2875 lockdep_hardirqs_on+0xf0/0x160
+  CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.19.0 #27
+  pstate: 604003c9 (nZCv DAIF +PAN -UAO)
+  pc : lockdep_hardirqs_on+0xf0/0x160
+  ...
+  Call trace:
+   lockdep_hardirqs_on+0xf0/0x160
+   trace_hardirqs_on+0x188/0x1ac
+   kgdb_roundup_cpus+0x14/0x3c
+   kgdb_cpu_enter+0x53c/0x5cc
+   kgdb_handle_exception+0x180/0x1d4
+   kgdb_compiled_brk_fn+0x30/0x3c
+   brk_handler+0x134/0x178
+   do_debug_exception+0xfc/0x178
+   el1_dbg+0x18/0x78
+   kgdb_breakpoint+0x34/0x58
+   sysrq_handle_dbg+0x54/0x5c
+   __handle_sysrq+0x114/0x21c
+   handle_sysrq+0x30/0x3c
+   qcom_geni_serial_isr+0x2dc/0x30c
+  ...
+  ...
+  irq event stamp: ...45
+  hardirqs last  enabled at (...44): [...] __do_softirq+0xd8/0x4e4
+  hardirqs last disabled at (...45): [...] el1_irq+0x74/0x130
+  softirqs last  enabled at (...42): [...] _local_bh_enable+0x2c/0x34
+  softirqs last disabled at (...43): [...] irq_exit+0xa8/0x100
+  ---[ end trace adf21f830c46e638 ]---
 
+Let's add kgdb to the list of reasons not to warn in
+smp_call_function_many().  That will allow us (in a future patch) to
+stop calling local_irq_enable() which will get rid of the original
+splat.
+
+NOTE: with this change comes the obvious question: will we start
+deadlocking more often now when we drop into the debugger.  I can't
+say that for sure one way or the other, but the fact that we do the
+same logic for "oops_in_progress" makes me feel like it shouldn't
+happen too often.  Also note that the old logic of turning on
+interrupts temporarily wasn't exactly safe since (I presume) that
+could have violated spin_lock_irqsave() semantics and ended up with a
+deadlock of its own.
+
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+---
+
+ kernel/smp.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 163c451af42e..bb581e58c8dc 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/idle.h>
+ #include <linux/hypervisor.h>
++#include <linux/kgdb.h>
+ 
+ #include "smpboot.h"
+ 
+@@ -413,7 +414,8 @@ void smp_call_function_many(const struct cpumask *mask,
+ 	 * can't happen.
+ 	 */
+ 	WARN_ON_ONCE(cpu_online(this_cpu) && irqs_disabled()
+-		     && !oops_in_progress && !early_boot_irqs_disabled);
++		     && !oops_in_progress && !early_boot_irqs_disabled
++		     && !in_dbg_master());
+ 
+ 	/* Try to fastpath.  So, what's a CPU they want? Ignoring this one. */
+ 	cpu = cpumask_first_and(mask, cpu_online_mask);
 -- 
-With Best Regards,
-Andy Shevchenko
+2.19.1.568.g152ad8e336-goog
