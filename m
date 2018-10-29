@@ -1,7 +1,7 @@
-From: Pavel Tatashin <pasha.tatashin@gmail.com>
-Date: Thu, 18 Oct 2018 18:29:14 +0000
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 29 Oct 2018 20:12:21 +0000
 Subject: Re: [mm PATCH v4 1/6] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-Message-Id: <04e89c12-a05b-bda3-716f-10f885fc5bf0@gmail.com>
+Message-Id: <20181029201221.GP32673@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181017235043.17213.92459.stgit@localhost.localdomain>
  <20181017235408.17213.38641.stgit@localhost.localdomain>
@@ -9,12 +9,10 @@ In-Reply-To: <20181017235408.17213.38641.stgit@localhost.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Cc: linux-mm@kvack.org, akpm@linux-foundation.org, pavel.tatashin@microsoft.com, dave.jiang@intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
 
-
-
-On 10/17/18 7:54 PM, Alexander Duyck wrote:
+On Wed 17-10-18 16:54:08, Alexander Duyck wrote:
 > This change makes it so that we use the same approach that was already in
 > use on Sparc on all the archtectures that support a 64b long.
 > 
@@ -41,11 +39,16 @@ On 10/17/18 7:54 PM, Alexander Duyck wrote:
 > a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
 > results per 64-byte struct page were 4.68ns before, and 4.59ns after this
 > patch.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-
 > 
 > Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+
+I thought I have sent my ack already but haven't obviously.
+
+Acked-by: Michal Hocko <mhocko@suse.com>
+
+Thanks for the updated version. I will try to get to the rest of the
+series soon.
+
 > ---
 >  arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
 >  include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
@@ -146,3 +149,7 @@ Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
 >  #endif
 >  
 > 
+
+-- 
+Michal Hocko
+SUSE Labs
