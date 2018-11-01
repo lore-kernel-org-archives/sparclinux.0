@@ -1,26 +1,38 @@
-From: Hendrik Brueckner <brueckner@linux.ibm.com>
-Date: Tue, 27 Nov 2018 08:19:45 +0000
-Subject: Re: [PATCH v2 15/20] s390: perf/events: advertise PMU exclusion capability
-Message-Id: <20181127081945.GA4817@linux.ibm.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 01 Nov 2018 01:44:18 +0000
+Subject: [GIT] Sparc
+Message-Id: <20181031.184418.1509890447175181068.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
- <1543230756-15319-16-git-send-email-andrew.murray@arm.com>
-In-Reply-To: <1543230756-15319-16-git-send-email-andrew.murray@arm.com>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 11:12:31AM +0000, Andrew Murray wrote:
-> The s390 cpum_cf and cpum_sf PMUs have the capability to exclude
-> events based on context. Let's advertise that we support the
-> PERF_PMU_CAP_EXCLUDE capability to ensure that perf doesn't
-> prevent us from handling events where any exclusion flags are set.
-> 
-> Signed-off-by: Andrew Murray <andrew.murray@arm.com>
-> ---
->  arch/s390/kernel/perf_cpum_cf.c | 1 +
->  arch/s390/kernel/perf_cpum_sf.c | 2 ++
->  2 files changed, 3 insertions(+)
 
-Reviewed-by: Hendrik Brueckner <brueckner@linux.ibm.com>
+Two small fixes, please pull.
+
+Thanks!
+
+The following changes since commit 4b42745211af552f170f38a1b97f4a112b5da6b2:
+
+  Merge tag 'armsoc-soc' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2018-10-29 15:37:33 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 1f2b5b8e2df4591fbca430aff9c5a072dcc0f408:
+
+  sparc64: Wire up compat getpeername and getsockname. (2018-10-31 18:30:21 -0700)
+
+----------------------------------------------------------------
+David S. Miller (2):
+      sparc64: Remvoe set_fs() from perf_callchain_user().
+      sparc64: Wire up compat getpeername and getsockname.
+
+ arch/sparc/kernel/perf_event.c | 5 -----
+ arch/sparc/kernel/systbls_64.S | 4 ++--
+ 2 files changed, 2 insertions(+), 7 deletions(-)
