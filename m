@@ -1,38 +1,20 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Nov 2018 01:44:18 +0000
-Subject: [GIT] Sparc
-Message-Id: <20181031.184418.1509890447175181068.davem@davemloft.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 01 Nov 2018 16:15:09 +0000
+Subject: Re: [GIT] Sparc
+Message-Id: <CAHk-=wibB2urbpfEZnNkEHw4MHNJXdFOc4VC3mk+GWKbeNckRQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20181031.184418.1509890447175181068.davem@davemloft.net>
+In-Reply-To: <20181031.184418.1509890447175181068.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
+On Wed, Oct 31, 2018 at 6:44 PM David Miller <davem@davemloft.net> wrote:
+>
+> Two small fixes, please pull.
 
-Two small fixes, please pull.
+Pulled,
 
-Thanks!
-
-The following changes since commit 4b42745211af552f170f38a1b97f4a112b5da6b2:
-
-  Merge tag 'armsoc-soc' of git://git.kernel.org/pub/scm/linux/kernel/git/arm/arm-soc (2018-10-29 15:37:33 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to 1f2b5b8e2df4591fbca430aff9c5a072dcc0f408:
-
-  sparc64: Wire up compat getpeername and getsockname. (2018-10-31 18:30:21 -0700)
-
-----------------------------------------------------------------
-David S. Miller (2):
-      sparc64: Remvoe set_fs() from perf_callchain_user().
-      sparc64: Wire up compat getpeername and getsockname.
-
- arch/sparc/kernel/perf_event.c | 5 -----
- arch/sparc/kernel/systbls_64.S | 4 ++--
- 2 files changed, 2 insertions(+), 7 deletions(-)
+                    Linus
