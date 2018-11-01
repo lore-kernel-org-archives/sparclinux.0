@@ -1,362 +1,78 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 16 Nov 2018 21:06:56 +0000
-Subject: [PATCH v2 05/10] sparc: prom: use property "name" directly to construct node names
-Message-Id: <20181116210701.22968-6-robh@kernel.org>
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Thu, 01 Nov 2018 13:54:00 +0000
+Subject: [PATCH v2 2/4] sparc: add __NR_syscalls along with NR_syscalls
+Message-Id: <1541080391-3890-3-git-send-email-firoz.khan@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
+In-Reply-To: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
 
-In preparation to remove direct accesses to the device_node.name
-pointer, retrieve the node name from the "name" property instead. This
-is slightly less optimal as we have to walk the kernel's DT property
-list to find the "name" property.
+NR_syscalls macro holds the number of system call exist
+in sparc architecture. We have to change the value of NR-
+_syscalls, if we add or delete a system call.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
+One of the patch in this patch series has a script which
+will generate a uapi header based on syscall.tbl file.
+The syscall.tbl file contains the total number of system
+calls information. So we have two option to update NR_sy-
+scalls value.
+
+1. Update NR_syscalls in asm/unistd.h manually by count-
+   ing the no.of system calls. No need to update NR_sys-
+   calls until we either add a new system call or delete
+   existing system call.
+
+2. We can keep this feature it above mentioned script,
+   that will count the number of syscalls and keep it in
+   a generated file. In this case we don't need to expli-
+   citly update NR_syscalls in asm/unistd.h file.
+
+The 2nd option will be the recommended one. For that, I
+added the __NR_syscalls macro in uapi/asm/unistd.h along
+with NR_syscalls asm/unistd.h. The macro __NR_syscalls
+also added for making the name convention same across all
+architecture. While __NR_syscalls isn't strictly part of
+the uapi, having it as part of the generated header to
+simplifies the implementation. We also need to enclose
+this macro with #ifdef __KERNEL__ to avoid side effects.
+
+Signed-off-by: Firoz Khan <firoz.khan@linaro.org>
 ---
-v2:
-- Clarify this change just adds walking the property list instead of 
-using the name pointer directly.
+ arch/sparc/include/asm/unistd.h      | 2 ++
+ arch/sparc/include/uapi/asm/unistd.h | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
- arch/sparc/kernel/prom_32.c | 20 ++++++++++------
- arch/sparc/kernel/prom_64.c | 47 +++++++++++++++++++++++--------------
- 2 files changed, 42 insertions(+), 25 deletions(-)
-
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index daa84b2461d3..f2835cddf362 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -60,6 +60,7 @@ void * __init prom_early_alloc(unsigned long size)
-  */
- static void __init sparc32_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_registers *regs;
- 	struct property *rprop;
+diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
+index 6dfd752..171a6e5 100644
+--- a/arch/sparc/include/asm/unistd.h
++++ b/arch/sparc/include/asm/unistd.h
+@@ -17,6 +17,8 @@
  
-@@ -69,13 +70,14 @@ static void __init sparc32_path_component(struct device_node *dp, char *tmp_buf)
+ #include <uapi/asm/unistd.h>
  
- 	regs = rprop->value;
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		regs->which_io, regs->phys_addr);
- }
++#define NR_syscalls	__NR_syscalls
++
+ #ifdef __32bit_syscall_numbers__
+ #else
+ #define __NR_time		231 /* Linux sparc32                               */
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 6e59037..e11d86c 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -428,7 +428,9 @@
+ #define __NR_pwritev2		359
+ #define __NR_statx		360
  
- /* "name@slot,offset"  */
- static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_registers *regs;
- 	struct property *prop;
+-#define NR_syscalls		361
++#ifdef __KERNEL__
++#define __NR_syscalls		361
++#endif
  
-@@ -85,7 +87,7 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- 
- 	regs = prop->value;
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		regs->which_io,
- 		regs->phys_addr);
- }
-@@ -93,6 +95,7 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@devnum[,func]" */
- static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_pci_registers *regs;
- 	struct property *prop;
- 	unsigned int devfn;
-@@ -105,12 +108,12 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- 	devfn = (regs->phys_hi >> 8) & 0xff;
- 	if (devfn & 0x07) {
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name,
-+			name,
- 			devfn >> 3,
- 			devfn & 0x07);
- 	} else {
- 		sprintf(tmp_buf, "%s@%x",
--			dp->name,
-+			name,
- 			devfn >> 3);
- 	}
- }
-@@ -118,6 +121,7 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@addrhi,addrlo" */
- static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_registers *regs;
- 	struct property *prop;
- 
-@@ -128,13 +132,14 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
- 	regs = prop->value;
- 
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		regs->which_io, regs->phys_addr);
- }
- 
- /* "name:vendor:device@irq,addrlo" */
- static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct amba_prom_registers *regs;
- 	unsigned int *intr, *device, *vendor, reg0;
- 	struct property *prop;
-@@ -168,7 +173,7 @@ static void __init ambapp_path_component(struct device_node *dp, char *tmp_buf)
- 	device = prop->value;
- 
- 	sprintf(tmp_buf, "%s:%d:%d@%x,%x",
--		dp->name, *vendor, *device,
-+		name, *vendor, *device,
- 		*intr, reg0);
- }
- 
-@@ -196,12 +201,13 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
- 
- char * __init build_path_component(struct device_node *dp)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	char tmp_buf[64], *n;
- 
- 	tmp_buf[0] = '\0';
- 	__build_path_component(dp, tmp_buf);
- 	if (tmp_buf[0] = '\0')
--		strcpy(tmp_buf, dp->name);
-+		strcpy(tmp_buf, name);
- 
- 	n = prom_early_alloc(strlen(tmp_buf) + 1);
- 	strcpy(n, tmp_buf);
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index c37955d127fe..1667df573f6f 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -72,6 +72,7 @@ void * __init prom_early_alloc(unsigned long size)
-  */
- static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom64_registers *regs;
- 	struct property *rprop;
- 	u32 high_bits, low_bits, type;
-@@ -83,7 +84,7 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
- 	regs = rprop->value;
- 	if (!of_node_is_root(dp->parent)) {
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name,
-+			name,
- 			(unsigned int) (regs->phys_addr >> 32UL),
- 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
- 		return;
-@@ -98,21 +99,22 @@ static void __init sun4v_path_component(struct device_node *dp, char *tmp_buf)
- 
- 		if (low_bits)
- 			sprintf(tmp_buf, "%s@%s%x,%x",
--				dp->name, prefix,
-+				name, prefix,
- 				high_bits, low_bits);
- 		else
- 			sprintf(tmp_buf, "%s@%s%x",
--				dp->name,
-+				name,
- 				prefix,
- 				high_bits);
- 	} else if (type = 12) {
- 		sprintf(tmp_buf, "%s@%x",
--			dp->name, high_bits);
-+			name, high_bits);
- 	}
- }
- 
- static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom64_registers *regs;
- 	struct property *prop;
- 
-@@ -123,7 +125,7 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
- 	regs = prop->value;
- 	if (!of_node_is_root(dp->parent)) {
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name,
-+			name,
- 			(unsigned int) (regs->phys_addr >> 32UL),
- 			(unsigned int) (regs->phys_addr & 0xffffffffUL));
- 		return;
-@@ -139,7 +141,7 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
- 			mask = 0x7fffff;
- 
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name,
-+			name,
- 			*(u32 *)prop->value,
- 			(unsigned int) (regs->phys_addr & mask));
- 	}
-@@ -148,6 +150,7 @@ static void __init sun4u_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@slot,offset"  */
- static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_registers *regs;
- 	struct property *prop;
- 
-@@ -157,7 +160,7 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- 
- 	regs = prop->value;
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		regs->which_io,
- 		regs->phys_addr);
- }
-@@ -165,6 +168,7 @@ static void __init sbus_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@devnum[,func]" */
- static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom_pci_registers *regs;
- 	struct property *prop;
- 	unsigned int devfn;
-@@ -177,12 +181,12 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- 	devfn = (regs->phys_hi >> 8) & 0xff;
- 	if (devfn & 0x07) {
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name,
-+			name,
- 			devfn >> 3,
- 			devfn & 0x07);
- 	} else {
- 		sprintf(tmp_buf, "%s@%x",
--			dp->name,
-+			name,
- 			devfn >> 3);
- 	}
- }
-@@ -190,6 +194,7 @@ static void __init pci_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@UPA_PORTID,offset" */
- static void __init upa_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom64_registers *regs;
- 	struct property *prop;
- 
-@@ -204,7 +209,7 @@ static void __init upa_path_component(struct device_node *dp, char *tmp_buf)
- 		return;
- 
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		*(u32 *) prop->value,
- 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
- }
-@@ -212,6 +217,7 @@ static void __init upa_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@reg" */
- static void __init vdev_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct property *prop;
- 	u32 *regs;
- 
-@@ -221,12 +227,13 @@ static void __init vdev_path_component(struct device_node *dp, char *tmp_buf)
- 
- 	regs = prop->value;
- 
--	sprintf(tmp_buf, "%s@%x", dp->name, *regs);
-+	sprintf(tmp_buf, "%s@%x", name, *regs);
- }
- 
- /* "name@addrhi,addrlo" */
- static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct linux_prom64_registers *regs;
- 	struct property *prop;
- 
-@@ -237,7 +244,7 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
- 	regs = prop->value;
- 
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name,
-+		name,
- 		(unsigned int) (regs->phys_addr >> 32UL),
- 		(unsigned int) (regs->phys_addr & 0xffffffffUL));
- }
-@@ -245,6 +252,7 @@ static void __init ebus_path_component(struct device_node *dp, char *tmp_buf)
- /* "name@bus,addr" */
- static void __init i2c_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct property *prop;
- 	u32 *regs;
- 
-@@ -258,12 +266,13 @@ static void __init i2c_path_component(struct device_node *dp, char *tmp_buf)
- 	 * property of the i2c bus node etc. etc.
- 	 */
- 	sprintf(tmp_buf, "%s@%x,%x",
--		dp->name, regs[0], regs[1]);
-+		name, regs[0], regs[1]);
- }
- 
- /* "name@reg0[,reg1]" */
- static void __init usb_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct property *prop;
- 	u32 *regs;
- 
-@@ -275,16 +284,17 @@ static void __init usb_path_component(struct device_node *dp, char *tmp_buf)
- 
- 	if (prop->length = sizeof(u32) || regs[1] = 1) {
- 		sprintf(tmp_buf, "%s@%x",
--			dp->name, regs[0]);
-+			name, regs[0]);
- 	} else {
- 		sprintf(tmp_buf, "%s@%x,%x",
--			dp->name, regs[0], regs[1]);
-+			name, regs[0], regs[1]);
- 	}
- }
- 
- /* "name@reg0reg1[,reg2reg3]" */
- static void __init ieee1394_path_component(struct device_node *dp, char *tmp_buf)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	struct property *prop;
- 	u32 *regs;
- 
-@@ -296,10 +306,10 @@ static void __init ieee1394_path_component(struct device_node *dp, char *tmp_buf
- 
- 	if (regs[2] || regs[3]) {
- 		sprintf(tmp_buf, "%s@%08x%08x,%04x%08x",
--			dp->name, regs[0], regs[1], regs[2], regs[3]);
-+			name, regs[0], regs[1], regs[2], regs[3]);
- 	} else {
- 		sprintf(tmp_buf, "%s@%08x%08x",
--			dp->name, regs[0], regs[1]);
-+			name, regs[0], regs[1]);
- 	}
- }
- 
-@@ -356,12 +366,13 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
- 
- char * __init build_path_component(struct device_node *dp)
- {
-+	const char *name = of_get_property(dp, "name", NULL);
- 	char tmp_buf[64], *n;
- 
- 	tmp_buf[0] = '\0';
- 	__build_path_component(dp, tmp_buf);
- 	if (tmp_buf[0] = '\0')
--		strcpy(tmp_buf, dp->name);
-+		strcpy(tmp_buf, name);
- 
- 	n = prom_early_alloc(strlen(tmp_buf) + 1);
- 	strcpy(n, tmp_buf);
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
 -- 
-2.19.1
+1.9.1
