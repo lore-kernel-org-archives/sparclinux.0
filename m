@@ -1,144 +1,83 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Sat, 24 Nov 2018 02:20:27 +0000
-Subject: [PATCH 0/8] net: y2038-safe socket timestamps
-Message-Id: <20181124022035.17519-1-deepa.kernel@gmail.com>
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Thu, 01 Nov 2018 13:53:54 +0000
+Subject: [PATCH v2 1/4] sparc: move __IGNORE* entries to non uapi header
+Message-Id: <1541080391-3890-2-git-send-email-firoz.khan@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
+In-Reply-To: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, viro@zeniv.linux.org.uk, arnd@arndb.de, y2038@lists.linaro.org, chris@zankel.net, fenghua.yu@intel.com, tglx@linutronix.de, schwidefsky@de.ibm.com, linux-ia64@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-s390@vger.kernel.org, deller@gmx.de, dhowells@redhat.com, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org, isdn@linux-pingi.de, ubraun@linux.ibm.com
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
 
-The series introduces new socket timestamps that are
-y2038 safe.
+All the __IGNORE* entries are resides in the uapi header
+file move to non uapi header asm/unistd.h as it is not
+used by any user space applications.
 
-The time data types used for the existing socket timestamp
-options: SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING
-are not y2038 safe. The series introduces SO_TIMESTAMP_NEW,
-SO_TIMESTAMPNS_NEW and SO_TIMESTAMPING_NEW to replace these.
-These new timestamps can be used on all architectures.
+It is correct to keep __IGNORE* entry in non uapi header
+asm/unistd.h while uapi/asm/unistd.h must hold information
+only useful for user space applications.
 
-The alternative considered was to extend the sys_setsockopt()
-by using the flags. We did not receive any strong opinions about
-either of the approaches. Hence, this was chosen, as glibc folks
-preferred this.
+One of the patch in this patch series will generate uapi
+header file. The information which directly used by the
+user space application must be present in uapi file.
 
-The series does not deal with updating the internal kernel socket
-calls like rxrpc to make them y2038 safe. This will be dealt
-with separately.
+Signed-off-by: Firoz Khan <firoz.khan@linaro.org>
+---
+ arch/sparc/include/asm/unistd.h      | 16 ++++++++++++++++
+ arch/sparc/include/uapi/asm/unistd.h | 16 ----------------
+ 2 files changed, 16 insertions(+), 16 deletions(-)
 
-Note that the timestamps behavior already does not match the
-man page specific behavior:
-SIOCGSTAMP
-    This ioctl should only be used if the socket option SO_TIMESTAMP
-	is not set on the socket. Otherwise, it returns the timestamp of
-	the last packet that was received while SO_TIMESTAMP was not set,
-	or it fails if no such packet has been received,
-	(i.e., ioctl(2) returns -1 with errno set to ENOENT).
-	
-The recommendation is to update the man page to remove the above statement.
-
-The overview of the series is as below:
-1. Delete asm specific socket.h when possible.
-2. Support SO/SCM_TIMESTAMP* options only in userspace.
-3. Rename current SO/SCM_TIMESTAMP* to SO/SCM_TIMESTAMP*_OLD.
-3. Alter socket options so that SOCK_RCVTSTAMPNS does
-   not rely on SOCK_RCVTSTAMP.
-4. Introduce y2038 safe types for socket timestamp.
-5. Introduce new y2038 safe socket options SO/SCM_TIMESTAMP*_NEW.
-
-Deepa Dinamani (8):
-  arch: Use asm-generic/socket.h when possible
-  sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
-  socket: Disentangle SOCK_RCVTSTAMPNS from SOCK_RCVTSTAMP
-  arch: sparc: Override struct __kernel_old_timeval
-  socket: Use old_timeval types for socket timestamps
-  socket: Add struct sock_timeval
-  socket: Add SO_TIMESTAMP[NS]_NEW
-  socket: Add SO_TIMESTAMPING_NEW
-
- arch/alpha/include/uapi/asm/socket.h      |  35 ++++--
- arch/ia64/include/uapi/asm/Kbuild         |   1 +
- arch/ia64/include/uapi/asm/socket.h       | 120 ------------------
- arch/mips/include/uapi/asm/socket.h       |  34 ++++--
- arch/parisc/include/uapi/asm/socket.h     |  34 ++++--
- arch/s390/include/uapi/asm/Kbuild         |   1 +
- arch/s390/include/uapi/asm/socket.h       | 117 ------------------
- arch/sparc/include/uapi/asm/posix_types.h |  10 ++
- arch/sparc/include/uapi/asm/socket.h      |  36 ++++--
- arch/x86/include/uapi/asm/Kbuild          |   1 +
- arch/x86/include/uapi/asm/socket.h        |   1 -
- arch/xtensa/include/asm/Kbuild            |   1 +
- arch/xtensa/include/uapi/asm/Kbuild       |   1 +
- arch/xtensa/include/uapi/asm/socket.h     | 122 -------------------
- drivers/isdn/mISDN/socket.c               |   2 +-
- include/linux/skbuff.h                    |  24 +++-
- include/linux/socket.h                    |   7 ++
- include/net/sock.h                        |   5 +-
- include/uapi/asm-generic/socket.h         |  35 ++++--
- include/uapi/linux/errqueue.h             |   4 +
- include/uapi/linux/time.h                 |   7 ++
- net/bluetooth/hci_sock.c                  |   4 +-
- net/compat.c                              |  12 +-
- net/core/scm.c                            |  27 ++++
- net/core/sock.c                           | 142 ++++++++++++++--------
- net/ipv4/tcp.c                            |  82 ++++++++-----
- net/rds/af_rds.c                          |  10 +-
- net/rds/recv.c                            |  18 ++-
- net/rxrpc/local_object.c                  |   2 +-
- net/smc/af_smc.c                          |   3 +-
- net/socket.c                              |  68 +++++++----
- net/unix/af_unix.c                        |   4 +-
- 32 files changed, 449 insertions(+), 521 deletions(-)
- delete mode 100644 arch/ia64/include/uapi/asm/socket.h
- delete mode 100644 arch/s390/include/uapi/asm/socket.h
- delete mode 100644 arch/x86/include/uapi/asm/socket.h
- delete mode 100644 arch/xtensa/include/uapi/asm/socket.h
-
-
-base-commit: b124b524bc97868cc2b5656e6ffa21a9b752b7e0
+diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
+index b2a6a95..6dfd752 100644
+--- a/arch/sparc/include/asm/unistd.h
++++ b/arch/sparc/include/asm/unistd.h
+@@ -45,4 +45,20 @@
+ #define __ARCH_WANT_COMPAT_SYS_SENDFILE
+ #endif
+ 
++#ifdef __32bit_syscall_numbers__
++/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
++ * it never had the plain ones and there is no value to adding those
++ * old versions into the syscall table.
++ */
++#define __IGNORE_setresuid
++#define __IGNORE_getresuid
++#define __IGNORE_setresgid
++#define __IGNORE_getresgid
++#endif
++
++/* Sparc doesn't have protection keys. */
++#define __IGNORE_pkey_mprotect
++#define __IGNORE_pkey_alloc
++#define __IGNORE_pkey_free
++
+ #endif /* _SPARC_UNISTD_H */
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index 09acf0d..6e59037 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -433,20 +433,4 @@
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+ 
+-#ifdef __32bit_syscall_numbers__
+-/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
+- * it never had the plain ones and there is no value to adding those
+- * old versions into the syscall table.
+- */
+-#define __IGNORE_setresuid
+-#define __IGNORE_getresuid
+-#define __IGNORE_setresgid
+-#define __IGNORE_getresgid
+-#endif
+-
+-/* Sparc doesn't have protection keys. */
+-#define __IGNORE_pkey_mprotect
+-#define __IGNORE_pkey_alloc
+-#define __IGNORE_pkey_free
+-
+ #endif /* _UAPI_SPARC_UNISTD_H */
 -- 
-2.17.1
-
-Cc: chris@zankel.net
-Cc: fenghua.yu@intel.com
-Cc: tglx@linutronix.de
-Cc: schwidefsky@de.ibm.com
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-s390@vger.kernel.org
-Cc: deller@gmx.de
-Cc: dhowells@redhat.com
-Cc: jejb@parisc-linux.org
-Cc: ralf@linux-mips.org
-Cc: rth@twiddle.net
-Cc: linux-afs@lists.infradead.org
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: isdn@linux-pingi.de
-Cc: jejb@parisc-linux.org
-Cc: ralf@linux-mips.org
-Cc: rth@twiddle.net
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: chris@zankel.net
-Cc: fenghua.yu@intel.com
-Cc: rth@twiddle.net
-Cc: tglx@linutronix.de
-Cc: ubraun@linux.ibm.com
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: sparclinux@vger.kernel.org
+1.9.1
