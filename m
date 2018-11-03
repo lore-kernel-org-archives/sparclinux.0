@@ -1,142 +1,27 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Mon, 05 Nov 2018 21:19:30 +0000
-Subject: [mm PATCH v5 1/7] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-Message-Id: <154145277052.30046.9861512989491054994.stgit@ahduyck-desk1.jf.intel.com>
+From: "Dr Kannan" <sale@allta.com.ua>
+Date: Sat, 03 Nov 2018 16:26:14 +0000
+Subject: Update
+Message-Id: <20181103162602.D02261803C5@mail.allta.com.ua>
 List-Id: <sparclinux.vger.kernel.org>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net@linux.intel.com
+To: sparclinux@vger.kernel.org
 
-This change makes it so that we use the same approach that was already in
-use on Sparc on all the archtectures that support a 64b long.
+Hello dear
 
-This is mostly motivated by the fact that 7 to 10 store/move instructions
-are likely always going to be faster than having to call into a function
-that is not specialized for handling page init.
+Greetings to you,I am Dr.Kannan, a personal account manager to Late Engr. Richard Hernandez, who died with his family in the missing Malaysian Air crash
 
-An added advantage to doing it this way is that the compiler can get away
-with combining writes in the __init_single_page call. As a result the
-memset call will be reduced to only about 4 write operations, or at least
-that is what I am seeing with GCC 6.2 as the flags, LRU poitners, and
-count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
-my system.
+of 2014. His account with us is in intestate with no claim his fixed deposit of U$D 7 Million.
 
-One change I had to make to the function was to reduce the minimum page
-size to 56 to support some powerpc64 configurations.
+I have been mandated by the Bank Management as his personal account officer, to present his relative or next of kin.
 
-This change should introduce no change on SPARC since it already had this
-code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
-initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
-Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
-takes 19.30ns / 64-byte struct page before this patch and with this patch
-it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
-a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
-results per 64-byte struct page were 4.68ns before, and 4.59ns after this
-patch.
+I have searched through notary register of his country here all to no avail, so I wish to present you to the Bank as his only relative and next of kin.
 
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
- include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
- 2 files changed, 38 insertions(+), 33 deletions(-)
+kindly contact me for more details, terms and condition shall be clarified upon your response. There is no risk whatsoever to this transaction as I have all papers and documents to pose of you the inheritance to this. 
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..22500c3be7a9 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -231,36 +231,6 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
- 
--/* This macro must be updated when the size of struct page grows above 80
-- * or reduces below 64.
-- * The idea that compiler optimizes out switch() statement, and only
-- * leaves clrx instructions
-- */
--#define	mm_zero_struct_page(pp) do {					\
--	unsigned long *_pp = (void *)(pp);				\
--									\
--	 /* Check that struct page is either 64, 72, or 80 bytes */	\
--	BUILD_BUG_ON(sizeof(struct page) & 7);				\
--	BUILD_BUG_ON(sizeof(struct page) < 64);				\
--	BUILD_BUG_ON(sizeof(struct page) > 80);				\
--									\
--	switch (sizeof(struct page)) {					\
--	case 80:							\
--		_pp[9] = 0;	/* fallthrough */			\
--	case 72:							\
--		_pp[8] = 0;	/* fallthrough */			\
--	default:							\
--		_pp[7] = 0;						\
--		_pp[6] = 0;						\
--		_pp[5] = 0;						\
--		_pp[4] = 0;						\
--		_pp[3] = 0;						\
--		_pp[2] = 0;						\
--		_pp[1] = 0;						\
--		_pp[0] = 0;						\
--	}								\
--} while (0)
--
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 5411de93a363..288c407c08fc 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -98,10 +98,45 @@ extern int mmap_rnd_compat_bits __read_mostly;
- 
- /*
-  * On some architectures it is expensive to call memset() for small sizes.
-- * Those architectures should provide their own implementation of "struct page"
-- * zeroing by defining this macro in <asm/pgtable.h>.
-+ * If an architecture decides to implement their own version of
-+ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
-+ * define their own version of this macro in <asm/pgtable.h>
-  */
--#ifndef mm_zero_struct_page
-+#if BITS_PER_LONG = 64
-+/* This function must be updated when the size of struct page grows above 80
-+ * or reduces below 56. The idea that compiler optimizes out switch()
-+ * statement, and only leaves move/store instructions. Also the compiler can
-+ * combine write statments if they are both assignments and can be reordered,
-+ * this can result in several of the writes here being dropped.
-+ */
-+#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
-+static inline void __mm_zero_struct_page(struct page *page)
-+{
-+	unsigned long *_pp = (void *)page;
-+
-+	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
-+	BUILD_BUG_ON(sizeof(struct page) & 7);
-+	BUILD_BUG_ON(sizeof(struct page) < 56);
-+	BUILD_BUG_ON(sizeof(struct page) > 80);
-+
-+	switch (sizeof(struct page)) {
-+	case 80:
-+		_pp[9] = 0;	/* fallthrough */
-+	case 72:
-+		_pp[8] = 0;	/* fallthrough */
-+	case 64:
-+		_pp[7] = 0;	/* fallthrough */
-+	case 56:
-+		_pp[6] = 0;
-+		_pp[5] = 0;
-+		_pp[4] = 0;
-+		_pp[3] = 0;
-+		_pp[2] = 0;
-+		_pp[1] = 0;
-+		_pp[0] = 0;
-+	}
-+}
-+#else
- #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
- #endif
- 
+I wait for your prompt response.
+
+My regards,
+
+Dr. Kannan.
