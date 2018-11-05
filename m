@@ -1,42 +1,67 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date: Fri, 30 Nov 2018 23:33:57 +0000
-Subject: Re: [PATCH 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
-Message-Id: <CAF=yD-+DNdGpitd9TABeHjnBFRPcrN4E-AcQNmGMD-Lt9th7mw@mail.gmail.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Mon, 05 Nov 2018 21:19:25 +0000
+Subject: [mm PATCH v5 0/7] Deferred page init improvements
+Message-Id: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-3-deepa.kernel@gmail.com> <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
- <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
-In-Reply-To: <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, David Howells <dhowells@redhat.com>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net@linux.intel.com
 
-On Fri, Nov 30, 2018 at 5:38 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> On Sat, Nov 24, 2018 at 7:59 PM Willem de Bruijn
-> <willemdebruijn.kernel@gmail.com> wrote:
-> >
-> > On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> > >
-> > > SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
-> > > way they are currently defined, are not y2038 safe.
-> > > Subsequent patches in the series add new y2038 safe versions
-> > > of these options which provide 64 bit timestamps on all
-> > > architectures uniformly.
-> > > Hence, rename existing options with OLD tag suffixes.
-> >
-> > Why do the existing interfaces have to be renamed when new interfaces are added?
->
-> Existing options need to be renamed because of the macro below:
->
-> #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? \
->             SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
->
-> SO_TIMESTAMP is now dependent on size of time_t because of the libc flag.
+This patchset is essentially a refactor of the page initialization logic
+that is meant to provide for better code reuse while providing a
+significant improvement in deferred page initialization performance.
 
-Yes, I understand the mechanism based on libc's definition of time_t
-after Arnd's explanation. Please do capture that in the commit
-message, for possible future readers who stumble upon the code with
-git blame.
+In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
+memory per node I have seen the following. In the case of regular memory
+initialization the deferred init time was decreased from 3.75s to 1.06s on
+average. For the persistent memory the initialization time dropped from
+24.17s to 19.12s on average. This amounts to a 253% improvement for the
+deferred memory initialization performance, and a 26% improvement in the
+persistent memory initialization performance.
+
+I have called out the improvement observed with each patch.
+
+v1->v2:
+    Fixed build issue on PowerPC due to page struct size being 56
+    Added new patch that removed __SetPageReserved call for hotplug
+v2->v3:
+    Rebased on latest linux-next
+    Removed patch that had removed __SetPageReserved call from init
+    Added patch that folded __SetPageReserved into set_page_links
+    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
+v3->v4:
+    Updated patch description and comments for mm_zero_struct_page patch
+        Replaced "default" with "case 64"
+        Removed #ifndef mm_zero_struct_page
+    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
+    Added Reviewed-by for patches reviewed by Pavel
+    Added Acked-by from Michal Hocko
+    Added deferred init times for patches that affect init performance
+    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
+v4->v5:
+    Updated Acks/Reviewed-by
+    Rebased on latest linux-next
+    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
+
+---
+
+Alexander Duyck (7):
+      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+      mm: Drop meminit_pfn_in_nid as it is redundant
+      mm: Implement new zone specific memblock iterator
+      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
+      mm: Move hot-plug specific memory init into separate functions and optimize
+      mm: Add reserved flag setting to set_page_links
+      mm: Use common iterator for deferred_init_pages and deferred_free_pages
+
+
+ arch/sparc/include/asm/pgtable_64.h |   30 --
+ include/linux/memblock.h            |   38 ++
+ include/linux/mm.h                  |   50 +++
+ mm/memblock.c                       |   63 ++++
+ mm/page_alloc.c                     |  567 +++++++++++++++++++++--------------
+ 5 files changed, 492 insertions(+), 256 deletions(-)
+
+--
