@@ -1,236 +1,273 @@
-From: Douglas Anderson <dianders@chromium.org>
-Date: Wed, 07 Nov 2018 01:00:25 +0000
-Subject: [PATCH v3 1/4] kgdb: Remove irq flags from roundup
-Message-Id: <20181107010028.184543-2-dianders@chromium.org>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 07 Nov 2018 22:31:51 +0000
+Subject: [PATCH 8/8] sparc: Use device_type helpers to access the node type
+Message-Id: <20181107223151.14991-9-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181107010028.184543-1-dianders@chromium.org>
-In-Reply-To: <20181107010028.184543-1-dianders@chromium.org>
+References: <20181107223151.14991-1-robh@kernel.org>
+In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-The function kgdb_roundup_cpus() was passed a parameter that was
-documented as:
+Remove directly accessing device_node.type pointer and use the accessors
+instead. This will eventually allow removing the type pointer.
 
-> the flags that will be used when restoring the interrupts. There is
-> local_irq_save() call before kgdb_roundup_cpus().
+Replace the open coded iterating over child nodes with
+for_each_child_of_node() while we're here.
 
-Nobody used those flags.  Anyone who wanted to temporarily turn on
-interrupts just did local_irq_enable() and local_irq_disable() without
-looking at them.  So we can definitely remove the flags.
-
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
 ---
+ arch/sparc/kernel/of_device_32.c  |  4 ++--
+ arch/sparc/kernel/pci.c           |  9 ++-------
+ arch/sparc/kernel/process_32.c    |  2 +-
+ arch/sparc/kernel/prom_32.c       | 20 +++++++-------------
+ arch/sparc/kernel/prom_64.c       | 24 +++++++++---------------
+ arch/sparc/kernel/prom_irqtrans.c |  2 +-
+ arch/sparc/kernel/reboot.c        |  3 ++-
+ arch/sparc/kernel/vio.c           |  7 ++-----
+ 8 files changed, 26 insertions(+), 45 deletions(-)
 
-Changes in v3: None
-Changes in v2:
-- Removing irq flags separated from fixing lockdep splat.
-
- arch/arc/kernel/kgdb.c     | 2 +-
- arch/arm/kernel/kgdb.c     | 2 +-
- arch/arm64/kernel/kgdb.c   | 2 +-
- arch/hexagon/kernel/kgdb.c | 9 ++-------
- arch/mips/kernel/kgdb.c    | 2 +-
- arch/powerpc/kernel/kgdb.c | 2 +-
- arch/sh/kernel/kgdb.c      | 2 +-
- arch/sparc/kernel/smp_64.c | 2 +-
- arch/x86/kernel/kgdb.c     | 9 ++-------
- include/linux/kgdb.h       | 9 ++-------
- kernel/debug/debug_core.c  | 2 +-
- 11 files changed, 14 insertions(+), 29 deletions(-)
-
-diff --git a/arch/arc/kernel/kgdb.c b/arch/arc/kernel/kgdb.c
-index 9a3c34af2ae8..0932851028e0 100644
---- a/arch/arc/kernel/kgdb.c
-+++ b/arch/arc/kernel/kgdb.c
-@@ -197,7 +197,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), NULL);
- }
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index dc5b1b0ec659..ee4841a96058 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -22,7 +22,7 @@
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
+ static int of_bus_pci_match(struct device_node *np)
  {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm/kernel/kgdb.c b/arch/arm/kernel/kgdb.c
-index caa0dbe3dc61..f21077b077be 100644
---- a/arch/arm/kernel/kgdb.c
-+++ b/arch/arm/kernel/kgdb.c
-@@ -175,7 +175,7 @@ static void kgdb_call_nmi_hook(void *ignored)
-        kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
+-	if (!strcmp(np->type, "pci") || !strcmp(np->type, "pciex")) {
++	if (of_node_is_type(np, "pci") || of_node_is_type(np, "pciex")) {
+ 		/* Do not do PCI specific frobbing if the
+ 		 * PCI bridge lacks a ranges property.  We
+ 		 * want to pass it through up to the next
+@@ -107,7 +107,7 @@ static unsigned long of_bus_sbus_get_flags(const u32 *addr, unsigned long flags)
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
+ static int of_bus_ambapp_match(struct device_node *np)
  {
-        local_irq_enable();
-        smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm64/kernel/kgdb.c b/arch/arm64/kernel/kgdb.c
-index a20de58061a8..12c339ff6e75 100644
---- a/arch/arm64/kernel/kgdb.c
-+++ b/arch/arm64/kernel/kgdb.c
-@@ -289,7 +289,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
+-	return !strcmp(np->type, "ambapp");
++	return of_node_is_type(np, "ambapp");
  }
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
+ static void of_bus_ambapp_count_cells(struct device_node *child,
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 377113ae9a6a..bcfec6a85d23 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -267,7 +267,6 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	struct dev_archdata *sd;
+ 	struct platform_device *op;
+ 	struct pci_dev *dev;
+-	const char *type;
+ 	u32 class;
+ 
+ 	dev = pci_alloc_dev(bus);
+@@ -286,13 +285,9 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	if (of_node_name_eq(node, "ebus"))
+ 		of_propagate_archdata(op);
+ 
+-	type = of_get_property(node, "device_type", NULL);
+-	if (type = NULL)
+-		type = "";
+-
+ 	if (ofpci_verbose)
+ 		pci_info(bus,"    create device, devfn: %x, type: %s\n",
+-			 devfn, type);
++			 devfn, of_node_get_device_type(node));
+ 
+ 	dev->sysdata = node;
+ 	dev->dev.parent = bus->bridge;
+@@ -340,7 +335,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 		/* a PCI-PCI bridge */
+ 		dev->hdr_type = PCI_HEADER_TYPE_BRIDGE;
+ 		dev->rom_base_reg = PCI_ROM_ADDRESS1;
+-	} else if (!strcmp(type, "cardbus")) {
++	} else if (of_node_is_type(node, "cardbus")) {
+ 		dev->hdr_type = PCI_HEADER_TYPE_CARDBUS;
+ 	} else {
+ 		dev->hdr_type = PCI_HEADER_TYPE_NORMAL;
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index d9662cf7e648..26cca65e9246 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -110,7 +110,7 @@ void machine_restart(char * cmd)
+ void machine_power_off(void)
  {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/hexagon/kernel/kgdb.c b/arch/hexagon/kernel/kgdb.c
-index 16c24b22d0b2..012e0e230ac2 100644
---- a/arch/hexagon/kernel/kgdb.c
-+++ b/arch/hexagon/kernel/kgdb.c
-@@ -119,17 +119,12 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
+ 	if (auxio_power_register &&
+-	    (strcmp(of_console_device->type, "serial") || scons_pwroff)) {
++	    (!of_node_is_type(of_console_device, "serial") || scons_pwroff)) {
+ 		u8 power_register = sbus_readb(auxio_power_register);
+ 		power_register |= AUXIO_POWER_OFF;
+ 		sbus_writeb(power_register, auxio_power_register);
+diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
+index f2835cddf362..42d7f2a7da6d 100644
+--- a/arch/sparc/kernel/prom_32.c
++++ b/arch/sparc/kernel/prom_32.c
+@@ -182,14 +182,14 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
+ 	struct device_node *parent = dp->parent;
  
- /**
-  * kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- * @flags: Current IRQ state
-  *
-  * On SMP systems, we need to get the attention of the other CPUs
-  * and get them be in a known state.  This should do what is needed
-  * to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  * the NMI approach is not used for rounding up all the CPUs. For example,
-- * in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- * this case, we have to make sure that interrupts are enabled before
-- * calling smp_call_function(). The argument to this function is
-- * the flags that will be used when restoring the interrupts. There is
-- * local_irq_save() call before kgdb_roundup_cpus().
-+ * in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  * On non-SMP systems, this is not called.
-  */
-@@ -139,7 +134,7 @@ static void hexagon_kgdb_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
+ 	if (parent != NULL) {
+-		if (!strcmp(parent->type, "pci") ||
+-		    !strcmp(parent->type, "pciex"))
++		if (of_node_is_type(parent, "pci") ||
++		    of_node_is_type(parent, "pciex"))
+ 			return pci_path_component(dp, tmp_buf);
+-		if (!strcmp(parent->type, "sbus"))
++		if (of_node_is_type(parent, "sbus"))
+ 			return sbus_path_component(dp, tmp_buf);
+-		if (!strcmp(parent->type, "ebus"))
++		if (of_node_is_type(parent, "ebus"))
+ 			return ebus_path_component(dp, tmp_buf);
+-		if (!strcmp(parent->type, "ambapp"))
++		if (of_node_is_type(parent, "ambapp"))
+ 			return ambapp_path_component(dp, tmp_buf);
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
+ 		/* "isa" is handled with platform naming */
+@@ -284,15 +284,9 @@ void __init of_console_init(void)
+ 			prom_halt();
+ 		}
+ 		dp = of_find_node_by_phandle(node);
+-		type = of_get_property(dp, "device_type", NULL);
+ 
+-		if (!type) {
+-			prom_printf("Console stdout lacks "
+-				    "device_type property.\n");
+-			prom_halt();
+-		}
+-
+-		if (strcmp(type, "display") && strcmp(type, "serial")) {
++		if (!of_node_is_type(dp, "display") &&
++		    !of_node_is_type(dp, "serial")) {
+ 			prom_printf("Console device_type is neither display "
+ 				    "nor serial.\n");
+ 			prom_halt();
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 17860d6ed1bd..e897a4ded3a1 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -318,20 +318,20 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
+ 	struct device_node *parent = dp->parent;
+ 
+ 	if (parent != NULL) {
+-		if (!strcmp(parent->type, "pci") ||
+-		    !strcmp(parent->type, "pciex")) {
++		if (of_node_is_type(parent, "pci") ||
++		    of_node_is_type(parent, "pciex")) {
+ 			pci_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "sbus")) {
++		if (of_node_is_type(parent, "sbus")) {
+ 			sbus_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "upa")) {
++		if (of_node_is_type(parent, "upa")) {
+ 			upa_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "ebus")) {
++		if (of_node_is_type(parent, "ebus")) {
+ 			ebus_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+@@ -340,15 +340,15 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
+ 			usb_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "i2c")) {
++		if (of_node_is_type(parent, "i2c")) {
+ 			i2c_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "firewire")) {
++		if (of_node_is_type(parent, "firewire")) {
+ 			ieee1394_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->type, "virtual-devices")) {
++		if (of_node_is_type(parent, "virtual-devices")) {
+ 			vdev_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+@@ -605,7 +605,6 @@ void __init of_console_init(void)
  {
- 	local_irq_enable();
- 	smp_call_function(hexagon_kgdb_nmi_hook, NULL, 0);
-diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
-index eb6c0d582626..2b05effc17b4 100644
---- a/arch/mips/kernel/kgdb.c
-+++ b/arch/mips/kernel/kgdb.c
-@@ -219,7 +219,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	set_fs(old_fs);
- }
+ 	char *msg = "OF stdout device is: %s\n";
+ 	struct device_node *dp;
+-	const char *type;
+ 	phandle node;
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
+ 	of_console_path = prom_early_alloc(256);
+@@ -628,13 +627,8 @@ void __init of_console_init(void)
+ 	}
+ 
+ 	dp = of_find_node_by_phandle(node);
+-	type = of_get_property(dp, "device_type", NULL);
+-	if (!type) {
+-		prom_printf("Console stdout lacks device_type property.\n");
+-		prom_halt();
+-	}
+ 
+-	if (strcmp(type, "display") && strcmp(type, "serial")) {
++	if (!of_node_is_type(dp, "display") && !of_node_is_type(dp, "serial")) {
+ 		prom_printf("Console device_type is neither display "
+ 			    "nor serial.\n");
+ 		prom_halt();
+diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
+index f76b4ae697f5..28aff1c524b5 100644
+--- a/arch/sparc/kernel/prom_irqtrans.c
++++ b/arch/sparc/kernel/prom_irqtrans.c
+@@ -193,7 +193,7 @@ static int sabre_device_needs_wsync(struct device_node *dp)
+ 	 *    the DMA synchronization handling
+ 	 */
+ 	while (parent) {
+-		if (!strcmp(parent->type, "pci"))
++		if (of_node_is_type(parent, "pci"))
+ 			break;
+ 		parent = parent->parent;
+ 	}
+diff --git a/arch/sparc/kernel/reboot.c b/arch/sparc/kernel/reboot.c
+index 7933ee365207..69c1b6c047d5 100644
+--- a/arch/sparc/kernel/reboot.c
++++ b/arch/sparc/kernel/reboot.c
+@@ -7,6 +7,7 @@
+ #include <linux/reboot.h>
+ #include <linux/export.h>
+ #include <linux/pm.h>
++#include <linux/of.h>
+ 
+ #include <asm/oplib.h>
+ #include <asm/prom.h>
+@@ -25,7 +26,7 @@ EXPORT_SYMBOL(pm_power_off);
+ 
+ void machine_power_off(void)
  {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/powerpc/kernel/kgdb.c b/arch/powerpc/kernel/kgdb.c
-index 59c578f865aa..b0e804844be0 100644
---- a/arch/powerpc/kernel/kgdb.c
-+++ b/arch/powerpc/kernel/kgdb.c
-@@ -124,7 +124,7 @@ static int kgdb_call_nmi_hook(struct pt_regs *regs)
- }
+-	if (strcmp(of_console_device->type, "serial") || scons_pwroff)
++	if (!of_node_is_type(of_console_device, "serial") || scons_pwroff)
+ 		prom_halt_power_off();
  
- #ifdef CONFIG_SMP
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_send_debugger_break();
- }
-diff --git a/arch/sh/kernel/kgdb.c b/arch/sh/kernel/kgdb.c
-index 4f04c6638a4d..cc57630f6bf2 100644
---- a/arch/sh/kernel/kgdb.c
-+++ b/arch/sh/kernel/kgdb.c
-@@ -319,7 +319,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 4792e08ad36b..f45d876983f1 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1014,7 +1014,7 @@ void flush_dcache_page_all(struct mm_struct *mm, struct page *page)
- }
- 
- #ifdef CONFIG_KGDB
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_cross_call(&xcall_kgdb_capture, 0, 0, 0);
- }
-diff --git a/arch/x86/kernel/kgdb.c b/arch/x86/kernel/kgdb.c
-index 8e36f249646e..ac6291a4178d 100644
---- a/arch/x86/kernel/kgdb.c
-+++ b/arch/x86/kernel/kgdb.c
-@@ -422,21 +422,16 @@ static void kgdb_disable_hw_debug(struct pt_regs *regs)
- #ifdef CONFIG_SMP
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them be in a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	apic->send_IPI_allbutself(APIC_DM_NMI);
- }
-diff --git a/include/linux/kgdb.h b/include/linux/kgdb.h
-index e465bb15912d..05e5b2eb0d32 100644
---- a/include/linux/kgdb.h
-+++ b/include/linux/kgdb.h
-@@ -178,21 +178,16 @@ kgdb_arch_handle_exception(int vector, int signo, int err_code,
- 
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them into a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--extern void kgdb_roundup_cpus(unsigned long flags);
-+extern void kgdb_roundup_cpus(void);
- 
- /**
-  *	kgdb_arch_set_pc - Generic call back to the program counter
-diff --git a/kernel/debug/debug_core.c b/kernel/debug/debug_core.c
-index 65c0f1363788..f3cadda45f07 100644
---- a/kernel/debug/debug_core.c
-+++ b/kernel/debug/debug_core.c
-@@ -593,7 +593,7 @@ static int kgdb_cpu_enter(struct kgdb_state *ks, struct pt_regs *regs,
- 
- 	/* Signal the other CPUs to enter kgdb_wait() */
- 	else if ((!kgdb_single_step) && kgdb_do_roundup)
--		kgdb_roundup_cpus(flags);
-+		kgdb_roundup_cpus();
- #endif
- 
- 	/*
+ 	prom_halt();
+diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
+index 0b578d03797b..c7cad9b7bba7 100644
+--- a/arch/sparc/kernel/vio.c
++++ b/arch/sparc/kernel/vio.c
+@@ -366,12 +366,9 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
+ 	if (parent = NULL) {
+ 		dp = cdev_node;
+ 	} else if (to_vio_dev(parent) = root_vdev) {
+-		dp = of_get_next_child(cdev_node, NULL);
+-		while (dp) {
+-			if (!strcmp(dp->type, type))
++		for_each_child_of_node(cdev_node, dp) {
++			if (of_node_is_type(dp, type))
+ 				break;
+-
+-			dp = of_get_next_child(cdev_node, dp);
+ 		}
+ 	} else {
+ 		dp = to_vio_dev(parent)->dp;
 -- 
-2.19.1.930.g4563a0d9d0-goog
+2.19.1
