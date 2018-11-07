@@ -1,103 +1,59 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Date: Mon, 26 Nov 2018 11:12:30 +0000
-Subject: [PATCH v2 14/20] powerpc: perf/core: remove unnecessary checks for exclusion
-Message-Id: <1543230756-15319-15-git-send-email-andrew.murray@arm.com>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 07 Nov 2018 22:31:48 +0000
+Subject: [PATCH 5/8] sparc: Convert to using %pOFn instead of device_node.name
+Message-Id: <20181107223151.14991-6-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
-In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+References: <20181107223151.14991-1-robh@kernel.org>
+In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-For PowerPC PMUs that do not support context exclusion we do not
-advertise the PERF_PMU_CAP_EXCLUDE capability. This ensures that
-perf will prevent us from handling events where any exclusion
-flags are set. Let's remove the now unnecessary check for exclusion
-flags.
+In preparation to remove the node name pointer from struct device_node,
+convert printf users to use the %pOFn format specifier.
 
-Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+This was originally applied for 4.19, but reverted. The problematic
+changes to prom_{32,64}.c have been dropped.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/powerpc/perf/hv-24x7.c |  9 ---------
- arch/powerpc/perf/hv-gpci.c |  9 ---------
- arch/powerpc/perf/imc-pmu.c | 18 ------------------
- 3 files changed, 36 deletions(-)
+ arch/sparc/kernel/auxio_64.c | 4 ++--
+ arch/sparc/kernel/power.c    | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/powerpc/perf/hv-24x7.c b/arch/powerpc/perf/hv-24x7.c
-index 72238ee..d13d8a9 100644
---- a/arch/powerpc/perf/hv-24x7.c
-+++ b/arch/powerpc/perf/hv-24x7.c
-@@ -1306,15 +1306,6 @@ static int h_24x7_event_init(struct perf_event *event)
- 		return -EINVAL;
+diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
+index 6145658d915a..e1b10f88ffb4 100644
+--- a/arch/sparc/kernel/auxio_64.c
++++ b/arch/sparc/kernel/auxio_64.c
+@@ -115,8 +115,8 @@ static int auxio_probe(struct platform_device *dev)
+ 		auxio_devtype = AUXIO_TYPE_SBUS;
+ 		size = 1;
+ 	} else {
+-		printk("auxio: Unknown parent bus type [%s]\n",
+-		       dp->parent->name);
++		printk("auxio: Unknown parent bus type [%pOFn]\n",
++		       dp->parent);
+ 		return -ENODEV;
  	}
+ 	auxio_register = of_ioremap(&dev->resource[0], 0, size, "auxio");
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index 92627abce311..d941875dd718 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -41,8 +41,8 @@ static int power_probe(struct platform_device *op)
  
--	/* unsupported modes and filters */
--	if (event->attr.exclude_user   ||
--	    event->attr.exclude_kernel ||
--	    event->attr.exclude_hv     ||
--	    event->attr.exclude_idle   ||
--	    event->attr.exclude_host   ||
--	    event->attr.exclude_guest)
--		return -EINVAL;
--
- 	/* no branch sampling */
- 	if (has_branch_stack(event))
- 		return -EOPNOTSUPP;
-diff --git a/arch/powerpc/perf/hv-gpci.c b/arch/powerpc/perf/hv-gpci.c
-index 43fabb3..e0ce0e0 100644
---- a/arch/powerpc/perf/hv-gpci.c
-+++ b/arch/powerpc/perf/hv-gpci.c
-@@ -232,15 +232,6 @@ static int h_gpci_event_init(struct perf_event *event)
- 		return -EINVAL;
- 	}
+ 	power_reg = of_ioremap(res, 0, 0x4, "power");
  
--	/* unsupported modes and filters */
--	if (event->attr.exclude_user   ||
--	    event->attr.exclude_kernel ||
--	    event->attr.exclude_hv     ||
--	    event->attr.exclude_idle   ||
--	    event->attr.exclude_host   ||
--	    event->attr.exclude_guest)
--		return -EINVAL;
--
- 	/* no branch sampling */
- 	if (has_branch_stack(event))
- 		return -EOPNOTSUPP;
-diff --git a/arch/powerpc/perf/imc-pmu.c b/arch/powerpc/perf/imc-pmu.c
-index 1fafc32b..49c0b1c 100644
---- a/arch/powerpc/perf/imc-pmu.c
-+++ b/arch/powerpc/perf/imc-pmu.c
-@@ -473,15 +473,6 @@ static int nest_imc_event_init(struct perf_event *event)
- 	if (event->hw.sample_period)
- 		return -EINVAL;
+-	printk(KERN_INFO "%s: Control reg at %llx\n",
+-	       op->dev.of_node->name, res->start);
++	printk(KERN_INFO "%pOFn: Control reg at %llx\n",
++	       op->dev.of_node, res->start);
  
--	/* unsupported modes and filters */
--	if (event->attr.exclude_user   ||
--	    event->attr.exclude_kernel ||
--	    event->attr.exclude_hv     ||
--	    event->attr.exclude_idle   ||
--	    event->attr.exclude_host   ||
--	    event->attr.exclude_guest)
--		return -EINVAL;
--
- 	if (event->cpu < 0)
- 		return -EINVAL;
- 
-@@ -748,15 +739,6 @@ static int core_imc_event_init(struct perf_event *event)
- 	if (event->hw.sample_period)
- 		return -EINVAL;
- 
--	/* unsupported modes and filters */
--	if (event->attr.exclude_user   ||
--	    event->attr.exclude_kernel ||
--	    event->attr.exclude_hv     ||
--	    event->attr.exclude_idle   ||
--	    event->attr.exclude_host   ||
--	    event->attr.exclude_guest)
--		return -EINVAL;
--
- 	if (event->cpu < 0)
- 		return -EINVAL;
- 
+ 	if (has_button_interrupt(irq, op->dev.of_node)) {
+ 		if (request_irq(irq,
 -- 
-2.7.4
+2.19.1
