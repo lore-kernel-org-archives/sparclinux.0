@@ -1,59 +1,53 @@
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 07 Nov 2018 22:31:48 +0000
-Subject: [PATCH 5/8] sparc: Convert to using %pOFn instead of device_node.name
-Message-Id: <20181107223151.14991-6-robh@kernel.org>
+From: Douglas Anderson <dianders@chromium.org>
+Date: Wed, 07 Nov 2018 01:00:24 +0000
+Subject: [PATCH v3 0/4] kgdb: Fix kgdb_roundup_cpus()
+Message-Id: <20181107010028.184543-1-dianders@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181107223151.14991-1-robh@kernel.org>
-In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-In preparation to remove the node name pointer from struct device_node,
-convert printf users to use the %pOFn format specifier.
+This series was originally part of the series ("serial: Finish kgdb on
+qcom_geni; fix many lockdep splats w/ kgdb") but it made sense to
+split it up.
 
-This was originally applied for 4.19, but reverted. The problematic
-changes to prom_{32,64}.c have been dropped.
+It's believed that dropping into kgdb should be more robust once these
+patches are applied.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- arch/sparc/kernel/auxio_64.c | 4 ++--
- arch/sparc/kernel/power.c    | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Changes in v3:
+- No separate init call.
+- Don't round up the CPU that is doing the rounding up.
+- Add "#ifdef CONFIG_SMP" to match the rest of the file.
+- Updated desc saying we don't solve the "failed to roundup" case.
+- Document the ignored parameter.
+- Patch #3 and #4 are new.
 
-diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
-index 6145658d915a..e1b10f88ffb4 100644
---- a/arch/sparc/kernel/auxio_64.c
-+++ b/arch/sparc/kernel/auxio_64.c
-@@ -115,8 +115,8 @@ static int auxio_probe(struct platform_device *dev)
- 		auxio_devtype = AUXIO_TYPE_SBUS;
- 		size = 1;
- 	} else {
--		printk("auxio: Unknown parent bus type [%s]\n",
--		       dp->parent->name);
-+		printk("auxio: Unknown parent bus type [%pOFn]\n",
-+		       dp->parent);
- 		return -ENODEV;
- 	}
- 	auxio_register = of_ioremap(&dev->resource[0], 0, size, "auxio");
-diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
-index 92627abce311..d941875dd718 100644
---- a/arch/sparc/kernel/power.c
-+++ b/arch/sparc/kernel/power.c
-@@ -41,8 +41,8 @@ static int power_probe(struct platform_device *op)
- 
- 	power_reg = of_ioremap(res, 0, 0x4, "power");
- 
--	printk(KERN_INFO "%s: Control reg at %llx\n",
--	       op->dev.of_node->name, res->start);
-+	printk(KERN_INFO "%pOFn: Control reg at %llx\n",
-+	       op->dev.of_node, res->start);
- 
- 	if (has_button_interrupt(irq, op->dev.of_node)) {
- 		if (request_irq(irq,
+Changes in v2:
+- Removing irq flags separated from fixing lockdep splat.
+- Removing irq flags separated from fixing lockdep splat.
+- Don't use smp_call_function (Daniel).
+
+Douglas Anderson (4):
+  kgdb: Remove irq flags from roundup
+  kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
+  kgdb: Don't round up a CPU that failed rounding up before
+  kdb: Don't back trace on a cpu that didn't round up
+
+ arch/arc/kernel/kgdb.c     | 10 ++-----
+ arch/arm/kernel/kgdb.c     | 12 ---------
+ arch/arm64/kernel/kgdb.c   | 12 ---------
+ arch/hexagon/kernel/kgdb.c | 32 ----------------------
+ arch/mips/kernel/kgdb.c    |  9 +------
+ arch/powerpc/kernel/kgdb.c |  6 ++---
+ arch/sh/kernel/kgdb.c      | 12 ---------
+ arch/sparc/kernel/smp_64.c |  2 +-
+ arch/x86/kernel/kgdb.c     |  9 ++-----
+ include/linux/kgdb.h       | 22 +++++++++------
+ kernel/debug/debug_core.c  | 55 +++++++++++++++++++++++++++++++++++++-
+ kernel/debug/debug_core.h  |  1 +
+ kernel/debug/kdb/kdb_bt.c  | 11 +++++++-
+ 13 files changed, 88 insertions(+), 105 deletions(-)
+
 -- 
-2.19.1
+2.19.1.930.g4563a0d9d0-goog
