@@ -1,50 +1,316 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Sat, 17 Nov 2018 18:57:15 +0000
-Subject: [PATCH 4/4] arm64/bpf: don't allocate BPF JIT programs in module memory
-Message-Id: <20181117185715.25198-5-ard.biesheuvel@linaro.org>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 07 Nov 2018 22:31:49 +0000
+Subject: [PATCH 6/8] sparc: Use of_node_name_eq for node name comparisons
+Message-Id: <20181107223151.14991-7-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
+References: <20181107223151.14991-1-robh@kernel.org>
+In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-The arm64 module region is a 128 MB region that is kept close to
-the core kernel, in order to ensure that relative branches are
-always in range. So using the same region for programs that do
-not have this restriction is wasteful, and preferably avoided.
+Convert string compares of DT node names to use of_node_name_eq helper
+instead. This removes direct access to the node name pointer.
 
-Now that the core BPF JIT code permits the alloc/free routines to
-be overridden, implement them by simple vmalloc_exec()/vfree()
-calls, which can be served from anywere. This also solves an
-issue under KASAN, where shadow memory is needlessly allocated for
-all BPF programs (which don't require KASAN shadow pages since
-they are not KASAN instrumented)
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/arm64/net/bpf_jit_comp.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/sparc/kernel/auxio_64.c         |  4 ++--
+ arch/sparc/kernel/central.c          |  2 +-
+ arch/sparc/kernel/irq_64.c           |  2 +-
+ arch/sparc/kernel/of_device_32.c     |  8 ++++----
+ arch/sparc/kernel/of_device_64.c     | 20 ++++++++++----------
+ arch/sparc/kernel/of_device_common.c |  4 ++--
+ arch/sparc/kernel/pci.c              |  4 ++--
+ arch/sparc/kernel/pci_sabre.c        |  2 +-
+ arch/sparc/kernel/prom_64.c          |  4 ++--
+ arch/sparc/kernel/prom_irqtrans.c    | 18 +++++++++---------
+ arch/sparc/kernel/sun4d_irq.c        |  6 +++---
+ arch/sparc/kernel/time_64.c          |  4 ++--
+ 12 files changed, 39 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm64/net/bpf_jit_comp.c b/arch/arm64/net/bpf_jit_comp.c
-index a6fdaea07c63..e0c702c2f682 100644
---- a/arch/arm64/net/bpf_jit_comp.c
-+++ b/arch/arm64/net/bpf_jit_comp.c
-@@ -940,3 +940,14 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
- 					   tmp : orig_prog);
- 	return prog;
+diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
+index e1b10f88ffb4..4843f48bfe85 100644
+--- a/arch/sparc/kernel/auxio_64.c
++++ b/arch/sparc/kernel/auxio_64.c
+@@ -108,10 +108,10 @@ static int auxio_probe(struct platform_device *dev)
+ 	struct device_node *dp = dev->dev.of_node;
+ 	unsigned long size;
+ 
+-	if (!strcmp(dp->parent->name, "ebus")) {
++	if (of_node_name_eq(dp->parent, "ebus")) {
+ 		auxio_devtype = AUXIO_TYPE_EBUS;
+ 		size = sizeof(u32);
+-	} else if (!strcmp(dp->parent->name, "sbus")) {
++	} else if (of_node_name_eq(dp->parent, "sbus")) {
+ 		auxio_devtype = AUXIO_TYPE_SBUS;
+ 		size = 1;
+ 	} else {
+diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
+index 38ae4fdc9eb4..bfae98ab8638 100644
+--- a/arch/sparc/kernel/central.c
++++ b/arch/sparc/kernel/central.c
+@@ -168,7 +168,7 @@ static int fhc_probe(struct platform_device *op)
+ 		goto out;
+ 	}
+ 
+-	if (!strcmp(op->dev.of_node->parent->name, "central"))
++	if (of_node_name_eq(op->dev.of_node->parent, "central"))
+ 		p->central = true;
+ 
+ 	p->pregs = of_ioremap(&op->resource[0], 0,
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index 713670e6d13d..3ec9f1402aad 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -915,7 +915,7 @@ static void map_prom_timers(void)
+ 	dp = of_find_node_by_path("/");
+ 	dp = dp->child;
+ 	while (dp) {
+-		if (!strcmp(dp->name, "counter-timer"))
++		if (of_node_name_eq(dp, "counter-timer"))
+ 			break;
+ 		dp = dp->sibling;
+ 	}
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index ab133e2753ab..dc5b1b0ec659 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -232,10 +232,10 @@ static int __init use_1to1_mapping(struct device_node *pp)
+ 	 * But, we should still pass the translation work up
+ 	 * to the SBUS itself.
+ 	 */
+-	if (!strcmp(pp->name, "dma") ||
+-	    !strcmp(pp->name, "espdma") ||
+-	    !strcmp(pp->name, "ledma") ||
+-	    !strcmp(pp->name, "lebuffer"))
++	if (of_node_name_eq(pp, "dma") ||
++	    of_node_name_eq(pp, "espdma") ||
++	    of_node_name_eq(pp, "ledma") ||
++	    of_node_name_eq(pp, "lebuffer"))
+ 		return 0;
+ 
+ 	return 1;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index 2353cb7bc40f..4b5eabb20ac8 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -46,7 +46,7 @@ EXPORT_SYMBOL(of_iounmap);
+ 
+ static int of_bus_pci_match(struct device_node *np)
+ {
+-	if (!strcmp(np->name, "pci")) {
++	if (of_node_name_eq(np, "pci")) {
+ 		const char *model = of_get_property(np, "model", NULL);
+ 
+ 		if (model && !strcmp(model, "SUNW,simba"))
+@@ -77,7 +77,7 @@ static int of_bus_simba_match(struct device_node *np)
+ 	/* Treat PCI busses lacking ranges property just like
+ 	 * simba.
+ 	 */
+-	if (!strcmp(np->name, "pci")) {
++	if (of_node_name_eq(np, "pci")) {
+ 		if (!of_find_property(np, "ranges", NULL))
+ 			return 1;
+ 	}
+@@ -170,8 +170,8 @@ static unsigned long of_bus_pci_get_flags(const u32 *addr, unsigned long flags)
+  */
+ static int of_bus_fhc_match(struct device_node *np)
+ {
+-	return !strcmp(np->name, "fhc") ||
+-		!strcmp(np->name, "central");
++	return of_node_name_eq(np, "fhc") ||
++		of_node_name_eq(np, "central");
  }
-+
-+void *bpf_jit_alloc_exec(unsigned long size)
-+{
-+	return vmalloc_exec(size);
-+}
-+
-+void bpf_jit_binary_free(struct bpf_binary_header *hdr)
-+{
-+	bpf_jit_binary_unlock_ro(hdr);
-+	vfree(hdr);
-+}
+ 
+ #define of_bus_fhc_count_cells of_bus_sbus_count_cells
+@@ -295,17 +295,17 @@ static int __init use_1to1_mapping(struct device_node *pp)
+ 	 * But, we should still pass the translation work up
+ 	 * to the SBUS itself.
+ 	 */
+-	if (!strcmp(pp->name, "dma") ||
+-	    !strcmp(pp->name, "espdma") ||
+-	    !strcmp(pp->name, "ledma") ||
+-	    !strcmp(pp->name, "lebuffer"))
++	if (of_node_name_eq(pp, "dma") ||
++	    of_node_name_eq(pp, "espdma") ||
++	    of_node_name_eq(pp, "ledma") ||
++	    of_node_name_eq(pp, "lebuffer"))
+ 		return 0;
+ 
+ 	/* Similarly for all PCI bridges, if we get this far
+ 	 * it lacks a ranges property, and this will include
+ 	 * cases like Simba.
+ 	 */
+-	if (!strcmp(pp->name, "pci"))
++	if (of_node_name_eq(pp, "pci"))
+ 		return 0;
+ 
+ 	return 1;
+@@ -591,7 +591,7 @@ static unsigned int __init build_one_device_irq(struct platform_device *op,
+ 				break;
+ 			}
+ 		} else {
+-			if (!strcmp(pp->name, "pci")) {
++			if (of_node_name_eq(pp, "pci")) {
+ 				unsigned int this_orig_irq = irq;
+ 
+ 				irq = pci_irq_swizzle(dp, pp, irq);
+diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
+index de0ee3971f00..b186b7f0f6c4 100644
+--- a/arch/sparc/kernel/of_device_common.c
++++ b/arch/sparc/kernel/of_device_common.c
+@@ -151,8 +151,8 @@ int of_bus_sbus_match(struct device_node *np)
+ 	struct device_node *dp = np;
+ 
+ 	while (dp) {
+-		if (!strcmp(dp->name, "sbus") ||
+-		    !strcmp(dp->name, "sbi"))
++		if (of_node_name_eq(dp, "sbus") ||
++		    of_node_name_eq(dp, "sbi"))
+ 			return 1;
+ 
+ 		/* Have a look at use_1to1_mapping().  We're trying
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 45ba2757a1b9..377113ae9a6a 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -283,7 +283,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	sd->stc = &pbm->stc;
+ 	sd->numa_node = pbm->numa_node;
+ 
+-	if (!strcmp(node->name, "ebus"))
++	if (of_node_name_eq(node, "ebus"))
+ 		of_propagate_archdata(op);
+ 
+ 	type = of_get_property(node, "device_type", NULL);
+@@ -336,7 +336,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	dev->error_state = pci_channel_io_normal;
+ 	dev->dma_mask = 0xffffffff;
+ 
+-	if (!strcmp(node->name, "pci")) {
++	if (of_node_name_eq(node, "pci")) {
+ 		/* a PCI-PCI bridge */
+ 		dev->hdr_type = PCI_HEADER_TYPE_BRIDGE;
+ 		dev->rom_base_reg = PCI_ROM_ADDRESS1;
+diff --git a/arch/sparc/kernel/pci_sabre.c b/arch/sparc/kernel/pci_sabre.c
+index 8107286be9ab..3c38ca40a22b 100644
+--- a/arch/sparc/kernel/pci_sabre.c
++++ b/arch/sparc/kernel/pci_sabre.c
+@@ -475,7 +475,7 @@ static int sabre_probe(struct platform_device *op)
+ 		 * different ways, inconsistently.
+ 		 */
+ 		for_each_node_by_type(cpu_dp, "cpu") {
+-			if (!strcmp(cpu_dp->name, "SUNW,UltraSPARC-IIe"))
++			if (of_node_name_eq(cpu_dp, "SUNW,UltraSPARC-IIe"))
+ 				hummingbird_p = 1;
+ 		}
+ 	}
+diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
+index 1667df573f6f..17860d6ed1bd 100644
+--- a/arch/sparc/kernel/prom_64.c
++++ b/arch/sparc/kernel/prom_64.c
+@@ -335,8 +335,8 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
+ 			ebus_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+-		if (!strcmp(parent->name, "usb") ||
+-		    !strcmp(parent->name, "hub")) {
++		if (of_node_name_eq(parent, "usb") ||
++		    of_node_name_eq(parent, "hub")) {
+ 			usb_path_component(dp, tmp_buf);
+ 			return;
+ 		}
+diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
+index f3fecac7facb..f76b4ae697f5 100644
+--- a/arch/sparc/kernel/prom_irqtrans.c
++++ b/arch/sparc/kernel/prom_irqtrans.c
+@@ -725,11 +725,11 @@ static unsigned int central_build_irq(struct device_node *dp,
+ 	unsigned long imap, iclr;
+ 	u32 tmp;
+ 
+-	if (!strcmp(dp->name, "eeprom")) {
++	if (of_node_name_eq(dp, "eeprom")) {
+ 		res = &central_op->resource[5];
+-	} else if (!strcmp(dp->name, "zs")) {
++	} else if (of_node_name_eq(dp, "zs")) {
+ 		res = &central_op->resource[4];
+-	} else if (!strcmp(dp->name, "clock-board")) {
++	} else if (of_node_name_eq(dp, "clock-board")) {
+ 		res = &central_op->resource[3];
+ 	} else {
+ 		return ino;
+@@ -824,19 +824,19 @@ void __init irq_trans_init(struct device_node *dp)
+ 	}
+ #endif
+ #ifdef CONFIG_SBUS
+-	if (!strcmp(dp->name, "sbus") ||
+-	    !strcmp(dp->name, "sbi")) {
++	if (of_node_name_eq(dp, "sbus") ||
++	    of_node_name_eq(dp, "sbi")) {
+ 		sbus_irq_trans_init(dp);
+ 		return;
+ 	}
+ #endif
+-	if (!strcmp(dp->name, "fhc") &&
+-	    !strcmp(dp->parent->name, "central")) {
++	if (of_node_name_eq(dp, "fhc") &&
++	    of_node_name_eq(dp->parent, "central")) {
+ 		central_irq_trans_init(dp);
+ 		return;
+ 	}
+-	if (!strcmp(dp->name, "virtual-devices") ||
+-	    !strcmp(dp->name, "niu")) {
++	if (of_node_name_eq(dp, "virtual-devices") ||
++	    of_node_name_eq(dp, "niu")) {
+ 		sun4v_vdev_irq_trans_init(dp);
+ 		return;
+ 	}
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+index 6d266d7dd2b6..9a137c70e8d1 100644
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ b/arch/sparc/kernel/sun4d_irq.c
+@@ -335,12 +335,12 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
+ 
+ 	irq = real_irq;
+ 	while (bus) {
+-		if (!strcmp(bus->name, "sbi")) {
++		if (of_node_name_eq(bus, "sbi")) {
+ 			bus_connection = "io-unit";
+ 			break;
+ 		}
+ 
+-		if (!strcmp(bus->name, "bootbus")) {
++		if (of_node_name_eq(bus, "bootbus")) {
+ 			bus_connection = "cpu-unit";
+ 			break;
+ 		}
+@@ -360,7 +360,7 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
+ 	 * If Bus nodes parent is not io-unit/cpu-unit or the io-unit/cpu-unit
+ 	 * lacks a "board#" property, something is very wrong.
+ 	 */
+-	if (!bus->parent || strcmp(bus->parent->name, bus_connection)) {
++	if (!of_node_name_eq(bus->parent, bus_connection)) {
+ 		printk(KERN_ERR "%pOF: Error, parent is not %s.\n",
+ 			bus, bus_connection);
+ 		goto err_out;
+diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
+index 68a80f9baea7..3eb77943ce12 100644
+--- a/arch/sparc/kernel/time_64.c
++++ b/arch/sparc/kernel/time_64.c
+@@ -561,8 +561,8 @@ static int mostek_probe(struct platform_device *op)
+ 	/* On an Enterprise system there can be multiple mostek clocks.
+ 	 * We should only match the one that is on the central FHC bus.
+ 	 */
+-	if (!strcmp(dp->parent->name, "fhc") &&
+-	    strcmp(dp->parent->parent->name, "central") != 0)
++	if (of_node_name_eq(dp->parent, "fhc") &&
++	    !of_node_name_eq(dp->parent->parent, "central"))
+ 		return -ENODEV;
+ 
+ 	printk(KERN_INFO "%pOF: Mostek regs at 0x%llx\n",
 -- 
-2.17.1
+2.19.1
