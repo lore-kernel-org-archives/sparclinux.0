@@ -1,65 +1,63 @@
 From: Rob Herring <robh@kernel.org>
-Date: Fri, 16 Nov 2018 21:07:01 +0000
-Subject: [PATCH v2 10/10] sparc: Use DT node full_name instead of name for resources
-Message-Id: <20181116210701.22968-11-robh@kernel.org>
+Date: Wed, 07 Nov 2018 22:31:50 +0000
+Subject: [PATCH 7/8] sparc: Remove unused leon_trans_init
+Message-Id: <20181107223151.14991-8-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181107223151.14991-1-robh@kernel.org>
+In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-The device_node.name pointer is going to be removed. As the
-device_node.full_name is now just the name+unit-address instead of the
-full path, use the full_name pointer instead. This will add the
-unit-address if there is one to the resource name.
+The function leon_trans_init is unused. Remove it and save us from
+figuring out what to do with a '<NULL>' node name.
 
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/sparc/kernel/ioport.c       | 2 +-
- arch/sparc/kernel/of_device_32.c | 2 +-
- arch/sparc/kernel/of_device_64.c | 2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ arch/sparc/include/asm/leon.h   |  1 -
+ arch/sparc/kernel/leon_kernel.c | 14 --------------
+ 2 files changed, 15 deletions(-)
 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 6799c93c9f27..aeaad04fdd14 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -302,7 +302,7 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
- 	if (sbus_map_dma_area(dev, dma_addrp, va, res->start, len_total) != 0)
- 		goto err_noiommu;
- 
--	res->name = op->dev.of_node->name;
-+	res->name = op->dev.of_node->full_name;
- 
- 	return (void *)(unsigned long)res->start;
- 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index ee4841a96058..4ebf51e6e78e 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -333,7 +333,7 @@ static void __init build_device_resources(struct platform_device *op,
- 			r->end = result + size - 1;
- 			r->flags = flags | ((result >> 32ULL) & 0xffUL);
- 		}
--		r->name = op->dev.of_node->name;
-+		r->name = op->dev.of_node->full_name;
- 	}
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index c68bb5b76e3d..8c01f0f6b1ed 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -225,7 +225,6 @@ void leon_update_virq_handling(unsigned int virq,
+ 			       irq_flow_handler_t flow_handler,
+ 			       const char *name, int do_ack);
+ void leon_init_timers(void);
+-void leon_trans_init(struct device_node *dp);
+ void leon_node_init(struct device_node *dp, struct device_node ***nextp);
+ void init_leon(void);
+ void poke_leonsparc(void);
+diff --git a/arch/sparc/kernel/leon_kernel.c b/arch/sparc/kernel/leon_kernel.c
+index 84b233752f28..39229940d725 100644
+--- a/arch/sparc/kernel/leon_kernel.c
++++ b/arch/sparc/kernel/leon_kernel.c
+@@ -484,20 +484,6 @@ static void leon_load_profile_irq(int cpu, unsigned int limit)
+ {
  }
  
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index 4b5eabb20ac8..5a9f86b1d4e7 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -413,7 +413,7 @@ static void __init build_device_resources(struct platform_device *op,
- 			r->end = result + size - 1;
- 			r->flags = flags;
- 		}
--		r->name = op->dev.of_node->name;
-+		r->name = op->dev.of_node->full_name;
- 	}
- }
- 
+-void __init leon_trans_init(struct device_node *dp)
+-{
+-	if (strcmp(dp->type, "cpu") = 0 && strcmp(dp->name, "<NULL>") = 0) {
+-		struct property *p;
+-		p = of_find_property(dp, "mid", (void *)0);
+-		if (p) {
+-			int mid;
+-			dp->name = prom_early_alloc(5 + 1);
+-			memcpy(&mid, p->value, p->length);
+-			sprintf((char *)dp->name, "cpu%.2d", mid);
+-		}
+-	}
+-}
+-
+ #ifdef CONFIG_SMP
+ void leon_clear_profile_irq(int cpu)
+ {
 -- 
 2.19.1
