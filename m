@@ -1,53 +1,55 @@
-From: Douglas Anderson <dianders@chromium.org>
-Date: Wed, 07 Nov 2018 01:00:24 +0000
-Subject: [PATCH v3 0/4] kgdb: Fix kgdb_roundup_cpus()
-Message-Id: <20181107010028.184543-1-dianders@chromium.org>
+From: Rob Herring <robh@kernel.org>
+Date: Wed, 07 Nov 2018 22:31:44 +0000
+Subject: [PATCH 1/8] fs/openpromfs: use full_name instead of path_component_name
+Message-Id: <20181107223151.14991-2-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181107223151.14991-1-robh@kernel.org>
+In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-This series was originally part of the series ("serial: Finish kgdb on
-qcom_geni; fix many lockdep splats w/ kgdb") but it made sense to
-split it up.
+In preparation to remove struct device_node.path_component_name, use
+full_name instead. kbasename is used so full_name can be used whether it
+is the full path or just the node's name and unit-address.
 
-It's believed that dropping into kgdb should be more robust once these
-patches are applied.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ fs/openpromfs/inode.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-Changes in v3:
-- No separate init call.
-- Don't round up the CPU that is doing the rounding up.
-- Add "#ifdef CONFIG_SMP" to match the rest of the file.
-- Updated desc saying we don't solve the "failed to roundup" case.
-- Document the ignored parameter.
-- Patch #3 and #4 are new.
-
-Changes in v2:
-- Removing irq flags separated from fixing lockdep splat.
-- Removing irq flags separated from fixing lockdep splat.
-- Don't use smp_call_function (Daniel).
-
-Douglas Anderson (4):
-  kgdb: Remove irq flags from roundup
-  kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
-  kgdb: Don't round up a CPU that failed rounding up before
-  kdb: Don't back trace on a cpu that didn't round up
-
- arch/arc/kernel/kgdb.c     | 10 ++-----
- arch/arm/kernel/kgdb.c     | 12 ---------
- arch/arm64/kernel/kgdb.c   | 12 ---------
- arch/hexagon/kernel/kgdb.c | 32 ----------------------
- arch/mips/kernel/kgdb.c    |  9 +------
- arch/powerpc/kernel/kgdb.c |  6 ++---
- arch/sh/kernel/kgdb.c      | 12 ---------
- arch/sparc/kernel/smp_64.c |  2 +-
- arch/x86/kernel/kgdb.c     |  9 ++-----
- include/linux/kgdb.h       | 22 +++++++++------
- kernel/debug/debug_core.c  | 55 +++++++++++++++++++++++++++++++++++++-
- kernel/debug/debug_core.h  |  1 +
- kernel/debug/kdb/kdb_bt.c  | 11 +++++++-
- 13 files changed, 88 insertions(+), 105 deletions(-)
-
+diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
+index 607092f367ad..3d8e9bcfe239 100644
+--- a/fs/openpromfs/inode.c
++++ b/fs/openpromfs/inode.c
+@@ -199,10 +199,11 @@ static struct dentry *openpromfs_lookup(struct inode *dir, struct dentry *dentry
+ 
+ 	child = dp->child;
+ 	while (child) {
+-		int n = strlen(child->path_component_name);
++		const char *node_name = kbasename(child->full_name);
++		int n = strlen(node_name);
+ 
+ 		if (len = n &&
+-		    !strncmp(child->path_component_name, name, len)) {
++		    !strncmp(node_name, name, len)) {
+ 			ent_type = op_inode_node;
+ 			ent_data.node = child;
+ 			ino = child->unique_id;
+@@ -293,8 +294,8 @@ static int openpromfs_readdir(struct file *file, struct dir_context *ctx)
+ 	}
+ 	while (child) {
+ 		if (!dir_emit(ctx,
+-			    child->path_component_name,
+-			    strlen(child->path_component_name),
++			    kbasename(child->full_name),
++			    strlen(kbasename(child->full_name)),
+ 			    child->unique_id, DT_DIR))
+ 			goto out;
+ 
 -- 
-2.19.1.930.g4563a0d9d0-goog
+2.19.1
