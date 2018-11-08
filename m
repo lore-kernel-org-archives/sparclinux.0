@@ -1,22 +1,39 @@
-From: "Mr Davis Wright" <marco.entendez@nsw.gov.ph>
-Date: Sun, 04 Nov 2018 21:08:00 +0000
-Subject: Schnappen Sie sich dieses begrenzte Angebot und bewerben Sie sich jetzt !!!!
-Message-Id: <20181104210813.3B8B9FC8FF7@mail.nsw.gov.ph>
+From: Mr Jay Clayton <files9886@gmail.com>
+Date: Thu, 08 Nov 2018 10:53:23 +0000
+Subject: HELLO! DEAR! GOOD NEWS TO YOU
+Message-Id: <18103206.254299.1541674403516@mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Wir sind ein lizenzierter Geldverleiher und bieten einen schnellen Kredit u=
-nd eine schnelle Genehmigung zu einem Zinssatz von 2%. Wir bieten Rechtskre=
-ditl=F6sungen f=FCr Personen und Unternehmen, die eine Finanzierung ben=F6t=
-igen (Fonds). Wir verstehen den emotionalen und mentalen Stress, sich im Al=
-ltag mit finanziellen Problemen auseinandersetzen zu m=FCssen. Mit einem fl=
-exiblen Angebot an Kreditdienstleistungen unterst=FCtzen wir Sie bei der R=
-=FCckzahlung des Kredits zu Ihrem Wohlbefinden. Z=F6gern Sie nicht, uns zu =
-kontaktieren, die Zufriedenheit unserer Kunden ist unsere oberste Priorit=
-=E4t. Da wir alle unsere Kunden sch=E4tzen, h=F6ren wir Ihren Bed=FCrfnisse=
-n zu, indem wir Ihnen unsere finanzielle Unterst=FCtzung anbieten. Senden S=
-ie uns heute eine E-Mail, um weitere Informationen zu erhalten: daviswright=
-@yandex.com
+
+
+Dear customer,
+
+This is to inform you that we have been mandated by the APEX BANK to
+delivery all outstanding  unclaimed  compensation/inheritance funds to the rightful owners with immediate effect. Your ATM Card of $3.7 million USD has been approved
+This is in collaboration with international monetary fund (IMF) to
+facilitate and maintain a good relationship with our customers all over the
+world. 
+
+
+
+Please provide the below information as listed
+
+Full Names: /
+Home Address: /
+Mobile Telephone Number: /
+Country:/
+Occupation: /
+
+
+Please indicate in your response to this message to
+enable us commence delivery process immediately.
+
+Thanks for your patience and co-operation.
+
+Sincerely Yours.
+
+Mr Jay Clayton
