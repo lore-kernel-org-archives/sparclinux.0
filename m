@@ -1,63 +1,88 @@
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Date: Wed, 17 Oct 2018 23:54:02 +0000
-Subject: [mm PATCH v4 0/6] Deferred page init improvements
-Message-Id: <20181017235043.17213.92459.stgit@localhost.localdomain>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Sat, 10 Nov 2018 18:58:35 +0000
+Subject: [PATCH net-next 2/6] net/bpf: split VLAN_PRESENT bit handling from VLAN_TCI
+Message-Id: <b7fed809fc44d0b439adeb69d0fe98dd036b05e8.1541876179.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, davem@davemloft.net, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, mingo@kernel.org, kirill.shutemov@linux.intel.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, "David S. Miller" <davem@davemloft.net>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Burton <paul.burton@mips.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, sparclinux@vger.kernel.org
 
-This patchset is essentially a refactor of the page initialization logic
-that is meant to provide for better code reuse while providing a
-significant improvement in deferred page initialization performance.
-
-In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
-memory per node I have seen the following. In the case of regular memory
-initialization the deferred init time was decreased from 3.75s to 1.06s on
-average. For the persistent memory the initialization time dropped from
-24.17s to 19.12s on average. This amounts to a 253% improvement for the
-deferred memory initialization performance, and a 26% improvement in the
-persistent memory initialization performance.
-
-I have called out the improvement observed with each patch.
-
-v1->v2:
-    Fixed build issue on PowerPC due to page struct size being 56
-    Added new patch that removed __SetPageReserved call for hotplug
-v2->v3:
-    Rebased on latest linux-next
-    Removed patch that had removed __SetPageReserved call from init
-    Added patch that folded __SetPageReserved into set_page_links
-    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
-v3->v4:
-    Updated patch description and comments for mm_zero_struct_page patch
-        Replaced "default" with "case 64"
-        Removed #ifndef mm_zero_struct_page
-    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
-    Added Reviewed-by for patches reviewed by Pavel
-    Added Acked-by from Michal Hocko
-    Added deferred init times for patches that affect init performance
-    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
-        Did this as reserved bit wasn't used in deferred memory init
-
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
+ net/core/filter.c | 40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
 
-Alexander Duyck (6):
-      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-      mm: Drop meminit_pfn_in_nid as it is redundant
-      mm: Use memblock/zone specific iterator for handling deferred page init
-      mm: Move hot-plug specific memory init into separate functions and optimize
-      mm: Add reserved flag setting to set_page_links
-      mm: Use common iterator for deferred_init_pages and deferred_free_pages
-
-
- arch/sparc/include/asm/pgtable_64.h |   30 --
- include/linux/memblock.h            |   58 ++++
- include/linux/mm.h                  |   50 +++
- mm/memblock.c                       |   63 ++++
- mm/page_alloc.c                     |  569 +++++++++++++++++++++--------------
- 5 files changed, 513 insertions(+), 257 deletions(-)
-
---
+diff --git a/net/core/filter.c b/net/core/filter.c
+index e521c5ebc7d1..c151b906df53 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -296,22 +296,21 @@ static u32 convert_skb_access(int skb_field, int dst_reg, int src_reg,
+ 		break;
+ 
+ 	case SKF_AD_VLAN_TAG:
+-	case SKF_AD_VLAN_TAG_PRESENT:
+ 		BUILD_BUG_ON(FIELD_SIZEOF(struct sk_buff, vlan_tci) != 2);
+-		BUILD_BUG_ON(VLAN_TAG_PRESENT != 0x1000);
+ 
+ 		/* dst_reg = *(u16 *) (src_reg + offsetof(vlan_tci)) */
+ 		*insn++ = BPF_LDX_MEM(BPF_H, dst_reg, src_reg,
+ 				      offsetof(struct sk_buff, vlan_tci));
+-		if (skb_field = SKF_AD_VLAN_TAG) {
+-			*insn++ = BPF_ALU32_IMM(BPF_AND, dst_reg,
+-						~VLAN_TAG_PRESENT);
+-		} else {
+-			/* dst_reg >>= 12 */
+-			*insn++ = BPF_ALU32_IMM(BPF_RSH, dst_reg, 12);
+-			/* dst_reg &= 1 */
++#ifdef VLAN_TAG_PRESENT
++		*insn++ = BPF_ALU32_IMM(BPF_AND, dst_reg, ~VLAN_TAG_PRESENT);
++#endif
++		break;
++	case SKF_AD_VLAN_TAG_PRESENT:
++		*insn++ = BPF_LDX_MEM(BPF_B, dst_reg, src_reg, PKT_VLAN_PRESENT_OFFSET());
++		if (PKT_VLAN_PRESENT_BIT)
++			*insn++ = BPF_ALU32_IMM(BPF_RSH, dst_reg, PKT_VLAN_PRESENT_BIT);
++		if (PKT_VLAN_PRESENT_BIT < 7)
+ 			*insn++ = BPF_ALU32_IMM(BPF_AND, dst_reg, 1);
+-		}
+ 		break;
+ 	}
+ 
+@@ -6140,19 +6139,22 @@ static u32 bpf_convert_ctx_access(enum bpf_access_type type,
+ 		break;
+ 
+ 	case offsetof(struct __sk_buff, vlan_present):
++		*target_size = 1;
++		*insn++ = BPF_LDX_MEM(BPF_B, si->dst_reg, si->src_reg,
++				      PKT_VLAN_PRESENT_OFFSET());
++		if (PKT_VLAN_PRESENT_BIT)
++			*insn++ = BPF_ALU32_IMM(BPF_RSH, si->dst_reg, PKT_VLAN_PRESENT_BIT);
++		if (PKT_VLAN_PRESENT_BIT < 7)
++			*insn++ = BPF_ALU32_IMM(BPF_AND, si->dst_reg, 1);
++		break;
++
+ 	case offsetof(struct __sk_buff, vlan_tci):
+-		BUILD_BUG_ON(VLAN_TAG_PRESENT != 0x1000);
+-
+ 		*insn++ = BPF_LDX_MEM(BPF_H, si->dst_reg, si->src_reg,
+ 				      bpf_target_off(struct sk_buff, vlan_tci, 2,
+ 						     target_size));
+-		if (si->off = offsetof(struct __sk_buff, vlan_tci)) {
+-			*insn++ = BPF_ALU32_IMM(BPF_AND, si->dst_reg,
+-						~VLAN_TAG_PRESENT);
+-		} else {
+-			*insn++ = BPF_ALU32_IMM(BPF_RSH, si->dst_reg, 12);
+-			*insn++ = BPF_ALU32_IMM(BPF_AND, si->dst_reg, 1);
+-		}
++#ifdef VLAN_TAG_PRESENT
++		*insn++ = BPF_ALU32_IMM(BPF_AND, si->dst_reg, ~VLAN_TAG_PRESENT);
++#endif
+ 		break;
+ 
+ 	case offsetof(struct __sk_buff, cb[0]) ...
+-- 
+2.19.1
