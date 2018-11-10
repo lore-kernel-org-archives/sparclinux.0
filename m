@@ -1,21 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 19 Nov 2018 02:59:22 +0000
-Subject: Re: [PATCH] arch/sparc: Use kzalloc_node
-Message-Id: <20181118.185922.1427491199237345438.davem@davemloft.net>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Sat, 10 Nov 2018 18:58:29 +0000
+Subject: [PATCH net-next 0/6] Remove VLAN.CFI overload
+Message-Id: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5bdd3128.1c69fb81.4bd46.f7ce@mx.google.com>
-In-Reply-To: <5bdd3128.1c69fb81.4bd46.f7ce@mx.google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: sabyasachi.linux@gmail.com
-Cc: khandual@linux.vnet.ibm.com, jrdr.linux@gmail.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, brajeswar.linux@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: Alexei Starovoitov <ast@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Burton <paul.burton@mips.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, sparclinux@vger.kernel.org
 
-From: Sabyasachi Gupta <sabyasachi.linux@gmail.com>
-Date: Sat, 3 Nov 2018 10:54:52 +0530
+Fix BPF code/JITs to allow for separate VLAN_PRESENT flag
+storage and finally move the flag to separate storage in skbuff.
 
-> Replaced kmalloc_node + memset with kzalloc_node
-> 
-> Signed-off-by: Sabyasachi Gupta <sabyasachi.linux@gmail.com>
+This is final step to make CLAN.CFI transparent to core Linux
+networking stack.
 
-Applied.
+An #ifdef is introduced temporarily to mark fragments masking
+VLAN_TAG_PRESENT. This is removed altogether in the final patch.
+
+---
+Michał Mirosław (6):
+  net/skbuff: add macros for VLAN_PRESENT bit
+  net/bpf: split VLAN_PRESENT bit handling from VLAN_TCI
+  net/bpf_jit: MIPS: split VLAN_PRESENT bit handling from VLAN_TCI
+  net/bpf_jit: PPC: split VLAN_PRESENT bit handling from VLAN_TCI
+  net/bpf_jit: SPARC: split VLAN_PRESENT bit handling from VLAN_TCI
+  net: remove VLAN_TAG_PRESENT
+
+ arch/mips/net/bpf_jit.c          | 18 ++++++++---------
+ arch/powerpc/net/bpf_jit_comp.c  | 15 +++++++-------
+ arch/sparc/net/bpf_jit_comp_32.c | 13 ++++++------
+ include/linux/if_vlan.h          | 11 ++++++-----
+ include/linux/skbuff.h           | 10 +++++++++-
+ lib/test_bpf.c                   | 14 +++++++------
+ net/core/filter.c                | 34 ++++++++++++++------------------
+ 7 files changed, 60 insertions(+), 55 deletions(-)
+
+-- 
+2.19.1
