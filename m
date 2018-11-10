@@ -1,64 +1,40 @@
-From: Yangtao Li <tiny.windzz@gmail.com>
-Date: Wed, 21 Nov 2018 16:06:15 +0000
-Subject: [PATCH] serial/sunsu: add missing of_node_put()
-Message-Id: <20181121160615.23666-1-tiny.windzz@gmail.com>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Date: Sat, 10 Nov 2018 18:58:34 +0000
+Subject: [PATCH net-next 1/6] net/skbuff: add macros for VLAN_PRESENT bit
+Message-Id: <0f16fe1faf8961523d0e94e2c1c87d427c4fcad0.1541876179.git.mirq-linux@rere.qmqm.pl>
 List-Id: <sparclinux.vger.kernel.org>
+References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, gregkh@linuxfoundation.org, jslaby@suse.com
-Cc: sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Alexei Starovoitov <ast@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Daniel Borkmann <daniel@iogearbox.net>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Burton <paul.burton@mips.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, sparclinux@vger.kernel.org
 
-of_find_node_by_path() acquires a reference to the node
-returned by it and that reference needs to be dropped by its caller.
-This place is not doing this, so fix it.
+Wrap VLAN_PRESENT bit using macro like PKT_TYPE_* and CLONED_*,
+as used by BPF code.
 
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- drivers/tty/serial/sunsu.c | 20 +++++++++++++++-----
- 1 file changed, 15 insertions(+), 5 deletions(-)
+ include/linux/skbuff.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 6cf3e9b0728f..4a27c0114d50 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -1394,22 +1394,32 @@ static inline struct console *SUNSU_CONSOLE(void)
- static enum su_type su_get_type(struct device_node *dp)
- {
- 	struct device_node *ap = of_find_node_by_path("/aliases");
-+	enum su_type rc = SU_PORT_PORT;
- 
- 	if (ap) {
-+		struct device_node *tmp;
- 		const char *keyb = of_get_property(ap, "keyboard", NULL);
- 		const char *ms = of_get_property(ap, "mouse", NULL);
- 
- 		if (keyb) {
--			if (dp = of_find_node_by_path(keyb))
--				return SU_PORT_KBD;
-+			tmp = of_find_node_by_path(keyb);
-+			if (tmp && dp = tmp){
-+				rc = SU_PORT_KBD;
-+				goto out;
-+			}
- 		}
- 		if (ms) {
--			if (dp = of_find_node_by_path(ms))
--				return SU_PORT_MS;
-+			tmp = of_find_node_by_path(ms);
-+			if (tmp && dp = tmp){
-+				rc = SU_PORT_MS;
-+				goto out;
-+			}
- 		}
- 	}
- 
--	return SU_PORT_PORT;
-+out:
-+	of_node_put(ap);
-+	return rc;
- }
- 
- static int su_probe(struct platform_device *op)
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 7dcfb5591dc3..99f38779332c 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -816,6 +816,12 @@ struct sk_buff {
+ 	__u32			priority;
+ 	int			skb_iif;
+ 	__u32			hash;
++#define PKT_VLAN_PRESENT_BIT	4	// CFI (12-th bit) in TCI
++#ifdef __BIG_ENDIAN
++#define PKT_VLAN_PRESENT_OFFSET()	offsetof(struct sk_buff, vlan_tci)
++#else
++#define PKT_VLAN_PRESENT_OFFSET()	(offsetof(struct sk_buff, vlan_tci) + 1)
++#endif
+ 	__be16			vlan_proto;
+ 	__u16			vlan_tci;
+ #if defined(CONFIG_NET_RX_BUSY_POLL) || defined(CONFIG_XPS)
 -- 
-2.17.0
+2.19.1
