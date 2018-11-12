@@ -1,52 +1,20 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 16 Nov 2018 21:06:52 +0000
-Subject: [PATCH v2 01/10] fs/openpromfs: use full_name instead of path_component_name
-Message-Id: <20181116210701.22968-2-robh@kernel.org>
+From: Daniel Murray <sinara-group@bk.ru>
+Date: Mon, 12 Nov 2018 13:03:27 +0000
+Subject: Inquiry 12/11/18
+Message-Id: <20181112131211.223B090C749@mail.hanqfast.cf>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-In preparation to remove struct device_node.path_component_name, use
-full_name instead. kbasename is used so full_name can be used whether it
-is the full path or just the node's name and unit-address.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- fs/openpromfs/inode.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
-index 607092f367ad..3d8e9bcfe239 100644
---- a/fs/openpromfs/inode.c
-+++ b/fs/openpromfs/inode.c
-@@ -199,10 +199,11 @@ static struct dentry *openpromfs_lookup(struct inode *dir, struct dentry *dentry
+Hi,friend,
  
- 	child = dp->child;
- 	while (child) {
--		int n = strlen(child->path_component_name);
-+		const char *node_name = kbasename(child->full_name);
-+		int n = strlen(node_name);
+This is Daniel Murray and i am from Sinara Group Co.Ltd Group Co.,LTD in Russia.
+We are glad to know about your company from the web and we are interested in your products.
+Could you kindly send us your Latest catalog and price list for our trial order.
  
- 		if (len = n &&
--		    !strncmp(child->path_component_name, name, len)) {
-+		    !strncmp(node_name, name, len)) {
- 			ent_type = op_inode_node;
- 			ent_data.node = child;
- 			ino = child->unique_id;
-@@ -293,8 +294,8 @@ static int openpromfs_readdir(struct file *file, struct dir_context *ctx)
- 	}
- 	while (child) {
- 		if (!dir_emit(ctx,
--			    child->path_component_name,
--			    strlen(child->path_component_name),
-+			    kbasename(child->full_name),
-+			    strlen(kbasename(child->full_name)),
- 			    child->unique_id, DT_DIR))
- 			goto out;
+Best Regards,
  
--- 
-2.19.1
+Daniel Murray
+Purchasing Manager
