@@ -1,36 +1,78 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 01 Nov 2018 01:32:13 +0000
-Subject: [PATCH] sparc64: Wire up compat getpeername and getsockname.
-Message-Id: <20181031.183213.1255098030370450221.davem@davemloft.net>
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Wed, 14 Nov 2018 05:38:29 +0000
+Subject: [PATCH v3 2/4] sparc: add __NR_syscalls along with NR_syscalls
+Message-Id: <1542173191-24981-3-git-send-email-firoz.khan@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1542173191-24981-1-git-send-email-firoz.khan@linaro.org>
+In-Reply-To: <1542173191-24981-1-git-send-email-firoz.khan@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
 
+NR_syscalls macro holds the number of system call exist
+in sparc architecture. We have to change the value of NR-
+_syscalls, if we add or delete a system call.
 
-Fixes: 8b30ca73b7cc ("sparc: Add all necessary direct socket system calls.")
-Reported-by: Joseph Myers  <joseph@codesourcery.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+One of the patch in this patch series has a script which
+will generate a uapi header based on syscall.tbl file.
+The syscall.tbl file contains the total number of system
+calls information. So we have two option to update NR_sy-
+scalls value.
+
+1. Update NR_syscalls in asm/unistd.h manually by count-
+   ing the no.of system calls. No need to update NR_sys-
+   calls until we either add a new system call or delete
+   existing system call.
+
+2. We can keep this feature it above mentioned script,
+   that will count the number of syscalls and keep it in
+   a generated file. In this case we don't need to expli-
+   citly update NR_syscalls in asm/unistd.h file.
+
+The 2nd option will be the recommended one. For that, I
+added the __NR_syscalls macro in uapi/asm/unistd.h along
+with NR_syscalls asm/unistd.h. The macro __NR_syscalls
+also added for making the name convention same across all
+architecture. While __NR_syscalls isn't strictly part of
+the uapi, having it as part of the generated header to
+simplifies the implementation. We also need to enclose
+this macro with #ifdef __KERNEL__ to avoid side effects.
+
+Signed-off-by: Firoz Khan <firoz.khan@linaro.org>
 ---
- arch/sparc/kernel/systbls_64.S | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/unistd.h      | 2 ++
+ arch/sparc/include/uapi/asm/unistd.h | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
-index bb68c80..ff9389a 100644
---- a/arch/sparc/kernel/systbls_64.S
-+++ b/arch/sparc/kernel/systbls_64.S
-@@ -47,9 +47,9 @@ sys_call_table32:
- 	.word sys_recvfrom, sys_setreuid16, sys_setregid16, sys_rename, compat_sys_truncate
- /*130*/	.word compat_sys_ftruncate, sys_flock, compat_sys_lstat64, sys_sendto, sys_shutdown
- 	.word sys_socketpair, sys_mkdir, sys_rmdir, compat_sys_utimes, compat_sys_stat64
--/*140*/	.word sys_sendfile64, sys_nis_syscall, compat_sys_futex, sys_gettid, compat_sys_getrlimit
-+/*140*/	.word sys_sendfile64, sys_getpeername, compat_sys_futex, sys_gettid, compat_sys_getrlimit
- 	.word compat_sys_setrlimit, sys_pivot_root, sys_prctl, sys_pciconfig_read, sys_pciconfig_write
--/*150*/	.word sys_nis_syscall, sys_inotify_init, sys_inotify_add_watch, sys_poll, sys_getdents64
-+/*150*/	.word sys_getsockname, sys_inotify_init, sys_inotify_add_watch, sys_poll, sys_getdents64
- 	.word compat_sys_fcntl64, sys_inotify_rm_watch, compat_sys_statfs, compat_sys_fstatfs, sys_oldumount
- /*160*/	.word compat_sys_sched_setaffinity, compat_sys_sched_getaffinity, sys_getdomainname, sys_setdomainname, sys_nis_syscall
- 	.word sys_quotactl, sys_set_tid_address, compat_sys_mount, compat_sys_ustat, sys_setxattr
+diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
+index 73d2454..5194d86 100644
+--- a/arch/sparc/include/asm/unistd.h
++++ b/arch/sparc/include/asm/unistd.h
+@@ -17,6 +17,8 @@
+ 
+ #include <uapi/asm/unistd.h>
+ 
++#define NR_syscalls	__NR_syscalls
++
+ #ifdef __32bit_syscall_numbers__
+ #else
+ #define __NR_time		231 /* Linux sparc32                               */
+diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
+index d37a136..4ae11c4 100644
+--- a/arch/sparc/include/uapi/asm/unistd.h
++++ b/arch/sparc/include/uapi/asm/unistd.h
+@@ -429,7 +429,9 @@
+ #define __NR_statx		360
+ #define __NR_io_pgetevents	361
+ 
+-#define NR_syscalls		362
++#ifdef __KERNEL__
++#define __NR_syscalls		362
++#endif
+ 
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
 -- 
-2.1.2.532.g19b5d50
+1.9.1
