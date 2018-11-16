@@ -1,50 +1,52 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Date: Mon, 26 Nov 2018 11:12:29 +0000
-Subject: [PATCH v2 13/20] powerpc: perf/core: advertise PMU exclusion capability
-Message-Id: <1543230756-15319-14-git-send-email-andrew.murray@arm.com>
+From: Rob Herring <robh@kernel.org>
+Date: Fri, 16 Nov 2018 21:06:52 +0000
+Subject: [PATCH v2 01/10] fs/openpromfs: use full_name instead of path_component_name
+Message-Id: <20181116210701.22968-2-robh@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
-In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-For PowerPC PMUs that have the capability to exclude events
-based on context. Let's advertise that we support the
-PERF_PMU_CAP_EXCLUDE capability to ensure that perf doesn't
-prevent us from handling events where any exclusion flags are
-set.
+In preparation to remove struct device_node.path_component_name, use
+full_name instead. kbasename is used so full_name can be used whether it
+is the full path or just the node's name and unit-address.
 
-Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/powerpc/perf/core-book3s.c  | 1 +
- arch/powerpc/perf/core-fsl-emb.c | 1 +
- 2 files changed, 2 insertions(+)
+ fs/openpromfs/inode.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/powerpc/perf/core-book3s.c b/arch/powerpc/perf/core-book3s.c
-index 81f8a0c..2f44b09 100644
---- a/arch/powerpc/perf/core-book3s.c
-+++ b/arch/powerpc/perf/core-book3s.c
-@@ -2007,6 +2007,7 @@ static struct pmu power_pmu = {
- 	.commit_txn	= power_pmu_commit_txn,
- 	.event_idx	= power_pmu_event_idx,
- 	.sched_task	= power_pmu_sched_task,
-+	.capabilities	= PERF_PMU_CAP_EXCLUDE,
- };
+diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
+index 607092f367ad..3d8e9bcfe239 100644
+--- a/fs/openpromfs/inode.c
++++ b/fs/openpromfs/inode.c
+@@ -199,10 +199,11 @@ static struct dentry *openpromfs_lookup(struct inode *dir, struct dentry *dentry
  
- /*
-diff --git a/arch/powerpc/perf/core-fsl-emb.c b/arch/powerpc/perf/core-fsl-emb.c
-index ba48584..cea5bcb 100644
---- a/arch/powerpc/perf/core-fsl-emb.c
-+++ b/arch/powerpc/perf/core-fsl-emb.c
-@@ -596,6 +596,7 @@ static struct pmu fsl_emb_pmu = {
- 	.start		= fsl_emb_pmu_start,
- 	.stop		= fsl_emb_pmu_stop,
- 	.read		= fsl_emb_pmu_read,
-+	.capabilities	= PERF_PMU_CAP_EXCLUDE,
- };
+ 	child = dp->child;
+ 	while (child) {
+-		int n = strlen(child->path_component_name);
++		const char *node_name = kbasename(child->full_name);
++		int n = strlen(node_name);
  
- /*
+ 		if (len = n &&
+-		    !strncmp(child->path_component_name, name, len)) {
++		    !strncmp(node_name, name, len)) {
+ 			ent_type = op_inode_node;
+ 			ent_data.node = child;
+ 			ino = child->unique_id;
+@@ -293,8 +294,8 @@ static int openpromfs_readdir(struct file *file, struct dir_context *ctx)
+ 	}
+ 	while (child) {
+ 		if (!dir_emit(ctx,
+-			    child->path_component_name,
+-			    strlen(child->path_component_name),
++			    kbasename(child->full_name),
++			    strlen(kbasename(child->full_name)),
+ 			    child->unique_id, DT_DIR))
+ 			goto out;
+ 
 -- 
-2.7.4
+2.19.1
