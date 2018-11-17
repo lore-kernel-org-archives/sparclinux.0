@@ -1,27 +1,51 @@
-From: "Dr Kannan" <sale@allta.com.ua>
-Date: Sat, 03 Nov 2018 16:26:14 +0000
-Subject: Update
-Message-Id: <20181103162602.D02261803C5@mail.allta.com.ua>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Sat, 17 Nov 2018 18:57:14 +0000
+Subject: [PATCH 3/4] bpf: add __weak hook for allocating executable memory
+Message-Id: <20181117185715.25198-4-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Hello dear
+By default, BPF uses module_alloc() to allocate executable memory,
+but this is not necessary on all arches and potentially undesirable
+on some of them.
 
-Greetings to you,I am Dr.Kannan, a personal account manager to Late Engr. Richard Hernandez, who died with his family in the missing Malaysian Air crash
+So break out the module_alloc() call into a __weak function to allow
+it to be overridden in arch code.
 
-of 2014. His account with us is in intestate with no claim his fixed deposit of U$D 7 Million.
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ kernel/bpf/core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-I have been mandated by the Bank Management as his personal account officer, to present his relative or next of kin.
-
-I have searched through notary register of his country here all to no avail, so I wish to present you to the Bank as his only relative and next of kin.
-
-kindly contact me for more details, terms and condition shall be clarified upon your response. There is no risk whatsoever to this transaction as I have all papers and documents to pose of you the inheritance to this. 
-
-I wait for your prompt response.
-
-My regards,
-
-Dr. Kannan.
+diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+index 29f766dac203..156d6b96ac6c 100644
+--- a/kernel/bpf/core.c
++++ b/kernel/bpf/core.c
+@@ -609,6 +609,11 @@ static void bpf_jit_uncharge_modmem(u32 pages)
+ 	atomic_long_sub(pages, &bpf_jit_current);
+ }
+ 
++void *__weak bpf_jit_alloc_exec(unsigned long size)
++{
++	return module_alloc(size);
++}
++
+ struct bpf_binary_header *
+ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+ 		     unsigned int alignment,
+@@ -626,7 +631,7 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+ 
+ 	if (bpf_jit_charge_modmem(pages))
+ 		return NULL;
+-	hdr = module_alloc(size);
++	hdr = bpf_jit_alloc_exec(size);
+ 	if (!hdr) {
+ 		bpf_jit_uncharge_modmem(pages);
+ 		return NULL;
+-- 
+2.17.1
