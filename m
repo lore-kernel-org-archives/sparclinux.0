@@ -1,7 +1,7 @@
 From: David Miller <davem@davemloft.net>
-Date: Sat, 10 Nov 2018 21:47:58 +0000
+Date: Sat, 17 Nov 2018 03:26:44 +0000
 Subject: Re: [PATCH net-next 0/6] Remove VLAN.CFI overload
-Message-Id: <20181110.134758.693752342395888727.davem@davemloft.net>
+Message-Id: <20181116.192644.2178661017383340711.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
 In-Reply-To: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
@@ -23,4 +23,4 @@ Date: Sat, 10 Nov 2018 19:58:29 +0100
 > An #ifdef is introduced temporarily to mark fragments masking
 > VLAN_TAG_PRESENT. This is removed altogether in the final patch.
 
-Daniel and Alexei, please review.
+Series applied, thank you.
