@@ -1,30 +1,137 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Date: Mon, 19 Nov 2018 11:05:02 +0000
-Subject: Re: [PATCH net-next 0/6] Remove VLAN.CFI overload
-Message-Id: <6d7de753-7e53-d980-e357-b1af2495cb7e@iogearbox.net>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Date: Sat, 17 Nov 2018 18:57:13 +0000
+Subject: [PATCH 2/4] net/bpf: refactor freeing of executable allocations
+Message-Id: <20181117185715.25198-3-ard.biesheuvel@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
- <20181110.134758.693752342395888727.davem@davemloft.net>
-In-Reply-To: <20181110.134758.693752342395888727.davem@davemloft.net>
+References: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: David Miller <davem@davemloft.net>, mirq-linux@rere.qmqm.pl
-Cc: netdev@vger.kernel.org, ast@kernel.org, benh@kernel.crashing.org, jhogan@kernel.org, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, paul.burton@mips.com, paulus@samba.org, ralf@linux-mips.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-On 11/10/2018 10:47 PM, David Miller wrote:
-> From: Micha=A9=A9 Miros=A9=A9aw <mirq-linux@rere.qmqm.pl>
-> Date: Sat, 10 Nov 2018 19:58:29 +0100
->=20
->> Fix BPF code/JITs to allow for separate VLAN_PRESENT flag
->> storage and finally move the flag to separate storage in skbuff.
->>
->> This is final step to make CLAN.CFI transparent to core Linux
->> networking stack.
->>
->> An #ifdef is introduced temporarily to mark fragments masking
->> VLAN_TAG_PRESENT. This is removed altogether in the final patch.
->=20
-> Daniel and Alexei, please review.
+All arch overrides of the __weak bpf_jit_free() amount to the same
+thing: the allocated memory was never mapped read-only, and so
+it does not have to be remapped to read-write before being freed.
 
-Sorry, was completely swamped due to plumbers, just getting to it now.
+So in preparation of permitting arches to serve allocations for BPF
+JIT programs from other regions than the module region, refactor
+the existing bpf_jit_free() implementations to use the shared code
+where possible, and only specialize the remap and free operations.
+
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ arch/mips/net/bpf_jit.c           |  7 ++-----
+ arch/powerpc/net/bpf_jit_comp.c   |  7 ++-----
+ arch/powerpc/net/bpf_jit_comp64.c |  9 +++------
+ arch/sparc/net/bpf_jit_comp_32.c  |  7 ++-----
+ kernel/bpf/core.c                 | 15 +++++----------
+ 5 files changed, 14 insertions(+), 31 deletions(-)
+
+diff --git a/arch/mips/net/bpf_jit.c b/arch/mips/net/bpf_jit.c
+index 1b69897274a1..5696bd7dccc7 100644
+--- a/arch/mips/net/bpf_jit.c
++++ b/arch/mips/net/bpf_jit.c
+@@ -1261,10 +1261,7 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 	kfree(ctx.offsets);
+ }
+ 
+-void bpf_jit_free(struct bpf_prog *fp)
++void bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
+-	if (fp->jited)
+-		bpf_jit_binary_free(bpf_jit_binary_hdr(fp));
+-
+-	bpf_prog_unlock_free(fp);
++	module_memfree(hdr);
+ }
+diff --git a/arch/powerpc/net/bpf_jit_comp.c b/arch/powerpc/net/bpf_jit_comp.c
+index a1ea1ea6b40d..5b5ce4a1b44b 100644
+--- a/arch/powerpc/net/bpf_jit_comp.c
++++ b/arch/powerpc/net/bpf_jit_comp.c
+@@ -680,10 +680,7 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 	return;
+ }
+ 
+-void bpf_jit_free(struct bpf_prog *fp)
++void bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
+-	if (fp->jited)
+-		bpf_jit_binary_free(bpf_jit_binary_hdr(fp));
+-
+-	bpf_prog_unlock_free(fp);
++	module_memfree(hdr);
+ }
+diff --git a/arch/powerpc/net/bpf_jit_comp64.c b/arch/powerpc/net/bpf_jit_comp64.c
+index 84c8f013a6c6..f64f1294bd62 100644
+--- a/arch/powerpc/net/bpf_jit_comp64.c
++++ b/arch/powerpc/net/bpf_jit_comp64.c
+@@ -1021,11 +1021,8 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *fp)
+ 	return fp;
+ }
+ 
+-/* Overriding bpf_jit_free() as we don't set images read-only. */
+-void bpf_jit_free(struct bpf_prog *fp)
++/* Overriding bpf_jit_binary_free() as we don't set images read-only. */
++void bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
+-	if (fp->jited)
+-		bpf_jit_binary_free(bpf_jit_binary_hdr(fp));
+-
+-	bpf_prog_unlock_free(fp);
++	module_memfree(hdr);
+ }
+diff --git a/arch/sparc/net/bpf_jit_comp_32.c b/arch/sparc/net/bpf_jit_comp_32.c
+index 01bda6bc9e7f..589950d152cc 100644
+--- a/arch/sparc/net/bpf_jit_comp_32.c
++++ b/arch/sparc/net/bpf_jit_comp_32.c
+@@ -756,10 +756,7 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 	return;
+ }
+ 
+-void bpf_jit_free(struct bpf_prog *fp)
++void bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
+-	if (fp->jited)
+-		bpf_jit_binary_free(bpf_jit_binary_hdr(fp));
+-
+-	bpf_prog_unlock_free(fp);
++	module_memfree(hdr);
+ }
+diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+index 1a796e0799ec..29f766dac203 100644
+--- a/kernel/bpf/core.c
++++ b/kernel/bpf/core.c
+@@ -646,25 +646,20 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
+ 	return hdr;
+ }
+ 
+-void bpf_jit_binary_free(struct bpf_binary_header *hdr)
++void __weak bpf_jit_binary_free(struct bpf_binary_header *hdr)
+ {
+-	u32 pages = hdr->pages;
+-
++	bpf_jit_binary_unlock_ro(hdr);
+ 	module_memfree(hdr);
+-	bpf_jit_uncharge_modmem(pages);
+ }
+ 
+-/* This symbol is only overridden by archs that have different
+- * requirements than the usual eBPF JITs, f.e. when they only
+- * implement cBPF JIT, do not set images read-only, etc.
+- */
+-void __weak bpf_jit_free(struct bpf_prog *fp)
++void bpf_jit_free(struct bpf_prog *fp)
+ {
+ 	if (fp->jited) {
+ 		struct bpf_binary_header *hdr = bpf_jit_binary_hdr(fp);
++		u32 pages = hdr->pages;
+ 
+-		bpf_jit_binary_unlock_ro(hdr);
+ 		bpf_jit_binary_free(hdr);
++		bpf_jit_uncharge_modmem(pages);
+ 
+ 		WARN_ON_ONCE(!bpf_prog_kallsyms_verify_off(fp));
+ 	}
+-- 
+2.17.1
