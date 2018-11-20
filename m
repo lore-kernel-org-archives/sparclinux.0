@@ -1,20 +1,35 @@
-From: <daniel-murray@inbox.ru>
-Date: Sun, 11 Nov 2018 17:10:37 +0000
-Subject: Price queries
-Message-Id: <20181111182132.E02B167F520@mail.hanqfast.gq>
+From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Tue, 20 Nov 2018 13:38:26 +0000
+Subject: [PATCH] drivers/sbus/char: add of_node_put()
+Message-Id: <20181120133826.20019-1-tiny.windzz@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
 
-Hi,friend,
+use of_node_put() to release the refcount.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+---
+ drivers/sbus/char/envctrl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index 56e962a01493..b8481927bfe4 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
+ 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
+ 				pchild->mon_type[len] = ENVCTRL_NOMON;
+ 			}
++			of_node_put(root_node);
+ 			return;
+ 		}
++		of_node_put(root_node);
+ 	}
  
-This is Daniel Murray and i am from Sinara Group Co.Ltd Group Co.,LTD in Russia.
-We are glad to know about your company from the web and we are interested in your products.
-Could you kindly send us your Latest catalog and price list for our trial order.
- 
-Best Regards,
- 
-Daniel Murray
-Purchasing Manager
+ 	/* Get the monitor channels. */
+-- 
+2.17.0
