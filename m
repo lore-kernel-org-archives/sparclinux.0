@@ -1,37 +1,32 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Date: Mon, 26 Nov 2018 11:12:22 +0000
-Subject: [PATCH v2 06/20] arc: perf/core: advertise PMU exclusion capability
-Message-Id: <1543230756-15319-7-git-send-email-andrew.murray@arm.com>
+From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Tue, 20 Nov 2018 13:30:40 +0000
+Subject: [PATCH] sbus: char: add of_node_put()
+Message-Id: <20181120133040.19889-1-tiny.windzz@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
-In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
 
-The ARC PMU has the capability to exclude events based on
-context. Let's advertise that we support the
-PERF_PMU_CAP_EXCLUDE capability to ensure that perf doesn't
-prevent us from handling events where any exclusion flags are
-set.
+use of_node_put() to release the refcount.
 
-Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- arch/arc/kernel/perf_event.c | 1 +
+ drivers/sbus/char/display7seg.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/arc/kernel/perf_event.c b/arch/arc/kernel/perf_event.c
-index 8aec462..cf8ea6d 100644
---- a/arch/arc/kernel/perf_event.c
-+++ b/arch/arc/kernel/perf_event.c
-@@ -514,6 +514,7 @@ static int arc_pmu_device_probe(struct platform_device *pdev)
- 		.start		= arc_pmu_start,
- 		.stop		= arc_pmu_stop,
- 		.read		= arc_pmu_read,
-+		.capabilities	= PERF_PMU_CAP_EXCLUDE,
- 	};
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 5c8ed7350a04..a36e4cf1841d 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -220,6 +220,7 @@ static int d7s_probe(struct platform_device *op)
+ 	dev_set_drvdata(&op->dev, p);
+ 	d7s_device = p;
+ 	err = 0;
++	of_node_put(opts);
  
- 	if (has_interrupts) {
+ out:
+ 	return err;
 -- 
-2.7.4
+2.17.0
