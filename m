@@ -1,42 +1,64 @@
-From: "Paul E. McKenney" <paulmck@linux.ibm.com>
-Date: Sun, 11 Nov 2018 19:43:35 +0000
-Subject: [PATCH tip/core/rcu 06/41] sparc/oprofile: Convert timer_stop() to use synchronize_rcu()
-Message-Id: <20181111194410.6368-6-paulmck@linux.ibm.com>
+From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Wed, 21 Nov 2018 16:06:15 +0000
+Subject: [PATCH] serial/sunsu: add missing of_node_put()
+Message-Id: <20181121160615.23666-1-tiny.windzz@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181111194104.GA4787@linux.ibm.com>
-In-Reply-To: <20181111194104.GA4787@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: mingo@kernel.org, jiangshanlai@gmail.com, dipankar@in.ibm.com, akpm@linux-foundation.org, mathieu.desnoyers@efficios.com, josh@joshtriplett.org, tglx@linutronix.de, peterz@infradead.org, rostedt@goodmis.org, dhowells@redhat.com, edumazet@google.com, fweisbec@gmail.com, oleg@redhat.com, joel@joelfernandes.org, "Paul E. McKenney" <paulmck@linux.ibm.com>, Robert Richter <rric@kernel.org>, "David S. Miller" <davem@davemloft.net>, oprofile-list@lists.sf.net, sparclinux@vger.kernel.org
+To: davem@davemloft.net, gregkh@linuxfoundation.org, jslaby@suse.com
+Cc: sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
 
-Now that synchronize_rcu() waits for preempt-disable regions of code
-in addition to explicitly marked RCU read-side critical sections,
-synchronize_rcu() can be used in place of synchronize_sched().  This
-commit therefore makes that change.
+of_find_node_by_path() acquires a reference to the node
+returned by it and that reference needs to be dropped by its caller.
+This place is not doing this, so fix it.
 
-Signed-off-by: Paul E. McKenney <paulmck@linux.ibm.com>
-Cc: Robert Richter <rric@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <oprofile-list@lists.sf.net>
-Cc: <sparclinux@vger.kernel.org>
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 ---
- arch/sparc/oprofile/init.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/tty/serial/sunsu.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/oprofile/init.c b/arch/sparc/oprofile/init.c
-index f9024bccff16..43730c9b1c86 100644
---- a/arch/sparc/oprofile/init.c
-+++ b/arch/sparc/oprofile/init.c
-@@ -53,7 +53,7 @@ static void timer_stop(void)
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 6cf3e9b0728f..4a27c0114d50 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1394,22 +1394,32 @@ static inline struct console *SUNSU_CONSOLE(void)
+ static enum su_type su_get_type(struct device_node *dp)
  {
- 	nmi_adjust_hz(1);
- 	unregister_die_notifier(&profile_timer_exceptions_nb);
--	synchronize_sched();  /* Allow already-started NMIs to complete. */
-+	synchronize_rcu();  /* Allow already-started NMIs to complete. */
+ 	struct device_node *ap = of_find_node_by_path("/aliases");
++	enum su_type rc = SU_PORT_PORT;
+ 
+ 	if (ap) {
++		struct device_node *tmp;
+ 		const char *keyb = of_get_property(ap, "keyboard", NULL);
+ 		const char *ms = of_get_property(ap, "mouse", NULL);
+ 
+ 		if (keyb) {
+-			if (dp = of_find_node_by_path(keyb))
+-				return SU_PORT_KBD;
++			tmp = of_find_node_by_path(keyb);
++			if (tmp && dp = tmp){
++				rc = SU_PORT_KBD;
++				goto out;
++			}
+ 		}
+ 		if (ms) {
+-			if (dp = of_find_node_by_path(ms))
+-				return SU_PORT_MS;
++			tmp = of_find_node_by_path(ms);
++			if (tmp && dp = tmp){
++				rc = SU_PORT_MS;
++				goto out;
++			}
+ 		}
+ 	}
+ 
+-	return SU_PORT_PORT;
++out:
++	of_node_put(ap);
++	return rc;
  }
  
- static int op_nmi_timer_init(struct oprofile_operations *ops)
+ static int su_probe(struct platform_device *op)
 -- 
-2.17.1
+2.17.0
