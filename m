@@ -1,39 +1,68 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Sun, 25 Nov 2018 21:44:34 +0000
-Subject: [PATCH 2/5] microblaze: prefer memblock API returning virtual address
-Message-Id: <1543182277-8819-3-git-send-email-rppt@linux.ibm.com>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Sat, 24 Nov 2018 02:20:31 +0000
+Subject: [PATCH 4/8] arch: sparc: Override struct __kernel_old_timeval
+Message-Id: <20181124022035.17519-5-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543182277-8819-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1543182277-8819-1-git-send-email-rppt@linux.ibm.com>
+References: <20181124022035.17519-1-deepa.kernel@gmail.com>
+In-Reply-To: <20181124022035.17519-1-deepa.kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, viro@zeniv.linux.org.uk, arnd@arndb.de, y2038@lists.linaro.org, sparclinux@vger.kernel.org
 
-Rather than use the memblock_alloc_base that returns a physical address and
-then convert this address to the virtual one, use appropriate memblock
-function that returns a virtual address.
+struct __kernel_old_timeval is supposed to have the same
+layout as struct timeval. But, it was inadvarently missed
+that __kernel_suseconds has a different definition for
+sparc64.
+Provide an asm-specific override that fixes it.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/microblaze/mm/init.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc/include/uapi/asm/posix_types.h | 10 ++++++++++
+ include/uapi/linux/time.h                 |  2 ++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index b17fd8a..44f4b89 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -363,8 +363,9 @@ void __init *early_get_page(void)
- 	 * Mem start + kernel_tlb -> here is limit
- 	 * because of mem mapping from head.S
- 	 */
--	return __va(memblock_alloc_base(PAGE_SIZE, PAGE_SIZE,
--				memory_start + kernel_tlb));
-+	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
-+				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
-+				NUMA_NO_NODE);
- }
+diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
+index fec499d6efb7..f139e0048628 100644
+--- a/arch/sparc/include/uapi/asm/posix_types.h
++++ b/arch/sparc/include/uapi/asm/posix_types.h
+@@ -19,6 +19,16 @@ typedef unsigned short         __kernel_old_gid_t;
+ typedef int		       __kernel_suseconds_t;
+ #define __kernel_suseconds_t __kernel_suseconds_t
  
- #endif /* CONFIG_MMU */
++typedef long		__kernel_long_t;
++typedef unsigned long	__kernel_ulong_t;
++#define __kernel_long_t __kernel_long_t
++
++struct __kernel_old_timeval {
++	__kernel_long_t tv_sec;
++	__kernel_suseconds_t tv_usec;
++};
++#define __kernel_old_timeval __kernel_old_timeval
++
+ #else
+ /* sparc 32 bit */
+ 
+diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
+index 6b56a2208be7..04d5587f30d3 100644
+--- a/include/uapi/linux/time.h
++++ b/include/uapi/linux/time.h
+@@ -63,10 +63,12 @@ struct __kernel_itimerspec {
+  * here, this is probably because it is not y2038 safe and needs to
+  * be changed to use another interface.
+  */
++#ifndef __kernel_old_timeval
+ struct __kernel_old_timeval {
+ 	__kernel_long_t tv_sec;
+ 	__kernel_long_t tv_usec;
+ };
++#endif
+ 
+ /*
+  * The IDs of the various system clocks (for POSIX.1b interval timers):
 -- 
-2.7.4
+2.17.1
