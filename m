@@ -1,52 +1,106 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date: Sun, 25 Nov 2018 14:38:41 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Sun, 25 Nov 2018 22:35:11 +0000
 Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Message-Id: <CAF=yD-+ZiBR+VFzDnKOKPBCuNF_wbAe6goNO8KXYQH105Sg=0g@mail.gmail.com>
+Message-Id: <CAK8P3a2_i=RwcyjeDTn9HrzvPN7FYEYdFuyo3RXSVS_N4sbYeg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181124022035.17519-1-deepa.kernel@gmail.com>
  <20181124022035.17519-8-deepa.kernel@gmail.com> <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
  <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
- <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com> <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
-In-Reply-To: <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
+ <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com> <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
+In-Reply-To: <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: Deepa Dinamani <deepa.kernel@gmail.com>, David Miller <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Henderson <rth@twiddle.net>, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
 
-> > > > Same for the tcp case above, really, and in the case of the next patch
-> > > > for SO_TIMESTAMPING_NEW
-> > >
-> > > That naming convention, ..._2038, is not the nicest, of course. That
-> > > is not the relevant bit in the above comment.
+On Sun, Nov 25, 2018 at 3:33 PM Willem de Bruijn
+<willemdebruijn.kernel@gmail.com> wrote:
+> On Sun, Nov 25, 2018 at 12:28 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+> > So failing here means adding a bunch of ifdef's to verify it is not
+> > executing on 64 bit arch or something like x32.
 >
-> it could be  __sock_recv_timestamp64().
-> But, these timestamps should be doing exactly the same thing as the
-> old ones and I thought it would be nicer to keep the same code path.
-> I can change it to as per above.
+> The code as is adds branches on platforms that do not need it. Ifdefs
+> are ugly, but if they can be contained to the few helper functions needed
+> for the _2038 variants of cmsg_put, that is acceptable in my opinion.
 
-Please minimize code changes. It breaks git blame and longer patches
-are harder to review.
+In general, I think we should plan for the new code to be the fast path,
+not the old one. Initially that obviously won't be the case, but I hope
+that in a couple of years from now, 32-bit user space will normally use
+64-bit time_t.
 
-In this specific case, from a readability point of view, I find new functions
-that map one-to-one onto the new interfaces also more readable than
-deeper nested branches in place.
+This also means that the compat handling for these timestamps
+can be identical to the native 64-bit bit version, while the old
+32-bit code can be hidden behind a flag that is only active
+as the slowpath in native 32-bit mode or in compat mode.
 
+I'd also want to see the same thing for the naming, with the
+64-bit time_t based code having the obvious name.
+SOCK_TSTAMP_NEW is fine, otherwise we can try to
+just use SOCK_TSTAMP as the name in the kernel but
+make it refer to the new version.
+
+The two special cases we have consider are x86 with x32
+user space, which wants 64-bit timestamps in compat mode
+with SOCK_TSTAMP_OLD, and sparc64, which has an
+incompatible layout of timeval, so we need to make sure
+that sparc64 can handle all three layouts correctly.
+
+> > The existing timestamp options: SO_TIMESTAMP* fail to provide proper
+> > timestamps beyond year 2038 on 32 bit ABIs.
+> > But, these work fine on 64 bit native ABIs.
+> > So now we need a way of updating these timestamps so that we do not
+> > break existing userspace: 64 bit ABIs should not have to change
+> > userspace, 32 bit ABIs should work as is until 2038 after which they
+> > have bad timestamps.
 > > So we introduce new y2038 safe timestamp options for 32 bit ABIs. We
 > > assume that 32 bit applications will switch to new ABIs at some point,
 > > but leave the older timestamps as is.
 > > I can update the commit text as per above.
 >
-> We have been avoiding adding timeval64 timestamps to discourage users
-> from using these types in the interfaces.
-> We want to keep all the uapi time interfaces to use __kernel_*
-> interfaces. And, we already provide __kernel_timespec interface for
-> such instances.
-> But, in this case we do not have an option. So we introduce a type
-> specific to sockets.
+> So on 32-bit platforms SO_TIMESTAMP_NEW introduces a new struct
+> sock_timeval with both 64-bit fields.
+>
+> Does this not break existing applications that compile against SO_TIMESTAMP
+> and expect struct timeval? For one example, the selftests under tools/testing.
+>
+> The kernel will now convert SO_TIMESTAMP (previously constant 29) to
+> different SO_TIMESTAMP_NEW (62) and returns a different struct. Perhaps
+> with a library like libc in the middle this can be fixed up
+> transparently, but for
+> applications that don't have a more recent libc or use a library at
+> all, it breaks
+> the ABI.
+>
+> I suspect that these finer ABI points may have been discussed outside the
+> narrow confines of socket timestamping. But on its own, this does worry me.
 
-This structure just holds a timestamp. It does not seem socket specific.
-I don't mean to bikeshed the naming point too much, but timeval_ll or
-so may be more representative than tying it to a socket.
+The entire purpose of the complexities in the patch set is to not break
+the user space ABI after an application gets recompiled with a 64-bit
+time_t defined by a new libc version:
 
-As for the general naming, xxx64 or xxx2038 are more descriptive than xxx_NEW.
+#define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? \
+            SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
+
+This delays the evaluation of SO_TIMESTAMP to the point where
+it is first used, the assumption being that at this point we have included
+the libc header file that defines both 'time_t' and 'struct timeval'.
+[If we have not included that header, we get a compile-time error,
+which is also necessary because the compiler has no way of deciding
+whether to use SO_TIMESTAMP_OLD or SO_TIMESTAMP_NEW
+in that case].
+
+If the application is built with a 32-bit time_t, or with on a 64-bit
+architecture (all of which have 64-bit time_t and __kernel_long_t),
+or on x32 (which also has 64-bit time_t and __kernel_long_t),
+the result is SO_TIMESTAMP_OLD, so we tell the kernel
+to send back a timestamp in the old format, and everything works
+as it did before.
+
+The only thing that changes is 32-bit user space (other than x32) with
+a 64-bit time_t. In this case, the application expects a structure
+that corresponds to the new sock_timeval (which is compatible
+with the user space timeval based on 64-bit time_t), so we must
+use the new constant in order to tell the kernel which one we want.
+
+      Arnd
