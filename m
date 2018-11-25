@@ -1,20 +1,31 @@
-From: Offer <sffkg2011@gmail.com>
-Date: Tue, 27 Nov 2018 00:09:20 +0000
-Subject: 
-Message-Id: <CAMD6MADnP81pOeqFahOGOXboyD9iiF7LvFTy0GLs=LNURAawPQ@mail.gmail.com>
+From: "Mrs.Amelia George" <vanderleicardoso@brsuper.com.br>
+Date: Sun, 25 Nov 2018 14:11:30 +0000
+Subject: Re: Mrs.Amelia George
+Message-Id: <845ee7322b9807d88e1cfd44f1a80959@brsuper.com.br>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
--- 
-Guten Tag, Wir sind eine registrierte private Geldverleiher. Wir geben
-Kredite an Firmen, Einzelpersonen, die ihre finanzielle Status auf der
-ganzen Welt aktualisieren müssen, mit minimalen jährlichen Zinsen von
-2% .reply, wenn nötig.
 
-Good Day, We are a registered private money lender. We give out loans
-to firms, Individual who need to update their financial status all
-over the world, with Minimal annual Interest Rates of 2%reply if
-needed.
+
+-- 
+Dear Sir,
+
+My name is Mrs.Amelia George I am 72 years old, I am a dying woman who
+have decided to donate what I have to you/churches/ motherless
+babies/less
+privileged/widows.
+
+I have been touched by God to donate from what I have inherited from my
+late husband to you for good work of God.
+
+Please kindly let me know if you can assist me receive my funds and
+distribute to charity of your choice the sum of $25million United state
+Dollars.  I am willing to give you 20% for your time and effort.
+
+Your sister in Christ,
+
+Mrs.Amelia George
+Email:dr.amelia.george1@yandex.ru
