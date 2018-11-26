@@ -1,83 +1,37 @@
-From: Firoz Khan <firoz.khan@linaro.org>
-Date: Thu, 01 Nov 2018 13:53:54 +0000
-Subject: [PATCH v2 1/4] sparc: move __IGNORE* entries to non uapi header
-Message-Id: <1541080391-3890-2-git-send-email-firoz.khan@linaro.org>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:22 +0000
+Subject: [PATCH v2 06/20] arc: perf/core: advertise PMU exclusion capability
+Message-Id: <1543230756-15319-7-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
-In-Reply-To: <1541080391-3890-1-git-send-email-firoz.khan@linaro.org>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>
-Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, arnd@arndb.de, deepa.kernel@gmail.com, marcin.juszkiewicz@linaro.org, firoz.khan@linaro.org
+To: linux-arm-kernel@lists.infradead.org
 
-All the __IGNORE* entries are resides in the uapi header
-file move to non uapi header asm/unistd.h as it is not
-used by any user space applications.
+The ARC PMU has the capability to exclude events based on
+context. Let's advertise that we support the
+PERF_PMU_CAP_EXCLUDE capability to ensure that perf doesn't
+prevent us from handling events where any exclusion flags are
+set.
 
-It is correct to keep __IGNORE* entry in non uapi header
-asm/unistd.h while uapi/asm/unistd.h must hold information
-only useful for user space applications.
-
-One of the patch in this patch series will generate uapi
-header file. The information which directly used by the
-user space application must be present in uapi file.
-
-Signed-off-by: Firoz Khan <firoz.khan@linaro.org>
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
- arch/sparc/include/asm/unistd.h      | 16 ++++++++++++++++
- arch/sparc/include/uapi/asm/unistd.h | 16 ----------------
- 2 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arc/kernel/perf_event.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/include/asm/unistd.h b/arch/sparc/include/asm/unistd.h
-index b2a6a95..6dfd752 100644
---- a/arch/sparc/include/asm/unistd.h
-+++ b/arch/sparc/include/asm/unistd.h
-@@ -45,4 +45,20 @@
- #define __ARCH_WANT_COMPAT_SYS_SENDFILE
- #endif
+diff --git a/arch/arc/kernel/perf_event.c b/arch/arc/kernel/perf_event.c
+index 8aec462..cf8ea6d 100644
+--- a/arch/arc/kernel/perf_event.c
++++ b/arch/arc/kernel/perf_event.c
+@@ -514,6 +514,7 @@ static int arc_pmu_device_probe(struct platform_device *pdev)
+ 		.start		= arc_pmu_start,
+ 		.stop		= arc_pmu_stop,
+ 		.read		= arc_pmu_read,
++		.capabilities	= PERF_PMU_CAP_EXCLUDE,
+ 	};
  
-+#ifdef __32bit_syscall_numbers__
-+/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-+ * it never had the plain ones and there is no value to adding those
-+ * old versions into the syscall table.
-+ */
-+#define __IGNORE_setresuid
-+#define __IGNORE_getresuid
-+#define __IGNORE_setresgid
-+#define __IGNORE_getresgid
-+#endif
-+
-+/* Sparc doesn't have protection keys. */
-+#define __IGNORE_pkey_mprotect
-+#define __IGNORE_pkey_alloc
-+#define __IGNORE_pkey_free
-+
- #endif /* _SPARC_UNISTD_H */
-diff --git a/arch/sparc/include/uapi/asm/unistd.h b/arch/sparc/include/uapi/asm/unistd.h
-index 09acf0d..6e59037 100644
---- a/arch/sparc/include/uapi/asm/unistd.h
-+++ b/arch/sparc/include/uapi/asm/unistd.h
-@@ -433,20 +433,4 @@
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
- 
--#ifdef __32bit_syscall_numbers__
--/* Sparc 32-bit only has the "setresuid32", "getresuid32" variants,
-- * it never had the plain ones and there is no value to adding those
-- * old versions into the syscall table.
-- */
--#define __IGNORE_setresuid
--#define __IGNORE_getresuid
--#define __IGNORE_setresgid
--#define __IGNORE_getresgid
--#endif
--
--/* Sparc doesn't have protection keys. */
--#define __IGNORE_pkey_mprotect
--#define __IGNORE_pkey_alloc
--#define __IGNORE_pkey_free
--
- #endif /* _UAPI_SPARC_UNISTD_H */
+ 	if (has_interrupts) {
 -- 
-1.9.1
+2.7.4
