@@ -1,59 +1,36 @@
-From: Pavel Tatashin <pasha.tatashin@soleen.com>
-Date: Sat, 10 Nov 2018 02:07:50 +0000
-Subject: Re: [mm PATCH v5 5/7] mm: Move hot-plug specific memory init into separate functions and optimize
-Message-Id: <20181110020750.fsvvzl6hgfvk4qx4@xakep.localdomain>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:32 +0000
+Subject: [PATCH v2 16/20] sparc: perf/core: advertise PMU exclusion capability
+Message-Id: <1543230756-15319-17-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
- <154145279094.30046.504725873397414096.stgit@ahduyck-desk1.jf.intel.com>
-In-Reply-To: <154145279094.30046.504725873397414096.stgit@ahduyck-desk1.jf.intel.com>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
+To: linux-arm-kernel@lists.infradead.org
 
-On 18-11-05 13:19:50, Alexander Duyck wrote:
-> This patch is going through and combining the bits in memmap_init_zone and
-> memmap_init_zone_device that are related to hotplug into a single function
-> called __memmap_init_hotplug.
-> 
-> I also took the opportunity to integrate __init_single_page's functionality
-> into this function. In doing so I can get rid of some of the redundancy
-> such as the LRU pointers versus the pgmap.
+The SPARC PMU has the capability to exclude events based on context
+ - let's advertise that we support the PERF_PMU_CAP_EXCLUDE
+capability to ensure that perf doesn't prevent us from handling
+events where any exclusion flags are set.
 
-Please don't do it, __init_single_page() is hard function to optimize,
-do not copy its code. Instead could you you split __init_single_page()
-in two parts, something like this:
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+---
+ arch/sparc/kernel/perf_event.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-static inline init_single_page_nolru(struct page *page, unsigned long pfn,
-                                       unsigned long zone, int nid) {
-        mm_zero_struct_page(page);
-        set_page_links(page, zone, nid, pfn);
-        init_page_count(page);
-        page_mapcount_reset(page);
-        page_cpupid_reset_last(page);
-#ifdef WANT_PAGE_VIRTUAL
-        /* The shift won't overflow because ZONE_NORMAL is below 4G. */
-        if (!is_highmem_idx(zone))
-                set_page_address(page, __va(pfn << PAGE_SHIFT));
-#endif
-}
-
-
-static void __meminit init_single_page(struct page *page, unsigned long pfn, 
-                                unsigned long zone, int nid) 
-{
-        init_single_page_nolru(page, pfn, zone, nid);
-        INIT_LIST_HEAD(&page->lru);
-}
-
-And call init_single_page_nolru() from __init_pageblock() ? Also, remove
-WANT_PAGE_VIRTUAL optimization, I do not think it worse it.
-
-The rest looks very good, please do the above change.
-
-Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
-
-> 
-> Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-> ---
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index d3149ba..38fac17 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -1571,6 +1571,7 @@ static struct pmu pmu = {
+ 	.start_txn	= sparc_pmu_start_txn,
+ 	.cancel_txn	= sparc_pmu_cancel_txn,
+ 	.commit_txn	= sparc_pmu_commit_txn,
++	.capabilities	= PERF_PMU_CAP_EXCLUDE,
+ };
+ 
+ void perf_event_print_debug(void)
+-- 
+2.7.4
