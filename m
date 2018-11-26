@@ -1,33 +1,48 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 16 Nov 2018 21:06:53 +0000
-Subject: [PATCH v2 02/10] fs/openpromfs: Use of_node_name_eq for node name comparisons
-Message-Id: <20181116210701.22968-3-robh@kernel.org>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:36 +0000
+Subject: [PATCH v2 20/20] perf/core: remove unused perf_flags
+Message-Id: <1543230756-15319-21-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Convert string compares of DT node names to use of_node_name_eq helper
-instead. This removes direct access to the node name pointer.
+Now that perf_flags is not used we remove it.
 
-Signed-off-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
- fs/openpromfs/inode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/perf_event.h       | 2 --
+ tools/include/uapi/linux/perf_event.h | 2 --
+ 2 files changed, 4 deletions(-)
 
-diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
-index 3d8e9bcfe239..1b2d0d2fe2ee 100644
---- a/fs/openpromfs/inode.c
-+++ b/fs/openpromfs/inode.c
-@@ -246,7 +246,7 @@ static struct dentry *openpromfs_lookup(struct inode *dir, struct dentry *dentry
- 		set_nlink(inode, 2);
- 		break;
- 	case op_inode_prop:
--		if (!strcmp(dp->name, "options") && (len = 17) &&
-+		if (of_node_name_eq(dp, "options") && (len = 17) &&
- 		    !strncmp (name, "security-password", 17))
- 			inode->i_mode = S_IFREG | S_IRUSR | S_IWUSR;
- 		else
+diff --git a/include/uapi/linux/perf_event.h b/include/uapi/linux/perf_event.h
+index f35eb72..ba89bd3 100644
+--- a/include/uapi/linux/perf_event.h
++++ b/include/uapi/linux/perf_event.h
+@@ -445,8 +445,6 @@ struct perf_event_query_bpf {
+ 	__u32	ids[0];
+ };
+ 
+-#define perf_flags(attr)	(*(&(attr)->read_format + 1))
+-
+ /*
+  * Ioctls that can be done on a perf event fd:
+  */
+diff --git a/tools/include/uapi/linux/perf_event.h b/tools/include/uapi/linux/perf_event.h
+index f35eb72..ba89bd3 100644
+--- a/tools/include/uapi/linux/perf_event.h
++++ b/tools/include/uapi/linux/perf_event.h
+@@ -445,8 +445,6 @@ struct perf_event_query_bpf {
+ 	__u32	ids[0];
+ };
+ 
+-#define perf_flags(attr)	(*(&(attr)->read_format + 1))
+-
+ /*
+  * Ioctls that can be done on a perf event fd:
+  */
 -- 
-2.19.1
+2.7.4
