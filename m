@@ -1,68 +1,37 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Sat, 24 Nov 2018 02:20:31 +0000
-Subject: [PATCH 4/8] arch: sparc: Override struct __kernel_old_timeval
-Message-Id: <20181124022035.17519-5-deepa.kernel@gmail.com>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:20 +0000
+Subject: [PATCH v2 04/20] perf/hw_breakpoint: perf/core: advertise PMU exclusion capability
+Message-Id: <1543230756-15319-5-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com>
-In-Reply-To: <20181124022035.17519-1-deepa.kernel@gmail.com>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, viro@zeniv.linux.org.uk, arnd@arndb.de, y2038@lists.linaro.org, sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-struct __kernel_old_timeval is supposed to have the same
-layout as struct timeval. But, it was inadvarently missed
-that __kernel_suseconds has a different definition for
-sparc64.
-Provide an asm-specific override that fixes it.
+The breakpoint PMU has the capability to exclude kernel contexts,
+let's advertise that we support the PERF_PMU_CAP_EXCLUDE
+capability so that perf doesn't prevent us from handling events
+with any exclusion flags set.
 
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
- arch/sparc/include/uapi/asm/posix_types.h | 10 ++++++++++
- include/uapi/linux/time.h                 |  2 ++
- 2 files changed, 12 insertions(+)
+ kernel/events/hw_breakpoint.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
-index fec499d6efb7..f139e0048628 100644
---- a/arch/sparc/include/uapi/asm/posix_types.h
-+++ b/arch/sparc/include/uapi/asm/posix_types.h
-@@ -19,6 +19,16 @@ typedef unsigned short         __kernel_old_gid_t;
- typedef int		       __kernel_suseconds_t;
- #define __kernel_suseconds_t __kernel_suseconds_t
- 
-+typedef long		__kernel_long_t;
-+typedef unsigned long	__kernel_ulong_t;
-+#define __kernel_long_t __kernel_long_t
+diff --git a/kernel/events/hw_breakpoint.c b/kernel/events/hw_breakpoint.c
+index d6b5618..fefe3d5 100644
+--- a/kernel/events/hw_breakpoint.c
++++ b/kernel/events/hw_breakpoint.c
+@@ -669,6 +669,8 @@ static struct pmu perf_breakpoint = {
+ 	.start		= hw_breakpoint_start,
+ 	.stop		= hw_breakpoint_stop,
+ 	.read		= hw_breakpoint_pmu_read,
 +
-+struct __kernel_old_timeval {
-+	__kernel_long_t tv_sec;
-+	__kernel_suseconds_t tv_usec;
-+};
-+#define __kernel_old_timeval __kernel_old_timeval
-+
- #else
- /* sparc 32 bit */
- 
-diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
-index 6b56a2208be7..04d5587f30d3 100644
---- a/include/uapi/linux/time.h
-+++ b/include/uapi/linux/time.h
-@@ -63,10 +63,12 @@ struct __kernel_itimerspec {
-  * here, this is probably because it is not y2038 safe and needs to
-  * be changed to use another interface.
-  */
-+#ifndef __kernel_old_timeval
- struct __kernel_old_timeval {
- 	__kernel_long_t tv_sec;
- 	__kernel_long_t tv_usec;
++	.capabilities	= PERF_PMU_CAP_EXCLUDE,
  };
-+#endif
  
- /*
-  * The IDs of the various system clocks (for POSIX.1b interval timers):
+ int __init init_hw_breakpoint(void)
 -- 
-2.17.1
+2.7.4
