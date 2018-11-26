@@ -1,136 +1,103 @@
-From: Rob Herring <robh@kernel.org>
-Date: Fri, 16 Nov 2018 21:06:55 +0000
-Subject: [PATCH v2 04/10] of: Drop full path from full_name for PDT systems
-Message-Id: <20181116210701.22968-5-robh@kernel.org>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:30 +0000
+Subject: [PATCH v2 14/20] powerpc: perf/core: remove unnecessary checks for exclusion
+Message-Id: <1543230756-15319-15-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
 
-Now that there are no more users of path_component_name for Sparc
-outside of the PDT code and all users of device_node.full_name are
-converted to use "%pOF" printf specifier, we can align Sparc with FDT
-and store just the base node name and unit address in full_name. This
-makes path_component_name redundant, so it can be removed.
+For PowerPC PMUs that do not support context exclusion we do not
+advertise the PERF_PMU_CAP_EXCLUDE capability. This ensures that
+perf will prevent us from handling events where any exclusion
+flags are set. Let's remove the now unnecessary check for exclusion
+flags.
 
-As full_name is used by printf specifiers, set it as early as possible.
-
-Cc: Frank Rowand <frowand.list@gmail.com>
-Signed-off-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
-v2:
-- Also drop full path on !Sparc PDT node name construction. While not 
-strictly necessary to do both at the same time, it keeps things aligned.
- 
- drivers/of/pdt.c   | 50 +++++++++++++---------------------------------
- include/linux/of.h |  1 -
- 2 files changed, 14 insertions(+), 37 deletions(-)
+ arch/powerpc/perf/hv-24x7.c |  9 ---------
+ arch/powerpc/perf/hv-gpci.c |  9 ---------
+ arch/powerpc/perf/imc-pmu.c | 18 ------------------
+ 3 files changed, 36 deletions(-)
 
-diff --git a/drivers/of/pdt.c b/drivers/of/pdt.c
-index 013e65de074a..c1633041621d 100644
---- a/drivers/of/pdt.c
-+++ b/drivers/of/pdt.c
-@@ -32,24 +32,7 @@ unsigned int of_pdt_unique_id __initdata;
+diff --git a/arch/powerpc/perf/hv-24x7.c b/arch/powerpc/perf/hv-24x7.c
+index 72238ee..d13d8a9 100644
+--- a/arch/powerpc/perf/hv-24x7.c
++++ b/arch/powerpc/perf/hv-24x7.c
+@@ -1306,15 +1306,6 @@ static int h_24x7_event_init(struct perf_event *event)
+ 		return -EINVAL;
+ 	}
  
- static char * __init of_pdt_build_full_name(struct device_node *dp)
- {
--	int len, ourlen, plen;
--	char *n;
+-	/* unsupported modes and filters */
+-	if (event->attr.exclude_user   ||
+-	    event->attr.exclude_kernel ||
+-	    event->attr.exclude_hv     ||
+-	    event->attr.exclude_idle   ||
+-	    event->attr.exclude_host   ||
+-	    event->attr.exclude_guest)
+-		return -EINVAL;
 -
--	dp->path_component_name = build_path_component(dp);
+ 	/* no branch sampling */
+ 	if (has_branch_stack(event))
+ 		return -EOPNOTSUPP;
+diff --git a/arch/powerpc/perf/hv-gpci.c b/arch/powerpc/perf/hv-gpci.c
+index 43fabb3..e0ce0e0 100644
+--- a/arch/powerpc/perf/hv-gpci.c
++++ b/arch/powerpc/perf/hv-gpci.c
+@@ -232,15 +232,6 @@ static int h_gpci_event_init(struct perf_event *event)
+ 		return -EINVAL;
+ 	}
+ 
+-	/* unsupported modes and filters */
+-	if (event->attr.exclude_user   ||
+-	    event->attr.exclude_kernel ||
+-	    event->attr.exclude_hv     ||
+-	    event->attr.exclude_idle   ||
+-	    event->attr.exclude_host   ||
+-	    event->attr.exclude_guest)
+-		return -EINVAL;
 -
--	plen = strlen(dp->parent->full_name);
--	ourlen = strlen(dp->path_component_name);
--	len = ourlen + plen + 2;
+ 	/* no branch sampling */
+ 	if (has_branch_stack(event))
+ 		return -EOPNOTSUPP;
+diff --git a/arch/powerpc/perf/imc-pmu.c b/arch/powerpc/perf/imc-pmu.c
+index 1fafc32b..49c0b1c 100644
+--- a/arch/powerpc/perf/imc-pmu.c
++++ b/arch/powerpc/perf/imc-pmu.c
+@@ -473,15 +473,6 @@ static int nest_imc_event_init(struct perf_event *event)
+ 	if (event->hw.sample_period)
+ 		return -EINVAL;
+ 
+-	/* unsupported modes and filters */
+-	if (event->attr.exclude_user   ||
+-	    event->attr.exclude_kernel ||
+-	    event->attr.exclude_hv     ||
+-	    event->attr.exclude_idle   ||
+-	    event->attr.exclude_host   ||
+-	    event->attr.exclude_guest)
+-		return -EINVAL;
 -
--	n = prom_early_alloc(len);
--	strcpy(n, dp->parent->full_name);
--	if (!of_node_is_root(dp->parent)) {
--		strcpy(n + plen, "/");
--		plen++;
--	}
--	strcpy(n + plen, dp->path_component_name);
+ 	if (event->cpu < 0)
+ 		return -EINVAL;
+ 
+@@ -748,15 +739,6 @@ static int core_imc_event_init(struct perf_event *event)
+ 	if (event->hw.sample_period)
+ 		return -EINVAL;
+ 
+-	/* unsupported modes and filters */
+-	if (event->attr.exclude_user   ||
+-	    event->attr.exclude_kernel ||
+-	    event->attr.exclude_hv     ||
+-	    event->attr.exclude_idle   ||
+-	    event->attr.exclude_host   ||
+-	    event->attr.exclude_guest)
+-		return -EINVAL;
 -
--	return n;
-+	return build_path_component(dp);
- }
+ 	if (event->cpu < 0)
+ 		return -EINVAL;
  
- #else /* CONFIG_SPARC */
-@@ -60,23 +43,21 @@ static inline void irq_trans_init(struct device_node *dp) { }
- static char * __init of_pdt_build_full_name(struct device_node *dp)
- {
- 	static int failsafe_id = 0; /* for generating unique names on failure */
-+	const char *name;
-+	char path[256];
- 	char *buf;
- 	int len;
- 
--	if (of_pdt_prom_ops->pkg2path(dp->phandle, NULL, 0, &len))
--		goto failsafe;
--
--	buf = prom_early_alloc(len + 1);
--	if (of_pdt_prom_ops->pkg2path(dp->phandle, buf, len, &len))
--		goto failsafe;
--	return buf;
-+	if (!of_pdt_prom_ops->pkg2path(dp->phandle, path, sizeof(path), &len)) {
-+		name = kbasename(path);
-+		buf = prom_early_alloc(strlen(name) + 1);
-+		strcpy(buf, name);
-+		return buf;
-+	}
- 
-- failsafe:
--	buf = prom_early_alloc(strlen(dp->parent->full_name) +
--			       strlen(dp->name) + 16);
--	sprintf(buf, "%s/%s@unknown%i",
--		of_node_is_root(dp->parent) ? "" : dp->parent->full_name,
--		dp->name, failsafe_id++);
-+	name = of_get_property(dp, "name", &len);
-+	buf = prom_early_alloc(len + 16);
-+	sprintf(buf, "%s@unknown%i", name, failsafe_id++);
- 	pr_err("%s: pkg2path failed; assigning %s\n", __func__, buf);
- 	return buf;
- }
-@@ -181,6 +162,8 @@ static struct device_node * __init of_pdt_create_node(phandle node,
- 
- 	dp->properties = of_pdt_build_prop_list(node);
- 
-+	dp->full_name = of_pdt_build_full_name(dp);
-+
- 	irq_trans_init(dp);
- 
- 	return dp;
-@@ -204,8 +187,6 @@ static struct device_node * __init of_pdt_build_tree(struct device_node *parent,
- 			ret = dp;
- 		prev_sibling = dp;
- 
--		dp->full_name = of_pdt_build_full_name(dp);
--
- 		dp->child = of_pdt_build_tree(dp, of_pdt_prom_ops->getchild(node));
- 
- 		if (of_pdt_build_more)
-@@ -228,9 +209,6 @@ void __init of_pdt_build_devicetree(phandle root_node, struct of_pdt_ops *ops)
- 	of_pdt_prom_ops = ops;
- 
- 	of_root = of_pdt_create_node(root_node, NULL);
--#if defined(CONFIG_SPARC)
--	of_root->path_component_name = "";
--#endif
- 	of_root->full_name = "/";
- 
- 	of_root->child = of_pdt_build_tree(of_root,
-diff --git a/include/linux/of.h b/include/linux/of.h
-index a5aee3c438ad..0fe5bef81a7e 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -66,7 +66,6 @@ struct device_node {
- 	unsigned long _flags;
- 	void	*data;
- #if defined(CONFIG_SPARC)
--	const char *path_component_name;
- 	unsigned int unique_id;
- 	struct of_irq_controller *irq_trans;
- #endif
 -- 
-2.19.1
+2.7.4
