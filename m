@@ -1,66 +1,65 @@
-From: Douglas Anderson <dianders@chromium.org>
-Date: Tue, 27 Nov 2018 03:51:29 +0000
-Subject: [PATCH v5 0/4] kgdb: Fix kgdb_roundup_cpus()
-Message-Id: <20181127035133.225592-1-dianders@chromium.org>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:23 +0000
+Subject: [PATCH v2 07/20] arm: perf: conditionally advertise PMU exclusion capability
+Message-Id: <1543230756-15319-8-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-This series was originally part of the series ("serial: Finish kgdb on
-qcom_geni; fix many lockdep splats w/ kgdb") but it made sense to
-split it up.
+The ARM PMU driver can be used to represent a variety of ARM based
+PMUs. Some of these PMUs provide support for context exclusion, where
+this is the case we advertise this via the PERF_PMU_CAP_EXCLUDE
+capability to ensure that perf doesn't prevent us from handling events
+where any exclusion flags are set.
 
-It's believed that dropping into kgdb should be more robust once these
-patches are applied.
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+---
+ drivers/perf/arm_pmu.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-Changes in v5:
-- Add a comment about get_irq_regs().
-- get_cpu() => raw_smp_processor_id() in kgdb_roundup_cpus().
-- for_each_cpu() => for_each_online_cpu()
-- Error check smp_call_function_single_async()
-
-Changes in v4:
-- Removed smp_mb() calls.
-- Also clear out .debuggerinfo.
-- Also clear out .debuggerinfo and .task for the master.
-- Remove clearing out in kdb_stub for offline CPUs; it's now redundant.
-
-Changes in v3:
-- No separate init call.
-- Don't round up the CPU that is doing the rounding up.
-- Add "#ifdef CONFIG_SMP" to match the rest of the file.
-- Updated desc saying we don't solve the "failed to roundup" case.
-- Document the ignored parameter.
-- Don't round up a CPU that failed rounding up before new for v3.
-- Don't back trace on a cpu that didn't round up new for v3.
-
-Changes in v2:
-- Removing irq flags separated from fixing lockdep splat.
-- Don't use smp_call_function (Daniel).
-
-Douglas Anderson (4):
-  kgdb: Remove irq flags from roundup
-  kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
-  kgdb: Don't round up a CPU that failed rounding up before
-  kdb: Don't back trace on a cpu that didn't round up
-
- arch/arc/kernel/kgdb.c          | 10 +----
- arch/arm/kernel/kgdb.c          | 12 ------
- arch/arm64/kernel/kgdb.c        | 12 ------
- arch/hexagon/kernel/kgdb.c      | 32 ----------------
- arch/mips/kernel/kgdb.c         |  9 +----
- arch/powerpc/kernel/kgdb.c      |  6 +--
- arch/sh/kernel/kgdb.c           | 12 ------
- arch/sparc/kernel/smp_64.c      |  2 +-
- arch/x86/kernel/kgdb.c          |  9 +----
- include/linux/kgdb.h            | 22 +++++++----
- kernel/debug/debug_core.c       | 65 ++++++++++++++++++++++++++++++++-
- kernel/debug/debug_core.h       |  1 +
- kernel/debug/kdb/kdb_bt.c       | 11 +++++-
- kernel/debug/kdb/kdb_debugger.c |  7 ----
- 14 files changed, 98 insertions(+), 112 deletions(-)
-
+diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
+index 7f01f6f..4409035 100644
+--- a/drivers/perf/arm_pmu.c
++++ b/drivers/perf/arm_pmu.c
+@@ -357,13 +357,6 @@ static irqreturn_t armpmu_dispatch_irq(int irq, void *dev)
+ }
+ 
+ static int
+-event_requires_mode_exclusion(struct perf_event_attr *attr)
+-{
+-	return attr->exclude_idle || attr->exclude_user ||
+-	       attr->exclude_kernel || attr->exclude_hv;
+-}
+-
+-static int
+ __hw_perf_event_init(struct perf_event *event)
+ {
+ 	struct arm_pmu *armpmu = to_arm_pmu(event->pmu);
+@@ -393,9 +386,8 @@ __hw_perf_event_init(struct perf_event *event)
+ 	/*
+ 	 * Check whether we need to exclude the counter from certain modes.
+ 	 */
+-	if ((!armpmu->set_event_filter ||
+-	     armpmu->set_event_filter(hwc, &event->attr)) &&
+-	     event_requires_mode_exclusion(&event->attr)) {
++	if (armpmu->set_event_filter &&
++	    armpmu->set_event_filter(hwc, &event->attr)) {
+ 		pr_debug("ARM performance counters do not support "
+ 			 "mode exclusion\n");
+ 		return -EOPNOTSUPP;
+@@ -861,6 +853,9 @@ int armpmu_register(struct arm_pmu *pmu)
+ 	if (ret)
+ 		return ret;
+ 
++	if (pmu->set_event_filter)
++		pmu->pmu.capabilities |= PERF_PMU_CAP_EXCLUDE;
++
+ 	ret = perf_pmu_register(&pmu->pmu, pmu->name, -1);
+ 	if (ret)
+ 		goto out_destroy;
 -- 
-2.20.0.rc0.387.gc7a69e6b6c-goog
+2.7.4
