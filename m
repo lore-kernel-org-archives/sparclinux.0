@@ -1,98 +1,143 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Thu, 15 Nov 2018 19:09:32 +0000
-Subject: Re: [mm PATCH v5 0/7] Deferred page init improvements
-Message-Id: <20181115190931.GB14023@rapoport-lnx>
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Date: Mon, 26 Nov 2018 17:56:28 +0000
+Subject: Re: [Intel-wired-lan] [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
+Message-Id: <c1b8de1a8e9d4d215b56498e2d5b83a02083483a.camel@intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="=-w/yFab8vycJu1U8x0saQ"
 List-Id: <sparclinux.vger.kernel.org>
-References: <154145268025.30046.11742652345962594283.stgit@ahduyck-desk1.jf.intel.com>
- <20181114150742.GZ23419@dhcp22.suse.cz>
- <9e8218eb-80bf-fc02-ae56-42ccfddb572e@linux.intel.com>
- <20181115015511.GB2353@rapoport-lnx>
-In-Reply-To: <20181115015511.GB2353@rapoport-lnx>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: hverkuil@xs4all.nl, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, vkoul@kernel.org, dri-devel@lists.freedesktop.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org, intel-wired-lan@lists.osuosl.org, linux-alpha@vger.kernel.org, dmaengine@vger.kernel.org, jiangqi903@gmail.com, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
+
+
+--=-w/yFab8vycJu1U8x0saQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2018-11-26 at 17:56 +0530, Anshuman Khandual wrote:
+> At present there are multiple places where invalid node number is
+> encoded
+> as -1. Even though implicitly understood it is always better to have
+> macros
+> in there. Replace these open encodings for an invalid node number
+> with the
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions
+> like
+> 'invalid node' from various places redirecting them to a common
+> definition.
+>=20
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+
+For the 'ixgbe' driver changes.
+
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+
+
+> ---
+> Changes in V2:
+>=20
+> - Added inclusion of 'numa.h' header at various places per Andrew
+> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+>=20
+> Changes in V1: (https://lkml.org/lkml/2018/11/23/485)
+>=20
+> - Dropped OCFS2 changes per Joseph
+> - Dropped media/video drivers changes per Hans
+>=20
+> RFC - https://patchwork.kernel.org/patch/10678035/
+>=20
+> Build tested this with multiple cross compiler options like alpha,
+> sparc,
+> arm64, x86, powerpc, powerpc64le etc with their default config which
+> might
+> not have compiled tested all driver related changes. I will
+> appreciate
+> folks giving this a test in their respective build environment.
+>=20
+> All these places for replacement were found by running the following
+> grep
+> patterns on the entire kernel code. Please let me know if this might
+> have
+> missed some instances. This might also have replaced some false
+> positives.
+> I will appreciate suggestions, inputs and review.
+>=20
+> 1. git grep "nid =3D=3D -1"
+> 2. git grep "node =3D=3D -1"
+> 3. git grep "nid =3D -1"
+> 4. git grep "node =3D -1"
+>=20
+>  arch/alpha/include/asm/topology.h             |  3 ++-
+>  arch/ia64/kernel/numa.c                       |  2 +-
+>  arch/ia64/mm/discontig.c                      |  6 +++---
+>  arch/ia64/sn/kernel/io_common.c               |  3 ++-
+>  arch/powerpc/include/asm/pci-bridge.h         |  3 ++-
+>  arch/powerpc/kernel/paca.c                    |  3 ++-
+>  arch/powerpc/kernel/pci-common.c              |  3 ++-
+>  arch/powerpc/mm/numa.c                        | 14 +++++++-------
+>  arch/powerpc/platforms/powernv/memtrace.c     |  5 +++--
+>  arch/sparc/kernel/auxio_32.c                  |  3 ++-
+>  arch/sparc/kernel/pci_fire.c                  |  3 ++-
+>  arch/sparc/kernel/pci_schizo.c                |  3 ++-
+>  arch/sparc/kernel/pcic.c                      |  7 ++++---
+>  arch/sparc/kernel/psycho_common.c             |  3 ++-
+>  arch/sparc/kernel/sbus.c                      |  3 ++-
+>  arch/sparc/mm/init_64.c                       |  6 +++---
+>  arch/sparc/prom/init_32.c                     |  3 ++-
+>  arch/sparc/prom/init_64.c                     |  5 +++--
+>  arch/sparc/prom/tree_32.c                     | 13 +++++++------
+>  arch/sparc/prom/tree_64.c                     | 19 ++++++++++-------
+> --
+>  arch/x86/include/asm/pci.h                    |  3 ++-
+>  arch/x86/kernel/apic/x2apic_uv_x.c            |  7 ++++---
+>  arch/x86/kernel/smpboot.c                     |  3 ++-
+>  arch/x86/platform/olpc/olpc_dt.c              | 17 +++++++++--------
+>  drivers/block/mtip32xx/mtip32xx.c             |  5 +++--
+>  drivers/dma/dmaengine.c                       |  4 +++-
+>  drivers/infiniband/hw/hfi1/affinity.c         |  3 ++-
+>  drivers/infiniband/hw/hfi1/init.c             |  3 ++-
+>  drivers/iommu/dmar.c                          |  5 +++--
+>  drivers/iommu/intel-iommu.c                   |  3 ++-
+>  drivers/misc/sgi-xp/xpc_uv.c                  |  3 ++-
+>  drivers/net/ethernet/intel/ixgbe/ixgbe_main.c |  5 +++--
+>  include/linux/device.h                        |  2 +-
+>  init/init_task.c                              |  3 ++-
+>  kernel/kthread.c                              |  3 ++-
+>  kernel/sched/fair.c                           | 15 ++++++++-------
+>  lib/cpumask.c                                 |  3 ++-
+>  mm/huge_memory.c                              | 13 +++++++------
+>  mm/hugetlb.c                                  |  3 ++-
+>  mm/ksm.c                                      |  2 +-
+>  mm/memory.c                                   |  7 ++++---
+>  mm/memory_hotplug.c                           | 12 ++++++------
+>  mm/mempolicy.c                                |  2 +-
+>  mm/page_alloc.c                               |  4 ++--
+>  mm/page_ext.c                                 |  2 +-
+>  net/core/pktgen.c                             |  3 ++-
+>  net/qrtr/qrtr.c                               |  3 ++-
+>  tools/perf/bench/numa.c                       |  6 +++---
+>  48 files changed, 146 insertions(+), 108 deletions(-)
+
+
+--=-w/yFab8vycJu1U8x0saQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: Michal Hocko <mhocko@kernel.org>, akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
 
-On Wed, Nov 14, 2018 at 05:55:12PM -0800, Mike Rapoport wrote:
-> On Wed, Nov 14, 2018 at 04:50:23PM -0800, Alexander Duyck wrote:
-> > 
-> > 
-> > On 11/14/2018 7:07 AM, Michal Hocko wrote:
-> > >On Mon 05-11-18 13:19:25, Alexander Duyck wrote:
-> > >>This patchset is essentially a refactor of the page initialization logic
-> > >>that is meant to provide for better code reuse while providing a
-> > >>significant improvement in deferred page initialization performance.
-> > >>
-> > >>In my testing on an x86_64 system with 384GB of RAM and 3TB of persistent
-> > >>memory per node I have seen the following. In the case of regular memory
-> > >>initialization the deferred init time was decreased from 3.75s to 1.06s on
-> > >>average. For the persistent memory the initialization time dropped from
-> > >>24.17s to 19.12s on average. This amounts to a 253% improvement for the
-> > >>deferred memory initialization performance, and a 26% improvement in the
-> > >>persistent memory initialization performance.
-> > >>
-> > >>I have called out the improvement observed with each patch.
-> > >
-> > >I have only glanced through the code (there is a lot of the code to look
-> > >at here). And I do not like the code duplication and the way how you
-> > >make the hotplug special. There shouldn't be any real reason for that
-> > >IMHO (e.g. why do we init pfn-at-a-time in early init while we do
-> > >pageblock-at-a-time for hotplug). I might be wrong here and the code
-> > >reuse might be really hard to achieve though.
-> > 
-> > Actually it isn't so much that hotplug is special. The issue is more that
-> > the non-hotplug case is special in that you have to perform a number of
-> > extra checks for things that just aren't necessary for the hotplug case.
-> > 
-> > If anything I would probably need a new iterator that would be able to take
-> > into account all the checks for the non-hotplug case and then provide ranges
-> > of PFNs to initialize.
-> > 
-> > >I am also not impressed by new iterators because this api is quite
-> > >complex already. But this is mostly a detail.
-> > 
-> > Yeah, the iterators were mostly an attempt at hiding some of the complexity.
-> > Being able to break a loop down to just an iterator provding the start of
-> > the range and the number of elements to initialize is pretty easy to
-> > visualize, or at least I thought so.
-> 
-> Just recently we had a discussion about overlapping for_each_mem_range()
-> and for_each_mem_pfn_range(), but unfortunately it appears that no mailing
-> list was cc'ed by the original patch author :(
-> In short, there was a spelling fix in one of them and Michal pointed out
-> that their functionality overlaps.
-> 
-> I have no objection for for_each_free_mem_pfn_range_in_zone() and
-> __next_mem_pfn_range_in_zone(), but probably we should consider unifying
-> the older iterators before we introduce a new one? 
+-----BEGIN PGP SIGNATURE-----
 
-Another thing I realized only now is that
-for_each_free_mem_pfn_range_in_zone() can be used only relatively late in
-the memblock life-span because zones are initialized far later than
-setup_arch() in many cases.
+iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlv8M8wACgkQ5W/vlVpL
+7c7QNQ/+NU3ikW7p6wkGj8G70RbkJORkKztnANrZvZMGTngn9AOr2IYiWm5l1FX0
+J1AyprX0m4BmLXBgW1BrOiReEiunq9RWtCT+2d7jQD6HxydLdRIbnQhLreHfcFv7
+6pUvyapG9B8a4X/6OzQXJVkRV+iXi/NzVxJ2WvZ6PhifiPMJo9oWab/OJDu/+8Fn
+w9BrPNqJhTdrSQ1E7aeMWUs/GbfQsQ+cm51Yb12KAemw5ocp45GNNeN2Y14g+YFZ
+Yhf7+/ihwBaph/zDYqFRsI+uSLnKIh7vLC/weBglkzU5mNZU9ugRj6M76jDE+OI3
+yqOTMp6DquBqH7qYuGA+yJfWvnsXa/KphTKzISpKXzkcGI4uyhjfWjoUN2CPbLWj
+55+k1mCY0glzACh1K+SFV1EDJ157U0sEx+vGaKDfpEcUFi/SUU7xE/u+4lI12Kec
+fMhcStiYmF5wvVMO8ID6+aPl9F7uNdrAJjPV6psDtLRhi6D+EkFRPG/2sxGNWNBC
+2FfNwyEy9of0UsptOWI3IOt80Oz2usDEwcnC4gAQhykPe/6lNI6Yb1OjsMtUdzw1
+BqoYXFKLnC2JQWxluwLMjJ/ng/Af94RzzYw901pIhtJjlTOx6nYUxO38hLp6JU6B
+qKDxnSxdVo6/2QOJpMCJ2o0tX/Q1MdMWbySfxnCX9il8o/TgOck=
+=I+vR
+-----END PGP SIGNATURE-----
 
-At the very least this should be documented.
- 
-> > >Thing I do not like is that you keep microptimizing PageReserved part
-> > >while there shouldn't be anything fundamental about it. We should just
-> > >remove it rather than make the code more complex. I fell more and more
-> > >guilty to add there actually.
-> > 
-> > I plan to remove it, but don't think I can get to it in this patch set.
-> > 
-> > I was planning to submit one more iteration of this patch set early next
-> > week, and then start focusing more on the removal of the PageReserved bit
-> > for hotplug. I figure it is probably going to be a full patch set onto
-> > itself and as you pointed out at the start of this email there is already
-> > enough code to review without adding that.
-> > 
-> > 
-> 
-> -- 
-> Sincerely yours,
-> Mike.
-
--- 
-Sincerely yours,
-Mike.
+--=-w/yFab8vycJu1U8x0saQ--
