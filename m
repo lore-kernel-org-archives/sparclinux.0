@@ -1,40 +1,38 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Date: Sat, 10 Nov 2018 18:58:34 +0000
-Subject: [PATCH net-next 1/6] net/skbuff: add macros for VLAN_PRESENT bit
-Message-Id: <0f16fe1faf8961523d0e94e2c1c87d427c4fcad0.1541876179.git.mirq-linux@rere.qmqm.pl>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:27 +0000
+Subject: [PATCH v2 11/20] drivers/perf: perf/core: advertise PMU exclusion capability
+Message-Id: <1543230756-15319-12-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
-In-Reply-To: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Alexei Starovoitov <ast@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Daniel Borkmann <daniel@iogearbox.net>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Burton <paul.burton@mips.com>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-Wrap VLAN_PRESENT bit using macro like PKT_TYPE_* and CLONED_*,
-as used by BPF code.
+The arm_pse PMU has the capability to exclude events based on
+context. Let's advertise that we support the PERF_PMU_CAP_EXCLUDE
+capability to ensure that perf doesn't prevent us from handling
+events where any exclusion flags are set.
 
-Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
- include/linux/skbuff.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/perf/arm_spe_pmu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 7dcfb5591dc3..99f38779332c 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -816,6 +816,12 @@ struct sk_buff {
- 	__u32			priority;
- 	int			skb_iif;
- 	__u32			hash;
-+#define PKT_VLAN_PRESENT_BIT	4	// CFI (12-th bit) in TCI
-+#ifdef __BIG_ENDIAN
-+#define PKT_VLAN_PRESENT_OFFSET()	offsetof(struct sk_buff, vlan_tci)
-+#else
-+#define PKT_VLAN_PRESENT_OFFSET()	(offsetof(struct sk_buff, vlan_tci) + 1)
-+#endif
- 	__be16			vlan_proto;
- 	__u16			vlan_tci;
- #if defined(CONFIG_NET_RX_BUSY_POLL) || defined(CONFIG_XPS)
+diff --git a/drivers/perf/arm_spe_pmu.c b/drivers/perf/arm_spe_pmu.c
+index 54ec278..a09c38a 100644
+--- a/drivers/perf/arm_spe_pmu.c
++++ b/drivers/perf/arm_spe_pmu.c
+@@ -902,7 +902,8 @@ static int arm_spe_pmu_perf_init(struct arm_spe_pmu *spe_pmu)
+ 
+ 	spe_pmu->pmu = (struct pmu) {
+ 		.module = THIS_MODULE,
+-		.capabilities	= PERF_PMU_CAP_EXCLUSIVE | PERF_PMU_CAP_ITRACE,
++		.capabilities	= PERF_PMU_CAP_EXCLUSIVE | PERF_PMU_CAP_ITRACE |
++				  PERF_PMU_CAP_EXCLUDE,
+ 		.attr_groups	= arm_spe_pmu_attr_groups,
+ 		/*
+ 		 * We hitch a ride on the software context here, so that
 -- 
-2.19.1
+2.7.4
