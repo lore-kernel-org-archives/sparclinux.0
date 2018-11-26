@@ -1,84 +1,50 @@
-From: Y Song <ys114321@gmail.com>
-Date: Sun, 18 Nov 2018 07:48:59 +0000
-Subject: Re: [PATCH 0/4] bpf: permit JIT allocations to be served outside the module region
-Message-Id: <CAH3MdRX5MYv-QQGj25APd4-17syF3Vc_f0AWpEgUoL46qbHrGQ@mail.gmail.com>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:31 +0000
+Subject: [PATCH v2 15/20] s390: perf/events: advertise PMU exclusion capability
+Message-Id: <1543230756-15319-16-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-On Sat, Nov 17, 2018 at 6:58 PM Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
->
-> On arm64, modules are allocated from a 128 MB window which is close to
-> the core kernel, so that relative direct branches are guaranteed to be
-> in range (except in some KASLR configurations). Also, module_alloc()
-> is in charge of allocating KASAN shadow memory when running with KASAN
-> enabled.
->
-> This means that the way BPF reuses module_alloc()/module_memfree() is
-> undesirable on arm64 (and potentially other architectures as well),
-> and so this series refactors BPF's use of those functions to permit
-> architectures to change this behavior.
->
-> Patch #1 fixes a bug introduced during the merge window, where the new
-> alloc/free tracking does not account for memory that is freed by some
-> arch code.
->
-> Patch #2 refactors the freeing path so that architectures can switch to
-> something other than module_memfree().
->
-> Patch #3 does the same for module_alloc().
->
-> Patch #4 implements the new alloc/free overrides for arm64
+The s390 cpum_cf and cpum_sf PMUs have the capability to exclude
+events based on context. Let's advertise that we support the
+PERF_PMU_CAP_EXCLUDE capability to ensure that perf doesn't
+prevent us from handling events where any exclusion flags are set.
 
-Except a minor comment, the whole patch set looks good to me.
-Acked-by: Yonghong Song <yhs@fb.com>
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
+---
+ arch/s390/kernel/perf_cpum_cf.c | 1 +
+ arch/s390/kernel/perf_cpum_sf.c | 2 ++
+ 2 files changed, 3 insertions(+)
 
->
-> Cc: Daniel Borkmann <daniel@iogearbox.net>
-> Cc: Alexei Starovoitov <ast@kernel.org>
-> Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Cc: Jann Horn <jannh@google.com>
-> Cc: Kees Cook <keescook@chromium.org>
->
-> Cc: Jessica Yu <jeyu@kernel.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Ralf Baechle <ralf@linux-mips.org>
-> Cc: Paul Burton <paul.burton@mips.com>
-> Cc: James Hogan <jhogan@kernel.org>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-mips@linux-mips.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: netdev@vger.kernel.org
->
-> Ard Biesheuvel (4):
->   bpf: account for freed JIT allocations in arch code
->   net/bpf: refactor freeing of executable allocations
->   bpf: add __weak hook for allocating executable memory
->   arm64/bpf: don't allocate BPF JIT programs in module memory
->
->  arch/arm64/net/bpf_jit_comp.c     | 11 ++++++++++
->  arch/mips/net/bpf_jit.c           |  7 ++-----
->  arch/powerpc/net/bpf_jit_comp.c   |  7 ++-----
->  arch/powerpc/net/bpf_jit_comp64.c | 12 +++--------
->  arch/sparc/net/bpf_jit_comp_32.c  |  7 ++-----
->  kernel/bpf/core.c                 | 22 ++++++++++----------
->  6 files changed, 31 insertions(+), 35 deletions(-)
->
-> --
-> 2.17.1
->
+diff --git a/arch/s390/kernel/perf_cpum_cf.c b/arch/s390/kernel/perf_cpum_cf.c
+index cc085e2..7b583ed 100644
+--- a/arch/s390/kernel/perf_cpum_cf.c
++++ b/arch/s390/kernel/perf_cpum_cf.c
+@@ -667,6 +667,7 @@ static struct pmu cpumf_pmu = {
+ 	.start_txn    = cpumf_pmu_start_txn,
+ 	.commit_txn   = cpumf_pmu_commit_txn,
+ 	.cancel_txn   = cpumf_pmu_cancel_txn,
++	.capabilities = PERF_PMU_CAP_EXCLUDE,
+ };
+ 
+ static int cpumf_pmf_setup(unsigned int cpu, int flags)
+diff --git a/arch/s390/kernel/perf_cpum_sf.c b/arch/s390/kernel/perf_cpum_sf.c
+index 5c53e97..25a64aa 100644
+--- a/arch/s390/kernel/perf_cpum_sf.c
++++ b/arch/s390/kernel/perf_cpum_sf.c
+@@ -1885,6 +1885,8 @@ static struct pmu cpumf_sampling = {
+ 
+ 	.setup_aux    = aux_buffer_setup,
+ 	.free_aux     = aux_buffer_free,
++
++	.capabilities = PERF_PMU_CAP_EXCLUDE,
+ };
+ 
+ static void cpumf_measurement_alert(struct ext_code ext_code,
+-- 
+2.7.4
