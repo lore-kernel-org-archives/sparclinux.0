@@ -1,56 +1,64 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Date: Sat, 10 Nov 2018 18:58:35 +0000
-Subject: [PATCH net-next 3/6] net/bpf_jit: MIPS: split VLAN_PRESENT bit handling from VLAN_TCI
-Message-Id: <cbaaeac4a963f55f86f09eb26be502584c877527.1541876179.git.mirq-linux@rere.qmqm.pl>
+From: Andrew Murray <andrew.murray@arm.com>
+Date: Mon, 26 Nov 2018 11:12:24 +0000
+Subject: [PATCH v2 08/20] arm: perf/core: remove unnecessary checks for exclusion
+Message-Id: <1543230756-15319-9-git-send-email-andrew.murray@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
-In-Reply-To: <cover.1541876179.git.mirq-linux@rere.qmqm.pl>
+References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
+In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: netdev@vger.kernel.org
-Cc: Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, linux-mips@linux-mips.org, Alexei Starovoitov <ast@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Daniel Borkmann <daniel@iogearbox.net>, "David S. Miller" <davem@davemloft.net>, linuxppc-dev@lists.ozlabs.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arm-kernel@lists.infradead.org
 
-Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+For drivers that do not support context exclusion we do not
+advertise the PERF_PMU_CAP_EXCLUDE capability. This ensures that
+perf will prevent us from handling events where any exclusion
+flags are set. Let's remove the now unnecessary check for
+exclusion flags.
+
+Signed-off-by: Andrew Murray <andrew.murray@arm.com>
 ---
- arch/mips/net/bpf_jit.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ arch/arm/mach-imx/mmdc.c     | 8 +-------
+ arch/arm/mm/cache-l2x0-pmu.c | 8 --------
+ 2 files changed, 1 insertion(+), 15 deletions(-)
 
-diff --git a/arch/mips/net/bpf_jit.c b/arch/mips/net/bpf_jit.c
-index 4d8cb9bb8365..de4c6372ad9a 100644
---- a/arch/mips/net/bpf_jit.c
-+++ b/arch/mips/net/bpf_jit.c
-@@ -1159,19 +1159,22 @@ static int build_body(struct jit_ctx *ctx)
- 			emit_load(r_A, r_skb, off, ctx);
- 			break;
- 		case BPF_ANC | SKF_AD_VLAN_TAG:
--		case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
- 			ctx->flags |= SEEN_SKB | SEEN_A;
- 			BUILD_BUG_ON(FIELD_SIZEOF(struct sk_buff,
- 						  vlan_tci) != 2);
- 			off = offsetof(struct sk_buff, vlan_tci);
--			emit_half_load_unsigned(r_s0, r_skb, off, ctx);
--			if (code = (BPF_ANC | SKF_AD_VLAN_TAG)) {
--				emit_andi(r_A, r_s0, (u16)~VLAN_TAG_PRESENT, ctx);
--			} else {
--				emit_andi(r_A, r_s0, VLAN_TAG_PRESENT, ctx);
--				/* return 1 if present */
--				emit_sltu(r_A, r_zero, r_A, ctx);
--			}
-+			emit_half_load_unsigned(r_A, r_skb, off, ctx);
-+#ifdef VLAN_TAG_PRESENT
-+			emit_andi(r_A, r_A, (u16)~VLAN_TAG_PRESENT, ctx);
-+#endif
-+			break;
-+		case BPF_ANC | SKF_AD_VLAN_TAG_PRESENT:
-+			ctx->flags |= SEEN_SKB | SEEN_A;
-+			emit_load_byte(r_A, r_skb, PKT_VLAN_PRESENT_OFFSET(), ctx);
-+			if (PKT_VLAN_PRESENT_BIT)
-+				emit_srl(r_A, r_A, PKT_VLAN_PRESENT_BIT, ctx);
-+			if (PKT_VLAN_PRESENT_BIT < 7)
-+				emit_andi(r_A, r_A, 1, ctx);
- 			break;
- 		case BPF_ANC | SKF_AD_PKTTYPE:
- 			ctx->flags |= SEEN_SKB;
+diff --git a/arch/arm/mach-imx/mmdc.c b/arch/arm/mach-imx/mmdc.c
+index 04b3bf7..b937a15 100644
+--- a/arch/arm/mach-imx/mmdc.c
++++ b/arch/arm/mach-imx/mmdc.c
+@@ -293,13 +293,7 @@ static int mmdc_pmu_event_init(struct perf_event *event)
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	if (event->attr.exclude_user		||
+-			event->attr.exclude_kernel	||
+-			event->attr.exclude_hv		||
+-			event->attr.exclude_idle	||
+-			event->attr.exclude_host	||
+-			event->attr.exclude_guest	||
+-			event->attr.sample_period)
++	if (event->attr.sample_period)
+ 		return -EINVAL;
+ 
+ 	if (cfg < 0 || cfg >= MMDC_NUM_COUNTERS)
+diff --git a/arch/arm/mm/cache-l2x0-pmu.c b/arch/arm/mm/cache-l2x0-pmu.c
+index afe5b4c..ba92f9e 100644
+--- a/arch/arm/mm/cache-l2x0-pmu.c
++++ b/arch/arm/mm/cache-l2x0-pmu.c
+@@ -314,14 +314,6 @@ static int l2x0_pmu_event_init(struct perf_event *event)
+ 	    event->attach_state & PERF_ATTACH_TASK)
+ 		return -EINVAL;
+ 
+-	if (event->attr.exclude_user   ||
+-	    event->attr.exclude_kernel ||
+-	    event->attr.exclude_hv     ||
+-	    event->attr.exclude_idle   ||
+-	    event->attr.exclude_host   ||
+-	    event->attr.exclude_guest)
+-		return -EINVAL;
+-
+ 	if (event->cpu < 0)
+ 		return -EINVAL;
+ 
 -- 
-2.19.1
+2.7.4
