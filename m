@@ -1,64 +1,69 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Date: Mon, 26 Nov 2018 11:12:24 +0000
-Subject: [PATCH v2 08/20] arm: perf/core: remove unnecessary checks for exclusion
-Message-Id: <1543230756-15319-9-git-send-email-andrew.murray@arm.com>
+From: Douglas Anderson <dianders@chromium.org>
+Date: Tue, 27 Nov 2018 17:38:35 +0000
+Subject: [PATCH v6 0/4] kgdb: Fix kgdb_roundup_cpus()
+Message-Id: <20181127173839.34328-1-dianders@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
-In-Reply-To: <1543230756-15319-1-git-send-email-andrew.murray@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-For drivers that do not support context exclusion we do not
-advertise the PERF_PMU_CAP_EXCLUDE capability. This ensures that
-perf will prevent us from handling events where any exclusion
-flags are set. Let's remove the now unnecessary check for
-exclusion flags.
+This series was originally part of the series ("serial: Finish kgdb on
+qcom_geni; fix many lockdep splats w/ kgdb") but it made sense to
+split it up.
 
-Signed-off-by: Andrew Murray <andrew.murray@arm.com>
----
- arch/arm/mach-imx/mmdc.c     | 8 +-------
- arch/arm/mm/cache-l2x0-pmu.c | 8 --------
- 2 files changed, 1 insertion(+), 15 deletions(-)
+It's believed that dropping into kgdb should be more robust once these
+patches are applied.
 
-diff --git a/arch/arm/mach-imx/mmdc.c b/arch/arm/mach-imx/mmdc.c
-index 04b3bf7..b937a15 100644
---- a/arch/arm/mach-imx/mmdc.c
-+++ b/arch/arm/mach-imx/mmdc.c
-@@ -293,13 +293,7 @@ static int mmdc_pmu_event_init(struct perf_event *event)
- 		return -EOPNOTSUPP;
- 	}
- 
--	if (event->attr.exclude_user		||
--			event->attr.exclude_kernel	||
--			event->attr.exclude_hv		||
--			event->attr.exclude_idle	||
--			event->attr.exclude_host	||
--			event->attr.exclude_guest	||
--			event->attr.sample_period)
-+	if (event->attr.sample_period)
- 		return -EINVAL;
- 
- 	if (cfg < 0 || cfg >= MMDC_NUM_COUNTERS)
-diff --git a/arch/arm/mm/cache-l2x0-pmu.c b/arch/arm/mm/cache-l2x0-pmu.c
-index afe5b4c..ba92f9e 100644
---- a/arch/arm/mm/cache-l2x0-pmu.c
-+++ b/arch/arm/mm/cache-l2x0-pmu.c
-@@ -314,14 +314,6 @@ static int l2x0_pmu_event_init(struct perf_event *event)
- 	    event->attach_state & PERF_ATTACH_TASK)
- 		return -EINVAL;
- 
--	if (event->attr.exclude_user   ||
--	    event->attr.exclude_kernel ||
--	    event->attr.exclude_hv     ||
--	    event->attr.exclude_idle   ||
--	    event->attr.exclude_host   ||
--	    event->attr.exclude_guest)
--		return -EINVAL;
--
- 	if (event->cpu < 0)
- 		return -EINVAL;
- 
+Changes in v6:
+- Moved smp_call_function_single_async() error check to patch 3.
+
+Changes in v5:
+- Add a comment about get_irq_regs().
+- get_cpu() => raw_smp_processor_id() in kgdb_roundup_cpus().
+- for_each_cpu() => for_each_online_cpu()
+- Error check smp_call_function_single_async()
+
+Changes in v4:
+- Removed smp_mb() calls.
+- Also clear out .debuggerinfo.
+- Also clear out .debuggerinfo and .task for the master.
+- Remove clearing out in kdb_stub for offline CPUs; it's now redundant.
+
+Changes in v3:
+- No separate init call.
+- Don't round up the CPU that is doing the rounding up.
+- Add "#ifdef CONFIG_SMP" to match the rest of the file.
+- Updated desc saying we don't solve the "failed to roundup" case.
+- Document the ignored parameter.
+- Don't round up a CPU that failed rounding up before new for v3.
+- Don't back trace on a cpu that didn't round up new for v3.
+
+Changes in v2:
+- Removing irq flags separated from fixing lockdep splat.
+- Don't use smp_call_function (Daniel).
+
+Douglas Anderson (4):
+  kgdb: Remove irq flags from roundup
+  kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
+  kgdb: Don't round up a CPU that failed rounding up before
+  kdb: Don't back trace on a cpu that didn't round up
+
+ arch/arc/kernel/kgdb.c          | 10 +----
+ arch/arm/kernel/kgdb.c          | 12 ------
+ arch/arm64/kernel/kgdb.c        | 12 ------
+ arch/hexagon/kernel/kgdb.c      | 32 ----------------
+ arch/mips/kernel/kgdb.c         |  9 +----
+ arch/powerpc/kernel/kgdb.c      |  6 +--
+ arch/sh/kernel/kgdb.c           | 12 ------
+ arch/sparc/kernel/smp_64.c      |  2 +-
+ arch/x86/kernel/kgdb.c          |  9 +----
+ include/linux/kgdb.h            | 22 +++++++----
+ kernel/debug/debug_core.c       | 65 ++++++++++++++++++++++++++++++++-
+ kernel/debug/debug_core.h       |  1 +
+ kernel/debug/kdb/kdb_bt.c       | 11 +++++-
+ kernel/debug/kdb/kdb_debugger.c |  7 ----
+ 14 files changed, 98 insertions(+), 112 deletions(-)
+
 -- 
-2.7.4
+2.20.0.rc0.387.gc7a69e6b6c-goog
