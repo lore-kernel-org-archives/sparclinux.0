@@ -1,51 +1,66 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Date: Sat, 17 Nov 2018 18:57:14 +0000
-Subject: [PATCH 3/4] bpf: add __weak hook for allocating executable memory
-Message-Id: <20181117185715.25198-4-ard.biesheuvel@linaro.org>
+From: Douglas Anderson <dianders@chromium.org>
+Date: Tue, 27 Nov 2018 03:51:29 +0000
+Subject: [PATCH v5 0/4] kgdb: Fix kgdb_roundup_cpus()
+Message-Id: <20181127035133.225592-1-dianders@chromium.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
-In-Reply-To: <20181117185715.25198-1-ard.biesheuvel@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-arm-kernel@lists.infradead.org
 
-By default, BPF uses module_alloc() to allocate executable memory,
-but this is not necessary on all arches and potentially undesirable
-on some of them.
+This series was originally part of the series ("serial: Finish kgdb on
+qcom_geni; fix many lockdep splats w/ kgdb") but it made sense to
+split it up.
 
-So break out the module_alloc() call into a __weak function to allow
-it to be overridden in arch code.
+It's believed that dropping into kgdb should be more robust once these
+patches are applied.
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- kernel/bpf/core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Changes in v5:
+- Add a comment about get_irq_regs().
+- get_cpu() => raw_smp_processor_id() in kgdb_roundup_cpus().
+- for_each_cpu() => for_each_online_cpu()
+- Error check smp_call_function_single_async()
 
-diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
-index 29f766dac203..156d6b96ac6c 100644
---- a/kernel/bpf/core.c
-+++ b/kernel/bpf/core.c
-@@ -609,6 +609,11 @@ static void bpf_jit_uncharge_modmem(u32 pages)
- 	atomic_long_sub(pages, &bpf_jit_current);
- }
- 
-+void *__weak bpf_jit_alloc_exec(unsigned long size)
-+{
-+	return module_alloc(size);
-+}
-+
- struct bpf_binary_header *
- bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
- 		     unsigned int alignment,
-@@ -626,7 +631,7 @@ bpf_jit_binary_alloc(unsigned int proglen, u8 **image_ptr,
- 
- 	if (bpf_jit_charge_modmem(pages))
- 		return NULL;
--	hdr = module_alloc(size);
-+	hdr = bpf_jit_alloc_exec(size);
- 	if (!hdr) {
- 		bpf_jit_uncharge_modmem(pages);
- 		return NULL;
+Changes in v4:
+- Removed smp_mb() calls.
+- Also clear out .debuggerinfo.
+- Also clear out .debuggerinfo and .task for the master.
+- Remove clearing out in kdb_stub for offline CPUs; it's now redundant.
+
+Changes in v3:
+- No separate init call.
+- Don't round up the CPU that is doing the rounding up.
+- Add "#ifdef CONFIG_SMP" to match the rest of the file.
+- Updated desc saying we don't solve the "failed to roundup" case.
+- Document the ignored parameter.
+- Don't round up a CPU that failed rounding up before new for v3.
+- Don't back trace on a cpu that didn't round up new for v3.
+
+Changes in v2:
+- Removing irq flags separated from fixing lockdep splat.
+- Don't use smp_call_function (Daniel).
+
+Douglas Anderson (4):
+  kgdb: Remove irq flags from roundup
+  kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
+  kgdb: Don't round up a CPU that failed rounding up before
+  kdb: Don't back trace on a cpu that didn't round up
+
+ arch/arc/kernel/kgdb.c          | 10 +----
+ arch/arm/kernel/kgdb.c          | 12 ------
+ arch/arm64/kernel/kgdb.c        | 12 ------
+ arch/hexagon/kernel/kgdb.c      | 32 ----------------
+ arch/mips/kernel/kgdb.c         |  9 +----
+ arch/powerpc/kernel/kgdb.c      |  6 +--
+ arch/sh/kernel/kgdb.c           | 12 ------
+ arch/sparc/kernel/smp_64.c      |  2 +-
+ arch/x86/kernel/kgdb.c          |  9 +----
+ include/linux/kgdb.h            | 22 +++++++----
+ kernel/debug/debug_core.c       | 65 ++++++++++++++++++++++++++++++++-
+ kernel/debug/debug_core.h       |  1 +
+ kernel/debug/kdb/kdb_bt.c       | 11 +++++-
+ kernel/debug/kdb/kdb_debugger.c |  7 ----
+ 14 files changed, 98 insertions(+), 112 deletions(-)
+
 -- 
-2.17.1
+2.20.0.rc0.387.gc7a69e6b6c-goog
