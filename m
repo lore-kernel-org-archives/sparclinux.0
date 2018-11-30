@@ -1,316 +1,229 @@
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 07 Nov 2018 22:31:49 +0000
-Subject: [PATCH 6/8] sparc: Use of_node_name_eq for node name comparisons
-Message-Id: <20181107223151.14991-7-robh@kernel.org>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 21:53:23 +0000
+Subject: [mm PATCH v6 7/7] mm: Use common iterator for deferred_init_pages and deferred_free_pages
+Message-Id: <154361480390.7497.9730184349746888133.stgit@ahduyck-desk1.amr.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181107223151.14991-1-robh@kernel.org>
-In-Reply-To: <20181107223151.14991-1-robh@kernel.org>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net@linux.intel.com
 
-Convert string compares of DT node names to use of_node_name_eq helper
-instead. This removes direct access to the node name pointer.
+Create a common iterator to be used by both deferred_init_pages and
+deferred_free_pages. By doing this we can cut down a bit on code overhead
+as they will likely both be inlined into the same function anyway.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
+This new approach allows deferred_init_pages to make use of
+__init_pageblock. By doing this we can cut down on the code size by sharing
+code between both the hotplug and deferred memory init code paths.
+
+An additional benefit to this approach is that we improve in cache locality
+of the memory init as we can focus on the memory areas related to
+identifying if a given PFN is valid and keep that warm in the cache until
+we transition to a region of a different type. So we will stream through a
+chunk of valid blocks before we turn to initializing page structs.
+
+On my x86_64 test system with 384GB of memory per node I saw a reduction in
+initialization time from 1.38s to 1.06s as a result of this patch.
+
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
- arch/sparc/kernel/auxio_64.c         |  4 ++--
- arch/sparc/kernel/central.c          |  2 +-
- arch/sparc/kernel/irq_64.c           |  2 +-
- arch/sparc/kernel/of_device_32.c     |  8 ++++----
- arch/sparc/kernel/of_device_64.c     | 20 ++++++++++----------
- arch/sparc/kernel/of_device_common.c |  4 ++--
- arch/sparc/kernel/pci.c              |  4 ++--
- arch/sparc/kernel/pci_sabre.c        |  2 +-
- arch/sparc/kernel/prom_64.c          |  4 ++--
- arch/sparc/kernel/prom_irqtrans.c    | 18 +++++++++---------
- arch/sparc/kernel/sun4d_irq.c        |  6 +++---
- arch/sparc/kernel/time_64.c          |  4 ++--
- 12 files changed, 39 insertions(+), 39 deletions(-)
+ mm/page_alloc.c |  146 +++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 77 insertions(+), 69 deletions(-)
 
-diff --git a/arch/sparc/kernel/auxio_64.c b/arch/sparc/kernel/auxio_64.c
-index e1b10f88ffb4..4843f48bfe85 100644
---- a/arch/sparc/kernel/auxio_64.c
-+++ b/arch/sparc/kernel/auxio_64.c
-@@ -108,10 +108,10 @@ static int auxio_probe(struct platform_device *dev)
- 	struct device_node *dp = dev->dev.of_node;
- 	unsigned long size;
- 
--	if (!strcmp(dp->parent->name, "ebus")) {
-+	if (of_node_name_eq(dp->parent, "ebus")) {
- 		auxio_devtype = AUXIO_TYPE_EBUS;
- 		size = sizeof(u32);
--	} else if (!strcmp(dp->parent->name, "sbus")) {
-+	} else if (of_node_name_eq(dp->parent, "sbus")) {
- 		auxio_devtype = AUXIO_TYPE_SBUS;
- 		size = 1;
- 	} else {
-diff --git a/arch/sparc/kernel/central.c b/arch/sparc/kernel/central.c
-index 38ae4fdc9eb4..bfae98ab8638 100644
---- a/arch/sparc/kernel/central.c
-+++ b/arch/sparc/kernel/central.c
-@@ -168,7 +168,7 @@ static int fhc_probe(struct platform_device *op)
- 		goto out;
- 	}
- 
--	if (!strcmp(op->dev.of_node->parent->name, "central"))
-+	if (of_node_name_eq(op->dev.of_node->parent, "central"))
- 		p->central = true;
- 
- 	p->pregs = of_ioremap(&op->resource[0], 0,
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 713670e6d13d..3ec9f1402aad 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -915,7 +915,7 @@ static void map_prom_timers(void)
- 	dp = of_find_node_by_path("/");
- 	dp = dp->child;
- 	while (dp) {
--		if (!strcmp(dp->name, "counter-timer"))
-+		if (of_node_name_eq(dp, "counter-timer"))
- 			break;
- 		dp = dp->sibling;
- 	}
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index ab133e2753ab..dc5b1b0ec659 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -232,10 +232,10 @@ static int __init use_1to1_mapping(struct device_node *pp)
- 	 * But, we should still pass the translation work up
- 	 * to the SBUS itself.
- 	 */
--	if (!strcmp(pp->name, "dma") ||
--	    !strcmp(pp->name, "espdma") ||
--	    !strcmp(pp->name, "ledma") ||
--	    !strcmp(pp->name, "lebuffer"))
-+	if (of_node_name_eq(pp, "dma") ||
-+	    of_node_name_eq(pp, "espdma") ||
-+	    of_node_name_eq(pp, "ledma") ||
-+	    of_node_name_eq(pp, "lebuffer"))
- 		return 0;
- 
- 	return 1;
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index 2353cb7bc40f..4b5eabb20ac8 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -46,7 +46,7 @@ EXPORT_SYMBOL(of_iounmap);
- 
- static int of_bus_pci_match(struct device_node *np)
- {
--	if (!strcmp(np->name, "pci")) {
-+	if (of_node_name_eq(np, "pci")) {
- 		const char *model = of_get_property(np, "model", NULL);
- 
- 		if (model && !strcmp(model, "SUNW,simba"))
-@@ -77,7 +77,7 @@ static int of_bus_simba_match(struct device_node *np)
- 	/* Treat PCI busses lacking ranges property just like
- 	 * simba.
- 	 */
--	if (!strcmp(np->name, "pci")) {
-+	if (of_node_name_eq(np, "pci")) {
- 		if (!of_find_property(np, "ranges", NULL))
- 			return 1;
- 	}
-@@ -170,8 +170,8 @@ static unsigned long of_bus_pci_get_flags(const u32 *addr, unsigned long flags)
-  */
- static int of_bus_fhc_match(struct device_node *np)
- {
--	return !strcmp(np->name, "fhc") ||
--		!strcmp(np->name, "central");
-+	return of_node_name_eq(np, "fhc") ||
-+		of_node_name_eq(np, "central");
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 61eb9945d805..48c6fc73a70d 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1481,32 +1481,6 @@ void clear_zone_contiguous(struct zone *zone)
  }
  
- #define of_bus_fhc_count_cells of_bus_sbus_count_cells
-@@ -295,17 +295,17 @@ static int __init use_1to1_mapping(struct device_node *pp)
- 	 * But, we should still pass the translation work up
- 	 * to the SBUS itself.
- 	 */
--	if (!strcmp(pp->name, "dma") ||
--	    !strcmp(pp->name, "espdma") ||
--	    !strcmp(pp->name, "ledma") ||
--	    !strcmp(pp->name, "lebuffer"))
-+	if (of_node_name_eq(pp, "dma") ||
-+	    of_node_name_eq(pp, "espdma") ||
-+	    of_node_name_eq(pp, "ledma") ||
-+	    of_node_name_eq(pp, "lebuffer"))
- 		return 0;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-static void __init deferred_free_range(unsigned long pfn,
+-				       unsigned long nr_pages)
+-{
+-	struct page *page;
+-	unsigned long i;
+-
+-	if (!nr_pages)
+-		return;
+-
+-	page = pfn_to_page(pfn);
+-
+-	/* Free a large naturally-aligned chunk if possible */
+-	if (nr_pages = pageblock_nr_pages &&
+-	    (pfn & (pageblock_nr_pages - 1)) = 0) {
+-		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-		__free_pages_core(page, pageblock_order);
+-		return;
+-	}
+-
+-	for (i = 0; i < nr_pages; i++, page++, pfn++) {
+-		if ((pfn & (pageblock_nr_pages - 1)) = 0)
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-		__free_pages_core(page, 0);
+-	}
+-}
+-
+ /* Completion tracking for deferred_init_memmap() threads */
+ static atomic_t pgdat_init_n_undone __initdata;
+ static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
+@@ -1518,48 +1492,89 @@ static inline void __init pgdat_init_report_one_done(void)
+ }
  
- 	/* Similarly for all PCI bridges, if we get this far
- 	 * it lacks a ranges property, and this will include
- 	 * cases like Simba.
- 	 */
--	if (!strcmp(pp->name, "pci"))
-+	if (of_node_name_eq(pp, "pci"))
- 		return 0;
+ /*
+- * Returns true if page needs to be initialized or freed to buddy allocator.
++ * Returns count if page range needs to be initialized or freed
+  *
+- * First we check if pfn is valid on architectures where it is possible to have
+- * holes within pageblock_nr_pages. On systems where it is not possible, this
+- * function is optimized out.
++ * First we check if the contiguous pfns are valid on architectures where it
++ * is possible to have holes within pageblock_nr_pages. On systems where it
++ * is not possible, this function is optimized out.
++ *
++ * Then, we check if a current large page is valid by only checking the
++ * validity of the head pfn.
+  *
+- * Then, we check if a current large page is valid by only checking the validity
+- * of the head pfn.
+  */
+-static inline bool __init deferred_pfn_valid(unsigned long pfn)
++static unsigned long __next_pfn_valid_range(unsigned long *pfn,
++					    unsigned long *i,
++					    unsigned long end_pfn)
+ {
+-	if (!pfn_valid_within(pfn))
+-		return false;
+-	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
+-		return false;
+-	return true;
++	unsigned long start_pfn = *i;
++
++	while (start_pfn < end_pfn) {
++		unsigned long t = ALIGN(start_pfn + 1, pageblock_nr_pages);
++		unsigned long pageblock_pfn = min(t, end_pfn);
++		unsigned long count = 0;
++
++#ifndef CONFIG_HOLES_IN_ZONE
++		if (pfn_valid(start_pfn))
++			count = pageblock_pfn - start_pfn;
++		start_pfn = pageblock_pfn;
++#else
++		while (start_pfn < pageblock_pfn) {
++			if (pfn_valid(start_pfn++)) {
++				count++;
++				continue;
++			}
++
++			if (!count)
++				continue;
++
++			/*
++			 * The last PFN was invalid, report the block of
++			 * PFNs we currently have available and skip over
++			 * the invalid one.
++			 */
++			*pfn = start_pfn - (count + 1);
++			*i = start_pfn;
++			return count;
++		}
++#endif
++		if (!count)
++			continue;
++
++		*pfn = start_pfn - count;
++		*i = start_pfn;
++		return count;
++	}
++
++	return 0;
+ }
  
- 	return 1;
-@@ -591,7 +591,7 @@ static unsigned int __init build_one_device_irq(struct platform_device *op,
- 				break;
- 			}
++#define for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) \
++	for (i = (start_pfn),						     \
++	     count = __next_pfn_valid_range(&pfn, &i, (end_pfn));	     \
++	     count;							     \
++	     count = __next_pfn_valid_range(&pfn, &i, (end_pfn)))
++
+ /*
+  * Free pages to buddy allocator. Try to free aligned pages in
+  * pageblock_nr_pages sizes.
+  */
+-static void __init deferred_free_pages(unsigned long pfn,
++static void __init deferred_free_pages(unsigned long start_pfn,
+ 				       unsigned long end_pfn)
+ {
+-	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+-	unsigned long nr_free = 0;
+-
+-	for (; pfn < end_pfn; pfn++) {
+-		if (!deferred_pfn_valid(pfn)) {
+-			deferred_free_range(pfn - nr_free, nr_free);
+-			nr_free = 0;
+-		} else if (!(pfn & nr_pgmask)) {
+-			deferred_free_range(pfn - nr_free, nr_free);
+-			nr_free = 1;
+-			touch_nmi_watchdog();
++	unsigned long i, pfn, count;
++
++	for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) {
++		struct page *page = pfn_to_page(pfn);
++
++		if (count = pageblock_nr_pages) {
++			__free_pages_core(page, pageblock_order);
  		} else {
--			if (!strcmp(pp->name, "pci")) {
-+			if (of_node_name_eq(pp, "pci")) {
- 				unsigned int this_orig_irq = irq;
- 
- 				irq = pci_irq_swizzle(dp, pp, irq);
-diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
-index de0ee3971f00..b186b7f0f6c4 100644
---- a/arch/sparc/kernel/of_device_common.c
-+++ b/arch/sparc/kernel/of_device_common.c
-@@ -151,8 +151,8 @@ int of_bus_sbus_match(struct device_node *np)
- 	struct device_node *dp = np;
- 
- 	while (dp) {
--		if (!strcmp(dp->name, "sbus") ||
--		    !strcmp(dp->name, "sbi"))
-+		if (of_node_name_eq(dp, "sbus") ||
-+		    of_node_name_eq(dp, "sbi"))
- 			return 1;
- 
- 		/* Have a look at use_1to1_mapping().  We're trying
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index 45ba2757a1b9..377113ae9a6a 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -283,7 +283,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	sd->stc = &pbm->stc;
- 	sd->numa_node = pbm->numa_node;
- 
--	if (!strcmp(node->name, "ebus"))
-+	if (of_node_name_eq(node, "ebus"))
- 		of_propagate_archdata(op);
- 
- 	type = of_get_property(node, "device_type", NULL);
-@@ -336,7 +336,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	dev->error_state = pci_channel_io_normal;
- 	dev->dma_mask = 0xffffffff;
- 
--	if (!strcmp(node->name, "pci")) {
-+	if (of_node_name_eq(node, "pci")) {
- 		/* a PCI-PCI bridge */
- 		dev->hdr_type = PCI_HEADER_TYPE_BRIDGE;
- 		dev->rom_base_reg = PCI_ROM_ADDRESS1;
-diff --git a/arch/sparc/kernel/pci_sabre.c b/arch/sparc/kernel/pci_sabre.c
-index 8107286be9ab..3c38ca40a22b 100644
---- a/arch/sparc/kernel/pci_sabre.c
-+++ b/arch/sparc/kernel/pci_sabre.c
-@@ -475,7 +475,7 @@ static int sabre_probe(struct platform_device *op)
- 		 * different ways, inconsistently.
- 		 */
- 		for_each_node_by_type(cpu_dp, "cpu") {
--			if (!strcmp(cpu_dp->name, "SUNW,UltraSPARC-IIe"))
-+			if (of_node_name_eq(cpu_dp, "SUNW,UltraSPARC-IIe"))
- 				hummingbird_p = 1;
+-			nr_free++;
++			while (count--)
++				__free_pages_core(page++, 0);
  		}
++
++		touch_nmi_watchdog();
  	}
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index 1667df573f6f..17860d6ed1bd 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -335,8 +335,8 @@ static void __init __build_path_component(struct device_node *dp, char *tmp_buf)
- 			ebus_path_component(dp, tmp_buf);
- 			return;
- 		}
--		if (!strcmp(parent->name, "usb") ||
--		    !strcmp(parent->name, "hub")) {
-+		if (of_node_name_eq(parent, "usb") ||
-+		    of_node_name_eq(parent, "hub")) {
- 			usb_path_component(dp, tmp_buf);
- 			return;
- 		}
-diff --git a/arch/sparc/kernel/prom_irqtrans.c b/arch/sparc/kernel/prom_irqtrans.c
-index f3fecac7facb..f76b4ae697f5 100644
---- a/arch/sparc/kernel/prom_irqtrans.c
-+++ b/arch/sparc/kernel/prom_irqtrans.c
-@@ -725,11 +725,11 @@ static unsigned int central_build_irq(struct device_node *dp,
- 	unsigned long imap, iclr;
- 	u32 tmp;
+-	/* Free the last block of pages to allocator */
+-	deferred_free_range(pfn - nr_free, nr_free);
+ }
  
--	if (!strcmp(dp->name, "eeprom")) {
-+	if (of_node_name_eq(dp, "eeprom")) {
- 		res = &central_op->resource[5];
--	} else if (!strcmp(dp->name, "zs")) {
-+	} else if (of_node_name_eq(dp, "zs")) {
- 		res = &central_op->resource[4];
--	} else if (!strcmp(dp->name, "clock-board")) {
-+	} else if (of_node_name_eq(dp, "clock-board")) {
- 		res = &central_op->resource[3];
- 	} else {
- 		return ino;
-@@ -824,19 +824,19 @@ void __init irq_trans_init(struct device_node *dp)
- 	}
- #endif
- #ifdef CONFIG_SBUS
--	if (!strcmp(dp->name, "sbus") ||
--	    !strcmp(dp->name, "sbi")) {
-+	if (of_node_name_eq(dp, "sbus") ||
-+	    of_node_name_eq(dp, "sbi")) {
- 		sbus_irq_trans_init(dp);
- 		return;
- 	}
- #endif
--	if (!strcmp(dp->name, "fhc") &&
--	    !strcmp(dp->parent->name, "central")) {
-+	if (of_node_name_eq(dp, "fhc") &&
-+	    of_node_name_eq(dp->parent, "central")) {
- 		central_irq_trans_init(dp);
- 		return;
- 	}
--	if (!strcmp(dp->name, "virtual-devices") ||
--	    !strcmp(dp->name, "niu")) {
-+	if (of_node_name_eq(dp, "virtual-devices") ||
-+	    of_node_name_eq(dp, "niu")) {
- 		sun4v_vdev_irq_trans_init(dp);
- 		return;
- 	}
-diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
-index 6d266d7dd2b6..9a137c70e8d1 100644
---- a/arch/sparc/kernel/sun4d_irq.c
-+++ b/arch/sparc/kernel/sun4d_irq.c
-@@ -335,12 +335,12 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
+ /*
+@@ -1568,29 +1583,22 @@ static void __init deferred_free_pages(unsigned long pfn,
+  * Return number of pages initialized.
+  */
+ static unsigned long  __init deferred_init_pages(struct zone *zone,
+-						 unsigned long pfn,
++						 unsigned long start_pfn,
+ 						 unsigned long end_pfn)
+ {
+-	unsigned long nr_pgmask = pageblock_nr_pages - 1;
+ 	int nid = zone_to_nid(zone);
++	unsigned long i, pfn, count;
+ 	unsigned long nr_pages = 0;
+ 	int zid = zone_idx(zone);
+-	struct page *page = NULL;
  
- 	irq = real_irq;
- 	while (bus) {
--		if (!strcmp(bus->name, "sbi")) {
-+		if (of_node_name_eq(bus, "sbi")) {
- 			bus_connection = "io-unit";
- 			break;
- 		}
+-	for (; pfn < end_pfn; pfn++) {
+-		if (!deferred_pfn_valid(pfn)) {
+-			page = NULL;
+-			continue;
+-		} else if (!page || !(pfn & nr_pgmask)) {
+-			page = pfn_to_page(pfn);
+-			touch_nmi_watchdog();
+-		} else {
+-			page++;
+-		}
+-		__init_single_page(page, pfn, zid, nid);
+-		nr_pages++;
++	for_each_deferred_pfn_valid_range(pfn, count, i, start_pfn, end_pfn) {
++		nr_pages += count;
++		__init_pageblock(pfn, count, zid, nid, NULL, false);
++
++		touch_nmi_watchdog();
+ 	}
+-	return (nr_pages);
++
++	return nr_pages;
+ }
  
--		if (!strcmp(bus->name, "bootbus")) {
-+		if (of_node_name_eq(bus, "bootbus")) {
- 			bus_connection = "cpu-unit";
- 			break;
- 		}
-@@ -360,7 +360,7 @@ static unsigned int sun4d_build_device_irq(struct platform_device *op,
- 	 * If Bus nodes parent is not io-unit/cpu-unit or the io-unit/cpu-unit
- 	 * lacks a "board#" property, something is very wrong.
- 	 */
--	if (!bus->parent || strcmp(bus->parent->name, bus_connection)) {
-+	if (!of_node_name_eq(bus->parent, bus_connection)) {
- 		printk(KERN_ERR "%pOF: Error, parent is not %s.\n",
- 			bus, bus_connection);
- 		goto err_out;
-diff --git a/arch/sparc/kernel/time_64.c b/arch/sparc/kernel/time_64.c
-index 68a80f9baea7..3eb77943ce12 100644
---- a/arch/sparc/kernel/time_64.c
-+++ b/arch/sparc/kernel/time_64.c
-@@ -561,8 +561,8 @@ static int mostek_probe(struct platform_device *op)
- 	/* On an Enterprise system there can be multiple mostek clocks.
- 	 * We should only match the one that is on the central FHC bus.
- 	 */
--	if (!strcmp(dp->parent->name, "fhc") &&
--	    strcmp(dp->parent->parent->name, "central") != 0)
-+	if (of_node_name_eq(dp->parent, "fhc") &&
-+	    !of_node_name_eq(dp->parent->parent, "central"))
- 		return -ENODEV;
- 
- 	printk(KERN_INFO "%pOF: Mostek regs at 0x%llx\n",
--- 
-2.19.1
+ /*
