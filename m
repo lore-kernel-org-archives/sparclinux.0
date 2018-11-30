@@ -1,239 +1,142 @@
-From: Douglas Anderson <dianders@chromium.org>
-Date: Tue, 27 Nov 2018 03:51:30 +0000
-Subject: [PATCH v5 1/4] kgdb: Remove irq flags from roundup
-Message-Id: <20181127035133.225592-2-dianders@chromium.org>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Fri, 30 Nov 2018 21:52:53 +0000
+Subject: [mm PATCH v6 1/7] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
+Message-Id: <154361477318.7497.13432441396440493352.stgit@ahduyck-desk1.amr.corp.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181127035133.225592-1-dianders@chromium.org>
-In-Reply-To: <20181127035133.225592-1-dianders@chromium.org>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+In-Reply-To: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arm-kernel@lists.infradead.org
+To: akpm@linux-foundation.org, linux-mm@kvack.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mhocko@suse.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, alexander.h.duyck@linux.intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net@linux.intel.com
 
-The function kgdb_roundup_cpus() was passed a parameter that was
-documented as:
+Use the same approach that was already in use on Sparc on all the
+architectures that support a 64b long.
 
-> the flags that will be used when restoring the interrupts. There is
-> local_irq_save() call before kgdb_roundup_cpus().
+This is mostly motivated by the fact that 7 to 10 store/move instructions
+are likely always going to be faster than having to call into a function
+that is not specialized for handling page init.
 
-Nobody used those flags.  Anyone who wanted to temporarily turn on
-interrupts just did local_irq_enable() and local_irq_disable() without
-looking at them.  So we can definitely remove the flags.
+An added advantage to doing it this way is that the compiler can get away
+with combining writes in the __init_single_page call. As a result the
+memset call will be reduced to only about 4 write operations, or at least
+that is what I am seeing with GCC 6.2 as the flags, LRU pointers, and
+count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
+my system.
 
-Signed-off-by: Douglas Anderson <dianders@chromium.org>
-Acked-by: Will Deacon <will.deacon@arm.com>
+One change I had to make to the function was to reduce the minimum page
+size to 56 to support some powerpc64 configurations.
+
+This change should introduce no change on SPARC since it already had this
+code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
+initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
+Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
+takes 19.30ns / 64-byte struct page before this patch and with this patch
+it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
+a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
+results per 64-byte struct page were 4.68ns before, and 4.59ns after this
+patch.
+
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
 ---
+ arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
+ include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 38 insertions(+), 33 deletions(-)
 
-Changes in v5: None
-Changes in v4: None
-Changes in v3: None
-Changes in v2:
-- Removing irq flags separated from fixing lockdep splat.
-
- arch/arc/kernel/kgdb.c     | 2 +-
- arch/arm/kernel/kgdb.c     | 2 +-
- arch/arm64/kernel/kgdb.c   | 2 +-
- arch/hexagon/kernel/kgdb.c | 9 ++-------
- arch/mips/kernel/kgdb.c    | 2 +-
- arch/powerpc/kernel/kgdb.c | 2 +-
- arch/sh/kernel/kgdb.c      | 2 +-
- arch/sparc/kernel/smp_64.c | 2 +-
- arch/x86/kernel/kgdb.c     | 9 ++-------
- include/linux/kgdb.h       | 9 ++-------
- kernel/debug/debug_core.c  | 2 +-
- 11 files changed, 14 insertions(+), 29 deletions(-)
-
-diff --git a/arch/arc/kernel/kgdb.c b/arch/arc/kernel/kgdb.c
-index 9a3c34af2ae8..0932851028e0 100644
---- a/arch/arc/kernel/kgdb.c
-+++ b/arch/arc/kernel/kgdb.c
-@@ -197,7 +197,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), NULL);
- }
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..22500c3be7a9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -231,36 +231,6 @@ extern unsigned long _PAGE_ALL_SZ_BITS;
+ extern struct page *mem_map_zero;
+ #define ZERO_PAGE(vaddr)	(mem_map_zero)
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm/kernel/kgdb.c b/arch/arm/kernel/kgdb.c
-index caa0dbe3dc61..f21077b077be 100644
---- a/arch/arm/kernel/kgdb.c
-+++ b/arch/arm/kernel/kgdb.c
-@@ -175,7 +175,7 @@ static void kgdb_call_nmi_hook(void *ignored)
-        kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
+-/* This macro must be updated when the size of struct page grows above 80
+- * or reduces below 64.
+- * The idea that compiler optimizes out switch() statement, and only
+- * leaves clrx instructions
+- */
+-#define	mm_zero_struct_page(pp) do {					\
+-	unsigned long *_pp = (void *)(pp);				\
+-									\
+-	 /* Check that struct page is either 64, 72, or 80 bytes */	\
+-	BUILD_BUG_ON(sizeof(struct page) & 7);				\
+-	BUILD_BUG_ON(sizeof(struct page) < 64);				\
+-	BUILD_BUG_ON(sizeof(struct page) > 80);				\
+-									\
+-	switch (sizeof(struct page)) {					\
+-	case 80:							\
+-		_pp[9] = 0;	/* fallthrough */			\
+-	case 72:							\
+-		_pp[8] = 0;	/* fallthrough */			\
+-	default:							\
+-		_pp[7] = 0;						\
+-		_pp[6] = 0;						\
+-		_pp[5] = 0;						\
+-		_pp[4] = 0;						\
+-		_pp[3] = 0;						\
+-		_pp[2] = 0;						\
+-		_pp[1] = 0;						\
+-		_pp[0] = 0;						\
+-	}								\
+-} while (0)
+-
+ /* PFNs are real physical page numbers.  However, mem_map only begins to record
+  * per-page information starting at pfn_base.  This is to handle systems where
+  * the first physical page in the machine is at some huge physical address,
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 692158d6c619..eb6e52b66bc2 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -123,10 +123,45 @@ extern int mmap_rnd_compat_bits __read_mostly;
  
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
-        local_irq_enable();
-        smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/arm64/kernel/kgdb.c b/arch/arm64/kernel/kgdb.c
-index a20de58061a8..12c339ff6e75 100644
---- a/arch/arm64/kernel/kgdb.c
-+++ b/arch/arm64/kernel/kgdb.c
-@@ -289,7 +289,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/hexagon/kernel/kgdb.c b/arch/hexagon/kernel/kgdb.c
-index 16c24b22d0b2..012e0e230ac2 100644
---- a/arch/hexagon/kernel/kgdb.c
-+++ b/arch/hexagon/kernel/kgdb.c
-@@ -119,17 +119,12 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long pc)
- 
- /**
-  * kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- * @flags: Current IRQ state
-  *
-  * On SMP systems, we need to get the attention of the other CPUs
-  * and get them be in a known state.  This should do what is needed
-  * to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  * the NMI approach is not used for rounding up all the CPUs. For example,
-- * in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- * this case, we have to make sure that interrupts are enabled before
-- * calling smp_call_function(). The argument to this function is
-- * the flags that will be used when restoring the interrupts. There is
-- * local_irq_save() call before kgdb_roundup_cpus().
-+ * in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  * On non-SMP systems, this is not called.
+ /*
+  * On some architectures it is expensive to call memset() for small sizes.
+- * Those architectures should provide their own implementation of "struct page"
+- * zeroing by defining this macro in <asm/pgtable.h>.
++ * If an architecture decides to implement their own version of
++ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
++ * define their own version of this macro in <asm/pgtable.h>
   */
-@@ -139,7 +134,7 @@ static void hexagon_kgdb_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(hexagon_kgdb_nmi_hook, NULL, 0);
-diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
-index eb6c0d582626..2b05effc17b4 100644
---- a/arch/mips/kernel/kgdb.c
-+++ b/arch/mips/kernel/kgdb.c
-@@ -219,7 +219,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	set_fs(old_fs);
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/powerpc/kernel/kgdb.c b/arch/powerpc/kernel/kgdb.c
-index 59c578f865aa..b0e804844be0 100644
---- a/arch/powerpc/kernel/kgdb.c
-+++ b/arch/powerpc/kernel/kgdb.c
-@@ -124,7 +124,7 @@ static int kgdb_call_nmi_hook(struct pt_regs *regs)
- }
- 
- #ifdef CONFIG_SMP
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_send_debugger_break();
- }
-diff --git a/arch/sh/kernel/kgdb.c b/arch/sh/kernel/kgdb.c
-index 4f04c6638a4d..cc57630f6bf2 100644
---- a/arch/sh/kernel/kgdb.c
-+++ b/arch/sh/kernel/kgdb.c
-@@ -319,7 +319,7 @@ static void kgdb_call_nmi_hook(void *ignored)
- 	kgdb_nmicallback(raw_smp_processor_id(), get_irq_regs());
- }
- 
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	local_irq_enable();
- 	smp_call_function(kgdb_call_nmi_hook, NULL, 0);
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 4792e08ad36b..f45d876983f1 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1014,7 +1014,7 @@ void flush_dcache_page_all(struct mm_struct *mm, struct page *page)
- }
- 
- #ifdef CONFIG_KGDB
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	smp_cross_call(&xcall_kgdb_capture, 0, 0, 0);
- }
-diff --git a/arch/x86/kernel/kgdb.c b/arch/x86/kernel/kgdb.c
-index 8e36f249646e..ac6291a4178d 100644
---- a/arch/x86/kernel/kgdb.c
-+++ b/arch/x86/kernel/kgdb.c
-@@ -422,21 +422,16 @@ static void kgdb_disable_hw_debug(struct pt_regs *regs)
- #ifdef CONFIG_SMP
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them be in a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--void kgdb_roundup_cpus(unsigned long flags)
-+void kgdb_roundup_cpus(void)
- {
- 	apic->send_IPI_allbutself(APIC_DM_NMI);
- }
-diff --git a/include/linux/kgdb.h b/include/linux/kgdb.h
-index e465bb15912d..05e5b2eb0d32 100644
---- a/include/linux/kgdb.h
-+++ b/include/linux/kgdb.h
-@@ -178,21 +178,16 @@ kgdb_arch_handle_exception(int vector, int signo, int err_code,
- 
- /**
-  *	kgdb_roundup_cpus - Get other CPUs into a holding pattern
-- *	@flags: Current IRQ state
-  *
-  *	On SMP systems, we need to get the attention of the other CPUs
-  *	and get them into a known state.  This should do what is needed
-  *	to get the other CPUs to call kgdb_wait(). Note that on some arches,
-  *	the NMI approach is not used for rounding up all the CPUs. For example,
-- *	in case of MIPS, smp_call_function() is used to roundup CPUs. In
-- *	this case, we have to make sure that interrupts are enabled before
-- *	calling smp_call_function(). The argument to this function is
-- *	the flags that will be used when restoring the interrupts. There is
-- *	local_irq_save() call before kgdb_roundup_cpus().
-+ *	in case of MIPS, smp_call_function() is used to roundup CPUs.
-  *
-  *	On non-SMP systems, this is not called.
-  */
--extern void kgdb_roundup_cpus(unsigned long flags);
-+extern void kgdb_roundup_cpus(void);
- 
- /**
-  *	kgdb_arch_set_pc - Generic call back to the program counter
-diff --git a/kernel/debug/debug_core.c b/kernel/debug/debug_core.c
-index 65c0f1363788..f3cadda45f07 100644
---- a/kernel/debug/debug_core.c
-+++ b/kernel/debug/debug_core.c
-@@ -593,7 +593,7 @@ static int kgdb_cpu_enter(struct kgdb_state *ks, struct pt_regs *regs,
- 
- 	/* Signal the other CPUs to enter kgdb_wait() */
- 	else if ((!kgdb_single_step) && kgdb_do_roundup)
--		kgdb_roundup_cpus(flags);
-+		kgdb_roundup_cpus();
+-#ifndef mm_zero_struct_page
++#if BITS_PER_LONG = 64
++/* This function must be updated when the size of struct page grows above 80
++ * or reduces below 56. The idea that compiler optimizes out switch()
++ * statement, and only leaves move/store instructions. Also the compiler can
++ * combine write statments if they are both assignments and can be reordered,
++ * this can result in several of the writes here being dropped.
++ */
++#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
++static inline void __mm_zero_struct_page(struct page *page)
++{
++	unsigned long *_pp = (void *)page;
++
++	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
++	BUILD_BUG_ON(sizeof(struct page) & 7);
++	BUILD_BUG_ON(sizeof(struct page) < 56);
++	BUILD_BUG_ON(sizeof(struct page) > 80);
++
++	switch (sizeof(struct page)) {
++	case 80:
++		_pp[9] = 0;	/* fallthrough */
++	case 72:
++		_pp[8] = 0;	/* fallthrough */
++	case 64:
++		_pp[7] = 0;	/* fallthrough */
++	case 56:
++		_pp[6] = 0;
++		_pp[5] = 0;
++		_pp[4] = 0;
++		_pp[3] = 0;
++		_pp[2] = 0;
++		_pp[1] = 0;
++		_pp[0] = 0;
++	}
++}
++#else
+ #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
  #endif
  
- 	/*
--- 
-2.20.0.rc0.387.gc7a69e6b6c-goog
