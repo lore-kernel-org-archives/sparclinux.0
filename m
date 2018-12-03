@@ -1,54 +1,69 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Sun, 09 Dec 2018 15:00:22 +0000
-Subject: [PATCH v3 4/6] openrisc: simplify pte_alloc_one_kernel()
-Message-Id: <1544367624-15376-5-git-send-email-rppt@linux.ibm.com>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 03 Dec 2018 04:57:52 +0000
+Subject: Re: [PATCH] serial/sunsu: add missing of_node_put()
+Message-Id: <20181202.205752.1359988041150979586.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1544367624-15376-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1544367624-15376-1-git-send-email-rppt@linux.ibm.com>
+References: <20181121160615.23666-1-tiny.windzz@gmail.com>
+In-Reply-To: <20181121160615.23666-1-tiny.windzz@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: tiny.windzz@gmail.com
+Cc: gregkh@linuxfoundation.org, jslaby@suse.com, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The pte_alloc_one_kernel() function allocates a page using
-__get_free_page(GFP_KERNEL) when mm initialization is complete and
-memblock_phys_alloc() on the earlier stages. The physical address of the
-page allocated with memblock_phys_alloc() is converted to the virtual
-address and in the both cases the allocated page is cleared using
-clear_page().
+From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Wed, 21 Nov 2018 11:06:15 -0500
 
-The code is simplified by replacing __get_free_page() with
-get_zeroed_page() and by replacing memblock_phys_alloc() with
-memblock_alloc().
+> of_find_node_by_path() acquires a reference to the node
+> returned by it and that reference needs to be dropped by its caller.
+> This place is not doing this, so fix it.
+> 
+> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Stafford Horne <shorne@gmail.com>
----
- arch/openrisc/mm/ioremap.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+Several coding style problems and you are adding two new
+leaks.
 
-diff --git a/arch/openrisc/mm/ioremap.c b/arch/openrisc/mm/ioremap.c
-index c969752..cfef989 100644
---- a/arch/openrisc/mm/ioremap.c
-+++ b/arch/openrisc/mm/ioremap.c
-@@ -123,13 +123,10 @@ pte_t __ref *pte_alloc_one_kernel(struct mm_struct *mm,
- {
- 	pte_t *pte;
- 
--	if (likely(mem_init_done)) {
--		pte = (pte_t *) __get_free_page(GFP_KERNEL);
--	} else {
--		pte = (pte_t *) __va(memblock_phys_alloc(PAGE_SIZE, PAGE_SIZE));
--	}
-+	if (likely(mem_init_done))
-+		pte = (pte_t *)get_zeroed_page(GFP_KERNEL);
-+	else
-+		pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
- 
--	if (pte)
--		clear_page(pte);
- 	return pte;
- }
--- 
-2.7.4
+> +		struct device_node *tmp;
+>  		const char *keyb = of_get_property(ap, "keyboard", NULL);
+>  		const char *ms = of_get_property(ap, "mouse", NULL);
+
+Always order local variable declarations from longest to
+shortest line.
+
+>  
+>  		if (keyb) {
+> -			if (dp = of_find_node_by_path(keyb))
+> -				return SU_PORT_KBD;
+> +			tmp = of_find_node_by_path(keyb);
+> +			if (tmp && dp = tmp){
+
+Always put a space between ")" and the "{" openning a new basic
+block.
+
+> +				rc = SU_PORT_KBD;
+> +				goto out;
+> +			}
+>  		}
+>  		if (ms) {
+> -			if (dp = of_find_node_by_path(ms))
+> -				return SU_PORT_MS;
+> +			tmp = of_find_node_by_path(ms);
+> +			if (tmp && dp = tmp){
+> +				rc = SU_PORT_MS;
+> +				goto out;
+> +			}
+>  		}
+>  	}
+>  
+> -	return SU_PORT_PORT;
+> +out:
+> +	of_node_put(ap);
+> +	return rc;
+
+Now you have two references, one held by 'ap' and one held by 'tmp'.
+
+You are not releasing the one held by 'tmp', and you must release
+'tmp' even if it equals 'dp'.
+
+It's pretty obvious you have no way by which to test these changes and
+therefore are not doing so.
