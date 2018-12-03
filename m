@@ -1,55 +1,79 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Wed, 05 Dec 2018 20:42:47 +0000
-Subject: Re: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
-Message-Id: <20181205204247.GY1286@dhcp22.suse.cz>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Mon, 03 Dec 2018 15:47:12 +0000
+Subject: [PATCH v2 3/6] sh: prefer memblock APIs returning virtual address
+Message-Id: <1543852035-26634-4-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
- <154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
- <20181205172225.GT1286@dhcp22.suse.cz>
- <19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
-In-Reply-To: <19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
+References: <1543852035-26634-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1543852035-26634-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Duyck <alexander.h.duyck@linux.intel.com>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Wed 05-12-18 09:55:17, Alexander Duyck wrote:
-> On Wed, 2018-12-05 at 18:22 +0100, Michal Hocko wrote:
-> > On Fri 30-11-18 13:53:18, Alexander Duyck wrote:
-> > > Modify the set_page_links function to include the setting of the reserved
-> > > flag via a simple AND and OR operation. The motivation for this is the fact
-> > > that the existing __set_bit call still seems to have effects on performance
-> > > as replacing the call with the AND and OR can reduce initialization time.
-> > > 
-> > > Looking over the assembly code before and after the change the main
-> > > difference between the two is that the reserved bit is stored in a value
-> > > that is generated outside of the main initialization loop and is then
-> > > written with the other flags field values in one write to the page->flags
-> > > value. Previously the generated value was written and then then a btsq
-> > > instruction was issued.
-> > > 
-> > > On my x86_64 test system with 3TB of persistent memory per node I saw the
-> > > persistent memory initialization time on average drop from 23.49s to
-> > > 19.12s per node.
-> > 
-> > I have tried to explain why the whole reserved bit doesn't make much
-> > sense in this code several times already. You keep ignoring that and
-> > that is highly annoying. Especially when you add a tricky code to
-> > optimize something that is not really needed.
-> > 
-> > Based on that I am not going to waste my time on other patches in this
-> > series to review and give feedback which might be ignored again.
-> 
-> I got your explanation. However Andrew had already applied the patches
-> and I had some outstanding issues in them that needed to be addressed.
-> So I thought it best to send out this set of patches with those fixes
-> before the code in mm became too stale. I am still working on what to
-> do about the Reserved bit, and plan to submit it as a follow-up set.
+Rather than use the memblock_alloc_base that returns a physical address and
+then convert this address to the virtual one, use appropriate memblock
+function that returns a virtual address.
 
-From my experience Andrew can drop patches between different versions of
-the patchset. Things can change a lot while they are in mmotm and under
-the discussion.
+There is a small functional change in the allocation of then NODE_DATA().
+Instead of panicing if the local allocation failed, the non-local
+allocation attempt will be made.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/sh/mm/init.c | 18 +++++-------------
+ arch/sh/mm/numa.c |  5 ++---
+ 2 files changed, 7 insertions(+), 16 deletions(-)
+
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index c8c13c77..3576b5f 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -192,24 +192,16 @@ void __init page_table_range_init(unsigned long start, unsigned long end,
+ void __init allocate_pgdat(unsigned int nid)
+ {
+ 	unsigned long start_pfn, end_pfn;
+-#ifdef CONFIG_NEED_MULTIPLE_NODES
+-	unsigned long phys;
+-#endif
+ 
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+ 
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
+-	phys = __memblock_alloc_base(sizeof(struct pglist_data),
+-				SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+-	/* Retry with all of system memory */
+-	if (!phys)
+-		phys = __memblock_alloc_base(sizeof(struct pglist_data),
+-					SMP_CACHE_BYTES, memblock_end_of_DRAM());
+-	if (!phys)
++	NODE_DATA(nid) = memblock_alloc_try_nid_nopanic(
++				sizeof(struct pglist_data),
++				SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
++				MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++	if (!NODE_DATA(nid))
+ 		panic("Can't allocate pgdat for node %d\n", nid);
+-
+-	NODE_DATA(nid) = __va(phys);
+-	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
+ #endif
+ 
+ 	NODE_DATA(nid)->node_start_pfn = start_pfn;
+diff --git a/arch/sh/mm/numa.c b/arch/sh/mm/numa.c
+index 830e8b3..c4bde61 100644
+--- a/arch/sh/mm/numa.c
++++ b/arch/sh/mm/numa.c
+@@ -41,9 +41,8 @@ void __init setup_bootmem_node(int nid, unsigned long start, unsigned long end)
+ 	__add_active_range(nid, start_pfn, end_pfn);
+ 
+ 	/* Node-local pgdat */
+-	NODE_DATA(nid) = __va(memblock_alloc_base(sizeof(struct pglist_data),
+-					     SMP_CACHE_BYTES, end));
+-	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
++	NODE_DATA(nid) = memblock_alloc_node(sizeof(struct pglist_data),
++					     SMP_CACHE_BYTES, nid);
+ 
+ 	NODE_DATA(nid)->node_start_pfn = start_pfn;
+ 	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
