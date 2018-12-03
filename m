@@ -1,40 +1,23 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 13 Dec 2018 04:27:53 +0000
-Subject: [PATCH AUTOSEL 4.19 28/73] sbus: char: add of_node_put()
-Message-Id: <20181213042838.75160-28-sashal@kernel.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 03 Dec 2018 04:55:53 +0000
+Subject: Re: [PATCH] drivers/tty: add missing of_node_put()
+Message-Id: <20181202.205553.1761964091979889282.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213042838.75160-1-sashal@kernel.org>
-In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+References: <20181121152254.23480-1-tiny.windzz@gmail.com>
+In-Reply-To: <20181121152254.23480-1-tiny.windzz@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: tiny.windzz@gmail.com
+Cc: gregkh@linuxfoundation.org, jslaby@suse.com, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org
 
 From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Wed, 21 Nov 2018 10:22:54 -0500
 
-[ Upstream commit 87d81a23e24f24ebe014891e8bdf3ff8785031e8 ]
+> of_find_node_by_path() acquires a reference to the node
+> returned by it and that reference needs to be dropped by its caller.
+> This place is not doing this, so fix it.
+> 
+> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 
-use of_node_put() to release the refcount.
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/sbus/char/display7seg.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 5c8ed7350a04..a36e4cf1841d 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -220,6 +220,7 @@ static int d7s_probe(struct platform_device *op)
- 	dev_set_drvdata(&op->dev, p);
- 	d7s_device = p;
- 	err = 0;
-+	of_node_put(opts);
- 
- out:
- 	return err;
--- 
-2.19.1
+Applied.
