@@ -1,229 +1,32 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 08 Dec 2018 17:36:53 +0000
-Subject: [PATCH 01/10] dma-direct: provide a generic implementation of DMA_ATTR_NON_CONSISTENT
-Message-Id: <20181208173702.15158-2-hch@lst.de>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Wed, 05 Dec 2018 11:32:57 +0000
+Subject: Re: [LKP] [mm] 19717e78a0: stderr.if(target_node==NUMA_NO_NODE){
+Message-Id: <d75d097f-78a5-865e-a80a-b1e6faeff337@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
-In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: kernel test robot <rong.a.chen@intel.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl, vkoul@kernel.org, lkp@01.org
 
-If DMA_ATTR_NON_CONSISTENT is passed in the flags we can always just
-use the dma_direct_alloc_pages implementation given that the callers
-will take care of any cache maintainance on ownership transfers between
-the CPU and the device.
+On 12/05/2018 10:30 AM, kernel test robot wrote:
+> FYI, we noticed the following commit (built with gcc-7):
+> 
+> commit: 19717e78a04d51512cf0e7b9b09c61f06b2af071 ("[PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE")
+> url: https://github.com/0day-ci/linux/commits/Anshuman-Khandual/mm-Replace-all-open-encodings-for-NUMA_NO_NODE/20181126-203831
+> 
+> 
+> in testcase: perf-sanity-tests
+> with following parameters:
+> 
+> 	perf_compiler: gcc
+> 	ucode: 0x7000013
+> 
+> 
+> 
+> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz with 8G memory
+> 
+> caused below changes (please refer to attached dmesg/kmsg for entire log/backtrace):
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arc/mm/dma.c              | 21 ++++++--------------
- arch/mips/mm/dma-noncoherent.c |  5 ++---
- arch/openrisc/kernel/dma.c     | 23 +++++++++-------------
- arch/parisc/kernel/pci-dma.c   | 35 ++++++++++++----------------------
- kernel/dma/direct.c            |  4 ++--
- 5 files changed, 31 insertions(+), 57 deletions(-)
-
-diff --git a/arch/arc/mm/dma.c b/arch/arc/mm/dma.c
-index db203ff69ccf..135759d4ea8c 100644
---- a/arch/arc/mm/dma.c
-+++ b/arch/arc/mm/dma.c
-@@ -24,7 +24,6 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 	struct page *page;
- 	phys_addr_t paddr;
- 	void *kvaddr;
--	bool need_coh = !(attrs & DMA_ATTR_NON_CONSISTENT);
- 
- 	/*
- 	 * __GFP_HIGHMEM flag is cleared by upper layer functions
-@@ -46,14 +45,10 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 	 * A coherent buffer needs MMU mapping to enforce non-cachability.
- 	 * kvaddr is kernel Virtual address (0x7000_0000 based).
- 	 */
--	if (need_coh) {
--		kvaddr = ioremap_nocache(paddr, size);
--		if (kvaddr = NULL) {
--			__free_pages(page, order);
--			return NULL;
--		}
--	} else {
--		kvaddr = (void *)(u32)paddr;
-+	kvaddr = ioremap_nocache(paddr, size);
-+	if (kvaddr = NULL) {
-+		__free_pages(page, order);
-+		return NULL;
- 	}
- 
- 	/*
-@@ -66,9 +61,7 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 	 * Currently flush_cache_vmap nukes the L1 cache completely which
- 	 * will be optimized as a separate commit
- 	 */
--	if (need_coh)
--		dma_cache_wback_inv(paddr, size);
--
-+	dma_cache_wback_inv(paddr, size);
- 	return kvaddr;
- }
- 
-@@ -78,9 +71,7 @@ void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 	phys_addr_t paddr = dma_handle;
- 	struct page *page = virt_to_page(paddr);
- 
--	if (!(attrs & DMA_ATTR_NON_CONSISTENT))
--		iounmap((void __force __iomem *)vaddr);
--
-+	iounmap((void __force __iomem *)vaddr);
- 	__free_pages(page, get_order(size));
- }
- 
-diff --git a/arch/mips/mm/dma-noncoherent.c b/arch/mips/mm/dma-noncoherent.c
-index cb38461391cb..7576cd7193ba 100644
---- a/arch/mips/mm/dma-noncoherent.c
-+++ b/arch/mips/mm/dma-noncoherent.c
-@@ -50,7 +50,7 @@ void *arch_dma_alloc(struct device *dev, size_t size,
- 	void *ret;
- 
- 	ret = dma_direct_alloc_pages(dev, size, dma_handle, gfp, attrs);
--	if (ret && !(attrs & DMA_ATTR_NON_CONSISTENT)) {
-+	if (ret) {
- 		dma_cache_wback_inv((unsigned long) ret, size);
- 		ret = (void *)UNCAC_ADDR(ret);
- 	}
-@@ -61,8 +61,7 @@ void *arch_dma_alloc(struct device *dev, size_t size,
- void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
- 		dma_addr_t dma_addr, unsigned long attrs)
- {
--	if (!(attrs & DMA_ATTR_NON_CONSISTENT))
--		cpu_addr = (void *)CAC_ADDR((unsigned long)cpu_addr);
-+	cpu_addr = (void *)CAC_ADDR((unsigned long)cpu_addr);
- 	dma_direct_free_pages(dev, size, cpu_addr, dma_addr, attrs);
- }
- 
-diff --git a/arch/openrisc/kernel/dma.c b/arch/openrisc/kernel/dma.c
-index 159336adfa2f..483adbb000bb 100644
---- a/arch/openrisc/kernel/dma.c
-+++ b/arch/openrisc/kernel/dma.c
-@@ -98,15 +98,13 @@ arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 
- 	va = (unsigned long)page;
- 
--	if ((attrs & DMA_ATTR_NON_CONSISTENT) = 0) {
--		/*
--		 * We need to iterate through the pages, clearing the dcache for
--		 * them and setting the cache-inhibit bit.
--		 */
--		if (walk_page_range(va, va + size, &walk)) {
--			free_pages_exact(page, size);
--			return NULL;
--		}
-+	/*
-+	 * We need to iterate through the pages, clearing the dcache for
-+	 * them and setting the cache-inhibit bit.
-+	 */
-+	if (walk_page_range(va, va + size, &walk)) {
-+		free_pages_exact(page, size);
-+		return NULL;
- 	}
- 
- 	return (void *)va;
-@@ -122,11 +120,8 @@ arch_dma_free(struct device *dev, size_t size, void *vaddr,
- 		.mm = &init_mm
- 	};
- 
--	if ((attrs & DMA_ATTR_NON_CONSISTENT) = 0) {
--		/* walk_page_range shouldn't be able to fail here */
--		WARN_ON(walk_page_range(va, va + size, &walk));
--	}
--
-+	/* walk_page_range shouldn't be able to fail here */
-+	WARN_ON(walk_page_range(va, va + size, &walk));
- 	free_pages_exact(vaddr, size);
- }
- 
-diff --git a/arch/parisc/kernel/pci-dma.c b/arch/parisc/kernel/pci-dma.c
-index 04c48f1ef3fb..6780449e3e8b 100644
---- a/arch/parisc/kernel/pci-dma.c
-+++ b/arch/parisc/kernel/pci-dma.c
-@@ -421,29 +421,18 @@ static void *pcxl_dma_alloc(struct device *dev, size_t size,
- 	return (void *)vaddr;
- }
- 
--static void *pcx_dma_alloc(struct device *dev, size_t size,
--		dma_addr_t *dma_handle, gfp_t flag, unsigned long attrs)
-+static inline bool cpu_supports_coherent_area(void)
- {
--	void *addr;
--
--	if ((attrs & DMA_ATTR_NON_CONSISTENT) = 0)
--		return NULL;
--
--	addr = (void *)__get_free_pages(flag, get_order(size));
--	if (addr)
--		*dma_handle = (dma_addr_t)virt_to_phys(addr);
--
--	return addr;
-+	return boot_cpu_data.cpu_type = pcxl2 ||
-+		boot_cpu_data.cpu_type = pcxl;
- }
- 
- void *arch_dma_alloc(struct device *dev, size_t size,
- 		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
--
--	if (boot_cpu_data.cpu_type = pcxl2 || boot_cpu_data.cpu_type = pcxl)
-+	if (cpu_supports_coherent_area())
- 		return pcxl_dma_alloc(dev, size, dma_handle, gfp, attrs);
--	else
--		return pcx_dma_alloc(dev, size, dma_handle, gfp, attrs);
-+	return NULL;
- }
- 
- void arch_dma_free(struct device *dev, size_t size, void *vaddr,
-@@ -451,14 +440,14 @@ void arch_dma_free(struct device *dev, size_t size, void *vaddr,
- {
- 	int order = get_order(size);
- 
--	if (boot_cpu_data.cpu_type = pcxl2 || boot_cpu_data.cpu_type = pcxl) {
--		size = 1 << (order + PAGE_SHIFT);
--		unmap_uncached_pages((unsigned long)vaddr, size);
--		pcxl_free_range((unsigned long)vaddr, size);
-+	if (WARN_ON_ONCE(!cpu_supports_coherent_area()))
-+		return;
- 
--		vaddr = __va(dma_handle);
--	}
--	free_pages((unsigned long)vaddr, get_order(size));
-+	size = 1 << (order + PAGE_SHIFT);
-+	unmap_uncached_pages((unsigned long)vaddr, size);
-+	pcxl_free_range((unsigned long)vaddr, size);
-+
-+	free_pages((unsigned long)__va(dma_handle), get_order(size));
- }
- 
- void arch_sync_dma_for_device(struct device *dev, phys_addr_t paddr,
-diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
-index 308f88a750c8..4efe1188fd2e 100644
---- a/kernel/dma/direct.c
-+++ b/kernel/dma/direct.c
-@@ -206,7 +206,7 @@ void dma_direct_free_pages(struct device *dev, size_t size, void *cpu_addr,
- void *dma_direct_alloc(struct device *dev, size_t size,
- 		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
- {
--	if (!dev_is_dma_coherent(dev))
-+	if (!dev_is_dma_coherent(dev) && !(attrs & DMA_ATTR_NON_CONSISTENT))
- 		return arch_dma_alloc(dev, size, dma_handle, gfp, attrs);
- 	return dma_direct_alloc_pages(dev, size, dma_handle, gfp, attrs);
- }
-@@ -214,7 +214,7 @@ void *dma_direct_alloc(struct device *dev, size_t size,
- void dma_direct_free(struct device *dev, size_t size,
- 		void *cpu_addr, dma_addr_t dma_addr, unsigned long attrs)
- {
--	if (!dev_is_dma_coherent(dev))
-+	if (!dev_is_dma_coherent(dev) && !(attrs & DMA_ATTR_NON_CONSISTENT))
- 		arch_dma_free(dev, size, cpu_addr, dma_addr, attrs);
- 	else
- 		dma_direct_free_pages(dev, size, cpu_addr, dma_addr, attrs);
--- 
-2.19.2
+The fix (in Andrew's staging tree) from Stephen Rothwell which adds <linux/numa.h>
+definitions to <tools/include/linux/numa.h> should fix this.
