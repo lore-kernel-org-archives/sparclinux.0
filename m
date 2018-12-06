@@ -1,22 +1,57 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 09 Dec 2018 04:58:40 +0000
-Subject: Re: [PATCH 06/10] sparc64/iommu: implement DMA_ATTR_NON_CONSISTENT
-Message-Id: <20181208.205840.852094858402072771.davem@davemloft.net>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Date: Thu, 06 Dec 2018 20:07:38 +0000
+Subject: [PATCH v2 1/2] mips/kgdb: prepare arch_kgdb_ops for constness
+Message-Id: <030d63848e4b0ef4d76ca24597ab8302a393d692.1544083483.git.christophe.leroy@c-s.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
- <20181208173702.15158-7-hch@lst.de>
-In-Reply-To: <20181208173702.15158-7-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hch@lst.de
-Cc: linux-parisc@vger.kernel.org, ezequiel@collabora.com, vgupta@synopsys.com, linux-mips@vger.kernel.org, dri-devel@lists.freedesktop.org, matwey@sai.msu.ru, iommu@lists.linux-foundation.org, openrisc@lists.librecores.org, laurent.pinchart@ideasonboard.com, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, robin.murphy@arm.com, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: Vineet Gupta <vgupta@synopsys.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Kuo <rkuo@codeaurora.org>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Ley Foon Tan <lftan@altera.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Jason Wessel <jason.wessel@windriver.com>, Daniel Thompson <daniel.thompson@linaro.org>, "GitAuthor: Christophe Leroy" <christophe.leroy@c-s.fr>, Douglas Anderson <dianders@chromium.org>, Randy Dunlap <rdunlap@infradead.org>, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: uclinux-h8-devel@lists.sourceforge.jp, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat,  8 Dec 2018 09:36:58 -0800
+MIPS is the only architecture modifying arch_kgdb_ops during init.
+This patch makes the init static, so that it can be changed to
+const in following patch, as recommended by checkpatch.pl
 
-> Just allocate the memory and use map_page to map the memory.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Suggested-by: Paul Burton <paul.burton@mips.com>
+Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
+Acked-by: Paul Burton <paul.burton@mips.com>
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+---
+ v2: Added acks from Daniel and Paul.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+ arch/mips/kernel/kgdb.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
+
+diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
+index eb6c0d582626..31eff1bec577 100644
+--- a/arch/mips/kernel/kgdb.c
++++ b/arch/mips/kernel/kgdb.c
+@@ -394,18 +394,16 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
+ 	return -1;
+ }
+ 
+-struct kgdb_arch arch_kgdb_ops;
++struct kgdb_arch arch_kgdb_ops = {
++#ifdef CONFIG_CPU_BIG_ENDIAN
++	.gdb_bpt_instr = { spec_op << 2, 0x00, 0x00, break_op },
++#else
++	.gdb_bpt_instr = { break_op, 0x00, 0x00, spec_op << 2 },
++#endif
++};
+ 
+ int kgdb_arch_init(void)
+ {
+-	union mips_instruction insn = {
+-		.r_format = {
+-			.opcode = spec_op,
+-			.func	= break_op,
+-		}
+-	};
+-	memcpy(arch_kgdb_ops.gdb_bpt_instr, insn.byte, BREAK_INSTR_SIZE);
+-
+ 	register_die_notifier(&kgdb_notifier);
+ 
+ 	return 0;
+-- 
+2.13.3
