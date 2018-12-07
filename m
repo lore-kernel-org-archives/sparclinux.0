@@ -1,113 +1,193 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Wed, 05 Dec 2018 21:22:27 +0000
-Subject: Re: [PATCH v2 1/6] powerpc: prefer memblock APIs returning virtual address
-Message-Id: <20181205212226.GF19181@rapoport-lnx>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 07 Dec 2018 14:10:48 +0000
+Subject: [PATCH] sparc: merge 32-bit and 64-bit version of pci.h
+Message-Id: <20181207141048.2723-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543852035-26634-1-git-send-email-rppt@linux.ibm.com>
- <1543852035-26634-2-git-send-email-rppt@linux.ibm.com>
- <87woophasy.fsf@concordia.ellerman.id.au>
- <20181204171327.GL26700@rapoport-lnx>
- <87mupkkv3b.fsf@concordia.ellerman.id.au>
-In-Reply-To: <87mupkkv3b.fsf@concordia.ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Russell King <linux@armlinux.org.uk>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 11:37:44PM +1100, Michael Ellerman wrote:
-> Mike Rapoport <rppt@linux.ibm.com> writes:
-> > On Tue, Dec 04, 2018 at 08:59:41PM +1100, Michael Ellerman wrote:
-> >> Hi Mike,
-> >> 
-> >> Thanks for trying to clean these up.
-> >> 
-> >> I think a few could be improved though ...
-> >> 
-> >> Mike Rapoport <rppt@linux.ibm.com> writes:
-> >> > diff --git a/arch/powerpc/kernel/paca.c b/arch/powerpc/kernel/paca.c
-> >> > index 913bfca..fa884ad 100644
-> >> > --- a/arch/powerpc/kernel/paca.c
-> >> > +++ b/arch/powerpc/kernel/paca.c
-> >> > @@ -42,17 +42,15 @@ static void *__init alloc_paca_data(unsigned long size, unsigned long align,
-> >> >  		nid = early_cpu_to_node(cpu);
-> >> >  	}
-> >> >  
-> >> > -	pa = memblock_alloc_base_nid(size, align, limit, nid, MEMBLOCK_NONE);
-> >> > -	if (!pa) {
-> >> > -		pa = memblock_alloc_base(size, align, limit);
-> >> > -		if (!pa)
-> >> > -			panic("cannot allocate paca data");
-> >> > -	}
-> >> > +	ptr = memblock_alloc_try_nid_raw(size, align, MEMBLOCK_LOW_LIMIT,
-> >> > +					 limit, nid);
-> >> > +	if (!ptr)
-> >> > +		panic("cannot allocate paca data");
-> >>   
-> >> The old code doesn't zero, but two of the three callers of
-> >> alloc_paca_data() *do* zero the whole allocation, so I'd be happy if we
-> >> did it in here instead.
-> >
-> > I looked at the callers and couldn't tell if zeroing memory in
-> > init_lppaca() would be ok.
-> > I'll remove the _raw here.
->   
-> Thanks.
-> 
-> >> That would mean we could use memblock_alloc_try_nid() avoiding the need
-> >> to panic() manually.
-> >
-> > Actual, my plan was to remove panic() from all memblock_alloc* and make all
-> > callers to check the returned value.
-> > I believe it's cleaner and also allows more meaningful panic messages. Not
-> > mentioning the reduction of memblock code.
-> 
-> Hmm, not sure.
-> 
-> I see ~200 calls to the panicking functions, that seems like a lot of
-> work to change all those.
+There are enough common defintions that a single header seems nicer.
 
-Yeah, I know :)
+Also drop the pointless <linux/dma-mapping.h> include.
 
-> And I think I disagree on the "more meaningful panic message". This is a
-> perfect example, compare:
-> 
-> 	panic("cannot allocate paca data");
-> to:
-> 	panic("%s: Failed to allocate %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa\n",
-> 	      __func__, (u64)size, (u64)align, nid, &min_addr, &max_addr);
-> 
-> The former is basically useless, whereas the second might at least give
-> you a hint as to *why* the allocation failed.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/include/asm/pci.h    | 53 ++++++++++++++++++++++++++++++---
+ arch/sparc/include/asm/pci_32.h | 41 -------------------------
+ arch/sparc/include/asm/pci_64.h | 52 --------------------------------
+ 3 files changed, 49 insertions(+), 97 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/pci_32.h
+ delete mode 100644 arch/sparc/include/asm/pci_64.h
 
-We can easily keep the memblock message, just make it pr_err instead of
-panic.
-The message at the call site can show where the problem was without the
-need to dive into the stack dump.
-
-> I know it's kind of odd for a function to panic() rather than return an
-> error, but memblock is kind of special because it's so early in boot.
-> Most of these allocations have to succeed to get the system up and
-> running.
-
-The downside of having panic() inside some memblock functions is that it
-makes the API way too bloated. And, at least currently, it's inconsistent.
-For instance memblock_alloc_try_nid_raw() does not panic, but
-memblock_alloc_try_nid() does.
-
-When it was about 2 functions and a wrapper, it was perfectly fine, but
-since than memblock has three sets of partially overlapping APIs with
-endless convenience wrappers.
-
-I believe that patching up ~200 calls is worth the reduction of memblock
-API to saner size.
-
-Another thing, the absence of check for return value for memory allocation
-is not only odd, but it also makes the code obfuscated.
- 
-> cheers
-> 
-
+diff --git a/arch/sparc/include/asm/pci.h b/arch/sparc/include/asm/pci.h
+index cad79a6ce0e4..cfec79bb1831 100644
+--- a/arch/sparc/include/asm/pci.h
++++ b/arch/sparc/include/asm/pci.h
+@@ -1,9 +1,54 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef ___ASM_SPARC_PCI_H
+ #define ___ASM_SPARC_PCI_H
+-#if defined(__sparc__) && defined(__arch64__)
+-#include <asm/pci_64.h>
++
++
++/* Can be used to override the logic in pci_scan_bus for skipping
++ * already-configured bus numbers - to be used for buggy BIOSes
++ * or architectures with incomplete PCI setup by the loader.
++ */
++#define pcibios_assign_all_busses()	0
++
++#define PCIBIOS_MIN_IO		0UL
++#define PCIBIOS_MIN_MEM		0UL
++
++#define PCI_IRQ_NONE		0xffffffff
++
++
++#ifdef CONFIG_SPARC64
++
++/* PCI IOMMU mapping bypass support. */
++
++/* PCI 64-bit addressing works for all slots on all controller
++ * types on sparc64.  However, it requires that the device
++ * can drive enough of the 64 bits.
++ */
++#define PCI64_REQUIRED_MASK	(~(u64)0)
++#define PCI64_ADDR_BASE		0xfffc000000000000UL
++
++/* Return the index of the PCI controller for device PDEV. */
++int pci_domain_nr(struct pci_bus *bus);
++static inline int pci_proc_domain(struct pci_bus *bus)
++{
++	return 1;
++}
++
++/* Platform support for /proc/bus/pci/X/Y mmap()s. */
++#define HAVE_PCI_MMAP
++#define arch_can_pci_mmap_io()	1
++#define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
++#define get_pci_unmapped_area get_fb_unmapped_area
++
++#define HAVE_ARCH_PCI_RESOURCE_TO_USER
++#endif /* CONFIG_SPARC64 */
++
++#if defined(CONFIG_SPARC64) || defined(CONFIG_LEON_PCI)
++static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
++{
++	return PCI_IRQ_NONE;
++}
+ #else
+-#include <asm/pci_32.h>
+-#endif
++#include <asm-generic/pci.h>
+ #endif
++
++#endif /* ___ASM_SPARC_PCI_H */
+diff --git a/arch/sparc/include/asm/pci_32.h b/arch/sparc/include/asm/pci_32.h
+deleted file mode 100644
+index cfc0ee9476c6..000000000000
+--- a/arch/sparc/include/asm/pci_32.h
++++ /dev/null
+@@ -1,41 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __SPARC_PCI_H
+-#define __SPARC_PCI_H
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/dma-mapping.h>
+-
+-/* Can be used to override the logic in pci_scan_bus for skipping
+- * already-configured bus numbers - to be used for buggy BIOSes
+- * or architectures with incomplete PCI setup by the loader.
+- */
+-#define pcibios_assign_all_busses()	0
+-
+-#define PCIBIOS_MIN_IO		0UL
+-#define PCIBIOS_MIN_MEM		0UL
+-
+-#define PCI_IRQ_NONE		0xffffffff
+-
+-#endif /* __KERNEL__ */
+-
+-#ifndef CONFIG_LEON_PCI
+-/* generic pci stuff */
+-#include <asm-generic/pci.h>
+-#else
+-/*
+- * On LEON PCI Memory space is mapped 1:1 with physical address space.
+- *
+- * I/O space is located at low 64Kbytes in PCI I/O space. The I/O addresses
+- * are converted into CPU addresses to virtual addresses that are mapped with
+- * MMU to the PCI Host PCI I/O space window which are translated to the low
+- * 64Kbytes by the Host controller.
+- */
+-
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return PCI_IRQ_NONE;
+-}
+-#endif
+-
+-#endif /* __SPARC_PCI_H */
+diff --git a/arch/sparc/include/asm/pci_64.h b/arch/sparc/include/asm/pci_64.h
+deleted file mode 100644
+index fac77813402c..000000000000
+--- a/arch/sparc/include/asm/pci_64.h
++++ /dev/null
+@@ -1,52 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __SPARC64_PCI_H
+-#define __SPARC64_PCI_H
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/dma-mapping.h>
+-
+-/* Can be used to override the logic in pci_scan_bus for skipping
+- * already-configured bus numbers - to be used for buggy BIOSes
+- * or architectures with incomplete PCI setup by the loader.
+- */
+-#define pcibios_assign_all_busses()	0
+-
+-#define PCIBIOS_MIN_IO		0UL
+-#define PCIBIOS_MIN_MEM		0UL
+-
+-#define PCI_IRQ_NONE		0xffffffff
+-
+-/* PCI IOMMU mapping bypass support. */
+-
+-/* PCI 64-bit addressing works for all slots on all controller
+- * types on sparc64.  However, it requires that the device
+- * can drive enough of the 64 bits.
+- */
+-#define PCI64_REQUIRED_MASK	(~(u64)0)
+-#define PCI64_ADDR_BASE		0xfffc000000000000UL
+-
+-/* Return the index of the PCI controller for device PDEV. */
+-
+-int pci_domain_nr(struct pci_bus *bus);
+-static inline int pci_proc_domain(struct pci_bus *bus)
+-{
+-	return 1;
+-}
+-
+-/* Platform support for /proc/bus/pci/X/Y mmap()s. */
+-
+-#define HAVE_PCI_MMAP
+-#define arch_can_pci_mmap_io()	1
+-#define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
+-#define get_pci_unmapped_area get_fb_unmapped_area
+-
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return PCI_IRQ_NONE;
+-}
+-
+-#define HAVE_ARCH_PCI_RESOURCE_TO_USER
+-#endif /* __KERNEL__ */
+-
+-#endif /* __SPARC64_PCI_H */
 -- 
-Sincerely yours,
-Mike.
+2.19.1
