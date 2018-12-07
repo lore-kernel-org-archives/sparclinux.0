@@ -1,606 +1,637 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Date: Thu, 13 Dec 2018 17:24:20 +0000
-Subject: [PATCH v6 24/27] syscall_get_arch: add "struct task_struct *" argument
-Message-Id: <20181213172420.GX6024@altlinux.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 07 Dec 2018 14:14:06 +0000
+Subject: [PATCH 3/4] sparc: remove the sparc32_dma_ops indirection
+Message-Id: <20181207141407.3154-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213171833.GA5240@altlinux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Oleg Nesterov <oleg@redhat.com>, Andy Lutomirski <luto@kernel.org>, Eric Paris <eparis@redhat.com>, Paul Moore <paul@paul-moore.com>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Vineet Gupta <vgupta@synopsys.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Aurelien Jacquiot <jacquiot.aurelien@gmail.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Kuo <rkuo@codeaurora.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Ley Foon Tan <lftan@altera.com>, Jonas Bonn <jonas@southpole.se>, Stefan Kristiansson <stefan.kristianss>
-Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Palmer Dabbelt <palmer@sifive.com>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Eugene Syromyatnikov <esyr@redhat.com>, Elvira Khabirova <lineprinter@altlinux.org>, Mark Salter <msalter@redhat.com>, James Hogan <jhogan@kernel.org>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Kees Cook <keescook@chromium.org>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Borislav Petkov <bp@ali>
+To: sparclinux@vger.kernel.org
 
-This argument is required to extend the generic ptrace API with
-PTRACE_GET_SYSCALL_INFO request: syscall_get_arch() is going
-to be called from ptrace_request() along with syscall_get_nr(),
-syscall_get_arguments(), syscall_get_error(), and
-syscall_get_return_value() functions with a tracee as their argument.
+There is no good reason to have a double indirection for the sparc32
+dma ops, so remove the sparc32_dma_ops and define separate dma_map_ops
+instance for the different IOMMU types.
 
-Reverts: 5e937a9ae913 ("syscall_get_arch: remove useless function arguments")
-Reverts: 1002d94d3076 ("syscall.h: fix doc text for syscall_get_arch()")
-Reviewed-by: Andy Lutomirski <luto@kernel.org> # for x86
-Reviewed-by: Palmer Dabbelt <palmer@sifive.com>
-Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Acked-by: Kees Cook <keescook@chromium.org> # seccomp parts
-Acked-by: Mark Salter <msalter@redhat.com> # for the c6x bit
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Richard Kuo <rkuo@codeaurora.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Ley Foon Tan <lftan@altera.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: James E.J. Bottomley <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Guan Xuetao <gxt@pku.edu.cn>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Elvira Khabirova <lineprinter@altlinux.org>
-Cc: Eugene Syromyatnikov <esyr@redhat.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-c6x-dev@linux-c6x.org
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: nios2-dev@lists.rocketboards.org
-Cc: openrisc@lists.librecores.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-um@lists.infradead.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-audit@redhat.com
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
+ arch/sparc/include/asm/dma.h |  48 +-----------
+ arch/sparc/kernel/ioport.c   | 124 +------------------------------
+ arch/sparc/mm/io-unit.c      |  65 ++++++++++++-----
+ arch/sparc/mm/iommu.c        | 137 ++++++++++++++++++++++-------------
+ 4 files changed, 138 insertions(+), 236 deletions(-)
 
-Notes:
-    v6: added more Acked-by
-    v5: added Cc
-    v2: cleaned up mips part, added Reviewed-by
-
- arch/alpha/include/asm/syscall.h      |  2 +-
- arch/arc/include/asm/syscall.h        |  2 +-
- arch/arm/include/asm/syscall.h        |  2 +-
- arch/arm64/include/asm/syscall.h      |  4 ++--
- arch/c6x/include/asm/syscall.h        |  2 +-
- arch/csky/include/asm/syscall.h       |  2 +-
- arch/h8300/include/asm/syscall.h      |  2 +-
- arch/hexagon/include/asm/syscall.h    |  2 +-
- arch/ia64/include/asm/syscall.h       |  2 +-
- arch/m68k/include/asm/syscall.h       |  2 +-
- arch/microblaze/include/asm/syscall.h |  2 +-
- arch/mips/include/asm/syscall.h       |  6 +++---
- arch/mips/kernel/ptrace.c             |  2 +-
- arch/nds32/include/asm/syscall.h      |  2 +-
- arch/nios2/include/asm/syscall.h      |  2 +-
- arch/openrisc/include/asm/syscall.h   |  2 +-
- arch/parisc/include/asm/syscall.h     |  4 ++--
- arch/powerpc/include/asm/syscall.h    | 10 ++++++++--
- arch/riscv/include/asm/syscall.h      |  2 +-
- arch/s390/include/asm/syscall.h       |  4 ++--
- arch/sh/include/asm/syscall_32.h      |  2 +-
- arch/sh/include/asm/syscall_64.h      |  2 +-
- arch/sparc/include/asm/syscall.h      |  5 +++--
- arch/unicore32/include/asm/syscall.h  |  2 +-
- arch/x86/include/asm/syscall.h        |  8 +++++---
- arch/x86/um/asm/syscall.h             |  2 +-
- arch/xtensa/include/asm/syscall.h     |  2 +-
- include/asm-generic/syscall.h         |  5 +++--
- kernel/auditsc.c                      |  4 ++--
- kernel/seccomp.c                      |  4 ++--
- 30 files changed, 52 insertions(+), 42 deletions(-)
-
-diff --git a/arch/alpha/include/asm/syscall.h b/arch/alpha/include/asm/syscall.h
-index c67d6a69d7c8..20078aef0922 100644
---- a/arch/alpha/include/asm/syscall.h
-+++ b/arch/alpha/include/asm/syscall.h
-@@ -33,7 +33,7 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
- }
+diff --git a/arch/sparc/include/asm/dma.h b/arch/sparc/include/asm/dma.h
+index a1d7c86917c6..462e7c794a09 100644
+--- a/arch/sparc/include/asm/dma.h
++++ b/arch/sparc/include/asm/dma.h
+@@ -91,54 +91,10 @@ extern int isa_dma_bridge_buggy;
+ #endif
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_ALPHA;
- }
-diff --git a/arch/arc/include/asm/syscall.h b/arch/arc/include/asm/syscall.h
-index c7fc4c0c3bcb..caf2697ef5b7 100644
---- a/arch/arc/include/asm/syscall.h
-+++ b/arch/arc/include/asm/syscall.h
-@@ -70,7 +70,7 @@ syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
- }
+ #ifdef CONFIG_SPARC32
+-
+-/* Routines for data transfer buffers. */
+ struct device;
+-struct scatterlist;
+-
+-struct sparc32_dma_ops {
+-	__u32 (*get_scsi_one)(struct device *, char *, unsigned long);
+-	void (*get_scsi_sgl)(struct device *, struct scatterlist *, int);
+-	void (*release_scsi_one)(struct device *, __u32, unsigned long);
+-	void (*release_scsi_sgl)(struct device *, struct scatterlist *,int);
+-#ifdef CONFIG_SBUS
+-	int (*map_dma_area)(struct device *, dma_addr_t *, unsigned long, unsigned long, int);
+-	void (*unmap_dma_area)(struct device *, unsigned long, int);
+-#endif
+-};
+-extern const struct sparc32_dma_ops *sparc32_dma_ops;
+-
+-#define mmu_get_scsi_one(dev,vaddr,len) \
+-	sparc32_dma_ops->get_scsi_one(dev, vaddr, len)
+-#define mmu_get_scsi_sgl(dev,sg,sz) \
+-	sparc32_dma_ops->get_scsi_sgl(dev, sg, sz)
+-#define mmu_release_scsi_one(dev,vaddr,len) \
+-	sparc32_dma_ops->release_scsi_one(dev, vaddr,len)
+-#define mmu_release_scsi_sgl(dev,sg,sz) \
+-	sparc32_dma_ops->release_scsi_sgl(dev, sg, sz)
+-
+-#ifdef CONFIG_SBUS
+-/*
+- * mmu_map/unmap are provided by iommu/iounit; Invalid to call on IIep.
+- *
+- * The mmu_map_dma_area establishes two mappings in one go.
+- * These mappings point to pages normally mapped at 'va' (linear address).
+- * First mapping is for CPU visible address at 'a', uncached.
+- * This is an alias, but it works because it is an uncached mapping.
+- * Second mapping is for device visible address, or "bus" address.
+- * The bus address is returned at '*pba'.
+- *
+- * These functions seem distinct, but are hard to split.
+- * On sun4m, page attributes depend on the CPU type, so we have to
+- * know if we are mapping RAM or I/O, so it has to be an additional argument
+- * to a separate mapping function for CPU visible mappings.
+- */
+-#define sbus_map_dma_area(dev,pba,va,a,len) \
+-	sparc32_dma_ops->map_dma_area(dev, pba, va, a, len)
+-#define sbus_unmap_dma_area(dev,ba,len) \
+-	sparc32_dma_ops->unmap_dma_area(dev, ba, len)
+-#endif /* CONFIG_SBUS */
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return IS_ENABLED(CONFIG_ISA_ARCOMPACT)
- 		? (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
-diff --git a/arch/arm/include/asm/syscall.h b/arch/arm/include/asm/syscall.h
-index 06dea6bce293..3940ceac0bdc 100644
---- a/arch/arm/include/asm/syscall.h
-+++ b/arch/arm/include/asm/syscall.h
-@@ -104,7 +104,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->ARM_r0 + i, args, n * sizeof(args[0]));
- }
++unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len);
++bool sparc_dma_free_resource(void *cpu_addr, size_t size);
+ #endif
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	/* ARM tasks don't change audit architectures on the fly. */
- 	return AUDIT_ARCH_ARM;
-diff --git a/arch/arm64/include/asm/syscall.h b/arch/arm64/include/asm/syscall.h
-index ad8be16a39c9..1870df03f774 100644
---- a/arch/arm64/include/asm/syscall.h
-+++ b/arch/arm64/include/asm/syscall.h
-@@ -117,9 +117,9 @@ static inline void syscall_set_arguments(struct task_struct *task,
-  * We don't care about endianness (__AUDIT_ARCH_LE bit) here because
-  * AArch64 has the same system calls both on little- and big- endian.
+ #endif /* !(_ASM_SPARC_DMA_H) */
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index fd7a41c6d688..f46213035637 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -52,8 +52,6 @@
+ #include <asm/io-unit.h>
+ #include <asm/leon.h>
+ 
+-const struct sparc32_dma_ops *sparc32_dma_ops;
+-
+ /* This function must make sure that caches and memory are coherent after DMA
+  * On LEON systems without cache snooping it flushes the entire D-CACHE.
   */
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+@@ -247,7 +245,7 @@ static void _sparc_free_io(struct resource *res)
+ 	release_resource(res);
+ }
+ 
+-static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
++unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
  {
--	if (is_compat_task())
-+	if (is_compat_thread(task_thread_info(task)))
- 		return AUDIT_ARCH_ARM;
+ 	struct resource *res;
  
- 	return AUDIT_ARCH_AARCH64;
-diff --git a/arch/c6x/include/asm/syscall.h b/arch/c6x/include/asm/syscall.h
-index 39dbd1ef994c..595057191c9c 100644
---- a/arch/c6x/include/asm/syscall.h
-+++ b/arch/c6x/include/asm/syscall.h
-@@ -121,7 +121,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	}
+@@ -266,7 +264,7 @@ static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
+ 	return res->start;
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+-static bool sparc_dma_free_resource(void *cpu_addr, size_t size)
++bool sparc_dma_free_resource(void *cpu_addr, size_t size)
  {
- 	return IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
- 		? AUDIT_ARCH_C6XBE : AUDIT_ARCH_C6X;
-diff --git a/arch/csky/include/asm/syscall.h b/arch/csky/include/asm/syscall.h
-index d637445737b7..150ffb894fa2 100644
---- a/arch/csky/include/asm/syscall.h
-+++ b/arch/csky/include/asm/syscall.h
-@@ -70,7 +70,7 @@ syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
+ 	unsigned long addr = (unsigned long)cpu_addr;
+ 	struct resource *res;
+@@ -302,122 +300,6 @@ void sbus_set_sbus64(struct device *dev, int x)
  }
+ EXPORT_SYMBOL(sbus_set_sbus64);
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
+-/*
+- * Allocate a chunk of memory suitable for DMA.
+- * Typically devices use them for control blocks.
+- * CPU may access them without any explicit flushing.
+- */
+-static void *sbus_alloc_coherent(struct device *dev, size_t len,
+-				 dma_addr_t *dma_addrp, gfp_t gfp,
+-				 unsigned long attrs)
+-{
+-	unsigned long len_total = PAGE_ALIGN(len);
+-	unsigned long va, addr;
+-	int order;
+-
+-	/* XXX why are some lengths signed, others unsigned? */
+-	if (len <= 0) {
+-		return NULL;
+-	}
+-	/* XXX So what is maxphys for us and how do drivers know it? */
+-	if (len > 256*1024) {			/* __get_free_pages() limit */
+-		return NULL;
+-	}
+-
+-	order = get_order(len_total);
+-	va = __get_free_pages(gfp, order);
+-	if (va = 0)
+-		goto err_nopages;
+-
+-	addr = sparc_dma_alloc_resource(dev, len_total);
+-	if (!addr)
+-		goto err_nomem;
+-
+-	// XXX The sbus_map_dma_area does this for us below, see comments.
+-	// srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
+-	/*
+-	 * XXX That's where sdev would be used. Currently we load
+-	 * all iommu tables with the same translations.
+-	 */
+-	if (sbus_map_dma_area(dev, dma_addrp, va, addr, len_total) != 0)
+-		goto err_noiommu;
+-
+-	return (void *)addr;
+-
+-err_noiommu:
+-	sparc_dma_free_resource((void *)addr, len_total);
+-err_nomem:
+-	free_pages(va, order);
+-err_nopages:
+-	return NULL;
+-}
+-
+-static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+-			       dma_addr_t ba, unsigned long attrs)
+-{
+-	struct page *pgv;
+-
+-	n = PAGE_ALIGN(n);
+-	if (!sparc_dma_free_resource(p, n))
+-		return;
+-
+-	pgv = virt_to_page(p);
+-	sbus_unmap_dma_area(dev, ba, n);
+-
+-	__free_pages(pgv, get_order(n));
+-}
+-
+-/*
+- * Map a chunk of memory so that devices can see it.
+- * CPU view of this memory may be inconsistent with
+- * a device view and explicit flushing is necessary.
+- */
+-static dma_addr_t sbus_map_page(struct device *dev, struct page *page,
+-				unsigned long offset, size_t len,
+-				enum dma_data_direction dir,
+-				unsigned long attrs)
+-{
+-	void *va = page_address(page) + offset;
+-
+-	/* XXX why are some lengths signed, others unsigned? */
+-	if (len <= 0) {
+-		return 0;
+-	}
+-	/* XXX So what is maxphys for us and how do drivers know it? */
+-	if (len > 256*1024) {			/* __get_free_pages() limit */
+-		return 0;
+-	}
+-	return mmu_get_scsi_one(dev, va, len);
+-}
+-
+-static void sbus_unmap_page(struct device *dev, dma_addr_t ba, size_t n,
+-			    enum dma_data_direction dir, unsigned long attrs)
+-{
+-	mmu_release_scsi_one(dev, ba, n);
+-}
+-
+-static int sbus_map_sg(struct device *dev, struct scatterlist *sg, int n,
+-		       enum dma_data_direction dir, unsigned long attrs)
+-{
+-	mmu_get_scsi_sgl(dev, sg, n);
+-	return n;
+-}
+-
+-static void sbus_unmap_sg(struct device *dev, struct scatterlist *sg, int n,
+-			  enum dma_data_direction dir, unsigned long attrs)
+-{
+-	mmu_release_scsi_sgl(dev, sg, n);
+-}
+-
+-static const struct dma_map_ops sbus_dma_ops = {
+-	.alloc			= sbus_alloc_coherent,
+-	.free			= sbus_free_coherent,
+-	.map_page		= sbus_map_page,
+-	.unmap_page		= sbus_unmap_page,
+-	.map_sg			= sbus_map_sg,
+-	.unmap_sg		= sbus_unmap_sg,
+-};
+-
+ static int __init sparc_register_ioport(void)
  {
- 	return AUDIT_ARCH_CSKY;
- }
-diff --git a/arch/h8300/include/asm/syscall.h b/arch/h8300/include/asm/syscall.h
-index 0a6565d12836..5c2ab1072700 100644
---- a/arch/h8300/include/asm/syscall.h
-+++ b/arch/h8300/include/asm/syscall.h
-@@ -62,7 +62,7 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
+ 	register_proc_sparc_ioport();
+@@ -491,7 +373,7 @@ void arch_sync_dma_for_cpu(struct device *dev, phys_addr_t paddr,
+ 		dma_make_coherent(paddr, PAGE_ALIGN(size));
  }
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
+-const struct dma_map_ops *dma_ops = &sbus_dma_ops;
++const struct dma_map_ops *dma_ops;
+ EXPORT_SYMBOL(dma_ops);
+ 
+ #ifdef CONFIG_PROC_FS
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index c8cb27d3ea75..2088d292c6e5 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -12,7 +12,7 @@
+ #include <linux/mm.h>
+ #include <linux/highmem.h>	/* pte_offset_map => kmap_atomic */
+ #include <linux/bitops.h>
+-#include <linux/scatterlist.h>
++#include <linux/dma-mapping.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ 
+@@ -140,18 +140,26 @@ nexti:	scan = find_next_zero_bit(iounit->bmap, limit, scan);
+ 	return vaddr;
+ }
+ 
+-static __u32 iounit_get_scsi_one(struct device *dev, char *vaddr, unsigned long len)
++static dma_addr_t iounit_map_page(struct device *dev, struct page *page,
++		unsigned long offset, size_t len, enum dma_data_direction dir,
++		unsigned long attrs)
  {
- 	return AUDIT_ARCH_H8300;
- }
-diff --git a/arch/hexagon/include/asm/syscall.h b/arch/hexagon/include/asm/syscall.h
-index c3290c0bc458..94bdfd22f912 100644
---- a/arch/hexagon/include/asm/syscall.h
-+++ b/arch/hexagon/include/asm/syscall.h
-@@ -60,7 +60,7 @@ static inline long syscall_get_return_value(struct task_struct *task,
- 	return regs->r00;
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_HEXAGON;
- }
-diff --git a/arch/ia64/include/asm/syscall.h b/arch/ia64/include/asm/syscall.h
-index 1d0b875fec44..47ab33f5448a 100644
---- a/arch/ia64/include/asm/syscall.h
-+++ b/arch/ia64/include/asm/syscall.h
-@@ -81,7 +81,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	ia64_syscall_get_set_arguments(task, regs, i, n, args, 1);
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_IA64;
- }
-diff --git a/arch/m68k/include/asm/syscall.h b/arch/m68k/include/asm/syscall.h
-index c87b14417753..e5ea2e20d3a5 100644
---- a/arch/m68k/include/asm/syscall.h
-+++ b/arch/m68k/include/asm/syscall.h
-@@ -34,7 +34,7 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
- }
- 
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_M68K;
- }
-diff --git a/arch/microblaze/include/asm/syscall.h b/arch/microblaze/include/asm/syscall.h
-index 220decd605a4..77a86fafa974 100644
---- a/arch/microblaze/include/asm/syscall.h
-+++ b/arch/microblaze/include/asm/syscall.h
-@@ -101,7 +101,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- asmlinkage unsigned long do_syscall_trace_enter(struct pt_regs *regs);
- asmlinkage void do_syscall_trace_leave(struct pt_regs *regs);
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_MICROBLAZE;
- }
-diff --git a/arch/mips/include/asm/syscall.h b/arch/mips/include/asm/syscall.h
-index 04ab927ff47d..466957d0474b 100644
---- a/arch/mips/include/asm/syscall.h
-+++ b/arch/mips/include/asm/syscall.h
-@@ -146,14 +146,14 @@ extern const unsigned long sys_call_table[];
- extern const unsigned long sys32_call_table[];
- extern const unsigned long sysn32_call_table[];
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_MIPS;
- #ifdef CONFIG_64BIT
--	if (!test_thread_flag(TIF_32BIT_REGS)) {
-+	if (!test_tsk_thread_flag(task, TIF_32BIT_REGS)) {
- 		arch |= __AUDIT_ARCH_64BIT;
- 		/* N32 sets only TIF_32BIT_ADDR */
--		if (test_thread_flag(TIF_32BIT_ADDR))
-+		if (test_tsk_thread_flag(task, TIF_32BIT_ADDR))
- 			arch |= __AUDIT_ARCH_CONVENTION_MIPS64_N32;
- 	}
- #endif
-diff --git a/arch/mips/kernel/ptrace.c b/arch/mips/kernel/ptrace.c
-index e5ba56c01ee0..e112c525c3a7 100644
---- a/arch/mips/kernel/ptrace.c
-+++ b/arch/mips/kernel/ptrace.c
-@@ -1272,7 +1272,7 @@ asmlinkage long syscall_trace_enter(struct pt_regs *regs, long syscall)
- 		unsigned long args[6];
- 
- 		sd.nr = syscall;
--		sd.arch = syscall_get_arch();
-+		sd.arch = syscall_get_arch(current);
- 		syscall_get_arguments(current, regs, 0, 6, args);
- 		for (i = 0; i < 6; i++)
- 			sd.args[i] = args[i];
-diff --git a/arch/nds32/include/asm/syscall.h b/arch/nds32/include/asm/syscall.h
-index 569149ca25da..e109acd225e6 100644
---- a/arch/nds32/include/asm/syscall.h
-+++ b/arch/nds32/include/asm/syscall.h
-@@ -187,7 +187,7 @@ void syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- 	memcpy(&regs->uregs[0] + i, args, n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
- 		? AUDIT_ARCH_NDS32BE : AUDIT_ARCH_NDS32;
-diff --git a/arch/nios2/include/asm/syscall.h b/arch/nios2/include/asm/syscall.h
-index cf35e210fc4d..f0f6ae208e78 100644
---- a/arch/nios2/include/asm/syscall.h
-+++ b/arch/nios2/include/asm/syscall.h
-@@ -136,7 +136,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	}
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_NIOS2;
- }
-diff --git a/arch/openrisc/include/asm/syscall.h b/arch/openrisc/include/asm/syscall.h
-index 2db9f1cf0694..46b10c674bd2 100644
---- a/arch/openrisc/include/asm/syscall.h
-+++ b/arch/openrisc/include/asm/syscall.h
-@@ -72,7 +72,7 @@ syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- 	memcpy(&regs->gpr[3 + i], args, n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_OPENRISC;
- }
-diff --git a/arch/parisc/include/asm/syscall.h b/arch/parisc/include/asm/syscall.h
-index 477511ff7546..310016e1925d 100644
---- a/arch/parisc/include/asm/syscall.h
-+++ b/arch/parisc/include/asm/syscall.h
-@@ -69,11 +69,11 @@ static inline void syscall_rollback(struct task_struct *task,
- 	/* do nothing */
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_PARISC;
- #ifdef CONFIG_64BIT
--	if (!is_compat_task())
-+	if (!__is_compat_task(task))
- 		arch = AUDIT_ARCH_PARISC64;
- #endif
- 	return arch;
-diff --git a/arch/powerpc/include/asm/syscall.h b/arch/powerpc/include/asm/syscall.h
-index 1d03e753391d..70f9e538e1b3 100644
---- a/arch/powerpc/include/asm/syscall.h
-+++ b/arch/powerpc/include/asm/syscall.h
-@@ -110,9 +110,15 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->orig_gpr3 = args[0];
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
--	int arch = is_32bit_task() ? AUDIT_ARCH_PPC : AUDIT_ARCH_PPC64;
-+	int arch;
++	void *vaddr = page_address(page) + offset;
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+ 	unsigned long ret, flags;
+ 	
++	/* XXX So what is maxphys for us and how do drivers know it? */
++	if (!len || len > 256 * 1024)
++		return DMA_MAPPING_ERROR;
 +
-+	if (IS_ENABLED(CONFIG_PPC64) && !test_tsk_thread_flag(task, TIF_32BIT))
-+		arch = AUDIT_ARCH_PPC64;
-+	else
-+		arch = AUDIT_ARCH_PPC;
+ 	spin_lock_irqsave(&iounit->lock, flags);
+ 	ret = iounit_get_area(iounit, (unsigned long)vaddr, len);
+ 	spin_unlock_irqrestore(&iounit->lock, flags);
+ 	return ret;
+ }
+ 
+-static void iounit_get_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
++static int iounit_map_sg(struct device *dev, struct scatterlist *sg, int sz,
++		enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+ 	unsigned long flags;
+@@ -165,9 +173,11 @@ static void iounit_get_scsi_sgl(struct device *dev, struct scatterlist *sg, int
+ 		sg = sg_next(sg);
+ 	}
+ 	spin_unlock_irqrestore(&iounit->lock, flags);
++	return sz;
+ }
+ 
+-static void iounit_release_scsi_one(struct device *dev, __u32 vaddr, unsigned long len)
++static void iounit_unmap_page(struct device *dev, dma_addr_t vaddr, size_t len,
++		enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+ 	unsigned long flags;
+@@ -181,7 +191,8 @@ static void iounit_release_scsi_one(struct device *dev, __u32 vaddr, unsigned lo
+ 	spin_unlock_irqrestore(&iounit->lock, flags);
+ }
+ 
+-static void iounit_release_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
++static void iounit_unmap_sg(struct device *dev, struct scatterlist *sg, int sz,
++		enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+ 	unsigned long flags;
+@@ -201,14 +212,27 @@ static void iounit_release_scsi_sgl(struct device *dev, struct scatterlist *sg,
+ }
+ 
+ #ifdef CONFIG_SBUS
+-static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va, unsigned long addr, int len)
++static void *iounit_alloc(struct device *dev, size_t len,
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
+ {
+ 	struct iounit_struct *iounit = dev->archdata.iommu;
+-	unsigned long page, end;
++	unsigned long va, addr, page, end, ret;
+ 	pgprot_t dvma_prot;
+ 	iopte_t __iomem *iopte;
+ 
+-	*pba = addr;
++	/* XXX So what is maxphys for us and how do drivers know it? */
++	if (!len || len > 256 * 1024)
++		return NULL;
 +
- #ifdef __LITTLE_ENDIAN__
- 	arch |= __AUDIT_ARCH_LE;
++	len = PAGE_ALIGN(len);
++	va = __get_free_pages(gfp, get_order(len));
++	if (!va)
++		return NULL;
++
++	addr = ret = sparc_dma_alloc_resource(dev, len);
++	if (!addr)
++		goto out_free_pages;
++	*dma_handle = addr;
+ 
+ 	dvma_prot = __pgprot(SRMMU_CACHE | SRMMU_ET_PTE | SRMMU_PRIV);
+ 	end = PAGE_ALIGN((addr + len));
+@@ -237,27 +261,32 @@ static int iounit_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned lon
+ 	flush_cache_all();
+ 	flush_tlb_all();
+ 
+-	return 0;
++	return (void *)ret;
++
++out_free_pages:
++	free_pages(va, get_order(len));
++	return NULL;
+ }
+ 
+-static void iounit_unmap_dma_area(struct device *dev, unsigned long addr, int len)
++static void iounit_free(struct device *dev, size_t size, void *cpu_addr,
++		dma_addr_t dma_addr, unsigned long attrs)
+ {
+ 	/* XXX Somebody please fill this in */
+ }
  #endif
-diff --git a/arch/riscv/include/asm/syscall.h b/arch/riscv/include/asm/syscall.h
-index bba3da6ef157..ca120a36a037 100644
---- a/arch/riscv/include/asm/syscall.h
-+++ b/arch/riscv/include/asm/syscall.h
-@@ -100,7 +100,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->a1 + i * sizeof(regs->a1), args, n * sizeof(regs->a0));
- }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #ifdef CONFIG_64BIT
- 	return AUDIT_ARCH_RISCV64;
-diff --git a/arch/s390/include/asm/syscall.h b/arch/s390/include/asm/syscall.h
-index 96f9a9151fde..5a40ea8b90ea 100644
---- a/arch/s390/include/asm/syscall.h
-+++ b/arch/s390/include/asm/syscall.h
-@@ -92,10 +92,10 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->orig_gpr2 = args[0];
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #ifdef CONFIG_COMPAT
--	if (test_tsk_thread_flag(current, TIF_31BIT))
-+	if (test_tsk_thread_flag(task, TIF_31BIT))
- 		return AUDIT_ARCH_S390;
+-static const struct sparc32_dma_ops iounit_dma_ops = {
+-	.get_scsi_one		= iounit_get_scsi_one,
+-	.get_scsi_sgl		= iounit_get_scsi_sgl,
+-	.release_scsi_one	= iounit_release_scsi_one,
+-	.release_scsi_sgl	= iounit_release_scsi_sgl,
++static const struct dma_map_ops iounit_dma_ops = {
+ #ifdef CONFIG_SBUS
+-	.map_dma_area		= iounit_map_dma_area,
+-	.unmap_dma_area		= iounit_unmap_dma_area,
++	.alloc			= iounit_alloc,
++	.free			= iounit_free,
  #endif
- 	return AUDIT_ARCH_S390X;
-diff --git a/arch/sh/include/asm/syscall_32.h b/arch/sh/include/asm/syscall_32.h
-index 6e118799831c..08de429eccd4 100644
---- a/arch/sh/include/asm/syscall_32.h
-+++ b/arch/sh/include/asm/syscall_32.h
-@@ -95,7 +95,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
++	.map_page		= iounit_map_page,
++	.unmap_page		= iounit_unmap_page,
++	.map_sg			= iounit_map_sg,
++	.unmap_sg		= iounit_unmap_sg,
+ };
+ 
+ void __init ld_mmu_iounit(void)
+ {
+-	sparc32_dma_ops = &iounit_dma_ops;
++	dma_ops = &iounit_dma_ops;
+ }
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 2c5f8a648f8c..3599485717e7 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -13,7 +13,7 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/highmem.h>	/* pte_offset_map => kmap_atomic */
+-#include <linux/scatterlist.h>
++#include <linux/dma-mapping.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ 
+@@ -205,38 +205,44 @@ static u32 iommu_get_one(struct device *dev, struct page *page, int npages)
+ 	return busa0;
+ }
+ 
+-static u32 iommu_get_scsi_one(struct device *dev, char *vaddr, unsigned int len)
++static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
++		unsigned long offset, size_t len)
+ {
+-	unsigned long off;
+-	int npages;
+-	struct page *page;
+-	u32 busa;
+-
+-	off = (unsigned long)vaddr & ~PAGE_MASK;
+-	npages = (off + len + PAGE_SIZE-1) >> PAGE_SHIFT;
+-	page = virt_to_page((unsigned long)vaddr & PAGE_MASK);
+-	busa = iommu_get_one(dev, page, npages);
+-	return busa + off;
++	void *vaddr = page_address(page) + offset;
++	unsigned long off = (unsigned long)vaddr & ~PAGE_MASK;
++	unsigned long npages = (off + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	
++	/* XXX So what is maxphys for us and how do drivers know it? */
++	if (!len || len > 256 * 1024)
++		return DMA_MAPPING_ERROR;
++	return iommu_get_one(dev, virt_to_page(vaddr), npages) + off;
+ }
+ 
+-static __u32 iommu_get_scsi_one_gflush(struct device *dev, char *vaddr, unsigned long len)
++static dma_addr_t sbus_iommu_map_page_gflush(struct device *dev,
++		struct page *page, unsigned long offset, size_t len,
++		enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	flush_page_for_dma(0);
+-	return iommu_get_scsi_one(dev, vaddr, len);
++	return __sbus_iommu_map_page(dev, page, offset, len);
+ }
+ 
+-static __u32 iommu_get_scsi_one_pflush(struct device *dev, char *vaddr, unsigned long len)
++static dma_addr_t sbus_iommu_map_page_pflush(struct device *dev,
++		struct page *page, unsigned long offset, size_t len,
++		enum dma_data_direction dir, unsigned long attrs)
+ {
+-	unsigned long page = ((unsigned long) vaddr) & PAGE_MASK;
++	void *vaddr = page_address(page) + offset;
++	unsigned long p = ((unsigned long)vaddr) & PAGE_MASK;
+ 
+-	while(page < ((unsigned long)(vaddr + len))) {
+-		flush_page_for_dma(page);
+-		page += PAGE_SIZE;
++	while (p < (unsigned long)vaddr + len) {
++		flush_page_for_dma(p);
++		p += PAGE_SIZE;
  	}
+-	return iommu_get_scsi_one(dev, vaddr, len);
++
++	return __sbus_iommu_map_page(dev, page, offset, len);
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+-static void iommu_get_scsi_sgl_gflush(struct device *dev, struct scatterlist *sg, int sz)
++static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sg,
++		int sz, enum dma_data_direction dir, unsigned long attrs)
  {
- 	int arch = AUDIT_ARCH_SH;
+ 	int n;
  
-diff --git a/arch/sh/include/asm/syscall_64.h b/arch/sh/include/asm/syscall_64.h
-index 43882580c7f9..9b62a2404531 100644
---- a/arch/sh/include/asm/syscall_64.h
-+++ b/arch/sh/include/asm/syscall_64.h
-@@ -63,7 +63,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->regs[2 + i], args, n * sizeof(args[0]));
+@@ -248,9 +254,12 @@ static void iommu_get_scsi_sgl_gflush(struct device *dev, struct scatterlist *sg
+ 		sg->dma_length = sg->length;
+ 		sg = sg_next(sg);
+ 	}
++
++	return sz;
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+-static void iommu_get_scsi_sgl_pflush(struct device *dev, struct scatterlist *sg, int sz)
++static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sg,
++		int sz, enum dma_data_direction dir, unsigned long attrs)
  {
- 	int arch = AUDIT_ARCH_SH;
- 
-diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
-index 053989e3f6a6..9ffb367c17fd 100644
---- a/arch/sparc/include/asm/syscall.h
-+++ b/arch/sparc/include/asm/syscall.h
-@@ -128,10 +128,11 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->u_regs[UREG_I0 + i + j] = args[j];
+ 	unsigned long page, oldpage = 0;
+ 	int n, i;
+@@ -279,6 +288,8 @@ static void iommu_get_scsi_sgl_pflush(struct device *dev, struct scatterlist *sg
+ 		sg->dma_length = sg->length;
+ 		sg = sg_next(sg);
+ 	}
++
++	return sz;
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+ static void iommu_release_one(struct device *dev, u32 busa, int npages)
+@@ -297,23 +308,23 @@ static void iommu_release_one(struct device *dev, u32 busa, int npages)
+ 	bit_map_clear(&iommu->usemap, ioptex, npages);
+ }
+ 
+-static void iommu_release_scsi_one(struct device *dev, __u32 vaddr, unsigned long len)
++static void sbus_iommu_unmap_page(struct device *dev, dma_addr_t dma_addr,
++		size_t len, enum dma_data_direction dir, unsigned long attrs)
  {
- #if defined(CONFIG_SPARC64) && defined(CONFIG_COMPAT)
--	return in_compat_syscall() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
-+	return test_tsk_thread_flag(task, TIF_32BIT)
-+		? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
- #elif defined(CONFIG_SPARC64)
- 	return AUDIT_ARCH_SPARC64;
- #else
-diff --git a/arch/unicore32/include/asm/syscall.h b/arch/unicore32/include/asm/syscall.h
-index aeebb343255b..56daf3edb8e8 100644
---- a/arch/unicore32/include/asm/syscall.h
-+++ b/arch/unicore32/include/asm/syscall.h
-@@ -38,7 +38,7 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
+-	unsigned long off;
++	unsigned long off = dma_addr & ~PAGE_MASK;
+ 	int npages;
+ 
+-	off = vaddr & ~PAGE_MASK;
+ 	npages = (off + len + PAGE_SIZE-1) >> PAGE_SHIFT;
+-	iommu_release_one(dev, vaddr & PAGE_MASK, npages);
++	iommu_release_one(dev, dma_addr & PAGE_MASK, npages);
  }
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
+-static void iommu_release_scsi_sgl(struct device *dev, struct scatterlist *sg, int sz)
++static void sbus_iommu_unmap_sg(struct device *dev, struct scatterlist *sg,
++		int sz, enum dma_data_direction dir, unsigned long attrs)
  {
- 	return AUDIT_ARCH_UNICORE;
- }
-diff --git a/arch/x86/include/asm/syscall.h b/arch/x86/include/asm/syscall.h
-index d653139857af..435f3f09279c 100644
---- a/arch/x86/include/asm/syscall.h
-+++ b/arch/x86/include/asm/syscall.h
-@@ -107,7 +107,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->bx + i, args, n * sizeof(args[0]));
+ 	int n;
+ 
+ 	while(sz != 0) {
+ 		--sz;
+-
+ 		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
+ 		iommu_release_one(dev, sg->dma_address & PAGE_MASK, n);
+ 		sg->dma_address = 0x21212121;
+@@ -322,15 +333,28 @@ static void iommu_release_scsi_sgl(struct device *dev, struct scatterlist *sg, i
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+ #ifdef CONFIG_SBUS
+-static int iommu_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long va,
+-			      unsigned long addr, int len)
++static void *sbus_iommu_alloc(struct device *dev, size_t len,
++		dma_addr_t *dma_handle, gfp_t gfp, unsigned long attrs)
  {
- 	return AUDIT_ARCH_I386;
- }
-@@ -236,10 +236,12 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		}
+ 	struct iommu_struct *iommu = dev->archdata.iommu;
+-	unsigned long page, end;
++	unsigned long va, addr, page, end, ret;
+ 	iopte_t *iopte = iommu->page_table;
+ 	iopte_t *first;
+ 	int ioptex;
+ 
++	/* XXX So what is maxphys for us and how do drivers know it? */
++	if (!len || len > 256 * 1024)
++		return NULL;
++
++	len = PAGE_ALIGN(len);
++	va = __get_free_pages(gfp, get_order(len));
++	if (va = 0)
++		return NULL;
++
++	addr = ret = sparc_dma_alloc_resource(dev, len);
++	if (!addr)
++		goto out_free_pages;
++
+ 	BUG_ON((va & ~PAGE_MASK) != 0);
+ 	BUG_ON((addr & ~PAGE_MASK) != 0);
+ 	BUG_ON((len & ~PAGE_MASK) != 0);
+@@ -385,16 +409,25 @@ static int iommu_map_dma_area(struct device *dev, dma_addr_t *pba, unsigned long
+ 	flush_tlb_all();
+ 	iommu_invalidate(iommu->regs);
+ 
+-	*pba = iommu->start + (ioptex << PAGE_SHIFT);
+-	return 0;
++	*dma_handle = iommu->start + (ioptex << PAGE_SHIFT);
++	return (void *)ret;
++
++out_free_pages:
++	free_pages(va, get_order(len));
++	return NULL;
  }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+-static void iommu_unmap_dma_area(struct device *dev, unsigned long busa, int len)
++static void sbus_iommu_free(struct device *dev, size_t len, void *cpu_addr,
++			       dma_addr_t busa, unsigned long attrs)
  {
- 	/* x32 tasks should be considered AUDIT_ARCH_X86_64. */
--	return in_ia32_syscall() ? AUDIT_ARCH_I386 : AUDIT_ARCH_X86_64;
-+	return (IS_ENABLED(CONFIG_IA32_EMULATION) &&
-+		task->thread_info.status & TS_COMPAT)
-+		? AUDIT_ARCH_I386 : AUDIT_ARCH_X86_64;
+ 	struct iommu_struct *iommu = dev->archdata.iommu;
+ 	iopte_t *iopte = iommu->page_table;
+-	unsigned long end;
++	struct page *page = virt_to_page(cpu_addr);
+ 	int ioptex = (busa - iommu->start) >> PAGE_SHIFT;
++	unsigned long end;
++
++	if (!sparc_dma_free_resource(cpu_addr, len))
++		return;
+ 
+ 	BUG_ON((busa & ~PAGE_MASK) != 0);
+ 	BUG_ON((len & ~PAGE_MASK) != 0);
+@@ -408,38 +441,40 @@ static void iommu_unmap_dma_area(struct device *dev, unsigned long busa, int len
+ 	flush_tlb_all();
+ 	iommu_invalidate(iommu->regs);
+ 	bit_map_clear(&iommu->usemap, ioptex, len >> PAGE_SHIFT);
++
++	__free_pages(page, get_order(len));
  }
- #endif	/* CONFIG_X86_32 */
+ #endif
  
-diff --git a/arch/x86/um/asm/syscall.h b/arch/x86/um/asm/syscall.h
-index ef898af102d1..56a2f0913e3c 100644
---- a/arch/x86/um/asm/syscall.h
-+++ b/arch/x86/um/asm/syscall.h
-@@ -9,7 +9,7 @@ typedef asmlinkage long (*sys_call_ptr_t)(unsigned long, unsigned long,
- 					  unsigned long, unsigned long,
- 					  unsigned long, unsigned long);
+-static const struct sparc32_dma_ops iommu_dma_gflush_ops = {
+-	.get_scsi_one		= iommu_get_scsi_one_gflush,
+-	.get_scsi_sgl		= iommu_get_scsi_sgl_gflush,
+-	.release_scsi_one	= iommu_release_scsi_one,
+-	.release_scsi_sgl	= iommu_release_scsi_sgl,
++static const struct dma_map_ops sbus_iommu_dma_gflush_ops = {
+ #ifdef CONFIG_SBUS
+-	.map_dma_area		= iommu_map_dma_area,
+-	.unmap_dma_area		= iommu_unmap_dma_area,
++	.alloc			= sbus_iommu_alloc,
++	.free			= sbus_iommu_free,
+ #endif
++	.map_page		= sbus_iommu_map_page_gflush,
++	.unmap_page		= sbus_iommu_unmap_page,
++	.map_sg			= sbus_iommu_map_sg_gflush,
++	.unmap_sg		= sbus_iommu_unmap_sg,
+ };
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
+-static const struct sparc32_dma_ops iommu_dma_pflush_ops = {
+-	.get_scsi_one		= iommu_get_scsi_one_pflush,
+-	.get_scsi_sgl		= iommu_get_scsi_sgl_pflush,
+-	.release_scsi_one	= iommu_release_scsi_one,
+-	.release_scsi_sgl	= iommu_release_scsi_sgl,
++static const struct dma_map_ops sbus_iommu_dma_pflush_ops = {
+ #ifdef CONFIG_SBUS
+-	.map_dma_area		= iommu_map_dma_area,
+-	.unmap_dma_area		= iommu_unmap_dma_area,
++	.alloc			= sbus_iommu_alloc,
++	.free			= sbus_iommu_free,
+ #endif
++	.map_page		= sbus_iommu_map_page_pflush,
++	.unmap_page		= sbus_iommu_unmap_page,
++	.map_sg			= sbus_iommu_map_sg_pflush,
++	.unmap_sg		= sbus_iommu_unmap_sg,
+ };
+ 
+ void __init ld_mmu_iommu(void)
  {
- #ifdef CONFIG_X86_32
- 	return AUDIT_ARCH_I386;
-diff --git a/arch/xtensa/include/asm/syscall.h b/arch/xtensa/include/asm/syscall.h
-index 40c6de062ac8..0b4f8cf440d5 100644
---- a/arch/xtensa/include/asm/syscall.h
-+++ b/arch/xtensa/include/asm/syscall.h
-@@ -68,7 +68,7 @@ syscall_get_return_value(struct task_struct *task, struct pt_regs *regs)
- }
- 
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_XTENSA;
- }
-diff --git a/include/asm-generic/syscall.h b/include/asm-generic/syscall.h
-index fdefe27fa63f..43216b431770 100644
---- a/include/asm-generic/syscall.h
-+++ b/include/asm-generic/syscall.h
-@@ -194,16 +194,17 @@ syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- 
- /**
-  * syscall_get_arch - return the AUDIT_ARCH for the current system call
-+ * @task:	task of interest, must be blocked
-  *
-  * Returns the AUDIT_ARCH_* based on the system call convention in use.
-  *
-- * It's only valid to call this when current is stopped on entry to a system
-+ * It's only valid to call this when @task is stopped on entry to a system
-  * call, due to %TIF_SYSCALL_TRACE, %TIF_SYSCALL_AUDIT, or %TIF_SECCOMP.
-  *
-  * Architectures which permit CONFIG_HAVE_ARCH_SECCOMP_FILTER must
-  * provide an implementation of this.
-  */
- static int
--syscall_get_arch(void);
-+syscall_get_arch(struct task_struct *task);
- 
- #endif	/* _ASM_GENERIC_SYSCALL_H */
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index b2d1f043f17f..1319e3e7b16c 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -1537,7 +1537,7 @@ void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
- 			return;
+ 	if (flush_page_for_dma_global) {
+ 		/* flush_page_for_dma flushes everything, no matter of what page is it */
+-		sparc32_dma_ops = &iommu_dma_gflush_ops;
++		dma_ops = &sbus_iommu_dma_gflush_ops;
+ 	} else {
+-		sparc32_dma_ops = &iommu_dma_pflush_ops;
++		dma_ops = &sbus_iommu_dma_pflush_ops;
  	}
  
--	context->arch	    = syscall_get_arch();
-+	context->arch	    = syscall_get_arch(current);
- 	context->major      = major;
- 	context->argv[0]    = a1;
- 	context->argv[1]    = a2;
-@@ -2495,7 +2495,7 @@ void audit_seccomp(unsigned long syscall, long signr, int code)
- 		return;
- 	audit_log_task(ab);
- 	audit_log_format(ab, " sig=%ld arch=%x syscall=%ld compat=%d ip=0x%lx code=0x%x",
--			 signr, syscall_get_arch(), syscall,
-+			 signr, syscall_get_arch(current), syscall,
- 			 in_compat_syscall(), KSTK_EIP(current), code);
- 	audit_log_end(ab);
- }
-diff --git a/kernel/seccomp.c b/kernel/seccomp.c
-index f2ae2324c232..77cb87bd2eae 100644
---- a/kernel/seccomp.c
-+++ b/kernel/seccomp.c
-@@ -82,7 +82,7 @@ static void populate_seccomp_data(struct seccomp_data *sd)
- 	unsigned long args[6];
- 
- 	sd->nr = syscall_get_nr(task, regs);
--	sd->arch = syscall_get_arch();
-+	sd->arch = syscall_get_arch(task);
- 	syscall_get_arguments(task, regs, 0, 6, args);
- 	sd->args[0] = args[0];
- 	sd->args[1] = args[1];
-@@ -529,7 +529,7 @@ static void seccomp_init_siginfo(kernel_siginfo_t *info, int syscall, int reason
- 	info->si_code = SYS_SECCOMP;
- 	info->si_call_addr = (void __user *)KSTK_EIP(current);
- 	info->si_errno = reason;
--	info->si_arch = syscall_get_arch();
-+	info->si_arch = syscall_get_arch(current);
- 	info->si_syscall = syscall;
- }
- 
+ 	if (viking_mxcc_present || srmmu_modtype = HyperSparc) {
 -- 
-ldv
+2.19.1
