@@ -1,40 +1,64 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 13 Dec 2018 04:32:46 +0000
-Subject: [PATCH AUTOSEL 4.4 10/23] sbus: char: add of_node_put()
-Message-Id: <20181213043259.76643-10-sashal@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 07 Dec 2018 14:14:04 +0000
+Subject: [PATCH 1/4] sparc: remove no needed sbus_dma_ops methods
+Message-Id: <20181207141407.3154-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213043259.76643-1-sashal@kernel.org>
-In-Reply-To: <20181213043259.76643-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
+No need to BUG_ON() on the cache maintainance ops - they are no-ops
+by default, and there is nothing in the DMA API contract that prohibits
+calling them on sbus devices (even if such drivers are unlikely to
+ever appear).
 
-[ Upstream commit 87d81a23e24f24ebe014891e8bdf3ff8785031e8 ]
+Similarly a dma_supported method that always returns 0 is rather
+pointless.  The only thing that indicates is that no one ever calls
+the method on sbus devices.
 
-use of_node_put() to release the refcount.
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/sbus/char/display7seg.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/kernel/ioport.c | 20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 33fbe8249fd5..044cffbc45e8 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -221,6 +221,7 @@ static int d7s_probe(struct platform_device *op)
- 	dev_set_drvdata(&op->dev, p);
- 	d7s_device = p;
- 	err = 0;
-+	of_node_put(opts);
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 6799c93c9f27..4b2167a0ec0b 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -391,23 +391,6 @@ static void sbus_unmap_sg(struct device *dev, struct scatterlist *sg, int n,
+ 	mmu_release_scsi_sgl(dev, sg, n);
+ }
  
- out:
- 	return err;
+-static void sbus_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+-				 int n,	enum dma_data_direction dir)
+-{
+-	BUG();
+-}
+-
+-static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-				    int n, enum dma_data_direction dir)
+-{
+-	BUG();
+-}
+-
+-static int sbus_dma_supported(struct device *dev, u64 mask)
+-{
+-	return 0;
+-}
+-
+ static const struct dma_map_ops sbus_dma_ops = {
+ 	.alloc			= sbus_alloc_coherent,
+ 	.free			= sbus_free_coherent,
+@@ -415,9 +398,6 @@ static const struct dma_map_ops sbus_dma_ops = {
+ 	.unmap_page		= sbus_unmap_page,
+ 	.map_sg			= sbus_map_sg,
+ 	.unmap_sg		= sbus_unmap_sg,
+-	.sync_sg_for_cpu	= sbus_sync_sg_for_cpu,
+-	.sync_sg_for_device	= sbus_sync_sg_for_device,
+-	.dma_supported		= sbus_dma_supported,
+ };
+ 
+ static int __init sparc_register_ioport(void)
 -- 
 2.19.1
