@@ -1,40 +1,250 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 15 Dec 2018 14:57:42 +0000
-Subject: Re: [PATCH 3/6] sparc: remove the sparc32_dma_ops indirection
-Message-Id: <53761fd8-06f1-6443-1997-f518e725925e@roeck-us.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 07 Dec 2018 14:14:05 +0000
+Subject: [PATCH 2/4] sparc: factor the dma coherent mapping into helper
+Message-Id: <20181207141407.3154-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208174115.16237-1-hch@lst.de>
-	<20181208174115.16237-4-hch@lst.de>
-	<20181215063018.GA11415@roeck-us.net>
-	<20181215104720.GA1575@lst.de>
-In-Reply-To: <20181215104720.GA1575-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ezequiel Garcia <ezequiel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Vineet Gupta <vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sparclinux@vger.kernel.org
 
-On 12/15/18 2:47 AM, Christoph Hellwig wrote:
-> On Fri, Dec 14, 2018 at 10:30:18PM -0800, Guenter Roeck wrote:
->> and so on, until qemu is terminated. This is seen with all sparc32
->> qemu emulations. Reverting the patch fixes the problem.
-> 
-> Hi Guenter,
-> 
-> can you check which of the three new ops is used in this case?  Or
-> provide the qemu config and rootfs?
-> 
+Factor the code to remap memory returned from the DMA coherent allocator
+into two helpers that can be shared by the IOMMU and direct mapping code.
 
-sparc32 defconfig+CONFIG_SQUASHFS=y+CONFIG_DEVTMPFS=y, and:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/ioport.c | 151 ++++++++++++++++---------------------
+ 1 file changed, 67 insertions(+), 84 deletions(-)
 
-qemu-system-sparc -M SPARCClassic -kernel arch/sparc/boot/image \
-	-no-reboot -snapshot -drive file=/var/cache/buildbot/sparc/hda.sqf,if=scsi,format=raw \
-	-append 'root=/dev/sda rw init=/sbin/init.sh panic=1 console=ttyS0' \
-	-nographic
-
-qemu version doesn't seem to matter. I used gcc-7.3.0 using the toolchain from kernel.org
-to build the image.
-
-Root file system is at https://github.com/groeck/linux-build-test/tree/master/rootfs/sparc/.
-
-Guenter
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 4b2167a0ec0b..fd7a41c6d688 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -247,6 +247,53 @@ static void _sparc_free_io(struct resource *res)
+ 	release_resource(res);
+ }
+ 
++static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
++{
++	struct resource *res;
++
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
++		return 0;
++	res->name = dev->of_node->name;
++
++	if (allocate_resource(&_sparc_dvma, res, len, _sparc_dvma.start,
++			_sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
++		printk("sbus_alloc_consistent: cannot occupy 0x%zx", len);
++		kfree(res);
++		return 0;
++	}
++
++	return res->start;
++}
++
++static bool sparc_dma_free_resource(void *cpu_addr, size_t size)
++{
++	unsigned long addr = (unsigned long)cpu_addr;
++	struct resource *res;
++
++	res = lookup_resource(&_sparc_dvma, addr);
++	if (!res) {
++		printk("%s: cannot free %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	if ((addr & (PAGE_SIZE - 1)) != 0) {
++		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	size = PAGE_ALIGN(size);
++	if (resource_size(res) != size) {
++		printk("%s: region 0x%lx asked 0x%zx\n",
++			__func__, (long)resource_size(res), size);
++		return false;
++	}
++
++	release_resource(res);
++	kfree(res);
++	return true;
++}
++
+ #ifdef CONFIG_SBUS
+ 
+ void sbus_set_sbus64(struct device *dev, int x)
+@@ -264,10 +311,8 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 				 dma_addr_t *dma_addrp, gfp_t gfp,
+ 				 unsigned long attrs)
+ {
+-	struct platform_device *op = to_platform_device(dev);
+ 	unsigned long len_total = PAGE_ALIGN(len);
+-	unsigned long va;
+-	struct resource *res;
++	unsigned long va, addr;
+ 	int order;
+ 
+ 	/* XXX why are some lengths signed, others unsigned? */
+@@ -284,32 +329,23 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 	if (va = 0)
+ 		goto err_nopages;
+ 
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL)
++	addr = sparc_dma_alloc_resource(dev, len_total);
++	if (!addr)
+ 		goto err_nomem;
+ 
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("sbus_alloc_consistent: cannot occupy 0x%lx", len_total);
+-		goto err_nova;
+-	}
+-
+ 	// XXX The sbus_map_dma_area does this for us below, see comments.
+ 	// srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 	/*
+ 	 * XXX That's where sdev would be used. Currently we load
+ 	 * all iommu tables with the same translations.
+ 	 */
+-	if (sbus_map_dma_area(dev, dma_addrp, va, res->start, len_total) != 0)
++	if (sbus_map_dma_area(dev, dma_addrp, va, addr, len_total) != 0)
+ 		goto err_noiommu;
+ 
+-	res->name = op->dev.of_node->name;
+-
+-	return (void *)(unsigned long)res->start;
++	return (void *)addr;
+ 
+ err_noiommu:
+-	release_resource(res);
+-err_nova:
+-	kfree(res);
++	sparc_dma_free_resource((void *)addr, len_total);
+ err_nomem:
+ 	free_pages(va, order);
+ err_nopages:
+@@ -319,29 +355,11 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+ 			       dma_addr_t ba, unsigned long attrs)
+ {
+-	struct resource *res;
+ 	struct page *pgv;
+ 
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)p)) = NULL) {
+-		printk("sbus_free_consistent: cannot free %p\n", p);
+-		return;
+-	}
+-
+-	if (((unsigned long)p & (PAGE_SIZE-1)) != 0) {
+-		printk("sbus_free_consistent: unaligned va %p\n", p);
+-		return;
+-	}
+-
+ 	n = PAGE_ALIGN(n);
+-	if (resource_size(res) != n) {
+-		printk("sbus_free_consistent: region 0x%lx asked 0x%zx\n",
+-		    (long)resource_size(res), n);
++	if (!sparc_dma_free_resource(p, n))
+ 		return;
+-	}
+-
+-	release_resource(res);
+-	kfree(res);
+ 
+ 	pgv = virt_to_page(p);
+ 	sbus_unmap_dma_area(dev, ba, n);
+@@ -418,45 +436,30 @@ arch_initcall(sparc_register_ioport);
+ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		gfp_t gfp, unsigned long attrs)
+ {
+-	unsigned long len_total = PAGE_ALIGN(size);
++	unsigned long addr;
+ 	void *va;
+-	struct resource *res;
+-	int order;
+ 
+-	if (size = 0) {
++	if (!size || size > 256 * 1024)	/* __get_free_pages() limit */
+ 		return NULL;
+-	}
+-	if (size > 256*1024) {			/* __get_free_pages() limit */
+-		return NULL;
+-	}
+ 
+-	order = get_order(len_total);
+-	va = (void *) __get_free_pages(gfp, order);
+-	if (va = NULL) {
+-		printk("%s: no %ld pages\n", __func__, len_total>>PAGE_SHIFT);
+-		goto err_nopages;
++	size = PAGE_ALIGN(size);
++	va = (void *) __get_free_pages(gfp, get_order(size));
++	if (!va) {
++		printk("%s: no %zd pages\n", __func__, size >> PAGE_SHIFT);
++		return NULL;
+ 	}
+ 
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL) {
+-		printk("%s: no core\n", __func__);
++	addr = sparc_dma_alloc_resource(dev, size);
++	if (!addr)
+ 		goto err_nomem;
+-	}
+ 
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("%s: cannot occupy 0x%lx", __func__, len_total);
+-		goto err_nova;
+-	}
+-	srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
++	srmmu_mapiorange(0, virt_to_phys(va), addr, size);
+ 
+ 	*dma_handle = virt_to_phys(va);
+-	return (void *) res->start;
++	return (void *)addr;
+ 
+-err_nova:
+-	kfree(res);
+ err_nomem:
+-	free_pages((unsigned long)va, order);
+-err_nopages:
++	free_pages((unsigned long)va, get_order(size));
+ 	return NULL;
+ }
+ 
+@@ -471,31 +474,11 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_addr, unsigned long attrs)
+ {
+-	struct resource *res;
+-
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)cpu_addr)) = NULL) {
+-		printk("%s: cannot free %p\n", __func__, cpu_addr);
+-		return;
+-	}
+-
+-	if (((unsigned long)cpu_addr & (PAGE_SIZE-1)) != 0) {
+-		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++	if (!sparc_dma_free_resource(cpu_addr, PAGE_ALIGN(size)))
+ 		return;
+-	}
+-
+-	size = PAGE_ALIGN(size);
+-	if (resource_size(res) != size) {
+-		printk("%s: region 0x%lx asked 0x%zx\n", __func__,
+-		    (long)resource_size(res), size);
+-		return;
+-	}
+ 
+ 	dma_make_coherent(dma_addr, size);
+ 	srmmu_unmapiorange((unsigned long)cpu_addr, size);
+-
+-	release_resource(res);
+-	kfree(res);
+ 	free_pages((unsigned long)phys_to_virt(dma_addr), get_order(size));
+ }
+ 
+-- 
+2.19.1
