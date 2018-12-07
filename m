@@ -1,89 +1,17 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Wed, 26 Dec 2018 22:35:56 +0000
-Subject: [PATCH AUTOSEL 4.19 96/97] serial/sunsu: fix refcount leak
-Message-Id: <20181226223557.149329-96-sashal@kernel.org>
+From: "Mr. Muller Dieter" <lmaita@umc.edu.ve>
+Date: Fri, 07 Dec 2018 14:16:24 +0000
+Subject: Urgently need money? We can help you!
+Message-Id: <20181207141659.D2C64468D250@mail.umc.edu.ve>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181226223557.149329-1-sashal@kernel.org>
-In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
-
-[ Upstream commit d430aff8cd0c57502d873909c184e3b5753f8b88 ]
-
-The function of_find_node_by_path() acquires a reference to the node
-returned by it and that reference needs to be dropped by its caller.
-
-su_get_type() doesn't do that. The match node are used as an identifier
-to compare against the current node, so we can directly drop the refcount
-after getting the node from the path as it is not used as pointer.
-
-Fix this by use a single variable and drop the refcount right after
-of_find_node_by_path().
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 6cf3e9b0728f..3e77475668c0 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -1394,22 +1394,43 @@ static inline struct console *SUNSU_CONSOLE(void)
- static enum su_type su_get_type(struct device_node *dp)
- {
- 	struct device_node *ap = of_find_node_by_path("/aliases");
-+	enum su_type rc = SU_PORT_PORT;
- 
- 	if (ap) {
- 		const char *keyb = of_get_property(ap, "keyboard", NULL);
- 		const char *ms = of_get_property(ap, "mouse", NULL);
-+		struct device_node *match;
- 
- 		if (keyb) {
--			if (dp = of_find_node_by_path(keyb))
--				return SU_PORT_KBD;
-+			match = of_find_node_by_path(keyb);
-+
-+			/*
-+			 * The pointer is used as an identifier not
-+			 * as a pointer, we can drop the refcount on
-+			 * the of__node immediately after getting it.
-+			 */
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_KBD;
-+				goto out;
-+			}
- 		}
- 		if (ms) {
--			if (dp = of_find_node_by_path(ms))
--				return SU_PORT_MS;
-+			match = of_find_node_by_path(ms);
-+
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_MS;
-+				goto out;
-+			}
- 		}
- 	}
- 
--	return SU_PORT_PORT;
-+out:
-+	of_node_put(ap);
-+	return rc;
- }
- 
- static int su_probe(struct platform_device *op)
--- 
-2.19.1
+Urgently need money? We can help you!
+Are you by the current situation in trouble or threatens you in trouble?
+In this way, we give you the ability to take a new development.
+As a rich person I feel obliged to assist people who are struggling to give them a chance. Everyone deserved a second chance and since the Government fails, it will have to come from others.
+No amount is too crazy for us and the maturity we determine by mutual agreement.
+No surprises, no extra costs, but just the agreed amounts and nothing else.
+Don't wait any longer and comment on this post. Please specify the amount you want to borrow and we will contact you with all the possibilities. contact us today at stewarrt.lf01@gmail.com
