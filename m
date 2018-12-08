@@ -1,84 +1,117 @@
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 05 Dec 2018 19:50:38 +0000
-Subject: [PATCH] sbus: Use of_node_name_eq for node name comparisons
-Message-Id: <20181205195050.4759-22-robh@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:37:02 +0000
+Subject: [PATCH 10/10] Documentation: update the description for DMA_ATTR_NON_CONSISTENT
+Message-Id: <20181208173702.15158-11-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181208173702.15158-1-hch@lst.de>
+In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-Convert string compares of DT node names to use of_node_name_eq helper
-instead. This removes direct access to the node name pointer.
+We got rid of the odd selective consistent or not behavior, and now
+want the normal dma_sync_single_* functions to be used for strict
+ownership transfers.  While dma_cache_sync hasn't been removed from
+the tree yet it should not be used in any new caller, so documentation
+for it is dropped here.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/sbus/char/bbc_envctrl.c | 4 ++--
- drivers/sbus/char/envctrl.c     | 6 +++---
- drivers/sbus/char/flash.c       | 6 +++---
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/DMA-API.txt        | 30 ++++--------------------------
+ Documentation/DMA-attributes.txt |  9 +++++----
+ include/linux/dma-mapping.h      |  3 +++
+ 3 files changed, 12 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/sbus/char/bbc_envctrl.c b/drivers/sbus/char/bbc_envctrl.c
-index fb5bcf6dddc1..4f2dd21e44a0 100644
---- a/drivers/sbus/char/bbc_envctrl.c
-+++ b/drivers/sbus/char/bbc_envctrl.c
-@@ -571,9 +571,9 @@ int bbc_envctrl_init(struct bbc_i2c_bus *bp)
- 	int devidx = 0;
+diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
+index ac66ae2509a9..c81fe8a4aeec 100644
+--- a/Documentation/DMA-API.txt
++++ b/Documentation/DMA-API.txt
+@@ -518,20 +518,9 @@ API at all.
+ 	dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 			gfp_t flag, unsigned long attrs)
  
- 	while ((op = bbc_i2c_getdev(bp, devidx++)) != NULL) {
--		if (!strcmp(op->dev.of_node->name, "temperature"))
-+		if (of_node_name_eq(op->dev.of_node, "temperature"))
- 			attach_one_temp(bp, op, temp_index++);
--		if (!strcmp(op->dev.of_node->name, "fan-control"))
-+		if (of_node_name_eq(op->dev.of_node, "fan-control"))
- 			attach_one_fan(bp, op, fan_index++);
- 	}
- 	if (temp_index != 0 && fan_index != 0) {
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 56e962a01493..08b7d25c1136 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -906,7 +906,7 @@ static void envctrl_init_i2c_child(struct device_node *dp,
- 		int len;
+-Identical to dma_alloc_coherent() except that when the
+-DMA_ATTR_NON_CONSISTENT flags is passed in the attrs argument, the
+-platform will choose to return either consistent or non-consistent memory
+-as it sees fit.  By using this API, you are guaranteeing to the platform
+-that you have all the correct and necessary sync points for this memory
+-in the driver should it choose to return non-consistent memory.
+-
+-Note: where the platform can return consistent memory, it will
+-guarantee that the sync points become nops.
+-
+-Warning:  Handling non-consistent memory is a real pain.  You should
+-only use this API if you positively know your driver will be
+-required to work on one of the rare (usually non-PCI) architectures
+-that simply cannot make consistent memory.
++Similar to dma_alloc_coherent(), except that the behavior can be controlled
++in more detail using the attrs argument.  See Documentation/DMA-attributes.txt
++for more details.
  
- 		root_node = of_find_node_by_path("/");
--		if (!strcmp(root_node->name, "SUNW,UltraSPARC-IIi-cEngine")) {
-+		if (of_node_name_eq(root_node, "SUNW,UltraSPARC-IIi-cEngine")) {
- 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
- 				pchild->mon_type[len] = ENVCTRL_NOMON;
- 			}
-@@ -1037,10 +1037,10 @@ static int envctrl_probe(struct platform_device *op)
- 	index = 0;
- 	dp = op->dev.of_node->child;
- 	while (dp) {
--		if (!strcmp(dp->name, "gpio")) {
-+		if (of_node_name_eq(dp, "gpio")) {
- 			i2c_childlist[index].i2ctype = I2C_GPIO;
- 			envctrl_init_i2c_child(dp, &(i2c_childlist[index++]));
--		} else if (!strcmp(dp->name, "adc")) {
-+		} else if (of_node_name_eq(dp, "adc")) {
- 			i2c_childlist[index].i2ctype = I2C_ADC;
- 			envctrl_init_i2c_child(dp, &(i2c_childlist[index++]));
- 		}
-diff --git a/drivers/sbus/char/flash.c b/drivers/sbus/char/flash.c
-index a610b8d3d11f..515dc1ff1e33 100644
---- a/drivers/sbus/char/flash.c
-+++ b/drivers/sbus/char/flash.c
-@@ -165,9 +165,9 @@ static int flash_probe(struct platform_device *op)
+ ::
  
- 	parent = dp->parent;
+@@ -540,7 +529,7 @@ that simply cannot make consistent memory.
+ 		       dma_addr_t dma_handle, unsigned long attrs)
  
--	if (strcmp(parent->name, "sbus") &&
--	    strcmp(parent->name, "sbi") &&
--	    strcmp(parent->name, "ebus"))
-+	if (!of_node_name_eq(parent, "sbus") &&
-+	    !of_node_name_eq(parent, "sbi") &&
-+	    !of_node_name_eq(parent, "ebus"))
- 		return -ENODEV;
+ Free memory allocated by the dma_alloc_attrs().  All parameters common
+-parameters must identical to those otherwise passed to dma_fre_coherent,
++parameters must identical to those otherwise passed to dma_free_coherent,
+ and the attrs argument must be identical to the attrs passed to
+ dma_alloc_attrs().
  
- 	flash.read_base = op->resource[0].start;
+@@ -560,17 +549,6 @@ memory or doing partial flushes.
+ 	into the width returned by this call.  It will also always be a power
+ 	of two for easy alignment.
+ 
+-::
+-
+-	void
+-	dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+-		       enum dma_data_direction direction)
+-
+-Do a partial sync of memory that was allocated by dma_alloc_attrs() with
+-the DMA_ATTR_NON_CONSISTENT flag starting at virtual address vaddr and
+-continuing on for size.  Again, you *must* observe the cache line
+-boundaries when doing this.
+-
+ ::
+ 
+ 	int
+diff --git a/Documentation/DMA-attributes.txt b/Documentation/DMA-attributes.txt
+index 8f8d97f65d73..2bb3fc0a621b 100644
+--- a/Documentation/DMA-attributes.txt
++++ b/Documentation/DMA-attributes.txt
+@@ -46,10 +46,11 @@ behavior.
+ DMA_ATTR_NON_CONSISTENT
+ -----------------------
+ 
+-DMA_ATTR_NON_CONSISTENT lets the platform to choose to return either
+-consistent or non-consistent memory as it sees fit.  By using this API,
+-you are guaranteeing to the platform that you have all the correct and
+-necessary sync points for this memory in the driver.
++DMA_ATTR_NON_CONSISTENT specifies that the memory returned is not
++required to be consistent.  The memory is owned by the device when
++returned from this function, and ownership must be explicitly
++transferred to the CPU using dma_sync_single_for_cpu, and back to the
++device using dma_sync_single_for_device.
+ 
+ DMA_ATTR_NO_KERNEL_MAPPING
+ --------------------------
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index 8c81fa5d1f44..8757ad5087c4 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -432,6 +432,9 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+ #define dma_map_page(d, p, o, s, r) dma_map_page_attrs(d, p, o, s, r, 0)
+ #define dma_unmap_page(d, a, s, r) dma_unmap_page_attrs(d, a, s, r, 0)
+ 
++/*
++ * Don't use in new code, use dma_sync_single_for_{device,cpu} instead.
++ */
+ static inline void
+ dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+ 		enum dma_data_direction dir)
 -- 
-2.19.1
+2.19.2
