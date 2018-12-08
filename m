@@ -1,89 +1,86 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Wed, 26 Dec 2018 22:38:39 +0000
-Subject: [PATCH AUTOSEL 4.14 59/59] serial/sunsu: fix refcount leak
-Message-Id: <20181226223839.150262-59-sashal@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:36:55 +0000
+Subject: [PATCH 03/10] arm64/iommu: implement support for DMA_ATTR_NON_CONSISTENT
+Message-Id: <20181208173702.15158-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181226223839.150262-1-sashal@kernel.org>
-In-Reply-To: <20181226223839.150262-1-sashal@kernel.org>
+References: <20181208173702.15158-1-hch@lst.de>
+In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
+DMA_ATTR_NON_CONSISTENT forces contiguous allocations as we don't
+want to remap, and is otherwise forced down the same pass as if we
+were always on a coherent device.  No new code required except for
+a few conditionals.
 
-[ Upstream commit d430aff8cd0c57502d873909c184e3b5753f8b88 ]
-
-The function of_find_node_by_path() acquires a reference to the node
-returned by it and that reference needs to be dropped by its caller.
-
-su_get_type() doesn't do that. The match node are used as an identifier
-to compare against the current node, so we can directly drop the refcount
-after getting the node from the path as it is not used as pointer.
-
-Fix this by use a single variable and drop the refcount right after
-of_find_node_by_path().
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+ arch/arm64/mm/dma-mapping.c | 18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 95d34d7565c9..1cf78cec7461 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -1393,22 +1393,43 @@ static inline struct console *SUNSU_CONSOLE(void)
- static enum su_type su_get_type(struct device_node *dp)
- {
- 	struct device_node *ap = of_find_node_by_path("/aliases");
-+	enum su_type rc = SU_PORT_PORT;
- 
- 	if (ap) {
- 		const char *keyb = of_get_property(ap, "keyboard", NULL);
- 		const char *ms = of_get_property(ap, "mouse", NULL);
-+		struct device_node *match;
- 
- 		if (keyb) {
--			if (dp = of_find_node_by_path(keyb))
--				return SU_PORT_KBD;
-+			match = of_find_node_by_path(keyb);
-+
-+			/*
-+			 * The pointer is used as an identifier not
-+			 * as a pointer, we can drop the refcount on
-+			 * the of__node immediately after getting it.
-+			 */
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_KBD;
-+				goto out;
-+			}
+diff --git a/arch/arm64/mm/dma-mapping.c b/arch/arm64/mm/dma-mapping.c
+index d39b60113539..0010688ca30e 100644
+--- a/arch/arm64/mm/dma-mapping.c
++++ b/arch/arm64/mm/dma-mapping.c
+@@ -240,7 +240,8 @@ static void *__iommu_alloc_attrs(struct device *dev, size_t size,
+ 				dma_free_from_pool(addr, size);
+ 			addr = NULL;
  		}
- 		if (ms) {
--			if (dp = of_find_node_by_path(ms))
--				return SU_PORT_MS;
-+			match = of_find_node_by_path(ms);
-+
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_MS;
-+				goto out;
-+			}
+-	} else if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
++	} else if (attrs & (DMA_ATTR_FORCE_CONTIGUOUS |
++			DMA_ATTR_NON_CONSISTENT)) {
+ 		pgprot_t prot = arch_dma_mmap_pgprot(dev, PAGE_KERNEL, attrs);
+ 		struct page *page;
+ 
+@@ -256,7 +257,7 @@ static void *__iommu_alloc_attrs(struct device *dev, size_t size,
+ 			return NULL;
  		}
- 	}
  
--	return SU_PORT_PORT;
-+out:
-+	of_node_put(ap);
-+	return rc;
- }
+-		if (coherent) {
++		if (coherent || (attrs & DMA_ATTR_NON_CONSISTENT)) {
+ 			memset(addr, 0, size);
+ 			return addr;
+ 		}
+@@ -309,7 +310,8 @@ static void __iommu_free_attrs(struct device *dev, size_t size, void *cpu_addr,
+ 	if (dma_in_atomic_pool(cpu_addr, size)) {
+ 		iommu_dma_unmap_page(dev, handle, iosize, 0, 0);
+ 		dma_free_from_pool(cpu_addr, size);
+-	} else if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
++	} else if (attrs & (DMA_ATTR_FORCE_CONTIGUOUS |
++			DMA_ATTR_NON_CONSISTENT)) {
+ 		struct page *page = vmalloc_to_page(cpu_addr);
  
- static int su_probe(struct platform_device *op)
+ 		iommu_dma_unmap_page(dev, handle, iosize, 0, attrs);
+@@ -342,10 +344,11 @@ static int __iommu_mmap_attrs(struct device *dev, struct vm_area_struct *vma,
+ 	if (dma_mmap_from_dev_coherent(dev, vma, cpu_addr, size, &ret))
+ 		return ret;
+ 
+-	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
++	if (attrs & (DMA_ATTR_FORCE_CONTIGUOUS | DMA_ATTR_NON_CONSISTENT)) {
+ 		unsigned long pfn;
+ 
+-		if (dev_is_dma_coherent(dev))
++		if (dev_is_dma_coherent(dev) ||
++		    (attrs & DMA_ATTR_NON_CONSISTENT))
+ 			pfn = virt_to_pfn(cpu_addr);
+ 		else
+ 			pfn = vmalloc_to_pfn(cpu_addr);
+@@ -366,10 +369,11 @@ static int __iommu_get_sgtable(struct device *dev, struct sg_table *sgt,
+ 	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+ 	struct vm_struct *area = find_vm_area(cpu_addr);
+ 
+-	if (attrs & DMA_ATTR_FORCE_CONTIGUOUS) {
++	if (attrs & (DMA_ATTR_FORCE_CONTIGUOUS | DMA_ATTR_NON_CONSISTENT)) {
+ 		struct page *page;
+ 
+-		if (dev_is_dma_coherent(dev))
++		if (dev_is_dma_coherent(dev) ||
++		    (attrs & DMA_ATTR_NON_CONSISTENT))
+ 			page = virt_to_page(cpu_addr);
+ 		else
+ 			page = vmalloc_to_page(cpu_addr);
 -- 
-2.19.1
+2.19.2
