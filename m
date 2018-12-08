@@ -1,25 +1,67 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 09 Dec 2018 04:58:28 +0000
-Subject: Re: [PATCH 05/10] sparc64/iommu: move code around a bit
-Message-Id: <20181208.205828.975725504291400475.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:41:10 +0000
+Subject: [PATCH 1/6] sparc: remove no needed sbus_dma_ops methods
+Message-Id: <20181208174115.16237-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
-	<20181208173702.15158-6-hch@lst.de>
-In-Reply-To: <20181208173702.15158-6-hch-jcswGhMUV9g@public.gmane.org>
+References: <20181208174115.16237-1-hch@lst.de>
+In-Reply-To: <20181208174115.16237-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hch-jcswGhMUV9g@public.gmane.org
-Cc: linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ezequiel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat,  8 Dec 2018 09:36:57 -0800
+No need to BUG_ON() on the cache maintainance ops - they are no-ops
+by default, and there is nothing in the DMA API contract that prohibits
+calling them on sbus devices (even if such drivers are unlikely to
+ever appear).
 
-> Move the alloc / free routines down the file so that we can easily use
-> the map / unmap helpers to implement non-consistent allocations.
-> 
-> Also drop the _coherent postfix to match the method name.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+Similarly a dma_supported method that always returns 0 is rather
+pointless.  The only thing that indicates is that no one ever calls
+the method on sbus devices.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/ioport.c | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 6799c93c9f27..4b2167a0ec0b 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -391,23 +391,6 @@ static void sbus_unmap_sg(struct device *dev, struct scatterlist *sg, int n,
+ 	mmu_release_scsi_sgl(dev, sg, n);
+ }
+ 
+-static void sbus_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
+-				 int n,	enum dma_data_direction dir)
+-{
+-	BUG();
+-}
+-
+-static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-				    int n, enum dma_data_direction dir)
+-{
+-	BUG();
+-}
+-
+-static int sbus_dma_supported(struct device *dev, u64 mask)
+-{
+-	return 0;
+-}
+-
+ static const struct dma_map_ops sbus_dma_ops = {
+ 	.alloc			= sbus_alloc_coherent,
+ 	.free			= sbus_free_coherent,
+@@ -415,9 +398,6 @@ static const struct dma_map_ops sbus_dma_ops = {
+ 	.unmap_page		= sbus_unmap_page,
+ 	.map_sg			= sbus_map_sg,
+ 	.unmap_sg		= sbus_unmap_sg,
+-	.sync_sg_for_cpu	= sbus_sync_sg_for_cpu,
+-	.sync_sg_for_device	= sbus_sync_sg_for_device,
+-	.dma_supported		= sbus_dma_supported,
+ };
+ 
+ static int __init sparc_register_ioport(void)
+-- 
+2.19.2
