@@ -1,258 +1,253 @@
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Date: Wed, 19 Dec 2018 16:57:47 +0000
-Subject: Re: [PATCH v2 2/2] kgdb/treewide: constify struct kgdb_arch arch_kgdb_ops
-Message-Id: <20181219165747.ltfs65vt3tycrl7x@holly.lan>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:41:11 +0000
+Subject: [PATCH 2/6] sparc: factor the dma coherent mapping into helper
+Message-Id: <20181208174115.16237-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <030d63848e4b0ef4d76ca24597ab8302a393d692.1544083483.git.christophe.leroy@c-s.fr>
- <5e130b11680be09537913aae9649c84ede763ec8.1544083483.git.christophe.leroy@c-s.fr>
-In-Reply-To: <5e130b11680be09537913aae9649c84ede763ec8.1544083483.git.christophe.leroy@c-s.fr>
+References: <20181208174115.16237-1-hch@lst.de>
+In-Reply-To: <20181208174115.16237-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Rich Felker <dalias@libc.org>, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-sh@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, James Hogan <jhogan@kernel.org>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, linux-mips@vger.kernel.org, Borislav Petkov <bp@alien8.de>, nios2-dev@lists.rocketboards.org, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Vineet Gupta <vgupta@synopsys.com>, Randy Dunlap <rdunlap@infradead.org>, Douglas Anderson <dianders@chromium.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Kuo <rkuo@codeaurora.org>, Paul Burton <paul.burton@mips.com>, Jason Wessel <jason.wessel@windriver.com>, kgdb-bugreport@lists.sourceforge.net, Ley Foon Tan <lftan@altera.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 
-On Thu, Dec 06, 2018 at 08:07:40PM +0000, Christophe Leroy wrote:
-> checkpatch.pl reports the following:
-> 
->   WARNING: struct kgdb_arch should normally be const
->   #28: FILE: arch/mips/kernel/kgdb.c:397:
->   +struct kgdb_arch arch_kgdb_ops = {
-> 
-> This report makes sense, as all other ops struct, this
-> one should also be const. This patch does the change.
-> 
-> Cc: Vineet Gupta <vgupta@synopsys.com>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Richard Kuo <rkuo@codeaurora.org>
-> Cc: Michal Simek <monstr@monstr.eu>
-> Cc: Ralf Baechle <ralf@linux-mips.org>
-> Cc: Paul Burton <paul.burton@mips.com>
-> Cc: James Hogan <jhogan@kernel.org>
-> Cc: Ley Foon Tan <lftan@altera.com>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: x86@kernel.org
-> Acked-by: Daniel Thompson <daniel.thompson@linaro.org>
-> Acked-by: Paul Burton <paul.burton@mips.com>
-> Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+Factor the code to remap memory returned from the DMA coherent allocator
+into two helpers that can be shared by the IOMMU and direct mapping code.
 
-I've not heard any objections from the arch/ maintainers so...
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/ioport.c | 151 ++++++++++++++++---------------------
+ 1 file changed, 67 insertions(+), 84 deletions(-)
 
-Applied! Thanks.
-
-
-> -
-> ---
->  v2: Added CCs to all maintainers/supporters identified by get_maintainer.pl and Acks from Daniel and Paul.
-> 
->  arch/arc/kernel/kgdb.c        | 2 +-
->  arch/arm/kernel/kgdb.c        | 2 +-
->  arch/arm64/kernel/kgdb.c      | 2 +-
->  arch/h8300/kernel/kgdb.c      | 2 +-
->  arch/hexagon/kernel/kgdb.c    | 2 +-
->  arch/microblaze/kernel/kgdb.c | 2 +-
->  arch/mips/kernel/kgdb.c       | 2 +-
->  arch/nios2/kernel/kgdb.c      | 2 +-
->  arch/powerpc/kernel/kgdb.c    | 2 +-
->  arch/sh/kernel/kgdb.c         | 2 +-
->  arch/sparc/kernel/kgdb_32.c   | 2 +-
->  arch/sparc/kernel/kgdb_64.c   | 2 +-
->  arch/x86/kernel/kgdb.c        | 2 +-
->  include/linux/kgdb.h          | 2 +-
->  14 files changed, 14 insertions(+), 14 deletions(-)
-> 
-> diff --git a/arch/arc/kernel/kgdb.c b/arch/arc/kernel/kgdb.c
-> index 9a3c34af2ae8..bfd04b442e36 100644
-> --- a/arch/arc/kernel/kgdb.c
-> +++ b/arch/arc/kernel/kgdb.c
-> @@ -204,7 +204,7 @@ void kgdb_roundup_cpus(unsigned long flags)
->  	local_irq_disable();
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* breakpoint instruction: TRAP_S 0x3 */
->  #ifdef CONFIG_CPU_BIG_ENDIAN
->  	.gdb_bpt_instr		= {0x78, 0x7e},
-> diff --git a/arch/arm/kernel/kgdb.c b/arch/arm/kernel/kgdb.c
-> index caa0dbe3dc61..21a6d5958955 100644
-> --- a/arch/arm/kernel/kgdb.c
-> +++ b/arch/arm/kernel/kgdb.c
-> @@ -274,7 +274,7 @@ int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
->   * and we handle the normal undef case within the do_undefinstr
->   * handler.
->   */
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  #ifndef __ARMEB__
->  	.gdb_bpt_instr		= {0xfe, 0xde, 0xff, 0xe7}
->  #else /* ! __ARMEB__ */
-> diff --git a/arch/arm64/kernel/kgdb.c b/arch/arm64/kernel/kgdb.c
-> index a20de58061a8..fe1d1f935b90 100644
-> --- a/arch/arm64/kernel/kgdb.c
-> +++ b/arch/arm64/kernel/kgdb.c
-> @@ -357,7 +357,7 @@ void kgdb_arch_exit(void)
->  	unregister_die_notifier(&kgdb_notifier);
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops;
-> +const struct kgdb_arch arch_kgdb_ops;
->  
->  int kgdb_arch_set_breakpoint(struct kgdb_bkpt *bpt)
->  {
-> diff --git a/arch/h8300/kernel/kgdb.c b/arch/h8300/kernel/kgdb.c
-> index 1a1d30cb0609..602e478afbd5 100644
-> --- a/arch/h8300/kernel/kgdb.c
-> +++ b/arch/h8300/kernel/kgdb.c
-> @@ -129,7 +129,7 @@ void kgdb_arch_exit(void)
->  	/* Nothing to do */
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: trapa #2 */
->  	.gdb_bpt_instr = { 0x57, 0x20 },
->  };
-> diff --git a/arch/hexagon/kernel/kgdb.c b/arch/hexagon/kernel/kgdb.c
-> index 16c24b22d0b2..f1924d483e78 100644
-> --- a/arch/hexagon/kernel/kgdb.c
-> +++ b/arch/hexagon/kernel/kgdb.c
-> @@ -83,7 +83,7 @@ struct dbg_reg_def_t dbg_reg_def[DBG_MAX_REG_NUM] = {
->  	{ "syscall_nr", GDB_SIZEOF_REG, offsetof(struct pt_regs, syscall_nr)},
->  };
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* trap0(#0xDB) 0x0cdb0054 */
->  	.gdb_bpt_instr = {0x54, 0x00, 0xdb, 0x0c},
->  };
-> diff --git a/arch/microblaze/kernel/kgdb.c b/arch/microblaze/kernel/kgdb.c
-> index 6366f69d118e..130cd0f064ce 100644
-> --- a/arch/microblaze/kernel/kgdb.c
-> +++ b/arch/microblaze/kernel/kgdb.c
-> @@ -143,7 +143,7 @@ void kgdb_arch_exit(void)
->  /*
->   * Global data
->   */
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  #ifdef __MICROBLAZEEL__
->  	.gdb_bpt_instr = {0x18, 0x00, 0x0c, 0xba}, /* brki r16, 0x18 */
->  #else
-> diff --git a/arch/mips/kernel/kgdb.c b/arch/mips/kernel/kgdb.c
-> index 31eff1bec577..edfdc2ec2d16 100644
-> --- a/arch/mips/kernel/kgdb.c
-> +++ b/arch/mips/kernel/kgdb.c
-> @@ -394,7 +394,7 @@ int kgdb_arch_handle_exception(int vector, int signo, int err_code,
->  	return -1;
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  #ifdef CONFIG_CPU_BIG_ENDIAN
->  	.gdb_bpt_instr = { spec_op << 2, 0x00, 0x00, break_op },
->  #else
-> diff --git a/arch/nios2/kernel/kgdb.c b/arch/nios2/kernel/kgdb.c
-> index 117859122d1c..37b25f844a2d 100644
-> --- a/arch/nios2/kernel/kgdb.c
-> +++ b/arch/nios2/kernel/kgdb.c
-> @@ -165,7 +165,7 @@ void kgdb_arch_exit(void)
->  	/* Nothing to do */
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: trap 30 */
->  	.gdb_bpt_instr = { 0xba, 0x6f, 0x3b, 0x00 },
->  };
-> diff --git a/arch/powerpc/kernel/kgdb.c b/arch/powerpc/kernel/kgdb.c
-> index 59c578f865aa..bdb588b1d8fb 100644
-> --- a/arch/powerpc/kernel/kgdb.c
-> +++ b/arch/powerpc/kernel/kgdb.c
-> @@ -477,7 +477,7 @@ int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
->  /*
->   * Global data
->   */
-> -struct kgdb_arch arch_kgdb_ops;
-> +const struct kgdb_arch arch_kgdb_ops;
->  
->  static int kgdb_not_implemented(struct pt_regs *regs)
->  {
-> diff --git a/arch/sh/kernel/kgdb.c b/arch/sh/kernel/kgdb.c
-> index 4f04c6638a4d..a24c48446e98 100644
-> --- a/arch/sh/kernel/kgdb.c
-> +++ b/arch/sh/kernel/kgdb.c
-> @@ -382,7 +382,7 @@ void kgdb_arch_exit(void)
->  	unregister_die_notifier(&kgdb_notifier);
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: trapa #0x3c */
->  #ifdef CONFIG_CPU_LITTLE_ENDIAN
->  	.gdb_bpt_instr		= { 0x3c, 0xc3 },
-> diff --git a/arch/sparc/kernel/kgdb_32.c b/arch/sparc/kernel/kgdb_32.c
-> index 639c8e54530a..7580775a14b9 100644
-> --- a/arch/sparc/kernel/kgdb_32.c
-> +++ b/arch/sparc/kernel/kgdb_32.c
-> @@ -166,7 +166,7 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long ip)
->  	regs->npc = regs->pc + 4;
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: ta 0x7d */
->  	.gdb_bpt_instr		= { 0x91, 0xd0, 0x20, 0x7d },
->  };
-> diff --git a/arch/sparc/kernel/kgdb_64.c b/arch/sparc/kernel/kgdb_64.c
-> index a68bbddbdba4..5d6c2d287e85 100644
-> --- a/arch/sparc/kernel/kgdb_64.c
-> +++ b/arch/sparc/kernel/kgdb_64.c
-> @@ -195,7 +195,7 @@ void kgdb_arch_set_pc(struct pt_regs *regs, unsigned long ip)
->  	regs->tnpc = regs->tpc + 4;
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: ta 0x72 */
->  	.gdb_bpt_instr		= { 0x91, 0xd0, 0x20, 0x72 },
->  };
-> diff --git a/arch/x86/kernel/kgdb.c b/arch/x86/kernel/kgdb.c
-> index 8e36f249646e..e7effc02f13c 100644
-> --- a/arch/x86/kernel/kgdb.c
-> +++ b/arch/x86/kernel/kgdb.c
-> @@ -804,7 +804,7 @@ int kgdb_arch_remove_breakpoint(struct kgdb_bkpt *bpt)
->  				  (char *)bpt->saved_instr, BREAK_INSTR_SIZE);
->  }
->  
-> -struct kgdb_arch arch_kgdb_ops = {
-> +const struct kgdb_arch arch_kgdb_ops = {
->  	/* Breakpoint instruction: */
->  	.gdb_bpt_instr		= { 0xcc },
->  	.flags			= KGDB_HW_BREAKPOINT,
-> diff --git a/include/linux/kgdb.h b/include/linux/kgdb.h
-> index e465bb15912d..3bf313311cca 100644
-> --- a/include/linux/kgdb.h
-> +++ b/include/linux/kgdb.h
-> @@ -281,7 +281,7 @@ struct kgdb_io {
->  	int			is_console;
->  };
->  
-> -extern struct kgdb_arch		arch_kgdb_ops;
-> +extern const struct kgdb_arch		arch_kgdb_ops;
->  
->  extern unsigned long kgdb_arch_pc(int exception, struct pt_regs *regs);
->  
-> -- 
-> 2.13.3
-> 
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 4b2167a0ec0b..fd7a41c6d688 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -247,6 +247,53 @@ static void _sparc_free_io(struct resource *res)
+ 	release_resource(res);
+ }
+ 
++static unsigned long sparc_dma_alloc_resource(struct device *dev, size_t len)
++{
++	struct resource *res;
++
++	res = kzalloc(sizeof(*res), GFP_KERNEL);
++	if (!res)
++		return 0;
++	res->name = dev->of_node->name;
++
++	if (allocate_resource(&_sparc_dvma, res, len, _sparc_dvma.start,
++			_sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
++		printk("sbus_alloc_consistent: cannot occupy 0x%zx", len);
++		kfree(res);
++		return 0;
++	}
++
++	return res->start;
++}
++
++static bool sparc_dma_free_resource(void *cpu_addr, size_t size)
++{
++	unsigned long addr = (unsigned long)cpu_addr;
++	struct resource *res;
++
++	res = lookup_resource(&_sparc_dvma, addr);
++	if (!res) {
++		printk("%s: cannot free %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	if ((addr & (PAGE_SIZE - 1)) != 0) {
++		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++		return false;
++	}
++
++	size = PAGE_ALIGN(size);
++	if (resource_size(res) != size) {
++		printk("%s: region 0x%lx asked 0x%zx\n",
++			__func__, (long)resource_size(res), size);
++		return false;
++	}
++
++	release_resource(res);
++	kfree(res);
++	return true;
++}
++
+ #ifdef CONFIG_SBUS
+ 
+ void sbus_set_sbus64(struct device *dev, int x)
+@@ -264,10 +311,8 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 				 dma_addr_t *dma_addrp, gfp_t gfp,
+ 				 unsigned long attrs)
+ {
+-	struct platform_device *op = to_platform_device(dev);
+ 	unsigned long len_total = PAGE_ALIGN(len);
+-	unsigned long va;
+-	struct resource *res;
++	unsigned long va, addr;
+ 	int order;
+ 
+ 	/* XXX why are some lengths signed, others unsigned? */
+@@ -284,32 +329,23 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ 	if (va = 0)
+ 		goto err_nopages;
+ 
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL)
++	addr = sparc_dma_alloc_resource(dev, len_total);
++	if (!addr)
+ 		goto err_nomem;
+ 
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("sbus_alloc_consistent: cannot occupy 0x%lx", len_total);
+-		goto err_nova;
+-	}
+-
+ 	// XXX The sbus_map_dma_area does this for us below, see comments.
+ 	// srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
+ 	/*
+ 	 * XXX That's where sdev would be used. Currently we load
+ 	 * all iommu tables with the same translations.
+ 	 */
+-	if (sbus_map_dma_area(dev, dma_addrp, va, res->start, len_total) != 0)
++	if (sbus_map_dma_area(dev, dma_addrp, va, addr, len_total) != 0)
+ 		goto err_noiommu;
+ 
+-	res->name = op->dev.of_node->name;
+-
+-	return (void *)(unsigned long)res->start;
++	return (void *)addr;
+ 
+ err_noiommu:
+-	release_resource(res);
+-err_nova:
+-	kfree(res);
++	sparc_dma_free_resource((void *)addr, len_total);
+ err_nomem:
+ 	free_pages(va, order);
+ err_nopages:
+@@ -319,29 +355,11 @@ static void *sbus_alloc_coherent(struct device *dev, size_t len,
+ static void sbus_free_coherent(struct device *dev, size_t n, void *p,
+ 			       dma_addr_t ba, unsigned long attrs)
+ {
+-	struct resource *res;
+ 	struct page *pgv;
+ 
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)p)) = NULL) {
+-		printk("sbus_free_consistent: cannot free %p\n", p);
+-		return;
+-	}
+-
+-	if (((unsigned long)p & (PAGE_SIZE-1)) != 0) {
+-		printk("sbus_free_consistent: unaligned va %p\n", p);
+-		return;
+-	}
+-
+ 	n = PAGE_ALIGN(n);
+-	if (resource_size(res) != n) {
+-		printk("sbus_free_consistent: region 0x%lx asked 0x%zx\n",
+-		    (long)resource_size(res), n);
++	if (!sparc_dma_free_resource(p, n))
+ 		return;
+-	}
+-
+-	release_resource(res);
+-	kfree(res);
+ 
+ 	pgv = virt_to_page(p);
+ 	sbus_unmap_dma_area(dev, ba, n);
+@@ -418,45 +436,30 @@ arch_initcall(sparc_register_ioport);
+ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ 		gfp_t gfp, unsigned long attrs)
+ {
+-	unsigned long len_total = PAGE_ALIGN(size);
++	unsigned long addr;
+ 	void *va;
+-	struct resource *res;
+-	int order;
+ 
+-	if (size = 0) {
++	if (!size || size > 256 * 1024)	/* __get_free_pages() limit */
+ 		return NULL;
+-	}
+-	if (size > 256*1024) {			/* __get_free_pages() limit */
+-		return NULL;
+-	}
+ 
+-	order = get_order(len_total);
+-	va = (void *) __get_free_pages(gfp, order);
+-	if (va = NULL) {
+-		printk("%s: no %ld pages\n", __func__, len_total>>PAGE_SHIFT);
+-		goto err_nopages;
++	size = PAGE_ALIGN(size);
++	va = (void *) __get_free_pages(gfp, get_order(size));
++	if (!va) {
++		printk("%s: no %zd pages\n", __func__, size >> PAGE_SHIFT);
++		return NULL;
+ 	}
+ 
+-	if ((res = kzalloc(sizeof(struct resource), GFP_KERNEL)) = NULL) {
+-		printk("%s: no core\n", __func__);
++	addr = sparc_dma_alloc_resource(dev, size);
++	if (!addr)
+ 		goto err_nomem;
+-	}
+ 
+-	if (allocate_resource(&_sparc_dvma, res, len_total,
+-	    _sparc_dvma.start, _sparc_dvma.end, PAGE_SIZE, NULL, NULL) != 0) {
+-		printk("%s: cannot occupy 0x%lx", __func__, len_total);
+-		goto err_nova;
+-	}
+-	srmmu_mapiorange(0, virt_to_phys(va), res->start, len_total);
++	srmmu_mapiorange(0, virt_to_phys(va), addr, size);
+ 
+ 	*dma_handle = virt_to_phys(va);
+-	return (void *) res->start;
++	return (void *)addr;
+ 
+-err_nova:
+-	kfree(res);
+ err_nomem:
+-	free_pages((unsigned long)va, order);
+-err_nopages:
++	free_pages((unsigned long)va, get_order(size));
+ 	return NULL;
+ }
+ 
+@@ -471,31 +474,11 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_addr, unsigned long attrs)
+ {
+-	struct resource *res;
+-
+-	if ((res = lookup_resource(&_sparc_dvma,
+-	    (unsigned long)cpu_addr)) = NULL) {
+-		printk("%s: cannot free %p\n", __func__, cpu_addr);
+-		return;
+-	}
+-
+-	if (((unsigned long)cpu_addr & (PAGE_SIZE-1)) != 0) {
+-		printk("%s: unaligned va %p\n", __func__, cpu_addr);
++	if (!sparc_dma_free_resource(cpu_addr, PAGE_ALIGN(size)))
+ 		return;
+-	}
+-
+-	size = PAGE_ALIGN(size);
+-	if (resource_size(res) != size) {
+-		printk("%s: region 0x%lx asked 0x%zx\n", __func__,
+-		    (long)resource_size(res), size);
+-		return;
+-	}
+ 
+ 	dma_make_coherent(dma_addr, size);
+ 	srmmu_unmapiorange((unsigned long)cpu_addr, size);
+-
+-	release_resource(res);
+-	kfree(res);
+ 	free_pages((unsigned long)phys_to_virt(dma_addr), get_order(size));
+ }
+ 
+-- 
+2.19.2
