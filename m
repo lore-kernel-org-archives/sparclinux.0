@@ -1,73 +1,185 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 08 Dec 2018 17:41:09 +0000
-Subject: make the non-consistent DMA allocator more userful (resend)
-Message-Id: <20181208174115.16237-1-hch@lst.de>
+Date: Sat, 08 Dec 2018 17:40:33 +0000
+Subject: [PATCH 2/2] sparc: merge 32-bit and 64-bit version of pci.h
+Message-Id: <20181208174033.16168-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
-In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-[sorry for the spam, had to resend due a wrongly typed linux-arm-kernel
- address]
+There are enough common defintions that a single header seems nicer.
 
-Hi all,
+Also drop the pointless <linux/dma-mapping.h> include.
 
-we had all kinds of discussions about how to best allocate DMAable memory
-without having to deal with the problem that your normal "coherent"
-DMA allocator can be very slow on platforms where DMA is not DMA
-coherent.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+---
+ arch/sparc/include/asm/pci.h    | 53 ++++++++++++++++++++++++++++++---
+ arch/sparc/include/asm/pci_32.h | 32 --------------------
+ arch/sparc/include/asm/pci_64.h | 52 --------------------------------
+ 3 files changed, 49 insertions(+), 88 deletions(-)
+ delete mode 100644 arch/sparc/include/asm/pci_32.h
+ delete mode 100644 arch/sparc/include/asm/pci_64.h
 
-To work around this drivers basically two choices at the moment:
-
- (1) just allocate memory using the page or slab allocator and the call
-     one of the dma_map_* APIs on it.  This has a few drawbacks:
-
-       - normal GFP_KERNEL memory might not actually be DMA addressable
-	 for all devices, forcing fallbacks to slow bounce buffering
-       - there is no easy way to access the CMA allocator for large
-	 chunks, or to map small pages into single device and virtually
-	 contigous chunks using the iommu and vmap
-
- (2) use dma_alloc_attrs with the DMA_ATTR_NON_CONSISTENT flag.  This
-     has a different set of drawbacks
-
-       - only very few architectures actually implement this API fully,
-	 if it is not implemented it falls back to the potentially
-	 uncached and slow coherent allocator
-       - the dma_cache_sync API to use with it is not very well
-	 specified and problematic in that it does not clearly
-	 transfer ownership
-
-Based on that I've been planning to introduce a proper API for
-allocating DMAable memory for a while.  In the end I've ended up
-improving the DMA_ATTR_NON_CONSISTENT flag instead of designing
-something new.  To make it useful we need to:
-
- (a) ensure we don't fall back to the slow coherent allocator except
-     on fully coherent platforms where they are the same anyway
- (b) replace the odd dma_cache_sync calls with the proper
-     dma_sync_* APIs that we also use for other ownership trasnfers
-
-This turned out to be surprisingly simple now that we have consolidated
-most of the direct mapping code.  Note that this series is missing
-the updates for powerpc which is in the process of being migrated to
-the common direct mapping code in another series and would be covered
-by that.
-
-Note that these patches don't use iommu/vmap coalescing as they can
-be problematic depending on the cache architecture.  But we could
-opt into those when we know we don't have cache interaction problems
-based on the API.
-
-All the patches are on top of the dma-mapping for-net tree and also
-available as a git tree here:
-
-    git://git.infradead.org/users/hch/misc.git dma-noncoherent-allocator
-
-Gitweb:
-
-    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dma-noncoherent-allocator
+diff --git a/arch/sparc/include/asm/pci.h b/arch/sparc/include/asm/pci.h
+index cad79a6ce0e4..cfec79bb1831 100644
+--- a/arch/sparc/include/asm/pci.h
++++ b/arch/sparc/include/asm/pci.h
+@@ -1,9 +1,54 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef ___ASM_SPARC_PCI_H
+ #define ___ASM_SPARC_PCI_H
+-#if defined(__sparc__) && defined(__arch64__)
+-#include <asm/pci_64.h>
++
++
++/* Can be used to override the logic in pci_scan_bus for skipping
++ * already-configured bus numbers - to be used for buggy BIOSes
++ * or architectures with incomplete PCI setup by the loader.
++ */
++#define pcibios_assign_all_busses()	0
++
++#define PCIBIOS_MIN_IO		0UL
++#define PCIBIOS_MIN_MEM		0UL
++
++#define PCI_IRQ_NONE		0xffffffff
++
++
++#ifdef CONFIG_SPARC64
++
++/* PCI IOMMU mapping bypass support. */
++
++/* PCI 64-bit addressing works for all slots on all controller
++ * types on sparc64.  However, it requires that the device
++ * can drive enough of the 64 bits.
++ */
++#define PCI64_REQUIRED_MASK	(~(u64)0)
++#define PCI64_ADDR_BASE		0xfffc000000000000UL
++
++/* Return the index of the PCI controller for device PDEV. */
++int pci_domain_nr(struct pci_bus *bus);
++static inline int pci_proc_domain(struct pci_bus *bus)
++{
++	return 1;
++}
++
++/* Platform support for /proc/bus/pci/X/Y mmap()s. */
++#define HAVE_PCI_MMAP
++#define arch_can_pci_mmap_io()	1
++#define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
++#define get_pci_unmapped_area get_fb_unmapped_area
++
++#define HAVE_ARCH_PCI_RESOURCE_TO_USER
++#endif /* CONFIG_SPARC64 */
++
++#if defined(CONFIG_SPARC64) || defined(CONFIG_LEON_PCI)
++static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
++{
++	return PCI_IRQ_NONE;
++}
+ #else
+-#include <asm/pci_32.h>
+-#endif
++#include <asm-generic/pci.h>
+ #endif
++
++#endif /* ___ASM_SPARC_PCI_H */
+diff --git a/arch/sparc/include/asm/pci_32.h b/arch/sparc/include/asm/pci_32.h
+deleted file mode 100644
+index a475380ea108..000000000000
+--- a/arch/sparc/include/asm/pci_32.h
++++ /dev/null
+@@ -1,32 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __SPARC_PCI_H
+-#define __SPARC_PCI_H
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/dma-mapping.h>
+-
+-/* Can be used to override the logic in pci_scan_bus for skipping
+- * already-configured bus numbers - to be used for buggy BIOSes
+- * or architectures with incomplete PCI setup by the loader.
+- */
+-#define pcibios_assign_all_busses()	0
+-
+-#define PCIBIOS_MIN_IO		0UL
+-#define PCIBIOS_MIN_MEM		0UL
+-
+-#define PCI_IRQ_NONE		0xffffffff
+-
+-#endif /* __KERNEL__ */
+-
+-#ifndef CONFIG_LEON_PCI
+-/* generic pci stuff */
+-#include <asm-generic/pci.h>
+-#else
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return PCI_IRQ_NONE;
+-}
+-#endif
+-
+-#endif /* __SPARC_PCI_H */
+diff --git a/arch/sparc/include/asm/pci_64.h b/arch/sparc/include/asm/pci_64.h
+deleted file mode 100644
+index fac77813402c..000000000000
+--- a/arch/sparc/include/asm/pci_64.h
++++ /dev/null
+@@ -1,52 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __SPARC64_PCI_H
+-#define __SPARC64_PCI_H
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/dma-mapping.h>
+-
+-/* Can be used to override the logic in pci_scan_bus for skipping
+- * already-configured bus numbers - to be used for buggy BIOSes
+- * or architectures with incomplete PCI setup by the loader.
+- */
+-#define pcibios_assign_all_busses()	0
+-
+-#define PCIBIOS_MIN_IO		0UL
+-#define PCIBIOS_MIN_MEM		0UL
+-
+-#define PCI_IRQ_NONE		0xffffffff
+-
+-/* PCI IOMMU mapping bypass support. */
+-
+-/* PCI 64-bit addressing works for all slots on all controller
+- * types on sparc64.  However, it requires that the device
+- * can drive enough of the 64 bits.
+- */
+-#define PCI64_REQUIRED_MASK	(~(u64)0)
+-#define PCI64_ADDR_BASE		0xfffc000000000000UL
+-
+-/* Return the index of the PCI controller for device PDEV. */
+-
+-int pci_domain_nr(struct pci_bus *bus);
+-static inline int pci_proc_domain(struct pci_bus *bus)
+-{
+-	return 1;
+-}
+-
+-/* Platform support for /proc/bus/pci/X/Y mmap()s. */
+-
+-#define HAVE_PCI_MMAP
+-#define arch_can_pci_mmap_io()	1
+-#define HAVE_ARCH_PCI_GET_UNMAPPED_AREA
+-#define get_pci_unmapped_area get_fb_unmapped_area
+-
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return PCI_IRQ_NONE;
+-}
+-
+-#define HAVE_ARCH_PCI_RESOURCE_TO_USER
+-#endif /* __KERNEL__ */
+-
+-#endif /* __SPARC64_PCI_H */
+-- 
+2.19.2
