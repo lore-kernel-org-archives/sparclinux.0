@@ -1,13 +1,18 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 08 Dec 2018 17:36:52 +0000
-Subject: make the non-consistent DMA allocator more userful
-Message-Id: <20181208173702.15158-1-hch@lst.de>
+Date: Sat, 08 Dec 2018 17:41:09 +0000
+Subject: make the non-consistent DMA allocator more userful (resend)
+Message-Id: <20181208174115.16237-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181208173702.15158-1-hch@lst.de>
+In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: iommu@lists.linux-foundation.org
-Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+
+[sorry for the spam, had to resend due a wrongly typed linux-arm-kernel
+ address]
 
 Hi all,
 
