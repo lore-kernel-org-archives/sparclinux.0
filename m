@@ -1,73 +1,188 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Date: Mon, 10 Dec 2018 13:50:39 +0000
-Subject: Re: [REPOST PATCH v6 0/4] kgdb: Fix kgdb_roundup_cpus()
-Message-Id: <20181210135038.GC4048@arrakis.emea.arm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:36:56 +0000
+Subject: [PATCH 04/10] arm: implement DMA_ATTR_NON_CONSISTENT
+Message-Id: <20181208173702.15158-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181205033828.6156-1-dianders@chromium.org>
- <20181207174231.GD11961@arrakis.emea.arm.com>
- <CAD=FV=WO2xMojkEqKCMkufwihUvnow3yEH4GZPh7hh8noNZ+=A@mail.gmail.com>
-In-Reply-To: <CAD=FV=WO2xMojkEqKCMkufwihUvnow3yEH4GZPh7hh8noNZ+=A@mail.gmail.com>
+References: <20181208173702.15158-1-hch@lst.de>
+In-Reply-To: <20181208173702.15158-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Doug Anderson <dianders@chromium.org>
-Cc: mhocko@suse.com, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Will Deacon <will.deacon@arm.com>, linux-mips@vger.kernel.org, dalias@libc.org, paulus@samba.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Daniel Thompson <daniel.thompson@linaro.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, mpe@ellerman.id.au, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, ying.huang@intel.com, jhogan@kernel.org, linux-snps-arc@lists.infradead.org, Jason Wessel <jason.wessel@windriver.com>, rppt@linux.vnet.ibm.com, bp@alien8.de, Thomas Gleixner <tglx@linutronix.de>, Linux ARM <linux-arm-kernel@lists.infradead.org>, christophe.leroy@c-s.fr, Vineet Gupta <vgupta@synopsys.com>, LKML <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, rkuo@codeaurora.org, paul.burton@mips.com, linux-hexagon@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, David Miller <davem@davemloft.net>
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-Hi Doug,
+For the iommu ops we can just use the implementaton for DMA coherent
+devices.  For the regular ops we need mix and match a bit so that
+we either use the CMA allocator without remapping, but with a special
+error handling case for highmem pages, or the simple allocator.
 
-On Fri, Dec 07, 2018 at 10:40:24AM -0800, Doug Anderson wrote:
-> On Fri, Dec 7, 2018 at 9:42 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Tue, Dec 04, 2018 at 07:38:24PM -0800, Douglas Anderson wrote:
-> > > Douglas Anderson (4):
-> > >   kgdb: Remove irq flags from roundup
-> > >   kgdb: Fix kgdb_roundup_cpus() for arches who used smp_call_function()
-> > >   kgdb: Don't round up a CPU that failed rounding up before
-> > >   kdb: Don't back trace on a cpu that didn't round up
-> >
-> > FWIW, trying these on arm64 (ThunderX2) with CONFIG_KGDB_TESTS_ON_BOOT=y
-> > on top of 4.20-rc5 doesn't boot. It looks like they leave interrupts
-> > disabled when they shouldn't and it trips over the BUG at
-> > mm/vmalloc.c:1380 (called via do_fork -> copy_process).
-> >
-> > Now, I don't think these patches make things worse on arm64 since prior
-> > to them the kgdb boot tests on arm64 were stuck in a loop (RUN
-> > singlestep).
-> 
-> Thanks for the report!  ...actually, I'd never tried CONFIG_KGDB_TESTS
-> before.  ...so I tried them now:
-> 
-> A) chromeos-4.19 tree on qcom-sdm845 without this series: booted up OK
-> B) chromeos-4.19 tree on qcom-sdm845 with this series: booted up OK
-> C) v4.20-rc5-90-g30002dd008ed on rockchip-rk3399 (kevin) with this
-> series: booted up OK
-> 
-> Example output from B) above:
-> 
-> localhost ~ # dmesg | grep kgdbts
-> [    2.139814] KGDB: Registered I/O driver kgdbts
-> [    2.144582] kgdbts:RUN plant and detach test
-> [    2.165333] kgdbts:RUN sw breakpoint test
-> [    2.172990] kgdbts:RUN bad memory access test
-> [    2.178640] kgdbts:RUN singlestep test 1000 iterations
-> [    2.187765] kgdbts:RUN singlestep [0/1000]
-> [    2.559596] kgdbts:RUN singlestep [100/1000]
-> [    2.931419] kgdbts:RUN singlestep [200/1000]
-> [    3.303474] kgdbts:RUN singlestep [300/1000]
-> [    3.675121] kgdbts:RUN singlestep [400/1000]
-> [    4.046867] kgdbts:RUN singlestep [500/1000]
-> [    4.418920] kgdbts:RUN singlestep [600/1000]
-> [    4.790824] kgdbts:RUN singlestep [700/1000]
-> [    5.162479] kgdbts:RUN singlestep [800/1000]
-> [    5.534103] kgdbts:RUN singlestep [900/1000]
-> [    5.902299] kgdbts:RUN do_fork for 100 breakpoints
-> [    8.463900] KGDB: Unregistered I/O driver kgdbts, debugger disabled
-> 
-> ...so I guess I'm a little confused.  Either I have a different config
-> than you do or something is special about your machine?
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/arm/mm/dma-mapping.c | 49 ++++++++++++++++++++++++++++-----------
+ 1 file changed, 35 insertions(+), 14 deletions(-)
 
-I tried it now on a Juno board both as a host and a guest and boots
-fine. It must be something that only triggers ThunderX2. Ignore the
-report for now, if I find anything interesting I'll let you know.
-
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 2cfb17bad1e6..b3b66b41c450 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -49,6 +49,7 @@ struct arm_dma_alloc_args {
+ 	const void *caller;
+ 	bool want_vaddr;
+ 	int coherent_flag;
++	bool nonconsistent_flag;
+ };
+ 
+ struct arm_dma_free_args {
+@@ -57,6 +58,7 @@ struct arm_dma_free_args {
+ 	void *cpu_addr;
+ 	struct page *page;
+ 	bool want_vaddr;
++	bool nonconsistent_flag;
+ };
+ 
+ #define NORMAL	    0
+@@ -348,7 +350,8 @@ static void __dma_free_buffer(struct page *page, size_t size)
+ static void *__alloc_from_contiguous(struct device *dev, size_t size,
+ 				     pgprot_t prot, struct page **ret_page,
+ 				     const void *caller, bool want_vaddr,
+-				     int coherent_flag, gfp_t gfp);
++				     int coherent_flag, bool nonconsistent_flag,
++				     gfp_t gfp);
+ 
+ static void *__alloc_remap_buffer(struct device *dev, size_t size, gfp_t gfp,
+ 				 pgprot_t prot, struct page **ret_page,
+@@ -405,7 +408,7 @@ static int __init atomic_pool_init(void)
+ 	if (dev_get_cma_area(NULL))
+ 		ptr = __alloc_from_contiguous(NULL, atomic_pool_size, prot,
+ 				      &page, atomic_pool_init, true, NORMAL,
+-				      GFP_KERNEL);
++				      false, GFP_KERNEL);
+ 	else
+ 		ptr = __alloc_remap_buffer(NULL, atomic_pool_size, gfp, prot,
+ 					   &page, atomic_pool_init, true);
+@@ -579,7 +582,8 @@ static int __free_from_pool(void *start, size_t size)
+ static void *__alloc_from_contiguous(struct device *dev, size_t size,
+ 				     pgprot_t prot, struct page **ret_page,
+ 				     const void *caller, bool want_vaddr,
+-				     int coherent_flag, gfp_t gfp)
++				     int coherent_flag, bool nonconsistent_flag,
++				     gfp_t gfp)
+ {
+ 	unsigned long order = get_order(size);
+ 	size_t count = size >> PAGE_SHIFT;
+@@ -595,12 +599,16 @@ static void *__alloc_from_contiguous(struct device *dev, size_t size,
+ 	if (!want_vaddr)
+ 		goto out;
+ 
++	if (nonconsistent_flag) {
++		if (PageHighMem(page))
++			goto fail;
++		goto out;
++	}
++
+ 	if (PageHighMem(page)) {
+ 		ptr = __dma_alloc_remap(page, size, GFP_KERNEL, prot, caller);
+-		if (!ptr) {
+-			dma_release_from_contiguous(dev, page, count);
+-			return NULL;
+-		}
++		if (!ptr)
++			goto fail;
+ 	} else {
+ 		__dma_remap(page, size, prot);
+ 		ptr = page_address(page);
+@@ -609,12 +617,15 @@ static void *__alloc_from_contiguous(struct device *dev, size_t size,
+  out:
+ 	*ret_page = page;
+ 	return ptr;
++ fail:
++	dma_release_from_contiguous(dev, page, count);
++	return NULL;
+ }
+ 
+ static void __free_from_contiguous(struct device *dev, struct page *page,
+-				   void *cpu_addr, size_t size, bool want_vaddr)
++				   void *cpu_addr, size_t size, bool remapped)
+ {
+-	if (want_vaddr) {
++	if (remapped) {
+ 		if (PageHighMem(page))
+ 			__dma_free_remap(cpu_addr, size);
+ 		else
+@@ -635,7 +646,11 @@ static void *__alloc_simple_buffer(struct device *dev, size_t size, gfp_t gfp,
+ 				   struct page **ret_page)
+ {
+ 	struct page *page;
+-	/* __alloc_simple_buffer is only called when the device is coherent */
++	/*
++	 * __alloc_simple_buffer is only called when the device is coherent,
++	 * or if the caller explicitly asked for an allocation that is not
++	 * consistent.
++	 */
+ 	page = __dma_alloc_buffer(dev, size, gfp, COHERENT);
+ 	if (!page)
+ 		return NULL;
+@@ -667,13 +682,15 @@ static void *cma_allocator_alloc(struct arm_dma_alloc_args *args,
+ 	return __alloc_from_contiguous(args->dev, args->size, args->prot,
+ 				       ret_page, args->caller,
+ 				       args->want_vaddr, args->coherent_flag,
++				       args->nonconsistent_flag,
+ 				       args->gfp);
+ }
+ 
+ static void cma_allocator_free(struct arm_dma_free_args *args)
+ {
+ 	__free_from_contiguous(args->dev, args->page, args->cpu_addr,
+-			       args->size, args->want_vaddr);
++			       args->size,
++			       args->want_vaddr || args->nonconsistent_flag);
+ }
+ 
+ static struct arm_dma_allocator cma_allocator = {
+@@ -735,6 +752,7 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
+ 		.caller = caller,
+ 		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) = 0),
+ 		.coherent_flag = is_coherent ? COHERENT : NORMAL,
++		.nonconsistent_flag = (attrs & DMA_ATTR_NON_CONSISTENT),
+ 	};
+ 
+ #ifdef CONFIG_DMA_API_DEBUG
+@@ -773,7 +791,7 @@ static void *__dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
+ 
+ 	if (cma)
+ 		buf->allocator = &cma_allocator;
+-	else if (is_coherent)
++	else if (is_coherent || (attrs & DMA_ATTR_NON_CONSISTENT))
+ 		buf->allocator = &simple_allocator;
+ 	else if (allowblock)
+ 		buf->allocator = &remap_allocator;
+@@ -874,6 +892,7 @@ static void __arm_dma_free(struct device *dev, size_t size, void *cpu_addr,
+ 		.cpu_addr = cpu_addr,
+ 		.page = page,
+ 		.want_vaddr = ((attrs & DMA_ATTR_NO_KERNEL_MAPPING) = 0),
++		.nonconsistent_flag = (attrs & DMA_ATTR_NON_CONSISTENT),
+ 	};
+ 
+ 	buf = arm_dma_buffer_find(cpu_addr);
+@@ -1562,7 +1581,8 @@ static void *__arm_iommu_alloc_attrs(struct device *dev, size_t size,
+ static void *arm_iommu_alloc_attrs(struct device *dev, size_t size,
+ 	    dma_addr_t *handle, gfp_t gfp, unsigned long attrs)
+ {
+-	return __arm_iommu_alloc_attrs(dev, size, handle, gfp, attrs, NORMAL);
++	return __arm_iommu_alloc_attrs(dev, size, handle, gfp, attrs,
++			(attrs & DMA_ATTR_NON_CONSISTENT) ? COHERENT : NORMAL);
+ }
+ 
+ static void *arm_coherent_iommu_alloc_attrs(struct device *dev, size_t size,
+@@ -1650,7 +1670,8 @@ void __arm_iommu_free_attrs(struct device *dev, size_t size, void *cpu_addr,
+ void arm_iommu_free_attrs(struct device *dev, size_t size,
+ 		    void *cpu_addr, dma_addr_t handle, unsigned long attrs)
+ {
+-	__arm_iommu_free_attrs(dev, size, cpu_addr, handle, attrs, NORMAL);
++	__arm_iommu_free_attrs(dev, size, cpu_addr, handle, attrs,
++			(attrs & DMA_ATTR_NON_CONSISTENT) ? COHERENT : NORMAL);
+ }
+ 
+ void arm_coherent_iommu_free_attrs(struct device *dev, size_t size,
 -- 
-Catalin
+2.19.2
