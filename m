@@ -1,73 +1,61 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Thu, 06 Dec 2018 21:30:27 +0000
-Subject: Re: [PATCH v2 5/6] arch: simplify several early memory allocations
-Message-Id: <20181206213026.GA7479@rapoport-lnx>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:37:00 +0000
+Subject: [PATCH 08/10] sparc64/pci_sun4v: implement DMA_ATTR_NON_CONSISTENT
+Message-Id: <20181208173702.15158-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543852035-26634-1-git-send-email-rppt@linux.ibm.com>
- <1543852035-26634-6-git-send-email-rppt@linux.ibm.com>
- <20181203162908.GB4244@ravnborg.org>
- <20181203164920.GB26700@rapoport-lnx>
- <20181206180826.GB19166@ravnborg.org>
-In-Reply-To: <20181206180826.GB19166@ravnborg.org>
+References: <20181208173702.15158-1-hch@lst.de>
+In-Reply-To: <20181208173702.15158-1-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vineet Gupta <vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Matwey V. Kornilov" <matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org>, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ezequiel Garcia <ezequiel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, linux-arm-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-On Thu, Dec 06, 2018 at 07:08:26PM +0100, Sam Ravnborg wrote:
-> On Mon, Dec 03, 2018 at 06:49:21PM +0200, Mike Rapoport wrote:
-> > On Mon, Dec 03, 2018 at 05:29:08PM +0100, Sam Ravnborg wrote:
-> > > Hi Mike.
-> > > 
-> > > > index c37955d..2a17665 100644
-> > > > --- a/arch/sparc/kernel/prom_64.c
-> > > > +++ b/arch/sparc/kernel/prom_64.c
-> > > > @@ -34,16 +34,13 @@
-> > > >  
-> > > >  void * __init prom_early_alloc(unsigned long size)
-> > > >  {
-> > > > -	unsigned long paddr = memblock_phys_alloc(size, SMP_CACHE_BYTES);
-> > > > -	void *ret;
-> > > > +	void *ret = memblock_alloc(size, SMP_CACHE_BYTES);
-> > > >  
-> > > > -	if (!paddr) {
-> > > > +	if (!ret) {
-> > > >  		prom_printf("prom_early_alloc(%lu) failed\n", size);
-> > > >  		prom_halt();
-> > > >  	}
-> > > >  
-> > > > -	ret = __va(paddr);
-> > > > -	memset(ret, 0, size);
-> > > >  	prom_early_allocated += size;
-> > > >  
-> > > >  	return ret;
-> > > 
-> > > memblock_alloc() calls memblock_alloc_try_nid().
-> > > And if allocation fails then memblock_alloc_try_nid() calls panic().
-> > > So will we ever hit the prom_halt() code?
-> > 
-> > memblock_phys_alloc_try_nid() also calls panic if an allocation fails. So
-> > in either case we never reach prom_halt() code.
-> 
-> So we have code here we never reach - not nice.
-> If the idea is to avoid relying on the panic inside memblock_alloc() then
-> maybe replace it with a variant that do not call panic?
-> To make it clear what happens.
+Just allocate the memory and use map_page to map the memory.
 
-My plan is to completely remove memblock variants that call panic() and
-make the callers check the return value.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/pci_sun4v.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-I've started to work on it, but with the holidays it progresses slower than
-I'd like to.
-
-Since the code here was unreachable for several year, a few more weeks
-won't make real difference so I'd prefer to keep the variant with panic()
-for now. 
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index b95c70136559..24a76ecf2986 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -590,6 +590,14 @@ static void *dma_4v_alloc(struct device *dev, size_t size,
+ 	first_page = (unsigned long) page_address(page);
+ 	memset((char *)first_page, 0, PAGE_SIZE << order);
  
-> 	Sam
-> 
-
++	if (attrs & DMA_ATTR_NON_CONSISTENT) {
++		*dma_addrp = dma_4v_map_page(dev, page, 0, size,
++					     DMA_BIDIRECTIONAL, 0);
++		if (*dma_addrp = DMA_MAPPING_ERROR)
++			goto range_alloc_fail;
++		return page_address(page);
++	}
++
+ 	iommu = dev->archdata.iommu;
+ 	atu = iommu->atu;
+ 
+@@ -649,6 +657,11 @@ static void dma_4v_free(struct device *dev, size_t size, void *cpu,
+ 	unsigned long iotsb_num;
+ 	u32 devhandle;
+ 
++	if (attrs & DMA_ATTR_NON_CONSISTENT) {
++		dma_4v_unmap_page(dev, dvma, size, DMA_BIDIRECTIONAL, 0);
++		goto free_pages;
++	}
++
+ 	npages = IO_PAGE_ALIGN(size) >> IO_PAGE_SHIFT;
+ 	iommu = dev->archdata.iommu;
+ 	pbm = dev->archdata.host_controller;
+@@ -665,6 +678,7 @@ static void dma_4v_free(struct device *dev, size_t size, void *cpu,
+ 	entry = ((dvma - tbl->table_map_base) >> IO_PAGE_SHIFT);
+ 	dma_4v_iommu_demap(dev, devhandle, dvma, iotsb_num, entry, npages);
+ 	iommu_tbl_range_free(tbl, dvma, npages, IOMMU_ERROR_CODE);
++free_pages:
+ 	order = get_order(size);
+ 	if (order < 10)
+ 		free_pages((unsigned long)cpu, order);
 -- 
-Sincerely yours,
-Mike.
+2.19.2
