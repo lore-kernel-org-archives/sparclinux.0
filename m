@@ -1,74 +1,68 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Thu, 06 Dec 2018 07:31:11 +0000
-Subject: Re: [PATCH v2 2/6] microblaze: prefer memblock API returning virtual address
-Message-Id: <20181206073111.GH19181@rapoport-lnx>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:36:52 +0000
+Subject: make the non-consistent DMA allocator more userful
+Message-Id: <20181208173702.15158-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1543852035-26634-1-git-send-email-rppt@linux.ibm.com>
- <1543852035-26634-3-git-send-email-rppt@linux.ibm.com>
- <0a5e0aef-15fd-2d0c-765c-e7ba60219b00@monstr.eu>
-In-Reply-To: <0a5e0aef-15fd-2d0c-765c-e7ba60219b00@monstr.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Simek <monstr@monstr.eu>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Michal Simek <michal.simek@xilinx.com>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 04:29:40PM +0100, Michal Simek wrote:
-> On 03. 12. 18 16:47, Mike Rapoport wrote:
-> > Rather than use the memblock_alloc_base that returns a physical address and
-> > then convert this address to the virtual one, use appropriate memblock
-> > function that returns a virtual address.
-> > 
-> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > ---
-> >  arch/microblaze/mm/init.c | 5 +++--
-> >  1 file changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-> > index b17fd8a..44f4b89 100644
-> > --- a/arch/microblaze/mm/init.c
-> > +++ b/arch/microblaze/mm/init.c
-> > @@ -363,8 +363,9 @@ void __init *early_get_page(void)
-> >  	 * Mem start + kernel_tlb -> here is limit
-> >  	 * because of mem mapping from head.S
-> >  	 */
-> > -	return __va(memblock_alloc_base(PAGE_SIZE, PAGE_SIZE,
-> > -				memory_start + kernel_tlb));
-> > +	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
-> > +				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
-> > +				NUMA_NO_NODE);
-> >  }
-> >  
-> >  #endif /* CONFIG_MMU */
-> > 
-> 
-> I can't see any issue with functionality when this patch is applied.
-> If you want me to take this via my tree please let me know.
+Hi all,
 
-I thought to route this via mmotm tree.
+we had all kinds of discussions about how to best allocate DMAable memory
+without having to deal with the problem that your normal "coherent"
+DMA allocator can be very slow on platforms where DMA is not DMA
+coherent.
 
-> Otherwise:
-> 
-> Tested-by: Michal Simek <michal.simek@xilinx.com>
+To work around this drivers basically two choices at the moment:
 
-Thanks!
+ (1) just allocate memory using the page or slab allocator and the call
+     one of the dma_map_* APIs on it.  This has a few drawbacks:
 
- 
-> Thanks,
-> Michal
-> 
-> -- 
-> Michal Simek, Ing. (M.Eng), OpenPGP -> KeyID: FE3D1F91
-> w: www.monstr.eu p: +42-0-721842854
-> Maintainer of Linux kernel - Xilinx Microblaze
-> Maintainer of Linux kernel - Xilinx Zynq ARM and ZynqMP ARM64 SoCs
-> U-Boot custodian - Xilinx Microblaze/Zynq/ZynqMP/Versal SoCs
-> 
-> 
+       - normal GFP_KERNEL memory might not actually be DMA addressable
+	 for all devices, forcing fallbacks to slow bounce buffering
+       - there is no easy way to access the CMA allocator for large
+	 chunks, or to map small pages into single device and virtually
+	 contigous chunks using the iommu and vmap
 
+ (2) use dma_alloc_attrs with the DMA_ATTR_NON_CONSISTENT flag.  This
+     has a different set of drawbacks
 
+       - only very few architectures actually implement this API fully,
+	 if it is not implemented it falls back to the potentially
+	 uncached and slow coherent allocator
+       - the dma_cache_sync API to use with it is not very well
+	 specified and problematic in that it does not clearly
+	 transfer ownership
 
+Based on that I've been planning to introduce a proper API for
+allocating DMAable memory for a while.  In the end I've ended up
+improving the DMA_ATTR_NON_CONSISTENT flag instead of designing
+something new.  To make it useful we need to:
 
--- 
-Sincerely yours,
-Mike.
+ (a) ensure we don't fall back to the slow coherent allocator except
+     on fully coherent platforms where they are the same anyway
+ (b) replace the odd dma_cache_sync calls with the proper
+     dma_sync_* APIs that we also use for other ownership trasnfers
+
+This turned out to be surprisingly simple now that we have consolidated
+most of the direct mapping code.  Note that this series is missing
+the updates for powerpc which is in the process of being migrated to
+the common direct mapping code in another series and would be covered
+by that.
+
+Note that these patches don't use iommu/vmap coalescing as they can
+be problematic depending on the cache architecture.  But we could
+opt into those when we know we don't have cache interaction problems
+based on the API.
+
+All the patches are on top of the dma-mapping for-net tree and also
+available as a git tree here:
+
+    git://git.infradead.org/users/hch/misc.git dma-noncoherent-allocator
+
+Gitweb:
+
+    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dma-noncoherent-allocator
