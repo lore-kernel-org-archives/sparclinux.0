@@ -1,37 +1,62 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Wed, 19 Dec 2018 17:01:52 +0000
-Subject: Re: [PATCH 2/2] sparc/iommu: fix ->map_sg return value
-Message-Id: <20181219170152.GA6586@ravnborg.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 08 Dec 2018 17:41:14 +0000
+Subject: [PATCH 5/6] sparc: move the leon PCI memory space comment to <asm/leon.h>
+Message-Id: <20181208174115.16237-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181216095755.10503-3-hch@lst.de>
-In-Reply-To: <20181216095755.10503-3-hch@lst.de>
+References: <20181208174115.16237-1-hch@lst.de>
+In-Reply-To: <20181208174115.16237-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
 
-On Wed, Dec 19, 2018 at 05:30:12PM +0100, Christoph Hellwig wrote:
-> On Wed, Dec 19, 2018 at 05:28:25PM +0100, Sam Ravnborg wrote:
-> > > +	struct scatterlist *sg;
-> > > +	int j, n;
-> > Nit - in the other use of for_each_sg() you used "i" as the variable named.
-> > It confused me a little to see "j".
-> 
-> I think this was a copy and paste from the one function where i was
-> already taken.  I can remove it here.
-> 
-> > sg-lenght and sg->offsett are both unsigned int.
-> > So n should looking at this piece of code be unsigned int.
-> > But then iommu_get_one() takes an int as argument.
-> > So the real issue seems to be that iommu_get_one() should
-> > have npages be an unsigned int. And your code is fine.
-> > 
-> > If you had named n for npages it would have been a little more readable.
-> 
-> Well, n isn't really new here but from the existing code.  I see
-> plenty of potential for the usual cleanups in that code..
+It has nothing to do with the content of the pci.h header.
 
-Yep. So better leave it as it is.
-Then someone with a little more sparc love could do it one day.
+Suggested by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/include/asm/leon.h   | 9 +++++++++
+ arch/sparc/include/asm/pci_32.h | 9 ---------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-	Sam
+diff --git a/arch/sparc/include/asm/leon.h b/arch/sparc/include/asm/leon.h
+index c68bb5b76e3d..77ea406ff9df 100644
+--- a/arch/sparc/include/asm/leon.h
++++ b/arch/sparc/include/asm/leon.h
+@@ -255,4 +255,13 @@ extern int leon_ipi_irq;
+ #define _pfn_valid(pfn)	 ((pfn < last_valid_pfn) && (pfn >= PFN(phys_base)))
+ #define _SRMMU_PTE_PMASK_LEON 0xffffffff
+ 
++/*
++ * On LEON PCI Memory space is mapped 1:1 with physical address space.
++ *
++ * I/O space is located at low 64Kbytes in PCI I/O space. The I/O addresses
++ * are converted into CPU addresses to virtual addresses that are mapped with
++ * MMU to the PCI Host PCI I/O space window which are translated to the low
++ * 64Kbytes by the Host controller.
++ */
++
+ #endif
+diff --git a/arch/sparc/include/asm/pci_32.h b/arch/sparc/include/asm/pci_32.h
+index cfc0ee9476c6..a475380ea108 100644
+--- a/arch/sparc/include/asm/pci_32.h
++++ b/arch/sparc/include/asm/pci_32.h
+@@ -23,15 +23,6 @@
+ /* generic pci stuff */
+ #include <asm-generic/pci.h>
+ #else
+-/*
+- * On LEON PCI Memory space is mapped 1:1 with physical address space.
+- *
+- * I/O space is located at low 64Kbytes in PCI I/O space. The I/O addresses
+- * are converted into CPU addresses to virtual addresses that are mapped with
+- * MMU to the PCI Host PCI I/O space window which are translated to the low
+- * 64Kbytes by the Host controller.
+- */
+-
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+ 	return PCI_IRQ_NONE;
+-- 
+2.19.2
