@@ -1,38 +1,23 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 08 Dec 2018 17:41:13 +0000
-Subject: [PATCH 4/6] sparc: remove not required includes from dma-mapping.h
-Message-Id: <20181208174115.16237-5-hch@lst.de>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 09 Dec 2018 04:57:53 +0000
+Subject: Re: [PATCH 4/6] sparc: remove not required includes from dma-mapping.h
+Message-Id: <20181208.205753.909472854043389455.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181208174115.16237-1-hch@lst.de>
-In-Reply-To: <20181208174115.16237-1-hch@lst.de>
+	<20181208174115.16237-5-hch@lst.de>
+In-Reply-To: <20181208174115.16237-5-hch-jcswGhMUV9g@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+To: hch-jcswGhMUV9g@public.gmane.org
+Cc: linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ezequiel-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org, vgupta-HKixBCOQz3hWk0Htik3J/w@public.gmane.org, linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, matwey-TTlVxmypnbovJsYlp49lxw@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-The only thing we need to explicitly pull in is the defines for the
-CPU type.
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat,  8 Dec 2018 09:41:13 -0800
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/sparc/include/asm/dma-mapping.h | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+> The only thing we need to explicitly pull in is the defines for the
+> CPU type.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index b0bb2fcaf1c9..55a44f08a9a4 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -2,9 +2,7 @@
- #ifndef ___ASM_SPARC_DMA_MAPPING_H
- #define ___ASM_SPARC_DMA_MAPPING_H
- 
--#include <linux/scatterlist.h>
--#include <linux/mm.h>
--#include <linux/dma-debug.h>
-+#include <asm/cpu_type.h>
- 
- extern const struct dma_map_ops *dma_ops;
- 
--- 
-2.19.2
+Acked-by: David S. Miller <davem@davemloft.net>
