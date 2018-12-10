@@ -1,25 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 09 Dec 2018 04:58:47 +0000
-Subject: Re: [PATCH 07/10] sparc64/pci_sun4v: move code around a bit
-Message-Id: <20181208.205847.1994202125580037481.davem@davemloft.net>
+From: ndesaulniers@google.com
+Date: Mon, 10 Dec 2018 22:35:13 +0000
+Subject: [PATCH] sparc: vdso: Drop implicit common-page-size linker flag
+Message-Id: <20181210223515.26332-1-ndesaulniers@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
- <20181208173702.15158-8-hch@lst.de>
-In-Reply-To: <20181208173702.15158-8-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: hch@lst.de
-Cc: linux-parisc@vger.kernel.org, ezequiel@collabora.com, vgupta@synopsys.com, linux-mips@vger.kernel.org, dri-devel@lists.freedesktop.org, matwey@sai.msu.ru, iommu@lists.linux-foundation.org, openrisc@lists.librecores.org, laurent.pinchart@ideasonboard.com, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, robin.murphy@arm.com, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
+To: davem@davemloft.net
+Cc: Nick Desaulniers <ndesaulniers@google.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Frank Rowand <frowand.list@gmail.com>, Ingo Molnar <mingo@kernel.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat,  8 Dec 2018 09:36:59 -0800
-
-> Move the alloc / free routines down the file so that we can easily use
-> the map / unmap helpers to implement non-consistent allocations.
-> 
-> Also drop the _coherent postfix to match the method name.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-
-Acked-by: David S. Miller <davem@davemloft.net>
+R05VIGxpbmtlcidzIC16IGNvbW1vbi1wYWdlLXNpemUncyBkZWZhdWx0IHZhbHVlIGlzIGJhc2Vk
+IG9uIHRoZSB0YXJnZXQKYXJjaGl0ZWN0dXJlLiBhcmNoL3NwYXJjL3Zkc28vTWFrZWZpbGUgc2V0
+cyBpdCB0byB0aGUgYXJjaGl0ZWN0dXJlCmRlZmF1bHQsIHdoaWNoIGlzIGltcGxpY2l0IGFuZCBy
+ZWR1bmRhbnQuIERyb3AgaXQuCgpMaW5rOiBodHRwczovL2xrbWwua2VybmVsLm9yZy9yLzIwMTgx
+MjA2MTkxMjMxLjE5MjM1NS0xLW5kZXNhdWxuaWVyc0Bnb29nbGUuY29tClNpZ25lZC1vZmYtYnk6
+IE5pY2sgRGVzYXVsbmllcnMgPG5kZXNhdWxuaWVyc0Bnb29nbGUuY29tPgotLS0KIGFyY2gvc3Bh
+cmMvdmRzby9NYWtlZmlsZSB8IDIgKy0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwg
+MSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMvdmRzby9NYWtlZmlsZSBiL2Fy
+Y2gvc3BhcmMvdmRzby9NYWtlZmlsZQppbmRleCBhNmUxOGNhNGNjMTguLjc0ZTk3Zjc3ZTIzYiAx
+MDA2NDQKLS0tIGEvYXJjaC9zcGFyYy92ZHNvL01ha2VmaWxlCisrKyBiL2FyY2gvc3BhcmMvdmRz
+by9NYWtlZmlsZQpAQCAtMzQsNyArMzQsNyBAQCB0YXJnZXRzICs9ICQodmRzb19pbWdfc29kYmcp
+ICQodmRzb19pbWcteTolPXZkc28lLnNvKQogQ1BQRkxBR1NfdmRzby5sZHMgKz0gLVAgLUMKIAog
+VkRTT19MREZMQUdTX3Zkc28ubGRzID0gLW0gZWxmNjRfc3BhcmMgLXNvbmFtZSBsaW51eC12ZHNv
+LnNvLjEgLS1uby11bmRlZmluZWQgXAotCQkJLXogbWF4LXBhZ2Utc2l6ZYE5MiAteiBjb21tb24t
+cGFnZS1zaXplgTkyCisJCQkteiBtYXgtcGFnZS1zaXplgTkyCiAKICQob2JqKS92ZHNvNjQuc28u
+ZGJnOiAkKG9iaikvdmRzby5sZHMgJCh2b2JqcykgRk9SQ0UKIAkkKGNhbGwgaWZfY2hhbmdlZCx2
+ZHNvKQotLSAKMi4yMC4wLnJjMi40MDMuZ2RiYzNiMjk4MDUtZ29vZwo=
