@@ -1,64 +1,68 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 07 Dec 2018 14:14:04 +0000
-Subject: [PATCH 1/4] sparc: remove no needed sbus_dma_ops methods
-Message-Id: <20181207141407.3154-2-hch@lst.de>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Tue, 11 Dec 2018 20:25:15 +0000
+Subject: [PATCH v2 3/8] arch: sparc: Override struct __kernel_old_timeval
+Message-Id: <20181211202520.16799-4-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181211202520.16799-1-deepa.kernel@gmail.com>
+In-Reply-To: <20181211202520.16799-1-deepa.kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, sparclinux@vger.kernel.org
 
-No need to BUG_ON() on the cache maintainance ops - they are no-ops
-by default, and there is nothing in the DMA API contract that prohibits
-calling them on sbus devices (even if such drivers are unlikely to
-ever appear).
+struct __kernel_old_timeval is supposed to have the same
+layout as struct timeval. But, it was inadvarently missed
+that __kernel_suseconds has a different definition for
+sparc64.
+Provide an asm-specific override that fixes it.
 
-Similarly a dma_supported method that always returns 0 is rather
-pointless.  The only thing that indicates is that no one ever calls
-the method on sbus devices.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: sparclinux@vger.kernel.org
 ---
- arch/sparc/kernel/ioport.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+ arch/sparc/include/uapi/asm/posix_types.h | 10 ++++++++++
+ include/uapi/linux/time.h                 |  2 ++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 6799c93c9f27..4b2167a0ec0b 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -391,23 +391,6 @@ static void sbus_unmap_sg(struct device *dev, struct scatterlist *sg, int n,
- 	mmu_release_scsi_sgl(dev, sg, n);
- }
+diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
+index fec499d6efb7..f139e0048628 100644
+--- a/arch/sparc/include/uapi/asm/posix_types.h
++++ b/arch/sparc/include/uapi/asm/posix_types.h
+@@ -19,6 +19,16 @@ typedef unsigned short         __kernel_old_gid_t;
+ typedef int		       __kernel_suseconds_t;
+ #define __kernel_suseconds_t __kernel_suseconds_t
  
--static void sbus_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg,
--				 int n,	enum dma_data_direction dir)
--{
--	BUG();
--}
--
--static void sbus_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
--				    int n, enum dma_data_direction dir)
--{
--	BUG();
--}
--
--static int sbus_dma_supported(struct device *dev, u64 mask)
--{
--	return 0;
--}
--
- static const struct dma_map_ops sbus_dma_ops = {
- 	.alloc			= sbus_alloc_coherent,
- 	.free			= sbus_free_coherent,
-@@ -415,9 +398,6 @@ static const struct dma_map_ops sbus_dma_ops = {
- 	.unmap_page		= sbus_unmap_page,
- 	.map_sg			= sbus_map_sg,
- 	.unmap_sg		= sbus_unmap_sg,
--	.sync_sg_for_cpu	= sbus_sync_sg_for_cpu,
--	.sync_sg_for_device	= sbus_sync_sg_for_device,
--	.dma_supported		= sbus_dma_supported,
++typedef long		__kernel_long_t;
++typedef unsigned long	__kernel_ulong_t;
++#define __kernel_long_t __kernel_long_t
++
++struct __kernel_old_timeval {
++	__kernel_long_t tv_sec;
++	__kernel_suseconds_t tv_usec;
++};
++#define __kernel_old_timeval __kernel_old_timeval
++
+ #else
+ /* sparc 32 bit */
+ 
+diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
+index 6b56a2208be7..04d5587f30d3 100644
+--- a/include/uapi/linux/time.h
++++ b/include/uapi/linux/time.h
+@@ -63,10 +63,12 @@ struct __kernel_itimerspec {
+  * here, this is probably because it is not y2038 safe and needs to
+  * be changed to use another interface.
+  */
++#ifndef __kernel_old_timeval
+ struct __kernel_old_timeval {
+ 	__kernel_long_t tv_sec;
+ 	__kernel_long_t tv_usec;
  };
++#endif
  
- static int __init sparc_register_ioport(void)
+ /*
+  * The IDs of the various system clocks (for POSIX.1b interval timers):
 -- 
-2.19.1
+2.17.1
