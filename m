@@ -1,40 +1,41 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 13 Dec 2018 04:31:37 +0000
-Subject: [PATCH AUTOSEL 4.9 11/34] sbus: char: add of_node_put()
-Message-Id: <20181213043200.76295-11-sashal@kernel.org>
+From: " Andrea Guzman" <blaydon@gianttidez.info>
+Date: Tue, 11 Dec 2018 07:53:45 +0000
+Subject: With this patch you can stay healthy and in shape the entire winter
+Message-Id: <6qIUyeFRsLd7S3PFCza-mC5F61zQWkhNOLr7fx9gr9E.t_5P8cxOon-snZ5YAwbUOeD7azz6i64uMKDXFkzIx10@gianttidez.info>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213043200.76295-1-sashal@kernel.org>
-In-Reply-To: <20181213043200.76295-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
++ + + + + + + + + + + + 
+Hi  sparclinux@vger.kernel.org -
 
-[ Upstream commit 87d81a23e24f24ebe014891e8bdf3ff8785031e8 ]
 
-use of_node_put() to release the refcount.
+Have a look at this video before it gets taken down. . . . 
 
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/sbus/char/display7seg.c | 1 +
- 1 file changed, 1 insertion(+)
+This is just the thing we have been looking for.  If you thinking about going to the gym
+you don't have to. 
 
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index 33fbe8249fd5..044cffbc45e8 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -221,6 +221,7 @@ static int d7s_probe(struct platform_device *op)
- 	dev_set_drvdata(&op->dev, p);
- 	d7s_device = p;
- 	err = 0;
-+	of_node_put(opts);
- 
- out:
- 	return err;
--- 
-2.19.1
+Take a look at his video to hear the details: Video #7728
+http://www.gianttidez.info/wvfetykb/odwlsu19334tdsn/paHLqSBMQj0qoCDOMXdKvpEFk4Au_SlgDmQyRFrQAzA/6x5nVq9wxAGghq07puPKwBms6pm_WpEIyxZ9Tlg3x9OApJGiP5hwn4JDauUYcOcbGdAAcrMh8QqWDAviqEXf8k2WV3SaLJf2eXDFserVqDaQnJnri05Z5skxrRJXaz30YnlwOCoCNKeDnGtXQIkoRVx2DlvfezjmAGFhqsUEqiM
+
+Trim 12lbs in under 19 days or less. 
+It's like dieting for the lazy!
+
+
++ + + + + + + + + + + + 
+
+
+
+
+
+
+
+
+The entire message is an adver-tisement
+
+
+Exit out this way:
+http://www.gianttidez.info/wvfetykb/odwlsu16705tdsn/paHLqSBMQj0qoCDOMXdKvpEFk4Au_SlgDmQyRFrQAzA/6x5nVq9wxAGghq07puPKwBms6pm_WpEIyxZ9Tlg3x9OApJGiP5hwn4JDauUYcOcbGdAAcrMh8QqWDAviqEXf8k2WV3SaLJf2eXDFserVqDaQnJnri05Z5skxrRJXaz30YnlwOCoCNKeDnGtXQIkoRVx2DlvfezjmAGFhqsUEqiM
+11 Harvey Dr. Orange, NJ 07050
