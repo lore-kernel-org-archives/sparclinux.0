@@ -1,71 +1,77 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Tue, 18 Dec 2018 21:22:05 +0000
-Subject: Re: [PATCH v2 7/8] socket: Add SO_TIMESTAMPING_NEW
-Message-Id: <CABeXuvofQQ6GoL9TEgaNRkkFE5RDdrWUmkKOPQUP4f9Zg1KBXA@mail.gmail.com>
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Tue, 11 Dec 2018 12:11:09 +0000
+Subject: [PATCH] sparc: Set "ARCH: sunxx" information on the same line
+Message-Id: <1544530269-15008-1-git-send-email-clabbe@baylibre.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181211202520.16799-1-deepa.kernel@gmail.com>
- <20181211202520.16799-8-deepa.kernel@gmail.com> <CAF=yD-+mrKfq35g+EVkP-pNbBL=6BvYDdduks=yAxiADSRWvzg@mail.gmail.com>
- <CAK8P3a1xeZsrOv4+xhL5dbi02zfQcPEJvWDzmUNkFKmQubMkSA@mail.gmail.com>
-In-Reply-To: <CAK8P3a1xeZsrOv4+xhL5dbi02zfQcPEJvWDzmUNkFKmQubMkSA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Willem de Bruijn <willemdebruijn.kernel@gmail.com>, David Miller <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, Chris Zankel <chris@zankel.net>, Fenghua Yu <fenghua.yu@intel.com>, Richard Henderson <rth@twiddle.net>, Thomas Gleixner <tglx@linutronix.de>, ubraun@linux.ibm.com, linux-alpha@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, linux-ia64@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, linux-s390 <linux-s390@vger.kernel.org>, linux-xtensa@linux-xtensa.org, sparclinux <sparclinux@vger.kernel.org>
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 
-On Tue, Dec 18, 2018 at 8:16 AM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Wed, Dec 12, 2018 at 4:25 PM Willem de Bruijn
-> <willemdebruijn.kernel@gmail.com> wrote:
-> > On Tue, Dec 11, 2018 at 3:30 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> > > @@ -851,39 +890,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
-> > >                 break;
-> > >
-> > >         case SO_TIMESTAMPING_OLD:
-> > > -               if (val & ~SOF_TIMESTAMPING_MASK) {
-> > > -                       ret = -EINVAL;
-> > > -                       break;
-> > > -               }
-> > > -
-> > > -               if (val & SOF_TIMESTAMPING_OPT_ID &&
-> > > -                   !(sk->sk_tsflags & SOF_TIMESTAMPING_OPT_ID)) {
-> > > -                       if (sk->sk_protocol = IPPROTO_TCP &&
-> > > -                           sk->sk_type = SOCK_STREAM) {
-> > > -                               if ((1 << sk->sk_state) &
-> > > -                                   (TCPF_CLOSE | TCPF_LISTEN)) {
-> > > -                                       ret = -EINVAL;
-> > > -                                       break;
-> > > -                               }
-> > > -                               sk->sk_tskey = tcp_sk(sk)->snd_una;
-> > > -                       } else {
-> > > -                               sk->sk_tskey = 0;
-> > > -                       }
-> > > -               }
-> > > -
-> > > -               if (val & SOF_TIMESTAMPING_OPT_STATS &&
-> > > -                   !(val & SOF_TIMESTAMPING_OPT_TSONLY)) {
-> > > -                       ret = -EINVAL;
-> > > -                       break;
-> > > -               }
-> > > -
-> > > -               sk->sk_tsflags = val;
-> > > -               if (val & SOF_TIMESTAMPING_RX_SOFTWARE)
-> > > -                       sock_enable_timestamp(sk,
-> > > -                                             SOCK_TIMESTAMPING_RX_SOFTWARE);
-> > > -               else
-> > > -                       sock_disable_timestamp(sk,
-> > > -                                              (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE));
-> > > +               ret = setsockopt_timestamping(sk, optname, val);
-> >
-> > Once again a lot of needless code churn. The only functional change is adding
->
-> I think moving the code out into a separate function is a useful cleanup,
-> but if we want to do that, it may be better done in another patch, to
-> make it easier to review.
+While checking boot log from SPARC qemu, I saw that the "ARCH: sunxx"
+information was split on two different line.
+This patchs merge both line together.
+In the meantime, thoses information need to be printed via pr_info
+since printk print them by default via the warning loglevel.
 
-I already removed this addition of function. I have open coded all the
-logic here and in the patch 6.
-I will post an update.
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ arch/sparc/kernel/setup_32.c | 13 ++++++-------
+ arch/sparc/kernel/setup_64.c |  4 ++--
+ 2 files changed, 8 insertions(+), 9 deletions(-)
 
--Deepa
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index 7df3d704284c..afe1592a6d08 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -311,25 +311,24 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	register_console(&prom_early_console);
+ 
+-	printk("ARCH: ");
+ 	switch(sparc_cpu_model) {
+ 	case sun4m:
+-		printk("SUN4M\n");
++		pr_info("ARCH: SUN4M\n");
+ 		break;
+ 	case sun4d:
+-		printk("SUN4D\n");
++		pr_info("ARCH: SUN4D\n");
+ 		break;
+ 	case sun4e:
+-		printk("SUN4E\n");
++		pr_info("ARCH: SUN4E\n");
+ 		break;
+ 	case sun4u:
+-		printk("SUN4U\n");
++		pr_info("ARCH: SUN4U\n");
+ 		break;
+ 	case sparc_leon:
+-		printk("LEON\n");
++		pr_info("ARCH: LEON\n");
+ 		break;
+ 	default:
+-		printk("UNKNOWN!\n");
++		pr_info("ARCH: UNKNOWN!\n");
+ 		break;
+ 	}
+ 
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 014390950333..51c4d12c0853 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -643,9 +643,9 @@ void __init setup_arch(char **cmdline_p)
+ 		register_console(&prom_early_console);
+ 
+ 	if (tlb_type = hypervisor)
+-		printk("ARCH: SUN4V\n");
++		pr_info("ARCH: SUN4V\n");
+ 	else
+-		printk("ARCH: SUN4U\n");
++		pr_info("ARCH: SUN4U\n");
+ 
+ #ifdef CONFIG_DUMMY_CONSOLE
+ 	conswitchp = &dummy_con;
+-- 
+2.19.2
