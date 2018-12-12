@@ -1,41 +1,81 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 10 Dec 2018 19:25:08 +0000
-Subject: Re: [PATCH 02/10] arm64/iommu: don't remap contiguous allocations for coherent devices
-Message-Id: <20181210192508.GA31318@lst.de>
+From: Yangtao Li <tiny.windzz@gmail.com>
+Date: Wed, 12 Dec 2018 16:01:45 +0000
+Subject: [PATCH] serial/sunsu: fix refcount leak
+Message-Id: <20181212160145.23117-1-tiny.windzz@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
- <20181208173702.15158-3-hch@lst.de>
- <eaf8ce49-ab5e-7c02-a028-74671172b684@arm.com>
-In-Reply-To: <eaf8ce49-ab5e-7c02-a028-74671172b684@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, iommu@lists.linux-foundation.org, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, Christoph Hellwig <hch@lst.de>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: davem@davemloft.net, gregkh@linuxfoundation.org, jslaby@suse.com, sparclinux@vger.kernel.org
+Cc: daniel.lezcano@linaro.org, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Yangtao Li <tiny.windzz@gmail.com>
 
-On Mon, Dec 10, 2018 at 07:19:30PM +0000, Robin Murphy wrote:
-> On 08/12/2018 17:36, Christoph Hellwig wrote:
->> There is no need to have an additional kernel mapping for a contiguous
->> allocation if the device already is DMA coherent, so skip it.
->
-> FWIW, the "need" was that it kept the code in this path simple and the 
-> mapping behaviour consistent with the regular iommu_dma_alloc() case. One 
-> could quite easily retort that there is no need for the extra complexity of 
-> this patch, since vmalloc is cheap on a 64-bit architecture ;)
+The function of_find_node_by_path() acquires a reference to the node
+returned by it and that reference needs to be dropped by its caller.
 
-Heh.  Well, without the remap we do less work, we prepare for a simple
-implementation of DMA_ATTR_NON_CONSISTENT, and also prepapre the code
-to be better reusable for architectures that don't do remapping of
-DMA allocations at all.
+su_get_type() doesn't do that. The match node are used as an identifier
+to compare against the current node, so we can directly drop the refcount
+after getting the node from the path as it is not used as pointer.
 
->>   		if (addr) {
->>   			memset(addr, 0, size);
->> -			if (!coherent)
->> -				__dma_flush_area(page_to_virt(page), iosize);
->> +			__dma_flush_area(page_to_virt(page), iosize);
->
-> Oh poo - seems I missed it at the time but the existing logic here is 
-> wrong. Let me send a separate fix to flip those statements into the correct 
-> order...
+Fix this by use a single variable and drop the refcount right after
+of_find_node_by_path().
 
-Yes, flushing the remapped alias only after zeroing it looks odd.
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+---
+ drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 6cf3e9b0728f..c5428b0426a9 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1394,22 +1394,43 @@ static inline struct console *SUNSU_CONSOLE(void)
+ static enum su_type su_get_type(struct device_node *dp)
+ {
+ 	struct device_node *ap = of_find_node_by_path("/aliases");
++	enum su_type rc = SU_PORT_PORT;
+ 
+ 	if (ap) {
+ 		const char *keyb = of_get_property(ap, "keyboard", NULL);
+ 		const char *ms = of_get_property(ap, "mouse", NULL);
++		struct device_node *match;
+ 
+ 		if (keyb) {
+-			if (dp = of_find_node_by_path(keyb))
+-				return SU_PORT_KBD;
++			match = of_find_node_by_path(keyb);
++
++			/*
++			 * The pointer is used as an identifier not
++			 * as a pointer, we can drop the refcount on
++			 * the of__node immediately after getting it.
++			 */
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_KBD;
++				goto out;
++			}
+ 		}
+ 		if (ms) {
+-			if (dp = of_find_node_by_path(ms))
+-				return SU_PORT_MS;
++			match = of_find_node_by_path(ms);
++
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_MS;
++				goto out;
++			}
+ 		}
+ 	}
+ 
+-	return SU_PORT_PORT;
++out:
++	of_node_put(ap);
++	return rc;
+ }
+ 
+ static int su_probe(struct platform_device *op)
+-- 
+2.17.0
