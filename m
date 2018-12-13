@@ -1,67 +1,42 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 14 Dec 2018 08:25:15 +0000
-Subject: [PATCH 2/2] dma-mapping: deprecate dma_zalloc_coherent
-Message-Id: <20181214082515.14835-3-hch@lst.de>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:33:36 +0000
+Subject: [PATCH AUTOSEL 3.18 09/16] drivers/tty: add missing of_node_put()
+Message-Id: <20181213043343.76896-9-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181214082515.14835-1-hch@lst.de>
-In-Reply-To: <20181214082515.14835-1-hch@lst.de>
+References: <20181213043343.76896-1-sashal@kernel.org>
+In-Reply-To: <20181213043343.76896-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-s390@vger.kernel.org, Michal Simek <monstr@monstr.eu>, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-We now always return zeroed memory from dma_alloc_coherent.  Note that
-simply passing GFP_ZERO to dma_alloc_coherent wasn't always doing the
-right thing to start with given that various allocators are not backed
-by the page allocator and thus would ignore GFP_ZERO.
+From: Yangtao Li <tiny.windzz@gmail.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+[ Upstream commit dac097c4546e4c5b16dd303a1e97c1d319c8ab3e ]
+
+of_find_node_by_path() acquires a reference to the node
+returned by it and that reference needs to be dropped by its caller.
+This place is not doing this, so fix it.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- Documentation/DMA-API.txt   | 9 ---------
- include/linux/dma-mapping.h | 7 ++++---
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ drivers/tty/serial/suncore.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
-index 016eb6909b8a..e133ccd60228 100644
---- a/Documentation/DMA-API.txt
-+++ b/Documentation/DMA-API.txt
-@@ -58,15 +58,6 @@ specify the ``GFP_`` flags (see kmalloc()) for the allocation (the
- implementation may choose to ignore flags that affect the location of
- the returned memory, like GFP_DMA).
+diff --git a/drivers/tty/serial/suncore.c b/drivers/tty/serial/suncore.c
+index 6e4ac8db2d79..2b06c1603f23 100644
+--- a/drivers/tty/serial/suncore.c
++++ b/drivers/tty/serial/suncore.c
+@@ -112,6 +112,7 @@ void sunserial_console_termios(struct console *con, struct device_node *uart_dp)
+ 		mode = of_get_property(dp, mode_prop, NULL);
+ 		if (!mode)
+ 			mode = "9600,8,n,1,-";
++		of_node_put(dp);
+ 	}
  
--::
--
--	void *
--	dma_zalloc_coherent(struct device *dev, size_t size,
--			    dma_addr_t *dma_handle, gfp_t flag)
--
--Wraps dma_alloc_coherent() and also zeroes the returned memory if the
--allocation attempt succeeded.
--
- ::
- 
- 	void
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index f422aec0f53c..a52c6409bdc2 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -644,12 +644,13 @@ static inline unsigned long dma_max_pfn(struct device *dev)
- }
- #endif
- 
-+/*
-+ * Please always use dma_alloc_coherent instead as it already zeroes the memory!
-+ */
- static inline void *dma_zalloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_handle, gfp_t flag)
- {
--	void *ret = dma_alloc_coherent(dev, size, dma_handle,
--				       flag | __GFP_ZERO);
--	return ret;
-+	return dma_alloc_coherent(dev, size, dma_handle, flag);
- }
- 
- static inline int dma_get_cache_alignment(void)
+ 	cflag = CREAD | HUPCL | CLOCAL;
 -- 
-2.19.2
+2.19.1
