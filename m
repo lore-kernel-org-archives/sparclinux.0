@@ -1,41 +1,40 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Sun, 09 Dec 2018 15:00:20 +0000
-Subject: [PATCH v3 2/6] microblaze: prefer memblock API returning virtual address
-Message-Id: <1544367624-15376-3-git-send-email-rppt@linux.ibm.com>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:33:34 +0000
+Subject: [PATCH AUTOSEL 3.18 07/16] sbus: char: add of_node_put()
+Message-Id: <20181213043343.76896-7-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1544367624-15376-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1544367624-15376-1-git-send-email-rppt@linux.ibm.com>
+References: <20181213043343.76896-1-sashal@kernel.org>
+In-Reply-To: <20181213043343.76896-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Rather than use the memblock_alloc_base that returns a physical address and
-then convert this address to the virtual one, use appropriate memblock
-function that returns a virtual address.
+From: Yangtao Li <tiny.windzz@gmail.com>
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Tested-by: Michal Simek <michal.simek@xilinx.com>
+[ Upstream commit 87d81a23e24f24ebe014891e8bdf3ff8785031e8 ]
+
+use of_node_put() to release the refcount.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/microblaze/mm/init.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/sbus/char/display7seg.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index b17fd8a..44f4b89 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -363,8 +363,9 @@ void __init *early_get_page(void)
- 	 * Mem start + kernel_tlb -> here is limit
- 	 * because of mem mapping from head.S
- 	 */
--	return __va(memblock_alloc_base(PAGE_SIZE, PAGE_SIZE,
--				memory_start + kernel_tlb));
-+	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
-+				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
-+				NUMA_NO_NODE);
- }
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index 2b0ce7c350ee..98661714688b 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -221,6 +221,7 @@ static int d7s_probe(struct platform_device *op)
+ 	dev_set_drvdata(&op->dev, p);
+ 	d7s_device = p;
+ 	err = 0;
++	of_node_put(opts);
  
- #endif /* CONFIG_MMU */
+ out:
+ 	return err;
 -- 
-2.7.4
+2.19.1
