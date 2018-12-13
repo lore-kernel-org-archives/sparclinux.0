@@ -1,10 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 13 Dec 2018 04:27:54 +0000
-Subject: [PATCH AUTOSEL 4.19 29/73] drivers/sbus/char: add of_node_put()
-Message-Id: <20181213042838.75160-29-sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:30:26 +0000
+Subject: [PATCH AUTOSEL 4.14 13/41] sbus: char: add of_node_put()
+Message-Id: <20181213043054.75891-13-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213042838.75160-1-sashal@kernel.org>
-In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+References: <20181213043054.75891-1-sashal@kernel.org>
+In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,7 +13,7 @@ Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>
 
 From: Yangtao Li <tiny.windzz@gmail.com>
 
-[ Upstream commit 6bd520ab7cf69486ea81fd3cdfd2d5a390ad1100 ]
+[ Upstream commit 87d81a23e24f24ebe014891e8bdf3ff8785031e8 ]
 
 use of_node_put() to release the refcount.
 
@@ -21,23 +21,20 @@ Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/sbus/char/envctrl.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/sbus/char/display7seg.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 56e962a01493..b8481927bfe4 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
- 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
- 				pchild->mon_type[len] = ENVCTRL_NOMON;
- 			}
-+			of_node_put(root_node);
- 			return;
- 		}
-+		of_node_put(root_node);
- 	}
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index f32765d3cbd8..db761aca8667 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -221,6 +221,7 @@ static int d7s_probe(struct platform_device *op)
+ 	dev_set_drvdata(&op->dev, p);
+ 	d7s_device = p;
+ 	err = 0;
++	of_node_put(opts);
  
- 	/* Get the monitor channels. */
+ out:
+ 	return err;
 -- 
 2.19.1
