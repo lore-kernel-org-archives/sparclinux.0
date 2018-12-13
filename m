@@ -1,33 +1,43 @@
-From: IMFC EUROPE <f.borgheresi@alice.it>
-Date: Wed, 19 Dec 2018 16:41:04 +0000
-Subject: FROM IMFC EUROPE
-Message-Id: <167c75793f1.f.borgheresi@alice.it>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:30:27 +0000
+Subject: [PATCH AUTOSEL 4.14 14/41] drivers/sbus/char: add of_node_put()
+Message-Id: <20181213043054.75891-14-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181213043054.75891-1-sashal@kernel.org>
+In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Dear Sir,
-My name is Nancy.M Michael of the International Monetary and Financial 
-Committee (IMFC) of the IMF. The IMF through an electronic random pick 
-has chosen your name for compensation/payment. At the meeting of heads 
-of international financial institutions held recently in Geneva 
-Switzerland, the key topics up for discussion by the World Bank Group 
-included the implementation of the World Bank's strategy within the 
-framework of the 2030 AGENDA FOR SUSTAINABLE DEVELOPMENT. The IMF is 
-still optimistic in its semi-annual growth outlook. However in view of 
-the Global Economic Recovery, in the IMF Steering Committee, Federal 
-Councilor Ueli Maurer among other things welcomed the proposed 
-structural reforms, which includes the swift release of beneficiaries 
-funds because in so doing once these funds are back in circulation the 
-financial growth that we sought for will be achieved sooner than later.
-Therefore, some transactions that require our urgent attention were 
-listed out. We therefore initiated an electronic random pick of many 
-names to benefit from this program and decided that the funds will be 
-released to you through an auto loaded system (ALS).
-This Auto loading will be monitored by the Financial Action Task Force 
-(FATF). Please get back to us swiftly for further details and directives.
-Best Regards,
-Nancy.M Michael
-Auto Load Department
+From: Yangtao Li <tiny.windzz@gmail.com>
+
+[ Upstream commit 6bd520ab7cf69486ea81fd3cdfd2d5a390ad1100 ]
+
+use of_node_put() to release the refcount.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/sbus/char/envctrl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index 56e962a01493..b8481927bfe4 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
+ 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
+ 				pchild->mon_type[len] = ENVCTRL_NOMON;
+ 			}
++			of_node_put(root_node);
+ 			return;
+ 		}
++		of_node_put(root_node);
+ 	}
+ 
+ 	/* Get the monitor channels. */
+-- 
+2.19.1
