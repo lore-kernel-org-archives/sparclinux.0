@@ -1,43 +1,43 @@
-From: Rob Herring <robh@kernel.org>
-Date: Wed, 05 Dec 2018 19:50:47 +0000
-Subject: [PATCH] ALSA: sparc: Use of_node_name_eq for node name comparisons
-Message-Id: <20181205195050.4759-31-robh@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:31:38 +0000
+Subject: [PATCH AUTOSEL 4.9 12/34] drivers/sbus/char: add of_node_put()
+Message-Id: <20181213043200.76295-12-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181213043200.76295-1-sashal@kernel.org>
+In-Reply-To: <20181213043200.76295-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Convert string compares of DT node names to use of_node_name_eq helper
-instead. This removes direct access to the node name pointer.
+From: Yangtao Li <tiny.windzz@gmail.com>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Rob Herring <robh@kernel.org>
+[ Upstream commit 6bd520ab7cf69486ea81fd3cdfd2d5a390ad1100 ]
+
+use of_node_put() to release the refcount.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- sound/sparc/cs4231.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/sbus/char/envctrl.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/sound/sparc/cs4231.c b/sound/sparc/cs4231.c
-index e73c962590eb..f707cd4886c3 100644
---- a/sound/sparc/cs4231.c
-+++ b/sound/sparc/cs4231.c
-@@ -2075,12 +2075,12 @@ static int cs4231_ebus_probe(struct platform_device *op)
- static int cs4231_probe(struct platform_device *op)
- {
- #ifdef EBUS_SUPPORT
--	if (!strcmp(op->dev.of_node->parent->name, "ebus"))
-+	if (of_node_name_eq(op->dev.of_node->parent, "ebus"))
- 		return cs4231_ebus_probe(op);
- #endif
- #ifdef SBUS_SUPPORT
--	if (!strcmp(op->dev.of_node->parent->name, "sbus") ||
--	    !strcmp(op->dev.of_node->parent->name, "sbi"))
-+	if (of_node_name_eq(op->dev.of_node->parent, "sbus") ||
-+	    of_node_name_eq(op->dev.of_node->parent, "sbi"))
- 		return cs4231_sbus_probe(op);
- #endif
- 	return -ENODEV;
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index 5609b602c54d..baa9b322520b 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
+ 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
+ 				pchild->mon_type[len] = ENVCTRL_NOMON;
+ 			}
++			of_node_put(root_node);
+ 			return;
+ 		}
++		of_node_put(root_node);
+ 	}
+ 
+ 	/* Get the monitor channels. */
 -- 
 2.19.1
