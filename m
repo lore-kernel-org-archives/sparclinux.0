@@ -1,17 +1,43 @@
-From: "Mr. Muller Dieter" <lmaita@umc.edu.ve>
-Date: Fri, 07 Dec 2018 14:16:24 +0000
-Subject: Urgently need money? We can help you!
-Message-Id: <20181207141659.D2C64468D250@mail.umc.edu.ve>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 13 Dec 2018 04:33:35 +0000
+Subject: [PATCH AUTOSEL 3.18 08/16] drivers/sbus/char: add of_node_put()
+Message-Id: <20181213043343.76896-8-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181213043343.76896-1-sashal@kernel.org>
+In-Reply-To: <20181213043343.76896-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Urgently need money? We can help you!
-Are you by the current situation in trouble or threatens you in trouble?
-In this way, we give you the ability to take a new development.
-As a rich person I feel obliged to assist people who are struggling to give them a chance. Everyone deserved a second chance and since the Government fails, it will have to come from others.
-No amount is too crazy for us and the maturity we determine by mutual agreement.
-No surprises, no extra costs, but just the agreed amounts and nothing else.
-Don't wait any longer and comment on this post. Please specify the amount you want to borrow and we will contact you with all the possibilities. contact us today at stewarrt.lf01@gmail.com
+From: Yangtao Li <tiny.windzz@gmail.com>
+
+[ Upstream commit 6bd520ab7cf69486ea81fd3cdfd2d5a390ad1100 ]
+
+use of_node_put() to release the refcount.
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/sbus/char/envctrl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
+index af15a2fdab5e..3d36fa025a5a 100644
+--- a/drivers/sbus/char/envctrl.c
++++ b/drivers/sbus/char/envctrl.c
+@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
+ 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
+ 				pchild->mon_type[len] = ENVCTRL_NOMON;
+ 			}
++			of_node_put(root_node);
+ 			return;
+ 		}
++		of_node_put(root_node);
+ 	}
+ 
+ 	/* Get the monitor channels. */
+-- 
+2.19.1
