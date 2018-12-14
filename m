@@ -1,25 +1,34 @@
-From: Eugeniy Paltsev <eugeniy.paltsev@synopsys.com>
-Date: Fri, 14 Dec 2018 12:12:00 +0000
+From: "hch@lst.de" <hch@lst.de>
+Date: Fri, 14 Dec 2018 12:21:49 +0000
 Subject: Re: [PATCH 1/2] dma-mapping: zero memory returned from dma_alloc_*
-Message-Id: <1544789518.3270.34.camel@synopsys.com>
+Message-Id: <20181214122149.GA7309@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181214082515.14835-1-hch@lst.de>
-         <20181214082515.14835-2-hch@lst.de>
-In-Reply-To: <20181214082515.14835-2-hch@lst.de>
+	<20181214082515.14835-2-hch@lst.de>
+	<1544789518.3270.34.camel@synopsys.com>
+In-Reply-To: <1544789518.3270.34.camel-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "hch@lst.de" <hch@lst.de>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "ashutosh.dixit@intel.com" <ashutosh.dixit@intel.com>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "monstr@monstr.eu" <monstr@monstr.eu>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
+To: Eugeniy Paltsev <eugeniy.paltsev-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>
+Cc: "linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org" <linux-xtensa-PjhNF2WwrV/0Sa2dR60CXw@public.gmane.org>, "monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org" <monstr-pSz03upnqPeHXe+LvDLADg@public.gmane.org>, "linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org" <linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org>, "linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org" <linux-m68k-cunTk1MwBs8S/qaLPR03pWD2FQJk+8+b@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashutosh.dixit-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org" <openrisc-cunTk1MwBs9a3B2Vnqf2dGD2FQJk+8+b@public.gmane.org>, "linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-alpha-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-snps-arc-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>
 
-SGkgQ2hyaXN0b3BoLA0KDQpkbyB5b3UgaGF2ZSBhbnkgcHVibGljIGdpdCByZXBvc2l0b3J5IHdp
-dGggYWxsIHlvdXIgZG1hIGNoYW5nZXM/DQoNCkkgd2FudCB0byB0ZXN0IHRoZW0gZm9yIEFSQy4N
-Cg0KVGhhbmtzLg0KDQpPbiBGcmksIDIwMTgtMTItMTQgYXQgMDk6MjUgKzAxMDAsIENocmlzdG9w
-aCBIZWxsd2lnIHdyb3RlOg0KPiBJZiB3ZSB3YW50IHRvIG1hcCBtZW1vcnkgZnJvbSB0aGUgRE1B
-IGFsbG9jYXRvciB0byB1c2Vyc3BhY2UgaXQgbXVzdCBiZQ0KPiB6ZXJvZWQgYXQgYWxsb2NhdGlv
-biB0aW1lIHRvIHByZXZlbnQgc3RhbGUgZGF0YSBsZWFrcy4gICBXZSBhbHJlYWR5IGRvDQo+IHRo
-aXMgb24gbW9zdCBjb21tb24gYXJjaGl0ZWN0dXJlcywgYnV0IHNvbWUgYXJjaGl0ZWN0dXJlcyBk
-b24ndCBkbyB0aGlzDQo+IHlldCwgZml4IHRoZW0gdXAsIGVpdGhlciBieSBwYXNzaW5nIEdGUF9a
-RVJPIHdoZW4gd2UgdXNlIHRoZSBub3JtYWwgcGFnZQ0KPiBhbGxvY2F0b3Igb3IgZG9pbmcgYSBt
-YW51YWwgbWVtc2V0IG90aGVyd2lzZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBI
-ZWxsd2lnIDxoY2hAbHN0LmRlPg0KPiAtLS0NCi0tIA0KIEV1Z2VuaXkgUGFsdHNldg=
+On Fri, Dec 14, 2018 at 12:12:00PM +0000, Eugeniy Paltsev wrote:
+> Hi Christoph,
+> 
+> do you have any public git repository with all your dma changes?
+
+Most of the tree show up in my misc.git repo for testing.
+
+This series is here:
+
+http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dma-alloc-always-zero
+
+There current version of the DMA_ATTR_NON_CONSISTENT series is here:
+
+http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/dma-noncoherent-allocator.2
+
+
+> I want to test them for ARC.
+
+Thanks a lot!
