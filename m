@@ -1,43 +1,16 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 13 Dec 2018 04:30:27 +0000
-Subject: [PATCH AUTOSEL 4.14 14/41] drivers/sbus/char: add of_node_put()
-Message-Id: <20181213043054.75891-14-sashal@kernel.org>
+From: "Mr Owen Peter" <aturnerr1976@gmail.com>
+Date: Mon, 17 Dec 2018 04:51:05 +0000
+Subject: <<<Investment PARTNERSHIP For You>>
+Message-Id: <201812170450.wBH4olbS024325-wBH4olbU024325@antispam.interfashion.it>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181213043054.75891-1-sashal@kernel.org>
-In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
+Good Day,
+Hope you are doing great Today.I have a proposed BUSINESS DEAL that will benefit both parties. This is legitimate,legal and your personality will not be compromised.Please Reply to me ONLY if you are interested and consider your self capable for details.
 
-[ Upstream commit 6bd520ab7cf69486ea81fd3cdfd2d5a390ad1100 ]
+Sincerely,
 
-use of_node_put() to release the refcount.
-
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/sbus/char/envctrl.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 56e962a01493..b8481927bfe4 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -910,8 +910,10 @@ static void envctrl_init_i2c_child(struct device_node *dp,
- 			for (len = 0; len < PCF8584_MAX_CHANNELS; ++len) {
- 				pchild->mon_type[len] = ENVCTRL_NOMON;
- 			}
-+			of_node_put(root_node);
- 			return;
- 		}
-+		of_node_put(root_node);
- 	}
- 
- 	/* Get the monitor channels. */
--- 
-2.19.1
+Peter OWEN
