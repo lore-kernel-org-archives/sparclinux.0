@@ -1,7 +1,7 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Sat, 15 Dec 2018 20:56:07 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 18 Dec 2018 16:33:11 +0000
 Subject: Re: [PATCH v2 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Message-Id: <CABeXuvr7je=LG9+xO286b7HH2WNLSfoOL4V6nN0AkjsGr_SoCQ@mail.gmail.com>
+Message-Id: <CAK8P3a0PFQCqo2Ofce7uJeWAgssMbh8u1CNWeAmUk9LzQRn35g@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20181211202520.16799-1-deepa.kernel@gmail.com>
  <20181211202520.16799-7-deepa.kernel@gmail.com> <CAF=yD-LDWrjxK+XFv-KNAoyP7NCOZiL00n5PkzQ-5aEzq+eCLQ@mail.gmail.com>
@@ -12,9 +12,27 @@ In-Reply-To: <CAF=yD-KFYdXRgL-HpAJLLHuywMcaBGfz7sDL35DBNs0hoq+zxQ@mail.gmail.com
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: willemdebruijn.kernel@gmail.com
-Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
+To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Cc: Deepa Dinamani <deepa.kernel@gmail.com>, David Miller <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Henderson <rth@twiddle.net>, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
 
+On Sat, Dec 15, 2018 at 7:52 PM Willem de Bruijn
+<willemdebruijn.kernel@gmail.com> wrote:
+>
+> > 3 reasons for not doing this:
+> >
+> > 1. We do not want to break userspace. If we move this to
+> > linux/socket.h all the userspace programs now have to include
+> > linux/socket.h or get this definition through a new libc.
+> > 2. All the socket options are together in the file asm/socket.h. It
+> > doesn't seem good for maintainability to move just a few bits
+> > elsewhere.
+> > 3. There are only 4 arches (after the series is applied) that have
+> > their own asm/socket.h. And, this is because there seems to be
+> > significant differences to asm-generic/socket.h that don't seem
+> > logically obvious to group and eliminate some of the defines.
+>
+> Agreed. All good reasons to leave as is.
+>
 > > Also for the other comment. The reason the conditionals were not
 > > consistent is because they were not consistent to begin with.
 >
@@ -57,20 +75,14 @@ Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-ke
 > -                       if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
 >                         } else {
 >                         }
->
-> I think we can use the same helper for both the sock and tcp variant.
-> The only intended difference between the two functions, as described
-> in the tcp_recv_timestamp function comment, is the absence of an skb
-> in the tcp case. That is immaterial at this level.
 
-I will just not refactor things into a function: __sock_rescv_timestamp_new().
-I will just add new conditionals for the new timestamps.
-When you guys refactor the other timestamp stuff like you mentioned
-below maybe you can move the new timestamps to a new funtcion as you
-see fit.
-
-The helper functions in skbuff.h might first need to be refactored
-first. But I again leave this to you guys.
+Generally speaking, I think we want the new time handling
+to be written as the default case rather than have it hidden away
+in a separate function. If we didn't have the sparc64 quirk with its
+unusual timeval definition, we'd only need a special flag for the
+old 32-bit format, but that doesn't work as long we have to support
+two different 64-bit formats for 64-bit timeval on sparc64
+(32 or 64 bit microseconds).
 
 > Note also (2) tentative helper function sock_uses_new_tstamp(const
 > struct sock *sk) instead of testing sock_flag(sk, SOCK_TSTAMP_NEW)
@@ -81,12 +93,10 @@ first. But I again leave this to you guys.
 >             return (sizeof(time_t) != sizeof(__kernel_long_t)) &&
 >                        sock_flag(sk, SOCK_TSTAMP_NEW);
 >     }
->
 
-You could just ifdef CONFIG_64BIT if you are worried about branching.
-Note that SO_TIMESTAMP is by default SO_TIMESTAMP_OLD on 64 bit machines.
-But, I will again leave the optimization to you. I will implement in a
-straight forward way and you guys can deicde how you want to optimize
-the fast path or what should it even be.
+I think that would break compat handling: when we have a 32-bit
+user space process, the difference between old and new timestamps
+is meaningful even on 64-bit kernels, but the distinction is only made all
+the way down in put_cmsg_compat().
 
--Deepa
+      Arnd
