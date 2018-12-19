@@ -1,35 +1,33 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 07 Dec 2018 14:14:07 +0000
-Subject: [PATCH 4/4] sparc: remove not required includes from dma-mapping.h
-Message-Id: <20181207141407.3154-5-hch@lst.de>
+From: IMFC EUROPE <f.borgheresi@alice.it>
+Date: Wed, 19 Dec 2018 16:41:04 +0000
+Subject: FROM IMFC EUROPE
+Message-Id: <167c75793f1.f.borgheresi@alice.it>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-The only thing we need to explicitly pull in is the defines for the
-CPU type.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/sparc/include/asm/dma-mapping.h | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/arch/sparc/include/asm/dma-mapping.h b/arch/sparc/include/asm/dma-mapping.h
-index b0bb2fcaf1c9..55a44f08a9a4 100644
---- a/arch/sparc/include/asm/dma-mapping.h
-+++ b/arch/sparc/include/asm/dma-mapping.h
-@@ -2,9 +2,7 @@
- #ifndef ___ASM_SPARC_DMA_MAPPING_H
- #define ___ASM_SPARC_DMA_MAPPING_H
- 
--#include <linux/scatterlist.h>
--#include <linux/mm.h>
--#include <linux/dma-debug.h>
-+#include <asm/cpu_type.h>
- 
- extern const struct dma_map_ops *dma_ops;
- 
--- 
-2.19.1
+Dear Sir,
+My name is Nancy.M Michael of the International Monetary and Financial 
+Committee (IMFC) of the IMF. The IMF through an electronic random pick 
+has chosen your name for compensation/payment. At the meeting of heads 
+of international financial institutions held recently in Geneva 
+Switzerland, the key topics up for discussion by the World Bank Group 
+included the implementation of the World Bank's strategy within the 
+framework of the 2030 AGENDA FOR SUSTAINABLE DEVELOPMENT. The IMF is 
+still optimistic in its semi-annual growth outlook. However in view of 
+the Global Economic Recovery, in the IMF Steering Committee, Federal 
+Councilor Ueli Maurer among other things welcomed the proposed 
+structural reforms, which includes the swift release of beneficiaries 
+funds because in so doing once these funds are back in circulation the 
+financial growth that we sought for will be achieved sooner than later.
+Therefore, some transactions that require our urgent attention were 
+listed out. We therefore initiated an electronic random pick of many 
+names to benefit from this program and decided that the funds will be 
+released to you through an auto loaded system (ALS).
+This Auto loading will be monitored by the Financial Action Task Force 
+(FATF). Please get back to us swiftly for further details and directives.
+Best Regards,
+Nancy.M Michael
+Auto Load Department
